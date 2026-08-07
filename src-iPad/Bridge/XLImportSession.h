@@ -172,16 +172,27 @@ NS_ASSUME_NONNULL_BEGIN
 - (int)updateModelAliasesFromMapping
     NS_SWIFT_NAME(updateModelAliasesFromMapping());
 
+// Does the loaded source carry an `xlights_rgbeffects.xml` (and so possibly
+// model face definitions)? Only true for an `.xsq` / package source; every
+// other reader reports NO. Gates the import-faces-into-the-sequence toggle,
+// mirroring the desktop dialog hiding its checkbox for non-xLights imports.
+- (BOOL)sourceHasRGBEffects;
+
 // Apply the current mappings to the host document's sequence. Runs
 // EffectMapper for each mapped row, registers undo on the document,
-// triggers a grid reload. `eraseExisting`, `lock`, and
-// `convertRenderStyle` are the import-options-sheet toggles
-// (`convertRenderStyle` maps to the `convertRender` arg of
-// `MapXLightsEffects` — converts per-model render style on import).
-// Returns NO if no mappings exist or the source sequence wasn't loaded.
+// triggers a grid reload. `eraseExisting`, `lock`,
+// `convertRenderStyle`, and `importFacesToSequence` are the
+// import-options-sheet toggles (`convertRenderStyle` maps to the
+// `convertRender` arg of `MapXLightsEffects` — converts per-model render
+// style on import; `importFacesToSequence` drives
+// `SequencePackage::SetImportFacesToSequence`, storing a source model's
+// Matrix face definition in this sequence with its images embedded instead
+// of adding it to the mapped layout model). Returns NO if no mappings exist
+// or the source sequence wasn't loaded.
 - (BOOL)applyImportWithEraseExisting:(BOOL)eraseExisting
                                 lock:(BOOL)lock
                   convertRenderStyle:(BOOL)convertRenderStyle
+               importFacesToSequence:(BOOL)importFacesToSequence
                                 error:(NSError**)error;
 
 // Parse a LOR S5 `.loredit` source at `path` using the wx-free core

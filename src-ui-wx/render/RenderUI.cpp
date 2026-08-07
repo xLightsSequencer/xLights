@@ -105,6 +105,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted) {
         }
         if (loops % 200 == 0) {
             spdlog::info("    Waiting for renderers to abort. {} left.", (int)_renderEngine->GetRenderProgressInfo().size());
+            _renderEngine->LogUnfinishedRenderJobs("Abort");
         }
     }
     spdlog::info("    Aborting renderers ... Done");
@@ -123,6 +124,17 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
     _renderEngine->RenderEffectForModel(model, startms, endms,
                                         _sequenceElements, _seqData,
                                         _suspendRender, modelsChangeCount, clear);
+}
+
+void xLightsFrame::RequestRenderForModel(const std::string &model, int startms, int endms) {
+    // Post the render to the event loop instead of running it inline. Callers
+    // such as Effect::IncrementChangeCount (effect-symbol propagation) invoke
+    // this while holding an effect's settingsLock; rendering synchronously there
+    // deadlocks the render workers. EVT_RENDER_RANGE is handled by RenderRange
+    // at the top of the event loop once the lock has been released.
+    if (_suspendRender) return;
+    RenderCommandEvent event(model, startms, endms, false, false);
+    wxPostEvent(this, event);
 }
 
 // ---------------------------------------------------------------------------
@@ -185,6 +197,8 @@ void xLightsFrame::UpdateRenderStatus()
         return;
     }
 
+    _renderEngine->CheckForStalledRender();
+
     for (auto it = _renderEngine->GetRenderProgressInfo().begin(); it != _renderEngine->GetRenderProgressInfo().end();) {
         int countModels = 0;
         int countFrames = 0;
@@ -237,8 +251,8 @@ void xLightsFrame::UpdateRenderStatus()
             }
         }
 
-        // Batch completion is signaled atomically by the last RenderJob's
-        // FinishNotifier (see RenderEngine::NotifyJobFinished). The drain
+        // Batch completion is signaled atomically by the last RenderJob
+        // reaching Done (see RenderEngine::NotifyJobFinished). The drain
         // runs on the wx main thread, so this is where we invoke the user
         // callback -- it typically touches UI.
         if (rpi->completed.load()) {

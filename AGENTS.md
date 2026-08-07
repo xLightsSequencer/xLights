@@ -24,7 +24,7 @@ Ubuntu 24.04), Windows 8.
 | `src-iPad/` | SwiftUI iPad app + ObjC++ bridge layers |
 | `macOS/` | Xcode project at `macOS/xLights.xcodeproj` |
 | `xLights/` | Build system files (.cbp, .vcxproj, etc.) |
-| `plans/ipad-parity/` | Per-theme parity scorecards (see §3) |
+| `plans/platform-parity/` | Per-theme parity scorecards (see §3) |
 | `ci_scripts/` | Include-boundary checks, CI tooling |
 | `xlDo/` | Remaining sub-app in this repo |
 | `common/` | Shared code (ARC-enabled `.mm` files) |
@@ -37,7 +37,7 @@ render engine, effect manager, sequence file/elements, and audio manager as the
 desktop. The iPad app has **shipped to the App Store** and is now in
 desktop-parity / ongoing-update mode (beyond MVP). Status and per-theme parity
 plans live in [`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) and
-[`plans/ipad-parity/`](plans/ipad-parity/) (see §3).
+[`plans/platform-parity/`](plans/platform-parity/) (see §3).
 
 ### Companion apps
 
@@ -57,7 +57,7 @@ xSchedule, xCapture, xFade, xScanner → moved to their own repos under
 | `outputs/` | Protocol handlers + controller connection config (sACN, ArtNet, DDP, USB, etc.) |
 | `controllers/` | Vendor upload handlers (Falcon, FPP, WLED, etc.) |
 | `media/` | Audio decode/encode/playback. `AudioManager` with abstract `IAudioDecoder`/`IAudioOutput`. Apple: AudioToolbox (decode) + AVAudioEngine (playback). Linux/Windows: FFmpeg + SDL2. Also `xLightsVamp` (VAMP analysis), `AudioLoader` (FFmpeg loader). |
-| `render/` | Rendering engine. `SequenceMedia.cpp` manages image cache/embed (`.xsq` base64 or external refs), resolves paths via `FixFile()`. |
+| `render/` | Rendering engine. `SequenceMedia.cpp` manages image cache/embed (`.xsq` base64 or external refs), resolves paths via `FixFile()`. `xLightsShowContext` is the wx-free show-state base (models/outputs/effects/sequence/render engine) that `xLightsFrame`, `iPadRenderContext`, and `HeadlessRenderContext` all derive from; `LoadSequenceElements` is the shared sequence-open path. `HeadlessRenderContext` powers `--headless` render (see §4). |
 | `graphics/` | wx-free GPU abstraction (see below). |
 | `discovery/` | Controller/output discovery data structures + API. |
 | `XmlSerializer/` | XML (de)serialization for models, objects, RGB effects. Includes GDTF parser. Must not depend on wx/UI. |
@@ -143,17 +143,17 @@ When the iPad has (or easily can have) an equivalent surface:
 
 1. Apply the matching change to `src-iPad/` in the **same PR**.
 2. Build `xLights-iPadLib` to verify (see §4).
-3. Update the relevant `plans/ipad-parity/` scorecard row to ✅ / 🟡.
+3. Update the relevant `plans/platform-parity/` scorecard row to ✅ / 🟡.
 
 ### State B — Captured in parity plans
 
 When immediate porting isn't straightforward (large SwiftUI/Metal work, bridge
 extraction needed, genuinely infeasible/restricted):
 
-1. Add/update a scorecard row in the matching `plans/ipad-parity/` theme doc
+1. Add/update a scorecard row in the matching `plans/platform-parity/` theme doc
    with `file:line` evidence for **both** platforms.
-2. Pick the gap label: `ipad-missing` / `ipad-weaker` / `parity` /
-   `desktop-missing`.
+2. Pick the row status: ✅ parity / 🟡 partial / ❌ missing on iPad /
+   🚫 infeasible-restricted (reason required) / 🔵 iPad-only.
 3. If adding a sizable new gap, bump `00-overview.md` headline counts + roadmap.
 4. Infeasible/restricted items go in that doc's *Infeasible / restricted*
    section with the reason.
@@ -179,32 +179,35 @@ ship a behavior gap users discover when switching clients.
 
 ### Parity plan docs
 
-Start at [`plans/ipad-parity/README.md`](plans/ipad-parity/README.md). The
-overview ([`00-overview.md`](plans/ipad-parity/00-overview.md)) holds the live
-headline numbers, the P1/P2 roadmap, and reverse-parity candidates — **read it
-there rather than trusting any count copied here, which will rot.** As of the
-last full audit the iPad sat at **~72% parity**, with the biggest backlogs in
-Preferences (11), Layout (06), and Tools (13).
+Start at [`plans/platform-parity/README.md`](plans/platform-parity/README.md). The
+overview ([`00-overview.md`](plans/platform-parity/00-overview.md)) holds the live
+headline numbers, the severity-grouped gap inventory, the P1–P3 roadmap, recorded
+product decisions, and the desktop cross-OS summary — **read it there rather than
+trusting any count copied here, which will rot.** As of the 2026-08-01 full-code
+audit (adversarially cross-checked row-by-row), the iPad sat at **≈67% parity**
+(58% of rows at full parity), with the biggest backlogs in Layout (06),
+Import/Export (08), and Preferences (11).
 
-The 14 theme docs:
+The 15 theme docs:
 
 | # | Theme |
 |---|---|
-| `00-overview` | Headline numbers, P1/P2 roadmap, reverse-parity candidates |
-| `01-file-lifecycle` | File lifecycle & sequence management |
-| `02-sequencer-grid-editing` | Sequencer grid & effect editing |
-| `03-timing-audio` | Timing tracks & audio |
-| `04-effects-and-panels` | Effects & effect setting panels |
-| `05-color-and-value-curves` | Color panel, palettes & value/color curves |
-| `06-layout-models-preview` | Layout: models, groups, preview, 3D, submodels/DMX |
-| `07-setup-controllers-upload` | Setup, controllers, outputs & upload |
+| `00-overview` | Headline numbers, gap inventory, P1–P3 roadmap, decisions |
+| `01-file-lifecycle` | File & show lifecycle, backups, packaging, media manager |
+| `02-sequencer-grid` | Sequencer grid & effect editing |
+| `03-timing-audio` | Timing tracks, lyrics & audio |
+| `04-effects-catalog` | Effects catalog & effect setting panels |
+| `05-color-value-curves` | Color panel, palettes & value/color curves |
+| `06-layout-models` | Layout: models, groups, previews, 3D, submodels/DMX |
+| `07-controllers-setup-upload` | Setup, controllers, outputs & upload |
 | `08-import-export` | Import & export |
 | `09-render-playback` | Render & playback |
-| `10-presets-jukebox-views-perspectives` | Presets, jukebox, display elements, views & perspectives |
+| `10-presets-views-perspectives` | Presets, jukebox, display elements, views & perspectives |
 | `11-preferences-settings` | Preferences, settings & keyboard shortcuts |
 | `12-ai-automation-scripting` | AI, automation & scripting |
 | `13-tools-diagnostics-help` | Tools, diagnostics & help |
 | `14-reverse-parity-ipad-only` | Reverse-parity — iPad-only features |
+| `15-desktop-platform-matrix` | Desktop cross-OS matrix (macOS vs Windows vs Linux) |
 
 ---
 
@@ -247,6 +250,74 @@ the desktop build won't surface iOS-specific breaks (e.g. `#ifdef __APPLE__`
 paths, ObjC++ bridge compilation, Swift interop). iPad deps live at
 `/opt/xLights-macOS-dependencies/lib-ios/`.
 
+### Headless render mode (render regression testing)
+
+`--headless` renders `.xsq` sequences to `.fseq` with **no window** and exits
+(`0` = success, `1` = render/write error, `2` = bad args) — the way to render
+from a script/CI/agent loop. It's driven by `HeadlessRenderContext`
+(`src-core/render/`), a concrete wx-free `xLightsShowContext` (the same
+show-state base the desktop `xLightsFrame` and the iPad derive from), so it
+exercises the real render engine, effects, and the shared `LoadSequenceElements`
+open path — nothing is stubbed.
+
+```bash
+# Render one or more sequences (glob works; quote it so the shell doesn't pre-expand)
+xLights --headless -s <showdir> <seq.xsq> [<seq2.xsq> ...]
+xLights --headless -s <showdir> "<showdir>/*.xsq"
+# --outputdir (-od) sets the output dir (default: the show's configured fseq
+# folder); it also applies to the desktop -r (render-and-exit) mode.
+xLights --headless -s <showdir> --outputdir <dir> "<showdir>/*.xsq"
+```
+
+**Same-binary diff — the core technique.** Build ONE **Release** binary and run
+it both `-r` (desktop render) and `--headless`; compare the two `.fseq` with
+`--fseqcmp`. One binary ⇒ build config isn't a confound, and headless
+run-1-vs-run-2 is the noise floor, so a real bug shows as `hl-vs-desktop` ≫
+`hl-run2run`.
+
+```bash
+xLights --fseqcmp <a.fseq> <b.fseq>              # exit 0 iff identical
+xLights --fseqcmp -s <showdir> <a.fseq> <b.fseq> # + per-model diffs + frame-offset probe
+XL_FSEQCMP_DUMPCH=<ch> xLights --fseqcmp -s <showdir> <a.fseq> <b.fseq>  # dump one 1-based channel's A/B series
+```
+
+**Gotchas:**
+- **Use Release** (`xcodebuild` with no `-configuration`); Debug is ~5–10× slower
+  and skews timing.
+- **Sandbox:** the binary can only read paths it has a bookmark for (the show /
+  fseq dirs opened in the GUI), NOT `/private/tmp`. Headless and `--fseqcmp` call
+  `ObtainAccessToURL`; stage comparison fseqs under the show dir or `~/Documents`.
+- **`-r` overwrites** fseqs in the configured folder — use `--outputdir` to redirect.
+- **Expected (non-bug) diffs vs desktop:** GPU shaders (separate GL context, small
+  per-channel float) and physics effects (LiquidFun/Box2D). Video effects ARE
+  deterministic (the old "decoder variance" was dropped frames + inconsistent
+  frame selection in the AVFoundation bridge, both fixed; `XLDBG_VID=1` logs
+  every served frame's requested time / pts / pixel hash and every null return
+  if it regresses). Random/sparkle effects are deterministic (per-`RenderBuffer`
+  RNG). Headless-to-headless determinism is the regression baseline, not
+  desktop byte-parity.
+
+**Determinism-bisect env vars** (all builds; no cost when unset): `XL_SERIAL=1`
+forces every `parallel_for` serial (isolates CPU thread-order races);
+`XL_NO_GPU_COMPUTE=1` disables GPU compute; `XL_NO_GPU_BLEND`/`_BLUR`/`_ROTO`/`_TRANS`
+disable one Metal stage each; `XL_NO_METAL_FX=ALL` (or `Name,Name`) forces effects
+to CPU; `XL_EFFSUM=1` prints per-stage checksums to stderr (`SUM C`=canvas preload,
+`SUM L`=layer, `SUM O`=post-blend) — sort two runs and diff to name the first
+divergent model/layer/stage; `XL_HEADLESS_NO_GL=1` forces the shader solid-colour
+fallback. The 2×2 matrix (`XL_SERIAL` × `XL_NO_GPU_COMPUTE`) splits a diff into
+CPU-parallel vs GPU sources; serial+noGPU byte-identical ⇒ the scheduler/blend
+chain isn't involved.
+
+**Doing render performance work?** Read
+[`plans/render-benchmarking.md`](plans/render-benchmarking.md) first — it is the
+full guide: every benchmarking/profiling/determinism env var with its real
+meaning, the `XL_RENDER_PROFILE` per-effect timing tables and how to read them
+without drawing the wrong conclusion about GPU effects, frame-parallel telemetry
+(`XL_PARALLEL_WINDOWS` / `XL_PARALLEL_BLOCKERS` / `XL_VERIFY_STATELESS`),
+`--fseqcmp` divergence localisation, and the timing methodology that makes a
+number trustworthy (which metric to quote, why process wall-clock is often the
+wrong one, and how noisy a machine has to be before a result is meaningless).
+
 ### Linux
 
 ```bash
@@ -275,9 +346,11 @@ cmake --build build      # Build
 ```
 
 Top-level `CMakeLists.txt`, primarily used on Windows as an alternative to the
-`.sln`/`.vcxproj` files (out-of-source build dir). Source files are discovered
-via `file(GLOB_RECURSE ...)` — see §5 for when a manual CMakeLists.txt edit is
-needed.
+`.sln`/`.vcxproj` files (out-of-source build dir). This is what the **Windows
+CMake CI job** builds, so a `CMakeLists.txt` source-list gap breaks CI even
+though every local build passes. Source files come from a mix of directory
+globs and file-by-file entries — **adding a new `.cpp` often requires editing
+`CMakeLists.txt` too**; see §5 for which directories need it.
 
 ### wxSmith generated code
 
@@ -311,16 +384,72 @@ Place files in one of:
 | `xLights/xLights.cbp` | `<Unit filename="...">` with path relative to `xLights/` (e.g. `../src-core/render/Foo.cpp`) |
 | `xLights/Xlights.vcxproj` | `<ClCompile>` for `.cpp`, `<ClInclude>` for `.h`, path relative to `xLights/` (e.g. `..\src-core\render\Foo.cpp`) |
 | `xLights/Xlights.vcxproj.filters` | Filter entries for VS folder organization |
+| `CMakeLists.txt` | A `.cpp` line in `SRC_CORE` / `SRC_EFFECTS` / `SRC_UI` **unless** the file's directory is already covered by a `*.cpp` glob — see below |
+
+### CMake: check whether your directory is globbed
+
+`CMakeLists.txt` does **not** glob `src-core/` and `src-ui-wx/` wholesale. The
+source lists mix directory globs with file-by-file entries, so whether a new
+`.cpp` is picked up depends on which directory it lands in:
+
+| Directory | Covered by | New `.cpp` needs a CMake edit? |
+|---|---|---|
+| `src-core/media/`, `src-core/graphics/`, `src-ui-wx/graphics/` | explicit per-file entries | **Yes** — add the file to `SRC_CORE` / `SRC_UI` |
+| `src-core/effects/` | `file(GLOB …)`, **not** `GLOB_RECURSE` | No (but new *subdirectories* need a pattern) |
+| `src-core/models/`, `render/`, `outputs/`, `utils/`, `src-ui-wx/layout/`, `sequencer/`, … | `dir/*.cpp` glob | No |
+| A brand-new directory anywhere | nothing | **Yes** — add a `dir/*.cpp` pattern |
+
+Symptom of getting this wrong: the macOS/Xcode and `.cbp`/`.vcxproj` builds are
+fine, and only the **Windows CMake CI job** fails — at *link* time, with
+`LNK2019: unresolved external symbol` for the new file's functions. Grep the
+glob lists in `CMakeLists.txt` for a sibling file in the same directory: if the
+sibling is listed by name, yours must be too.
 
 ### Auto-discovered (no manual edit needed)
 
 | Platform | Mechanism |
 |---|---|
 | macOS (Xcode) | `PBXFileSystemSynchronizedRootGroup` for `src-core/`, `src-ui-wx/`, `src-iPad/` — files auto-discovered, no pbxproj edit |
-| CMake build | `file(GLOB_RECURSE SRC_UI ...)` / `file(GLOB_RECURSE SRC_CORE ...)` over existing dirs. New files inside the glob patterns are picked up on the next configure. Only files placed **outside** the existing glob patterns need a new `file(GLOB ...)` or `list(APPEND ...)` line. |
+| CMake build | Only for files landing inside an existing `dir/*.cpp` glob pattern (see the table above). |
 
 Windows/Linux builds intentionally don't compile `src-iPad/` — new iPad files
 never need `.cbp`/`.vcxproj` entries.
+
+### ISPC kernels (`src-core/effects/ispc/*.ispc`) — extra steps
+
+A new SIMD kernel `FooFunctions.ispc` is **not** auto-discovered anywhere and is
+**gitignored** (`.gitignore`'s bare `ispc` pattern matches the whole `ispc/`
+dir). Every one of these is required:
+
+| File | What to add |
+|---|---|
+| the `.ispc` + generated `.ispc.h` | `git add -f` both (gitignored). Commit the `.ispc.h` (checked in; build regenerates + overwrites only on change). |
+| `macOS/xLights.xcodeproj/project.pbxproj` | Add `effects/ispc/FooFunctions.ispc,` to the `PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet` for the **`ISPCEffectComputeFunctions`** target. Not auto-discovered; missing it fails the x86_64 link (arm64 / static-lib iPad hide it). **`macOS/` is a git submodule** — commit there + bump the pointer. |
+| `build_scripts/linux/ispc.mak` | Add the `OBJ_LINUX_DEBUG +=` / `OBJ_LINUX_RELEASE += …/FooFunctions.o` pair. |
+| `xLights/xLights.cbp` | `<Unit>` for the `.ispc` (with `<Option link="1"/>`) and the `.ispc.h`. |
+| `xLights/Xlights.vcxproj` (+ `.filters`) | `<CustomBuild>` for the `.ispc` (copy an existing kernel's ispc.exe block) and `<ClInclude>` for the `.ispc.h`. |
+| CMake | Auto-globs `*.ispc` — no edit. |
+
+Generate the committed header with the same flags the build's header step uses:
+`ispc --target-os=macos --target=avx2-i32x16 --target=avx1-i32x16 --arch=x86_64
+-h Foo.ispc.h Foo.ispc`, then `sed -i '' '/.ispc.h/d' Foo.ispc.h`.
+
+### Metal kernels (`src-core/effects/metal/*.metal` + `Metal*Effect.mm`) — Apple only
+
+A GPU effect is a `.metal` shader + a `Metal<Foo>Effect.mm` wrapper that **subclasses**
+the CPU effect and overrides `Render` (fall back to the base `Render` when Metal
+isn't viable — no GPU, buffer < `metalBufferSizeThreshold`, or unsupported options).
+Neither file is gitignored (plain `git add`). Metal is Apple-only — **no** `.cbp`,
+`.vcxproj`, or `ispc.mak` edits.
+
+| Piece | What to do |
+|---|---|
+| `Foo.metal` | Compute kernel `kernel void FooEffect(constant MetalFooData&, device uchar4*, uint index)`. **Auto-compiled** into `EffectComputeFunctions.metallib` by the `EffectComputeFunctions` target (it syncs all of `src-core`, no per-file list). |
+| `MetalEffectDataTypes.h` | Add `MetalFooData` struct (shared by `.mm` and `.metal`). |
+| `MetalEffects.hpp` | Declare `class MetalFooEffect : public FooEffect` + `class MetalFooEffectData;`. |
+| `MetalFooEffect.mm` | Wrapper: `data->fn = FindComputeFunction("FooEffect")`, fill the struct, dispatch one thread/pixel. Auto-discovered by `xLights-core`. |
+| `MetalEffectManager.mm` | Add `case eff_FOO: return new MetalFooEffect(eff);` (the `#ifdef __APPLE__ CreateMetalEffect` factory). |
+| `macOS/.../project.pbxproj` | Add `effects/metal/FooFunctions.metal,` to the **`xLights-core`** target's membership-exception list (so xLights-core doesn't also compile it). Verify the symbol landed: `xcrun metal-nm .../EffectComputeFunctions.metallib \| grep FooEffect`. `macOS/` is a submodule. |
 
 ---
 
@@ -450,6 +579,7 @@ Under `-O3` + LTO this silently breaks two source-correct patterns:
 |---|---|---|
 | `float best = std::numeric_limits<float>::infinity()` as a max-so-far sentinel | `infinity()` folded to 0; first `if (v < best)` fails, value silently dropped | Use `std::numeric_limits<float>::max()` (or `::lowest()` for `-inf`). The legacy `1000000000.0f` idiom is also fine. Same for `HUGE_VALF`, `INFINITY`, `1.0f/0.0f`. |
 | `std::isnan(x)` / `std::isinf(x)` / `std::isfinite(x)` as defensive guards | Folded to `false`/`false`/`true` — guard becomes a no-op | Use `xl::isnan` / `xl::isinf` / `xl::isfinite` from `src-core/utils/FloatChecks.h` (maps to `__builtin_*` on clang/gcc, preserved under `-ffinite-math-only`; `std::*` on MSVC). Do **not** call `__builtin_isnan` directly — MSVC lacks it and Windows fails to build. |
+| Hoisting a loop-invariant factor out of a float expression to save work (`v*k` per step instead of recomputing `k`) | Algebraically exact, but fast-math reassociates/fuses the shortened chain differently, so results drift by an ulp — enough to shift a `lround(x*255.0f)` channel by ±1 | Fine for integers. For floats, don't assume byte-identity from an algebraically-equal rewrite: prove it with a sweep compiled **with** `-ffast-math` (compiling without it hides the whole failure mode), or verify end-to-end with `--fseqcmp`. See the note in `MeteorsEffect.cpp` for a worked example. |
 
 Don't write code depending on NaN propagation, `-0.0` sign preservation, or inf
 arithmetic surviving — fast-math may reorder, fuse, or eliminate those. ISPC
@@ -519,11 +649,32 @@ Keep descriptions brief (1-2 lines). Indent continuation lines to align with the
 description start. If the release at the top has a concrete date with no `?` in
 it, start a new release above it.
 
-**Do NOT add iPad-specific changes to `README.txt`.** It is the **desktop**
-release-notes file — iPad-only entries just clutter it. iPad changes go in the
-parity plans (§3): update the matching feature's scorecard status (→ ✅ / 🟡).
-Git history is the iPad changelog. Changes that touch shared `src-core/` code
-**and** user-visible desktop behavior still belong in `README.txt`.
+### iPad entries
+
+The iPad app ships to real users, so its changes belong in `README.txt` too.
+Prefix an iPad-only entry with `iPad - `:
+
+```
+    -enh (author)                iPad - Description of the enhancement
+    -bug (author)                iPad - Description of the bug fix
+```
+
+Which prefix to use:
+
+| Change | Entry |
+|---|---|
+| iPad-only (`src-iPad/`) | One entry, prefixed `iPad - ` |
+| Desktop-only (`src-ui-wx/`) | One entry, no prefix |
+| Shared (`src-core/`) affecting both, same user-visible behavior | One entry, no prefix — don't split it in two |
+| Shared, but the platforms surface it differently | Separate entries so each reads correctly for its audience |
+
+Write the entry for the user of that platform, not for the diff: describe what
+changed for someone using the app, not which files moved. A pure refactor with
+no user-visible effect on either platform still gets no entry at all.
+
+This does **not** replace the parity plans (§3) — a change still updates the
+matching scorecard row. `README.txt` says what shipped; the scorecards say where
+the two platforms stand relative to each other.
 
 ---
 

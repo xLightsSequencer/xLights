@@ -87,7 +87,7 @@
             "controlType": "custom",
             "platform": "ipad",
             "default": "",
-            "description": "iPad-only fixture selection: eight toggles for Moving Head slots 1-8. Each toggle flips the matching MH*_Settings entry between active and empty. Position slider changes (Pan / Tilt / Offsets / Groupings / Cycles) automatically re-sync into every active fixture. Colour, dimmer intensity, and path-clear authoring are now in their own tabs; full path waypoint editing still requires desktop's Effect Assist panel."
+            "description": "iPad-only fixture selection: eight toggles for Moving Head slots 1-8. Each toggle flips the matching MH*_Settings entry between active and empty. Position slider changes (Pan / Tilt / Offsets / Groupings / Cycles) automatically re-sync into every active fixture, as do the Pattern, shutter and Link settings. Colour, dimmer intensity, waypoint path drawing and parametric patterns each have their own tab."
         },
         {
             "id": "MHIpadInfo",
@@ -181,6 +181,172 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false
+        },
+        {
+            "id": "MHShutterEnable",
+            "label": "Enable Shutter",
+            "description": "Holds the fixture shutter open at the model's Shutter On value for the whole effect. Auto Shutter still takes over when it is active.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "MHPatternEnable",
+            "label": "Enable Pattern",
+            "description": "Drives Pan/Tilt from a parametric shape generator instead of (or on top of) the waypoint path.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "MHPattern",
+            "label": "Shape",
+            "description": "Parametric shape the beam traces over the effect duration. Modelled on QLC+ EFX shapes.",
+            "type": "enum",
+            "controlType": "choice",
+            "default": "Circle",
+            "options": [
+                "Circle",
+                "Eight",
+                "Line",
+                "Line2",
+                "Diamond",
+                "Square",
+                "SquareChoppy",
+                "SquareTrue",
+                "Leaf",
+                "Lissajous"
+            ]
+        },
+        {
+            "id": "MHPatternWidth",
+            "label": "Width",
+            "description": "Half-width of the pattern in pan degrees.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 90,
+            "min": 0,
+            "max": 180
+        },
+        {
+            "id": "MHPatternHeight",
+            "label": "Height",
+            "description": "Half-height of the pattern in tilt degrees.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 45,
+            "min": 0,
+            "max": 180
+        },
+        {
+            "id": "MHPatternXOffset",
+            "label": "X Offset",
+            "description": "Pan-axis centre of the pattern in degrees.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -180,
+            "max": 180
+        },
+        {
+            "id": "MHPatternYOffset",
+            "label": "Y Offset",
+            "description": "Tilt-axis centre of the pattern in degrees.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -180,
+            "max": 180
+        },
+        {
+            "id": "MHPatternRotation",
+            "label": "Rotation",
+            "description": "Rotates the whole pattern about its centre, in degrees. Animate it with a value curve to spin the shape over the effect.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 360,
+            "valueCurve": true,
+            "vcMin": 0,
+            "vcMax": 360
+        },
+        {
+            "id": "MHPatternStartOffset",
+            "label": "Start Offset",
+            "description": "Shifts where along the shape the beam starts, in degrees.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 360
+        },
+        {
+            "id": "MHPatternPhaseOffset",
+            "label": "Head Spread",
+            "description": "Staggers grouped fixtures along the shape so they chase each other around it. Only meaningful for a model group.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -360,
+            "max": 360
+        },
+        {
+            "id": "MHPatternXFreq",
+            "label": "X Frequency",
+            "description": "Lissajous only: pan-axis frequency multiplier.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 2,
+            "min": 0,
+            "max": 32
+        },
+        {
+            "id": "MHPatternYFreq",
+            "label": "Y Frequency",
+            "description": "Lissajous only: tilt-axis frequency multiplier.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 3,
+            "min": 0,
+            "max": 32
+        },
+        {
+            "id": "MHPatternXPhase",
+            "label": "X Phase",
+            "description": "Lissajous only: pan-axis phase in degrees.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 90,
+            "min": 0,
+            "max": 360
+        },
+        {
+            "id": "MHPatternYPhase",
+            "label": "Y Phase",
+            "description": "Lissajous only: tilt-axis phase in degrees.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": 0,
+            "max": 360
+        },
+        {
+            "id": "MHLinkToNext",
+            "label": "Link end position to next Moving Head effect",
+            "description": "Snaps every active head's Pan/Tilt to where the next Moving Head effect on this row starts, and forces the Dimmer to 0 so the head moves into position dark.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "MHLinkRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "platform": "ipad",
+            "default": "",
+            "description": "iPad Link tab body: per-head sync preview plus a Re-sync button, mirroring desktop's StaticText_MHLinkPreview."
         },
         {
             "id": "MH1_Settings",
@@ -308,9 +474,35 @@
                     ]
                 },
                 {
+                    "label": "Pattern",
+                    "properties": [
+                        "MHPatternEnable",
+                        "MHPattern",
+                        "MHPatternWidth",
+                        "MHPatternHeight",
+                        "MHPatternXOffset",
+                        "MHPatternYOffset",
+                        "MHPatternRotation",
+                        "MHPatternStartOffset",
+                        "MHPatternPhaseOffset",
+                        "MHPatternXFreq",
+                        "MHPatternYFreq",
+                        "MHPatternXPhase",
+                        "MHPatternYPhase"
+                    ]
+                },
+                {
                     "label": "Control",
                     "properties": [
-                        "AUTO_SHUTTER"
+                        "AUTO_SHUTTER",
+                        "MHShutterEnable"
+                    ]
+                },
+                {
+                    "label": "Link",
+                    "properties": [
+                        "MHLinkToNext",
+                        "MHLinkRow"
                     ]
                 },
                 {
@@ -319,6 +511,40 @@
                 }
             ],
             "settingKey": "E_NOTEBOOK1"
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "MHPatternEnable",
+                "equals": true
+            },
+            "enable": [
+                "MHPattern",
+                "MHPatternWidth",
+                "MHPatternHeight",
+                "MHPatternXOffset",
+                "MHPatternYOffset",
+                "MHPatternRotation",
+                "MHPatternStartOffset",
+                "MHPatternPhaseOffset",
+                "MHPatternXFreq",
+                "MHPatternYFreq",
+                "MHPatternXPhase",
+                "MHPatternYPhase"
+            ]
+        },
+        {
+            "when": {
+                "property": "MHPattern",
+                "equals": "Lissajous"
+            },
+            "enable": [
+                "MHPatternXFreq",
+                "MHPatternYFreq",
+                "MHPatternXPhase",
+                "MHPatternYPhase"
+            ]
         }
     ]
 }

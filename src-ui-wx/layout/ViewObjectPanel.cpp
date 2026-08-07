@@ -118,7 +118,6 @@ wxTreeListCtrl* ViewObjectPanel::CreateTreeListCtrl(long style)
                               wxDefaultPosition, wxDefaultSize,
                               style, "ID_TREELISTVIEW_OBJECTS");
     tree->SetImages(m_imageList);
-
     tree->AppendColumn("Object / Group",
                        wxCOL_WIDTH_AUTOSIZE,
                        wxALIGN_LEFT,
@@ -338,6 +337,12 @@ void ViewObjectPanel::UpdateObjectsForPreview(const std::string &group, LayoutGr
 
     for (const auto& it : layoutPanel->xlights->AllObjects) {
         ViewObject *view_object = it.second;
+        // Controller boxes are created, named and deleted from the Controllers
+        // page; listing them here would offer a rename/delete that would break
+        // the controller binding.
+        if (view_object->GetDisplayAs() == DisplayAsType::Controller) {
+            continue;
+        }
         if (view_object->GetDisplayAs() != DisplayAsType::ObjectGroup) {
             if (group == "All Models" ||
                 view_object->GetLayoutGroup() == group ||

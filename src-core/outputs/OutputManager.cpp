@@ -27,6 +27,7 @@
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
 #include "utils/ip_utils.h"
 #include "render/UICallbacks.h"
 #include <cassert>
@@ -170,6 +171,24 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     DeleteTestPreset();
 
+    // OutputManager is a single long-lived instance reused across show-folder
+    // switches within a session (unlike Controller/Output, which get freshly
+    // constructed per load). Without this reset, a stale _dirty=true left over
+    // from a prior show (e.g. from SetSyncEnabled, SetGlobalFPPProxy, the
+    // BaseShowDir fallback-resolve below, etc.) would incorrectly carry over
+    // and mark every subsequently loaded show dirty, even one loaded fresh
+    // from the command line at startup (where this constructor-default reset
+    // is still untouched).
+    _dirty = false;
+
+    // Same reasoning as _dirty above: DidConvert() drives SetDir()'s decision
+    // to mark UnsavedNetworkChanges true (see xLightsFrame::SetDir). Without
+    // resetting it here, converting one legacy-format show earlier in the
+    // session would leave every later show in that session permanently
+    // flagged as "converted" too, even ones that never went through the
+    // legacy conversion path.
+    _didConvert = false;
+
     _showDir = showdir;
     _filename = (std::filesystem::path(showdir) / GetNetworksFileName()).string();
     ObtainAccessToURL(_filename);
@@ -208,6 +227,8 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                 _dirty = true;
             }
         }
+
+        _baseControllersSyncedTime = root.attribute("BaseControllersSyncedTime").as_string("");
 
         std::map<std::string, bool> multiip;
         for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
@@ -357,7 +378,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     return true;
 }
 
-bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui)
+bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui, bool* changedOut)
 {
     bool changed = false;
 
@@ -386,6 +407,16 @@ bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll,
                 if (it->GetName() == baseit->GetName()) {
                     // this is a match
                     found = true;
+
+                    // UpdateFrom is only defined between controllers of the same
+                    // kind - the overrides downcast their argument. A base show
+                    // folder holding a different controller type under the same
+                    // name would type-confuse that cast and read wild pointers.
+                    if (it->GetType() != baseit->GetType()) {
+                        spdlog::warn("Controller '{}' NOT updated from base show folder: it is a {} controller here but a {} controller in the base show folder.",
+                                     it->GetName(), it->GetType(), baseit->GetType());
+                        continue;
+                    }
 
                     bool force = false;
                     if (prompt && !it->IsFromBase()) {
@@ -419,6 +450,7 @@ bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll,
         }
 
     } else {
+        spdlog::warn("MergeFromBase: unable to load base networks file from '{}' - merge skipped.", _baseShowDir);
         return false;
     }
 
@@ -426,7 +458,27 @@ bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll,
         SomethingChanged();
     }
 
-    return changed;
+    if (changedOut != nullptr) *changedOut = changed;
+    return true;
+}
+
+bool OutputManager::NeedsBaseControllersUpdate() const
+{
+    if (_baseShowDir.empty()) return false;
+
+    std::string baseFile = (std::filesystem::path(_baseShowDir) / GetNetworksFileName()).string();
+    return FileUtils::NeedsBaseFileUpdate(baseFile, _baseControllersSyncedTime, "controller merge");
+}
+
+void OutputManager::MarkBaseControllersSynced()
+{
+    if (_baseShowDir.empty()) return;
+
+    std::string baseFile = (std::filesystem::path(_baseShowDir) / GetNetworksFileName()).string();
+    auto baseTicks = FileUtils::GetFileModTimeTicks(baseFile);
+    if (baseTicks) {
+        _baseControllersSyncedTime = std::to_string(*baseTicks);
+    }
 }
 
 void OutputManager::SaveToXML(pugi::xml_document& doc) {
@@ -450,6 +502,7 @@ void OutputManager::SaveToXML(pugi::xml_document& doc) {
         if (!ec) baseRel = rel.generic_string();
     }
     root.append_attribute("BaseShowDirRelative") = baseRel;
+    root.append_attribute("BaseControllersSyncedTime") = _baseControllersSyncedTime;
 
     if (_syncUniverse != 0) {
         pugi::xml_node newNode = root.append_child("e131sync");
@@ -686,6 +739,17 @@ Controller* OutputManager::GetController(int32_t absoluteChannel, int32_t& start
     return nullptr;
 }
 
+std::vector<Controller*> OutputManager::GetControllersInRange(int32_t startChannel, int32_t endChannel) const {
+
+    std::vector<Controller*> res;
+    for (const auto& it : _controllers) {
+        if (it->GetStartChannel() <= endChannel && it->GetEndChannel() >= startChannel) {
+            res.push_back(it);
+        }
+    }
+    return res;
+}
+
 Controller* OutputManager::GetControllerWithIP(const std::string& ip)
 {
     // Finds the first controller with the ip address
@@ -758,10 +822,11 @@ int OutputManager::GetOutputCount() const {
     return std::accumulate(begin(_controllers), end(_controllers), 0, [](int accumulator, Controller* const c) { return accumulator + c->GetOutputCount(); });
 }
 
-std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::string& hostname) const {
+std::vector<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::string& hostname) const {
 
-    std::list<Output*> res;
+    std::vector<Output*> res;
     auto outputs = GetAllOutputs();
+    res.reserve(outputs.size());
     for (const auto& it : outputs) {
         if (ip == "" || (it->IsIpOutput() && (it->GetIP() == ip || it->GetResolvedIP() == ip || it->GetIP() == hostname))) {
             res.push_back(it);
@@ -771,9 +836,9 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std
     return res;
 }
 
-std::list<Output*> OutputManager::GetAllOutputs() const {
+std::vector<Output*> OutputManager::GetAllOutputs() const {
 
-    std::list<Output*> res;
+    std::vector<Output*> res;
     for (const auto& it : _controllers) {
         for (const auto& it2 : it->GetOutputs()) {
             res.push_back(it2);
@@ -959,9 +1024,6 @@ std::string OutputManager::GetFirstUnusedCommPort() const {
     auto ports = SerialOutput::GetAvailableSerialPorts();
     if (ports.size() == 1) {
         if (ports.front() == "(no available ports)") return "NotConnected";
-#ifdef __LINUX__
-        if (ports.front() == "port enumeration not supported on Linux") return "NotConnected";
-#endif
     }
     for (const auto& it : ports) {
         bool used = false;
@@ -1192,18 +1254,18 @@ bool OutputManager::StartOutput() {
     bool ok = true;
     bool err = false;
 
+    // Re-resolve any controllers whose hostnames failed to resolve at startup
+    for (const auto& ctrl : GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(ctrl);
+        if (eth != nullptr) eth->RefreshResolvedIP();
+    }
+    ip_utils::waitForAllToResolve();
+
     for (const auto& it : GetAllOutputs()) {
 
         // make sure global FPP proxy is up to date ...
         it->SetGlobalFPPProxyIP(_globalFPPProxy);
         it->SetGlobalForceLocalIP(_globalForceLocalIP);
-
-        //try to refresh in case ctrl was turned on after xlights started
-        if (hasAlpha(it->GetResolvedIP())) {
-            IPOutput* ipOutput = dynamic_cast<IPOutput*>(it);
-            if (ipOutput) ipOutput->SetIP(it->GetResolvedIP(), true, true);
-            ip_utils::waitForAllToResolve();
-        }
 
         bool preok = ok;
         ok = it->Open() && ok;
@@ -1229,6 +1291,28 @@ bool OutputManager::StartOutput() {
     _outputCriticalSection.unlock();
 
     return _outputting; // even partially started is ok
+}
+
+bool OutputManager::StartControllerOutputs(Controller* controller) {
+    if (!_outputCriticalSection.try_lock()) return false;
+
+    auto eth = dynamic_cast<ControllerEthernet*>(controller);
+    if (eth != nullptr) {
+        eth->RefreshResolvedIP();
+        ip_utils::waitForAllToResolve();
+    }
+
+    int started = 0;
+    for (auto output : controller->GetOutputs()) {
+        output->SetGlobalFPPProxyIP(_globalFPPProxy);
+        output->SetGlobalForceLocalIP(_globalForceLocalIP);
+        if (output->Open()) started++;
+    }
+
+    if (started > 0) _outputting = true;
+
+    _outputCriticalSection.unlock();
+    return started > 0;
 }
 
 void OutputManager::StopOutput() {
@@ -1297,10 +1381,9 @@ void OutputManager::EndFrame() {
 
     auto outputs = GetAllOutputs();
     if (_parallelTransmission) {
-        std::function<void(Output*&, int)> f = [this](Output*&o, int n) {
-            o->EndFrame(_suppressFrames);
-        };
-        parallel_for(outputs, f);
+        parallel_for(0, (int)outputs.size(), [this, &outputs](int n) {
+            outputs[n]->EndFrame(_suppressFrames);
+        });
     }
     else {
         for (const auto& it : outputs) {

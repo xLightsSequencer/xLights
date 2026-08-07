@@ -58,6 +58,13 @@ class Waveform : public GRAPHICS_BASE_CLASS
         int GetStartPixelOffset() const;
         void SetSelectedInterval(int startMS, int endMS);
 
+        // While a ghost drag-to-move is in progress the selected effect's real
+        // start/end times don't change until the drag is applied, so the
+        // selected-effect bracket needs this override to track the ghost
+        // position instead of the (stale) real effect times.
+        void SetEffectDragOverride(int startMS, int endMS);
+        void ClearEffectDragOverride();
+
         void SetTimeFrequency(int frequency);
         int GetTimeFrequency() const;
 
@@ -86,7 +93,29 @@ class Waveform : public GRAPHICS_BASE_CLASS
         // _media. Concurrent inference is not safe and freed objects
         // get messaged on the worker thread (crash sig 0b727679d7).
         std::atomic<bool> _stemSeparationActive{false};
+        // Set from outside to abandon an in-flight run at the next chunk
+        // boundary — see RequestStemSeparationCancel below.
+        std::atomic<bool> _stemSeparationCancel{false};
 #endif
+
+        // Both unconditional so callers need no backend #if. The worker
+        // holds raw PCM pointers into the AudioManager for the whole run
+        // (StemSeparator.cpp), so anything that would free the sequence
+        // audio must check IsStemSeparationActive() first and, if it wants
+        // to proceed, request cancellation and let the run wind down —
+        // the progress-dialog pump joins the worker before returning.
+        bool IsStemSeparationActive() const {
+#if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT)
+            return _stemSeparationActive.load();
+#else
+            return false;
+#endif
+        }
+        void RequestStemSeparationCancel() {
+#if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT)
+            _stemSeparationCancel.store(true);
+#endif
+        }
 
         int GetActiveAudioTrackIndex() const { return _activeAudioTrackIndex; }
 
@@ -126,6 +155,8 @@ class Waveform : public GRAPHICS_BASE_CLASS
         //bool mPointSize;
         bool m_dragging;
         DRAG_MODE m_drag_mode;
+        int mEffectDragOverrideStartMS = -1;
+        int mEffectDragOverrideEndMS = -1;
 		AudioManager* _media;
         AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
         int _lowNote = -1;

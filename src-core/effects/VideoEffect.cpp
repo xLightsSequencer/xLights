@@ -14,7 +14,13 @@
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
 
+#include <algorithm>
+#include <chrono>
+#include <cstdlib>
 #include <filesystem>
+#include <memory>
+#include <mutex>
+#include <unordered_map>
 #include <spdlog/fmt/fmt.h>
 
 #include "VideoEffect.h"
@@ -30,7 +36,9 @@
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
 #include "../render/SequenceElements.h"
+#include "../render/ValueCurve.h"
 #include "../models/Model.h"
+#include "../media/VideoDecodeSizeRegistry.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 
@@ -57,6 +65,91 @@ int VideoEffect::sSampleSpacingDefault = 0;
 bool VideoEffect::sSyncAudioDefault = false;
 bool VideoEffect::sAspectRatioDefault = false;
 std::string VideoEffect::sDurationTreatmentDefault = "Normal";
+
+// Frame-parallel classification support. A Video frame is a pure function of
+// curPeriod for the stateless duration treatments, but only when the reader
+// serves frames position-independently (AVFoundation: shared per-file decoder
+// + pts-indexed frame cache). FFmpeg readers decode forward from their current
+// position, so cloned per-frame readers would each re-decode the stream and
+// aren't provably order-independent. Which impl a file gets is only known once
+// a reader is opened, so classification is per-file: unknown files stay
+// Stateful, Render() records the impl type on open (keyed on the raw settings
+// filename — the only name classification can see), and later frames of the
+// effect classify Pure. The record is sticky-false so a file that ever fell
+// back to FFmpeg never windows.
+namespace {
+std::mutex sFrameIndependentLock;
+std::unordered_map<std::string, bool> sFrameIndependentFiles;
+
+void NoteVideoFileFrameIndependence(const std::string& settingsFilename, bool independent) {
+    if (settingsFilename.empty()) {
+        return;
+    }
+    std::lock_guard<std::mutex> lk(sFrameIndependentLock);
+    auto it = sFrameIndependentFiles.find(settingsFilename);
+    if (it == sFrameIndependentFiles.end()) {
+        sFrameIndependentFiles.emplace(settingsFilename, independent);
+    } else {
+        it->second = it->second && independent;
+    }
+}
+
+bool IsVideoFileFrameIndependent(const std::string& settingsFilename) {
+    std::lock_guard<std::mutex> lk(sFrameIndependentLock);
+    auto it = sFrameIndependentFiles.find(settingsFilename);
+    return it != sFrameIndependentFiles.end() && it->second;
+}
+} // namespace
+
+RenderableEffect::FrameParallelism VideoEffect::GetFrameParallelism(const SettingsMap& settings) const
+{
+    // Opt-in (XL_VIDEO_PARALLEL=1) until the AVFoundation bridge handles the
+    // window access pattern efficiently. Windowed video is byte-identical
+    // (gated 56/56 both axes 2026-07-20) but measured SLOWER wall-clock on
+    // every video sequence: a cache-miss decode holds the SharedDecoder's
+    // unique lock, stalling all cache-hit clones of that file (and the shared
+    // window pool with them); two rows on one file sit at the eviction
+    // boundary of the 64-frame cache, and each evicted-frame miss re-decodes
+    // from the previous H.264 keyframe; and the per-handle repeated-frame
+    // fast path never hits when consecutive frames land on different clones.
+    // Decode-outside-the-mutex + corridor-aware eviction are the follow-up
+    // (plans/render-perf/02, ENGINE.md §9); flip the default when they land.
+    static const bool sParallelVideo = []() {
+        const char* e = getenv("XL_VIDEO_PARALLEL");
+        return e != nullptr && *e != '0';
+    }();
+    if (!sParallelVideo) {
+        return FrameParallelism::Stateful;
+    }
+    if (settings.GetBool("CHECKBOX_SynchroniseWithAudio", sSyncAudioDefault)) {
+        // Reads the sequence's media file, not the filename setting the
+        // registry is keyed on.
+        return FrameParallelism::Stateful;
+    }
+    std::string dt = settings.Get("CHOICE_Video_DurationTreatment", sDurationTreatmentDefault);
+    if (dt != "Normal" && dt != "Slow/Accelerate") {
+        // Loop counts end-of-video wraps across frames; Manual/Manual and
+        // Loop integrate the (value-curvable) speed frame by frame.
+        return FrameParallelism::Stateful;
+    }
+    if (settings.GetBool("CHECKBOX_Video_AspectRatio", sAspectRatioDefault)) {
+        // With animated crops the serial path retargets via Resize(), which
+        // sets exact dimensions (dropping the aspect fit), while a fresh
+        // clone reader re-applies the fit — different scaled output.
+        static const char* const cropVCs[] = {
+            "VALUECURVE_Video_CropLeft", "VALUECURVE_Video_CropRight",
+            "VALUECURVE_Video_CropTop", "VALUECURVE_Video_CropBottom"
+        };
+        for (const char* vc : cropVCs) {
+            if (settings.Get(vc, "").find("Active=TRUE") != std::string::npos) {
+                return FrameParallelism::Stateful;
+            }
+        }
+    }
+    return IsVideoFileFrameIndependent(settings.Get("FILEPICKERCTRL_Video_Filename", ""))
+               ? FrameParallelism::Pure
+               : FrameParallelism::Stateful;
+}
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
 {
@@ -166,6 +259,188 @@ bool VideoEffect::IsVideoFile(std::string filename)
     return VideoReader::IsVideoFile(filename);
 }
 
+namespace {
+// Oversized sentinel recorded for a file that must decode at native (e.g. a
+// SampleSpacing effect): larger than any real video, so the per-file max clamps
+// to native in the bridge. Kept well below INT_MAX/headroom so the bridge's
+// `size * headroom` can't overflow.
+constexpr int kDecodeSizeForceNative = 1 << 24;
+
+// The reader is opened at buffer/cropSpan so the cropped-in region still holds
+// buffer resolution — a 1% span asks for 100x the buffer. Unbounded that reached
+// 38400x21800, whose byte count no longer fits the reader's frame-buffer size,
+// leaving it with no frame buffers at all. Nothing past the cap can add detail
+// the source does not have, so bound the request instead of trusting the crop.
+constexpr int kMaxVideoDecodeDim = 4096;
+
+int CropScaledDecodeDim(int bufferDim, int cropSpan) {
+    const int span = std::max(1, cropSpan);
+    return std::clamp(bufferDim * 100 / span, 1, kMaxVideoDecodeDim);
+}
+
+// One crop setting resolved once per effect: either an active value curve or a
+// constant. Mirrors RenderableEffect::GetValueCurveInt for the raw (E_-prefixed)
+// stored settings the pre-pass reads, but built outside the sampling loop.
+struct CropSetting {
+    std::unique_ptr<ValueCurve> curve; // null => constant `scalar`
+    int scalar = 0;
+    int at(float offset, long sMS, long eMS) const {
+        return curve ? (int)curve->GetOutputValueAt(offset, sMS, eMS) : scalar;
+    }
+};
+
+CropSetting MakeCropSetting(const SettingsMap& s, const std::string& name, int def) {
+    CropSetting cc;
+    const std::string vn = "E_VALUECURVE_" + name;
+    if (s.Contains(vn)) {
+        const std::string& vcs = s.Get(vn, xlEMPTY_STRING);
+        if (!vcs.empty()) {
+            auto vc = std::make_unique<ValueCurve>();
+            vc->SetDivisor(1);
+            vc->SetLimits(VideoEffect::sCropMin, VideoEffect::sCropMax);
+            vc->Deserialise(vcs);
+            if (vc->IsActive()) {
+                cc.curve = std::move(vc);
+                return cc;
+            }
+        }
+    }
+    if (s.Contains("E_SLIDER_" + name)) {
+        cc.scalar = s.GetInt("E_SLIDER_" + name, def);
+    } else if (s.Contains("E_TEXTCTRL_" + name)) {
+        cc.scalar = s.GetInt("E_TEXTCTRL_" + name, def);
+    } else {
+        cc.scalar = def;
+    }
+    return cc;
+}
+
+// Accumulate the decode size one Video effect needs for its file.
+void AccumulateVideoEffectDecodeSize(Effect* eff, Model* model, SequenceElements& seqElements) {
+    const SettingsMap& s = eff->GetSettings();
+
+    // Sync-to-audio reads the sequence media file, not the settings path, and is
+    // forced Stateful — skip (it doesn't map to a stable file-path decode size).
+    if (s.GetBool("E_CHECKBOX_SynchroniseWithAudio", false)) {
+        return;
+    }
+    std::string filename = s.Get("E_FILEPICKERCTRL_Video_Filename", xlEMPTY_STRING);
+    if (filename.empty()) {
+        return;
+    }
+    auto vidEntry = seqElements.GetSequenceMedia().GetVideo(filename);
+    if (!vidEntry) {
+        return;
+    }
+    std::string resolved = vidEntry->GetResolvedPath();
+    if (resolved.empty()) {
+        return;
+    }
+
+    // SampleSpacing > 0 samples native pixels directly (VideoEffectProcessSample)
+    // to avoid washing colours out — any decode downscale defeats that, so the
+    // whole file must decode native. Record the sentinel and stop; because the
+    // decoder is shared per file this also protects other consumers of it.
+    if (s.GetInt("E_TEXTCTRL_SampleSpacing", VideoEffect::sSampleSpacingDefault) > 0) {
+        VideoDecodeSizeRegistry::SetMaxDecodeSize(resolved, kDecodeSizeForceNative, kDecodeSizeForceNative);
+        return;
+    }
+
+    // Buffer size this effect renders at (mirrors CheckEffectSettings/Render).
+    std::string bufferstyle = s.Get("B_CHOICE_BufferStyle", "Default");
+    std::string transform = s.Get("B_CHOICE_BufferTransform", "None");
+    std::string camera = s.Get("B_CHOICE_PerPreviewCamera", "2D");
+    int bw = 0, bh = 0;
+    model->GetBufferSize(bufferstyle, camera, transform, bw, bh, s.GetInt("B_SPINCTRL_BufferStagger", 0));
+    if (bw < 2 || bh < 2) {
+        return;
+    }
+
+    // The reader is opened at buffer/cropSpan (a 50% crop needs 2x buffer to keep
+    // the cropped-in region at buffer resolution). CropLeft/Right (and Top/Bottom)
+    // are independent value curves, so the tightest span must be found by sampling
+    // the pair together across the effect period, not from per-curve extremes.
+    // Resolve the four curves once; when all four are constant (the common case)
+    // skip the sampling loop entirely.
+    const CropSetting cl = MakeCropSetting(s, "Video_CropLeft", VideoEffect::sCropLeftDefault);
+    const CropSetting cr = MakeCropSetting(s, "Video_CropRight", VideoEffect::sCropRightDefault);
+    const CropSetting ct = MakeCropSetting(s, "Video_CropTop", VideoEffect::sCropTopDefault);
+    const CropSetting cb = MakeCropSetting(s, "Video_CropBottom", VideoEffect::sCropBottomDefault);
+    int minSpanX;
+    int minSpanY;
+    if (!cl.curve && !cr.curve && !ct.curve && !cb.curve) {
+        minSpanX = std::abs(cr.scalar - cl.scalar);
+        minSpanY = std::abs(ct.scalar - cb.scalar);
+    } else {
+        const long sMS = eff->GetStartTimeMS();
+        const long eMS = eff->GetEndTimeMS();
+        minSpanX = VideoEffect::sCropMax;
+        minSpanY = VideoEffect::sCropMax;
+        constexpr int kSamples = 101; // matches ValueCurve's sampling density
+        for (int i = 0; i < kSamples; ++i) {
+            const float off = (float)i / (float)(kSamples - 1);
+            minSpanX = std::min(minSpanX, std::abs(cr.at(off, sMS, eMS) - cl.at(off, sMS, eMS)));
+            minSpanY = std::min(minSpanY, std::abs(ct.at(off, sMS, eMS) - cb.at(off, sMS, eMS)));
+        }
+    }
+    minSpanX = std::max(1, minSpanX);
+    minSpanY = std::max(1, minSpanY);
+
+    const int w = CropScaledDecodeDim(bw, minSpanX);
+    const int h = CropScaledDecodeDim(bh, minSpanY);
+    spdlog::debug("VideoEffect decode size: '{}' buffer {}x{} crop span {}%x{}% -> decode {}x{}",
+                  resolved, bw, bh, minSpanX, minSpanY, w, h);
+    VideoDecodeSizeRegistry::SetMaxDecodeSize(resolved, w, h);
+}
+} // namespace
+
+void VideoEffect::PrepareDecodeSizes(SequenceElements& seqElements, const std::list<Model*>& models) {
+    const auto sw = std::chrono::steady_clock::now();
+    long scanned = 0;
+    long videos = 0;
+    VideoDecodeSizeRegistry::Clear();
+    // XL_NO_DECODE_SCALE: leave the registry empty so every video decodes at
+    // native (the pre-decode-scale behaviour) for A/B measurement.
+    static const bool disabled = (getenv("XL_NO_DECODE_SCALE") != nullptr);
+    if (disabled) {
+        return;
+    }
+    for (Model* model : models) {
+        if (model == nullptr) {
+            continue;
+        }
+        Element* el = seqElements.GetElement(model->GetName());
+        if (el == nullptr || el->GetType() != ElementType::ELEMENT_TYPE_MODEL) {
+            continue;
+        }
+        for (int li = 0; li < (int)el->GetEffectLayerCount(); ++li) {
+            EffectLayer* layer = el->GetEffectLayer(li);
+            if (layer == nullptr) {
+                continue;
+            }
+            for (int ei = 0; ei < layer->GetEffectCount(); ++ei) {
+                Effect* eff = layer->GetEffect(ei);
+                if (eff == nullptr) {
+                    continue;
+                }
+                ++scanned;
+                if (eff->GetEffectName() == "Video") {
+                    ++videos;
+                    AccumulateVideoEffectDecodeSize(eff, model, seqElements);
+                }
+            }
+        }
+    }
+    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - sw).count();
+    spdlog::debug("VideoEffect::PrepareDecodeSizes: {} models, {} effects scanned, {} video, {:.3f} ms",
+                  models.size(), scanned, videos, ms);
+}
+
+bool VideoEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2026.04", version) || RenderableEffect::needToAdjustSettings(version);
+}
+
 void VideoEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
@@ -187,39 +462,25 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
     if (settings.Contains("E_SLIDER_Video_Starttime")) {
         settings.erase("E_SLIDER_Video_Starttime");
     }
+}
 
-    // Resolve broken paths first, then convert to relative for portability
+void VideoEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
-    if (!file.empty() && !FileExists(file)) {
-        std::string fixed = FileUtils::FixFile("", file);
-        if (!fixed.empty() && fixed != file) {
-            settings["E_FILEPICKERCTRL_Video_Filename"] = fixed;
-            file = fixed;
-        }
-    }
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_FILEPICKERCTRL_Video_Filename"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_FILEPICKERCTRL_Video_Filename"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        const auto resolved = SequenceMedia::ResolveFilePath(file);
+        settings["E_FILEPICKERCTRL_Video_Filename"] = resolved.settingsPath;
         media.GetVideo(settings["E_FILEPICKERCTRL_Video_Filename"]);
     }
 }
 
-std::list<std::string> VideoEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
+std::list<std::string> VideoEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
     if (SettingsMap["E_FILEPICKERCTRL_Video_Filename"] != "") {
-        res.push_back(SettingsMap["E_FILEPICKERCTRL_Video_Filename"]);
+        res.push_back(ResolveFileReference(ctx, SettingsMap["E_FILEPICKERCTRL_Video_Filename"]));
     }
     return res;
 }
@@ -290,6 +551,8 @@ public:
     int _nextManualMS = 0;
     int _openedWidth = 0;
     int _openedHeight = 0;
+    bool _openedAspect = false;
+    bool _openedNative = false;
 };
 
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
@@ -341,6 +604,11 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
     int& _frameMS = cache->_frameMS;
     int& _nextManualMS = cache->_nextManualMS;
 
+    // The raw settings filename — the key GetFrameParallelism classifies on
+    // (classification can't resolve paths); recorded once the reader impl is
+    // known below.
+    const std::string settingsFilename = filename;
+
     if (synchroniseAudio)
     {
         starttime = 0;
@@ -360,10 +628,14 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         _loops = 0;
         _nextManualMS = 0;
         _frameMS = buffer.frameTimeInMs;
-        if (_videoreader != nullptr) {
-            delete _videoreader;
-            _videoreader = nullptr;
-        }
+        // Held aside rather than deleted: readers with frame-independent
+        // access can be reused if this init targets the same file with the
+        // same open parameters. Frame-parallel clone buffers re-init on every
+        // window, so without reuse each 24-frame window would recreate the
+        // reader and re-prime it. Anything left in oldReader is deleted on
+        // every exit path from this block.
+        std::unique_ptr<VideoReader> oldReader(_videoreader);
+        _videoreader = nullptr;
 
         if (buffer.BufferHt == 1) {
             spdlog::warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
@@ -379,14 +651,31 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                 } else {
                     filename = resolved;
                     // have to open the file
-                    int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
-                    int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
+                    int width = CropScaledDecodeDim(buffer.BufferWi, cropRight - cropLeft);
+                    int height = CropScaledDecodeDim(buffer.BufferHt, cropTop - cropBottom);
 
                     bool useNativeResolution = (sampleSpacing > 0);
 
-                    _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
-                    cache->_openedWidth = width;
-                    cache->_openedHeight = height;
+                    if (oldReader != nullptr && oldReader->SupportsFrameIndependentAccess() &&
+                        oldReader->GetFilename() == resolved &&
+                        cache->_openedAspect == aspectratio && cache->_openedNative == useNativeResolution &&
+                        cache->_openedWidth == width && cache->_openedHeight == height) {
+                        if (oldReader->AtEnd()) {
+                            // AtEnd is sticky once a request ran past the video
+                            // end and the Loop treatment consults it — clear it
+                            // rather than carrying it into this effect (a
+                            // frame-independent reader needs no reposition).
+                            oldReader->Seek(0, false);
+                        }
+                        _videoreader = oldReader.release();
+                    } else {
+                        oldReader.reset();
+                        _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
+                        cache->_openedWidth = width;
+                        cache->_openedHeight = height;
+                        cache->_openedAspect = aspectratio;
+                        cache->_openedNative = useNativeResolution;
+                    }
 
                     if (_videoreader == nullptr)
                     {
@@ -402,14 +691,24 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                             spdlog::warn("VideoEffect: Video {} was read as 0 length.", (const char *)filename.c_str());
                         }
 
-                        // read the first frame ... if i dont it thinks the first frame i read is the first frame
-                        _videoreader->GetNextFrame(0);
+                        if (!_videoreader->SupportsFrameIndependentAccess()) {
+                            // Positional (FFmpeg) readers need their position
+                            // established: read the first frame ... if i dont it
+                            // thinks the first frame i read is the first frame.
+                            // Frame-independent readers serve any timestamp
+                            // identically without priming, so skip the frame-0
+                            // decode and the seek.
+                            _videoreader->GetNextFrame(0);
 
+                            if (starttime != 0)
+                            {
+                                spdlog::debug("Video effect initialising ... seeking to start location for the video {}.", (float)starttime);
+                                _videoreader->Seek(starttime * 1000);
+                            }
+                        }
 
-                        if (starttime != 0)
-                        {
-                            spdlog::debug("Video effect initialising ... seeking to start location for the video {}.", (float)starttime);
-                            _videoreader->Seek(starttime * 1000);
+                        if (!synchroniseAudio) {
+                            NoteVideoFileFrameIndependence(settingsFilename, _videoreader->SupportsFrameIndependentAccess());
                         }
 
                         if (durationTreatment == "Slow/Accelerate")
@@ -436,8 +735,8 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
     }
 
     if (_videoreader != nullptr && sampleSpacing == 0) {
-        int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
-        int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
+        int width = CropScaledDecodeDim(buffer.BufferWi, cropRight - cropLeft);
+        int height = CropScaledDecodeDim(buffer.BufferHt, cropTop - cropBottom);
         bool vwidthEq = width == cache->_openedWidth;
         bool vheightEq = height == cache->_openedHeight;
         if (!vwidthEq || !vheightEq) {
@@ -452,6 +751,17 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             cache->_openedWidth = width;
             cache->_openedHeight = height;
         }
+    }
+
+    if (_videoreader != nullptr) {
+        // Corridor identity: every clone of one row+effect shares it, so the
+        // shared decoder keeps one forward decode chain per corridor instead
+        // of stealing chains between corridors (each steal that repositions
+        // re-decodes a GOP prefix).
+        _videoreader->SetStreamGroup(
+            (std::hash<std::string>{}(buffer.cur_model) ^
+             ((uint64_t)(uint32_t)buffer.curEffStartPer * 0x9E3779B97F4A7C15ULL)) |
+            1ULL);
     }
 
     if (_videoreader != nullptr && _videoreader->GetLengthMS() > 0)

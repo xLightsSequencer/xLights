@@ -1,0 +1,84 @@
+#version 450
+// Port of shatterTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+// procedural white noise
+vec2 shatterHash2(vec2 p) {
+    float a = dot(p, vec2(127.1, 311.7));
+    float b = dot(p, vec2(269.5, 183.3));
+    vec2 c = vec2(sin(a), sin(b));
+    vec2 d = 4958.5453 * c;
+    float dummy1, dummy2;
+    return vec2(modf(d.x, dummy1), modf(d.y, dummy2));
+}
+vec2 shatterVoronoi(vec2 x) {
+    vec2 n;
+    float nx, ny;
+    vec2 f = vec2(modf(x.x, nx), modf(x.y, ny));
+    n = vec2(nx, ny);
+    vec2 mc = vec2(0.0);
+    float md = 8.0;
+    for (int j = -1; j <= 1; ++j) {
+        for (int i = -1; i <= 1; ++i) {
+            vec2 g = vec2(float(i), float(j));
+            vec2 o = shatterHash2(n + g);
+            vec2 r = g + o - f;
+            float d = dot(r, r);
+            if (d < md) {
+                md = d;
+                mc = x + r;
+            }
+        }
+    }
+    return mc;
+}
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+
+    float num = 8.0;
+
+    vec2 texCentered = vec2(s, t) - vec2(0.5, 0.5);
+    float ang = atan(texCentered.y, texCentered.x);
+    float a = data.progress * 8.0;
+    float originalLength = (-1.0 + sqrt(1.0 + 4.0 * a * length(texCentered))) / (2.0 * a);
+    if (a == 0.0) {
+        originalLength = length(texCentered);
+    }
+
+    vec2 originalLocation = vec2(0.5, 0.5) + originalLength * vec2(cos(ang), sin(ang));
+    vec2 originalShard = shatterVoronoi(num * originalLocation);
+    vec2 originalCenter = vec2(originalShard.x / num, originalShard.y / num);
+    float ca = atan(originalCenter.y - 0.5, originalCenter.x - 0.5);
+    float originalCenterLength = length(originalCenter - vec2(0.5, 0.5));
+    float currentCenterLength = originalCenterLength + originalCenterLength * originalCenterLength * a;
+    vec2 currentCenter = vec2(0.5, 0.5) + currentCenterLength * vec2(cos(ca), sin(ca));
+    vec2 c4 = (vec2(s, t) - currentCenter) / (1.0 + 0.6 * data.progress) + originalCenter;
+    vec2 currentShard = shatterVoronoi(num * c4);
+
+    float transition = 1.0;
+    if (distance(originalShard, currentShard) < 0.0001) {
+        transition = smoothstep(0.70, 1.0, data.progress);
+    }
+
+    uvec4 toColor = tex2Dsrc(c4.x, c4.y);
+    uvec4 fromColor = uvec4(0u, 0u, 0u, 255u);
+    if (data.hasPrev != 0u) {
+        fromColor = tex2Dprev(s, t);
+    }
+    result[sidx] = packPx(xl_lerp4(toColor, fromColor, transition));
+}

@@ -34,6 +34,7 @@
 #include "effects/RenderableEffect.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "models/SubModel.h"
 #include "render/SequenceElements.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
@@ -647,9 +648,11 @@ void JsonEffectPanel::BuildXYCenter(wxWindow* parentWin, wxSizer* parentSizer,
     const auto& yProp = yIt->second;
     int xMin = xProp.value("min", 0);
     int xMax = xProp.value("max", 100);
+    if (xMax <= xMin) xMax = xMin + 1;
     int xDef = xProp.value("default", 0);
     int yMin = yProp.value("min", 0);
     int yMax = yProp.value("max", 100);
+    if (yMax <= yMin) yMax = yMin + 1;
     int yDef = yProp.value("default", 0);
     bool xHasVC = xProp.value("valueCurve", false);
     bool yHasVC = yProp.value("valueCurve", false);
@@ -929,6 +932,10 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
     if (controlType == "slider") {
         int minVal = prop.value("min", 0);
         int maxVal = prop.value("max", 100);
+        // wxSlider::Create() asserts "minValue < maxValue"; a bad/narrow
+        // JSON range would trip that and leave the slider's native peer
+        // uncreated, corrupting state for whatever runs next in the panel.
+        if (maxVal <= minVal) maxVal = minVal + 1;
         int defaultInt;
         if (divisor > 1) {
             double defaultFloat = prop.value("default", 0.0);
@@ -1288,6 +1295,13 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                 combo->Append(wxString(item));
             }
             combo->SetValue(wxString(defaultVal));
+            if (type == "float") {
+                switch (divisor) {
+                    case 100: combo->SetBESliderType(BE_FLOAT2); break;
+                    case 360: combo->SetBESliderType(BE_FLOAT360); break;
+                    default: combo->SetBESliderType(BE_FLOAT1); break;
+                }
+            }
             info.comboBox = combo;
             sizer->Add(combo, 1, wxALL | wxEXPAND, 2);
         } else {
@@ -1454,7 +1468,8 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
             readAxis(axis, axMin, axMax, axDef);
             const std::string axId = id + axis;
             const int scaledMin = static_cast<int>(axMin * (divisor > 1 ? divisor : 1));
-            const int scaledMax = static_cast<int>(axMax * (divisor > 1 ? divisor : 1));
+            int scaledMax = static_cast<int>(axMax * (divisor > 1 ? divisor : 1));
+            if (scaledMax <= scaledMin) scaledMax = scaledMin + 1;
             const int scaledDef = static_cast<int>(axDef * (divisor > 1 ? divisor : 1));
 
             PropertyInfo axInfo;
@@ -2025,10 +2040,14 @@ void JsonEffectPanel::SetPanelStatus(Model* cls) {
     RepopulateTimingTrackChoices();
 
     // Populate model-driven choices (states, faces, modelNodeNames). For
-    // ModelGroups, use the first contained model — matches legacy behavior.
+    // ModelGroups, use the first contained model (unwrapping submodels/nested groups).
     Model* m = cls;
-    if (cls != nullptr && cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        m = static_cast<ModelGroup*>(cls)->GetFirstModel();
+    if (cls != nullptr) {
+        if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            m = static_cast<ModelGroup*>(cls)->GetFirstModel();
+        } else if (cls->GetDisplayAs() == DisplayAsType::SubModel) {
+            m = static_cast<SubModel*>(cls)->GetParent();
+        }
     }
 
     auto populateFromDefinitions = [this, m](const std::string& sourceName, const FaceStateData& defs) {
@@ -2061,7 +2080,15 @@ void JsonEffectPanel::SetPanelStatus(Model* cls) {
 
     if (m != nullptr) {
         populateFromDefinitions("states", m->GetStateInfo());
-        populateFromDefinitions("faces", m->GetFaceInfo());
+
+        // sequence-level face definitions are usable by any model; model
+        // definitions win on a name clash (map::insert keeps existing keys)
+        FaceStateData faceDefs = m->GetFaceInfo();
+        if (mSequenceElements != nullptr) {
+            const auto& seqFaces = mSequenceElements->GetSequenceFaces().GetFaces();
+            faceDefs.insert(seqFaces.begin(), seqFaces.end());
+        }
+        populateFromDefinitions("faces", faceDefs);
 
         // Populate any choice that wants the model's per-channel node names
         // (e.g. Servo's Channel selector). Skips empty / "-"-prefixed names
@@ -2085,13 +2112,16 @@ void JsonEffectPanel::SetPanelStatus(Model* cls) {
             }
         }
     } else {
-        // Model is null (brand-new effect with no associated model) — clear any
-        // model-driven choices so stale entries from a previous model aren't shown.
+        // Model is null. Only clear model-driven choices that are already
+        // empty — if they have content from a prior valid model, preserve it
+        // so icon-click / other transient null calls don't wipe user selections.
         for (auto& [id, info] : properties_) {
             if ((info.dynamicOptions == "states" ||
                  info.dynamicOptions == "faces" ||
                  info.dynamicOptions == "modelNodeNames") && info.choice) {
-                info.choice->Clear();
+                if (info.choice->GetCount() == 0) {
+                    info.choice->Clear();
+                }
             }
         }
     }
@@ -2108,6 +2138,10 @@ const JsonEffectPanel::PropertyInfo* JsonEffectPanel::GetPropertyInfo(const std:
 }
 
 void JsonEffectPanel::SetDefaultParameters() {
+    if (metadata_.is_null() || !metadata_.is_object()) {
+        return;
+    }
+
     // Deactivate all value curves
     for (auto& [id, info] : properties_) {
         if (info.valueCurveBtn) {

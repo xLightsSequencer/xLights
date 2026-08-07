@@ -294,9 +294,32 @@ static TextFontInfo ParseFontString(const std::string& fontString) {
     TextFontInfo info;
     if (fontString.empty()) return info;
 
+    // Multi-word families arrive quoted ("'gill sans' 36 macroman"), so a quoted
+    // run is one token and is the family verbatim - splitting it on spaces
+    // leaves the quotes embedded in the face name and the font never matches.
     std::vector<std::string> parts;
+    std::string quotedFace;
     std::string current;
+    char quote = '\0';
     for (char c : fontString) {
+        if (quote != '\0') {
+            if (c == quote) {
+                quote = '\0';
+                quotedFace = current;
+                current.clear();
+            } else {
+                current += c;
+            }
+            continue;
+        }
+        if (c == '\'' || c == '"') {
+            if (!current.empty()) {
+                parts.push_back(current);
+                current.clear();
+            }
+            quote = c;
+            continue;
+        }
         if (c == ' ' || c == '\t') {
             if (!current.empty()) {
                 parts.push_back(current);
@@ -307,7 +330,7 @@ static TextFontInfo ParseFontString(const std::string& fontString) {
         }
     }
     if (!current.empty()) parts.push_back(current);
-    if (parts.empty()) return info;
+    if (parts.empty() && quotedFace.empty()) return info;
 
     auto lower = [](const std::string& s) {
         std::string out = s;
@@ -334,9 +357,10 @@ static TextFontInfo ParseFontString(const std::string& fontString) {
             continue;
         }
 
-        // Charset markers like "utf-8", "iso-8859-1", "windows-1252" — contain
-        // a digit and a hyphen. wx writes the charset last; discard it so it
-        // doesn't pollute the face name.
+        // Charset markers. Most carry a digit and a hyphen ("utf-8",
+        // "iso-8859-1", "windows-1252"), but the Mac ones do not, so they need
+        // naming or they end up glued onto the face name.
+        if (lp == "macroman" || lp == "macintosh" || lp == "mac" || lp == "default") continue;
         bool hasDigit = false, hasHyphen = false;
         for (char c : part) {
             if (std::isdigit((unsigned char)c)) hasDigit = true;
@@ -349,10 +373,12 @@ static TextFontInfo ParseFontString(const std::string& fontString) {
 
     info.pixelSize = size > 0 ? size : 12;
 
-    std::string faceName;
-    for (size_t i = 0; i < faceParts.size(); i++) {
-        if (i > 0) faceName += " ";
-        faceName += faceParts[i];
+    std::string faceName = quotedFace;
+    if (faceName.empty()) {
+        for (size_t i = 0; i < faceParts.size(); i++) {
+            if (i > 0) faceName += " ";
+            faceName += faceParts[i];
+        }
     }
     info.faceName = faceName.empty() ? "Helvetica" : faceName;
 

@@ -166,7 +166,7 @@ public:
 
     virtual wxSize 	GetSize() const override
     {
-        return wxSize(GetOwner()->GetWidth(), 15);
+        return wxSize(100, 15);
     }
 
     virtual bool GetValue(wxVariant &value) const override
@@ -244,28 +244,63 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
         xLightsImportModelNode *node2 = (xLightsImportModelNode*)item2.GetID();
 
         if (node1->_node != "" && node2->_node != "") {
-            if (ascending) {
-                return NumberAwareStringCompare(node1->_node, node2->_node);
-            } else {
-                return NumberAwareStringCompareRev(node1->_node, node2->_node);
+            int cmp = ascending ? NumberAwareStringCompare(node1->_node, node2->_node)
+                                : NumberAwareStringCompareRev(node1->_node, node2->_node);
+            if (cmp != 0) return cmp;
+
+            // Same node name (stacked-duplicate mapping row) - keep insertion order.
+            if (node1->GetParent() == node2->GetParent() && node1->GetParent() != nullptr) {
+                auto& siblings = node1->GetParent()->GetChildren();
+                int idx1 = -1, idx2 = -1;
+                for (unsigned int i = 0; i < siblings.GetCount(); ++i) {
+                    if (siblings[i] == node1) idx1 = (int)i;
+                    if (siblings[i] == node2) idx2 = (int)i;
+                }
+                return idx1 - idx2;
             }
+            return 0;
         } else if (node1->_strand != "" && node2->_strand != "") {
             if (_sortSubmodelsByName) {
-                if (ascending) {
-                    return NumberAwareStringCompare(node1->_strand, node2->_strand);
-                } else {
-                    return NumberAwareStringCompareRev(node1->_strand, node2->_strand);
+                int cmp = ascending ? NumberAwareStringCompare(node1->_strand, node2->_strand)
+                                    : NumberAwareStringCompareRev(node1->_strand, node2->_strand);
+                if (cmp != 0) return cmp;
+            }
+            // Same strand name (or not sorting by name at all) - preserve
+            // insertion order, including among stacked-duplicate rows that
+            // share their original's strand name.
+            if (node1->GetParent() == node2->GetParent() && node1->GetParent() != nullptr) {
+                auto& siblings = node1->GetParent()->GetChildren();
+                int idx1 = -1, idx2 = -1;
+                for (unsigned int i = 0; i < siblings.GetCount(); ++i) {
+                    if (siblings[i] == node1) idx1 = (int)i;
+                    if (siblings[i] == node2) idx2 = (int)i;
                 }
+                return idx1 - idx2;
             }
             int idx1 = findChildIndex(node1->GetParent(), node1->_strand);
             int idx2 = findChildIndex(node2->GetParent(), node2->_strand);
             return idx1 - idx2;
         } else {
-            if (ascending) {
-                return NumberAwareStringCompare(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
-            } else {
-                return NumberAwareStringCompareRev(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
+            // GetModel() returns the name by value as a wxString, so going
+            // through it here cost two UTF-8 round trips per argument on every
+            // comparison. The node already holds the std::string the comparator
+            // wants.
+            int cmp = ascending ? NumberAwareStringCompare(node1->_model, node2->_model)
+                                : NumberAwareStringCompareRev(node1->_model, node2->_model);
+            if (cmp != 0) return cmp;
+
+            // Same name (e.g. a stacked-duplicate mapping row shares its
+            // original's model name) - fall back to insertion order so the
+            // duplicate stays immediately after the row it was added for.
+            // wx's generic wxDataViewCtrl (Windows/Linux) doesn't sort
+            // stably, so without this tie-break equal-named rows can end up
+            // swapped; the native macOS backend happened to preserve order.
+            int idx1 = -1, idx2 = -1;
+            for (unsigned int i = 0; i < m_children.GetCount(); ++i) {
+                if (m_children[i] == node1) idx1 = (int)i;
+                if (m_children[i] == node2) idx2 = (int)i;
             }
+            return idx1 - idx2;
         }
     }
 
@@ -508,6 +543,7 @@ const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX4 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX5 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX2 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_STATICTEXT_BLEND_TYPE = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX_IMPORT_FACES_SEQ = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX3 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON_IMPORT_OPTIONS = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
@@ -585,7 +621,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     Panel1->SetMinSize(wxSize(500,-1));
     Sizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     Sizer1->AddGrowableCol(0);
-    Sizer1->AddGrowableRow(7);
+    Sizer1->AddGrowableRow(8);
     Sizer_TimeAdjust = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText_TimeAdjust = new wxStaticText(Panel1, wxID_ANY, _("Time Adjust (ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     Sizer_TimeAdjust->Add(StaticText_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -599,7 +635,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     FlexGridSizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer11->AddGrowableCol(0);
     CheckBox_EraseExistingEffects = new wxCheckBox(Panel1, ID_CHECKBOX11, _("Erase existing effects on imported models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX11"));
     CheckBox_EraseExistingEffects->SetValue(false);
     FlexGridSizer11->Add(CheckBox_EraseExistingEffects, 1, wxALL|wxEXPAND, 5);
@@ -618,6 +653,12 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     StaticText_Blend_Type = new wxStaticText(Panel1, ID_STATICTEXT_BLEND_TYPE, _("Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BLEND_TYPE"));
     FlexGridSizer_Blend_Mode->Add(StaticText_Blend_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer_Blend_Mode, 1, wxALL|wxEXPAND, 1);
+    FlexGridSizerImportFaces = new wxFlexGridSizer(0, 1, 0, 0);
+    CheckBox_ImportFacesToSequence = new wxCheckBox(Panel1, ID_CHECKBOX_IMPORT_FACES_SEQ, _("Import matrix face definitions into the sequence (embedded)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_IMPORT_FACES_SEQ"));
+    CheckBox_ImportFacesToSequence->SetValue(true);
+    CheckBox_ImportFacesToSequence->SetToolTip(_("When on, Matrix (image) face definitions on the imported models are stored in this sequence (with images embedded) instead of being added to the mapped models in your layout. Node/Coro faces are unaffected."));
+    FlexGridSizerImportFaces->Add(CheckBox_ImportFacesToSequence, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(FlexGridSizerImportFaces, 1, wxALL|wxEXPAND, 1);
     FlexGridSizerImportMedia = new wxFlexGridSizer(0, 3, 0, 0);
     CheckBoxImportMedia = new wxCheckBox(Panel1, ID_CHECKBOX3, _("Import Media"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
     CheckBoxImportMedia->SetValue(true);
@@ -750,12 +791,14 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     auto* config = GetXLightsConfig();
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
     CheckBox_ConvertRenderStyle->SetValue(config->ReadBool("ImportEffectsRenderStyle", false));
+    CheckBox_ImportFacesToSequence->SetValue(config->ReadBool("ImportFacesToSequence", true));
 
     auto ai = xlights->GetAIService(aiType::TYPE::MAPPING);
     if (ai == nullptr) {
         ai = xlights->GetAIService();
     }
     Button_AIMap->Enable(ai != nullptr);
+    Button_AIMap->Show(ai != nullptr);
 
     EnsureWindowHeaderIsOnScreen(this);
 }
@@ -1165,6 +1208,11 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         _xsqPkg->GetImportOptions()->SetImportActive(CheckBoxImportMedia->IsChecked());
     } else {
         Sizer1->Hide(FlexGridSizerImportMedia, true);
+    }
+    // The sequence-face option only applies to xLights imports (which carry a
+    // source rgbeffects with model face definitions); hide it for other formats.
+    if (_xsqPkg == nullptr || !_xsqPkg->HasRGBEffects()) {
+        Sizer1->Hide(FlexGridSizerImportFaces, true);
     }
     if (_xsqPkg != nullptr && _xsqPkg->HasRGBEffects()) {
         LoadRgbEffectsFile();
@@ -1662,9 +1710,9 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand;
         // note we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(subModel->GetName()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), xlColorToWxColour(channelColors.find(subModel->GetName())->second), wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, subModel->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), xlColorToWxColour(channelColors.find(subModel->GetName())->second), wxString(""), effectCount);
         } else {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, subModel->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
         }
         laststrand->_strandCount = subModel->GetNumStrands();
         int smW = 0, smH = 0;
@@ -2089,6 +2137,9 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
     //settings
     if (data.contains("eraseexisting")) {
         CheckBox_EraseExistingEffects->SetValue(data.at("eraseexisting").get<bool>());
+    }
+    if (data.contains("importfacestosequence")) {
+        CheckBox_ImportFacesToSequence->SetValue(data.at("importfacestosequence").get<bool>());
     }
     if (_allowCCRStrand && data.contains("mapccrstrand")) {
         CheckBox_MapCCRStrand->SetValue(data.at("mapccrstrand").get<bool>());
@@ -2534,6 +2585,7 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
     //other settings
     data["mapccrstrand"] = CheckBox_MapCCRStrand->IsChecked();
     data["eraseexisting"] = CheckBox_EraseExistingEffects->IsChecked();
+    data["importfacestosequence"] = CheckBox_ImportFacesToSequence->IsChecked();
     data["importblendmode"] = CheckBox_Import_Blend_Mode->IsChecked();
 
     //package sequence folders
@@ -4494,12 +4546,13 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& event)
 {
+    bool addedAny = false;
     wxDataViewItemArray models;
     _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (m->HasMapping() && !m->_mapping.empty()) {
-            xlights->GetModel(m->_model)->AddAlias(m->_mapping);
+            addedAny |= xlights->GetModel(m->_model)->AddAlias(m->_mapping);
         }
         wxDataViewItemArray strands;
         _dataModel->GetChildren(models[i], strands);
@@ -4507,13 +4560,19 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
             xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
             if (astrand->HasMapping() && !astrand->_mapping.empty()) {
                 auto sm0 = Split(astrand->_mapping, '/');
-                if ((sm0[0] != m->_mapping) || ((sm0.size() > 1) && (sm0[1] != astrand->_strand))) {
+                if (sm0.size() > 1 && sm0[1] == astrand->_strand && sm0[0] != m->_mapping) {
+                    // Submodel name matches, but not the model, so promote alias to model instead of every identically-named submodel.
+                    addedAny |= xlights->GetModel(m->_model)->AddAlias(sm0[0]);
+                } else if ((sm0[0] != m->_mapping) || ((sm0.size() > 1) && (sm0[1] != astrand->_strand))) {
                     auto sm = xlights->GetModel((astrand->_model + "/" + astrand->_strand));
                     if (sm != nullptr)
-                        sm->AddAlias(astrand->_mapping);
+                        addedAny |= sm->AddAlias(astrand->_mapping);
                 }
             }
         }
+    }
+    if (addedAny) {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick");
     }
     xlights->SetStatusText(_("Update Aliases Done."));
 }
@@ -4546,6 +4605,15 @@ bool xLightsImportChannelMapDialog::IsConvertRender() const
     auto* config = GetXLightsConfig();
     bool b = CheckBox_ConvertRenderStyle->IsChecked();
     config->Write("ImportEffectsRenderStyle", b);
+    config->Flush();
+    return b;
+}
+
+bool xLightsImportChannelMapDialog::IsImportFacesToSequence() const
+{
+    auto* config = GetXLightsConfig();
+    bool b = CheckBox_ImportFacesToSequence->IsChecked();
+    config->Write("ImportFacesToSequence", b);
     config->Flush();
     return b;
 }

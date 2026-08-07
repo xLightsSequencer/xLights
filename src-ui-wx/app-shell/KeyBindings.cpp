@@ -1117,6 +1117,9 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
 void KeyBindingMap::Save() const noexcept
 {
     Save(_openedFile);
+    if (_secondaryFile.IsOk() && _secondaryFile.GetFullPath() != _openedFile.GetFullPath()) {
+        Save(_secondaryFile);
+    }
 }
 
 int KeyBindingMap::AddKey(const KeyBinding& kb)

@@ -30,7 +30,7 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
   
   c) Download and build wxWidgets for Windows (currently using a patched version of 3.3.2).
     
-    git clone  --recurse-submodules -b xlights_2026.04 https://github.com/xLightsSequencer/wxWidgets
+    git clone  --recurse-submodules -b xlights_2026.13 https://github.com/xLightsSequencer/wxWidgets
 
      1) Also if you have built wxWidgets before you should delete the following 2 folders
         - <basedir>\wxWidgets\build\msw\vc_mswuddll
@@ -50,11 +50,34 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
     It is used in xLights for the generation of AVX1, AVX2, SEE2 and SSE4 optimized code.
 
     1) Download ISPC from
-        https://github.com/ispc/ispc/releases/download/v1.30.0/ispc-v1.30.0-windows.zip
+        https://github.com/ispc/ispc/releases/download/v1.31.0/ispc-v1.31.0-windows.zip
     2) Extract the zip file to a folder of your choice.
     3) Add the path to the ISPC executable to your PATH environment variable.
   
-  e) Download and build xLights for Windows
+  e) Download and install the Vulkan SDK
+
+    xLights renders many effects on the GPU via a Vulkan compute backend on
+    Windows (the analogue of Metal on macOS). Building it requires glslc, the
+    GLSL -> SPIR-V compiler that ships with the LunarG Vulkan SDK. glslc is a
+    build tool here, like ISPC: the Xlights.vcxproj "CompileVulkanShaders"
+    pre-build step (x64 Debug and Release) compiles the .comp compute kernels to
+    the SPIR-V headers the build #includes. The SDK is required for the x64
+    build; without it the build fails at the pre-build step.
+
+    1) Download the Vulkan SDK from
+        https://vulkan.lunarg.com/sdk/home#windows
+    2) Run the installer. The default components are sufficient; the runtime
+        component is not needed to build.
+    3) The installer sets the VULKAN_SDK environment variable, which the build
+        uses to locate glslc (VULKAN_SDK\Bin\glslc.exe). No PATH change needed;
+        a CMake build also honors it.
+
+    NOTE: The Vulkan headers, volk, and VulkanMemoryAllocator come from git
+    submodules (dependencies\Vulkan-Headers, dependencies\volk,
+    dependencies\VulkanMemoryAllocator), so make sure you clone xLights with
+    --recurse-submodules (step f) or the build will not find <volk.h>.
+
+  f) Download and build xLights for Windows
        
        1) If you plan on contributing to the main repo, create a fork on GitHub
        2) Now clone that fork to your <basedir>:

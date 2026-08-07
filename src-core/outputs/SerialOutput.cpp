@@ -8,7 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <thread>
 
@@ -32,7 +34,46 @@
 #include <log.h>
 
 #pragma region Private Functions
+#ifdef _WIN32
+namespace {
+    // CreateFile requires the "\\.\COMn" extended form for COM10+ (bare
+    // "COM21" fails to open) but bare "COMn" for COM1-9. Registry values are
+    // always the bare form, so normalize before returning/using a port name.
+    std::string NormalizeWindowsComPort(const std::string& name) {
+        if (name.rfind("COM", 0) == 0) {
+            char* end = nullptr;
+            long n = std::strtol(name.c_str() + 3, &end, 10);
+            if (end != name.c_str() + 3 && *end == '\0' && n >= 10) {
+                return "\\\\.\\" + name;
+            }
+        }
+        return name;
+    }
+}
+#elif !defined(__APPLE__)
+namespace {
+    // Linux: live-scan /dev for real serial device nodes (as opposed to the
+    // old fixed ttyS0-3/ttyUSB0-5/ttyACM0-5 list, which could never surface
+    // ttyUSB6+/ttyACM6+/ttyAMA* etc.), mirroring the macOS cu.* scan below.
+    std::list<std::string> ScanLinuxSerialDevices() {
+        std::list<std::string> res;
+        std::error_code ec;
+        for (const auto& entry : std::filesystem::directory_iterator("/dev", ec)) {
+            auto name = entry.path().filename().string();
+            if (name.starts_with("ttyS") || name.starts_with("ttyUSB") ||
+                name.starts_with("ttyACM") || name.starts_with("ttyAMA")) {
+                res.push_back("/dev/" + name);
+            }
+        }
+        res.sort();
+        return res;
+    }
+}
+#endif
+
 void SerialOutput::SaveAttr(pugi::xml_node node) {
+
+    node.append_attribute("Id") = GetId();
 
     if (_commPort != "") {
         node.append_attribute("ComPort") = _commPort;
@@ -61,6 +102,7 @@ SerialOutput::SerialOutput(pugi::xml_node node) : Output(node) {
         _baudRate = node.attribute("BaudRate").as_int(0);
     }
     SetId(node.attribute("Id").as_int(0));
+    _dirty = false;
 }
 
 SerialOutput::SerialOutput(const SerialOutput& from) :
@@ -120,6 +162,16 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
     res.push_back("\\\\.\\COM18");
     res.push_back("\\\\.\\COM19");
     res.push_back("\\\\.\\COM20");
+    // The fixed range above lets a user preconfigure a not-yet-plugged-in
+    // port, but caps out at COM20 - merge in whatever the registry actually
+    // reports (already normalized to the "\\.\COMn" form for n>=10) so a
+    // live COM21+ adapter can still be selected.
+    for (const auto& port : GetAvailableSerialPorts()) {
+        if ((port.rfind("COM", 0) == 0 || port.rfind("\\\\.\\COM", 0) == 0) &&
+            std::find(res.begin(), res.end(), port) == res.end()) {
+            res.push_back(port);
+        }
+    }
 #elif defined(__APPLE__)
     // no standard device names for USB-serial converters on OS/X
     // scan /dev directory for candidates
@@ -136,23 +188,12 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts() {
         }
     }
 #else
-    // Linux
-    res.push_back("/dev/ttyS0");
-    res.push_back("/dev/ttyS1");
-    res.push_back("/dev/ttyS2");
-    res.push_back("/dev/ttyS3");
-    res.push_back("/dev/ttyUSB0");
-    res.push_back("/dev/ttyUSB1");
-    res.push_back("/dev/ttyUSB2");
-    res.push_back("/dev/ttyUSB3");
-    res.push_back("/dev/ttyUSB4");
-    res.push_back("/dev/ttyUSB5");
-    res.push_back("/dev/ttyACM0");
-    res.push_back("/dev/ttyACM1");
-    res.push_back("/dev/ttyACM2");
-    res.push_back("/dev/ttyACM3");
-    res.push_back("/dev/ttyACM4");
-    res.push_back("/dev/ttyACM5");
+    // Linux - live-scan for ttyS*/ttyUSB*/ttyACM*/ttyAMA* devices instead of
+    // a fixed list, so adapters beyond the old ttyUSB5/ttyACM5 cap (or on
+    // ttyAMA*, e.g. Raspberry Pi's onboard UART) can be selected.
+    for (const auto& port : ScanLinuxSerialDevices()) {
+        res.push_back(port);
+    }
 #endif
 
     return res;
@@ -200,7 +241,7 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
             }
             //need to enlarge read buf if this happens; just truncate string for now
             //                            debug(3, "found port[%d] %d:'%s' = %d:'%s', err 0x%x", inx, vallen, valname, portlen, portname, err);
-            res.push_back(std::string(portname, portname + portlen / sizeof(TCHAR) - 1));
+            res.push_back(NormalizeWindowsComPort(std::string(portname, portname + portlen / sizeof(TCHAR) - 1)));
             vallen = sizeof(valname);
             portlen = sizeof(portname);
         }
@@ -229,7 +270,10 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts() {
         }
     }
 #else
-    res.push_back("port enumeration not supported on Linux");
+    res = ScanLinuxSerialDevices();
+    if (res.empty()) {
+        res.push_back("(no available ports)");
+    }
 #endif // _WIN32
 
     return res;

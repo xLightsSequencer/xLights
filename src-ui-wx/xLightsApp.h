@@ -10,6 +10,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <string>
+
 #include "../common/xlBaseApp.h"
 #include "../common/xlGLBaseApp.h"
 
@@ -53,3 +55,7 @@ public:
 // the running app's .app bundle cannot be resolved (unbundled / dev runs).
 bool SpawnNewXLightsInstance(const wxString& fileToOpen);
 #endif
+
+// The startup machine-configuration banner, verbatim, for the crash handler to
+// attach. Empty until DumpConfig() has run.
+const std::string& GetMachineConfigSummary();

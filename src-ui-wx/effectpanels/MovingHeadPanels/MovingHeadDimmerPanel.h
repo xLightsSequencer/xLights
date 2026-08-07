@@ -24,6 +24,11 @@ public:
     virtual ~IMovingHeadDimmerParent() {}
 
     virtual void NotifyDimmerUpdated() = 0;
+
+    // Resolved on every paint rather than cached: the elements this returns are
+    // owned by SequenceElements and are freed wholesale when a sequence is
+    // closed/reopened, while this panel outlives any one sequence.
+    virtual const Element* GetDimmerTimingTrack() const = 0;
 };
 
 
@@ -36,8 +41,6 @@ public:
 
     std::string GetDimmerCommands();
     void SetDimmerCommands( const std::string& _dimmerCmds );
-
-    void SetTimingTrack( const Element* timing );
 
     void SetEffectTimeRange(int startTimeMs, int endTimeMs);
 
@@ -68,5 +71,4 @@ private:
     std::vector<float> timings;
     int startTimeMs_ {0};
     int endTimeMs_ {0};
-    const Element* timingTrack_ {nullptr};
 };

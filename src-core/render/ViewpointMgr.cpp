@@ -9,6 +9,8 @@
  **************************************************************/
 
 #include "render/ViewpointMgr.h"
+#include <cctype>
+#include <regex>
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -184,6 +186,58 @@ void ViewpointMgr::AddCamera( std::string name, PreviewCamera* current_camera, b
         new_camera->name = "...";  // avoid exception that occurs if menu name is blank
     }
     if (is_3d) {
+        previewCameras3d.push_back(std::move(new_camera));
+    }
+    else {
+        previewCameras2d.push_back(std::move(new_camera));
+    }
+}
+std::string ViewpointMgr::GenerateUniqueCameraName(const std::string& candidateName, bool is_3d)
+{
+    if (IsNameUnique(candidateName, is_3d)) return candidateName;
+
+    std::string base = candidateName;
+    char sep = '-';
+
+    static std::regex dashRegex("-[0-9]+$");
+    static std::regex underscoreRegex("_[0-9]+$");
+    static std::regex spaceRegex(" [0-9]+$");
+    static std::regex nilRegex("[A-Za-z][0-9]+$");
+    if (std::regex_search(candidateName, dashRegex)) {
+        base = candidateName.substr(0, candidateName.rfind('-'));
+    } else if (std::regex_search(candidateName, underscoreRegex)) {
+        base = candidateName.substr(0, candidateName.rfind('_'));
+        sep = '_';
+    } else if (std::regex_search(candidateName, spaceRegex)) {
+        base = candidateName.substr(0, candidateName.rfind(' '));
+        sep = ' ';
+    } else if (std::regex_search(candidateName, nilRegex)) {
+        while (base != "" && std::isdigit(base[base.size() - 1])) {
+            base = base.substr(0, base.size() - 1);
+        }
+        sep = 'x';
+    }
+
+    int seq = 2;
+
+    for (;;) {
+        std::string tryName = base;
+
+        if (sep == 'x') {
+            tryName += std::to_string(seq++);
+        } else {
+            tryName += sep + std::to_string(seq++);
+        }
+
+        if (IsNameUnique(tryName, is_3d)) return tryName;
+    }
+}
+
+void ViewpointMgr::ImportCameraFromNode(pugi::xml_node node)
+{
+    auto new_camera = CreateCameraFromNode(node);
+    new_camera->name = GenerateUniqueCameraName(new_camera->name, new_camera->is_3d);
+    if (new_camera->is_3d) {
         previewCameras3d.push_back(std::move(new_camera));
     }
     else {

@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 
@@ -175,13 +176,14 @@ void CustomModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext
             va->AddVertex(cx + hw, cy - hh, 0.0f, 1.0f, 1.0f);
             va->AddVertex(cx + hw, cy + hh, 0.0f, 1.0f, 0.0f);
             GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
+            uint8_t alpha = (uint8_t)std::lround((100 - _bkg_transparency) * 255.0 / 100.0);
             solidProgram->addStep([=, this](xlGraphicsContext* ctx) {
                 ctx->PushMatrix();
                 if (!is_3d) {
                     ctx->ScaleViewMatrix(1.0f, 1.0f, 0.0f);
                 }
                 GetModelScreenLocation().ApplyModelViewMatrices(ctx);
-                ctx->drawTexture(va, texture, _bkg_brightness, 255, 0, va->getCount());
+                ctx->drawTexture(va, texture, _bkg_brightness, alpha, 0, va->getCount());
                 ctx->PopMatrix();
                 delete va;
             });
@@ -233,11 +235,12 @@ void CustomModel::DisplayEffectOnWindow(IModelPreview* preview, double pointSize
             va->AddVertex(+hw, +hh, 0.0f, 1.0f, 0.0f);
 
             int brightness = _bkg_brightness;
+            uint8_t alpha = (uint8_t)std::lround((100 - _bkg_transparency) * 255.0 / 100.0);
             preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
                 ctx->PushMatrix();
                 ctx->Translate(w / 2.0f - ml * scale, h / 2.0f - mb * scale, 0.0f);
                 ctx->Scale(scale, scale, 1.0f);
-                ctx->drawTexture(va, texture, brightness, 255, 0, va->getCount());
+                ctx->drawTexture(va, texture, brightness, alpha, 0, va->getCount());
                 ctx->PopMatrix();
                 delete va;
             });
@@ -1002,6 +1005,16 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager, bool da
             _data.push_back(ll);
         }
 
+        while (_data.size() < (size_t)_depth) {
+            std::vector<std::vector<std::string>> ll;
+            while (ll.size() < (size_t)_customHeight) {
+                std::vector<std::string> rr;
+                while (rr.size() < (size_t)cols) rr.push_back("");
+                ll.push_back(rr);
+            }
+            _data.push_back(ll);
+        }
+	
         for (int r = 0; r < _customHeight; r++) {
             html += "<tr>";
             for (int l = 0; l < _depth; l++) {

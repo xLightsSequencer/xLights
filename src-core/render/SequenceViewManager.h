@@ -56,8 +56,18 @@ class SequenceViewManager
 	int _selectedView;
 
 	void AddMasterView();
+	void SanitizeViewNames();
 
 public:
+	// Characters a view name may contain: letters, digits, spaces,
+	// underscores and hyphens. A view name is comma-joined with others
+	// in a timing track's per-view membership list, so a comma breaks
+	// that parsing outright; the rest of the restriction keeps names
+	// usable everywhere they are echoed. Enforced at entry by every UI
+	// that creates or renames a view — legacy files are repaired on load
+	// by SanitizeViewNames() instead.
+	static bool IsValidViewName(const std::string& name);
+
 	SequenceViewManager() { _modelManager = nullptr; _selectedView = 0; };
 	SequenceViewManager(ModelManager* modelManager);
 	virtual ~SequenceViewManager();

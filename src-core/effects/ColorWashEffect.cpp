@@ -127,15 +127,26 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         cwdata.colorV = (float)hsvOrig.value;
     }
 
-    int max = buffer.BufferWi * buffer.BufferHt;
-    constexpr int bfBlockSize = 4096;
-    int blocks = max / bfBlockSize + 1;
-    parallel_for(0, blocks, [&cwdata, &buffer, max](int blk) {
-        int start = blk * bfBlockSize;
-        int end = start + bfBlockSize;
-        if (end > max) end = max;
-        ispc::ColorWashEffectISPC(&cwdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
-    });
+    if (buffer.dmx_buffer) {
+        // DMX fixtures need the colour routed through SetPixel() 
+        ispc::uint8_t4 single{ { 0, 0, 0, 255 } };
+        ispc::ColorWashEffectISPC(&cwdata, 0, 1, &single);
+        buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+    } else {
+        // Bound the ISPC writes by the actual pixel allocation, not the logical
+        // dimensions: a variable sub-buffer (value-curve-driven size) or oversized
+        // buffer can leave GetPixelCount() smaller than BufferWi*BufferHt, and the
+        // kernel writes result[index] with no bounds check (crash bucket 926a9fb5a8).
+        int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
+        constexpr int bfBlockSize = 4096;
+        int blocks = max / bfBlockSize + 1;
+        parallel_for(0, blocks, [&cwdata, &buffer, max](int blk) {
+            int start = blk * bfBlockSize;
+            int end = start + bfBlockSize;
+            if (end > max) end = max;
+            ispc::ColorWashEffectISPC(&cwdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+        });
+    }
 
     if (effect->IsBackgroundDisplayListEnabled() && buffer.perModelIndex == 0) {
         std::unique_lock<std::recursive_mutex> lock(effect->GetBackgroundDisplayList().lock);

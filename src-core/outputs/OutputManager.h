@@ -46,6 +46,7 @@ class OutputManager
     std::mutex _outputCriticalSection; // used to protect areas that must be single threaded
     std::string _baseShowDir = "";
     bool _autoUpdateFromBaseShowDir = false;
+    std::string _baseControllersSyncedTime = "";
     // Loaded show dir. Used at save time to derive the relative
     // form of `_baseShowDir` so the base-folder link survives
     // moving the show between machines (e.g. desktop ↔ iPad).
@@ -125,8 +126,13 @@ public:
             _dirty = true;
         }
     }
-    bool MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui = nullptr);
-    #pragma endregion 
+    // Returns true if the base networks file loaded and the merge ran (even if nothing changed);
+    // false only if the base file could not be loaded. Optional 'changed' reports whether any
+    // controller content was actually modified.
+    bool MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui = nullptr, bool* changed = nullptr);
+    bool NeedsBaseControllersUpdate() const;
+    void MarkBaseControllersSynced();
+    #pragma endregion
 
     #pragma region Controller Management
     std::list<Controller*> GetControllers() const { return _controllers; }
@@ -138,6 +144,7 @@ public:
     void MoveController(Controller* controller, int toControllerNumber);
     Controller* GetController(const std::string& name) const;
     Controller* GetController(int32_t absoluteChannel, int32_t& startChannel) const; // returns the controller - equivalent to the old level 1
+    std::vector<Controller*> GetControllersInRange(int32_t startChannel, int32_t endChannel) const;
     Controller* GetControllerWithIP(const std::string& ip);
     Controller* GetControllerIndex(int index) const;
     int GetControllerIndex(Controller* c);
@@ -150,9 +157,9 @@ public:
 
     #pragma region Output Management
     int GetOutputCount() const;
-    std::list<Output*> GetAllOutputs(const std::string& ip, const std::string& hostName = std::string()) const;
-    std::list<Output*> GetAllOutputs() const;
-    std::list<Output*> GetOutputs() const { return GetAllOutputs(); }
+    std::vector<Output*> GetAllOutputs(const std::string& ip, const std::string& hostName = std::string()) const;
+    std::vector<Output*> GetAllOutputs() const;
+    std::vector<Output*> GetOutputs() const { return GetAllOutputs(); }
     Output* GetOutput_CONVERT(int outputNumber) const;
     Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... even if it is in a collection
     Output* GetOutput(int universe, const std::string& ip) const;
@@ -202,7 +209,7 @@ public:
     bool AtLeastOneOutputUsingProtocol(const std::string& protocol) const;
     std::list<std::string> GetForceIPs(const std::string& protocol) const;
 
-    void SetSuppressFrames(int suppressFrames) { _suppressFrames = suppressFrames; _dirty = true; }
+    void SetSuppressFrames(int suppressFrames) { if (_suppressFrames != suppressFrames) { _suppressFrames = suppressFrames; _dirty = true; } }
     int GetSuppressFrames() const { return _suppressFrames; }
     
     std::string GetChannelName(int32_t channel);
@@ -212,6 +219,7 @@ public:
 
     #pragma region Start and Stop
     bool StartOutput();
+    bool StartControllerOutputs(Controller* controller);
     void StopOutput();
     bool IsOutputting() const { return _outputting; }
     size_t TxNonEmptyCount();
@@ -229,13 +237,20 @@ public:
     bool IsSyncEnabled() const { return _syncEnabled; }
     static bool IsSyncEnabled_() { return __isSync; }
     void SetSyncEnabled(bool syncEnabled) {
-        _syncEnabled = syncEnabled;
-        OutputManager::__isSync = syncEnabled;
-        _dirty = true;
-        if (!_syncEnabled) SetSyncUniverse(0);
+        if (_syncEnabled != syncEnabled) {
+            _syncEnabled = syncEnabled;
+            OutputManager::__isSync = syncEnabled;
+            _dirty = true;
+            if (!_syncEnabled) SetSyncUniverse(0);
+        }
     }
     int GetSyncUniverse() const { return _syncUniverse; }
-    void SetSyncUniverse(int syncUniverse) { _syncUniverse = syncUniverse; _dirty = true;}
+    void SetSyncUniverse(int syncUniverse) {
+        if (_syncUniverse != syncUniverse) {
+            _syncUniverse = syncUniverse;
+            _dirty = true;
+        }
+    }
     #pragma endregion 
 
     #pragma region Data Setting

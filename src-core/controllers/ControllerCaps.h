@@ -113,6 +113,7 @@ public:
     int GetMaxDDPChannels() const;
     int GetMaxInputUniverseChannels() const;
     int GetMinInputUniverseChannels() const;
+    int GetMaxPacing() const;
     int GetNumberOfBanks() const;
     int GetBankSize() const;
     int GetMaxStartNullPixels() const;

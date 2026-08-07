@@ -33,7 +33,8 @@ public:
         return false;
     }
     virtual std::list<std::string> GetFacesUsed(const SettingsMap& SettingsMap) const override;
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
 
     // Cached from Faces.json. The MouthMovements (phoneme/timing track) and
     // TransparentBlackRow are custom controls not represented as plain
@@ -69,4 +70,5 @@ private:
     bool ShimmerState(RenderBuffer& buffer) const;
     int GetMaxEyeDelay( std::string& eyeBlinkFreq ) const;
     int GetEyeBlinkDuration(std::string& eyeBlinkDuration) const;
+    bool IsAutoBlinkClosed(const RenderBuffer& buffer, std::string& eyeBlinkFreq, std::string& eyeBlinkDuration, int restStartMs, int restEndMs) const;
 };

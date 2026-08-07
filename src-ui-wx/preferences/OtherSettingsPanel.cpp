@@ -25,13 +25,8 @@
 
 #include <wx/preferences.h>
 #include "xLightsMain.h"
-
-
-#ifdef __WXOSX__
-extern "C" {
-extern bool isMetalComputeSupported();
-}
-#endif
+#include "render/GPURenderUtils.h"
+#include "settings/XLightsConfigAdapter.h"
 
 //(*IdInit(OtherSettingsPanel)
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
@@ -53,6 +48,8 @@ const wxWindowID OtherSettingsPanel::ID_STATICTEXT2 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHOICE2 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_STATICTEXT6 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHOICE_ALIASPROMPT = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT8 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_KEYBINDINGSLOCATION = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_TEXTCTRL1 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX9 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_STATICTEXT7 = wxNewId();
@@ -60,7 +57,10 @@ const wxWindowID OtherSettingsPanel::ID_CTRLPINGINTERVAL = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX10 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX11 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX_CustomColorPicker = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT_LAYOUTDOUBLECLICKACTION = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_LAYOUTDOUBLECLICKACTION = wxNewId();
 //*)
+const wxWindowID OtherSettingsPanel::ID_CHOICE_GfxBackend = wxNewId();
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
 	//(*EventTable(OtherSettingsPanel)
@@ -79,6 +79,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer9;
+    wxFlexGridSizer* FlexGridSizer10;
     wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* GridBagSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
@@ -94,8 +96,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     HardwareVideoDecodingCheckBox->SetValue(false);
     FlexGridSizer3->Add(HardwareVideoDecodingCheckBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     HardwareVideoRenderChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
-    HardwareVideoRenderChoice->Append(_("DirectX11"));
-    HardwareVideoRenderChoice->SetSelection( HardwareVideoRenderChoice->Append(_("FFmpeg Auto")) );
+    HardwareVideoRenderChoice->SetSelection( HardwareVideoRenderChoice->Append(_("DirectX11")) );
+    HardwareVideoRenderChoice->Append(_("FFmpeg Auto"));
     HardwareVideoRenderChoice->Append(_("FFmpeg CUDA"));
     HardwareVideoRenderChoice->Append(_("FFmpeg QSV"));
     HardwareVideoRenderChoice->Append(_("FFmpeg Vulkan"));
@@ -159,7 +161,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     CheckBox_RecycleTips->SetValue(false);
     FlexGridSizer2->Add(CheckBox_RecycleTips, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(7, 1), wxGBSpan(4, 1), wxALL|wxEXPAND, 0);
+    GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(7, 1), wxGBSpan(2, 1), wxALL|wxEXPAND, 0);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT2, _("Link controller upload:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer5->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -177,6 +179,14 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Choice_AliasPromptBehavior->Append(_("Always No"));
     FlexGridSizer7->Add(Choice_AliasPromptBehavior, 1, wxALL|wxEXPAND, 5);
     GridBagSizer1->Add(FlexGridSizer7, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxEXPAND, 0);
+    FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText9 = new wxStaticText(this, ID_STATICTEXT8, _("Use keybindings from:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    FlexGridSizer9->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_KeybindingsLocation = new wxChoice(this, ID_CHOICE_KEYBINDINGSLOCATION, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_KEYBINDINGSLOCATION"));
+    Choice_KeybindingsLocation->SetSelection( Choice_KeybindingsLocation->Append(_("Show Folder")) );
+    Choice_KeybindingsLocation->Append(_("AppData-shared"));
+    FlexGridSizer9->Add(Choice_KeybindingsLocation, 1, wxALL|wxEXPAND, 5);
+    GridBagSizer1->Add(FlexGridSizer9, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxEXPAND, 0);
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText1 = new wxStaticText(this, wxID_ANY, _("eMail Address:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer6->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -205,9 +215,17 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     FlexGridSizer4->Add(CheckBox_ShowZoneIndicator, 1, wxALL, 5);
     StaticBoxSizer4->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizer1->Add(StaticBoxSizer4, wxGBPosition(11, 0), wxGBSpan(2, 1), wxALL|wxEXPAND, 0);
-    CheckBox_UseCustomColorPicker = new wxCheckBox(this, ID_CHECKBOX_CustomColorPicker, _("Use custom color picker (experimental)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CustomColorPicker"));
+    CheckBox_UseCustomColorPicker = new wxCheckBox(this, ID_CHECKBOX_CustomColorPicker, _("Use custom color picker"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CustomColorPicker"));
     CheckBox_UseCustomColorPicker->SetValue(false);
-    GridBagSizer1->Add(CheckBox_UseCustomColorPicker, wxGBPosition(13, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(CheckBox_UseCustomColorPicker, wxGBPosition(9, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText10 = new wxStaticText(this, ID_STATICTEXT_LAYOUTDOUBLECLICKACTION, _("Double-click on layout opens:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_LAYOUTDOUBLECLICKACTION"));
+    FlexGridSizer10->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_LayoutDoubleClickAction = new wxChoice(this, ID_CHOICE_LAYOUTDOUBLECLICKACTION, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_LAYOUTDOUBLECLICKACTION"));
+    Choice_LayoutDoubleClickAction->SetSelection( Choice_LayoutDoubleClickAction->Append(_("Faces/States/Submodels")) );
+    Choice_LayoutDoubleClickAction->Append(_("Unassigned"));
+    FlexGridSizer10->Add(Choice_LayoutDoubleClickAction, 1, wxALL|wxEXPAND, 5);
+    GridBagSizer1->Add(FlexGridSizer10, wxGBPosition(11, 1), wxDefaultSpan, wxALL|wxEXPAND, 0);
     SetSizer(GridBagSizer1);
 
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -224,6 +242,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_CHECKBOX8, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHOICE2, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHOICE_ALIASPROMPT, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE_KEYBINDINGSLOCATION, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX9, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -231,26 +250,52 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_CHECKBOX10, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX11, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX_CustomColorPicker, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE_LAYOUTDOUBLECLICKACTION, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&OtherSettingsPanel::OnPaint);
     //*)
 
+#ifdef HAVE_VULKAN
+    // Hand-added outside the wxSmith guards: preview graphics backend choice
+    // (read directly by xlVulkanCanvas::VulkanSelected at startup).
+    {
+        wxFlexGridSizer* gfxSizer = new wxFlexGridSizer(0, 2, 0, 0);
+        wxStaticText* gfxLabel = new wxStaticText(this, wxID_ANY, _("Preview graphics (restart required):"));
+        gfxSizer->Add(gfxLabel, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+        GraphicsBackendChoice = new wxChoice(this, ID_CHOICE_GfxBackend);
+        // "Auto" uses Vulkan only when OpenGL would fall back to software
+        // rendering anyway (e.g. llvmpipe in a VM); otherwise it keeps hardware
+        // OpenGL.  See xlVulkanCanvas::VulkanSelected.
+        GraphicsBackendChoice->Append(_("Auto"));
+        GraphicsBackendChoice->Append(_("OpenGL"));
+        GraphicsBackendChoice->Append(_("Vulkan"));
+        GraphicsBackendChoice->SetSelection(0);
+        gfxSizer->Add(GraphicsBackendChoice, 1, wxALL | wxEXPAND, 5);
+        GridBagSizer1->Add(gfxSizer, wxGBPosition(10, 1), wxDefaultSpan, wxALL | wxEXPAND, 0);
+        Connect(ID_CHOICE_GfxBackend, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    }
+#endif
+
 #ifdef __LINUX__
-    HardwareVideoDecodingCheckBox->Hide();
+    // The renderer choice list is Windows-vendor-specific (CUDA/QSV/AMF/
+    // DirectX11); Linux's decode path always auto-tries vaapi then vdpau
+    // (FFmpegVideoReader.cpp reopenContext()), so there is nothing for this
+    // dropdown to select between here. The checkbox itself is real: it gates
+    // that vaapi/vdpau auto-selection.
     ShaderCheckbox->Hide();
     HardwareVideoRenderChoice->Hide();
-    GPURenderCheckbox->Hide();
 #endif
 #ifdef __WXOSX__
-    if (!isMetalComputeSupported()) {
-        GPURenderCheckbox->Hide();
-    }
     ShaderCheckbox->Hide();
     HardwareVideoRenderChoice->Hide();
 #endif
 #ifdef __WXMSW__
-    GPURenderCheckbox->Hide();
     MSWDisableComposited();
 #endif
+    // Hardware GPU compute backend (Metal / Vulkan) — hide the toggle when no
+    // usable device is present, independent of the user-toggleable enable flag.
+    if (GPURenderUtils::GetGPUEffectConcurrency() <= 0) {
+        GPURenderCheckbox->Hide();
+    }
 
     TransferDataToWindow();
 }
@@ -273,6 +318,8 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetShadersOnBackgroundThreads(ShaderCheckbox->IsChecked());
     frame->SetUserEMAIL(eMailTextControl->GetValue());
     frame->SetRenameModelAliasPromptBehavior(Choice_AliasPromptBehavior->GetStringSelection());
+    frame->SetKeybindingsLocation(Choice_KeybindingsLocation->GetStringSelection());
+    frame->SetLayoutDoubleClickAction(Choice_LayoutDoubleClickAction->GetStringSelection());
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
     frame->SetControllerPingInterval(CtrlPingInterval->GetValue());
@@ -284,6 +331,13 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetEnablePositionZones(CheckBox_EnablePositionZones->GetValue());
     frame->SetShowZoneIndicator(CheckBox_ShowZoneIndicator->GetValue());
     xlColourData::INSTANCE.SetUseCustomPicker(CheckBox_UseCustomColorPicker->IsChecked());
+#ifdef HAVE_VULKAN
+    if (GraphicsBackendChoice != nullptr) {
+        auto* config = GetXLightsConfig();
+        config->Write("xLightsGraphicsBackend", GraphicsBackendChoice->GetStringSelection());
+        config->Flush();
+    }
+#endif
     return true;
 }
 
@@ -300,6 +354,8 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     eMailTextControl->ChangeValue(frame->UserEMAIL());
 	Choice_LinkControllerUpload->SetStringSelection(frame->GetLinkedControllerUpload());
     Choice_AliasPromptBehavior->SetStringSelection(frame->GetRenameModelAliasPromptBehavior());
+    Choice_KeybindingsLocation->SetStringSelection(frame->GetKeybindingsLocation());
+    Choice_LayoutDoubleClickAction->SetStringSelection(frame->GetLayoutDoubleClickAction());
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
     CtrlPingInterval->SetValue(frame->GetControllerPingInterval());
@@ -311,6 +367,14 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     CheckBox_EnablePositionZones->SetValue(frame->GetEnablePositionZones());
     CheckBox_ShowZoneIndicator->SetValue(frame->GetShowZoneIndicator());
     CheckBox_UseCustomColorPicker->SetValue(xlColourData::INSTANCE.UseCustomPicker());
+#ifdef HAVE_VULKAN
+    if (GraphicsBackendChoice != nullptr) {
+        wxString backend = GetXLightsConfig()->Read("xLightsGraphicsBackend", "Auto");
+        if (!GraphicsBackendChoice->SetStringSelection(backend)) {
+            GraphicsBackendChoice->SetSelection(0);
+        }
+    }
+#endif
 
 // Remove attempt to sneak functionality into the windows build
 #ifndef __WXMSW__

@@ -163,6 +163,10 @@ public:
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
 
+    // Pure computation of node ranges from state info; exposed so UI code can
+    // resolve the overlay from in-flight (not-yet-saved) state edits.
+    [[nodiscard]] static FaceStateNodes ComputeStateInfoNodes(FaceStateData const& stateInfo);
+
      static void WriteStateInfo(pugi::xml_node fiNode, const FaceStateData& stateInfo, bool customColours = false);
 
     [[nodiscard]] virtual FaceStateData const& GetFaceInfo() const { return faceInfo; };
@@ -385,7 +389,7 @@ public:
     void SetSuperStringColour(int index, xlColor c);
     void AddSuperStringColour(xlColor c);
     void Reinitialize() { InitModel(); }
-    void SetShadowModelFor(const std::string& shadowFor);
+    void SetShadowModelFor(const std::string& shadowFor, bool applyLink = true);
     [[nodiscard]] bool IsShadowModel() const;
     [[nodiscard]] std::string GetShadowModelFor() const;
     [[nodiscard]] std::string GetRGBWHandling() const;
@@ -403,7 +407,7 @@ public:
     void SetModelTagColour(const xlColor& c) { _modelTagColour = c; _modelTagColourValid = true; _modelTagColourString = std::string(c); }
 
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
-    void AddAlias(const std::string& alias);
+    bool AddAlias(const std::string& alias);
     void DeleteAlias(const std::string& alias);
     bool DeleteAllAliases();
     const std::list<std::string> &GetAliases() const;
@@ -424,6 +428,7 @@ public:
     }
     void RemoveSubModel(const std::string& name);
     void RemoveAllSubModels();
+    void DeleteAllSubModels();
     void ClearRenderCaches();
     [[nodiscard]] std::list<int> ParseFaceNodes(std::string channels);
 
@@ -442,6 +447,7 @@ public:
     std::string ModelStartChannel{ "" };
     bool CouldComputeStartChannel = false;
     bool Overlapping = false;
+    bool NotOnController = false;
     std::string _pixelCount{ "" };
     std::string _pixelType{ "" };
     std::string _pixelSpacing{ "" };
@@ -457,6 +463,7 @@ public:
     [[nodiscard]] int GetChanCountPerNode() const;
     [[nodiscard]] uint32_t GetCoordCount(size_t nodenum) const;
     [[nodiscard]] int GetNodeStringNumber(size_t nodenum) const;
+    [[nodiscard]] virtual int GetNodePhysicalStringIndex(size_t nodenum) const { return GetNodeStringNumber(nodenum); }
     void SetPosition(double posx, double posy);
     [[nodiscard]] std::string GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel);
     [[nodiscard]] std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
@@ -487,6 +494,7 @@ public:
     bool GetScreenLocations(IModelPreview* preview, std::map<int, std::pair<float, float>>& coords);
     std::string GetNodeNear(IModelPreview* preview, xlPoint pt, bool flip);
     std::vector<int> GetNodesInBoundingBox(IModelPreview* preview, xlPoint start, xlPoint end);
+    std::vector<int> GetNodesNearPath(IModelPreview* preview, const std::vector<xlPoint>& path);
     bool IsMultiCoordsPerNode() const;
 
     virtual bool CleanupFileLocations(RenderContext* ctx) override;

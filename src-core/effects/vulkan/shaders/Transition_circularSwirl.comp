@@ -1,0 +1,39 @@
+#version 450
+// Port of circularSwirlTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    vec2 xy = vec2(0.5, 0.5);
+    float speed = interpolate(0.2, 0.0, 1.0, 40.0, 9.0);
+
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+
+    vec2 uv = vec2(s, t);
+    vec2 dir = uv - xy;
+    float len = length(dir);
+
+    float radius = (1.0 - data.progress) * 0.70710678;
+    if (len < radius) {
+        vec2 rotated = Rotate(dir, -speed * len * data.progress * XL_PI);
+        vec2 scaled = rotated * (1.0 - data.progress) + xy;
+        vec2 newUV = xl_lerp2(xy, scaled, 1.0 - data.progress);
+        result[sidx] = packPx(tex2Dsrc(newUV.x, newUV.y));
+    } else {
+        result[sidx] = packPx(uvec4(0u, 0u, 0u, 255u));
+    }
+}

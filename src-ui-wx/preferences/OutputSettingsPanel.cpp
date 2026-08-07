@@ -52,7 +52,7 @@ OutputSettingsPanel::OutputSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWind
 	GridBagSizer1->Add(StaticText1, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Duplicate Frames to Suppress"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	GridBagSizer1->Add(StaticText2, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText3 = new wxStaticText(this, wxID_ANY, _("xFade/xSchedule"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	StaticText3 = new wxStaticText(this, wxID_ANY, _("API Port"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	GridBagSizer1->Add(StaticText3, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	ForceLocalIPChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	ForceLocalIPChoice->SetSelection( ForceLocalIPChoice->Append(wxEmptyString) );
@@ -65,8 +65,8 @@ OutputSettingsPanel::OutputSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWind
 	GridBagSizer1->Add(DuplicateSuppressChoice, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	xFadexScheduleChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
 	xFadexScheduleChoice->SetSelection( xFadexScheduleChoice->Append(_("Disabled")) );
-	xFadexScheduleChoice->Append(_("Port A"));
-	xFadexScheduleChoice->Append(_("Port B"));
+	xFadexScheduleChoice->Append(_("Port A (49913)"));
+	xFadexScheduleChoice->Append(_("Port B (49914)"));
 	GridBagSizer1->Add(xFadexScheduleChoice, wxGBPosition(3, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);

@@ -80,7 +80,6 @@ static void RenderCacheLoadThreadEntry(RenderCache* cache)
 
 RenderCache::RenderCache()
 {
-    _enabled = true;
 	_cacheFolder = "";
 }
 
@@ -248,32 +247,26 @@ void RenderCache::RemoveItem(RenderCacheItem *item) {
     delete item;
 }
 
-bool RenderCache::IsEffectOkForCaching(Effect* effect) const
+bool RenderCache::IsEffectOkForCaching(const SettingsMap& settings) const
 {
-    
     if (!IsEnabled()) return false;
 
-    bool locked = false;
+    // Keys are the prefix-stripped render-copy names (CopySettingsMap drops the
+    // 2-char prefix): T_CHECKBOX_Canvas -> CHECKBOX_Canvas,
+    // B_CHECKBOX_OverlayBkg -> CHECKBOX_OverlayBkg, X_Effect_Locked ->
+    // Effect_Locked.  Direct lookups instead of scanning every setting.
 
-    for (const auto& it : effect->GetSettings()) {
-        // we cant cache effects with canvas turned on
-        if (it.first == "T_CHECKBOX_Canvas" && it.second == "1") {
-            return false;
-        }
-
-        // we also shouldnt cache effects with persistent turned on
-        if (it.first == "B_CHECKBOX_OverlayBkg" && it.second == "1") {
-            return false;
-        }
-
-        if (_enabled == "Locked Only") {
-            if (it.first == "X_Effect_Locked" && it.second == "True") {
-                locked = true;
-            }
-        }
+    // "Locked Only" mode caches only effects the user explicitly locked
+    // (X_Effect_Locked -> Effect_Locked, stored as "True").
+    if (_mode == RenderCacheMode::LockedOnly && !settings.GetBool("Effect_Locked", false)) {
+        return false;
     }
-
-    if (_enabled == "Locked Only" && !locked) {
+    // can't cache canvas effects
+    if (settings.GetBool("CHECKBOX_Canvas", false)) {
+        return false;
+    }
+    // can't cache persistent / overlay-background effects
+    if (settings.GetBool("CHECKBOX_OverlayBkg", false)) {
         return false;
     }
 
@@ -297,12 +290,12 @@ RenderCache::PerEffectCache* RenderCache::GetPerEffectCache(const std::string &s
     return r;
 }
 
-RenderCacheItem* RenderCache::GetItem(Effect* effect, RenderBuffer* buffer)
+RenderCacheItem* RenderCache::GetItem(Effect* effect, const SettingsMap& settings, RenderBuffer* buffer)
 {
     if (!IsEnabled()) return nullptr;
     if (_cacheFolder == "") return nullptr;
 
-    if (!IsEffectOkForCaching(effect)) return nullptr;
+    if (!IsEffectOkForCaching(settings)) return nullptr;
 
     {
         // wait for the cache to finish loading
@@ -771,7 +764,14 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     _frames.at(mname)[frame] = frameBuffer;
     _dirty = true;
 
+    // Frames can arrive out of order (frame-parallel windows render a chunk
+    // concurrently), so the end-of-effect frame is not necessarily the last
+    // one added. Latch its arrival and (re)attempt the save on later adds —
+    // Save() itself verifies every frame is present before writing.
     if (buffer->curPeriod == buffer->curEffEndPer) {
+        _sawEndFrame = true;
+    }
+    if (_sawEndFrame) {
         // if multi models in this cache then only call save when none of them have null pointers at the end
         for (const auto& itm : _frames) {
             if (itm.second.size() == 0 || itm.second.back() == nullptr) {

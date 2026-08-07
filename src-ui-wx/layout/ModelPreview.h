@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <map>
 #include <memory>
 
 #include <wx/wx.h>
@@ -17,10 +18,12 @@
 #include "graphics/xlGraphicsBase.h"
 #include "graphics/xlGraphicsAccumulators.h"
 #include "graphics/IModelPreview.h"
+#include "utils/xlPoint.h"
 
 #include "Color.h"
 #include "render/ViewpointMgr.h"
 #include "models/ModelManager.h"
+#include "models/ControllerObject.h"
 
 #include "layout/Mouse3DManager.h"
 
@@ -34,6 +37,7 @@
 
 class Model;
 class ModelGroup;
+class ViewObject;
 class PreviewPane;
 class LayoutGroup;
 class xLightsFrame;
@@ -54,6 +58,11 @@ class ModelPreview : public GRAPHICS_BASE_CLASS, public IModelPreview
     bool _showModelNames = false;
     bool _showModelInfo = false;
     xlTexture* _fontTexture = nullptr;
+    // Keyed by model name, not Model*: the highlight outlives model list
+    // rebuilds, and a recycled allocation would otherwise highlight the wrong
+    // model.
+    std::map<std::string, int> _portStringHighlight;
+    std::map<std::string, std::pair<uint32_t, uint32_t>> _portChannelHighlight;
 
 public:
     ModelPreview(wxPanel* parent, xLightsFrame* xlights = nullptr);
@@ -102,6 +111,9 @@ public:
     void Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected, bool showFirstPixel);
     void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
+    // Also the authority for whether a controller box can be picked - see
+    // LayoutPanel::IsObjectEditable.
+    bool ShouldDrawViewObject(const ViewObject* view_object) const;
     void SetShowModelNames(bool b) { _showModelNames = b; Refresh(); }
     void SetShowModelInfo(bool b) { _showModelInfo = b; Refresh(); }
 
@@ -124,6 +136,10 @@ public:
     }
     Model* GetAdditionalModel() const { return additionalModel; }
 
+    void SetPortStringHighlight(const Model* m, int stringIndex);
+    void SetPortChannelHighlight(const Model* m, uint32_t firstChan, uint32_t lastChan);
+    void ClearPortStringHighlights() { _portStringHighlight.clear(); _portChannelHighlight.clear(); }
+
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
     bool GetActive() const;
@@ -134,6 +150,8 @@ public:
     void SetPan(float deltax, float deltay, float deltaz);
     void Set3D(bool value) { is3d = value; }
     bool Is3D() const override { return is3d; }
+    void SetControllerObjectContext(ControllerObjectContext c) { _controllerObjectContext = c; }
+    ControllerObjectContext GetControllerObjectContext() const { return _controllerObjectContext; }
     glm::mat4& GetProjViewMatrix() override { return ProjViewMatrix; }
     glm::mat4& GetProjMatrix() override { return ProjMatrix; }
     glm::mat4& GetViewMatrix() override { return ViewMatrix; }
@@ -154,7 +172,25 @@ public:
     bool GetShowZoneIndicator() const override;
 
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
+    void AddPathToAccumulator(const std::vector<xlPoint>& path);
     void AddScreenSpaceBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
+    void AddPencilIconToAccumulator();
+
+    static void StartPaintPath(std::vector<xlPoint>& path, int x, int y, bool freeform);
+    static void AddPaintPathPoint(std::vector<xlPoint>& path, int x, int y, bool freeform, int minDistanceSq = 4);
+    static void EndPaintPath(std::vector<xlPoint>& path, int x, int y, bool freeform);
+
+    static int GetPencilSizeIndex();
+    static void SetPencilSizeIndex(int index);
+    static void ResetPencilSize();
+    // Only previews used for freeform node painting (faces/states/submodels) show the pencil
+    void SetSupportsPencil(bool b) { _supportsPencil = b; }
+    bool IsPencilActive() const;
+    float GetPencilCatchRadiusMultiplier() const override;
+    std::vector<float> GetPencilStrokeOffsets() const;
+    bool HitTestPencilIcon(int x, int y) const;
+    void ShowPencilSizeMenu();
+    void OnPencilMenuSelected(wxCommandEvent& event);
 
 
     void render() override;
@@ -209,8 +245,10 @@ private:
     long _displayGridSpacing = 100;
     bool _center2D0 = false;
     bool scaleImage = false;
+    bool _supportsPencil = false;
     bool allowSelected;
     bool allowPreviewChange;
+    ControllerObjectContext _controllerObjectContext = ControllerObjectContext::None;
     PreviewPane* mPreviewPane;
 
     xLightsFrame* xlights = nullptr;
@@ -219,6 +257,7 @@ private:
     std::vector<std::string> _popupGroupNames; // layout group names in popup menu order
     std::vector<Model*> tmpModelList;
     Model *additionalModel = nullptr;
+    static int s_pencilSizeIndex;
     uint32_t currentFrameTime = 0;
 
     xlGraphicsProgram *solidProgram = nullptr;

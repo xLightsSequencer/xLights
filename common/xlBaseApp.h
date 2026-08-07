@@ -51,10 +51,31 @@ public:
     static void SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report);
     static void SetupCrashHandlerForNonWxThread();
 
+    // Records the last few hundred dispatched events and any notes the app
+    // leaves, so a crash report can say what the program was doing.  The log
+    // cannot: the per-function traces that show up as "breadcrumbs" are debug
+    // level, which almost nobody runs with, so reports routinely arrive with
+    // nothing between the last routine message and the crash.
+    static void StartActivityTrace();
+    static void StopActivityTrace();
+    // Free-form note, e.g. "play speed 0.5".  text must outlive the call; the
+    // detail is copied.  Safe from any thread.
+    static void TraceNote(char const* text, std::string const& detail = std::string());
+    static wxString FormatActivityTrace();
+
 private:
     std::string m_appName;
-    std::mutex m_crashMutex;
-    std::condition_variable m_crashDoneSignal;
+    // Timed, so a thread that arrives while another is stuck partway through
+    // reporting gives up instead of blocking behind it forever.  Paired with
+    // condition_variable_any because std::condition_variable only accepts
+    // unique_lock<std::mutex>.
+    std::timed_mutex m_crashMutex;
+    std::condition_variable_any m_crashDoneSignal;
+    // Predicate for m_crashDoneSignal.  Without it the wait can miss the notify
+    // entirely: the report is built on the main thread via CallAfter, which can
+    // finish and signal before the crashing thread reaches the wait, and a
+    // condition_variable does not remember a notify nobody was waiting for.
+    bool m_crashReportDone = false;
     wxDebugReportCompress* m_report;
 };
 
@@ -65,6 +86,14 @@ public:
         wxApp(),
         xlCrashHandler(appName)
     {
+        xlCrashHandler::StartActivityTrace();
+    }
+
+    ~xlBaseApp() override
+    {
+        // The filter is a namespace-scope object; leaving it registered would
+        // let wx walk into it after static destruction has run.
+        xlCrashHandler::StopActivityTrace();
     }
 
     virtual xlFrame* GetTopWindow() override

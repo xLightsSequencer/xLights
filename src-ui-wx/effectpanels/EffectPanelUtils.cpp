@@ -155,7 +155,14 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
 
 void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 {
-    ValueCurveButton* vcb = (ValueCurveButton*)event.GetEventObject();
+    // Not every EVT_VC_CHANGED carries a value curve button - xlGridCanvasMorph
+    // names itself as the event object - so resolve the type rather than
+    // assuming it.
+    SyncValueCurveControls(dynamic_cast<ValueCurveButton*>(event.GetEventObject()));
+}
+
+void EffectPanelUtils::SyncValueCurveControls(ValueCurveButton* vcb)
+{
     if (vcb != nullptr && vcb->GetParent() != nullptr) {
         wxString name = vcb->GetName();
         wxString slidername = name;
@@ -200,9 +207,6 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 
         wxCommandEvent e(EVT_VALIDATEWINDOW);
         wxPostEvent(vcb->GetParent(), e);
-    }
-    else {
-        wxASSERT(false);
     }
 }
 
@@ -552,7 +556,10 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
         } else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER")) {
             wxFilePickerCtrl* ctrl = (wxFilePickerCtrl*)ChildWin;
             ObtainAccessToURL(ctrl->GetFileName().GetFullPath());
-            s += AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";
+            wxString v = ctrl->GetFileName().GetFullPath();
+            v.Replace("&", "&amp;", true);
+            v.Replace(",", "&comma;", true);
+            s += AttrName + "=" + v + ",";
         } else if (ChildName.StartsWith("ID_NOTEBOOK") || ChildName.StartsWith("IDD_NOTEBOOK")) {
             wxNotebook* ctrl = (wxNotebook*)ChildWin;
             //for IDD_ stuff, don't record the value of the actual page selected

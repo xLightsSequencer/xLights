@@ -1,0 +1,62 @@
+#version 450
+// Port of TreeEffect in TreeFunctions.metal. All per-pixel work is integer
+// math; the color tables (bgColors/lightColors) are precomputed by the
+// wrapper with the exact scalar double-precision color math, so this kernel
+// need only replicate the integer indexing logic. Full-write: every pixel is
+// assigned either a background color or (when lit) a light color.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+#define MAX_VULKAN_TREE_PPB 512
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int ppb;         // pixels_per_branch
+    int frame;        // light sweep limit (x <= frame)
+    int branch_row;   // b — branch row currently being lit
+    int f_mod;        // sweep position within the row
+    int showlights;
+    uint bgColors[MAX_VULKAN_TREE_PPB]; // packed uchar4, indexed by mod-1, mod in 1..ppb
+    uint lightColors[5];                 // packed uchar4, indexed by branch % 5
+} data;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= (data.width * data.height)) return;
+
+    int x = int(index % data.width);
+    int y = int(index / data.width);
+    int ppb = data.ppb;
+
+    int mod = y % ppb;
+    if (mod == 0)
+        mod = ppb;
+    uint color = data.bgColors[mod - 1];
+
+    if (data.showlights != 0) {
+        int b = data.branch_row;
+        int branch = (y - 1) / ppb;
+        int row = ppb - mod;
+        int m = x % 6;
+        if (m == 0)
+            m = 6;
+        if (branch <= b && x <= data.frame &&
+            ((row == 3 && (m == 1 || m == 6)) ||
+             (row == 2 && (m == 2 || m == 5)) ||
+             (row == 1 && (m == 3 || m == 4)))) {
+            int odd_even = b % 2;
+            int s_odd_row = int(data.width) - x + 1;
+            if ((odd_even == 0 && x <= data.f_mod) || (odd_even == 1 && s_odd_row <= data.f_mod)) {
+                int r = branch % 5;
+                if (r < 0)
+                    r = 0; // branch is -1 only when y==0 && ppb==1; hue clamps to red
+                color = data.lightColors[r];
+            }
+        }
+    }
+    result[index] = color;
+}

@@ -177,7 +177,10 @@ bool ControllerSerial::UpdateFrom(Controller* from)
 {
     bool changed = Controller::UpdateFrom(from);
 
-    ControllerSerial* fromSerial = static_cast<ControllerSerial*>(from);
+    ControllerSerial* fromSerial = dynamic_cast<ControllerSerial*>(from);
+    if (fromSerial == nullptr) {
+        return changed;
+    }
 
     if (_port != fromSerial->_port) {
         changed = true;

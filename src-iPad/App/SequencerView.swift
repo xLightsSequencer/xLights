@@ -213,11 +213,11 @@ struct SequencerView: View {
                             titleVisibility: .visible) {
             Button("Save and Close") {
                 if viewModel.saveSequence() {
-                    viewModel.closeSequence()
+                    Task { await viewModel.closeSequence() }
                 }
             }
             Button("Discard Changes", role: .destructive) {
-                viewModel.closeSequence()
+                Task { await viewModel.closeSequence() }
             }
             Button("Cancel", role: .cancel) { }
         } message: {
@@ -227,7 +227,7 @@ struct SequencerView: View {
                             isPresented: $showingRevertPrompt,
                             titleVisibility: .visible) {
             Button("Revert", role: .destructive) {
-                viewModel.revertToLastSaved()
+                Task { await viewModel.revertToLastSaved() }
             }
             Button("Cancel", role: .cancel) { }
         } message: {
@@ -300,7 +300,7 @@ struct SequencerView: View {
             if viewModel.checkDirtyNow() {
                 showingUnsavedPrompt = true
             } else {
-                viewModel.closeSequence()
+                Task { await viewModel.closeSequence() }
             }
         }
         // EFX-1 — Export Effects token: build the CSV then hand to fileExporter.
@@ -457,7 +457,7 @@ struct SequencerView: View {
                 if viewModel.checkDirtyNow() {
                     showingUnsavedPrompt = true
                 } else {
-                    viewModel.closeSequence()
+                    Task { await viewModel.closeSequence() }
                 }
             }) {
                 Image(systemName: "xmark")
@@ -641,6 +641,12 @@ struct SequencerView: View {
             }
             .disabled(!viewModel.isSequenceLoaded)
             .help("Render all effects")
+            // Desktop opens its per-model progress dialog by double-
+            // clicking the status gauge; long-press is the touch
+            // equivalent on the control that carries the same gauge.
+            .onLongPressGesture {
+                viewModel.showingRenderProgress = true
+            }
 
             Spacer()
 

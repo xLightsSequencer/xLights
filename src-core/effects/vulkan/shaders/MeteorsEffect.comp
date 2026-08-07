@@ -1,0 +1,238 @@
+#version 450
+// Port of the Metal/ISPC axis-aligned Meteors gather (MeteorsFunctions.metal /
+// MeteorsFunctions.ispc). The CPU-side meteor simulation (add/move/remove,
+// swirl folded into the axis coordinate, palette/range HSV precompute) stays
+// entirely in MeteorsEffect.cpp/VulkanMeteorsEffect.cpp -- this kernel only
+// runs the final per-pixel gather: each thread scans the meteors bucketed onto
+// its own line and the LAST covering one in draw order wins (mirrors the CPU's
+// SetPixel overwrite order).
+//
+// A meteor's axis coord fixes the only line of the buffer it can ever cover --
+// the column it falls down (vertical/icicle) or the row it crosses
+// (horizontal) -- so the CPU buckets the snapshot by line
+// (MeteorsEffect::BucketMeteorsByLine) and a thread scans just
+// lineItems[lineStart[line] .. lineStart[line+1]) (global indices into parts,
+// ascending). The meteors left out fail the a == x / a == y test anyway, so the
+// same one still wins each pixel; the flat O(pixels x meteors) scan becomes
+// O(pixels x meteors-on-this-line).
+//
+// Partial-write kernel: pixels with no covering meteor (and, for icicle
+// without wantBkg, no dim background) are left untouched, so `result` must
+// stay a plain `buffer`, not `writeonly`.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Parts {
+    // MetalMeteorParticle / VulkanMeteorParticle, flattened: 6 words/particle
+    // (a, base, h, hue, sat, val). Declared as a flat uint array (rather than
+    // an array of a named struct) to avoid the std430 rule that rounds
+    // struct-array-element alignment up to 16 bytes, which would desync the
+    // stride from VulkanMeteorParticle's 24-byte C++ layout.
+    uint partsRaw[];
+};
+// Line buckets from MeteorsEffect::BucketMeteorsByLine: lineStart holds
+// lineCount+1 prefix offsets into lineItems, which holds global indices into
+// partsRaw.
+layout(std430, set = 0, binding = 2) readonly buffer Items { int lineItems[]; };
+layout(std430, set = 0, binding = 3) readonly buffer Starts { int lineStart[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int  mode;         // 0 = vertical, 1 = horizontal, 2 = icicle
+    int  direction;     // raw MeteorsEffect: 0 Down, 1 Up, 2 Left, 3 Right, 6/7 Icicle
+    int  tailLength;
+    int  colorScheme;   // 0 = rainbow, 1 = range, 2 = palette
+    int  allowAlpha;
+    int  numMeteors;
+    int  wantBkg;       // icicle: draw dim background icicles
+    // 64-bit RNG frame seed split into two 32-bit halves -- see the u64
+    // emulation below (same technique as ShimmerEffect.comp / CandleEffect.comp).
+    uint frameSeedLo;
+    uint frameSeedHi;
+} data;
+
+int partA(int n)     { return int(partsRaw[n * 6 + 0]); }
+int partBase(int n)  { return int(partsRaw[n * 6 + 1]); }
+int partH(int n)     { return int(partsRaw[n * 6 + 2]); }
+float partHue(int n) { return uintBitsToFloat(partsRaw[n * 6 + 3]); }
+float partSat(int n) { return uintBitsToFloat(partsRaw[n * 6 + 4]); }
+float partVal(int n) { return uintBitsToFloat(partsRaw[n * 6 + 5]); }
+
+// A 64-bit value as a (lo, hi) uint32 pair. Emulates RenderBuffer::rngMix64
+// (the splitmix64 finalizer, mirrored bit-for-bit as meteorMix64 in
+// MeteorsFunctions.metal) without relying on a native 64-bit GLSL integer
+// type, which is not guaranteed available on every Vulkan implementation.
+// Identical helper to ShimmerEffect.comp / CandleEffect.comp (local copy, per
+// this codebase's per-effect-kernel convention).
+struct u64 { uint lo; uint hi; };
+
+u64 u64Xor(u64 a, u64 b) { return u64(a.lo ^ b.lo, a.hi ^ b.hi); }
+
+// a >> n, restricted to 0 < n < 32 -- the only shifts meteorMix64 needs
+// (27, 30, 31).
+u64 u64Shr(u64 a, uint n) {
+    return u64((a.lo >> n) | (a.hi << (32u - n)), a.hi >> n);
+}
+
+// (a * b) mod 2^64. aHi*bHi is dropped entirely (it only contributes to bits
+// >= 64). The cross terms aHi*bLo + aLo*bHi are multiplied by 2^32 in the
+// full product, so only their low 32 bits (which plain GLSL uint `*`/`+`
+// already wrap to) survive truncation to 64 bits. umulExtended supplies the
+// exact high/low halves of the aLo*bLo term.
+u64 u64Mul(u64 a, u64 b) {
+    uint msb, lsb;
+    umulExtended(a.lo, b.lo, msb, lsb);
+    uint cross = a.hi * b.lo + a.lo * b.hi;
+    return u64(lsb, msb + cross);
+}
+
+// Bit-identical to meteorMix64 (MeteorsFunctions.metal) / RenderBuffer::rngMix64.
+u64 meteorMix64(u64 z) {
+    z = u64Xor(z, u64Shr(z, 30u));
+    z = u64Mul(z, u64(0x1CE4E5B9u, 0xBF58476Du)); // 0xBF58476D1CE4E5B9
+    z = u64Xor(z, u64Shr(z, 27u));
+    z = u64Mul(z, u64(0x133111EBu, 0x94D049BBu)); // 0x94D049BB133111EB
+    z = u64Xor(z, u64Shr(z, 31u));
+    return z;
+}
+
+// Bit-identical algorithm to meteorHashRand01 (MeteorsFunctions.metal):
+// float(mix64(frameSeed ^ index*K) >> 11) * 2^-53. The >>11 result fits in 53
+// bits (shifted.hi holds only its top 21 significant bits), which the Metal
+// kernel casts straight to a 32-bit float -- a lossy conversion Metal's own
+// header comment already documents as a source of +/-1 pixel drift from the
+// double-precision CPU reference. Reproduce that same order of approximation
+// via two exact sub-32-bit-to-float conversions rather than pull in 64-bit
+// integer emulation just for a single hue hash.
+float meteorHashRand01(u64 frameSeed, uint index) {
+    u64 idxTerm = u64Mul(u64(index, 0u), u64(0xD192ED03u, 0xD1B54A32u)); // 0xD1B54A32D192ED03
+    u64 z = u64Xor(frameSeed, idxTerm);
+    u64 m = meteorMix64(z);
+    u64 shifted = u64Shr(m, 11u);
+    float value = float(shifted.hi) * 4294967296.0 + float(shifted.lo);
+    return value * (1.0 / 9007199254740992.0);
+}
+
+// xlColor::fromHSV (Color.cpp) in float -- clamped hue/sat/value, lround via
+// floor(x+0.5). Bit-identical structure to meteorFromHSV (MeteorsFunctions.metal).
+uvec4 meteorFromHSV(float hue, float saturation, float value) {
+    float v = clamp(value, 0.0, 1.0);
+    float s = clamp(saturation, 0.0, 1.0);
+    float red, green, blue;
+    if (s == 0.0) {
+        red = v; green = v; blue = v;
+    } else {
+        float h = clamp(hue, 0.0, 1.0) * 6.0;
+        int i = int(floor(h));
+        float f = h - float(i);
+        float p = v * (1.0 - s);
+        if (i == 1) {
+            red = v * (1.0 - s * f);         green = v;                          blue = p;
+        } else if (i == 2) {
+            red = p;                          green = v;                          blue = v * (1.0 - s * (1.0 - f));
+        } else if (i == 3) {
+            red = p;                          green = v * (1.0 - s * f);         blue = v;
+        } else if (i == 4) {
+            red = v * (1.0 - s * (1.0 - f)); green = p;                         blue = v;
+        } else if (i == 5) {
+            red = v;                          green = p;                          blue = v * (1.0 - s * f);
+        } else { // i == 0 or i == 6
+            red = v;                          green = v * (1.0 - s * (1.0 - f)); blue = p;
+        }
+    }
+    uvec4 outColor;
+    outColor.x = uint(floor(red * 255.0 + 0.5));
+    outColor.y = uint(floor(green * 255.0 + 0.5));
+    outColor.z = uint(floor(blue * 255.0 + 0.5));
+    outColor.w = 255u;
+    return outColor;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+
+    int W = int(data.width);
+    int H = int(data.height);
+    int x = int(index % data.width);
+    int y = int(index / data.width);
+    int TL = data.tailLength < 1 ? 1 : data.tailLength;
+    int mode = data.mode;
+    int dir = data.direction;
+    int scheme = data.colorScheme;
+    int allowAlpha = data.allowAlpha;
+
+    // horizontal meteors cross a row, vertical/icicle ones fall down a column
+    int line = (mode == 1) ? y : x;
+    int itemStart = lineStart[line];
+    int itemEnd = lineStart[line + 1];
+
+    int bestN = -1;
+    int bestPh = 0;
+    for (int i = itemStart; i < itemEnd; i++) {
+        int n = lineItems[i];
+        int a = partA(n);
+        int base = partBase(n);
+        bool cover = false;
+        int ph = 0;
+        if (mode == 0) {                 // vertical
+            if (a == x) {
+                ph = (dir == 0) ? (y - base) : (H - y - base);
+                if (ph >= 0 && ph <= TL) cover = true;
+            }
+        } else if (mode == 1) {          // horizontal
+            if (a == y) {
+                ph = (dir == 2) ? (x - base) : (W - x - base);
+                if (ph >= 0 && ph <= TL) cover = true;
+            }
+        } else {                         // icicle
+            if (a == x) {
+                ph = y - base;
+                if (ph >= 0 && ph <= TL && y >= partH(n)) cover = true;
+            }
+        }
+        if (cover) { bestN = n; bestPh = ph; }
+    }
+
+    if (bestN >= 0) {
+        uvec4 col;
+        if (mode == 2) {
+            bool colored = (bestPh == 0) || (bestPh <= partH(bestN) - partBase(bestN));
+            if (colored) {
+                col = meteorFromHSV(partHue(bestN), partSat(bestN), partVal(bestN));
+            } else {
+                col = meteorFromHSV(0.0, 0.0, 0.4); // white icicle body
+            }
+        } else {
+            float hue, sat, val;
+            if (scheme == 0) {           // rainbow
+                uint idx = uint(bestN) * 131101u + uint(bestPh);
+                u64 frameSeed = u64(data.frameSeedLo, data.frameSeedHi);
+                hue = meteorHashRand01(frameSeed, idx);
+                sat = 1.0; val = 1.0;
+            } else {
+                hue = partHue(bestN); sat = partSat(bestN); val = partVal(bestN);
+            }
+            float fade = 1.0 - float(bestPh) / float(TL);
+            if (allowAlpha != 0) {
+                col = meteorFromHSV(hue, sat, val);
+                col.w = uint(255.0 * fade);
+            } else {
+                col = meteorFromHSV(hue, sat, val * fade);
+            }
+        }
+        result[index] = packPx(col);
+    } else if (mode == 2 && data.wantBkg != 0) {
+        if ((x % 3) == 0) {
+            int k = (x / 3) % 5;
+            int s = (k == 0) ? 0 : (k == 1) ? 5 : (k == 2) ? 1 : (k == 3) ? 2 : 4;
+            int yy = y - s;
+            if (yy >= 0 && (yy % 3) == 0) {
+                result[index] = packPx(uvec4(100u, 50u, 255u, 255u));
+            }
+        }
+    }
+}

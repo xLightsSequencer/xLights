@@ -1,0 +1,54 @@
+#version 450
+// Port of clockTransition in TransitionFunctions.metal (mask/"map" type).
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer MaskB { uint maskWords[]; };
+
+void maskWrite(uint sidx, uint value);
+
+void maskValue(uint ix, uint iy) {
+    uint sidx = ix * data.height + iy; // masks are different order than pixels
+
+    float adjust = data.adjust;
+    float factor = data.progress;
+    bool reverse = data.reverse != 0u;
+
+    uint m1 = 255u;
+    uint m2 = 0u;
+
+    float startradians = 2.0 * XL_PI * adjust / 100.0;
+    float currentradians = 2.0 * XL_PI * factor;
+    if (reverse) {
+        float tmp = startradians;
+        startradians = startradians - currentradians;
+        currentradians = tmp;
+        if (startradians < 0.0) {
+            startradians += 2.0 * XL_PI;
+            currentradians += 2.0 * XL_PI;
+        }
+    } else {
+        currentradians = startradians + currentradians;
+    }
+
+    float radianspixel;
+    if (int(ix) - int(data.width) / 2 == 0 && int(iy) - int(data.height) / 2 == 0) {
+        radianspixel = 0.0;
+    } else {
+        radianspixel = atan(float(ix) - float(data.width) / 2.0,
+                            float(iy) - float(data.height) / 2.0);
+    }
+    if (radianspixel < 0.0) {
+        radianspixel += 2.0 * XL_PI;
+    }
+    if (currentradians > 2.0 * XL_PI && radianspixel < startradians) {
+        radianspixel += 2.0 * XL_PI;
+    }
+    bool s_lt_p = radianspixel > startradians;
+    bool c_gt_p = radianspixel < currentradians;
+    maskWrite(sidx, (s_lt_p && c_gt_p) ? m2 : m1);
+}
+
+#include "transition_mask_main.glsl"

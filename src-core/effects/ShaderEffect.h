@@ -220,15 +220,21 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    virtual bool needsLoadFiles() const override { return true; }
+    virtual void loadFiles(Effect* effect) override;
 
     static ShaderConfig* ParseShader(const std::string& filename, SequenceElements* sequenceElements);
     static ShaderConfig* ParseShaderFromSource(const std::string& filename, const std::string& source, SequenceElements* sequenceElements);
     static bool IsShaderFile(std::string filename);
+
+    // The fixed fullscreen-quad vertex shader (desktop GLSL 330, non-GLES), used
+    // by the native Metal translation path to build a matching vertex stage.
+    static std::string GetNativeVertexShaderSource();
 
     static void SetBackgroundRender(bool b);
     static bool IsBackgroundRender();

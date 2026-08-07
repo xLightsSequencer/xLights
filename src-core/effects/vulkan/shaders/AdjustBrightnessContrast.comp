@@ -1,0 +1,41 @@
+#version 450
+// Port of AdjustBrightnessContrast in LayerBlendingFunctions.metal.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    uvec4 color = unpackPx(result[index]);
+
+    float b = float(data.brightness);
+    float c = float(data.contrast);
+    if (data.contrast != 0) {
+        // contrast is not 0, can handle brightness change at same time
+        vec3 hsv = toHSV(color);
+        hsv.z = hsv.z * (b / 100.0);
+
+        // Apply Contrast: reduce brightness when below 0.5 in the V value,
+        // increase if > 0.5
+        if (hsv.z < 0.5) {
+            hsv.z = hsv.z - (hsv.z * (c / 100.0));
+        } else {
+            hsv.z = hsv.z + (hsv.z * (c / 100.0));
+        }
+        hsv.z = clamp(hsv.z, 0.0, 1.0);
+        uint alpha = color.a;
+        color = fromHSV(hsv);
+        color.a = alpha;
+    } else if (data.brightness != 100) {
+        // just brightness
+        b /= 100.0;
+        color.r = min(uint(float(color.r) * b), 255u);
+        color.g = min(uint(float(color.g) * b), 255u);
+        color.b = min(uint(float(color.b) * b), 255u);
+    }
+    result[index] = packPx(color);
+}

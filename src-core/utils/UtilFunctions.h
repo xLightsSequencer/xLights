@@ -169,6 +169,30 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly = false);
 uint64_t GetPhysicalMemorySizeMB();
 
+// This process's current memory footprint in MB, or 0 if the platform won't
+// tell us. macOS reports phys_footprint (what Activity Monitor shows and what
+// jetsam kills on), Windows the private working set, Linux RSS.
+uint64_t GetProcessMemoryUsageMB();
+
+// The ceiling the OS will kill this process at, in MB, or 0 when there isn't
+// one below installed RAM. iOS/iPadOS impose a per-app dirty-memory limit well
+// under the device's RAM, so anything budgeting against physical memory is far
+// too generous there; on desktop this normally returns 0 and callers fall back
+// to physical memory.
+uint64_t GetProcessMemoryLimitMB();
+
+// CPU brand string ("Apple M2 Pro", "AMD Ryzen 7 7640HS", ...), empty if the
+// platform won't tell us.
+std::string GetCPUBrand();
+// Logical (SMT) and physical core counts; 0 when undeterminable. The render
+// pool is sized off these, so crash reports need them to reproduce.
+int GetLogicalCoreCount();
+int GetPhysicalCoreCount();
+
+// Human-readable GPU description. Apple returns the Metal device; elsewhere
+// this is empty and the GL banner carries the renderer string.
+std::string GetGPUDescription();
+
 bool IsxLights();
 void SetIsxLights(bool val);
 std::string ReverseCSV(const std::string& csv);

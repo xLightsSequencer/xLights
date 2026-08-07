@@ -201,6 +201,7 @@ public:
 
     virtual glm::vec2 GetScreenOffset(IModelPreview* preview) const = 0;
     virtual glm::vec2 GetScreenPosition(int screenwidth, int screenheight, IModelPreview* preview, PreviewCamera* camera, float &sx, float &sy, float &sz) const;
+    glm::vec2 GetScreenPositionForAspect(int screenwidth, int screenheight, int previewWidth, int previewHeight, PreviewCamera* camera, float &sx, float &sy, float &sz) const;
     virtual float GetHcenterPos() const = 0;
     virtual float GetVcenterPos() const = 0;
     virtual float GetDcenterPos() const = 0;

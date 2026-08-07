@@ -1,0 +1,40 @@
+#version 450
+// Port of the Fill effect in FillFunctions.metal. BuildFillLut (shared,
+// FillEffect.cpp) precomputes -- with the exact scalar double-precision
+// color math -- a per-line color LUT (binding 1) and a per-line painted
+// mask (binding 2), indexed by the physical row for Up/Down or column for
+// Left/Right. Each thread maps its pixel to a line and copies the LUT color
+// when that line is painted, leaving unpainted pixels untouched (so cleared
+// and Persistent buffers both match the scalar renderer). Partial-write:
+// `result` must NOT be writeonly. Kept in lockstep with FillFunctions.ispc /
+// FillFunctions.metal.
+//
+// Unlike Metal (setBytes caps the LUT/painted arrays at MAX_FILL_LUT = 1024
+// lines, falling back to CPU above that), these arrays ride in real SSBOs
+// (bindings 1/2, uploaded via createSharedBuffer) with no size cap -- the
+// Vulkan path covers the large-buffer cases Metal punts to the CPU/ISPC path.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+// Packed uchar4 per line (r = low byte, matches packPx/xlColor's byte order).
+layout(std430, set = 0, binding = 1) readonly buffer Lut { uint lut[]; };
+// One uchar widened to a uint per line (no 8-bit GLSL storage).
+layout(std430, set = 0, binding = 2) readonly buffer Painted { uint painted[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int vertical; // 1 => line is the row (y) [Up/Down]; 0 => the column (x) [Left/Right]
+} data;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+
+    uint line = (data.vertical != 0) ? (index / data.width) : (index % data.width);
+    if (painted[line] != 0u) {
+        result[index] = lut[line];
+    }
+}

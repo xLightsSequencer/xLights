@@ -21,7 +21,18 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>0</growablerows>
+							<growablerows>1</growablerows>
+							<object class="sizeritem">
+								<object class="wxSearchCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Search" member="yes">
+									<style>wxTE_PROCESS_ENTER</style>
+									<handler function="OnTextCtrl_SearchText" entry="EVT_TEXT" />
+									<handler function="OnTextCtrl_SearchTextEnter" entry="EVT_TEXT_ENTER" />
+									<handler function="OnButton_SearchClick" entry="EVT_SEARCHCTRL_SEARCH_BTN" />
+									<handler function="OnSearchCancelClick" entry="EVT_SEARCHCTRL_CANCEL_BTN" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+							</object>
 							<object class="sizeritem">
 								<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl_Navigator" member="yes">
 									<image_list>&lt;none&gt;</image_list>
@@ -34,35 +45,9 @@
 										<item2>&lt;none&gt;</item2>
 									</items_text>
 									<size>200,-1</size>
-									<style>wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_SINGLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL</style>
+									<style>wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_MULTIPLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL</style>
 									<handler function="OnTreeCtrl_NavigatorItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
 									<handler function="OnTreeCtrl_NavigatorSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
-									<cols>2</cols>
-									<growablecols>0</growablecols>
-									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Search" member="yes">
-											<handler function="OnTextCtrl_SearchText" entry="EVT_TEXT" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON4" variable="Button_Search" member="yes">
-											<label>Search</label>
-											<handler function="OnButton_SearchClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>

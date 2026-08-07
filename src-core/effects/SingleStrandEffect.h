@@ -12,6 +12,8 @@
 
 #include "RenderableEffect.h"
 
+class SingleStrandRenderCache;
+
 class SingleStrandEffect : public RenderableEffect
 {
 public:
@@ -20,6 +22,10 @@ public:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Only the "FX" (WS2812/WLED) sub-mode carries animation state across frames;
+    // Chase and Skips are pure functions of the frame.
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
+    virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override
     {
         return true;
@@ -59,19 +65,18 @@ public:
     static int sSkipsSkipSizeDefault;
     static int sSkipsStartPosDefault;
     static int sSkipsAdvanceDefault;
+    static std::string sTimingTrackDefault;
 
 protected:
     virtual void OnMetadataLoaded() override;
 
 private:
     void RenderSingleStrandChase(RenderBuffer& buffer, Effect* eff,
-                                 const std::string& ColorScheme, int Number_Chases, int chaseSize,
-                                 const std::string& Chase_Type1,
-                                 const std::string& Fade_Type, bool Chase_Group_All,
+                                 const SingleStrandRenderCache& cache, int Number_Chases, int chaseSize,
                                  float chaseSpeed, float offset);
-    void RenderSingleStrandSkips(RenderBuffer& buffer, Effect* eff, int Skips_BandSize,
-                                 int Skips_SkipSize, int Skips_StartPos, const std::string& Skips_Direction, int advances);
-    void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette);
+    Effect* GetTimingEvent(RenderBuffer& buffer, const std::string& timingTrack, uint32_t ms);
+    void RenderSingleStrandSkips(RenderBuffer& buffer, Effect* eff, const SingleStrandRenderCache& cache);
+    void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, SingleStrandRenderCache& cache, int intensity, int speed);
     void draw_chase(RenderBuffer& buffer,
                     int x, bool group, int ColorScheme, int Number_Chases, bool autoReverse, int width,
                     int Color_Mix1, int fadeType, int ChaseDirection, bool mirror);

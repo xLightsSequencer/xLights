@@ -1,0 +1,75 @@
+#version 450
+// Port of foldTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+const float CAMERA_DIST = 2.0;
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+    vec3 ray = vec3(s * 2.0 - 1.0, t * 2.0 - 1.0, CAMERA_DIST);
+    float phi = data.progress * XL_PI; // rotation angle
+
+    // rotated basis vectors
+    vec3 rx = vec3(cos(phi), 0.0, data.reverse != 0u ? sin(phi) : -sin(phi));
+    vec3 rz = vec3(-rx.z, 0.0, rx.x);
+
+    // corner and direction vectors of "from" polygon
+    vec3 p0 = -rx + vec3(0.0, -1.0, CAMERA_DIST);
+    vec3 u0 = rx;
+    vec3 v0 = vec3(0.0, 1.0, 0.0);
+    vec3 n0 = rz;
+
+    // ray-plane intersection
+    vec3 a0 = (dot(p0, n0) / dot(ray, n0)) * ray;
+    vec2 uv0 = vec2(dot(a0 - p0, u0) / 2.0, dot(a0 - p0, v0) / 2.0);
+
+    if (data.isOut != 0u) {
+        if (uv0.x >= 0.0 && uv0.x < 1.0 && uv0.y >= 0.0 && uv0.y < 1.0) {
+            if (data.hasPrev == 0u) {
+                result[sidx] = packPx(tex2Dsrc(uv0.x, uv0.y));
+            } else if (data.progress < 0.5) {
+                result[sidx] = packPx(tex2Dprev(uv0.x, uv0.y));
+            } else {
+                uvec4 c = tex2Dsrc(1.0 - uv0.x, uv0.y);
+                if (c.a == 0u) {
+                    result[sidx] = packPx(tex2Dsrc(uv0.x, uv0.y));
+                } else {
+                    result[sidx] = packPx(c);
+                }
+            }
+        } else {
+            result[sidx] = packPx(uvec4(0u, 0u, 0u, 255u));
+        }
+    } else {
+        if (uv0.x >= 0.0 && uv0.x < 1.0 && uv0.y >= 0.0 && uv0.y < 1.0) {
+            if (data.hasPrev == 0u) {
+                result[sidx] = packPx(tex2Dsrc(1.0 - uv0.x, uv0.y));
+            } else if (data.progress < 0.5) {
+                uvec4 c = tex2Dprev(uv0.x, uv0.y);
+                if (c.a == 0u) {
+                    result[sidx] = packPx(tex2Dsrc(1.0 - uv0.x, uv0.y));
+                } else {
+                    result[sidx] = packPx(c);
+                }
+            } else {
+                result[sidx] = packPx(tex2Dsrc(1.0 - uv0.x, uv0.y));
+            }
+        } else {
+            result[sidx] = packPx(uvec4(0u, 0u, 0u, 255u));
+        }
+    }
+}

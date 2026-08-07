@@ -60,7 +60,7 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
     // - Face chosen or specific phoneme
     if (state == "" && timing == "") {
         res.push_back(fmt::format("    ERR: State effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    } else if (timing != "" && GetTiming(timing) == nullptr) {
+    } else if (timing != "" && GetTiming(timing, eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()) == nullptr) {
         res.push_back(fmt::format("    ERR: State effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;

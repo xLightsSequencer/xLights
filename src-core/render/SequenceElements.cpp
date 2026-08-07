@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <cassert>
+#include <limits>
 
 #include <algorithm>
 #include <spdlog/fmt/fmt.h>
@@ -80,12 +81,14 @@ void SequenceElements::Clear() {
     mRowInformation.clear();
     mSelectedRanges.clear();
     undo_mgr.Clear();
+    _effectSymbolManager.Clear();
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
     mFirstVisibleModelRow = 0;
     mChangeCount = 0;
     mMasterViewChangeCount++;
     mSequenceMedia.Clear();
+    mSequenceFaces.Clear();
     mSongStructure.Clear();
     mColorPalettes.clear();
     mCurrentView = 0;
@@ -104,6 +107,62 @@ void SequenceElements::SetSequenceEnd(int ms)
 int SequenceElements::GetSequenceEnd() const
 {
     return mSequenceEndMS;
+}
+
+int SequenceElements::GetMaxEffectEndTimeMS() const
+{
+    int maxEndMS = 0;
+
+    auto scanElement = [&maxEndMS](Element* e) {
+        for (size_t j = 0; j < e->GetEffectLayerCount(); j++) {
+            EffectLayer* el = e->GetEffectLayer(j);
+            for (int k = 0; k < el->GetEffectCount(); k++) {
+                Effect* eff = el->GetEffect(k);
+                if (eff->GetEndTimeMS() > maxEndMS) {
+                    maxEndMS = eff->GetEndTimeMS();
+                }
+            }
+        }
+    };
+
+    for (size_t i = 0; i < GetElementCount(); i++) {
+        Element* e = GetElement(i);
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            continue;
+        }
+        scanElement(e);
+
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(e);
+            if (me != nullptr) {
+                for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
+                    SubModelElement* sme = me->GetSubModel(s);
+                    if (sme == nullptr) {
+                        continue;
+                    }
+                    scanElement(sme);
+
+                    StrandElement* se = dynamic_cast<StrandElement*>(sme);
+                    if (se != nullptr) {
+                        for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+                            NodeLayer* nl = se->GetNodeLayer(n);
+                            if (nl == nullptr) {
+                                continue;
+                            }
+                            for (int k = 0; k < nl->GetEffectCount(); k++) {
+                                Effect* eff = nl->GetEffect(k);
+                                if (eff->GetEndTimeMS() > maxEndMS) {
+                                    maxEndMS = eff->GetEndTimeMS();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return maxEndMS;
 }
 
 EffectLayer* SequenceElements::GetEffectLayer(const Row_Information_Struct *s) const
@@ -679,8 +738,19 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                     }
                 }
                 if (effectName != "Random") {
-                    effectLayer->AddEffect(id, effectName, settings, pal,
+                    Effect* newEffect = effectLayer->AddEffect(id, effectName, settings, pal,
                                            startTime, endTime, EFFECT_NOT_SELECTED, bProtected, false, importing);
+                    if (newEffect != nullptr && !effect.attribute("linkedSymbol").empty()) {
+                        std::string symbolId = effect.attribute("linkedSymbol").as_string("");
+                        if (!symbolId.empty() && _effectSymbolManager.SymbolExists(symbolId)) {
+                            // Suppress the fan-out to already-linked siblings: the file
+                            // is already consistent with the symbol, and propagating on
+                            // every link makes the load quadratic (a 334-effect symbol
+                            // posts >111k render events on desktop, hanging the open).
+                            Effect::ScopedSymbolPropagationSuppressor noFanOut;
+                            newEffect->LinkToSymbol(symbolId);
+                        }
+                    }
                 } else {
                     spdlog::warn("Random effect not loaded on element {} layer {} ({:.2f}-{:.2f})", effectLayer->GetParentElement()->GetName(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
                 }
@@ -773,10 +843,16 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
             }
         } else if (ename == "SequenceMedia") {
             mSequenceMedia.LoadFromXml(e);
+        } else if (ename == "FaceDefinitions") {
+            // relies on <SequenceMedia> preceding this section in the file so
+            // embedded image names are registered before paths are resolved
+            mSequenceFaces.LoadFromXml(e, mSequenceMedia);
         } else if (ename == "SongStructure") {
             mSongStructure.LoadFromXml(e);
         } else if (ename == "Jukebox") {
             LoadJukeboxButtons(e, xml_file.GetJukeboxButtons());
+        } else if (ename == "EffectSymbols") {
+            _effectSymbolManager.LoadFromXml(e);
         } else if (ename == "ElementEffects") {
             // Count effects for progress
             int count = 0;
@@ -1817,7 +1893,7 @@ std::list<std::string> SequenceElements::GetAllReferencedFiles()
         Element* e = GetElement(i);
         if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
             Model* m = renderContext->GetModel(e->GetModelName());
-            for (const auto& it : e->GetFileReferences(m, GetEffectManager())) {
+            for (const auto& it : e->GetFileReferences(renderContext, m, GetEffectManager())) {
                 if (std::find(begin(res), end(res), it) == end(res)) {
                     res.push_back(it);
                 }
@@ -2121,6 +2197,75 @@ void SequenceElements::MoveElementDown(const std::string &name, int view)
 
 
 
+std::map<std::string, std::pair<int, int>> SequenceElements::RewriteMediaReferences(const std::string& from, const std::string& to) {
+    std::map<std::string, std::pair<int, int>> dirtyModels;
+    if (from == to) return dirtyModels;
+
+    mSequenceFaces.RewriteImagePath(from, to);
+
+    const auto initRange = std::make_pair(std::numeric_limits<int>::max(), 0);
+    auto scanLayer = [&](EffectLayer* layer, const std::string& modelName) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            const SettingsMap& settings = eff->GetSettings();
+            std::vector<std::string> keysToUpdate;
+            for (auto it = settings.begin(); it != settings.end(); ++it) {
+                if (it->second == from) keysToUpdate.push_back(it->first);
+            }
+            if (keysToUpdate.empty()) continue;
+            for (const auto& key : keysToUpdate) {
+                eff->SetSetting(key, to);
+            }
+            auto& range = dirtyModels.emplace(modelName, initRange).first->second;
+            range.first = std::min(range.first, eff->GetStartTimeMS());
+            range.second = std::max(range.second, eff->GetEndTimeMS());
+        }
+    };
+
+    for (size_t i = 0; i < GetElementCount(); ++i) {
+        Element* e = GetElement(i);
+        if (e == nullptr || e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        ModelElement* model = dynamic_cast<ModelElement*>(e);
+        if (model == nullptr) continue;
+
+        const std::string& modelName = model->GetModelName();
+        for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j) {
+            scanLayer(model->GetEffectLayer(j), modelName);
+        }
+        for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
+            SubModelElement* sub = model->GetSubModel(j);
+            if (sub == nullptr) continue;
+            for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l) {
+                scanLayer(sub->GetEffectLayer(l), modelName);
+            }
+            if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+                if (strand != nullptr) {
+                    for (int k = 0; k < strand->GetNodeLayerCount(); ++k) {
+                        scanLayer(strand->GetNodeLayer(k), modelName);
+                    }
+                }
+            }
+        }
+    }
+    return dirtyModels;
+}
+
+std::string SequenceElements::MakeMediaPathRelative(const std::string& path) {
+    if (path.empty()) return path;
+
+    if (renderContext == nullptr) return path;
+    const std::string key = renderContext->MakeRelativePath(path);
+    if (key.empty() || key == path) return path;
+
+    // RenameMedia refuses when the target key already exists in any cache, so
+    // two entries from different folders that share a filename keep their
+    // original paths rather than collapsing into one.
+    if (!mSequenceMedia.RenameMedia(path, key)) return path;
+    RewriteMediaReferences(path, key);
+    return key;
+}
+
 void SequenceElements::IncrementChangeCount(Element *el) {
     mChangeCount++;
     if (el != nullptr && el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
@@ -2157,6 +2302,55 @@ bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
         return !models.empty();
     }
     return false;
+}
+
+int SequenceElements::RenameModelFaceReferences(const std::string& modelName, const std::string& oldName, const std::string& newName)
+{
+    if (oldName == newName || oldName.empty() || newName.empty()) {
+        return 0;
+    }
+    ModelElement* model = dynamic_cast<ModelElement*>(GetElement(modelName));
+    if (model == nullptr) {
+        return 0;
+    }
+
+    int count = 0;
+    auto scanLayer = [&](EffectLayer* layer) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            const std::string& effName = eff->GetEffectName();
+            if (effName != "Faces" && effName != "CoroFaces") {
+                continue;
+            }
+            if (eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "") == oldName) {
+                eff->SetSetting("E_CHOICE_Faces_FaceDefinition", newName);
+                ++count;
+            }
+        }
+    };
+
+    for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j) {
+        scanLayer(model->GetEffectLayer(j));
+    }
+    for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
+        SubModelElement* sub = model->GetSubModel(j);
+        for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l) {
+            scanLayer(sub->GetEffectLayer(l));
+        }
+        if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+            StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+            if (strand != nullptr) {
+                for (int k = 0; k < strand->GetNodeLayerCount(); ++k) {
+                    scanLayer(strand->GetNodeLayer(k));
+                }
+            }
+        }
+    }
+
+    if (count > 0) {
+        IncrementChangeCount(nullptr);
+    }
+    return count;
 }
 
 void SequenceElements::AddRenderDependency(const std::string &layer, const std::string &model) {

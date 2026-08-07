@@ -9,6 +9,8 @@
  **************************************************************/
 
 #import "XLiPadInit.h"
+#import "XLCrashCapture.h"
+#import "XLLaunchTiming.h"
 #import "XLAIServices.h"
 
 #import <Metal/Metal.h>
@@ -20,12 +22,12 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
-#include "graphics/GLContextManager.h"
 #include "osxUtils/MetalDeviceManager.h"
 #include "osxUtils/XLMetricKit.h"
 #include "render/SequenceMedia.h"
 #include "utils/CachedFileDownloader.h"
 #include "utils/FileUtils.h"
+#include "utils/UtilFunctions.h"
 #include "utils/xlImage.h"
 #include "xLightsVersion.h"
 
@@ -162,6 +164,22 @@ static void LogMachineConfig() {
     spdlog::info("  Device name: {}", [dev.name UTF8String]);
     spdlog::info("  CPU Arch: {}", u.machine);
 
+    std::string cpuBrand = GetCPUBrand();
+    if (!cpuBrand.empty()) {
+        spdlog::info("  CPU: {}", cpuBrand);
+    }
+    spdlog::info("  CPU cores: {} physical, {} logical", GetPhysicalCoreCount(), GetLogicalCoreCount());
+    std::string gpu = GetGPUDescription();
+    if (!gpu.empty()) {
+        spdlog::info("  GPU: {}", gpu);
+    }
+
+    UIScreen* screen = [UIScreen mainScreen];
+    CGRect b = screen.bounds;
+    spdlog::info("  Display: {:.0f}x{:.0f} points, scale {:.1f} ({:.0f}x{:.0f} pixels)",
+                 b.size.width, b.size.height, screen.scale,
+                 b.size.width * screen.scale, b.size.height * screen.scale);
+
     NSProcessInfo* proc = [NSProcessInfo processInfo];
     long long memBytes = (long long)proc.physicalMemory;
     spdlog::info("  Total memory: {} MB", memBytes / (1024 * 1024));
@@ -185,6 +203,8 @@ static void LogMachineConfig() {
 + (void)initialize {
     if (sInitialized) return;
     sInitialized = true;
+
+    [XLLaunchTiming begin];
 
     // Logs live in <sandbox>/Library/Logs/ — same relative path the
     // sandboxed desktop app uses (~/Library/Containers/.../Library/Logs).
@@ -249,6 +269,12 @@ static void LogMachineConfig() {
         NSLog(@"spdlog init failed: %s", ex.what());
     }
 
+    // Crash capture. Installed before anything else that can fault, and the
+    // rotate has to happen first so this session's handler starts from an empty
+    // slot rather than overwriting the record we are about to upload.
+    [XLCrashCapture rotatePendingRecord];
+    [XLCrashCapture installWithLogsDirectory:logsDir];
+
     // MetricKit collector — JSON payloads land alongside the log files,
     // and Tools > Package Logs sweeps them into the user-shared zip.
     std::string diagnosticsDir = std::string([logsDir UTF8String]) + "/Diagnostics";
@@ -274,16 +300,11 @@ static void LogMachineConfig() {
     FileUtils::SetResourcesDir(std::string([resourcesPath UTF8String]));
     spdlog::info("Resources dir: {}", FileUtils::GetResourcesDir());
 
-    // Initialize MetalDeviceManager (needed for Metal compute effects and ANGLE GPU matching)
+    [XLLaunchTiming mark:@"core-logging+metrickit"];
+
+    // Initialize MetalDeviceManager (needed for Metal compute effects)
     MetalDeviceManager::instance().retain();
-
-    // Initialize GLContextManager with ANGLE (Metal backend)
-    GLContextManager::InitParams glParams;
-    glParams.metalDeviceRegistryID = MetalDeviceManager::instance().getMTLDevice().registryID;
-    GLContextManager::Instance().Initialize(glParams);
-
-    spdlog::info("GLContextManager initialized with ANGLE Metal backend, device registry ID: {}",
-                 glParams.metalDeviceRegistryID);
+    [XLLaunchTiming mark:@"metal-device"];
 
     // Construct the AI ServiceManager + iPad settings store. Built-in
     // services (chatGPT, claude, ollama, gemini, GenericClient) are
@@ -291,6 +312,7 @@ static void LogMachineConfig() {
     // from NSUserDefaults + Keychain. AI plugin loading is intentionally
     // skipped on iOS — App Store policy forbids dynamic libraries.
     (void)[XLAIServices shared];
+    [XLLaunchTiming mark:@"ai-services"];
 
     // Phase J-4 (vendor catalog) — install an NSURLSession-based
     // URL fetcher into the shared CachedFileDownloader. The
@@ -372,6 +394,8 @@ static void LogMachineConfig() {
                                   atomically:YES] ? true : false;
         }
     });
+
+    [XLLaunchTiming mark:@"core-init-done"];
 }
 
 @end

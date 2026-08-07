@@ -1,0 +1,205 @@
+#version 450
+// Port of the Candle perNode flame simulation in CandleFunctions.metal
+// (mirrors CandleFunctions.ispc -- keep the math in lockstep). Each thread
+// owns one pixel/node: it runs both Update() passes (red then green, sharing
+// the wind byte) against the persistent CandleState and writes the pixel.
+//
+// STATEFUL: binding 1 is the persistent per-node state array, read-modify-
+// write in place every dispatch. CandleState (CandleEffect.h) is 5 packed
+// uint8_t fields with no natural 4-byte alignment; GLSL storage buffers have
+// no portable 8-bit element type (no 8-bit-storage device feature is
+// enabled on this Vulkan device), so the wrapper widens each field to a
+// full uint32 before upload (VulkanCandleState, 20 bytes/record) -- every
+// record then owns 5 whole words exclusively, so plain (non-atomic) reads
+// and writes are race-free across threads. The state buffer here is
+// declared as a flat `uint` array and indexed manually (stateIdx*5 + field)
+// rather than as an array of a named GLSL struct, to sidestep the std430
+// rule that struct-typed array elements have their alignment rounded up to
+// 16 bytes (which would silently desync the stride from VulkanCandleState's
+// 20-byte C++ layout).
+//
+// This is a partial-write kernel: threads whose stateIdx falls outside the
+// state array (defensive, mirrors the Metal kernel) return without writing
+// their pixel, so `result` must NOT be `writeonly`.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) buffer StateB { uint states[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    uint maxWid;      // stride of the state array rows
+    uint numStates;
+    // 64-bit RNG frame seed split into two 32-bit halves -- see the u64
+    // emulation below (same technique as ShimmerEffect.comp).
+    uint frameSeedLo;
+    uint frameSeedHi;
+    int windVariability;
+    int flameAgility;
+    int windCalmness;
+    int windBaseline;
+    int usePalette;
+    uint c1;   // packed uchar4 (alpha forced to 255 by the wrapper)
+    uint c2;   // packed uchar4
+} data;
+
+// A 64-bit value as a (lo, hi) uint32 pair. Emulates RenderBuffer::rngMix64
+// (the splitmix64 finalizer, mirrored bit-for-bit as candleMix64 in
+// CandleFunctions.metal / CandleFunctions.ispc) without relying on a native
+// 64-bit GLSL integer type, which is not guaranteed available on every
+// Vulkan implementation. Identical helpers to ShimmerEffect.comp (local
+// copy, per this codebase's per-effect-kernel convention).
+struct u64 { uint lo; uint hi; };
+
+u64 u64Xor(u64 a, u64 b) { return u64(a.lo ^ b.lo, a.hi ^ b.hi); }
+
+// a >> n, restricted to 0 < n < 32.
+u64 u64Shr(u64 a, uint n) {
+    return u64((a.lo >> n) | (a.hi << (32u - n)), a.hi >> n);
+}
+
+// a << n, restricted to 0 < n < 32.
+u64 u64Shl(u64 a, uint n) {
+    return u64(a.lo << n, (a.hi << n) | (a.lo >> (32u - n)));
+}
+
+u64 u64Inc(u64 a) {
+    uint newLo = a.lo + 1u;
+    uint carry = (newLo == 0u) ? 1u : 0u;
+    return u64(newLo, a.hi + carry);
+}
+
+// (a * b) mod 2^64. aHi*bHi is dropped entirely (it only contributes to bits
+// >= 64). The cross terms aHi*bLo + aLo*bHi are multiplied by 2^32 in the
+// full product, so only their low 32 bits (which plain GLSL uint `*`/`+`
+// already wrap to) survive truncation to 64 bits. umulExtended supplies the
+// exact high/low halves of the aLo*bLo term.
+u64 u64Mul(u64 a, u64 b) {
+    uint msb, lsb;
+    umulExtended(a.lo, b.lo, msb, lsb);
+    uint cross = a.hi * b.lo + a.lo * b.hi;
+    return u64(lsb, msb + cross);
+}
+
+// Bit-identical to candleMix64 (CandleFunctions.metal) / RenderBuffer::rngMix64.
+u64 candleMix64(u64 z) {
+    z = u64Xor(z, u64Shr(z, 30u));
+    z = u64Mul(z, u64(0x1CE4E5B9u, 0xBF58476Du)); // 0xBF58476D1CE4E5B9
+    z = u64Xor(z, u64Shr(z, 27u));
+    z = u64Mul(z, u64(0x133111EBu, 0x94D049BBu)); // 0x94D049BB133111EB
+    z = u64Xor(z, u64Shr(z, 31u));
+    return z;
+}
+
+// Bit-identical integer emulation of uint8_t(RenderBuffer::hashRand01(index) * 255.0):
+// hashRand01 = (mix64(seed ^ index*K) >> 11) * 2^-53 exactly, so x = r53*255 is the
+// real product scaled by 2^53. The double multiply (done on the CPU/Metal/ISPC
+// reference) rounds x to 53 significant bits (round-to-nearest-even) before the
+// uint8_t truncation, so this replicates that rounding using 64-bit integer math.
+int candleRand255(u64 frameSeed, uint index) {
+    u64 idxTerm = u64Mul(u64(index, 0u), u64(0xD192ED03u, 0xD1B54A32u)); // 0xD1B54A32D192ED03
+    u64 z = u64Xor(frameSeed, idxTerm);
+    u64 m = candleMix64(z);
+    u64 shifted = u64Shr(m, 11u);
+    u64 x = u64Mul(shifted, u64(255u, 0u));
+    // x >> 53: 53 >= 32, so this is just the top bits of x.hi (bit 53 of the
+    // 64-bit value is bit (53-32)=21 of hi).
+    uint t = x.hi >> 21u;
+    if (t != 0u) {
+        uint sh = uint(findMSB(t)) + 1u; // bit-length of t == the reference's while-loop result
+        u64 keep = u64Shr(x, sh);
+        uint mask = (1u << sh) - 1u;
+        uint rem = x.lo & mask;
+        uint halfBit = 1u << (sh - 1u);
+        if (rem > halfBit || (rem == halfBit && (keep.lo & 1u) != 0u)) {
+            keep = u64Inc(keep);
+        }
+        x = u64Shl(keep, sh);
+        t = x.hi >> 21u;
+    }
+    return int(t);
+}
+
+// CandleEffect::Update, bit-identical.
+void candleUpdate(u64 frameSeed, uint seed, inout uint flameprime, inout uint flame, inout uint wind) {
+    if (candleRand255(frameSeed, seed) < data.windVariability) {
+        wind = uint(candleRand255(frameSeed, seed + 1u));
+    }
+    if (int(wind) > data.windBaseline) {
+        wind = wind - 1u;
+    }
+    if (flame < 255u) {
+        flame = flame + 1u;
+    }
+    if (candleRand255(frameSeed, seed + 2u) < (int(wind) >> data.windCalmness)) {
+        flame = uint(candleRand255(frameSeed, seed + 3u));
+    }
+    if (flame > flameprime) {
+        if (int(flameprime) < (255 - data.flameAgility)) {
+            flameprime = flameprime + uint(data.flameAgility);
+        }
+    } else {
+        if (int(flameprime) > data.flameAgility) {
+            flameprime = flameprime - uint(data.flameAgility);
+        }
+    }
+}
+
+uint candlePaletteBlend(uint a, uint b, uint p) {
+    return uint((int(a) * (255 - int(p)) + int(b) * int(p)) / 255);
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    uint stateIdx = py * data.maxWid + px;
+    if (stateIdx >= data.numStates) return;
+
+    uint base = stateIdx * 5u;
+    uint flameprimer = states[base + 0u];
+    uint flamer      = states[base + 1u];
+    uint wind        = states[base + 2u];
+    uint flameprimeg = states[base + 3u];
+    uint flameg      = states[base + 4u];
+
+    u64 frameSeed = u64(data.frameSeedLo, data.frameSeedHi);
+    uint seed = stateIdx * 131101u;
+    candleUpdate(frameSeed, seed, flameprimer, flamer, wind);
+    candleUpdate(frameSeed, seed + 4u, flameprimeg, flameg, wind);
+
+    if (flameprimeg > flameprimer) {
+        flameprimeg = flameprimer;
+    }
+    // NOTE: mirrors the CPU/Metal/ISPC kernel exactly -- this branch reassigns
+    // flameprimeg (not flameg) when flameg > flamer. Almost certainly an
+    // upstream quirk, but must be replicated bit-for-bit.
+    if (flameg > flamer) {
+        flameprimeg = flameprimer;
+    }
+
+    states[base + 0u] = flameprimer;
+    states[base + 1u] = flamer;
+    states[base + 2u] = wind;
+    states[base + 3u] = flameprimeg;
+    states[base + 4u] = flameg;
+
+    uvec4 outColor;
+    if (data.usePalette != 0) {
+        uvec4 c1 = unpackPx(data.c1);
+        uvec4 c2 = unpackPx(data.c2);
+        outColor.x = candlePaletteBlend(c1.x, c2.x, flameprimer);
+        outColor.y = candlePaletteBlend(c1.y, c2.y, flameprimer);
+        outColor.z = candlePaletteBlend(c1.z, c2.z, flameprimer);
+    } else {
+        outColor.x = flameprimer;
+        outColor.y = flameprimeg / 2u;
+        outColor.z = 0u;
+    }
+    outColor.w = 255u;
+    result[index] = packPx(outColor);
+}

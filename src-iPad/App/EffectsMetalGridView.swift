@@ -478,6 +478,7 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             let stroke: (CGFloat, CGFloat, CGFloat)
             let disabled: Bool
             let locked: Bool
+            let linkedToSymbol: Bool
             let fadeInSec: Float
             let fadeOutSec: Float
             // Populated by the background pass below: 0 = effect drew a
@@ -558,6 +559,7 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                     rowId: row.id, effectIndex: eIdx, name: effect.name,
                     x1: x1, x2: x2, top: top, bottom: bottom,
                     stroke: col, disabled: disabled, locked: locked,
+                    linkedToSymbol: c.stateLookup.isLinkedToSymbol(row.id, eIdx),
                     fadeInSec: fadeIn, fadeOutSec: fadeOut))
             }
             y += h
@@ -581,6 +583,7 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                     x1: x1, x2: x2, top: top, bottom: bottom,
                     stroke: c.bracketSelected,
                     disabled: false, locked: false,
+                    linkedToSymbol: c.stateLookup.isLinkedToSymbol(d.srcRowId, d.effectIndex),
                     fadeInSec: d.liveFadeInSec, fadeOutSec: d.liveFadeOutSec))
             }
         }
@@ -803,10 +806,26 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             }
         }
 
-        // Lock glyphs.
+        // Effect Symbol link indicator — desktop draws the same cyan
+        // top-right corner triangle (EffectsGrid.cpp, colour 0,200,255,
+        // 6px, hidden on very narrow effects). It is the only cue that
+        // editing this effect also rewrites every other effect linked to
+        // the same symbol.
+        let symbolIndicatorSize: CGFloat = 6
+        for e in vis where e.linkedToSymbol {
+            if e.x2 - e.x1 <= symbolIndicatorSize { continue }
+            bridge.fillTriangleX1(e.x2 - symbolIndicatorSize, y1: e.top,
+                                   x2: e.x2, y2: e.top,
+                                   x3: e.x2, y3: e.top + symbolIndicatorSize,
+                                   r: 0.0, g: 200.0 / 255.0, b: 1.0, a: 1.0)
+        }
+
+        // Lock glyphs. Shifted left when the symbol triangle already owns
+        // the top-right corner so both stay readable.
         for e in vis where e.locked {
             if e.x2 - e.x1 > 10 {
-                bridge.drawText("🔒", atX: e.x2 - 12, y: e.top,
+                let inset: CGFloat = e.linkedToSymbol ? 12 + symbolIndicatorSize : 12
+                bridge.drawText("🔒", atX: e.x2 - inset, y: e.top,
                                  fontSize: 9, r: 1, g: 1, b: 1, a: 1)
             }
         }

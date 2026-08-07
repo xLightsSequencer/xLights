@@ -251,7 +251,12 @@ void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> 
         aabb_max = glm::vec3(0.0f, 0.0f, 0.0f);
 
         for (const auto& it : Nodes) {
-            for (const auto& coord : it.get()->Coords) {
+            if (!it) {
+                // A freshly-placed model can have default-constructed (null) Node
+                // slots before its nodes are populated; same guard as DisplayModelOnWindow.
+                continue;
+            }
+            for (const auto& coord : it->Coords) {
 
                 float sx = coord.screenX;
                 float sy = coord.screenY;

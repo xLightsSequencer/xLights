@@ -30,7 +30,7 @@ XLightsConfigAdapter* GetXLightsBookmarksConfig()  { return &s_bookmarksConfig; 
 // ---------------------------------------------------------------------------
 // Platform-specific AppData path
 // ---------------------------------------------------------------------------
-static std::filesystem::path GetSettingsFilePath()
+std::filesystem::path GetSettingsFilePath()
 {
     std::filesystem::path dir;
 
@@ -65,7 +65,18 @@ std::filesystem::path GetLogFileFolder() {
     const char* home = std::getenv("HOME");
     dir = std::filesystem::path(home && *home ? home : ".") / "Library" / "Logs";
 #else
-    dir = std::filesystem::path( "/tmp/");
+    // Was hardcoded to /tmp — wiped on reboot (and subject to mid-session
+    // systemd-tmpfiles sweeps), so "please attach your log" often produced
+    // nothing to attach. XDG_STATE_HOME (default ~/.local/state) is the XDG
+    // Base Directory spec's location for exactly this: logs/history that
+    // should persist across restarts but aren't user "data" or "config".
+    const char* xdgState = std::getenv("XDG_STATE_HOME");
+    if (xdgState && *xdgState) {
+        dir = std::filesystem::path(xdgState) / "xLights";
+    } else {
+        const char* home = std::getenv("HOME");
+        dir = std::filesystem::path(home && *home ? home : ".") / ".local" / "state" / "xLights";
+    }
 #endif
 
     std::error_code ec;

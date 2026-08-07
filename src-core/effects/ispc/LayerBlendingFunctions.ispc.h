@@ -65,6 +65,7 @@ struct LayerBlendingData {
     bool brightnessLevel;
     int32_t mixTypeData;
     int32_t outputSparkleCount;
+    int32_t sparkleFrame;
     uint32_t sparkleColor;
     bool isChromaKey;
     int32_t chromaSensitivity;

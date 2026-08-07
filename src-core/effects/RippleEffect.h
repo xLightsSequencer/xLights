@@ -20,7 +20,11 @@ public:
     RippleEffect(int id);
     virtual ~RippleEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    //virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
+    virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
+    virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
+                                     xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
+    double getEffectPosition(RenderBuffer& buffer, const SettingsMap& SettingsMap, const std::string& timingTrack, float cycles);
     virtual bool AppropriateOnNodes() const override
     {
         return false;
@@ -29,7 +33,7 @@ public:
     {
         return true;
     }
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool CanRenderPartialTimeInterval() const override
@@ -38,6 +42,8 @@ public:
     }
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    bool needsLoadFiles() const override { return true; }
+    void loadFiles(Effect* effect) override;
 
     virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
     {
@@ -91,6 +97,8 @@ public:
     static int sDirectionMin;
     static int sDirectionMax;
     static bool s3DDefault;
+    static int sDurationDefault;
+    static bool sFilterRegexDefault;
 
 protected:
     virtual void OnMetadataLoaded() override;

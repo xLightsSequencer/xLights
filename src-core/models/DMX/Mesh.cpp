@@ -71,7 +71,16 @@ void Mesh::Init(BaseObject* base, bool set_size) {
         width = render_width;
         height = render_height;
         depth = render_depth;
-        base->GetBaseObjectScreenLocation().SetRenderSize(width, height, depth);
+        // Skip until the obj is actually loaded (render_width/height/depth
+        // are still Mesh's 1.0f defaults before then), and scale by this
+        // mesh's own ScaleX/Y/Z to match the formula Draw()'s recalc block
+        // feeds into AdjustRenderSize(). InitModel() re-runs this on
+        // essentially every property-grid edit; any mismatch with Draw()'s
+        // numbers reads as a genuine resize and silently wipes the model's
+        // own ScaleX/Y/Z back to 1.0.
+        if (obj_loaded) {
+            base->GetBaseObjectScreenLocation().SetRenderSize(width * scalex, height * scaley * half_height, depth * scalez);
+        }
     }
 }
 

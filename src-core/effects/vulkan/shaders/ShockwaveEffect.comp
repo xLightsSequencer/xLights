@@ -1,0 +1,79 @@
+#version 450
+// Port of ShockwaveEffectStyle0 in ShockwaveFunctions.metal.  A partial-write
+// effect: only pixels within the shockwave ring are written; the rest keep
+// the buffer's (host-cleared) contents.  Params mirror VulkanShockwaveData.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int xc_adj;
+    int yc_adj;
+    float radius1;
+    float radius2;
+    float radius_center;
+    float half_width;
+    uint color;      // packed uchar4
+    vec4 colorHSV;   // .xyz
+    int blend;
+    int allowAlpha;
+} data;
+
+// Byte-exact replica of the ISPC shockwaveHsv2rgba (classic sector formula).
+// The shared hsv2rgb() helper uses a different (IQ/K-vector) formula that
+// rounds differently, breaking parity with the sub-threshold ISPC path in the
+// blend + non-alpha branch. See MetalShockwaveEffect / 13-gpu-cpu-parity-debt.
+uvec4 shockwaveHsv2rgb(float h, float s, float v) {
+    float r, g, b;
+    if (s == 0.0) {
+        r = v; g = v; b = v;
+    } else {
+        float hh = (h - floor(h)) * 6.0;
+        int   i  = int(hh);
+        float f  = hh - float(i);
+        float p  = v * (1.0 - s);
+        float q  = v * (1.0 - s * f);
+        float t2 = v * (1.0 - s * (1.0 - f));
+        if      (i == 0) { r = v;  g = t2; b = p;  }
+        else if (i == 1) { r = q;  g = v;  b = p;  }
+        else if (i == 2) { r = p;  g = v;  b = t2; }
+        else if (i == 3) { r = p;  g = q;  b = v;  }
+        else if (i == 4) { r = t2; g = p;  b = v;  }
+        else             { r = v;  g = p;  b = q;  }
+    }
+    return uvec4(uint(clamp(r, 0.0, 1.0) * 255.0),
+                 uint(clamp(g, 0.0, 1.0) * 255.0),
+                 uint(clamp(b, 0.0, 1.0) * 255.0), 255u);
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+    int x = int(index % data.width);
+    int y = int(index / data.width);
+    float x1 = float(x) - float(data.xc_adj);
+    float y1 = float(y) - float(data.yc_adj);
+    // sqrt(x1*x1 + y1*y1), NOT length(): matches the ISPC/CPU expression. (In
+    // Vulkan OpFDiv is spec correctly-rounded, so the divide below needs no
+    // special handling - unlike Metal's fast-math reciprocal.)
+    float r = sqrt(x1 * x1 + y1 * y1);
+    if (r >= data.radius1 && r <= data.radius2) {
+        if (data.blend > 0) {
+            uvec4 ncolor = unpackPx(data.color);
+            float color_pct = 1.0 - abs(r - data.radius_center) / data.half_width;
+            if (data.allowAlpha != 0) {
+                ncolor.a = uint(255.0 * color_pct);
+            } else {
+                vec3 hsv = data.colorHSV.xyz;
+                ncolor = shockwaveHsv2rgb(hsv.x, hsv.y, hsv.z * color_pct);
+            }
+            result[index] = packPx(ncolor);
+        } else {
+            result[index] = data.color;
+        }
+    }
+}

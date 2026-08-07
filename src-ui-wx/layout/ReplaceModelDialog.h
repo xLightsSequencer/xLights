@@ -20,8 +20,12 @@
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/font.h>
+#include <wx/intl.h>
 #include <wx/panel.h>
+#include <wx/radiobox.h>
 #include <wx/scrolwin.h>
+
+#include "models/ModelManager.h" // ReplaceGroupMode (shared desktop/iPad)
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
 #include <wx/statbox.h>
@@ -42,7 +46,7 @@ public:
                        const std::set<std::string>& baseLinkedNames = {})
         : wxDialog(parent, wxID_ANY,
                    wxString::Format("Replace Model(s) With: %s", sourceName),
-                   wxDefaultPosition, wxSize(460, 560),
+                   wxDefaultPosition, wxDefaultSize,
                    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
           _allCandidates(candidateNames),
           _baseLinked(baseLinkedNames)
@@ -105,6 +109,10 @@ public:
         _rowsWindow = new wxScrolledWindow(listBox, wxID_ANY,
                                            wxDefaultPosition, wxDefaultSize,
                                            wxVSCROLL | wxBORDER_NONE);
+        // DIP-scaled minimum so SetSizerAndFit gives a usable initial size
+        // (a tall list area + enough width for the group-mode labels) without
+        // the fixed pixel size that clipped at high DPI.
+        _rowsWindow->SetMinSize(FromDIP(wxSize(440, 320)));
         _rowsWindow->SetScrollRate(0, 16);
         _rowsSizer = new wxBoxSizer(wxVERTICAL);
         _rowsWindow->SetSizer(_rowsSizer);
@@ -128,11 +136,30 @@ public:
         top->Add(_mergeSubmodelsCB,   0, cbFlags, cbPad);
         top->Add(_copySizePosCB,      0, cbFlags, cbPad);
 
+        // Model-group handling. The replacement clone takes the target's name,
+        // so it already inherits the target's own groups (group membership is
+        // by name) - that's the default "Do not change". The other two options
+        // reconcile the replaced model's groups against the current (source)
+        // model's groups: "Replace" makes the target's group set exactly the
+        // source's; "Merge" adds the source's groups on top of the target's.
+        const wxString groupChoices[] = {
+            _("Do not change destination models' groups"),
+            _("Replace destination's direct groups with source's groups"),
+            _("Merge source's groups into destination's groups")
+        };
+        _groupModeRB = new wxRadioBox(this, wxID_ANY, _("Model Groups"),
+                                      wxDefaultPosition, wxDefaultSize,
+                                      3, groupChoices, 1, wxRA_SPECIFY_COLS);
+        _groupModeRB->SetSelection(0);
+        _groupModeRB->SetToolTip(_("Applies to direct group membership only. Groups inherited through a subgroup, and groups from the base show folder, are left unchanged."));
+        top->Add(_groupModeRB, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
+
         auto* btnRow = CreateButtonSizer(wxOK | wxCANCEL);
         if (btnRow != nullptr) {
             top->Add(btnRow, 0, wxEXPAND | wxALL, 8);
         }
-        SetSizer(top);
+        // Size from content so the radiobox labels don't clip at high DPI.
+        SetSizerAndFit(top);
 
         // Disable OK until the user has actually picked at least one target —
         // OK with an empty selection is a confusing no-op for a destructive
@@ -140,19 +167,20 @@ public:
         _okBtn = static_cast<wxButton*>(FindWindow(wxID_OK));
         if (_okBtn != nullptr) _okBtn->Disable();
 
-        RepopulateRows();
-        UpdateMasterState();
+        BuildRows();
+        ApplyFilter();
 
         _filterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
-            RepopulateRows();
-            UpdateMasterState();
+            ApplyFilter();
         });
         _masterCB->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
             // 3-state checkbox: use Get3StateValue() — IsChecked() asserts
             // on a 3-state in wxWidgets debug builds. Treat anything that
-            // isn't explicitly "checked" as an uncheck-all.
+            // isn't explicitly "checked" as an uncheck-all. Only rows
+            // currently passing the filter (i.e. visible) are affected.
             const bool shouldCheck = _masterCB->Get3StateValue() == wxCHK_CHECKED;
-            for (const auto& row : _rows) {
+            for (auto& row : _allRows) {
+                if (row.baseLinked || !row.panel->IsShown()) continue;
                 row.cb->SetValue(shouldCheck);
                 if (shouldCheck) {
                     _checkedSet.insert(row.name);
@@ -174,6 +202,17 @@ public:
     bool MergeSubmodels()   const { return _mergeSubmodelsCB->IsChecked(); }
     bool CopySizePos()      const { return _copySizePosCB->IsChecked(); }
 
+    // How to reconcile each replaced model's group memberships against the
+    // current (source) model's. Returns the shared core enum so desktop and
+    // iPad drive the same ModelManager::ReconcileReplacedModelGroups helper.
+    ReplaceGroupMode GroupHandling() const {
+        switch (_groupModeRB->GetSelection()) {
+        case 1:  return ReplaceGroupMode::ReplaceWithSource;
+        case 2:  return ReplaceGroupMode::MergeSourceIntoTarget;
+        default: return ReplaceGroupMode::NoChange;
+        }
+    }
+
 private:
     // Filter is case-insensitive substring match. wxString::Lower() handles
     // Unicode correctly via the platform's locale; std::tolower / std::string
@@ -183,78 +222,93 @@ private:
         return wxString::FromUTF8(name).Lower().Contains(filterLower);
     }
 
-    void RepopulateRows() {
-        const wxString filterLower = _filterCtrl->GetValue().Lower();
-
-        _rowsWindow->Freeze();
-        _rowsSizer->Clear(true); // deletes existing row widgets
-        _rows.clear();
-
+    // Builds one native row widget per candidate, ONCE, up front. Each row is
+    // wrapped in its own wxPanel so filtering can toggle visibility via
+    // sizer->Show(panel, ...) instead of destroying/recreating checkboxes.
+    // Recreating hundreds/thousands of native controls on every filter
+    // keystroke is the thing that made this dialog feel slow on large shows;
+    // show/hide of already-built widgets is effectively free by comparison.
+    void BuildRows() {
         for (const auto& name : _allCandidates) {
-            if (!PassesFilter(name, filterLower)) continue;
+            auto* panel = new wxPanel(_rowsWindow, wxID_ANY);
+            auto* rowSizer = new wxBoxSizer(wxHORIZONTAL);
+            auto* cb = new wxCheckBox(panel, wxID_ANY, name);
 
             // Base-folder models can't be replaced - doing so would delete a
             // model the base show folder owns. Show them disabled with the
             // link icon so the user sees why they're off-limits, and keep them
-            // out of _rows / _checkedSet so master select-all and the result
-            // never include them.
-            if (_baseLinked.count(name) > 0) {
-                auto* row = new wxBoxSizer(wxHORIZONTAL);
-                auto* cb = new wxCheckBox(_rowsWindow, wxID_ANY, name);
+            // out of _checkedSet so master select-all and the result never
+            // include them.
+            const bool baseLinked = _baseLinked.count(name) > 0;
+            if (baseLinked) {
                 cb->SetValue(false);
                 cb->Disable();
                 cb->SetToolTip("Linked from the base show folder - cannot be replaced");
-                auto* icon = new wxStaticBitmap(_rowsWindow, wxID_ANY,
+                auto* icon = new wxStaticBitmap(panel, wxID_ANY,
                     wxArtProvider::GetBitmapBundle("xlART_LINK", wxART_OTHER, FromDIP(wxSize(16, 16))));
                 icon->SetToolTip("Linked from the base show folder");
-                row->Add(cb, 0, wxALIGN_CENTER_VERTICAL);
-                row->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 4);
-                _rowsSizer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 2);
-                continue;
+                rowSizer->Add(cb, 0, wxALIGN_CENTER_VERTICAL);
+                rowSizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 4);
+            } else {
+                rowSizer->Add(cb, 1, wxEXPAND);
+
+                // When an individual row checkbox is toggled, mirror the change
+                // into _checkedSet and re-evaluate the master tri-state.
+                const std::string capturedName = name;
+                cb->Bind(wxEVT_CHECKBOX, [this, capturedName, cb](wxCommandEvent&) {
+                    if (cb->GetValue()) {
+                        _checkedSet.insert(capturedName);
+                    } else {
+                        _checkedSet.erase(capturedName);
+                    }
+                    UpdateMasterState();
+                });
             }
 
-            auto* cb = new wxCheckBox(_rowsWindow, wxID_ANY, name);
-            cb->SetValue(_checkedSet.count(name) > 0);
-            _rowsSizer->Add(cb, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 2);
-            _rows.push_back({ name, cb });
-
-            // When an individual row checkbox is toggled, mirror the change
-            // into _checkedSet and re-evaluate the master tri-state.
-            const std::string capturedName = name;
-            cb->Bind(wxEVT_CHECKBOX, [this, capturedName, cb](wxCommandEvent&) {
-                if (cb->GetValue()) {
-                    _checkedSet.insert(capturedName);
-                } else {
-                    _checkedSet.erase(capturedName);
-                }
-                UpdateMasterState();
-            });
+            panel->SetSizer(rowSizer);
+            _rowsSizer->Add(panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 2);
+            _allRows.push_back({ name, cb, panel, baseLinked });
         }
+    }
 
+    // Re-applies the filter to the already-built rows by toggling each row
+    // panel's visibility rather than rebuilding any widgets.
+    void ApplyFilter() {
+        const wxString filterLower = _filterCtrl->GetValue().Lower();
+
+        _rowsWindow->Freeze();
+        for (auto& row : _allRows) {
+            _rowsSizer->Show(row.panel, PassesFilter(row.name, filterLower));
+        }
+        _rowsSizer->Layout();
         _rowsWindow->FitInside();
-        _rowsWindow->Layout();
         _rowsWindow->Thaw();
+
+        UpdateMasterState();
     }
 
     void UpdateMasterState() {
-        // Aggregate state of currently visible rows -> master checkbox tri-state.
-        if (_rows.empty()) {
+        // Aggregate state of currently visible, actionable rows -> master
+        // checkbox tri-state.
+        size_t checked = 0;
+        size_t total = 0;
+        for (const auto& row : _allRows) {
+            if (row.baseLinked || !row.panel->IsShown()) continue;
+            ++total;
+            if (row.cb->GetValue()) ++checked;
+        }
+        if (total == 0) {
             _masterCB->Set3StateValue(wxCHK_UNCHECKED);
             _masterCB->Enable(false);
-            if (_okBtn != nullptr) _okBtn->Enable(!_checkedSet.empty());
-            return;
-        }
-        _masterCB->Enable(true);
-        size_t checked = 0;
-        for (const auto& r : _rows) {
-            if (r.cb->GetValue()) ++checked;
-        }
-        if (checked == 0) {
-            _masterCB->Set3StateValue(wxCHK_UNCHECKED);
-        } else if (checked == _rows.size()) {
-            _masterCB->Set3StateValue(wxCHK_CHECKED);
         } else {
-            _masterCB->Set3StateValue(wxCHK_UNDETERMINED);
+            _masterCB->Enable(true);
+            if (checked == 0) {
+                _masterCB->Set3StateValue(wxCHK_UNCHECKED);
+            } else if (checked == total) {
+                _masterCB->Set3StateValue(wxCHK_CHECKED);
+            } else {
+                _masterCB->Set3StateValue(wxCHK_UNDETERMINED);
+            }
         }
         // OK is enabled iff at least one target is checked anywhere in the
         // full set (not just visible ones — a user could filter, check
@@ -265,6 +319,8 @@ private:
     struct RowEntry {
         std::string name;
         wxCheckBox* cb;
+        wxWindow* panel;
+        bool baseLinked;
     };
 
     wxTextCtrl* _filterCtrl = nullptr;
@@ -274,10 +330,11 @@ private:
     wxCheckBox* _copyStartChannelCB = nullptr;
     wxCheckBox* _mergeSubmodelsCB = nullptr;
     wxCheckBox* _copySizePosCB = nullptr;
+    wxRadioBox* _groupModeRB = nullptr;
     wxButton*   _okBtn = nullptr;
 
     std::vector<std::string> _allCandidates;
     std::set<std::string> _baseLinked;
-    std::vector<RowEntry> _rows;
+    std::vector<RowEntry> _allRows;
     std::set<std::string> _checkedSet;
 };

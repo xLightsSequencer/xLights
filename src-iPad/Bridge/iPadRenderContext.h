@@ -14,6 +14,7 @@
 // sequences on iPad.  Includes RenderEngine for effect rendering.
 
 #include "render/RenderContext.h"
+#include "render/xLightsShowContext.h"
 #include "render/SequenceData.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceFile.h"
@@ -42,7 +43,7 @@
 #include <string>
 #include <vector>
 
-class iPadRenderContext : public RenderContext {
+class iPadRenderContext : public xLightsShowContext {
 public:
     iPadRenderContext();
     ~iPadRenderContext() override;
@@ -51,11 +52,13 @@ public:
     bool LoadShowFolder(const std::string& showDir);
     bool LoadShowFolder(const std::string& showDir,
                         const std::list<std::string>& mediaFolders);
-    const std::string& GetShowDirectory() const override { return _showDir; }
 
     // Sequence management
     bool OpenSequence(const std::string& path);
-    void CloseSequence();
+
+    // Shared-open hook: convert iOS-undecodable animated-GIF Video effects to
+    // Pictures effects (base default is a no-op).
+    void OnSequenceElementsLoaded(SequenceFile& file) override;
 
     // Write the rendered sequence to a v2/zstd/sparse .fseq file matching
     // desktop's `xLightsFrame::WriteFalconPiFile` format. Sparse ranges come
@@ -75,11 +78,9 @@ public:
     // untouched so a normal render can proceed.
     bool TryLoadFseq(const std::string& fseqPath, const std::string& xsqPath);
 
-    // RenderContext implementation
-    const std::string& GetFseqDirectory() const override { return _showDir; }
-    const std::list<std::string>& GetMediaFolders() const override { return _mediaFolders; }
-    bool IsInShowFolder(const std::string& file) const override;
-    bool IsInShowOrMediaFolder(const std::string& file) const override;
+    // RenderContext implementation. IsInShow*Folder, MakeRelativePath,
+    // IsSequenceLoaded, GetCurrentMediaManager, AbortRender and CloseSequence
+    // are provided by the base (xLightsShowContext).
     // Copy `file` into `<showDir>/<subdirectory>`, returning the final
     // absolute path. Appends `_N` on name collision unless `reuse` and
     // the existing file's contents already match. Empty string on
@@ -95,29 +96,25 @@ public:
     std::string CopyToMediaFolder(const std::string& file,
                                    const std::string& mediaFolderPath,
                                    const std::string& subdirectory);
-    std::string MakeRelativePath(const std::string& file) const override;
-
-    SequenceElements& GetSequenceElements() override { return _sequenceElements; }
-    SequenceViewManager& GetSequenceViewManager() { return _viewsManager; }
-    bool IsSequenceLoaded() const override { return _sequenceFile && _sequenceFile->IsOpen(); }
-    AudioManager* GetCurrentMediaManager() const override;
+    SequenceViewManager& GetSequenceViewManager() { return _sequenceViewManager; }
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
 
-    // B43: alt audio track switching for the *waveform display*. Does
-    // NOT change playback — playback still plays the main sequence
-    // track via GetCurrentMediaManager. -1 = main, 0..N-1 = alt index.
-    // GetWaveformMedia falls back to the main track when the requested
+    // B43: alt audio track selection. -1 = main, 0..N-1 = alt index.
+    // Drives both the waveform display and playback, matching desktop
+    // (`xLightsFrame::GetPlaybackAudio` returns the selected track's
+    // AudioManager). Falls back to the main track when the requested
     // alt index is out of range or its AudioManager hasn't loaded.
     int GetWaveformTrackIndex() const { return _waveformTrackIndex; }
     void SetWaveformTrackIndex(int idx);
     AudioManager* GetWaveformMedia() const;
+    // Audio the transport should drive. Same resolution as
+    // GetWaveformMedia — named separately because the two are distinct
+    // concepts on desktop and callers should say which they mean.
+    AudioManager* GetPlaybackMedia() const { return GetWaveformMedia(); }
     int GetAltTrackCount() const;
     std::string GetAltTrackDisplayName(int idx) const;
 
     Model* GetModel(const std::string& name) const override;
-    unsigned int GetModelGeneration() const override { return _modelManager ? _modelManager->GetModelGeneration() : 0; }
-    EffectManager& GetEffectManager() override { return _effectManager; }
-    OutputModelManager* GetOutputModelManager() override { return &_outputModelManager; }
 
     // PRE-1 — persistent effect preset library. Mirrors
     // xLightsFrame::_effectPresetManager. Loaded at show-folder load
@@ -140,8 +137,17 @@ public:
     // no presets file. Returns true when at least one base preset loaded.
     bool LoadBasePresets();
 
-    bool AbortRender(int maxTimeMs = 60000) override;
     void RenderEffectForModel(const std::string& model, int startms, int endms, bool clear) override;
+
+    // Render-dependency sweep. An effect can depend on a timing track
+    // or on another model (Kaleidoscope, Shockwave's timing-track
+    // trigger, per-model canvas reads); when the thing it depends on
+    // changes, core records the dependent model in
+    // `SequenceElements::modelsToRender`. Desktop drains that set on
+    // every output tick (tabSequencer.cpp:2757-2767) — nothing drained
+    // it here, so a dependent model kept its stale render until the
+    // next Render All. Returns the number of models it kicked off.
+    int RenderDependentModels();
     // Render a single model over the whole sequence and BLOCK until the
     // render workers finish (or maxTimeMs elapses). Used by the
     // Convert-To-Effect bridge, which must read fully-rendered
@@ -168,14 +174,13 @@ public:
     // so the CachedFileDownloader header stays out of this header.
     void PurgeDownloadCache();
     void SetModelColors(int frameMS);
-    SequenceData& GetSequenceData() { return _sequenceData; }
+    SequenceData& GetSequenceData() { return _seqData; }
 
     // Set while a house-preview video export renders offscreen on a background
     // thread. The live on-screen preview skips drawing so it doesn't race the
     // export over per-model node colours (both call SetModelColors).
     void SetExportInProgress(bool v) { _exportInProgress.store(v); }
     bool IsExportInProgress() const { return _exportInProgress.load(); }
-    bool IsRenderDone();
 
     // Live house-preview camera snapshot. The on-screen house-preview bridge
     // publishes its 2D/3D cameras + active mode + canvas size here on every
@@ -219,6 +224,20 @@ public:
     // can use this directly without racing IsRenderDone().
     float GetRenderProgressFraction() const;
 
+    // Per-model render progress — the data behind desktop's
+    // RenderProgressDialog (one gauge + status tooltip per job,
+    // RenderUI.cpp:44-56). Desktop pushes it through an
+    // IRenderProgressSink because its gauges are wx windows built at
+    // job-setup time; there is nothing to pre-build here, so the same
+    // job list is read straight off RenderProgressInfo, exactly as
+    // GetRenderProgressFraction does. Empty when no render is active.
+    struct RenderJobProgress {
+        std::string model;
+        int percent = 0;
+        std::string status;
+    };
+    std::vector<RenderJobProgress> GetRenderJobProgress() const;
+
     // === Preset model / preview rendering =================================
     // Mirrors xLightsFrame's standalone preset-render scaffolding: a 64×64
     // RGB `MatrixModel` owned by its own `ModelManager`, plus a dedicated
@@ -261,15 +280,18 @@ public:
 
     // Accessors
     OutputManager& GetOutputManager() { return _outputManager; }
-    ModelManager& GetModelManager() { return *_modelManager; }
-    ViewObjectManager& GetAllObjects() { return *_viewObjectManager; }
+    ModelManager& GetModelManager() { return AllModels; }
+    ViewObjectManager& GetAllObjects() { return AllObjects; }
     // J-7 — null-safe checks. `GetModelManager()` / `GetAllObjects()`
     // dereference the unique_ptr without guarding, so callers that
     // can run before `LoadShowFolder` must check via these first.
     // `GetModelsForActivePreview()` does this internally; methods
     // that call `GetModels()` direct do not.
-    bool HasModelManager() const { return _modelManager != nullptr; }
-    bool HasViewObjectManager() const { return _viewObjectManager != nullptr; }
+    // The model / view-object managers are now the base's eager value members
+    // (always constructed). "Has…" therefore means "a show has been loaded",
+    // which the show directory being set indicates.
+    bool HasModelManager() const { return !showDirectory.empty(); }
+    bool HasViewObjectManager() const { return !showDirectory.empty(); }
     SequenceFile* GetSequenceFile() { return _sequenceFile.get(); }
     // B49: expose the render engine so the export-model bridge can
     // call `RenderEngine::ExportModelData` without creating a
@@ -310,6 +332,20 @@ public:
     bool GetDisplay2DGrid() const { return _display2DGrid; }
     long GetDisplay2DGridSpacing() const { return _display2DGridSpacing; }
     bool GetDisplay2DBoundingBox() const { return _display2DBoundingBox; }
+
+    // <settings><ShowGUID value="..."/>. Random id identifying the show
+    // itself -- not the device or the user -- minted by whichever client
+    // opens the show first and never rewritten after that. Lets submitted
+    // crash reports be counted once per show instead of once per crash, and
+    // is what ties the same show together across Mac, Windows and iPad.
+    // Empty when the show folder was not writable at load.
+    const std::string& GetShowGuid() const { return _showGuid; }
+
+    // Mints a replacement id and writes it back. For the one case where an
+    // existing id is wrong rather than missing: a show folder copied to make a
+    // base show directory carries the original's id, so two shows claim to be
+    // one. Returns false if the folder cannot be written, leaving the id alone.
+    bool RegenerateShowGuid();
 
     // <settings><LayoutMode3D value="1"/>. Desktop's last-used 3D vs 2D
     // preference for the House Preview, read at show-folder load.
@@ -397,10 +433,11 @@ public:
     // node in xlights_rgbeffects.xml; each camera is flagged 2D or 3D
     // and named. UI filters by the preview's current mode before
     // showing them.
-    ViewpointMgr& GetViewpointMgr() { return _viewpointMgr; }
-    const ViewpointMgr& GetViewpointMgr() const { return _viewpointMgr; }
-    PreviewCamera* GetNamedCamera3D(const std::string& name) override {
-        return _viewpointMgr.GetNamedCamera3D(name);
+    ViewpointMgr& GetViewpointMgr() { return viewpoint_mgr; }
+    const ViewpointMgr& GetViewpointMgr() const { return viewpoint_mgr; }
+    void GetRenderPreviewSize(int& w, int& h) const override {
+        w = _previewWidth;
+        h = _previewHeight;
     }
 
     // Check-Sequence per-check disable flags (desktop parity with the
@@ -423,6 +460,13 @@ public:
     // serialized. Heavy-ish (one disk round-trip per save), but
     // viewpoint edits are a rare user action.
     bool SaveViewpoints();
+
+    // Rewrite just the `<views>` subtree of the on-disk
+    // xlights_rgbeffects.xml, same load-modify-write shape as
+    // SaveViewpoints(). View definitions (name + ordered model list)
+    // live in the show file, not the sequence, so a view edit is only
+    // durable once this runs.
+    bool SaveViews();
 
     // Mark a model as having dirty in-memory <stateInfo> so the next
     // SaveModelStates() call rewrites its on-disk entry. DMX state
@@ -595,6 +639,32 @@ public:
     void MarkControllersDirty() { _controllersDirty = true; }
     bool AreControllersDirty() const { return _controllersDirty; }
     bool SaveLayoutChanges();
+    // Layout autosave: write the pending edits to
+    // `xlights_rgbeffects.xbkp` without touching the real file or
+    // clearing the dirty sets, so unsaved layout work survives a crash
+    // or a force-quit. Desktop's equivalent is
+    // `SaveWorkingLayout()` → `SaveEffectsFile(true)`; it can rebuild
+    // the whole file from memory, whereas this patches a copy of the
+    // live file, which is why the two share only the file name.
+    // Returns false when there is nothing pending or the write fails.
+    bool AutosaveLayoutChanges();
+    // True when a `.xbkp` sits alongside the show's rgbeffects file and
+    // is newer than it — an autosave that outlived the session that
+    // wrote it. Desktop offers the same file back at load
+    // (TabSequence.cpp:204-251).
+    bool HasNewerLayoutAutosave() const;
+    // Adopt the autosave: back up the current rgbeffects file, then
+    // copy the `.xbkp` over it. Call before the show loads.
+    bool RestoreLayoutAutosave();
+    // Drop a stale/declined autosave so it stops being offered.
+    void DiscardLayoutAutosave();
+
+private:
+    // Shared body of SaveLayoutChanges / AutosaveLayoutChanges. Empty
+    // targetPath means the real rgbeffects file.
+    bool SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty);
+
+public:
     // Clear the dirty set without writing to disk — used after a
     // Discard Changes that has rolled back every in-memory edit
     // through the undo stack. The undo restores re-marked every
@@ -683,27 +753,13 @@ public:
     PaletteColor GetEffectBracketColor(EffectBracketState state) const;
 
 private:
-    std::string _showDir;
-    std::list<std::string> _mediaFolders;
+    // Show state (managers, sequence, render engine, directories, seq data,
+    // modelsChangeCount) is inherited from xLightsShowContext. Only iPad-specific
+    // members live here.
 
-    OutputManager _outputManager;
-    OutputModelManager _outputModelManager;
-    std::unique_ptr<ModelManager> _modelManager;
-    std::unique_ptr<ViewObjectManager> _viewObjectManager;
-    EffectManager _effectManager;
-    EffectPresetManager _effectPresetManager;
+    // Read-only "From Base" preset library (the shared _effectPresetManager is
+    // in the base).
     EffectPresetManager _basePresetManager;
-    SequenceElements _sequenceElements;
-    SequenceViewManager _viewsManager;
-    std::unique_ptr<SequenceFile> _sequenceFile;
-    std::optional<pugi::xml_document> _sequenceDoc;
-
-    // Rendering
-    SequenceData _sequenceData;
-    std::unique_ptr<JobPool> _jobPool;
-    RenderCache _renderCache;
-    std::unique_ptr<RenderEngine> _renderEngine;
-    unsigned int _modelsChangeCount = 0;
 
     // Virtual preview canvas size — desktop defaults.
     int _previewWidth = 1280;
@@ -713,6 +769,7 @@ private:
     long _display2DGridSpacing = 100;
     bool _display2DBoundingBox = false;
     bool _layoutMode3D = true;
+    std::string _showGuid;
     std::atomic<bool> _exportInProgress{false};
 
     // Live house-preview camera snapshot (see SetHousePreviewCamera). Published
@@ -735,7 +792,6 @@ private:
     // B85 phoneme dictionary, lazy-loaded.
     std::unique_ptr<PhonemeDictionary> _phonemeDict;
 
-    ViewpointMgr _viewpointMgr;
 
     // Models whose in-memory <stateInfo> map has diverged from the
     // on-disk xlights_rgbeffects.xml. SaveModelStates() reads + drains
@@ -842,6 +898,4 @@ private:
     // Normally a no-op — OpenSequence pre-allocates once and
     // subsequent RenderAll passes reuse. Triggers a fresh init
     // after duration / frame-rate / channel-count mutations.
-public:
-    void EnsureSequenceDataSized();
 };

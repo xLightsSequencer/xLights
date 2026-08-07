@@ -134,7 +134,7 @@ class FireworkParticle
     int _age = 0;
 
 public:
-    FireworkParticle(int x, int y, double vx, double vy, int fade, bool gravity, int colourIndex, bool holdColour, double velocity, int width, int height, int frameMS, const PaletteClass& palette)
+    FireworkParticle(RenderBuffer& buffer, int x, int y, double vx, double vy, int fade, bool gravity, int colourIndex, bool holdColour, double velocity, int width, int height, int frameMS, const PaletteClass& palette)
     {
         _width = width;
         _height = height;
@@ -152,8 +152,8 @@ public:
 
         _fps = 1000.0 / frameMS;
 
-        double explosionVelocity = (rand() - RAND_MAX / 2)*velocity / (RAND_MAX / 2);
-        double angle = 2 * M_PI*rand() / RAND_MAX;
+        double explosionVelocity = (buffer.rand01() * 2.0 - 1.0) * velocity;
+        double angle = 2 * M_PI * buffer.rand01();
         _vx = 3.0 * vx / 100 + explosionVelocity * cos(angle);
         _vy = 3.0 * -vy / 100 + explosionVelocity * sin(angle);
     }
@@ -225,12 +225,12 @@ class Firework
     std::vector<FireworkParticle> _particles;
 
 public:
-    Firework(int particles, int x, int y, double vx, double vy, int fade, bool gravity, int colourIndex, bool holdColour, double velocity, int width, int height, int frameMS, const PaletteClass& palette)
+    Firework(RenderBuffer& buffer, int particles, int x, int y, double vx, double vy, int fade, bool gravity, int colourIndex, bool holdColour, double velocity, int width, int height, int frameMS, const PaletteClass& palette)
     {
         _cycles = 0;
         for (int i = 0; i < particles; i++)
         {
-            _particles.push_back(FireworkParticle(x, y, vx, vy, fade, gravity, colourIndex, holdColour, velocity, width, height, frameMS, palette));
+            _particles.push_back(FireworkParticle(buffer, x, y, vx, vy, fade, gravity, colourIndex, holdColour, velocity, width, height, frameMS, palette));
         }
     }
 
@@ -276,6 +276,23 @@ public:
     std::vector<int> _firePeriods;
 };
 
+// Tier-2 immutable per-frame draw state: one point+colour per live particle,
+// resolved (palette/alpha baked in) so the draw pass needs nothing but the buffer.
+struct FireworksDrawItem {
+    int x;
+    int y;
+    xlColor c;
+};
+struct FireworksFrameState : public EffectFrameState {
+    std::vector<FireworksDrawItem> items;
+};
+
+static void DrawFireworks(RenderBuffer& buffer, const std::vector<FireworksDrawItem>& items) {
+    for (const auto& it : items) {
+        buffer.SetPixel(it.x, it.y, it.c);
+    }
+}
+
 #define REPEATTRIGGER 20
 
 void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
@@ -289,7 +306,7 @@ void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname
 
 }
 
-std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, int overridex, int overridey)
+std::pair<int,int> FireworksEffect::GetFireworkLocation(RenderBuffer& buffer, int width, int height, int overridex, int overridey)
 {
     int startX;
     int startY;
@@ -301,7 +318,7 @@ std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, i
     {
         int x25 = static_cast<int>(0.25f * width);
         int x75 = static_cast<int>(0.75f * width);
-        if ((x75 - x25) > 0) startX = x25 + rand() % (x75 - x25); else startX = 0;
+        if ((x75 - x25) > 0) startX = x25 + buffer.randInt(0, x75 - x25 - 1); else startX = 0;
     }
 
     if (overridey >= 0)
@@ -312,12 +329,27 @@ std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, i
     {
         int y25 = static_cast<int>(0.25f * height);
         int y75 = static_cast<int>(0.75f * height);
-        if ((y75 - y25) > 0) startY = y25 + rand() % (y75 - y25); else startY = 0;
+        if ((y75 - y25) > 0) startY = y25 + buffer.randInt(0, y75 - y25 - 1); else startY = 0;
     }
     return { startX, startY };
 }
 
 void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    // Draw pass: rasterise the snapshot AdvanceState produced.  Under the tier-2
+    // engine this is the ONLY path reached (AdvanceState runs first and sets
+    // pendingSnapshot in both serial and frame-parallel rendering).
+    if (buffer.pendingSnapshot != nullptr) {
+        DrawFireworks(buffer, static_cast<const FireworksFrameState&>(*buffer.pendingSnapshot).items);
+        return;
+    }
+    // Defensive fall-through for any caller that invokes Render without first
+    // going through AdvanceState: advance then draw, exactly the legacy body.
+    // The draw is a pure function of the snapshot, so this stays byte-identical.
+    auto fs = AdvanceState(effect, SettingsMap, buffer);
+    DrawFireworks(buffer, static_cast<const FireworksFrameState&>(*fs).items);
+}
+
+std::unique_ptr<EffectFrameState> FireworksEffect::AdvanceState(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
 
     int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", sExplosionsDefault);
@@ -368,7 +400,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         if (!useMusic && !useTiming)
         {
             for (int i = 0; i < numberOfExplosions; i++) {
-                firePeriods.push_back(buffer.curEffStartPer + rand01() * (buffer.curEffEndPer - buffer.curEffStartPer));
+                firePeriods.push_back(buffer.curEffStartPer + buffer.rand01() * (buffer.curEffEndPer - buffer.curEffStartPer));
             }
         }
 
@@ -386,9 +418,9 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
             // trigger if it was not previously triggered or has been triggered for REPEATTRIGGER frames
             if (sinceLastTriggered == 0 || sinceLastTriggered > REPEATTRIGGER)
             {
-                auto location = GetFireworkLocation(buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
-                int colourIndex = rand() % colorcnt;
-                fireworks.push_back(Firework(particleCount,
+                auto location = GetFireworkLocation(buffer, buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
+                int colourIndex = buffer.randInt(0, (int)colorcnt - 1);
+                fireworks.push_back(Firework(buffer, particleCount,
                     location.first, location.second,
                     xVelocity, yVelocity,
                     fade, gravity,
@@ -421,7 +453,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         else
         {
             // Load the names of the timing tracks
-            EffectLayer* el = GetTiming(timing);
+            EffectLayer* el = GetTiming(timing, GetSequenceElements(buffer));
 
             if (el == nullptr)
             {
@@ -435,9 +467,9 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
                     if (buffer.curPeriod == el->GetEffect(j)->GetStartTimeMS() / buffer.frameTimeInMs ||
                         buffer.curPeriod == el->GetEffect(j)->GetEndTimeMS() / buffer.frameTimeInMs)
                     {
-                        auto location = GetFireworkLocation(buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
-                        int colourIndex = rand() % colorcnt;
-                        fireworks.push_back(Firework(particleCount,
+                        auto location = GetFireworkLocation(buffer, buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
+                        int colourIndex = buffer.randInt(0, (int)colorcnt - 1);
+                        fireworks.push_back(Firework(buffer, particleCount,
                             location.first, location.second,
                             xVelocity, yVelocity,
                             fade, gravity,
@@ -458,9 +490,9 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         {
             if (it == buffer.curPeriod)
             {
-                auto location = GetFireworkLocation(buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
-                int colourIndex = rand() % colorcnt;
-                fireworks.push_back(Firework(particleCount,
+                auto location = GetFireworkLocation(buffer, buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
+                int colourIndex = buffer.randInt(0, (int)colorcnt - 1);
+                fireworks.push_back(Firework(buffer, particleCount,
                     location.first, location.second,
                     xVelocity, yVelocity,
                     fade, gravity,
@@ -472,16 +504,38 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
     }
 
-    for (auto& it: fireworks)
+    // Build this frame's draw snapshot from the current (pre-advance) particle
+    // positions - byte-identical to drawing them, and RNG-free.
+    std::vector<FireworksDrawItem> drawItems;
+    for (auto& it : fireworks)
     {
         if (!it.Done())
         {
             for (auto p : it.GetParticles())
             {
-                buffer.SetPixel(p.GetX(), p.GetY(), p.GetColour(buffer.palette, buffer.allowAlpha));
+                drawItems.push_back({ p.GetX(), p.GetY(), p.GetColour(buffer.palette, buffer.allowAlpha) });
             }
+        }
+    }
 
+    // Advance all fireworks for the next frame (no RNG here).
+    for (auto& it : fireworks)
+    {
+        if (!it.Done())
+        {
             it.Advance();
         }
     }
+
+    // Capture the pre-advance draw list into this frame's immutable draw
+    // snapshot.  The engine hands it back to Render (via pendingSnapshot) for
+    // the actual draw, in both serial and frame-parallel rendering.
+    auto fs = std::make_unique<FireworksFrameState>();
+    fs->items = std::move(drawItems);
+    return fs;
 }
+
+RenderableEffect::FrameParallelism FireworksEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    return FrameParallelism::Snapshottable;
+}
+

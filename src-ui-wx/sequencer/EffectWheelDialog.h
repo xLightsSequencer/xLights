@@ -25,6 +25,12 @@ public:
     const KeyBinding* GetSelectedKeyBinding() const { return m_selectedBinding; }
 
 private:
+    enum class HitZone { None, Spoke, PageLive, PageDead, Exit };
+    struct HitResult {
+        HitZone zone = HitZone::None;
+        int index = -1;
+    };
+
     void OnPaint(wxPaintEvent& event);
     void OnMouseMove(wxMouseEvent& event);
     void OnLeftDown(wxMouseEvent& event);
@@ -32,18 +38,29 @@ private:
     void OnKeyDown(wxKeyEvent& event);
     void OnShow(wxShowEvent& event);
 
-    int GetSectorAtMouse(const wxPoint& pos);
+    HitResult HitTest(const wxPoint& pos) const;
     std::string GetEffectNameFromBinding(const KeyBinding* kb);
     void SetCircularShape(int radius);
+
+    int PageCount() const;
+    std::vector<const KeyBinding*> CurrentPageBindings() const;
 
     std::vector<const KeyBinding*> m_bindings;
     const KeyBinding* m_selectedBinding;
     int m_hoveredSector;
+    int m_hoveredPage;
+    int m_currentPage;
     wxPoint m_center;
 
-    // Radius constants
     int m_outerRadius;
     int m_innerRadius;
+    int m_exitRadius;
+    bool m_centerHovered;
+
+    // EffectsGrid.cpp truncates the incoming list to at most kPageSize * kMaxPages
+    // (72), so PageCount() can never exceed kMaxPages.
+    static constexpr int kPageSize = 18;
+    static constexpr int kMaxPages = 4;
 
     DECLARE_EVENT_TABLE()
 };

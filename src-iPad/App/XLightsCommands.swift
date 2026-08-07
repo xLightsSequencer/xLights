@@ -198,6 +198,45 @@ struct XLSequencerCommands: Commands {
 
             Divider()
 
+            // Desktop KeyBindings LOCK_EFFECT=l / UNLOCK_EFFECT=u —
+            // explicit states, not a toggle, so a mixed multi-selection
+            // ends up all locked (or all unlocked).
+            Button("Lock Effect") { viewModel.setLockOnSelectedEffects(true) }
+                .keyboardShortcut("l", modifiers: [])
+                .disabled(viewModel.selectedEffect == nil
+                           && viewModel.selectedEffects.isEmpty)
+
+            Button("Unlock Effect") { viewModel.setLockOnSelectedEffects(false) }
+                .keyboardShortcut("u", modifiers: [])
+                .disabled(viewModel.selectedEffect == nil
+                           && viewModel.selectedEffects.isEmpty)
+
+            Divider()
+
+            // Desktop INSERT_LAYER_ABOVE=⇧i / INSERT_LAYER_BELOW=⇧a /
+            // TOGGLE_ELEMENT_EXPAND=⇧x. All three act on the selected
+            // effect's row — the keyboard route to the row-header
+            // context-menu entries.
+            Button("Insert Layer Above") {
+                viewModel.insertLayerRelativeToSelection(above: true)
+            }
+            .keyboardShortcut("i", modifiers: [.shift])
+            .disabled(viewModel.selectedEffect == nil)
+
+            Button("Insert Layer Below") {
+                viewModel.insertLayerRelativeToSelection(above: false)
+            }
+            .keyboardShortcut("a", modifiers: [.shift])
+            .disabled(viewModel.selectedEffect == nil)
+
+            Button("Toggle Element Expand") {
+                viewModel.toggleElementExpandForSelection()
+            }
+            .keyboardShortcut("x", modifiers: [.shift])
+            .disabled(viewModel.selectedEffect == nil)
+
+            Divider()
+
             // B4 modified-arrow editing — Shift stretches end, Ctrl
             // fine-nudges start+end (1 ms), Option(Alt) nudges by one
             // frame interval. Duration preserved for the nudges;
@@ -344,6 +383,20 @@ struct XLSequencerCommands: Commands {
 
             Button("Check Sequence…") {
                 viewModel.showingCheckSequence = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            // Tools → Test (desktop PixelTestDialog). Show-setup task, so
+            // it stays enabled with no sequence open.
+            Button("Test Lights…") {
+                viewModel.showingLightTest = true
+            }
+
+            // Desktop Tools ▸ "Effect Symbols" + "Convert All Symbols to
+            // Effects" (xLightsMain.cpp). Creating / linking is on the
+            // grid's effect menu, matching desktop's right-click.
+            Button("Effect Symbols…") {
+                viewModel.showingEffectSymbols = true
             }
             .disabled(!viewModel.isSequenceLoaded)
 
@@ -722,9 +775,7 @@ struct XLSequencerCommands: Commands {
                 XLOpenURL("https://videos.xlights.org")
             }
             Button("Release Notes") {
-                XLOpenURL("https://raw.githubusercontent.com/xLightsSequencer/xLights/"
-                          + XLSequenceDocument.appVersion()
-                          + "/README.txt")
+                Task { await openReleaseNotes() }
             }
 
             Divider()
@@ -1020,4 +1071,41 @@ struct FPPConnectMenuItem: View {
         }
         .disabled(!viewModel.isShowFolderLoaded)
     }
+}
+
+/// Help → Release Notes. Desktop probes the version-tagged `README.txt`
+/// on GitHub and falls back to the tag with the patch component stripped
+/// when that file doesn't exist, because a patch release doesn't always
+/// get its own tag (`xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected`,
+/// the `__WXOSX__` branch). Without the fallback the link 404s for every
+/// untagged patch build.
+@MainActor
+func openReleaseNotes() async {
+    let base = "https://raw.githubusercontent.com/xLightsSequencer/xLights/"
+    let version = XLSequenceDocument.appVersion()
+    let tagged = base + version + "/README.txt"
+
+    if await urlExists(tagged) {
+        XLOpenURL(tagged)
+        return
+    }
+    if let dot = version.lastIndex(of: ".") {
+        XLOpenURL(base + String(version[version.startIndex..<dot]) + "/README.txt")
+    } else {
+        XLOpenURL(tagged)
+    }
+}
+
+/// HEAD probe with a short timeout. Any failure answers "not there" so
+/// the caller falls back rather than opening a link that 404s; a
+/// genuinely offline device gets the stripped-version URL, which is no
+/// worse than the tagged one it couldn't have loaded either.
+private func urlExists(_ url: String) async -> Bool {
+    guard let u = URL(string: url) else { return false }
+    var req = URLRequest(url: u)
+    req.httpMethod = "HEAD"
+    req.timeoutInterval = 5
+    guard let (_, response) = try? await URLSession.shared.data(for: req),
+          let http = response as? HTTPURLResponse else { return false }
+    return http.statusCode == 200
 }

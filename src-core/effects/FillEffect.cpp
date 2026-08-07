@@ -16,6 +16,9 @@
 #include "../models/Model.h"
 #include "UtilFunctions.h"
 
+#include "ispc/FillFunctions.ispc.h"
+#include "Parallel.h"
+
 #include <spdlog/fmt/fmt.h>
 
 #include "../../include/fill-16.xpm"
@@ -170,6 +173,219 @@ static inline int GetDirection(const std::string & DirectionString) {
 }
 
 void FillEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    if (buffer.BufferWi <= 0 || buffer.BufferHt <= 0) {
+        return;
+    }
+    // DMX models need SetPixel's channel translation (SetPixelDMXModel), which the
+    // linear ISPC/Metal write cannot reproduce; those take the scalar path.
+    if (buffer.IsDmxBuffer()) {
+        RenderScalar(effect, SettingsMap, buffer);
+        return;
+    }
+
+    // ISPC is the CPU path. BuildFillLut precomputes a per-line color LUT + painted
+    // mask with the exact scalar color math, so the kernel is byte-identical to the
+    // scalar loop; the kernel just maps each pixel to its line.
+    xlColorVector lut;
+    std::vector<uint8_t> painted;
+    int vertical = 0;
+    int dim = 0;
+    BuildFillLut(effect, SettingsMap, buffer, lut, painted, vertical, dim);
+
+    ispc::FillData fdata;
+    fdata.width = buffer.BufferWi;
+    fdata.height = buffer.BufferHt;
+    fdata.vertical = vertical;
+
+    // Bound the ISPC writes by the actual pixel allocation, not the logical
+    // dimensions (variable sub-buffers can leave GetPixelCount() smaller than
+    // BufferWi*BufferHt) — the kernel has no bounds check.
+    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
+    const ispc::uint8_t4* lutData = reinterpret_cast<const ispc::uint8_t4*>(lut.data());
+    const uint8_t* paintedData = painted.data();
+    constexpr int fillBlockSize = 4096;
+    int blocks = max / fillBlockSize + 1;
+    parallel_for(0, blocks, [&fdata, &buffer, lutData, paintedData, max](int blk) {
+        int start = blk * fillBlockSize;
+        int end = std::min(start + fillBlockSize, max);
+        ispc::FillEffectISPC(&fdata, start, end, lutData, paintedData, (ispc::uint8_t4*)buffer.GetPixels());
+    });
+}
+
+void FillEffect::BuildFillLut(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer,
+                              xlColorVector &lut, std::vector<uint8_t> &painted, int &vertical, int &dim) {
+    double eff_pos = buffer.GetEffectTimeIntervalPosition();
+    int position = GetValueCurveInt("Fill_Position", sPositionDefault, SettingsMap, eff_pos, sPositionMin, sPositionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double pos_pct = static_cast<double>(position) / 100.0;
+    int Direction = GetDirection(SettingsMap.Get("CHOICE_Fill_Direction", sDirectionDefault));
+    int BandSize = GetValueCurveInt("Fill_Band_Size", sBandSizeDefault, SettingsMap, eff_pos, sBandSizeMin, sBandSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int SkipSize = GetValueCurveInt("Fill_Skip_Size", sSkipSizeDefault, SettingsMap, eff_pos, sSkipSizeMin, sSkipSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int offset = GetValueCurveInt("Fill_Offset", sOffsetDefault, SettingsMap, eff_pos, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int offset_in_pixels = SettingsMap.GetBool("CHECKBOX_Fill_Offset_In_Pixels", sOffsetInPixelsDefault);
+    int color_by_time = SettingsMap.GetBool("CHECKBOX_Fill_Color_Time", sColorTimeDefault);
+    int wrap = SettingsMap.GetBool("CHECKBOX_Fill_Wrap", sWrapDefault);
+
+    switch (Direction)
+    {
+    default:
+    case 0:  // Up
+    case 1:  // Down
+        if (!offset_in_pixels) {
+            offset = ((buffer.BufferHt - 1) * offset) / 100;
+        }
+        else {
+            offset %= buffer.BufferHt;
+        }
+        break;
+    case 2:  // Left
+    case 3:  // Right
+        if (!offset_in_pixels) {
+            offset = ((buffer.BufferWi - 1) * offset) / 100;
+        }
+        else {
+            offset %= buffer.BufferWi;
+        }
+        break;
+    }
+
+    auto colorcnt = buffer.GetColorCount();
+    int colorcntI = static_cast<int>(colorcnt);
+    int color_size = BandSize + SkipSize;
+
+    xlColor baseColorTime;
+    if (BandSize == 0) {
+        GetColorFromPosition(eff_pos, baseColorTime, colorcnt, buffer);
+    }
+
+    bool isVertical = (Direction == 0 || Direction == 1);
+    vertical = isVertical ? 1 : 0;
+    dim = isVertical ? buffer.BufferHt : buffer.BufferWi;
+
+    lut.assign(dim, xlColor(0, 0, 0, 0));
+    painted.assign(dim, 0);
+
+    // Closed form for UpdateFillColor's banded prefix: applying UpdateFillColor(+1)
+    // k times from (current_pos=0, current_color=0) is exactly
+    // current_pos = k % color_size, current_color = (k / color_size) % colorcnt,
+    // so each line's band index is computed directly from its iteration index k with
+    // no sequential scan. (color_size = BandSize + SkipSize >= 1 whenever BandSize > 0.)
+    auto lineColor = [&](int k, double pos) -> xlColor {
+        xlColor c;
+        if (!color_by_time) {
+            GetColorFromPosition(pos, c, colorcnt, buffer);
+        } else if (BandSize > 0) {
+            c = xlBLACK;
+            int current_pos = k % color_size;
+            if (current_pos < BandSize) {
+                int current_color = (k / color_size) % colorcntI;
+                buffer.palette.GetColor(current_color, c);
+            }
+        } else {
+            c = baseColorTime;
+        }
+        return c;
+    };
+
+    int target;
+    switch (Direction)
+    {
+    default:
+    case 0: {  // Up
+        offset %= buffer.BufferHt;
+        if (wrap) {
+            target = buffer.BufferHt*pos_pct + offset;
+        }
+        else {
+            target = offset + (buffer.BufferHt - offset)*pos_pct;
+        }
+        int k = 0;
+        for (int y = offset; y < target; y++, k++)
+        {
+            double pos = 0;
+            if (buffer.BufferHt + offset - 1 != 0)
+            {
+                pos = static_cast<double>(y) / static_cast<double>(buffer.BufferHt + offset - 1);
+            }
+            int y_pos = y;
+            if (y_pos >= buffer.BufferHt) y_pos -= buffer.BufferHt;
+            lut[y_pos] = lineColor(k, pos);
+            painted[y_pos] = 1;
+        }
+        break;
+    }
+    case 1: {  // Down
+        offset %= buffer.BufferHt;
+        if (wrap) {
+            target = buffer.BufferHt*(1.0 - pos_pct) - offset;
+        }
+        else {
+            target = (buffer.BufferHt - offset)*(1.0 - pos_pct);
+        }
+        int k = 0;
+        for (int y = buffer.BufferHt - 1 - offset; y >= target; y--, k++)
+        {
+            double pos = 1.0;
+            if (buffer.BufferHt + offset - 1 != 0)
+            {
+                pos = 1.0 - static_cast<double>(y) / static_cast<double>(buffer.BufferHt + offset - 1);
+            }
+            int y_pos = y;
+            if (y_pos < 0) y_pos += buffer.BufferHt;
+            lut[y_pos] = lineColor(k, pos);
+            painted[y_pos] = 1;
+        }
+        break;
+    }
+    case 2: {  // Left
+        offset %= buffer.BufferWi;
+        if (wrap) {
+            target = buffer.BufferWi*(1.0 - pos_pct) - offset;
+        }
+        else {
+            target = (buffer.BufferWi - offset)*(1.0 - pos_pct);
+        }
+        int k = 0;
+        for (int x = buffer.BufferWi - 1 - offset; x >= target; x--, k++)
+        {
+            double pos = 1.0;
+            if (buffer.BufferWi + offset - 1 != 0)
+            {
+                pos = 1.0 - static_cast<double>(x) / static_cast<double>(buffer.BufferWi + offset - 1);
+            }
+            int x_pos = x;
+            if (x_pos < 0) x_pos += buffer.BufferWi;
+            lut[x_pos] = lineColor(k, pos);
+            painted[x_pos] = 1;
+        }
+        break;
+    }
+    case 3: {  // Right
+        offset %= buffer.BufferWi;
+        if (wrap) {
+            target = buffer.BufferWi*pos_pct + offset;
+        }
+        else {
+            target = offset + (buffer.BufferWi - offset)*pos_pct;
+        }
+        int k = 0;
+        for (int x = offset; x < target; x++, k++)
+        {
+            double pos = 0;
+            if (buffer.BufferWi + offset - 1 != 0)
+            {
+                pos = static_cast<double>(x) / static_cast<double>(buffer.BufferWi + offset - 1);
+            }
+            int x_pos = x;
+            if (x_pos >= buffer.BufferWi) x_pos -= buffer.BufferWi;
+            lut[x_pos] = lineColor(k, pos);
+            painted[x_pos] = 1;
+        }
+        break;
+    }
+    }
+}
+
+void FillEffect::RenderScalar(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int position = GetValueCurveInt("Fill_Position", sPositionDefault, SettingsMap, eff_pos, sPositionMin, sPositionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

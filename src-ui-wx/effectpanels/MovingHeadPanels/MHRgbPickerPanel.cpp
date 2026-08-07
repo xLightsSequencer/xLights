@@ -312,7 +312,7 @@ bool MHRgbPickerPanel::HitTestV( wxPoint2DDouble& ptUI )
         if( ptUI.m_x >= v_left && ptUI.m_x <= v_left + v_width &&
            ptUI.m_y >= v_top && ptUI.m_y <= v_top + v_height ) {
             HSVValue hsv {m_handles[active_handle].color};
-            hsv.value = {(ptUI.m_x - v_left) / v_width};;
+            hsv.value = (ptUI.m_x - v_left) / v_width;
             m_handles[active_handle].color = hsv;
             m_rgbPickerParent->NotifyColorUpdated();
             Refresh();

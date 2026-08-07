@@ -21,6 +21,10 @@ class PicturesEffect : public RenderableEffect
         virtual ~PicturesEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        // Pure: buffer.randInt()/rand01() reseed per frame from a stable hash of
+        // (model, layer, effect-start, period), so the serial RNG reproduces in
+        // strided/parallel render order - a pure function of the frame.
+        virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
         static void Render(RenderBuffer &buffer,
                            const std::string & dirstr, const std::string &NewPictureName2,
                            float movementSpeed, float frameRateAdj,
@@ -31,8 +35,10 @@ class PicturesEffect : public RenderableEffect
 
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
+        virtual bool needsLoadFiles() const override { return true; }
+        virtual void loadFiles(Effect* effect) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-        virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap &SettingsMap) const override;
+        virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap &SettingsMap) const override;
         virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap &SettingsMap) override;
         static bool IsPictureFile(std::string filename);
         virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }

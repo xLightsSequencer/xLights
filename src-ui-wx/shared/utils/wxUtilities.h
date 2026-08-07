@@ -129,6 +129,18 @@ void ViewTempFile(const wxString& content, const wxString& name = "temp", const 
 
 void DownloadVamp();
 
+// True when xLights is running from an MSIX/AppX package (Store or sideload).
+bool IsRunningPackaged();
+
+// Per-user, writable folder used to hold Vamp plugins for packaged installs
+// (the package install dir is read-only). e.g. %LOCALAPPDATA%\xLights\VampPlugins.
+std::string GetUserVampPluginDir();
+
+// If VAMP_PATH isn't already set, point it at the per-user plugin dir plus the
+// standard %ProgramFiles%\Vamp Plugins location so an existing pack is still
+// found. Call once at startup before any Vamp plugin is loaded.
+void ConfigureVampPath();
+
 // wxConfig wrapper for cross-process communication
 void SetConfigBool(const std::string& key, bool value);
 bool GetConfigBool(const std::string& key, bool defaultValue = false);

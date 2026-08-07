@@ -1,0 +1,257 @@
+#version 450
+// Port of CirclesEffect in CirclesFunctions.metal.  A GATHER kernel: each
+// thread computes its own pixel by looping over balls[] — "last ball wins"
+// is serial within one thread, so it is deterministic with no owner/claim
+// buffer needed.  Radial (outside-ring), metaballs (below-threshold), and
+// regular/fading (no-hit) all `return` without writing, so this is a
+// partial-write effect that relies on the host having pre-cleared the
+// result buffer (same as Shockwave).  Params mirror VulkanCirclesData.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+
+struct CircleBall {
+    float x;
+    float y;
+    float radius;
+    int colorIdx;
+};
+
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+
+    int mode;
+    int numBalls;
+    int colorCount;
+    int allowAlpha;
+    int wrap;
+
+    int cx;
+    int cy;
+    int barSize;
+    int blockSize;
+    int f_offset;
+    int maxRadius;
+    int number;
+    int effectState;
+
+    CircleBall balls[20];
+
+    uint colorsAsRGBA[8];
+    vec3 colorsAsHSV[8];
+} data;
+
+const int CIRCLES_MODE_RADIAL    = 0;
+const int CIRCLES_MODE_RADIAL_3D = 1;
+const int CIRCLES_MODE_METABALLS = 2;
+const int CIRCLES_MODE_REGULAR   = 3;
+const int CIRCLES_MODE_FADING    = 4;
+
+// HSV -> RGBA (inline switch-based, matches circHsv2rgba() in CirclesFunctions.metal —
+// NOT the shared IQ-style hsv2rgb() in vulkan_common.glsl).
+uvec4 circHsv2rgba(float h, float s, float v) {
+    float r, g, b;
+    if (s == 0.0) {
+        r = v; g = v; b = v;
+    } else {
+        float hh = xl_fmod(h, 1.0) * 6.0;
+        int i = int(hh);
+        float f = hh - float(i);
+        float p = v * (1.0 - s);
+        float q = v * (1.0 - s * f);
+        float t = v * (1.0 - s * (1.0 - f));
+        switch (i) {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            default: r = v; g = p; b = q; break;
+        }
+    }
+    return uvec4(uint(r * 255.0), uint(g * 255.0), uint(b * 255.0), 255u);
+}
+
+// Additive HSV blend (matches addHSV() in CirclesFunctions.metal, which
+// matches RenderBuffer::Get2ColorAdditive).
+vec3 addHSV(vec3 a, vec3 b) {
+    vec3 ca, cb;
+    {
+        float h = a.x, s = a.y, v = a.z;
+        float r, g, bl;
+        if (s == 0.0) {
+            r = v; g = v; bl = v;
+        } else {
+            float hh = xl_fmod(h, 1.0) * 6.0;
+            int i = int(hh);
+            float f = hh - float(i);
+            float p = v * (1.0 - s), q = v * (1.0 - s * f), t = v * (1.0 - s * (1.0 - f));
+            switch (i) {
+                case 0: r = v; g = t; bl = p; break;
+                case 1: r = q; g = v; bl = p; break;
+                case 2: r = p; g = v; bl = t; break;
+                case 3: r = p; g = q; bl = v; break;
+                case 4: r = t; g = p; bl = v; break;
+                default: r = v; g = p; bl = q; break;
+            }
+        }
+        ca = vec3(r, g, bl);
+    }
+    {
+        float h = b.x, s = b.y, v = b.z;
+        float r, g, bl;
+        if (s == 0.0) {
+            r = v; g = v; bl = v;
+        } else {
+            float hh = xl_fmod(h, 1.0) * 6.0;
+            int i = int(hh);
+            float f = hh - float(i);
+            float p = v * (1.0 - s), q = v * (1.0 - s * f), t = v * (1.0 - s * (1.0 - f));
+            switch (i) {
+                case 0: r = v; g = t; bl = p; break;
+                case 1: r = q; g = v; bl = p; break;
+                case 2: r = p; g = v; bl = t; break;
+                case 3: r = p; g = q; bl = v; break;
+                case 4: r = t; g = p; bl = v; break;
+                default: r = v; g = p; bl = q; break;
+            }
+        }
+        cb = vec3(r, g, bl);
+    }
+    vec3 sum = clamp(ca + cb, 0.0, 1.0);
+    float maxC = max(max(sum.x, sum.y), sum.z);
+    float minC = min(min(sum.x, sum.y), sum.z);
+    float delta = maxC - minC;
+    float h = 0.0, s = 0.0, v = maxC;
+    if (delta > 0.0001) {
+        s = delta / maxC;
+        if (maxC == sum.x) h = xl_fmod((sum.y - sum.z) / delta, 6.0);
+        else if (maxC == sum.y) h = (sum.z - sum.x) / delta + 2.0;
+        else h = (sum.x - sum.y) / delta + 4.0;
+        h /= 6.0;
+        if (h < 0.0) h += 1.0;
+    }
+    return vec3(h, s, v);
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    if (px >= data.width || py >= data.height) return;
+
+    int mode = data.mode;
+
+    // ── RADIAL / RADIAL_3D ──────────────────────────────────────────────────
+    if (mode == CIRCLES_MODE_RADIAL || mode == CIRCLES_MODE_RADIAL_3D) {
+        float dx = float(px) - float(data.cx);
+        float dy = float(py) - float(data.cy);
+        float dist = sqrt(dx * dx + dy * dy);
+        int ii = int(dist);
+
+        if (ii > data.maxRadius) {
+            // outside ring — leave buffer background untouched (matches CPU/ISPC)
+            return;
+        }
+
+        int n = ii - data.f_offset + data.blockSize;
+        int colorIdx = ((n % data.blockSize) + data.blockSize) % data.blockSize / data.barSize;
+        colorIdx = clamp(colorIdx, 0, data.colorCount - 1);
+
+        if (mode == CIRCLES_MODE_RADIAL_3D) {
+            float denom = (data.number > 0) ? (float(data.maxRadius) / float(data.number)) : 1.0;
+            float hue = float(ii + data.effectState) / denom;
+            hue = hue - floor(hue);
+            result[index] = packPx(circHsv2rgba(hue, 1.0, 1.0));
+        } else {
+            vec3 hsv = data.colorsAsHSV[colorIdx];
+            result[index] = packPx(circHsv2rgba(hsv.x, hsv.y, hsv.z));
+        }
+        return;
+    }
+
+    // ── META BALLS (PLASMA) ──────────────────────────────────────────────────
+    if (mode == CIRCLES_MODE_METABALLS) {
+        float sum = 0.0;
+        vec3 hsv = vec3(0.0, 0.0, 0.0);
+
+        for (int ii = 0; ii < data.numBalls; ii++) {
+            float dx = float(px) - data.balls[ii].x;
+            float dy = float(py) - data.balls[ii].y;
+            float d = sqrt(dx * dx + dy * dy);
+            float val = (d > 0.0001) ? (data.balls[ii].radius / d) : 1.0;
+            sum += val;
+            if (val > 0.30) {
+                int cidx = clamp(data.balls[ii].colorIdx, 0, data.colorCount - 1);
+                vec3 temp = data.colorsAsHSV[cidx];
+                temp.z = val > 1.0 ? 1.0 : val;
+                hsv = addHSV(hsv, temp);
+            }
+        }
+        if (sum >= 0.90) {
+            result[index] = packPx(circHsv2rgba(hsv.x, hsv.y, hsv.z));
+        }
+        // below threshold — leave buffer background untouched (matches CPU/ISPC)
+        return;
+    }
+
+    // ── REGULAR / FADING FILLED CIRCLES ─────────────────────────────────────
+    // Multiple balls: last one (highest index) that covers this pixel wins.
+    // Matches CPU DrawCircle/DrawFadingCircle loop order (ii=0..numBalls-1,
+    // later overwrites earlier). When wrap=true, pixels outside the buffer
+    // wrap around — so a ball near an edge can appear on both sides. We check
+    // the pixel against both the direct position and the wrapped offsets.
+    uvec4 outColor = uvec4(0, 0, 0, 0);
+    bool hit = false;
+
+    int w = int(data.width);
+    int h = int(data.height);
+
+    for (int ii = 0; ii < data.numBalls; ii++) {
+        float r = data.balls[ii].radius;
+
+        // Check direct distance and, if wrap enabled, also the wrapped distances
+        float dx = float(px) - data.balls[ii].x;
+        float dy = float(py) - data.balls[ii].y;
+
+        if (data.wrap != 0) {
+            // Find shortest wrapped distance on each axis
+            if (dx > float(w) / 2.0) dx -= float(w);
+            if (dx < -float(w) / 2.0) dx += float(w);
+            if (dy > float(h) / 2.0) dy -= float(h);
+            if (dy < -float(h) / 2.0) dy += float(h);
+        }
+
+        float d = sqrt(dx * dx + dy * dy);
+        if (d > r) continue;
+
+        int cidx = clamp(data.balls[ii].colorIdx, 0, data.colorCount - 1);
+
+        if (mode == CIRCLES_MODE_FADING) {
+            // DrawFadingCircle: brightness = full_brightness * (1 - d/r)
+            vec3 hsv = data.colorsAsHSV[cidx];
+            float alpha = hsv.z * (1.0 - d / r);
+            if (alpha <= 0.0) continue;
+            if (data.allowAlpha != 0) {
+                uvec4 base = unpackPx(data.colorsAsRGBA[cidx]);
+                float a = float(base.a) * (1.0 - d / r);
+                outColor = uvec4(base.r, base.g, base.b, uint(a));
+            } else {
+                outColor = circHsv2rgba(hsv.x, hsv.y, alpha);
+            }
+        } else {
+            // CIRCLES_MODE_REGULAR: solid fill
+            outColor = unpackPx(data.colorsAsRGBA[cidx]);
+        }
+        hit = true;
+    }
+
+    if (hit) {
+        result[index] = packPx(outColor);
+    }
+    // no hit — leave buffer background untouched (matches CPU/ISPC)
+}

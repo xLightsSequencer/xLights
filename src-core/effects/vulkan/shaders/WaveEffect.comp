@@ -1,0 +1,59 @@
+#version 450
+// Port of the Wave effect's None-fill (constant-color) case, from
+// WaveFunctions.metal. The per-column vertical band [y1,y2] is precomputed on
+// the CPU in double precision (incl. std::sin) and passed in the Cols buffer
+// (cols[2x]=y1, cols[2x+1]=y2; y1 > y2 means the column draws nothing), so
+// this kernel is pure integer band-testing and stays byte-identical to the
+// scalar renderer. Rainbow/Palette fills need a double-precision hue division
+// to stay byte-identical, which neither Metal nor GLSL can do, so the wrapper
+// routes those to the ISPC CPU path instead. Must stay in lockstep with the
+// band logic in WaveFunctions.ispc / WaveFunctions.metal.
+//
+// This is a partial-write kernel -- only in-band pixels are written -- so
+// `result` must NOT be `writeonly`.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Cols { int cols[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int yoffset;
+    int mirror;
+    uint noneColor; // packed uchar4
+} data;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+
+    int width = int(data.width);
+    int height = int(data.height);
+    int x = int(index) % width;
+    int Y = int(index) / width;
+    int yy = Y - data.yoffset;
+
+    int y1 = cols[2 * x];
+    int y2 = cols[2 * x + 1];
+
+    // Mirror wins on overlap: reflected band [height-y2, height-y1] is drawn
+    // last by the scalar renderer.
+    bool inBand = false;
+    if (data.mirror != 0) {
+        int mlo = height - y2;
+        int mhi = height - y1;
+        if (yy >= mlo && yy <= mhi) {
+            inBand = true;
+        }
+    }
+    if (!inBand && yy >= y1 && yy <= y2) {
+        inBand = true;
+    }
+
+    if (inBand) {
+        result[index] = data.noneColor;
+    }
+}

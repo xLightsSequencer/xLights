@@ -1,0 +1,390 @@
+#version 450
+// Port of the 13 WarpEffectXxx kernels in WarpFunctions.metal, unified into
+// one kernel selected by data.warpType -- the same WarpEffect::WarpType index
+// MetalWarpEffectData::functions[] was keyed by (see WarpEffect.h).
+//
+// binding 1 is a snapshot of the source pixels taken just before this
+// dispatch (VulkanWarpEffect.cpp copies pixelBuffer -> pixelBufferCopy).
+// Every branch below samples that snapshot, never `result` -- this is a
+// deliberate deviation from the Metal kernels for Mirror/Copy/SampleOn/
+// CircleReveal, which read and write the destination buffer in place
+// (harmless there only because Metal serializes the single dispatch's
+// hazard tracking; doing the same in Vulkan across parallel invocations
+// would be a read/write race). Sampling from the frozen snapshot instead
+// gives byte-identical, race-free results for every style.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Dissolve { uint dissolveWords[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+
+    uint xPos;
+    uint yPos;
+
+    float speed;
+    float progress;
+    float frequency;
+
+    int direction;
+    int warpType;
+} data;
+
+// WarpEffect::WarpType values (WarpEffect.h) -- the selector
+// MetalWarpEffectData::functions[] was indexed by. SPEED (13) has no GPU
+// kernel (temporal capture needs CPU-side cross-frame state); see the
+// canRenderStyle check in VulkanWarpEffect.cpp.
+#define WARP_WATER_DROPS       0
+#define WARP_SINGLE_WATER_DROP 1
+#define WARP_CIRCLE_REVEAL     2
+#define WARP_BANDED_SWIRL      3
+#define WARP_CIRCULAR_SWIRL    4
+#define WARP_DISSOLVE          5
+#define WARP_RIPPLE            6
+#define WARP_DROP              7
+#define WARP_WAVY              8
+#define WARP_SAMPLE_ON         9
+#define WARP_MIRROR            10
+#define WARP_COPY              11
+#define WARP_FLIP              12
+
+// Matches the truncated `constant float PI = 3.14159;` in WarpFunctions.metal
+// (not full double precision) -- keep bit-for-bit with the Metal kernels.
+const float WARP_PI = 3.14159;
+
+const uint DissolvePatternWidth = 512u;
+const uint DissolvePatternHeight = 512u;
+
+float dissolveTex(float s, float t) {
+    s = clamp(s, 0.0, 1.0);
+    t = clamp(t, 0.0, 1.0);
+    uint x = uint(s * float(DissolvePatternWidth - 1u));
+    uint y = uint(t * float(DissolvePatternHeight - 1u));
+    uint bidx = y * DissolvePatternWidth + x;
+    uint val = (dissolveWords[bidx >> 2u] >> ((bidx & 3u) * 8u)) & 0xFFu;
+    return float(val) / 255.0;
+}
+
+vec2 noiseVec(vec2 p) {
+    float n = dissolveTex(p.x, p.y);
+    return vec2(n, n);
+}
+
+float lerpF(float a, float b, float progress) {
+    return a + progress * (b - a);
+}
+
+uint lerpByte(uint a, uint b, float progress) {
+    return uint(xl_round(float(a) + progress * (float(b) - float(a))));
+}
+
+// Matches Metal's lerp(uchar4,uchar4,float): alpha is always forced to 255,
+// never blended.
+uvec4 lerpPx(uvec4 a, uvec4 b, float progress) {
+    return uvec4(lerpByte(a.r, b.r, progress), lerpByte(a.g, b.g, progress), lerpByte(a.b, b.b, progress), 255u);
+}
+
+float noise(vec2 p) {
+    float xi, yi;
+    float xf = modf(p.x, xi);
+    float yf = modf(p.y, yi);
+    vec2 i = vec2(xi, yi);
+    vec2 f = vec2(xf, yf);
+
+    vec2 u = f * f * (3.0 - 2.0 * f);
+
+    vec2 aa = noiseVec(i + vec2(0.0, 0.0));
+    vec2 bb = f - vec2(0.0, 0.0);
+    vec2 cc = noiseVec(i + vec2(1.0, 0.0));
+    vec2 dd = f - vec2(1.0, 0.0);
+    vec2 ee = noiseVec(i + vec2(0.0, 1.0));
+    vec2 ff = f - vec2(0.0, 1.0);
+    vec2 gg = noiseVec(i + vec2(1.0, 1.0));
+    vec2 hh = f - vec2(1.0, 1.0);
+
+    float ab = dot(aa, bb);
+    float cd = dot(cc, dd);
+    float ef = dot(ee, ff);
+    float gh = dot(gg, hh);
+
+    float foo = lerpF(ab, cd, u.x);
+    float bar = lerpF(ef, gh, u.x);
+
+    return lerpF(foo, bar, u.y);
+}
+
+int tex2DClamp(vec2 uv) {
+    uv = clamp(uv, 0.0, 1.0);
+    int y = int(xl_round(uv.y * float(data.height - 1u)));
+    int x = int(xl_round(uv.x * float(data.width - 1u)));
+    return y * int(data.width) + x;
+}
+
+int tex2DBlack(vec2 uv) {
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+        return -1;
+    }
+    int y = int(xl_round(uv.y * float(data.height - 1u)));
+    int x = int(xl_round(uv.x * float(data.width - 1u)));
+    return y * int(data.width) + x;
+}
+
+float getDropletHeight(vec2 uv, vec2 dropletPosition, float time) {
+    const float dropletExpandSpeed = 1.5;
+    const float dropletHeightFactor = 0.3;
+    const float dropletRipple = 60.0;
+
+    float decayRate = 0.5; // smaller = faster drops
+    float dropletStrength = 1.0; // larger = bigger impact (0.5 min)
+    float dropletStrengthBias = 0.6;
+    float dummy;
+    float dropFraction = modf(time / decayRate, dummy);
+
+    float ringRadius = dropletExpandSpeed * dropFraction * dropletStrength - dropletStrengthBias;
+    float distanceToDroplet = length(uv - dropletPosition);
+
+    float dropletHeight = distanceToDroplet > ringRadius ? 0.0 : distanceToDroplet;
+    dropletHeight = cos(WARP_PI + (dropletHeight - ringRadius) * dropletRipple * dropletStrength) * 0.5 + 0.5;
+    dropletHeight *= 1.0 - dropFraction;
+    dropletHeight *= distanceToDroplet > ringRadius ? 0.0 : distanceToDroplet / ringRadius;
+
+    return (1.0 - (cos(dropletHeight * WARP_PI) + 1.0) * 0.5) * dropletHeightFactor;
+}
+
+float genWave(float len, float speed, float time) {
+    float wave = sin(speed * WARP_PI * len + time);
+    wave = (wave + 1.0) * 0.5;
+    wave -= 0.3;
+    wave *= wave * wave;
+    return wave;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+    uint px = index % data.width;
+    uint py = index / data.width;
+
+    switch (data.warpType) {
+    case WARP_MIRROR: {
+        if (px <= data.xPos && py <= data.yPos) return;
+        int x = int(px);
+        int y = int(py);
+        if (x > int(data.xPos)) {
+            x = int(data.xPos) - (int(px) - int(data.xPos));
+        }
+        if (y > int(data.yPos)) {
+            y = int(data.yPos) - (int(py) - int(data.yPos));
+        }
+        if (x < 0 || y < 0) {
+            result[index] = packPx(uvec4(0u, 0u, 0u, 255u));
+        } else {
+            uint sidx = uint(y) * data.width + uint(x);
+            result[index] = src[sidx];
+        }
+        break;
+    }
+    case WARP_COPY: {
+        if (px <= data.xPos && py <= data.yPos) return;
+        uint x = px;
+        uint y = py;
+        if (x > data.xPos) {
+            x = px - data.xPos;
+        }
+        if (y > data.yPos) {
+            y = py - data.yPos;
+        }
+        uint sidx = y * data.width + x;
+        result[index] = src[sidx];
+        break;
+    }
+    case WARP_FLIP: {
+        int w = int(data.width);
+        int h = int(data.height);
+        int ix = int(px);
+        if (px <= data.xPos && data.xPos != 0u) {
+            ix = (w - 1) - int(px);
+        }
+        int iy = int(py);
+        if (py <= data.yPos && data.yPos != 0u) {
+            iy = (h - 1) - int(py);
+        }
+        ix = clamp(ix, 0, w - 1);
+        iy = clamp(iy, 0, h - 1);
+        uint sidx = uint(iy) * data.width + uint(ix);
+        result[index] = src[sidx];
+        break;
+    }
+    case WARP_SAMPLE_ON: {
+        uint sidx = data.yPos * data.width + data.xPos;
+        result[index] = src[sidx];
+        break;
+    }
+    case WARP_WAVY: {
+        vec2 uv = vec2(data.width > 1u ? float(px) / float(data.width - 1u) : 0.0,
+                       data.height > 1u ? float(py) / float(data.height - 1u) : 0.0);
+        float time = data.speed * data.progress;
+
+        uv.x += 0.4 * noise(vec2(time) + 0.3 * uv);
+        uv.y += 0.5 * noise(vec2(time) + 0.5 * uv);
+
+        int sidx = tex2DBlack(uv);
+        if (sidx < 0) {
+            result[index] = packPx(uvec4(0u, 0u, 0u, 255u));
+        } else {
+            result[index] = src[sidx];
+        }
+        break;
+    }
+    case WARP_SINGLE_WATER_DROP: {
+        vec2 uv = vec2(float(px) / float(data.width), float(py) / float(data.height));
+        vec2 paramsXY = vec2(float(data.xPos) / float(data.width), float(data.yPos) / float(data.height));
+        vec2 pos2 = uv - paramsXY;
+        vec2 pos2n = normalize(pos2);
+
+        float dh = getDropletHeight(uv - vec2(0.5, 0.5), paramsXY - vec2(0.5, 0.5), data.progress);
+        vec2 uv2 = -pos2n * dh / (1.0 + 3.0 * length(pos2));
+
+        int sidx = tex2DClamp(vec2(uv.x + uv2.x, uv.y + uv2.y));
+        result[index] = src[sidx];
+        break;
+    }
+    case WARP_WATER_DROPS: {
+        vec2 uv = vec2(float(px) / float(data.width), float(py) / float(data.height));
+        vec2 paramsXY = vec2(float(data.xPos) / float(data.width), float(data.yPos) / float(data.height));
+        vec2 pos2 = uv - paramsXY;
+        vec2 pos2n = normalize(pos2);
+        float len = length(pos2);
+        float wave = genWave(len, data.speed, -data.progress * 35.0);
+
+        vec2 uv2 = -pos2n * wave / (1.0 + 5.0 * len);
+        vec2 st = vec2(uv.x + uv2.x, uv.y + uv2.y);
+        int sidx = tex2DClamp(st);
+        result[index] = src[sidx];
+        break;
+    }
+    case WARP_DISSOLVE: {
+        // Partial write: pixels not crossed by the dissolve threshold keep
+        // whatever `result` already holds -- which, since `copy` was just
+        // memcpy'd from `result`, is identical to leaving them unwritten.
+        float dissolveColor = dissolveTex(float(px) / float(data.width), float(py) / float(data.height));
+        if (data.direction != 0) {
+            if (dissolveColor <= data.progress) {
+                result[index] = packPx(uvec4(0u, 0u, 0u, 255u));
+            }
+        } else {
+            if (dissolveColor > data.progress) {
+                result[index] = packPx(uvec4(0u, 0u, 0u, 255u));
+            }
+        }
+        break;
+    }
+    case WARP_RIPPLE: {
+        vec2 uv = vec2(float(px) / float(data.width), float(py) / float(data.height));
+        vec2 paramsXY = vec2(float(data.xPos) / float(data.width), float(data.yPos) / float(data.height));
+
+        const float amplitude = 0.15;
+
+        vec2 toUV = uv - paramsXY;
+        float distanceFromCenter = length(toUV);
+        vec2 normToUV = toUV / distanceFromCenter;
+
+        float wave = cos(data.frequency * distanceFromCenter - data.speed * data.progress);
+        float offset = data.progress * wave * amplitude;
+
+        vec2 newUV = paramsXY + normToUV * (distanceFromCenter + offset);
+        int sidx = tex2DClamp(newUV);
+        if (data.direction != 0) {
+            result[index] = packPx(lerpPx(unpackPx(src[index]), unpackPx(src[sidx]), data.progress));
+        } else {
+            result[index] = packPx(lerpPx(unpackPx(src[sidx]), unpackPx(src[index]), data.progress));
+        }
+        break;
+    }
+    case WARP_DROP: {
+        vec2 uv = vec2(float(px) / float(data.width), float(py) / float(data.height));
+        const float notSoRandomY = 0.16;
+        float n = dissolveTex(uv.x, notSoRandomY);
+        int sidx = tex2DClamp(vec2(uv.x, uv.y + n * data.progress));
+        result[index] = src[sidx];
+        break;
+    }
+    case WARP_CIRCULAR_SWIRL: {
+        vec2 uv = vec2(float(px) / float(data.width), float(py) / float(data.height));
+        vec2 paramsXY = vec2(float(data.xPos) / float(data.width), float(data.yPos) / float(data.height));
+
+        vec2 dir = uv - paramsXY;
+        float len = length(dir);
+
+        float radius = (1.0 - data.progress) * 0.70710678;
+        if (len < radius) {
+            float angle = -data.speed * len * data.progress * WARP_PI;
+            float cs = cos(angle);
+            float sn = sin(angle);
+            vec2 rotated = vec2(dir.x * cs + dir.y * sn, -dir.x * sn + dir.y * cs);
+            vec2 scaled = rotated * (1.0 - data.progress) + paramsXY;
+            float nprogress = 1.0 - data.progress;
+            float x = paramsXY.x + nprogress * (scaled.x - paramsXY.x);
+            float y = paramsXY.y + nprogress * (scaled.y - paramsXY.y);
+            vec2 newUV = vec2(x, y);
+            int sidx = tex2DClamp(newUV);
+            result[index] = src[sidx];
+        } else {
+            result[index] = packPx(uvec4(0u, 0u, 0u, 255u));
+        }
+        break;
+    }
+    case WARP_CIRCLE_REVEAL: {
+        vec2 uv = vec2(float(px) / float(data.width), float(py) / float(data.height));
+        vec2 paramsXY = vec2(float(data.xPos) / float(data.width), float(data.yPos) / float(data.height));
+
+        const float FuzzyAmount = 0.04;
+        const float CircleSize = 0.60;
+
+        float progress = data.progress;
+        if (data.direction != 0) {
+            progress = 1.0 - data.progress;
+        }
+        float radius = -FuzzyAmount + progress * (CircleSize + 2.0 * FuzzyAmount);
+        float fromCenter = length(uv - paramsXY);
+        float distFromCircle = fromCenter - radius;
+
+        float p = clamp((distFromCircle + FuzzyAmount) / (2.0 * FuzzyAmount), 0.0, 1.0);
+        result[index] = packPx(lerpPx(unpackPx(src[index]), uvec4(0u, 0u, 0u, 255u), p));
+        break;
+    }
+    case WARP_BANDED_SWIRL: {
+        vec2 uv = vec2(float(px) / float(data.width), float(py) / float(data.height));
+        vec2 paramsXY = vec2(float(data.xPos) / float(data.width), float(data.yPos) / float(data.height));
+
+        const float TwistAmount = 1.6;
+        float progress = data.progress;
+        if (data.direction == 0) {
+            progress = 1.0 - data.progress;
+        }
+
+        vec2 toUV = uv - paramsXY;
+        float distanceFromCenter = length(toUV);
+        vec2 normToUV = toUV / distanceFromCenter;
+        float angle = atan(normToUV.y, normToUV.x);
+
+        angle += sin(distanceFromCenter * data.frequency) * TwistAmount * progress;
+        vec2 newUV = vec2(cos(angle), sin(angle));
+        newUV = newUV * distanceFromCenter + paramsXY;
+        int c2 = tex2DClamp(newUV);
+        if (data.direction != 0) {
+            result[index] = packPx(lerpPx(unpackPx(src[c2]), unpackPx(src[index]), data.progress));
+        } else {
+            result[index] = packPx(lerpPx(unpackPx(src[index]), unpackPx(src[c2]), data.progress));
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}

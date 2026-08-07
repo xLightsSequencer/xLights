@@ -1,0 +1,24 @@
+#version 450
+// Port of AdditiveFunction in LayerBlendingFunctions.metal.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    uvec4 fg = unpackPx(src[index]);
+    bool chromaKeyed = (data.isChromaKey != 0u) && applyChroma(fg);
+    if (!chromaKeyed) {
+        uvec4 bg = unpackPx(result[index]);
+        uint r = min(fg.r + bg.r, 255u);
+        uint g = min(fg.g + bg.g, 255u);
+        uint b = min(fg.b + bg.b, 255u);
+        result[index] = packPx(uvec4(r, g, b, 255u));
+    }
+}

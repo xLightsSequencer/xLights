@@ -36,6 +36,7 @@
 class ConvertLogDialog;
 class SequenceElements;
 class ManageMediaPanel;
+class SequenceFacesPanel;
 class xLightsFrame;
 
 class SeqSettingsDialog: public wxDialog
@@ -47,6 +48,12 @@ class SeqSettingsDialog: public wxDialog
 		virtual ~SeqSettingsDialog();
 
         const std::string GetView() const {return selected_view;}
+
+        // Snapshot of the settings that matter for "has anything actually changed"
+        // purposes, taken once population finishes. Compared against the current
+        // state on close so the caller can skip marking the sequence dirty when
+        // the user just opened the dialog and clicked Done without editing anything.
+        bool HasSettingsChanged() const { return BuildSettingsSignature() != _initialSettingsSignature; }
 
 		//(*Declarations(SeqSettingsDialog)
 		wxBitmapButton* BitmapButton_ModifyTiming;
@@ -140,6 +147,9 @@ class SeqSettingsDialog: public wxDialog
         wxChoice* ModelsChoice;
 		wxButton* ModelsChoiceNext;
         ManageMediaPanel* Panel_ManageMedia;
+
+        // Faces tab (not wxSmith-generated) - sequence-level face definitions
+        SequenceFacesPanel* Panel_SequenceFaces = nullptr;
 
         // Audio Tracks tab (not wxSmith-generated)
         wxPanel* PanelAudio = nullptr;
@@ -381,4 +391,7 @@ class SeqSettingsDialog: public wxDialog
         void MediaLoad(const wxString& filename);
 		bool UpdateSequenceTiming();
 		void ValidateWindow();
+
+        std::string BuildSettingsSignature() const;
+        std::string _initialSettingsSignature;
 };

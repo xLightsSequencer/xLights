@@ -121,13 +121,13 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     return res;
 }
 
-std::list<std::string> TextEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
+std::list<std::string> TextEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;    
     std::string textFilename = SettingsMap["E_FILEPICKERCTRL_Text_File"];
     if (textFilename != "")
     {
-        res.push_back(textFilename);
+        res.push_back(ResolveFileReference(ctx, textFilename));
     }
     return res;
 }
@@ -165,31 +165,16 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
-    SettingsMap &settings = effect->GetSettings();
+}
 
-    // Resolve broken paths first, then convert to relative for portability
+void TextEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_FILEPICKERCTRL_Text_File"];
-    if (!file.empty() && !FileExists(file)) {
-        std::string fixed = FileUtils::FixFile("", file);
-        if (!fixed.empty() && fixed != file) {
-            settings["E_FILEPICKERCTRL_Text_File"] = fixed;
-            file = fixed;
-        }
-    }
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_FILEPICKERCTRL_Text_File"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_FILEPICKERCTRL_Text_File"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        const auto resolved = SequenceMedia::ResolveFilePath(file);
+        settings["E_FILEPICKERCTRL_Text_File"] = resolved.settingsPath;
         media.GetTextFile(settings["E_FILEPICKERCTRL_Text_File"]);
     }
 }
@@ -256,6 +241,16 @@ static int TextCountDownIndex(const std::string &st) {
     if (st == "!to date!%fmt") return 6;
     if (st == "minutes seconds") return 7;
     return 0;
+}
+
+RenderableEffect::FrameParallelism TextEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // "to date" countdown modes read the real wall clock (system_clock::now) and
+    // are not reproducible frame-to-frame; conservatively treat any countdown as
+    // stateful.  Plain / scrolling text is a pure function of the frame.
+    if (TextCountDownIndex(settings.Get("CHOICE_Text_Count", "")) != 0) {
+        return FrameParallelism::Stateful;
+    }
+    return FrameParallelism::Pure;
 }
 
 static int TextEffectsIndex(const std::string &st) {
@@ -377,7 +372,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         bool pixelOffsets = SettingsMap.GetBool("CHECKBOX_Text_PixelOffsets", sPixelOffsetsDefault);
         bool perWord = SettingsMap.GetBool("CHECKBOX_Text_Color_PerWord", sColorPerWordDefault);
 
-        const CachedRGBAImage* i = RenderTextLine(buffer,
+        const std::shared_ptr<const CachedRGBAImage> i = RenderTextLine(buffer,
                        buffer.GetTextDrawingContext(),
                        text,
                        SettingsMap["FONTPICKER_Text_Font"],
@@ -503,6 +498,54 @@ struct CachedTextInfoHasher {
     }
 };
 
+// Rasterised text is a pure function of (text, font, colours, rect), so one
+// bitmap serves every frame and every row that asks for the same thing.  It used
+// to live in the per-RenderBuffer TextRenderCache below, which meant
+// frame-parallel clone buffers each got an empty cache and re-rasterised their
+// own copy - the cache stopped absorbing repeats precisely when the most renders
+// were in flight.  Hoisting it out of the RenderBuffer makes clones share it.
+//
+// Capped because entries are buffer-sized (w*h*4): a whole-house matrix is ~1MB
+// per distinct string, and the key includes the rect, so distinct models do not
+// share.  Eviction is whole-cache rather than LRU: overflow means the show has
+// more distinct text than the budget, and repopulating is a rasterise each, the
+// same cost the cache exists to avoid paying repeatedly.
+class SharedTextImageCache {
+public:
+    std::shared_ptr<const CachedRGBAImage> Get(const CachedTextInfo& inf) {
+        std::lock_guard<std::mutex> lk(_lock);
+        auto it = _map.find(inf);
+        return it == _map.end() ? nullptr : it->second;
+    }
+    std::shared_ptr<const CachedRGBAImage> Put(const CachedTextInfo& inf, std::vector<uint8_t> rgbaData, int w, int h) {
+        auto img = std::make_shared<CachedRGBAImage>();
+        img->width = w;
+        img->height = h;
+        img->data = std::move(rgbaData);
+
+        std::lock_guard<std::mutex> lk(_lock);
+        if (_bytes + img->data.size() > MAX_BYTES && !_map.empty()) {
+            spdlog::debug("Text image cache over {} MB with {} entries; clearing.", MAX_BYTES / (1024 * 1024), _map.size());
+            _map.clear();
+            _bytes = 0;
+        }
+        _bytes += img->data.size();
+        _map[inf] = img;
+        return img;
+    }
+
+private:
+    static constexpr size_t MAX_BYTES = 256ull * 1024 * 1024;
+    std::mutex _lock;
+    std::unordered_map<CachedTextInfo, std::shared_ptr<const CachedRGBAImage>, CachedTextInfoHasher> _map;
+    size_t _bytes = 0;
+};
+
+static SharedTextImageCache& SharedTextImages() {
+    static SharedTextImageCache cache;
+    return cache;
+}
+
 class TextRenderCache : public EffectRenderCache {
 public:
     TextRenderCache() : timer_countdown(0), synced_textsize(xlSize(0,0)) {};
@@ -510,19 +553,13 @@ public:
     int timer_countdown;
     xlSize synced_textsize;
 
-    CachedRGBAImage *GetImage(const CachedTextInfo &inf) {
-        auto it = textCache.find(inf);
-        if (it != textCache.end()) return &it->second;
-        return nullptr;
+    std::shared_ptr<const CachedRGBAImage> GetImage(const CachedTextInfo &inf) {
+        return SharedTextImages().Get(inf);
     }
-    CachedRGBAImage* PutImage(const CachedTextInfo &inf, std::vector<uint8_t> rgbaData, int w, int h) {
-        auto& img = textCache[inf];
-        img.width = w;
-        img.height = h;
-        img.data = std::move(rgbaData);
-        return &img;
+    std::shared_ptr<const CachedRGBAImage> PutImage(const CachedTextInfo &inf, std::vector<uint8_t> rgbaData, int w, int h) {
+        return SharedTextImages().Put(inf, std::move(rgbaData), w, h);
     }
-    
+
     xlSize GetMultiLineTextExtent(const std::string &font, const std::string &msg) {
         std::pair<std::string, std::string> key(font, msg);
         auto i = textExtentCache.find(key);
@@ -537,7 +574,6 @@ public:
     }
 
     CachedRGBAImage lastRendered; // temp storage for uncached FlushAndGetImage results
-    std::unordered_map<CachedTextInfo, CachedRGBAImage, CachedTextInfoHasher> textCache;
     std::map<std::pair<std::string, std::string>, xlSize> textExtentCache;
 };
 
@@ -729,7 +765,7 @@ TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
 }
 
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
-const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
+std::shared_ptr<const CachedRGBAImage> TextEffect::RenderTextLine(RenderBuffer &buffer,
                                     TextDrawingContext* dc,
                                     const std::string& Line_orig,
                                     const std::string &fontString,
@@ -970,7 +1006,7 @@ const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             colors.push_back(xlWHITE);
         }
         CachedTextInfo inf(msg, fontString, colors, rect);
-        CachedRGBAImage *img = GetCache(buffer,id)->GetImage(inf);
+        std::shared_ptr<const CachedRGBAImage> img = GetCache(buffer,id)->GetImage(inf);
         if (img == nullptr) {
             dc->Clear();
             SetFont(dc, fontString, colors[0]);
@@ -1043,7 +1079,11 @@ const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
     cache->lastRendered.width = iw;
     cache->lastRendered.height = ih;
     cache->lastRendered.data.assign(rgba, rgba + (size_t)iw * ih * 4);
-    return &cache->lastRendered;
+    // Non-owning: this is the uncacheable path (scrolling/animated text differs
+    // every frame), so it keeps returning a view of the render cache's scratch
+    // buffer, which outlives the caller's immediate pixel copy.  A no-op deleter
+    // lets it share the cached path's return type without an allocation per frame.
+    return std::shared_ptr<const CachedRGBAImage>(&cache->lastRendered, [](const CachedRGBAImage*) {});
 
 }
 
@@ -1579,6 +1619,31 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 
                 int actual_width = font->GetCharWidth(ascii);
                 assert(actual_width > 0);
+                int char_offset_left = line_offset_left;
+                if (vertical) {
+                    // Center each glyph on its own ink bounding box rather than the
+                    // horizontal advance width (actual_width includes inter-character
+                    // kerning space that doesn't correlate with the glyph's visual
+                    // width), so narrower characters (e.g. "1") line up with wider
+                    // ones (e.g. "2") stacked above/below them.
+                    int minInk = -1, maxInk = -1;
+                    for (int cx = 0; cx < char_width; cx++) {
+                        int px = x_start_corner + cx;
+                        if (px < 0 || px >= image->GetWidth()) continue;
+                        for (int cy = 0; cy < char_height; cy++) {
+                            int py = y_start_corner + cy;
+                            if (py < 0 || py >= image->GetHeight()) continue;
+                            if (image->GetRed(px, py) == 255 && image->GetGreen(px, py) == 255 && image->GetBlue(px, py) == 255) {
+                                if (minInk < 0) minInk = cx;
+                                maxInk = cx;
+                            }
+                        }
+                    }
+                    if (minInk >= 0) {
+                        int inkWidth = maxInk - minInk + 1;
+                        char_offset_left = line_offset_left + (char_width - inkWidth) / 2 - minInk;
+                    }
+                }
                 if (rotate_90 && up) {
                     OffsetTop -= actual_width;
                 }
@@ -1597,7 +1662,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                                         buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + line_offset_left, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
                                     }
                                 } else {
-                                    buffer.SetPixel(x_pos - x_start_corner + line_offset_left, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
+                                    buffer.SetPixel(x_pos - x_start_corner + char_offset_left, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
                                 }
                             }
                         }

@@ -12,6 +12,8 @@
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceElements.h"
+#include "EffectSymbol.h"
+#include "EffectSymbolManager.h"
 #include "RenderContext.h"
 #include "../effects/EffectManager.h"
 #include "ColorCurve.h"
@@ -27,6 +29,8 @@
 #include <filesystem>
 #include <chrono>
 #include <unordered_map>
+#include <map>
+#include <algorithm>
 #include <regex>
 
 #include <log.h>
@@ -191,6 +195,15 @@ Effect::Effect(const Effect& ef)
     mPaletteMap = ef.mPaletteMap;
     mColors = ef.mColors;
     mCC = ef.mCC;
+
+    // Deliberately NOT copying _linkedSymbolId. This copy is a short-lived
+    // render temporary (RenderEngine's `new Effect(*ef)`) that is never passed
+    // to RegisterLinkedEffect, so it owns no entry in the symbol manager. If it
+    // carried the id, ~Effect would call UnregisterLinkedEffect from a render
+    // worker thread — mutating the shared multimap for an entry it never owned,
+    // and matching a live effect outright whenever the allocator reused the
+    // address. It would also let IncrementChangeCount fan symbol changes out
+    // off the main thread. Render reads mSettings/mPaletteMap, never the id.
 }
 
 Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected, bool importing) :
@@ -251,6 +264,15 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
 
 Effect::~Effect()
 {
+    if (!_linkedSymbolId.empty() && mParentLayer != nullptr) {
+        Element* parentElement = mParentLayer->GetParentElement();
+        if (parentElement != nullptr) {
+            SequenceElements* seqElements = parentElement->GetSequenceElements();
+            if (seqElements != nullptr) {
+                seqElements->GetEffectSymbolManager().UnregisterLinkedEffect(this);
+            }
+        }
+    }
     if (mCache) {
         mCache->Delete();
         mCache = nullptr;
@@ -358,10 +380,18 @@ std::string Effect::GetDescription() const
         return GetSetting("X_Effect_Description");
 }
 
+// A symbol captures an effect's *settings*, not where it sits on the timeline,
+// so moving or resizing an effect must not fan out to its linked siblings.
+// Without the suppressor a single drag ran CopyFromEffect plus a full
+// settings+palette re-parse on every sibling and posted one render event each,
+// twice over (start and end) — seconds of frozen UI per drag on a symbol with
+// a few hundred links. The layer's own dirty-marking still happens, so this
+// effect re-renders normally.
 void Effect::SetStartTimeMS(int startTimeMS)
 {
     assert(!IsLocked());
 
+    ScopedSymbolPropagationSuppressor noFanOut;
     if (startTimeMS > mStartTime) {
         IncrementChangeCount();
         mStartTime = startTimeMS;
@@ -375,6 +405,7 @@ void Effect::SetEndTimeMS(int endTimeMS)
 {
     assert(!IsLocked());
 
+    ScopedSymbolPropagationSuppressor noFanOut;
     if (endTimeMS < mEndTime) {
         IncrementChangeCount();
         mEndTime = endTimeMS;
@@ -474,20 +505,111 @@ void Effect::SetLocked(bool lock)
     }
 }
 
+// Guard against recursive symbol propagation when an effect's change is mirrored
+// to its symbol and back out to other linked effects.
+static thread_local bool s_propagatingSymbolChanges = false;
+
+Effect::ScopedSymbolPropagationSuppressor::ScopedSymbolPropagationSuppressor()
+    : _prev(s_propagatingSymbolChanges)
+{
+    s_propagatingSymbolChanges = true;
+}
+
+Effect::ScopedSymbolPropagationSuppressor::~ScopedSymbolPropagationSuppressor()
+{
+    s_propagatingSymbolChanges = _prev;
+}
+
 void Effect::IncrementChangeCount()
 {
     mParentLayer->IncrementChangeCount(GetStartTimeMS(), GetEndTimeMS());
-    std::unique_lock<std::recursive_mutex> lock(settingsLock);
-    if (mCache) {
-        mCache->Delete();
-        mCache = nullptr;
+    {
+        std::unique_lock<std::recursive_mutex> lock(settingsLock);
+        if (mCache) {
+            mCache->Delete();
+            mCache = nullptr;
+        }
+    }
+
+    if (!s_propagatingSymbolChanges && IsLinkedToSymbol() && mParentLayer != nullptr) {
+        Element* parentElement = mParentLayer->GetParentElement();
+        if (parentElement != nullptr) {
+            SequenceElements* seqElements = parentElement->GetSequenceElements();
+            if (seqElements != nullptr) {
+                EffectSymbolManager& symbolManager = seqElements->GetEffectSymbolManager();
+                EffectSymbol* symbol = symbolManager.GetSymbol(_linkedSymbolId);
+                if (symbol != nullptr) {
+                    // Restore the prior value rather than clearing: the guard now
+                    // has a second writer (ScopedSymbolPropagationSuppressor), so
+                    // clearing it here would silently drop an outer suppression.
+                    bool prevPropagating = s_propagatingSymbolChanges;
+                    s_propagatingSymbolChanges = true;
+
+                    symbol->CopyFromEffect(this);
+
+                    std::vector<Effect*> linkedEffects = symbolManager.GetLinkedEffects(_linkedSymbolId);
+                    for (Effect* effect : linkedEffects) {
+                        if (effect != this && effect != nullptr) {
+                            effect->ApplySymbolSettings(symbol);
+                        }
+                    }
+
+                    s_propagatingSymbolChanges = prevPropagating;
+
+                    // Coalesce the render requests per model rather than per
+                    // effect. A symbol reused a few hundred times still spans
+                    // only a handful of models, so the naive per-effect loop
+                    // queued one render job per linked effect (986 on a real
+                    // sequence across 5 models), and each job pays a full
+                    // RenderJob + PixelBuffer::InitBuffer setup. That setup
+                    // dominates, so one widened job per model is far cheaper
+                    // than many narrow ones — this is also what
+                    // RenderDirtyModels does for every ordinary edit.
+                    RenderContext* ctx = seqElements->GetRenderContext();
+                    if (ctx != nullptr) {
+                        std::map<std::string, std::pair<int, int>> perModel;
+                        for (Effect* effect : linkedEffects) {
+                            if (effect != this && effect != nullptr) {
+                                EffectLayer* el = effect->GetParentEffectLayer();
+                                if (el != nullptr && el->GetParentElement() != nullptr) {
+                                    const std::string& mn = el->GetParentElement()->GetModelName();
+                                    int s = effect->GetStartTimeMS();
+                                    int e = effect->GetEndTimeMS();
+                                    auto it = perModel.find(mn);
+                                    if (it == perModel.end()) {
+                                        perModel.emplace(mn, std::make_pair(s, e));
+                                    } else {
+                                        it->second.first = std::min(it->second.first, s);
+                                        it->second.second = std::max(it->second.second, e);
+                                    }
+                                }
+                            }
+                        }
+                        for (const auto& [modelName, range] : perModel) {
+                            // Async: must NOT render synchronously here — we hold
+                            // this effect's settingsLock, and the render workers
+                            // would deadlock waiting for it (the indefinite hang
+                            // when changing a linked effect's color to a gradient).
+                            ctx->RequestRenderForModel(modelName, range.first, range.second);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 std::string Effect::GetSettingsAsString() const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
-    return mSettings.AsString();
+    std::string result = mSettings.AsString();
+    if (!_linkedSymbolId.empty()) {
+        if (!result.empty()) {
+            result += ",";
+        }
+        result += "X_LinkedSymbolId=" + _linkedSymbolId;
+    }
+    return result;
 }
 
 std::string Effect::GetSettingsAsJSON() const
@@ -856,10 +978,10 @@ bool operator<(const Effect &e1, const Effect &e2)
     return false;
 }
 
-bool Effect::GetFrame(RenderBuffer &buffer, RenderCache &renderCache) {
+bool Effect::GetFrame(RenderBuffer &buffer, RenderCache &renderCache, const SettingsMap &settings) {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     if (mCache == nullptr) {
-        mCache = renderCache.GetItem(this, &buffer);
+        mCache = renderCache.GetItem(this, settings, &buffer);
     }
     return mCache && mCache->GetFrame(&buffer);
 }
@@ -880,5 +1002,114 @@ void Effect::PurgeCache(bool deleteCache) {
         }
         mCache->Delete();
         mCache = nullptr;
+    }
+}
+
+void Effect::LinkToSymbol(const std::string& symbolId)
+{
+    if (_linkedSymbolId == symbolId) return;
+
+    if (!_linkedSymbolId.empty()) {
+        UnlinkFromSymbol();
+    }
+
+    _linkedSymbolId = symbolId;
+
+    if (!symbolId.empty() && mParentLayer != nullptr) {
+        Element* parentElement = mParentLayer->GetParentElement();
+        if (parentElement != nullptr) {
+            SequenceElements* seqElements = parentElement->GetSequenceElements();
+            if (seqElements != nullptr) {
+                EffectSymbolManager& symbolManager = seqElements->GetEffectSymbolManager();
+                symbolManager.RegisterLinkedEffect(this, symbolId);
+
+                EffectSymbol* symbol = symbolManager.GetSymbol(symbolId);
+                if (symbol != nullptr) {
+                    SetEffectName(symbol->GetEffectType());
+                    SetSettings(symbol->GetSettingsAsString(), true);
+                    SetPalette(symbol->GetPalette());
+                    // The symbol's settings-string carries no X_LinkedSymbolId,
+                    // but a previously-pasted clipboard string parsed into
+                    // mSettings may have left one behind — strip it now that
+                    // _linkedSymbolId is the source of truth.
+                    {
+                        std::unique_lock<std::recursive_mutex> lock(settingsLock);
+                        mSettings.erase("X_LinkedSymbolId");
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Effect::UnlinkFromSymbol()
+{
+    if (_linkedSymbolId.empty()) return;
+
+    if (mParentLayer != nullptr) {
+        Element* parentElement = mParentLayer->GetParentElement();
+        if (parentElement != nullptr) {
+            SequenceElements* seqElements = parentElement->GetSequenceElements();
+            if (seqElements != nullptr) {
+                EffectSymbolManager& symbolManager = seqElements->GetEffectSymbolManager();
+                symbolManager.UnregisterLinkedEffect(this);
+            }
+        }
+    }
+
+    _linkedSymbolId.clear();
+}
+
+void Effect::ApplySymbolSettings(const EffectSymbol* symbol)
+{
+    if (symbol == nullptr) return;
+
+    // Save/restore the guard so a nested ApplySymbolSettings call doesn't
+    // clobber an outer propagation scope (the outer IncrementChangeCount's
+    // for-loop iterates several effects; each one must remain guarded for
+    // the full sweep).
+    bool savedGuard = s_propagatingSymbolChanges;
+    s_propagatingSymbolChanges = true;
+
+    // keepxsettings=true so per-effect X_ state (lock, render-disable,
+    // description) survives a symbol update.
+    SetSettings(symbol->GetSettings().AsString(), true);
+    SetPalette(symbol->GetPalette());
+    SetEffectIndex(symbol->GetEffectIndex());
+
+    IncrementChangeCount();
+
+    s_propagatingSymbolChanges = savedGuard;
+}
+
+void Effect::HandlePastedSymbolLink()
+{
+    std::string symbolId;
+    {
+        std::unique_lock<std::recursive_mutex> lock(settingsLock);
+        symbolId = mSettings.Get("X_LinkedSymbolId", "");
+        if (!symbolId.empty()) {
+            mSettings.erase("X_LinkedSymbolId");
+        }
+    }
+
+    if (symbolId.empty()) {
+        return;
+    }
+
+    if (mParentLayer == nullptr) return;
+
+    Element* parentElement = mParentLayer->GetParentElement();
+    if (parentElement == nullptr) return;
+
+    SequenceElements* seqElements = parentElement->GetSequenceElements();
+    if (seqElements == nullptr) return;
+
+    EffectSymbolManager& symbolManager = seqElements->GetEffectSymbolManager();
+    EffectSymbol* symbol = symbolManager.GetSymbol(symbolId);
+
+    if (symbol != nullptr) {
+        _linkedSymbolId = symbolId;
+        symbolManager.RegisterLinkedEffect(this, symbolId);
     }
 }

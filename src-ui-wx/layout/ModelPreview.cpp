@@ -13,9 +13,10 @@
 #include <wx/artprov.h>
 #include <wx/config.h>
 
-#if defined(USE_GLES) && !defined(__WXMAC__)
-    #include <GLES3/gl3.h>
-#elif defined(__WXMAC__)
+#include <algorithm>
+#include <unordered_set>
+
+#if defined(__WXMAC__)
     #include "OpenGL/gl.h"
 #else
     #include <GL/gl.h>
@@ -24,6 +25,7 @@
 #include "layout/ModelPreview.h"
 #include "models/Model.h"
 #include "models/ViewObject.h"
+#include "models/ControllerObject.h"
 #include "layout/PreviewPane.h"
 #include "color/ColorManager.h"
 #include "layout/LayoutGroup.h"
@@ -57,6 +59,169 @@ const long ModelPreview::ID_VIEWPOINT3D = wxNewId();
 const long ModelPreview::ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE = wxNewId();
 
 static constexpr long CAMERA_LOAD_BASE = 18000;
+
+enum {
+    ID_PENCIL_SIZE_OFF = 0x4000,
+    ID_PENCIL_SIZE_5 = 0x4005,
+    ID_PENCIL_SIZE_4 = 0x4004,
+    ID_PENCIL_SIZE_3 = 0x4003,
+    ID_PENCIL_SIZE_2 = 0x4002,
+    ID_PENCIL_SIZE_1 = 0x4001,
+};
+
+int ModelPreview::s_pencilSizeIndex = 0; // Default to Off (0)
+
+int ModelPreview::GetPencilSizeIndex() {
+    return s_pencilSizeIndex;
+}
+
+void ModelPreview::SetPencilSizeIndex(int index) {
+    if (index >= 0 && index <= 5) {
+        s_pencilSizeIndex = index;
+    }
+}
+
+void ModelPreview::ResetPencilSize() {
+    s_pencilSizeIndex = 0;
+}
+
+bool ModelPreview::IsPencilActive() const {
+    return _supportsPencil && s_pencilSizeIndex > 0;
+}
+
+void ModelPreview::StartPaintPath(std::vector<xlPoint>& path, int x, int y, bool freeform) {
+    path.clear();
+    if (freeform) {
+        path.emplace_back(x, y);
+    }
+}
+
+void ModelPreview::AddPaintPathPoint(std::vector<xlPoint>& path, int x, int y, bool freeform, int minDistanceSq) {
+    if (!freeform) return;
+    if (path.empty()) {
+        path.emplace_back(x, y);
+    } else {
+        int dx = x - path.back().x;
+        int dy = y - path.back().y;
+        if (dx * dx + dy * dy >= minDistanceSq) {
+            path.emplace_back(x, y);
+        }
+    }
+}
+
+void ModelPreview::EndPaintPath(std::vector<xlPoint>& path, int x, int y, bool freeform) {
+    if (!freeform) return;
+    if (path.empty() || path.back().x != x || path.back().y != y) {
+        path.emplace_back(x, y);
+    }
+}
+
+float ModelPreview::GetPencilCatchRadiusMultiplier() const {
+    if (!_supportsPencil) return 8.0f;
+    switch (s_pencilSizeIndex) {
+        case 1: return 2.0f;
+        case 2: return 4.0f;
+        case 3: return 6.0f;
+        case 4: return 8.0f;
+        case 5: return 12.0f;
+        case 0: default: return 8.0f;
+    }
+}
+
+std::vector<float> ModelPreview::GetPencilStrokeOffsets() const {
+    switch (s_pencilSizeIndex) {
+        case 1: // 2px
+            return { -0.5f, 0.5f };
+        case 2: // 4px
+            return { -1.5f, -0.5f, 0.5f, 1.5f };
+        case 3: // 6px
+            return { -2.5f, -1.5f, -0.5f, 0.5f, 1.5f, 2.5f };
+        case 4: // 8px
+            return { -3.5f, -2.5f, -1.5f, -0.5f, 0.5f, 1.5f, 2.5f, 3.5f };
+        case 5: // 12px
+            return { -5.5f, -4.5f, -3.5f, -2.5f, -1.5f, -0.5f, 0.5f, 1.5f, 2.5f, 3.5f, 4.5f, 5.5f };
+        case 0: default:
+            return { -3.5f, -2.5f, -1.5f, -0.5f, 0.5f, 1.5f, 2.5f, 3.5f };
+    }
+}
+
+bool ModelPreview::HitTestPencilIcon(int x, int y) const {
+    if (!_supportsPencil) return false;
+    int w = mWindowWidth;
+    if (w < 60) return false;
+    return (x >= w - 44 && x <= w - 4 && y >= 4 && y <= 44);
+}
+
+void ModelPreview::ShowPencilSizeMenu() {
+    wxMenu pencilMenu;
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_OFF, "Off");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_5, "Pencil Size 5 (Extra Large - 12px)");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_4, "Pencil Size 4 (Large - 8px)");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_3, "Pencil Size 3 (Medium - 6px)");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_2, "Pencil Size 2 (Fine - 4px)");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_1, "Pencil Size 1 (Extra Fine - 2px)");
+
+    int checkId = (s_pencilSizeIndex == 0) ? ID_PENCIL_SIZE_OFF : (ID_PENCIL_SIZE_1 + s_pencilSizeIndex - 1);
+    if (checkId >= ID_PENCIL_SIZE_OFF && checkId <= ID_PENCIL_SIZE_5) {
+        pencilMenu.Check(checkId, true);
+    }
+
+    pencilMenu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPencilMenuSelected, nullptr, this);
+    PopupMenu(&pencilMenu, mWindowWidth - 44, 44);
+}
+
+void ModelPreview::OnPencilMenuSelected(wxCommandEvent& event) {
+    int id = event.GetId();
+    if (id == ID_PENCIL_SIZE_OFF) {
+        s_pencilSizeIndex = 0;
+        Refresh();
+    } else if (id >= ID_PENCIL_SIZE_1 && id <= ID_PENCIL_SIZE_5) {
+        s_pencilSizeIndex = id - ID_PENCIL_SIZE_1 + 1;
+        Refresh();
+    }
+}
+
+void ModelPreview::AddPencilIconToAccumulator() {
+    if (!_supportsPencil || solidProgram == nullptr) return;
+    auto acc = solidProgram->getAccumulator();
+    int start = acc->getCount();
+    const xlColor pencilColor = IsPencilActive() ? xlColor(255, 140, 0) : xlColor(170, 170, 170);
+
+    int w = mWindowWidth;
+    int h = mWindowHeight;
+    if (w < 60 || h < 60) return;
+
+    // Top-right position for borderless pencil icon
+    float px1 = (float)(w - 24), py1 = 24.0f; // Body lower-left near tip
+    float px2 = (float)(w - 10), py2 = 10.0f; // Body upper-right near eraser
+
+    float nx = 0.7071f * 3.0f;
+    float ny = 0.7071f * 3.0f;
+
+    // Pencil barrel lines (3 parallel lines for pencil body)
+    acc->AddVertex(px1 - nx, py1 - ny, pencilColor); acc->AddVertex(px2 - nx, py2 - ny, pencilColor);
+    acc->AddVertex(px1, py1, pencilColor);           acc->AddVertex(px2, py2, pencilColor);
+    acc->AddVertex(px1 + nx, py1 + ny, pencilColor); acc->AddVertex(px2 + nx, py2 + ny, pencilColor);
+
+    // Eraser cap back line at top-right
+    acc->AddVertex(px2 - nx, py2 - ny, pencilColor); acc->AddVertex(px2 + nx, py2 + ny, pencilColor);
+
+    // Pencil tip pointing bottom-left
+    float tipX = (float)(w - 29), tipY = 29.0f;
+    acc->AddVertex(px1 - nx, py1 - ny, pencilColor); acc->AddVertex(tipX, tipY, pencilColor);
+    acc->AddVertex(px1 + nx, py1 + ny, pencilColor); acc->AddVertex(tipX, tipY, pencilColor);
+
+    int count = acc->getCount() - start;
+    glm::mat4 pvm = ProjViewMatrix;
+
+    solidProgram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        glm::mat4 screenOrtho = glm::ortho(0.0f, (float)w, (float)h, 0.0f);
+        ctx->ApplyMatrix(glm::inverse(pvm) * screenOrtho);
+        ctx->drawLines(acc, start, count);
+        ctx->PopMatrix();
+    });
+}
 
 
 
@@ -317,6 +482,10 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 
 void ModelPreview::mouseLeftDown(wxMouseEvent& event) {
     SetFocus();
+    if (HitTestPencilIcon(event.GetX(), event.GetY())) {
+        ShowPencilSizeMenu();
+        return;
+    }
 	m_mouse_down = true;
 	m_last_mouse_x = event.GetX();
 	m_last_mouse_y = event.GetY();
@@ -368,9 +537,15 @@ ModelGroup* ModelPreview::GetSelectedModelGroup()
 const std::vector<Model*> &ModelPreview::GetModels() {
     tmpModelList.clear();
     if (xlights) {
+        // PreviewModels and the layout-group model lists are cached and only
+        // rebuilt by UpdateModelsList, which runs as deferred ASAP work — a
+        // model delete bumps the AllModels generation before that rebuild, so
+        // a paint or mouse event landing in that window would walk freed
+        // Model pointers. When the generation has moved, return a copy
+        // filtered down to models that still exist.
+        const bool stale = xlights->AllModels.GetModelGeneration() != xlights->PreviewModelsGeneration;
         if (currentLayoutGroup == "Default") {
-            if (additionalModel == nullptr) {
-                //wxASSERT(ValidateModels(xlights->PreviewModels, xlights->AllModels));
+            if (additionalModel == nullptr && !stale) {
                 return xlights->PreviewModels;
             } else {
                 tmpModelList = xlights->PreviewModels;
@@ -394,8 +569,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
             for (auto& [gname, grp] : xlights->LayoutGroups) {
                 if (currentLayoutGroup == gname) {
                     foundGrp = true;
-                    if (additionalModel == nullptr) {
-                        //wxASSERT(ValidateModels(grp->GetModels(), xlights->AllModels));
+                    if (additionalModel == nullptr && !stale) {
                         return grp->GetModels();
                     } else {
                         tmpModelList = grp->GetModels();
@@ -408,8 +582,20 @@ const std::vector<Model*> &ModelPreview::GetModels() {
             }
         }
 
-        // Only in debug builds but this really should all be valid or bad things will happen
-        //wxASSERT(ValidateModels(tmpModelList, xlights->AllModels));
+        if (stale && !tmpModelList.empty()) {
+            // membership test must not dereference the (possibly freed)
+            // cached pointers, so build the live set from AllModels
+            std::unordered_set<const Model*> live;
+            for (const auto& a : xlights->AllModels) {
+                live.insert(a.second);
+                for (const auto* sm : a.second->GetSubModels()) {
+                    live.insert(sm);
+                }
+            }
+            tmpModelList.erase(std::remove_if(tmpModelList.begin(), tmpModelList.end(),
+                                              [&live](const Model* m) { return live.find(m) == live.end(); }),
+                               tmpModelList.end());
+        }
     }
     if (additionalModel != nullptr) {
         tmpModelList.push_back(additionalModel);
@@ -469,7 +655,44 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
     }
     if (!m_wheel_down) {
         bool fromTrackPad = IsMouseEventFromTouchpad();
-        if (!fromTrackPad || event.ControlDown()) {
+        if (is3d && event.ShiftDown() && !event.ControlDown()) {
+            float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? event.GetWheelRotation() : 0;
+            if (std::abs(event.GetWheelRotation()) >= event.GetWheelDelta()) {
+                new_x /= 4.0f;
+                new_y /= 4.0f;
+            }
+
+            // account for grid rotation
+            float angleX = glm::radians(GetCameraRotationX());
+            float angleY = glm::radians(GetCameraRotationY());
+            float delta_x = 0.0f;
+            float delta_y = 0.0f;
+            float delta_z = 0.0f;
+            bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+            bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+            bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+            if (top_view) {
+                delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+                delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+            }
+            else if (bottom_view) {
+                delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
+                delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
+            }
+            else {
+                delta_x = new_x * std::cos(angleY);
+                delta_y = new_y;
+                delta_z = new_x * std::sin(angleY);
+                if (!upside_down_view) {
+                    delta_y *= -1.0f;
+                }
+            }
+            delta_x *= GetZoom() * 2.0f;
+            delta_y *= GetZoom() * 2.0f;
+            delta_z *= GetZoom() * 2.0f;
+            SetPan(delta_x, delta_y, delta_z);
+        } else if (!fromTrackPad || event.ControlDown()) {
             float delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
             if (fromTrackPad) {
                 float f = event.GetWheelRotation();
@@ -480,12 +703,8 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
             float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
             float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
             if (is3d) {
-                if (event.ShiftDown()) {
-                    SetPan(delta_x, delta_y, 0.0f);
-                } else {
-                    SetCameraView(delta_x, delta_y, false);
-                    SetCameraView(0, 0, true);
-                }
+                SetCameraView(delta_x, delta_y, false);
+                SetCameraView(0, 0, true);
             } else {
                 if (!fromTrackPad) {
                     delta_x *= GetZoom() * 2.0f;
@@ -557,6 +776,8 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
     const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
     const xlColor* selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
     const xlColor* overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
+    const xlColor* notOnControllerColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_NOT_ON_CONTROLLER);
+    bool controllersTabActive = _controllerObjectContext == ControllerObjectContext::LayoutEditorControllerTab;
 
     // In 3D, walk models back-to-front by camera-space Z of the model centre so that
     // alpha-blended pixels from one model composite correctly over models behind them.
@@ -594,7 +815,10 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             }
 
             const xlColor* color = defColor;
-            if (m->Selected() || m->GroupSelected()) {
+            if (m->NotOnController && controllersTabActive) {
+                color = notOnControllerColor;
+            }
+            else if (m->Selected() || m->GroupSelected()) {
                 color = selColor;
             }
             else if (m->Overlapping && isModelSelected) {
@@ -604,6 +828,18 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
 
+            // Port highlight: color only the nodes belonging to the selected port/string.
+            auto psh = _portStringHighlight.end();
+            auto pch = _portChannelHighlight.end();
+            if (!_portStringHighlight.empty() || !_portChannelHighlight.empty()) {
+                const std::string& mname = m->GetName();
+                psh = _portStringHighlight.find(mname);
+                pch = _portChannelHighlight.find(mname);
+            }
+            const bool hasPortStringHighlight = (psh != _portStringHighlight.end() && psh->second >= 0);
+            const bool hasPortChannelHighlight = (pch != _portChannelHighlight.end());
+            const bool hasPortHighlight = hasPortStringHighlight || hasPortChannelHighlight;
+
             if (m->GetDisplayAs() == DisplayAsType::SubModel && !m->GroupSelected() && !m->Selected()) {
                 // we dont display submodels if they are not selected
             } else {
@@ -611,8 +847,48 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 bounds[0] = bounds[1] = bounds[2] = 999999;
                 bounds[3] = bounds[4] = bounds[5] = -999999;
 
+                // Node colors are part of the model's persistent state, so save the originals
+                // here and restore them right after drawing to avoid leaking the highlight into
+                // other render paths (e.g. playback) that also read per-node colors.
+                std::vector<xlColor> savedNodeColors;
+                if (hasPortHighlight) {
+                    static const xlColor highlightColor = xlYELLOW;
+                    static const xlColor dimColor(30, 30, 30);
+                    const size_t nodeCount = m->GetNodeCount();
+                    savedNodeColors.resize(nodeCount);
+                    for (size_t n = 0; n < nodeCount; ++n) {
+                        savedNodeColors[n] = m->GetNodeColor(n);
+                    }
+                    if (hasPortChannelHighlight) {
+                        const uint32_t firstChan = pch->second.first;
+                        const uint32_t lastChan = pch->second.second;
+                        for (size_t n = 0; n < nodeCount; ++n) {
+                            const int32_t nodeChan = m->NodeStartChannel(n);
+                            if (nodeChan >= (int32_t)firstChan && nodeChan <= (int32_t)lastChan)
+                                m->SetNodeColor(n, highlightColor);
+                            else
+                                m->SetNodeColor(n, dimColor);
+                        }
+                    } else {
+                        const int highlightStr = psh->second;
+                        for (size_t n = 0; n < nodeCount; ++n) {
+                            if (m->GetNodePhysicalStringIndex(n) == highlightStr)
+                                m->SetNodeColor(n, highlightColor);
+                            else
+                                m->SetNodeColor(n, dimColor);
+                        }
+                    }
+                    color = nullptr; // DisplayModelOnWindow reads per-node colors when c == nullptr
+                }
+
                 m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d,
                                         color, allowSelected, false, highlightFirst, 0, bounds);
+
+                if (!savedNodeColors.empty()) {
+                    for (size_t n = 0; n < savedNodeColors.size(); ++n) {
+                        m->SetNodeColor(n, savedNodeColors[n]);
+                    }
+                }
 
                 if (color == selColor && bounds[0] != 999999 && bounds[3] != -999999) {
                     m->GetModelScreenLocation().TranslatePoint(bounds[0], bounds[1], bounds[2]);
@@ -932,13 +1208,39 @@ void ModelPreview::Render()
         }
     }
 
-    // draw all the view objects
-    if (is3d && xlights  != nullptr) {
+    // draw all the view objects. Most are 3D-only; those that opt out of
+    // GetIs3dOnly (controller boxes) also draw in the 2D preview.
+    if (xlights != nullptr && solidViewObjectProgram != nullptr && transparentViewObjectProgram != nullptr) {
         for (const auto& it : xlights->AllObjects) {
             ViewObject* view_object = it.second;
+            if (!ShouldDrawViewObject(view_object)) continue;
             view_object->Draw(this, currentContext, solidViewObjectProgram, transparentViewObjectProgram, allowSelected);
         }
     }
+}
+
+// Controller objects are the only view objects whose visibility depends on
+// which preview is drawing. Everything else always draws.
+bool ModelPreview::ShouldDrawViewObject(const ViewObject* view_object) const
+{
+    if (view_object == nullptr) {
+        return false;
+    }
+    // Terrain, gridlines, meshes and images are 3D-only; only objects that opt
+    // out are drawn in a 2D preview.
+    if (!is3d && view_object->GetIs3dOnly()) {
+        return false;
+    }
+    const ControllerObject* co = dynamic_cast<const ControllerObject*>(view_object);
+    if (co == nullptr) {
+        return true;
+    }
+    if (!co->ShouldDrawIn(_controllerObjectContext)) {
+        return false;
+    }
+    // Orphan (controller gone) - keep the object so its placement survives a
+    // later merge, but don't draw a box for a controller that isn't there.
+    return xlights != nullptr && xlights->GetOutputManager()->GetController(co->GetControllerName()) != nullptr;
 }
 
 void ModelPreview::Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers/*=true*/) {
@@ -961,10 +1263,11 @@ void ModelPreview::Render(uint32_t frameTime, const unsigned char *data, bool sw
                 m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d);
             }
         }
-        // draw all the view objects
-        if (is3d) {
+        // draw all the view objects (see the note in the other Render overload)
+        if (solidViewObjectProgram != nullptr && transparentViewObjectProgram != nullptr) {
             for (const auto& it : xlights->AllObjects) {
                 ViewObject *view_object = it.second;
+                if (!ShouldDrawViewObject(view_object)) continue;
                 view_object->Draw(this, currentContext, solidViewObjectProgram, transparentViewObjectProgram, allowSelected);
             }
         }
@@ -1014,6 +1317,12 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                     }
                 }
             }
+            wxWindow* topLevel = wxGetTopLevelParent(this);
+            if (topLevel != xlights) {
+                mnu.AppendSeparator();
+                wxMenuItem* keepOnTopItem = mnu.Append(0x3001, "Keep on Top", wxEmptyString, wxITEM_CHECK);
+                keepOnTopItem->Check(topLevel->GetWindowStyleFlag() & wxSTAY_ON_TOP);
+            }
             mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
             PopupMenu(&mnu);
         }
@@ -1049,6 +1358,12 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         Reset();
     } else if (id == 0x1000) {
         is3d = !is3d;
+    } else if (id == 0x3000) {
+        wxWindow* topLevel = wxGetTopLevelParent(this);
+        if (topLevel != xlights) {
+            long style = topLevel->GetWindowStyleFlag();
+            topLevel->SetWindowStyleFlag(style & wxSTAY_ON_TOP ? style & ~wxSTAY_ON_TOP : style | wxSTAY_ON_TOP);
+        }
     } else if (is3d) {
         long camIdx = event.GetId() - CAMERA_LOAD_BASE;
         if (camIdx >= 0 && camIdx < xlights->viewpoint_mgr.GetNum3DCameras()) {
@@ -1247,6 +1562,14 @@ bool ModelPreview::GetActive() const
     return mPreviewPane->GetActive();
 }
 
+void ModelPreview::SetPortStringHighlight(const Model* m, int stringIndex) {
+    _portStringHighlight[m->GetName()] = stringIndex;
+}
+
+void ModelPreview::SetPortChannelHighlight(const Model* m, uint32_t firstChan, uint32_t lastChan) {
+    _portChannelHighlight[m->GetName()] = { firstChan, lastChan };
+}
+
 void ModelPreview::SetActive(bool show) {
     if (show) {
         mPreviewPane->Show();
@@ -1363,6 +1686,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
     currentContext->pushDebugContext(getName() + " - Prepare");
     solidProgram = currentContext->createGraphicsProgram();
     transparentProgram = currentContext->createGraphicsProgram();
+    // Created for both modes. These used to be allocated only in the 3D branch
+    // below, which was safe while the view-object draw loop was itself gated on
+    // is3d - now that 2D-capable objects exist, a 2D frame would pass a null
+    // program straight into ViewObject::Draw.
+    solidViewObjectProgram = currentContext->createGraphicsProgram();
+    transparentViewObjectProgram = currentContext->createGraphicsProgram();
 
     mPointSize = pointSize;
     mIsDrawing = true;
@@ -1461,9 +1790,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
             }
         }
     } else {
-        solidViewObjectProgram = currentContext->createGraphicsProgram();
-        transparentViewObjectProgram = currentContext->createGraphicsProgram();
-        
         /*****************************   3D   ********************************/
         glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), camera3d->GetPosY() + camera3d->GetPanY(), camera3d->GetPosZ() + camera3d->GetPanZ()));
         glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->GetDistance() * camera3d->GetZoom()));
@@ -1505,11 +1831,22 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
             transparentProgram->runSteps(currentContext);
         }
     } else {
+        // 2D runs the view-object programs AFTER the main ones, the opposite of
+        // 3D above. In 3D the view objects are the ground/terrain and belong
+        // underneath the models; in 2D the first step of solidProgram is the
+        // background image, so anything drawn before it is simply painted over.
+        AddPencilIconToAccumulator();
         if (solidProgram) {
             solidProgram->runSteps(currentContext);
         }
+        if (solidViewObjectProgram) {
+            solidViewObjectProgram->runSteps(currentContext);
+        }
         if (transparentProgram) {
             transparentProgram->runSteps(currentContext);
+        }
+        if (transparentViewObjectProgram) {
+            transparentViewObjectProgram->runSteps(currentContext);
         }
     }
     currentContext->PopMatrix();
@@ -1535,6 +1872,43 @@ void ModelPreview::AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
     int start = acc->getCount();
     acc->AddRectAsDashedLines(x1, y1, x2, y2, mapLogicalToAbsolute(8),
                               ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+    int count = acc->getCount() - start;
+    solidProgram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->drawLines(acc, start, count);
+    });
+}
+
+void ModelPreview::AddPathToAccumulator(const std::vector<xlPoint>& path) {
+    if (path.empty()) return;
+    auto acc = solidProgram->getAccumulator();
+    int start = acc->getCount();
+    const xlColor& color = ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES);
+    std::vector<float> offsets = GetPencilStrokeOffsets();
+    float halfSpan = offsets.empty() ? 3.5f : std::abs(offsets.front());
+
+    if (path.size() == 1) {
+        for (float offset : offsets) {
+            acc->AddVertex((float)path[0].x - halfSpan, (float)path[0].y + offset, color);
+            acc->AddVertex((float)path[0].x + halfSpan, (float)path[0].y + offset, color);
+        }
+    } else {
+        for (size_t i = 0; i + 1 < path.size(); ++i) {
+            float dx = (float)(path[i + 1].x - path[i].x);
+            float dy = (float)(path[i + 1].y - path[i].y);
+            float len = std::hypot(dx, dy);
+            if (len > 0.001f) {
+                float nx = -dy / len;
+                float ny = dx / len;
+                for (float offset : offsets) {
+                    acc->AddVertex((float)path[i].x + nx * offset, (float)path[i].y + ny * offset, color);
+                    acc->AddVertex((float)path[i + 1].x + nx * offset, (float)path[i + 1].y + ny * offset, color);
+                }
+            } else {
+                acc->AddVertex((float)path[i].x, (float)path[i].y, color);
+                acc->AddVertex((float)path[i + 1].x, (float)path[i + 1].y, color);
+            }
+        }
+    }
     int count = acc->getCount() - start;
     solidProgram->addStep([=](xlGraphicsContext *ctx) {
         ctx->drawLines(acc, start, count);

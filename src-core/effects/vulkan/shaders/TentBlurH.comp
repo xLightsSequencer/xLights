@@ -1,0 +1,33 @@
+#version 450
+// Separable tent blur, horizontal pass — port of TentBlurH in
+// RotoZoomFunctions.metal.  Plain per-pixel gathers with a fixed summation
+// order, so the result is bit-exact on every run.  Edge handling clamps.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(push_constant) uniform PC {
+    uint width;
+    uint height;
+    int halfK; // (kernelWidth - 1) / 2, tent weights halfK+1-|i|
+} data;
+
+layout(std430, set = 0, binding = 0) writeonly buffer Dst { uint dst[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+
+#include "vulkan_common.glsl"
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    vec4 acc = vec4(0.0);
+    float sumw = 0.0;
+    for (int i = -data.halfK; i <= data.halfK; i++) {
+        int x = clamp(int(index.x) + i, 0, int(data.width) - 1);
+        float w = float(data.halfK + 1 - abs(i));
+        acc += pxToFloat4(src[index.y * data.width + uint(x)]) * w;
+        sumw += w;
+    }
+    vec4 v = acc / sumw;
+    dst[index.y * data.width + index.x] = packPx(uvec4(v + vec4(0.5)));
+}

@@ -8,6 +8,7 @@
 
 @class XLCheckSequenceIssue;
 @class XLFindEffectResult;
+@class XLLightTest;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -50,6 +51,14 @@ NS_ASSUME_NONNULL_BEGIN
 // enforced roots.
 - (NSString*)showFolderPath;
 - (NSArray<NSString*>*)mediaFolderPaths;
+
+// Write Library/Logs/xlShowStats.txt — model/group/node counts and the
+// rgbeffects/networks file sizes for the loaded show. Counts and sizes
+// only, never names or paths, so it is safe to include in the automatic
+// diagnostic upload (which deliberately excludes user content). Lets a
+// slow-launch or slow-load report be correlated against show size
+// without shipping the user's show. Call after a show folder loads.
+- (void)writeShowStatsSidecar;
 
 // Copy `sourcePath` into `<showFolder>/<subdirectory>`, appending `_N`
 // to the basename on collision. Returns the destination absolute path
@@ -271,6 +280,11 @@ NS_ASSUME_NONNULL_BEGIN
 // the new end stay in the XML but won't render. Returns NO when
 // unchanged/invalid.
 - (BOOL)setSequenceDurationMS:(int)ms;
+// End time (ms) of the latest effect anywhere in the sequence, which can sit
+// past the sequence/media end (shortened duration, imported sequence). The
+// timeline is drawn to max(duration, this) so those effects stay reachable,
+// matching the desktop (#6528/#6598). 0 when nothing is loaded.
+- (int)maxEffectEndTimeMS;
 - (int)frameIntervalMS;
 - (NSString*)sequenceName;
 
@@ -907,6 +921,13 @@ NS_ASSUME_NONNULL_BEGIN
 // for that row. `moveView…` operates on the user-view portion of the
 // list — attempting to move the Master View is rejected; moving into
 // index 0 is rejected.
+// Whether `name` is usable as a view name — the shared core rule
+// (`SequenceViewManager::IsValidViewName`): letters, digits, spaces,
+// underscores and hyphens. Exposed so the UI can say why a name was
+// rejected without keeping its own copy of the rule.
++ (BOOL)isValidViewName:(NSString*)name
+    NS_SWIFT_NAME(isValidViewName(_:));
+
 - (BOOL)addViewNamed:(NSString*)name
     NS_SWIFT_NAME(addView(named:));
 - (BOOL)deleteViewAtIndex:(int)idx
@@ -1269,6 +1290,14 @@ NS_ASSUME_NONNULL_BEGIN
 // model, matching desktop (JsonEffectPanel.cpp:1815-1818). Empty on
 // unresolvable model.
 - (NSArray<NSString*>*)statesForRow:(int)rowIndex atIndex:(int)effectIndex;
+
+// Settings a freshly-created effect of `effectName` should start with
+// on `rowIndex`, as a comma-separated settings string ("" for most
+// effects). Desktop does this in each panel's `SetDefaultParameters`;
+// only choices whose value comes from a live list need it, since
+// static defaults resolve from the JSON metadata on both platforms.
+- (NSString*)seedSettingsForEffect:(NSString*)effectName onRow:(int)rowIndex
+    NS_SWIFT_NAME(seedSettings(forEffect:onRow:));
 - (NSArray<NSString*>*)facesForRow:(int)rowIndex atIndex:(int)effectIndex;
 - (NSArray<NSString*>*)modelNodeNamesForRow:(int)rowIndex atIndex:(int)effectIndex;
 
@@ -1406,6 +1435,27 @@ NS_ASSUME_NONNULL_BEGIN
 // commit / lose-focus / scene-close, not per-keystroke.
 - (BOOL)saveLayoutChanges;
 
+// Layout autosave — write pending layout edits to
+// `xlights_rgbeffects.xbkp` without touching the real file or clearing
+// the pending set, so unsaved layout work survives a crash. Mirrors
+// desktop's `SaveWorkingLayout()`. NO when nothing is pending.
+// Unwind one step of the shared core UndoManager — the stack a
+// handful of bulk bridge ops (scoped delete, promote node effects,
+// data-to-effects, per-model convert, word breakdown, the song-region
+// ops) record onto. Those ops capture core steps but nothing here ever
+// unwound them, so they were not undoable at all; the Swift layer now
+// registers a Foundation undo that calls this, keeping Foundation's
+// stack the single ordering authority. NO when the core stack is empty.
+- (BOOL)undoLastCoreStep;
+
+- (BOOL)autosaveLayoutChanges;
+// Recovery: is there a `.xbkp` newer than the show's rgbeffects file?
+- (BOOL)hasNewerLayoutAutosave;
+// Adopt it (backing up the file it replaces) / drop it. Call before
+// the show folder loads — both act on files, not in-memory state.
+- (BOOL)restoreLayoutAutosave;
+- (void)discardLayoutAutosave;
+
 // Phase J-2 (touch UX) — read / write the `axis_tool` member on
 // the named model's screen location. Drives which descriptor
 // handles `GetHandles` emits (translate arrows / rotate rings /
@@ -1451,6 +1501,47 @@ NS_ASSUME_NONNULL_BEGIN
 // renamed via this path.
 - (BOOL)renameModel:(NSString*)oldName
                  to:(NSString*)newName;
+
+// MARK: - Model Sets (desktop #3703)
+//
+// A Model Set is a persistent, name-based link that constrains
+// *translation only*: drag any member and every member moves by the
+// same delta. Geometry, properties, effects and Model Group membership
+// are untouched, and a model belongs to at most one Set. Storage is the
+// shared wx-free `ModelSetManager` hanging off `ModelManager`, persisted
+// as `<modelSets>` in `xlights_rgbeffects.xml`, so Sets round-trip
+// between the two apps. Rename / delete coherence is handled inside
+// core `ModelManager::Rename` / `Delete`.
+
+/// Every Set as `{"name": NSString, "models": NSArray<NSString*>}`,
+/// in declaration order.
+- (NSArray<NSDictionary*>*)modelSets;
+
+/// The Set the named model belongs to, or nil when it's in none.
+- (nullable NSString*)modelSetNameContainingModel:(NSString*)modelName;
+
+/// Every member of the Set containing `modelName`, including it.
+/// Empty when the model is in no Set — the drag path's "is this a Set
+/// move?" test.
+- (NSArray<NSString*>*)modelsInSetContainingModel:(NSString*)modelName;
+
+/// Create a Set over `modelNames`. `suggestedName` may be empty for an
+/// auto-generated "Set N". Returns the created Set's name (which may be
+/// uniquified) or nil — a Set needs at least two members, and members
+/// already in another Set are moved across (dissolving that Set if it
+/// drops below two).
+- (nullable NSString*)createModelSetWithModels:(NSArray<NSString*>*)modelNames
+                                          named:(NSString*)suggestedName;
+
+/// Name to pre-fill a "new Set" prompt with.
+- (NSString*)suggestedModelSetName;
+
+- (BOOL)renameModelSet:(NSString*)oldName to:(NSString*)newName;
+- (BOOL)deleteModelSet:(NSString*)setName;
+- (BOOL)addModel:(NSString*)modelName toModelSet:(NSString*)setName;
+/// Drop the model from whatever Set holds it. Returns YES if it was in
+/// one (the Set dissolves automatically if that leaves it under two).
+- (BOOL)removeModelFromItsSet:(NSString*)modelName;
 
 // J-18 pass 2 — wholesale-replace this model's alias list with
 // `aliases`. Strings are trimmed + lowercased + de-duped on the
@@ -1533,6 +1624,47 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSInteger)nodeCountForModel:(NSString*)modelName
     NS_SWIFT_NAME(nodeCount(forModel:));
 
+// Submodel geometry toolbox — the desktop SubModelsPanel's node-grid
+// operations, running the shared core `submodel_ops`.
+//
+// Pure by design: takes a strand list and returns the transformed one
+// without touching the model, so the editor can preview, stack and undo
+// operations locally and commit once via `replaceSubModelsOnModel:`.
+//
+// `strands[0]` is the BOTTOM row as the editor shows it, matching the core
+// and the desktop panel. `displayRow` is a top-down row index and is only
+// read by the per-row operations. `amount` is only read by "shift".
+//
+// Recognised `op` values:
+//   "reverse"                 renumber n -> nodeCount+1-n
+//   "shift"                   add `amount` to every node, wrapping
+//   "flip-horizontal"         mirror each row left-to-right
+//   "flip-vertical"           mirror the row order
+//   "pivot"                   transpose rows and columns
+//   "combine"                 concatenate every row into one
+//   "uniform-distribute"      pad rows to equal length, nodes spread out
+//   "uniform-front"           pad rows to equal length at the start
+//   "uniform-rear"            pad rows to equal length at the end
+//   "remove-duplicates-row"   de-dupe `displayRow`, shortening it
+//   "suppress-duplicates-row" de-dupe `displayRow`, blanking in place
+//   "remove-duplicates-lr"    de-dupe the grid column-major, shortening
+//   "remove-duplicates-tb"    de-dupe the grid row-major, shortening
+//   "suppress-duplicates-lr"  de-dupe the grid column-major, blanking
+//   "suppress-duplicates-tb"  de-dupe the grid row-major, blanking
+//   "expand" / "compress"     expand or compress every row's ranges
+//   "blanks-to-zeros"         write empty cells as 0
+//   "zeros-to-blanks"         write 0 cells as empty
+//   "remove-blanks-zeros"     drop empty and 0 cells
+//
+// Returns nil for an unknown op so the caller can surface it rather than
+// silently no-op.
+- (nullable NSArray<NSString*>*)applySubmodelOperation:(NSString*)op
+                                             toStrands:(NSArray<NSString*>*)strands
+                                             nodeCount:(NSInteger)nodeCount
+                                            displayRow:(NSInteger)displayRow
+                                                amount:(NSInteger)amount
+    NS_SWIFT_NAME(applySubmodelOperation(_:toStrands:nodeCount:displayRow:amount:));
+
 // J-30 — Submodel editor support. Replace this model's alias
 // list with `aliases` (mirrors `setModelAliases:` semantics but
 // scoped to a SubModel). Strings are trimmed + lowercased +
@@ -1597,6 +1729,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSArray<NSDictionary*>*)submodelDetailsFromRGBEffectsFile:(NSString*)path
                                                   modelName:(NSString*)modelName
     NS_SWIFT_NAME(submodelDetails(fromRGBEffectsFile:modelName:));
+
+// Serialise a model's submodels to the CSV the desktop's "Export SubModels
+// As CSV" writes, via shared core so the two platforms emit the same file.
+// Returns nil for an unknown model.
+- (nullable NSString*)exportSubmodelsCSVForModel:(NSString*)parentName
+    NS_SWIFT_NAME(exportSubmodelsCSV(forModel:));
 
 // Model export. Write the named model (with its submodels,
 // faces, states, aliases, dimming curve) to a .xmodel file at
@@ -1701,6 +1839,30 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)
         dimmingInfoForModel:(NSString*)modelName;
 
+// Sequence-level (Matrix/image) face definitions — the Sequence
+// Settings > Faces editor. Stored in SequenceFaces on the .xsq;
+// shape is name -> (attr -> value), same as model faceInfo. Image
+// keys are Mouth-<PHONEME>-EyesOpen/-EyesClosed; ImagePlacement
+// holds the scaling mode. Matrix-only (node/Coro faces stay
+// model-level). All mutators mark the sequence dirty so Save lights up.
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)sequenceFaces;
+- (BOOL)addSequenceFace:(NSString*)name;
+- (BOOL)removeSequenceFace:(NSString*)name;
+// Renames the definition and repoints referencing Faces/CoroFaces effects
+// (unless the effect's model defines the old name itself).
+- (BOOL)renameSequenceFace:(NSString*)oldName to:(NSString*)newName;
+// Set (or clear, with an empty path) one phoneme x eye-state image cell.
+// Registers the image with SequenceMedia and flags it used-by-metadata.
+- (BOOL)setSequenceFaceImage:(NSString*)name key:(NSString*)key path:(NSString*)path;
+- (BOOL)setSequenceFacePlacement:(NSString*)name placement:(NSString*)placement;
+// Models carrying a Matrix face, as {@"model", @"face"} pairs.
+- (NSArray<NSDictionary<NSString*, NSString*>*>*)sequenceFaceImportSources;
+// Copy a model's Matrix face definition into the sequence (images registered).
+- (BOOL)importSequenceFaceFromModel:(NSString*)modelName face:(NSString*)faceName;
+// Re-render models whose Faces/CoroFaces effects use any of `names`
+// (or resolve via Default/empty) after their definitions were edited.
+- (void)reRenderSequenceFaceEffects:(NSArray<NSString*>*)names;
+
 // Phase J-5 (sidebar tabs) — ModelGroups visible in the active
 // layout group. Names only, in the same order as
 // `modelsInActiveLayoutGroup` (alphabetical by ModelManager map
@@ -1749,6 +1911,19 @@ NS_ASSUME_NONNULL_BEGIN
 // matches the active group (or "All Previews"), in
 // ViewObjectManager iteration order.
 - (NSArray<NSString*>*)viewObjectsInActiveLayoutGroup;
+
+// The controller a view object is bound to, or nil if it isn't a controller
+// placement box. Lets a canvas pick route the selection to the Controllers tab
+// instead of the Objects tab, which never lists these.
+- (nullable NSString*)controllerNameForViewObject:(NSString*)objectName
+    NS_SWIFT_NAME(controllerName(forViewObject:));
+
+// The inverse: a controller's placement box name, or nil if it has none. Used
+// to make the box the canvas drag target while its controller is selected on
+// the Controllers tab, without writing to `layoutEditorSelectedObject` (which
+// would flip the sidebar via the tab mutex).
+- (nullable NSString*)controllerObjectNameForController:(NSString*)controllerName
+    NS_SWIFT_NAME(controllerObjectName(forController:));
 
 // Per-ViewObject summary. Keys mirror `modelLayoutSummary` where
 // the underlying BaseObject exposes the same field. All keys
@@ -2016,6 +2191,53 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)effectIsRenderDisabledInRow:(int)rowIndex atIndex:(int)effectIndex;
 - (void)setEffectRenderDisabled:(BOOL)disabled inRow:(int)rowIndex atIndex:(int)effectIndex;
 
+// Is this effect linked to an Effect Symbol? Editing it rewrites the symbol
+// and every other effect linked to it (`Effect::IncrementChangeCount`), so the
+// grid marks it — the desktop draws a corner triangle for the same reason
+// (`EffectsGrid.cpp`). Read-only; the iPad has no link/unlink UI yet.
+- (BOOL)effectIsLinkedToSymbolInRow:(int)rowIndex atIndex:(int)effectIndex;
+
+// Effect Symbols — reusable effect definitions stored in the `.xsq`
+// (`src-core/render/EffectSymbolManager`, shared with desktop). Editing any
+// linked effect rewrites the symbol and every sibling; these are the
+// management ops desktop exposes on the grid context menu + Tools menu.
+//
+// `effectSymbols` returns one dictionary per symbol: `id`, `name`,
+// `effectType`, `linkedCount` (NSNumber). Sorted by name.
+- (NSArray<NSDictionary*>*)effectSymbols;
+// Empty string when the effect isn't linked. Used to restore a link on undo.
+- (NSString*)linkedSymbolIdInRow:(int)rowIndex atIndex:(int)effectIndex;
+// Create a symbol from an effect and link that effect to it. Returns the new
+// symbol's id, or nil when the name is empty or already taken (desktop rejects
+// both). The effect's own settings become the symbol's definition.
+- (nullable NSString*)createSymbolNamed:(NSString*)name
+                          fromEffectInRow:(int)rowIndex
+                                  atIndex:(int)effectIndex;
+// Link / unlink one effect. Linking overwrites the effect's type, settings and
+// palette from the symbol (that is what `Effect::LinkToSymbol` does), so the
+// caller must capture them first if it wants undo.
+- (BOOL)linkEffectInRow:(int)rowIndex atIndex:(int)effectIndex toSymbolId:(NSString*)symbolId;
+- (BOOL)unlinkEffectFromSymbolInRow:(int)rowIndex atIndex:(int)effectIndex;
+// Put an effect back to a captured state. Linking can change an effect's type
+// as well as its settings, so undo needs to restore all of it plus the link.
+// Pass an empty `symbolId` to restore it unlinked. Unlinks before writing the
+// settings so the restore can't propagate back into the symbol and clobber
+// every sibling, then re-links last.
+- (BOOL)restoreEffectInRow:(int)rowIndex
+                   atIndex:(int)effectIndex
+                      type:(NSString*)effectType
+                  settings:(NSString*)settings
+                   palette:(NSString*)palette
+                  symbolId:(NSString*)symbolId;
+- (BOOL)renameSymbolId:(NSString*)symbolId toName:(NSString*)newName;
+// Deleting a symbol unlinks every effect that used it; the effects keep the
+// settings they currently have.
+- (BOOL)deleteSymbolId:(NSString*)symbolId;
+// Desktop Tools ▸ "Convert All Symbols to Effects" — unlink everything and drop
+// the symbol table, for sharing with older xLights. Returns
+// `{converted: N, symbols: M}` counting what it did.
+- (NSDictionary*)convertAllSymbolsToEffects;
+
 // Copy: returns full settings string (xLights legacy format) and the effect's
 // palette as a separate string. Empty strings on failure.
 - (NSString*)effectSettingsStringForRow:(int)rowIndex atIndex:(int)effectIndex;
@@ -2090,8 +2312,16 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)startOutput;
 - (void)stopOutput;
 - (BOOL)isOutputting;
+// Send an all-channels-zero frame so the lights don't hold the last
+// rendered frame. No-op when output isn't running.
+- (void)blankOutputs;
 - (void)outputFrame:(int)frameMS;
 - (NSInteger)outputCount;
+
+// Light test (desktop's Tools > Test). Lazily created and owned by the
+// document so the channel selection survives sheet dismissal. Runs the
+// shared core engine against the show's controllers.
+@property (nonatomic, readonly) XLLightTest* lightTest;
 
 // Rendering
 - (void)renderAll;
@@ -2108,7 +2338,22 @@ NS_ASSUME_NONNULL_BEGIN
 // Coarse render-progress fraction (0..1) for the in-flight render of the
 // currently-loaded sequence. Aggregates per-row job frame counters against
 // the sequence's frame range. Returns 1.0 when no render is active.
+// Drain the render-dependency set: kick off a render for every model
+// core has flagged as depending on something that changed (a timing
+// track, another model's output). Returns how many were started; 0 is
+// the common case. Cheap enough to call from a periodic poll — that's
+// what desktop does on its output tick.
+- (int)renderDependentModels;
+
 - (float)renderProgressFraction;
+
+// Per-model render progress — one entry per in-flight render job,
+// `{model: NSString, percent: NSNumber 0-100, status: NSString}`. The
+// data behind desktop's RenderProgressDialog. Empty when no render is
+// running. Building each status string walks live effect state, so poll
+// this only while the per-model list is actually on screen (desktop
+// gates the same work on its dialog being shown).
+- (NSArray<NSDictionary*>*)renderJobProgress;
 // Signal all in-flight render jobs to abort and block until they've
 // completed (or `timeoutSeconds` elapses). Returns YES if the render
 // is fully quiesced by the time the call returns. Call on shutdown /
@@ -2401,6 +2646,16 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)embedMediaAtPath:(NSString*)path;
 - (BOOL)extractMediaAtPath:(NSString*)path;
 
+// Embed an image straight into the sequence from a file on disk,
+// keyed by `name` rather than by the source path — the AI image
+// generator's path, matching desktop's
+// `SequenceMedia::AddEmbeddedImage("AIImages/…")`. The source file is
+// only read, never referenced afterwards, so the caller can stage to a
+// temp file and delete it. Returns NO if the key was already cached or
+// the bytes couldn't be read.
+- (BOOL)embedImageFromFile:(NSString*)sourcePath asName:(NSString*)name
+    NS_SWIFT_NAME(embedImage(fromFile:asName:));
+
 // Embed / extract every embeddable cache entry. `typeFilter` nil
 // or empty operates on all types; specifying "image" / "svg" /
 // "shader" / "text" / "binary" scopes to that type (match the
@@ -2689,6 +2944,37 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSArray<NSDictionary*>*)movingHeadWheelColorsForRow:(int)rowIndex
                                                        atIndex:(int)effectIndex
     NS_SWIFT_NAME(movingHeadWheelColors(forRow:atIndex:));
+
+/// Re-fan the Pattern tab's parametric-shape settings
+/// (`E_CHECKBOX_MHPatternEnable`, `E_CHOICE_MHPattern`,
+/// `E_SLIDER_MHPattern*`) into every active fixture's command string.
+/// The renderer reads only `MH*_Settings`, so a slider edit is inert
+/// until this runs. Removes the whole `Pattern*` block when the enable
+/// checkbox is off (or while Link owns the position). Returns YES on
+/// change.
+- (BOOL)syncMovingHeadPatternForRow:(int)rowIndex
+                             atIndex:(int)effectIndex
+    NS_SWIFT_NAME(syncMovingHeadPattern(forRow:atIndex:));
+
+/// Re-fan the Control tab's shutter checkboxes: `Shutter: On` while
+/// `E_CHECKBOX_MHShutterEnable` is set, and `AutoShutter: true` while
+/// `E_CHECKBOX_AUTO_SHUTTER` is set *and* the fixture has a `Wheel`
+/// colour (desktop only emits it inside its wheel branch). Returns YES
+/// on change.
+- (BOOL)syncMovingHeadShutterForRow:(int)rowIndex
+                             atIndex:(int)effectIndex
+    NS_SWIFT_NAME(syncMovingHeadShutter(forRow:atIndex:));
+
+/// Snap every active head's end position to where the next Moving Head
+/// effect on this layer starts, forcing the Dimmer to 0 so the head
+/// travels dark — desktop's Link tab (`MovingHeadPanel::SyncLinkToNext`).
+/// Reads the next effect only; never mutates it. Returns
+/// `{"status": ..., "lines": [...]}` where status is one of `none`,
+/// `noNext`, `notMovingHead`, `noHeads`, `linked`, and `lines` holds the
+/// per-head preview strings desktop shows in `StaticText_MHLinkPreview`.
+- (NSDictionary*)syncMovingHeadLinkToNextForRow:(int)rowIndex
+                                         atIndex:(int)effectIndex
+    NS_SWIFT_NAME(syncMovingHeadLinkToNext(forRow:atIndex:));
 
 // MARK: - DMX state + remap plumbing (G8 — C7)
 //
@@ -2980,8 +3266,17 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //   @"needsReselect"      — NSNumber BOOL (optional; YES when
 //                            the bookmark is stale and the
 //                            user should re-pick the folder)
+// Both variants save what they merged before returning.
 - (NSDictionary*)updateFromBaseShowDirectory
     NS_SWIFT_NAME(updateFromBaseShowDirectory());
+
+// Same, but with `skipUnchanged` YES the controller merge is skipped
+// when the base networks file hasn't changed since the last one — the
+// show-open path, mirroring desktop's `NeedsBaseControllersUpdate()`
+// gate. The explicit "Update From Base Now" action passes NO. The
+// model / view-object passes always run; see the .mm for why.
+- (NSDictionary*)updateFromBaseShowDirectorySkippingUnchanged:(BOOL)skipUnchanged
+    NS_SWIFT_NAME(updateFromBaseShowDirectory(skippingUnchanged:));
 
 // Phase J-31.6 — push the show's pixel-string / model
 // configuration to a physical controller via its HTTP API.
@@ -3581,6 +3876,15 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // JSON format). Returns NO on write failure.
 - (BOOL)exportPresetsToPath:(NSString*)path
     NS_SWIFT_NAME(exportPresets(toPath:));
+
+// Export in the desktop's interchange format: a `.xpreset` XML file
+// (root `<preset SourceVersion=…>`). `presetPath` is a backslash-
+// separated preset or group path; pass an empty string to export the
+// whole library, matching desktop's export-with-root-selected. Pairs
+// with `importPresets(fromPath:…)`, which now also reads `<preset>`,
+// so a preset written on either platform opens on the other.
+- (BOOL)exportPresetAtPath:(NSString*)presetPath toXPresetFile:(NSString*)filePath
+    NS_SWIFT_NAME(exportPreset(atPath:toXPresetFile:));
 
 // Persist the in-memory preset tree to
 // `<showFolder>/xlights_effectpresets.json` (+ .jbkp backup). Returns

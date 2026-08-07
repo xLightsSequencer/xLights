@@ -133,7 +133,6 @@ void ColorManager::SetDirty()
 {
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->UpdateLayoutSave();
-    xlights->UpdateControllerSave();
 }
 
 xlColor ColorManager::GetColor(ColorManager::ColorNames name)

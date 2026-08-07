@@ -291,6 +291,7 @@ wxWindow* BlendingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* siz
         fadeCombo->Append(wxString(v));
     }
     fadeCombo->SetValue("0.00");
+    fadeCombo->SetBESliderType(BE_FLOAT2);
     row->Add(fadeCombo, 1, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     // Bind directly and explicitly start the save timer via FireChangeEvent.
     // AddListeners' Connect(id, wxEVT_TEXT) on the panel is supposed to
@@ -318,11 +319,13 @@ wxWindow* BlendingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* siz
         FireChangeEvent();
         e.Skip();
     });
-
+    
     if (isIn) {
+        fadeCombo->Bind(wxEVT_COMBOBOX_DROPDOWN, &BlendingPanel::OnFadeinDropdown, this);
         _inTypeChoice = typeChoice;
         _fadeinCombo = fadeCombo;
     } else {
+        fadeCombo->Bind(wxEVT_COMBOBOX_DROPDOWN, &BlendingPanel::OnFadeoutDropdown, this);
         _outTypeChoice = typeChoice;
         _fadeoutCombo = fadeCombo;
     }
@@ -408,19 +411,11 @@ void BlendingPanel::OnFadeoutText(wxCommandEvent& /*event*/) {
 }
 
 void BlendingPanel::OnFadeinDropdown(wxCommandEvent& /*event*/) {
-    if (auto* p = GetPropertyInfo("Fadein")) {
-        if (auto* cb = dynamic_cast<BulkEditComboBox*>(p->comboBox)) {
-            cb->PopulateComboBox();
-        }
-    }
+    if (_fadeinCombo) _fadeinCombo->PopulateComboBox();
 }
 
 void BlendingPanel::OnFadeoutDropdown(wxCommandEvent& /*event*/) {
-    if (auto* p = GetPropertyInfo("Fadeout")) {
-        if (auto* cb = dynamic_cast<BulkEditComboBox*>(p->comboBox)) {
-            cb->PopulateComboBox();
-        }
-    }
+    if (_fadeoutCombo) _fadeoutCombo->PopulateComboBox();
 }
 
 void BlendingPanel::OnTransitionTypeSelect(wxCommandEvent& /*event*/) {

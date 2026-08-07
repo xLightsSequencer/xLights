@@ -40,6 +40,7 @@ class TreeModel;
 class WindowFrameModel;
 class WreathModel;
 
+class ControllerObject;
 class GridlinesObject;
 class ImageObject;
 class MeshObject;
@@ -82,6 +83,7 @@ public:
     virtual void Visit(const ImageObject& object) = 0;
     virtual void Visit(const MeshObject& object) = 0;
     virtual void Visit(const RulerObject& object) = 0;
+    virtual void Visit(const ControllerObject& object) = 0;
 
     virtual void Visit(const ControllerConnection& object) = 0;
 

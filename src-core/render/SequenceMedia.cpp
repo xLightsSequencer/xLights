@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "SequenceMedia.h"
+#include "utils/JobPool.h"
 #include "pugixml.hpp"
 #include "../utils/Base64.h"
 #include "../utils/xlImage.h"
@@ -27,6 +28,17 @@
 #include "Element.h"
 #include "EffectLayer.h"
 #include "SequenceElements.h"
+
+class ImageLoadJob : public Job {
+public:
+    ImageLoadJob(SequenceMedia& media, std::string filepath) : _media(media), _filepath(std::move(filepath)) {}
+    void Process() override { _media.LoadQueuedImage(_filepath); }
+    bool DeleteWhenComplete() override { return true; }
+
+private:
+    SequenceMedia& _media;
+    std::string _filepath;
+};
 
 // =====================================================================
 // MediaCacheEntry (base class) Implementation
@@ -173,6 +185,7 @@ ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<xlIm
     _embeddedData = base64Data;
     invalidImage = std::make_shared<xlImage>();
     _frameBasedAnimation = true;
+    _framesEmbeddable = !imgs.empty();
     _imageCount = (int)imgs.size();
     _frameImages.resize(_imageCount);
     _frameImagesNoBG.resize(_imageCount);
@@ -197,13 +210,31 @@ ImageCacheEntry::~ImageCacheEntry()
 void ImageCacheEntry::Load() {
     std::scoped_lock lock(_cacheMutex);
     if (!_loadingDone) {
-        if (_isEmbedded) {
+        if (_deferredFrames) {
+            LoadDeferredFrames();
+        } else if (_isEmbedded) {
             LoadFromData(_embeddedData);
         } else {
             LoadFromFile(_filePath);
         }
         _loadingDone = true;
     }
+}
+
+void ImageCacheEntry::LoadDeferredFrames() {
+    for (const auto& b64 : _frameData) {
+        std::vector<uint8_t> buf = Base64::Decode(b64);
+        auto sp = std::make_shared<xlImage>();
+        sp->LoadFromMemory(buf.data(), buf.size());
+        _frameImages.push_back(sp);
+        _frameImagesNoBG.push_back(sp);
+    }
+    _imageCount = (int)_frameImages.size();
+    if (_imageCount > 0) {
+        _imageWidth = _frameImages[0]->GetWidth();
+        _imageHeight = _frameImages[0]->GetHeight();
+    }
+    _deferredFrames = false;
 }
 void ImageCacheEntry::ReloadIfChanged() {
     if (!_loadingDone.load() || _isEmbedded.load()) return;
@@ -212,12 +243,14 @@ void ImageCacheEntry::ReloadIfChanged() {
     if (!HasFileChanged()) return;
     spdlog::debug("ImageCacheEntry::ReloadIfChanged - file changed on disk: '{}'", _filePath);
     _loadingDone = false;
+    _deferredFrames = false;
     _embeddedData.clear();
     _frameImages.clear();
     _frameImagesNoBG.clear();
     _frameTimes.clear();
     _frameData.clear();
     _scaledImageCache.clear();
+    _framesEmbeddable = false;
     _imageCount = 0;
     _imageWidth = 0;
     _imageHeight = 0;
@@ -409,28 +442,21 @@ bool ImageCacheEntry::LoadFromXml(const pugi::xml_node& node)
         _embeddedData = child.text().as_string("");
         _isEmbedded = true;
     } else if (childName == "Frame") {
-        // Multi-frame: each <Frame time="ms">base64png</Frame>
+        // Multi-frame: each <Frame time="ms">base64png</Frame>.  Only the
+        // base64 is taken here; the decode is deferred to Load() so a frame
+        // series costs the same as any other image - a job on the pool -
+        // rather than N PNG decodes on the (serial) XML parse thread.
         _isEmbedded = true;
         for (auto f = child; f; f = f.next_sibling()) {
             if (strcmp(f.name(), "Frame") != 0) continue;
-            long ft = f.attribute("time").as_int(0);
-            std::string b64 = f.text().as_string("");
-            _frameData.push_back(b64);
-            std::vector<uint8_t> buf = Base64::Decode(b64);
-            auto sp = std::make_shared<xlImage>();
-            sp->LoadFromMemory(buf.data(), buf.size());
-            _frameImages.push_back(sp);
-            _frameImagesNoBG.push_back(sp);
-            _frameTimes.push_back(ft);
-            _totalTime += ft;
+            _frameData.push_back(f.text().as_string(""));
+            _frameTimes.push_back(f.attribute("time").as_int(0));
+            _totalTime += _frameTimes.back();
         }
         _frameBasedAnimation = true;
-        _imageCount = (int)_frameImages.size();
-        if (_imageCount > 0) {
-            _imageWidth = _frameImages[0]->GetWidth();
-            _imageHeight = _frameImages[0]->GetHeight();
-        }
-        _loadingDone = true;
+        _deferredFrames = !_frameData.empty();
+        _imageCount = (int)_frameData.size();
+        _framesEmbeddable = _imageCount > 0;
     }
     return true;
 }
@@ -445,6 +471,16 @@ void ImageCacheEntry::SaveToXml(pugi::xml_node& parent) const
     if (!_embeddedData.empty()) {
         auto dataNode = node.append_child("Data");
         dataNode.text().set(_embeddedData);
+    } else if (_deferredFrames) {
+        // Belt-and-braces: the sequence-open join decodes every queued image
+        // before load returns, so a still-deferred entry should not reach a
+        // save. If one ever does, re-emit the base64 we read rather than
+        // writing an <Image> with no data and losing the frames.
+        for (size_t i = 0; i < _frameData.size(); i++) {
+            auto fNode = node.append_child("Frame");
+            fNode.append_attribute("time") = (int)(i < _frameTimes.size() ? _frameTimes[i] : 0);
+            fNode.text().set(_frameData[i]);
+        }
     } else if (_imageCount > 0 && !_frameImages.empty()) {
         for (int i = 0; i < _imageCount; i++) {
             std::string b64;
@@ -527,6 +563,20 @@ void ImageCacheEntry::ClearScaledImageCache() {
     _scaledImageCache.clear();
 }
 
+void ImageCacheEntry::UnloadCachedData() {
+    std::scoped_lock lock(_cacheMutex);
+    _scaledImageCache.clear();
+    ClearPreview();
+    // Frame-only entries (SuperStar scenes, picture series) have no source
+    // data to re-decode from - their frames ARE the document content.
+    if (_embeddedData.empty()) {
+        return;
+    }
+    _frameImages.clear();
+    _frameImagesNoBG.clear();
+    _loadingDone = false; // next GetImage() re-decodes from _embeddedData or disk
+}
+
 void ImageCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
     std::scoped_lock lock(_cacheMutex);
     if (_previewWidth == maxWidth && _previewHeight == maxHeight && !_previewFrames.empty()) return;
@@ -584,19 +634,18 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
     // FixFile re-resolves them against the current show/media folders. The
     // cache key stays as the original path.
     std::string loadPath = ResolvePath(filepath);
-    // Check if the resolved path matches an existing entry
-    for (auto& [key, entry] : _imageCache) {
-        if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
-            if (!entry->isLoaded()) {
-                lock.unlock();
-                entry->Load();
-            }
-            entry->ReloadIfChanged();
-            return entry;
+    if (const auto resolved = _imageResolvedCache.find(loadPath); resolved != _imageResolvedCache.end()) {
+        auto ret = resolved->second;
+        if (!ret->isLoaded()) {
+            lock.unlock();
+            ret->Load();
         }
+        ret->ReloadIfChanged();
+        return ret;
     }
     std::shared_ptr<ImageCacheEntry> np = std::make_shared<ImageCacheEntry>(loadPath);
     _imageCache.emplace(filepath, np);
+    _imageResolvedCache.emplace(loadPath, np);
     lock.unlock();
 
     np->Load();
@@ -620,10 +669,175 @@ bool SequenceMedia::HasImage(const std::string& filepath) const
     return _imageCache.find(filepath) != _imageCache.end();
 }
 
+bool SequenceMedia::IsImageMissing(const std::string& filepath)
+{
+    {
+        std::scoped_lock lock(_cacheMutex);
+        if (_imageCache.find(filepath) != _imageCache.end()) {
+            return false;
+        }
+        if (_missingImages.find(filepath) != _missingImages.end()) {
+            return true;
+        }
+    }
+
+    // Deliberately outside the lock: FixFile hits the filesystem and can block
+    // for a long time on a cloud-backed path, and this is called from render
+    // workers.
+    const std::string resolvedName = FileUtils::FixFile("", filepath);
+    if (FileExists(resolvedName, false)) {
+        return false;
+    }
+
+    std::scoped_lock lock(_cacheMutex);
+    if (_missingImages.insert(filepath).second) {
+        spdlog::warn("No image for: {}", resolvedName);
+    }
+    return true;
+}
+
+ResolvedMediaPath SequenceMedia::ResolveImagePath(const std::string& filepath) const
+{
+    if (filepath.empty()) return {};
+    {
+        std::scoped_lock lock(_cacheMutex);
+        if (const auto it = _imageCache.find(filepath); it != _imageCache.end()) {
+            return { filepath, it->second->GetFilePath() };
+        }
+    }
+    return ResolveFilePath(filepath);
+}
+
+void SequenceMedia::RegisterImage(const std::string& filepath)
+{
+    if (filepath.empty()) return;
+    RegisterImage(filepath, ResolvePath(filepath));
+}
+
+void SequenceMedia::RegisterImage(const std::string& filepath, const std::string& loadPath)
+{
+    if (filepath.empty()) return;
+    std::scoped_lock lock(_cacheMutex);
+    if (_imageCache.find(filepath) != _imageCache.end()) return;
+    if (_imageResolvedCache.find(loadPath) != _imageResolvedCache.end()) return;
+    // unlike GetImage this does NOT Load() - decode happens on first access
+    auto entry = std::make_shared<ImageCacheEntry>(loadPath);
+    _imageCache.emplace(filepath, entry);
+    _imageResolvedCache.emplace(loadPath, entry);
+}
+
+void SequenceMedia::QueueImageLoad(const std::string& filepath, const std::string& loadPath, JobPool& pool)
+{
+    if (filepath.empty()) return;
+    {
+        std::scoped_lock lock(_imageLoadMutex);
+        if (!_queuedImageLoads.insert(filepath).second) return;
+        ++_pendingImageLoads;
+    }
+    RegisterImage(filepath, loadPath);
+    pool.PushJob(new ImageLoadJob(*this, filepath));
+}
+
+void SequenceMedia::QueueUnloadedImages(JobPool& pool)
+{
+    // Embedded entries come from the media block rather than an effect's
+    // settings, so nothing in LoadEffectFiles queues them - they would
+    // otherwise decode lazily on a render thread (<Data>) or on the XML
+    // parse thread (<Frame>). Queue whatever is still undecoded here so
+    // every image, embedded or external, is decoded in parallel and is
+    // covered by the same WaitForImageLoads join.
+    std::vector<std::string> todo;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        todo.reserve(_imageCache.size());
+        for (const auto& [key, entry] : _imageCache) {
+            if (entry && !entry->isLoaded()) {
+                todo.push_back(key);
+            }
+        }
+    }
+    for (const auto& key : todo) {
+        {
+            std::scoped_lock lock(_imageLoadMutex);
+            if (!_queuedImageLoads.insert(key).second) continue;
+            ++_pendingImageLoads;
+        }
+        pool.PushJob(new ImageLoadJob(*this, key));
+    }
+}
+
+void SequenceMedia::LoadQueuedImage(const std::string& filepath)
+{
+    try {
+        GetImage(filepath);
+    } catch (const std::exception& e) {
+        {
+            std::scoped_lock lock(_imageLoadMutex);
+            --_pendingImageLoads;
+        }
+        _imageLoadComplete.notify_all();
+        spdlog::error("SequenceMedia::LoadQueuedImage: failed to load '{}': {}", filepath, e.what());
+        return;
+    } catch (...) {
+        {
+            std::scoped_lock lock(_imageLoadMutex);
+            --_pendingImageLoads;
+        }
+        _imageLoadComplete.notify_all();
+        spdlog::error("SequenceMedia::LoadQueuedImage: failed to load '{}'", filepath);
+        return;
+    }
+    {
+        std::scoped_lock lock(_imageLoadMutex);
+        --_pendingImageLoads;
+    }
+    _imageLoadComplete.notify_all();
+}
+
+void SequenceMedia::WaitForImageLoads()
+{
+    std::unique_lock lock(_imageLoadMutex);
+    _imageLoadComplete.wait(lock, [this] { return _pendingImageLoads == 0; });
+    _queuedImageLoads.clear();
+}
+
+void SequenceMedia::MarkUsedByMetadata(const std::string& filepath, bool used)
+{
+    std::scoped_lock lock(_cacheMutex);
+    auto mark = [&](auto& cache) {
+        auto it = cache.find(filepath);
+        if (it != cache.end()) {
+            it->second->SetUsedByMetadata(used);
+            return true;
+        }
+        return false;
+    };
+    if (mark(_imageCache)) return;
+    if (mark(_svgCache)) return;
+    if (mark(_textCache)) return;
+    if (mark(_shaderCache)) return;
+    if (mark(_binaryCache)) return;
+    if (mark(_videoCache)) return;
+    mark(_audioCache);
+}
+
+bool SequenceMedia::IsUsedByMetadata(const std::string& filepath) const
+{
+    std::scoped_lock lock(_cacheMutex);
+    auto check = [&](const auto& cache) {
+        auto it = cache.find(filepath);
+        return it != cache.end() && it->second->IsUsedByMetadata();
+    };
+    return check(_imageCache) || check(_svgCache) || check(_textCache) ||
+           check(_shaderCache) || check(_binaryCache) || check(_videoCache) ||
+           check(_audioCache);
+}
+
 void SequenceMedia::RemoveImage(const std::string& filepath)
 {
     std::scoped_lock lock(_cacheMutex);
     _imageCache.erase(filepath);
+    _missingImages.erase(filepath);
 }
 
 void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTime) {
@@ -657,14 +871,22 @@ void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTim
 
 void SequenceMedia::Clear()
 {
+    // Drain queued loads first: a job still in flight from a previous sequence
+    // re-inserts its entry on the way out, which would land in the cache the
+    // next sequence is about to populate. Must be outside _cacheMutex -- the
+    // job takes that lock itself, so waiting under it deadlocks.
+    WaitForImageLoads();
+
     std::scoped_lock lock(_cacheMutex);
     _imageCache.clear();
+    _imageResolvedCache.clear();
     _textCache.clear();
     _svgCache.clear();
     _shaderCache.clear();
     _binaryCache.clear();
     _videoCache.clear();
     _audioCache.clear();
+    _missingImages.clear();
 }
 
 void SequenceMedia::PurgePreviewCaches()
@@ -744,6 +966,38 @@ void SequenceMedia::AddEmbeddedImage(const std::string& name, const xlImage& ima
         _imageCache.emplace(name, entry);
     }
     entry->Load();
+}
+
+void SequenceMedia::AddEmbeddedImageFromFile(const std::string& name, const std::string& sourceFilePath)
+{
+    if (name.empty() || sourceFilePath.empty()) {
+        return;
+    }
+    {
+        std::scoped_lock lock(_cacheMutex);
+        if (_imageCache.find(name) != _imageCache.end()) {
+            return; // already present
+        }
+    }
+    ObtainAccessToURL(sourceFilePath);
+    std::ifstream stream(sourceFilePath, std::ios::binary | std::ios::ate);
+    if (!stream.is_open()) {
+        spdlog::warn("SequenceMedia::AddEmbeddedImageFromFile: could not open '{}'", sourceFilePath);
+        return;
+    }
+    auto size = stream.tellg();
+    if (size <= 0) {
+        return;
+    }
+    stream.seekg(0);
+    std::vector<uint8_t> buffer(static_cast<size_t>(size));
+    stream.read(reinterpret_cast<char*>(buffer.data()), size);
+    if (!stream) {
+        spdlog::warn("SequenceMedia::AddEmbeddedImageFromFile: read failed for '{}'", sourceFilePath);
+        return;
+    }
+    // base64 of the raw file bytes is the on-xsq embedded representation
+    AddEmbeddedImage(name, Base64::Encode(buffer.data(), buffer.size()));
 }
 
 void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::vector<xlImage>& frames, int frameTimeMs)
@@ -856,12 +1110,14 @@ bool SequenceMedia::LoadFromXml(const pugi::xml_node& node)
 
     std::scoped_lock lock(_cacheMutex);
     _imageCache.clear();
+    _imageResolvedCache.clear();
     _textCache.clear();
     _svgCache.clear();
     _shaderCache.clear();
     _binaryCache.clear();
     _videoCache.clear();
     _audioCache.clear();
+    _missingImages.clear();
 
     for (auto child : node.children()) {
         std::string name = child.name();
@@ -869,6 +1125,14 @@ bool SequenceMedia::LoadFromXml(const pugi::xml_node& node)
             auto entry = std::make_shared<ImageCacheEntry>();
             if (entry->LoadFromXml(child)) {
                 _imageCache[entry->GetFilePath()] = entry;
+                // The resolved map only exists to fold two stored paths that
+                // name the same physical file into one entry. An embedded
+                // entry is never opened from disk, so resolving it buys
+                // nothing and costs a FixFile search per image - which on a
+                // few thousand embedded images dominates the sequence open.
+                if (!entry->IsEmbedded()) {
+                    _imageResolvedCache[ResolvePath(entry->GetFilePath())] = entry;
+                }
             } else {
                 spdlog::warn("Failed to load image entry from XML");
             }
@@ -1349,6 +1613,17 @@ void VideoMediaCacheEntry::Load() {
     }
 }
 
+bool VideoMediaCacheEntry::IsOk() const {
+    if (!_loadingDone.load()) return false;
+
+    std::string path;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        path = _resolvedPath;
+    }
+    return !path.empty() && FileExists(path);
+}
+
 std::shared_ptr<xlImage> VideoMediaCacheEntry::GetThumbnail(int maxWidth, int maxHeight) {
     std::scoped_lock lock(_cacheMutex);
     if (_thumbnail && _thumbW == maxWidth && _thumbH == maxHeight) {
@@ -1512,6 +1787,19 @@ std::string SequenceMedia::ResolvePath(const std::string& filepath) {
         return resolved;
     }
     return filepath;
+}
+
+ResolvedMediaPath SequenceMedia::ResolveFilePath(const std::string& filepath)
+{
+    if (filepath.empty()) return {};
+    std::string loadPath = ResolvePath(filepath);
+    if (loadPath.empty()) loadPath = filepath;
+    if (!std::filesystem::path(filepath).is_absolute()) {
+        return { filepath, loadPath };
+    }
+    std::string settingsPath = FileUtils::MakeRelativeFile(loadPath);
+    if (settingsPath.empty()) settingsPath = loadPath;
+    return { settingsPath, loadPath };
 }
 
 std::shared_ptr<TextMediaCacheEntry> SequenceMedia::GetTextFile(const std::string& filepath) {
@@ -1938,7 +2226,17 @@ void SequenceMedia::RemoveUnusedMedia() {
     auto removeUnused = [](auto& cache, const char* typeName) {
         std::vector<std::string> toRemove;
         for (const auto& pair : cache) {
-            if (!pair.second->IsUsed()) {
+            if (pair.second->IsUsed()) {
+                continue;
+            }
+            // Embedded entries are document content, not cache - erasing one
+            // that simply hasn't rendered yet would lose the data at next
+            // save. Metadata-referenced entries (sequence face images) are
+            // never marked used by the render pipeline at all. For both,
+            // reclaim the decoded data but keep the entry.
+            if (pair.second->IsEmbedded() || pair.second->IsUsedByMetadata()) {
+                pair.second->UnloadCachedData();
+            } else {
                 toRemove.push_back(pair.first);
             }
         }

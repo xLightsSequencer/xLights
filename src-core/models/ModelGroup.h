@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <limits>
 #include <vector>
 #include <set>
 #include <string>
@@ -45,8 +46,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
-        const std::vector<Model *> &Models() const { return models;}
-        const std::vector<Model *> &ActiveModels() const { return activeModels;}
+        const std::vector<Model *> &Models() const { EnsureModelsCurrent(); return models;}
+        const std::vector<Model *> &ActiveModels() const { EnsureModelsCurrent(); return activeModels;}
         Model* GetModel(std::string modelName) const;
         Model* GetFirstModel() const;
         std::list<Model*> GetFlatModels(bool removeDuplicates = true, bool activeOnly = true) const;
@@ -118,9 +119,16 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         std::string m_layout = "minimalGrid";
         std::vector<std::string> m_baseModels;  // Models from base show
         
+        // Re-resolve the cached pointers if anything has been handed out since
+        // they were built. Submodels are freed by their parent Model, so a
+        // name in this group can go dangling with no call reaching us.
+        void EnsureModelsCurrent() const;
+
         std::vector<std::string> modelNames;
-        std::vector<Model *> models;
-        std::vector<Model *> activeModels;
+        mutable std::vector<Model *> models;
+        mutable std::vector<Model *> activeModels;
+        mutable unsigned int modelsGeneration = std::numeric_limits<unsigned int>::max();
+        mutable bool resolvingModels = false;
         bool selected;
         std::string defaultBufferStyle;
         bool centreDefined = false;

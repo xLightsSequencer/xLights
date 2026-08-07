@@ -25,6 +25,8 @@
 #include <wx/colour.h>
 #include <wx/prntbase.h>
 
+#include <algorithm>
+
 #include "controllers/ControllerUploadData.h"
 
 class ControllerModelDialog;
@@ -34,6 +36,9 @@ class xLightsFrame;
 class ModelCMObject;
 class SRCMObject;
 class PortCMObject;
+class wxScrolledWindow;
+class wxStaticBitmap;
+class wxChoice;
 
 class ControllerModelPrintout : public wxPrintout
 {
@@ -42,7 +47,7 @@ class ControllerModelPrintout : public wxPrintout
 	int _page_count;
 	int _page_count_w;
 	int _page_count_h;
-	int _orient;
+	wxPrintOrientation _orient;
 	wxPaperSize _paper_type;
 	int _max_x, _max_y;
 	wxSize _box_size;
@@ -54,15 +59,44 @@ public:
 	virtual bool HasPage(int page) override;
 	virtual void OnBeginPrinting() override;
 
-	void preparePrint(const bool showPageSetupDialog = false);
+	void preparePrint();
+	void SetDefaultPageSetup(wxPaperSize paperId, wxPrintOrientation orient);
 
 	wxPrintData getPrintData() {
 		return _page_setup.GetPrintData();
 	}
 };
 
+// A self-rendered print preview: reuses ControllerModelDialog::RenderPicture()
+// (the same drawing code the real print job uses) into a scrollable bitmap
+// view, with a live box-size slider. Deliberately not built on wxPrintPreview/
+// wxPreviewFrame - that API only computes its page count once and caches it
+// internally with no public way to invalidate it, which forced a jarring
+// close-and-reopen of the whole preview window on every scale change.
+class ControllerModelPrintPreviewDialog : public wxDialog
+{
+public:
+	ControllerModelPrintPreviewDialog(ControllerModelDialog* owner, wxWindow* parent, const wxString& title);
+
+private:
+	ControllerModelDialog* _owner;
+	wxScrolledWindow* _canvas;
+	wxStaticBitmap* _bitmapCtrl;
+	wxSlider* _boxSizeSlider;
+	wxChoice* _paperChoice;
+	wxChoice* _orientationChoice;
+
+	void RefreshPreview();
+	void OnBoxSizeChanged(wxCommandEvent& event);
+	void OnFitToPage(wxCommandEvent& event);
+	void OnPageSetupChanged(wxCommandEvent& event);
+	void OnPrint(wxCommandEvent& event);
+};
+
 class ControllerModelDialog: public wxDialog
 {
+	friend class ControllerModelPrintPreviewDialog;
+
 	#pragma region Member Variables
 	std::string _title;
     UDController* _cud = nullptr;
@@ -80,6 +114,9 @@ class ControllerModelDialog: public wxDialog
 	int _controllersy = 1;
 	int _controllersx = 1;
 	double _scale = 1;
+	double _printScale = 1; // box size scale used only for print/print-preview, independent of _scale
+	wxPaperSize _printPaperId = wxPAPER_LETTER;
+	wxPrintOrientation _printOrientation = wxPORTRAIT;
 	Model* _lastDropped = nullptr;
 	#pragma endregion
 
@@ -104,6 +141,8 @@ class ControllerModelDialog: public wxDialog
 		ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~ControllerModelDialog();
 
+		static bool IsAnyActive() { return s_activeCount > 0; }
+
 		//(*Declarations(ControllerModelDialog)
 		wxCheckBox* CheckBox_HideOtherControllerModels;
 		wxPanel* Panel3;
@@ -122,7 +161,7 @@ class ControllerModelDialog: public wxDialog
 		wxSearchCtrl* TextCtrl_ModelFilter;
 		//*)
 
-        static const long CONTROLLERModel_PRINT;
+        static const long CONTROLLERModel_PRINT_PREVIEW;
 		static const long CONTROLLERModel_SAVE_CSV;
 		static const long CONTROLLER_REMOVEALLMODELS;
 		static const long CONTROLLER_DMXCHANNEL;
@@ -218,10 +257,36 @@ class ControllerModelDialog: public wxDialog
 		void ScrollToKey(int keyCode);
 		void OnKeyDown(wxKeyEvent& event);
 		void PrintScreen();
+		void PrintPreviewScreen();
+		ControllerModelPrintout* CreatePrintout();
+		wxBitmap RenderFullPreview();
+		double GetPrintRatio() const;
+		wxSize GetControllersExtent() const;
+		void FitPrintScaleToPage();
+
+		// One page's content area and page counts, in the same print-scale
+		// pixel units as RenderFullPreview()'s bitmap - lets the preview
+		// dialog overlay page-break lines without needing a live printer DC.
+		struct PrintPageLayout {
+			wxSize pageSize;
+			int pagesWide = 1;
+			int pagesHigh = 1;
+		};
+		PrintPageLayout GetPrintPageLayout() const;
+		double GetPrintScale() const { return _printScale; }
+		void SetPrintScale(double scale) { _printScale = std::clamp(scale, 0.0, 1.0); }
+		wxPaperSize GetPrintPaperId() const { return _printPaperId; }
+		void SetPrintPaperId(wxPaperSize paperId) { _printPaperId = paperId; }
+		wxPrintOrientation GetPrintOrientation() const { return _printOrientation; }
+		void SetPrintOrientation(wxPrintOrientation orient) { _printOrientation = orient; }
 		void SaveCSV();
 		double getFontSize();
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
         bool MaybeSetSmartRemote(wxKeyEvent& event);
+		void ClearNotOnControllerHighlight();
+
+	private:
+		static int s_activeCount;
 
 		DECLARE_EVENT_TABLE()
 };

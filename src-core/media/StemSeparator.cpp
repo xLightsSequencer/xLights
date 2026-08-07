@@ -124,7 +124,8 @@ bool SeparateStems(AudioManager* audio,
                    const std::string& modelPath,
                    StemOutput& out,
                    const StemSeparatorOptions& opts,
-                   std::function<void(int pct)> progress) {
+                   std::function<void(int pct)> progress,
+                   const std::atomic<bool>* cancel) {
     if (!audio || !audio->IsOk()) return false;
     if (modelPath.empty()) return false;
 
@@ -175,8 +176,13 @@ bool SeparateStems(AudioManager* audio,
 
     const long totalChunks = (trackSize + stride - 1) / stride;
     long chunkIdx = 0;
+    bool cancelled = false;
 
     for (long srcPos = 0; srcPos < trackSize; srcPos += stride) {
+        if (cancel && cancel->load()) {
+            cancelled = true;
+            break;
+        }
         long validCount = std::min<long>(chunkFrames, trackSize - srcPos);
 
         std::fill(waveformBuf.begin(), waveformBuf.end(), 0.0f);
@@ -213,6 +219,10 @@ bool SeparateStems(AudioManager* audio,
 
     free(fftCfg);
     AppleStemSeparatorBridge::DestroyModel(model);
+    if (cancelled) {
+        spdlog::info("SeparateStems: cancelled after {} of {} chunks", chunkIdx, totalChunks);
+        return false;
+    }
     spdlog::info("SeparateStems: completed {} chunks, {} frames", chunkIdx, trackSize);
     return true;
 
@@ -280,8 +290,13 @@ bool SeparateStems(AudioManager* audio,
 
     const long totalChunks = (trackSize + stride - 1) / stride;
     long chunkIdx = 0;
+    bool cancelled = false;
 
     for (long srcPos = 0; srcPos < trackSize; srcPos += stride) {
+        if (cancel && cancel->load()) {
+            cancelled = true;
+            break;
+        }
         long validCount = std::min<long>(chunkFrames, trackSize - srcPos);
 
         std::memset(waveformData, 0, sizeof(float) * 2 * chunkFrames);
@@ -317,6 +332,10 @@ bool SeparateStems(AudioManager* audio,
     }
 
     free(fftCfg);
+    if (cancelled) {
+        spdlog::info("SeparateStems: cancelled after {} of {} chunks", chunkIdx, totalChunks);
+        return false;
+    }
     spdlog::info("SeparateStems: completed {} chunks, {} frames", chunkIdx, trackSize);
     return true;
 
@@ -386,10 +405,15 @@ bool SeparateStems(AudioManager* audio,
         out.vocalsL.assign(trackSize, 0.0f); out.vocalsR.assign(trackSize, 0.0f);
 
         bool needRetry = false;
+        bool cancelled = false;
         long chunkIdx = 0;
 
         try {
             for (long srcPos = 0; srcPos < trackSize; srcPos += stride) {
+                if (cancel && cancel->load()) {
+                    cancelled = true;
+                    break;
+                }
                 long validCount = std::min<long>(chunkFrames, trackSize - srcPos);
 
                 std::fill(waveformBuf.begin(), waveformBuf.end(), 0.0f);
@@ -442,6 +466,9 @@ bool SeparateStems(AudioManager* audio,
                 if (srcPos + chunkFrames >= trackSize) break;
             }
         } catch (const Ort::Exception& e) {
+            if (cancelled) {
+                return false;
+            }
             if (attempt == 0) {
                 spdlog::warn("SeparateStems: DirectML inference failed ({}), retrying on CPU", e.what());
                 session = makeSession(false);
@@ -452,6 +479,10 @@ bool SeparateStems(AudioManager* audio,
             }
         }
 
+        if (cancelled) {
+            spdlog::info("SeparateStems: cancelled after {} of {} chunks", chunkIdx, totalChunks);
+            return false;
+        }
         if (!needRetry) {
             spdlog::info("SeparateStems: completed {} chunks, {} frames", chunkIdx, trackSize);
             return true;

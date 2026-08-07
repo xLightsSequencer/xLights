@@ -198,6 +198,8 @@ void FacesPanel::SetPanelStatus(Model* cls) {
     auto* faceChoice = dynamic_cast<wxChoice*>(
         wxWindow::FindWindowByName("ID_CHOICE_Faces_FaceDefinition", this));
     if (faceChoice != nullptr) {
+        wxString selection = faceChoice->GetStringSelection();
+
         // Submodel falls back to its parent model (matches old behavior).
         Model* m = cls;
         if (cls != nullptr) {
@@ -230,7 +232,11 @@ void FacesPanel::SetPanelStatus(Model* cls) {
         if (!hasDefault) faceChoice->Append("Default");
         if (addRender && !hasRendered) faceChoice->Append("Rendered");
 
-        faceChoice->SetSelection(0);
+        if (!selection.empty() && faceChoice->SetStringSelection(selection)) {
+            // kept
+        } else if (faceChoice->GetCount() > 0) {
+            faceChoice->SetSelection(0);
+        }
     }
 
     // Lyric timing tracks for the Mouth Movements timing-track choice.

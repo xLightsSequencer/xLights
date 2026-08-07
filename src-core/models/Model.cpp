@@ -101,7 +101,7 @@ Model::Model(const ModelManager& manager)
 
 Model::~Model()
 {
-    RemoveAllSubModels();
+    DeleteAllSubModels();
     deleteUIObjects();
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
@@ -431,18 +431,19 @@ bool Model::IsAlias(const std::string& alias, bool oldnameOnly) const
     return false;
 }
 
-void Model::AddAlias(const std::string& alias)
+bool Model::AddAlias(const std::string& alias)
 {
     if (IsAlias(alias))
-        return;
+        return false;
 
     std::string lAlias = ::Lower(alias);
     // a model name cant be its own alias
     if (lAlias == Lower(Name()))
-        return;
+        return false;
 
     aliases.emplace_back(lAlias);
     IncrementChangeCount();
+    return true;
 }
 
 void Model::DeleteAlias(const std::string& alias)
@@ -500,6 +501,10 @@ void Model::AddSubmodel(SubModel* sm)
 {
     subModels.push_back(sm);
     sortedSubModels[sm->GetName()] = sm;
+    // Also notified on add, not just on delete: a group that names this
+    // submodel resolved it to nothing while it did not exist, so without this
+    // the group stays missing it until something else happens to reset.
+    modelManager.NoteModelPointersChanged();
 }
 
 std::string Model::SerialiseFace() const
@@ -566,9 +571,14 @@ void Model::UpdateFaceInfoNodes()
 
 void Model::UpdateStateInfoNodes()
 {
-    stateInfoNodes.clear();
+    stateInfoNodes = ComputeStateInfoNodes(stateInfo);
+}
+
+FaceStateNodes Model::ComputeStateInfoNodes(FaceStateData const& stateInfo)
+{
+    FaceStateNodes stateInfoNodes;
     for (const auto& it : stateInfo) {
-        if (stateInfo[it.first]["Type"] == "NodeRange") {
+        if (it.second.count("Type") && it.second.at("Type") == "NodeRange") {
             for (const auto& it2 : it.second) {
                 if (it2.first != "Type" && !Contains(it2.first, "Color") && it2.second != "") {
                     std::list<int> nodes;
@@ -606,6 +616,7 @@ void Model::UpdateStateInfoNodes()
             }
         }
     }
+    return stateInfoNodes;
 }
 
 void Model::WriteStateInfo(pugi::xml_node rootXml, const FaceStateData& stateInfo, bool forceCustom) {
@@ -1212,6 +1223,7 @@ void Model::RemoveSubModel(const std::string& name)
             sortedSubModels.erase(name);
             delete m;
             it = subModels.erase(it);
+            modelManager.NoteModelPointersChanged();
             return;
         } else {
             ++it;
@@ -1220,6 +1232,16 @@ void Model::RemoveSubModel(const std::string& name)
 }
 
 void Model::RemoveAllSubModels()
+{
+    DeleteAllSubModels();
+    modelManager.NoteModelPointersChanged();
+}
+
+// Raw teardown, no notification. Separate from RemoveAllSubModels because the
+// destructor runs this while the manager is mid-delete (or mid-clear, with the
+// whole map being freed) — telling it that pointers changed there would either
+// be redundant or hand it a half-destroyed model set.
+void Model::DeleteAllSubModels()
 {
     for (auto it = subModels.begin(); it != subModels.end(); ) {
         Model* m = *it;
@@ -1963,11 +1985,12 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         float maxY = -1000000.0;
         float minY = 1000000.0;
 
-        IModelPreview* modelPreview = nullptr;
         PreviewCamera* pcamera = nullptr;
+        int renderPreviewW = 1280;
+        int renderPreviewH = 720;
         if (auto* rc = modelManager.GetRenderContext()) {
-            modelPreview = rc->GetHousePreview();
             pcamera = rc->GetNamedCamera3D(camera);
+            rc->GetRenderPreviewSize(renderPreviewW, renderPreviewH);
         }
 
         if (pcamera != nullptr && camera != "2D") {
@@ -2018,18 +2041,16 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                         float sz = it2.screenZ;
                         GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
-                        // modelPreview (house preview) can be null when there is no preview surface
-                        // yet (e.g. the iPad render path before a preview is attached); the TranslatePoint
-                        // result above is the correct fallback in that case.
-                        if (modelPreview != nullptr) {
-                            // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
-                            glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
-                            loc.y *= -1.0f;
-                            sx = loc.x;
-                            sy = loc.y;
-                            it2.screenX = sx;
-                            it2.screenY = sy;
-                        }
+                        // Project through the show's render aspect (window-independent)
+                        // so desktop, iPad and headless produce the same Per-Preview
+                        // buffer. 800,800 is the sample screen size (only a scale — the
+                        // buffer is renormalized below).
+                        glm::vec2 loc = GetModelScreenLocation().GetScreenPositionForAspect(800, 800, renderPreviewW, renderPreviewH, pcamera, sx, sy, sz);
+                        loc.y *= -1.0f;
+                        sx = loc.x;
+                        sy = loc.y;
+                        it2.screenX = sx;
+                        it2.screenY = sy;
                     }
                 }
 
@@ -2167,14 +2188,18 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         bufferWi = this->BufferWi;
     }
 
-    // Zero buffer sizes are bad
-    // This can happen when a strand is zero length ... maybe also a custom model with no nodes
-    if (bufferHt == 0) {
-        spdlog::warn("Model::InitRenderBufferNodes BufferHt was 0 ... overridden to be 1.");
+    // Zero (or negative) buffer sizes are bad.
+    // This can happen when a strand is zero length ... maybe also a custom model with no nodes.
+    // A model/submodel with no nodes leaves the PER_PREVIEW/PER_PREVIEW_NO_OFFSET min/max
+    // extents at their untouched sentinel values (+/-1000000), which rounds into a huge
+    // *negative* bufferHt/bufferWi below -- neither the "== 0" nor the "> 100000" checks
+    // below catch that, so check <= 0 here first.
+    if (bufferHt <= 0) {
+        spdlog::warn("Model::InitRenderBufferNodes BufferHt was {} ... overridden to be 1.", bufferHt);
         bufferHt = 1;
     }
-    if (bufferWi == 0) {
-        spdlog::warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
+    if (bufferWi <= 0) {
+        spdlog::warn("Model::InitRenderBufferNodes BufferWi was {} ... overridden to be 1.", bufferWi);
         bufferWi = 1;
     }
     if (bufferWi * bufferHt > 2100000) {
@@ -3263,13 +3288,9 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
     for (int n = 0; n < (int)NodeCount; ++n) {
         if (n + 1 == highlightpixel) {
             color = xlMAGENTA;
-        } else if (highlightFirst && Nodes.size() > 1) {
-            if (IsNodeFirst(n)) {
-                color = xlCYAN;
-            } else {
-                color = saveColor;
-            }
-        } else if (c == nullptr) {
+        } else if (c == nullptr && Nodes[n]) {
+            // Nodes[n] can be a default-constructed (null) slot on a freshly-placed
+            // model; keep SetColor(n) below in sync by only guarding the deref here.
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
                 Nodes[n]->model->modelDimmingCurve->reverse(color);
@@ -3279,6 +3300,15 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 if (r != 0) {
                     color = xlBLACK;
                 }
+            }
+            if (highlightFirst && Nodes.size() > 1 && IsNodeFirst(n)) {
+                color = xlCYAN;
+            }
+        } else if (highlightFirst && Nodes.size() > 1) {
+            if (IsNodeFirst(n)) {
+                color = xlCYAN;
+            } else {
+                color = saveColor;
             }
         }
         ApplyTransparency(color, transparency, blackTransparency);
@@ -3308,6 +3338,9 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
         cache->va->SetName(GetName() + (is_3d ? " - 3DPWiring" : " - 2DWiring"));
         cache->va->PreAlloc(NodeCount);
         for (int x = 0; x < (int)NodeCount; ++x) {
+            if (!Nodes[x] || Nodes[x]->Coords.empty()) {
+                continue;
+            }
             float sx = Nodes[x]->Coords[0].screenX;
             float sy = Nodes[x]->Coords[0].screenY;
             float sz = Nodes[x]->Coords[0].screenZ;
@@ -3545,6 +3578,139 @@ std::vector<int> Model::GetNodesInBoundingBox(IModelPreview* preview, xlPoint st
             }
         }
         i++;
+    }
+    return nodes;
+}
+
+namespace {
+    float DistanceSqPointToSegment(float px, float py, float ax, float ay, float bx, float by)
+    {
+        float abx = bx - ax;
+        float aby = by - ay;
+        float lenSq = abx * abx + aby * aby;
+        float t = 0.0f;
+        if (lenSq > 0.0f) {
+            t = ((px - ax) * abx + (py - ay) * aby) / lenSq;
+            t = std::clamp(t, 0.0f, 1.0f);
+        }
+        float cx = ax + t * abx;
+        float cy = ay + t * aby;
+        float dx = px - cx;
+        float dy = py - cy;
+        return dx * dx + dy * dy;
+    }
+}
+
+std::vector<int> Model::GetNodesNearPath(IModelPreview* preview, const std::vector<xlPoint>& path)
+{
+    std::vector<int> nodes;
+    if (path.empty()) return nodes;
+
+    int w, h;
+    float scale = GetPreviewDimScale(preview, w, h);
+
+    float pointScale = scale;
+    if (pointScale > 2.5) {
+        pointScale = 2.5;
+    }
+    if (pointScale > GetModelScreenLocation().RenderHt) {
+        pointScale = GetModelScreenLocation().RenderHt;
+    }
+    if (pointScale > GetModelScreenLocation().RenderWi) {
+        pointScale = GetModelScreenLocation().RenderWi;
+    }
+    float catchMult = preview ? preview->GetPencilCatchRadiusMultiplier() : 8.0f;
+    const float catchRadius = catchMult * pointScale;
+    const float radiusSq = catchRadius * catchRadius;
+
+    const bool centerBased = GetModelScreenLocation().IsCenterBased();
+    const float renderWi = GetModelScreenLocation().RenderWi;
+    const float renderHt = GetModelScreenLocation().RenderHt;
+    const float vScaleFactor = GetModelScreenLocation().GetVScaleFactor();
+    float ml = 0.0f, mb = 0.0f;
+    if (centerBased) {
+        GetMinScreenXY(ml, mb);
+        ml += renderWi / 2.0f;
+        mb += renderHt / 2.0f;
+    }
+
+    auto toScreen = [&](float sx, float sy, float& outX, float& outY) {
+        if (!centerBased) {
+            sx -= renderWi / 2.0f;
+            sy *= vScaleFactor;
+            if (vScaleFactor < 0.0f) {
+                sy += renderHt / 2.0f;
+            } else {
+                sy -= renderHt / 2.0f;
+            }
+            sy = (sy * scale) + (h / 2.0f);
+            sx = (sx * scale) + (w / 2.0f);
+        } else {
+            sx = ((sx - ml) * scale) + (w / 2.0f);
+            sy = ((sy - mb) * scale) + (h / 2.0f);
+        }
+        outX = sx;
+        outY = sy;
+    };
+
+    struct NodeScreenCoords {
+        int nodeIndex;
+        std::vector<std::pair<float, float>> coords;
+    };
+    std::vector<NodeScreenCoords> nodeCoords;
+    nodeCoords.reserve(Nodes.size());
+
+    int idx = 1;
+    for (const auto& it : Nodes) {
+        NodeScreenCoords nsc;
+        nsc.nodeIndex = idx++;
+        nsc.coords.reserve(it->Coords.size());
+        for (const auto& it2 : it->Coords) {
+            float sx, sy;
+            toScreen(it2.screenX, it2.screenY, sx, sy);
+            nsc.coords.emplace_back(sx, sy);
+        }
+        nodeCoords.push_back(std::move(nsc));
+    }
+
+    std::vector<bool> visited(Nodes.size() + 1, false);
+
+    // Walk the path segments in order so nodes get added as they are first hit
+    if (path.size() == 1) {
+        float px = (float)path[0].x;
+        float py = (float)path[0].y;
+        for (const auto& nc : nodeCoords) {
+            for (const auto& pt : nc.coords) {
+                float dx = pt.first - px;
+                float dy = pt.second - py;
+                if ((dx * dx + dy * dy) <= radiusSq) {
+                    nodes.push_back(nc.nodeIndex);
+                    break;
+                }
+            }
+        }
+        return nodes;
+    }
+
+    for (size_t p = 0; p + 1 < path.size(); ++p) {
+        float p1x = (float)path[p].x;
+        float p1y = (float)path[p].y;
+        float p2x = (float)path[p + 1].x;
+        float p2y = (float)path[p + 1].y;
+
+        for (const auto& nc : nodeCoords) {
+            if (visited[nc.nodeIndex]) {
+                continue;
+            }
+            for (const auto& pt : nc.coords) {
+                float distSq = DistanceSqPointToSegment(pt.first, pt.second, p1x, p1y, p2x, p2y);
+                if (distSq <= radiusSq) {
+                    visited[nc.nodeIndex] = true;
+                    nodes.push_back(nc.nodeIndex);
+                    break;
+                }
+            }
+        }
     }
     return nodes;
 }
@@ -4202,10 +4368,12 @@ xlColor Model::GetTagColour() {
 }
 
 void Model::SetTagColourAsString(std::string const& colour) {
-    _modelTagColourString = colour;
-    _modelTagColourValid = false;
-    IncrementChangeCount();
-    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColourAsString");
+    if (_modelTagColourString != colour) {
+        _modelTagColourString = colour;
+        _modelTagColourValid = false;
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColourAsString");
+    }
 }
 void Model::SetTagColour(const xlColor& colour)
 {
@@ -4366,12 +4534,27 @@ void Model::AddSuperStringColour(xlColor c)
     superStringColours.push_back(c);
 }
 
-void Model::SetShadowModelFor(const std::string& shadowModelFor)
+void Model::SetShadowModelFor(const std::string& shadowModelFor, bool applyLink)
 {
-    if ( shadowModelFor != name ) { // models should not be a shadow model for themselves
+    // models should not be a shadow model for themselves
+    if (shadowModelFor != name && shadowModelFor != _shadowModelFor) {
         _shadowModelFor = shadowModelFor;
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetShadowModelFor");
+        // applyLink is false when this is just restoring saved state (file load/import) rather
+        // than a user picking a new shadow target - it must not mutate the target model then.
+        if (applyLink) {
+            if (!_shadowModelFor.empty()) {
+                Model* targetModel = GetModelManager().GetModel(_shadowModelFor);
+                if (targetModel != nullptr) {
+                    const std::string curSc = targetModel->GetModelStartChannel();
+                    if (!StartsWith(curSc, "@") && !StartsWith(curSc, "!")) {
+                        targetModel->SetStartChannel("@" + name + ":1");
+                        targetModel->SetControllerName("");
+                    }
+                }
+            }
+            IncrementChangeCount();
+            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE | OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetShadowModelFor");
+        }
     }
 }
 
@@ -4605,9 +4788,10 @@ void Model::deleteUIObjects()
 
 std::string Model::GetAttributesAsJSON() const
 {
-    // Serialize the model to XML using XmlSerializer
+    // Serialize the model to XML using XmlSerializer. Reported to the automation
+    // API, so file references stay absolute rather than show-relative.
     XmlSerializer serializer;
-    pugi::xml_document doc = serializer.SerializeModel(this);
+    pugi::xml_document doc = serializer.SerializeModel(this, /*includeGroups*/ false, /*forExport*/ true);
 
     // Get the root node - the model node should be the first child
     pugi::xml_node root = doc.document_element();

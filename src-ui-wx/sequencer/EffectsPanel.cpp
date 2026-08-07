@@ -185,6 +185,11 @@ void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name, int st
     if (eff != nullptr) {
         effectPanelManager->SetEffectTimeRange(eff->GetId(), startTimeMs, endTimeMs);
     }
+    wxScrolledWindow* w = dynamic_cast<wxScrolledWindow*>(EffectChoicebook->GetPage(EffectChoicebook->GetSelection()));
+    if (w != nullptr) {
+        w->FitInside();
+        w->Scroll(0, 0);
+    }
 }
 
 wxString EffectsPanel::GetEffectString(int effectId) {
@@ -329,6 +334,15 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
         wxPostEvent(GetParent(), eventEffectChanged);
     }
 
+    w->Layout();
+    xlEffectPanel* panel = dynamic_cast<xlEffectPanel*>(GetWindowPanel(w));
+    if (panel != nullptr) {
+        // First-ever selection of this effect: the panel was pre-built hidden
+        // at startup, so any internal notebook page can still be sized from
+        // that hidden construction pass. Let the panel fix its own children up
+        // now that it is genuinely visible with real geometry.
+        panel->RefreshLayoutOnShow();
+    }
     w->FitInside();
     w->SetScrollRate(5, 5);
     w->Refresh();

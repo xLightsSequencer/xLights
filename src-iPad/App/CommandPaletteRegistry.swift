@@ -161,6 +161,9 @@ enum CommandPaletteRegistry {
         add("Check Sequence…", "Tools", "checkmark.seal", "", loaded) {
             vm.showingCheckSequence = true
         }
+        add("Effect Symbols…", "Tools", "link", "", loaded) {
+            vm.showingEffectSymbols = true
+        }
         add("AI Services…", "Tools", "wand.and.stars", "", true) {
             vm.showingAIServices = true
         }

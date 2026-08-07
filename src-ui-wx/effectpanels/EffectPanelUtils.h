@@ -44,6 +44,7 @@ class Model;
 class RenderableEffect;
 class SequenceElements;
 class xLightsFrame;
+class ValueCurveButton;
 
 class EffectPanelUtils
 {
@@ -53,6 +54,10 @@ public:
     static void OnLockButtonClick(wxCommandEvent& event);
     static void OnVCButtonClick(wxCommandEvent& event);
     static void OnVCChanged(wxCommandEvent& event);
+    // Callers holding a live button must use this rather than posting an
+    // EVT_VC_CHANGED naming it: the queued event keeps a raw pointer, and
+    // panels that rebuild their controls free the button before it drains.
+    static void SyncValueCurveControls(ValueCurveButton* vcb);
 
     static void SetLock(wxButton* button);
     static bool IsLocked(std::string name);
@@ -73,6 +78,15 @@ public:
     virtual void SetPanelStatus(Model* cls) {}
     virtual void SetRenderableEffect(RenderableEffect* eff) {}
     virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs) {}
+    // Called the first time this panel is actually displayed (the effect
+    // choicebook page becomes selected). Panels are all pre-built hidden at
+    // startup (EffectsPanel builds every effect's panel up front), so any
+    // internal wxNotebook can be stuck at a stale, too-small page size from
+    // that hidden construction pass -- wxNotebook only resizes a page as part
+    // of SetSelection(), which already ran once back then, before the outer
+    // AUI "Effect" pane had its real geometry. Override to force such
+    // children to re-layout at their now-correct size.
+    virtual void RefreshLayoutOnShow() {}
     void SetSequenceElements(SequenceElements* els) { mSequenceElements = els; }
     virtual wxString GetEffectString();
 

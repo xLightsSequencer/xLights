@@ -528,6 +528,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         [[nodiscard]] bool IsLockEffects() const;
         void SetXsqPkg(SequencePackage* xsqPkg);
         bool IsConvertRender() const;
+        bool IsImportFacesToSequence() const;
         [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
         [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
         void SortChannels();
@@ -549,6 +550,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_UpdateAliases;
 		wxCheckBox* CheckBoxImportMedia;
 		wxCheckBox* CheckBox_ConvertRenderStyle;
+		wxCheckBox* CheckBox_ImportFacesToSequence;
 		wxCheckBox* CheckBox_EraseExistingEffects;
 		wxCheckBox* CheckBox_Import_Blend_Mode;
 		wxCheckBox* CheckBox_LockEffects;
@@ -556,6 +558,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxCheckListBox* TimingTrackListBox;
 		wxFlexGridSizer* FlexGridSizer11;
 		wxFlexGridSizer* FlexGridSizer1;
+		wxFlexGridSizer* FlexGridSizerImportFaces;
 		wxFlexGridSizer* FlexGridSizerImportMedia;
 		wxFlexGridSizer* FlexGridSizer_Blend_Mode;
 		wxFlexGridSizer* OldSizer;
@@ -598,6 +601,7 @@ protected:
 		static const wxWindowID ID_CHECKBOX5;
 		static const wxWindowID ID_CHECKBOX2;
 		static const wxWindowID ID_STATICTEXT_BLEND_TYPE;
+		static const wxWindowID ID_CHECKBOX_IMPORT_FACES_SEQ;
 		static const wxWindowID ID_CHECKBOX3;
 		static const wxWindowID ID_BUTTON_IMPORT_OPTIONS;
 		static const wxWindowID ID_CHECKLISTBOX1;

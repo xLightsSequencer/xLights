@@ -9,9 +9,7 @@
  **************************************************************/
 
 #include <wx/wx.h>
-#if defined(USE_GLES) && !defined(__WXMAC__)
-    #include <GLES3/gl3.h>
-#elif defined(__WXMAC__)
+#if defined(__WXMAC__)
     #include "OpenGL/gl.h"
 #else
     #include <GL/gl.h>
@@ -564,6 +562,20 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     Refresh();
 }
 
+void Waveform::SetEffectDragOverride(int startMS, int endMS)
+{
+    mEffectDragOverrideStartMS = startMS;
+    mEffectDragOverrideEndMS = endMS;
+    Refresh(false);
+}
+
+void Waveform::ClearEffectDragOverride()
+{
+    mEffectDragOverrideStartMS = -1;
+    mEffectDragOverrideEndMS = -1;
+    Refresh(false);
+}
+
 void Waveform::SetSelectedInterval(int startMS, int endMS)
 {
     mTimeline->SetSelectedPositionStart(mTimeline->GetPositionFromTimeMS(startMS), false);
@@ -683,15 +695,18 @@ bool Waveform::PrepareStemData()
     // duration the same way a render does so the sequence can't be
     // closed and the app can't be quit mid-inference.
     if (_stemSeparationActive.exchange(true)) return false;
+    _stemSeparationCancel.store(false);
     frame->EnableSequenceControls(false);
     struct StemGuard {
         std::atomic<bool>& active;
+        std::atomic<bool>& cancel;
         xLightsFrame* frame;
         ~StemGuard() {
             frame->EnableSequenceControls(true);
+            cancel.store(false);
             active.store(false);
         }
-    } stemGuard{ _stemSeparationActive, frame };
+    } stemGuard{ _stemSeparationActive, _stemSeparationCancel, frame };
 
     std::vector<std::string> roots;
     if (!xLightsFrame::CurrentDir.empty())
@@ -777,21 +792,29 @@ bool Waveform::PrepareStemData()
                               wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_ELAPSED_TIME | wxPD_REMAINING_TIME | wxPD_CAN_ABORT);
         std::atomic<bool> done(false);
         std::atomic<bool> ok(false);
+        std::atomic<bool> cancelRequested(false);
         std::atomic<int>  pct(0);
         std::thread worker([&] {
             ok = SeparateStems(_media, modelPath, stems,
                                StemSeparatorOptions{},
-                               [&pct](int p) { pct.store(p); });
+                               [&pct](int p) { pct.store(p); },
+                               &_stemSeparationCancel);
             done.store(true);
         });
         wxSetCursor(wxCURSOR_WAIT);
         while (!done.load()) {
-            prog.Update(pct.load());
+            if (!prog.Update(pct.load())) {
+                cancelRequested.store(true);
+                _stemSeparationCancel.store(true);
+            }
             wxMilliSleep(50);
             wxTheApp->Yield(true);
         }
         worker.join();
         wxSetCursor(wxCURSOR_ARROW);
+        // Cancellation also makes SeparateStems return false — see the
+        // CoreML path above.
+        if (cancelRequested.load() || _stemSeparationCancel.load()) return false;
         if (!ok) {
             DisplayError("Stem separation failed. Check the log for details.");
             return false;
@@ -835,15 +858,18 @@ bool Waveform::PrepareStemData()
     // for the duration the same way a render does so the sequence can't
     // be closed and the app can't be quit mid-inference.
     if (_stemSeparationActive.exchange(true)) return false;
+    _stemSeparationCancel.store(false);
     frame->EnableSequenceControls(false);
     struct StemGuard {
         std::atomic<bool>& active;
+        std::atomic<bool>& cancel;
         xLightsFrame* frame;
         ~StemGuard() {
             frame->EnableSequenceControls(true);
+            cancel.store(false);
             active.store(false);
         }
-    } stemGuard{ _stemSeparationActive, frame };
+    } stemGuard{ _stemSeparationActive, _stemSeparationCancel, frame };
 
     // Build the list of candidate install roots: show folder first,
     // then each configured media folder in preference order.
@@ -998,36 +1024,33 @@ bool Waveform::PrepareStemData()
         std::thread worker([&]{
             ok = SeparateStems(_media, modelPath, stems,
                                StemSeparatorOptions{},
-                               [&pct, &cancelRequested](int p) {
-                                   pct.store(p);
-                                   // SeparateStems honours false as
-                                   // "cancel"; void-returning
-                                   // callback doesn't, so the worker
-                                   // always runs to completion. Good
-                                   // enough — inference for a 3-min
-                                   // track is ≤ a few minutes on
-                                   // Apple Silicon.
-                               });
+                               [&pct](int p) { pct.store(p); },
+                               &_stemSeparationCancel);
             done.store(true);
         });
         wxSetCursor(wxCURSOR_WAIT);
         while (!done.load()) {
             if (!prog.Update(pct.load())) {
                 cancelRequested.store(true);
-                // CoreML predictions can't be interrupted mid-chunk,
-                // but we fall out of the wait loop once the in-flight
-                // chunk returns, then discard the result below.
+                // CoreML predictions can't be interrupted mid-chunk, so
+                // the run winds down at the next chunk boundary rather
+                // than instantly.
+                _stemSeparationCancel.store(true);
             }
             wxMilliSleep(50);
             wxTheApp->Yield(true);
         }
         worker.join();
         wxSetCursor(wxCURSOR_ARROW);
+        // Cancellation also makes SeparateStems return false, so test it
+        // before treating !ok as a failure worth reporting. The cancel can
+        // come from the dialog's abort button or from a close request that
+        // needs the audio freed (see RequestStemSeparationCancel).
+        if (cancelRequested.load() || _stemSeparationCancel.load()) return false;
         if (!ok.load()) {
             DisplayError("Stem separation failed. See log for details.");
             return false;
         }
-        if (cancelRequested.load()) return false;
     }
 
     _media->SetStemData(
@@ -1047,6 +1070,7 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
     _highNote = -1;
     _media = media;
     views.clear();
+    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     ResetAnalysisState();
     if (_media != nullptr) {
         _media->SwitchTo(_type);
@@ -1090,7 +1114,7 @@ void Waveform::render()
     }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
-    if (mCurrentWaveView >= 0) {
+    if (mCurrentWaveView >= 0 && mCurrentWaveView < (int)views.size()) {
 		DrawWaveView(ctx, views[mCurrentWaveView]);
 	}
 
@@ -1107,7 +1131,7 @@ float Waveform::translateOffset(float f) {
 
 void Waveform::ForceRedraw()
 {
-    if (mCurrentWaveView >= 0) {
+    if (mCurrentWaveView >= 0 && mCurrentWaveView < (int)views.size()) {
         views[mCurrentWaveView].ForceRedraw();
     }
 }
@@ -1437,7 +1461,17 @@ void Waveform::DrawWaveView(xlGraphicsContext* ctx, const WaveView& wv)
         vac->AddVertex(f, mWindowHeight - 1, 0, color);
     }
 
-    if (xLightsApp::GetFrame() != nullptr) {
+    if (mEffectDragOverrideStartMS != -1) {
+        color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_SELECTEDEFFECT);
+        int start = translateOffset(mTimeline->GetPositionFromTimeMS(mEffectDragOverrideStartMS));
+        int end = translateOffset(mTimeline->GetPositionFromTimeMS(mEffectDragOverrideEndMS));
+        vac->AddVertex(start, 1, 0, color);
+        vac->AddVertex(start, (mWindowHeight - 1) / 4, 0, color);
+        vac->AddVertex(end, 1, 0, color);
+        vac->AddVertex(end, (mWindowHeight - 1) / 4, 0, color);
+        vac->AddVertex(start, (mWindowHeight - 1) / 8, 0, color);
+        vac->AddVertex(end, (mWindowHeight - 1) / 8, 0, color);
+    } else if (xLightsApp::GetFrame() != nullptr) {
         Effect* selectedEffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
         if (selectedEffect != nullptr) {
             color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_SELECTEDEFFECT);

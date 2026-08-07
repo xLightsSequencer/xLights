@@ -173,3 +173,67 @@ struct MovingHeadColorWheelRowView: View {
                      blue: Double(v & 0xFF) / 255.0)
     }
 }
+
+// Body of the Link tab. The checkbox above it (`MHLinkToNext`) does the
+// actual work through the view model; this row reports what the sync
+// resolved per head — desktop's `StaticText_MHLinkPreview` — and offers
+// a manual Re-sync for when the *next* effect has since been edited or
+// moved (desktop re-syncs only on the checkbox click, so the iPad button
+// is the friendlier form of the same operation).
+struct MovingHeadLinkRowView: View {
+    @Environment(SequencerViewModel.self) var viewModel
+
+    private var isLinked: Bool {
+        _ = viewModel.inspectorRevision
+        return viewModel.settingValue(forKey: "E_CHECKBOX_MHLinkToNext",
+                                       defaultValue: "0") == "1"
+    }
+
+    /// The stored result, but only while it still describes the effect
+    /// on screen.
+    private var result: SequencerViewModel.MovingHeadLinkResult? {
+        _ = viewModel.inspectorRevision
+        guard let sel = viewModel.selectedEffect,
+              let r = viewModel.movingHeadLinkResult,
+              r.rowIndex == sel.rowIndex,
+              r.effectIndex == sel.effectIndex else { return nil }
+        return r
+    }
+
+    private var summary: String {
+        guard let r = result else { return "" }
+        switch r.status {
+        case "noNext":        return "No following Moving Head effect on this row"
+        case "notMovingHead": return "Next effect is not a Moving Head effect"
+        case "noHeads":       return "No active heads"
+        case "linked":        return r.lines.joined(separator: "\n")
+        default:              return ""
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Pan / Tilt and the dimmer are driven by the link while it is on — the Pathing and Pattern tabs are ignored.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            if isLinked {
+                let text = summary
+                if !text.isEmpty {
+                    Text(text)
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(result?.status == "linked"
+                                          ? Color.secondary : Color.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Button {
+                    viewModel.syncMovingHeadLinkToNext()
+                } label: {
+                    Label("Re-sync", systemImage: "arrow.triangle.2.circlepath")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}

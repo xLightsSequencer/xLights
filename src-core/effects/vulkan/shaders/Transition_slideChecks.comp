@@ -1,0 +1,57 @@
+#version 450
+// Port of slideChecksTransition in TransitionFunctions.metal (mask/"map" type).
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer MaskB { uint maskWords[]; };
+
+void maskWrite(uint sidx, uint value);
+
+void maskValue(uint ix, uint iy) {
+    float adjust = data.adjust;
+    float factor = data.progress;
+    bool reverse = data.reverse != 0u;
+    uint m1 = 255u;
+    uint m2 = 0u;
+
+    if (adjust < 2.0) {
+        adjust = 2.0;
+    }
+    adjust = (max(float(data.width) / 2.0, float(data.height) / 2.0)) * adjust / 100.0;
+    if (adjust < 2.0) {
+        adjust = 2.0;
+    }
+    int xper = int(float(data.width) * 2.0 / adjust);
+    if (xper < 1) {
+        xper = 1;
+    }
+    int yper = int(float(data.height) / adjust);
+    if (yper < 1) {
+        yper = 1;
+    }
+    float step_ = (float(xper) * 2.0) * factor;
+
+    int xb = int(ix) / xper;
+    int xp = (int(ix) - xb * xper) % xper;
+    uint xpos = ix;
+    if (reverse) {
+        xpos = data.width - ix - 1u;
+    }
+
+    int yb = int(iy) / yper;
+    if ((yb % 2) != 0) {
+        if (xp >= (xper / 2)) {
+            int xp2 = xp - xper / 2;
+            maskWrite(xpos * data.height + iy, float(xp2) < step_ ? m2 : m1);
+        } else {
+            float step2 = step_ - float(xper / 2);
+            maskWrite(xpos * data.height + iy, float(xp) < step2 ? m2 : m1);
+        }
+    } else {
+        maskWrite(xpos * data.height + iy, float(xp) < step_ ? m2 : m1);
+    }
+}
+
+#include "transition_mask_main.glsl"

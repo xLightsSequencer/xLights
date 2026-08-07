@@ -119,7 +119,7 @@ void ColorCurveButton::UpdateBitmap()
         }
         wxBitmap bmp(image);
         SetBitmap(bmp);
-        SetToolTip(wxString::Format("%s\n%d,%d,%d\n%s", _color, xc.red, xc.green, xc.blue, GetColourName(xc)));
+        SetToolTip(wxString::Format("%s\n%d,%d,%d\n%s", _color, xc.red, xc.green, xc.blue, GetColorName(xc)));
     }
     Refresh();
 }

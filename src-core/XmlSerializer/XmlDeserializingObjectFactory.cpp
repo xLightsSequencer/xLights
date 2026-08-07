@@ -8,9 +8,12 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
+
 #include "XmlDeserializingObjectFactory.h"
 #include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
+#include "../models/ControllerObject.h"
 #include "../models/GridlinesObject.h"
 #include "../models/ImageObject.h"
 #include "../models/MeshObject.h"
@@ -19,6 +22,7 @@
 #include "../models/TerrainScreenLocation.h"
 #include "../models/ViewObject.h"
 #include "../models/ViewObjectManager.h"
+#include "../utils/FileUtils.h"
 
 using namespace XmlSerialize;
 
@@ -39,6 +43,8 @@ ViewObject* XmlDeserializingObjectFactory::Deserialize(pugi::xml_node node, View
         return DeserializeTerrain(node, objects, importing);
     } else if (type == XmlNodeKeys::RulerType) {
         return DeserializeRuler(node, objects, importing);
+    } else if (type == XmlNodeKeys::ControllerObjectType) {
+        return DeserializeController(node, objects, importing);
     }
     throw std::runtime_error("Unknown object type: " + type);
 }
@@ -71,9 +77,22 @@ void XmlDeserializingObjectFactory::DeserializeTerrainScreenLocationAttributes(V
     int spacing = node.attribute(XmlNodeKeys::TerrainLineAttribute).as_int(50);
     int width = node.attribute(XmlNodeKeys::TerrainWidthAttribute).as_int(1000);
     int depth = node.attribute(XmlNodeKeys::TerrainDepthAttribute).as_int(1000);
-    int num_points_wide = width / spacing + 1;
-    int num_points_deep = depth / spacing + 1;
+    // Guard against corrupt/hand-edited files with a zero/negative spacing or
+    // negative width/depth: unclamped these send a huge or negative num_points
+    // into TerrainScreenLocation::UpdateSize -> Init, which crashes when it
+    // tries to size mPos from it.
+    if (spacing < 1) spacing = 1;
+    if (width < 0) width = 0;
+    if (depth < 0) depth = 0;
+    int num_points_wide = std::max(1, width / spacing + 1);
+    int num_points_deep = std::max(1, depth / spacing + 1);
     int num_points = num_points_wide * num_points_deep;
+    static constexpr int MAX_TERRAIN_POINTS = 1000000;
+    if (num_points > MAX_TERRAIN_POINTS || num_points < 1) {
+        num_points_wide = 41;
+        num_points_deep = 21;
+        num_points = num_points_wide * num_points_deep;
+    }
     TerrainScreenLocation& screenLoc = dynamic_cast<TerrainScreenLocation&>(object->GetBaseObjectScreenLocation());
     screenLoc.UpdateSize(num_points_wide, num_points_deep, num_points);
     screenLoc.SetDataFromString(node.attribute(XmlNodeKeys::PointDataAttribute).as_string());
@@ -102,10 +121,26 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeImage(pugi::xml_node node,
     return object;
 }
 
+ViewObject* XmlDeserializingObjectFactory::DeserializeController(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
+    ControllerObject* object = new ControllerObject(objects);
+    CommonDeserializeSteps(object, node, objects, importing);
+    object->SetControllerName(node.attribute(XmlNodeKeys::ControllerAttribute).as_string());
+    object->SetVisibility(ControllerObject::VisibilityFromString(node.attribute(XmlNodeKeys::VisibilityAttribute).as_string()));
+    object->SetShowLabel(std::string_view(node.attribute(XmlNodeKeys::ShowLabelAttribute).as_string("0")) == "1");
+    // The name is always derived from the bound controller, never taken from the
+    // file. Letting the two drift would break the base-show merge, which matches
+    // objects by name and would then add base's copy as a second object on the
+    // same controller. This also undoes the uniquifying CommonDeserializeSteps
+    // applies when importing.
+    object->SetName(ControllerObject::ObjectNameFor(object->GetControllerName()));
+    object->Setup();
+    return object;
+}
+
 ViewObject* XmlDeserializingObjectFactory::DeserializeMesh(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
     MeshObject* object = new MeshObject(objects);
     CommonDeserializeSteps(object, node, objects, importing);
-    object->SetObjectFile(node.attribute(XmlNodeKeys::ObjFileAttribute).as_string());
+    object->SetObjectFile(FileUtils::FixFile(std::string(""), std::string(node.attribute(XmlNodeKeys::ObjFileAttribute).as_string(""))));
     object->SetMeshOnly(std::string_view(node.attribute(XmlNodeKeys::MeshOnlyAttribute).as_string("0")) == "1");
     object->SetBrightness(node.attribute(XmlNodeKeys::BrightnessAttribute).as_float(100));
     object->Setup();

@@ -29,6 +29,8 @@ class Model;
 class RenderableEffect;
 class RenderContext;
 class EffectManager;
+class EffectSymbolManager;
+class EffectSymbol;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -57,6 +59,7 @@ class Effect
     xlDisplayList background;
     RenderCacheItem *mCache = nullptr;
     int64_t _timeToDelete = 0;
+    std::string _linkedSymbolId;
 
     Effect() {}  //don't allow default or copy constructor
     static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC);
@@ -100,6 +103,33 @@ public:
 
     bool GetProtected() const { return mProtected; }
     void SetProtected(bool Protected) { mProtected = Protected; }
+
+    // Symbol linking - allows effects to be linked to reusable EffectSymbol definitions.
+    bool IsLinkedToSymbol() const { return !_linkedSymbolId.empty(); }
+    const std::string& GetLinkedSymbolId() const { return _linkedSymbolId; }
+    void LinkToSymbol(const std::string& symbolId);
+    void UnlinkFromSymbol();
+    void ApplySymbolSettings(const EffectSymbol* symbol);
+    void HandlePastedSymbolLink();
+
+    // Suppresses the outward half of symbol propagation (effect -> symbol ->
+    // every other linked effect) on this thread. Linking still applies the
+    // symbol's settings *to* the effect; only the fan-out is skipped.
+    //
+    // Sequence load must hold this: effects are linked one at a time, and each
+    // link would otherwise fan out to every sibling already registered, making
+    // the load O(K^2) in re-parses and, on desktop, posting K(K-1) render
+    // events per symbol. The file is already consistent with the symbol, so
+    // the fan-out is pure waste. See SequenceElements::LoadEffects.
+    class ScopedSymbolPropagationSuppressor {
+    public:
+        ScopedSymbolPropagationSuppressor();
+        ~ScopedSymbolPropagationSuppressor();
+        ScopedSymbolPropagationSuppressor(const ScopedSymbolPropagationSuppressor&) = delete;
+        ScopedSymbolPropagationSuppressor& operator=(const ScopedSymbolPropagationSuppressor&) = delete;
+    private:
+        bool _prev;
+    };
 
     bool IsModelRenderDisabled() const;
     bool IsEffectRenderDisabled() const;
@@ -164,7 +194,7 @@ public:
     void SetColorMask(xlColor colorMask) { mColorMask = colorMask; }
 
     //gets the cached frame.   Returns true if the frame was filled into the buffer
-    bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache);
+    bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache, const SettingsMap &settings);
     void AddFrame(RenderBuffer &buffer, RenderCache &renderCache);
     void PurgeCache(bool deleteCachefile = false);
     

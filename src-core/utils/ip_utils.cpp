@@ -168,7 +168,8 @@ namespace ip_utils
         {
             std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
             auto it = __resolvedIPMap.find(ip);
-            if (it != __resolvedIPMap.end() && !it->second.empty()) {
+            // Only use cache if resolution previously succeeded (result differs from input)
+            if (it != __resolvedIPMap.end() && !it->second.empty() && it->second != ip) {
                 return it->second;
             }
         }
@@ -271,6 +272,7 @@ namespace ip_utils
         while (!RESOLVE_POOL.isEmpty() && count < 10000) {
             std::this_thread::sleep_for(std::chrono::milliseconds(2));
             //wxYieldIfNeeded();
+            ++count;
         }
     }
 

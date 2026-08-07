@@ -18,23 +18,32 @@
 //*)
 
 #include <wx/treelist.h>
+#include <wx/srchctrl.h>
+#include <wx/timer.h>
 #include <pugixml.hpp>
+
+#include <set>
+#include <string>
 
 #include "models/ModelManager.h"
 
 class LayoutGroup;
 
+enum class ImpItemKind { Model, ModelGroup, Viewpoint };
+
 class impTreeItemData : public wxClientData
 {
     pugi::xml_node _modelNode;
-    bool _modelGroup;
+    ImpItemKind _kind;
     const wxString _name;
 public:
-    impTreeItemData(wxString name, pugi::xml_node n, bool mg) : _modelNode(n), _modelGroup(mg), _name(name)
+    impTreeItemData(wxString name, pugi::xml_node n, ImpItemKind kind) : _modelNode(n), _kind(kind), _name(name)
     {}
     wxString GetName() const { return _name; };
     pugi::xml_node GetModelNode() const { return _modelNode; }
-    bool IsModelGroup() const { return _modelGroup; }
+    bool IsModelGroup() const { return _kind == ImpItemKind::ModelGroup; }
+    bool IsViewpoint() const { return _kind == ImpItemKind::Viewpoint; }
+    ImpItemKind GetKind() const { return _kind; }
 };
 
 class ImportPreviewsModelsDialog: public wxDialog
@@ -46,7 +55,16 @@ class ImportPreviewsModelsDialog: public wxDialog
     const std::map<std::string, std::unique_ptr<LayoutGroup>>& _layoutGroups;
 
     void ValidateWindow();
-    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview);
+    void PopulateTree();
+    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxString& filter);
+    void AddViewpoints(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node viewpoints, const wxString& filter);
+    static bool MatchesFilter(const wxString& name, const wxString& filterLower);
+    bool IsViewpointsRow(wxTreeListItem it) const;
+    // Filtering rebuilds the tree, so checked state is kept in these sets
+    // (which survive filtered-out rows) and synced to/from the visible tree.
+    void SyncCheckedFromTree();
+    void RestoreChecksToTree();
+    void ClearFilter();
     void SelectAll(bool checked);
     void SelectHighlighted(bool checked);
     void SelectRecursiveModel(wxString m, bool checked);
@@ -55,6 +73,7 @@ class ImportPreviewsModelsDialog: public wxDialog
     void DeselectExistingModels();
     void SelectAllModel(bool checked);
     void SelectAllModelGroups(bool checked);
+    void SelectAllViewpoints(bool checked);
     bool ModelExists(const std::string& modelName) const;
     bool LayoutExists(const std::string& layoutName) const;
 
@@ -65,6 +84,7 @@ class ImportPreviewsModelsDialog: public wxDialog
         bool GetIncludeEmptyGroups() const;
         wxArrayString GetPreviews() const;
         std::list<impTreeItemData*> GetModelsInPreview(wxString preview) const;
+        std::list<impTreeItemData*> GetViewpoints() const;
         float GetSourceRulerPerUnit() const;
 		//(*Declarations(ImportPreviewsModelsDialog)
 		wxButton* Button_Cancel;
@@ -92,6 +112,7 @@ class ImportPreviewsModelsDialog: public wxDialog
         static const long ID_MNU_IPM_DESELECTEXISTING;
         static const long ID_MNU_IPM_SELECTALLMODELS;
         static const long ID_MNU_IPM_SELECTALLMODELSGROUPS;
+        static const long ID_MNU_IPM_SELECTALLVIEWPOINTS;
 
 	private:
 
@@ -103,15 +124,22 @@ class ImportPreviewsModelsDialog: public wxDialog
         void OnContextMenu(wxTreeListEvent& event);
         void OnListPopup(wxCommandEvent& event);
         void OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event);
-        
-        class PreviewItemComparator : public wxTreeListItemComparator {
-            public:
-                PreviewItemComparator() {};
-                virtual ~PreviewItemComparator() {};
-                virtual int Compare(wxTreeListCtrl *treelist, unsigned col, wxTreeListItem first, wxTreeListItem second) override;
+
+        struct CheckedModel {
+            std::string name;
+            ImpItemKind kind;
+            bool operator<(const CheckedModel& o) const {
+                return kind != o.kind ? kind < o.kind : name < o.name;
+            }
         };
-    
-        PreviewItemComparator previewItemComparator;
+
+        wxSearchCtrl* _filterCtrl = nullptr;
+        wxString _filter;        // lower-cased; whitespace-tokenised AND match
+        wxString _appliedFilter; // what the tree currently shows; lags _filter by the debounce
+        wxTimer _filterTimer;    // debounce tree rebuilds while typing
+        std::set<CheckedModel> _checkedModels;
+        std::set<std::string> _checkedPreviews; // checked preview/layout-group rows
+        bool _viewpointsRootChecked = false; // the Viewpoints row's own checkbox
 
 		DECLARE_EVENT_TABLE()
 };

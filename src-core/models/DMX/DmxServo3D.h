@@ -69,7 +69,7 @@ protected:
     float brightness = 100.0f;
 
 private:
-    static const int SUPPORTED_SERVOS = 24;
+    static constexpr int SUPPORTED_SERVOS = 24;
 
     bool update_node_names = false;
     bool update_bits = false;

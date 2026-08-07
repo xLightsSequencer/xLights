@@ -37,6 +37,18 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 
+// The LOR property names carry the device's position in the controller list, but the
+// grid is not rebuilt synchronously when a device is deleted, so a stale name can name
+// a position past the end.
+static LorController* GetLorControllerAt(std::list<LorController*>& controllers, int index) {
+    if (index < 0 || index >= (int)controllers.size()) {
+        return nullptr;
+    }
+    auto it = controllers.begin();
+    std::advance(it, index);
+    return *it;
+}
+
 // =========================================================================
 // Factory
 // =========================================================================
@@ -83,10 +95,13 @@ public:
 
     virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
         int pos = wxAtoi(GetName().AfterLast('/'));
-        auto it = _lc.GetControllers().begin();
-        std::advance(it, pos);
-        wxASSERT(it != _lc.GetControllers().end());
-        _lc.GetControllers().erase(it);
+        auto& controllers = _lc.GetControllers();
+        if (pos >= 0 && pos < (int)controllers.size()) {
+            auto it = controllers.begin();
+            std::advance(it, pos);
+            delete *it;
+            controllers.erase(it);
+        }
         return new DeleteLorControllerDialogAdapter();
     }
 };
@@ -153,27 +168,28 @@ void E131OutputPropertyAdapter::UpdateProperties(wxPropertyGrid* propertyGrid, C
             p->Hide(true);
         }
         auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
+        if (!p2) {
+            p2 = propertyGrid->Insert(propertyGrid->GetProperty("Managed"), new wxPropertyCategory("Sizes", "Sizes"));
+        }
+        p2->Hide(false);
+        if (ce->IsExpanded()) {
+            expandProperties.push_back(p2);
+        }
+        while (propertyGrid->GetFirstChild(p2)) {
+            propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+        }
+        for (const auto& it : ce->GetOutputs()) {
+            p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+            p->SetAttribute("Min", 1);
+            p->SetAttribute("Max", it->GetMaxChannels());
+            p->SetEditor("SpinCtrl");
+            auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+            p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+            if (modelsOnUniverse != "") {
+                if (IsDarkMode()) {
+                    p->SetBackgroundColour(wxColour(104, 128, 79));
+                } else {
+                    p->SetBackgroundColour(wxColour(208, 255, 158));
                 }
             }
         }
@@ -223,8 +239,6 @@ void E131OutputPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid, wxPG
     p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Universe", "Channels", _e131.GetChannels()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", _e131.GetMaxChannels());
-
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
 }
 
 bool E131OutputPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
@@ -303,27 +317,28 @@ void ArtNetOutputPropertyAdapter::UpdateProperties(wxPropertyGrid* propertyGrid,
             p->Hide(true);
         }
         auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
+        if (!p2) {
+            p2 = propertyGrid->Insert(propertyGrid->GetProperty("Managed"), new wxPropertyCategory("Sizes", "Sizes"));
+        }
+        p2->Hide(false);
+        if (ce->IsExpanded()) {
+            expandProperties.push_back(p2);
+        }
+        while (propertyGrid->GetFirstChild(p2)) {
+            propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+        }
+        for (const auto& it : ce->GetOutputs()) {
+            p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+            p->SetAttribute("Min", 1);
+            p->SetAttribute("Max", it->GetMaxChannels());
+            p->SetEditor("SpinCtrl");
+            auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+            p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+            if (modelsOnUniverse != "") {
+                if (IsDarkMode()) {
+                    p->SetBackgroundColour(wxColour(104, 128, 79));
+                } else {
+                    p->SetBackgroundColour(wxColour(208, 255, 158));
                 }
             }
         }
@@ -377,8 +392,6 @@ void ArtNetOutputPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid, wx
     p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Universe", "Channels", _artnet.GetChannels()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", _artnet.GetMaxChannels());
-
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
 }
 
 bool ArtNetOutputPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
@@ -530,27 +543,28 @@ void KinetOutputPropertyAdapter::UpdateProperties(wxPropertyGrid* propertyGrid, 
             p->Hide(true);
         }
         auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
+        if (!p2) {
+            p2 = propertyGrid->Insert(propertyGrid->GetProperty("Managed"), new wxPropertyCategory("Sizes", "Sizes"));
+        }
+        p2->Hide(false);
+        if (ce->IsExpanded()) {
+            expandProperties.push_back(p2);
+        }
+        while (propertyGrid->GetFirstChild(p2)) {
+            propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+        }
+        for (const auto& it : ce->GetOutputs()) {
+            p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+            p->SetAttribute("Min", 1);
+            p->SetAttribute("Max", it->GetMaxChannels());
+            p->SetEditor("SpinCtrl");
+            auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+            p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+            if (modelsOnUniverse != "") {
+                if (IsDarkMode()) {
+                    p->SetBackgroundColour(wxColour(104, 128, 79));
+                } else {
+                    p->SetBackgroundColour(wxColour(208, 255, 158));
                 }
             }
         }
@@ -603,8 +617,6 @@ void KinetOutputPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid, wxP
     p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Port", "Channels", _kinet.GetChannels()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", _kinet.GetMaxChannels());
-
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
 }
 
 void KinetOutputPropertyAdapter::RemoveProperties(wxPropertyGrid* propertyGrid) {
@@ -862,27 +874,28 @@ void xxxEthernetOutputPropertyAdapter::UpdateProperties(wxPropertyGrid* property
             p->Hide(true);
         }
         auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
+        if (!p2) {
+            p2 = propertyGrid->Insert(propertyGrid->GetProperty("Managed"), new wxPropertyCategory("Sizes", "Sizes"));
+        }
+        p2->Hide(false);
+        if (ce->IsExpanded()) {
+            expandProperties.push_back(p2);
+        }
+        while (propertyGrid->GetFirstChild(p2)) {
+            propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+        }
+        for (const auto& it : ce->GetOutputs()) {
+            p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+            p->SetAttribute("Min", 1);
+            p->SetAttribute("Max", it->GetMaxChannels());
+            p->SetEditor("SpinCtrl");
+            auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+            p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+            if (modelsOnUniverse != "") {
+                if (IsDarkMode()) {
+                    p->SetBackgroundColour(wxColour(104, 128, 79));
+                } else {
+                    p->SetBackgroundColour(wxColour(208, 255, 158));
                 }
             }
         }
@@ -929,8 +942,6 @@ void xxxEthernetOutputPropertyAdapter::AddProperties(wxPropertyGrid* propertyGri
     p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Port", "Channels", _xxx.GetChannels()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", _xxx.GetMaxChannels());
-
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
 }
 
 void xxxEthernetOutputPropertyAdapter::RemoveProperties(wxPropertyGrid* propertyGrid) {
@@ -1065,10 +1076,10 @@ void LOROptimisedOutputPropertyAdapter::HandleExpanded(wxPropertyGridEvent& even
 
     if (name.StartsWith("Device") && isdigit(name[name.size() - 1])) {
         int index = wxAtoi(name.substr(6));
-        auto it = _lor.GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != _lor.GetControllers().GetControllers().end());
-        (*it)->SetExpanded(expanded);
+        LorController* lc = GetLorControllerAt(_lor.GetControllers().GetControllers(), index);
+        if (lc != nullptr) {
+            lc->SetExpanded(expanded);
+        }
     }
 }
 
@@ -1109,10 +1120,9 @@ bool LOROptimisedOutputPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent&
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::Devices");
     } else if (StartsWith(name, "DeviceType/")) {
         int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = _lor.GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != _lor.GetControllers().GetControllers().end());
-        (*it)->SetType(ControllerPropertyAdapter::DecodeChoices(lorDeviceTypes, event.GetValue().GetLong()));
+        LorController* lc = GetLorControllerAt(_lor.GetControllers().GetControllers(), index);
+        if (lc == nullptr) return false;
+        lc->SetType(ControllerPropertyAdapter::DecodeChoices(lorDeviceTypes, event.GetValue().GetLong()));
         _lor.RecalcTotalChannels();
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceType");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::DeviceType");
@@ -1120,10 +1130,9 @@ bool LOROptimisedOutputPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent&
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::DeviceType");
     } else if (StartsWith(name, "DeviceChannels/")) {
         int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = _lor.GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != _lor.GetControllers().GetControllers().end());
-        (*it)->SetNumChannels(event.GetValue().GetLong());
+        LorController* lc = GetLorControllerAt(_lor.GetControllers().GetControllers(), index);
+        if (lc == nullptr) return false;
+        lc->SetNumChannels(event.GetValue().GetLong());
         _lor.RecalcTotalChannels();
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceChannels");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::DeviceChannels");
@@ -1131,10 +1140,9 @@ bool LOROptimisedOutputPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent&
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::DeviceChannels");
     } else if (StartsWith(name, "DeviceUnitID/")) {
         int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = _lor.GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != _lor.GetControllers().GetControllers().end());
-        (*it)->SetUnitID(event.GetValue().GetLong());
+        LorController* lc = GetLorControllerAt(_lor.GetControllers().GetControllers(), index);
+        if (lc == nullptr) return false;
+        lc->SetUnitID(event.GetValue().GetLong());
         _lor.RecalcTotalChannels();
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceUnitID");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::DeviceUnitID");
@@ -1142,10 +1150,9 @@ bool LOROptimisedOutputPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent&
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::DeviceUnitID");
     } else if (StartsWith(name, "DeviceAddressMode/")) {
         int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = _lor.GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != _lor.GetControllers().GetControllers().end());
-        (*it)->SetMode((LorController::AddressMode)event.GetValue().GetLong());
+        LorController* lc = GetLorControllerAt(_lor.GetControllers().GetControllers(), index);
+        if (lc == nullptr) return false;
+        lc->SetMode((LorController::AddressMode)event.GetValue().GetLong());
         _lor.RecalcTotalChannels();
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceAddressMode");
         outputModelManager->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerSerial::HandlePropertyEvent::DeviceAddressMode");
@@ -1153,10 +1160,9 @@ bool LOROptimisedOutputPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent&
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerSerial::HandlePropertyEvent::DeviceAddressMode");
     } else if (StartsWith(name, "DeviceDescription/")) {
         int index = wxAtoi(wxString(name).AfterLast('/'));
-        auto it = _lor.GetControllers().GetControllers().begin();
-        std::advance(it, index);
-        wxASSERT(it != _lor.GetControllers().GetControllers().end());
-        (*it)->SetDescription(event.GetValue().GetString());
+        LorController* lc = GetLorControllerAt(_lor.GetControllers().GetControllers(), index);
+        if (lc == nullptr) return false;
+        lc->SetDescription(event.GetValue().GetString());
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerSerial::HandlePropertyEvent::DeviceDescription");
     }
 

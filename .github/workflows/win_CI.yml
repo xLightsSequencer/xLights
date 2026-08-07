@@ -53,7 +53,7 @@ jobs:
     runs-on: windows-2022
     
     env:
-      WX_VERSION: xlights_2026.04
+      WX_VERSION: xlights_2026.13
       SCCACHE_GHA_ENABLED: "true"
     
     steps:
@@ -69,7 +69,17 @@ jobs:
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
-        version: 1.30.0
+        version: 1.31.0
+
+    # glslc (Vulkan SDK Bin) compiles the .comp compute kernels to SPIR-V
+    # headers via the Xlights.vcxproj CompileVulkanShaders pre-build target
+    # (x64).  The action exports VULKAN_SDK so that target's PowerShell script
+    # finds glslc; without it the msbuild step fails at the pre-build event.
+    - name: Install Vulkan SDK
+      uses: jakoch/install-vulkan-sdk-action@v1
+      with:
+        install_runtime: false
+        cache: true
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9

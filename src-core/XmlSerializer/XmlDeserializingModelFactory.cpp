@@ -262,11 +262,11 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     model->SetRGBWHandling(node.attribute(XmlNodeKeys::RGBWHandleAttribute).as_string());
     model->SetStringType(node.attribute(XmlNodeKeys::StringTypeAttribute).as_string("RGB Nodes"));
     model->SetLowDefFactor(node.attribute(XmlNodeKeys::LowDefinitionAttribute).as_int(100));
-    model->SetShadowModelFor(node.attribute(XmlNodeKeys::ShadowModelAttribute).as_string(""));
+    model->SetShadowModelFor(node.attribute(XmlNodeKeys::ShadowModelAttribute).as_string(""), false);
     model->SetTransparency(node.attribute(XmlNodeKeys::TransparencyAttribute).as_int(0));
     model->SetBlackTransparency(node.attribute(XmlNodeKeys::BTransparencyAttribute).as_int(0));
     model->SetDescription(node.attribute(XmlNodeKeys::DescriptionAttribute).as_string());
-    model->SetTagColourAsString(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000"));
+    model->SetModelTagColour(xlColor(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000")));
     model->SetNodeNames(node.attribute(XmlNodeKeys::NodeNamesAttribute).as_string());
     model->SetStrandNames(node.attribute(XmlNodeKeys::StrandNamesAttribute).as_string());
     model->SetCustomColor(node.attribute(XmlNodeKeys::CustomColorAttribute).as_string("#000000"));
@@ -612,6 +612,7 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(pugi::xml_node node, Mode
     model->SetCustomLightness(node.attribute(XmlNodeKeys::BkgLightnessAttribute).as_int(0));
     model->SetCustomBkgScale(node.attribute(XmlNodeKeys::BkgScaleAttribute).as_int(100));
     model->SetCustomBkgBrightness(node.attribute(XmlNodeKeys::BkgBrightnessAttribute).as_int(20));
+    model->SetCustomBkgTransparency(node.attribute(XmlNodeKeys::BkgTransparencyAttribute).as_int(0));
     std::vector<std::vector<std::vector<int>>>& locations = model->GetData();
     locations = XmlSerialize::ParseCustomModelDataFromXml(node);
 
@@ -1005,7 +1006,7 @@ Model* XmlDeserializingModelFactory::DeserializeModelGroup(pugi::xml_node node, 
     }
 
     // Tag colour
-    model->SetTagColourAsString(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000"));
+    model->SetModelTagColour(xlColor(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000")));
 
     // Parse and add models to the group
     std::string modelsStr = node.attribute("models").as_string("");
@@ -1172,6 +1173,7 @@ void XmlDeserializingModelFactory::DeserializeDmxMotor(DmxMotor* motor, pugi::xm
     motor->SetOrientZero(node.attribute(XmlNodeKeys::OrientZeroAttribute).as_int(0));
     motor->SetOrientHome(node.attribute(XmlNodeKeys::OrientHomeAttribute).as_int(0));
     motor->SetSlewLimit(node.attribute(XmlNodeKeys::SlewLimitAttribute).as_float(0.0f));
+    motor->SetSpeedChannel(node.attribute(XmlNodeKeys::SpeedChannelAttribute).as_int(0));
     motor->SetReverse(std::string_view(node.attribute(XmlNodeKeys::ReverseAttribute).as_string("0")) == "1");
     motor->SetUpsideDown(std::string_view(node.attribute(XmlNodeKeys::UpsideDownAttribute).as_string("0")) == "1");
 }

@@ -11,11 +11,28 @@
 #include "wxTextDrawingContext.h"
 #include "shared/utils/wxUtilities.h"
 
+#ifdef __WXMSW__
+#include "render/D2DTextDrawingContext.h"
+#endif
+#include "render/FreeTypeTextDrawingContext.h"
+
+// Whether FreeType is what this platform picks when XL_TEXT_BACKEND says
+// nothing. Off-default builds still compile the FreeType branch so
+// XL_TEXT_BACKEND=freetype can reach it, and Register() reports back if the
+// backend was not built in.
+#ifdef LINUX
+#define FREETYPE_IS_PLATFORM_DEFAULT true
+#else
+#define FREETYPE_IS_PLATFORM_DEFAULT false
+#endif
+
 #include <wx/wx.h>
 #include <wx/font.h>
 #include <wx/graphics.h>
 
+#include <cctype>
 #include <cmath>
+#include <cstdlib>
 #include <map>
 #include <mutex>
 #include <string>
@@ -394,4 +411,57 @@ void wxTextDrawingContext::GetTextExtents(const std::string& msg, std::vector<do
     for (size_t x = 0; x < sizes.size(); x++) {
         extents[x] = sizes[x];
     }
+}
+
+// ---------------------------------------------------------------------------
+// Platform backend selection
+// ---------------------------------------------------------------------------
+void RegisterPlatformTextDrawingContext() {
+    // XL_TEXT_BACKEND overrides the platform default so one binary can be run
+    // against each backend — the same-binary comparison the render benchmarking
+    // guide relies on. Unset (the shipping case) picks the platform default.
+    std::string requested;
+    if (const char* env = std::getenv("XL_TEXT_BACKEND")) {
+        requested = env;
+        for (char& c : requested) {
+            c = (char)std::tolower((unsigned char)c);
+        }
+    }
+
+    auto registerWx = []() {
+        TextDrawingContext::RegisterFactory(wxTextDrawingContext::Create,
+                                            wxTextDrawingContext::ParseTextFont,
+                                            wxTextDrawingContext::ParseShapeFont);
+        TextDrawingContext::Initialize();
+        spdlog::info("Text rendering backend: wxWidgets");
+    };
+
+    if (requested == "wx") {
+        registerWx();
+        return;
+    }
+    if (requested == "freetype" || (requested.empty() && FREETYPE_IS_PLATFORM_DEFAULT)) {
+        // FreeType + HarfBuzz. Thread-safe per instance, which lets Text/Shape
+        // effects render on background threads; on Linux the wx/Pango path has
+        // to run on the main thread, so it is the only viable backend there.
+        if (FreeTypeTextDrawingContext::Register()) {
+            spdlog::info("Text rendering backend: FreeType");
+            return;
+        }
+        spdlog::warn("Text rendering backend: FreeType unavailable, falling back.");
+    }
+#ifdef __WXMSW__
+    if (requested != "d2d" && !requested.empty() && requested != "freetype") {
+        spdlog::warn("XL_TEXT_BACKEND='{}' not recognised; using the platform default.", requested);
+    }
+    // Direct2D + DirectWrite directly: the wx D2D backend cannot clear a
+    // surface and only publishes pixels when the context is destroyed, so it
+    // pays a mutex-serialised context creation per text render. See
+    // D2DTextDrawingContext.h.
+    if (D2DTextDrawingContext::Register()) {
+        spdlog::info("Text rendering backend: Direct2D");
+        return;
+    }
+#endif
+    registerWx();
 }

@@ -36,8 +36,10 @@ public:
     static TextFontInfo ParseTextFont(const std::string& fontString);
     static TextFontInfo ParseShapeFont(const std::string& fontString);
 
-    // One-time process registration. Call once on Linux startup.
-    static void Register();
+    // One-time process registration. Returns false if the platform's font
+    // discovery could not be brought up, in which case the caller should
+    // register a different backend.
+    static bool Register();
 
 private:
     struct Impl;

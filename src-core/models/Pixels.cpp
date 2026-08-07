@@ -257,7 +257,9 @@ std::vector<std::string> GetAllPixelTypes(bool includeSerial, bool includeArtifi
     }
     if (includeMatrices) {
         res.push_back("Virtual Matrix");
-        res.push_back("LED Panel Matrix");
+        for (const auto& it : GetAllLEDPanelMatrixProtocols()) {
+            res.push_back(it);
+        }
     }
     res.push_back("PWM");
 
@@ -346,11 +348,17 @@ bool IsSerialProtocol(const std::string& p1)
 }
 bool IsMatrixProtocol(const std::string& p1)
 {
-    return (p1 == "LED Panel Matrix") || (p1 == "Virtual Matrix");
+    return IsLEDPanelMatrixProtocol(p1) || (p1 == "Virtual Matrix");
+}
+std::vector<std::string> GetAllLEDPanelMatrixProtocols()
+{
+    // the generic protocol stays first so it remains the default anything
+    // ambiguous falls back to
+    return { PROTOCOL_LED_PANEL_MATRIX, PROTOCOL_LED_PANEL_MATRIX_CAPE, PROTOCOL_LED_PANEL_MATRIX_COLORLIGHT };
 }
 bool IsLEDPanelMatrixProtocol(const std::string& p1)
 {
-    return p1 == "LED Panel Matrix";
+    return p1 == PROTOCOL_LED_PANEL_MATRIX || p1 == PROTOCOL_LED_PANEL_MATRIX_CAPE || p1 == PROTOCOL_LED_PANEL_MATRIX_COLORLIGHT;
 }
 bool IsVirtualMatrixProtocol(const std::string& p1)
 {

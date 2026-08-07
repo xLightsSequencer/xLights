@@ -17,6 +17,7 @@
 
 #include "UtilFunctions.h"
 #include "Output.h"
+#include <spdlog/fmt/fmt.h>
 
 class OutputManager;
 class OutputModelManager;
@@ -263,6 +264,10 @@ public:
     virtual std::string GetIP() const { return GetResolvedIP(); }
     virtual std::string GetResolvedIP(bool forceResolve = false) const { return ""; }
     virtual std::string GetFPPProxy() const { return ""; }
+    // The proxy as configured, with no DNS resolution attempted - safe to call
+    // in bulk (e.g. building the controller list) unlike GetFPPProxy(), which
+    // does a live, uncached-on-failure resolve of the proxy hostname.
+    virtual std::string GetControllerFPPProxy() const { return ""; }
     virtual std::string GetProtocol() const { return ""; }
 
     // Used in tooltip on model dialog
@@ -280,6 +285,15 @@ public:
     virtual std::string GetColumn9Label() const { return toStr(IsAutoLayout()); }
     virtual std::string GetColumn10Label() const { return toStr(IsAutoSize()); }
     virtual std::string GetColumn11Label() const { return GetDescription(); }
+    virtual std::string GetColumn12Label() const { return toStr(IsAutoUpload()); }
+    // 13-17 return "" when the setting does not apply to this controller, so the
+    // column matches what the property grid shows rather than reporting a
+    // default the user cannot reach.
+    virtual std::string GetColumn13Label() const;
+    virtual std::string GetColumn14Label() const;
+    virtual std::string GetColumn15Label() const { return GetControllerFPPProxy(); }
+    virtual std::string GetColumn16Label() const;
+    virtual std::string GetColumn17Label() const;
 
     virtual Output::PINGSTATE Ping() { _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE; return GetLastPingState(); }
     virtual void AsyncPing() { _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; }

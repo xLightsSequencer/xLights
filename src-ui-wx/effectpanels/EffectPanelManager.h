@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -93,4 +94,8 @@ private:
     SequenceElements* sequenceElements_ = nullptr;
     std::vector<PanelInfo> panels;
     std::map<std::string, int> panelsByName;
+    // Liveness sentinel for the panels' wxEVT_DESTROY hooks: the frame
+    // destroys child windows in its base wxWindow destructor, AFTER this
+    // (value) member is gone, so the hooks must be able to detect that.
+    std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
 };

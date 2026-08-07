@@ -20,6 +20,7 @@ public:
     CurtainEffect(int id);
     virtual ~CurtainEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
 
     // Cached from Curtain.json. Speed uses divisor=10.
     static int sSwagDefault;

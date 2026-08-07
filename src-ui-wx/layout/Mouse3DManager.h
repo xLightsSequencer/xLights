@@ -2,6 +2,7 @@
 
 
 #include <wx/wx.h>
+#include <wx/weakref.h>
 #include <glm/vec3.hpp>
 
 #if defined(__WXOSX__) || defined(__WXMSW__)
@@ -118,8 +119,12 @@ protected:
     void sendEvent(wxEvent *ev);
     
     bool enabled = false;
-    wxWindow* lastWindow = nullptr;
-    wxWindow* focusWindow = nullptr;
+    // sendEvent runs on the 3D-mouse HID/Connexion callback thread but these are
+    // only ever read/written on the main thread (focusEvent + the CallAfter in
+    // sendEvent). wxWeakRef auto-nulls if the referenced window is destroyed, so a
+    // stale cached pointer can't be dereferenced after the window is gone.
+    wxWeakRef<wxWindow> lastWindow = nullptr;
+    wxWeakRef<wxWindow> focusWindow = nullptr;
 
 #ifdef __USE_HIDAPI__
 private:

@@ -1,0 +1,28 @@
+#version 450
+// Port of Shadow_1on2Function in LayerBlendingFunctions.metal.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    uvec4 fg = unpackPx(src[index]);
+    bool chromaKeyed = (data.isChromaKey != 0u) && applyChroma(fg);
+    if (!chromaKeyed) {
+        uvec4 bg = unpackPx(result[index]);
+        // Effect 1 shadows onto effect 2: shift the hue on the primary layer
+        // using the hue and brightness from the other layer
+        vec3 hsv0 = toHSV(fg);
+        vec3 hsv1 = toHSV(bg);
+        if (hsv0.z > 0.0) {
+            hsv1.x = hsv1.x + (hsv0.z * (hsv1.x - hsv0.x)) / 5.0;
+        }
+        result[index] = packPx(fromHSV(hsv1));
+    }
+}

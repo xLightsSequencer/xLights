@@ -1366,8 +1366,10 @@ void UDController::Rescan(bool eliminateOverlaps) {
                         std::vector<PWMOutput> outputs = it.second->GetPWMOutputs();
                         int port = it.second->GetControllerPort(1);
                         int string = 0;
+                        ControllerCaps* caps = _controller->GetControllerCaps();
+                        int maxPWMPort = caps == nullptr ? 0 : caps->GetMaxPWMPort();
                         for (auto &o : outputs) {
-                            if (port <= _controller->GetControllerCaps()->GetMaxPWMPort()) {
+                            if (port <= maxPWMPort) {
                                 auto m = GetControllerPWMPort(port)->AddModel(it.second, _controller, _outputManager, string, eliminateOverlaps);
                                 if (o.type == PWMOutput::Type::LED) {
                                     m->SetPWMLedPortProperties(o.label, o.brightness, o.gamma, o.startChannel, o.startChannel + o.channels - 1);
@@ -1706,13 +1708,12 @@ bool UDController::SetAllModelsToValidProtocols(const std::vector<std::string>& 
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
-    force = "";
+    // Deliberately not subject to allsame: that asks whether the pixel ports can mix chip
+    // protocols, which says nothing about panel matrices.  A controller can drive a cape
+    // matrix and a ColorLight matrix at once, so each panel port keeps its own family.
     for (const auto& it : _ledPanelMatrixPorts) {
-        std::vector<std::string> vmProtocol = { "LED Panel Matrix" };
-        changed |= it.second->SetAllModelsToValidProtocols(vmProtocol, force);
-        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
-            force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
-        }
+        std::vector<std::string> vmProtocol = GetAllLEDPanelMatrixProtocols();
+        changed |= it.second->SetAllModelsToValidProtocols(vmProtocol, "");
     }
 
     return changed;

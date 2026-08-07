@@ -21,6 +21,10 @@ const std::regex kEmbeddedKeyRe(
 // prepend the embedded portion back onto `remainder` (the still-unparsed tail
 // of the settings string). Returns true if a split occurred.
 bool RepairEmbeddedKey(std::string& value, std::string& remainder) {
+    // Every shape the regex matches ends in '=', and std::regex_search is orders
+    // of magnitude more expensive than this scan. Values are already split on
+    // ',' and '=' by the caller, so an embedded '=' is the rare case.
+    if (value.find('=') == std::string::npos) return false;
     std::smatch m;
     if (!std::regex_search(value, m, kEmbeddedKeyRe)) return false;
     size_t pos = m.position(0);
@@ -40,7 +44,7 @@ bool RepairEmbeddedKey(std::string& value, std::string& remainder) {
 
 void SettingsMap::ParseJson(EffectManager* effectManager, const std::string& str, const std::string& effectName)
 {
-    _internal.clear();
+    clear(); // also invalidates the attached render cache
     std::string before, after, name, value;
     std::string settings(str);
     ReplaceAll(settings, "{", "");
@@ -77,7 +81,7 @@ void SettingsMap::ParseJson(EffectManager* effectManager, const std::string& str
 
 void SettingsMap::Parse(EffectManager* effectManager, const std::string& str, const std::string& effectName)
 {
-    _internal.clear();
+    clear(); // also invalidates the attached render cache
     std::string before, after, name, value;
     std::string settings(str);
     while (!settings.empty()) {

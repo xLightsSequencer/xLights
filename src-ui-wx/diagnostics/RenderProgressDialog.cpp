@@ -12,6 +12,8 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 
+#include <wx/event.h>
+
 //(*InternalHeaders(RenderProgressDialog)
 #include <wx/button.h>
 #include <wx/intl.h>
@@ -34,7 +36,7 @@ RenderProgressDialog::RenderProgressDialog(wxWindow* parent)
 	//(*Initialize(RenderProgressDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 
-	Create(parent, wxID_ANY, _("Rendering Progress"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxSTAY_ON_TOP, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("Rendering Progress"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -68,11 +70,27 @@ RenderProgressDialog::RenderProgressDialog(wxWindow* parent)
         Layout();
     }
     EnsureWindowHeaderIsOnScreen(this);
+
+    _owner = parent;
+    if (_owner != nullptr) {
+        _owner->Bind(wxEVT_ACTIVATE, &RenderProgressDialog::OnOwnerActivate, this);
+    }
 }
 
 RenderProgressDialog::~RenderProgressDialog()
 {
 	//(*Destroy(RenderProgressDialog)
 	//*)
+    if (_owner != nullptr) {
+        _owner->Unbind(wxEVT_ACTIVATE, &RenderProgressDialog::OnOwnerActivate, this);
+    }
     SaveWindowPosition("RenderProgress", this);
+}
+
+void RenderProgressDialog::OnOwnerActivate(wxActivateEvent& event)
+{
+    event.Skip();
+    if (event.GetActive() && IsShown()) {
+        Raise();
+    }
 }

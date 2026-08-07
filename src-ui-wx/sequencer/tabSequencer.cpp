@@ -26,6 +26,7 @@
 #include <wx/textfile.h>
 
 #include "xLightsMain.h"
+#include "../../common/xlBaseApp.h"
 #include "shared/utils/wxUtilities.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceMedia.h"
@@ -71,6 +72,7 @@
 #include "layout/LayoutPanel.h"
 #include "utils/TraceLog.h"
 #include "effectpanels/EffectPanelUtils.h"
+#include "shared/controls/BulkEditControls.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "models/ModelGroup.h"
@@ -369,7 +371,6 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         mCurrentPerpective = &_perspectives.back();
         UnsavedRgbEffectsChanges = true;
         UpdateLayoutSave();
-        UpdateControllerSave();
     } else {
         for (auto& p : _perspectives) {
             if (!p.name.empty() && p.name == _currentPerspectiveName) {
@@ -517,6 +518,13 @@ static bool HasEffects(ModelElement *el) {
 void xLightsFrame::CheckForValidModels()
 {
     
+
+    // Baseline the "saved" change count here — after AdjustEffectSettingsForVersion
+    // (so migrations don't read as unsaved) but before the remap below (so a remap
+    // does mark the sequence dirty). Same seam as before; now reached from
+    // xLightsShowContext::LoadSequenceElements.
+    mSavedChangeCount = _sequenceElements.GetChangeCount();
+    mLastAutosaveCount = mSavedChangeCount;
 
     bool cancelled = false;
 
@@ -933,7 +941,7 @@ void xLightsFrame::LoadAudioData(SequenceFile& xml_file)
         }
     }
 
-    mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
+    mainSequencer->PanelTimeLine->SetTimeLength(std::max(mMediaLengthMS, _sequenceElements.GetMaxEffectEndTimeMS()));
     mainSequencer->PanelTimeLine->Initialize();
     int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
     mainSequencer->PanelTimeLine->SetFitZoom();  // default: sequence fills the full viewport
@@ -948,37 +956,40 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
 
     spdlog::debug("Load sequence {}", (const char*)xml_file.GetFullPath().c_str());
 
-    PushTraceContext();
-    SetFrequency(xml_file.GetFrequency());
-    _sequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
+    // LoadSequencerFile below clears and rebuilds every Element/Effect/SettingsMap.
+    // A background render job spun up between CloseSequence's abort and now (e.g. the
+    // converted-file RenderAll / settings-dialog paths) would still be reading those
+    // objects while we free them -> heap corruption / crash (bucket d7ec0a8bbc).
+    // Drain any in-flight render before touching _sequenceElements. LoadSequencerFile
+    // itself does not pump the event loop, so no new render can start mid-rebuild.
+    AbortRender();
 
+    PushTraceContext();
     AddTraceMessage("loading");
-    _sequenceElements.LoadSequencerFile(xml_file, doc, GetShowDirectory());
+
+    // The shared, wx-free load: frequency, views manager, LoadSequencerFile,
+    // AdjustEffectSettingsForVersion, CheckForValidModels (overridden below for
+    // the interactive remap dialog), PrepareViews / PopulateRowInformation, mark
+    // loaded, ValueCurve wiring — the steps every host runs in this order. See
+    // xLightsShowContext::LoadSequenceElements.
+    if (!LoadSequenceElements(xml_file, doc)) {
+        spdlog::warn("LoadSequencer: failed to load {}", (const char*)xml_file.GetFullPath().c_str());
+        PopTraceContext();
+        return;
+    }
+
+    // Desktop UI on top of the shared load:
+    SetFrequency(xml_file.GetFrequency()); // also refreshes the timeline/waveform panels
 
     // Sync jukebox UI from sequence data
     if (GetJukeboxPanel()) {
         GetJukeboxPanel()->SyncFromData(xml_file.GetJukeboxButtons());
     }
 
-    spdlog::debug("Upgrading sequence");
-    xml_file.AdjustEffectSettingsForVersion(_sequenceElements, this);
-
     Menu_Settings_Sequence->Enable(true);
-
-    mSavedChangeCount = _sequenceElements.GetChangeCount();
-    mLastAutosaveCount = mSavedChangeCount;
-
-    spdlog::debug("Checking for valid models");
-    CheckForValidModels();
 
     spdlog::debug("Loading the audio data");
     LoadAudioData(xml_file);
-
-    spdlog::debug("Preparing views");
-    _sequenceElements.PrepareViews(xml_file);
-
-    spdlog::debug("Populating row information");
-    _sequenceElements.PopulateRowInformation();
 
     mainSequencer->PanelEffectGrid->SetSequenceElements(&_sequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
@@ -1185,7 +1196,13 @@ void xLightsFrame::ResizeMainSequencer()
 
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
-    mainSequencer->ScrollBarEffectsHorizontal->Update();
+    if (mainSequencer != nullptr) {
+        mainSequencer->ScrollBarEffectsHorizontal->Update();
+    }
+    // wxAuiManager now Bind()s its own OnPaint on the managed window (PanelSequencer)
+    // instead of PushEventHandler()ing itself ahead of it. Skip so the paint event
+    // still reaches wxAuiManager::OnPaint, which draws the pane captions/borders/buttons.
+    event.Skip();
 }
 
 void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
@@ -1758,14 +1775,22 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
 
 void xLightsFrame::AutoShowHouse()
 {
+    if (m_mgr == nullptr || IsExiting()) return;
+
     if (_autoShowHousePreview)
     {
-        bool visible = m_mgr->GetPane("HousePreview").IsShown();
+        // Playback state changes reach here from queued events, so this can run
+        // with the sequencer never initialised (Layout/Setup tab), where GetPane
+        // hands back the shared null pane. Showing that and calling Update()
+        // relayouts against a pane the manager does not own.
+        auto& hp = m_mgr->GetPane("HousePreview");
+        if (!hp.IsOk()) return;
+
+        bool visible = hp.IsShown();
         if (playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED)
         {
             if (!visible)
             {
-                auto& hp = m_mgr->GetPane("HousePreview");
                 hp.Show();
                 if (_wasMaximised)
                 {
@@ -1779,7 +1804,6 @@ void xLightsFrame::AutoShowHouse()
             _wasMaximised = false;
             if (visible)
             {
-                auto& hp = m_mgr->GetPane("HousePreview");
                 if (hp.IsMaximized() && hp.IsDocked())
                 {
                     _wasMaximised = true;
@@ -1807,7 +1831,9 @@ void xLightsFrame::DoPlaySequence()
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
 				AudioManager* playAudio = GetPlaybackAudio();
 				if (playAudio != nullptr) {
+					xlCrashHandler::TraceNote("audio seek", std::to_string(playStartTime));
 					playAudio->Seek(playStartTime);
+					xlCrashHandler::TraceNote("audio seek done");
 				}
 			}
 			if (playEndTime == -1 || playEndTime > CurrentSeqXmlFile->GetSequenceDurationMS()) {
@@ -1817,7 +1843,9 @@ void xLightsFrame::DoPlaySequence()
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
 				AudioManager* playAudio = GetPlaybackAudio();
 				if (playAudio != nullptr) {
+					xlCrashHandler::TraceNote("audio play");
 					playAudio->Play();
+					xlCrashHandler::TraceNote("audio play done");
 				}
 			}
 		}
@@ -2940,9 +2968,23 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     //colorPanel->Thaw();
 }
 
+static wxString NormalizeFloatForControl(BESLIDERTYPE type, const wxString& value) {
+    double d;
+    if (!value.ToCDouble(&d)) return value;
+    switch (type) {
+        case BE_FLOAT1:
+            return wxString::Format("%.1f", d);
+        case BE_FLOAT2:
+        case BE_FLOAT360:
+            return wxString::Format("%.2f", d);
+        default:
+            return value;
+    }
+}
+
 bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 {
-    
+
     bool res = true;
     auto orig = name;
     wxWindow* ContextWin = nullptr;
@@ -2991,12 +3033,20 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
         } else if (name.StartsWith("ID_TEXTCTRL")) {
 			wxTextCtrl* ctrl = dynamic_cast<wxTextCtrl*>(CtrlWin);
             if (ctrl != nullptr) {
-                ctrl->SetValue(value);
+                wxString v = value;
+                if (auto* beCtrl = dynamic_cast<BulkEditTextCtrl*>(ctrl)) {
+                    v = NormalizeFloatForControl(beCtrl->GetBESliderType(), v);
+                }
+                ctrl->SetValue(v);
             } else {
-                // some text ctrls have been replace with combo boxes ... maybe this is one of those
-                wxComboBox* ctrl = dynamic_cast<wxComboBox*>(CtrlWin);
-                if (ctrl != nullptr) {
-                    ctrl->SetValue(value);
+                // some text ctrls have been replaced with combo boxes ... maybe this is one of those
+                wxComboBox* comboCtrl = dynamic_cast<wxComboBox*>(CtrlWin);
+                if (comboCtrl != nullptr) {
+                    wxString v = value;
+                    if (auto* beCombo = dynamic_cast<BulkEditComboBox*>(comboCtrl)) {
+                        v = NormalizeFloatForControl(beCombo->GetBESliderType(), v);
+                    }
+                    comboCtrl->SetValue(v);
                 } else {
                     wxASSERT(false);
                 }
@@ -3171,6 +3221,12 @@ void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
 
 void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased)
 {
+    // Same hazard as ResetAllPanelDefaultSettings below: reachable (e.g. via
+    // key-bound effect actions) before the sequencer tab is built, when these
+    // panel pointers are still null.
+    if (EffectsPanel1 == nullptr || blendingPanel == nullptr || bufferPanel == nullptr || colorPanel == nullptr) {
+        return;
+    }
     SetChoicebook(EffectsPanel1->EffectChoicebook, effect);
     blendingPanel->SetDefaultControls(model, optionbased);
     bufferPanel->SetDefaultControls(model, optionbased);
@@ -3181,6 +3237,13 @@ void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Mo
     EffectsPanel1->SetDefaultEffectValues(effect);
 }
 void xLightsFrame::ResetAllPanelDefaultSettings() {
+    // At app exit the reset is pointless (every panel is about to be
+    // destroyed) and it has crashed inside SetDefaultEffectValues on
+    // partially torn-down panels — the panels only need defaults when
+    // another sequence can still be opened.
+    if (IsExiting()) {
+        return;
+    }
     // CloseSequence() runs on paths (e.g. show-folder setup) that fire before
     // the sequencer tab is built, leaving these panel pointers null. Calling
     // through a null EffectsPanel1 faults inside SetDefaultEffectValues (its
@@ -3288,6 +3351,7 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         mCurrentPerpective = perspective;
     }
     if (settings.size() == 0) {
+        SyncFloatingPanePositions();
         settings = m_mgr->SavePerspective();
         perspective->settings = settings.ToStdString();
         perspective->version = "2.0";
@@ -3321,6 +3385,7 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         m_mgr->Update();
 
         perspective->version = "2.0";
+        SyncFloatingPanePositions();
         wxString p = m_mgr->SavePerspective();
         perspective->settings = p.ToStdString();
         spdlog::debug("Saved perspective.");
@@ -3348,8 +3413,11 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
             std::string name = panes[x].name.ToStdString();
             if (name != "HousePreview" && name != "ModelPreview") continue;
             recoverNames.push_back(name);
-            recoverPos.push_back(panes[x].frame->GetPosition());
-            recoverSize.push_back(panes[x].frame->GetSize());
+            // Use AUI's stored floating_pos/floating_size rather than the live
+            // native frame position, which on macOS may already be shifted by
+            // Cocoa after a Hide()/Show() cycle.
+            recoverPos.push_back(panes[x].floating_pos);
+            recoverSize.push_back(panes[x].floating_size);
         }
         if (!recoverNames.empty()) {
             for (const auto& nm : recoverNames) {
@@ -3382,12 +3450,11 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
     }
 
     for (int i = 0; i < 10; i++) {
-        if (perspectives[i].p == perspective) {
-            MenuItemPerspectives->Check(perspectives[i].id, true);
+        if (perspectives[i].p != nullptr) {
+            MenuItemPerspectives->Check(perspectives[i].id, perspectives[i].p == perspective);
         }
     }
     UpdateLayoutSave();
-    UpdateControllerSave();
     UpdateViewMenu();
 }
 
@@ -3400,7 +3467,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 {
-    
+    SyncFloatingPanePositions();
 
     if (mCurrentPerpective != nullptr)
     {
@@ -3462,7 +3529,6 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
     LoadPerspectivesMenu();
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
     UpdateViewMenu();
 }
 
@@ -3477,15 +3543,7 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideSelectEffectsWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("SelectEffect").IsShown();
-    if (visible) {
-        m_mgr->GetPane("SelectEffect").Hide();
-    } else {
-        m_mgr->GetPane("SelectEffect").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("SelectEffect", true);
 }
 
 void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
@@ -3499,144 +3557,58 @@ void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-
-    bool visible = m_mgr->GetPane("LayerSettings").IsShown();
-    if (visible) {
-        m_mgr->GetPane("LayerSettings").Hide();
-    } else {
-        m_mgr->GetPane("LayerSettings").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("LayerSettings", true);
 }
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-
-    wxAuiPaneInfo& info = m_mgr->GetPane("DisplayElements");
-
-    if (!info.IsOk()) return;
-
-    bool visible = info.IsShown();
-    if (visible) {
-        info.Hide();
-    } else {
-        info.Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("DisplayElements", true);
 }
 
 void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("Effect").IsShown();
-    if (visible) {
-        m_mgr->GetPane("Effect").Hide();
-    } else {
-        m_mgr->GetPane("Effect").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("Effect", true);
 }
 
 void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("Color").IsShown();
-    if (visible) {
-        m_mgr->GetPane("Color").Hide();
-    } else {
-        m_mgr->GetPane("Color").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("Color", true);
 }
 
 void xLightsFrame::ShowHideLayerBlendingWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("LayerTiming").IsShown();
-    if (visible) {
-        m_mgr->GetPane("LayerTiming").Hide();
-    } else {
-        m_mgr->GetPane("LayerTiming").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("LayerTiming", true);
 }
 
 void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("ModelPreview").IsShown();
-    if (visible) {
-        m_mgr->GetPane("ModelPreview").Hide();
-    } else {
-        m_mgr->GetPane("ModelPreview").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("ModelPreview", true);
 }
 
 void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("HousePreview").IsShown();
-    if (visible) {
-        m_mgr->GetPane("HousePreview").Hide();
-    } else {
-        m_mgr->GetPane("HousePreview").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("HousePreview", true);
 }
 
 void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("EffectDropper").IsShown();
-    if (visible) {
-        m_mgr->GetPane("EffectDropper").Hide();
-    } else {
-        m_mgr->GetPane("EffectDropper").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("EffectDropper", true);
 }
 
 void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("Perspectives").IsShown();
-    if (visible) {
-        m_mgr->GetPane("Perspectives").Hide();
-    } else {
-        m_mgr->GetPane("Perspectives").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("Perspectives", true);
 }
 
 void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("EffectAssist").IsShown();
-    if (visible) {
-        m_mgr->GetPane("EffectAssist").Hide();
-        // Dont set it permanently
-        //mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
-        tempEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
-    } else {
-        m_mgr->GetPane("EffectAssist").Show();
-        // Dont set it permanently
-        // mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
-        tempEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
+    bool nowShown = false;
+    if (!TogglePaneVisibility("EffectAssist", true, &nowShown)) {
+        return;
     }
-    m_mgr->Update();
-    UpdateViewMenu();
+    // tempEffectAssistMode, not mEffectAssistMode: this toggle is a session
+    // override and must not rewrite the saved preference.
+    tempEffectAssistMode = nowShown ? EFFECT_ASSIST_ALWAYS_ON : EFFECT_ASSIST_ALWAYS_OFF;
 }
 
 TimingElement* xLightsFrame::AddTimingElement(const std::string& name, const std::string &subType)

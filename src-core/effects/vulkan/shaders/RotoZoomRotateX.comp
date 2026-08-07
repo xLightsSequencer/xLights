@@ -1,0 +1,37 @@
+#version 450
+// Port of RotoZoomRotateX in RotoZoomFunctions.metal (write pass — see the
+// Claim kernel for the two-phase determinism scheme).
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "rotozoom_pc.glsl"
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Owner { int owner[]; };
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+
+    float x = float(index.x);
+    float sine = sin((data.xrotation + 90.0) * XL_PI / 180.0);
+    float pivot = float(data.xpivot) * float(data.width) / 100.0;
+    float tox;
+    if (x >= pivot) {
+        tox = sine * (x - pivot) + pivot;
+    } else {
+        tox = -1.0 * sine * (pivot - x) + pivot;
+    }
+    // Bounds-check the ROUNDED index (see RotoZoomRotateXClaim).
+    int toxi = int(xl_round(tox));
+    if (toxi >= 0 && toxi < int(data.width)) {
+        uint didx = index.y * data.width + uint(toxi);
+        if (owner[didx] == int(sidx)) {
+            result[didx] = src[sidx];
+        }
+    }
+}

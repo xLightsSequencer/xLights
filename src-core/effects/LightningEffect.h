@@ -20,6 +20,10 @@ public:
     LightningEffect(int id);
     virtual ~LightningEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Pure: buffer.randInt()/rand01() reseed per frame from a stable hash of
+    // (model, layer, effect-start, period), so the serial RNG stream reproduces
+    // in strided/parallel render order - it is a pure function of the frame.
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     virtual bool AppropriateOnNodes() const override
     {
         return false;

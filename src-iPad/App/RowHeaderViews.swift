@@ -269,6 +269,8 @@ struct TimingRowHeader: View {
                         Button("÷4") { fire(4) }
                         Button("÷6") { fire(6) }
                         Button("÷8") { fire(8) }
+                        Button("÷12") { fire(12) }
+                        Button("÷16") { fire(16) }
                     } label: {
                         Label("Divide Timing Marks…",
                                systemImage: "square.split.2x2")
@@ -359,15 +361,22 @@ struct ModelRowHeader: View {
     /// submodels + strands + nodes). Shown on model rows where it
     /// differs from `onSelectAllEffects` (which is row-scoped only).
     var onSelectAllEffectsInModel: (() -> Void)?
-    /// B46 rename-layer callback + initial label. The outer view
-    /// wires this to `SequencerViewModel.renameLayer(rowIndex:name:)`
-    /// and then refreshes rows.
-    var onRenameLayer: ((_ newName: String) -> Void)?
-    /// B50 delete-all-effects-on-row + count (for the confirm alert).
+    /// B46 rename layer. The outer view owns the name prompt and the
+    /// `SequencerViewModel.renameLayer(rowIndex:name:)` commit — all
+    /// delete/rename confirms are hosted once in SequencerGridV2View
+    /// rather than as per-row .alert modifiers, which SwiftUI re-diffs
+    /// for every row on every grid update and which pinned the CPU on
+    /// large shows.
+    var onRequestRenameLayer: (() -> Void)?
+    /// Delete-this-layer request; the outer view confirms and commits.
+    var onRequestDeleteLayer: (() -> Void)?
+    /// B50 delete-all-effects-on-row; the count gates menu visibility,
+    /// the outer view confirms and commits.
     var effectCountOnRow: Int = 0
     var onDeleteAllEffectsOnRow: (() -> Void)?
     /// Desktop ID_ROW_MNU_DELETE_MODEL_EFFECTS — delete every effect
-    /// on the element (all layers + submodels/strands/nodes).
+    /// on the element (all layers + submodels/strands/nodes). The
+    /// outer view confirms and commits.
     var onDeleteModelEffects: (() -> Void)?
     /// B51 toggle element render-disabled flag.
     var elementRenderDisabled: Bool = false
@@ -461,34 +470,26 @@ struct ModelRowHeader: View {
     /// already applied by `SequencerGridV2View.modelHeaders`.
     var isSelected: Bool = false
 
-    @State private var showDeleteLayerConfirm: Bool = false
-    @State private var showDeleteAllEffectsConfirm: Bool = false
-    @State private var showDeleteModelEffectsConfirm: Bool = false
-    @State private var showRenameLayer: Bool = false
-    @State private var renameLayerText: String = ""
-
     var body: some View {
         let isSubLayer = row.layerIndex > 0
         let isSubmodelRow = row.isSubmodel
         let isStrandRow = row.strandIndex >= 0
         let isNodeRow = row.nodeIndex >= 0
-        let isGroup = !isSubLayer && !isSubmodelRow
-            && document.rowIsModelGroup(at: Int32(row.id))
-        let layerCount = isNodeRow ? 0 : Int(document.rowLayerCount(at: Int32(row.id)))
-        let collapsed = !isSubLayer && !isNodeRow
-            && document.rowIsElementCollapsed(at: Int32(row.id))
+        // All resolved when the row list was built. Asking the document here
+        // instead put six bridge calls per row into every body evaluation, two
+        // of them taking the model manager's mutex, which showed up as
+        // sustained CPU while scrolling a large show.
+        let isGroup = row.isModelGroup
+        let layerCount = row.layerCount
+        let collapsed = row.isElementCollapsed
         let showLayerToggle = !isSubLayer && !isNodeRow && layerCount > 1
 
         // Submodel/node disclosure — show only on the element's primary
         // row (first layer, not a sub-layer) and only when there's
         // something to disclose.
-        let canToggleSubmodels = !isSubLayer && !isNodeRow
-            && document.rowHasSubmodels(at: Int32(row.id))
-        let canToggleNodes = !isSubLayer && isStrandRow
-            && document.rowHasNodes(at: Int32(row.id))
-        let showsChildren = canToggleNodes
-            ? document.rowShowsNodes(at: Int32(row.id))
-            : document.rowShowsSubmodels(at: Int32(row.id))
+        let canToggleSubmodels = row.canToggleSubmodels
+        let canToggleNodes = row.canToggleNodes
+        let showsChildren = row.showsChildren
         let hasDisclosure = canToggleSubmodels || canToggleNodes
 
         let indent = CGFloat(row.nestDepth) * 10
@@ -636,17 +637,17 @@ struct ModelRowHeader: View {
                            systemImage: "rectangle.stack.fill.badge.plus")
                 }
             }
-            if effectCountOnRow > 0, onDeleteAllEffectsOnRow != nil {
+            if effectCountOnRow > 0, let fire = onDeleteAllEffectsOnRow {
                 Button(role: .destructive) {
-                    showDeleteAllEffectsConfirm = true
+                    fire()
                 } label: {
                     Label("Delete All Effects on Row",
                            systemImage: "trash.slash")
                 }
             }
-            if !isSubLayer && !isNodeRow, onDeleteModelEffects != nil {
+            if !isSubLayer && !isNodeRow, let fire = onDeleteModelEffects {
                 Button(role: .destructive) {
-                    showDeleteModelEffectsConfirm = true
+                    fire()
                 } label: {
                     Label("Delete Model Effects",
                            systemImage: "trash.fill")
@@ -811,10 +812,9 @@ struct ModelRowHeader: View {
                 Divider()
             }
             if !isNodeRow {
-                if onRenameLayer != nil {
+                if let fire = onRequestRenameLayer {
                     Button {
-                        renameLayerText = document.rowLayerName(at: Int32(row.id))
-                        showRenameLayer = true
+                        fire()
                     } label: { Label("Rename Layer", systemImage: "pencil") }
                 }
                 Button {
@@ -835,7 +835,7 @@ struct ModelRowHeader: View {
                 }
                 if canDeleteLayer {
                     Button(role: .destructive) {
-                        showDeleteLayerConfirm = true
+                        onRequestDeleteLayer?()
                     } label: { Label("Delete Layer", systemImage: "trash") }
                     if let fire = onDeleteMultipleLayers {
                         Button(role: .destructive) { fire() } label: {
@@ -885,45 +885,6 @@ struct ModelRowHeader: View {
                           systemImage: "scope")
                 }
             }
-        }
-        .alert("Delete Layer",
-               isPresented: $showDeleteLayerConfirm) {
-            Button("Delete", role: .destructive) {
-                if document.removeEffectLayer(at: Int32(row.id)) {
-                    onRowsChanged()
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Delete layer \(row.layerIndex + 1) of \(row.displayName)? All effects on this layer will be lost.")
-        }
-        .alert("Delete All Effects",
-               isPresented: $showDeleteAllEffectsConfirm) {
-            Button("Delete All", role: .destructive) {
-                onDeleteAllEffectsOnRow?()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Delete all \(effectCountOnRow) effects on \(row.displayName)? Undo with ⌘Z.")
-        }
-        .alert("Delete Model Effects",
-               isPresented: $showDeleteModelEffectsConfirm) {
-            Button("Delete All", role: .destructive) {
-                onDeleteModelEffects?()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Delete every effect on \(row.displayName) — all layers, submodels, strands and nodes? Undo with ⌘Z.")
-        }
-        .alert("Rename Layer",
-               isPresented: $showRenameLayer) {
-            TextField("Name", text: $renameLayerText)
-            Button("OK") {
-                onRenameLayer?(renameLayerText)
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Enter a layer name (used as the header label).")
         }
     }
 

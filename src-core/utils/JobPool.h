@@ -28,6 +28,15 @@ public:
 
     virtual std::string GetStatus();
     virtual const std::string GetName() const;
+
+    // Single source of truth for this job's queue priority: PushJob reads it
+    // rather than taking a parameter, so every requeue path (suspend/resume,
+    // watchdog nudge, park handoff) preserves it automatically.
+    bool IsHighPriority() const { return highPriority; }
+    void SetHighPriority(bool hp) { highPriority = hp; }
+
+private:
+    bool highPriority = false;
 };
 
 
@@ -40,6 +49,7 @@ class JobPool
     std::condition_variable signal;
     std::vector<JobPoolWorker*> threads;
     std::deque<Job*> queue;
+    std::deque<Job*> highPriorityQueue;
     std::atomic_int numThreads;
     std::atomic_int idleThreads;
     std::string threadNameBase;

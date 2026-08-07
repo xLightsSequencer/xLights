@@ -53,15 +53,23 @@ struct XLightsApp: App {
         // creating the view model, since SequencerViewModel constructs an
         // iPadRenderContext whose EffectManager needs the resources directory
         // to load effectmetadata JSON files.
+        LaunchTiming.begin()
         XLiPadInit.initialize()
         XLDiagnosticUploader.shared.bootstrap()
+        LaunchTiming.mark("uploader-bootstrap")
+        // Constructing the view model builds XLSequenceDocument ->
+        // iPadRenderContext -> EffectManager, which creates every effect and
+        // parses ~57 effectmetadata JSON files off the bundle. All of it is on
+        // the pre-first-frame path, so it is timed separately.
         let vm = SequencerViewModel()
+        LaunchTiming.mark("viewmodel+effectmanager")
         // Desktop "Other ▸ Purge Download Cache at Startup" (default OFF).
         if UserDefaults.standard.bool(forKey: "purgeDownloadCacheAtStartup") {
             vm.purgeDownloadCache()
         }
         vm.startMemoryMonitoring()
         _viewModel = State(initialValue: vm)
+        LaunchTiming.mark("app-init-done")
         // restorePersistedShowFolder is deliberately NOT called here.
         // It triggers ObtainAccessToURL + xlights_rgbeffects.xml parse +
         // model construction + per-model FileExists, all synchronous. When
@@ -307,12 +315,32 @@ struct ContentView: View {
                 .environment(viewModel)
         }
         .sheet(isPresented: Binding(
+            get: { viewModel.showingLightTest },
+            set: { viewModel.showingLightTest = $0 }
+        )) {
+            LightTestSheet()
+                .environment(viewModel)
+        }
+        .sheet(isPresented: Binding(
             get: { viewModel.showingRestoreBackup },
             set: { viewModel.showingRestoreBackup = $0 }
         )) {
             RestoreBackupSheet()
                 .environment(viewModel)
         }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingEffectSymbols },
+            set: { viewModel.showingEffectSymbols = $0 }
+        )) {
+            EffectSymbolsSheet(viewModel: viewModel)
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingRenderProgress },
+            set: { viewModel.showingRenderProgress = $0 }
+        )) {
+            RenderProgressSheet(viewModel: viewModel)
+        }
+        .modifier(LayoutAutosaveRecoveryModifier(viewModel: viewModel))
         .sheet(isPresented: Binding(
             get: { viewModel.showingAIServices },
             set: { viewModel.showingAIServices = $0 }
@@ -474,7 +502,16 @@ struct ContentView: View {
         .task {
             guard !didKickoffShowFolderRestore else { return }
             didKickoffShowFolderRestore = true
-            viewModel.restorePersistedShowFolder()
+            // First `.task` after the initial render: this is the closest we
+            // get to "first frame drawn" from inside the app, and it is the
+            // boundary MXAppLaunchDiagnostic measures to.
+            LaunchTiming.mark("first-frame")
+            // restorePersistedShowFolder returns immediately (the load
+            // detaches), so flush here to capture the boot phases even when
+            // there is no show folder to load — applyLoadResult re-flushes
+            // with the post-launch marks appended.
+            _ = viewModel.restorePersistedShowFolder()
+            LaunchTiming.flushSidecar()
         }
         // Help → Tip of the Day at startup. Show once per launch when
         // the pref is on (mirrors desktop's startup TipOfTheDayDialog).
@@ -634,7 +671,7 @@ struct ContentView: View {
                 set: { if !$0 { autosaveRecoveryDate = nil } }
                )) {
             Button("Recover") {
-                _ = viewModel.applyAutosaveBackup()
+                Task { _ = await viewModel.applyAutosaveBackup() }
                 autosaveRecoveryDate = nil
             }
             Button("Discard Backup", role: .destructive) {
@@ -973,7 +1010,7 @@ struct ShowFolderSetupView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("xLights")
+            Text("xLights™")
                 .font(.largeTitle)
             if isRestoring {
                 ProgressView()
@@ -1332,6 +1369,27 @@ struct SequencePickerView: View {
             waitForDownload(url: url,
                              attemptsRemaining: attemptsRemaining - 1,
                              then: complete)
+        }
+    }
+}
+
+
+/// Layout autosave recovery prompt — a `xlights_rgbeffects.xbkp` newer
+/// than the show file means a previous session ended with unsaved
+/// layout edits. Its own modifier so the app shell's modifier chain
+/// stays inside the Swift type-checker's complexity budget.
+private struct LayoutAutosaveRecoveryModifier: ViewModifier {
+    let viewModel: SequencerViewModel
+
+    func body(content: Content) -> some View {
+        content.alert("Newer Layout Autosave Found", isPresented: Binding(
+            get: { viewModel.pendingLayoutAutosaveRecovery },
+            set: { if !$0 { viewModel.pendingLayoutAutosaveRecovery = false } }
+        )) {
+            Button("Use Autosave") { viewModel.acceptLayoutAutosave() }
+            Button("Discard", role: .destructive) { viewModel.declineLayoutAutosave() }
+        } message: {
+            Text("Layout changes from a previous session were autosaved but never saved to the show file. Use the autosave, or discard it and keep the show file as it is?")
         }
     }
 }

@@ -92,6 +92,19 @@ typedef enum
     E_CURTAIN_CLOSE_OPEN
 } CURTAIN_EFFECT_e;
 
+RenderableEffect::FrameParallelism CurtainEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    int effect = GetCurtainEffect(settings.Get("CHOICE_Curtain_Effect", sEffectDefault));
+    // open / close: both the curtain extent and the direction derive purely from
+    // the current frame (GetEffectTimeIntervalPosition); the direction cache is
+    // written but never read.  open-then-close / close-then-open detect the turn
+    // by comparing this frame's extent to the prior frame's cached extent, so
+    // they carry cross-frame state.
+    if (effect == E_CURTAIN_OPEN || effect == E_CURTAIN_CLOSE) {
+        return FrameParallelism::Pure;
+    }
+    return FrameParallelism::Stateful;
+}
+
 class CurtainRenderCache : public EffectRenderCache {
 public:
     CurtainRenderCache() : LastCurtainDir(0), LastCurtainLimit(0) {};

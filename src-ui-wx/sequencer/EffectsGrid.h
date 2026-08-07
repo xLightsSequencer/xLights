@@ -223,6 +223,7 @@ protected:
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType, int y = -1);
     int GetClippedPositionFromTimeMS(int ms) const;
+    void PrepareEffectFiles(Effect* effect);
 
     void DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator *backgrounds) const;
     void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);
@@ -312,6 +313,11 @@ private:
     void AddShimmer();
     void RemoveShimmer();
 
+    // Effect Symbol methods
+    void CreateSymbolFromEffect();
+    void UnlinkEffectFromSymbol();
+    void LinkEffectToSymbol(int symbolIndex);
+
     SequenceElements* mSequenceElements = nullptr;
     bool mIsDrawing = false;
     bool mGridIconBackgrounds;
@@ -369,6 +375,7 @@ private:
 
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;
+    Effect* _rightClickEffect = nullptr;
 
     // Drag And Drop
     bool mDragDropping;
@@ -463,6 +470,9 @@ private:
     static const long ID_GRID_MNU_DUPLICATE_EFFECT;
     static const long ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT;
     static const long ID_GRID_MNU_FILL_REGION;
+    static const long ID_GRID_MNU_CREATE_SYMBOL;
+    static const long ID_GRID_MNU_UNLINK_SYMBOL;
+    static const long ID_GRID_MNU_LINK_SYMBOL_BASE;
     EventPlayEffectArgs* playArgs = nullptr;
 
     const SequenceData *seqData = nullptr;

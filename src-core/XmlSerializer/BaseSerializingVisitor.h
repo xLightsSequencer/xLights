@@ -117,6 +117,7 @@ public:
     void Visit(const MeshObject& object) override;
     void Visit(const TerrainObject& object) override;
     void Visit(const RulerObject& object) override;
+    void Visit(const ControllerObject& object) override;
     void Visit(const ControllerConnection& cc) override;
 
     // Shared utilities
@@ -139,6 +140,10 @@ protected:
     ~BaseSerializingVisitor() override = default;
 
     bool forExport;
+
+    // File references are stored relative to the show/media folder that contains
+    // them, except when exporting, where the document must stand alone.
+    [[nodiscard]] std::string FilePathToWrite(const std::string& file) const;
 
     // Attribute sorting — sorts attrs in-place using the same priority rules
     // as the original visitors: "name" first, "DisplayAs" second, "CustomModel"

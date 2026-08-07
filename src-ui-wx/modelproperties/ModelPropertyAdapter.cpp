@@ -38,10 +38,8 @@
 
 // Dialog adapters - these need to stay accessible for PopupDialogProperty etc.
 #include "../model/StrandNodeNamesDialog.h"
-#include "../model/ModelFaceDialog.h"
+#include "../model/ModelDefinitionsDialog.h"
 #include "../model/ModelDimmingCurveDialog.h"
-#include "../model/ModelStateDialog.h"
-#include "../model/SubModelsDialog.h"
 #include "../model/EditAliasesDialog.h"
 #include "../model/ModelChainDialog.h"
 #include "../model/StartChannelDialog.h"
@@ -81,10 +79,13 @@ class FacesDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     FacesDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
-        ModelFaceDialog dlg(propGrid, _outputManager);
-        dlg.SetFaceInfo(m_model, m_model->GetFaceInfo());
-        if (dlg.ShowModal() == wxID_OK) {
-            m_model->SetFaceInfo(dlg.GetFaceInfo());
+        ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_FACES);
+        if (dlg.ShowModal() == wxID_OK && dlg.HasContentChanged()) {
+            if (xLightsApp::GetFrame() != nullptr) {
+                for (const auto& [oldName, newName] : dlg.GetRenamedFaces()) {
+                    xLightsApp::GetFrame()->GetSequenceElements().RenameModelFaceReferences(m_model->GetName(), oldName, newName);
+                }
+            }
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -116,10 +117,8 @@ class StatesDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     StatesDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
-        ModelStateDialog dlg(propGrid, _outputManager);
-        dlg.SetStateInfo(m_model, m_model->GetStateInfo());
-        if (dlg.ShowModal() == wxID_OK) {
-            m_model->SetStateInfo(dlg.GetStateInfo());
+        ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_STATES);
+        if (dlg.ShowModal() == wxID_OK && dlg.HasContentChanged()) {
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -160,20 +159,21 @@ class SubModelsDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     SubModelsDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
-        SubModelsDialog dlg(propGrid, _outputManager);
-        dlg.Setup(m_model);
-        if (dlg.ShowModal() == wxID_OK) {
-            dlg.Save();
-            wxVariant v(CLICK_TO_EDIT);
-            SetValue(v);
-            return true;
-        }
-        if (dlg.ReloadLayout) {
+        ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_SUBMODELS);
+        bool const ok = dlg.ShowModal() == wxID_OK;
+        // Export SubModels To Other Models mutates other models immediately, so this
+        // must fire regardless of OK/Cancel - not gated inside the OK branch.
+        if (dlg.GetReloadLayout()) {
             wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
             wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
             m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                  OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                                  OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
+        }
+        if (ok && dlg.HasContentChanged()) {
+            wxVariant v(CLICK_TO_EDIT);
+            SetValue(v);
+            return true;
         }
         return false;
     }
@@ -1223,7 +1223,9 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
                 _model.SetShadowModelFor(newVal);
             }
         }
-        _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ShadowModelFor");
+        _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ShadowModelFor");
         return 0;
     } else if (event.GetPropertyName() == "Controller") {
         if (_model.GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()]) {
@@ -1338,10 +1340,38 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         int sel = -1;
         std::vector<std::string> cs;
         _model.GetSerialProtocolSpeeds(_model.GetControllerProtocol(), cs, sel);
-        _model.SetControllerSerialProtocolSpeed((int)std::strtol(cs[event.GetValue().GetLong()].c_str(), nullptr, 10));
+        // The Speed choices were built for whatever protocol was current when the
+        // page was created, but a protocol change only rebuilds the grid on the
+        // next deferred WORK_RELOAD_PROPERTYGRID. A selection made in between can
+        // index past the shorter list the new protocol offers (dmx has one speed,
+        // renard four, the default six).
+        long speedIdx = event.GetValue().GetLong();
+        if (speedIdx < 0 || speedIdx >= (long)cs.size()) {
+            spdlog::critical("Speed being set is not in the protocol speeds which has {} speeds.", (int)cs.size());
+            return 0;
+        }
+        _model.SetControllerSerialProtocolSpeed((int)std::strtol(cs[speedIdx].c_str(), nullptr, 10));
         return 0;
     } else if (event.GetPropertyName() == "SmartRemoteType") {
-        _model.SetSmartRemoteType(_model.GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
+        std::string newType = _model.GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString()));
+        _model.SetSmartRemoteType(newType);
+        if (caps != nullptr && caps->AllSmartRemoteTypesPerPortMustBeSame()) {
+            int port = _model.GetControllerPort();
+            if (port > 0) {
+                int block = (port - 1) / 4;
+                for (const auto& it : _model.GetModelManager()) {
+                    Model* other = it.second;
+                    if (other == &_model || other->GetControllerName() != _model.GetControllerName()) {
+                        continue;
+                    }
+                    int otherPort = other->GetControllerPort();
+                    if (otherPort <= 0 || (otherPort - 1) / 4 != block || other->GetSmartRemote() == 0) {
+                        continue;
+                    }
+                    other->SetSmartRemoteType(newType);
+                }
+            }
+        }
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         std::vector<std::string> cp;

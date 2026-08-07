@@ -48,6 +48,9 @@ struct KeyBindingsSheet: View {
             .init(keys: "⇧⌘← / ⇧⌘→", action: "Extend to Previous / Next Effect"),
             .init(keys: "⌃PgUp / ⌃PgDn", action: "Nudge to Previous / Next Timing Mark"),
             .init(keys: "⌥↑ / ⌥↓", action: "Move Effect Up / Down a Layer"),
+            .init(keys: "L / U", action: "Lock / Unlock Effect"),
+            .init(keys: "⇧I / ⇧A", action: "Insert Layer Above / Below"),
+            .init(keys: "⇧X", action: "Toggle Element Expand"),
         ]),
         Group1(title: "Navigation", bindings: [
             .init(keys: "← / →", action: "Previous / Next Effect"),

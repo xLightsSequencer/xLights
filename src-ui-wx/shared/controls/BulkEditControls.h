@@ -142,6 +142,7 @@ protected:
     void OnTextCtrl_TextLoseFocus(wxFocusEvent& event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    BESLIDERTYPE GetBESliderType() const { return _type; }
     void TextUpdate(bool force);
 };
 
@@ -227,6 +228,7 @@ class BulkEditComboBox : public wxComboBox
 protected:
     long ID_COMBOBOX_BULKEDIT;
     bool _supportsBulkEdit;
+    BESLIDERTYPE _numericType = BE_INT;
     std::vector<std::string> _defaultOptions;
 
 public:
@@ -243,6 +245,8 @@ public:
     {
         return _supportsBulkEdit;
     }
+    BESLIDERTYPE GetBESliderType() const { return _numericType; }
+    void SetBESliderType(BESLIDERTYPE t) { _numericType = t; }
     void PopulateComboBox();
     void AppendDefault(const std::string& def);
 };

@@ -92,16 +92,16 @@ struct MovingHeadFixtureRowView: View {
 }
 
 /// Read-only banner above the Moving Head fixture row. iPad now
-/// covers waypoint path drawing, presets and the colour-wheel
-/// picker; the remaining gap is the desktop double-selector
-/// multi-colour wheel animation.
+/// covers waypoint path drawing, parametric patterns, shutter control,
+/// link-to-next, presets and the colour-wheel picker; the remaining gap
+/// is the desktop double-selector multi-colour wheel animation.
 struct MovingHeadInfoRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 6) {
             Image(systemName: "info.circle")
                 .foregroundStyle(.tint)
                 .font(.caption)
-            Text("iPad supports fixture selection, Pan / Tilt / Offset / Groupings / Cycles, single-colour, dimmer intensity, waypoint path drawing, path / dimmer presets and the colour-wheel picker. Multi-colour wheel animation still uses desktop.")
+            Text("iPad supports fixture selection, Pan / Tilt / Offset / Groupings / Cycles, single-colour, dimmer intensity, waypoint path drawing, parametric patterns, shutter control, link-to-next, path / dimmer presets and the colour-wheel picker. Multi-colour wheel animation still uses desktop.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }

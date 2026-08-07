@@ -75,8 +75,8 @@ final class XLDiagnosticUploader {
     }
 
     func bootstrap() {
-        if XLDiagnosticSession.readStaleSentinel() != nil {
-            stagePendingUploadAsync()
+        let hadStaleSession = XLDiagnosticSession.readStaleSentinel() != nil
+        if hadStaleSession {
             XLDiagnosticSession.clearStaleSentinel()
         }
         XLDiagnosticSession.beginCurrentSession()
@@ -93,13 +93,27 @@ final class XLDiagnosticUploader {
             }
         }
 
-        pruneStaleDiagnosticsAsync()
-        kickoff()
+        // bootstrap() runs inline in XLightsApp.init(), so anything started here
+        // competes with the launch itself - zipping the previous session's logs
+        // and sweeping the diagnostics directory both showed up inside Apple's
+        // launch-time samples. None of it is needed to get the app on screen,
+        // so hold it all until the launch window has closed.
+        workQueue.asyncAfter(deadline: .now() + 20) { [weak self] in
+            guard let self else { return }
+            // A crash record can outlive the sentinel: a fault while
+            // backgrounded has already run endCurrentSession(), so staging on
+            // the sentinel alone would sit on the report indefinitely.
+            if hadStaleSession || XLCrashCapture.hasPendingRecord() {
+                self.stagePendingUploadAsync()
+            }
+            self.pruneStaleDiagnosticsAsync()
+            self.kickoff()
+        }
     }
 
     // Pre-fix builds let Library/Logs/Diagnostics/*.json grow forever
     // (the auto-upload path copied but never deleted). Sweep anything
-    // older than the cutoff at startup so existing backlogs drain.
+    // older than the cutoff once the app is up so existing backlogs drain.
     // Recent files are left for the next stagePendingUpload() to bundle
     // and prune.
     nonisolated private func pruneStaleDiagnosticsAsync() {
@@ -203,6 +217,9 @@ final class XLDiagnosticUploader {
         let build = (info["CFBundleVersion"] as? String) ?? "0"
 
         let stampFmt = DateFormatter()
+        // Without en_US_POSIX, a 12-hour region rewrites HH to hh plus a
+        // localised AM/PM marker, putting non-ASCII bytes in the upload name.
+        stampFmt.locale = Locale(identifier: "en_US_POSIX")
         stampFmt.dateFormat = "yyyy-MM-dd_HH-mm-ss-SSS"
         stampFmt.timeZone = TimeZone(abbreviation: "UTC")
         let stamp = stampFmt.string(from: Date())

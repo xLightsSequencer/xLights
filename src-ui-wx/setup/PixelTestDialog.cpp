@@ -40,188 +40,9 @@
 #include "layout/ModelPreview.h"
 #include "utils/VectorMath.h"
 
-#pragma region ChannelTracker
-bool CompareRange(const wxLongLong& a, const wxLongLong& b)
-{
-    return (ChannelTracker::GetStart(a) < ChannelTracker::GetStart(b));
-}
-
-void ChannelTracker::FixOverlaps()
-{
-    _ranges.sort(CompareRange);
-
-    bool ok = true;
-    do
-    {
-        ok = true;
-
-        auto first = _ranges.begin();
-        if (first == _ranges.end()) return;
-        auto second = first;
-        ++second;
-
-        while (second != _ranges.end())
-        {
-            long fe = GetEnd(*first);
-            long fs = GetStart(*first);
-            long ss = GetStart(*second);
-            long se = GetEnd(*second);
-
-            if (fe >= ss - 1 && fe <= se)
-            {
-                // first runs into second ... extend first and delete second
-                _ranges.push_front(SetBoth(fs, se));
-                _ranges.erase(first);
-                _ranges.erase(second);
-                ok = false;
-                break;
-            }
-            else if (fe > se)
-            {
-                // second is totally unnecessary ... remove it
-                _ranges.erase(second);
-                ok = false;
-                break;
-            }
-            else if (fe < ss - 1)
-            {
-                // there is a gap between first and second so move on
-                ++first;
-                ++second;
-            }
-            else
-            {
-                wxASSERT(false);
-            }
-        }
-        _ranges.sort(CompareRange);
-    } while (!ok);
-}
-
-void ChannelTracker::Dump()
-{
-    
-    spdlog::debug("Selected channels dump:");
-    for (const auto& it : _ranges)
-    {
-        spdlog::debug("   {}-{}", GetStart(it), GetEnd(it));
-    }
-}
-
-void ChannelTracker::AddRange(long start, long end)
-{
-    wxASSERT(start >= 0 && end >= 0 && start != end);
-
-    ClearLast();
-    for (auto it = _ranges.begin(); it != _ranges.end(); ++it)
-    {
-        long s = GetStart(*it);
-        long e = GetEnd(*it);
-
-        if (end < s - 1 || start > e + 1)
-        {
-            // this is not connected to this range
-        }
-        else if (end <= e && start < s)
-        {
-            // extend this range at the start
-            _ranges.push_back(SetBoth(start, GetEnd(*it)));
-            _ranges.erase(it);
-            _ranges.sort(CompareRange);
-            _changeCount++;
-            FixOverlaps();
-            return;
-        }
-        else if (start >= s && end > e)
-        {
-            // extend this range at the end
-            _ranges.push_back(SetBoth(GetStart(*it), end));
-            _ranges.erase(it);
-            _ranges.sort(CompareRange);
-            _changeCount++;
-            FixOverlaps();
-            return;
-        }
-        else if (start >= s && end <= e)
-        {
-            // already contained within this range ... I can ignore this request
-            return;
-        }
-        else if (start < s && end > e)
-        {
-            // this new range fully encapsulates the existing range
-            _ranges.push_back(SetBoth(start, end));
-            _ranges.erase(it);
-            _ranges.sort(CompareRange);
-            _changeCount++;
-            FixOverlaps();
-            return;
-        }
-        else
-        {
-            // this should never fire
-            wxASSERT(false);
-        }
-    }
-
-    // at this point it must be an entirely new range
-    _changeCount++;
-    _ranges.push_back(SetBoth(start, end));
-    _ranges.sort(CompareRange);
-}
-
-void ChannelTracker::RemoveRange(long start, long end)
-{
-    ClearLast();
-
-    auto it = _ranges.begin();
-
-    while (it != _ranges.end())
-    {
-        long s = GetStart(*it);
-        long e = GetEnd(*it);
-
-        if (start <= s && end >= e)
-        {
-            // remove the whole item
-            auto temp = it;
-            ++temp;
-            _ranges.remove(*it);
-            it = temp;
-            _changeCount++;
-        }
-        else if (end < s || start > e)
-        {
-            // do nothing this one does not overlap
-            ++it;
-        }
-        else if (start <= s && end < e)
-        {
-            _ranges.push_back(SetBoth(end + 1, GetEnd(*it)));
-            it = _ranges.erase(it);
-            _changeCount++;
-        }
-        else if (start <= e && end >= e)
-        {
-            _ranges.push_back(SetBoth(GetStart(*it), start - 1));
-            it = _ranges.erase(it);
-            _changeCount++;
-        }
-        else if (start > s &&  end < e)
-        {
-            _ranges.push_back(SetBoth(GetStart(*it), start - 1));
-            _ranges.push_back(SetBoth(end + 1, e));
-            it = _ranges.erase(it);
-            _changeCount++;
-        }
-        else
-        {
-            wxASSERT(false);
-        }
-    }
-    _ranges.sort(CompareRange);
-}
-#pragma endregion
+// Test frame rate. Doubles as the engine's frame time, which twinkle uses to
+// convert hold durations into frame counts.
+static constexpr int TEST_TIMER_INTERVAL_MS = 50;
 
 #pragma region TestItems
 
@@ -655,6 +476,10 @@ public:
             _subModels.pop_front();
         }
     }
+    // Give up ownership of the submodel items without deleting them. Used when
+    // the tree they live in is torn down: on the Models tab each submodel is a
+    // tree node that the tree will free, so we must not also free it here.
+    void ReleaseSubModels() { _subModels.clear(); }
     ModelTestItem(const std::string& name, const std::string& modelSuffix, ModelManager& modelManager, bool channelsAvailable, int nodes = -1, long startChannel = -1, long endChannel = -1, long nodeOffset = 0) :
         TestItemBase()
     {
@@ -832,6 +657,10 @@ public:
         //     _modelGroups.pop_front();
         // }
     }
+    // Give up ownership of the member model items without deleting them. Used
+    // when the Model Groups tree is torn down: each member model is a tree node
+    // the tree will free, so we must not also free it here.
+    void ReleaseModels() { _models.clear(); }
     ModelGroupTestItem(const std::string name, ModelManager& modelManager, bool channelsAvailable) :
         TestItemBase()
     {
@@ -1018,7 +847,9 @@ public:
         }
         _name += _portName;
         if (_channelsAvailable) {
-            _name += wxString::Format(" (%ld-%ld)", pud->GetStartChannel(), pud->GetEndChannel());
+            // GetStartChannel/GetEndChannel return int; %ld needs long, and the
+            // wx debug format validator traps on the mismatch. Cast to match.
+            _name += wxString::Format(" (%ld-%ld)", (long)pud->GetStartChannel(), (long)pud->GetEndChannel());
         }
 
         _absoluteStartChannel = pud->GetStartChannel();
@@ -1066,14 +897,20 @@ class CPR_ControllerTestItem : public TestItemBase
     std::list<CPR_PortTestItem*> _ports;
     int _pixelPorts{ 0 };
     int _serialPorts{ 0 };
+    UDController* _cud = nullptr; // owned - built for us in PopulateControllerTree
 
 public:
     virtual ~CPR_ControllerTestItem()
     {
+        // The port items (and their UDControllerPort* views into _cud) live in
+        // child tree nodes, which wxTreeListModelNode::~ destroys before this
+        // (parent) node's client data, so it is safe to free _cud here.
+        delete _cud;
     }
     CPR_ControllerTestItem(const std::string name, ControllerCaps* caps, UDController* cud, OutputManager& outputManager, ModelManager& modelManager) :
         TestItemBase()
     {
+        _cud = cud;
         _controllerName = name;
         Controller* controller = outputManager.GetController(name);
 
@@ -1147,6 +984,7 @@ const long PixelTestDialog::ID_MNU_DESELECTHIGH = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_SELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_NUMBER = wxNewId();
+const long PixelTestDialog::ID_FILTER_DEBOUNCE = wxNewId();
 
 //(*IdInit(PixelTestDialog)
 const long PixelTestDialog::ID_BUTTON_Load = wxNewId();
@@ -1554,6 +1392,37 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     TreeListCtrl_Controllers->AppendColumn(L"Select channels ...", 500);
     FlexGridSizer_Controllers->Layout();
 
+    // Live name-filter box above each tree. Debounced so a burst of keystrokes
+    // triggers a single rebuild of the affected tree.
+    _filterDebounceTimer.SetOwner(this, ID_FILTER_DEBOUNCE);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) {
+        wxTreeListCtrl* t = _pendingFilterTree;
+        _pendingFilterTree = nullptr;
+        if (t != nullptr) RebuildTree(t);
+    }, ID_FILTER_DEBOUNCE);
+    AddTreeFilter(Panel_Outputs, FlexGridSizer_Outputs, SearchCtrl_Outputs, TreeListCtrl_Outputs);
+    AddTreeFilter(Panel_ModelGroups, FlexGridSizer_ModelGroups, SearchCtrl_ModelGroups, TreeListCtrl_ModelGroups);
+    AddTreeFilter(Panel_Models, FlexGridSizer_Models, SearchCtrl_Models, TreeListCtrl_Models);
+    AddTreeFilter(Panel_Controllers, FlexGridSizer_Controllers, SearchCtrl_Controllers, TreeListCtrl_Controllers);
+
+    // The "Model" tab picks a single model from a dropdown, which can't be
+    // typed into. Add a filter box on the row above it that narrows the
+    // dropdown's entries (reaching the wxSmith-owned sizer via the control so
+    // we don't have to touch the generated code / .wxs).
+    if (wxSizer* modelSizer = Choice_VisualModel->GetContainingSizer()) {
+        SearchCtrl_VisualModel = new wxSearchCtrl(Panel_Model, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+        SearchCtrl_VisualModel->ShowSearchButton(true);
+        SearchCtrl_VisualModel->ShowCancelButton(true);
+        SearchCtrl_VisualModel->SetDescriptiveText(_("Filter by name..."));
+        modelSizer->Insert(0, new wxStaticText(Panel_Model, wxID_ANY, _("Filter:")), 1, wxALL | wxEXPAND, 5);
+        modelSizer->Insert(1, SearchCtrl_VisualModel, 1, wxALL | wxEXPAND, 5);
+        modelSizer->Layout();
+        SearchCtrl_VisualModel->Bind(wxEVT_TEXT, [this](wxCommandEvent& event) {
+            ApplyVisualModelFilter();
+            event.Skip();
+        });
+    }
+
     // add checkbox events
     Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
     Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
@@ -1620,27 +1489,24 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
         DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
 
-    if (!parent->ForceEnableOutputs(false)) {
-        DisplayWarning("At least one output could not be started. See log file for details.", this);
-    }
-    Timer1.Start(50, wxTIMER_CONTINUOUS);
+    Timer1.Start(TEST_TIMER_INTERVAL_MS, wxTIMER_CONTINUOUS);
 }
 
 // Destructor
 
 PixelTestDialog::~PixelTestDialog()
 {
+    _filterDebounceTimer.Stop(); // no rebuild after the trees are torn down
+
     SetSuspend(false);
 
-    // need to delete all the TreeController Objects
-    wxTreeListItem root = TreeListCtrl_Outputs->GetRootItem();
-    DestroyTreeControllerData(TreeListCtrl_Outputs, root);
-    root = TreeListCtrl_ModelGroups->GetRootItem();
-    DestroyTreeControllerData(TreeListCtrl_ModelGroups, root);
-    root = TreeListCtrl_Models->GetRootItem();
-    DestroyTreeControllerData(TreeListCtrl_Models, root);
-    root = TreeListCtrl_Controllers->GetRootItem();
-    DestroyTreeControllerData(TreeListCtrl_Controllers, root);
+    // Free all the TestItemBase objects by clearing each tree once (the tree's
+    // node destructors delete the client data; ReleaseDualOwnership first hands
+    // the two double-owned relationships to the tree so nothing is freed twice).
+    TeardownTree(TreeListCtrl_Outputs);
+    TeardownTree(TreeListCtrl_ModelGroups);
+    TeardownTree(TreeListCtrl_Models);
+    TeardownTree(TreeListCtrl_Controllers);
 
     // need to delete the TreeController.
     Panel_Outputs->RemoveChild(TreeListCtrl_Outputs);
@@ -1687,6 +1553,33 @@ bool PixelTestDialog::AreChannelsAvailable(Model* model)
     }
 
     return true;
+}
+
+void PixelTestDialog::EnsureControllerUploaded(long absoluteChannel)
+{
+    if (absoluteChannel <= 0) return;
+    if (!CheckBox_OutputToLights->IsChecked()) return;
+
+    int32_t startChannel = 0;
+    Controller* ctrl = _outputManager->GetController(absoluteChannel, startChannel);
+    if (ctrl == nullptr) return;
+    if (!ctrl->IsActive()) return;
+    if (_uploadedControllers.count(ctrl->GetName())) return;
+
+    // Re-resolve hostname and open outputs first so GetResolvedIP() is fresh for the upload.
+    // Don't mark as done on failure — allow retry on the next selection event.
+    if (!_outputManager->StartControllerOutputs(ctrl)) {
+        xLightsFrame* f = (xLightsFrame*)GetParent();
+        f->SetStatusText(ctrl->GetName() + " - Failed to open output");
+        return;
+    }
+
+    _uploadedControllers.insert(ctrl->GetName());
+
+    if (ctrl->IsAutoUpload() && ctrl->SupportsAutoUpload()) {
+        xLightsFrame* f = (xLightsFrame*)GetParent();
+        f->UploadControllerForImmediateOutput(ctrl);
+    }
 }
 
 std::list<std::string> PixelTestDialog::GetModelsOnChannels(int start, int end)
@@ -1830,7 +1723,9 @@ void PixelTestDialog::PopulateControllerTree(OutputManager* outputManager, Model
         Controller* c = outputManager->GetController(it);
         auto caps = c->GetControllerCaps();
         auto cud = new UDController(c, outputManager, modelManager, false);
-        if (cud->IsValid()) {
+        if (!cud->IsValid()) {
+            delete cud; // nothing takes ownership on the invalid path
+        } else {
             // we found a controller
             CPR_ControllerTestItem* cti = new CPR_ControllerTestItem(it, caps, cud, *outputManager, *modelManager);
             wxTreeListItem item = TreeListCtrl_Controllers->AppendItem(TreeListCtrl_Controllers->GetRootItem(), cti->GetName(), -1, -1, (wxClientData*)cti);
@@ -1897,19 +1792,59 @@ void PixelTestDialog::PopulateVisualModelTree(ModelManager* modelManager)
     }
     modelNames.sort(stdlistNumberAwareStringCompare);
 
+    // Keep the full, sorted name list so the filter box can rebuild the
+    // dropdown's contents without re-querying the model manager.
+    _visualModelNames.assign(modelNames.begin(), modelNames.end());
+
     Choice_VisualModel->Clear();
-    for (const auto& it : modelNames) {
+    for (const auto& it : _visualModelNames) {
         Choice_VisualModel->AppendString(it);
     }
     if (Choice_VisualModel->GetCount() > 0) {
         Choice_VisualModel->SetSelection(0);
-        SelectVisualModel(modelNames.front());
+        SelectVisualModel(_visualModelNames.front());
+    }
+}
+
+void PixelTestDialog::ApplyVisualModelFilter()
+{
+    if (Choice_VisualModel == nullptr || SearchCtrl_VisualModel == nullptr) return;
+
+    const wxString filterLower = SearchCtrl_VisualModel->GetValue().Lower();
+    const wxString prevSel = Choice_VisualModel->GetStringSelection();
+
+    Choice_VisualModel->Clear();
+    int keepIdx = -1;
+    for (const auto& name : _visualModelNames) {
+        if (filterLower.IsEmpty() || wxString::FromUTF8(name).Lower().Contains(filterLower)) {
+            if (wxString::FromUTF8(name) == prevSel) {
+                keepIdx = (int)Choice_VisualModel->GetCount(); // still visible - preserve it
+            }
+            Choice_VisualModel->AppendString(name);
+        }
+    }
+
+    if (Choice_VisualModel->GetCount() == 0) {
+        return; // nothing matches - leave the preview showing the last model
+    }
+
+    const int selIdx = (keepIdx >= 0) ? keepIdx : 0;
+    Choice_VisualModel->SetSelection(selIdx);
+
+    // Only re-render the preview when the resolved selection actually changed,
+    // so typing doesn't thrash the (relatively expensive) model preview.
+    const wxString newSel = Choice_VisualModel->GetStringSelection();
+    if (newSel != prevSel) {
+        SelectVisualModel(newSel.ToStdString());
     }
 }
 
 void PixelTestDialog::SelectVisualModel(const std::string& model)
 {
     Model* m = _modelManager->GetModel(model);
+    if (m != nullptr) {
+        EnsureControllerUploaded(m->GetFirstChannel() + 1);
+    }
     _modelPreview->SetModel(m);
 
     UpdateVisualModelFromTracker();
@@ -2130,6 +2065,149 @@ void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
         }
     }
 }
+
+wxSearchCtrl* PixelTestDialog::FilterCtrlForTree(wxTreeListCtrl* tree) const
+{
+    if (tree == TreeListCtrl_Outputs) return SearchCtrl_Outputs;
+    if (tree == TreeListCtrl_ModelGroups) return SearchCtrl_ModelGroups;
+    if (tree == TreeListCtrl_Models) return SearchCtrl_Models;
+    if (tree == TreeListCtrl_Controllers) return SearchCtrl_Controllers;
+    return nullptr;
+}
+
+void PixelTestDialog::AddTreeFilter(wxPanel* panel, wxFlexGridSizer* sizer, wxSearchCtrl*& ctrl, wxTreeListCtrl* tree)
+{
+    ctrl = new wxSearchCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    ctrl->ShowSearchButton(true);
+    ctrl->ShowCancelButton(true);
+    ctrl->SetDescriptiveText(_("Filter by name..."));
+
+    // Insert the box immediately above its tree and move the growable row down
+    // one so the tree keeps all the extra height (the search box stays fixed).
+    int treeIdx = -1;
+    for (size_t i = 0; i < sizer->GetItemCount(); ++i) {
+        wxSizerItem* si = sizer->GetItem(i);
+        if (si != nullptr && si->GetWindow() == tree) {
+            treeIdx = (int)i;
+            break;
+        }
+    }
+    if (treeIdx < 0) treeIdx = 0;
+
+    sizer->Insert(treeIdx, ctrl, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 5);
+    sizer->RemoveGrowableRow(treeIdx); // the tree's old row (guaranteed growable)
+    sizer->AddGrowableRow(treeIdx + 1);
+    sizer->Layout();
+
+    // wxEVT_TEXT covers typing and the cancel button's clear. Debounce so a
+    // fast typist triggers one rebuild, not one per character.
+    ctrl->Bind(wxEVT_TEXT, [this, tree](wxCommandEvent& event) {
+        _pendingFilterTree = tree;
+        _filterDebounceTimer.StartOnce(250);
+        event.Skip();
+    });
+}
+
+void PixelTestDialog::RebuildTree(wxTreeListCtrl* tree)
+{
+    if (tree == nullptr) return;
+
+    wxSearchCtrl* ctrl = FilterCtrlForTree(tree);
+    const wxString filterLower = (ctrl != nullptr) ? ctrl->GetValue().Lower() : wxString();
+
+    tree->Freeze();
+
+    // Tear down exactly like the destructor does (selections survive because
+    // they live in _channelTracker, not in the tree items), then repopulate
+    // from scratch through the same routines the constructor uses.
+    TeardownTree(tree);
+
+    if (tree == TreeListCtrl_Models) {
+        _models.clear();      // the ModelTestItem* were just freed above
+        _lastModel = nullptr; // dangled into the freed list
+    }
+
+    if (tree == TreeListCtrl_Outputs) {
+        PopulateOutputTree(_outputManager);
+    } else if (tree == TreeListCtrl_ModelGroups) {
+        PopulateModelGroupTree(_modelManager);
+    } else if (tree == TreeListCtrl_Models) {
+        PopulateModelTree(_modelManager);
+    } else if (tree == TreeListCtrl_Controllers) {
+        PopulateControllerTree(_outputManager, _modelManager);
+    }
+    DeactivateNotClickableModels(tree);
+
+    if (!filterLower.IsEmpty()) {
+        PruneTree(tree, tree->GetRootItem(), filterLower);
+        ExpandFiltered(tree, tree->GetRootItem());
+    }
+
+    // Re-derive check state from the tracker so previously selected channels
+    // still show checked on the rebuilt items.
+    SetCheckBoxItemFromTracker(tree, tree->GetRootItem(), wxCheckBoxState::wxCHK_UNCHECKED);
+
+    tree->Thaw();
+    tree->Refresh();
+}
+
+bool PixelTestDialog::PruneTree(wxTreeListCtrl* tree, const wxTreeListItem& item, const wxString& filterLower)
+{
+    // Returns true if item (or any descendant) matches and should be kept.
+    TestItemBase* tc = (TestItemBase*)tree->GetItemData(item);
+    const bool isRoot = !item.IsOk() || (item == tree->GetRootItem());
+
+    if (!isRoot && tc != nullptr) {
+        // A matching item keeps its entire subtree intact (e.g. a matching
+        // controller keeps all of its ports/models).
+        if (tree->GetItemText(item).Lower().Contains(filterLower)) {
+            return true;
+        }
+    }
+
+    bool anyKept = false;
+    wxTreeListItem child = tree->GetFirstChild(item);
+    while (child.IsOk()) {
+        wxTreeListItem next = tree->GetNextSibling(child);
+        // Lazy "Dummy" placeholders carry no name; they can't match on their
+        // own, but must not be deleted here or the branch loses its expander.
+        if (tree->GetItemText(child) == "Dummy") {
+            // leave it; if the parent ends up pruned it goes with it
+        } else if (PruneTree(tree, child, filterLower)) {
+            anyKept = true;
+        } else {
+            // Free this pruned subtree once: release the dual-owned children to
+            // the tree, then DeleteItem lets the node destructors free them.
+            ReleaseDualOwnership(tree, child);
+            tree->DeleteItem(child);
+        }
+        child = next;
+    }
+
+    return isRoot ? true : anyKept;
+}
+
+void PixelTestDialog::ExpandFiltered(wxTreeListCtrl* tree, const wxTreeListItem& item)
+{
+    // Reveal structural matches (controller -> port -> model, group -> model)
+    // without forcing the lazy node/channel fill that model/nodes items do.
+    wxTreeListItem child = tree->GetFirstChild(item);
+    while (child.IsOk()) {
+        if (tree->GetItemText(child) != "Dummy") {
+            wxTreeListItem gc = tree->GetFirstChild(child);
+            TestItemBase* tc = (TestItemBase*)tree->GetItemData(child);
+            const std::string type = (tc != nullptr) ? tc->GetType() : "";
+            const bool lazy = gc.IsOk() && tree->GetItemText(gc) == "Dummy";
+            const bool heavy = (type == "Model" || type == "Nodes" || type == "Node" ||
+                                type == "SubModel" || type == "Channel");
+            if (gc.IsOk() && !lazy && !heavy) {
+                tree->Expand(child);
+                ExpandFiltered(tree, child);
+            }
+        }
+        child = tree->GetNextSibling(child);
+    }
+}
 #pragma endregion
 
 #pragma region GenericTreeEvents
@@ -2138,23 +2216,32 @@ void PixelTestDialog::CascadeSelected(wxTreeListCtrl* tree, const wxTreeListItem
     tree->CheckItemRecursively(item, state);
 }
 
-void PixelTestDialog::DestroyTreeControllerData(wxTreeListCtrl* tree, wxTreeListItem& item)
+void PixelTestDialog::ReleaseDualOwnership(wxTreeListCtrl* tree, const wxTreeListItem& item)
 {
-    wxTreeListItem i = tree->GetFirstChild(item);
-    while (i != nullptr) {
-        DestroyTreeControllerData(tree, i);
-        i = tree->GetNextSibling(i);
+    for (wxTreeListItem i = tree->GetFirstChild(item); i.IsOk(); i = tree->GetNextSibling(i)) {
+        ReleaseDualOwnership(tree, i);
     }
 
     TestItemBase* tc = (TestItemBase*)tree->GetItemData(item);
-    if (tc != nullptr) {
-        if ((tree == TreeListCtrl_ModelGroups && tc->GetType() == "Model") ||
-            (tree == TreeListCtrl_Models && tc->GetType() == "SubModel")) {
-            // dont delete these
-        } else {
-            delete tc;
-        }
+    if (tc == nullptr) return;
+
+    // wxTreeListModelNode::~ deletes its client data, so the tree frees every
+    // node's TestItemBase. The only objects with a second owner are:
+    //   - Models tab: each model's submodels (ModelTestItem::_subModels)
+    //   - Model Groups tab: each group's member models (ModelGroupTestItem::_models)
+    // Release those here so the parent's destructor won't double-free what the
+    // tree is about to free. (These match the old delete-time exceptions.)
+    if (tree == TreeListCtrl_Models && tc->GetType() == "Model") {
+        static_cast<ModelTestItem*>(tc)->ReleaseSubModels();
+    } else if (tree == TreeListCtrl_ModelGroups && tc->GetType() == "ModelGroup") {
+        static_cast<ModelGroupTestItem*>(tc)->ReleaseModels();
     }
+}
+
+void PixelTestDialog::TeardownTree(wxTreeListCtrl* tree)
+{
+    ReleaseDualOwnership(tree, tree->GetRootItem());
+    tree->DeleteAllItems(); // the node destructors free every TestItemBase once
 }
 
 void PixelTestDialog::DeactivateNotClickableModels(wxTreeListCtrl* tree)
@@ -2645,6 +2732,7 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
     }
 
     if (checked == wxCheckBoxState::wxCHK_CHECKED) {
+        EnsureControllerUploaded(tc->GetFirstChannel());
         if (tc->IsContiguous()) {
             _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
         } else {
@@ -2683,6 +2771,7 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
                 if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED) {
                     // check the items
                     tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
+                    EnsureControllerUploaded(tc->GetFirstChannel());
                     if (tc->IsContiguous()) {
                         _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
                     } else {
@@ -2817,27 +2906,28 @@ void PixelTestDialog::OnButton_SaveClick(wxCommandEvent& event)
 }
 #pragma endregion
 
-void PixelTestDialog::GetCheckedItems(wxArrayInt& chArray)
+std::vector<uint32_t> PixelTestDialog::GetCheckedItems()
 {
-    chArray.Clear();
+    std::vector<uint32_t> chArray;
     long ch = _channelTracker.GetFirst();
     while (ch > 0) {
-        chArray.Add(ch);
+        chArray.push_back(ch);
         ch = _channelTracker.GetNext();
     }
+    return chArray;
 }
 
-void PixelTestDialog::GetCheckedItems(wxArrayInt& chArray, char col)
+std::vector<uint32_t> PixelTestDialog::GetCheckedItems(char col)
 {
-    chArray.Clear();
-
+    std::vector<uint32_t> chArray;
     long ch = _channelTracker.GetFirst();
     while (ch > 0) {
         if (GetChannelColour(ch) == col) {
-            chArray.Add(ch);
+            chArray.push_back(ch);
         }
         ch = _channelTracker.GetNext();
     }
+    return chArray;
 }
 
 void PixelTestDialog::OnTimer1Trigger(wxTimerEvent& event)
@@ -2889,578 +2979,189 @@ void PixelTestDialog::TestButtonsOff()
     RadioButton_Controller_PixelCount->SetValue(false);
 }
 
-PixelTestDialog::TestFunctions PixelTestDialog::GetTestFunction(int notebookSelection)
+xltest::TestFunction PixelTestDialog::GetTestFunction(int notebookSelection)
 {
-    switch (notebookSelection)
-    {
+    _chaseWholeSelection = false;
+
+    switch (notebookSelection) {
     case 0:
-        if (RadioButton_Standard_Off->GetValue())
-        {
-            return PixelTestDialog::TestFunctions::OFF;
-        }
-        else if (RadioButton_Standard_Chase->GetValue())
-        {
-            _chaseGrouping = std::numeric_limits<int>::max();
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_Standard_Chase13->GetValue())
-        {
+        if (RadioButton_Standard_Off->GetValue()) {
+            return xltest::TestFunction::OFF;
+        } else if (RadioButton_Standard_Chase->GetValue()) {
+            _chaseWholeSelection = true;
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_Standard_Chase13->GetValue()) {
             _chaseGrouping = 3;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_Standard_Chase14->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_Standard_Chase14->GetValue()) {
             _chaseGrouping = 4;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_Standard_Chase15->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_Standard_Chase15->GetValue()) {
             _chaseGrouping = 5;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_Standard_Alternate->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_Standard_Alternate->GetValue()) {
             _chaseGrouping = 2;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_Standard_Twinkle5->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_Standard_Twinkle5->GetValue()) {
             _twinkleRatio = 20;
-            return PixelTestDialog::TestFunctions::TWINKLE;
-        }
-        else if (RadioButton_Standard_Twinkle10->GetValue())
-        {
+            return xltest::TestFunction::TWINKLE;
+        } else if (RadioButton_Standard_Twinkle10->GetValue()) {
             _twinkleRatio = 10;
-            return PixelTestDialog::TestFunctions::TWINKLE;
-        }
-        else if (RadioButton_Standard_Twinkle25->GetValue())
-        {
+            return xltest::TestFunction::TWINKLE;
+        } else if (RadioButton_Standard_Twinkle25->GetValue()) {
             _twinkleRatio = 4;
-            return PixelTestDialog::TestFunctions::TWINKLE;
-        }
-        else if (RadioButton_Standard_Twinkle50->GetValue())
-        {
+            return xltest::TestFunction::TWINKLE;
+        } else if (RadioButton_Standard_Twinkle50->GetValue()) {
             _twinkleRatio = 2;
-            return PixelTestDialog::TestFunctions::TWINKLE;
-        }
-        else if (RadioButton_Standard_Shimmer->GetValue())
-        {
-            return PixelTestDialog::TestFunctions::SHIMMER;
-        }
-        else if (RadioButton_Standard_Background->GetValue())
-        {
-            return PixelTestDialog::TestFunctions::DIM;
+            return xltest::TestFunction::TWINKLE;
+        } else if (RadioButton_Standard_Shimmer->GetValue()) {
+            return xltest::TestFunction::SHIMMER;
+        } else if (RadioButton_Standard_Background->GetValue()) {
+            return xltest::TestFunction::DIM;
         }
         break;
     case 1:
-        if (RadioButton_RGB_Off->GetValue())
-        {
-            return PixelTestDialog::TestFunctions::OFF;
-        }
-        else if (RadioButton_RGB_Chase->GetValue())
-        {
-            _chaseGrouping = std::numeric_limits<int>::max();
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_RGB_Chase13->GetValue())
-        {
+        if (RadioButton_RGB_Off->GetValue()) {
+            return xltest::TestFunction::OFF;
+        } else if (RadioButton_RGB_Chase->GetValue()) {
+            _chaseWholeSelection = true;
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_RGB_Chase13->GetValue()) {
             _chaseGrouping = 3;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_RGB_Chase14->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_RGB_Chase14->GetValue()) {
             _chaseGrouping = 4;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_RGB_Chase15->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_RGB_Chase15->GetValue()) {
             _chaseGrouping = 5;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_RGB_Alternate->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_RGB_Alternate->GetValue()) {
             _chaseGrouping = 2;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_RGB_Twinkle5->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_RGB_Twinkle5->GetValue()) {
             _twinkleRatio = 20;
-            return PixelTestDialog::TestFunctions::TWINKLE;
-        }
-        else if (RadioButton_RGB_Twinkle10->GetValue())
-        {
+            return xltest::TestFunction::TWINKLE;
+        } else if (RadioButton_RGB_Twinkle10->GetValue()) {
             _twinkleRatio = 10;
-            return PixelTestDialog::TestFunctions::TWINKLE;
-        }
-        else if (RadioButton_RGB_Twinkle25->GetValue())
-        {
+            return xltest::TestFunction::TWINKLE;
+        } else if (RadioButton_RGB_Twinkle25->GetValue()) {
             _twinkleRatio = 4;
-            return PixelTestDialog::TestFunctions::TWINKLE;
-        }
-        else if (RadioButton_RGB_Twinkle50->GetValue())
-        {
+            return xltest::TestFunction::TWINKLE;
+        } else if (RadioButton_RGB_Twinkle50->GetValue()) {
             _twinkleRatio = 2;
-            return PixelTestDialog::TestFunctions::TWINKLE;
-        }
-        else if (RadioButton_RGB_Shimmer->GetValue())
-        {
-            return PixelTestDialog::TestFunctions::SHIMMER;
-        }
-        else if (RadioButton_RGB_Background->GetValue())
-        {
-            return PixelTestDialog::TestFunctions::DIM;
+            return xltest::TestFunction::TWINKLE;
+        } else if (RadioButton_RGB_Shimmer->GetValue()) {
+            return xltest::TestFunction::SHIMMER;
+        } else if (RadioButton_RGB_Background->GetValue()) {
+            return xltest::TestFunction::DIM;
         }
         break;
     case 2:
-        if (RadioButton_RGBCycle_Off->GetValue())
-        {
-            return PixelTestDialog::TestFunctions::OFF;
-        }
-        else if (RadioButton_RGBCycle_ABC->GetValue())
-        {
+        if (RadioButton_RGBCycle_Off->GetValue()) {
+            return xltest::TestFunction::OFF;
+        } else if (RadioButton_RGBCycle_ABC->GetValue()) {
             _chaseGrouping = 3;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_RGBCycle_ABCAll->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_RGBCycle_ABCAll->GetValue()) {
             _chaseGrouping = 4;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_RGBCycle_ABCAllNone->GetValue())
-        {
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_RGBCycle_ABCAllNone->GetValue()) {
             _chaseGrouping = 5;
-            return PixelTestDialog::TestFunctions::CHASE;
-        }
-        else if (RadioButton_RGBCycle_MixedColors->GetValue())
-        {
-            return PixelTestDialog::TestFunctions::DIM;
-        }
-        else if (RadioButton_RGBCycle_RGBW->GetValue())
-        {
-            return PixelTestDialog::TestFunctions::RGBW;
+            return xltest::TestFunction::CHASE;
+        } else if (RadioButton_RGBCycle_MixedColors->GetValue()) {
+            return xltest::TestFunction::DIM;
+        } else if (RadioButton_RGBCycle_RGBW->GetValue()) {
+            return xltest::TestFunction::RGBW;
         }
         break;
-
     case 3:
         if (RadioButton_Controller_Off->GetValue()) {
-            return PixelTestDialog::TestFunctions::OFF;
+            return xltest::TestFunction::OFF;
         } else if (RadioButton_Controller_CyclePorts->GetValue()) {
-            return PixelTestDialog::TestFunctions::PortCycle;
+            return xltest::TestFunction::PortCycle;
         } else if (RadioButton_Controller_PixelCount->GetValue()) {
-            return PixelTestDialog::TestFunctions::ColorBlocks;
+            return xltest::TestFunction::ColorBlocks;
         }
         break;
     }
 
-    return PixelTestDialog::TestFunctions::OFF;
+    return xltest::TestFunction::OFF;
+}
+
+xltest::TestParameters PixelTestDialog::BuildTestParameters(int notebookSelection)
+{
+    xltest::TestParameters params;
+
+    int mode = notebookSelection;
+    if (mode < 0) mode = 0;
+    if (mode > 3) mode = 3;
+    params.mode = static_cast<xltest::TestMode>(mode);
+
+    // Sets _chaseGrouping / _chaseWholeSelection / _twinkleRatio as a side effect.
+    params.function = GetTestFunction(notebookSelection);
+
+    params.speed = Slider_Speed->GetValue();
+    params.chaseGrouping = _chaseGrouping;
+    params.chaseWholeSelection = _chaseWholeSelection;
+    params.twinkleRatio = _twinkleRatio;
+    params.backgroundIntensity = Slider_Standard_Background->GetValue();
+    params.highlightIntensity = Slider_Standard_Highlight->GetValue();
+    params.backgroundColor[0] = Slider_RGB_BG_R->GetValue();
+    params.backgroundColor[1] = Slider_RGB_BG_G->GetValue();
+    params.backgroundColor[2] = Slider_RGB_BG_B->GetValue();
+    params.highlightColor[0] = Slider_RGB_H_R->GetValue();
+    params.highlightColor[1] = Slider_RGB_H_G->GetValue();
+    params.highlightColor[2] = Slider_RGB_H_B->GetValue();
+    params.tag50th = CheckBox_Tag50th->GetValue();
+    params.frameTimeMS = TEST_TIMER_INTERVAL_MS;
+
+    if (params.mode == xltest::TestMode::Controller) {
+        wxTreeListItem i = TreeListCtrl_Controllers->GetFirstChild(TreeListCtrl_Controllers->GetRootItem());
+        while (i != nullptr) {
+            TestItemBase* tc = (TestItemBase*)TreeListCtrl_Controllers->GetItemData(i);
+            if (tc != nullptr && tc->IsClickable() && tc->GetType() == "Controller") {
+                CPR_ControllerTestItem* con = (CPR_ControllerTestItem*)tc;
+                for (auto* p : con->GetPorts()) {
+                    if (!p->IsClickable()) continue;
+                    xltest::TestPort port;
+                    port.port = p->GetPort();
+                    port.firstChannel = p->GetFirstChannel();
+                    port.lastChannel = p->GetLastChannel();
+                    params.ports.push_back(port);
+                }
+            }
+            i = TreeListCtrl_Controllers->GetNextSibling(i);
+        }
+    }
+
+    return params;
 }
 
 void PixelTestDialog::OnTimer(long curtime)
 {
-    static int LastNotebookSelection = -1;
-    static int LastBgIntensity, LastFgIntensity, LastBgColor[3], LastFgColor[3], *ShimColor, ShimIntensity;
-    static int LastSequenceSpeed;
-    static int LastTwinkleRatio;
-    //static int LastAutomatedTest;
-    static long NextSequenceStart = -1;
-    static TestFunctions LastFunc = PixelTestDialog::TestFunctions::OFF;
-    static unsigned int interval, rgbCycle, TestSeqIdx;
-    static wxArrayInt chArray, chArrayR, chArrayG, chArrayB, chArrayW, TwinkleState;
-    static float frequency;
-    int v, BgColor[3], FgColor[3];
-    unsigned int i;
-    bool ColorChange;
-    bool fiftieth = CheckBox_Tag50th->GetValue();
+    const int notebookSelection = Notebook2->GetSelection();
+    const xltest::TestParameters params = BuildTestParameters(notebookSelection);
 
-    int NotebookSelection = Notebook2->GetSelection();
-    if (NotebookSelection != LastNotebookSelection) {
-        LastNotebookSelection = NotebookSelection;
+    if (notebookSelection != _lastNotebookSelection || params.function != _lastTestFunction) {
+        _lastNotebookSelection = notebookSelection;
+        _lastTestFunction = params.function;
         _checkChannelList = true;
-        TestSeqIdx = 0;
-    }
-
-    TestFunctions testFunc = GetTestFunction(NotebookSelection);
-
-    if (testFunc != LastFunc) {
-        LastFunc = testFunc;
-        rgbCycle = 0;
-        _checkChannelList = true;
-        NextSequenceStart = -1;
     }
 
     if (_checkChannelList) {
-        SetSuspend(CheckBox_SuppressUnusedOutputs->GetValue());
-
-        NextSequenceStart = -1;
-
-        // get list of checked channels
-        _outputManager->AllOff();
-        GetCheckedItems(chArray);
-        if (RadioButton_RGB_Chase->GetValue() || RadioButton_Standard_Chase->GetValue()) {
-            _chaseGrouping = chArray.Count();
-            if (_chaseGrouping == 0) {
-                _chaseGrouping = std::numeric_limits<int>::max();
-            }
-        }
-        if (RadioButton_RGBCycle_RGBW->GetValue()) {
-            GetCheckedItems(chArrayR, 'R');
-            GetCheckedItems(chArrayG, 'G');
-            GetCheckedItems(chArrayB, 'B');
-            GetCheckedItems(chArrayW, 'W');
-        }
-
-        LastSequenceSpeed = -1;
-        LastBgIntensity = -1;
-        LastFgIntensity = -1;
-        //LastAutomatedTest = -1;
-        LastTwinkleRatio = -1;
-        for (i = 0; i < 3; i++) {
-            LastBgColor[i] = -1;
-            LastFgColor[i] = -1;
-        }
-        if (testFunc == PixelTestDialog::TestFunctions::OFF) {
-            StatusBar1->SetLabelText(_("Testing off"));
+        xltest::TestPatternEngine::ApplySuspend(_outputManager, _channelTracker,
+                                                CheckBox_SuppressUnusedOutputs->GetValue());
+        if (params.function == xltest::TestFunction::RGBW) {
+            _testEngine.SetChannels(GetCheckedItems(), GetCheckedItems('R'), GetCheckedItems('G'),
+                                    GetCheckedItems('B'), GetCheckedItems('W'));
         } else {
-            StatusBar1->SetLabelText(wxString::Format(_("Testing %ld channels"), static_cast<long>(chArray.Count())));
+            _testEngine.SetChannels(GetCheckedItems());
         }
         _checkChannelList = false;
     }
 
-    if (testFunc != PixelTestDialog::TestFunctions::OFF && chArray.Count() > 0) {
-        switch (NotebookSelection) {
-        case 0: {
-            // standard tests
-            v = Slider_Speed->GetValue(); // 0-100
-            int BgIntensity = Slider_Standard_Background->GetValue();
-            int FgIntensity = Slider_Standard_Highlight->GetValue();
-            ColorChange = BgIntensity != LastBgIntensity || FgIntensity != LastFgIntensity;
-            LastBgIntensity = BgIntensity;
-            LastFgIntensity = FgIntensity;
-            interval = 1600 - v * 15;
-
-            switch (testFunc) {
-            case PixelTestDialog::TestFunctions::DIM:
-                if (ColorChange) {
-                    for (i = 0; i < chArray.Count(); i++) {
-                        _outputManager->SetOneChannel(chArray[i] - 1, BgIntensity);
-                    }
-                }
-                break;
-
-            case PixelTestDialog::TestFunctions::TWINKLE:
-                if (LastSequenceSpeed < 0 || _twinkleRatio != LastTwinkleRatio) {
-                    LastSequenceSpeed = 0;
-                    TwinkleState.Clear();
-                    for (i = 0; i < chArray.Count(); i++) {
-                        TestSeqIdx = static_cast<int>(rand01() * (double)_twinkleRatio);
-                        TwinkleState.Add(TestSeqIdx == 0 ? -1 : 1);
-                    }
-                }
-                for (i = 0; i < TwinkleState.Count(); i++) {
-                    if (TwinkleState[i] < -1) {
-                        // background
-                        TwinkleState[i]++;
-                    } else if (TwinkleState[i] > 1) {
-                        // highlight
-                        TwinkleState[i]--;
-                    } else if (TwinkleState[i] == -1) {
-                        // was background, now highlight for random period
-                        TwinkleState[i] = static_cast<int>(rand01() * (double)interval + 100.0) / (double)_seqData.FrameTime();
-                        _outputManager->SetOneChannel(chArray[i] - 1, FgIntensity);
-                    } else {
-                        // was on, now go to bg color for random period
-                        TwinkleState[i] = -static_cast<int>(rand01() * (double)interval + 100.0) / (double)_seqData.FrameTime() * ((double)_twinkleRatio - 1.0);
-                        _outputManager->SetOneChannel(chArray[i] - 1, BgIntensity);
-                    }
-                }
-                break;
-
-            case PixelTestDialog::TestFunctions::SHIMMER:
-                if (ColorChange || curtime >= NextSequenceStart) {
-                    ShimIntensity = (ShimIntensity == FgIntensity) ? BgIntensity : FgIntensity;
-                    for (i = 0; i < chArray.Count(); i++) {
-                        _outputManager->SetOneChannel(chArray[i] - 1, ShimIntensity);
-                    }
-                }
-                if (curtime >= NextSequenceStart) {
-                    NextSequenceStart = curtime + interval / 2;
-                }
-                break;
-
-            case PixelTestDialog::TestFunctions::CHASE:
-                // StatusBar1->SetStatusText(wxString::Format(_("chase curtime=%ld, NextSequenceStart=%ld"),curtime,NextSequenceStart));
-                if (ColorChange || curtime >= NextSequenceStart) {
-                    for (i = 0; i < chArray.Count(); i++) {
-                        v = (i % _chaseGrouping) == TestSeqIdx ? FgIntensity : BgIntensity;
-                        _outputManager->SetOneChannel(chArray[i] - 1, v);
-                    }
-                }
-                if (curtime >= NextSequenceStart) {
-                    NextSequenceStart = curtime + interval;
-                    TestSeqIdx = (TestSeqIdx + 1) % _chaseGrouping;
-                    if (TestSeqIdx >= chArray.Count())
-                        TestSeqIdx = 0;
-                }
-                StatusBar1->SetLabelText(wxString::Format(_("Testing %ld channels; chase now at ch# %d"), static_cast<long>(chArray.Count()), TestSeqIdx)); // show current ch# -DJ
-                break;
-            default:
-                break;
-            }
-        } break;
-
-        case 1:
-            // RGB tests
-            v = Slider_Speed->GetValue(); // 0-100
-            BgColor[0] = Slider_RGB_BG_R->GetValue();
-            BgColor[1] = Slider_RGB_BG_G->GetValue();
-            BgColor[2] = Slider_RGB_BG_B->GetValue();
-            FgColor[0] = Slider_RGB_H_R->GetValue();
-            FgColor[1] = Slider_RGB_H_G->GetValue();
-            FgColor[2] = Slider_RGB_H_B->GetValue();
-
-            interval = 1600 - v * 15;
-            for (ColorChange = false, i = 0; i < 3; i++) {
-                ColorChange |= (BgColor[i] != LastBgColor[i]);
-                ColorChange |= (FgColor[i] != LastFgColor[i]);
-                LastBgColor[i] = BgColor[i];
-                LastFgColor[i] = FgColor[i];
-            }
-            switch (testFunc) {
-            case PixelTestDialog::TestFunctions::DIM:
-                if (ColorChange) {
-                    for (i = 0; i < chArray.Count(); i++) {
-                        _outputManager->SetOneChannel(chArray[i] - 1, BgColor[i % 3]);
-                    }
-                }
-                break;
-
-            case PixelTestDialog::TestFunctions::TWINKLE:
-                if (LastSequenceSpeed < 0 || LastTwinkleRatio != _twinkleRatio) {
-                    LastSequenceSpeed = 0;
-                    TwinkleState.Clear();
-                    for (i = 0; i < chArray.Count() - 2; i += 3) {
-                        TestSeqIdx = static_cast<int>(rand01() * (double)_twinkleRatio);
-                        TwinkleState.Add(TestSeqIdx == 0 ? -1 : 1);
-                    }
-                }
-                for (i = 0; i < TwinkleState.Count(); i++) {
-                    if (TwinkleState[i] < -1) {
-                        // background
-                        TwinkleState[i]++;
-                    } else if (TwinkleState[i] > 1) {
-                        // highlight
-                        TwinkleState[i]--;
-                    } else if (TwinkleState[i] == -1) {
-                        // was background, now highlight for random period
-                        double frameTime = _seqData.FrameTime();
-                        if (frameTime == 0) frameTime = 50.0;
-                        TwinkleState[i] = static_cast<int>(rand01() * (double)interval + 100.0) / frameTime;
-                        TestSeqIdx = i * 3;
-                        _outputManager->SetOneChannel(chArray[TestSeqIdx] - 1, FgColor[0]);
-                        _outputManager->SetOneChannel(chArray[TestSeqIdx + 1] - 1, FgColor[1]);
-                        _outputManager->SetOneChannel(chArray[TestSeqIdx + 2] - 1, FgColor[2]);
-                    } else {
-                        // was on, now go to bg color for random period
-                        double frameTime = _seqData.FrameTime();
-                        if (frameTime == 0) frameTime = 50.0;
-                        if (_twinkleRatio == 1.0) _twinkleRatio = .9;
-                        TwinkleState[i] = -static_cast<int>(rand01() * (double)interval + 100.0) / frameTime * ((double)_twinkleRatio - 1.0);
-                        TestSeqIdx = i * 3;
-                        _outputManager->SetOneChannel(chArray[TestSeqIdx] - 1, BgColor[0]);
-                        _outputManager->SetOneChannel(chArray[TestSeqIdx + 1] - 1, BgColor[1]);
-                        _outputManager->SetOneChannel(chArray[TestSeqIdx + 2] - 1, BgColor[2]);
-                    }
-                }
-                break;
-            case PixelTestDialog::TestFunctions::SHIMMER:
-                if (ColorChange || curtime >= NextSequenceStart) {
-                    ShimColor = (ShimColor == FgColor) ? BgColor : FgColor;
-                    for (i = 0; i < chArray.Count(); i++) {
-                        _outputManager->SetOneChannel(chArray[i] - 1, ShimColor[i % 3]);
-                    }
-                }
-                if (curtime >= NextSequenceStart) {
-                    NextSequenceStart = curtime + interval / 2;
-                }
-                break;
-            case PixelTestDialog::TestFunctions::CHASE:
-                if (ColorChange || curtime >= NextSequenceStart) {
-                    for (i = 0; i < chArray.Count(); i++) {
-                        v = (i / 3 % _chaseGrouping) == TestSeqIdx ? FgColor[i % 3] : BgColor[i % 3];
-                        _outputManager->SetOneChannel(chArray[i] - 1, v);
-                    }
-                }
-                if (curtime >= NextSequenceStart) {
-                    NextSequenceStart = curtime + interval;
-                    TestSeqIdx = (TestSeqIdx + 1) % _chaseGrouping;
-                    if (TestSeqIdx >= (chArray.Count() + 2) / 3)
-                        TestSeqIdx = 0;
-                }
-                StatusBar1->SetLabelText(wxString::Format(_("Testing %ld channels; chase now at ch# %d"), static_cast<long>(chArray.Count()), TestSeqIdx)); // show current ch# -DJ
-                break;
-            default:
-                break;
-            }
-            break;
-
-        case 2:
-            // RGB Cycle
-            v = Slider_Speed->GetValue(); // 0-100
-            if (testFunc == PixelTestDialog::TestFunctions::DIM) {
-                // color mixing
-                if (v != LastSequenceSpeed) {
-                    frequency = v / 1000.0 + 0.05;
-                    LastSequenceSpeed = v;
-                }
-                BgColor[0] = sin(frequency * TestSeqIdx + 0.0) * 127 + 128;
-                BgColor[1] = sin(frequency * TestSeqIdx + 2.0) * 127 + 128;
-                BgColor[2] = sin(frequency * TestSeqIdx + 4.0) * 127 + 128;
-                TestSeqIdx++;
-                for (i = 0; i < chArray.Count(); ++i) {
-                    _outputManager->SetOneChannel(chArray[i] - 1, BgColor[i % 3]);
-                }
-            } else if (testFunc == PixelTestDialog::TestFunctions::RGBW) {
-                if (v != LastSequenceSpeed) {
-                    interval = (101 - v) * 50;
-                    NextSequenceStart = curtime + interval;
-                    LastSequenceSpeed = v;
-                }
-                if (curtime >= NextSequenceStart) {
-                    // blank everything first
-                    for (i = 0; i < chArray.Count(); i++) {
-                        _outputManager->SetOneChannel(chArray[i] - 1, 0);
-                    }
-                    switch (rgbCycle) {
-                    case 0: // red
-                        for (i = 0; i < chArrayR.Count(); i++) {
-                            _outputManager->SetOneChannel(chArrayR[i] - 1, 255);
-                        }
-                        break;
-                    case 1: // green
-                        for (i = 0; i < chArrayG.Count(); i++) {
-                            _outputManager->SetOneChannel(chArrayG[i] - 1, 255);
-                        }
-                        break;
-                    case 2: // blue
-                        for (i = 0; i < chArrayB.Count(); i++) {
-                            _outputManager->SetOneChannel(chArrayB[i] - 1, 255);
-                        }
-                        break;
-                    case 3: // white
-                        for (i = 0; i < chArrayW.Count(); i++) {
-                            _outputManager->SetOneChannel(chArrayW[i] - 1, 255);
-                        }
-                        break;
-                    }
-                    rgbCycle = (rgbCycle + 1) % 4;
-                    NextSequenceStart += interval;
-                }
-            } else {
-                // RGB cycle
-                if (v != LastSequenceSpeed) {
-                    interval = (101 - v) * 50;
-                    NextSequenceStart = curtime + interval;
-                    LastSequenceSpeed = v;
-                }
-                if (curtime >= NextSequenceStart) {
-                    for (i = 0; i < chArray.Count(); i++) {
-                        switch (rgbCycle) {
-                        case 3:
-                            v = 255;
-                            break;
-                        default:
-                            v = (i % 3) == rgbCycle ? 255 : 0;
-                            break;
-                        }
-                        _outputManager->SetOneChannel(chArray[i] - 1, v);
-                    }
-                    rgbCycle = (rgbCycle + 1) % _chaseGrouping;
-                    NextSequenceStart += interval;
-                }
-            }
-
-            // we set the 50th pixel to white at 50%
-            if (fiftieth) {
-                for (i = 3 * (50 - 1); i < chArray.Count(); i += 150) {
-                    for (uint8_t j = 0; j < 3; j++) {
-                        _outputManager->SetOneChannel(chArray[i + j] - 1, 128);
-                    }
-                }
-            }
-            break;
-
-            case 3: { // controller test
-                // standard tests
-                v = Slider_Speed->GetValue(); // 0-100
-
-                interval = v * 10;
-                // GetCheckedItems(chArray);
-                if (testFunc == PixelTestDialog::TestFunctions::PortCycle) {
-                    wxTreeListItem i = TreeListCtrl_Controllers->GetFirstChild(TreeListCtrl_Controllers->GetRootItem());
-                    uint16_t ports{ 0 };
-                    while (i != nullptr) {
-                        TestItemBase* tc = (TestItemBase*)TreeListCtrl_Controllers->GetItemData(i);
-                        if (tc->IsClickable()) {
-                            if (tc->GetType() == "Controller") {
-                                // controller
-                                CPR_ControllerTestItem* con = (CPR_ControllerTestItem*)tc;
-                                for (auto p : con->GetPorts()) {
-                                    if (!p->IsClickable()) {
-                                        continue;
-                                    }
-                                    ports = std::max(ports, p->GetPort());
-                                    int offSet{ 2 };
-                                    if (p->GetPort() == 1) {
-                                        offSet = 0;
-                                    }
-                                    for (long j = p->GetFirstChannel(); j < p->GetLastChannel(); ++j) {
-                                        _outputManager->SetOneChannel((j - 1), 0);
-                                    }
-                                    if (p->GetPort() == rgbCycle + 1) {
-                                        for (long j = p->GetFirstChannel(); j < p->GetLastChannel(); j += 3) {
-                                            _outputManager->SetOneChannel((j - 1) + offSet, 255);
-                                        }
-                                        StatusBar1->SetLabelText(wxString::Format(_("Testing %ld channels Port %ld"), static_cast<long>(chArray.Count()), p->GetPort()));
-                                    }
-                                }
-                            }
-                        }
-                        i = TreeListCtrl_Controllers->GetNextSibling(i);
-                    }
-                    if (curtime >= NextSequenceStart) {
-                        rgbCycle++;
-                        if (ports > 0) rgbCycle = rgbCycle % ports;
-                        else rgbCycle = 0;
-                        NextSequenceStart = curtime + (interval * 2);
-                    }
-                } else if (testFunc == PixelTestDialog::TestFunctions::ColorBlocks) {
-                    wxTreeListItem i = TreeListCtrl_Controllers->GetFirstChild(TreeListCtrl_Controllers->GetRootItem());
-                    while (i != nullptr) {
-                        TestItemBase* tc = (TestItemBase*)TreeListCtrl_Controllers->GetItemData(i);
-                        if (tc->IsClickable()) {
-                            if (tc->GetType() == "Controller") {
-                                // controller
-                                CPR_ControllerTestItem* con = (CPR_ControllerTestItem*)tc;
-                                for (auto p : con->GetPorts()) {
-                                    if (!p->IsClickable()) {
-                                        continue;
-                                    }
-                                    //assume 3 channel pixels
-                                    for (long j = p->GetFirstChannel(); j < p->GetLastChannel(); j += 3) {
-                                        long pix = j - p->GetFirstChannel();
-                                        pix = pix % 90;
-                                        pix = pix / 30;
-                                        _outputManager->SetOneChannel((j - 1) + pix, 255);
-                                    }
-                                }
-                            }
-                        }
-                        i = TreeListCtrl_Controllers->GetNextSibling(i);
-                    }
-                }
-            } break;
-        }
-    }
+    _testEngine.Frame(_outputManager, params, curtime);
+    StatusBar1->SetLabelText(_testEngine.GetStatus());
 }
 
 char PixelTestDialog::GetChannelColour(long ch)
@@ -3491,18 +3192,15 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
             DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
         }
 
-        xLightsFrame* f = (xLightsFrame*)GetParent();
-
-        if (!f->ForceEnableOutputs(false)) {
-            DisplayWarning("At least one output could not be started. See log file for details.", this);
-        }
-        Timer1.Start(50, wxTIMER_CONTINUOUS);
+        _uploadedControllers.clear();
+        Timer1.Start(TEST_TIMER_INTERVAL_MS, wxTIMER_CONTINUOUS);
     } else {
         Timer1.Stop();
         wxTimerEvent ev(Timer1);
         OnTimer1Trigger(ev);
         _outputManager->StopOutput();
         SetConfigBool("OutputActive", false);
+        _uploadedControllers.clear();
     }
 }
 
@@ -3808,18 +3506,7 @@ void PixelTestDialog::OnCheckBox_SuppressUnusedOutputsClick(wxCommandEvent& even
 
 void PixelTestDialog::SetSuspend(bool suspend)
 {
-    if (suspend) {
-        auto outputs = _outputManager->GetOutputs();
-        for (const auto& it : outputs) {
-            if (_channelTracker.AreAnyIncluded(it->GetStartChannel(), it->GetEndChannel())) {
-                it->Suspend(false);
-            } else {
-                it->Suspend(true);
-            }
-        }
-    } else {
-        _outputManager->SuspendAll(false);
-    }
+    xltest::TestPatternEngine::ApplySuspend(_outputManager, _channelTracker, suspend);
 }
 
 void PixelTestDialog::OnNotebook1PageChanged(wxNotebookEvent& event)

@@ -129,6 +129,37 @@ struct EditDescriptionTarget: Equatable {
     let effectIndex: Int
 }
 
+/// Effect Symbol name prompt + error alert. Extracted for the same reason
+/// as `EditDescriptionAlert` below — these two modifiers on the main view
+/// chain pushed the enclosing expression past SwiftUI's type-check budget.
+private struct EffectSymbolAlerts: ViewModifier {
+    @Binding var createRequested: Bool
+    @Binding var createName: String
+    @Binding var errorMessage: String?
+    let viewModel: SequencerViewModel
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Create Effect Symbol", isPresented: $createRequested) {
+                TextField("Symbol name", text: $createName)
+                Button("Create") {
+                    errorMessage = viewModel.createSymbolFromSelectedEffect(named: createName)
+                    createName = ""
+                }
+                Button("Cancel", role: .cancel) { createName = "" }
+            } message: {
+                Text("The effect's settings become the symbol's definition and this effect is linked to it. Editing any linked effect updates the symbol and every other effect linked to it.")
+            }
+            .alert("Effect Symbol",
+                   isPresented: Binding(get: { errorMessage != nil },
+                                        set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+    }
+}
+
 private struct EditDescriptionAlert: ViewModifier {
     @Binding var target: EditDescriptionTarget?
     @Binding var text: String
@@ -254,6 +285,87 @@ private struct DeleteLayersAlert: ViewModifier {
         } message: { _ in
             Text("How many layers to delete, starting at this one and moving down? Effects on them will be lost.")
         }
+    }
+}
+
+/// One pending row-heading confirm/prompt (delete layer / delete all
+/// effects / delete model effects / rename layer). Captures the
+/// display bits the alert message needs at request time so the host
+/// doesn't have to re-resolve the row later.
+struct RowHeaderConfirmTarget {
+    enum Kind { case deleteLayer, deleteAllEffects, deleteModelEffects, renameLayer }
+    let kind: Kind
+    let rowId: Int
+    let displayName: String
+    let layerIndex: Int
+    let effectCount: Int
+}
+
+/// Row-heading delete/rename confirms, hosted once here instead of as
+/// four .alert modifiers on every ModelRowHeader — SwiftUI re-diffs
+/// per-row presentation modifiers on every grid update, which pinned
+/// the CPU for a minute+ on large shows (crash-log CPU-exception
+/// bucket). Extracted as a ViewModifier for the same type-check-budget
+/// reason as InsertLayersAlert.
+private struct RowHeaderConfirmAlerts: ViewModifier {
+    @Binding var target: RowHeaderConfirmTarget?
+    @Binding var renameText: String
+    let viewModel: SequencerViewModel
+
+    private func isPresented(_ kind: RowHeaderConfirmTarget.Kind) -> Binding<Bool> {
+        Binding(get: { target?.kind == kind },
+                set: { if !$0 { target = nil } })
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Delete Layer",
+                   isPresented: isPresented(.deleteLayer),
+                   presenting: target) { t in
+                Button("Delete", role: .destructive) {
+                    if viewModel.document.removeEffectLayer(at: Int32(t.rowId)) {
+                        viewModel.reloadRows()
+                    }
+                    target = nil
+                }
+                Button("Cancel", role: .cancel) { target = nil }
+            } message: { t in
+                Text("Delete layer \(t.layerIndex + 1) of \(t.displayName)? All effects on this layer will be lost.")
+            }
+            .alert("Delete All Effects",
+                   isPresented: isPresented(.deleteAllEffects),
+                   presenting: target) { t in
+                Button("Delete All", role: .destructive) {
+                    _ = viewModel.deleteAllEffectsOnRow(rowIndex: t.rowId)
+                    target = nil
+                }
+                Button("Cancel", role: .cancel) { target = nil }
+            } message: { t in
+                Text("Delete all \(t.effectCount) effects on \(t.displayName)? Undo with ⌘Z.")
+            }
+            .alert("Delete Model Effects",
+                   isPresented: isPresented(.deleteModelEffects),
+                   presenting: target) { t in
+                Button("Delete All", role: .destructive) {
+                    viewModel.deleteModelEffects(rowIndex: t.rowId)
+                    target = nil
+                }
+                Button("Cancel", role: .cancel) { target = nil }
+            } message: { t in
+                Text("Delete every effect on \(t.displayName) — all layers, submodels, strands and nodes? Undo with ⌘Z.")
+            }
+            .alert("Rename Layer",
+                   isPresented: isPresented(.renameLayer),
+                   presenting: target) { t in
+                TextField("Name", text: $renameText)
+                Button("OK") {
+                    _ = viewModel.renameLayer(rowIndex: t.rowId, name: renameText)
+                    target = nil
+                }
+                Button("Cancel", role: .cancel) { target = nil }
+            } message: { _ in
+                Text("Enter a layer name (used as the header label).")
+            }
     }
 }
 
@@ -510,6 +622,13 @@ struct SequencerGridV2View: View {
     /// B19 save-as-preset alert state.
     @State private var savePresetRequested: Bool = false
     @State private var savePresetName: String = ""
+    // Effect Symbols — name prompt for "Create Symbol from Effect…" plus the
+    // error text when the name is empty or already taken (desktop rejects both).
+    @State private var createSymbolRequested: Bool = false
+    @State private var createSymbolName: String = ""
+    @State private var symbolErrorMessage: String?
+    /// "Convert To…" effect-type picker (desktop Effects-panel right-click).
+    @State private var convertTypeRequested: Bool = false
 
 
     /// B47 insert-N-layers prompt state.
@@ -517,6 +636,8 @@ struct SequencerGridV2View: View {
     @State private var insertLayersCountText: String = "3"
     @State private var deleteLayersTargetRow: Int? = nil
     @State private var deleteLayersCountText: String = "2"
+    @State private var rowHeaderConfirm: RowHeaderConfirmTarget? = nil
+    @State private var renameLayerText: String = ""
 
     /// #6507 top-level row drag-reorder. `rowDragSourceId` is the
     /// visible row id of the row being dragged; `rowDropTargetId` is
@@ -641,6 +762,10 @@ struct SequencerGridV2View: View {
             let modelRows = viewModel.rows.filter { !timingIdxSet.contains($0.id) }
 
             let durationMS = viewModel.sequenceDurationMS
+            // How far the timeline is drawn — past the sequence end when
+            // effects live out there. Zoom-to-fit still uses `durationMS`
+            // so a lone stray effect can't zoom the whole sequence out.
+            let extentMS = max(durationMS, viewModel.timelineExtentMS)
             let availableGridH = max(geo.size.height - metrics.topChromeHeight, 1)
             let rawTimingH = CGFloat(timingRows.count) * metrics.timingRowHeight
             // Cap timing band at ~1/3 of available grid height.
@@ -658,7 +783,7 @@ struct SequencerGridV2View: View {
                             .frame(width: metrics.rowHeaderWidth,
                                    height: metrics.topChromeHeight)
                         rowHeaderResizeHandle(height: metrics.topChromeHeight)
-                        topChromeStrip(durationMS: durationMS)
+                        topChromeStrip(durationMS: extentMS)
                             .frame(height: metrics.topChromeHeight)
                     }
                     .frame(height: metrics.topChromeHeight)
@@ -742,7 +867,7 @@ struct SequencerGridV2View: View {
                                 ScrollbarOverlay(
                                     orientation: .horizontal,
                                     viewportSize: geo.size.width - metrics.rowHeaderWidth,
-                                    contentSize: timeline.contentWidth(forDurationMS: durationMS),
+                                    contentSize: timeline.contentWidth(forDurationMS: extentMS),
                                     offset: Binding(
                                         get: { timeline.hScrollOffsetPx },
                                         set: { timeline.hScrollOffsetPx = $0 }),
@@ -952,6 +1077,10 @@ struct SequencerGridV2View: View {
                 Button("Reset to Defaults", role: .destructive) {
                     viewModel.resetSelectedEffectsToDefaults()
                 }
+                Button("Convert To…") {
+                    convertTypeRequested = true
+                }
+                effectSymbolMenu(rowIndex: target.rowIndex, effectIndex: target.effectIndex)
                 // PRE-1 — persistent effect presets. Save captures the
                 // current selection into the on-disk library; apply
                 // drops the chosen preset onto every selected effect.
@@ -1229,9 +1358,9 @@ struct SequencerGridV2View: View {
                 }
             }
             // B43 alt-track switch — only surfaced when the sequence
-            // declares at least one alternate audio track. Selection
-            // is purely cosmetic (waveform-only); playback stays on
-            // the main track.
+            // declares at least one alternate audio track. The
+            // selection drives both the waveform and playback, as on
+            // desktop; switching mid-playback stops the old track.
             if viewModel.altAudioTrackNames.count > 0 {
                 Button {
                     viewModel.setActiveWaveformTrack(-1)
@@ -1523,6 +1652,14 @@ struct SequencerGridV2View: View {
         .sheet(isPresented: Bindable(viewModel).presetBrowserPresented) {
             PresetBrowserSheet(viewModel: viewModel)
         }
+        .sheet(isPresented: $convertTypeRequested) {
+            ConvertEffectTypeSheet(viewModel: viewModel)
+        }
+        .modifier(EffectSymbolAlerts(
+            createRequested: $createSymbolRequested,
+            createName: $createSymbolName,
+            errorMessage: $symbolErrorMessage,
+            viewModel: viewModel))
         .modifier(InsertLayersAlert(
             targetRow: $insertLayersTargetRow,
             countText: $insertLayersCountText,
@@ -1530,6 +1667,10 @@ struct SequencerGridV2View: View {
         .modifier(DeleteLayersAlert(
             targetRow: $deleteLayersTargetRow,
             countText: $deleteLayersCountText,
+            viewModel: viewModel))
+        .modifier(RowHeaderConfirmAlerts(
+            target: $rowHeaderConfirm,
+            renameText: $renameLayerText,
             viewModel: viewModel))
 
         .sheet(isPresented: Binding(
@@ -2118,6 +2259,36 @@ struct SequencerGridV2View: View {
     /// Zoom out so the full sequence duration fits inside the available
     /// horizontal content width. Runs once per sequence load (tracked by
     /// `fitDurationMS`) so later user zoom isn't clobbered.
+    /// Effect Symbols submenu (desktop EffectsGrid.cpp:614-633). Extracted
+    /// from the effect context menu — inlining it pushed that already-large
+    /// view expression past the type-checker's budget.
+    @ViewBuilder
+    private func effectSymbolMenu(rowIndex: Int, effectIndex: Int) -> some View {
+        Menu("Effect Symbol") {
+            Button("Create Symbol from Effect…") {
+                let base = viewModel.document.effectName(forRow: Int32(rowIndex),
+                                                          at: Int32(effectIndex))
+                createSymbolName = base + " Symbol"
+                createSymbolRequested = true
+            }
+            if viewModel.selectionHasSymbolLink {
+                Button("Unlink from Symbol") {
+                    _ = viewModel.unlinkSelectedEffectsFromSymbol()
+                }
+            }
+            let symbols = viewModel.effectSymbols()
+            if !symbols.isEmpty {
+                Menu("Link to Symbol") {
+                    ForEach(symbols) { sym in
+                        Button(sym.name + " (" + sym.effectType + ")") {
+                            _ = viewModel.linkSelectedEffectsToSymbol(id: sym.id)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private func fitIfNeeded(durationMS: Int, availableWidth: CGFloat) {
         guard durationMS > 0 else { return }
         let contentAvail = availableWidth - metrics.rowHeaderWidth
@@ -2323,6 +2494,14 @@ struct SequencerGridV2View: View {
             ForEach(rows) { row in
                 let h: CGFloat = (row.id == selectedRowId)
                     ? metrics.selectedRowHeight : metrics.rowHeight
+                let requestConfirm = { (kind: RowHeaderConfirmTarget.Kind) in
+                    rowHeaderConfirm = RowHeaderConfirmTarget(
+                        kind: kind,
+                        rowId: row.id,
+                        displayName: row.displayName,
+                        layerIndex: row.layerIndex,
+                        effectCount: row.effects.count)
+                }
                 ModelRowHeader(
                     row: row,
                     height: h,
@@ -2335,15 +2514,19 @@ struct SequencerGridV2View: View {
                     onSelectAllEffectsInModel: {
                         viewModel.selectAllEffectsInModel(rowIndex: row.id)
                     },
-                    onRenameLayer: { newName in
-                        _ = viewModel.renameLayer(rowIndex: row.id, name: newName)
+                    onRequestRenameLayer: {
+                        renameLayerText = viewModel.document.rowLayerName(at: Int32(row.id))
+                        requestConfirm(.renameLayer)
+                    },
+                    onRequestDeleteLayer: {
+                        requestConfirm(.deleteLayer)
                     },
                     effectCountOnRow: row.effects.count,
                     onDeleteAllEffectsOnRow: {
-                        _ = viewModel.deleteAllEffectsOnRow(rowIndex: row.id)
+                        requestConfirm(.deleteAllEffects)
                     },
                     onDeleteModelEffects: {
-                        viewModel.deleteModelEffects(rowIndex: row.id)
+                        requestConfirm(.deleteModelEffects)
                     },
                     elementRenderDisabled: viewModel.isElementRenderDisabled(rowIndex: row.id),
                     onToggleRenderDisabled: {
@@ -2515,6 +2698,9 @@ struct SequencerGridV2View: View {
         }
         stateLookup.isDisabled = { [document = viewModel.document] rowIdx, effIdx in
             document.effectIsRenderDisabled(inRow: Int32(rowIdx), at: Int32(effIdx))
+        }
+        stateLookup.isLinkedToSymbol = { [document = viewModel.document] rowIdx, effIdx in
+            document.effectIsLinkedToSymbol(inRow: Int32(rowIdx), at: Int32(effIdx))
         }
         return EffectsMetalGridView(
             rows: modelRows,

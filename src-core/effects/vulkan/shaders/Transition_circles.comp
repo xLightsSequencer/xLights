@@ -1,0 +1,44 @@
+#version 450
+// Port of circlesTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+
+    float adjust = floor(interpolate(data.adjust, 0.0, 2.0, 100.0, 8.0));
+
+    const int NumCircles = 3;
+
+    float dummy1, dummy2;
+    vec2 cell = vec2(modf(s * adjust, dummy1), modf(t * adjust, dummy2));
+
+    float m = 0.0;
+    float alphaPerCircle = 1.0 / float(NumCircles) + 0.01;
+    for (int i = 0; i < NumCircles; ++i) {
+        float delay = float(i) * 0.5 / float(NumCircles - 1);
+        float p = max(0.0, data.progress - delay);
+        m += alphaPerCircle * (1.0 - smoothstep(p * 1.40, p * 1.45, length(cell - vec2(0.5, 0.5))));
+    }
+    m = min(1.0, m);
+    uvec4 s1 = tex2Dsrc(s, t);
+    uvec4 s2 = uvec4(0u, 0u, 0u, 255u);
+    if (data.hasPrev != 0u) {
+        s2 = tex2Dprev(s, t);
+    }
+    result[sidx] = packPx(xl_lerp4(s1, s2, m));
+}

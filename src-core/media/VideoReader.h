@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cstdint>
 #include <string>
 #include "VideoFrame.h"
 
@@ -37,6 +38,12 @@ public:
     // requested size in place. False means the caller should delete and reconstruct
     // the VideoReader with the new dimensions.
     bool Resize(int width, int height);
+    // Corridor identity for decoder chain affinity (see VideoReaderImpl).
+    void SetStreamGroup(uint64_t group);
+    // True when GetNextFrame(t) is a pure function of t and the file, independent
+    // of decode position, request order, and other readers on the same file
+    // (AVFoundation). False for forward-decoding readers (FFmpeg).
+    bool SupportsFrameIndependentAccess() const;
     static void SetHardwareAcceleratedVideo(bool accel);
     static void SetHardwareRenderType(int type);
     static bool IsHardwareAcceleratedVideo();
@@ -44,4 +51,9 @@ public:
     static void InitHWAcceleration();
 private:
     VideoReaderImpl* _impl = nullptr;
+    const char* _decoderTag = "?";   // XL_VIDEO_DUMP label
+    int _dumpedFrames = 0;           // XL_VIDEO_DUMP budget for this reader
+    int _readerId = 0;               // XL_VIDEO_TRACE: distinguishes concurrent
+                                     // readers on the same file+size, whose
+                                     // requests otherwise interleave in the log
 };

@@ -28,8 +28,8 @@
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-									<cols>5</cols>
-									<growablecols>4</growablecols>
+									<cols>6</cols>
+									<growablecols>5</growablecols>
 									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 											<label>Filter:</label>
@@ -74,6 +74,23 @@
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+											<object class="spacer">
+												<size>40,0</size>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>0</border>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT4" variable="ShowDirLabel" member="yes" />
+												<flag>wxALL|wxEXPAND</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+										<flag>wxEXPAND</flag>
 										<option>1</option>
 									</object>
 								</object>

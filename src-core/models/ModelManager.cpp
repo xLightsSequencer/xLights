@@ -288,7 +288,7 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     previewWidth = previewW;
     previewHeight = previewH;
     auto timerStart = std::chrono::steady_clock::now();
-    std::list<pugi::xml_node> modelsToLoad;
+    std::vector<pugi::xml_node> modelsToLoad;
     for (pugi::xml_node e = modelNode.first_child(); e; e = e.next_sibling()) {
         if (std::string_view(e.name()) == "model") {
             std::string name = Trim(e.attribute("name").as_string());
@@ -297,12 +297,11 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
             }
         }
     }
-    std::function<void(pugi::xml_node&, int)> f = [this, previewW, previewH](pugi::xml_node e, int idx) {
-        createAndAddModel(e, previewW, previewH);
-    };
     {
         AutoReleasePool pool;
-        parallel_for(modelsToLoad, f);
+        parallel_for(0, (int)modelsToLoad.size(), [this, &modelsToLoad, previewW, previewH](int idx) {
+            createAndAddModel(modelsToLoad[idx], previewW, previewH);
+        });
     }
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     auto timerElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerStart).count();
@@ -1425,6 +1424,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         m->SetNumMatrixStrings(16);
         m->SetNodesPerString(50);
         m->SetStrandsPerString(1);
+        m->SetVertical(true);
         model = m;
     } else if (type == "Matrix") {
         auto* m = new MatrixModel(*this);
@@ -1486,13 +1486,21 @@ void ModelManager::AddModel(Model* model)
 
     if (model != nullptr) {
         std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
+        Model* oldm = nullptr;
         auto it = models.find(model->name);
         if (it != models.end()) {
-            delete it->second;
-            it->second = nullptr;
-            ResetModelGroups();
+            oldm = it->second;
         }
+        // Publish the replacement before resetting the groups, then free the old
+        // model. Resetting while the map still held the old (or a null) entry
+        // left every group that names this model pointing at the model we are
+        // about to free, or silently dropped it from the group until something
+        // else happened to reset them.
         models[model->name] = model;
+        if (oldm != nullptr) {
+            ResetModelGroups();
+            delete oldm;
+        }
         _modelGeneration++;
     }
 }
@@ -1500,7 +1508,17 @@ void ModelManager::AddModel(Model* model)
 void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
     if (nm != nullptr && name != "") {
         std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
-        Model *oldm = models[name];
+        Model* oldm = nullptr;
+        auto it = models.find(name);
+        if (it != models.end()) {
+            oldm = it->second;
+            if (nm->name != name) {
+                // Renamed. The old key has to go or it keeps handing out the
+                // model freed below - to the groups reset here and to every
+                // later lookup of the old name.
+                models.erase(it);
+            }
+        }
         models[nm->name] = nm;
         ResetModelGroups();
         delete oldm;
@@ -1576,6 +1594,61 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(const Model* mod
         }
     }
     return res;
+}
+
+void ModelManager::ReconcileReplacedModelGroups(const std::string& sourceName, const std::vector<std::string>& replacedNames, ReplaceGroupMode mode)
+{
+    if (mode == ReplaceGroupMode::NoChange || sourceName.empty() || replacedNames.empty()) {
+        return;
+    }
+
+    const std::string sourcePrefix = sourceName + "/";
+
+    for (const auto& it : *this) {
+        if (it.second == nullptr || it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+            continue;
+        }
+        ModelGroup* g = dynamic_cast<ModelGroup*>(it.second);
+        if (g == nullptr || g->IsFromBase()) {
+            continue; // never edit base-folder groups
+        }
+
+        // Snapshot once: which of this group's direct entries belong to the
+        // source model, as either "Source" or a submodel "Source/Strand1".
+        // (AddModel/ModelRemoved mutate the live list, so iterate a copy.)
+        const std::vector<std::string> names = g->ModelNames();
+        std::vector<std::string> sourceOwned;
+        for (const auto& n : names) {
+            if (n == sourceName || n.starts_with(sourcePrefix)) {
+                sourceOwned.push_back(n);
+            }
+        }
+
+        for (const auto& targetName : replacedNames) {
+            if (targetName == sourceName) {
+                continue;
+            }
+            const std::string targetPrefix = targetName + "/";
+
+            if (mode == ReplaceGroupMode::ReplaceWithSource) {
+                // The replaced model's direct membership in this group becomes
+                // exactly the source's: drop its existing entries first (this
+                // also clears stale "Target/OldSub" entries whose submodels no
+                // longer exist when submodels weren't kept).
+                for (const auto& n : names) {
+                    if (n == targetName || n.starts_with(targetPrefix)) {
+                        g->ModelRemoved(n);
+                    }
+                }
+            }
+
+            // Add the target-equivalent of each source entry, remapping the
+            // prefix so "Source/Strand1" -> "Target/Strand1". AddModel dedupes.
+            for (const auto& n : sourceOwned) {
+                g->AddModel(targetName + n.substr(sourceName.size()));
+            }
+        }
+    }
 }
 
 std::vector<std::string> ModelManager::GetGroupsContainingModelOrSubmodel(const Model* model) const
@@ -1974,6 +2047,9 @@ static bool LoadBaseXmlNodes(const std::string& baseShowDir, pugi::xml_document&
 
     pugi::xml_node root = doc.document_element();
     if (root) {
+        // The base folder stores its file references relative to itself; anchor
+        // them before any of these nodes get copied into the current show.
+        XmlSerialize::AbsolutizeFileReferences(root, baseShowDir);
         for (pugi::xml_node mm = root.first_child(); mm; mm = mm.next_sibling()) {
             if (std::string_view(mm.name()) == "models") baseModels = mm;
             else if (std::string_view(mm.name()) == "modelGroups") baseGroups = mm;
@@ -1982,7 +2058,7 @@ static bool LoadBaseXmlNodes(const std::string& baseShowDir, pugi::xml_document&
     return true;
 }
 
-bool ModelManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode)
+bool ModelManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode, bool* changedOut)
 {
     pugi::xml_document baseDoc;
     pugi::xml_node baseModels;
@@ -1991,12 +2067,14 @@ bool ModelManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node l
 
     std::vector<std::string> changedModels;
     std::vector<std::string> changedGroups;
-    return MergeBaseIntoCurrentXml(localModelsNode, localGroupsNode,
-                                   baseModels, baseGroups,
-                                   changedModels, changedGroups);
+    bool const changed = MergeBaseIntoCurrentXml(localModelsNode, localGroupsNode,
+                                                 baseModels, baseGroups,
+                                                 changedModels, changedGroups);
+    if (changedOut != nullptr) *changedOut = *changedOut || changed;
+    return true;
 }
 
-bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll)
+bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll, bool* changedOut)
 {
     bool changed = false;
 
@@ -2004,7 +2082,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
     pugi::xml_node baseModels;
     pugi::xml_node baseGroups;
     if (!LoadBaseXmlNodes(baseShowDir, baseDoc, baseModels, baseGroups)) return false;
-    if (!baseModels) return false;
+    // Base file loaded but has no models section - nothing to merge, still counts as synced.
+    if (!baseModels) return true;
 
     // Handle prompt mode: ask user about non-FromBase models that clash with base
     if (prompt) {
@@ -2101,7 +2180,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
         RecalcStartChannels();
     }
 
-    return changed;
+    if (changedOut != nullptr) *changedOut = changed;
+    return true;
 }
 
 bool ModelManager::Delete(const std::string& name)

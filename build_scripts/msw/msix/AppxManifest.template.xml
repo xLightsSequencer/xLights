@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  xLights MSIX package manifest (template).
+
+  This is NOT the final manifest. BuildMSIX.ps1 substitutes the {{...}} tokens
+  and writes the real AppxManifest.xml into the staging layout. The tokens are:
+
+    {{IDENTITY_NAME}}          Package identity Name.
+                               - Sideload/nightly build: any value matching the
+                                 signing certificate's Publisher (e.g.
+                                 "KulpLightsLLC.xLights").
+                               - Store build: the exact Name reserved in Partner
+                                 Center for the app.
+    {{PUBLISHER}}              Package Publisher. MUST exactly match the subject
+                               of the signing certificate.
+                               - Sideload/nightly: the Azure Trusted Signing
+                                 ("kulplights-public") certificate subject DN,
+                                 e.g. "CN=Kulp Lights LLC, O=Kulp Lights LLC, L=..., S=..., C=US".
+                                 (For local self-signed testing, BuildMSIX.ps1
+                                 mints a cert whose subject equals this value.)
+                               - Store build: the "CN=<GUID>" Partner Center
+                                 assigns; the Store re-signs.
+    {{PUBLISHER_DISPLAY_NAME}} Human-readable publisher, e.g. "Kulp Lights LLC".
+    {{VERSION}}                4-part numeric Major.Minor.Build.Revision.
+    {{DISPLAY_NAME}}           App display name, e.g. "xLights".
+
+  Capabilities rationale (see build_scripts/msw/msix/README.md):
+    runFullTrust              Required for any packaged Win32 app; runs xLights
+                              at medium IL OUTSIDE the AppContainer sandbox, so
+                              loopback (xlDo/xFade automation), raw hardware, and
+                              normal Win32 file/registry access behave like the
+                              classic installer build.
+    internetClient/-Server,
+    privateNetworkClientServer Network output + discovery: sACN/ArtNet/DDP (UDP
+                              multicast/broadcast), FPP discovery, controller
+                              upload, and the loopback automation listener.
+    webcam / microphone       KLightMapper camera scan (gated by Windows privacy
+                              settings even at full trust).
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  IgnorableNamespaces="uap uap2 uap3 rescap desktop">
+
+  <Identity
+    Name="{{IDENTITY_NAME}}"
+    Publisher="{{PUBLISHER}}"
+    Version="{{VERSION}}"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>{{DISPLAY_NAME}}</DisplayName>
+    <PublisherDisplayName>{{PUBLISHER_DISPLAY_NAME}}</PublisherDisplayName>
+    <Description>xLights - sequence and control your light show.</Description>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <!-- 1809 is the minimum for full-trust desktop packages; bump only if a
+         newer App Installer / manifest feature is adopted. -->
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application Id="xLights" Executable="xLights.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="{{DISPLAY_NAME}}"
+        Description="xLights - sequence and control your light show."
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        BackgroundColor="#1e1e1e">
+        <uap:DefaultTile
+          Wide310x150Logo="Assets\Wide310x150Logo.png"
+          Square71x71Logo="Assets\Square71x71Logo.png"
+          Square310x310Logo="Assets\Square310x310Logo.png">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo" />
+            <uap:ShowOn Tile="wide310x150Logo" />
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="#1e1e1e" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!-- File associations replace the HKCR entries the Inno installer writes. -->
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="xsq">
+            <uap:DisplayName>xLights Sequence</uap:DisplayName>
+            <uap:Logo>Assets\Square44x44Logo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.xsq</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="xsqz">
+            <uap:DisplayName>xLights Packaged Sequence</uap:DisplayName>
+            <uap:Logo>Assets\Square44x44Logo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.xsqz</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <Capability Name="internetClient" />
+    <Capability Name="internetClientServer" />
+    <Capability Name="privateNetworkClientServer" />
+    <DeviceCapability Name="webcam" />
+    <DeviceCapability Name="microphone" />
+  </Capabilities>
+
+</Package>

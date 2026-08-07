@@ -1,0 +1,66 @@
+#version 450
+// Port of doorwayTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+const float dw_reflection = 0.4;
+const float dw_perspective = 0.4;
+const float dw_depth = 3.0;
+const vec2 dw_boundMin = vec2(0.0, 0.0);
+const vec2 dw_boundMax = vec2(1.0, 1.0);
+bool dwInBounds(vec2 p) {
+    return (dw_boundMin.x < p.x && dw_boundMin.y < p.y) && (p.x < dw_boundMax.x && p.y < dw_boundMax.y);
+}
+vec2 dwProject(vec2 p) {
+    return p * vec2(1.0, -1.2) + vec2(0.0, -0.02);
+}
+uvec4 dwBgColor(vec2 p, vec2 pto) {
+    uvec4 c = uvec4(0u, 0u, 0u, 255u);
+    pto = dwProject(pto);
+    if (dwInBounds(pto)) {
+        uvec4 toColor = tex2Dsrc(pto.x, pto.y);
+        c = addWrap(c, xl_lerp4(uvec4(0u, 0u, 0u, 255u), toColor, dw_reflection * xl_lerpf(1.0, 0.0, pto.y)));
+    }
+    return c;
+}
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+    float progress = data.progress;
+
+    vec2 pfr = vec2(-1.0);
+    vec2 pto = vec2(-1.0);
+    vec2 p = vec2(s, t);
+    float middleSlit = 2.0 * abs(p.x - 0.5) - progress;
+    if (middleSlit > 0.0) {
+        pfr = p + (p.x > 0.5 ? -1.0 : 1.0) * vec2(0.5 * progress, 0.0);
+        float d = 1.0 / (1.0 + dw_perspective * progress * (1.0 - middleSlit));
+        pfr.y -= d / 2.0;
+        pfr.y *= d;
+        pfr.y += d / 2.0;
+    }
+    float size = xl_lerpf(1.0, dw_depth, 1.0 - progress);
+    pto = (p + vec2(-0.5, -0.5)) * vec2(size, size) + vec2(0.5, 0.5);
+
+    if (dwInBounds(pfr)) { // sliding left/right
+        result[sidx] = (data.hasPrev == 0u) ? packPx(uvec4(0u, 0u, 0u, 255u)) : packPx(tex2Dprev(pfr.x, pfr.y));
+    } else if (dwInBounds(pto)) { // zooming in
+        result[sidx] = packPx(tex2Dsrc(pto.x, pto.y));
+    } else {
+        // reflection part
+        result[sidx] = packPx(dwBgColor(p, pto));
+    }
+}

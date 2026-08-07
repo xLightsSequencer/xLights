@@ -42,7 +42,13 @@ void TreeModel::InitModel() {
     }
 
     screenLocation.SetPerspective2D(_perspective);
-    SetTreeCoord(_degrees);
+    long coordDegrees = _degrees;
+    if (_treeType == 1) {
+        coordDegrees = 0; // Flat
+    } else if (_treeType == 2) {
+        coordDegrees = -1; // Ribbon
+    }
+    SetTreeCoord(coordDegrees);
     InitSingleChannelModel();
 }
 

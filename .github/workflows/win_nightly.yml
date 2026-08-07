@@ -36,6 +36,18 @@ jobs:
     needs: check_for_commits
     if: ${{ needs.check_for_commits.outputs.should_run == 'true' }}
     runs-on: windows-2022
+    # Sign nightlies too, so opt-in beta testers don't hit a SmartScreen wall on
+    # every build. Uses the `nightly` environment (no approval gate) for the OIDC
+    # subject; signing is gated on the WINDOWS_SIGNING_ENABLED repo variable.
+    environment: nightly
+    permissions:
+      id-token: write
+      contents: write
+    env:
+      SIGN: ${{ vars.WINDOWS_SIGNING_ENABLED == 'true' }}
+      # MSIX is only built/published when signing is on AND the publisher (which
+      # must exactly match the Trusted Signing certificate subject) is configured.
+      MSIX: ${{ vars.WINDOWS_SIGNING_ENABLED == 'true' && vars.MSIX_PUBLISHER != '' }}
 
     steps:
       - name: Checkout xLights
@@ -49,7 +61,17 @@ jobs:
       - name: install ISPC
         uses: ispc/install-ispc-action@main
         with:
-          version: 1.30.0
+          version: 1.31.0
+
+      # glslc (Vulkan SDK Bin) compiles the .comp compute kernels to SPIR-V
+      # headers via the Xlights.vcxproj CompileVulkanShaders pre-build target
+      # (x64).  The action exports VULKAN_SDK so that target's PowerShell script
+      # finds glslc; without it the msbuild step fails at the pre-build event.
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          install_runtime: false
+          cache: true
 
       #   - name: install Inno
       #    run: choco install innosetup
@@ -63,7 +85,7 @@ jobs:
 
       - name: Download wxWidgets
         run: |
-          git clone --depth=1 --shallow-submodules   --recurse-submodules -b xlights_2026.04 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+          git clone --depth=1 --shallow-submodules   --recurse-submodules -b xlights_2026.13 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
 
       - name: Build wxWidgets
         working-directory: ..\wxWidgets\
@@ -74,9 +96,99 @@ jobs:
         working-directory: build_scripts\msw
         run: call build_VS_x64_skip_libltc.cmd
 
+      # --- Authenticode signing via Azure Trusted Signing (Kulp Lights LLC) ----
+      # Same approach as the release workflow: sign our executables, then the
+      # installer. Only runs when WINDOWS_SIGNING_ENABLED is set.
+      - name: Azure login (OIDC for Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign xLights.exe (Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: xlights\x64\Release
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+      - name: Sign xlDo.exe (Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: xlDo\x64\Release
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+      - name: Sign fseq_convert.exe (Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: fseq_convert\cmake_vs\Release
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
       - name: Build Installer
         working-directory: build_scripts\msw
         run: ISCC.exe xLights_4_64bit_VS.iss
+
+      - name: Sign installer (Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: build_scripts\msw\output
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+      # --- MSIX package + nightly auto-update channel --------------------------
+      # Packages the (already-signed) build outputs into an MSIX, signs it with
+      # the same Trusted Signing cert, and writes an .appinstaller pointing at the
+      # stable `nightly`-tag asset URLs so testers auto-update on launch.
+      - name: Build MSIX
+        if: env.MSIX == 'true'
+        shell: pwsh
+        working-directory: build_scripts\msw\msix
+        run: |
+          ./BuildMSIX.ps1 -Revision ${{ github.run_number }} -IdentityName "${{ vars.MSIX_IDENTITY_NAME }}" -Publisher "${{ vars.MSIX_PUBLISHER }}" -PublisherDisplayName "${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}" -OutFile xLights-x64.msix
+
+      - name: Sign MSIX (Trusted Signing)
+        if: env.MSIX == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: build_scripts\msw\output
+          files-folder-filter: msix
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+      - name: Generate .appinstaller
+        if: env.MSIX == 'true'
+        shell: pwsh
+        working-directory: build_scripts\msw\msix
+        run: |
+          $ver = (Get-Content ..\output\msix_version.txt -Raw).Trim()
+          ./MakeAppInstaller.ps1 -Version $ver -IdentityName "${{ vars.MSIX_IDENTITY_NAME }}" -Publisher "${{ vars.MSIX_PUBLISHER }}" -BaseUrl "${{ github.server_url }}/${{ github.repository }}/releases/download/nightly" -MsixFileName xLights-x64.msix -OutFile ..\output\xLights.appinstaller
 
       - name: Upload Installer
         uses: actions/upload-artifact@v4
@@ -94,3 +206,19 @@ jobs:
           title: "nightly"
           files: |
             ./build_scripts/msw/output/*.exe
+
+      # Add the MSIX + .appinstaller to the nightly release the step above just
+      # (re)created. Done separately (not in the files list above) because that
+      # action errors on a glob that matches nothing - which is the normal case
+      # when MSIX is disabled. --clobber replaces the stable-named assets so the
+      # .appinstaller URLs stay constant across nightlies.
+      - name: Publish MSIX to nightly release
+        if: env.MSIX == 'true' && github.ref == 'refs/heads/master'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload nightly \
+            "build_scripts/msw/output/xLights-x64.msix" \
+            "build_scripts/msw/output/xLights.appinstaller" \
+            --clobber

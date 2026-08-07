@@ -1,0 +1,47 @@
+#version 450
+// Port of squareExplodeTransition in TransitionFunctions.metal (mask/"map" type).
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer MaskB { uint maskWords[]; };
+
+void maskWrite(uint sidx, uint value);
+
+void maskValue(uint ix, uint iy) {
+    uint sidx = ix * data.height + iy; // masks are different order than pixels
+
+    float factor = data.progress;
+    bool reverse = data.reverse != 0u;
+
+    if (data.isOut != 0u) {
+        reverse = !reverse;
+    }
+
+    uint m1 = 255u;
+    uint m2 = 0u;
+
+    if (reverse) {
+        factor = 1.0 - factor;
+        m1 = 0u;
+        m2 = 255u;
+    }
+
+    float xstep = (float(data.width) / 2.0) * factor;
+    float ystep = (float(data.height) / 2.0) * factor;
+
+    uint x1 = uint(float(data.width / 2u) - xstep);
+    uint x2 = uint(float(data.width / 2u) + xstep);
+    uint y1 = uint(float(data.height / 2u) - ystep);
+    uint y2 = uint(float(data.height / 2u) + ystep);
+    uint c;
+    if (ix < x1 || ix > x2 || iy < y1 || iy > y2) {
+        c = m1;
+    } else {
+        c = m2;
+    }
+    maskWrite(sidx, c);
+}
+
+#include "transition_mask_main.glsl"

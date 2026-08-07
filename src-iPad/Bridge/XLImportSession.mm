@@ -1560,9 +1560,14 @@ static BasicImportMappingNode* FindNodeByIDRecursive(BasicImportMappingNode* n, 
 
 #pragma mark - Apply
 
+- (BOOL)sourceHasRGBEffects {
+    return _sourcePackage != nullptr && _sourcePackage->HasRGBEffects();
+}
+
 - (BOOL)applyImportWithEraseExisting:(BOOL)eraseExisting
                                 lock:(BOOL)lock
                   convertRenderStyle:(BOOL)convertRenderStyle
+               importFacesToSequence:(BOOL)importFacesToSequence
                                 error:(NSError**)outError {
     iPadRenderContext* rc = RawRenderContext(_document);
     if (_lpeMode) {
@@ -2097,6 +2102,7 @@ static BasicImportMappingNode* FindNodeByIDRecursive(BasicImportMappingNode* n, 
         return NO;
     }
     SequencePackage& xsqPkg = *_sourcePackage;
+    xsqPkg.SetImportFacesToSequence(importFacesToSequence ? true : false);
 
     SequenceElements& targetSE = rc->GetSequenceElements();
     // Reuse the elementMap / layerMap built during rebuildAvailableSources

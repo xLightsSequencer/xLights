@@ -27,7 +27,7 @@
 								<item>FFmpeg AMF</item>
 								<item>FFmpeg DirectX11</item>
 							</content>
-							<selection>1</selection>
+							<selection>0</selection>
 							<handler function="OnControlChanged" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -233,7 +233,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<rowspan>4</rowspan>
+				<rowspan>2</rowspan>
 				<col>1</col>
 				<row>7</row>
 				<flag>wxALL|wxEXPAND</flag>
@@ -297,6 +297,36 @@
 				</object>
 				<col>0</col>
 				<row>8</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText9" member="yes">
+							<label>Use keybindings from:</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_KEYBINDINGSLOCATION" variable="Choice_KeybindingsLocation" member="yes">
+							<content>
+								<item>Show Folder</item>
+								<item>AppData-shared</item>
+							</content>
+							<selection>0</selection>
+							<handler function="OnControlChanged" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<col>0</col>
+				<row>6</row>
 				<flag>wxALL|wxEXPAND</flag>
 				<option>1</option>
 			</object>
@@ -410,13 +440,43 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX_CustomColorPicker" variable="CheckBox_UseCustomColorPicker" member="yes">
-					<label>Use custom color picker (experimental)</label>
+					<label>Use custom color picker</label>
 					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
 				</object>
-				<col>0</col>
-				<row>13</row>
+				<col>1</col>
+				<row>9</row>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+					<cols>2</cols>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT_LAYOUTDOUBLECLICKACTION" variable="StaticText10" member="yes">
+							<label>Double-click on layout opens:</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE_LAYOUTDOUBLECLICKACTION" variable="Choice_LayoutDoubleClickAction" member="yes">
+							<content>
+								<item>Faces/States/Submodels</item>
+								<item>Unassigned</item>
+							</content>
+							<selection>0</selection>
+							<handler function="OnControlChanged" entry="EVT_CHOICE" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<col>1</col>
+				<row>11</row>
+				<flag>wxALL|wxEXPAND</flag>
 				<option>1</option>
 			</object>
 		</object>

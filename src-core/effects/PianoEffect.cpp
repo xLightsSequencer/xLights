@@ -69,7 +69,7 @@ std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& setti
     if (settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "") == "") {
         res.push_back(fmt::format("    ERR: Piano effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
-        std::map<int, std::list<std::pair<float, float>>> timings = LoadTimingTrack(settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), 50, false);
+        std::map<int, std::list<std::pair<float, float>>> timings = LoadTimingTrack(settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), 50, false, eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements());
         if (timings.size() == 0) {
             res.push_back(fmt::format("    ERR: Piano effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
@@ -129,7 +129,7 @@ void PianoEffect::RenderPiano(RenderBuffer& buffer, SequenceElements* elements, 
         buffer.needToInit = false;
         if (_MIDITrack != MIDITrack) {
             _timings.clear();
-            _timings = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs, fadeNotes);
+            _timings = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs, fadeNotes, elements);
             elements->AddRenderDependency(MIDITrack, buffer.cur_model);
         }
 
@@ -591,19 +591,19 @@ std::tuple<int, int, int>* FindTracker(std::list<std::tuple<int, int, int>>& tra
     return nullptr;
 }
 
-std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(const std::string& track, int intervalMS, bool fadeNotes)
+std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(const std::string& track, int intervalMS, bool fadeNotes, SequenceElements* seqEl)
 {
     std::map<int, std::list<std::pair<float, float>>> res;
 
     spdlog::debug("Loading timings from timing track " + track);
 
-    if (GetSequenceElements() == nullptr) {
+    if (seqEl == nullptr) {
         spdlog::debug("No timing tracks found.");
         return res;
     }
 
     // Load the names of the timing tracks
-    EffectLayer* el = GetTiming(track);
+    EffectLayer* el = GetTiming(track, seqEl);
 
     if (el == nullptr) {
         spdlog::debug("Timing track not found.");

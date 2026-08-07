@@ -58,6 +58,16 @@ std::vector<std::string> SplitSlash(const std::string& s) {
     return parts;
 }
 
+std::list<std::string> ResolveSubModelAliases(Model* layoutModel, ImportMappingNode* node) {
+    if (layoutModel != nullptr) {
+        Model* sm = layoutModel->GetSubModel(node->GetCoreStrand());
+        if (sm != nullptr) {
+            return sm->GetAliases();
+        }
+    }
+    return node->GetAliases();
+}
+
 } // namespace
 
 namespace AutoMapper {
@@ -78,7 +88,7 @@ bool MatchAggressive(const std::string& target, const std::string& candidate,
     // OldName alias prefix — the rename history form. Plain string compare
     // (no punctuation strip) so users with renames don't get over-matched.
     for (const auto& it : aliases) {
-        if (Lower(Trim(it)) == "oldname:" + candidate) {
+        if (it == "oldname:" + candidate) {
             return true;
         }
     }
@@ -87,9 +97,8 @@ bool MatchAggressive(const std::string& target, const std::string& candidate,
     // "megatreevendor" without the user needing to maintain a punctuation-
     // free duplicate alias.
     for (const auto& it : aliases) {
-        std::string aliasNorm = Lower(Trim(it));
-        if (aliasNorm == candidate) return true;
-        if (StripPunctuation(aliasNorm) == strippedCandidate) return true;
+        if (it == candidate) return true;
+        if (StripPunctuation(it) == strippedCandidate) return true;
     }
     return false;
 }
@@ -156,45 +165,70 @@ void Run(const std::vector<ImportMappingNode*>& roots,
         // without repeated map lookups.
         Model* layoutModel = renderContext.GetModel(model->GetCoreModel());
 
+        std::vector<std::list<std::string>> strandAliasesByIndex(model->GetChildCount());
+        for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+            auto* strand = model->GetNthChild(k);
+            if (strand != nullptr) {
+                strandAliasesByIndex[k] = ResolveSubModelAliases(layoutModel, strand);
+            }
+        }
+
         for (const auto& src : available) {
             if (selectMapAvail && !src.selected) continue;
             const std::string& availName = src.canonicalName;
 
             if (availName.find('/') != std::string::npos) {
                 auto parts = SplitSlash(availName);
-                if (lambda_model(model->GetCoreModel(), parts[0], extra1, extra2, aliases)) {
-                    // matched the model name ... need to look at strands and submodels
-                    for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                        auto* strand = model->GetNthChild(k);
-                        if (strand == nullptr) continue;
-                        // Use the submodel's own aliases (from the layout) for
-                        // strand matching so that e.g. a submodel aliased
-                        // "15 spinners - all" correctly matches that part of
-                        // "SS Spinner Left/15 Spinners - All".
-                        std::list<std::string> strandAliases;
-                        if (layoutModel != nullptr) {
-                            Model* sm2 = layoutModel->GetSubModel(strand->GetCoreStrand());
-                            if (sm2 != nullptr) {
-                                strandAliases = sm2->GetAliases();
-                            }
-                        }
-                        const auto& strandAliasesToUse = strandAliases.empty() ? aliases : strandAliases;
-                        if (!lambda_strand(strand->GetCoreStrand(), parts[1], extra1, extra2, strandAliasesToUse)) {
+                if (parts.size() < 2) continue;
+                const std::string& p0 = parts[0];
+                const std::string& p1 = parts[1];
+
+                bool parentModelMatched = lambda_model(model->GetCoreModel(), p0, extra1, extra2, aliases);
+
+                for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+                    auto* strand = model->GetNthChild(k);
+                    if (strand == nullptr || !strand->GetMapping().empty()) continue;
+
+                    const std::list<std::string>& strandAliases = strandAliasesByIndex[k];
+
+                    bool strandMatched = false;
+                    for (const auto& alias : strandAliases) {
+                        if (alias.find('/') == std::string::npos) continue;
+                        auto aParts = SplitSlash(alias);
+                        if (aParts.size() != 2) continue;
+                        if (!(aParts[0] == p0 || StripPunctuation(aParts[0]) == StripPunctuation(p0)) ||
+                            !(aParts[1] == p1 || StripPunctuation(aParts[1]) == StripPunctuation(p1))) {
                             continue;
                         }
-                        if (parts.size() == 2) {
-                            if (strand->GetMapping().empty()) {
-                                strand->Map(src.displayName, "Strand");
+                        bool modelHasAlias = false;
+                        for (const auto& modelAlias : aliases) {
+                            if (modelAlias == aParts[0] || StripPunctuation(modelAlias) == StripPunctuation(aParts[0])) {
+                                modelHasAlias = true;
+                                break;
                             }
-                        } else {
+                        }
+                        if (modelHasAlias) {
+                            strandMatched = true;
+                            break;
+                        }
+                    }
+                    if (!strandMatched && parentModelMatched) {
+                        const auto& strandAliasesToUse = strandAliases.empty() ? aliases : strandAliases;
+                        if (lambda_strand(strand->GetCoreStrand(), p1, extra1, extra2, strandAliasesToUse)) {
+                            strandMatched = true;
+                        }
+                    }
+
+                    if (strandMatched) {
+                        if (parts.size() == 2) {
+                            strand->Map(src.displayName, "Strand");
+                        } else if (parts.size() == 3) {
                             for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
                                 auto* node = strand->GetNthChild(m);
-                                if (node == nullptr) continue;
-                                if (!node->GetMapping().empty()) continue;
+                                if (node == nullptr || !node->GetMapping().empty()) continue;
                                 if (lambda_node(node->GetCoreNode(), parts[2], extra1, extra2, aliases)) {
-                                    if (parts.size() == 3) {
-                                        node->Map(src.displayName, "Node");
-                                    }
+                                    node->Map(src.displayName, "Node");
+                                    break;
                                 }
                             }
                         }
@@ -265,7 +299,6 @@ void RunSubModelFallback(const std::vector<ImportMappingNode*>& roots,
 
     for (auto* model : roots) {
         if (model == nullptr) continue;
-        if (!model->GetMapping().empty()) continue;
         if (selectMapTarget && selectedTargets.count(model) == 0) continue;
 
         Model* layoutModel = renderContext.GetModel(model->GetCoreModel());
@@ -291,9 +324,7 @@ void RunSubModelFallback(const std::vector<ImportMappingNode*>& roots,
         for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
             auto* sm = model->GetNthChild(k);
             if (sm == nullptr || !sm->GetMapping().empty()) continue;
-            Model* sm2 = layoutModel->GetSubModel(sm->GetCoreStrand());
-            if (sm2 == nullptr) continue;
-            const auto& smAliases = sm2->GetAliases();
+            std::list<std::string> smAliases = ResolveSubModelAliases(layoutModel, sm);
             if (smAliases.empty()) continue;
             for (const auto& src : available) {
                 if (selectMapAvail && !src.selected) continue;
@@ -302,8 +333,7 @@ void RunSubModelFallback(const std::vector<ImportMappingNode*>& roots,
                 if (availName.find('/') != std::string::npos) continue;
                 const std::string strippedAvail = StripPunctuation(availName);
                 for (const auto& alias : smAliases) {
-                    std::string aliasNorm = Lower(Trim(alias));
-                    if (aliasNorm == availName || StripPunctuation(aliasNorm) == strippedAvail) {
+                    if (alias == availName || StripPunctuation(alias) == strippedAvail) {
                         sm->Map(src.displayName, "Unknown");
                         break;
                     }

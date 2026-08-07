@@ -26,6 +26,7 @@
 #include <wx/textdlg.h>
 
 #include <list>
+#include <sstream>
 
 #include "SeqSettingsDialog.h"
 #include "sequencer/NewTimingDialog.h"
@@ -43,6 +44,7 @@
 #include "utils/ExternalHooks.h"
 #include "import_export/ConvertDialog.h"
 #include "media/ManageMediaPanel.h"
+#include "sequencer/SequenceFacesPanel.h"
 #include "render/SequenceElements.h"
 #include "render/SequencePackage.h"
 #include "shared/utils/wxUtilities.h"
@@ -278,11 +280,11 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     FlexGridSizer10->Add(TextCtrl_Hash, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Premilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL2, _T("0"), wxDefaultPosition, wxDLG_UNIT(PanelInfo,wxSize(50,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-    TextCtrl_Premilliseconds->SetMaxLength(5);
+    TextCtrl_Premilliseconds->SetMaxLength(6);
     TextCtrl_Premilliseconds->SetToolTip(_("Milliseconds to add to the beginning of the sequence"));
     FlexGridSizer10->Add(TextCtrl_Premilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Postmilliseconds = new wxTextCtrl(PanelInfo, ID_TEXTCTRL3, _T("0"), wxDefaultPosition, wxDLG_UNIT(PanelInfo,wxSize(50,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
-    TextCtrl_Postmilliseconds->SetMaxLength(5);
+    TextCtrl_Postmilliseconds->SetMaxLength(6);
     TextCtrl_Postmilliseconds->SetToolTip(_("Milliseconds to add to the ending of the sequence"));
     FlexGridSizer10->Add(TextCtrl_Postmilliseconds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer10->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -502,6 +504,11 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
                                              xLightsParent ? xLightsParent->GetShowDirectory() : std::string{},
                                              xLightsParent);
         Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Media"), false);
+        Panel_SequenceFaces = new SequenceFacesPanel(Notebook_Seq_Settings,
+                                             sequenceElements,
+                                             xLightsParent ? xLightsParent->GetShowDirectory() : std::string{},
+                                             xLightsParent);
+        Notebook_Seq_Settings->InsertPage(4, Panel_SequenceFaces, _("Faces"), false);
         GetSizer()->SetSizeHints(this);
     }
 
@@ -652,6 +659,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     UpdateDataLayer();
     needs_render = false;
 
+    _initialSettingsSignature = BuildSettingsSignature();
+
     int x, y, w, h;
     GetPosition(&x, &y);
     GetSize(&w, &h);
@@ -700,6 +709,35 @@ SeqSettingsDialog::~SeqSettingsDialog()
     }
 	//(*Destroy(SeqSettingsDialog)
 	//*)
+}
+
+std::string SeqSettingsDialog::BuildSettingsSignature() const
+{
+    std::ostringstream sig;
+    sig << xml_file->GetSequenceType() << "|"
+        << xml_file->GetMediaFile() << "|"
+        << xml_file->GetSequenceDurationMS() << "|"
+        << (int)xml_file->supportsModelBlending() << "|"
+        << xml_file->GetRenderMode() << "|";
+
+    for (int i = 0; i < (int)HEADER_INFO_TYPES::NUM_TYPES; ++i) {
+        sig << xml_file->GetHeaderInfo((HEADER_INFO_TYPES)i) << "|";
+    }
+
+    auto timings = xml_file->GetSequenceLoaded() ? xml_file->GetTimingList(xLightsParent->GetSequenceElements()) : xml_file->GetTimingList();
+    for (const auto& t : timings) {
+        sig << t << ",";
+    }
+    sig << "|";
+
+    DataLayerSet& data_layers = xml_file->GetDataLayers();
+    for (int i = 0; i < data_layers.GetNumLayers(); ++i) {
+        DataLayer* layer = data_layers.GetDataLayer(i);
+        sig << layer->GetName() << ":" << layer->GetSource() << ":" << layer->GetDataSource() << ":"
+            << layer->GetNumChannels() << ":" << layer->GetChannelOffset() << ",";
+    }
+
+    return sig.str();
 }
 
 void SeqSettingsDialog::RemoveWizard()
@@ -953,6 +991,10 @@ void SeqSettingsDialog::OnNotebook_Seq_SettingsPageChanged(wxBookCtrlEvent& even
     // do this during Populate() because GTK's FindNode() asserts if Expand() is
     // called before the widget is shown on screen.
     if (Panel_ManageMedia != nullptr && event.GetSelection() == 3) {
+        // pick up images the Faces tab registered since the last visit
+        if (Panel_SequenceFaces != nullptr && Panel_SequenceFaces->TakeMediaDirty()) {
+            Panel_ManageMedia->Populate();
+        }
         Panel_ManageMedia->RequestExpandGroups();
     }
 }
@@ -1624,6 +1666,9 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& even
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
     if (UpdateSequenceTiming()) {
+        if (Panel_SequenceFaces != nullptr) {
+            Panel_SequenceFaces->ApplyPendingRenders();
+        }
         if (needs_render) {
             if (!xLightsParent->IsSequenceDataValid()) {
                 EndModal(NEEDS_RENDER);

@@ -12,7 +12,7 @@ models_str = RunCommand('getModels', properties)
 models = models_str['models']
 sel_model = PromptSelection(models,'Select Model')
 
-sel_compress = PromptSelection({'Yes','No'},'Compressed MP4?')
+sel_format = PromptSelection({'Compressed MP4','High Quality MP4','Uncompressed AVI','Lossless RGB MOV','ProRes 4444 MOV','HD ProRes MOV'},'Export Format')
 
 seqs,sel_highdef = PromptSequences()
 
@@ -42,7 +42,14 @@ for i,seq in ipairs(seqs) do
 	if media == "" then 
 		media = "export"
 	end
-	mediaFile = string.gsub(media,"%.mp%d","") .. ".mp4"
+	local ext = ".mp4"
+	if sel_format == "Uncompressed AVI" then
+		ext = ".avi"
+	elseif sel_format == "Lossless RGB MOV" or sel_format == "ProRes 4444 MOV" or sel_format == "HD ProRes MOV" then
+		ext = ".mov"
+	end
+	mediaFile = string.gsub(string.gsub(media,"%.[Mm][Oo][Vv]$",""),"%.[Aa][Vv][Ii]$","")
+	mediaFile = string.gsub(mediaFile,"%.mp%d","") .. ext
 	Log("MediaFile: "..mediaFile)
 
 	newFileName = sequenceRenderingLocation..FILE_DELIMITER..sel_model..FILE_DELIMITER..mediaFile
@@ -52,7 +59,7 @@ for i,seq in ipairs(seqs) do
 	-- Check if the folder exists
 	if not folderExists(folderPath) then
 		-- Folder doesn't exist, so create it
-		local success, errorMessage = os.execute("mkdir " .. folderPath)
+		local success, errorMessage = os.execute('mkdir "' .. folderPath .. '"')
 
 		if success then
 			Log("The folder '"..sel_model.."' has been created at: " .. folderPath)
@@ -65,12 +72,18 @@ for i,seq in ipairs(seqs) do
 			
     properties = {}
 	properties['model'] = sel_model
-	if sel_compress == "Yes" then
-		Log("Compressed")
-		properties['format'] = 'avicompressed'
-	else
-		Log("Uncompressed")
-		properties['format'] = 'mp4uncompressed'
+	if sel_format == "Compressed MP4" then
+		properties['format'] = 'mp4compressed'
+	elseif sel_format == "High Quality MP4" then
+		properties['format'] = 'mp4highquality'
+	elseif sel_format == "Uncompressed AVI" then
+		properties['format'] = 'aviuncompressed'
+	elseif sel_format == "Lossless RGB MOV" then
+		properties['format'] = 'losslessrgb'
+	elseif sel_format == "ProRes 4444 MOV" then
+		properties['format'] = 'prores4444'
+	elseif sel_format == "HD ProRes MOV" then
+		properties['format'] = 'hdprores'
 	end
 	properties['filename'] = newFileName
 	properties['highdef'] = tostring(sel_highdef)

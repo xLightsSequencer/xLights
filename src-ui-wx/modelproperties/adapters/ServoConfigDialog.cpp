@@ -45,7 +45,7 @@ ServoConfigDialog::ServoConfigDialog(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Number of Servos"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_NumServos = new wxSpinCtrl(this, ID_SPINCTRL_NumServos, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 25, 1, _T("ID_SPINCTRL_NumServos"));
+	SpinCtrl_NumServos = new wxSpinCtrl(this, ID_SPINCTRL_NumServos, _T("1"), wxDefaultPosition, wxDefaultSize, 0, 1, 24, 1, _T("ID_SPINCTRL_NumServos"));
 	SpinCtrl_NumServos->SetValue(_T("1"));
 	FlexGridSizer2->Add(SpinCtrl_NumServos, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Number of Static Meshs"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));

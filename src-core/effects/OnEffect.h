@@ -22,6 +22,7 @@ public:
         return false;
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override
     {
@@ -42,7 +43,7 @@ public:
     static int sStartDefault;
     static int sEndDefault;
     static bool sShimmerDefault;
-    static double sCyclesDefault;
+    static float sCyclesDefault;
     static int sTransparencyDefault;
     static int sTransparencyMin;
     static int sTransparencyMax;

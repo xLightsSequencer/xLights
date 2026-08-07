@@ -170,12 +170,9 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     CurrentSeqXmlFile->SetSequenceLoaded(true);
     CurrentSeqXmlFile->ApplyPendingTimings(this);
     if (_sequenceElements.GetNumberOfTimingElements() == 0) {
-        if (CurrentSeqXmlFile->GetSequenceType() != "Effect") {
-            // only add timing if the user didnt set up timings (effect sequences start with none)
-            std::string new_timing = "New Timing";
-            CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-            _sequenceElements.AddTimingToAllViews(new_timing);
-        }
+        std::string new_timing = "New Timing";
+        CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+        _sequenceElements.AddTimingToAllViews(new_timing);
     } else {
         _sequenceElements.GetTimingElement(0)->SetActive(true);
     }
@@ -262,7 +259,7 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
     PanelSequencer->SetLabel("XLIGHTS_SEQUENCER_TAB:" + sequence);
 }
 
-void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialog* plog, const wxString &rp)
+void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialog* plog, const wxString &rp, bool skipFseqData)
 {
     FileUtils::ClearNonExistentFiles();
     _sequenceElements.GetSequenceMedia().ClearRelocations();
@@ -271,7 +268,10 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
     wxString filename;
     wxString wildcards = "xLights Sequence files (*.xsq;*.xml)|*.xsq;*.xml|Old xLights Sequence files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq|Sequence Backups (*.xbkp)|*.xbkp";
     if (passed_filename.IsEmpty()) {
-        filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xsq", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        filename = wxFileSelector("Choose sequence file to open", GetLastSequenceDialogDir(), wxEmptyString, "*.xsq", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        if (!filename.empty()) {
+            SetLastSequenceDialogDir(wxFileName(filename).GetPath());
+        }
     } else {
         filename = passed_filename;
     }
@@ -379,9 +379,11 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         xlightsFilename = fseq_file.GetFullPath(); // this need to be set , as it is checked when saving is triggered
 
-        // load the fseq data file if it exists
-        if (FileExists(fseq_file)) {
-            spdlog::debug("Opening FSEQ File at: '{}'", fseq_file.GetFullPath().ToStdString());
+        // skipFrameData still reads the header, so _seqData ends up sized exactly as a
+        // full read would leave it -- only the frame decompression is skipped.
+        auto readFseqData = [&](bool skipFrameData) {
+            spdlog::debug("Opening FSEQ File at: '{}'{}", fseq_file.GetFullPath().ToStdString(),
+                          skipFrameData ? " (header only, frames are about to be re-rendered)" : "");
             if (plog != nullptr) {
                 plog->Show(true);
             }
@@ -394,6 +396,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                                           nullptr,
                                           plog,
                                           &mf); // media filename
+            read_params.skip_frame_data = skipFrameData;
 
             FileConverter::ReadFalconFile(read_params);
             if (mf != "") {
@@ -410,6 +413,16 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             spdlog::debug("        Frame Time {}", _seqData.FrameTime());
             spdlog::debug("        Frames {}", _seqData.NumFrames());
             spdlog::debug("        Length {}", _seqData.TotalTime());
+        };
+
+        // load the fseq data file if it exists
+        const bool fseq_exists = FileExists(fseq_file);
+        if (fseq_exists) {
+            // RenderIseqData clears the whole buffer before the re-render, so the frame
+            // data would be discarded. Canvas mode is the exception -- it augments the
+            // existing fseq -- but the render mode isn't known until the xml is parsed
+            // below, so that case reads the frames there instead.
+            readFseqData(skipFseqData);
         } else {
             spdlog::debug("Could not Find FSEQ File at: '{}'", ToStdString(fseq_file.GetFullPath()));
         }
@@ -444,6 +457,13 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     return;
                 }
             }
+        }
+
+        // Canvas mode renders on top of the existing fseq rather than erasing it
+        // (see RenderIseqData), so it needs the frame data the skip above passed over.
+        if (skipFseqData && fseq_exists && CurrentSeqXmlFile->GetRenderMode() == SequenceFile::CANVAS_MODE) {
+            spdlog::debug("Sequence is canvas mode, loading the FSEQ frame data after all.");
+            readFseqData(false);
         }
 
         _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName());
@@ -776,202 +796,91 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         AddToMRU(filename);
         UpdateRecentFilesList(false);
+
+        if (!_renderMode && !_checkSequenceMode && CurrentSeqXmlFile != nullptr) {
+            if (!IsSequenceInShowDir(CurrentSeqXmlFile->GetFullPath())) {
+                wxMessageBox(_("This sequence is located outside the current show directory.\n\nYou will not be able to save changes directly using Save. You must use Save As to save it within the show directory."),
+                             _("Sequence Outside Show Directory"), wxOK | wxICON_INFORMATION, this);
+            }
+        }
     }
 }
 
 void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues)
 {
-    // Gather the video issues. Audio ones aren't handled here — users will
-    // see the warning but need to re-encode audio separately. Animated GIFs
-    // are split out: ffmpeg-transcoding a GIF to mp4/mov produces poor
-    // results, so we instead rewrite the owning Video effect into a
-    // Pictures effect (which plays animated GIFs natively).
-    std::vector<MediaCompatibilityIssue> gifIssues;
-    std::vector<std::pair<std::string, std::string>> jobs; // (source, target)
-    for (const auto& issue : issues) {
-        if (!issue.isVideo || !issue.canConvert()) continue;
-        if (issue.isAnimatedGif()) {
-            gifIssues.push_back(issue);
-            continue;
+    // The transcode + effect-rewrite work lives in core so the automation API
+    // can run it headlessly; this wrapper only supplies the progress dialog
+    // and reports the outcome.
+    bool userCancelled = false;
+    wxProgressDialog progDlg("Converting video files",
+                             "Preparing...", 1000, this,
+                             wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
+                             wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME);
+    progDlg.SetSize(wxSize(520, -1));
+    wxString baseMsg;
+
+    auto onFile = [&](size_t index, size_t count, const std::string& source) -> bool {
+        baseMsg = wxString::Format("Converting %s (%zu of %zu)...",
+                                   std::filesystem::path(source).filename().string(),
+                                   index + 1, count);
+        bool cont = progDlg.Update(0, baseMsg);
+        if (!cont) userCancelled = true;
+        return cont;
+    };
+    auto onFrame = [&](int frame, int total) -> bool {
+        if (userCancelled) return false;
+        int pct = 0;
+        if (total > 0) {
+            pct = (int)((double)frame / total * 1000.0);
+            if (pct > 999) pct = 999;
+        } else {
+            pct = (frame % 1000);
         }
-        std::string target = VideoTranscoder::SuggestedOutputPath(issue.filePath);
-        if (target == issue.filePath) {
-            // Source is already .mov (e.g. qtrle codec) — append _converted
-            // so we don't overwrite the original.
-            std::filesystem::path p(issue.filePath);
-            p.replace_filename(p.stem().string() + "_converted.mov");
-            target = p.string();
-        }
-        jobs.emplace_back(issue.filePath, target);
+        bool cont = progDlg.Update(pct, baseMsg + wxString::Format(" frame %d", frame));
+        if (!cont) userCancelled = true;
+        return cont;
+    };
+
+    auto result = seqmedia::ConvertIncompatibleVideos(_sequenceElements, issues, onFile, onFrame);
+    progDlg.Update(1000);
+
+    if (result.gifEffectsConverted > 0 && mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
+        mainSequencer->PanelEffectGrid->ForceRefresh();
     }
 
-    // Convert GIF effects first — instant, no progress dialog needed.
-    int gifsConverted = ConvertGifVideoEffectsToPictures(gifIssues);
+    if (result.cancelled) {
+        wxMessageBox("Conversion cancelled. Any files already completed were left in place but the sequence was not updated.",
+                     "Cancelled", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
 
-    if (jobs.empty()) {
-        if (gifsConverted > 0) {
+    if (result.attempted == 0) {
+        if (result.gifEffectsConverted > 0) {
             wxMessageBox(wxString::Format(
                             "Converted %d animated GIF Video effect(s) to Pictures effects.\n"
                             "Remember to save the sequence to persist the changes.",
-                            gifsConverted),
+                            result.gifEffectsConverted),
                          "GIF effect conversion results",
                          wxOK | wxICON_INFORMATION, this);
         }
         return;
     }
 
-    // Progress dialog spans the whole batch; per-file we weight the progress
-    // bar by frame counts we don't know up front, so just advance one tick
-    // per file completed and use the file's own progress callback for the
-    // fine-grained feedback inside the bar.
-    wxProgressDialog progDlg("Converting video files",
-                             "Preparing...", 1000, this,
-                             wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
-                             wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME);
-    progDlg.SetSize(wxSize(520, -1));
-
-    std::map<std::string, std::string> completed; // src -> dst
-    std::vector<std::string> failures;
-    bool userCancelled = false;
-
-    for (size_t i = 0; i < jobs.size() && !userCancelled; ++i) {
-        const auto& [src, dst] = jobs[i];
-        std::string srcName = std::filesystem::path(src).filename().string();
-        wxString baseMsg = wxString::Format("Converting %s (%zu of %zu)...",
-                                            srcName, i + 1, jobs.size());
-        progDlg.Update(0, baseMsg);
-
-        auto progressCb = [&](int frame, int total) -> bool {
-            int pct = 0;
-            if (total > 0) {
-                pct = (int)((double)frame / total * 1000.0);
-                if (pct > 999) pct = 999;
-            } else {
-                pct = (frame % 1000);
-            }
-            bool cont = progDlg.Update(pct, baseMsg + wxString::Format(" frame %d", frame));
-            if (!cont) userCancelled = true;
-            return cont;
-        };
-
-        std::string err = VideoTranscoder::Transcode(src, dst, progressCb);
-        if (userCancelled) break;
-        if (!err.empty()) {
-            spdlog::error("Video conversion failed for {}: {}", src, err);
-            failures.push_back(srcName + ": " + err);
-            // Remove any partial output so the user doesn't mistake it for
-            // a finished file.
-            std::error_code ec;
-            std::filesystem::remove(dst, ec);
-        } else {
-            completed[src] = dst;
-        }
-    }
-    progDlg.Update(1000);
-
-    if (userCancelled) {
-        // Don't rewrite effects if the user aborted — leaving the sequence
-        // pointing at the originals is the least-surprising outcome.
-        wxMessageBox("Conversion cancelled. Any files already completed were left in place but the sequence was not updated.",
-                     "Cancelled", wxOK | wxICON_INFORMATION, this);
-        return;
-    }
-
-    // Walk all video effects in the loaded sequence and rewrite filenames
-    // where the (resolved) source path matches one we just converted. Track
-    // the original stored keys so we can evict only those stale entries from
-    // SequenceMedia — wiping the whole cache would also drop images, SVGs,
-    // etc. and leave the Sequence Settings Media tab empty.
-    int rewritten = 0;
-    std::set<std::string> staleCacheKeys;
-    std::set<std::string> newCacheKeys;
-
-    auto rewriteEffectLayers = [&](Element* elem) {
-        for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); ++layer) {
-            EffectLayer* el = elem->GetEffectLayer(layer);
-            for (int k = 0; k < el->GetEffectCount(); ++k) {
-                Effect* ef = el->GetEffect(k);
-                if (ef->GetEffectName() != "Video") continue;
-                SettingsMap& sm = ef->GetSettings();
-                const std::string stored = sm["E_FILEPICKERCTRL_Video_Filename"];
-                if (stored.empty()) continue;
-                std::string resolved = FileUtils::FixFile("", stored);
-                auto it = completed.find(resolved);
-                if (it == completed.end()) continue;
-
-                staleCacheKeys.insert(stored);
-                staleCacheKeys.insert(resolved);
-
-                // Preserve the relative-vs-absolute shape: if the original
-                // stored value was an absolute path we write absolute; if it
-                // was a bare filename or relative, preserve the directory
-                // but use the destination's full filename (handles the case
-                // where the output name differs, e.g. _converted.mov).
-                std::filesystem::path storedPath(stored);
-                std::string newStored;
-                if (storedPath.is_absolute()) {
-                    newStored = it->second;
-                } else {
-                    std::filesystem::path rewritten_path = storedPath;
-                    rewritten_path.replace_filename(
-                        std::filesystem::path(it->second).filename());
-                    newStored = rewritten_path.string();
-                }
-                sm["E_FILEPICKERCTRL_Video_Filename"] = newStored;
-                newCacheKeys.insert(newStored);
-                ef->IncrementChangeCount();
-                ++rewritten;
-            }
-        }
-    };
-
-    for (size_t e = 0; e < _sequenceElements.GetElementCount(); ++e) {
-        Element* elem = _sequenceElements.GetElement(e);
-        if (elem == nullptr) continue;
-        rewriteEffectLayers(elem);
-        if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-            ModelElement* me = dynamic_cast<ModelElement*>(elem);
-            for (int j = 0; j < me->GetStrandCount(); ++j) {
-                StrandElement* se = me->GetStrand(j);
-                rewriteEffectLayers(se);
-            }
-            for (int j = 0; j < me->GetSubModelAndStrandCount(); ++j) {
-                Element* sme = me->GetSubModel(j);
-                if (sme->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
-                    rewriteEffectLayers(sme);
-                }
-            }
-        }
-    }
-
-    // Evict only the stale video entries so the next render picks up the
-    // new .mov files. Leaves images/SVGs/audio/shader caches intact.
-    auto& seqMedia = _sequenceElements.GetSequenceMedia();
-    for (const auto& key : staleCacheKeys) {
-        seqMedia.RemoveMedia(key);
-    }
-    // Pre-register the new .mov files so they appear in the Sequence Settings
-    // Media tab immediately (the renderer would otherwise only lazily register
-    // them on first use).
-    for (const auto& key : newCacheKeys) {
-        seqMedia.GetVideo(key);
-    }
-
-    wxString msg = wxString::Format("Converted %zu of %zu file(s). %d video effect(s) updated.",
-                                    completed.size(), jobs.size(), rewritten);
-    if (gifsConverted > 0) {
+    wxString msg = wxString::Format("Converted %d of %d file(s). %d video effect(s) updated.",
+                                    result.converted, result.attempted, result.effectsUpdated);
+    if (result.gifEffectsConverted > 0) {
         msg += wxString::Format("\n%d animated GIF Video effect(s) converted to Pictures effects.",
-                                gifsConverted);
+                                result.gifEffectsConverted);
     }
-    if (!failures.empty()) {
+    if (!result.failures.empty()) {
         msg += "\n\nFailures:\n";
-        for (const auto& f : failures) msg += "  " + f + "\n";
+        for (const auto& f : result.failures) msg += "  " + f + "\n";
     }
-    if (!completed.empty() || gifsConverted > 0) {
+    if (result.converted > 0 || result.gifEffectsConverted > 0) {
         msg += "\nRemember to save the sequence to persist the updated file references.";
     }
     wxMessageBox(msg, "Video conversion results",
-                 wxOK | (failures.empty() ? wxICON_INFORMATION : wxICON_WARNING),
+                 wxOK | (result.failures.empty() ? wxICON_INFORMATION : wxICON_WARNING),
                  this);
 }
 
@@ -1001,6 +910,22 @@ void xLightsFrame::AddToMRU(const std::string& filename)
 bool xLightsFrame::CloseSequence()
 {
     spdlog::debug("Closing sequence.");
+
+    // Stem separation runs a worker thread holding raw PCM pointers into the
+    // sequence's AudioManager for the whole run, and its progress dialog pumps
+    // the event queue (wxApp::Yield) — so a close dispatched during that pump
+    // lands here and would delete CurrentSeqXmlFile, and with it the audio the
+    // worker is still reading (crash sig 0b727679d7). Don't rely on
+    // EnableSequenceControls having disabled the close path: QuitMenuItem is
+    // global UI state that any render completion delivered by the same pump can
+    // re-enable. Ask the run to stop and refuse this close; the pump joins the
+    // worker and unlocks the UI, and the user can close again once it winds down.
+    if (mainSequencer != nullptr && mainSequencer->PanelWaveForm != nullptr &&
+        mainSequencer->PanelWaveForm->IsStemSeparationActive()) {
+        spdlog::info("Close refused: stem separation in progress; cancelling it.");
+        mainSequencer->PanelWaveForm->RequestStemSeparationCancel();
+        return false;
+    }
 
     if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr) {
         // save perspective on this machine so we can restore it next time

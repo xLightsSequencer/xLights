@@ -12,6 +12,7 @@
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
 #include <cmath>
+#include <algorithm>
 #include "effectpanels/EffectIconCache.h"
 #include "effects/EffectManager.h"
 #include "xLightsApp.h"
@@ -23,6 +24,14 @@
 #ifndef M_PI_2
 #define M_PI_2 1.57079632679489661923
 #endif
+
+static int AngleToIndex(double dx, double dy, int numSectors) {
+    double angle = atan2(dy, dx) * 180.0 / M_PI;
+    if (angle < 0) angle += 360.0;
+    double sectorSize = 360.0 / numSectors;
+    angle = fmod(angle - 270.0 + (sectorSize / 2.0) + 360.0, 360.0);
+    return (int)(angle / sectorSize) % numSectors;
+}
 
 BEGIN_EVENT_TABLE(EffectWheelDialog, wxDialog)
     EVT_PAINT(EffectWheelDialog::OnPaint)
@@ -37,18 +46,29 @@ EffectWheelDialog::EffectWheelDialog(wxWindow* parent, const std::vector<const K
     , m_bindings(bindings)
     , m_selectedBinding(nullptr)
     , m_hoveredSector(-1)
+    , m_hoveredPage(-1)
+    , m_currentPage(0)
+    , m_centerHovered(false)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-    int numSectors = m_bindings.size();
+    int total = (int)m_bindings.size();
     int sizeVal = FromDIP(240);
     m_innerRadius = FromDIP(30);
     m_outerRadius = FromDIP(119);
 
-    if (numSectors > 8) {
-        sizeVal = FromDIP(320);
-        m_innerRadius = FromDIP(45);
-        m_outerRadius = FromDIP(159);
+    if (total > kPageSize) {
+        sizeVal = FromDIP(332);
+        m_innerRadius = FromDIP(56);
+        m_outerRadius = FromDIP(165);
+        m_exitRadius = FromDIP(28);
+    } else {
+        if (total > 8) {
+            sizeVal = FromDIP(320);
+            m_innerRadius = FromDIP(45);
+            m_outerRadius = FromDIP(159);
+        }
+        m_exitRadius = m_innerRadius;
     }
 
     m_center = wxPoint(sizeVal / 2, sizeVal / 2);
@@ -57,6 +77,19 @@ EffectWheelDialog::EffectWheelDialog(wxWindow* parent, const std::vector<const K
     SetCircularShape(m_outerRadius);
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(EffectWheelDialog::OnKeyDown), nullptr, this);
+}
+
+int EffectWheelDialog::PageCount() const {
+    int total = (int)m_bindings.size();
+    if (total <= kPageSize) return 1;
+    return (total + kPageSize - 1) / kPageSize;
+}
+
+std::vector<const KeyBinding*> EffectWheelDialog::CurrentPageBindings() const {
+    size_t start = (size_t)m_currentPage * kPageSize;
+    if (start >= m_bindings.size()) return {};
+    size_t end = std::min(start + (size_t)kPageSize, m_bindings.size());
+    return std::vector<const KeyBinding*>(m_bindings.begin() + start, m_bindings.begin() + end);
 }
 
 void EffectWheelDialog::PositionAtMouse(const wxPoint& mousePos) {
@@ -92,30 +125,37 @@ std::string EffectWheelDialog::GetEffectNameFromBinding(const KeyBinding* kb) {
     return effectName;
 }
 
-int EffectWheelDialog::GetSectorAtMouse(const wxPoint& pos) {
+EffectWheelDialog::HitResult EffectWheelDialog::HitTest(const wxPoint& pos) const {
     double dx = pos.x - m_center.x;
     double dy = pos.y - m_center.y;
     double dist = sqrt(dx * dx + dy * dy);
 
-    if (dist < m_innerRadius || dist > m_outerRadius) return -1;
+    if (dist > m_outerRadius) return {HitZone::None, -1};
 
-    double angle = atan2(dy, dx) * 180.0 / M_PI;
-    if (angle < 0) angle += 360.0;
+    if (dist >= m_innerRadius) {
+        int numSectors = (int)CurrentPageBindings().size();
+        if (numSectors == 0) return {HitZone::None, -1};
+        return {HitZone::Spoke, AngleToIndex(dx, dy, numSectors)};
+    }
 
-    int numSectors = m_bindings.size();
-    if (numSectors == 0) return -1;
-    
-    double sectorSize = 360.0 / numSectors;
+    if (dist >= m_exitRadius) {
+        int page = AngleToIndex(dx, dy, kMaxPages);
+        return (page < PageCount()) ? HitResult{HitZone::PageLive, page} : HitResult{HitZone::PageDead, -1};
+    }
 
-    // Rotate standard polar coordinates so that sector 0 is centered around 12 o'clock (270 degrees)
-    angle = fmod(angle - 270.0 + (sectorSize / 2.0) + 360.0, 360.0);
-    return (int)(angle / sectorSize) % numSectors;
+    return {HitZone::Exit, -1};
 }
 
 void EffectWheelDialog::OnMouseMove(wxMouseEvent& event) {
-    int newHover = GetSectorAtMouse(event.GetPosition());
-    if (newHover != m_hoveredSector) {
-        m_hoveredSector = newHover;
+    HitResult hit = HitTest(event.GetPosition());
+    int newHoverSector = (hit.zone == HitZone::Spoke) ? hit.index : -1;
+    int newHoverPage = (hit.zone == HitZone::PageLive) ? hit.index : -1;
+    bool newCenterHovered = (hit.zone == HitZone::Exit);
+
+    if (newHoverSector != m_hoveredSector || newHoverPage != m_hoveredPage || newCenterHovered != m_centerHovered) {
+        m_hoveredSector = newHoverSector;
+        m_hoveredPage = newHoverPage;
+        m_centerHovered = newCenterHovered;
         Refresh();
     }
 }
@@ -130,7 +170,8 @@ void EffectWheelDialog::OnPaint(wxPaintEvent& WXUNUSED(event)) {
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
     if (!gc) return;
 
-    int numSectors = m_bindings.size();
+    auto pageBindings = CurrentPageBindings();
+    int numSectors = (int)pageBindings.size();
     if (numSectors == 0) {
         delete gc;
         return;
@@ -172,7 +213,7 @@ void EffectWheelDialog::OnPaint(wxPaintEvent& WXUNUSED(event)) {
         int ix = m_center.x + r_icon * cos(midAngle);
         int iy = m_center.y + r_icon * sin(midAngle);
 
-        const KeyBinding* kb = m_bindings[i];
+        const KeyBinding* kb = pageBindings[i];
         std::string effectName = GetEffectNameFromBinding(kb);
 
         EffectManager& effMgr = xLightsApp::GetFrame()->GetEffectManager();
@@ -209,27 +250,114 @@ void EffectWheelDialog::OnPaint(wxPaintEvent& WXUNUSED(event)) {
         gc->PopState();
     }
 
-    // Draw central hollow cutout
-    gc->SetBrush(wxBrush(wxColour(20, 20, 20, 255)));
-    gc->SetPen(wxPen(wxColour(255, 255, 255, 80), 2));
-    gc->DrawEllipse(m_center.x - m_innerRadius, m_center.y - m_innerRadius, m_innerRadius * 2, m_innerRadius * 2);
+    // Paging ring: only present when there's more than one page.
+    if (m_exitRadius < m_innerRadius) {
+        int pageCount = PageCount();
+        double pageSectorRad = (2.0 * M_PI) / kMaxPages;
+
+        for (int p = 0; p < kMaxPages; ++p) {
+            double angle = p * pageSectorRad - M_PI_2 - (pageSectorRad / 2.0);
+            bool live = p < pageCount;
+            bool active = live && (p == m_currentPage);
+            bool hovered = live && !active && (p == m_hoveredPage);
+
+            wxGraphicsPath path = gc->CreatePath();
+            path.AddArc(m_center.x, m_center.y, m_innerRadius, angle, angle + pageSectorRad, true);
+            path.AddArc(m_center.x, m_center.y, m_exitRadius, angle + pageSectorRad, angle, false);
+            path.CloseSubpath();
+
+            if (active) {
+                gc->SetBrush(wxBrush(wxColour(0, 120, 215, 220)));
+                gc->SetPen(wxPen(wxColour(255, 255, 255, 80), 1));
+            } else if (hovered) {
+                gc->SetBrush(wxBrush(wxColour(0, 120, 215, 120)));
+                gc->SetPen(wxPen(wxColour(255, 255, 255, 60), 1));
+            } else if (live) {
+                gc->SetBrush(wxBrush(wxColour(50, 50, 50, 220)));
+                gc->SetPen(wxPen(wxColour(255, 255, 255, 60), 1));
+            } else {
+                gc->SetBrush(wxBrush(wxColour(25, 25, 25, 160)));
+                gc->SetPen(wxPen(wxColour(255, 255, 255, 20), 1));
+            }
+            gc->FillPath(path);
+            gc->StrokePath(path);
+
+            if (live) {
+                double midAngle = angle + (pageSectorRad / 2.0);
+                double r_page = (m_exitRadius + m_innerRadius) / 2.0;
+                int px = m_center.x + r_page * cos(midAngle);
+                int py = m_center.y + r_page * sin(midAngle);
+
+                wxString pageLabel = wxString::Format("%d", p + 1);
+                gc->SetFont(wxFont(FromDIP(10), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD), *wxWHITE);
+                double pw, ph;
+                gc->GetTextExtent(pageLabel, &pw, &ph);
+                gc->DrawText(pageLabel, px - pw / 2.0, py - ph / 2.0);
+            }
+        }
+    }
+
+    // Draw central hollow cutout with hover highlight
+    if (m_centerHovered) {
+        gc->SetBrush(wxBrush(wxColour(180, 40, 40, 220)));
+        gc->SetPen(wxPen(wxColour(255, 120, 120, 200), 2));
+    } else {
+        gc->SetBrush(wxBrush(wxColour(20, 20, 20, 255)));
+        gc->SetPen(wxPen(wxColour(255, 255, 255, 80), 2));
+    }
+    gc->DrawEllipse(m_center.x - m_exitRadius, m_center.y - m_exitRadius, m_exitRadius * 2, m_exitRadius * 2);
+
+    // Draw "Exit" hint in the center circle
+    {
+        wxColour textColor = m_centerHovered ? wxColour(255, 255, 255) : wxColour(170, 170, 170);
+        bool large = (m_exitRadius > FromDIP(35));
+        wxFont iconFont(FromDIP(large ? 11 : 9), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont labelFont(FromDIP(large ? 8 : 7), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+
+        double iw, ih, lw, lh;
+        gc->SetFont(iconFont, textColor);
+        gc->GetTextExtent(wxT("×"), &iw, &ih);
+        gc->SetFont(labelFont, textColor);
+        gc->GetTextExtent("Exit", &lw, &lh);
+
+        double gap = FromDIP(1.0);
+        double totalH = ih + gap + lh;
+        double startY = m_center.y - totalH / 2.0;
+
+        gc->SetFont(iconFont, textColor);
+        gc->DrawText(wxT("×"), m_center.x - iw / 2.0, startY);
+        gc->SetFont(labelFont, textColor);
+        gc->DrawText("Exit", m_center.x - lw / 2.0, startY + ih + gap);
+    }
 
     delete gc;
 }
 
 void EffectWheelDialog::OnLeftDown(wxMouseEvent& event) {
-    int clickedSector = GetSectorAtMouse(event.GetPosition());
-    if (clickedSector >= 0) {
-        m_selectedBinding = m_bindings[clickedSector];
-        if (HasCapture()) {
-            ReleaseMouse();
-        }
+    HitResult hit = HitTest(event.GetPosition());
+
+    switch (hit.zone) {
+    case HitZone::Spoke: {
+        auto pageBindings = CurrentPageBindings();
+        m_selectedBinding = pageBindings[hit.index];
+        if (HasCapture()) ReleaseMouse();
         EndModal(wxID_OK);
-    } else {
-        if (HasCapture()) {
-            ReleaseMouse();
+        break;
+    }
+    case HitZone::PageLive:
+        if (hit.index != m_currentPage) {
+            m_currentPage = hit.index;
+            m_hoveredSector = -1;
+            Refresh();
         }
+        break;
+    case HitZone::PageDead:
+        break;
+    case HitZone::Exit:
+    case HitZone::None:
+        if (HasCapture()) ReleaseMouse();
         EndModal(wxID_CANCEL);
+        break;
     }
 }
 

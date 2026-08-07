@@ -48,13 +48,19 @@ NS_ASSUME_NONNULL_BEGIN
     NS_SWIFT_NAME(generate(_:completion:));
 
 // AI-1 — the image generator's tunable properties (e.g. the Style choice on
-// Apple Intelligence / Gemini), for rendering a SwiftUI picker. Empty when the
-// generator exposes none. `setStringProperty:value:` forwards a Choice/String
-// selection back to the generator (persisted by the backend's SetProperty).
+// Apple Intelligence / Gemini, the Model + size on OpenAI), for rendering a
+// SwiftUI editor. Empty when the generator exposes none. The three setters
+// mirror the three `aiBase::SetProperty` overloads, so every ServiceProperty
+// kind the desktop's property grid can edit is reachable here too
+// (`setStringProperty` also carries Secret-kind values).
 - (NSArray<XLAIServiceProperty*>*)imageProperties
     NS_SWIFT_NAME(imageProperties());
 - (void)setStringProperty:(NSString*)propertyId value:(NSString*)value
     NS_SWIFT_NAME(setStringProperty(_:value:));
+- (void)setBoolProperty:(NSString*)propertyId value:(BOOL)value
+    NS_SWIFT_NAME(setBoolProperty(_:value:));
+- (void)setIntProperty:(NSString*)propertyId value:(NSInteger)value
+    NS_SWIFT_NAME(setIntProperty(_:value:));
 
 @end
 

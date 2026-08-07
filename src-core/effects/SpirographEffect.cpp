@@ -148,7 +148,7 @@ void SpirographEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Re
         buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
 
         buffer.palette.GetHSV(0, hsv0);
-        ColorIdx = (colorcnt > 0) ? (state + rand()) % colorcnt : 0; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+        ColorIdx = (colorcnt > 0) ? (state + buffer.randInt(0, (int)colorcnt - 1)) % colorcnt : 0; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
         buffer.palette.GetHSV(ColorIdx, hsv1); // Now go and get the hsv value for this ColorIdx
 
         // work out the normal to the point being drawn

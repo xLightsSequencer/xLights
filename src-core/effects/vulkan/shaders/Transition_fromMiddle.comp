@@ -1,0 +1,54 @@
+#version 450
+// Port of fromMiddleTransition in TransitionFunctions.metal (mask/"map" type).
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer MaskB { uint maskWords[]; };
+
+void maskWrite(uint sidx, uint value);
+
+void maskValue(uint ix, uint iy) {
+    uint sidx = ix * data.height + iy; // masks are different order than pixels
+
+    float adjust = data.adjust;
+    float factor = data.progress;
+    bool reverse = data.reverse != 0u;
+
+    uint m1 = 255u;
+    uint m2 = 0u;
+
+    if (reverse) {
+        factor = 1.0 - factor;
+        m1 = 0u;
+        m2 = 255u;
+    }
+
+    float w_2 = 0.5 * float(data.width);
+    float h_2 = 0.5 * float(data.height);
+    vec2 p1 = vec2(w_2, 0.0);
+    vec2 p2 = vec2(w_2, 500.0); //  something sufficiently large so the rotations will work better
+
+    float angle = interpolate(0.01 * adjust, 0.0, -XL_PI_2, 1.0, XL_PI_2);
+    p1 = RotateAbout(p1, angle, vec2(w_2, h_2));
+    p2 = RotateAbout(p2, angle, vec2(w_2, h_2));
+
+    float p1_p2_len = distance(p2, p1);
+    float y2_less_y1 = p2.y - p1.y;
+    float x2_less_x1 = p2.x - p1.x;
+    float offset = p2.x * p1.y - p2.y * p1.x;
+
+    // find the distance from the line to the four corners and use the max for timing
+    float distBR = abs(y2_less_y1 * float(data.width - 1u) - x2_less_x1 * 0.0 + offset) / p1_p2_len;
+    float distUR = abs(y2_less_y1 * float(data.width - 1u) - x2_less_x1 * float(data.height - 1u) + offset) / p1_p2_len;
+    float distBL = abs(y2_less_y1 * 0.0 - x2_less_x1 * 0.0 + offset) / p1_p2_len;
+    float distUL = abs(y2_less_y1 * 0.0 - x2_less_x1 * float(data.height - 1u) + offset) / p1_p2_len;
+    float len = max(max(distBR, distBL), max(distUR, distUL));
+    float step_ = len * factor;
+
+    float dist = abs(y2_less_y1 * float(ix) - x2_less_x1 * float(iy) + offset) / p1_p2_len;
+    maskWrite(sidx, (dist > step_) ? m1 : m2);
+}
+
+#include "transition_mask_main.glsl"

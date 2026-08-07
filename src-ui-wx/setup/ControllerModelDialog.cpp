@@ -14,7 +14,12 @@
 //*)
 
 #include "wx/printdlg.h"
+#include <wx/print.h>
 #include <wx/artprov.h>
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/scrolwin.h>
+#include <wx/statbmp.h>
 #include <wx/dcbuffer.h>
 #include <wx/dcclient.h>
 #include <wx/dcmemory.h>
@@ -27,6 +32,8 @@
 #include <wx/position.h>
 
 #include "ControllerModelDialog.h"
+#include "layout/LayoutPanel.h"
+#include "layout/ModelPreview.h"
 #include "models/ControllerConnection.h"
 #include "models/Pixels.h"
 #include "UtilFunctions.h"
@@ -44,6 +51,7 @@
 #include "shared/utils/ExternalHooksUI.h"
 
 #include <log.h>
+#include <algorithm>
 #include <cmath>
 
 #include <xlsxwriter.h>
@@ -66,7 +74,7 @@ const wxWindowID ControllerModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const wxWindowID ControllerModelDialog::ID_TEXTCTRL_MODEL_FILTER = wxNewId();
 //*)
 
-const long ControllerModelDialog::CONTROLLERModel_PRINT = wxNewId();
+const long ControllerModelDialog::CONTROLLERModel_PRINT_PREVIEW = wxNewId();
 const long ControllerModelDialog::CONTROLLERModel_SAVE_CSV = wxNewId();
 const long ControllerModelDialog::CONTROLLER_DMXCHANNEL = wxNewId();
 const long ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT = wxNewId();
@@ -86,6 +94,8 @@ const long ControllerModelDialog::CONTROLLER_ENDNULLS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_COLORORDER = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GROUPCOUNT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GAMMA = wxNewId();
+
+int ControllerModelDialog::s_activeCount = 0;
 
 BEGIN_EVENT_TABLE(ControllerModelDialog, wxDialog)
 //(*EventTable(ControllerModelDialog)
@@ -664,7 +674,11 @@ public:
             mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
         }
         if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes() && (_caps->GetSmartRemoteTypes().size() > 1)) {
-            mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE, "Set Smart Remote Type");
+            std::string label = "Set Smart Remote Type";
+            if (_caps->AllSmartRemoteTypesPerPortMustBeSame()) {
+                label += " (All Ports In Block)";
+            }
+            mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE, label);
         }
         if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes()) {
             mnu.Append(ControllerModelDialog::CONTROLLER_SETSMARTREMOTE, "Set Smart Remote ID and Increment");
@@ -809,9 +823,20 @@ public:
                     dlg.SetSelection(selection);
                 }
                 if (dlg.ShowModal() == wxID_OK) {
-                    int basePort = GetBasePort();
-                    for (uint8_t p = 0; p < 4; ++p) {
-                        for (const auto& it : _cud->GetControllerPixelPort(basePort + p)->GetModels()) {
+                    if (_caps->AllSmartRemoteTypesPerPortMustBeSame()) {
+                        int basePort = GetBasePort();
+                        for (uint8_t p = 0; p < 4; ++p) {
+                            for (const auto& it : _cud->GetControllerPixelPort(basePort + p)->GetModels()) {
+                                auto* model = it->GetModel();
+                                if (model->GetSmartRemote() == 0) {
+                                    model->SetSmartRemote(1);
+                                }
+                                model->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
+                                model->SetSmartRemoteType(choices[dlg.GetSelection()]);
+                            }
+                        }
+                    } else {
+                        for (const auto& it : GetUDPort()->GetModels()) {
                             auto* model = it->GetModel();
                             if (model->GetSmartRemote() == 0) {
                                 model->SetSmartRemote(1);
@@ -1227,10 +1252,15 @@ public:
 
         auto location = _location * scale;
 
-        wxSize sz = wxSize(32, 32);
+        // Was a hardcoded wxSize(32, 32), never scaled - fixed print/preview
+        // box size regardless of how small `scale` shrank everything else.
+        // The offset math below expects the pre-scale 32x32 value (it applies
+        // its own "* scale" over the whole expression), so keep both.
+        wxSize rawSz(32, 32);
+        wxSize sz = rawSz.Scale(scale, scale);
         dc.DrawRectangle(location + offset, sz);
 
-        wxPoint pt = location + wxSize(2, (sz.y - 2 - 3 * SRY_GAP) * scale) + offset;
+        wxPoint pt = location + wxSize(2, (rawSz.y - 2 - 3 * SRY_GAP) * scale) + offset;
         DrawTextLimited(dc, _name, pt, sz - wxSize(4, 4));
         // pt += wxSize(0, ((VERTICAL_SIZE + SRY_GAP + SRYLABEL_SIZE) * scale) / 2);
 
@@ -1532,22 +1562,62 @@ public:
             }
 
             auto iconType = "xlART_" + DisplayAsTypeToString(m->GetDisplayAs()) + "_ICON";
-            int iconSize = MODEL_ICON_SIZE;
-            if (iconSize > 24) {
-                iconSize = 32;
-            } else {
-                iconSize = 16;
+            // MODEL_ICON_SIZE only bakes in the on-screen _scale; everything
+            // else here (box position/size, text offset) also multiplies by
+            // the scale parameter Draw() was called with, so without it the
+            // icon stays a fixed size while the box around it shrinks/grows
+            // for print/preview. Also cap it to whatever space is actually
+            // left in the box - both vertically (below the name line: boxes
+            // with several stat lines don't grow taller to accommodate the
+            // icon) and horizontally (narrow boxes at a low Box Size setting
+            // can be narrower than a "nominal" icon, which - since the icon
+            // is right-aligned within the box - pushed it out past the right
+            // edge instead of just shrinking to fit).
+            int marginPx = ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3);
+            int iconSize = std::max(1, (int)std::lround(MODEL_ICON_SIZE * scale));
+            int availableHeight = (int)(location.y + offset.y + sz.y - pt.y) - 2;
+            int availableWidth = (int)sz.x - 2 * marginPx;
+            if (availableHeight > 0) {
+                iconSize = std::min(iconSize, availableHeight);
             }
+            if (availableWidth > 0) {
+                iconSize = std::min(iconSize, availableWidth);
+            }
+            iconSize = std::max(1, iconSize);
 
             wxBitmapBundle bmp = wxArtProvider::GetBitmapBundle(wxART_MAKE_ART_ID_FROM_STR(iconType), wxART_BUTTON, wxDefaultSize);
             if (bmp.IsOk()) {
-#ifdef __WXOSX__
-                dc.DrawBitmap(bmp.GetBitmap(wxSize(iconSize * 2, iconSize * 2)), location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - iconSize, pt.y);
-#else
-                int i2 = ScaleWithSystemDPI(GetSystemContentScaleFactor(), iconSize);
-                wxIcon icon = bmp.GetIcon(wxSize(i2, i2));
-                dc.DrawIcon(icon, location.x + sz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3) - iconSize, pt.y);
-#endif
+                // offset.x was missing here (compare the linked-model emoji
+                // draw just above, which correctly includes it) - harmless
+                // while offset was always (0,0), but RenderFullPreview() now
+                // calls in with a non-zero offset, which shifted the icon
+                // away from the box entirely instead of just its bottom edge.
+                int drawX = location.x + offset.x + sz.x - marginPx - iconSize;
+                // iconSize is derived from MODEL_ICON_SIZE, which already
+                // applies ScaleWithSystemDPI internally, and we rasterize
+                // to a plain wxBitmap below with no Retina scale-factor
+                // tag - so the drawn bitmap must be exactly iconSize
+                // pixels on every platform. Doubling for "Retina" here
+                // (the old __WXOSX__ branch) or re-applying DPI scaling
+                // (the old non-OSX branch) both inflated the actually-
+                // drawn bitmap well past what drawX/pt.y and the size
+                // caps above assumed, which is why the icon kept
+                // blowing past the box regardless of those caps.
+                int targetPx = std::max(1, iconSize);
+                // Fetch a known-good source resolution and rescale it
+                // ourselves rather than asking wxBitmapBundle for targetPx
+                // directly - for this custom art type it may only have a
+                // couple of native resolutions registered and isn't
+                // guaranteed to resample down to an arbitrary small size
+                // (which is exactly what a shrunk print/preview box needs).
+                wxBitmap srcBmp = bmp.GetBitmap(wxSize(32, 32));
+                if (srcBmp.IsOk()) {
+                    wxImage img = srcBmp.ConvertToImage();
+                    if (img.GetWidth() != targetPx || img.GetHeight() != targetPx) {
+                        img = img.Scale(targetPx, targetPx, wxIMAGE_QUALITY_HIGH);
+                    }
+                    dc.DrawBitmap(wxBitmap(img), drawX, pt.y);
+                }
             }
 
             if (udcpm != nullptr) {
@@ -1974,8 +2044,11 @@ void ControllerModelPrintout::OnBeginPrinting()
         _max_y = paperSize.GetWidth() * 3.0;
     }
 
-    FitThisSizeToPageMargins(wxSize(_max_x, _max_y), _page_setup);
-
+    // Snap down to a whole number of boxes per page BEFORE calibrating the DC
+    // scale below. Calibrating first (the previous order) fit the DC to the
+    // larger, unsnapped paper area, then shrank the per-page area to a box
+    // multiple afterward - so the printed grid never actually reached the
+    // margins it was supposedly fitted to, leaving the page under-filled.
     int boxPerPageH = _max_y / _box_size.GetY();
     _max_y = (boxPerPageH)*_box_size.GetY();
     _page_count_h = std::ceil((float)_panel_size.GetY() / (float)_max_y);
@@ -1984,32 +2057,31 @@ void ControllerModelPrintout::OnBeginPrinting()
     _max_x = (boxPerPageW)*_box_size.GetX();
     _page_count_w = std::ceil((float)_panel_size.GetX() / (float)_max_x);
 
+    FitThisSizeToPageMargins(wxSize(_max_x, _max_y), _page_setup);
+
     _page_count = _page_count_w * _page_count_h;
 }
 
-void ControllerModelPrintout::preparePrint(const bool showPageSetupDialog)
+void ControllerModelPrintout::preparePrint()
 {
+    // Paper/orientation are already set via SetDefaultPageSetup() from the
+    // print preview dialog's own controls, so there's no need for the OS
+    // Page Setup dialog here - showing it was redundant with our own UI and,
+    // since it wasn't reliably pre-populated from _page_setup, could end up
+    // overriding the user's preview-dialog choice with different values right
+    // before printing.
     _page_setup.SetMarginTopLeft(wxPoint(16, 16));
     _page_setup.SetMarginBottomRight(wxPoint(16, 16));
-    if (showPageSetupDialog) {
-        wxPageSetupDialog dialog(NULL, &_page_setup);
-        if (dialog.ShowModal() == wxID_OK) {
-            _page_setup = dialog.GetPageSetupData();
-            _orient = _page_setup.GetPrintData().GetOrientation();
-            _paper_type = _page_setup.GetPrintData().GetPaperId();
-        }
-    } else {
-        // don't show page setup dialog, use default values
-        wxPrintData printdata;
-        printdata.SetPrintMode(wxPRINT_MODE_PRINTER);
-        printdata.SetOrientation(wxPORTRAIT); // wxPORTRAIT, wxLANDSCAPE
-        printdata.SetNoCopies(1);
-        printdata.SetPaperId(wxPAPER_LETTER);
+}
 
-        _page_setup = wxPageSetupDialogData(printdata);
-        _orient = printdata.GetOrientation();
-        _paper_type = printdata.GetPaperId();
-    }
+void ControllerModelPrintout::SetDefaultPageSetup(wxPaperSize paperId, wxPrintOrientation orient)
+{
+    wxPrintData printdata = _page_setup.GetPrintData();
+    printdata.SetPaperId(paperId);
+    printdata.SetOrientation(orient);
+    _page_setup = wxPageSetupDialogData(printdata);
+    _paper_type = paperId;
+    _orient = orient;
 }
 #pragma endregion
 
@@ -2020,7 +2092,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     _mm(mm),
     _xLights((xLightsFrame*)parent)
 {
-    
+    ++s_activeCount;
 
     //(*Initialize(ControllerModelDialog)
     wxBoxSizer* BoxSizer1;
@@ -2256,6 +2328,7 @@ ControllerModelDialog::~ControllerModelDialog()
     // the dialog is constructed before the user typed anything.
     BaseCMObject::_visualizerFilterLower.Clear();
 
+    --s_activeCount;
     SaveWindowPosition("ControllerModelDialogPosition", this);
     auto* config = GetXLightsConfig();
     config->Write("ControllerModelSashPosition", SplitterWindow1->GetSashPosition());
@@ -2344,7 +2417,8 @@ void ControllerModelDialog::ReloadModels()
     wxString modelFilter = TextCtrl_ModelFilter->GetValue().Lower();
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
-            if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
+            if (it.second->GetShadowModelFor().empty() &&
+                _cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
                     ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                         _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
@@ -2676,8 +2750,8 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent& event)
     
 
     int id = event.GetId();
-    if (id == CONTROLLERModel_PRINT) {
-        PrintScreen();
+    if (id == CONTROLLERModel_PRINT_PREVIEW) {
+        PrintPreviewScreen();
     } else if (id == CONTROLLERModel_SAVE_CSV) {
         SaveCSV();
     } else if (id == CONTROLLER_REMOVEALLMODELS) {
@@ -2714,7 +2788,7 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent& event)
     }
 }
 
-void ControllerModelDialog::PrintScreen()
+wxSize ControllerModelDialog::GetControllersExtent() const
 {
     int panX = 0;
     int panY = 0;
@@ -2724,27 +2798,311 @@ void ControllerModelDialog::PrintScreen()
         }
 
         if ((it->GetRect().GetX() + it->GetRect().GetWidth()) > panX) {
-            panX = it->GetRect().GetY() + it->GetRect().GetHeight() + 5;
+            panX = it->GetRect().GetX() + it->GetRect().GetWidth() + 5;
         }
     }
+    return wxSize(panX, panY);
+}
 
-    ControllerModelPrintout printout(this, _title, wxSize(HORIZONTAL_SIZE + HORIZONTAL_GAP, VERTICAL_SIZE + VERTICAL_GAP), wxSize(panX, panY));
-    printout.preparePrint(true);
-    wxPrintDialogData printDialogData(printout.getPrintData());
+// _printScale is the box size the user picked for printing, independent of
+// the on-screen _scale slider; the _controllers/_models geometry is frozen in
+// on-screen-_scale units at layout time, so everything gets rescaled by the
+// ratio between the two. Floored so a low print-scale combined with a high
+// on-screen _scale (e.g. print box size turned way down after the on-screen
+// slider was turned way up) can't shrink the ratio enough to round box
+// positions/sizes down to nothing and make the preview appear blank.
+double ControllerModelDialog::GetPrintRatio() const
+{
+    double ratio = (_scale != 0) ? (_printScale / _scale) : 1.0;
+    return std::max(ratio, 0.08);
+}
+
+ControllerModelPrintout* ControllerModelDialog::CreatePrintout()
+{
+    wxSize extent = GetControllersExtent();
+    double ratio = GetPrintRatio();
+    wxSize boxSize(std::lround((HORIZONTAL_SIZE + HORIZONTAL_GAP) * ratio), std::lround((VERTICAL_SIZE + VERTICAL_GAP) * ratio));
+    wxSize panelSize(std::lround(extent.GetWidth() * ratio), std::lround(extent.GetHeight() * ratio));
+
+    ControllerModelPrintout* printout = new ControllerModelPrintout(this, _title, boxSize, panelSize);
+    printout->SetDefaultPageSetup(_printPaperId, _printOrientation);
+    return printout;
+}
+
+void ControllerModelDialog::FitPrintScaleToPage()
+{
+    // Approximate one page's usable area using the same arbitrary scale
+    // factor ControllerModelPrintout::OnBeginPrinting() applies to the paper
+    // size (in mm), so this lines up with what actually prints without
+    // needing an active print DC to ask FitThisSizeToPageMargins directly.
+    wxPrintData printData;
+    printData.SetOrientation(_printOrientation);
+    printData.SetPaperId(_printPaperId);
+    wxPageSetupDialogData pageSetup(printData);
+    pageSetup.SetMarginTopLeft(wxPoint(16, 16));
+    pageSetup.SetMarginBottomRight(wxPoint(16, 16));
+
+    wxSize paperSize = pageSetup.GetPaperSize();
+    double maxX, maxY;
+    // GetPaperSize() always returns the paper's portrait dimensions - swap
+    // them for landscape to match ControllerModelPrintout::OnBeginPrinting(),
+    // otherwise switching orientation has no visible effect on the fit.
+    if (_printOrientation == wxPORTRAIT) {
+        maxX = paperSize.GetWidth() * 3.0;
+        maxY = paperSize.GetHeight() * 3.0;
+    } else {
+        maxX = paperSize.GetHeight() * 3.0;
+        maxY = paperSize.GetWidth() * 3.0;
+    }
+    wxPoint tl = pageSetup.GetMarginTopLeft();
+    wxPoint br = pageSetup.GetMarginBottomRight();
+    maxX -= (tl.x + br.x) * 3.0;
+    maxY -= (tl.y + br.y) * 3.0;
+
+    wxSize extent = GetControllersExtent();
+    if (extent.GetWidth() <= 0 || extent.GetHeight() <= 0 || maxX <= 0 || maxY <= 0) return;
+
+    double fit = std::min(maxX / (double)extent.GetWidth(), maxY / (double)extent.GetHeight());
+    _printScale = std::clamp(_scale * fit, 0.0, 1.0);
+}
+
+ControllerModelDialog::PrintPageLayout ControllerModelDialog::GetPrintPageLayout() const
+{
+    PrintPageLayout layout;
+
+    double ratio = GetPrintRatio();
+    wxSize boxSize(std::lround((HORIZONTAL_SIZE + HORIZONTAL_GAP) * ratio), std::lround((VERTICAL_SIZE + VERTICAL_GAP) * ratio));
+    wxSize extent = GetControllersExtent();
+    wxSize panelSize(std::lround(extent.GetWidth() * ratio), std::lround(extent.GetHeight() * ratio));
+
+    wxPrintData printData;
+    printData.SetOrientation(_printOrientation);
+    printData.SetPaperId(_printPaperId);
+    wxPageSetupDialogData pageSetup(printData);
+    wxSize paperSize = pageSetup.GetPaperSize();
+
+    // Mirrors ControllerModelPrintout::OnBeginPrinting() exactly (same
+    // arbitrary "paper mm x 3" scale, no margin subtraction - margins only
+    // affect the printer DC calibration, not the box/page counts) so the
+    // preview's page breaks land exactly where the real print job puts them.
+    double maxX, maxY;
+    if (_printOrientation == wxPORTRAIT) {
+        maxX = paperSize.GetWidth() * 3.0;
+        maxY = paperSize.GetHeight() * 3.0;
+    } else {
+        maxX = paperSize.GetHeight() * 3.0;
+        maxY = paperSize.GetWidth() * 3.0;
+    }
+
+    if (boxSize.GetX() <= 0 || boxSize.GetY() <= 0 || maxX <= 0 || maxY <= 0) {
+        layout.pageSize = panelSize;
+        return layout;
+    }
+
+    int boxPerPageH = std::max(1, (int)(maxY / boxSize.GetY()));
+    int boxPerPageW = std::max(1, (int)(maxX / boxSize.GetX()));
+    layout.pageSize = wxSize(boxPerPageW * boxSize.GetX(), boxPerPageH * boxSize.GetY());
+    layout.pagesWide = std::max(1, (int)std::ceil((double)panelSize.GetX() / layout.pageSize.GetWidth()));
+    layout.pagesHigh = std::max(1, (int)std::ceil((double)panelSize.GetY() / layout.pageSize.GetHeight()));
+    return layout;
+}
+
+void ControllerModelDialog::PrintScreen()
+{
+    ControllerModelPrintout* printout = CreatePrintout();
+    printout->preparePrint();
+    wxPrintDialogData printDialogData(printout->getPrintData());
     wxPrinter printer(&printDialogData);
 
-    if (!printer.Print(this, &printout, true)) {
+    if (!printer.Print(this, printout, true)) {
         if (wxPrinter::GetLastError() == wxPRINTER_ERROR) {
             DisplayError(wxString::Format("Problem printing controller layout. %d", wxPrinter::GetLastError()).ToStdString(), this);
         }
     } else {
         printDialogData = printer.GetPrintDialogData();
     }
+    delete printout;
+}
+
+wxBitmap ControllerModelDialog::RenderFullPreview()
+{
+    wxSize extent = GetControllersExtent();
+    double ratio = GetPrintRatio();
+    int w = std::max(20, (int)std::lround(extent.GetWidth() * ratio));
+    int h = std::max(20, (int)std::lround(extent.GetHeight() * ratio));
+    // Start one pixel above/left of the origin: RenderPicture()'s bounds
+    // check is strictly-greater-than (it's written for splitting content
+    // across print pages, where a shared boundary must only count once), so
+    // an object whose scaled position rounds down to exactly 0 - routine at
+    // low box sizes - would otherwise be silently dropped instead of drawn.
+    wxBitmap bmp = RenderPicture(-1, -1, w + 1, h + 1, _title);
+
+    // Overlay page-break lines so the preview shows how content actually
+    // splits across pages at the current paper size/orientation/box size,
+    // matching ControllerModelPrintout::OnBeginPrinting()'s pagination math.
+    PrintPageLayout layout = GetPrintPageLayout();
+    if (layout.pageSize.GetWidth() > 0 && layout.pageSize.GetHeight() > 0) {
+        wxMemoryDC dc(bmp);
+        dc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_SHORT_DASH));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        int bmpW = bmp.GetWidth();
+        int bmpH = bmp.GetHeight();
+        // +1 to match RenderPicture()'s (-1,-1) origin offset above.
+        for (int py = 0; py <= layout.pagesHigh; ++py) {
+            int y = py * layout.pageSize.GetHeight() + 1;
+            if (y >= 0 && y <= bmpH) dc.DrawLine(0, y, bmpW, y);
+        }
+        for (int px = 0; px <= layout.pagesWide; ++px) {
+            int x = px * layout.pageSize.GetWidth() + 1;
+            if (x >= 0 && x <= bmpW) dc.DrawLine(x, 0, x, bmpH);
+        }
+        dc.SelectObject(wxNullBitmap);
+    }
+
+    return bmp;
+}
+
+void ControllerModelDialog::PrintPreviewScreen()
+{
+    ControllerModelPrintPreviewDialog* dlg = new ControllerModelPrintPreviewDialog(this, this, "Print - " + _title);
+    dlg->Show();
+}
+
+namespace
+{
+    struct PaperSizeOption {
+        const char* name;
+        wxPaperSize id;
+    };
+    const PaperSizeOption PRINT_PAPER_SIZE_OPTIONS[] = {
+        { "Letter", wxPAPER_LETTER },
+        { "Legal", wxPAPER_LEGAL },
+        { "Tabloid", wxPAPER_TABLOID },
+        { "A4", wxPAPER_A4 },
+        { "A3", wxPAPER_A3 },
+    };
+    const size_t PRINT_PAPER_SIZE_OPTION_COUNT = sizeof(PRINT_PAPER_SIZE_OPTIONS) / sizeof(PRINT_PAPER_SIZE_OPTIONS[0]);
+}
+
+ControllerModelPrintPreviewDialog::ControllerModelPrintPreviewDialog(ControllerModelDialog* owner, wxWindow* parent, const wxString& title) :
+    wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxSize(900, 760), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX),
+    _owner(owner)
+{
+    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer* toolbar = new wxBoxSizer(wxHORIZONTAL);
+    toolbar->Add(new wxStaticText(this, wxID_ANY, "Print Box Size:"), 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+    // Print scale range is 0-1 with 0.1 precision; wxSlider is integer-only,
+    // so the internal range is scaled up by 10 (0-10) and converted below.
+    _boxSizeSlider = new wxSlider(this, wxID_ANY, std::lround(std::clamp(_owner->GetPrintScale(), 0.0, 1.0) * 10), 0, 10,
+                                   wxDefaultPosition, wxSize(200, -1));
+    _boxSizeSlider->SetToolTip("Print Box Size");
+    toolbar->Add(_boxSizeSlider, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+    wxButton* fitButton = new wxButton(this, wxID_ANY, "Fit to Page");
+    toolbar->Add(fitButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+
+    toolbar->Add(new wxStaticText(this, wxID_ANY, "Paper:"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxTOP | wxBOTTOM, 6);
+    _paperChoice = new wxChoice(this, wxID_ANY);
+    int paperSel = 0;
+    for (size_t i = 0; i < PRINT_PAPER_SIZE_OPTION_COUNT; ++i) {
+        _paperChoice->Append(PRINT_PAPER_SIZE_OPTIONS[i].name);
+        if (PRINT_PAPER_SIZE_OPTIONS[i].id == _owner->GetPrintPaperId()) {
+            paperSel = (int)i;
+        }
+    }
+    _paperChoice->SetSelection(paperSel);
+    toolbar->Add(_paperChoice, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+
+    _orientationChoice = new wxChoice(this, wxID_ANY);
+    _orientationChoice->Append("Portrait");
+    _orientationChoice->Append("Landscape");
+    _orientationChoice->SetSelection(_owner->GetPrintOrientation() == wxLANDSCAPE ? 1 : 0);
+    toolbar->Add(_orientationChoice, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+
+    toolbar->AddStretchSpacer();
+    wxButton* printButton = new wxButton(this, wxID_ANY, "Print...");
+    toolbar->Add(printButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+    wxButton* closeButton = new wxButton(this, wxID_CANCEL, "Close");
+    toolbar->Add(closeButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+    topSizer->Add(toolbar, 0, wxEXPAND);
+
+    _canvas = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_SUNKEN);
+    _canvas->SetBackgroundColour(*wxLIGHT_GREY);
+    _bitmapCtrl = new wxStaticBitmap(_canvas, wxID_ANY, wxBitmap());
+    wxBoxSizer* canvasSizer = new wxBoxSizer(wxVERTICAL);
+    canvasSizer->Add(_bitmapCtrl, 0, wxALL, 10);
+    _canvas->SetSizer(canvasSizer);
+    _canvas->SetScrollRate(20, 20);
+    topSizer->Add(_canvas, 1, wxEXPAND | wxALL, 2);
+
+    SetSizer(topSizer);
+
+    // wxEVT_SLIDER (rather than wxEVT_SCROLL_CHANGED) so dragging updates the
+    // preview live - cheap here since this just repaints a bitmap in place,
+    // not recreate a whole window like the old wxPrintPreview-based version.
+    _boxSizeSlider->Bind(wxEVT_SLIDER, &ControllerModelPrintPreviewDialog::OnBoxSizeChanged, this);
+    fitButton->Bind(wxEVT_BUTTON, &ControllerModelPrintPreviewDialog::OnFitToPage, this);
+    _paperChoice->Bind(wxEVT_CHOICE, &ControllerModelPrintPreviewDialog::OnPageSetupChanged, this);
+    _orientationChoice->Bind(wxEVT_CHOICE, &ControllerModelPrintPreviewDialog::OnPageSetupChanged, this);
+    printButton->Bind(wxEVT_BUTTON, &ControllerModelPrintPreviewDialog::OnPrint, this);
+
+    RefreshPreview();
+}
+
+void ControllerModelPrintPreviewDialog::RefreshPreview()
+{
+    wxBitmap bmp = _owner->RenderFullPreview();
+    _bitmapCtrl->SetBitmap(bmp);
+    _canvas->SetVirtualSize(bmp.GetSize());
+    _canvas->FitInside();
+    _canvas->Layout();
+    _canvas->Refresh();
+}
+
+void ControllerModelPrintPreviewDialog::OnBoxSizeChanged(wxCommandEvent& event)
+{
+    _owner->SetPrintScale(_boxSizeSlider->GetValue() / 10.0);
+    RefreshPreview();
+}
+
+void ControllerModelPrintPreviewDialog::OnFitToPage(wxCommandEvent& event)
+{
+    _owner->FitPrintScaleToPage();
+    _boxSizeSlider->SetValue(std::lround(std::clamp(_owner->GetPrintScale(), 0.0, 1.0) * 10));
+    RefreshPreview();
+}
+
+void ControllerModelPrintPreviewDialog::OnPageSetupChanged(wxCommandEvent& event)
+{
+    int sel = _paperChoice->GetSelection();
+    if (sel >= 0 && (size_t)sel < PRINT_PAPER_SIZE_OPTION_COUNT) {
+        _owner->SetPrintPaperId(PRINT_PAPER_SIZE_OPTIONS[sel].id);
+    }
+    _owner->SetPrintOrientation(_orientationChoice->GetSelection() == 1 ? wxLANDSCAPE : wxPORTRAIT);
+
+    // Re-fit so the box size reflects the newly selected paper/orientation
+    // immediately, rather than leaving the preview unchanged (the render
+    // itself has no page-boundary concept, so this is the only way the
+    // choice visibly does anything until the user clicks Print).
+    _owner->FitPrintScaleToPage();
+    _boxSizeSlider->SetValue(std::lround(std::clamp(_owner->GetPrintScale(), 0.0, 1.0) * 10));
+    RefreshPreview();
+}
+
+void ControllerModelPrintPreviewDialog::OnPrint(wxCommandEvent& event)
+{
+    _owner->PrintScreen();
 }
 
 wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width, int height, wxString const& pageName)
 {
     ::SetColours(true);
+
+    // startY/startX/endY/endX (and _box_size/_panel_size, upstream in
+    // CreatePrintout()/RenderFullPreview()) are in print-scale units; the
+    // controller objects' own rects are in on-screen-_scale units, so scale
+    // them the same way before comparing or drawing.
+    double ratio = GetPrintRatio();
 
     wxBitmap bitmap;
 
@@ -2765,12 +3123,18 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
 
     dc.SetDeviceOrigin(0, 0);
 
-    wxFont font = wxFont(wxSize(0, getFontSize()), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
+    // TOP_BOTTOM_MARGIN/LEFT_RIGHT_MARGIN/VERTICAL_SIZE/getFontSize() are all
+    // sized off the on-screen _scale, not the print ratio - left unscaled,
+    // this header eats a fixed amount of space regardless of box size, so at
+    // low ratios it can consume the entire (correctly small) bitmap height
+    // and push every box off the bottom edge, making the preview look blank.
+    int leftMargin = std::max(1, (int)std::lround(LEFT_RIGHT_MARGIN * ratio));
+    int rowPos = std::max(1, (int)std::lround(TOP_BOTTOM_MARGIN * ratio));
+    wxFont font = wxFont(wxSize(0, std::max(4, (int)std::lround(getFontSize() * ratio))), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, _T("Arial"), wxFONTENCODING_DEFAULT);
     dc.SetFont(font);
 
-    int rowPos = TOP_BOTTOM_MARGIN;
-    dc.DrawText(wxString::Format("%s %s", _title, pageName), LEFT_RIGHT_MARGIN, rowPos);
-    rowPos += ((VERTICAL_SIZE / 2)) + (VERTICAL_GAP);
+    dc.DrawText(wxString::Format("%s %s", _title, pageName), leftMargin, rowPos);
+    rowPos += std::max(1, (int)std::lround(((VERTICAL_SIZE / 2) + VERTICAL_GAP) * ratio));
 
     int endY = startY + height;
     int endX = startX + width;
@@ -2778,18 +3142,22 @@ wxBitmap ControllerModelDialog::RenderPicture(int startY, int startX, int width,
     // draw ports and smart receivers first
     for (const auto& it : _controllers) {
         if (it->GetType() != "MODEL") {
-            if (it->GetRect().GetY() > startY && it->GetRect().GetY() < endY &&
-                it->GetRect().GetX() > startX && it->GetRect().GetX() < endX) {
-                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr, "");
+            wxRect r = it->GetRect();
+            int ry = std::lround(r.GetY() * ratio);
+            int rx = std::lround(r.GetX() * ratio);
+            if (ry > startY && ry < endY && rx > startX && rx < endX) {
+                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), ratio, true, true, nullptr, "");
             }
         }
     }
 
     for (const auto& it : _controllers) {
         if (it->GetType() == "MODEL") {
-            if (it->GetRect().GetY() > startY && it->GetRect().GetY() < endY &&
-                it->GetRect().GetX() > startX && it->GetRect().GetX() < endX) {
-                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), 1, true, true, nullptr, "");
+            wxRect r = it->GetRect();
+            int ry = std::lround(r.GetY() * ratio);
+            int rx = std::lround(r.GetX() * ratio);
+            if (ry > startY && ry < endY && rx > startX && rx < endX) {
+                it->Draw(dc, 0, wxPoint(0, 0), wxPoint(0, 0), wxSize(-startX, rowPos - startY), ratio, true, true, nullptr, "");
             }
         }
     }
@@ -3016,7 +3384,10 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
         m->SetControllerProtocol("Virtual Matrix");
         m->SetSmartRemote(0);
     } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
-        m->SetControllerProtocol("LED Panel Matrix");
+        // keep whichever panel driver family the model already named
+        if (!::IsLEDPanelMatrixProtocol(m->GetControllerProtocol())) {
+            m->SetControllerProtocol(PROTOCOL_LED_PANEL_MATRIX);
+        }
         m->SetSmartRemote(0);
     } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
         m->SetControllerProtocol("PWM");
@@ -3157,7 +3528,10 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 m->SetControllerProtocol("Virtual Matrix");
                 m->SetSmartRemote(0);
             } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
-                m->SetControllerProtocol("LED Panel Matrix");
+                // keep whichever panel driver family the model already named
+                if (!::IsLEDPanelMatrixProtocol(m->GetControllerProtocol())) {
+                    m->SetControllerProtocol(PROTOCOL_LED_PANEL_MATRIX);
+                }
                 m->SetSmartRemote(0);
             } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
                 m->SetControllerProtocol("PWM");
@@ -3457,7 +3831,10 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                     m->SetControllerProtocol("Virtual Matrix");
                     m->SetSmartRemote(0);
                 } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
-                    m->SetControllerProtocol("LED Panel Matrix");
+                    // keep whichever panel driver family the model already named
+                    if (!::IsLEDPanelMatrixProtocol(m->GetControllerProtocol())) {
+                        m->SetControllerProtocol(PROTOCOL_LED_PANEL_MATRIX);
+                    }
                     m->SetSmartRemote(0);
                 } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
                     m->SetControllerProtocol("PWM");
@@ -3769,7 +4146,9 @@ bool ControllerModelDialog::MaybeSetSmartRemote(wxKeyEvent& event)
         return false;
     }
 
-    if (_lastDropped != nullptr && _lastDropped->GetControllerCaps()->SupportsSmartRemotes() && remote <= _lastDropped->GetControllerCaps()->GetSmartRemoteCount()) {
+    // GetControllerCaps() is null for a model that is not assigned to a controller
+    ControllerCaps* caps = _lastDropped != nullptr ? _lastDropped->GetControllerCaps() : nullptr;
+    if (caps != nullptr && caps->SupportsSmartRemotes() && remote <= caps->GetSmartRemoteCount()) {
         _lastDropped->SetSmartRemote(remote);
 
         while (!_xLights->DoAllWork()) {
@@ -4360,7 +4739,7 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
     mouse += wxPoint(0, GetScrollPosition(PanelController).y);
 
     wxMenu mnu;
-    mnu.Append(CONTROLLERModel_PRINT, "Print");
+    mnu.Append(CONTROLLERModel_PRINT_PREVIEW, "Print...");
     mnu.Append(CONTROLLERModel_SAVE_CSV, "Save As Spreadsheet...");
 
     if (_cud->HasModels()) {
@@ -4587,6 +4966,21 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event)
     for (const auto& it : _models) {
         auto m = static_cast<ModelCMObject*>(it);
         if (it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
+            Model* clickedModel = _mm->GetModel(m->GetName());
+            if (clickedModel != nullptr && _xLights->GetLayoutPanel() != nullptr) {
+                ModelPreview* preview = _xLights->GetLayoutPanel()->GetMainPreview();
+                if (preview != nullptr) {
+                    const std::string& controllerName = clickedModel->GetControllerName();
+                    const bool unassigned = !clickedModel->IsShadowModel() &&
+                        (controllerName.empty() || controllerName == NO_CONTROLLER);
+                    for (auto pm : preview->GetModels()) {
+                        pm->NotOnController = unassigned && (pm == clickedModel);
+                    }
+                    _xLights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+                        "ControllerModelDialog::OnPanelModelsLeftDown");
+                }
+            }
+
             wxTextDataObject dragData("Model:" + m->GetName());
 
             wxBitmap bmp(32, 32);
@@ -4616,8 +5010,31 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event)
             dragSource.DoDragDrop(wxDragMove);
 
             _dragging = nullptr;
+            ClearNotOnControllerHighlight();
             break;
         }
+    }
+}
+
+void ControllerModelDialog::ClearNotOnControllerHighlight()
+{
+    if (_xLights->GetLayoutPanel() == nullptr) {
+        return;
+    }
+    ModelPreview* preview = _xLights->GetLayoutPanel()->GetMainPreview();
+    if (preview == nullptr) {
+        return;
+    }
+    bool clearedNotOnController = false;
+    for (auto pm : preview->GetModels()) {
+        if (pm->NotOnController) {
+            pm->NotOnController = false;
+            clearedNotOnController = true;
+        }
+    }
+    if (clearedNotOnController) {
+        _xLights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+            "ControllerModelDialog::ClearNotOnControllerHighlight");
     }
 }
 
@@ -4625,6 +5042,7 @@ void ControllerModelDialog::OnPanelModelsLeftUp(wxMouseEvent& event)
 {
     _dragging = nullptr;
     ClearOver(PanelController, _controllers);
+    ClearNotOnControllerHighlight();
 }
 
 void ControllerModelDialog::OnPanelModelsLeftDClick(wxMouseEvent& event)

@@ -456,7 +456,9 @@ struct TransitionHeaderRowView: View {
     }
     private var fadeSeconds: String {
         let v = viewModel.settingValue(forKey: fadeKey, defaultValue: defaultFade)
-        return v.isEmpty ? defaultFade : v
+        if v.isEmpty { return defaultFade }
+        guard let d = Double(v), d >= 0 else { return defaultFade }
+        return String(format: "%.2f", d)
     }
 
     var body: some View {
@@ -533,6 +535,6 @@ struct TransitionHeaderRowView: View {
         if trimmed.isEmpty { return defaultFade }
         guard let d = Double(trimmed) else { return defaultFade }
         if d < 0 { return defaultFade }
-        return trimmed
+        return String(format: "%.2f", d)
     }
 }

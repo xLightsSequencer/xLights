@@ -12,10 +12,12 @@
 
 #include "RenderableEffect.h"
 
+#include <memory>
 #include <vector>
 
 class TextDrawingContext;
 class FontManager;
+
 struct CachedRGBAImage;
 
 class TextEffect : public RenderableEffect
@@ -24,14 +26,17 @@ public:
     TextEffect(int id);
     virtual ~TextEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual bool CanBeRandom() override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override;
 
-    virtual bool needToAdjustSettings(const std::string& version) override { return true; }
+    virtual bool needToAdjustSettings(const std::string& version) override { return RenderableEffect::needToAdjustSettings(version); }
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    virtual bool needsLoadFiles() const override { return true; }
+    virtual void loadFiles(Effect* effect) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override { return false; }
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
 
     // Cached from Text.json by OnMetadataLoaded().
@@ -52,7 +57,7 @@ private:
 
     void ReplaceVaribles(std::string& msg, RenderBuffer& buffer) const;
 
-    const CachedRGBAImage* RenderTextLine(RenderBuffer& buffer,
+    std::shared_ptr<const CachedRGBAImage> RenderTextLine(RenderBuffer& buffer,
         TextDrawingContext* dc,
         const std::string& Line_orig,
         const std::string& fontString,

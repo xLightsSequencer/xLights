@@ -151,9 +151,9 @@ bool SketchEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap& Setting
     return rc;
 }
 
-bool SketchEffect::needToAdjustSettings(const std::string& /*version*/)
+bool SketchEffect::needToAdjustSettings(const std::string& version)
 {
-    return false;
+    return RenderableEffect::needToAdjustSettings(version);
 }
 
 void SketchEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults /*=true*/)
@@ -162,24 +162,15 @@ void SketchEffect::adjustSettings(const std::string& version, Effect* effect, bo
     if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
+}
 
-    // Convert absolute file paths to relative for portability
+void SketchEffect::loadFiles(Effect* effect)
+{
     SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_FILEPICKER_SketchBackground"];
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_FILEPICKER_SketchBackground"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_FILEPICKER_SketchBackground"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        settings["E_FILEPICKER_SketchBackground"] = SequenceMedia::ResolveFilePath(file).settingsPath;
         media.GetImage(settings["E_FILEPICKER_SketchBackground"]);
     }
 }
@@ -216,7 +207,7 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-std::list<std::string> SketchEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
+std::list<std::string> SketchEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const
 {
     std::list<std::string> res;
     return res;
@@ -438,4 +429,3 @@ void SketchEffect::renderSketch(const SketchEffectSketch& sketch, RenderBuffer& 
 
     freeNsvgImage(nsvgImg);
 }
-

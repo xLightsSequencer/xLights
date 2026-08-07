@@ -1,4 +1,5 @@
 #import "XLLogPackager.h"
+#import "XLCrashCapture.h"
 #import "XLSequenceDocument.h"
 
 #import <UIKit/UIKit.h>
@@ -6,9 +7,17 @@
 #import <sys/utsname.h>
 #import <mach/mach.h>
 
+#include <list>
 #include <string>
 
+#include <spdlog/spdlog.h>
+
 #include "utils/Parallel.h"
+#include "utils/RangeWorkPool.h"
+#include "utils/ShowRedactor.h"
+#include "utils/TraceLog.h"
+#include "utils/UtilFunctions.h"
+#include "utils/xlCrashCapture.h"
 
 namespace {
 
@@ -75,6 +84,21 @@ NSString* DeviceInfoText() {
     [s appendFormat:@"Free disk: %@\n", FreeDiskSpaceString()];
     [s appendFormat:@"Active processors: %lu\n",
         (unsigned long)[NSProcessInfo processInfo].activeProcessorCount];
+    std::string cpuBrand = GetCPUBrand();
+    if (!cpuBrand.empty()) {
+        [s appendFormat:@"CPU: %s\n", cpuBrand.c_str()];
+    }
+    [s appendFormat:@"CPU cores: %d physical, %d logical\n",
+        GetPhysicalCoreCount(), GetLogicalCoreCount()];
+    std::string gpu = GetGPUDescription();
+    if (!gpu.empty()) {
+        [s appendFormat:@"GPU: %s\n", gpu.c_str()];
+    }
+    UIScreen* screen = [UIScreen mainScreen];
+    CGRect b = screen.bounds;
+    [s appendFormat:@"Display: %.0fx%.0f points, scale %.1f (%.0fx%.0f pixels)\n",
+        b.size.width, b.size.height, screen.scale,
+        b.size.width * screen.scale, b.size.height * screen.scale];
     [s appendFormat:@"Thermal state: %ld\n",
         (long)[NSProcessInfo processInfo].thermalState];
     [s appendFormat:@"Captured: %@\n", [NSDate date]];
@@ -83,7 +107,24 @@ NSString* DeviceInfoText() {
 
 NSString* ThreadsText() {
     std::string status = "Parallel Job Pool:\n";
-    status += ParallelJobPool::POOL.GetThreadStatus();
+    status += ParallelForPool().GetStatus();
+
+    // The dashboard's "breadcrumbs" come from these, and they are what turns a
+    // stack into a reproducible report - the desktop has shipped them in
+    // threads.txt for a while, the iPad was dropping them on the floor.
+    //
+    // Every thread's, not GetTraceMessages' calling-thread-only view: the
+    // desktop calls that from inside its fatal-exception hook, which runs on the
+    // thread that faulted, but packaging here runs on whatever thread the
+    // uploader is on - one that has never logged a breadcrumb - so the
+    // per-thread lookup missed and this section shipped empty every time.
+    status += "\nThread traces:\n";
+    std::list<std::string> traceMessages;
+    TraceLog::GetAllTraceMessages(traceMessages);
+    for (auto const& a : traceMessages) {
+        status += a;
+        status += "\n";
+    }
     return [NSString stringWithUTF8String:status.c_str()];
 }
 
@@ -102,6 +143,9 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
     NSFileManager* fm = [NSFileManager defaultManager];
 
     NSDateFormatter* fmt = [[NSDateFormatter alloc] init];
+    // Without en_US_POSIX, a 12-hour region rewrites HH to hh plus a localised
+    // AM/PM marker, putting non-ASCII bytes in the zip name.
+    fmt.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
     fmt.dateFormat = @"yyyyMMdd-HHmmss";
     fmt.timeZone = [NSTimeZone timeZoneWithAbbreviation:@"UTC"];
     NSString* stamp = [fmt stringFromDate:[NSDate date]];
@@ -147,23 +191,43 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
     }
     CopyTreeIntoStaging(fm, diagnosticsSrc, diagnosticsDst, nil);
 
-    // 3. Show folder XML + currently-open sequence — full-payload only.
-    if (includeUserContent) {
-        if (document.showFolderPath.length > 0) {
-            NSString* showStaging = [stagingDir.path stringByAppendingPathComponent:@"show"];
-            [fm createDirectoryAtPath:showStaging
-          withIntermediateDirectories:YES
-                           attributes:nil
-                                error:nil];
-            for (NSString* name in @[@"xlights_networks.xml", @"xlights_rgbeffects.xml"]) {
-                NSString* src = [document.showFolderPath stringByAppendingPathComponent:name];
-                if ([fm fileExistsAtPath:src]) {
-                    [fm copyItemAtPath:src
-                                toPath:[showStaging stringByAppendingPathComponent:name]
-                                 error:nil];
-                }
+    // 3. Show folder XML. Verbatim for the share-sheet package, which the user
+    //    asked for and can inspect; redacted for the automatic upload, which
+    //    leaves without anyone seeing that particular report. Being able to open
+    //    a submitted report as a show folder is the most useful thing the
+    //    desktop reports carry, and a redacted copy still opens - it keeps the
+    //    structure, the names and every cross-reference, and rewrites only the
+    //    absolute paths and addresses.
+    if (document.showFolderPath.length > 0) {
+        NSString* showStaging = [stagingDir.path stringByAppendingPathComponent:@"show"];
+        [fm createDirectoryAtPath:showStaging
+      withIntermediateDirectories:YES
+                       attributes:nil
+                            error:nil];
+        for (NSString* name in @[@"xlights_networks.xml", @"xlights_rgbeffects.xml"]) {
+            NSString* src = [document.showFolderPath stringByAppendingPathComponent:name];
+            if (![fm fileExistsAtPath:src]) {
+                continue;
+            }
+            NSString* dst = [showStaging stringByAppendingPathComponent:name];
+            if (includeUserContent) {
+                [fm copyItemAtPath:src toPath:dst error:nil];
+                continue;
+            }
+            bool const isNetworks = [name isEqualToString:@"xlights_networks.xml"];
+            ShowRedactor::Stats stats;
+            if (ShowRedactor::RedactFileToFile(src.UTF8String, dst.UTF8String, isNetworks, &stats)) {
+                spdlog::info("Redacted {} for upload: {} path(s), {} address(es)",
+                             name.UTF8String, stats.paths, stats.addresses);
+            } else {
+                // Never fall back to copying the original: a redaction that
+                // failed is exactly when the unredacted file must not ship.
+                spdlog::warn("Could not redact {}; omitting it from the upload", name.UTF8String);
+                [fm removeItemAtPath:dst error:nil];
             }
         }
+    }
+    if (includeUserContent) {
         if (document.isSequenceLoaded && document.currentSequencePath.length > 0) {
             NSString* seqPath = document.currentSequencePath;
             if ([fm fileExistsAtPath:seqPath]) {
@@ -171,6 +235,22 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
                     stringByAppendingPathComponent:seqPath.lastPathComponent];
                 [fm copyItemAtPath:seqPath toPath:dst error:nil];
             }
+        }
+    }
+
+    // 3b. Launch-phase timing + show size. Both are counts/durations only —
+    //     no names, paths or user content — so they ride the automatic upload
+    //     as well as the full payload. They are what make a slow-launch report
+    //     attributable: MetricKit says a launch was slow, these say which
+    //     phase and how big the show was.
+    for (NSString* sidecar in @[@"xlLaunchTiming.txt",
+                                @"xlLaunchTiming.prev.txt",
+                                @"xlShowStats.txt"]) {
+        NSString* src = [logsDir stringByAppendingPathComponent:sidecar];
+        if ([fm fileExistsAtPath:src]) {
+            [fm copyItemAtPath:src
+                        toPath:[stagingDir.path stringByAppendingPathComponent:sidecar]
+                         error:nil];
         }
     }
 
@@ -183,6 +263,19 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
                     atomically:YES
                       encoding:NSUTF8StringEncoding
                          error:nil];
+
+    // Every thread's stack right now. After a crash this describes the new
+    // session rather than the dead one (xLightsCrash.prev.txt carries that),
+    // but it is what makes a hang or a runaway-CPU report actionable - those
+    // never crash, so there is no other moment to catch them at.
+    std::string allThreads = xlCrashCapture::BuildAllThreadsReport();
+    if (!allThreads.empty()) {
+        [[NSString stringWithUTF8String:allThreads.c_str()]
+            writeToFile:[stagingDir.path stringByAppendingPathComponent:@"all-threads.txt"]
+             atomically:YES
+               encoding:NSUTF8StringEncoding
+                  error:nil];
+    }
 
     // 5. Zip via NSFileCoordinator. .forUploading hands back a
     //    temporary zipped copy of the directory; copy it into the
@@ -222,6 +315,12 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
             [fm removeItemAtPath:[diagnosticsSrc stringByAppendingPathComponent:name]
                            error:nil];
         }
+        // Same reasoning as the JSONs above: the crash record is durable inside
+        // the zip now, so drop the source or every later bundle reships it and
+        // one crash is counted once per upload.
+        [fm removeItemAtPath:[logsDir stringByAppendingPathComponent:
+                                          XLCrashCapture.pendingRecordFileName]
+                       error:nil];
     }
 
     if (coordErr) {

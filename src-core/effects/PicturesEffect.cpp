@@ -139,7 +139,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
 
 bool PicturesEffect::needToAdjustSettings(const std::string &version)
 {
-    return true;
+    return IsVersionOlder("2017.6", version) || RenderableEffect::needToAdjustSettings(version);
 }
 
 void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
@@ -163,38 +163,19 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
         }
         settings.erase("E_CHECKBOX_Pictures_ScaleToFit");
     }
+}
 
+void PicturesEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_TEXTCTRL_Pictures_Filename"];
     auto &media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
     if (!file.empty() && !media.HasImage(file)) {
-        if (!std::filesystem::path(file).is_absolute()) {
-            std::string fixed = FileUtils::FixFile("", file);
-            if (fixed != file) {
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                std::string newPath = rel.empty() ? fixed : rel;
-                auto normalize = [](std::string s) {
-                    std::replace(s.begin(), s.end(), '\\', '/');
-                    return s;
-                };
-                if (normalize(newPath) != normalize(file)) {
-                    settings["E_TEXTCTRL_Pictures_Filename"] = newPath;
-                    media.RecordRelocation(file, newPath);
-                }
-            }
-        } else if (!FileExists(file, false)) {
-            std::string fixed = FileUtils::FixFile("", file);
-            // If the resolved path is inside a show/media directory, store as
-            // relative so the sequence is portable across machines.
-            std::string rel = FileUtils::MakeRelativeFile(fixed);
-            std::string newPath = rel.empty() ? fixed : rel;
-            settings["E_TEXTCTRL_Pictures_Filename"] = newPath;
-            if (newPath != file)
-                media.RecordRelocation(file, newPath);
-        } else {
-            // File exists at its absolute path — still prefer relative storage
-            std::string rel = FileUtils::MakeRelativeFile(file);
-            if (!rel.empty()) {
-                settings["E_TEXTCTRL_Pictures_Filename"] = rel;
+        const auto resolved = media.ResolveImagePath(file);
+        if (!resolved.settingsPath.empty()) {
+            settings["E_TEXTCTRL_Pictures_Filename"] = resolved.settingsPath;
+            if (resolved.settingsPath != file) {
+                media.RecordRelocation(file, resolved.settingsPath);
             }
         }
         std::string NewPictureName = settings["E_TEXTCTRL_Pictures_Filename"];
@@ -216,9 +197,11 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
                 media.AddAnimatedImage(NewPictureName, effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetFrameMS());
             }
         }
-        auto a = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia().GetImage(settings["E_TEXTCTRL_Pictures_Filename"]);
-        if (!a->IsOk()) {
-            spdlog::warn("Could not load image file: {}", settings["E_TEXTCTRL_Pictures_Filename"]);
+        auto* ctx = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetRenderContext();
+        if (auto* pool = ctx != nullptr ? ctx->GetJobPool() : nullptr) {
+            media.QueueImageLoad(settings["E_TEXTCTRL_Pictures_Filename"], resolved.loadPath, *pool);
+        } else {
+            media.GetImage(settings["E_TEXTCTRL_Pictures_Filename"]);
         }
     }
 }
@@ -311,6 +294,7 @@ public:
     int frame = 0;
     int maxmovieframes = 0;
     std::string PictureName;
+    bool missingImage = false;
     std::shared_ptr<ImageCacheEntry> imageCache;
 };
 
@@ -351,12 +335,12 @@ void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y
     }
 }
 
-std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
+std::list<std::string> PicturesEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
     std::string file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
     if (!file.empty()) {
-        res.push_back(FileUtils::FixFile("", file));
+        res.push_back(ResolveFileReference(ctx, file));
     }
     return res;
 }
@@ -459,29 +443,36 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             buffer.needToInit = false;
             scale_image = true;
 
-            // `FileExists(NewPictureName)` is tested on the raw stored
-            // path — desktop-saved sequences store absolute paths that
-            // don't resolve on iPad (or any machine other than the one
-            // they were saved on). Resolve through FixFile first so the
-            // existence check uses the actual target path the loader
-            // will use; otherwise this guard short-circuits to red and
-            // `GetImage` never gets a chance to run its own FixFile.
-            std::string resolvedName = FileUtils::FixFile("", NewPictureName);
-            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName) &&
-                !FileExists(resolvedName, false)) {
-                noImageFile = true;
-                spdlog::warn("No image for: {}", resolvedName);
+            // Existence is checked on the FixFile-resolved path, not the raw
+            // stored one — desktop-saved sequences store absolute paths that
+            // don't resolve on iPad (or any machine other than the one they
+            // were saved on), and without resolving first this guard
+            // short-circuits to red and `GetImage` never gets a chance to run
+            // its own FixFile.
+            //
+            // IsImageMissing resolves only when the media cache knows neither a
+            // hit nor a miss for the path: FixFile probes the filesystem, which
+            // on macOS reaches isUbiquitousItemAtURL — an iCloud FileProvider
+            // IPC round-trip costing milliseconds. This is the per-frame render
+            // path, and frame-parallel windows hand each clone a fresh cache, so
+            // an unconditional resolve turned a picture-heavy sequence into
+            // 25.6s of filesystem probing inside a 7.5s render.
+            const bool missing = buffer.GetSequenceMedia()->IsImageMissing(NewPictureName);
+            cache->PictureName = NewPictureName;
+            cache->missingImage = missing;
+            if (missing) {
+                cache->imageCache = nullptr;
             } else {
-                cache->PictureName = NewPictureName;
                 cache->imageCache = buffer.GetSequenceMedia()->GetImage(NewPictureName);
                 if (!cache->imageCache) {
-                    noImageFile = true;
+                    cache->missingImage = true;
                 } else {
                     cache->imageCache->MarkIsUsed();
                     cache->imageCount = cache->imageCache->GetImageCount();
                 }
             }
         }
+        noImageFile = cache->missingImage;
         if (!noImageFile && !cache->imageCache->IsOk()) {
             noImageFile = true;
         }
@@ -554,6 +545,24 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         } else {
             image = cache->imageCache->GetFrame(cache->frame, suppressGIFBackground);
         }
+    }
+
+    // XLDBG_PICSUM=<model> (or =1 for all): checksum the exact image pixels this
+    // render consumes, so two runs can be diffed to answer "did the decoded or
+    // rescaled image itself differ" independently of everything downstream.
+    static const char* picSumEnv = getenv("XLDBG_PICSUM");
+    if (picSumEnv != nullptr && image != nullptr && image->IsOk() &&
+        ((picSumEnv[0] == '1' && picSumEnv[1] == '\0') || buffer.GetModelName().rfind(picSumEnv, 0) == 0)) {
+        const uint8_t* d = image->GetData();
+        size_t n = (size_t)image->GetWidth() * image->GetHeight() * 4;
+        uint64_t h = 1469598103934665603ULL;
+        for (size_t i = 0; i < n; i++) {
+            h ^= d[i];
+            h *= 1099511628211ULL;
+        }
+        fprintf(stderr, "PICSUM f=%d m=%s fr=%d img=%dx%d h=%016llx\n", buffer.curPeriod,
+                buffer.GetModelName().c_str(), cache->frame, image->GetWidth(), image->GetHeight(),
+                (unsigned long long)h);
     }
 
     int waveX = 0;
@@ -631,6 +640,88 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     int calc_position_wi = (imgwidth + BufferWi) * position;
     int calc_position_ht = (imght + BufferHt) * position;
 
+    // Most directions map the image by a pure translation (tx = x + A) with a
+    // possibly-flipped y (ty = B - y or y + B).  For those, iterate only the
+    // image pixels that can land inside the buffer - everything outside was
+    // bounds-rejected by SetPixel anyway (with "No Scaling" a photo can be
+    // orders of magnitude larger than the buffer) - and walk rows linearly
+    // with the per-pixel switch and accessor index math hoisted.  The final
+    // SetPixel call and per-pixel transparency logic are identical to the
+    // general loop below, so the output bytes are identical.
+    bool linearMap = true, yFlip = true;
+    int mapA = 0, mapB = 0;
+    switch (dir) {
+    case RENDER_PICTURE_LEFT:
+        mapA = xoffset_adj + BufferWi - calc_position_wi; mapB = yoffset - yoffset_adj - 1; break;
+    case RENDER_PICTURE_RIGHT:
+        mapA = xoffset_adj + calc_position_wi - imgwidth; mapB = yoffset - yoffset_adj - 1; break;
+    case RENDER_PICTURE_UP:
+    case RENDER_PICTURE_UPONCE:
+        mapA = xoffset_adj - xoffset; mapB = calc_position_ht - yoffset_adj; break;
+    case RENDER_PICTURE_DOWN:
+    case RENDER_PICTURE_DOWNONCE:
+        mapA = xoffset_adj - xoffset; mapB = BufferHt + imght - yoffset_adj - calc_position_ht; break;
+    case RENDER_PICTURE_UPLEFT:
+        mapA = xoffset_adj + BufferWi - calc_position_wi; mapB = calc_position_ht - yoffset_adj; break;
+    case RENDER_PICTURE_DOWNLEFT:
+        mapA = xoffset_adj + BufferWi - calc_position_wi; mapB = BufferHt + imght - yoffset_adj - calc_position_ht; break;
+    case RENDER_PICTURE_UPRIGHT:
+        mapA = xoffset_adj + calc_position_wi - imgwidth; mapB = calc_position_ht - yoffset_adj; break;
+    case RENDER_PICTURE_DOWNRIGHT:
+        mapA = xoffset_adj + calc_position_wi - imgwidth; mapB = BufferHt + imght - yoffset_adj - calc_position_ht; break;
+    case RENDER_PICTURE_PEEKABOO_0:
+        mapA = xoffset_adj - xoffset; mapB = BufferHt + yoffset - yoffset_adj - 1; break;
+    case RENDER_PICTURE_PEEKABOO_180:
+        mapA = xoffset_adj - xoffset; mapB = -yoffset - yoffset_adj; yFlip = false; break;
+    case RENDER_PICTURE_ZOOMIN:
+    case RENDER_PICTURE_PEEKABOO_90:
+    case RENDER_PICTURE_PEEKABOO_270:
+    case RENDER_PICTURE_FLAGWAVE:
+    case RENDER_PICTURE_TILE_LEFT:
+    case RENDER_PICTURE_TILE_RIGHT:
+    case RENDER_PICTURE_TILE_DOWN:
+    case RENDER_PICTURE_TILE_UP:
+        linearMap = false;
+        break;
+    default: // NONE / WIGGLE / resolved VECTOR - centered
+        mapA = xoffset_adj - xoffset; mapB = yoffset + yoffset_adj - 1; break;
+    }
+
+    if (linearMap) {
+        int y0 = yFlip ? std::max(0, mapB - (BufferHt - 1)) : std::max(0, -mapB);
+        int y1 = yFlip ? std::min(imght - 1, mapB) : std::min(imght - 1, BufferHt - 1 - mapB);
+        // x never wraps unless wrap_x; y never wraps (ProcessPixel wraps x only).
+        int x0 = 0, x1 = imgwidth - 1;
+        if (!wrap_x) {
+            x0 = std::max(0, -mapA);
+            x1 = std::min(imgwidth - 1, BufferWi - 1 - mapA);
+        }
+        const uint8_t* data = img.GetData();
+        for (int y = y0; y <= y1; ++y) {
+            const uint8_t* row = data + (size_t)y * imgwidth * 4;
+            const int ty = yFlip ? (mapB - y) : (y + mapB);
+            for (int x = x0; x <= x1; ++x) {
+                const uint8_t* p = row + (size_t)x * 4;
+                const unsigned char alpha = hasAlpha ? p[3] : 255;
+                if (hasAlpha && alpha <= 1) continue; // img.IsTransparent(x, y, 1)
+                c.Set(p[0], p[1], p[2], alpha);
+                if (!buffer.allowAlpha && alpha < 64) {
+                    c = xlBLACK;
+                }
+                if (transparentBlack) {
+                    int level = c.Red() + c.Green() + c.Blue();
+                    if (level <= transparentBlackLevel) continue;
+                }
+                int tx = x + mapA;
+                if (wrap_x) {
+                    tx %= BufferWi;
+                    if (tx < 0) tx += BufferWi;
+                }
+                buffer.SetPixel(tx, ty, c);
+            }
+        }
+        // fall through to the shimmer pass below
+    } else
     for (int x = 0; x < imgwidth; x++) {
         for (int y = 0; y < imght; y++) {
             if (!hasAlpha || !img.IsTransparent(x, y, 1)) {
@@ -774,7 +865,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         xlColor color;
         for (int x = 0; x < BufferWi; x++) {
             for (int y = 0; y < BufferHt; y++) {
-                if (rand01() > 0.5) {
+                if (buffer.rand01() > 0.5) {
                     buffer.GetPixel(x, y, color);
                     if (color != xlBLACK) {
                         buffer.ProcessPixel(x, y, c, false);

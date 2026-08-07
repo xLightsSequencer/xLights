@@ -188,30 +188,90 @@ struct AIImageGenerationSheet: View {
         refreshStyleProperties()
     }
 
-    /// AI-1 — pull the current generator's tunable properties (only Choice
-    /// properties are rendered, e.g. the style preset).
+    /// AI-1 — pull the current generator's tunable properties.
     private func refreshStyleProperties() {
         styleProperties = session?.imageProperties() ?? []
     }
 
+    /// Desktop embeds the generator's whole property set in a
+    /// `wxPropertyGrid` (`AIImageDialog.cpp:326-345`), so every
+    /// ServiceProperty kind is editable there. Rendering only Choice
+    /// hid any non-Choice property — most visibly OpenAI's Model, which
+    /// is String-kind whenever the server model list is unavailable
+    /// (`OpenAIImageGenerator.cpp:34-44`) and was then unreachable.
+    /// Category entries stay out: they're the grid's section headers,
+    /// and this section already has one.
     @ViewBuilder
     private var styleSection: some View {
-        let choices = styleProperties.filter { $0.kind == .choice && !$0.choices.isEmpty }
-        if !choices.isEmpty {
+        let editable = styleProperties.filter { prop in
+            switch prop.kind {
+            case .category: return false
+            case .choice:   return !prop.choices.isEmpty
+            default:        return true
+            }
+        }
+        if !editable.isEmpty {
             Section("Style") {
-                ForEach(choices, id: \.propertyId) { prop in
-                    Picker(prop.label.isEmpty ? "Style" : prop.label,
-                           selection: Binding(
-                            get: { prop.stringValue },
-                            set: { newValue in
-                                session?.setStringProperty(prop.propertyId, value: newValue)
-                                refreshStyleProperties()
-                            })) {
-                        ForEach(prop.choices, id: \.self) { choice in
-                            Text(choice).tag(choice)
-                        }
-                    }
+                ForEach(editable, id: \.propertyId) { prop in
+                    styleRow(for: prop)
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func styleRow(for prop: XLAIServiceProperty) -> some View {
+        let label = prop.label.isEmpty ? "Style" : prop.label
+        switch prop.kind {
+        case .choice:
+            Picker(label, selection: Binding(
+                get: { prop.stringValue },
+                set: { newValue in
+                    session?.setStringProperty(prop.propertyId, value: newValue)
+                    refreshStyleProperties()
+                })) {
+                ForEach(prop.choices, id: \.self) { choice in
+                    Text(choice).tag(choice)
+                }
+            }
+
+        case .bool:
+            Toggle(label, isOn: Binding(
+                get: { prop.boolValue },
+                set: { newValue in
+                    session?.setBoolProperty(prop.propertyId, value: newValue)
+                    refreshStyleProperties()
+                }))
+
+        case .int:
+            HStack {
+                Text(label)
+                Spacer()
+                TextField(label, value: Binding(
+                    get: { prop.intValue },
+                    set: { session?.setIntProperty(prop.propertyId, value: $0) }),
+                          format: .number)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(minWidth: 80)
+            }
+
+        case .secret:
+            SecureField(label, text: Binding(
+                get: { prop.stringValue },
+                set: { session?.setStringProperty(prop.propertyId, value: $0) }))
+
+        default:
+            // String, plus any kind added later — free text.
+            HStack {
+                Text(label)
+                Spacer()
+                TextField(label, text: Binding(
+                    get: { prop.stringValue },
+                    set: { session?.setStringProperty(prop.propertyId, value: $0) }))
+                    .multilineTextAlignment(.trailing)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
             }
         }
     }
@@ -270,8 +330,13 @@ struct AIImageGenerationSheet: View {
             return
         }
 
-        let ts = Int(Date().timeIntervalSince1970 * 1000)
+        let ts = Int(Date().timeIntervalSince1970)
         let fileName = "ai_generated_\(ts).png"
+        // Desktop keys the embedded entry "AIImages/ai_generated_<ticks>.png"
+        // (PicturesPanel.cpp:290-293) and hands that same string to the
+        // effect, so the reference resolves out of the sequence rather
+        // than off disk. Use the identical shape here.
+        let embedName = "AIImages/\(fileName)"
 
         let tmpDir = FileManager.default.temporaryDirectory
         let tmpURL = tmpDir.appendingPathComponent(fileName)
@@ -281,17 +346,24 @@ struct AIImageGenerationSheet: View {
             status = .error("Couldn't stage image to disk: \(error.localizedDescription)")
             return
         }
+        defer { try? FileManager.default.removeItem(at: tmpURL) }
+
+        // Embed so the image travels inside the .xsq — a sequence taken
+        // off the iPad keeps its generated images. Falling back to a
+        // loose file in the show folder keeps the old behaviour if the
+        // embed can't be made (no sequence open, unreadable bytes).
+        if doc.embedImage(fromFile: tmpURL.path, asName: embedName) {
+            onCommitPath(embedName)
+            dismiss()
+            return
+        }
 
         guard let copied = doc.moveFile(toShowFolder: tmpURL.path,
                                          subdirectory: "AIImages") else {
-            status = .error("Couldn't copy image into the show folder.")
-            try? FileManager.default.removeItem(at: tmpURL)
+            status = .error("Couldn't save the generated image.")
             return
         }
-        try? FileManager.default.removeItem(at: tmpURL)
-
-        let stored = doc.makeRelativePath(copied)
-        onCommitPath(stored)
+        onCommitPath(doc.makeRelativePath(copied))
         dismiss()
     }
 

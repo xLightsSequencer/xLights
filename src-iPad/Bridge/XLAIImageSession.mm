@@ -118,4 +118,16 @@
                             std::string([value UTF8String] ?: ""));
 }
 
+- (void)setBoolProperty:(NSString*)propertyId value:(BOOL)value {
+    if (!_generator || propertyId.length == 0) return;
+    _generator->SetProperty(std::string([propertyId UTF8String] ?: ""),
+                            value ? true : false);
+}
+
+- (void)setIntProperty:(NSString*)propertyId value:(NSInteger)value {
+    if (!_generator || propertyId.length == 0) return;
+    _generator->SetProperty(std::string([propertyId UTF8String] ?: ""),
+                            (int)value);
+}
+
 @end

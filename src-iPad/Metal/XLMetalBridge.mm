@@ -18,6 +18,8 @@
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
 #include "models/SubModelSymmetrize.h"
+#include "models/SubModelOps.h"
+#include "models/ControllerObject.h"
 #include "models/TerrainObject.h"
 #include "models/TerrainScreenLocation.h"
 #include "XmlSerializer/XmlSerializer.h"
@@ -73,6 +75,7 @@
     BOOL _showFirstPixel;        // J-2 — `highlightFirst` arg to DisplayModelOnWindow
     std::string _forcedGdtfMode; // GDTF mode picker: forces ChooseFromList during import
     BOOL _showViewObjects;       // House Preview view-object visibility toggle
+    BOOL _controllersTabActive;  // Controllers sidebar tab is the active one
     std::string _selectedModelName;  // J-2 — Layout Editor selection ring (primary)
     std::set<std::string> _extraSelectedModels;  // J-4 — multi-select secondary set
     std::string _selectedGroupName;        // J-6 — sidebar group sync (members tinted)
@@ -106,6 +109,10 @@
     glm::vec3 _bodyDrag3DPlaneNormal;
     ModelScreenLocation::MSLPLANE _bodyDrag3DPlane;
     std::string _bodyDrag3DModelName;
+    // Model Sets: peers latched at drag start with their own start
+    // centres, so each frame can place them at (start + primary delta)
+    // rather than accumulating per-frame error.
+    std::vector<std::pair<std::string, glm::vec3>> _bodyDrag3DSetPeers;
     // J-2 UX — pinch-on-model = uniform scale.
     BOOL _pinchScaleActive;
     glm::vec3 _pinchScaleSavedScale;
@@ -161,6 +168,7 @@
         _isModelPreview = [name isEqualToString:@"ModelPreview"];
         _isLayoutEditor = [name isEqualToString:@"LayoutEditor"];
         _showViewObjects = YES;
+        _controllersTabActive = NO;
         _bgTexture = nullptr;
         _bgImageWidth = 0;
         _bgImageHeight = 0;
@@ -299,6 +307,34 @@ static std::unique_ptr<xlImage> LoadImageFile(const std::string& path, int& outW
     } else {
         _selectedControllerName = name.UTF8String;
     }
+}
+
+- (void)setControllersTabActive:(BOOL)active {
+    _controllersTabActive = active;
+}
+
+// Mirrors ModelPreview::ShouldDrawViewObject on desktop. The visibility policy
+// itself is shared (ControllerObject::ShouldDraw in src-core) - only the
+// mapping from "which canvas am I" to a context lives here.
+- (BOOL)shouldDrawViewObject:(ViewObject*)vo context:(iPadRenderContext*)rctx {
+    ControllerObject* co = dynamic_cast<ControllerObject*>(vo);
+    if (co == nullptr) {
+        return YES;
+    }
+    ControllerObjectContext ctx = ControllerObjectContext::None;
+    if (_isLayoutEditor) {
+        ctx = _controllersTabActive ? ControllerObjectContext::LayoutEditorControllerTab
+                                    : ControllerObjectContext::LayoutEditor;
+    }
+    if (!co->ShouldDrawIn(ctx)) {
+        return NO;
+    }
+    // Orphan - the bound controller is gone. Retained on disk (a base show
+    // merge may bring the controller back) but not drawn.
+    if (rctx == nullptr) {
+        return NO;
+    }
+    return rctx->GetOutputManager().GetController(co->GetControllerName()) != nullptr;
 }
 
 - (void)setSelectedViewObject:(NSString*)name {
@@ -491,6 +527,56 @@ static iPadRenderContext* ContextFromDoc(XLSequenceDocument* doc) {
     if (!doc) return nullptr;
     return static_cast<iPadRenderContext*>([doc renderContext]);
 }
+
+// Model Sets (desktop #3703) — dragging any member translates every
+// member by the same delta.
+namespace {
+
+/// The other members of `modelName`'s Set. Empty when it's in no Set.
+/// `outFrozen` is set when *any* member is locked: desktop freezes the
+/// whole Set in that case rather than letting it deform
+/// (`LayoutPanel.cpp` `ModelSetHasLockedMember`), so the drag is
+/// refused outright.
+std::vector<Model*> ModelSetPeers(iPadRenderContext* rctx,
+                                   const std::string& modelName,
+                                   bool& outFrozen) {
+    outFrozen = false;
+    std::vector<Model*> peers;
+    if (!rctx || !rctx->HasModelManager()) return peers;
+    auto& mgr = rctx->GetModelManager();
+    ModelSet* s = mgr.GetSetManager().GetSetContaining(modelName);
+    if (!s) return peers;
+    for (const auto& n : s->GetMembers()) {
+        Model* m = mgr[n];
+        if (!m) continue;
+        if (m->IsLocked()) {
+            outFrozen = true;
+            return {};
+        }
+        if (n != modelName) peers.push_back(m);
+    }
+    return peers;
+}
+
+/// Apply an already-computed world delta to the Set peers. The delta is
+/// taken from what the *primary* model actually ended up moving, so grid
+/// snapping and axis locks carry across the Set rigidly instead of each
+/// member snapping independently and pulling the arrangement apart.
+void TranslateModelSetPeers(iPadRenderContext* rctx,
+                             const std::vector<Model*>& peers,
+                             float dh, float dv, float dd) {
+    for (Model* p : peers) {
+        auto& ploc = p->GetModelScreenLocation();
+        ploc.SetHcenterPos(ploc.GetHcenterPos() + dh);
+        ploc.SetVcenterPos(ploc.GetVcenterPos() + dv);
+        if (dd != 0.0f) {
+            ploc.SetDcenterPos(ploc.GetDcenterPos() + dd);
+        }
+        rctx->MarkLayoutModelDirty(p->GetName());
+    }
+}
+
+} // namespace
 
 - (NSArray<NSString*>*)viewpointNamesForDocument:(XLSequenceDocument*)doc {
     NSMutableArray<NSString*>* out = [NSMutableArray array];
@@ -1169,7 +1255,8 @@ namespace {
 // Translate `model` so the named edge / centre matches `target`.
 // Returns true if the move actually shifted anything (so the
 // caller can avoid marking pristine models dirty).
-bool ApplyAlign(Model* model, const std::string& edge, float target) {
+bool ApplyAlign(Model* model, const std::string& edge, float target,
+                 float* outDH = nullptr, float* outDV = nullptr, float* outDD = nullptr) {
     auto& loc = model->GetModelScreenLocation();
     if (loc.IsLocked()) return false;
     if (model->IsFromBase()) return false;
@@ -1191,6 +1278,9 @@ bool ApplyAlign(Model* model, const std::string& edge, float target) {
     if (isH) loc.SetHcenterPos(loc.GetHcenterPos() + delta);
     if (isV) loc.SetVcenterPos(loc.GetVcenterPos() + delta);
     if (isD) loc.SetDcenterPos(loc.GetDcenterPos() + delta);
+    if (outDH) *outDH = isH ? delta : 0.0f;
+    if (outDV) *outDV = isV ? delta : 0.0f;
+    if (outDD) *outDD = isD ? delta : 0.0f;
     return true;
 }
 
@@ -1236,15 +1326,38 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     }
     rctx->AbortRender(5000);
     BOOL anyMoved = NO;
+    // Model Sets: the first aligned member of a Set drags the whole Set by
+    // its own delta and later members are skipped, so aligning a
+    // selection that spans a Set moves the arrangement instead of
+    // flattening it (desktop `LayoutPanel::AlignSetAware`). A Set with a
+    // locked member is frozen and contributes nothing.
+    std::set<std::string> doneSets;
     for (NSString* n in names) {
         if (n.length == 0) continue;
         const std::string nm = n.UTF8String;
         if (!isGround && nm == leaderStd) continue;
         Model* m = rctx->GetModelManager()[nm];
         if (!m) continue;
-        if (ApplyAlign(m, edgeStr, target)) {
+
+        bool setFrozen = false;
+        std::vector<Model*> peers = ModelSetPeers(rctx, nm, setFrozen);
+        if (setFrozen) continue;
+        std::string setName;
+        if (!peers.empty()) {
+            if (auto* ms = rctx->GetModelManager().GetSetManager().GetSetContaining(nm)) {
+                setName = ms->GetName();
+            }
+            if (doneSets.count(setName) != 0) continue;
+        }
+
+        float dh = 0.0f, dv = 0.0f, dd = 0.0f;
+        if (ApplyAlign(m, edgeStr, target, &dh, &dv, &dd)) {
             rctx->MarkLayoutModelDirty(nm);
             anyMoved = YES;
+            if (!peers.empty()) {
+                doneSets.insert(setName);
+                TranslateModelSetPeers(rctx, peers, dh, dv, dd);
+            }
         }
     }
     return anyMoved;
@@ -1265,9 +1378,15 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     else return NO;
 
     // Collect editable models with their centre on the chosen axis.
-    struct Entry { Model* m; std::string name; float pos; };
+    // Model Sets: a Set contributes a single entry (its first-seen
+    // member) and translates rigidly, so distributing across a selection
+    // that spans a Set spaces the Set as one prop rather than tearing its
+    // members apart. A Set holding a locked model is frozen and is left
+    // out of the spacing entirely.
+    struct Entry { Model* m; std::string name; float pos; std::vector<Model*> peers; };
     std::vector<Entry> entries;
     entries.reserve(names.count);
+    std::set<std::string> seenSets;
     for (NSString* n in names) {
         if (n.length == 0) continue;
         const std::string nm = n.UTF8String;
@@ -1275,13 +1394,25 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         if (!m) continue;
         auto& loc = m->GetModelScreenLocation();
         if (loc.IsLocked() || m->IsFromBase()) continue;
+
+        bool setFrozen = false;
+        std::vector<Model*> peers = ModelSetPeers(rctx, nm, setFrozen);
+        if (setFrozen) continue;
+        if (!peers.empty()) {
+            std::string setName;
+            if (auto* ms = rctx->GetModelManager().GetSetManager().GetSetContaining(nm)) {
+                setName = ms->GetName();
+            }
+            if (!seenSets.insert(setName).second) continue;
+        }
+
         float pos = 0.0f;
         switch (which) {
             case A::H: pos = loc.GetHcenterPos(); break;
             case A::V: pos = loc.GetVcenterPos(); break;
             case A::D: pos = loc.GetDcenterPos(); break;
         }
-        entries.push_back({m, nm, pos});
+        entries.push_back({m, nm, pos, std::move(peers)});
     }
     if (entries.size() < 3) return NO;
     std::sort(entries.begin(), entries.end(),
@@ -1302,6 +1433,10 @@ float ReadAlignReference(Model* model, const std::string& edge) {
             case A::D: loc.SetDcenterPos(loc.GetDcenterPos() + delta); break;
         }
         rctx->MarkLayoutModelDirty(entries[i].name);
+        TranslateModelSetPeers(rctx, entries[i].peers,
+                                which == A::H ? delta : 0.0f,
+                                which == A::V ? delta : 0.0f,
+                                which == A::D ? delta : 0.0f);
         anyMoved = YES;
     }
     return anyMoved;
@@ -1438,6 +1573,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
           keepStartChannel:(BOOL)keepStartChannel
              keepSubmodels:(BOOL)keepSubmodels
           keepSizePosition:(BOOL)keepSizePosition
+                 groupMode:(NSInteger)groupMode
                forDocument:(XLSequenceDocument*)doc {
     if (!doc || targets.count == 0 || source.length == 0) return 0;
     iPadRenderContext* rctx = ContextFromDoc(doc);
@@ -1458,6 +1594,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 
     NSInteger replaced = 0;
     int counter = 0;
+    std::vector<std::string> replacedNames; // for group reconciliation below
     for (NSString* t in targets) {
         if (t.length == 0) continue;
         const std::string targetName = t.UTF8String;
@@ -1528,9 +1665,15 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         }
 
         rctx->MarkLayoutModelDirty(targetName);
+        replacedNames.push_back(targetName);
         ++replaced;
         ++counter;
     }
+
+    // Reconcile group memberships against the source, per the sheet's Model
+    // Groups choice. Same shared core helper the desktop Replace dialog uses.
+    mgr.ReconcileReplacedModelGroups(sourceName, replacedNames, static_cast<ReplaceGroupMode>(groupMode));
+
     return replaced;
 }
 
@@ -1793,6 +1936,20 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return NO;
 }
 
+// Which view objects a canvas tap may pick on the active tab. Mirrors
+// LayoutPanel::IsObjectEditable on desktop: each tab owns a disjoint subset of
+// ViewObjectManager, so the Controllers tab can't grab a Terrain / House mesh
+// and the Objects tab can't grab a controller box it doesn't even list.
+- (BOOL)isViewObjectPickable:(ViewObject*)vo context:(iPadRenderContext*)rctx {
+    ControllerObject* co = dynamic_cast<ControllerObject*>(vo);
+    if (_controllersTabActive) {
+        // Only controller boxes, and only ones actually drawn - an invisible or
+        // orphaned box must not be pickable.
+        return co != nullptr && [self shouldDrawViewObject:vo context:rctx];
+    }
+    return co == nullptr;
+}
+
 // J-13 — view-object hit-test. Mirrors `pickModelAtScreenPoint`
 // but searches `ViewObjectManager`. Returns the topmost hit
 // (last-drawn = visually on top).
@@ -1815,6 +1972,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         for (auto it = vm.begin(); it != vm.end(); ++it) {
             ViewObject* vo = it->second;
             if (!vo) continue;
+            if (![self isViewObjectPickable:vo context:rctx]) continue;
             float dist = 0.0f;
             if (vo->GetObjectScreenLocation().HitTest3D(
                     ray_origin, ray_direction, dist) && dist < bestDist) {
@@ -1835,6 +1993,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     for (auto it = vm.begin(); it != vm.end(); ++it) {
         ViewObject* vo = it->second;
         if (!vo) continue;
+        if (![self isViewObjectPickable:vo context:rctx]) continue;
         auto& loc = vo->GetObjectScreenLocation();
         float cx = loc.GetHcenterPos();
         float cy = loc.GetVcenterPos();
@@ -2130,10 +2289,17 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     if (!rctx) return NO;
     if (_preview->Is3D()) return NO;
 
-    Model* m = rctx->GetModelManager()[std::string([name UTF8String])];
+    const std::string modelName([name UTF8String]);
+    Model* m = rctx->GetModelManager()[modelName];
     if (!m) return NO;
     auto& loc = m->GetModelScreenLocation();
     if (loc.IsLocked()) return NO;
+
+    // Model Sets: refuse the drag outright when the Set is frozen by a
+    // locked member, otherwise collect the peers to carry along.
+    bool setFrozen = false;
+    std::vector<Model*> setPeers = ModelSetPeers(rctx, modelName, setFrozen);
+    if (setFrozen) return NO;
 
     rctx->AbortRender(5000);
     int canvasW = _canvas->getWidth();
@@ -2179,9 +2345,13 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         newV = std::round(newV / spacing) * spacing;
     }
 
+    const float appliedDH = newH - loc.GetHcenterPos();
+    const float appliedDV = newV - loc.GetVcenterPos();
+
     m->SetHcenterPos(newH);
     m->SetVcenterPos(newV);
-    rctx->MarkLayoutModelDirty(std::string([name UTF8String]));
+    rctx->MarkLayoutModelDirty(modelName);
+    TranslateModelSetPeers(rctx, setPeers, appliedDH, appliedDV, 0.0f);
     return YES;
 }
 
@@ -2233,6 +2403,19 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         // a delta. Fall back to camera orbit by reporting failure.
         return NO;
     }
+    // Model Sets: a Set frozen by a locked member refuses the drag, the
+    // same as desktop.
+    bool setFrozen = false;
+    auto peers = ModelSetPeers(rctx, std::string(name.UTF8String), setFrozen);
+    if (setFrozen) return NO;
+    _bodyDrag3DSetPeers.clear();
+    for (Model* p : peers) {
+        auto& ploc = p->GetModelScreenLocation();
+        _bodyDrag3DSetPeers.emplace_back(
+            p->GetName(),
+            glm::vec3(ploc.GetHcenterPos(), ploc.GetVcenterPos(), ploc.GetDcenterPos()));
+    }
+
     _bodyDrag3DActive       = YES;
     _bodyDrag3DSavedCenter  = center;
     _bodyDrag3DAnchor       = hit;
@@ -2315,6 +2498,19 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         rctx->MarkLayoutViewObjectDirty(_bodyDrag3DModelName);
     } else {
         rctx->MarkLayoutModelDirty(_bodyDrag3DModelName);
+        // Place each Set peer at its own start centre plus the delta the
+        // primary actually took (post snap / axis lock), so the Set keeps
+        // its shape.
+        const glm::vec3 applied = newCenter - _bodyDrag3DSavedCenter;
+        for (const auto& [peerName, peerStart] : _bodyDrag3DSetPeers) {
+            Model* p = rctx->GetModelManager()[peerName];
+            if (!p) continue;
+            auto& ploc = p->GetModelScreenLocation();
+            ploc.SetHcenterPos(peerStart.x + applied.x);
+            ploc.SetVcenterPos(peerStart.y + applied.y);
+            ploc.SetDcenterPos(peerStart.z + applied.z);
+            rctx->MarkLayoutModelDirty(peerName);
+        }
     }
     return YES;
 }
@@ -2323,6 +2519,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     _bodyDrag3DActive = NO;
     _bodyDrag3DModelName.clear();
     _bodyDrag3DTargetIsVO = NO;
+    _bodyDrag3DSetPeers.clear();
 }
 
 - (BOOL)setHoveredHandleAtScreenPoint:(CGPoint)point
@@ -3553,6 +3750,7 @@ public:
             for (auto it = allObjects.begin(); it != allObjects.end(); ++it) {
                 ViewObject* vo = it->second;
                 if (!vo) continue;
+                if (![self shouldDrawViewObject:vo context:ctx]) continue;
                 // J-6 (sidebar canvas sync) — when the Objects tab
                 // has a pick, render that object with
                 // `allowSelected=true` so its ScreenLocation
@@ -3940,6 +4138,50 @@ public:
     NSMutableArray<NSString*>* out = [NSMutableArray arrayWithCapacity:res.strands.size()];
     for (const auto& s : res.strands) {
         [out addObject:[NSString stringWithUTF8String:s.c_str()]];
+    }
+    return out;
+}
+
+- (nullable NSArray<NSString*>*)orderPointsInRanges:(NSArray<NSString*>*)ranges
+                                            onModel:(NSString*)modelName
+                                             choice:(NSString*)choice
+                                           firstRow:(NSInteger)firstRow
+                                            lastRow:(NSInteger)lastRow
+                                        forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !modelName || !choice || !ranges) return nil;
+
+    submodel_ops::OrderPointsOptions opts;
+    if (!submodel_ops::ParseOrderPointsChoice(std::string(choice.UTF8String), opts)) return nil;
+
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return nil;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return nil;
+
+    std::map<int, std::pair<float, float>> coords;
+    if (!m->GetScreenLocations(_preview.get(), coords) || coords.empty()) return nil;
+
+    std::vector<std::string> strands;
+    strands.reserve(ranges.count);
+    for (NSString* r in ranges) {
+        if ([r isKindOfClass:[NSString class]]) {
+            strands.emplace_back(r.UTF8String);
+        }
+    }
+
+    submodel_ops::OrderPoints(strands, coords, opts, (int)firstRow, (int)lastRow);
+
+    NSMutableArray<NSString*>* out = [NSMutableArray arrayWithCapacity:strands.size()];
+    for (const auto& s : strands) {
+        [out addObject:[NSString stringWithUTF8String:s.c_str()]];
+    }
+    return out;
+}
+
+- (NSArray<NSString*>*)submodelOrderPointsChoices {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    for (const auto& c : submodel_ops::OrderPointsChoices()) {
+        [out addObject:[NSString stringWithUTF8String:c.c_str()]];
     }
     return out;
 }

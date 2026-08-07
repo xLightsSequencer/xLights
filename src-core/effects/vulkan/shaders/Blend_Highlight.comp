@@ -1,0 +1,26 @@
+#version 450
+// Port of HighlightFunction in LayerBlendingFunctions.metal.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    uvec4 fg = unpackPx(src[index]);
+    bool chromaKeyed = (data.isChromaKey != 0u) && applyChroma(fg);
+    if (!chromaKeyed) {
+        uvec4 bg = unpackPx(result[index]);
+        bool effect1HasColor = (fg.r > 0u || fg.g > 0u || fg.b > 0u);
+        bool effect2HasColor = (bg.r > 0u || bg.g > 0u || bg.b > 0u);
+        vec3 hsv1 = toHSV(bg);
+        if (effect1HasColor && (effect2HasColor || hsv1.z > data.effectMixThreshold)) {
+            result[index] = packPx(fg);
+        }
+    }
+}

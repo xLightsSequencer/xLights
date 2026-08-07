@@ -10,11 +10,13 @@
 
 #include "render/SequenceViewManager.h"
 
+#include <algorithm>
 #include <cassert>
 
 #include "models/ModelManager.h"
 #include "models/Model.h"
 #include "UtilFunctions.h"
+#include "utils/string_utils.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
 
 #include <log.h>
@@ -166,10 +168,13 @@ void SequenceView::Save(BaseSerializingVisitor& visitor) const
 
 void SequenceView::RenameModel(const std::string& oldname, const std::string& newname)
 {
-	if (ContainsModel(oldname))
+	for (auto& name : _modelNames)
 	{
-		RemoveModel(oldname);
-		AddModel(newname);
+		if (name == oldname)
+		{
+			name = newname;
+			return;
+		}
 	}
 }
 
@@ -216,9 +221,55 @@ void SequenceViewManager::Load(pugi::xml_node node, int selectedView)
 		_views.push_back(new SequenceView(view, _modelManager));
 	}
 
+	SanitizeViewNames();
+
 	if (GetView(_selectedView) == nullptr)
 	{
 		_selectedView = 0;
+	}
+}
+
+bool SequenceViewManager::IsValidViewName(const std::string& name)
+{
+	return std::all_of(name.begin(), name.end(), [](unsigned char c) {
+		return std::isalnum(c) || c == ' ' || c == '_' || c == '-';
+	});
+}
+
+void SequenceViewManager::SanitizeViewNames()
+{
+	// A view name ends up comma-joined with other view names elsewhere (e.g. a
+	// timing track's per-view membership CSV), so a comma embedded in the view
+	// name itself breaks that parsing -- the timing can never be recognised as
+	// belonging to the view. Names typed through the UI have been rejected if
+	// they contain a comma since "Add View Name Validation" (#6312), but a
+	// file saved before that fix, or edited outside xLights, can still have
+	// one. Strip it here on load so membership works, same as if the user had
+	// manually renamed the view (see issue #6830).
+	for (auto* view : _views)
+	{
+		std::string name = view->GetName();
+		if (name.find(',') == std::string::npos) continue;
+
+		std::string sanitized = name;
+		std::replace(sanitized.begin(), sanitized.end(), ',', ' ');
+		size_t pos;
+		while ((pos = sanitized.find("  ")) != std::string::npos) {
+			sanitized.erase(pos, 1);
+		}
+		sanitized = Trim(sanitized);
+		if (sanitized.empty()) sanitized = "View";
+
+		std::string finalName = sanitized;
+		int suffix = 1;
+		while (GetView(finalName) != nullptr) {
+			finalName = sanitized + " " + std::to_string(++suffix);
+		}
+
+		if (finalName != name) {
+			spdlog::warn("View name '{}' contained a comma, which breaks per-view timing membership; renamed to '{}' on load.", name, finalName);
+			view->SetName(finalName);
+		}
 	}
 }
 

@@ -1,0 +1,49 @@
+#version 450
+// Port of RotoZoomRotateZClaim in RotoZoomFunctions.metal (see
+// RotoZoomRotateXClaim for the two-phase determinism scheme).
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "rotozoom_pc.glsl"
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Owner { int owner[]; };
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+
+    float zoom = data.zoom;
+    float q = data.zoomquality;
+    int cx = data.pivotpointx;
+    int cy = data.pivotpointy;
+    float rotation = data.zrotation;
+
+    float inc = 1.0 / q;
+
+    float angle = XL_PI2 * -rotation;
+    float xoff = (float(cx) * float(data.width)) / 100.0;
+    float yoff = (float(cy) * float(data.height)) / 100.0;
+    float anglecos = cos(-angle);
+    float anglesin = sin(-angle);
+
+    float x = float(index.x);
+    float y = float(index.y);
+
+    for (int i = 0; float(i) < q; i++) {
+        for (int j = 0; float(j) < q; j++) {
+            float xx = x + (float(i) * inc) - xoff;
+            float yy = y + (float(j) * inc) - yoff;
+            int u = int(xl_round(xoff + anglecos * xx * zoom + anglesin * yy * zoom));
+            if (u >= 0 && u < int(data.width)) {
+                int v = int(xl_round(yoff + -anglesin * xx * zoom + anglecos * yy * zoom));
+                if (v >= 0 && v < int(data.height)) {
+                    uint didx = uint(v) * data.width + uint(u);
+                    atomicMax(owner[didx], int(sidx));
+                }
+            }
+        }
+    }
+}

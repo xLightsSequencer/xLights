@@ -40,6 +40,17 @@ jobs:
 
   build-windows:
    runs-on: windows-2022
+   # Tag/dispatch-only workflow, so always enter the `release` environment: the
+   # OIDC token subject (repo:.../environment:release) must match the Entra
+   # federated credential that authorizes Azure Trusted Signing. Signing is then
+   # gated on the WINDOWS_SIGNING_ENABLED repo variable, so releases keep
+   # building (unsigned) until Trusted Signing is configured.
+   environment: release
+   permissions:
+     id-token: write
+     contents: write
+   env:
+     SIGN: ${{ vars.WINDOWS_SIGNING_ENABLED == 'true' }}
 
    steps:
     - name: Checkout xLights
@@ -53,11 +64,21 @@ jobs:
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
-        version: 1.30.0
+        version: 1.31.0
+
+    # glslc (Vulkan SDK Bin) compiles the .comp compute kernels to SPIR-V
+    # headers via the Xlights.vcxproj CompileVulkanShaders pre-build target
+    # (x64).  The action exports VULKAN_SDK so that target's PowerShell script
+    # finds glslc; without it the msbuild step fails at the pre-build event.
+    - name: Install Vulkan SDK
+      uses: jakoch/install-vulkan-sdk-action@v1
+      with:
+        install_runtime: false
+        cache: true
 
     - name: Download wxWidgets
       run:
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2026.04 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2026.13 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
 
     - name: Build wxWidgets
       working-directory: ..\wxWidgets\
@@ -68,9 +89,86 @@ jobs:
       working-directory: build_scripts\msw
       run: call build_VS_x64_skip_libltc.cmd
 
+    # --- Authenticode signing via Azure Trusted Signing (Kulp Lights LLC) ------
+    # Sign our own executables before packaging, then sign the installer after
+    # ISCC (the artifact users download and that SmartScreen/AV evaluate).
+    # Third-party DLLs keep their vendors' signatures. Reuses fppMon's signing
+    # account/profile; runs only when WINDOWS_SIGNING_ENABLED is set.
+    - name: Azure login (OIDC for Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/login@v3
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Sign xLights.exe (Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/artifact-signing-action@v2
+      with:
+        endpoint: https://eus.codesigning.azure.net/
+        signing-account-name: kulplightssigning
+        certificate-profile-name: kulplights-public
+        files-folder: xlights\x64\Release
+        files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+    - name: Sign xlDo.exe (Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/artifact-signing-action@v2
+      with:
+        endpoint: https://eus.codesigning.azure.net/
+        signing-account-name: kulplightssigning
+        certificate-profile-name: kulplights-public
+        files-folder: xlDo\x64\Release
+        files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+    - name: Sign fseq_convert.exe (Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/artifact-signing-action@v2
+      with:
+        endpoint: https://eus.codesigning.azure.net/
+        signing-account-name: kulplightssigning
+        certificate-profile-name: kulplights-public
+        files-folder: fseq_convert\cmake_vs\Release
+        files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
     - name: Build Installer
       working-directory: build_scripts\msw
       run: ISCC.exe xLights_4_64bit_VS.iss
+
+    - name: Sign installer (Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/artifact-signing-action@v2
+      with:
+        endpoint: https://eus.codesigning.azure.net/
+        signing-account-name: kulplightssigning
+        certificate-profile-name: kulplights-public
+        files-folder: build_scripts\msw\output
+        files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+    # --- Microsoft Store package (unsigned; the Store re-signs on ingestion) ----
+    # Built every release and handed to the publish-store job below. Bundles the
+    # already-signed exes. Output to a separate dir and uploaded as a workflow
+    # artifact (NOT a public release asset) - an unsigned Store-identity package
+    # isn't user-installable, so it must not land in the GitHub release.
+    - name: Build Store MSIX
+      shell: pwsh
+      working-directory: build_scripts\msw\msix
+      run: ./BuildMSIX.ps1 -Store -OutDir ..\store-output
+
+    - name: Upload Store MSIX artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: xLights_Store_MSIX
+        path: build_scripts\msw\store-output\xLights-Store-x64.msix
 
     - name: Stage Windows symbol map
       shell: pwsh
@@ -88,6 +186,83 @@ jobs:
            omitBodyDuringUpdate: true
            artifacts: 'build_scripts\msw\output\*'
            token: ${{ secrets.GITHUB_TOKEN }}
+
+  # --- Microsoft Store submission ---------------------------------------------
+  # Uploads the Store MSIX into the app's Partner Center draft submission via the
+  # Microsoft Store Developer CLI. Deliberately its own job rather than a step in
+  # build-windows: publish-release must not depend on it, so a Partner Center
+  # outage or a rejected package can never hold up the GitHub release.
+  #
+  # Gated on the MSSTORE_PUBLISH_ENABLED repo variable - until that is set the
+  # release behaves exactly as it did before. The one-time setup is an Entra ID
+  # app registration holding the Manager role on the Partner Center account
+  # (Account settings > User management > Microsoft Entra applications); the app
+  # itself is already live in the Store, which is what the submission API needs.
+  #
+  # By default the draft is left uncommitted, so the package is uploaded and
+  # waits for a human to review the listing and press Submit. Set the
+  # MSSTORE_AUTO_COMMIT variable to true to have CI start certification too.
+  publish-store:
+    needs: build-windows
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: windows-2022
+    environment: release
+    env:
+      STORE_PUBLISH: ${{ vars.MSSTORE_PUBLISH_ENABLED == 'true' }}
+    steps:
+      - name: Download Store MSIX
+        if: env.STORE_PUBLISH == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: xLights_Store_MSIX
+          path: store-msix
+
+      - name: Setup Microsoft Store Developer CLI
+        if: env.STORE_PUBLISH == 'true'
+        uses: microsoft/microsoft-store-apppublisher@v1.4
+
+      # Checked before calling reconfigure: with a parameter missing the CLI
+      # prompts for it, and an interactive prompt on a runner hangs the job
+      # until the 6-hour timeout rather than failing.
+      - name: Configure Partner Center credentials
+        if: env.STORE_PUBLISH == 'true'
+        shell: pwsh
+        env:
+          TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          foreach ($n in 'TENANT_ID','SELLER_ID','CLIENT_ID','CLIENT_SECRET') {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($n))) {
+              throw "MSSTORE_$n is not set - MSSTORE_PUBLISH_ENABLED needs all four Partner Center secrets"
+            }
+          }
+          msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID `
+                              --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed ($LASTEXITCODE)" }
+
+      - name: Upload MSIX to Partner Center
+        if: env.STORE_PUBLISH == 'true'
+        shell: pwsh
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
+          AUTO_COMMIT: ${{ vars.MSSTORE_AUTO_COMMIT }}
+        run: |
+          $msix = Get-ChildItem store-msix -Filter *.msix -Recurse | Select-Object -First 1
+          if (-not $msix) { throw "No .msix in the xLights_Store_MSIX artifact" }
+          $pubArgs = @($msix.FullName, '-id', $env:PRODUCT_ID)
+          if ($env:AUTO_COMMIT -ne 'true') { $pubArgs += '--noCommit' }
+          Write-Host "msstore publish $($pubArgs -join ' ')"
+          & msstore publish @pubArgs
+          if ($LASTEXITCODE -ne 0) { throw "msstore publish failed ($LASTEXITCODE)" }
+
+      - name: Report submission status
+        if: env.STORE_PUBLISH == 'true'
+        continue-on-error: true
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
+        run: msstore submission status $env:PRODUCT_ID
 
   publish-release:
     needs: [build-linux, build-windows]

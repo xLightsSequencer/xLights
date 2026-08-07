@@ -14,6 +14,55 @@
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Model.h"
 
+#include <algorithm>
+
+namespace {
+// A contrasting (hue rotated 180 degrees) colour that is never black.  Was
+// xlColor::ContrastColourNotBlack(), moved here as the only caller when the HSL
+// helpers were removed from Color.h; the RGB<->HSL round-trip is inlined.
+xlColor contrastColour(const xlColor& in) {
+    double r = in.red / 255.0, g = in.green / 255.0, b = in.blue / 255.0;
+    double mn = std::min(r, std::min(g, b));
+    double mx = std::max(r, std::max(g, b));
+    double delta = mx - mn;
+    double hue = 0.0, sat = 0.0, light = (mx + mn) / 2.0;
+    if (delta != 0.0) {
+        sat = (light <= 0.5) ? delta / (mx + mn) : delta / (2.0 - mx - mn);
+        double dr = (((mx - r) / 6.0) + (delta / 2.0)) / delta;
+        double dg = (((mx - g) / 6.0) + (delta / 2.0)) / delta;
+        double db = (((mx - b) / 6.0) + (delta / 2.0)) / delta;
+        if (r == mx)      hue = db - dg;
+        else if (g == mx) hue = (1.0 / 3.0) + dr - db;
+        else              hue = (2.0 / 3.0) + dg - dr;
+        if (hue < 0.0) hue += 1.0;
+        if (hue > 1.0) hue -= 1.0;
+    }
+    hue += 0.5;
+    if (hue > 1.0) hue -= 1.0;
+    if (light > 0.8 || light < 0.2) light = 0.5;
+
+    xlColor c;
+    if (sat == 0.0) {
+        c.red = c.green = c.blue = (int)(light * 255.0);
+    } else {
+        double v2 = (light < 0.5) ? light * (1.0 + sat) : (light + sat) - (sat * light);
+        double v1 = 2.0 * light - v2;
+        auto hue2rgb = [](double v1, double v2, double H) {
+            if (H < 0.0) H += 1.0;
+            if (H > 1.0) H -= 1.0;
+            if ((6.0 * H) < 1.0) return v1 + (v2 - v1) * 6.0 * H;
+            if ((2.0 * H) < 1.0) return v2;
+            if ((3.0 * H) < 2.0) return v1 + (v2 - v1) * ((2.0 / 3.0) - H) * 6.0;
+            return v1;
+        };
+        c.red   = (int)(255.0 * hue2rgb(v1, v2, hue + (1.0 / 3.0)) + 0.5);
+        c.green = (int)(255.0 * hue2rgb(v1, v2, hue) + 0.5);
+        c.blue  = (int)(255.0 * hue2rgb(v1, v2, hue - (1.0 / 3.0)) + 0.5);
+    }
+    return c;
+}
+}
+
 GridlinesObject::GridlinesObject(const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), gridColor(xlColor(0,128, 0))
 {
@@ -111,7 +160,7 @@ bool GridlinesObject::Draw(IModelPreview* preview, xlGraphicsContext *ctx, xlGra
 
             // draw an arrow in the middle pointing to the front
 
-            xlColor arrowColour = gridColor.ContrastColourNotBlack();
+            xlColor arrowColour = contrastColour(gridColor);
 
             sx = 0;
             sy = 0;

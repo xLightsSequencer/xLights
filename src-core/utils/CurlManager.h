@@ -26,7 +26,7 @@ public:
     static std::string HTTPSPost(const std::string& url, const std::string& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int* responseCode = nullptr);
     static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {});
     static std::string HTTPSDelete(const std::string& url, const std::string& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int* responseCode = nullptr);
-    static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int* responseCode = nullptr);
+    static std::string HTTPSGet(const std::string& s, const std::string& user = "", const std::string& password = "", int timeout = 10, const std::vector<std::pair<std::string, std::string>>& customHeaders = {}, int* responseCode = nullptr, bool quiet = false);
     static bool HTTPSGetFile(const std::string& s, const std::string& filename, const std::string& user = "", const std::string& password = "", int timeout = 10, std::function<bool(int)> progress = nullptr);
     static bool HTTPUploadFile(const std::string& url, const std::string& filename, const std::string& file, std::function<bool(int, std::string)> progress = nullptr, const std::string& username = "", const std::string& password = "");
 
@@ -79,6 +79,11 @@ public:
         int timeoutSeconds = 10;
         bool disableSSLVerification = false;
         int* responseCode = nullptr;
+        // Suppresses the "Adding Synchronous CURL" info log for requests that
+        // are expected to happen frequently (e.g. periodic controller pings),
+        // so they don't drown out other curl activity in the log. Failures
+        // are still logged regardless of this flag.
+        bool quiet = false;
     };
 
     // Synchronous methods

@@ -68,7 +68,9 @@ public:
     }
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    bool needsLoadFiles() const override { return true; }
+    void loadFiles(Effect* effect) override;
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
     static int sStartSizeDefault;
     static int sStartSizeMin;
@@ -114,7 +116,7 @@ public:
 protected:
     virtual void OnMetadataLoaded() override;
 private:
-    static int DecodeShape(const std::string& shape);
+    static int DecodeShape(RenderBuffer& buffer, const std::string& shape);
     void Drawcircle(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
     void Drawheart(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
     void Drawstar(RenderBuffer& buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation = 0) const;

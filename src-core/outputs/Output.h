@@ -117,13 +117,20 @@ public:
 
     #pragma region Getters and Setters
     std::string GetCommPort() const { return _commPort; }
-    void SetCommPort(const std::string& commPort) { _commPort = commPort; _dirty = true; }
+    void SetCommPort(const std::string& commPort) {
+        if (_commPort != commPort) {
+            _commPort = commPort;
+            _dirty = true;
+        }
+    }
 
     int GetBaudRate() const;
-    virtual void SetBaudRate(int baudRate) 
+    virtual void SetBaudRate(int baudRate)
     {
-        _baudRate = baudRate;
-        _dirty = true;
+        if (_baudRate != baudRate) {
+            _baudRate = baudRate;
+            _dirty = true;
+        }
     }
 
     std::string GetIP() const { return _ip; }
@@ -144,7 +151,12 @@ public:
     std::string GetForceLocalIPToUse() const;
 
     int GetUniverse() const { return _universe; }
-    void SetUniverse(int universe) { _universe = universe; _dirty = true; }
+    void SetUniverse(int universe) {
+        if (_universe != universe) {
+            _universe = universe;
+            _dirty = true;
+        }
+    }
     virtual std::string GetUniverseString() const { return std::to_string(GetUniverse()); }
 
     int32_t GetChannels() const { return _channels; }
@@ -167,7 +179,12 @@ public:
     void ClearDirty() { _dirty = false; }
 
     bool IsEnabled() const { return _enabled; }
-    void Enable(bool enable) { _enabled = enable; _dirty = true; }
+    void Enable(bool enable) {
+        if (_enabled != enable) {
+            _enabled = enable;
+            _dirty = true;
+        }
+    }
 
     void Suspend(bool suspend) { _suspend = suspend; }
 
@@ -191,7 +208,12 @@ public:
 
     virtual std::string GetType() const = 0;
 
-    void SetSuppressDuplicateFrames(const bool suppressDuplicateFrames) { _suppressDuplicateFrames = suppressDuplicateFrames; _dirty = true; }
+    void SetSuppressDuplicateFrames(const bool suppressDuplicateFrames) {
+        if (_suppressDuplicateFrames != suppressDuplicateFrames) {
+            _suppressDuplicateFrames = suppressDuplicateFrames;
+            _dirty = true;
+        }
+    }
     bool IsSuppressDuplicateFrames() const { return _suppressDuplicateFrames; }
 
     virtual void SetTransientData(int32_t& startChannel, int nullnumber);

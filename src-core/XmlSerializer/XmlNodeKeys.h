@@ -109,6 +109,8 @@ namespace XmlNodeKeys {
     constexpr auto StrandNamesAttribute     = "StrandNames";
     constexpr auto ShadowModelAttribute     = "ShadowModelFor";
     constexpr auto ControllerAttribute      = "Controller";
+    constexpr auto VisibilityAttribute      = "Visibility";
+    constexpr auto ShowLabelAttribute       = "ShowLabel";
     constexpr auto xlightsVersionAttr       = "SourceVersion";
     constexpr auto versionNumberAttribute   = "versionNumber";
     constexpr auto ActiveAttribute          = "Active";
@@ -236,6 +238,7 @@ namespace XmlNodeKeys {
     constexpr auto OrientZeroAttribute    = "OrientZero";
     constexpr auto OrientHomeAttribute    = "OrientHome";
     constexpr auto SlewLimitAttribute     = "SlewLimit";
+    constexpr auto SpeedChannelAttribute  = "SpeedChannel";
     constexpr auto UpsideDownAttribute    = "UpsideDown";
 
     // Servo Model
@@ -305,6 +308,7 @@ namespace XmlNodeKeys {
     constexpr auto BkgImageAttribute       = "CustomBkgImage";
     constexpr auto BkgScaleAttribute       = "CustomBkgScale";
     constexpr auto BkgBrightnessAttribute  = "CustomBkgBrightness";
+    constexpr auto BkgTransparencyAttribute = "CustomBkgTransparency";
     constexpr auto BkgAttribute            = "Bkg";
     constexpr auto CMDepthAttribute        = "Depth";
     constexpr auto CustomStringsAttribute  = "CustomStrings";
@@ -470,6 +474,7 @@ namespace XmlNodeKeys {
     constexpr auto TerrianType      = "Terrian"; // Wrong spelling from old xLights, readable for compatibility
     constexpr auto MeshType         = "Mesh";
     constexpr auto RulerType        = "Ruler";
+    constexpr auto ControllerObjectType = "Controller";
 
     //Extra Types
     constexpr auto EffectsType      = "effects";

@@ -44,7 +44,7 @@ class ATendril
 	public:
 
 	~ATendril();
-	ATendril(float friction, int size, float dampening, float tension, float spring, const xlPoint& start);
+	ATendril(RenderBuffer& buffer, float friction, int size, float dampening, float tension, float spring, const xlPoint& start);
     void Update(const xlPoint& target, int tunemovement, int width, int height);
 	void Draw(RenderBuffer& buffer, xlColor colour, int thickness);
 	xlPoint LastLocation();
@@ -57,8 +57,8 @@ class Tendril
 	public:
 
 	~Tendril();
-	Tendril(float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const xlPoint& start);
-	void UpdateRandomMove(int tunemovement, int width, int height);
+	Tendril(RenderBuffer& buffer, float friction, int trails, int size, float dampening, float tension, float springbase, float springincr, const xlPoint& start);
+	void UpdateRandomMove(RenderBuffer& buffer, int tunemovement, int width, int height);
     void Update(const xlPoint& target, int tunemovement, size_t width, size_t height);
     void Update(int x, int y, int tunemovement, size_t width, size_t height);
     void Draw(RenderBuffer& buffer, xlColor colour, int thickness);

@@ -26,7 +26,7 @@ public:
         return false;
     }
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
     virtual bool AppropriateOnNodes() const override
     {
@@ -36,7 +36,17 @@ public:
     {
         return true;
     }
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     static bool IsVideoFile(std::string filename);
+
+    // Pre-render pass (called once by RenderEngine before any job runs): scans
+    // every Video effect on the given models, computes the largest render size
+    // each video FILE is used at (buffer size inflated by the tightest crop it
+    // reaches, including value-curve animation), and records it in
+    // VideoDecodeSizeRegistry so the decoder can emit frames pre-scaled to that
+    // size instead of native — big cache-memory + scale-cost savings. Clears the
+    // registry first so removed effects don't pin a stale/oversized decode.
+    static void PrepareDecodeSizes(class SequenceElements& seqElements, const std::list<class Model*>& models);
 
     // Currently not possible but I think changes could be made to make it support partial
     // virtual bool CanRenderPartialTimeInterval() const override { return true; }
@@ -61,9 +71,8 @@ public:
 
 protected:
     virtual void OnMetadataLoaded() override;
-    virtual bool needToAdjustSettings(const std::string& version) override
-    {
-        return true;
-    };
+    virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    virtual bool needsLoadFiles() const override { return true; }
+    virtual void loadFiles(Effect* effect) override;
 };

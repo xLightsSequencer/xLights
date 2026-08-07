@@ -430,7 +430,7 @@ bool BaseSDL::OpenDevice(bool input, int rate) {
     if (_device != "") {
         d = _device.c_str();
     }
-    spdlog::debug("Opening audio device. {}", (const char*)d);
+    spdlog::debug("Opening audio device. {}", d == nullptr ? "<Default>" : d);
     SDL_ClearError();
     SDL_AudioDeviceID rc = SDL_OpenAudioDevice(d, input ? 1 : 0, &_wanted_spec, &actual_spec, 0);
     if (_device == "") {

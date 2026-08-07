@@ -27,9 +27,334 @@
 
 #include <log.h>
 
+#include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <climits>
 #include <map>
 #include <string>
+#include <thread>
+
+// How long a single ReadSample may take before the reader is written off.
+// Generous on purpose: a first decode of a large frame on a box already running
+// a dozen decoders is slow, but it is not minutes. Overridable for testing.
+static DWORD ReadSampleTimeoutMS()
+{
+    static const DWORD ms = []() -> DWORD {
+        const char* e = getenv("XL_MF_READ_TIMEOUT_MS");
+        if (e != nullptr) {
+            long v = strtol(e, nullptr, 10);
+            if (v > 0)
+                return (DWORD)v;
+        }
+        return 10000;
+    }();
+    return ms;
+}
+
+// Media Foundation stops responding when too many decoders run at once, and it
+// recovers when the load goes away. So a missed deadline stands hardware decode
+// down for a while rather than for good: switching it off permanently would
+// cost a batch render its remaining sequences, and a long-running session the
+// rest of its day, over one busy moment. Each further timeout doubles the wait,
+// so a box where this keeps happening quickly stops paying the deadline while
+// one bad patch costs only the first window.
+// Guards the cooldown window and the learned decoder limit.
+static std::mutex __mfStateMutex;
+static std::chrono::steady_clock::time_point __mfCooldownUntil{};
+static int __mfTimeouts = 0;
+
+static constexpr int MF_COOLDOWN_BASE_MS = 30000;
+static constexpr int MF_COOLDOWN_MAX_MS = 600000;
+
+// How many hardware decoders may be open at once.
+//
+// Nothing reports this number: D3D11 and Media Foundation describe the formats
+// and profiles a decoder supports, never how many sessions the driver will
+// actually service, so it can only be learned by exceeding it. Start unlimited,
+// and each time decode fails with several readers open, cap it below the number
+// that were live at the time and step down again if that still fails. Readers
+// beyond the cap decode in software, which is slower but always works.
+static std::atomic<int> __mfActiveReaders{ 0 };
+static int __mfMaxReaders = INT_MAX;
+
+// Below this, a failure is about the file rather than the load, and capping
+// concurrency would be treating the wrong cause.
+static constexpr int MF_MIN_CONCURRENCY_TO_BLAME = 3;
+static constexpr int MF_CAP_STEP = 2;
+// One shortage produces a burst of failures; only the first should count.
+static constexpr int MF_CAP_SETTLE_MS = 2000;
+static std::chrono::steady_clock::time_point __mfLastCapChange{};
+static std::chrono::steady_clock::time_point __mfLastFailure{};
+
+// After a long clean spell, try one more decoder than the learned limit. What
+// forced the limit down is usually a busy moment rather than a hard ceiling, and
+// without this a single bad patch early on would hold a long session or a batch
+// render below capacity for ever. Down by two and back up by one, so a limit
+// that keeps failing settles just under whatever the driver really allows
+// instead of oscillating across it.
+static constexpr int MF_CAP_RECOVER_MS = 120000;
+static constexpr int MF_CAP_RECOVER_STEP = 1;
+
+// Give a lowered limit back one decoder once nothing has gone wrong for a while.
+// Called on the open path, which is where a raised limit can be put to use.
+static void MaybeRecoverCap()
+{
+    std::lock_guard<std::mutex> lock(__mfStateMutex);
+    if (__mfMaxReaders == INT_MAX) {
+        return; // never lowered, nothing to give back
+    }
+    const auto now = std::chrono::steady_clock::now();
+    if (now - __mfLastFailure < std::chrono::milliseconds(MF_CAP_RECOVER_MS) ||
+        now - __mfLastCapChange < std::chrono::milliseconds(MF_CAP_RECOVER_MS)) {
+        return;
+    }
+    __mfMaxReaders += MF_CAP_RECOVER_STEP;
+    __mfLastCapChange = now;
+    spdlog::info("WHVD: no decode trouble for {}s - trying {} hardware decoders at a time",
+                 MF_CAP_RECOVER_MS / 1000, __mfMaxReaders);
+}
+
+bool WindowsHardwareVideoReader::TryReserveDecoder()
+{
+    MaybeRecoverCap();
+
+    int active = __mfActiveReaders.load(std::memory_order_acquire);
+    for (;;) {
+        int cap;
+        {
+            std::lock_guard<std::mutex> lock(__mfStateMutex);
+            cap = __mfMaxReaders;
+        }
+        if (active >= cap) {
+            return false;
+        }
+        if (__mfActiveReaders.compare_exchange_weak(active, active + 1,
+                                                    std::memory_order_acq_rel, std::memory_order_acquire)) {
+            return true;
+        }
+    }
+}
+
+void WindowsHardwareVideoReader::ReleaseDecoder()
+{
+    if (__mfActiveReaders.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+        // Last reader out. Nothing can be contending for a decoder any more, so
+        // whatever the cooldown was waiting to subside has subsided - end it now
+        // rather than make the next sequence sit out the remainder. A wedged
+        // reader never gets here, because its slot is only given back once the
+        // release that is stuck actually returns, so a real wedge still holds
+        // the cooldown open. The learned cap is deliberately kept.
+        std::lock_guard<std::mutex> lock(__mfStateMutex);
+        __mfCooldownUntil = std::chrono::steady_clock::time_point{};
+    }
+}
+
+// Hardware decode just failed with `observed` readers open. If that is enough
+// readers for contention to be the explanation, learn from it.
+//
+// Readers run out of decoders in groups, so one shortage arrives as a burst of
+// failures milliseconds apart. Each one is the same piece of evidence, and
+// letting them all step the limit would take it from unlimited to 1 before the
+// first reduction had been tried: measured, four failures in 53ms did exactly
+// that. One reduction per settling window, then see whether it was enough.
+static void NoteHardwareFailure(int observed, const std::string& filename)
+{
+    if (observed < MF_MIN_CONCURRENCY_TO_BLAME) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(__mfStateMutex);
+
+    const auto now = std::chrono::steady_clock::now();
+    // Recorded even when the limit does not move, so a steady trickle of
+    // failures keeps postponing recovery.
+    __mfLastFailure = now;
+
+    if (now - __mfLastCapChange < std::chrono::milliseconds(MF_CAP_SETTLE_MS)) {
+        return;
+    }
+
+    int newCap = std::max(std::min(__mfMaxReaders, observed) - MF_CAP_STEP, 1);
+    if (newCap < __mfMaxReaders) {
+        spdlog::warn("WHVD: hardware decode failed with {} readers open ({}) - limiting hardware decode to {} at a time",
+                     observed, filename, newCap);
+        __mfMaxReaders = newCap;
+        __mfLastCapChange = now;
+    }
+}
+
+bool WindowsHardwareVideoReader::MediaFoundationInCooldown()
+{
+    std::lock_guard<std::mutex> lock(__mfStateMutex);
+    return std::chrono::steady_clock::now() < __mfCooldownUntil;
+}
+
+// Returns the length of the cooldown just started, for the log.
+static int StartMediaFoundationCooldown()
+{
+    std::lock_guard<std::mutex> lock(__mfStateMutex);
+    const auto now = std::chrono::steady_clock::now();
+    // Readers wedge in groups; the first one to notice sets the window and the
+    // rest of that group should not push it out again.
+    if (now < __mfCooldownUntil) {
+        return 0;
+    }
+    int ms = MF_COOLDOWN_BASE_MS;
+    for (int i = 0; i < __mfTimeouts && ms < MF_COOLDOWN_MAX_MS; ++i) {
+        ms *= 2;
+    }
+    ms = std::min(ms, MF_COOLDOWN_MAX_MS);
+    ++__mfTimeouts;
+    __mfCooldownUntil = now + std::chrono::milliseconds(ms);
+    return ms;
+}
+
+// Receives the result of an asynchronous ReadSample.
+//
+// Lifetime is the whole point of this class. When a read misses its deadline
+// the caller walks away, but the decoder may still deliver - minutes later, or
+// never. The callback therefore outlives the reader that created it: the reader
+// drops its reference and Media Foundation drops the last one whenever it is
+// finally done. Orphan() makes any late delivery a no-op instead of a write
+// through a freed reader.
+class MFReadSampleCallback : public IMFSourceReaderCallback
+{
+    std::mutex _mutex;
+    HANDLE _ready = nullptr;
+    std::atomic<long> _refCount{ 1 };
+    bool _orphaned = false;
+
+    HRESULT _status = S_OK;
+    DWORD _flags = 0;
+    LONGLONG _timestamp = 0;
+    IMFSample* _sample = nullptr;
+
+    ~MFReadSampleCallback()
+    {
+        if (_sample != nullptr)
+            _sample->Release();
+        if (_ready != nullptr)
+            ::CloseHandle(_ready);
+    }
+
+public:
+    MFReadSampleCallback()
+    {
+        // Auto-reset: exactly one waiter is released per delivered sample.
+        _ready = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    }
+
+    bool IsOk() const { return _ready != nullptr; }
+
+    // IUnknown
+    STDMETHODIMP QueryInterface(REFIID riid, void** ppv) override
+    {
+        if (ppv == nullptr)
+            return E_POINTER;
+        if (riid == __uuidof(IMFSourceReaderCallback) || riid == __uuidof(IUnknown)) {
+            *ppv = static_cast<IMFSourceReaderCallback*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    STDMETHODIMP_(ULONG) AddRef() override
+    {
+        return (ULONG)_refCount.fetch_add(1, std::memory_order_relaxed) + 1;
+    }
+    STDMETHODIMP_(ULONG) Release() override
+    {
+        long c = _refCount.fetch_sub(1, std::memory_order_acq_rel) - 1;
+        if (c == 0)
+            delete this;
+        return (ULONG)c;
+    }
+
+    // IMFSourceReaderCallback
+    STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample* pSample) override
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        if (_orphaned)
+            return S_OK; // nobody is waiting any more
+        _status = hrStatus;
+        _flags = dwStreamFlags;
+        _timestamp = llTimestamp;
+        if (_sample != nullptr)
+            _sample->Release();
+        _sample = pSample;
+        if (_sample != nullptr)
+            _sample->AddRef();
+        ::SetEvent(_ready);
+        return S_OK;
+    }
+    STDMETHODIMP OnFlush(DWORD) override { return S_OK; }
+    STDMETHODIMP OnEvent(DWORD, IMFMediaEvent*) override { return S_OK; }
+
+    // Blocks until a sample arrives or the deadline passes. On success the
+    // sample reference is transferred to the caller.
+    bool WaitForSample(DWORD timeoutMS, HRESULT& status, DWORD& flags, LONGLONG& timestamp, IMFSample** sample)
+    {
+        if (::WaitForSingleObject(_ready, timeoutMS) != WAIT_OBJECT_0)
+            return false;
+        std::lock_guard<std::mutex> lock(_mutex);
+        status = _status;
+        flags = _flags;
+        timestamp = _timestamp;
+        *sample = _sample;
+        _sample = nullptr;
+        return true;
+    }
+
+    // Abandon any future delivery. Called by the reader before it lets go.
+    void Orphan()
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _orphaned = true;
+        if (_sample != nullptr) {
+            _sample->Release();
+            _sample = nullptr;
+        }
+    }
+};
+
+// Release a wedged reader's Media Foundation and D3D objects off the render
+// thread. IMFSourceReader::Release tears the decoder down, which is exactly the
+// thing that has stopped responding, so doing it inline would trade a hung
+// render for a hung render. The thread is detached and may never finish; that
+// leak is bounded by the one-shot latch above and is the point of the exercise.
+static void AbandonReaderObjects(IMFSourceReader* reader, MFReadSampleCallback* callback,
+                                 IMFDXGIDeviceManager* deviceManager, ID3D11Device* device,
+                                 bool releaseSlot)
+{
+    // Stop delivery first, on this thread: if the thread below cannot start we
+    // still must not be left with a callback that can fire into a dead reader.
+    if (callback != nullptr)
+        callback->Orphan();
+    try {
+        std::thread([reader, callback, deviceManager, device, releaseSlot]() {
+            if (reader != nullptr)
+                reader->Release();
+            if (callback != nullptr)
+                callback->Release();
+            if (deviceManager != nullptr)
+                deviceManager->Release();
+            if (device != nullptr)
+                device->Release();
+            // Only now is the decoder session really gone. Giving the slot back
+            // any earlier would let a replacement open against a session the
+            // driver has not actually let go of.
+            if (releaseSlot)
+                WindowsHardwareVideoReader::ReleaseDecoder();
+        }).detach();
+    } catch (...) {
+        // Out of threads. Leaking these is the only safe option left - the
+        // decoder still owns them and releasing here could block the render.
+        // The slot stays taken, which is honest: the session is still out there.
+        spdlog::warn("WHVD: could not start cleanup thread; abandoning decoder objects");
+    }
+}
 
 // All of this allows me to dynamically load the Direct X DLLs ensuring that on older platforms it still loads but hardware decoding wont work
 
@@ -192,9 +517,26 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
     _wantAlpha = wantAlpha;
     _width = maxwidth;
     _height = maxheight;
+    _filename = filename;
+    // The video processor IS the DirectX11 path now: it is faster than letting
+    // the source reader convert and scale (~17% on a video-heavy sequence) and it
+    // is the only way to state the colour space. XL_MF_NO_D3DVP falls back to
+    // the source reader's own processing for debugging. Native-resolution
+    // requests skip it - there is nothing to scale.
+    static const bool sNoVP = (getenv("XL_MF_NO_D3DVP") != nullptr);
+    _useVideoProcessor = !sNoVP && !usenativeresolution;
 
     if (!_init.IsOk())
         return;
+
+    // Take a decoder slot before anything is created. Over the learned limit the
+    // reader simply never opens, which the caller already handles as "Media
+    // Foundation cannot take this file" and decodes in software.
+    if (!TryReserveDecoder()) {
+        spdlog::debug("WHVD: at the hardware decoder limit; {} will decode in software", filename);
+        return;
+    }
+    _reservedDecoder = true;
 
     HRESULT hr = S_OK;
 
@@ -225,10 +567,25 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
 
     SAFEEXEC(attributes->SetUnknown(MF_SOURCE_READER_D3D_MANAGER, _deviceManager), "WHVD: Failed to set attribute");
     SAFEEXEC(attributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE), "WHVD: Failed to set attribute");
-    SAFEEXEC(attributes->SetUINT32(MF_SOURCE_READER_ENABLE_ADVANCED_VIDEO_PROCESSING, TRUE), "WHVD: Failed to set attribute");
+    if (!_useVideoProcessor) {
+        // Advanced video processing is what we are replacing: it converts and
+        // scales with a colour space we cannot set. With the direct video
+        // processor path we want the decoder's untouched NV12 surface instead.
+        SAFEEXEC(attributes->SetUINT32(MF_SOURCE_READER_ENABLE_ADVANCED_VIDEO_PROCESSING, TRUE), "WHVD: Failed to set attribute");
+    }
 #else
     SAFEEXEC(attributes->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE), "WHVD: Failed to set attribute");
 #endif
+
+    // Asynchronous reads. Media Foundation delivers on one of its own work
+    // queue threads, so the wait below is a plain event wait with a deadline
+    // rather than an open-ended call into the decoder.
+    _callback = new MFReadSampleCallback();
+    if (!_callback->IsOk()) {
+        spdlog::error("WHVD: Failed to create read completion event");
+        hr = E_FAIL;
+    }
+    SAFEEXEC(attributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, _callback), "WHVD: Failed to set async callback attribute");
 
     // Create the source reader from the URL.
     std::wstring fn(filename.begin(), filename.end());
@@ -250,6 +607,18 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
         _frame->data[0] = (uint8_t*)av_malloc((size_t)_height * _frame->linesize[0]);
         memset(_frame->data[0], 0x00, (size_t)_height * _frame->linesize[0]);
         _frame->format = _pixelFormat;
+
+        if (_useVideoProcessor) {
+            if (!InitVideoProcessor(DXGI_FORMAT_NV12)) {
+                spdlog::warn("WHVD: direct video-processor setup failed for {}; abandoning MF for this file", filename);
+                ReleaseVideoProcessor();
+                _useVideoProcessor = false;
+                SafeRelease(&_reader);
+                SafeRelease(&_deviceManager);
+                return;
+            }
+        }
+
         assert(_reader != nullptr);
         assert(_deviceManager != nullptr);
 
@@ -279,9 +648,23 @@ WindowsHardwareVideoReader::~WindowsHardwareVideoReader()
 #ifdef DETAILED_LOGGING
     spdlog::debug("WHVD: Destructor.");
 #endif
+    // Release the reader before our own reference to the callback: the reader
+    // holds one too, and dropping ours first would leave it calling into an
+    // object that is already gone.
     SafeRelease(&_reader);
+    if (_callback != nullptr) {
+        _callback->Orphan();
+        _callback->Release();
+        _callback = nullptr;
+    }
     SafeRelease(&_deviceManager);
+    ReleaseVideoProcessor();
     SafeRelease(&_device);
+
+    if (_reservedDecoder) {
+        _reservedDecoder = false;
+        ReleaseDecoder();
+    }
 
     if (_frame != nullptr) {
         if (_frame->data[0] != nullptr) {
@@ -293,6 +676,35 @@ WindowsHardwareVideoReader::~WindowsHardwareVideoReader()
 #ifdef DETAILED_LOGGING
     spdlog::debug("WHVD: Destructor DONE.");
 #endif
+}
+
+// A read missed its deadline. The decoder still owns the request and may
+// complete it at any time or not at all, so this reader is finished: its Media
+// Foundation objects are handed to a detached thread and never touched again.
+// The caller falls back to software decode for this file, and hardware decode
+// stands down for a cooldown so the files after it do not each pay the deadline.
+void WindowsHardwareVideoReader::HandleReadTimeout(uint32_t timestampMS)
+{
+    _hardwareFailed = true;
+
+    NoteHardwareFailure(__mfActiveReaders.load(std::memory_order_acquire), _filename);
+
+    const int cooldownMS = StartMediaFoundationCooldown();
+    if (cooldownMS > 0) {
+        spdlog::error("WHVD: no frame after {}ms seeking {}ms in {} - Media Foundation decode has stopped responding. "
+                      "Using software decode for the next {}s.",
+                      ReadSampleTimeoutMS(), timestampMS, _filename, cooldownMS / 1000);
+    } else {
+        spdlog::warn("WHVD: no frame after {}ms seeking {}ms in {} - falling back to software decode",
+                     ReadSampleTimeoutMS(), timestampMS, _filename);
+    }
+
+    AbandonReaderObjects(_reader, _callback, _deviceManager, _device, _reservedDecoder);
+    _reservedDecoder = false; // the cleanup thread owns the slot now
+    _reader = nullptr;
+    _callback = nullptr;
+    _deviceManager = nullptr;
+    _device = nullptr;
 }
 
 bool WindowsHardwareVideoReader::CanSeek() const
@@ -335,7 +747,7 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
     if (SUCCEEDED(hr) && pType != nullptr) {
         SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
 
-        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
+        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, _useVideoProcessor ? MFVideoFormat_NV12 : MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
 
         SAFEEXEC(_reader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, pType), "WHVD: Failed to set media type");
 
@@ -387,10 +799,14 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
     if (SUCCEEDED(hr) && pType != nullptr) {
         SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
 
-        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, _wantAlpha ? MFVideoFormat_ARGB32 : MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
+        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE,
+                                _useVideoProcessor ? MFVideoFormat_NV12
+                                                   : (_wantAlpha ? MFVideoFormat_ARGB32 : MFVideoFormat_RGB32)),
+                 "WHVD: Failed to set sub type");
+
 
         if (SUCCEEDED(hr)) {
-            if (usenativeresolution) {
+            if (usenativeresolution || _useVideoProcessor) {
             } else {
                 SAFEEXEC(MFSetAttributeSize(pType, MF_MT_FRAME_SIZE, _width, _height), "WHVD: Failed to set target size");
 
@@ -410,6 +826,33 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
         pType = nullptr;
     }
 
+    if (getenv("XL_MF_COLOR_DEBUG") != nullptr) {
+        auto dumpColor = [](const char* what, IMFMediaType* mt) {
+            if (mt == nullptr) {
+                return;
+            }
+            auto attr = [mt](const GUID& g) -> long {
+                UINT32 v = 0;
+                return SUCCEEDED(mt->GetUINT32(g, &v)) ? (long)v : -1;
+            };
+            UINT32 w = 0, h = 0;
+            MFGetAttributeSize(mt, MF_MT_FRAME_SIZE, &w, &h);
+            spdlog::warn("WHVD COLOR {}: size={}x{} nominalRange={} yuvMatrix={} transferFn={} primaries={} lighting={}  (-1 = not set)",
+                         what, w, h, attr(MF_MT_VIDEO_NOMINAL_RANGE), attr(MF_MT_YUV_MATRIX),
+                         attr(MF_MT_TRANSFER_FUNCTION), attr(MF_MT_VIDEO_PRIMARIES), attr(MF_MT_VIDEO_LIGHTING));
+        };
+        IMFMediaType* pNative = nullptr;
+        if (SUCCEEDED(_reader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, &pNative))) {
+            dumpColor("source", pNative);
+            SafeRelease(&pNative);
+        }
+        IMFMediaType* pCur = nullptr;
+        if (SUCCEEDED(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pCur))) {
+            dumpColor("output", pCur);
+            SafeRelease(&pCur);
+        }
+    }
+
     SAFEEXEC(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pType), "WHVD: Failed to get media type");
     if (SUCCEEDED(hr) && pType != nullptr) {
         _stride = (LONG)MFGetAttributeUINT32(pType, MF_MT_DEFAULT_STRIDE, 1);
@@ -419,7 +862,9 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
         SAFEEXEC(pType->GetGUID(MF_MT_SUBTYPE, &subtype), "WHVD: Failed to get media subtype");
 
         if (SUCCEEDED(hr)) {
-            if (!IsEqualGUID(subtype, MFVideoFormat_RGB32) && !IsEqualGUID(subtype, MFVideoFormat_ARGB32)) {
+            const bool wantNV12 = _useVideoProcessor;
+            if (wantNV12 ? !IsEqualGUID(subtype, MFVideoFormat_NV12)
+                         : (!IsEqualGUID(subtype, MFVideoFormat_RGB32) && !IsEqualGUID(subtype, MFVideoFormat_ARGB32))) {
                 spdlog::error("WHVD: Invalid media subtype");
                 hr = E_UNEXPECTED;
             }
@@ -460,6 +905,18 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
     SAFEEXEC(_reader->SetCurrentPosition(GUID_NULL, var), "WHVD: Failed to seek");
 
     if (FAILED(hr)) {
+        // A reader that cannot reposition is finished - every later frame
+        // request would seek again and fail again, silently handing the effect
+        // no video at all. Hand the file to the software decoder instead.
+        if (!_hardwareFailed) {
+            spdlog::error("WHVD: seek to {}ms failed in {} ({}) - falling back to software decode",
+                          pos, _filename, DecodeMFError(hr));
+            // Under load this is what running out of decoders looks like: the
+            // reader answers, but can no longer reposition. Same lesson as a
+            // missed deadline, so it feeds the same limit.
+            NoteHardwareFailure(__mfActiveReaders.load(std::memory_order_acquire), _filename);
+        }
+        _hardwareFailed = true;
         PropVariantClear(&var);
         return false;
     }
@@ -470,12 +927,23 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
             uint32_t lastPos = _curPos;
             AVFrame* frame = GetNextFrame(0xFFFFFFFF, 0xFFFFFFFF);
             if (frame == nullptr) {
-                spdlog::error("WHVD: GetNextFrame failed");
+                // Reached over a real end of stream the container's reported
+                // duration said was still ahead - some encodes overstate it.
+                // Every other path here marks the reader failed before giving
+                // up; this one did not, so the caller never saw HasFailed()
+                // and kept re-issuing the same hardware seek every frame -
+                // each one landing on the same premature end of stream -
+                // forever, without ever falling back to software decode.
+                spdlog::error("WHVD: seek to {}ms found end of stream at {}ms in {} - falling back to software decode",
+                              pos, _curPos, _filename);
+                _hardwareFailed = true;
                 PropVariantClear(&var);
                 return false;
             }
             if (!first && lastPos == _curPos) {
-                spdlog::error("WHVD: Seek failed.");
+                spdlog::error("WHVD: seek to {}ms stopped advancing at {}ms in {} - falling back to software decode",
+                              pos, _curPos, _filename);
+                _hardwareFailed = true;
                 PropVariantClear(&var);
                 return false;
             }
@@ -548,6 +1016,251 @@ std::string WindowsHardwareVideoReader::DecodeDXGIReason(HRESULT reason) const
     return "Unknown code.";
 }
 
+bool WindowsHardwareVideoReader::InitVideoProcessor(DXGI_FORMAT inputFormat)
+{
+    if (_device == nullptr) {
+        return false;
+    }
+
+    _device->GetImmediateContext(&_immediateContext);
+    if (_immediateContext == nullptr) {
+        spdlog::warn("WHVD VP: no immediate context");
+        return false;
+    }
+    if (FAILED(_device->QueryInterface(__uuidof(ID3D11VideoDevice), (void**)&_videoDevice)) ||
+        FAILED(_immediateContext->QueryInterface(__uuidof(ID3D11VideoContext), (void**)&_videoContext))) {
+        spdlog::warn("WHVD VP: ID3D11VideoDevice/VideoContext unavailable");
+        return false;
+    }
+
+    D3D11_VIDEO_PROCESSOR_CONTENT_DESC desc = {};
+    desc.InputFrameFormat = D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE;
+    desc.InputWidth = _nativeWidth;
+    desc.InputHeight = _nativeHeight;
+    desc.OutputWidth = _width;
+    desc.OutputHeight = _height;
+    desc.Usage = D3D11_VIDEO_USAGE_PLAYBACK_NORMAL;
+
+    if (FAILED(_videoDevice->CreateVideoProcessorEnumerator(&desc, &_vpEnum)) || _vpEnum == nullptr) {
+        spdlog::warn("WHVD VP: CreateVideoProcessorEnumerator failed");
+        return false;
+    }
+    UINT fmtFlags = 0;
+    if (FAILED(_vpEnum->CheckVideoProcessorFormat(inputFormat, &fmtFlags)) ||
+        (fmtFlags & D3D11_VIDEO_PROCESSOR_FORMAT_SUPPORT_INPUT) == 0) {
+        spdlog::warn("WHVD VP: input format {} not supported by the processor", (int)inputFormat);
+        return false;
+    }
+    if (FAILED(_videoDevice->CreateVideoProcessor(_vpEnum, 0, &_videoProcessor)) || _videoProcessor == nullptr) {
+        spdlog::warn("WHVD VP: CreateVideoProcessor failed");
+        return false;
+    }
+
+    // State the colour space instead of letting the processor guess - but take
+    // it from the decoder rather than assuming. A fixed studio/BT.709 guess was
+    // measured wrong per file: brightness ratios against the FFmpeg path ranged
+    // 0.84 to 1.31 across models, because different files really do differ.
+    // Only fall back to the resolution heuristic when the decoder says nothing.
+    UINT32 srcRange = 0;
+    UINT32 srcMatrix = 0;
+    bool haveRange = false;
+    bool haveMatrix = false;
+    {
+        IMFMediaType* cur = nullptr;
+        if (SUCCEEDED(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &cur)) && cur != nullptr) {
+            haveRange = SUCCEEDED(cur->GetUINT32(MF_MT_VIDEO_NOMINAL_RANGE, &srcRange));
+            haveMatrix = SUCCEEDED(cur->GetUINT32(MF_MT_YUV_MATRIX, &srcMatrix));
+            SafeRelease(&cur);
+        }
+    }
+
+    D3D11_VIDEO_PROCESSOR_COLOR_SPACE inCS = {};
+    inCS.Usage = 0;         // playback, not video processing
+    inCS.RGB_Range = 0;     // full (not meaningful for a YUV input)
+    // 1 = BT.709, 0 = BT.601. When nothing is declared - which is every file
+    // measured here - match swscale rather than guess by resolution: FFmpeg
+    // falls back to BT.601 coefficients for an unspecified colorspace, and the
+    // FFmpeg reader is the path this has to agree with.
+    inCS.YCbCr_Matrix = haveMatrix ? (srcMatrix == MFVideoTransferMatrix_BT601 ? 0 : 1) : 0;
+    inCS.YCbCr_xvYCC = 0;
+    inCS.Nominal_Range = (haveRange && srcRange == MFNominalRange_0_255)
+                             ? D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_0_255
+                             : D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_16_235;
+    _videoContext->VideoProcessorSetStreamColorSpace(_videoProcessor, 0, &inCS);
+    spdlog::info("WHVD VP: source colour range={} matrix={} (declared: range {} matrix {})",
+                 (int)inCS.Nominal_Range, (int)inCS.YCbCr_Matrix,
+                 haveRange ? (int)srcRange : -1, haveMatrix ? (int)srcMatrix : -1);
+
+    D3D11_VIDEO_PROCESSOR_COLOR_SPACE outCS = {};
+    outCS.Usage = 0;
+    outCS.RGB_Range = 0;    // 0 = full 0-255, which is what the render buffer wants
+    outCS.YCbCr_Matrix = inCS.YCbCr_Matrix;
+    outCS.YCbCr_xvYCC = 0;
+    outCS.Nominal_Range = D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_0_255;
+    _videoContext->VideoProcessorSetOutputColorSpace(_videoProcessor, &outCS);
+
+    // Drivers otherwise apply denoise/sharpening/skin-tone "enhancements" that
+    // would alter pixels in ways no other decode path in xLights does.
+    _videoContext->VideoProcessorSetStreamAutoProcessingMode(_videoProcessor, 0, FALSE);
+
+    // Explicitly neutralise every filter. Turning auto-processing off is not
+    // enough: a driver may still apply a non-neutral default, and this one did
+    // - raw frames came out a near-constant +2.5 brighter than swscale at every
+    // intensity, which is an additive offset (a brightness filter), not the
+    // multiplicative error a colour-space mistake produces. Each filter is
+    // pinned to the range's stated default and disabled.
+    static const D3D11_VIDEO_PROCESSOR_FILTER kFilters[] = {
+        D3D11_VIDEO_PROCESSOR_FILTER_BRIGHTNESS,
+        D3D11_VIDEO_PROCESSOR_FILTER_CONTRAST,
+        D3D11_VIDEO_PROCESSOR_FILTER_HUE,
+        D3D11_VIDEO_PROCESSOR_FILTER_SATURATION,
+        D3D11_VIDEO_PROCESSOR_FILTER_NOISE_REDUCTION,
+        D3D11_VIDEO_PROCESSOR_FILTER_EDGE_ENHANCEMENT,
+        D3D11_VIDEO_PROCESSOR_FILTER_ANAMORPHIC_SCALING,
+        D3D11_VIDEO_PROCESSOR_FILTER_STEREO_ADJUSTMENT,
+    };
+    for (auto filter : kFilters) {
+        D3D11_VIDEO_PROCESSOR_FILTER_RANGE range = {};
+        if (SUCCEEDED(_vpEnum->GetVideoProcessorFilterRange(filter, &range))) {
+            _videoContext->VideoProcessorSetStreamFilter(_videoProcessor, 0, filter, FALSE, range.Default);
+        }
+    }
+
+    D3D11_TEXTURE2D_DESC td = {};
+    td.Width = _width;
+    td.Height = _height;
+    td.MipLevels = 1;
+    td.ArraySize = 1;
+    td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    td.SampleDesc.Count = 1;
+    td.Usage = D3D11_USAGE_DEFAULT;
+    td.BindFlags = D3D11_BIND_RENDER_TARGET;
+    if (FAILED(_device->CreateTexture2D(&td, nullptr, &_vpOutput))) {
+        spdlog::warn("WHVD VP: output texture creation failed");
+        return false;
+    }
+
+    D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC ovd = {};
+    ovd.ViewDimension = D3D11_VPOV_DIMENSION_TEXTURE2D;
+    ovd.Texture2D.MipSlice = 0;
+    if (FAILED(_videoDevice->CreateVideoProcessorOutputView(_vpOutput, _vpEnum, &ovd, &_vpOutputView))) {
+        spdlog::warn("WHVD VP: output view creation failed");
+        return false;
+    }
+
+    td.Usage = D3D11_USAGE_STAGING;
+    td.BindFlags = 0;
+    td.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    if (FAILED(_device->CreateTexture2D(&td, nullptr, &_staging))) {
+        spdlog::warn("WHVD VP: staging texture creation failed");
+        return false;
+    }
+
+    spdlog::info("WHVD VP: ready {}x{} -> {}x{}, matrix BT.{}",
+                  _nativeWidth, _nativeHeight, _width, _height, inCS.YCbCr_Matrix ? 709 : 601);
+    return true;
+}
+
+// Convert + scale the decoder's GPU surface with the video processor and read
+// back the (small) result. Only the final target-size frame crosses the bus.
+bool WindowsHardwareVideoReader::BltFromSample(IMFSample* sample)
+{
+    IMFMediaBuffer* buf = nullptr;
+    if (FAILED(sample->GetBufferByIndex(0, &buf)) || buf == nullptr) {
+        return false;
+    }
+
+    IMFDXGIBuffer* dxgi = nullptr;
+    if (FAILED(buf->QueryInterface(__uuidof(IMFDXGIBuffer), (void**)&dxgi)) || dxgi == nullptr) {
+        // Software-decoded sample - there is no GPU surface to process.
+        SafeRelease(&buf);
+        return false;
+    }
+
+    ID3D11Texture2D* tex = nullptr;
+    UINT subIdx = 0;
+    HRESULT hr = dxgi->GetResource(__uuidof(ID3D11Texture2D), (void**)&tex);
+    dxgi->GetSubresourceIndex(&subIdx);
+
+    bool ok = false;
+    if (SUCCEEDED(hr) && tex != nullptr) {
+        D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC ivd = {};
+        ivd.FourCC = 0;
+        ivd.ViewDimension = D3D11_VPIV_DIMENSION_TEXTURE2D;
+        ivd.Texture2D.MipSlice = 0;
+        ivd.Texture2D.ArraySlice = subIdx;
+
+        ID3D11VideoProcessorInputView* iv = nullptr;
+        if (SUCCEEDED(_videoDevice->CreateVideoProcessorInputView(tex, _vpEnum, &ivd, &iv)) && iv != nullptr) {
+            D3D11_VIDEO_PROCESSOR_STREAM stream = {};
+            stream.Enable = TRUE;
+            stream.pInputSurface = iv;
+
+            if (SUCCEEDED(_videoContext->VideoProcessorBlt(_videoProcessor, _vpOutputView, 0, 1, &stream))) {
+                _immediateContext->CopyResource(_staging, _vpOutput);
+
+                D3D11_MAPPED_SUBRESOURCE map = {};
+                if (SUCCEEDED(_immediateContext->Map(_staging, 0, D3D11_MAP_READ, 0, &map))) {
+                    const uint8_t pb = GetPixelBytes();
+                    const bool bgrOut = (_pixelFormat == AV_PIX_FMT_BGRA || _pixelFormat == AV_PIX_FMT_BGR24);
+                    const uint8_t* base = (const uint8_t*)map.pData;
+                    const uint32_t pitch = map.RowPitch;
+                    const uint32_t w = _width;
+                    AVFrame* frame = _frame;
+                    parallel_for(0, (int)_height, [base, pitch, w, pb, bgrOut, frame](int y) {
+                        const uint8_t* src = base + (size_t)y * pitch;
+                        uint8_t* dst = frame->data[0] + (size_t)y * frame->linesize[0];
+                        for (uint32_t x = 0; x < w; ++x) {
+                            uint8_t b = src[x * 4 + 0];
+                            uint8_t g = src[x * 4 + 1];
+                            uint8_t r = src[x * 4 + 2];
+                            // See BitmapFromSample: near-black must land on exact
+                            // zero or TransparentBlack treats it as opaque.
+                            if (r <= 4 && g <= 4 && b <= 4) {
+                                r = 0;
+                                g = 0;
+                                b = 0;
+                            }
+                            if (bgrOut) {
+                                dst[x * pb + 0] = b;
+                                dst[x * pb + 1] = g;
+                                dst[x * pb + 2] = r;
+                            } else {
+                                dst[x * pb + 0] = r;
+                                dst[x * pb + 1] = g;
+                                dst[x * pb + 2] = b;
+                            }
+                            if (pb == 4) {
+                                dst[x * pb + 3] = src[x * 4 + 3];
+                            }
+                        }
+                    });
+                    _immediateContext->Unmap(_staging, 0);
+                    ok = true;
+                }
+            }
+            SafeRelease(&iv);
+        }
+        SafeRelease(&tex);
+    }
+
+    SafeRelease(&dxgi);
+    SafeRelease(&buf);
+    return ok;
+}
+
+void WindowsHardwareVideoReader::ReleaseVideoProcessor()
+{
+    SafeRelease(&_staging);
+    SafeRelease(&_vpOutputView);
+    SafeRelease(&_vpOutput);
+    SafeRelease(&_videoProcessor);
+    SafeRelease(&_vpEnum);
+    SafeRelease(&_videoContext);
+    SafeRelease(&_videoDevice);
+    SafeRelease(&_immediateContext);
+}
+
 bool WindowsHardwareVideoReader::BitmapFromSample(IMFSample* sample, AVFrame* frame)
 {
     
@@ -576,17 +1289,40 @@ bool WindowsHardwareVideoReader::BitmapFromSample(IMFSample* sample, AVFrame* fr
     if (SUCCEEDED(hr)) {
         assert(pBitmapData != nullptr);
         assert(cbBitmapData > 0);
+        // Snap uniformly-near-black pixels to exact (0,0,0). H.264 artifacts in
+        // dark regions decode to values like (2,0,2) - sum 4, one over a typical
+        // TransparentBlack threshold of 3 - which render as faint blotches where
+        // the user expects clean transparency. FFmpeg's swscale bicubic happens
+        // to clip those during scaling; the MF video processor preserves them.
+        // Requires ALL THREE channels <= 4 so deliberately dark single-channel
+        // content (e.g. RGB(0,0,10)) is left alone. Mirrors the macOS bridge's
+        // copyPixelBufferToFrame.
+        auto snap = [](uint8_t& r, uint8_t& g, uint8_t& b) {
+            if (r <= 4 && g <= 4 && b <= 4) {
+                r = 0;
+                g = 0;
+                b = 0;
+            }
+        };
+        uint8_t pb = GetPixelBytes();
+        AVFrame* dstFrame = _frame;
+        uint32_t dstRows = _height;
         if (_pixelFormat == AVPixelFormat::AV_PIX_FMT_BGRA || _pixelFormat == AVPixelFormat::AV_PIX_FMT_BGR24) {
-            // I am not sure this is correct
-            memcpy(_frame->data[0], pBitmapData, std::min((uint32_t)cbBitmapData, (uint32_t)_frame->linesize[0] * _height));
+            // Source layout already matches the destination; copy then snap.
+            memcpy(dstFrame->data[0], pBitmapData, std::min((uint32_t)cbBitmapData, (uint32_t)dstFrame->linesize[0] * dstRows));
+            parallel_for(0, std::min((uint32_t)cbBitmapData / 4, ((uint32_t)dstFrame->linesize[0] * dstRows) / pb), [dstFrame, pb, snap](int i) {
+                uint8_t* p = dstFrame->data[0] + i * pb;
+                snap(p[0], p[1], p[2]);
+            });
         } else {
-            uint8_t pb = GetPixelBytes();
-            parallel_for(0, std::min((uint32_t)cbBitmapData / 4, ((uint32_t)_frame->linesize[0] * _height) / pb), [this, pb, pBitmapData](int i) {
-                *(this->_frame->data[0] + i * pb + 0) = *(pBitmapData + i * 4 + 2);
-                *(this->_frame->data[0] + i * pb + 1) = *(pBitmapData + i * 4 + 1);
-                *(this->_frame->data[0] + i * pb + 2) = *(pBitmapData + i * 4 + 0);
+            parallel_for(0, std::min((uint32_t)cbBitmapData / 4, ((uint32_t)dstFrame->linesize[0] * dstRows) / pb), [dstFrame, pb, pBitmapData, snap](int i) {
+                uint8_t* p = dstFrame->data[0] + i * pb;
+                p[0] = *(pBitmapData + i * 4 + 2);
+                p[1] = *(pBitmapData + i * 4 + 1);
+                p[2] = *(pBitmapData + i * 4 + 0);
+                snap(p[0], p[1], p[2]);
                 if (pb == 4)
-                    *(this->_frame->data[0] + i * pb + 3) = *(pBitmapData + i * 4 + 3);
+                    p[3] = *(pBitmapData + i * 4 + 3);
             });
         }
         res = true;
@@ -650,7 +1386,17 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
     if (_reader == nullptr || (timestampMS != 0xFFFFFFFF && timestampMS > GetDuration()))
         return nullptr;
 
-    if (timestampMS != 0xFFFFFFFF && timestampMS != 0 && _curPos > timestampMS && _curPos < timestampMS + GetFrameMS()) {
+    // Reuse the frame already decoded when it is the one NEAREST the request.
+    // The old test was `_curPos > timestampMS`, strictly greater, so a request
+    // landing exactly on the cached frame (curPos == timestampMS) fell through
+    // to the read loop - and that loop always reads at least one new sample, so
+    // it overshot by a whole frame. Measured against AVFoundation on a 30fps
+    // clip that was a constant +16.6ms (half a frame) on every such request.
+    // Allowing half a frame of lead-in makes the reuse test the same
+    // nearest-frame rule the read loop uses.
+    if (timestampMS != 0xFFFFFFFF && timestampMS != 0 &&
+        (int64_t)_curPos + (int64_t)(_frameMS / 2) >= (int64_t)timestampMS &&
+        _curPos < timestampMS + GetFrameMS()) {
         // the last frame should be ok ... so just return it again
 #ifdef DETAILED_LOGGING
         spdlog::debug("WHVD: Just returning last frame at {}.", _curPos);
@@ -666,6 +1412,9 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
     }
 
     IMFSample* sample = nullptr;
+    bool wantMore = false;   // set at the bottom of the loop; drives the do-while
+    uint32_t lastPos = _curPos;
+    int stalled = 0;
     do {
         assert(sample == nullptr);
 
@@ -673,11 +1422,22 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
         spdlog::debug("WHVD: Reading sample");
 #endif
         DWORD dwFlags = 0;
-        LONGLONG currentTime;
+        LONGLONG currentTime = 0;
         spdlog::trace("WHVD: ReadSample enter pos={}ms target={}ms thread={:#x}", _curPos, timestampMS, (uintptr_t)::GetCurrentThreadId());
         {
             auto _rs_t0 = std::chrono::steady_clock::now();
-            SAFEEXEC(_reader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, &dwFlags, &currentTime, &sample), "WHVD: Failed to read frame");
+            // Asynchronous form: every out-parameter must be null, the result
+            // arrives on the callback. Only one read may be outstanding per
+            // stream, which holds because this is the sole caller and it waits.
+            SAFEEXEC(_reader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, nullptr, nullptr, nullptr), "WHVD: Failed to request frame");
+            if (SUCCEEDED(hr)) {
+                HRESULT readStatus = S_OK;
+                if (!_callback->WaitForSample(ReadSampleTimeoutMS(), readStatus, dwFlags, currentTime, &sample)) {
+                    HandleReadTimeout(timestampMS);
+                    return nullptr;
+                }
+                hr = readStatus;
+            }
             auto _rs_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - _rs_t0).count();
             if (_rs_ms > 500)
                 spdlog::warn("WHVD: ReadSample took {}ms (pos={}ms target={}ms thread={:#x}) — possible GPU stall or TDR", _rs_ms, _curPos, timestampMS, (uintptr_t)::GetCurrentThreadId());
@@ -716,18 +1476,47 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
 #endif
         }
 
+        // Stop on the frame NEAREST the requested time, not the first frame at
+        // or after it. `_curPos < timestampMS` overshoots by a whole frame
+        // whenever the request falls in the first half of a frame interval:
+        // measured against AVFoundation on a 29.97fps clip, MF served the
+        // following frame on roughly half of all requests (+9.3ms mean, vs
+        // +0.9ms for FFmpeg, which agrees with AVFoundation). Half a frame of
+        // lead-in makes the three paths pick the same frame.
+        wantMore = (timestampMS != 0xFFFFFFFF) &&
+                   ((int64_t)_curPos + (int64_t)(_frameMS / 2) < (int64_t)timestampMS);
+
+        // A decoder that keeps succeeding without advancing would spin here for
+        // ever. Seek has always guarded against that; this loop had not.
+        if (wantMore && _curPos == lastPos) {
+            if (++stalled >= 100) {
+                // This file, not the platform: the decoder is answering, it just
+                // will not move on. Fall back for this reader only - the
+                // process-wide latch is for a decoder that has stopped
+                // responding altogether.
+                spdlog::error("WHVD: decoder stopped advancing at {}ms seeking {}ms in {} - falling back to software decode",
+                              _curPos, timestampMS, _filename);
+                SafeRelease(&sample);
+                _hardwareFailed = true;
+                return nullptr;
+            }
+        } else {
+            stalled = 0;
+        }
+        lastPos = _curPos;
+
         // we are not going to use this frame so we can let it go
-        if (_curPos < timestampMS) {
+        if (wantMore) {
 #ifdef DETAILED_LOGGING
             spdlog::debug("WHVD: Release sample");
 #endif
             SafeRelease(&sample);
         }
 
-    } while (_curPos < timestampMS && timestampMS != 0xFFFFFFFF);
+    } while (wantMore);
 
     if (timestampMS != 0xFFFFFFFF && sample != nullptr) {
-        if (!BitmapFromSample(sample, _frame)) {
+        if (_useVideoProcessor ? !BltFromSample(sample) : !BitmapFromSample(sample, _frame)) {
             spdlog::error("WHVD: Failed to extract the frame bitmap ... Media Foundations may be in a corrupt state.");
         }
 #ifdef DETAILED_LOGGING

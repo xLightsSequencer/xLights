@@ -249,7 +249,17 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             bdata.newCenter = buffer.BufferWi * (100 + (int)ispcCenter) / 200;
         }
 
-        int max = buffer.BufferWi * buffer.BufferHt;
+        if (buffer.dmx_buffer) {
+            // DMX fixtures need the colour routed through SetPixel()
+            ispc::uint8_t4 single { { 0, 0, 0, 255 } };
+            ispc::BarsEffectISPC(&bdata, 0, 1, &single);
+            buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+            return;
+        }
+
+        // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+        // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+        int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
         constexpr int bfBlockSize = 4096;
         int blocks = max / bfBlockSize + 1;
         parallel_for(0, blocks, [&bdata, &buffer, max](int y) {

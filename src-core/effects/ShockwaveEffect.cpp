@@ -102,7 +102,7 @@ int ShockwaveEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x
 {
     std::string timingtrack = e->GetSettings().Get("E_CHOICE_Shockwave_TimingTrack", "");
     if (!timingtrack.empty()) {
-        EffectLayer* el = GetTiming(timingtrack);
+        EffectLayer* el = GetTiming(timingtrack, e->GetParentEffectLayer()->GetParentElement()->GetSequenceElements());
         if (el) {            
             int effectStartMs = (int)e->GetStartTimeMS();
             int effectEndMs = (int)e->GetEndTimeMS();
@@ -167,7 +167,7 @@ void ShockwaveEffect::RenameTimingTrack(std::string oldname, std::string newname
 }
 
 double ShockwaveEffect::getEffectPosition(RenderBuffer& buffer, const SettingsMap& SettingsMap, const std::string &timingtrack) {
-    EffectLayer* el = GetTiming(timingtrack);
+    EffectLayer* el = GetTiming(timingtrack, GetSequenceElements(buffer));
     int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", sCyclesDefault);
     if (cycles < 1) cycles = 1;
 
@@ -307,7 +307,17 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
         sdata.colorS        = (float)colorHsv.saturation;
         sdata.colorV        = (float)colorHsv.value;
 
-        int max = buffer.BufferWi * buffer.BufferHt;
+        if (buffer.dmx_buffer) {
+            // DMX fixtures need the colour routed through SetPixel()
+            ispc::uint8_t4 single{ { 0, 0, 0, 255 } };
+            ispc::ShockwaveEffectISPC(&sdata, 0, 1, &single);
+            buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+            return;
+        }
+
+        // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+        // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+        int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
         constexpr int bfBlockSize = 4096;
         int blocks = max / bfBlockSize + 1;
         parallel_for(0, blocks, [&sdata, &buffer, max](int blk) {

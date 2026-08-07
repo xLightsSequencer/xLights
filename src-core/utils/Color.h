@@ -25,27 +25,14 @@ class ColorCurve;
 class HSVValue
 {
 public:
-    HSVValue(double h=0.0, double s=0.0, double v=0.0)
+    HSVValue(float h=0.0f, float s=0.0f, float v=0.0f)
         : hue(h), saturation(s), value(v) {}
     HSVValue(const xlColor &c);
     HSVValue& operator=(const xlColor& hsv);
 
-    double hue;
-    double saturation;
-    double value;
-};
-
-class HSLValue
-{
-public:
-    HSLValue(double h=0.0, double s=0.0, double l=0.0)
-        : hue(h), saturation(s), lightness(l) {}
-    HSLValue(const xlColor &c);
-    HSLValue& operator=(const xlColor& hsl);
-
-    double hue;
-    double saturation;
-    double lightness;
+    float hue;
+    float saturation;
+    float value;
 };
 
 class xlColor {
@@ -83,12 +70,9 @@ public:
         blue = b;
         alpha = a;
     }
-    xlColor(const xlColor &rgb) {
-        red = rgb.red;
-        blue = rgb.blue;
-        green = rgb.green;
-        alpha = rgb.alpha;
-    }
+    // Defaulted (memberwise) so xlColor stays trivially copyable — lets the many
+    // memcpy/realloc paths over xlColor buffers stay well-defined and warning-free.
+    xlColor(const xlColor &rgb) = default;
     xlColor(const std::string &str) {
         SetFromString(str);
     }
@@ -166,11 +150,6 @@ public:
         return *this;
     }
 
-    xlColor&operator=(const HSLValue& hsl) {
-        fromHSL(hsl);
-        return *this;
-    }
-
     HSVValue asHSV() const {
         HSVValue v;
         toHSV(v);
@@ -178,30 +157,6 @@ public:
     }
     void fromHSV(const HSVValue &v);
     void toHSV(HSVValue &v) const;
-
-    HSLValue asHSL() const {
-        HSLValue v;
-        toHSL(v);
-        return v;
-    }
-    void fromHSL(const HSLValue &v);
-    void toHSL(HSLValue &v) const;
-
-    xlColor ContrastColourNotBlack() const
-    {
-        xlColor c;
-        HSLValue hsl = asHSL();
-        hsl.hue += 0.5;
-        if (hsl.hue > 1.0)
-            hsl.hue -= 1.0;
-
-        if (hsl.lightness > 0.8 || hsl.lightness < 0.2)
-            hsl.lightness = 0.5;
-
-        c.fromHSL(hsl);
-
-        return c;
-    }
 
     static xlColor NilColor()
     {
@@ -338,4 +293,4 @@ enum ColorDisplayMode
     MODE_BLUE
 };
 
-const std::string& GetColourName(const xlColor& c);
+const std::string& GetColorName(const xlColor& c);

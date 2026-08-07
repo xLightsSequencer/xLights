@@ -28,5 +28,6 @@ private:
     ViewObject* DeserializeImage(pugi::xml_node node, ViewObjectManager& objects, bool importing);
     ViewObject* DeserializeMesh(pugi::xml_node node, ViewObjectManager& objects, bool importing);
     ViewObject* DeserializeRuler(pugi::xml_node node, ViewObjectManager& objects, bool importing);
+    ViewObject* DeserializeController(pugi::xml_node node, ViewObjectManager& objects, bool importing);
     ViewObject* DeserializeTerrain(pugi::xml_node node, ViewObjectManager& objects, bool importing);
 };

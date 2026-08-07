@@ -10,6 +10,7 @@
 
 #import "XLSequenceDocument.h"
 #import "XLGridMetalBridge.h"
+#import "XLLightTest+Internal.h"
 #import <CoreGraphics/CoreGraphics.h>
 #include "iPadRenderContext.h"
 
@@ -19,6 +20,9 @@
 #include "render/Effect.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceMedia.h"
+#include "render/SequenceFaces.h"
+#include "render/EffectSymbol.h"
+#include "render/EffectSymbolManager.h"
 #include "render/SequenceFile.h"
 #include "render/SequencePackage.h"
 #include "render/RenderEngine.h"
@@ -26,6 +30,7 @@
 #include "render/ModelVideoExporter.h"
 #include "render/ModelGifExporter.h"
 #import "XLHousePreviewVideoExporter.h"
+#include "utils/ShowGuid.h"
 #include "utils/UtilFunctions.h"
 #include "utils/string_utils.h"
 #include "lyrics/PhonemeDictionary.h"
@@ -35,6 +40,7 @@
 #include "effects/SketchSVGImport.h"
 #include "effects/EffectManager.h"
 #include "effects/ShaderEffect.h"
+#include "effects/MovingHeadEffect.h"
 #include "graphics/xlGraphicsAccumulators.h"
 #include "media/AudioManager.h"
 #include "media/NoteImporter.h"
@@ -61,16 +67,19 @@
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
+#include "models/SubModelOps.h"
 #include "models/ViewObject.h"
 #include "models/ViewObjectManager.h"
 #include "models/MeshObject.h"
 #include "models/ImageObject.h"
 #include "models/GridlinesObject.h"
+#include "models/ControllerObject.h"
 #include "models/TerrainObject.h"
 #include "models/RulerObject.h"
 #include "models/BoxedScreenLocation.h"
 #include "models/TwoPointScreenLocation.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
+#include "XmlSerializer/FileSerializingVisitor.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "XmlSerializer/XmlSerializeFunctions.h"
 #include "XmlSerializer/GdtfParser.h"
@@ -164,7 +173,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <limits>
 #include <memory>
+#include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -220,6 +232,9 @@ static int IndexOfString(NSArray<NSString*>* options, const std::string& v);
 
 @implementation XLSequenceDocument {
     std::unique_ptr<iPadRenderContext> _context;
+    // Lazily built by -lightTest; holds the test channel selection so it
+    // survives the sheet being dismissed and reopened.
+    XLLightTest* _lightTest;
     // Snapshot of `SequenceElements::GetChangeCount()` at the last
     // successful load / save. Current count == snapshot ⇒ clean.
     unsigned int _lastSavedChangeCount;
@@ -321,6 +336,111 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
         [out addObject:[NSString stringWithUTF8String:mf.c_str()]];
     }
     return out;
+}
+
+- (void)writeShowStatsSidecar {
+    if (!_context || !_context->HasModelManager()) return;
+
+    size_t models = 0, groups = 0, submodels = 0;
+    size_t nodes = 0;
+    for (const auto& [name, m] : _context->GetModelManager().GetModels()) {
+        if (m == nullptr) continue;
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            ++groups;
+            continue;
+        }
+        ++models;
+        submodels += m->GetSubModels().size();
+        nodes += m->GetNodeCount();
+    }
+
+    NSFileManager* fm = [NSFileManager defaultManager];
+    NSString* showDir = [NSString stringWithUTF8String:_context->GetShowDirectory().c_str()];
+    auto fileSize = ^unsigned long long(NSString* name) {
+        NSString* p = [showDir stringByAppendingPathComponent:name];
+        NSDictionary* a = [fm attributesOfItemAtPath:p error:nil];
+        return a ? [a fileSize] : 0ULL;
+    };
+
+    NSMutableString* out = [NSMutableString string];
+    [out appendString:@"# xLights iPad show size — counts, product names and byte sizes only.\n"];
+    [out appendString:@"# No user names, model names, addresses or file paths.\n"];
+    // The show's own random id, not the device's or the user's. Present so a
+    // show that crashes repeatedly is counted once, and so the same show opened
+    // from Mac, Windows and iPad is recognised as one show. Absent for a show
+    // folder that was not writable when first opened.
+    if (!_context->GetShowGuid().empty()) {
+        [out appendFormat:@"showguid %s\n", _context->GetShowGuid().c_str()];
+    }
+    [out appendFormat:@"models %zu\n", models];
+    [out appendFormat:@"groups %zu\n", groups];
+    [out appendFormat:@"submodels %zu\n", submodels];
+    [out appendFormat:@"nodes %zu\n", nodes];
+    [out appendFormat:@"viewobjects %u\n",
+        _context->HasViewObjectManager() ? _context->GetAllObjects().size() : 0u];
+    [out appendFormat:@"mediafolders %zu\n", _context->GetMediaFolders().size()];
+    [out appendFormat:@"rgbeffects_bytes %llu\n", fileSize(@"xlights_rgbeffects.xml")];
+    [out appendFormat:@"networks_bytes %llu\n", fileSize(@"xlights_networks.xml")];
+
+    // Categorical breakdown. The desktop gets this by shipping the show XML,
+    // which the automatic iPad upload deliberately does not carry — so the
+    // counts are rolled up here instead. Model types and controller
+    // vendor/model/protocol are product identifiers, not user content.
+    std::map<std::string, int> typeCounts;
+    for (const auto& [name, m] : _context->GetModelManager().GetModels()) {
+        if (m == nullptr || m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+        ++typeCounts[DisplayAsTypeToString(m->GetDisplayAs())];
+    }
+    for (const auto& [type, count] : typeCounts) {
+        [out appendFormat:@"modeltype %s %d\n", type.c_str(), count];
+    }
+
+    std::map<std::string, int> ctrlCounts;
+    std::map<std::string, int> protoCounts;
+    std::set<std::string> proxies;
+    int nProxied = 0;
+    int32_t totalChannels = 0;
+    for (const auto* c : _context->GetOutputManager().GetControllers()) {
+        if (c == nullptr) continue;
+        std::string vendor = c->GetVendor().empty() ? "unknown" : c->GetVendor();
+        std::string model = c->GetModel().empty() ? "unknown" : c->GetModel();
+        ++ctrlCounts[vendor + "|" + model + "|" + Controller::DecodeActiveState(c->GetActive())];
+        if (!c->GetProtocol().empty()) {
+            ++protoCounts[c->GetProtocol()];
+        }
+        totalChannels += c->GetChannels();
+        std::string proxy = c->GetFPPProxy();
+        if (!proxy.empty()) {
+            ++nProxied;
+            proxies.insert(proxy);
+        }
+    }
+    [out appendFormat:@"channels %d\n", (int)totalChannels];
+    for (const auto& [key, count] : ctrlCounts) {
+        [out appendFormat:@"controller %s %d\n", key.c_str(), count];
+    }
+    for (const auto& [proto, count] : protoCounts) {
+        [out appendFormat:@"protocol %s %d\n", proto.c_str(), count];
+    }
+    // Proxy addresses are never written — only how many distinct ones are in
+    // use, which is what distinguishes one shared proxy from one per controller.
+    [out appendFormat:@"proxied %d\n", nProxied];
+    [out appendFormat:@"distinctproxies %zu\n", proxies.size()];
+
+    NSString* libraryPath = NSSearchPathForDirectoriesInDomains(
+        NSLibraryDirectory, NSUserDomainMask, YES).firstObject;
+    if (libraryPath.length == 0) return;
+    NSString* logsDir = [libraryPath stringByAppendingPathComponent:@"Logs"];
+    [fm createDirectoryAtPath:logsDir
+  withIntermediateDirectories:YES
+                   attributes:nil
+                        error:nil];
+    [out writeToFile:[logsDir stringByAppendingPathComponent:@"xlShowStats.txt"]
+          atomically:YES
+            encoding:NSUTF8StringEncoding
+               error:nil];
+    spdlog::info("Show size: {} models, {} groups, {} submodels, {} nodes, rgbeffects {} bytes",
+                 models, groups, submodels, nodes, (unsigned long long)fileSize(@"xlights_rgbeffects.xml"));
 }
 
 - (NSString*)moveFileToShowFolder:(NSString*)sourcePath
@@ -497,8 +617,13 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
 
     // Drop any current sequence state before we start. CloseSequence
     // clears SequenceElements and releases the SequenceFile unique_ptr
-    // so the fresh save below starts from a clean slate.
-    _context->CloseSequence();
+    // so the fresh save below starts from a clean slate. If it could not
+    // drain the render it released nothing, and the new-sequence setup
+    // below would overwrite storage the live workers still read.
+    if (!_context->CloseSequence()) {
+        spdlog::warn("XLSequenceDocument: refusing to create a new sequence - the current one is still rendering");
+        return NO;
+    }
 
     std::string pathStr([savePath UTF8String]);
     ObtainAccessToURL(pathStr, /*enforceWritable=*/true);
@@ -557,7 +682,9 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
 }
 
 - (void)closeSequence {
-    _context->CloseSequence();
+    // A failed drain leaks the sequence storage rather than freeing it under the
+    // live workers; nothing below writes to it, so closing is still safe.
+    (void)_context->CloseSequence();
     _lastSavedChangeCount = 0;
 
     // If the current session came from a `.xsqz`, tear down the
@@ -1020,6 +1147,11 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     _context->EnsureSequenceDataSized();
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
     return YES;
+}
+
+- (int)maxEffectEndTimeMS {
+    if (!_context || !_context->IsSequenceLoaded()) return 0;
+    return _context->GetSequenceElements().GetMaxEffectEndTimeMS();
 }
 
 - (int)frameIntervalMS {
@@ -3304,6 +3436,23 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         postNotificationName:@"XLViewsChanged" object:self];
 }
 
+// View definitions live in xlights_rgbeffects.xml, not the .xsq, so
+// marking the sequence dirty is not enough to make a view edit
+// durable — every mutation of the SequenceViewManager writes through.
+// Element visibility and timing membership (which live in the .xsq)
+// deliberately don't call this.
+- (void)persistViews {
+    if (!_context) return;
+    if (!_context->SaveViews()) {
+        spdlog::warn("XLSequenceDocument: view edit applied in memory but SaveViews failed — change is session-scoped");
+    }
+}
+
++ (BOOL)isValidViewName:(NSString*)name {
+    if (name.length == 0) return NO;
+    return SequenceViewManager::IsValidViewName(std::string([name UTF8String])) ? YES : NO;
+}
+
 - (BOOL)addViewNamed:(NSString*)name {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
     if (!name) return NO;
@@ -3312,6 +3461,9 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     while (!n.empty() && std::isspace((unsigned char)n.front())) n.erase(n.begin());
     while (!n.empty() && std::isspace((unsigned char)n.back())) n.pop_back();
     if (n.empty()) return NO;
+    // Same character rule the desktop enforces at entry — a comma in a
+    // view name breaks the per-view timing membership CSV outright.
+    if (!SequenceViewManager::IsValidViewName(n)) return NO;
     auto& vm = _context->GetSequenceViewManager();
     if (vm.GetView(n) != nullptr) return NO;  // duplicate
     vm.AddView(n);
@@ -3319,6 +3471,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     // view index is addressable via GetElement(i, viewIdx).
     _context->GetSequenceElements().AddView(n);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3346,6 +3499,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         se.PopulateRowInformation();
     }
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3358,6 +3512,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     while (!n.empty() && std::isspace((unsigned char)n.front())) n.erase(n.begin());
     while (!n.empty() && std::isspace((unsigned char)n.back())) n.pop_back();
     if (n.empty()) return NO;
+    if (!SequenceViewManager::IsValidViewName(n)) return NO;
     auto& vm = _context->GetSequenceViewManager();
     if (idx >= vm.GetViewCount()) return NO;
     if (vm.GetView(n) != nullptr) return NO;  // collision
@@ -3368,6 +3523,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     // stale view names there are silently dropped at load. Match that
     // behaviour to avoid surprising round-trip side effects.
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3379,6 +3535,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     while (!n.empty() && std::isspace((unsigned char)n.front())) n.erase(n.begin());
     while (!n.empty() && std::isspace((unsigned char)n.back())) n.pop_back();
     if (n.empty()) return NO;
+    if (!SequenceViewManager::IsValidViewName(n)) return NO;
     auto& se = _context->GetSequenceElements();
     auto& vm = _context->GetSequenceViewManager();
     if (idx < 0 || idx >= vm.GetViewCount()) return NO;
@@ -3421,6 +3578,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     }
 
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3433,6 +3591,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     if (idx >= vm.GetViewCount()) return NO;
     vm.MoveViewUp(idx);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3444,6 +3603,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     if (idx >= vm.GetViewCount() - 1) return NO;
     vm.MoveViewDown(idx);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3508,6 +3668,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     }
     se.PopulateRowInformation();
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3528,6 +3689,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         se.PopulateRowInformation();
     }
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3549,6 +3711,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         se.PopulateRowInformation();
     }
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3664,6 +3827,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     }
 
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return [NSString stringWithUTF8String:viewName.c_str()];
 }
@@ -5253,6 +5417,32 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
     return changed;
 }
 
+- (BOOL)undoLastCoreStep {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    auto& mgr = _context->GetSequenceElements().get_undo_mgr();
+    if (!mgr.CanUndo()) return NO;
+    mgr.UndoLastStep();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)autosaveLayoutChanges {
+    if (!_context) return NO;
+    return _context->AutosaveLayoutChanges() ? YES : NO;
+}
+
+- (BOOL)hasNewerLayoutAutosave {
+    return (_context && _context->HasNewerLayoutAutosave()) ? YES : NO;
+}
+
+- (BOOL)restoreLayoutAutosave {
+    return (_context && _context->RestoreLayoutAutosave()) ? YES : NO;
+}
+
+- (void)discardLayoutAutosave {
+    if (_context) _context->DiscardLayoutAutosave();
+}
+
 - (BOOL)saveLayoutChanges {
     if (!_context) return NO;
     return _context->SaveLayoutChanges() ? YES : NO;
@@ -5371,6 +5561,114 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
     return YES;
 }
 
+#pragma mark - Model Sets (desktop #3703)
+
+- (NSArray<NSDictionary*>*)modelSets {
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager()) return out;
+    for (const auto& s : _context->GetModelManager().GetSetManager().GetAllSets()) {
+        NSMutableArray<NSString*>* members = [NSMutableArray array];
+        for (const auto& m : s->GetMembers()) {
+            [members addObject:[NSString stringWithUTF8String:m.c_str()]];
+        }
+        [out addObject:@{
+            @"name": [NSString stringWithUTF8String:s->GetName().c_str()],
+            @"models": members,
+        }];
+    }
+    return out;
+}
+
+- (NSString*)modelSetNameContainingModel:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return nil;
+    auto* s = _context->GetModelManager().GetSetManager()
+                  .GetSetContaining(modelName.UTF8String);
+    if (!s) return nil;
+    return [NSString stringWithUTF8String:s->GetName().c_str()];
+}
+
+- (NSArray<NSString*>*)modelsInSetContainingModel:(NSString*)modelName {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager() || !modelName) return out;
+    auto* s = _context->GetModelManager().GetSetManager()
+                  .GetSetContaining(modelName.UTF8String);
+    if (!s) return out;
+    for (const auto& m : s->GetMembers()) {
+        [out addObject:[NSString stringWithUTF8String:m.c_str()]];
+    }
+    return out;
+}
+
+- (NSString*)createModelSetWithModels:(NSArray<NSString*>*)modelNames
+                                 named:(NSString*)suggestedName {
+    if (!_context || !_context->HasModelManager() || modelNames.count < 2) return nil;
+    auto& mgr = _context->GetModelManager();
+    std::vector<std::string> members;
+    members.reserve(modelNames.count);
+    for (NSString* n in modelNames) {
+        std::string name = n.UTF8String;
+        // Groups and submodels have no layout position of their own, so a
+        // Set over them would have nothing to translate.
+        Model* m = mgr.GetModel(name);
+        if (!m || m->GetDisplayAs() == DisplayAsType::ModelGroup
+            || m->GetDisplayAs() == DisplayAsType::SubModel) {
+            continue;
+        }
+        members.push_back(name);
+    }
+    if (members.size() < 2) return nil;
+    auto* s = mgr.GetSetManager().CreateSet(
+        members, suggestedName ? std::string(suggestedName.UTF8String) : std::string());
+    if (!s) return nil;
+    return [NSString stringWithUTF8String:s->GetName().c_str()];
+}
+
+- (NSString*)suggestedModelSetName {
+    if (!_context || !_context->HasModelManager()) return @"Set 1";
+    return [NSString stringWithUTF8String:
+            _context->GetModelManager().GetSetManager().SuggestName().c_str()];
+}
+
+- (BOOL)renameModelSet:(NSString*)oldName to:(NSString*)newName {
+    if (!_context || !_context->HasModelManager() || !oldName || !newName) return NO;
+    auto& setMgr = _context->GetModelManager().GetSetManager();
+    auto* s = setMgr.GetSetByName(oldName.UTF8String);
+    if (!s) return NO;
+    return setMgr.RenameSet(s, newName.UTF8String) ? YES : NO;
+}
+
+- (BOOL)deleteModelSet:(NSString*)setName {
+    if (!_context || !_context->HasModelManager() || !setName) return NO;
+    auto& setMgr = _context->GetModelManager().GetSetManager();
+    auto* s = setMgr.GetSetByName(setName.UTF8String);
+    if (!s) return NO;
+    setMgr.DeleteSet(s);
+    return YES;
+}
+
+- (BOOL)addModel:(NSString*)modelName toModelSet:(NSString*)setName {
+    if (!_context || !_context->HasModelManager() || !modelName || !setName) return NO;
+    auto& mgr = _context->GetModelManager();
+    Model* m = mgr.GetModel(modelName.UTF8String);
+    if (!m || m->GetDisplayAs() == DisplayAsType::ModelGroup
+        || m->GetDisplayAs() == DisplayAsType::SubModel) {
+        return NO;
+    }
+    auto& setMgr = mgr.GetSetManager();
+    auto* s = setMgr.GetSetByName(setName.UTF8String);
+    if (!s) return NO;
+    setMgr.AddMember(s, modelName.UTF8String);
+    return YES;
+}
+
+- (BOOL)removeModelFromItsSet:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return NO;
+    auto& setMgr = _context->GetModelManager().GetSetManager();
+    if (!setMgr.GetSetContaining(modelName.UTF8String)) return NO;
+    setMgr.RemoveMember(modelName.UTF8String);
+    return YES;
+}
+
 - (BOOL)renameModel:(NSString*)oldName to:(NSString*)newName {
     if (!_context || !_context->HasModelManager()) return NO;
     if (!oldName || !newName) return NO;
@@ -5390,6 +5688,15 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
 
     _context->MarkModelRenamed(oldStd, newStd);
     _context->MarkLayoutModelDirty(newStd);
+
+    // Views reference their models by name in xlights_rgbeffects.xml,
+    // so a rename that skipped them would silently drop the model from
+    // every view it belonged to (desktop TabSequence.cpp:1020-1021).
+    _context->GetSequenceViewManager().RenameModel(oldStd, newStd);
+    [self persistViews];
+    if (_context->IsSequenceLoaded()) {
+        _context->GetSequenceElements().RenameModelInViews(oldStd, newStd);
+    }
 
     // Any group whose member list referenced the old name will
     // now reference the new — mark those groups dirty too so the
@@ -5565,6 +5872,213 @@ static NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>* faceStateTo
     Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
     if (!m) return @{};
     return faceStateToNSDict(m->GetDimmingInfo());
+}
+
+// === Sequence-level (Matrix/image) face definitions ===
+// The Sequence Settings > Faces editor edits SequenceFaces on the
+// SequenceElements (persisted in the .xsq). Shape mirrors model faceInfo
+// (name -> attr -> value) so the shared faceStateTo/FromNSDict helpers
+// apply. Image-cell keys are Mouth-<PHONEME>-EyesOpen/-EyesClosed;
+// ImagePlacement holds the scaling mode. Definitions are Matrix-only
+// (node/Coro faces depend on a model's node layout and stay model-level).
+
+// Point referencing Faces/CoroFaces effects at a renamed sequence face,
+// skipping effects whose own model defines the old name (model definitions
+// win, so those were never using the sequence definition). Mirrors the
+// desktop SequenceFacesPanel::RenameFaceReferences.
+static void repointSequenceFaceReferences(iPadRenderContext* ctx,
+                                          const std::string& oldName,
+                                          const std::string& newName) {
+    if (ctx == nullptr) return;
+    auto& se = ctx->GetSequenceElements();
+    auto modelShadows = [&](const std::string& modelName) -> bool {
+        if (!ctx->HasModelManager()) return false;
+        Model* m = ctx->GetModelManager()[modelName];
+        if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            auto* mg = dynamic_cast<ModelGroup*>(m);
+            m = mg != nullptr ? mg->GetFirstModel() : nullptr;
+        }
+        return m != nullptr && m->GetFaceInfo().find(oldName) != m->GetFaceInfo().end();
+    };
+    auto scanLayer = [&](EffectLayer* layer) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            const std::string& en = eff->GetEffectName();
+            if (en != "Faces" && en != "CoroFaces") continue;
+            if (eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "") == oldName) {
+                eff->SetSetting("E_CHOICE_Faces_FaceDefinition", newName);
+            }
+        }
+    };
+    for (int i = 0; i < (int)se.GetElementCount(); ++i) {
+        Element* e = se.GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        ModelElement* me = dynamic_cast<ModelElement*>(e);
+        if (me == nullptr || modelShadows(me->GetModelName())) continue;
+        for (int j = 0; j < (int)me->GetEffectLayerCount(); ++j) scanLayer(me->GetEffectLayer(j));
+        for (int j = 0; j < (int)me->GetSubModelAndStrandCount(); ++j) {
+            SubModelElement* sub = me->GetSubModel(j);
+            for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l) scanLayer(sub->GetEffectLayer(l));
+        }
+    }
+}
+
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)sequenceFaces {
+    if (!_context || !_context->IsSequenceLoaded()) return @{};
+    return faceStateToNSDict(_context->GetSequenceElements().GetSequenceFaces().GetFaces());
+}
+
+- (BOOL)addSequenceFace:(NSString*)name {
+    if (!_context || !_context->IsSequenceLoaded() || name.length == 0) return NO;
+    auto& faces = _context->GetSequenceElements().GetSequenceFaces();
+    std::string n([name UTF8String]);
+    if (faces.GetFace(n) != nullptr) return NO;
+    std::map<std::string, std::string> def;
+    def["ImagePlacement"] = "Scaled";
+    faces.SetFace(n, def);
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+- (BOOL)removeSequenceFace:(NSString*)name {
+    if (!_context || !_context->IsSequenceLoaded() || name.length == 0) return NO;
+    _context->AbortRender(5000);
+    bool ok = _context->GetSequenceElements().GetSequenceFaces().RemoveFace(std::string([name UTF8String]));
+    if (ok) bumpSequenceDirty(_context.get());
+    return ok;
+}
+
+- (BOOL)renameSequenceFace:(NSString*)oldName to:(NSString*)newName {
+    if (!_context || !_context->IsSequenceLoaded() || oldName.length == 0 || newName.length == 0) return NO;
+    _context->AbortRender(5000);
+    std::string oldN([oldName UTF8String]);
+    std::string newN([newName UTF8String]);
+    if (!_context->GetSequenceElements().GetSequenceFaces().RenameFace(oldN, newN)) return NO;
+    repointSequenceFaceReferences(_context.get(), oldN, newN);
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+- (BOOL)setSequenceFaceImage:(NSString*)name key:(NSString*)key path:(NSString*)path {
+    if (!_context || !_context->IsSequenceLoaded() || name.length == 0 || key.length == 0) return NO;
+    auto& elements = _context->GetSequenceElements();
+    auto& faces = elements.GetSequenceFaces();
+    std::string n([name UTF8String]);
+    const auto* cur = faces.GetFace(n);
+    std::map<std::string, std::string> def = cur != nullptr ? *cur : std::map<std::string, std::string>();
+    std::string value = path != nil ? std::string([path UTF8String]) : std::string();
+    def[std::string([key UTF8String])] = value;
+    _context->AbortRender(5000);
+    faces.SetFace(n, def);
+    if (!value.empty()) {
+        auto& media = elements.GetSequenceMedia();
+        // register (lazily) so the Media tab lists/embeds it and flag it
+        // used-by-metadata so unused-media cleanup keeps it - nothing in an
+        // effect's settings references a sequence-face image
+        if (!media.HasImage(value) && FileExists(FileUtils::FixFile("", value))) {
+            media.RegisterImage(value);
+        }
+        media.MarkUsedByMetadata(value);
+    }
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+- (BOOL)setSequenceFacePlacement:(NSString*)name placement:(NSString*)placement {
+    if (!_context || !_context->IsSequenceLoaded() || name.length == 0) return NO;
+    auto& faces = _context->GetSequenceElements().GetSequenceFaces();
+    std::string n([name UTF8String]);
+    const auto* cur = faces.GetFace(n);
+    std::map<std::string, std::string> def = cur != nullptr ? *cur : std::map<std::string, std::string>();
+    def["ImagePlacement"] = placement != nil ? std::string([placement UTF8String]) : std::string("Scaled");
+    faces.SetFace(n, def);
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+// Models (incl. groups via their first model) that carry a Matrix face,
+// as {@"model", @"face"} pairs - feeds the "Import from Model" picker.
+- (NSArray<NSDictionary<NSString*, NSString*>*>*)sequenceFaceImportSources {
+    if (!_context || !_context->HasModelManager()) return @[];
+    NSMutableArray<NSDictionary<NSString*, NSString*>*>* out = [NSMutableArray array];
+    for (const auto& [modelName, m] : _context->GetModelManager()) {
+        if (m == nullptr) continue;
+        for (const auto& [faceName, def] : m->GetFaceInfo()) {
+            auto it = def.find("Type");
+            if (it != def.end() && it->second == "Matrix") {
+                [out addObject:@{ @"model": [NSString stringWithUTF8String:modelName.c_str()],
+                                  @"face": [NSString stringWithUTF8String:faceName.c_str()] }];
+            }
+        }
+    }
+    return out;
+}
+
+- (BOOL)importSequenceFaceFromModel:(NSString*)modelName face:(NSString*)faceName {
+    if (!_context || !_context->HasModelManager() || !_context->IsSequenceLoaded()
+        || modelName.length == 0 || faceName.length == 0) return NO;
+    Model* m = _context->GetModelManager()[std::string([modelName UTF8String])];
+    if (m == nullptr) return NO;
+    std::string fn([faceName UTF8String]);
+    auto& faces = _context->GetSequenceElements().GetSequenceFaces();
+    if (faces.GetFace(fn) != nullptr) return NO; // already defined - don't overwrite
+    auto it = m->GetFaceInfo().find(fn);
+    if (it == m->GetFaceInfo().end()) return NO;
+    auto ti = it->second.find("Type");
+    if (ti == it->second.end() || ti->second != "Matrix") return NO; // Matrix-only
+    faces.SetFace(fn, it->second);
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    for (const auto& [key, value] : it->second) {
+        if (SequenceFaces::IsImageKey(key) && !value.empty()) {
+            if (!media.HasImage(value) && FileExists(FileUtils::FixFile("", value))) {
+                media.RegisterImage(value);
+            }
+            media.MarkUsedByMetadata(value);
+        }
+    }
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+// Re-render every model whose Faces/CoroFaces effect uses one of the edited
+// definitions (or resolves via Default/empty) - definition content lives
+// outside effect settings, so referencing effects need an explicit re-render.
+// Mirrors the desktop SequenceFacesPanel::ApplyPendingRenders batch.
+- (void)reRenderSequenceFaceEffects:(NSArray<NSString*>*)names {
+    if (!_context || !_context->IsSequenceLoaded() || names.count == 0) return;
+    std::set<std::string> touched;
+    for (NSString* s in names) {
+        if (s != nil) touched.insert(std::string([s UTF8String]));
+    }
+    auto& se = _context->GetSequenceElements();
+    std::map<std::string, std::pair<int, int>> dirty;
+    auto scanLayer = [&](EffectLayer* layer, const std::string& modelName) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            const std::string& en = eff->GetEffectName();
+            if (en != "Faces" && en != "CoroFaces") continue;
+            std::string face = eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "Default");
+            if (face != "Default" && !face.empty() && touched.find(face) == touched.end()) continue;
+            auto& r = dirty.emplace(modelName, std::make_pair(std::numeric_limits<int>::max(), 0)).first->second;
+            r.first = std::min(r.first, eff->GetStartTimeMS());
+            r.second = std::max(r.second, eff->GetEndTimeMS());
+        }
+    };
+    for (int i = 0; i < (int)se.GetElementCount(); ++i) {
+        Element* e = se.GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        ModelElement* me = dynamic_cast<ModelElement*>(e);
+        if (me == nullptr) continue;
+        const std::string& mn = me->GetModelName();
+        for (int j = 0; j < (int)me->GetEffectLayerCount(); ++j) scanLayer(me->GetEffectLayer(j), mn);
+        for (int j = 0; j < (int)me->GetSubModelAndStrandCount(); ++j) {
+            SubModelElement* sub = me->GetSubModel(j);
+            for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l) scanLayer(sub->GetEffectLayer(l), mn);
+        }
+    }
+    for (const auto& [mn, range] : dirty) {
+        _context->RenderEffectForModel(mn, range.first, range.second, true);
+    }
 }
 
 // J-23 — Custom-model 3D grid bridge. Exposes `_locations` as
@@ -5761,6 +6275,10 @@ static NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>* faceStateTo
         }
         sm->Setup();
     }
+    // Every SubModel of parent was just freed and rebuilt. Model groups cache
+    // raw pointers to the submodels they name and the render path walks that
+    // cache, so they have to be repointed here.
+    _context->GetModelManager().ResetModelGroups();
     parent->IncrementChangeCount();
     _context->MarkLayoutModelDirty(std::string(parentName.UTF8String));
     return YES;
@@ -5934,7 +6452,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     if (m->GetDisplayAs() == DisplayAsType::ModelGroup) return NO;
     ObtainAccessToURL([path UTF8String], true);
     XmlSerializer serializer;
-    pugi::xml_document doc = serializer.SerializeModel(m, /*includeGroups*/ true);
+    pugi::xml_document doc = serializer.SerializeModel(m, /*includeGroups*/ true, /*forExport*/ true);
     return doc.save_file(path.UTF8String) ? YES : NO;
 }
 
@@ -6017,6 +6535,105 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
     if (!m) return 0;
     return (NSInteger)m->GetNodeCount();
+}
+
+- (nullable NSString*)exportSubmodelsCSVForModel:(NSString*)parentName {
+    if (!_context || !_context->HasModelManager() || !parentName) return nil;
+    Model* m = _context->GetModelManager()[std::string(parentName.UTF8String)];
+    if (!m) return nil;
+
+    std::vector<submodel_ops::SubModelSpec> specs;
+    for (Model* sub : m->GetSubModels()) {
+        if (sub == nullptr) continue;
+        SubModel* sm = dynamic_cast<SubModel*>(sub);
+        if (sm == nullptr) continue;
+
+        submodel_ops::SubModelSpec spec;
+        spec.name = sm->GetName();
+        spec.isRanges = sm->IsRanges();
+        spec.vertical = sm->IsVertical();
+        spec.bufferStyle = sm->GetSubModelBufferStyle();
+        if (spec.isRanges) {
+            const int n = sm->GetNumRanges();
+            for (int i = 0; i < n; ++i) {
+                spec.strands.push_back(sm->GetRange(i));
+            }
+        } else {
+            spec.subBuffer = sm->GetSubModelLines();
+        }
+        specs.push_back(std::move(spec));
+    }
+
+    return [NSString stringWithUTF8String:submodel_ops::ExportSubModelsCSV(specs).c_str()];
+}
+
+- (nullable NSArray<NSString*>*)applySubmodelOperation:(NSString*)op
+                                             toStrands:(NSArray<NSString*>*)strands
+                                             nodeCount:(NSInteger)nodeCount
+                                            displayRow:(NSInteger)displayRow
+                                                amount:(NSInteger)amount {
+    if (!op || !strands) return nil;
+
+    std::vector<std::string> s;
+    s.reserve(strands.count);
+    for (NSString* r in strands) {
+        if ([r isKindOfClass:[NSString class]]) {
+            s.emplace_back(r.UTF8String);
+        }
+    }
+
+    const std::string name = op.UTF8String;
+    const int row = (int)displayRow;
+
+    if (name == "reverse") {
+        submodel_ops::ReverseNodes(s, (int)nodeCount);
+    } else if (name == "shift") {
+        submodel_ops::ShiftNodes(s, (int)nodeCount, (int)amount);
+    } else if (name == "flip-horizontal") {
+        submodel_ops::FlipHorizontal(s);
+    } else if (name == "flip-vertical") {
+        submodel_ops::FlipVertical(s);
+    } else if (name == "pivot") {
+        submodel_ops::PivotRowsColumns(s);
+    } else if (name == "combine") {
+        submodel_ops::CombineStrands(s);
+    } else if (name == "uniform-distribute") {
+        submodel_ops::MakeRowsUniform(s, submodel_ops::PadMode::Distribute);
+    } else if (name == "uniform-front") {
+        submodel_ops::MakeRowsUniform(s, submodel_ops::PadMode::Front);
+    } else if (name == "uniform-rear") {
+        submodel_ops::MakeRowsUniform(s, submodel_ops::PadMode::Rear);
+    } else if (name == "remove-duplicates-row") {
+        submodel_ops::RemoveDuplicatesInRow(s, row, false);
+    } else if (name == "suppress-duplicates-row") {
+        submodel_ops::RemoveDuplicatesInRow(s, row, true);
+    } else if (name == "remove-duplicates-lr") {
+        submodel_ops::RemoveAllDuplicates(s, true, false);
+    } else if (name == "remove-duplicates-tb") {
+        submodel_ops::RemoveAllDuplicates(s, false, false);
+    } else if (name == "suppress-duplicates-lr") {
+        submodel_ops::RemoveAllDuplicates(s, true, true);
+    } else if (name == "suppress-duplicates-tb") {
+        submodel_ops::RemoveAllDuplicates(s, false, true);
+    } else if (name == "expand") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::ExpandStrand);
+    } else if (name == "compress") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::CompressStrand);
+    } else if (name == "blanks-to-zeros") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::BlanksToZeros);
+    } else if (name == "zeros-to-blanks") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::ZerosToBlanks);
+    } else if (name == "remove-blanks-zeros") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::RemoveBlanksAndZeros);
+    } else {
+        return nil;
+    }
+
+    NSMutableArray<NSString*>* out = [NSMutableArray arrayWithCapacity:s.size()];
+    for (const auto& r : s) {
+        [out addObject:[NSString stringWithUTF8String:r.c_str()]];
+    }
+    return out;
 }
 
 - (nullable NSDictionary*)nodeLayoutForModel:(NSString*)modelName {
@@ -6140,6 +6757,8 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     if (!parent->GetSubModel(sub)) return NO;
     _context->AbortRender(5000);
     parent->RemoveSubModel(sub);
+    // Groups naming this submodel cache the pointer just freed.
+    _context->GetModelManager().ResetModelGroups();
     _context->MarkLayoutModelDirty(std::string(parentName.UTF8String));
     return YES;
 }
@@ -6545,11 +7164,27 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
     for (auto it = vm.begin(); it != vm.end(); ++it) {
         ViewObject* vo = it->second;
         if (!vo) continue;
+        if (vo->GetDisplayAs() == DisplayAsType::Controller) continue;  // Controllers tab owns these
         if (MatchesActiveLayoutGroupForViewObject(vo->GetLayoutGroup(), active)) {
             [out addObject:[NSString stringWithUTF8String:vo->GetName().c_str()]];
         }
     }
     return out;
+}
+
+- (nullable NSString*)controllerNameForViewObject:(NSString*)objectName {
+    if (!_context || !objectName || !_context->HasViewObjectManager()) return nil;
+    ViewObject* vo = _context->GetAllObjects().GetViewObject(objectName.UTF8String);
+    auto* co = dynamic_cast<ControllerObject*>(vo);
+    if (co == nullptr || co->GetControllerName().empty()) return nil;
+    return [NSString stringWithUTF8String:co->GetControllerName().c_str()];
+}
+
+- (nullable NSString*)controllerObjectNameForController:(NSString*)controllerName {
+    if (!_context || !controllerName || !_context->HasViewObjectManager()) return nil;
+    auto* co = _context->GetAllObjects().GetControllerObject(controllerName.UTF8String);
+    if (co == nullptr) return nil;
+    return [NSString stringWithUTF8String:co->GetName().c_str()];
 }
 
 - (NSArray<NSDictionary<NSString*, id>*>*)viewObjectsListSummary {
@@ -6560,6 +7195,7 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
     for (auto it = vm.begin(); it != vm.end(); ++it) {
         ViewObject* vo = it->second;
         if (!vo) continue;
+        if (vo->GetDisplayAs() == DisplayAsType::Controller) continue;  // Controllers tab owns these
         if (!MatchesActiveLayoutGroupForViewObject(vo->GetLayoutGroup(), active)) continue;
         [out addObject:@{
             @"name":       [NSString stringWithUTF8String:vo->GetName().c_str()],
@@ -7532,9 +8168,12 @@ static void BuildWindowFrameProps(WindowFrameModel* w, NSMutableArray* out) {
 
 static void BuildCubeProps(CubeModel* c, NSMutableArray* out) {
     // J-20 — mirrors desktop CubePropertyAdapter:
-    // Starting Location (8 named corners), Direction (6 named
-    // styles), Strand Style (3 named), Layers All Start in Same
-    // Place toggle, Width/Height/Depth (1..100), # Strings.
+    // Shape (Cube/Cylinder), Starting Location (8 named corners),
+    // Direction (6 named styles), Strand Style (3 named), Layers All
+    // Start in Same Place toggle, Width/Height/Depth (1..100),
+    // Hollow % (cylinder) or Row Offset (cube), # Strings.
+    NSArray<NSString*>* shapes = @[ @"Cube", @"Cylinder" ];
+    NSArray<NSString*>* rowOffsets = @[ @"None", @"Positive", @"Negative" ];
     NSArray<NSString*>* starts = @[
         @"Front Bottom Left", @"Front Bottom Right",
         @"Front Top Left",    @"Front Top Right",
@@ -7549,6 +8188,8 @@ static void BuildCubeProps(CubeModel* c, NSMutableArray* out) {
     NSArray<NSString*>* strands = @[
         @"Zig Zag", @"No Zig Zag", @"Aternate Pixel",
     ];
+    [out addObject:MakeEnumProp(@"CubeShape", @"Shape",
+                                 c->GetCubeShape(), shapes)];
     [out addObject:MakeEnumProp(@"CubeStart", @"Starting Location",
                                  c->GetCubeStartIndex(), starts)];
     [out addObject:MakeEnumProp(@"CubeStyle", @"Direction",
@@ -7558,9 +8199,22 @@ static void BuildCubeProps(CubeModel* c, NSMutableArray* out) {
     [out addObject:MakeBoolProp(@"StrandPerLayer",
                                  @"Layers All Start in Same Place",
                                  c->IsStrandPerLayer())];
-    [out addObject:MakeIntProp(@"CubeWidth",  @"Width",  c->GetCubeWidth(),  1, 100)];
+    // Cylinder mode reuses Width/Depth as Circumference/Layers, so the
+    // labels change with the shape (the pane re-reads these descriptors
+    // after every commit, so switching Shape relabels immediately).
+    bool const cylinder = c->IsCylinder();
+    [out addObject:MakeIntProp(@"CubeWidth",  cylinder ? @"Circumference" : @"Width",
+                                c->GetCubeWidth(),  1, 100)];
     [out addObject:MakeIntProp(@"CubeHeight", @"Height", c->GetCubeHeight(), 1, 100)];
-    [out addObject:MakeIntProp(@"CubeDepth",  @"Depth",  c->GetCubeDepth(),  1, 100)];
+    [out addObject:MakeIntProp(@"CubeDepth",  cylinder ? @"Layers" : @"Depth",
+                                c->GetCubeDepth(),  1, 100)];
+    if (cylinder) {
+        [out addObject:MakeIntProp(@"CubeHollow", @"Hollow %",
+                                    c->GetHollowPct(), 0, 99)];
+    } else {
+        [out addObject:MakeEnumProp(@"CubeRowOffset", @"Row Offset",
+                                     c->GetRowOffset(), rowOffsets)];
+    }
     [out addObject:MakeIntProp(@"CubeStrings", @"# Strings",
                                 c->GetCubeStrings(), 1, 1000)];
 }
@@ -7877,9 +8531,9 @@ static void AppendDmxDimmerProps(const DmxDimmerAbility& dim, NSMutableArray* ou
                                  dim.GetDimmerChannel(), 0, 512)];
 }
 
-// J-3 (DMX) — emit a DmxMotor's 10 knobs (channel coarse/fine,
+// J-3 (DMX) — emit a DmxMotor's 11 knobs (channel coarse/fine,
 // min/max limit, range of motion, orient zero/home, slew limit,
-// reverse, upside down). Key prefix is the motor's `base_name`
+// speed channel, reverse, upside down). Key prefix is the motor's `base_name`
 // (`PanMotor` / `TiltMotor`) so the setter side can route via the
 // shared keys (`PanMotorChannelCoarse`, …, `TiltMotorUpsideDown`).
 // Matches desktop's `DmxComponentPropertyHelpers::
@@ -7920,6 +8574,9 @@ static void AppendDmxMotorProps(const DmxMotor& motor, NSMutableArray* out) {
                                     @"Slew Limit (deg/sec)",
                                     (double)motor.GetSlewLimit(),
                                     0.0, 500.0, 0.1, 2)];
+    [out addObject:MakeIntProp([base stringByAppendingString:@"SpeedChannel"],
+                                 @"Speed Channel",
+                                 motor.GetSpeedChannel(), 0, 512)];
     [out addObject:MakeBoolProp([base stringByAppendingString:@"Reverse"],
                                   @"Reverse Rotation",
                                   motor.GetReverse() ? YES : NO)];
@@ -9030,6 +9687,18 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
         if (c && c->IsStrandPerLayer() != (v?true:false)) {
             c->SetStrandPerLayer(v?true:false); changed = YES;
         }
+    } else if (k == "CubeShape") {
+        int v = asInt(&ok); if (!ok) return NO;
+        auto* c = dynamic_cast<CubeModel*>(m);
+        if (c && c->GetCubeShape() != v) { c->SetCubeShape(v); changed = YES; }
+    } else if (k == "CubeHollow") {
+        int v = asInt(&ok); if (!ok) return NO;
+        auto* c = dynamic_cast<CubeModel*>(m);
+        if (c && c->GetHollowPct() != v) { c->SetHollowPct(v); changed = YES; }
+    } else if (k == "CubeRowOffset") {
+        int v = asInt(&ok); if (!ok) return NO;
+        auto* c = dynamic_cast<CubeModel*>(m);
+        if (c && c->GetRowOffset() != v) { c->SetRowOffset(v); changed = YES; }
     }
     // ChannelBlock
     else if (k == "ChannelBlockChannels") {
@@ -9830,6 +10499,9 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
             if (std::fabs((double)motor->GetSlewLimit() - v) > 1e-3) {
                 motor->SetSlewLimit((float)v); changed = YES;
             }
+        } else if (suffix == "SpeedChannel") {
+            int v = asInt(&ok); if (!ok) return NO;
+            if (motor->GetSpeedChannel() != v) { motor->SetSpeedChannel(v); changed = YES; }
         } else if (suffix == "Reverse") {
             BOOL v = asBool(&ok); if (!ok) return NO;
             if (motor->GetReverse() != (bool)v) { motor->SetReverse(v); changed = YES; }
@@ -10225,8 +10897,8 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
     // Fallback defaults match `ColorPaletteView` so a new / partly-
     // populated palette still serialises as 8 slots.
     static const char* defaults[8] = {
-        "#FF0000", "#00FF00", "#0000FF", "#FFFF00",
-        "#FFFFFF", "#000000", "#FFA500", "#800080",
+        "#FFFFFF", "#FF0000", "#00FF00", "#0000FF",
+        "#FFFF00", "#000000", "#00FFFF", "#FF00FF",
     };
     NSMutableString* out = [NSMutableString string];
     for (int i = 0; i < 8; i++) {
@@ -10882,11 +11554,45 @@ std::string buildXccDocument(const std::string& serialised) {
     return [self _keysOfFaceStateData:m->GetStateInfo()];
 }
 
+- (NSString*)seedSettingsForEffect:(NSString*)effectName onRow:(int)rowIndex {
+    if (!_context || !_context->IsSequenceLoaded() || effectName.length == 0) return @"";
+    std::string name([effectName UTF8String]);
+
+    // Desktop seeds a handful of panels' list-derived choices when an
+    // effect is created (`EffectsPanel::SetDefaultEffectValues` →
+    // the panel's `SetDefaultParameters`). Static defaults resolve from
+    // the JSON metadata on both platforms, so only the selections that
+    // come from a live list need seeding here.
+    if (name == "State") {
+        // StatePanel.cpp:114-121 — state source, first state in the
+        // model's list. iPad derives the mode from which key is
+        // non-empty, so seeding the state alone puts it in state mode.
+        NSArray<NSString*>* states = [self statesForRow:rowIndex atIndex:0];
+        if (states.count > 0) {
+            return [NSString stringWithFormat:@"E_CHOICE_State_State=%@", states.firstObject];
+        }
+        return @"";
+    }
+    if (name == "Faces") {
+        // FacesPanel.cpp:154-165 — phoneme source with "AI" selected.
+        // Desktop also preselects the first lyric track in its choice,
+        // but its radio stays on phoneme so that selection is inert;
+        // seeding the track here would instead flip the iPad row into
+        // timing-track mode, which is not desktop's default state.
+        return @"E_CHOICE_Faces_Phoneme=AI";
+    }
+    return @"";
+}
+
 - (NSArray<NSString*>*)facesForRow:(int)rowIndex atIndex:(int)effectIndex {
     (void)effectIndex;
     Model* m = [self _targetModelForRow:rowIndex];
-    if (!m) return @[];
-    return [self _keysOfFaceStateData:m->GetFaceInfo()];
+    // sequence-level face definitions are usable by any model; model
+    // definitions win on a name clash (map::insert keeps existing keys)
+    FaceStateData defs = m ? m->GetFaceInfo() : FaceStateData();
+    const auto& seqFaces = _context->GetSequenceElements().GetSequenceFaces().GetFaces();
+    defs.insert(seqFaces.begin(), seqFaces.end());
+    return [self _keysOfFaceStateData:defs];
 }
 
 - (NSArray<NSString*>*)modelNodeNamesForRow:(int)rowIndex atIndex:(int)effectIndex {
@@ -11189,6 +11895,172 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     return (e && e->IsLocked()) ? YES : NO;
 }
 
+- (BOOL)effectIsLinkedToSymbolInRow:(int)rowIndex atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    return (e && e->IsLinkedToSymbol()) ? YES : NO;
+}
+
+- (NSArray<NSDictionary*>*)effectSymbols {
+    NSMutableArray* out = [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded()) return out;
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    auto symbols = mgr.GetAllSymbols();
+    std::sort(symbols.begin(), symbols.end(), [](EffectSymbol* a, EffectSymbol* b) {
+        return a->GetName() < b->GetName();
+    });
+    for (EffectSymbol* s : symbols) {
+        if (s == nullptr) continue;
+        [out addObject:@{
+            @"id": [NSString stringWithUTF8String:s->GetId().c_str()],
+            @"name": [NSString stringWithUTF8String:s->GetName().c_str()],
+            @"effectType": [NSString stringWithUTF8String:s->GetEffectType().c_str()],
+            @"linkedCount": @((NSInteger)mgr.GetLinkedEffectCount(s->GetId())),
+        }];
+    }
+    return out;
+}
+
+- (NSString*)linkedSymbolIdInRow:(int)rowIndex atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return @"";
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e || !e->IsLinkedToSymbol()) return @"";
+    return [NSString stringWithUTF8String:e->GetLinkedSymbolId().c_str()];
+}
+
+- (NSString*)createSymbolNamed:(NSString*)name
+               fromEffectInRow:(int)rowIndex
+                       atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return nil;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e) return nil;
+
+    std::string n = name ? std::string([name UTF8String]) : std::string();
+    if (n.empty()) return nil;
+
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    if (mgr.GetSymbolByName(n) != nullptr) return nil;   // desktop rejects duplicates
+
+    EffectSymbol* sym = mgr.CreateSymbol(n, e);
+    if (sym == nullptr) return nil;
+    // LinkToSymbol registers the effect with the manager itself.
+    e->LinkToSymbol(sym->GetId());
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return [NSString stringWithUTF8String:sym->GetId().c_str()];
+}
+
+- (BOOL)linkEffectInRow:(int)rowIndex atIndex:(int)effectIndex toSymbolId:(NSString*)symbolId {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e) return NO;
+    std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    if (sid.empty() || !mgr.SymbolExists(sid)) return NO;
+    // LinkToSymbol unlinks any previous symbol, registers, and copies the
+    // symbol's type/settings/palette onto the effect.
+    e->LinkToSymbol(sid);
+    e->IncrementChangeCount();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)unlinkEffectFromSymbolInRow:(int)rowIndex atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e || !e->IsLinkedToSymbol()) return NO;
+    e->UnlinkFromSymbol();   // unregisters from the manager
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)restoreEffectInRow:(int)rowIndex
+                   atIndex:(int)effectIndex
+                      type:(NSString*)effectType
+                  settings:(NSString*)settings
+                   palette:(NSString*)palette
+                  symbolId:(NSString*)symbolId {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e) return NO;
+
+    // Unlink first: SetSettings below calls IncrementChangeCount, which would
+    // otherwise push the restored settings into the symbol and out to every
+    // other effect linked to it.
+    e->UnlinkFromSymbol();
+
+    if (effectType && [effectType length] > 0) {
+        e->SetEffectName(std::string([effectType UTF8String]));
+    }
+    e->SetSettings(settings ? std::string([settings UTF8String]) : std::string(), true);
+    e->SetPalette(palette ? std::string([palette UTF8String]) : std::string());
+
+    std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
+    if (!sid.empty()) {
+        auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+        if (mgr.SymbolExists(sid)) {
+            e->LinkToSymbol(sid);
+        }
+    }
+    e->IncrementChangeCount();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)renameSymbolId:(NSString*)symbolId toName:(NSString*)newName {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
+    std::string n = newName ? std::string([newName UTF8String]) : std::string();
+    if (sid.empty() || n.empty()) return NO;
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    if (mgr.GetSymbolByName(n) != nullptr) return NO;
+    if (!mgr.RenameSymbol(sid, n)) return NO;
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)deleteSymbolId:(NSString*)symbolId {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
+    if (sid.empty()) return NO;
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    if (!mgr.SymbolExists(sid)) return NO;
+    // Unlink first so no effect is left pointing at a symbol that no longer
+    // exists — a stale id would be dropped at load anyway (LoadSequencerFile
+    // only links when SymbolExists), but this keeps the in-memory state honest.
+    for (Effect* e : mgr.GetLinkedEffects(sid)) {
+        if (e != nullptr) e->UnlinkFromSymbol();
+    }
+    if (!mgr.DeleteSymbol(sid)) return NO;
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (NSDictionary*)convertAllSymbolsToEffects {
+    if (!_context || !_context->IsSequenceLoaded()) return @{ @"converted": @0, @"symbols": @0 };
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    auto symbols = mgr.GetAllSymbols();
+    NSInteger converted = 0;
+    for (EffectSymbol* s : symbols) {
+        if (s == nullptr) continue;
+        for (Effect* e : mgr.GetLinkedEffects(s->GetId())) {
+            if (e != nullptr) {
+                e->UnlinkFromSymbol();
+                converted++;
+            }
+        }
+    }
+    NSInteger symbolCount = (NSInteger)symbols.size();
+    mgr.Clear();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return @{ @"converted": @(converted), @"symbols": @(symbolCount) };
+}
+
 - (void)setEffectLocked:(BOOL)locked inRow:(int)rowIndex atIndex:(int)effectIndex {
     auto* layer = [self effectLayerForRow:rowIndex];
     if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return;
@@ -11267,13 +12139,23 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
         ++layerRow;
     };
 
-    for (int j = 0; j < (int)me->GetEffectLayerCount(); ++j) {
+    auto effectiveLayers = [](Element* elem) -> int {
+        for (int j = (int)elem->GetEffectLayerCount() - 1; j >= 0; --j) {
+            if (elem->GetEffectLayer(j)->GetEffectCount() > 0)
+                return j + 1;
+        }
+        return 1;
+    };
+
+    int mainCount = effectiveLayers(me);
+    for (int j = 0; j < mainCount; ++j) {
         appendLayer(me->GetEffectLayer(j));
     }
     for (int s = 0; s < me->GetSubModelCount(); ++s) {
         SubModelElement* sub = me->GetSubModel(s);
         if (!sub) continue;
-        for (int j = 0; j < (int)sub->GetEffectLayerCount(); ++j) {
+        int subCount = effectiveLayers(sub);
+        for (int j = 0; j < subCount; ++j) {
             appendLayer(sub->GetEffectLayer(j));
         }
     }
@@ -11437,6 +12319,14 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
     Effect* e = layer->AddEffect(0, name, st, pal, startMS, endMS, 0, false);
     if (!e) return -1;
+    // The settings string handed to us came from Effect::GetSettingsAsString(),
+    // which appends X_LinkedSymbolId for a symbol-linked effect. Consume it so
+    // the copy re-joins the symbol instead of silently becoming an unlinked
+    // effect carrying a stray key that would then be written to the .xsq.
+    // Desktop does exactly this at every AddEffect-from-a-settings-string site
+    // (EffectsGrid.cpp paste / duplicate / move-a-layer). No-op when the key
+    // is absent, so new-effect creation is unaffected.
+    e->HandlePastedSymbolLink();
     // AddEffect re-sorts; find the new effect's index by identity.
     for (int i = 0; i < layer->GetEffectCount(); i++) {
         if (layer->GetEffect(i) == e) return i;
@@ -11470,7 +12360,30 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 }
 
 - (void)stopOutput {
-    _context->GetOutputManager().StopOutput();
+    // Blank before closing — StopOutput only closes the outputs, so
+    // without this the lights hold the last frame sent (desktop
+    // DisableOutputs does AllOff() then StopOutput()).
+    auto& om = _context->GetOutputManager();
+    if (om.IsOutputting()) {
+        om.AllOff();
+    }
+    om.StopOutput();
+}
+
+- (void)blankOutputs {
+    if (!_context) return;
+    auto& om = _context->GetOutputManager();
+    if (om.IsOutputting()) {
+        om.AllOff();
+    }
+}
+
+- (XLLightTest*)lightTest {
+    if (_lightTest == nil && _context != nullptr) {
+        _lightTest = [[XLLightTest alloc] initWithOutputManager:&_context->GetOutputManager()
+                                                   modelManager:&_context->GetModelManager()];
+    }
+    return _lightTest;
 }
 
 - (NSArray<NSDictionary*>*)globalOutputSettings {
@@ -11581,31 +12494,40 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     return _context && _context->WasRenderAborted() ? YES : NO;
 }
 
+- (int)renderDependentModels {
+    if (!_context || !_context->IsSequenceLoaded()) return 0;
+    return _context->RenderDependentModels();
+}
+
 - (float)renderProgressFraction {
     if (!_context) return 1.0f;
     return _context->GetRenderProgressFraction();
 }
 
+- (NSArray<NSDictionary*>*)renderJobProgress {
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    for (const auto& p : _context->GetRenderJobProgress()) {
+        [out addObject:@{
+            @"model":   [NSString stringWithUTF8String:p.model.c_str()],
+            @"percent": @(p.percent),
+            @"status":  [NSString stringWithUTF8String:p.status.c_str()],
+        }];
+    }
+    return out;
+}
+
 - (BOOL)abortRenderAndWait:(NSTimeInterval)timeoutSeconds {
     if (!_context) return YES;
-    // Signal every in-flight render job to bail. Workers test the
-    // abort flag at their next frame boundary, so this unblocks them
-    // within milliseconds for typical sequences.
-    _context->AbortRender();
-    // Spin-wait on IsRenderDone(). The poll interval is short because
-    // we're on the main thread here and want the UI to close promptly,
-    // but aborted jobs finish quickly so the expected case is one or
-    // two iterations. The timeout is a safety net — we'd rather force
-    // a late teardown than hang the app indefinitely on a stuck job.
-    NSDate* deadline = [NSDate dateWithTimeIntervalSinceNow:
-                        timeoutSeconds > 0 ? timeoutSeconds : 5.0];
-    while (!_context->IsRenderDone()) {
-        if ([[NSDate date] compare:deadline] == NSOrderedDescending) {
-            return NO;
-        }
-        [NSThread sleepForTimeInterval:0.01];
-    }
-    return YES;
+    // AbortRender signals every in-flight render job to bail and waits
+    // (up to the budget) for them to unwind. Workers test the abort
+    // flag at their next frame boundary, so the expected case returns
+    // within milliseconds; the timeout is a safety net — we'd rather
+    // force a late teardown than hang indefinitely on a stuck job.
+    // The budget must be passed through: the argless overload waits
+    // 60s, defeating the caller's timeout.
+    double budget = timeoutSeconds > 0 ? timeoutSeconds : 5.0;
+    return _context->AbortRender((int)(budget * 1000.0)) ? YES : NO;
 }
 
 - (void)handleMemoryWarning {
@@ -11634,7 +12556,11 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 // MARK: - Audio Playback
 
 - (AudioManager*)audioManager {
-    return _context->GetCurrentMediaManager();
+    // Playback follows the selected audio track, as on desktop
+    // (`xLightsFrame::GetPlaybackAudio`, xLightsMain.cpp:2398-2412):
+    // pick an alternate stem in the waveform and the transport drives
+    // that stem. Falls back to the main track when none is selected.
+    return _context->GetPlaybackMedia();
 }
 
 - (NSInteger)altTrackCount {
@@ -12599,6 +13525,24 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     return YES;
 }
 
+- (BOOL)embedImageFromFile:(NSString*)sourcePath asName:(NSString*)name {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (sourcePath.length == 0 || name.length == 0) return NO;
+    std::string src([sourcePath UTF8String]);
+    std::string key([name UTF8String]);
+    ObtainAccessToURL(src, false);
+    if (!FileExists(src)) return NO;
+
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    media.AddEmbeddedImageFromFile(key, src);
+    // AddEmbeddedImageFromFile is a no-op when the key is already
+    // cached or the bytes couldn't be read, so confirm before
+    // reporting success — the caller falls back to a loose file.
+    if (!media.HasImage(key)) return NO;
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
 - (BOOL)extractMediaAtPath:(NSString*)path {
     if (!_context || path.length == 0) return NO;
     auto& media = _context->GetSequenceElements().GetSequenceMedia();
@@ -12861,6 +13805,7 @@ int rewriteEffectValues(iPadRenderContext& ctx,
     // hooks per effect; a final explicit bump covers the
     // no-referencing-effect edge case.
     (void)rewriteEffectValues(*_context, oldStr, newStr);
+    (void)_context->GetSequenceElements().GetSequenceFaces().RewriteImagePath(oldStr, newStr);
     bumpSequenceDirty(_context.get());
     return YES;
 }
@@ -12964,6 +13909,7 @@ const char* canonicalSubdirForType(MediaType t) {
         }
         (void)media.ReloadMedia(newStr);
         (void)rewriteEffectValues(*_context, storedStr, newStr);
+        (void)_context->GetSequenceElements().GetSequenceFaces().RewriteImagePath(storedStr, newStr);
         bumpSequenceDirty(_context.get());
     }
 
@@ -13318,10 +14264,16 @@ void appendLayerMatches(EffectLayer* layer,
     std::unordered_set<std::string> usedValues;
     collectAllEffectSettingValues(*_context, usedValues);
 
+    // Sequence-level face definitions reference images outside any effect's
+    // settings — without this their images would always look unused.
+    for (const auto& p : _context->GetSequenceElements().GetSequenceFaces().GetImagePaths()) {
+        usedValues.insert(p);
+    }
+
     auto paths = media.GetAllMediaPaths();
     int removed = 0;
     for (const auto& p : paths) {
-        if (usedValues.count(p.first) == 0) {
+        if (usedValues.count(p.first) == 0 && !media.IsUsedByMetadata(p.first)) {
             media.RemoveMedia(p.first);
             removed++;
         }
@@ -13471,6 +14423,57 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
     if (!_context || !_context->IsSequenceLoaded()) return 0;
     int moved = cleanupExternalMedia(*_context, /*execute*/ true, nil);
     if (moved > 0) bumpSequenceDirty(_context.get());
+    moved += [self cleanupRGBEffectsFileLocations];
+    return moved;
+}
+
+// Desktop's Cleanup File Locations runs two sweeps: the sequence's
+// media (above) and the show file's own references —
+// `CleanupRGBEffectsFileLocations` (xLightsMain.cpp:6592-6613), which
+// covers the preview background image plus every model's and view
+// object's files (face images, dimming curves, custom-model and mesh
+// assets). Without this half a show could still be non-portable after
+// the user ran Cleanup, with no indication which files were left
+// behind. `CleanupFileLocations` itself is shared core taking a
+// `RenderContext*`, so both platforms run the same code.
+- (int)cleanupRGBEffectsFileLocations {
+    if (!_context) return 0;
+    int moved = 0;
+
+    const std::string bg = _context->GetBackgroundImage();
+    if (!bg.empty() && FileExists(bg) && !_context->IsInShowFolder(bg)) {
+        std::string dest = _context->MoveToShowFolder(
+            bg, std::string(1, std::filesystem::path::preferred_separator),
+            /*reuse*/ false);
+        if (!dest.empty() && dest != bg) {
+            _context->SetActiveBackgroundImage(dest);
+            ++moved;
+        }
+    }
+
+    if (_context->HasModelManager()) {
+        for (const auto& [name, model] : _context->GetModelManager().GetModels()) {
+            if (!model) continue;
+            if (model->CleanupFileLocations(_context.get())) {
+                _context->MarkLayoutModelDirty(name);
+                ++moved;
+            }
+        }
+    }
+
+    if (_context->HasViewObjectManager()) {
+        for (auto it = _context->GetAllObjects().begin(); it != _context->GetAllObjects().end(); ++it) {
+            if (!it->second) continue;
+            if (it->second->CleanupFileLocations(_context.get())) {
+                _context->MarkLayoutViewObjectDirty(it->first);
+                ++moved;
+            }
+        }
+    }
+
+    if (moved > 0 && !_context->SaveLayoutChanges()) {
+        spdlog::warn("XLSequenceDocument: cleanup rewrote show-file paths but the save failed");
+    }
     return moved;
 }
 
@@ -14021,6 +15024,184 @@ static bool writeMHCommandToActiveFixtures(Effect& eff,
     return any;
 }
 
+/// Parametric-pattern parameters the renderer reads
+/// (`MovingHeadEffect.cpp:198-223`). `Pattern` itself carries the shape
+/// name and is what flips `pattern_parsed`.
+static constexpr std::array<const char*, 11> kMovingHeadPatternParams = {
+    "PatternWidth", "PatternHeight", "PatternXOffset", "PatternYOffset",
+    "PatternRotation", "PatternStartOffset", "PatternPhaseOffset",
+    "PatternXFreq", "PatternYFreq", "PatternXPhase", "PatternYPhase"
+};
+
+/// Every `Pattern*` command, including the ` VC` variants — the whole
+/// block is rewritten as a unit.
+static bool isMHPatternCommand(const std::string& cmd) {
+    return cmd.rfind("Pattern", 0) == 0;
+}
+
+/// Slider defaults, matching both the renderer's own fallbacks
+/// (`MovingHeadEffect.cpp:116-126`) and `MovingHead.json`.
+static const char* defaultMHPatternParam(const std::string& cmd) {
+    if (cmd == "PatternWidth")  return "90";
+    if (cmd == "PatternHeight") return "45";
+    if (cmd == "PatternXFreq")  return "2";
+    if (cmd == "PatternYFreq")  return "3";
+    if (cmd == "PatternXPhase") return "90";
+    return "0";
+}
+
+/// Re-fan the Pattern tab's sliders into every active fixture. The
+/// renderer only ever reads `MH*_Settings`, so a slider edit is inert
+/// until this runs. Mirrors `MovingHeadPanel::UpdatePatternSettings`:
+/// the whole block is stripped first and re-appended only while the
+/// enable checkbox is on.
+static bool syncMHPatternCommands(Effect& eff) {
+    auto& settings = eff.GetSettings();
+    // Link owns Pan/Tilt outright and strips the pattern block on every
+    // resync, so re-emitting it while linked would only fight that.
+    const bool enabled = settings.GetBool("E_CHECKBOX_MHPatternEnable", false)
+        && !settings.GetBool("E_CHECKBOX_MHLinkToNext", false);
+    std::string algorithm = settings.Get("E_CHOICE_MHPattern", "");
+    if (algorithm.empty()) {
+        algorithm = "Circle";
+    }
+
+    bool any = false;
+    for (int i = 1; i <= 8; ++i) {
+        std::string key = std::string("E_TEXTCTRL_MH") + std::to_string(i) + "_Settings";
+        if (!settings.Contains(key)) continue;
+        std::string existing = settings.Get(key, "");
+        if (existing.empty()) continue;
+
+        MHCommandList rebuilt;
+        for (auto& [c, v] : parseMovingHeadSettings(existing)) {
+            if (!isMHPatternCommand(c)) {
+                rebuilt.emplace_back(c, v);
+            }
+        }
+        if (enabled) {
+            rebuilt.emplace_back("Pattern", algorithm);
+            for (const auto* p : kMovingHeadPatternParams) {
+                std::string param(p);
+                std::string val = settings.Get("E_SLIDER_MH" + param, "");
+                if (val.empty()) {
+                    val = defaultMHPatternParam(param);
+                }
+                rebuilt.emplace_back(param, val);
+                std::string vc = readMHValueCurve(eff, param);
+                if (!vc.empty()) {
+                    rebuilt.emplace_back(param + " VC", escapeForCommand(vc));
+                }
+            }
+        }
+
+        std::string serialised = serialiseMovingHeadSettings(rebuilt);
+        if (serialised != existing) {
+            settings[key] = SettingValue(serialised);
+            any = true;
+        }
+    }
+    return any;
+}
+
+/// Re-fan the Control tab's two shutter checkboxes. `Shutter: On` holds
+/// the shutter open for the whole effect; `AutoShutter: true` only means
+/// anything alongside a colour-wheel pick, which is why desktop appends
+/// it inside its wheel branch (`MovingHeadPanel::UpdateColorSettings`) —
+/// match that and leave it off fixtures with no `Wheel` command.
+static bool syncMHShutterCommands(Effect& eff) {
+    auto& settings = eff.GetSettings();
+    const bool shutterOn = settings.GetBool("E_CHECKBOX_MHShutterEnable", false);
+    const bool autoShutter = settings.GetBool("E_CHECKBOX_AUTO_SHUTTER", false);
+
+    bool any = false;
+    for (int i = 1; i <= 8; ++i) {
+        std::string key = std::string("E_TEXTCTRL_MH") + std::to_string(i) + "_Settings";
+        if (!settings.Contains(key)) continue;
+        std::string existing = settings.Get(key, "");
+        if (existing.empty()) continue;
+
+        MHCommandList parsed = parseMovingHeadSettings(existing);
+        bool hasWheel = false;
+        for (auto& [c, v] : parsed) {
+            if (c == "Wheel" && !v.empty()) hasWheel = true;
+        }
+
+        MHCommandList rebuilt;
+        for (auto& [c, v] : parsed) {
+            if (c != "Shutter" && c != "AutoShutter") {
+                rebuilt.emplace_back(c, v);
+            }
+        }
+        if (autoShutter && hasWheel) {
+            rebuilt.emplace_back("AutoShutter", "true");
+        }
+        if (shutterOn) {
+            rebuilt.emplace_back("Shutter", "On");
+        }
+
+        std::string serialised = serialiseMovingHeadSettings(rebuilt);
+        if (serialised != existing) {
+            settings[key] = SettingValue(serialised);
+            any = true;
+        }
+    }
+    return any;
+}
+
+/// Commands that define a head's Pan/Tilt at all — raw value, VC,
+/// offsets, path- or pattern-driven. Link strips every one of them
+/// before splicing in its static Pan/Tilt so the head ends the effect at
+/// the next effect's start position however this effect drove it.
+/// Verbatim from `MovingHeadPanel.cpp`'s
+/// `linkedPositionOverrideSettings`.
+static const std::array<const char*, 28> kMHLinkedPositionOverrides = {
+    "Pan", "Tilt", "Pan VC", "Tilt VC", "PanOffset", "TiltOffset",
+    "PanOffset VC", "TiltOffset VC", "Path", "PathScale", "PathScale VC",
+    "TimeOffset", "TimeOffset VC", "IgnorePan", "IgnoreTilt",
+    "Pattern", "PatternWidth", "PatternHeight", "PatternXOffset",
+    "PatternYOffset", "PatternRotation", "PatternRotation VC",
+    "PatternStartOffset", "PatternPhaseOffset", "PatternXFreq",
+    "PatternYFreq", "PatternXPhase", "PatternYPhase"
+};
+
+/// Splice a linked static Pan/Tilt + a flat-zero Dimmer into one head's
+/// command string. The Dimmer goes too, not just its last handle: the
+/// point of Link is that the head travels to its next cue in the dark.
+/// Mirrors `MovingHeadPanel::ApplyLinkedHeadPosition`.
+static void applyMHLinkedHeadPosition(Effect& eff, int headNum,
+                                       float pan, float tilt) {
+    auto& settings = eff.GetSettings();
+    std::string key = std::string("E_TEXTCTRL_MH") + std::to_string(headNum) + "_Settings";
+    if (!settings.Contains(key)) return;
+    std::string existing = settings.Get(key, "");
+    if (existing.empty()) return;
+
+    MHCommandList rebuilt;
+    for (auto& [c, v] : parseMovingHeadSettings(existing)) {
+        if (c == "Dimmer") continue;
+        bool overridden = std::find_if(kMHLinkedPositionOverrides.begin(),
+                                        kMHLinkedPositionOverrides.end(),
+                                        [&c](const char* o) { return c == o; })
+                          != kMHLinkedPositionOverrides.end();
+        if (!overridden) {
+            rebuilt.emplace_back(c, v);
+        }
+    }
+
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%.1f", pan);
+    rebuilt.emplace_back("Pan", buf);
+    snprintf(buf, sizeof(buf), "%.1f", tilt);
+    rebuilt.emplace_back("Tilt", buf);
+    rebuilt.emplace_back("Dimmer", "0.0,0.0,1.0,0.0");
+
+    std::string serialised = serialiseMovingHeadSettings(rebuilt);
+    if (serialised != existing) {
+        settings[key] = SettingValue(serialised);
+    }
+}
+
 } // namespace
 
 - (int)movingHeadActiveFixturesForRow:(int)rowIndex
@@ -14086,6 +15267,12 @@ static bool writeMHCommandToActiveFixtures(Effect& eff,
         rewriteMovingHeadFixture(*look.effect, i);
     }
 
+    // `rewriteMovingHeadFixture` only rebuilds the position block, so a
+    // freshly-activated fixture would otherwise miss the Pattern and
+    // shutter commands the other fixtures already carry.
+    syncMHPatternCommands(*look.effect);
+    syncMHShutterCommands(*look.effect);
+
     look.effect->IncrementChangeCount();
     return YES;
 }
@@ -14114,6 +15301,9 @@ static bool writeMHCommandToActiveFixtures(Effect& eff,
     std::string v = value ? std::string([value UTF8String]) : std::string();
     bool changed = writeMHCommandToActiveFixtures(*look.effect, cn, v);
     if (changed) {
+        // `AutoShutter: true` is only emitted alongside a `Wheel` colour,
+        // so picking or clearing one has to re-evaluate it.
+        syncMHShutterCommands(*look.effect);
         look.effect->IncrementChangeCount();
         // Force a re-render of the active model so the new colour /
         // dimmer takes effect in the preview immediately.
@@ -14177,6 +15367,133 @@ static bool writeMHCommandToActiveFixtures(Effect& eff,
         return out;
     }
     return nil;
+}
+
+- (BOOL)syncMovingHeadPatternForRow:(int)rowIndex
+                             atIndex:(int)effectIndex {
+    if (!_context) return NO;
+    auto look = lookupEffect(*_context, rowIndex, effectIndex);
+    if (!look.ok()) return NO;
+    if (look.effect->GetEffectName() != kMovingHeadEffectName) return NO;
+    if (!syncMHPatternCommands(*look.effect)) return NO;
+    look.effect->IncrementChangeCount();
+    return YES;
+}
+
+- (BOOL)syncMovingHeadShutterForRow:(int)rowIndex
+                             atIndex:(int)effectIndex {
+    if (!_context) return NO;
+    auto look = lookupEffect(*_context, rowIndex, effectIndex);
+    if (!look.ok()) return NO;
+    if (look.effect->GetEffectName() != kMovingHeadEffectName) return NO;
+    if (!syncMHShutterCommands(*look.effect)) return NO;
+    look.effect->IncrementChangeCount();
+    return YES;
+}
+
+- (NSDictionary*)syncMovingHeadLinkToNextForRow:(int)rowIndex
+                                         atIndex:(int)effectIndex {
+    NSMutableArray<NSString*>* lines = [NSMutableArray array];
+    if (!_context) {
+        return @{ @"status": @"none", @"lines": lines };
+    }
+    auto look = lookupEffect(*_context, rowIndex, effectIndex);
+    if (!look.ok()) {
+        return @{ @"status": @"none", @"lines": lines };
+    }
+    if (look.effect->GetEffectName() != kMovingHeadEffectName) {
+        return @{ @"status": @"none", @"lines": lines };
+    }
+
+    // Nothing to link to: desktop walks to the effect after the selected
+    // one on the same layer via CallOnEffectAfterSelected.
+    if (effectIndex + 1 >= look.layer->GetEffectCount()) {
+        return @{ @"status": @"noNext", @"lines": lines };
+    }
+    Effect* next = look.layer->GetEffect(effectIndex + 1);
+    if (!next) {
+        return @{ @"status": @"noNext", @"lines": lines };
+    }
+    if (next->GetEffectName() != kMovingHeadEffectName) {
+        return @{ @"status": @"notMovingHead", @"lines": lines };
+    }
+
+    // A single fixture model owns exactly one head slot, so trust the
+    // model's own fixture number; a group has no such single answer, so
+    // fall back to "every head this effect actually defines". Desktop
+    // additionally unions in the fixture checkboxes to cover a blank
+    // warm-up effect, but iPad derives its fixture buttons from the
+    // settings strings themselves — the two signals are the same thing
+    // here, so the union collapses to the settings scan.
+    std::vector<int> heads;
+    Model* model = nullptr;
+    if (auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+        row && row->element) {
+        model = _context->GetModel(row->element->GetModelName());
+    }
+    bool singleModel = model != nullptr
+        && model->GetDisplayAs() != DisplayAsType::ModelGroup;
+    if (singleModel) {
+        if (auto* mh = dynamic_cast<const DmxMovingHeadComm*>(model)) {
+            heads.push_back(mh->GetFixtureVal());
+        }
+    }
+    auto& settings = look.effect->GetSettings();
+    if (heads.empty()) {
+        singleModel = false;
+        for (int i = 1; i <= 8; ++i) {
+            std::string k = std::string("E_TEXTCTRL_MH") + std::to_string(i) + "_Settings";
+            if (settings.Contains(k) && !settings.Get(k, "").empty()) {
+                heads.push_back(i);
+            }
+        }
+    }
+    if (heads.empty()) {
+        return @{ @"status": @"noHeads", @"lines": lines };
+    }
+
+    bool changed = false;
+    auto& nextSettings = next->GetSettings();
+    for (int head : heads) {
+        std::string nextHead = nextSettings.Get(
+            "E_TEXTCTRL_MH" + std::to_string(head) + "_Settings", "");
+        if (nextHead.empty() && singleModel) {
+            // The next effect may be an un-remapped copy/paste from a
+            // different fixture model, leaving its data in some other
+            // slot. A single-model row only ever has one real head, so
+            // take whichever slot actually holds data rather than
+            // reporting a false "no defined position".
+            for (int j = 1; j <= 8 && nextHead.empty(); ++j) {
+                if (j == head) continue;
+                nextHead = nextSettings.Get(
+                    "E_TEXTCTRL_MH" + std::to_string(j) + "_Settings", "");
+            }
+        }
+        float pan = 0.0f, tilt = 0.0f;
+        if (MovingHeadEffect::GetHeadStartPosition(nextHead, head,
+                                                    next->GetStartTimeMS(),
+                                                    next->GetEndTimeMS(),
+                                                    pan, tilt)) {
+            applyMHLinkedHeadPosition(*look.effect, head, pan, tilt);
+            changed = true;
+            [lines addObject:[NSString stringWithFormat:
+                @"Head %d: Pan %.1f° / Tilt %.1f°", head, pan, tilt]];
+        } else {
+            [lines addObject:[NSString stringWithFormat:
+                @"Head %d: next effect has no defined position", head]];
+        }
+    }
+
+    if (changed) {
+        look.effect->IncrementChangeCount();
+        if (auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+            row && row->element) {
+            _context->RenderEffectForModel(row->element->GetModelName(),
+                                            look.effect->GetStartTimeMS(),
+                                            look.effect->GetEndTimeMS(), true);
+        }
+    }
+    return @{ @"status": @"linked", @"lines": lines };
 }
 
 // MARK: - DMX state + remap (G8 — C7)
@@ -14754,11 +16071,14 @@ static NSArray<NSString*>* EthernetProtocolOptions(const ControllerEthernet* eth
     }
     if (out.count == 0) {
         // No caps definition for this fixture — surface the
-        // common set so the picker isn't blank.
+        // common set so the picker isn't blank. ZCPP is deprecated,
+        // so it is only offered to a controller already using it.
         [out addObjectsFromArray:@[@(OUTPUT_E131), @(OUTPUT_ARTNET),
                                     @(OUTPUT_DDP),  @(OUTPUT_OPC),
-                                    @(OUTPUT_ZCPP), @(OUTPUT_KINET),
-                                    @(OUTPUT_TWINKLY)]];
+                                    @(OUTPUT_KINET), @(OUTPUT_TWINKLY)]];
+        if (eth && eth->GetProtocol() == OUTPUT_ZCPP) {
+            [out addObject:@(OUTPUT_ZCPP)];
+        }
     }
     return out;
 }
@@ -14850,6 +16170,19 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
                                   c->IsSuppressDuplicateFrames() ? YES : NO)];
     [out addObject:CtrlBoolProp(@"Monitor", @"Monitor",
                                   c->IsMonitoring() ? YES : NO)];
+    // Layout placement box. Lives in the rgbeffects file rather than on the
+    // Controller, so it is read from AllObjects rather than `c`.
+    {
+        ControllerObject* co = _context->HasViewObjectManager()
+            ? _context->GetAllObjects().GetControllerObject(c->GetName())
+            : nullptr;
+        const int visIdx = (int)(co != nullptr ? co->GetVisibility()
+                                               : ControllerObject::Visibility::Off);
+        [out addObject:CtrlEnumProp(@"LayoutVisibility", @"Show on Layout",
+                                      visIdx,
+                                      @[@"Off", @"Controller Tab Only",
+                                        @"Layout Panel", @"Always"])];
+    }
 
     // === Vendor / Model / Variant cascade ===
     [out addObject:CtrlHeader(@"ControllerVendorHeader", @"Hardware")];
@@ -15135,8 +16468,35 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         if (newName == c->GetName()) return NO;  // no change
         // Reject if another controller already has this name.
         if (_context->GetOutputManager().GetController(newName) != nullptr) return NO;
+        const std::string oldName = c->GetName();
         c->SetName(newName);
+        // The placement box is bound by controller name and lives in the other
+        // file, so it has to follow the rename or the binding breaks.
+        if (_context->HasViewObjectManager()) {
+            _context->GetAllObjects().RenameController(oldName, newName);
+        }
         changed = YES;
+    } else if (k == "LayoutVisibility") {
+        if (![value isKindOfClass:[NSNumber class]]) return NO;
+        if (!_context->HasViewObjectManager()) return NO;
+        const auto vis = (ControllerObject::Visibility)[(NSNumber*)value intValue];
+        auto& objs = _context->GetAllObjects();
+        ControllerObject* co = objs.GetControllerObject(c->GetName());
+        if (co == nullptr) {
+            // Nothing is written until the user asks for a box, which is what
+            // keeps existing shows untouched.
+            if (vis == ControllerObject::Visibility::Off) return NO;
+            co = objs.CreateControllerObject(c->GetName());
+            if (co == nullptr) return NO;
+            co->GetObjectScreenLocation().SetPosition(
+                _context->GetPreviewWidth() / 2.0f,
+                _context->GetPreviewHeight() / 2.0f);
+        }
+        co->SetVisibility(vis);
+        // Placement lives in rgbeffects, not networks - mark the layout dirty
+        // rather than falling through to the controllers-dirty path below.
+        _context->MarkLayoutModelDirty(ControllerObject::ObjectNameFor(c->GetName()));
+        return YES;
     } else if (k == "Description") {
         if (![value isKindOfClass:[NSString class]]) return NO;
         c->SetDescription([(NSString*)value UTF8String]);
@@ -15562,6 +16922,9 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         _context->GetModelManager().DeleteController(name.UTF8String);
     }
     om.DeleteController(name.UTF8String);
+    if (_context->HasViewObjectManager()) {
+        _context->GetAllObjects().DeleteControllerObject(name.UTF8String);
+    }
     // Rework + Recalc (rather than Recalc alone): Rework rewrites
     // every remaining controller's "!Name:###" assignments so the
     // channel range freed by the deleted controller collapses,
@@ -15671,6 +17034,10 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
 }
 
 - (NSDictionary*)updateFromBaseShowDirectory {
+    return [self updateFromBaseShowDirectorySkippingUnchanged:NO];
+}
+
+- (NSDictionary*)updateFromBaseShowDirectorySkippingUnchanged:(BOOL)skipUnchanged {
     if (!_context) {
         return @{ @"error": @"No show folder loaded.",
                   @"controllersChanged": @NO,
@@ -15704,30 +17071,79 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
                   @"objectsChanged": @NO };
     }
 
+    // A base show directory is usually set up by copying an existing show, which
+    // copies its id too - leaving two different shows claiming to be one, so
+    // every report from either lands in the same bucket. This is the point where
+    // both folders are known, so it is the point that can tell. The local show
+    // is the one re-minted: the base may be read-only, and it may be shared by
+    // several shows that would each have to agree on the change.
+    if (std::string const baseGuid = ShowGuid::ReadFromShowFolder(baseDir);
+        !baseGuid.empty() && baseGuid == _context->GetShowGuid()) {
+        _context->RegenerateShowGuid();
+    }
+
     // Shared across the three passes so Yes-to-All carries from controllers → models → objects.
     bool acceptAll = false;
     bool rejectAll = false;
 
+    // The automatic on-open path skips the controller merge when the
+    // base networks file hasn't changed since the last one (desktop
+    // TabSetup.cpp:495). The explicit "Update From Base Now" button
+    // stays unconditional, matching desktop's menu action, so the user
+    // always has a way to force the merge. The checkpoint is only
+    // recorded when the base file actually loaded — a failed load
+    // leaves it unset so the merge is retried on the next open.
+    //
+    // The model / view-object passes below are deliberately NOT gated
+    // the same way, even though desktop gates them on
+    // NeedsBaseRgbEffectsUpdate (TabSequence.cpp:686). Their merge
+    // results only exist in memory here: ModelManager::MergeFromBase
+    // mutates the manager, and SaveLayoutChanges only rewrites models
+    // in the bridge's own dirty set, which core code cannot reach. The
+    // unconditional re-merge on every open is what makes those changes
+    // appear at all. Gating them requires persisting the merge first.
+    const bool doControllers = !skipUnchanged || om.NeedsBaseControllersUpdate();
+
     BOOL controllersChanged = NO;
-    if (om.MergeFromBase(/*prompt=*/false, acceptAll, rejectAll, nullptr)) {
-        controllersChanged = YES;
-        [self recalcAndMarkControllersDirty];
+    if (doControllers) {
+        bool controllersDidChange = false;
+        if (om.MergeFromBase(/*prompt=*/false, acceptAll, rejectAll, nullptr, &controllersDidChange)) {
+            om.MarkBaseControllersSynced();
+            // The checkpoint lives in the networks file alongside the
+            // controllers it describes, so it needs that same save.
+            _context->MarkControllersDirty();
+        }
+        if (controllersDidChange) {
+            controllersChanged = YES;
+            [self recalcAndMarkControllersDirty];
+        }
     }
 
     BOOL modelsChanged = NO;
     if (_context->HasModelManager()) {
-        if (_context->GetModelManager().MergeFromBase(baseDir, /*prompt=*/false,
-                                                       acceptAll, rejectAll)) {
+        bool modelsDidChange = false;
+        _context->GetModelManager().MergeFromBase(baseDir, /*prompt=*/false,
+                                                   acceptAll, rejectAll, &modelsDidChange);
+        if (modelsDidChange) {
             modelsChanged = YES;
         }
     }
 
     BOOL objectsChanged = NO;
     if (_context->HasViewObjectManager()) {
-        if (_context->GetAllObjects().MergeFromBase(baseDir, /*prompt=*/false,
-                                                     acceptAll, rejectAll)) {
+        bool objectsDidChange = false;
+        _context->GetAllObjects().MergeFromBase(baseDir, /*prompt=*/false,
+                                                 acceptAll, rejectAll, &objectsDidChange);
+        if (objectsDidChange) {
             objectsChanged = YES;
         }
+    }
+
+    // Flush whatever the merge produced. The controller checkpoint is
+    // part of that — it lives in the networks file, so recording it
+    // needs this save to land.
+    if (!_context->SaveLayoutChanges()) {
+        spdlog::warn("XLSequenceDocument: base show folder merge applied but the save failed");
     }
 
     return @{ @"controllersChanged": @(controllersChanged),
@@ -16426,8 +17842,7 @@ static NSDictionary* BuildEmptyPortEntry(NSString* kind,
             [ports addObject:BuildEmptyPortEntry(@"serial", p, "Serial")];
         }
     }
-    // PWM / Virtual Matrix / LED Panel Matrix don't have caps-
-    // side max counts the same way; only show ports that exist.
+    // PWM and Virtual Matrix still list only the ports that hold a model.
     for (int p = 1; p <= cud.GetMaxPWMPort(); ++p) {
         if (cud.HasPWMPort(p)) {
             [ports addObject:BuildWiringPortEntry(cud.GetControllerPWMPort(p), c, caps, false)];
@@ -16438,9 +17853,17 @@ static NSDictionary* BuildEmptyPortEntry(NSString* kind,
             [ports addObject:BuildWiringPortEntry(cud.GetControllerVirtualMatrixPort(p), c, caps, false)];
         }
     }
-    for (int p = 1; p <= cud.GetMaxLEDPanelMatrixPort(); ++p) {
+    // A controller can run several panel matrices at once, so show every one it
+    // could have as a drop target - otherwise a second matrix is unreachable,
+    // there being no occupied port to drag onto. Port number is the matrix
+    // number the controller's own LED Panels page shows.
+    const int capsPanel = caps ? caps->GetMaxLEDPanelMatrixPort() : 0;
+    const int hiPanel = std::max(capsPanel, cud.GetMaxLEDPanelMatrixPort());
+    for (int p = 1; p <= hiPanel; ++p) {
         if (cud.HasLEDPanelMatrixPort(p)) {
             [ports addObject:BuildWiringPortEntry(cud.GetControllerLEDPanelMatrixPort(p), c, caps, false)];
+        } else {
+            [ports addObject:BuildEmptyPortEntry(@"ledPanelMatrix", p, "LED Panel")];
         }
     }
 
@@ -16759,7 +18182,10 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         m->SetControllerProtocol("Virtual Matrix");
         m->SetSmartRemote(0);
     } else if ([portKind isEqualToString:@"ledPanelMatrix"]) {
-        m->SetControllerProtocol("LED Panel Matrix");
+        // keep whichever panel driver family the model already named
+        if (!IsLEDPanelMatrixProtocol(m->GetControllerProtocol())) {
+            m->SetControllerProtocol(PROTOCOL_LED_PANEL_MATRIX);
+        }
         m->SetSmartRemote(0);
     }
 
@@ -16925,14 +18351,16 @@ static std::string CSVQuote(const std::string& s) {
 }
 
 - (NSDictionary*)portCountsForController:(NSString*)name {
-    if (!_context || !name) return @{@"maxPixelPort": @0, @"maxSerialPort": @0};
+    NSDictionary* none = @{@"maxPixelPort": @0, @"maxSerialPort": @0, @"maxLEDPanelMatrixPort": @0};
+    if (!_context || !name) return none;
     Controller* c = _context->GetOutputManager().GetController(name.UTF8String);
-    if (!c) return @{@"maxPixelPort": @0, @"maxSerialPort": @0};
+    if (!c) return none;
     ControllerCaps* caps = ControllerCaps::GetControllerConfig(c);
-    if (!caps) return @{@"maxPixelPort": @0, @"maxSerialPort": @0};
+    if (!caps) return none;
     return @{
-        @"maxPixelPort":  @(caps->GetMaxPixelPort()),
-        @"maxSerialPort": @(caps->GetMaxSerialPort()),
+        @"maxPixelPort":          @(caps->GetMaxPixelPort()),
+        @"maxSerialPort":         @(caps->GetMaxSerialPort()),
+        @"maxLEDPanelMatrixPort": @(caps->GetMaxLEDPanelMatrixPort()),
     };
 }
 
@@ -17556,6 +18984,8 @@ NSString* fppTypeString(FPP_TYPE t) {
         return @{@"globalError": [NSString stringWithFormat:@"Could not open fseq: %@", fseqPath],
                  @"outcomes": outcomes};
     }
+    // every frame is read in order below to build the upload
+    seq->setReadPattern(FSEQFile::ReadPattern::Bulk);
 
     // Resolve each target to its FPP* and compute the right codec.
     // Targets that don't resolve (deleted between discover and upload?)
@@ -17593,7 +19023,19 @@ NSString* fppTypeString(FPP_TYPE t) {
         if ([mediaNS isKindOfClass:[NSString class]]) {
             ctx.media = mediaNS.UTF8String;
         }
-        ctx.fseqType = (match->fppType == FPP_TYPE::ESPIXELSTICK) ? 3 : 2;
+        // Discovery admits only FPP and ESPixelStick (see the fppType
+        // filter in the discovery path), so these are the only two
+        // cases desktop's picker can present here. ESPixelStick is
+        // fixed at V2 Sparse/Uncompressed; a plain FPP takes desktop's
+        // default for its mode — V2 zstd for a `master` instance, V2
+        // Sparse/zstd for anything else (FPPConnectDialog.cpp:661).
+        // Sparse costs a master player the channel ranges it needs to
+        // drive its remotes.
+        if (match->fppType == FPP_TYPE::ESPIXELSTICK) {
+            ctx.fseqType = 3;
+        } else {
+            ctx.fseqType = (match->mode == "master") ? 1 : 2;
+        }
         ctxs.push_back(ctx);
     }
 
@@ -17711,7 +19153,7 @@ NSString* fppTypeString(FPP_TYPE t) {
             // transcoder is its own object, so AddFrameToUpload is
             // safe to run concurrently across targets. `dispatch_apply`
             // blocks until every closure returns — matches desktop's
-            // `parallel_for(instances, func)` semantics.
+            // `parallel_for(0, targets.size(), ...)` semantics.
             //
             // Block captures default to const, which would make the
             // captured std::vector unmodifiable inside. Reach mutable
@@ -18605,9 +20047,13 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     EffectPresetGroup* parent = ResolveGroup(mgr, groupPath);
     if (parent == nullptr) return NO;
 
-    // Accept either a bare <effects> fragment or a full rgbeffects doc
-    // (<xrgb>/<xlights> with an <effects> child).
-    pugi::xml_node effectsNode = doc.child("effects");
+    // Accept a `.xpreset` file (root element <preset>, what desktop's
+    // Export writes — EffectTreeDialog.cpp:894-909), a bare <effects>
+    // fragment, or a full rgbeffects doc (<xrgb>/<xlights> with an
+    // <effects> child). ImportFromXml walks the node's children, so the
+    // <preset> root is handed over directly.
+    pugi::xml_node effectsNode = doc.child("preset");
+    if (!effectsNode) effectsNode = doc.child("effects");
     if (!effectsNode) {
         pugi::xml_node root = doc.child("xrgb");
         if (!root) root = doc.child("xlights");
@@ -18616,6 +20062,41 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     if (!effectsNode) return NO;
     mgr.ImportFromXml(effectsNode, parent);
     return YES;
+}
+
+- (BOOL)exportPresetAtPath:(NSString*)presetPath toXPresetFile:(NSString*)filePath {
+    if (!filePath) return NO;
+    std::string out = [filePath UTF8String];
+    ObtainAccessToURL(out, true);
+
+    auto& mgr = _context->GetEffectPresetManager();
+    FileSerializingVisitor visitor(out);
+    if (!visitor.IsOpen()) return NO;
+
+    BaseSerializingVisitor::AttrCollector attr;
+    attr.Add("SourceVersion", xlights_version_string);
+    visitor.WriteOpenTag("preset", attr);
+
+    bool wrote = false;
+    // Empty / absent path means "the whole library", matching desktop's
+    // export-with-the-root-selected branch (EffectTreeDialog.cpp:911-918).
+    if (presetPath.length == 0) {
+        for (const auto& child : mgr.GetRoot().GetChildren()) {
+            if (child) {
+                child->Save(visitor);
+                wrote = true;
+            }
+        }
+    } else {
+        EffectPresetItem* item = mgr.FindItemByPath([presetPath UTF8String]);
+        if (item) {
+            item->Save(visitor);
+            wrote = true;
+        }
+    }
+
+    visitor.WriteCloseTag();
+    return wrote ? YES : NO;
 }
 
 - (BOOL)exportPresetsToPath:(NSString*)path {

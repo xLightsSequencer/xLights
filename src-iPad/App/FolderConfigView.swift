@@ -18,6 +18,8 @@ struct FolderConfigView: View {
     @State private var autoUpdateFromBase: Bool = false
     @State private var updateResult: BaseDirUpdateResult?
     @State private var reselectPrompt: ReselectPrompt?
+    @State private var pendingShowFolder: PendingShowFolder?
+    @State private var defaultFolderError: SimpleError?
     // App-wide render preference (default OFF = full-definition render). Not
     // per-sequence — `iPadRenderContext::IsLowDefinitionRender()` reads this
     // same `render.lowDefinition` key via CFPreferences.
@@ -95,6 +97,19 @@ struct FolderConfigView: View {
         let message: String
     }
 
+    /// A picked show folder that failed the "does this look like a show
+    /// folder?" heuristic and needs the user to confirm.
+    struct PendingShowFolder: Identifiable {
+        let id = UUID()
+        let path: String
+        let message: String
+    }
+
+    struct SimpleError: Identifiable {
+        let id = UUID()
+        let message: String
+    }
+
     init() {
         _showFolderPath = State(initialValue: FolderConfig.showFolder)
         _mediaFolderPaths = State(initialValue: FolderConfig.mediaFolders)
@@ -119,6 +134,21 @@ struct FolderConfigView: View {
                     }
                     Button(showFolderPath == nil ? "Choose Show Folder…" : "Change Show Folder…") {
                         pickerMode = .showFolder
+                    }
+                    // Desktop's `xLightsFrame::OfferDefaultShowDirectory`
+                    // (TabSetup.cpp:627) offers to create Documents/xLights
+                    // rather than leaving a first-time user to find or
+                    // invent a folder unaided. Same offer here, against the
+                    // app's Documents container (the "xLights" folder the
+                    // Files app shows), and only while nothing is set.
+                    if showFolderPath == nil, let suggestion = defaultShowFolderPath {
+                        Button("Use Default Show Folder") {
+                            useDefaultShowFolder()
+                        }
+                        Text(suggestion)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
                     }
                     if showFolderPath != nil {
                         Button("Switch Temporarily…") {
@@ -367,7 +397,12 @@ struct FolderConfigView: View {
                     FolderConfig.registerBookmark(from: url)
                     switch mode {
                     case .showFolder:
-                        showFolderPath = path
+                        if let warning = showFolderWarning(for: url) {
+                            pendingShowFolder = PendingShowFolder(path: path,
+                                                                   message: warning)
+                        } else {
+                            showFolderPath = path
+                        }
                     case .showFolderTemporary:
                         // Load now without touching FolderConfig.showFolder
                         // or the Recent list, then close the sheet.
@@ -394,6 +429,21 @@ struct FolderConfigView: View {
             .alert(item: $updateResult) { result in
                 Alert(title: Text(result.title),
                       message: Text(result.message),
+                      dismissButton: .default(Text("OK")))
+            }
+            .alert(item: $pendingShowFolder) { pending in
+                Alert(title: Text("Possibly Incorrect Folder"),
+                      message: Text(pending.message),
+                      primaryButton: .default(Text("Use Anyway")) {
+                          showFolderPath = pending.path
+                      },
+                      secondaryButton: .cancel(Text("Choose Another…")) {
+                          pickerMode = .showFolder
+                      })
+            }
+            .alert(item: $defaultFolderError) { err in
+                Alert(title: Text("Couldn't Create Show Folder"),
+                      message: Text(err.message),
                       dismissButton: .default(Text("OK")))
             }
             .alert(item: $reselectPrompt) { prompt in
@@ -466,7 +516,6 @@ struct FolderConfigView: View {
         let controllersChanged = result["controllersChanged"] as? Bool ?? false
         let modelsChanged = result["modelsChanged"] as? Bool ?? false
         let objectsChanged = result["objectsChanged"] as? Bool ?? false
-        _ = viewModel.document.saveLayoutChanges()
 
         if !controllersChanged && !modelsChanged && !objectsChanged {
             updateResult = BaseDirUpdateResult(
@@ -494,6 +543,63 @@ struct FolderConfigView: View {
 
     private func displayName(_ path: String) -> String {
         (path as NSString).lastPathComponent
+    }
+
+    // MARK: - Show-folder default + sanity check
+
+    /// `<Documents>/xLights` — the iPad analogue of desktop's
+    /// `wxStandardPaths::GetDocumentsDir() + "/xLights"`. This container
+    /// is the app's Files-visible folder, so a show created here shows up
+    /// under "On My iPad ▸ xLights" and syncs with iCloud Drive when the
+    /// user has it enabled.
+    private var defaultShowFolderPath: String? {
+        FileManager.default
+            .urls(for: .documentDirectory, in: .userDomainMask)
+            .first?
+            .appendingPathComponent("xLights", isDirectory: true)
+            .path
+    }
+
+    private func useDefaultShowFolder() {
+        guard let path = defaultShowFolderPath else { return }
+        var isDir: ObjCBool = false
+        if !FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {
+            do {
+                try FileManager.default.createDirectory(
+                    atPath: path, withIntermediateDirectories: true)
+            } catch {
+                defaultFolderError = SimpleError(
+                    message: "Unable to create \(path).\n\n\(error.localizedDescription)\n\nPlease choose a folder instead.")
+                return
+            }
+        } else if !isDir.boolValue {
+            defaultFolderError = SimpleError(
+                message: "\(path) already exists and isn't a folder. Please choose a folder instead.")
+            return
+        }
+        showFolderPath = path
+    }
+
+    /// Desktop's `PromptForShowDirectory` sanity check (TabSetup.cpp:605):
+    /// a folder holding `xlights_networks.xml` or `xlights_rgbeffects.xml`
+    /// is a show folder, an empty one is a fine place to start a new show,
+    /// and anything else is probably a mis-pick worth querying. Returns
+    /// the warning text, or nil when the folder passes.
+    private func showFolderWarning(for url: URL) -> String? {
+        let fm = FileManager.default
+        for marker in ["xlights_networks.xml", "xlights_rgbeffects.xml"] {
+            if fm.fileExists(atPath: url.appendingPathComponent(marker).path) {
+                return nil
+            }
+        }
+        // Security scope was already obtained by the picker, so this
+        // listing is allowed. If it fails outright, don't block the user.
+        guard let contents = try? fm.contentsOfDirectory(atPath: url.path) else {
+            return nil
+        }
+        let visible = contents.filter { !$0.hasPrefix(".") }
+        if visible.isEmpty { return nil }
+        return "“\(url.lastPathComponent)” has no xLights show files in it and isn't empty. Are you sure this is the right folder?"
     }
 
     /// Recents minus whatever is currently selected — no point listing

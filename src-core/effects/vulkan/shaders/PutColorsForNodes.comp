@@ -1,0 +1,58 @@
+#version 450
+// Port of PutColorsForNodes in LayerBlendingFunctions.metal.  owner gates
+// the scatter: several nodes can map to the same pixel, and concurrent GPU
+// threads racing for it made the result non-deterministic.  Only the owning
+// node (last in Nodes order, matching the serial CPU loop) writes the
+// shared pixel.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Mask { uint maskWords[]; };
+layout(std430, set = 0, binding = 3) readonly buffer Idx { int indexes[]; };
+layout(std430, set = 0, binding = 4) readonly buffer Owner { int owner[]; };
+
+uint maskAt(uint midx) {
+    return (maskWords[midx >> 2] >> ((midx & 3u) * 8u)) & 0xFFu;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    int idx = indexes[index];
+    if (idx == -1) {
+        // out of bounds node, nothing to write
+    } else if ((uint(idx) & 0x80000000u) != 0u) {
+        int ii = int(uint(idx) & 0x7FFFFFFFu);
+        int cnt = indexes[ii];
+        ii++;
+        for (int n = 0; n < cnt; n++) {
+            int nidx = indexes[ii + n];
+            if (owner[nidx] != int(index)) continue;
+            uint x = uint(nidx) / data.bufferHi;
+            uint y = uint(nidx) - (x * data.bufferHi);
+            uint midx = x * data.bufferHi + y;
+            if (data.useMask != 0u && maskAt(midx) > 0u) {
+                result[nidx] = 0u;
+            } else {
+                result[nidx] = src[index];
+            }
+        }
+    } else if (owner[idx] != int(index)) {
+        // another node owns this pixel
+    } else if (data.useMask != 0u) {
+        uint x = uint(idx) / data.bufferHi;
+        uint y = uint(idx) - (x * data.bufferHi);
+        uint midx = x * data.bufferHi + y;
+        if (maskAt(midx) > 0u) {
+            result[idx] = 0u;
+        } else {
+            result[idx] = src[index];
+        }
+    } else {
+        result[idx] = src[index];
+    }
+}

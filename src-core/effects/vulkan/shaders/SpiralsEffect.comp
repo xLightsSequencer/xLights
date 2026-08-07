@@ -1,0 +1,135 @@
+#version 450
+// Port of SpiralsEffect in SpiralsFunctions.metal.  Per-pixel kernel using the
+// inverted strand mapping documented there:
+//
+// CPU algorithm writes:  x_dest = (strand + SpiralState/10 + y*Rotation/height) % width
+//                        where strand = (strand_base + thick) % width
+//
+// GPU algorithm inverts: for pixel (px, py) compute
+//                        x_src = (px - SpiralState/10 - py*Rotation/height) mod width
+//                        then find which spiral owns x_src.
+//
+// Params mirror VulkanSpiralsData (std430); colorsAsRGBA/colorsAsHSV are
+// fixed-size arrays (8 entries, matching MAX_VULKAN_SPIRALS_COLORS).
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+
+    int spiralCount;
+    int colorCount;
+    int paletteRepeat;
+
+    float deltaStrands;
+    float spiralThickness;
+    float spiralState;
+    float rotation;
+
+    int show3D;
+    int allowAlpha;
+    float rotation_sign;
+
+    uint colorsAsRGBA[8];
+    vec3 colorsAsHSV[8];
+} data;
+
+// Mirrors HSVtoRGBA() in SpiralsFunctions.metal exactly (not the shared
+// IQ-style hsv2rgb) so 3D-shaded HSV fades match the Metal/CPU output.
+uvec4 spiralsHsv2rgba(vec3 hsv, float alpha) {
+    float h = hsv.x * 360.0;
+    float s = hsv.y;
+    float v = hsv.z;
+
+    float c = v * s;
+    float x = c * (1.0 - abs(xl_fmod(h / 60.0, 2.0) - 1.0));
+    float m = v - c;
+    float r, g, b;
+    if (h < 60.0)       { r = c; g = x; b = 0.0; }
+    else if (h < 120.0) { r = x; g = c; b = 0.0; }
+    else if (h < 180.0) { r = 0.0; g = c; b = x; }
+    else if (h < 240.0) { r = 0.0; g = x; b = c; }
+    else if (h < 300.0) { r = x; g = 0.0; b = c; }
+    else                { r = c; g = 0.0; b = x; }
+    return uvec4(
+        uint((r + m) * 255.0),
+        uint((g + m) * 255.0),
+        uint((b + m) * 255.0),
+        uint(alpha * 255.0)
+    );
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    if (px >= data.width || py >= data.height) return;
+
+    // Invert the CPU mapping to find the "source x" that this pixel came from.
+    // CPU:  x_dest = (strand + SpiralState/10 + y*Rotation/height) % width
+    // So:   x_src  = x_dest - SpiralState/10 - y*Rotation/height
+    float x_src_f = float(px) - data.spiralState / 10.0 - float(py) * data.rotation / float(data.height);
+
+    // Normalize to [0, width)
+    float w = float(data.width);
+    x_src_f = x_src_f - floor(x_src_f / w) * w;
+
+    // Check each spiral to see if this pixel belongs to it.
+    // Spiral ns has: strand_base = (int)(ns * deltaStrands)
+    //                thick range: [0, spiralThickness)
+    //                so x range:  [(strand_base + 0) % width, ..., (strand_base + thick) % width]
+    // Rather than iterating all strands, do it arithmetically:
+    //   The spiral owns pixel if x_src_f falls in [strand_base, strand_base + spiralThickness) mod width
+    int ownerSpiral = -1;
+    float ownerThick = 0.0;
+
+    for (int ns = 0; ns < data.spiralCount; ns++) {
+        float strand_base_f = float(ns) * data.deltaStrands;
+        int strand_base = int(strand_base_f);
+
+        float diff = x_src_f - float(strand_base);
+        diff = diff - floor(diff / w) * w;
+
+        if (diff < data.spiralThickness) {
+            ownerSpiral = ns;
+            ownerThick = diff;
+            break;
+        }
+    }
+
+    if (ownerSpiral < 0) {
+        // No spiral owns this pixel — leave it black/transparent
+        result[index] = 0u;
+        return;
+    }
+
+    int colorIdx = ownerSpiral % data.colorCount;
+    vec3 hsv = data.colorsAsHSV[colorIdx];
+    uvec4 rgba = unpackPx(data.colorsAsRGBA[colorIdx]);
+
+    if (data.show3D != 0) {
+        // 3D shading: fade value based on thickness position
+        // CPU: if Rotation < 0: f = (thick+1)/SpiralThickness
+        //      else:             f = (SpiralThickness - thick) / SpiralThickness
+        float f;
+        if (data.rotation_sign < 0.0) {
+            f = (ownerThick + 1.0) / data.spiralThickness;
+        } else {
+            f = (data.spiralThickness - ownerThick) / data.spiralThickness;
+        }
+        f = clamp(f, 0.0, 1.0);
+
+        if (data.allowAlpha != 0) {
+            result[index] = packPx(uvec4(rgba.r, rgba.g, rgba.b, uint(f * 255.0)));
+        } else {
+            vec3 fadedHSV = vec3(hsv.x, hsv.y, hsv.z * f);
+            result[index] = packPx(spiralsHsv2rgba(fadedHSV, 1.0));
+        }
+    } else {
+        result[index] = packPx(rgba);
+    }
+}

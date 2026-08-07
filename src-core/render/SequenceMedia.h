@@ -12,9 +12,11 @@
 
 #include "../utils/xlImage.h"
 #include <atomic>
+#include <condition_variable>
 #include <filesystem>
 #include <functional>
 #include <map>
+#include <set>
 #include <string>
 #include <memory>
 #include <mutex>
@@ -22,6 +24,8 @@
 
 
 class AnimatedImage;
+class ImageLoadJob;
+class JobPool;
 namespace pugi { class xml_node; }
 
 /**
@@ -35,6 +39,15 @@ enum class MediaType {
     BinaryFile,
     Video,
     Audio
+};
+
+struct ResolvedMediaPath {
+    // What to store back into the effect's settings (relative where possible,
+    // for portability) and what to actually open. They differ whenever the
+    // stored path is relative or had to be re-resolved against the current
+    // show/media folders.
+    std::string settingsPath;
+    std::string loadPath;
 };
 
 /**
@@ -59,6 +72,22 @@ public:
 
     void MarkIsUsed(bool used = true) { _used = used; }
     bool IsUsed() const { return _used; }
+
+    // Referenced by sequence metadata (e.g. sequence-level face definitions)
+    // rather than an effect's settings - the render pipeline never marks these
+    // used, but the data must be retained across unused-media cleanup. The
+    // flag is deliberately never recomputed within a session: deleting or
+    // repointing the referencing metadata leaves the entry pinned until the
+    // next load (conservative - the data may be wanted again), when the marks
+    // are rebuilt from the current definitions.
+    void SetUsedByMetadata(bool used = true) { _usedByMetadata = used; }
+    bool IsUsedByMetadata() const { return _usedByMetadata; }
+
+    // Free decoded/derived data (frames, scaled caches, previews) while
+    // keeping the entry and any embedded source data; reloads lazily on next
+    // access. Used under memory pressure where erasing an embedded entry
+    // would lose document content.
+    virtual void UnloadCachedData() { ClearPreview(); }
 
     void Embed() { if (IsEmbeddable()) _isEmbedded.store(true); }
     void Extract() { _isEmbedded.store(false); }
@@ -95,6 +124,7 @@ protected:
     std::string _filePath;
     std::string _embeddedData;      // Base64 encoded data
     std::atomic_bool _used;
+    std::atomic_bool _usedByMetadata{false};
     std::atomic_bool _loadingDone{false};
     std::atomic_bool _isEmbedded{false};
     std::filesystem::file_time_type _fileTimestamp{}; // mtime when loaded from disk
@@ -140,7 +170,10 @@ public:
     ~ImageCacheEntry() override;
 
     // Image-specific accessors
-    bool IsEmbeddable() const override { return !_embeddedData.empty(); }
+    // Frame-series entries (foo-1.png..foo-N.png, SuperStar scene animations)
+    // have no single source file, so _embeddedData stays empty — but their
+    // frames serialize as <Frame> nodes, making them embeddable too.
+    bool IsEmbeddable() const override { return !_embeddedData.empty() || _framesEmbeddable; }
     int GetImageCount() const { return _imageCount; }
 
     int GetImageWidth() const { return _imageWidth; }
@@ -170,6 +203,7 @@ public:
 
     void Load() override;
     void ReloadIfChanged() override;
+    void UnloadCachedData() override;
 
     // Pre-cache a base64 PNG string for frame i to avoid re-encoding on save.
     void SetFrameData(std::vector<std::string> data) { _frameData = std::move(data); }
@@ -183,11 +217,15 @@ private:
     void storeAnimated(AnimatedImageData result);
     void loadAnimated(const std::vector<uint8_t> &data, const AnimationLoaderFunc &loader);
     void loadImage(const std::vector<uint8_t> &data);
+    void LoadDeferredFrames();
     int GetExifOrientation(const uint8_t* data, size_t len);
 
     mutable std::vector<std::string> _frameData; // Base64 encoded PNG per frame (multi-frame embedded, cached to avoid re-encode)
+    // <Frame> nodes were read but not yet decoded; _frameData holds them.
+    bool _deferredFrames = false;
     int _imageCount = 0;                // Number of frames in image (1 for static, >1 for animated)
     bool _frameBasedAnimation = true;
+    bool _framesEmbeddable = false;     // Frames exist only in memory and can be saved as <Frame> nodes
 
     std::vector<long> _frameTimes;
     std::vector<std::shared_ptr<xlImage>> _frameImages;
@@ -317,6 +355,7 @@ public:
     VideoMediaCacheEntry(const std::string& filePath);
 
     bool IsEmbeddable() const override { return false; }
+    bool IsOk() const override;
 
     // Returns the resolved absolute path for VideoReader to open
     const std::string& GetResolvedPath() const { return _resolvedPath; }
@@ -381,7 +420,27 @@ public:
 
     // === Image-specific API (existing, unchanged) ===
     std::shared_ptr<ImageCacheEntry> GetImage(const std::string& filepath);
+    ResolvedMediaPath ResolveImagePath(const std::string& filepath) const;
+    static ResolvedMediaPath ResolveFilePath(const std::string& filepath);
     bool HasImage(const std::string& filepath) const;
+    // True when `filepath` is not cached and does not resolve to a file on
+    // disk. The miss is remembered and the first one for a path is logged.
+    // A miss is otherwise never cached, so callers on the per-frame render path
+    // re-ran the FixFile probe - a filesystem walk that reaches iCloud's
+    // FileProvider over XPC on Apple platforms - for every frame, multiplied by
+    // each frame-parallel clone's fresh effect cache.
+    bool IsImageMissing(const std::string& filepath);
+    // Create the cache entry without decoding (GetImage loads eagerly)
+    void RegisterImage(const std::string& filepath);
+    void QueueImageLoad(const std::string& filepath, const std::string& loadPath, JobPool& pool);
+    // Queue every cached-but-undecoded image (i.e. the embedded ones, which no
+    // effect's loadFiles reaches) so they decode on the pool like the rest.
+    void QueueUnloadedImages(JobPool& pool);
+    void WaitForImageLoads();
+    // Flag/query an entry as referenced by sequence metadata (see
+    // MediaCacheEntry::SetUsedByMetadata); no-op when the path isn't cached
+    void MarkUsedByMetadata(const std::string& filepath, bool used = true);
+    bool IsUsedByMetadata(const std::string& filepath) const;
     void AddAnimatedImage(const std::string& filepath, int msFrameTime);
     void RemoveImage(const std::string& filepath);
     void EmbedImage(const std::string& filepath);
@@ -389,6 +448,12 @@ public:
     void AddEmbeddedImage(const std::string& name, const xlImage& image);
     void AddEmbeddedImage(const std::string& name, const std::string& imageData);
     void AddEmbeddedImage(const std::string& name, const std::vector<xlImage>& frames, int frameTimeMs);
+    // Embed an image directly from a file on disk, keyed by `name` (which need
+    // not equal `sourceFilePath` - used by import to embed under the path the
+    // definition references while reading the bytes from an extracted/resolved
+    // physical file). Preserves the original file bytes/format. No-op if `name`
+    // is already cached or the file can't be read.
+    void AddEmbeddedImageFromFile(const std::string& name, const std::string& sourceFilePath);
     void ExtractImage(const std::string& filepath);
     void ExtractAllImages();
     bool ExtractImageToFile(const std::string& oldPath, const std::string& newPath);
@@ -461,13 +526,17 @@ public:
     void SaveToXml(pugi::xml_node& parent) const;
 
 private:
+    friend class ImageLoadJob;
+    void LoadQueuedImage(const std::string& filepath);
     // Helper to resolve relative paths via FileUtils::FixFile
     static std::string ResolvePath(const std::string& filepath);
+    void RegisterImage(const std::string& filepath, const std::string& loadPath);
 
     std::vector<std::pair<std::string, std::string>> _pendingRelocations;
 
     // Per-type caches
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;
+    std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageResolvedCache;
     std::map<std::string, std::shared_ptr<TextMediaCacheEntry>> _textCache;
     std::map<std::string, std::shared_ptr<SVGMediaCacheEntry>> _svgCache;
     std::map<std::string, std::shared_ptr<ShaderMediaCacheEntry>> _shaderCache;
@@ -475,5 +544,12 @@ private:
     std::map<std::string, std::shared_ptr<VideoMediaCacheEntry>> _videoCache;
     std::map<std::string, std::shared_ptr<AudioMediaCacheEntry>> _audioCache;
 
+    // Paths IsImageMissing() has already resolved and found nothing for.
+    std::set<std::string> _missingImages;
+
     mutable std::recursive_mutex _cacheMutex;
+    std::mutex _imageLoadMutex;
+    std::condition_variable _imageLoadComplete;
+    std::set<std::string> _queuedImageLoads;
+    size_t _pendingImageLoads = 0;
 };
