@@ -109,9 +109,15 @@ NSString* ThreadsText() {
     // The dashboard's "breadcrumbs" come from these, and they are what turns a
     // stack into a reproducible report - the desktop has shipped them in
     // threads.txt for a while, the iPad was dropping them on the floor.
+    //
+    // Every thread's, not GetTraceMessages' calling-thread-only view: the
+    // desktop calls that from inside its fatal-exception hook, which runs on the
+    // thread that faulted, but packaging here runs on whatever thread the
+    // uploader is on - one that has never logged a breadcrumb - so the
+    // per-thread lookup missed and this section shipped empty every time.
     status += "\nThread traces:\n";
     std::list<std::string> traceMessages;
-    TraceLog::GetTraceMessages(traceMessages);
+    TraceLog::GetAllTraceMessages(traceMessages);
     for (auto const& a : traceMessages) {
         status += a;
         status += "\n";

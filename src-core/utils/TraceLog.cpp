@@ -14,6 +14,7 @@
 #include <map>
 #include <list>
 #include <mutex>
+#include <sstream>
 
 static const std::string CONTEXT_MARKER = "--context--";
 static volatile bool TRACE_LOG_VALID = false;
@@ -110,6 +111,24 @@ void TraceLog::GetTraceMessages(std::list<std::string> &msgs) {
     if (traceMessages != nullptr) {
         for (auto &a : *traceMessages) {
             msgs.push_back(a);
+        }
+    }
+}
+
+void TraceLog::GetAllTraceMessages(std::list<std::string> &msgs) {
+    if (!TRACE_LOG_VALID) {
+        return;
+    }
+    std::unique_lock<std::mutex> lock(TRACELOG_HOLDER.MESSAGE_MAP_LOCK);
+    for (auto const& [id, threadMessages] : TRACELOG_HOLDER.LOG_MESSAGES) {
+        if (threadMessages == nullptr || threadMessages->empty()) {
+            continue;
+        }
+        std::ostringstream hdr;
+        hdr << "thread " << id << ":";
+        msgs.push_back(hdr.str());
+        for (auto const& a : *threadMessages) {
+            msgs.push_back("  " + a);
         }
     }
 }

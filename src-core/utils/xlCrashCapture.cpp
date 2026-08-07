@@ -208,7 +208,24 @@ void appendSymbolicatedFrame(std::string& out, int index, uint64_t addr)
             char const* slash = std::strrchr(info.dli_fname, '/');
             image = slash ? slash + 1 : info.dli_fname;
         }
-        if (info.dli_sname) {
+        // dladdr resolves against whatever symbol table an image still has.
+        // Every build that uploads one of these is stripped of local symbols, so
+        // for our own binary dli_sname lands on whichever unrelated *exported*
+        // symbol happens to precede the frame: a RangeWorkPool worker came back
+        // as "spvtools::FriendlyNameMapper::ParseInstructionForwarder +
+        // 12744360", which reads as a real frame and sends the reader into
+        // spirv-tools. Stripping a one-page test binary reproduces it as
+        // "main + 312" - the offset is only large because the app is, so its
+        // size is not a usable tell.
+        //
+        // A wrong name is worse than no name here, and an offset from the image
+        // base costs nothing: it is what atos wants, the header carries the base
+        // to pass it, and the answer comes back with a line number dladdr could
+        // never give. System dylibs export what they implement, so they keep
+        // their names.
+        bool const mainExecutable = info.dli_fbase != nullptr &&
+                                    (uint64_t)info.dli_fbase == (uint64_t)(uintptr_t)_dyld_get_image_header(0);
+        if (info.dli_sname && !mainExecutable) {
             sym = info.dli_sname;
             offset = addr - (uint64_t)info.dli_saddr;
         } else if (info.dli_fbase) {
@@ -454,11 +471,25 @@ std::string BuildAllThreadsReport()
     mach_port_deallocate(mach_task_self(), self);
 
     std::string out;
-    char header[192];
-    std::snprintf(header, sizeof(header), "Threads captured: %d\n", n);
+    char header[320];
+    // Frames in the main executable are printed as an offset, so the base has to
+    // ship with them or the file can only be read on a machine that still has
+    // the exact build. atos -l <image_base> against that build's dSYM resolves
+    // them.
+    std::snprintf(header, sizeof(header),
+                  "Threads captured: %d\nimage_base: 0x%016" PRIx64 "\nimage_slide: 0x%016" PRIx64 "\n",
+                  n,
+                  (uint64_t)(uintptr_t)_dyld_get_image_header(0),
+                  (uint64_t)_dyld_get_image_vmaddr_slide(0));
     out += header;
-    out += "Note: backtrace.txt holds the crashing thread; this file is\n";
-    out += "every other thread's stack at the moment of the crash.\n\n";
+    out += "Note: these are the stacks as of when this report was packaged.\n"
+           "After a crash that is the NEW session - xLightsCrash.prev.txt holds\n"
+           "the thread that died. For a hang or a CPU spike, which never crash,\n"
+           "this is the only capture of what the app was doing.\n"
+           "Frames in the app itself are shown as '?? + <offset from image_base>'\n"
+           "on purpose; resolve them against that build's dSYM with\n"
+           "  atos -o xLights.app.dSYM/Contents/Resources/DWARF/xLights \\\n"
+           "       -arch arm64 -l <image_base> <address> ...\n\n";
 
     for (int i = 0; i < n; ++i) {
         CapturedThread const& t = threads[i];
