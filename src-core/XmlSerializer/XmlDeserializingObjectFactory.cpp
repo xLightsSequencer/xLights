@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
+
 #include "XmlDeserializingObjectFactory.h"
 #include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
@@ -75,9 +77,22 @@ void XmlDeserializingObjectFactory::DeserializeTerrainScreenLocationAttributes(V
     int spacing = node.attribute(XmlNodeKeys::TerrainLineAttribute).as_int(50);
     int width = node.attribute(XmlNodeKeys::TerrainWidthAttribute).as_int(1000);
     int depth = node.attribute(XmlNodeKeys::TerrainDepthAttribute).as_int(1000);
-    int num_points_wide = width / spacing + 1;
-    int num_points_deep = depth / spacing + 1;
+    // Guard against corrupt/hand-edited files with a zero/negative spacing or
+    // negative width/depth: unclamped these send a huge or negative num_points
+    // into TerrainScreenLocation::UpdateSize -> Init, which crashes when it
+    // tries to size mPos from it.
+    if (spacing < 1) spacing = 1;
+    if (width < 0) width = 0;
+    if (depth < 0) depth = 0;
+    int num_points_wide = std::max(1, width / spacing + 1);
+    int num_points_deep = std::max(1, depth / spacing + 1);
     int num_points = num_points_wide * num_points_deep;
+    static constexpr int MAX_TERRAIN_POINTS = 1000000;
+    if (num_points > MAX_TERRAIN_POINTS || num_points < 1) {
+        num_points_wide = 41;
+        num_points_deep = 21;
+        num_points = num_points_wide * num_points_deep;
+    }
     TerrainScreenLocation& screenLoc = dynamic_cast<TerrainScreenLocation&>(object->GetBaseObjectScreenLocation());
     screenLoc.UpdateSize(num_points_wide, num_points_deep, num_points);
     screenLoc.SetDataFromString(node.attribute(XmlNodeKeys::PointDataAttribute).as_string());

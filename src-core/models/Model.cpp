@@ -2188,14 +2188,18 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         bufferWi = this->BufferWi;
     }
 
-    // Zero buffer sizes are bad
-    // This can happen when a strand is zero length ... maybe also a custom model with no nodes
-    if (bufferHt == 0) {
-        spdlog::warn("Model::InitRenderBufferNodes BufferHt was 0 ... overridden to be 1.");
+    // Zero (or negative) buffer sizes are bad.
+    // This can happen when a strand is zero length ... maybe also a custom model with no nodes.
+    // A model/submodel with no nodes leaves the PER_PREVIEW/PER_PREVIEW_NO_OFFSET min/max
+    // extents at their untouched sentinel values (+/-1000000), which rounds into a huge
+    // *negative* bufferHt/bufferWi below -- neither the "== 0" nor the "> 100000" checks
+    // below catch that, so check <= 0 here first.
+    if (bufferHt <= 0) {
+        spdlog::warn("Model::InitRenderBufferNodes BufferHt was {} ... overridden to be 1.", bufferHt);
         bufferHt = 1;
     }
-    if (bufferWi == 0) {
-        spdlog::warn("Model::InitRenderBufferNodes BufferWi was 0 ... overridden to be 1.");
+    if (bufferWi <= 0) {
+        spdlog::warn("Model::InitRenderBufferNodes BufferWi was {} ... overridden to be 1.", bufferWi);
         bufferWi = 1;
     }
     if (bufferWi * bufferHt > 2100000) {

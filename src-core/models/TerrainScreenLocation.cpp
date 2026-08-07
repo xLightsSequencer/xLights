@@ -296,6 +296,15 @@ void TerrainScreenLocation::UpdateSize(int wide, int deep, int points)
 }
 
 void TerrainScreenLocation::Init() {
+    // num_points/num_points_wide/num_points_deep can arrive here from
+    // deserialized (possibly corrupt/hand-edited) files via UpdateSize(); a
+    // zero/negative/overflowed value turns into a huge size_t once handed to
+    // mPos.assign() below, so clamp defensively rather than trust the caller.
+    if (num_points < 1 || num_points > 1000000) {
+        num_points_wide = 41;
+        num_points_deep = 21;
+        num_points = num_points_wide * num_points_deep;
+    }
     mSelectableHandles = num_points + 1;
     // Not a range-for: it bound to each stored elevation and used that value as
     // an index, and Setup() calls Init() again after the real terrain data has
