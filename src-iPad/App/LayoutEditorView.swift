@@ -172,6 +172,7 @@ struct LayoutEditorView: View {
     /// instead of an inline Menu avoids whatever launch-time issue
     /// the SwiftUI Menu in the canvas overlay triggers.
     @State private var addModelSheetVisible: Bool = false
+    @State private var importFromShowVisible: Bool = false
     /// Map-from-lights wizard. Presented from the Add-Model
     /// sheet; runs an FPP-driven structured-light scan and
     /// produces a `MapFromLightsResult` containing a snapped
@@ -807,6 +808,9 @@ struct LayoutEditorView: View {
             pendingPath: $pendingMultiModelImportPath,
             groups: layoutGroups,
             activeGroup: activeLayoutGroup,
+            importFromShowVisible: $importFromShowVisible,
+            viewModel: viewModel,
+            onImportFromShowFinished: handleImportFromShowFinished,
             onConfirm: { path, group in
                 viewModel.layoutPendingImportPath = path
                 viewModel.layoutPendingImportTargetGroup = group
@@ -1455,6 +1459,15 @@ struct LayoutEditorView: View {
                 ContentUnavailableView.search(text: controllerFilter)
             }
         }
+    }
+
+    /// Refresh after a cross-show import: models and groups landed
+    /// straight in the manager, so the side list and canvas both need
+    /// rebuilding, and the show is now dirty.
+    private func handleImportFromShowFinished() {
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved, object: nil)
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
     }
 
     /// J-31.3 — Add Controller. The bridge auto-assigns a unique
@@ -3153,6 +3166,19 @@ struct LayoutEditorView: View {
                     importerVisible = true
                 } label: {
                     Image(systemName: "square.and.arrow.down.on.square")
+                        .font(.title3)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(!viewModel.isShowFolderLoaded)
+
+                // Cross-show import — pull models, groups and
+                // viewpoints out of another show's rgbeffects file
+                // (desktop Layout ▸ Import Models From RGB Effects).
+                Button {
+                    importFromShowVisible = true
+                } label: {
+                    Image(systemName: "square.and.arrow.down.on.square.fill")
                         .font(.title3)
                 }
                 .buttonStyle(.bordered)
@@ -11269,6 +11295,13 @@ private struct MultiModelImportPickerModifier: ViewModifier {
     @Binding var pendingPath: String?
     let groups: [String]
     let activeGroup: String
+    // Cross-show import rides along here rather than as its own link in
+    // the editor's modifier chain, which is already at the Swift
+    // type-checker's complexity limit. Same concern either way:
+    // bringing models in from outside this show.
+    @Binding var importFromShowVisible: Bool
+    let viewModel: SequencerViewModel
+    let onImportFromShowFinished: () -> Void
     let onConfirm: (String, String) -> Void
 
     private var payloadBinding: Binding<MultiModelImportPayload?> {
@@ -11279,15 +11312,22 @@ private struct MultiModelImportPickerModifier: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        content.sheet(item: payloadBinding) { payload in
-            LayoutGroupPickerSheet(
-                groups: groups,
-                initialSelection: activeGroup,
-                fileName: (payload.path as NSString).lastPathComponent,
-                onConfirm: { group in onConfirm(payload.path, group) },
-                onCancel: { pendingPath = nil }
-            )
-        }
+        content
+            .sheet(item: payloadBinding) { payload in
+                LayoutGroupPickerSheet(
+                    groups: groups,
+                    initialSelection: activeGroup,
+                    fileName: (payload.path as NSString).lastPathComponent,
+                    onConfirm: { group in onConfirm(payload.path, group) },
+                    onCancel: { pendingPath = nil }
+                )
+            }
+            .sheet(isPresented: $importFromShowVisible) {
+                ImportFromShowSheet(viewModel: viewModel,
+                                     targetLayoutGroup: activeGroup) { _ in
+                    onImportFromShowFinished()
+                }
+            }
     }
 }
 
@@ -14741,3 +14781,4 @@ struct LayoutEditorWindowRoot: View {
         }
     }
 }
+

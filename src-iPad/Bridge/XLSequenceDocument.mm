@@ -6407,6 +6407,248 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     return out;
 }
 
+// Cross-show import, read side — the contents of another show's
+// rgbeffects file, grouped the way desktop's ImportPreviewsModelsDialog
+// groups its tree (ImportPreviewsModelsDialog.cpp:333-397): a row per
+// preview ("Default" and "Unassigned" always, then each named
+// layoutGroup), each listing that preview's model groups ahead of its
+// models, plus the file's named viewpoints.
+- (NSDictionary*)importableContentsOfRGBEffectsFile:(NSString*)path {
+    NSMutableArray<NSDictionary*>* previews = [NSMutableArray array];
+    NSMutableArray<NSDictionary*>* viewpoints = [NSMutableArray array];
+    NSDictionary* empty = @{ @"previews": previews, @"viewpoints": viewpoints };
+    if (path.length == 0) return empty;
+    std::string p([path UTF8String]);
+    ObtainAccessToURL(p, false);
+    if (!FileExists(p)) return empty;
+
+    pugi::xml_document doc;
+    if (!doc.load_file(p.c_str())) return empty;
+    pugi::xml_node root = doc.document_element();
+    if (!root) return empty;
+
+    pugi::xml_node models = root.child("models");
+    pugi::xml_node modelGroups = root.child("modelGroups");
+
+    // Items in one preview: groups first (desktop's ordering), each
+    // name-sorted, so the two platforms present the same list.
+    auto itemsForPreview = [&](const std::string& preview) -> NSArray<NSDictionary*>* {
+        std::vector<std::string> groupNames;
+        std::vector<std::string> modelNames;
+        auto collect = [&](pugi::xml_node parent, std::vector<std::string>& into) {
+            if (!parent) return;
+            for (pugi::xml_node m = parent.first_child(); m; m = m.next_sibling()) {
+                if (std::string(m.attribute("LayoutGroup").as_string()) != preview) continue;
+                std::string n = m.attribute("name").as_string();
+                if (!n.empty()) into.push_back(n);
+            }
+        };
+        collect(modelGroups, groupNames);
+        collect(models, modelNames);
+        std::sort(groupNames.begin(), groupNames.end());
+        std::sort(modelNames.begin(), modelNames.end());
+
+        NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+        for (const auto& n : groupNames) {
+            [out addObject:@{ @"name": [NSString stringWithUTF8String:n.c_str()],
+                               @"kind": @"group" }];
+        }
+        for (const auto& n : modelNames) {
+            [out addObject:@{ @"name": [NSString stringWithUTF8String:n.c_str()],
+                               @"kind": @"model" }];
+        }
+        return out;
+    };
+
+    auto addPreview = [&](const std::string& name) {
+        NSArray<NSDictionary*>* items = itemsForPreview(name);
+        if (items.count == 0) return;   // desktop prunes empty preview rows
+        [previews addObject:@{ @"name": [NSString stringWithUTF8String:name.c_str()],
+                                @"items": items }];
+    };
+
+    if (models || modelGroups) {
+        addPreview("Default");
+        addPreview("Unassigned");
+        if (pugi::xml_node lgs = root.child("layoutGroups")) {
+            for (pugi::xml_node n = lgs.first_child(); n; n = n.next_sibling()) {
+                if (std::string_view(n.name()) != "layoutGroup") continue;
+                std::string lg = n.attribute("name").as_string();
+                if (!lg.empty()) addPreview(lg);
+            }
+        }
+    }
+
+    // Only real cameras — DefaultCamera2D/3D are the show's own defaults,
+    // not something to carry across.
+    if (pugi::xml_node vps = root.child("Viewpoints")) {
+        std::vector<std::pair<std::string, bool>> cams;
+        for (pugi::xml_node c = vps.first_child(); c; c = c.next_sibling()) {
+            if (std::string_view(c.name()) != "Camera") continue;
+            std::string n = UnXmlSafe(c.attribute("name").as_string(""));
+            if (n.empty()) continue;
+            cams.emplace_back(n, c.attribute("is_3d").as_int(0) != 0);
+        }
+        std::sort(cams.begin(), cams.end(),
+                  [](const auto& a, const auto& b) { return a.first < b.first; });
+        for (const auto& [n, is3d] : cams) {
+            [viewpoints addObject:@{ @"name": [NSString stringWithUTF8String:n.c_str()],
+                                      @"is3D": @(is3d) }];
+        }
+    }
+
+    return @{ @"previews": previews, @"viewpoints": viewpoints };
+}
+
+// Cross-show import, merge side — desktop's
+// `LayoutPanel::ImportModelsFromPreview` (LayoutPanel.cpp:11517-11608).
+// Two passes, and the order is load-bearing: models land first so the
+// group pass can tell which of a group's members actually exist here.
+//
+// `selection` is { previewName: [itemName, …] } and `viewpointNames`
+// the cameras to bring across. Everything is imported into
+// `layoutGroup` — the preview the user is looking at — rather than the
+// source's own preview names, matching desktop.
+- (NSDictionary*)importFromRGBEffectsFile:(NSString*)path
+                                 selection:(NSDictionary<NSString*, NSArray<NSString*>*>*)selection
+                            viewpointNames:(NSArray<NSString*>*)viewpointNames
+                             intoLayoutGroup:(NSString*)layoutGroup
+                        includeEmptyGroups:(BOOL)includeEmptyGroups {
+    NSMutableArray<NSString*>* renamed = [NSMutableArray array];
+    NSMutableArray<NSString*>* skipped = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager() || path.length == 0) {
+        return @{ @"models": @0, @"groups": @0, @"viewpoints": @0,
+                  @"renamed": renamed, @"skippedEmptyGroups": skipped };
+    }
+    std::string p([path UTF8String]);
+    ObtainAccessToURL(p, false);
+    pugi::xml_document doc;
+    if (!FileExists(p) || !doc.load_file(p.c_str())) {
+        return @{ @"models": @0, @"groups": @0, @"viewpoints": @0,
+                  @"renamed": renamed, @"skippedEmptyGroups": skipped };
+    }
+    pugi::xml_node root = doc.document_element();
+    if (!root) {
+        return @{ @"models": @0, @"groups": @0, @"viewpoints": @0,
+                  @"renamed": renamed, @"skippedEmptyGroups": skipped };
+    }
+
+    // Flatten the per-preview selection into one name set — the target
+    // preview is the same for everything, so the grouping only matters
+    // for presentation.
+    std::set<std::string> wanted;
+    for (NSString* preview in selection) {
+        for (NSString* item in selection[preview] ?: @[]) {
+            if (item.length > 0) wanted.insert(std::string([item UTF8String]));
+        }
+    }
+    if (wanted.empty() && viewpointNames.count == 0) {
+        return @{ @"models": @0, @"groups": @0, @"viewpoints": @0,
+                  @"renamed": renamed, @"skippedEmptyGroups": skipped };
+    }
+
+    auto& mm = _context->GetModelManager();
+    const std::string lg = layoutGroup.length ? std::string([layoutGroup UTF8String]) : std::string("Default");
+    const int pw = _context->GetPreviewWidth();
+    const int ph = _context->GetPreviewHeight();
+    int modelCount = 0, groupCount = 0, viewpointCount = 0;
+
+    // Pass 1 — models. A name already in use is imported under a
+    // generated name rather than overwriting what is here.
+    if (pugi::xml_node models = root.child("models")) {
+        for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling()) {
+            std::string name = m.attribute("name").as_string();
+            if (name.empty() || wanted.find(name) == wanted.end()) continue;
+            std::string newName = name;
+            if (mm.GetModel(newName) != nullptr) {
+                newName = mm.GenerateModelName(name);
+                [renamed addObject:[NSString stringWithFormat:@"%s → %s",
+                                     name.c_str(), newName.c_str()]];
+            }
+            m.remove_attribute("name");
+            m.remove_attribute("LayoutGroup");
+            m.append_attribute("name") = newName.c_str();
+            m.append_attribute("LayoutGroup") = lg.c_str();
+            if (mm.createAndAddModel(m, pw, ph) != nullptr) {
+                ++modelCount;
+                // There is no created-model set: SaveLayoutChanges
+                // appends a <model> whose node it can't find, so the
+                // dirty mark is what carries a new one to disk.
+                _context->MarkLayoutModelDirty(newName);
+            }
+        }
+    }
+
+    // Pass 2 — groups. Members that don't exist here are dropped from
+    // the membership list; a group left with none is skipped unless the
+    // caller asked to keep empty ones. An existing group of the same
+    // name is merged into rather than duplicated.
+    if (pugi::xml_node groups = root.child("modelGroups")) {
+        for (pugi::xml_node g = groups.first_child(); g; g = g.next_sibling()) {
+            std::string name = g.attribute("name").as_string();
+            if (name.empty() || wanted.find(name) == wanted.end()) continue;
+
+            std::vector<std::string> members;
+            for (const auto& s : Split(g.attribute("models").as_string(), ',')) {
+                std::string mem = Trim(s);
+                if (!mem.empty() && mm.GetModel(mem) != nullptr) members.push_back(mem);
+            }
+            if (members.empty() && !includeEmptyGroups) {
+                [skipped addObject:[NSString stringWithUTF8String:name.c_str()]];
+                continue;
+            }
+
+            Model* existing = mm.GetModel(name);
+            if (existing == nullptr) {
+                g.remove_attribute("LayoutGroup");
+                g.append_attribute("LayoutGroup") = lg.c_str();
+                existing = mm.createAndAddModel(g, pw, ph);
+                if (existing != nullptr) {
+                    ++groupCount;
+                    _context->MarkGroupCreated(name);
+                }
+            }
+            if (existing != nullptr && existing->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                auto* mg = static_cast<ModelGroup*>(existing);
+                for (const auto& mem : members) {
+                    if (mg->GetModel(mem) == nullptr) mg->AddModel(mem);
+                }
+                _context->MarkLayoutModelDirty(name);
+            }
+        }
+    }
+
+    if (viewpointNames.count > 0) {
+        if (pugi::xml_node vps = root.child("Viewpoints")) {
+            for (pugi::xml_node c = vps.first_child(); c; c = c.next_sibling()) {
+                if (std::string_view(c.name()) != "Camera") continue;
+                std::string n = UnXmlSafe(c.attribute("name").as_string(""));
+                if (n.empty()) continue;
+                NSString* ns = [NSString stringWithUTF8String:n.c_str()];
+                if (![viewpointNames containsObject:ns]) continue;
+                _context->GetViewpointMgr().ImportCameraFromNode(c);
+                ++viewpointCount;
+            }
+        }
+    }
+
+    if (modelCount > 0 || groupCount > 0) {
+        [self recalcModelStartChannels];
+    }
+    if (viewpointCount > 0) {
+        _context->SaveViewpoints();
+    }
+    if (modelCount > 0 || groupCount > 0) {
+        if (!_context->SaveLayoutChanges()) {
+            spdlog::warn("XLSequenceDocument: cross-show import applied but the save failed");
+        }
+    }
+
+    return @{ @"models": @(modelCount), @"groups": @(groupCount),
+              @"viewpoints": @(viewpointCount),
+              @"renamed": renamed, @"skippedEmptyGroups": skipped };
+}
+
 - (NSArray<NSString*>*)modelNamesInRGBEffectsFile:(NSString*)path {
     NSMutableArray<NSString*>* out = [NSMutableArray array];
     if (!path || path.length == 0) return out;

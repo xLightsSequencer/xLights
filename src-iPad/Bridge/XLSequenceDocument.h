@@ -1736,6 +1736,38 @@ NS_ASSUME_NONNULL_BEGIN
 // show's `xlights_rgbeffects.xml` (the `<models>/<model>` names).
 // Mirrors desktop SubModelsDialog::ReadRGBEffectsFile model list.
 // Sorted ascending; empty on parse failure / no models.
+// Cross-show import (desktop Layout ▸ "Import Models From RGB Effects",
+// `ImportPreviewsModelsDialog` + `LayoutPanel::ImportModelsFromPreview`).
+//
+// Read side: what another show's rgbeffects file offers, grouped as the
+// desktop tree groups it. Returns
+//   @"previews"   — [{ "name": NSString,
+//                      "items": [{ "name": NSString,
+//                                  "kind": "model" | "group" }] }]
+//                   ("Default" and "Unassigned" first, then each named
+//                   layoutGroup; groups sort ahead of models; previews
+//                   with nothing in them are omitted)
+//   @"viewpoints" — [{ "name": NSString, "is3D": NSNumber(BOOL) }]
+- (NSDictionary*)importableContentsOfRGBEffectsFile:(NSString*)path
+    NS_SWIFT_NAME(importableContents(ofRGBEffectsFile:));
+
+// Merge side. `selection` maps preview name → chosen item names;
+// everything lands in `layoutGroup` (the preview being viewed), which
+// is what desktop does rather than recreating the source's previews.
+// Models import first so the group pass can tell which members exist;
+// a name collision imports under a generated name instead of
+// overwriting, and a group whose members are all absent is skipped
+// unless `includeEmptyGroups`. Returns
+//   @"models" / @"groups" / @"viewpoints" — NSNumber counts
+//   @"renamed"            — [NSString] "old → new"
+//   @"skippedEmptyGroups" — [NSString]
+- (NSDictionary*)importFromRGBEffectsFile:(NSString*)path
+                                 selection:(NSDictionary<NSString*, NSArray<NSString*>*>*)selection
+                            viewpointNames:(NSArray<NSString*>*)viewpointNames
+                           intoLayoutGroup:(NSString*)layoutGroup
+                        includeEmptyGroups:(BOOL)includeEmptyGroups
+    NS_SWIFT_NAME(importFromRGBEffectsFile(_:selection:viewpointNames:intoLayoutGroup:includeEmptyGroups:));
+
 - (NSArray<NSString*>*)modelNamesInRGBEffectsFile:(NSString*)path
     NS_SWIFT_NAME(modelNames(inRGBEffectsFile:));
 
