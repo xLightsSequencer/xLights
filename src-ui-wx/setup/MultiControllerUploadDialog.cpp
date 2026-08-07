@@ -156,9 +156,13 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
             if (caps && caps->SupportsUpload()) {
                 _controllers.push_back(eth);
 
+                // GetControllerFPPProxy() returns the raw, unresolved proxy string. Using
+                // GetFPPProxy() here instead triggers a synchronous DNS lookup per controller
+                // (uncached on failure, ~5s timeout each) just to build a display label.
+                auto fppProxy = eth->GetControllerFPPProxy();
                 wxString label;
-                if (eth->GetFPPProxy() != "") {
-                    label = eth->GetIP() + " (via FPP " + eth->GetFPPProxy() + ") " + eth->GetDescription() + " " + eth->GetName();
+                if (!fppProxy.empty()) {
+                    label = eth->GetIP() + " (via FPP " + fppProxy + ") " + eth->GetDescription() + " " + eth->GetName();
                 } else {
                     label = eth->GetIP() + " " + eth->GetDescription() + " " + eth->GetName();
                 }
