@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
+                                 positioned behind the background image show through it
     -change (dkulp)              iPad - View names are held to the same rules as the desktop - letters, numbers,
                                  spaces, underscores and hyphens - and say so when a name is rejected. A comma in
                                  a view name breaks which timing tracks belong to that view
