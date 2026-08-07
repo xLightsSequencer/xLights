@@ -313,6 +313,12 @@ public:
     // Empty when the show folder was not writable at load.
     const std::string& GetShowGuid() const { return _showGuid; }
 
+    // Mints a replacement id and writes it back. For the one case where an
+    // existing id is wrong rather than missing: a show folder copied to make a
+    // base show directory carries the original's id, so two shows claim to be
+    // one. Returns false if the folder cannot be written, leaving the id alone.
+    bool RegenerateShowGuid();
+
     // <settings><LayoutMode3D value="1"/>. Desktop's last-used 3D vs 2D
     // preference for the House Preview, read at show-folder load.
     // iPad uses this as the initial value for House Preview's is3D

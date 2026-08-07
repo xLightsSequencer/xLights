@@ -101,6 +101,7 @@
 #include "app-shell/RestoreBackupDialog.h"
 #include "sequencer/SeqSettingsDialog.h"
 #include "effects/ShaderDownloadDialog.h"
+#include "utils/ShowGuid.h"
 #include "utils/SpecialOptions.h"
 #include "app-shell/SplashDialog.h"
 #include "diagnostics/SequenceChecker.h"
@@ -9294,6 +9295,20 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
         std::string dstr = _outputManager.GetBaseShowDir() ;
         PromptForDirectorySelection("Reselect Base Show Directory", dstr);
         ObtainAccessToURL(_outputManager.GetBaseShowDir());
+    }
+
+    // A base show directory is usually set up by copying an existing show, which
+    // copies its id too - leaving two different shows claiming to be one, so
+    // every report from either lands in the same bucket. This is the point where
+    // both folders are known, so it is the point that can tell. The local show
+    // is the one re-minted: the base may be read-only, and it may be shared by
+    // several shows that would each have to agree on the change.
+    {
+        std::string const baseGuid = ShowGuid::ReadFromShowFolder(_outputManager.GetBaseShowDir());
+        if (!baseGuid.empty() && baseGuid == GetXmlSetting("ShowGUID", "") && !IsReadOnlyMode() && !_renderMode && !_checkSequenceMode) {
+            SetXmlSetting("ShowGUID", GenerateGuid());
+            spdlog::info("Show id matched the base show folder's, so this show was given a new one: {}", GetXmlSetting("ShowGUID", ""));
+        }
     }
 
     // Shared accept-all / reject-all state threaded across all three merge passes so that

@@ -518,6 +518,49 @@ iPadRenderContext::GetEffectBracketColor(EffectBracketState state) const {
     return it == _palette.end() ? fallback : it->second;
 }
 
+bool iPadRenderContext::RegenerateShowGuid() {
+    if (showDirectory.empty()) return false;
+    std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";
+    if (!ObtainAccessToURL(rgbPath, true)) {
+        spdlog::warn("iPadRenderContext: cannot take write access to '{}' to re-mint the show id", rgbPath);
+        return false;
+    }
+
+    pugi::xml_document doc;
+    if (!doc.load_file(rgbPath.c_str())) return false;
+    auto xlightsNode = doc.child("xrgb");
+    if (!xlightsNode) xlightsNode = doc.child("xlights");
+    if (!xlightsNode) return false;
+
+    auto settingsNode = xlightsNode.child("settings");
+    if (!settingsNode) settingsNode = xlightsNode.append_child("settings");
+    // Unlike the first mint, the node is normally already there and has to be
+    // updated in place - appending a second ShowGUID would leave the reader
+    // taking whichever came first.
+    pugi::xml_node guidNode;
+    for (auto s = settingsNode.first_child(); s; s = s.next_sibling()) {
+        if (std::string(s.name()) == "ShowGUID") {
+            guidNode = s;
+            break;
+        }
+    }
+    if (!guidNode) guidNode = settingsNode.append_child("ShowGUID");
+
+    std::string const guid = GenerateGuid();
+    if (auto attr = guidNode.attribute("value")) {
+        attr.set_value(guid.c_str());
+    } else {
+        guidNode.append_attribute("value") = guid.c_str();
+    }
+    if (!doc.save_file(rgbPath.c_str())) {
+        spdlog::warn("iPadRenderContext: unable to write the re-minted show id to '{}'", rgbPath);
+        return false;
+    }
+    _showGuid = guid;
+    spdlog::info("Show id matched the base show folder's, so this show was given a new one: {}", guid);
+    return true;
+}
+
 bool iPadRenderContext::SaveViewpoints() {
     if (showDirectory.empty()) return false;
     std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";

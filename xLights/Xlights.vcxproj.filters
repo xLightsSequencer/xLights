@@ -600,6 +600,7 @@
     <ClCompile Include="..\src-ui-wx\shared\controls\ValueCurvesPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\color\ColoursPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowGuid.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
@@ -2155,6 +2156,7 @@
     <ClInclude Include="..\src-ui-wx\color\ColoursPanel.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.h" />
     <ClInclude Include="..\src-core\utils\SpecialOptions.h" />
+    <ClInclude Include="..\src-core\utils\ShowGuid.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />

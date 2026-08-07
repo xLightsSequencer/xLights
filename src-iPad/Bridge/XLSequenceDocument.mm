@@ -30,6 +30,7 @@
 #include "render/ModelVideoExporter.h"
 #include "render/ModelGifExporter.h"
 #import "XLHousePreviewVideoExporter.h"
+#include "utils/ShowGuid.h"
 #include "utils/UtilFunctions.h"
 #include "utils/string_utils.h"
 #include "lyrics/PhonemeDictionary.h"
@@ -16860,6 +16861,17 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
                   @"controllersChanged": @NO,
                   @"modelsChanged": @NO,
                   @"objectsChanged": @NO };
+    }
+
+    // A base show directory is usually set up by copying an existing show, which
+    // copies its id too - leaving two different shows claiming to be one, so
+    // every report from either lands in the same bucket. This is the point where
+    // both folders are known, so it is the point that can tell. The local show
+    // is the one re-minted: the base may be read-only, and it may be shared by
+    // several shows that would each have to agree on the change.
+    if (std::string const baseGuid = ShowGuid::ReadFromShowFolder(baseDir);
+        !baseGuid.empty() && baseGuid == _context->GetShowGuid()) {
+        _context->RegenerateShowGuid();
     }
 
     // Shared across the three passes so Yes-to-All carries from controllers → models → objects.

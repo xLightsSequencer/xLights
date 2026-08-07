@@ -36,6 +36,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  problem. File paths and controller addresses are replaced; model, group and
                                  submodel names are kept so the show still loads. Sharing logs yourself is
                                  unchanged and still sends the real files
+    -bug (dkulp)                 Updating from a base show folder now gives the current show a new id if it has
+                                 the same one as the base. Setting up a base folder by copying an existing show
+                                 copied its id too, so both shows counted as one show in submitted reports
     -enh (dkulp)                 The show's id is now written to the log, so a submitted report identifies which
                                  show it came from without digging through the show XML, and says so plainly
                                  when the show folder wasn't writable enough to give it one
