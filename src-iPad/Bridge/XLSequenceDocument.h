@@ -1794,6 +1794,25 @@ NS_ASSUME_NONNULL_BEGIN
                            path:(NSString*)path
     NS_SWIFT_NAME(exportModel(toXmodelFile:path:));
 
+// Multi-model export — desktop writes a multi-selection into one
+// `.xmodel` through `XmlSerializer::SerializeModels`
+// (LayoutPanel.cpp:7977-8004). Groups in the list are skipped, as the
+// single-model export refuses them. NO when nothing exportable is left.
+- (BOOL)exportModelsToXmodelFile:(NSArray<NSString*>*)modelNames
+                            path:(NSString*)path
+    NS_SWIFT_NAME(exportModels(toXmodelFile:path:));
+
+// Preview (layout group) lifecycle. Create already exists
+// (`createLayoutGroup:`); these are the other two. Deleting reassigns
+// the group's models to "Unassigned" rather than leaving them pointing
+// at a group that no longer exists, and renaming carries them across —
+// both matching `LayoutPanel::DeleteCurrentPreview` / `RenameCurrentPreview`.
+// "Default" is implicit and can be neither renamed nor deleted.
+- (BOOL)deleteLayoutGroup:(NSString*)name
+    NS_SWIFT_NAME(deleteLayoutGroup(_:));
+- (BOOL)renameLayoutGroup:(NSString*)oldName to:(NSString*)newName
+    NS_SWIFT_NAME(renameLayoutGroup(_:to:));
+
 // Make-start-channel commands (desktop LayoutPanel
 // ID_MNU_MAKESCVALID / ID_MNU_MAKEALLSCVALID /
 // ID_MNU_MAKEALLSCNOTOVERLAPPING). Each clears the controller

@@ -6765,6 +6765,40 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     return out;
 }
 
+- (BOOL)exportModelsToXmodelFile:(NSArray<NSString*>*)modelNames path:(NSString*)path {
+    if (!_context || !_context->HasModelManager() || !path || path.length == 0) return NO;
+    if (modelNames.count == 0) return NO;
+    auto& mgr = _context->GetModelManager();
+    std::vector<const Model*> models;
+    for (NSString* n in modelNames) {
+        if (n.length == 0) continue;
+        Model* m = mgr[std::string(n.UTF8String)];
+        // Groups aren't exportable as a model definition — the single
+        // export refuses them too.
+        if (!m || m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+        models.push_back(m);
+    }
+    if (models.empty()) return NO;
+    ObtainAccessToURL([path UTF8String], true);
+    XmlSerializer serializer;
+    pugi::xml_document doc = serializer.SerializeModels(models, /*includeGroups*/ true,
+                                                         /*forExport*/ true);
+    return doc.save_file(path.UTF8String) ? YES : NO;
+}
+
+- (BOOL)deleteLayoutGroup:(NSString*)name {
+    if (!_context || name.length == 0) return NO;
+    if (!_context->DeleteNamedLayoutGroup(std::string(name.UTF8String))) return NO;
+    [self recalcModelStartChannels];
+    return YES;
+}
+
+- (BOOL)renameLayoutGroup:(NSString*)oldName to:(NSString*)newName {
+    if (!_context || oldName.length == 0 || newName.length == 0) return NO;
+    return _context->RenameNamedLayoutGroup(std::string(oldName.UTF8String),
+                                             std::string(newName.UTF8String)) ? YES : NO;
+}
+
 - (BOOL)exportModelToXmodelFile:(NSString*)modelName path:(NSString*)path {
     if (!_context || !_context->HasModelManager() || !modelName || !path) return NO;
     if (path.length == 0) return NO;

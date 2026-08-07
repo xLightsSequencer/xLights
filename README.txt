@@ -14,6 +14,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix rotation not applying to all selected polyline models in a group
     -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
                                  positioned behind the background image show through it
+    -enh (dkulp)                 iPad - Previews can be renamed and deleted, not just created. Deleting one
+                                 leaves its models in the show as Unassigned; renaming one takes its models
+                                 with it
+    -enh (dkulp)                 iPad - Several selected models can be exported to a single .xmodel file
     -enh (dkulp)                 iPad - Models, groups and viewpoints can be imported from another show. Pick
                                  that show's xlights_rgbeffects.xml, tick what you want, and it merges into the
                                  preview you are editing; a name already in use is imported under a new one
