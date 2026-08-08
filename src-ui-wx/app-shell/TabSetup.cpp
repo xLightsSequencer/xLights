@@ -547,6 +547,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     EnableSequenceControls(true);
 
     Notebook1->ChangeSelection(LAYOUTTAB);
+    UpdateEffectsToolbarVisibility();
     SetStatusText("");
     FileNameText->SetLabel(nd);
 
