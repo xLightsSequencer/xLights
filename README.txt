@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 Fix a crash when a row-heading right-click menu item is chosen after the
+                                 sequence has been closed or reloaded
+    -bug (dkulp)                 iPad - The sequence picker no longer stutters on show folders stored in iCloud
+                                 Drive; each row's iCloud state and dates are now read once instead of on every
+                                 redraw
     -bug (derwin12)              Bulk Controller Upload no longer stalls when a controller's FPP proxy hostname can't be resolved
     -bug (derwin12)              Sorting the controller list by FPP Proxy, and the Multi-Controller Upload
                                  "Select with Proxy" menu, no longer stall when a proxy hostname can't be resolved

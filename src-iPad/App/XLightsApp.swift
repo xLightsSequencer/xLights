@@ -1173,74 +1173,23 @@ struct SequencePickerView: View {
     @State private var showingBatchRender: Bool = false
     @State private var openErrorMessage: String? = nil
     @State private var sortOrder: SequenceSortOrder = SequenceSortOrder.load(.picker)
+    // Row metadata is synchronous file-system / iCloud-metadata I/O, so it is
+    // gathered once per list change off the main actor rather than per row
+    // inside `body` — recomputing it on every body evaluation pegged the main
+    // thread on show folders backed by iCloud Drive.
+    @State private var ubiquityCache: [String: UbiquityStatus] = [:]
+    @State private var recentStats: [String: SequenceEntry] = [:]
+
+    /// Identity of the row set the caches were built for; changing it restarts
+    /// the gather task. Sort order deliberately isn't part of it — reordering
+    /// the same files needs no new metadata.
+    private var rowMetadataKey: [String] {
+        recent.map(\.path) + viewModel.sequenceFiles.map(\.fullPath)
+    }
 
     var body: some View {
         NavigationStack {
-            List {
-                if !recent.isEmpty {
-                    Section("Recent") {
-                        ForEach(recent) { entry in
-                            let status = ubiquityStatus(for: URL(fileURLWithPath: entry.path))
-                            let seqEntry = SequenceEntry.stat(path: entry.path,
-                                                               relativeTo: viewModel.showFolderPath)
-                            Button {
-                                openWithDownloadIfNeeded(path: entry.path, status: status)
-                            } label: {
-                                HStack(spacing: 8) {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(entry.displayName)
-                                            .font(.body)
-                                            .foregroundStyle(.primary)
-                                        Text(entry.parentFolder)
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                            .lineLimit(1)
-                                            .truncationMode(.middle)
-                                        SequenceDatesLabel(entry: seqEntry)
-                                    }
-                                    Spacer()
-                                    UbiquityBadge(status: status)
-                                }
-                            }
-                            .swipeActions(edge: .trailing) {
-                                Button(role: .destructive) {
-                                    RecentSequences.remove(path: entry.path,
-                                                            forShowFolder: viewModel.showFolderPath)
-                                    recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
-                                } label: {
-                                    Label("Remove", systemImage: "xmark.bin")
-                                }
-                            }
-                        }
-                    }
-                }
-                Section(recent.isEmpty ? "Sequences" : "In This Show Folder") {
-                    ForEach(sortOrder.apply(viewModel.sequenceFiles)) { entry in
-                        let status = ubiquityStatus(for: URL(fileURLWithPath: entry.fullPath))
-                        Button {
-                            openWithDownloadIfNeeded(path: entry.fullPath, status: status)
-                        } label: {
-                            HStack(spacing: 8) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(entry.displayName)
-                                        .font(.body)
-                                        .foregroundStyle(.primary)
-                                    if !entry.parentRelativePath.isEmpty {
-                                        Text(entry.parentRelativePath)
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                            .lineLimit(1)
-                                            .truncationMode(.middle)
-                                    }
-                                    SequenceDatesLabel(entry: entry)
-                                }
-                                Spacer()
-                                UbiquityBadge(status: status)
-                            }
-                        }
-                    }
-                }
-            }
+            sequenceList
             .navigationTitle("Sequences")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -1287,6 +1236,15 @@ struct SequencePickerView: View {
             .onAppear {
                 recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
             }
+            .task(id: rowMetadataKey) {
+                let recentPaths = recent.map(\.path)
+                let result = await Self.gatherRowMetadata(
+                    recentPaths: recentPaths,
+                    sequencePaths: viewModel.sequenceFiles.map(\.fullPath),
+                    showFolder: viewModel.showFolderPath)
+                ubiquityCache = result.ubiquity
+                recentStats = result.stats
+            }
             .onChange(of: sortOrder) { _, newValue in
                 SequenceSortOrder.save(newValue, to: .picker)
             }
@@ -1319,6 +1277,114 @@ struct SequencePickerView: View {
         }
     }
 
+    /// The two list sections. Split out of `body`, along with the row
+    /// builders below, so the picker stays inside the Swift type-checker's
+    /// complexity budget.
+    @ViewBuilder
+    private var sequenceList: some View {
+        List {
+            if !recent.isEmpty {
+                Section("Recent") {
+                    ForEach(recent) { entry in
+                        let status: UbiquityStatus = ubiquityCache[entry.path] ?? .local
+                        let seqEntry: SequenceEntry? = recentStats[entry.path]
+                        Button {
+                            openWithDownloadIfNeeded(path: entry.path)
+                        } label: {
+                            recentRowLabel(entry, status: status, stat: seqEntry)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                RecentSequences.remove(path: entry.path,
+                                                        forShowFolder: viewModel.showFolderPath)
+                                recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
+                            } label: {
+                                Label("Remove", systemImage: "xmark.bin")
+                            }
+                        }
+                    }
+                }
+            }
+            Section(recent.isEmpty ? "Sequences" : "In This Show Folder") {
+                ForEach(sortOrder.apply(viewModel.sequenceFiles)) { entry in
+                    let status: UbiquityStatus = ubiquityCache[entry.fullPath] ?? .local
+                    Button {
+                        openWithDownloadIfNeeded(path: entry.fullPath)
+                    } label: {
+                        sequenceRowLabel(entry, status: status)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func recentRowLabel(_ entry: RecentSequences.Entry,
+                                 status: UbiquityStatus,
+                                 stat: SequenceEntry?) -> some View {
+        HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.displayName)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                Text(entry.parentFolder)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                if let stat {
+                    SequenceDatesLabel(entry: stat)
+                }
+            }
+            Spacer()
+            UbiquityBadge(status: status)
+        }
+    }
+
+    /// Show-folder row contents — see `recentRowLabel` for why it's split out.
+    @ViewBuilder
+    private func sequenceRowLabel(_ entry: SequenceEntry,
+                                   status: UbiquityStatus) -> some View {
+        HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.displayName)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                if !entry.parentRelativePath.isEmpty {
+                    Text(entry.parentRelativePath)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                SequenceDatesLabel(entry: entry)
+            }
+            Spacer()
+            UbiquityBadge(status: status)
+        }
+    }
+
+    /// Gather each visible row's iCloud state (and, for Recent rows, the
+    /// xsq/fseq timestamps) off the main actor and publish it in one go.
+    /// Every one of these is a synchronous `resourceValues` call, so doing
+    /// them per row inside `body` re-ran the whole set on each re-render.
+    /// `nonisolated` so the file I/O runs on the generic executor, not the
+    /// main actor that awaits it.
+    private nonisolated static func gatherRowMetadata(recentPaths: [String],
+                                                       sequencePaths: [String],
+                                                       showFolder: String?)
+        async -> (ubiquity: [String: UbiquityStatus], stats: [String: SequenceEntry]) {
+        var statuses: [String: UbiquityStatus] = [:]
+        for path in recentPaths + sequencePaths where statuses[path] == nil {
+            statuses[path] = ubiquityStatus(for: URL(fileURLWithPath: path))
+        }
+        var stats: [String: SequenceEntry] = [:]
+        for path in recentPaths {
+            stats[path] = SequenceEntry.stat(path: path, relativeTo: showFolder)
+        }
+        return (statuses, stats)
+    }
+
     /// G-2 — open a sequence, starting a download first when the
     /// file is in iCloud but not yet materialized on this device.
     /// `FileExists()` already triggers an iCloud download as a side
@@ -1328,8 +1394,11 @@ struct SequencePickerView: View {
     /// run it in the background, and the poll below attempts the
     /// open once it's local. For `.downloading` / `.downloaded`
     /// cases we just open immediately.
-    private func openWithDownloadIfNeeded(path: String,
-                                           status: UbiquityStatus) {
+    private func openWithDownloadIfNeeded(path: String) {
+        // Read fresh rather than trusting the row cache — the cache exists to
+        // keep `body` off the file system, and a stale `.local` here would send
+        // an evicted iCloud file down the "no longer exists" path below.
+        let status = ubiquityStatus(for: URL(fileURLWithPath: path))
         // Race guard for files deleted between display and tap
         // (e.g. a recent entry whose source vanished while the
         // picker was on screen). Skip the iCloud branch — those

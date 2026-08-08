@@ -1057,8 +1057,14 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         return;
     }
 
+    // The menu is popped up from rightClick() and the selection is delivered
+    // later from inside the platform's own menu-tracking run loop, so the
+    // sequence can be closed or reloaded before this handler runs.
+    if (mSequenceElements == nullptr)
+        return;
+
     Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
-    if (ri == nullptr || mSequenceElements == nullptr)
+    if (ri == nullptr)
         return;
 
     Element* element = ri->element;
@@ -1200,6 +1206,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_ADD_TIMING_TRACK) {
         bool timing_added = false;
         SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
+        if (xml_file == nullptr)
+            return;
         NewTimingDialog dialog(this);
         OptimiseDialogPosition(&dialog);
         dialog.Fit();
@@ -2241,7 +2249,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int view = mSequenceElements->GetCurrentView();
         for (int i = 0; i < (int)mSequenceElements->GetElementCount(view); ++i) {
             Element* e = mSequenceElements->GetElement(i, view);
-            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            if (e != nullptr && e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (ExpandElementIfEffects(e)) {
                     ModelElement* me = dynamic_cast<ModelElement*>(e);
                     if (me != nullptr) {
@@ -2257,7 +2265,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
         for (int i = 0; i < (int)mSequenceElements->GetElementCount(view); ++i) {
             Element* e = mSequenceElements->GetElement(i, view);
-            if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            if (e != nullptr && e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 ModelElement* me = dynamic_cast<ModelElement*>(e);
                 if (me != nullptr) {
                     me->ShowStrands(false);
@@ -2273,10 +2281,15 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int view = mSequenceElements->GetCurrentView();
         for (int i = 0; i < (int)mSequenceElements->GetElementCount(view); ++i) {
             Element* e = mSequenceElements->GetElement(i, view);
-            e->SetCollapsed(true);
+            if (e != nullptr) {
+                e->SetCollapsed(true);
+            }
         }
         for (int i = 0; i < mSequenceElements->GetNumberOfTimingElements(); ++i) {
-            mSequenceElements->GetTimingElement(i)->SetCollapsed(true);
+            TimingElement* te = mSequenceElements->GetTimingElement(i);
+            if (te != nullptr) {
+                te->SetCollapsed(true);
+            }
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -2295,6 +2308,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), evt);
     } else if (id == ID_ROW_MNU_CREATE_TIMING_FROM_EFFECTS) {
         SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
+        if (xml_file == nullptr)
+            return;
 
         wxString selectedTiming = "FromEffects";
         auto base = selectedTiming;
