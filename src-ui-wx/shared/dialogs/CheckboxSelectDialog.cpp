@@ -204,10 +204,14 @@ void CheckboxSelectDialog::PopulateList()
     CheckListBox_Items->Clear();
     for (const auto& item : _allItems)
     {
-        if (MatchesFilter(item))
+        // Items you have already ticked stay listed even when the filter would
+        // exclude them, so you can filter, tick some, change the filter, tick
+        // more, and still see everything chosen before pressing OK.
+        const bool isChecked = _checked.find(item) != _checked.end();
+        if (isChecked || MatchesFilter(item))
         {
             CheckListBox_Items->Append(item);
-            if (_checked.find(item) != _checked.end())
+            if (isChecked)
             {
                 CheckListBox_Items->Check(CheckListBox_Items->GetCount() - 1);
             }
