@@ -754,6 +754,7 @@ class LayoutPanel: public wxPanel
         wxString _filterString;
         wxRegEx  _filterRegex;
         bool     _filterRegexValid = false;
+        wxTimer  _filterDebounceTimer;
 
         wxSearchCtrl* GroupFilterCtrl = nullptr;
         wxString _groupFilterString;

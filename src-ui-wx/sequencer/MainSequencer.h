@@ -163,8 +163,12 @@ class MainSequencer: public wxPanel
         SequenceElements* mSequenceElements;
         wxSearchCtrl* _seqFilterCtrl = nullptr;
 
-        void ShowSeqFilterPanel(bool show);
         void ApplySeqFilter(const wxString& filter);
+
+    public:
+        void ReApplyCurrentSeqFilter();
+
+    private:
         void OnSeqFilterText(wxCommandEvent& event);
         void OnSeqFilterCancel(wxCommandEvent& event);
         void OnSeqFilterEnter(wxCommandEvent& event);
