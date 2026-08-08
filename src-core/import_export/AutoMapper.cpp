@@ -324,7 +324,15 @@ void RunSubModelFallback(const std::vector<ImportMappingNode*>& roots,
         for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
             auto* sm = model->GetNthChild(k);
             if (sm == nullptr || !sm->GetMapping().empty()) continue;
-            std::list<std::string> smAliases = ResolveSubModelAliases(layoutModel, sm);
+            // Deliberately not ResolveSubModelAliases(): that falls back to the
+            // node's own aliases (which for a plain physical Strand child are
+            // just the parent model's aliases) when no real submodel is found
+            // by this name. Falling back here would let every physical strand
+            // of a model match the same non-slashed alias, over-mapping all of
+            // them to one source (see #6848 regression).
+            Model* sm2 = layoutModel->GetSubModel(sm->GetCoreStrand());
+            if (sm2 == nullptr) continue;
+            const std::list<std::string>& smAliases = sm2->GetAliases();
             if (smAliases.empty()) continue;
             for (const auto& src : available) {
                 if (selectMapAvail && !src.selected) continue;
