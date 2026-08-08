@@ -415,6 +415,7 @@
 		<Unit filename="../src-ui-wx/app-shell/KeyBindingEditDialog.h" />
 		<Unit filename="../src-ui-wx/app-shell/KeyBindings.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/KeyBindings.h" />
+		<Unit filename="../src-ui-wx/app-shell/KeyBindingsDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.h" />
 		<Unit filename="../src-core/import_export/ExportModels.cpp" />
@@ -1399,6 +1400,8 @@
 		<Unit filename="../src-ui-wx/preferences/ColorManagerSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/EffectsGridSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/EffectsGridSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/KeyBindingsSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/KeyBindingsSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/ToolbarLayout.cpp" />

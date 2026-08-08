@@ -118,6 +118,7 @@ class ControllerCaps;
 class Discovery;
 class DiscoveryDelegate;
 class EffectTreeDialog;
+class KeyBindingsDialog;
 class FPP;
 class ConvertDialog;
 class ConvertLogDialog;
@@ -1967,6 +1968,7 @@ public:
     std::vector<ModelPreview *> PreviewWindows;
     ColorManager color_mgr;
     EffectTreeDialog *EffectTreeDlg = nullptr;
+    KeyBindingsDialog* _keyBindingsDialog = nullptr; // modeless; nulled on close
     bool _effectPresetsInitialized = false;
 
     ModelGroup* GetSelectedModelGroup() const;
