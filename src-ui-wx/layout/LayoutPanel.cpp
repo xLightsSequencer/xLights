@@ -50,6 +50,7 @@
 #include "layout/LayoutPanel.h"
 #include "layout/ModelPreview.h"
 #include "xLightsMain.h"
+#include "shared/dialogs/CheckboxSelectDialog.h"
 #include "xLightsApp.h"
 #include "settings/XLightsConfigAdapter.h"
 #include "model/ChannelLayoutDialog.h"
@@ -8331,15 +8332,15 @@ void LayoutPanel::ExportFacesStatesSubModels() {
         choices.Add(model->Name());
     }
 
-    wxMultiChoiceDialog dlg(this, "Export Face/States/SubModels to Other Models", "Choose Model(s)", choices);
+    CheckboxSelectDialog dlg(this, "Export Face/States/SubModels to Other Models", choices);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {
         std::map<std::string, std::map<std::string, std::string>> sourceFaces = selectedModel->GetFaceInfo();
         std::map<std::string, std::map<std::string, std::string>> sourceStates = selectedModel->GetStateInfo();
 
-        for (auto const& idx : dlg.GetSelections()) {
-            Model* targetModel = xlights->GetModel(choices.at(idx));
+        for (auto const& name : dlg.GetSelectedItems()) {
+            Model* targetModel = xlights->GetModel(name);
 
             auto targetFaces = targetModel->GetFaceInfo();
             for (const auto& [name, data] : sourceFaces) {

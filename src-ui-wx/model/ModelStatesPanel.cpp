@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ModelStatesPanel.h"
+#include "shared/dialogs/CheckboxSelectDialog.h"
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/settings.h>
 #include <wx/progdlg.h>
@@ -2675,13 +2676,13 @@ void ModelStatesPanel::ExportStatesToOtherModels()
     xLightsFrame* xlights = xLightsApp::GetFrame();
     wxArrayString choices = getModelList(&xlights->AllModels);
 
-    wxMultiChoiceDialog dlg(this, "Export States to Other Models", "Choose Model(s)", choices);
+    CheckboxSelectDialog dlg(this, "Export States to Other Models", choices);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {
         std::map<std::string, std::map<std::string, std::string>> sourceStates = GetStateInfo();
-        for (auto const& idx : dlg.GetSelections()) {
-            Model* targetModel = xlights->GetModel(choices.at(idx));
+        for (auto const& name : dlg.GetSelectedItems()) {
+            Model* targetModel = xlights->GetModel(name);
             targetModel->SetStateInfo(sourceStates);
             targetModel->IncrementChangeCount();
         }
