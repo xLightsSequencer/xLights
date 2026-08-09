@@ -22,6 +22,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix rotation not applying to all selected polyline models in a group
     -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
                                  positioned behind the background image show through it
+    -enh (derwin12)              SubModels and States dialogs: editing node ranges while the Play preview
+                                 animation is running now stops the animation automatically
     -enh (dkulp)                 iPad - The visualizer can work on a whole port at once: remove every model
                                  from a port or from the controller, move a port's models to another port, and
                                  set or clear the port's smart remote and its type

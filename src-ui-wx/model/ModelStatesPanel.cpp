@@ -301,6 +301,7 @@ ModelStatesPanel::ModelStatesPanel(wxWindow* parent, OutputManager* outputManage
     Bind(wxEVT_GRID_CELL_CHANGED,            &ModelStatesPanel::OnNodeRangeGridCellChange,       this, ID_GRID3);
     Bind(wxEVT_GRID_SELECT_CELL,             &ModelStatesPanel::OnNodeRangeGridCellSelect,       this, ID_GRID3);
     Bind(wxEVT_GRID_RANGE_SELECT,            &ModelStatesPanel::OnNodeRangeGridRangeSelect,      this, ID_GRID3);
+    Bind(wxEVT_GRID_EDITOR_SHOWN,            &ModelStatesPanel::OnNodeRangeGridEditorShown,      this, ID_GRID3);
     Bind(wxEVT_GRID_RANGE_SELECT,            &ModelStatesPanel::OnSingleNodeGridRangeSelect,     this, ID_GRID_COROSTATES);
     Bind(wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, &ModelStatesPanel::OnStateTypeChoicePageChanged, this, ID_CHOICEBOOK1);
     SingleNodeGrid->Bind(wxEVT_SIZE, &ModelStatesPanel::OnSingleNodeGridResize, this);
@@ -927,6 +928,8 @@ void ModelStatesPanel::UpdateStateType()
 
 void ModelStatesPanel::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
+    StopStateAnimation();
+
     if (event.GetCol() == CHANNEL_COL) {
         const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         const wxString title = name + " - " + NodeRangeGrid->GetCellValue(event.GetRow(), NAME_COL);
@@ -1001,6 +1004,8 @@ void ModelStatesPanel::OnNodeRangeGridCellSelect(wxGridEvent& event)
 
 void ModelStatesPanel::OnNodeRangeGridCellRightClick(wxGridEvent& event)
 {
+    StopStateAnimation();
+
     wxMenu mnu;
 
     mnu.Append(STATE_DIALOG_IMPORT_SUB, "Import SubModel");
@@ -2198,13 +2203,28 @@ void ModelStatesPanel::OnPlayStatesClick(wxCommandEvent& event)
     _stateAnimPlaying = true;
     _stateAnimStep = 0;
     Button_PlayStates->SetLabel(_("Stop"));
-    NodeRangeGrid->EnableEditing(false);
 
     _stateAnimTimer.Start(Spin_StateSpeed->GetValue(), false);
 }
 
+void ModelStatesPanel::OnNodeRangeGridEditorShown(wxGridEvent& event)
+{
+    // Editing a state's node range while the preview animation is running
+    // would fight the timer for the cell's contents, so stop playback first
+    // rather than blocking the edit outright.
+    if (_stateAnimPlaying)
+        StopStateAnimation();
+    event.Skip();
+}
+
 void ModelStatesPanel::OnStateAnimTimerTick(wxTimerEvent& event)
 {
+    // A tick queued just before Stop() can still be dispatched afterward
+    // (e.g. from a popup's nested event loop); drop it rather than run
+    // against a step list that playback has already walked away from.
+    if (!_stateAnimPlaying)
+        return;
+
     if (!model || _stateAnimSteps.empty()) {
         StopStateAnimation();
         return;
