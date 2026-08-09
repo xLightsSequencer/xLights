@@ -159,9 +159,15 @@ WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip,
 
     std::string const json = GetURL(GetInfoURL());
     if (!json.empty()) {
-        nlohmann::json jsonVal = nlohmann::json::parse(json);
+        // A proxied request to an offline controller answers with an HTML error
+        // page, so this has to be the non-throwing parse - xLights has no handler
+        // above here and the exception reached the main loop as a crash.
+        nlohmann::json jsonVal = nlohmann::json::parse(json, nullptr, false);
 
-        if (jsonVal.contains("ver") && jsonVal.contains("arch") && jsonVal.contains("name")) {
+        if (jsonVal.is_discarded()) {
+            spdlog::error("Non-JSON response from WLED controller on {}.", _ip);
+            _connected = false;
+        } else if (jsonVal.contains("ver") && jsonVal.contains("vid") && jsonVal.contains("arch") && jsonVal.contains("name")) {
             _version = jsonVal["ver"].get<std::string>();
             _vid = jsonVal["vid"].get<int>();
             _model = jsonVal["arch"].get<std::string>();
