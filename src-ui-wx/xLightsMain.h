@@ -607,6 +607,7 @@ public:
     void OnChoiceParm2Select(wxCommandEvent& event);
     void OnAC_SelectClick(wxCommandEvent& event);
     void OnMenuItem_ShowACRampsSelected(wxCommandEvent& event);
+    void OnMenuItem_AutoArrangeToolbarsSelected(wxCommandEvent& event);
     void OnMenuItem_PerspectiveAutosaveSelected(wxCommandEvent& event);
     void OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event);
     void OnMenuItem_CrashXLightsSelected(wxCommandEvent& event);
@@ -808,6 +809,7 @@ public:
     static const wxWindowID ID_MENU_FIND_SHOW_FOLDER;
     static const wxWindowID ID_MENUITEM5;
     static const wxWindowID ID_MNU_SHOWRAMPS;
+    static const wxWindowID ID_MNU_AUTOARRANGETOOLBARS;
     static const wxWindowID ID_MENUITEM_TOOLBARS;
     static const wxWindowID ID_MENUITEM_SAVE_PERSPECTIVE;
     static const wxWindowID ID_MENUITEM_SAVE_AS_PERSPECTIVE;
@@ -992,6 +994,7 @@ public:
     wxMenuItem* MenuItem_SD_HP;
     wxMenuItem* MenuItem_SD_MP;
     wxMenuItem* MenuItem_ShowACRamps;
+    wxMenuItem* MenuItem_AutoArrangeToolbars;
     wxMenuItem* MenuItem_ShowKeyBindings;
     wxMenuItem* MenuItem_SilentVol;
     wxMenuItem* MenuItem_TOD;
@@ -1075,6 +1078,7 @@ public:
     bool _hwVideoAccleration = true;
     int _hwVideoRenderer = 0;
     bool _showACRamps = false;
+    bool _autoArrangeToolbars = false;
     std::vector<std::pair<wxString, wxMenuItem*>> _toolbarMenuItems;
     wxString _enableRenderCache;
     size_t _renderCacheMaximumSizeMB = 0;

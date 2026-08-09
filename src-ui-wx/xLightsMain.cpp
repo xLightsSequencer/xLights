@@ -306,6 +306,7 @@ const wxWindowID xLightsFrame::ID_MENU_USER_DICT = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_FIND_SHOW_FOLDER = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM5 = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_AUTOARRANGETOOLBARS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_TOOLBARS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SAVE_AS_PERSPECTIVE = wxNewId();
@@ -1084,6 +1085,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem_ShowACRamps = new wxMenuItem(MenuItemToolbars, ID_MNU_SHOWRAMPS, _("Show AC Ramps"), _("Show on effects and twinkle effects as ramps."), wxITEM_CHECK);
     MenuItemToolbars->Append(MenuItem_ShowACRamps);
     MenuItemToolbars->AppendSeparator();
+    MenuItem_AutoArrangeToolbars = new wxMenuItem(MenuItemToolbars, ID_MNU_AUTOARRANGETOOLBARS, _("Auto Arrange"), wxEmptyString, wxITEM_CHECK);
+    MenuItemToolbars->Append(MenuItem_AutoArrangeToolbars);
     MenuItem13 = new wxMenuItem(MenuItemToolbars, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
     MenuItemToolbars->Append(MenuItem13);
     MenuView->Append(ID_MENUITEM_TOOLBARS, _("Toolbars"), MenuItemToolbars, wxEmptyString);
@@ -1323,6 +1326,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxID_ZOOM_OUT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM5, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
     Connect(ID_MNU_SHOWRAMPS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowACRampsSelected);
+    Connect(ID_MNU_AUTOARRANGETOOLBARS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_AutoArrangeToolbarsSelected);
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_SAVE_AS_PERSPECTIVE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected);
     Connect(ID_MENUITEM_LOAD_PERSPECTIVE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemLoadEditPerspectiveSelected);
@@ -1792,6 +1796,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsShowACRamps", &_showACRamps, false);
     MenuItem_ShowACRamps->Check(_showACRamps);
     spdlog::debug("Show AC Ramps: {}.", toStr(_showACRamps));
+
+    config->Read("xLightsAutoArrangeToolbars", &_autoArrangeToolbars, false);
+    MenuItem_AutoArrangeToolbars->Check(_autoArrangeToolbars);
+    spdlog::debug("Auto Arrange Toolbars: {}.", toStr(_autoArrangeToolbars));
 
     config->Read("xLightsEnableRenderCache", &_enableRenderCache, _("Locked Only"));
     spdlog::debug("Enable Render Cache: {}.", (const char*)_enableRenderCache.c_str());
@@ -2272,6 +2280,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsShowZoneIndicator", _showZoneIndicator);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACRamps", _showACRamps);
+    config->Write("xLightsAutoArrangeToolbars", _autoArrangeToolbars);
     config->Write("xLightsEnableRenderCache", _enableRenderCache);
     config->Write("xLightsRenderCacheMaxSizeMB", _renderCacheMaximumSizeMB);
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
@@ -3004,6 +3013,8 @@ void xLightsFrame::UpdateEffectsToolbarVisibility()
 
 void xLightsFrame::CompressToolbarGaps()
 {
+    if (!_autoArrangeToolbars) return;
+
     static bool inCompress = false;
     if (inCompress || MainAuiManager == nullptr) return;
 
@@ -6804,6 +6815,11 @@ void xLightsFrame::OnMenuItem_ShowACRampsSelected(wxCommandEvent& event)
 {
     _showACRamps = MenuItem_ShowACRamps->IsChecked();
     mainSequencer->PanelEffectGrid->Refresh();
+}
+
+void xLightsFrame::OnMenuItem_AutoArrangeToolbarsSelected(wxCommandEvent& event)
+{
+    _autoArrangeToolbars = MenuItem_AutoArrangeToolbars->IsChecked();
 }
 
 void xLightsFrame::SetTimingPlayOnDClick(bool b)
