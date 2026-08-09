@@ -13,6 +13,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
     -bug (dkulp)                 Fix a crash drawing the 3D layout preview, and re-enable a family of NaN/infinity
                                  guards that optimized builds had been silently discarding
+    -bug (dkulp)                 Fix a crash starting playback when the audio engine had been stopped, such as
+                                 after a pause or an audio device change
     -bug (dkulp)                 Fix a crash choosing an OBJ mesh whose backup copy cannot be written, and leave
                                  the original file untouched in that case
     -bug (dkulp)                 Fix a crash when a WLED controller answers with an error page instead of JSON,
