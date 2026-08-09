@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 Fix a crash drawing the 3D layout preview, and re-enable a family of NaN/infinity
+                                 guards that optimized builds had been silently discarding
     -bug (dkulp)                 Fix a crash when a row-heading right-click menu item is chosen after the
                                  sequence has been closed or reloaded
     -bug (dkulp)                 iPad - The sequence picker no longer stutters on show folders stored in iCloud

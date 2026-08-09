@@ -76,6 +76,7 @@
 #include "shared/utils/ExternalHooksUI.h"
 #include "color/ColorManager.h"
 #include "utils/VectorMath.h"
+#include "utils/FloatChecks.h"
 #include "../app-shell/KeyBindings.h"
 #include "sequencer/MainSequencer.h"
 #include "model/ImportPreviewsModelsDialog.h"
@@ -2675,7 +2676,7 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
     std::string entered = dlg.GetValue().ToStdString();
     char* endp = nullptr;
     double angle = std::strtod(entered.c_str(), &endp);
-    if (endp == entered.c_str() || !std::isfinite(angle)) {
+    if (endp == entered.c_str() || !xl::isfinite(angle)) {
         // Unparseable or NaN/Inf - abort silently rather than letting garbage
         // propagate into transform matrices.
         return;
