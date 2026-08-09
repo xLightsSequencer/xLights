@@ -165,8 +165,16 @@ std::vector<std::string> xlMesh::GetTextureFilenamesFromMTL(const std::string& m
 }
 
 void xlMesh::FixMaterialFilenamesInOBJ(const std::string &obj) {
-    std::filesystem::copy(obj, obj + ".bak");
-    
+    // Without a backup the truncating rewrite below would destroy the user's
+    // model, so a failed copy has to abort the whole fixup rather than throw
+    // (copying beside an iCloud document returns EPERM under the sandbox).
+    std::error_code ec;
+    std::filesystem::copy(obj, obj + ".bak", std::filesystem::copy_options::overwrite_existing, ec);
+    if (ec) {
+        spdlog::error("xlMesh: could not back up '{}' before fixing material filenames: {}", obj, ec.message());
+        return;
+    }
+
     std::filesystem::path path(obj);
 
     std::ifstream input(obj + ".bak");
@@ -183,7 +191,8 @@ void xlMesh::FixMaterialFilenamesInOBJ(const std::string &obj) {
                     std::replace(line.begin(), line.end(), ' ', '_');
                     std::filesystem::path nmtlpath(path);
                     nmtlpath.replace_filename(line);
-                    std::filesystem::copy(mtlpath, nmtlpath);
+                    std::error_code mtlEc;
+                    std::filesystem::copy(mtlpath, nmtlpath, std::filesystem::copy_options::overwrite_existing, mtlEc);
                     output << line << "\n";
                 } else {
                     output << line << "\n";
