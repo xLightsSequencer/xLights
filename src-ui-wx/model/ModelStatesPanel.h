@@ -141,6 +141,7 @@ private:
     void OnNodeRangeGridCellSelect(wxGridEvent& event);
     void OnButton_7SegmentClick(wxCommandEvent& event);
     void OnNodeRangeGridCellRightClick(wxGridEvent& event);
+    void OnNodeRangeGridEditorShown(wxGridEvent& event);
     void OnNodeRangeGridLabelLeftDClick(wxGridEvent& event);
     void OnButton_ImportClick(wxCommandEvent& event);
     void OnSingleNodeGridLabelLeftClick(wxGridEvent& event);

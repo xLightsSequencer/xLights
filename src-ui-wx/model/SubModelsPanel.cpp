@@ -344,6 +344,7 @@ SubModelsPanel::SubModelsPanel(wxWindow* parent, OutputManager* om) :
     Bind(wxEVT_GRID_LABEL_LEFT_DCLICK, &SubModelsPanel::OnNodesGridLabelLeftDClick, this, ID_GRID1);
     Bind(wxEVT_GRID_SELECT_CELL,       &SubModelsPanel::OnNodesGridCellSelect,      this, ID_GRID1);
     Bind(wxEVT_GRID_CELL_CHANGED,      &SubModelsPanel::OnNodesGridCellChange,      this, ID_GRID1);
+    Bind(wxEVT_GRID_EDITOR_SHOWN,      &SubModelsPanel::OnNodesGridEditorShown,     this, ID_GRID1);
     Bind(wxEVT_BUTTON, &SubModelsPanel::OnButton_ReverseNodesClick, this, ID_BUTTON6);
     Bind(wxEVT_BUTTON, &SubModelsPanel::OnButton_ReverseRowsClick,  this, ID_BUTTON8);
     Bind(wxEVT_BUTTON, &SubModelsPanel::OnAddRowButtonClick,        this, ID_BUTTON1);
@@ -1275,6 +1276,8 @@ void SubModelsPanel::OnNodesGridLabelLeftClick(wxGridEvent& event)
 
 void SubModelsPanel::OnNodesGridCellRightClick(wxGridEvent& event)
 {
+    StopAnimation();
+
     wxMenu mnu;
     if (event.GetRow() != -1) {
         //NodesGrid->GoToCell(event.GetRow(), 0);
@@ -2610,6 +2613,8 @@ void SubModelsPanel::OnNodesGridLabelLeftDClick(wxGridEvent& event)
 
 void SubModelsPanel::OnNodesGridCellLeftDClick(wxGridEvent& event)
 {
+    StopAnimation();
+
     int row = event.GetRow();
     const wxString name = GetSelectedName();
     if (name == "" || row == -1) {
@@ -4165,10 +4170,19 @@ void SubModelsPanel::OnPlayAnimClick(wxCommandEvent& event)
     _animStep = 0;
     _animTotalSteps = 0;
     Button_PlayAnim->SetLabel(_("Stop"));
-    NodesGrid->EnableEditing(false);
 
     int interval = 520 - 50 * Spin_AnimSpeed->GetValue();
     _animTimer.Start(interval);
+}
+
+void SubModelsPanel::OnNodesGridEditorShown(wxGridEvent& event)
+{
+    // Editing a node range while the preview animation is running would fight
+    // the timer for the cell's contents, so stop playback first rather than
+    // blocking the edit outright.
+    if (_animPlaying)
+        StopAnimation();
+    event.Skip();
 }
 
 void SubModelsPanel::OnAnimSpeedChange(wxSpinEvent& event)
@@ -4181,6 +4195,12 @@ void SubModelsPanel::OnAnimSpeedChange(wxSpinEvent& event)
 
 void SubModelsPanel::OnAnimTimerTick(wxTimerEvent& event)
 {
+    // A tick queued just before Stop() can still be dispatched afterward
+    // (e.g. from the right-click popup's nested event loop); drop it rather
+    // than run against a snapshot that playback has already walked away from.
+    if (!_animPlaying)
+        return;
+
     int trail = std::min(Spin_AnimTrail->GetValue(), _animTotalSteps);
 
     // reset only submodel nodes to white — non-submodel nodes stay dark from play-start

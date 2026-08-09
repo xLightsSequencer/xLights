@@ -406,6 +406,7 @@ private:
     void OnChoiceBufferStyleSelect(wxCommandEvent& event);
     void OnButton_SearchClick(wxCommandEvent& event);
     void OnNodesGridCellRightClick(wxGridEvent& event);
+    void OnNodesGridEditorShown(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
 
     void OnTimer1Trigger(wxTimerEvent& event);
