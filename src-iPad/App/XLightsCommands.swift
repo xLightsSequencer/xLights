@@ -58,10 +58,15 @@ struct XLSequencerCommands: Commands {
             }
             .disabled(!viewModel.isDirty || !viewModel.isSequenceLoaded)
 
+            Button("Back Up Show Folder…") {
+                viewModel.showingShowFolderBackupConfirm = true
+            }
+            .disabled(!viewModel.isShowFolderLoaded || viewModel.showFolderBackupInProgress)
+
             Button("Restore Backup…") {
                 viewModel.showingRestoreBackup = true
             }
-            .disabled(!viewModel.isSequenceLoaded)
+            .disabled(!viewModel.isShowFolderLoaded)
 
             Divider()
 
@@ -380,6 +385,11 @@ struct XLSequencerCommands: Commands {
                 viewModel.showingDisplayElements = true
             }
             .keyboardShortcut("d", modifiers: [.command, .shift])
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Button("Jukebox…") {
+                viewModel.showingJukebox = true
+            }
             .disabled(!viewModel.isSequenceLoaded)
         }
 

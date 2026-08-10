@@ -13,6 +13,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
     -bug (dkulp)                 Fix a crash placing a model when a dialog appears part way through loading it,
                                  such as the group-selection prompt on an imported model
+    -enh (dkulp)                 iPad - Show-folder backup and restore: File > Back Up Show Folder copies the
+                                 show's sequence and configuration files into a timestamped Backup folder
+                                 (the same format desktop's F10 Backup writes, so backups restore across
+                                 both), with an optional backup on show-folder open, an automatic backup
+                                 before autosave recovery, and a Restore Backup sheet that can bring back
+                                 controllers, layout, presets and selected sequences
+    -enh (dkulp)                 iPad - Jukebox: link numbered buttons to effects (by description or
+                                 model/layer/time) and tap to select and play them, matching the desktop
+                                 Jukebox panel; buttons saved in the sequence work on both platforms
     -bug (dkulp)                 Fix a crash drawing the 3D layout preview, and re-enable a family of NaN/infinity
                                  guards that optimized builds had been silently discarding
     -bug (dkulp)                 Fix a crash starting playback when the audio engine had been stopped, such as

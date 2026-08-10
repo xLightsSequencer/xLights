@@ -2357,6 +2357,46 @@ NS_ASSUME_NONNULL_BEGIN
                        atIndex:(int)effectIndex
     NS_SWIFT_NAME(setEffectDescription(_:forRow:atIndex:));
 
+// ===== Jukebox (desktop: JukeboxPanel / LinkJukeboxButtonDialog) =====
+// Button data is sequence-owned (SequenceFile::GetJukeboxButtons) and
+// round-trips through the <Jukebox> node in the .xsq on both platforms.
+
+// Every configured button as a dictionary: number(int), type("DESCRIPTION"
+// or "MLT"), description, tooltip, element, layer(int, 1-based as stored),
+// time(int ms), loop(bool). Unconfigured buttons are absent.
+- (NSArray<NSDictionary*>*)jukeboxButtons;
+// Upsert one button. type is "DESCRIPTION" or "MLT"; layer is 1-based
+// (the stored form; lookups subtract 1, as desktop does).
+- (BOOL)setJukeboxButton:(int)number
+                    type:(NSString*)type
+             description:(NSString*)description
+                 element:(NSString*)element
+                   layer:(int)layer
+                    time:(int)time
+                 tooltip:(NSString*)tooltip
+                    loop:(BOOL)loop
+    NS_SWIFT_NAME(setJukeboxButton(_:type:description:element:layer:time:tooltip:loop:));
+- (BOOL)clearJukeboxButton:(int)number NS_SWIFT_NAME(clearJukeboxButton(_:));
+
+// Link-dialog choice sources (core SequenceElements, shared with desktop).
+- (NSArray<NSString*>*)jukeboxEffectDescriptions;
+- (NSArray<NSString*>*)jukeboxElementNamesWithEffects;
+// 1-based layer numbers that have effects on the element.
+- (NSArray<NSNumber*>*)jukeboxLayersWithEffectsForElement:(NSString*)element
+    NS_SWIFT_NAME(jukeboxLayersWithEffects(forElement:));
+// Start times (ms) of the effects on a 1-based layer of the element.
+- (NSArray<NSNumber*>*)jukeboxEffectStartTimesForElement:(NSString*)element
+                                                   layer:(int)oneBasedLayer
+    NS_SWIFT_NAME(jukeboxEffectStartTimes(forElement:layer:));
+
+// Resolve a configured button to its effect (desktop's
+// ButtonControl::SelectEffect lookup, selection side-effect included so
+// the found effect highlights). Returns nil when the button is
+// unconfigured or no longer matches; else: element, name, layer(int,
+// 0-based), startMS(int), endMS(int), loop(bool).
+- (nullable NSDictionary*)jukeboxResolveButton:(int)number
+    NS_SWIFT_NAME(jukeboxResolveButton(_:));
+
 // Paste / scripted add: insert a new effect with settings+palette pre-populated.
 // Returns the index of the new effect, or -1 on failure.
 - (int)addEffectToRow:(int)rowIndex

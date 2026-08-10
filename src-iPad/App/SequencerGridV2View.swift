@@ -1646,6 +1646,13 @@ struct SequencerGridV2View: View {
             DisplayElementsSheet()
                 .environment(viewModel)
         }
+        // Jukebox trigger pad (desktop's JukeboxPanel pane). Medium
+        // detent + background interaction so playback stays visible
+        // while buttons fire.
+        .sheet(isPresented: Bindable(viewModel).showingJukebox) {
+            JukeboxSheet()
+                .environment(viewModel)
+        }
         // B97 Find / Replace inspector sheet. ⌘F shortcut wires up
         // through the Edit menu in `XLightsCommands` too.
         .sheet(isPresented: Bindable(viewModel).findReplacePresented) {

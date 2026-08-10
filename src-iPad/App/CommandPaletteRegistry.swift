@@ -153,6 +153,9 @@ enum CommandPaletteRegistry {
         add("Edit Display Elements…", "View", "list.bullet.rectangle", "⇧⌘D", loaded) {
             vm.showingDisplayElements = true
         }
+        add("Jukebox…", "View", "square.grid.3x3.square", "", loaded) {
+            vm.showingJukebox = true
+        }
 
         // Tools
         add("Import Effects…", "Tools", "square.and.arrow.down.on.square", "", loaded) {

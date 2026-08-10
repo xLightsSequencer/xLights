@@ -328,6 +328,10 @@ struct ContentView: View {
             RestoreBackupSheet()
                 .environment(viewModel)
         }
+        // File → Back Up Show Folder: pre-flight confirmation (desktop's
+        // DoBackup prompt) then a completion alert with the run name.
+        // Hoisted into a modifier to keep the view body type-checkable.
+        .modifier(ShowFolderBackupAlertsModifier(viewModel: viewModel))
         .sheet(isPresented: Binding(
             get: { viewModel.showingEffectSymbols },
             set: { viewModel.showingEffectSymbols = $0 }
@@ -1447,6 +1451,52 @@ struct SequencePickerView: View {
 /// than the show file means a previous session ended with unsaved
 /// layout edits. Its own modifier so the app shell's modifier chain
 /// stays inside the Swift type-checker's complexity budget.
+/// File → Back Up Show Folder alerts: the pre-flight confirmation
+/// (desktop's DoBackup prompt) and the completion/result alert. A
+/// modifier rather than inline chain so the root view body stays
+/// within the type-checker's complexity budget.
+private struct ShowFolderBackupAlertsModifier: ViewModifier {
+    let viewModel: SequencerViewModel
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Back Up Show Folder?", isPresented: Binding(
+                get: { viewModel.showingShowFolderBackupConfirm },
+                set: { viewModel.showingShowFolderBackupConfirm = $0 }
+            )) {
+                Button("Back Up") { runBackup() }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("All sequence and configuration files under 30 MB in the show folder will be copied to a new folder under Backup.")
+            }
+            .alert("Show Folder Backup", isPresented: Binding(
+                get: { viewModel.showFolderBackupResult != nil },
+                set: { if !$0 { viewModel.showFolderBackupResult = nil } }
+            )) {
+                Button("OK", role: .cancel) { viewModel.showFolderBackupResult = nil }
+            } message: {
+                Text(viewModel.showFolderBackupResult ?? "")
+            }
+    }
+
+    private func runBackup() {
+        Task { @MainActor in
+            guard let result = await viewModel.backUpShowFolder() else {
+                viewModel.showFolderBackupResult = "Backup failed."
+                return
+            }
+            if result.errors.isEmpty {
+                viewModel.showFolderBackupResult =
+                    "Backed up \(result.fileCount) files to Backup/\(result.runName)."
+            } else {
+                viewModel.showFolderBackupResult =
+                    "Backed up to Backup/\(result.runName) with errors:\n"
+                    + result.errors.joined(separator: "\n")
+            }
+        }
+    }
+}
+
 private struct LayoutAutosaveRecoveryModifier: ViewModifier {
     let viewModel: SequencerViewModel
 

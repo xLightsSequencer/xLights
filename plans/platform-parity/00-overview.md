@@ -18,7 +18,7 @@ fine-grained — a menu entry, a dialog field, a gesture):
 
 | Theme | ✅ | 🟡 | ❌ | 🚫 | 🔵 | Biggest gap in one line |
 |---|---|---|---|---|---|---|
-| 01 File & show lifecycle | 72 | 47 | 34 | 8 | 18 | iPad "backup" is a per-sequence snapshot ring; no show-folder backup/restore (feasibility under the sandbox verified — it's backlog, not a platform limit) |
+| 01 File & show lifecycle | 79 | 47 | 28 | 7 | 18 | Show-folder backup/restore landed 2026-08-10 in desktop's interchange format; biggest remaining: Data Layers and the legacy converter bridge |
 | 02 Sequencer grid & editing | 122 | 35 | 27 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
 | 03 Timing, lyrics & audio | 118 | 19 | 17 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
 | 04 Effects catalog & panels | 84 | 10 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
@@ -26,19 +26,19 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 06 Layout, models, 3D | 167 | 50 | 63 | 5 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
 | 07 Controllers, outputs, upload | 70 | 30 | 28 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
 | 08 Import & export | 50 | 11 | 44 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
-| 09 Render & playback | 62 | 12 | 18 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
-| 10 Presets, views, jukebox | 50 | 14 | 21 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
+| 09 Render & playback | 63 | 11 | 18 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
+| 10 Presets, views, jukebox | 57 | 13 | 14 | 5 | 3 | Preset formats don't interchange; jukebox ported 2026-08-10; no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
 | 13 Tools, diagnostics, help | 59 | 12 | 11 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **1000** | **281** | **346** | **158** | **88** | |
+| **Total (01–13)** | **1015** | **279** | **333** | **158** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,627 rows where an iPad status is meaningful (✅+🟡+❌), **61%** are
-at full parity and **79%** at full-or-partial. Counting partials at half weight the iPad sits
-at **≈70% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
+**Parity index:** of the 1,627 rows where an iPad status is meaningful (✅+🟡+❌), **62%** are
+at full parity and **80%** at full-or-partial. Counting partials at half weight the iPad sits
+at **≈71% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
 writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (158) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
 
 **The structural headline:** the iPad is not a viewer. It creates 25/28 model types, runs all
@@ -88,7 +88,7 @@ All survived adversarial re-verification.
 | # | Gap | Where | Why it's S1 |
 |---|---|---|---|
 | 1 | ~~View create/rename/clone/delete/membership edits **evaporate on relaunch**~~ | 10 r71 | **FIXED 2026-08-06** — `iPadRenderContext::SaveViews()` writes the `<views>` subtree from the shared `SequenceViewManager::Save`; every view mutation writes through, and model rename now renames through the views too |
-| 2 | No show-folder backup or restore; snapshot ring covers the current `.xsq` only. Corrupt your layout on iPad → no recovery path | 01 r108–110 | Cross-check killed the old "sandbox makes this infeasible" claim: the write grant is already folder-wide and the tree walk exists — this is backlog, not platform limit |
+| 2 | ~~No show-folder backup or restore; snapshot ring covers the current `.xsq` only~~ | 01 r108–110 | **FIXED 2026-08-10** — `ShowFolderBackup.swift` writes desktop's exact `Backup/<date>-<time>/` run format (seven globs, 30 MB gate, `_OnStart` runs), so backups interchange with desktop both ways; manual command + opt-in backup-on-open + forced pre-recovery/pre-restore backups; the Restore sheet restores the four config files and multi-selected sequences, then reloads the show folder |
 | 3 | ~~Autosave never covers `xlights_rgbeffects.xml` / `xlights_effectpresets.json`~~ | 01 r95–96 | **FIXED 2026-08-06** — layout edits autosave to `.xbkp` with a Use/Discard prompt at load. The presets half of this claim was **wrong**: every preset mutation already saves immediately (with a `.jbkp`), so there was no unsaved window to protect |
 | 4 | ~~Frame-interval change rewrites timing without desktop's save/close/reopen snap cycle~~ | 01 r146 | **FIXED 2026-08-06** — the cycle is ported, with desktop's two confirmations; the reopen is what snaps effects to the new grid |
 | 5 | Base-show-folder merge re-runs unconditionally on every show open (desktop skips when unchanged) — **controllers half FIXED 2026-08-06**; models/objects still re-merge | 01 r179 | The controller pass now gates on the core `NeedsBaseControllersUpdate()`. The models/objects pass **cannot** be gated until its merge is persisted: it only mutates the in-memory ModelManager, and the unconditional re-merge is what makes it reappear each open. Persist first, then gate — that half is where the mesh-access cost is |
@@ -96,7 +96,7 @@ All survived adversarial re-verification.
 | 7 | ~~Stop doesn't blank outputs — lights hold the last frame~~ | 09 r88 | **FIXED 2026-08-06** — `blankOutputs` calls `AllOff()` from Stop and both natural end-of-playback paths; `stopOutput` blanks before closing |
 | 8 | FPP Connect FSEQ type — **the three-mis-served-families claim was wrong**: iPad discovery admits only FPP and ESPixelStick, so Falcon V4/V5 and Genius/PowerDMX never receive an upload at all. The one real case, a master-mode FPP getting sparse, is **FIXED 2026-08-06** | 07 r69 | Downgraded from S1 to a missing picker (07 r69, still partial). A reminder that a ❌ needs the reachability check, not just the code read |
 | 9 | ~~`DidConvert` never consulted; no `NetworkChangesAllowed()` guard~~ | 07 r81 / r26 | **BOTH FIXED 2026-08-06** — the load path now flags a converted legacy networks file dirty so the migration persists, and controller edits are blocked while outputting |
-| 10 | 50 | 14 | 21 |
+| 10 | 57 | 13 | 14 |
 | 11 | 33 | 19 | 51 |
 | 12 | 41 | 6 | 3 |
 | 13 | 59 | 12 | 11 |
@@ -147,7 +147,7 @@ Highest-leverage first within rough effort bands.
   global settings surface, keep per-context sheets where they fit, clean up placement and
   reconcile the drifted key naming (`renderOnSave`, `pasteByCell`). 33 already-working
   settings just need re-hosting; the ❌ backlog becomes visible in the process.
-- **Show-folder backup + config-file restore** (01, pairs with S1 #2/#3).
+- ~~**Show-folder backup + config-file restore** (01, pairs with S1 #2/#3)~~ — **DONE 2026-08-10** in desktop's run format, so backups interchange across platforms.
 - ~~**Light-test Outputs/Groups trees + search** (13 r8–9/11); **Check Sequence export**
   (13 r21)~~ — **DONE 2026-08-07**: Outputs and Groups tabs plus one filter field over the
   visible tab; Check Sequence exports HTML to the share sheet.
@@ -178,8 +178,9 @@ Highest-leverage first within rough effort bands.
 - **AC mode** (02 #181) — deferred by decision; revisit touch-first if demand surfaces.
 - **Data Layers** (01/09) — `DataLayerSet` is wx-free and half-wired; missing converter
   plumbing + bridge + UI.
-- **Jukebox** (10 r32–40) — approved 2026-08-01 (reversing the earlier decline). Cheap: data
-  model core-shared and round-tripping, UI + thin bridge only. Low usage → low priority.
+- ~~**Jukebox** (10 r32–40)~~ — **DONE 2026-08-10** (approved 2026-08-01, reversing the earlier
+  decline): `JukeboxSheet` + link editor over a thin bridge editing the core map in place.
+  Only the shortcuts (r39) and platform-restricted automation verbs (r40) remain open.
 - **Custom-model grid transform/import/export suite** (06 r156–162) and **Generate Custom
   Model wizard** (06 r164, the largest single item).
 - **Structured Faces/States editors** (06 r188–197).
@@ -229,15 +230,15 @@ Highest-leverage first within rough effort bands.
 ## Prioritized iPad → Desktop roadmap
 
 **P1 — Correctness first (small, high-trust):** the S1 table, roughly in order. Most of it is
-now done (2026-08-06); what remains is show-folder backup/restore + config autosave (01), the
-frame-interval snap cycle (01 r146), the two undo stacks (02), and the timing-track
+now done (2026-08-06; show-folder backup/restore followed 2026-08-10); what remains is the
+base-show-folder models/objects re-merge (S1 #5, persist-then-gate) and the timing-track
 multi-active semantics (03 r49, still an open product question). The Visualize re-gate (07) is
 held pending desktop/iPad work already in flight.
 Everything in P1 is bridge-level or view-level work with no new architecture.
 
 **P2 — Close the daily-driver workflow:** cell-range selection + grid drop target (02);
 the settings redo (11 — approved: global settings surface + placement/naming cleanup);
-show-folder backup (01); per-protocol output
+per-protocol output
 properties, DDP first (07); keyboard timing entry + dictionary validation (03); import mapping
 depth (08); light-test trees + Check Sequence export (13); layout-group lifecycle + viewpoint
 menu + background setters (06); preview transport + batch-render HD (09); Moving Head
@@ -247,8 +248,8 @@ common sequencing loop.
 **P3 — The big builds, in value order:** structured Faces/States forms → custom-model
 transform suite → cross-show import → CAD/print/export cluster → `.msq`/`.vsa` + legacy
 exporter lift to core → ColorManager to core + editor → editable keybindings → Pictures pixel
-editor → App Intents story → Data Layers → Generate Custom Model wizard → Jukebox (approved
-2026-08-01; low usage — slot opportunistically) → [AC mode, touch-first, if demand surfaces].
+editor → App Intents story → Data Layers → Generate Custom Model wizard → ~~Jukebox~~ (done
+2026-08-10) → [AC mode, touch-first, if demand surfaces].
 
 Cross-cutting engineering moves that pay for multiple rows: (a) single command table
 generating menus, palette, and keybindings sheet; (b) move duplicated lists (layer methods,

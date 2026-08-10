@@ -12634,6 +12634,142 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     return YES;
 }
 
+// ===== Jukebox (desktop: JukeboxPanel / LinkJukeboxButtonDialog) =====
+
+- (NSArray<NSDictionary*>*)jukeboxButtons {
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded()) return out;
+    auto* sf = _context->GetSequenceFile();
+    if (!sf) return out;
+    for (const auto& [num, btn] : sf->GetJukeboxButtons()) {
+        if (!btn) continue;
+        [out addObject:@{
+            @"number": @(btn->number),
+            @"type": (btn->type == JukeboxButtonData::LookupType::DESCRIPTION ? @"DESCRIPTION" : @"MLT"),
+            @"description": [NSString stringWithUTF8String:btn->description.c_str()] ?: @"",
+            @"tooltip": [NSString stringWithUTF8String:btn->tooltip.c_str()] ?: @"",
+            @"element": [NSString stringWithUTF8String:btn->element.c_str()] ?: @"",
+            @"layer": @(btn->layer),
+            @"time": @(btn->time),
+            @"loop": @(btn->loop),
+        }];
+    }
+    return out;
+}
+
+- (BOOL)setJukeboxButton:(int)number
+                    type:(NSString*)type
+             description:(NSString*)description
+                 element:(NSString*)element
+                   layer:(int)layer
+                    time:(int)time
+                 tooltip:(NSString*)tooltip
+                    loop:(BOOL)loop {
+    if (!_context || !_context->IsSequenceLoaded() || number < 1) return NO;
+    auto* sf = _context->GetSequenceFile();
+    if (!sf) return NO;
+    auto b = std::make_unique<JukeboxButtonData>();
+    b->number = number;
+    b->type = [type isEqualToString:@"DESCRIPTION"] ? JukeboxButtonData::LookupType::DESCRIPTION
+                                                    : JukeboxButtonData::LookupType::MLT;
+    b->description = description ? [description UTF8String] : "";
+    b->element = element ? [element UTF8String] : "";
+    b->layer = layer;
+    b->time = time;
+    b->tooltip = tooltip ? [tooltip UTF8String] : "";
+    b->loop = loop;
+    sf->GetJukeboxButtons()[number] = std::move(b);
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)clearJukeboxButton:(int)number {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    auto* sf = _context->GetSequenceFile();
+    if (!sf) return NO;
+    if (sf->GetJukeboxButtons().erase(number) == 0) return NO;
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (NSArray<NSString*>*)jukeboxEffectDescriptions {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded()) return out;
+    auto descs = _context->GetSequenceElements().GetAllEffectDescriptions();
+    descs.sort();
+    for (const auto& d : descs) {
+        NSString* s = [NSString stringWithUTF8String:d.c_str()];
+        if (s) [out addObject:s];
+    }
+    return out;
+}
+
+- (NSArray<NSString*>*)jukeboxElementNamesWithEffects {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded()) return out;
+    auto names = _context->GetSequenceElements().GetAllElementNamesWithEffects();
+    names.sort();
+    for (const auto& n : names) {
+        NSString* s = [NSString stringWithUTF8String:n.c_str()];
+        if (s) [out addObject:s];
+    }
+    return out;
+}
+
+- (NSArray<NSNumber*>*)jukeboxLayersWithEffectsForElement:(NSString*)element {
+    NSMutableArray<NSNumber*>* out = [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded() || !element) return out;
+    std::list<int> layers;
+    int count = _context->GetSequenceElements().GetElementLayerCount([element UTF8String], &layers);
+    if (count < 0) return out;
+    for (int l : layers) {
+        [out addObject:@(l + 1)];
+    }
+    return out;
+}
+
+- (NSArray<NSNumber*>*)jukeboxEffectStartTimesForElement:(NSString*)element
+                                                   layer:(int)oneBasedLayer {
+    NSMutableArray<NSNumber*>* out = [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded() || !element || oneBasedLayer < 1) return out;
+    auto effects = _context->GetSequenceElements().GetElementLayerEffects([element UTF8String], oneBasedLayer - 1);
+    for (auto* e : effects) {
+        if (e) [out addObject:@(e->GetStartTimeMS())];
+    }
+    return out;
+}
+
+- (NSDictionary*)jukeboxResolveButton:(int)number {
+    if (!_context || !_context->IsSequenceLoaded()) return nil;
+    auto* sf = _context->GetSequenceFile();
+    if (!sf) return nil;
+    auto& buttons = sf->GetJukeboxButtons();
+    auto it = buttons.find(number);
+    if (it == buttons.end() || !it->second) return nil;
+    const JukeboxButtonData& b = *it->second;
+    auto& se = _context->GetSequenceElements();
+    se.UnSelectAllEffects();
+    Effect* e = nullptr;
+    if (b.type == JukeboxButtonData::LookupType::DESCRIPTION) {
+        e = se.SelectEffectUsingDescription(b.description);
+    } else if (b.type == JukeboxButtonData::LookupType::MLT) {
+        // Layer is stored 1-based; the lookup is 0-based (desktop's
+        // ButtonControl::SelectEffect does the same subtraction).
+        e = se.SelectEffectUsingElementLayerTime(b.element, b.layer - 1, b.time);
+    }
+    if (!e) return nil;
+    EffectLayer* layer = e->GetParentEffectLayer();
+    Element* elem = layer ? layer->GetParentElement() : nullptr;
+    return @{
+        @"element": (elem ? [NSString stringWithUTF8String:elem->GetFullName().c_str()] : nil) ?: @"",
+        @"name": [NSString stringWithUTF8String:e->GetEffectName().c_str()] ?: @"",
+        @"layer": @(layer ? layer->GetIndex() : 0),
+        @"startMS": @(e->GetStartTimeMS()),
+        @"endMS": @(e->GetEndTimeMS()),
+        @"loop": @(b.loop),
+    };
+}
+
 // B15: replace the entire settings + palette maps of an existing
 // effect in one shot. Used by randomize / reset / (future) preset
 // apply where the whole property set changes at once. Returns NO

@@ -119,6 +119,9 @@ class SequencerViewModel {
     var temporaryShowFolderActive: Bool = false
     @ObservationIgnored private var suppressRecentRecording = false
     @ObservationIgnored private var pendingLoadRequest: (path: String, mediaFolders: [String])?
+    // Backup-on-open runs once per app session (desktop backs up once
+    // at launch), not on every reload/folder switch.
+    @ObservationIgnored private var didBackupOnOpen = false
 
     /// Set while `performOpenSequence` has a detached `document.openSequence`
     /// task in flight. Blocks re-entrant opens (e.g. a stray double-tap or
@@ -553,11 +556,20 @@ class SequencerViewModel {
     // hard-coupling the command handler to view internals.
     var showingSequenceSettings = false
     var showingRestoreBackup = false
+    // File → Back Up Show Folder (desktop's F10 DoBackup). The confirm
+    // flag drives the pre-flight alert; the result string drives the
+    // completion alert (nil = no alert showing).
+    var showingShowFolderBackupConfirm = false
+    var showFolderBackupResult: String? = nil
+    var showFolderBackupInProgress = false
     // Per-model render progress (desktop's RenderProgressDialog).
     // Opened by long-pressing the toolbar render button — desktop
     // double-clicks its status-bar gauge for the same thing.
     var showingRenderProgress = false
     var showingDisplayElements = false
+    // View → Jukebox (desktop's JukeboxPanel pane, F8). Sheet is
+    // presented from the grid view alongside Display Elements.
+    var showingJukebox = false
     // Phase I-2 — Tools → Import Effects sheet. Reset to false after
     // the user dismisses the sheet (Apply or Cancel).
     var showingImportEffects = false
@@ -1036,6 +1048,11 @@ class SequencerViewModel {
     }()
     private var playbackStartTime: CFAbsoluteTime = 0  // wall clock when play started
     private var playbackStartMS: Int = 0                // sequence position when play started
+    // One-shot end-of-range stop for a non-looping jukebox button:
+    // the playback timer stops (and blanks outputs) when the head
+    // reaches this. Cleared by play()/stop() so it never outlives
+    // the playback it was armed for.
+    private var playbackStopAtMS: Int? = nil
 
     struct RowInfo: Identifiable, Equatable {
         let id: Int
@@ -1220,6 +1237,16 @@ class SequencerViewModel {
             // Layout edits can happen with no sequence open, so the
             // autosave timer starts with the show folder, not the .xsq.
             startAutosaveTimer()
+            // Desktop's backup-on-launch (TabSetup.cpp DoBackup(false, true)),
+            // opt-in here. Fire-and-forget off the main actor; the _OnStart
+            // suffix marks the run just as desktop does.
+            if !didBackupOnOpen && UserDefaults.standard.bool(forKey: "backupOnLaunch") {
+                didBackupOnOpen = true
+                Task.detached {
+                    _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: true)
+                    _ = try? ShowFolderBackup.createBackup(showFolder: path, forceAllFiles: false, onStart: true)
+                }
+            }
         }
         suppressRecentRecording = false
         finishLoad()
@@ -2178,6 +2205,15 @@ class SequencerViewModel {
         let bkpPath = (xsqPath as NSString).deletingPathExtension + ".xbkp"
         let fm = FileManager.default
         guard fm.fileExists(atPath: bkpPath) else { return false }
+        // Desktop takes a full forced show-folder backup before promoting
+        // the autosave (SeqFileUtilities.cpp `DoBackup(false, false, true)`)
+        // so recovery can never destroy the only good copy.
+        if let show = showFolderPath, !show.isEmpty {
+            _ = XLSequenceDocument.obtainAccess(toPath: show, enforceWritable: true)
+            _ = await Task.detached {
+                try? ShowFolderBackup.createBackup(showFolder: show, forceAllFiles: true)
+            }.value
+        }
         // Move xsq aside (just in case) and promote the backup.
         let archived = xsqPath + ".pre-xbkp-recovery"
         _ = try? fm.removeItem(atPath: archived)
@@ -2286,6 +2322,51 @@ class SequencerViewModel {
         }
         openSequence(path: target)
         return true
+    }
+
+    /// Desktop's F10 Backup: copy the show tree's sequence and
+    /// configuration files into a fresh `Backup/<date>-<time>/` run
+    /// directory, in desktop's format so desktop's Restore Backup
+    /// dialog can consume iPad-made backups (and vice versa).
+    func backUpShowFolder(force: Bool = false, onStart: Bool = false) async -> ShowFolderBackup.CreateResult? {
+        guard isShowFolderLoaded, let show = showFolderPath, !show.isEmpty else { return nil }
+        _ = XLSequenceDocument.obtainAccess(toPath: show, enforceWritable: true)
+        showFolderBackupInProgress = true
+        defer { showFolderBackupInProgress = false }
+        return await Task.detached {
+            try? ShowFolderBackup.createBackup(showFolder: show, forceAllFiles: force, onStart: onStart)
+        }.value
+    }
+
+    /// Restore selected files (run-relative paths) from a show-folder
+    /// backup run. Saves and closes any open sequence first (restored
+    /// config files reload from disk, and a restored sequence may be
+    /// the open one), takes a forced safety backup so the restore is
+    /// itself recoverable, copies the files, then reloads the show
+    /// folder. Returns error strings; empty means success.
+    func restoreShowFolderBackup(run: ShowFolderBackup.BackupRun, files: [String]) async -> [String] {
+        guard isShowFolderLoaded, let show = showFolderPath, !show.isEmpty else {
+            return ["No show folder is loaded."]
+        }
+        guard !files.isEmpty else { return [] }
+        _ = XLSequenceDocument.obtainAccess(toPath: show, enforceWritable: true)
+        if isSequenceLoaded {
+            if isDirty { _ = saveSequence() }
+            await closeSequence()
+        }
+        let runPath = run.path
+        let errors = await Task.detached { () -> [String] in
+            var errs: [String] = []
+            if (try? ShowFolderBackup.createBackup(showFolder: show, forceAllFiles: true)) == nil {
+                errs.append("Warning: could not take a pre-restore safety backup.")
+            }
+            errs += ShowFolderBackup.restore(files: files, fromRun: runPath, toShowFolder: show)
+            return errs
+        }.value
+        // Reload so OutputManager/ModelManager/presets pick up the
+        // restored files (desktop's SetDir(showDirectory, true)).
+        loadShowFolder(path: show, mediaFolders: mediaFolderPaths)
+        return errors
     }
 
     /// Discard all in-memory edits and reload the sequence from the
@@ -2503,6 +2584,7 @@ class SequencerViewModel {
 
     func play() {
         stopScrub()
+        playbackStopAtMS = nil
         if hasAudio {
             // Apply current rate before starting — AVAudioEngine
             // reads the time-pitch unit's rate at Play time and
@@ -2528,6 +2610,7 @@ class SequencerViewModel {
     }
 
     func stop() {
+        playbackStopAtMS = nil
         if hasAudio {
             document.audioStop()
         }
@@ -2681,6 +2764,92 @@ class SequencerViewModel {
         }
         if lo == Int.max || hi <= lo { return nil }
         return (lo, hi)
+    }
+
+    // MARK: - Jukebox (desktop's JukeboxPanel)
+
+    /// One Swift-side jukebox button, mirroring the core
+    /// `JukeboxButtonData` fields (`layer` is 1-based, as stored).
+    struct JukeboxButtonInfo: Identifiable, Hashable {
+        let number: Int
+        let type: String          // "DESCRIPTION" | "MLT"
+        let linkDescription: String
+        let element: String
+        let layer: Int
+        let time: Int
+        let tooltip: String
+        let loop: Bool
+        var id: Int { number }
+    }
+
+    /// All configured buttons keyed by button number.
+    func jukeboxButtons() -> [Int: JukeboxButtonInfo] {
+        guard isSequenceLoaded else { return [:] }
+        var out: [Int: JukeboxButtonInfo] = [:]
+        for dict in document.jukeboxButtons() {
+            guard let d = dict as? [String: Any],
+                  let number = d["number"] as? Int, number > 0 else { continue }
+            out[number] = JukeboxButtonInfo(
+                number: number,
+                type: d["type"] as? String ?? "MLT",
+                linkDescription: d["description"] as? String ?? "",
+                element: d["element"] as? String ?? "",
+                layer: d["layer"] as? Int ?? -1,
+                time: d["time"] as? Int ?? -1,
+                tooltip: d["tooltip"] as? String ?? "",
+                loop: d["loop"] as? Bool ?? true)
+        }
+        return out
+    }
+
+    func setJukeboxButton(_ info: JukeboxButtonInfo) {
+        guard isSequenceLoaded else { return }
+        _ = document.setJukeboxButton(Int32(info.number),
+                                      type: info.type,
+                                      description: info.linkDescription,
+                                      element: info.element,
+                                      layer: Int32(info.layer),
+                                      time: Int32(info.time),
+                                      tooltip: info.tooltip,
+                                      loop: info.loop)
+    }
+
+    func clearJukeboxButton(_ number: Int) {
+        guard isSequenceLoaded else { return }
+        _ = document.clearJukeboxButton(Int32(number))
+    }
+
+    /// Desktop's `JukeboxPanel::PlayItem`: resolve the button to its
+    /// effect, reveal + select it, and play its time range — looped
+    /// when the button's loop flag is set, once otherwise. An
+    /// unconfigured or no-longer-matching button stops playback
+    /// (which also blanks outputs).
+    func playJukeboxButton(_ number: Int) {
+        guard isSequenceLoaded else { return }
+        guard let raw = document.jukeboxResolveButton(Int32(number)) as? [String: Any],
+              let startMS = raw["startMS"] as? Int,
+              let endMS = raw["endMS"] as? Int, endMS > startMS else {
+            stop()
+            clearSelection()
+            return
+        }
+        let element = raw["element"] as? String ?? ""
+        let effectName = raw["name"] as? String
+        let layer = raw["layer"] as? Int ?? -1
+        let loop = raw["loop"] as? Bool ?? true
+        jumpToEffect(modelName: element, effectName: effectName,
+                     startTimeMS: startMS, layerIndex: layer)
+        if isPlaying { pause() }
+        setLoopRegion(startMS: startMS, endMS: endMS)
+        loopPlayEnabled = loop
+        seekTo(ms: startMS)
+        play()
+        if !loop {
+            // Desktop's non-looping button still plays only the
+            // effect's range — it just plays it once (mLoopAudio
+            // false → EVT_STOP_SEQUENCE at playEndTime).
+            playbackStopAtMS = endMS
+        }
     }
 
     /// Loop-play the selected effect's time range (iPad idiom for
@@ -3022,6 +3191,18 @@ class SequencerViewModel {
                     let pos = self.document.audioTellMS()
                     self.playPositionMS = Int(pos)
 
+                    // One-shot range end (non-looping jukebox button).
+                    if let stopAt = self.playbackStopAtMS, self.playPositionMS >= stopAt {
+                        self.playbackStopAtMS = nil
+                        self.playPositionMS = min(stopAt, self.sequenceDurationMS)
+                        self.document.audioStop()
+                        self.isPlaying = false
+                        self.isPaused = false
+                        self.stopPlaybackTimer()
+                        self.document.blankOutputs()
+                        return
+                    }
+
                     let state = self.document.audioPlayingState()
                     // Audio naturally ending past the sequence length doesn't
                     // always flip _media_state to STOPPED — the backend only does
@@ -3061,6 +3242,16 @@ class SequencerViewModel {
                         return
                     }
                     self.playPositionMS = pos
+                    // One-shot range end (non-looping jukebox button).
+                    if let stopAt = self.playbackStopAtMS, self.playPositionMS >= stopAt {
+                        self.playbackStopAtMS = nil
+                        self.playPositionMS = min(stopAt, self.sequenceDurationMS)
+                        self.isPlaying = false
+                        self.isPaused = false
+                        self.stopPlaybackTimer()
+                        self.document.blankOutputs()
+                        return
+                    }
                     // B33 play-loop (no-audio path): reset the wall-clock
                     // anchor so the next tick starts measuring from the
                     // loop's start.
