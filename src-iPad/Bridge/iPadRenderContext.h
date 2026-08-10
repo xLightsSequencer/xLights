@@ -733,6 +733,9 @@ public:
         std::string controllerName;     // Model only.
         // Heightmap snapshot — comma-delimited point data string.
         std::string pointData;
+        // Non-zero ties entries pushed by one gesture (a Model Set move drags
+        // every member), so one undo restores all of them. 0 = standalone.
+        uint32_t groupId = 0;
     };
     void PushLayoutUndoSnapshotForModel(const std::string& modelName);
     // J-17 — capture a view-object's common transform + locked
@@ -864,6 +867,13 @@ private:
     // J-2 — undo stack for layout edits. Bounded to 100 entries.
     std::deque<LayoutUndoEntry> _layoutUndoStack;
     static constexpr size_t kLayoutUndoMaxDepth = 100;
+    // Never 0 - that value marks a standalone entry.
+    uint32_t _nextLayoutUndoGroupId = 1;
+    bool CaptureModelUndoEntry(const std::string& modelName, LayoutUndoEntry& e) const;
+    bool ApplyLayoutUndoEntry(const LayoutUndoEntry& e);
+    // Drops oldest entries past kLayoutUndoMaxDepth a whole group at a time so
+    // a trim can't leave half a Set restorable.
+    void TrimLayoutUndoStack();
 
     // Cache of the show folder's <colors> palette so per-frame bracket
     // queries don't re-scan XML. Populated on every LoadShowFolder.

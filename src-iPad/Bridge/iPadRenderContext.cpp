@@ -28,6 +28,7 @@
 #include "effects/ShaderEffect.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "models/ModelSet.h"
 #include "models/MeshObject.h"
 #include "models/ImageObject.h"
 #include "models/GridlinesObject.h"
@@ -1379,13 +1380,25 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
     return true;
 }
 
-void iPadRenderContext::PushLayoutUndoSnapshotForModel(const std::string& modelName) {
-    if (modelName.empty()) return;
+void iPadRenderContext::TrimLayoutUndoStack() {
+    while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
+        const uint32_t group = _layoutUndoStack.front().groupId;
+        // A Set with more members than the cap is one gesture filling the whole
+        // stack; trimming it would silently discard the snapshot just pushed.
+        if (group != 0 && group == _layoutUndoStack.back().groupId) break;
+        _layoutUndoStack.pop_front();
+        if (group == 0) continue;
+        while (!_layoutUndoStack.empty() && _layoutUndoStack.front().groupId == group) {
+            _layoutUndoStack.pop_front();
+        }
+    }
+}
+
+bool iPadRenderContext::CaptureModelUndoEntry(const std::string& modelName, LayoutUndoEntry& e) const {
     Model* m = AllModels.GetModel(modelName);
-    if (!m) return;
+    if (!m) return false;
     auto& loc = m->GetModelScreenLocation();
     glm::vec3 rot = loc.GetRotation();
-    LayoutUndoEntry e;
     e.target = UndoTarget::Model;
     e.modelName = modelName;
     e.hcenter = loc.GetHcenterPos();
@@ -1400,10 +1413,38 @@ void iPadRenderContext::PushLayoutUndoSnapshotForModel(const std::string& modelN
     e.locked  = loc.IsLocked();
     e.layoutGroup    = m->GetLayoutGroup();
     e.controllerName = m->GetControllerName();
+    return true;
+}
 
-    _layoutUndoStack.push_back(std::move(e));
-    while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
-        _layoutUndoStack.pop_front();
+void iPadRenderContext::PushLayoutUndoSnapshotForModel(const std::string& modelName) {
+    if (modelName.empty()) return;
+
+    // Editing a Model Set member drags every peer along, so all members have to
+    // be snapshotted under one group id - otherwise undo restores the grabbed
+    // model and leaves the rest of the Set displaced.
+    std::vector<std::string> names;
+    if (const ModelSet* s = AllModels.GetSetManager().GetSetContaining(modelName)) {
+        names = s->GetMembers();
+    } else {
+        names.push_back(modelName);
+    }
+
+    uint32_t group = 0;
+    if (names.size() > 1) {
+        group = _nextLayoutUndoGroupId++;
+        if (_nextLayoutUndoGroupId == 0) _nextLayoutUndoGroupId = 1;
+    }
+
+    bool pushedAny = false;
+    for (const auto& n : names) {
+        LayoutUndoEntry e;
+        if (!CaptureModelUndoEntry(n, e)) continue;
+        e.groupId = group;
+        _layoutUndoStack.push_back(std::move(e));
+        pushedAny = true;
+    }
+    if (pushedAny) {
+        TrimLayoutUndoStack();
     }
 }
 
@@ -1439,9 +1480,7 @@ void iPadRenderContext::PushLayoutUndoSnapshotForViewObject(const std::string& o
     e.locked  = loc.IsLocked();
     e.layoutGroup = vo->GetLayoutGroup();
     _layoutUndoStack.push_back(std::move(e));
-    while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
-        _layoutUndoStack.pop_front();
-    }
+    TrimLayoutUndoStack();
 }
 
 void iPadRenderContext::PushTerrainHeightmapUndoSnapshot(const std::string& terrainName) {
@@ -1455,16 +1494,26 @@ void iPadRenderContext::PushTerrainHeightmapUndoSnapshot(const std::string& terr
     e.modelName = terrainName;
     e.pointData = sloc.GetDataAsString();
     _layoutUndoStack.push_back(std::move(e));
-    while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
-        _layoutUndoStack.pop_front();
-    }
+    TrimLayoutUndoStack();
 }
 
 bool iPadRenderContext::UndoLastLayoutChange() {
     if (_layoutUndoStack.empty()) return false;
-    LayoutUndoEntry e = _layoutUndoStack.back();
-    _layoutUndoStack.pop_back();
 
+    // Entries sharing a non-zero group id were pushed by one gesture (a Model
+    // Set move), so one undo has to consume the whole run.
+    const uint32_t group = _layoutUndoStack.back().groupId;
+    bool applied = false;
+    do {
+        LayoutUndoEntry e = _layoutUndoStack.back();
+        _layoutUndoStack.pop_back();
+        applied = ApplyLayoutUndoEntry(e) || applied;
+    } while (group != 0 && !_layoutUndoStack.empty() &&
+             _layoutUndoStack.back().groupId == group);
+    return applied;
+}
+
+bool iPadRenderContext::ApplyLayoutUndoEntry(const LayoutUndoEntry& e) {
     switch (e.target) {
     case UndoTarget::Model: {
         Model* m = AllModels.GetModel(e.modelName);

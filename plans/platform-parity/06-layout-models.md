@@ -343,6 +343,7 @@ read-only category header (`ModelPropertyAdapter.cpp:307`); the iPad likewise sh
 | 243 | Escape finalizes a poly-line / unselects in 3D; Return finalizes | `LayoutPanel.cpp:9888-9905` | ✅ | `LayoutEditorView.swift:4161-4177` |
 | **Undo / save** |
 | 244 | Undo point per layout operation | `CreateUndoPoint` `LayoutPanel.cpp:10779`, `DoUndo` `:10597` | ✅ | `pushLayoutUndoSnapshotForModel:` / `…ForViewObject:` / `…TerrainHeightmap` (`XLSequenceDocument.h:2002`, `:2007`, `:2013`), undo `:2018`, can-undo `:2021` |
+| 244a | Undoing a Model Set edit restores every member | Snapshot promoted to `"All"` when the model is in a Set, `CreateUndoPoint` `LayoutPanel.cpp:10579` | ✅ | `PushLayoutUndoSnapshotForModel` snapshots all Set members under one `LayoutUndoEntry::groupId`; `UndoLastLayoutChange` pops the whole run (`iPadRenderContext.cpp:1416`, `:1497`). Previously restored only the grabbed model and left the peers displaced, since a Set drag translates every peer (`XLMetalBridge.mm:2354`) |
 | 245 | Save layout | `ButtonSavePreview` `LayoutPanel.cpp:1092`, handler `:4435`; disabled read-only `xLightsMain.cpp:9307` | ✅ | Canvas Save with unsaved-dot `LayoutEditorView.swift:3100`, bridge `XLSequenceDocument.h:1421`, dirty flag `:1987` |
 | 246 | Confirm-before-save with explicit discard-and-rollback | Desktop saves directly | 🔵 | `LayoutEditorView.swift:1052-1065`, `discardChanges` replays the undo stack `:4623` |
 | **Added by the 2026-08-01 cross-check** (appended, not renumbered — see the numbering rule) |
