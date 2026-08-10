@@ -69,6 +69,7 @@
 
 #include "XmlSerializer/FileSerializingVisitor.h"
 #include "XmlSerializer/StringSerializingVisitor.h"
+#include "XmlSerializer/XmlNodeKeys.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "model/WiringDialog.h"
 #include "model/ModelDimmingCurveDialog.h"
@@ -10707,6 +10708,13 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                         modelPreview->GetVirtualCanvasWidth(),
                         modelPreview->GetVirtualCanvasHeight());
                 }
+                // Must follow LoadModels, which clears the set manager. A snapshot
+                // taken before sets were serialized has no node - leave sets alone
+                // rather than wiping them.
+                pugi::xml_node setsNode = mroot.child(XmlNodeKeys::ModelSetsNodeName);
+                if (setsNode) {
+                    xlights->AllModels.GetSetManager().Load(setsNode);
+                }
             }
 
             // Restore view objects from serialized XML
@@ -10866,11 +10874,13 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
         serializer.SerializeObject(*obj, visitor);
         undoBuffer[idx].data = visitor.GetResult();
     } else if (type == "All") {
-        // Serialize all models
+        // Serialize all models, groups and sets. Sets must ride along because
+        // restoring the models on undo clears the set manager (ModelManager::clear).
         {
             StringSerializingVisitor visitor;
             visitor.WriteOpenTag("root");
             XmlSerializer::SerializeAllModels(xlights->AllModels, visitor);
+            XmlSerializer::SerializeAllModelSets(xlights->AllModels.GetSetManager(), visitor);
             visitor.WriteCloseTag();
 
             undoBuffer[idx].models = visitor.GetResult();

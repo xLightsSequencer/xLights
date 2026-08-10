@@ -59,6 +59,7 @@
 #include "sequencer/MainSequencer.h"
 #include "layout/HousePreviewPanel.h"
 #include "utils/ExternalHooks.h"
+#include "XmlSerializer/XmlNodeKeys.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "XmlSerializer/StringSerializingVisitor.h"
 
@@ -148,15 +149,7 @@ void xLightsFrame::SerializePerspectives(BaseSerializingVisitor &visitor)
 
 void xLightsFrame::SerializeModelSets(BaseSerializingVisitor &visitor)
 {
-    visitor.WriteOpenTag("modelSets");
-    for (const auto& s : AllModels.GetSetManager().GetAllSets()) {
-        if (s->GetMembers().size() < 2) continue;
-        BaseSerializingVisitor::AttrCollector attr;
-        attr.Add("name", s->GetName());
-        attr.Add("models", s->GetMembersCsv());
-        visitor.WriteOpenTag("modelSet", attr, true);
-    }
-    visitor.WriteCloseTag();
+    XmlSerializer::SerializeAllModelSets(AllModels.GetSetManager(), visitor);
 }
 
 void xLightsFrame::OnBitmapButtonOpenSeqClick(wxCommandEvent& event)
@@ -1235,7 +1228,7 @@ void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
 
     // Load Model Sets (translation-only links between models). Lives in a
     // <modelSets> sibling element under <xrgb>. See ModelSetManager.h.
-    pugi::xml_node modelSetsNode = modelGroupsNode.parent().child("modelSets");
+    pugi::xml_node modelSetsNode = modelGroupsNode.parent().child(XmlNodeKeys::ModelSetsNodeName);
     AllModels.GetSetManager().Load(modelSetsNode);
 
     // Add all models to default House Preview that are set to Default or All Previews

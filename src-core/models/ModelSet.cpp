@@ -10,6 +10,8 @@
 
 #include "ModelSet.h"
 
+#include "../XmlSerializer/XmlNodeKeys.h"
+
 #include <algorithm>
 #include <sstream>
 
@@ -42,9 +44,9 @@ void ModelSet::RenameMember(const std::string& oldName, const std::string& newNa
 
 void ModelSet::Load(pugi::xml_node node)
 {
-    _name = node.attribute("name").as_string();
+    _name = node.attribute(XmlNodeKeys::NameAttribute).as_string();
     _members.clear();
-    std::string modelsAttr = node.attribute("models").as_string();
+    std::string modelsAttr = node.attribute(XmlNodeKeys::ModelSetModelsAttribute).as_string();
     std::stringstream ss(modelsAttr);
     std::string token;
     while (std::getline(ss, token, ',')) {
@@ -70,6 +72,6 @@ std::string ModelSet::GetMembersCsv() const
 
 void ModelSet::Save(pugi::xml_node node) const
 {
-    node.append_attribute("name") = _name.c_str();
-    node.append_attribute("models") = GetMembersCsv().c_str();
+    node.append_attribute(XmlNodeKeys::NameAttribute) = _name.c_str();
+    node.append_attribute(XmlNodeKeys::ModelSetModelsAttribute) = GetMembersCsv().c_str();
 }

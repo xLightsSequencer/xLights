@@ -10,6 +10,8 @@
 
 #include "ModelSetManager.h"
 
+#include "../XmlSerializer/XmlNodeKeys.h"
+
 #include <algorithm>
 #include <cstdlib>
 #include <string_view>
@@ -153,7 +155,7 @@ void ModelSetManager::Load(pugi::xml_node setsNode)
     }
     std::unordered_set<std::string> claimed;
     for (pugi::xml_node e = setsNode.first_child(); e; e = e.next_sibling()) {
-        if (std::string_view(e.name()) == "modelSet") {
+        if (std::string_view(e.name()) == XmlNodeKeys::ModelSetNodeName) {
             auto set = std::make_unique<ModelSet>();
             set->Load(e);
             // Drop members already claimed by a previously-loaded Set.
@@ -163,7 +165,7 @@ void ModelSetManager::Load(pugi::xml_node setsNode)
                 if (claimed.count(m)) toRemove.push_back(m);
             }
             for (const auto& m : toRemove) set->RemoveMember(m);
-            if (set->GetMembers().size() >= 2 && !set->GetName().empty()) {
+            if (set->IsPersistable()) {
                 for (const auto& m : set->GetMembers()) claimed.insert(m);
                 _sets.push_back(std::move(set));
             }
@@ -178,8 +180,8 @@ void ModelSetManager::Save(pugi::xml_node setsNode) const
     // Wipe and rewrite. Caller guarantees setsNode is the <modelSets> node.
     setsNode.remove_children();
     for (const auto& s : _sets) {
-        if (s->GetMembers().size() < 2) continue;
-        pugi::xml_node node = setsNode.append_child("modelSet");
+        if (!s->IsPersistable()) continue;
+        pugi::xml_node node = setsNode.append_child(XmlNodeKeys::ModelSetNodeName);
         s->Save(node);
     }
 }

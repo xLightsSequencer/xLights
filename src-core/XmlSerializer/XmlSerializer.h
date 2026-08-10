@@ -19,6 +19,7 @@
 #include <pugixml.hpp>
 
 #include "LayoutGroupData.h"
+#include "models/ModelSetManager.h"
 #include "utils/ExternalHooks.h"
 
 struct XmlSerializer {
@@ -43,6 +44,21 @@ struct XmlSerializer {
             if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 model->Accept(visitor);
             }
+        }
+        visitor.WriteCloseTag();
+    }
+
+    // Serialize all model sets into a SerializingVisitor. The <modelSets> tag is
+    // always written, even with no sets, so a consumer can tell "no sets" apart
+    // from "sets were not serialized".
+    static void SerializeAllModelSets(const ModelSetManager& setManager, BaseSerializingVisitor& visitor) {
+        visitor.WriteOpenTag(XmlNodeKeys::ModelSetsNodeName);
+        for (const auto& s : setManager.GetAllSets()) {
+            if (!s->IsPersistable()) continue;
+            BaseSerializingVisitor::AttrCollector attr;
+            attr.Add(XmlNodeKeys::NameAttribute, s->GetName());
+            attr.Add(XmlNodeKeys::ModelSetModelsAttribute, s->GetMembersCsv());
+            visitor.WriteOpenTag(XmlNodeKeys::ModelSetNodeName, attr, true);
         }
         visitor.WriteCloseTag();
     }
