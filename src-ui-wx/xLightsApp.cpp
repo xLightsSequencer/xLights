@@ -40,6 +40,11 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #include <wx/display.h>
 #include <wx/filename.h>
 #include <wx/config.h>
+#include <wx/slider.h>
+#include <wx/choice.h>
+#include <wx/combobox.h>
+#include <algorithm>
+#include <unordered_map>
 
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
@@ -542,6 +547,143 @@ IMPLEMENT_APP(xLightsApp);
 #else
 wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 #endif
+
+#ifndef __WXMSW__
+namespace {
+
+// Windows' native trackbar/combobox controls turn mouse-wheel scrolling into
+// value changes on their own; macOS/Linux's native controls don't, so this
+// reimplements it at the event-filter level instead of touching every one of
+// the ~68 call sites that construct a slider or dropdown.
+//
+// Trackpad/Magic Mouse slides deliver many small-rotation wheel events rather
+// than one per physical notch (wx's Cocoa backend fixes GetWheelDelta() at 10
+// and reports the actual scroll distance as GetWheelRotation()), so fractional
+// rotation is accumulated per control and only converted into a step once it
+// crosses a full notch - otherwise a slow slide would fire far more steps than
+// the gesture visually covered.
+//
+// Keyed by raw wxWindow* purely as an accumulator lookup, never dereferenced
+// after the control might be destroyed - a stale entry surviving a control's
+// destruction can at most cause one extra/missing step for whatever new
+// control is later allocated at the same address, which isn't worth the
+// complexity of wiring a wxEVT_DESTROY cleanup handler per control.
+std::unordered_map<wxWindow*, int> s_wheelAccumulator;
+
+int AccumulateWheelSteps(wxWindow* control, const wxMouseEvent& event)
+{
+    int delta = event.GetWheelDelta();
+    if (delta == 0) {
+        return 0;
+    }
+    int& accumulated = s_wheelAccumulator[control];
+    accumulated += event.GetWheelRotation();
+    int steps = accumulated / delta;
+    accumulated -= steps * delta;
+    return steps;
+}
+
+// Steps a wxChoice's or wxComboBox's selection by `steps`, clamped to the
+// list bounds (no wrap-around), and fires the same selection-changed event
+// each control's existing handlers already listen for.
+template <typename TCtrl>
+bool StepSelectionControl(TCtrl* ctrl, int steps, wxEventType eventType)
+{
+    int count = (int)ctrl->GetCount();
+    if (count == 0) {
+        return false;
+    }
+    int current = ctrl->GetSelection();
+    if (current == wxNOT_FOUND) {
+        return false;
+    }
+    int next = std::clamp(current - steps, 0, count - 1);
+    if (next == current) {
+        return false;
+    }
+    ctrl->SetSelection(next);
+    wxCommandEvent changeEvent(eventType, ctrl->GetId());
+    changeEvent.SetEventObject(ctrl);
+    changeEvent.SetInt(next);
+    changeEvent.SetString(ctrl->GetString(next));
+    ctrl->GetEventHandler()->ProcessEvent(changeEvent);
+    return true;
+}
+
+// Steps a wxSlider's value by `steps` line-sizes, clamped to [min, max], and
+// fires the same wxEVT_SLIDER command event each control's existing handlers
+// (e.g. BulkEditSlider::OnSlider_SliderUpdated) already listen for.
+bool StepSlider(wxSlider* slider, int steps)
+{
+    int newValue = slider->GetValue() + steps * slider->GetLineSize();
+    newValue = std::clamp(newValue, slider->GetMin(), slider->GetMax());
+    if (newValue == slider->GetValue()) {
+        return false;
+    }
+    slider->SetValue(newValue);
+    wxCommandEvent changeEvent(wxEVT_COMMAND_SLIDER_UPDATED, slider->GetId());
+    changeEvent.SetEventObject(slider);
+    changeEvent.SetInt(newValue);
+    slider->GetEventHandler()->ProcessEvent(changeEvent);
+    return true;
+}
+
+// Finds the wxSlider/wxChoice/wxComboBox at or above the control under the
+// cursor and applies the wheel event to it. Returns wxEventFilter::Event_Skip
+// if nothing eligible was found/changed, or Event_Processed if it was handled.
+int FilterMouseWheel(wxMouseEvent& event)
+{
+    if (event.GetWheelAxis() != wxMOUSE_WHEEL_VERTICAL || event.GetWheelRotation() == 0) {
+        return wxEventFilter::Event_Skip;
+    }
+
+    wxWindow* target = nullptr;
+    for (wxWindow* w = wxDynamicCast(event.GetEventObject(), wxWindow);
+         w != nullptr && !w->IsTopLevel(); w = w->GetParent()) {
+        if (wxDynamicCast(w, wxSlider) || wxDynamicCast(w, wxChoice) || wxDynamicCast(w, wxComboBox)) {
+            target = w;
+            break;
+        }
+    }
+    if (target == nullptr || !target->IsEnabled()) {
+        return wxEventFilter::Event_Skip;
+    }
+
+    int steps = AccumulateWheelSteps(target, event);
+    if (steps == 0) {
+        // A trackpad/Magic Mouse slide that hasn't crossed a full notch yet -
+        // still "handled" so the event doesn't fall through to anything else
+        // (e.g. a scrollable parent panel) while the gesture is in progress.
+        return wxEventFilter::Event_Processed;
+    }
+
+    bool changed = false;
+    if (auto* slider = wxDynamicCast(target, wxSlider)) {
+        changed = StepSlider(slider, steps);
+    } else if (auto* combo = wxDynamicCast(target, wxComboBox)) {
+        changed = StepSelectionControl(combo, steps, wxEVT_COMMAND_COMBOBOX_SELECTED);
+    } else if (auto* choice = wxDynamicCast(target, wxChoice)) {
+        changed = StepSelectionControl(choice, steps, wxEVT_COMMAND_CHOICE_SELECTED);
+    }
+    (void)changed;
+    return wxEventFilter::Event_Processed;
+}
+
+} // anonymous namespace
+#endif // !__WXMSW__
+
+int xLightsApp::FilterEvent(wxEvent& event)
+{
+#ifndef __WXMSW__
+    if (event.GetEventType() == wxEVT_MOUSEWHEEL) {
+        int result = FilterMouseWheel(static_cast<wxMouseEvent&>(event));
+        if (result != Event_Skip) {
+            return result;
+        }
+    }
+#endif
+    return xLightsAppBaseClass::FilterEvent(event);
+}
 
 xLightsApp::xLightsApp() :
     xLightsAppBaseClass("xLights")
