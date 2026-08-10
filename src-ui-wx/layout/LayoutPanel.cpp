@@ -2977,6 +2977,13 @@ void LayoutPanel::AddModelSetOptionsToMenu(wxMenu& menu)
     }
 }
 
+void LayoutPanel::CreateSetUndoPointOnce(bool& taken, const std::string& modelName)
+{
+    if (taken) return;
+    taken = true;
+    CreateUndoPoint("All", modelName);
+}
+
 void LayoutPanel::DoLinkAsSet()
 {
     auto selected = GetSelectedModelsForSetActions();
@@ -3006,6 +3013,7 @@ void LayoutPanel::DoLinkAsSet()
     for (auto* m : selected) {
         names.push_back(m->GetName());
     }
+    CreateUndoPoint("All", names.front());
     setMgr.CreateSet(names, setName);
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->GetOutputModelManager()->AddASAPWork(
@@ -3032,8 +3040,8 @@ void LayoutPanel::DoAddSelectedToSet(const std::string& setName)
                 continue;
             }
         }
+        CreateSetUndoPointOnce(anyMoved, m->GetName());
         setMgr.AddMember(target, m->GetName());
-        anyMoved = true;
     }
     if (anyMoved) {
         xlights->UnsavedRgbEffectsChanges = true;
@@ -3050,8 +3058,8 @@ void LayoutPanel::DoRemoveSelectedFromSet()
     bool anyRemoved = false;
     for (auto* m : selected) {
         if (setMgr.GetSetContaining(m->GetName()) != nullptr) {
+            CreateSetUndoPointOnce(anyRemoved, m->GetName());
             setMgr.RemoveMember(m->GetName());
-            anyRemoved = true;
         }
     }
     if (anyRemoved) {
@@ -3076,6 +3084,7 @@ void LayoutPanel::DoDeleteSet()
     if (wxMessageBox(prompt, _("Confirm Delete"), wxYES_NO | wxICON_QUESTION, this) != wxYES) {
         return;
     }
+    CreateUndoPoint("All", selected.front()->GetName());
     setMgr.DeleteSet(s);
     xlights->UnsavedRgbEffectsChanges = true;
     xlights->GetOutputModelManager()->AddASAPWork(
@@ -3098,12 +3107,19 @@ void LayoutPanel::DoRenameSet()
     // than making them start over.
     wxString prompt = _("New Set name:");
     wxString current = s->GetName();
+    bool undoTaken = false;
     while (true) {
         wxTextEntryDialog dlg(this, prompt, _("Rename Set"), current);
         OptimiseDialogPosition(&dlg);
         if (dlg.ShowModal() != wxID_OK) return;
         std::string newName = dlg.GetValue().Trim(true).Trim(false).ToStdString();
         if (newName.empty() || newName == s->GetName()) return;
+        // Check availability before snapshotting: RenameSet leaves the Set
+        // untouched on a collision, and re-prompting then cancelling would
+        // otherwise strand an undo step that reverts nothing.
+        if (setMgr.GetSetByName(newName) == nullptr) {
+            CreateSetUndoPointOnce(undoTaken, selected.front()->GetName());
+        }
         if (setMgr.RenameSet(s, newName)) break;
         prompt = wxString::Format(_("A Set named '%s' already exists. Choose another name:"), wxString(newName));
         current = newName;
@@ -3269,9 +3285,13 @@ void LayoutPanel::DoManageSet()
 
     const std::set<std::string>& finalMembers = dlg.GetChecked();
 
+    const std::string undoAnchor = selected.front()->GetName();
+    bool undoTaken = false;
+
     if (finalMembers.size() < 2) {
         if (wxMessageBox(wxString::Format(_("A Set needs at least 2 members. Delete Set '%s' instead?"), wxString(s->GetName())),
                          _("Manage Set"), wxYES_NO | wxICON_QUESTION, this) == wxYES) {
+            CreateSetUndoPointOnce(undoTaken, undoAnchor);
             setMgr.DeleteSet(s);
             xlights->UnsavedRgbEffectsChanges = true;
             xlights->GetOutputModelManager()->AddASAPWork(
@@ -3285,6 +3305,9 @@ void LayoutPanel::DoManageSet()
     // Apply a rename typed into the dialog's name field.
     const std::string newName = dlg.GetSetName();
     if (!newName.empty() && newName != s->GetName()) {
+        if (setMgr.GetSetByName(newName) == nullptr) {
+            CreateSetUndoPointOnce(undoTaken, undoAnchor);
+        }
         if (setMgr.RenameSet(s, newName)) {
             changed = true;
         } else {
@@ -3306,6 +3329,7 @@ void LayoutPanel::DoManageSet()
                 continue;
             }
         }
+        CreateSetUndoPointOnce(undoTaken, undoAnchor);
         setMgr.AddMember(s, name);
         changed = true;
     }
@@ -3318,6 +3342,7 @@ void LayoutPanel::DoManageSet()
         }
     }
     for (const auto& name : toRemove) {
+        CreateSetUndoPointOnce(undoTaken, undoAnchor);
         setMgr.RemoveMember(name);
         changed = true;
     }
@@ -10708,9 +10733,10 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                         modelPreview->GetVirtualCanvasWidth(),
                         modelPreview->GetVirtualCanvasHeight());
                 }
-                // Must follow LoadModels, which clears the set manager. A snapshot
-                // taken before sets were serialized has no node - leave sets alone
-                // rather than wiping them.
+                // Must follow LoadModels, which clears the set manager. Every
+                // snapshot carries a <modelSets> node (empty when there are no
+                // sets), so restoring an empty one is what makes undoing back
+                // past a Set's creation actually remove it.
                 pugi::xml_node setsNode = mroot.child(XmlNodeKeys::ModelSetsNodeName);
                 if (setsNode) {
                     xlights->AllModels.GetSetManager().Load(setsNode);
