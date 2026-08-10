@@ -1374,7 +1374,10 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             }
         }
 
-        if (todo[t] == "FaceOutline" && !outlineState.empty()) {
+        // Applied right after FaceOutline2 paints (the last of the two outline groups, always
+        // at index 1 when face_outline is set) so the state's colors win over both outlines on
+        // shared nodes, but still get painted over by Mouth/Eyes further down in todo.
+        if (todo[t] == "FaceOutline2" && !outlineState.empty()) {
             if (model_info->GetStateInfo().find(outlineState) != model_info->GetStateInfo().end()) {
                 const auto& sts = model_info->GetStateInfo().find(outlineState)->second;
                 if (findKey(sts, "CustomColors") == "1") {
