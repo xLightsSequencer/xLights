@@ -25,6 +25,7 @@ class wxStaticBitmap;
 class wxCommandEvent;
 class wxColourPickerEvent;
 class wxColourPickerCtrl;
+class wxActivateEvent;
 class ModelPreview;
 class xLightsFrame;
 
@@ -62,6 +63,13 @@ private:
 
     void OnResolutionChoice(wxCommandEvent& event);
     void OnPrint(wxCommandEvent& event);
+    // Re-grabbing the live preview canvas (RefreshPreview -> GrabPreviewImage)
+    // resizes/renders it in place on the Layout tab behind this dialog, which
+    // on macOS can activate the main frame and bury this modal dialog behind
+    // it (system beep on click, dialog un-clickable -- xLightsSequencer/xLights#6899).
+    // Mirrors RenderProgressDialog's OnOwnerActivate: whenever the main frame
+    // re-activates while we're open, pull ourselves back to the front.
+    void OnOwnerActivate(wxActivateEvent& event);
 
     xLightsFrame* _xlights = nullptr;
     std::vector<ResolutionPreset> _presets;

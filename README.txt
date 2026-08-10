@@ -37,6 +37,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -change (scott)              The Layout tab's "Show Names"/"Show Start Channel" checkboxes moved into
                                  the new Print Layout dialog (above) -- they no longer toggle labels while
                                  editing, only in the print preview/output
+    -bug (scott)                 Fix the new Print Layout dialog becoming stuck behind the main window and
+                                 unresponsive to clicks on macOS
     -bug (dkulp)                 Fix a crash when a row-heading right-click menu item is chosen after the
                                  sequence has been closed or reloaded
     -bug (dkulp)                 iPad - The sequence picker no longer stutters on show folders stored in iCloud

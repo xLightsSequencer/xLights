@@ -16,6 +16,7 @@
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/clrpicker.h>
+#include <wx/event.h>
 #include <wx/print.h>
 #include <wx/scrolwin.h>
 #include <wx/sizer.h>
@@ -387,12 +388,15 @@ LayoutPrintPreviewDialog::LayoutPrintPreviewDialog(wxWindow* parent, xLightsFram
     _invertCheck->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) { RefreshPreview(); });
     printButton->Bind(wxEVT_BUTTON, &LayoutPrintPreviewDialog::OnPrint, this);
     _canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent& event) { event.Skip(); UpdateDisplayBitmap(); });
+    _xlights->Bind(wxEVT_ACTIVATE, &LayoutPrintPreviewDialog::OnOwnerActivate, this);
 
     RefreshPreview();
 }
 
 LayoutPrintPreviewDialog::~LayoutPrintPreviewDialog()
 {
+    _xlights->Unbind(wxEVT_ACTIVATE, &LayoutPrintPreviewDialog::OnOwnerActivate, this);
+
     auto* config = GetXLightsConfig();
     config->Write(LAST_WIDTH_KEY, GetPreviewWidth());
     config->Write(LAST_HEIGHT_KEY, GetPreviewHeight());
@@ -521,6 +525,14 @@ void LayoutPrintPreviewDialog::UpdateDisplayBitmap()
     _canvas->FitInside();
     _canvas->Layout();
     _canvas->Refresh();
+}
+
+void LayoutPrintPreviewDialog::OnOwnerActivate(wxActivateEvent& event)
+{
+    event.Skip();
+    if (event.GetActive() && IsShown()) {
+        Raise();
+    }
 }
 
 void LayoutPrintPreviewDialog::OnPrint(wxCommandEvent& event)
