@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 Fix a crash placing a model when a dialog appears part way through loading it,
+                                 such as the group-selection prompt on an imported model
     -bug (dkulp)                 Fix a crash drawing the 3D layout preview, and re-enable a family of NaN/infinity
                                  guards that optimized builds had been silently discarding
     -bug (dkulp)                 Fix a crash starting playback when the audio engine had been stopped, such as

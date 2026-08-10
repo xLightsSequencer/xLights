@@ -394,6 +394,11 @@ class LayoutPanel: public wxPanel
         void ImportModelsFromLORS5();
 
     public:
+        // True while FinalizeModel is on the stack. FinalizeModel pumps the event
+        // loop in several places while the model set is half-built, so anything
+        // reachable from that pump that walks models or the property grid must
+        // stand down until it returns.
+        static bool IsFinalizingModel();
         bool IsNewModel(Model* m) const;
         void ClearUndo() { undoBuffer.clear(); }
         bool SaveEffects();

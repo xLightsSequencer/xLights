@@ -5957,6 +5957,11 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 // of FinalizeModel's modal pumps dispatches a motion event.
 static bool inFinalize = false;
 
+bool LayoutPanel::IsFinalizingModel()
+{
+    return inFinalize;
+}
+
 void LayoutPanel::FinalizeModel()
 {
     xlights->AddTraceMessage("In LayoutPanel::FinalizeModel");

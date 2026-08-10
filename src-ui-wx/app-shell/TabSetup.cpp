@@ -865,6 +865,19 @@ void xLightsFrame::DoASAPWork() {
         _outputModelManager.ClearWorkRequested();
         return;
     }
+    // FinalizeModel pumps the event loop from several places (AbortRender, the
+    // model download/progress dialogs, and the group-selection prompt the model
+    // deserializer raises) while _newModel is built but not yet in AllModels.
+    // This CallAfter fires inside those pumps and DoWork then rebuilds the model
+    // list, re-selects a model and resets the property grid against that
+    // half-built set, leaving LayoutPanel holding freed BaseObject/handler
+    // pointers it faults on later. Leave the work queued - FinalizeModel always
+    // ends with an AddASAPWork, which re-arms this once the model set is whole.
+    if (LayoutPanel::IsFinalizingModel()) {
+        logger_work->debug("Deferring ASAP Work - model placement in progress.");
+        _outputModelManager.ClearWorkRequested();
+        return;
+    }
     reenter = true;
 
     logger_work->debug("Doing ASAP Work.");
