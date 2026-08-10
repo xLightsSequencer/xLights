@@ -463,15 +463,6 @@ NS_ASSUME_NONNULL_BEGIN
                        viewSize:(CGSize)viewSize
                     forDocument:(XLSequenceDocument*)doc;
 
-// Phase J-2 (touch UX) — batched name + anchor query for every
-// model in the active layout group. Used by the SwiftUI label
-// overlay to draw model-name text on the canvas. One bridge call
-// per frame instead of one per model (saves 50–500 allocations
-// per refresh on dense shows). Off-screen / behind-camera models
-// are omitted. Returns array of NSDictionary { "name": NSString,
-// "anchor": NSValue (CGPoint) }.
-- (NSArray<NSDictionary*>*)modelLabelAnchorsForDocument:(XLSequenceDocument*)doc;
-
 // Phase J-2 (touch UX) — pinch-on-model = uniform scale.
 // Triggered when the user pinches with both fingers on the
 // selected model's body (caller decides; the bridge just runs

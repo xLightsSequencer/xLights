@@ -73,24 +73,6 @@
 										<border>1</border>
 										<option>1</option>
 									</object>
-									<object class="sizeritem">
-										<object class="wxCheckBox" name="ID_CHECKBOXSHOWNAMES" variable="CheckBoxShowNames" member="yes">
-											<label>Show Names</label>
-											<handler function="OnCheckBoxShowNamesClick" entry="EVT_CHECKBOX" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxCheckBox" name="ID_CHECKBOXSHOWINFO" variable="CheckBoxShowInfo" member="yes">
-											<label>Show Start Channel</label>
-											<handler function="OnCheckBoxShowInfoClick" entry="EVT_CHECKBOX" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<option>1</option>

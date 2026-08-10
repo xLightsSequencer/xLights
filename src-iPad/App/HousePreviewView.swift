@@ -28,15 +28,6 @@ final class PreviewSettings {
     var uniformModifier: Bool
     /// 0 = Free, 1 = X, 2 = Y, 3 = Z (matches MSLAXIS enum).
     var lockAxis: Int
-    /// J-2 (touch UX) — model-name labels rendered as a SwiftUI
-    /// overlay above the Metal canvas. Off by default.
-    var showModelLabels: Bool
-    /// J-2 — Layout Editor info-line under each model label
-    /// (controller name + connection range, or start channel when
-    /// no controller is assigned). Mirrors desktop's
-    /// `_showModelInfo`. Requires `showModelLabels = true` to
-    /// surface; off by default.
-    var showModelInfo: Bool
     /// Manipulation-handle size multiplier (1..10). Mirrors desktop's
     /// "Model Handle Size" view preference; larger handles are easier
     /// to grab by touch. Seeded from @AppStorage in the Layout Editor.
@@ -55,8 +46,6 @@ final class PreviewSettings {
         self.axisTool = "translate"
         self.uniformModifier = false
         self.lockAxis = 0
-        self.showModelLabels = false
-        self.showModelInfo = false
         self.handleScale = 1
         self.showZoneIndicator = false
     }

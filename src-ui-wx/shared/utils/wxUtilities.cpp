@@ -212,6 +212,17 @@ wxImage ApplyOrientation(const wxImage& img, int orient) {
     }
 }
 
+void InvertImageRGB(wxImage& img) {
+    unsigned char* imgdata = img.GetData();
+    unsigned int ch = img.HasAlpha() ? 4 : 3;
+    const int imgdata_size = img.GetWidth() * img.GetHeight() * ch;
+    for (auto i = 0; i < imgdata_size; i += ch) {
+        imgdata[i] = 255 - imgdata[i];
+        imgdata[i + 1] = 255 - imgdata[i + 1];
+        imgdata[i + 2] = 255 - imgdata[i + 2];
+    }
+}
+
 std::string GetResourcesDirectory() {
     std::string dir = FileUtils::GetResourcesDir();
     if (dir.empty()) {

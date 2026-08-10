@@ -1043,22 +1043,39 @@ void ModelPreview::SetCenterOffset(ModelGroup* mg, int x, int y)
     mg->SetCentreDefined( true );
 }
 
+void ModelPreview::SetLabelFontSize(int size)
+{
+    if (size < 6) size = 6;
+    if (size > 200) size = 200;
+    _labelFontSize = size;
+    Refresh();
+}
+
 void ModelPreview::DrawModelNames(const std::vector<Model*>& models)
 {
     if (!solidProgram || !currentContext) {
         return;
     }
 
-    const xlFontInfo& font = xlFontInfo::FindFont(20);
+    // The glyph atlas is always baked at a fixed base resolution -- _labelFontSize
+    // is the *target on-screen height in pixels*, achieved by scaling that fixed
+    // atlas via `factor` below, not by re-baking a differently-sized atlas per
+    // setting (which would be wasteful and, before this fix, actually had no
+    // visible effect at all: font.getSize() cancels out of the old factor
+    // formula algebraically, since it appeared in both numerator and
+    // denominator -- changing the atlas size alone changed nothing on screen).
+    constexpr int GLYPH_ATLAS_BASE_SIZE = 20;
+    const xlFontInfo& font = xlFontInfo::FindFont(GLYPH_ATLAS_BASE_SIZE);
     if (!_fontTexture) {
         _fontTexture = currentContext->createTextureForFont(font);
     }
     if (!_fontTexture) {
         return;
     }
-    // Scale text to render at ~14 screen pixels tall, growing proportionally with zoom.
+    // Scale text to render at _labelFontSize screen pixels tall, growing
+    // proportionally with zoom.
     double const vs = getViewScale();
-    float factor = (vs > 0.0) ? (float)(font.getSize() * vs / 14.0) : 1.0F;
+    float factor = (vs > 0.0) ? (float)(font.getSize() * vs / (double)_labelFontSize) : 1.0F;
     factor = std::max(0.1F, std::min(factor, 10.0F));
     float const charH = (float)font.getSize() / factor;
 
@@ -1090,8 +1107,9 @@ void ModelPreview::DrawModelNames(const std::vector<Model*>& models)
 
     bool const showNames = _showModelNames;
     bool const showInfo = _showModelInfo;
-    solidProgram->addStep([models, tex, factor, charH, xl, vH, is3dMode, pvm, wW, wH, screenTransform, showNames, showInfo](xlGraphicsContext* ctx) {
-        const xlFontInfo& font = xlFontInfo::FindFont(20);
+    xlColor const labelColor = _labelColor;
+    solidProgram->addStep([models, tex, factor, charH, xl, vH, is3dMode, pvm, wW, wH, screenTransform, showNames, showInfo, labelColor](xlGraphicsContext* ctx) {
+        const xlFontInfo& font = xlFontInfo::FindFont(GLYPH_ATLAS_BASE_SIZE);
         xlVertexTextureAccumulator* vta = ctx->createVertexTextureAccumulator();
         const float gap = 2.0f;
         const float lineGap = 2.0f;
@@ -1159,7 +1177,7 @@ void ModelPreview::DrawModelNames(const std::vector<Model*>& models)
                 ctx->Scale(1.0f, -1.0f, 1.0f);
                 ctx->Translate(0.0f, -vH, 0.0f);
             }
-            ctx->drawTexture(vta, tex, xlWHITE);
+            ctx->drawTexture(vta, tex, labelColor);
             ctx->PopMatrix();
         }
         delete vta;

@@ -57,6 +57,8 @@ class ModelPreview : public GRAPHICS_BASE_CLASS, public IModelPreview
     bool _showFirstPixel = false;
     bool _showModelNames = false;
     bool _showModelInfo = false;
+    int _labelFontSize = 14; // matches the target height this always rendered at before it became adjustable
+    xlColor _labelColor = xlWHITE;
     xlTexture* _fontTexture = nullptr;
     // Keyed by model name, not Model*: the highlight outlives model list
     // rebuilds, and a recycled allocation would otherwise highlight the wrong
@@ -116,6 +118,13 @@ public:
     bool ShouldDrawViewObject(const ViewObject* view_object) const;
     void SetShowModelNames(bool b) { _showModelNames = b; Refresh(); }
     void SetShowModelInfo(bool b) { _showModelInfo = b; Refresh(); }
+    // Invalidates the cached glyph texture when the size actually changes --
+    // implemented in the .cpp (see there for why this can't just be an inline
+    // field assignment).
+    void SetLabelFontSize(int size);
+    void SetLabelColor(const xlColor& c) { _labelColor = c; Refresh(); }
+    int GetLabelFontSize() const { return _labelFontSize; }
+    const xlColor& GetLabelColor() const { return _labelColor; }
 
     double calcPixelSize(double i) override;
     double getViewScale() const override;

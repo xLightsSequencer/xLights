@@ -19,6 +19,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  the original file untouched in that case
     -bug (dkulp)                 Fix a crash when a WLED controller answers with an error page instead of JSON,
                                  such as an offline controller reached through a proxy
+    -enh (scott)                 Print Layout Image is now a print-preview dialog: pick a Preview or the
+                                 whole layout, set the render resolution, choose which labels are shown
+                                 (with adjustable label size/color), and optionally invert colors before
+                                 printing
+    -change (scott)              The Layout tab's "Show Names"/"Show Start Channel" checkboxes moved into
+                                 the new Print Layout dialog (above) -- they no longer toggle labels while
+                                 editing, only in the print preview/output
     -bug (dkulp)                 Fix a crash when a row-heading right-click menu item is chosen after the
                                  sequence has been closed or reloaded
     -bug (dkulp)                 iPad - The sequence picker no longer stutters on show folders stored in iCloud

@@ -58,6 +58,7 @@
 #include "model/EditSubmodelAliasesDialog.h"
 #include "layout/ViewObjectPanel.h"
 #include "layout/LayoutGroup.h"
+#include "layout/LayoutPrintPreviewDialog.h"
 #include "models/ModelImages.h"
 #include "models/SubModel.h"
 #include "models/PolyLineModel.h"
@@ -345,27 +346,6 @@ public:
 #define ENDCHANCOLNAME "End Chan"
 #define CONTCONNCOLNAME "Ctrlr Conn"
 
-static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
-{
-	wxRect r;
-	float srcAspectRatio = float(srcWidth) / srcHeight;
-	float dstAspectRatio = float(dstWidth) / dstHeight;
-
-	if (srcAspectRatio > dstAspectRatio)
-	{
-		r.SetWidth(dstWidth);
-		r.SetHeight(int(dstWidth / srcAspectRatio));
-		r.SetTopLeft(wxPoint(0, (dstHeight - r.GetHeight()) / 2));
-	}
-	else
-	{
-		r.SetHeight(dstHeight);
-		r.SetWidth(int(dstHeight * srcAspectRatio));
-		r.SetTopLeft(wxPoint((dstWidth - r.GetWidth()) / 2, 0));
-	}
-	return r;
-}
-
 wxTreeListItem lastFoundItem = nullptr;
 
 //(*IdInit(LayoutPanel)
@@ -377,8 +357,6 @@ const wxWindowID LayoutPanel::ID_PANEL2 = wxNewId();
 const wxWindowID LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
 const wxWindowID LayoutPanel::ID_CHECKBOX_3D = wxNewId();
 const wxWindowID LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
-const wxWindowID LayoutPanel::ID_CHECKBOXSHOWNAMES = wxNewId();
-const wxWindowID LayoutPanel::ID_CHECKBOXSHOWINFO = wxNewId();
 const wxWindowID LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const wxWindowID LayoutPanel::ID_PANEL5 = wxNewId();
 const wxWindowID LayoutPanel::ID_STATICTEXT1 = wxNewId();
@@ -673,12 +651,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
 	FlexGridSizer3->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	CheckBoxShowNames = new wxCheckBox(LeftPanel, ID_CHECKBOXSHOWNAMES, _("Show Names"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXSHOWNAMES"));
-	CheckBoxShowNames->SetValue(false);
-	FlexGridSizer3->Add(CheckBoxShowNames, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBoxShowInfo = new wxCheckBox(LeftPanel, ID_CHECKBOXSHOWINFO, _("Show Start Channel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXSHOWINFO"));
-	CheckBoxShowInfo->SetValue(false);
-	FlexGridSizer3->Add(CheckBoxShowInfo, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	LeftPanelSizer->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	ButtonSavePreview = new wxButton(LeftPanel, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
 	LeftPanelSizer->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -719,8 +691,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Connect(ID_NOTEBOOK_OBJECTS, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnNotebook_ObjectsPageChanged);
 	Connect(ID_CHECKBOX_3D, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
 	Connect(ID_CHECKBOXOVERLAP, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
-	Connect(ID_CHECKBOXSHOWNAMES, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBoxShowNamesClick);
-	Connect(ID_CHECKBOXSHOWINFO, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBoxShowInfoClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
 	Connect(ID_CHOICE_PREVIEWS, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
 	Connect(ID_SPLITTERWINDOW2, wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
@@ -856,14 +826,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
     is_3d = config->ReadBool("LayoutMode3D", false);
-    bool showNames = config->ReadBool("LayoutShowNames", false);
-    bool showInfo = config->ReadBool("LayoutShowStartChannel", false);
-
     CheckBox_3D->SetValue(is_3d);
-    CheckBoxShowNames->SetValue(showNames);
-    CheckBoxShowInfo->SetValue(showInfo);
-    modelPreview->SetShowModelNames(showNames);
-    modelPreview->SetShowModelInfo(showInfo);
     static_cast<ModelPreview*>(xlights->GetHousePreview())->Set3D(is_3d);
 
     ChoiceLayoutGroups->Enable();
@@ -980,8 +943,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         if (fgs3) {
             fgs3->Detach(CheckBox_3D);
             fgs3->Detach(CheckBoxOverlap);
-            fgs3->Detach(CheckBoxShowNames);
-            fgs3->Detach(CheckBoxShowInfo);
             lps->Detach(fgs3);
             delete fgs3;
         }
@@ -1082,8 +1043,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     wxPanel* layoutControlsBar = new wxPanel(PreviewGLPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE);
     CheckBox_3D->Reparent(layoutControlsBar);
     CheckBoxOverlap->Reparent(layoutControlsBar);
-    CheckBoxShowNames->Reparent(layoutControlsBar);
-    CheckBoxShowInfo->Reparent(layoutControlsBar);
     ButtonSavePreview->Reparent(layoutControlsBar);
 
     LabelDirectoriesFooter = new wxStaticText(layoutControlsBar, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
@@ -1098,8 +1057,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         lcbSizer->Add(ButtonSavePreview, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->Add(CheckBox_3D, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->Add(CheckBoxOverlap, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
-        lcbSizer->Add(CheckBoxShowNames, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
-        lcbSizer->Add(CheckBoxShowInfo, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->AddStretchSpacer(1);
         layoutControlsBar->SetSizer(lcbSizer);
         layoutControlsBar->SetMinSize(wxSize(-1, 68));
@@ -4412,22 +4369,6 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
     }
 }
 
-void LayoutPanel::OnCheckBoxShowNamesClick(wxCommandEvent& event)
-{
-    bool val = CheckBoxShowNames->GetValue();
-    modelPreview->SetShowModelNames(val);
-    auto* config = GetXLightsConfig();
-    config->Write("LayoutShowNames", val);
-}
-
-void LayoutPanel::OnCheckBoxShowInfoClick(wxCommandEvent& event)
-{
-    bool val = CheckBoxShowInfo->GetValue();
-    modelPreview->SetShowModelInfo(val);
-    auto* config = GetXLightsConfig();
-    config->Write("LayoutShowStartChannel", val);
-}
-
 bool LayoutPanel::SaveEffects()
 {
     xlights->SaveEffectsFile();
@@ -7643,7 +7584,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     }
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
-    mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
+    mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image..."));
     mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models/Groups/Viewpoints"));
     mnu.Append(ID_PREVIEW_IMPORT_MODELS_FROM_LORS5, _("Import LOR S5 Models/Groups"));
     mnu.Append(ID_PREVIEW_LAYOUT_DXF_EXPORT, _("Export Layout As DXF"));
@@ -11684,89 +11625,8 @@ void LayoutPanel::ImportModelsFromLORS5()
 
 void LayoutPanel::PreviewPrintImage()
 {
-	class Printout : public wxPrintout
-	{
-	public:
-		Printout(ModelPreview *canvas, bool invert) : m_canvas(canvas), _invert(invert) {}
-		virtual ~Printout() {
-			clearImage();
-		}
-
-		void clearImage() {
-			if (m_image != nullptr) {
-				delete m_image;
-				m_image = nullptr;
-			}
-		}
-
-		virtual bool GrabImage() {
-			clearImage();
-
-			wxRect rect = GetLogicalPageRect();
-			rect.Deflate(rect.GetWidth() / 20, rect.GetHeight() / 20);
-			wxRect adjustedRect = scaledRect(m_canvas->getWidth(), m_canvas->getHeight(), rect.GetWidth(), rect.GetHeight());
-
-			m_image = m_canvas->GrabImage(wxSize(adjustedRect.GetWidth(), adjustedRect.GetHeight()));
-
-            // invert the image for printing
-            if (_invert && m_image != nullptr) {
-                unsigned char* imgdata = m_image->GetData();
-                unsigned int ch = m_image->HasAlpha() ? 4 : 3;
-                const int imgdata_size = m_image->GetWidth() * m_image->GetHeight() * ch;
-                for (auto i = 0; i < imgdata_size; i += ch) {
-                    imgdata[i] = 255 - imgdata[i];
-                    imgdata[i + 1] = 255 - imgdata[i + 1];
-                    imgdata[i + 2] = 255 - imgdata[i + 2];
-                }
-            }
-
-			m_grabbedImage = (m_image != nullptr);
-			return m_grabbedImage;
-		}
-
-		virtual bool OnPrintPage(int page) override {
-			if ( GrabImage() == false )
-				return false;
-
-			wxDC* dc = GetDC();
-			wxRect rect = GetLogicalPageRect();
-
-
-            wxRect r = scaledRect(m_image->GetWidth(), m_image->GetHeight(), rect.GetWidth(), rect.GetHeight());
-            wxAffineMatrix2D mtx;
-            double xScale = r.GetWidth() / double(m_image->GetWidth());
-            double yScale = r.GetHeight() / double(m_image->GetHeight());
-            mtx.Scale(xScale, yScale);
-            dc->SetTransformMatrix(mtx);
-            dc->DrawBitmap(*m_image, rect.GetTopLeft());
-			return true;
-		}
-
-		bool grabbedImage() const { return m_grabbedImage; }
-	protected:
-        ModelPreview *m_canvas = nullptr;
-		wxImage *m_image = nullptr;
-		bool m_grabbedImage = false;
-        bool _invert = false;
-	};
-
-	Printout printout(modelPreview, true);
-
-	wxPrintData printdata;
-    static wxPrintDialogData printDialogData(printdata);
-	wxPrinter printer(&printDialogData);
-
-	if (!printer.Print(this, &printout, true)) {
-		if (wxPrinter::GetLastError() == wxPRINTER_ERROR) {
-			DisplayError(wxString::Format("Problem printing. %d", wxPrinter::GetLastError()).ToStdString());
-		}
-    }
-	else {
-		printDialogData = printer.GetPrintDialogData();
-        if (!printout.grabbedImage()) {
-            DisplayError("Problem grabbing ModelPreview image for printing", this);
-        }
-    }
+    LayoutPrintPreviewDialog dlg(this, xlights, modelPreview, currentLayoutGroup, modelPreview->getWidth(), modelPreview->getHeight());
+    dlg.ShowModal();
 }
 
 void LayoutPanel::AddPreviewChoice(const std::string& name)

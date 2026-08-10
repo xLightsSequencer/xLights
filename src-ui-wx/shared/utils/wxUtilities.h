@@ -109,6 +109,11 @@ bool xLightsRequest(std::string& result, int xFadePort, const wxString& request,
 
 wxImage ApplyOrientation(const wxImage& img, int orient);
 
+// Inverts RGB channels in place (alpha, if present, is left untouched).
+// Used to make dark-background layout previews legible when printed on
+// white paper.
+void InvertImageRGB(wxImage& img);
+
 std::string GetResourcesDirectory();
 
 // Returns the absolute path to the resources/effectmetadata directory (where

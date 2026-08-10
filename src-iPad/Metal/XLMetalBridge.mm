@@ -3129,53 +3129,6 @@ public:
     return YES;
 }
 
-- (NSArray<NSDictionary*>*)modelLabelAnchorsForDocument:(XLSequenceDocument*)doc {
-    if (!_preview || !doc) return @[];
-    iPadRenderContext* rctx = ContextFromDoc(doc);
-    if (!rctx) return @[];
-    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
-    const auto models = rctx->GetModelsForActivePreview();
-    OutputManager* om = &rctx->GetOutputManager();
-    for (Model* m : models) {
-        if (!m || m->GetDisplayAs() == DisplayAsType::SubModel) continue;
-        auto& loc = m->GetModelScreenLocation();
-        // Anchor at the model's centre (not its top) so labels sit
-        // inside the model body, which reads better when many
-        // labels share screen space.
-        const glm::vec3 anchor(loc.GetHcenterPos(),
-                                loc.GetVcenterPos(),
-                                loc.GetDcenterPos());
-        CGPoint pt;
-        if (![self projectWorldPoint:anchor toViewPoint:&pt marginPts:0.0]) {
-            continue;
-        }
-        NSString* name = [NSString stringWithUTF8String:m->GetName().c_str()];
-        // J-2 model-info parity — controller + connection-port range
-        // when assigned, start-channel string otherwise. Matches
-        // desktop's `ModelPreview::DrawModelNames` info-line shape
-        // so the iPad overlay reads the same when both panes are
-        // visible.
-        std::string info;
-        std::string const ctrlName = m->GetControllerName();
-        if (!ctrlName.empty() && ctrlName != "No Controller") {
-            info = ctrlName;
-            std::string const range = m->GetControllerConnectionPortRangeString();
-            if (!range.empty()) info += ": " + range;
-        } else if (om) {
-            info = m->GetStartChannelInDisplayFormat(om);
-        }
-        NSString* infoNS = info.empty()
-            ? @""
-            : [NSString stringWithUTF8String:info.c_str()];
-        [out addObject:@{
-            @"name":   name,
-            @"info":   infoNS,
-            @"anchor": [NSValue valueWithCGPoint:pt]
-        }];
-    }
-    return out;
-}
-
 - (BOOL)clearHoveredHandleForDocument:(XLSequenceDocument*)doc {
     if (!doc || _selectedModelName.empty()) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
@@ -3832,13 +3785,6 @@ public:
         // && allowSelected` (Model.cpp:3254). Both conditions are met
         // for the LayoutEditor pane via the loop above, so no extra
         // bridge-side rendering is needed here.
-        //
-        // Model-name + model-info labels render as a SwiftUI overlay
-        // above the Metal canvas — see `ModelLabelsOverlay` in
-        // LayoutEditorView.swift and `modelLabelAnchorsForDocument:`
-        // below for the data feed. That route avoids spinning up an
-        // xlVertexTextureAccumulator + font atlas per frame just for
-        // a handful of labels.
     }
 
     // Publish the live camera so a Tools → Export House Preview video
