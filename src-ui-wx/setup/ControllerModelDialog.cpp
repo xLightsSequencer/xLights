@@ -4585,7 +4585,11 @@ std::string ControllerModelDialog::GetModelTooltip(ModelCMObject* mob)
     } else {
         UDControllerPortModel* udm = mob->GetUDModel();
         if (udm != nullptr) {
-            stringSettings += wxString::Format("\nEstimated Current Draw: %0.2fA", udm->GetAmps(_controller->GetDefaultBrightnessUnderFullControl()));
+            UDControllerPort* udp = mob->GetPort();
+            float modelAmps = udp != nullptr ?
+                udp->GetAmps(udm, _controller->GetDefaultBrightnessUnderFullControl()) :
+                udm->GetAmps(_controller->GetDefaultBrightnessUnderFullControl());
+            stringSettings += wxString::Format("\nEstimated Current Draw: %0.2fA", modelAmps);
             if (udm->GetBrightness(-1) != -1) {
                 stringSettings += wxString::Format("\nBrightness: %d%%", udm->GetBrightness(-1));
             }

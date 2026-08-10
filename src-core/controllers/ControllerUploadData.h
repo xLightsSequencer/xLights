@@ -296,6 +296,7 @@ class UDControllerPort
 
     float GetAmps(int defaultBrightness) const;
     float GetAmps(int defaultBrightness, int sr) const;
+    float GetAmps(UDControllerPortModel* upToModel, int defaultBrightness) const;
 
     std::string GetPortName() const;
 	int GetPort() const { return _port; }

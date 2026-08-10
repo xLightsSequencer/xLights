@@ -975,6 +975,24 @@ float UDControllerPort::GetAmps(int defaultBrightness) const
     return amps;
 }
 
+float UDControllerPort::GetAmps(UDControllerPortModel* upToModel, int defaultBrightness) const
+{
+    if (upToModel == nullptr) return 0.0f;
+
+    if (_type == "Pixel") {
+        int currentBrightness = defaultBrightness;
+        int sr = upToModel->GetSmartRemote();
+        for (const auto& m : _models) {
+            if (m->GetSmartRemote() != sr) continue;
+            currentBrightness = m->GetBrightness(currentBrightness);
+            if (m == upToModel) {
+                return m->GetAmps(currentBrightness);
+            }
+        }
+    }
+    return upToModel->GetAmps(defaultBrightness);
+}
+
 std::string UDControllerPort::GetPortName() const {
 
     if (_models.size() == 0) {
