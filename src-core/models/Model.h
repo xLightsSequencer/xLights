@@ -455,6 +455,10 @@ public:
 
     void UpdateChannels();
     void Setup() override;
+    // Take on another model's size, position and rotation. Used when a
+    // replacement model has to keep the geometry of the model it replaces.
+    // Callers still own Setup() / IncrementChangeCount().
+    void CopyGeometryFrom(const Model& other);
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
     [[nodiscard]] uint32_t GetNodeCount() const;
     [[nodiscard]] NodeBaseClass* GetNode(uint32_t node) const;

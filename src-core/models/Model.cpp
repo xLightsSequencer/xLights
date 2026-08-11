@@ -20,6 +20,7 @@
 #include "Model.h"
 #include "ModelGroup.h"
 #include "ModelManager.h"
+#include "BoxedScreenLocation.h"
 #include "ModelScreenLocation.h"
 #include "RulerObject.h"
 #include "SubModel.h"
@@ -1067,6 +1068,42 @@ void Model::UpdateChannels()
     }
 
     IncrementChangeCount();
+}
+
+void Model::CopyGeometryFrom(const Model& other)
+{
+    ModelScreenLocation& dst = GetModelScreenLocation();
+    const ModelScreenLocation& src = other.GetModelScreenLocation();
+
+    // Boxed locations: copy the scale factors, not the M-dimensions. The
+    // M-dimension setters divide by RenderWi/RenderHt, and a model that has not
+    // been drawn yet may have no render size - mesh-backed models (DMX moving
+    // heads) take theirs from the OBJ bounding box on first draw, so it is still
+    // 0. SetMWidth would then yield a negative scale that
+    // BoxedScreenLocation::Init clamps to 1, dropping the model to its mesh's
+    // natural size. Scale is stored state and survives regardless of load order.
+    auto* dstBox = dynamic_cast<BoxedScreenLocation*>(&dst);
+    const auto* srcBox = dynamic_cast<const BoxedScreenLocation*>(&src);
+    if (dstBox != nullptr && srcBox != nullptr) {
+        dstBox->SetScaleX(srcBox->GetScaleX());
+        dstBox->SetScaleY(srcBox->GetScaleY());
+        dstBox->SetScaleZ(srcBox->GetScaleZ());
+    } else {
+        // No scale to copy on two-point / poly-point locations - they derive
+        // size from their point data. GetRestorableM* is the inverse of the
+        // setters, the pairing SaveDisplayDimensions and the serializer use.
+        // Size before centre: those locations compute the centre from the
+        // current size, so a centre set against a stale size lands the model
+        // off by half the size delta.
+        dst.SetMWidth(src.GetRestorableMWidth());
+        dst.SetMHeight(src.GetRestorableMHeight());
+        dst.SetMDepth(src.GetRestorableMDepth());
+    }
+
+    dst.SetHcenterPos(src.GetHcenterPos());
+    dst.SetVcenterPos(src.GetVcenterPos());
+    dst.SetDcenterPos(src.GetDcenterPos());
+    dst.SetRotation(src.GetRotation());
 }
 
 void Model::Setup()
