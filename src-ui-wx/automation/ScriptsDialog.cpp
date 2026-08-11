@@ -80,7 +80,6 @@ ScriptsDialog::ScriptsDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos
     SplitterWindow2 = new wxSplitterWindow(this, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW2"));
     SplitterWindow2->SetSashGravity(0.5);
     SplitterWindow2->SetMinimumPaneSize(80);
-    SplitterWindow2->SetSashSize(6);
     PanelTop = new wxPanel(SplitterWindow2, wxID_ANY);
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
@@ -89,7 +88,6 @@ ScriptsDialog::ScriptsDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos
     FlexGridSizer2->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
     SplitterWindow1 = new wxSplitterWindow(PanelTop, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
     SplitterWindow1->SetSashGravity(0.5);
-    SplitterWindow1->SetSashSize(6);
     ListBoxScripts = new wxListBox(SplitterWindow1, ID_LISTBOX_SCRIPTS, wxPoint(-237,-27), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_SCRIPTS"));
     TextCtrlAbout = new wxTextCtrl(SplitterWindow1, ID_TEXTCTRL_ABOUT, wxEmptyString, wxPoint(49,15), wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_ABOUT"));
     SplitterWindow1->SplitVertically(ListBoxScripts, TextCtrlAbout, 350);

@@ -44,7 +44,7 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #include <wx/choice.h>
 #include <wx/combobox.h>
 #include <algorithm>
-#include <unordered_map>
+#include <chrono>
 
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
@@ -556,31 +556,74 @@ namespace {
 // reimplements it at the event-filter level instead of touching every one of
 // the ~68 call sites that construct a slider or dropdown.
 //
+// Two guards keep this from hijacking a scroll meant for the scrolled panel
+// the control lives in - without them, scrolling a panel of effect settings
+// silently edits whichever slider happens to slide under the pointer:
+//
+//  - the control must be "armed": clicked on, or holding the keyboard focus,
+//    since the last click elsewhere. Hovering alone never changes a value.
+//  - the first wheel event of a gesture decides whether that gesture belongs
+//    to the control under the pointer or to the scrollable parent, and the
+//    decision holds until scrolling stops. A control that slides under the
+//    pointer mid-scroll therefore can't steal a scroll already in flight.
+//
 // Trackpad/Magic Mouse slides deliver many small-rotation wheel events rather
 // than one per physical notch (wx's Cocoa backend fixes GetWheelDelta() at 10
 // and reports the actual scroll distance as GetWheelRotation()), so fractional
-// rotation is accumulated per control and only converted into a step once it
-// crosses a full notch - otherwise a slow slide would fire far more steps than
-// the gesture visually covered.
-//
-// Keyed by raw wxWindow* purely as an accumulator lookup, never dereferenced
-// after the control might be destroyed - a stale entry surviving a control's
-// destruction can at most cause one extra/missing step for whatever new
-// control is later allocated at the same address, which isn't worth the
-// complexity of wiring a wxEVT_DESTROY cleanup handler per control.
-std::unordered_map<wxWindow*, int> s_wheelAccumulator;
+// rotation is accumulated over the gesture and only converted into a step once
+// it crosses a full notch - otherwise a slow slide would fire far more steps
+// than the gesture visually covered.
+constexpr int WHEEL_GESTURE_GAP_MS = 250;
 
-int AccumulateWheelSteps(wxWindow* control, const wxMouseEvent& event)
+// Raw pointers held for identity comparison only, never dereferenced; both are
+// forgotten when the control they name is destroyed (see ForgetWindow).
+wxWindow* s_armedControl = nullptr;
+wxWindow* s_wheelGestureOwner = nullptr;
+std::chrono::steady_clock::time_point s_lastWheelTime{};
+int s_wheelAccumulator = 0;
+
+int AccumulateWheelSteps(const wxMouseEvent& event)
 {
     int delta = event.GetWheelDelta();
     if (delta == 0) {
         return 0;
     }
-    int& accumulated = s_wheelAccumulator[control];
-    accumulated += event.GetWheelRotation();
-    int steps = accumulated / delta;
-    accumulated -= steps * delta;
+    s_wheelAccumulator += event.GetWheelRotation();
+    int steps = s_wheelAccumulator / delta;
+    s_wheelAccumulator -= steps * delta;
     return steps;
+}
+
+// The wxSlider/wxChoice/wxComboBox at or above `w`, or null if there is none.
+wxWindow* FindWheelTarget(wxWindow* w)
+{
+    for (; w != nullptr && !w->IsTopLevel(); w = w->GetParent()) {
+        if (wxDynamicCast(w, wxSlider) || wxDynamicCast(w, wxChoice) || wxDynamicCast(w, wxComboBox)) {
+            return w;
+        }
+    }
+    return nullptr;
+}
+
+bool IsArmed(wxWindow* control)
+{
+    if (control == s_armedControl) {
+        return true;
+    }
+    // macOS native sliders and popup buttons don't become the first responder
+    // when clicked, so the click is tracked separately above; GTK does focus
+    // them, and on either platform a tabbed-to control is a deliberate target.
+    return FindWheelTarget(wxWindow::FindFocus()) == control;
+}
+
+void ForgetWindow(const wxObject* obj)
+{
+    if (obj == static_cast<const wxObject*>(s_armedControl)) {
+        s_armedControl = nullptr;
+    }
+    if (obj == static_cast<const wxObject*>(s_wheelGestureOwner)) {
+        s_wheelGestureOwner = nullptr;
+    }
 }
 
 // Steps a wxChoice's or wxComboBox's selection by `steps`, clamped to the
@@ -628,28 +671,33 @@ bool StepSlider(wxSlider* slider, int steps)
     return true;
 }
 
-// Finds the wxSlider/wxChoice/wxComboBox at or above the control under the
-// cursor and applies the wheel event to it. Returns wxEventFilter::Event_Skip
-// if nothing eligible was found/changed, or Event_Processed if it was handled.
+// Applies the wheel event to the armed wxSlider/wxChoice/wxComboBox under the
+// cursor. Returns wxEventFilter::Event_Skip if the gesture belongs to anything
+// else (so a scrolled parent still gets it), or Event_Processed if it was
+// consumed by the control.
 int FilterMouseWheel(wxMouseEvent& event)
 {
     if (event.GetWheelAxis() != wxMOUSE_WHEEL_VERTICAL || event.GetWheelRotation() == 0) {
         return wxEventFilter::Event_Skip;
     }
 
-    wxWindow* target = nullptr;
-    for (wxWindow* w = wxDynamicCast(event.GetEventObject(), wxWindow);
-         w != nullptr && !w->IsTopLevel(); w = w->GetParent()) {
-        if (wxDynamicCast(w, wxSlider) || wxDynamicCast(w, wxChoice) || wxDynamicCast(w, wxComboBox)) {
-            target = w;
-            break;
-        }
+    wxWindow* target = FindWheelTarget(wxDynamicCast(event.GetEventObject(), wxWindow));
+    if (target != nullptr && (!target->IsEnabled() || !IsArmed(target))) {
+        target = nullptr;
     }
-    if (target == nullptr || !target->IsEnabled()) {
+
+    const auto now = std::chrono::steady_clock::now();
+    if (now - s_lastWheelTime > std::chrono::milliseconds(WHEEL_GESTURE_GAP_MS)) {
+        s_wheelGestureOwner = target;
+        s_wheelAccumulator = 0;
+    }
+    s_lastWheelTime = now;
+
+    if (target == nullptr || target != s_wheelGestureOwner) {
         return wxEventFilter::Event_Skip;
     }
 
-    int steps = AccumulateWheelSteps(target, event);
+    int steps = AccumulateWheelSteps(event);
     if (steps == 0) {
         // A trackpad/Magic Mouse slide that hasn't crossed a full notch yet -
         // still "handled" so the event doesn't fall through to anything else
@@ -675,11 +723,18 @@ int FilterMouseWheel(wxMouseEvent& event)
 int xLightsApp::FilterEvent(wxEvent& event)
 {
 #ifndef __WXMSW__
-    if (event.GetEventType() == wxEVT_MOUSEWHEEL) {
+    const wxEventType type = event.GetEventType();
+    if (type == wxEVT_MOUSEWHEEL) {
         int result = FilterMouseWheel(static_cast<wxMouseEvent&>(event));
         if (result != Event_Skip) {
             return result;
         }
+    } else if (type == wxEVT_LEFT_DOWN) {
+        // Arm the clicked control - and disarm whatever was armed before - so
+        // the wheel only ever reaches a control that was deliberately picked.
+        s_armedControl = FindWheelTarget(wxDynamicCast(event.GetEventObject(), wxWindow));
+    } else if (type == wxEVT_DESTROY) {
+        ForgetWindow(event.GetEventObject());
     }
 #endif
     return xLightsAppBaseClass::FilterEvent(event);
