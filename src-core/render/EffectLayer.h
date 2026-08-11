@@ -14,6 +14,7 @@
 #include "UndoManager.h"
 #include "../effects/EffectManager.h"
 #include <atomic>
+#include <functional>
 #include <tuple>
 #include <list>
 #include <mutex>
@@ -105,6 +106,12 @@ public:
     int ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to, bool selectedOnly, UndoManager& undo_mgr);
     void ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
     void ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
+    // Like ApplyEffectSettingToSelected but lets the caller supply arbitrary mutation logic
+    // instead of a single id/value pair -- used where the settings a control edits aren't a
+    // flat key on the effect (e.g. the Moving Head panel's per-fixture settings blobs).
+    // The mutator returns true if it actually changed the effect, so undo/render only fire
+    // for effects that were really touched.
+    void ApplyCallbackToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::function<bool(Effect*)>& mutator, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
     void RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings, const EffectManager& effect_manager, RangeAccumulator& range_accumulator);
     void UnTagAllEffects();
     void DeleteSelectedEffects(UndoManager& undo_mgr);

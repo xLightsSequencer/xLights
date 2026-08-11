@@ -142,6 +142,7 @@ public:
     int GetSelectedEffectCount(const std::string& effectName) const;
     bool AreAllSelectedEffectsOnTheSameElement() const;
     void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
+    void ApplyCallbackToSelected(const std::string& effectName, const std::function<bool(Effect*)>& mutator);
     void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
     void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings);
     void ConvertSelectedEffectsTo(const std::string& effectName);

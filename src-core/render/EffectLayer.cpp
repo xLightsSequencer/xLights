@@ -1184,6 +1184,40 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
     }
 }
 
+void EffectLayer::ApplyCallbackToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::function<bool(Effect*)>& mutator, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
+{
+    for (int i = 0; i < (int)mEffects.size(); i++)
+    {
+        RenderableEffect* eff1 = effectManager.GetEffect(effectName);
+        if (eff1 == nullptr && effectName != "")
+        {
+            spdlog::error("Effect not found: '{}'", effectName);
+            assert(false);
+        }
+        RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
+        if (eff2 == nullptr)
+        {
+            // this cant happen
+            spdlog::error("Effect not found when scanning effects: '{}'", mEffects[i]->GetEffectName());
+            assert(false);
+        }
+        if ((effectName == "" || eff1 == nullptr || eff1->GetId() == eff2->GetId()) &&
+            ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+             (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+           )
+        {
+            std::string priorSettings = mEffects[i]->GetSettingsAsString();
+            std::string priorPalette = mEffects[i]->GetPaletteAsString();
+            if (mutator(mEffects[i]))
+            {
+                undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), priorSettings, priorPalette);
+                rangeAccumulator.Add(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            }
+        }
+    }
+}
+
 void EffectLayer::ApplyButtonPressToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
 

@@ -65,6 +65,8 @@ public:
     virtual void SetPanelStatus(Model* cls) override;
     virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs) override;
     virtual void RefreshLayoutOnShow() override;
+    virtual bool IsBulkEditAllowed() override;
+    virtual bool BulkEditApplySetting(const std::string& rawId, const std::string& value, ValueCurve* vc, const std::string& vcid) override;
     std::list<Model*> GetActiveModels();
     void UpdateStatusPanel();
     void CheckAllFixtures();
@@ -401,8 +403,14 @@ private:
     void GetFixturesGroups();
     void SyncLinkToNext();
     void UpdateLinkTabState();
+    void UpdateLinkTabState(bool anyFixtureActive);
     void ApplyLinkedHeadPosition(int headNum, float pan, float tilt);
     void ForceNotebookPageResize(wxNotebook* nb);
+    std::vector<int> GetCheckedFixtures() const;
+    std::vector<int> GetSourceFixtures();
+    bool HasActiveFixture();
+    void UpdateFixtureDependentControlsEnabled();
+    static std::string MergeMHSettingFragment(const std::string& blob, const std::list<std::string>& stripNames, const std::string& newFragment);
     
     // Preset Functions
     void PopulatePresets();

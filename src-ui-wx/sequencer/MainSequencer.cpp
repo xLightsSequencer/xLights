@@ -1730,6 +1730,11 @@ void MainSequencer::ApplyEffectSettingToSelected(const std::string& effectName, 
     return PanelEffectGrid->ApplyEffectSettingToSelected(effectName, id, value, vc, vcid);
 }
 
+void MainSequencer::ApplyCallbackToSelected(const std::string& effectName, const std::function<bool(Effect*)>& mutator)
+{
+    return PanelEffectGrid->ApplyCallbackToSelected(effectName, mutator);
+}
+
 void MainSequencer::ApplyButtonPressToSelected(const std::string& effectName, const std::string id)
 {
     return PanelEffectGrid->ApplyButtonPressToSelected(effectName, id);
