@@ -13,6 +13,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
     -bug (derwin12)              Fix Replace Model(s) With This Model now deletes the source model once it has
                                  been used to replace the selected target(s) (#6901)
+    -enh (AlexB)                 macOS/Linux: the scroll wheel and trackpad slides adjust sliders and dropdowns,
+                                 matching Windows. The control has to be clicked or focused first, and a scroll
+                                 already moving a panel keeps moving it, so scrolling past a control never
+                                 changes it by accident
     -bug (dkulp)                 Fix a crash placing a model when a dialog appears part way through loading it,
                                  such as the group-selection prompt on an imported model
     -enh (dkulp)                 iPad - Show-folder backup and restore: File > Back Up Show Folder copies the

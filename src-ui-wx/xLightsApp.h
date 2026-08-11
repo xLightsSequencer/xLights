@@ -46,6 +46,7 @@ public:
     virtual void MacOpenFiles(wxArrayString const& fileNames) override;
     #endif
     virtual bool ProcessIdle() override;
+    virtual int FilterEvent(wxEvent& event) override;
     uint64_t _nextIdleTime = 0;
 };
 
