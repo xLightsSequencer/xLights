@@ -30,6 +30,12 @@ public:
 
 private:
     void SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager);
+    // Removes/re-adds the protocol-specific output rows and refreshes the
+    // Protocol choices/selection to match the controller's current protocol.
+    // Shared by SetProtocolAndRebuildProperties (manual Protocol dropdown
+    // change) and HandlePropertyEvent (Vendor/Model/Variant changes that
+    // silently switch protocol via Controller::VMVChanged).
+    void RebuildOutputProperties(wxPropertyGrid* grid, OutputModelManager* outputModelManager);
 
     ControllerEthernet& _ethernet;
 };

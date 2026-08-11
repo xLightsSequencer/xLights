@@ -1537,7 +1537,9 @@ void ControllerListPanel::OnControllerPropertyGridChange(wxPropertyGridEvent& ev
             }
             // Size / location fields share the model property-grid key names, so
             // they can only be reached once the controller keys have missed.
-            if (_propGrid->GetPropertyByName("ModelX") != nullptr &&
+            // "Model" itself (the controller's Model/Category field) also starts
+            // with "Model" and must stay routed to the adapter below.
+            if (_propGrid->GetPropertyByName("ModelX") != nullptr && name != "Model" &&
                 (name == "Locked" || name.StartsWith("Model") ||
                  name.StartsWith("Scale") || name.StartsWith("Rotate"))) {
                 ScreenLocationPropertyHelper::OnPropertyGridChange(
