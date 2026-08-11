@@ -76,7 +76,9 @@ void OutputPropertyAdapter::RemoveAllProperties(wxPropertyGrid* propertyGrid) {
         "HTTPPort", "DeviceChannels", "Channels"
     };
     for (const auto* name : names) {
-        propertyGrid->DeleteProperty(name);
+        if (propertyGrid->GetPropertyByName(name) != nullptr) {
+            propertyGrid->DeleteProperty(name);
+        }
     }
 }
 
