@@ -5980,6 +5980,13 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
     Effect* res = nullptr;
 
+    auto isModelGroupElement = [this](Element* elem) -> bool {
+        if (elem == nullptr)
+            return false;
+        Model* m = xlights->AllModels[elem->GetModelName()];
+        return m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup;
+    };
+
     if (mSequenceElements == nullptr)
         return res;
 
@@ -6260,7 +6267,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                             for (int si = 0; si < me->GetSubModelCount(); ++si)
                                 deleteUnused(me->GetSubModel(si));
                             undo_mgr.CreateUndoStep(); // needed for redo
-                            if (!singleElementPaste) {
+                            if (!singleElementPaste && !isModelGroupElement(me)) {
                                 me->ShowSubModels(true);
                                 me->ShowStrands(true);
                                 mSequenceElements->PopulateRowInformation();
@@ -6366,7 +6373,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                         if (!singleElementPaste) {
                             for (auto& [elem, maxLayer] : elemMaxLayer) {
                                 ModelElement* me2 = dynamic_cast<ModelElement*>(elem);
-                                if (me2 != nullptr) {
+                                if (me2 != nullptr && !isModelGroupElement(me2)) {
                                     me2->ShowSubModels(true);
                                     me2->ShowStrands(true);
                                 }
@@ -9122,8 +9129,11 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
         return;
 
     me->SetCollapsed(false);
-    me->ShowSubModels(true);
-    me->ShowStrands(true);
+    Model* destModel = xlights->AllModels[me->GetModelName()];
+    if (destModel == nullptr || destModel->GetDisplayAs() != DisplayAsType::ModelGroup) {
+        me->ShowSubModels(true);
+        me->ShowStrands(true);
+    }
 
     xLightsApp::GetFrame()->AbortRender();
 
