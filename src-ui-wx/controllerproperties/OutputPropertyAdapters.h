@@ -34,6 +34,14 @@ public:
 
     static std::unique_ptr<OutputPropertyAdapter> Create(Output& output);
 
+    // Deletes every property name any OutputPropertyAdapter subclass might have
+    // added, regardless of which protocol is currently active. Used instead of
+    // RemoveProperties() on a single adapter instance whenever the protocol may
+    // have changed without the caller having a handle on the adapter that added
+    // the properties still on the grid (e.g. Controller::VMVChanged() switching
+    // to a caps' preferred protocol out from under the UI).
+    static void RemoveAllProperties(wxPropertyGrid* propertyGrid);
+
 protected:
     Output& _output;
 };

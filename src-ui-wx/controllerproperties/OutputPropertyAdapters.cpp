@@ -68,6 +68,18 @@ std::unique_ptr<OutputPropertyAdapter> OutputPropertyAdapter::Create(Output& out
     return std::make_unique<OutputPropertyAdapter>(output);
 }
 
+void OutputPropertyAdapter::RemoveAllProperties(wxPropertyGrid* propertyGrid) {
+    static const char* const names[] = {
+        "Universe", "Universes", "UniversePerString", "UniversesDisplay", "IndivSizes", "Sizes",
+        "ForceSourcePort", "ChannelsPerPacket", "KeepChannelNumbers", "Version",
+        "DontSendConfig", "SendDataMulticast", "SupportsSmartRemotes", "SupportsVirtualStrings",
+        "HTTPPort", "DeviceChannels", "Channels"
+    };
+    for (const auto* name : names) {
+        propertyGrid->DeleteProperty(name);
+    }
+}
+
 // =========================================================================
 // LOR custom property editors (moved from LOROptimisedOutput.cpp)
 // =========================================================================

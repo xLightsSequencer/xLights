@@ -407,7 +407,21 @@ void ControllerEthernetPropertyAdapter::AddProperties(wxPropertyGrid* propertyGr
 
 bool ControllerEthernetPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager) {
 
-    if (ControllerPropertyAdapter::HandlePropertyEvent(event, outputModelManager)) return true;
+    auto const oldProtocol = _ethernet.GetProtocol();
+    if (ControllerPropertyAdapter::HandlePropertyEvent(event, outputModelManager)) {
+        // Vendor/Model/Variant changes can silently switch the controller to its
+        // caps' preferred protocol (Controller::VMVChanged), recreating the
+        // output objects out from under the property grid. Rebuild the
+        // protocol-specific rows so stale ones from the old protocol don't
+        // linger alongside the new ones.
+        if (_ethernet.GetProtocol() != oldProtocol) {
+            wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
+            if (grid) {
+                RebuildOutputProperties(grid, outputModelManager);
+            }
+        }
+        return true;
+    }
 
     wxString const name = event.GetPropertyName();
 
@@ -675,21 +689,26 @@ void ControllerEthernetPropertyAdapter::ValidateProperties(OutputManager* om, wx
 }
 
 void ControllerEthernetPropertyAdapter::SetProtocolAndRebuildProperties(const std::string& protocol, wxPropertyGrid* grid, OutputModelManager* outputModelManager) {
-    auto const& outputs = _ethernet.GetOutputs();
-    if (outputs.size() > 0) {
-        auto adapter = OutputPropertyAdapter::Create(*outputs.front());
-        adapter->RemoveProperties(grid);
-    }
     _ethernet.SetProtocol(protocol);
+    RebuildOutputProperties(grid, outputModelManager);
+}
 
+void ControllerEthernetPropertyAdapter::RebuildOutputProperties(wxPropertyGrid* grid, OutputModelManager* outputModelManager) {
+    OutputPropertyAdapter::RemoveAllProperties(grid);
     if (_ethernet.GetOutputCount() > 0) {
         std::list<wxPGProperty*> expandProperties;
         auto before = grid->GetProperty("Managed");
         auto adapter = OutputPropertyAdapter::Create(*_ethernet.GetFirstOutput());
         adapter->AddProperties(grid, before, &_ethernet, _ethernet.AllSameSize(), expandProperties);
     }
-    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE, "ControllerEthernet::HandlePropertyEvent::Protocol");
-    outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::HandlePropertyEvent::Protocol", nullptr);
+    wxPGProperty* p = grid->GetProperty("Protocol");
+    if (p) {
+        auto protocols = GetEthernetProtocols(_ethernet);
+        p->SetChoices(protocols);
+        p->SetChoiceSelection(EncodeChoices(protocols, _ethernet.GetProtocol()));
+    }
+    outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE, "ControllerEthernet::RebuildOutputProperties");
+    outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ControllerEthernet::RebuildOutputProperties", nullptr);
 }
 
 void ControllerEthernetPropertyAdapter::HandleExpanded(wxPropertyGridEvent& event, bool expanded) {
