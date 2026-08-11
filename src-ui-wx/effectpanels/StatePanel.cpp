@@ -19,7 +19,10 @@
 #include "effects/StateEffect.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "models/ModelManager.h"
 #include "render/SequenceElements.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
 
 StatePanel::StatePanel(wxWindow* parent, const nlohmann::json& metadata)
     : JsonEffectPanel(parent, metadata, /*deferBuild*/ true) {
@@ -130,11 +133,11 @@ void StatePanel::SetPanelStatus(Model* cls) {
     // (including State_StateDefinition via dynamicOptions: "states").
     JsonEffectPanel::SetPanelStatus(cls);
 
-    // Only update _model when a real model is provided; a null cls (e.g. from
+    // Only update the model when a real one is provided; a null cls (e.g. from
     // an icon-click refresh) must not clobber the previously-set model or
     // PopulateStates will lose the states list.
     if (cls != nullptr) {
-        _model = cls;
+        _modelName = cls->GetFullName();
     }
     PopulateTimingTracks();
     PopulateStates();
@@ -161,6 +164,13 @@ void StatePanel::PopulateTimingTracks() {
     }
 }
 
+Model* StatePanel::GetModel() const {
+    if (_modelName.empty()) return nullptr;
+    xLightsFrame* frame = xLightsApp::GetFrame();
+    if (frame == nullptr) return nullptr;
+    return frame->AllModels[_modelName];
+}
+
 void StatePanel::PopulateStates() {
     if (_stateChoice == nullptr) return;
 
@@ -171,10 +181,11 @@ void StatePanel::PopulateStates() {
     _stateChoice->Clear();
     _stateChoice->Append("<ALL>");
 
-    if (_effect != nullptr && _model != nullptr && defChoice != nullptr) {
+    Model* model = GetModel();
+    if (_effect != nullptr && model != nullptr && defChoice != nullptr) {
         std::string defName = defChoice->GetStringSelection().ToStdString();
         if (!defName.empty()) {
-            std::list<std::string> states = _effect->GetStates(_model, defName);
+            std::list<std::string> states = _effect->GetStates(model, defName);
             for (const auto& s : states) {
                 _stateChoice->Append(wxString(s));
             }

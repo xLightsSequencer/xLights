@@ -21,6 +21,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  such as the group-selection prompt on an imported model
     -bug (dkulp)                 Fix a crash updating serial controllers from the base show folder when the base
                                  folder's serial ports differ from the current show's
+    -bug (dkulp)                 Fix a crash editing a State effect after the model it referred to was deleted or
+                                 the show folder was changed
     -enh (dkulp)                 iPad - Show-folder backup and restore: File > Back Up Show Folder copies the
                                  show's sequence and configuration files into a timestamped Backup folder
                                  (the same format desktop's F10 Backup writes, so backups restore across

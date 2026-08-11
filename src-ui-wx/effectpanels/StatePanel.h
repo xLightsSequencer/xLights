@@ -40,8 +40,13 @@ private:
     // Enable/disable the state and timing-track choices based on which radio is selected.
     void UpdateStateSourceEnable();
 
+    // Resolves _modelName through the model manager; null once the model is gone.
+    Model* GetModel() const;
+
     StateEffect* _effect = nullptr;
-    Model* _model = nullptr;
+    // Held by name, not pointer: the panel outlives model-list rebuilds (show folder
+    // change, model delete/rename) that would leave a cached Model* dangling.
+    std::string _modelName;
 
     wxRadioButton* _radioState = nullptr;
     wxRadioButton* _radioTiming = nullptr;
