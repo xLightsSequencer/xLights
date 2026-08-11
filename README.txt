@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (derwin12)              Fix Replace Model(s) With This Model now deletes the source model once it has
+                                 been used to replace the selected target(s) (#6901)
     -enh (AlexB)                 macOS/Linux: the scroll wheel and trackpad slides adjust sliders and dropdowns,
                                  matching Windows. The control has to be clicked or focused first, and a scroll
                                  already moving a panel keeps moving it, so scrolling past a control never

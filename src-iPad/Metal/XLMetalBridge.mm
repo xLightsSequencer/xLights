@@ -1674,6 +1674,17 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     // Groups choice. Same shared core helper the desktop Replace dialog uses.
     mgr.ReconcileReplacedModelGroups(sourceName, replacedNames, static_cast<ReplaceGroupMode>(groupMode));
 
+    // The source has now served as the template for every successfully
+    // replaced target, so leaving it behind would just be a duplicate of a
+    // model that already lives on under the target's name(s) - delete it.
+    // Mirrors desktop LayoutPanel::ReplaceModel (#6901). Desktop only enables
+    // the Replace menu item for non-base-linked models (LayoutPanel.cpp
+    // AddModelPopUpMenu); the iPad action bar doesn't filter on that, so
+    // check IsFromBase() here rather than deleting outright.
+    if (replaced > 0 && !sourceModel->IsFromBase()) {
+        mgr.Delete(sourceName);
+    }
+
     return replaced;
 }
 
