@@ -1638,13 +1638,10 @@ float ReadAlignReference(Model* model, const std::string& edge) {
             }
         }
         if (keepSizePosition) {
-            clone->GetModelScreenLocation().SetRotation(target->GetModelScreenLocation().GetRotation());
-            clone->SetHcenterPos(target->GetHcenterPos());
-            clone->SetVcenterPos(target->GetVcenterPos());
-            clone->SetDcenterPos(target->GetDcenterPos());
-            clone->SetHeight(target->GetHeight());
-            clone->SetWidth(target->GetWidth());
-            clone->SetDepth(target->GetDepth());
+            // Shared with desktop ReplaceModel: goes through the screen location
+            // so a locked clone still copies, sizes before centring, and copies
+            // scale rather than M-dimensions - the clone has no render size yet.
+            clone->CopyGeometryFrom(*target);
         }
 
         // Atomic name swap: park the old target under a trash name,

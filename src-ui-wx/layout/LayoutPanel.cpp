@@ -59,6 +59,7 @@
 #include "layout/ViewObjectPanel.h"
 #include "layout/LayoutGroup.h"
 #include "layout/LayoutPrintPreviewDialog.h"
+#include "models/BoxedScreenLocation.h"
 #include "models/ModelImages.h"
 #include "models/SubModel.h"
 #include "models/PolyLineModel.h"
@@ -10084,20 +10085,10 @@ namespace {
 // working for a locked source. (Base linkage is not a concern here: the caller
 // clears FromBase on the clone, and base-linked targets are blocked up front.)
 //
-// Size MUST be set before the centre: two-point / poly-point screen locations
-// derive their centre from the current width/height/depth
-// (worldPos = centre - size/2), so a centre set against a stale size lands the
-// model off by half the size delta.
+// Size-before-centre ordering and the scale-vs-M-dimension choice live in
+// Model::CopyGeometryFrom, shared with the iPad's replaceModels.
 void CopyGeometryFromTarget(Model* clone, const Model* target) {
-    ModelScreenLocation& cloc = clone->GetModelScreenLocation();
-    const ModelScreenLocation& tloc = target->GetModelScreenLocation();
-    cloc.SetMWidth(tloc.GetMWidth());
-    cloc.SetMHeight(tloc.GetMHeight());
-    cloc.SetMDepth(tloc.GetMDepth());
-    cloc.SetHcenterPos(tloc.GetHcenterPos());
-    cloc.SetVcenterPos(tloc.GetVcenterPos());
-    cloc.SetDcenterPos(tloc.GetDcenterPos());
-    cloc.SetRotation(tloc.GetRotation());
+    clone->CopyGeometryFrom(*target);
     clone->Setup();
     clone->IncrementChangeCount();
 }
