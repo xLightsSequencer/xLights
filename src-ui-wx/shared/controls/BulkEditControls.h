@@ -24,6 +24,7 @@
 #include "color/xlColourPickerButton.h"
 
 class wxStaticText;
+class xlEffectPanel;
 
 typedef enum
 {
@@ -331,4 +332,5 @@ BulkEditTextCtrl* GetSettingTextControl(wxWindow* w, std::string ourName, std::s
 BulkEditSlider* GetSettingSliderControl(wxWindow* w, std::string ourName, std::string ourType);
 bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType);
 bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement = false);
+xlEffectPanel* GetOwningEffectPanel(wxWindow* w);
 

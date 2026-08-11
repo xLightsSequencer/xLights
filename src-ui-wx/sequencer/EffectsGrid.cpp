@@ -2472,6 +2472,37 @@ void EffectsGrid::ApplyEffectSettingToSelected(const std::string& effectName, co
     }
 }
 
+void EffectsGrid::ApplyCallbackToSelected(const std::string& effectName, const std::function<bool(Effect*)>& mutator) {
+    Element* lastModel = nullptr;
+    RangeAccumulator rangeAccumulator;
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
+        Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+
+        if (ri->element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0) {
+            rangeAccumulator.Consolidate();
+            sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+            rangeAccumulator.clear();
+        }
+        lastModel = ri->element;
+
+        if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            // skip timing rows
+        } else {
+            mSequenceElements->GetEffectLayer(row)->ApplyCallbackToSelected(this, mSequenceElements->get_undo_mgr(), effectName, mutator, xlights->GetEffectManager(), rangeAccumulator);
+        }
+    }
+
+    if (lastModel != nullptr && rangeAccumulator.size() > 0) {
+        rangeAccumulator.Consolidate();
+        sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+        rangeAccumulator.clear();
+    }
+}
+
 void EffectsGrid::ApplyButtonPressToSelected(const std::string& effectName, const std::string id) {
     Element* lastModel = nullptr;
     RangeAccumulator rangeAccumulator;

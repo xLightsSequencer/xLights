@@ -37,6 +37,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <set>
 #include <vector>
 
 #include <log.h>
@@ -2214,11 +2215,38 @@ void MovingHeadPanel::OnCheckBox_MHLinkToNextClick(wxCommandEvent& event)
 // tabs would appear to silently vanish -- gray them out while linked. The Position tab
 // is deliberately left enabled: its Groupings/Cycles fields survive linking, and the
 // user should still be able to see (even if not rely on) the shared Pan/Tilt sliders.
+// Also folds in HasActiveFixture(): with no fixture checked there's nowhere for either
+// tab's edits to go regardless of Link state (see UpdateFixtureDependentControlsEnabled).
 void MovingHeadPanel::UpdateLinkTabState()
 {
+    UpdateLinkTabState(HasActiveFixture());
+}
+
+// Same as UpdateLinkTabState(), but takes an already-computed HasActiveFixture() result --
+// lets UpdateFixtureDependentControlsEnabled() share one call instead of recomputing it.
+void MovingHeadPanel::UpdateLinkTabState(bool anyFixtureActive)
+{
     bool linked = CheckBox_MHLinkToNext != nullptr && CheckBox_MHLinkToNext->IsChecked();
-    if (PanelPathing != nullptr) PanelPathing->Enable(!linked);
-    if (PanelPattern != nullptr) PanelPattern->Enable(!linked);
+    if (PanelPathing != nullptr) PanelPathing->Enable(!linked && anyFixtureActive);
+    if (PanelPattern != nullptr) PanelPattern->Enable(!linked && anyFixtureActive);
+}
+
+// Editing Position/Color/Dimmer (and, via UpdateLinkTabState, Pathing/Pattern) on a group
+// effect writes into whichever fixture(s) are checked in the Fixtures row --
+// UpdateMHSettings/UpdatePathSettings/UpdatePatternSettings/UpdateColorSettings/
+// UpdateDimmerSettings all loop "for each checked fixture" and simply do nothing if none
+// are checked. Rather than let the user fiddle with controls that silently go nowhere,
+// disable those tabs entirely until a fixture is checked. A single (non-group) model
+// always has its one implicit head checked (see SetPanelStatus), so this never disables
+// anything there.
+void MovingHeadPanel::UpdateFixtureDependentControlsEnabled()
+{
+    bool anyFixtureActive = HasActiveFixture();
+    if (PanelPosition != nullptr) PanelPosition->Enable(anyFixtureActive);
+    if (PanelColor != nullptr) PanelColor->Enable(anyFixtureActive);
+    if (PanelColorWheel != nullptr) PanelColorWheel->Enable(anyFixtureActive);
+    if (PanelDimmer != nullptr) PanelDimmer->Enable(anyFixtureActive);
+    UpdateLinkTabState(anyFixtureActive);
 }
 
 // Commands that define a head's Pan/Tilt at all (raw value, VC, offsets, path or
@@ -2555,6 +2583,7 @@ void MovingHeadPanel::UpdateStatusPanel()
         }
     }
     TextCtrl_Status->SetValue(all_settings);
+    UpdateFixtureDependentControlsEnabled();
 }
 
 // Added special case to remove all path settings at once so we don't have to search several times
@@ -2652,6 +2681,179 @@ void MovingHeadPanel::UncheckAllFixtures()
             checkbox->SetValue(false);
         }
     }
+}
+
+std::vector<int> MovingHeadPanel::GetCheckedFixtures() const
+{
+    std::vector<int> fixtures;
+    for (int i = 1; i <= 8; ++i) {
+        wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(wxString::Format("IDD_CHECKBOX_MH%d", i)));
+        if (checkbox != nullptr && checkbox->IsChecked()) {
+            fixtures.push_back(i);
+        }
+    }
+    return fixtures;
+}
+
+// Remove any existing "Name: ..." fragments in stripNames from a per-fixture settings
+// blob (semicolon-separated "Name: value" commands, see RecallSettings) and append
+// newFragment. Mirrors RemoveSettings()+AddSetting(), but operates on an arbitrary
+// blob string instead of the live UI, so it can be used to patch other selected
+// effects' settings during a bulk edit.
+std::string MovingHeadPanel::MergeMHSettingFragment(const std::string& blob, const std::list<std::string>& stripNames, const std::string& newFragment)
+{
+    wxArrayString all_cmds = wxSplit(blob, ';');
+    wxArrayString updated_cmds;
+    for (size_t j = 0; j < all_cmds.size(); ++j) {
+        std::string cmd = all_cmds[j].ToStdString();
+        if (cmd == xlEMPTY_STRING) continue;
+        size_t pos = cmd.find(":");
+        std::string cmd_type = cmd.substr(0, pos);
+        bool found = (std::find(stripNames.begin(), stripNames.end(), cmd_type) != stripNames.end());
+        if (!found) {
+            updated_cmds.Add(all_cmds[j]);
+        }
+    }
+    updated_cmds.Add(newFragment);
+    return wxJoin(updated_cmds, ';').ToStdString();
+}
+
+// The Fixtures row is hidden entirely for a single (non-group) moving head model -- there
+// is nothing to check, but there is exactly one implied head, so it counts as active.
+// Otherwise at least one fixture must be checked, since that's what tells us which head(s)
+// an edit -- bulk or otherwise -- should actually touch.
+bool MovingHeadPanel::HasActiveFixture()
+{
+    if (GetActiveModels().size() == 1) {
+        return true;
+    }
+    return !GetCheckedFixtures().empty();
+}
+
+// The fixture(s) an edit -- bulk or otherwise -- made from this panel should be read
+// from. For a group effect this is whatever's checked in the Fixtures row. For a single
+// (non-group) model the Fixtures row is hidden/unused (see HasActiveFixture), but the
+// edit still applies to that model's own implicit head, so fall back to its fixture
+// number rather than reporting no source fixtures at all.
+std::vector<int> MovingHeadPanel::GetSourceFixtures()
+{
+    auto models = GetActiveModels();
+    if (models.size() == 1) {
+        DmxMovingHeadComm* mhead = dynamic_cast<DmxMovingHeadComm*>(models.front());
+        if (mhead != nullptr) {
+            return { mhead->GetFixtureVal() };
+        }
+    }
+    return GetCheckedFixtures();
+}
+
+bool MovingHeadPanel::IsBulkEditAllowed()
+{
+    return HasActiveFixture();
+}
+
+bool MovingHeadPanel::BulkEditApplySetting(const std::string& rawId, const std::string& value, ValueCurve* vc, const std::string& vcid)
+{
+    static const std::string SLIDER_PREFIX = "ID_SLIDER_MH";
+    if (rawId.rfind(SLIDER_PREFIX, 0) != 0) {
+        return false;
+    }
+    std::string settingName = rawId.substr(SLIDER_PREFIX.length());
+
+    // Only the Position and Pattern tab fields are handled here -- these are the
+    // "friendly" names used inside the per-fixture settings blobs (see possettings /
+    // patternsettings above).
+    static const std::set<std::string> handledSettings = {
+        "Pan", "Tilt", "PanOffset", "TiltOffset", "Groupings", "Cycles",
+        "PatternWidth", "PatternHeight", "PatternXOffset", "PatternYOffset",
+        "PatternRotation", "PatternStartOffset", "PatternPhaseOffset",
+        "PatternXFreq", "PatternYFreq", "PatternXPhase", "PatternYPhase"
+    };
+    if (handledSettings.find(settingName) == handledSettings.end()) {
+        return false;
+    }
+
+    std::vector<int> sourceFixtures = GetSourceFixtures();
+    if (sourceFixtures.empty()) {
+        return true; // nothing to do -- IsBulkEditAllowed() should already have hidden the menu
+    }
+
+    // By the time we get here the caller (BulkEditSlider::OnSliderPopup) has already
+    // pushed the new value into this panel's own slider/textbox/value-curve controls,
+    // so read the correctly-formatted fragment value back from them rather than trying
+    // to reformat "value" (which, for a plain int-named slider, is the raw unscaled
+    // slider position, not the "12.3"-style text the settings blob expects).
+    std::string fragmentName = settingName;
+    std::string fragmentValue;
+    if (vc != nullptr && vc->IsActive()) {
+        fragmentName += " VC";
+        fragmentValue = vc->Serialise();
+        std::replace(fragmentValue.begin(), fragmentValue.end(), ';', '@');
+    } else {
+        wxTextCtrl* t = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + settingName));
+        if (t == nullptr) {
+            return true;
+        }
+        fragmentValue = t->GetValue().ToStdString();
+    }
+    std::string fragment = fragmentName + ": " + fragmentValue;
+    std::list<std::string> namesToStrip = { settingName, settingName + " VC" };
+
+    xLightsFrame* frame = xLightsApp::GetFrame();
+
+    // Match by fixture *number*, not by which effect the user happened to right-click.
+    // A moving-head-group effect stores one settings blob per fixture number
+    // (E_TEXTCTRL_MHn_Settings); a single (non-group) model effect only ever uses the
+    // slot for its own fixture number. So: for a group target, apply to every checked
+    // fixture; for a single-model target, apply only if that model's own fixture number
+    // is one of the checked ones -- in both directions, group-source/single-target and
+    // single-source/group-target.
+    auto mutator = [frame, sourceFixtures, namesToStrip, fragment](Effect* targetEffect) -> bool {
+        if (targetEffect == nullptr || targetEffect->GetParentEffectLayer() == nullptr) {
+            return false;
+        }
+        Element* el = targetEffect->GetParentEffectLayer()->GetParentElement();
+        if (el == nullptr) {
+            return false;
+        }
+        Model* model = frame->GetModel(el->GetModelName());
+
+        std::vector<int> targetFixtures;
+        if (model != nullptr && model->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            targetFixtures = sourceFixtures;
+        } else if (model != nullptr && (model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || model->GetDisplayAs() == DisplayAsType::DmxMovingHead)) {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)model;
+            int fv = mhead->GetFixtureVal();
+            if (fv >= 1 && fv <= 8 && std::find(sourceFixtures.begin(), sourceFixtures.end(), fv) != sourceFixtures.end()) {
+                targetFixtures.push_back(fv);
+            }
+        }
+        if (targetFixtures.empty()) {
+            return false;
+        }
+
+        bool changed = false;
+        SettingsMap& settings = targetEffect->GetSettings();
+        for (int f : targetFixtures) {
+            std::string key = "E_TEXTCTRL_MH" + std::to_string(f) + "_Settings";
+            // Only touch fixtures the target effect already defines something for --
+            // a bulk edit shouldn't invent a brand new head on an effect that never had one.
+            if (!settings.Contains(key)) {
+                continue;
+            }
+            std::string blob = settings.Get(key, "");
+            std::string newBlob = MergeMHSettingFragment(blob, namesToStrip, fragment);
+            if (newBlob != blob) {
+                settings[key] = newBlob;
+                changed = true;
+            }
+        }
+        return changed;
+    };
+
+    frame->GetMainSequencer()->ApplyCallbackToSelected("Moving Head", mutator);
+
+    return true;
 }
 
 void MovingHeadPanel::CheckAllFixtures() {
@@ -3667,6 +3869,7 @@ void MovingHeadPanel::SetPanelStatus(Model* cls)
         if (text != nullptr) { text->Show(); }
     }
     UpdatePatternControlState();
+    UpdateFixtureDependentControlsEnabled();
     FlexGridSizerPosition->Layout();
     FlexGridSizer_Main->Layout();
     Refresh();

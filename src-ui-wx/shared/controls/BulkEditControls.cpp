@@ -14,6 +14,7 @@
 #include <wx/choicdlg.h>
 
 #include "shared/controls/BulkEditControls.h"
+#include "effectpanels/EffectPanelUtils.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
 #include "sequencer/EffectsPanel.h"
@@ -602,9 +603,15 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
                 }
             }
 
+            std::string rawId = id;
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
-            if (GetPanelName(GetParent()) == "Effect")
+            xlEffectPanel* owningPanel = GetOwningEffectPanel(GetParent());
+            if (owningPanel != nullptr && owningPanel->BulkEditApplySetting(rawId, value, dlg.BitmapButton_VC->GetValue(), vcid))
+            {
+                // panel took care of applying this to the other selected effects
+            }
+            else if (GetPanelName(GetParent()) == "Effect")
             {
                 std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
                 xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, dlg.BitmapButton_VC->GetValue(), vcid);
@@ -1377,6 +1384,19 @@ std::string GetPanelName(wxWindow* w)
     return "";
 }
 
+// Find the nearest xlEffectPanel ancestor (e.g. MovingHeadPanel) so a control's bulk
+// edit handler can offer it a chance to override the default behaviour.
+xlEffectPanel* GetOwningEffectPanel(wxWindow* w)
+{
+    while (w != nullptr)
+    {
+        xlEffectPanel* p = dynamic_cast<xlEffectPanel*>(w);
+        if (p != nullptr) return p;
+        w = w->GetParent();
+    }
+    return nullptr;
+}
+
 // Find an associated control from a SLIDER/VALUECURVE/TEXTCTRL set
 wxWindow* GetAssociatedWindow(wxWindow* w, wxString ourName, wxString ourType, wxString desiredType)
 {
@@ -1509,6 +1529,13 @@ bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
         }
 
         // mixed effect types is ok ... we will just skip those that dont match the current effect panel
+    }
+
+    xlEffectPanel* owningPanel = GetOwningEffectPanel(w);
+    if (owningPanel != nullptr && !owningPanel->IsBulkEditAllowed())
+    {
+        spdlog::debug("Bulk edit refused ... panel says it is not applicable right now.");
+        return false;
     }
 
     return true;

@@ -45,6 +45,7 @@ class RenderableEffect;
 class SequenceElements;
 class xLightsFrame;
 class ValueCurveButton;
+class ValueCurve;
 
 class EffectPanelUtils
 {
@@ -92,6 +93,20 @@ public:
 
     virtual bool HasAssistPanel() { return false; }
     virtual class AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame);
+
+    // Panel-specific gate on top of the generic "2+ effects of this type selected"
+    // check in IsBulkEditAvailable() -- lets a panel hide "Bulk Edit" for a control
+    // when its own UI state means the edit wouldn't apply anywhere (e.g. the Moving
+    // Head panel with no fixture checked in the Fixtures row).
+    virtual bool IsBulkEditAllowed() { return true; }
+
+    // Lets a panel take over what a bulk edit actually does to the other selected
+    // effects, instead of the generic "write id/value onto every selected effect's
+    // settings map" behaviour. rawId is the window name of the control the bulk
+    // edit menu was raised from (e.g. "ID_SLIDER_MHPan"), before FixIdForPanel().
+    // Return true if this call was fully handled (including applying to the other
+    // selected effects); return false to fall back to the generic behaviour.
+    virtual bool BulkEditApplySetting(const std::string& rawId, const std::string& value, ValueCurve* vc, const std::string& vcid) { return false; }
 
     void AddChangeListeners(wxTimer *timer);
 
