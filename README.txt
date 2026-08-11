@@ -13,6 +13,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
     -bug (derwin12)              Fix Replace Model(s) With This Model now deletes the source model once it has
                                  been used to replace the selected target(s) (#6901)
+    -bug (cybercop23)            Fix effect start/end times becoming corrupted when dragging an effect past
+                                 another effect on the same row, then resizing it (#6908)
     -enh (AlexB)                 macOS/Linux: the scroll wheel and trackpad slides adjust sliders and dropdowns,
                                  matching Windows. The control has to be clicked or focused first, and a scroll
                                  already moving a panel keeps moving it, so scrolling past a control never

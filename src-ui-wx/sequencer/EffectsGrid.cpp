@@ -6886,7 +6886,8 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
     }
 
     if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE) {
-        bool prevLocked = mResizeEffectIndex > 0 && mEffectLayer->GetEffect(mResizeEffectIndex - 1)->IsLocked();
+        Effect* priorEffect = mEffectLayer->GetPriorEffect(mResizeEffectIndex);
+        bool prevLocked = priorEffect != nullptr && priorEffect->IsLocked();
         int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_LEFT && !prevLocked, mSequenceElements->GetMinPeriod());
         // User has dragged left side to the right side exit
         if (time >= mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS()) {
@@ -6897,7 +6898,7 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
                 time = 0;
             }
             if (mEffectLayer->IsStartTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_LEFT && !prevLocked) {
-                Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex - 1);
+                Effect* eff = priorEffect;
                 if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
                     mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                              eff->GetStartTimeMS(), eff->GetEndTimeMS());
@@ -6911,24 +6912,25 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
             }
             eff->SetStartTimeMS(time);
         } else {
-            if (mResizeEffectIndex != 0) {
+            if (priorEffect != nullptr) {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
                 if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
                     mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                              eff->GetStartTimeMS(), eff->GetEndTimeMS());
                 }
-                eff->SetStartTimeMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetEndTimeMS());
+                eff->SetStartTimeMS(priorEffect->GetEndTimeMS());
             }
         }
     } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE) {
-        bool nextLocked = mResizeEffectIndex + 1 < mEffectLayer->GetEffectCount() && mEffectLayer->GetEffect(mResizeEffectIndex + 1)->IsLocked();
+        Effect* nextEffect = mEffectLayer->GetNextEffect(mResizeEffectIndex);
+        bool nextLocked = nextEffect != nullptr && nextEffect->IsLocked();
         int maximumTime = mEffectLayer->GetMaximumEndTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_RIGHT && !nextLocked, mSequenceElements->GetMinPeriod());
         // User has dragged right side to the left side exit
         if (time <= mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS()) {
             return;
         } else if (time <= maximumTime || maximumTime == NO_MIN_MAX_TIME) {
             if (mEffectLayer->IsEndTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_RIGHT && !nextLocked) {
-                Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex + 1);
+                Effect* eff = nextEffect;
                 if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
                     mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                              eff->GetStartTimeMS(), eff->GetEndTimeMS());
@@ -6942,13 +6944,13 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
             }
             eff->SetEndTimeMS(time);
         } else {
-            if (mResizeEffectIndex < mEffectLayer->GetEffectCount() - 1) {
+            if (nextEffect != nullptr) {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
                 if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
                     mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
                                                                              eff->GetStartTimeMS(), eff->GetEndTimeMS());
                 }
-                eff->SetEndTimeMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTimeMS());
+                eff->SetEndTimeMS(nextEffect->GetStartTimeMS());
             }
         }
     }

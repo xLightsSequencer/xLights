@@ -69,6 +69,12 @@ public:
     int GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period) const;
     int GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period) const;
 
+    // Chronological neighbor of mEffects[index] found by scanning start times rather than
+    // trusting adjacent array position, so a stale sort order (e.g. after dragging an effect
+    // past a sibling without a re-sort) can't return the wrong neighbor.
+    Effect* GetPriorEffect(int index) const;
+    Effect* GetNextEffect(int index) const;
+
     bool HitTestEffectByTime(int timeMS, int& index) const;
     bool HitTestEffectBetweenTime(int t1MS, int t2MS) const;
 
