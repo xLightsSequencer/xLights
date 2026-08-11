@@ -10291,20 +10291,41 @@ void LayoutPanel::ReplaceModel()
     // target's own groups - NoChange needs nothing. The shared core helper
     // handles the ReplaceWithSource / MergeSourceIntoTarget modes (direct
     // membership incl. submodel entries, base-folder groups skipped), and the
-    // iPad ReplaceModelSheet calls the same helper. sourceModel is untouched
-    // by the batch, so its name is still valid here.
-    xlights->AllModels.ReconcileReplacedModelGroups(sourceModel->GetName(), replacedNames, groupMode);
+    // iPad ReplaceModelSheet calls the same helper. sourceModel is still valid
+    // here - it isn't deleted until after this call.
+    const std::string sourceName = sourceModel->GetName();
+    xlights->AllModels.ReconcileReplacedModelGroups(sourceName, replacedNames, groupMode);
+
+    // The source has now served as the template for every successfully
+    // replaced target, so leaving it behind would just be a duplicate of a
+    // model that already lives on under the target's name(s) - delete it.
+    // Guarded on the menu item only being enabled for non-base-linked models
+    // (see AddModelPopUpMenu), so this is always safe to delete outright.
+    bool sourceDeleted = false;
+    if (successCount > 0) {
+        // Delete() can decline (e.g. the user says no to a "model has effects"
+        // prompt) - only scrub the source from the list controls if it was
+        // actually removed, so a declined delete doesn't leave a null-data
+        // row behind for a model that's still alive.
+        sourceDeleted = xlights->AllModels.Delete(sourceName);
+        if (sourceDeleted) {
+            xlights->GetDisplayElementsPanel()->RemoveModelFromLists(sourceName);
+            selectedBaseObject = nullptr;
+            xlights->GetOutputModelManager()->ClearSelectedModel();
+        }
+    }
 
     // Pass the source model name + replaced count as context so logs and any
     // downstream observers can scope the change instead of seeing a bare
     // "ReplaceModel" token.
     const std::string workCtx = wxString::Format(
         "ReplaceModel: source='%s' replaced=%d",
-        sourceModel->GetName(), successCount).ToStdString();
+        sourceName, successCount).ToStdString();
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                   OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                   OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
-                                                  OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER,
+                                                  OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                  OutputModelManager::WORK_RELOAD_MODELLIST,
                                                   workCtx);
 
     // Always show a confirmation so the user knows the operation finished,
@@ -10312,8 +10333,9 @@ void LayoutPanel::ReplaceModel()
     // obvious at a glance (info / warning / error).
     if (successCount == static_cast<int>(targetNames.size()) && failures.empty()) {
         wxMessageBox(
-            wxString::Format("Successfully replaced %d model%s.",
-                             successCount, successCount == 1 ? "" : "s"),
+            wxString::Format("Successfully replaced %d model%s.%s",
+                             successCount, successCount == 1 ? "" : "s",
+                             sourceDeleted ? wxString::Format(" Source model '%s' was deleted.", sourceName) : ""),
             "Replace Model", wxOK | wxICON_INFORMATION, this);
     } else if (successCount == 0) {
         wxString msg = "No models were replaced.";
@@ -10328,6 +10350,9 @@ void LayoutPanel::ReplaceModel()
     } else {
         wxString msg = wxString::Format("Replaced %d of %zu model(s).",
                                         successCount, targetNames.size());
+        if (sourceDeleted) {
+            msg += wxString::Format(" Source model '%s' was deleted.", sourceName);
+        }
         if (!failures.empty()) {
             msg += "\n\nFailed: ";
             for (size_t i = 0; i < failures.size(); ++i) {

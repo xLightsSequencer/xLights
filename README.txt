@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (derwin12)              Fix Replace Model(s) With This Model now deletes the source model once it has
+                                 been used to replace the selected target(s) (#6901)
     -bug (dkulp)                 Fix a crash placing a model when a dialog appears part way through loading it,
                                  such as the group-selection prompt on an imported model
     -enh (dkulp)                 iPad - Show-folder backup and restore: File > Back Up Show Folder copies the
