@@ -246,46 +246,74 @@ void EffectLayer::SortEffects()
     NumberEffects();
 }
 
+Effect* EffectLayer::GetPriorEffect(int index) const
+{
+    if (index < 0 || index >= (int)mEffects.size()) return nullptr;
+    const Effect* self = mEffects[index];
+    Effect* prior = nullptr;
+    for (Effect* e : mEffects) {
+        if (e == self) continue;
+        if (e->GetStartTimeMS() < self->GetStartTimeMS() &&
+            (prior == nullptr || e->GetStartTimeMS() > prior->GetStartTimeMS())) {
+            prior = e;
+        }
+    }
+    return prior;
+}
+
+Effect* EffectLayer::GetNextEffect(int index) const
+{
+    if (index < 0 || index >= (int)mEffects.size()) return nullptr;
+    const Effect* self = mEffects[index];
+    Effect* next = nullptr;
+    for (Effect* e : mEffects) {
+        if (e == self) continue;
+        if (e->GetStartTimeMS() > self->GetStartTimeMS() &&
+            (next == nullptr || e->GetStartTimeMS() < next->GetStartTimeMS())) {
+            next = e;
+        }
+    }
+    return next;
+}
+
 bool EffectLayer::IsStartTimeLinked(int index) const
 {
-    if (index < (int)mEffects.size() && index > 0) {
-        return mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
-    } else {
-        return false;
-    }
+    Effect* prior = GetPriorEffect(index);
+    if (prior == nullptr) return false;
+    return prior->GetEndTimeMS() == mEffects[index]->GetStartTimeMS();
 }
 
 bool EffectLayer::IsEndTimeLinked(int index) const
 {
-    if (index < (int)mEffects.size() - 1) {
-        return mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS();
-    } else {
-        return false;
-    }
+    Effect* next = GetNextEffect(index);
+    if (next == nullptr) return false;
+    return mEffects[index]->GetEndTimeMS() == next->GetStartTimeMS();
 }
 
 int EffectLayer::GetMaximumEndTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if (index + 1 >= (int)mEffects.size()) {
+    Effect* next = GetNextEffect(index);
+    if (next == nullptr) {
         return NO_MIN_MAX_TIME;
     } else {
-        if (mEffects[index]->GetEndTimeMS() == mEffects[index + 1]->GetStartTimeMS() && allow_collapse) {
-            return mEffects[index + 1]->GetEndTimeMS() - min_period;
+        if (mEffects[index]->GetEndTimeMS() == next->GetStartTimeMS() && allow_collapse) {
+            return next->GetEndTimeMS() - min_period;
         } else {
-            return mEffects[index + 1]->GetStartTimeMS();
+            return next->GetStartTimeMS();
         }
     }
 }
 
 int EffectLayer::GetMinimumStartTimeMS(int index, bool allow_collapse, int min_period) const
 {
-    if (index == 0) {
+    Effect* prior = GetPriorEffect(index);
+    if (prior == nullptr) {
         return NO_MIN_MAX_TIME;
     } else {
-        if (mEffects[index - 1]->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse) {
-            return mEffects[index - 1]->GetStartTimeMS() + min_period;
+        if (prior->GetEndTimeMS() == mEffects[index]->GetStartTimeMS() && allow_collapse) {
+            return prior->GetStartTimeMS() + min_period;
         } else {
-            return mEffects[index - 1]->GetEndTimeMS();
+            return prior->GetEndTimeMS();
         }
     }
 }
