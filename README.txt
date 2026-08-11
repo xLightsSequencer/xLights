@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (cybercop23)            Fix pasting effects onto a Model Group from expanding to show its member
+                                 models/strands (#6900)
     -bug (derwin12)              Fix Replace Model(s) With This Model now deletes the source model once it has
                                  been used to replace the selected target(s) (#6901)
     -bug (cybercop23)            Fix effect start/end times becoming corrupted when dragging an effect past
