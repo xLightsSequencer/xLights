@@ -175,7 +175,16 @@ pugi::xml_node ControllerSerial::Save(pugi::xml_node parent) {
 
 bool ControllerSerial::UpdateFrom(Controller* from)
 {
+    // Unless VMVChanged() detached it, _serialOutput aliases _outputs.front() and is
+    // owned by _outputs - and Controller::UpdateFrom deletes every output when they
+    // differ from 'from'. Re-derive the alias afterwards or it is left dangling.
+    const bool ownedByOutputs = !_outputs.empty() && _outputs.front() == _serialOutput;
+
     bool changed = Controller::UpdateFrom(from);
+
+    if (ownedByOutputs) {
+        _serialOutput = _outputs.empty() ? nullptr : dynamic_cast<SerialOutput*>(_outputs.front());
+    }
 
     ControllerSerial* fromSerial = dynamic_cast<ControllerSerial*>(from);
     if (fromSerial == nullptr) {
@@ -208,10 +217,13 @@ bool ControllerSerial::UpdateFrom(Controller* from)
         _fppProxy = fromSerial->_fppProxy;
     }
 
-    if (_serialOutput->GetLongDescription() != fromSerial->_serialOutput->GetLongDescription())
+    if (fromSerial->_serialOutput != nullptr &&
+        (_serialOutput == nullptr || _serialOutput->GetLongDescription() != fromSerial->_serialOutput->GetLongDescription()))
     {
         changed = true;
-        delete _serialOutput;
+        if (_serialOutput != nullptr && (_outputs.empty() || _outputs.front() != _serialOutput)) {
+            delete _serialOutput;
+        }
         _serialOutput = static_cast<SerialOutput*>(fromSerial->_serialOutput->Copy());
     }
 
