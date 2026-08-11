@@ -1632,6 +1632,7 @@ protected:
 public:
     std::vector<Perspective> _perspectives;
     std::string _currentPerspectiveName;
+    wxString _defaultSequencerPerspective;
     bool RebuildControllerConfig(OutputManager* outputManager, ModelManager* modelManager);
 
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
@@ -1923,6 +1924,9 @@ private:
     void ResizeMainSequencer();
     void LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc);
     void DoLoadPerspective(Perspective* p);
+    wxString BuildPerspectiveSettings();
+    static void SplitPerspectiveSettings(const wxString& combined, wxString& sequencer, wxString& layout);
+    void RestoreLayoutPerspective();
     void CheckForValidModels() override;
     void ExportModels(wxString const& filename);
     void ExportEffects(wxString const& filename);

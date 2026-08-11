@@ -136,7 +136,7 @@ void xLightsFrame::CreateSequencer()
     spdlog::debug("        Effect assist.");
     sEffectAssist = new EffectAssist(PanelSequencer);
     m_mgr->AddPane(sEffectAssist,wxAuiPaneInfo().Name(wxT("EffectAssist")).Caption(wxT("Effect Assist")).
-                   Left().Layer(1).BestSize(250,250));
+                   Left().Layer(1).BestSize(250,250).Hide());
     sEffectAssist->Layout();
     sEffectAssist->Hide();
 
@@ -229,6 +229,12 @@ void xLightsFrame::CreateSequencer()
 
     spdlog::debug("CreateSequencer: Updating the layout.");
     m_mgr->Update();
+
+    // Snapshot the arrangement the AddPane calls above just built, before any
+    // saved perspective touches it.  This is what "Reset to Defaults" restores,
+    // so it can never drift out of step with the panes actually created here.
+    _defaultSequencerPerspective = m_mgr->SavePerspective();
+
     spdlog::debug("CreateSequencer: Resizing everything.");
     mainSequencer->Layout();
     spdlog::debug("CreateSequencer: Done.");
@@ -240,26 +246,25 @@ void xLightsFrame::CreateSequencer()
 
 void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == LAYOUTTAB) {
+    // Both tabs get reset, not just the one that happens to be in front -- a
+    // perspective now spans both, so a half-reset leaves the two out of step.
+    if (layoutPanel != nullptr) {
         layoutPanel->ResetToDefaults();
-        return;
     }
 
-    m_mgr->GetPane("ModelPreview").Caption("Model Preview").Dock().Left().Layer(1).Show();
-    m_mgr->GetPane("HousePreview").Caption("House Preview").Dock().Left().Layer(1).Show();
-    m_mgr->GetPane("EffectAssist").Caption("Effect Assist").Dock().Left().Layer(1).Hide();
-
-    m_mgr->GetPane("DisplayElements").Caption("Display Elements").Float().Hide();
-    m_mgr->GetPane("Perspectives").Caption("Perspectives").Dock().Left().Layer(1).Hide();
-    m_mgr->GetPane("Effect").Caption("Effect").Dock().Left().Layer(0).Show().Row(1);
-    m_mgr->GetPane("SelectEffect").Caption("Select Effects").Dock().Left().Layer(1).Hide();
-    m_mgr->GetPane("EffectPresets").Caption("Effect Presets").Float().Hide();
-
-    m_mgr->GetPane("EffectDropper").Caption("Effects").Dock().Top().Layer(0).Hide();
-    m_mgr->GetPane("Color").Caption("Color").Top().Dock().Layer(0).Show();
-    m_mgr->GetPane("LayerTiming").Caption("Layer Blending").Dock().Top().Layer(0).Show();
-    m_mgr->GetPane("LayerSettings").Caption("Layer Settings").Dock().Top().Layer(0).Show();
-    m_mgr->Update();
+    if (m_mgr != nullptr && !_defaultSequencerPerspective.empty()) {
+        m_mgr->LoadPerspective(_defaultSequencerPerspective, false);
+        m_mgr->GetPane("ModelPreview").MaximizeButton(true).Dockable(IsDockable("MP"));
+        m_mgr->GetPane("HousePreview").MaximizeButton(true).Dockable(IsDockable("HP"));
+        m_mgr->GetPane("DisplayElements").MaximizeButton(true);
+        if (Notebook1->GetSelection() != NEWSEQUENCER) {
+            // Off the Sequencer tab the floating panes are stashed in
+            // savedPaneShown; drop the stash or returning to the tab would
+            // restore the arrangement we just discarded.
+            savedPaneShown.clear();
+        }
+        m_mgr->Update();
+    }
 
     // reset preview pane positions
     for (auto& [name, grp] : LayoutGroups) {
@@ -362,9 +367,9 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         _currentPerspectiveName = "Default Perspective";
         Perspective pv;
         pv.name = "Default Perspective";
-        wxString perspective = m_mgr->SavePerspective();
+        wxString perspective = BuildPerspectiveSettings();
         pv.settings = perspective.ToStdString();
-        pv.version = "2.0";
+        pv.version = "3.0";
         spdlog::debug("Saved perspective.");
         LogPerspective(perspective);
         _perspectives.push_back(pv);
@@ -3335,16 +3340,65 @@ void xLightsFrame::DoForceSequencerRefresh()
     ResizeMainSequencer();
 }
 
+// A perspective's settings string carries the arrangement of both AUI managers:
+// the sequencer tab's m_mgr, then this separator, then the layout tab's
+// layout_mgr.  The separator's leading '|' lands directly after the sequencer
+// string's own trailing '|', producing an empty pane part -- which is exactly
+// where wxAuiManager::LoadPerspective stops parsing.  So an older xLights build
+// that knows nothing about the layout half still loads the sequencer half
+// correctly instead of choking on the tail.
+static const wxString PERSPECTIVE_LAYOUT_SEP = "|@@XLLAYOUT@@|";
+
+void xLightsFrame::SplitPerspectiveSettings(const wxString& combined, wxString& sequencer, wxString& layout)
+{
+    int pos = combined.Find(PERSPECTIVE_LAYOUT_SEP);
+    if (pos == wxNOT_FOUND) {
+        sequencer = combined;
+        layout.clear();
+        return;
+    }
+    sequencer = combined.Left(pos);
+    layout = combined.Mid(pos + PERSPECTIVE_LAYOUT_SEP.length());
+}
+
+wxString xLightsFrame::BuildPerspectiveSettings()
+{
+    wxString sequencer = m_mgr->SavePerspective();
+    wxString layout = layoutPanel != nullptr ? layoutPanel->GetLayoutPerspective() : wxString();
+    if (layout.empty()) {
+        return sequencer;
+    }
+    if (!sequencer.EndsWith("|")) {
+        sequencer += "|";
+    }
+    return sequencer + PERSPECTIVE_LAYOUT_SEP + layout;
+}
+
+void xLightsFrame::RestoreLayoutPerspective()
+{
+    if (mCurrentPerpective == nullptr || layoutPanel == nullptr) {
+        return;
+    }
+    wxString sequencer;
+    wxString layout;
+    SplitPerspectiveSettings(mCurrentPerpective->settings, sequencer, layout);
+    if (!layout.empty()) {
+        layoutPanel->ApplyLayoutPerspective(layout);
+    }
+}
+
 void xLightsFrame::DoLoadPerspective(Perspective* perspective)
 {
-    
+
     if (perspective == nullptr) {
         spdlog::warn("xLightsFrame::LoadPerspective Null perspective.");
         return;
     }
 
     wxString name = perspective->name;
-    wxString settings = perspective->settings;
+    wxString settings;
+    wxString layoutSettings;
+    SplitPerspectiveSettings(perspective->settings, settings, layoutSettings);
     if (name.ToStdString() != _currentPerspectiveName) {
         _currentPerspectiveName = name.ToStdString();
         UnsavedRgbEffectsChanges = true;
@@ -3352,9 +3406,10 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
     }
     if (settings.size() == 0) {
         SyncFloatingPanePositions();
-        settings = m_mgr->SavePerspective();
-        perspective->settings = settings.ToStdString();
-        perspective->version = "2.0";
+        wxString combined = BuildPerspectiveSettings();
+        SplitPerspectiveSettings(combined, settings, layoutSettings);
+        perspective->settings = combined.ToStdString();
+        perspective->version = "3.0";
         spdlog::debug("Saved perspective.");
         LogPerspective(settings);
     }
@@ -3384,9 +3439,9 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
 
-        perspective->version = "2.0";
+        perspective->version = "3.0";
         SyncFloatingPanePositions();
-        wxString p = m_mgr->SavePerspective();
+        wxString p = BuildPerspectiveSettings();
         perspective->settings = p.ToStdString();
         spdlog::debug("Saved perspective.");
         LogPerspective(p);
@@ -3394,6 +3449,10 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         _modelPreviewPanel->Refresh(false);
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
+    }
+
+    if (!layoutSettings.empty() && layoutPanel != nullptr) {
+        layoutPanel->ApplyLayoutPerspective(layoutSettings);
     }
 
     // After a perspective load creates a floating House Preview / Model Preview
@@ -3474,9 +3533,9 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
         wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->name + "\"?", _("Confirm"), wxYES | wxNO);
         if (confirm.ShowModal() == wxID_YES)
         {
-            wxString p = m_mgr->SavePerspective();
+            wxString p = BuildPerspectiveSettings();
             mCurrentPerpective->settings = p.ToStdString();
-            mCurrentPerpective->version = "2.0";
+            mCurrentPerpective->version = "3.0";
             spdlog::debug("Saved perspective.");
             LogPerspective(p);
             SaveEffectsFile();
@@ -3503,7 +3562,7 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
         Perspective pv;
         pv.name = name.ToStdString();
         pv.settings = "";
-        pv.version = "2.0";
+        pv.version = "3.0";
         _perspectives.push_back(pv);
         mCurrentPerpective = &_perspectives.back();
         OnMenuItemViewSavePerspectiveSelected(event);

@@ -718,6 +718,12 @@ void xLightsFrame::LoadEffectsFile()
     perspectivePanel->SetPerspectives(this);
     LoadPerspectivesMenu();
 
+    // The sequencer half of a perspective is applied by DoLoadPerspective from
+    // InitSequencer, which does not run until the Sequencer tab is first
+    // visited.  The layout half has to be applied here instead, deferred so the
+    // frame is up before floating panes are created.
+    CallAfter([this]() { RestoreLayoutPerspective(); });
+
     float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), effectsFile.GetFullPath(), elapsedTime));
 
