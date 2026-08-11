@@ -42,6 +42,7 @@ const long ScriptsDialog::ID_STATICTEXT1 = wxNewId();
 const long ScriptsDialog::ID_LISTBOX_SCRIPTS = wxNewId();
 const long ScriptsDialog::ID_TEXTCTRL_ABOUT = wxNewId();
 const long ScriptsDialog::ID_SPLITTERWINDOW1 = wxNewId();
+const long ScriptsDialog::ID_SPLITTERWINDOW2 = wxNewId();
 const long ScriptsDialog::ID_BUTTON_RUN = wxNewId();
 const long ScriptsDialog::ID_BUTTON_REFRESH = wxNewId();
 const long ScriptsDialog::ID_BUTTON_CLEAR = wxNewId();
@@ -64,34 +65,55 @@ ScriptsDialog::ScriptsDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos
 
     //(*Initialize(ScriptsDialog)
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer4;
+    wxPanel* PanelBottom;
+    wxPanel* PanelTop;
 
     Create(parent, wxID_ANY, _("Run Scripts"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX, _T("wxID_ANY"));
     SetClientSize(wxSize(700,600));
     SetMinSize(wxSize(300,200));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
-    FlexGridSizer1->AddGrowableRow(1);
-    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Select the Lua Script to Run."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer1->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
-    SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
-    SplitterWindow1->SetSashGravity(0.7);
+    FlexGridSizer1->AddGrowableRow(0);
+    SplitterWindow2 = new wxSplitterWindow(this, ID_SPLITTERWINDOW2, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW2"));
+    SplitterWindow2->SetSashGravity(0.5);
+    SplitterWindow2->SetMinimumPaneSize(80);
+    SplitterWindow2->SetSashSize(6);
+    PanelTop = new wxPanel(SplitterWindow2, wxID_ANY);
+    FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer2->AddGrowableCol(0);
+    FlexGridSizer2->AddGrowableRow(1);
+    StaticText1 = new wxStaticText(PanelTop, ID_STATICTEXT1, _("Select the Lua Script to Run."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer2->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
+    SplitterWindow1 = new wxSplitterWindow(PanelTop, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
+    SplitterWindow1->SetSashGravity(0.5);
+    SplitterWindow1->SetSashSize(6);
     ListBoxScripts = new wxListBox(SplitterWindow1, ID_LISTBOX_SCRIPTS, wxPoint(-237,-27), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_LISTBOX_SCRIPTS"));
     TextCtrlAbout = new wxTextCtrl(SplitterWindow1, ID_TEXTCTRL_ABOUT, wxEmptyString, wxPoint(49,15), wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_ABOUT"));
-    SplitterWindow1->SplitVertically(ListBoxScripts, TextCtrlAbout);
-    FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
+    SplitterWindow1->SplitVertically(ListBoxScripts, TextCtrlAbout, 350);
+    FlexGridSizer2->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
+    PanelTop->SetSizer(FlexGridSizer2);
+    PanelBottom = new wxPanel(SplitterWindow2, wxID_ANY);
+    FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer3->AddGrowableCol(0);
+    FlexGridSizer3->AddGrowableRow(1);
     FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
-    Button_Run = new wxButton(this, ID_BUTTON_RUN, _("Run"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RUN"));
+    Button_Run = new wxButton(PanelBottom, ID_BUTTON_RUN, _("Run"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RUN"));
     FlexGridSizer4->Add(Button_Run, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Refresh = new wxButton(this, ID_BUTTON_REFRESH, _("Refresh"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_REFRESH"));
+    Button_Refresh = new wxButton(PanelBottom, ID_BUTTON_REFRESH, _("Refresh"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_REFRESH"));
     FlexGridSizer4->Add(Button_Refresh, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Clear = new wxButton(this, ID_BUTTON_CLEAR, _("Clear"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CLEAR"));
+    Button_Clear = new wxButton(PanelBottom, ID_BUTTON_CLEAR, _("Clear"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CLEAR"));
     FlexGridSizer4->Add(Button_Clear, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Download = new wxButton(this, ID_BUTTON_DOWNLOAD, _("Download"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DOWNLOAD"));
+    Button_Download = new wxButton(PanelBottom, ID_BUTTON_DOWNLOAD, _("Download"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DOWNLOAD"));
     FlexGridSizer4->Add(Button_Download, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Log = new wxTextCtrl(this, ID_TEXTCTRL_LOG, wxEmptyString, wxDefaultPosition, wxSize(0,300), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_LOG"));
-    FlexGridSizer1->Add(TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Log = new wxTextCtrl(PanelBottom, ID_TEXTCTRL_LOG, wxEmptyString, wxDefaultPosition, wxSize(0,300), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_LOG"));
+    FlexGridSizer3->Add(TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
+    PanelBottom->SetSizer(FlexGridSizer3);
+    SplitterWindow2->SplitHorizontally(PanelTop, PanelBottom, 300);
+    FlexGridSizer1->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     Layout();
 
@@ -104,6 +126,14 @@ ScriptsDialog::ScriptsDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos
     //*)
 
     Connect(ID_LISTBOX_SCRIPTS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ScriptsDialog::OnListRClick);
+
+    // The splitters are split before the sizer has given them their real
+    // size, so the pixel sash positions passed to SplitHorizontally/
+    // SplitVertically above get clamped against a near-zero window and don't
+    // land at 50%. Force them to true 50% now that Layout() has given every
+    // window its final size.
+    SplitterWindow1->SetSashPosition(SplitterWindow1->GetClientSize().GetWidth() / 2);
+    SplitterWindow2->SetSashPosition(SplitterWindow2->GetClientSize().GetHeight() / 2);
 
     _runner = std::make_unique<LuaRunner>(_frame);
 #if defined(PYTHON_RUNNER)

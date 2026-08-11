@@ -14,6 +14,7 @@
 #include <wx/button.h>
 #include <wx/dialog.h>
 #include <wx/listbox.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/splitter.h>
 #include <wx/stattext.h>
@@ -57,6 +58,7 @@ public:
 	wxButton* Button_Run;
 	wxListBox* ListBoxScripts;
 	wxSplitterWindow* SplitterWindow1;
+	wxSplitterWindow* SplitterWindow2;
 	wxStaticText* StaticText1;
 	wxTextCtrl* TextCtrlAbout;
 	wxTextCtrl* TextCtrl_Log;
@@ -71,6 +73,7 @@ public:
 	static const long ID_LISTBOX_SCRIPTS;
 	static const long ID_TEXTCTRL_ABOUT;
 	static const long ID_SPLITTERWINDOW1;
+	static const long ID_SPLITTERWINDOW2;
 	static const long ID_BUTTON_RUN;
 	static const long ID_BUTTON_REFRESH;
 	static const long ID_BUTTON_CLEAR;
