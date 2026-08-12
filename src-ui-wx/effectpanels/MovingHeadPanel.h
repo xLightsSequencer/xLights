@@ -409,7 +409,7 @@ private:
     std::vector<int> GetCheckedFixtures() const;
     std::vector<int> GetSourceFixtures();
     bool HasActiveFixture();
-    void UpdateFixtureDependentControlsEnabled();
+    void EnableFixedValueControl(const std::string& ctrl_name);
     static std::string MergeMHSettingFragment(const std::string& blob, const std::list<std::string>& stripNames, const std::string& newFragment);
     
     // Preset Functions
