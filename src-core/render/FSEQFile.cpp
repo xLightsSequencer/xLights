@@ -944,6 +944,19 @@ public:
     }
     virtual ~V2CompressedHandler() {}
 
+    //Index of the block holding `frame`.  m_frameOffsets ends with a sentinel
+    //entry past the last frame, but reaching that sentinel is not a bound we
+    //can rely on - the start frames it is compared against come straight out of
+    //the file's own block table.  The size of the table is the bound.
+    uint32_t findBlockForFrame(uint32_t frame) const {
+        uint32_t block = 0;
+        //the last entry terminates the table, so the last real block is size() - 2
+        while ((block + 2) < m_file->m_frameOffsets.size() && frame >= m_file->m_frameOffsets[block + 1].first) {
+            block++;
+        }
+        return block;
+    }
+
     virtual uint32_t computeMaxBlocks(int maxNumBlocks) override {
         if (m_maxBlocks > 0) {
             return m_maxBlocks;
@@ -1356,14 +1369,10 @@ public:
             return getFrameBulk(frame);
         }
 
-        if (m_curBlock >= m_file->m_frameOffsets.size() || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
+        if ((m_curBlock + 1) >= m_file->m_frameOffsets.size() || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
             //frame is not in the current block
-            m_curBlock = 0;
             if (m_file->m_frameOffsets.size() <= 1) LogDebug(VB_SEQUENCE, " getFrame m_frameOffsets size <= 1.\n");
-            while (frame >= m_file->m_frameOffsets[m_curBlock + 1].first) {
-                m_curBlock++;
-                if (m_curBlock + 1 >= m_file->m_frameOffsets.size()) LogDebug(VB_SEQUENCE, " getFrame m_curBlock + 1 > m_frameOffsets size.\n");
-            }
+            m_curBlock = findBlockForFrame(frame);
             if (m_dctx == nullptr) {
                 m_dctx = ZSTD_createDStream();
                 if (m_dctx == nullptr) LogDebug(VB_SEQUENCE, " getFrame ZSTD_createDStream failed.\n");
@@ -1398,53 +1407,50 @@ public:
             }
 
             free(m_outBuffer.dst);
-            m_framesPerBlock = (m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() : m_file->m_frameOffsets[m_curBlock + 1].first) - m_file->m_frameOffsets[m_curBlock].first;
-            m_outBuffer.size = m_framesPerBlock * m_file->getChannelCount();
-            m_outBuffer.dst = malloc(m_outBuffer.size);
-            if (m_outBuffer.dst == nullptr) LogDebug(VB_SEQUENCE, " getFrame m_outBuffer.dst malloc failed.\n");
+            uint32_t blockEnd = m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() : m_file->m_frameOffsets[m_curBlock + 1].first;
+            uint32_t blockStart = m_file->m_frameOffsets[m_curBlock].first;
+            m_framesPerBlock = blockEnd > blockStart ? blockEnd - blockStart : 0;
+            m_outBufferCapacity = (uint64_t)m_framesPerBlock * m_file->getChannelCount();
+            m_outBuffer.dst = malloc(m_outBufferCapacity);
+            if (m_outBuffer.dst == nullptr) {
+                LogDebug(VB_SEQUENCE, " getFrame m_outBuffer.dst malloc failed.\n");
+                m_outBufferCapacity = 0;
+            }
+            m_outBuffer.size = 0;
             m_outBuffer.pos = 0;
             m_curFrameInBlock = 0;
         }
-        uint32_t fidx = frame - m_file->m_frameOffsets[m_curBlock].first;
-
-        if (fidx >= m_curFrameInBlock) {
-            if (fidx >= m_framesPerBlock) {
-                // should not happen
-                // m_outBuffer.dst is pre-sized to "m_framesPerBlock * m_file->getChannelCount()"
-                //  ( see malloc above )
-                // so as long as the fidx < m_framesPerBlock, we don't need to resize.   We just
-                // need to update the m_outBuffer.size to let the decompressor know there is space there
-                // for the next frame.
-                //
-                // Note: we COULD just set the m_outBuffer.size to the full size of the decompressed block
-                // up front instead of per frame.  That would be very slightly faster to load the
-                // fseq in xLights (which loads all the frames up front), but would cause extra
-                // latencies in FPP and xSchedule which request one frame at a time.  Requesting
-                // the first frame in the block would trigger decompressing all the frames in the
-                // block immediately which, if there are a lot of frames, could take much longer
-                // than we'd have available in a latency critical step.
-                if ((fidx + 1) * m_file->getChannelCount() > m_outBuffer.size) {
-                    LogDebug(VB_SEQUENCE,
-                             " getFrame m_outBuffer.size increased but memory not reallocated.  Block: %u Frame: %u FramesInBlock: %u\n",
-                             m_curBlock, fidx, m_framesPerBlock);
-                }
-            }
-            m_outBuffer.size = (fidx + 1) * m_file->getChannelCount();
-            ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
-            m_curFrameInBlock = fidx + 1;
-        }
-
-        fidx *= m_file->getChannelCount();
-        uint8_t* fdata = (uint8_t*)m_outBuffer.dst;
         UncompressedFrameData* data = new UncompressedFrameData(frame, m_file->m_dataBlockSize, m_file->m_rangesToRead);
 
-        // This stops the crash on load ... but it is not the root cause.
-        // But better to not load completely than crashing
-        if (fidx < 0) {
-            // this is not going to end well ... best to give up here
-            LogErr(VB_SEQUENCE, "Frame index calculated as a negative number. Aborting frame %d load.\n", (int)frame);
+        // m_outBuffer.dst is sized to hold exactly the frames the block table says
+        // this block covers, so the frame has to land inside that.  It does not
+        // when the block table is not in order, which is what the old "fidx < 0"
+        // test below was reaching for - but fidx is unsigned, so it never fired
+        // and the read ran off the buffer instead.
+        uint32_t blockStart = m_file->m_frameOffsets[m_curBlock].first;
+        uint64_t frameEnd = frame < blockStart ? 0 : ((uint64_t)(frame - blockStart) + 1) * m_file->getChannelCount();
+        if (m_outBuffer.dst == nullptr || frame < blockStart || frameEnd > m_outBufferCapacity) {
+            LogErr(VB_SEQUENCE, "Frame %d is not within block %d (frames %d to %d).  Aborting frame load.\n",
+                   (int)frame, (int)m_curBlock, (int)blockStart, (int)(blockStart + m_framesPerBlock));
             return data;
         }
+        uint32_t frameInBlock = frame - blockStart;
+
+        if (frameInBlock >= m_curFrameInBlock) {
+            // Note: we COULD just set the m_outBuffer.size to the full size of the decompressed block
+            // up front instead of per frame.  That would be very slightly faster to load the
+            // fseq in xLights (which loads all the frames up front), but would cause extra
+            // latencies in FPP and xSchedule which request one frame at a time.  Requesting
+            // the first frame in the block would trigger decompressing all the frames in the
+            // block immediately which, if there are a lot of frames, could take much longer
+            // than we'd have available in a latency critical step.
+            m_outBuffer.size = frameEnd;
+            ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
+            m_curFrameInBlock = frameInBlock + 1;
+        }
+
+        uint64_t fidx = (uint64_t)frameInBlock * m_file->getChannelCount();
+        uint8_t* fdata = (uint8_t*)m_outBuffer.dst;
 
         if (!m_file->m_sparseRanges.empty()) {
             memcpy(data->m_data, &fdata[fidx], m_file->getChannelCount());
@@ -1688,6 +1694,10 @@ public:
     ZSTD_DStream* m_dctx = nullptr;
     ZSTD_outBuffer_s m_outBuffer;
     ZSTD_inBuffer_s m_inBuffer;
+    // What m_outBuffer.dst can actually hold.  m_outBuffer.size is the limit
+    // handed to zstd for one frame and moves with every frame read, so it
+    // cannot answer "does this fit".
+    uint64_t m_outBufferCapacity = 0;
 
     // Block-parallel write state (see constructor).  m_maxBlocksInFlight == 0
     // selects the serial streaming path (single-core hosts).
@@ -1741,12 +1751,9 @@ public:
     virtual std::string GetType() const override { return "Compressed ZLIB"; }
 
     virtual FrameData* getFrame(uint32_t frame) override {
-        if (m_curBlock >= m_file->m_frameOffsets.size() || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
+        if ((m_curBlock + 1) >= m_file->m_frameOffsets.size() || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
             //frame is not in the current block
-            m_curBlock = 0;
-            while (frame >= m_file->m_frameOffsets[m_curBlock + 1].first) {
-                m_curBlock++;
-            }
+            m_curBlock = findBlockForFrame(frame);
             seek(m_file->m_frameOffsets[m_curBlock].second, SEEK_SET);
             uint64_t len = m_file->m_frameOffsets[m_curBlock + 1].second;
             len -= m_file->m_frameOffsets[m_curBlock].second;
@@ -1776,21 +1783,35 @@ public:
             if (m_outBuffer != nullptr) {
                 free(m_outBuffer);
             }
-            int numFrames = (m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() : m_file->m_frameOffsets[m_curBlock + 1].first) - m_file->m_frameOffsets[m_curBlock].first;
-            int outsize = numFrames * m_file->getChannelCount();
-            m_outBuffer = (uint8_t*)malloc(outsize);
+            uint32_t blockEnd = m_file->m_frameOffsets[m_curBlock + 1].first > m_file->getNumFrames() ? m_file->getNumFrames() : m_file->m_frameOffsets[m_curBlock + 1].first;
+            uint32_t blockStart = m_file->m_frameOffsets[m_curBlock].first;
+            uint32_t numFrames = blockEnd > blockStart ? blockEnd - blockStart : 0;
+            uint64_t outsize = (uint64_t)numFrames * m_file->getChannelCount();
+            m_outBuffer = outsize ? (uint8_t*)malloc(outsize) : nullptr;
+            m_outBufferSize = m_outBuffer ? outsize : 0;
             m_stream->next_out = m_outBuffer;
-            m_stream->avail_out = outsize;
+            m_stream->avail_out = m_outBufferSize;
 
-            inflate(m_stream, Z_SYNC_FLUSH);
+            if (m_outBuffer != nullptr) {
+                inflate(m_stream, Z_SYNC_FLUSH);
+            }
             inflateEnd(m_stream);
             free(m_stream);
             m_stream = nullptr;
         }
-        int fidx = frame - m_file->m_frameOffsets[m_curBlock].first;
-        fidx *= m_file->getChannelCount();
-        uint8_t* fdata = (uint8_t*)m_outBuffer;
         UncompressedFrameData* data = new UncompressedFrameData(frame, m_file->m_dataBlockSize, m_file->m_rangesToRead);
+
+        //see the matching check in the ZSTD handler - the block table can put
+        //this frame outside the block it selected
+        uint32_t blockStart = m_file->m_frameOffsets[m_curBlock].first;
+        uint64_t frameEnd = frame < blockStart ? 0 : ((uint64_t)(frame - blockStart) + 1) * m_file->getChannelCount();
+        if (m_outBuffer == nullptr || frame < blockStart || frameEnd > m_outBufferSize) {
+            LogErr(VB_SEQUENCE, "Frame %d is not within block %d (starts at frame %d).  Aborting frame load.\n",
+                   (int)frame, (int)m_curBlock, (int)blockStart);
+            return data;
+        }
+        uint64_t fidx = (uint64_t)(frame - blockStart) * m_file->getChannelCount();
+        uint8_t* fdata = (uint8_t*)m_outBuffer;
         if (!m_file->m_sparseRanges.empty()) {
             memcpy(data->m_data, &fdata[fidx], m_file->getChannelCount());
         } else {
@@ -1893,6 +1914,9 @@ public:
 
     z_stream* m_stream;
     uint8_t* m_outBuffer;
+    // bytes m_outBuffer can hold on the read side (0 when it holds the fixed
+    // size write buffer, which the read path never touches)
+    uint64_t m_outBufferSize = 0;
     uint8_t* m_inBuffer;
 };
 #endif
@@ -2155,12 +2179,26 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, FILE* file, const std::vector<uint
         numBlocks <<= 4;
         numBlocks |= header[21];
 
+        uint32_t lastFirstFrame = 0;
         for (uint32_t i = 0; i < numBlocks; i++) {
             uint32_t firstFrame = read4ByteUInt(&header[readPos]);
             uint64_t length = read4ByteUInt(&header[readPos + 4]);
 
             if (length > 0) {
+                // These start frames are file data.  Every reader indexes a
+                // block as (frame - block start) and searches the table by
+                // walking forward, so a table that is not in order - the
+                // writer's own finalize() has seen files whose block table was
+                // never filled in - drives that index off the front of the
+                // decompressed block.  Hold the ordering here, where the table
+                // is built, rather than at each of the places that trust it.
+                if (firstFrame < lastFirstFrame || (m_frameOffsets.empty() && firstFrame != 0)) {
+                    LogErr(VB_SEQUENCE, "FSEQ block %d claims to start at frame %d, out of order with the block before it at %d.  Block table is corrupt.\n",
+                           (int)i, (int)firstFrame, (int)lastFirstFrame);
+                    firstFrame = lastFirstFrame;
+                }
                 m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(firstFrame, lastBlockOffset));
+                lastFirstFrame = firstFrame;
                 lastBlockOffset += length;
             }
 
