@@ -823,8 +823,10 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
             for (auto tag : e.children("Tag")) {
                 int number = tag.attribute("number").as_int(-1);
                 int position = tag.attribute("position").as_int(-1);
-                if (number != -1) {
+                if (number >= 0 && number < TagCount) {
                     SetTagPosition(number, position);
+                } else if (number >= TagCount) {
+                    spdlog::warn("Timing tag {} is beyond the {} tags we store. Tag ignored.", number, TagCount);
                 }
             }
         } else if (ename == "EffectDB") {

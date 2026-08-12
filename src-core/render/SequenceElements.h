@@ -131,9 +131,17 @@ public:
     int GetElementIndexOfTimingFromListIndex(int timingIndex);
     int GetViewCount();
     void RenameModelInViews(const std::string& old_name, const std::string& new_name);
-    // Tag position storage (10 timeline bookmarks, -1 = unset)
-    int GetTagPosition(int tag) const { return _tagPositions[tag]; }
-    void SetTagPosition(int tag, int position) { _tagPositions[tag] = position; }
+    // Tag position storage (timeline bookmarks, -1 = unset). The index reaches
+    // here straight off the sequence file, so both accessors have to hold the
+    // range themselves - a file written with more tags than we store used to
+    // run off the end of the array.
+    static constexpr int TagCount = 10;
+    int GetTagPosition(int tag) const { return (tag >= 0 && tag < TagCount) ? _tagPositions[tag] : -1; }
+    void SetTagPosition(int tag, int position) {
+        if (tag >= 0 && tag < TagCount) {
+            _tagPositions[tag] = position;
+        }
+    }
     void ClearTags() { _tagPositions.fill(-1); }
 
     void DeleteElement(const std::string &name);
@@ -276,7 +284,7 @@ private:
     std::vector<EffectRange> mSelectedRanges;
     int mSelectedTimingRow;
     SequenceViewManager* _viewsManager = nullptr;
-    std::array<int, 10> _tagPositions{};
+    std::array<int, TagCount> _tagPositions{};
     RenderContext *renderContext = nullptr;
     double mFrequency;
     int mTimingRowCount = 0;

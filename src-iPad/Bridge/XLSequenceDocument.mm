@@ -3332,12 +3332,12 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
 // MARK: - Tags (B34 / B35)
 
 - (int)tagPositionAtIndex:(int)index {
-    if (index < 0 || index > 9) return -1;
+    if (index < 0 || index >= SequenceElements::TagCount) return -1;
     return _context->GetSequenceElements().GetTagPosition(index);
 }
 
 - (void)setTagPositionAtIndex:(int)index positionMS:(int)position {
-    if (index < 0 || index > 9) return;
+    if (index < 0 || index >= SequenceElements::TagCount) return;
     int duration = _context->GetSequenceFile()
                    ? _context->GetSequenceFile()->GetSequenceDurationMS()
                    : 0;

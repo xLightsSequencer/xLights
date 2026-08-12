@@ -1418,7 +1418,7 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
 
     // TimingTags
     auto timing_tags_node = root.append_child("TimingTags");
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < SequenceElements::TagCount; ++i) {
         auto tag_node = timing_tags_node.append_child("Tag");
         tag_node.append_attribute("number") = i;
         tag_node.append_attribute("position") = seq_elements.GetTagPosition(i);

@@ -23,6 +23,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  changes it by accident
     -bug (dkulp)                 Fix a crash reading an fseq whose compression block table is out of order; the
                                  frame index went negative and the read ran off the end of the decompressed block
+    -bug (dkulp)                 Fix a crash opening a sequence that stores more timing tags than xLights keeps;
+                                 the extra tag overwrote memory and the load failed part way through the effects
     -bug (dkulp)                 Fix a crash placing a model when a dialog appears part way through loading it,
                                  such as the group-selection prompt on an imported model
     -bug (dkulp)                 Fix a crash updating serial controllers from the base show folder when the base
