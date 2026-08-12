@@ -19,6 +19,7 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
+#include <algorithm>
 #include <map>
 
 MHPresetBitmapButton::MHPresetBitmapButton(wxWindow* parent, wxWindowID id, const wxBitmapBundle& bitmap, const wxPoint& pos,
@@ -74,6 +75,9 @@ wxBitmap MHPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {
     dc.SetPen(*wxWHITE_PEN);
     dc.DrawRectangle(0, 0, width, height);
 
+    bool has_pan_vc = false;
+    bool pan_vc_reverse = false;
+
     for( int i = 1; i <= 8; ++i ) {
         if( mSettings[i-1] != "" ) {
             // parse all the commands
@@ -110,6 +114,11 @@ wxBitmap MHPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {
                     colors = wxSplit(settings, ',');
                 } else if (cmd_type == "Wheel") {
                     colors = wxSplit(settings, ',');
+                } else if (cmd_type == "Pan VC") {
+                    if (settings.find("Active=TRUE") != std::string::npos) {
+                        has_pan_vc = true;
+                        pan_vc_reverse = settings.find("RV=TRUE") != std::string::npos;
+                    }
                 }
             }
 
@@ -158,20 +167,46 @@ wxBitmap MHPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {
             float xleg = x2 - x1;
             float yleg = y2 - y1;
             float hyp = sqrt(xleg * xleg + yleg * yleg);
-            float phi = atan2(yleg, xleg) * 180.0f / PI;
+            float lineAngle = atan2(yleg, xleg);
 
-            for( int i = -4; i <= 4; ++i ) {
-                float angle = phi + (float)i;
-                angle = fmod(angle, 360.0f);
-                angle = angle * PI / 180.0f;
-                x2 = cos(angle) * hyp + x1;
-                y2 = sin(angle) * hyp + y1;
-                dc.DrawLine( wxPoint(x1, y1), wxPoint(x2, y2));
-            }
+            dc.DrawLine( wxPoint(x1, y1), wxPoint(x2, y2));
 
+            // fixed size, not scaled off hyp, so short beams still get a visible arrowhead
+            const float arrowLen = std::min(6.0f * (float)scaleFactor, hyp);
+            const float arrowAngle = 25.0f * (float)PI / 180.0f;
+            wxPoint tip(x2, y2);
+            wxPoint arrowP1(x2 - arrowLen * cos(lineAngle - arrowAngle), y2 - arrowLen * sin(lineAngle - arrowAngle));
+            wxPoint arrowP2(x2 - arrowLen * cos(lineAngle + arrowAngle), y2 - arrowLen * sin(lineAngle + arrowAngle));
+            dc.DrawLine(tip, arrowP1);
+            dc.DrawLine(tip, arrowP2);
         }
     }
-    
+
+    if (has_pan_vc) {
+        // flags a preset that pans over time; mirrors corner when reversed
+        dc.SetPen(wxPen(*wxRED, std::max(1, (int)scaleFactor)));
+        const float margin = 4.0f * (float)scaleFactor;
+        const float len = 10.0f * (float)scaleFactor;
+        float ax1, ay1, ax2, ay2;
+        if (!pan_vc_reverse) {
+            ax1 = width - margin - len; ay1 = margin + len;
+            ax2 = width - margin;       ay2 = margin;
+        } else {
+            ax1 = margin + len; ay1 = margin + len;
+            ax2 = margin;       ay2 = margin;
+        }
+        dc.DrawLine(wxPoint(ax1, ay1), wxPoint(ax2, ay2));
+
+        const float headAngle = atan2(ay2 - ay1, ax2 - ax1);
+        const float headLen = 4.0f * (float)scaleFactor;
+        const float headSpread = 25.0f * (float)PI / 180.0f;
+        wxPoint tip(ax2, ay2);
+        wxPoint head1(ax2 - headLen * cos(headAngle - headSpread), ay2 - headLen * sin(headAngle - headSpread));
+        wxPoint head2(ax2 - headLen * cos(headAngle + headSpread), ay2 - headLen * sin(headAngle + headSpread));
+        dc.DrawLine(tip, head1);
+        dc.DrawLine(tip, head2);
+    }
+
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(*wxWHITE_PEN);
     dc.DrawRectangle(0, 0, width, height);

@@ -2198,6 +2198,9 @@ void MovingHeadPanel::OnCheckBox_MHLinkToNextClick(wxCommandEvent& event)
 {
     UpdateLinkTabState();
     if( CheckBox_MHLinkToNext->IsChecked() ) {
+        if (m_movingHeadDimmerPanel != nullptr) {
+            m_movingHeadDimmerPanel->SetDimmerCommands("0.0,0.0,1.0,0.0");
+        }
         SyncLinkToNext(); // also fires the change event
     } else {
         // Clear the preview so it doesn't keep showing the last-synced position/heads
@@ -2210,43 +2213,33 @@ void MovingHeadPanel::OnCheckBox_MHLinkToNextClick(wxCommandEvent& event)
     }
 }
 
-// The Link feature fully owns Pan/Tilt for linked heads and strips Path/Pattern
-// commands on every resync (see ApplyLinkedHeadPosition), so edits made on those two
-// tabs would appear to silently vanish -- gray them out while linked. The Position tab
-// is deliberately left enabled: its Groupings/Cycles fields survive linking, and the
-// user should still be able to see (even if not rely on) the shared Pan/Tilt sliders.
-// Also folds in HasActiveFixture(): with no fixture checked there's nowhere for either
-// tab's edits to go regardless of Link state (see UpdateFixtureDependentControlsEnabled).
+// The Link feature fully owns Pan/Tilt/Dimmer for linked heads and forces them on every
+// resync (see ApplyLinkedHeadPosition), so edits made on those tabs would appear to
+// silently vanish -- gray them out while linked, with a "(Linked)" tab-text suffix so
+// it's obvious why.
 void MovingHeadPanel::UpdateLinkTabState()
 {
     UpdateLinkTabState(HasActiveFixture());
 }
 
-// Same as UpdateLinkTabState(), but takes an already-computed HasActiveFixture() result --
-// lets UpdateFixtureDependentControlsEnabled() share one call instead of recomputing it.
 void MovingHeadPanel::UpdateLinkTabState(bool anyFixtureActive)
 {
     bool linked = CheckBox_MHLinkToNext != nullptr && CheckBox_MHLinkToNext->IsChecked();
-    if (PanelPathing != nullptr) PanelPathing->Enable(!linked && anyFixtureActive);
-    if (PanelPattern != nullptr) PanelPattern->Enable(!linked && anyFixtureActive);
-}
-
-// Editing Position/Color/Dimmer (and, via UpdateLinkTabState, Pathing/Pattern) on a group
-// effect writes into whichever fixture(s) are checked in the Fixtures row --
-// UpdateMHSettings/UpdatePathSettings/UpdatePatternSettings/UpdateColorSettings/
-// UpdateDimmerSettings all loop "for each checked fixture" and simply do nothing if none
-// are checked. Rather than let the user fiddle with controls that silently go nowhere,
-// disable those tabs entirely until a fixture is checked. A single (non-group) model
-// always has its one implicit head checked (see SetPanelStatus), so this never disables
-// anything there.
-void MovingHeadPanel::UpdateFixtureDependentControlsEnabled()
-{
-    bool anyFixtureActive = HasActiveFixture();
-    if (PanelPosition != nullptr) PanelPosition->Enable(anyFixtureActive);
-    if (PanelColor != nullptr) PanelColor->Enable(anyFixtureActive);
-    if (PanelColorWheel != nullptr) PanelColorWheel->Enable(anyFixtureActive);
-    if (PanelDimmer != nullptr) PanelDimmer->Enable(anyFixtureActive);
-    UpdateLinkTabState(anyFixtureActive);
+    if (PanelPathing != nullptr) {
+        PanelPathing->Enable(!linked && anyFixtureActive);
+        int idx = Notebook1->FindPage(PanelPathing);
+        if (idx != wxNOT_FOUND) Notebook1->SetPageText(idx, linked ? _("Pathing (Linked)") : _("Pathing"));
+    }
+    if (PanelPattern != nullptr) {
+        PanelPattern->Enable(!linked && anyFixtureActive);
+        int idx = Notebook1->FindPage(PanelPattern);
+        if (idx != wxNOT_FOUND) Notebook1->SetPageText(idx, linked ? _("Pattern (Linked)") : _("Pattern"));
+    }
+    if (PanelDimmer != nullptr) {
+        PanelDimmer->Enable(!linked && anyFixtureActive);
+        int idx = Notebook1->FindPage(PanelDimmer);
+        if (idx != wxNOT_FOUND) Notebook1->SetPageText(idx, linked ? _("Dimmer (Linked)") : _("Dimmer"));
+    }
 }
 
 // Commands that define a head's Pan/Tilt at all (raw value, VC, offsets, path or
@@ -2583,7 +2576,6 @@ void MovingHeadPanel::UpdateStatusPanel()
         }
     }
     TextCtrl_Status->SetValue(all_settings);
-    UpdateFixtureDependentControlsEnabled();
 }
 
 // Added special case to remove all path settings at once so we don't have to search several times
@@ -2621,15 +2613,23 @@ void MovingHeadPanel::RemoveSettings(std::list<std::string>& settings)
     }
 }
 
-void MovingHeadPanel::AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings)
+// Pan/Tilt/PanOffset/TiltOffset/Groupings have no member pointer (only locals in the
+// wxSmith constructor), so look them up by name.
+void MovingHeadPanel::EnableFixedValueControl(const std::string& ctrl_name)
 {
     wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + ctrl_name));
-    if( textbox != nullptr && !textbox->IsEnabled() ) {
-        BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
-        if( vc_button != nullptr ) {
-            ValueCurve* vc = vc_button->GetValue();
-            AddValueCurve(vc, name + " VC", mh_settings);
-        }
+    if (textbox != nullptr) textbox->Enable(true);
+    wxSlider* slider = (wxSlider*)(this->FindWindowByName("ID_SLIDER_MH" + ctrl_name));
+    if (slider != nullptr) slider->Enable(true);
+}
+
+void MovingHeadPanel::AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings)
+{
+    // Decide VC-vs-fixed from the VC button's own active flag, not textbox->IsEnabled()
+    // (which cascades from a disabled ancestor and misclassified unrelated controls).
+    BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
+    if( vc_button != nullptr && vc_button->GetValue() != nullptr && vc_button->GetValue()->IsActive() ) {
+        AddValueCurve(vc_button->GetValue(), name + " VC", mh_settings);
     } else {
         AddTextbox("IDD_TEXTCTRL_MH" + ctrl_name, name, mh_settings);
     }
@@ -3264,16 +3264,14 @@ void MovingHeadPanel::UpdateTextbox(const std::string& ctrl_name, float pos)
 {
     wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + ctrl_name));
     if( textbox != nullptr ) {
-        if( !textbox->IsEnabled() ) {
-            textbox->Enable();
-            BulkEditSliderF1* slider = (BulkEditSliderF1*)(this->FindWindowByName("ID_SLIDER_MH" + ctrl_name));
-            if( slider != nullptr ) {
-                slider->Enable();
-            }
-            BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
-            if( vc_button != nullptr ) {
-                vc_button->ToggleActive();
-            }
+        textbox->Enable(true);
+        BulkEditSliderF1* slider = (BulkEditSliderF1*)(this->FindWindowByName("ID_SLIDER_MH" + ctrl_name));
+        if( slider != nullptr ) {
+            slider->Enable(true);
+        }
+        BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
+        if( vc_button != nullptr ) {
+            vc_button->SetActive(false);
         }
         wxString new_pos = wxString::Format("%3.1f", pos);
         textbox->SetValue(new_pos);
@@ -3285,15 +3283,13 @@ void MovingHeadPanel::UpdateValueCurve(const std::string& ctrl_name, const std::
     BulkEditValueCurveButton* vc_button = (BulkEditValueCurveButton*)(this->FindWindowByName("ID_VALUECURVE_MH" + ctrl_name));
     wxTextCtrl* textbox = (wxTextCtrl*)(this->FindWindowByName("IDD_TEXTCTRL_MH" + ctrl_name));
     if( textbox != nullptr ) {
-        if( textbox->IsEnabled() ) {
-            textbox->Disable();
-            BulkEditSliderF1* slider = (BulkEditSliderF1*)(this->FindWindowByName("ID_SLIDER_MH" + ctrl_name));
-            if( slider != nullptr ) {
-                slider->Disable();
-            }
-            if( vc_button != nullptr ) {
-                vc_button->ToggleActive();
-            }
+        textbox->Enable(false);
+        BulkEditSliderF1* slider = (BulkEditSliderF1*)(this->FindWindowByName("ID_SLIDER_MH" + ctrl_name));
+        if( slider != nullptr ) {
+            slider->Enable(false);
+        }
+        if( vc_button != nullptr ) {
+            vc_button->SetActive(true);
         }
     }
     if( vc_button != nullptr ) {
@@ -3550,6 +3546,11 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     ValueCurve_MHPanOffset->SetActive(false);
     ValueCurve_MHTiltOffset->SetActive(false);
     ValueCurve_MHGroupings->SetActive(false);
+    EnableFixedValueControl("Pan");
+    EnableFixedValueControl("Tilt");
+    EnableFixedValueControl("PanOffset");
+    EnableFixedValueControl("TiltOffset");
+    EnableFixedValueControl("Groupings");
     SetSliderValue(Slider_MHPan, 0.0f);
     SetSliderValue(Slider_MHTilt, 0.0f);
     SetSliderValue(Slider_MHPanOffset, 0.0f);
@@ -3563,6 +3564,10 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     OnButton_MHPathClearClick(event);
     ValueCurve_MHPathScale->SetActive(false);
     ValueCurve_MHTimeOffset->SetActive(false);
+    TextCtrl_MHPathScale->Enable(true);
+    Slider_MHPathScale->Enable(true);
+    TextCtrl_MHTimeOffset->Enable(true);
+    Slider_MHTimeOffset->Enable(true);
     SetSliderValue(Slider_MHPathScale, 0.0f);
     SetSliderValue(Slider_MHTimeOffset, 0.0f);
     CheckBox_MHIgnorePan->SetValue(false);
@@ -3700,6 +3705,15 @@ void MovingHeadPanel::SetDefaultParameters()
     ValueCurve_MHGroupings->SetActive(false);
     ValueCurve_MHPathScale->SetActive(false);
     ValueCurve_MHTimeOffset->SetActive(false);
+    EnableFixedValueControl("Pan");
+    EnableFixedValueControl("Tilt");
+    EnableFixedValueControl("PanOffset");
+    EnableFixedValueControl("TiltOffset");
+    EnableFixedValueControl("Groupings");
+    TextCtrl_MHPathScale->Enable(true);
+    Slider_MHPathScale->Enable(true);
+    TextCtrl_MHTimeOffset->Enable(true);
+    Slider_MHTimeOffset->Enable(true);
 
     SetSliderValue(Slider_MHPan, 0);
     SetSliderValue(Slider_MHTilt, 0);
@@ -3869,7 +3883,6 @@ void MovingHeadPanel::SetPanelStatus(Model* cls)
         if (text != nullptr) { text->Show(); }
     }
     UpdatePatternControlState();
-    UpdateFixtureDependentControlsEnabled();
     FlexGridSizerPosition->Layout();
     FlexGridSizer_Main->Layout();
     Refresh();
