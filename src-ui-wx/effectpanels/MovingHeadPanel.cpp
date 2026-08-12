@@ -2254,7 +2254,7 @@ static std::list<std::string> linkedPositionOverrideSettings = {
     "PatternXFreq", "PatternYFreq", "PatternXPhase", "PatternYPhase"
 };
 
-void MovingHeadPanel::ApplyLinkedHeadPosition(int headNum, float pan, float tilt)
+void MovingHeadPanel::ApplyLinkedHeadPosition(int headNum, float pan, float tilt, const std::string& next_head_settings)
 {
     wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", headNum);
     wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
@@ -2262,10 +2262,28 @@ void MovingHeadPanel::ApplyLinkedHeadPosition(int headNum, float pan, float tilt
 
     std::string mh_settings = mh_textbox->GetValue();
 
+    // Carry over the next effect's color -- RGB ("Color") or color wheel ("Wheel") setting
+    // -- so the head is already showing the right color once Link brings it to life, instead
+    // of flashing whatever color this effect last had. Never carry "Shutter"/"AutoShutter":
+    // Link's whole point is to keep the head dark (Dimmer forced to 0 below) until the next
+    // effect actually opens it, so copying a shutter-open command here would undo that.
+    wxArrayString next_cmds = wxSplit(next_head_settings, ';');
+    wxArrayString color_cmds_to_copy;
+    for (size_t j = 0; j < next_cmds.size(); ++j) {
+        std::string cmd = next_cmds[j];
+        if( cmd == xlEMPTY_STRING ) continue;
+        int pos = cmd.find(":");
+        std::string cmd_type = cmd.substr(0, pos);
+        if( cmd_type == "Color" || cmd_type == "Wheel" ) {
+            color_cmds_to_copy.Add(next_cmds[j]);
+        }
+    }
+
     // Strip any existing position-defining commands (and any existing Dimmer curve --
     // Link's whole point is to keep the head dark while it moves into position for the
     // next effect, so the entire effect is forced off, not just its last handle), then
-    // splice in a plain static Pan/Tilt override and a flat-zero Dimmer curve.
+    // splice in a plain static Pan/Tilt override and a flat-zero Dimmer curve. Also strip
+    // any existing Color/Wheel so the copied-in one above isn't appended alongside a stale one.
     wxArrayString all_cmds = wxSplit(mh_settings, ';');
     wxArrayString updated_cmds;
     for (size_t j = 0; j < all_cmds.size(); ++j) {
@@ -2273,7 +2291,7 @@ void MovingHeadPanel::ApplyLinkedHeadPosition(int headNum, float pan, float tilt
         if( cmd == xlEMPTY_STRING ) continue;
         int pos = cmd.find(":");
         std::string cmd_type = cmd.substr(0, pos);
-        if( cmd_type == "Dimmer" ) continue;
+        if( cmd_type == "Dimmer" || cmd_type == "Color" || cmd_type == "Wheel" ) continue;
         bool found = (std::find(linkedPositionOverrideSettings.begin(), linkedPositionOverrideSettings.end(), cmd_type) != linkedPositionOverrideSettings.end());
         if( !found ) {
             updated_cmds.Add(all_cmds[j]);
@@ -2283,6 +2301,9 @@ void MovingHeadPanel::ApplyLinkedHeadPosition(int headNum, float pan, float tilt
     updated_cmds.Add(wxString::Format("Pan: %.1f", pan));
     updated_cmds.Add(wxString::Format("Tilt: %.1f", tilt));
     updated_cmds.Add("Dimmer: 0.0,0.0,1.0,0.0");
+    for (size_t j = 0; j < color_cmds_to_copy.size(); ++j) {
+        updated_cmds.Add(color_cmds_to_copy[j]);
+    }
 
     mh_textbox->SetValue(wxJoin(updated_cmds, ';'));
 }
@@ -2355,7 +2376,7 @@ void MovingHeadPanel::SyncLinkToNext()
             }
             float pan = 0.0f, tilt = 0.0f;
             if (MovingHeadEffect::GetHeadStartPosition(next_head_settings, i, ef->GetStartTimeMS(), ef->GetEndTimeMS(), pan, tilt)) {
-                ApplyLinkedHeadPosition(i, pan, tilt);
+                ApplyLinkedHeadPosition(i, pan, tilt, next_head_settings);
                 preview_lines.Add(wxString::Format("Head %d: Pan %.1f deg / Tilt %.1f deg", i, pan, tilt));
                 if (refreshed_head == -1) refreshed_head = i;
             } else {
