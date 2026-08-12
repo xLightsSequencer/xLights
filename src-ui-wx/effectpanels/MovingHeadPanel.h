@@ -404,7 +404,7 @@ private:
     void SyncLinkToNext();
     void UpdateLinkTabState();
     void UpdateLinkTabState(bool anyFixtureActive);
-    void ApplyLinkedHeadPosition(int headNum, float pan, float tilt);
+    void ApplyLinkedHeadPosition(int headNum, float pan, float tilt, const std::string& next_head_settings);
     void ForceNotebookPageResize(wxNotebook* nb);
     std::vector<int> GetCheckedFixtures() const;
     std::vector<int> GetSourceFixtures();
