@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (dkulp)                 FPP shift-string capes (K8/K16/K32 and the K16A-B, K64D-B, K128D-B) now offer
+                                 the pixel protocols FPP can actually drive on them - the WS2811 family by name,
+                                 TM1814, the 16 bit UCS8903/8904, and the slower parts such as UCS1903, TM1803,
+                                 GW6205, TM1804, SK6822 and UCS1912 - and the protocol is uploaded per port.
+                                 Every port on a controller shares one bit timing, so xLights reports a mix that
+                                 cannot work rather than leaving those ports to run at the wrong timing
+    -enh (dkulp)                 FPP: Falcon v4 smart receivers can be selected on any string cape FPP drives
+                                 itself; a cape that has no v5 listener now falls back to v4 rather than v2
     -bug (cybercop23)            Fix pasting effects onto a Model Group from expanding to show its member
                                  models/strands (#6900)
     -bug (derwin12)              Fix Replace Model(s) With This Model now deletes the source model once it has

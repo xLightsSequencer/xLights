@@ -125,6 +125,12 @@ public:
     int GetMaxPixelsAt40FPS_SR() const;
 
     bool IsValidPixelProtocol(const std::string& protocol) const;
+    // Some controllers allow a different pixel protocol per port but not every
+    // combination of them - a shared bit cell they can only latch once, say.
+    // Where that is so the protocols are partitioned into groups and only one
+    // group may be in use at a time.  No groups declared means no restriction
+    // beyond SupportsMultipleSimultaneousOutputProtocols.
+    bool ArePixelProtocolsCompatible(const std::string& a, const std::string& b) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;
     bool IsValidInputProtocol(const std::string& protocol) const;
     bool IsSerialController() const;
@@ -140,6 +146,7 @@ public:
 
     std::vector<std::string> GetInputProtocols() const;
     std::vector<std::string> GetPixelProtocols() const;
+    std::vector<std::vector<std::string>> GetPixelProtocolGroups() const;
     std::vector<std::string> GetSerialProtocols() const;
     std::vector<std::string> GetAllProtocols() const;
     std::vector<std::string> GetSmartRemoteTypes() const;

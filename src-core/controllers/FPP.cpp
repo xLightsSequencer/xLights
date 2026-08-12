@@ -33,6 +33,7 @@
 #include "../models/CustomModel.h"
 #include "../models/Model.h"
 #include "../models/MatrixModel.h"
+#include "../models/Pixels.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
 #include "../outputs/E131Output.h"
@@ -2950,6 +2951,86 @@ bool FPP::UploadPWMOutputs(ModelManager* allmodels,
 }
 
 
+// FPP spells its pixel protocols as we do bar one, but a model can be carrying an
+// equivalent name - or one of the artificial group names - from wherever it was last
+// plugged in, so route it through the cape's own list first.  An empty result means
+// nothing on this cape can drive it and the port is left as FPP had it.
+static std::string FPPPixelProtocol(const ControllerCaps* rules, const std::string& protocol) {
+    std::string p = ChooseBestControllerPixel(rules->GetPixelProtocols(), Lower(protocol));
+    if (p == "ws2811 slow") {
+        return "ws2811slow";
+    }
+    return p;
+}
+
+// A cape that offers a choice of pixel protocol still cannot do every combination of
+// them at once: the bit cell is latched per PRU rather than per port, and a couple of
+// the protocols do not survive a smart receiver in the chain.  FPP takes such a config,
+// warns, and drives the odd ones out as whatever it settled on - which reaches the user
+// as strings that are dark or the wrong colour rather than as an error.  Say so first.
+// Returns false to abandon the upload.
+bool FPP::CheckPixelProtocols(const ControllerCaps* rules,
+                              const std::string& driver,
+                              const nlohmann::json& stringData,
+                              const std::map<int, std::string>& portProtocols,
+                              bool supportsV5Receivers,
+                              bool supportsV4Receivers) {
+    // Only the shift string driver takes its bit cell, idle level and bit width from the
+    // config; the others have one compiled in.  Which of the two a cape runs is a
+    // property of the board and not of the model name - a K16A-B is one or the other
+    // depending on its revision - so this can only be decided against the controller in
+    // front of us, which is what the capabilities file cannot do.
+    bool const runtimeProtocols = driver == "BBShiftString";
+
+    std::string issues;
+    std::string first;
+    int firstPort = 0;
+
+    for (const auto& [prt, protocol] : portProtocols) {
+        std::string const p = Lower(protocol);
+        bool const isWs281xTiming = rules->ArePixelProtocolsCompatible("ws2811", protocol);
+        bool const isInverted = p == "tm1814" || p == "tm1814a";
+        bool const is16Bit = p == "ucs8903" || p == "ucs8904";
+
+        if (!runtimeProtocols && (!isWs281xTiming || isInverted || is16Bit)) {
+            issues += fmt::format("Port {} is set to {}, but this controller is running the {} output, which drives every port as a plain ws2811. The pixels will not decode what it sends.\n",
+                                  prt, protocol, driver);
+            continue;
+        }
+
+        if (first.empty()) {
+            first = protocol;
+            firstPort = prt;
+        } else if (!rules->ArePixelProtocolsCompatible(first, protocol)) {
+            issues += fmt::format("Port {} is set to {} but port {} is set to {}. Every port on this controller shares one bit timing so only one of them can work.\n",
+                                  prt, protocol, firstPort, first);
+        }
+
+        ReceiverType receiverType = ReceiverType::Standard;
+        if (stringData["outputs"][prt - 1].contains("differentialType")) {
+            receiverType = DecodeReceiverType(stringData["outputs"][prt - 1]["differentialType"].get<int>(), supportsV5Receivers, supportsV4Receivers);
+        }
+
+        if (isInverted && (receiverType == ReceiverType::FalconV4 || receiverType == ReceiverType::FalconV5)) {
+            issues += fmt::format("Port {} is set to {}, which drives an inverted line that a Falcon smart receiver cannot be configured through. The receivers on this block of 4 ports will be disabled.\n",
+                                  prt, protocol);
+        }
+        if (is16Bit && (receiverType == ReceiverType::v1 || receiverType == ReceiverType::v2)) {
+            issues += fmt::format("Port {} is set to {}, which is 16 bit. v1/v2 smart receivers cannot carry it and it will be sent as 8 bit.\n",
+                                  prt, protocol);
+        }
+    }
+
+    if (issues.empty()) {
+        return true;
+    }
+
+    spdlog::warn("FPP Pixel Outputs Upload: {} pixel protocol problems:\n{}", ipAddress, issues);
+    // Note: If _ui is null (headless mode), this check is skipped and we continue with the configuration
+    return _ui == nullptr ||
+           _ui->PromptYesNo("The pixel protocols configured for " + ipAddress + " will not all work:\n\n" + issues + "\nUpload anyway?", "Confirm");
+}
+
 bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              Controller* controller) {
@@ -3055,6 +3136,12 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["pinoutVersion"] = pinout;
     }
 
+    // Falcon v4 receivers only ever get sent their config packet, so any cape FPP shifts
+    // out itself can drive them - no PRU listener needed, unlike v5.  Older FPP decodes
+    // the differentialType we would write for them as a v5 chain of the wrong length.
+    bool const supportsV4Receivers = IsVersionAtLeast(10, 0) &&
+                                     (fppDriver == "BBShiftString" || fppDriver == "BBB48String");
+
     if (maxport > rules->GetMaxPixelPort()) {
         maxport = rules->GetMaxPixelPort();
     }
@@ -3067,10 +3154,20 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         stringData["outputs"].push_back(port);
     }
 
+    // xLights protocol per port, for the checks below; the JSON gets FPP's spelling
+    std::map<int, std::string> portProtocols;
+
     for (int pp = 1; pp <= rules->GetMaxPixelPort(); pp++) {
         if (cud.HasPixelPort(pp)) {
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
             port->CreateVirtualStrings(false, false);
+
+            std::string fppProtocol = FPPPixelProtocol(rules, port->GetProtocol());
+            if (!fppProtocol.empty()) {
+                stringData["outputs"][pp - 1]["protocol"] = fppProtocol;
+                portProtocols[pp] = port->GetProtocol();
+            }
+
             for (const auto& pvs : port->GetVirtualStrings()) {
                 nlohmann::json vs;
                 if (pvs->_isDummy) {
@@ -3161,8 +3258,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vsname += "F";
                 }
                 if (pvs->_smartRemote >= 1) {
-                    auto const diff_type = DecodeReceiverType(pvs->_smartRemoteType, supportsV5Receivers);
-                    if (diff_type == ReceiverType::FalconV5) {
+                    auto const diff_type = DecodeReceiverType(pvs->_smartRemoteType, supportsV5Receivers, supportsV4Receivers);
+                    if (diff_type == ReceiverType::FalconV4) {
+                        stringData["outputs"][port->GetPort() - 1]["differentialType"] = 16;
+                    } else if (diff_type == ReceiverType::FalconV5) {
                         stringData["outputs"][port->GetPort() - 1]["differentialType"] = 10;
                     } else if(diff_type == ReceiverType::v2) {
                         stringData["outputs"][port->GetPort() - 1]["differentialType"] = 4;
@@ -3214,11 +3313,13 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                         remoteType = std::max(remoteType, 1);
                     }
                     if (stringData["outputs"][x + z].contains("differentialType")) {
-                        receiverType = DecodeReceiverType(stringData["outputs"][x + z]["differentialType"].get<int>(), supportsV5Receivers);
+                        receiverType = DecodeReceiverType(stringData["outputs"][x + z]["differentialType"].get<int>(), supportsV5Receivers, supportsV4Receivers);
                     }
                 }
             }
-            if (ReceiverType::FalconV5 == receiverType) {
+            if (ReceiverType::FalconV4 == receiverType) {
+                remoteType += 15;
+            } else if (ReceiverType::FalconV5 == receiverType) {
                 remoteType += 9;
             } else if (ReceiverType::v2 == receiverType) {
                 remoteType += 3;
@@ -3232,6 +3333,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             }
         }
     }
+
+    if (!CheckPixelProtocols(rules, fppDriver, stringData, portProtocols, supportsV5Receivers, supportsV4Receivers)) {
+        return true;
+    }
+
     auto expansionPorts = GetExpansionPorts(rules);
     for (int x = 0; x <= rules->GetMaxPixelPort(); x++) {
         if (expansionPorts.find(x+1) != expansionPorts.end()) {
@@ -4371,24 +4477,31 @@ bool FPP::ValidateProxy(const std::string& to, const std::string& via)
     return false;
 }
 
-ReceiverType FPP::DecodeReceiverType(const std::string& type, bool supportsV5) {
+ReceiverType FPP::DecodeReceiverType(const std::string& type, bool supportsV5, bool supportsV4) {
     if (type.find("v1") != std::string::npos) {
         return ReceiverType::v1;
     }
     if (type.find("v2") != std::string::npos) {
         return ReceiverType::v2;
     }
+    if (type.find("v4") != std::string::npos) {
+        return supportsV4 ? ReceiverType::FalconV4 : ReceiverType::v2;
+    }
     if (type.find("v5") != std::string::npos) {
         if (supportsV5) {
             return ReceiverType::FalconV5;
-        } else {
-            return ReceiverType::v2;
         }
+        // no listeners on this cape, so the receivers have only ever been sent their
+        // config; that is exactly what v4 is, and it beats v2's unrelated scheme
+        return supportsV4 ? ReceiverType::FalconV4 : ReceiverType::v2;
     }
     return ReceiverType::Standard;
 }
 
-ReceiverType FPP::DecodeReceiverType(int type, bool supportsV5) {
+ReceiverType FPP::DecodeReceiverType(int type, bool supportsV5, bool supportsV4) {
+    if (15 < type) {
+        return supportsV4 ? ReceiverType::FalconV4 : ReceiverType::v2;
+    }
     if (9 < type && supportsV5) {
         return ReceiverType::FalconV5;
     }

@@ -30,7 +30,11 @@ enum class ReceiverType {
     Standard = 0,
     v1 = 1,
     v2 = 2,
-    FalconV5 = 3
+    // Falcon differential receivers: FalconV5 is the full bidirectional protocol and
+    // needs the cape's PRU listener support; FalconV4 only sends the config packet, so
+    // it works on any string cape FPP drives itself
+    FalconV5 = 3,
+    FalconV4 = 4
 };
 
 class FPP : public BaseController
@@ -161,8 +165,8 @@ class FPP : public BaseController
 
     static void TypeIDtoControllerType(int typeId, FPP* inst);
 
-    static ReceiverType DecodeReceiverType(const std::string& type, bool supportsV5);
-    static ReceiverType DecodeReceiverType(int type, bool supportsV5);
+    static ReceiverType DecodeReceiverType(const std::string& type, bool supportsV5, bool supportsV4);
+    static ReceiverType DecodeReceiverType(int type, bool supportsV5, bool supportsV4);
 
 #ifndef DISCOVERYONLY
     nlohmann::json CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
@@ -219,6 +223,13 @@ private:
     bool IsCompatible(const ControllerCaps *rules,
                       std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
                       std::string& driver, bool& supportsV5Receivers);
+
+    bool CheckPixelProtocols(const ControllerCaps* rules,
+                             const std::string& driver,
+                             const nlohmann::json& stringData,
+                             const std::map<int, std::string>& portProtocols,
+                             bool supportsV5Receivers,
+                             bool supportsV4Receivers);
 
     class PlaylistEntry {
     public:

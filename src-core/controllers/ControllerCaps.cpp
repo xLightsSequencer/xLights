@@ -677,6 +677,29 @@ bool ControllerCaps::IsValidPixelProtocol(const std::string& protocol) const {
     return false;
 }
 
+bool ControllerCaps::ArePixelProtocolsCompatible(const std::string& a, const std::string& b) const {
+
+    auto p1 = Lower(a);
+    auto p2 = Lower(b);
+
+    if (p1.empty() || p2.empty() || p1 == p2) return true;
+
+    auto groups = GetPixelProtocolGroups();
+
+    int g1 = -1;
+    int g2 = -1;
+    for (int i = 0; i < (int)groups.size(); i++) {
+        if (std::find(begin(groups[i]), end(groups[i]), p1) != end(groups[i])) g1 = i;
+        if (std::find(begin(groups[i]), end(groups[i]), p2) != end(groups[i])) g2 = i;
+    }
+
+    // a protocol we have not been told about - one this controller cannot drive at all,
+    // which is somebody else's error to report - leaves us with nothing to say
+    if (g1 == -1 || g2 == -1) return true;
+
+    return g1 == g2;
+}
+
 bool ControllerCaps::IsValidSerialProtocol(const std::string& protocol) const {
 
     auto pp = GetSerialProtocols();
@@ -712,6 +735,23 @@ std::vector<std::string> ControllerCaps::GetInputProtocols() const {
 std::vector<std::string> ControllerCaps::GetPixelProtocols() const {
 
     return GetXmlNodeListContent(_config, "PixelProtocols", "Protocol");
+}
+
+std::vector<std::vector<std::string>> ControllerCaps::GetPixelProtocolGroups() const {
+
+    std::vector<std::vector<std::string>> res;
+    for (const auto& it : GetXmlNodeListContent(_config, "PixelProtocolGroups", "Group")) {
+        std::vector<std::string> g;
+        for (const auto& p : Split(it, ',', true)) {
+            if (!p.empty()) {
+                g.push_back(Lower(p));
+            }
+        }
+        if (!g.empty()) {
+            res.push_back(g);
+        }
+    }
+    return res;
 }
 
 std::vector<std::string> ControllerCaps::GetSerialProtocols() const {

@@ -70,6 +70,7 @@
         <SmartRemoteTypes>
             <Type>falcon_v1</Type>
             <Type>fpp_v2</Type>
+            <Type>falcon_v4</Type>
         </SmartRemoteTypes>
         <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
@@ -97,15 +98,75 @@
         <SmartRemoteTypes>
             <Type>falcon_v1</Type>
             <Type>fpp_v2</Type>
+            <Type>falcon_v4</Type>
         </SmartRemoteTypes>
         <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
     <AbstractVariant Name="FPPShiftStringCape" Base="FPP:FPPStringCapeTTYs">
+        <fppStringDriverType>BBShiftString</fppStringDriverType>
         <SmartRemoteTypes>
             <Type>falcon_v1</Type>
             <Type>fpp_v2</Type>
+            <Type>falcon_v4</Type>
             <Type>falcon_v5</Type>
         </SmartRemoteTypes>
+        <!-- The BBShiftString driver takes its bit cell from the ports at run time, so it can
+             drive far more than the WS2811 family, and the idle level and bit width are per
+             port.  T0/T1 and the end of the cell are single latch instants shared by every
+             port on the PRU though, so the whole controller runs one bit cell: the protocols
+             are partitioned into PixelProtocolGroups below and a config may only use one of
+             them.  Mirrors PixelString::protocolTiming() in FPP. -->
+        <SupportsMultipleSimultaneousOutputProtocols/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>ws2812</Protocol>
+            <Protocol>ws2812b</Protocol>
+            <Protocol>ws2813</Protocol>
+            <Protocol>ws2815</Protocol>
+            <Protocol>ws2818</Protocol>
+            <Protocol>sk6812</Protocol>
+            <Protocol>sk6813</Protocol>
+            <Protocol>sm16703</Protocol>
+            <Protocol>gs8206</Protocol>
+            <Protocol>gs8208</Protocol>
+            <Protocol>tm1809</Protocol>
+            <Protocol>tm1812</Protocol>
+            <Protocol>ucs1904</Protocol>
+            <Protocol>ucs2903</Protocol>
+            <Protocol>apa104</Protocol>
+            <Protocol>apa106</Protocol>
+            <Protocol>apa109</Protocol>
+            <Protocol>sk6812rgbw</Protocol>
+            <Protocol>sk6818</Protocol>
+            <Protocol>sm16704</Protocol>
+            <Protocol>ucs2904</Protocol>
+            <Protocol>ws2814</Protocol>
+            <Protocol>tm1814</Protocol>
+            <Protocol>tm1814a</Protocol>
+            <Protocol>ucs8903</Protocol>
+            <Protocol>ucs8904</Protocol>
+            <Protocol>ucs1903</Protocol>
+            <Protocol>ws2811 slow</Protocol>
+            <Protocol>tm1803</Protocol>
+            <Protocol>gw6205</Protocol>
+            <Protocol>tm1804</Protocol>
+            <Protocol>sk6822</Protocol>
+            <Protocol>pl9823</Protocol>
+            <Protocol>ucs1912</Protocol>
+            <Protocol>ge8822</Protocol>
+        </PixelProtocols>
+        <PixelProtocolGroups>
+            <!-- 800kHz WS2811 family, plus the parts that differ in polarity (tm1814) or bit
+                 width (ucs8903/8904) rather than timing, so those really are per port -->
+            <Group>ws2811,ws2812,ws2812b,ws2813,ws2815,ws2818,sk6812,sk6813,sm16703,gs8206,gs8208,tm1809,tm1812,ucs1904,ucs2903,apa104,apa106,apa109,sk6812rgbw,sk6818,sm16704,ucs2904,ws2814,tm1814,tm1814a,ucs8903,ucs8904</Group>
+            <Group>ucs1903,ws2811 slow</Group>
+            <Group>tm1803</Group>
+            <Group>gw6205</Group>
+            <Group>tm1804</Group>
+            <Group>sk6822,pl9823</Group>
+            <Group>ucs1912</Group>
+            <Group>ge8822</Group>
+        </PixelProtocolGroups>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringRPIWS281XPiHat" Base="FPP:BaseFPPSettings">
         <MaxSerialPortChannels>512</MaxSerialPortChannels>

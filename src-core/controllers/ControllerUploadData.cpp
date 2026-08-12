@@ -1975,6 +1975,20 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
                 success = false;
             }
         }
+    } else if (!rules->GetPixelProtocolGroups().empty()) {
+        // the protocol may vary per port but only within a group ... typically because
+        // something the ports share, like the bit cell, can only be set once
+        std::string protocol;
+        for (const auto& it : _pixelPorts) {
+            if (it.second->GetProtocol().empty()) continue;
+            if (protocol == "") protocol = it.second->GetProtocol();
+
+            if (!rules->ArePixelProtocolsCompatible(protocol, it.second->GetProtocol())) {
+                res += fmt::format("ERR: Pixel port {} uses {} which cannot be used on the same controller as {}.\n",
+                                   it.second->GetPort(), it.second->GetProtocol(), protocol);
+                success = false;
+            }
+        }
     }
 
     if (!rules->SupportsSmartRemotes()) {

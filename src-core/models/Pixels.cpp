@@ -96,14 +96,20 @@
 // |--------------------------------------------------------------------------------------------------------------------------------------|
 // | WS2801         | RGB, 8 bit, 4 wire     | WS2801, WS2803                                    |                                        |
 // |--------------------------------------------------------------------------------------------------------------------------------------|
-// | WS2811         | RGB, 8 bit, 3 wire     | APA104, APA106, CS8812, GS8202, GS8206,           |                                        |
+// | WS2811         | RGB, 8 bit, 3 wire     | APA104, APA106, CS8812, GE8822, GS8202, GS8206,   |                                        |
 // |                |                        | GS8208, INK1002, INK1003, LPD1882,                |                                        |
-// |                |                        | LX1203, P9883, SK6812, SK6813, SK6822, SM16703,   |                                        |
-// |                |                        | SM16711, SM16712, TM1803, TM1804, TM1809,         |                                        |
-// |                |                        | TM1812, TM1914, UCS1903, UCS1904, UCS1909,        |                                        |
-// |                |                        | UCS1912, UCS2903, UCS2909, UCS2912, UCS9812,      |                                        |
-// |                |                        | WS2811, WS2812, WS2813, WS2815, WS2818            |                                        |
+// |                |                        | LX1203, P9883, PL9823, SK6812, SK6813, SK6822,    |                                        |
+// |                |                        | SM16703, SM16711, SM16712, TM1803, TM1804,        |                                        |
+// |                |                        | TM1809, TM1812, TM1914, UCS1903, UCS1904,         |                                        |
+// |                |                        | UCS1909, UCS1912, UCS2903, UCS2909, UCS2912,      |                                        |
+// |                |                        | UCS9812, WS2811, WS2812, WS2813, WS2815, WS2818   |                                        |
 // ----------------------------------------------------------------------------------------------------------------------------------------
+//
+// GE8822 and PL9823 join the WS2811 group on the same basis as the SK6822 and TM1803 already
+// in it: a controller that can set its bit cell drives them as distinct parts, and one that
+// cannot is no worse off treating them as a WS2811 than it was before they were listed.
+// A controller that really does distinguish them lists them separately in its capabilities,
+// and an exact match always wins over the group.
 // 
 // I am undecided whether making this generally available to the user helps or hinders.
 // The problem is if certain pixels are not equivalent on their controller and we said they were  then we have issues
@@ -117,12 +123,12 @@ const static std::vector<std::vector<std::string>> __equivalentPixels =
 {
     { "" }, // No protocol
     { "ws2811", // preferred & default
-      "apa104", "apa106", "cs8812", "gs8202", "gs8206", "gs8208", "ink1002", "ink1003", "lb1908", "lpd1882",
-      "lx1203", "p9883", "sk6812", "sk6813", "sk6822", "sm16703", "sm16711", "sm16712", "tm1803", "tm1804", "tm1809",
+      "apa104", "apa106", "cs8812", "ge8822", "gs8202", "gs8206", "gs8208", "ink1002", "ink1003", "lb1908", "lpd1882",
+      "lx1203", "p9883", "pl9823", "sk6812", "sk6813", "sk6822", "sm16703", "sm16711", "sm16712", "tm1803", "tm1804", "tm1809",
       "tm1812", "tm1914", "ucs1903", "ucs1904", "ucs1909", "ucs1912", "ucs2903", "ucs2909", "ucs2912", "ucs9812",
       "ws2812", "ws2812b", "ws2813", "ws2815", "ws2818",
       // artificial
-      "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "gs820x", "gs8206/8"
+      "tm18xx", "ws281x", "ws2811v1.4", "ws2811 slow", "gs820x", "gs8206/8"
     },
     { "9pdot" },
     { "9pdot (16)" },
@@ -175,7 +181,7 @@ const static std::vector<std::vector<std::string>> __equivalentSerial = {
 
 const static std::vector<std::string> __artificalTypes =
 {
-    "tm18xx", "ws281x", " ws2811v1.4", " ws2811 slow", "ucs8903 (16)", "ucs8904 (16)", "gs820x", "rgb+2", "dmx512p", "dmx512p-4", 
+    "tm18xx", "ws281x", "ws2811v1.4", "ws2811 slow", "ucs8903 (16)", "ucs8904 (16)", "gs820x", "rgb+2", "dmx512p", "dmx512p-4",
     "sm16825 (16)", "rgbw+2", "gs8206/8"
 };
 
