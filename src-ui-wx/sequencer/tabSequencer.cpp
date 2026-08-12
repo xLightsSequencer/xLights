@@ -3361,9 +3361,36 @@ void xLightsFrame::SplitPerspectiveSettings(const wxString& combined, wxString& 
     layout = combined.Mid(pos + PERSPECTIVE_LAYOUT_SEP.length());
 }
 
+wxString xLightsFrame::SaveSequencerPerspective()
+{
+    if (savedPaneShown.empty()) {
+        return m_mgr->SavePerspective();
+    }
+    // Off the Sequencer tab, ShowHideAllSequencerWindows(false) marks the
+    // stashed floating panes hidden in their own pane info, so a plain
+    // SavePerspective would record them as hidden and they would never come
+    // back.  Put the recorded visibility back just long enough to serialize --
+    // no Update() runs in between, so nothing is drawn.
+    wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
+    std::vector<size_t> restored;
+    for (size_t x = 0; x < info.size(); x++) {
+        if (!info[x].IsOk() || info[x].IsShown()) continue;
+        auto it = savedPaneShown.find(info[x].name);
+        if (it != savedPaneShown.end() && it->second) {
+            info[x].Show();
+            restored.push_back(x);
+        }
+    }
+    wxString p = m_mgr->SavePerspective();
+    for (size_t x : restored) {
+        info[x].Hide();
+    }
+    return p;
+}
+
 wxString xLightsFrame::BuildPerspectiveSettings()
 {
-    wxString sequencer = m_mgr->SavePerspective();
+    wxString sequencer = SaveSequencerPerspective();
     wxString layout = layoutPanel != nullptr ? layoutPanel->GetLayoutPerspective() : wxString();
     if (layout.empty()) {
         return sequencer;

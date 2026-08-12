@@ -12009,12 +12009,14 @@ void LayoutPanel::ApplyLayoutPerspective(const wxString& perspective) {
         modelSettingsPane.Center().Dock().Show();
     }
 
-    layout_mgr->Update();
-    UpdateLayoutSplitter();
-
+    // Stash before Update() rather than after: Update() realizes and shows the
+    // floating frames, so hiding them afterwards flashes them over whatever tab
+    // is in front (and on macOS they can steal focus on the way past).
     if (!IsShownOnScreen()) {
         HideFloatingPanes();
     }
+    layout_mgr->Update();
+    UpdateLayoutSplitter();
 }
 
 void LayoutPanel::DockPanesOnMissingDisplays() {
@@ -12022,9 +12024,15 @@ void LayoutPanel::DockPanesOnMissingDisplays() {
     bool docked = false;
     for (size_t i = 0; i < panes.GetCount(); i++) {
         if (!panes[i].IsOk() || !panes[i].IsFloating()) continue;
+        // wxAUI serializes floatx=-1;floaty=-1 for a pane that was marked
+        // Float() but never positioned. That is not an off-screen window, and
+        // treating it as one force-docks a perfectly good pane.
+        if (panes[i].floating_pos == wxDefaultPosition) continue;
         wxRect r(panes[i].floating_pos, panes[i].floating_size);
         if (wxDisplay::GetFromPoint(r.GetTopLeft()) != wxNOT_FOUND ||
-            wxDisplay::GetFromPoint(wxPoint(r.GetRight(), r.GetTop())) != wxNOT_FOUND) {
+            wxDisplay::GetFromPoint(r.GetTopRight()) != wxNOT_FOUND ||
+            wxDisplay::GetFromPoint(r.GetBottomLeft()) != wxNOT_FOUND ||
+            wxDisplay::GetFromPoint(r.GetBottomRight()) != wxNOT_FOUND) {
             continue;
         }
         if (panes[i].name == "ModelList") {
