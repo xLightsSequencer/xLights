@@ -569,6 +569,82 @@
 				<firstadd>0</firstadd>
 			</object>
 			<object class="AuiManagerItem">
+				<object class="wxAuiToolBar" name="ID_AUITOOLBAR_TOOLS" subclass="xlAuiToolBar" variable="ToolsToolBar" member="yes">
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_TOOLS_TEST" variable="AuiToolBarItemToolsTest" member="no">
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_TOOLS_TEST&quot;)' />
+							<shorthelp>Test</shorthelp>
+							<handler function="OnActionTestMenuItemSelected" entry="EVT_TOOL" />
+						</object>
+						<label>Test</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_TOOLS_CHECKSEQUENCE" variable="AuiToolBarItemToolsCheckSequence" member="no">
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_TOOLS_CHECKSEQUENCE&quot;)' />
+							<shorthelp>Check Sequence</shorthelp>
+							<handler function="OnMenuItemCheckSequenceSelected" entry="EVT_TOOL" />
+						</object>
+						<label>Check Sequence</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_TOOLS_PACKAGESEQUENCE" variable="AuiToolBarItemToolsPackageSequence" member="no">
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_TOOLS_PACKAGESEQUENCE&quot;)' />
+							<shorthelp>Package Sequence</shorthelp>
+							<handler function="OnMenuItem_PackageSequenceSelected" entry="EVT_TOOL" />
+						</object>
+						<label>Package Sequence</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_TOOLS_BATCHRENDER" variable="AuiToolBarItemToolsBatchRender" member="no">
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_TOOLS_BATCHRENDER&quot;)' />
+							<shorthelp>Batch Render</shorthelp>
+							<handler function="OnMenuItemBatchRenderSelected" entry="EVT_TOOL" />
+						</object>
+						<label>Batch Render</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_TOOLS_FPPCONNECT" variable="AuiToolBarItemToolsFPPConnect" member="no">
+							<bitmap code='BitmapCache::GetFPPIcon()' />
+							<shorthelp>FPP Connect</shorthelp>
+							<handler function="OnMenuItem_FPP_ConnectSelected" entry="EVT_TOOL" />
+						</object>
+						<label>FPP Connect</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_TOOLS_BULKUPLOAD" variable="AuiToolBarItemToolsBulkUpload" member="no">
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_TOOLS_BULKUPLOAD&quot;)' />
+							<shorthelp>Bulk Controller Upload</shorthelp>
+							<handler function="OnMenuItemBulkControllerUploadSelected" entry="EVT_TOOL" />
+						</object>
+						<label>Bulk Controller Upload</label>
+					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_TOOLS_VIEWLOG" variable="AuiToolBarItemToolsViewLog" member="no">
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_TOOLS_VIEWLOG&quot;)' />
+							<shorthelp>View Log</shorthelp>
+							<handler function="OnMenuItem_ViewLogSelected" entry="EVT_TOOL" />
+						</object>
+						<label>View Log</label>
+					</object>
+				</object>
+				<name>Tools Tool Bar</name>
+				<standardpanetype>Toolbar</standardpanetype>
+				<caption>Tools Toolbar</caption>
+				<captionvisible>0</captionvisible>
+				<minimizebutton>0</minimizebutton>
+				<maximizebutton>0</maximizebutton>
+				<pinbutton>0</pinbutton>
+				<closebutton>0</closebutton>
+				<layer>10</layer>
+				<position>14</position>
+				<dockfixed>0</dockfixed>
+				<dockabledirection></dockabledirection>
+				<resizable>0</resizable>
+				<gripper>Default</gripper>
+				<destroyonclose>0</destroyonclose>
+				<firstadd>0</firstadd>
+			</object>
+			<object class="AuiManagerItem">
 				<object class="wxAuiNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
 					<style>wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxBORDER_NONE</style>
 					<handler function="OnNotebook1PageChanged1" entry="EVT_AUINOTEBOOK_PAGE_CHANGED" />

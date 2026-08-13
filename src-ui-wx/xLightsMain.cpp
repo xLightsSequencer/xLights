@@ -64,6 +64,7 @@
 #include "sequencer/EffectsPanel.h"
 #include "app-shell/EmailDialog.h"
 #include "import_export/ExportSettings.h"
+#include "shared/utils/BitmapCache.h"
 #include "shared/utils/ExternalHooksUI.h"
 #include "diagnostics/FindDataPanel.h"
 #include "render/GPURenderUtils.h"
@@ -232,6 +233,14 @@ const wxWindowID xLightsFrame::ID_AUITOOLBAR_AC = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBARITEM14 = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_VIEW = wxNewId();
 const wxWindowID xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_TOOLS = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_TOOLS_TEST = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_TOOLS_CHECKSEQUENCE = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_TOOLS_PACKAGESEQUENCE = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_TOOLS_BATCHRENDER = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_TOOLS_FPPCONNECT = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_TOOLS_BULKUPLOAD = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_TOOLS_VIEWLOG = wxNewId();
 const wxWindowID xLightsFrame::ID_BUTTON3 = wxNewId();
 const wxWindowID xLightsFrame::ID_BUTTON6 = wxNewId();
 const wxWindowID xLightsFrame::ID_BUTTON10 = wxNewId();
@@ -895,6 +904,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     EffectsToolBar = new xlAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
+    ToolsToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_TOOLS, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_TEST, _("Test"), GetToolbarBitmapBundle("xlART_TOOLS_TEST"), wxNullBitmap, wxITEM_NORMAL, _("Test"), wxEmptyString, NULL);
+    ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_CHECKSEQUENCE, _("Check Sequence"), GetToolbarBitmapBundle("xlART_TOOLS_CHECKSEQUENCE"), wxNullBitmap, wxITEM_NORMAL, _("Check Sequence"), wxEmptyString, NULL);
+    ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_PACKAGESEQUENCE, _("Package Sequence"), GetToolbarBitmapBundle("xlART_TOOLS_PACKAGESEQUENCE"), wxNullBitmap, wxITEM_NORMAL, _("Package Sequence"), wxEmptyString, NULL);
+    ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_BATCHRENDER, _("Batch Render"), GetToolbarBitmapBundle("xlART_TOOLS_BATCHRENDER"), wxNullBitmap, wxITEM_NORMAL, _("Batch Render"), wxEmptyString, NULL);
+    ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_FPPCONNECT, _("FPP Connect"), BitmapCache::GetFPPIcon(), wxNullBitmap, wxITEM_NORMAL, _("FPP Connect"), wxEmptyString, NULL);
+    ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_BULKUPLOAD, _("Bulk Controller Upload"), GetToolbarBitmapBundle("xlART_TOOLS_BULKUPLOAD"), wxNullBitmap, wxITEM_NORMAL, _("Bulk Controller Upload"), wxEmptyString, NULL);
+    ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_VIEWLOG, _("View Log"), GetToolbarBitmapBundle("xlART_TOOLS_VIEWLOG"), wxNullBitmap, wxITEM_NORMAL, _("View Log"), wxEmptyString, NULL);
+    ToolsToolBar->Realize();
+    MainAuiManager->AddPane(ToolsToolBar, wxAuiPaneInfo().Name(_T("Tools Tool Bar")).ToolbarPane().Caption(_("Tools Toolbar")).CloseButton(false).Layer(10).Position(14).Top().Gripper());
     Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxBORDER_NONE);
     PanelPreview = new wxPanel(Notebook1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
     FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
@@ -1264,6 +1283,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxID_ZOOM_IN, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(wxID_ZOOM_OUT, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_AUITOOLBARITEM14, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
+    Connect(ID_AUITOOLBAR_TOOLS_TEST, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
+    Connect(ID_AUITOOLBAR_TOOLS_CHECKSEQUENCE, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemCheckSequenceSelected);
+    Connect(ID_AUITOOLBAR_TOOLS_PACKAGESEQUENCE, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
+    Connect(ID_AUITOOLBAR_TOOLS_BATCHRENDER, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemBatchRenderSelected);
+    Connect(ID_AUITOOLBAR_TOOLS_FPPCONNECT, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
+    Connect(ID_AUITOOLBAR_TOOLS_BULKUPLOAD, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemBulkControllerUploadSelected);
+    Connect(ID_AUITOOLBAR_TOOLS_VIEWLOG, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     m_mgr->Connect(wxEVT_AUI_PANE_CLOSE, (wxObjectEventFunction)&xLightsFrame::OnPaneClose, NULL, this);
     PanelSequencer->Connect(wxEVT_PAINT, (wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint, NULL, this);
@@ -1390,6 +1416,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // covers both the toolbar background and its buttons.
     EffectsToolBar->Bind(wxEVT_CONTEXT_MENU, &xLightsFrame::OnEffectsToolBarContextMenu, this);
     BuildToolbarsMenu();
+
+    MainAuiManager->GetPane("Tools Tool Bar").Hide();
+    MainAuiManager->Update();
 
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
 
@@ -6241,6 +6270,11 @@ void xLightsFrame::OnMenuItem_ConvertSymbolsSelected(wxCommandEvent& event)
 
 std::string xLightsFrame::PackageSequence(bool showDialogs)
 {
+    if (CurrentSeqXmlFile == nullptr) {
+        DisplayError("No sequence open", this);
+        return "";
+    }
+
     wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
 
     if (mSavedChangeCount != _sequenceElements.GetChangeCount() && showDialogs) {
@@ -6655,6 +6689,7 @@ void xLightsFrame::BuildToolbarsMenu()
         { "Edit Tool Bar", "Paste Toolbar" },
         { "View Tool Bar", "View Toolbar" },
         { "EffectsToolBar", "Effects Toolbar" },
+        { "Tools Tool Bar", "Tools Toolbar" },
     };
 
     int pos = 0;

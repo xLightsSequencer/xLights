@@ -731,6 +731,14 @@ public:
     static const wxWindowID ID_AUITOOLBARITEM14;
     static const wxWindowID ID_AUITOOLBAR_VIEW;
     static const wxWindowID ID_AUIEFFECTSTOOLBAR;
+    static const wxWindowID ID_AUITOOLBAR_TOOLS;
+    static const wxWindowID ID_AUITOOLBAR_TOOLS_TEST;
+    static const wxWindowID ID_AUITOOLBAR_TOOLS_CHECKSEQUENCE;
+    static const wxWindowID ID_AUITOOLBAR_TOOLS_PACKAGESEQUENCE;
+    static const wxWindowID ID_AUITOOLBAR_TOOLS_BATCHRENDER;
+    static const wxWindowID ID_AUITOOLBAR_TOOLS_FPPCONNECT;
+    static const wxWindowID ID_AUITOOLBAR_TOOLS_BULKUPLOAD;
+    static const wxWindowID ID_AUITOOLBAR_TOOLS_VIEWLOG;
     static const wxWindowID ID_BUTTON3;
     static const wxWindowID ID_BUTTON6;
     static const wxWindowID ID_BUTTON10;
@@ -1020,6 +1028,7 @@ public:
     xlAuiToolBar* EffectsToolBar;
     xlAuiToolBar* MainToolBar;
     xlAuiToolBar* PlayToolBar;
+    xlAuiToolBar* ToolsToolBar;
     xlAuiToolBar* ViewToolBar;
     xlAuiToolBar* WindowMgmtToolbar;
     //*)
