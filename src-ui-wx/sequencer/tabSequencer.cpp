@@ -11,6 +11,7 @@
 #include <atomic>
 #include <filesystem>
 #include <map>
+#include <set>
 #include <system_error>
 #include <thread>
 
@@ -365,6 +366,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         wxString perspective = m_mgr->SavePerspective();
         pv.settings = perspective.ToStdString();
         pv.version = "2.0";
+        CapturePerspectiveViewSettings(pv);
         spdlog::debug("Saved perspective.");
         LogPerspective(perspective);
         _perspectives.push_back(pv);
@@ -3335,9 +3337,45 @@ void xLightsFrame::DoForceSequencerRefresh()
     ResizeMainSequencer();
 }
 
+void xLightsFrame::CapturePerspectiveViewSettings(Perspective& p) const
+{
+    p.gridSpacing = mGridSpacing;
+    p.iconSize = mIconSize;
+}
+
+void xLightsFrame::ViewSizePreferencesChanged()
+{
+    mGridSpacingPreference = mGridSpacing;
+    mIconSizePreference = mIconSize;
+
+    if (mCurrentPerpective != nullptr) {
+        CapturePerspectiveViewSettings(*mCurrentPerpective);
+        MarkRgbEffectsChanged();
+    }
+}
+
+void xLightsFrame::ApplyPerspectiveViewSettings(const Perspective& p)
+{
+    static const std::set<int> validGridSpacing = { 12, 16, 24, 32, 48 };
+    static const std::set<int> validIconSize = { 16, 24, 32, 48 };
+
+    bool changed = false;
+    if (p.gridSpacing != mGridSpacing && validGridSpacing.contains(p.gridSpacing)) {
+        SetGridSpacing(p.gridSpacing);
+        changed = true;
+    }
+    if (p.iconSize != mIconSize && validIconSize.contains(p.iconSize)) {
+        SetToolIconSize(p.iconSize);
+        changed = true;
+    }
+    if (changed) {
+        ResizeMainSequencer();
+    }
+}
+
 void xLightsFrame::DoLoadPerspective(Perspective* perspective)
 {
-    
+
     if (perspective == nullptr) {
         spdlog::warn("xLightsFrame::LoadPerspective Null perspective.");
         return;
@@ -3355,6 +3393,7 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         settings = m_mgr->SavePerspective();
         perspective->settings = settings.ToStdString();
         perspective->version = "2.0";
+        CapturePerspectiveViewSettings(*perspective);
         spdlog::debug("Saved perspective.");
         LogPerspective(settings);
     }
@@ -3388,6 +3427,7 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         SyncFloatingPanePositions();
         wxString p = m_mgr->SavePerspective();
         perspective->settings = p.ToStdString();
+        CapturePerspectiveViewSettings(*perspective);
         spdlog::debug("Saved perspective.");
         LogPerspective(p);
     } else {
@@ -3395,6 +3435,8 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
     }
+
+    ApplyPerspectiveViewSettings(*perspective);
 
     // After a perspective load creates a floating House Preview / Model Preview
     // frame, the embedded Metal canvas comes up gray until the user manually
@@ -3477,6 +3519,7 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
             wxString p = m_mgr->SavePerspective();
             mCurrentPerpective->settings = p.ToStdString();
             mCurrentPerpective->version = "2.0";
+            CapturePerspectiveViewSettings(*mCurrentPerpective);
             spdlog::debug("Saved perspective.");
             LogPerspective(p);
             SaveEffectsFile();

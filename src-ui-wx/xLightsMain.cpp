@@ -1852,6 +1852,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 
     config->Read("xLightsIconSize", &mIconSize, 16);
+    mIconSizePreference = mIconSize;
     SetToolIconSize(mIconSize);
     spdlog::debug("Icon size: {}.", mIconSize);
 
@@ -1889,6 +1890,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     spdlog::debug("Backup purge age: {} days.", BackupPurgeDays);
 
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
+    mGridSpacingPreference = mGridSpacing;
     SetGridSpacing(mGridSpacing);
     spdlog::debug("Grid spacing: {}.", mGridSpacing);
 
@@ -2240,9 +2242,9 @@ xLightsFrame::~xLightsFrame()
     } else {
         config->Write("ToolbarLocations", TOOLBAR_SAVE_VERSION + MainAuiManager->SavePerspective());
     }
-    config->Write("xLightsIconSize", mIconSize);
+    config->Write("xLightsIconSize", mIconSizePreference);
     SaveToolbarLayout(config, "EffectsToolbarLayout", _effectsToolbarLayout);
-    config->Write("xLightsGridSpacing", mGridSpacing);
+    config->Write("xLightsGridSpacing", mGridSpacingPreference);
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
     config->Write("xLightsShowAlternateTimingFormat", mShowAlternateTimingFormat);
     config->Write("xLightsGroupEffectIndicator", mShowGroupEffectIndicator);

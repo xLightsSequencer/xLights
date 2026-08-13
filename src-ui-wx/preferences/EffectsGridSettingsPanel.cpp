@@ -204,6 +204,7 @@ bool EffectsGridSettingsPanel::TransferDataFromWindow() {
             frame->SetGridSpacing(12);
             break;
     }
+    frame->ViewSizePreferencesChanged();
     frame->SetGridNodeValues(NodeValuesCheckBox->IsChecked());
     frame->SetGridIconBackgrounds(IconBackgroundsCheckBox->IsChecked());
     frame->SetTimingPlayOnDClick(DoubleClickChoice->GetSelection());
