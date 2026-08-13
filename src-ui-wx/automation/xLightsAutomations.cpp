@@ -1164,6 +1164,45 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse(response, "", 200, true);
         }
         return sendResponse("target effect doesn't exists.", "msg", 503, false);
+    } else if (cmd == "deleteEffect") {
+        // Mirrors setEffectSettings' lookup pattern (model/layer/id), then
+        // the same capture-then-delete sequence EffectsGrid's own delete
+        // path uses (CaptureEffectToBeDeleted for undo, then
+        // EffectLayer::DeleteEffect -- both existing, already-used core
+        // calls, not new deletion logic).
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        int id = 0;
+        int layer = 0;
+
+        if (!params["id"].empty()) {
+            id = (int)std::strtol(params["id"].c_str(), nullptr, 10);
+        }
+        if (!params["layer"].empty()) {
+            layer = (int)std::strtol(params["layer"].c_str(), nullptr, 10);
+        }
+        auto const& model = params["model"];
+        Element* ele = _sequenceElements.GetElement(model);
+        if (ele == nullptr) {
+            return sendResponse("target element doesn't exists.", "msg", 503, false);
+        }
+        auto* lay = ele->GetEffectLayer(layer);
+        if (lay == nullptr) {
+            return sendResponse("target layer doesn't exists.", "msg", 503, false);
+        }
+        auto* eff = lay->GetEffectFromID(id);
+        if (eff == nullptr) {
+            return sendResponse("target effect doesn't exists.", "msg", 503, false);
+        }
+        _sequenceElements.get_undo_mgr().CaptureEffectToBeDeleted(model, layer, eff->GetEffectName(),
+                                                                   eff->GetSettingsAsString(), eff->GetPaletteAsString(),
+                                                                   eff->GetStartTimeMS(), eff->GetEndTimeMS(),
+                                                                   eff->GetSelected(), eff->GetProtected());
+        lay->DeleteEffect(id);
+        mainSequencer->PanelEffectGrid->Refresh();
+        std::string response = "{\"msg\":\"Deleted Effect.\",\"worked\":\"true\"}";
+        return sendResponse(response, "", 200, true);
     } else if (cmd == "importXLightsSequence") {
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);
@@ -1523,6 +1562,18 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                             std::string k = mn + "_" + std::to_string(x);
                             paramMap[k] = v[x].get<std::string>();
                         }
+                    } else if (v.is_object()) {
+                        // Nested objects (e.g. setEffectSettings' "settings"/
+                        // "palette", documented in xlDo Commands.txt as real
+                        // JSON objects, not strings) had no branch here at all,
+                        // so they were silently dropped -- paramMap[mn] was
+                        // never set, params["settings"].empty() was always
+                        // true, and the code below that already calls
+                        // eff->SetSettings()/SetColourOnlyPalette() never ran.
+                        // Re-serializing back to a JSON string matches what
+                        // those calls already expect (they're invoked with
+                        // json=true).
+                        paramMap[mn] = v.dump();
                     }
                 }
 
@@ -1639,6 +1690,11 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
                         std::string k = mn + "_" + std::to_string(x);
                         paramMap[k] = v[x].get<std::string>();
                     }
+                } else if (v.is_object()) {
+                    // See the matching branch in HttpRequestFunction above --
+                    // nested objects (setEffectSettings' "settings"/"palette")
+                    // had no branch here either, so they were silently dropped.
+                    paramMap[mn] = v.dump();
                 }
             }
 

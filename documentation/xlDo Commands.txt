@@ -421,6 +421,12 @@ Command
 Response
     {"res":200, "msg":"Set Effect Settings.","worked":"true"}
 
+Delete an Effect from a model.
+Command
+    {"cmd":"deleteEffect","model":"model name","layer":"0","id":"0"}
+Response
+    {"res":200, "msg":"Deleted Effect.","worked":"true"}
+
 Import Effects from a xLights Sequence.
 Command
     {"cmd":"importXLightsSequence","filename":"xsq/zip file path","mapmethod":"file","mapfile":"xjmap/xmap/xmaphint file path"}
