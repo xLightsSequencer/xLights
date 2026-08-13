@@ -1387,6 +1387,19 @@ public:
                         if (!ls.empty() && ls.back() == "Blend") {
                             doBlendLayer = true;
                             ls.pop_back();
+                        } else if (!ls.empty() && _seqElements != nullptr && _seqElements->SupportsModelBlending() &&
+                                   std::atoi(ls.back().c_str()) >= numLayers - layer - 1) {
+                            // Sequences saved before the "Blend" pseudo-layer existed (xLights
+                            // < 2024.09) could only select real layers below, so LayerSelectDialog
+                            // silently ignored any out-of-range index. Once the Blend row was added
+                            // immediately after the real layers, that same out-of-range value lines
+                            // up exactly with the Blend row's position - which is how the dialog
+                            // still reads it today (LayerSelectDialog.cpp's position-based parsing) -
+                            // it only offers/writes that row when SupportsModelBlending() is on, so
+                            // require the same here to avoid reinterpreting a stray legacy index as
+                            // blend for sequences that have model blending turned off globally.
+                            doBlendLayer = true;
+                            ls.pop_back();
                         }
                         for (int i = layer + 1; i < (int)vl.size(); i++) {
                             if (vl[i]) {
