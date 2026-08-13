@@ -909,7 +909,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_CHECKSEQUENCE, _("Check Sequence"), GetToolbarBitmapBundle("xlART_TOOLS_CHECKSEQUENCE"), wxNullBitmap, wxITEM_NORMAL, _("Check Sequence"), wxEmptyString, NULL);
     ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_PACKAGESEQUENCE, _("Package Sequence"), GetToolbarBitmapBundle("xlART_TOOLS_PACKAGESEQUENCE"), wxNullBitmap, wxITEM_NORMAL, _("Package Sequence"), wxEmptyString, NULL);
     ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_BATCHRENDER, _("Batch Render"), GetToolbarBitmapBundle("xlART_TOOLS_BATCHRENDER"), wxNullBitmap, wxITEM_NORMAL, _("Batch Render"), wxEmptyString, NULL);
-    ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_FPPCONNECT, _("FPP Connect"), BitmapCache::GetFPPIcon(), wxNullBitmap, wxITEM_NORMAL, _("FPP Connect"), wxEmptyString, NULL);
+    ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_FPPCONNECT, _("FPP Connect"), BitmapCache::GetFPPIcon(24), wxNullBitmap, wxITEM_NORMAL, _("FPP Connect"), wxEmptyString, NULL);
     ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_BULKUPLOAD, _("Bulk Controller Upload"), GetToolbarBitmapBundle("xlART_TOOLS_BULKUPLOAD"), wxNullBitmap, wxITEM_NORMAL, _("Bulk Controller Upload"), wxEmptyString, NULL);
     ToolsToolBar->AddTool(ID_AUITOOLBAR_TOOLS_VIEWLOG, _("View Log"), GetToolbarBitmapBundle("xlART_TOOLS_VIEWLOG"), wxNullBitmap, wxITEM_NORMAL, _("View Log"), wxEmptyString, NULL);
     ToolsToolBar->Realize();

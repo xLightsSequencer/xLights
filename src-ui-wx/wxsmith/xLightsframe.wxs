@@ -604,7 +604,7 @@
 					</object>
 					<object class="AuiToolBarItem">
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_TOOLS_FPPCONNECT" variable="AuiToolBarItemToolsFPPConnect" member="no">
-							<bitmap code='BitmapCache::GetFPPIcon()' />
+							<bitmap code='BitmapCache::GetFPPIcon(24)' />
 							<shorthelp>FPP Connect</shorthelp>
 							<handler function="OnMenuItem_FPP_ConnectSelected" entry="EVT_TOOL" />
 						</object>
