@@ -39,6 +39,11 @@ public:
 
     std::string GetMembersCsv() const;
 
+    // A Set only survives a round-trip if it is named and still links at least
+    // two models; writers and readers must agree on this or a Set can be
+    // written and then silently dropped on load.
+    bool IsPersistable() const { return _members.size() >= 2 && !_name.empty(); }
+
     // XML round-trip.
     void Load(pugi::xml_node node);
     void Save(pugi::xml_node node) const;

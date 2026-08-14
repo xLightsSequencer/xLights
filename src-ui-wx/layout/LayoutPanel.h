@@ -657,6 +657,11 @@ class LayoutPanel: public wxPanel
         };
         std::vector<UndoStep> undoBuffer;
         void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key = "", const std::string &data = "");
+        // Pushes one "All" undo point the first time it is called and flips
+        // `taken`. Model Set handlers prompt part-way through their mutation
+        // loops, so the snapshot has to wait until a change is actually about
+        // to happen or a cancel would leave an empty undo step behind.
+        void CreateSetUndoPointOnce(bool& taken, const std::string& modelName);
 
         // Returns true only if selectedBaseObject is currently a live pointer in
         // either AllModels (incl. submodels) or AllObjects. Performs pointer-address

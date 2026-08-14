@@ -18,6 +18,11 @@ namespace XmlNodeKeys {
     constexpr auto RGBEffectsAttribute = "rgb_effects";
     constexpr auto DimmingCurveName    = "dimmingCurve";
 
+    // Model Set Node Names
+    constexpr auto ModelSetsNodeName        = "modelSets";
+    constexpr auto ModelSetNodeName         = "modelSet";
+    constexpr auto ModelSetModelsAttribute  = "models";
+
     // View Object Node Names
     constexpr auto ViewObjectsNodeName = "view_objects";
     constexpr auto ViewObjectNodeName  = "view_object";
