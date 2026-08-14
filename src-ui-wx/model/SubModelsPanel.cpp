@@ -3944,12 +3944,12 @@ void SubModelsPanel::ExportSubmodelToOtherModels()
     xLightsFrame* xlights = xLightsApp::GetFrame();
     wxArrayString choices = getModelList(&xlights->AllModels);
 
-    wxMultiChoiceDialog dlg(this, "Export SubModels to Other Models", "Choose Model(s)", choices);
+    CheckboxSelectDialog dlg(this, "Export SubModels to Other Models", choices);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {
-        for (auto const& idx : dlg.GetSelections()) {
-            Model* m = xlights->GetModel(choices.at(idx));
+        for (auto const& name : dlg.GetSelectedItems()) {
+            Model* m = xlights->GetModel(name);
             SaveSubModelInfoIntoThisModel(m);
             for (auto& it : m->GetSubModels()) {
                 it->IncrementChangeCount();
