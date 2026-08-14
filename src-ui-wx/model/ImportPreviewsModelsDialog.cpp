@@ -224,16 +224,16 @@ void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem 
     std::vector<std::pair<std::string, pugi::xml_node>> groups;
     std::vector<std::pair<std::string, pugi::xml_node>> mods;
 
-    auto collect = [&](pugi::xml_node parent, std::vector<std::pair<std::string, pugi::xml_node>>& into) {
+    auto collect = [&](pugi::xml_node parent, std::vector<std::pair<std::string, pugi::xml_node>>& into, ImpItemKind kind) {
         for (pugi::xml_node m = parent.first_child(); m; m = m.next_sibling()) {
             if (wxString(m.attribute("LayoutGroup").as_string()) == preview) {
                 wxString mn = m.attribute("name").as_string();
-                if (MatchesFilter(mn, filter)) into.emplace_back(mn.ToStdString(), m);
+                if (KeepInFilteredTree(mn, kind, filter)) into.emplace_back(mn.ToStdString(), m);
             }
         }
     };
-    if (modelgroups) collect(modelgroups, groups);
-    if (models) collect(models, mods);
+    if (modelgroups) collect(modelgroups, groups, ImpItemKind::ModelGroup);
+    if (models) collect(models, mods, ImpItemKind::Model);
 
     if (groups.empty() && mods.empty()) return;
 
@@ -258,7 +258,7 @@ void ImportPreviewsModelsDialog::AddViewpoints(wxTreeListCtrl* tree, wxTreeListI
     for (pugi::xml_node c = viewpoints.first_child(); c; c = c.next_sibling()) {
         if (std::string_view(c.name()) != "Camera") continue; // skip DefaultCamera2D/DefaultCamera3D
         wxString cn = UnXmlSafe(c.attribute("name").as_string(""));
-        if (MatchesFilter(cn, filter)) cams.emplace_back(cn.ToStdString(), c);
+        if (KeepInFilteredTree(cn, ImpItemKind::Viewpoint, filter)) cams.emplace_back(cn.ToStdString(), c);
     }
 
     if (cams.empty()) return;
@@ -270,6 +270,17 @@ void ImportPreviewsModelsDialog::AddViewpoints(wxTreeListCtrl* tree, wxTreeListI
         tree->AppendItem(item, label, -1, -1, new impTreeItemData(wxString(name), node, ImpItemKind::Viewpoint));
     }
     tree->Expand(item);
+}
+
+bool ImportPreviewsModelsDialog::KeepInFilteredTree(const wxString& name, ImpItemKind kind, const wxString& filterLower) const
+{
+    // A ticked row survives a filter that would otherwise exclude it. Its check
+    // state was already preserved in _checkedModels, but hiding the row made a
+    // selection built up across several filter terms impossible to review.
+    if (_checkedModels.count({ name.ToStdString(), kind }) != 0) {
+        return true;
+    }
+    return MatchesFilter(name, filterLower);
 }
 
 bool ImportPreviewsModelsDialog::MatchesFilter(const wxString& name, const wxString& filterLower)
@@ -384,9 +395,13 @@ void ImportPreviewsModelsDialog::PopulateTree()
 
     // While filtering, drop preview rows with no matching children (the Viewpoints row is
     // already guaranteed non-empty above, so this only ever prunes preview rows).
+    // A ticked preview row is kept even when empty, for the same reason a ticked
+    // model is: it represents a selection the user needs to still be able to see.
     if (!_filter.empty()) {
         for (wxTreeListItem p : topLevelRows) {
-            if (!TreeListCtrl1->GetFirstChild(p).IsOk()) TreeListCtrl1->DeleteItem(p);
+            if (TreeListCtrl1->GetFirstChild(p).IsOk()) continue;
+            if (_checkedPreviews.count(TreeListCtrl1->GetItemText(p).ToStdString()) != 0) continue;
+            TreeListCtrl1->DeleteItem(p);
         }
     }
 

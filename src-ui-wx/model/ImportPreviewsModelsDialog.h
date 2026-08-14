@@ -59,6 +59,9 @@ class ImportPreviewsModelsDialog: public wxDialog
     void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxString& filter);
     void AddViewpoints(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node viewpoints, const wxString& filter);
     static bool MatchesFilter(const wxString& name, const wxString& filterLower);
+    // MatchesFilter, plus rows the user has already ticked - those stay in the
+    // tree so a selection assembled across several filter terms remains visible.
+    bool KeepInFilteredTree(const wxString& name, ImpItemKind kind, const wxString& filterLower) const;
     bool IsViewpointsRow(wxTreeListItem it) const;
     // Filtering rebuilds the tree, so checked state is kept in these sets
     // (which survive filtered-out rows) and synced to/from the visible tree.

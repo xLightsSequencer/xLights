@@ -1580,12 +1580,11 @@ void ModelFacesPanel::ImportSubmodel(wxGridEvent& event)
     }
 
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    wxMultiChoiceDialog dlg(GetParent(), "", "Select SubModel", choices);
+    CheckboxSelectDialog dlg(GetParent(), _("Select SubModel"), choices);
 
     if (dlg.ShowModal() == wxID_OK) {
         wxArrayString allNodes;
-        for (auto const& idx : dlg.GetSelections()) {
-            wxString smName = choices.at(idx);
+        for (auto const& smName : dlg.GetSelectedItems()) {
             wxString nodes;
             if (_getSubModelRanges) {
                 nodes = _getSubModelRanges(smName.ToStdString());
