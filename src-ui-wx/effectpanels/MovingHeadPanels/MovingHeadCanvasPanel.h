@@ -16,12 +16,20 @@
 #include <memory>
 #include <vector>
 
+class DmxMotor;
+
 class IMovingHeadCanvasParent
 {
 public:
     virtual ~IMovingHeadCanvasParent() {}
 
     virtual void NotifyPositionUpdated() = 0;
+
+    // Motors of the fixture the P/T readout should be expressed in raw DMX
+    // terms for (e.g. the first checked/active fixture). Return nullptr to
+    // fall back to a degrees readout when no such fixture is resolvable.
+    virtual DmxMotor* GetReferencePanMotor() { return nullptr; }
+    virtual DmxMotor* GetReferenceTiltMotor() { return nullptr; }
 };
 
 
