@@ -4490,15 +4490,7 @@ void xLightsFrame::DoPromoteEffects(ModelElement* element)
 
 void xLightsFrame::OnAuiToolBarItemShowHideEffects(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("EffectDropper").IsShown();
-    if (visible) {
-        m_mgr->GetPane("EffectDropper").Hide();
-    } else {
-        m_mgr->GetPane("EffectDropper").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("EffectDropper", true);
 }
 
 void xLightsFrame::UpdateSequenceVideoPanel(const wxString& path)

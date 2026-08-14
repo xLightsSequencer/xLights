@@ -4051,15 +4051,7 @@ void xLightsFrame::SetEffectAssistMode(int i)
 
 void xLightsFrame::SetEffectAssistWindowState(bool show)
 {
-    bool visible = m_mgr->GetPane("EffectAssist").IsShown();
-    if (visible && !show) {
-        m_mgr->GetPane("EffectAssist").Hide();
-        m_mgr->Update();
-    } else if (!visible && show) {
-        m_mgr->GetPane("EffectAssist").Show();
-        m_mgr->Update();
-    }
-    UpdateViewMenu();
+    SetPaneVisibility("EffectAssist", show);
 }
 
 void xLightsFrame::UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect)
@@ -7780,9 +7772,7 @@ void xLightsFrame::ShowPresetsPanel()
         EffectTreeDlg->InitItems(_effectPresetManager);
         _effectPresetsInitialized = true;
     }
-    m_mgr->GetPane("EffectPresets").Show();
-    m_mgr->Update();
-    UpdateViewMenu();
+    SetPaneVisibility("EffectPresets", true);
 }
 
 uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::list<std::pair<std::string, uint64_t>>& slow, uint64_t thresholdUS)
@@ -7828,14 +7818,7 @@ void xLightsFrame::TogglePresetsPanel()
         EffectTreeDlg->InitItems(_effectPresetManager);
         _effectPresetsInitialized = true;
     }
-    bool visible = m_mgr->GetPane("EffectPresets").IsShown();
-    if (visible) {
-        m_mgr->GetPane("EffectPresets").Hide();
-    } else {
-        m_mgr->GetPane("EffectPresets").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("EffectPresets");
 }
 
 void xLightsFrame::ShowHideEffectPresetsWindow(wxCommandEvent& event)
@@ -7871,6 +7854,30 @@ bool xLightsFrame::TogglePaneVisibility(const wxString& name, bool initSequencer
     if (nowShown != nullptr) {
         *nowShown = shown;
     }
+    return true;
+}
+
+bool xLightsFrame::SetPaneVisibility(const wxString& name, bool show, bool initSequencer)
+{
+    // Same hazards as TogglePaneVisibility above - see the comment there. This
+    // variant exists for the callers driven by state rather than by a click
+    // (perspective load, show/hide-all, the effect-assist mode), which reach
+    // the manager during teardown far more readily than a menu item does.
+    if (m_mgr == nullptr || IsExiting()) {
+        return false;
+    }
+    if (initSequencer) {
+        InitSequencer();
+    }
+    wxAuiPaneInfo& info = m_mgr->GetPane(name);
+    if (!info.IsOk()) {
+        return false;
+    }
+    if (info.IsShown() != show) {
+        show ? info.Show() : info.Hide();
+        m_mgr->Update();
+    }
+    UpdateViewMenu();
     return true;
 }
 

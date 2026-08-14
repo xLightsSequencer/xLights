@@ -52,6 +52,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  guards that optimized builds had been silently discarding
     -bug (dkulp)                 Fix a crash starting playback when the audio engine had been stopped, such as
                                  after a pause or an audio device change
+    -bug (dkulp)                 Fix a crash starting playback when the audio engine has started but has not
+                                 begun playing yet
+    -bug (dkulp)                 Fix a crash closing xLights while the Effect Assist panel was in automatic mode
+    -bug (dkulp)                 Fix a crash importing a Vixen .vix sequence whose channel numbers are not
+                                 contiguous
     -bug (dkulp)                 Fix a crash choosing an OBJ mesh whose backup copy cannot be written, and leave
                                  the original file untouched in that case
     -bug (dkulp)                 Fix a crash when a WLED controller answers with an error page instead of JSON,

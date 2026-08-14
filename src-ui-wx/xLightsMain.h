@@ -1162,6 +1162,10 @@ public:
     // the pane's new state when it did toggle.
     bool TogglePaneVisibility(const wxString& name, bool initSequencer = false, bool* nowShown = nullptr);
 
+    // Same guard, for the callers that want an explicit state rather than a
+    // toggle. Returns false when there was no usable pane to change.
+    bool SetPaneVisibility(const wxString& name, bool show, bool initSequencer = false);
+
     void GetBackupFolder(bool& useShow, std::string& folder);
     void SetBackupFolder(bool useShow, const std::string& folder);
     void GetAltBackupFolder(std::string& folder);

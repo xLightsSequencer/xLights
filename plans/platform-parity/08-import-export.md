@@ -39,7 +39,7 @@ from the iPad: `grep -ril ConvertDialog|Conductor|Glediator|xseq src-iPad/` retu
 | 17 | Convert input: Glediator `.gled` | `ConvertDialog.cpp:1701-1711` → `ReadGlediatorFile` (`ConvertDialog.cpp:751`) | ❌ | Same. `grep -rn "Glediator" src-iPad/` → only the effect file picker |
 | 18 | Convert input: HLS `.hlsIdata` (channel data) | `ConvertDialog.cpp:1712-1714` → `ReadHLSFile` (`ConvertDialog.cpp:964`) | ❌ | Distinct from row 9 — Convert reads it as raw channel data, not effects |
 | 19 | Convert input: LOR `.lms` / `.las` (channel data, with 25/50/100 ms resolution choice) | `ConvertDialog.cpp:1715-1735`; resolution picker `ConvertDialog.cpp:144-146` | ❌ | Distinct from rows 5-6 |
-| 20 | Convert input: Vixen `.vix` (channel data) | `ConvertDialog.cpp:1664-1673` → `ReadVixFile` (`ConvertDialog.cpp:827`) | ❌ | Distinct from row 10 |
+| 20 | Convert input: Vixen `.vix` (channel data) | `ConvertDialog.cpp:1664-1673` → `ReadVixFile` (`src-ui-wx/import_export/FileConverter.cpp:1000`) | ❌ | Distinct from row 10. Desktop-only surface, so the 2026.16 out-of-bounds fix (non-contiguous channel ids walked the id *span* rather than the parsed channels) has no iPad counterpart to mirror |
 
 ## Features
 

@@ -1125,10 +1125,20 @@ void FileConverter::ReadVixFile(ConvertParameters& params)
     }
     params.seq_data.init(numChannels, VixNumPeriods, VixEventPeriod);
 
-    for (size_t ch=0; ch < params.seq_data.NumChannels(); ch++)
+    // numChannels is the SPAN between the smallest and largest output id, which
+    // is only the same as the number of <Channel> elements when the ids are
+    // contiguous from min. Walk the channels we actually parsed - indexing
+    // VixChannels/VixSeqData by a span position reads off the end of both, and
+    // the garbage id that comes back then indexes ChannelNames (sized by the
+    // show's channel count, not by anything in the .vix) out of bounds too.
+    for (size_t ch=0; ch < VixChannels.size(); ch++)
     {
         int OutputChannel = VixChannels[ch] - min;
-        if (ch < VixChannelNames.size())
+        if (OutputChannel < 0 || OutputChannel >= (int)params.seq_data.NumChannels())
+        {
+            continue;
+        }
+        if (ch < VixChannelNames.size() && OutputChannel < (int)ChannelNames.size())
         {
             ChannelNames[OutputChannel] = VixChannelNames[ch];
         }
