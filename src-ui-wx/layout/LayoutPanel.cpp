@@ -3738,12 +3738,14 @@ void LayoutPanel::RemoveSelectedFromExistingGroups() {
                             // Get current model names in the group
                             const std::vector<std::string>& groupModelNames = modelGroup->ModelNames();
 
-                            // Build a new list with the selected model removed
+                            // Build a new list with the selected model, and any of its
+                            // submodels (stored as "ModelName/SubModelName"), removed
+                            const std::string submodelPrefix = selectedModel + "/";
                             std::vector<std::string> updatedModelNames;
                             bool groupChanged = false;
 
                             for (const auto& modelName : groupModelNames) {
-                                if (modelName != selectedModel) {
+                                if (modelName != selectedModel && !modelName.starts_with(submodelPrefix)) {
                                     updatedModelNames.push_back(modelName);
                                 } else {
                                     groupChanged = true;
@@ -12266,6 +12268,20 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         wxMenuItem* addToExisting = mnuContext.FindItem(ID_MNU_ADD_TO_EXISTING_GROUPS);
         if (addToExisting != nullptr) {
             mnuContext.Remove(ID_MNU_ADD_TO_EXISTING_GROUPS);
+        }
+        // Remove preview option 'Remove from Existing Groups' as it is added with the other group options below
+        wxMenuItem* removeFromExisting = mnuContext.FindItem(ID_MNU_REMOVE_FROM_EXISTING_GROUPS);
+        if (removeFromExisting != nullptr) {
+            mnuContext.Remove(ID_MNU_REMOVE_FROM_EXISTING_GROUPS);
+        }
+        // The three removals above can leave the separators either side of that
+        // group of options sitting next to each other with nothing between them
+        for (size_t i = 1; i < mnuContext.GetMenuItemCount(); ) {
+            if (mnuContext.FindItemByPosition(i - 1)->IsSeparator() && mnuContext.FindItemByPosition(i)->IsSeparator()) {
+                mnuContext.Destroy(mnuContext.FindItemByPosition(i));
+            } else {
+                ++i;
+            }
         }
         mnuContext.AppendSeparator();
     }
