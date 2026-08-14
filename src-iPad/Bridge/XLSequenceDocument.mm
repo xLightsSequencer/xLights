@@ -19870,7 +19870,9 @@ NSString* fppTypeString(FPP_TYPE t) {
         FPP* fpp = nullptr;
         std::string ip;
         std::string media;
-        int fseqType = 2;
+        int fseqVersion = 2;
+        FSEQFile::CompressionType compressionType = FSEQFile::CompressionType::zstd;
+        bool sparse = true;
         NSString* ipNS = nil;       // for progress routing
         bool prepared = false;
         bool finalized = false;
@@ -19907,9 +19909,13 @@ NSString* fppTypeString(FPP_TYPE t) {
         // Sparse costs a master player the channel ranges it needs to
         // drive its remotes.
         if (match->fppType == FPP_TYPE::ESPIXELSTICK) {
-            ctx.fseqType = 3;
+            ctx.fseqVersion = 2;
+            ctx.compressionType = FSEQFile::CompressionType::none;
+            ctx.sparse = true;
         } else {
-            ctx.fseqType = (match->mode == "master") ? 1 : 2;
+            ctx.fseqVersion = 2;
+            ctx.compressionType = FSEQFile::CompressionType::zstd;
+            ctx.sparse = (match->mode != "master");
         }
         ctxs.push_back(ctx);
     }
@@ -19952,7 +19958,7 @@ NSString* fppTypeString(FPP_TYPE t) {
     for (TargetCtx& c : ctxs) {
         if (cancelledFlag) break;
         bool prepFail = c.fpp->PrepareUploadSequence(seq.get(), fseq,
-                                                      c.media, c.fseqType);
+                                                      c.media, c.fseqVersion, c.compressionType, c.sparse);
         if (prepFail) {
             c.failed = true;
             c.message = "PrepareUploadSequence failed.";
