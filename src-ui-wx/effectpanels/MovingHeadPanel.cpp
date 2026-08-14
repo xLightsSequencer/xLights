@@ -3273,6 +3273,32 @@ void MovingHeadPanel::NotifyPositionUpdated()
     FireChangeEvent();
 }
 
+DmxMovingHeadComm* MovingHeadPanel::GetReferenceFixture()
+{
+    auto models = GetActiveModels();
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            auto* mhead = dynamic_cast<DmxMovingHeadComm*>(it);
+            if (mhead != nullptr && (IsHeadActive(mhead->GetFixtureVal()) || models.size() == 1)) {
+                return mhead;
+            }
+        }
+    }
+    return nullptr;
+}
+
+DmxMotor* MovingHeadPanel::GetReferencePanMotor()
+{
+    auto* mhead = GetReferenceFixture();
+    return mhead != nullptr ? mhead->GetPanMotor() : nullptr;
+}
+
+DmxMotor* MovingHeadPanel::GetReferenceTiltMotor()
+{
+    auto* mhead = GetReferenceFixture();
+    return mhead != nullptr ? mhead->GetTiltMotor() : nullptr;
+}
+
 void MovingHeadPanel::UpdatePositionCanvas(float pan, float tilt)
 {
     wxPoint2DDouble new_pos;

@@ -580,6 +580,35 @@ void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx,
     float sbl = std::max(scw, std::max(sch, scd));
     beam_length_displayed *= sbl;
 
+    // Pan/tilt values, and temporary position-zone channel overrides, used
+    // both for the beam appearance below and the zone-active indicator ring.
+    // Every ability below (shutter, dimmer, color wheel/RGB/CMY) reads its
+    // channel values straight out of Nodes, so patch the affected Nodes'
+    // colors for the duration of this draw and restore them afterward -
+    // that keeps the preview beam in sync with whatever the zone forces into
+    // the actual rendered output, without each ability needing its own
+    // zone-aware read.
+    int zonePanVal = -1;
+    int zoneTiltVal = -1;
+    std::vector<std::pair<int, xlColor>> zoneRestores;
+    if (active && !position_zones.empty()) {
+        int panCoarse = pan_motor->GetChannelCoarse();
+        int tiltCoarse = tilt_motor->GetChannelCoarse();
+        zonePanVal = (panCoarse > 0 && panCoarse <= (int)Nodes.size()) ? GetChannelValue(panCoarse - 1, false) : -1;
+        zoneTiltVal = (tiltCoarse > 0 && tiltCoarse <= (int)Nodes.size()) ? GetChannelValue(tiltCoarse - 1, false) : -1;
+        for (const auto& zone : position_zones) {
+            if (zone.channel < 1 || zone.channel > (int)Nodes.size())
+                continue;
+            if (zonePanVal >= zone.pan_min && zonePanVal <= zone.pan_max &&
+                zoneTiltVal >= zone.tilt_min && zoneTiltVal <= zone.tilt_max) {
+                xlColor orig;
+                Nodes[zone.channel - 1]->GetColor(orig);
+                zoneRestores.emplace_back(zone.channel - 1, orig);
+                Nodes[zone.channel - 1]->SetColor(xlColor(zone.value, zone.value, zone.value));
+            }
+        }
+    }
+
     // determine if shutter is open for heads that support it
     bool shutter_open = true;
     if (shutter_ability->GetShutterChannel() > 0 && shutter_ability->GetShutterChannel() <= (int)NodeCount && active) {
@@ -613,6 +642,10 @@ void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx,
         beam_color.green = (beam_color.green * hsv.value);
     }
 
+    for (const auto& restore : zoneRestores) {
+        Nodes[restore.first]->SetColor(restore.second);
+    }
+
     ApplyTransparency(beam_color, trans, trans);
 
     pan_angle_raw += beam_ability->GetBeamOrient();
@@ -622,14 +655,10 @@ void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx,
 
     // draw zone-active indicator ring at fixture base when a position zone is being applied
     if (active && !position_zones.empty() && preview->GetShowZoneIndicator()) {
-        int panCoarse = pan_motor->GetChannelCoarse();
-        int tiltCoarse = tilt_motor->GetChannelCoarse();
-        int panVal = (panCoarse > 0 && panCoarse <= (int)Nodes.size()) ? GetChannelValue(panCoarse - 1, false) : -1;
-        int tiltVal = (tiltCoarse > 0 && tiltCoarse <= (int)Nodes.size()) ? GetChannelValue(tiltCoarse - 1, false) : -1;
         bool zoneActive = false;
         for (const auto& zone : position_zones) {
-            if (panVal >= zone.pan_min && panVal <= zone.pan_max &&
-                tiltVal >= zone.tilt_min && tiltVal <= zone.tilt_max) {
+            if (zonePanVal >= zone.pan_min && zonePanVal <= zone.pan_max &&
+                zoneTiltVal >= zone.tilt_min && zoneTiltVal <= zone.tilt_max) {
                 zoneActive = true;
                 break;
             }

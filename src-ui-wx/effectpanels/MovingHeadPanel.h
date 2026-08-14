@@ -44,6 +44,8 @@
 #include <vector>
 
 class Model;
+class DmxMotor;
+class DmxMovingHeadComm;
 class MHPresetBitmapButton;
 class MHPathPresetBitmapButton;
 class MHDimmerPresetBitmapButton;
@@ -466,6 +468,9 @@ public:
     void SetSketchDef(const std::string& sketchDef);
     
     void NotifyPositionUpdated() override;
+    DmxMotor* GetReferencePanMotor() override;
+    DmxMotor* GetReferenceTiltMotor() override;
+    DmxMovingHeadComm* GetReferenceFixture();
     void NotifyColorUpdated() override;
     void NotifyDimmerUpdated() override;
     const Element* GetDimmerTimingTrack() const override;

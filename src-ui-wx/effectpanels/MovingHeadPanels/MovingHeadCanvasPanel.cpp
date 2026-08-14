@@ -13,6 +13,8 @@
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
 
+#include "models/DMX/DmxMotor.h"
+
 namespace
 {
     const int BorderWidth = 5;
@@ -73,6 +75,26 @@ void MovingHeadCanvasPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
         pdc.DrawLine(NormalizedToUI2(start_x), NormalizedToUI2(end_x));
         pdc.DrawLine(NormalizedToUI2(start_y), NormalizedToUI2(end_y));
     }
+
+    // P/T readout in the upper-left corner. When a reference fixture's motors
+    // are available, show the raw DMX byte that fixture would receive at this
+    // position (msb of DmxMotor::ConvertPostoCmd's 16-bit-domain command,
+    // matching how DmxModel::GetChannelValue packs an 8-bit channel);
+    // otherwise fall back to the pan/tilt degrees shown in the entries below.
+    float pos_x = m_mousePos.m_x * 360.0f - 180.0f;
+    float pos_y = -m_mousePos.m_y * 360.0f + 180.0f;
+    DmxMotor* panMotor = m_movingHeadCanvasParent ? m_movingHeadCanvasParent->GetReferencePanMotor() : nullptr;
+    DmxMotor* tiltMotor = m_movingHeadCanvasParent ? m_movingHeadCanvasParent->GetReferenceTiltMotor() : nullptr;
+    wxString ptLabel;
+    if (panMotor != nullptr && tiltMotor != nullptr) {
+        int panByte = (panMotor->ConvertPostoCmd(pos_x) >> 8) & 0xFF;
+        int tiltByte = (tiltMotor->ConvertPostoCmd(pos_y) >> 8) & 0xFF;
+        ptLabel = wxString::Format("P: %d  T: %d", panByte, tiltByte);
+    } else {
+        ptLabel = wxString::Format("P: %.1f  T: %.1f", pos_x, pos_y);
+    }
+    pdc.SetTextForeground(*wxBLACK);
+    pdc.DrawText(ptLabel, BorderWidth + 2, BorderWidth + 2);
 
     pdc.SetPen(*wxRED_PEN);
     wxPoint2DDouble lstart_x(0, m_mousePos.m_y);
