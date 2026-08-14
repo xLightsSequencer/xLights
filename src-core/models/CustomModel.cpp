@@ -167,14 +167,17 @@ void CustomModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext
             float hh = (GetModelScreenLocation().GetRenderHt() / 2.0f) * _bkg_scale / 100.0f;
             float cx = kHalfCellOffset;
             float cy = kHalfCellOffset;
+            // Push the background behind the back-most node layer so it never shares a
+            // z-plane with the pixels (avoids z-fighting when the 3D view is rotated).
+            float bkgZ = -((float)(_depth - 1) / 2.0f) - 0.5f;
             xlVertexTextureAccumulator* va = ctx->createVertexTextureAccumulator();
             va->PreAlloc(6);
-            va->AddVertex(cx - hw, cy - hh, 0.0f, 0.0f, 1.0f);
-            va->AddVertex(cx + hw, cy - hh, 0.0f, 1.0f, 1.0f);
-            va->AddVertex(cx - hw, cy + hh, 0.0f, 0.0f, 0.0f);
-            va->AddVertex(cx - hw, cy + hh, 0.0f, 0.0f, 0.0f);
-            va->AddVertex(cx + hw, cy - hh, 0.0f, 1.0f, 1.0f);
-            va->AddVertex(cx + hw, cy + hh, 0.0f, 1.0f, 0.0f);
+            va->AddVertex(cx - hw, cy - hh, bkgZ, 0.0f, 1.0f);
+            va->AddVertex(cx + hw, cy - hh, bkgZ, 1.0f, 1.0f);
+            va->AddVertex(cx - hw, cy + hh, bkgZ, 0.0f, 0.0f);
+            va->AddVertex(cx - hw, cy + hh, bkgZ, 0.0f, 0.0f);
+            va->AddVertex(cx + hw, cy - hh, bkgZ, 1.0f, 1.0f);
+            va->AddVertex(cx + hw, cy + hh, bkgZ, 1.0f, 0.0f);
             GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
             uint8_t alpha = (uint8_t)std::lround((100 - _bkg_transparency) * 255.0 / 100.0);
             solidProgram->addStep([=, this](xlGraphicsContext* ctx) {
@@ -225,14 +228,17 @@ void CustomModel::DisplayEffectOnWindow(IModelPreview* preview, double pointSize
             float hw = (GetModelScreenLocation().GetRenderWi() / 2.0f) * _bkg_scale / 100.0f;
             float hh = (GetModelScreenLocation().GetRenderHt() / 2.0f) * _bkg_scale / 100.0f;
 
+            // Push the background behind the back-most node layer so it never shares a
+            // z-plane with the pixels (avoids z-fighting when the 3D view is rotated).
+            float bkgZ = -((float)(_depth - 1) / 2.0f) - 0.5f;
             xlVertexTextureAccumulator* va = ctx->createVertexTextureAccumulator();
             va->PreAlloc(6);
-            va->AddVertex(-hw, -hh, 0.0f, 0.0f, 1.0f);
-            va->AddVertex(+hw, -hh, 0.0f, 1.0f, 1.0f);
-            va->AddVertex(-hw, +hh, 0.0f, 0.0f, 0.0f);
-            va->AddVertex(-hw, +hh, 0.0f, 0.0f, 0.0f);
-            va->AddVertex(+hw, -hh, 0.0f, 1.0f, 1.0f);
-            va->AddVertex(+hw, +hh, 0.0f, 1.0f, 0.0f);
+            va->AddVertex(-hw, -hh, bkgZ, 0.0f, 1.0f);
+            va->AddVertex(+hw, -hh, bkgZ, 1.0f, 1.0f);
+            va->AddVertex(-hw, +hh, bkgZ, 0.0f, 0.0f);
+            va->AddVertex(-hw, +hh, bkgZ, 0.0f, 0.0f);
+            va->AddVertex(+hw, -hh, bkgZ, 1.0f, 1.0f);
+            va->AddVertex(+hw, +hh, bkgZ, 1.0f, 0.0f);
 
             int brightness = _bkg_brightness;
             uint8_t alpha = (uint8_t)std::lround((100 - _bkg_transparency) * 255.0 / 100.0);
