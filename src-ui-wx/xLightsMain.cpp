@@ -156,6 +156,7 @@
 #include "ai/WxServiceSettingsStore.h"
 #include "models/DMX/DmxMovingHeadComm.h"
 #include "color/ColorPanel.h"
+#include "setup/ShowDirectoriesDialog.h"
 
 #include "../dependencies/wxHTTPServer/wxhttpserver.h"
 
@@ -1652,8 +1653,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     spdlog::debug("LayoutPanel creation done.");
     layoutPanel->LabelDirectoriesFooter->Bind(wxEVT_LEFT_DCLICK,
                              [this](wxMouseEvent&) {
-                                 wxCommandEvent evt;
-                                 OnMenuOpenFolderSelected(evt);
+                                                  if (wxGetKeyState(WXK_SHIFT)) {
+                                                      wxLaunchDefaultApplication(showDirectory);
+                                                  } else {
+                                                      OpenShowDirectoriesDialog();
+                                                  }
                              });
     FlexGridSizerPreview->Add(layoutPanel, 1, wxALL | wxEXPAND, 5);
     FlexGridSizerPreview->Fit(PanelPreview);
@@ -6611,6 +6615,11 @@ bool xLightsFrame::CleanupRGBEffectsFileLocations()
     }
 
     return true;
+}
+
+void xLightsFrame::OpenShowDirectoriesDialog() {
+    ShowDirectoriesDialog dlg(this);
+    dlg.ShowModal();
 }
 
 void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event)

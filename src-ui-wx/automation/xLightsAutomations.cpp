@@ -461,21 +461,30 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("Player " + ip + " not found.", "msg", 503, false);
         }
 
-        int fseqType = 0;
+        int fseqversion { 1 };
+        FSEQFile::CompressionType cType { FSEQFile::CompressionType::none };
+        bool sparse { false };
         if (format == "v1") {
-            fseqType = 0;
-        } else if (format == "v2std") {
-            fseqType = 1;
+            fseqversion = 1;
+        } else if (format == "v2std" || format == "v2zstd") {
+            fseqversion = 2;
+            cType = FSEQFile::CompressionType::zstd;
         } else if (format == "v2zlib") {
-            fseqType = 5;
+            fseqversion = 2;
+            cType = FSEQFile::CompressionType::zlib;
         } else if (format == "v2uncompressedsparse") {
-            fseqType = 3;
+            fseqversion = 2;
+            sparse = true;
         } else if (format == "v2uncompressed") {
-            fseqType = 4;
-        } else if (format == "v2stdsparse") {
-            fseqType = 2;
+            fseqversion = 2;
+        } else if (format == "v2stdsparse" || format == "v2zstdsparse") {
+            fseqversion = 2;
+            cType = FSEQFile::CompressionType::zstd;
+            sparse = true;
         } else if (format == "v2zlibsparse") {
-            fseqType = 6;
+            fseqversion = 2;
+            cType = FSEQFile::CompressionType::zlib;
+            sparse = true;
         }
 
         if (!media) {
@@ -486,7 +495,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (seq) {
             // every frame is read in order below to build the upload
             seq->setReadPattern(FSEQFile::ReadPattern::Bulk);
-            fpp->PrepareUploadSequence(seq, fseq, m2, fseqType);
+            fpp->PrepareUploadSequence(seq, fseq, m2, fseqversion, cType, sparse);
             static const int FRAMES_TO_BUFFER = 50;
             std::vector<std::vector<uint8_t>> frames(FRAMES_TO_BUFFER);
             for (size_t x = 0; x < frames.size(); x++) {

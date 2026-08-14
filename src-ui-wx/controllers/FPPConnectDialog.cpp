@@ -676,8 +676,24 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
             Choice1->SetSelection(2);
             fseqWidget = Choice1;
             fseqBorder = 0;
-        } else if (inst->fppType == FPP_TYPE::ESPIXELSTICK || inst->fppType == FPP_TYPE::GENIUS) {
+        } else if (inst->fppType == FPP_TYPE::ESPIXELSTICK ) {
             fseqWidget = new wxStaticText(FPPInstanceList, wxID_ANY, "V2 Sparse/Uncompressed", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
+        } else if (inst->fppType == FPP_TYPE::GENIUS) {
+            wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
+            wxFont font = Choice1->GetFont();
+            font.SetPointSize(font.GetPointSize() - 2);
+            Choice1->SetFont(font);
+            if (inst->fullVersion.starts_with("1")) {
+                Choice1->Append(_("V2 Sparse/Uncompressed"));
+            } else {                
+                Choice1->Append(_("V2 Sparse/zlib"));
+                Choice1->Append(_("V2 Sparse/Uncompressed"));
+                Choice1->Append(_("V2 zlib"));
+                Choice1->Append(_("V2 Uncompressed"));
+            }
+            Choice1->SetSelection(0);
+            fseqWidget = Choice1;
+            fseqBorder = 0;
         } else {
             fseqWidget = new wxStaticText(FPPInstanceList, wxID_ANY, "V1", wxDefaultPosition, wxDefaultSize, 0, "ID_STATIC_TEXT_FS_" + rowStr);
         }
@@ -1379,20 +1395,18 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                             m2 = "";
                         }
 
-                        int fseqType = 0;
-                        if (inst->fppType == FPP_TYPE::FPP) {
-                            fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
-                        } else if (inst->fppType == FPP_TYPE::FALCONV4V5) {
-                            fseqType = GetChoiceValueIndex(FSEQ_COL + rowStr);
-                            // need to adjust so they are unique
-                            if (fseqType == 1) fseqType = 5;
-                            if (fseqType == 2) fseqType = 6;
+                        int fseqversion{ 1 };
+                        FSEQFile::CompressionType cType{ FSEQFile::CompressionType::none };
+                        bool sparse{ false };
+                        if (inst->fppType == FPP_TYPE::FPP || inst->fppType == FPP_TYPE::FALCONV4V5 || inst->fppType == FPP_TYPE::GENIUS || inst->fppType == FPP_TYPE::POWERDMX) {
+                            std::tie(fseqversion, cType, sparse) = DecodeFSEQVersionAndCompression(GetChoiceValue(FSEQ_COL + rowStr));
                         } else {
-                            fseqType = 3;
+                            fseqversion = 2;
+                            sparse = true;
                         }
                         cancelled |= inst->PrepareUploadSequence(seq,
                                                                 fseq, m2,
-                                                                fseqType);
+                                                                fseqversion, cType, sparse);
                     }
                     row++;
                 }
@@ -2000,3 +2014,18 @@ void FPPConnectDialog::DisplayDateModified(const wxString& filePath, wxTreeListI
     }
 }
 
+std::tuple<int, FSEQFile::CompressionType, bool> FPPConnectDialog::DecodeFSEQVersionAndCompression(const std::string& selection) const {
+    if (::Lower(selection).starts_with("v1")) {
+        return { 1, FSEQFile::CompressionType::none, false };
+    }    
+    const int ver { 2 };
+    bool sparse{ ::Contains(::Lower(selection), "sparse") };
+    FSEQFile::CompressionType cType{ FSEQFile::CompressionType::none };
+    if (::Contains(::Lower(selection), "zlib")) {
+        cType = FSEQFile::CompressionType::zlib;
+    }
+    if (::Contains(::Lower(selection), "zstd")) {
+        cType = FSEQFile::CompressionType::zstd;
+    }
+    return { ver, cType, sparse };
+}

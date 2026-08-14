@@ -13,9 +13,10 @@
 #include "../models/ViewObjectManager.h"
 #include "ControllerUploadData.h"
 #include "BaseController.h"
+#include "../render/FSEQFile.h"
 
 class DiscoveryDelegate;
-class FSEQFile;
+
 typedef void CURL;
 class UICallbacks;
 class Discovery;
@@ -113,7 +114,9 @@ class FPP : public BaseController
     bool PrepareUploadSequence(FSEQFile *file,
                                const std::string &seq,
                                const std::string &media,
-                               int type);
+                               int FSEQ_Version, 
+                               FSEQFile::CompressionType ctype,
+                               bool sparse);
     bool CheckUploadMedia(const std::string &media, std::string &mediaBaseName);
     bool WillUploadSequence() const;
     bool NeedCustomSequence() const;

@@ -1988,6 +1988,7 @@ public:
     // Returns empty string if file is not inside any show/media folder.
     std::string MakeRelativePath(const std::string& file) const override;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
+    void OpenShowDirectoriesDialog();
     ColorPanel* GetColorPanel() const { return colorPanel; }
     JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }
     BufferPanel* GetBufferPanel() const { return bufferPanel; }

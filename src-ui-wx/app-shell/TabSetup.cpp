@@ -43,7 +43,6 @@
 #include "utils/SpecialOptions.h"
 #include "layout/LayoutGroup.h"
 #include "setup/ControllerModelDialog.h"
-#include "setup/ShowDirectoriesDialog.h"
 #include "utils/ExternalHooks.h"
 #include "utils/ip_utils.h"
 
@@ -563,8 +562,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 }
 
 void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event) {
-    ShowDirectoriesDialog dlg(this);
-    dlg.ShowModal();
+    PromptForShowDirectory(true);
 }
 
 bool xLightsFrame::PromptForDirectorySelection(const std::string &msg, std::string &dir) {

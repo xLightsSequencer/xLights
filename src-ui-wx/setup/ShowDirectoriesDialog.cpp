@@ -131,20 +131,26 @@ ShowDirectoriesDialog::ShowDirectoriesDialog(xLightsFrame* parent)
     buttonSizer->Add(closeButton, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
     mainSizer->Add(buttonSizer, 0, wxALIGN_RIGHT | wxALL, 10);
 
+    // Populate the real path labels before Fit() so the sizer measures their
+    // actual (possibly long) text instead of the short placeholder strings the
+    // labels were constructed with.
+    UpdateControlsState();
+
     SetSizerAndFit(mainSizer);
 
-    // Directory paths get long, so give the dialog room, but never demand more
-    // width than the display actually has.
+    // A long directory path can make the natural fit wider than the display;
+    // clamp to that, but otherwise let the sizer's own fit width stand rather
+    // than forcing every dialog up to some fixed minimum.
     int w, h;
     GetSize(&w, &h);
-    int preferred = std::min(FromDIP(1000), wxGetDisplaySize().GetWidth());
-    if (w < preferred) {
-        SetSize(preferred, h);
+    int maxW = wxGetDisplaySize().GetWidth();
+    if (w > maxW) {
+        SetSize(maxW, h);
+        w = maxW;
     }
-    SetMinSize(wxSize(std::min(w, preferred), h));
+    SetMinSize(wxSize(w, h));
     CenterOnParent();
-
-    UpdateControlsState();
+    Layout();
 }
 
 ShowDirectoriesDialog::~ShowDirectoriesDialog()

@@ -1141,7 +1141,9 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
 bool FPP::PrepareUploadSequence(FSEQFile *file,
                                 const std::string &seq,
                                 const std::string &media,
-                                int type) {
+                                int FSEQ_Version, 
+                                FSEQFile::CompressionType ctype, 
+                                bool sparse) {
     if (outputFile && !outputFileIsOriginal) {
         delete outputFile;
     }
@@ -1173,13 +1175,6 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     TempFileManager::GetTempFileManager().AddTempFile(tempFileName);
     std::string fileName = tempFileName;
 
-    FSEQFile::CompressionType ctype = ::FSEQFile::CompressionType::zstd;
-    if (type == 3 || type == 4) {
-        ctype = ::FSEQFile::CompressionType::none;
-    } else if (type == 5 || type == 6) {
-        ctype = ::FSEQFile::CompressionType::zlib;
-    }
-
     bool doSeqUpload = true;
     uint32_t currentMaxChannel = 0;
     uint32_t currentChannelCount = 0;
@@ -1192,19 +1187,19 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             char buf[24];
             snprintf(buf, sizeof(buf), "%" PRIu64, file->getUniqueId());
             std::string version = GetJSONStringValue(currentMeta, "Version");
-            if (type == 0 && version[0] != '1') doSeqUpload = true;
-            if (type != 0 && version[0] == '1') doSeqUpload = true;
-            int currentCompression = 1;
+            if (FSEQ_Version == 1 && version[0] != '1') doSeqUpload = true;
+            if (FSEQ_Version != 1 && version[0] == '1') doSeqUpload = true;
+            FSEQFile::CompressionType currentCompression = FSEQFile::CompressionType::zstd;
             if (version[0] == '1') {
-                currentCompression = 0;
+                currentCompression = FSEQFile::CompressionType::none;
             }
             if (currentMeta.contains("CompressionType")) {
-                currentCompression = GetJSONIntValue(currentMeta, "CompressionType");
+                currentCompression = static_cast<::FSEQFile::CompressionType>(GetJSONIntValue(currentMeta, "CompressionType"));
             }
-            if ((type == 2 || type == 1) && currentCompression != 1) {
+            if ((ctype == FSEQFile::CompressionType::zstd) && currentCompression != ::FSEQFile::CompressionType::zstd) {
                 doSeqUpload = true;
             }
-            if ((type == 0 || type == 3) && currentCompression != 0) {
+            if ((ctype == FSEQFile::CompressionType::none) && currentCompression != ::FSEQFile::CompressionType::none) {
                 doSeqUpload = true;
             }
             if (GetJSONStringValue(currentMeta, "ID") != buf) {
@@ -1229,7 +1224,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     }
 
     int channelCount = 0;
-    if (type <= 1 || type == 4 || type == 5) {
+    if (!sparse) {
         //full file, non sparse
         if (currentMaxChannel != file->getMaxChannel()) doSeqUpload = true;
         if (currentChannelCount != file->getChannelCount()) doSeqUpload = true;
@@ -1269,14 +1264,14 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
 
     baseSeqName = baseName;
     if (fppType == FPP_TYPE::FPP) {
-        if ((type == 0 && file->getVersionMajor() == 1) || fn.extension() == ".eseq") {
+        if ((FSEQ_Version == 1 && file->getVersionMajor() == 1) || fn.extension() == ".eseq") {
             //these just get uploaded directly
             outputFile = file;
             outputFileIsOriginal = true;
             tempFileName = file->getFilename();
             return false;
         }
-        if (type == 1 && file->getVersionMajor() == 2) {
+        if (ctype == FSEQFile::CompressionType::zstd && !sparse && file->getVersionMajor() == 2) {
             // Full v2 file, upload directly
             outputFile = file;
             outputFileIsOriginal = true;
@@ -1312,13 +1307,13 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             }
         }
     }
-    outputFile = FSEQFile::createFSEQFile(fileName, type == 0 ? 1 : 2, ctype, clevel);
+    outputFile = FSEQFile::createFSEQFile(fileName, FSEQ_Version, ctype, clevel);
     outputFileIsOriginal = false;
     outputFile->initializeFromFSEQ(*file);
     if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(7, 0)) {
         outputFile->enableMinorVersionFeatures(2);
     }
-    if (type >= 2 && !newRanges.empty()) {
+    if (sparse && !newRanges.empty()) {
         V2FSEQFile *v2file = (V2FSEQFile*)outputFile;
         V2FSEQFile *v2source = dynamic_cast<V2FSEQFile*>(file);
         // Check if source is an effect sequence (marked with 'eS' variable header)
@@ -1363,7 +1358,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             }
         }
     }
-    if (fppType != FPP_TYPE::FPP || type < 2 || !IsVersionAtLeast(9, 3)) {
+    if (fppType != FPP_TYPE::FPP || FSEQ_Version == 1 || (ctype == FSEQFile::CompressionType::zstd && !sparse) || !IsVersionAtLeast(9, 3)) {
         // need to remove some variable headers that could trigger extra memory usage
         outputFile->removeVariableHeader('X', 'S');
         outputFile->removeVariableHeader('X', 'N');
@@ -4513,3 +4508,5 @@ ReceiverType FPP::DecodeReceiverType(int type, bool supportsV5, bool supportsV4)
     }
     return ReceiverType::Standard;
 }
+
+

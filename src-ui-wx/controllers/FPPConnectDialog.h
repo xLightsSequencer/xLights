@@ -20,6 +20,7 @@
 #include <wx/treelist.h>
 #include <wx/dataview.h>
 #include "controllers/FPP.h"
+#include <tuple>
 
 class FPPUploadProgressDialog;
 class OutputManager;
@@ -77,9 +78,6 @@ class FPPConnectDialog: public wxDialog
 		static const wxWindowID ID_BUTTON_Upload;
 		//*)
 
-
-
-    
         std::list<FPP*> instances;
         OutputManager* _outputManager;
         std::string _targetIp;
@@ -122,7 +120,7 @@ class FPPConnectDialog: public wxDialog
         bool GetCheckValue(const std::string &col);
         std::string GetChoiceValue(const std::string &col);
         int GetChoiceValueIndex(const std::string &col);
-    
+
         void SetChoiceValueIndex(const std::string &col, int i);
         void SetCheckValue(const std::string &col, bool b);
 
@@ -132,12 +130,14 @@ class FPPConnectDialog: public wxDialog
 		void UpdateSeqCount();
         uint32_t GetSelectedSeqCount();
         void OnSequenceListToggled(wxDataViewEvent& event);
-    
+
         void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);
         std::vector<int> SplitIP(const wxString& ip) const; 
 
         void SequenceSelector(const std::string regexKey);
         void SelectIPsWithSubnet();
+
+		[[nodiscard]] std::tuple<int, FSEQFile::CompressionType, bool> DecodeFSEQVersionAndCompression(const std::string& selection) const;
 
 		DECLARE_EVENT_TABLE()
 };
