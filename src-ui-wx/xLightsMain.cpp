@@ -5581,6 +5581,35 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 
 }
 
+namespace {
+
+// wxMessageBox sizes itself to fit its whole message with no scrolling, so a
+// long asset list pushes the OK button off-screen. Show it in a fixed-size
+// dialog with a scrolling read-only text area instead, so OK stays visible
+// no matter how long the list is.
+void ShowScrollableMessage(wxWindow* parent, const std::string& message, const std::string& caption)
+{
+    wxDialog dlg(parent, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize,
+                 wxDEFAULT_DIALOG_STYLE | wxCAPTION | wxRESIZE_BORDER);
+
+    auto* outer = new wxBoxSizer(wxVERTICAL);
+    auto* text = new wxTextCtrl(&dlg, wxID_ANY, message, wxDefaultPosition, wxSize(600, 350),
+                                 wxTE_MULTILINE | wxTE_READONLY);
+    outer->Add(text, 1, wxALL | wxEXPAND, 10);
+
+    auto* btnSizer = new wxStdDialogButtonSizer();
+    btnSizer->Add(new wxButton(&dlg, wxID_OK, "OK"), 0, wxALL, 4);
+    btnSizer->Realize();
+    outer->Add(btnSizer, 0, wxALIGN_CENTER | wxBOTTOM, 10);
+
+    dlg.SetSizer(outer);
+    dlg.SetSize(wxSize(650, 450));
+    dlg.CenterOnParent();
+    dlg.ShowModal();
+}
+
+} // namespace
+
 void xLightsFrame::ValidateEffectAssets()
 {
     std::string missing;
@@ -5615,10 +5644,10 @@ void xLightsFrame::ValidateEffectAssets()
 
     if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
         if (missing != "") {
-            wxMessageBox("Sequence references files which cannot be found:\nShow Folder: " + showDirectory + "\n\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
+            ShowScrollableMessage(this, "Sequence references files which cannot be found:\nShow Folder: " + showDirectory + "\n\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
         }
         if (relocated != "") {
-            wxMessageBox("Sequence references files which have been moved. Paths will be updated on save:\nShow Folder: " + showDirectory + "\n\n" + relocated, "Relocated assets");
+            ShowScrollableMessage(this, "Sequence references files which have been moved. Paths will be updated on save:\nShow Folder: " + showDirectory + "\n\n" + relocated, "Relocated assets");
         }
     }
 }
