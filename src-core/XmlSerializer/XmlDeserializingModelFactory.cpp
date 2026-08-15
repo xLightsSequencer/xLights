@@ -1494,6 +1494,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(pugi::xml_node 
             DeserializeMesh(msh, n);
         } else if ("PositionZone" == name) {
             PositionZone zone;
+            zone.label = n.attribute("Label").as_string("");
             zone.pan_min = n.attribute("PanMin").as_int(0);
             zone.pan_max = n.attribute("PanMax").as_int(255);
             zone.tilt_min = n.attribute("TiltMin").as_int(0);

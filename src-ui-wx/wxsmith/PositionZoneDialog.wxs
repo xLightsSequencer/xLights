@@ -10,8 +10,9 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxGrid" name="ID_GRID_Zones" variable="Grid_Zones" member="yes">
-					<cols>6</cols>
+					<cols>7</cols>
 					<collabels>
+						<item>Label</item>
 						<item>Pan Min</item>
 						<item>Pan Max</item>
 						<item>Tilt Min</item>

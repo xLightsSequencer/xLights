@@ -28,15 +28,16 @@ PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindo
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(0);
     Grid_Zones = new wxGrid(this, ID_GRID_Zones, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_GRID_Zones"));
-    Grid_Zones->CreateGrid(0,6);
+    Grid_Zones->CreateGrid(0,7);
     Grid_Zones->EnableEditing(true);
     Grid_Zones->EnableGridLines(true);
-    Grid_Zones->SetColLabelValue(0, _("Pan Min"));
-    Grid_Zones->SetColLabelValue(1, _("Pan Max"));
-    Grid_Zones->SetColLabelValue(2, _("Tilt Min"));
-    Grid_Zones->SetColLabelValue(3, _("Tilt Max"));
-    Grid_Zones->SetColLabelValue(4, _("Channel"));
-    Grid_Zones->SetColLabelValue(5, _("Value"));
+    Grid_Zones->SetColLabelValue(0, _("Label"));
+    Grid_Zones->SetColLabelValue(1, _("Pan Min"));
+    Grid_Zones->SetColLabelValue(2, _("Pan Max"));
+    Grid_Zones->SetColLabelValue(3, _("Tilt Min"));
+    Grid_Zones->SetColLabelValue(4, _("Tilt Max"));
+    Grid_Zones->SetColLabelValue(5, _("Channel"));
+    Grid_Zones->SetColLabelValue(6, _("Value"));
     Grid_Zones->SetDefaultCellFont( Grid_Zones->GetFont() );
     Grid_Zones->SetDefaultCellTextColour( Grid_Zones->GetForegroundColour() );
     FlexGridSizer1->Add(Grid_Zones, 1, wxALL, 5);
@@ -63,11 +64,12 @@ PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindo
     const wxString bullet(wxUniChar(0x2022));
     const wxString helpTextLabel = wxString::Format(
         _("Define zones that trigger a DMX channel output when the moving head enters that pan/tilt range.\n"
+          "  %s  Label: optional word or two to describe this zone\n"
           "  %s  Pan Min/Max: pan channel value range (0-255) that defines this zone\n"
           "  %s  Tilt Min/Max: tilt channel value range (0-255) that defines this zone\n"
           "  %s  Channel: DMX channel number to set when the head is inside this zone\n"
           "  %s  Value: DMX value (0-255) to send on that channel"),
-        bullet, bullet, bullet, bullet);
+        bullet, bullet, bullet, bullet, bullet);
     wxStaticText* helpText = new wxStaticText(this, wxID_ANY, helpTextLabel);
     FlexGridSizer1->Prepend(helpText, 0, wxALL | wxEXPAND, 8);
     FlexGridSizer1->RemoveGrowableRow(0);
@@ -80,22 +82,23 @@ PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindo
         attr->SetRenderer(new wxGridCellNumberRenderer());
         return attr;
     };
-    Grid_Zones->SetColAttr(0, makeAttr(0, 255));   // Pan Min
-    Grid_Zones->SetColAttr(1, makeAttr(0, 255));   // Pan Max
-    Grid_Zones->SetColAttr(2, makeAttr(0, 255));   // Tilt Min
-    Grid_Zones->SetColAttr(3, makeAttr(0, 255));   // Tilt Max
-    Grid_Zones->SetColAttr(4, makeAttr(1, 512));   // Channel
-    Grid_Zones->SetColAttr(5, makeAttr(0, 255));   // Value
+    Grid_Zones->SetColAttr(1, makeAttr(0, 255));   // Pan Min
+    Grid_Zones->SetColAttr(2, makeAttr(0, 255));   // Pan Max
+    Grid_Zones->SetColAttr(3, makeAttr(0, 255));   // Tilt Min
+    Grid_Zones->SetColAttr(4, makeAttr(0, 255));   // Tilt Max
+    Grid_Zones->SetColAttr(5, makeAttr(1, 512));   // Channel
+    Grid_Zones->SetColAttr(6, makeAttr(0, 255));   // Value
 
     for (const auto& zone : _zones) {
         int row = Grid_Zones->GetNumberRows();
         Grid_Zones->AppendRows(1);
-        Grid_Zones->SetCellValue(row, 0, wxString::Format("%d", zone.pan_min));
-        Grid_Zones->SetCellValue(row, 1, wxString::Format("%d", zone.pan_max));
-        Grid_Zones->SetCellValue(row, 2, wxString::Format("%d", zone.tilt_min));
-        Grid_Zones->SetCellValue(row, 3, wxString::Format("%d", zone.tilt_max));
-        Grid_Zones->SetCellValue(row, 4, wxString::Format("%d", zone.channel));
-        Grid_Zones->SetCellValue(row, 5, wxString::Format("%d", zone.value));
+        Grid_Zones->SetCellValue(row, 0, zone.label);
+        Grid_Zones->SetCellValue(row, 1, wxString::Format("%d", zone.pan_min));
+        Grid_Zones->SetCellValue(row, 2, wxString::Format("%d", zone.pan_max));
+        Grid_Zones->SetCellValue(row, 3, wxString::Format("%d", zone.tilt_min));
+        Grid_Zones->SetCellValue(row, 4, wxString::Format("%d", zone.tilt_max));
+        Grid_Zones->SetCellValue(row, 5, wxString::Format("%d", zone.channel));
+        Grid_Zones->SetCellValue(row, 6, wxString::Format("%d", zone.value));
     }
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -112,12 +115,13 @@ void PositionZoneDialog::OnButton_AddZoneClick(wxCommandEvent& event)
 {
     int row = Grid_Zones->GetNumberRows();
     Grid_Zones->AppendRows(1);
-    Grid_Zones->SetCellValue(row, 0, "0");
-    Grid_Zones->SetCellValue(row, 1, "255");
-    Grid_Zones->SetCellValue(row, 2, "0");
-    Grid_Zones->SetCellValue(row, 3, "255");
-    Grid_Zones->SetCellValue(row, 4, "1");
-    Grid_Zones->SetCellValue(row, 5, "0");
+    Grid_Zones->SetCellValue(row, 0, "");
+    Grid_Zones->SetCellValue(row, 1, "0");
+    Grid_Zones->SetCellValue(row, 2, "255");
+    Grid_Zones->SetCellValue(row, 3, "0");
+    Grid_Zones->SetCellValue(row, 4, "255");
+    Grid_Zones->SetCellValue(row, 5, "1");
+    Grid_Zones->SetCellValue(row, 6, "0");
 
     PositionZone zone;
     _zones.push_back(zone);
@@ -150,11 +154,16 @@ void PositionZoneDialog::OnGrid_ZonesCellChanged(wxGridEvent& event)
     if (row < 0 || row >= (int)_zones.size())
         return;
 
+    if (col == 0) { // Label
+        _zones[row].label = Grid_Zones->GetCellValue(row, col).ToStdString();
+        return;
+    }
+
     int val = wxAtoi(Grid_Zones->GetCellValue(row, col));
     wxString errMsg;
 
     switch (col) {
-    case 0: // Pan Min
+    case 1: // Pan Min
         if (val < 0 || val > 255)
             errMsg = "Pan Min must be 0-255.";
         else if (val > _zones[row].pan_max)
@@ -162,7 +171,7 @@ void PositionZoneDialog::OnGrid_ZonesCellChanged(wxGridEvent& event)
         else
             _zones[row].pan_min = val;
         break;
-    case 1: // Pan Max
+    case 2: // Pan Max
         if (val < 0 || val > 255)
             errMsg = "Pan Max must be 0-255.";
         else if (val < _zones[row].pan_min)
@@ -170,7 +179,7 @@ void PositionZoneDialog::OnGrid_ZonesCellChanged(wxGridEvent& event)
         else
             _zones[row].pan_max = val;
         break;
-    case 2: // Tilt Min
+    case 3: // Tilt Min
         if (val < 0 || val > 255)
             errMsg = "Tilt Min must be 0-255.";
         else if (val > _zones[row].tilt_max)
@@ -178,7 +187,7 @@ void PositionZoneDialog::OnGrid_ZonesCellChanged(wxGridEvent& event)
         else
             _zones[row].tilt_min = val;
         break;
-    case 3: // Tilt Max
+    case 4: // Tilt Max
         if (val < 0 || val > 255)
             errMsg = "Tilt Max must be 0-255.";
         else if (val < _zones[row].tilt_min)
@@ -186,13 +195,13 @@ void PositionZoneDialog::OnGrid_ZonesCellChanged(wxGridEvent& event)
         else
             _zones[row].tilt_max = val;
         break;
-    case 4: // Channel
+    case 5: // Channel
         if (val < 1)
             errMsg = "Channel must be >= 1.";
         else
             _zones[row].channel = val;
         break;
-    case 5: // Value
+    case 6: // Value
         if (val < 0 || val > 255)
             errMsg = "Value must be 0-255.";
         else
@@ -204,12 +213,12 @@ void PositionZoneDialog::OnGrid_ZonesCellChanged(wxGridEvent& event)
         wxMessageBox(errMsg, "Invalid Value", wxOK | wxICON_WARNING, this);
         // revert the cell to the current stored value
         switch (col) {
-        case 0: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].pan_min)); break;
-        case 1: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].pan_max)); break;
-        case 2: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].tilt_min)); break;
-        case 3: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].tilt_max)); break;
-        case 4: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].channel)); break;
-        case 5: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].value)); break;
+        case 1: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].pan_min)); break;
+        case 2: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].pan_max)); break;
+        case 3: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].tilt_min)); break;
+        case 4: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].tilt_max)); break;
+        case 5: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].channel)); break;
+        case 6: Grid_Zones->SetCellValue(row, col, wxString::Format("%d", _zones[row].value)); break;
         }
     }
 }
