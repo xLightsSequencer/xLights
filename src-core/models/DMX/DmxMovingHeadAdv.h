@@ -20,6 +20,7 @@
 class MhFeature;
 
 struct PositionZone {
+    std::string label;
     int pan_min = 0;
     int pan_max = 255;
     int tilt_min = 0;

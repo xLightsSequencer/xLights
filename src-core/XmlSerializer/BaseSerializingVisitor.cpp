@@ -1067,6 +1067,7 @@ void BaseSerializingVisitor::Visit(const DmxMovingHeadAdv& model) {
     WriteMeshElement(model.GetHeadMesh());
     for (const auto& zone : model.GetPositionZones()) {
         AttrCollector zoneAttrs;
+        zoneAttrs.Add("Label", zone.label);
         zoneAttrs.Add("PanMin", std::to_string(zone.pan_min));
         zoneAttrs.Add("PanMax", std::to_string(zone.pan_max));
         zoneAttrs.Add("TiltMin", std::to_string(zone.tilt_min));
