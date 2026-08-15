@@ -930,7 +930,7 @@ bool xLightsFrame::CloseSequence()
     if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr) {
         // save perspective on this machine so we can restore it next time
         auto* config = GetXLightsConfig();
-        wxString machinePerspective = m_mgr->SavePerspective();
+        wxString machinePerspective = SaveSequencerPerspective();
         config->Write("xLightsMachinePerspective", machinePerspective);
         spdlog::debug("AutoSave perspective");
         LogPerspective(machinePerspective);

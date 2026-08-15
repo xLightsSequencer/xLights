@@ -184,6 +184,8 @@ class LayoutPanel: public wxPanel
         int _savedSashPos = -1;
         bool _auiInitialized = false;
         void UpdateLayoutSplitter();
+        void ReapplyPaneAttributes();
+        void DockPanesOnMissingDisplays();
         int LeftPanelMinWidth() const; // 18% of splitter width, floor kMinPaneWidth
 		wxTreeListCtrl* TreeListViewModels = nullptr;
         wxDataViewModel* TreeListMiewInternalModel = nullptr;
@@ -370,6 +372,8 @@ class LayoutPanel: public wxPanel
         void ResetToDefaults();
         void HideFloatingPanes();
         void RestoreFloatingPanes();
+        wxString GetLayoutPerspective();
+        void ApplyLayoutPerspective(const wxString& perspective);
         void UpdateModelButtonSizes();
         void OnLayoutPaneClose(wxAuiManagerEvent& event);
         void DockAndRefresh(bool setModelListHeight);

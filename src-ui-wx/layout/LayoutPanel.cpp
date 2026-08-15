@@ -24,6 +24,7 @@
  //*)
 
 #include <wx/bmpbuttn.h>
+#include <wx/display.h>
 #include <wx/stopwatch.h>
 #include <wx/clipbrd.h>
 #include <wx/progdlg.h>
@@ -12002,6 +12003,13 @@ void LayoutPanel::RestoreFloatingPanes() {
     layout_mgr->LoadPerspective(_savedFloatingPerspective);
     // Reapply pane configuration that LoadPerspective may overwrite via SafeSet(),
     // but preserve the visibility restored from the saved perspective.
+    ReapplyPaneAttributes();
+    layout_mgr->Update();
+    _savedFloatingPerspective.clear();
+    UpdateLayoutSplitter();
+}
+
+void LayoutPanel::ReapplyPaneAttributes() {
     wxAuiPaneInfo& modelListPane = layout_mgr->GetPane("ModelList");
     if (modelListPane.IsOk()) {
         modelListPane.MinSize(300, kPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
@@ -12017,9 +12025,81 @@ void LayoutPanel::RestoreFloatingPanes() {
             .Caption(modelSettingsCaption)
             .Floatable(true).CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
     }
-    layout_mgr->Update();
+}
+
+wxString LayoutPanel::GetLayoutPerspective() {
+    if (layout_mgr == nullptr) return "";
+    // While another tab is active HideFloatingPanes() has stashed the real
+    // arrangement and hidden the floats; that stash is what the user sees on
+    // the Layout tab, so it is what a perspective must capture.
+    if (!_savedFloatingPerspective.empty()) {
+        return _savedFloatingPerspective;
+    }
+    wxAuiPaneInfoArray& panes = layout_mgr->GetAllPanes();
+    for (size_t i = 0; i < panes.GetCount(); i++) {
+        if (panes[i].IsOk() && panes[i].IsFloating() && panes[i].frame != nullptr && panes[i].frame->IsShown()) {
+            panes[i].floating_pos = panes[i].frame->GetPosition();
+            panes[i].floating_size = panes[i].frame->GetSize();
+        }
+    }
+    return layout_mgr->SavePerspective();
+}
+
+void LayoutPanel::ApplyLayoutPerspective(const wxString& perspective) {
+    if (layout_mgr == nullptr || perspective.empty()) return;
+
+    if (!layout_mgr->LoadPerspective(perspective, false)) {
+        return;
+    }
     _savedFloatingPerspective.clear();
+    ReapplyPaneAttributes();
+    DockPanesOnMissingDisplays();
+
+    wxAuiPaneInfo& modelListPane = layout_mgr->GetPane("ModelList");
+    if (modelListPane.IsOk() && !modelListPane.IsShown()) {
+        modelListPane.Top().Dock().Show();
+    }
+    wxAuiPaneInfo& modelSettingsPane = layout_mgr->GetPane("ModelSettings");
+    if (modelSettingsPane.IsOk() && !modelSettingsPane.IsShown()) {
+        modelSettingsPane.Center().Dock().Show();
+    }
+
+    // Stash before Update() rather than after: Update() realizes and shows the
+    // floating frames, so hiding them afterwards flashes them over whatever tab
+    // is in front (and on macOS they can steal focus on the way past).
+    if (!IsShownOnScreen()) {
+        HideFloatingPanes();
+    }
+    layout_mgr->Update();
     UpdateLayoutSplitter();
+}
+
+void LayoutPanel::DockPanesOnMissingDisplays() {
+    wxAuiPaneInfoArray& panes = layout_mgr->GetAllPanes();
+    bool docked = false;
+    for (size_t i = 0; i < panes.GetCount(); i++) {
+        if (!panes[i].IsOk() || !panes[i].IsFloating()) continue;
+        // wxAUI serializes floatx=-1;floaty=-1 for a pane that was marked
+        // Float() but never positioned. That is not an off-screen window, and
+        // treating it as one force-docks a perfectly good pane.
+        if (panes[i].floating_pos == wxDefaultPosition) continue;
+        wxRect r(panes[i].floating_pos, panes[i].floating_size);
+        if (wxDisplay::GetFromPoint(r.GetTopLeft()) != wxNOT_FOUND ||
+            wxDisplay::GetFromPoint(r.GetTopRight()) != wxNOT_FOUND ||
+            wxDisplay::GetFromPoint(r.GetBottomLeft()) != wxNOT_FOUND ||
+            wxDisplay::GetFromPoint(r.GetBottomRight()) != wxNOT_FOUND) {
+            continue;
+        }
+        if (panes[i].name == "ModelList") {
+            panes[i].Top().Dock();
+        } else {
+            panes[i].Center().Dock();
+        }
+        docked = true;
+    }
+    if (docked) {
+        xlights->SetStatusText("A saved floating Layout panel was off-screen and has been docked.");
+    }
 }
 
 int LayoutPanel::LeftPanelMinWidth() const
