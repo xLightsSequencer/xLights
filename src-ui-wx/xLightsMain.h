@@ -383,7 +383,13 @@ public:
         std::string name;
         std::string settings;
         std::string version;
+        int gridSpacing = 0;
+        int iconSize = 0;
     };
+
+    void CapturePerspectiveViewSettings(Perspective& p) const;
+    void ApplyPerspectiveViewSettings(const Perspective& p);
+    void ViewSizePreferencesChanged();
 
     struct PerspectiveId {
         int id = 0;
@@ -1683,6 +1689,8 @@ private:
     bool mSuppressColorWarn = false;
     wxString mAltBackupDir;
     int mIconSize = 16;
+    int mIconSizePreference = 16;
+    int mGridSpacingPreference = 16;
     // Ordered (effect name, visible) list backing the Effects toolbar - see
     // preferences/ToolbarLayout.h. Populated at startup from GetXLightsConfig(),
     // written back only in ~xLightsFrame() (matches how mIconSize etc. persist).

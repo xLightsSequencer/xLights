@@ -209,6 +209,7 @@ bool ViewSettingsPanel::TransferDataFromWindow()
         break;
     }
 
+    frame->ViewSizePreferencesChanged();
     frame->SetTimelineZooming(Choice_TimelineZooming->GetSelection());
     frame->SetHidePresetPreview(CheckBox_PresetPreview->IsChecked());
     frame->SetPaletteSizeString(Choice_PaletteSize->GetStringSelection());
