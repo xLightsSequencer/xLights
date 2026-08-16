@@ -2028,8 +2028,13 @@ void ModelStatesPanel::OnTimer1Trigger(wxTimerEvent& event)
     for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
         auto ch = model->NodeStartChannel(n);
         if (std::find(begin(_selected), end(_selected), n) != end(_selected)) {
+            // model->GetNodeColor(n)'s node was already set to the state's actual
+            // configured colour by SelectRow/SelectRows (for the model preview),
+            // so read the real per-node channel bytes back rather than a flat test value.
+            unsigned char buf[8] = { 0 };
+            model->GetNodeChannelValues(n, buf);
             for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
-                _outputManager->SetOneChannel(ch++, 30);
+                _outputManager->SetOneChannel(ch++, buf[c]);
             }
         } else {
             for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
