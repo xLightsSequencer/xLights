@@ -555,7 +555,20 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (seq.empty()) {
             return sendResponse("Sequence not found.", "msg", 503, false);
         }
+
+        bool prompt = ReadBool(params["promptIssues"]); // off by default
+        auto oldPrompt = _promptBatchRenderIssues;
+        auto oldRenderMode = _renderMode;
+        auto oldCheckSequenceMode = _checkSequenceMode;
+        _promptBatchRenderIssues = prompt;
+        if (!prompt) _renderMode = true;
+        _checkSequenceMode = true;
+
         auto file = OpenAndCheckSequence(seq);
+
+        _promptBatchRenderIssues = oldPrompt;
+        _renderMode = oldRenderMode;
+        _checkSequenceMode = oldCheckSequenceMode;
 
         std::string response = wxString::Format("{\"msg\":\"Sequence checked.\",\"output\":\"%s\"}", JSONSafe(file));
         return sendResponse(response, "", 200, true);

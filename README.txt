@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (derwin12)              Automation: BatchCheckSequence lua script
     -enh (dkulp)                 FPP shift-string capes (K8/K16/K32 and the K16A-B, K64D-B, K128D-B) now offer
                                  the pixel protocols FPP can actually drive on them - the WS2811 family by name,
                                  TM1814, the 16 bit UCS8903/8904, and the slower parts such as UCS1903, TM1803,
