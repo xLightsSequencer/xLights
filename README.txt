@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
     -enh (derwin12)              Automation: BatchCheckSequence lua script
+    -bug (derwin12)              Fix value curves switched to Custom baking in the previous effect's custom
+                                 curve for that setting instead of the currently displayed preset curve (#6937)
     -enh (dkulp)                 FPP shift-string capes (K8/K16/K32 and the K16A-B, K64D-B, K128D-B) now offer
                                  the pixel protocols FPP can actually drive on them - the WS2811 family by name,
                                  TM1814, the 16 bit UCS8903/8904, and the slower parts such as UCS1903, TM1803,
