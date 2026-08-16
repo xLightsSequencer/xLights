@@ -104,6 +104,7 @@ class MainSequencer: public wxPanel
     TimeLine* PanelTimeLine;
     Waveform* PanelWaveForm;
     wxCheckBox* CheckBox_SuspendRender;
+    wxBitmapButton* BitmapButton_ViewSearch;
     wxChoice* ViewChoice;
     wxStaticText* ViewLabel;
     wxScrollBar* ScrollBarEffectsHorizontal;
@@ -121,6 +122,7 @@ class MainSequencer: public wxPanel
 	protected:
 
 		//(*Identifiers(MainSequencer)
+		static const wxWindowID ID_BITMAPBUTTON_VIEW_SEARCH;
 		static const wxWindowID ID_CHOICE_VIEW_CHOICE;
 		static const wxWindowID ID_PANEL1;
 		static const wxWindowID ID_PANEL3;
@@ -135,6 +137,7 @@ class MainSequencer: public wxPanel
 	private:
 
 		//(*Handlers(MainSequencer)
+		void OnBitmapButton_ViewSearchClick(wxCommandEvent& event);
 		void OnScrollBarEffectGridHorzScroll(wxScrollEvent& event);
 		void OnScrollBarEffectsVerticalScrollChanged(wxScrollEvent& event);
 		void OnChar(wxKeyEvent& event);

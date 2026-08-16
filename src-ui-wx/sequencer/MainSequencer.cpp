@@ -17,6 +17,7 @@
 #include <wx/event.h>
 #include <wx/clipbrd.h>
 #include <wx/artprov.h>
+#include <wx/bmpbuttn.h>
 
 #include "MainSequencer.h"
 #include "render/SequenceElements.h"
@@ -36,6 +37,7 @@
 #include <log.h>
 
 //(*IdInit(MainSequencer)
+const wxWindowID MainSequencer::ID_BITMAPBUTTON_VIEW_SEARCH = wxNewId();
 const wxWindowID MainSequencer::ID_CHOICE_VIEW_CHOICE = wxNewId();
 const wxWindowID MainSequencer::ID_PANEL1 = wxNewId();
 const wxWindowID MainSequencer::ID_PANEL3 = wxNewId();
@@ -242,6 +244,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
+    wxBoxSizer* BoxSizerViewRow;
     wxStaticText* StaticText1;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
@@ -250,9 +253,14 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     FlexGridSizer1->AddGrowableRow(1);
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
+    BoxSizerViewRow = new wxBoxSizer(wxHORIZONTAL);
     ViewLabel = new wxStaticText(this, wxID_ANY, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     StaticText1 = ViewLabel;
-    FlexGridSizer2->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
+    BoxSizerViewRow->Add(StaticText1, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
+    BitmapButton_ViewSearch = new wxBitmapButton(this, ID_BITMAPBUTTON_VIEW_SEARCH, wxArtProvider::GetBitmapBundle("wxART_FIND", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_VIEW_SEARCH"));
+    BitmapButton_ViewSearch->SetToolTip(_("Show sequencer prop filter"));
+    BoxSizerViewRow->Add(BitmapButton_ViewSearch, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 0);
+    FlexGridSizer2->Add(BoxSizerViewRow, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 3);
     ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
     FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 0);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -296,6 +304,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_PAGEDOWN, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_THUMBTRACK, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
+    Connect(ID_BITMAPBUTTON_VIEW_SEARCH, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MainSequencer::OnBitmapButton_ViewSearchClick);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&MainSequencer::OnCheckBox_SuspendRenderClick);
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
     Connect(ID_SCROLLBAR_EFFECT_GRID_HORZ, wxEVT_SCROLL_TOP, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectGridHorzScroll);
@@ -317,6 +326,9 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     // Sequencer prop filter - hidden by default
     _seqFilterCtrl = new wxSearchCtrl(this, ID_TEXTCTRL_SEQ_FILTER,
         wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    // Cap the min width so revealing it doesn't widen the View column past what
+    // ViewChoice/ViewLabel already require - wxSearchCtrl's natural best size is wider.
+    _seqFilterCtrl->SetMinSize(wxSize(FromDIP(1), -1));
     _seqFilterCtrl->SetDescriptiveText("Filter props...");
     _seqFilterCtrl->ShowCancelButton(true);
     _seqFilterCtrl->Bind(wxEVT_TEXT, &MainSequencer::OnSeqFilterText, this);
@@ -2262,6 +2274,11 @@ void MainSequencer::ScrollToRow(int row)
 void MainSequencer::OnCheckBox_SuspendRenderClick(wxCommandEvent& event)
 {
     ToggleRender(CheckBox_SuspendRender->IsChecked());
+}
+
+void MainSequencer::OnBitmapButton_ViewSearchClick(wxCommandEvent& event)
+{
+    ShowSeqFilterPanel(_seqFilterCtrl == nullptr || !_seqFilterCtrl->IsShown());
 }
 
 void MainSequencer::ShowSeqFilterPanel(bool show)
