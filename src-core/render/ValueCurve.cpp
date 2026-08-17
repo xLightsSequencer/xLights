@@ -1875,6 +1875,9 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
 void ValueCurve::SetType(std::string type)
 {
     _hasPreloadedValues = false;
+    if (type != "Custom" && _type != type) {
+        _baseCustomValues.clear();
+    }
     _type = type;
     RenderType();
 }
