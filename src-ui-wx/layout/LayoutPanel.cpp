@@ -68,6 +68,7 @@
 #include "models/ViewObject.h"
 #include "models/RulerObject.h"
 #include "models/CustomModel.h"
+#include "models/ControllerObject.h"
 #include "models/handles/HitTest.h"
 
 #include "XmlSerializer/FileSerializingVisitor.h"
@@ -87,6 +88,9 @@
 #include "layout/ViewsModelsPanel.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
+#include "outputs/Controller.h"
+#include "controllers/ControllerCaps.h"
+#include "controllers/ControllerUploadData.h"
 #include "cad/ModelToCAD.h"
 #include "layout/LORPreview.h"
 #include "model/ModelDefinitionsDialog.h"
@@ -398,6 +402,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_DELETESET = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_RENAMESET = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_MANAGESET = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_WIRINGVIEW = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_WIRETOCLOSESTCONTROLLER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEWIDTH = wxNewId();
@@ -7449,6 +7454,9 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         if (model->SupportsWiringView()) {
             menu.Append(ID_PREVIEW_MODEL_WIRINGVIEW, "Wiring View");
         }
+        if (model != nullptr && !xlights->GetOutputManager()->GetControllers().empty()) {
+            menu.Append(ID_PREVIEW_MODEL_WIRETOCLOSESTCONTROLLER, "Wire to Closest Controller with Open Port");
+        }
         menu.AppendSeparator();
         if (model->SupportsExportAsCustom())
         {
@@ -7930,6 +7938,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         RemoveSelectedFromExistingGroups();
     } else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW) {
         ShowWiring();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_WIRETOCLOSESTCONTROLLER) {
+        WireToClosestControllerOpenPort();
     } else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT) {
         ExportModelAsCAD();
     } else if (event.GetId() == ID_PREVIEW_LAYOUT_DXF_EXPORT) {
@@ -8254,6 +8264,117 @@ void LayoutPanel::ShowWiring()
     WiringDialog dlg(this, md->GetName());
     dlg.SetData(md);
     dlg.ShowModal();
+}
+
+// Finds the nearest controller (by the physical placement of its
+// ControllerObject in the layout, when one exists) that still has enough
+// *consecutive* unused pixel ports to hold every physical string the model
+// needs - a model with N strings occupies ports [port .. port+N-1]
+// (ControllerConnection::GetPortSR) - assigns the model to that
+// controller/base port, and enables the model in the layout. Controllers
+// with no placed ControllerObject are tried last, in output-list order,
+// since there is nothing to measure distance against.
+void LayoutPanel::WireToClosestControllerOpenPort()
+{
+    Model* model = dynamic_cast<Model*>(selectedBaseObject);
+    if (model == nullptr || model->GetDisplayAs() == DisplayAsType::ModelGroup || model->GetDisplayAs() == DisplayAsType::SubModel) return;
+
+    const int stringsNeeded = std::max(1, model->GetNumPhysicalStrings());
+
+    OutputManager* om = xlights->GetOutputManager();
+    auto controllers = om->GetControllers();
+
+    const float mx = model->GetHcenterPos();
+    const float my = model->GetVcenterPos();
+    const float mz = model->GetDcenterPos();
+
+    std::vector<std::pair<double, Controller*>> placed;
+    std::vector<Controller*> unplaced;
+    for (auto* c : controllers) {
+        ControllerCaps* caps = c->GetControllerCaps();
+        if (caps == nullptr || caps->GetMaxPixelPort() < stringsNeeded) continue;
+
+        ControllerObject* co = xlights->AllObjects.GetControllerObject(c->GetName());
+        if (co != nullptr) {
+            const double dx = co->GetHcenterPos() - mx;
+            const double dy = co->GetVcenterPos() - my;
+            const double dz = co->GetDcenterPos() - mz;
+            placed.emplace_back(std::sqrt(dx * dx + dy * dy + dz * dz), c);
+        } else {
+            unplaced.push_back(c);
+        }
+    }
+    std::sort(placed.begin(), placed.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+    std::vector<Controller*> candidates;
+    candidates.reserve(placed.size() + unplaced.size());
+    for (const auto& p : placed) candidates.push_back(p.second);
+    for (auto* c : unplaced) candidates.push_back(c);
+
+    for (auto* c : candidates) {
+        ControllerCaps* caps = c->GetControllerCaps();
+        const int maxPort = caps->GetMaxPixelPort();
+        UDController cud(c, om, &xlights->AllModels, false);
+
+        // Which ports are already fully unused, and (as a fallback protocol
+        // hint) the protocol of the first occupied port we see.
+        std::vector<bool> empty(maxPort + 1, false);
+        std::string existingProtocol;
+        for (int p = 1; p <= maxPort; ++p) {
+            UDControllerPort* port = cud.GetControllerPixelPort(p);
+            auto portModels = port->GetModels();
+            empty[p] = portModels.empty();
+            if (!portModels.empty() && existingProtocol.empty()) {
+                existingProtocol = portModels.front()->GetModel()->GetControllerProtocol();
+            }
+        }
+
+        // First run of `stringsNeeded` consecutive empty ports.
+        int openPort = -1;
+        for (int p = 1; p + stringsNeeded - 1 <= maxPort; ++p) {
+            bool allEmpty = true;
+            for (int i = 0; i < stringsNeeded; ++i) {
+                if (!empty[p + i]) { allEmpty = false; break; }
+            }
+            if (allEmpty) { openPort = p; break; }
+        }
+        if (openPort == -1) continue;
+
+        std::string protocol = model->GetControllerProtocol();
+        if (protocol.empty() || !caps->IsValidPixelProtocol(protocol)) {
+            protocol = existingProtocol;
+        }
+        if (protocol.empty() || !caps->IsValidPixelProtocol(protocol)) {
+            auto pp = caps->GetPixelProtocols();
+            protocol = pp.empty() ? "" : pp.front();
+        }
+        if (protocol.empty()) continue;
+
+        CreateUndoPoint("SingleModel", model->name);
+
+        model->SetControllerName(c->GetName(), true);
+        model->SetControllerProtocol(protocol);
+        model->GetCtrlConn().SetCtrlPort(openPort);
+        model->SetActive(true);
+
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "WireToClosestControllerOpenPort");
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "WireToClosestControllerOpenPort");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                      OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WireToClosestControllerOpenPort");
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "WireToClosestControllerOpenPort");
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "WireToClosestControllerOpenPort");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WireToClosestControllerOpenPort");
+
+        xlights->SetStatusText(stringsNeeded > 1
+            ? wxString::Format("Wired '%s' to controller '%s' pixel ports %d-%d", model->GetName(), c->GetName(), openPort, openPort + stringsNeeded - 1)
+            : wxString::Format("Wired '%s' to controller '%s' pixel port %d", model->GetName(), c->GetName(), openPort));
+        return;
+    }
+
+    wxMessageBox(stringsNeeded > 1
+        ? wxString::Format("No controller with %d consecutive open pixel ports was found.", stringsNeeded)
+        : wxString("No controller with an open pixel port was found."),
+        "Wire to Closest Controller", wxOK | wxICON_INFORMATION, this);
 }
 
 void LayoutPanel::ExportModelAsCAD()
@@ -10958,6 +11079,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         RemoveSelectedFromExistingGroups();
     } else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW) {
         ShowWiring();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_WIRETOCLOSESTCONTROLLER) {
+        WireToClosestControllerOpenPort();
     } else if (event.GetId() == ID_PREVIEW_MODEL_CAD_EXPORT) {
         ExportModelAsCAD();
     } else if (event.GetId() == ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS) {

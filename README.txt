@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (scott)                 Layout: right-click a model and choose "Wire to Closest Controller with
+                                 Open Port" to auto-assign it to the nearest controller with enough
+                                 consecutive open pixel ports for all its strings, and enable it
     -enh (derwin12)              Automation: BatchCheckSequence lua script
     -bug (derwin12)              Fix Custom value curve copies prior effect (#6937)
     -enh (dkulp)                 FPP shift-string capes (K8/K16/K32 and the K16A-B, K64D-B, K128D-B) now offer
