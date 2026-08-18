@@ -31,6 +31,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/tglbtn.h>
 #include <wx/srchctrl.h>
+#include <wx/tokenzr.h>
 #include <wx/checklst.h>
 #include <pugixml.hpp>
 #include <cmath>
@@ -13174,10 +13175,23 @@ void LayoutPanel::OnGroupFilterTextChanged(wxCommandEvent& event) {
 bool LayoutPanel::MatchesFilter(Model* model, const wxString& filterString, const wxRegEx& filterRegex, bool filterRegexValid) {
     if (filterString.IsEmpty()) return true;
 
-    if (filterRegexValid)
-        return filterRegex.Matches(model->GetName());
+    // A single term keeps the existing behaviour (regex if it compiles, else a
+    // substring match). Multiple whitespace-separated terms narrow with AND -
+    // every term must appear somewhere in the name, in any order - so
+    // "midwest pumpkin" finds "Midwest-Coro-Pumpkin". Matches the other filters.
+    wxArrayString terms = wxStringTokenize(filterString.Lower(), " \t");
+    if (terms.size() <= 1) {
+        if (filterRegexValid)
+            return filterRegex.Matches(model->GetName());
+        return wxString(model->GetName()).Lower().Contains(filterString.Lower());
+    }
 
-    return wxString(model->GetName()).Lower().Contains(filterString.Lower());
+    const wxString name = wxString(model->GetName()).Lower();
+    for (const auto& term : terms) {
+        if (!name.Contains(term))
+            return false;
+    }
+    return true;
 }
 
 bool LayoutPanel::ModelMatchesFilter(Model* model) const {
