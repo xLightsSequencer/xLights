@@ -37,6 +37,11 @@
         <maxmodels>5</maxmodels>
     </vendor>
     <vendor>
+        <name>Coro Works</name>
+        <link>hhttps://coroworks.mattosdesigns.com/xlights/coroworks.xml</link>
+        <maxmodels>50</maxmodels>
+    </vendor>
+    <vendor>
         <name>DMX Fixture Library</name>
         <link>https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/dmx_fixtures.xml</link>
     </vendor>
