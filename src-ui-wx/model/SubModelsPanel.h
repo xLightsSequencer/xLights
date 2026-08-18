@@ -323,6 +323,10 @@ private:
     void ApplySubmodelName();
     void PopulateList();
     void ValidateWindow();
+    // Pencil/click-drag node editing on the preview only makes sense with exactly
+    // one submodel selected and while it's in Node Ranges mode -- SubBuffer submodels
+    // aren't defined by a node list, so there's nothing for either tool to edit.
+    bool CanEditPreviewNodes() const;
     void Select(const wxString& name);
     void SelectAll(const wxString& names);
     void UnSelectAll();

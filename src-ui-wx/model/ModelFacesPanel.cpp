@@ -731,6 +731,19 @@ void ModelFacesPanel::SelectFaceModel(const std::string& name)
 void ModelFacesPanel::OnMatrixNameChoiceSelect(wxCommandEvent& event)
 {
     SelectFaceModel(NameChoice->GetString(NameChoice->GetSelection()).ToStdString());
+    if (_modelPreview) {
+        _modelPreview->SetPencilEnabled(CanUsePencil());
+    }
+}
+
+bool ModelFacesPanel::CanEditPreviewNodes() const
+{
+    return NameChoice->GetSelection() != wxNOT_FOUND && FaceTypeChoice->GetSelection() != MATRIX_FACE;
+}
+
+bool ModelFacesPanel::CanUsePencil() const
+{
+    return CanEditPreviewNodes() && FaceTypeChoice->GetSelection() != SINGLE_NODE_FACE;
 }
 
 void ModelFacesPanel::OnButtonMatrixAddClicked(wxCommandEvent& event)
@@ -1294,6 +1307,9 @@ void ModelFacesPanel::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
     }
     SelectFaceModel(name);
     UpdatePreview("", *wxWHITE);
+    if (_modelPreview) {
+        _modelPreview->SetPencilEnabled(CanUsePencil());
+    }
 }
 
 void ModelFacesPanel::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
@@ -1897,6 +1913,7 @@ void ModelFacesPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 void ModelFacesPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
     if (!_isActive) return;
+    if (!CanEditPreviewNodes()) return;
     if (_modelPreview && _modelPreview->HitTestPencilIcon(event.GetX(), event.GetY())) {
         _modelPreview->ShowPencilSizeMenu();
         return;
@@ -1916,6 +1933,7 @@ void ModelFacesPanel::OnPreviewLeftDown(wxMouseEvent& event)
 void ModelFacesPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
     if (!_isActive) return;
+    if (!CanEditPreviewNodes()) return;
     if (!_modelPreview) return;
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
@@ -2033,6 +2051,22 @@ void ModelFacesPanel::SelectAllInBoundingRect(bool shiftDwn, bool freeform)
     }
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name == "") {
+        return;
+    }
+
+    if (faceData[name]["Type"] == "SingleNode") {
+        int row = SingleNodeGrid->GetGridCursorRow();
+        if (row < 0)
+            return;
+        std::vector<int> nodes = GetDragSelectedNodes(freeform);
+        if (nodes.empty())
+            return;
+        // Single Node rows hold exactly one node -- take the first node the
+        // drag/pencil touched rather than building a range out of all of them.
+        std::string node = model->GetNodeName(nodes[0] - 1, true);
+        SingleNodeGrid->SetCellValue(row, CHANNEL_COL, node);
+        SingleNodeGrid->Refresh();
+        GetValue(SingleNodeGrid, row, CHANNEL_COL, faceData[name]);
         return;
     }
 

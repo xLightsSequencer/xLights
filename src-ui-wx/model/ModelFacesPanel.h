@@ -178,6 +178,14 @@ private:
     void StartOutputToLights();
     bool StopOutputToLights();
     void SelectFaceModel(const std::string& s);
+    // Pencil/click-drag node editing on the preview requires a face to be selected --
+    // NameChoice->GetSelection() is wxNOT_FOUND otherwise, and SelectAllInBoundingRect's
+    // NameChoice->GetString(GetSelection()) call would hit a wx assertion.
+    bool CanEditPreviewNodes() const;
+    // Pencil-specific: Single Node rows hold one node each, so freeform
+    // painting (which collects a whole swath) doesn't apply -- plain
+    // click-drag still works there and just takes the first node hit.
+    bool CanUsePencil() const;
     void UpdatePreview(const std::string& channels, wxColor c);
     std::vector<int> GetSelectedGridRows(wxGrid* grid, int fallbackRow);
     void UpdatePreviewRows(wxGrid* grid, int fallbackRow);

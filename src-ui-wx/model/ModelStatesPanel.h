@@ -172,6 +172,14 @@ private:
     void GetValue(wxGrid* grid, const int row, const int col, std::map<std::string, std::string>& info);
     void AddLabel(wxString label);
     void ValidateWindow();
+    // Pencil/click-drag node editing on the preview requires a state to be selected --
+    // NameChoice->GetSelection() is wxNOT_FOUND otherwise, and SelectAllInBoundingRect's
+    // NameChoice->GetString(GetSelection()) call would hit a wx assertion.
+    bool CanEditPreviewNodes() const;
+    // Pencil-specific: Single Node rows hold one node each, so freeform
+    // painting (which collects a whole swath) doesn't apply -- plain
+    // click-drag still works there and just takes the first node hit.
+    bool CanUsePencil() const;
     void PopulateStateFilter();
     void UpdateStateFilter();
     void BuildStateAnimSteps();

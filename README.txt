@@ -283,6 +283,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (cybercop23)            Fix Face and State effect definition choices when switching between different
                                  model groups.
     -bug (derwin12)              Fixed locked effects duplicating when dragged across rows/layers (#6697)
+    -bug (scott)                 Fix a crash clicking in the Model Definitions preview (Faces/States)
+                                 with nothing selected in the name list
+    -enh (scott)                 Model Definitions: the preview's pencil tool and click-drag node
+                                 selection are disabled when nothing is selected, a SubModel is in
+                                 SubBuffer mode, or a Face is in Matrix mode; the pencil is also disabled
+                                 in Single Node mode, though click-drag there still works and picks the
+                                 first node touched
 
 2026.15  August 4, 2026
     -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so

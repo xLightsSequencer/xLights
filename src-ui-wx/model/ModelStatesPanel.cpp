@@ -925,6 +925,7 @@ void ModelStatesPanel::UpdateStateType()
     }
     SelectStateModel(name);
     if (model) ClearNodeColor(model);
+    ValidateWindow();
 }
 
 void ModelStatesPanel::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
@@ -1226,6 +1227,20 @@ void ModelStatesPanel::ValidateWindow()
             }
         }
     }
+
+    if (_modelPreview) {
+        _modelPreview->SetPencilEnabled(CanUsePencil());
+    }
+}
+
+bool ModelStatesPanel::CanEditPreviewNodes() const
+{
+    return NameChoice->GetSelection() != wxNOT_FOUND;
+}
+
+bool ModelStatesPanel::CanUsePencil() const
+{
+    return CanEditPreviewNodes() && StateTypeChoice->GetSelection() != SINGLE_NODE_STATE;
 }
 
 bool ModelStatesPanel::HasInvalidRows() const
@@ -1700,6 +1715,7 @@ void ModelStatesPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 void ModelStatesPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
     if (!_isActive) return;
+    if (!CanEditPreviewNodes()) return;
     if (_modelPreview && _modelPreview->HitTestPencilIcon(event.GetX(), event.GetY())) {
         _modelPreview->ShowPencilSizeMenu();
         return;
@@ -1721,6 +1737,7 @@ void ModelStatesPanel::OnPreviewLeftDown(wxMouseEvent& event)
 void ModelStatesPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
     if (!_isActive) return;
+    if (!CanEditPreviewNodes()) return;
     if (!_modelPreview) return;
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
@@ -1843,6 +1860,22 @@ void ModelStatesPanel::SelectAllInBoundingRect(bool shiftDwn, bool freeform)
     }
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name == "") {
+        return;
+    }
+
+    if (stateData[name]["Type"] == "SingleNode") {
+        int row = SingleNodeGrid->GetGridCursorRow();
+        if (row < 0)
+            return;
+        std::vector<int> nodes = GetDragSelectedNodes(freeform);
+        if (nodes.empty())
+            return;
+        // Single Node rows hold exactly one node -- take the first node the
+        // drag/pencil touched rather than building a range out of all of them.
+        std::string node = model->GetNodeName(nodes[0] - 1, true);
+        SingleNodeGrid->SetCellValue(row, CHANNEL_COL, node);
+        SingleNodeGrid->Refresh();
+        GetValue(SingleNodeGrid, row, CHANNEL_COL, stateData[name]);
         return;
     }
 

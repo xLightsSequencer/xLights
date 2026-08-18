@@ -7516,7 +7516,8 @@ private struct SubModelDetailEditor: View {
                 highlightedNodes: highlightedNodes,
                 onToggleNode: toggleNode,
                 onAddNodes: addNodes,
-                controller: previewController)
+                controller: previewController,
+                nodesEditable: entry.isRanges)
                 .background(Color.black)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             Text(entry.isRanges

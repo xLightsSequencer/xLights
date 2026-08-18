@@ -86,7 +86,7 @@ void ModelPreview::ResetPencilSize() {
 }
 
 bool ModelPreview::IsPencilActive() const {
-    return _supportsPencil && s_pencilSizeIndex > 0;
+    return _supportsPencil && _pencilEnabled && s_pencilSizeIndex > 0;
 }
 
 void ModelPreview::StartPaintPath(std::vector<xlPoint>& path, int x, int y, bool freeform) {
@@ -146,7 +146,7 @@ std::vector<float> ModelPreview::GetPencilStrokeOffsets() const {
 }
 
 bool ModelPreview::HitTestPencilIcon(int x, int y) const {
-    if (!_supportsPencil) return false;
+    if (!_supportsPencil || !_pencilEnabled) return false;
     int w = mWindowWidth;
     if (w < 60) return false;
     return (x >= w - 44 && x <= w - 4 && y >= 4 && y <= 44);
@@ -185,7 +185,7 @@ void ModelPreview::AddPencilIconToAccumulator() {
     if (!_supportsPencil || solidProgram == nullptr) return;
     auto acc = solidProgram->getAccumulator();
     int start = acc->getCount();
-    const xlColor pencilColor = IsPencilActive() ? xlColor(255, 140, 0) : xlColor(170, 170, 170);
+    const xlColor pencilColor = !_pencilEnabled ? xlColor(90, 90, 90) : (IsPencilActive() ? xlColor(255, 140, 0) : xlColor(170, 170, 170));
 
     int w = mWindowWidth;
     int h = mWindowHeight;

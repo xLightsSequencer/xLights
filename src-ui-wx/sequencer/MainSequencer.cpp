@@ -259,7 +259,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     BoxSizerViewRow->Add(StaticText1, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
     BitmapButton_ViewSearch = new wxBitmapButton(this, ID_BITMAPBUTTON_VIEW_SEARCH, wxArtProvider::GetBitmapBundle("wxART_FIND", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_VIEW_SEARCH"));
     BitmapButton_ViewSearch->SetToolTip(_("Show sequencer prop filter"));
-    BoxSizerViewRow->Add(BitmapButton_ViewSearch, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 0);
+    BoxSizerViewRow->Add(BitmapButton_ViewSearch, 0, wxALIGN_CENTER_VERTICAL, 0);
     FlexGridSizer2->Add(BoxSizerViewRow, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 3);
     ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
     FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 0);
