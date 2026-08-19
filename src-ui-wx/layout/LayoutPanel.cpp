@@ -31,6 +31,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/tglbtn.h>
 #include <wx/srchctrl.h>
+#include <wx/tokenzr.h>
 #include <wx/checklst.h>
 #include <pugixml.hpp>
 #include <cmath>
@@ -13185,10 +13186,19 @@ void LayoutPanel::OnGroupFilterTextChanged(wxCommandEvent& event) {
 bool LayoutPanel::MatchesFilter(Model* model, const wxString& filterString, const wxRegEx& filterRegex, bool filterRegexValid) {
     if (filterString.IsEmpty()) return true;
 
-    if (filterRegexValid)
-        return filterRegex.Matches(model->GetName());
+    wxArrayString terms = wxStringTokenize(filterString.Lower(), " \t");
+    if (terms.size() <= 1) {
+        if (filterRegexValid)
+            return filterRegex.Matches(model->GetName());
+        return wxString(model->GetName()).Lower().Contains(filterString.Lower());
+    }
 
-    return wxString(model->GetName()).Lower().Contains(filterString.Lower());
+    const wxString name = wxString(model->GetName()).Lower();
+    for (const auto& term : terms) {
+        if (!name.Contains(term))
+            return false;
+    }
+    return true;
 }
 
 bool LayoutPanel::ModelMatchesFilter(Model* model) const {
