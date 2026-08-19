@@ -541,10 +541,6 @@ void ControllerListPanel::OnFullColumnsClick(wxCommandEvent& event) {
 bool ControllerListPanel::ControllerMatchesFilter(const Controller* controller) const {
     if (_controllerFilterCtrl == nullptr || _controllerFilterString.IsEmpty()) return true;
 
-    // A single term keeps the existing behaviour (regex if it compiles, else a
-    // substring match). Multiple whitespace-separated terms narrow with AND -
-    // every term must appear in the name, in any order - matching the model and
-    // group filters.
     wxArrayString terms = wxStringTokenize(_controllerFilterString.Lower(), " \t");
     if (terms.size() <= 1) {
         if (_controllerFilterRegexValid)

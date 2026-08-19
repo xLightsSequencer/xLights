@@ -13175,10 +13175,6 @@ void LayoutPanel::OnGroupFilterTextChanged(wxCommandEvent& event) {
 bool LayoutPanel::MatchesFilter(Model* model, const wxString& filterString, const wxRegEx& filterRegex, bool filterRegexValid) {
     if (filterString.IsEmpty()) return true;
 
-    // A single term keeps the existing behaviour (regex if it compiles, else a
-    // substring match). Multiple whitespace-separated terms narrow with AND -
-    // every term must appear somewhere in the name, in any order - so
-    // "midwest pumpkin" finds "Midwest-Coro-Pumpkin". Matches the other filters.
     wxArrayString terms = wxStringTokenize(filterString.Lower(), " \t");
     if (terms.size() <= 1) {
         if (filterRegexValid)
