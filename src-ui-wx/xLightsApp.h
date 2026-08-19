@@ -35,6 +35,7 @@ public:
     xLightsApp();
 
     virtual bool OnInit() override;
+    virtual int FilterEvent(wxEvent& event) override;
     static xLightsFrame* GetFrame() { return __frame; }
     static wxString showDir;
     static wxString mediaDir;

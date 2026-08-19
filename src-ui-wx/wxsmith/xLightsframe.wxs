@@ -982,6 +982,11 @@
 						<checkable>1</checkable>
 					</object>
 					<object class="separator" />
+					<object class="wxMenuItem" name="ID_MNU_AUTOARRANGETOOLBARS" variable="MenuItem_AutoArrangeToolbars" member="yes">
+						<label>Auto Arrange</label>
+						<handler function="OnMenuItem_AutoArrangeToolbarsSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
 						<label>Reset Toolbars</label>
 						<handler function="ResetToolbarLocations" entry="EVT_MENU" />

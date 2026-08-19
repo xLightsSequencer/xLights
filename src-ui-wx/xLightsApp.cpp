@@ -1947,6 +1947,15 @@ void xLightsApp::WipeSettings()
     WipeXLightsConfig();
 }
 
+int xLightsApp::FilterEvent(wxEvent& event)
+{
+    if (event.GetEventType() == wxEVT_LEFT_UP && __frame != nullptr) {
+        xLightsFrame* frame = __frame;
+        frame->CallAfter([frame] { frame->CompressToolbarGaps(); });
+    }
+    return wxEventFilter::Event_Skip;
+}
+
 bool xLightsApp::ProcessIdle() {
     uint64_t now = wxGetLocalTimeMillis().GetValue();
     bool b = CurlManager::INSTANCE.processCurls();
