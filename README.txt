@@ -12,7 +12,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
     -enh (derwin12)              Added ability to duplicate lyrics phrases/words (#3923)
+    -bug (scott)                 Fix multi-row lasso-selected effects pasting 1-3 rows below the
+                                 target row instead of the row you clicked (#6944)
+    -enh (scott)                 Layout: right-click a model and choose "Wire to Closest Controller with
+                                 Open Port" to auto-assign it to the nearest controller with enough
+                                 consecutive open pixel ports for all its strings, and enable it
     -enh (derwin12)              Automation: BatchCheckSequence lua script
+    -bug (derwin12)              Fix Custom value curve copies prior effect (#6937)
     -enh (dkulp)                 FPP shift-string capes (K8/K16/K32 and the K16A-B, K64D-B, K128D-B) now offer
                                  the pixel protocols FPP can actually drive on them - the WS2811 family by name,
                                  TM1814, the 16 bit UCS8903/8904, and the slower parts such as UCS1903, TM1803,
@@ -33,6 +39,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  matching Windows. The control has to be clicked or focused first, and a scroll
                                  already moving a panel keeps moving it, so scrolling past a control never
                                  changes it by accident
+    -bug (dkulp)                 Fix a crash on the Layout tab when a controller placement box is left behind by a
+                                 controller that no longer exists - switching to the Controllers page, or changing
+                                 a controller property, walked the leftover box and crashed
+    -bug (dkulp)                 Fix a crash selecting in the model tree straight after an undo that deleted or
+                                 replaced the selected model
+    -bug (dkulp)                 Fix a crash deleting a position zone when the zone list changed while the
+                                 confirmation prompt was up
     -bug (dkulp)                 Fix a crash reading an fseq whose compression block table is out of order; the
                                  frame index went negative and the read ran off the end of the decompressed block
     -bug (dkulp)                 Fix a crash opening a sequence that stores more timing tags than xLights keeps;
@@ -280,6 +293,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (cybercop23)            Fix Face and State effect definition choices when switching between different
                                  model groups.
     -bug (derwin12)              Fixed locked effects duplicating when dragged across rows/layers (#6697)
+    -bug (scott)                 Fix a crash clicking in the Model Definitions preview (Faces/States)
+                                 with nothing selected in the name list
+    -enh (scott)                 Model Definitions: the preview's pencil tool and click-drag node
+                                 selection are disabled when nothing is selected, a SubModel is in
+                                 SubBuffer mode, or a Face is in Matrix mode; the pencil is also disabled
+                                 in Single Node mode, though click-drag there still works and picks the
+                                 first node touched
 
 2026.15  August 4, 2026
     -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so

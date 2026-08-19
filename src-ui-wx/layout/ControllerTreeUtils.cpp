@@ -147,6 +147,12 @@ ControllerLedBitmaps CreateControllerLedBitmaps(int size) {
 }
 
 ControllerPingBucket ClassifyControllerPing(const Controller* c) {
+    // A controller placement object is deliberately kept when its controller
+    // goes away, so a name lookup can legitimately come back empty here. That
+    // is "no ping information", which is what Gray means.
+    if (c == nullptr) {
+        return ControllerPingBucket::Gray;
+    }
     auto ps = c->GetLastPingState();
     if (ps == Output::PINGSTATE::PING_ALLFAILED) {
         return ControllerPingBucket::Red;

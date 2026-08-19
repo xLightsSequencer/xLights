@@ -235,6 +235,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_RENAMESET;
         static const long ID_PREVIEW_MODEL_MANAGESET;
         static const long ID_PREVIEW_MODEL_WIRINGVIEW;
+        static const long ID_PREVIEW_MODEL_WIRETOCLOSESTCONTROLLER;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;
         static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
         static const long ID_PREVIEW_BULKEDIT;
@@ -482,6 +483,7 @@ class LayoutPanel: public wxPanel
         void EditStates();
         void EditModelData();
         void ShowWiring();
+        void WireToClosestControllerOpenPort();
         void ExportModelAsCAD();
         void ExportLayoutDXF();
         void ExportFacesStatesSubModels();

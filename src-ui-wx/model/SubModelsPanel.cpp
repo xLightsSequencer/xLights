@@ -1926,6 +1926,15 @@ void SubModelsPanel::ValidateWindow()
         _animPlaying ||
         (ListCtrl_SubModels->GetSelectedItemCount() == 1 && TypeNotebook->GetSelection() == 0)
     );
+
+    if (_modelPreview) {
+        _modelPreview->SetPencilEnabled(CanEditPreviewNodes());
+    }
+}
+
+bool SubModelsPanel::CanEditPreviewNodes() const
+{
+    return ListCtrl_SubModels->GetSelectedItemCount() == 1 && TypeNotebook->GetSelection() == 0;
 }
 
 void SubModelsPanel::UnSelectAll()
@@ -2682,6 +2691,7 @@ void SubModelsPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 void SubModelsPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
     if (!_isActive) return;
+    if (!CanEditPreviewNodes()) return;
     if (_modelPreview && _modelPreview->HitTestPencilIcon(event.GetX(), event.GetY())) {
         _modelPreview->ShowPencilSizeMenu();
         return;
@@ -2705,6 +2715,7 @@ void SubModelsPanel::OnPreviewLeftDown(wxMouseEvent& event)
 void SubModelsPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
     if (!_isActive) return;
+    if (!CanEditPreviewNodes()) return;
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);

@@ -194,6 +194,10 @@ public:
     static void ResetPencilSize();
     // Only previews used for freeform node painting (faces/states/submodels) show the pencil
     void SetSupportsPencil(bool b) { _supportsPencil = b; }
+    // Whether the pencil can be used right now (e.g. a submodel is selected and
+    // it isn't in SubBuffer mode) -- distinct from _supportsPencil, which just
+    // says this preview hosts the feature at all.
+    void SetPencilEnabled(bool b) { _pencilEnabled = b; }
     bool IsPencilActive() const;
     float GetPencilCatchRadiusMultiplier() const override;
     std::vector<float> GetPencilStrokeOffsets() const;
@@ -255,6 +259,7 @@ private:
     bool _center2D0 = false;
     bool scaleImage = false;
     bool _supportsPencil = false;
+    bool _pencilEnabled = true;
     bool allowSelected;
     bool allowPreviewChange;
     ControllerObjectContext _controllerObjectContext = ControllerObjectContext::None;

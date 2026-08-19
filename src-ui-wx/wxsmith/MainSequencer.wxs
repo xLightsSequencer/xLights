@@ -29,7 +29,7 @@
 									<tooltip>Show sequencer prop filter</tooltip>
 									<handler function="OnBitmapButton_ViewSearchClick" entry="EVT_BUTTON" />
 								</object>
-								<flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+								<flag>wxALIGN_CENTER_VERTICAL</flag>
 								<option>0</option>
 							</object>
 						</object>

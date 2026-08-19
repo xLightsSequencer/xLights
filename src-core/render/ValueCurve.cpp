@@ -1457,6 +1457,7 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
 {
     ClearCachedOffsets();
     _type = "Flat";
+    _baseCustomValues.clear();
     if (min != MINVOIDF)
     {
         _min = min;
@@ -1519,6 +1520,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         _realValues = false;
         _active = true;
         _values.clear();
+        _baseCustomValues.clear();
         _hasPreloadedValues = false;
         _hasStartEndLevel = false;
         _type = "Flat";
@@ -1873,6 +1875,9 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
 void ValueCurve::SetType(std::string type)
 {
     _hasPreloadedValues = false;
+    if (type != "Custom" && _type != type) {
+        _baseCustomValues.clear();
+    }
     _type = type;
     RenderType();
 }

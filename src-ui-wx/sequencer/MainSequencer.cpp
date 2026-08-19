@@ -259,7 +259,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     BoxSizerViewRow->Add(StaticText1, 1, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 0);
     BitmapButton_ViewSearch = new wxBitmapButton(this, ID_BITMAPBUTTON_VIEW_SEARCH, wxArtProvider::GetBitmapBundle("wxART_FIND", wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_VIEW_SEARCH"));
     BitmapButton_ViewSearch->SetToolTip(_("Show sequencer prop filter"));
-    BoxSizerViewRow->Add(BitmapButton_ViewSearch, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 0);
+    BoxSizerViewRow->Add(BitmapButton_ViewSearch, 0, wxALIGN_CENTER_VERTICAL, 0);
     FlexGridSizer2->Add(BoxSizerViewRow, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 3);
     ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
     FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 0);
@@ -1398,11 +1398,11 @@ void MainSequencer::GetPresetData(wxString& copy_data)
     if (PanelEffectGrid->IsACActive()) {
         GetACEffectsData(copy_data);
     } else {
-        GetSelectedEffectsData(copy_data);
+        GetSelectedEffectsData(copy_data, false, true);
     }
 }
 
-bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo) {
+bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo, bool forPreset) {
     
 
     bool effectsPresent = false;
@@ -1533,12 +1533,19 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElem
     wxString last_row = wxString::Format("%d",last_timing_row);
     wxString starting_column = wxString::Format("%d",start_column);
     // Record the lasso selection's top row as the anchor so that empty rows above the first effect are preserved when pasting (ANCHOR_ROW: token).
+    // Only meaningful (and only trustworthy) for preset save/update, where the selection is
+    // deliberately drawn from a model's own row down through its submodel/layer rows. For an
+    // ordinary interactive copy, a loosely-drawn lasso commonly overshoots the topmost effect's
+    // row by a row or two, which turned this into an unwanted paste-position shift -- see
+    // https://github.com/xLightsSequencer/xLights/issues/6944.
     wxString anchorToken;
-    int selStart = PanelEffectGrid->GetStartRow();
-    if (selStart >= 0 && selStart >= mSequenceElements->GetNumberOfTimingRows()) {
-        int relAnchor = selStart - mSequenceElements->GetFirstVisibleModelRow();
-        if (relAnchor >= 0)
-            anchorToken = wxString::Format("\tANCHOR_ROW:%d", relAnchor);
+    if (forPreset) {
+        int selStart = PanelEffectGrid->GetStartRow();
+        if (selStart >= 0 && selStart >= mSequenceElements->GetNumberOfTimingRows()) {
+            int relAnchor = selStart - mSequenceElements->GetFirstVisibleModelRow();
+            if (relAnchor >= 0)
+                anchorToken = wxString::Format("\tANCHOR_ROW:%d", relAnchor);
+        }
     }
 
     copy_data = "CopyFormat1\t" + num_timings + "\t" + num_effects + "\t" + num_timing_rows + "\t" + last_row + "\t" + starting_column;

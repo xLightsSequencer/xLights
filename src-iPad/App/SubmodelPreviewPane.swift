@@ -49,6 +49,10 @@ struct SubmodelPreviewPane: UIViewRepresentable {
     let onToggleNode: (Int) -> Void
     let onAddNodes: ([Int]) -> Void
     var controller: SubmodelPreviewController? = nil
+    // Tap-to-toggle and marquee only make sense for a Ranges/Lines submodel;
+    // a Sub-buffer submodel isn't defined by a node list, so there's nothing
+    // for either gesture to edit (mirrors desktop's SubModelsPanel::CanEditPreviewNodes).
+    var nodesEditable: Bool = true
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: parentModelName)
@@ -78,6 +82,7 @@ struct SubmodelPreviewPane: UIViewRepresentable {
         context.coordinator.document = document
         context.coordinator.onToggleNode = onToggleNode
         context.coordinator.onAddNodes = onAddNodes
+        context.coordinator.nodesEditable = nodesEditable
         controller?.coordinator = context.coordinator
 
         let pinch = UIPinchGestureRecognizer(
@@ -135,6 +140,7 @@ struct SubmodelPreviewPane: UIViewRepresentable {
         context.coordinator.document = document
         context.coordinator.onToggleNode = onToggleNode
         context.coordinator.onAddNodes = onAddNodes
+        context.coordinator.nodesEditable = nodesEditable
         controller?.coordinator = context.coordinator
         if context.coordinator.lastHighlight != highlightedNodes {
             context.coordinator.applyHighlights(highlightedNodes)
@@ -158,6 +164,7 @@ struct SubmodelPreviewPane: UIViewRepresentable {
         var document: XLSequenceDocument?
         var onToggleNode: ((Int) -> Void)?
         var onAddNodes: (([Int]) -> Void)?
+        var nodesEditable: Bool = true
         var lastHighlight: [Int] = []
         private let parent: String
         private var pinchStartZoom: Float = 1.0
@@ -250,6 +257,7 @@ struct SubmodelPreviewPane: UIViewRepresentable {
         }
 
         @objc func handleTap(_ g: UITapGestureRecognizer) {
+            guard nodesEditable else { return }
             guard let bridge, let view = g.view, let document else { return }
             let pt = g.location(in: view)
             let n = bridge.nodeNearPoint(pt,
@@ -267,6 +275,7 @@ struct SubmodelPreviewPane: UIViewRepresentable {
         }
 
         @objc func handleMarquee(_ g: UILongPressGestureRecognizer) {
+            guard nodesEditable else { return }
             guard let view = g.view else { return }
             switch g.state {
             case .began:

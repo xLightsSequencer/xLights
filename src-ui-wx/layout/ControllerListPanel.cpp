@@ -16,6 +16,7 @@
 #include <wx/dnd.h>
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
+#include <wx/tokenzr.h>
 #include <wx/srchctrl.h>
 #include <wx/stopwatch.h>
 #include <wx/settings.h>
@@ -540,10 +541,19 @@ void ControllerListPanel::OnFullColumnsClick(wxCommandEvent& event) {
 bool ControllerListPanel::ControllerMatchesFilter(const Controller* controller) const {
     if (_controllerFilterCtrl == nullptr || _controllerFilterString.IsEmpty()) return true;
 
-    if (_controllerFilterRegexValid)
-        return _controllerFilterRegex.Matches(controller->GetName());
+    wxArrayString terms = wxStringTokenize(_controllerFilterString.Lower(), " \t");
+    if (terms.size() <= 1) {
+        if (_controllerFilterRegexValid)
+            return _controllerFilterRegex.Matches(controller->GetName());
+        return wxString(controller->GetName()).Lower().Contains(_controllerFilterString.Lower());
+    }
 
-    return wxString(controller->GetName()).Lower().Contains(_controllerFilterString.Lower());
+    const wxString name = wxString(controller->GetName()).Lower();
+    for (const auto& term : terms) {
+        if (!name.Contains(term))
+            return false;
+    }
+    return true;
 }
 
 void ControllerListPanel::OnSelectionChanged(wxTreeListEvent& event) {
