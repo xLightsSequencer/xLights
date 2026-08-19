@@ -139,6 +139,11 @@ void PositionZoneDialog::OnButton_DeleteZoneClick(wxCommandEvent& event)
     if (wxMessageBox("Are you sure you want to delete this zone?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO)
         return;
 
+    // The confirmation pumps the event loop, so the row captured before it can
+    // no longer be in range by the time the answer comes back.
+    if (row >= (int)_zones.size() || row >= Grid_Zones->GetNumberRows())
+        return;
+
     _zones.erase(_zones.begin() + row);
     Grid_Zones->DeleteRows(row);
 

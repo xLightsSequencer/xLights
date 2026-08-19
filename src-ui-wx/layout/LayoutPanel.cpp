@@ -12566,6 +12566,17 @@ void LayoutPanel::HandleSelectionChanged() {
 
     wxStopWatch sw;
 
+    // Undo can delete or replace the selected model and then re-select, and the
+    // resulting selection-changed event arrives after the old object is gone, so
+    // the cached pointer has to be validated before it is cast - see
+    // IsSelectedBaseObjectValid.
+    if (selectedBaseObject != nullptr && !IsSelectedBaseObjectValid()) {
+        spdlog::warn("LayoutPanel::HandleSelectionChanged: selectedBaseObject was stale; clearing cached selection.");
+        selectedBaseObject = nullptr;
+        highlightedBaseObject = nullptr;
+        _propertyAdapter.reset();
+    }
+
     BaseObject* lastSelectedBaseObject = selectedBaseObject;
     Model* lastSelectedModel = dynamic_cast<Model*>(lastSelectedBaseObject);
     wxTreeListItems selectedItems;

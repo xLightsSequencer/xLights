@@ -36,6 +36,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  matching Windows. The control has to be clicked or focused first, and a scroll
                                  already moving a panel keeps moving it, so scrolling past a control never
                                  changes it by accident
+    -bug (dkulp)                 Fix a crash on the Layout tab when a controller placement box is left behind by a
+                                 controller that no longer exists - switching to the Controllers page, or changing
+                                 a controller property, walked the leftover box and crashed
+    -bug (dkulp)                 Fix a crash selecting in the model tree straight after an undo that deleted or
+                                 replaced the selected model
+    -bug (dkulp)                 Fix a crash deleting a position zone when the zone list changed while the
+                                 confirmation prompt was up
     -bug (dkulp)                 Fix a crash reading an fseq whose compression block table is out of order; the
                                  frame index went negative and the read ran off the end of the decompressed block
     -bug (dkulp)                 Fix a crash opening a sequence that stores more timing tags than xLights keeps;
