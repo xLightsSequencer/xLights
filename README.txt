@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (derwin12)              Added ability to duplicate lyrics phrases/words (#3923)
     -bug (scott)                 Fix multi-row lasso-selected effects pasting 1-3 rows below the
                                  target row instead of the row you clicked (#6944)
     -enh (scott)                 Layout: right-click a model and choose "Wire to Closest Controller with

@@ -147,6 +147,7 @@ public:
     void RemapSelectedDMXEffectValues(const std::vector<std::tuple<int, int, float, int, std::string>>& dmxmappings);
     void ConvertSelectedEffectsTo(const std::string& effectName);
     void DuplicateSelectedEffects();
+    void DuplicateSelectedTimingToTrack();
     void CreateTimingFromSelectedEffects();
     bool IsTopModelVisible();
     bool IsMouseOverTiming(int y);
@@ -458,6 +459,7 @@ private:
     static const long ID_GRID_MNU_HALVETIMINGS;
     static const long ID_GRID_MNU_BREAKDOWN_WORD;
     static const long ID_GRID_MNU_BREAKDOWN_WORDS;
+    static const long ID_GRID_MNU_DUPLICATE_TO_TIMING_TRACK;
     static const long ID_GRID_MNU_ALIGN_START_TIMES;
     static const long ID_GRID_MNU_ALIGN_END_TIMES;
     static const long ID_GRID_MNU_ALIGN_BOTH_TIMES;

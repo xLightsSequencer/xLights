@@ -10,6 +10,7 @@
 
 #include "wx/glcanvas.h"
 #include "wx/wx.h"
+#include <wx/choicdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/numdlg.h>
 #include <wx/progdlg.h>
@@ -64,6 +65,7 @@
 
 #include <cmath>
 #include <limits>
+#include <map>
 
 #include <log.h>
 
@@ -125,6 +127,7 @@ const long EffectsGrid::ID_GRID_MNU_AUTOLABEL = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_HALVETIMINGS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORD = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORDS = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_DUPLICATE_TO_TIMING_TRACK = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_START_TIMES = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_END_TIMES = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_ALIGN_BOTH_TIMES = wxNewId();
@@ -672,6 +675,11 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
                 mnuLayer.Append(ID_GRID_MNU_REMOVE_SHIMMER, "Remove \"-shimmer\"");
             }
             mSelectedEffect = selectedEffect;
+
+            if (mSequenceElements->GetNumberOfTimingElements() > 1) {
+                wxMenuItem* menu_duplicate_to_track = mnuLayer.Append(ID_GRID_MNU_DUPLICATE_TO_TIMING_TRACK, "Duplicate Selection to Timing Track...");
+                menu_duplicate_to_track->Enable(selectedEffect->GetParentEffectLayer()->GetSelectedEffectCount() >= 1);
+            }
         }
         mnuLayer.AppendSeparator();
         wxMenuItem* menu_effect_lock = mnuLayer.Append(ID_GRID_MNU_LOCK, "Lock");
@@ -1499,6 +1507,9 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(mParent, eventRowHeaderChanged);
         }
+    } else if (id == ID_GRID_MNU_DUPLICATE_TO_TIMING_TRACK) {
+        spdlog::debug("OnGridPopup - ID_GRID_MNU_DUPLICATE_TO_TIMING_TRACK");
+        DuplicateSelectedTimingToTrack();
     } else if (id == ID_GRID_MNU_FIND) {
         Find();
     } else if (id == ID_GRID_MNU_FIND_NEXT) {
@@ -9336,6 +9347,103 @@ void EffectsGrid::DuplicateSelectedEffects() {
             }
         }
     }
+}
+
+void EffectsGrid::DuplicateSelectedTimingToTrack() {
+    if (mSelectedEffect == nullptr) {
+        return;
+    }
+
+    TimingElement* sourceElement = dynamic_cast<TimingElement*>(mSelectedEffect->GetParentEffectLayer()->GetParentElement());
+    if (sourceElement == nullptr) {
+        return;
+    }
+
+    // Gather the highlighted marks from every layer (Phrase/Word/Phoneme) of the
+    // source track, not just the row that was right-clicked - a selection can span
+    // multiple layers (e.g. a phrase and its words highlighted together).
+    std::map<int, std::vector<Effect*>> selectedEffectsByLayer;
+    for (size_t li = 0; li < sourceElement->GetEffectLayerCount(); ++li) {
+        EffectLayer* layer = sourceElement->GetEffectLayer((int)li);
+        for (int i = 0; i < layer->GetEffectCount(); ++i) {
+            Effect* e = layer->GetEffect(i);
+            if (e->GetSelected() != EFFECT_NOT_SELECTED) {
+                selectedEffectsByLayer[(int)li].push_back(e);
+            }
+        }
+    }
+    if (selectedEffectsByLayer.empty()) {
+        int layerIndex = -1;
+        EffectLayer* sourceLayer = mSelectedEffect->GetParentEffectLayer();
+        for (size_t i = 0; i < sourceElement->GetEffectLayerCount(); ++i) {
+            if (sourceElement->GetEffectLayer((int)i) == sourceLayer) {
+                layerIndex = (int)i;
+                break;
+            }
+        }
+        if (layerIndex < 0) {
+            return;
+        }
+        selectedEffectsByLayer[layerIndex].push_back(mSelectedEffect);
+    }
+
+    wxArrayString choices;
+    std::vector<TimingElement*> candidates;
+    int numTiming = mSequenceElements->GetNumberOfTimingElements();
+    for (int i = 0; i < numTiming; ++i) {
+        TimingElement* te = mSequenceElements->GetTimingElement(i);
+        if (te == nullptr || te == sourceElement) {
+            continue;
+        }
+        choices.Add(te->GetName());
+        candidates.push_back(te);
+    }
+
+    if (choices.IsEmpty()) {
+        wxMessageBox("No other timing tracks found in this sequence.", "Duplicate Selection to Timing Track",
+                     wxOK | wxICON_INFORMATION, (wxWindow*)mParent);
+        return;
+    }
+
+    wxSingleChoiceDialog dlg((wxWindow*)mParent, "Duplicate the selected timing marks to which timing track?",
+                             "Duplicate Selection to Timing Track", choices);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    TimingElement* destElement = candidates[dlg.GetSelection()];
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    int skipped = 0;
+    for (auto& [layerIndex, selectedEffects] : selectedEffectsByLayer) {
+        while ((int)destElement->GetEffectLayerCount() <= layerIndex) {
+            destElement->AddEffectLayer();
+        }
+        EffectLayer* destLayer = destElement->GetEffectLayer(layerIndex);
+        destLayer->UnSelectAllEffects();
+        for (Effect* e : selectedEffects) {
+            long start = e->GetStartTimeMS();
+            long end = e->GetEndTimeMS();
+            if (destLayer->HasEffectsInTimeRange(start, end)) {
+                skipped++;
+                continue;
+            }
+            Effect* newef = destLayer->AddEffect(0, e->GetEffectName(), e->GetSettingsAsString(), e->GetPaletteAsString(), start, end, EFFECT_SELECTED, false);
+            if (newef != nullptr) {
+                mSequenceElements->get_undo_mgr().CaptureAddedEffect(destElement->GetName(), destLayer->GetIndex(), newef->GetID());
+            }
+        }
+    }
+    destElement->SetCollapsed(false);
+
+    if (skipped > 0) {
+        wxMessageBox(wxString::Format("%d timing mark(s) were skipped because they overlap existing marks on the destination track.", skipped),
+                     "Duplicate Selection to Timing Track", wxOK | wxICON_WARNING, (wxWindow*)mParent);
+    }
+
+    mSequenceElements->PopulateRowInformation();
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(mParent, eventRowHeaderChanged);
 }
 
 void EffectsGrid::DrawSongStructureOverlays(xlGraphicsContext* ctx) {

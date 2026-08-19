@@ -8061,10 +8061,12 @@ void xLightsFrame::SetXFadePort(int i)
 
 void xLightsFrame::LoadPhonemeDictionaries()
 {
+    wxString exeDir = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
     std::vector<std::string> searchDirs = {
         CurrentDir.ToStdString(),
         (wxStandardPaths::Get().GetResourcesDir() + "/dictionaries").ToStdString(),
-        wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath()).GetPath().ToStdString()
+        (exeDir + "/dictionaries").ToStdString(),
+        exeDir.ToStdString()
     };
 
     wxProgressDialog dlg("Loading", "Loading phoneme dictionaries", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
