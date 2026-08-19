@@ -43,7 +43,7 @@ class MainSequencer: public wxPanel
         void UpdateEffectGridVerticalScrollBar();
         bool UpdateTimeDisplay(int time_ms, const std::vector<float> &fps, bool render = true);
         void UpdateSelectedDisplay(int selected);
-        bool GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo = false);
+        bool GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo = false, bool forPreset = false);
         bool GetACEffectsData(wxString& copy_data);
         void GetPresetData(wxString& copy_data);
         bool CopySelectedEffects();

@@ -1398,11 +1398,11 @@ void MainSequencer::GetPresetData(wxString& copy_data)
     if (PanelEffectGrid->IsACActive()) {
         GetACEffectsData(copy_data);
     } else {
-        GetSelectedEffectsData(copy_data);
+        GetSelectedEffectsData(copy_data, false, true);
     }
 }
 
-bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo) {
+bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo, bool forPreset) {
     
 
     bool effectsPresent = false;
@@ -1533,12 +1533,19 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElem
     wxString last_row = wxString::Format("%d",last_timing_row);
     wxString starting_column = wxString::Format("%d",start_column);
     // Record the lasso selection's top row as the anchor so that empty rows above the first effect are preserved when pasting (ANCHOR_ROW: token).
+    // Only meaningful (and only trustworthy) for preset save/update, where the selection is
+    // deliberately drawn from a model's own row down through its submodel/layer rows. For an
+    // ordinary interactive copy, a loosely-drawn lasso commonly overshoots the topmost effect's
+    // row by a row or two, which turned this into an unwanted paste-position shift -- see
+    // https://github.com/xLightsSequencer/xLights/issues/6944.
     wxString anchorToken;
-    int selStart = PanelEffectGrid->GetStartRow();
-    if (selStart >= 0 && selStart >= mSequenceElements->GetNumberOfTimingRows()) {
-        int relAnchor = selStart - mSequenceElements->GetFirstVisibleModelRow();
-        if (relAnchor >= 0)
-            anchorToken = wxString::Format("\tANCHOR_ROW:%d", relAnchor);
+    if (forPreset) {
+        int selStart = PanelEffectGrid->GetStartRow();
+        if (selStart >= 0 && selStart >= mSequenceElements->GetNumberOfTimingRows()) {
+            int relAnchor = selStart - mSequenceElements->GetFirstVisibleModelRow();
+            if (relAnchor >= 0)
+                anchorToken = wxString::Format("\tANCHOR_ROW:%d", relAnchor);
+        }
     }
 
     copy_data = "CopyFormat1\t" + num_timings + "\t" + num_effects + "\t" + num_timing_rows + "\t" + last_row + "\t" + starting_column;
