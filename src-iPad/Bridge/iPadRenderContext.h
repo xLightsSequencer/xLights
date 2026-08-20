@@ -37,6 +37,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <deque>
 #include <set>
@@ -47,6 +48,25 @@ class iPadRenderContext : public xLightsShowContext {
 public:
     iPadRenderContext();
     ~iPadRenderContext() override;
+
+    // Hold one of these for the whole of any operation that tears down, rebuilds
+    // or merges AllModels / AllObjects. It blocks new renders from starting for
+    // its entire lifetime and drains the ones already running, which a bare
+    // AbortRender cannot do - that only empties the queue at one instant, and
+    // every such operation runs for seconds afterwards with the main run loop
+    // free to start another. `ok()` is false when the gate or the drain timed
+    // out; the caller MUST NOT touch the managers in that case, because live
+    // render workers still hold Model* into them.
+    class ModelMutationScope {
+    public:
+        explicit ModelMutationScope(iPadRenderContext& ctx, int maxWaitMs = 5000);
+        bool ok() const { return _ok; }
+        ModelMutationScope(const ModelMutationScope&) = delete;
+        ModelMutationScope& operator=(const ModelMutationScope&) = delete;
+    private:
+        std::unique_lock<std::timed_mutex> _lock;
+        bool _ok = false;
+    };
 
     // Show folder management
     bool LoadShowFolder(const std::string& showDir);
@@ -774,6 +794,21 @@ private:
     // Show state (managers, sequence, render engine, directories, seq data,
     // modelsChangeCount) is inherited from xLightsShowContext. Only iPad-specific
     // members live here.
+
+    // Guards the invariant that no render may START while AllModels/AllObjects
+    // are being rebuilt or merged. AbortRender only drains the jobs already in
+    // flight; a show-folder load then spends seconds in ObtainAccessToURL,
+    // OutputManager::Load and the rgbeffects parse before AllModels.clear(),
+    // and the main run loop keeps ticking throughout - the 0.5s dirty poll
+    // (SequencerViewModel.startDirtyPolling -> RenderDependentModels) lands
+    // squarely in that window and starts a fresh render whose workers then
+    // resolve names out of the ModelManager being cleared. Take it through
+    // ModelMutationScope to mutate, and via try_lock in every render kickoff.
+    std::timed_mutex _modelMutationGate;
+    // SetModelColors' body with the gate already held by the caller — lets the
+    // pixel getters take it once for the colour refresh and their own walk
+    // (std::timed_mutex is not recursive).
+    void SetModelColorsUnlocked(int frameMS);
 
     // Read-only "From Base" preset library (the shared _effectPresetManager is
     // in the base).

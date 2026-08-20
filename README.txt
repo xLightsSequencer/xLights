@@ -13,6 +13,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
     -bug (dkulp)                 Fix crash opening a sequence whose effects use a "Per Model" buffer style
                                  the model does not support
+    -bug (dkulp)                 iPad - Fix crash when changing the show folder while a sequence was still
+                                 rendering or the preview was drawing
+    -enh (dkulp)                 iPad - Sequencer grid and house preview do much less work per frame, so
+                                 dragging and scrolling stay smooth on large sequences
+    -enh (dkulp)                 iPad - Crash-report uploads no longer run while the app is launching
     -enh (derwin12)              Added ability to duplicate lyrics phrases/words (#3923)
     -bug (scott)                 Fix multi-row lasso-selected effects pasting 1-3 rows below the
                                  target row instead of the row you clicked (#6944)

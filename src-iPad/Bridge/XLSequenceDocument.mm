@@ -17722,6 +17722,20 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         _context->RegenerateShowGuid();
     }
 
+    // ModelManager/ViewObjectManager::MergeFromBase delete and replace Model*
+    // in place, and this runs off the main actor (the auto path detaches, the
+    // Update-From-Base-Now button does not) with the render kickoffs still
+    // live — the same writer-vs-render race LoadShowFolder holds this scope
+    // for. Bail rather than merge under live workers.
+    iPadRenderContext::ModelMutationScope mutate(*_context);
+    if (!mutate.ok()) {
+        return @{ @"error": @"A render is still running. Try again in a moment.",
+                  @"needsReselect": @NO,
+                  @"controllersChanged": @NO,
+                  @"modelsChanged": @NO,
+                  @"objectsChanged": @NO };
+    }
+
     // Shared across the three passes so Yes-to-All carries from controllers → models → objects.
     bool acceptAll = false;
     bool rejectAll = false;

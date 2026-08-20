@@ -46,6 +46,12 @@ final class XLDiagnosticUploader {
     nonisolated private let workQueue = DispatchQueue(
         label: "org.xlights.diagnostic-upload", qos: .utility)
     private var didSubscribeToMetricKit = false
+    /// The first `scenePhase == .active` IS the launch. `bootstrap()` already
+    /// schedules the first sweep 20s out precisely to stay clear of the launch
+    /// window, so uploading here undoes that — Apple's launch-time samples name
+    /// `kickoff` and `pruneStaleDiagnosticsAsync` among the slow frames. Later
+    /// activations are genuine foreground returns and do upload.
+    private var sawLaunchActivation = false
 
     nonisolated static var isOptedIn: Bool {
         // Debug builds never upload. Stopping the debugger, killing
@@ -146,6 +152,16 @@ final class XLDiagnosticUploader {
 
     func beginCurrentSession() {
         XLDiagnosticSession.beginCurrentSession()
+    }
+
+    /// `kickoff()` for the scenePhase observer: a no-op on the launch
+    /// activation, an upload sweep on every foreground return after it.
+    func kickoffOnForegroundReturn() {
+        guard sawLaunchActivation else {
+            sawLaunchActivation = true
+            return
+        }
+        kickoff()
     }
 
     func endCurrentSession() {

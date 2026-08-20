@@ -772,13 +772,12 @@ struct SequencerGridV2View: View {
 
     var body: some View {
         GeometryReader { geo in
-            // Partition rows into timing band (row 2) vs model band (row 3).
-            // Uses the bridge's explicit timing-row index list.
-            let timingIdxSet: Set<Int> = Set(
-                (viewModel.document.timingRowIndices() as [NSNumber]).map { $0.intValue }
-            )
-            let timingRows = viewModel.rows.filter { timingIdxSet.contains($0.id) }
-            let modelRows = viewModel.rows.filter { !timingIdxSet.contains($0.id) }
+            // Rows are partitioned into the timing band (row 2) and the model
+            // band (row 3) once per reloadRows(), not here: this body re-runs on
+            // every @State change on the view, and deriving the split inline
+            // meant a bridge call plus two O(rows) filters per drag frame.
+            let timingRows = viewModel.timingRows
+            let modelRows = viewModel.modelRows
 
             let durationMS = viewModel.sequenceDurationMS
             // How far the timeline is drawn — past the sequence end when
@@ -2824,11 +2823,15 @@ struct SequencerGridV2View: View {
     /// element has `GetActive() == true`. These drive the vertical
     /// guide lines across the model effects canvas.
     private func collectActiveTimingMarkTimes() -> [Int] {
-        let timingIdx = (viewModel.document.timingRowIndices() as [NSNumber]).map { $0.intValue }
+        // Reached from `body` via modelEffectsMetalView, so it runs as often as
+        // the body does. It used to make one bridge call for the index list, a
+        // second per timing row for the active flag, and an O(rows) linear scan
+        // per timing row to find the RowInfo. All three are already answered by
+        // the cached partition: RowInfo.timing.isActive is refreshed by
+        // reloadRows on every toggle (see TimingRowInfo.isActive).
         var out: [Int] = []
-        for idx in timingIdx {
-            guard viewModel.document.timingRowIsActive(at: Int32(idx)) else { continue }
-            guard let row = viewModel.rows.first(where: { $0.id == idx }) else { continue }
+        for row in viewModel.timingRows {
+            guard row.timing?.isActive == true else { continue }
             for e in row.effects {
                 out.append(e.startTimeMS)
                 out.append(e.endTimeMS)

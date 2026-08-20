@@ -64,6 +64,17 @@ class SequencerViewModel {
     var timelineExtentMS: Int = 0
     var frameIntervalMS: Int = 50
     var rows: [RowInfo] = []
+    /// `rows` split into the timing band and the model band, recomputed only
+    /// when `rows` is (via `setRows`). `SequencerGridV2View.body` needs both
+    /// halves on every evaluation, and that body is re-run on any of the
+    /// view's ~60 `@State` changes — drag offsets, menu/sheet flags, text
+    /// buffers. Deriving the split there cost an ObjC++ `timingRowIndices()`
+    /// call plus two O(rows) filters per keystroke and per drag frame, which
+    /// is what the sustained-CPU reports on `body.get` were burning.
+    /// `row.timing != nil` is the same predicate `timingRowIndices()` gives:
+    /// `reloadRows` populates `timing` exactly for the indices in that list.
+    private(set) var timingRows: [RowInfo] = []
+    private(set) var modelRows: [RowInfo] = []
     var sequenceFiles: [SequenceEntry] = []
 
     // Audio state
@@ -1180,6 +1191,11 @@ class SequencerViewModel {
             return
         }
         loadInFlight = true
+        // Belt and braces alongside iPadRenderContext's ModelMutationScope: the
+        // detached load rebuilds every Model the open sequence references, so a
+        // render-dependency sweep against the old ones is wrong on its own
+        // terms, not just unsafe. Restarted in finishLoad().
+        stopDirtyPolling()
         showFolderPath = path
         mediaFolderPaths = mediaFolders
 
@@ -1294,6 +1310,9 @@ class SequencerViewModel {
     /// release the guard here.
     private func finishLoad() {
         loadInFlight = false
+        if isSequenceLoaded {
+            startDirtyPolling()
+        }
         if let pending = pendingLoadRequest {
             pendingLoadRequest = nil
             loadShowFolder(path: pending.path, mediaFolders: pending.mediaFolders)
@@ -1518,7 +1537,7 @@ class SequencerViewModel {
         stopAutosaveTimer()
         cancelBackgroundRender()
         isSequenceLoaded = false
-        rows = []
+        setRows([])
 
         // Heavy: full .xsq XML parse + audio decode in the bridge.
         // On the main actor this was tripping the 0x8BADF00D
@@ -2469,7 +2488,7 @@ class SequencerViewModel {
         isRendering = false
         sequenceName = nil
         hasAudio = false
-        rows = []
+        setRows([])
         waveformPeaks = []
         onsetTimesMS = []
         showOnsets = false
@@ -9331,6 +9350,14 @@ class SequencerViewModel {
         timelineExtentMS = max(sequenceDurationMS, Int(document.maxEffectEndTimeMS()))
     }
 
+    /// Single writer for `rows` — keeps the `timingRows`/`modelRows` partition
+    /// in step with it. Assigning `rows` directly leaves the two stale.
+    private func setRows(_ newRows: [RowInfo]) {
+        rows = newRows
+        timingRows = newRows.filter { $0.timing != nil }
+        modelRows = newRows.filter { $0.timing == nil }
+    }
+
     func reloadRows() {
         var newRows: [RowInfo] = []
         let count = Int(document.visibleRowCount())
@@ -9438,7 +9465,7 @@ class SequencerViewModel {
             ))
         }
 
-        rows = newRows
+        setRows(newRows)
     }
 }
 

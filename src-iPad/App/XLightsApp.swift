@@ -119,7 +119,7 @@ struct XLightsApp: App {
                 viewModel.shutdownForBackground()
             case .active:
                 XLDiagnosticUploader.shared.beginCurrentSession()
-                XLDiagnosticUploader.shared.kickoff()
+                XLDiagnosticUploader.shared.kickoffOnForegroundReturn()
             @unknown default:
                 break
             }
