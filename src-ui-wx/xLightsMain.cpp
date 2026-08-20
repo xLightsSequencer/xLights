@@ -42,6 +42,7 @@
 #include <wx/zipstrm.h>
 
 #include <cctype>
+#include <cstdlib>
 #include <cstring>
 #include <thread>
 #include <string>
@@ -7615,6 +7616,50 @@ void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
     }
 }
 
+namespace {
+    // "2026-08-14T12:34:56Z" -> y/m/d.  Returns false if it isn't that shape.
+    bool ParseISODate(const std::string& s, int& y, int& m, int& d)
+    {
+        if (s.size() < 10 || s[4] != '-' || s[7] != '-') {
+            return false;
+        }
+        y = (int)std::strtol(s.c_str(), nullptr, 10);
+        m = (int)std::strtol(s.c_str() + 5, nullptr, 10);
+        d = (int)std::strtol(s.c_str() + 8, nullptr, 10);
+        return y > 0 && m >= 1 && m <= 12 && d >= 1 && d <= 31;
+    }
+
+    // __DATE__ format: "Aug 14 2026" (day is space padded).
+    bool ParseCompilerDate(const std::string& s, int& y, int& m, int& d)
+    {
+        static const char* MONTHS = "JanFebMarAprMayJunJulAugSepOctNovDec";
+        if (s.size() < 11) {
+            return false;
+        }
+        const char* p = std::strstr(MONTHS, s.substr(0, 3).c_str());
+        if (p == nullptr) {
+            return false;
+        }
+        m = (int)((p - MONTHS) / 3) + 1;
+        d = (int)std::strtol(s.c_str() + 4, nullptr, 10);
+        y = (int)std::strtol(s.c_str() + 7, nullptr, 10);
+        return y > 0 && d >= 1 && d <= 31;
+    }
+
+    // True if this build predates the release by more than the given number of
+    // months. Undecidable dates count as "not old" so an unexpected format never
+    // takes options away from the user.
+    bool IsBuildOlderThan(const std::string& releaseDate, int months)
+    {
+        int ry, rm, rd, by, bm, bd;
+        if (!ParseISODate(releaseDate, ry, rm, rd) || !ParseCompilerDate(xlights_build_date, by, bm, bd)) {
+            return false;
+        }
+        const int monthsApart = (ry - by) * 12 + (rm - bm);
+        return monthsApart > months || (monthsApart == months && rd >= bd);
+    }
+}
+
 bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes)
 {
 
@@ -7664,6 +7709,7 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
 
     std::string downloadURL;
     std::string urlVersion;
+    std::string urlPublished;
     for (int x = 0; x < (int)val.size() && downloadURL.empty(); x++) {
         if (val[x].contains("name")) {
             std::string verName = val[x].contains("tag_name") ? val[x]["tag_name"].get<std::string>() : val[x]["name"].get<std::string>();
@@ -7674,10 +7720,20 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
                     if (url.ends_with(ASSET_EXT)) {
                         downloadURL = url;
                         urlVersion = verName;
+                        if (val[x].contains("published_at") && val[x]["published_at"].is_string()) {
+                            urlPublished = val[x]["published_at"].get<std::string>();
+                        }
                     }
                 }
             }
         }
+    }
+
+    // Well behind the current release: don't let this one be ignored forever, and
+    // drop any version the user ignored earlier.
+    const bool allowIgnore = !IsBuildOlderThan(urlPublished, 6);
+    if (!allowIgnore) {
+        configver.clear();
     }
 
     spdlog::debug("Current Version: '{}'. Latest Available '{}'. Skip Version '{}'.",
@@ -7695,6 +7751,9 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
             dialog->urlVersion = urlVersion;
             dialog->downloadUrl = downloadURL;
             dialog->StaticTextUpdateLabel->SetLabel("You are currently running xLights " + xlights_version_string + "\n" + "Whereas the current release is " + urlVersion);
+            if (!allowIgnore) {
+                dialog->DisableIgnore();
+            }
             dialog->Show();
         }
     } else {

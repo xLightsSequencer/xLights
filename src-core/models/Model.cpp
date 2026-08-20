@@ -1882,11 +1882,13 @@ void Model::ApplyTransform(const std::string& type,
 const std::string Model::AdjustBufferStyle(const std::string &style) const {
     auto styles = GetBufferStyles();
     if (std::find(styles.begin(), styles.end(), style) == styles.end()) {
-        if (style.substr(0, 9) == "Per Model") {
-            return style.substr(10);
-        } else {
-            return "Default";
+        if (style.starts_with("Per Model ")) {
+            const std::string stripped = style.substr(10);
+            if (std::find(styles.begin(), styles.end(), stripped) != styles.end()) {
+                return stripped;
+            }
         }
+        return "Default";
     }
     return style;
 }

@@ -81,6 +81,15 @@ UpdaterDialog::~UpdaterDialog()
 	//*)
 }
 
+void UpdaterDialog::DisableIgnore()
+{
+    ButtonUpdateIgnore->Hide();
+    StaticTextUpdateLabel->SetLabel(StaticTextUpdateLabel->GetLabel() + "\n\nThis release is more than 6 months newer than the version you are running.");
+    Layout();
+    GetSizer()->Fit(this);
+    Center();
+}
+
 void UpdaterDialog::OnButtonDownloadNewRelease(wxCommandEvent& event)
 {
     spdlog::debug("User has chosen to upgrade to version {}. URL: {}",

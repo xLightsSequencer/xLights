@@ -26,6 +26,8 @@ class UpdaterDialog: public wxDialog
 		wxString urlVersion = "";
 		wxString downloadUrl = "";
 
+		void DisableIgnore();
+
 		//(*Declarations(UpdaterDialog)
 		wxButton* ButtonUpDownload;
 		wxStaticText* StaticTextUpdateLabel;
