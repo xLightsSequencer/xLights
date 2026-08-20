@@ -48,7 +48,7 @@ bool Experience::GetJSONData(std::string const& url, nlohmann::json& val) const 
 }
 
 std::string Experience::PostJSONToURL(std::string const& url, nlohmann::json const& val) const {
-    return PutURL(url, val.dump(3), "", "", "application/json");
+    return PutURL(url, val.dump(), "", "", "application/json");
 }
 #pragma endregion
 
