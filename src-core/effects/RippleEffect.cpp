@@ -1466,24 +1466,23 @@ void RippleEffect::Drawcircle(RenderBuffer& buffer, int Movement, int xc, int yc
                 color = hsv;
             }
         }
-        // Each pass draws a ring OFFSET from the base radius.  This used to read
-        // `radius = radius + i`, which compounded the offset every pass: with
-        // i stepping 0, 0.5, 1.0 ... the radius grew by their running sum and
-        // reached the thousands on a buffer a few hundred wide, so almost every
-        // ring fell outside it and the ring never had the requested thickness.
-        // Drawsquare, which offsets from its original corners rather than
-        // accumulating, is what this should always have matched.
-        const double r = (Movement == MOVEMENT_EXPLODE) ? radius + i : radius - i;
+        if (Movement == MOVEMENT_EXPLODE) {
+            radius = radius + i;
+        } else {
+            radius = radius - i;
+        }
 
-        if (r >= 0.0) {
+        if (radius >= 0.0) {
             // The ring only meets the buffer if some buffer pixel sits at about
-            // r from the centre; if the whole buffer is inside it, all 360
-            // samples are clipped away, so skip them.  The slack covers the
+            // `radius` from the centre.  Once the whole buffer is inside the
+            // ring - which happens quickly, because the thickness loop above
+            // accumulates radius rather than stepping it - all 360 samples land
+            // outside and are clipped away, so skip them.  The slack covers the
             // int() truncation, which moves a sample by under a pixel per axis.
             const double fx = std::max((double)xc, (double)buffer.BufferWi - 1 - xc);
             const double fy = std::max((double)yc, (double)buffer.BufferHt - 1 - yc);
             const double farthest = std::sqrt(fx * fx + fy * fy);
-            if (r > farthest + 2.0) {
+            if (radius > farthest + 2.0) {
                 continue;
             }
             // Consecutive degrees usually round to the same pixel on small
@@ -1491,8 +1490,8 @@ void RippleEffect::Drawcircle(RenderBuffer& buffer, int Movement, int xc, int yc
             // the previous pixel is output-identical.
             int lastx = INT_MIN, lasty = INT_MIN;
             for (int d = 0; d < 360; ++d) {
-                int x = r * kCircleSinCos[d].first + xc;
-                int y = r * kCircleSinCos[d].second + yc;
+                int x = radius * kCircleSinCos[d].first + xc;
+                int y = radius * kCircleSinCos[d].second + yc;
                 if (x != lastx || y != lasty) {
                     buffer.SetPixel(x, y, color); // Turn pixel
                     lastx = x;
@@ -1530,7 +1529,6 @@ void RippleEffect::Drawstar(RenderBuffer& buffer, int Movement, int xc, int yc, 
 
     xlColor color(hsv);
 
-    const double baseRadius = radius;
     for (double i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1540,11 +1538,11 @@ void RippleEffect::Drawstar(RenderBuffer& buffer, int Movement, int xc, int yc, 
                 color = hsv;
             }
         }
-        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
-        // what the old `radius = radius + i` did: with i stepping upward the
-        // radius grew by their running sum, so the shape never had the
-        // requested thickness and quickly left the buffer entirely.
-        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
+        if (Movement == MOVEMENT_EXPLODE) {
+            radius = radius + i;
+        } else {
+            radius = radius - i;
+        }
 
         if (radius >= 0.0) {
             double InnerRadius = radius / 2.618034; // divide by golden ratio squared
@@ -1590,7 +1588,6 @@ void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int y
 
     std::vector<std::pair<int, int>> oldpts, newpts;
 
-    const double baseRadius = radius;
     for (double i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1600,11 +1597,11 @@ void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int y
                 color = hsv;
             }
         }
-        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
-        // what the old `radius = radius + i` did: with i stepping upward the
-        // radius grew by their running sum, so the shape never had the
-        // requested thickness and quickly left the buffer entirely.
-        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
+        if (Movement == MOVEMENT_EXPLODE) {
+            radius = radius + i;
+        } else {
+            radius = radius - i;
+        }
 
         if (radius >= 0) {
             for (double degrees = 0.0; degrees < 361.0; degrees += increment) // 361 because it allows for small rounding errors
@@ -1660,7 +1657,6 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
 {
     xlColor color(hsv);
 
-    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += 0.5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1671,11 +1667,11 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
             }
         }
 
-        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
-        // what the old `radius = radius + i` did: with i stepping upward the
-        // radius grew by their running sum, so the shape never had the
-        // requested thickness and quickly left the buffer entirely.
-        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
+        if (Movement == MOVEMENT_EXPLODE) {
+            radius = radius + i;
+        } else {
+            radius = radius - i;
+        }
 
         if (radius >= 0) {
             double xincr = 0.01;
@@ -1742,7 +1738,6 @@ void RippleEffect::Drawtree(RenderBuffer& buffer, int Movement, int xc, int yc, 
 
     xlColor color(hsv);
 
-    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1752,11 +1747,11 @@ void RippleEffect::Drawtree(RenderBuffer& buffer, int Movement, int xc, int yc, 
                 color = hsv;
             }
         }
-        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
-        // what the old `radius = radius + i` did: with i stepping upward the
-        // radius grew by their running sum, so the shape never had the
-        // requested thickness and quickly left the buffer entirely.
-        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
+        if (Movement == MOVEMENT_EXPLODE) {
+            radius = radius + i;
+        } else {
+            radius = radius - i;
+        }
         if (radius >= 0) {
             for (int j = 0; j < count; ++j) {
                 int x1 = std::round(((double)points[j].start.x - 4.0) / 11.0 * radius);
@@ -1800,7 +1795,6 @@ void RippleEffect::Drawcrucifix(RenderBuffer& buffer, int Movement, int xc, int 
 
     xlColor color(hsv);
 
-    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1810,11 +1804,11 @@ void RippleEffect::Drawcrucifix(RenderBuffer& buffer, int Movement, int xc, int 
                 color = hsv;
             }
         }
-        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
-        // what the old `radius = radius + i` did: with i stepping upward the
-        // radius grew by their running sum, so the shape never had the
-        // requested thickness and quickly left the buffer entirely.
-        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
+        if (Movement == MOVEMENT_EXPLODE) {
+            radius = radius + i;
+        } else {
+            radius = radius - i;
+        }
         if (radius >= 0) {
             for (int j = 0; j < count; ++j) {
                 int x1 = std::round(((double)points[j].start.x - 2.5) / 7.0 * radius);
@@ -1855,7 +1849,6 @@ void RippleEffect::Drawpresent(RenderBuffer& buffer, int Movement, int xc, int y
 
     xlColor color(hsv);
 
-    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1865,11 +1858,11 @@ void RippleEffect::Drawpresent(RenderBuffer& buffer, int Movement, int xc, int y
                 color = hsv;
             }
         }
-        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
-        // what the old `radius = radius + i` did: with i stepping upward the
-        // radius grew by their running sum, so the shape never had the
-        // requested thickness and quickly left the buffer entirely.
-        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
+        if (Movement == MOVEMENT_EXPLODE) {
+            radius = radius + i;
+        } else {
+            radius = radius - i;
+        }
         if (radius >= 0) {
             for (int j = 0; j < count; ++j) {
                 int x1 = std::round(((double)points[j].start.x - 5) / 7.0 * radius);
@@ -1889,7 +1882,6 @@ void RippleEffect::Drawcandycane(RenderBuffer& buffer, int Movement, int xc, int
     double originalRadius = radius;
     xlColor color(hsv);
 
-    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1899,11 +1891,11 @@ void RippleEffect::Drawcandycane(RenderBuffer& buffer, int Movement, int xc, int
                 color = hsv;
             }
         }
-        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
-        // what the old `radius = radius + i` did: with i stepping upward the
-        // radius grew by their running sum, so the shape never had the
-        // requested thickness and quickly left the buffer entirely.
-        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
+        if (Movement == MOVEMENT_EXPLODE) {
+            radius = radius + i;
+        } else {
+            radius = radius - i;
+        }
         if (radius >= 0) {
             // draw the stick
             int y1 = std::round((double)yc + originalRadius / 6.0);
