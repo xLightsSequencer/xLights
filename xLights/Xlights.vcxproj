@@ -875,6 +875,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="..\src-ui-wx\model\GenerateCustomModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\custommodelbuilder\CustomModelBuilderDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\klightmapper\KLightMapperBridge_win.cpp" />
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
@@ -1096,6 +1097,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\media\FFmpegVideoReader.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegVideoWriter.cpp" />
     <ClCompile Include="..\src-core\media\VideoDecodeSizeRegistry.cpp" />
+    <ClCompile Include="..\src-core\media\LiveCameraCapture.cpp" />
     <ClCompile Include="..\src-core\media\VideoReader.cpp" />
     <ClCompile Include="..\src-core\media\VideoWriter.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ViewObjectPanel.cpp" />
@@ -1546,6 +1548,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
     <ClInclude Include="..\src-ui-wx\model\GenerateCustomModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\custommodelbuilder\CustomModelBuilderDialog.h" />
     <ClInclude Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.h" />
     <ClInclude Include="..\src-ui-wx\klightmapper\KLightMapperBridge.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\Images_png.h" />
@@ -1770,6 +1773,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\media\FFmpegVideoWriter.h" />
     <ClInclude Include="..\src-core\media\VideoFrame.h" />
     <ClInclude Include="..\src-core\media\VideoDecodeSizeRegistry.h" />
+    <ClInclude Include="..\src-core\media\LiveCameraCapture.h" />
     <ClInclude Include="..\src-core\media\VideoReader.h" />
     <ClInclude Include="..\src-core\media\VideoReaderImpl.h" />
     <ClInclude Include="..\src-core\media\VideoWriter.h" />

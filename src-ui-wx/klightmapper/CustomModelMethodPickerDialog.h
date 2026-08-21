@@ -16,10 +16,16 @@
 #include <vector>
 
 #include "KLightMapperBridge.h"
+#ifdef __WXMSW__
+#include "media/LiveCameraCapture.h"
+#endif
 
 class CustomModelMethodPickerDialog : public wxDialog {
 public:
-    enum class Choice { Classic, CameraScan, RTSPScan };
+    // WebcamTouchUp (Windows only): re-detect/drag-correct an existing
+    // model's node positions live via a local webcam (#3791), rather than
+    // building a brand-new model like the other three choices.
+    enum class Choice { Classic, CameraScan, RTSPScan, WebcamTouchUp };
 
     CustomModelMethodPickerDialog(
         wxWindow* parent,
@@ -35,6 +41,9 @@ public:
     std::string GetRTSPURL() const           { return rtspURL_; }
     std::string GetRTSPUsername() const       { return rtspUsername_; }
     std::string GetRTSPPassword() const       { return rtspPassword_; }
+    /// Media Foundation device symbolic link, populated only when
+    /// GetChoice() == WebcamTouchUp. Empty when no camera was found.
+    std::string GetSelectedWebcamSymbolicLink() const { return webcamSymbolicLink_; }
 
 private:
     void OnRadioChanged(wxCommandEvent& event);
@@ -46,6 +55,11 @@ private:
     wxRadioButton* cameraRadio_  = nullptr;
     wxChoice*      cameraChoice_ = nullptr;
     wxRadioButton* rtspRadio_    = nullptr;
+#ifdef __WXMSW__
+    wxRadioButton* webcamTouchUpRadio_ = nullptr;
+    wxChoice*      webcamCameraChoice_ = nullptr;
+    std::vector<LiveCameraDevice> webcamCameras_;
+#endif
     wxChoice*      netCameraChoice_ = nullptr;   // discovered ONVIF cameras
     wxButton*      discoverButton_  = nullptr;
     wxTextCtrl*    rtspURLCtrl_  = nullptr;
@@ -58,4 +72,5 @@ private:
     std::string rtspURL_;
     std::string rtspUsername_;
     std::string rtspPassword_;
+    std::string webcamSymbolicLink_;
 };

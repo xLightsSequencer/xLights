@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+
+    -enh (derwin12)              Windows: enhance Generate Custom Model for USB webcam to generate an .xmodel (#3791)
     -bug (dkulp)                 Fix crash opening a sequence whose effects use a "Per Model" buffer style
                                  the model does not support
     -bug (dkulp)                 iPad - Fix crash when changing the show folder while a sequence was still

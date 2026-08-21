@@ -80,6 +80,9 @@
 #include <wx/mstream.h>
 #include "model/GenerateCustomModelDialog.h"
 #include "klightmapper/CustomModelMethodPickerDialog.h"
+#ifdef __WXMSW__
+#include "custommodelbuilder/CustomModelBuilderDialog.h"
+#endif
 #include "klightmapper/KLightMapperBridge.h"
 #include "sequencer/GenerateLyricsDialog.h"
 #include "layout/HousePreviewExportOptionsDialog.h"
@@ -4377,6 +4380,26 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
                     scanDumpParent, completion);
                 return;
             }
+#ifdef __WXMSW__
+            if (picker.GetChoice() == CustomModelMethodPickerDialog::Choice::WebcamTouchUp) {
+                // Unlike CameraScan/RTSPScan, this drives an *existing*
+                // model's nodes directly through the output system rather
+                // than reconstructing a new one, so it is shown modally
+                // here instead of via the async completion callback (#3791).
+                {
+                    CustomModelBuilderDialog dialog(this, &_outputManager, picker.GetSelectedWebcamSymbolicLink());
+                    dialog.CenterOnParent();
+                    dialog.ShowModal();
+                }
+                if (output) { EnableOutputs(); }
+                if (timerRunning) { OutputTimer.Start(); }
+                if (mps == MEDIAPLAYINGSTATE::PLAYING) {
+                    CurrentSeqXmlFile->GetMedia()->Play();
+                    SetAudioControls();
+                }
+                return;
+            }
+#endif
             // A scan was chosen but with no valid camera / URL — restore
             // and fall through to the classic dialog below.
         }
