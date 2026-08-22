@@ -4100,6 +4100,20 @@ void xLightsFrame::CheckUnsavedChanges()
         if (wxYES == wxMessageBox("Save Models, Views, and Perspectives changes?",
                                   "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT, this)) {
             SaveEffectsFile();
+        } else {
+            // Changes were explicitly discarded ... backdate the autosave backup (if
+            // any) below the real file's mtime so LoadEffectsFile() doesn't re-offer
+            // the same discarded changes as a "newer autosave found" prompt next open.
+            wxFileName fn(CurrentDir, XLIGHTS_RGBEFFECTS_FILE);
+            wxFileName bkp(CurrentDir, XLIGHTS_RGBEFFECTS_FILE_BACKUP);
+            if (FileExists(fn) && FileExists(bkp)) {
+                wxDateTime xmltime = fn.GetModificationTime();
+                wxDateTime xbkptime = bkp.GetModificationTime();
+                if (xmltime.IsValid() && xbkptime.IsValid() && xbkptime > xmltime) {
+                    xmltime -= wxTimeSpan(0, 0, 3, 0); // FAT time resolution is 2 seconds
+                    bkp.SetTimes(&xmltime, &xmltime, &xmltime);
+                }
+            }
         }
     }
 
