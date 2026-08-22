@@ -10370,6 +10370,12 @@ void LayoutPanel::ReplaceModel()
         // blocked in the dialog.)
         clone->SetFromBase(false);
 
+        // The clone was built from the source's XML, so it inherited the
+        // source's aliases. Aliases are per-target identity (older names
+        // effects/scripts may still reference), not something the source
+        // template should overwrite - restore the target's own aliases.
+        clone->SetAliases(target->GetAliases());
+
         // Per-target carryovers. These match the semantics of the three Yes/No
         // prompts in the existing single-replace flow (see ReplaceModel()).
         if (copyStartCh) {

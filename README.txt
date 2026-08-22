@@ -13,7 +13,18 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
 
     -bug (derwin12)              Fix Text effect rendering nondeterministically (and occasionally crashing)
+    -bug (dkulp)                 FPP Connect: uploading UDP outputs no longer resets FPP10's E1.31 Pacing
+                                 and Sending mode - every setting on the universes output that xLights
+                                 does not own is now carried forward unchanged
     -enh (derwin12)              Windows: enhance Generate Custom Model for USB webcam to generate an .xmodel (#3791)
+    -bug (dkulp)                 Windows/Linux: fix crash on startup when the machine falls back to the
+                                 software OpenGL 1.1 rasterizer - the preview now draws nothing instead
+                                 of calling unresolved OpenGL entry points
+    -bug (dkulp)                 Fix crash right-clicking the sequencer grid on a row with no element
+    -bug (dkulp)                 macOS: fix crash using the Add Controller button on the layout tab
+    -bug (dkulp)                 Port FSEQ read hardening back from FPP - a corrupt .eseq with a zero channel
+                                 count no longer divides by zero, and a frame whose channel buffer could not be
+                                 allocated is reported as unread instead of being written through a null pointer
     -bug (derwin12)              Fix Ripple effect shapes rendering very differently/broken since the
                                  radius accumulation change in 2026.15 (#6934)
     -bug (dkulp)                 Fix crash opening a sequence whose effects use a "Per Model" buffer style
@@ -43,6 +54,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  models/strands (#6900)
     -bug (derwin12)              Fix Replace Model(s) With This Model now deletes the source model once it has
                                  been used to replace the selected target(s) (#6901)
+    -bug (derwin12)              Fix Replace Model(s) With This Model overwriting the target's aliases with the
+                                 source's, and add an Edit button to the Model Aliases dialog (#6951)
     -bug (derwin12)              Fix Remove From Group leaving a model's submodels behind in the group when the
                                  model itself is removed (#6925)
     -bug (cybercop23)            Fix effect start/end times becoming corrupted when dragging an effect past

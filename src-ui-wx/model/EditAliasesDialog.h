@@ -24,6 +24,7 @@ class EditAliasesDialog: public wxDialog
 		wxButton* ButtonAdd;
 		wxButton* ButtonCancel;
 		wxButton* ButtonDelete;
+		wxButton* ButtonEdit;
 		wxButton* ButtonOk;
 		wxListBox* ListBoxAliases;
 		//*)
@@ -41,6 +42,7 @@ class EditAliasesDialog: public wxDialog
 		static const wxWindowID ID_BUTTON2;
 		static const wxWindowID ID_BUTTON3;
 		static const wxWindowID ID_BUTTON4;
+		static const wxWindowID ID_BUTTON5;
 		//*)
 
 	private:
@@ -48,9 +50,11 @@ class EditAliasesDialog: public wxDialog
 		//(*Handlers(EditAliasesDialog)
 		void OnButtonAddClick(wxCommandEvent& event);
 		void OnButtonDeleteClick(wxCommandEvent& event);
+		void OnButtonEditClick(wxCommandEvent& event);
 		void OnButtonOkClick(wxCommandEvent& event);
 		void OnButtonCancelClick(wxCommandEvent& event);
 		void OnListBoxAliasesSelect(wxCommandEvent& event);
+		void OnListBoxAliasesDClick(wxCommandEvent& event);
 		void OnButtonMoveUpClick(wxCommandEvent& event);
 		void OnButtonMoveDownClick(wxCommandEvent& event);
 		//*)

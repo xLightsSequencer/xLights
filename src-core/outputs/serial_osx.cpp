@@ -162,7 +162,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
 
     // write the settings
     if (tcsetattr(_fd, TCSANOW, &_t) == -1) return -1;
-    
+
     if (configuredRate != baudRate) {
         configuredRate = baudRate;
         if ( ioctl(_fd, IOSSIOSPEED, &configuredRate ) == -1 )
@@ -170,6 +170,8 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
             spdlog::error("serial: ioctl(IOSSIOSPEED) failed setting baud rate {}: errno {}", (int)configuredRate, errno);
         }
     }
+
+    _baudRate = baudRate;
 
     return _fd;
 };
@@ -195,9 +197,48 @@ int SerialPort::WaitingToWrite()
 
 int SerialPort::SendBreak()
 {
-    ioctl(_fd, TIOCSBRK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    ioctl(_fd, TIOCCBRK);
+    // Real hardware break (TIOCSBRK/TIOCCBRK) is unreliable over many macOS
+    // USB-serial drivers - the built-in AppleUSBFTDI driver (and various
+    // vendor VCP drivers) can report success on a USB-backed tty without
+    // ever asserting a break on the wire, since that requires a chip-specific
+    // USB control transfer the generic tty break ioctl doesn't always issue.
+    // That's why FTDI-based Open DMX dongles pass the "does it show as
+    // connected / does the TX LED flash" test but fixtures never see a
+    // valid DMX frame (github #2300). Log a hard ioctl failure for
+    // diagnostics, but don't rely on it - always also generate the break in
+    // software below, which goes over the normal write path and so actually
+    // reaches the wire.
+    if (ioctl(_fd, TIOCSBRK) == -1) {
+        spdlog::warn("serial (osx): TIOCSBRK ioctl failed on '{}' (errno {}) - hardware break not supported by this device/driver", _devName, errno);
+    } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        if (ioctl(_fd, TIOCCBRK) == -1) {
+            spdlog::warn("serial (osx): TIOCCBRK ioctl failed on '{}' (errno {})", _devName, errno);
+        }
+    }
+
+    // Software break: momentarily drop to a baud rate low enough that a
+    // single zero byte's start bit + 8 zero data bits (9 bit periods, all
+    // held low) produce a break comfortably longer than DMX's >=92us
+    // minimum, then restore the real baud rate. The following stop bit's
+    // mark plus the time taken to restore the baud rate provides the
+    // mark-after-break gap before the caller writes the actual DMX data.
+    speed_t breakSpeed = 50000; // 9 bits @ 50000 baud ~= 180us low
+    if (ioctl(_fd, IOSSIOSPEED, &breakSpeed) == -1) {
+        spdlog::warn("serial (osx): failed to set software-break baud rate on '{}' (errno {}) - break may not reach the device", _devName, errno);
+        return -1;
+    }
+
+    char zero = 0x00;
+    write(_fd, &zero, 1);
+    tcdrain(_fd);
+
+    speed_t restoreSpeed = (speed_t)_baudRate;
+    if (ioctl(_fd, IOSSIOSPEED, &restoreSpeed) == -1) {
+        spdlog::error("serial (osx): failed to restore baud rate {} on '{}' after software break (errno {})", _baudRate, _devName, errno);
+        return -1;
+    }
+
     return 0;
 };
 

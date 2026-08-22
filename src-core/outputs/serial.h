@@ -39,6 +39,7 @@ protected:
 #else
     int _fd;
     struct termios _t;
+    int _baudRate = 0; // requested baud rate, in Hz - needed on osx to restore after a software break
     speed_t AdaptBaudrate(int baud);
 #endif
     #pragma endregion 

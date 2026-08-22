@@ -19,6 +19,7 @@ const wxWindowID EditAliasesDialog::ID_BUTTON1 = wxNewId();
 const wxWindowID EditAliasesDialog::ID_BUTTON2 = wxNewId();
 const wxWindowID EditAliasesDialog::ID_BUTTON3 = wxNewId();
 const wxWindowID EditAliasesDialog::ID_BUTTON4 = wxNewId();
+const wxWindowID EditAliasesDialog::ID_BUTTON5 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EditAliasesDialog,wxDialog)
@@ -50,6 +51,8 @@ EditAliasesDialog::EditAliasesDialog(wxWindow* parent, Model* m, wxWindowID id, 
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	ButtonAdd = new wxButton(this, ID_BUTTON1, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer2->Add(ButtonAdd, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonEdit = new wxButton(this, ID_BUTTON5, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	FlexGridSizer2->Add(ButtonEdit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonDelete = new wxButton(this, ID_BUTTON2, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer2->Add(ButtonDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -64,10 +67,12 @@ EditAliasesDialog::EditAliasesDialog(wxWindow* parent, Model* m, wxWindowID id, 
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_LISTBOX1, wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&EditAliasesDialog::OnListBoxAliasesSelect);
+	Connect(ID_LISTBOX1, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, (wxObjectEventFunction)&EditAliasesDialog::OnListBoxAliasesDClick);
 	Connect(ID_BITMAPBUTTONUP, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditAliasesDialog::OnButtonMoveUpClick);
 	Connect(ID_BITMAPBUTTONDOWN, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditAliasesDialog::OnButtonMoveDownClick);
 	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditAliasesDialog::OnButtonAddClick);
 	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditAliasesDialog::OnButtonDeleteClick);
+	Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditAliasesDialog::OnButtonEditClick);
 	Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditAliasesDialog::OnButtonOkClick);
 	Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EditAliasesDialog::OnButtonCancelClick);
 	//*)
@@ -93,8 +98,10 @@ void EditAliasesDialog::ValidateWindow()
 {
     if (ListBoxAliases->GetSelection() >= 0) {
         ButtonDelete->Enable();
+        ButtonEdit->Enable();
     } else {
         ButtonDelete->Disable();
+        ButtonEdit->Disable();
     }
     if (ListBoxAliases->GetSelection() >= 0 && ListBoxAliases->GetSelection() < (int)ListBoxAliases->GetCount()) {
         ButtonMoveUp->Enable(true);
@@ -133,6 +140,30 @@ void EditAliasesDialog::OnButtonDeleteClick(wxCommandEvent& event)
     ValidateWindow();
 }
 
+void EditAliasesDialog::OnButtonEditClick(wxCommandEvent& event)
+{
+    int sel = ListBoxAliases->GetSelection();
+    if (sel < 0) return;
+
+    wxTextEntryDialog te(this, "Alias", "Edit alias", ListBoxAliases->GetString(sel));
+
+    if (te.ShowModal() == wxID_OK) {
+        auto edited = te.GetValue().Lower();
+
+        bool found = false;
+        for (size_t i = 0; !found && i < ListBoxAliases->GetCount(); ++i) {
+            if ((int)i != sel && ListBoxAliases->GetString(i) == edited)
+                found = true;
+        }
+
+        if (!found) {
+            ListBoxAliases->SetString(sel, edited);
+            ListBoxAliases->SetSelection(sel);
+        }
+    }
+    ValidateWindow();
+}
+
 void EditAliasesDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     std::list<std::string> aliases;
@@ -152,6 +183,11 @@ void EditAliasesDialog::OnButtonCancelClick(wxCommandEvent& event)
 void EditAliasesDialog::OnListBoxAliasesSelect(wxCommandEvent& event)
 {
     ValidateWindow();
+}
+
+void EditAliasesDialog::OnListBoxAliasesDClick(wxCommandEvent& event)
+{
+    OnButtonEditClick(event);
 }
 
 void EditAliasesDialog::OnButtonMoveUpClick(wxCommandEvent& event) {

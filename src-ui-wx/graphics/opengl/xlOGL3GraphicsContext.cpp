@@ -168,7 +168,18 @@ static bool LoadGLFunctions() {
      glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)xlGLProc("glFramebufferRenderbuffer");
 
 
-    return (glUseProgram != nullptr);
+    // Every entry point the on-screen draw path calls unconditionally. Checking
+    // only glUseProgram let a partial wglGetProcAddress run through, and a null
+    // pointer here is a call to address 0 at draw time rather than a bad draw.
+    return glUseProgram != nullptr && glGetUniformLocation != nullptr &&
+           glUniform1i != nullptr && glUniform4f != nullptr && glUniformMatrix4fv != nullptr &&
+           glBindBuffer != nullptr && glGenBuffers != nullptr && glDeleteBuffers != nullptr &&
+           glBufferData != nullptr && glBufferSubData != nullptr &&
+#ifndef LINUX
+           glActiveTexture != nullptr &&
+#endif
+           glEnableVertexAttribArray != nullptr && glDisableVertexAttribArray != nullptr &&
+           glVertexAttribPointer != nullptr && glGetAttribLocation != nullptr;
 }
 #else
 

@@ -452,12 +452,16 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
 
     Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
 
-    if (ri == nullptr)
+    if (ri == nullptr) {
         spdlog::critical("EffectsGrid::rightClick No row information ... this is not going to end well.");
+        return;
+    }
 
     Element* element = ri->element;
-    if (element == nullptr)
+    if (element == nullptr) {
         spdlog::critical("EffectsGrid::rightClick No row element ... this is not going to end well.");
+        return;
+    }
     if (element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
         int rightClickEffectIndex;
         HitLocation rightClickHit;

@@ -1161,7 +1161,11 @@ wxWindow* ControllerListPanel::CreatePropertiesPanel(wxWindow* parent) {
         mnu.Append(ID_CTRL_MNU_ADDSERIAL, "Add DMX/LOR/DLight/Renard");
         
         mnu.Bind(wxEVT_MENU, &ControllerListPanel::OnPopup, this);
-        PopupMenu(&mnu);
+        // On the button, not on this panel: the properties panel is reparented
+        // into the layout tab's settings pane, so this panel's view can be
+        // detached from any window when the button is clicked, and AppKit
+        // raises "View is not in any window" out of the popup.
+        _btnAddController->PopupMenu(&mnu);
     });
     leftColSizer->Add(_btnAddController, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 2);
 
