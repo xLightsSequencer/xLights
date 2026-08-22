@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -67,4 +68,6 @@ private:
     static std::vector<std::unique_ptr<xlFont>> fonts;
     static bool initialized;
     static std::vector<std::string> names;
+    static std::once_flag initOnceFlag;
+    static std::once_flag namesOnceFlag;
 };
