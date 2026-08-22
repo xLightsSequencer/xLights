@@ -63,12 +63,20 @@ FontManager::FontManager() {
 std::vector<std::unique_ptr<xlFont>> FontManager::fonts;
 bool FontManager::initialized = false;
 std::vector<std::string> FontManager::names;
+std::once_flag FontManager::initOnceFlag;
+std::once_flag FontManager::namesOnceFlag;
 
 FontManager::~FontManager() {
 }
 
 void FontManager::init() {
-    if (!initialized) {
+    // TextEffect::RenderXLText calls this from frame-parallel render worker
+    // threads, so the one-time population of the static fonts/names vectors
+    // below must be serialized rather than gated by a plain bool check -
+    // concurrent first calls used to race on the same push_back'd vectors,
+    // corrupting them (xLightsSequencer/xLights headless-render nondeterminism
+    // investigation, ACCESS_VIOLATION inside FontManager::init under load).
+    std::call_once(initOnceFlag, []() {
         get_font_names(); // ensure names are populated
 
         fonts.push_back(std::make_unique<xlFont>(font_5_5x5_thin_system_png, sizeof(font_5_5x5_thin_system_png)));
@@ -97,11 +105,11 @@ void FontManager::init() {
         }
 
         initialized = true;
-    }
+    });
 }
 
 const std::vector<std::string>& FontManager::get_font_names() {
-    if (names.empty()) {
+    std::call_once(namesOnceFlag, []() {
         names.push_back("5-5x5 Thin");
         names.push_back("5-5x5 Mono");
         names.push_back("6-5x6 Thin");
@@ -119,7 +127,7 @@ const std::vector<std::string>& FontManager::get_font_names() {
         names.push_back("10-12x12 Thin Vertical");
         names.push_back("12-15x15 Bold");
         names.push_back("12-15x15 Bold Vertical");
-    }
+    });
 
     return names;
 }
