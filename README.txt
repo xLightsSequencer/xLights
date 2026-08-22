@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
 
+    -bug (derwin12)              Fix Text effect rendering nondeterministically (and occasionally crashing)
     -enh (derwin12)              Windows: enhance Generate Custom Model for USB webcam to generate an .xmodel (#3791)
     -bug (derwin12)              Fix Ripple effect shapes rendering very differently/broken since the
                                  radius accumulation change in 2026.15 (#6934)
