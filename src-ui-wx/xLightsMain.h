@@ -153,7 +153,7 @@ class wxProgressDialog;
 struct MediaCompatibilityIssue;
 
 // max number of most recently used show directories on the File menu
-#define MRUD_LENGTH 4
+#define MRUD_LENGTH 8
 // max number of most recently used files on the File menu
 #define MRUF_LENGTH 8
 
