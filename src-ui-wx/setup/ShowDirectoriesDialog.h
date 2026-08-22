@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <wx/dialog.h>
+#include <wx/listctrl.h>
 #include <wx/button.h>
 #include <wx/stattext.h>
 #include <wx/checkbox.h>
@@ -22,6 +23,16 @@ class xLightsFrame;
 
 class ShowDirectoriesDialog : public wxDialog
 {
+public:
+    // Name is what shows in the File menu; path is what we actually open.
+    struct ShowFavorite {
+        wxString name;
+        wxString path;
+    };
+    // Single source of truth for the config keys, shared with the File menu.
+    static std::vector<ShowFavorite> ReadFavoritesFromConfig();
+
+private:
 public:
     ShowDirectoriesDialog(xLightsFrame* parent);
     virtual ~ShowDirectoriesDialog();
@@ -38,12 +49,13 @@ private:
     wxStaticText* ShowDirectoryLabel = nullptr;
 
     // Favorite (pinned) show folders — quick-switch slots the user manages.
-    wxListBox* FavoritesList = nullptr;
+    wxListCtrl* FavoritesList = nullptr;
     wxButton* Button_AddFavorite = nullptr;
     wxButton* Button_RemoveFavorite = nullptr;
+    wxButton* Button_RenameFavorite = nullptr;
     wxButton* Button_GoFavPermanent = nullptr;
     wxButton* Button_GoFavTemporary = nullptr;
-    std::vector<wxString> _favorites; // full paths, parallel to FavoritesList rows
+    std::vector<ShowFavorite> _favorites; // parallel to FavoritesList rows
 
     void LoadFavorites();
     void SaveFavorites() const;
@@ -55,8 +67,12 @@ private:
     void OnRemoveFavorite(wxCommandEvent& event);
     void OnGoFavoritePermanent(wxCommandEvent& event);
     void OnGoFavoriteTemporary(wxCommandEvent& event);
-    void OnFavoriteSelectionChanged(wxCommandEvent& event);
-    void OnFavoriteDoubleClick(wxCommandEvent& event);
+    void OnFavoriteSelectionChanged(wxListEvent& event);
+    void OnFavoriteDoubleClick(wxListEvent& event);
+    void OnRenameFavorite(wxCommandEvent& event);
+    // Prompts for a display name, seeded with `suggested`. Empty return = cancelled.
+    wxString PromptFavoriteName(const wxString& suggested, const wxString& title);
+    long SelectedFavorite() const;
 
     // Base directory controls
     wxStaticText* StaticText_BaseShowDirLabel = nullptr;
@@ -90,6 +106,7 @@ private:
     static const wxWindowID ID_CHECKBOX_AUTO_UPDATE;
     static const wxWindowID ID_BUTTON_UPDATE_BASE;
     static const wxWindowID ID_LISTBOX_FAVORITES;
+    static const wxWindowID ID_BUTTON_RENAME_FAV;
     static const wxWindowID ID_BUTTON_ADD_FAV;
     static const wxWindowID ID_BUTTON_REMOVE_FAV;
     static const wxWindowID ID_BUTTON_GO_FAV_PERM;
