@@ -1518,72 +1518,76 @@ bool FPP::UploadUDPOut(const nlohmann::json &udp) {
     nlohmann::json orig;
     nlohmann::json newudp = udp;
 
-    if (GetURLAsJSON("/api/channel/output/universeOutputs", orig)) {
-        if (orig.contains("channelOutputs")) {
-            // FPP owns a few universe-output settings that xLights doesn't model
-            // (the network interface, and the packet-pacing/bandwidth caps used to
-            // throttle slower controllers). Carry those forward so regenerating the
-            // outputs file doesn't wipe them out. Pacing overrides are keyed by
-            // destination controller IP so they survive universe/start-channel
-            // renumbering; where a controller has several entries we keep the most
-            // conservative cap (FPP itself collapses to the lowest rate per IP).
-            // Per-output pacing only exists in FPP 10+.
-            bool const supportsPacing = IsVersionAtLeast(10, 0, 0);
-            std::map<std::string, int> pacingByAddress;
-            for (int x = 0; x < (int)orig["channelOutputs"].size(); x++) {
-                const auto& co = orig["channelOutputs"][x];
-                if (GetJSONStringValue(co, "type") != "universes") {
-                    continue;
+    // Per-output pacing only exists in FPP 10+.
+    bool const supportsPacing = IsVersionAtLeast(10, 0, 0);
+    std::map<std::string, int> pacingByAddress;
+
+    if (GetURLAsJSON("/api/channel/output/universeOutputs", orig) && orig.contains("channelOutputs")) {
+        // xLights only owns the universe list itself. Everything else on the
+        // universes channel output belongs to FPP (the source interface, the
+        // sending/threading mode, the packet-pacing/bandwidth cap used to throttle
+        // slower controllers, plus anything a newer FPP adds), so carry those keys
+        // forward rather than dropping them when the outputs file is regenerated.
+        static const std::unordered_set<std::string> xlOwnedKeys = {
+            "type", "enabled", "timeout", "startChannel", "channelCount", "universes"
+        };
+        // Per-universe pacing overrides are keyed by destination controller IP so they
+        // survive universe/start-channel renumbering; where a controller has several
+        // entries we keep the most conservative cap (FPP itself collapses to the
+        // lowest rate per IP).
+        for (int x = 0; x < (int)orig["channelOutputs"].size(); x++) {
+            const auto& co = orig["channelOutputs"][x];
+            if (GetJSONStringValue(co, "type") != "universes") {
+                continue;
+            }
+            for (const auto& [key, value] : co.items()) {
+                if (xlOwnedKeys.find(key) == xlOwnedKeys.end()) {
+                    newudp["channelOutputs"][0][key] = value;
                 }
-                if (co.contains("interface")) {
-                    newudp["channelOutputs"][0]["interface"] = GetJSONStringValue(co, "interface");
-                }
-                if (supportsPacing && co.contains("pacingRate")) {
-                    // output-level global pacing default
-                    newudp["channelOutputs"][0]["pacingRate"] = co["pacingRate"];
-                }
-                if (supportsPacing && co.contains("universes")) {
-                    for (const auto& u : co["universes"]) {
-                        if (!u.contains("pacingRate")) {
-                            continue;
-                        }
-                        std::string addr = GetJSONStringValue(u, "address");
-                        if (addr.empty()) {
-                            continue; // pacing only applies to unicast destinations
-                        }
-                        int rate = GetJSONIntValue(u, "pacingRate", -1);
-                        if (rate < 0) {
-                            continue;
-                        }
-                        auto it = pacingByAddress.find(addr);
-                        if (it == pacingByAddress.end()) {
-                            pacingByAddress[addr] = rate;
-                        } else if (rate > 0 && (it->second <= 0 || rate < it->second)) {
-                            it->second = rate; // a real cap beats "unlimited" (0); lower Mbps wins
-                        }
+            }
+            if (supportsPacing && co.contains("universes")) {
+                for (const auto& u : co["universes"]) {
+                    if (!u.contains("pacingRate")) {
+                        continue;
+                    }
+                    std::string addr = GetJSONStringValue(u, "address");
+                    if (addr.empty()) {
+                        continue; // pacing only applies to unicast destinations
+                    }
+                    int rate = GetJSONIntValue(u, "pacingRate", -1);
+                    if (rate < 0) {
+                        continue;
+                    }
+                    auto it = pacingByAddress.find(addr);
+                    if (it == pacingByAddress.end()) {
+                        pacingByAddress[addr] = rate;
+                    } else if (rate > 0 && (it->second <= 0 || rate < it->second)) {
+                        it->second = rate; // a real cap beats "unlimited" (0); lower Mbps wins
                     }
                 }
             }
-            if (supportsPacing && newudp.contains("channelOutputs")) {
-                for (auto& co : newudp["channelOutputs"]) {
-                    if (!co.contains("universes")) {
-                        continue;
-                    }
-                    for (auto& u : co["universes"]) {
-                        // Entries flagged authoritative (controller under full xLights
-                        // control) keep the xLights-set cap; others preserve whatever the
-                        // FPP already had. Strip the internal hint either way.
-                        bool const authoritative = u.contains("_xlPacingAuthoritative");
-                        u.erase("_xlPacingAuthoritative");
-                        if (authoritative) {
-                            continue;
-                        }
-                        std::string addr = GetJSONStringValue(u, "address");
-                        auto it = pacingByAddress.find(addr);
-                        if (!addr.empty() && it != pacingByAddress.end()) {
-                            u["pacingRate"] = it->second;
-                        }
-                    }
+        }
+    }
+    // The authoritative hint is internal to xLights and must be stripped whether or
+    // not the existing config could be read.
+    if (newudp.contains("channelOutputs")) {
+        for (auto& co : newudp["channelOutputs"]) {
+            if (!co.contains("universes")) {
+                continue;
+            }
+            for (auto& u : co["universes"]) {
+                // Entries flagged authoritative (controller under full xLights
+                // control) keep the xLights-set cap; others preserve whatever the
+                // FPP already had.
+                bool const authoritative = u.contains("_xlPacingAuthoritative");
+                u.erase("_xlPacingAuthoritative");
+                if (authoritative || !supportsPacing) {
+                    continue;
+                }
+                std::string addr = GetJSONStringValue(u, "address");
+                auto it = pacingByAddress.find(addr);
+                if (!addr.empty() && it != pacingByAddress.end()) {
+                    u["pacingRate"] = it->second;
                 }
             }
         }
