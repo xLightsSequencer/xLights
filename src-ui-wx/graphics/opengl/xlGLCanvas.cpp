@@ -671,6 +671,14 @@ xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
     }
     InitializeGLContext();
     SetCurrentGLContext();
+    // InitializeGLContext is what creates the shared context and therefore what
+    // sets s_oglContextInitFailed, so the check above is vacuous on the very
+    // first canvas to draw. Without this second check a session that fell back
+    // to the 1.1 software rasterizer (no ICD, RDP, ...) got a live context with
+    // every gl* entry point null and died calling glUseProgram.
+    if (s_oglContextInitFailed) {
+        return nullptr;
+    }
 
     float r = bg.red;
     float g = bg.green;

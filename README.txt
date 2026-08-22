@@ -13,6 +13,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
 
     -enh (derwin12)              Windows: enhance Generate Custom Model for USB webcam to generate an .xmodel (#3791)
+    -bug (dkulp)                 Windows/Linux: fix crash on startup when the machine falls back to the
+                                 software OpenGL 1.1 rasterizer - the preview now draws nothing instead
+                                 of calling unresolved OpenGL entry points
     -bug (derwin12)              Fix Ripple effect shapes rendering very differently/broken since the
                                  radius accumulation change in 2026.15 (#6934)
     -bug (dkulp)                 Fix crash opening a sequence whose effects use a "Per Model" buffer style
