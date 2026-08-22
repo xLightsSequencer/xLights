@@ -18,6 +18,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  of calling unresolved OpenGL entry points
     -bug (dkulp)                 Fix crash right-clicking the sequencer grid on a row with no element
     -bug (dkulp)                 macOS: fix crash using the Add Controller button on the layout tab
+    -bug (dkulp)                 Port FSEQ read hardening back from FPP - a corrupt .eseq with a zero channel
+                                 count no longer divides by zero, and a frame whose channel buffer could not be
+                                 allocated is reported as unread instead of being written through a null pointer
     -bug (derwin12)              Fix Ripple effect shapes rendering very differently/broken since the
                                  radius accumulation change in 2026.15 (#6934)
     -bug (dkulp)                 Fix crash opening a sequence whose effects use a "Per Model" buffer style
