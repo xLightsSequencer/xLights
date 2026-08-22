@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Windows/Linux: fix crash on startup when the machine falls back to the
                                  software OpenGL 1.1 rasterizer - the preview now draws nothing instead
                                  of calling unresolved OpenGL entry points
+    -bug (dkulp)                 Fix crash right-clicking the sequencer grid on a row with no element
     -bug (derwin12)              Fix Ripple effect shapes rendering very differently/broken since the
                                  radius accumulation change in 2026.15 (#6934)
     -bug (dkulp)                 Fix crash opening a sequence whose effects use a "Per Model" buffer style
