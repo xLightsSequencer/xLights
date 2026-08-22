@@ -42,6 +42,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  models/strands (#6900)
     -bug (derwin12)              Fix Replace Model(s) With This Model now deletes the source model once it has
                                  been used to replace the selected target(s) (#6901)
+    -bug (derwin12)              Fix Replace Model(s) With This Model overwriting the target's aliases with the
+                                 source's, and add an Edit button to the Model Aliases dialog (#6951)
     -bug (derwin12)              Fix Remove From Group leaving a model's submodels behind in the group when the
                                  model itself is removed (#6925)
     -bug (cybercop23)            Fix effect start/end times becoming corrupted when dragging an effect past
