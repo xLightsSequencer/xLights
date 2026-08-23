@@ -952,7 +952,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
         OutputModelManager::WORK_SAVE_NETWORKS
     );
-    if (work & (OutputModelManager::WORK_UPDATE_NETWORK_LIST | OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES)) {
+    if (work & (OutputModelManager::WORK_UPDATE_NETWORK_LIST | OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES | OutputModelManager::WORK_RELOAD_MODELLIST)) {
         logger_work->debug("    WORK_UPDATE_NETWORK_LIST.");
         // Updates the list of outputs on the screen
         //UpdateNetworkList();
