@@ -1524,6 +1524,7 @@ void ModelStatesPanel::ImportStatesFromSubModels()
             NameChoice->SetStringSelection(name);
             NameChoice->Enable();
             DeleteButton->Enable();
+            StateTypeChoice->Enable();
             StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
             UpdateStateType();
 
@@ -1554,6 +1555,7 @@ void ModelStatesPanel::ImportStatesFromSubModels()
                     break;
                 }
             }
+            ValidateWindow();
             NodeRangeGrid->Refresh();
         }
     }
