@@ -134,6 +134,7 @@ public:
 class ColorRenderer : public wxDataViewCustomRenderer
 {
     wxColor _color;
+    bool _hasColor = false;
 
 public:
     ColorRenderer() : wxDataViewCustomRenderer(GetDefaultType(), wxDATAVIEW_CELL_ACTIVATABLE)
@@ -143,6 +144,16 @@ public:
 
     virtual bool ActivateCell(const wxRect &cell, wxDataViewModel *model, const wxDataViewItem &item, unsigned int col, const wxMouseEvent *mouseEvent) override
     {
+        // Nothing to color until the row has a Map To (col 2) mapping - don't
+        // let a swatch/color be assigned to an unmapped row.
+        if (!_hasColor) {
+            wxVariant mapped;
+            model->GetValue(mapped, item, 2);
+            if (mapped.GetString().empty()) {
+                return false;
+            }
+        }
+
         auto const& [res, newcolor] = xlColourData::INSTANCE.ShowColorDialog(GetOwner()->GetOwner()->GetParent(), _color);
         if (res == wxID_OK) {
             _color = newcolor;
@@ -154,6 +165,9 @@ public:
 
     virtual bool Render(wxRect cell, wxDC *dc, int state) override
     {
+        if (!_hasColor) {
+            return true;
+        }
         wxPen p(_color);
         wxBrush b(_color);
         dc->SetPen(p);
@@ -171,17 +185,16 @@ public:
 
     virtual bool GetValue(wxVariant &value) const override
     {
-        value = wxVariant(_color.GetAsString());
+        value = wxVariant(_hasColor ? _color.GetAsString() : wxString(""));
         return true;
     }
 
     virtual bool SetValue(const wxVariant &value) override
     {
-        if (value.GetString() != "") {
-            _color = wxColor(value.GetString());
-            return true;
-        }
-        return false;
+        wxString s = value.GetString();
+        _hasColor = !s.empty();
+        _color = _hasColor ? wxColor(s) : *wxWHITE;
+        return true;
     }
 };
 
@@ -418,7 +431,10 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
             variant = wxVariant(node->_mappingModelType);
             break;
         case 4:
-            variant = wxVariant(node->_color.GetAsString());
+            // Only surface a color for rows that are actually mapped - an
+            // unmapped row has nothing to color, and node->_color can be
+            // stale left over from a mapping that was since cleared.
+            variant = wxVariant(node->_mapping.empty() ? wxString("") : node->_color.GetAsString());
             break;
         default:
             {
@@ -781,7 +797,13 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     wxSize sz;
     LoadWindowPosition("xLightsImportDialogPosition", sz, loc);
     if (loc.x != -1) {
-        if (sz.GetWidth() < 400) sz.SetWidth(400);
+        // The saved size is shared by every import type using this dialog, some
+        // of which don't show the Color column. A size saved from one of those
+        // (or from before the Color column existed) can be narrower than the
+        // mapping tree's fixed columns (Model/#Effects/Map To/Model Type/Color)
+        // need, clipping Color off the right edge until the user manually
+        // widens the window. Enforce a floor wide enough for all of them.
+        if (sz.GetWidth() < 900) sz.SetWidth(900);
         if (sz.GetHeight() < 300) sz.SetHeight(300);
         SetPosition(loc);
         SetSize(sz);
@@ -1791,6 +1813,14 @@ void xLightsImportChannelMapDialog::OnKeyDown(wxKeyEvent& event)
 
 void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
 {
+    // The Color column has its own ActivateCell handler (ColorRenderer) that
+    // opens the color picker. Activating that cell (double-click/Enter) also
+    // raises this ITEM_ACTIVATED event, and without this guard the Map/Unmap
+    // toggle below runs too - clearing the row's Map To mapping every time a
+    // color is picked (or the native macOS color panel is dismissed).
+    if (_allowColorChoice && event.GetColumn() == 4) {
+        return;
+    }
     if (event.GetItem().IsOk()) {
         wxVariant vvalue;
         event.GetModel()->GetValue(vvalue, event.GetItem(), 2);

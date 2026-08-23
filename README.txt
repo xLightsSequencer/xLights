@@ -18,6 +18,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  render non-deterministic
     -bug (derwin12)              Fix Text effect rendering nondeterministically (and occasionally crashing)
     -bug (derwin12)              Don't re-prompt to use the rgbeffects autosave backup after the user already chose to discard those changes on exit
+    -bug (derwin12)              Fix Import Effects: picking a color for a mapped row (or dismissing the
+                                 color picker) was also toggling that row's Map To mapping off, forcing
+                                 the user to reselect it; also stop a narrow saved dialog size from
+                                 clipping the Color column
     -bug (dkulp)                 Windows: fix sequence output running below the configured frame rate - the
                                  playback timer's sleep was rounded to the 15.6ms system tick, so ticks
                                  alternated early and late and frames were dropped even though the average
