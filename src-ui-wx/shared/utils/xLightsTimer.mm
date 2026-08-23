@@ -187,6 +187,7 @@ xLightsTimer::~xLightsTimer() {
     }
 }
 void xLightsTimer::Stop() {
+    _running = false;
     if (data) {
         data->stop();
     }
@@ -194,11 +195,17 @@ void xLightsTimer::Stop() {
 }
 
 bool xLightsTimer::Start(int time, bool oneShot, const std::string& name) {
+    if (name != "") {
+        _name = name;
+    }
     if (!oneShot && data) {
         data->start(time);
+        _running = true;
         return true;
     }
-    return wxTimer::Start(time, oneShot);
+    bool started = wxTimer::Start(time, oneShot);
+    _running = started;
+    return started;
 }
 int xLightsTimer::GetInterval() const {
     if (data) {
@@ -211,7 +218,6 @@ void xLightsTimer::Notify() {
     wxTimer::Notify();
 }
 void xLightsTimer::DoSendTimer() {
-    
 }
 void xLightsTimer::SetName(const std::string& name) {
     _name = name;

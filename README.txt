@@ -14,6 +14,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              Fix Text effect rendering nondeterministically (and occasionally crashing)
     -bug (derwin12)              Don't re-prompt to use the rgbeffects autosave backup after the user already chose to discard those changes on exit
+    -bug (dkulp)                 Windows: fix sequence output running below the configured frame rate - the
+                                 playback timer's sleep was rounded to the 15.6ms system tick, so ticks
+                                 alternated early and late and frames were dropped even though the average
+                                 rate looked correct (#6954)
+    -change (dkulp)              Windows/Linux: replace the playback timer's dedicated thread - Linux now uses
+                                 the platform timer directly and Windows waits on a high resolution timer
     -bug (dkulp)                 FPP Connect: uploading UDP outputs no longer resets FPP10's E1.31 Pacing
                                  and Sending mode - every setting on the universes output that xLights
                                  does not own is now carried forward unchanged

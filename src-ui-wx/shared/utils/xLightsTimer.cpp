@@ -9,472 +9,276 @@
  **************************************************************/
 
 #include "xLightsTimer.h"
-#include <wx/stopwatch.h>
+
+#ifndef __WXOSX__
+
+// macOS drives the timer from CADisplayLink in xLightsTimer.mm.
+//
+// On GTK wxTimer is g_timeout_add(), a GLib main loop timeout with millisecond
+// resolution, which is accurate enough to use directly.
+//
+// On Windows wxTimer is SetTimer()/WM_TIMER, whose period is rounded up to the
+// system timer tick - 15.6ms, so a 25ms frame interval is really delivered every
+// 31.2ms. timeBeginPeriod() does not help: it raises the scheduler/waitable timer
+// resolution but WM_TIMER is still serviced off the USER tick. A waitable timer
+// created with CREATE_WAITABLE_TIMER_HIGH_RESOLUTION does hit the requested
+// interval, so Windows waits on one of those and hands the tick to the main
+// thread. The wait runs on a thread pool thread rather than one of ours.
+
+#ifdef __WXMSW__
+
+#include <windows.h>
+
 #include <wx/thread.h>
+
 #include <log.h>
+
 #include <mutex>
 
-#include "utils/AutoReleasePool.h"
-
-#ifndef __WXOSX__
-
-#ifndef __WXOSX__
-#define USE_THREADED_TIMER
+#ifndef CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+#define CREATE_WAITABLE_TIMER_HIGH_RESOLUTION 0x00000002
 #endif
 
-#ifdef USE_THREADED_TIMER
+namespace {
+// QPC ticks elapsed since a reference, in 100ns units. Split the divide so the
+// intermediate cannot overflow on a long running timer.
+long long ElapsedIn100ns(long long ticks, long long freq) {
+    return (ticks / freq) * 10000000LL + ((ticks % freq) * 10000000LL) / freq;
+}
+long long QpcFrequency() {
+    static const long long freq = [] {
+        LARGE_INTEGER f;
+        ::QueryPerformanceFrequency(&f);
+        return (long long)f.QuadPart;
+    }();
+    return freq;
+}
+long long QpcNow() {
+    LARGE_INTEGER c;
+    ::QueryPerformanceCounter(&c);
+    return (long long)c.QuadPart;
+}
+}
 
-#define MIN_SLEEP_BEFORE_LOG 5
-
-class xlTimerThread : public wxThread
+class xLightsTimerDataImpl
 {
 public:
-    xlTimerThread(const std::string& name, int interval, bool oneshot, xLightsTimer* timer, bool log);
-    virtual ~xlTimerThread() {
-    };
-    void Reset(int interval, bool oneshot, const std::string& name);
-    void Stop();
-    void Suspend();
-    void SetFudgeFactor(int ff);
-    int GetInterval() const { return _interval; }
-    void SetName(const std::string& name) {
-        _name = name;
+    explicit xLightsTimerDataImpl(xLightsTimer* timer) :
+        _timer(timer) {
     }
+
+    ~xLightsTimerDataImpl() {
+        Stop();
+        if (_handle != nullptr) {
+            ::CloseHandle(_handle);
+            _handle = nullptr;
+        }
+    }
+
+    bool Start(int interval) {
+        Stop();
+
+        if (interval <= 0) {
+            return false;
+        }
+        _interval = interval;
+
+        if (_handle == nullptr) {
+            _handle = ::CreateWaitableTimerExW(nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+            if (_handle == nullptr) {
+                // Pre-1803 does not know the flag. The coarser timer is still far
+                // better than WM_TIMER.
+                spdlog::debug("High resolution waitable timer unavailable ({}); falling back.", (unsigned long)::GetLastError());
+                _handle = ::CreateWaitableTimerW(nullptr, FALSE, nullptr);
+            }
+            if (_handle == nullptr) {
+                spdlog::error("Could not create a waitable timer: {}", (unsigned long)::GetLastError());
+                return false;
+            }
+        }
+
+        if (_wait == nullptr) {
+            _wait = ::CreateThreadpoolWait(&xLightsTimerDataImpl::WaitCallback, this, nullptr);
+            if (_wait == nullptr) {
+                spdlog::error("Could not create a thread pool wait: {}", (unsigned long)::GetLastError());
+                return false;
+            }
+        }
+
+        _epoch = QpcNow();
+        _ticks = 0;
+        {
+            std::lock_guard<std::mutex> lock(_armLock);
+            _stopping = false;
+            Arm();
+            ::SetThreadpoolWait(_wait, _handle, nullptr);
+        }
+        return true;
+    }
+
+    void Stop() {
+        if (_wait != nullptr) {
+            {
+                // The callback re-arms the wait under this lock, so taking it here
+                // means no re-arm can slip in after the cancel below and leave a
+                // wait outstanding when the object is closed.
+                std::lock_guard<std::mutex> lock(_armLock);
+                _stopping = true;
+                ::SetThreadpoolWait(_wait, nullptr, nullptr);
+            }
+            // Must not be held under the lock - a callback already running wants it.
+            ::WaitForThreadpoolWaitCallbacks(_wait, TRUE);
+            ::CloseThreadpoolWait(_wait);
+            _wait = nullptr;
+        }
+        if (_handle != nullptr) {
+            ::CancelWaitableTimer(_handle);
+        }
+    }
+
+    int GetInterval() const {
+        return _interval;
+    }
+
 private:
-    std::atomic<bool> _stop;
-    std::atomic<bool> _suspend;
-    std::atomic<bool> _oneshot;
-    std::atomic<int> _interval;
-    std::atomic<int> _suspendCount;
-    int _fudgefactor;
-    bool _log;
+    // Schedules the next tick against an absolute schedule rather than "interval
+    // from now", so a late tick does not push every later one out with it. If we
+    // are already past a tick - a frame took longer than the interval - that tick
+    // is skipped rather than fired immediately.
+    void Arm() {
+        const long long freq = QpcFrequency();
+        long long elapsed = ElapsedIn100ns(QpcNow() - _epoch, freq);
+        const long long period = (long long)_interval * 10000LL;
+
+        ++_ticks;
+        long long due = _ticks * period;
+        if (due <= elapsed) {
+            _ticks = elapsed / period + 1;
+            due = _ticks * period;
+        }
+
+        LARGE_INTEGER relative;
+        relative.QuadPart = -(due - elapsed); // negative == relative, in 100ns units
+        ::SetWaitableTimer(_handle, &relative, 0, nullptr, nullptr, FALSE);
+    }
+
+    static void CALLBACK WaitCallback(PTP_CALLBACK_INSTANCE, PVOID context, PTP_WAIT, TP_WAIT_RESULT) {
+        auto* self = static_cast<xLightsTimerDataImpl*>(context);
+        {
+            std::lock_guard<std::mutex> lock(self->_armLock);
+            if (self->_stopping) {
+                return;
+            }
+            self->Arm();
+            ::SetThreadpoolWait(self->_wait, self->_handle, nullptr);
+        }
+        self->_timer->Notify();
+    }
+
     xLightsTimer* _timer;
-    std::string _name;
-
-    // the main thread holds a lock on this mutex while the timer is running
-    // it is the timer thread timing out trying to lock it that actually makes the timer work
-    // when stopped or suspended the main thread releases the lock.
-    // If the timer thread manages to get the lock it immediately releases it
-    std::timed_mutex _waiter;
-
-    // when the main thread holds this lock the timer thread will block ... waiting for it to be
-    // released. Once the timer thread gets it it immediately releases it.
-    std::mutex _suspendLock;
-
-    void DoSleep(int millis);
-    virtual ExitCode Entry() override;
+    HANDLE _handle = nullptr;
+    PTP_WAIT _wait = nullptr;
+    int _interval = 0;
+    long long _epoch = 0;
+    long long _ticks = 0;
+    std::mutex _armLock;
+    bool _stopping = false;
 };
 
-#pragma region xlTimerTimer
-xLightsTimer::xLightsTimer() :
-    wxTimer()
-{
-    _log = false;
-    _suspend = false;
-    _timerCallback = nullptr;
-    _t = nullptr;
-    _pending = false;
-    _name = "";
-    _fired = 0;
+xLightsTimer::xLightsTimer() {
+    data = new xLightsTimerDataImpl(this);
 }
 
-xLightsTimer::~xLightsTimer()
-{
-    if (_t != nullptr)
-    {
-        _t->Stop();
-        _t->Delete();
-        delete _t;
-        _t = nullptr;
-    }
+xLightsTimer::~xLightsTimer() {
+    delete data;
+    data = nullptr;
 }
 
-void xLightsTimer::Stop()
-{
-    if (_t != nullptr)
-    {
-        _t->Suspend();
-    }
+void xLightsTimer::Stop() {
+    _running = false;
+    data->Stop();
+    wxTimer::Stop();
 }
 
-void xLightsTimer::SetName(const std::string& name)
-{
-    _name = name; 
-    if (_t != nullptr) _t->SetName(name);
-}
-
-bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*/, const std::string& name)
-{
-
-    wxStopWatch sw;
-
-    // While there is support for one shot timers here ... it is not the most robust code and should
-    // be avoided if possible
-    wxASSERT(oneShot == wxTIMER_CONTINUOUS);
-
-    _fired = 0;
-    _startTime = std::chrono::system_clock::now();
-
-    if (name != "") _name = name;
-
-    if (_t == nullptr)
-    {
-        spdlog::debug("Timer thread created for {}", (const char*)_name.c_str());
-        _t = new xlTimerThread(name, time, oneShot, this, _log);
-        if (_t == nullptr) return false;
-        _t->Create();
-        _t->SetPriority(WXTHREAD_DEFAULT_PRIORITY + 1); // run it with slightly higher priority to ensure events are generated in a timely manner
-        _t->Run();
+bool xLightsTimer::Start(int time, bool oneShot, const std::string& name) {
+    if (name != "") {
+        _name = name;
     }
-    else
-    {
-        spdlog::debug("Resetting timer {} as thread already exists.", (const char*)_name.c_str());
-        Stop();
-        _t->Reset(time, oneShot, _name);
+    if (time < 0) {
+        time = data->GetInterval();
     }
 
-    spdlog::debug("Timer {} started in {}ms", (const char*)_name.c_str(), sw.Time());
+    // One shot timers are rare here and do not need the accuracy, so let wx have them.
+    if (oneShot == wxTIMER_ONE_SHOT || !data->Start(time)) {
+        bool started = wxTimer::Start(time, oneShot);
+        _running = started;
+        return started;
+    }
 
+    _running = true;
     return true;
 }
 
-void xLightsTimer::DoSendTimer() {
-    if (!_pending) {
-        return;
-    }
-    wxTimer::Notify();
-    //reset pending to false AFTER sending the event so if sending takes to long, it results in a skipped frame instead of
-    //infinite number of CallAfters consuming the CPU
-    _pending = false;
+int xLightsTimer::GetInterval() const {
+    int interval = data->GetInterval();
+    return interval > 0 ? interval : wxTimer::GetInterval();
 }
 
 void xLightsTimer::Notify() {
-
-    ++_fired;
-
-    // don't notify if there is still an event processing or we are suspended
-    if (_suspend || _pending)
-    {
+    if (!wxThread::IsMain()) {
+        // One undelivered tick may be outstanding at a time, so a slow frame cannot
+        // queue up a backlog of CallAfters.
+        if (_pending.exchange(true)) {
+            return;
+        }
+        wxTimer::CallAfter(&xLightsTimer::DoSendTimer);
         return;
     }
-
-    if (_timerCallback != nullptr)
-    {
-        wxTimerEvent event(*this);
-        _timerCallback->TimerCallback(event);
-    }
-    else
-    {
-        _pending = true;
-        wxTimer::CallAfter(&xLightsTimer::DoSendTimer);
-    }
+    wxTimer::Notify();
 }
 
-int xLightsTimer::GetInterval() const
-{
-    if (_t != nullptr)
-    {
-        return _t->GetInterval();
-    }
-    return -1;
+void xLightsTimer::DoSendTimer() {
+    // Cleared before delivering rather than after: a frame that overruns the
+    // interval by any amount would otherwise discard the tick that lands while it
+    // is still running and give up a whole interval, which is enough to drop the
+    // output frame.
+    _pending = false;
+    wxTimer::Notify();
 }
 
-std::chrono::time_point<std::chrono::system_clock> xLightsTimer::GetNextEventTime()
-{
-    std::chrono::time_point<std::chrono::system_clock> next = _startTime + std::chrono::milliseconds((_fired + 1) * GetInterval());
-    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-    if (now >= next) {
-        spdlog::debug("THREAD {}: Timer missed {}ms worth of frames.", wxThread::GetCurrentId(), (long)std::chrono::duration_cast<std::chrono::milliseconds>(now - next).count());
-        _fired = std::chrono::duration_cast<std::chrono::milliseconds>(now - _startTime).count() / GetInterval();
-        next = _startTime + std::chrono::milliseconds((_fired + 1) * GetInterval());
-        while (std::chrono::duration_cast<std::chrono::milliseconds>(next - now).count() <= 0) {
-            ++_fired;
-            next = _startTime + std::chrono::milliseconds((_fired + 1) * GetInterval());
-        }
-        spdlog::debug("     Next frame is now {}ms in future. Interval: {}", (long)std::chrono::duration_cast<std::chrono::milliseconds>(next - now).count(), GetInterval());
-    }
-    //wxASSERT(next >= now);
-    return next;
-}
+#else // !__WXMSW__
 
-inline void xLightsTimer::Suspend(bool suspend)
-{
-    if (!suspend) {
-        _fired = 0;
-        _startTime = std::chrono::system_clock::now();
-    }
-
-    _suspend = suspend;
-}
-
-xlTimerThread::xlTimerThread(const std::string& name, int interval, bool oneshot, xLightsTimer* timer, bool log) : wxThread(wxTHREAD_JOINABLE)
-{
-    
-    // shouldnt be creating the timer thread with an interval less than zero
-    wxASSERT(interval >= 0);
-
-    _name = name;
-    _log = log;
-    _stop = false;
-    _suspend = false;
-    _fudgefactor = 0;
-    _interval = interval;
-    _timer = timer;
-    _oneshot = (oneshot == wxTIMER_ONE_SHOT);
-    _suspendCount = 0;
-
-    // grab the wait lock so the timer thread has its timing behaviour
-    spdlog::debug("About to grab the waiter");
-    _waiter.lock();
-    spdlog::debug("    got it");
-}
-
-void xlTimerThread::Reset(int interval, bool oneshot, const std::string& name)
-{
-    
-    if (name != "") _name = name;
-
-    spdlog::debug("Timer {} reset from interval {} to interval {} {}", (const char*)_name.c_str(), (int)_interval, interval, oneshot ? "ONESHOT" : "");
-
-    wxASSERT(_suspend == true);
-    wxASSERT(_stop == false);
-
-    int oldInterval = _interval;
-
-    if (oldInterval == -99)
-    {
-        spdlog::debug("Timer being reset was a one shot");
-    }
-
-    // only set the interval to a new value if it is greater than or equal to zero
-    if (interval >= 0)
-    {
-        _interval = interval;
-    }
-    _oneshot = oneshot;
-
-    wxStopWatch sw;
-
-    // if this was not a one shot suspend
-    if (oldInterval != -99)
-    {
-        // grab the wait lock so the timer thread goes back to its timing behaviour
-        spdlog::debug("About to grab the waiter");
-        _waiter.lock();
-        spdlog::debug("    got it");
-    }
-
-    _suspend = false;
-
-    // if this was not a one shot suspend
-    if (oldInterval != -99 && _suspendCount > 0)
-    {
-        // now release the suspend
-        spdlog::debug("About to release the suspendLock");
-        _suspendLock.unlock();
-        spdlog::debug("    released");
-    }
-
-    spdlog::debug("    Reset took {}ms", sw.Time());
-}
-
-void xlTimerThread::Suspend()
-{
-    if (_suspend) return;
-
-    spdlog::debug("Timer {} suspend", (const char*)_name.c_str());
-    wxStopWatch sw;
-
-    _suspend = true;
-
-    // lock the suspend lock on the main thread so the timer thread will block until it is released
-    spdlog::debug("About to grab the suspendLock");
-    _suspendLock.lock();
-    spdlog::debug("    got it");
-
-    int sc = _suspendCount;
-
-    // release this lock on the main thread which immediately stops the timer wait
-    spdlog::debug("About to release the waiter");
-    _waiter.unlock();
-    spdlog::debug("    released");
-
-    // this ensures the other thread saw suspended before we continue ...
-    // but also even worst case we never wait more than 3ms
-    int i = 0;
-    while (sc == _suspendCount && i < 3)
-    {
-        // give the timer thread a chance to use the unlocked waiter
-        wxMilliSleep(1);
-        i++;
-    }
-    if (i == 3)
-    {
-        spdlog::warn("    Waited 3 seconds for thread to lock and didnt see it ... maybe because it grabbed it early.");
-    }
-
-    spdlog::debug("    Suspend took {}ms", sw.Time());
-}
-
-void xlTimerThread::Stop()
-{
-    if (_stop) return;
-
-    spdlog::debug("Timer {} stop", (const char*)_name.c_str());
-    wxStopWatch sw;
-
-    int oldInterval = _interval;
-    _stop = true;
-    _suspend = false;
-
-    // release this lock on the main thread which immediately stops the timer wait
-    _waiter.unlock();
-
-    // if this was not a one shot suspend
-    if (oldInterval != -99 && _suspendCount > 0)
-    {
-        // also release any suspended state so the thread will exit
-        _suspendLock.unlock();
-    }
-
-    // give the timer thread a chance to use the unlocked waiter
-    wxMilliSleep(1);
-
-    spdlog::debug("    Stop took {}ms", sw.Time());
-}
-
-void xlTimerThread::DoSleep(int millis)
-{
-    if (millis > MIN_SLEEP_BEFORE_LOG)
-    {
-        spdlog::debug("THREAD {}: DoSleep({})", wxThread::GetCurrentId(), millis);
-    }
-
-    // try to grab the lock but time out after the desired number of milliseconds
-    if (_waiter.try_lock_for(std::chrono::milliseconds(millis)))
-    {
-        if (millis > MIN_SLEEP_BEFORE_LOG)
-        {
-            spdlog::debug("THREAD {}: DoSleep({}) ... timer was aborted", wxThread::GetCurrentId(), millis);
-        }
-        wxASSERT(_suspend == true || _stop == true);
-
-        // we got the lock so release it immediately
-        _waiter.unlock();
-    }
-    else
-    {
-        if (millis > MIN_SLEEP_BEFORE_LOG)
-        {
-            spdlog::debug("THREAD {}: DoSleep({}) ... {} timer timed out", wxThread::GetCurrentId(), millis, (const char*)_name.c_str());
-        }
-    }
-}
-
-wxThread::ExitCode xlTimerThread::Entry()
-{
-    
-    bool oneshot = _oneshot;
-    int interval = _interval;
-    int fudgefactor = _fudgefactor;
-
-    while (!_stop)
-    {
-        if (_suspend)
-        {
-            spdlog::debug("THREAD {}: Timer {} thread suspended. Interval {}", wxThread::GetCurrentId(), (const char*)_name.c_str(), interval);
-
-            // If we were one shot we cant use the fancy locks because we were in this thread
-            // when we suspended ... and we cant change threads as the delay will cause an issue
-            if (_interval == -99)
-            {
-                // this was one shot so we cant use the locks ... do it oldschool
-                ++_suspendCount;
-                while (_suspend)
-                {
-                    wxMilliSleep(1);
-                }
-            }
-            else
-            {
-                ++_suspendCount;
-
-                // we look like we are in suspend mode so try to grab the suspend lock and block until we get it
-                spdlog::debug("THREAD {}: About to grab the suspend lock", wxThread::GetCurrentId());
-                _suspendLock.lock();
-                spdlog::debug("THREAD {}:     got it", wxThread::GetCurrentId());
-
-                // now we got it ... release it
-                _suspendLock.unlock();
-                spdlog::debug("THREAD {}:     released it", wxThread::GetCurrentId());
-            }
-
-            spdlog::debug("THREAD {}: Timer {} thread unsuspended.", wxThread::GetCurrentId(), (const char*)_name.c_str());
-        }
-
-        oneshot = _oneshot;
-        interval = _interval;
-
-        if (!_stop)
-        {
-            long long toSleep = 0;
-            auto now = std::chrono::system_clock::now();
-            auto nextTime = _timer->GetNextEventTime();
-            if (nextTime - std::chrono::milliseconds(_fudgefactor) > now) {
-                toSleep = std::chrono::duration_cast<std::chrono::milliseconds>(nextTime - now - std::chrono::milliseconds(fudgefactor)).count();
-                spdlog::debug("THREAD {}: Timer {} sleeping for {}ms.", wxThread::GetCurrentId(), (const char*)_name.c_str(), (long)toSleep);
-            } else {
-                spdlog::debug("THREAD {}: Timer {} did not need to sleep.", wxThread::GetCurrentId(), (const char*)_name.c_str());
-            }
-            
-            //if (log)
-            //{
-            //    spdlog::debug("Timer sleeping for {}ms", (std::max)(1, (int)toSleep));
-            //}
-            if (toSleep > 0) {
-                DoSleep((std::max)(1, (int)toSleep));
-            }
-
-            bool suspend = _suspend;
-            fudgefactor = _fudgefactor;
-            if (!_stop && !suspend)
-            {
-                spdlog::debug("THREAD {}: Timer {} fired {}.", wxThread::GetCurrentId(), (const char*)_name.c_str(), _timer->GetFired());
-                _timer->Notify();
-            }
-            if (oneshot)
-            {
-                spdlog::debug("THREAD {}: {} ONESHOT SO AUTOMATICALLY SUSPENDING.", wxThread::GetCurrentId(), (const char*)_name.c_str());
-                _suspend = true;
-                _interval = -99;
-                interval = -99;
-            }
-        }
-    }
-
-   spdlog::debug("Timer {} thread {} exiting.", (const char*)_name.c_str(), wxThread::GetCurrentId());
-
-    return wxThread::ExitCode(nullptr);
-}
-
-void xlTimerThread::SetFudgeFactor(int ff)
-{
-    _fudgefactor = ff;
-}
-
-#else
 xLightsTimer::xLightsTimer() {}
 xLightsTimer::~xLightsTimer() {}
-void xLightsTimer::Stop() {wxTimer::Stop();}
-bool xLightsTimer::Start(int time, bool oneShot, const std::string& name) {return wxTimer::Start(time, oneShot);};
+
+void xLightsTimer::Stop() {
+    _running = false;
+    wxTimer::Stop();
+}
+
+bool xLightsTimer::Start(int time, bool oneShot, const std::string& name) {
+    if (name != "") {
+        _name = name;
+    }
+    bool started = wxTimer::Start(time, oneShot);
+    _running = started;
+    return started;
+}
+
+int xLightsTimer::GetInterval() const {
+    return wxTimer::GetInterval();
+}
+
 void xLightsTimer::Notify() {
-    AutoReleasePool pool;
     wxTimer::Notify();
 }
-int xLightsTimer::GetInterval() const { return wxTimer::GetInterval(); }
-void xLightsTimer::DoSendTimer() {};
-void xLightsTimer::SetName(const std::string& name) {_name = name;}
 
-#endif
+void xLightsTimer::DoSendTimer() {}
+
+#endif // __WXMSW__
+
+void xLightsTimer::SetName(const std::string& name) {
+    _name = name;
+}
 
 #endif // !__WXOSX__
