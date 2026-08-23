@@ -399,6 +399,13 @@ public:
     bool _hideUnmapped = false;
     void SetHideUnmapped(bool h) { _hideUnmapped = h; }
 
+    // Name filter for the top-level model list. Whitespace-separated terms all
+    // have to appear in the model name (case-insensitive), so "midwest pumpkin"
+    // matches "Midwest-Coro-Pumpkin". Empty = show everything.
+    std::vector<std::string> _nameFilterTokens;
+    void SetNameFilter(const wxString& text);
+    bool MatchesNameFilter(const std::string& name) const;
+
     bool GetSortSubmodelsByName() const { return _sortSubmodelsByName; }
     void SetSortSubmodelsByName(bool sort) { _sortSubmodelsByName = sort; Resort(); }
 
@@ -762,6 +769,11 @@ protected:
         std::vector<wxCheckBox*> _timingCheckboxes;
         int _timelineCol {-1};
         std::map<ImportChannel*, int> _channelImageMap;
+
+        // Name-filter terms for the Available (source) list; every term must
+        // appear in the name. Empty = show everything. The list is a wxListCtrl
+        // so filtering means repopulating with only the matching rows.
+        std::vector<std::string> _availFilterTokens;
 
         std::vector<std::unique_ptr<ImportChannel>> importChannels;
         std::map<int, int> m_iconIndexMap; // Order in list->one we got

@@ -25,6 +25,7 @@
 #include <wx/colordlg.h>
 #include <wx/regex.h>
 #include <wx/stdpaths.h>
+#include <wx/tokenzr.h>
 
 #include "xLightsImportChannelMapDialog.h"
 #include "import_export/AutoMapper.h"
@@ -494,9 +495,11 @@ unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
     if (!node) {
         unsigned int count = m_children.size();
         for (unsigned int pos = 0; pos < count; ++pos) {
-            array.Add(wxDataViewItem((void*)m_children.Item(pos)));
+            xLightsImportModelNode* child = m_children.Item(pos);
+            if (!MatchesNameFilter(child->_model)) continue;
+            array.Add(wxDataViewItem((void*)child));
         }
-        return count;
+        return array.size();
     } else {
         if (node->GetChildCount() == 0) {
             return 0;
@@ -509,6 +512,25 @@ unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
         }
         return array.size();
     }
+}
+
+void xLightsImportTreeModel::SetNameFilter(const wxString& text)
+{
+    _nameFilterTokens.clear();
+    wxArrayString toks = wxStringTokenize(text.Lower(), " \t");
+    for (const auto& t : toks) {
+        _nameFilterTokens.push_back(t.ToStdString());
+    }
+}
+
+bool xLightsImportTreeModel::MatchesNameFilter(const std::string& name) const
+{
+    if (_nameFilterTokens.empty()) return true;
+    const std::string lname = ::Lower(name);
+    for (const auto& t : _nameFilterTokens) {
+        if (!Contains(lname, t)) return false;
+    }
+    return true;
 }
 
 wxDataViewItem xLightsImportTreeModel::GetNthItem(unsigned int n) const
@@ -1487,6 +1509,16 @@ void xLightsImportChannelMapDialog::SetXsqPkg(SequencePackage* xsqPkg) {
     _xsqPkg = xsqPkg;
 }
 
+static bool NameMatchesTokens(const std::string& name, const std::vector<std::string>& tokens)
+{
+    if (tokens.empty()) return true;
+    const std::string lname = ::Lower(name);
+    for (const auto& t : tokens) {
+        if (!Contains(lname, t)) return false;
+    }
+    return true;
+}
+
 void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 {
     ListCtrl_Available->Freeze();
@@ -1506,6 +1538,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
     if (ccr) {
         int j{0};
         for (auto const& name : ccrNames) {
+            if (!NameMatchesTokens(name, _availFilterTokens)) continue;
             ListCtrl_Available->InsertItem(j, "");    // col 0 (icon col)
             ListCtrl_Available->SetItem(j, 1, name); // col 1 (name)
             ListCtrl_Available->SetItemData(j, j);
@@ -1583,6 +1616,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
         bool countEnabled{false};
         for (auto const& m : importChannels) {
+            if (!NameMatchesTokens(m->name, _availFilterTokens)) continue;
             ListCtrl_Available->InsertItem(j, "");       // col 0 (icon)
             ListCtrl_Available->SetItem(j, 1, m->name); // col 1 (name)
             wxUIntPtr ptr = (wxUIntPtr)m.get();
@@ -4462,86 +4496,23 @@ void xLightsImportChannelMapDialog::generateMapHintsFile(wxString const& filenam
 
 void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& event)
 {
-    // find the first line starting with the text
-    int index = -1;
-    auto from = TextCtrl_FindFrom->GetValue().Lower();
-
-    if (from == "")
-    {
-        // text just erased ... so scroll to the top
-        index = 0;
+    // Filter the Available (source) list to the typed terms (all terms must
+    // appear). It's a wxListCtrl, so repopulate with only the matching rows.
+    _availFilterTokens.clear();
+    wxArrayString toks = wxStringTokenize(TextCtrl_FindFrom->GetValue().Lower(), " \t");
+    for (const auto& t : toks) {
+        _availFilterTokens.push_back(t.ToStdString());
     }
-    else
-    {
-        for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i)
-        {
-            if (ListCtrl_Available->GetItemText(i, 1).Lower().StartsWith(from))
-            {
-                index = i;
-                break;
-            }
-        }
-    }
-
-    // if nothing found then find the first line containing the text
-    if (index == -1)
-    {
-        for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i) {
-            if (ListCtrl_Available->GetItemText(i, 1).Lower().Contains(from)) {
-                index = i;
-                break;
-            }
-        }
-
-    }
-
-    // scroll to it
-    ListCtrl_Available->EnsureVisible(index);
+    PopulateAvailable(CheckBox_MapCCRStrand != nullptr && CheckBox_MapCCRStrand->GetValue());
 }
 
 void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
 {
-    // find the first line starting with the text
-    wxDataViewItem index = wxDataViewItem(0);
-    std::string to = TextCtrl_FindTo->GetValue().Lower().ToStdString();
-
-    if (to.empty()) {
-        if (TreeListCtrl_Mapping->GetSelectedItemsCount() == 1) {
-            // if there is a selection, scroll to it as that's the visible marker
-            // at this point.
-            TreeListCtrl_Mapping->EnsureVisible(TreeListCtrl_Mapping->GetSelection());
-        }
-#ifdef __WXMSW__
-        else {
-            // There isn't a way to scroll to top on MacOS and Linux as far as I can find. Honestly, this shouldn't
-            // work on Windows either as wxDataViewControl does not inherit from wxScrollHelperBase according
-            // to the wxWidgets docs and thus should not implement the Scroll method
-            TreeListCtrl_Mapping->Scroll(wxPoint(0, 0));
-        }
-#endif
-    } else {
-        for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
-            xLightsImportModelNode* m = _dataModel->GetNthChild(i);
-            if (StartsWith(::Lower(m->_model), to)) {
-                index = (wxDataViewItem)m;
-                break;
-            }
-        }
-
-        // if nothing found then find the first line containing the text
-        if (index.GetID() == 0) {
-            for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
-                xLightsImportModelNode* m = _dataModel->GetNthChild(i);
-                if (Contains(::Lower(m->_model), to)) {
-                    index = (wxDataViewItem)m;
-                    break;
-                }
-            }
-        }
-
-        // scroll to it
-        TreeListCtrl_Mapping->EnsureVisible(index);
-    }
+    // Filter the model list to the typed terms (all terms must appear), so the
+    // list narrows as you type rather than merely scrolling to a match.
+    if (_dataModel == nullptr) return;
+    _dataModel->SetNameFilter(TextCtrl_FindTo->GetValue());
+    _dataModel->Cleared();
 }
 
 void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& event)
