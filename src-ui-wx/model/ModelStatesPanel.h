@@ -169,7 +169,7 @@ private:
     void ClearNodeColor(Model* m);
     xlColor GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force);
 
-    void GetValue(wxGrid* grid, const int row, const int col, std::map<std::string, std::string>& info);
+    void GetValue(wxGrid* grid, const int row, const int col, std::map<std::string, std::string>& info, bool selectRow = true);
     void AddLabel(wxString label);
     void ValidateWindow();
     // Pencil/click-drag node editing on the preview requires a state to be selected --
