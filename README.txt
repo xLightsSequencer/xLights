@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
 
+    -bug (dkulp)                 Fix a crash opening the DMX effect panel when no sequence is loaded
     -bug (derwin12)              Fix Text effect rendering nondeterministically (and occasionally crashing)
     -bug (derwin12)              Don't re-prompt to use the rgbeffects autosave backup after the user already chose to discard those changes on exit
     -bug (dkulp)                 Windows: fix sequence output running below the configured frame rate - the
