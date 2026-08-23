@@ -29,6 +29,15 @@
 #ifndef WS2812FX_h
 #define WS2812FX_h
 
+// XLIGHTS_FX selects which members WS2812FX has and how many segments it
+// carries, so every translation unit including this header must agree on it or
+// the class silently gets a different layout in each. Defining it here rather
+// than relying on each .cpp to remember keeps that impossible. The existing
+// includers define it before this include, which leaves this a no-op for them.
+#ifndef XLIGHTS_FX
+#define XLIGHTS_FX
+#endif
+
 #ifndef XLIGHTS_FX
 #include "const.h"
 
