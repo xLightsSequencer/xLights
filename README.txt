@@ -16,6 +16,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix the Single Strand FX effects rendering their first frame from
                                  uninitialised memory, which blanked part of the model and made the
                                  render non-deterministic
+    -bug (dkulp)                 Windows: re-enable the camera scan option in Generate Custom Model - the
+                                 KLightMapper calls were compiled out, so xLights always reported no cameras
     -bug (derwin12)              Fix Text effect rendering nondeterministically (and occasionally crashing)
     -bug (derwin12)              Don't re-prompt to use the rgbeffects autosave backup after the user already chose to discard those changes on exit
     -bug (derwin12)              Fix Import Effects: picking a color for a mapped row (or dismissing the

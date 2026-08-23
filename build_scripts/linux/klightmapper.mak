@@ -12,9 +12,10 @@ MISSING_LIBAV := $(shell ldd ../lib/linux/libklightmapper.so | grep "libavformat
 INC_LINUX_DEBUG   += -I../include/klightmapper
 INC_LINUX_RELEASE += -I../include/klightmapper
 
+# The bridge auto-detects the header with __has_include, so the working case
+# needs no -D; the unresolvable-.so case has to say "no" explicitly, or it would
+# compile the calls in and fail to link.
 ifeq ($(strip $(MISSING_LIBAV)),)
-INC_LINUX_DEBUG   += -DXLIGHTS_HAVE_KLIGHTMAPPER=1
-INC_LINUX_RELEASE += -DXLIGHTS_HAVE_KLIGHTMAPPER=1
 # Link the shared lib and bake in an $ORIGIN-relative RUNPATH so the binary finds
 # libklightmapper.so both from the dev tree (bin/xLights -> ../lib/linux) and when
 # installed (usr/bin/xLights -> ../lib, where the Makefile install target drops
@@ -22,4 +23,7 @@ INC_LINUX_RELEASE += -DXLIGHTS_HAVE_KLIGHTMAPPER=1
 # shell from touching it.
 LIB_LINUX_DEBUG   += -L../lib/linux -lklightmapper -Wl,-rpath,'$$ORIGIN/../lib/linux' -Wl,-rpath,'$$ORIGIN/../lib'
 LIB_LINUX_RELEASE += -L../lib/linux -lklightmapper -Wl,-rpath,'$$ORIGIN/../lib/linux' -Wl,-rpath,'$$ORIGIN/../lib'
+else
+INC_LINUX_DEBUG   += -DXLIGHTS_HAVE_KLIGHTMAPPER=0
+INC_LINUX_RELEASE += -DXLIGHTS_HAVE_KLIGHTMAPPER=0
 endif
