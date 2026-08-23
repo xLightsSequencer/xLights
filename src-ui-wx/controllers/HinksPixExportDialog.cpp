@@ -1402,11 +1402,6 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
             error = true;
             errorMsg = "No Schedule with Playlists are Checked, nothing will be Played!";
         }
-        if (error) {
-            DisplayError("HinksPix File Generation Error\n" + errorMsg);
-        } else {
-            wxMessageBox("HinksPix File Generation Complete");
-        }
     }
 
     SaveSettings();
