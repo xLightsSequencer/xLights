@@ -675,7 +675,7 @@ void ModelStatesPanel::OnCustomColorCheckboxClick(wxCommandEvent& event)
     }
 }
 
-void ModelStatesPanel::GetValue(wxGrid* grid, const int row, const int col, std::map<std::string, std::string>& info)
+void ModelStatesPanel::GetValue(wxGrid* grid, const int row, const int col, std::map<std::string, std::string>& info, bool selectRow)
 {
     wxString key = wxString::Format("s%03d", wxAtoi(grid->GetRowLabelValue(row)));
     key.Replace(" ", "");
@@ -698,7 +698,9 @@ void ModelStatesPanel::GetValue(wxGrid* grid, const int row, const int col, std:
             info.erase(key.ToStdString());
         }
     }
-    SelectRow(grid, row);
+    if (selectRow) {
+        SelectRow(grid, row);
+    }
 }
 
 void ModelStatesPanel::ClearNodeColor(Model* m)
@@ -2300,6 +2302,7 @@ void ModelStatesPanel::ClearSelectedStates(wxGridEvent& event)
     if (stateData[name]["Type"] != "NodeRange") {
         return;
     }
+    bool anyCleared = false;
     for (int k = 0; k < NodeRangeGrid->GetNumberCols(); k++) {
         for (int i = NodeRangeGrid->GetNumberRows() - 1; i >= 0; i--) {
             if (NodeRangeGrid->IsInSelection(i, k)) {
@@ -2308,9 +2311,13 @@ void ModelStatesPanel::ClearSelectedStates(wxGridEvent& event)
                 if (k == COLOUR_COL) {
                     NodeRangeGrid->SetCellBackgroundColour(i, k, *wxWHITE);
                 }
-                GetValue(NodeRangeGrid, i, k, stateData[name]);
+                GetValue(NodeRangeGrid, i, k, stateData[name], false);
+                anyCleared = true;
             }
         }
+    }
+    if (anyCleared) {
+        SelectRow(NodeRangeGrid, -1);
     }
     ValidateWindow();
     NodeRangeGrid->Refresh();
@@ -2355,9 +2362,10 @@ void ModelStatesPanel::AddBefore(wxGridEvent& event)
 
     for (int row = firstRow; row < NodeRangeGrid->GetNumberRows(); row++) {
         for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
-            GetValue(NodeRangeGrid, row, col, stateData[name]);
+            GetValue(NodeRangeGrid, row, col, stateData[name], false);
         }
     }
+    SelectRow(NodeRangeGrid, -1);
 
     ValidateWindow();
     NodeRangeGrid->Refresh();
@@ -2402,9 +2410,10 @@ void ModelStatesPanel::AddAfter(wxGridEvent& event)
 
     for (int row = lastRow + 1; row < NodeRangeGrid->GetNumberRows(); row++) {
         for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
-            GetValue(NodeRangeGrid, row, col, stateData[name]);
+            GetValue(NodeRangeGrid, row, col, stateData[name], false);
         }
     }
+    SelectRow(NodeRangeGrid, -1);
 
     ValidateWindow();
     NodeRangeGrid->Refresh();
@@ -2443,9 +2452,10 @@ void ModelStatesPanel::DeleteSelected(wxGridEvent& event)
 
     for (int row = 0; row < NodeRangeGrid->GetNumberRows(); row++) {
         for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
-            GetValue(NodeRangeGrid, row, col, stateData[name]);
+            GetValue(NodeRangeGrid, row, col, stateData[name], false);
         }
     }
+    SelectRow(NodeRangeGrid, -1);
 
     ValidateWindow();
     NodeRangeGrid->Refresh();
@@ -2504,10 +2514,11 @@ void ModelStatesPanel::MoveSelectedUp(wxGridEvent& event)
 
     for (int row : selectedRows) {
         for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
-            GetValue(NodeRangeGrid, row - 1, col, stateData[name]);
-            GetValue(NodeRangeGrid, row, col, stateData[name]);
+            GetValue(NodeRangeGrid, row - 1, col, stateData[name], false);
+            GetValue(NodeRangeGrid, row, col, stateData[name], false);
         }
     }
+    SelectRow(NodeRangeGrid, -1);
 
     NodeRangeGrid->ClearSelection();
     bool firstSelection = true;
@@ -2579,10 +2590,11 @@ void ModelStatesPanel::MoveSelectedDown(wxGridEvent& event)
 
     for (int row : selectedRows) {
         for (int col = 0; col < NodeRangeGrid->GetNumberCols(); col++) {
-            GetValue(NodeRangeGrid, row + 1, col, stateData[name]);
-            GetValue(NodeRangeGrid, row, col, stateData[name]);
+            GetValue(NodeRangeGrid, row + 1, col, stateData[name], false);
+            GetValue(NodeRangeGrid, row, col, stateData[name], false);
         }
     }
+    SelectRow(NodeRangeGrid, -1);
 
     NodeRangeGrid->ClearSelection();
     bool firstSelection = true;
