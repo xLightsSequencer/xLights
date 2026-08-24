@@ -132,12 +132,19 @@ jobs:
             $lang.Value.baseListing | Add-Member -NotePropertyName releaseNotes -NotePropertyValue $notes -Force
             Write-Host "release notes set for $($lang.Name)"
           }
-          $payload = $obj | ConvertTo-Json -Depth 50
-          Set-Content -Path store-metadata.json -Value $payload -Encoding utf8NoBOM
-          & msstore submission updateMetadata $env:PRODUCT_ID store-metadata.json
+          # The CLI takes the metadata as the raw JSON argument, not a file
+          # path (msstore-cli#151), so it is bounded by the Windows 32K
+          # command-line limit.
+          $payload = $obj | ConvertTo-Json -Depth 50 -Compress
+          if ($payload.Length -gt 30000) {
+            Write-Warning "submission JSON is $($payload.Length) chars - too large to pass on the command line (msstore-cli#151); set the What's new text manually in Partner Center"
+            exit 0
+          }
+          & msstore submission updateMetadata $env:PRODUCT_ID $payload
           if ($LASTEXITCODE -ne 0) {
             Write-Warning "msstore submission updateMetadata failed ($LASTEXITCODE) - set the What's new text manually in Partner Center"
           }
+          exit 0
 
       - name: Commit the submission
         if: vars.MSSTORE_AUTO_COMMIT == 'true'
