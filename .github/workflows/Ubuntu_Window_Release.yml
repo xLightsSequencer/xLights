@@ -287,7 +287,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "msstore publish failed ($LASTEXITCODE)" }
 
       # Writes the summary into every language listing's "What's new" field on
-      # the draft the upload above created.
+      # the draft the upload above created. Best-effort: for a packaged app the
+      # CLI PUTs exactly the JSON it is given (no server-side merge), so the
+      # FULL submission must be fetched, edited in place, and sent back — and
+      # if its JSON output doesn't parse (the CLI can word-wrap it,
+      # msstore-cli#150), skip rather than risk pushing corrupted listings.
+      # The notes can always be set by hand in Partner Center before submitting.
       - name: Set What's new text on the draft submission
         if: env.STORE_PUBLISH == 'true' && hashFiles('store-notes.txt') != ''
         shell: pwsh
@@ -295,28 +300,41 @@ jobs:
           PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
         run: |
           $notes = (Get-Content store-notes.txt -Raw).TrimEnd()
-          $raw = (& msstore submission getListings $env:PRODUCT_ID) -join "`n"
-          if ($LASTEXITCODE -ne 0) { throw "msstore submission getListings failed ($LASTEXITCODE)" }
+          $raw = (& msstore submission get $env:PRODUCT_ID) -join "`n"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Warning "msstore submission get failed ($LASTEXITCODE) - set the What's new text manually in Partner Center"
+            exit 0
+          }
           # The CLI can print progress lines around the JSON body.
           $start = $raw.IndexOf('{')
           $end = $raw.LastIndexOf('}')
-          if ($start -lt 0 -or $end -le $start) { throw "no JSON in getListings output:`n$raw" }
-          $obj = $raw.Substring($start, $end - $start + 1) | ConvertFrom-Json
-          $listings = if ($obj.PSObject.Properties.Name -contains 'listings') { $obj.listings } else { $obj }
-          if (-not $listings -or -not $listings.PSObject.Properties.Name) {
-            $listings = [pscustomobject]@{ 'en-us' = [pscustomobject]@{ baseListing = [pscustomobject]@{} } }
+          if ($start -lt 0 -or $end -le $start) {
+            Write-Warning "no JSON in submission get output - set the What's new text manually in Partner Center"
+            exit 0
           }
-          foreach ($lang in $listings.PSObject.Properties) {
+          try {
+            $obj = $raw.Substring($start, $end - $start + 1) | ConvertFrom-Json
+          } catch {
+            Write-Warning "submission get output did not parse (msstore-cli#150 word-wrap?) - set the What's new text manually in Partner Center"
+            exit 0
+          }
+          if ($obj.PSObject.Properties.Name -notcontains 'listings' -or -not $obj.listings.PSObject.Properties.Name) {
+            Write-Warning "submission has no listings - set the What's new text manually in Partner Center"
+            exit 0
+          }
+          foreach ($lang in $obj.listings.PSObject.Properties) {
             if ($lang.Value.PSObject.Properties.Name -notcontains 'baseListing') {
               $lang.Value | Add-Member -NotePropertyName baseListing -NotePropertyValue ([pscustomobject]@{}) -Force
             }
             $lang.Value.baseListing | Add-Member -NotePropertyName releaseNotes -NotePropertyValue $notes -Force
             Write-Host "release notes set for $($lang.Name)"
           }
-          $payload = [pscustomobject]@{ listings = $listings } | ConvertTo-Json -Depth 30
+          $payload = $obj | ConvertTo-Json -Depth 50
           Set-Content -Path store-metadata.json -Value $payload -Encoding utf8NoBOM
           & msstore submission updateMetadata $env:PRODUCT_ID store-metadata.json
-          if ($LASTEXITCODE -ne 0) { throw "msstore submission updateMetadata failed ($LASTEXITCODE)" }
+          if ($LASTEXITCODE -ne 0) {
+            Write-Warning "msstore submission updateMetadata failed ($LASTEXITCODE) - set the What's new text manually in Partner Center"
+          }
 
       - name: Commit the submission
         if: env.STORE_PUBLISH == 'true' && vars.MSSTORE_AUTO_COMMIT == 'true'
