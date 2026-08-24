@@ -1,0 +1,95 @@
+=== macOS App Store (limit 4000) ===
+xLights 2026.16 - August 24, 2026
+
+New
+- Print Layout Image is now a full print-preview dialog: pick a preview or the whole layout, set the render resolution, choose which labels appear (with adjustable label size and color), and optionally invert colors before printing.
+- Layout: right-click a model and choose "Wire to Closest Controller with Open Port" to assign it to the nearest controller with enough consecutive open pixel ports for all its strings.
+- Generate Custom Model can build an .xmodel directly from a USB webcam.
+- Lyrics phrases and words can now be duplicated.
+- Ripple can trigger a new cycle from a timing track, matching Shockwave.
+- Export House Preview Video now lets you choose the output resolution.
+- Custom models have a Background Image Transparency % setting, so props behind the background image show through it.
+- New BatchCheckSequence automation script.
+- FPP shift-string capes (K8/K16/K32, K16A-B, K64D-B, K128D-B) now offer the pixel protocols FPP can actually drive, uploaded per port, and warn about a mix of protocols that cannot share one bit timing.
+- FPP: Falcon v4 smart receivers can be selected on any string cape FPP drives itself.
+
+Improved
+- The scroll wheel and trackpad now adjust sliders and dropdowns, matching Windows. The control has to be clicked or focused first, so scrolling past a control never changes it by accident.
+- Opening a sequence whose images are embedded in the file no longer searches the disk for each one, which could spend many seconds pulling iCloud copies of images the sequence already contained.
+- A sequence referencing a missing picture no longer re-checks the filesystem every frame, which badly slowed rendering on cloud-backed show folders.
+- SubModels and States dialogs stop the preview animation automatically when node ranges are edited.
+- Model Definitions disables the pencil tool and click-drag node selection where they do not apply.
+- Aliases: a submodel alias in "Model/Submodel" form now matches when the model has a matching alias too.
+- Crash reports include a recent-activity trace, so a report shows what xLights was doing without debug logging enabled.
+
+Changed
+- The Layout tab's Show Names and Show Start Channel checkboxes moved into the new Print Layout dialog and now apply only to the print preview and output.
+- Opening a sequence from outside the show directory warns, and Save requires saving inside the show directory.
+
+Fixed
+- Ripple effect shapes rendered very differently after the 2026.15 radius change.
+- Text and Single Strand FX effects could render nondeterministically or from uninitialised memory.
+- Face and State effect definition choices when switching between model groups; a Custom value curve picking up the previous effect's curve.
+- Sequencer editing: multi-row lasso paste landing on the wrong row, pasting onto a model group expanding it, locked effects duplicating when dragged, and start/end times corrupting when an effect was dragged past another and then resized.
+- Model management: Replace Model(s) With This Model leaving the source behind and overwriting aliases, Remove From Group leaving submodels behind, and rotation not applying to every selected polyline model.
+- Import Effects: choosing a color for a mapped row also cleared that row's mapping.
+- Controllers: Bulk Upload and proxy sorting no longer stall on an unresolvable FPP proxy name; the visualizer's estimated current draw now accounts for inherited brightness; FPP Connect no longer resets FPP10's E1.31 Pacing and Sending mode.
+- A large number of crashes across the Layout tab, sequencer grid, model and submodel editors, playback, imports and controller dialogs.
+- Reading damaged sequence data files no longer crashes.
+- A crash during a render could leave xLights frozen instead of reporting; it now always finishes.
+
+=== iPad App Store (limit 4000) ===
+xLights 2026.16 - August 24, 2026
+
+New
+- Show-folder backup and restore. Back Up Show Folder copies your sequences and configuration into a timestamped Backup folder in the same format the desktop writes, so backups move between the two. Optional backup on opening a show, an automatic backup before autosave recovery, and a Restore sheet that brings back controllers, layout, presets and selected sequences.
+- Jukebox: link numbered buttons to effects and tap to select and play them, matching the desktop panel. Buttons saved in the sequence work on both platforms.
+- Import models, groups and viewpoints from another show, export several selected models to a single .xmodel file, and rename or delete previews.
+- Layout changes are now autosaved and offered back after an unexpected close.
+- The visualizer can work on a whole port at once: clear a port or controller, move a port's models elsewhere, and set its smart remote.
+- Controller output settings can be edited for every ethernet protocol - DDP, ZCPP, OPC and Twinkly could be selected but not configured. KiNET gains its Version setting.
+- Light Test gains Groups and Outputs targeting plus a filter box for large shows.
+- Drag out a region of the grid with a timing track active to select a block of cells, and long-press empty space to paste, fill with random effects, or drop in the armed effect.
+- Drop an image, video, Glediator or shader file onto the grid to create the matching effect.
+- Press T to drop a timing mark at the play marker and S to split the mark under it, so beats can be tapped while the sequence plays.
+- Lyric breakdown can run on a single word or just the marks you selected.
+- Effect presets export as .xpreset and import back, so a preset library moves between iPad and desktop.
+- Check Sequence results export as a shareable HTML report.
+- Long-press the render button for per-model render progress.
+- Models in the Master View can be dragged into a new order, and the Layout Editor preview gains the House Preview's viewpoint menu.
+
+Improved
+- The sequencer grid and house preview do much less work per frame, so dragging and scrolling stay smooth on large sequences.
+- Much lower sustained CPU use, and less battery drain, when scrolling a show with many rows.
+- The sequence picker no longer stutters on show folders stored in iCloud Drive.
+- Crash reports now carry a backtrace taken at the moment of the crash plus every thread's stack, and diagnostic uploads can include a redacted copy of the show configuration.
+
+Fixed
+- Views are saved again - creating, renaming, cloning, deleting or changing a view's models was previously lost on relaunch.
+- A newly dropped effect starts with the desktop's palette instead of an empty one, and State and Faces effects start on a real state and phoneme.
+- Effects that follow a timing track or another model re-render on their own when what they follow changes.
+- Many more operations can now be undone, including Promote Node Effects, Convert Data to Effects and Breakdown Words.
+- Changing a sequence's frame interval now moves the effects onto the new interval, as the desktop does.
+- Playback follows the audio track picked in the waveform, and the lights blank when playback stops.
+- Controller discovery now probes the controllers already in the show, so an FPP on another subnet or behind a proxy is found and a password-protected FPP asks for its password.
+- FPP Connect sends a master-mode FPP a non-sparse sequence file.
+- AI-generated images are stored inside the sequence, so a copied sequence keeps them.
+- Cleanup File Locations also gathers files referenced by the layout.
+- A crash when changing show folder while a sequence was rendering.
+
+=== Windows Store (limit 1500) ===
+xLights 2026.16 - August 24, 2026
+
+New
+- Print Layout Image is now a print-preview dialog with resolution, label and invert options.
+- Layout: "Wire to Closest Controller with Open Port" auto-assigns a model to the nearest suitable controller.
+- Generate Custom Model can build an .xmodel from a USB webcam.
+- Ripple can trigger from a timing track; House Preview Video export gains a resolution choice; lyrics phrases can be duplicated.
+- FPP shift-string capes offer the pixel protocols FPP can really drive, uploaded per port.
+
+Fixed
+- Sequence output ran below the configured frame rate and dropped frames.
+- Intel QuickSync hardware video decode never actually engaged and silently decoded in software - about 3x faster where supported.
+- Rendering many video effects could hang forever with the DirectX11/MF decoder; decoding now falls back to software rather than stalling. AVI now always decodes in software, matching macOS.
+- A crash on startup on machines falling back to software OpenGL.
+- Ripple, Text and Single Strand FX render bugs, several sequencer editing and model-management bugs, controller upload stalls on unresolvable proxy names, and a large number of crashes across the Layout tab, editors, playback and imports.
