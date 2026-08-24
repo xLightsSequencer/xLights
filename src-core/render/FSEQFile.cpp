@@ -1413,8 +1413,12 @@ public:
             ZSTD_initDStream(m_dctx);
             seek(m_file->m_frameOffsets[m_curBlock].second, SEEK_SET);
 
-            uint64_t len = m_file->m_frameOffsets[m_curBlock + 1].second;
-            len -= m_file->m_frameOffsets[m_curBlock].second;
+            uint64_t blockOffset = m_file->m_frameOffsets[m_curBlock].second;
+            uint64_t nextOffset = m_file->m_frameOffsets[m_curBlock + 1].second;
+            // An out-of-order block table underflows this subtraction, which then
+            // asks for an absurd allocation; a failed malloc left ZSTD reading from
+            // a null src of the full length.
+            uint64_t len = nextOffset > blockOffset ? nextOffset - blockOffset : 0;
             uint64_t max = m_file->getNumFrames();
             max *= (uint64_t)m_file->getChannelCount();
             if (len > max) {
@@ -1423,13 +1427,17 @@ public:
             if (m_inBuffer.src) {
                 free((void*)m_inBuffer.src);
             }
-            m_inBuffer.src = malloc(len);
-            if (m_inBuffer.src == nullptr) LogDebug(VB_SEQUENCE, " getFrame m_inBuffer.src malloc failed.\n");
+            m_inBuffer.src = len ? malloc(len) : nullptr;
             m_inBuffer.pos = 0;
-            m_inBuffer.size = len;
-            int bread = read((void*)m_inBuffer.src, len);
-            if ((uint64_t)bread != len) {
-                LogErr(VB_SEQUENCE, "Failed to read channel data for frame %d!   Needed to read %" PRIu64 " but read %d\n", frame, len, (int)bread);
+            m_inBuffer.size = 0;
+            if (m_inBuffer.src == nullptr) {
+                if (len) LogDebug(VB_SEQUENCE, " getFrame m_inBuffer.src malloc failed.\n");
+            } else {
+                int bread = read((void*)m_inBuffer.src, len);
+                if ((uint64_t)bread != len) {
+                    LogErr(VB_SEQUENCE, "Failed to read channel data for frame %d!   Needed to read %" PRIu64 " but read %d\n", frame, len, (int)bread);
+                }
+                m_inBuffer.size = (bread > 0 && (uint64_t)bread < len) ? (uint64_t)bread : (bread > 0 ? len : 0);
             }
 
             if (m_curBlock + 2 < m_file->m_frameOffsets.size()) {

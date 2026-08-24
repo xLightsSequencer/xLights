@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
 
+    -bug (dkulp)                 Fix a crash importing a Falcon fseq whose block table is unreadable
     -bug (dkulp)                 Fix a crash opening the DMX effect panel when no sequence is loaded
     -bug (dkulp)                 Fix the Single Strand FX effects rendering their first frame from
                                  uninitialised memory, which blanked part of the model and made the
