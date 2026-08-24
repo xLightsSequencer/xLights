@@ -337,10 +337,9 @@ bool ExportModels(const std::string& filename, ModelManager& allModels, OutputMa
         for (auto const& m : allModels) {
             Model* model = m.second;
             if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
-                int32_t ch = model->GetFirstChannel() + 1;
-                int32_t endch = model->GetLastChannel() + 1;
+                bool const dmx = IsDmxDisplayType(model->GetDisplayAs());
                 modelchannels += model->GetActChanCount();
-                if (IsDmxDisplayType(model->GetDisplayAs())) {
+                if (dmx) {
                     dmxchannels += model->GetActChanCount();
                 }
 
@@ -348,8 +347,9 @@ bool ExportModels(const std::string& filename, ModelManager& allModels, OutputMa
                 // its channels. Shadow models -- and anything else deliberately
                 // overlaid on another model's channel range -- otherwise get
                 // counted a second time.
-                if (!IsDmxDisplayType(model->GetDisplayAs())) {
-                    for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
+                uint32_t const nodes = model->GetNodeCount();
+                if (!dmx) {
+                    for (uint32_t n = 0; n < nodes; ++n) {
                         int32_t nsc = model->NodeStartChannel(n) + 1;
                         if (nsc >= (int32_t)minchannel && nsc <= maxchannel && chused[nsc - minchannel] == 0) {
                             bulbs += model->GetCoordCount(n);
@@ -357,8 +357,17 @@ bool ExportModels(const std::string& filename, ModelManager& allModels, OutputMa
                     }
                 }
 
-                for (int32_t i = ch; i <= endch; i++) {
-                    chused[i - minchannel] = 1;
+                // Mark what the nodes actually occupy rather than the model's
+                // whole first..last span: a model with individual start channels
+                // (each node placed independently, e.g. one DMX function across
+                // several fixtures) leaves large holes in that span which belong
+                // to other models.
+                for (uint32_t n = 0; n < nodes; ++n) {
+                    int32_t nsc = model->NodeStartChannel(n) + 1;
+                    int32_t nec = model->NodeEndChannel(n) + 1;
+                    for (int32_t i = std::max(nsc, (int32_t)minchannel); i <= std::min(nec, maxchannel); i++) {
+                        chused[i - minchannel] = 1;
+                    }
                 }
             }
         }
