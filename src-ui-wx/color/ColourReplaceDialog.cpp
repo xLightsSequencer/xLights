@@ -143,6 +143,13 @@ ColourReplaceDialog::~ColourReplaceDialog()
 {
 	//(*Destroy(ColourReplaceDialog)
 	//*)
+
+    // ~wxComboCtrlBase hides the popup, and the focus-loss repaint that triggers
+    // calls back into OnMeasureItem after the ColoursList part is already gone.
+    // Dismiss it here, while the derived object is still whole.
+    if (BitmapButton_ExistingColour != nullptr && BitmapButton_ExistingColour->IsPopupShown()) {
+        BitmapButton_ExistingColour->HidePopup(false);
+    }
 }
 
 void ColourReplaceDialog::UpdateExistingColours()

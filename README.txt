@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
 
+    -bug (dkulp)                 Fix a crash closing the Replace Color dialog with its colour dropdown open
     -bug (dkulp)                 Fix a crash selecting rows in the Select Effects panel after the listed
                                  effects had been deleted
     -bug (dkulp)                 Fix a crash importing a Falcon fseq whose block table is unreadable
