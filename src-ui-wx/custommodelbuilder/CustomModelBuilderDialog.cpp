@@ -10,7 +10,7 @@
 
 #include "CustomModelBuilderDialog.h"
 
-#ifdef _WIN32
+#ifdef XLIGHTS_HAVE_LIVE_CAMERA
 
 #include <wx/button.h>
 #include <wx/choice.h>
@@ -102,7 +102,7 @@ CustomModelBuilderDialog::CustomModelBuilderDialog(xLightsFrame* parent, OutputM
     auto* brightRow = new wxBoxSizer(wxHORIZONTAL);
     _sliderBrightness = new wxSlider(this, wxID_ANY, 200, 1, 255);
     _sliderBrightness->SetToolTip(_("Output intensity used when lighting nodes. If detection misses nodes, try raising this; if the camera image blooms/washes out, lower it."));
-    brightRow->Add(_sliderBrightness, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
+    brightRow->Add(_sliderBrightness, 1, wxALIGN_CENTER_VERTICAL);
     _labelBrightness = new wxStaticText(this, wxID_ANY, "200");
     brightRow->Add(_labelBrightness, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 6);
     _buttonAutoBrightness = new wxButton(this, wxID_ANY, _("Auto"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
@@ -1470,4 +1470,4 @@ void CustomModelBuilderDialog::ValidateWindow()
     _buttonFinish->Enable(!scanning && haveResults);
 }
 
-#endif // _WIN32
+#endif // XLIGHTS_HAVE_LIVE_CAMERA

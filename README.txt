@@ -33,7 +33,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 FPP Connect: uploading UDP outputs no longer resets FPP10's E1.31 Pacing
                                  and Sending mode - every setting on the universes output that xLights
                                  does not own is now carried forward unchanged
-    -enh (derwin12)              Windows: enhance Generate Custom Model for USB webcam to generate an .xmodel (#3791)
+    -enh (derwin12,dkulp)        Windows/MacOS: enhance Generate Custom Model for USB webcam to generate an .xmodel (#3791)
     -bug (dkulp)                 Windows/Linux: fix crash on startup when the machine falls back to the
                                  software OpenGL 1.1 rasterizer - the preview now draws nothing instead
                                  of calling unresolved OpenGL entry points

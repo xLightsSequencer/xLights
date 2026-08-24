@@ -112,19 +112,22 @@ CustomModelMethodPickerDialog::CustomModelMethodPickerDialog(
     rtspUserCtrl_->Enable(false);
     rtspPassCtrl_->Enable(false);
 
-#ifdef __WXMSW__
-    // Windows-only: re-scan/drag-correct an existing model's node positions
-    // live via a local webcam (#3791), rather than building a new model.
+#ifdef XLIGHTS_HAVE_LIVE_CAMERA
+    // Re-scan/drag-correct an existing model's node positions live via a
+    // local camera (#3791), rather than building a new model. Windows via
+    // Media Foundation, macOS via AVFoundation - which also offers the
+    // built-in camera and any paired iPhone (Continuity), so the label
+    // doesn't say USB.
     webcamTouchUpRadio_ = new wxRadioButton(this, wxID_ANY,
-        _("USB Webcam node identification (build/fix an existing model's node positions)"));
+        _("Webcam node identification (build/fix an existing model's node positions)"));
     top->Add(webcamTouchUpRadio_, 0, wxLEFT | wxRIGHT | wxBOTTOM, 10);
 
     // Camera dropdown, indented under the webcam-touch-up radio, mirroring
     // the camera-scan row above. This is a separate enumeration (Media
     // Foundation, via LiveCameraCapture) from the KLightMapper cameras_
     // list above - CustomModelBuilderDialog (the dialog this feeds) has
-    // always used Media Foundation, so picking the camera here means that
-    // dialog no longer needs its own camera dropdown.
+    // always used its own platform capture, so picking the camera here
+    // means that dialog no longer needs its own camera dropdown.
     auto* webcamRow = new wxBoxSizer(wxHORIZONTAL);
     webcamRow->AddSpacer(20);
     webcamRow->Add(new wxStaticText(this, wxID_ANY, _("Camera:")),
@@ -158,7 +161,7 @@ CustomModelMethodPickerDialog::CustomModelMethodPickerDialog(
     Bind(wxEVT_RADIOBUTTON, &CustomModelMethodPickerDialog::OnRadioChanged, this, classicRadio_->GetId());
     Bind(wxEVT_RADIOBUTTON, &CustomModelMethodPickerDialog::OnRadioChanged, this, cameraRadio_->GetId());
     Bind(wxEVT_RADIOBUTTON, &CustomModelMethodPickerDialog::OnRadioChanged, this, rtspRadio_->GetId());
-#ifdef __WXMSW__
+#ifdef XLIGHTS_HAVE_LIVE_CAMERA
     Bind(wxEVT_RADIOBUTTON, &CustomModelMethodPickerDialog::OnRadioChanged, this, webcamTouchUpRadio_->GetId());
 #endif
     Bind(wxEVT_BUTTON,      &CustomModelMethodPickerDialog::OnDiscover,     this, discoverButton_->GetId());
@@ -173,7 +176,7 @@ void CustomModelMethodPickerDialog::OnRadioChanged(wxCommandEvent& /*event*/) {
     rtspURLCtrl_->Enable(rtsp);
     rtspUserCtrl_->Enable(rtsp);
     rtspPassCtrl_->Enable(rtsp);
-#ifdef __WXMSW__
+#ifdef XLIGHTS_HAVE_LIVE_CAMERA
     webcamCameraChoice_->Enable(webcamTouchUpRadio_->GetValue() && !webcamCameras_.empty());
 #endif
 }
@@ -200,7 +203,7 @@ void CustomModelMethodPickerDialog::OnDiscover(wxCommandEvent& /*event*/) {
 }
 
 void CustomModelMethodPickerDialog::OnOK(wxCommandEvent& event) {
-#ifdef __WXMSW__
+#ifdef XLIGHTS_HAVE_LIVE_CAMERA
     if (webcamTouchUpRadio_->GetValue()) {
         choice_ = Choice::WebcamTouchUp;
         int sel = webcamCameraChoice_->GetSelection();

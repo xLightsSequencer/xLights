@@ -162,8 +162,9 @@ Build configurations referenced throughout:
 | 111 | Help | Tip of the Day content — four tips are excluded by platform tag | 4 tips hidden | all shown | all shown | `src-ui-wx/app-shell/TipOfTheDayDialog.cpp:261-277`; `TipOfDay/tod.xml` (`exclude="OSX"`) |
 | 112 | Shortcuts | Keybinding editor column headers and modifier matching — some shortcuts that fire with either Ctrl on Windows/Linux are stricter on macOS | Command ⌘ / Option ⌥ / Shift ⇧ / Control ⌃, exact match | Control / Alt / Shift / Control, either Ctrl matches | same as Windows | `src-ui-wx/app-shell/KeyBindingEditDialog.cpp:120-131`; `src-ui-wx/app-shell/KeyBindings.cpp:885-895` |
 | 113 | About | About box shows an "- App Store" version suffix and a EULA hyperlink | App Store build only | no | no | `src-ui-wx/xLightsApp.cpp:380-384`; `xLightsMain.cpp:2700-2704` |
+| 114 | Layout | Generate Custom Model ▸ "Webcam node identification" — lights an existing model one node at a time and reads each node's position off a live camera | yes, added 2026-08-23 — AVFoundation, and the picker also offers the built-in camera and a paired iPhone (Continuity, macOS 14+); dark mode can only *lock* exposure/white balance, since `setExposureModeCustomWithDuration:ISO:` is `API_UNAVAILABLE(macos)`, so ambient rejection is weaker than Windows | yes — Media Foundation; dark mode pins a short manual exposure, floors `VideoProcAmp_Gain` and disables backlight compensation | no — no capture backend, so the radio is absent rather than greyed | `src-core/media/LiveCameraCapture.{h,cpp}` (`XLIGHTS_HAVE_LIVE_CAMERA`), `macOS/src-apple-core/media/LiveCameraBridge.{h,mm}`, `src-ui-wx/custommodelbuilder/CustomModelBuilderDialog.cpp`, picker `src-ui-wx/klightmapper/CustomModelMethodPickerDialog.cpp:115-152` |
 
-**Row counts:** practical-impact summary 19 rows; detailed differences 113 rows.
+**Row counts:** practical-impact summary 19 rows; detailed differences 114 rows.
 
 ---
 

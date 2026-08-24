@@ -412,4 +412,66 @@ bool LiveCameraCapture::TryGetLatestFrame(std::vector<uint8_t>& outRgb, int& out
     return true;
 }
 
-#endif // _WIN32
+#elif defined(XLIGHTS_HAVE_LIVE_CAMERA)   // Apple desktop
+
+// Apple: a thin shell over AppleLiveCameraBridge, which owns every
+// AVFoundation object. Keeping the ObjC on that side of the boundary is
+// what lets src-core stay wx-free AND ObjC-free (see AVFoundationVideoReader
+// for the same split on the decode path).
+
+#include "media/LiveCameraBridge.h"
+
+std::vector<LiveCameraDevice> EnumerateLiveCameras()
+{
+    std::vector<LiveCameraDevice> out;
+    for (const auto& d : AppleLiveCameraBridge::EnumerateDevices()) {
+        LiveCameraDevice dev;
+        dev.name = d.name;
+        dev.symbolicLink = d.uniqueID;
+        out.push_back(std::move(dev));
+    }
+    return out;
+}
+
+struct LiveCameraCapture::Impl {
+    AppleLiveCameraBridge::CaptureHandle* handle = nullptr;
+    // Mirrors the Windows backend's read-generation trick: the poller ticks
+    // faster than frames arrive, so re-copying an unchanged frame would be
+    // most of the cost of asking.
+    mutable uint64_t generation = 0;
+};
+
+LiveCameraCapture::LiveCameraCapture(const std::string& symbolicLink)
+    : _impl(new Impl())
+{
+    _impl->handle = AppleLiveCameraBridge::Open(symbolicLink);
+}
+
+LiveCameraCapture::~LiveCameraCapture()
+{
+    if (_impl->handle != nullptr) AppleLiveCameraBridge::Destroy(_impl->handle);
+    delete _impl;
+}
+
+bool LiveCameraCapture::IsValid() const
+{
+    return AppleLiveCameraBridge::IsValid(_impl->handle);
+}
+
+void LiveCameraCapture::Stop()
+{
+    AppleLiveCameraBridge::Stop(_impl->handle);
+}
+
+void LiveCameraCapture::SetDarkMode(bool enabled)
+{
+    AppleLiveCameraBridge::SetDarkMode(_impl->handle, enabled);
+}
+
+bool LiveCameraCapture::TryGetLatestFrame(std::vector<uint8_t>& outRgb, int& outWidth, int& outHeight) const
+{
+    return AppleLiveCameraBridge::TryGetLatestFrame(_impl->handle, outRgb, outWidth,
+                                                    outHeight, _impl->generation);
+}
+
+#endif // _WIN32 / __APPLE__

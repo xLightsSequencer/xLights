@@ -10,13 +10,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-// Tools -> Custom Model Builder. Windows-only: drives an existing model's
+// Tools -> Custom Model Builder. Windows + macOS: drives an existing model's
 // lights one node at a time through the output system while a webcam watches,
 // detecting each node's position live and overlaying it on the camera preview
 // as the scan runs. The mapped positions become a custom model (update the
 // scanned model in place, or save as a .xmodel).
 
-#ifdef _WIN32
+#include "media/LiveCameraCapture.h"   // XLIGHTS_HAVE_LIVE_CAMERA
+
+#ifdef XLIGHTS_HAVE_LIVE_CAMERA
 
 #include <wx/dialog.h>
 #include <wx/timer.h>
@@ -44,7 +46,7 @@ class xLightsFrame;
 class CustomModelBuilderDialog : public wxDialog
 {
 public:
-    // initialCameraSymbolicLink: Media Foundation device symbolic link chosen
+    // initialCameraSymbolicLink: platform camera id chosen
     // upstream in CustomModelMethodPickerDialog's "USB Webcam node
     // identification" flow - this dialog just opens it, it no longer has its
     // own camera dropdown. Empty falls back to the last-remembered camera,
@@ -217,4 +219,4 @@ private:
     void OnClose(wxCloseEvent& event);
 };
 
-#endif // _WIN32
+#endif // XLIGHTS_HAVE_LIVE_CAMERA

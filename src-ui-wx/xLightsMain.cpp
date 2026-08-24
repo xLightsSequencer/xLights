@@ -80,7 +80,8 @@
 #include <wx/mstream.h>
 #include "model/GenerateCustomModelDialog.h"
 #include "klightmapper/CustomModelMethodPickerDialog.h"
-#ifdef __WXMSW__
+#include "media/LiveCameraCapture.h"   // XLIGHTS_HAVE_LIVE_CAMERA
+#ifdef XLIGHTS_HAVE_LIVE_CAMERA
 #include "custommodelbuilder/CustomModelBuilderDialog.h"
 #endif
 #include "klightmapper/KLightMapperBridge.h"
@@ -4394,7 +4395,7 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
                     scanDumpParent, completion);
                 return;
             }
-#ifdef __WXMSW__
+#ifdef XLIGHTS_HAVE_LIVE_CAMERA
             if (picker.GetChoice() == CustomModelMethodPickerDialog::Choice::WebcamTouchUp) {
                 // Unlike CameraScan/RTSPScan, this drives an *existing*
                 // model's nodes directly through the output system rather
