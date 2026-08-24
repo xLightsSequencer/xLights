@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
 
+    -bug (dkulp)                 Fix a crash loading a show folder while models are resolving file paths
+                                 on background threads
     -bug (dkulp)                 Fix a crash closing the Replace Color dialog with its colour dropdown open
     -bug (dkulp)                 Fix a crash selecting rows in the Select Effects panel after the listed
                                  effects had been deleted

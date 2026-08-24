@@ -148,15 +148,29 @@ static bool doesFileExist(const std::string& dir, const std::string& filename, s
     return false;
 }
 
+// The search-dir list is replaced wholesale by SetFixFileDirectories() while
+// parallel model loads are resolving paths, so callers that walk it outside
+// _fixFileMutex must walk a private copy - iterating the shared list is a UAF.
+static std::list<std::string> SnapshotSearchDirs() {
+    std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
+    return _fixFileSearchDirs;
+}
+
+static std::string SnapshotShowDir() {
+    std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
+    return _fixFileShowDir;
+}
+
 // Search dir + append, then all search directories
-static bool doesFileExistInDirs(const std::string& baseDir, const std::string& append,
+static bool doesFileExistInDirs(const std::list<std::string>& searchDirs,
+                                const std::string& baseDir, const std::string& append,
                                 const std::string& filename, std::string& resultPath) {
     std::string searchDir = baseDir;
     if (!append.empty()) {
         searchDir = (std::filesystem::path(baseDir) / append).string();
     }
     if (doesFileExist(searchDir, filename, resultPath)) return true;
-    for (const auto& fd : _fixFileSearchDirs) {
+    for (const auto& fd : searchDirs) {
         std::string sd = fd;
         if (!append.empty()) {
             sd = (std::filesystem::path(fd) / append).string();
@@ -208,6 +222,7 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
     }
 
     std::string sd = showDir.empty() ? _fixFileShowDir : showDir;
+    const std::list<std::string> searchDirs = _fixFileSearchDirs;
     lock.unlock();
 
     spdlog::debug("File not found ... attempting to fix location ({}) : {}", sd, file);
@@ -224,7 +239,7 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
             if (!append.empty()) append += std::filesystem::path::preferred_separator;
             append += comp;
         }
-        if (doesFileExistInDirs(sd, append, filename, resultPath)) {
+        if (doesFileExistInDirs(searchDirs, sd, append, filename, resultPath)) {
             lock.lock();
             _fixFileMap[file] = resultPath;
             return resultPath;
@@ -236,7 +251,7 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
     if (!rooted && FileExists(file, false)) return file;
 
     // Search show dir and search dirs for the file directly
-    if (doesFileExistInDirs(sd, "", filename, resultPath)) {
+    if (doesFileExistInDirs(searchDirs, sd, "", filename, resultPath)) {
         lock.lock();
         _fixFileMap[file] = resultPath;
         return resultPath;
@@ -283,7 +298,7 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
         }
     }
     if (!appendPath.empty()) {
-        if (doesFileExistInDirs(sd, appendPath, filename, resultPath)) {
+        if (doesFileExistInDirs(searchDirs, sd, appendPath, filename, resultPath)) {
             lock.lock();
             _fixFileMap[file] = resultPath;
             return resultPath;
@@ -311,7 +326,7 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
             if (!revPath.empty()) revPath += std::filesystem::path::preferred_separator;
             revPath += components[y];
         }
-        if (doesFileExistInDirs(sd, revPath, filename, resultPath)) {
+        if (doesFileExistInDirs(searchDirs, sd, revPath, filename, resultPath)) {
             lock.lock();
             _fixFileMap[file] = resultPath;
             return resultPath;
@@ -384,10 +399,10 @@ std::string MakeRelativeFile(const std::string& file) {
         return {};
     };
 
-    std::string rel = stripPrefix(_fixFileShowDir);
+    std::string rel = stripPrefix(SnapshotShowDir());
     if (!rel.empty()) return rel;
 
-    for (const auto& dir : _fixFileSearchDirs) {
+    for (const auto& dir : SnapshotSearchDirs()) {
         rel = stripPrefix(dir);
         if (!rel.empty()) return rel;
     }
@@ -401,9 +416,10 @@ std::string MakeRelativeFileOrOriginal(const std::string& file) {
 }
 
 bool IsFileInShowDir(const std::string& showDir, const std::string& filename) {
-    std::string sd = showDir.empty() ? _fixFileShowDir : showDir;
+    std::string sd = showDir.empty() ? SnapshotShowDir() : showDir;
     if (sd.empty()) return false;
     std::string fixedFile = FileUtils::FixFile(sd, filename);
+    const std::list<std::string> searchDirs = SnapshotSearchDirs();
 
 #ifdef _WIN32
     std::string fixedLower = fixedFile;
@@ -411,13 +427,13 @@ bool IsFileInShowDir(const std::string& showDir, const std::string& filename) {
     std::string sdLower = sd;
     std::transform(sdLower.begin(), sdLower.end(), sdLower.begin(), ::tolower);
     if (fixedLower.substr(0, sdLower.size()) == sdLower) return true;
-    for (auto d : _fixFileSearchDirs) {
+    for (auto d : searchDirs) {
         std::transform(d.begin(), d.end(), d.begin(), ::tolower);
         if (fixedLower.substr(0, d.size()) == d) return true;
     }
 #else
     if (fixedFile.substr(0, sd.size()) == sd) return true;
-    for (const auto& d : _fixFileSearchDirs) {
+    for (const auto& d : searchDirs) {
         if (fixedFile.substr(0, d.size()) == d) return true;
     }
 #endif
