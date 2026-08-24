@@ -4,4 +4,4 @@
 #define MyTitleName "xLights" 
 #define Year 2026
 #define Version 16
-#define Other ""
+#define Other "_1"

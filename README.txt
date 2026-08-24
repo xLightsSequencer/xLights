@@ -10,6 +10,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.17  August ??, 2026
+
+
 2026.16  August 24, 2026
 
     -change (scott)              The Layout tab's "Show Names"/"Show Start Channel" checkboxes moved
