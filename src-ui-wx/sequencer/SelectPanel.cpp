@@ -327,7 +327,9 @@ void SelectPanel::SelectEffects()
 
         for (auto value : effectsSelected) {
             Effect* eff = (Effect*)ListCtrl_Select_Effects->GetItemData(value);
-            if (eff != nullptr) {
+            // The list holds raw pointers captured when it was populated; an undo
+            // or a grid edit since then can have deleted the effect out from under it
+            if (eff != nullptr && mSequenceElements->IsValidEffect(eff)) {
                 eff->SetSelected(EFFECT_SELECTED);
                 if (first) {
                     mainSequencer->PanelEffectGrid->RaiseSelectedEffectChanged(eff, false);
