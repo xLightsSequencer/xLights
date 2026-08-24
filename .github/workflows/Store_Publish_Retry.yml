@@ -1,0 +1,137 @@
+name: Retry Windows Store Publish
+
+# Re-runs just the Partner Center publish using the xLights_Store_MSIX
+# artifact from an earlier release run, for when the publish-store job
+# failed after the build succeeded. Tag-triggered reruns use the workflow
+# file at the tag, so a publish fix on master can only reach an existing
+# release through this dispatch.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Run ID of the release workflow that built the MSIX'
+        required: true
+      tag:
+        description: 'Release tag (checked out for RELEASE_SUMMARIES.txt)'
+        required: true
+
+jobs:
+  publish-store:
+    runs-on: windows-2022
+    environment: release
+    steps:
+      - name: Checkout xLights
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      # RELEASE_SUMMARIES.txt is written when the release is prepared. A missing
+      # or over-length section is not fatal: the package still uploads and the
+      # listing keeps whatever release notes Partner Center already has.
+      - name: Extract Windows Store release notes
+        shell: pwsh
+        run: |
+          $notes = & python ci_scripts/release_summary.py "Windows Store"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Warning "No usable Windows Store summary - leaving the listing's release notes alone"
+          } else {
+            Set-Content -Path store-notes.txt -Value ($notes -join "`n") -Encoding utf8NoBOM
+            Write-Host "Release notes ($((Get-Content store-notes.txt -Raw).Length) chars):"
+            Get-Content store-notes.txt
+          }
+
+      - name: Download Store MSIX
+        uses: actions/download-artifact@v4
+        with:
+          name: xLights_Store_MSIX
+          path: store-msix
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Microsoft Store Developer CLI
+        uses: microsoft/microsoft-store-apppublisher@v1.4
+        with:
+          # v0.4.x breaks every blob upload when --uploadTimeout is omitted
+          # (msstore-cli#162); pin until the fix ships in a release.
+          version: v0.3.9
+
+      # Checked before calling reconfigure: with a parameter missing the CLI
+      # prompts for it, and an interactive prompt on a runner hangs the job
+      # until the 6-hour timeout rather than failing.
+      - name: Configure Partner Center credentials
+        shell: pwsh
+        env:
+          TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          foreach ($n in 'TENANT_ID','SELLER_ID','CLIENT_ID','CLIENT_SECRET') {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($n))) {
+              throw "MSSTORE_$n is not set - MSSTORE_PUBLISH_ENABLED needs all four Partner Center secrets"
+            }
+          }
+          msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID `
+                              --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed ($LASTEXITCODE)" }
+
+      # Always uploaded with --noCommit, even when auto-commit is on, so the
+      # release notes can be written onto the draft before it is submitted.
+      - name: Upload MSIX to Partner Center
+        shell: pwsh
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
+        run: |
+          $msix = Get-ChildItem store-msix -Filter *.msix -Recurse | Select-Object -First 1
+          if (-not $msix) { throw "No .msix in the xLights_Store_MSIX artifact" }
+          $pubArgs = @($msix.FullName, '-id', $env:PRODUCT_ID, '--noCommit')
+          Write-Host "msstore publish $($pubArgs -join ' ')"
+          & msstore publish @pubArgs
+          if ($LASTEXITCODE -ne 0) { throw "msstore publish failed ($LASTEXITCODE)" }
+
+      # Writes the summary into every language listing's "What's new" field on
+      # the draft the upload above created.
+      - name: Set What's new text on the draft submission
+        if: hashFiles('store-notes.txt') != ''
+        shell: pwsh
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
+        run: |
+          $notes = (Get-Content store-notes.txt -Raw).TrimEnd()
+          $raw = (& msstore submission getListings $env:PRODUCT_ID) -join "`n"
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission getListings failed ($LASTEXITCODE)" }
+          # The CLI can print progress lines around the JSON body.
+          $start = $raw.IndexOf('{')
+          $end = $raw.LastIndexOf('}')
+          if ($start -lt 0 -or $end -le $start) { throw "no JSON in getListings output:`n$raw" }
+          $obj = $raw.Substring($start, $end - $start + 1) | ConvertFrom-Json
+          $listings = if ($obj.PSObject.Properties.Name -contains 'listings') { $obj.listings } else { $obj }
+          if (-not $listings -or -not $listings.PSObject.Properties.Name) {
+            $listings = [pscustomobject]@{ 'en-us' = [pscustomobject]@{ baseListing = [pscustomobject]@{} } }
+          }
+          foreach ($lang in $listings.PSObject.Properties) {
+            if ($lang.Value.PSObject.Properties.Name -notcontains 'baseListing') {
+              $lang.Value | Add-Member -NotePropertyName baseListing -NotePropertyValue ([pscustomobject]@{}) -Force
+            }
+            $lang.Value.baseListing | Add-Member -NotePropertyName releaseNotes -NotePropertyValue $notes -Force
+            Write-Host "release notes set for $($lang.Name)"
+          }
+          $payload = [pscustomobject]@{ listings = $listings } | ConvertTo-Json -Depth 30
+          Set-Content -Path store-metadata.json -Value $payload -Encoding utf8NoBOM
+          & msstore submission updateMetadata $env:PRODUCT_ID store-metadata.json
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission updateMetadata failed ($LASTEXITCODE)" }
+
+      - name: Commit the submission
+        if: vars.MSSTORE_AUTO_COMMIT == 'true'
+        shell: pwsh
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
+        run: |
+          & msstore submission publish $env:PRODUCT_ID
+          if ($LASTEXITCODE -ne 0) { throw "msstore submission publish failed ($LASTEXITCODE)" }
+
+      - name: Report submission status
+        continue-on-error: true
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
+        run: msstore submission status $env:PRODUCT_ID
