@@ -10,353 +10,354 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.16  August ??, 2026
+2026.16  August 24, 2026
 
-    -bug (dkulp)                 Export Models: fix the Bulbs total counting dumb string types (Single Colour,
-                                 3/4 Channel, Strobes, Node Single Colour) many times over, and fix the
-                                 per-model Light Count reporting only one string's worth of bulbs
-    -bug (dkulp)                 Export Models: DMX fixtures such as moving heads no longer have their
-                                 pan/tilt/gobo channels counted as bulbs
-    -enh (dkulp)                 Export Models: bulb counting is now per node, so shadow models and other
-                                 models sharing a channel range are counted once; the Totals sheet gains
-                                 "Model Channels (incl. overlap)" and "DMX Channels" rows to reconcile the
-                                 per-model channel counts against the actual channels used
-    -bug (dkulp)                 Fix a crash loading a show folder while models are resolving file paths
-                                 on background threads
-    -bug (dkulp)                 Fix a crash closing the Replace Color dialog with its colour dropdown open
-    -bug (dkulp)                 Fix a crash selecting rows in the Select Effects panel after the listed
-                                 effects had been deleted
-    -bug (dkulp)                 Fix a crash importing a Falcon fseq whose block table is unreadable
-    -bug (dkulp)                 Fix a crash opening the DMX effect panel when no sequence is loaded
+    -change (scott)              The Layout tab's "Show Names"/"Show Start Channel" checkboxes moved
+                                 into the new Print Layout dialog - they now control labels only in
+                                 the print preview/output, not while editing
+    -change (cybercop23)         Opening a sequence stored outside the show directory now warns
+                                 first, and Save requires saving inside the show directory (Save As
+                                 already ensured that)
+    -change (dkulp)              Windows/Linux: the playback timer no longer uses a dedicated thread
+                                 - Linux uses the platform timer directly and Windows waits on a
+                                 high resolution timer
+    -change (dkulp)              Windows: AVI videos now always use the software decoder, matching
+                                 macOS. Media Foundation decoded them on the CPU anyway while
+                                 occupying one of the few hardware decoder sessions, so a sequence
+                                 with several AVI videos could stall or hang the render - another
+                                 reason to re-wrap AVI media as mov/mp4
+    -change (dkulp)              Crash reports for an exception escaping the main loop now say when
+                                 the stack was unwound by neither the C++ nor the Objective-C
+                                 runtime, instead of reporting an unhelpful "unknown exception"
+    -change (dkulp)              iPad - View names are held to the same rules as the desktop
+                                 (letters, numbers, spaces, underscores and hyphens) and say so when
+                                 a name is rejected
+    -change (dkulp)              iPad - The value curve editor no longer offers Min/Max fields or a
+                                 Real Values switch; both now behave as they do on the desktop
+    -enh (scott)                 Print Layout Image is now a print-preview dialog: pick a Preview or
+                                 the whole layout, set the render resolution, choose which labels
+                                 are shown (with adjustable label size/color), and optionally invert
+                                 colors before printing
+    -enh (scott)                 Layout: right-click a model and choose "Wire to Closest Controller
+                                 with Open Port" to auto-assign it to the nearest controller with
+                                 enough consecutive open pixel ports for all its strings
+    -enh (scott)                 Model Definitions: the preview's pencil tool and click-drag node
+                                 selection are disabled when they cannot apply (nothing selected, a
+                                 SubModel in SubBuffer mode, or a Face in Matrix mode)
+    -enh (derwin12)              Lyric phrases and words can now be duplicated (#3923)
+    -enh (derwin12)              Ripple can now trigger a new cycle from a timing track, matching
+                                 Shockwave (Timing Track/Filter/Regex/Duration settings)
+    -enh (derwin12)              Export House Preview Video now lets you choose the output
+                                 resolution
+    -enh (derwin12)              Custom models have a Background Image Transparency % setting, so
+                                 props positioned behind the background image show through it
+    -enh (derwin12)              SubModels and States dialogs: editing node ranges while the Play
+                                 preview animation is running now stops the animation automatically
+    -enh (derwin12)              Automation: new BatchCheckSequence lua script
+    -enh (derwin12,dkulp)        Windows/macOS: Generate Custom Model can capture from a USB webcam
+                                 and generate an .xmodel (#3791)
+    -enh (AlexB)                 macOS/Linux: the scroll wheel and trackpad slides adjust sliders
+                                 and dropdowns, matching Windows. The control has to be clicked or
+                                 focused first, so scrolling past a control never changes it by
+                                 accident
+    -enh (cybercop23)            A submodel alias in "Model/Submodel" format now matches when the
+                                 model part also matches a model alias, and "Update Aliases"
+                                 promotes a submodel alias to the model itself when the submodel
+                                 name already matches
+    -enh (dkulp)                 Export Models: bulb counting is now per node, so shadow models and
+                                 other models sharing a channel range are counted once; the Totals
+                                 sheet gains "Model Channels (incl. overlap)" and "DMX Channels"
+                                 rows to reconcile channel counts
+    -enh (dkulp)                 FPP shift-string capes (K8/K16/K32 and the K16A-B, K64D-B, K128D-B)
+                                 now offer the pixel protocols FPP can actually drive on them - the
+                                 WS2811 family by name, TM1814, the 16 bit UCS8903/8904, and slower
+                                 parts such as UCS1903 and TM1803 - and the protocol is uploaded per
+                                 port. A mix of timings that cannot work on one cape is reported
+                                 rather than uploaded
+    -enh (dkulp)                 FPP: Falcon v4 smart receivers can be selected on any string cape
+                                 FPP drives itself; a cape that has no v5 listener now falls back to
+                                 v4 rather than v2
+    -enh (dkulp)                 The show's id is now written to the log, so a submitted report
+                                 identifies which show it came from
+    -enh (dkulp)                 Crash reports now include a recent-activity trace of the last few
+                                 hundred events and playback actions, so a report shows what the
+                                 program was doing without debug logging enabled
+    -enh (dkulp)                 iPad - Sequencer grid and house preview do much less work per
+                                 frame, so dragging and scrolling stay smooth on large sequences
+    -enh (dkulp)                 iPad - Show-folder backup and restore: File > Back Up Show Folder
+                                 copies the show's sequence and configuration files into a
+                                 timestamped Backup folder (the same format desktop's F10 Backup
+                                 writes, so backups restore across both), with an optional backup on
+                                 show-folder open, an automatic backup before autosave recovery, and
+                                 a Restore Backup sheet that can bring back controllers, layout,
+                                 presets and selected sequences
+    -enh (dkulp)                 iPad - Jukebox: link numbered buttons to effects (by description or
+                                 model/layer/time) and tap to select and play them, matching the
+                                 desktop Jukebox panel; buttons saved in the sequence work on both
+                                 platforms
+    -enh (dkulp)                 iPad - Dragging out a region of the grid with a timing track active
+                                 now selects that block of cells, and long-pressing empty grid space
+                                 opens a menu to paste into it, fill it with random effects, or drop
+                                 in the armed effect
+    -enh (dkulp)                 iPad - An image, video, Glediator or shader file dropped onto the
+                                 grid becomes the matching effect at that spot
+    -enh (dkulp)                 iPad - Press T to drop a timing mark at the play marker on the
+                                 active timing track, and S to split the mark under it, so beats can
+                                 be tapped out while the sequence plays
+    -enh (dkulp)                 iPad - Lyric breakdown can be run on a single word, or on just the
+                                 marks you have selected, rather than only a whole track or a single
+                                 phrase
+    -enh (dkulp)                 iPad - Effect presets can be exported as .xpreset and imported from
+                                 one, so a preset library moves between the iPad and the desktop in
+                                 either direction
+    -enh (dkulp)                 iPad - Models in the Master View can be dragged into a new order
+    -enh (dkulp)                 iPad - Long-press the render button to see per-model render
+                                 progress, with the status of each model being rendered
+    -enh (dkulp)                 iPad - Layout changes are now autosaved. If the app is closed or
+                                 crashes with unsaved layout work, the next open offers the
+                                 autosaved copy back
+    -enh (dkulp)                 iPad - Previews can be renamed and deleted, not just created.
+                                 Deleting one leaves its models in the show as Unassigned; renaming
+                                 one takes its models with it
+    -enh (dkulp)                 iPad - The Layout Editor's preview now has the same viewpoint menu
+                                 as the House Preview: apply, save, delete and restore the default
+                                 view
+    -enh (dkulp)                 iPad - Several selected models can be exported to a single .xmodel
+                                 file
+    -enh (dkulp)                 iPad - Models, groups and viewpoints can be imported from another
+                                 show. Pick that show's xlights_rgbeffects.xml, tick what you want,
+                                 and it merges into the preview you are editing; a name already in
+                                 use is imported under a new one
+    -enh (dkulp)                 iPad - The visualizer can work on a whole port at once: remove
+                                 every model from a port or from the controller, move a port's
+                                 models to another port, and set or clear the port's smart remote
+                                 and its type
+    -enh (dkulp)                 iPad - Controller output settings can now be edited for every
+                                 ethernet protocol, not just E1.31, ArtNet and KiNET. KiNET gains
+                                 its Version setting and labels its outputs as ports, and a
+                                 controller with no known model can be set to Player Only
+    -enh (dkulp)                 iPad - Light Test gains Groups and Outputs targeting, so a model
+                                 group or a raw universe can be tested directly, plus a filter box
+                                 for finding what to test in a large show
+    -enh (dkulp)                 iPad - Check Sequence results can be exported and shared as an HTML
+                                 report
+    -enh (dkulp)                 iPad - The AI image generator now shows all of a generator's
+                                 settings, not just the ones offering a fixed list of choices
+    -enh (dkulp)                 iPad - Divide Timing Marks gained the missing 12 and 16 entries
+    -enh (dkulp)                 iPad - Opening a show that uses a base show folder no longer re-
+                                 merges the base controllers when that file hasn't changed since the
+                                 last merge. "Update From Base Now" still merges unconditionally
+    -enh (dkulp)                 iPad - Crash-report uploads no longer run while the app is
+                                 launching
+    -enh (dkulp)                 iPad - Crash reports now carry a backtrace taken at the moment of
+                                 the crash, plus every thread's stack and the recent-activity trace
+                                 the desktop already sent
+    -enh (dkulp)                 iPad - Automatic diagnostic uploads now include a redacted copy of
+                                 the show configuration, so a report can be opened as a show folder
+                                 to reproduce a problem. File paths and controller addresses are
+                                 replaced. Sharing logs yourself is unchanged and still sends the
+                                 real files
+    -bug (dkulp)                 Export Models: fix the Bulbs total counting dumb string types
+                                 (Single Colour, 3/4 Channel, Strobes, Node Single Colour) many
+                                 times over, fix the per-model Light Count reporting only one
+                                 string's worth of bulbs, and stop DMX fixtures such as moving heads
+                                 having their pan/tilt/gobo channels counted as bulbs
     -bug (dkulp)                 Fix the Single Strand FX effects rendering their first frame from
                                  uninitialised memory, which blanked part of the model and made the
                                  render non-deterministic
-    -bug (dkulp)                 Windows: re-enable the camera scan option in Generate Custom Model - the
-                                 KLightMapper calls were compiled out, so xLights always reported no cameras
-    -bug (derwin12)              Fix Text effect rendering nondeterministically (and occasionally crashing)
-    -bug (derwin12)              Don't re-prompt to use the rgbeffects autosave backup after the user already chose to discard those changes on exit
-    -bug (derwin12)              Fix Import Effects: picking a color for a mapped row (or dismissing the
-                                 color picker) was also toggling that row's Map To mapping off, forcing
-                                 the user to reselect it; also stop a narrow saved dialog size from
-                                 clipping the Color column
-    -bug (dkulp)                 Windows: fix sequence output running below the configured frame rate - the
-                                 playback timer's sleep was rounded to the 15.6ms system tick, so ticks
-                                 alternated early and late and frames were dropped even though the average
-                                 rate looked correct (#6954)
-    -change (dkulp)              Windows/Linux: replace the playback timer's dedicated thread - Linux now uses
-                                 the platform timer directly and Windows waits on a high resolution timer
-    -bug (dkulp)                 FPP Connect: uploading UDP outputs no longer resets FPP10's E1.31 Pacing
-                                 and Sending mode - every setting on the universes output that xLights
-                                 does not own is now carried forward unchanged
-    -enh (derwin12,dkulp)        Windows/MacOS: enhance Generate Custom Model for USB webcam to generate an .xmodel (#3791)
-    -bug (dkulp)                 Windows/Linux: fix crash on startup when the machine falls back to the
-                                 software OpenGL 1.1 rasterizer - the preview now draws nothing instead
-                                 of calling unresolved OpenGL entry points
-    -bug (dkulp)                 Fix crash right-clicking the sequencer grid on a row with no element
-    -bug (dkulp)                 macOS: fix crash using the Add Controller button on the layout tab
-    -bug (dkulp)                 Port FSEQ read hardening back from FPP - a corrupt .eseq with a zero channel
-                                 count no longer divides by zero, and a frame whose channel buffer could not be
-                                 allocated is reported as unread instead of being written through a null pointer
-    -bug (derwin12)              Fix Ripple effect shapes rendering very differently/broken since the
-                                 radius accumulation change in 2026.15 (#6934)
-    -bug (dkulp)                 Fix crash opening a sequence whose effects use a "Per Model" buffer style
-                                 the model does not support
-    -bug (dkulp)                 iPad - Fix crash when changing the show folder while a sequence was still
-                                 rendering or the preview was drawing
-    -enh (dkulp)                 iPad - Sequencer grid and house preview do much less work per frame, so
-                                 dragging and scrolling stay smooth on large sequences
-    -enh (dkulp)                 iPad - Crash-report uploads no longer run while the app is launching
-    -enh (derwin12)              Added ability to duplicate lyrics phrases/words (#3923)
-    -bug (scott)                 Fix multi-row lasso-selected effects pasting 1-3 rows below the
-                                 target row instead of the row you clicked (#6944)
-    -enh (scott)                 Layout: right-click a model and choose "Wire to Closest Controller with
-                                 Open Port" to auto-assign it to the nearest controller with enough
-                                 consecutive open pixel ports for all its strings, and enable it
-    -enh (derwin12)              Automation: BatchCheckSequence lua script
-    -bug (derwin12)              Fix Custom value curve copies prior effect (#6937)
-    -enh (dkulp)                 FPP shift-string capes (K8/K16/K32 and the K16A-B, K64D-B, K128D-B) now offer
-                                 the pixel protocols FPP can actually drive on them - the WS2811 family by name,
-                                 TM1814, the 16 bit UCS8903/8904, and the slower parts such as UCS1903, TM1803,
-                                 GW6205, TM1804, SK6822 and UCS1912 - and the protocol is uploaded per port.
-                                 Every port on a controller shares one bit timing, so xLights reports a mix that
-                                 cannot work rather than leaving those ports to run at the wrong timing
-    -enh (dkulp)                 FPP: Falcon v4 smart receivers can be selected on any string cape FPP drives
-                                 itself; a cape that has no v5 listener now falls back to v4 rather than v2
-    -bug (cybercop23)            Fix pasting effects onto a Model Group from expanding to show its member
-                                 models/strands (#6900)
-    -bug (derwin12)              Fix Replace Model(s) With This Model now deletes the source model once it has
-                                 been used to replace the selected target(s) (#6901)
-    -bug (derwin12)              Fix Replace Model(s) With This Model overwriting the target's aliases with the
-                                 source's, and add an Edit button to the Model Aliases dialog (#6951)
-    -bug (derwin12)              Fix Remove From Group leaving a model's submodels behind in the group when the
-                                 model itself is removed (#6925)
-    -bug (cybercop23)            Fix effect start/end times becoming corrupted when dragging an effect past
-                                 another effect on the same row, then resizing it (#6908)
-    -enh (AlexB)                 macOS/Linux: the scroll wheel and trackpad slides adjust sliders and dropdowns,
-                                 matching Windows. The control has to be clicked or focused first, and a scroll
-                                 already moving a panel keeps moving it, so scrolling past a control never
-                                 changes it by accident
-    -bug (dkulp)                 Fix a crash on the Layout tab when a controller placement box is left behind by a
-                                 controller that no longer exists - switching to the Controllers page, or changing
-                                 a controller property, walked the leftover box and crashed
-    -bug (dkulp)                 Fix a crash selecting in the model tree straight after an undo that deleted or
-                                 replaced the selected model
-    -bug (dkulp)                 Fix a crash deleting a position zone when the zone list changed while the
-                                 confirmation prompt was up
-    -bug (dkulp)                 Fix a crash reading an fseq whose compression block table is out of order; the
-                                 frame index went negative and the read ran off the end of the decompressed block
-    -bug (dkulp)                 Fix a crash opening a sequence that stores more timing tags than xLights keeps;
-                                 the extra tag overwrote memory and the load failed part way through the effects
-    -bug (dkulp)                 Fix a crash placing a model when a dialog appears part way through loading it,
-                                 such as the group-selection prompt on an imported model
-    -bug (dkulp)                 Fix a crash updating serial controllers from the base show folder when the base
-                                 folder's serial ports differ from the current show's
-    -bug (dkulp)                 Fix a crash editing a State effect after the model it referred to was deleted or
-                                 the show folder was changed
-    -enh (dkulp)                 iPad - Show-folder backup and restore: File > Back Up Show Folder copies the
-                                 show's sequence and configuration files into a timestamped Backup folder
-                                 (the same format desktop's F10 Backup writes, so backups restore across
-                                 both), with an optional backup on show-folder open, an automatic backup
-                                 before autosave recovery, and a Restore Backup sheet that can bring back
-                                 controllers, layout, presets and selected sequences
-    -enh (dkulp)                 iPad - Jukebox: link numbered buttons to effects (by description or
-                                 model/layer/time) and tap to select and play them, matching the desktop
-                                 Jukebox panel; buttons saved in the sequence work on both platforms
-    -bug (dkulp)                 Fix a crash drawing the 3D layout preview, and re-enable a family of NaN/infinity
-                                 guards that optimized builds had been silently discarding
-    -bug (dkulp)                 Fix a crash starting playback when the audio engine had been stopped, such as
-                                 after a pause or an audio device change
-    -bug (dkulp)                 Fix a crash starting playback when the audio engine has started but has not
-                                 begun playing yet
-    -bug (dkulp)                 Fix a crash closing xLights while the Effect Assist panel was in automatic mode
-    -bug (dkulp)                 Fix a crash importing a Vixen .vix sequence whose channel numbers are not
-                                 contiguous
-    -bug (dkulp)                 Fix a crash choosing an OBJ mesh whose backup copy cannot be written, and leave
-                                 the original file untouched in that case
-    -bug (dkulp)                 Fix a crash when a WLED controller answers with an error page instead of JSON,
-                                 such as an offline controller reached through a proxy
-    -enh (scott)                 Print Layout Image is now a print-preview dialog: pick a Preview or the
-                                 whole layout, set the render resolution, choose which labels are shown
-                                 (with adjustable label size/color), and optionally invert colors before
-                                 printing
-    -change (scott)              The Layout tab's "Show Names"/"Show Start Channel" checkboxes moved into
-                                 the new Print Layout dialog (above) -- they no longer toggle labels while
-                                 editing, only in the print preview/output
-    -bug (scott)                 Fix the new Print Layout dialog becoming stuck behind the main window and
-                                 unresponsive to clicks on macOS
-    -bug (dkulp)                 Fix a crash when a row-heading right-click menu item is chosen after the
-                                 sequence has been closed or reloaded
-    -bug (dkulp)                 iPad - The sequence picker no longer stutters on show folders stored in iCloud
-                                 Drive; each row's iCloud state and dates are now read once instead of on every
-                                 redraw
-    -bug (derwin12)              Bulk Controller Upload no longer stalls when a controller's FPP proxy hostname can't be resolved
-    -bug (derwin12)              Sorting the controller list by FPP Proxy, and the Multi-Controller Upload
-                                 "Select with Proxy" menu, no longer stall when a proxy hostname can't be resolved
-    -bug (derwin12)              Fix the estimated current draw shown for a model in the controller visualizer
-                                 tooltip to account for brightness inherited from earlier models chained on the
-                                 same port, matching the port-level total
-    -bug (derwin12)              Fix rotation not applying to all selected polyline models in a group
-    -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
-                                 positioned behind the background image show through it
-    -enh (derwin12)              SubModels and States dialogs: editing node ranges while the Play preview
-                                 animation is running now stops the animation automatically
-    -enh (dkulp)                 iPad - The visualizer can work on a whole port at once: remove every model
-                                 from a port or from the controller, move a port's models to another port, and
-                                 set or clear the port's smart remote and its type
-    -bug (dkulp)                 iPad - Controller discovery now probes the controllers already in the show
-                                 rather than relying on broadcast alone, so an FPP on another subnet or behind
-                                 a proxy is found, and a password-protected FPP asks for the password instead
-                                 of being skipped
-    -enh (dkulp)                 iPad - Previews can be renamed and deleted, not just created. Deleting one
-                                 leaves its models in the show as Unassigned; renaming one takes its models
-                                 with it
-    -enh (dkulp)                 iPad - Several selected models can be exported to a single .xmodel file
-    -enh (dkulp)                 iPad - Models, groups and viewpoints can be imported from another show. Pick
-                                 that show's xlights_rgbeffects.xml, tick what you want, and it merges into the
-                                 preview you are editing; a name already in use is imported under a new one
-    -enh (dkulp)                 iPad - Dragging out a region of the grid with a timing track active now selects
-                                 that block of cells, and long-pressing empty grid space opens a menu to paste
-                                 into it, fill it with random effects, or drop in the armed effect
-    -enh (dkulp)                 iPad - An image, video, Glediator or shader file dropped onto the grid becomes
-                                 the matching effect at that spot
-    -enh (dkulp)                 iPad - Press T to drop a timing mark at the play marker on the active timing
-                                 track, and S to split the mark under it, so beats can be tapped out while the
-                                 sequence plays
-    -enh (dkulp)                 iPad - Lyric breakdown can be run on a single word, or on just the marks you
-                                 have selected, rather than only a whole track or a single phrase
-    -enh (dkulp)                 iPad - Light Test gains Groups and Outputs targeting, so a model group or a raw
-                                 universe can be tested directly, plus a filter box for finding what to test in
-                                 a large show
-    -enh (dkulp)                 iPad - Check Sequence results can be exported and shared as an HTML report
-    -enh (dkulp)                 iPad - Controller output settings can now be edited for every ethernet protocol,
-                                 not just E1.31, ArtNet and KiNET. DDP, ZCPP, OPC and Twinkly could be selected
-                                 but none of their settings could be reached. KiNET gains its Version setting and
-                                 labels its outputs as ports rather than universes, and a controller with no
-                                 known model can now be set to Player Only
-    -change (dkulp)              iPad - View names are held to the same rules as the desktop - letters, numbers,
-                                 spaces, underscores and hyphens - and say so when a name is rejected. A comma in
-                                 a view name breaks which timing tracks belong to that view
-    -enh (dkulp)                 iPad - Layout changes are now autosaved. If the app is closed or crashes with
-                                 unsaved layout work, the next open offers the autosaved copy back
-    -bug (dkulp)                 iPad - Changing a sequence's frame interval now saves, closes and reopens the
-                                 sequence so effects move onto the new interval, as the desktop does. It asks
-                                 first, and warns again when moving to a longer interval
-    -bug (dkulp)                 iPad - Delete Submodel/Strand/Node Effects, Promote Node Effects, Convert Data
-                                 to Effects, Convert to Per-Model, Breakdown Words and Fill Region From Timing
-                                 Marks can be undone. They previously could not be
-    -bug (dkulp)                 iPad - Playback now follows the audio track picked in the waveform, so selecting
-                                 a stem plays that stem. Switching tracks while playing pauses first
-    -bug (dkulp)                 iPad - A newly dropped State effect starts on the model's first state, and a
-                                 Faces effect on the phoneme it does on the desktop, instead of starting blank
-    -enh (dkulp)                 iPad - Effect presets can be exported as .xpreset and imported from one, so a
-                                 preset library moves between the iPad and the desktop in either direction
-    -enh (dkulp)                 iPad - Models in the Master View can be dragged into a new order
-    -bug (dkulp)                 iPad - Preset and group names with illegal characters or collisions are
-                                 corrected when the library loads, as they are on the desktop
-    -change (dkulp)              iPad - The value curve editor no longer offers Min/Max fields or a Real Values
-                                 switch. Min and Max belong to the setting being curved, and the switch only
-                                 ever turned on; both now behave as they do on the desktop
-    -bug (dkulp)                 iPad - Effects that follow a timing track or another model now re-render on
-                                 their own when the thing they follow changes, instead of showing a stale
-                                 result until the next Render All
-    -bug (dkulp)                 iPad - Cleanup File Locations now also gathers the files referenced by the
-                                 layout - face images, dimming curves, mesh and image files, and the preview
-                                 background - not just the ones used by the sequence
-    -bug (dkulp)                 iPad - A show still using the old networks file format is converted once and
-                                 saved, instead of being reconverted every time it is opened
-    -bug (dkulp)                 iPad - FPP Connect sends a master-mode FPP a non-sparse sequence file, matching
-                                 the desktop; sparse files leave a master player without the channel data it
-                                 needs for its remotes
-    -enh (dkulp)                 iPad - Long-press the render button to see per-model render progress, with the
-                                 status of each model being rendered
-    -bug (dkulp)                 iPad - AI-generated images are now stored inside the sequence rather than as
-                                 loose files in the show folder, so a sequence copied off the iPad keeps them
-    -enh (dkulp)                 iPad - The Layout Editor's preview now has the same viewpoint menu as the House
-                                 Preview: apply, save, delete and restore the default view
-    -enh (dkulp)                 iPad - The AI image generator now shows all of a generator's settings, not just
-                                 the ones offering a fixed list of choices
-    -enh (dkulp)                 iPad - Divide Timing Marks gained the missing 12 and 16 entries
-    -bug (dkulp)                 iPad - Help / Release Notes no longer lands on a missing page for a patch
-                                 release that has no release notes of its own
-    -bug (dkulp)                 iPad - Views are saved again. Creating, renaming, cloning, deleting or changing the
-                                 models in a view was only kept in memory, so every view edit was lost on relaunch.
-                                 Renaming a model now updates the views that contain it too
-    -bug (dkulp)                 iPad - Blank the lights when playback stops, instead of leaving them holding the
-                                 last frame. Also blanks when output to lights is switched off
-    -bug (dkulp)                 iPad - Controllers can no longer be added, deleted, reordered, edited or uploaded
-                                 while the show is outputting to lights
-    -enh (dkulp)                 iPad - Opening a show that uses a base show folder no longer re-merges the base
-                                 controllers when that file hasn't changed since the last merge. "Update From Base
-                                 Now" still merges unconditionally
-    -bug (dkulp)                 iPad - A newly dropped effect now starts with the same palette as the desktop:
-                                 the same eight colours in the same order, with the first two enabled. Previously
-                                 no colour was enabled, so the new effect rendered with an empty palette
-    -change (cybercop23)         Add warning prompt when opening a sequence outside the show directory. Save requires
-                                 saving inside the show directory - Save As was already ensuring that path.
-    -bug (kylegrymonprez)        Layout: on the Controllers tab, "Show on Layout" for a controller
-                                 could fall into edgecases where it wouldn't show in the property grid.
-    -enh (derwin12)              Ripple can now trigger a new cycle from a timing track, matching Shockwave
-                                 (Timing Track/Filter/Regex/Duration settings).
-    -enh (derwin12)              Export House Preview Video now lets you choose the output resolution.
-    -bug (derwin12)              Fixes #6795 - the render progress dialog no longer stays on top of
-                                 other applications (was topmost system-wide, not just above xLights).
-    -bug (dkulp)                 Fix crash setting a model's serial Speed in the Layout property grid. The Speed
-                                 choices are built for the protocol in effect when the grid was created, so a
-                                 speed picked before the grid caught up with a protocol change read past the end
-                                 of the new protocol's shorter speed list
-    -bug (dkulp)                 Fix memory corruption loading a terrain object; resetting the elevation grid
-                                 used each stored elevation as an array index, writing outside the grid for any
-                                 negative or large value
-    -bug (dkulp)                 Fix crash clicking Reverse Nodes in the submodel editor with no submodel selected
-    -bug (dkulp)                 Fix crash starting or stopping playback with auto-show house preview enabled while
-                                 the sequencer tab had never been opened
-    -bug (dkulp)                 Fix crash showing or hiding a panel from the View menu. Toggling a panel that
-                                 isn't registered, or one whose menu item fires during shutdown, left the window
-                                 layout describing a panel that no longer had a window
-    -enh (dkulp)                 iPad - Automatic diagnostic uploads now include a redacted copy of the show
-                                 configuration, so a report can be opened as a show folder to reproduce a
-                                 problem. File paths and controller addresses are replaced; model, group and
-                                 submodel names are kept so the show still loads. Sharing logs yourself is
-                                 unchanged and still sends the real files
-    -bug (dkulp)                 Updating from a base show folder now gives the current show a new id if it has
-                                 the same one as the base. Setting up a base folder by copying an existing show
-                                 copied its id too, so both shows counted as one show in submitted reports
-    -enh (dkulp)                 The show's id is now written to the log, so a submitted report identifies which
-                                 show it came from without digging through the show XML, and says so plainly
-                                 when the show folder wasn't writable enough to give it one
-    -bug (dkulp)                 A sequence referencing a picture that can't be found no longer re-checks the
-                                 filesystem for it on every frame. On a cloud-backed show folder each check was a
-                                 round trip, so this slowed rendering badly and filled the log with one warning
-                                 per frame
-    -enh (dkulp)                 iPad - Crash reports now carry a backtrace taken at the moment of the crash,
-                                 plus every thread's stack and the recent-activity trace the desktop already
-                                 sent. Previously the only crash detail came from Apple a day later, with a
-                                 truncated stack
-    -bug (dkulp)                 iPad - Fix sustained CPU use, and the battery drain with it, when scrolling
-                                 the sequencer in a show with many rows
-    -bug (dkulp)                 An exception raised by the graphics or video frameworks on a render thread was
-                                 logged only as "non-std exception type"; it is now named and described
-    -enh (cybercop23)            Allow a submodel alias in "Model/Submodel" format to matche, if the model itself
-                                 also has a matching alias for the model part.
-                                 "Update Aliases" now promotes a submodel alias to the model itself when
-                                 the submodel name already matches, instead of adding a redundant slashed alias
-    -bug (dkulp)                 Headless render sized the frame buffer from the controller channel count
-                                 alone, so a model mapped past the last controller channel was truncated:
-                                 those channels were missing from the .fseq entirely, and the one node
-                                 straddling the end wrote its tail into the next frame, corrupting that
-                                 frame's first channel differently from run to run. It now covers the models
-                                 too, matching the normal render. Reading or writing a node's channels also
-                                 stops at the end of the frame.
-    -bug (dkulp)                 On Windows, rendering a sequence with many video effects could hang forever
-                                 with the DirectX11/MF decoder selected: every render thread ended up parked
-                                 inside Media Foundation waiting for a frame that never arrived. Frame reads
-                                 now have a deadline, and a video Media Foundation stops decoding - or can no
-                                 longer seek - falls back to the software decoder instead of stalling
-                                 the render. How many videos can be hardware decoded at once is learned as
-                                 it goes: exceeding what the graphics driver will service lowers the limit,
-                                 and the videos over it decode in software. The limit is retried upwards
-                                 again after a quiet spell.
-    -change (dkulp)              AVI videos now always use the software decoder on Windows, matching macOS.
-                                 AVI is typically used for uncompressed or lossless frames that no GPU can
-                                 decode, but Media Foundation accepts those files anyway, decodes them on the
-                                 CPU slower than FFmpeg does, and holds one of the few hardware decoder
-                                 sessions the whole time it does it. A sequence with several AVI videos could
-                                 exhaust those sessions and stall or hang the render outright. That is a
-                                 Windows-specific reason to move AVI media to mov/mp4, on top of AVI not
-                                 being usable on macOS at all - re-wrapping the same footage into mov was
-                                 measured to clear the hang on its own.
-    -enh (dkulp)                 Crash reports now include a recent-activity trace showing the last few
-                                 hundred dispatched events and playback actions, so a report says what the
-                                 program was doing without the user having enabled debug logging.
-    -change (dkulp)              Crash reports for an exception escaping the main loop now say when the stack
-                                 was unwound by neither the C++ nor the Objective-C runtime, instead of
-                                 reporting an unhelpful "unknown exception".
-    -bug (dkulp)                 Opening a sequence whose images are embedded in the .xsq still searched the
-                                 disk for every one of them. On macOS that pulls files evicted to iCloud back
-                                 down - so opening a sequence with a few hundred embedded images spent many
-                                 seconds downloading images the sequence already contained. Embedded media is
-                                 now recognised before anything touches the filesystem.
-    -bug (dkulp)                 A crash during a render could leave the program running but frozen instead
-                                 of reporting the crash - the crash handler could deadlock against itself,
-                                 or wait forever for a report that the main thread was never going to build.
-                                 It now always finishes, and a render with no window to report through
-                                 writes its crash report to disk rather than silently discarding it.
-    -bug (dkulp)                 Windows: the Intel QuickSync (qsv) hardware video decode option never
-                                 actually engaged - it silently decoded in software instead, on every
-                                 machine. FFmpeg only offers QuickSync as a separate decoder rather than
-                                 as an accelerator of the normal one, which the selection code did not
-                                 account for. Measured about 3x faster than software decode where the
-                                 hardware supports it.
-    -bug (cybercop23)            Fix Face and State effect definition choices when switching between different
-                                 model groups.
-    -bug (derwin12)              Fixed locked effects duplicating when dragged across rows/layers (#6697)
-    -bug (scott)                 Fix a crash clicking in the Model Definitions preview (Faces/States)
-                                 with nothing selected in the name list
-    -enh (scott)                 Model Definitions: the preview's pencil tool and click-drag node
-                                 selection are disabled when nothing is selected, a SubModel is in
-                                 SubBuffer mode, or a Face is in Matrix mode; the pencil is also disabled
-                                 in Single Node mode, though click-drag there still works and picks the
-                                 first node touched
+    -bug (derwin12)              Fix the Text effect rendering nondeterministically (and
+                                 occasionally crashing)
+    -bug (derwin12)              Fix Ripple effect shapes rendering very differently/broken since
+                                 2026.15 (#6934)
+    -bug (derwin12)              Fix a Custom value curve copying the prior effect's curve (#6937)
+    -bug (scott)                 Fix multi-row lasso-selected effects pasting 1-3 rows below the row
+                                 you clicked (#6944)
+    -bug (derwin12)              Fix locked effects duplicating when dragged across rows/layers
+                                 (#6697)
+    -bug (cybercop23)            Fix effect start/end times becoming corrupted when dragging an
+                                 effect past another effect on the same row, then resizing it
+                                 (#6908)
+    -bug (cybercop23)            Fix pasting effects onto a Model Group expanding it to show its
+                                 member models/strands (#6900)
+    -bug (cybercop23)            Fix Face and State effect definition choices when switching between
+                                 different model groups
+    -bug (dkulp)                 Fix a crash right-clicking the sequencer grid on a row with no
+                                 element, and a crash when a row-heading right-click menu item is
+                                 chosen after the sequence has been closed or reloaded
+    -bug (derwin12)              Don't re-prompt to use the rgbeffects autosave backup after the
+                                 user already chose to discard those changes on exit
+    -bug (derwin12)              Fix Import Effects: picking a color for a mapped row (or dismissing
+                                 the color picker) no longer toggles that row's Map To mapping off,
+                                 and a narrow saved dialog size no longer clips the Color column
+    -bug (dkulp)                 Fix a crash selecting rows in the Select Effects panel after the
+                                 listed effects had been deleted
+    -bug (dkulp)                 Fix a crash editing a State effect after the model it referred to
+                                 was deleted or the show folder was changed
+    -bug (dkulp)                 Fix a crash opening a sequence whose effects use a "Per Model"
+                                 buffer style the model does not support
+    -bug (dkulp)                 Fix a crash opening a sequence that stores more timing tags than
+                                 xLights keeps
+    -bug (dkulp)                 Fix a crash importing a Vixen .vix sequence whose channel numbers
+                                 are not contiguous
+    -bug (dkulp)                 Fix a crash opening the DMX effect panel when no sequence is loaded
+    -bug (dkulp)                 Fix a crash closing xLights while the Effect Assist panel was in
+                                 automatic mode
+    -bug (dkulp)                 Fix a crash showing or hiding a panel from the View menu
+    -bug (dkulp)                 Fix a crash closing the Replace Color dialog with its colour
+                                 dropdown open
+    -bug (scott)                 Fix a crash clicking in the Model Definitions preview
+                                 (Faces/States) with nothing selected in the name list
+    -bug (dkulp)                 Fix a crash clicking Reverse Nodes in the submodel editor with no
+                                 submodel selected
+    -bug (dkulp)                 Windows: fix sequence output running below the configured frame
+                                 rate, dropping frames even though the average rate looked correct
+                                 (#6954)
+    -bug (dkulp)                 Fix crashes starting playback when the audio engine had been
+                                 stopped (such as after a pause or an audio device change) or had
+                                 started but not begun playing yet
+    -bug (dkulp)                 Fix a crash starting or stopping playback with auto-show house
+                                 preview enabled while the sequencer tab had never been opened
+    -bug (derwin12)              The render progress dialog no longer stays on top of other
+                                 applications (#6795)
+    -bug (dkulp)                 A crash during a render could leave the program running but frozen
+                                 instead of reporting the crash; the crash report is now always
+                                 produced, and a render with no window writes its report to disk
+    -bug (dkulp)                 An exception raised by the graphics or video frameworks on a render
+                                 thread was logged only as "non-std exception type"; it is now named
+                                 and described
+    -bug (dkulp)                 Windows: fix renders with many video effects hanging forever with
+                                 the DirectX11/MF decoder selected. Frame reads now have a deadline,
+                                 a stalled video falls back to the software decoder, and how many
+                                 videos the graphics driver can hardware-decode at once is learned
+                                 as it goes
+    -bug (dkulp)                 Windows: the Intel QuickSync (qsv) hardware video decode option
+                                 never actually engaged and silently decoded in software. It now
+                                 works, measured about 3x faster than software decode where the
+                                 hardware supports it
+    -bug (dkulp)                 A sequence referencing a picture that can't be found no longer re-
+                                 checks the filesystem for it on every frame, which slowed rendering
+                                 badly on cloud-backed show folders and filled the log
+    -bug (dkulp)                 Opening a sequence whose images are embedded in the .xsq no longer
+                                 searches the disk for them; on macOS that pulled files evicted to
+                                 iCloud back down, spending many seconds downloading images the
+                                 sequence already contained
+    -bug (dkulp)                 Fix the headless render truncating models mapped past the last
+                                 controller channel; those channels were missing from the .fseq and
+                                 the straddling node corrupted the next frame. It now sizes the
+                                 frame from the models too, matching the normal render
+    -bug (dkulp)                 Windows: re-enable the camera scan option in Generate Custom Model
+                                 - xLights always reported no cameras
+    -bug (dkulp)                 Windows/Linux: fix a crash on startup when the machine falls back
+                                 to the software OpenGL 1.1 rasterizer - the preview now draws
+                                 nothing instead of crashing
+    -bug (dkulp)                 Fix a crash drawing the 3D layout preview, and re-enable a family
+                                 of NaN/infinity guards that optimized builds had been silently
+                                 discarding
+    -bug (dkulp)                 Fix a crash loading a show folder while models were resolving file
+                                 paths on background threads
+    -bug (dkulp)                 Fix crashes reading .fseq files with unreadable or out-of-order
+                                 compression block tables, including importing a Falcon fseq
+    -bug (dkulp)                 Port FSEQ read hardening back from FPP - a corrupt .eseq with a
+                                 zero channel count no longer divides by zero, and a frame whose
+                                 channel buffer could not be allocated is reported as unread instead
+                                 of crashing
+    -bug (dkulp)                 macOS: fix a crash using the Add Controller button on the Layout
+                                 tab
+    -bug (dkulp)                 Fix a crash on the Layout tab when a controller placement box is
+                                 left behind by a controller that no longer exists
+    -bug (dkulp)                 Fix a crash selecting in the model tree straight after an undo that
+                                 deleted or replaced the selected model
+    -bug (dkulp)                 Fix a crash deleting a position zone when the zone list changed
+                                 while the confirmation prompt was up
+    -bug (dkulp)                 Fix a crash placing a model when a dialog appears part way through
+                                 loading it, such as the group-selection prompt on an imported model
+    -bug (dkulp)                 Fix a crash updating serial controllers from the base show folder
+                                 when the base folder's serial ports differ from the current show's
+    -bug (dkulp)                 Fix a crash setting a model's serial Speed in the Layout property
+                                 grid straight after changing its protocol
+    -bug (dkulp)                 Fix memory corruption loading a terrain object with invalid stored
+                                 elevations
+    -bug (dkulp)                 Fix a crash choosing an OBJ mesh whose backup copy cannot be
+                                 written, and leave the original file untouched in that case
+    -bug (derwin12)              Replace Model(s) With This Model now deletes the source model once
+                                 it has replaced the selected target(s), and no longer overwrites
+                                 the target's aliases with the source's; the Model Aliases dialog
+                                 gains an Edit button (#6901, #6951)
+    -bug (derwin12)              Fix Remove From Group leaving a model's submodels behind in the
+                                 group when the model itself is removed (#6925)
+    -bug (derwin12)              Fix rotation not applying to all selected polyline models in a
+                                 group
+    -bug (derwin12)              Fix the estimated current draw shown in the controller visualizer
+                                 tooltip to account for brightness inherited from earlier models
+                                 chained on the same port
+    -bug (kylegrymonprez)        Layout: fix edge cases where a controller's "Show on Layout" would
+                                 not appear in the property grid
+    -bug (scott)                 macOS: fix the new Print Layout dialog becoming stuck behind the
+                                 main window and unresponsive to clicks
+    -bug (dkulp)                 Fix a crash when a WLED controller answers with an error page
+                                 instead of JSON, such as an offline controller reached through a
+                                 proxy
+    -bug (dkulp)                 FPP Connect: uploading UDP outputs no longer resets FPP10's E1.31
+                                 Pacing and Sending mode - every setting on the universes output
+                                 that xLights does not own is carried forward unchanged
+    -bug (derwin12)              Bulk Controller Upload, sorting the controller list by FPP Proxy,
+                                 and the Multi-Controller Upload "Select with Proxy" menu no longer
+                                 stall when a proxy hostname can't be resolved
+    -bug (dkulp)                 Updating from a base show folder now gives the current show a new
+                                 id if it has the same one as the base, so two shows set up by
+                                 copying no longer count as one in submitted reports
+    -bug (dkulp)                 iPad - Fix a crash when changing the show folder while a sequence
+                                 was still rendering or the preview was drawing
+    -bug (dkulp)                 iPad - Changing a sequence's frame interval now saves, closes and
+                                 reopens the sequence so effects move onto the new interval, as the
+                                 desktop does. It asks first, and warns again when moving to a
+                                 longer interval
+    -bug (dkulp)                 iPad - Delete Submodel/Strand/Node Effects, Promote Node Effects,
+                                 Convert Data to Effects, Convert to Per-Model, Breakdown Words and
+                                 Fill Region From Timing Marks can now be undone
+    -bug (dkulp)                 iPad - Playback now follows the audio track picked in the waveform,
+                                 so selecting a stem plays that stem
+    -bug (dkulp)                 iPad - A newly dropped State effect starts on the model's first
+                                 state, and a Faces effect on the phoneme it does on the desktop,
+                                 instead of starting blank
+    -bug (dkulp)                 iPad - A newly dropped effect now starts with the same palette as
+                                 the desktop: the same eight colours in the same order, with the
+                                 first two enabled. Previously the new effect rendered with an empty
+                                 palette
+    -bug (dkulp)                 iPad - Effects that follow a timing track or another model now re-
+                                 render on their own when the thing they follow changes, instead of
+                                 showing a stale result until the next Render All
+    -bug (dkulp)                 iPad - Preset and group names with illegal characters or collisions
+                                 are corrected when the library loads, as they are on the desktop
+    -bug (dkulp)                 iPad - Views are saved again. Every view edit (create, rename,
+                                 clone, delete, change models) was lost on relaunch. Renaming a
+                                 model now updates the views that contain it too
+    -bug (dkulp)                 iPad - Blank the lights when playback stops or output to lights is
+                                 switched off, instead of leaving them holding the last frame
+    -bug (dkulp)                 iPad - Controllers can no longer be added, deleted, reordered,
+                                 edited or uploaded while the show is outputting to lights
+    -bug (dkulp)                 iPad - Controller discovery now probes the controllers already in
+                                 the show rather than relying on broadcast alone, so an FPP on
+                                 another subnet or behind a proxy is found, and a password-protected
+                                 FPP asks for the password instead of being skipped
+    -bug (dkulp)                 iPad - Cleanup File Locations now also gathers the files referenced
+                                 by the layout - face images, dimming curves, mesh and image files,
+                                 and the preview background - not just the ones used by the sequence
+    -bug (dkulp)                 iPad - A show still using the old networks file format is converted
+                                 once and saved, instead of being reconverted every time it is
+                                 opened
+    -bug (dkulp)                 iPad - FPP Connect sends a master-mode FPP a non-sparse sequence
+                                 file, matching the desktop, so a master player has the channel data
+                                 its remotes need
+    -bug (dkulp)                 iPad - AI-generated images are now stored inside the sequence
+                                 rather than as loose files in the show folder, so a sequence copied
+                                 off the iPad keeps them
+    -bug (dkulp)                 iPad - The sequence picker no longer stutters on show folders
+                                 stored in iCloud Drive
+    -bug (dkulp)                 iPad - Fix sustained CPU use, and the battery drain with it, when
+                                 scrolling the sequencer in a show with many rows
+    -bug (dkulp)                 iPad - Help / Release Notes no longer lands on a missing page for a
+                                 patch release that has no release notes of its own
 
 2026.15  August 4, 2026
     -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so
