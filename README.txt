@@ -12,6 +12,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
 
+    -bug (dkulp)                 Export Models: fix the Bulbs total counting dumb string types (Single Colour,
+                                 3/4 Channel, Strobes, Node Single Colour) many times over, and fix the
+                                 per-model Light Count reporting only one string's worth of bulbs
+    -bug (dkulp)                 Export Models: DMX fixtures such as moving heads no longer have their
+                                 pan/tilt/gobo channels counted as bulbs
+    -enh (dkulp)                 Export Models: bulb counting is now per node, so shadow models and other
+                                 models sharing a channel range are counted once; the Totals sheet gains
+                                 "Model Channels (incl. overlap)" and "DMX Channels" rows to reconcile the
+                                 per-model channel counts against the actual channels used
     -bug (dkulp)                 Fix a crash loading a show folder while models are resolving file paths
                                  on background threads
     -bug (dkulp)                 Fix a crash closing the Replace Color dialog with its colour dropdown open

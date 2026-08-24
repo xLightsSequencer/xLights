@@ -102,6 +102,22 @@ std::string JoinAliases(const std::list<std::string>& aliases) {
     return std::accumulate(it, aliases.end(), initial, [&separator](const std::string& a, const std::string& b) { return a + separator + b; });
 }
 
+// The number of physical bulbs a model drives. Each node carries one coordinate
+// per bulb it lights, so this holds for both per-node string types (one node per
+// bulb, or lights-per-node for arches/candy canes/poly lines) and for the single
+// node per string "dumb" types, where the node's coordinates are the whole string.
+// DMX fixtures have no bulbs -- their channels are pan/tilt/gobo/etc.
+uint32_t CountBulbs(const Model* model) {
+    if (IsDmxDisplayType(model->GetDisplayAs())) {
+        return 0;
+    }
+    uint32_t bulbs = 0;
+    for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
+        bulbs += model->GetCoordCount(n);
+    }
+    return bulbs;
+}
+
 } // namespace
 
 bool ExportModels(const std::string& filename, ModelManager& allModels, OutputManager& outputManager) {
@@ -165,16 +181,7 @@ bool ExportModels(const std::string& filename, ModelManager& allModels, OutputMa
             int stuc = 0;
             GetControllerDetailsForChannel(outputManager, ch, controllername, type, protocol, description, channeloffset, ip, universe, inactive, baud, stu, stuc);
 
-            std::string const stype = model->GetStringType();
-
-            int32_t lightcount = (long)(model->GetNodeCount() * model->GetLightsPerNode());
-            if (!Contains(stype, "Node")) {
-                if (model->GetNodeCount() == 1) {
-                    lightcount = model->GetCoordCount(0);
-                } else {
-                    lightcount = model->NodesPerString() * model->GetLightsPerNode();
-                }
-            }
+            uint32_t const lightcount = CountBulbs(model);
 
             int w, h;
             model->GetBufferSize("Default", "2D", "None", w, h, 0);
@@ -224,7 +231,7 @@ bool ExportModels(const std::string& filename, ModelManager& allModels, OutputMa
             }
             std::string aliases = JoinAliases(model->GetAliases());
             if (!aliases.empty()) {
-                write_worksheet_string(modelsheet, row, 34, aliases, format, _model_col_widths);
+                write_worksheet_string(modelsheet, row, (int)model_header_cols.size() - 1, aliases, format, _model_col_widths);
             }
 
             ++row;
@@ -318,56 +325,45 @@ bool ExportModels(const std::string& filename, ModelManager& allModels, OutputMa
 
     uint32_t bulbs = 0;
     uint32_t usedchannels = 0;
+    uint32_t modelchannels = 0;
+    uint32_t dmxchannels = 0;
     if (minchannel == 99999999) {
         // No channels so we dont do this
         minchannel = 0;
         maxchannel = 0;
     } else {
-        int* chused = (int*)malloc((maxchannel - minchannel + 1) * sizeof(int));
-        memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
+        std::vector<uint8_t> chused(maxchannel - minchannel + 1, 0);
 
         for (auto const& m : allModels) {
             Model* model = m.second;
             if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
-                int ch = model->GetFirstChannel() + 1;
-                int endch = model->GetLastChannel() + 1;
-
-                int uniquechannels = 0;
-                for (int i = ch; i <= endch; i++) {
-                    if (chused[i - minchannel] == 0) {
-                        uniquechannels++;
-                    }
-                    chused[i - minchannel]++;
+                int32_t ch = model->GetFirstChannel() + 1;
+                int32_t endch = model->GetLastChannel() + 1;
+                modelchannels += model->GetActChanCount();
+                if (IsDmxDisplayType(model->GetDisplayAs())) {
+                    dmxchannels += model->GetActChanCount();
                 }
 
-                const std::string& st = model->GetStringType();
-                if (StartsWith(st, "Single Color")) {
-                    bulbs += uniquechannels * model->GetCoordCount(0);
-                } else if (StartsWith(st, "3 Channel")) {
-                    bulbs += uniquechannels * model->GetNodeCount() / 3 * model->GetCoordCount(0);
-                } else if (StartsWith(st, "4 Channel")) {
-                    bulbs += uniquechannels * model->GetNodeCount() / 4 * model->GetCoordCount(0);
-                } else if (StartsWith(st, "Strobes")) {
-                    bulbs += uniquechannels * model->GetNodeCount() * model->GetCoordCount(0);
-                } else if (st == "Node Single Color") {
-                    bulbs += uniquechannels * model->GetNodeCount() * model->GetCoordCount(0);
-                } else {
-                    int den = model->GetChanCountPerNode();
-                    if (den == 0) {
-                        den = 1;
+                // Count a node's bulbs only if no earlier model already claimed
+                // its channels. Shadow models -- and anything else deliberately
+                // overlaid on another model's channel range -- otherwise get
+                // counted a second time.
+                if (!IsDmxDisplayType(model->GetDisplayAs())) {
+                    for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
+                        int32_t nsc = model->NodeStartChannel(n) + 1;
+                        if (nsc >= (int32_t)minchannel && nsc <= maxchannel && chused[nsc - minchannel] == 0) {
+                            bulbs += model->GetCoordCount(n);
+                        }
                     }
-                    bulbs += uniquechannels / den * model->GetLightsPerNode();
+                }
+
+                for (int32_t i = ch; i <= endch; i++) {
+                    chused[i - minchannel] = 1;
                 }
             }
         }
 
-        for (long i = 0; i < (long)(maxchannel - minchannel + 1); i++) {
-            if (chused[i] > 0) {
-                usedchannels++;
-            }
-        }
-
-        free(chused);
+        usedchannels = (uint32_t)std::count(chused.begin(), chused.end(), (uint8_t)1);
     }
 
     worksheet_write_string(totalsheet, 0, 0, "Model Count", format);
@@ -380,8 +376,12 @@ bool ExportModels(const std::string& filename, ModelManager& allModels, OutputMa
     worksheet_write_number(totalsheet, 3, 1, maxchannel, format);
     worksheet_write_string(totalsheet, 4, 0, "Actual Used Channel", format);
     worksheet_write_number(totalsheet, 4, 1, usedchannels, format);
-    worksheet_write_string(totalsheet, 5, 0, "Bulbs", format);
-    worksheet_write_number(totalsheet, 5, 1, bulbs, format);
+    worksheet_write_string(totalsheet, 5, 0, "Model Channels (incl. overlap)", format);
+    worksheet_write_number(totalsheet, 5, 1, modelchannels, format);
+    worksheet_write_string(totalsheet, 6, 0, "DMX Channels", format);
+    worksheet_write_number(totalsheet, 6, 1, dmxchannels, format);
+    worksheet_write_string(totalsheet, 7, 0, "Bulbs", format);
+    worksheet_write_number(totalsheet, 7, 1, bulbs, format);
 
     worksheet_set_column(totalsheet, 0, 0, 25, NULL);
 
