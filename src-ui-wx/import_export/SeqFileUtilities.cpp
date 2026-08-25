@@ -12,6 +12,7 @@
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
+#include <wx/wxcrt.h> // wxAtoi — MSVC needs it explicitly (macOS PCH masks the miss)
 #include <wx/uri.h>
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -120,10 +121,11 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
 
     if (wizardactive) {
         auto* cfg = GetXLightsConfig();
-        std::string savedDur = cfg->Read("DefaultSeqDuration", std::string("30.0"));
-        CurrentSeqXmlFile->SetSequenceDuration(savedDur);
+        CurrentSeqXmlFile->SetSequenceDuration(GetDefaultSeqDurationSeconds());
+        // Timing becomes the frame interval and is divided by, so a stored 0
+        // would be worse than a bad duration.
         std::string savedTiming = cfg->Read("DefaultSeqTiming", std::string(""));
-        if (!savedTiming.empty()) {
+        if (!savedTiming.empty() && wxAtoi(savedTiming) > 0) {
             CurrentSeqXmlFile->SetSequenceTiming(savedTiming);
         }
     }
