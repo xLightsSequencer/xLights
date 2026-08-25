@@ -112,7 +112,12 @@ void OpenAIImageGenerator::generateImage(const std::string& prompt,
     req["model"] = image_model;
     req["prompt"] = fullPrompt;
     req["n"] = 1;
-    req["response_format"] = "b64_json";
+    // gpt-image-* models always return b64_json and reject an explicit
+    // response_format ("Unknown parameter: 'response_format'"); only
+    // dall-e-2/dall-e-3 (and OpenAI-compatible/SD servers) accept/need it.
+    if (image_model.rfind("gpt-image", 0) != 0) {
+        req["response_format"] = "b64_json";
+    }
     if (!image_size.empty() && image_size != "auto") {
         req["size"] = image_size;
     }
@@ -126,9 +131,11 @@ void OpenAIImageGenerator::generateImage(const std::string& prompt,
 
     std::string jsonBody = req.dump();
 
+    // Content-Type is already set by CurlManager::HTTPSPost's "JSON" contentType
+    // arg below; adding it again here duplicates the header and curl folds the
+    // two into one comma-joined value that OpenAI rejects as unsupported.
     std::vector<std::pair<std::string, std::string>> headers = {
-        { "Authorization", "Bearer " + token },
-        { "Content-Type", "application/json" }
+        { "Authorization", "Bearer " + token }
     };
 
     spdlog::debug("OpenAI image request: {}", jsonBody);
