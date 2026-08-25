@@ -13,6 +13,7 @@
 #if __has_include(<wx/config.h>)
 #include <wx/config.h>
 #endif
+#include <wx/string.h> // wxAtof — the macOS PCH provides it implicitly; Windows/Linux need it explicitly
 #include <filesystem>
 #include <log.h>
 
