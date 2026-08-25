@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              Fix images for ChatGPT service (#6969)
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
+    -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
+                                 Multi Point model saved with fewer than two points
 
 2026.16  August 24, 2026
 

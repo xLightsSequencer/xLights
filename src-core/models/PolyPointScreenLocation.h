@@ -10,6 +10,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
+
 #include "ModelScreenLocation.h"
 
 //Location that uses multiple points
@@ -108,7 +110,11 @@ public:
     virtual void SetActiveAxis(MSLAXIS axis) override;
 
     int GetNumPoints() const { return num_points; }
-    void SetNumPoints(int points) { num_points = points; }
+    // A poly point location is meaningless below two points: every segment
+    // loop, aabb resize and the PolyLine deserializer index off num_points - 1.
+    // Clamp here so a hand-edited or half-created model in the XML can't
+    // produce zero-length segment vectors that later get indexed.
+    void SetNumPoints(int points) { num_points = std::max(points, 2); }
     // Direct setter for the visual-selection highlight. nullopt
     // clears. Used by the property panel (segment / vertex spin
     // edits) and by AddHandle to anchor the newly-inserted vertex.

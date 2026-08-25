@@ -881,6 +881,8 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
     // this can happen if you click one one of the box handles
     if (handle >= (int)mPos.size()) return;
 
+    if (num_points <= 2) return;
+
     // delete any curves associated with this handle
     if( mPos[handle].has_curve ) {
         mPos[handle].has_curve = false;
