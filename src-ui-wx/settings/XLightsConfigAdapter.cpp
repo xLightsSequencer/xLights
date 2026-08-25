@@ -88,6 +88,18 @@ std::string GetLogFileName() {
     return "xLights_spdlog.log";
 }
 
+double GetDefaultSeqDurationSeconds()
+{
+    wxString v;
+    if (GetXLightsConfig()->Read("DefaultSeqDuration", &v)) {
+        const double d = wxAtof(v);
+        if (d > 0.0) {
+            return d;
+        }
+    }
+    return DEFAULT_SEQ_DURATION_SECONDS;
+}
+
 std::filesystem::path GetLogFilePath() {
     return GetLogFileFolder() / GetLogFileName();
 }
