@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.17  August ??, 2026
 
     -bug (derwin12)              Fix images for ChatGPT service (#6969)
+    -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
 
 2026.16  August 24, 2026
 
