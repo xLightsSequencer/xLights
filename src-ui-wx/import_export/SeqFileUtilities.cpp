@@ -12,6 +12,7 @@
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
+#include <wx/wxcrt.h> // wxAtoi — MSVC needs it explicitly (macOS PCH masks the miss)
 #include <wx/uri.h>
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>

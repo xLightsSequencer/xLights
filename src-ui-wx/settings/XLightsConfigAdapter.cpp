@@ -13,7 +13,8 @@
 #if __has_include(<wx/config.h>)
 #include <wx/config.h>
 #endif
-#include <wx/string.h> // wxAtof — the macOS PCH provides it implicitly; Windows/Linux need it explicitly
+#include <wx/string.h> // wxString
+#include <wx/wxcrt.h>  // wxAtof — declared here; the macOS PCH provides it implicitly, MSVC needs it explicit
 #include <filesystem>
 #include <log.h>
 
