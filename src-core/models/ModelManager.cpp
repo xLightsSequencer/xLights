@@ -698,13 +698,23 @@ bool ModelManager::RecalcStartChannels() const
 
 void ModelManager::DisplayStartChannelCalcWarning() const
 {
+    static const size_t MAX_MODELS_LISTED = 15;
     static std::string lastwarn = "";
     std::string msg = "Could not calculate start channels for models:\n";
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+    size_t count = 0;
+    size_t total = 0;
     for (const auto& it : models) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && !it.second->CouldComputeStartChannel) {
-            msg += it.second->name + " : " + it.second->ModelStartChannel + "\n";
+            total++;
+            if (count < MAX_MODELS_LISTED) {
+                msg += it.second->name + " : " + it.second->ModelStartChannel + "\n";
+                count++;
+            }
         }
+    }
+    if (total > MAX_MODELS_LISTED) {
+        msg += "... and " + std::to_string(total - MAX_MODELS_LISTED) + " more. See Check Sequence for the full list.\n";
     }
 
     if (msg != lastwarn) {
