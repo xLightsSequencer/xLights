@@ -7,6 +7,12 @@
 
 namespace klbridge {
 
+std::string ScanBackendProblem() {
+    // AVFoundation ships with macOS; there is no optional codec backend to be
+    // missing the way the Linux FFmpeg shim can be.
+    return {};
+}
+
 std::vector<CameraInfo> DiscoverContinuityCameras() {
     std::vector<CameraInfo> out;
     NSArray<KLMCameraInfo*>* cams = [KLM discoverContinuityCameras];

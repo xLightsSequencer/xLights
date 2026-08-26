@@ -10,15 +10,17 @@
 // collide. The _WIN32||__linux__ guard compiles it to nothing on macOS, where
 // the .mm provides klbridge. KLightMapper is a required, auto-fetched dependency,
 // so XLIGHTS_HAVE_KLIGHTMAPPER auto-detects off the fetched header rather than
-// needing a -D in every build system. A build that stages the header but can't
-// link the library (a Linux .so whose own FFmpeg deps don't resolve) defines it
-// to 0 explicitly, and every entry point then degrades to "no cameras".
+// needing a -D in every build system; when the header is absent every entry
+// point degrades to "no cameras".
 #if defined(_WIN32) || defined(__linux__)
 
 #include "KLightMapperBridge.h"
 
-// Auto-detect the fetched dependency. An explicit -DXLIGHTS_HAVE_KLIGHTMAPPER=0
-// (Linux, unresolvable .so) still wins.
+// Auto-detect the fetched dependency; an explicit -DXLIGHTS_HAVE_KLIGHTMAPPER=0
+// still wins. No build system passes one today: the Linux library links no
+// FFmpeg of its own, so there is no longer a staged-header-but-unlinkable-.so
+// case to compile the feature out for. Whether the host can actually decode is
+// a runtime question now — see ScanBackendProblem().
 #ifndef XLIGHTS_HAVE_KLIGHTMAPPER
 #if defined(__has_include) && __has_include("klm/scan_api.h")
 #define XLIGHTS_HAVE_KLIGHTMAPPER 1
@@ -44,6 +46,15 @@
 #include <vector>
 
 namespace klbridge {
+
+std::string ScanBackendProblem() {
+#if XLIGHTS_HAVE_KLIGHTMAPPER
+    const char* problem = klm_scan_backend_status();
+    return problem ? std::string(problem) : std::string();
+#else
+    return {};
+#endif
+}
 
 std::vector<CameraInfo> DiscoverContinuityCameras() {
     // On Windows "continuity cameras" == the local Media Foundation webcams the

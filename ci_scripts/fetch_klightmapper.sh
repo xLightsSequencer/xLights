@@ -9,11 +9,12 @@
 # The pinned version lives in ci_scripts/klightmapper_version.txt and should
 # track the macOS Swift-package pin so all three desktops use the same engine.
 #
-# This is best-effort: if the download fails (e.g. offline build) the script
-# prints a notice and exits non-zero, but it stages nothing partial. The build
-# systems treat a missing library as "camera scan disabled" — XLIGHTS_HAVE_KLIGHTMAPPER
-# is only defined when the staged lib is present (CMake find_library, the VS
-# project's Exists() check, the Linux klightmapper.mak wildcard).
+# If the download fails (e.g. offline build) the script prints a notice and
+# exits non-zero, staging nothing partial. KLightMapper is a required
+# dependency, so the build systems then stop rather than silently dropping the
+# feature (CMake's FATAL_ERROR, the VS project's Exists() check). The bridge
+# still auto-detects the header via __has_include and degrades to "no cameras"
+# if it is somehow absent, but no build passes -DXLIGHTS_HAVE_KLIGHTMAPPER=0.
 #
 # Usage:
 #   ci_scripts/fetch_klightmapper.sh [platform] [--force]
@@ -77,10 +78,23 @@ case "$PLATFORM" in
         ;;
 esac
 INC_DIR="include/klightmapper"
+# Records which VERSION the staged copy came from, so a bump to
+# klightmapper_version.txt actually re-fetches (see the skip check below).
+STAMP="$ROOT_DIR/$LIB_DIR/.klightmapper_version"
 
-if [ "$FORCE" -eq 0 ] && [ -f "$SENTINEL" ]; then
-    echo "fetch_klightmapper: $LIB_NAME already staged at $LIB_DIR — skipping (use --force to re-download)."
+# Skip only when what is staged IS the pinned version. Testing the library's
+# mere presence would make a version bump a no-op on every existing tree: the
+# stale headers are what the build actually compiles against, so it would fail
+# on whatever the new release added to klm/scan_api.h — with nothing pointing
+# at the fetch as the cause.
+STAMPED=""
+[ -f "$STAMP" ] && STAMPED="$(tr -d ' \t\r\n' < "$STAMP")"
+if [ "$FORCE" -eq 0 ] && [ -f "$SENTINEL" ] && [ "$STAMPED" = "$VERSION" ]; then
+    echo "fetch_klightmapper: $LIB_NAME $VERSION already staged at $LIB_DIR — skipping (use --force to re-download)."
     exit 0
+fi
+if [ -f "$SENTINEL" ]; then
+    echo "fetch_klightmapper: staged copy is ${STAMPED:-unversioned}, want $VERSION — re-fetching."
 fi
 
 echo "fetch_klightmapper: $PLATFORM $VERSION -> staging into $ROOT_DIR"
@@ -128,10 +142,36 @@ cp -f "$TMP_DIR/x/klm/"*.h "$ROOT_DIR/$INC_DIR/klm/"
 mkdir -p "$ROOT_DIR/$LIB_DIR"
 cp -f "$TMP_DIR/x/$LIB_NAME" "$ROOT_DIR/$LIB_DIR/$LIB_NAME"
 
+# Linux: also stage the FFmpeg companion shims. libklightmapper.so links no
+# libav* itself — its codec tail lives in one small libklightmapper_av<major>.so
+# per FFmpeg major (60/61/62 = FFmpeg 6/7/8) and it loads whichever matches the
+# host at runtime. Staging all of them is what lets ONE prebuilt library work on
+# distros with different FFmpeg majors; staging only the build host's was the
+# old failure. Tolerated missing so a pinned older release still fetches.
+if [ "$PLATFORM" != "windows-x64" ]; then
+    rm -f "$ROOT_DIR/$LIB_DIR"/libklightmapper_av*.so
+    shim_count=0
+    for shim in "$TMP_DIR"/x/libklightmapper_av*.so; do
+        [ -f "$shim" ] || continue
+        cp -f "$shim" "$ROOT_DIR/$LIB_DIR/"
+        shim_count=$((shim_count + 1))
+    done
+    if [ "$shim_count" -gt 0 ]; then
+        echo "fetch_klightmapper: staged $shim_count FFmpeg codec shim(s)."
+    else
+        echo "fetch_klightmapper: WARNING - $ASSET contains no libklightmapper_av*.so;" >&2
+        echo "  camera scan will be unavailable at runtime unless the host's FFmpeg" >&2
+        echo "  matches the one this library was built against." >&2
+    fi
+fi
+
 # Windows also ships a runtime DLL that gets copied next to the exe / into the installer.
 if [ -n "$DLL_NAME" ]; then
     mkdir -p "$ROOT_DIR/$DLL_DIR"
     cp -f "$TMP_DIR/x/$DLL_NAME" "$ROOT_DIR/$DLL_DIR/$DLL_NAME"
 fi
 
-echo "fetch_klightmapper: staged $LIB_NAME (+ headers${DLL_NAME:+ + $DLL_NAME}) — Map-from-Lights camera scan ENABLED."
+# Written last, so an interrupted run leaves no stamp and the next one re-fetches.
+printf '%s\n' "$VERSION" > "$STAMP"
+
+echo "fetch_klightmapper: staged $LIB_NAME $VERSION (+ headers${DLL_NAME:+ + $DLL_NAME}) — Map-from-Lights camera scan ENABLED."

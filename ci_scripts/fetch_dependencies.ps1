@@ -56,6 +56,10 @@ $Dependencies = @(
         Name     = 'KLightMapper'
         Optional = $false
         Sentinel = 'lib\windows64\klightmapper.lib'
+        # Records the staged version so a bump to klightmapper_version.txt
+        # actually re-downloads instead of leaving the old lib and headers.
+        Stamp    = 'lib\windows64\.klightmapper_version'
+        Version  = $klmVersion
         Url      = "https://github.com/KulpLights/KLightMapper/releases/download/$klmVersion/klightmapper-windows-x64.zip"
         Stage    = @(
             @{ From = 'klightmapper.lib'; To = 'lib\windows64' }
@@ -67,9 +71,25 @@ $Dependencies = @(
 
 function Fetch-Dependency($dep) {
     $sentinel = Join-Path $rootDir $dep.Sentinel
+    $stamp    = if ($dep.Stamp) { Join-Path $rootDir $dep.Stamp } else { $null }
+    # Skip only when what is staged IS the pinned version. Testing presence
+    # alone would make a version bump a no-op on every existing tree, and the
+    # stale headers - not the skipped download - are what the build then fails
+    # on, with nothing pointing back at the fetch as the cause. Cast before
+    # .Trim(): Get-Content -Raw yields $null on an empty stamp, and
+    # $ErrorActionPreference = 'Stop' would turn that into a build abort.
+    $staged = if ($stamp -and (Test-Path $stamp)) { ([string](Get-Content $stamp -Raw)).Trim() } else { '' }
     if ((Test-Path $sentinel) -and -not $Force) {
-        Write-Host "fetch_dependencies: $($dep.Name) already staged - skipping (use -Force to re-download)."
-        return $true
+        if (-not $stamp) {
+            Write-Host "fetch_dependencies: $($dep.Name) already staged - skipping (use -Force to re-download)."
+            return $true
+        }
+        if ($staged -eq $dep.Version) {
+            Write-Host "fetch_dependencies: $($dep.Name) $($dep.Version) already staged - skipping (use -Force to re-download)."
+            return $true
+        }
+        $was = if ($staged) { $staged } else { 'unversioned' }
+        Write-Host "fetch_dependencies: $($dep.Name) staged copy is $was, want $($dep.Version) - re-fetching."
     }
 
     Write-Host "fetch_dependencies: $($dep.Name) -> $($dep.Url)"
@@ -90,7 +110,12 @@ function Fetch-Dependency($dep) {
             New-Item -ItemType Directory -Path $destDir -Force | Out-Null
             Copy-Item (Join-Path $x $item.From) $destDir -Force
         }
-        Write-Host "fetch_dependencies: staged $($dep.Name)."
+        # Written last, so an interrupted run leaves no stamp and the next one refetches.
+        if ($stamp) {
+            New-Item -ItemType Directory -Path (Split-Path -Parent $stamp) -Force | Out-Null
+            Set-Content -Path $stamp -Value $dep.Version -NoNewline
+        }
+        Write-Host "fetch_dependencies: staged $($dep.Name) $($dep.Version)."
         return $true
     } finally {
         Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue

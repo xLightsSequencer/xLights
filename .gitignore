@@ -45,6 +45,9 @@ lib/linux/libliquidfun.a
 # KLightMapper desktop scan library — fetched, not committed (ci_scripts/fetch_klightmapper.*).
 # bin64/klightmapper.dll is already covered by bin64/*.dll above.
 lib/linux/libklightmapper.so
+lib/linux/libklightmapper_av*.so
+lib/linux/.klightmapper_version
+lib/windows64/.klightmapper_version
 lib/windows64/klightmapper.lib
 include/klightmapper/
 *.opensdf

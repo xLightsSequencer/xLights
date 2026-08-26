@@ -24,7 +24,7 @@ SUDO		= `which sudo`
 
 SUBDIRS         = xLights
 
-WXWIDGETS_TAG=xlights_2026.13
+WXWIDGETS_TAG=xlights_2026.17
 ISPC_VERSION=1.31.0
 ISPC_ARCH=$(shell uname -m)
 
@@ -123,11 +123,13 @@ wxwidgets33: FORCE
 		echo Completed build/install of wxwidgets; \
 		fi
 
+# Called unconditionally: the script itself compares the staged copy's version
+# stamp against ci_scripts/klightmapper_version.txt and exits immediately when
+# they match. Guarding on the .so's presence here instead would pin every
+# existing tree to whatever version it first fetched.
 klightmapper: FORCE
 	@printf "Checking KLightMapper desktop scan library\n"
-	@if test ! -e lib/linux/libklightmapper.so; then \
-		bash ci_scripts/fetch_klightmapper.sh; \
-	fi
+	@bash ci_scripts/fetch_klightmapper.sh
 
 ispc: FORCE
 	@printf "Checking ispc\n"
@@ -193,12 +195,17 @@ install:
 	@if test -e lib/linux/libklightmapper.so; then \
 		install -d -m 755 $(DESTDIR)/${PREFIX}/lib; \
 		install -m 755 -p lib/linux/libklightmapper.so $(DESTDIR)/${PREFIX}/lib/libklightmapper.so; \
+		for shim in lib/linux/libklightmapper_av*.so; do \
+			test -e "$$shim" || continue; \
+			install -m 755 -p "$$shim" $(DESTDIR)/${PREFIX}/lib/; \
+		done; \
 	fi
 
 uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/lib/libklightmapper.so
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/lib/libklightmapper_av*.so
 
 #############################################################################
 

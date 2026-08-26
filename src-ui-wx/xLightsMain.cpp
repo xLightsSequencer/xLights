@@ -4323,8 +4323,20 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     // (Windows); klbridge has a backend for each. Previously gated on a
     // non-empty camera list; the Remote RTSP option makes the picker useful
     // even with no local camera.
-    const auto cams = klbridge::DiscoverContinuityCameras();
-    {
+    // The scan library can be present and loadable and still be unable to
+    // record or decode: on Linux its codec tail is a companion library chosen
+    // at runtime to match the host's FFmpeg, and a host with no FFmpeg runtime
+    // has none to choose. Offering the picker anyway would open a scan window
+    // that dies on the first frame, so fall through to the classic flow after
+    // saying why — the reason names the packages to install.
+    const std::string scanProblem = klbridge::ScanBackendProblem();
+    const auto cams = scanProblem.empty() ? klbridge::DiscoverContinuityCameras()
+                                          : std::vector<klbridge::CameraInfo>{};
+    if (!scanProblem.empty()) {
+        SetCursor(wxCURSOR_DEFAULT);
+        DisplayWarning("Camera scanning is unavailable:\n\n" + scanProblem, this);
+        SetCursor(wxCURSOR_WAIT);
+    } else {
         CustomModelMethodPickerDialog picker(this, cams);
         picker.CenterOnParent();
         SetCursor(wxCURSOR_DEFAULT);

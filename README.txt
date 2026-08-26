@@ -24,6 +24,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
     -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
                                  Multi Point model saved with fewer than two points
+    -bug (dkulp)                 Linux: the camera scan in Generate Custom Model now works whatever
+                                 FFmpeg version the distro ships, and explains what to install if no
+                                 FFmpeg runtime is present at all
 
 2026.16  August 24, 2026
 

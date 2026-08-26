@@ -23,6 +23,18 @@ struct CameraInfo {
     bool        isContinuityCamera = false;
 };
 
+/// Empty when camera scanning is ready to use; otherwise a human-readable
+/// reason it is not, suitable for showing to the user.
+///
+/// On Linux the scan library deliberately links no FFmpeg — its codec tail is a
+/// companion library picked at runtime to match the host's FFmpeg major — so
+/// "the library loaded" and "scanning works" are now distinct. A host with no
+/// FFmpeg runtime installed loads the library fine and cannot decode a frame.
+/// Check this before offering the scan flow rather than letting the scan window
+/// open and fail. Always empty on macOS and Windows, whose codec tails are part
+/// of the OS.
+std::string ScanBackendProblem();
+
 /// Snapshot of Continuity Cameras currently visible to the Mac.
 /// Returns an empty list on iOS, pre-macOS-14, or when no iPhone is
 /// paired — callers should treat empty as "no camera-scan option."
