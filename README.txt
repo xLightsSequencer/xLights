@@ -10,8 +10,14 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.17  August ??, 2026
+2026.17  September ??, 2026
 
+    -change (dkulp)              macOS: Raise minimum version of macOS to 12.0 (requirement to
+                                 be able to build and test on macOS 27)
+    -change (dkulp)              Apple Intelligence image generation now opens the system Image
+                                 Playground sheet, seeded with the prompt and style you picked, and
+                                 brings the image you accept back into the usual crop/resize/save
+                                 flow - Apple discontinued the API that generated images directly
     -bug (derwin12)              Fix the "could not calculate start channels" warning growing tall 
                                  enough to scroll off screen (#6970)
     -bug (derwin12)              Fix images for ChatGPT service (#6969)

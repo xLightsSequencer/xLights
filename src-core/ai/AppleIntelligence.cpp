@@ -9,7 +9,7 @@
  **************************************************************/
 
 // Apple-only aiBase subclass. The actual platform calls (FoundationModels
-// LLM, ImagePlayground image generator, soon SFSpeechRecognizer) live
+// LLM, the ImagePlayground sheet, soon SFSpeechRecognizer) live
 // behind the `AppleAIBridge` namespace declared in
 // `macOS/src-apple-core/ai/AppleIntelligenceBridge.h`. That keeps Swift
 // + CoreGraphics types out of `src-core/`, which must build wx- and
@@ -45,7 +45,7 @@ std::list<aiType::TYPE> AppleIntelligence::GetTypes() const {
     // PROMPT is intentionally excluded — the on-device session size
     // limit is too small for the long prompts model-mapping needs.
     // FoundationModels.LanguageModelSession requires macOS 26+ / iOS 26+;
-    // ImagePlayground.ImageCreator requires macOS 15.4+ / iOS 18.4+.
+    // the ImagePlayground sheet requires macOS 15.4+ / iOS 18.4+.
     std::list<aiType::TYPE> types;
     if (__builtin_available(macOS 26.0, iOS 26.0, *)) {
         types.push_back(aiType::TYPE::COLORPALETTES);
@@ -178,17 +178,8 @@ public:
 
     void generateImage(const std::string& prompt,
                        std::function<void(aiBase::AIImageResult)> cb) override {
-        // Same "MANDATORY OUTPUT" instructions desktop has shipped with —
-        // pushes the model toward black-background, flat-shaded designs
-        // that fit the typical xLights pixel-grid use case better than
-        // photoreal output.
-        std::string full = prompt + R"(
-        MANDATORY OUTPUT REQUIREMENTS: Background: Black background (#000000) with no watermarks or border.
-        The design features bold, clean outlines, simple cell-shading, and a limited vibrant color palette with clean edges and no gradients.
-        )";
-
         auto cbCopy = std::move(cb);
-        AppleAIBridge::GenerateImage(prompt, full, style,
+        AppleAIBridge::GenerateImage(prompt, style,
             [cbCopy = std::move(cbCopy)](AppleAIBridge::ImageResult r) {
                 aiBase::AIImageResult res;
                 res.pngBytes = std::move(r.png);
