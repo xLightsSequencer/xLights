@@ -58,7 +58,7 @@
     <ClCompile Include="..\xLights-Test\tests\string_test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\xLights\Xlights.vcxproj">
+    <ProjectReference Include="..\xLights\xLights.vcxproj">
       <Project>{48f219fa-c28e-457b-9a85-dc3a8f949f9b}</Project>
     </ProjectReference>
   </ItemGroup>

@@ -1024,7 +1024,7 @@ endif()
 
 
 # ─── Windows post-build: copy DLLs and resources to output dir ──────────────
-# Mirrors the PostBuildEvent in xLights/Xlights.vcxproj.
+# Mirrors the PostBuildEvent in xLights/xLights.vcxproj.
 if(WIN32)
     # Use safe_copy_dlls.cmake so the copy is a no-op when the build output
     # directory is the same as the source bin/ directory (happens on CI when

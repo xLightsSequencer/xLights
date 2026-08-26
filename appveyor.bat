@@ -70,7 +70,7 @@ cd %xlightsdir%
 
 cd xLights
 
-sed -i "s/%FROMSDK%/%TOSDK%/g" Xlights.vcxproj
+sed -i "s/%FROMSDK%/%TOSDK%/g" xLights.vcxproj
 
 cd ..
 cd xSchedule

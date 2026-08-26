@@ -3,7 +3,7 @@ Compile the Vulkan GLSL kernels to the SPIR-V C headers the C++ #includes:
   - compute kernels: src-core/effects/vulkan/shaders/*.comp
   - graphics shaders: src-core/graphics/vulkan/shaders/*.vert|*.frag
 Bash-free MSBuild counterpart of build_scripts/compile_vulkan_shaders.sh, run as
-the Xlights.vcxproj PreBuildEvent (x64) so the headers exist before the C++ TUs
+the xLights.vcxproj PreBuildEvent (x64) so the headers exist before the C++ TUs
 compile.  glslc is a build tool here, exactly like ispc for the .ispc kernels.
 
 The generated headers (shaders/compiled/) are gitignored, not committed.

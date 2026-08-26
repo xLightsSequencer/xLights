@@ -382,8 +382,8 @@ Place files in one of:
 | File | What to add |
 |---|---|
 | `xLights/xLights.cbp` | `<Unit filename="...">` with path relative to `xLights/` (e.g. `../src-core/render/Foo.cpp`) |
-| `xLights/Xlights.vcxproj` | `<ClCompile>` for `.cpp`, `<ClInclude>` for `.h`, path relative to `xLights/` (e.g. `..\src-core\render\Foo.cpp`) |
-| `xLights/Xlights.vcxproj.filters` | Filter entries for VS folder organization |
+| `xLights/xLights.vcxproj` | `<ClCompile>` for `.cpp`, `<ClInclude>` for `.h`, path relative to `xLights/` (e.g. `..\src-core\render\Foo.cpp`) |
+| `xLights/xLights.vcxproj.filters` | Filter entries for VS folder organization |
 | `CMakeLists.txt` | A `.cpp` line in `SRC_CORE` / `SRC_EFFECTS` / `SRC_UI` **unless** the file's directory is already covered by a `*.cpp` glob — see below |
 
 ### CMake: check whether your directory is globbed
@@ -427,7 +427,7 @@ dir). Every one of these is required:
 | `macOS/xLights.xcodeproj/project.pbxproj` | Add `effects/ispc/FooFunctions.ispc,` to the `PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet` for the **`ISPCEffectComputeFunctions`** target. Not auto-discovered; missing it fails the x86_64 link (arm64 / static-lib iPad hide it). **`macOS/` is a git submodule** — commit there + bump the pointer. |
 | `build_scripts/linux/ispc.mak` | Add the `OBJ_LINUX_DEBUG +=` / `OBJ_LINUX_RELEASE += …/FooFunctions.o` pair. |
 | `xLights/xLights.cbp` | `<Unit>` for the `.ispc` (with `<Option link="1"/>`) and the `.ispc.h`. |
-| `xLights/Xlights.vcxproj` (+ `.filters`) | `<CustomBuild>` for the `.ispc` (copy an existing kernel's ispc.exe block) and `<ClInclude>` for the `.ispc.h`. |
+| `xLights/xLights.vcxproj` (+ `.filters`) | `<CustomBuild>` for the `.ispc` (copy an existing kernel's ispc.exe block) and `<ClInclude>` for the `.ispc.h`. |
 | CMake | Auto-globs `*.ispc` — no edit. |
 
 Generate the committed header with the same flags the build's header step uses:

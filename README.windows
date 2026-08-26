@@ -59,7 +59,7 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
     xLights renders many effects on the GPU via a Vulkan compute backend on
     Windows (the analogue of Metal on macOS). Building it requires glslc, the
     GLSL -> SPIR-V compiler that ships with the LunarG Vulkan SDK. glslc is a
-    build tool here, like ISPC: the Xlights.vcxproj "CompileVulkanShaders"
+    build tool here, like ISPC: the xLights.vcxproj "CompileVulkanShaders"
     pre-build step (x64 Debug and Release) compiles the .comp compute kernels to
     the SPIR-V headers the build #includes. The SDK is required for the x64
     build; without it the build fails at the pre-build step.
