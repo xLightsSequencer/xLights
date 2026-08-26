@@ -41,7 +41,6 @@ file(WRITE "${CMAKE_BINARY_DIR}/git_version.h"
 
 IF (WIN32)
     include_directories(../include ../dependencies-bundle/include ../src-core ${CMAKE_CURRENT_BINARY_DIR})
-    link_directories(../lib/windows64)
 ELSE()
     include_directories(../src-core ${CMAKE_CURRENT_BINARY_DIR})
 ENDIF()
@@ -55,7 +54,18 @@ set(SRC_FILES
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 IF (WIN32)
-    target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog argparse libzstdd_static_VS.lib z.lib)
+    # The bundle keeps release and debug libraries in separate directories under
+    # the same names, so each configuration is given only its own - and zstd,
+    # which does differ by name, is selected to match. This used to name the
+    # debug zstd unconditionally and look for it in lib/windows64, which no
+    # longer holds either.
+    target_link_directories(${PROJECT_NAME} PUBLIC
+        $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/../dependencies-bundle/libdbg>
+        $<$<NOT:$<CONFIG:Debug>>:${CMAKE_CURRENT_SOURCE_DIR}/../dependencies-bundle/lib>)
+    target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog argparse
+        $<$<CONFIG:Debug>:libzstdd_static_VS.lib>
+        $<$<NOT:$<CONFIG:Debug>>:libzstd_static_VS.lib>
+        z.lib)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 ELSE()
     find_package(ZLIB REQUIRED)

@@ -26,7 +26,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 #ifdef _MSC_VER
-    #pragma comment(lib, "libcurl.dll.a")
+    #pragma comment(lib, "libcurl.lib")
 #endif
 
 int main(int argc, char **argv)

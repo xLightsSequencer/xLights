@@ -21,13 +21,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -45,13 +45,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(IncludePath);..\dependencies-bundle\wxWidgets\include;..\dependencies-bundle\wxWidgets\include\msvc;..\include;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);..\dependencies-bundle\wxWidgets\lib\vc_x64_lib;..\lib\windows64</LibraryPath>
+    <IncludePath>$(IncludePath);..\dependencies-bundle\wxWidgets\include;..\dependencies-bundle\wxWidgets\include\msvc;..\dependencies-bundle\include;..\include;..\dependencies\pugixml\src;..\dependencies\spdlog\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);..\dependencies-bundle\wxWidgets\lib\vc_x64_lib;..\dependencies-bundle\libdbg;..\lib\windows64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\dependencies-bundle\wxWidgets\include;..\dependencies-bundle\wxWidgets\include\msvc;..\include;..\dependencies\pugixml\src;..\dependencies\spdlog\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);..\dependencies-bundle\wxWidgets\lib\vc_x64_lib;..\lib\windows64</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\dependencies-bundle\wxWidgets\include;..\dependencies-bundle\wxWidgets\include\msvc;..\dependencies-bundle\include;..\include;..\dependencies\pugixml\src;..\dependencies\spdlog\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);..\dependencies-bundle\wxWidgets\lib\vc_x64_lib;..\dependencies-bundle\lib;..\lib\windows64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

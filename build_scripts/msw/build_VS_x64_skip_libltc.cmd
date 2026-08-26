@@ -1,24 +1,30 @@
 set cwd=%CD%
 echo %1
-IF NOT EXIST "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\amd64" GOTO Preview
-set PATH=C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\amd64;%PATH%
-Echo VS Professional Detected
-GOTO Start
+rem Ask vswhere for MSBuild rather than naming Visual Studio 2022 install paths.
+rem xLights needs the v145 toolset, so a 2022 entry placed ahead of a newer
+rem MSBuild produces MSB8020 - the build tools for v145 cannot be found.
+set VSWHERE="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+if not exist %VSWHERE% goto NoVsWhere
+for /f "usebackq tokens=*" %%i in (`%VSWHERE% -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\amd64\MSBuild.exe`) do set MSBUILD_DIR=%%~dpi
+if not defined MSBUILD_DIR goto NoVsWhere
+set PATH=%MSBUILD_DIR%;%PATH%
+echo Using MSBuild from %MSBUILD_DIR%
+goto Start
 
-:Preview
-IF NOT EXIST "C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\amd64" GOTO Community
-set PATH=C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Current\Bin\amd64;%PATH%
-Echo VS Preview Detected
-GOTO Start
+:NoVsWhere
+echo vswhere found no MSBuild - relying on whatever is already on PATH
 
-:Community
-IF NOT EXIST "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64" GOTO Start
-set PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64;%PATH%
-Echo VS Community Detected
 :Start
 
 cd ..
 cd ..
+
+rem Stage the dependency bundle before anything compiles. xlDo and fseq_convert
+rem both consume it, and both are built below before xLights - whose project
+rem file carries the only pre-build fetch, so relying on that leaves them
+rem compiling against a bundle that is not there yet.
+powershell -NoProfile -ExecutionPolicy Bypass -File ci_scripts\fetch_dependencies.ps1
+if %ERRORLEVEL% NEQ 0 goto error
 
 cd TipOfDay
 cd Tool
@@ -54,7 +60,7 @@ copy xLights\x64\Release\*.pdb build_scripts\msw\xLights
 
 cd fseq_convert
 
-cmake -S. -Bcmake_vs -G"Visual Studio 17 2022"
+cmake -S. -Bcmake_vs
 cmake --build cmake_vs --config Release
 if %ERRORLEVEL% NEQ 0 goto error
 
