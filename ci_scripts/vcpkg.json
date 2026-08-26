@@ -24,6 +24,7 @@
     "curl",
     "zlib",
     "hidapi",
+    "lua",
     "libxlsxwriter",
     "libwebp"
   ]

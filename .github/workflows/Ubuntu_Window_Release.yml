@@ -39,7 +39,7 @@ jobs:
            token: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
-   runs-on: windows-2022
+   runs-on: windows-2025-vs2026
    # Tag/dispatch-only workflow, so always enter the `release` environment: the
    # OIDC token subject (repo:.../environment:release) must match the Entra
    # federated credential that authorizes Azure Trusted Signing. Signing is then
@@ -75,14 +75,6 @@ jobs:
       with:
         install_runtime: false
         cache: true
-
-    - name: Download wxWidgets
-      run:
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2026.13 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
-
-    - name: Build wxWidgets
-      working-directory: ..\wxWidgets\
-      run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
 
     - name: Build All
       shell: cmd
@@ -210,7 +202,7 @@ jobs:
   publish-store:
     needs: build-windows
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: windows-2022
+    runs-on: windows-2025-vs2026
     environment: release
     env:
       STORE_PUBLISH: ${{ vars.MSSTORE_PUBLISH_ENABLED == 'true' }}

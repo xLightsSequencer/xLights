@@ -139,6 +139,14 @@ jobs:
         working-directory: ${{ github.workspace }}\wxWidgets
         run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
 
+      # The bundle supplies FFmpeg, curl, zstd, SDL, Lua and the rest. find_path
+      # and find_library run at configure time, so it has to be staged before
+      # CMake runs - the fetch CMakeLists drives itself is a build-time custom
+      # command, which is too late to satisfy them.
+      - name: Stage the dependency bundle
+        shell: pwsh
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File ci_scripts\fetch_dependencies.ps1
+
       # ── Configure ─────────────────────────────────────────────────────────
       - name: Configure CMake
         shell: cmd

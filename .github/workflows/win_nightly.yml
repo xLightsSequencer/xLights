@@ -35,7 +35,7 @@ jobs:
   build:
     needs: check_for_commits
     if: ${{ needs.check_for_commits.outputs.should_run == 'true' }}
-    runs-on: windows-2022
+    runs-on: windows-2025-vs2026
     # Sign nightlies too, so opt-in beta testers don't hit a SmartScreen wall on
     # every build. Uses the `nightly` environment (no approval gate) for the OIDC
     # subject; signing is gated on the WINDOWS_SIGNING_ENABLED repo variable.
@@ -82,14 +82,6 @@ jobs:
       - name: generate nightly version number
         working-directory: build_scripts\msw
         run: python WriteNightlyVersionFiles.py
-
-      - name: Download wxWidgets
-        run: |
-          git clone --depth=1 --shallow-submodules   --recurse-submodules -b xlights_2026.13 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
-
-      - name: Build wxWidgets
-        working-directory: ..\wxWidgets\
-        run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
 
       - name: Build All
         shell: cmd
