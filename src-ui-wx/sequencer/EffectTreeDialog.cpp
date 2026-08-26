@@ -462,11 +462,18 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
     //logger_base.debug("Settings: %s", (const char *)settings.c_str());
     int res = 0;
     bool ac = false;
+    // Extra empty layer rows the preset's saved lasso selection spanned above
+    // its first actual effect row (see ANCHOR_ROW: in
+    // MainSequencer::GetSelectedEffectsData) -- surfaced so a mis-drawn
+    // selection at save time is visible instead of silently causing a
+    // dropped layer on a later "Using Layers" paste.
+    int leadingEmpty = 0;
 
     if (settings.Contains("\t"))
     {
         int start = 9999;
         int end = -1;
+        int anchorRow = -1;
 
         wxArrayString all_efdata = wxSplit(settings, '\n');
 
@@ -482,6 +489,14 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
                 if (efdata[0] == "CopyFormat1")
                 {
                     cf1 = true;
+                    for (size_t fi = 1; fi < efdata.size(); fi++)
+                    {
+                        if (efdata[fi].StartsWith("ANCHOR_ROW:"))
+                        {
+                            anchorRow = wxAtoi(efdata[fi].Mid(11));
+                            break;
+                        }
+                    }
                 }
                 else if (efdata[0] == "CopyFormatAC")
                 {
@@ -513,6 +528,10 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
         if (end != -1)
         {
             res = end - start + 1;
+            if (anchorRow >= 0 && start > anchorRow)
+            {
+                leadingEmpty = start - anchorRow;
+            }
         }
     }
     else
@@ -526,13 +545,15 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
 
     //logger_base.debug("    **** %d", res);
 
+    wxString countStr = (leadingEmpty > 0) ? wxString::Format("%d+%d", leadingEmpty, res) : wxString::Format("%d", res);
+
     if (ac)
     {
-        return wxString::Format("%d - AC", res);
+        return countStr + " - AC";
     }
     else
     {
-        return wxString::Format("%d", res);
+        return countStr;
     }
 }
 

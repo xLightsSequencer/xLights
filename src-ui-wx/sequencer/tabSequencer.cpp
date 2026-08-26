@@ -4378,7 +4378,7 @@ EffectPreset* xLightsFrame::CreateEffectPreset(EffectPresetGroup* parent, const 
 void xLightsFrame::UpdateEffectPreset(EffectPreset* preset)
 {
     wxString copy_data;
-    mainSequencer->GetSelectedEffectsData(copy_data);
+    mainSequencer->GetSelectedEffectsData(copy_data, false, true);
     _effectPresetManager.UpdatePresetSettings(preset,
                                               copy_data.ToStdString(),
                                               xlights_version_string);
