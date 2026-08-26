@@ -20,6 +20,14 @@
     Sentinel a file (relative to the repo root) that exists once the dependency
              is staged; used to skip work on repeat runs.
     Url      the .zip release asset to download.
+    Archive  omit for a .zip. $false means the Url is a bare file with no
+             archive to expand; Stage then takes a single @{ To; As } naming
+             where to put it and what to call it.
+    MinVersion
+             for a Url that always points at the latest build rather than a
+             pinned one. The staged file's own version is recorded, a fetch is
+             skipped while that is at or above this floor, and a download that
+             comes back older than the floor is a failure rather than staged.
     Stage    list of @{ From = '<path within the zip>'; To = '<dir under repo root>' }
              copy rules (From may contain a wildcard, e.g. 'klm\*.h').
 
@@ -55,6 +63,12 @@ $klmVersion = Read-VersionFile 'klightmapper_version.txt'
 # built from xLights-dependencies so all three desktops use identical versions.
 $depsVersion = Read-VersionFile 'windows_deps_version.txt'
 
+# The installer runs the VC++ redistributable, so it has to be at least as new
+# as the CRT the toolset links against. An older one installs a runtime missing
+# symbols the binaries import, and xLights then fails to start with a missing
+# entry point rather than anything that names the cause.
+$vcRedistMin = Read-VersionFile 'vcredist_min_version.txt'
+
 $Dependencies = @(
     @{
         Name     = 'Dependencies'
@@ -89,6 +103,21 @@ $Dependencies = @(
             @{ From = 'klm\*.h';          To = 'include\klightmapper\klm' }
         )
     }
+    @{
+        Name       = 'VCRedist'
+        Optional   = $false
+        # Microsoft serves the redistributable as a bare .exe, and the /18/ path
+        # always points at the current build for that Visual Studio line - hence
+        # a floor rather than an exact pin.
+        Archive    = $false
+        MinVersion = $vcRedistMin
+        Sentinel   = 'build_scripts\msw\vcredist\VC_redist.x64.exe'
+        Stamp      = 'build_scripts\msw\vcredist\.vcredist_version'
+        Url        = 'https://aka.ms/vs/18/release/vc_redist.x64.exe'
+        Stage      = @(
+            @{ To = 'build_scripts\msw\vcredist'; As = 'VC_redist.x64.exe' }
+        )
+    }
 )
 
 function Fetch-Dependency($dep) {
@@ -102,43 +131,86 @@ function Fetch-Dependency($dep) {
     # $ErrorActionPreference = 'Stop' would turn that into a build abort.
     $staged = if ($stamp -and (Test-Path $stamp)) { ([string](Get-Content $stamp -Raw)).Trim() } else { '' }
     if ((Test-Path $sentinel) -and -not $Force) {
-        if (-not $stamp) {
+        if ($dep.MinVersion) {
+            # A floating "latest" Url: anything at or above the floor is fine,
+            # so do not re-download every time upstream publishes a new build.
+            $current = $false
+            if ($staged) {
+                try { $current = ([version]$staged) -ge ([version]$dep.MinVersion) } catch { $current = $false }
+            }
+            if ($current) {
+                Write-Host "fetch_dependencies: $($dep.Name) $staged already staged (floor $($dep.MinVersion)) - skipping (use -Force to re-download)."
+                return $true
+            }
+            $was = if ($staged) { $staged } else { 'unversioned' }
+            Write-Host "fetch_dependencies: $($dep.Name) staged copy is $was, need $($dep.MinVersion) or newer - re-fetching."
+        }
+        elseif (-not $stamp) {
             Write-Host "fetch_dependencies: $($dep.Name) already staged - skipping (use -Force to re-download)."
             return $true
         }
-        if ($staged -eq $dep.Version) {
+        elseif ($staged -eq $dep.Version) {
             Write-Host "fetch_dependencies: $($dep.Name) $($dep.Version) already staged - skipping (use -Force to re-download)."
             return $true
         }
-        $was = if ($staged) { $staged } else { 'unversioned' }
-        Write-Host "fetch_dependencies: $($dep.Name) staged copy is $was, want $($dep.Version) - re-fetching."
+        else {
+            $was = if ($staged) { $staged } else { 'unversioned' }
+            Write-Host "fetch_dependencies: $($dep.Name) staged copy is $was, want $($dep.Version) - re-fetching."
+        }
     }
 
     Write-Host "fetch_dependencies: $($dep.Name) -> $($dep.Url)"
     $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("dep_" + [System.Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $tmp -Force | Out-Null
     try {
-        $zip = Join-Path $tmp 'dep.zip'
+        # Expand-Archive insists on a .zip extension, so only name it that when
+        # the download actually is one.
+        $dl = if ($dep.Archive -eq $false) { Join-Path $tmp 'dep.bin' } else { Join-Path $tmp 'dep.zip' }
         try {
-            Invoke-WebRequest -Uri $dep.Url -OutFile $zip -UseBasicParsing
+            Invoke-WebRequest -Uri $dep.Url -OutFile $dl -UseBasicParsing
         } catch {
             Write-Warning "fetch_dependencies: download failed for $($dep.Name) ($($dep.Url)): $($_.Exception.Message)"
             return $false
         }
-        $x = Join-Path $tmp 'x'
-        Expand-Archive -Path $zip -DestinationPath $x -Force
-        foreach ($item in $dep.Stage) {
+        $stagedFile = $null
+        if ($dep.Archive -eq $false) {
+            $item    = $dep.Stage[0]
             $destDir = Join-Path $rootDir $item.To
             New-Item -ItemType Directory -Path $destDir -Force | Out-Null
-            # -Recurse so a Stage entry can name a directory tree; harmless for files.
-            Copy-Item (Join-Path $x $item.From) $destDir -Recurse -Force
+            $stagedFile = Join-Path $destDir $item.As
+            Copy-Item $dl $stagedFile -Force
+        }
+        else {
+            $x = Join-Path $tmp 'x'
+            Expand-Archive -Path $dl -DestinationPath $x -Force
+            foreach ($item in $dep.Stage) {
+                $destDir = Join-Path $rootDir $item.To
+                New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+                # -Recurse so a Stage entry can name a directory tree; harmless for files.
+                Copy-Item (Join-Path $x $item.From) $destDir -Recurse -Force
+            }
+        }
+        $stagedVersion = $dep.Version
+        if ($dep.MinVersion) {
+            # Record what actually arrived, and refuse anything below the floor
+            # rather than staging a runtime that cannot load these binaries.
+            $stagedVersion = (Get-Item $stagedFile).VersionInfo.ProductVersion
+            $tooOld = $true
+            if ($stagedVersion) {
+                try { $tooOld = ([version]$stagedVersion) -lt ([version]$dep.MinVersion) } catch { $tooOld = $true }
+            }
+            if ($tooOld) {
+                Write-Warning "fetch_dependencies: $($dep.Name) came back as '$stagedVersion', older than the required $($dep.MinVersion) - not staging."
+                Remove-Item $stagedFile -Force -ErrorAction SilentlyContinue
+                return $false
+            }
         }
         # Written last, so an interrupted run leaves no stamp and the next one refetches.
         if ($stamp) {
             New-Item -ItemType Directory -Path (Split-Path -Parent $stamp) -Force | Out-Null
-            Set-Content -Path $stamp -Value $dep.Version -NoNewline
+            Set-Content -Path $stamp -Value $stagedVersion -NoNewline
         }
-        Write-Host "fetch_dependencies: staged $($dep.Name) $($dep.Version)."
+        Write-Host "fetch_dependencies: staged $($dep.Name) $stagedVersion."
         return $true
     } finally {
         Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue

@@ -1,0 +1,6 @@
+# ci_scripts/fetch_dependencies.ps1 downloads VC_redist.x64.exe here at build
+# time so it always matches the toolset. It is not committed - a checked-in copy
+# goes stale silently, and a redistributable older than the compiler's CRT makes
+# the installed application fail to start.
+*
+!.gitignore
