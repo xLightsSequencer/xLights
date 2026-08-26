@@ -50,6 +50,6 @@
     #pragma comment(lib, "wxexpat.lib")
 
 #endif
-#pragma comment(lib, "libcurl.dll.a")
+#pragma comment(lib, "libcurl.lib")
 #endif
 

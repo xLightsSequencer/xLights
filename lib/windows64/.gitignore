@@ -1,5 +1,5 @@
-# These files are ignored because of their size which GitHub will not allow
-wxmsw31ud_adv.lib
-wxmsw31ud_core.lib
-wxmsw31u_adv.lib
-wxmsw31u_core.lib
+# Staging area only. ci_scripts/fetch_dependencies.ps1 unpacks the dependency
+# bundle and KLightMapper here at build time; nothing in this directory belongs
+# in the repository. Ignore everything so binaries cannot drift back in.
+*
+!.gitignore

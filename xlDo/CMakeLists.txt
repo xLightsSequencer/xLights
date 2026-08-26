@@ -15,11 +15,11 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
-# The vendored curl headers describe the library Windows links from this repo.
+# The bundle's curl headers describe the library Windows links against.
 # Everywhere else the system curl is linked, so its own headers must be used -
-# adding the vendored copy here would shadow them.
+# adding the bundle's copy here would shadow them.
 if(WIN32)
-    include_directories(../include/windows-vendored ../include/windows-vendored/curl)
+    include_directories(../dependencies-bundle/include ../dependencies-bundle/include/curl)
 endif()
 include_directories(../include ../dependencies/spdlog/include ../src-core ../src-ui-wx)
 link_directories(../lib/windows64)

@@ -1,1 +1,7 @@
 *.map
+
+# Runtime DLLs are staged here from the dependency bundle by
+# ci_scripts/fetch_dependencies.ps1 rather than committed. onnxruntime is the
+# remaining exception - it is not part of the bundle yet.
+*.dll
+!onnxruntime.dll

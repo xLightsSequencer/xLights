@@ -162,7 +162,7 @@ Source:      https://github.com/facebook/zstd
 Last Pulled:
 Version:	 [latest version available as at Dec 2023 is 1.5.5]
 License:     BSD
-Strategy:    zstd.h header in include/windows-vendored (Windows only); macOS uses the dependency bundle and Linux the system package
+Strategy:    Windows and macOS use the dependency bundle; Linux uses the system package
 
 Library:     zlib
 Usage:       read/write of v2 FSEQ files
@@ -171,7 +171,7 @@ Source:      https://github.com/madler/zlib
 Last Pulled:
 Version:     1.2.11 [Latest version as at Jan 2021 is 1.2.11 released Jan 2017]
 License:     zlib
-Strategy:    header in include/windows-vendored/zlib (Windows only); macOS and Linux use the system zlib
+Strategy:    Windows uses the dependency bundle; macOS and Linux use the system zlib
 
 Library:     libltc
 Usage:       generate and consume SMTPE timecode

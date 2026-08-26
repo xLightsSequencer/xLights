@@ -6,7 +6,7 @@ name: Windows CMake CI
 #   - Faster configure and incremental builds.
 #   - Single-config — no /p:Configuration= indirection through MSBuild.
 #
-# curl: linked directly from the vendored lib\windows64\libcurl.dll.a
+# curl: linked from the dependency bundle (libcurl.lib)
 #       (CMakeLists.txt falls back to it when no .lib is present).
 
 on:
