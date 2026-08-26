@@ -17,6 +17,12 @@ set(XL_INC  ${CMAKE_SOURCE_DIR}/include)
 set(XL_DEPS ${CMAKE_SOURCE_DIR}/dependencies)
 set(XL_LIB  ${CMAKE_SOURCE_DIR}/lib)
 
+# The shared dependency bundle, staged by ci_scripts/fetch_dependencies.ps1.
+# Windows searches it ahead of lib/windows64, which now only holds things
+# fetched separately (KLightMapper) rather than committed third-party binaries.
+set(XL_BUNDLE ${CMAKE_SOURCE_DIR}/dependencies-bundle)
+set(XL_WIN_LIB_HINTS ${XL_BUNDLE}/lib ${XL_BUNDLE}/libdbg ${XL_LIB}/windows64)
+
 if(MSVC)
     add_compile_options("/utf-8")
     # /MP — compile multiple source files in parallel within a single project.
@@ -168,12 +174,12 @@ else()
     # consumer of include/ffmpeg-6, which can go once Windows moves to the
     # dependency bundle.
     find_path(FFMPEG_INCLUDE_DIR libavcodec/avcodec.h
-        HINTS ${XL_INC}/windows-vendored/ffmpeg-6/include
+        HINTS ${XL_BUNDLE}/include
         NO_DEFAULT_PATH)
     if(NOT FFMPEG_INCLUDE_DIR)
         find_path(FFMPEG_INCLUDE_DIR libavcodec/avcodec.h)
     endif()
-    set(_FF_HINTS ${XL_LIB}/windows64)
+    set(_FF_HINTS ${XL_WIN_LIB_HINTS})
     foreach(_ff avcodec avformat avutil avfilter swscale swresample)
         string(TOUPPER ${_ff} _FF_UPPER)
         find_library(${_FF_UPPER}_LIB NAMES ${_ff} HINTS ${_FF_HINTS})
@@ -198,7 +204,7 @@ else()
         find_path(SDL2_INCLUDE_DIR SDL.h PATH_SUFFIXES SDL2)
     endif()
     find_library(SDL2_LIB NAMES SDL2 SDL2-static
-        HINTS ${XL_LIB}/windows64
+        HINTS ${XL_WIN_LIB_HINTS}
         PATHS /usr/lib /usr/local/lib)
     set(SDL2_LINK_TARGET ${SDL2_LIB})
     set(SDL2_INC ${SDL2_INCLUDE_DIR})
@@ -218,7 +224,7 @@ else()
     # Hinting it on other platforms would shadow the system header while the
     # system library is what actually gets linked.
     if(WIN32)
-        set(_zstd_hints ${XL_INC}/windows-vendored)
+        set(_zstd_hints ${XL_BUNDLE}/include)
     else()
         set(_zstd_hints "")
     endif()
@@ -229,9 +235,9 @@ else()
         # libzstd_static.lib is MinGW-built and contains ___chkstk_ms (MSVC-incompatible).
         # Prefer libzstd_static_VS.lib (MSVC CRT) and its debug variant.
         find_library(ZSTD_LIB_RELEASE NAMES libzstd_static_VS zstd
-            HINTS ${XL_LIB}/windows64)
+            HINTS ${XL_WIN_LIB_HINTS})
         find_library(ZSTD_LIB_DEBUG NAMES libzstdd_static_VS libzstd_static_VS zstd
-            HINTS ${XL_LIB}/windows64)
+            HINTS ${XL_WIN_LIB_HINTS})
         set(ZSTD_LINK_TARGET optimized ${ZSTD_LIB_RELEASE} debug ${ZSTD_LIB_DEBUG})
     else()
         find_library(ZSTD_LIB NAMES zstd libzstd_static libzstd_static_VS
@@ -249,16 +255,11 @@ if(CURL_FOUND)
     set(CURL_INC "")
 else()
     find_path(CURL_INCLUDE_DIR curl/curl.h
-        HINTS ${XL_INC}
+        HINTS ${XL_BUNDLE}/include
         PATHS /usr/include /usr/local/include)
     find_library(CURL_LIB NAMES libcurl_msvc curl libcurl curl_imp libcurl_a
-        HINTS ${XL_LIB}/windows64
+        HINTS ${XL_WIN_LIB_HINTS}
         PATHS /usr/lib /usr/local/lib)
-    # The vcxproj links via #pragma comment(lib,"libcurl.dll.a") which MSVC accepts.
-    # Fall back to the same vendored file when no .lib variant is found.
-    if(NOT CURL_LIB AND MSVC AND EXISTS "${XL_LIB}/windows64/libcurl.dll.a")
-        set(CURL_LIB "${XL_LIB}/windows64/libcurl.dll.a")
-    endif()
     if(CURL_LIB)
         set(CURL_LINK_TARGET ${CURL_LIB})
     else()
@@ -622,8 +623,7 @@ target_include_directories(xLights PRIVATE
     ${XL_DEPS}/libxlsxwriter/include
     ${XL_DEPS}/pybind11/include
     ${XL_INC}
-    $<$<BOOL:${WIN32}>:${XL_INC}/windows-vendored>
-    $<$<BOOL:${WIN32}>:${XL_INC}/windows-vendored/zlib>
+    $<$<BOOL:${WIN32}>:${XL_BUNDLE}/include>
     ${XL_INC}/sol2-3.5.0
     ${FFMPEG_INCLUDE_DIR}
     ${LUA_INCLUDE_DIR}
@@ -737,7 +737,7 @@ if(NOT XLIGHTS_USE_VCPKG)
     # zlibwapi.lib ships without its companion gvmat64.obj / inffas8664.obj
     # ASM objects and causes LNK2001 on x64 MSVC — keep it as last resort.
     find_library(ZLIB_LIB NAMES z zlib zlibstatic zlibwapi
-        HINTS ${XL_LIB}/windows64 /usr/lib /usr/local/lib)
+        HINTS ${XL_WIN_LIB_HINTS} /usr/lib /usr/local/lib)
     if(ZLIB_LIB)
         set(ZLIB_LINK_TARGET ${ZLIB_LIB})
     else()
@@ -783,14 +783,14 @@ else()
     # Manual fallback — vendored on Windows, system on Linux.
     if(WIN32)
         find_library(WEBP_LIB NAMES libwebp webp
-            HINTS ${XL_LIB}/windows64
+            HINTS ${XL_WIN_LIB_HINTS}
             PATHS /usr/lib /usr/local/lib
             NO_DEFAULT_PATH)
         if(NOT WEBP_LIB)
             find_library(WEBP_LIB NAMES libwebp webp)
         endif()
         find_library(WEBPDEMUX_LIB NAMES libwebpdemux webpdemux
-            HINTS ${XL_LIB}/windows64
+            HINTS ${XL_WIN_LIB_HINTS}
             PATHS /usr/lib /usr/local/lib
             NO_DEFAULT_PATH)
         if(NOT WEBPDEMUX_LIB)
@@ -837,7 +837,7 @@ endif()
 
 # libxlsxwriter — no cmake config package; find_library works for both vcpkg and vendored.
 find_library(XLSXWRITER_LIB NAMES xlsxwriter xlsxwriterd
-    HINTS ${XL_LIB}/windows64 ${XL_DEPS}/libxlsxwriter ${XL_DEPS}/libxlsxwriter/lib)
+    HINTS ${XL_WIN_LIB_HINTS} ${XL_DEPS}/libxlsxwriter ${XL_DEPS}/libxlsxwriter/lib)
 if(XLSXWRITER_LIB)
     target_link_libraries(xLights PRIVATE ${XLSXWRITER_LIB})
 elseif(XLIGHTS_USE_VCPKG)
@@ -847,9 +847,9 @@ endif()
 # LiquidFun (not in vcpkg — always use vendored)
 if(WIN32)
     find_library(LIQUIDFUN_LIB_RELEASE NAMES liquidfun
-        HINTS ${XL_LIB}/windows64 ${XL_DEPS}/liquidfun)
+        HINTS ${XL_WIN_LIB_HINTS} ${XL_DEPS}/liquidfun)
     find_library(LIQUIDFUN_LIB_DEBUG NAMES liquidfund liquidfun
-        HINTS ${XL_LIB}/windows64 ${XL_DEPS}/liquidfun)
+        HINTS ${XL_WIN_LIB_HINTS} ${XL_DEPS}/liquidfun)
     if(LIQUIDFUN_LIB_RELEASE)
         target_link_libraries(xLights PRIVATE
             optimized ${LIQUIDFUN_LIB_RELEASE}
@@ -867,7 +867,7 @@ if(WIN32 OR (UNIX AND NOT APPLE))
     if(WIN32)
         set(KLM_FETCH powershell -NoProfile -ExecutionPolicy Bypass
             -File "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_dependencies.ps1")
-        set(KLM_LIB_HINTS ${XL_LIB}/windows64)
+        set(KLM_LIB_HINTS ${XL_WIN_LIB_HINTS})
     else()
         set(KLM_FETCH bash "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_klightmapper.sh")
         set(KLM_LIB_HINTS ${XL_LIB}/linux)
@@ -906,7 +906,7 @@ if(WIN32)
                                           iphlpapi)
     if(NOT XLIGHTS_USE_VCPKG)
         # vendored pre-built libs (FFmpeg, SDL2, etc.) + lua pragma stubs
-        target_link_directories(xLights PRIVATE ${XL_LIB}/windows64 ${XL_DEPS}/lua/src)
+        target_link_directories(xLights PRIVATE ${XL_WIN_LIB_HINTS})
     endif()
 elseif(UNIX AND NOT APPLE)
     target_link_libraries(xLights PRIVATE dl pthread)
