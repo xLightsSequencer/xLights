@@ -1876,9 +1876,9 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Type->SetSelection(1);
     xml_file->SetSequenceType("Animation");
-    wxString defaultDur = wxString(GetXLightsConfig()->Read("DefaultSeqDuration", std::string("30.0")));
-    TextCtrl_Xml_Seq_Duration->ChangeValue(defaultDur);
-    xml_file->SetSequenceDuration(wxAtof(defaultDur));
+    const double defaultDur = GetDefaultSeqDurationSeconds();
+    TextCtrl_Xml_Seq_Duration->ChangeValue(wxString::Format("%.3f", defaultDur));
+    xml_file->SetSequenceDuration(defaultDur);
     xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
     ProcessSequenceType();
     WizardPage2();
@@ -1889,9 +1889,9 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_EffectClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString("Effect"));
     xml_file->SetSequenceType("Effect");
-    wxString defaultDur = wxString(GetXLightsConfig()->Read("DefaultSeqDuration", std::string("30.0")));
-    TextCtrl_Xml_Seq_Duration->ChangeValue(defaultDur);
-    xml_file->SetSequenceDuration(wxAtof(defaultDur));
+    const double defaultDur = GetDefaultSeqDurationSeconds();
+    TextCtrl_Xml_Seq_Duration->ChangeValue(wxString::Format("%.3f", defaultDur));
+    xml_file->SetSequenceDuration(defaultDur);
     xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
     ProcessSequenceType();
     selected_view = "Empty";
@@ -2479,6 +2479,14 @@ void SeqSettingsDialog::OnButton_AudioEditShortnameClick(wxCommandEvent& /*event
 
 void SeqSettingsDialog::OnButton_SetDefaultDurationClick(wxCommandEvent& /*event*/)
 {
+    // Refuse a duration that would make every new sequence unusable: 0 frames
+    // reads as "no sequence loaded", which disables Sequence Settings and Save
+    // and so cannot be undone from the UI.
+    if (wxAtof(TextCtrl_Xml_Seq_Duration->GetValue()) <= 0.0) {
+        wxMessageBox(_("A default duration must be greater than zero."),
+                     _("Set Default"), wxOK | wxICON_WARNING, this);
+        return;
+    }
     auto* cfg = GetXLightsConfig();
     cfg->Write("DefaultSeqDuration", TextCtrl_Xml_Seq_Duration->GetValue());
     if (m_activeDefaultBtn) {
@@ -2491,6 +2499,11 @@ void SeqSettingsDialog::OnButton_SetDefaultDurationClick(wxCommandEvent& /*event
 
 void SeqSettingsDialog::OnButton_SetDefaultTimingClick(wxCommandEvent& /*event*/)
 {
+    if (wxAtoi(xml_file->GetSequenceTiming()) <= 0) {
+        wxMessageBox(_("A default timing must be greater than zero."),
+                     _("Set Default"), wxOK | wxICON_WARNING, this);
+        return;
+    }
     auto* cfg = GetXLightsConfig();
     cfg->Write("DefaultSeqTiming", xml_file->GetSequenceTiming());
     if (m_activeDefaultBtn) {

@@ -222,9 +222,11 @@ public:
 
         std::string jsonBody = req.dump();
 
+        // Content-Type is already set by CurlManager::HTTPSPost's "JSON" contentType
+        // arg below; adding it again here duplicates the header (see OpenAIImageGenerator
+        // for the same fix — curl folds duplicates into one comma-joined value).
         std::vector<std::pair<std::string, std::string>> headers = {
-            {"x-goog-api-key", api_key},
-            {"Content-Type", "application/json"}
+            {"x-goog-api-key", api_key}
         };
 
         spdlog::debug("Gemini image request: {}", jsonBody);

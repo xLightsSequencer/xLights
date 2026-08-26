@@ -942,19 +942,6 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         return (mapped != nim.end()) ? mapped->second : -1;
     };
 
-    if (cache->nodeNameCache.empty()) {
-        for (size_t x = 0; x < model_info->GetNodeCount(); x++) {
-            std::string nn = model_info->GetNodeName(x, false);
-            std::string defNN = "Node " + std::to_string(x + 1);
-            if (!nn.empty()) {
-                cache->nodeNameCache[nn] = x;
-            }
-            if (nn != defNN) {
-                cache->nodeNameCache[defNN] = x;
-            }
-        }
-    }
-
     std::string definition = faceDef;
     if ((definition == "Default" || definition == "") && !model_info->GetFaceInfo().empty() && model_info->GetFaceInfo().begin()->first != "") {
         definition = model_info->GetFaceInfo().begin()->first;
@@ -1012,6 +999,22 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         type = 1;
     } else if ("Rendered" == definition || "Default" == definition || "" == definition) {
         type = 2;
+    }
+
+    // Only the Coro/SingleNode path looks names up, and building this costs two
+    // map inserts per node - on a large matrix that dwarfs the whole effect, and
+    // it is rebuilt for every frame-parallel clone buffer.
+    if (type == 0 && cache->nodeNameCache.empty()) {
+        for (size_t x = 0; x < model_info->GetNodeCount(); x++) {
+            std::string nn = model_info->GetNodeName(x, false);
+            std::string defNN = "Node " + std::to_string(x + 1);
+            if (!nn.empty()) {
+                cache->nodeNameCache[nn] = x;
+            }
+            if (nn != defNN) {
+                cache->nodeNameCache[defNN] = x;
+            }
+        }
     }
 
     if (buffer.curEffStartPer == buffer.curPeriod) {

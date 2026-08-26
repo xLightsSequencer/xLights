@@ -107,3 +107,9 @@ std::string GetLogFileName();
 
 /// Wipe all settings to factory defaults (called from the -w command-line flag).
 void WipeXLightsConfig();
+
+// A stored non-positive or unparseable value is treated as absent: 0 duration
+// gives 0 frames, which reads as "no sequence loaded" and disables the very
+// controls needed to correct it.
+constexpr double DEFAULT_SEQ_DURATION_SECONDS = 30.0;
+double GetDefaultSeqDurationSeconds();

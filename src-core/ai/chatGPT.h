@@ -42,6 +42,6 @@ class chatGPT : public OpenAIAPI {
         return "ChatGPT";
     }
     [[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
-        return std::list({ aiType::TYPE::COLORPALETTES, aiType::TYPE::PROMPT });
+        return std::list({ aiType::TYPE::COLORPALETTES, aiType::TYPE::PROMPT, aiType::TYPE::IMAGES });
     }
 };
