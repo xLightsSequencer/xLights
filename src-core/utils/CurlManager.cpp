@@ -57,14 +57,11 @@ std::string CurlManager::HTTPSPost(const std::string& url, const std::vector<Var
         return "";
     }
 
-    struct curl_httppost* formpost = nullptr;
-    struct curl_httppost* lastptr = nullptr;
+    curl_mime* form = curl_mime_init(curl);
     for (const auto& it : vars) {
-        curl_formadd(&formpost,
-                     &lastptr,
-                     CURLFORM_COPYNAME, it.key.c_str(),
-                     CURLFORM_COPYCONTENTS, it.value.c_str(),
-                     CURLFORM_END);
+        curl_mimepart* part = curl_mime_addpart(form);
+        curl_mime_name(part, it.key.c_str());
+        curl_mime_data(part, it.value.c_str(), CURL_ZERO_TERMINATED);
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -82,7 +79,7 @@ std::string CurlManager::HTTPSPost(const std::string& url, const std::vector<Var
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 
-    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+    curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -97,8 +94,8 @@ std::string CurlManager::HTTPSPost(const std::string& url, const std::vector<Var
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
 
     CURLcode res = curl_easy_perform(curl);
+    curl_mime_free(form);
     curl_easy_cleanup(curl);
-    curl_formfree(formpost);
     if (headerlist != nullptr) {
         curl_slist_free_all(headerlist);
     }
@@ -425,16 +422,16 @@ struct HTTPGetFileProgressData {
 };
 
 static int http_get_file_progress_callback(void* userp,
-                                           double total,
-                                           double now,
-                                           double ultotal,
-                                           double ulnow)
+                                           curl_off_t total,
+                                           curl_off_t now,
+                                           curl_off_t ultotal,
+                                           curl_off_t ulnow)
 {
     HTTPGetFileProgressData* data = static_cast<HTTPGetFileProgressData*>(userp);
     if (data != nullptr && data->progress != nullptr) {
         int pos = 0;
         if (total > 0) {
-            pos = static_cast<int>((now * 1000.0) / total);
+            pos = static_cast<int>((now * 1000) / total);
         }
         if (pos < 0) {
             pos = 0;
@@ -529,8 +526,8 @@ bool CurlManager::doGetFile(const std::string& url,
     progressData.progress = progress;
     if (progress != nullptr) {
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressData);
-        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, http_get_file_progress_callback);
+        curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &progressData);
+        curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, http_get_file_progress_callback);
     } else {
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
     }
@@ -946,7 +943,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     head = curl_slist_append(head, cl.c_str());
     head = curl_slist_append(head, "Expect:");
 
-    curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, head);
 
     ReadDataInfo dta;
