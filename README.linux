@@ -61,10 +61,8 @@ Instructions for other Linux distributions will vary.
      libavfilter-dev
      libswscale-dev
      libsdl2-dev
-     libportmidi-dev
      libzstd-dev
      libcurl4-openssl-dev
-     libltc-dev
      liblua5.3-dev
      libwebp-dev
      libsecret-1-dev
@@ -77,7 +75,7 @@ Instructions for other Linux distributions will vary.
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libavfilter-dev libportmidi-dev libzstd-dev libwebp-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev libegl-dev libfreetype-dev libharfbuzz-dev libfontconfig-dev libavahi-compat-libdnssd-dev wget git cbp2make curl libsecret-1-dev
+     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libavfilter-dev libzstd-dev libwebp-dev libcurl4-openssl-dev liblua5.3-dev libegl-dev libfreetype-dev libharfbuzz-dev libfontconfig-dev libavahi-compat-libdnssd-dev wget git cbp2make curl libsecret-1-dev
 
      mDNS/Bonjour controller discovery (WLED and similar):
        BUILD: without libavahi-compat-libdnssd-dev, <dns_sd.h> is unavailable
@@ -137,10 +135,8 @@ Instructions for other Linux distributions will vary.
     Install other packages:
 
      sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-     sudo dnf install gcc-c++ gtk3-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL2-devel portmidi-devel libzstd-devel libwebp-devel curl-devel libltc-devel lua-devel curl libsecret-devel expat-devel mesa-libEGL-devel freetype-devel harfbuzz-devel fontconfig-devel avahi-compat-libdns_sd-devel wget git
+     sudo dnf install gcc-c++ gtk3-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL2-devel libzstd-devel libwebp-devel curl-develel lua-devel curl libsecret-devel expat-devel mesa-libEGL-devel freetype-devel harfbuzz-devel fontconfig-devel avahi-compat-libdns_sd-devel wget git
 
-     Note: newer versions of libportmidi combined the .so files. Easiest workaround is to add a sym link to the combine .so file:
-        sudo ln -s /usr/lib64/libportmidi.so /usr/lib64/libporttime.so
 
      Note: Fedora lua package is versionless, to fake cbp/pkgconfig to 5.3 like ubuntu, add a sym link
         sudo ln -s /usr/lib64/pkgconfig/lua.pc /usr/lib64/pkgconfig/lua53.pc

@@ -26,7 +26,9 @@ if exist wxWidgets.old echo y | rmdir /s wxWidgets.old
 ren wxWidgets wxWidgets.old
 
 :clone
-git clone --recurse-submodules -b xlights_2026.13 https://github.com/xLightsSequencer/wxWidgets wxWidgets
+rem Keep this tag equal to the one the dependency bundle builds wxWidgets from,
+rem so a local override is the same version everyone else links against.
+git clone --recurse-submodules -b xlights_2026.17 https://github.com/xLightsSequencer/wxWidgets wxWidgets
 
 cd wxWidgets
 msbuild.exe /m .\build\msw\wx_vc17.sln /p:Configuration="Debug" /p:Platform="x64"

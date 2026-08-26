@@ -10,9 +10,15 @@ If you are a Windows user, installation packages are available at
 https://xlights.org/releases/
 
 xLights is written in C++ and uses the wxWidgets library as a compatibility layer across operating systems.
-xLights used a forked version of wxWidgets code with some custom patches.(https://github.com/xLightsSequencer/wxWidgets)
-Do not use the pre-compiled Windows binaries of wxWidgets, as these are for the Visual Studio IDE.
-Use the "/build_scripts/msw/clone_&_build_WX_master_x64.cmd" script to download and build WX.
+xLights uses a forked version of wxWidgets with some custom patches
+(https://github.com/xLightsSequencer/wxWidgets), but you do not need to build it
+yourself: a prebuilt copy ships in the shared dependency bundle described below,
+and the build downloads it for you.
+
+The Windows build takes wxWidgets, FFmpeg, curl, SDL, Lua, zlib, zstd and the
+rest from that bundle - built from one set of pinned versions in
+https://github.com/xLightsSequencer/xLights-dependencies so every platform links
+identical libraries. None of it is committed to this repository.
 
 We support the Visual Studio/MS Visual C++ compiler for Windows builds. 
 
@@ -21,28 +27,31 @@ Instructions for MS Visual Studio C++
 
 Here are the steps to compile xLights for Windows using the Visual Studio compiler.
 
-  a) Install Visual Studio 2022 ... the community edition is fine
-    - Requires Windows 11 SDK build 22000
+  a) Install Visual Studio 2026 ... the community edition is fine
+    - xLights x64 builds with the v145 toolset, which VS 2022 does not have.
+      Building with VS 2022 fails with "MSB8020: The build tools for v145
+      cannot be found".
+    - Install the "Desktop development with C++" workload, which brings the
+      Windows SDK the projects use.
 
   b) Select a base directory to place all your source code in. From now on this is represented as <basedir>
 
-**** Skip "c)" if Using the "clone_&_build_WX_master_x64.cmd" script ****
-  
-  c) Download and build wxWidgets for Windows (currently using a patched version of 3.3.2).
-    
-    git clone  --recurse-submodules -b xlights_2026.13 https://github.com/xLightsSequencer/wxWidgets
+  c) Dependencies - nothing to do
 
-     1) Also if you have built wxWidgets before you should delete the following 2 folders
-        - <basedir>\wxWidgets\build\msw\vc_mswuddll
-        - <basedir>\wxWidgets\build\msw\vc_mswudll
-     2) Open the project <basedir>\wxWidgets\build\msw\wx_vc17.sln
-     3) Also if you have built wxWidgets64 before you should delete the following 2 folders (if they exist) to force
-        a rebuild using new configuration
-        - wxWidgets\lib\vc_x64_dll
-        - wxWidgets\lib\vc_x64_lib
-     3) Compile both a release and a debug version
-        NOTE: I have experienced issues with the use of spectre vs non spectre mitigated libraries. By default I turn spectre mitigation off which can be done in visual studio before building ... except the custom build step where the project file has to be manually added to tell it not to use it even though it doesnt need it. To do so copy the <SpectreMitigation>false</SpectreMitigation> tag under each of the PropertyGroup tags in the wx_custom_build.vcxproj file
-     4) In the Windows System Properties -> Advanced -> Environment variables, create a new environment variable WXWIDGETS_ROOT with the value being the directory where wxWidgets is installed.  (example: c:\wxWidgets )
+    The prebuilt bundle (wxWidgets, FFmpeg, curl, SDL, Lua, zlib, zstd, hidapi,
+    LiquidFun, glslang, ...), the KLightMapper library and the Visual C++
+    redistributable used by the installer are all downloaded automatically. The
+    xLights project runs ci_scripts\fetch_dependencies.ps1 before it compiles,
+    which stages them into dependencies-bundle\, lib\windows64\ and bin64\.
+    A fully staged tree costs it about a fifth of a second, so it simply runs
+    every build and re-downloads only what is missing.
+
+    If you are working ON wxWidgets rather than with it, set the WXWIDGETS_ROOT
+    environment variable to your own wxWidgets checkout. Both the include and
+    library paths look there first, so your build wins over the bundle's copy -
+    and because it wins for both, the headers and the libraries stay in step.
+    build_scripts\msw\clone_&_build_WX_xlights_x64.cmd will clone and build a
+    suitable tree. Leave WXWIDGETS_ROOT unset for normal work.
 
   d) Download, install and setup ISPC
   
@@ -87,15 +96,10 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
    
        3) Open the xLights project <basedir>\xLights\xLights\xLights.sln and build the project in x64 Debug mode
 
-*** Newer Solution Files should automatically do step 4) now, only preform if you encounter build failures ***
-       
-       4) Once built, copy the contents of these two folders (in the order below!):
-            <basedir>\xLights\bin
-            <basedir>\xLights\bin64
-          to the folder
-            <basedir>\xLights\xLights\x64\Debug
-          If you do a Release build, you'll also need to copy them into 
-            <basedir>\xLights\xLights\x64\Release
+       4) The project's post-build step copies bin\ and bin64\ next to the
+          executable, so there is nothing to copy by hand. If xLights fails to
+          start with a missing-DLL error, bin64\ is incomplete - run
+          ci_scripts\fetch_dependencies.ps1 directly to see what it stages.
 
        5) From now on you can Edit/Compile/Debug from within Visual Studio
 
@@ -106,7 +110,10 @@ Windows Installer
     We use Inno Setup to create the setup.exe for xLights
     http://www.jrsoftware.org/isinfo.php
 
-    You will find a xLights.iss file that is used to create the release setup.exe
+    build_scripts\msw\xLights_4_64bit_VS.iss is used to create the release
+    setup.exe. Building it needs the tree built first: the script packages
+    xLights.exe, xlDo.exe and fseq_convert.exe along with the runtime DLLs from
+    bin64\ and the fetched Visual C++ redistributable.
 
 
 The instructions below are for informational purpose right now as we deprecate and remove
