@@ -146,15 +146,34 @@ if(XLIGHTS_USE_VCPKG)
         endif()
         list(APPEND FFMPEG_LIBS ${${_FF_UPPER}_LIB})
     endforeach()
+elseif(UNIX AND NOT APPLE)
+    # Linux links the FFmpeg its distribution ships, so it must COMPILE against
+    # that same FFmpeg's headers. Searching the vendored ffmpeg-6 tree first
+    # meant headers and libraries agreed only by coincidence - fine while the
+    # distribution also shipped 6.x, wrong the moment it ships 7.x or 8.x.
+    #
+    # pkg-config reports the headers and libraries of one installation
+    # together, which is what makes them agree by construction. It also finds
+    # the multiarch include directory (/usr/include/<triple>/libavcodec on
+    # Debian and Ubuntu) that a plain /usr/include search never would.
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(FFMPEG REQUIRED
+        libavcodec libavformat libavutil libavfilter libswscale libswresample)
+    set(FFMPEG_INCLUDE_DIR ${FFMPEG_INCLUDE_DIRS})
+    set(FFMPEG_LIBS ${FFMPEG_LINK_LIBRARIES})
+    message(STATUS "FFmpeg: libavcodec ${FFMPEG_libavcodec_VERSION} (pkg-config)")
 else()
+    # Windows without vcpkg still builds against the FFmpeg tree vendored in
+    # this repository; it has no system FFmpeg to find. This is the last
+    # consumer of include/ffmpeg-6, which can go once Windows moves to the
+    # dependency bundle.
     find_path(FFMPEG_INCLUDE_DIR libavcodec/avcodec.h
-        HINTS ${XL_INC}/ffmpeg-6/include
-        PATHS /usr/include /usr/local/include
+        HINTS ${XL_INC}/windows-vendored/ffmpeg-6/include
         NO_DEFAULT_PATH)
     if(NOT FFMPEG_INCLUDE_DIR)
         find_path(FFMPEG_INCLUDE_DIR libavcodec/avcodec.h)
     endif()
-    set(_FF_HINTS ${XL_LIB}/windows64 /usr/lib /usr/local/lib)
+    set(_FF_HINTS ${XL_LIB}/windows64)
     foreach(_ff avcodec avformat avutil avfilter swscale swresample)
         string(TOUPPER ${_ff} _FF_UPPER)
         find_library(${_FF_UPPER}_LIB NAMES ${_ff} HINTS ${_FF_HINTS})
@@ -195,8 +214,16 @@ if(TARGET zstd::libzstd_static OR TARGET zstd::libzstd_shared)
     endif()
     set(ZSTD_INC "")
 else()
+    # The vendored zstd.h describes the library Windows links from this repo.
+    # Hinting it on other platforms would shadow the system header while the
+    # system library is what actually gets linked.
+    if(WIN32)
+        set(_zstd_hints ${XL_INC}/windows-vendored)
+    else()
+        set(_zstd_hints "")
+    endif()
     find_path(ZSTD_INCLUDE_DIR zstd.h
-        HINTS ${XL_INC}
+        HINTS ${_zstd_hints}
         PATHS /usr/include /usr/local/include)
     if(WIN32)
         # libzstd_static.lib is MinGW-built and contains ___chkstk_ms (MSVC-incompatible).
@@ -595,7 +622,8 @@ target_include_directories(xLights PRIVATE
     ${XL_DEPS}/libxlsxwriter/include
     ${XL_DEPS}/pybind11/include
     ${XL_INC}
-    ${XL_INC}/zlib
+    $<$<BOOL:${WIN32}>:${XL_INC}/windows-vendored>
+    $<$<BOOL:${WIN32}>:${XL_INC}/windows-vendored/zlib>
     ${XL_INC}/sol2-3.5.0
     ${FFMPEG_INCLUDE_DIR}
     ${LUA_INCLUDE_DIR}
