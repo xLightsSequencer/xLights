@@ -51,7 +51,29 @@ function Read-VersionFile([string]$name) {
 # (macOS/.../Package.resolved) so all three desktops use the same engine.
 $klmVersion = Read-VersionFile 'klightmapper_version.txt'
 
+# The shared dependency bundle - wxWidgets, FFmpeg, OpenSSL, curl and the rest -
+# built from xLights-dependencies so all three desktops use identical versions.
+$depsVersion = Read-VersionFile 'windows_deps_version.txt'
+
 $Dependencies = @(
+    @{
+        Name     = 'Dependencies'
+        Optional = $false
+        # Staged into its own directory rather than into include/ and
+        # lib/windows64: putting the bundle's headers on the shared include/
+        # path would shadow the system and bundle headers the other platforms
+        # rely on, which is what moving include/windows-vendored fixed.
+        Sentinel = 'dependencies-bundle\lib\avcodec.lib'
+        Stamp    = 'dependencies-bundle\.deps_version'
+        Version  = $depsVersion
+        Url      = "https://github.com/xLightsSequencer/xLights-dependencies/releases/download/$depsVersion/xLights-windows-dependencies-x64.zip"
+        Stage    = @(
+            @{ From = 'xLights-windows-dependencies\*'; To = 'dependencies-bundle' }
+            # The runtime DLLs also have to sit beside the executable, which is
+            # where the installer and the debugger both look for them.
+            @{ From = 'xLights-windows-dependencies\bin\*.dll'; To = 'bin64' }
+        )
+    }
     @{
         Name     = 'KLightMapper'
         Optional = $false
@@ -108,7 +130,8 @@ function Fetch-Dependency($dep) {
         foreach ($item in $dep.Stage) {
             $destDir = Join-Path $rootDir $item.To
             New-Item -ItemType Directory -Path $destDir -Force | Out-Null
-            Copy-Item (Join-Path $x $item.From) $destDir -Force
+            # -Recurse so a Stage entry can name a directory tree; harmless for files.
+            Copy-Item (Join-Path $x $item.From) $destDir -Recurse -Force
         }
         # Written last, so an interrupted run leaves no stamp and the next one refetches.
         if ($stamp) {

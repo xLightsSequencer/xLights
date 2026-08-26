@@ -136,7 +136,7 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
     #pragma comment(lib, "xlsxwriter.lib")
     #pragma comment(lib, "wxwebp.lib")
 #endif
-#pragma comment(lib, "libcurl.dll.a")
+#pragma comment(lib, "libcurl.lib")
 #pragma comment(lib, "z.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
@@ -165,7 +165,7 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #pragma comment(lib, "SDL2.lib")
 #pragma comment(lib, "swscale.lib")
 #pragma comment(lib, "z.lib")
-#pragma comment(lib, "lua5.3.5-static.lib")
+#pragma comment(lib, "lua.lib")
 //#pragma comment(lib, "libwebp.lib")
 //#pragma comment(lib, "libwebpdecoder.lib")
 //#pragma comment(lib, "libwebpdemux.lib")
