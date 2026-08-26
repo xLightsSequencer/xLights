@@ -16,7 +16,7 @@ concurrency:
 jobs:
   cmake-vcpkg:
     name: CMake / vcpkg / Windows x64
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
 
     env:
       VCPKG_DEFAULT_TRIPLET: x64-windows
@@ -108,26 +108,19 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       # ── wxWidgets ─────────────────────────────────────────────────────────
-      - name: Get wxWidgets HEAD SHA
-        id: wx-sha
-        shell: bash
-        run: |
-          sha=$(git ls-remote https://github.com/xLightsSequencer/wxWidgets.git HEAD \
-                | cut -f1 | head -c 12)
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-
       - name: Cache wxWidgets
         id: cache-wx
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}\wxWidgets
-          key: wxwidgets-msvc2022-x64-vcpkg-${{ steps.wx-sha.outputs.sha }}
+          key: wxwidgets-xlights_2026.17-x64-vcpkg-vs2026-${{ runner.arch }}
 
       - name: Checkout wxWidgets
         if: steps.cache-wx.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           repository: xLightsSequencer/wxWidgets
+          ref: xlights_2026.17
           path: wxWidgets
           submodules: recursive
 

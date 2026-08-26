@@ -52,7 +52,7 @@ jobs:
     # Always build on manual dispatch; on schedule only when there are new commits.
     if: ${{ github.event_name == 'workflow_dispatch' || needs.check_for_commits.outputs.should_run == 'true' }}
     name: CMake / Ninja / OpenVINO GenAI / Windows x64
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
 
     env:
       BUILD_DIR: cmake_ninja_openvino
@@ -154,26 +154,19 @@ jobs:
         run: New-Item -ItemType Directory -Force -Path $env:VCPKG_DEFAULT_BINARY_CACHE | Out-Null
 
       # ── wxWidgets ─────────────────────────────────────────────────────────
-      - name: Get wxWidgets HEAD SHA
-        id: wx-sha
-        shell: bash
-        run: |
-          sha=$(git ls-remote https://github.com/xLightsSequencer/wxWidgets.git HEAD \
-                | cut -f1 | head -c 12)
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-
       - name: Cache wxWidgets
         id: cache-wx
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}\wxWidgets
-          key: wxwidgets-msvc2022-x64-ninja-${{ steps.wx-sha.outputs.sha }}
+          key: wxwidgets-xlights_2026.17-x64-ninja-vs2026-${{ runner.arch }}
 
       - name: Checkout wxWidgets
         if: steps.cache-wx.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           repository: xLightsSequencer/wxWidgets
+          ref: xlights_2026.17
           path: wxWidgets
           submodules: recursive
 
