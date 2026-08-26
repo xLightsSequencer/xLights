@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  August ??, 2026
 
+    -bug (derwin12)              Fix the "could not calculate start channels" warning growing tall 
+                                 enough to scroll off screen (#6970)
 
 2026.16  August 24, 2026
 
