@@ -116,6 +116,13 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <!-- Without this the output is named after the project file, Xlights.exe.
+         The application is xLights, and the installer, the MSIX packaging, the
+         map-file step and wxExecute already spell it that way - they only work
+         because Windows ignores case. Name it properly at the source. -->
+    <TargetName>xLights</TargetName>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\dependencies-bundle\wxWidgets\include;..\dependencies-bundle\wxWidgets\include\msvc;$(IncludePath);..\dependencies-bundle\include;..\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\dependencies;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\include\microsoft.ml.onnxruntime.directml.1.19.2\build\native\include</IncludePath>
