@@ -17,8 +17,12 @@
              $false -> a failed fetch stops the script with a clear message
                        instead of a confusing downstream link error. Use this
                        for libraries the build genuinely cannot do without.
-    Sentinel a file (relative to the repo root) that exists once the dependency
-             is staged; used to skip work on repeat runs.
+    Sentinel one or more files (relative to the repo root) that exist once the
+             dependency is staged; used to skip work on repeat runs. List one
+             per Stage destination, not just one per archive: a file proving the
+             zip was unpacked says nothing about whether a later copy rule still
+             has its output, and a tree missing only that output would be
+             skipped and then build something that cannot run.
     Url      the .zip release asset to download.
     Archive  omit for a .zip. $false means the Url is a bare file with no
              archive to expand; Stage then takes a single @{ To; As } naming
@@ -36,7 +40,7 @@
   carries the fetch recipe instead of the binaries.
 
 .PARAMETER Force
-  Re-download every dependency even if its sentinel file already exists.
+  Re-download every dependency even if its sentinel files already exist.
 
 .PARAMETER Only
   Fetch only the dependency whose Name matches (e.g. -Only KLightMapper).
@@ -77,7 +81,10 @@ $Dependencies = @(
         # lib/windows64: putting the bundle's headers on the shared include/
         # path would shadow the system and bundle headers the other platforms
         # rely on, which is what moving include/windows-vendored fixed.
-        Sentinel = 'dependencies-bundle\lib\avcodec.lib'
+        # One per Stage destination below. bin64 is listed separately because
+        # deleting a DLL from there leaves the bundle directory intact, which
+        # used to skip the fetch and produce an executable missing SDL2.
+        Sentinel = @('dependencies-bundle\lib\avcodec.lib', 'bin64\SDL2.dll')
         Stamp    = 'dependencies-bundle\.deps_version'
         Version  = $depsVersion
         Url      = "https://github.com/xLightsSequencer/xLights-dependencies/releases/download/$depsVersion/xLights-windows-dependencies-x64.zip"
@@ -91,7 +98,7 @@ $Dependencies = @(
     @{
         Name     = 'KLightMapper'
         Optional = $false
-        Sentinel = 'lib\windows64\klightmapper.lib'
+        Sentinel = @('lib\windows64\klightmapper.lib', 'bin64\klightmapper.dll')
         # Records the staged version so a bump to klightmapper_version.txt
         # actually re-downloads instead of leaving the old lib and headers.
         Stamp    = 'lib\windows64\.klightmapper_version'
@@ -121,7 +128,11 @@ $Dependencies = @(
 )
 
 function Fetch-Dependency($dep) {
-    $sentinel = Join-Path $rootDir $dep.Sentinel
+    # Every sentinel must be present; one missing means something was cleaned
+    # out from under us and the dependency has to be staged again.
+    $sentinels = @($dep.Sentinel) | ForEach-Object { Join-Path $rootDir $_ }
+    $missing   = @($sentinels | Where-Object { -not (Test-Path $_) })
+    $stagedOk  = ($missing.Count -eq 0)
     $stamp    = if ($dep.Stamp) { Join-Path $rootDir $dep.Stamp } else { $null }
     # Skip only when what is staged IS the pinned version. Testing presence
     # alone would make a version bump a no-op on every existing tree, and the
@@ -130,7 +141,11 @@ function Fetch-Dependency($dep) {
     # .Trim(): Get-Content -Raw yields $null on an empty stamp, and
     # $ErrorActionPreference = 'Stop' would turn that into a build abort.
     $staged = if ($stamp -and (Test-Path $stamp)) { ([string](Get-Content $stamp -Raw)).Trim() } else { '' }
-    if ((Test-Path $sentinel) -and -not $Force) {
+    if (-not $stagedOk -and $missing.Count -lt $sentinels.Count) {
+        Write-Host ("fetch_dependencies: {0} is missing {1} - re-staging." -f $dep.Name,
+            (($missing | ForEach-Object { Split-Path $_ -Leaf }) -join ', '))
+    }
+    if ($stagedOk -and -not $Force) {
         if ($dep.MinVersion) {
             # A floating "latest" Url: anything at or above the floor is fine,
             # so do not re-download every time upstream publishes a new build.
