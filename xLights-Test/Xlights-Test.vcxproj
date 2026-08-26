@@ -37,12 +37,12 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\include;..\xLights;$(IncludePath)</IncludePath>
-    <LibraryPath>$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;..\xLights\x64\Debug;..\dependencies\lua\src;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\dependencies-bundle\wxWidgets\include;..\dependencies-bundle\wxWidgets\include\msvc;..\include;..\xLights;$(IncludePath)</IncludePath>
+    <LibraryPath>$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\dependencies-bundle\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;..\xLights\x64\Debug;..\dependencies\lua\src;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\include;..\xLights;$(IncludePath)</IncludePath>
-    <LibraryPath>$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;..\xLights\x64\Release;..\dependencies\lua\src;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;..\dependencies-bundle\wxWidgets\include;..\dependencies-bundle\wxWidgets\include\msvc;..\include;..\xLights;$(IncludePath)</IncludePath>
+    <LibraryPath>$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\dependencies-bundle\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\lib\windows;..\xLights\x64\Release;..\dependencies\lua\src;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>
