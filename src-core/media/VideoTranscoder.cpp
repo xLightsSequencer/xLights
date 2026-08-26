@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "VideoTranscoder.h"
+#include "media/FFmpegCompat.h"
 #include "media/VideoWriter.h"
 
 #include <algorithm>

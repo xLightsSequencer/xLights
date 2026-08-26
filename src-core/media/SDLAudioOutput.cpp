@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "SDLAudioOutput.h"
+#include "media/FFmpegCompat.h"
 
 #include <cassert>
 #include <cmath>
@@ -161,12 +162,7 @@ static uint8_t* StretchAudioAtempo(const uint8_t* input, long inputLen,
         frame->sample_rate = sampleRate;
         frame->format      = AV_SAMPLE_FMT_S16;
         frame->nb_samples  = n;
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 28, 100)
         av_channel_layout_default(&frame->ch_layout, 2);
-#else
-        frame->channels       = 2;
-        frame->channel_layout = AV_CH_LAYOUT_STEREO;
-#endif
         if (av_frame_get_buffer(frame, 0) < 0) break;
 
         memcpy(frame->data[0], input + frameOffset * 2 * (long)sizeof(int16_t),

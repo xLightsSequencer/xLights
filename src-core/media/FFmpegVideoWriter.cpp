@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "media/FFmpegVideoWriter.h"
+#include "media/FFmpegCompat.h"
 
 extern "C"
 {
@@ -22,6 +23,38 @@ extern "C"
 }
 
 #include <log.h>
+
+namespace {
+// AVCodec::pix_fmts was deprecated in FFmpeg 7.1 in favour of
+// avcodec_get_supported_config(); it still exists in 8.x but warns and will be
+// removed. xLights supports FFmpeg 6.x, 7.x and 8.x, so query through whichever
+// API the build provides.
+//
+// Both APIs use NULL to mean "no specific list", so a null return keeps the
+// existing behaviour at the call sites: fall through to the software path.
+const enum AVPixelFormat* xlCodecPixelFormats(const AVCodec* codec) {
+    if (codec == nullptr) {
+        return nullptr;
+    }
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 13, 100)
+    const void* configs = nullptr;
+    if (::avcodec_get_supported_config(nullptr, codec, AV_CODEC_CONFIG_PIX_FORMAT,
+                                       0, &configs, nullptr) < 0) {
+        return nullptr;
+    }
+    return static_cast<const enum AVPixelFormat*>(configs);
+#else
+    return codec->pix_fmts;
+#endif
+}
+
+// Only the hardware encoders advertise VIDEOTOOLBOX as their first supported
+// pixel format; rawvideo and friends advertise no list at all.
+bool xlCodecPrefersVideoToolbox(const AVCodec* codec) {
+    const enum AVPixelFormat* fmts = xlCodecPixelFormats(codec);
+    return fmts != nullptr && fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX;
+}
+} // namespace
 
 #include <algorithm>
 #include <cstring>
@@ -353,9 +386,7 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
         _videoCodecContext->colorspace      = AVCOL_SPC_BT709;
     }
 
-    // rawvideo (and some others) advertise no pix_fmts list (NULL), so guard the
-    // dereference — only the hardware encoders set pix_fmts[0] to VIDEOTOOLBOX.
-    if (codec->pix_fmts != nullptr && codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+    if (xlCodecPrefersVideoToolbox(codec)) {
 #if defined(__APPLE__)
         // A VideoToolbox hardware frames context lets the encoder consume
         // GPU-backed CVPixelBuffers directly (zero-copy, no CPU sws_scale) — but
@@ -475,7 +506,7 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
         _videoCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
     int status = ::avcodec_open2(_videoCodecContext, nullptr, nullptr);
-    if (status != 0 && codec->pix_fmts != nullptr && codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+    if (status != 0 && xlCodecPrefersVideoToolbox(codec)) {
         spdlog::warn("VideoWriter - VideoToolbox encoder failed to open, downgrading");
         // could not initialize hardware encoder, drop to ffmpeg mpeg4
         if (strcmp(codec->name, "hevc_videotoolbox") == 0) {
@@ -578,12 +609,7 @@ void FFmpegVideoWriter::initializeAudio(const AVCodec* codec)
     audio_st->id = _formatContext->nb_streams - 1;
 
     _audioCodecContext = ::avcodec_alloc_context3(codec);
-#if LIBAVUTIL_VERSION_MAJOR < 57
-    _audioCodecContext->channels = 2;
-    _audioCodecContext->channel_layout = AV_CH_LAYOUT_STEREO;
-#else
     _audioCodecContext->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
-#endif
     _audioCodecContext->sample_rate = _outParams.audioSampleRate;
     _audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
     _audioCodecContext->bit_rate = 128000;
@@ -667,12 +693,7 @@ void FFmpegVideoWriter::initializeFrames()
         _audioFrame = ::av_frame_alloc();
         _audioFrame->format = AV_SAMPLE_FMT_FLTP;
         _audioFrame->nb_samples = _audioCodecContext->frame_size;
-#if LIBAVUTIL_VERSION_MAJOR < 57
-        _audioFrame->channels = 2;
-        _audioFrame->channel_layout = AV_CH_LAYOUT_STEREO;
-#else
         _audioFrame->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
-#endif
         _audioFrame->sample_rate = _outParams.audioSampleRate;
         status = ::av_frame_get_buffer(_audioFrame, 0);
         if (status != 0) {

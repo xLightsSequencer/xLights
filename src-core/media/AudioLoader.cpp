@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "AudioLoader.h"
+#include "media/FFmpegCompat.h"
 
 #include <algorithm>
 #include <cassert>

@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "FFmpegVideoReader.h"
+#include "media/FFmpegCompat.h"
 
 //#define VIDEO_EXTRALOGGING
 

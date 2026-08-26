@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "WindowsHardwareVideoReader.h"
+#include "media/FFmpegCompat.h"
 
 #ifdef _WIN32
 

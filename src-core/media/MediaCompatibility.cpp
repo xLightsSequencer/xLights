@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "MediaCompatibility.h"
+#include "media/FFmpegCompat.h"
 
 #ifdef __APPLE__
 #include "media/MediaCompatibilityBridge.h"

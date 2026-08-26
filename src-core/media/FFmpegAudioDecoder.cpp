@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "FFmpegAudioDecoder.h"
+#include "media/FFmpegCompat.h"
 
 #include <cassert>
 #include <chrono>
