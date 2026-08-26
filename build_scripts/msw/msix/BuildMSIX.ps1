@@ -218,10 +218,9 @@ if ($Layout -eq 'VS') {
 
     # Runtime DLLs (exact set the installer ships).
     $bin64dlls = @(
-        'libgcc_s_seh-1.dll',
-        'avcodec-60.dll','avdevice-60.dll','avfilter-9.dll','avformat-60.dll',
-        'avutil-58.dll','postproc-57.dll','swresample-4.dll','swscale-7.dll',
-        'SDL2.dll','libcurl-x64.dll','hidapi.dll','onnxruntime.dll','klightmapper.dll'
+        'avcodec-62.dll','avfilter-11.dll','avformat-62.dll',
+        'avutil-60.dll','swresample-6.dll','swscale-9.dll',
+        'SDL2.dll','libcurl.dll','hidapi.dll','onnxruntime.dll','klightmapper.dll'
     )
     foreach ($d in $bin64dlls) { Add-File "bin64/$d" $d }
     # Vamp plugins are intentionally NOT bundled. The Vamp Plugin Pack is

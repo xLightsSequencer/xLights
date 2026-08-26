@@ -86,24 +86,19 @@ Source: "../../fseq_convert/cmake_vs/Release/fseq_convert.exe"; DestDir: "{app}"
 ; wxWidgets
 ; Statically linkes
 
-; Take these from the default mingw install directory
-Source: "../../bin64/libgcc_s_seh-1.dll";  DestDir: "{app}";  Flags: "ignoreversion"
-
-; avlib - video and audio
-Source: "../../bin64/avcodec-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/avdevice-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/avfilter-9.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/avformat-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/avutil-58.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/postproc-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/swresample-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
-Source: "../../bin64/swscale-7.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+; avlib - video and audio (FFmpeg 8.x, from the dependency bundle)
+Source: "../../bin64/avcodec-62.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avfilter-11.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avformat-62.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/avutil-60.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/swresample-6.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/swscale-9.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; SDL - audio playing
 Source: "../../bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; libcurl
-Source: "../../bin64/libcurl-x64.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+Source: "../../bin64/libcurl.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; hidapi
 Source: "../../bin64/hidapi.dll"; DestDir: "{app}";  Flags: "ignoreversion"
