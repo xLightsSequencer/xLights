@@ -1194,7 +1194,7 @@ void Pixlite16::PrepareDiscovery(Discovery& discovery)
 
     discovery.AddBroadcast(PIXLITE_PORT, [&discovery](uint8_t* data, int len, const std::string &fromIP) {
         
-        spdlog::error("    Advatech discovery packet type : {}.", data[10]);
+        spdlog::debug("    Advatech discovery packet type : {}.", data[10]);
         if (data[10] == 0x02) {
             Pixlite16::Config it;
             memset((void*)&it, 0x00, sizeof(it));
