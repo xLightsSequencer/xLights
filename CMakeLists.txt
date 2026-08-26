@@ -195,9 +195,9 @@ if(SDL2_FOUND)
     set(SDL2_LINK_TARGET SDL2::SDL2)
     set(SDL2_INC "")
 else()
-    # Manual fallback — vendored on Windows, system on Linux.
+    # Manual fallback — the dependency bundle on Windows, system on Linux.
     find_path(SDL2_INCLUDE_DIR SDL.h
-        HINTS ${XL_DEPS}/sdl/include
+        HINTS ${XL_BUNDLE}/include/SDL2
         PATHS /usr/include/SDL2 /usr/local/include/SDL2
         NO_DEFAULT_PATH)
     if(NOT SDL2_INCLUDE_DIR)

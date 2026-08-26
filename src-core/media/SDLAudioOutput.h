@@ -25,7 +25,7 @@
 
 extern "C" {
 #define SDL_MAIN_HANDLED
-#include "sdl/include/SDL.h"  // resolved via dependencies/ include path
+#include <SDL2/SDL.h>
 }
 
 class AudioData {
