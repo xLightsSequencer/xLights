@@ -271,14 +271,24 @@ else()
     set(CURL_INC "${CURL_INCLUDE_DIR}")
 endif()
 
-# ─── Lua (compiled from vendored source) ────────────────────────────────────
-# Avoid relying on a pre-built .lib whose name varies across platforms/builds.
-# lua.c and luac.c define their own main() — exclude them.
-file(GLOB LUA_SRC ${XL_DEPS}/lua/src/*.c)
-list(REMOVE_ITEM LUA_SRC
-    ${XL_DEPS}/lua/src/lua.c
-    ${XL_DEPS}/lua/src/luac.c)
-set(LUA_INCLUDE_DIR ${XL_DEPS}/lua/src)
+# ─── Lua ────────────────────────────────────────────────────────────────────
+# The dependency bundle on Windows, the system package elsewhere - the same Lua
+# the MSBuild, Xcode and Code::Blocks builds already use. This build used to
+# compile a vendored copy instead, which is exactly how it could drift from
+# the version the other three link against.
+find_path(LUA_INCLUDE_DIR lua.h
+    HINTS ${XL_BUNDLE}/include
+    PATHS /usr/include /usr/local/include
+    PATH_SUFFIXES lua5.4 lua5.3 lua)
+find_library(LUA_LIB NAMES lua lua5.4 lua5.3
+    HINTS ${XL_WIN_LIB_HINTS}
+    PATHS /usr/lib /usr/local/lib)
+if(NOT LUA_INCLUDE_DIR OR NOT LUA_LIB)
+    message(FATAL_ERROR
+        "Lua not found. Install the Lua development package (liblua5.3-dev or "
+        "liblua5.4-dev), or stage the dependency bundle via "
+        "ci_scripts/fetch_dependencies.ps1 on Windows.")
+endif()
 
 # ─── Source file collection ─────────────────────────────────────────────────
 
@@ -591,7 +601,6 @@ add_executable(xLights WIN32 MACOSX_BUNDLE
     ${SRC_EFFECTS}
     ${SRC_UI}
     ${SRC_DEPS}
-    ${LUA_SRC}
     ${WIN32_RC}
 )
 
@@ -605,7 +614,7 @@ endif()
 # in a matching folder hierarchy in the VS Solution Explorer.
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SRC_CORE} ${SRC_EFFECTS})
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SRC_UI})
-source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SRC_DEPS} ${LUA_SRC})
+source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SRC_DEPS})
 
 # ─── Include directories ────────────────────────────────────────────────────
 target_include_directories(xLights PRIVATE
@@ -616,7 +625,6 @@ target_include_directories(xLights PRIVATE
 
     ${XL_DEPS}
     ${XL_DEPS}/spdlog/include
-    ${XL_DEPS}/lua/src
     ${XL_DEPS}/pugixml/src
     ${XL_DEPS}/midifile/include
     ${XL_DEPS}/liquidfun/liquidfun/Box2D
@@ -765,8 +773,8 @@ target_link_libraries(xLights PRIVATE
     ${SDL2_LINK_TARGET}
     ${ZSTD_LINK_TARGET}
     ${ZLIB_LINK_TARGET}
+    ${LUA_LIB}
 )
-# Lua is compiled from source (LUA_SRC) — no pre-built lib needed.
 # curl is optional: MSVC-compatible .lib may not be present in the vendored tree.
 if(CURL_LINK_TARGET)
     target_link_libraries(xLights PRIVATE ${CURL_LINK_TARGET})
@@ -905,7 +913,7 @@ if(WIN32)
                                           mfuuid propsys wmcodecdspuuid
                                           iphlpapi)
     if(NOT XLIGHTS_USE_VCPKG)
-        # vendored pre-built libs (FFmpeg, SDL2, etc.) + lua pragma stubs
+        # bundle import libraries named by #pragma comment(lib, ...)
         target_link_directories(xLights PRIVATE ${XL_WIN_LIB_HINTS})
     endif()
 elseif(UNIX AND NOT APPLE)
