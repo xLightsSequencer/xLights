@@ -409,8 +409,14 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <Target Name="FetchKLightMapper" BeforeTargets="ClCompile" Condition="!Exists('$(MSBuildProjectDirectory)\..\lib\windows64\klightmapper.lib')">
-    <Message Importance="high" Text="Fetching KLightMapper prebuilt library (one-time)..." />
+  <!-- No Condition: fetch_dependencies.ps1 already decides per dependency what
+       is missing, and a fully staged tree costs it about a fifth of a second.
+       A second gate here would have to list every dependency the catalogue
+       stages, and the two drift - which is exactly how a tree with
+       klightmapper.lib present but the bundle incomplete ended up skipping the
+       fetch and building an xLights that could not start. -->
+  <Target Name="FetchDependencies" BeforeTargets="ClCompile">
+    <Message Importance="high" Text="Staging prebuilt dependencies..." />
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\ci_scripts\fetch_dependencies.ps1&quot;" />
   </Target>
   <!-- Vulkan (x64 only): compile the .comp compute kernels to the SPIR-V headers

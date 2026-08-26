@@ -74,7 +74,10 @@ goto exit
 :error
 
 @echo Error compiling x64
-pause
+rem Only wait for a keypress when a person is watching. CI sets CI=true, and
+rem there a bare pause turns a failed build into a job that hangs until it
+rem times out instead of failing straight away.
+if not defined CI pause
 exit 1
 
 :exit

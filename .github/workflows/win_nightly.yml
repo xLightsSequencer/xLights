@@ -86,7 +86,7 @@ jobs:
       - name: Build All
         shell: cmd
         working-directory: build_scripts\msw
-        run: call build_VS_x64_skip_libltc.cmd
+        run: call build_VS_x64.cmd
 
       # --- Authenticode signing via Azure Trusted Signing (Kulp Lights LLC) ----
       # Same approach as the release workflow: sign our executables, then the
