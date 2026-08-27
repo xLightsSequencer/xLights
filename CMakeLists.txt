@@ -585,10 +585,6 @@ set(SRC_DEPS
     dependencies/wxJSON/jsonval.cpp
     dependencies/wxJSON/jsonwriter.cpp
     dependencies/wxLED/wxLED.cpp
-    dependencies/libxlsxwriter/third_party/minizip/ioapi.c
-    dependencies/libxlsxwriter/third_party/minizip/unzip.c
-    dependencies/libxlsxwriter/third_party/minizip/zip.c
-    $<$<BOOL:${WIN32}>:${CMAKE_SOURCE_DIR}/dependencies/libxlsxwriter/third_party/minizip/iowin32.c>
 )
 
 # ─── Executable ─────────────────────────────────────────────────────────────
@@ -630,7 +626,6 @@ target_include_directories(xLights PRIVATE
     # Windows takes Box2D from the bundle include added below; Linux builds
     # liquidfun itself and still needs the submodule headers.
     $<$<NOT:$<BOOL:${WIN32}>>:${XL_DEPS}/liquidfun/liquidfun/Box2D>
-    ${XL_DEPS}/libxlsxwriter/include
     ${XL_DEPS}/pybind11/include
     ${XL_INC}
     $<$<BOOL:${WIN32}>:${XL_BUNDLE}/include>
@@ -844,13 +839,21 @@ if(MSVC AND XLIGHTS_USE_VCPKG)
     )
 endif()
 
-# libxlsxwriter — no cmake config package; find_library works for both vcpkg and vendored.
-find_library(XLSXWRITER_LIB NAMES xlsxwriter xlsxwriterd
-    HINTS ${XL_WIN_LIB_HINTS} ${XL_DEPS}/libxlsxwriter ${XL_DEPS}/libxlsxwriter/lib)
+# libxlsxwriter and minizip - no cmake config package, so find_library.  Both
+# come from the dependency bundle on Windows/macOS and from the distro
+# (libxlsxwriter-dev / libminizip-dev) on Linux.
+find_library(XLSXWRITER_LIB NAMES xlsxwriter xlsxwriterd HINTS ${XL_WIN_LIB_HINTS})
 if(XLSXWRITER_LIB)
     target_link_libraries(xLights PRIVATE ${XLSXWRITER_LIB})
 elseif(XLIGHTS_USE_VCPKG)
     message(FATAL_ERROR "XLIGHTS_USE_VCPKG=ON but libxlsxwriter not found. Run: vcpkg install libxlsxwriter")
+endif()
+
+find_library(MINIZIP_LIB NAMES minizip HINTS ${XL_WIN_LIB_HINTS})
+if(MINIZIP_LIB)
+    target_link_libraries(xLights PRIVATE ${MINIZIP_LIB})
+else()
+    message(FATAL_ERROR "minizip not found (Linux: apt install libminizip-dev)")
 endif()
 
 # LiquidFun (not in vcpkg — always use vendored)

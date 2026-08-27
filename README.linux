@@ -80,7 +80,7 @@ Instructions for other Linux distributions will vary.
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libavfilter-dev libzstd-dev libwebp-dev libcurl4-openssl-dev liblua5.3-dev libegl-dev libfreetype-dev libharfbuzz-dev libfontconfig-dev libavahi-compat-libdnssd-dev wget git cbp2make curl libsecret-1-dev
+     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libavfilter-dev libzstd-dev libwebp-dev libcurl4-openssl-dev liblua5.3-dev libminizip-dev libxlsxwriter-dev libegl-dev libfreetype-dev libharfbuzz-dev libfontconfig-dev libavahi-compat-libdnssd-dev wget git cbp2make curl libsecret-1-dev
 
      mDNS/Bonjour controller discovery (WLED and similar):
        BUILD: without libavahi-compat-libdnssd-dev, <dns_sd.h> is unavailable

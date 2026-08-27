@@ -43,7 +43,7 @@ endif
 .NOTPARALLEL:
 .SECONDEXPANSION:
 
-all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc klightmapper makefile vulkanshaders subdirs
+all: wxwidgets33 cbp2make linkliquid ispc klightmapper makefile vulkanshaders subdirs
 
 #############################################################################
 
@@ -81,13 +81,6 @@ linkliquid:
 			then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
 			else ln -s libliquidfun.a.`uname -m` lib/linux/libliquidfun.a; \
 		fi; \
-	fi
-
-libxlsxwriter: FORCE
-	@printf "Linking libxlsxwriter\n"
-	@if test ! -e dependencies/libxlsxwriter/lib/libxlsxwriter.a; \
-		then cd dependencies/libxlsxwriter; \
-		${MAKE} -s; \
 	fi
 
 wxwidgets33: FORCE

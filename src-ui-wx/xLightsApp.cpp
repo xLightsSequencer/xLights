@@ -138,6 +138,7 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #endif
 #pragma comment(lib, "libcurl.lib")
 #pragma comment(lib, "z.lib")
+#pragma comment(lib, "minizip.lib")
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "WS2_32.Lib")
 #pragma comment(lib, "comdlg32.lib")

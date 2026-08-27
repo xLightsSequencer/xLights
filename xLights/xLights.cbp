@@ -47,7 +47,6 @@
 					<Add directory="../src-core/outputs" />
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
-					<Add directory="../dependencies/libxlsxwriter/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
@@ -74,7 +73,8 @@
 					<Add option="-lwebpdemux" />
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
-					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
+					<Add library="xlsxwriter" />
+					<Add library="minizip" />
 					<Add library="glslang-default-resource-limits" />
 					<Add library="SPIRV" />
 					<Add library="glslang" />
@@ -126,7 +126,6 @@
 					<Add directory="../src-core/outputs" />
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
-					<Add directory="../dependencies/libxlsxwriter/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
@@ -153,7 +152,8 @@
 					<Add option="-lwebpdemux" />
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
-					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
+					<Add library="xlsxwriter" />
+					<Add library="minizip" />
 					<Add library="glslang-default-resource-limits" />
 					<Add library="SPIRV" />
 					<Add library="glslang" />
@@ -183,15 +183,6 @@
 		<Unit filename="../dependencies/wxLED/wxLED.h" />
 		<Unit filename="../dependencies/md5/md5.cpp" />
 		<Unit filename="../dependencies/md5/md5.h" />
-		<Unit filename="../dependencies/libxlsxwriter/third_party/minizip/ioapi.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../dependencies/libxlsxwriter/third_party/minizip/unzip.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../dependencies/libxlsxwriter/third_party/minizip/zip.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="../dependencies/wxHTTPServer/connection.cpp" />
 		<Unit filename="../dependencies/wxHTTPServer/context.cpp" />
 		<Unit filename="../dependencies/wxHTTPServer/message.cpp" />

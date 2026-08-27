@@ -25,7 +25,7 @@
 #include <filesystem>
 #include <fstream>
 
-#include "../../dependencies/libxlsxwriter/third_party/minizip/zip.h"
+#include <minizip/zip.h>
 #include <zstd.h>
 
 #include "FPP.h"

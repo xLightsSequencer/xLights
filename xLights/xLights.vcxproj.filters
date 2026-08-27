@@ -180,9 +180,6 @@
     <ClCompile Include="..\src-core\controllers\WebSocketClient.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LayerSelectDialog.cpp" />
     <ClCompile Include="..\dependencies\md5\md5.cpp" />
-    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\ioapi.c" />
-    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\unzip.c" />
-    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\zip.c" />
     <ClCompile Include="..\src-ui-wx\import_export\VendorMusicDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VendorMusicHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\media\JukeboxPanel.cpp" />

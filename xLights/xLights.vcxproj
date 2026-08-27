@@ -434,18 +434,6 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\dependencies\wxLED\wxLED.cpp" />
     <ClCompile Include="..\dependencies\md5\md5.cpp" />
-    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\ioapi.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\unzip.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\zip.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="..\dependencies\wxHTTPServer\connection.cpp" />
     <ClCompile Include="..\dependencies\wxHTTPServer\context.cpp" />
     <ClCompile Include="..\dependencies\wxHTTPServer\message.cpp" />
