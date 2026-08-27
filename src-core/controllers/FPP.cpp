@@ -2446,11 +2446,21 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
         if (found) {
             nlohmann::json val;
             if (GetURLAsJSON("/api/cape/strings/" + id, val)) {
-                if (val.contains("driver")) {
-                    driver = val["driver"].get<std::string>();
+                // The board decides which string driver runs, not the model name: revisions
+                // of one cape differ, and a cape that names no driver is one of the direct
+                // drive boards FPP defaults to BBB48String for.  Writing anything else is
+                // a config the driver cannot read, so take the cape's answer over ours and
+                // say so if the variant the user picked disagrees.
+                std::string const capeDriver = val.contains("driver") ? val["driver"].get<std::string>() : "BBB48String";
+                if (!driver.empty() && driver != capeDriver && _ui) {
+                    _ui->ShowMessage(ipAddress + " is running the " + capeDriver + " output but the configured variant "
+                                         + rules->GetModel() + " " + rules->GetVariantName() + " expects " + driver
+                                         + ".  It will be uploaded as " + capeDriver + " so it works, but the ports are being offered the protocols and smart receivers of the other board revision.  Select the variant matching this board.",
+                                     "Controller Variant");
                 }
+                driver = capeDriver;
                 if (val.contains("falconV5ListenerConfig")) {
-                    supportsV5Receivers = true;;
+                    supportsV5Receivers = true;
                 }
             } else {
                 found = false;
@@ -3568,6 +3578,7 @@ static void setRangesToChannelCount(DiscoveredData *inst) {
 
 static void SetControllerType(DiscoveredData *inst) {
     if (inst->pixelControllerType != "") {
+        std::string const origVariant = inst->variant;
         std::string v, m, var;
         Controller::ConvertOldTypeToVendorModel(inst->pixelControllerType, v, m, var);
         if (v != "") {
@@ -3578,6 +3589,24 @@ static void SetControllerType(DiscoveredData *inst) {
         }
         if (var != "") {
             inst->SetVariant(var);
+        }
+        // Where board revisions of one cape are separate variants they all report the same
+        // model name, so the name alone lands on whichever is listed first.  The version
+        // the cape reports is what tells them apart - and if what was already configured
+        // is a variant of the right revision, keep it: it may be the expansion one.
+        std::string const capeVersion = inst->extraData.is_object() && inst->extraData.contains("capeVersion")
+                                            ? inst->extraData["capeVersion"].get<std::string>()
+                                            : std::string();
+        if (!capeVersion.empty()) {
+            ControllerCaps* orig = ControllerCaps::GetControllerConfig(inst->vendor, inst->model, origVariant);
+            if (orig != nullptr && orig->GetID() == inst->pixelControllerType && orig->MatchesFPPCapeVersion(capeVersion)) {
+                inst->SetVariant(orig->GetVariantName());
+            } else {
+                ControllerCaps* byVersion = ControllerCaps::GetControllerConfigByIDAndCapeVersion(inst->pixelControllerType, capeVersion);
+                if (byVersion != nullptr) {
+                    inst->SetVariant(byVersion->GetVariantName());
+                }
+            }
         }
         ControllerCaps *caps = inst->controller->GetControllerCaps();
         if (caps != nullptr && caps->SupportsAutoLayout()) {
@@ -3981,6 +4010,10 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     inst->majorVersion =  GetJSONIntValue(val, "majorVersion", inst->majorVersion);
     if (val.contains("capeInfo")) {
         inst->pixelControllerType = GetJSONStringValue(val["capeInfo"], "id");
+        std::string const capeVersion = GetJSONStringValue(val["capeInfo"], "version");
+        if (!capeVersion.empty()) {
+            inst->extraData["capeVersion"] = capeVersion;
+        }
     }
 
     std::string file = "co-pixelStrings";

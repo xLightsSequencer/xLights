@@ -40,6 +40,15 @@ inline ControllerCaps *FindVariant(std::list<ControllerCaps*> &variants, const s
             return it;
         }
     }
+
+    // A variant that has been renamed - a cape revision split into two entries, say -
+    // carries the name it used to have, so shows saved against the old name still resolve.
+    for (auto it : variants) {
+        auto const& names = it->GetAlternativeVariantNames();
+        if (std::find(names.begin(), names.end(), var) != names.end()) {
+            return it;
+        }
+    }
     return nullptr;
 }
 
@@ -279,6 +288,25 @@ ControllerCaps* ControllerCaps::GetControllerConfigByID(const std::string& ID) {
         for (auto &m : v.second) {
             for (auto &vr : m.second) {
                 if (ID == vr->GetID()) {
+                    return vr;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+// Some capes changed enough between board revisions to be separate variants, and the
+// model name they report is the same for both, so only the version the cape reports says
+// which one is in front of us.
+ControllerCaps* ControllerCaps::GetControllerConfigByIDAndCapeVersion(const std::string& ID, const std::string& capeVersion) {
+    if (ID.empty() || capeVersion.empty()) {
+        return nullptr;
+    }
+    LoadControllers();
+    for (auto& v : __controllers) {
+        for (auto& m : v.second) {
+            for (auto& vr : m.second) {
+                if (vr->GetID() == ID && vr->MatchesFPPCapeVersion(capeVersion)) {
                     return vr;
                 }
             }
@@ -826,6 +854,26 @@ std::string ControllerCaps::GetCustomPropertyByPath(const std::string name, cons
 
 std::vector<std::string> ControllerCaps::GetAlternativeNames() const {
     return GetXmlNodeListContent(_config, "AltNames", "AltName");
+}
+
+std::vector<std::string> ControllerCaps::GetAlternativeVariantNames() const {
+    return GetXmlNodeListContent(_config, "AltVariantNames", "AltVariantName");
+}
+
+// fppCapeVersions lists the major versions of the cape this variant describes, so a
+// "2.0" cape matches the variant that claims "2,3".
+bool ControllerCaps::MatchesFPPCapeVersion(const std::string& capeVersion) const {
+    std::string const versions = GetCustomPropertyByPath("fppCapeVersions");
+    if (versions.empty() || capeVersion.empty()) {
+        return false;
+    }
+    std::string const major = BeforeFirst(capeVersion, '.');
+    for (auto const& v : Split(versions, ',', true)) {
+        if (v == major) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void ControllerCaps::Dump() const

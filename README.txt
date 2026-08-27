@@ -18,6 +18,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Playground sheet, seeded with the prompt and style you picked, and
                                  brings the image you accept back into the usual crop/resize/save
                                  flow - Apple discontinued the API that generated images directly
+    -bug (dkulp)                 Kulp K16A-B is now two variants, 1.x and 2.x/3.x, as the two board
+                                 revisions run different FPP string drivers and support different
+                                 pixel protocols and smart receivers.  Existing shows resolve to
+                                 1.x; discovery picks the right one from the cape.  Uploads now
+                                 take the string driver from the cape itself, so a mismatched
+                                 variant no longer writes a config the controller cannot run (#6978)
     -bug (derwin12)              Fix the "could not calculate start channels" warning growing tall
                                  enough to scroll off screen (#6970)
     -bug (derwin12)              Fix Layout tab model list losing its chosen column sort order
