@@ -3,232 +3,245 @@
 	<object class="wxPanel" name="EffectTreeDialog">
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
+			<rows>1</rows>
 			<growablecols>0</growablecols>
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>3</cols>
-					<growablecols>0</growablecols>
-					<growablerows>0</growablerows>
-					<object class="sizeritem">
-						<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl1" member="yes">
-							<image_list>&lt;none&gt;</image_list>
-							<tree_items>
-								<item>TreeCtrl1</item>
-								<item>&lt;none&gt;</item>
-							</tree_items>
-							<items_text>
-								<item2>TreeCtrl1</item2>
-								<item2>&lt;none&gt;</item2>
-							</items_text>
-							<minsize>80,-1d</minsize>
-							<handler function="OnTreeCtrl1BeginDrag" entry="EVT_TREE_BEGIN_DRAG" />
-							<handler function="OnTreeCtrl1ItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
-							<handler function="OnTreeCtrl1ItemRightClick" entry="EVT_TREE_ITEM_RIGHT_CLICK" />
-							<handler function="OnTreeCtrl1SelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
-							<handler function="OnTreeCtrl1KeyDown" entry="EVT_TREE_KEY_DOWN" />
+				<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindow1" member="yes">
+					<style>wxVSCROLL|wxHSCROLL</style>
+					<object class="wxFlexGridSizer" variable="FlexGridSizerContent" member="no">
+						<cols>1</cols>
+						<growablecols>0</growablecols>
+						<growablerows>0</growablerows>
+						<object class="sizeritem">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+								<cols>3</cols>
+								<growablecols>0</growablecols>
+								<growablerows>0</growablerows>
+								<object class="sizeritem">
+									<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl1" member="yes">
+										<image_list>&lt;none&gt;</image_list>
+										<tree_items>
+											<item>TreeCtrl1</item>
+											<item>&lt;none&gt;</item>
+										</tree_items>
+										<items_text>
+											<item2>TreeCtrl1</item2>
+											<item2>&lt;none&gt;</item2>
+										</items_text>
+										<minsize>80,-1d</minsize>
+										<handler function="OnTreeCtrl1BeginDrag" entry="EVT_TREE_BEGIN_DRAG" />
+										<handler function="OnTreeCtrl1ItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
+										<handler function="OnTreeCtrl1ItemRightClick" entry="EVT_TREE_ITEM_RIGHT_CLICK" />
+										<handler function="OnTreeCtrl1SelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
+										<handler function="OnTreeCtrl1KeyDown" entry="EVT_TREE_KEY_DOWN" />
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxBoxSizer" variable="BoxSizer3" member="no">
+										<orient>wxVERTICAL</orient>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON11" variable="Button_Top" member="yes">
+												<label>^^</label>
+												<size>15,-1d</size>
+												<handler function="OnButton_TopClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+											<border>5</border>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON9" variable="Button_MoveUp" member="yes">
+												<label>^</label>
+												<size>15,-1d</size>
+												<handler function="OnButton_MoveUpClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+											<border>5</border>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON10" variable="Button_MoveDown" member="yes">
+												<label>v</label>
+												<size>15,-1d</size>
+												<handler function="OnButton_MoveDownClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+											<border>5</border>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON12" variable="Button_Bottom" member="yes">
+												<label>vv</label>
+												<size>15,-1d</size>
+												<handler function="OnButton_BottomClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+											<border>5</border>
+										</object>
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+										<cols>1</cols>
+										<rows>5</rows>
+										<growablecols>0</growablecols>
+										<growablerows>0</growablerows>
+										<object class="sizeritem">
+											<object class="wxStaticBitmap" name="ID_STATICBITMAP_GIF" variable="StaticBitmapGif" member="yes" />
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_APPLY" variable="StaticTextApplyLabel" member="yes">
+												<label>Apply preset as:</label>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT</flag>
+											<border>5</border>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBoxSizer" variable="BoxSizerRadio" member="no">
+												<orient>wxHORIZONTAL</orient>
+												<object class="sizeritem">
+													<object class="wxRadioButton" name="ID_BTN_POSITION" variable="btPosition" member="yes">
+														<label>Relative</label>
+														<style>wxRB_GROUP</style>
+														<tooltip>Paste effects at the drop row, ignoring layer structure.</tooltip>
+														<handler function="OnBtnPositionClick" entry="EVT_RADIOBUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxRadioButton" name="ID_BTN_LAYERS" variable="btLayers" member="yes">
+														<label>Using Layers</label>
+														<tooltip>Paste effects preserving layer structure.</tooltip>
+														<handler function="OnBtnLayersClick" entry="EVT_RADIOBUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+												</object>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+										</object>
+										<object class="sizeritem">
+											<object class="wxGridSizer" variable="BoxSizer1" member="no">
+												<cols>2</cols>
+												<rows>4</rows>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON6" variable="btApply" member="yes">
+														<label>&amp;Apply Preset</label>
+														<tooltip>Apply the selected effect Preset.</tooltip>
+														<handler function="OnbtApplyClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON7" variable="btAddGroup" member="yes">
+														<label>Add &amp;Group</label>
+														<tooltip>Add effect preset group.</tooltip>
+														<handler function="OnbtAddGroupClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON2" variable="btUpdate" member="yes">
+														<label>&amp;Update Preset</label>
+														<tooltip>Update the selected effect preset to reflect current effect settings.</tooltip>
+														<handler function="OnbtUpdateClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON4" variable="btDelete" member="yes">
+														<label>&amp;Delete</label>
+														<tooltip>Delete curently selected effect preset.</tooltip>
+														<handler function="OnbtDeleteClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON1" variable="btNewPreset" member="yes">
+														<label>&amp;New Preset</label>
+														<tooltip>Create New Effect Preset from current settings.</tooltip>
+														<handler function="OnbtNewPresetClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON8" variable="btImport" member="yes">
+														<label>&amp;Import</label>
+														<tooltip>Import presets from another file.</tooltip>
+														<handler function="OnbtImportClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON3" variable="btRename" member="yes">
+														<label>&amp;Rename</label>
+														<tooltip>Rename currently selected effect preset.</tooltip>
+														<handler function="OnbtRenameClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON5" variable="btExport" member="yes">
+														<label>Export</label>
+														<handler function="OnbtExportClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+												</object>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBoxSizer" variable="BoxSizer2" member="no">
+												<object class="sizeritem">
+													<object class="wxTextCtrl" name="ID_TEXTCTRL_SEARCH" variable="TextCtrl1" member="yes">
+														<handler function="OnTextCtrl1TextEnter" entry="EVT_TEXT_ENTER" />
+													</object>
+													<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>3</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON_SEARCH" variable="ETButton1" member="yes">
+														<label>Search</label>
+														<style>wxBU_EXACTFIT</style>
+														<handler function="OnETButton1Click" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
+												</object>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+							<flag>wxALL|wxEXPAND</flag>
+							<border>5</border>
+							<option>1</option>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBoxSizer" variable="BoxSizer3" member="no">
-							<orient>wxVERTICAL</orient>
-							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON11" variable="Button_Top" member="yes">
-									<label>^^</label>
-									<size>15,-1d</size>
-									<handler function="OnButton_TopClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
-								<border>5</border>
-							</object>
-							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON9" variable="Button_MoveUp" member="yes">
-									<label>^</label>
-									<size>15,-1d</size>
-									<handler function="OnButton_MoveUpClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
-								<border>5</border>
-							</object>
-							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON10" variable="Button_MoveDown" member="yes">
-									<label>v</label>
-									<size>15,-1d</size>
-									<handler function="OnButton_MoveDownClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
-								<border>5</border>
-							</object>
-							<object class="sizeritem">
-								<object class="wxButton" name="ID_BUTTON12" variable="Button_Bottom" member="yes">
-									<label>vv</label>
-									<size>15,-1d</size>
-									<handler function="OnButton_BottomClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
-								<border>5</border>
-							</object>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-					</object>
-					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-							<cols>1</cols>
-							<rows>5</rows>
-							<growablecols>0</growablecols>
-							<growablerows>0</growablerows>
-							<object class="sizeritem">
-								<object class="wxStaticBitmap" name="ID_STATICBITMAP_GIF" variable="StaticBitmapGif" member="yes" />
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT_APPLY" variable="StaticTextApplyLabel" member="yes">
-									<label>Apply preset as:</label>
-								</object>
-								<flag>wxALL|wxALIGN_LEFT</flag>
-								<border>5</border>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBoxSizer" variable="BoxSizerRadio" member="no">
-									<orient>wxHORIZONTAL</orient>
-									<object class="sizeritem">
-										<object class="wxRadioButton" name="ID_BTN_POSITION" variable="btPosition" member="yes">
-											<label>Relative</label>
-											<style>wxRB_GROUP</style>
-											<tooltip>Paste effects at the drop row, ignoring layer structure.</tooltip>
-											<handler function="OnBtnPositionClick" entry="EVT_RADIOBUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxRadioButton" name="ID_BTN_LAYERS" variable="btLayers" member="yes">
-											<label>Using Layers</label>
-											<tooltip>Paste effects preserving layer structure.</tooltip>
-											<handler function="OnBtnLayersClick" entry="EVT_RADIOBUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-									</object>
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-							</object>
-							<object class="sizeritem">
-								<object class="wxGridSizer" variable="BoxSizer1" member="no">
-									<cols>2</cols>
-									<rows>4</rows>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON6" variable="btApply" member="yes">
-											<label>&amp;Apply Preset</label>
-											<tooltip>Apply the selected effect Preset.</tooltip>
-											<handler function="OnbtApplyClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON7" variable="btAddGroup" member="yes">
-											<label>Add &amp;Group</label>
-											<tooltip>Add effect preset group.</tooltip>
-											<handler function="OnbtAddGroupClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON2" variable="btUpdate" member="yes">
-											<label>&amp;Update Preset</label>
-											<tooltip>Update the selected effect preset to reflect current effect settings.</tooltip>
-											<handler function="OnbtUpdateClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON4" variable="btDelete" member="yes">
-											<label>&amp;Delete</label>
-											<tooltip>Delete curently selected effect preset.</tooltip>
-											<handler function="OnbtDeleteClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON1" variable="btNewPreset" member="yes">
-											<label>&amp;New Preset</label>
-											<tooltip>Create New Effect Preset from current settings.</tooltip>
-											<handler function="OnbtNewPresetClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON8" variable="btImport" member="yes">
-											<label>&amp;Import</label>
-											<tooltip>Import presets from another file.</tooltip>
-											<handler function="OnbtImportClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON3" variable="btRename" member="yes">
-											<label>&amp;Rename</label>
-											<tooltip>Rename currently selected effect preset.</tooltip>
-											<handler function="OnbtRenameClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON5" variable="btExport" member="yes">
-											<label>Export</label>
-											<handler function="OnbtExportClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBoxSizer" variable="BoxSizer2" member="no">
-									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_SEARCH" variable="TextCtrl1" member="yes">
-											<handler function="OnTextCtrl1TextEnter" entry="EVT_TEXT_ENTER" />
-										</object>
-										<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>3</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_SEARCH" variable="ETButton1" member="yes">
-											<label>Search</label>
-											<style>wxBU_EXACTFIT</style>
-											<handler function="OnETButton1Click" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
-									</object>
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<flag>wxEXPAND</flag>
 				<option>1</option>
 			</object>
 		</object>

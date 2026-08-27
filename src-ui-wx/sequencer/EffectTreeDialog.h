@@ -14,6 +14,7 @@
 #include <wx/button.h>
 #include <wx/panel.h>
 #include <wx/radiobut.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
@@ -58,6 +59,7 @@ class EffectTreeDialog : public wxPanel
 		wxButton* btNewPreset;
 		wxButton* btRename;
 		wxButton* btUpdate;
+		wxScrolledWindow* ScrolledWindow1;
 		wxStaticBitmap* StaticBitmapGif;
 		wxStaticText* StaticTextApplyLabel;
 		wxTextCtrl* TextCtrl1;
@@ -95,6 +97,7 @@ class EffectTreeDialog : public wxPanel
 		static const wxWindowID ID_BUTTON_SEARCH;
 		static const wxWindowID ID_TIMER_GIF;
 		static const wxWindowID ID_STATICTEXT_APPLY;
+		static const wxWindowID ID_SCROLLEDWINDOW1;
 		//*)
 
 	private:

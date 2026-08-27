@@ -34,6 +34,7 @@ const long SearchPanel::ID_BUTTON_SEARCH_FIND = wxNewId();
 const long SearchPanel::ID_LISTCTRL_Results = wxNewId();
 const long SearchPanel::ID_BUTTON_SELECT_ALL = wxNewId();
 const long SearchPanel::ID_STATICTEXT_COUNT = wxNewId();
+const long SearchPanel::ID_SCROLLEDWINDOW1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SearchPanel,wxPanel)
@@ -45,35 +46,41 @@ SearchPanel::SearchPanel(SequenceElements* elements, MainSequencer* sequencer, w
 {
 	//(*Initialize(SearchPanel)
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizerContent;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxSize(574,376), wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	SetMinSize(wxSize(-1,-1));
 	Hide();
-	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer1->AddGrowableCol(1);
-	FlexGridSizer1->AddGrowableRow(2);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ComboBox_Search_Model = new wxComboBox(this, ID_COMBOBOX_SEARCH_MODEL, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT|wxCB_READONLY|wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_COMBOBOX_SEARCH_MODEL"));
-	FlexGridSizer1->Add(ComboBox_Search_Model, 1, wxALL|wxEXPAND, 5);
-	CheckBox_Search_Regex = new wxCheckBox(this, ID_CHECKBOX_SEARCH_REGEX, _("Regex"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SEARCH_REGEX"));
+	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	FlexGridSizer1->AddGrowableRow(0);
+	ScrolledWindow1 = new wxScrolledWindow(this, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
+	FlexGridSizer1->Add(ScrolledWindow1, 1, wxEXPAND, 0);
+	FlexGridSizerContent = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizerContent->AddGrowableCol(1);
+	FlexGridSizerContent->AddGrowableRow(2);
+	StaticText1 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT1, _("Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizerContent->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ComboBox_Search_Model = new wxComboBox(ScrolledWindow1, ID_COMBOBOX_SEARCH_MODEL, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT|wxCB_READONLY|wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_COMBOBOX_SEARCH_MODEL"));
+	FlexGridSizerContent->Add(ComboBox_Search_Model, 1, wxALL|wxEXPAND, 5);
+	CheckBox_Search_Regex = new wxCheckBox(ScrolledWindow1, ID_CHECKBOX_SEARCH_REGEX, _("Regex"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SEARCH_REGEX"));
 	CheckBox_Search_Regex->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_Search_Regex, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Search:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrlSearch = new wxTextCtrl(this, ID_TEXTCTRL_SEARCH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_SEARCH"));
-	FlexGridSizer1->Add(TextCtrlSearch, 1, wxALL|wxEXPAND, 5);
-	Button_Search_Find = new wxButton(this, ID_BUTTON_SEARCH_FIND, _("Find"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SEARCH_FIND"));
-	FlexGridSizer1->Add(Button_Search_Find, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ListCtrl_Results = new wxListCtrl(this, ID_LISTCTRL_Results, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTCTRL_Results"));
-	FlexGridSizer1->Add(ListCtrl_Results, 1, wxALL|wxEXPAND, 5);
-	ButtonSelectAll = new wxButton(this, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
-	FlexGridSizer1->Add(ButtonSelectAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText_Count = new wxStaticText(this, ID_STATICTEXT_COUNT, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_COUNT"));
-	FlexGridSizer1->Add(StaticText_Count, 1, wxALL|wxEXPAND, 5);
-	SetSizer(FlexGridSizer1);
+	FlexGridSizerContent->Add(CheckBox_Search_Regex, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	StaticText2 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT2, _("Search:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizerContent->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrlSearch = new wxTextCtrl(ScrolledWindow1, ID_TEXTCTRL_SEARCH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_SEARCH"));
+	FlexGridSizerContent->Add(TextCtrlSearch, 1, wxALL|wxEXPAND, 5);
+	Button_Search_Find = new wxButton(ScrolledWindow1, ID_BUTTON_SEARCH_FIND, _("Find"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SEARCH_FIND"));
+	FlexGridSizerContent->Add(Button_Search_Find, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	FlexGridSizerContent->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ListCtrl_Results = new wxListCtrl(ScrolledWindow1, ID_LISTCTRL_Results, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING, wxDefaultValidator, _T("ID_LISTCTRL_Results"));
+	FlexGridSizerContent->Add(ListCtrl_Results, 1, wxALL|wxEXPAND, 5);
+	ButtonSelectAll = new wxButton(ScrolledWindow1, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
+	FlexGridSizerContent->Add(ButtonSelectAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	FlexGridSizerContent->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText_Count = new wxStaticText(ScrolledWindow1, ID_STATICTEXT_COUNT, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_COUNT"));
+	FlexGridSizerContent->Add(StaticText_Count, 1, wxALL|wxEXPAND, 5);
+	ScrolledWindow1->SetSizer(FlexGridSizerContent);
 	SetSizer(FlexGridSizer1);
 	Layout();
 
@@ -90,6 +97,9 @@ SearchPanel::SearchPanel(SequenceElements* elements, MainSequencer* sequencer, w
 
     ListCtrl_Results->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
     SetMinSize(wxSize(50, 50));
+
+    ScrolledWindow1->SetScrollRate(10, 10);
+    ScrolledWindow1->FitInside();
 }
 
 SearchPanel::~SearchPanel()
