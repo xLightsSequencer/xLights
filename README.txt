@@ -18,8 +18,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Playground sheet, seeded with the prompt and style you picked, and
                                  brings the image you accept back into the usual crop/resize/save
                                  flow - Apple discontinued the API that generated images directly
-    -bug (derwin12)              Fix the "could not calculate start channels" warning growing tall 
+    -bug (derwin12)              Fix the "could not calculate start channels" warning growing tall
                                  enough to scroll off screen (#6970)
+    -bug (derwin12)              Fix Layout tab model list losing its chosen column sort order
+                                 (reverting to name order) after editing various model properties (#6981)
     -bug (derwin12)              Fix images for ChatGPT service (#6969)
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
     -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
