@@ -50,6 +50,20 @@ public:
     static int sLeadFramesDefault;
     static bool sFadeDefault;
 
+    // Matrix-face picture-like controls (Faces.json)
+    static std::string sDirectionDefault;
+    static double sSpeedDefault;
+    static double sFrameRateAdjDefault;
+    static bool sPixelOffsetsDefault;
+    static std::string sScalingDefault;
+    static int sXCDefault;
+    static int sYCDefault;
+    static int sEndXCDefault;
+    static int sEndYCDefault;
+    static bool sWrapXDefault;
+    static int sStartScaleDefault;
+    static int sEndScaleDefault;
+
 protected:
     virtual void OnMetadataLoaded() override;
 
@@ -64,7 +78,8 @@ private:
     void RenderFaces(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, const std::string& eyeBlinkDuration, bool face_outline, uint8_t alpha, bool suppressShimmer);
     void RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, const std::string& eyeBlinkFreq, const std::string& eyeBlinkDuration, bool face_outline, uint8_t alpha, bool suppressShimmer);
     void RenderFaces(RenderBuffer& buffer, SequenceElements* elements, const std::string& faceDefintion,
-                     const std::string& Phoneme, const std::string& track, const std::string& eyes, const std::string& eyeBlinkFreq, const std::string& eyeBlinkDuration, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer);
+                     const std::string& Phoneme, const std::string& track, const std::string& eyes, const std::string& eyeBlinkFreq, const std::string& eyeBlinkDuration, bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer,
+                     const std::string& direction, float speed, float frameRateAdj, bool pixelOffsets, const std::string& scaling, int xc, int yc, int endXc, int endYc, bool wrapX, int startScale, int endScale);
     std::string MakeKey(int bufferWi, int bufferHt, std::string dirstr, std::string picture, std::string stf);
     uint8_t CalculateAlpha(SequenceElements* elements, int leadFrames, bool fade, const std::string& timingTrack, RenderBuffer& buffer);
     bool ShimmerState(RenderBuffer& buffer) const;

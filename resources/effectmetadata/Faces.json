@@ -125,6 +125,157 @@
             "type": "int",
             "controlType": "custom",
             "default": 0
+        },
+        {
+            "id": "Faces_Direction",
+            "label": "Movement",
+            "description": "Direction the face image moves across the model. Only applies to Matrix type faces.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "none",
+                "left",
+                "right",
+                "up",
+                "down",
+                "up-left",
+                "down-left",
+                "up-right",
+                "down-right",
+                "peekaboo",
+                "wiggle",
+                "zoom in",
+                "peekaboo 90",
+                "peekaboo 180",
+                "peekaboo 270",
+                "flag wave",
+                "up once",
+                "down once",
+                "vector",
+                "tile-left",
+                "tile-right",
+                "tile-down",
+                "tile-up"
+            ],
+            "default": "none",
+            "lockable": true
+        },
+        {
+            "id": "Faces_Speed",
+            "label": "Movement Speed",
+            "description": "How fast the face image moves in the chosen direction. Only applies to Matrix type faces.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "lockable": true,
+            "min": 0,
+            "max": 200
+        },
+        {
+            "id": "Faces_FrameRateAdj",
+            "label": "Frame Rate Adj",
+            "description": "Multiplier for the playback speed of animated GIF face images. Values above 1.0 speed up the animation. Only applies to Matrix type faces.",
+            "type": "float",
+            "controlType": "slider",
+            "default": 1.0,
+            "divisor": 10,
+            "lockable": true,
+            "min": 0,
+            "max": 200
+        },
+        {
+            "id": "Faces_PixelOffsets",
+            "label": "Offsets In Pixels",
+            "description": "When enabled, the X and Y center offset values are treated as pixel counts rather than percentages of the model dimensions. Only applies to Matrix type faces.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "Faces_Scaling",
+            "label": "Scaling",
+            "description": "How the face image is resized to fit the model when the face type is Matrix. Default (from face) uses the scaling mode defined on the face definition itself.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Default (from face)",
+                "No Scaling",
+                "Scale To Fit",
+                "Scale Keep Aspect Ratio",
+                "Scale Keep Aspect Ratio Crop"
+            ],
+            "default": "Default (from face)"
+        },
+        {
+            "id": "FacesXC",
+            "label": "X-axis Center",
+            "description": "Horizontal offset for the starting position of the face image, as a percentage of the model width. Only applies to Matrix type faces.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "Faces_WrapX",
+            "label": "Wrap X",
+            "description": "When enabled, the face image wraps around horizontally so pixels that scroll off one side reappear on the other. Only applies to Matrix type faces.",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
+        },
+        {
+            "id": "FacesYC",
+            "label": "Y-axis Center",
+            "description": "Vertical offset for the starting position of the face image, as a percentage of the model height. Only applies to Matrix type faces.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100,
+            "valueCurve": true
+        },
+        {
+            "id": "FacesEndXC",
+            "label": "X-axis Center",
+            "description": "Horizontal offset for the ending position of the face image when using the vector movement mode. Only applies to Matrix type faces.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "FacesEndYC",
+            "label": "Y-axis Center",
+            "description": "Vertical offset for the ending position of the face image when using the vector movement mode. Only applies to Matrix type faces.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 0,
+            "min": -100,
+            "max": 100
+        },
+        {
+            "id": "Faces_StartScale",
+            "label": "Scale Start",
+            "description": "Scale factor for the face image at the start of the effect, as a percentage. 100 is the original size. Only applies to Matrix type faces.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 1000
+        },
+        {
+            "id": "Faces_EndScale",
+            "label": "Scale End",
+            "description": "Scale factor for the face image at the end of the effect. The image smoothly transitions from the start scale to this value over the effect duration. Only applies to Matrix type faces.",
+            "type": "int",
+            "controlType": "slider",
+            "default": 100,
+            "min": 0,
+            "max": 1000
         }
     ],
     "groups": [
@@ -144,6 +295,53 @@
             "type": "section",
             "columns": 1,
             "properties": ["Faces_TransparentBlackRow"]
+        },
+        {
+            "type": "section",
+            "columns": 2,
+            "properties": ["Faces_Direction", "Faces_Speed", "Faces_FrameRateAdj", "Faces_Scaling", "Faces_PixelOffsets", "Faces_WrapX"]
+        },
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Start Position",
+                    "properties": [
+                        "FacesXC",
+                        "FacesYC"
+                    ]
+                },
+                {
+                    "label": "End Position",
+                    "properties": [
+                        "FacesEndXC",
+                        "FacesEndYC"
+                    ]
+                },
+                {
+                    "label": "Start Scale",
+                    "properties": [
+                        "Faces_StartScale"
+                    ]
+                },
+                {
+                    "label": "End Scale",
+                    "properties": [
+                        "Faces_EndScale"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "xyCenter",
+            "xProperty": "FacesXC",
+            "yProperty": "FacesYC",
+            "wrapX": "Faces_WrapX"
+        },
+        {
+            "type": "xyCenter",
+            "xProperty": "FacesEndXC",
+            "yProperty": "FacesEndYC"
         }
     ],
     "visibilityRules": [
@@ -158,6 +356,10 @@
         {
             "when": { "property": "Faces_SuppressWhenNotSinging", "equals": true },
             "enable": ["Faces_LeadFrames", "Faces_Fade"]
+        },
+        {
+            "when": { "property": "Faces_Direction", "equals": "vector" },
+            "enable": ["FacesEndXC", "FacesEndYC"]
         }
     ]
 }

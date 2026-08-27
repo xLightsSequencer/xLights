@@ -16,6 +16,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  enough to scroll off screen (#6970)
     -bug (derwin12)              Fix images for ChatGPT service (#6969)
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
+    -enh (bulldozer2003)         Matrix faces now support movement, positioning, and scaling
+                                  controls matching the Pictures effect (direction, X/Y offset,
+                                  start/end scale, wrap, pixel offsets, vector mode)
     -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
                                  Multi Point model saved with fewer than two points
 
