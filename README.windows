@@ -50,8 +50,10 @@ Here are the steps to compile xLights for Windows using the Visual Studio compil
     environment variable to your own wxWidgets checkout. Both the include and
     library paths look there first, so your build wins over the bundle's copy -
     and because it wins for both, the headers and the libraries stay in step.
-    build_scripts\msw\clone_&_build_WX_xlights_x64.cmd will clone and build a
-    suitable tree. Leave WXWIDGETS_ROOT unset for normal work.
+    Build that checkout from the same tag the bundle uses, which is recorded in
+    the xLights-dependencies repository; otherwise you are testing against a
+    different wxWidgets than everyone else. Leave WXWIDGETS_ROOT unset for
+    normal work.
 
   d) Download, install and setup ISPC
   
@@ -109,6 +111,11 @@ Windows Installer
 
     We use Inno Setup to create the setup.exe for xLights
     http://www.jrsoftware.org/isinfo.php
+
+    The packaged build driver, build_scripts\msw\build_VS_x64.cmd, also needs
+    Python on PATH: it runs prepmap.py to condense the linker map into the
+    symbol table the crash handler reads. Building from the Visual Studio IDE
+    does not need it.
 
     build_scripts\msw\xLights_4_64bit_VS.iss is used to create the release
     setup.exe. Building it needs the tree built first: the script packages

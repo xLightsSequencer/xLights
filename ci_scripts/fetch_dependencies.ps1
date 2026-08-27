@@ -65,7 +65,8 @@ $klmVersion = Read-VersionFile 'klightmapper_version.txt'
 
 # The shared dependency bundle - wxWidgets, FFmpeg, OpenSSL, curl and the rest -
 # built from xLights-dependencies so all three desktops use identical versions.
-$depsVersion = Read-VersionFile 'windows_deps_version.txt'
+# macOS/scripts/download_deps reads this same file, so the release is named once.
+$depsVersion = Read-VersionFile 'deps_version.txt'
 
 # The installer runs the VC++ redistributable, so it has to be at least as new
 # as the CRT the toolset links against. An older one installs a runtime missing

@@ -17,6 +17,7 @@
 #include <wx/listbox.h>
 #include <wx/listctrl.h>
 #include <wx/panel.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/stattext.h>
@@ -49,6 +50,7 @@ class SelectPanel: public wxPanel
 		wxComboBox* ComboBox_Select_Effect;
 		wxListBox* ListBox_Select_Models;
 		wxListCtrl* ListCtrl_Select_Effects;
+		wxScrolledWindow* ScrolledWindow1;
 		wxSlider* SliderColorSensitivity;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
@@ -86,6 +88,7 @@ class SelectPanel: public wxPanel
 		static const wxWindowID ID_LISTCTRL_Select_Effects;
 		static const wxWindowID ID_BUTTON_SELECT_EFFECT_ALL;
 		static const wxWindowID ID_BUTTON_SELECT_REFRESH;
+		static const wxWindowID ID_SCROLLEDWINDOW1;
 		//*)
 
 	private:
