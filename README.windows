@@ -112,6 +112,11 @@ Windows Installer
     We use Inno Setup to create the setup.exe for xLights
     http://www.jrsoftware.org/isinfo.php
 
+    The packaged build driver, build_scripts\msw\build_VS_x64.cmd, also needs
+    Python on PATH: it runs prepmap.py to condense the linker map into the
+    symbol table the crash handler reads. Building from the Visual Studio IDE
+    does not need it.
+
     build_scripts\msw\xLights_4_64bit_VS.iss is used to create the release
     setup.exe. Building it needs the tree built first: the script packages
     xLights.exe, xlDo.exe and fseq_convert.exe along with the runtime DLLs from

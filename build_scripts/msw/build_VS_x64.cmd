@@ -19,6 +19,15 @@ echo vswhere found no MSBuild - relying on whatever is already on PATH
 cd ..
 cd ..
 
+rem prepmap.py condenses the linker map into the symbol table the crash handler
+rem reads. It replaced a committed PrepMap.exe; Python is already required by the
+rem release and nightly workflows on this same path.
+where python >nul 2>nul
+if %ERRORLEVEL% NEQ 0 (
+  @echo Python was not found on PATH - needed by build_scripts\msw\prepmap.py
+  exit 1
+)
+
 rem Stage the dependency bundle before anything compiles. xlDo and fseq_convert
 rem both consume it, and both are built below before xLights - whose project
 rem file carries the only pre-build fetch, so relying on that leaves them
@@ -40,7 +49,7 @@ cd xlDo
 msbuild.exe -m:10 xlDo.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 
-%cwd%\prepmap x64\Release\xlDo.map ..\bin64\xlDo.map
+python %cwd%\prepmap.py x64\Release\xlDo.map ..\bin64\xlDo.map
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
@@ -51,7 +60,7 @@ cd xLights
 msbuild.exe -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
 if %ERRORLEVEL% NEQ 0 goto error
 
-%cwd%\prepmap x64\Release\xLights.map ..\bin64\xLights.map
+python %cwd%\prepmap.py x64\Release\xLights.map ..\bin64\xLights.map
 if %ERRORLEVEL% NEQ 0 goto error
 cd ..
 
