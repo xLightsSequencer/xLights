@@ -72,7 +72,6 @@ plans/private-**
 # Generated Vulkan SPIR-V headers (built by build_scripts/compile_vulkan_shaders.sh)
 src-core/effects/vulkan/shaders/compiled/*.spv.h
 src-core/graphics/vulkan/shaders/compiled/*.spv.h
-dependencies/glslang-build/
 
 # Shared dependency bundle for Windows - fetched by ci_scripts/fetch_dependencies.ps1,
 # never committed. This is what replaces the binaries that used to live in

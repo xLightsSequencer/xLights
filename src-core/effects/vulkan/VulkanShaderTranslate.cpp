@@ -15,12 +15,13 @@
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 
-// Windows .sln build links deps via #pragma comment (the CMake build defines
-// XLIGHTS_CMAKE_BUILD and links glslang via target_link_libraries instead).
-// Vendored glslang submodule is 11.1.0 (dependencies/glslang, built into
-// dependencies/glslang-build) — OGLCompiler was merged into MachineIndependent
-// in this version and no longer exists as a separate lib; debug libs would
-// carry the 'd' suffix, but only a Release glslang build exists currently.
+// glslang comes from a different place on each platform: the Vulkan SDK on
+// Windows, the dependency bundle on macOS, and the distro (glslang-dev) on
+// Linux.  Only the Windows .sln build names the libs here via #pragma comment;
+// the CMake build defines XLIGHTS_CMAKE_BUILD and links them through
+// target_link_libraries instead.  OGLCompiler was merged into
+// MachineIndependent and no longer exists as a separate lib.  Debug libs carry
+// the 'd' suffix.
 #if defined(_WIN32) && !defined(XLIGHTS_CMAKE_BUILD)
 #ifdef _DEBUG
 #pragma comment(lib, "glslangd.lib")

@@ -48,7 +48,6 @@
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
-					<Add directory="../dependencies/glslang-build/install/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
@@ -76,12 +75,14 @@
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libglslang-default-resource-limits.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libSPIRV.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libglslang.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libMachineIndependent.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libGenericCodeGen.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libOSDependent.a" />
+					<Add library="glslang-default-resource-limits" />
+					<Add library="SPIRV" />
+					<Add library="glslang" />
+					<Add library="MachineIndependent" />
+					<Add library="GenericCodeGen" />
+					<Add library="OSDependent" />
+					<Add library="SPIRV-Tools-opt" />
+					<Add library="SPIRV-Tools" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -126,7 +127,6 @@
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
-					<Add directory="../dependencies/glslang-build/install/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
@@ -154,12 +154,14 @@
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libglslang-default-resource-limits.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libSPIRV.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libglslang.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libMachineIndependent.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libGenericCodeGen.a" />
-					<Add library="../dependencies/glslang-build/install/lib/libOSDependent.a" />
+					<Add library="glslang-default-resource-limits" />
+					<Add library="SPIRV" />
+					<Add library="glslang" />
+					<Add library="MachineIndependent" />
+					<Add library="GenericCodeGen" />
+					<Add library="OSDependent" />
+					<Add library="SPIRV-Tools-opt" />
+					<Add library="SPIRV-Tools" />
 				</Linker>
 			</Target>
 		</Build>

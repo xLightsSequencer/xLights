@@ -692,12 +692,11 @@ if(XLIGHTS_VULKAN_ENABLED)
                     target_link_libraries(xLights PRIVATE ${GTK3_LIBRARIES})
                 endif()
             endif()
-            # glslang from the vendored static build's install prefix (produced by the
-            # Makefile `glslang` target).  Only-if-found so the lean build
-            # (ENABLE_OPT=OFF, no SPIRV-Tools) links cleanly.
-            target_include_directories(xLights PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/include)
-            foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent)
-                find_library(GLSLANG_${_gl}_LIB NAMES ${_gl} HINTS ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/lib)
+            # glslang from the distro (glslang-dev, which pulls in spirv-tools:
+            # the packaged glslang is built with the optimizer enabled, so
+            # libglslang.a has unresolved spvtools refs without it).
+            foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent SPIRV-Tools-opt SPIRV-Tools)
+                find_library(GLSLANG_${_gl}_LIB NAMES ${_gl})
                 if(GLSLANG_${_gl}_LIB)
                     target_link_libraries(xLights PRIVATE ${GLSLANG_${_gl}_LIB})
                 endif()
