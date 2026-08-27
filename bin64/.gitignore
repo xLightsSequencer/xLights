@@ -1,7 +1,7 @@
 *.map
 
-# Runtime DLLs are staged here from the dependency bundle by
-# ci_scripts/fetch_dependencies.ps1 rather than committed. onnxruntime is the
-# remaining exception - it is not part of the bundle yet.
+# Runtime DLLs are staged here by ci_scripts/fetch_dependencies.ps1 rather than
+# committed - from the dependency bundle, from KLightMapper, and from the ONNX
+# Runtime package. Nothing in here belongs in the repository.
 *.dll
-!onnxruntime.dll
+*.lib

@@ -78,3 +78,8 @@ dependencies/glslang-build/
 # never committed. This is what replaces the binaries that used to live in
 # lib/windows64 and bin64.
 /dependencies-bundle/
+
+# ONNX Runtime (DirectML) — fetched from its NuGet package, not committed
+# (ci_scripts/fetch_dependencies.ps1). The DLL under bin64 and the import
+# library under lib/windows64 are already covered by the rules above.
+include/onnxruntime/

@@ -73,6 +73,12 @@ $depsVersion = Read-VersionFile 'windows_deps_version.txt'
 # entry point rather than anything that names the cause.
 $vcRedistMin = Read-VersionFile 'vcredist_min_version.txt'
 
+# ONNX Runtime with the DirectML execution provider, used by stem separation.
+# Windows only - macOS does the same work through CoreML - so it is fetched here
+# rather than added to the cross-platform bundle, which exists to keep library
+# versions identical across platforms.
+$ortVersion = Read-VersionFile 'onnxruntime_version.txt'
+
 $Dependencies = @(
     @{
         Name     = 'Dependencies'
@@ -108,6 +114,26 @@ $Dependencies = @(
             @{ From = 'klightmapper.lib'; To = 'lib\windows64' }
             @{ From = 'klightmapper.dll'; To = 'bin64' }
             @{ From = 'klm\*.h';          To = 'include\klightmapper\klm' }
+        )
+    }
+    @{
+        Name     = 'OnnxRuntime'
+        Optional = $false
+        # HAVE_ORT is defined unconditionally for x64, so a missing runtime is a
+        # compile error rather than a feature that quietly switches itself off.
+        Sentinel = @('include\onnxruntime\onnxruntime_c_api.h',
+                     'lib\windows64\onnxruntime.lib',
+                     'bin64\onnxruntime.dll')
+        Stamp    = 'include\onnxruntime\.ort_version'
+        Version  = $ortVersion
+        # A .nupkg is a zip, so the normal archive path handles it unchanged.
+        Url      = "https://api.nuget.org/v3-flatcontainer/microsoft.ml.onnxruntime.directml/$ortVersion/microsoft.ml.onnxruntime.directml.$ortVersion.nupkg"
+        Stage    = @(
+            # The package also carries win-arm64 and win-x86 runtimes, ~14 MB
+            # each. Nothing builds against them, so only x64 is staged.
+            @{ From = 'build\native\include\*';                 To = 'include\onnxruntime' }
+            @{ From = 'runtimes\win-x64\native\onnxruntime.lib'; To = 'lib\windows64' }
+            @{ From = 'runtimes\win-x64\native\onnxruntime.dll'; To = 'bin64' }
         )
     }
     @{
