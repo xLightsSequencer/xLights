@@ -20,6 +20,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  flow - Apple discontinued the API that generated images directly
     -bug (derwin12)              Fix the "could not calculate start channels" warning growing tall
                                  enough to scroll off screen (#6970)
+    -bug (derwin12)              Fix Layout tab model list losing its chosen column sort order
+                                 (reverting to name order) after editing various model properties (#6981)
     -bug (derwin12)              Fix the Select Effects, Search Effects, and Effect Presets panels
                                  having no way to scroll to their controls (and, for Effect Presets,
                                  squishing buttons/text illegible) when docked/resized smaller than

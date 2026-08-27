@@ -1823,17 +1823,17 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
     }
 }
 
-void LayoutPanel::FreezeTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel) {
+void LayoutPanel::FreezeTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel, TreeSortState& sortState) {
     tree->Freeze();
 
     //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
     tree->SetColumnWidth(0, tree->GetColumnWidth(0));
     tree->SetColumnWidth(3, tree->GetColumnWidth(3));
-    treeSorted = tree->GetSortColumn(&treeSortCol, &treeSortAscending);
+    sortState.sorted = tree->GetSortColumn(&sortState.col, &sortState.ascending);
 
     //turn off the sorting as that is ALSO really slow
     tree->SetItemComparator(nullptr);
-    if (treeSorted) {
+    if (sortState.sorted) {
         //UnsetAsSortKey may be unimplemented on all  platforms so we'll set a
         //sort column to 0 which is faster due to straight string compare
         tree->SetSortColumn(0, true);
@@ -1846,7 +1846,7 @@ void LayoutPanel::FreezeTreeListView(wxTreeListCtrl* tree, wxDataViewModel* inte
 #endif
 }
 
-void LayoutPanel::ThawTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel, const std::list<wxTreeListItem> &toExpand) {
+void LayoutPanel::ThawTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel, const std::list<wxTreeListItem> &toExpand, const TreeSortState& sortState) {
 #ifdef __WXOSX__
     // re-associate the model
     tree->GetDataView()->AssociateModel(internalModel);
@@ -1873,13 +1873,13 @@ void LayoutPanel::ThawTreeListView(wxTreeListCtrl* tree, wxDataViewModel* intern
     }
     //turn the sorting back on
     tree->SetItemComparator(&comparator);
-    if (treeSorted) {
+    if (sortState.sorted) {
 #ifdef __WXOSX__
         // if the sort direction doesn't acutally change from previous setting,
         // it won't actually sort for some reason so we'll double toggle to make sure
-        tree->SetSortColumn(treeSortCol, !treeSortAscending);
+        tree->SetSortColumn(sortState.col, !sortState.ascending);
 #endif
-        tree->SetSortColumn(treeSortCol, treeSortAscending);
+        tree->SetSortColumn(sortState.col, sortState.ascending);
         tree->GetDataView()->GetModel()->Resort();
     }
     
@@ -1934,7 +1934,8 @@ void LayoutPanel::refreshModelList() {
 
 void LayoutPanel::refreshOneModelList(wxTreeListCtrl* tree, wxDataViewModel* internalModel, const TreeChanColumns& cols) {
     std::list<wxTreeListItem> toExpand;
-    FreezeTreeListView(tree, internalModel);
+    TreeSortState sortState;
+    FreezeTreeListView(tree, internalModel, sortState);
 
     for ( wxTreeListItem item = tree->GetFirstItem();
           item.IsOk();
@@ -1972,7 +1973,7 @@ void LayoutPanel::refreshOneModelList(wxTreeListCtrl* tree, wxDataViewModel* int
             }
         }
     }
-    ThawTreeListView(tree, internalModel, toExpand);
+    ThawTreeListView(tree, internalModel, toExpand, sortState);
 }
 
 void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
@@ -2086,8 +2087,10 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         }
     }
 
-    FreezeTreeListView(TreeListViewModels, TreeListMiewInternalModel);
-    FreezeTreeListView(TreeListViewGroups, TreeListGroupsInternalModel);
+    TreeSortState modelsSortState;
+    TreeSortState groupsSortState;
+    FreezeTreeListView(TreeListViewModels, TreeListMiewInternalModel, modelsSortState);
+    FreezeTreeListView(TreeListViewGroups, TreeListGroupsInternalModel, groupsSortState);
 
     if (full_refresh) {
         UnSelectAllModels();
@@ -2146,8 +2149,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     }
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
-    ThawTreeListView(TreeListViewModels, TreeListMiewInternalModel, toExpand);
-    ThawTreeListView(TreeListViewGroups, TreeListGroupsInternalModel, toExpandGroups);
+    ThawTreeListView(TreeListViewModels, TreeListMiewInternalModel, toExpand, modelsSortState);
+    ThawTreeListView(TreeListViewGroups, TreeListGroupsInternalModel, toExpandGroups, groupsSortState);
 
     if (sw.Time() > 500)
         spdlog::debug("        LayoutPanel::UpdateModelList took {}ms", sw.Time());

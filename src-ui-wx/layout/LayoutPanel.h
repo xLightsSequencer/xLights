@@ -447,8 +447,13 @@ class LayoutPanel: public wxPanel
         int calculateNodeCountOfSelected();
 
     protected:
-        void FreezeTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel);
-        void ThawTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel, const std::list<wxTreeListItem> &toExpand);
+        struct TreeSortState {
+            unsigned col = 0;
+            bool ascending = true;
+            bool sorted = false;
+        };
+        void FreezeTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel, TreeSortState& sortState);
+        void ThawTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel, const std::list<wxTreeListItem> &toExpand, const TreeSortState& sortState);
         void SetTreeListViewItemText(wxTreeListCtrl* tree, wxTreeListItem &item, int col, const wxString &txt);
 
         void SaveTreeListColumns(wxTreeListCtrl* tree, const std::string& configKey);
@@ -780,10 +785,7 @@ class LayoutPanel: public wxPanel
             xLightsFrame* xlights = nullptr;
         };
         ModelListComparator comparator;
-        unsigned treeSortCol;
-        bool treeSortAscending;
-        bool treeSorted;
-    
+
         bool zoom_gesture_active = false;
         bool rotate_gesture_active = false;
 };
