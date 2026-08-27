@@ -970,7 +970,7 @@ option(XLIGHTS_USE_OPENVINO_GENAI "Enable OpenVINO GenAI: image gen + speech-to-
 if(XLIGHTS_USE_ORT)
     find_package(onnxruntime CONFIG
         HINTS
-            "${CMAKE_SOURCE_DIR}/include/microsoft.ml.onnxruntime.directml.1.19.2"
+            "${CMAKE_SOURCE_DIR}/include/onnxruntime"
             "${CMAKE_SOURCE_DIR}/include/onnxruntime-win-x64-gpu-1.25.0"
     )
     if(onnxruntime_FOUND)
@@ -979,12 +979,12 @@ if(XLIGHTS_USE_ORT)
     else()
         find_path(ORT_INCLUDE_DIR onnxruntime_cxx_api.h
             HINTS
-                "${CMAKE_SOURCE_DIR}/include/microsoft.ml.onnxruntime.directml.1.19.2/build/native/include"
+                "${CMAKE_SOURCE_DIR}/include/onnxruntime"
                 "${CMAKE_SOURCE_DIR}/include/onnxruntime-win-x64-gpu-1.25.0/include"
         )
         find_library(ORT_LIB onnxruntime
             HINTS
-                "${CMAKE_SOURCE_DIR}/include/microsoft.ml.onnxruntime.directml.1.19.2/runtimes/win-x64/native"
+                "${CMAKE_SOURCE_DIR}/lib/windows64"
                 "${CMAKE_SOURCE_DIR}/include/onnxruntime-win-x64-gpu-1.25.0/lib"
         )
         if(ORT_INCLUDE_DIR AND ORT_LIB)
@@ -994,7 +994,7 @@ if(XLIGHTS_USE_ORT)
         else()
             message(FATAL_ERROR
                 "XLIGHTS_USE_ORT=ON but onnxruntime not found.\n"
-                "Install via vcpkg: vcpkg install onnxruntime[directml]\n"
+                "Run ci_scripts/fetch_dependencies.ps1, or install via vcpkg: vcpkg install onnxruntime[directml]\n"
                 "Or set ORT_INCLUDE_DIR and ORT_LIB manually.")
         endif()
     endif()
