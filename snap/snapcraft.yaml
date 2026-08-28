@@ -78,7 +78,11 @@ parts:
       - wget
       - pkg-config
       - cbp2make           # converts xLights.cbp -> xLights.cbp.mak
-      - cmake              # builds the glslang submodule (Makefile `glslang` target)
+      - cmake
+      - glslang-dev        # GLSL -> SPIR-V for the native Vulkan Shader effect
+      - libminizip-dev
+      - libxlsxwriter-dev
+      - spirv-tools        # glslang-dev is built with the optimizer, needs these
       - glslc              # compiles the Vulkan GLSL kernels to SPIR-V headers
       # wxWidgets 3.3 build dependencies
       - libgtk-3-dev

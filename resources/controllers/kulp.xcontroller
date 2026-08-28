@@ -145,21 +145,54 @@
         </Variant>
     </Controller>
     <Controller Name="K16">
-        <Variant Name="K16A-B" ID="K16A-B" Base="FPP:FPPShiftStringCape">
+        <!-- The 1.x boards drive their strings from the PRU pins directly and the 2.x/3.x
+             boards shift them out, which is a different FPP driver with a different range
+             of pixel protocols and receivers, so they are separate variants.  The cape
+             says which it is, so discovery and upload pick the right one; the plain
+             "K16A-B" names older shows carry resolve to 1.x. -->
+        <Variant Name="K16A-B 1.x" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>32</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>1</fpp>
             <fpp1>33,-1</fpp1>
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
+            <fppStringDriverType>BBB48String</fppStringDriverType>
+            <fppCapeVersions>1</fppCapeVersions>
+            <AltVariantNames>
+                <AltVariantName>K16A-B</AltVariantName>
+            </AltVariantNames>
         </Variant>
-        <Variant Name="K16A-B w/ Expansion" ID="K16A-B" Base="FPP:FPPShiftStringCape">
+        <Variant Name="K16A-B 1.x w/ Expansion" ID="K16A-B" Base="FPP:FPPStringCapeTTYs">
             <MaxPixelPort>48</MaxPixelPort>
             <MaxSerialPort>2</MaxSerialPort>
             <fpp>1</fpp>
             <fpp1>33,16</fpp1>
             <fppSerialPort1>ttyS1</fppSerialPort1>
             <fppSerialPort2>ttyS2</fppSerialPort2>
+            <fppStringDriverType>BBB48String</fppStringDriverType>
+            <fppCapeVersions>1</fppCapeVersions>
+            <AltVariantNames>
+                <AltVariantName>K16A-B w/ Expansion</AltVariantName>
+            </AltVariantNames>
+        </Variant>
+        <Variant Name="K16A-B 2.x/3.x" ID="K16A-B" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>32</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>33,-1</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+            <fppCapeVersions>2,3</fppCapeVersions>
+        </Variant>
+        <Variant Name="K16A-B 2.x/3.x w/ Expansion" ID="K16A-B" Base="FPP:FPPShiftStringCape">
+            <MaxPixelPort>48</MaxPixelPort>
+            <MaxSerialPort>2</MaxSerialPort>
+            <fpp>1</fpp>
+            <fpp1>33,16</fpp1>
+            <fppSerialPort1>ttyS1</fppSerialPort1>
+            <fppSerialPort2>ttyS2</fppSerialPort2>
+            <fppCapeVersions>2,3</fppCapeVersions>
         </Variant>
         <Variant Name="K16-Max" ID="K16-Max" Base="FPP:FPPShiftStringCape">
             <MaxPixelPort>48</MaxPixelPort>

@@ -43,7 +43,7 @@ endif
 .NOTPARALLEL:
 .SECONDEXPANSION:
 
-all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc klightmapper glslang makefile vulkanshaders subdirs
+all: wxwidgets33 cbp2make linkliquid ispc klightmapper makefile vulkanshaders subdirs
 
 #############################################################################
 
@@ -81,31 +81,6 @@ linkliquid:
 			then ln -s libliquidfun.a.x86_64 lib/linux/libliquidfun.a; \
 			else ln -s libliquidfun.a.`uname -m` lib/linux/libliquidfun.a; \
 		fi; \
-	fi
-
-libxlsxwriter: FORCE
-	@printf "Linking libxlsxwriter\n"
-	@if test ! -e dependencies/libxlsxwriter/lib/libxlsxwriter.a; \
-		then cd dependencies/libxlsxwriter; \
-		${MAKE} -s; \
-	fi
-
-# glslang (GLSL -> SPIR-V) for the native Vulkan Shader effect.  Lean static
-# build (no optimizer / binaries / tests — Vulkan consumes SPIR-V directly, so
-# no SPIRV-Tools/spirv-cross needed), installed to a staging prefix whose
-# include/ layout (glslang/Public, glslang/SPIRV, ...) matches macOS so the
-# shared translate code #includes the same paths on both.
-glslang: FORCE
-	@printf "Checking glslang\n"
-	@if test ! -e dependencies/glslang-build/install/lib/libglslang.a; \
-		then printf "Building glslang\n"; \
-		cmake -S dependencies/glslang -B dependencies/glslang-build \
-			-DCMAKE_BUILD_TYPE=Release -DENABLE_OPT=OFF -DGLSLANG_TESTS=OFF \
-			-DENABLE_GLSLANG_BINARIES=OFF -DBUILD_SHARED_LIBS=OFF -DBUILD_EXTERNAL=OFF \
-			-DSPIRV-Headers_SOURCE_DIR=$(CURDIR)/dependencies/SPIRV-Headers \
-			-DCMAKE_INSTALL_PREFIX=$(CURDIR)/dependencies/glslang-build/install > /dev/null; \
-		cmake --build dependencies/glslang-build -j$$(nproc) > /dev/null; \
-		cmake --install dependencies/glslang-build > /dev/null; \
 	fi
 
 wxwidgets33: FORCE

@@ -40,9 +40,14 @@ If you want to create a fresh build then the container can be removed with:
 
 == Building locally from source ==
 
+Ubuntu 24.04 is the minimum supported release.  It is what the official
+builds and the CI are compiled on, so it is the only baseline that is
+continuously verified.  Older releases may happen to work, but are not
+tested and are not supported.
+
 These instructions have been tested on the following distributions:
 
-  - Ubuntu 22.04
+  - Ubuntu 24.04
   - Fedora 42
 
 Instructions for other Linux distributions will vary. 
@@ -75,7 +80,7 @@ Instructions for other Linux distributions will vary.
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libavfilter-dev libzstd-dev libwebp-dev libcurl4-openssl-dev liblua5.3-dev libegl-dev libfreetype-dev libharfbuzz-dev libfontconfig-dev libavahi-compat-libdnssd-dev wget git cbp2make curl libsecret-1-dev
+     sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libavfilter-dev libzstd-dev libwebp-dev libcurl4-openssl-dev liblua5.3-dev libminizip-dev libxlsxwriter-dev libegl-dev libfreetype-dev libharfbuzz-dev libfontconfig-dev libavahi-compat-libdnssd-dev wget git cbp2make curl libsecret-1-dev
 
      mDNS/Bonjour controller discovery (WLED and similar):
        BUILD: without libavahi-compat-libdnssd-dev, <dns_sd.h> is unavailable
@@ -91,8 +96,12 @@ Instructions for other Linux distributions will vary.
        tool (like ispc for the SIMD kernels). The Vulkan headers, volk loader,
        and VulkanMemoryAllocator are vendored as git submodules (fetched by the
        recursive submodule checkout) and volk loads the driver at runtime, so
-       nothing Vulkan is linked. Install glslc:
-         sudo apt-get install glslc
+       nothing Vulkan is linked.  The Vulkan Shader effect additionally
+       translates user GLSL at runtime via glslang, which comes from the
+       distro: glslang-dev pulls in spirv-tools, which it needs because
+       the packaged glslang is built with the SPIR-V optimizer enabled.
+       Install glslc and glslang:
+         sudo apt-get install glslc glslang-dev
        (or build with -DXLIGHTS_USE_VULKAN=OFF / omit it in the .cbp to skip the
        GPU compute backend entirely.)
 

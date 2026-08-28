@@ -56,6 +56,7 @@ public:
     static ControllerCaps* GetControllerConfigByVendor(const std::string& vendor);
     static ControllerCaps* GetControllerConfigByModel(const std::string& model, const std::string& variant);
     static ControllerCaps* GetControllerConfigByAlternateName(const std::string& vendor, const std::string& model, const std::string& variant);
+    static ControllerCaps* GetControllerConfigByIDAndCapeVersion(const std::string& ID, const std::string& capeVersion);
 
     #pragma endregion Static Functions
 
@@ -151,6 +152,8 @@ public:
     std::vector<std::string> GetAllProtocols() const;
     std::vector<std::string> GetSmartRemoteTypes() const;
     std::vector<std::string> GetAlternativeNames() const;
+    std::vector<std::string> GetAlternativeVariantNames() const;
+    bool MatchesFPPCapeVersion(const std::string& capeVersion) const;
 
     std::string GetCustomPropertyByPath(const std::string path, const std::string& def = "") const;
     

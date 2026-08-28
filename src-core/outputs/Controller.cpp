@@ -405,6 +405,12 @@ void Controller::SearchForNewVendor( std::string const& vendor, std::string cons
     //look if current vendor is good
     ControllerCaps* cap = ControllerCaps::GetControllerConfig(vendor, model, variant);
     if ( cap ) {
+        // it may have resolved through a variant that has since been renamed
+        if (!variant.empty() && cap->GetVariantName() != variant) {
+            _variant = cap->GetVariantName();
+            _dirty = true;
+            VMVChanged();
+        }
         return;
     }
     // look for controller in other "vendors" if branding changes

@@ -585,10 +585,6 @@ set(SRC_DEPS
     dependencies/wxJSON/jsonval.cpp
     dependencies/wxJSON/jsonwriter.cpp
     dependencies/wxLED/wxLED.cpp
-    dependencies/libxlsxwriter/third_party/minizip/ioapi.c
-    dependencies/libxlsxwriter/third_party/minizip/unzip.c
-    dependencies/libxlsxwriter/third_party/minizip/zip.c
-    $<$<BOOL:${WIN32}>:${CMAKE_SOURCE_DIR}/dependencies/libxlsxwriter/third_party/minizip/iowin32.c>
 )
 
 # ─── Executable ─────────────────────────────────────────────────────────────
@@ -627,8 +623,9 @@ target_include_directories(xLights PRIVATE
     ${XL_DEPS}/spdlog/include
     ${XL_DEPS}/pugixml/src
     ${XL_DEPS}/midifile/include
-    ${XL_DEPS}/liquidfun/liquidfun/Box2D
-    ${XL_DEPS}/libxlsxwriter/include
+    # Windows takes Box2D from the bundle include added below; Linux builds
+    # liquidfun itself and still needs the submodule headers.
+    $<$<NOT:$<BOOL:${WIN32}>>:${XL_DEPS}/liquidfun/liquidfun/Box2D>
     ${XL_DEPS}/pybind11/include
     ${XL_INC}
     $<$<BOOL:${WIN32}>:${XL_BUNDLE}/include>
@@ -690,12 +687,11 @@ if(XLIGHTS_VULKAN_ENABLED)
                     target_link_libraries(xLights PRIVATE ${GTK3_LIBRARIES})
                 endif()
             endif()
-            # glslang from the vendored static build's install prefix (produced by the
-            # Makefile `glslang` target).  Only-if-found so the lean build
-            # (ENABLE_OPT=OFF, no SPIRV-Tools) links cleanly.
-            target_include_directories(xLights PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/include)
-            foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent)
-                find_library(GLSLANG_${_gl}_LIB NAMES ${_gl} HINTS ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/lib)
+            # glslang from the distro (glslang-dev, which pulls in spirv-tools:
+            # the packaged glslang is built with the optimizer enabled, so
+            # libglslang.a has unresolved spvtools refs without it).
+            foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent SPIRV-Tools-opt SPIRV-Tools)
+                find_library(GLSLANG_${_gl}_LIB NAMES ${_gl})
                 if(GLSLANG_${_gl}_LIB)
                     target_link_libraries(xLights PRIVATE ${GLSLANG_${_gl}_LIB})
                 endif()
@@ -843,13 +839,21 @@ if(MSVC AND XLIGHTS_USE_VCPKG)
     )
 endif()
 
-# libxlsxwriter — no cmake config package; find_library works for both vcpkg and vendored.
-find_library(XLSXWRITER_LIB NAMES xlsxwriter xlsxwriterd
-    HINTS ${XL_WIN_LIB_HINTS} ${XL_DEPS}/libxlsxwriter ${XL_DEPS}/libxlsxwriter/lib)
+# libxlsxwriter and minizip - no cmake config package, so find_library.  Both
+# come from the dependency bundle on Windows/macOS and from the distro
+# (libxlsxwriter-dev / libminizip-dev) on Linux.
+find_library(XLSXWRITER_LIB NAMES xlsxwriter xlsxwriterd HINTS ${XL_WIN_LIB_HINTS})
 if(XLSXWRITER_LIB)
     target_link_libraries(xLights PRIVATE ${XLSXWRITER_LIB})
 elseif(XLIGHTS_USE_VCPKG)
     message(FATAL_ERROR "XLIGHTS_USE_VCPKG=ON but libxlsxwriter not found. Run: vcpkg install libxlsxwriter")
+endif()
+
+find_library(MINIZIP_LIB NAMES minizip HINTS ${XL_WIN_LIB_HINTS})
+if(MINIZIP_LIB)
+    target_link_libraries(xLights PRIVATE ${MINIZIP_LIB})
+else()
+    message(FATAL_ERROR "minizip not found (Linux: apt install libminizip-dev)")
 endif()
 
 # LiquidFun (not in vcpkg — always use vendored)

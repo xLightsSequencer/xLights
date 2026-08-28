@@ -33,8 +33,8 @@
 #endif
 
 extern "C" {
-#include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
-#include "../../dependencies/libxlsxwriter/third_party/minizip/zip.h"
+#include <minizip/unzip.h>
+#include <minizip/zip.h>
 }
 
 #include <log.h>

@@ -8,9 +8,6 @@
 	path = macOS
 	url = https://github.com/xLightsSequencer/xLights-macOS.git
 	branch = main
-[submodule "dependencies/libxlsxwriter"]
-	path = dependencies/libxlsxwriter
-	url = https://github.com/jmcnamara/libxlsxwriter.git
 [submodule "dependencies/pybind11"]
 	path = dependencies/pybind11
 	url = https://github.com/pybind/pybind11.git
@@ -35,9 +32,3 @@
 [submodule "dependencies/VulkanMemoryAllocator"]
 	path = dependencies/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-[submodule "dependencies/glslang"]
-	path = dependencies/glslang
-	url = https://github.com/KhronosGroup/glslang.git
-[submodule "dependencies/SPIRV-Headers"]
-	path = dependencies/SPIRV-Headers
-	url = https://github.com/KhronosGroup/SPIRV-Headers.git

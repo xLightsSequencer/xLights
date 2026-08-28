@@ -26,7 +26,7 @@
 #include <sstream>
 #include "XmlSerializer/GdtfParser.h"
 #include "render/UICallbacks.h"
-#include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
+#include <minizip/unzip.h>
 #include "models/Node.h"
 #include "models/RulerObject.h"
 #include <pugixml.hpp>

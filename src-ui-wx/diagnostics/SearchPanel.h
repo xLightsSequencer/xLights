@@ -16,6 +16,7 @@
 #include <wx/combobox.h>
 #include <wx/listctrl.h>
 #include <wx/panel.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -43,6 +44,7 @@ class SearchPanel: public wxPanel
 		wxCheckBox* CheckBox_Search_Regex;
 		wxComboBox* ComboBox_Search_Model;
 		wxListCtrl* ListCtrl_Results;
+		wxScrolledWindow* ScrolledWindow1;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText_Count;
@@ -61,6 +63,7 @@ class SearchPanel: public wxPanel
 		static const long ID_LISTCTRL_Results;
 		static const long ID_BUTTON_SELECT_ALL;
 		static const long ID_STATICTEXT_COUNT;
+		static const long ID_SCROLLEDWINDOW1;
 		//*)
 
 	private:

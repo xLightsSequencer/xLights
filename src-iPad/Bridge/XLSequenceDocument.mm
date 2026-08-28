@@ -55,7 +55,7 @@
 #include "media/Spectrogram.h"
 #include "media/AIModelStore.h"
 #include "media/StemSeparator.h"
-#include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
+#include <minizip/unzip.h>
 #include <xlsxwriter.h>
 #include <filesystem>
 #include "media/MediaCompatibility.h"

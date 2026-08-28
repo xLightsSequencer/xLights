@@ -10,7 +10,7 @@
 
 #include "ZipUtils.h"
 
-#include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
+#include <minizip/unzip.h>
 
 #include <spdlog/spdlog.h>
 
