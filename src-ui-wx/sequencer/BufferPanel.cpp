@@ -175,6 +175,7 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event) {
     }
 
     std::string bs = bsInfo->choice->GetStringSelection().ToStdString();
+    bool prevWasCamera = BufferStyles::CanRenderBufferUseCamera(_prevBufferStyle);
     if (BufferStyles::CanRenderBufferUseCamera(bs)) {
         wxString currentCamera = camInfo->choice->GetStringSelection();
 
@@ -187,7 +188,11 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event) {
             }
         }
 
-        if (camInfo->choice->FindString(currentCamera) != wxNOT_FOUND && !currentCamera.empty()) {
+        // Only preserve the existing selection when coming from another camera
+        // style (e.g. toggling Per Preview <-> Per Model Per Preview) — otherwise
+        // "2D" here is just the placeholder a non-camera style forces below, not
+        // a real user choice, and the group's Default Camera should win.
+        if (prevWasCamera && camInfo->choice->FindString(currentCamera) != wxNOT_FOUND && !currentCamera.empty()) {
             camInfo->choice->SetStringSelection(currentCamera);
         } else {
             camInfo->choice->SetStringSelection(_defaultCamera);
@@ -195,6 +200,7 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event) {
     } else {
         camInfo->choice->SetStringSelection("2D");
     }
+    _prevBufferStyle = bs;
 
     ValidateWindow();
     // Must Skip so HandleCommandChange on the parent fires and the save
@@ -223,6 +229,8 @@ void BufferPanel::UpdateBufferStyles(const Model* model) {
         info->choice->Append("As Pixel");
     }
     info->choice->SetStringSelection(sel);
+    // Programmatic — doesn't fire OnBufferStyleChoiceSelect, so track it directly.
+    _prevBufferStyle = info->choice->GetStringSelection().ToStdString();
 }
 
 void BufferPanel::UpdateCamera(const Model* model) {

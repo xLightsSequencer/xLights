@@ -60,5 +60,10 @@ private:
     BulkEditChoice* _rotoZoomPresetChoice = nullptr;
 
     std::string _defaultCamera = "2D";
+    // Tracks the BufferStyle in effect *before* the current OnBufferStyleChoiceSelect
+    // call, so it can tell "switching into a camera style from a non-camera style"
+    // (apply the group's Default Camera) apart from "toggling between two camera
+    // styles" (preserve whatever camera the user already picked).
+    std::string _prevBufferStyle = "Default";
     bool _mg = false;
 };

@@ -43,6 +43,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  squishing buttons/text illegible) when docked/resized smaller than
                                  their contents (#6979)
     -bug (derwin12)              Fix images for ChatGPT service (#6969)
+    -bug (derwin12)              Fix switching an effect's Render Style to "Per Preview" on a
+                                 model group no longer applying the group's configured Default
+                                 Camera - it was silently staying on 2D
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
     -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
                                  Multi Point model saved with fewer than two points
