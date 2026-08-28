@@ -674,7 +674,11 @@ DiscoveredData *Discovery::FindByUUID(const std::string &uuid, const std::string
     if (uuid != "") {
         for (auto a : results) {
             if (a->uuid == uuid) {
-                if (ip == "" || ip == a->ip) {
+                // A system's self-reported entry in its own multiSyncSystems list (FPP10+)
+                // can come back with address "127.0.0.1" instead of its real IP. Treat that
+                // like an unspecified IP so it merges into the already-discovered instance
+                // rather than spawning a duplicate "127.0.0.1" controller.
+                if (ip == "" || ip == "127.0.0.1" || ip == a->ip) {
                     return a;
                 }
             }

@@ -18,6 +18,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Playground sheet, seeded with the prompt and style you picked, and
                                  brings the image you accept back into the usual crop/resize/save
                                  flow - Apple discontinued the API that generated images directly
+    -bug (derwin12)              Fix controller discovery adding a duplicate FPP entry with IP
+                                 127.0.0.1 when the FPP instance self-reports its own loopback
+                                 address in its multi-sync systems list
     -bug (dkulp)                 Kulp K16A-B is now two variants, 1.x and 2.x/3.x, as the two board
                                  revisions run different FPP string drivers and support different
                                  pixel protocols and smart receivers.  Existing shows resolve to
