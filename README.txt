@@ -23,6 +23,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix a crash rendering a model group after models were replaced
                                  by a base show folder sync - the group kept render nodes
                                  pointing at the models that had just been freed
+    -bug (dkulp)                 iPad - Tip of the Day was black text on the dark sheet background
+                                 in dark mode; the tips now follow the system appearance
     -bug (derwin12)              Fix controller discovery adding a duplicate FPP entry with IP
                                  127.0.0.1 when the FPP instance self-reports its own loopback
                                  address in its multi-sync systems list

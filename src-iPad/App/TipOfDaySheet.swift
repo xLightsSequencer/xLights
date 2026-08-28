@@ -140,6 +140,31 @@ private struct TipWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        uiView.loadHTMLString(html, baseURL: baseURL)
+        uiView.loadHTMLString(Self.styled(html), baseURL: baseURL)
+    }
+
+    /// The tip pages carry no styling of their own, so WebKit renders them
+    /// with its default colours - and a page that declares no `color-scheme`
+    /// only ever gets the light ones, i.e. black text over the sheet's dark
+    /// material. Declaring support for both lets those defaults follow the
+    /// system appearance. The rest just stops the screenshots overflowing a
+    /// sheet narrower than the images were captured at.
+    private static func styled(_ html: String) -> String {
+        let style = """
+        <style>
+        :root { color-scheme: light dark; }
+        body { font: -apple-system-body; margin: 16px; }
+        img { max-width: 100%; height: auto; }
+        </style>
+        """
+        // After <head> when there is one; the style has to land inside the
+        // document either way, since anything before <!DOCTYPE> would put the
+        // page into quirks mode.
+        for tag in ["<head>", "<body>"] {
+            if let r = html.range(of: tag, options: .caseInsensitive) {
+                return html.replacingCharacters(in: r, with: tag + style)
+            }
+        }
+        return html + style
     }
 }
