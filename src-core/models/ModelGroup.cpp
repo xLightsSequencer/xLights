@@ -803,7 +803,13 @@ void ModelGroup::EnsureModelsCurrent() const
 void ModelGroup::ResetModels()
 {
     modelsGeneration = modelManager.GetModelGeneration();
-    models.clear();
+    // Sticky, and compared against the previous resolution: ResetModelGroups
+    // uses it to decide whose cloned render nodes are now stale.  Sticky
+    // because a nested group is reset both by its own pass and by an outer
+    // group recursing into it, and the second pass would otherwise report "no
+    // change" and clear the first pass's answer.
+    std::vector<Model*> previous;
+    previous.swap(models);
     activeModels.clear();
 
     for (const auto& modelName : modelNames) {
@@ -817,6 +823,9 @@ void ModelGroup::ResetModels()
                 activeModels.push_back(c);
             }
         }
+    }
+    if (previous != models) {
+        modelsChangedOnReset = true;
     }
 }
 

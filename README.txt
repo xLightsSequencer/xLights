@@ -20,6 +20,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  flow - Apple discontinued the API that generated images directly
     -bug (dkulp)                 iPad - Sequences opened from a writable location were all flagged
                                  read-only, disabling Save
+    -bug (dkulp)                 Fix a crash rendering a model group after models were replaced
+                                 by a base show folder sync - the group kept render nodes
+                                 pointing at the models that had just been freed
     -bug (derwin12)              Fix controller discovery adding a duplicate FPP entry with IP
                                  127.0.0.1 when the FPP instance self-reports its own loopback
                                  address in its multi-sync systems list

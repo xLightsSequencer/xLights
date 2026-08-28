@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <spdlog/fmt/fmt.h>
 #include <string_view>
@@ -1894,6 +1895,11 @@ const std::string Model::AdjustBufferStyle(const std::string &style) const {
 }
 
 
+// XL_VALIDATE_NODES=1 diagnostic: verify every render-buffer node still names a
+// model the manager owns. Off by default - IsModelValid is a linear walk of the
+// model set. Zero cost when unset.
+static const bool xldbgValidateNodeModels = (getenv("XL_VALIDATE_NODES") != nullptr);
+
 void Model::InitRenderBufferNodes(const std::string& tp, const std::string& camera,
                                   const std::string& transform,
                                   std::vector<NodeBaseClassPtr>& newNodes, int& bufferWi, int& bufferHt, int stagger, bool deep) const
@@ -1911,6 +1917,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
 
     // Don't add model group nodes if its a 3D preview render buffer
     if (!((camera != "2D") && GetDisplayAs() == DisplayAsType::ModelGroup && (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET))) {
+        const Model* lastCheckedModel = nullptr;
         newNodes.reserve(firstNode + Nodes.size());
         for (auto& it : Nodes) {
             if (it == nullptr) {
@@ -1921,6 +1928,19 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             if (newNodes.back()->model == nullptr) {
                 spdlog::critical("Model::InitRenderBufferNodes cloned node has null model in '{}', ActChan={}.", (const char*)GetFullName().c_str(), newNodes.back()->ActChan);
                 newNodes.back()->model = this;
+            } else if (xldbgValidateNodeModels && newNodes.back()->model != lastCheckedModel) {
+                // XL_VALIDATE_NODES=1: the null case above is the lucky face of
+                // a cloned node carrying a model the manager no longer owns - a
+                // stale pointer walks straight past it and only detonates in
+                // GetColors, frames later. Checked once per distinct source
+                // pointer (a group's nodes arrive in per-member runs), because
+                // IsModelValid walks the whole model set.
+                const Model* m = newNodes.back()->model;
+                lastCheckedModel = m; // memoize either way - one line per distinct pointer
+                if (!modelManager.IsModelValid(m)) {
+                    spdlog::critical("Model::InitRenderBufferNodes cloned node has a model the manager does not own in '{}': model={} ActChan={}.",
+                                     (const char*)GetFullName().c_str(), (const void*)m, newNodes.back()->ActChan);
+                }
             }
         }
     }

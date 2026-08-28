@@ -78,6 +78,11 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         void ResetModels();
         bool RebuildBuffers();
 
+        // ModelManager::ResetModelGroups only: whether the last ResetModels
+        // resolved to a different set of Model* than it held before.
+        void ClearModelsChangedOnReset() const { modelsChangedOnReset = false; }
+        [[nodiscard]] bool ModelsChangedOnReset() const { return modelsChangedOnReset; }
+
         bool CheckForChanges() const;
 
         float GetCentreX() const { return centrex; }
@@ -127,6 +132,9 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         std::vector<std::string> modelNames;
         mutable std::vector<Model *> models;
         mutable std::vector<Model *> activeModels;
+        // Set by ResetModels when the resolved member pointers differ from the
+        // previous resolution; read (and cleared) by ModelManager::ResetModelGroups.
+        mutable bool modelsChangedOnReset = false;
         mutable unsigned int modelsGeneration = std::numeric_limits<unsigned int>::max();
         mutable bool resolvingModels = false;
         bool selected;

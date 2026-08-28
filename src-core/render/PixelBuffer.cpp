@@ -911,6 +911,11 @@ PixelBufferClass::~PixelBufferClass() {
     }
 }
 
+// XL_VALIDATE_NODES=1 diagnostic, paired with the one in
+// Model::InitRenderBufferNodes. Off by default - IsModelValid walks the model
+// set. Zero cost when unset.
+static const bool xldbgValidateNodeModels = (getenv("XL_VALIDATE_NODES") != nullptr);
+
 void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
     // Callers are required to AbortRender before changing/deleting the
     // model this buffer points at, so model should always be non-null
@@ -988,10 +993,26 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
 
     anyDimmingCurve = false;
     if (numLayers > 0) {
+        // XL_VALIDATE_NODES=1: same check InitRenderBufferNodes makes, at the
+        // other end. Which of the two fires says whether a bad node model was
+        // cloned in or appeared after the buffer was built.
+        const Model* lastChecked = nullptr;
         for (const auto& n : layers[0]->buffer.Nodes) {
-            if (n != nullptr && n->model != nullptr && n->model->GetDimmingCurve() != nullptr) {
+            if (n == nullptr || n->model == nullptr) {
+                continue;
+            }
+            if (xldbgValidateNodeModels && model != nullptr && n->model != lastChecked) {
+                lastChecked = n->model; // memoize either way - one line per distinct pointer
+                if (!model->GetModelManager().IsModelValid(n->model)) {
+                    spdlog::critical("PixelBufferClass::reset node model is not owned by the manager on '{}': model={} ActChan={}.",
+                                     modelName, (const void*)n->model, n->ActChan);
+                }
+            }
+            if (!anyDimmingCurve && n->model->GetDimmingCurve() != nullptr) {
                 anyDimmingCurve = true;
-                break;
+                if (!xldbgValidateNodeModels) {
+                    break;
+                }
             }
         }
     }

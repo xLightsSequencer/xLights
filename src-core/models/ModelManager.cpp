@@ -11,6 +11,8 @@
 #include <cassert>
 #include <chrono>
 #include <cmath>
+#include <functional>
+#include <set>
 #include <spdlog/fmt/fmt.h>
 #include <thread>
 
@@ -345,15 +347,70 @@ void ModelManager::ResetModelGroups() const
 
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
     std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+
+    std::vector<ModelGroup*> groups;
     for (const auto& it : models) {
         if (it.second != nullptr && it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
-            ((ModelGroup*)(it.second))->ResetModels();
+            groups.push_back((ModelGroup*)(it.second));
         }
     }
-    for (const auto& it : models) {
-        if (it.second != nullptr && it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
-            ((ModelGroup*)(it.second))->CheckForChanges();
+    for (auto* g : groups) {
+        g->ClearModelsChangedOnReset();
+    }
+    for (auto* g : groups) {
+        g->ResetModels();
+    }
+
+    // A group also caches CLONES of its members' nodes, and every clone carries
+    // a raw Model* back to the member it came from.  Callers reach here having
+    // just replaced or deleted models, so those clones now name models that are
+    // about to be freed - and the pointer, not the node data, is what a render
+    // dereferences frames later.  CheckForChanges cannot be the thing that
+    // rebuilds them: it only fires when the members' change counts move (a
+    // replacement can carry the same count) and it refuses to run off the main
+    // thread, which is exactly where the base-show merge does its replacing.
+    // Rebuild here instead, where the caller has already made it safe to mutate.
+    std::set<ModelGroup*> stale;
+    for (auto* g : groups) {
+        if (g->ModelsChangedOnReset()) {
+            stale.insert(g);
         }
+    }
+    // A group whose member GROUP was rebuilt clones from that group's nodes, so
+    // it is stale too.  Fixpoint rather than one pass: nesting can be deeper.
+    for (bool grew = true; grew;) {
+        grew = false;
+        for (auto* g : groups) {
+            if (stale.count(g) != 0) {
+                continue;
+            }
+            for (Model* m : g->Models()) {
+                if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup
+                    && stale.count((ModelGroup*)m) != 0) {
+                    stale.insert(g);
+                    grew = true;
+                    break;
+                }
+            }
+        }
+    }
+    // Members before the groups that contain them, so an outer group clones
+    // nodes that have already been refreshed.  Marking visited before
+    // recursing breaks the cycle two groups naming each other would form.
+    std::set<ModelGroup*> done;
+    std::function<void(ModelGroup*)> rebuild = [&](ModelGroup* g) {
+        if (g == nullptr || stale.count(g) == 0 || !done.insert(g).second) {
+            return;
+        }
+        for (Model* m : g->Models()) {
+            if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                rebuild((ModelGroup*)m);
+            }
+        }
+        g->RebuildBuffers();
+    };
+    for (auto* g : stale) {
+        rebuild(g);
     }
 }
 
