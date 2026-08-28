@@ -52,6 +52,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Linux: the camera scan in Generate Custom Model now works whatever
                                  FFmpeg version the distro ships, and explains what to install if no
                                  FFmpeg runtime is present at all
+    -bug (dkulp)                 Fixed a crash rendering a Video effect when the decoder switched
+                                 mid-file (hardware decode dropping back to software) - the scaler
+                                 kept the previous decoder's frame layout
 
 2026.16  August 24, 2026
 

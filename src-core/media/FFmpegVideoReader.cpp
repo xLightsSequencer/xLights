@@ -1110,6 +1110,16 @@ void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
     }
 }
 
+void FFmpegVideoReader::NoteSwsContextGeometry(const AVFrame* f)
+{
+    _swsSrcWidth = f->width;
+    _swsSrcHeight = f->height;
+    _swsSrcFmt = (AVPixelFormat)f->format;
+    _swsDstWidth = _width;
+    _swsDstHeight = _height;
+    _swsDstFmt = _pixelFmt;
+}
+
 bool FFmpegVideoReader::readFrame(int timestampMS) {
     if (_codecContext == nullptr) return false;
     int rc = 0;
@@ -1186,6 +1196,19 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     spdlog::warn("VideoReader: No valid CPU frame available — skipping sws_scale for this frame.");
                 }
 
+                if (f != nullptr && _swsCtx != nullptr &&
+                    (f->width != _swsSrcWidth || f->height != _swsSrcHeight ||
+                     (AVPixelFormat)f->format != _swsSrcFmt ||
+                     _width != _swsDstWidth || _height != _swsDstHeight || _pixelFmt != _swsDstFmt)) {
+                    // Either end can change under a cached context: reopenContext()
+                    // can swap a hardware decoder for a software one (NV12 -> YUV420P),
+                    // and the Windows hardware-reader fallback reopens the file and
+                    // recomputes _width/_height. Scaling with the old context then
+                    // reads and writes with the wrong plane strides.
+                    sws_freeContext(_swsCtx);
+                    _swsCtx = nullptr;
+                }
+
                 if (f != nullptr && _swsCtx == nullptr) {
                     if (_abandonHardwareDecode) {
                         spdlog::debug("VideoReader: Using software decode (hardware decoding unavailable for this file).");
@@ -1199,6 +1222,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                         if (_swsCtx == nullptr) {
                             spdlog::error("VideoReader: Error creating SWSContext");
                         } else {
+                            NoteSwsContextGeometry(f);
                             ApplySwsColorspace(_swsCtx, _codecContext, f->height);
                             spdlog::debug("Hardware Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format), av_get_pix_fmt_name(_pixelFmt));
                             spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);
@@ -1212,6 +1236,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                         if (_swsCtx == nullptr) {
                             spdlog::error("VideoReader: Error creating SWSContext");
                         } else {
+                            NoteSwsContextGeometry(f);
                             ApplySwsColorspace(_swsCtx, _codecContext, f->height);
                             spdlog::debug("Software Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
                             spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);

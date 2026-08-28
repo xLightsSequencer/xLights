@@ -68,6 +68,7 @@ private:
     bool readFrame(int timestampMS);
     void reopenContext(bool allowHWDecoder = true);
     void OpenWithFFmpeg(const std::string& filename, bool usenativeresolution, bool keepaspectratio, int maxwidth, int maxheight);
+    void NoteSwsContextGeometry(const AVFrame* f);
 #ifdef _WIN32
     // Swap a hardware reader that stopped responding for the software decoder,
     // mid-file. Returns true if the software path is ready to serve frames.
@@ -104,6 +105,16 @@ private:
     int _curPos = 0;
     int _firstFramePos = -1;
     SwsContext* _swsCtx = nullptr;
+    // The geometry/format _swsCtx was built for. The context is cached across
+    // frames but the decoder underneath it can be replaced (reopenContext, the
+    // Windows hardware-reader fallback) and the destination size recomputed with
+    // it, so it is only reusable while both ends still match.
+    int _swsSrcWidth = 0;
+    int _swsSrcHeight = 0;
+    AVPixelFormat _swsSrcFmt = AVPixelFormat::AV_PIX_FMT_NONE;
+    int _swsDstWidth = 0;
+    int _swsDstHeight = 0;
+    AVPixelFormat _swsDstFmt = AVPixelFormat::AV_PIX_FMT_NONE;
     AVPacket* _packet = nullptr;
     AVPixelFormat _pixelFmt;
     bool _atEnd = false;
