@@ -325,7 +325,10 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
 
         for (int y = -2 * buffer.BufferHt; y < 2 * buffer.BufferHt; ++y) {
 
-            int n = buffer.BufferHt + y + f_offset;
+            // Offset by a multiple of blockHt (not BufferHt) so the modulo phase isn't
+            // shifted when BufferHt doesn't divide evenly by colorcnt (blockHt > BufferHt);
+            // adding BufferHt directly caused the first row to wrap to the wrong color.
+            int n = 4 * blockHt + y + f_offset;
             int colorIdx = std::abs(n % blockHt) / barHt;
             if (useFirstColorForHighlight) {
                 colorIdx += 1;
@@ -422,7 +425,9 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             BlockWi = 1;
 
         for (int x = -2 * width; x < 2 * width; ++x) {
-            int n = width + x;
+            // See the note in the standard horizontal-bars branch above: offset by a
+            // multiple of BlockWi (not width) to avoid shifting the modulo phase.
+            int n = 4 * BlockWi + x;
             int colorIdx = (n % BlockWi) / BarWi;
             if (useFirstColorForHighlight) {
                 colorIdx += 1;
@@ -480,8 +485,12 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         }
 
         direction = direction > 9 ? direction - 6 : direction;
+
         for (int x = -2 * buffer.BufferWi; x < 2 * buffer.BufferWi; ++x) {
-            int n = buffer.BufferWi + x + f_offset;
+            // Offset by a multiple of blockWi (not BufferWi) so the modulo phase isn't
+            // shifted when BufferWi doesn't divide evenly by colorcnt (blockWi > BufferWi);
+            // adding BufferWi directly caused the first column to wrap to the wrong color.
+            int n = 4 * blockWi + x + f_offset;
             int colorIdx = (n % blockWi) / barWi;
             if (useFirstColorForHighlight) {
                 colorIdx += 1;
