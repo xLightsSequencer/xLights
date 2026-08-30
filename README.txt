@@ -58,6 +58,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fixed a crash rendering a Video effect when the decoder switched
                                  mid-file (hardware decode dropping back to software) - the scaler
                                  kept the previous decoder's frame layout
+    -enh (derwin12)              ML stem separation (Drums/Bass/Other/Vocals) now saves each stem
+                                 as an alternate audio track under Sequence Settings > Audio Tracks,
+                                 so they survive closing the sequence and don't need reprocessing (#6856)
     -bug (scott)                 Fix Custom Model Wiring view zoom sometimes flying off-screen or
                                  crashing when scrolled out fully, and drifting away from the mouse
                                  pointer while zooming on displays with Windows scaling above 100%
