@@ -46,6 +46,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix switching an effect's Render Style to "Per Preview" on a
                                  model group no longer applying the group's configured Default
                                  Camera - it was silently staying on 2D
+    -bug (derwin12)              Fix an Off effect on a moving head/DMX fixture with a dimmer
+                                 resetting pan/tilt/color channels to black instead of just
+                                 turning off the dimmer, which snapped the head out of position (#6990)
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
     -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
                                  Multi Point model saved with fewer than two points
@@ -58,6 +61,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)              ML stem separation (Drums/Bass/Other/Vocals) now saves each stem
                                  as an alternate audio track under Sequence Settings > Audio Tracks,
                                  so they survive closing the sequence and don't need reprocessing (#6856)
+    -bug (scott)                 Fix Custom Model Wiring view zoom sometimes flying off-screen or
+                                 crashing when scrolled out fully, and drifting away from the mouse
+                                 pointer while zooming on displays with Windows scaling above 100%
+    -enh (scott)                 Custom Model Wiring dialog now remembers its size and position
 
 2026.16  August 24, 2026
 

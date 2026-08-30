@@ -26,6 +26,39 @@
 class WiringDialog;
 class Model;
 
+// wxGenericStaticBitmap::SetBitmap() unconditionally resizes the control to
+// the bitmap's best size, fighting our sizer (we always hand it a bitmap
+// already sized to the control's current allocated area). This fork has no
+// wxST_NO_AUTORESIZE style to opt out, so suppress the resize directly.
+class WiringStaticBitmap : public wxGenericStaticBitmap
+{
+public:
+    WiringStaticBitmap(wxWindow* parent, wxWindowID id, const wxBitmapBundle& bitmap,
+                        const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+                        long style = 0, const wxString& name = wxASCII_STR(wxStaticBitmapNameStr))
+        : wxGenericStaticBitmap(parent, id, bitmap, pos, size, style, name)
+    {
+    }
+
+    // wxStaticBitmapBase::GetBitmap() calls m_bitmapBundle.GetBitmapFor(this),
+    // which rescales the bitmap to match this->GetDPIScaleFactor() (the real
+    // Windows display-scaling ratio, unlike GetContentScaleFactor() which is
+    // always 1 on this platform). We always hand it a bitmap already sized
+    // in real pixels for the control's current allocated area, so that
+    // DPI-based rescale silently stretches our pixel-exact render on any
+    // non-100%-scaled display. Bypass it and return our bitmap as-is.
+    wxBitmap GetBitmap() const override
+    {
+        return m_bitmapBundle.GetBitmap(m_bitmapBundle.GetDefaultSize());
+    }
+
+    void SetBitmap(const wxBitmapBundle& bitmap) override
+    {
+        m_bitmapBundle = bitmap;
+        Refresh();
+    }
+};
+
 class WiringPrintout : public wxPrintout
 {
     WiringDialog* _wiringDialog;
@@ -58,7 +91,7 @@ struct ColorTheme {
 class WiringDialog: public wxDialog
 {
     float _zoom = 1.0f;
-    wxPoint _start = wxPoint(0, 0);
+    wxRealPoint _start = wxRealPoint(0, 0);
     wxPoint _lastMouse = wxPoint(0, 0);
     wxString _modelname;
     wxBitmap _bmp;
@@ -114,7 +147,7 @@ class WiringDialog: public wxDialog
         void DrawBitmap(wxBitmap& bitmap, bool printer = false);
 
 		//(*Declarations(WiringDialog)
-		wxGenericStaticBitmap* StaticBitmap_Wiring;
+		WiringStaticBitmap* StaticBitmap_Wiring;
 		//*)
 
 	protected:
