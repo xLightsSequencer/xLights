@@ -12701,21 +12701,21 @@ void LayoutPanel::HandleSelectionChanged() {
             }
             if (selectedBaseObject != nullptr && selectedBaseObject->GetBaseObjectScreenLocation().hasX2()) {
                 const TwoPointScreenLocation& screenLoc = dynamic_cast<const TwoPointScreenLocation&>(selectedBaseObject->GetBaseObjectScreenLocation());
-                // GetX2()/GetY2() are offsets of point 2 relative to point 1 (the model's
-                // world position), not absolute coordinates, so compare them against 0.
-                float x2 = screenLoc.GetX2();
-                float y2 = screenLoc.GetY2();
-                if (x2 < 0.0f && std::abs(x2) > 30.0) {
+                switch (screenLoc.GetFlipDirection()) {
+                case TwoPointScreenLocation::FlipDirection::LeftRight:
                     if (!tooltip.empty()) {
                         tooltip += "\n";
                     }
                     tooltip += "Warning: Model is perhaps flipped left to right.";
-                }
-                if (y2 < 0.0f && std::abs(x2) < 30.0) {
+                    break;
+                case TwoPointScreenLocation::FlipDirection::TopBottom:
                     if (!tooltip.empty()) {
                         tooltip += "\n";
                     }
                     tooltip += "Warning: Model is perhaps flipped top to bottom.";
+                    break;
+                case TwoPointScreenLocation::FlipDirection::None:
+                    break;
                 }
             }
             SetupPropGrid(model);
