@@ -13,6 +13,8 @@
 #include "OffEffect.h"
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
+#include "../models/DMX/DmxDimmerAbility.h"
+#include "../models/DMX/DmxModel.h"
 #include "UtilFunctions.h"
 #include "models/Model.h"
 
@@ -84,7 +86,32 @@ void OffEffect::Render(Effect* effect, const SettingsMap& settings, RenderBuffer
     if (style == "Transparent") {
         // dont change any pixels at all if we are transparent
         return;
-    } else if (style == "Black") {
+    }
+
+    // Moving heads (and other DMX fixtures with a dimmer channel) shouldn't have their
+    // pan/tilt/color/etc. channels reset to black by an Off effect - only the dimmer
+    // should be turned off so the fixture stays where it was last positioned.
+    const DmxModel* dmxModel = dynamic_cast<const DmxModel*>(buffer.GetModel());
+    if (dmxModel != nullptr && dmxModel->HasDimmerAbility()) {
+        int dimmerChannel = dmxModel->GetDimmerAbility()->GetDimmerChannel();
+        if (dimmerChannel > 0 && (uint32_t)dimmerChannel <= buffer.GetPixelCount()) {
+            int idx = dimmerChannel - 1;
+            if (style == "Black") {
+                buffer.SetPixel(idx, 0, xlBLACK, false, false, true);
+            } else if (style == "Black -> Transparent") {
+                if (buffer.GetPixels()[idx] == xlBLACK) {
+                    buffer.GetPixels()[idx] = xlCLEAR;
+                }
+            } else if (style == "Transparent -> Black") {
+                if (buffer.GetPixels()[idx] == xlCLEAR) {
+                    buffer.SetPixel(idx, 0, xlBLACK, false, false, true);
+                }
+            }
+            return;
+        }
+    }
+
+    if (style == "Black") {
         //  Every Node, every frame set to BLACK
         buffer.Fill(xlBLACK);
     } else if (style == "Black -> Transparent") {
