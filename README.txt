@@ -46,6 +46,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix switching an effect's Render Style to "Per Preview" on a
                                  model group no longer applying the group's configured Default
                                  Camera - it was silently staying on 2D
+    -bug (derwin12)              Fix an Off effect on a moving head/DMX fixture with a dimmer
+                                 resetting pan/tilt/color channels to black instead of just
+                                 turning off the dimmer, which snapped the head out of position (#6990)
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
     -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
                                  Multi Point model saved with fewer than two points
