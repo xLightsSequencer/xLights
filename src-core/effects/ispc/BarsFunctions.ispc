@@ -170,7 +170,10 @@ export void BarsEffectISPC(const uniform BarsData * uniform data,
             } else { // BARS_DIR_UP
                 y = height - py - 1;
             }
-            n = height + y + f_offset;
+            // Offset by a multiple of blockSize (not height) so the modulo phase isn't
+            // shifted when height doesn't divide evenly by colorCount (blockSize > height);
+            // adding height directly caused the first row to wrap to the wrong color.
+            n = 4 * data->blockSize + y + f_offset;
         } else {
             // Horizontal directions: bars run vertically, animate along X.
             int x;
@@ -183,7 +186,10 @@ export void BarsEffectISPC(const uniform BarsData * uniform data,
             } else { // BARS_DIR_LEFT
                 x = px;
             }
-            n = width + x + f_offset;
+            // Offset by a multiple of blockSize (not width) so the modulo phase isn't
+            // shifted when width doesn't divide evenly by colorCount (blockSize > width);
+            // adding width directly caused the first column to wrap to the wrong color.
+            n = 4 * data->blockSize + x + f_offset;
         }
 
         result[index] = computeBarColor(n, data);

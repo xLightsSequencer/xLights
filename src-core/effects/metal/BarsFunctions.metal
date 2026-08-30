@@ -141,7 +141,10 @@ kernel void BarsEffect(constant MetalBarsData &data [[buffer(0)]],
                 y = (int)data.height - (int)py - 1;
                 break;
         }
-        n = (int)data.height + y + data.f_offset;
+        // Offset by a multiple of blockSize (not height) so the modulo phase isn't
+        // shifted when height doesn't divide evenly by colorCount (blockSize > height);
+        // adding height directly caused the first row to wrap to the wrong color.
+        n = 4 * (int)data.blockSize + y + data.f_offset;
     } else {
         // Horizontal modes: bars run vertically, animate along X.
         int x;
@@ -161,7 +164,10 @@ kernel void BarsEffect(constant MetalBarsData &data [[buffer(0)]],
                 x = (int)px;
                 break;
         }
-        n = (int)data.width + x + data.f_offset;
+        // Offset by a multiple of blockSize (not width) so the modulo phase isn't
+        // shifted when width doesn't divide evenly by colorCount (blockSize > width);
+        // adding width directly caused the first column to wrap to the wrong color.
+        n = 4 * (int)data.blockSize + x + data.f_offset;
     }
 
     result[index] = computeBarColor(n, data);
