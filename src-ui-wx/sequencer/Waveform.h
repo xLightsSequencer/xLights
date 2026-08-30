@@ -35,6 +35,7 @@ wxDECLARE_EVENT(EVT_GSCROLL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MOUSE_POSITION, wxCommandEvent);
 
 class TimeLine;
+struct StemOutput;
 
 enum DRAG_MODE {
     DRAG_NORMAL,
@@ -85,6 +86,15 @@ class Waveform : public GRAPHICS_BASE_CLASS
         // false on user cancel / download / inference failure.
         // ONNX Runtime/OpenVINO: download ONNX model from huggingface and put in ai-models/ folder in the show folder.
         bool PrepareStemData();
+        // Issue #6856: persist the separated stems to disk as .m4a
+        // files and register each as an alternate audio track (Sequence
+        // Settings → Audio Tracks) so they survive closing the sequence
+        // and can be recalled without re-running separation. Named from
+        // the sequence's own filename so tracks from different sequences
+        // never collide (e.g. "MySong_Stem_Drums.m4a"). Called after a
+        // successful SetStemData from both the CoreML and ONNX/OpenVINO
+        // PrepareStemData implementations.
+        void SaveStemTracksAsAltTracks(const StemOutput& stems);
         // Re-entrancy guard for PrepareStemData. The progress-dialog
         // wait loop pumps the event queue via wxApp::Yield, which can
         // re-dispatch the stem menu command and re-enter
