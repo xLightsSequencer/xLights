@@ -12701,18 +12701,17 @@ void LayoutPanel::HandleSelectionChanged() {
             }
             if (selectedBaseObject != nullptr && selectedBaseObject->GetBaseObjectScreenLocation().hasX2()) {
                 const TwoPointScreenLocation& screenLoc = dynamic_cast<const TwoPointScreenLocation&>(selectedBaseObject->GetBaseObjectScreenLocation());
-                glm::vec3 loc = screenLoc.GetWorldPosition();
-                float x1 = loc.x;
-                float y1 = loc.y;
+                // GetX2()/GetY2() are offsets of point 2 relative to point 1 (the model's
+                // world position), not absolute coordinates, so compare them against 0.
                 float x2 = screenLoc.GetX2();
                 float y2 = screenLoc.GetY2();
-                if (x2 < x1 && std::abs(x2 - x1) > 30.0) {
+                if (x2 < 0.0f && std::abs(x2) > 30.0) {
                     if (!tooltip.empty()) {
                         tooltip += "\n";
                     }
                     tooltip += "Warning: Model is perhaps flipped left to right.";
                 }
-                if (y2 < y1 && std::abs(x2 - x1) < 30.0) {
+                if (y2 < 0.0f && std::abs(x2) < 30.0) {
                     if (!tooltip.empty()) {
                         tooltip += "\n";
                     }
