@@ -58,6 +58,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fixed a crash rendering a Video effect when the decoder switched
                                  mid-file (hardware decode dropping back to software) - the scaler
                                  kept the previous decoder's frame layout
+    -bug (scott)                 Fix Custom Model Wiring view zoom sometimes flying off-screen or
+                                 crashing when scrolled out fully, and drifting away from the mouse
+                                 pointer while zooming on displays with Windows scaling above 100%
+    -enh (scott)                 Custom Model Wiring dialog now remembers its size and position
 
 2026.16  August 24, 2026
 
