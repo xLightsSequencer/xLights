@@ -189,8 +189,23 @@ TextFontInfo TextDrawingContext::ParseFontDescriptor(const std::string& fontStri
 
     int size = 0;
     std::vector<std::string> faceParts;
-    for (const std::string& part : parts) {
+    for (size_t idx = 0; idx < parts.size(); idx++) {
+        const std::string& part = parts[idx];
         std::string lp = lower(part);
+
+        // "semi bold"/"semi light" is wx's two-word rendering of the SEMIBOLD
+        // (600) / SEMILIGHT weight - neither wxFONTWEIGHT_BOLD nor _LIGHT, so
+        // it must consume both words without setting either flag. Otherwise
+        // "semi" falls through unrecognised into the face name below while
+        // "bold" is read on its own and wrongly renders as true Bold.
+        if (lp == "semi" && idx + 1 < parts.size()) {
+            std::string next = lower(parts[idx + 1]);
+            if (next == "bold" || next == "light") {
+                idx++;
+                continue;
+            }
+        }
+
         if (lp == "bold" || lp == "heavy" || lp == "black" || lp == "extrabold" || lp == "ultrabold" || lp == "demibold") {
             info.bold = true;
             continue;
@@ -254,7 +269,15 @@ TextFontInfo TextDrawingContext::ParseFontDescriptor(const std::string& fontStri
         faceParts.push_back(part);
     }
 
-    info.pixelSize = size > 0 ? size : 12;
+    // A descriptor with no numeric token is a font wx itself failed to parse
+    // as either native-info or user-desc format (both silently fall back to
+    // defaults rather than erroring) - the size the sequence was actually
+    // saved with is not recoverable from the string. 9 matches wx's own
+    // fallback (the classic Windows default UI font, Segoe UI 9pt) rather
+    // than this size-grid renderer's otherwise-unrelated default of 12,
+    // which is large enough to overflow a small LED matrix's buffer height
+    // and produce badly clipped/overlapping glyphs.
+    info.pixelSize = size > 0 ? size : 9;
 
     std::string faceName = quotedFace;
     if (faceName.empty()) {

@@ -137,6 +137,7 @@ struct D2DTextDrawingContext::Impl {
     int height = 0;
     bool drawing = false;      // a BeginDraw is outstanding
     bool overlay = false;
+    bool thresholdOnFlush = true; // snap alpha to 0/255 on readback instead of asking D2D for bi-level text
 
     TextFontInfo cachedFont;
     xlColor cachedColor{ 0, 0, 0, 0 };
@@ -203,9 +204,17 @@ struct D2DTextDrawingContext::Impl {
 
         // The effects ask for un-antialiased text (TextFontInfo::antiAliased is
         // false and the wx path set wxANTIALIAS_NONE), and these buffers are
-        // pixel grids where a blurred glyph edge just muddies a node.
+        // pixel grids where a blurred glyph edge just muddies a node. But
+        // D2D1_TEXT_ANTIALIAS_MODE_ALIASED asks DirectWrite for its bi-level
+        // rasteriser, a rarely-exercised path with much cruder hinting than the
+        // grayscale one - at the small pixel sizes typical of an LED matrix it
+        // produces outright broken/malformed glyphs (see the Text effect's
+        // FlushAndGetImage threshold below for the real un-antialiasing step).
+        // The wx path this replaced never touched text antialiasing at all
+        // (wxANTIALIAS_NONE only sets the geometry mode), which is why it kept
+        // DirectWrite's normal, correctly-hinted grayscale text rendering.
         rt->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-        rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_ALIASED);
+        rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
 
         hr = rt->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &brush);
         if (FAILED(hr) || brush == nullptr) {
@@ -309,23 +318,34 @@ const uint8_t* D2DTextDrawingContext::FlushAndGetImage(int* width, int* height) 
                     const uint8_t b = srow[x * 4 + 0];
                     const uint8_t g = srow[x * 4 + 1];
                     const uint8_t r = srow[x * 4 + 2];
-                    const uint8_t a = srow[x * 4 + 3];
+                    uint8_t a = srow[x * 4 + 3];
+                    uint8_t outR, outG, outB;
                     if (a == 0) {
-                        drow[x * 4 + 0] = 0;
-                        drow[x * 4 + 1] = 0;
-                        drow[x * 4 + 2] = 0;
-                        drow[x * 4 + 3] = 0;
+                        outR = outG = outB = 0;
                     } else if (a == 255) {
-                        drow[x * 4 + 0] = r;
-                        drow[x * 4 + 1] = g;
-                        drow[x * 4 + 2] = b;
-                        drow[x * 4 + 3] = 255;
+                        outR = r; outG = g; outB = b;
                     } else {
-                        drow[x * 4 + 0] = (uint8_t)std::min(255, (r * 255 + a / 2) / a);
-                        drow[x * 4 + 1] = (uint8_t)std::min(255, (g * 255 + a / 2) / a);
-                        drow[x * 4 + 2] = (uint8_t)std::min(255, (b * 255 + a / 2) / a);
-                        drow[x * 4 + 3] = a;
+                        outR = (uint8_t)std::min(255, (r * 255 + a / 2) / a);
+                        outG = (uint8_t)std::min(255, (g * 255 + a / 2) / a);
+                        outB = (uint8_t)std::min(255, (b * 255 + a / 2) / a);
                     }
+
+                    // The render was done with DirectWrite's (correctly hinted)
+                    // grayscale text rasteriser rather than its bi-level one -
+                    // see SetFont - so snap the antialiased edge to hard on/off
+                    // here instead, unless the caller explicitly asked for
+                    // smooth edges (fi.antiAliased, e.g. Shape's emoji bitmap).
+                    if (impl->thresholdOnFlush) {
+                        a = a >= 128 ? 255 : 0;
+                        if (a == 0) {
+                            outR = outG = outB = 0;
+                        }
+                    }
+
+                    drow[x * 4 + 0] = outR;
+                    drow[x * 4 + 1] = outG;
+                    drow[x * 4 + 2] = outB;
+                    drow[x * 4 + 3] = a;
                 }
             }
         }
@@ -346,16 +366,23 @@ void D2DTextDrawingContext::SetFont(const TextFontInfo& fi, const xlColor& color
     // Antialiasing is a render-target-wide setting, not a format/layout one, so
     // it must be re-applied on every SetFont — a pooled context may have last
     // drawn a different effect's request. Most effects render into LED-grid
-    // buffers where AA produces blurry half-lit pixels, so ALIASED remains the
-    // default; fi.antiAliased lets a caller (e.g. Shape's cached color-emoji
-    // bitmap) opt into smooth edges instead.
+    // buffers where AA produces blurry half-lit pixels, so the default snaps
+    // to hard on/off; fi.antiAliased lets a caller (e.g. Shape's cached
+    // color-emoji bitmap) opt into smooth edges instead.
+    //
+    // Both cases render with DirectWrite's grayscale text rasteriser -
+    // D2D1_TEXT_ANTIALIAS_MODE_ALIASED asks for its bi-level one instead,
+    // which is a much more crudely hinted, rarely-exercised path that produces
+    // broken/malformed glyphs at the small pixel sizes typical of an LED
+    // matrix. The un-antialiased look is instead produced by thresholding the
+    // grayscale alpha on readback, in FlushAndGetImage.
+    impl->thresholdOnFlush = !fi.antiAliased;
     if (fi.antiAliased) {
         impl->rt->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-        impl->rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
     } else {
         impl->rt->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-        impl->rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_ALIASED);
     }
+    impl->rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
 
     if (impl->haveFont && fi == impl->cachedFont && color == impl->cachedColor) {
         return;
@@ -499,36 +526,27 @@ void D2DTextDrawingContext::GetTextExtent(const std::string& msg, double* width,
 
 void D2DTextDrawingContext::GetTextExtents(const std::string& msg, std::vector<double>& extents) {
     extents.clear();
-    const std::wstring w = Widen(msg);
-    if (w.empty()) {
-        return;
-    }
-    IDWriteTextLayout* layout = impl->MakeLayout(msg);
-    if (layout == nullptr) {
-        extents.assign(w.size(), 0.0);
+    if (msg.empty()) {
         return;
     }
 
-    // Cumulative advance after each UTF-16 unit, which is what the callers use
-    // to place per-character effects. Cluster metrics give advances per cluster;
-    // spread a multi-unit cluster's advance across its units so the vector stays
-    // one entry per unit.
-    UINT32 count = 0;
-    layout->GetClusterMetrics(nullptr, 0, &count);
-    std::vector<DWRITE_CLUSTER_METRICS> clusters(count);
+    // The caller (Text effect's per-character colour path) draws each
+    // character with its own single-character layout - see DrawText(), which
+    // goes through MakeLayout() the same way GetTextExtent() below does. A
+    // whole-string layout's cluster metrics snap and kern differently than
+    // those isolated single-character layouts actually do when drawn, so
+    // advances measured from the whole string place characters where they
+    // were not actually drawn, and glyphs end up overlapping or gapped -
+    // worst at the small pixel sizes typical of an LED matrix. Measure each
+    // character the same way it will be drawn: one at a time. Byte-indexed
+    // like the caller, which only ever hands this one-byte substrings.
     double running = 0;
-    if (count > 0 && SUCCEEDED(layout->GetClusterMetrics(clusters.data(), count, &count))) {
-        for (UINT32 c = 0; c < count; c++) {
-            const UINT16 units = clusters[c].length > 0 ? clusters[c].length : 1;
-            const double per = clusters[c].width / units;
-            for (UINT16 u = 0; u < units; u++) {
-                running += per;
-                extents.push_back(running);
-            }
-        }
+    for (size_t i = 0; i < msg.size(); i++) {
+        double charWidth = 0, charHeight = 0;
+        GetTextExtent(msg.substr(i, 1), &charWidth, &charHeight);
+        running += charWidth;
+        extents.push_back(running);
     }
-    extents.resize(w.size(), running);
-    layout->Release();
 }
 
 void D2DTextDrawingContext::SetOverlayMode(bool b) {
