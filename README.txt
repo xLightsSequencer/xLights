@@ -12,6 +12,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -enh (scott)                 Added an MCP (Model Context Protocol) server alongside the
+                                 existing REST Automation API, so MCP-aware AI tools can drive
+                                 xLights over the same xFade port (POST /mcp)
+    -bug (scott)                 Fix several automation commands (addEffect, setModelProperty,
+                                 saveSequence) mishandling JSON settings, dropdown properties, and
+                                 relative filenames, found while testing the new MCP server
     -change (dkulp)              macOS: Raise minimum version of macOS to 12.0 (requirement to
                                  be able to build and test on macOS 27)
     -change (dkulp)              Apple Intelligence image generation now opens the system Image

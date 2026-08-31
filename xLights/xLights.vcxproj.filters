@@ -869,6 +869,9 @@
     <ClCompile Include="..\src-ui-wx\automation\xLightsAutomations.cpp">
       <Filter>automation</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\automation\xLightsMCPServer.cpp">
+      <Filter>automation</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\automation\LuaRunner.cpp">
       <Filter>automation</Filter>
     </ClCompile>
@@ -2418,6 +2421,9 @@
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\automation\automation.h">
+      <Filter>automation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\automation\AutomationJson.h">
       <Filter>automation</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\automation\LuaRunner.h">

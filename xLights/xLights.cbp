@@ -746,6 +746,8 @@
 		<Unit filename="../src-ui-wx/automation/automation.cpp" />
 		<Unit filename="../src-ui-wx/automation/automation.h" />
 		<Unit filename="../src-ui-wx/automation/xLightsAutomations.cpp" />
+		<Unit filename="../src-ui-wx/automation/xLightsMCPServer.cpp" />
+		<Unit filename="../src-ui-wx/automation/AutomationJson.h" />
 		<Unit filename="../src-core/cad/CADModel.cpp" />
 		<Unit filename="../src-core/cad/CADModel.h" />
 		<Unit filename="../src-core/cad/CADPoint.h" />

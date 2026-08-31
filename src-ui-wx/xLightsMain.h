@@ -1129,6 +1129,7 @@ public:
 	[[nodiscard]] bool IsIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void StartAutomationListener();
     [[nodiscard]] bool ProcessHttpRequest(HttpConnection& connection, HttpRequest& request);
+    [[nodiscard]] bool ProcessMCPRequest(HttpConnection& connection, HttpRequest& request);
     [[nodiscard]] bool ProcessAutomation(std::vector<std::string>& paths,
                            std::map<std::string, std::string> &params,
                            const std::function<bool(const std::string &msg,

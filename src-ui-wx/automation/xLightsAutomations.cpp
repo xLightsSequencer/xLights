@@ -33,6 +33,7 @@
 #include "../../dependencies/wxHTTPServer/wxhttpserver.h"
 #include "../sequencer/MainSequencer.h"
 #include "../layout/ModelPreview.h"
+#include "AutomationJson.h"
 #include <wx/uri.h>
 
 #include "LuaRunner.h"
@@ -272,6 +273,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto seq = params["seq"];
 
         if (seq != "" && seq != "null") {
+            // A bare filename (no directory) is meant to land in the show
+            // folder, matching how FindSequence() resolves one for opening -
+            // but SaveAsSequence() builds a wxFileName straight from what
+            // it's given, which resolves relative to the process's working
+            // directory instead, silently saving outside the show folder.
+            if (!std::filesystem::path(seq).is_absolute()) {
+                seq = (std::filesystem::path(CurrentDir.ToStdString()) / seq).string();
+            }
             SaveAsSequence(seq);
         } else {
             if (xlightsFilename.IsEmpty()) {
@@ -941,8 +950,33 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         while ((int)to->GetEffectLayerCount() < layer + 1) {
             to->AddEffectLayer();
         }
-        auto valid = to->GetEffectLayer(layer)->AddEffect(0, effect, settings, palette,
+        // addEffect has always taken settings/palette in xLights' native
+        // settings-map string format ("key=value,key2=value2"), passed straight
+        // into AddEffect's constructor - existing scripts rely on that. The MCP
+        // bridge and any other JSON-bodied caller instead send them as JSON
+        // objects (see FlattenAutomationParams), which that constructor can't
+        // parse. Detect which one we were given (JSON objects always start with
+        // '{'; the native format never does) so both keep working: JSON goes
+        // through the same JSON-aware setters setEffectSettings uses below,
+        // the native format is passed through unchanged as before.
+        auto isJsonObject = [](const std::string& s) {
+            auto i = s.find_first_not_of(" \t\r\n");
+            return i != std::string::npos && s[i] == '{';
+        };
+        bool settingsIsJson = isJsonObject(settings);
+        bool paletteIsJson = isJsonObject(palette);
+        auto valid = to->GetEffectLayer(layer)->AddEffect(0, effect,
+                                                          settingsIsJson ? "" : settings,
+                                                          paletteIsJson ? "" : palette,
                                                           startTime, endTime, 0, false);
+        if (valid != nullptr) {
+            if (!settings.empty() && settingsIsJson) {
+                valid->SetSettings(settings, true, true);
+            }
+            if (!palette.empty() && paletteIsJson) {
+                valid->SetColourOnlyPalette(palette, true);
+            }
+        }
         mainSequencer->PanelEffectGrid->Refresh();
         std::string response = wxString::Format("{\"msg\":\"Added Effects.\",\"worked\":\"%s\"}", JSONSafe(toStr(valid != nullptr)));
         return sendResponse(response, "", 200, true);
@@ -1328,10 +1362,41 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         layoutPanel->SelectModel(model);
         wxPropertyGridEvent event2;
-        event2.SetPropertyGrid(layoutPanel->GetPropertyEditor());
+        auto* grid = layoutPanel->GetPropertyEditor();
+        event2.SetPropertyGrid(grid);
+
+        // Choice-backed properties (e.g. "Controller", a wxEnumProperty) have
+        // their change handlers read event.GetValue().GetInteger() - the
+        // selected choice's index, not its label text. A synthetic
+        // wxStringProperty carrying the label as a plain string variant
+        // silently resolves to index 0 there (GetInteger() is just GetLong(),
+        // which parses "3" fine but a non-numeric label like "Ethernet_" as
+        // 0), clearing the property instead of setting it. Look up the live
+        // property so choice-backed ones can be resolved to their index.
+        // GetLong()'s numeric-string leniency means an old script passing the
+        // index directly (e.g. "3") already worked before this fix, so accept
+        // both a label and a numeric index here, not just the label.
+        wxPGProperty* liveProp = grid != nullptr ? grid->GetPropertyByName(propKey) : nullptr;
         wxStringProperty wsp("Model", propKey, propData);
-        event2.SetProperty(&wsp);
-        wxVariant value(propData);
+        wxVariant value;
+        if (liveProp != nullptr && liveProp->GetChoices().GetCount() > 0) {
+            int idx = liveProp->GetChoices().Index(propData);
+            if (idx == wxNOT_FOUND) {
+                char* end = nullptr;
+                long asIndex = std::strtol(propData.c_str(), &end, 10);
+                if (end != propData.c_str() && *end == '\0' && asIndex >= 0 &&
+                    (unsigned long)asIndex < liveProp->GetChoices().GetCount()) {
+                    idx = (int)asIndex;
+                } else {
+                    return sendResponse("Unknown choice '" + propData + "' for property '" + propKey + "'.", "msg", 503, false);
+                }
+            }
+            event2.SetProperty(liveProp);
+            value = wxVariant((long)idx);
+        } else {
+            event2.SetProperty(&wsp);
+            value = wxVariant(propData);
+        }
         event2.SetPropertyValue(value);
         layoutPanel->OnPropertyGridChange(event2);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Automation:setModelProperty");
@@ -1552,6 +1617,10 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
     }
     paths.push_back(wxURI::Unescape(uri));
 
+    if (paths[0] == "mcp") {
+        return ProcessMCPRequest(connection, request);
+    }
+
     wxString accept = request["Accept"];
     if (paths[0] == "xlDoAutomation") {
         paths.clear();
@@ -1567,37 +1636,8 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                 connection.SendResponse(resp);
                 return true;
             } else {
-                for (auto [mn, v] : val.items()) {
-                    // nlohmann::json v = val[mn];
-                    if (mn == "cmd") {
-                        paths.push_back(v.get<std::string>());
-                    } else if (v.is_string()) {
-                        paramMap[mn] = v.get<std::string>();
-                    } else if (v.is_number_integer()) {
-                        paramMap[mn] = std::to_string(v.get<int>());
-                    } else if (v.is_number_float()) {
-                        paramMap[mn] = std::to_string(v.get<float>());
-                    } else if (v.is_boolean()) {
-                        paramMap[mn] = v.get<bool>() ? "true" : "false";
-                    } else if (v.is_array()) {
-                        for (size_t x = 0; x < v.size(); x++) {
-                            std::string k = mn + "_" + std::to_string(x);
-                            paramMap[k] = v[x].get<std::string>();
-                        }
-                    } else if (v.is_object()) {
-                        // Nested objects (e.g. setEffectSettings' "settings"/
-                        // "palette", documented in xlDo Commands.txt as real
-                        // JSON objects, not strings) had no branch here at all,
-                        // so they were silently dropped -- paramMap[mn] was
-                        // never set, params["settings"].empty() was always
-                        // true, and the code below that already calls
-                        // eff->SetSettings()/SetColourOnlyPalette() never ran.
-                        // Re-serializing back to a JSON string matches what
-                        // those calls already expect (they're invoked with
-                        // json=true).
-                        paramMap[mn] = v.dump();
-                    }
-                }
+                paths.push_back(val["cmd"].get<std::string>());
+                FlattenAutomationParams(val, paramMap);
 
                 if (paramMap.empty()) {
                     paramMap["_METHOD"] = "GET";
@@ -1695,30 +1735,8 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
         if (!val.contains("cmd")) {
             return "{\"res\":504,\"msg\":\"Missing cmd.\"}";
         } else {
-            for (auto [mn, v] : val.items()) {
-                   if (mn == "cmd") {
-                    paths.push_back(v.get<std::string>());
-                } else if (v.is_string()) {
-                    paramMap[mn] = v.get<std::string>();
-                } else if (v.is_number_integer()) {
-                    paramMap[mn] = std::to_string(v.get<int>());
-                }
-                else if (v.is_number_float()) {
-                    paramMap[mn] = std::to_string(v.get<float>());
-                } else if (v.is_boolean()) {
-                    paramMap[mn] = v.get<bool>() ? "true" : "false";
-                } else if (v.is_array()) {
-                    for (size_t x = 0; x < v.size(); x++) {
-                        std::string k = mn + "_" + std::to_string(x);
-                        paramMap[k] = v[x].get<std::string>();
-                    }
-                } else if (v.is_object()) {
-                    // See the matching branch in HttpRequestFunction above --
-                    // nested objects (setEffectSettings' "settings"/"palette")
-                    // had no branch here either, so they were silently dropped.
-                    paramMap[mn] = v.dump();
-                }
-            }
+            paths.push_back(val["cmd"].get<std::string>());
+            FlattenAutomationParams(val, paramMap);
 
             if (paramMap.empty()) {
                 paramMap["_METHOD"] = "GET";
@@ -1731,15 +1749,7 @@ std::string xLightsFrame::ProcessxlDoAutomation(const std::string& msg)
                                                                     const std::string &jsonKey,
                                                                     int responseCode,
                                                                     bool isJson) {
-                if (isJson) {
-                    if (jsonKey == "") {
-                        result = "{\"res\":" + std::to_string(responseCode) +"," + msg.substr(1);
-                    } else {
-                        result = "{\"res\":" + std::to_string(responseCode) +",\"" + jsonKey + "\":" + msg + "}";
-                    }
-                } else {
-                    result = "{\"res\":" + std::to_string(responseCode) +",\"" + jsonKey + "\":\"" + msg + "\"}";
-                }
+                result = BuildAutomationResponseJson(responseCode, jsonKey, msg, isJson);
                 return true;
             });
             

@@ -474,6 +474,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\automation\LuaRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\PythonRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\xLightsAutomations.cpp" />
+    <ClCompile Include="..\src-ui-wx\automation\xLightsMCPServer.cpp" />
     <ClCompile Include="..\src-ui-wx\CommandPaletteDialog.cpp" />
     <ClCompile Include="..\src-core\diagnostics\CheckSequenceReport.cpp" />
     <ClCompile Include="..\src-core\diagnostics\SequenceChecker.cpp" />
@@ -1183,6 +1184,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\model\AlignmentDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\AutoLabelDialog.h" />
     <ClInclude Include="..\src-ui-wx\automation\automation.h" />
+    <ClInclude Include="..\src-ui-wx\automation\AutomationJson.h" />
     <ClInclude Include="..\src-ui-wx\automation\LuaRunner.h" />
     <ClInclude Include="..\src-ui-wx\automation\PythonRunner.h" />
     <ClInclude Include="..\src-ui-wx\CommandPaletteDialog.h" />
