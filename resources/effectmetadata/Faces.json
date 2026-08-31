@@ -297,17 +297,13 @@
             "properties": ["Faces_TransparentBlackRow"]
         },
         {
-            "type": "section",
-            "columns": 2,
-            "properties": ["Faces_Direction", "Faces_Speed", "Faces_FrameRateAdj", "Faces_Scaling", "Faces_PixelOffsets", "Faces_WrapX"]
-        },
-        {
             "type": "tabs",
             "tabs": [
                 {
                     "label": "Start Position",
                     "properties": [
                         "FacesXC",
+                        "Faces_WrapX",
                         "FacesYC"
                     ]
                 },
