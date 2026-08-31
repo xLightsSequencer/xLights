@@ -225,6 +225,7 @@ struct ShiftLayerSnap {
 - (void)recalcModelStartChannels;
 - (void)reworkAndRecalcStartChannels;
 - (void)recalcAndMarkControllersDirty;
+- (void)saveStemTracksAsAltTracks:(const StemOutput&)stems;
 @end
 
 // Controller-property descriptor builders are defined further down
@@ -13397,9 +13398,9 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 - (NSArray<NSString*>*)stemModelCandidateRoots {
     NSMutableArray<NSString*>* out = [NSMutableArray array];
     NSString* show = [self showFolderPath];
-    if (show.length > 0) [out addObject:show];
+    if (show.length > 0 && ![out containsObject:show]) [out addObject:show];
     for (NSString* m in [self mediaFolderPaths]) {
-        if (m.length > 0) [out addObject:m];
+        if (m.length > 0 && ![out containsObject:m]) [out addObject:m];
     }
     return out;
 }
@@ -13617,9 +13618,78 @@ static std::string iPadLiftNestedStemModel(const std::string& rootDir) {
                 stems.bassL, stems.bassR,
                 stems.otherL, stems.otherR,
                 stems.vocalsL, stems.vocalsR);
+            [self saveStemTracksAsAltTracks:stems];
         }
         if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(ok ? YES : NO); });
     });
+}
+
+// Issue #6856: persist each non-empty stem as a standalone .m4a
+// alongside the track that was separated (same folder, same base
+// filename) and register it as an alternate audio track so it
+// survives closing the sequence and can be recalled without
+// re-running separation. Mirrors Waveform::SaveStemTracksAsAltTracks
+// on desktop. Named from the source track's own filename so tracks
+// from different sequences never collide (e.g. "MySong_Stem_Drums.m4a").
+// Runs on the background queue set up by runStemSeparationAtPath.
+- (void)saveStemTracksAsAltTracks:(const StemOutput&)stems {
+    if (!_context) return;
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return;
+    AudioManager* am = [self audioManager];
+    if (!am) return;
+
+    std::string showDir = _context->GetShowDirectory();
+    if (showDir.empty()) return;
+
+    // Base the output name/location on whatever track was actually
+    // separated (the active waveform track — main or an alt track),
+    // not the sequence's own name, so files land next to the source
+    // audio using its filename.
+    std::filesystem::path sourcePath(am->FileName());
+    std::filesystem::path outDir = sourcePath.has_parent_path() ? sourcePath.parent_path() : std::filesystem::path(showDir);
+    std::string baseName = sourcePath.stem().string();
+    if (baseName.empty()) baseName = sf->GetName();
+    if (baseName.empty()) baseName = "Sequence";
+
+    ObtainAccessToURL(outDir.string(), /*enforceWritable=*/true);
+
+    struct StemFile {
+        const char* label;
+        const std::vector<float>* left;
+        const std::vector<float>* right;
+    };
+    const StemFile files[] = {
+        { "Drums",  &stems.drumsL,  &stems.drumsR },
+        { "Bass",   &stems.bassL,   &stems.bassR },
+        { "Other",  &stems.otherL,  &stems.otherR },
+        { "Vocals", &stems.vocalsL, &stems.vocalsR },
+    };
+
+    for (const auto& sfile : files) {
+        if (sfile.left->empty() || sfile.right->empty()) continue;
+
+        std::filesystem::path outPath = outDir / (baseName + "_Stem_" + sfile.label + ".m4a");
+
+        if (!AudioManager::EncodeAudio(*sfile.left, *sfile.right, (size_t)stems.sampleRate, outPath.string(), am)) {
+            NSLog(@"Stem separation: failed to save the %s stem to %s", sfile.label, outPath.string().c_str());
+            continue;
+        }
+
+        int existingIdx = -1;
+        for (int i = 0; i < sf->GetAltTrackCount(); i++) {
+            if (sf->GetAltTrack(i).path == outPath.string()) {
+                existingIdx = i;
+                break;
+            }
+        }
+        if (existingIdx >= 0) {
+            sf->SetAltTrackPath(showDir, existingIdx, outPath.string());
+        } else {
+            sf->AddAltTrack(showDir, outPath.string(), std::string("Stem - ") + sfile.label);
+        }
+        _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    }
 }
 
 - (NSDictionary*)detectChords {

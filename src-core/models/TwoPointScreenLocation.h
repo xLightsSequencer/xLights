@@ -10,6 +10,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cmath>
+
 #include "ModelScreenLocation.h"
 
 //Location that uses two points to define start/end
@@ -99,6 +101,25 @@ public:
     void SetX2(float val) {x2 = val;}
     void SetY2(float val) {y2 = val;}
     void SetZ2(float val) {z2 = val;}
+
+    enum class FlipDirection { None, LeftRight, TopBottom };
+
+    // Shared by the layout tooltip and Check Sequence so both agree on what
+    // counts as "perhaps flipped": whichever axis (x/y/z, point2 relative to
+    // point1) has the largest magnitude is the model's intended direction; if
+    // that magnitude clears minMagnitude and is negative, the model looks
+    // flipped on that axis. Z dominant (e.g. a depth-only line) is never flagged.
+    FlipDirection GetFlipDirection(float minMagnitude = 30.0f) const {
+        float adx = std::fabs(x2);
+        float ady = std::fabs(y2);
+        float adz = std::fabs(z2);
+        if (adx >= ady && adx >= adz) {
+            if (adx > minMagnitude && x2 < 0.0f) return FlipDirection::LeftRight;
+        } else if (ady >= adx && ady >= adz) {
+            if (ady > minMagnitude && y2 < 0.0f) return FlipDirection::TopBottom;
+        }
+        return FlipDirection::None;
+    }
 
     virtual handles::Tool GetDefaultTool() const override { return handles::Tool::Translate; }
 

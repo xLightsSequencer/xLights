@@ -10,10 +10,44 @@
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
+			<rows>2</rows>
 			<growablecols>0</growablecols>
-			<growablerows>0</growablerows>
+			<growablerows>1</growablerows>
 			<object class="sizeritem">
-				<object class="wxStaticBitmap" name="ID_STATICBITMAP1" subclass="wxGenericStaticBitmap" variable="StaticBitmap_Wiring" member="yes">
+				<object class="wxBoxSizer" variable="BoxSizer_Toolbar" member="yes">
+					<orient>wxHORIZONTAL</orient>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT_FONTSIZE" variable="StaticText_FontSize" member="yes">
+							<label>Text Size:</label>
+						</object>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_FONTSIZE" variable="Slider_FontSize" member="yes">
+							<value>12</value>
+							<min>8</min>
+							<max>72</max>
+							<handler function="OnFontSizeSliderChanged" entry="EVT_SLIDER" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_3D" variable="CheckBox_3D" member="yes">
+							<label>3D (drag to rotate)</label>
+							<checked>0</checked>
+							<handler function="On3DCheckBoxChanged" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+					</object>
+				</object>
+				<flag>wxEXPAND</flag>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBitmap" name="ID_STATICBITMAP1" subclass="WiringStaticBitmap" variable="StaticBitmap_Wiring" member="yes">
 					<size>500,500</size>
 				</object>
 				<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>

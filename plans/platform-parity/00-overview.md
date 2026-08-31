@@ -39,7 +39,7 @@ Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** �
 **Parity index:** of the 1,627 rows where an iPad status is meaningful (✅+🟡+❌), **62%** are
 at full parity and **80%** at full-or-partial. Counting partials at half weight the iPad sits
 at **≈71% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
-writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (158) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
+writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (159) is dominated by one block: 103 automation verbs/endpoints iOS cannot host (theme 12).
 
 **The structural headline:** the iPad is not a viewer. It creates 25/28 model types, runs all
 six discovery scanners, renders 52/56 effects with shared-core fidelity, imports 11 of 13

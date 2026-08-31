@@ -44,6 +44,7 @@
 #include "media/StemSeparator.h"
 #include <wx/progdlg.h>
 #include "utils/CurlManager.h"
+#include "utils/ExternalHooks.h"
 #include <atomic>
 #include <filesystem>
 #include <thread>
@@ -677,6 +678,77 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
     }
 }
 
+#if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT)
+// Issue #6856: save each non-empty stem as a standalone .m4a
+// alongside the track that was separated (same folder, same base
+// filename) and wire it up as an alternate audio track, named
+// "<TrackFilename>_Stem_<Stem>" so it stays unique across sequences
+// (a plain "drums.mp3" would collide the moment a user processes a
+// second song). Re-running separation on the same sequence just
+// overwrites the existing files/tracks rather than piling up
+// duplicates.
+void Waveform::SaveStemTracksAsAltTracks(const StemOutput& stems)
+{
+    auto* frame = xLightsApp::GetFrame();
+    if (frame == nullptr || frame->CurrentSeqXmlFile == nullptr || _media == nullptr) return;
+
+    std::string showDir = frame->GetShowDirectory();
+    if (showDir.empty()) return;
+
+    // Base the output name/location on whatever track was actually
+    // separated (_media — main or an alt track, whichever is active
+    // in the waveform), not the sequence's own name, so files land
+    // next to the source audio using its filename.
+    std::filesystem::path sourcePath(_media->FileName());
+    std::filesystem::path outDir = sourcePath.has_parent_path() ? sourcePath.parent_path() : std::filesystem::path(showDir);
+    std::string baseName = sourcePath.stem().string();
+    if (baseName.empty()) baseName = frame->CurrentSeqXmlFile->GetName();
+    if (baseName.empty()) baseName = "Sequence";
+
+    // macOS sandbox: refresh/extend access to the destination folder
+    // before writing new files into it — a no-op on other platforms.
+    ObtainAccessToURL(outDir.string(), true);
+
+    struct StemFile {
+        const char* label;
+        const std::vector<float>* left;
+        const std::vector<float>* right;
+    };
+    const StemFile files[] = {
+        { "Drums",  &stems.drumsL,  &stems.drumsR },
+        { "Bass",   &stems.bassL,   &stems.bassR },
+        { "Other",  &stems.otherL,  &stems.otherR },
+        { "Vocals", &stems.vocalsL, &stems.vocalsR },
+    };
+
+    for (const auto& sf : files) {
+        if (sf.left->empty() || sf.right->empty()) continue;
+
+        std::filesystem::path outPath = outDir / (baseName + "_Stem_" + sf.label + ".m4a");
+
+        if (!AudioManager::EncodeAudio(*sf.left, *sf.right, (size_t)stems.sampleRate, outPath.string(), _media)) {
+            spdlog::warn("Stem separation: failed to save the {} stem to {}", sf.label, outPath.string());
+            continue;
+        }
+
+        int existingIdx = -1;
+        for (int i = 0; i < frame->CurrentSeqXmlFile->GetAltTrackCount(); i++) {
+            if (frame->CurrentSeqXmlFile->GetAltTrack(i).path == outPath.string()) {
+                existingIdx = i;
+                break;
+            }
+        }
+        if (existingIdx >= 0) {
+            // Refresh the AudioManager wrapping the file we just overwrote.
+            frame->CurrentSeqXmlFile->SetAltTrackPath(showDir, existingIdx, outPath.string());
+        } else {
+            frame->CurrentSeqXmlFile->AddAltTrack(showDir, outPath.string(), std::string("Stem - ") + sf.label);
+        }
+        frame->GetSequenceElements().IncrementChangeCount(nullptr);
+    }
+}
+#endif // __APPLE__ || HAVE_OPENVINO || HAVE_ORT
+
 #if defined(HAVE_OPENVINO) || defined(HAVE_ORT)
 // Non-Apple PrepareStemData:
 //    ONNX Runtime or OpenVINO
@@ -709,10 +781,16 @@ bool Waveform::PrepareStemData()
     } stemGuard{ _stemSeparationActive, _stemSeparationCancel, frame };
 
     std::vector<std::string> roots;
+    auto addRoot = [&roots](const std::string& r) {
+        for (const auto& existing : roots) {
+            if (existing == r) return;
+        }
+        roots.push_back(r);
+    };
     if (!xLightsFrame::CurrentDir.empty())
-        roots.push_back(xLightsFrame::CurrentDir.ToStdString());
+        addRoot(xLightsFrame::CurrentDir.ToStdString());
     for (const auto& m : frame->GetMediaFolders())
-        roots.push_back(m);
+        addRoot(m);
     auto modelDirs = AIModelStore::CandidateModelDirs(roots);
 
     // ONNX Runtime / OpenVINO path ─────────────────────────────────────────────────
@@ -826,9 +904,10 @@ bool Waveform::PrepareStemData()
         stems.bassL,  stems.bassR,
         stems.otherL, stems.otherR,
         stems.vocalsL, stems.vocalsR);
+    SaveStemTracksAsAltTracks(stems);
     return true;
 }
-#endif // HAVE_OPENVINO  || HAVE_ORT 
+#endif // HAVE_OPENVINO  || HAVE_ORT
 
 #ifdef __APPLE__
 // A8 first-run helper: make sure the HTDemucs model is present
@@ -874,11 +953,17 @@ bool Waveform::PrepareStemData()
     // Build the list of candidate install roots: show folder first,
     // then each configured media folder in preference order.
     std::vector<std::string> roots;
+    auto addRoot = [&roots](const std::string& r) {
+        for (const auto& existing : roots) {
+            if (existing == r) return;
+        }
+        roots.push_back(r);
+    };
     if (!xLightsFrame::CurrentDir.empty()) {
-        roots.push_back(xLightsFrame::CurrentDir.ToStdString());
+        addRoot(xLightsFrame::CurrentDir.ToStdString());
     }
     for (const auto& m : frame->GetMediaFolders()) {
-        roots.push_back(m);
+        addRoot(m);
     }
     auto modelDirs = AIModelStore::CandidateModelDirs(roots);
 
@@ -1058,6 +1143,7 @@ bool Waveform::PrepareStemData()
         stems.bassL,  stems.bassR,
         stems.otherL, stems.otherR,
         stems.vocalsL, stems.vocalsR);
+    SaveStemTracksAsAltTracks(stems);
     return true;
 }
 #endif

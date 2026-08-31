@@ -105,6 +105,16 @@ GET /e131Tag
 
 POST /xlDoAutomation - runs one of the command JSON's below.
 
+POST /mcp - a Model Context Protocol (MCP) server over the same port, for MCP-aware
+    AI clients/agents. This is the stateless flavor of MCP's "Streamable HTTP"
+    transport: send one JSON-RPC 2.0 request, get one JSON-RPC 2.0 response, no
+    session id and no server-initiated SSE stream. Supported methods: initialize,
+    ping, tools/list, tools/call. tools/list returns a generic "xlights_command"
+    tool (cmd + params, covering every command in this file) plus convenience
+    tools for the most common commands (getVersion, openSequence, saveSequence,
+    closeSequence, renderAll, getModels, getControllers, get/set/add/deleteEffect,
+    lightsOn/lightsOff). See src-ui-wx/automation/xLightsMCPServer.cpp.
+
 
 WARNING:  This is extremely experimental and will likely be replaced with a proper REST
   API in the not to distant future.   Plan accordingly.

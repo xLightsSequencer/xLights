@@ -1129,33 +1129,30 @@ int SequenceChecker::RunModelChecks(CheckSequenceReport& report) {
                 last = newlast;
                 lastm = m;
             }
-            if (m->GetDisplayAs() == DisplayAsType::SingleLine) {
+            if (m->GetBaseObjectScreenLocation().hasX2()) {
                 size_t nodeCount = m->GetNodeCount();
                 if (nodeCount < 2)
                     continue;
                 TwoPointScreenLocation& screenLoc = dynamic_cast<TwoPointScreenLocation&>(m->GetBaseObjectScreenLocation());
-                float dx = screenLoc.GetX2();
-                float dy = screenLoc.GetY2();
-                float dz = screenLoc.GetZ2();
-                float deltaX = std::fabs(dx);
-                float deltaY = std::fabs(dy);
-                float deltaZ = std::fabs(dz);
-                if (deltaX > deltaY && deltaX > deltaZ) {
-                    if (dx < 0) {
-                        std::string msg = fmt::format("    WARN: Model '{}' should have the green square on the left of the blue square for best render results.",
-                                                      m->GetName());
-                        RecordIssue(report, "models",
-                                    CheckSequenceReport::ReportIssue::ForModel(
-                                        CheckSequenceReport::ReportIssue::WARNING, msg, "config", m->GetName()));
-                    }
-                } else if (deltaY > deltaX && deltaY > deltaZ) {
-                    if (dy < 0) {
-                        std::string msg = fmt::format("    WARN: Model '{}' should have the green square on the bottom of the blue square for best render results.",
-                                                      m->GetName());
-                        RecordIssue(report, "models",
-                                    CheckSequenceReport::ReportIssue::ForModel(
-                                        CheckSequenceReport::ReportIssue::WARNING, msg, "config", m->GetName()));
-                    }
+                switch (screenLoc.GetFlipDirection()) {
+                case TwoPointScreenLocation::FlipDirection::LeftRight: {
+                    std::string msg = fmt::format("    WARN: Model '{}' should have the green square on the left of the blue square for best render results.",
+                                                  m->GetName());
+                    RecordIssue(report, "models",
+                                CheckSequenceReport::ReportIssue::ForModel(
+                                    CheckSequenceReport::ReportIssue::WARNING, msg, "config", m->GetName()));
+                    break;
+                }
+                case TwoPointScreenLocation::FlipDirection::TopBottom: {
+                    std::string msg = fmt::format("    WARN: Model '{}' should have the green square on the bottom of the blue square for best render results.",
+                                                  m->GetName());
+                    RecordIssue(report, "models",
+                                CheckSequenceReport::ReportIssue::ForModel(
+                                    CheckSequenceReport::ReportIssue::WARNING, msg, "config", m->GetName()));
+                    break;
+                }
+                case TwoPointScreenLocation::FlipDirection::None:
+                    break;
                 }
             }
         }
