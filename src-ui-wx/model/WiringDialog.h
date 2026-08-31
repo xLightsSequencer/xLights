@@ -11,9 +11,12 @@
  **************************************************************/
 
 //(*Headers(WiringDialog)
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/statbmp.h>
+#include <wx/stattext.h>
 //*)
 
 #include <wx/grid.h>
@@ -73,6 +76,18 @@ typedef enum COLORTHEMETYPE {
     LIGHT
 } COLORTHEMETYPE;
 
+// A node's 2D layout position, plus its model-local depth (z) so the 3D
+// wiring view can rotate/project it. z is unused (stays 0) everywhere the
+// 2D view populates points; kept as a drop-in for wxRealPoint(x,y) call
+// sites elsewhere in this file, which only ever access .x/.y.
+struct WiringPoint {
+    double x = 0;
+    double y = 0;
+    double z = 0;
+    WiringPoint() = default;
+    WiringPoint(double x_, double y_, double z_ = 0.0) : x(x_), y(y_), z(z_) {}
+};
+
 struct ColorTheme {
     COLORTHEMETYPE type;
     bool multiLightDark;
@@ -103,12 +118,16 @@ class WiringDialog: public wxDialog
     int _rows;
     int _fontSize;
     int _rotation;
-    std::map<int, std::map<int, std::list<wxRealPoint>>> _points;
-    std::map<int, std::map<int, std::list<wxRealPoint>>> _originalPoints;
-    void RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer = false);
+    bool _is3D = false;
+    double _rotX = -0.4;  // pitch, radians
+    double _rotY = 0.6;   // yaw, radians
+    std::map<int, std::map<int, std::list<WiringPoint>>> _points;
+    std::map<int, std::map<int, std::list<WiringPoint>>> _originalPoints;
+    std::map<int, std::map<int, std::list<WiringPoint>>> Apply3DRotation(const std::map<int, std::map<int, std::list<WiringPoint>>>& points) const;
+    void RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int, std::list<WiringPoint>>>& points, int width, int height, bool printer = false);
     wxBitmap Render(int w, int h);
-    void RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer = false);
-    std::map<int, std::list<wxRealPoint>> ExtractPoints(wxGrid* grid, bool reverse);
+    void RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<WiringPoint>>>& points, int width, int height, bool printer = false);
+    std::map<int, std::list<WiringPoint>> ExtractPoints(wxGrid* grid, bool reverse);
     void RotatePoints(int rotateBy);
     void RightClick(wxContextMenuEvent& event);
     void OnPopup(wxCommandEvent& event);
@@ -148,18 +167,26 @@ class WiringDialog: public wxDialog
 
 		//(*Declarations(WiringDialog)
 		WiringStaticBitmap* StaticBitmap_Wiring;
+		wxStaticText* StaticText_FontSize;
+		wxSlider* Slider_FontSize;
+		wxCheckBox* CheckBox_3D;
 		//*)
 
 	protected:
 
 		//(*Identifiers(WiringDialog)
 		static const long ID_STATICBITMAP1;
+		static const long ID_STATICTEXT_FONTSIZE;
+		static const long ID_SLIDER_FONTSIZE;
+		static const long ID_CHECKBOX_3D;
 		//*)
 
 	private:
 
 		//(*Handlers(WiringDialog)
 		void OnResize(wxSizeEvent& event);
+		void OnFontSizeSliderChanged(wxCommandEvent& event);
+		void On3DCheckBoxChanged(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

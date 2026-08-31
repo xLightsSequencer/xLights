@@ -18,6 +18,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (scott)                 Fix several automation commands (addEffect, setModelProperty,
                                  saveSequence) mishandling JSON settings, dropdown properties, and
                                  relative filenames, found while testing the new MCP server
+    -enh (scott)                 Custom Model Wiring view: added a text size slider and a "3D
+                                 (drag to rotate)" mode using each node's real depth - Cube
+                                 models, which now also support the Wiring view, use it by default
     -change (dkulp)              macOS: Raise minimum version of macOS to 12.0 (requirement to
                                  be able to build and test on macOS 27)
     -change (dkulp)              Apple Intelligence image generation now opens the system Image
