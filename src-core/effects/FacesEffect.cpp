@@ -79,6 +79,20 @@ bool FacesEffect::sSuppressWhenNotSingingDefault = false;
 int FacesEffect::sLeadFramesDefault = 0;
 bool FacesEffect::sFadeDefault = false;
 
+// Matrix-face picture-like controls (Faces.json)
+std::string FacesEffect::sDirectionDefault = "none";
+double FacesEffect::sSpeedDefault = 1.0;
+double FacesEffect::sFrameRateAdjDefault = 1.0;
+bool FacesEffect::sPixelOffsetsDefault = false;
+std::string FacesEffect::sScalingDefault = "Default (from face)";
+int FacesEffect::sXCDefault = 0;
+int FacesEffect::sYCDefault = 0;
+int FacesEffect::sEndXCDefault = 0;
+int FacesEffect::sEndYCDefault = 0;
+bool FacesEffect::sWrapXDefault = false;
+int FacesEffect::sStartScaleDefault = 100;
+int FacesEffect::sEndScaleDefault = 100;
+
 FacesEffect::FacesEffect(int id) :
     RenderableEffect(id, "Faces", corofaces, corofaces, corofaces, corofaces, corofaces) {
     //ctor
@@ -100,6 +114,18 @@ void FacesEffect::OnMetadataLoaded()
     sSuppressWhenNotSingingDefault = GetBoolDefault("Faces_SuppressWhenNotSinging", sSuppressWhenNotSingingDefault);
     sLeadFramesDefault = GetIntDefault("Faces_LeadFrames", sLeadFramesDefault);
     sFadeDefault = GetBoolDefault("Faces_Fade", sFadeDefault);
+    sDirectionDefault = GetStringDefault("Faces_Direction", sDirectionDefault);
+    sSpeedDefault = GetDoubleDefault("Faces_Speed", sSpeedDefault);
+    sFrameRateAdjDefault = GetDoubleDefault("Faces_FrameRateAdj", sFrameRateAdjDefault);
+    sPixelOffsetsDefault = GetBoolDefault("Faces_PixelOffsets", sPixelOffsetsDefault);
+    sScalingDefault = GetStringDefault("Faces_Scaling", sScalingDefault);
+    sXCDefault = GetIntDefault("FacesXC", sXCDefault);
+    sYCDefault = GetIntDefault("FacesYC", sYCDefault);
+    sEndXCDefault = GetIntDefault("FacesEndXC", sEndXCDefault);
+    sEndYCDefault = GetIntDefault("FacesEndYC", sEndYCDefault);
+    sWrapXDefault = GetBoolDefault("Faces_WrapX", sWrapXDefault);
+    sStartScaleDefault = GetIntDefault("Faces_StartScale", sStartScaleDefault);
+    sEndScaleDefault = GetIntDefault("Faces_EndScale", sEndScaleDefault);
 }
 
 std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
@@ -451,6 +477,23 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                                SettingsMap.GetBool("CHECKBOX_Faces_Outline", sOutlineDefault),
                                alpha, SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", sSuppressShimmerDefault));
     } else {
+        float oset = buffer.GetEffectTimeIntervalPosition();
+        std::string dir = SettingsMap.Get("CHOICE_Faces_Direction", sDirectionDefault);
+        float speed = SettingsMap.GetFloat("TEXTCTRL_Faces_Speed", sSpeedDefault);
+        float frameRateAdj = SettingsMap.GetFloat("TEXTCTRL_Faces_FrameRateAdj", sFrameRateAdjDefault);
+        bool pixelOffsets = SettingsMap.GetBool("CHECKBOX_Faces_PixelOffsets", sPixelOffsetsDefault);
+        std::string scaling = SettingsMap.Get("CHOICE_Faces_Scaling", sScalingDefault);
+        int xc = dir != "vector"
+            ? GetValueCurveInt("FacesXC", sXCDefault, SettingsMap, oset, -100, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS())
+            : SettingsMap.GetInt("SLIDER_FacesXC", sXCDefault);
+        int yc = dir != "vector"
+            ? GetValueCurveInt("FacesYC", sYCDefault, SettingsMap, oset, -100, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS())
+            : SettingsMap.GetInt("SLIDER_FacesYC", sYCDefault);
+        int endXc = SettingsMap.GetInt("SLIDER_FacesEndXC", sEndXCDefault);
+        int endYc = SettingsMap.GetInt("SLIDER_FacesEndYC", sEndYCDefault);
+        bool wrapX = SettingsMap.GetBool("CHECKBOX_Faces_WrapX", sWrapXDefault);
+        int startScale = SettingsMap.GetInt("SLIDER_Faces_StartScale", sStartScaleDefault);
+        int endScale = SettingsMap.GetInt("SLIDER_Faces_EndScale", sEndScaleDefault);
         RenderFaces(buffer,
                     effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
                     SettingsMap.Get("CHOICE_Faces_FaceDefinition", sFaceDefinitionDefault),
@@ -464,7 +507,8 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                     SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0),
                     alpha,
                     SettingsMap.Get("CHOICE_Faces_UseState", sUseStateDefault),
-                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", sSuppressShimmerDefault));
+                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", sSuppressShimmerDefault),
+                    dir, speed, frameRateAdj, pixelOffsets, scaling, xc, yc, endXc, endYc, wrapX, startScale, endScale);
     }
 
     //if (sw.TimeInMicro() > 2000) {
@@ -890,7 +934,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                               SequenceElements* elements, const std::string& faceDef,
                               const std::string& Phoneme, const std::string& trackName,
                               const std::string& eyesIn, const std::string& eyeBlinkFreqIn, const std::string& eyeBlinkDurationIn,
-                              bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer) {
+                              bool face_outline, bool transparentBlack, int transparentBlackLevel, uint8_t alpha, const std::string& outlineState, bool suppressShimmer,
+                              const std::string& direction, float speed, float frameRateAdj, bool pixelOffsets, const std::string& scaling, int xc, int yc, int endXc, int endYc, bool wrapX, int startScale, int endScale) {
     if (alpha == 0)
         return; // if alpha is zero dont bother.
 
@@ -1318,34 +1363,71 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 }
             }
         }
-        std::string dirstr = "none"; /*RENDER_PICTURE_NONE*/
-        std::string stf = "Scale To Fit";
-        if (findKey(faceInfoDef, "ImagePlacement") == "Centered") {
-            stf = "No Scaling";
-        } else if (findKey(faceInfoDef, "ImagePlacement") == "Scale Keep Aspect Ratio" ||
-                   findKey(faceInfoDef, "ImagePlacement") == "Scale Keep Aspect Ratio Crop") {
-            stf = findKey(faceInfoDef, "ImagePlacement");
+        std::string dirstr = direction;
+        std::string stf = scaling;
+        if (stf == "Default (from face)") {
+            stf = "Scale To Fit";
+            if (findKey(faceInfoDef, "ImagePlacement") == "Centered") {
+                stf = "No Scaling";
+            } else if (findKey(faceInfoDef, "ImagePlacement") == "Scale Keep Aspect Ratio" ||
+                       findKey(faceInfoDef, "ImagePlacement") == "Scale Keep Aspect Ratio Crop") {
+                stf = findKey(faceInfoDef, "ImagePlacement");
+            }
         }
-        RenderBuffer* crb = cache->GetImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf));
+        // Cache the pre-rendered image only when no per-frame variation is needed.
+        // Movement, dynamic offsets, and animated scaling change the output every
+        // frame — skip the cache in those cases and hand PicturesEffect all the
+        // parameters so it renders fresh.
+        bool useCache = (dirstr == "none" && xc == 0 && yc == 0 && startScale == 100 && endScale == 100);
+        RenderBuffer* crb = nullptr;
+        if (useCache) {
+            crb = cache->GetImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf));
+        }
         if (crb == nullptr) {
             crb = new RenderBuffer(buffer);
-            PicturesEffect::Render(*crb, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, true, false, false, 0); // set for scale to fit
-            cache->AddImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf), crb);
+            PicturesEffect::Render(*crb, dirstr, picture, speed, frameRateAdj,
+                                   xc, yc, endXc, endYc,
+                                   startScale, endScale, stf,
+                                   pixelOffsets, wrapX, false, true, false, false, 0);
+            if (useCache) {
+                cache->AddImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf), crb);
+            } else {
+                // Not cached — copy pixels now, then delete the temp buffer.
+                for (int y = 0; y < buffer.BufferHt; y++) {
+                    for (int x = 0; x < buffer.BufferWi; x++) {
+                        if (transparentBlack) {
+                            auto c = crb->GetPixel(x, y);
+                            int level = c.Red() + c.Green() + c.Blue();
+                            if (level > transparentBlackLevel) {
+                                c.alpha = ((int)alpha * c.alpha) / 255;
+                                buffer.SetPixel(x, y, c);
+                            }
+                        } else {
+                            auto c = crb->GetPixel(x, y);
+                            c.alpha = ((int)alpha * c.alpha) / 255;
+                            buffer.SetPixel(x, y, c);
+                        }
+                    }
+                }
+                delete crb;
+                crb = nullptr;
+            }
         }
-
-        for (int y = 0; y < buffer.BufferHt; y++) {
-            for (int x = 0; x < buffer.BufferWi; x++) {
-                if (transparentBlack) {
-                    auto c = crb->GetPixel(x, y);
-                    int level = c.Red() + c.Green() + c.Blue();
-                    if (level > transparentBlackLevel) {
+        if (crb != nullptr) {
+            for (int y = 0; y < buffer.BufferHt; y++) {
+                for (int x = 0; x < buffer.BufferWi; x++) {
+                    if (transparentBlack) {
+                        auto c = crb->GetPixel(x, y);
+                        int level = c.Red() + c.Green() + c.Blue();
+                        if (level > transparentBlackLevel) {
+                            c.alpha = ((int)alpha * c.alpha) / 255;
+                            buffer.SetPixel(x, y, c);
+                        }
+                    } else {
+                        auto c = crb->GetPixel(x, y);
                         c.alpha = ((int)alpha * c.alpha) / 255;
                         buffer.SetPixel(x, y, c);
                     }
-                } else {
-                    auto c = crb->GetPixel(x, y);
-                    c.alpha = ((int)alpha * c.alpha) / 255;
-                    buffer.SetPixel(x, y, c);
                 }
             }
         }

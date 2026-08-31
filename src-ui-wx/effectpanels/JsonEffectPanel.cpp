@@ -1244,14 +1244,17 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                                              wxDefaultSize, 0, wxString(labelName));
         sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
 
-        // Column 2: Spin control
+        // Column 2: Spin control. Fixed narrow width rather than wxEXPAND — a
+        // numeric spinner stretched to fill a slider/choice-width column just
+        // leaves the arrows and digits stranded on the left with empty space
+        // to the right.
         std::string ctrlName = "ID_SPINCTRL_" + id;
         wxWindowID ctrlId = wxNewId();
         auto* spin = new BulkEditSpinCtrl(parentWin, ctrlId, wxString::Format("%d", defaultVal),
-                                           wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS,
-                                           minVal, maxVal, defaultVal, wxString(ctrlName));
+                                           wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(45, -1)),
+                                           wxSP_ARROW_KEYS, minVal, maxVal, defaultVal, wxString(ctrlName));
         info.spinCtrl = spin;
-        sizer->Add(spin, 1, wxALL | wxEXPAND, 2);
+        sizer->Add(spin, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
 
         // Columns 3+4: spacers
         if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);

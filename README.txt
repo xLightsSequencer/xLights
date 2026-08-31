@@ -59,6 +59,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  resetting pan/tilt/color channels to black instead of just
                                  turning off the dimmer, which snapped the head out of position (#6990)
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
+    -enh (bulldozer2003)         Matrix faces now support movement, positioning, and scaling
+                                  controls matching the Pictures effect (direction, X/Y offset,
+                                  start/end scale, wrap, pixel offsets, vector mode)
     -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
                                  Multi Point model saved with fewer than two points
     -bug (dkulp)                 Linux: the camera scan in Generate Custom Model now works whatever
