@@ -65,6 +65,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix an Off effect on a moving head/DMX fixture with a dimmer
                                  resetting pan/tilt/color channels to black instead of just
                                  turning off the dimmer, which snapped the head out of position (#6990)
+    -bug (derwin12)              Fix Auto Map import not mapping node-level effects (Dimmer, Pan,
+                                 Tilt, etc.) on DMX moving-head strings when the model's strand also
+                                 had its own effects (#7000)
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
     -enh (bulldozer2003)         Matrix faces now support movement, positioning, and scaling
                                   controls matching the Pictures effect (direction, X/Y offset,
