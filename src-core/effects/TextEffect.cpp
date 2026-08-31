@@ -468,21 +468,23 @@ xlSize GetMultiLineTextExtent(TextDrawingContext *dc,
 class CachedTextInfo {
 public:
     CachedTextInfo() {}
-    CachedTextInfo(const std::string &txt, const std::string font, const std::vector<xlColor> &c, const xlRect &r)
-    : text(txt), rect(r), color(c), fontString(font) {}
+    CachedTextInfo(const std::string &txt, const std::string font, const std::vector<xlColor> &c, const xlRect &r, bool pw)
+    : text(txt), rect(r), color(c), fontString(font), perWord(pw) {}
     ~CachedTextInfo() {}
-    
+
     bool operator==(const CachedTextInfo &i) const {
         return (text == i.text)
             && (fontString == i.fontString)
             && (rect == i.rect)
-            && (color == i.color);
+            && (color == i.color)
+            && (perWord == i.perWord);
     }
-    
+
     std::string text;
     xlRect rect;
     std::vector<xlColor> color;
     std::string fontString;
+    bool perWord = false;
 };
 
 struct CachedTextInfoHasher {
@@ -494,6 +496,7 @@ struct CachedTextInfoHasher {
             h1 ^= a.GetRGB() << 3;
         }
         h1 ^= (std::abs(t.rect.x) << 8) + (std::abs(t.rect.y) << 16);
+        h1 ^= (std::size_t)t.perWord << 24;
         return h1;
     }
 };
@@ -1005,7 +1008,7 @@ std::shared_ptr<const CachedRGBAImage> TextEffect::RenderTextLine(RenderBuffer &
         if (colors.size() == 0) {
             colors.push_back(xlWHITE);
         }
-        CachedTextInfo inf(msg, fontString, colors, rect);
+        CachedTextInfo inf(msg, fontString, colors, rect, perWord);
         std::shared_ptr<const CachedRGBAImage> img = GetCache(buffer,id)->GetImage(inf);
         if (img == nullptr) {
             dc->Clear();
