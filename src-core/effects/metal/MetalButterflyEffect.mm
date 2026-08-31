@@ -6,6 +6,7 @@
 #include "../../render/RenderBuffer.h"
 #include "UtilClasses.h"
 
+#include <algorithm>
 #include <array>
 
 class MetalButterflyEffectData {
@@ -114,7 +115,9 @@ void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap
     rdata.width = buffer.BufferWi;
     rdata.height = buffer.BufferHt;
     rdata.curState = curState;
-    rdata.numColors = buffer.palette.Size();
+    // rdata.colors is a fixed uchar4[8] (MetalEffectDataTypes.h) matching the
+    // 8-button palette UI; clamp defensively (mirrors VulkanButterflyEffect's guard).
+    rdata.numColors = (unsigned int)std::min<size_t>(buffer.palette.Size(), 8);
     rdata.offset = offset;
     rdata.chunks = Chunks;
     rdata.skip = Skip;

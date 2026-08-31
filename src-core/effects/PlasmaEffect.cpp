@@ -10,6 +10,8 @@
 
 #include "PlasmaEffect.h"
 
+#include <algorithm>
+
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
@@ -97,7 +99,9 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     rdata.sin_time_2 = sin_time_2;
     rdata.time = time;
 
-    rdata.numColors = buffer.palette.Size();
+    // rdata.colors is a fixed uint8<4>[8] (PlasmaFunctions.ispc) matching the
+    // 8-button palette UI; clamp defensively (mirrors VulkanPlasmaEffect's guard).
+    rdata.numColors = (int)std::min<size_t>(buffer.palette.Size(), 8);
     for (int x = 0; x < rdata.numColors; x++) {
         const xlColor &c = buffer.palette.GetColor(x);
         rdata.colors[x].v[0] = c.red;

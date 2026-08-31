@@ -10,6 +10,8 @@
 
 #include "ButterflyEffect.h"
 
+#include <algorithm>
+
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
@@ -94,7 +96,10 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     int ButterflyDirection = SettingsMap.Get("CHOICE_Butterfly_Direction", sDirectionDefault) == "Reverse" ? 1 : 0;
 
     const int curState = (buffer.curPeriod - buffer.curEffStartPer) * butterFlySpeed * buffer.frameTimeInMs / 50;
-    const size_t colorcnt=buffer.GetColorCount();
+    // data.colors is a fixed uint8<4>[8] (ButterflyFunctions.ispc) matching the
+    // 8-button palette UI; clamp defensively so a palette we somehow got handed
+    // with more entries can't overrun it (mirrors VulkanButterflyEffect's guard).
+    const size_t colorcnt = std::min<size_t>(buffer.GetColorCount(), 8);
     const double offset = (ButterflyDirection==1 ? -1 : 1) * double(curState)/200.0;
 
     ispc::ButterflyData data;

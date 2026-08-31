@@ -6,6 +6,7 @@
 #include "../../render/RenderBuffer.h"
 #include "UtilClasses.h"
 
+#include <algorithm>
 #include <array>
 
 class MetalPlasmaEffectData {
@@ -109,7 +110,9 @@ void MetalPlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, R
     rdata.sin_time_2 = sin_time_2;
     rdata.time = time;
 
-    rdata.numColors = buffer.palette.Size();
+    // rdata.colors is a fixed uchar4[8] (MetalEffectDataTypes.h) matching the
+    // 8-button palette UI; clamp defensively (mirrors VulkanPlasmaEffect's guard).
+    rdata.numColors = (uint16_t)std::min<size_t>(buffer.palette.Size(), 8);
     for (int x = 0; x < rdata.numColors; x++) {
         rdata.colors[x] = buffer.palette.GetColor(x).asChar4();
     }
