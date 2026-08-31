@@ -13397,9 +13397,9 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 - (NSArray<NSString*>*)stemModelCandidateRoots {
     NSMutableArray<NSString*>* out = [NSMutableArray array];
     NSString* show = [self showFolderPath];
-    if (show.length > 0) [out addObject:show];
+    if (show.length > 0 && ![out containsObject:show]) [out addObject:show];
     for (NSString* m in [self mediaFolderPaths]) {
-        if (m.length > 0) [out addObject:m];
+        if (m.length > 0 && ![out containsObject:m]) [out addObject:m];
     }
     return out;
 }

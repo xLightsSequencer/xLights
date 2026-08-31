@@ -709,10 +709,16 @@ bool Waveform::PrepareStemData()
     } stemGuard{ _stemSeparationActive, _stemSeparationCancel, frame };
 
     std::vector<std::string> roots;
+    auto addRoot = [&roots](const std::string& r) {
+        for (const auto& existing : roots) {
+            if (existing == r) return;
+        }
+        roots.push_back(r);
+    };
     if (!xLightsFrame::CurrentDir.empty())
-        roots.push_back(xLightsFrame::CurrentDir.ToStdString());
+        addRoot(xLightsFrame::CurrentDir.ToStdString());
     for (const auto& m : frame->GetMediaFolders())
-        roots.push_back(m);
+        addRoot(m);
     auto modelDirs = AIModelStore::CandidateModelDirs(roots);
 
     // ONNX Runtime / OpenVINO path ─────────────────────────────────────────────────
@@ -874,11 +880,17 @@ bool Waveform::PrepareStemData()
     // Build the list of candidate install roots: show folder first,
     // then each configured media folder in preference order.
     std::vector<std::string> roots;
+    auto addRoot = [&roots](const std::string& r) {
+        for (const auto& existing : roots) {
+            if (existing == r) return;
+        }
+        roots.push_back(r);
+    };
     if (!xLightsFrame::CurrentDir.empty()) {
-        roots.push_back(xLightsFrame::CurrentDir.ToStdString());
+        addRoot(xLightsFrame::CurrentDir.ToStdString());
     }
     for (const auto& m : frame->GetMediaFolders()) {
-        roots.push_back(m);
+        addRoot(m);
     }
     auto modelDirs = AIModelStore::CandidateModelDirs(roots);
 
