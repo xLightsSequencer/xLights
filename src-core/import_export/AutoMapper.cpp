@@ -187,7 +187,15 @@ void Run(const std::vector<ImportMappingNode*>& roots,
 
                 for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
                     auto* strand = model->GetNthChild(k);
-                    if (strand == nullptr || !strand->GetMapping().empty()) continue;
+                    if (strand == nullptr) continue;
+                    // Deliberately NOT skipping an already-Strand-mapped strand here:
+                    // a strand can carry both a Strand-level source (e.g. a DMX
+                    // moving-head's whole-fixture effect) and separate node-level
+                    // sources (Dimmer/Pan/Tilt) for the very same physical strand.
+                    // Skipping the whole strand once it had a Strand mapping meant
+                    // every 3-part node source for that strand was silently dropped
+                    // (xlights#7000). Only the actual Strand-level re-map below is
+                    // guarded against overwriting an existing mapping.
 
                     const std::list<std::string>& strandAliases = strandAliasesByIndex[k];
 
@@ -221,7 +229,9 @@ void Run(const std::vector<ImportMappingNode*>& roots,
 
                     if (strandMatched) {
                         if (parts.size() == 2) {
-                            strand->Map(src.displayName, "Strand");
+                            if (strand->GetMapping().empty()) {
+                                strand->Map(src.displayName, "Strand");
+                            }
                         } else if (parts.size() == 3) {
                             for (unsigned int m = 0; m < strand->GetChildCount(); ++m) {
                                 auto* node = strand->GetNthChild(m);
