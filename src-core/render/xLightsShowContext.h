@@ -27,6 +27,7 @@
 #include "effects/EffectPresetManager.h"
 
 #include <memory>
+#include <mutex>
 #include <optional>
 
 // Concrete, wx-free owner of a loaded xLights "show": the model / output /
@@ -189,10 +190,23 @@ public:
 
     // "Done" == no in-flight render jobs (must NOT key on _seqData validity —
     // CloseSequence clears it before the next open). Drains finished progress
-    // entries; safe only from the driver/main thread.
+    // entries; callable from more than one thread (the iPad polls it from the
+    // UI while AbortRender drains it from the render thread).
     bool IsRenderDone();
 
     // (Re)allocate _seqData when the sequence shape (frames/channels/frameTime)
     // changes, aborting any in-flight render first to avoid a use-after-free.
     void EnsureSequenceDataSized();
+
+private:
+    // Serializes the drain in IsRenderDone(). Two threads reach it: the host's
+    // completion poll and AbortRender() on whichever thread asked for the
+    // abort. Unsynchronized, both could pull the same RenderProgressInfo off
+    // the list and delete it (and its RenderJobs) twice.
+    std::mutex _renderProgressDrainLock;
+
+    // Entries pulled off the list but not yet cleaned up. Cleanup runs outside
+    // the lock (callbacks can re-enter), so "done" has to account for them or
+    // the other thread sees an empty list while jobs are still being torn down.
+    int _renderProgressDraining = 0;
 };

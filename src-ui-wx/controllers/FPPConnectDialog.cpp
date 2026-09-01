@@ -1344,7 +1344,12 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 inst->Restart(true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
                 BaseController* bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
-                if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
+                if (bc == nullptr) {
+                    // CreateBaseController returns null when the controller has no
+                    // caps, or resolves to a multicast address. Every other caller
+                    // checks; this one made a virtual call through the null instead.
+                    inst->messages.push_back("Unable to upload: no usable connection for this controller.");
+                } else if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
                     auto ts = FormatTimestamp();
                     auto* config = GetXLightsConfig();
                     auto ctrlName = controller.front()->GetName();

@@ -26,6 +26,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <thread>
+#include <vector>
 
 xLightsShowContext::MissingModelScan xLightsShowContext::ScanForMissingModels() const {
     MissingModelScan scan;
@@ -168,21 +169,40 @@ bool xLightsShowContext::IsRenderDone() {
     if (!_renderEngine) return true;
     _renderEngine->CheckForStalledRender();
 
-    // Drain finished progress entries (safe: called from the driver/main thread,
-    // not a render worker). Any still-pending entry keeps the result false.
-    auto& list = _renderEngine->GetRenderProgressInfo();
+    // Drain finished progress entries. Any still-pending entry keeps the result
+    // false. The list walk has to be serialized: AbortRender() drains from the
+    // thread that requested the abort while the host polls this from its own
+    // thread, and unsynchronized both can take the same entry and delete it
+    // (and the RenderJobs it owns) twice.
+    std::vector<RenderProgressInfo*> finished;
     bool allDone = true;
-    for (auto it = list.begin(); it != list.end();) {
-        RenderProgressInfo* rpi = *it;
-        if (rpi->completed.load()) {
-            rpi->CleanupJobs();
-            if (rpi->callback) rpi->callback(_renderEngine->GetAbortedRenderJobs() > 0);
-            delete rpi;
-            it = list.erase(it);
-        } else {
-            allDone = false;
-            ++it;
+    {
+        std::lock_guard<std::mutex> lock(_renderProgressDrainLock);
+        auto& list = _renderEngine->GetRenderProgressInfo();
+        for (auto it = list.begin(); it != list.end();) {
+            RenderProgressInfo* rpi = *it;
+            if (rpi->completed.load()) {
+                finished.push_back(rpi);
+                it = list.erase(it);
+            } else {
+                allDone = false;
+                ++it;
+            }
         }
+        if (_renderProgressDraining != 0) {
+            // Another thread is still cleaning up entries it already removed.
+            allDone = false;
+        }
+        _renderProgressDraining += (int)finished.size();
+    }
+
+    // Outside the lock: callback() runs host code that can call back in here.
+    for (RenderProgressInfo* rpi : finished) {
+        rpi->CleanupJobs();
+        if (rpi->callback) rpi->callback(_renderEngine->GetAbortedRenderJobs() > 0);
+        delete rpi;
+        std::lock_guard<std::mutex> lock(_renderProgressDrainLock);
+        --_renderProgressDraining;
     }
     return allDone;
 }

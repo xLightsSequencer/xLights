@@ -12,6 +12,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (dkulp)                 Fix a crash when toggling a docked pane, loading a perspective or
+                                 opening a sequence - the AUI layout could be re-entered from a
+                                 size event while it was rebuilding its own layout state
+    -bug (dkulp)                 FPP Connect: fix a crash uploading controller config to a
+                                 controller with no known capabilities or a multicast-only address
+    -bug (dkulp)                 Fix a crash from two threads draining the finished-render list at
+                                 the same time
     -enh (scott)                 Added an MCP (Model Context Protocol) server alongside the
                                  existing REST Automation API, so MCP-aware AI tools can drive
                                  xLights over the same xFade port (POST /mcp)
