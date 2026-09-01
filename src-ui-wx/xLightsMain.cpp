@@ -35,6 +35,7 @@
 #include <wx/tokenzr.h>
 #include <wx/settings.h>
 #include <wx/display.h>
+#include <wx/weakref.h>
 #include <wx/tooltip.h>
 #include <wx/valnum.h>
 #include <wx/version.h>
@@ -7674,10 +7675,9 @@ void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
         DisplayInfo("This xLights was installed from the Microsoft Store / App Installer, which keeps it up to date automatically.", this);
         return;
     }
-    bool update_found = CheckForUpdate(3, false, true);
-    if (!update_found) {
-        DisplayInfo("Update check complete: No update found", this);
-    }
+    // Reports its own result: the check is asynchronous now, so "no update found"
+    // is shown from the response handler rather than from a return value here.
+    CheckForUpdate(3, false, true);
 }
 
 namespace {
@@ -7724,41 +7724,55 @@ namespace {
     }
 }
 
-bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes)
+void xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes)
 {
+    MenuItem_Update->Enable(true);
+    RequestReleaseList(maxRetries, canSkipUpdates, showMessageBoxes);
+}
 
-    bool found_update = false;
+void xLightsFrame::RequestReleaseList(int retriesLeft, bool canSkipUpdates, bool showMessageBoxes)
+{
     // include 6 tags, first will LIKELY be the nightly, this then includes 5 to walk
     // back and find one that has the right asset for the platform
-    std::string githubTagURL = "https://api.github.com/repos/xLightsSequencer/xLights/releases?per_page=6";
-    MenuItem_Update->Enable(true);
-    int rc = 0;
+    const std::string githubTagURL = "https://api.github.com/repos/xLightsSequencer/xLights/releases?per_page=6";
     spdlog::debug("Downloading {}", (const char*)githubTagURL.c_str());
 
-    bool didConnect = false;
-    std::string resp;
-    nlohmann::json val;
-    for (int retry = 0; retry < maxRetries && !didConnect; retry++) {
-        resp = CurlManager::INSTANCE.doGet(githubTagURL, rc);
-        if (rc == 200 && !resp.empty()) {
-            try {
-                val = nlohmann::json::parse(resp, nullptr, false);
-                if (!val.is_discarded()) {
-                    didConnect = true;
-                }
-            } catch (...) {
-            }
-        } else {
-            wxSleep(1);
+    // Queued, not synchronous. The synchronous form pumped the UI through
+    // wxYieldIfNeeded, so this check - which runs from DoPostStartupCommands -
+    // dispatched arbitrary menu commands and timers from inside itself, before
+    // startup had finished. The idle handler in xLightsApp::ProcessIdle drives
+    // the queue, so the callback lands on the main thread with no nested loop.
+    wxWeakRef<xLightsFrame> self(this);
+    CurlManager::INSTANCE.addGet(githubTagURL, [self, retriesLeft, canSkipUpdates, showMessageBoxes](int rc, const std::string& resp) {
+        if (!self || self->IsExiting()) {
+            return;
         }
-    }
-    if (!didConnect) {
+        if (rc == 200 && !resp.empty()) {
+            self->HandleReleaseList(resp, canSkipUpdates, showMessageBoxes);
+            return;
+        }
+        if (retriesLeft > 1) {
+            self->RequestReleaseList(retriesLeft - 1, canSkipUpdates, showMessageBoxes);
+            return;
+        }
         spdlog::debug("Version update check failed. Unable to connect.");
         if (showMessageBoxes) {
             wxMessageBox("Unable to connect.", "Version update check failed");
         }
-        return true;
+    });
+}
+
+void xLightsFrame::HandleReleaseList(const std::string& resp, bool canSkipUpdates, bool showMessageBoxes)
+{
+    nlohmann::json val = nlohmann::json::parse(resp, nullptr, false);
+    if (val.is_discarded()) {
+        spdlog::debug("Version update check failed. Unable to connect.");
+        if (showMessageBoxes) {
+            wxMessageBox("Unable to connect.", "Version update check failed");
+        }
+        return;
     }
+
     wxString configver;
     auto* config = GetXLightsConfig();
     if (canSkipUpdates && (config != nullptr)) {
@@ -7804,29 +7818,35 @@ bool xLightsFrame::CheckForUpdate(int maxRetries, bool canSkipUpdates, bool show
                       (const char*)xlights_version_string.c_str(),
                       (const char*)urlVersion.c_str(),
                       (const char*)configver.c_str());
-    if (!downloadURL.empty()) {
-#ifndef SIMULATE_UPGRADE
-        if ((urlVersion != configver) && (urlVersion != xlights_version_string) && IsVersionOlder(urlVersion, xlights_version_string))
-#endif
-        {
-            found_update = true;
-            UpdaterDialog* dialog = new UpdaterDialog(this);
-
-            dialog->urlVersion = urlVersion;
-            dialog->downloadUrl = downloadURL;
-            dialog->StaticTextUpdateLabel->SetLabel("You are currently running xLights " + xlights_version_string + "\n" + "Whereas the current release is " + urlVersion);
-            if (!allowIgnore) {
-                dialog->DisableIgnore();
-            }
-            dialog->Show();
-        }
-    } else {
+    if (downloadURL.empty()) {
         spdlog::debug("Version update check failed. Unable to read available versions.");
         if (showMessageBoxes) {
             wxMessageBox("Unable to read available versions.", "Version update check failed");
         }
+        return;
     }
-    return found_update;
+
+#ifndef SIMULATE_UPGRADE
+    if ((urlVersion != configver) && (urlVersion != xlights_version_string) && IsVersionOlder(urlVersion, xlights_version_string))
+#endif
+    {
+        UpdaterDialog* dialog = new UpdaterDialog(this);
+
+        dialog->urlVersion = urlVersion;
+        dialog->downloadUrl = downloadURL;
+        dialog->StaticTextUpdateLabel->SetLabel("You are currently running xLights " + xlights_version_string + "\n" + "Whereas the current release is " + urlVersion);
+        if (!allowIgnore) {
+            dialog->DisableIgnore();
+        }
+        dialog->Show();
+        return;
+    }
+
+#ifndef SIMULATE_UPGRADE
+    if (showMessageBoxes) {
+        DisplayInfo("Update check complete: No update found", this);
+    }
+#endif
 }
 
 void xLightsFrame::SetSmallWaveform(bool b)

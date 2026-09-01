@@ -19,6 +19,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  controller with no known capabilities or a multicast-only address
     -bug (dkulp)                 Fix a crash from two threads draining the finished-render list at
                                  the same time
+    -change (dkulp)              The startup check for a new release no longer pumps the UI while it
+                                 waits on the network, so menus and timers can no longer run part
+                                 way through startup; the update prompt appears when the check
+                                 finishes
     -enh (scott)                 Added an MCP (Model Context Protocol) server alongside the
                                  existing REST Automation API, so MCP-aware AI tools can drive
                                  xLights over the same xFade port (POST /mcp)

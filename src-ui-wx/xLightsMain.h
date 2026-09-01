@@ -1958,7 +1958,11 @@ private:
     bool CleanupSequenceFileLocations();
     void DoDonate();
     void AutoShowHouse();
-    bool CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes);
+    // Asynchronous: issues the release query through CurlManager and handles the
+    // result from the idle pump. Nothing here blocks, so no nested event loop.
+    void CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes);
+    void RequestReleaseList(int retriesLeft, bool canSkipUpdates, bool showMessageBoxes);
+    void HandleReleaseList(const std::string& resp, bool canSkipUpdates, bool showMessageBoxes);
     void ShiftEffectsOnLayer(EffectLayer* el, int milliseconds);
     void ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds);
     void InitSequencer();
