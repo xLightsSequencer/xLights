@@ -34,6 +34,12 @@ class FPPConnectDialog: public wxDialog
     void ApplySavedHostSettings();
     wxString Fixitup(wxString val);
 
+    // Shared close path for OnClose() and OnCancelButtonClick(): defers the
+    // close while an upload is in progress instead of tearing this dialog
+    // down out from under the nested Upload Progress modal. Returns true if
+    // the dialog was actually closed (EndDialog called), false if deferred.
+    bool RequestClose(int rc);
+
 	public:
 
 		FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, const std::string& targetIp = "", wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
@@ -83,11 +89,20 @@ class FPPConnectDialog: public wxDialog
         std::string _targetIp;
         xLightsFrame* _frame = nullptr;
 
+        // Tracks whether the nested Upload Progress modal is currently running so
+        // OnClose() can avoid tearing this dialog down out from under it (which
+        // left the main frame permanently disabled with no visible dialog left
+        // to dismiss it).
+        bool _uploadInProgress = false;
+        bool _closeRequestedDuringUpload = false;
+        FPPUploadProgressDialog* _uploadProgressDialog = nullptr;
+
 	private:
 
 		//(*Handlers(FPPConnectDialog)
 		void OnButton_UploadClick(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
+		void OnCancelButtonClick(wxCommandEvent& event);
 		void SequenceListPopup(wxTreeListEvent& event);
 		void OnAddFPPButtonClick(wxCommandEvent& event);
         void OnFPPReDiscoverClick(wxCommandEvent& event);

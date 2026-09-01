@@ -28,6 +28,7 @@ class FPPUploadProgressDialog: public wxDialog
         bool isCancelled() const {return cancelled;}
         void setActionLabel(const std::string &action);
         wxGauge *addGauge(const std::string &name);
+        void RequestCancel();
     protected:
 
         //(*Identifiers(FPPUploadProgressDialog)

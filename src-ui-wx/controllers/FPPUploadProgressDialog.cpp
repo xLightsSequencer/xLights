@@ -60,6 +60,11 @@ FPPUploadProgressDialog::~FPPUploadProgressDialog()
 
 void FPPUploadProgressDialog::OnCancelButtonClick(wxCommandEvent& event)
 {
+    RequestCancel();
+}
+
+void FPPUploadProgressDialog::RequestCancel()
+{
     CancelButton->SetLabelText("Canceling...");
     CancelButton->Enable(false);
     cancelled = true;
