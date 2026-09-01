@@ -279,6 +279,7 @@ void InitialiseLogging(bool fromMain)
         spdlog::register_logger(opengl_logger);
         spdlog::register_logger(job_logger);
         spdlog::register_logger(work_logger);
+		spdlog::flush_every(std::chrono::seconds(5));
 
         // wxOperatingSystemId os = wxGetOsVersion();
         // std::string osStr = DecodeOS(os);
