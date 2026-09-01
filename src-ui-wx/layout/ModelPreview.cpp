@@ -22,6 +22,13 @@
     #include <GL/gl.h>
 #endif
 
+#ifdef __WXMSW__
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+
 #include "layout/ModelPreview.h"
 #include "models/Model.h"
 #include "models/ViewObject.h"
@@ -1339,7 +1346,7 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
             if (topLevel != xlights) {
                 mnu.AppendSeparator();
                 wxMenuItem* keepOnTopItem = mnu.Append(0x3001, "Keep on Top", wxEmptyString, wxITEM_CHECK);
-                keepOnTopItem->Check(topLevel->GetWindowStyleFlag() & wxSTAY_ON_TOP);
+                keepOnTopItem->Check(IsKeptOnTop());
             }
             mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
             PopupMenu(&mnu);
@@ -1377,10 +1384,10 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
     } else if (id == 0x1000) {
         is3d = !is3d;
     } else if (id == 0x3000) {
-        wxWindow* topLevel = wxGetTopLevelParent(this);
-        if (topLevel != xlights) {
-            long style = topLevel->GetWindowStyleFlag();
-            topLevel->SetWindowStyleFlag(style & wxSTAY_ON_TOP ? style & ~wxSTAY_ON_TOP : style | wxSTAY_ON_TOP);
+        bool nowOnTop = !IsKeptOnTop();
+        SetKeptOnTop(nowOnTop);
+        if (xlights != nullptr && this == xlights->GetHousePreviewModelPreview()) {
+            xlights->SetHousePreviewKeepOnTop(nowOnTop);
         }
     } else if (is3d) {
         long camIdx = event.GetId() - CAMERA_LOAD_BASE;
@@ -1465,6 +1472,49 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     is3d = false;
     Mouse3DManager::INSTANCE.enableMotionEvents(this);
     SetMinSize(wxSize(50, 50));
+}
+
+bool ModelPreview::IsKeptOnTop() const
+{
+    wxWindow* topLevel = wxGetTopLevelParent(const_cast<ModelPreview*>(this));
+    if (topLevel == nullptr || topLevel == xlights) {
+        return false;
+    }
+#ifdef __WXMSW__
+    HWND floatingHwnd = (HWND)topLevel->GetHWND();
+    HWND xlightsHwnd = xlights != nullptr ? (HWND)xlights->GetHWND() : nullptr;
+    return floatingHwnd != nullptr && (HWND)::GetWindowLongPtr(floatingHwnd, GWLP_HWNDPARENT) == xlightsHwnd;
+#else
+    return (topLevel->GetWindowStyleFlag() & wxSTAY_ON_TOP) != 0;
+#endif
+}
+
+void ModelPreview::SetKeptOnTop(bool onTop)
+{
+    wxWindow* topLevel = wxGetTopLevelParent(this);
+    if (topLevel == nullptr || topLevel == xlights) {
+        return;
+    }
+#ifdef __WXMSW__
+    // A native owned-window relationship (GWLP_HWNDPARENT) keeps topLevel
+    // above xlights only -- not above every other application on the desktop
+    // like wxSTAY_ON_TOP does -- and the OS enforces it on its own, so unlike
+    // re-Raise()-ing on activate it can't steal the click used to reactivate
+    // xlights. xlights' own dialogs are owned windows too, so they still come
+    // to the front normally instead of being hidden behind this (#7003).
+    HWND floatingHwnd = (HWND)topLevel->GetHWND();
+    HWND xlightsHwnd = xlights != nullptr ? (HWND)xlights->GetHWND() : nullptr;
+    if (floatingHwnd == nullptr || xlightsHwnd == nullptr) {
+        return;
+    }
+    ::SetWindowLongPtr(floatingHwnd, GWLP_HWNDPARENT, onTop ? (LONG_PTR)xlightsHwnd : 0);
+    if (onTop) {
+        ::SetWindowPos(floatingHwnd, xlightsHwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+#else
+    long style = topLevel->GetWindowStyleFlag();
+    topLevel->SetWindowStyleFlag(onTop ? style | wxSTAY_ON_TOP : style & ~wxSTAY_ON_TOP);
+#endif
 }
 
 ModelPreview::~ModelPreview()

@@ -186,6 +186,10 @@ void HousePreviewPanel::OnResize(wxSizeEvent& event)
 
 void HousePreviewPanel::ValidateWindow(const wxSize& size)
 {
+    if (!_xLights->IsPaneDocked(this) && _xLights->HousePreviewKeepOnTop() && !_modelPreview->IsKeptOnTop()) {
+        _modelPreview->SetKeptOnTop(true);
+    }
+
     if (_showToolbar)
     {
         if (size.GetWidth() > 400 && size.GetHeight() > 300 && ! _xLights->IsPaneDocked(this))
