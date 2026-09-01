@@ -15,6 +15,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix a crash when toggling a docked pane, loading a perspective or
                                  opening a sequence - the AUI layout could be re-entered from a
                                  size event while it was rebuilding its own layout state
+    -bug (derwin12)              Fix the Layout tab's Background Properties pane getting dragged to
+                                 zero height and disappearing with no divider left to grab it back,
+                                 which persisted across restarts; also fix Reset to Defaults not
+                                 actually restoring it once collapsed (#7008)
     -bug (dkulp)                 FPP Connect: fix a crash uploading controller config to a
                                  controller with no known capabilities or a multicast-only address
     -bug (dkulp)                 Fix a crash from two threads draining the finished-render list at
