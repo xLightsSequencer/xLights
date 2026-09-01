@@ -202,6 +202,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnFPPReDiscoverClick);
 	Connect(ID_BUTTON_Upload, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadClick);
 	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&FPPConnectDialog::OnClose);
+	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnCancelButtonClick);
 	//*)
 
     FPPInstanceList->Bind(wxEVT_PAINT, &FPPConnectDialog::OnInstanceListPaint, this);
@@ -1245,8 +1246,22 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         prgs.Fit();
         prgs.setActionLabel("Preparing Configuration");
 
+        _uploadProgressDialog = &prgs;
+        _uploadInProgress = true;
         CallAfter(&FPPConnectDialog::doUpload, &prgs, doUpload);
         int c = prgs.ShowModal();
+        _uploadInProgress = false;
+        _uploadProgressDialog = nullptr;
+
+        if (_closeRequestedDuringUpload) {
+            // The user tried to close this dialog while the upload was still
+            // running; we vetoed that close and cancelled the upload instead
+            // (see OnClose). Now that the nested modal has safely unwound,
+            // honor the close request.
+            _closeRequestedDuringUpload = false;
+            EndDialog(wxID_CLOSE);
+            return;
+        }
 
         if (!c) {
             SaveSettings();
@@ -1822,9 +1837,40 @@ void FPPConnectDialog::ApplySavedHostSettings()
     }
 }
 
+bool FPPConnectDialog::RequestClose(int rc)
+{
+    if (_uploadInProgress) {
+        // Ending this dialog here would EndDialog() it while the nested
+        // Upload Progress dialog (parented to this one) is still running its
+        // own modal loop. That teardown race can leave the main frame
+        // permanently disabled with no visible dialog left to dismiss it.
+        // Cancel the upload instead and finish closing once
+        // OnButton_UploadClick's ShowModal() call unwinds.
+        _closeRequestedDuringUpload = true;
+        if (_uploadProgressDialog) {
+            _uploadProgressDialog->RequestCancel();
+        }
+        return false;
+    }
+    EndDialog(rc);
+    return true;
+}
+
 void FPPConnectDialog::OnClose(wxCloseEvent& event)
 {
-    EndDialog(0);
+    if (!RequestClose(0) && event.CanVeto()) {
+        event.Veto();
+    }
+}
+
+void FPPConnectDialog::OnCancelButtonClick(wxCommandEvent& event)
+{
+    // The outer dialog's own Cancel button (wxID_CANCEL) has no explicit
+    // handler by default, so wx's built-in wxDialogBase button handling
+    // calls EndDialog(wxID_CANCEL) directly -- bypassing OnClose() and the
+    // wxEVT_CLOSE_WINDOW event entirely, and with it the upload-in-progress
+    // guard above. Route it through the same guarded path.
+    RequestClose(wxID_CANCEL);
 }
 
 void FPPConnectDialog::SequenceListPopup(wxTreeListEvent& event)
