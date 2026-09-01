@@ -86,6 +86,10 @@ public:
     bool StartDrawing(double pointSize, bool fromPaint = false) override;
     void SetPointSize(wxDouble pointSize);
     void Reset();
+    // "Keep on Top" for this preview when undocked. Only meaningful once
+    // undocked (i.e. wxGetTopLevelParent(this) != xlights); no-ops otherwise.
+    bool IsKeptOnTop() const;
+    void SetKeptOnTop(bool onTop);
     void EndDrawing(bool swapBuffers=true) override;
 	void SetCanvasSize(int width,int height);
     void SetVirtualCanvasSize(int width, int height);

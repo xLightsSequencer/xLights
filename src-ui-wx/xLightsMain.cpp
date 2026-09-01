@@ -1587,6 +1587,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsAutoShowHousePreview", &_autoShowHousePreview, false);
     spdlog::debug("Autoshow House Preview: {}.", toStr(_autoShowHousePreview));
 
+    config->Read("xLightsHousePreviewKeepOnTop", &_housePreviewKeepOnTop, false);
+    spdlog::debug("House Preview Keep on Top: {}.", toStr(_housePreviewKeepOnTop));
+
     config->Read("xLightsZoomMethodToCursor", &_zoomMethodToCursor, true);
     spdlog::debug("Zoom Method To Cursor: {}.", toStr(_zoomMethodToCursor));
 
@@ -7445,6 +7448,17 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
 void xLightsFrame::SetAutoShowHousePreview(bool b)
 {
     _autoShowHousePreview = b;
+}
+
+ModelPreview* xLightsFrame::GetHousePreviewModelPreview() const
+{
+    return _housePreviewPanel != nullptr ? _housePreviewPanel->GetModelPreview() : nullptr;
+}
+
+void xLightsFrame::SetHousePreviewKeepOnTop(bool b)
+{
+    _housePreviewKeepOnTop = b;
+    wxConfigBase::Get()->Write("xLightsHousePreviewKeepOnTop", b);
 }
 
 void xLightsFrame::SetZoomMethodToCursor(bool b)

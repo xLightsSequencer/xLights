@@ -65,6 +65,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix an Off effect on a moving head/DMX fixture with a dimmer
                                  resetting pan/tilt/color channels to black instead of just
                                  turning off the dimmer, which snapped the head out of position (#6990)
+    -bug (derwin12)              Fix Export House Preview Video appearing to hang when the House
+                                 Preview is undocked with Keep on Top enabled - its window was
+                                 covering the export dialogs (#7003)
+    -enh (derwin12)              House Preview's "Keep on Top" setting is now remembered across
+                                 restarts and reapplied automatically when it's undocked again
     -bug (derwin12)              Fix Auto Map import not mapping node-level effects (Dimmer, Pan,
                                  Tilt, etc.) on DMX moving-head strings when the model's strand also
                                  had its own effects (#7000)

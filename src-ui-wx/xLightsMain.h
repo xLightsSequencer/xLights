@@ -1084,6 +1084,7 @@ public:
     bool _playControlsOnPreview = true;
     bool _showBaseShowFolder = false;
     bool _autoShowHousePreview = false;
+    bool _housePreviewKeepOnTop = false;
     bool _zoomMethodToCursor = true;
     bool _hidePresetPreview = false;
     bool _disableKeyAcceleration = false;
@@ -1352,6 +1353,10 @@ public:
 
     bool AutoShowHousePreview() const { return _autoShowHousePreview;}
     void SetAutoShowHousePreview(bool b);
+
+    bool HousePreviewKeepOnTop() const { return _housePreviewKeepOnTop; }
+    void SetHousePreviewKeepOnTop(bool b);
+    ModelPreview* GetHousePreviewModelPreview() const;
 
     bool ZoomMethodToCursor() const { return _zoomMethodToCursor;}
     void SetZoomMethodToCursor(bool b);
