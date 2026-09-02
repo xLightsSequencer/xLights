@@ -238,11 +238,17 @@ void xLightsTimer::Notify() {
 }
 
 void xLightsTimer::DoSendTimer() {
-    // Cleared before delivering rather than after: a frame that overruns the
-    // interval by any amount would otherwise discard the tick that lands while it
-    // is still running and give up a whole interval, which is enough to drop the
-    // output frame.
-    _pending = false;
+    // Cleared only once the frame has been delivered. Clearing first lets a tick
+    // that lands mid-frame queue another CallAfter, and
+    // wxEvtHandler::ProcessPendingEvents loops until its queue is empty - with a
+    // frame slower than the interval it never is, so the main loop stops
+    // servicing paint and input and the app hangs.
+    struct ClearOnExit {
+        std::atomic<bool>& flag;
+        ~ClearOnExit() {
+            flag = false;
+        }
+    } clearOnExit{ _pending };
     wxTimer::Notify();
 }
 
