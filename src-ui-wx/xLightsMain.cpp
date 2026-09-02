@@ -6618,7 +6618,7 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
 
     if (!wxDir::Exists(dir)) {
         wxFileName d;
-        if (!d.Mkdir(dir)) {
+        if (!d.Mkdir(dir, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL)) {
             spdlog::error("Unable to create target folder {}.", (const char*)dir.c_str());
         }
     }

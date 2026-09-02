@@ -77,9 +77,6 @@ public:
     wxDataViewItem FindItem(const std::string& filePath) const;
 
     // wxDataViewModel overrides
-    unsigned int GetColumnCount() const override { return COL_COUNT; }
-    wxString GetColumnType(unsigned int col) const override { return "string"; }
-
     void GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const override;
     bool SetValue(const wxVariant& variant, const wxDataViewItem& item, unsigned int col) override { return false; }
     bool GetAttr(const wxDataViewItem& item, unsigned int col, wxDataViewItemAttr& attr) const override;
@@ -121,6 +118,7 @@ private:
     void OnBulkFindShaders();
     void ReSelectMediaByType(const std::string& oldPath, MediaType type);
     void BulkFindMediaByType(MediaType type);
+    void BulkCopyExternalMediaByType(MediaType type);
     std::map<std::string, std::pair<int,int>> UpdateEffectPaths(const std::string& oldPath, const std::string& newPath);
     void RenderDirtyModels(const std::map<std::string, std::pair<int,int>>& dirtyModels);
     // Sequence-level face definitions reference images outside effect

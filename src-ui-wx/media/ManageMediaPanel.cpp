@@ -1393,6 +1393,27 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
                 OnBulkFindImages();
             }, bulkItem->GetId());
         }
+
+        // Offer a bulk copy whenever at least one external image lives
+        // outside the show/media folder(s) - the multi-file equivalent of
+        // the "File Outside Show Directory" prompt shown when picking a
+        // single file from an effect setting. Requires _xlFrame - it drives
+        // both the show-folder copy and the ImportedMedia folder lookup.
+        int outsideImageCount = 0;
+        if (_xlFrame) {
+            for (const auto& p : _sequenceMedia->GetImagePaths()) {
+                if (_sequenceMedia->GetMediaEmbedState(p).first) continue;
+                if (!_xlFrame->IsInShowOrMediaFolder(p)) ++outsideImageCount;
+            }
+        }
+        if (outsideImageCount > 0) {
+            if (menu.GetMenuItemCount() > 0)
+                menu.AppendSeparator();
+            wxMenuItem* bulkCopyItem = menu.Append(wxID_ANY, "Bulk Copy External Images...");
+            menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+                BulkCopyExternalMediaByType(MediaType::Image);
+            }, bulkCopyItem->GetId());
+        }
     }
 
     // Non-image media options (Shader, SVG, TextFile, BinaryFile, Video)
@@ -1441,6 +1462,26 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
             menu.Bind(wxEVT_MENU, [this, mtype](wxCommandEvent&) {
                 BulkFindMediaByType(mtype);
             }, bulkItem->GetId());
+        }
+
+        // Same gating as images: at least one external item of this type
+        // living outside the show/media folder(s). Requires _xlFrame - it
+        // drives both the show-folder copy and the ImportedMedia lookup.
+        int outsideTypeCount = 0;
+        if (_xlFrame) {
+            for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
+                if (pt != mtype) continue;
+                if (_sequenceMedia->GetMediaEmbedState(p).first) continue;
+                if (!_xlFrame->IsInShowOrMediaFolder(p)) ++outsideTypeCount;
+            }
+        }
+        if (outsideTypeCount > 0) {
+            if (menu.GetMenuItemCount() > 0)
+                menu.AppendSeparator();
+            wxMenuItem* bulkCopyItem = menu.Append(wxID_ANY, "Bulk Copy External " + typeName + "...");
+            menu.Bind(wxEVT_MENU, [this, mtype](wxCommandEvent&) {
+                BulkCopyExternalMediaByType(mtype);
+            }, bulkCopyItem->GetId());
         }
     }
 
@@ -1995,6 +2036,92 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
                  "Bulk Find " + typeName, wxICON_INFORMATION | wxOK, this);
 
     Populate(lastFixedPath);
+}
+
+// Bulk-copies every already-referenced, external (non-embedded) item of
+// `type` that lives outside the show/media folder(s) to either the show
+// folder or the sequence's ImportedMedia folder - the multi-file version of
+// the "File Outside Show Directory" prompt shown when picking a single file
+// from an effect setting (BulkEditFilePickerCtrl). Unlike BulkFindMediaByType
+// this doesn't search a folder for matches - every path here is already
+// known and valid on disk, it's just outside the folders xLights searches.
+void ManageMediaPanel::BulkCopyExternalMediaByType(MediaType type)
+{
+    if (_sequenceMedia == nullptr || _xlFrame == nullptr) return;
+
+    wxString typeName = wxString(MediaTypeName(type));
+
+    std::vector<std::string> mediaPaths;
+    for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
+        if (pt != type) continue;
+        if (_sequenceMedia->GetMediaEmbedState(p).first) continue;
+        if (!_xlFrame->IsInShowOrMediaFolder(p)) mediaPaths.push_back(p);
+    }
+    if (mediaPaths.empty()) {
+        // Defensive: the context menu only offers this action when there is
+        // at least one qualifying item, so this shouldn't be reachable.
+        wxMessageBox("No external " + typeName.Lower() + " outside the show/media "
+                     "folder(s) to copy.",
+                     "Bulk Copy " + typeName, wxICON_INFORMATION | wxOK, this);
+        return;
+    }
+
+    std::string subDirName = SubdirForMediaType(type);
+    // Shaders are always loaded from disk; no ImportedMedia option for them
+    // (mirrors OnAddButtonClick's convention for adding new shader files).
+    std::string importedMediaDir = (type == MediaType::Shader) ? std::string()
+                                    : ImportedMediaPath(_xlFrame, _showDirectory, subDirName);
+
+    wxArrayString choices;
+    if (!importedMediaDir.empty())
+        choices.Add("Copy to sequence's imported media folder: " + wxString(importedMediaDir));
+    choices.Add("Copy to show folder");
+
+    wxSingleChoiceDialog choiceDlg(this,
+        wxString::Format("%d %s file(s) are outside the show/media folder(s).\n"
+                          "Where should they be copied?",
+                          (int)mediaPaths.size(), typeName.Lower()),
+        "Bulk Copy " + typeName, choices);
+    choiceDlg.SetSelection(0);
+    if (choiceDlg.ShowModal() != wxID_OK) return;
+    bool toImportedMedia = !importedMediaDir.empty() && choiceDlg.GetSelection() == 0;
+
+    const std::string sep(1, wxFileName::GetPathSeparator());
+    int copied = 0;
+    int failed = 0;
+    std::string lastPath;
+    for (const auto& oldPath : mediaPaths) {
+        std::string newPath = toImportedMedia ? CopyToDir(oldPath, importedMediaDir)
+                                               : _xlFrame->MoveToShowFolder(oldPath, sep + subDirName);
+        if (newPath.empty()) { ++failed; continue; }
+
+        // finalAbsPath is the known absolute path; finalPath may be relativized below.
+        std::string finalAbsPath = newPath;
+        std::string finalPath = newPath;
+        std::string rel = _xlFrame->MakeRelativePath(finalPath);
+        if (!rel.empty()) finalPath = rel;
+
+        if (finalPath != oldPath) {
+            if (!_sequenceMedia->RenameMedia(oldPath, finalPath))
+                _sequenceMedia->RemoveMedia(oldPath);
+        }
+
+        auto dirty = UpdateEffectPaths(oldPath, finalPath);
+        RewriteSequenceFacePaths(oldPath, finalPath);
+        _sequenceMedia->ForceRefreshEntry(finalPath, finalAbsPath, type);
+        RenderDirtyModels(dirty);
+
+        lastPath = finalPath;
+        ++copied;
+    }
+
+    wxMessageBox(wxString::Format("Bulk copy complete.\n\n"
+                                  "Copied: %d %s(s)\n"
+                                  "Failed: %d %s(s)",
+                                  copied, typeName.Lower(), failed, typeName.Lower()),
+                 "Bulk Copy " + typeName, wxICON_INFORMATION | wxOK, this);
+
+    Populate(lastPath);
 }
 
 void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)

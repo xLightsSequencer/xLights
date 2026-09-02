@@ -137,6 +137,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  crashing when scrolled out fully, and drifting away from the mouse
                                  pointer while zooming on displays with Windows scaling above 100%
     -enh (scott)                 Custom Model Wiring dialog now remembers its size and position
+    -enh (derwin12)              Picking a video/picture/other media file outside the show or media
+                                 folders now also offers "Copy to sequence's imported media folder",
+                                 which files it under ImportedMedia/<sequence name>/ instead of the
+                                 show folder root - mirrors where importing a sequence package's
+                                 media already lands (#7013)
 
 2026.16  August 24, 2026
 
