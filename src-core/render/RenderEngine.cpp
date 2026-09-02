@@ -4084,84 +4084,110 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
     double mapMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - mapStart).count();
 
     auto rowsStart = std::chrono::steady_clock::now();
-    size_t row = 0;
-    for (auto it = models.begin(); it != models.end(); ++it, ++row) {
-        jobs[row] = nullptr;
-        aggregators[row] = new AggregatorRenderer(seqData.NumFrames());
+    // Indexed access for the construction pass; models is a list.
+    std::vector<Model*> modelVec(models.begin(), models.end());
 
-        Element *rowEl = seqElements.GetElement((*it)->GetName());
+    // Pass 1 - build each row's job and aggregator. Rows are independent here:
+    // every write lands in that row's own slot, and the model data they read is
+    // only ever mutated on the main thread (ModelGroup::EnsureModelsCurrent
+    // bails outright when it is not on it), so this pass is a pure read of
+    // state the main thread warmed when it built the render tree.
+    //
+    // This is where the time is: PixelBufferClass::InitBuffer per row, 306ms
+    // for a 139 row render on an Intel N95.
+    auto buildRow = [&](int r) {
+        jobs[r] = nullptr;
+        aggregators[r] = new AggregatorRenderer(seqData.NumFrames());
 
+        Element* rowEl = seqElements.GetElement(modelVec[r]->GetName());
         if (rowEl == nullptr) {
-            //spdlog::critical("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '{}'.", (const char *)(*it)->GetName().c_str());
-        } else {
-            if (rowEl->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
+            return;
+        }
+        if (rowEl->GetType() != ElementType::ELEMENT_TYPE_MODEL) {
+            return;
+        }
+        ModelElement* me = dynamic_cast<ModelElement*>(rowEl);
+        if (me == nullptr) {
+            logger_render->critical("xLightsFrame::Render me is nullptr ... this is going to crash.");
+        }
+        bool hasEffects = HasEffects(me);
+        bool isRestricted = std::find(restrictToModels.begin(), restrictToModels.end(), modelVec[r]) != restrictToModels.end();
+        if (!hasEffects && !(isRestricted && clear)) {
+            return;
+        }
+        RenderJob* job = new RenderJob(me, seqData, &_ctx, this, &seqElements);
+        job->setRenderRange(startFrame, endFrame);
+        job->SetRangeRestriction(ranges);
+        // No progress sink == per-edit micro-batch (RenderEffectForModel);
+        // jump the JobPool queue ahead of a queued Render All so the
+        // grid/preview don't wait for its backlog to drain.
+        if (sink == nullptr) {
+            job->SetHighPriority(true);
+        }
+        if (seqElements.SupportsModelBlending()) {
+            job->SetModelBlending();
+        }
+        PixelBufferClass* buffer = job->getBuffer();
+        if (buffer == nullptr || buffer->GetNodeCount() == 0) {
+            delete job;
+            return;
+        }
+        jobs[r] = job;
+    };
+    // Small batches run serially. Handing four rows to the shared pool costs
+    // more in dispatch than it saves, and the playback path renders one model
+    // at a time - over-parallelising small units through that pool is a
+    // recurring cost in this codebase.
+    if (numRows >= 8) {
+        parallel_for(0, numRows, buildRow);
+    } else {
+        for (int r = 0; r < numRows; ++r) {
+            buildRow(r);
+        }
+    }
 
-                if (me == nullptr) {
-                    logger_render->critical("xLightsFrame::Render me is nullptr ... this is going to crash.");
-                }
-
-                bool hasEffects = HasEffects(me);
-                bool isRestricted = std::find(restrictToModels.begin(), restrictToModels.end(), *it) != restrictToModels.end();
-                if (hasEffects || (isRestricted && clear)) {
-                    RenderJob *job = new RenderJob(me, seqData, &_ctx, this, &seqElements);
-
-                    if (job == nullptr) {
-                        logger_render->critical("xLightsFrame::Render job is nullptr ... this is going to crash.");
-                    }
-
-                    job->setRenderRange(startFrame, endFrame);
-                    job->SetRangeRestriction(ranges);
-                    // No progress sink == per-edit micro-batch (RenderEffectForModel);
-                    // jump the JobPool queue ahead of a queued Render All so the
-                    // grid/preview don't wait for its backlog to drain.
-                    if (sink == nullptr) {
-                        job->SetHighPriority(true);
-                    }
-                    if (seqElements.SupportsModelBlending()) {
-                        job->SetModelBlending();
-                    }
-                    PixelBufferClass *buffer = job->getBuffer();
-                    if (buffer == nullptr || buffer->GetNodeCount() == 0) {
-                        delete job;
-                        continue;
-                    }
-
-                    jobs[row] = job;
-                    aggregators[row]->addNext(job);
-                    if (xldbgEffSum) {
-                        fprintf(stderr, "ROW %zu %s\n", row, (*it)->GetName().c_str());
-                    }
-                    size_t cn = buffer->GetChanCountPerNode();
-                    for (size_t node = 0; node < buffer->GetNodeCount(); ++node) {
-                        uint32_t start = buffer->NodeStartChannel(node);
-                        for (size_t c = 0; c < cn; ++c) {
-                            size_t cnum = start + c;
-                            if (cnum < seqData.NumChannels()) {
-                                for (const auto i : channelMaps[cnum]) {
-                                    int idx = i;
-                                    if ((size_t)idx != row) {
-                                        if (jobs[idx]->addNext(aggregators[row])) {
-                                            aggregators[row]->incNumAggregated();
-                                            if (xldbgEffSum) {
-                                                fprintf(stderr, "EDGE %d -> %zu\n", idx, row);
-                                            }
-                                        }
-                                    }
-                                }
-                                // Rows are visited in increasing order and a
-                                // row can revisit a channel through overlapping
-                                // nodes, so a duplicate is always the last
-                                // entry. That makes this exactly the ordered,
-                                // unique sequence the std::set produced.
-                                if (channelMaps[cnum].empty()) {
-                                    channelMapTouched.push_back((uint32_t)cnum);
-                                    channelMaps[cnum].push_back((int)row);
-                                } else if (channelMaps[cnum].back() != (int)row) {
-                                    channelMaps[cnum].push_back((int)row);
+    // Pass 2 - wire the job dependency edges. Serial and in row order by
+    // necessity: a row's edges are decided by which earlier rows already
+    // claimed each channel, and that ordering is what makes the graph identical
+    // to the single loop this replaces.
+    size_t row = 0;
+    for (row = 0; row < (size_t)numRows; ++row) {
+        RenderJob* job = jobs[row];
+        if (job == nullptr) {
+            continue;
+        }
+        aggregators[row]->addNext(job);
+        if (xldbgEffSum) {
+            fprintf(stderr, "ROW %zu %s\n", row, modelVec[row]->GetName().c_str());
+        }
+        PixelBufferClass* buffer = job->getBuffer();
+        size_t cn = buffer->GetChanCountPerNode();
+        for (size_t node = 0; node < buffer->GetNodeCount(); ++node) {
+            uint32_t start = buffer->NodeStartChannel(node);
+            for (size_t c = 0; c < cn; ++c) {
+                size_t cnum = start + c;
+                if (cnum < seqData.NumChannels()) {
+                    for (const auto i : channelMaps[cnum]) {
+                        int idx = i;
+                        if ((size_t)idx != row) {
+                            if (jobs[idx]->addNext(aggregators[row])) {
+                                aggregators[row]->incNumAggregated();
+                                if (xldbgEffSum) {
+                                    fprintf(stderr, "EDGE %d -> %zu\n", idx, row);
                                 }
                             }
                         }
+                    }
+                    // Rows are visited in increasing order and a row can
+                    // revisit a channel through overlapping nodes, so a
+                    // duplicate is always the last entry. That makes this
+                    // exactly the ordered, unique sequence the std::set
+                    // produced.
+                    if (channelMaps[cnum].empty()) {
+                        channelMapTouched.push_back((uint32_t)cnum);
+                        channelMaps[cnum].push_back((int)row);
+                    } else if (channelMaps[cnum].back() != (int)row) {
+                        channelMaps[cnum].push_back((int)row);
                     }
                 }
             }

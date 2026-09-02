@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -enh (dkulp)                 Renders on sequences with many models start sooner - preparing the
+                                 per model render buffers now runs across cores
     -enh (dkulp)                 Setting up a render now happens off the UI thread, so starting one on
                                  a large sequence no longer freezes the interface while it is prepared
     -enh (dkulp)                 The render progress dialog's contents are built when it is first
