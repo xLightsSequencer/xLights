@@ -228,11 +228,19 @@ public:
     // -1 means "not currently in a horizontal-dock resize".
     int m_horizResizeDockY = -1;
     int m_horizResizeActionOffsetY = 0;
+    // Whether both ModelList and ModelSettings were visible (docked, shown) when the
+    // drag started. Captured once alongside m_horizResizeDockY rather than re-queried
+    // every OnMotion — once the live-resize shrinks a pane to ~0, wxAuiManager itself
+    // can flip its IsShown() to false mid-drag, which would otherwise silently disable
+    // the clamp below for the rest of the drag and let the sash run the pane's size to
+    // zero with no caption/gripper left to grab it back afterwards.
+    bool m_horizResizeBothVisible = false;
 
     void OnLeftDown(wxMouseEvent& event) {
         // Reset per-drag clamping state before the base class sets m_actionPart.
         m_horizResizeDockY = -1;
         m_horizResizeActionOffsetY = 0;
+        m_horizResizeBothVisible = false;
         wxAuiDockUIPart* part = HitTest(event.GetX(), event.GetY());
         if (part &&
             (part->type == wxAuiDockUIPart::typeCaption ||
@@ -305,17 +313,17 @@ public:
                      part->dock->dock_direction == wxAUI_DOCK_BOTTOM)) {
                     m_horizResizeDockY = part->dock->rect.y;
                     m_horizResizeActionOffsetY = m_actionOffset.y;
+
+                    wxAuiPaneInfo& listPane = GetPane("ModelList");
+                    wxAuiPaneInfo& settingsPane = GetPane("ModelSettings");
+                    m_horizResizeBothVisible =
+                        listPane.IsOk() && listPane.IsShown() && !listPane.IsFloating() &&
+                        settingsPane.IsOk() && settingsPane.IsShown() && !settingsPane.IsFloating();
                 }
             }
 
             if (m_horizResizeDockY >= 0) {
-                wxAuiPaneInfo& listPane = GetPane("ModelList");
-                bool centerVisible = false;
-                wxAuiPaneInfo& p = GetPane("ModelSettings");
-                if (p.IsOk() && p.IsShown() && !p.IsFloating()) {
-                    centerVisible = true;
-                }
-                if (listPane.IsOk() && listPane.IsShown() && !listPane.IsFloating() && centerVisible) {
+                if (m_horizResizeBothVisible) {
                     // new_size = (event.m_y - m_horizResizeActionOffsetY) - m_horizResizeDockY
                     // Enforce new_size >= 10% of containerH and (containerH - new_size) >= 10%.
                     int containerH = GetManagedWindow()->GetClientSize().GetHeight();
@@ -337,9 +345,24 @@ public:
         bool wasDragging = m_action != actionNone;
         m_pendingCenterDrag    = false;
         m_centerDragWindow     = nullptr;
+        // wxAuiManager's own OnLeftUp (reached via event.Skip() below) commits the
+        // resize using THIS event's mouse position, not the last OnMotion position we
+        // clamped. Releasing outside the xLights window can deliver a final mouse-up
+        // coordinate far past where the drag was ever clamped in OnMotion, letting the
+        // pane collapse past its minimum. Clamp here too, using the same saved
+        // per-drag state, before it gets reset below.
+        if (m_action == actionResize && m_horizResizeDockY >= 0 && m_horizResizeBothVisible) {
+            int containerH = GetManagedWindow()->GetClientSize().GetHeight();
+            int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
+            int minY = paneMin + m_horizResizeActionOffsetY + m_horizResizeDockY;
+            int maxY = (containerH - paneMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
+            if (maxY < minY) maxY = minY;
+            event.m_y = std::clamp(event.m_y, minY, maxY);
+        }
         // Reset per-drag clamping state.
         m_horizResizeDockY = -1;
         m_horizResizeActionOffsetY = 0;
+        m_horizResizeBothVisible = false;
         event.Skip();
         // After the base-class finishes processing the mouse-up (which may have
         // docked or floated a pane), update the splitter state.
@@ -12045,15 +12068,55 @@ void LayoutPanel::ResetToDefaults() {
         _savedFloatingPerspective.clear();
     }
 
-    // Dock all panels to their default positions: ModelList at top, ModelSettings
-    // in the center.
-    layout_mgr->GetPane("ModelList").Top().Layer(0).Row(0).Dock().Show();
-    layout_mgr->GetPane("ModelSettings").Center().Dock().Show();
-
-    // Split ModelList and ModelSettings evenly (50/50).
+    // Detach and re-add both panes rather than mutating them in place. wxAuiManager
+    // caches each pane's actual dock size once it has been laid out; calling
+    // Dock()/Show()/BestSize() on an already-docked pane does not force it to
+    // recompute that cached size, so a pane previously dragged to ~0 height would
+    // stay collapsed even after this "reset". Re-adding them from scratch mirrors
+    // the initial construction in the constructor and guarantees a fresh layout.
     int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
     if (halfHeight < kListHeightFallback) halfHeight = kListHeightFallback;
-    layout_mgr->GetPane("ModelList").BestSize(-1, halfHeight);
+
+    // wxAuiManager keys its dock geometry (dock_size) by (direction, layer, row),
+    // not by pane identity — re-adding a pane to the SAME dock cell it was just
+    // detached from reuses that cell's existing (still-collapsed) dock_size, so
+    // BestSize() below is silently ignored. Committing the detach with Update()
+    // first lets wxAUI drop the now-empty dock cells so the re-added panes below
+    // land in genuinely fresh cells that must size from BestSize().
+    layout_mgr->DetachPane(FirstPanel);
+    layout_mgr->DetachPane(SettingsPaneContainer);
+    layout_mgr->Update();
+
+    layout_mgr->AddPane(FirstPanel, wxAuiPaneInfo()
+        .Name("ModelList")
+        .Caption("")
+        .CaptionVisible(true)
+        .GripperTop(true)
+        .CloseButton(false)
+        .Floatable(true)
+        .Dockable(true)
+        .TopDockable(true)
+        .BottomDockable(true)
+        .LeftDockable(false)
+        .RightDockable(false)
+        .Top().Layer(0).Row(0)
+        .BestSize(-1, halfHeight)
+        .FloatingSize(600, 1000)
+        .MinSize(300, kPaneMinHeight));
+
+    layout_mgr->AddPane(SettingsPaneContainer, wxAuiPaneInfo()
+        .Name("ModelSettings")
+        .Caption("Background Properties")
+        .CaptionVisible(true)
+        .CloseButton(false)
+        .Floatable(true)
+        .TopDockable(false)
+        .BottomDockable(false)
+        .LeftDockable(false)
+        .RightDockable(false)
+        .Center()
+        .FloatingSize(600, 1000)
+        .MinSize(0, kPaneMinHeight));
 
     // Ensure the left panel is visible in the splitter, then commit the AUI layout.
     // Also discard any saved sash position so the default 18% width is used on the
