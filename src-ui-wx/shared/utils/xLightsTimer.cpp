@@ -226,8 +226,9 @@ int xLightsTimer::GetInterval() const {
 
 void xLightsTimer::Notify() {
     if (!wxThread::IsMain()) {
-        // One undelivered tick may be outstanding at a time, so a slow frame cannot
-        // queue up a backlog of CallAfters.
+        // No tick is queued while one is still being delivered, which is what lets
+        // the main loop drain - see DoSendTimer. A tick that lands mid frame is
+        // dropped, so an overrunning frame costs the interval it overran into.
         if (_pending.exchange(true)) {
             return;
         }
@@ -238,11 +239,21 @@ void xLightsTimer::Notify() {
 }
 
 void xLightsTimer::DoSendTimer() {
-    // Cleared before delivering rather than after: a frame that overruns the
-    // interval by any amount would otherwise discard the tick that lands while it
-    // is still running and give up a whole interval, which is enough to drop the
-    // output frame.
-    _pending = false;
+    // Cleared only once the frame has been delivered, never before. Clearing first
+    // lets a tick landing mid frame queue another CallAfter, which re-adds this
+    // handler to the app's pending-handler list. wxAppConsoleBase::ProcessPendingEvents
+    // loops until that list is empty, so once a frame is slower than the interval it
+    // never empties: the main loop stops servicing paint and input and the app hangs.
+    //
+    // The scope guard matters - SafelyProcessEvent catches outside this frame, so a
+    // throw escaping Notify() would leave the flag stuck true and silently end
+    // playback rather than hang.
+    struct ClearOnExit {
+        std::atomic<bool>& flag;
+        ~ClearOnExit() {
+            flag = false;
+        }
+    } clearOnExit{ _pending };
     wxTimer::Notify();
 }
 

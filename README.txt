@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (AGFazio)               Windows: fix xLights hanging when a sequence frame takes longer than the
+                                 frame interval - most easily hit by creating a 40fps animation sequence
+                                 and dropping an effect, which left the app not responding (#7002)
     -bug (dkulp)                 Fix a crash when toggling a docked pane, loading a perspective or
                                  opening a sequence - the AUI layout could be re-entered from a
                                  size event while it was rebuilding its own layout state
