@@ -2756,15 +2756,23 @@ bool xLightsFrame::TimerRgbSeq(long msec)
 {
     //
 
-    // check if there are models that depend on timing tracks or similar that need to be rendered
+    // Models that depend on timing tracks or similar need re-rendering. Ask for
+    // it, never wait for it. RenderEffectForModel does not block on the render
+    // itself - the jobs go to the pool with a completion callback - but the
+    // setup before the dispatch is real work on the calling thread, and doing it
+    // here put it inside the frame budget, where overrunning costs the whole
+    // next tick (see xLightsTimer::DoSendTimer). The preview is what this app is
+    // for, so nothing on the drawing path waits for a render.
+    //
+    // GetElementsToRender clears the dirty set under its lock, so posting cannot
+    // re-fire the same model or pile up; the frame that follows simply draws the
+    // data it already has, one frame stale, until the render lands.
     std::vector<Element *> elsToRender;
     if (_sequenceElements.GetElementsToRender(elsToRender)) {
         for (const auto& it : elsToRender) {
             int ss, es;
             it->GetDirtyRange(ss, es);
-            if (!_suspendRender) {
-                RenderEffectForModel(it->GetModelName(), ss, es);
-            }
+            RequestRenderForModel(it->GetModelName(), ss, es);
         }
     }
 

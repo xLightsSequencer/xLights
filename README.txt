@@ -12,6 +12,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (dkulp)                 Playback no longer waits on a render it triggered - a model that
+                                 needs re-rendering mid playback is now asked for and picked up on a
+                                 later frame instead of stalling the frame that noticed it
+    -enh (dkulp)                 Large shows start renders faster, most noticeably on slower
+                                 machines - setting up a render no longer rebuilds a per channel
+                                 table across the whole show every time
     -enh (dkulp)                 Linux: log the graphics adapters (name, PCI id and kernel driver),
                                  which was previously reported on macOS and Windows only
     -enh (dkulp)                 Log each display's refresh rate, the highest rate it offers at its

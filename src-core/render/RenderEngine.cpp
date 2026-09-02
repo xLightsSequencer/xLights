@@ -85,6 +85,11 @@ static const bool profRender = (getenv("XL_RENDER_PROFILE") != nullptr);
 // per-row buffer bytes at setup, clone-slot growth, and the process footprint
 // against the governor's budget.  Zero cost when unset.
 static const bool xldbgRenderMem = (getenv("XL_RENDER_MEM") != nullptr);
+// XL_RENDER_SETUP=1 times the synchronous half of Render() - everything the
+// CALLING thread does before the jobs reach the pool. That work sits on the main
+// thread on every edit-driven and playback render, so its cost is UI latency,
+// not render throughput, and none of the existing profiling covers it.
+static const bool xldbgRenderSetup = (getenv("XL_RENDER_SETUP") != nullptr);
 
 // -------------------------------------------------------------------------
 // Render memory governor
@@ -3882,8 +3887,42 @@ void RenderEngine::Render(SequenceElements& seqElements,
     int numRows = models.size();
     RenderJob **jobs = new RenderJob*[numRows];
     AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];
-    std::vector<std::set<int>> channelMaps(seqData.NumChannels());
+    auto setupStart = std::chrono::steady_clock::now();
+    // Per-channel list of the rows that touch it, used just below to wire the
+    // job dependency edges. Only the channels the rendered models occupy are
+    // ever read or written, but this was a std::vector<std::set<int>> rebuilt at
+    // full show size on every dispatch - so a one-model render paid for every
+    // channel in the show. Measured on 198208 channels: 0.27ms on an M4 Max but
+    // 6.65ms on a Ryzen 7640HS and 19.18ms on an Intel N95, against a 25ms
+    // budget at 40fps, and paid again for every model a frame marks dirty.
+    //
+    // Keep the storage between calls and clear only the entries actually
+    // touched. thread_local because Render() runs on the main thread and on job
+    // threads via completion callbacks; it is never re-entered on one thread
+    // while the map is live - nothing between here and the scope guard calls
+    // back into Render.
+    auto mapStart = std::chrono::steady_clock::now();
+    static thread_local std::vector<std::vector<int>> channelMaps;
+    static thread_local std::vector<uint32_t> channelMapTouched;
+    if (channelMaps.size() < seqData.NumChannels()) {
+        channelMaps.resize(seqData.NumChannels());
+    }
+    channelMapTouched.clear();
+    struct ClearTouched {
+        std::vector<std::vector<int>>& maps;
+        std::vector<uint32_t>& touched;
+        ~ClearTouched() {
+            // clear() keeps each row list's capacity, so a repeated render over
+            // the same models stops allocating entirely.
+            for (uint32_t c : touched) {
+                maps[c].clear();
+            }
+            touched.clear();
+        }
+    } clearTouched{ channelMaps, channelMapTouched };
+    double mapMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - mapStart).count();
 
+    auto rowsStart = std::chrono::steady_clock::now();
     size_t row = 0;
     for (auto it = models.begin(); it != models.end(); ++it, ++row) {
         jobs[row] = nullptr;
@@ -3949,7 +3988,17 @@ void RenderEngine::Render(SequenceElements& seqElements,
                                         }
                                     }
                                 }
-                                channelMaps[cnum].insert(row);
+                                // Rows are visited in increasing order and a
+                                // row can revisit a channel through overlapping
+                                // nodes, so a duplicate is always the last
+                                // entry. That makes this exactly the ordered,
+                                // unique sequence the std::set produced.
+                                if (channelMaps[cnum].empty()) {
+                                    channelMapTouched.push_back((uint32_t)cnum);
+                                    channelMaps[cnum].push_back((int)row);
+                                } else if (channelMaps[cnum].back() != (int)row) {
+                                    channelMaps[cnum].push_back((int)row);
+                                }
                             }
                         }
                     }
@@ -3958,6 +4007,7 @@ void RenderEngine::Render(SequenceElements& seqElements,
         }
     }
 
+    double rowsMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - rowsStart).count();
     logger_render->debug("Aggregators created.");
 
     if (xldbgRenderMem) {
@@ -3983,13 +4033,31 @@ void RenderEngine::Render(SequenceElements& seqElements,
         }
     }
 
-    channelMaps.clear();
+    if (xldbgRenderSetup) {
+        double totalMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - setupStart).count();
+        std::string names;
+        for (const auto& m : restrictToModels) {
+            if (!names.empty()) {
+                names += ",";
+            }
+            names += m->GetName();
+        }
+        fprintf(stderr, "XL_RENDER_SETUP rows=%d frames=%d channels=%u channelMaps=%.2fms rowsAndBuffers=%.2fms total=%.2fms models=[%s]\n",
+                numRows, endFrame - startFrame + 1, (unsigned)seqData.NumChannels(),
+                mapMs, rowsMs, totalMs, names.c_str());
+    }
+    auto clearStart = std::chrono::steady_clock::now();
     if (clear) {
         for (int f = startFrame; f <= endFrame; f++) {
             for (const auto& it : ranges) {
                 seqData[f].Zero(it.start, it.end - it.start + 1);
             }
         }
+    }
+    double clearMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - clearStart).count();
+    if (xldbgRenderSetup) {
+        fprintf(stderr, "XL_RENDER_SETUP   clear=%.2fms (%d frames x %u channels)\n",
+                clearMs, endFrame - startFrame + 1, (unsigned)seqData.NumChannels());
     }
 
     logger_render->debug("Data cleared.");
