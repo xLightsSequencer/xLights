@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -enh (dkulp)                 Log each display's refresh rate, the highest rate it offers at its
+                                 current resolution, and whether it is variable - a sequence asking
+                                 for more frames per second than the display can present cannot
+                                 preview at its own rate
     -enh (dkulp)                 Windows: the preview graphics "Auto" setting now falls back to Vulkan when
                                  the machine has no vendor display driver or is on Remote Desktop, where
                                  OpenGL cannot be hardware accelerated

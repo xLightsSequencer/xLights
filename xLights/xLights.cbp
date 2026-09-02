@@ -56,7 +56,7 @@
 					<Add option="`sdl2-config --cflags`" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lXrandr -lEGL -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
@@ -135,7 +135,7 @@
 					<Add option="`sdl2-config --cflags`" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lXrandr -lEGL -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
@@ -1589,6 +1589,8 @@
 		<Unit filename="../src-ui-wx/shared/utils/TreeListColumnVisibility.h" />
 		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.cpp" />
 		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.h" />
+		<Unit filename="../src-ui-wx/shared/utils/xlDisplayInfo.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/xlDisplayInfo.h" />
 		<Unit filename="../src-core/utils/GitUtils.cpp" />
 		<Unit filename="../src-core/utils/GitUtils.h" />
 		<Unit filename="../src-core/utils/CurlManager.cpp" />

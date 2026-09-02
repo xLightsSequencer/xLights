@@ -58,6 +58,7 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "graphics/xlGraphicsCapability.h"
+#include "shared/utils/xlDisplayInfo.h"
 #include "shared/utils/wxUtilities.h"
 #include "settings/XLightsConfigAdapter.h"
 #include "utils/TraceLog.h"
@@ -445,13 +446,36 @@ void DumpConfig()
     // small screen are all recurring crash/layout classes that cannot be
     // reproduced without knowing the screen the user was on.
     unsigned displayCount = wxDisplay::GetCount();
+    // Refresh rate as well as geometry: a sequence asking for more frames per
+    // second than the display can present cannot preview at its own rate, and
+    // on macOS the playback timer is driven by CADisplayLink so it is hard
+    // limited by exactly this number. Detail beyond a single rate (a variable
+    // ProMotion panel) comes from GetDisplayRefreshInfo where it is available;
+    // wxDisplay's own value is the fallback.
+    std::vector<xlDisplayQuery> displayQuery;
+    for (unsigned i = 0; i < displayCount; ++i) {
+        wxRect g = wxDisplay(i).GetGeometry();
+        displayQuery.push_back({ wxDisplay(i).GetName().ToStdString(),
+                                 g.GetX(), g.GetY(), g.GetWidth(), g.GetHeight() });
+    }
+    std::vector<std::string> refreshInfo = GetDisplayRefreshInfo(displayQuery);
     emit(fmt::format("  Displays: {}", displayCount));
     for (unsigned i = 0; i < displayCount; ++i) {
         wxDisplay d(i);
         wxRect g = d.GetGeometry();
-        emit(fmt::format("    Display {}: {}x{} at {},{} scale {:.2f}{}",
+        std::string refresh;
+        if (i < refreshInfo.size() && !refreshInfo[i].empty()) {
+            refresh = " " + refreshInfo[i];
+        } else if (int hz = d.GetCurrentMode().GetRefresh(); hz > 0) {
+            refresh = fmt::format(" {}Hz", hz);
+        }
+        emit(fmt::format("    Display {}: {}x{} at {},{} scale {:.2f}{}{}",
                          i, g.GetWidth(), g.GetHeight(), g.GetX(), g.GetY(),
-                         d.GetScaleFactor(), d.IsPrimary() ? " primary" : ""));
+                         d.GetScaleFactor(), d.IsPrimary() ? " primary" : "", refresh));
+    }
+    std::string present = GetPresentCapabilityDescription();
+    if (!present.empty()) {
+        emit(fmt::format("  Present: {}", present));
     }
 
 #ifdef LINUX

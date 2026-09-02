@@ -826,7 +826,8 @@ if(WIN32)
     target_link_libraries(xLights PRIVATE glu32)
 elseif(UNIX AND NOT APPLE)
     # EGL is the Wayland pbuffer fallback in GLContextManager (GLX handles X11).
-    target_link_libraries(xLights PRIVATE GL GLU EGL)
+    # Xrandr is the per-display refresh/VRR probe in xlDisplayInfo.
+    target_link_libraries(xLights PRIVATE GL GLU EGL Xrandr)
 endif()
 
 # vcpkg FFmpeg ships avfilter with vsrc_gfxcapture_winrt compiled against the

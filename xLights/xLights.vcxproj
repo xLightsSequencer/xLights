@@ -643,6 +643,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\layout\ControllerFullColumnsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\TreeListColumnVisibility.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\wxUtilities.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\xlDisplayInfo.cpp" />
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerEthernetPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerNullPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerPropertyAdapter.cpp" />
@@ -1818,6 +1819,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\layout\ControllerFullColumnsDialog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\TreeListColumnVisibility.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\wxUtilities.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\xlDisplayInfo.h" />
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerEthernetPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerNullPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerPropertyAdapter.h" />
