@@ -35,8 +35,16 @@ struct xlGPUAdapter {
     uint32_t vendorId = 0;
     uint32_t deviceId = 0;
     uint64_t dedicatedVideoMemoryMB = 0;
+    bool memoryKnown = false;
+    // Kernel driver bound to the device. Linux only - it is the thing that
+    // distinguishes amdgpu from nouveau from a virtual GPU, and there is no
+    // equivalent worth reporting elsewhere.
+    std::string driver;
     // No vendor driver behind this adapter: DXGI's software flag, or Microsoft
     // as the vendor (the Basic Render Driver and WARP both report 0x1414).
+    // Never set on Linux - nothing there corresponds to Windows falling back to
+    // a generic display driver, and the software-rasteriser case that does
+    // exist (llvmpipe) shows up in the GL renderer string instead.
     bool software = false;
 };
 

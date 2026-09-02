@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -enh (dkulp)                 Linux: log the graphics adapters (name, PCI id and kernel driver),
+                                 which was previously reported on macOS and Windows only
     -enh (dkulp)                 Log each display's refresh rate, the highest rate it offers at its
                                  current resolution, and whether it is variable - a sequence asking
                                  for more frames per second than the display can present cannot

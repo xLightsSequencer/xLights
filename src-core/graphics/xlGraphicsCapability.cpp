@@ -17,6 +17,15 @@
 #include <dxgi.h>
 #endif
 
+#ifdef __linux__
+#include <algorithm>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
+#include <map>
+#include <system_error>
+#endif
+
 #include <log.h>
 
 #include "UtilFunctions.h"
@@ -33,6 +42,75 @@ static std::string WideToUTF8(const wchar_t* w) {
     std::string out((size_t)need - 1, '\0');
     ::WideCharToMultiByte(CP_UTF8, 0, w, -1, out.data(), need, nullptr, nullptr);
     return out;
+}
+#endif
+
+
+#ifdef __linux__
+static std::string ReadSysfsLine(const std::filesystem::path& p) {
+    std::ifstream f(p);
+    std::string line;
+    if (f.is_open()) {
+        std::getline(f, line);
+    }
+    while (!line.empty() && (line.back() == '\n' || line.back() == '\r' || line.back() == ' ')) {
+        line.pop_back();
+    }
+    return line;
+}
+
+// Resolve vendor/device ids to names out of the system pci.ids. Missing on a
+// minimal install, in which case the ids alone still identify the hardware.
+static void ResolvePciNames(std::vector<xlGPUAdapter>& adapters) {
+    std::error_code ec;
+    std::filesystem::path ids;
+    for (const char* candidate : { "/usr/share/hwdata/pci.ids", "/usr/share/misc/pci.ids" }) {
+        if (std::filesystem::exists(candidate, ec)) {
+            ids = candidate;
+            break;
+        }
+    }
+    if (ids.empty()) {
+        return;
+    }
+    std::ifstream f(ids);
+    if (!f.is_open()) {
+        return;
+    }
+    // The file is ~1.5MB and sorted by vendor, with devices indented under
+    // theirs, so one pass that stops at the class-code section is enough.
+    std::string line;
+    uint32_t currentVendor = 0;
+    bool vendorWanted = false;
+    while (std::getline(f, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+        if (line[0] == 'C' && line.size() > 1 && line[1] == ' ') {
+            break;  // device classes follow the vendor list
+        }
+        if (line[0] != '\t') {
+            currentVendor = (uint32_t)strtol(line.substr(0, 4).c_str(), nullptr, 16);
+            vendorWanted = false;
+            std::string vendorName = line.size() > 6 ? line.substr(6) : "";
+            for (auto& a : adapters) {
+                if (a.vendorId == currentVendor) {
+                    vendorWanted = true;
+                    if (a.name.empty()) {
+                        a.name = vendorName;
+                    }
+                }
+            }
+        } else if (vendorWanted && line.size() > 1 && line[1] != '\t') {
+            uint32_t dev = (uint32_t)strtol(line.substr(1, 4).c_str(), nullptr, 16);
+            std::string devName = line.size() > 7 ? line.substr(7) : "";
+            for (auto& a : adapters) {
+                if (a.vendorId == currentVendor && a.deviceId == dev && !devName.empty()) {
+                    a.name = a.name.empty() ? devName : a.name + " " + devName;
+                }
+            }
+        }
+    }
 }
 #endif
 
@@ -69,6 +147,7 @@ void xlGraphicsCapability::probe() {
                     a.vendorId = desc.VendorId;
                     a.deviceId = desc.DeviceId;
                     a.dedicatedVideoMemoryMB = (uint64_t)(desc.DedicatedVideoMemory / (1024 * 1024));
+                    a.memoryKnown = true;
                     a.software = (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) != 0 || desc.VendorId == 0x1414;
                     _adapters.push_back(a);
                 }
@@ -82,6 +161,43 @@ void xlGraphicsCapability::probe() {
         ::FreeLibrary(dxgi);
     }
     _remoteSession = ::GetSystemMetrics(SM_REMOTESESSION) != 0;
+#endif
+
+#ifdef __linux__
+    // The DRM devices, which answer before any GL or Vulkan context exists just
+    // as DXGI does on Windows. Connector entries (card0-HDMI-A-1) share the
+    // directory and are skipped - only the cardN devices are adapters.
+    std::error_code ec;
+    std::vector<std::filesystem::path> cards;
+    for (auto const& entry : std::filesystem::directory_iterator("/sys/class/drm", ec)) {
+        std::string name = entry.path().filename().string();
+        if (name.rfind("card", 0) != 0 || name.find('-') != std::string::npos) {
+            continue;
+        }
+        cards.push_back(entry.path());
+    }
+    std::sort(cards.begin(), cards.end());
+    for (auto const& card : cards) {
+        std::string vendor = ReadSysfsLine(card / "device" / "vendor");
+        std::string device = ReadSysfsLine(card / "device" / "device");
+        if (vendor.empty()) {
+            continue;
+        }
+        xlGPUAdapter a;
+        a.vendorId = (uint32_t)strtol(vendor.c_str(), nullptr, 16);
+        a.deviceId = (uint32_t)strtol(device.c_str(), nullptr, 16);
+        std::filesystem::path driver = std::filesystem::read_symlink(card / "device" / "driver", ec);
+        if (!ec) {
+            a.driver = driver.filename().string();
+        }
+        _adapters.push_back(a);
+    }
+    ResolvePciNames(_adapters);
+    for (auto& a : _adapters) {
+        if (a.name.empty()) {
+            a.name = "Unknown GPU";
+        }
+    }
 #endif
 }
 
@@ -179,8 +295,16 @@ std::string xlGraphicsCapability::DescribeAdapters() {
             result += "; ";
         }
         result += a.name;
-        result += fmt::format(" [{:04x}:{:04x}] {}MB{}", a.vendorId, a.deviceId,
-                              a.dedicatedVideoMemoryMB, a.software ? " (software)" : "");
+        result += fmt::format(" [{:04x}:{:04x}]", a.vendorId, a.deviceId);
+        if (a.memoryKnown) {
+            result += fmt::format(" {}MB", a.dedicatedVideoMemoryMB);
+        }
+        if (!a.driver.empty()) {
+            result += fmt::format(" ({})", a.driver);
+        }
+        if (a.software) {
+            result += " (software)";
+        }
     }
     if (!anyHardware) {
         // A single greppable token: this is the state we want to be able to
