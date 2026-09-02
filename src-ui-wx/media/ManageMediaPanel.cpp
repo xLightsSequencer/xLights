@@ -107,6 +107,18 @@ static std::string CopyToDir(const std::string& srcPath, const std::string& targ
     return ToStdString(dest);
 }
 
+// xLightsFrame::IsInShowOrMediaFolder() only works on absolute paths - it
+// string-prefix-matches against the absolute show directory, so it can never
+// match a relative one. A relative media path is, by construction (see
+// MakeRelativePath()), already resolved against the show/media folder, so
+// treat it as "inside" without even asking - only an absolute path actually
+// needs the prefix check.
+static bool IsOutsideShowOrMediaFolder(xLightsFrame* xlFrame, const std::string& path)
+{
+    if (!wxFileName(path).IsAbsolute()) return false;
+    return xlFrame ? !xlFrame->IsInShowOrMediaFolder(path) : true;
+}
+
 // Extract just the filename from a path, treating BOTH '/' and '\' as
 // separators regardless of the host OS. A sequence authored on Windows
 // stores paths like "B:\Foo\Bar\N.png"; on macOS/Linux wxFileName parses
@@ -1403,7 +1415,7 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
         if (_xlFrame) {
             for (const auto& p : _sequenceMedia->GetImagePaths()) {
                 if (_sequenceMedia->GetMediaEmbedState(p).first) continue;
-                if (!_xlFrame->IsInShowOrMediaFolder(p)) ++outsideImageCount;
+                if (IsOutsideShowOrMediaFolder(_xlFrame, p)) ++outsideImageCount;
             }
         }
         if (outsideImageCount > 0) {
@@ -1472,7 +1484,7 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
             for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
                 if (pt != mtype) continue;
                 if (_sequenceMedia->GetMediaEmbedState(p).first) continue;
-                if (!_xlFrame->IsInShowOrMediaFolder(p)) ++outsideTypeCount;
+                if (IsOutsideShowOrMediaFolder(_xlFrame, p)) ++outsideTypeCount;
             }
         }
         if (outsideTypeCount > 0) {
@@ -2055,7 +2067,7 @@ void ManageMediaPanel::BulkCopyExternalMediaByType(MediaType type)
     for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
         if (pt != type) continue;
         if (_sequenceMedia->GetMediaEmbedState(p).first) continue;
-        if (!_xlFrame->IsInShowOrMediaFolder(p)) mediaPaths.push_back(p);
+        if (IsOutsideShowOrMediaFolder(_xlFrame, p)) mediaPaths.push_back(p);
     }
     if (mediaPaths.empty()) {
         // Defensive: the context menu only offers this action when there is
