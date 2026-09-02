@@ -11672,7 +11672,13 @@ void LayoutPanel::PreviewSaveImage()
 	delete image;
 }
 
-std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit)
+static bool IsEmptySourceGroup(pugi::xml_node group)
+{
+    std::string const members = group.attribute("models").as_string();
+    return members.find_first_not_of(" ,\t\r\n") == std::string::npos;
+}
+
+std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, std::set<std::string> const& importing, bool includeEmptyGroups, float srcPerUnit)
 {
     std::string firstImported;
     float scaleFactor = 1.0f;
@@ -11729,17 +11735,25 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
     {
         if (it2->GetKind() == ImpItemKind::ModelGroup)//if a group, try to add models if exist
         {
+            if (IsEmptySourceGroup(it2->GetModelNode()) && !includeEmptyGroups) {
+                spdlog::debug("Skipping empty model group '{}'.", (const char*)it2->GetName().c_str());
+                continue;
+            }
+
             wxString const smodels = it2->GetModelNode().attribute("models").as_string();
             auto models = wxSplit(smodels, ',');
 
             models.erase(std::remove_if(models.begin(), models.end(), [&](std::string const& s)
                 {
-                    return (xlights->AllModels.GetModel(s) == nullptr);
+                    if (xlights->AllModels.GetModel(s) != nullptr) return false;
+                    std::string const base = s.substr(0, s.find('/'));
+                    return importing.find(base) == importing.end();
                 }), models.end());
 
-            if (models.empty() && !includeEmptyGroups) {
-                spdlog::debug("Skipping empty model group '{}'.", (const char*)it2->GetName().c_str());
-                continue;
+            std::string memberList;
+            for (const auto& m : models) {
+                if (!memberList.empty()) memberList += ",";
+                memberList += m.utf8_string();
             }
 
             wxString const name = it2->GetName();
@@ -11747,11 +11761,13 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
             if (model == nullptr) {//if group doesnt exist, create it
                 it2->GetModelNode().remove_attribute("LayoutGroup");
                 it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
+                it2->GetModelNode().remove_attribute("models");
+                it2->GetModelNode().append_attribute("models") = memberList;
                 model = xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
                 spdlog::debug("Imported model group '{}'.", (const char*)name.c_str());
             }
 
-            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            if (model != nullptr && model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 ModelGroup *group = (ModelGroup*)model;
                 for (const auto& m : models) {
                     // only add model to group if it doesn't already exist
@@ -11788,7 +11804,19 @@ void LayoutPanel::ImportModelsFromRGBEffects()
         if (lg == "All Models") lg = "Default";
 
         float srcPerUnit = dlg.GetSourceRulerPerUnit();
-        std::string firstImported = ImportModelsFromPreview(dlg.GetModelsInPreview(""), lg, dlg.GetIncludeEmptyGroups(), srcPerUnit);
+
+        std::set<std::string> importing;
+        auto collectImporting = [&importing](std::list<impTreeItemData*> const& items) {
+            for (auto const& it : items) {
+                importing.insert(it->GetName().ToStdString());
+            }
+        };
+        collectImporting(dlg.GetModelsInPreview(""));
+        for (const auto& it : dlg.GetPreviews()) {
+            collectImporting(dlg.GetModelsInPreview(it));
+        }
+
+        std::string firstImported = ImportModelsFromPreview(dlg.GetModelsInPreview(""), lg, importing, dlg.GetIncludeEmptyGroups(), srcPerUnit);
 
         for (const auto& it : dlg.GetPreviews())
         {
@@ -11809,7 +11837,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
                 xlights->LayoutGroups.emplace(it.ToStdString(), std::move(grp));
                 AddPreviewChoice(it.ToStdString());
             }
-            std::string name = ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, dlg.GetIncludeEmptyGroups(), srcPerUnit);
+            std::string name = ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, importing, dlg.GetIncludeEmptyGroups(), srcPerUnit);
             if (firstImported.empty()) firstImported = name;
         }
 

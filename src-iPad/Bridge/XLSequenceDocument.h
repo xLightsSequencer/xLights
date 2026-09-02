@@ -1756,8 +1756,8 @@ NS_ASSUME_NONNULL_BEGIN
 // is what desktop does rather than recreating the source's previews.
 // Models import first so the group pass can tell which members exist;
 // a name collision imports under a generated name instead of
-// overwriting, and a group whose members are all absent is skipped
-// unless `includeEmptyGroups`. Returns
+// overwriting, and a group that is empty in the source layout is
+// skipped unless `includeEmptyGroups`. Returns
 //   @"models" / @"groups" / @"viewpoints" — NSNumber counts
 //   @"renamed"            — [NSString] "old → new"
 //   @"skippedEmptyGroups" — [NSString]
