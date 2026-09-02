@@ -6580,29 +6580,44 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
         }
     }
 
-    // Pass 2 — groups. Members that don't exist here are dropped from
-    // the membership list; a group left with none is skipped unless the
-    // caller asked to keep empty ones. An existing group of the same
-    // name is merged into rather than duplicated.
+    // Pass 2 — groups. A member neither present here nor part of this
+    // import is dropped from the membership list (a member group later
+    // in the document is kept — it will exist by the time the show is
+    // reloaded); a group that is empty in the source is skipped unless
+    // the caller asked to keep empty ones. An existing group of the
+    // same name is merged into rather than duplicated.
     if (pugi::xml_node groups = root.child("modelGroups")) {
         for (pugi::xml_node g = groups.first_child(); g; g = g.next_sibling()) {
             std::string name = g.attribute("name").as_string();
             if (name.empty() || wanted.find(name) == wanted.end()) continue;
 
-            std::vector<std::string> members;
-            for (const auto& s : Split(g.attribute("models").as_string(), ',')) {
-                std::string mem = Trim(s);
-                if (!mem.empty() && mm.GetModel(mem) != nullptr) members.push_back(mem);
-            }
-            if (members.empty() && !includeEmptyGroups) {
+            std::string const rawMembers = g.attribute("models").as_string();
+            if (rawMembers.find_first_not_of(" ,\t\r\n") == std::string::npos
+                && !includeEmptyGroups) {
                 [skipped addObject:[NSString stringWithUTF8String:name.c_str()]];
                 continue;
             }
 
+            std::vector<std::string> members;
+            for (const auto& s : Split(rawMembers, ',')) {
+                std::string mem = Trim(s);
+                if (mem.empty()) continue;
+                if (mm.GetModel(mem) == nullptr
+                    && wanted.find(mem.substr(0, mem.find('/'))) == wanted.end()) continue;
+                members.push_back(mem);
+            }
+
             Model* existing = mm.GetModel(name);
             if (existing == nullptr) {
+                std::string memberList;
+                for (const auto& mem : members) {
+                    if (!memberList.empty()) memberList += ",";
+                    memberList += mem;
+                }
                 g.remove_attribute("LayoutGroup");
                 g.append_attribute("LayoutGroup") = lg.c_str();
+                g.remove_attribute("models");
+                g.append_attribute("models") = memberList.c_str();
                 existing = mm.createAndAddModel(g, pw, ph);
                 if (existing != nullptr) {
                     ++groupCount;
