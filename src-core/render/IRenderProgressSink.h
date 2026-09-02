@@ -28,6 +28,13 @@ public:
     // Desktop implementation uses this to finalize dialog layout.
     virtual void OnRenderSetupComplete() {}
 
+    // Called periodically on the HOST'S UI THREAD while the render is live, so
+    // an implementation that defers building its widgets has somewhere to push
+    // live values into them. SetupJobProgress runs wherever Render()'s setup
+    // runs and must stay free of UI work; this is the counterpart that may
+    // touch widgets.
+    virtual void UpdateProgress() {}
+
     // Show the underlying dialog (e.g. from OnProgressBarDoubleClick).
     virtual void Show() {}
     virtual bool IsShown() const { return false; }

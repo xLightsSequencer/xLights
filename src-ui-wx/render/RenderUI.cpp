@@ -24,15 +24,41 @@
 
 #include <log.h>
 
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <vector>
+
 // ---------------------------------------------------------------------------
 // WxRenderProgressSink — desktop implementation of IRenderProgressSink.
 // Creates a RenderProgressDialog with per-job wxGauge widgets.
 // ---------------------------------------------------------------------------
 
 class WxRenderProgressSink : public IRenderProgressSink {
+    // The dialog and its per-job widgets are built on first Show(), not during
+    // render setup. Two reasons. It is only ever opened from
+    // OnProgressBarDoubleClick, so in the overwhelmingly common case every one
+    // of those widgets was constructed and destroyed without being seen - a
+    // wxStaticText and a wxGauge for each of 139 rows on a large sequence. And
+    // building them is the one part of Render()'s setup that has to be on the
+    // UI thread, which is what stops the rest of the setup from moving off it.
+    //
+    // What remains during setup is recording a name and a value slot. The
+    // render threads write into the slot; UpdateProgress(), called from the
+    // render status timer on the UI thread, is what moves it into a gauge - so
+    // an open dialog still tracks the render live rather than showing whatever
+    // was true when it was opened.
+    struct JobSlot {
+        std::string name;
+        std::atomic<int> value{ 0 };
+        std::mutex tipLock;
+        std::string tooltip;
+        bool tooltipDirty = false;
+    };
+
 public:
     explicit WxRenderProgressSink(wxWindow* parent)
-        : _dialog(new RenderProgressDialog(parent))
+        : _parent(parent)
     {}
 
     ~WxRenderProgressSink() override {
@@ -40,29 +66,36 @@ public:
     }
 
     void SetupJobProgress(IRenderJobStatus* job) override {
-        wxStaticText* label = new wxStaticText(_dialog->scrolledWindow, wxID_ANY, job->GetName());
-        _dialog->scrolledWindowSizer->Add(label, 1, wxALL | wxEXPAND, 3);
-        wxGauge* g = new wxGauge(_dialog->scrolledWindow, wxID_ANY, 100);
-        g->SetValue(0);
-        g->SetMinSize(wxSize(200, -1));
-        _dialog->scrolledWindowSizer->Add(g, 1, wxALL | wxEXPAND, 3);
-        job->SetProgressCallback([g](int value, const std::string& tooltip) {
-            if (g->GetValue() != value) {
-                g->SetValue(value);
-                if (!tooltip.empty()) {
-                    g->SetToolTip(tooltip);
+        auto slot = std::make_unique<JobSlot>();
+        slot->name = job->GetName();
+        JobSlot* raw = slot.get();
+        {
+            std::lock_guard<std::mutex> lock(_slotLock);
+            _slots.push_back(std::move(slot));
+        }
+        // Safe to capture the slot: RenderProgressInfo::CleanupJobs deletes the
+        // jobs before it deletes this sink, so no callback can outlive it.
+        job->SetProgressCallback([raw](int value, const std::string& tooltip) {
+            raw->value.store(value, std::memory_order_relaxed);
+            if (!tooltip.empty()) {
+                std::lock_guard<std::mutex> lock(raw->tipLock);
+                if (raw->tooltip != tooltip) {
+                    raw->tooltip = tooltip;
+                    raw->tooltipDirty = true;
                 }
             }
         });
     }
 
     void OnRenderSetupComplete() override {
-        _dialog->scrolledWindow->SetSizer(_dialog->scrolledWindowSizer);
-        _dialog->scrolledWindow->FitInside();
-        _dialog->scrolledWindow->SetScrollRate(5, 5);
+        // Nothing to lay out until there is something to lay out.
+        if (_dialog != nullptr) {
+            LayoutDialog();
+        }
     }
 
     void Show() override {
+        EnsureWidgets();
         if (_dialog) _dialog->Show();
     }
 
@@ -70,8 +103,63 @@ public:
         return _dialog && _dialog->IsShown();
     }
 
+    void UpdateProgress() override {
+        if (_dialog == nullptr || !_dialog->IsShown()) {
+            return;
+        }
+        // A job whose setup landed after the dialog was opened still needs one.
+        EnsureWidgets();
+        for (size_t i = 0; i < _gauges.size(); ++i) {
+            JobSlot* slot = _slots[i].get();
+            int v = slot->value.load(std::memory_order_relaxed);
+            if (_gauges[i]->GetValue() != v) {
+                _gauges[i]->SetValue(v);
+            }
+            std::lock_guard<std::mutex> lock(slot->tipLock);
+            if (slot->tooltipDirty) {
+                _gauges[i]->SetToolTip(slot->tooltip);
+                slot->tooltipDirty = false;
+            }
+        }
+    }
+
 private:
-    RenderProgressDialog* _dialog;
+    void EnsureWidgets() {
+        size_t have = _gauges.size();
+        size_t want = 0;
+        {
+            std::lock_guard<std::mutex> lock(_slotLock);
+            want = _slots.size();
+        }
+        if (_dialog != nullptr && have == want) {
+            return;
+        }
+        if (_dialog == nullptr) {
+            _dialog = new RenderProgressDialog(_parent);
+        }
+        for (size_t i = have; i < want; ++i) {
+            wxStaticText* label = new wxStaticText(_dialog->scrolledWindow, wxID_ANY, _slots[i]->name);
+            _dialog->scrolledWindowSizer->Add(label, 1, wxALL | wxEXPAND, 3);
+            wxGauge* g = new wxGauge(_dialog->scrolledWindow, wxID_ANY, 100);
+            g->SetValue(_slots[i]->value.load(std::memory_order_relaxed));
+            g->SetMinSize(wxSize(200, -1));
+            _dialog->scrolledWindowSizer->Add(g, 1, wxALL | wxEXPAND, 3);
+            _gauges.push_back(g);
+        }
+        LayoutDialog();
+    }
+
+    void LayoutDialog() {
+        _dialog->scrolledWindow->SetSizer(_dialog->scrolledWindowSizer);
+        _dialog->scrolledWindow->FitInside();
+        _dialog->scrolledWindow->SetScrollRate(5, 5);
+    }
+
+    wxWindow* _parent;
+    RenderProgressDialog* _dialog = nullptr;
+    std::mutex _slotLock;
+    std::vector<std::unique_ptr<JobSlot>> _slots;
+    std::vector<wxGauge*> _gauges;
 };
 
 // ---------------------------------------------------------------------------
@@ -205,6 +293,13 @@ void xLightsFrame::UpdateRenderStatus()
 
         RenderProgressInfo* rpi = *it;
         bool shown = rpi->progressSink ? rpi->progressSink->IsShown() : false;
+        if (shown) {
+            // The sink builds its widgets lazily and the render threads only
+            // write values into slots, so this is what makes an open dialog
+            // track the render rather than freeze at whatever was true when it
+            // was opened. UI thread, by virtue of being this timer.
+            rpi->progressSink->UpdateProgress();
+        }
 
         int frames = rpi->endFrame - rpi->startFrame + 1;
         if (frames <= 0) frames = 1;

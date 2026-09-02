@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -enh (dkulp)                 The render progress dialog's contents are built when it is first
+                                 opened rather than on every render, so a large sequence no longer
+                                 creates hundreds of progress bars nobody looks at
     -bug (dkulp)                 Playback no longer waits on a render it triggered - a model that
                                  needs re-rendering mid playback is now asked for and picked up on a
                                  later frame instead of stalling the frame that noticed it

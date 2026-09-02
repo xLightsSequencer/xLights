@@ -3852,6 +3852,34 @@ void RenderEngine::Render(SequenceElements& seqElements,
 {
     _abortedRenderJobs = 0;
 
+    // Registered before any of the setup below runs, not after the jobs are
+    // built. IsRenderDone() reports a batch pending purely by its presence in
+    // this list, so anything registered later leaves a window in which a render
+    // that is about to start looks finished - and AbortRender()'s callers act
+    // on that answer by freeing seqData out from under the jobs that follow.
+    // The window is short while this setup is synchronous; it is the whole
+    // duration of the setup once that moves to the job pool.
+    RenderProgressInfo* pi = new RenderProgressInfo(std::move(callback));
+    _renderProgressInfo.push_back(pi);
+    // Nothing below may touch `callback` again - it lives on pi now.
+    //
+    // Registering early means an escape from the setup below would strand a
+    // batch that never completes, and a stranded batch is worse than the throw:
+    // IsRenderDone() never returns true again, so every later AbortRender waits
+    // out its full timeout. Buffer allocation for a large model is the throw
+    // this is guarding against.
+    struct UnregisterIfUnpopulated {
+        std::list<RenderProgressInfo*>& list;
+        RenderProgressInfo* pi;
+        bool handled = false;
+        ~UnregisterIfUnpopulated() {
+            if (!handled) {
+                list.remove(pi);
+                delete pi;
+            }
+        }
+    } piGuard{ _renderProgressInfo, pi };
+
 #ifdef __APPLE__
     // Precompute the largest size each video file is used at so the decoder can
     // emit pre-scaled frames (big cache-memory + scale savings). Apple-only: the
@@ -4073,7 +4101,15 @@ void RenderEngine::Render(SequenceElements& seqElements,
     if (count == 0) {
         delete[] jobs;
         delete[] aggregators;
-        callback(_abortedRenderJobs > 0);
+        // Unregister and fire inline rather than leaving a completed entry for
+        // the drain: a host with no status timer running (headless) would never
+        // drain it, and AbortRender would then wait out its full timeout on a
+        // batch that never had a job.
+        piGuard.handled = true;
+        _renderProgressInfo.remove(pi);
+        std::function<void(bool)> cb = std::move(pi->callback);
+        delete pi;
+        cb(_abortedRenderJobs > 0);
         // sink auto-deleted by unique_ptr
         return;
     }
@@ -4084,7 +4120,6 @@ void RenderEngine::Render(SequenceElements& seqElements,
         statusJobs[i] = jobs[i]; // implicit upcast; nullptr rows allowed
     }
 
-    RenderProgressInfo* pi = new RenderProgressInfo(std::move(callback));
     pi->numRows = numRows;
     pi->startFrame = startFrame;
     pi->endFrame = endFrame;
@@ -4100,7 +4135,10 @@ void RenderEngine::Render(SequenceElements& seqElements,
         if (jobs[row]) jobs[row]->SetRenderProgressInfo(pi);
     }
 
-    _renderProgressInfo.push_back(pi);
+    // Fully populated and about to own live jobs - the batch is real now, so
+    // the guard must not take it back.
+    piGuard.handled = true;
+
     if (_onRenderStatusTimerStart) _onRenderStatusTimerStart();
 
     // First pass: push jobs that have no upstream dependencies so they can
