@@ -4492,6 +4492,16 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 
     report->SetCompressedFileDirectory(CurrentDir);
 
+    // The crash path builds its own file list rather than calling
+    // AddDebugFilesToReport, so this sidecar had been reaching only the manual
+    // Package Debug Files zip - never an actual crash report, which is the one
+    // case it exists for. Verified against the uploads: no crash zip carried it.
+    const std::string machineConfig = GetMachineConfigSummary();
+    if (!machineConfig.empty()) {
+        report->AddText("machine_config.txt", wxString::FromUTF8(machineConfig),
+                        "Machine configuration");
+    }
+
     wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
     if (FileExists(fn)) {
         report->AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());

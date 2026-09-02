@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (dkulp)                 Include the machine configuration in crash reports - it was only ever
+                                 attached to a manually packaged debug zip, never to an actual crash
     -enh (dkulp)                 Windows: record the graphics adapters, the OpenGL renderer and the
                                  Vulkan device in the log and in crash reports, so a machine running
                                  the generic Microsoft display driver can be identified
