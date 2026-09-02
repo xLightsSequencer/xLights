@@ -148,6 +148,14 @@ static std::string SubdirectoryForFile(const std::string& filepath) {
     return sep + "Images";
 }
 
+// Same as SubdirectoryForFile, but nested under ImportedMedia/<sequence name>,
+// matching the layout used when importing media from a sequence package
+// (see SeqSettingsDialog's package import: ShowDirectory/ImportedMedia/<name>).
+static std::string ImportedMediaSubdirectoryForFile(const std::string& filepath, const std::string& sequenceName) {
+    std::string sep(1, std::filesystem::path::preferred_separator);
+    return sep + "ImportedMedia" + sep + sequenceName + SubdirectoryForFile(filepath);
+}
+
 void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& event)
 {
     wxString file = GetFileName().GetFullPath();
@@ -187,7 +195,11 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
                     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
                     bool canEmbed = !IsVideoExtension(ext) && !IsGlediatorExtension(ext);
 
+                    std::string sequenceName = wxFileName(xl->GetSeqXmlFileName()).GetName().ToStdString();
+
                     wxArrayString choices;
+                    if (!sequenceName.empty())
+                        choices.Add("Copy to sequence's imported media folder");
                     choices.Add("Copy to show folder");
                     if (canEmbed)
                         choices.Add("Embed in sequence");
@@ -198,6 +210,12 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
                         wxString chosen = dlg.GetStringSelection();
                         if (chosen == "Copy to show folder") {
                             std::string subdir = SubdirectoryForFile(filepath);
+                            std::string newPath = xl->MoveToShowFolder(filepath, subdir);
+                            if (!newPath.empty()) {
+                                SetFileName(wxFileName(newPath));
+                            }
+                        } else if (chosen == "Copy to sequence's imported media folder") {
+                            std::string subdir = ImportedMediaSubdirectoryForFile(filepath, sequenceName);
                             std::string newPath = xl->MoveToShowFolder(filepath, subdir);
                             if (!newPath.empty()) {
                                 SetFileName(wxFileName(newPath));
