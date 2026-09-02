@@ -380,7 +380,6 @@ std::string GetMachineConfigSummary()
 void DumpConfig()
 {
     auto emit = [](const std::string& line) {
-        spdlog::info(line);
         AppendMachineConfig(line);
     };
 

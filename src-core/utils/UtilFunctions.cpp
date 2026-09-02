@@ -819,7 +819,9 @@ int GetPhysicalCoreCount() {
     return 0;
 }
 
-#if !defined(__APPLE__) && !defined(_WIN32)
+// Complementary to the guard in xlGraphicsCapability.cpp, which owns every
+// platform whose adapters can actually be enumerated.
+#if !defined(__APPLE__) && !defined(_WIN32) && !defined(__linux__)
 std::string GetGPUDescription() {
     return "";
 }
@@ -829,6 +831,12 @@ static std::mutex _machineConfigLock;
 static std::string _machineConfigText;
 
 void AppendMachineConfig(const std::string& line) {
+    // Logged here rather than by each caller, so the banner is one thing in two
+    // places instead of two things: everything in machine_config.txt appears in
+    // the log, in the same words. DumpConfig used to log its own lines while the
+    // GL and Vulkan paths only appended, which left the graphics half of the
+    // banner visible in a crash report and nowhere in the log.
+    spdlog::info(line);
     std::unique_lock<std::mutex> lock(_machineConfigLock);
     _machineConfigText += line;
     _machineConfigText += "\n";

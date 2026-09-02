@@ -316,7 +316,12 @@ std::string xlGraphicsCapability::DescribeAdapters() {
     return result;
 }
 
-#ifdef _WIN32
+// Every platform whose adapters probe() can enumerate answers from here; the
+// empty stub in UtilFunctions.cpp covers the rest. These two guards have to stay
+// complementary - a platform missing from both fails to link, a platform in both
+// is a duplicate symbol, and a platform that probes but is not listed here
+// silently reports nothing at all.
+#if defined(_WIN32) || defined(__linux__)
 std::string GetGPUDescription() {
     return xlGraphicsCapability::Instance().DescribeAdapters();
 }
