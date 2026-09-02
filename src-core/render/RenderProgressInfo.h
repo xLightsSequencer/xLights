@@ -41,7 +41,12 @@ public:
     void CleanupJobs();
 
     std::function<void(bool)> callback;
-    int numRows;
+    // Atomic and written LAST when the batch is populated. Every walker of the
+    // progress list bounds its loop by this, so publishing it after jobs and
+    // aggregators are in place is what lets a batch be registered before it is
+    // built: a reader sees either no rows, and skips it, or a batch that is
+    // wholly there. Setting it earlier would expose a half-built jobs array.
+    std::atomic<int> numRows;
     int startFrame;
     int endFrame;
     IRenderJobStatus** jobs;     // owned array; each entry deleted by UpdateRenderStatus
@@ -56,6 +61,13 @@ public:
     // render batch has finished.
     std::atomic<int> jobsRemaining;
     std::atomic<bool> completed;
+
+    // Set by SignalAbort on every registered batch. A batch whose setup has not
+    // run yet owns no jobs, so there is nothing there for SignalAbort to reach;
+    // this is how the abort gets to it. The setup checks it and completes the
+    // batch instead of building jobs - otherwise AbortRender would sit waiting
+    // for a render it had already asked to cancel to be built and run in full.
+    std::atomic<bool> abortRequested{ false };
 
     // Stall watchdog state (see RenderEngine::CheckForStalledRender).
     long long lastProgressSum = -1;

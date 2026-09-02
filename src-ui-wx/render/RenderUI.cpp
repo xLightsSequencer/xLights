@@ -88,10 +88,10 @@ public:
     }
 
     void OnRenderSetupComplete() override {
-        // Nothing to lay out until there is something to lay out.
-        if (_dialog != nullptr) {
-            LayoutDialog();
-        }
+        // Deliberately empty. This is called at the end of Render()'s setup,
+        // which runs on a job pool thread - it must not touch widgets. Layout
+        // happens in EnsureWidgets, reached only from Show() and
+        // UpdateProgress(), both of which are on the UI thread.
     }
 
     void Show() override {
@@ -375,7 +375,7 @@ void xLightsFrame::LogRenderStatus()
     spdlog::debug("Render Thread status:\n{}", (const char*)GetThreadStatusReport().c_str());
     for (const auto& it : _renderEngine->GetRenderProgressInfo()) {
         int frames = it->endFrame - it->startFrame + 1;
-        spdlog::debug("Render progress rows {}, start frame {}, end frame {}, frames {}.", it->numRows, it->startFrame, it->endFrame, frames);
+        spdlog::debug("Render progress rows {}, start frame {}, end frame {}, frames {}.", it->numRows.load(), it->startFrame, it->endFrame, frames);
         for (int i = 0; i < it->numRows; i++) {
             if (it->jobs[i] != nullptr) {
                 auto job = it->jobs[i];

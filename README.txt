@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -enh (dkulp)                 Setting up a render now happens off the UI thread, so starting one on
+                                 a large sequence no longer freezes the interface while it is prepared
     -enh (dkulp)                 The render progress dialog's contents are built when it is first
                                  opened rather than on every render, so a large sequence no longer
                                  creates hundreds of progress bars nobody looks at

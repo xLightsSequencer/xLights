@@ -3842,6 +3842,42 @@ void RenderEngine::BuildRenderTree(SequenceElements& elements, unsigned int mode
     }
 }
 
+// Everything PerformRenderSetup needs, captured at Render() time. The model
+// lists are copied rather than referenced: the caller's restrictToModels is a
+// const ref that need not outlive the call.
+struct RenderEngine::RenderSetupRequest {
+    SequenceElements* seqElements = nullptr;
+    SequenceData* seqData = nullptr;
+    std::list<Model*> models;
+    std::list<Model*> restrictToModels;
+    int startFrame = 0;
+    int endFrame = 0;
+    std::unique_ptr<IRenderProgressSink> sink;
+    bool clear = false;
+    RenderProgressInfo* pi = nullptr;
+};
+
+// High priority so a render's setup is not stuck behind the long render jobs of
+// an earlier one - that would move the latency rather than remove it.
+class RenderSetupJob : public Job {
+public:
+    explicit RenderSetupJob(RenderEngine* engine) : _engine(engine) {
+        SetHighPriority(true);
+    }
+    void Process() override {
+        _engine->DrainRenderSetupQueue();
+    }
+    bool DeleteWhenComplete() override {
+        return true;
+    }
+    const std::string GetName() const override {
+        return "RenderSetup";
+    }
+
+private:
+    RenderEngine* _engine;
+};
+
 void RenderEngine::Render(SequenceElements& seqElements,
                           SequenceData& seqData,
                           const std::list<Model*> models,
@@ -3859,8 +3895,28 @@ void RenderEngine::Render(SequenceElements& seqElements,
     // on that answer by freeing seqData out from under the jobs that follow.
     // The window is short while this setup is synchronous; it is the whole
     // duration of the setup once that moves to the job pool.
+    if (startFrame < 0) {
+        startFrame = 0;
+    }
+    if (endFrame >= (int)seqData.NumFrames()) {
+        endFrame = seqData.NumFrames() - 1;
+    }
+
     RenderProgressInfo* pi = new RenderProgressInfo(std::move(callback));
+    // Set before the batch is visible, not during setup: RenderEffectForModel
+    // decides on the caller's thread whether an in-flight batch overlaps the
+    // model it is about to render, and it decides from exactly these. A batch
+    // whose setup had not run yet would otherwise carry an empty restriction,
+    // match nothing, and let two renders of the same model run at once.
+    pi->restriction = restrictToModels;
+    pi->startFrame = startFrame;
+    pi->endFrame = endFrame;
     _renderProgressInfo.push_back(pi);
+    // The status timer is a wxTimer - it has to be started from here, never
+    // from the pool thread the setup runs on.
+    if (_onRenderStatusTimerStart) {
+        _onRenderStatusTimerStart();
+    }
     // Nothing below may touch `callback` again - it lives on pi now.
     //
     // Registering early means an escape from the setup below would strand a
@@ -3895,13 +3951,90 @@ void RenderEngine::Render(SequenceElements& seqElements,
     }
 #endif
 
+    // Hand the rest to the pool. Everything above had to be here: the render
+    // tree is read by the UI thread, and _renderProgressInfo is pushed to
+    // without a lock, so both stay on the caller's thread. What moves is the
+    // expensive part - the per-row RenderJob and PixelBufferClass construction.
+    auto req = std::make_unique<RenderSetupRequest>();
+    req->seqElements = &seqElements;
+    req->seqData = &seqData;
+    req->models = models;
+    req->restrictToModels = restrictToModels;
+    req->startFrame = startFrame;
+    req->endFrame = endFrame;
+    req->sink = std::move(sink);
+    req->clear = clear;
+    req->pi = pi;
+
+    // The setup owns the batch from here; its own guard completes it on escape.
+    piGuard.handled = true;
+
+    bool startJob = false;
+    {
+        std::lock_guard<std::mutex> lock(_setupQueueLock);
+        _setupQueue.push_back(std::move(req));
+        if (!_setupJobRunning) {
+            _setupJobRunning = true;
+            startJob = true;
+        }
+    }
+    if (startJob) {
+        _jobPool.PushJob(new RenderSetupJob(this));
+    }
+}
+
+void RenderEngine::DrainRenderSetupQueue() {
+    // One job drains the whole queue, which is what makes the setups both
+    // mutually exclusive and ordered without a dedicated thread.
+    for (;;) {
+        std::unique_ptr<RenderSetupRequest> req;
+        {
+            std::lock_guard<std::mutex> lock(_setupQueueLock);
+            if (_setupQueue.empty()) {
+                _setupJobRunning = false;
+                return;
+            }
+            req = std::move(_setupQueue.front());
+            _setupQueue.pop_front();
+        }
+        PerformRenderSetup(*req);
+    }
+}
+
+void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
+    // Bound to the names the body below already uses, so the moved code is
+    // unchanged rather than rewritten.
+    SequenceElements& seqElements = *req.seqElements;
+    SequenceData& seqData = *req.seqData;
+    const std::list<Model*>& models = req.models;
+    const std::list<Model*>& restrictToModels = req.restrictToModels;
+    int startFrame = req.startFrame;
+    int endFrame = req.endFrame;
+    std::unique_ptr<IRenderProgressSink> sink = std::move(req.sink);
+    const bool clear = req.clear;
+    RenderProgressInfo* pi = req.pi;
+
+    // Nothing below may leave the batch registered but unfinished: IsRenderDone
+    // would never go true again and every later AbortRender would burn its full
+    // timeout. Completing it lets the drain fire the callback and clean up.
+    struct CompleteOnEscape {
+        RenderProgressInfo* pi;
+        bool handled = false;
+        ~CompleteOnEscape() {
+            if (!handled) {
+                pi->completed.store(true);
+            }
+        }
+    } piGuard{ pi };
+
+    // Aborted before the setup ever ran - see RenderProgressInfo::abortRequested.
+    if (pi->abortRequested.load()) {
+        piGuard.handled = true;
+        pi->completed.store(true);
+        return;
+    }
+
     auto logger_render = spdlog::get("render");
-    if (startFrame < 0) {
-        startFrame = 0;
-    }
-    if (endFrame >= (int)seqData.NumFrames()) {
-        endFrame = seqData.NumFrames() - 1;
-    }
     std::list<NodeRange> ranges;
     if (restrictToModels.empty()) {
         ranges.push_back(NodeRange(0, seqData.NumChannels()));
@@ -4105,11 +4238,13 @@ void RenderEngine::Render(SequenceElements& seqElements,
         // the drain: a host with no status timer running (headless) would never
         // drain it, and AbortRender would then wait out its full timeout on a
         // batch that never had a job.
+        // Completed in place rather than removed here: the drain owns removal,
+        // and once this setup runs off the calling thread it must not be
+        // mutating a list the UI thread walks unlocked. Every host that can
+        // reach this polls IsRenderDone (the desktop status timer, headless's
+        // wait loop), which fires the callback and deletes the entry.
         piGuard.handled = true;
-        _renderProgressInfo.remove(pi);
-        std::function<void(bool)> cb = std::move(pi->callback);
-        delete pi;
-        cb(_abortedRenderJobs > 0);
+        pi->completed.store(true);
         // sink auto-deleted by unique_ptr
         return;
     }
@@ -4120,12 +4255,9 @@ void RenderEngine::Render(SequenceElements& seqElements,
         statusJobs[i] = jobs[i]; // implicit upcast; nullptr rows allowed
     }
 
-    pi->numRows = numRows;
-    pi->startFrame = startFrame;
-    pi->endFrame = endFrame;
+
     pi->jobs = statusJobs;
     pi->progressSink = sink.release(); // RenderProgressInfo takes ownership
-    pi->restriction = restrictToModels;
     pi->aggregators = aggregators;
     pi->jobsRemaining.store((int)count);
     pi->totalJobs = (int)count;
@@ -4135,11 +4267,15 @@ void RenderEngine::Render(SequenceElements& seqElements,
         if (jobs[row]) jobs[row]->SetRenderProgressInfo(pi);
     }
 
+    // Published last, after every field a walker would reach through it. See
+    // RenderProgressInfo::numRows.
+    pi->numRows.store(numRows);
+
     // Fully populated and about to own live jobs - the batch is real now, so
     // the guard must not take it back.
     piGuard.handled = true;
 
-    if (_onRenderStatusTimerStart) _onRenderStatusTimerStart();
+
 
     // First pass: push jobs that have no upstream dependencies so they can
     // start rendering while we finish setup on the rest.
@@ -4275,6 +4411,10 @@ void RenderEngine::RenderDirtyModels(SequenceElements& _sequenceElements, Sequen
 
 void RenderEngine::SignalAbort() {
     for (auto rpi : _renderProgressInfo) {
+        // Reaches a batch whose setup has not run yet, which owns no jobs to
+        // abort. Without this the setup would go on to build and run the render
+        // that was just cancelled, and AbortRender would wait for all of it.
+        rpi->abortRequested.store(true);
         for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
             if (rpi->jobs[row]) {
                 rpi->jobs[row]->AbortRender();
@@ -4348,6 +4488,10 @@ void RenderEngine::RenderEffectForModel(const std::string &model, int startms, i
                     if (endframe < rpi->endFrame) {
                         endframe = rpi->endFrame;
                     }
+                    // Both halves matter: a batch already built is stopped by
+                    // aborting its jobs, and one still queued for setup has no
+                    // jobs yet, so it is stopped by the flag its setup checks.
+                    rpi->abortRequested.store(true);
                     for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
                         if (rpi->jobs[row]) {
                             rpi->jobs[row]->AbortRender();

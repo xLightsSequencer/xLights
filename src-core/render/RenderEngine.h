@@ -12,6 +12,7 @@
 
 #include <chrono>
 #include <functional>
+#include <deque>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -128,6 +129,20 @@ public:
     void SetOnAllRenderJobsComplete(std::function<void()> fn) { _onAllRenderJobsComplete = std::move(fn); }
 
 private:
+    // Render()'s setup runs on the job pool, not on the calling thread. The
+    // requests are drained by one job at a time so they stay in submission
+    // order: RenderEffectForModel aborts the jobs of any overlapping in-flight
+    // batch before dispatching, which a setup running out of order could not
+    // do - the jobs it needs to abort would not exist yet. A plain mutex would
+    // give mutual exclusion but not that ordering.
+    friend class RenderSetupJob;
+    struct RenderSetupRequest;
+    void PerformRenderSetup(RenderSetupRequest& req);
+    void DrainRenderSetupQueue();
+    std::mutex _setupQueueLock;
+    std::deque<std::unique_ptr<RenderSetupRequest>> _setupQueue;
+    bool _setupJobRunning = false;
+
     RenderContext& _ctx;
     JobPool& _jobPool;
     RenderCache& _renderCache;
