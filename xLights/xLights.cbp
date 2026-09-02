@@ -1159,6 +1159,8 @@
 		<Unit filename="../src-core/graphics/xlFontInfo.cpp" />
 		<Unit filename="../src-core/graphics/xlFontInfo.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.cpp" />
+		<Unit filename="../src-core/graphics/xlGraphicsCapability.cpp" />
+		<Unit filename="../src-core/graphics/xlGraphicsCapability.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.h" />
 		<Unit filename="../src-core/graphics/GLBackend.cpp" />
 		<Unit filename="../src-core/graphics/GLBackend.h" />

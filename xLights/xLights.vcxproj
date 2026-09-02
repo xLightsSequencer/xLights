@@ -613,6 +613,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlSoftwareGLProbe.cpp" />
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-core\graphics\xlGraphicsAccumulators.cpp" />
+    <ClCompile Include="..\src-core\graphics\xlGraphicsCapability.cpp" />
     <ClCompile Include="..\src-core\graphics\GLBackend.cpp" />
     <ClCompile Include="..\src-core\graphics\GLContextManager.cpp" />
     <ClCompile Include="..\src-core\graphics\xlMesh.cpp" />
@@ -1323,6 +1324,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.h" />
+    <ClInclude Include="..\src-core\graphics\xlGraphicsCapability.h" />
     <ClInclude Include="..\src-core\graphics\vulkan\IVulkanCanvas.h" />
     <ClInclude Include="..\src-core\graphics\vulkan\VulkanFrameData.h" />
     <ClInclude Include="..\src-core\graphics\vulkan\VulkanPipelineCache.h" />

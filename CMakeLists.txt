@@ -305,6 +305,7 @@ file(GLOB_RECURSE SRC_CORE
     src-core/graphics/GLContextManager.cpp
     src-core/graphics/xlFontInfo.cpp
     src-core/graphics/xlGraphicsAccumulators.cpp
+    src-core/graphics/xlGraphicsCapability.cpp
     src-core/graphics/xlMesh.cpp
     src-core/lyrics/*.cpp
     src-core/media/AudioLoader.cpp

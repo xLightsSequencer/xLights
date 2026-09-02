@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -enh (dkulp)                 Windows: the preview graphics "Auto" setting now falls back to Vulkan when
+                                 the machine has no vendor display driver or is on Remote Desktop, where
+                                 OpenGL cannot be hardware accelerated
     -bug (dkulp)                 Include the machine configuration in crash reports - it was only ever
                                  attached to a manually packaged debug zip, never to an actual crash
     -enh (dkulp)                 Windows: record the graphics adapters, the OpenGL renderer and the

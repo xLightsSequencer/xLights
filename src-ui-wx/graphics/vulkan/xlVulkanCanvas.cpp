@@ -36,6 +36,7 @@
 #endif
 #include <vk_mem_alloc.h>
 
+#include "graphics/xlGraphicsCapability.h"
 #include "graphics/vulkan/VulkanPipelineCache.h"
 #include "graphics/vulkan/xlVulkanGraphicsContext.h"
 #include "effects/vulkan/VulkanComputeUtilities.h"
@@ -59,13 +60,30 @@ xlVulkanCanvas::~xlVulkanCanvas() {
     destroyVulkan();
 }
 
-// "Auto" backend heuristic: true when OpenGL will fall back to Mesa's software
-// rasterizer (llvmpipe) anyway — either because the app forced it (virtio-gpu,
-// see xLightsApp) or the user/driver did.  There's then no hardware GL to lose,
-// so Auto prefers Vulkan (lavapipe), which also sidesteps the buggy virgl GLX
-// path.  Env-only for now; a GL_RENDERER probe would additionally catch a silent
-// Mesa llvmpipe fallback that sets no env flag.
+// "Auto" backend heuristic: true when OpenGL will not be hardware accelerated
+// anyway, so there is no hardware GL to lose by preferring Vulkan.  On Linux
+// that means Mesa's software rasterizer (llvmpipe) — either because the app
+// forced it (virtio-gpu, see xLightsApp) or the user/driver did; preferring
+// Vulkan (lavapipe) also sidesteps the buggy virgl GLX path.
+//
+// On Windows it means the machine has no vendor display driver, or this is a
+// Remote Desktop session: both give "GDI Generic" OpenGL 1.1, which cannot
+// create the 3.3 shared context at all.  Vulkan does not go through the
+// session's display driver the same way, so it can still have a usable device —
+// and when it does not, ensureInit() fails and the caller falls back to OpenGL,
+// which is where we would have been regardless.
+//
+// Not probed here: the GL_RENDERER string itself, which would additionally
+// catch a driver whose GL ICD is broken while the adapter is fine.  That needs
+// a throwaway WGL/GLX context (Linux has one in xlProbeSoftwareGL); the Windows
+// side has no equivalent yet and no machine to verify it against.
 static bool softwareGLLikely() {
+#ifdef __WXMSW__
+    if (!xlGraphicsCapability::Instance().HasHardwareAdapter() ||
+        xlGraphicsCapability::Instance().IsRemoteSession()) {
+        return true;
+    }
+#endif
     const char* s = getenv("LIBGL_ALWAYS_SOFTWARE");
     if (s != nullptr && *s != '\0' && strcmp(s, "0") != 0 && wxString(s).CmpNoCase("false") != 0) {
         return true;

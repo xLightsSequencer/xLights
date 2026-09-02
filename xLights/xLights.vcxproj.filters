@@ -850,6 +850,9 @@
     <ClCompile Include="..\src-core\graphics\xlGraphicsAccumulators.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\graphics\xlGraphicsCapability.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\ScriptsDialog.cpp" />
       <Filter>graphics</Filter>
@@ -2410,6 +2413,9 @@
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\graphics\xlGraphicsAccumulators.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\graphics\xlGraphicsCapability.h">
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\graphics\xlFontInfo.h" />

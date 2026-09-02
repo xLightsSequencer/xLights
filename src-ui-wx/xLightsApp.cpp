@@ -57,6 +57,7 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "graphics/xlGraphicsCapability.h"
 #include "shared/utils/wxUtilities.h"
 #include "settings/XLightsConfigAdapter.h"
 #include "utils/TraceLog.h"
@@ -461,14 +462,12 @@ void DumpConfig()
         + " " + std::string(l.Description.c_str()));
 #endif
 
-#ifdef _WIN32
     // An RDP session gets the same GDI Generic OpenGL 1.1 as a machine with no
     // driver installed, but for a completely different reason and with a
     // different answer for the user.
-    if (::GetSystemMetrics(SM_REMOTESESSION) != 0) {
+    if (xlGraphicsCapability::Instance().IsRemoteSession()) {
         emit("  Session: Remote Desktop");
     }
-#endif
 }
 
 #ifdef LINUX
