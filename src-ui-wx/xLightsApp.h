@@ -58,5 +58,6 @@ bool SpawnNewXLightsInstance(const wxString& fileToOpen);
 #endif
 
 // The startup machine-configuration banner, verbatim, for the crash handler to
-// attach. Empty until DumpConfig() has run.
-const std::string& GetMachineConfigSummary();
+// attach. Empty until DumpConfig() has run; the GL and Vulkan bring-up paths
+// append to it later still.
+std::string GetMachineConfigSummary();

@@ -4709,7 +4709,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
     // Attached in its own right rather than relied on from the log: the log
     // rotates, and once it has, nothing in the report says what machine it came
     // from.
-    const std::string& machineConfig = GetMachineConfigSummary();
+    const std::string machineConfig = GetMachineConfigSummary();
     if (!machineConfig.empty()) {
         report.AddText("machine_config.txt", wxString::FromUTF8(machineConfig),
                        "Machine configuration");

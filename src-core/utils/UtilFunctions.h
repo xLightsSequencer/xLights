@@ -189,9 +189,20 @@ std::string GetCPUBrand();
 int GetLogicalCoreCount();
 int GetPhysicalCoreCount();
 
-// Human-readable GPU description. Apple returns the Metal device; elsewhere
-// this is empty and the GL banner carries the renderer string.
+// Human-readable GPU description of every adapter the OS has bound, asked of
+// the platform directly rather than of a graphics context: on Windows the GL
+// banner degrades to "GDI Generic" precisely on the machines whose adapter we
+// most need named, and it is only written once a context exists - which is the
+// thing that fails there. Empty on Linux.
 std::string GetGPUDescription();
+
+// The startup machine-configuration banner. DumpConfig() builds the bulk of it,
+// but the graphics backend is only known once a context has been created, which
+// is later than that, so the GL and Vulkan bring-up paths append their own
+// lines. Reading is thread safe against those appends - the crash handler pulls
+// the text at an arbitrary point.
+void AppendMachineConfig(const std::string& line);
+std::string GetMachineConfigText();
 
 bool IsxLights();
 void SetIsxLights(bool val);

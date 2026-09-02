@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <random>
+#include <mutex>
 #include <thread>
 #include <time.h>
 #include <filesystem>
@@ -30,6 +31,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <psapi.h>
+#include <dxgi.h>
 #endif
 
 #ifdef __APPLE__
@@ -818,11 +820,88 @@ int GetPhysicalCoreCount() {
     return 0;
 }
 
-#if !defined(__APPLE__)
+#if defined(_WIN32)
+static std::string WideToUTF8(const wchar_t* w) {
+    if (w == nullptr || *w == 0) {
+        return "";
+    }
+    int need = ::WideCharToMultiByte(CP_UTF8, 0, w, -1, nullptr, 0, nullptr, nullptr);
+    if (need <= 1) {
+        return "";
+    }
+    std::string out((size_t)need - 1, '\0');
+    ::WideCharToMultiByte(CP_UTF8, 0, w, -1, out.data(), need, nullptr, nullptr);
+    return out;
+}
+
+std::string GetGPUDescription() {
+    // DXGI rather than the GL/Vulkan banner: it answers before any context is
+    // created, and it still names the adapter when the machine is running the
+    // Microsoft Basic Display Adapter - the case where GL reports nothing but
+    // "GDI Generic" and Vulkan has no ICD at all. Late bound so no new import
+    // is added to the binary.
+    std::string result;
+    bool anyHardware = false;
+    HMODULE dxgi = ::LoadLibraryW(L"dxgi.dll");
+    if (dxgi != nullptr) {
+        typedef HRESULT(WINAPI * CreateDXGIFactory1Fn)(REFIID, void**);
+        auto createFactory = (CreateDXGIFactory1Fn)::GetProcAddress(dxgi, "CreateDXGIFactory1");
+        IDXGIFactory1* factory = nullptr;
+        if (createFactory != nullptr && SUCCEEDED(createFactory(__uuidof(IDXGIFactory1), (void**)&factory)) && factory != nullptr) {
+            IDXGIAdapter1* adapter = nullptr;
+            for (UINT i = 0; factory->EnumAdapters1(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i) {
+                DXGI_ADAPTER_DESC1 desc = {};
+                if (adapter != nullptr && SUCCEEDED(adapter->GetDesc1(&desc))) {
+                    // Vendor 0x1414 is Microsoft: the Basic Render Driver and
+                    // WARP both report it. Either way there is no vendor driver
+                    // behind that adapter.
+                    bool software = (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) != 0 || desc.VendorId == 0x1414;
+                    anyHardware = anyHardware || !software;
+                    if (!result.empty()) {
+                        result += "; ";
+                    }
+                    result += WideToUTF8(desc.Description);
+                    result += fmt::format(" [{:04x}:{:04x}] {}MB{}", desc.VendorId, desc.DeviceId,
+                                          (uint64_t)(desc.DedicatedVideoMemory / (1024 * 1024)),
+                                          software ? " (software)" : "");
+                }
+                if (adapter != nullptr) {
+                    adapter->Release();
+                    adapter = nullptr;
+                }
+            }
+            factory->Release();
+        }
+        ::FreeLibrary(dxgi);
+    }
+    if (!result.empty() && !anyHardware) {
+        // A single greppable token: this is the state we want to be able to
+        // count across crash reports, and "software" alone also appears on
+        // healthy machines that merely enumerate the Basic Render Driver
+        // alongside a real GPU.
+        result += " -- NO HARDWARE GPU ADAPTER";
+    }
+    return result;
+}
+#elif !defined(__APPLE__)
 std::string GetGPUDescription() {
     return "";
 }
 #endif
+
+static std::mutex _machineConfigLock;
+static std::string _machineConfigText;
+
+void AppendMachineConfig(const std::string& line) {
+    std::unique_lock<std::mutex> lock(_machineConfigLock);
+    _machineConfigText += line;
+    _machineConfigText += "\n";
+}
+
+std::string GetMachineConfigText() {
+    std::unique_lock<std::mutex> lock(_machineConfigLock);
+    return _machineConfigText;
+}
 
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly) {
 #if defined(TURN_THIS_OFF) && defined(_WIN32)

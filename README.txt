@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -enh (dkulp)                 Windows: record the graphics adapters, the OpenGL renderer and the
+                                 Vulkan device in the log and in crash reports, so a machine running
+                                 the generic Microsoft display driver can be identified
     -bug (AGFazio)               Windows: fix xLights hanging when a sequence frame takes longer than the
                                  frame interval - most easily hit by creating a 40fps animation sequence
                                  and dropping an effect, which left the app not responding (#7002)

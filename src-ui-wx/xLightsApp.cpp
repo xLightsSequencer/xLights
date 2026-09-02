@@ -367,20 +367,19 @@ std::string DecodeOS(wxOperatingSystemId o)
 // (or a crash before this point on a fresh log) leaves the report with no record
 // of the machine at all -- measured at ~6% of reports, with the rolled log
 // almost never present to make up for it.
-static std::string _machineConfigSummary;
-
-const std::string& GetMachineConfigSummary()
+//
+// The store lives in src-core (AppendMachineConfig) because the GL and Vulkan
+// bring-up paths add to it after this has run, and one of those is core code.
+std::string GetMachineConfigSummary()
 {
-    return _machineConfigSummary;
+    return GetMachineConfigText();
 }
 
 void DumpConfig()
 {
-    std::string out;
-    auto emit = [&out](const std::string& line) {
+    auto emit = [](const std::string& line) {
         spdlog::info(line);
-        out += line;
-        out += "\n";
+        AppendMachineConfig(line);
     };
 
     std::string versionStr = "Version: " + xlights_version_string;
@@ -462,7 +461,14 @@ void DumpConfig()
         + " " + std::string(l.Description.c_str()));
 #endif
 
-    _machineConfigSummary = out;
+#ifdef _WIN32
+    // An RDP session gets the same GDI Generic OpenGL 1.1 as a machine with no
+    // driver installed, but for a completely different reason and with a
+    // different answer for the user.
+    if (::GetSystemMetrics(SM_REMOTESESSION) != 0) {
+        emit("  Session: Remote Desktop");
+    }
+#endif
 }
 
 #ifdef LINUX

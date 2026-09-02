@@ -20,6 +20,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include "../../utils/UtilFunctions.h"
 #include "../../render/PixelBuffer.h"
 #include "../../render/RenderBuffer.h"
 #include "VulkanEffectDataTypes.h"
@@ -379,6 +380,7 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
     }
     if (physicalDevice == VK_NULL_HANDLE) {
         spdlog::info("Vulkan compute disabled: no usable device");
+        AppendMachineConfig("  Vulkan: no usable device");
         return false;
     }
     computeWorthwhile = (deviceType != VK_PHYSICAL_DEVICE_TYPE_CPU) || allowCpuCompute;
@@ -509,6 +511,11 @@ void VulkanComputeUtilities::doInit() {
         bufferSizeThreshold = (uint32_t)thr;
     }
     spdlog::info("Vulkan compute enabled: {} (type {}, queue family {}, graphics family {}, size threshold {})", deviceName, (int)deviceType, queueFamilyIndex, graphicsFamilyCandidate, bufferSizeThreshold);
+    // Into the machine-config banner too - which device was picked, and whether
+    // compute actually runs on it, is the first thing a GPU-shaped crash or
+    // performance report has to answer.
+    AppendMachineConfig(fmt::format("  Vulkan: {} (type {}){}", deviceName, (int)deviceType,
+                                    computeWorthwhile ? "" : " - CPU implementation, compute effects stay on the CPU"));
 #ifdef HAVE_VULKAN_SHADER
     if (getenv("XL_VULKAN_GFXTEST") != nullptr) {
         // Bring up + self-test the graphics-pipeline foundation for headless

@@ -16,6 +16,7 @@
 #include <log.h>
 
 #include "graphics/GLBackend.h"
+#include "utils/UtilFunctions.h"
 
 
 #if !defined(__WXMAC__)
@@ -589,6 +590,15 @@ void xlGLCanvas::CreateGLContext() {
             m_context->SetCurrent(*this);
             
             const GLubyte* str = glGetString(GL_VERSION);
+            const GLubyte* sharedRend = glGetString(GL_RENDERER);
+            const GLubyte* sharedVend = glGetString(GL_VENDOR);
+            // Into the machine-config banner, not just the log: a machine whose
+            // driver cannot give us a usable context is exactly the one whose
+            // crash report needs to say so, and the log may have rotated.
+            AppendMachineConfig(fmt::format("  OpenGL: {} ({}) ({})",
+                                            str ? (const char*)str : "?",
+                                            sharedRend ? (const char*)sharedRend : "?",
+                                            sharedVend ? (const char*)sharedVend : "?"));
             if (str[0] <= '1') {
                 static bool hasWarned = false;
                 if (!hasWarned) {
@@ -603,6 +613,7 @@ void xlGLCanvas::CreateGLContext() {
             
             if (!xlOGL3GraphicsContext::InitializeSharedContext()) {
                 m_logger->error("Failed to initialise shared OpenGL context.");
+                AppendMachineConfig("  OpenGL: shared context init FAILED - previews will not draw");
                 s_oglContextInitFailed = true;
             }
 
