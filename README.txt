@@ -49,6 +49,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  zero height and disappearing with no divider left to grab it back,
                                  which persisted across restarts; also fix Reset to Defaults not
                                  actually restoring it once collapsed (#7008)
+    -bug (derwin12)              Fix deleting a model leaving its submodels behind in any model
+                                 group it belonged to, showing as invalid entries in the group's
+                                 model list (#7018)
     -bug (dkulp)                 FPP Connect: fix a crash uploading controller config to a
                                  controller with no known capabilities or a multicast-only address
     -bug (dkulp)                 Fix a crash from two threads draining the finished-render list at

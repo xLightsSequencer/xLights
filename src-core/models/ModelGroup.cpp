@@ -886,17 +886,21 @@ void ModelGroup::AddModel(const std::string &name) {
 
 void ModelGroup::ModelRemoved(const std::string &oldName) {
     std::string trimmedOldName = Trim(oldName);
-    
-    // Remove all instances of the model from modelNames
+
+    // Remove all instances of the model from modelNames, including submodel
+    // references stored as "BaseName/SubModel" (see ModelRenamed for the
+    // same base-name extraction).
     auto it = modelNames.begin();
     while (it != modelNames.end()) {
-        if (Trim(*it) == trimmedOldName) {
+        std::string trimmed = Trim(*it);
+        std::string base = trimmed.substr(0, trimmed.find('/'));
+        if (trimmed == trimmedOldName || base == trimmedOldName) {
             it = modelNames.erase(it);
         } else {
             ++it;
         }
     }
-    
+
     // Rebuild the models and activeModels vectors from modelNames
     ResetModels();
 }
