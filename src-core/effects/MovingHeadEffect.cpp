@@ -100,6 +100,19 @@ void MovingHeadEffect::RenderMovingHeads(const Model* model_info, const Settings
     }
 }
 
+namespace {
+// The colour settings are h,s,v triples. A truncated or hand-edited setting can
+// leave a partial trailing triple, and the readers below index whole triples
+// unconditionally - on a one- or two-element vector that reads past the end and
+// hands strtod a garbage pointer.
+std::vector<std::string> SplitColorTriples(const std::string& settings)
+{
+    std::vector<std::string> parts = Split(settings, ',');
+    parts.resize(parts.size() - parts.size() % 3);
+    return parts;
+}
+}
+
 void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const Model* model_info, RenderBuffer &buffer)
 {
     // parse all the commands
@@ -244,10 +257,10 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
             vc.SetDivisor(MOVING_HEAD_DIVISOR);
             path_scale = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
         } else if( cmd_type == "Color" ) {
-            colors = Split(settings, ',');
+            colors = SplitColorTriples(settings);
             has_color = true;
         } else if( cmd_type == "Wheel" ) {
-            colors = Split(settings, ',');
+            colors = SplitColorTriples(settings);
             has_color_wheel = true;
         } else if( cmd_type == "Dimmer" ) {
             dimmers = Split(settings, ',');
@@ -278,6 +291,9 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     auto models = GetModels(model_info);
     for (const auto& it : models) {
         auto mhead = dynamic_cast<const DmxMovingHeadComm*>(it);
+        if( mhead == nullptr ) {
+            continue;
+        }
         if( mhead->GetFixtureVal() == loc ) {
             
             if (has_position) {
@@ -309,7 +325,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                         if( has_color_wheel ) {
                             xlColor c {GetWheelColor(eff_pos, colors)};
                             buffer.SetPixel(0, 0, c);
-                            auto shutter_chan = mhead->GetShutterAbility()->GetShutterChannel();
+                            auto shutter_chan = mhead->HasShutterAbility() ? mhead->GetShutterAbility()->GetShutterChannel() : 0;
                             if (0 != shutter_chan && auto_shutter) {
                                 auto shutter_on = mhead->GetShutterAbility()->GetShutterOnValue();
                                 CalculateColorWheelShutter(mh_color, eff_pos, colors, shutter_chan, shutter_on, buffer);

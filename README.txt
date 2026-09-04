@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (dkulp)                 Fix a crash rendering a Moving Head effect whose colour setting held
+                                 a partial colour, and no longer crash when a moving head group
+                                 contains a model that is not a moving head
     -enh (dkulp)                 Renders on sequences with many models start sooner - preparing the
                                  per model render buffers now runs across cores
     -enh (dkulp)                 Setting up a render now happens off the UI thread, so starting one on
