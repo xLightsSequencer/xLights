@@ -71,7 +71,7 @@ public:
     virtual bool BulkEditApplySetting(const std::string& rawId, const std::string& value, ValueCurve* vc, const std::string& vcid) override;
     std::list<Model*> GetActiveModels();
     void UpdateStatusPanel();
-    void CheckAllFixtures();
+    void CheckAllFixtures(bool force = false);
 
     //(*Declarations(MovingHeadPanel)
     BulkEditCheckBox* CheckBox_MHIgnorePan;

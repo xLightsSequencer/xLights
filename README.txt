@@ -142,6 +142,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  which files it under ImportedMedia/<sequence name>/ instead of the
                                  show folder root - mirrors where importing a sequence package's
                                  media already lands (#7013)
+    -bug (derwin12)              Fix Moving Head effect's Dimmer/Pathing/Pattern tabs staying
+                                 disabled after dropping the effect on a fixture group or checking
+                                 a fixture, and staying enabled after unchecking all fixtures or
+                                 clicking None
 
 2026.16  August 24, 2026
 
