@@ -13,6 +13,7 @@
 #include "pugixml.hpp"
 #include "../utils/Base64.h"
 #include "../utils/xlImage.h"
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -417,6 +418,62 @@ void ImageCacheEntry::loadImage(const std::vector<uint8_t> &data) {
     _imageHeight = i->GetHeight();
 }
 
+
+// The reader advertises the size it was *asked* for; the frame it hands back can
+// be smaller or in a 3-byte format (the Windows hardware decoder retargets on its
+// own schedule). Copying reader-sized RGBA rows out of such a frame reads past the
+// end of the decoder's buffer, so bound every copy by what the frame actually
+// carries and let the zero-filled image supply the remainder.
+static void CopyVideoFrameToImage(const VideoFrame* frame, xlImage& img) {
+    if (frame == nullptr || frame->data == nullptr) {
+        return;
+    }
+    int srcChannels = 0;
+    bool swapRB = false;
+    switch (frame->format) {
+    case VideoPixelFormat::RGBA:
+        srcChannels = 4;
+        break;
+    case VideoPixelFormat::BGRA:
+        srcChannels = 4;
+        swapRB = true;
+        break;
+    case VideoPixelFormat::RGB24:
+        srcChannels = 3;
+        break;
+    case VideoPixelFormat::BGR24:
+        srcChannels = 3;
+        swapRB = true;
+        break;
+    default:
+        return;
+    }
+    const int w = std::min(frame->width, img.GetWidth());
+    const int h = std::min(frame->height, img.GetHeight());
+    const int stride = frame->linesize;
+    if (w <= 0 || h <= 0 || stride < w * srcChannels) {
+        return;
+    }
+    uint8_t* dst = img.GetData();
+    if (dst == nullptr) {
+        return;
+    }
+    const int dstStride = img.GetWidth() * 4;
+    for (int y = 0; y < h; ++y) {
+        const uint8_t* src = frame->data + (size_t)y * stride;
+        uint8_t* row = dst + (size_t)y * dstStride;
+        if (srcChannels == 4 && !swapRB) {
+            memcpy(row, src, (size_t)w * 4);
+            continue;
+        }
+        for (int x = 0; x < w; ++x, src += srcChannels, row += 4) {
+            row[0] = swapRB ? src[2] : src[0];
+            row[1] = src[1];
+            row[2] = swapRB ? src[0] : src[2];
+            row[3] = srcChannels == 4 ? src[3] : 255;
+        }
+    }
+}
 
 static std::string PngToBase64(const xlImage& img)
 {
@@ -1642,13 +1699,8 @@ std::shared_ptr<xlImage> VideoMediaCacheEntry::GetThumbnail(int maxWidth, int ma
     int h = reader.GetHeight();
     if (w <= 0 || h <= 0) return nullptr;
 
-    // VideoFrame with wantAlpha=true is RGBA, matching xlImage layout
     _thumbnail = std::make_shared<xlImage>(w, h);
-    int srcStride = frame->linesize;
-    uint8_t* dst = _thumbnail->GetData();
-    for (int y = 0; y < h; y++) {
-        memcpy(dst + y * w * 4, frame->data + y * srcStride, w * 4);
-    }
+    CopyVideoFrameToImage(frame, *_thumbnail);
     _thumbW = maxWidth;
     _thumbH = maxHeight;
     return _thumbnail;
@@ -1713,11 +1765,7 @@ void VideoMediaCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
         if (!frame || !frame->data) break;
 
         auto img = std::make_shared<xlImage>(w, h);
-        int srcStride = frame->linesize;
-        uint8_t* dst = img->GetData();
-        for (int y = 0; y < h; y++) {
-            memcpy(dst + y * w * 4, frame->data + y * srcStride, w * 4);
-        }
+        CopyVideoFrameToImage(frame, *img);
         frames.push_back(img);
         frameTimes.push_back(frameTimeMS);
     }

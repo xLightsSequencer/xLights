@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (dkulp)                 Fix a crash generating the preview for a video effect - the decoded
+                                 frame is now copied using its own size and pixel format
     -bug (dkulp)                 Fix a crash rendering a Moving Head effect whose colour setting held
                                  a partial colour, and no longer crash when a moving head group
                                  contains a model that is not a moving head
