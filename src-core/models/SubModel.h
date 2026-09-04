@@ -47,6 +47,9 @@ public:
 
     Model* GetParent() const { return parent; }
 
+    // A submodel with its own "Active" flag set is still not active if its parent model is inactive.
+    [[nodiscard]] bool IsActive() const override { return parent->IsActive() && Model::IsActive(); }
+
     static const std::vector<std::string> GetBufferStyleList() {
         return BUFFER_STYLES;
     }
