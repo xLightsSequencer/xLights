@@ -774,6 +774,7 @@ public:
     static const wxWindowID ID_MENUITEM2;
     static const wxWindowID ID_MENUITEM8;
     static const wxWindowID ID_MENUITEM_RECENTFOLDERS;
+    static const wxWindowID ID_MENUITEM_FAVFOLDERS;
     static const wxWindowID ID_FILE_BACKUP;
     static const wxWindowID ID_FILE_RESTOREBACKUP;
     static const wxWindowID ID_FILE_ALTBACKUP;
@@ -912,6 +913,7 @@ public:
     wxMenu* MenuView;
     wxMenu* RecentSequencesMenu;
     wxMenu* RecentShowFoldersMenu;
+    wxMenu* FavoriteShowFoldersMenu = nullptr;
     wxMenuBar* MenuBar;
     wxMenuItem* ActionTestMenuItem;
     wxMenuItem* MenuItem33;
@@ -1419,6 +1421,11 @@ public:
     void OnButtonAddControllerNullClick(wxCommandEvent& event);
 
     void OnMenuMRU(wxCommandEvent& event);
+    // Favorites show a user-chosen name, so the path cannot be read back off the
+    // menu label the way OnMenuMRU does - keep an id -> path map instead.
+    void OnMenuFavoriteShowFolder(wxCommandEvent& event);
+    void RebuildFavoriteShowFoldersMenu();
+    std::map<int, wxString> _favoriteMenuPaths;
     void OnMRUSequence(wxCommandEvent& event);
     bool SetDir(const wxString& dirname, bool permanent);
     void SetBaseShowDir(const wxString& baseShowDir);

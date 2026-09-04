@@ -276,6 +276,7 @@ const wxWindowID xLightsFrame::ID_EXPORT_VIDEO = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM2 = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM8 = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_RECENTFOLDERS = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_FAVFOLDERS = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_RESTOREBACKUP = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
@@ -972,6 +973,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem11 = new wxMenuItem(RecentShowFoldersMenu, ID_MENUITEM8, _("RECENTFOLDER1"), wxEmptyString, wxITEM_NORMAL);
     RecentShowFoldersMenu->Append(MenuItem11);
     MenuFile->Append(ID_MENUITEM_RECENTFOLDERS, _("Recent Show Folders"), RecentShowFoldersMenu, wxEmptyString);
+    FavoriteShowFoldersMenu = new wxMenu();
+    MenuFile->Append(ID_MENUITEM_FAVFOLDERS, _("Favorite Show Folders"), FavoriteShowFoldersMenu, wxEmptyString);
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
     MenuItemBackup->SetBitmap(GetMenuItemBitmapBundle("wxART_HARDDISK"));
     MenuFile->Append(MenuItemBackup);
@@ -6708,6 +6711,9 @@ bool xLightsFrame::CleanupRGBEffectsFileLocations()
 void xLightsFrame::OpenShowDirectoriesDialog() {
     ShowDirectoriesDialog dlg(this);
     dlg.ShowModal();
+    // Favorites may have been added, renamed or removed - the dialog can close
+    // without a folder change, which is what otherwise refreshes the menu.
+    RebuildFavoriteShowFoldersMenu();
 }
 
 void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event)
