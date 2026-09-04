@@ -1049,78 +1049,106 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxS
 
     wxArrayString files;
     try {
-    GetAllFilesInDir(dir, files, "*.x*");
+        GetAllFilesInDir(dir, files, "*.x*");
+    } catch (const std::exception& e) {
+        spdlog::warn("LoadSequencesFromFolder: exception listing *.x* files in folder: {} ({})", ToUTF8(dir), e.what());
+        files.clear();
+    } catch (...) {
+        spdlog::warn("LoadSequencesFromFolder: unknown (non-std) exception listing *.x* files in folder: {}", ToUTF8(dir));
+        files.clear();
+    }
 
     for (auto &filename : files) {
-        wxFileName fn(filename);
-        wxString file = fn.GetFullName();
-        if (file != XLIGHTS_RGBEFFECTS_FILE
-            && file != OutputManager::GetNetworksFileName()
-            && file != XLIGHTS_KEYBINDING_FILE
-            && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
-            && FileExists(filename)) {
-            // Quick scan of first few KB to detect xLights sequence and media file
-            XsqFileInfo info = ScanXsqFile(ToUTF8(filename));
-            bool isSequence = info.isSequence;
-            std::string mediaName = info.mediaFile;
+        try {
+            wxFileName fn(filename);
+            wxString file = fn.GetFullName();
+            if (file != XLIGHTS_RGBEFFECTS_FILE
+                && file != OutputManager::GetNetworksFileName()
+                && file != XLIGHTS_KEYBINDING_FILE
+                && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
+                && FileExists(filename)) {
+                // Quick scan of first few KB to detect xLights sequence and media file
+                XsqFileInfo info = ScanXsqFile(ToUTF8(filename));
+                bool isSequence = info.isSequence;
+                std::string mediaName = info.mediaFile;
 
-            xLightsFrame* frame = _frame;
+                xLightsFrame* frame = _frame;
 
-            // if fpp dir and show dir match then start with the fseq in the current dir ... only if that does not exist take the one from the show dir
-            // this is consistent with the code in SaveSequence
-            wxString fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
-            if (frame->GetFseqDirectory() != frame->GetShowDirectory() || !FileExists(fseqName)) {
-                fseqName = frame->GetFseqDirectory() + GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
-            }
-            if (isSequence) {
-                //need to check for existence of fseq
-                if (!FileExists(fseqName)) {
-                    isSequence = false;
+                // if fpp dir and show dir match then start with the fseq in the current dir ... only if that does not exist take the one from the show dir
+                // this is consistent with the code in SaveSequence
+                wxString fseqName = dir + wxFileName::GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
+                if (frame->GetFseqDirectory() != frame->GetShowDirectory() || !FileExists(fseqName)) {
+                    fseqName = frame->GetFseqDirectory() + GetPathSeparator() + file.substr(0, file.length() - 4) + ".fseq";
                 }
-            }
-            if (mediaName != "") {
-                if (!FileExists(mediaName)) {
-                    wxFileName fn(mediaName);
-                    for (auto &md : frame->GetMediaFolders()) {
-                        wxString tmn = md + GetPathSeparator() + fn.GetFullName();
-                        if (FileExists(tmn)) {
-                            mediaName = ToUTF8(tmn);
-                            break;
-                        }
+                if (isSequence) {
+                    //need to check for existence of fseq
+                    if (!FileExists(fseqName)) {
+                        isSequence = false;
                     }
+                }
+                if (mediaName != "") {
                     if (!FileExists(mediaName)) {
-                        std::string fixedMN = FileUtils::FixFile(ToUTF8(frame->CurrentDir), mediaName);
-                        if (!FileExists(fixedMN)) {
-                            spdlog::info("Could not find media: {} ", mediaName.c_str());
-                            mediaName = "";
-                        } else {
-                            mediaName = fixedMN;
+                        wxFileName fn(mediaName);
+                        for (auto &md : frame->GetMediaFolders()) {
+                            wxString tmn = md + GetPathSeparator() + fn.GetFullName();
+                            if (FileExists(tmn)) {
+                                mediaName = ToUTF8(tmn);
+                                break;
+                            }
+                        }
+                        if (!FileExists(mediaName)) {
+                            std::string fixedMN = FileUtils::FixFile(ToUTF8(frame->CurrentDir), mediaName);
+                            if (!FileExists(fixedMN)) {
+                                spdlog::info("Could not find media: {} ", mediaName.c_str());
+                                mediaName = "";
+                            } else {
+                                mediaName = fixedMN;
+                            }
                         }
                     }
                 }
-            }
-            spdlog::debug("XML:  {}   IsSeq:  {}    FSEQ:  {}   Media:  {}", (const char*)file.c_str(), isSequence, (const char*)fseqName.c_str(), (const char*)mediaName.c_str());
-            if (isSequence) {
+                spdlog::debug("XML:  {}   IsSeq:  {}    FSEQ:  {}   Media:  {}", (const char*)file.c_str(), isSequence, (const char*)fseqName.c_str(), (const char*)mediaName.c_str());
+                if (isSequence) {
 
-                // where you have show folders within show folders and sequences with the same name
-                // such as when you have an imported subfolder this can create duplicates ... so lets first check
-                // we dont already have the fseq file in the list
+                    // where you have show folders within show folders and sequences with the same name
+                    // such as when you have an imported subfolder this can create duplicates ... so lets first check
+                    // we dont already have the fseq file in the list
 
-                if (knownPaths.find(fseqName) == knownPaths.end()) {
-                    AddSequenceListItem(fseqName, mediaName, knownPaths);
+                    if (knownPaths.find(fseqName) == knownPaths.end()) {
+                        AddSequenceListItem(fseqName, mediaName, knownPaths);
+                    }
                 }
             }
+        } catch (const std::exception& e) {
+            spdlog::warn("LoadSequencesFromFolder: exception processing file: {} ({})", ToUTF8(filename), e.what());
+        } catch (...) {
+            spdlog::warn("LoadSequencesFromFolder: unknown (non-std) exception processing file: {}", ToUTF8(filename));
         }
     }
 
     // we also need to load fseq/eseq files which may not have the same name as an xsq file
     files.clear();
-    GetAllFilesInDir(dir, files, "*.?seq");
-    for (auto& filename : files) {
-        spdlog::debug("SEQ:  {}", ToUTF8(filename));
+    try {
+        GetAllFilesInDir(dir, files, "*.?seq");
+    } catch (const std::exception& e) {
+        spdlog::warn("LoadSequencesFromFolder: exception listing *.?seq files in folder: {} ({})", ToUTF8(dir), e.what());
+        files.clear();
+    } catch (...) {
+        spdlog::warn("LoadSequencesFromFolder: unknown (non-std) exception listing *.?seq files in folder: {}", ToUTF8(dir));
+        files.clear();
+    }
 
-        if (knownPaths.find(filename) == knownPaths.end()) {
-            AddSequenceListItem(filename, "", knownPaths);
+    for (auto& filename : files) {
+        try {
+            spdlog::debug("SEQ:  {}", ToUTF8(filename));
+
+            if (knownPaths.find(filename) == knownPaths.end()) {
+                AddSequenceListItem(filename, "", knownPaths);
+            }
+        } catch (const std::exception& e) {
+            spdlog::warn("LoadSequencesFromFolder: exception processing seq file: {} ({})", ToUTF8(filename), e.what());
+        } catch (...) {
+            spdlog::warn("LoadSequencesFromFolder: unknown (non-std) exception processing seq file: {}", ToUTF8(filename));
         }
     }
 
@@ -1129,13 +1157,13 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxS
         bool fcont = directory.GetFirst(&file, wxEmptyString, wxDIR_DIRS);
         while (fcont) {
             if (file != "Backup") {
+                // Each subfolder recurses independently -- a failure two levels
+                // down shouldn't be reported against this folder, and shouldn't
+                // stop siblings of the failing subfolder from being scanned.
                 LoadSequencesFromFolder(dir + wxFileName::GetPathSeparator() + file, knownPaths);
             }
             fcont = directory.GetNext(&file);
         }
-    }
-    } catch (...) {
-        spdlog::warn("LoadSequencesFromFolder: exception scanning folder: {}", ToUTF8(dir));
     }
 }
 
@@ -2059,9 +2087,25 @@ wxString FPPConnectDialog::SequenceDisplayName(const wxString& filePath) const
 
 void FPPConnectDialog::DisplayDateModified(const wxString& filePath, wxTreeListItem &item) const
 {
-    if (FileExists(filePath)) {
-        wxDateTime last_modified_time(wxFileModificationTime(filePath));
+    if (!FileExists(filePath)) {
+        return;
+    }
+    try {
+        time_t mtime = wxFileModificationTime(filePath);
+        wxDateTime last_modified_time(mtime);
+        // A corrupted/out-of-range mtime (seen with some cloud-synced or
+        // cross-filesystem-copied files) leaves wxDateTime invalid; formatting
+        // it anyway is what was throwing/asserting for just this one file
+        // while every other file in the folder scanned fine.
+        if (!last_modified_time.IsValid()) {
+            spdlog::warn("DisplayDateModified: implausible modification time ({}) for file: {}", (long long)mtime, ToUTF8(filePath));
+            return;
+        }
         CheckListBox_Sequences->SetItemText(item, 1, last_modified_time.Format(wxT("%Y-%m-%d %H:%M:%S")) + "  ");
+    } catch (const std::exception& e) {
+        spdlog::warn("DisplayDateModified: exception formatting modification time for file: {} ({})", ToUTF8(filePath), e.what());
+    } catch (...) {
+        spdlog::warn("DisplayDateModified: unknown (non-std) exception formatting modification time for file: {}", ToUTF8(filePath));
     }
 }
 
