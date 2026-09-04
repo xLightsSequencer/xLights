@@ -2740,13 +2740,16 @@ std::string MovingHeadPanel::MergeMHSettingFragment(const std::string& blob, con
 }
 
 // The Fixtures row is hidden entirely for a single (non-group) moving head model -- there
-// is nothing to check, but there is exactly one implied head, so it counts as active.
+// is nothing to check, but there is exactly one implied head, so it counts as active --
+// provided that model is actually a moving head (an effect dropped on some other model
+// type has no fixture to control, so the panels must stay disabled).
 // Otherwise at least one fixture must be checked, since that's what tells us which head(s)
 // an edit -- bulk or otherwise -- should actually touch.
 bool MovingHeadPanel::HasActiveFixture()
 {
-    if (GetActiveModels().size() == 1) {
-        return true;
+    auto models = GetActiveModels();
+    if (models.size() == 1) {
+        return dynamic_cast<DmxMovingHeadComm*>(models.front()) != nullptr;
     }
     return !GetCheckedFixtures().empty();
 }
@@ -2877,8 +2880,8 @@ bool MovingHeadPanel::BulkEditApplySetting(const std::string& rawId, const std::
     return true;
 }
 
-void MovingHeadPanel::CheckAllFixtures() {
-	if (recall) return;
+void MovingHeadPanel::CheckAllFixtures(bool force) {
+	if (recall && !force) return;
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
@@ -2943,6 +2946,12 @@ void MovingHeadPanel::OnButton_NoneClick(wxCommandEvent& event)
 
     UpdateColorPanel();
     UpdateStatusPanel();
+
+    // UncheckAllFixtures() uses SetValue(false), which is silent (no wxEVT_CHECKBOX),
+    // so it never reaches OnCheckBox_MHClick's UpdateLinkTabState() call -- do it
+    // explicitly so Dimmer/Pathing/Pattern get disabled now that no fixture is checked.
+    UpdateLinkTabState();
+
     FireChangeEvent();
 }
 
@@ -3419,6 +3428,11 @@ void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
         FireChangeEvent();
     }
     UpdateStatusPanel();
+
+    // Checking/unchecking a fixture changes HasActiveFixture(), which is what gates
+    // whether the Dimmer/Pathing/Pattern tabs are enabled -- refresh them here rather
+    // than waiting for the next ValidateWindow() (e.g. reselecting the effect).
+    UpdateLinkTabState();
 }
 
 bool MovingHeadPanel::IsHeadActive(int num)
@@ -3782,7 +3796,6 @@ void MovingHeadPanel::SetDefaultParameters()
         // following effect", which would be a claim we never verified.
         StaticText_MHLinkPreview->SetLabel(wxEmptyString);
     }
-    UpdateLinkTabState();
 
     ResetPatternControls();
 
@@ -3808,7 +3821,14 @@ void MovingHeadPanel::SetDefaultParameters()
         m_movingHeadDimmerPanel->SetDimmerCommands("0.0,0.0,1.0,0.0");
     }
 
-    CheckAllFixtures();
+    // CheckAllFixtures() normally bails out while recall is true -- force it here so the
+    // fixture checkboxes actually get checked on initial placement (otherwise
+    // UpdateLinkTabState() below would see none checked and leave Dimmer/Pathing/Pattern
+    // disabled until something later re-runs ValidateWindow()). Keep `recall` itself true
+    // for the remainder of this function -- the rest of the programmatic setup below
+    // (SetTextValue, UpdateStatusPanel, FitInside/Layout) still relies on it to suppress
+    // the live-update handlers, per the comment at the top of this function.
+    CheckAllFixtures(/*force=*/true);
 
     SetTextValue(TextCtrl_MH1_Settings, "");
     SetTextValue(TextCtrl_MH2_Settings, "");
@@ -3830,6 +3850,7 @@ void MovingHeadPanel::SetDefaultParameters()
     }
 
     recall = false;
+    UpdateLinkTabState();
 }
 
 void MovingHeadPanel::SetPanelStatus(Model* cls)
