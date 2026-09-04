@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (derwin12)              Face and State definition names can no longer contain commas or other
+                                 characters that submodel names already disallow, whether typed in or
+                                 brought in from an imported model file (#7026)
     -bug (derwin12)              A group no longer shows the submodels of a model that has been set
                                  to inactive (#7021)
     -bug (dkulp)                 Fix a crash generating the preview for a video effect - the decoded

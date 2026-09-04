@@ -750,8 +750,8 @@ void ModelFacesPanel::OnButtonMatrixAddClicked(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "New Face", "Enter name for new face definition");
     if (dlg.ShowModal() == wxID_OK) {
-        std::string n = dlg.GetValue().ToStdString();
-        if (NameChoice->FindString(n) == wxNOT_FOUND) {
+        std::string n = Model::SafeModelName(dlg.GetValue().ToStdString());
+        if (!n.empty() && NameChoice->FindString(n) == wxNOT_FOUND) {
             NameChoice->Append(n);
             NameChoice->SetStringSelection(n);
             SelectFaceModel(n);
@@ -1829,8 +1829,8 @@ void ModelFacesPanel::CopyFaceData()
     auto const& currentName = NameChoice->GetString(index);
     wxTextEntryDialog dlg(this, "Copy Face", "Enter name for copied face definition", currentName);
     if (dlg.ShowModal() == wxID_OK) {
-        std::string n = dlg.GetValue().ToStdString();
-        if (NameChoice->FindString(n) == wxNOT_FOUND) {
+        std::string n = Model::SafeModelName(dlg.GetValue().ToStdString());
+        if (!n.empty() && NameChoice->FindString(n) == wxNOT_FOUND) {
             NameChoice->Append(n);
 
             faceData[n] = faceData[currentName];
@@ -1852,8 +1852,8 @@ void ModelFacesPanel::RenameFace()
     auto const& currentName = NameChoice->GetString(index);
     wxTextEntryDialog dlg(this, "Rename Face", "Enter new name for face definition", currentName);
     if (dlg.ShowModal() == wxID_OK) {
-        std::string n = dlg.GetValue().ToStdString();
-        if (NameChoice->FindString(n) == wxNOT_FOUND) {
+        std::string n = Model::SafeModelName(dlg.GetValue().ToStdString());
+        if (!n.empty() && NameChoice->FindString(n) == wxNOT_FOUND) {
             NameChoice->Delete(index);
             NameChoice->Insert(n, index);
 
