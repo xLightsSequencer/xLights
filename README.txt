@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (derwin12)              Face and State definition names can no longer contain commas or other
+                                 characters that submodel names already disallow, whether typed in or
+                                 brought in from an imported model file (#7026)
     -bug (dkulp)                 Fix a crash generating the preview for a video effect - the decoded
                                  frame is now copied using its own size and pixel format
     -bug (dkulp)                 Fix a crash rendering a Moving Head effect whose colour setting held
