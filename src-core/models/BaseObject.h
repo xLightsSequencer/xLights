@@ -119,7 +119,7 @@ public:
 
     virtual void Accept(BaseObjectVisitor &visitor) const {};
 
-    [[nodiscard]] bool IsActive() const { return _active; }
+    [[nodiscard]] virtual bool IsActive() const { return _active; }
     void SetActive(bool active);
 
     [[nodiscard]] bool IsFromBase() const { return _fromBase; }

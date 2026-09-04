@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (derwin12)              A group no longer shows the submodels of a model that has been set
+                                 to inactive (#7021)
     -bug (dkulp)                 Fix a crash generating the preview for a video effect - the decoded
                                  frame is now copied using its own size and pixel format
     -bug (dkulp)                 Fix a crash rendering a Moving Head effect whose colour setting held
