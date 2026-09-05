@@ -79,6 +79,7 @@
 #include "model/WiringDialog.h"
 #include "model/ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
+#include "shared/dialogs/CheckboxSelectDialog.h"
 #include "shared/utils/ExternalHooksUI.h"
 #include "color/ColorManager.h"
 #include "utils/VectorMath.h"
@@ -3690,7 +3691,10 @@ void LayoutPanel::AddSelectedToExistingGroups() {
         return;
     }
 
-    wxMultiChoiceDialog dlg(this, "Select existing groups to add selections to", "Existing Group", choices);
+    // Filterable picker - group lists get long. Groups you have already ticked
+    // stay visible when you change the filter, so you can search, tick, search
+    // again and tick more without losing your earlier choices.
+    CheckboxSelectDialog dlg(this, _("Select existing groups to add selections to"), choices);
     OptimiseDialogPosition(&dlg);
 
     std::string selectgroupName;
@@ -3698,8 +3702,8 @@ void LayoutPanel::AddSelectedToExistingGroups() {
 
     if (dlg.ShowModal() == wxID_OK) {
         xlights->AbortRender();
-        for (auto const& idx : dlg.GetSelections()) {
-            std::string groupName = choices.at(idx).ToStdString();
+        for (auto const& groupNameStr : dlg.GetSelectedItems()) {
+            std::string groupName = groupNameStr.ToStdString();
 
             Model* addToGroupModel = xlights->GetModel(groupName);
 
@@ -3754,14 +3758,15 @@ void LayoutPanel::RemoveSelectedFromExistingGroups() {
             for (const auto& it : inModelGroups) {
                 choices.Add(it);
             }
-            wxMultiChoiceDialog dlg(this, "Select groups to remove model from", "Model in Groups", choices);
+            // Same filterable picker as the add-to-groups path above.
+            CheckboxSelectDialog dlg(this, _("Select groups to remove model from"), choices);
             OptimiseDialogPosition(&dlg);
 
             bool reload = false;
             if (dlg.ShowModal() == wxID_OK) {
                 xlights->AbortRender();
-                for (auto const& idx : dlg.GetSelections()) {
-                    std::string groupName = choices.at(idx).ToStdString();
+                for (auto const& groupNameStr : dlg.GetSelectedItems()) {
+                    std::string groupName = groupNameStr.ToStdString();
                     Model* grp = xlights->GetModel(groupName);
                     if (grp != nullptr && grp->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         ModelGroup* modelGroup = dynamic_cast<ModelGroup*>(grp);

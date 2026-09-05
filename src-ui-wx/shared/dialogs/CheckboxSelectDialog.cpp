@@ -21,6 +21,11 @@
 #include <wx/stattext.h>
 #include <wx/tokenzr.h>
 
+#include <algorithm>
+#include <vector>
+
+#include "utils/UtilFunctions.h"
+
 //(*IdInit(CheckboxSelectDialog)
 const wxWindowID CheckboxSelectDialog::ID_CHECKLISTBOXITEMS = wxNewId();
 const wxWindowID CheckboxSelectDialog::ID_BUTTONOK = wxNewId();
@@ -200,18 +205,43 @@ void CheckboxSelectDialog::SyncCheckedFromList()
 
 void CheckboxSelectDialog::PopulateList()
 {
-    CheckListBox_Items->Freeze();
-    CheckListBox_Items->Clear();
+    // Ticked items are listed first, then everything matching the filter, each
+    // block name-ordered. Ticked items stay listed even when the filter would
+    // exclude them, so you can filter, tick some, change the filter, tick more,
+    // and still see everything chosen before pressing OK.
+    //
+    // This only runs on construction and on a filter change - never on a tick -
+    // so ticking an item does not make it jump out from under the cursor.
+    std::vector<wxString> ticked;
+    std::vector<wxString> rest;
     for (const auto& item : _allItems)
     {
-        if (MatchesFilter(item))
+        if (_checked.find(item) != _checked.end())
         {
-            CheckListBox_Items->Append(item);
-            if (_checked.find(item) != _checked.end())
-            {
-                CheckListBox_Items->Check(CheckListBox_Items->GetCount() - 1);
-            }
+            ticked.push_back(item);
         }
+        else if (MatchesFilter(item))
+        {
+            rest.push_back(item);
+        }
+    }
+
+    auto byName = [](const wxString& a, const wxString& b) {
+        return stdlistNumberAwareStringCompare(a.ToStdString(), b.ToStdString());
+    };
+    std::sort(ticked.begin(), ticked.end(), byName);
+    std::sort(rest.begin(), rest.end(), byName);
+
+    CheckListBox_Items->Freeze();
+    CheckListBox_Items->Clear();
+    for (const auto& item : ticked)
+    {
+        CheckListBox_Items->Append(item);
+        CheckListBox_Items->Check(CheckListBox_Items->GetCount() - 1);
+    }
+    for (const auto& item : rest)
+    {
+        CheckListBox_Items->Append(item);
     }
     CheckListBox_Items->Thaw();
 }

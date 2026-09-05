@@ -994,11 +994,11 @@ void SubModelsPanel::OnImportBtnPopup(wxCommandEvent& event)
                     if (choices2.GetCount() == 1) {
                         substates.push_back(choices2[0]);
                     } else {
-                        wxMultiChoiceDialog dlg2(GetParent(), "", "Select Sub-state(s)", choices2);
+                        CheckboxSelectDialog dlg2(GetParent(), _("Select Sub-state(s)"), choices2);
                         if (dlg2.ShowModal() == wxID_OK) {
-                            for (auto i : dlg2.GetSelections())
+                            for (auto const& ss : dlg2.GetSelectedItems())
                             {
-                                substates.push_back(choices2[i]);
+                                substates.push_back(ss.ToStdString());
                             }
                         }
                     }
@@ -1059,11 +1059,11 @@ void SubModelsPanel::OnImportBtnPopup(wxCommandEvent& event)
                         choices2.Add(it.first);
                     }
                 }
-                wxMultiChoiceDialog dlg2(GetParent(), "", "Select face elements", choices2);
+                CheckboxSelectDialog dlg2(GetParent(), _("Select face elements"), choices2);
                 if (dlg2.ShowModal() == wxID_OK) {
                     std::list<std::string> elements;
-                    for (auto i : dlg2.GetSelections()) {
-                        elements.push_back(choices2[i]);
+                    for (auto const& el : dlg2.GetSelectedItems()) {
+                        elements.push_back(el.ToStdString());
                     }
                     if (elements.size() > 0)
                     {
