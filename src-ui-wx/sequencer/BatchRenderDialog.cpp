@@ -310,6 +310,8 @@ bool BatchRenderDialog::Prepare(const wxString &showDir)
             FolderChoice->SetSelection(ifoldSelect);
         }
 
+        prgs.Pulse("Processing sequences...");
+
         wxCommandEvent evt;
         OnFilterChoiceSelect(evt);
         GetSizer()->Fit(this);
