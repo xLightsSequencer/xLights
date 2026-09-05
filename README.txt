@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              A group no longer shows the submodels of a model that has been set
                                  to inactive (#7021)
+    -enh (derwin12)              Increase logging around FPP Connect errors, to help diagnose
+                                 upload/discovery failures reported from the field (#7024)
     -bug (dkulp)                 Fix a crash generating the preview for a video effect - the decoded
                                  frame is now copied using its own size and pixel format
     -bug (dkulp)                 Fix a crash rendering a Moving Head effect whose colour setting held
@@ -41,24 +43,33 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Windows: the preview graphics "Auto" setting now falls back to Vulkan when
                                  the machine has no vendor display driver or is on Remote Desktop, where
                                  OpenGL cannot be hardware accelerated
+    -enh (derwin12)              Windows: added a TestHeadlessRenderOptions Lua script that renders the
+                                 sequence(s) several times with GPU/hw decode options to recommend setting (#7014)
     -bug (dkulp)                 Include the machine configuration in crash reports - it was only ever
                                  attached to a manually packaged debug zip, never to an actual crash
     -enh (dkulp)                 Windows: record the graphics adapters, the OpenGL renderer and the
                                  Vulkan device in the log and in crash reports, so a machine running
                                  the generic Microsoft display driver can be identified
+    -change (derwin12)           The log is now flushed every 5 seconds instead of only on close, so a
+                                 crash or hard kill loses fewer recent log lines
     -bug (AGFazio)               Windows: fix xLights hanging when a sequence frame takes longer than the
                                  frame interval - most easily hit by creating a 40fps animation sequence
                                  and dropping an effect, which left the app not responding (#7002)
     -bug (dkulp)                 Fix a crash when toggling a docked pane, loading a perspective or
                                  opening a sequence - the AUI layout could be re-entered from a
                                  size event while it was rebuilding its own layout state
+    -bug (heffneil)              Check "Set Default" animation duration for validity (#6972)
     -bug (derwin12)              Fix the Layout tab's Background Properties pane getting dragged to
                                  zero height and disappearing with no divider left to grab it back,
                                  which persisted across restarts; also fix Reset to Defaults not
                                  actually restoring it once collapsed (#7008)
+    -bug (derwin12)              Fix the FPP Connect dialog hanging when canceling an in-progress upload (#7004)
     -bug (derwin12)              Fix deleting a model leaving its submodels behind in any model
                                  group it belonged to, showing as invalid entries in the group's
                                  model list (#7018)
+    -bug (AGFazio)               Fix importing a group from another show's rgbeffects skipping it
+                                 (or importing it with the wrong membership) when its models weren't
+                                 also selected for import (#7012)
     -bug (dkulp)                 FPP Connect: fix a crash uploading controller config to a
                                  controller with no known capabilities or a multicast-only address
     -bug (dkulp)                 Fix a crash from two threads draining the finished-render list at
@@ -113,6 +124,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  having no way to scroll to their controls (and, for Effect Presets,
                                  squishing buttons/text illegible) when docked/resized smaller than
                                  their contents (#6979)
+    -enh (derwin12)              The Presets dialog now shows the count of blank rows alongside its
+                                 other row counts (#6975)
     -bug (derwin12)              Fix images for ChatGPT service (#6969)
     -bug (derwin12)              Fix switching an effect's Render Style to "Per Preview" on a
                                  model group no longer applying the group's configured Default
@@ -120,6 +133,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix an Off effect on a moving head/DMX fixture with a dimmer
                                  resetting pan/tilt/color channels to black instead of just
                                  turning off the dimmer, which snapped the head out of position (#6990)
+    -bug (derwin12)              Fix the missing "material" in 3D Moving Head model's head mesh
     -bug (derwin12)              Fix Export House Preview Video appearing to hang when the House
                                  Preview is undocked with Keep on Top enabled - its window was
                                  covering the export dialogs (#7003)
@@ -128,10 +142,19 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix Auto Map import not mapping node-level effects (Dimmer, Pan,
                                  Tilt, etc.) on DMX moving-head strings when the model's strand also
                                  had its own effects (#7000)
+    -bug (derwin12)              Fix a possible crash in the Butterfly and Plasma effects (CPU, ISPC
+                                 and Metal render paths) when handed a palette with more than the 8
+                                 colors their fixed-size buffers expect (#6999)
     -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
     -enh (bulldozer2003)         Matrix faces now support movement, positioning, and scaling
                                   controls matching the Pictures effect (direction, X/Y offset,
                                   start/end scale, wrap, pixel offsets, vector mode)
+    -bug (derwin12)              Fix the Bars effect wrapping the first row/column to the wrong
+                                 color when the buffer size didn't divide evenly by the color count
+                                 (#6988)
+    -bug (derwin12)              Fix the "model perhaps flipped" warning firing on nearly every
+                                 two-point model (Single Line, Matrix, Arches, Icicles, etc.)
+                                 regardless of its actual orientation (#6993)
     -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
                                  Multi Point model saved with fewer than two points
     -bug (dkulp)                 Linux: the camera scan in Generate Custom Model now works whatever
@@ -143,6 +166,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)              ML stem separation (Drums/Bass/Other/Vocals) now saves each stem
                                  as an alternate audio track under Sequence Settings > Audio Tracks,
                                  so they survive closing the sequence and don't need reprocessing (#6856)
+    -bug (derwin12)              Fix the show/media folders offered as htdemucs install locations
+                                 listing the same folder more than once when the show folder was
+                                 also a configured media folder (#6994)
     -bug (scott)                 Fix Custom Model Wiring view zoom sometimes flying off-screen or
                                  crashing when scrolled out fully, and drifting away from the mouse
                                  pointer while zooming on displays with Windows scaling above 100%
