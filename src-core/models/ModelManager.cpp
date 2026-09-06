@@ -200,7 +200,7 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
     model->Rename(nn);
     model->name = nn;
     if (dynamic_cast<SubModel*>(model) == nullptr) {
-        std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+        std::unique_lock<std::recursive_mutex> lock(_modelMutex);
         bool changed = false;
         for (auto& it2 : models) {
             changed |= it2.second->ModelRenamed(on, nn);
@@ -208,12 +208,20 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
         models.erase(models.find(on));
         models[nn] = model;
 
-        // go through all the model groups looking for things that might need to be renamed
+        // The map is consistent; the group pass below resets each group's
+        // cache, which takes locks that must not be taken under _modelMutex.
+        std::vector<ModelGroup*> groups;
         for (const auto& it : models) {
             ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) {
-                changed |= mg->ModelRenamed(on, nn);
+                groups.push_back(mg);
             }
+        }
+        lock.unlock();
+
+        // go through all the model groups looking for things that might need to be renamed
+        for (auto* mg : groups) {
+            changed |= mg->ModelRenamed(on, nn);
         }
 
         // Keep Model Sets coherent with the rename.
@@ -660,8 +668,8 @@ void ModelManager::AddModelGroups(pugi::xml_node n, const std::string& mname, bo
 
 bool ModelManager::RecalcStartChannels() const
 {
-    
-    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+
+    std::unique_lock<std::recursive_mutex> lock(_modelMutex);
 
     auto swStart = std::chrono::steady_clock::now();
     bool changed = false;
@@ -748,6 +756,10 @@ bool ModelManager::RecalcStartChannels() const
         }
     }
 
+    // Released first: ResetModelGroups takes the group cache locks, which must
+    // never be taken under _modelMutex (see ModelGroup::cacheLock), and the
+    // recursive mutex would otherwise stay held through it from this frame.
+    lock.unlock();
     ResetModelGroups();
 
     // Commenting out as this doesn't need to happen unless we have changes and when we do it is redundant as the only
@@ -1562,23 +1574,29 @@ void ModelManager::AddModel(Model* model)
     // Lock before we add models ... this is required because LoadModels loads this in parallel
 
     if (model != nullptr) {
-        std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
         Model* oldm = nullptr;
-        auto it = models.find(model->name);
-        if (it != models.end()) {
-            oldm = it->second;
+        {
+            std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
+            auto it = models.find(model->name);
+            if (it != models.end()) {
+                oldm = it->second;
+            }
+            // Publish the replacement before resetting the groups, then free the old
+            // model. Resetting while the map still held the old (or a null) entry
+            // left every group that names this model pointing at the model we are
+            // about to free, or silently dropped it from the group until something
+            // else happened to reset them.
+            models[model->name] = model;
+            // Bumped before the groups are reset, not after: ResetModels stamps
+            // whatever generation is current when it runs, so incrementing
+            // afterwards left every group looking stale to EnsureModelsCurrent and
+            // bought a second, redundant re-resolve at some arbitrary later point.
+            _modelGeneration++;
         }
-        // Publish the replacement before resetting the groups, then free the old
-        // model. Resetting while the map still held the old (or a null) entry
-        // left every group that names this model pointing at the model we are
-        // about to free, or silently dropped it from the group until something
-        // else happened to reset them.
-        models[model->name] = model;
-        // Bumped before the groups are reset, not after: ResetModels stamps
-        // whatever generation is current when it runs, so incrementing
-        // afterwards left every group looking stale to EnsureModelsCurrent and
-        // bought a second, redundant re-resolve at some arbitrary later point.
-        _modelGeneration++;
+        // Outside _modelMutex: the mutex is recursive, so ResetModelGroups
+        // dropping its own hold does nothing while this frame still has one,
+        // and the group cache locks it takes must never be taken under
+        // _modelMutex (see ModelGroup::cacheLock for the order).
         if (oldm != nullptr) {
             ResetModelGroups();
             delete oldm;
@@ -1588,20 +1606,23 @@ void ModelManager::AddModel(Model* model)
 
 void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
     if (nm != nullptr && name != "") {
-        std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
         Model* oldm = nullptr;
-        auto it = models.find(name);
-        if (it != models.end()) {
-            oldm = it->second;
-            if (nm->name != name) {
-                // Renamed. The old key has to go or it keeps handing out the
-                // model freed below - to the groups reset here and to every
-                // later lookup of the old name.
-                models.erase(it);
+        {
+            std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
+            auto it = models.find(name);
+            if (it != models.end()) {
+                oldm = it->second;
+                if (nm->name != name) {
+                    // Renamed. The old key has to go or it keeps handing out the
+                    // model freed below - to the groups reset here and to every
+                    // later lookup of the old name.
+                    models.erase(it);
+                }
             }
+            models[nm->name] = nm;
+            _modelGeneration++;
         }
-        models[nm->name] = nm;
-        _modelGeneration++;
+        // Outside _modelMutex, as in AddModel.
         ResetModelGroups();
         delete oldm;
     }
