@@ -32,8 +32,8 @@ private:
     wxImage* image;
     wxBitmap bmp;
     wxMemoryDC bmpDC;
-    int width;
-    int height;
+    int width = 0;
+    int height = 0;
     int cell_w = 1;
     int cell_h = 1;
     bool draw_picture;

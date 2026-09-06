@@ -11,6 +11,16 @@
 #include "wxModelGridCellRenderer.h"
 #include <wx/settings.h>
 
+#include <spdlog/spdlog.h>
+
+namespace {
+// The background is rasterised at full grid size, and macOS builds three
+// buffers of it (the wxBitmap, wxBitmap::UseAlpha's re-tagged copy, and the
+// composited bmp2). On a large custom model that runs to hundreds of MB each,
+// and CGBitmapContextCreate then fails inside wx with no recoverable error.
+constexpr long long MAX_BACKGROUND_PIXELS = 64LL * 1024 * 1024;
+}
+
 wxModelGridCellRenderer::wxModelGridCellRenderer(wxImage* image_, wxGrid& grid)
 : image(image_),
   draw_picture(true),
@@ -60,6 +70,13 @@ void wxModelGridCellRenderer::CreateImage()
 {
     if( image != nullptr && image->IsOk())
     {
+        if (width <= 0 || height <= 0 || (long long)width * height > MAX_BACKGROUND_PIXELS) {
+            spdlog::warn("Skipping custom model background image: grid raster of {}x{} is not renderable.", width, height);
+            bmpDC.SelectObjectAsSource(wxNullBitmap);
+            bmp = wxNullBitmap;
+            return;
+        }
+
         wxImage img(*image);
         img.Rescale(width, height);
 

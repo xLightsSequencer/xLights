@@ -22,6 +22,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  cannot be opened - it is skipped and the rest of the batch continues
     -bug (dkulp)                 Fix a crash opening the Faces editor on a custom model that has no
                                  nodes defined
+    -bug (dkulp)                 Fix a crash choosing a background image in the custom model editor
+                                 when the model's grid is too large to rasterise the image behind it
     -bug (dkulp)                 Fix a crash rendering a model group while the layout was being
                                  edited - the group's cached member list and nodes could be rebuilt
                                  out from under the render threads reading them
