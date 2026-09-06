@@ -89,11 +89,16 @@ public:
     Model(const ModelManager& manager);
     virtual ~Model();
     static std::vector<std::string> GetLayoutGroups(const ModelManager& mm);
-    static std::string SafeModelName(const std::string& name)
+    // allowAt: submodel/face/state names may contain '@' since, unlike a top-level
+    // model name, they are never parsed as an "@ModelName:1" start-channel reference.
+    static std::string SafeModelName(const std::string& name, bool allowAt = false)
     {
         std::string n = Trim(name);
-        for (char c : {',', '~', '!', ';', '<', '>', '"', '\'', '&', ':', '|', '@', '/', '\\', '\t', '\r', '\n'}) {
+        for (char c : {',', '~', '!', ';', '<', '>', '"', '\'', '&', ':', '|', '/', '\\', '\t', '\r', '\n'}) {
             std::erase(n, c);
+        }
+        if (!allowAt) {
+            std::erase(n, '@');
         }
         // Other characters I could remove
         // $%^*()?|][{}`.

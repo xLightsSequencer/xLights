@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -change (derwin12)           SubModel, Face and State definition names can once again contain the
+                                 '@' character - it is still stripped from top-level model names, which
+                                 use it as a start channel reference syntax
     -bug (dkulp)                 The Batch Render dialog no longer flashes a progress window while it
                                  scans for sequences unless the scan is actually slow, and it updates
                                  that window far less often when it is shown

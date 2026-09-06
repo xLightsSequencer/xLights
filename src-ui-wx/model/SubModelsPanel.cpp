@@ -1452,7 +1452,7 @@ void SubModelsPanel::ApplySubmodelName()
     int index = GetSelectedIndex();
     wxASSERT(index >= 0);
 
-    wxString name = wxString(Model::SafeModelName(TextCtrl_Name->GetValue().ToStdString()));
+    wxString name = wxString(Model::SafeModelName(TextCtrl_Name->GetValue().ToStdString(), true));
 
     if (name.IsEmpty()) {
         TextCtrl_Name->SetBackgroundColour(*wxRED);
@@ -2232,7 +2232,7 @@ void SubModelsPanel::Generate()
         return;
 
     for (int i = 0; i < dialog.GetCount(); i++) {
-        wxString basename = wxString(Model::SafeModelName(dialog.GetBaseName().ToStdString()));
+        wxString basename = wxString(Model::SafeModelName(dialog.GetBaseName().ToStdString(), true));
         wxString name = GenerateSubModelName(basename);
 
         if (GetSubModelInfoIndex(name) != -1) {
