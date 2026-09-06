@@ -11060,6 +11060,10 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         RemoveSelectedModelsFromGroup();
     } else if (id == ID_MNU_EDIT_SUBMODEL_ALIAS) {
         EditSubModelAlias();
+    } else if (id == ID_PREVIEW_MODEL_LINKASSET) {
+        // "Link as Set..." from the models-tree right-click (the Set submenu
+        // routes itself to OnPreviewModelPopup).
+        DoLinkAsSet();
     } else if (event.GetId() == ID_PREVIEW_REPLACEMODEL) {
         ReplaceModel();
     } else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT) {
@@ -12620,6 +12624,15 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
     }
     if (foundOverlapping) {
         mnuContext.Append(ID_MNU_MAKEALLSCNOTOVERLAPPING, "Make All Start Channels Not Overlapping");
+    }
+
+    // Model Set actions (Link as Set / add / remove / manage), same as the
+    // preview right-click. Only for a plain model selection - not groups or
+    // submodels, which Sets don't operate on. The "Set" submenu self-binds to
+    // OnPreviewModelPopup; the top-level "Link as Set..." is routed below in
+    // OnModelsPopup.
+    if (selectedTreeModels.size() >= 1 && (selectedTreeGroups.size() + selectedTreeSubModels.size()) == 0) {
+        AddModelSetOptionsToMenu(mnuContext);
     }
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnModelsPopup, nullptr, this);
