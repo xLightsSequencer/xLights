@@ -4301,6 +4301,18 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
     // the guard must not take it back.
     piGuard.handled = true;
 
+    // SignalAbort walks jobs[0..numRows), so an abort that landed between the
+    // check at the top of this setup and the publish just above found nothing
+    // to abort. Re-checking after the publish closes that window: an abort
+    // either ran before it and is seen here, or ran after it and saw the jobs.
+    if (pi->abortRequested.load()) {
+        for (row = 0; row < (size_t)numRows; ++row) {
+            if (jobs[row]) {
+                jobs[row]->AbortRender();
+                ++_abortedRenderJobs;
+            }
+        }
+    }
 
 
     // First pass: push jobs that have no upstream dependencies so they can

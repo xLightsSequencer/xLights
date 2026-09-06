@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <deque>
@@ -149,7 +150,9 @@ private:
 
     RenderTree _renderTree;
     std::list<RenderProgressInfo*> _renderProgressInfo;
-    int _abortedRenderJobs = 0;
+    // Incremented from SignalAbort on the caller's thread and from the setup
+    // job on the pool when it finds an abort that landed mid-setup.
+    std::atomic<int> _abortedRenderJobs{ 0 };
     // Watchdog bookkeeping.  _stallCheckLock serializes CheckForStalledRender:
     // on iPad it is polled from more than one thread (main-actor timer plus
     // background drain loops).  _lastStallCheck throttles the per-job scan.
