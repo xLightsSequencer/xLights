@@ -225,7 +225,8 @@ struct ShiftLayerSnap {
 - (void)recalcModelStartChannels;
 - (void)reworkAndRecalcStartChannels;
 - (void)recalcAndMarkControllersDirty;
-- (void)saveStemTracksAsAltTracks:(const StemOutput&)stems;
+- (std::vector<std::pair<std::string, std::string>>)encodeStemFiles:(const StemOutput&)stems source:(AudioManager*)am;
+- (void)registerStemTracks:(const std::vector<std::pair<std::string, std::string>>&)encoded;
 @end
 
 // Controller-property descriptor builders are defined further down
@@ -13627,15 +13628,23 @@ static std::string iPadLiftNestedStemModel(const std::string& rootDir) {
                                                          ^{ progress(pct); });
                                       }
                                   });
+        std::vector<std::pair<std::string, std::string>> encoded;
         if (ok) {
             am->SetStemData(
                 stems.drumsL, stems.drumsR,
                 stems.bassL, stems.bassR,
                 stems.otherL, stems.otherR,
                 stems.vocalsL, stems.vocalsR);
-            [self saveStemTracksAsAltTracks:stems];
+            // The encode is the slow part and only writes files, so it stays
+            // here; registering the tracks mutates the sequence and must not.
+            encoded = [self encodeStemFiles:stems source:am];
         }
-        if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(ok ? YES : NO); });
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (!encoded.empty()) {
+                [self registerStemTracks:encoded];
+            }
+            if (completion) completion(ok ? YES : NO);
+        });
     });
 }
 
@@ -13646,16 +13655,20 @@ static std::string iPadLiftNestedStemModel(const std::string& rootDir) {
 // re-running separation. Mirrors Waveform::SaveStemTracksAsAltTracks
 // on desktop. Named from the source track's own filename so tracks
 // from different sequences never collide (e.g. "MySong_Stem_Drums.m4a").
-// Runs on the background queue set up by runStemSeparationAtPath.
-- (void)saveStemTracksAsAltTracks:(const StemOutput&)stems {
-    if (!_context) return;
+//
+// Split in two: encodeStemFiles runs on the background queue set up by
+// runStemSeparationAtPath and only writes files; registerStemTracks runs on
+// the main queue, because adding or refreshing an alt track replaces the
+// AudioManager it wraps and rebuilds the alt-audio lookup that a render in
+// progress and the waveform are reading.
+- (std::vector<std::pair<std::string, std::string>>)encodeStemFiles:(const StemOutput&)stems source:(AudioManager*)am {
+    std::vector<std::pair<std::string, std::string>> encoded;
+    if (!_context || !am) return encoded;
     SequenceFile* sf = _context->GetSequenceFile();
-    if (!sf) return;
-    AudioManager* am = [self audioManager];
-    if (!am) return;
+    if (!sf) return encoded;
 
     std::string showDir = _context->GetShowDirectory();
-    if (showDir.empty()) return;
+    if (showDir.empty()) return encoded;
 
     // Base the output name/location on whatever track was actually
     // separated (the active waveform track — main or an alt track),
@@ -13690,18 +13703,38 @@ static std::string iPadLiftNestedStemModel(const std::string& rootDir) {
             NSLog(@"Stem separation: failed to save the %s stem to %s", sfile.label, outPath.string().c_str());
             continue;
         }
+        encoded.emplace_back(sfile.label, outPath.string());
+    }
+    return encoded;
+}
 
+- (void)registerStemTracks:(const std::vector<std::pair<std::string, std::string>>&)encoded {
+    if (!_context) return;
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return;
+    std::string showDir = _context->GetShowDirectory();
+    if (showDir.empty()) return;
+
+    // Aborted jobs mark their range dirty and are re-rendered afterwards, so
+    // nothing is lost; a render that will not stop is the one case where
+    // registering would pull an AudioManager out from under a live job.
+    if (!_context->AbortRender(5000)) {
+        NSLog(@"Stem separation: could not stop the in-progress render; the stem files were written but not registered as alternate tracks.");
+        return;
+    }
+
+    for (const auto& [label, path] : encoded) {
         int existingIdx = -1;
         for (int i = 0; i < sf->GetAltTrackCount(); i++) {
-            if (sf->GetAltTrack(i).path == outPath.string()) {
+            if (sf->GetAltTrack(i).path == path) {
                 existingIdx = i;
                 break;
             }
         }
         if (existingIdx >= 0) {
-            sf->SetAltTrackPath(showDir, existingIdx, outPath.string());
+            sf->SetAltTrackPath(showDir, existingIdx, path);
         } else {
-            sf->AddAltTrack(showDir, outPath.string(), std::string("Stem - ") + sfile.label);
+            sf->AddAltTrack(showDir, path, std::string("Stem - ") + label);
         }
         _context->GetSequenceElements().IncrementChangeCount(nullptr);
     }

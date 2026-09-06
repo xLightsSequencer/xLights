@@ -721,6 +721,11 @@ void Waveform::SaveStemTracksAsAltTracks(const StemOutput& stems)
         { "Vocals", &stems.vocalsL, &stems.vocalsR },
     };
 
+    // Registering a track replaces the AudioManager an alt track wraps and
+    // rebuilds the alt-audio lookup the render reads, so no render job may
+    // be live while that happens. Aborted jobs mark their range dirty and
+    // are re-rendered by the completion path, so nothing is lost.
+    bool renderStopped = false;
     for (const auto& sf : files) {
         if (sf.left->empty() || sf.right->empty()) continue;
 
@@ -729,6 +734,14 @@ void Waveform::SaveStemTracksAsAltTracks(const StemOutput& stems)
         if (!AudioManager::EncodeAudio(*sf.left, *sf.right, (size_t)stems.sampleRate, outPath.string(), _media)) {
             spdlog::warn("Stem separation: failed to save the {} stem to {}", sf.label, outPath.string());
             continue;
+        }
+
+        if (!renderStopped) {
+            if (!frame->AbortRender()) {
+                spdlog::error("Stem separation: could not stop the in-progress render; the stem files were written but not registered as alternate tracks.");
+                return;
+            }
+            renderStopped = true;
         }
 
         int existingIdx = -1;
