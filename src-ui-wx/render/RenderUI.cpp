@@ -109,8 +109,12 @@ public:
         }
         // A job whose setup landed after the dialog was opened still needs one.
         EnsureWidgets();
-        for (size_t i = 0; i < _gauges.size(); ++i) {
-            JobSlot* slot = _slots[i].get();
+        // The setup job can still be pushing slots from the pool thread, and a
+        // push may reallocate the vector, so never index it unlocked. The
+        // slots themselves are stable: they are only freed with this sink.
+        std::vector<JobSlot*> slots = SnapshotSlots();
+        for (size_t i = 0; i < _gauges.size() && i < slots.size(); ++i) {
+            JobSlot* slot = slots[i];
             int v = slot->value.load(std::memory_order_relaxed);
             if (_gauges[i]->GetValue() != v) {
                 _gauges[i]->SetValue(v);
@@ -124,13 +128,20 @@ public:
     }
 
 private:
+    std::vector<JobSlot*> SnapshotSlots() {
+        std::lock_guard<std::mutex> lock(_slotLock);
+        std::vector<JobSlot*> out;
+        out.reserve(_slots.size());
+        for (const auto& s : _slots) {
+            out.push_back(s.get());
+        }
+        return out;
+    }
+
     void EnsureWidgets() {
         size_t have = _gauges.size();
-        size_t want = 0;
-        {
-            std::lock_guard<std::mutex> lock(_slotLock);
-            want = _slots.size();
-        }
+        std::vector<JobSlot*> slots = SnapshotSlots();
+        size_t want = slots.size();
         if (_dialog != nullptr && have == want) {
             return;
         }
@@ -138,10 +149,10 @@ private:
             _dialog = new RenderProgressDialog(_parent);
         }
         for (size_t i = have; i < want; ++i) {
-            wxStaticText* label = new wxStaticText(_dialog->scrolledWindow, wxID_ANY, _slots[i]->name);
+            wxStaticText* label = new wxStaticText(_dialog->scrolledWindow, wxID_ANY, slots[i]->name);
             _dialog->scrolledWindowSizer->Add(label, 1, wxALL | wxEXPAND, 3);
             wxGauge* g = new wxGauge(_dialog->scrolledWindow, wxID_ANY, 100);
-            g->SetValue(_slots[i]->value.load(std::memory_order_relaxed));
+            g->SetValue(slots[i]->value.load(std::memory_order_relaxed));
             g->SetMinSize(wxSize(200, -1));
             _dialog->scrolledWindowSizer->Add(g, 1, wxALL | wxEXPAND, 3);
             _gauges.push_back(g);
