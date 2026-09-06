@@ -346,12 +346,22 @@ void ModelManager::ResetModelGroups() const
     // spdlog::debug("ModelManager resetting groups.");
 
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
-    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
-
+    //
+    // Only the snapshot is taken under _modelMutex.  A render thread reading a
+    // group's cache holds that group's cache lock across the GetModel calls it
+    // makes to resolve members, so the one safe order is cache lock then
+    // _modelMutex - holding _modelMutex across the ResetModels/RebuildBuffers
+    // below (which take the cache lock exclusively) is the inversion, and it
+    // deadlocks the whole app against a render in progress.  Rebuilding the
+    // list of models is a main thread operation, as is this, so the snapshot
+    // stays valid once the lock is dropped.
     std::vector<ModelGroup*> groups;
-    for (const auto& it : models) {
-        if (it.second != nullptr && it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
-            groups.push_back((ModelGroup*)(it.second));
+    {
+        std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+        for (const auto& it : models) {
+            if (it.second != nullptr && it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                groups.push_back((ModelGroup*)(it.second));
+            }
         }
     }
     for (auto* g : groups) {

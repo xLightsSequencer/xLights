@@ -140,6 +140,10 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         // (RebuildBuffers, ResetModels) take it exclusively. cacheWriter lets
         // the mutating thread re-enter its own read paths (rebuilding walks the
         // members, and a member can be a nested group) without self-deadlock.
+        //
+        // Lock order is cacheLock then ModelManager::_modelMutex: readers hold
+        // this across the GetModel calls that resolve member names, so nothing
+        // may take it while already holding _modelMutex.
         mutable std::shared_mutex cacheLock;
         mutable std::atomic<std::thread::id> cacheWriter{};
 
