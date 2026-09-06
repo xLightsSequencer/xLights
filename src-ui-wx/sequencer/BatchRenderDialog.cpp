@@ -218,21 +218,24 @@ class SeqScanProgress {
 public:
     explicit SeqScanProgress(wxWindow* parent) : m_parent(parent), m_start(wxGetUTCTimeMillis()) {}
 
+    // Cheap enough to gate every file visited: nothing but a clock read happens
+    // until an update is actually due, so the caller can skip formatting a
+    // message it would only throw away.
+    [[nodiscard]] bool Due() const {
+        return Due(wxGetUTCTimeMillis());
+    }
+
     void Pulse(const wxString& msg) {
         const wxLongLong now = wxGetUTCTimeMillis();
-        if (m_dlg == nullptr) {
-            if (now - m_start < SHOW_DELAY_MS) {
-                return;
-            }
-            m_dlg = std::make_unique<wxProgressDialog>("Searching for Sequences", msg, 100, m_parent);
-            m_last = now;
+        if (!Due(now)) {
             return;
         }
-        if (now - m_last < PULSE_INTERVAL_MS) {
-            return;
+        if (m_dlg == nullptr) {
+            m_dlg = std::make_unique<wxProgressDialog>("Searching for Sequences", msg, 100, m_parent);
+        } else {
+            m_dlg->Pulse(msg);
         }
         m_last = now;
-        m_dlg->Pulse(msg);
     }
 
     void Done() {
@@ -243,6 +246,11 @@ public:
     }
 
 private:
+    [[nodiscard]] bool Due(wxLongLong now) const {
+        return m_dlg == nullptr ? (now - m_start >= SHOW_DELAY_MS)
+                                : (now - m_last >= PULSE_INTERVAL_MS);
+    }
+
     static constexpr long SHOW_DELAY_MS = 400;
     static constexpr long PULSE_INTERVAL_MS = 100;
 
@@ -269,6 +277,8 @@ public:
             name = name.Mid(1);
         if (!name.Contains("xlights_"))
             m_out.push_back(name);
+        if (m_prgs != nullptr && m_prgs->Due())
+            m_prgs->Pulse(wxString::Format("Found %d sequences...", (int)m_out.size()));
         return wxDIR_CONTINUE;
     }
 
