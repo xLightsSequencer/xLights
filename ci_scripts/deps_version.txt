@@ -1,1 +1,1 @@
-xlights_2026.17b
+xlights_2026.17c
