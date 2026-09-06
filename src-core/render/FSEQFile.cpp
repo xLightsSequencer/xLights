@@ -2392,7 +2392,15 @@ void V2FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>>& r
 
     for (auto const& [st, cnt] : ranges) {
         if (!isWithinRange(m_rangesToRead, st, cnt)) {
-            LogErr(VB_SEQUENCE, "Requested range outside Read Ranges. Requested %d channels starting at %d. FSEQ expects %d channels.\n", cnt, st, m_seqChannelCount);
+            if (m_sparseRanges.empty()) {
+                LogErr(VB_SEQUENCE, "Requested range outside Read Ranges. Requested %d channels starting at %d. FSEQ expects %d channels.\n", cnt, st, m_seqChannelCount);
+            } else {
+                // A sparse file only carries the channels it was written for;
+                // a caller asking for the whole show (getFrame without a
+                // prepareRead) is the normal case, and the read above already
+                // returns every channel the file has.
+                LogDebug(VB_SEQUENCE, "Requested range outside sparse ranges. Requested %d channels starting at %d. FSEQ holds %d channels.\n", cnt, st, m_seqChannelCount);
+            }
         }
     }
     m_handler->prepareRead(startFrame);
