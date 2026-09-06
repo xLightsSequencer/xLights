@@ -199,7 +199,7 @@ std::vector<std::vector<std::vector<int>>> ParseCustomModelDataFromXml(pugi::xml
 }
 
 void DeserializeFaceInfo(pugi::xml_node f, FaceStateData & faceInfo) {
-    std::string name = Model::SafeModelName(f.attribute(XmlNodeKeys::StateNameAttribute).as_string("SingleNode"), true);
+    std::string name = f.attribute(XmlNodeKeys::StateNameAttribute).as_string("SingleNode");
     std::string type = f.attribute(XmlNodeKeys::StateTypeAttribute).as_string("SingleNode");
     if (name.empty()) {
         name = type;
@@ -230,7 +230,7 @@ void DeserializeFaceInfo(pugi::xml_node f, FaceStateData & faceInfo) {
 }
 
 void DeserializeStateInfo(pugi::xml_node f, FaceStateData & stateInfo) {
-    std::string name = Model::SafeModelName(f.attribute(XmlNodeKeys::StateNameAttribute).as_string("SingleNode"), true);
+    std::string name = f.attribute(XmlNodeKeys::StateNameAttribute).as_string("SingleNode");
     std::string type = f.attribute(XmlNodeKeys::StateTypeAttribute).as_string("SingleNode");
     if (name.empty()) {
         name = type;
@@ -324,7 +324,7 @@ std::optional<CustomModelImportData> LoadCustomModelFromXml(pugi::xml_node node)
         }
         else if (childName == "faceInfo") {
             CustomModelImportData::FaceData face;
-            face.name = Model::SafeModelName(child.attribute("Name").as_string(), true);
+            face.name = child.attribute("Name").as_string();
             face.type = child.attribute("Type").as_string();
 
             if (face.type == "NodeRange") {
@@ -337,7 +337,7 @@ std::optional<CustomModelImportData> LoadCustomModelFromXml(pugi::xml_node node)
         }
         else if (childName == "stateInfo") {
             CustomModelImportData::StateData state;
-            state.name = Model::SafeModelName(child.attribute("Name").as_string(), true);
+            state.name = child.attribute("Name").as_string();
             state.type = child.attribute("Type").as_string();
 
             if (state.type == "NodeRange") {
@@ -359,7 +359,7 @@ std::optional<SubModelImportData> ParseSubModelNode(pugi::xml_node node) {
     }
 
     SubModelImportData sm;
-    sm.name = Model::SafeModelName(node.attribute(XmlNodeKeys::NameAttribute).as_string(), true);
+    sm.name = Trim(node.attribute(XmlNodeKeys::NameAttribute).as_string());
     sm.isRanges = std::string_view(node.attribute(XmlNodeKeys::SMTypeAttribute).as_string("ranges")) == "ranges";
     sm.vertical = std::string_view(node.attribute(XmlNodeKeys::LayoutAttribute).as_string("vertical")) == "vertical";
     sm.subBuffer = node.attribute(XmlNodeKeys::SubBufferAttribute).as_string();
