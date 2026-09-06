@@ -20,6 +20,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  that window far less often when it is shown
     -bug (dkulp)                 Batch Render no longer crashes when one of the selected sequences
                                  cannot be opened - it is skipped and the rest of the batch continues
+    -bug (dkulp)                 Fix a crash opening the Faces editor on a custom model that has no
+                                 nodes defined
     -bug (dkulp)                 Fix a crash rendering a model group while the layout was being
                                  edited - the group's cached member list and nodes could be rebuilt
                                  out from under the render threads reading them

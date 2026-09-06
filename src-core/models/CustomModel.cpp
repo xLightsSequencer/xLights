@@ -835,7 +835,7 @@ std::list<std::string> CustomModel::CheckModelSettings()
     if (_strings > 1 && _hasIndivNodes) {
         bool oneFound = false;
         std::vector<int> prevStart;
-        int nodes = GetChanCount() / GetChanCountPerNode();
+        int nodes = GetChanCount() / std::max(GetChanCountPerNode(), 1);
         for (int i = 0; i < _strings; i++) {
             nm = StartNodeAttrName(i);
             auto val = (i < (int)_indivStartNodes.size()) ? _indivStartNodes[i] : 0;
