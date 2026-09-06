@@ -1546,6 +1546,19 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
              fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", UseGPURendering() ? "ON" : "OFF", seq.ToStdString());
     LogMemoryUsage("batch-render sequence start: " + seq.ToStdString());
     OpenSequence(seq, nullptr, "", true);
+
+    // OpenSequence returns void and has several paths that leave nothing open
+    // (unreadable file, a close the user refused). Everything below here
+    // dereferences CurrentSeqXmlFile, so drop this entry and carry on with the
+    // batch rather than faulting on the whole run.
+    if (CurrentSeqXmlFile == nullptr) {
+        spdlog::error("Batch render: {} could not be opened - skipping.", seq.ToStdString());
+        auto nFileNames = fileNames;
+        nFileNames.RemoveAt(0);
+        CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, nFileNames, (exitOnDone ? RENDER_EXIT_ON_DONE : 0));
+        return;
+    }
+
     EnableSequenceControls(false);
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right

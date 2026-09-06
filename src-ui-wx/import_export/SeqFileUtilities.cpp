@@ -1072,6 +1072,10 @@ void xLightsFrame::RenderIseqData(bool bottom_layers, ConvertLogDialog* plog)
 {
     spdlog::debug("xLightsFrame::RenderIseqData bottom_layers {}", bottom_layers);
 
+    if (CurrentSeqXmlFile == nullptr) {
+        return;
+    }
+
     DataLayerSet& data_layers = CurrentSeqXmlFile->GetDataLayers();
     ConvertParameters::ReadMode read_mode;
     if (bottom_layers && data_layers.GetNumLayers() == 1 &&
