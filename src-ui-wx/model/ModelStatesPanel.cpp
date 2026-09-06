@@ -586,7 +586,7 @@ void ModelStatesPanel::OnButtonMatrixAddClicked(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "New State Model", "Enter name for new state model definition");
     if (dlg.ShowModal() == wxID_OK) {
-        std::string n = Model::SafeModelName(dlg.GetValue().ToStdString());
+        std::string n = Model::SafeModelName(dlg.GetValue().ToStdString(), true);
         if (!n.empty() && NameChoice->FindString(n) == wxNOT_FOUND) {
             NameChoice->Append(n);
             NameChoice->SetStringSelection(n);
@@ -1519,7 +1519,7 @@ void ModelStatesPanel::ImportStatesFromSubModels()
     }
     wxTextEntryDialog dlg(this, "New State Model", "Enter name for new state model definition");
     if (dlg.ShowModal() == wxID_OK) {
-        std::string name = Model::SafeModelName(dlg.GetValue().ToStdString());
+        std::string name = Model::SafeModelName(dlg.GetValue().ToStdString(), true);
         if (!name.empty() && NameChoice->FindString(name) == wxNOT_FOUND) {
             NameChoice->Append(name);
             NameChoice->SetStringSelection(name);
@@ -1973,7 +1973,7 @@ void ModelStatesPanel::CopyStateData()
     auto const& currentName = NameChoice->GetString(index);
     wxTextEntryDialog dlg(this, "Copy State", "Enter name for copied state definition", currentName);
     if (dlg.ShowModal() == wxID_OK) {
-        std::string n = Model::SafeModelName(dlg.GetValue().ToStdString());
+        std::string n = Model::SafeModelName(dlg.GetValue().ToStdString(), true);
         if (!n.empty() && NameChoice->FindString(n) == wxNOT_FOUND) {
             NameChoice->Append(n);
 
@@ -1996,7 +1996,7 @@ void ModelStatesPanel::RenameState()
     auto const& currentName = NameChoice->GetString(index);
     wxTextEntryDialog dlg(this, "Rename State", "Enter new name for state definition", currentName);
     if (dlg.ShowModal() == wxID_OK) {
-        std::string n = Model::SafeModelName(dlg.GetValue().ToStdString());
+        std::string n = Model::SafeModelName(dlg.GetValue().ToStdString(), true);
         if (!n.empty() && NameChoice->FindString(n) == wxNOT_FOUND) {
             NameChoice->Delete(index);
             NameChoice->Insert(n, index);
