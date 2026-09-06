@@ -257,77 +257,86 @@ bool xLightsFrame::ProcessMCPRequest(HttpConnection& connection, HttpRequest& re
         return send(HttpStatus::OK, MIME_JSON, MakeRpcError(nullptr, -32600, "Invalid request.").dump());
     }
 
-    std::string method = req["method"].get<std::string>();
-    nlohmann::json params = (req.contains("params") && req["params"].is_object()) ? req["params"] : nlohmann::json::object();
     bool isNotification = !req.contains("id");
     nlohmann::json id = isNotification ? nlohmann::json(nullptr) : req["id"];
+    // Everything below reads typed values out of caller-supplied JSON, and
+    // nlohmann throws on a type mismatch (a non-string tool name, a number in
+    // a string array). This runs on the main thread from a socket event, so an
+    // escape here is an unhandled-exception crash, not a failed request.
+    try {
+        std::string method = req["method"].get<std::string>();
+        nlohmann::json params = (req.contains("params") && req["params"].is_object()) ? req["params"] : nlohmann::json::object();
 
-    if (isNotification) {
-        // Nothing to do for notifications/initialized, notifications/cancelled, etc. --
-        // this server keeps no per-session state to update.
-        return send(HttpStatus::Accepted, "text/plain", "");
-    }
-
-    nlohmann::json response;
-    if (method == "initialize") {
-        nlohmann::json capabilities = nlohmann::json::object();
-        capabilities["tools"] = nlohmann::json::object();
-        nlohmann::json serverInfo = nlohmann::json::object();
-        serverInfo["name"] = "xlights-automation";
-        serverInfo["version"] = GetDisplayVersionString();
-        nlohmann::json initResult = nlohmann::json::object();
-        initResult["protocolVersion"] = MCP_PROTOCOL_VERSION;
-        initResult["capabilities"] = capabilities;
-        initResult["serverInfo"] = serverInfo;
-        response = MakeRpcResult(id, initResult);
-    } else if (method == "ping") {
-        response = MakeRpcResult(id, nlohmann::json::object());
-    } else if (method == "tools/list") {
-        response = MakeRpcResult(id, MakeToolListJson());
-    } else if (method == "tools/call") {
-        std::string toolName = params.value("name", "");
-        nlohmann::json args = (params.contains("arguments") && params["arguments"].is_object()) ? params["arguments"] : nlohmann::json::object();
-
-        std::vector<std::string> autoPaths;
-        std::map<std::string, std::string> autoParams;
-
-        if (toolName == "xlights_command") {
-            if (!args.contains("cmd") || !args["cmd"].is_string()) {
-                response = MakeRpcError(id, -32602, "Missing required 'cmd' argument.");
-                return send(HttpStatus::OK, MIME_JSON, response.dump());
-            }
-            autoPaths.push_back(args["cmd"].get<std::string>());
-            if (args.contains("params") && args["params"].is_object()) {
-                FlattenAutomationParams(args["params"], autoParams);
-            }
-        } else {
-            const MCPToolDef* tool = FindMCPTool(toolName);
-            if (tool == nullptr) {
-                response = MakeRpcError(id, -32602, "Unknown tool: '" + toolName + "'.");
-                return send(HttpStatus::OK, MIME_JSON, response.dump());
-            }
-            autoPaths.push_back(tool->automationCmd);
-            FlattenAutomationParams(args, autoParams);
+        if (isNotification) {
+            // Nothing to do for notifications/initialized, notifications/cancelled, etc. --
+            // this server keeps no per-session state to update.
+            return send(HttpStatus::Accepted, "text/plain", "");
         }
-        autoParams["_METHOD"] = "POST";
 
-        std::string msgOut, jsonKeyOut;
-        int codeOut = 200;
-        bool isJsonOut = false;
-        bool processed = ProcessAutomation(autoPaths, autoParams, [&](const std::string& msg, const std::string& jsonKey, int responseCode, bool isJson) {
-            msgOut = msg;
-            jsonKeyOut = jsonKey;
-            codeOut = responseCode;
-            isJsonOut = isJson;
-            return true;
-        });
+        nlohmann::json response;
+        if (method == "initialize") {
+            nlohmann::json capabilities = nlohmann::json::object();
+            capabilities["tools"] = nlohmann::json::object();
+            nlohmann::json serverInfo = nlohmann::json::object();
+            serverInfo["name"] = "xlights-automation";
+            serverInfo["version"] = GetDisplayVersionString();
+            nlohmann::json initResult = nlohmann::json::object();
+            initResult["protocolVersion"] = MCP_PROTOCOL_VERSION;
+            initResult["capabilities"] = capabilities;
+            initResult["serverInfo"] = serverInfo;
+            response = MakeRpcResult(id, initResult);
+        } else if (method == "ping") {
+            response = MakeRpcResult(id, nlohmann::json::object());
+        } else if (method == "tools/list") {
+            response = MakeRpcResult(id, MakeToolListJson());
+        } else if (method == "tools/call") {
+            std::string toolName = params.value("name", "");
+            nlohmann::json args = (params.contains("arguments") && params["arguments"].is_object()) ? params["arguments"] : nlohmann::json::object();
 
-        std::string bodyText = processed ? BuildAutomationResponseJson(codeOut, jsonKeyOut, msgOut, isJsonOut)
-                                          : ("{\"res\":504,\"msg\":\"Unknown command: '" + autoPaths[0] + "'.\"}");
-        response = MakeRpcResult(id, MakeToolResultJson(bodyText, !processed || codeOut >= 400));
-    } else {
-        response = MakeRpcError(id, -32601, "Method not found: '" + method + "'.");
+            std::vector<std::string> autoPaths;
+            std::map<std::string, std::string> autoParams;
+
+            if (toolName == "xlights_command") {
+                if (!args.contains("cmd") || !args["cmd"].is_string()) {
+                    response = MakeRpcError(id, -32602, "Missing required 'cmd' argument.");
+                    return send(HttpStatus::OK, MIME_JSON, response.dump());
+                }
+                autoPaths.push_back(args["cmd"].get<std::string>());
+                if (args.contains("params") && args["params"].is_object()) {
+                    FlattenAutomationParams(args["params"], autoParams);
+                }
+            } else {
+                const MCPToolDef* tool = FindMCPTool(toolName);
+                if (tool == nullptr) {
+                    response = MakeRpcError(id, -32602, "Unknown tool: '" + toolName + "'.");
+                    return send(HttpStatus::OK, MIME_JSON, response.dump());
+                }
+                autoPaths.push_back(tool->automationCmd);
+                FlattenAutomationParams(args, autoParams);
+            }
+            autoParams["_METHOD"] = "POST";
+
+            std::string msgOut, jsonKeyOut;
+            int codeOut = 200;
+            bool isJsonOut = false;
+            bool processed = ProcessAutomation(autoPaths, autoParams, [&](const std::string& msg, const std::string& jsonKey, int responseCode, bool isJson) {
+                msgOut = msg;
+                jsonKeyOut = jsonKey;
+                codeOut = responseCode;
+                isJsonOut = isJson;
+                return true;
+            });
+
+            std::string bodyText = processed ? BuildAutomationResponseJson(codeOut, jsonKeyOut, msgOut, isJsonOut)
+                                              : ("{\"res\":504,\"msg\":\"Unknown command: '" + autoPaths[0] + "'.\"}");
+            response = MakeRpcResult(id, MakeToolResultJson(bodyText, !processed || codeOut >= 400));
+        } else {
+            response = MakeRpcError(id, -32601, "Method not found: '" + method + "'.");
+        }
+
+        return send(HttpStatus::OK, MIME_JSON, response.dump());
+    } catch (const std::exception& ex) {
+        spdlog::warn("MCP request rejected: {}", ex.what());
+        return send(HttpStatus::OK, MIME_JSON, MakeRpcError(id, -32602, std::string("Invalid params: ") + ex.what()).dump());
     }
-
-    return send(HttpStatus::OK, MIME_JSON, response.dump());
 }
