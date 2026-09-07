@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (dkulp)                 Uncompressed (rawvideo) .mov files no longer stop rendering after a few
+                                 renders on macOS 26.7 ("no decodable frames" / blank video); they are
+                                 now read through sample cursors instead of AVAssetReader
     -bug (dkulp)                 A Multi Point model with a single light no longer loads as two lights
     -bug (dkulp)                 The deleteEffect automation command now re-renders the range, clears
                                  the grid's selection and refuses locked effects; setEffectSettings
