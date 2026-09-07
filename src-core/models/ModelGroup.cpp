@@ -8,7 +8,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <cassert>
+#include <vector>
 
 #include "ModelGroup.h"
 #include "ModelManager.h"
@@ -419,15 +421,41 @@ void ModelGroup::Accept(BaseObjectVisitor& visitor) const {
 }
 
 namespace {
+    // The cache locks this thread currently holds shared, outermost first. The
+    // read paths nest on the same object: GetBufferSize resolves "Per Preview"
+    // through the virtual InitRenderBufferNodes, and the stacked styles size
+    // themselves from inside InitRenderBufferNodes. std::shared_mutex is not
+    // re-entrant, and libc++ and SRWLOCK stop admitting readers once a writer
+    // is waiting, so a nested lock_shared on a render thread wedged against a
+    // main-thread rebuild and froze the app. A nested reader rides the outer
+    // hold instead.
+    thread_local std::vector<const std::shared_mutex*> tlsCacheReadsHeld;
+
+    bool ThreadHoldsCacheRead(const std::shared_mutex& m) {
+        return std::find(tlsCacheReadsHeld.begin(), tlsCacheReadsHeld.end(), &m) != tlsCacheReadsHeld.end();
+    }
+
     // Readers of a ModelGroup's cache take it shared; the two mutators take it
     // exclusively. Both become transparent for the thread that already holds the
     // write lock, so a rebuild can walk its own members (one of which may be a
     // nested group that recurses back through the read paths) without deadlocking.
     struct CacheReadLock {
         std::shared_lock<std::shared_mutex> lk;
+        const std::shared_mutex* held = nullptr;
         CacheReadLock(std::shared_mutex& m, bool skip) {
-            if (!skip) {
-                lk = std::shared_lock<std::shared_mutex>(m);
+            if (skip || ThreadHoldsCacheRead(m)) {
+                return;
+            }
+            lk = std::shared_lock<std::shared_mutex>(m);
+            held = &m;
+            tlsCacheReadsHeld.push_back(held);
+        }
+        ~CacheReadLock() {
+            if (held != nullptr) {
+                auto it = std::find(tlsCacheReadsHeld.rbegin(), tlsCacheReadsHeld.rend(), held);
+                if (it != tlsCacheReadsHeld.rend()) {
+                    tlsCacheReadsHeld.erase(std::next(it).base());
+                }
             }
         }
     };
@@ -1034,6 +1062,12 @@ bool ModelGroup::CheckForChanges() const {
             //calling reset on any thread other than the main thread is bad.  In theory, any changes to the group/model
             //would only be done on the main thread after an abortRender call so we shouldn't get here, but we are
             //seeing stack traces in crash reports that show otherwise so likely some abortRender calls are missing.
+            return false;
+        }
+        if (ThreadHoldsCacheRead(cacheLock)) {
+            // Reached from inside one of this group's own read paths; the
+            // rebuild needs the write lock and a reader cannot upgrade. The
+            // outer read already ran this check before taking the lock.
             return false;
         }
         
