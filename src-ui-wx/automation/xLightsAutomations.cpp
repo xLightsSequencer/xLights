@@ -32,6 +32,7 @@
 #include "outputs/E131Output.h"
 #include "../../dependencies/wxHTTPServer/wxhttpserver.h"
 #include "../sequencer/MainSequencer.h"
+#include "../sequencer/RenderCommandEvent.h"
 #include "../layout/ModelPreview.h"
 #include "AutomationJson.h"
 #include <wx/uri.h>
@@ -1199,6 +1200,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto* eff = lay->GetEffectFromID(id);
         if (eff != nullptr) {
 
+            int origStart = eff->GetStartTimeMS();
+            int origEnd = eff->GetEndTimeMS();
+
             if (!params["name"].empty()) {
                 eff->SetEffectName(params["name"]);
             }
@@ -1214,6 +1218,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             if (!params["palette"].empty()) {
                 eff->SetColourOnlyPalette(params["palette"], true);
             }
+            RenderCommandEvent event(ele->GetModelName(), std::min(origStart, eff->GetStartTimeMS()),
+                                      std::max(origEnd, eff->GetEndTimeMS()), true, true);
+            wxPostEvent(this, event);
             mainSequencer->PanelEffectGrid->Refresh();
             mainSequencer->SelectEffect(eff);
             std::string response = wxString::Format("{\"msg\":\"Set Effect Settings.\",\"worked\":\"%s\"}", JSONSafe(toStr(eff != nullptr)));
@@ -1251,11 +1258,22 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (eff == nullptr) {
             return sendResponse("target effect doesn't exists.", "msg", 503, false);
         }
+        if (eff->IsLocked()) {
+            return sendResponse("target effect is locked.", "msg", 503, false);
+        }
+        std::string modelName = ele->GetModelName();
+        int start = eff->GetStartTimeMS();
+        int end = eff->GetEndTimeMS();
         _sequenceElements.get_undo_mgr().CaptureEffectToBeDeleted(model, layer, eff->GetEffectName(),
                                                                    eff->GetSettingsAsString(), eff->GetPaletteAsString(),
                                                                    eff->GetStartTimeMS(), eff->GetEndTimeMS(),
                                                                    eff->GetSelected(), eff->GetProtected());
         lay->DeleteEffect(id);
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
+            mainSequencer->PanelEffectGrid->UnselectEffect();
+        }
+        RenderCommandEvent event(modelName, start, end, true, true);
+        wxPostEvent(this, event);
         mainSequencer->PanelEffectGrid->Refresh();
         std::string response = "{\"msg\":\"Deleted Effect.\",\"worked\":\"true\"}";
         return sendResponse(response, "", 200, true);
