@@ -79,6 +79,12 @@ private:
     // finish and signal before the crashing thread reaches the wait, and a
     // condition_variable does not remember a notify nobody was waiting for.
     bool m_crashReportDone = false;
+    // Set as soon as the main thread picks the report up.  The 60s bound below
+    // is only there to catch a main thread that never runs the CallAfter; once
+    // it has started, the report can legitimately take as long as the user
+    // takes to read the preview dialog, and giving up then would free the
+    // report out from under the thread still using it.
+    bool m_crashReportStarted = false;
     wxDebugReportCompress* m_report;
 };
 
