@@ -2105,7 +2105,7 @@ void ManageMediaPanel::BulkCopyExternalMediaByType(MediaType type)
     for (const auto& oldPath : mediaPaths) {
         std::string newPath = toImportedMedia ? CopyToDir(oldPath, importedMediaDir)
                                                : _xlFrame->MoveToShowFolder(oldPath, sep + subDirName);
-        if (newPath.empty()) { ++failed; continue; }
+        if (newPath.empty() || newPath == oldPath) { ++failed; continue; }
 
         // finalAbsPath is the known absolute path; finalPath may be relativized below.
         std::string finalAbsPath = newPath;

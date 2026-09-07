@@ -989,7 +989,7 @@ void WiringDialog::Render()
     int dw, dh;
     GetClientSize(&dw, &dh);
     wxSize winSize = GetSize();
-    spdlog::info("WiringDialog::Render dialogWinSize=({},{}) dialogClientSize=({},{}) staticBitmapClientSize=({},{}) zoom={} start=({},{})",
+    spdlog::debug("WiringDialog::Render dialogWinSize=({},{}) dialogClientSize=({},{}) staticBitmapClientSize=({},{}) zoom={} start=({},{})",
         winSize.GetWidth(), winSize.GetHeight(), dw, dh, w, h, _zoom, _start.x, _start.y);
 
     _bmp.CreateScaled(w, h, wxBITMAP_SCREEN_DEPTH, 1.0);  // Using GetContentScaleFactor() was causing it to scale too much on some Windows systems.

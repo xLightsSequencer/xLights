@@ -6637,7 +6637,13 @@ std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::s
 
     if (!FileExists(target)) {
         spdlog::debug("Copying file {} to {}.", (const char*)file.c_str(), (const char*)target.c_str());
-        wxCopyFile(file, target, false);
+        // Hand back the original on failure: callers store the result as the
+        // new reference, and a path to a file that was never written is
+        // worse than the one they already had.
+        if (!wxCopyFile(file, target, false)) {
+            spdlog::error("Unable to copy {} to {}.", (const char*)file.c_str(), (const char*)target.c_str());
+            return file;
+        }
     } else if (reuse) {
         spdlog::debug("Reusing file {} for {}.", (const char*)target.c_str(), (const char*)file.c_str());
     }
