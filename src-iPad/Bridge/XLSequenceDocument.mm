@@ -19238,9 +19238,16 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
     UDControllerPort* p = serial ? ud.GetControllerSerialPort(port)
                                   : ud.GetControllerPixelPort(port);
     if (!p) return out;
+    // A model that cascades across multiple strings on the same port is
+    // listed once per string by UDController::Rescan; dedupe so callers
+    // (e.g. move-all-to-port) don't process the same model twice, which
+    // would chain it after itself.
+    std::set<std::string> seen;
     for (auto* m : p->GetModels()) {
         if (m && m->GetModel()) {
-            [out addObject:[NSString stringWithUTF8String:m->GetModel()->GetName().c_str()]];
+            const std::string name = m->GetModel()->GetName();
+            if (!seen.insert(name).second) continue;
+            [out addObject:[NSString stringWithUTF8String:name.c_str()]];
         }
     }
     return out;
@@ -19280,6 +19287,23 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
                          fromPort:(int)fromPort
                            toPort:(int)toPort {
     if (fromPort == toPort) return 0;
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return 0;
+
+    // Clamp the destination port to what the controller actually
+    // supports, matching desktop's wxNumberEntryDialog range
+    // (ControllerModelDialog.cpp CONTROLLER_MOVEMODELSTOPORT).
+    Controller* c = _context->GetOutputManager().GetController(controllerName.UTF8String);
+    if (!c) return 0;
+    if (ControllerCaps* caps = ControllerCaps::GetControllerConfig(c)) {
+        int maxPort = -1;
+        if ([kind isEqualToString:@"pixel"])              maxPort = caps->GetMaxPixelPort();
+        else if ([kind isEqualToString:@"serial"])        maxPort = caps->GetMaxSerialPort();
+        else if ([kind isEqualToString:@"pwm"])           maxPort = caps->GetMaxPWMPort();
+        else if ([kind isEqualToString:@"virtualMatrix"]) maxPort = caps->GetMaxVirtualMatrixPort();
+        else if ([kind isEqualToString:@"ledPanelMatrix"]) maxPort = caps->GetMaxLEDPanelMatrixPort();
+        if (maxPort > 0 && (toPort < 1 || toPort > maxPort)) return 0;
+    }
+
     NSArray<NSString*>* names = [self modelNamesOnController:controllerName
                                                          kind:kind port:fromPort];
     if (names.count == 0) return 0;
@@ -19292,6 +19316,11 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
     NSString* afterModel = existing.lastObject;
     int n = 0;
     for (NSString* name in names) {
+        // Defense in depth against modelNamesOnController ever handing
+        // back a cascade duplicate: chaining a model after itself
+        // produces an unresolvable ">Self" chain that RecalcStartChannels
+        // can't place, dropping the model off every port.
+        if ([name isEqualToString:afterModel]) continue;
         if ([self assignModelToController:name
                            controllerName:controllerName
                                      kind:kind
