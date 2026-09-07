@@ -2182,6 +2182,14 @@ extension EffectsMetalGridMTKView: UIDropInteractionDelegate {
         _ = session.loadObjects(ofClass: URL.self) { [weak self] urls in
             guard let self, let url = urls.first else { return }
             MainActor.assumeIsolated {
+                // The dropped URL is an inbox temp copy iOS reclaims
+                // once this callback returns, so the handler has to
+                // copy the file into the show folder before it goes —
+                // which is what `createEffectFromDroppedFile` does.
+                // Hold the security scope across it for the providers
+                // that hand back a scoped URL instead of a temp copy.
+                let scoped = url.startAccessingSecurityScopedResource()
+                defer { if scoped { url.stopAccessingSecurityScopedResource() } }
                 self.coordinator?.actions.onDropFile(rowId, ms, url.path)
             }
         }

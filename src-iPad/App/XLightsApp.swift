@@ -256,9 +256,9 @@ struct ContentView: View {
                     count: viewModel.brokenMediaCount,
                     onReview: { showMediaManager = true })
             }
-            if let msg = viewModel.fseqWriteSkippedMessage {
+            if let msg = viewModel.warningBannerMessage {
                 FseqSkippedBanner(message: msg) {
-                    viewModel.fseqWriteSkippedMessage = nil
+                    viewModel.warningBannerMessage = nil
                 }
             }
             if viewModel.isSequenceLoaded && viewModel.isReadOnly {

@@ -12,6 +12,29 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (dkulp)                 A Multi Point model with a single light no longer loads as two lights
+    -bug (dkulp)                 The deleteEffect automation command now re-renders the range, clears
+                                 the grid's selection and refuses locked effects; setEffectSettings
+                                 also re-renders after changing an effect
+    -bug (dkulp)                 The Render Progress window stays above xLights without stealing
+                                 keyboard focus every time the main window is clicked
+    -bug (dkulp)                 A crash on a render thread no longer aborts the app while the crash
+                                 report dialog is still open on the main thread
+    -bug (dkulp)                 iPad - Fix a crash closing or re-rendering a sequence while the
+                                 render progress sheet is open
+    -bug (dkulp)                 iPad - An effect edit made while the layout is being reloaded is
+                                 rendered once the reload finishes instead of being dropped
+    -bug (dkulp)                 iPad - Restoring a show folder backup replaces each file only after
+                                 its copy succeeded, and stops if the safety backup fails
+    -bug (dkulp)                 iPad - "Move All Models To Port" no longer chains a multi-string
+                                 model after itself, and rejects a port the controller does not have
+    -bug (dkulp)                 iPad - Changing the frame interval of a packaged (.xsqz) sequence
+                                 reopens it correctly
+    -bug (dkulp)                 iPad - A media file dropped onto the grid is copied into the show
+                                 folder so the effect still finds it after the drop's temporary
+                                 copy is removed
+    -bug (dkulp)                 iPad - A renamed or deleted preview no longer lingers in the preview
+                                 menus
     -bug (dkulp)                 Fix the application hanging after a crash report was sent instead of
                                  exiting - every crash on the main thread wedged on the crash
                                  handler's own lock once the report dialog closed

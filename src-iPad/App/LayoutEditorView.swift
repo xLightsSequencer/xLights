@@ -1506,6 +1506,7 @@ struct LayoutEditorView: View {
             renamePreviewError = "Couldn't rename the preview."
             return
         }
+        layoutGroups = viewModel.document.layoutGroups()
         activeLayoutGroup = name
         renamePreviewSheetVisible = false
         refreshModelList()
@@ -1516,7 +1517,8 @@ struct LayoutEditorView: View {
     /// than disappearing with it, so the view drops back to Default.
     private func handlePreviewDelete() {
         guard viewModel.document.deleteLayoutGroup(activeLayoutGroup) else { return }
-        activeLayoutGroup = "Default"
+        layoutGroups = viewModel.document.layoutGroups()
+        activeLayoutGroup = viewModel.document.activeLayoutGroup()
         refreshModelList()
         NotificationCenter.default.post(name: .layoutEditorModelMoved, object: nil)
         hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()

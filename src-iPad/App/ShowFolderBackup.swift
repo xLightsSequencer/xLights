@@ -218,15 +218,40 @@ enum ShowFolderBackup {
         for relative in files {
             let src = (runPath as NSString).appendingPathComponent(relative)
             let dest = (showFolder as NSString).appendingPathComponent(relative)
+            // Stage into a sibling temp file and swap it in only once
+            // the copy has fully succeeded. Deleting the destination
+            // up front meant a copy that failed part-way (out of space,
+            // sandbox denial, unreadable source) destroyed the live
+            // file and left nothing in its place.
+            let staged = dest + ".restoretmp"
             do {
                 let destDir = (dest as NSString).deletingLastPathComponent
                 try fm.createDirectory(atPath: destDir, withIntermediateDirectories: true)
-                if fm.fileExists(atPath: dest) {
-                    try fm.removeItem(atPath: dest)
+                if fm.fileExists(atPath: staged) {
+                    try fm.removeItem(atPath: staged)
                 }
-                try fm.copyItem(atPath: src, toPath: dest)
+                try fm.copyItem(atPath: src, toPath: staged)
             } catch {
+                try? fm.removeItem(atPath: staged)
                 errors.append("Unable to copy file \"\(relative)\".")
+                continue
+            }
+            do {
+                if fm.fileExists(atPath: dest) {
+                    _ = try fm.replaceItemAt(URL(fileURLWithPath: dest),
+                                             withItemAt: URL(fileURLWithPath: staged))
+                } else {
+                    try fm.moveItem(atPath: staged, toPath: dest)
+                }
+                // copyItem preserves the source mtime, so a restored
+                // file lands looking older than the `.xbkp` autosave
+                // sitting next to it and the recovery prompt offers
+                // the autosave over the thing the user just restored.
+                // The restored content is the newest state there is.
+                try? fm.setAttributes([.modificationDate: Date()], ofItemAtPath: dest)
+            } catch {
+                try? fm.removeItem(atPath: staged)
+                errors.append("Unable to replace file \"\(relative)\".")
             }
         }
         return errors
