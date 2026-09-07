@@ -23,6 +23,8 @@
 #include "models/SubModel.h"
 #include "xLightsApp.h"
 #include "utils/NodeUtils.h"
+#include <algorithm>
+#include <vector>
 #include "xLightsMain.h"
 #include "utils/VectorMath.h"
 #include "models/CustomModel.h"
@@ -2061,14 +2063,18 @@ void ModelStatesPanel::OnTimer1Trigger(wxTimerEvent& event)
     if (!model) return;
     wxASSERT(_outputManager->IsOutputting());
     _outputManager->StartFrame(0);
+    std::vector<unsigned char> buf;
     for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
         auto ch = model->NodeStartChannel(n);
         if (std::find(begin(_selected), end(_selected), n) != end(_selected)) {
             // model->GetNodeColor(n)'s node was already set to the state's actual
             // configured colour by SelectRow/SelectRows (for the model preview),
             // so read the real per-node channel bytes back rather than a flat test value.
-            unsigned char buf[8] = { 0 };
-            model->GetNodeChannelValues(n, buf);
+            // Some node types (e.g. SuperString) write more than 8 bytes in
+            // GetForChannels, so size the buffer from the model rather than
+            // using a fixed-size stack array.
+            buf.assign(std::max(model->GetChanCountPerNode(), 1), 0);
+            model->GetNodeChannelValues(n, buf.data());
             for (uint8_t c = 0; c < model->GetChanCountPerNode(); ++c) {
                 _outputManager->SetOneChannel(ch++, buf[c]);
             }
