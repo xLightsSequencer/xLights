@@ -68,8 +68,11 @@ private:
     // Timed, so a thread that arrives while another is stuck partway through
     // reporting gives up instead of blocking behind it forever.  Paired with
     // condition_variable_any because std::condition_variable only accepts
-    // unique_lock<std::mutex>.
-    std::timed_mutex m_crashMutex;
+    // unique_lock<std::mutex>.  Recursive because the main-thread path holds
+    // the lock across the synchronous CreateDebugReport() call, whose
+    // ProcessCrashReport() re-enters the lock from the same thread via
+    // ReleaseWaiter to signal completion.
+    std::recursive_timed_mutex m_crashMutex;
     std::condition_variable_any m_crashDoneSignal;
     // Predicate for m_crashDoneSignal.  Without it the wait can miss the notify
     // entirely: the report is built on the main thread via CallAfter, which can

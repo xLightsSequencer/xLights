@@ -247,7 +247,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             // Protect against simultaneous crashes from different threads, but do
             // not wait on it indefinitely: if the holder is stuck mid-report,
             // blocking here just converts a second crash into a second hang.
-            std::unique_lock<std::timed_mutex> lock(m_crashMutex, std::defer_lock);
+            std::unique_lock<std::recursive_timed_mutex> lock(m_crashMutex, std::defer_lock);
             if (!lock.try_lock_for(std::chrono::seconds(30))) {
                 spdlog::critical("Another thread has been reporting a crash for over 30s - abandoning this report and aborting.");
                 spdlog::default_logger()->flush();
@@ -452,7 +452,7 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
         xlCrashHandler* self;
         ~ReleaseWaiter() {
             {
-                std::lock_guard<std::timed_mutex> lg(self->m_crashMutex);
+                std::lock_guard<std::recursive_timed_mutex> lg(self->m_crashMutex);
                 self->m_crashReportDone = true;
             }
             self->m_crashDoneSignal.notify_all();
