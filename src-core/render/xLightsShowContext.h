@@ -26,6 +26,7 @@
 #include "effects/EffectManager.h"
 #include "effects/EffectPresetManager.h"
 
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -52,7 +53,7 @@ public:
         AllObjects(static_cast<RenderContext*>(this)),
         jobPool("RenderPool"),
         _sequenceElements(static_cast<RenderContext*>(this)) {}
-    ~xLightsShowContext() override = default;
+    ~xLightsShowContext() override;
 
     // The render engine (and other managers) hold a back-reference to this
     // context, so it must never be copied or moved.
@@ -199,12 +200,20 @@ public:
     // changes, aborting any in-flight render first to avoid a use-after-free.
     void EnsureSequenceDataSized();
 
+    // The only safe way to read the render progress list from a thread that is
+    // not the one driving the render. IsRenderDone() erases completed entries
+    // and deletes them (and their RenderJobs) under _renderProgressDrainLock
+    // from whichever thread requested the abort, so an unlocked walk on the UI
+    // thread reads freed RenderProgressInfo/RenderJob memory. `fn` runs with
+    // the lock held: it must not call back into IsRenderDone()/AbortRender().
+    void ForEachRenderProgress(const std::function<void(RenderProgressInfo*)>& fn) const;
+
 private:
     // Serializes the drain in IsRenderDone(). Two threads reach it: the host's
     // completion poll and AbortRender() on whichever thread asked for the
     // abort. Unsynchronized, both could pull the same RenderProgressInfo off
     // the list and delete it (and its RenderJobs) twice.
-    std::mutex _renderProgressDrainLock;
+    mutable std::mutex _renderProgressDrainLock;
 
     // Entries pulled off the list but not yet cleaned up. Cleanup runs outside
     // the lock (callbacks can re-enter), so "done" has to account for them or

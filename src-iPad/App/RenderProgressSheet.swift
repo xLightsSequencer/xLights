@@ -59,9 +59,20 @@ struct RenderProgressSheet: View {
         .presentationDetents([.medium, .large])
         .onAppear { startPolling() }
         .onDisappear { stopPolling() }
+        .onChange(of: viewModel.isRendering) { _, rendering in
+            if !rendering { stopPolling() }
+        }
     }
 
     private func refresh() {
+        // Never walk the batch list once the render is over — the abort
+        // paths drain and destroy those jobs, and this timer runs on the
+        // main loop independently of whoever asked for the abort.
+        guard viewModel.isRendering else {
+            stopPolling()
+            jobs = []
+            return
+        }
         jobs = viewModel.document.renderJobProgress().map { d in
             RenderJobRow(model: (d["model"] as? String) ?? "",
                           percent: (d["percent"] as? NSNumber)?.intValue ?? 0,
@@ -70,8 +81,9 @@ struct RenderProgressSheet: View {
     }
 
     private func startPolling() {
-        refresh()
         stopPolling()
+        refresh()
+        guard viewModel.isRendering else { return }
         pollTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { _ in
             MainActor.assumeIsolated { refresh() }
         }

@@ -2230,17 +2230,34 @@ void iPadRenderContext::RenderEffectForModel(const std::string& model,
                                               int startms, int endms, bool clear) {
     // try_lock, never lock: a show-folder rebuild holds the gate for its whole
     // run, and this is reached from the main actor (edit handlers, the dirty
-    // poll), which must not block. Skipping is correct — the rebuild replaces
-    // every model this render would have resolved.
+    // poll), which must not block. The render can't run now, but it can't be
+    // dropped either - this is the only place the edit's render is requested,
+    // so defer it for the next RenderDependentModels sweep to pick up.
     std::unique_lock<std::timed_mutex> gate(_modelMutationGate, std::try_to_lock);
     if (!gate.owns_lock()) {
-        spdlog::debug("iPadRenderContext: skipping render of '{}' - the show's models are being rebuilt", model);
+        spdlog::debug("iPadRenderContext: deferring render of '{}' - the show's models are being rebuilt", model);
+        DeferEditRender(model, startms, endms, clear);
         return;
     }
     if (_renderEngine && _seqData.IsValidData()) {
         _renderEngine->RenderEffectForModel(model, startms, endms,
                                              _sequenceElements, _seqData,
                                              false, modelsChangeCount, clear);
+    }
+}
+
+void iPadRenderContext::DeferEditRender(const std::string& model,
+                                        int startms, int endms, bool clear) {
+    std::lock_guard<std::mutex> lock(_deferredEditRenderLock);
+    auto it = _deferredEditRenders.find(model);
+    if (it == _deferredEditRenders.end()) {
+        _deferredEditRenders[model] = DeferredEditRender{ startms, endms, clear };
+    } else {
+        // Union the ranges: replaying both edits over the wider span is
+        // correct and cheaper than tracking them separately.
+        it->second.startMs = std::min(it->second.startMs, startms);
+        it->second.endMs = std::max(it->second.endMs, endms);
+        it->second.clear = it->second.clear || clear;
     }
 }
 
@@ -2254,10 +2271,26 @@ int iPadRenderContext::RenderDependentModels() {
     std::unique_lock<std::timed_mutex> gate(_modelMutationGate, std::try_to_lock);
     if (!gate.owns_lock()) return 0;
     if (!_renderEngine || !_seqData.IsValidData()) return 0;
-    std::vector<Element*> elsToRender;
-    if (!_sequenceElements.GetElementsToRender(elsToRender)) return 0;
 
     int started = 0;
+
+    // Edit renders that lost the gate earlier. Taken only now that the gate is
+    // held, so a sweep that lost it leaves them queued for the next tick.
+    std::map<std::string, DeferredEditRender> deferred;
+    {
+        std::lock_guard<std::mutex> lock(_deferredEditRenderLock);
+        deferred.swap(_deferredEditRenders);
+    }
+    for (const auto& [model, d] : deferred) {
+        _renderEngine->RenderEffectForModel(model, d.startMs, d.endMs,
+                                             _sequenceElements, _seqData,
+                                             false, modelsChangeCount, d.clear);
+        ++started;
+    }
+
+    std::vector<Element*> elsToRender;
+    if (!_sequenceElements.GetElementsToRender(elsToRender)) return started;
+
     for (Element* el : elsToRender) {
         if (!el) continue;
         int ss = 0, es = 0;
@@ -2442,14 +2475,15 @@ void iPadRenderContext::HandleMemoryCritical() {
 
 float iPadRenderContext::GetRenderProgressFraction() const {
     if (!_renderEngine) return 1.0f;
-    auto& list = const_cast<RenderEngine*>(_renderEngine.get())->GetRenderProgressInfo();
-    if (list.empty()) return 1.0f;
 
     uint64_t totalDone = 0;
     uint64_t totalWork = 0;
-    for (auto* rpi : list) {
+    // Locked walk: entries are erased and deleted by IsRenderDone() on other
+    // threads (an abort, the RenderAll thread) while this polls from the main
+    // actor.
+    ForEachRenderProgress([&](RenderProgressInfo* rpi) {
         const int totalFrames = rpi->endFrame - rpi->startFrame + 1;
-        if (totalFrames <= 0 || !rpi->jobs) continue;
+        if (totalFrames <= 0 || !rpi->jobs) return;
         for (int i = 0; i < rpi->numRows; ++i) {
             IRenderJobStatus* job = rpi->jobs[i];
             if (!job) continue;
@@ -2466,7 +2500,7 @@ float iPadRenderContext::GetRenderProgressFraction() const {
             totalDone += static_cast<uint64_t>(done);
             totalWork += static_cast<uint64_t>(totalFrames);
         }
-    }
+    });
     if (totalWork == 0) return 1.0f;
     return static_cast<float>(totalDone) / static_cast<float>(totalWork);
 }
@@ -2474,12 +2508,12 @@ float iPadRenderContext::GetRenderProgressFraction() const {
 std::vector<iPadRenderContext::RenderJobProgress> iPadRenderContext::GetRenderJobProgress() const {
     std::vector<RenderJobProgress> out;
     if (!_renderEngine) return out;
-    auto& list = const_cast<RenderEngine*>(_renderEngine.get())->GetRenderProgressInfo();
-    if (list.empty()) return out;
 
-    for (auto* rpi : list) {
+    // Same lifetime problem as GetRenderProgressFraction: walk under the
+    // context's drain lock or this reads jobs another thread just deleted.
+    ForEachRenderProgress([&](RenderProgressInfo* rpi) {
         int totalFrames = rpi->endFrame - rpi->startFrame + 1;
-        if (totalFrames <= 0 || !rpi->jobs) continue;
+        if (totalFrames <= 0 || !rpi->jobs) return;
         for (int i = 0; i < rpi->numRows; ++i) {
             IRenderJobStatus* job = rpi->jobs[i];
             if (!job) continue;
@@ -2502,7 +2536,7 @@ std::vector<iPadRenderContext::RenderJobProgress> iPadRenderContext::GetRenderJo
             p.status = job->GetStatusForUser();
             out.push_back(std::move(p));
         }
-    }
+    });
     return out;
 }
 

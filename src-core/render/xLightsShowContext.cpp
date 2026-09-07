@@ -28,6 +28,20 @@
 #include <thread>
 #include <vector>
 
+xLightsShowContext::~xLightsShowContext() {
+    // jobPool is declared (and so, by plain member-destruction order, would be
+    // destroyed) AFTER _renderEngine, meaning ~RenderEngine would otherwise run
+    // while the pool could still have a RenderSetupJob queued or in flight
+    // against it (Render() now dispatches its setup work onto jobPool as a
+    // RenderSetupJob that dereferences the engine). JobPool::Stop() blocks
+    // until every worker's current job returns and the queue drains, so
+    // stopping it here first — before the engine is torn down below — makes
+    // the ordering safe without adding any shutdown flags/condvars to
+    // RenderEngine itself.
+    jobPool.Stop();
+    _renderEngine.reset();
+}
+
 xLightsShowContext::MissingModelScan xLightsShowContext::ScanForMissingModels() const {
     MissingModelScan scan;
 
@@ -205,6 +219,14 @@ bool xLightsShowContext::IsRenderDone() {
         --_renderProgressDraining;
     }
     return allDone;
+}
+
+void xLightsShowContext::ForEachRenderProgress(const std::function<void(RenderProgressInfo*)>& fn) const {
+    if (!_renderEngine || !fn) return;
+    std::lock_guard<std::mutex> lock(_renderProgressDrainLock);
+    for (RenderProgressInfo* rpi : _renderEngine->GetRenderProgressInfo()) {
+        if (rpi) fn(rpi);
+    }
 }
 
 bool xLightsShowContext::AbortRender(int maxTimeMs) {

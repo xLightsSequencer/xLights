@@ -814,6 +814,19 @@ private:
     // resolve names out of the ModelManager being cleared. Take it through
     // ModelMutationScope to mutate, and via try_lock in every render kickoff.
     std::timed_mutex _modelMutationGate;
+    // Edit renders that lost the _modelMutationGate try_lock. Dropping one lost
+    // the edit's render outright: nothing marks the element dirty on that path,
+    // so SequenceElements::modelsToRender never sees it and the 0.5s
+    // RenderDependentModels sweep has nothing to retry. Deferred here instead,
+    // merged per model, and drained by the next sweep that wins the gate.
+    std::mutex _deferredEditRenderLock;
+    struct DeferredEditRender {
+        int startMs = 0;
+        int endMs = 0;
+        bool clear = false;
+    };
+    std::map<std::string, DeferredEditRender> _deferredEditRenders;
+    void DeferEditRender(const std::string& model, int startms, int endms, bool clear);
     // SetModelColors' body with the gate already held by the caller — lets the
     // pixel getters take it once for the colour refresh and their own walk
     // (std::timed_mutex is not recursive).

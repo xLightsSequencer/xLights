@@ -716,6 +716,11 @@ void RenderProgressInfo::CleanupJobs() {
     aggregators = nullptr;
     delete progressSink;
     progressSink = nullptr;
+    // UpdateRenderStatus calls CleanupJobs() -> callback -> delete/erase, and
+    // the callback can re-enter a walker over this (now-cleaned but not yet
+    // erased) entry. Zero the row count so such a walker sees an empty entry
+    // instead of dereferencing the just-freed jobs/aggregators arrays.
+    numRows.store(0);
 }
 
 class SNPair {
