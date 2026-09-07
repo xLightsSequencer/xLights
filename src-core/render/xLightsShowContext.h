@@ -165,10 +165,11 @@ public:
     bool IsInShowOrMediaFolder(const std::string& file) const override;
     std::string MakeRelativePath(const std::string& file) const override;
     // No-op by default (headless can't move assets into the show); the iPad and
-    // desktop override with real copies.
-    std::string MoveToShowFolder(const std::string& /*file*/,
+    // desktop override with real copies. Hands back the original path, as the
+    // overrides do on failure: callers store the result without checking it.
+    std::string MoveToShowFolder(const std::string& file,
                                  const std::string& /*subdirectory*/,
-                                 bool /*reuse*/) override { return ""; }
+                                 bool /*reuse*/) override { return file; }
 
     bool IsSequenceLoaded() const override { return _sequenceFile && _sequenceFile->IsOpen(); }
     AudioManager* GetCurrentMediaManager() const override {

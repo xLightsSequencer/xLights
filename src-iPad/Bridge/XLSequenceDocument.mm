@@ -227,6 +227,8 @@ struct ShiftLayerSnap {
 - (void)recalcAndMarkControllersDirty;
 - (std::vector<std::pair<std::string, std::string>>)encodeStemFiles:(const StemOutput&)stems source:(AudioManager*)am;
 - (void)registerStemTracks:(const std::vector<std::pair<std::string, std::string>>&)encoded;
+- (BOOL)breakdownPhraseAtRow:(int)rowIndex atIndex:(int)phraseIndex createUndoStep:(BOOL)createUndoStep;
+- (BOOL)breakdownWordAtRow:(int)rowIndex atIndex:(int)wordIndex createUndoStep:(BOOL)createUndoStep;
 @end
 
 // Controller-property descriptor builders are defined further down
@@ -454,11 +456,14 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
 - (NSString*)moveFileToShowFolder:(NSString*)sourcePath
                         subdirectory:(NSString*)subdirectory {
     if (!_context || sourcePath.length == 0) return nil;
+    std::string src = std::string([sourcePath UTF8String]);
     std::string result = _context->MoveToShowFolder(
-        std::string([sourcePath UTF8String]),
+        src,
         std::string([(subdirectory ?: @"") UTF8String]),
         /*reuse*/ false);
-    if (result.empty()) return nil;
+    // MoveToShowFolder returns the original path (unchanged) on failure,
+    // matching desktop's contract, rather than an empty string.
+    if (result.empty() || result == src) return nil;
     return [NSString stringWithUTF8String:result.c_str()];
 }
 
@@ -468,11 +473,14 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
     if (!_context || sourcePath.length == 0 || mediaFolderPath.length == 0) {
         return nil;
     }
+    std::string src = std::string([sourcePath UTF8String]);
     std::string result = _context->CopyToMediaFolder(
-        std::string([sourcePath UTF8String]),
+        src,
         std::string([mediaFolderPath UTF8String]),
         std::string([(subdirectory ?: @"") UTF8String]));
-    if (result.empty()) return nil;
+    // CopyToMediaFolder returns the original path (unchanged) on failure,
+    // matching desktop's contract, rather than an empty string.
+    if (result.empty() || result == src) return nil;
     return [NSString stringWithUTF8String:result.c_str()];
 }
 
@@ -3241,6 +3249,13 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
 }
 
 - (BOOL)breakdownPhraseAtRow:(int)rowIndex atIndex:(int)phraseIndex {
+    return [self breakdownPhraseAtRow:rowIndex atIndex:phraseIndex createUndoStep:YES];
+}
+
+// `createUndoStep` is NO when a batch variant has already pushed one
+// marker for the whole selection — nested markers would leave the
+// Swift side's single undo registration only partly undoing.
+- (BOOL)breakdownPhraseAtRow:(int)rowIndex atIndex:(int)phraseIndex createUndoStep:(BOOL)createUndoStep {
     auto& se = _context->GetSequenceElements();
     auto* row = se.GetRowInformation(rowIndex);
     if (!row || !row->element) return NO;
@@ -3300,13 +3315,22 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     if (!wordLayer) wordLayer = te->AddEffectLayer();
     if (!wordLayer) return NO;
 
+    auto& undoMgr = se.get_undo_mgr();
+    if (createUndoStep) undoMgr.CreateUndoStep();
+
     // Wipe existing word effects that fall inside this phrase's window
     // (and phonemes, if a layer 2 exists). DeleteEffect handles the
     // layer's internal index updates so a copied id list is enough.
     auto wipeOverlapping = [&](EffectLayer* layer) {
         if (!layer) return;
         auto effs = layer->GetAllEffectsByTime(phraseStart, phraseEnd);
-        for (auto* eff : effs) layer->DeleteEffect(eff->GetID());
+        for (auto* eff : effs) {
+            undoMgr.CaptureEffectToBeDeleted(layer->GetParentElement()->GetModelName(), layer->GetIndex(),
+                                             eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(),
+                                             eff->GetStartTimeMS(), eff->GetEndTimeMS(),
+                                             eff->GetSelected(), eff->GetProtected());
+            layer->DeleteEffect(eff->GetID());
+        }
     };
     wipeOverlapping(wordLayer);
     if (te->GetEffectLayerCount() > 2) wipeOverlapping(te->GetEffectLayer(2));
@@ -3321,8 +3345,12 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
             curEnd = phraseEnd;
         }
         if (curEnd > curStart) {
-            wordLayer->AddEffect(0, words[w], "", "",
-                                  curStart, curEnd, 0, false);
+            Effect* ef = wordLayer->AddEffect(0, words[w], "", "",
+                                               curStart, curEnd, 0, false);
+            if (ef) {
+                undoMgr.CaptureAddedEffect(wordLayer->GetParentElement()->GetModelName(),
+                                           wordLayer->GetIndex(), ef->GetID());
+            }
         }
         curStart = curEnd;
     }
@@ -3356,6 +3384,10 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
 // only phonemes inside this word's window are replaced, so the rest
 // of the track's breakdown survives.
 - (BOOL)breakdownWordAtRow:(int)rowIndex atIndex:(int)wordIndex {
+    return [self breakdownWordAtRow:rowIndex atIndex:wordIndex createUndoStep:YES];
+}
+
+- (BOOL)breakdownWordAtRow:(int)rowIndex atIndex:(int)wordIndex createUndoStep:(BOOL)createUndoStep {
     auto& se = _context->GetSequenceElements();
     auto* row = se.GetRowInformation(rowIndex);
     if (!row || !row->element) return NO;
@@ -3382,13 +3414,20 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     for (auto&& eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
         if (eff && eff->IsLocked()) return NO;
     }
+    auto& undoMgr = se.get_undo_mgr();
+    if (createUndoStep) undoMgr.CreateUndoStep();
+
     for (auto* eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
+        undoMgr.CaptureEffectToBeDeleted(phonemeLayer->GetParentElement()->GetModelName(), phonemeLayer->GetIndex(),
+                                         eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(),
+                                         eff->GetStartTimeMS(), eff->GetEndTimeMS(),
+                                         eff->GetSelected(), eff->GetProtected());
         phonemeLayer->DeleteEffect(eff->GetID());
     }
 
     BreakdownWord(phonemeLayer, startMS, endMS, word,
                    se.GetFrequency(), _context->GetPhonemeDictionary(),
-                   se.get_undo_mgr());
+                   undoMgr);
     te->SetCollapsed(false);
     se.PopulateRowInformation();
     return YES;
@@ -3405,9 +3444,12 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     NSArray<NSNumber*>* ordered = [indexes sortedArrayUsingComparator:^(NSNumber* a, NSNumber* b) {
         return [b compare:a];
     }];
+    // One marker for the whole selection so the Swift side's single
+    // undo registration undoes the whole batch.
+    _context->GetSequenceElements().get_undo_mgr().CreateUndoStep();
     int done = 0;
     for (NSNumber* n in ordered) {
-        if ([self breakdownPhraseAtRow:rowIndex atIndex:n.intValue]) ++done;
+        if ([self breakdownPhraseAtRow:rowIndex atIndex:n.intValue createUndoStep:NO]) ++done;
     }
     return done;
 }
@@ -3417,9 +3459,10 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     NSArray<NSNumber*>* ordered = [indexes sortedArrayUsingComparator:^(NSNumber* a, NSNumber* b) {
         return [b compare:a];
     }];
+    _context->GetSequenceElements().get_undo_mgr().CreateUndoStep();
     int done = 0;
     for (NSNumber* n in ordered) {
-        if ([self breakdownWordAtRow:rowIndex atIndex:n.intValue]) ++done;
+        if ([self breakdownWordAtRow:rowIndex atIndex:n.intValue createUndoStep:NO]) ++done;
     }
     return done;
 }
@@ -3447,12 +3490,19 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     }
     EffectLayer* wordLayer = te->GetEffectLayer(1);
     if (!wordLayer) return NO;
+
+    // Marker goes after the layer swap, as on the desktop: the layer
+    // structure change isn't undoable, but everything BreakdownWord
+    // adds below is, and without a marker the next undo would walk
+    // back into unrelated steps.
+    auto& undoMgr = se.get_undo_mgr();
+    undoMgr.CreateUndoStep();
+
     EffectLayer* phonemeLayer = te->AddEffectLayer();
     if (!phonemeLayer) return NO;
 
     PhonemeDictionary& dict = _context->GetPhonemeDictionary();
     double freq = se.GetFrequency();
-    auto& undoMgr = se.get_undo_mgr();
     for (int i = 0; i < wordLayer->GetEffectCount(); i++) {
         Effect* effect = wordLayer->GetEffect(i);
         if (!effect) continue;
@@ -12990,8 +13040,8 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 // MARK: - Rendering
 
-- (void)renderAll {
-    _context->RenderAll();
+- (BOOL)renderAll {
+    return _context->RenderAll() ? YES : NO;
 }
 
 - (BOOL)isRenderDone {
@@ -14499,11 +14549,11 @@ const char* canonicalSubdirForType(MediaType t) {
 
     // Copy the picked source into `<showDir>/<subdir>/<basename>`,
     // appending `_N` on collision. Returns the destination absolute
-    // path, empty on failure. `reuse=false` because the broken
-    // entry's file is missing — there's no matching-byte file to
-    // reuse anyway.
+    // path, or the original `srcStr` unchanged on failure. `reuse=false`
+    // because the broken entry's file is missing — there's no
+    // matching-byte file to reuse anyway.
     std::string absDest = _context->MoveToShowFolder(srcStr, subdir, /*reuse*/ false);
-    if (absDest.empty()) return nil;
+    if (absDest.empty() || absDest == srcStr) return nil;
 
     // Convert back to show-relative so the stored path stays
     // portable. `MakeRelativePath` falls through unchanged if the
@@ -15021,7 +15071,9 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
 
         ObtainAccessToURL(resolved, false);
         std::string absDest = ctx.MoveToShowFolder(resolved, subdir, /*reuse*/ true);
-        if (absDest.empty()) continue;
+        // MoveToShowFolder returns `resolved` unchanged (not empty) on
+        // failure, matching desktop's contract — don't record it as moved.
+        if (absDest.empty() || absDest == resolved) continue;
         std::string newStr = ctx.MakeRelativePath(absDest);
         if (newStr.empty()) newStr = absDest;
         if (newStr == stored) { moved++; continue; }

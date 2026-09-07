@@ -286,10 +286,17 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
                         next_action->deleted_effect_info[0]->Selected,
                         next_action->deleted_effect_info[0]->Protected);
 
-                    // Move effect to other list
-                    AddedEffectInfo* effect_undo_action = new AddedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
-                    UndoStep* action = new UndoStep(UNDO_EFFECT_ADDED, effect_undo_action);
-                    toList.push_back(action);
+                    if (eff == nullptr)
+                    {
+                        spdlog::warn("UndoLastStep:UNDO_EFFECT_DELETED Effect could not be restored on layer {}.", next_action->deleted_effect_info[0]->layer_index);
+                    }
+                    else
+                    {
+                        // Move effect to other list
+                        AddedEffectInfo* effect_undo_action = new AddedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+                        UndoStep* action = new UndoStep(UNDO_EFFECT_ADDED, effect_undo_action);
+                        toList.push_back(action);
+                    }
                 }
             }
         }
@@ -307,12 +314,21 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
                 {
                     // Move effect to other list
                     Effect* eff = el->GetEffectFromID(next_action->added_effect_info[0]->id);
-                    DeletedEffectInfo* effect_undo_action = new DeletedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
-                    UndoStep* action = new UndoStep(UNDO_EFFECT_DELETED, effect_undo_action);
-                    toList.push_back(action);
+                    if (eff == nullptr)
+                    {
+                        // The effect was already removed by something that did not
+                        // capture the deletion, so there is nothing left to undo.
+                        spdlog::warn("UndoLastStep:UNDO_EFFECT_ADDED Effect not found {}.", next_action->added_effect_info[0]->id);
+                    }
+                    else
+                    {
+                        DeletedEffectInfo* effect_undo_action = new DeletedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                        UndoStep* action = new UndoStep(UNDO_EFFECT_DELETED, effect_undo_action);
+                        toList.push_back(action);
 
-                    // Delete the effect
-                    el->DeleteEffect(next_action->added_effect_info[0]->id);
+                        // Delete the effect
+                        el->DeleteEffect(next_action->added_effect_info[0]->id);
+                    }
                 }
             }
         }

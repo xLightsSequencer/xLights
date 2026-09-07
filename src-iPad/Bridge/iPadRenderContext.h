@@ -103,8 +103,10 @@ public:
     // are provided by the base (xLightsShowContext).
     // Copy `file` into `<showDir>/<subdirectory>`, returning the final
     // absolute path. Appends `_N` on name collision unless `reuse` and
-    // the existing file's contents already match. Empty string on
-    // failure (no show folder configured, copy error).
+    // the existing file's contents already match. Returns `file`
+    // unchanged on failure (no show folder configured, copy error) —
+    // matches desktop's xLightsFrame::MoveToShowFolder contract, since
+    // callers store the result as the new reference.
     std::string MoveToShowFolder(const std::string& file,
                                   const std::string& subdirectory,
                                   bool reuse) override;
@@ -184,7 +186,14 @@ public:
     bool IsLowDefinitionRender() const override;
 
     // Rendering
-    void RenderAll();
+    // Returns true when a render pass was actually registered with the
+    // engine. Returns false when the pass was skipped — the model-mutation
+    // gate is held (a base-show merge or show-folder load is in flight), the
+    // previous render would not drain, or there is no valid sequence data.
+    // A false return means `_seqData` was NOT re-rendered, so callers must
+    // not treat the (immediately true) render-done flag as completion, and
+    // must never persist the buffer.
+    bool RenderAll();
     // TOOLS-1b: drop all on-disk render-cache items for this sequence
     // (mirrors desktop xLightsFrame::OnMenuItem_PurgeRenderCacheSelected).
     void PurgeRenderCache() { _renderCache.Purge(&_sequenceElements, true); }

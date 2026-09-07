@@ -3369,8 +3369,23 @@ class SequencerViewModel {
         isRenderDone = false
         renderProgress = 0
         let doc = document
-        let thread = Thread {
-            doc.renderAll()
+        let thread = Thread { [weak self] in
+            if doc.renderAll() { return }
+            // No pass was registered (models being rebuilt, previous render
+            // still draining, or no valid sequence data). `isRenderDone()`
+            // reads true immediately, so the poll below would flip the UI to
+            // "rendered" with nothing rendered — clear the state instead.
+            print("SequencerViewModel: render pass skipped; nothing was rendered")
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    self.renderPollTimer?.invalidate()
+                    self.renderPollTimer = nil
+                    self.isRendering = false
+                    self.isRenderDone = false
+                    self.renderProgress = 0
+                }
+            }
         }
         thread.qualityOfService = .userInitiated
         thread.start()

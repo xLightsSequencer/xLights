@@ -94,10 +94,11 @@ final class BatchRenderRunner {
     /// `SignalAbort` mid-render, which makes `isRenderDone()` flip to
     /// true with `SequenceData` in a partially-populated state. Writing
     /// that to fseq produces invalid playback. We watch for that case
-    /// via `wasRenderAborted` and retry the render once after a brief
-    /// delay (gives the pressure source time to clear and the cache
-    /// purge to take effect). A second abort is a hard fail: we skip
-    /// the fseq write rather than persist garbage.
+    /// via `wasRenderAborted` and retry the render after a brief delay
+    /// (gives the pressure source time to clear and the cache purge to
+    /// take effect). The same retry covers a pass `renderAll` refused to
+    /// start at all. If no attempt runs to completion we skip the fseq
+    /// write rather than persist garbage over the previous good file.
     private func renderOne(entry: SequenceEntry) async -> Bool {
         _ = XLSequenceDocument.obtainAccess(toPath: entry.fullPath,
                                              enforceWritable: true)
@@ -107,7 +108,12 @@ final class BatchRenderRunner {
         }
 
         var attempt = 0
-        let maxAttempts = 2
+        // A skipped pass (see `renderAll`'s BOOL return) is usually an
+        // auto "update from base" merge or a show-folder load holding the
+        // model-mutation gate, which can take a few seconds — so allow more
+        // than the two attempts the memory-pressure retry needed.
+        let maxAttempts = 4
+        var renderedOK = false
         while attempt < maxAttempts {
             attempt += 1
             if cancelRequested { break }
@@ -123,7 +129,18 @@ final class BatchRenderRunner {
             // reports `true` — we'd write the un-rendered SequenceData and
             // produce an empty fseq.
             currentSequenceProgress = 0.0
-            document.renderAll()
+            if !document.renderAll() {
+                // No pass was registered — the models are being rebuilt, the
+                // previous render wouldn't drain, or there's no valid sequence
+                // data. `isRenderDone()` would report true immediately and
+                // `wasRenderAborted()` false, so without this check we'd write
+                // the un-rendered (zeroed) buffer over a good fseq.
+                print("BatchRender: render pass skipped for \(entry.fullPath) on attempt \(attempt)/\(maxAttempts); \(attempt < maxAttempts ? "retrying" : "giving up")")
+                if attempt < maxAttempts {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                }
+                continue
+            }
 
             // Poll the bridge's render-done flag. 250ms matches
             // SequencerViewModel.beginFreshRender's cadence — fast enough that
@@ -143,6 +160,7 @@ final class BatchRenderRunner {
 
             if !document.wasRenderAborted() {
                 currentSequenceProgress = 1.0
+                renderedOK = true
                 break
             }
 
@@ -157,11 +175,12 @@ final class BatchRenderRunner {
             }
         }
 
-        // After the retry loop: if the last attempt is still aborted,
-        // skip the fseq write. The .xsq itself isn't being written here,
-        // so the user's source is untouched.
-        if document.wasRenderAborted() {
-            print("BatchRender: skipping fseq write for \(entry.fullPath) — render aborted twice")
+        // After the retry loop: unless one attempt ran to completion, skip
+        // the fseq write — the buffer holds either a partial render or no
+        // render at all. The .xsq itself isn't being written here, so the
+        // user's source is untouched.
+        if !renderedOK {
+            print("BatchRender: skipping fseq write for \(entry.fullPath) — no render completed in \(attempt) attempt(s)")
             _ = document.abortRenderAndWait(5.0)
             document.closeSequence()
             return false

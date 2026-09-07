@@ -1924,12 +1924,16 @@ bool FilesMatchBytes(const std::filesystem::path& a,
 /// Shared routine for MoveToShowFolder / CopyToMediaFolder. Copies
 /// `file` into `<destRoot>/<subdir>/<basename>`, appends `_N` on
 /// collision unless `reuse` and the existing file matches byte-for-
-/// byte. Empty string on any failure. Creates the subdir if missing.
+/// byte. Returns the original `file` on any failure — matching
+/// desktop's xLightsFrame::MoveToShowFolder contract — since callers
+/// store the return value as the new reference and a path to a file
+/// that was never written is worse than the one they already had.
+/// Creates the subdir if missing.
 std::string CopyIntoRoot(const std::string& file,
                         const std::string& destRoot,
                         const std::string& subdirectory,
                         bool reuse) {
-    if (destRoot.empty() || file.empty()) return "";
+    if (destRoot.empty() || file.empty()) return file;
 
     namespace fs = std::filesystem;
     fs::path src(file);
@@ -1937,7 +1941,7 @@ std::string CopyIntoRoot(const std::string& file,
     // can raise filesystem_error on iOS sandbox/permission edge cases, and the
     // app has no handler, so it terminates (per CLAUDE.md filesystem guidance).
     std::error_code existsEc;
-    if (!fs::exists(src, existsEc) || existsEc) return "";
+    if (!fs::exists(src, existsEc) || existsEc) return file;
 
     // Normalise subdir: strip leading separator. Desktop's callers
     // pass both "/Images" and "Images"; the trailing concat either way
@@ -1955,7 +1959,7 @@ std::string CopyIntoRoot(const std::string& file,
     if (ec) {
         spdlog::error("iPadRenderContext: Unable to create media target folder {}: {}",
                       dir.string(), ec.message());
-        return "";
+        return file;
     }
 
     fs::path target = dir / src.filename();
@@ -1977,7 +1981,7 @@ std::string CopyIntoRoot(const std::string& file,
         if (ec) {
             spdlog::error("iPadRenderContext: Copy {} -> {} failed: {}",
                           src.string(), target.string(), ec.message());
-            return "";
+            return file;
         }
     }
     return target.string();
@@ -1987,7 +1991,7 @@ std::string CopyIntoRoot(const std::string& file,
 std::string iPadRenderContext::MoveToShowFolder(const std::string& file,
                                                   const std::string& subdirectory,
                                                   bool reuse) {
-    if (showDirectory.empty()) return "";
+    if (showDirectory.empty()) return file;
     return CopyIntoRoot(file, showDirectory, subdirectory, reuse);
 }
 
@@ -2001,7 +2005,7 @@ std::string iPadRenderContext::CopyToMediaFolder(const std::string& file,
     for (const auto& mf : mediaDirectories) {
         if (mf == mediaFolderPath) { known = true; break; }
     }
-    if (!known) return "";
+    if (!known) return file;
     return CopyIntoRoot(file, mediaFolderPath, subdirectory, /*reuse*/ false);
 }
 
@@ -2314,8 +2318,8 @@ void iPadRenderContext::EnsureRenderEngine() {
     _renderCache.SetMaximumSizeMB(ReadRenderCacheMaxMB());
 }
 
-void iPadRenderContext::RenderAll() {
-    if (!_sequenceFile) return;
+bool iPadRenderContext::RenderAll() {
+    if (!_sequenceFile) return false;
 
     // Runs on its own thread (SequencerViewModel.beginFreshRender), so it can
     // land mid-rebuild just as easily as the dirty poll can. Held for the whole
@@ -2324,7 +2328,7 @@ void iPadRenderContext::RenderAll() {
     std::unique_lock<std::timed_mutex> gate(_modelMutationGate, std::try_to_lock);
     if (!gate.owns_lock()) {
         spdlog::warn("iPadRenderContext::RenderAll: the show's models are being rebuilt; skipping this pass");
-        return;
+        return false;
     }
 
     // Refuse to start a second pass over a live one. Every caller can reach
@@ -2338,7 +2342,7 @@ void iPadRenderContext::RenderAll() {
     // render is already done, so this costs nothing on the normal path.
     if (!AbortRender(5000)) {
         spdlog::error("iPadRenderContext::RenderAll: previous render would not drain; skipping this pass rather than rebuilding buffers under live workers");
-        return;
+        return false;
     }
 
     // SequenceData is normally allocated in OpenSequence and reused
@@ -2352,6 +2356,11 @@ void iPadRenderContext::RenderAll() {
 
     unsigned int numFrames = _seqData.NumFrames();
     unsigned int numChannels = _seqData.NumChannels();
+    if (!_seqData.IsValidData() || numFrames == 0) {
+        spdlog::error("iPadRenderContext::RenderAll: no valid sequence data ({} frames, {} channels); skipping this pass",
+                      numFrames, numChannels);
+        return false;
+    }
 
     EnsureRenderEngine();
 
@@ -2368,6 +2377,7 @@ void iPadRenderContext::RenderAll() {
 
     spdlog::info("iPadRenderContext: RenderAll started for {} frames, {} channels",
                  numFrames, numChannels);
+    return true;
 }
 
 void iPadRenderContext::HandleMemoryWarning() {

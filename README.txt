@@ -12,6 +12,27 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (dkulp)                 Fix the application hanging after a crash report was sent instead of
+                                 exiting - every crash on the main thread wedged on the crash
+                                 handler's own lock once the report dialog closed
+    -bug (dkulp)                 Fix a deadlock renaming a model, or loading model groups, while a
+                                 render was in progress
+    -bug (dkulp)                 Fix a crash ticking "Output to lights" in the States or Faces tab
+                                 on a SuperString model with more than eight colours
+    -bug (dkulp)                 A Pictures effect whose image file was missing is picked up again on
+                                 the next render once the file is put in place, instead of staying
+                                 red until the sequence is reopened
+    -bug (dkulp)                 Fix the Ripple effect drawing garbage, or spinning, when its timing
+                                 trigger Duration is no longer than one frame
+    -bug (dkulp)                 Windows: a hardware decoded video no longer silently drops to
+                                 software decode whenever the effect starts part way into the file
+    -bug (dkulp)                 iPad - Fix a crash undoing a lyric breakdown after one of its
+                                 phonemes had been broken down again or deleted
+    -bug (dkulp)                 iPad - Batch Render no longer writes an empty .fseq over the previous
+                                 one when the render could not start because the layout was still
+                                 being reloaded; it retries, then skips that sequence
+    -bug (dkulp)                 iPad - "Cleanup File Locations" no longer blanks a face image, image
+                                 or mesh path when the copy into the show folder fails
     -change (derwin12)           SubModel, Face and State definition names can once again contain the
                                  '@' character - it is still stripped from top-level model names, which
                                  use it as a start channel reference syntax
