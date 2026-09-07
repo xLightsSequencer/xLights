@@ -12,6 +12,8 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 
+#include <wx/frame.h>
+
 //(*InternalHeaders(RenderProgressDialog)
 #include <wx/button.h>
 #include <wx/intl.h>
