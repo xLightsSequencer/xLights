@@ -202,21 +202,20 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
     if (dynamic_cast<SubModel*>(model) == nullptr) {
         std::unique_lock<std::recursive_mutex> lock(_modelMutex);
         bool changed = false;
+        std::vector<ModelGroup*> groups;
         for (auto& it2 : models) {
-            changed |= it2.second->ModelRenamed(on, nn);
+            // Groups are deliberately left to the unlocked pass below:
+            // ModelGroup::ModelRenamed resets the group's cache, and that lock
+            // must never be taken under _modelMutex (see ModelGroup::cacheLock).
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it2.second);
+            if (mg != nullptr) {
+                groups.push_back(mg);
+            } else {
+                changed |= it2.second->ModelRenamed(on, nn);
+            }
         }
         models.erase(models.find(on));
         models[nn] = model;
-
-        // The map is consistent; the group pass below resets each group's
-        // cache, which takes locks that must not be taken under _modelMutex.
-        std::vector<ModelGroup*> groups;
-        for (const auto& it : models) {
-            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
-            if (mg != nullptr) {
-                groups.push_back(mg);
-            }
-        }
         lock.unlock();
 
         // go through all the model groups looking for things that might need to be renamed
@@ -1245,8 +1244,16 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
     bool changed = false;
     std::list<pugi::xml_node> toBeDone;
     std::set<std::string> allModels;
-    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
     XmlDeserializingModelFactory factory;
+
+    // _modelMutex is only taken around the map itself.  Deserialize and
+    // RebuildBuffers take the group cache locks, which must never be taken
+    // under _modelMutex (see ModelGroup::cacheLock for the order).  Loading
+    // groups is a main thread operation, so nothing else is adding models.
+    auto publish = [this](Model* model) {
+        std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+        models[model->name] = model;
+    };
 
     // do all the models without embedded groups first or where the model order means everything exists
     for (pugi::xml_node e = groupNode.first_child(); e; e = e.next_sibling()) {
@@ -1262,7 +1269,7 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
                         ModelGroup* mg = dynamic_cast<ModelGroup*>(model);
                         if (mg != nullptr) {
                             mg->RebuildBuffers();
-                            models[model->name] = model;
+                            publish(model);
                         }
                     }
                 } else {
@@ -1273,10 +1280,13 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
     }
 
     // add in models and SubModels
-    for (const auto& it : models) {
-        allModels.insert(it.second->GetName());
-        for (auto it2 : it.second->GetSubModels()) {
-            allModels.insert(it2->GetFullName());
+    {
+        std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+        for (const auto& it : models) {
+            allModels.insert(it.second->GetName());
+            for (auto it2 : it.second->GetSubModels()) {
+                allModels.insert(it2->GetFullName());
+            }
         }
     }
 
@@ -1302,7 +1312,7 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
                     if (mg != nullptr) {
                         bool reset = mg->RebuildBuffers();
                         assert(reset);
-                        models[model->name] = model;
+                        publish(model);
                     }
                 }
             } else {
@@ -1325,7 +1335,7 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
             if (mg != nullptr) {
                 bool reset = mg->RebuildBuffers();
                 assert(!reset);
-                models[model->name] = model;
+                publish(model);
             }
         }
     }
