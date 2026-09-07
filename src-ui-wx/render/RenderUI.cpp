@@ -431,6 +431,9 @@ void xLightsFrame::RenderGridToSeqData(std::function<void(bool)>&& callback)
     }
     std::list<Model*> models = _renderEngine->GetRenderTree().GetModels();
     for (auto it : _renderEngine->GetRenderProgressInfo()) {
+        // A batch whose setup is still queued owns no jobs yet; the flag is
+        // how the cancel reaches it.
+        it->abortRequested.store(true);
         for (size_t row = 0; row < (size_t)it->numRows; ++row) {
             if (it->jobs[row]) {
                 it->jobs[row]->AbortRender();

@@ -3997,7 +3997,17 @@ void RenderEngine::DrainRenderSetupQueue() {
             req = std::move(_setupQueue.front());
             _setupQueue.pop_front();
         }
-        PerformRenderSetup(*req);
+        // A throw must not escape to the pool worker: the worker exits, the
+        // running flag above stays set, and every later Render() queues a
+        // setup nobody drains - renders silently stop for the session. The
+        // batch itself is completed by PerformRenderSetup's own guard.
+        try {
+            PerformRenderSetup(*req);
+        } catch (const std::exception& ex) {
+            spdlog::error("Render setup failed for frames {}-{}: {}", req->startFrame, req->endFrame, ex.what());
+        } catch (...) {
+            spdlog::error("Render setup failed for frames {}-{}: unknown exception", req->startFrame, req->endFrame);
+        }
     }
 }
 
@@ -4314,18 +4324,25 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
         }
     }
 
+    // Everything the sink needs happens before the first push. Once a job is
+    // on the pool the batch can complete - an aborted job finishes on its first
+    // slice - and the host's drain deletes the batch and this sink the moment
+    // it does, so nothing below the pushes may touch pi again.
+    if (pi->progressSink) {
+        for (row = 0; row < (size_t)numRows; ++row) {
+            if (jobs[row]) {
+                pi->progressSink->SetupJobProgress(jobs[row]);
+            }
+        }
+        pi->progressSink->OnRenderSetupComplete();
+    }
 
     // First pass: push jobs that have no upstream dependencies so they can
     // start rendering while we finish setup on the rest.
     for (row = 0; row < (size_t)numRows; ++row) {
-        if (jobs[row]) {
-            if (aggregators[row]->getNumAggregated() == 0) {
-                jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
-                _jobPool.PushJob(jobs[row]);
-            }
-            if (pi->progressSink) {
-                pi->progressSink->SetupJobProgress(jobs[row]);
-            }
+        if (jobs[row] && aggregators[row]->getNumAggregated() == 0) {
+            jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
+            _jobPool.PushJob(jobs[row]);
         }
     }
 
@@ -4340,10 +4357,6 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
     logger_render->debug("Job pool new size {}.", (int)_jobPool.size());
 
     delete[] jobs;
-
-    if (pi->progressSink) {
-        pi->progressSink->OnRenderSetupComplete();
-    }
 }
 
 static void addModelsUpTo(std::list<Model*> &models, const std::list<Model *> &toAdd, Model *upTo) {
