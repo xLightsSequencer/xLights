@@ -27,7 +27,11 @@ void DeserializeStateInfo(pugi::xml_node f, FaceStateData & stateInfo);
 void DeserializeModelScreenLocationAttributes(BaseObject* object, pugi::xml_node node, bool importing);
 void DeserializeTwoPointScreenLocationAttributes(BaseObject* object, pugi::xml_node node);
 void DeserializeThreePointScreenLocationAttributes(BaseObject* object, pugi::xml_node node);
-void DeserializePolyPointScreenLocationAttributes(BaseObject* object, pugi::xml_node node);
+// minPoints lets a Poly Line deserializer enforce its own >= 2 point
+// invariant (it computes segment count as points - 1) while Multi Point,
+// which shares this screen location but has no such invariant, keeps the
+// default floor of one point.
+void DeserializePolyPointScreenLocationAttributes(BaseObject* object, pugi::xml_node node, int minPoints = 1);
 
 void SerializeModelGroupsForModel(const Model* object, pugi::xml_node docNode, const std::vector<const Model*>& exportedModels);
 void AddDimensions(pugi::xml_node node, const Model* m);

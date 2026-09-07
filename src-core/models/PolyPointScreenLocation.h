@@ -110,11 +110,14 @@ public:
     virtual void SetActiveAxis(MSLAXIS axis) override;
 
     int GetNumPoints() const { return num_points; }
-    // A poly point location is meaningless below two points: every segment
-    // loop, aabb resize and the PolyLine deserializer index off num_points - 1.
-    // Clamp here so a hand-edited or half-created model in the XML can't
-    // produce zero-length segment vectors that later get indexed.
-    void SetNumPoints(int points) { num_points = std::max(points, 2); }
+    // A single point is a legal degenerate case for this screen location
+    // (e.g. a Multi Point model with "# Lights" == 1) -- every loop here is
+    // bounded by num_points - 1, which is simply empty at num_points == 1.
+    // A Poly Line, however, needs at least two points (its segment count is
+    // num_points - 1 and must be >= 1); that stronger floor is enforced by
+    // the Poly Line deserializer, not here, since this setter is shared with
+    // Multi Point.
+    void SetNumPoints(int points) { num_points = std::max(points, 1); }
     // Direct setter for the visual-selection highlight. nullopt
     // clears. Used by the property panel (segment / vertex spin
     // edits) and by AddHandle to anchor the newly-inserted vertex.

@@ -761,7 +761,10 @@ Model* XmlDeserializingModelFactory::DeserializePolyLine(pugi::xml_node node, Mo
     CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetTotalLightCount(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "0"));
-    DeserializePolyPointScreenLocationAttributes(model, node);
+    // A Poly Line's segment count is num_points - 1 and is used to size the
+    // per-segment lead/trail offset vectors below; a saved NumPoints < 2
+    // would compute zero segments and crash indexing into them.
+    DeserializePolyPointScreenLocationAttributes(model, node, /*minPoints=*/2);
     int num_strings = node.attribute(XmlNodeKeys::PolyStringsAttribute).as_int(1);
     model->SetNumStrings(num_strings);
     model->SetDropPattern(node.attribute(XmlNodeKeys::DropPatternAttribute).as_string("1"));

@@ -67,10 +67,10 @@ void DeserializeThreePointScreenLocationAttributes(BaseObject* object, pugi::xml
     screenLoc.SetYShear(shear);
 }
 
-void DeserializePolyPointScreenLocationAttributes(BaseObject* object, pugi::xml_node node) {
+void DeserializePolyPointScreenLocationAttributes(BaseObject* object, pugi::xml_node node, int minPoints) {
     int num_points = node.attribute(XmlNodeKeys::NumPointsAttribute).as_int(2);
     PolyPointScreenLocation& screenLoc = dynamic_cast<PolyPointScreenLocation&>(object->GetBaseObjectScreenLocation());
-    screenLoc.SetNumPoints(num_points);
+    screenLoc.SetNumPoints(std::max(num_points, minPoints));
     screenLoc.SetDataFromString(node.attribute(XmlNodeKeys::PointDataAttribute).as_string("0.0, 0.0, 0.0, 0.0, 0.0, 0.0"));
     screenLoc.SetCurveDataFromString(node.attribute(XmlNodeKeys::cPointDataAttribute).as_string());
 }
