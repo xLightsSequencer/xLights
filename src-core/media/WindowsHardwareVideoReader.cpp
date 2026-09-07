@@ -928,15 +928,17 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
             uint32_t lastPos = _curPos;
             AVFrame* frame = GetNextFrame(0xFFFFFFFF, 0xFFFFFFFF);
             if (frame == nullptr) {
-                // Reached over a real end of stream the container's reported
-                // duration said was still ahead - some encodes overstate it.
-                // Every other path here marks the reader failed before giving
-                // up; this one did not, so the caller never saw HasFailed()
-                // and kept re-issuing the same hardware seek every frame -
-                // each one landing on the same premature end of stream -
-                // forever, without ever falling back to software decode.
-                spdlog::error("WHVD: seek to {}ms found end of stream at {}ms in {} - falling back to software decode",
-                              pos, _curPos, _filename);
+                // No frame came back, so either the reader has already given up
+                // (a read timeout or a stalled decoder marks itself failed) or
+                // this is a real end of stream reached before the duration the
+                // container reported - some encodes overstate it. Either way
+                // the reader is done: without latching the failure the caller
+                // never sees HasFailed() and re-issues the same hardware seek
+                // every frame, each one landing in the same place, forever.
+                if (!_hardwareFailed) {
+                    spdlog::error("WHVD: seek to {}ms found end of stream at {}ms in {} - falling back to software decode",
+                                  pos, _curPos, _filename);
+                }
                 _hardwareFailed = true;
                 PropVariantClear(&var);
                 return false;
@@ -1484,8 +1486,13 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
         // following frame on roughly half of all requests (+9.3ms mean, vs
         // +0.9ms for FFmpeg, which agrees with AVFoundation). Half a frame of
         // lead-in makes the three paths pick the same frame.
-        wantMore = (timestampMS != 0xFFFFFFFF) &&
-                   ((int64_t)_curPos + (int64_t)(_frameMS / 2) < (int64_t)timestampMS);
+        // A sentinel timestamp means "advance by one frame" - Seek uses it to
+        // scrub forward to its target. Keep reading until a sample actually
+        // arrives, so a stream tick (which carries no sample) does not look
+        // like the end of the video.
+        wantMore = (timestampMS == 0xFFFFFFFF)
+                       ? (sample == nullptr)
+                       : ((int64_t)_curPos + (int64_t)(_frameMS / 2) < (int64_t)timestampMS);
 
         // A decoder that keeps succeeding without advancing would spin here for
         // ever. Seek has always guarded against that; this loop had not.
@@ -1516,9 +1523,16 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
 
     } while (wantMore);
 
-    if (timestampMS != 0xFFFFFFFF && sample != nullptr) {
-        if (_useVideoProcessor ? !BltFromSample(sample) : !BitmapFromSample(sample, _frame)) {
-            spdlog::error("WHVD: Failed to extract the frame bitmap ... Media Foundations may be in a corrupt state.");
+    if (sample != nullptr) {
+        // Only a caller that asked for a real timestamp wants the pixels. A
+        // sentinel request is Seek scrubbing toward its target and throws the
+        // image away, so skip the conversion - but still report the frame that
+        // was read. Returning nullptr here made every single step of that scrub
+        // indistinguishable from the end of the stream.
+        if (timestampMS != 0xFFFFFFFF) {
+            if (_useVideoProcessor ? !BltFromSample(sample) : !BitmapFromSample(sample, _frame)) {
+                spdlog::error("WHVD: Failed to extract the frame bitmap ... Media Foundations may be in a corrupt state.");
+            }
         }
 #ifdef DETAILED_LOGGING
         spdlog::debug("WHVD: Release sample");
