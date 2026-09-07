@@ -1062,8 +1062,11 @@ double RippleEffect::getEffectPosition(RenderBuffer& buffer, const SettingsMap& 
 
     if (lastMarkMs < 0) return -1; // no timing mark within effect has fired yet
 
+    if (buffer.frameTimeInMs <= 0) return -1; // guard against a bogus/unset frame interval
+
     int durationMs = SettingsMap.GetInt("SLIDER_Ripple_Duration", sDurationDefault);
-    if (durationMs < buffer.frameTimeInMs) durationMs = buffer.frameTimeInMs;
+    // Need at least 2 periods per cycle so the divide below (periodsPerCycle - 1) can't be zero.
+    if (durationMs < 2 * buffer.frameTimeInMs) durationMs = 2 * buffer.frameTimeInMs;
 
     float periodsPerCycle = (float)durationMs / buffer.frameTimeInMs;
     float lastMarkPeriod = (float)lastMarkMs / buffer.frameTimeInMs;
@@ -1074,7 +1077,8 @@ double RippleEffect::getEffectPosition(RenderBuffer& buffer, const SettingsMap& 
 
     float retval = periodsSinceMark;
     while (retval >= periodsPerCycle) retval -= periodsPerCycle;
-    retval /= (periodsPerCycle - 1.0f);
+    float denom = std::max(periodsPerCycle - 1.0f, 1.0f);
+    retval /= denom;
     return retval > 1.0f ? 1.0f : retval;
 }
 
