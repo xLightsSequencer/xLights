@@ -430,6 +430,8 @@ public:
     // FileProvider over XPC on Apple platforms - for every frame, multiplied by
     // each frame-parallel clone's fresh effect cache.
     bool IsImageMissing(const std::string& filepath);
+    // Drop the remembered misses so the next probe re-checks the filesystem.
+    void ClearMissingImages();
     // Create the cache entry without decoding (GetImage loads eagerly)
     void RegisterImage(const std::string& filepath);
     void QueueImageLoad(const std::string& filepath, const std::string& loadPath, JobPool& pool);

@@ -753,6 +753,12 @@ bool SequenceMedia::IsImageMissing(const std::string& filepath)
     return true;
 }
 
+void SequenceMedia::ClearMissingImages()
+{
+    std::scoped_lock lock(_cacheMutex);
+    _missingImages.clear();
+}
+
 ResolvedMediaPath SequenceMedia::ResolveImagePath(const std::string& filepath) const
 {
     if (filepath.empty()) return {};
@@ -775,6 +781,7 @@ void SequenceMedia::RegisterImage(const std::string& filepath, const std::string
 {
     if (filepath.empty()) return;
     std::scoped_lock lock(_cacheMutex);
+    _missingImages.erase(filepath);
     if (_imageCache.find(filepath) != _imageCache.end()) return;
     if (_imageResolvedCache.find(loadPath) != _imageResolvedCache.end()) return;
     // unlike GetImage this does NOT Load() - decode happens on first access

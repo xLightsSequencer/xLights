@@ -3888,6 +3888,11 @@ void RenderEngine::Render(SequenceElements& seqElements,
 {
     _abortedRenderJobs = 0;
 
+    // Once per dispatch, on the caller's thread, so an image the user drops in
+    // after a failed render is picked up on the next one without going back to
+    // a per-frame filesystem probe.
+    seqElements.GetSequenceMedia().ClearMissingImages();
+
     // Registered before any of the setup below runs, not after the jobs are
     // built. IsRenderDone() reports a batch pending purely by its presence in
     // this list, so anything registered later leaves a window in which a render
