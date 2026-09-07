@@ -2415,9 +2415,24 @@ void ControllerModelDialog::ReloadModels()
     TextCtrl_Check->SetValue(check);
 
     wxString modelFilter = TextCtrl_ModelFilter->GetValue().Lower();
+
+    // Names of models that are shadowed by another model. A shadowed model's
+    // start channel is driven by its shadow, so it must NOT be placed on a port
+    // here (that would break the link) - hide it from the assignable list, while
+    // the shadow model itself stays assignable. #6802 hid the wrong side (it
+    // excluded models whose GetShadowModelFor was set - i.e. the shadows), which
+    // made shadow models impossible to place. Built once to stay O(N).
+    std::set<std::string> shadowedNames;
+    for (const auto& it : *_mm) {
+        const std::string sf = it.second->GetShadowModelFor();
+        if (!sf.empty()) {
+            shadowedNames.insert(sf);
+        }
+    }
+
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
-            if (it.second->GetShadowModelFor().empty() &&
+            if (shadowedNames.find(it.second->GetName()) == shadowedNames.end() &&
                 _cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
                     ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
