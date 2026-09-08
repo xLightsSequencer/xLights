@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 macOS - Uncompressed .mov files whose rows are not a multiple of 8 bytes
+                                 (for example 50 pixels wide, 24-bit) were flagged as unsupported when the
+                                 sequence opened even though they render correctly
 
 
 2026.17  September 8, 2026
