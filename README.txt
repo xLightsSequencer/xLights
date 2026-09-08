@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.17  September ??, 2026
 
+    -bug (derwin12)              Hiding the AC Toolbar while AC mode is enabled now turns AC mode off
+                                 instead of leaving normal sequencing controls disabled (#7034)
     -bug (dkulp)                 Uncompressed (rawvideo) .mov files no longer stop rendering after a few
                                  renders on macOS 26.7 ("no decodable frames" / blank video); they are
                                  now read through sample cursors instead of AVAssetReader

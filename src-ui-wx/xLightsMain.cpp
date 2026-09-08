@@ -6784,6 +6784,15 @@ void xLightsFrame::ToggleToolbarPane(const wxString& paneName)
     if (!pane.IsOk()) return;
     if (pane.IsShown()) {
         pane.Hide();
+        if (paneName == "ACToolbar" && Button_ACDisabled->IsChecked()) {
+            // Hiding the toolbar takes AC mode out of effect (IsACActive() checks
+            // toolbar visibility), so bring the button/UI state in line rather than
+            // leaving the normal sequencing controls stuck disabled.
+            Button_ACDisabled->SetValue(false);
+            ACToolbar->SetToolBitmap(ID_AUITOOLBARITEM_ACDISABLED, GetToolbarBitmapBundle("xlAC_DISABLED"));
+            UpdateACToolbar();
+            EnableSequenceControls(true);
+        }
     } else {
         pane.Show();
     }

@@ -417,7 +417,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
         }
 
         bool effectDropped = false;
-        if (endTime > startTime && !effectBindings.empty()) {
+        if (endTime > startTime && !effectBindings.empty() && !xlights->IsACActive()) {
             EffectWheelDialog dlg(this, effectBindings);
             dlg.PositionAtMouse(ClientToScreen(event.GetPosition()));
             if (dlg.ShowModal() == wxID_OK) {
