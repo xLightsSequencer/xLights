@@ -10,6 +10,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.18  September ??, 2026
+
+
 2026.17  September 8, 2026
 
     -change (dkulp)              macOS: raised the minimum supported macOS version to 12.0
