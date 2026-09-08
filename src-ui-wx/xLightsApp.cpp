@@ -1103,6 +1103,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "cs", "checksequence", "run check sequence and exit" },
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
+        { wxCMD_LINE_SWITCH, "q", "quiet", "log command line notices (show directory, files loaded) instead of showing them in a dialog" },
         { wxCMD_LINE_OPTION, "od", "outputdir", "output dir for rendered fseq files (-r / --headless); default: show's configured fseq folder" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
         { wxCMD_LINE_SWITCH, "o", "on", "turn on output to lights" },
@@ -1288,7 +1289,11 @@ bool xLightsApp::OnInit()
 
         if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !parser.Found("hl") && !parser.Found("fc") && !parser.Found("st") && !info.empty() && readOnlyZipFile == "")
         {
-            wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK); // pre-frame: callback not yet registered
+            if (parser.Found("q")) {
+                spdlog::info("Command line notices (dialog suppressed by -q):\n{}", (const char*)info.c_str());
+            } else {
+                wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK); // pre-frame: callback not yet registered
+            }
         }
         break;
     default:

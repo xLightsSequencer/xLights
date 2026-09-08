@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (dkulp)                 New -q / --quiet command line switch logs the startup notices (show
+                                 directory, files loaded) instead of showing them in a dialog
     -bug (dkulp)                 macOS - Uncompressed .mov files whose rows are not a multiple of 8 bytes
                                  (for example 50 pixels wide, 24-bit) were flagged as unsupported when the
                                  sequence opened even though they render correctly
