@@ -84,7 +84,7 @@ jobs:
     # --- Authenticode signing via Azure Trusted Signing (Kulp Lights LLC) ------
     # Sign our own executables before packaging, then sign the installer after
     # ISCC (the artifact users download and that SmartScreen/AV evaluate).
-    # Third-party DLLs keep their vendors' signatures. Reuses fppMon's signing
+    # Unsigned third-party DLLs are signed too (see below). Reuses fppMon's signing
     # account/profile; runs only when WINDOWS_SIGNING_ENABLED is set.
     - name: Azure login (OIDC for Trusted Signing)
       if: env.SIGN == 'true'
@@ -127,6 +127,34 @@ jobs:
         certificate-profile-name: kulplights-public
         files-folder: fseq_convert\cmake_vs\Release
         files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+
+    # Bundled third-party DLLs (FFmpeg, SDL2, hidapi, curl, KLightMapper) ship
+    # without a vendor signature. Windows 11 Smart App Control refuses to load an
+    # unsigned DLL that has no reputation, and every dependency refresh ships
+    # fresh hashes with none, so xLights fails to start with 0xc0e90002 on those
+    # machines (#7044). Sign everything in bin64 that is not already validly
+    # signed; DLLs carrying a vendor signature (onnxruntime) keep it.
+    - name: List unsigned bundled DLLs
+      id: unsigned_dlls
+      if: env.SIGN == 'true'
+      shell: pwsh
+      run: |
+        $unsigned = Get-ChildItem bin64\*.dll | Where-Object { (Get-AuthenticodeSignature $_.FullName).Status -ne 'Valid' } | ForEach-Object { $_.Name }
+        Set-Content -Path bin64\sign-catalog.txt -Value $unsigned
+        "Signing: $($unsigned -join ', ')"
+        "count=$($unsigned.Count)" >> $env:GITHUB_OUTPUT
+
+    - name: Sign bundled DLLs (Trusted Signing)
+      if: env.SIGN == 'true' && steps.unsigned_dlls.outputs.count != '0'
+      uses: azure/artifact-signing-action@v2
+      with:
+        endpoint: https://eus.codesigning.azure.net/
+        signing-account-name: kulplightssigning
+        certificate-profile-name: kulplights-public
+        files-catalog: bin64\sign-catalog.txt
         file-digest: SHA256
         timestamp-rfc3161: http://timestamp.acs.microsoft.com
 
