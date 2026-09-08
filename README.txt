@@ -10,252 +10,243 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.17  September ??, 2026
+2026.17  September 8, 2026
 
-    -bug (derwin12)              Hiding the AC Toolbar while AC mode is enabled now turns AC mode off
-                                 instead of leaving normal sequencing controls disabled (#7034)
-    -bug (dkulp)                 Uncompressed (rawvideo) .mov files no longer stop rendering after a few
-                                 renders on macOS 26.7 ("no decodable frames" / blank video); they are
-                                 now read through sample cursors instead of AVAssetReader
-    -bug (dkulp)                 macOS - Videos with B-frames (most H.264/HEVC .mp4) started two frames
-                                 late and re-decoded a GOP three times for each frame requested past the
-                                 end of the file
-    -bug (dkulp)                 A Multi Point model with a single light no longer loads as two lights
-    -bug (dkulp)                 The deleteEffect automation command now re-renders the range, clears
-                                 the grid's selection and refuses locked effects; setEffectSettings
-                                 also re-renders after changing an effect
-    -bug (dkulp)                 The Render Progress window stays above xLights without stealing
-                                 keyboard focus every time the main window is clicked
-    -bug (dkulp)                 A crash on a render thread no longer aborts the app while the crash
-                                 report dialog is still open on the main thread
-    -bug (dkulp)                 iPad - Fix a crash closing or re-rendering a sequence while the
-                                 render progress sheet is open
-    -bug (dkulp)                 iPad - An effect edit made while the layout is being reloaded is
-                                 rendered once the reload finishes instead of being dropped
-    -bug (dkulp)                 iPad - Restoring a show folder backup replaces each file only after
-                                 its copy succeeded, and stops if the safety backup fails
-    -bug (dkulp)                 iPad - "Move All Models To Port" no longer chains a multi-string
-                                 model after itself, and rejects a port the controller does not have
-    -bug (dkulp)                 iPad - Changing the frame interval of a packaged (.xsqz) sequence
-                                 reopens it correctly
-    -bug (dkulp)                 iPad - A media file dropped onto the grid is copied into the show
-                                 folder so the effect still finds it after the drop's temporary
-                                 copy is removed
-    -bug (dkulp)                 iPad - A renamed or deleted preview no longer lingers in the preview
-                                 menus
-    -bug (dkulp)                 Fix the application hanging after a crash report was sent instead of
-                                 exiting - every crash on the main thread wedged on the crash
-                                 handler's own lock once the report dialog closed
-    -bug (dkulp)                 Fix a deadlock renaming a model, or loading model groups, while a
-                                 render was in progress
-    -bug (dkulp)                 Fix a crash ticking "Output to lights" in the States or Faces tab
-                                 on a SuperString model with more than eight colours
-    -bug (dkulp)                 A Pictures effect whose image file was missing is picked up again on
-                                 the next render once the file is put in place, instead of staying
-                                 red until the sequence is reopened
-    -bug (dkulp)                 Fix the Ripple effect drawing garbage, or spinning, when its timing
-                                 trigger Duration is no longer than one frame
-    -bug (dkulp)                 Windows: a hardware decoded video no longer silently drops to
-                                 software decode whenever the effect starts part way into the file
-    -bug (dkulp)                 iPad - Fix a crash undoing a lyric breakdown after one of its
-                                 phonemes had been broken down again or deleted
-    -bug (dkulp)                 iPad - Batch Render no longer writes an empty .fseq over the previous
-                                 one when the render could not start because the layout was still
-                                 being reloaded; it retries, then skips that sequence
-    -bug (dkulp)                 iPad - "Cleanup File Locations" no longer blanks a face image, image
-                                 or mesh path when the copy into the show folder fails
-    -change (derwin12)           SubModel, Face and State definition names can once again contain the
-                                 '@' character - it is still stripped from top-level model names, which
-                                 use it as a start channel reference syntax
-    -bug (dkulp)                 The Batch Render dialog no longer flashes a progress window while it
-                                 scans for sequences unless the scan is actually slow, and it updates
-                                 that window far less often when it is shown
-    -bug (dkulp)                 Batch Render no longer crashes when one of the selected sequences
-                                 cannot be opened - it is skipped and the rest of the batch continues
-    -bug (dkulp)                 Fix a crash opening the Faces editor on a custom model that has no
-                                 nodes defined
-    -bug (dkulp)                 Fix a crash choosing a background image in the custom model editor
-                                 when the model's grid is too large to rasterise the image behind it
-    -bug (dkulp)                 Fix a crash rendering a model group while the layout was being
-                                 edited - the group's cached member list and nodes could be rebuilt
-                                 out from under the render threads reading them
-    -bug (dkulp)                 Fix a crash opening the File menu when the show folder is on a drive
-                                 that does not keep file versions, such as an external or network disk
-    -bug (dkulp)                 Fix a crash releasing the mouse in the Sketch effect assist panel
-                                 after the selected path changed mid-drag
-    -bug (derwin12)              Face and State definition names can no longer contain commas or other
-                                 characters that submodel names already disallow, whether typed in or
-                                 brought in from an imported model file (#7026)
-    -bug (derwin12)              A group no longer shows the submodels of a model that has been set
-                                 to inactive (#7021)
-    -enh (derwin12)              Increase logging around FPP Connect errors, to help diagnose
-                                 upload/discovery failures reported from the field (#7024)
-    -bug (dkulp)                 Fix a crash generating the preview for a video effect - the decoded
-                                 frame is now copied using its own size and pixel format
-    -bug (dkulp)                 Fix a crash rendering a Moving Head effect whose colour setting held
-                                 a partial colour, and no longer crash when a moving head group
-                                 contains a model that is not a moving head
+    -change (dkulp)              macOS: raised the minimum supported macOS version to 12.0
+    -change (dkulp)              macOS: Apple Intelligence image generation now opens the system
+                                 Image Playground sheet, seeded with the prompt and style you
+                                 picked, and brings the image you accept back into the usual
+                                 crop/resize/save flow - Apple discontinued the API that generated
+                                 images directly
+    -change (derwin12)           SubModel, Face and State definition names can once again contain
+                                 the '@' character - it is still stripped from top-level model
+                                 names, which use it as a start channel reference syntax
+    -change (dkulp)              The startup check for a new release no longer pauses the interface
+                                 while it waits on the network; the update prompt appears when the
+                                 check finishes
+    -change (derwin12)           The log is now flushed every 5 seconds instead of only on close, so
+                                 a crash or hard kill loses fewer recent log lines
     -enh (dkulp)                 Renders on sequences with many models start sooner - preparing the
                                  per model render buffers now runs across cores
-    -enh (dkulp)                 Setting up a render now happens off the UI thread, so starting one on
-                                 a large sequence no longer freezes the interface while it is prepared
-    -enh (dkulp)                 The render progress dialog's contents are built when it is first
-                                 opened rather than on every render, so a large sequence no longer
-                                 creates hundreds of progress bars nobody looks at
-    -bug (dkulp)                 Playback no longer waits on a render it triggered - a model that
-                                 needs re-rendering mid playback is now asked for and picked up on a
-                                 later frame instead of stalling the frame that noticed it
+    -enh (dkulp)                 Setting up a render now happens off the UI thread, so starting one
+                                 on a large sequence no longer freezes the interface while it is
+                                 prepared
     -enh (dkulp)                 Large shows start renders faster, most noticeably on slower
-                                 machines - setting up a render no longer rebuilds a per channel
-                                 table across the whole show every time
+                                 machines
+    -enh (dkulp)                 The render progress dialog opens faster on large sequences
+    -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
+    -enh (bulldozer2003)         Matrix faces now support movement, positioning, and scaling
+                                 controls matching the Pictures effect (direction, X/Y offset,
+                                 start/end scale, wrap, pixel offsets, vector mode)
+    -enh (derwin12)              ML stem separation (Drums/Bass/Other/Vocals) now saves each stem as
+                                 an alternate audio track under Sequence Settings > Audio Tracks, so
+                                 they survive closing the sequence and don't need reprocessing
+                                 (#6856)
+    -enh (derwin12)              Picking a video/picture/other media file outside the show or media
+                                 folders now also offers "Copy to sequence's imported media folder",
+                                 which files it under ImportedMedia/<sequence name>/ instead of the
+                                 show folder root (#7013)
+    -enh (scott)                 Custom Model Wiring view: added a text size slider and a "3D (drag
+                                 to rotate)" mode using each node's real depth - Cube models, which
+                                 now also support the Wiring view, use it by default
+    -enh (scott)                 The Custom Model Wiring dialog now remembers its size and position
+    -enh (derwin12)              House Preview's "Keep on Top" setting is now remembered across
+                                 restarts and reapplied automatically when it's undocked again
+    -enh (derwin12)              The Presets dialog now shows the count of blank rows alongside its
+                                 other row counts (#6975)
+    -enh (scott)                 Added an MCP (Model Context Protocol) server alongside the existing
+                                 REST Automation API, so MCP-aware AI tools can drive xLights over
+                                 the same xFade port (POST /mcp)
+    -enh (derwin12)              Windows: added a TestHeadlessRenderOptions Lua script that renders
+                                 the sequence(s) several times with different GPU and hardware
+                                 decode options and recommends a setting (#7014)
+    -enh (dkulp)                 Windows: the preview graphics "Auto" setting now falls back to
+                                 Vulkan when the machine has no vendor display driver or is on
+                                 Remote Desktop, where OpenGL cannot be hardware accelerated
+    -enh (derwin12)              Increased logging around FPP Connect errors, to help diagnose
+                                 upload and discovery failures (#7024)
+    -enh (dkulp)                 Windows: record the graphics adapters, the OpenGL renderer and the
+                                 Vulkan device in the log and in crash reports, so a machine running
+                                 the generic Microsoft display driver can be identified
     -enh (dkulp)                 Linux: log the graphics adapters (name, PCI id and kernel driver),
                                  which was previously reported on macOS and Windows only
     -enh (dkulp)                 Log each display's refresh rate, the highest rate it offers at its
                                  current resolution, and whether it is variable - a sequence asking
                                  for more frames per second than the display can present cannot
                                  preview at its own rate
-    -enh (dkulp)                 Windows: the preview graphics "Auto" setting now falls back to Vulkan when
-                                 the machine has no vendor display driver or is on Remote Desktop, where
-                                 OpenGL cannot be hardware accelerated
-    -enh (derwin12)              Windows: added a TestHeadlessRenderOptions Lua script that renders the
-                                 sequence(s) several times with GPU/hw decode options to recommend setting (#7014)
-    -bug (dkulp)                 Include the machine configuration in crash reports - it was only ever
-                                 attached to a manually packaged debug zip, never to an actual crash
-    -enh (dkulp)                 Windows: record the graphics adapters, the OpenGL renderer and the
-                                 Vulkan device in the log and in crash reports, so a machine running
-                                 the generic Microsoft display driver can be identified
-    -change (derwin12)           The log is now flushed every 5 seconds instead of only on close, so a
-                                 crash or hard kill loses fewer recent log lines
-    -bug (AGFazio)               Windows: fix xLights hanging when a sequence frame takes longer than the
-                                 frame interval - most easily hit by creating a 40fps animation sequence
-                                 and dropping an effect, which left the app not responding (#7002)
-    -bug (dkulp)                 Fix a crash when toggling a docked pane, loading a perspective or
-                                 opening a sequence - the AUI layout could be re-entered from a
-                                 size event while it was rebuilding its own layout state
-    -bug (heffneil)              Check "Set Default" animation duration for validity (#6972)
+    -bug (dkulp)                 Playback no longer stalls on a render it triggered - a model that
+                                 needs re-rendering mid playback is picked up on a later frame
+    -bug (dkulp)                 Fix a crash rendering a model group while the layout was being
+                                 edited
+    -bug (dkulp)                 Fix a crash rendering a model group after models were replaced by a
+                                 base show folder sync
+    -bug (dkulp)                 Fix a deadlock renaming a model, or loading model groups, while a
+                                 render was in progress
+    -bug (dkulp)                 Fix a crash from two threads finishing renders at the same time
+    -bug (dkulp)                 The Batch Render dialog no longer flashes a progress window while
+                                 it scans for sequences unless the scan is actually slow
+    -bug (dkulp)                 Batch Render no longer crashes when one of the selected sequences
+                                 cannot be opened - it is skipped and the rest of the batch
+                                 continues
+    -bug (dkulp)                 The Render Progress window stays above xLights without stealing
+                                 keyboard focus every time the main window is clicked
+    -bug (AGFazio)               Windows: fix xLights hanging when a sequence frame takes longer
+                                 than the frame interval - most easily hit by creating a 40fps
+                                 animation sequence and dropping an effect (#7002)
+    -bug (dkulp)                 Fix the Ripple effect drawing garbage, or spinning, when its timing
+                                 trigger Duration is no longer than one frame
+    -bug (derwin12)              Fix the Bars effect wrapping the first row/column to the wrong
+                                 color when the buffer size didn't divide evenly by the color count
+                                 (#6988)
+    -bug (derwin12)              Fix a possible crash in the Butterfly and Plasma effects when
+                                 handed a palette with more than eight colors (#6999)
+    -bug (derwin12)              Fix Windows OS-font Text effects rendering corrupted or broken
+                                 glyphs on small buffers such as a 35x7 matrix (#6995)
+    -bug (derwin12)              Fix the Text effect's Color Per Word setting not affecting the
+                                 render - toggling the checkbox kept serving a stale cached image
+    -bug (dkulp)                 A Pictures effect whose image file was missing is picked up again
+                                 on the next render once the file is put in place, instead of
+                                 staying red until the sequence is reopened
+    -bug (dkulp)                 Fix a crash rendering a Moving Head effect whose colour setting
+                                 held a partial colour, and no longer crash when a moving head group
+                                 contains a model that is not a moving head
+    -bug (derwin12)              Fix an Off effect on a moving head/DMX fixture with a dimmer
+                                 resetting pan/tilt/color channels to black instead of just turning
+                                 off the dimmer, which snapped the head out of position (#6990)
+    -bug (derwin12)              Fix the Moving Head effect's Dimmer/Pathing/Pattern tabs staying
+                                 disabled after dropping the effect on a fixture group or checking a
+                                 fixture, and staying enabled after unchecking all fixtures or
+                                 clicking None
+    -bug (derwin12)              Fix the missing material on the 3D Moving Head model's head mesh
+    -bug (derwin12)              Fix switching an effect's Render Style to "Per Preview" on a model
+                                 group no longer applying the group's configured Default Camera - it
+                                 was silently staying on 2D
+    -bug (dkulp)                 Fix a crash releasing the mouse in the Sketch effect assist panel
+                                 after the selected path changed mid-drag
+    -bug (dkulp)                 macOS: uncompressed (rawvideo) .mov files no longer stop rendering
+                                 after a few renders on macOS 26.7 ("no decodable frames" / blank
+                                 video)
+    -bug (dkulp)                 macOS: videos with B-frames (most H.264/HEVC .mp4) started two
+                                 frames late and re-decoded repeatedly for each frame requested past
+                                 the end of the file
+    -bug (dkulp)                 Windows: a hardware decoded video no longer silently drops to
+                                 software decode whenever the effect starts part way into the file
+    -bug (dkulp)                 Fixed a crash rendering a Video effect when the decoder switched
+                                 mid-file (hardware decode dropping back to software)
+    -bug (dkulp)                 Fix a crash generating the preview for a video effect
+    -bug (derwin12)              Fix Export House Preview Video appearing to hang when the House
+                                 Preview is undocked with Keep on Top enabled - its window was
+                                 covering the export dialogs (#7003)
+    -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or Multi
+                                 Point model saved with fewer than two points
+    -bug (dkulp)                 A Multi Point model with a single light no longer loads as two
+                                 lights
+    -bug (derwin12)              Fix the "model perhaps flipped" warning firing on nearly every two-
+                                 point model (Single Line, Matrix, Arches, Icicles, etc.) regardless
+                                 of its actual orientation (#6993)
+    -bug (derwin12)              Fix deleting a model leaving its submodels behind in any model
+                                 group it belonged to, showing as invalid entries in the group's
+                                 model list (#7018)
+    -bug (derwin12)              A group no longer shows the submodels of a model that has been set
+                                 to inactive (#7021)
+    -bug (derwin12)              Face and State definition names can no longer contain commas or
+                                 other characters that submodel names already disallow, whether
+                                 typed in or brought in from an imported model file (#7026)
+    -bug (dkulp)                 Fix a crash opening the Faces editor on a custom model that has no
+                                 nodes defined
+    -bug (dkulp)                 Fix a crash choosing a background image in the custom model editor
+                                 when the model's grid is too large to rasterise the image behind it
+    -bug (dkulp)                 Fix a crash ticking "Output to lights" in the States or Faces tab
+                                 on a SuperString model with more than eight colours
+    -bug (scott)                 Fix Custom Model Wiring view zoom sometimes flying off-screen or
+                                 crashing when scrolled out fully, and drifting away from the mouse
+                                 pointer while zooming on displays with Windows scaling above 100%
     -bug (derwin12)              Fix the Layout tab's Background Properties pane getting dragged to
                                  zero height and disappearing with no divider left to grab it back,
                                  which persisted across restarts; also fix Reset to Defaults not
                                  actually restoring it once collapsed (#7008)
-    -bug (derwin12)              Fix the FPP Connect dialog hanging when canceling an in-progress upload (#7004)
-    -bug (derwin12)              Fix deleting a model leaving its submodels behind in any model
-                                 group it belonged to, showing as invalid entries in the group's
-                                 model list (#7018)
+    -bug (derwin12)              Fix the Layout tab model list losing its chosen column sort order
+                                 (reverting to name order) after editing various model properties
+                                 (#6981)
+    -bug (derwin12)              Fix the Select Effects, Search Effects, and Effect Presets panels
+                                 having no way to scroll to their controls (and, for Effect Presets,
+                                 squishing buttons and text illegible) when docked or resized
+                                 smaller than their contents (#6979)
+    -bug (derwin12)              Fix the "could not calculate start channels" warning growing tall
+                                 enough to scroll off screen (#6970)
+    -bug (dkulp)                 Fix a crash when toggling a docked pane, loading a perspective or
+                                 opening a sequence
+    -bug (derwin12)              Fix the AC Toolbar: hiding it while AC mode is enabled now turns AC
+                                 mode off instead of leaving normal sequencing controls disabled
+                                 (#7034)
+    -bug (heffneil)              Check "Set Default" animation duration for validity (#6972)
     -bug (AGFazio)               Fix importing a group from another show's rgbeffects skipping it
                                  (or importing it with the wrong membership) when its models weren't
                                  also selected for import (#7012)
-    -bug (dkulp)                 FPP Connect: fix a crash uploading controller config to a
-                                 controller with no known capabilities or a multicast-only address
-    -bug (dkulp)                 Fix a crash from two threads draining the finished-render list at
-                                 the same time
-    -change (dkulp)              The startup check for a new release no longer pumps the UI while it
-                                 waits on the network, so menus and timers can no longer run part
-                                 way through startup; the update prompt appears when the check
-                                 finishes
-    -enh (scott)                 Added an MCP (Model Context Protocol) server alongside the
-                                 existing REST Automation API, so MCP-aware AI tools can drive
-                                 xLights over the same xFade port (POST /mcp)
-    -bug (scott)                 Fix several automation commands (addEffect, setModelProperty,
-                                 saveSequence) mishandling JSON settings, dropdown properties, and
-                                 relative filenames, found while testing the new MCP server
-    -enh (scott)                 Custom Model Wiring view: added a text size slider and a "3D
-                                 (drag to rotate)" mode using each node's real depth - Cube
-                                 models, which now also support the Wiring view, use it by default
-    -change (dkulp)              macOS: Raise minimum version of macOS to 12.0 (requirement to
-                                 be able to build and test on macOS 27)
-    -change (dkulp)              Apple Intelligence image generation now opens the system Image
-                                 Playground sheet, seeded with the prompt and style you picked, and
-                                 brings the image you accept back into the usual crop/resize/save
-                                 flow - Apple discontinued the API that generated images directly
-    -bug (dkulp)                 iPad - Sequences opened from a writable location were all flagged
-                                 read-only, disabling Save
-    -bug (dkulp)                 Fix a crash rendering a model group after models were replaced
-                                 by a base show folder sync - the group kept render nodes
-                                 pointing at the models that had just been freed
-    -bug (dkulp)                 iPad - Tip of the Day was black text on the dark sheet background
-                                 in dark mode; the tips now follow the system appearance
-    -bug (derwin12)              Fix controller discovery adding a duplicate FPP entry with IP
-                                 127.0.0.1 when the FPP instance self-reports its own loopback
-                                 address in its multi-sync systems list
-    -bug (derwin12)              Fix Windows OS-font Text effects rendering corrupted/broken
-                                 glyphs on small buffers (e.g. a 35x7 matrix) - the Direct2D
-                                 text backend's bi-level antialiasing and font-descriptor size
-                                 parsing (Fixes #6995)
-    -bug (derwin12)              Fix Text effect's Color Per Word setting not affecting the
-                                 render - the shared rasterised-text cache's key omitted it, so
-                                 toggling the checkbox kept serving the stale cached image
-    -bug (dkulp)                 Kulp K16A-B is now two variants, 1.x and 2.x/3.x, as the two board
-                                 revisions run different FPP string drivers and support different
-                                 pixel protocols and smart receivers.  Existing shows resolve to
-                                 1.x; discovery picks the right one from the cape.  Uploads now
-                                 take the string driver from the cape itself, so a mismatched
-                                 variant no longer writes a config the controller cannot run (#6978)
-    -bug (derwin12)              Fix the "could not calculate start channels" warning growing tall
-                                 enough to scroll off screen (#6970)
-    -bug (derwin12)              Fix Layout tab model list losing its chosen column sort order
-                                 (reverting to name order) after editing various model properties (#6981)
-    -bug (derwin12)              Fix the Select Effects, Search Effects, and Effect Presets panels
-                                 having no way to scroll to their controls (and, for Effect Presets,
-                                 squishing buttons/text illegible) when docked/resized smaller than
-                                 their contents (#6979)
-    -enh (derwin12)              The Presets dialog now shows the count of blank rows alongside its
-                                 other row counts (#6975)
-    -bug (derwin12)              Fix images for ChatGPT service (#6969)
-    -bug (derwin12)              Fix switching an effect's Render Style to "Per Preview" on a
-                                 model group no longer applying the group's configured Default
-                                 Camera - it was silently staying on 2D
-    -bug (derwin12)              Fix an Off effect on a moving head/DMX fixture with a dimmer
-                                 resetting pan/tilt/color channels to black instead of just
-                                 turning off the dimmer, which snapped the head out of position (#6990)
-    -bug (derwin12)              Fix the missing "material" in 3D Moving Head model's head mesh
-    -bug (derwin12)              Fix Export House Preview Video appearing to hang when the House
-                                 Preview is undocked with Keep on Top enabled - its window was
-                                 covering the export dialogs (#7003)
-    -enh (derwin12)              House Preview's "Keep on Top" setting is now remembered across
-                                 restarts and reapplied automatically when it's undocked again
     -bug (derwin12)              Fix Auto Map import not mapping node-level effects (Dimmer, Pan,
                                  Tilt, etc.) on DMX moving-head strings when the model's strand also
                                  had its own effects (#7000)
-    -bug (derwin12)              Fix a possible crash in the Butterfly and Plasma effects (CPU, ISPC
-                                 and Metal render paths) when handed a palette with more than the 8
-                                 colors their fixed-size buffers expect (#6999)
-    -enh (dkulp)                 Large speedup rendering the Faces effect on big matrix models
-    -enh (bulldozer2003)         Matrix faces now support movement, positioning, and scaling
-                                  controls matching the Pictures effect (direction, X/Y offset,
-                                  start/end scale, wrap, pixel offsets, vector mode)
-    -bug (derwin12)              Fix the Bars effect wrapping the first row/column to the wrong
-                                 color when the buffer size didn't divide evenly by the color count
-                                 (#6988)
-    -bug (derwin12)              Fix the "model perhaps flipped" warning firing on nearly every
-                                 two-point model (Single Line, Matrix, Arches, Icicles, etc.)
-                                 regardless of its actual orientation (#6993)
-    -bug (dkulp)                 Fixed a crash opening a show folder containing a Poly Line or
-                                 Multi Point model saved with fewer than two points
+    -bug (dkulp)                 Kulp K16A-B is now two variants, 1.x and 2.x/3.x, as the two board
+                                 revisions run different FPP string drivers and support different
+                                 pixel protocols and smart receivers. Existing shows resolve to 1.x;
+                                 discovery picks the right one from the cape. Uploads now take the
+                                 string driver from the cape itself, so a mismatched variant no
+                                 longer writes a config the controller cannot run (#6978)
+    -bug (dkulp)                 FPP Connect: fix a crash uploading controller config to a
+                                 controller with no known capabilities or a multicast-only address
+    -bug (derwin12)              Fix the FPP Connect dialog hanging when canceling an in-progress
+                                 upload (#7004)
+    -bug (derwin12)              Fix controller discovery adding a duplicate FPP entry with IP
+                                 127.0.0.1 when the FPP instance self-reports its own loopback
+                                 address
+    -bug (derwin12)              Fix the show and media folders offered as htdemucs install
+                                 locations listing the same folder more than once when the show
+                                 folder was also a configured media folder (#6994)
+    -bug (derwin12)              Fix images for the ChatGPT service (#6969)
+    -bug (dkulp)                 The deleteEffect automation command now re-renders the range,
+                                 clears the grid's selection and refuses locked effects;
+                                 setEffectSettings also re-renders after changing an effect
+    -bug (scott)                 Fix several automation commands (addEffect, setModelProperty,
+                                 saveSequence) mishandling JSON settings, dropdown properties, and
+                                 relative filenames
     -bug (dkulp)                 Linux: the camera scan in Generate Custom Model now works whatever
                                  FFmpeg version the distro ships, and explains what to install if no
                                  FFmpeg runtime is present at all
-    -bug (dkulp)                 Fixed a crash rendering a Video effect when the decoder switched
-                                 mid-file (hardware decode dropping back to software) - the scaler
-                                 kept the previous decoder's frame layout
-    -enh (derwin12)              ML stem separation (Drums/Bass/Other/Vocals) now saves each stem
-                                 as an alternate audio track under Sequence Settings > Audio Tracks,
-                                 so they survive closing the sequence and don't need reprocessing (#6856)
-    -bug (derwin12)              Fix the show/media folders offered as htdemucs install locations
-                                 listing the same folder more than once when the show folder was
-                                 also a configured media folder (#6994)
-    -bug (scott)                 Fix Custom Model Wiring view zoom sometimes flying off-screen or
-                                 crashing when scrolled out fully, and drifting away from the mouse
-                                 pointer while zooming on displays with Windows scaling above 100%
-    -enh (scott)                 Custom Model Wiring dialog now remembers its size and position
-    -enh (derwin12)              Picking a video/picture/other media file outside the show or media
-                                 folders now also offers "Copy to sequence's imported media folder",
-                                 which files it under ImportedMedia/<sequence name>/ instead of the
-                                 show folder root - mirrors where importing a sequence package's
-                                 media already lands (#7013)
-    -bug (derwin12)              Fix Moving Head effect's Dimmer/Pathing/Pattern tabs staying
-                                 disabled after dropping the effect on a fixture group or checking
-                                 a fixture, and staying enabled after unchecking all fixtures or
-                                 clicking None
+    -bug (dkulp)                 Fix a crash opening the File menu when the show folder is on a
+                                 drive that does not keep file versions, such as an external or
+                                 network disk
+    -bug (dkulp)                 Fix the application hanging after a crash report was sent instead
+                                 of exiting, and a crash on a render thread aborting the app while
+                                 the crash report dialog was still open
+    -bug (dkulp)                 Include the machine configuration in crash reports - it was only
+                                 ever attached to a manually packaged debug zip, never to an actual
+                                 crash
+    -bug (dkulp)                 iPad - Sequences opened from a writable location were all flagged
+                                 read-only, disabling Save
+    -bug (dkulp)                 iPad - Fix a crash closing or re-rendering a sequence while the
+                                 render progress sheet is open
+    -bug (dkulp)                 iPad - An effect edit made while the layout is being reloaded is
+                                 rendered once the reload finishes instead of being dropped
+    -bug (dkulp)                 iPad - Batch Render no longer writes an empty .fseq over the
+                                 previous one when the render could not start because the layout was
+                                 still being reloaded; it retries, then skips that sequence
+    -bug (dkulp)                 iPad - Changing the frame interval of a packaged (.xsqz) sequence
+                                 reopens it correctly
+    -bug (dkulp)                 iPad - A media file dropped onto the grid is copied into the show
+                                 folder so the effect still finds it after the drop's temporary copy
+                                 is removed
+    -bug (dkulp)                 iPad - Fix a crash undoing a lyric breakdown after one of its
+                                 phonemes had been broken down again or deleted
+    -bug (dkulp)                 iPad - A renamed or deleted preview no longer lingers in the
+                                 preview menus
+    -bug (dkulp)                 iPad - "Move All Models To Port" no longer chains a multi-string
+                                 model after itself, and rejects a port the controller does not have
+    -bug (dkulp)                 iPad - Restoring a show folder backup replaces each file only after
+                                 its copy succeeded, and stops if the safety backup fails
+    -bug (dkulp)                 iPad - "Cleanup File Locations" no longer blanks a face image,
+                                 image or mesh path when the copy into the show folder fails
+    -bug (dkulp)                 iPad - Tip of the Day was black text on the dark sheet background
+                                 in dark mode; the tips now follow the system appearance
 
 2026.16  August 24, 2026
 
