@@ -4438,6 +4438,9 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
 
 bool LayoutPanel::SaveEffects()
 {
+    if (xlights->IsReadOnlyMode()) {
+        return false;
+    }
     xlights->SaveEffectsFile();
     xlights->SetStatusText(_("Preview layout saved"));
     SetDirtyHiLight(false);
