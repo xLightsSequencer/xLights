@@ -426,6 +426,7 @@ class LayoutPanel: public wxPanel
         int GetBackgroundAlphaForSelectedPreview();
         const std::string& GetCurrentLayoutGroup() const {return currentLayoutGroup;}
         void Reset();
+        void SyncCurrentLayoutGroupFromStored();
         void SetDirtyHiLight(bool dirty);
         std::string GetCurrentPreview() const;
         void SetDisplay2DBoundingBox(bool bb);
