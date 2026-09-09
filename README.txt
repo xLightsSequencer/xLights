@@ -22,6 +22,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  layout to be saved
     -bug (derwin12)              Polyline - dragging a curve segment's Bezier handle along the Z axis in
                                  3D no longer snaps it to Z=0 and locks up further Z-axis movement (#7045)
+    -bug (derwin12)              Layout tab could land on the "Unassigned" preview instead of "Default"
+                                 when the show's last-saved preview no longer existed, showing no models
 
 
 2026.17  September 8, 2026

@@ -11949,6 +11949,17 @@ void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
     }
 }
 
+// Reset() (above) seeds the current group from xlights->GetStoredLayoutGroup()
+// before the caller has finished validating it against the just-loaded
+// LayoutGroups (a stored preview name that no longer exists gets corrected to
+// "Default" only after Reset() already ran). Call this once that correction is
+// done so the panel and its dropdown reflect the corrected value instead of
+// the raw, possibly-stale one.
+void LayoutPanel::SyncCurrentLayoutGroupFromStored() {
+    SetCurrentLayoutGroup(xlights->GetStoredLayoutGroup());
+    SwitchChoiceToCurrentLayoutGroup();
+}
+
 void LayoutPanel::DeleteCurrentPreview() {
     if (wxMessageBox("Are you sure you want to delete the " + currentLayoutGroup + " preview?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
         auto it = xlights->LayoutGroups.find(currentLayoutGroup);
