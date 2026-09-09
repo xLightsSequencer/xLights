@@ -662,6 +662,11 @@ void xLightsFrame::LoadEffectsFile()
     if (!found_saved_preview) {
         mStoredLayoutGroup = "Default";
     }
+    // layoutPanel->Reset() above seeded the current group from the raw,
+    // unvalidated setting (before LayoutGroups was even populated), so any
+    // correction just made above never reached the panel or its dropdown.
+    // Re-sync both now that mStoredLayoutGroup is known-good.
+    layoutPanel->SyncCurrentLayoutGroupFromStored();
 
     mBackgroundBrightness = (int)std::strtol(GetXmlSetting("backgroundBrightness", "100").c_str(), nullptr, 10);
     mBackgroundAlpha = (int)std::strtol(GetXmlSetting("backgroundAlpha", "100").c_str(), nullptr, 10);

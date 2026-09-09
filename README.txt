@@ -20,6 +20,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  sequence opened even though they render correctly
     -bug (derwin12)              Opening a sequence in read only mode (.xsqz) no longer allows the
                                  layout to be saved
+    -bug (derwin12)              Layout tab could land on the "Unassigned" preview instead of "Default"
+                                 when the show's last-saved preview no longer existed, showing no models
 
 
 2026.17  September 8, 2026
