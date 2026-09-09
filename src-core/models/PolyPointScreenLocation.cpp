@@ -1448,18 +1448,22 @@ void PolyPointScreenLocation::SetCurveCp0(int segment, const glm::vec3& world) {
     if (!HasSegmentCurve(segment)) return;
     const float sx = SafeScale(scalex);
     const float sy = SafeScale(scaley);
+    const float sz = SafeScale(scalez);
     const float lx = (world.x - worldPos_x) / sx;
     const float ly = (world.y - worldPos_y) / sy;
-    mPos[segment].curve->set_cp0(lx, ly, 0.0f);
+    const float lz = (world.z - worldPos_z) / sz;
+    mPos[segment].curve->set_cp0(lx, ly, lz);
 }
 
 void PolyPointScreenLocation::SetCurveCp1(int segment, const glm::vec3& world) {
     if (!HasSegmentCurve(segment)) return;
     const float sx = SafeScale(scalex);
     const float sy = SafeScale(scaley);
+    const float sz = SafeScale(scalez);
     const float lx = (world.x - worldPos_x) / sx;
     const float ly = (world.y - worldPos_y) / sy;
-    mPos[segment].curve->set_cp1(lx, ly, 0.0f);
+    const float lz = (world.z - worldPos_z) / sz;
+    mPos[segment].curve->set_cp1(lx, ly, lz);
 }
 
 namespace {

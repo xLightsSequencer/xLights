@@ -20,6 +20,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  sequence opened even though they render correctly
     -bug (derwin12)              Opening a sequence in read only mode (.xsqz) no longer allows the
                                  layout to be saved
+    -bug (derwin12)              Polyline - dragging a curve segment's Bezier handle along the Z axis in
+                                 3D no longer snaps it to Z=0 and locks up further Z-axis movement (#7045)
     -bug (derwin12)              Layout tab could land on the "Unassigned" preview instead of "Default"
                                  when the show's last-saved preview no longer existed, showing no models
 
