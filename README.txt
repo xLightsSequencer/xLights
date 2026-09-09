@@ -18,6 +18,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 macOS - Uncompressed .mov files whose rows are not a multiple of 8 bytes
                                  (for example 50 pixels wide, 24-bit) were flagged as unsupported when the
                                  sequence opened even though they render correctly
+    -bug (derwin12)              Opening a sequence in read only mode (.xsqz) no longer allows the
+                                 layout to be saved
 
 
 2026.17  September 8, 2026

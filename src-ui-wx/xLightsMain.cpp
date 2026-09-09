@@ -2967,7 +2967,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     if (pagenum == LAYOUTTAB) {
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "OnNotebook1PageChanged");
         SetStatusText(_(""));
-        MenuItem_File_Save->Enable(true);
+        MenuItem_File_Save->Enable(!readOnlyMode);
         MenuItem_File_Save->SetItemLabel("Save Layout\tCTRL-s");
         layoutPanel->RestoreFloatingPanes();
     } else if (pagenum == NEWSEQUENCER) {
@@ -7893,6 +7893,10 @@ void xLightsFrame::SaveCurrentTab()
 {
     switch (Notebook1->GetSelection()) {
     case LAYOUTTAB:
+        if (readOnlyMode) {
+            DisplayError("Layout cannot be saved in read only mode!", this);
+            break;
+        }
         layoutPanel->SaveEffects();
         SaveNetworksFile();
         break;
