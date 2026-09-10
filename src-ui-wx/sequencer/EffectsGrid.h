@@ -287,7 +287,7 @@ private:
     void MoveAllSelectedEffects(int deltaMS, bool offset) const;
     void ResetEffectMoveDragState();
     int SnapCursorToTimingMark(int timeMS, int x) const;
-    void UpdateEffectMoveDragState(int x, int y, bool snapToTiming, bool altDown);
+    void UpdateEffectMoveDragState(int x, int y, bool snapToTiming, bool altDown, bool shiftDown);
     void OnScrollTimer(wxTimerEvent& event);
     void ApplyEffectMoveDrag();
     void DrawEffectMoveDragOverlay(xlGraphicsContext* ctx);
@@ -409,6 +409,7 @@ private:
     int mEffectMoveTargetDeltaMS = 0;
     bool mEffectMoveHasCollision = false;
     bool mEffectMoveCopyMode = false;
+    bool mEffectMoveLockTime = false;
     std::vector<EffectMoveSnapshot> mEffectMoveSnapshots;
     int mScrollDir = 0;
     int mHScrollDir = 0;
@@ -416,6 +417,7 @@ private:
     int mLastDragY = 0;
     bool mLastDragSnap = false;
     bool mLastDragAlt = false;
+    bool mLastDragShift = false;
     wxTimer mScrollTimer;
 
     bool mCellRangeSelected;

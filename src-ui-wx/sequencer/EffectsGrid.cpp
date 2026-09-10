@@ -79,6 +79,7 @@
 #define EFFECT_RESIZE_FADE_OUT 7
 #define TIMING_ALPHA (0x60)
 #define DRAG_THRESHOLD 3
+#define DRAG_COLLISION_SLACK 40
 #define FADE_HANDLE_CENTER_Y_OFFSET 4
 #define FADE_HANDLE_SIZE 4
 #define FADE_HANDLE_HIT_SLOP 6
@@ -1880,7 +1881,8 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
             mLastDragY = event.GetY();
             mLastDragSnap = event.ControlDown();
             mLastDragAlt = event.AltDown();
-            UpdateEffectMoveDragState(mLastDragX, mLastDragY, mLastDragSnap, mLastDragAlt);
+            mLastDragShift = event.ShiftDown();
+            UpdateEffectMoveDragState(mLastDragX, mLastDragY, mLastDragSnap, mLastDragAlt, mLastDragShift);
             Draw();
         }
     } else if (mDragging) {
@@ -8413,6 +8415,7 @@ void EffectsGrid::ResetEffectMoveDragState() {
     mEffectMoveDragGroup = false;
     mEffectMoveHasCollision = false;
     mEffectMoveCopyMode = false;
+    mEffectMoveLockTime = false;
     mEffectMoveSnapshots.clear();
     mEffectMoveAnchorEffect = nullptr;
 }
@@ -8451,7 +8454,7 @@ void EffectsGrid::OnScrollTimer(wxTimerEvent&)
         }
     }
 
-    UpdateEffectMoveDragState(mLastDragX, mLastDragY, mLastDragSnap, mLastDragAlt);
+    UpdateEffectMoveDragState(mLastDragX, mLastDragY, mLastDragSnap, mLastDragAlt, mLastDragShift);
     if (scrolled) Draw();
 }
 
@@ -8480,11 +8483,12 @@ int EffectsGrid::SnapCursorToTimingMark(int timeMS, int x) const {
     return timeMS;
 }
 
-void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, bool altDown) {
+void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, bool altDown, bool shiftDown) {
     static const wxCursor s_noEntry(wxCURSOR_NO_ENTRY);
     static const wxCursor s_sizing(wxCURSOR_SIZING);
 
     mEffectMoveCopyMode = altDown;
+    mEffectMoveLockTime = shiftDown;
 
     if (mEffectMoveSnapshots.empty()) return;
 
@@ -8521,6 +8525,7 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
     int timelineLength = mTimeline->GetTimeLength();
     rawDelta = std::max(rawDelta, -minOrigStart);
     rawDelta = std::min(rawDelta, timelineLength - maxOrigEnd);
+    if (mEffectMoveLockTime) rawDelta = 0;
     mEffectMoveTargetDeltaMS = rawDelta;
 
     // Compute target row, clamped to model rows
@@ -8559,40 +8564,71 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
         if (snap.hasCollision) anyCollision = true;
     }
 
-    // When dragging horizontally within the same rows in move mode, clamp the
-    // delta so effects butt up against the nearest blocking neighbor instead of
-    // bouncing back to their original position on collision.
-    if (anyCollision && rowDelta == 0 && !mEffectMoveCopyMode && rawDelta != 0) {
-        int clampedDelta = rawDelta;
+    // A blocked drag slides flush against whatever is in the way instead of
+    // passing through it. Every position that butts one dragged effect up
+    // against one neighbour on its destination row is a candidate; the nearest
+    // valid one to the cursor wins. The slack cap keeps that within a short
+    // reach of the cursor, so a blocked drag stops against its neighbour rather
+    // than jumping to a distant gap, and past the cap it reports the collision.
+    if (anyCollision && !mEffectMoveLockTime) {
+        bool ignoreSelected = !mEffectMoveCopyMode;
+        bool canSlide = true;
+        std::vector<int> candidates;
+        candidates.push_back(0);
+
         for (auto& snap : mEffectMoveSnapshots) {
-            if (!snap.hasCollision) continue;
-            EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snap.origVisibleRow);
-            if (tl == nullptr) continue;
-            int ts = snap.origStartTimeMS + rawDelta;
-            int te = snap.origEndTimeMS + rawDelta;
+            int snapTargetRow = snap.origVisibleRow + rowDelta;
+            if (snapTargetRow < numTimingRows || snapTargetRow >= numVisibleRows) {
+                canSlide = false;
+                break;
+            }
+            EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snapTargetRow);
+            if (tl == nullptr) {
+                canSlide = false;
+                break;
+            }
             for (Effect* e : tl->GetEffects()) {
-                if (e->GetSelected() != EFFECT_NOT_SELECTED) continue;
-                if (e->GetStartTimeMS() >= te || e->GetEndTimeMS() <= ts) continue;
-                if (rawDelta > 0) {
-                    // Moving right: clamp so our end meets the blocker's start
-                    clampedDelta = std::min(clampedDelta, e->GetStartTimeMS() - snap.origEndTimeMS);
-                } else {
-                    // Moving left: clamp so our start meets the blocker's end
-                    clampedDelta = std::max(clampedDelta, e->GetEndTimeMS() - snap.origStartTimeMS);
-                }
+                if (ignoreSelected && e->GetSelected() != EFFECT_NOT_SELECTED) continue;
+                candidates.push_back(e->GetStartTimeMS() - snap.origEndTimeMS);
+                candidates.push_back(e->GetEndTimeMS() - snap.origStartTimeMS);
             }
         }
-        if (clampedDelta != rawDelta && clampedDelta != 0) {
-            bool clampedOk = true;
-            for (auto& snap : mEffectMoveSnapshots) {
-                EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snap.origVisibleRow);
-                if (tl == nullptr) { clampedOk = false; break; }
-                int ts = snap.origStartTimeMS + clampedDelta;
-                int te = snap.origEndTimeMS + clampedDelta;
-                if (!tl->GetRangeIsClearMS(ts, te, true)) { clampedOk = false; break; }
+
+        if (canSlide) {
+            int slackPx = FromDIP(DRAG_COLLISION_SLACK);
+            int best = 0;
+            bool haveBest = false;
+            for (int candidate : candidates) {
+                if (haveBest && std::abs(candidate - rawDelta) >= std::abs(best - rawDelta)) continue;
+
+                int overdragMS = std::abs(rawDelta - candidate);
+                int overdragPx = mTimeline->GetPositionFromTimeMS(overdragMS) - mTimeline->GetPositionFromTimeMS(0);
+                if (overdragPx > slackPx) continue;
+
+                bool clear = true;
+                for (auto& snap : mEffectMoveSnapshots) {
+                    if (snap.origStartTimeMS + candidate < 0) {
+                        clear = false;
+                        break;
+                    }
+                    EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snap.origVisibleRow + rowDelta);
+                    if (tl == nullptr) {
+                        clear = false;
+                        break;
+                    }
+                    if (!tl->GetRangeIsClearMS(snap.origStartTimeMS + candidate, snap.origEndTimeMS + candidate, ignoreSelected)) {
+                        clear = false;
+                        break;
+                    }
+                }
+                if (!clear) continue;
+
+                best = candidate;
+                haveBest = true;
             }
-            if (clampedOk) {
-                mEffectMoveTargetDeltaMS = clampedDelta;
+
+            if (haveBest) {
+                mEffectMoveTargetDeltaMS = best;
                 anyCollision = false;
                 for (auto& snap : mEffectMoveSnapshots) snap.hasCollision = false;
             }
@@ -8612,9 +8648,10 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
         if (minStart != INT_MAX) {
             ((MainSequencer*)mParent)->PanelWaveForm->SetEffectDragOverride(minStart, maxEnd);
             xlights->SetStatusText(
-                wxString::Format("start: %s  end: %s  duration: %s",
+                wxString::Format("start: %s  end: %s  duration: %s%s",
                                  FORMATTIME(minStart), FORMATTIME(maxEnd),
-                                 FORMATTIME(maxEnd - minStart)), true);
+                                 FORMATTIME(maxEnd - minStart),
+                                 mEffectMoveLockTime ? "  [timing locked]" : ""), true);
         }
     }
 
@@ -8622,7 +8659,7 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
     int zone = FromDIP(40);
 
     mScrollDir = (y < zone) ? -1 : (y > sz.GetHeight() - zone) ? 1 : 0;
-    mHScrollDir = (x < zone) ? -1 : (x > sz.GetWidth() - zone) ? 1 : 0;
+    mHScrollDir = mEffectMoveLockTime ? 0 : ((x < zone) ? -1 : (x > sz.GetWidth() - zone) ? 1 : 0);
 
     if (mScrollDir != 0 || mHScrollDir != 0) {
         if (!mScrollTimer.IsRunning()) mScrollTimer.Start(150);
