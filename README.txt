@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (derwin12)              Moving Head Advanced - Position Zones can now be exported to, and
+                                 imported from, other moving head props (#6926)
     -bug (dkulp)                 Closing a sequence could crash: the waveform panel kept pointing at the
                                  sequence audio after the sequence was deleted
     -bug (dkulp)                 Fixed a crash when dragging an effect edge while the row the drag started

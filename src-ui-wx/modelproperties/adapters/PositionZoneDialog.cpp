@@ -4,21 +4,30 @@
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/choicdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/stattext.h>
+
+#include <spdlog/spdlog.h>
+
+#include "models/ModelManager.h"
+#include "models/OutputModelManager.h"
+#include "shared/dialogs/CheckboxSelectDialog.h"
 
 //(*IdInit(PositionZoneDialog)
 const wxWindowID PositionZoneDialog::ID_GRID_Zones = wxNewId();
 const wxWindowID PositionZoneDialog::ID_BUTTON_AddZone = wxNewId();
 const wxWindowID PositionZoneDialog::ID_BUTTON_DeleteZone = wxNewId();
 //*)
+const wxWindowID PositionZoneDialog::ID_BUTTON_ExportZones = wxNewId();
+const wxWindowID PositionZoneDialog::ID_BUTTON_ImportZones = wxNewId();
 
 BEGIN_EVENT_TABLE(PositionZoneDialog,wxDialog)
     //(*EventTable(PositionZoneDialog)
     //*)
 END_EVENT_TABLE()
 
-PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindow* parent) : _zones(zones) {
+PositionZoneDialog::PositionZoneDialog(DmxMovingHeadAdv& model, std::vector<PositionZone>& zones, wxWindow* parent) : _model(model), _zones(zones) {
     //(*Initialize(PositionZoneDialog)
     wxFlexGridSizer* FlexGridSizer2;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
@@ -60,6 +69,14 @@ PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindo
     Connect(ID_BUTTON_DeleteZone, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PositionZoneDialog::OnButton_DeleteZoneClick);
     //*)
 
+    // export/import zones to/from other moving head props in the layout
+    Button_ExportZones = new wxButton(this, ID_BUTTON_ExportZones, _("Export Zones..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ExportZones"));
+    FlexGridSizer2->Add(Button_ExportZones, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_ImportZones = new wxButton(this, ID_BUTTON_ImportZones, _("Import Zones..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ImportZones"));
+    FlexGridSizer2->Add(Button_ImportZones, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Connect(ID_BUTTON_ExportZones, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PositionZoneDialog::OnButton_ExportZonesClick);
+    Connect(ID_BUTTON_ImportZones, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PositionZoneDialog::OnButton_ImportZonesClick);
+
     // instruction text above the grid
     const wxString bullet(wxUniChar(0x2022));
     const wxString helpTextLabel = wxString::Format(
@@ -90,15 +107,7 @@ PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindo
     Grid_Zones->SetColAttr(6, makeAttr(0, 255));   // Value
 
     for (const auto& zone : _zones) {
-        int row = Grid_Zones->GetNumberRows();
-        Grid_Zones->AppendRows(1);
-        Grid_Zones->SetCellValue(row, 0, zone.label);
-        Grid_Zones->SetCellValue(row, 1, wxString::Format("%d", zone.pan_min));
-        Grid_Zones->SetCellValue(row, 2, wxString::Format("%d", zone.pan_max));
-        Grid_Zones->SetCellValue(row, 3, wxString::Format("%d", zone.tilt_min));
-        Grid_Zones->SetCellValue(row, 4, wxString::Format("%d", zone.tilt_max));
-        Grid_Zones->SetCellValue(row, 5, wxString::Format("%d", zone.channel));
-        Grid_Zones->SetCellValue(row, 6, wxString::Format("%d", zone.value));
+        AppendZoneRow(zone);
     }
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -108,26 +117,196 @@ PositionZoneDialog::~PositionZoneDialog()
 {
     //(*Destroy(PositionZoneDialog)
     //*)
+
+    // Safe to notify now: ShowModal() has already returned by this point (this
+    // dialog's destructor cannot run while its own modal loop is still active),
+    // so the deferred rerender/save work can no longer land mid-dialog.
+    FlushPendingExportNotifications();
+}
+
+void PositionZoneDialog::FlushPendingExportNotifications()
+{
+    if (_pendingExportNotifyTargets.empty())
+        return;
+
+    spdlog::debug("PositionZoneDialog: flushing export notifications for {} target(s) after modal close", _pendingExportNotifyTargets.size());
+    for (auto* target : _pendingExportNotifyTargets) {
+        target->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PositionZoneDialog::Export");
+        target->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "PositionZoneDialog::Export");
+        target->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PositionZoneDialog::Export");
+    }
+    _pendingExportNotifyTargets.clear();
+
+    // The AddASAPWork calls above each overwrite the OutputModelManager's "selected model"
+    // with the export target's name; put it back on the model whose editor is actually
+    // still open so a subsequent property grid reload doesn't jump to the wrong prop.
+    _model.AddASAPWork(0, "PositionZoneDialog::RestoreSelection");
 }
 
 
-void PositionZoneDialog::OnButton_AddZoneClick(wxCommandEvent& event)
+void PositionZoneDialog::AppendZoneRow(const PositionZone& zone)
 {
     int row = Grid_Zones->GetNumberRows();
     Grid_Zones->AppendRows(1);
-    Grid_Zones->SetCellValue(row, 0, "");
-    Grid_Zones->SetCellValue(row, 1, "0");
-    Grid_Zones->SetCellValue(row, 2, "255");
-    Grid_Zones->SetCellValue(row, 3, "0");
-    Grid_Zones->SetCellValue(row, 4, "255");
-    Grid_Zones->SetCellValue(row, 5, "1");
-    Grid_Zones->SetCellValue(row, 6, "0");
+    Grid_Zones->SetCellValue(row, 0, zone.label);
+    Grid_Zones->SetCellValue(row, 1, wxString::Format("%d", zone.pan_min));
+    Grid_Zones->SetCellValue(row, 2, wxString::Format("%d", zone.pan_max));
+    Grid_Zones->SetCellValue(row, 3, wxString::Format("%d", zone.tilt_min));
+    Grid_Zones->SetCellValue(row, 4, wxString::Format("%d", zone.tilt_max));
+    Grid_Zones->SetCellValue(row, 5, wxString::Format("%d", zone.channel));
+    Grid_Zones->SetCellValue(row, 6, wxString::Format("%d", zone.value));
+}
 
+wxString PositionZoneDialog::ZoneDisplayName(const PositionZone& zone, size_t index)
+{
+    if (!zone.label.empty()) {
+        return wxString::Format("%s (Ch %d = %d)", wxString(zone.label), zone.channel, zone.value);
+    }
+    return wxString::Format("Zone %d (Ch %d = %d)", (int)index + 1, zone.channel, zone.value);
+}
+
+void PositionZoneDialog::OnButton_AddZoneClick(wxCommandEvent& event)
+{
     PositionZone zone;
+    AppendZoneRow(zone);
     _zones.push_back(zone);
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+}
+
+void PositionZoneDialog::OnButton_ExportZonesClick(wxCommandEvent& event)
+{
+    spdlog::debug("PositionZoneDialog::OnButton_ExportZonesClick - {} zone(s) defined on '{}'", _zones.size(), _model.GetName());
+
+    if (_zones.empty()) {
+        wxMessageBox("There are no zones to export.", "Export Zones", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    wxArrayString zoneItems;
+    for (size_t i = 0; i < _zones.size(); ++i) {
+        zoneItems.Add(ZoneDisplayName(_zones[i], i));
+    }
+
+    CheckboxSelectDialog zoneDlg(this, "Export Zones", zoneItems, zoneItems, "Select the zones to export:");
+    if (zoneDlg.ShowModal() != wxID_OK)
+        return;
+    wxArrayString selectedZones = zoneDlg.GetSelectedItems();
+    if (selectedZones.IsEmpty())
+        return;
+
+    std::vector<PositionZone> zonesToExport;
+    for (size_t i = 0; i < _zones.size(); ++i) {
+        if (selectedZones.Index(zoneItems[i]) != wxNOT_FOUND) {
+            zonesToExport.push_back(_zones[i]);
+        }
+    }
+
+    std::vector<DmxMovingHeadAdv*> otherHeads;
+    wxArrayString propItems;
+    const ModelManager& mm = _model.GetModelManager();
+    for (auto it = mm.begin(); it != mm.end(); ++it) {
+        Model* m = it->second;
+        if (m == &_model)
+            continue;
+        DmxMovingHeadAdv* other = dynamic_cast<DmxMovingHeadAdv*>(m);
+        if (other != nullptr) {
+            otherHeads.push_back(other);
+            propItems.Add(m->GetName());
+        }
+    }
+
+    if (otherHeads.empty()) {
+        wxMessageBox("There are no other moving head props to export zones to.", "Export Zones", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    CheckboxSelectDialog propDlg(this, "Export Zones", propItems, wxArrayString(), "Select the props to export the selected zones to:");
+    if (propDlg.ShowModal() != wxID_OK)
+        return;
+    wxArrayString selectedProps = propDlg.GetSelectedItems();
+    if (selectedProps.IsEmpty())
+        return;
+
+    int propCount = 0;
+    for (size_t i = 0; i < otherHeads.size(); ++i) {
+        if (selectedProps.Index(propItems[i]) == wxNOT_FOUND)
+            continue;
+
+        DmxMovingHeadAdv* target = otherHeads[i];
+        auto targetZones = target->GetPositionZones();
+        for (const auto& zone : zonesToExport) {
+            targetZones.push_back(zone);
+        }
+        target->SetPositionZones(targetZones);
+        // Notification (AddASAPWork) is deferred to the destructor -- see the comment
+        // on _pendingExportNotifyTargets. Only the plain data mutation happens here.
+        _pendingExportNotifyTargets.push_back(target);
+        ++propCount;
+    }
+
+    spdlog::debug("PositionZoneDialog::OnButton_ExportZonesClick - exported {} zone(s) to {} prop(s), notifications deferred until dialog close",
+                  (int)zonesToExport.size(), propCount);
+
+    wxMessageBox(wxString::Format("Exported %d zone(s) to %d prop(s).", (int)zonesToExport.size(), propCount),
+                 "Export Zones", wxOK | wxICON_INFORMATION, this);
+}
+
+void PositionZoneDialog::OnButton_ImportZonesClick(wxCommandEvent& event)
+{
+    std::vector<DmxMovingHeadAdv*> otherHeads;
+    wxArrayString propItems;
+    const ModelManager& mm = _model.GetModelManager();
+    for (auto it = mm.begin(); it != mm.end(); ++it) {
+        Model* m = it->second;
+        if (m == &_model)
+            continue;
+        DmxMovingHeadAdv* other = dynamic_cast<DmxMovingHeadAdv*>(m);
+        if (other != nullptr && !other->GetPositionZones().empty()) {
+            otherHeads.push_back(other);
+            propItems.Add(m->GetName());
+        }
+    }
+
+    if (otherHeads.empty()) {
+        wxMessageBox("There are no other moving head props with zones to import from.", "Import Zones", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    int propIndex = wxGetSingleChoiceIndex("Select the prop to import zones from:", "Import Zones", propItems, this);
+    if (propIndex == wxNOT_FOUND)
+        return;
+
+    DmxMovingHeadAdv* source = otherHeads[propIndex];
+    const std::vector<PositionZone>& sourceZones = source->GetPositionZones();
+
+    wxArrayString zoneItems;
+    for (size_t i = 0; i < sourceZones.size(); ++i) {
+        zoneItems.Add(ZoneDisplayName(sourceZones[i], i));
+    }
+
+    CheckboxSelectDialog zoneDlg(this, "Import Zones", zoneItems, zoneItems, wxString::Format("Select the zones to import from '%s':", propItems[propIndex]));
+    if (zoneDlg.ShowModal() != wxID_OK)
+        return;
+    wxArrayString selectedZones = zoneDlg.GetSelectedItems();
+    if (selectedZones.IsEmpty())
+        return;
+
+    int importCount = 0;
+    for (size_t i = 0; i < sourceZones.size(); ++i) {
+        if (selectedZones.Index(zoneItems[i]) == wxNOT_FOUND)
+            continue;
+        AppendZoneRow(sourceZones[i]);
+        _zones.push_back(sourceZones[i]);
+        ++importCount;
+    }
+
+    FlexGridSizer1->Fit(this);
+    FlexGridSizer1->SetSizeHints(this);
+
+    wxMessageBox(wxString::Format("Imported %d zone(s) from '%s'.", importCount, propItems[propIndex]),
+                 "Import Zones", wxOK | wxICON_INFORMATION, this);
 }
 
 void PositionZoneDialog::OnButton_DeleteZoneClick(wxCommandEvent& event)

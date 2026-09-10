@@ -211,6 +211,8 @@ void AddPresetProperties(wxPropertyGridInterface* grid, DmxPresetAbility& preset
                                                wxString::Format("DmxPresetDesc%d", index), pre.Description));
         ++index;
     }
+
+    grid->Collapse("DmxPresetSize");
 }
 
 int OnPresetPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, DmxPresetAbility& preset, int num_channels, BaseObject* base) {

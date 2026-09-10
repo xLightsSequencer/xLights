@@ -38,7 +38,7 @@ public:
 
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
         auto zones = m_model.GetPositionZones();
-        PositionZoneDialog dlg(zones, propGrid);
+        PositionZoneDialog dlg(m_model, zones, propGrid);
         if (dlg.ShowModal() == wxID_OK) {
             m_model.SetPositionZones(zones);
             m_model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PositionZoneDialogAdapter");
