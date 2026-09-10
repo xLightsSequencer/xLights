@@ -2142,6 +2142,16 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 
     if (full_refresh) {
         UnSelectAllModels();
+        // UnSelectAllModels() only clears our own bookkeeping (selectedTreeGroups/
+        // selectedTreeModels, per-model Selected() flags) - it does not touch the
+        // native tree control's selection. DeleteAllItems()/re-add below hands the
+        // tree brand new items, but some platforms (e.g. macOS NSOutlineView) can
+        // keep a row visually selected across that rebuild if a new item lands in
+        // the same row. Explicitly clear both trees so a freshly rebuilt tree never
+        // starts out with a stale selection (github issue #7049 - cloning a group
+        // left both the original and the clone highlighted).
+        TreeListViewModels->UnselectAll();
+        TreeListViewGroups->UnselectAll();
         TreeListViewModels->DeleteAllItems();
         TreeListViewGroups->DeleteAllItems();
 
