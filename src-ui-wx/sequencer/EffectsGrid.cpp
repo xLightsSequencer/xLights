@@ -462,6 +462,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
         spdlog::critical("EffectsGrid::rightClick No row element ... this is not going to end well.");
         return;
     }
+    _rightClickEffect = nullptr;
     if (element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
         int rightClickEffectIndex;
         HitLocation rightClickHit;
@@ -1178,12 +1179,14 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
     } else if (id == ID_GRID_MNU_UNDO) {
         spdlog::debug("OnGridPopup - UNDO");
         mSelectedEffect = nullptr; // lets clear it as the undo may delete that effect ... and i cant be sure
+        _rightClickEffect = nullptr;
         mSequenceElements->UnSelectAllEffects();
         mSequenceElements->get_undo_mgr().UndoLastStep();
         sendRenderDirtyEvent();
     } else if (id == ID_GRID_MNU_REDO) {
         spdlog::debug("OnGridPopup - REDO");
         mSelectedEffect = nullptr; // lets clear it as the redo may delete that effect ... and i cant be sure
+        _rightClickEffect = nullptr;
         mSequenceElements->UnSelectAllEffects();
         mSequenceElements->get_undo_mgr().RedoLastStep();
         sendRenderDirtyEvent();
@@ -2165,6 +2168,8 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
 void EffectsGrid::ClearSelection() {
     mDragging = false;
     mResizing = false;
+    mEffectLayer = nullptr;
+    mResizeEffectIndex = -1;
     mDragThresholdExceeded = false;
     mDragDropping = false;
     mDropStartX = 0;
@@ -2285,10 +2290,9 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             }
         }
 
-        if (selectedEffect != nullptr) {
-            mEffectLayer = mSequenceElements->GetVisibleEffectLayer(row);
-            Element* element = mEffectLayer->GetParentElement();
-
+        mEffectLayer = selectedEffect != nullptr ? mSequenceElements->GetVisibleEffectLayer(row) : nullptr;
+        Element* element = mEffectLayer != nullptr ? mEffectLayer->GetParentElement() : nullptr;
+        if (element != nullptr) {
             if (element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (selectedEffect != mSelectedEffect) {
                     mSelectedEffect = selectedEffect;
@@ -4070,7 +4074,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
             ((MainSequencer*)mParent)->PanelWaveForm->ClearEffectDragOverride();
             ResetEffectMoveDragState();
         } else if (mResizing) {
-            if (mEffectLayer->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            if (mEffectLayer != nullptr && mEffectLayer->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (MultipleEffectsSelected()) {
                     std::string lastModel;
                     int startMS = 99999999;
@@ -4220,6 +4224,8 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
         mResizing = false;
         mDragThresholdExceeded = false;
         mDragDropping = false;
+        mEffectLayer = nullptr;
+        mResizeEffectIndex = -1;
         Draw();
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
         mSequenceElements->get_undo_mgr().RemoveUnusedMarkers();
@@ -5267,9 +5273,12 @@ void EffectsGrid::DeleteSelectedEffects() {
     }
     UnselectEffect();
     mSelectedEffect = nullptr;
+    _rightClickEffect = nullptr;
     mSelectedRow = -1;
     mResizing = false;
     mDragging = false;
+    mEffectLayer = nullptr;
+    mResizeEffectIndex = -1;
     ForceRefresh();
 
     // we need to update the row headings due to the effect indicator and this might be the last effect on the model
@@ -6878,6 +6887,9 @@ void EffectsGrid::ResizeSingleEffect(int position) {
 }
 
 void EffectsGrid::ResizeSingleEffectMS(int timems) {
+    if (mEffectLayer == nullptr) {
+        return;
+    }
     Effect* effect = mEffectLayer->GetEffect(mResizeEffectIndex);
     if (!effect)
         return;
@@ -7215,6 +7227,7 @@ void EffectsGrid::CancelMouseOperations() {
     mDragDropping = false;
     mResizingMode = EFFECT_RESIZE_NO;
     mDragThresholdExceeded = false;
+    mEffectLayer = nullptr;
     mResizeEffectIndex = -1;
     ((MainSequencer*)mParent)->PanelWaveForm->ClearEffectDragOverride();
     ResetEffectMoveDragState();

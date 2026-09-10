@@ -929,7 +929,7 @@ bool xLightsFrame::CloseSequence()
         return false;
     }
 
-    if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr) {
+    if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr && m_mgr != nullptr) {
         // save perspective on this machine so we can restore it next time
         auto* config = GetXLightsConfig();
         wxString machinePerspective = m_mgr->SavePerspective();
@@ -987,6 +987,13 @@ bool xLightsFrame::CloseSequence()
         sEffectAssist->SetPanel(nullptr);
     if (sequenceVideoPanel != nullptr)
         sequenceVideoPanel->SetMediaPath("");
+    // The waveform holds a raw AudioManager* (and one per cached WaveView) owned by
+    // CurrentSeqXmlFile, and its paint handler reads through it. Drop that before the
+    // sequence is deleted below, not after: anything that repaints in between - a
+    // panel reset, a queued WM_PAINT - would read freed audio.
+    if (mainSequencer != nullptr && mainSequencer->PanelWaveForm != nullptr) {
+        mainSequencer->PanelWaveForm->CloseMedia();
+    }
     xlightsFilename = "";
     mediaFilename = "";
     previewLoaded = false;
@@ -1019,8 +1026,6 @@ bool xLightsFrame::CloseSequence()
         _searchPanel->ClearData();
     }
     if (mainSequencer != nullptr) {
-        if (mainSequencer->PanelWaveForm != nullptr)
-            mainSequencer->PanelWaveForm->CloseMedia();
         if (mainSequencer->ViewChoice != nullptr) {
             mainSequencer->ViewChoice->Clear();
             mainSequencer->ViewChoice->Show();

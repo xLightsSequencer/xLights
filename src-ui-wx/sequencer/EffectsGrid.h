@@ -375,8 +375,8 @@ private:
     int mDragEndY;
     float magSinceLast;
 
-    EffectLayer* mEffectLayer;
-    int mResizeEffectIndex;
+    EffectLayer* mEffectLayer = nullptr;
+    int mResizeEffectIndex = -1;
     Effect* _rightClickEffect = nullptr;
 
     // Drag And Drop

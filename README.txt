@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Closing a sequence could crash: the waveform panel kept pointing at the
+                                 sequence audio after the sequence was deleted
+    -bug (dkulp)                 Fixed a crash when dragging an effect edge while the row the drag started
+                                 on was removed or undone
+    -bug (dkulp)                 Fixed a crash using the effect grid right-click menu after an undo, redo
+                                 or delete removed the effect that was clicked
     -bug (dkulp)                 Windows - bundled third-party DLLs are now code signed so Windows 11
                                  Smart App Control no longer blocks xLights from starting (#7044)
     -enh (dkulp)                 New -q / --quiet command line switch logs the startup notices (show
