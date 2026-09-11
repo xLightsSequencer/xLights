@@ -233,21 +233,21 @@ public:
     }
     int GetInt(const std::string &key, const int def = 0) const {
         auto i = _internal.find(key);
-        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+        if (i == _internal.end() || i->second.length() == 0) {
             return def;
         }
         return i->second.getInt(def);
     }
     float GetFloat(const std::string& key, const float def = 0.0) const {
         auto i = _internal.find(key);
-        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+        if (i == _internal.end() || i->second.length() == 0) {
             return def;
         }
         return i->second.getFloat(def);
     }
     double GetDouble(const std::string& key, const double def = 0.0) const {
         auto i = _internal.find(key);
-        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+        if (i == _internal.end() || i->second.length() == 0) {
             return def;
         }
         return i->second.getDouble(def);
@@ -314,21 +314,21 @@ public:
     // resolve to, so a literal key never builds a std::string.
     int GetInt(std::string_view key, const int def = 0) const {
         auto i = _internal.find(key);
-        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+        if (i == _internal.end() || i->second.length() == 0) {
             return def;
         }
         return i->second.getInt(def);
     }
     float GetFloat(std::string_view key, const float def = 0.0) const {
         auto i = _internal.find(key);
-        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+        if (i == _internal.end() || i->second.length() == 0) {
             return def;
         }
         return i->second.getFloat(def);
     }
     double GetDouble(std::string_view key, const double def = 0.0) const {
         auto i = _internal.find(key);
-        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+        if (i == _internal.end() || i->second.length() == 0) {
             return def;
         }
         return i->second.getDouble(def);

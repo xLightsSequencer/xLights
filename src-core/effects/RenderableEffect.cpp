@@ -489,16 +489,16 @@ VCMemo::Entry& VCMemoEntryLocked(VCMemo* memo, const std::string& name, uint8_t 
     return e;
 }
 
-// Replicates SettingsMap::GetInt's empty/leading-space fallback semantics on a
+// Replicates SettingsMap::GetInt's empty-value fallback semantics on a
 // cached value node.
 int SettingValueInt(const SettingValue* v, int def) {
-    if (v == nullptr || v->length() == 0 || v->at(0) == ' ') {
+    if (v == nullptr || v->length() == 0) {
         return def;
     }
     return v->getInt(def);
 }
 double SettingValueDouble(const SettingValue* v, double def) {
-    if (v == nullptr || v->length() == 0 || v->at(0) == ' ') {
+    if (v == nullptr || v->length() == 0) {
         return def;
     }
     return v->getDouble(def);
