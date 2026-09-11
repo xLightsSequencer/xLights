@@ -186,7 +186,15 @@ void xLightsFrame::LoadEffectsFile()
 {
     wxStopWatch sw; // start a stopwatch timer
 
-    
+    // ResetEffectsXml clears AllModels and LoadModels repopulates it, freeing
+    // every Model* a render job may still hold. SetDir reaches here after a
+    // checked CloseSequence, which drains - but this is the entry point that
+    // owns the requirement, so it states it rather than inheriting it.
+    if (!AbortRender()) {
+        spdlog::error("xLightsFrame::LoadEffectsFile: render would not drain; not reloading the models.");
+        return;
+    }
+
     ResetEffectsXml();
     wxFileName effectsFile;
     effectsFile.AssignDir(CurrentDir);

@@ -106,6 +106,12 @@ bool HeadlessRenderContext::LoadShowFolder(const std::string& showDir,
         spdlog::error("HeadlessRenderContext: no <models> element in {}", rgbPath);
         return false;
     }
+    // Nothing renders before the show folder loads today, but LoadModels frees
+    // whatever AllModels already holds, so state the requirement here too.
+    if (!AbortRender(3000)) {
+        spdlog::error("HeadlessRenderContext: render would not drain; not loading models");
+        return false;
+    }
     AllModels.LoadModels(modelsNode, _previewWidth, _previewHeight);
 
     if (auto groupsNode = root.child("modelGroups")) {

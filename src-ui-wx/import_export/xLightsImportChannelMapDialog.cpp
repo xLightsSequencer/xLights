@@ -995,13 +995,16 @@ void xLightsImportChannelMapDialog::AddEmptyGroup()
         }
     }
 
+    // Drained before the group is built, not after: a timed-out abort means
+    // render jobs still hold Model* and AddModel is not safe to call.
+    if (!xlights->AbortRender()) return;
+
     // Create the model group directly using setters
     ModelGroup* newModelGroup = new ModelGroup(xlights->AllModels);
     newModelGroup->SetName(groupName.ToStdString());
     newModelGroup->SetLayout("minimalGrid");
     newModelGroup->SetGridSize(400);
     newModelGroup->SetLayoutGroup("Default");
-    xlights->AbortRender();
     xlights->AllModels.AddModel(newModelGroup);
 
     xLightsImportModelNode* newGroup = new xLightsImportModelNode(

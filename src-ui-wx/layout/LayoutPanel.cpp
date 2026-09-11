@@ -3640,7 +3640,10 @@ void LayoutPanel::CreateModelGroupFromSelected()
 
         // create group and reload before adding selected models. prior models were added before create and I was seeing frequent
         // crashes in Render() with invalid model pointers especially with mixed selections (groups, submodels & models)
-        xlights->AbortRender();
+        if (!xlights->AbortRender()) {
+            delete newGroup;
+            return;
+        }
         xlights->AllModels.AddModel(newGroup);
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "CreateModelGroupFromSelected");
 
@@ -6066,7 +6069,13 @@ void LayoutPanel::FinalizeModel()
     // _newModel; both can race a render job that already snapshotted the
     // model list. Match the pattern used by the other model-mutation
     // entry points (Delete/Replace/Group) and stop the renderer first.
-    xlights->AbortRender();
+    // A timed-out abort leaves render jobs holding Model*, so the add (or the
+    // cancel-path delete) below is not safe; leave _newModel pending and let
+    // the user retry rather than mutating the model list under live workers.
+    if (!xlights->AbortRender()) {
+        spdlog::error("LayoutPanel::FinalizeModel: render would not drain; leaving the new model uncommitted.");
+        return;
+    }
     // discard any active drag session before mutating mPos.
     // FinalizeModel's polyline DeleteHandle below shrinks mPos, so a
     // session pointing at the trailing vertex would crash on the
@@ -10329,7 +10338,7 @@ void LayoutPanel::ReplaceModel()
     const ReplaceGroupMode groupMode = dlg.GroupHandling();
 
     xlights->UnselectEffect(); // in case an effect lives on one of the targets
-    xlights->AbortRender();
+    if (!xlights->AbortRender()) return;
 
     // Suppress Model::Rename's "Save old name as alias?" prompt for the duration
     // of this batch. Each target triggers several intermediate renames (clone
@@ -10614,7 +10623,10 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
         event.Skip();
     } else {
         if (wxTheClipboard->Open()) {
-            xlights->AbortRender();
+            if (!xlights->AbortRender()) {
+                wxTheClipboard->Close();
+                return;
+            }
             CreateUndoPoint("All", selectedBaseObject == nullptr ? "" : selectedBaseObject->name);
 
             wxTextDataObject data;
@@ -10769,7 +10781,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
     int sz = undoBuffer.size() - 1;
     if (sz >= 0) {
         UnSelectAllModels();
-        xlights->AbortRender();
+        if (!xlights->AbortRender()) return;
 
         if (undoBuffer[sz].type == "Background") {
             spdlog::debug("LayoutPanel::DoUndo Background");
@@ -11417,7 +11429,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
                     ++it;
                     if (mg->GetModelCount() == 0) {
                         xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-                        xlights->AbortRender();
+                        if (!xlights->AbortRender()) return;
 
                         bool response = xlights->AllModels.Delete(mg->GetName());
                         if (response) {
@@ -11519,13 +11531,14 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             }
             wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
 
+            if (!xlights->AbortRender()) return;
+
             // Create the model group directly using setters
             ModelGroup* newModelGroup = new ModelGroup(xlights->AllModels);
             newModelGroup->SetName(name.ToStdString());
             newModelGroup->SetLayout("minimalGrid");
             newModelGroup->SetGridSize(400);
             newModelGroup->SetLayoutGroup(grp.ToStdString());
-            xlights->AbortRender();
             xlights->AllModels.AddModel(newModelGroup);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
@@ -11554,7 +11567,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         }
 
         if (node) {
-            xlights->AbortRender();
+            if (!xlights->AbortRender()) return;
             xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
         }
         //model_grp_panel->UpdatePanel(name);
@@ -11806,6 +11819,10 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
 
 void LayoutPanel::ImportModelsFromRGBEffects()
 {
+    // ImportModelsFromPreview below reaches ModelManager::createAndAddModel,
+    // which silently replaces - and frees - a model of the same name.
+    if (!xlights->AbortRender()) return;
+
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
 #ifdef __WXOSX__
     wxString wildcard = "*.xml";

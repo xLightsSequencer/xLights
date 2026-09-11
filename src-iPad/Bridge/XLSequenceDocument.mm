@@ -5686,7 +5686,7 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
 
 - (BOOL)deleteModel:(NSString*)modelName {
     if (!_context || !modelName || modelName.length == 0) return NO;
-    _context->AbortRender(5000);
+    if (!_context->AbortRender(5000)) return NO;
     if (!_context->GetModelManager().Delete(modelName.UTF8String)) return NO;
     [self recalcModelStartChannels];
     return YES;
@@ -6599,6 +6599,16 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
                   @"renamed": renamed, @"skippedEmptyGroups": skipped };
     }
 
+    // createAndAddModel below silently replaces - and frees - a model of the
+    // same name, so this needs the same gate the other model-mutating bridge
+    // entry points take. Held for the whole import, not per model.
+    iPadRenderContext::ModelMutationScope mutate(*_context);
+    if (!mutate.ok()) {
+        return @{ @"models": @0, @"groups": @0, @"viewpoints": @0,
+                  @"renamed": renamed, @"skippedEmptyGroups": skipped,
+                  @"error": @"A render is still running. Try again in a moment." };
+    }
+
     auto& mm = _context->GetModelManager();
     const std::string lg = layoutGroup.length ? std::string([layoutGroup UTF8String]) : std::string("Default");
     const int pw = _context->GetPreviewWidth();
@@ -7488,7 +7498,7 @@ static std::string LayoutGroupForNewItem(const std::string& active) {
     Model* g = _context->GetModelManager()[groupName.UTF8String];
     if (!g || g->GetDisplayAs() != DisplayAsType::ModelGroup) return NO;
     std::string name = groupName.UTF8String;
-    _context->AbortRender(5000);
+    if (!_context->AbortRender(5000)) return NO;
     if (!_context->GetModelManager().Delete(name)) return NO;
     _context->MarkGroupDeleted(name);
     return YES;

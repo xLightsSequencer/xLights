@@ -9510,6 +9510,15 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 {
     
     spdlog::debug("Updating from base show folder.");
+
+    // ModelManager/ViewObjectManager::MergeFromBase replace models in place,
+    // freeing the ones they replace. The iPad path holds a ModelMutationScope
+    // for exactly this; the desktop had nothing. Bail rather than merge under
+    // live render jobs.
+    if (!AbortRender()) {
+        DisplayError("A render is still running. Try updating from the base show folder again in a moment.", this);
+        return;
+    }
     
     ObtainAccessToURL(_outputManager.GetBaseShowDir());
     if (!ObtainAccessToURL(_outputManager.GetBaseShowDir() + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE)) {

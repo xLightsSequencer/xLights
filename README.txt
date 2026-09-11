@@ -23,6 +23,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  still drawing the row it was removing
     -bug (dkulp)                 Fixed a crash when a model was deleted, replaced or renamed while a render
                                  was still running
+    -bug (dkulp)                 Importing models from another show's rgbeffects file, and updating from the
+                                 base show folder, now wait for any running render to stop first instead of
+                                 replacing models underneath it
     -bug (dkulp)                 macOS - fixed a crash on exit when a 3D mouse sent motion after the app
                                  had started shutting down
     -bug (dkulp)                 Windows - bundled third-party DLLs are now code signed so Windows 11

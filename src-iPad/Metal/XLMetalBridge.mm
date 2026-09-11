@@ -2647,7 +2647,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     // references and racing them produces hard-to-reproduce
     // crashes. Mirrors the desktop's AbortRender() guard in
     // LayoutPanel before model creation.
-    rctx->AbortRender(5000);
+    if (!rctx->AbortRender(5000)) return nil;
     Model* m = rctx->GetModelManager().CreateDefaultModel(type.UTF8String, "1");
     if (!m) return nil;
 
@@ -2840,7 +2840,7 @@ public:
         // several (the desktop prompts; a mode picker is a follow-up).
         pugi::xml_document gdtfDoc;
         if (!LoadGdtfDescriptionXml(path, gdtfDoc)) return nil;
-        rctx->AbortRender(5000);
+        if (!rctx->AbortRender(5000)) return nil;
         XmlSerialize::GdtfModelData gdtfData;
         bool cancelled = false;
         // When the SwiftUI mode picker already chose a mode, force it
@@ -2867,7 +2867,7 @@ public:
         root = xdoc.document_element();
         if (!root) return nil;
 
-        rctx->AbortRender(5000);
+        if (!rctx->AbortRender(5000)) return nil;
         // CreateDefaultModelFromSavedModelNode wants a baseline Model*
         // to mutate / replace. Use "Custom" — the import path swaps it
         // out for the deserialized type anyway, so the placeholder
