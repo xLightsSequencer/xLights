@@ -703,6 +703,21 @@ void TimeLine::CheckNeedToScrollToPlayStart(bool paused)
     }
 }
 
+void TimeLine::EnsureTimeVisible(int startMS, int endMS)
+{
+    int viewStart;
+    int viewEnd;
+    GetViewableTimeRange(viewStart, viewEnd);
+
+    if (startMS >= viewStart && endMS <= viewEnd) {
+        return;
+    }
+
+    int newStartTime = std::max(0, startMS - 1000);
+    SetStartTimeMS(newStartTime);
+    RaiseChangeTimeline();
+}
+
 void TimeLine::RaiseChangeTimeline()
 {
     Refresh();

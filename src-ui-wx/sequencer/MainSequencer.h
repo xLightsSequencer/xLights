@@ -75,6 +75,7 @@ class MainSequencer: public wxPanel
         void SelectEffect(Effect* ef);
         bool HandleSequencerKeyBinding(wxKeyEvent& event);
         void ScrollToRow(int row);
+        void EnsureEffectVisible(Effect* eff);
         void UpdateEffectGridHorizontalScrollBar();
         void SetEffectDuration(const std::string& effectType, const uint32_t durationMS);
 

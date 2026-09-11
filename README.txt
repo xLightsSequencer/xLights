@@ -13,6 +13,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.18  September ??, 2026
     -enh (derwin12)              Moving Head Advanced - Position Zones can now be exported to, and
                                  imported from, other moving head props (#6926)
+    -enh (derwin12)              Selecting an effect in the Select Effects panel now scrolls the
+                                 sequencer grid to bring it into view
     -bug (dkulp)                 Closing a sequence could crash: the waveform panel kept pointing at the
                                  sequence audio after the sequence was deleted
     -bug (dkulp)                 Fixed a crash when dragging an effect edge while the row the drag started
