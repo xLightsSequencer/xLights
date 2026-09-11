@@ -5174,7 +5174,10 @@ class SequencerViewModel {
 
     /// B81: whether every timing track is currently hidden.
     var allTimingTracksHidden: Bool {
-        document.allTimingTracksHidden()
+        // Walks RowInformation.element in the bridge, so it must not run while
+        // the sequence is being torn down (crash sig bb9b42a7c2).
+        guard isSequenceLoaded else { return true }
+        return document.allTimingTracksHidden()
     }
 
     /// B81: toggle the visibility of every timing track at once.

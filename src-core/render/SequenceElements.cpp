@@ -76,9 +76,13 @@ void SequenceElements::ClearAllViews()
 }
 
 void SequenceElements::Clear() {
-    ClearAllViews();
+    // Row information holds raw Element* borrowed from the views, so it has to
+    // go first: ClearAllViews deletes those Elements, and anything reading the
+    // rows in between (the iPad grid evaluates SwiftUI bodies on the main actor
+    // while the close runs detached) walks freed memory.
     mVisibleRowInformation.clear();
     mRowInformation.clear();
+    ClearAllViews();
     mSelectedRanges.clear();
     undo_mgr.Clear();
     _effectSymbolManager.Clear();
@@ -465,6 +469,10 @@ void SequenceElements::DeleteElement(const std::string &name)
         {
             Element *e = mAllViews[MASTER_VIEW][j];
             mAllViews[MASTER_VIEW].erase(mAllViews[MASTER_VIEW].begin() + j);
+            // Drop the borrowed Element* out of the rows before freeing it;
+            // PopulateRowInformation below rebuilds them.
+            mVisibleRowInformation.clear();
+            mRowInformation.clear();
             delete e;
             mMasterViewChangeCount++;
             break;

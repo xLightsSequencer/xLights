@@ -753,6 +753,12 @@ Mouse3DManager::~Mouse3DManager() {
     }
 #endif
 #ifdef __WXOSX__
+    if (enabled && UnregisterConnexionClient != nullptr) {
+        UnregisterConnexionClient(clientID);
+        if (CleanupConnexionHandlers != nullptr) {
+            CleanupConnexionHandlers();
+        }
+    }
     if (module) {
         dlclose(module);
     }
@@ -828,6 +834,13 @@ void Mouse3DManager::sendEvent(wxEvent *event) {
     // concurrently destroying those windows (crash bucket fa759f9ecc). Marshal the
     // whole resolution + dispatch onto the main thread; the wxWeakRefs auto-null if a
     // cached window has since been destroyed.
+    // The driver thread outlives wxApp: the Connexion client is only
+    // unregistered when this static is destroyed, which is after wxTheApp has
+    // gone, so an event arriving during exit would deref null.
+    if (wxTheApp == nullptr) {
+        delete event;
+        return;
+    }
     wxTheApp->CallAfter([this, event]() {
         wxWindow* w = nullptr;
         if (focusWindow && focusWindow->IsShownOnScreen()) {

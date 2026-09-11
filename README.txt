@@ -19,6 +19,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  on was removed or undone
     -bug (dkulp)                 Fixed a crash using the effect grid right-click menu after an undo, redo
                                  or delete removed the effect that was clicked
+    -bug (dkulp)                 Fixed a crash closing or deleting from a sequence while the sequencer was
+                                 still drawing the row it was removing
+    -bug (dkulp)                 macOS - fixed a crash on exit when a 3D mouse sent motion after the app
+                                 had started shutting down
     -bug (dkulp)                 Windows - bundled third-party DLLs are now code signed so Windows 11
                                  Smart App Control no longer blocks xLights from starting (#7044)
     -enh (dkulp)                 New -q / --quiet command line switch logs the startup notices (show
