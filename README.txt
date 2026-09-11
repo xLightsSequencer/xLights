@@ -21,6 +21,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  or delete removed the effect that was clicked
     -bug (dkulp)                 Fixed a crash closing or deleting from a sequence while the sequencer was
                                  still drawing the row it was removing
+    -bug (dkulp)                 Fixed a crash when a model was deleted, replaced or renamed while a render
+                                 was still running
     -bug (dkulp)                 macOS - fixed a crash on exit when a 3D mouse sent motion after the app
                                  had started shutting down
     -bug (dkulp)                 Windows - bundled third-party DLLs are now code signed so Windows 11

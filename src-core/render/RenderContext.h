@@ -74,6 +74,10 @@ public:
 
     // ---- rendering control ----
     virtual bool AbortRender(int maxTimeMs = 60000) = 0;
+    // Whether any render job is in flight. Unlike AbortRender this only asks -
+    // it never waits and never pumps the event loop - so it is safe to call
+    // from inside a mutation that must not re-enter the UI.
+    virtual bool IsRenderDone() { return true; }
     virtual void RenderEffectForModel(const std::string& model,
                                       int startms,
                                       int endms,

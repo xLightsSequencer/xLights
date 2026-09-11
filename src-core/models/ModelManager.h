@@ -150,6 +150,19 @@ class ModelManager : public ObjectManager
 
     private:
 
+    // Every Model this manager owns is freed through here. Callers are
+    // supposed to drain the renderer before mutating the model list, but that
+    // is a convention spread over dozens of call sites and AbortRender is
+    // best-effort anyway - most sites discard the bool it returns and free on a
+    // timeout. A render job that already holds the pointer then reads freed
+    // memory (crash sig 38b2cfbce1, in RenderTreeData on a pool thread). So the
+    // free is gated here instead: with a render in flight the model is parked
+    // rather than deleted, turning every missed abort into a bounded leak plus
+    // a log line. Parked models are freed by the next mutation that finds the
+    // renderer idle, and unconditionally at destruction.
+    void FreeModel(Model* m);
+    void DrainParkedModels();
+
     OutputManager* _outputManager = nullptr;
     RenderContext* _renderContext = nullptr;
     bool _usedRuler = false;
@@ -160,6 +173,12 @@ class ModelManager : public ObjectManager
     std::atomic<bool> _modelsLoading;
     mutable std::atomic<unsigned int> _modelGeneration{ 0 };
     mutable std::string lastGeneratedModelName = "";
+    std::vector<Model*> _parkedModels;
+    mutable std::mutex _parkedModelMutex;
+    // Set by the destructor: nothing can be rendering any more, and the
+    // RenderContext this is a member of is itself part-way through teardown,
+    // so stop consulting it and just free.
+    bool _destroying = false;
     ModelSetManager _setManager;
 };
 

@@ -194,7 +194,7 @@ public:
     // CloseSequence clears it before the next open). Drains finished progress
     // entries; callable from more than one thread (the iPad polls it from the
     // UI while AbortRender drains it from the render thread).
-    bool IsRenderDone();
+    bool IsRenderDone() override;
 
     // (Re)allocate _seqData when the sequence shape (frames/channels/frameTime)
     // changes, aborting any in-flight render first to avoid a use-after-free.

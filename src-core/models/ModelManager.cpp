@@ -110,7 +110,19 @@ ModelManager::~ModelManager()
     while (_modelsLoading)
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
+    _destroying = true;
     clear();
+
+    // Nothing can be rendering any more, so anything still parked is freed
+    // unconditionally rather than leaked for the life of the process.
+    std::vector<Model*> toFree;
+    {
+        std::lock_guard<std::mutex> lock(_parkedModelMutex);
+        toFree.swap(_parkedModels);
+    }
+    for (auto* m : toFree) {
+        delete m;
+    }
 }
 
 void ModelManager::clearUIObjects()
@@ -125,12 +137,54 @@ void ModelManager::clearUIObjects()
     }
 }
 
+void ModelManager::FreeModel(Model* m)
+{
+    if (m == nullptr) {
+        return;
+    }
+    // The model is already out of the map, so nothing can look it up again -
+    // but a render job that resolved it before the mutation still holds the
+    // raw pointer. Freeing it there is the use-after-free; parking it is not.
+    if (!_destroying && _renderContext != nullptr && !_renderContext->IsRenderDone()) {
+        spdlog::error("ModelManager: '{}' was removed while a render is in flight - parking it rather than freeing it under the render jobs. The caller should have drained the renderer first.", m->GetName());
+        std::lock_guard<std::mutex> lock(_parkedModelMutex);
+        _parkedModels.push_back(m);
+        return;
+    }
+    delete m;
+}
+
+void ModelManager::DrainParkedModels()
+{
+    {
+        // Checked before asking the render context anything: this runs on every
+        // mutation, including the per-model AddModel calls of a parallel show
+        // load, and parking is the rare case.
+        std::lock_guard<std::mutex> lock(_parkedModelMutex);
+        if (_parkedModels.empty()) {
+            return;
+        }
+    }
+    if (!_destroying && _renderContext != nullptr && !_renderContext->IsRenderDone()) {
+        return;
+    }
+    std::vector<Model*> toFree;
+    {
+        std::lock_guard<std::mutex> lock(_parkedModelMutex);
+        toFree.swap(_parkedModels);
+    }
+    for (auto* m : toFree) {
+        delete m;
+    }
+}
+
 void ModelManager::clear()
 {
+    DrainParkedModels();
     std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
     for (auto& it : models) {
         if (it.second != nullptr) {
-            delete it.second;
+            FreeModel(it.second);
             it.second = nullptr;
         }
     }
@@ -1583,6 +1637,7 @@ void ModelManager::AddModel(Model* model)
 {
     // Lock before we add models ... this is required because LoadModels loads this in parallel
 
+    DrainParkedModels();
     if (model != nullptr) {
         Model* oldm = nullptr;
         {
@@ -1609,12 +1664,13 @@ void ModelManager::AddModel(Model* model)
         // _modelMutex (see ModelGroup::cacheLock for the order).
         if (oldm != nullptr) {
             ResetModelGroups();
-            delete oldm;
+            FreeModel(oldm);
         }
     }
 }
 
 void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
+    DrainParkedModels();
     if (nm != nullptr && name != "") {
         Model* oldm = nullptr;
         {
@@ -1634,7 +1690,7 @@ void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
         }
         // Outside _modelMutex, as in AddModel.
         ResetModelGroups();
-        delete oldm;
+        FreeModel(oldm);
     }
 }
 
@@ -2298,6 +2354,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
 
 bool ModelManager::Delete(const std::string& name)
 {
+    DrainParkedModels();
+
     // some layouts end up with illegal names
     std::string mn = Model::SafeModelName(name);
 
@@ -2350,7 +2408,7 @@ bool ModelManager::Delete(const std::string& name)
                     }
                 }
 
-                delete model;
+                FreeModel(model);
                 if (_renderContext) _renderContext->MarkRgbEffectsChanged();
                 return true;
             }
