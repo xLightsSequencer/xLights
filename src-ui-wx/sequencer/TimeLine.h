@@ -145,6 +145,7 @@ public:
     //void MoveToRight(int numberOfPixels);
     void RaiseChangeTimeline();
     void CheckNeedToScrollToPlayStart(bool paused = false);
+    void EnsureTimeVisible(int startMS, int endMS);
     const static int ZoomLevelValues[];
 
     static const long ID_ZOOMSEL;

@@ -2278,6 +2278,85 @@ void MainSequencer::ScrollToRow(int row)
     UpdateEffectGridVerticalScrollBar();
 }
 
+namespace
+{
+    // A hidden effect layer can be hidden for two independent reasons: the owning
+    // element's own layers are collapsed into one summary row (GetCollapsed), or an
+    // ancestor submodel/strand/node level is collapsed (ShowSubModels/ShowStrands/ShowNodes).
+    // Expand whichever of those actually apply so the layer's row exists in mRowInformation.
+    bool ExpandElementToRevealEffectLayer(Element* owner, EffectLayer* effectLayer)
+    {
+        if (owner == nullptr) return false;
+
+        bool changed = false;
+
+        if (owner->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+            StrandElement* strand = dynamic_cast<StrandElement*>(owner);
+            if (strand != nullptr && dynamic_cast<NodeLayer*>(effectLayer) != nullptr && !strand->ShowNodes()) {
+                strand->ShowNodes(true);
+                changed = true;
+            }
+        }
+
+        if (owner->GetCollapsed()) {
+            owner->SetCollapsed(false);
+            changed = true;
+        }
+
+        if (owner->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL || owner->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+            SubModelElement* subModel = dynamic_cast<SubModelElement*>(owner);
+            ModelElement* parentModel = subModel != nullptr ? subModel->GetModelElement() : nullptr;
+            if (parentModel != nullptr) {
+                if (owner->GetType() == ElementType::ELEMENT_TYPE_STRAND && !parentModel->ShowStrands()) {
+                    parentModel->ShowStrands(true);
+                    changed = true;
+                } else if (owner->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL && !parentModel->ShowSubModels()) {
+                    parentModel->ShowSubModels(true);
+                    changed = true;
+                }
+            }
+        }
+
+        return changed;
+    }
+}
+
+void MainSequencer::EnsureEffectVisible(Effect* eff)
+{
+    if (eff == nullptr || mSequenceElements == nullptr) return;
+
+    EffectLayer* effectLayer = eff->GetParentEffectLayer();
+    if (effectLayer == nullptr) return;
+
+    Element* owner = effectLayer->GetParentElement();
+    if (ExpandElementToRevealEffectLayer(owner, effectLayer)) {
+        mSequenceElements->PopulateRowInformation();
+
+        // Also notify via the normal row-heading-changed path so model-group member
+        // insertion / display-elements-panel refresh / grid resize stay consistent
+        // with every other place that toggles Show*/Collapsed state.
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        eventRowHeaderChanged.SetString(owner->GetModelName());
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }
+
+    for (int i = 0; i < mSequenceElements->GetRowInformationSize(); ++i) {
+        if (mSequenceElements->GetEffectLayer(i) == effectLayer) {
+            int modelRow = i - mSequenceElements->GetNumberOfTimingRows();
+            if (modelRow >= 0) {
+                int firstVisible = mSequenceElements->GetFirstVisibleModelRow();
+                int maxDisplayed = mSequenceElements->GetMaxModelsDisplayed();
+                if (modelRow < firstVisible || modelRow >= firstVisible + maxDisplayed) {
+                    ScrollToRow(modelRow);
+                }
+            }
+            break;
+        }
+    }
+
+    PanelTimeLine->EnsureTimeVisible(eff->GetStartTimeMS(), eff->GetEndTimeMS());
+}
+
 void MainSequencer::OnCheckBox_SuspendRenderClick(wxCommandEvent& event)
 {
     ToggleRender(CheckBox_SuspendRender->IsChecked());

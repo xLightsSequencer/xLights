@@ -344,6 +344,7 @@ void SelectPanel::SelectEffects()
                 eff->SetSelected(EFFECT_SELECTED);
                 if (first) {
                     mainSequencer->PanelEffectGrid->RaiseSelectedEffectChanged(eff, false);
+                    mainSequencer->EnsureEffectVisible(eff);
                     first = false;
                 }
             }
