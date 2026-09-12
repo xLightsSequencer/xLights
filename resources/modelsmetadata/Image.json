@@ -1,0 +1,74 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Image",
+    "description": "A single static image file mapped onto the model's bounding box and treated as one block of pixel/channel data (brightness-modulated, optionally alpha-keyed off its white channel). Keeps the full shared extends list below (Faces/States/SubModels/DimmingCurve/pixel-rendering attributes all still persist if present in the file) but most of them are non-functional for Image and hidden from its property grid - see notes.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "Image",
+            "label": "Image",
+            "gridKey": "Image",
+            "type": "filepath",
+            "default": "",
+            "description": "Path to the image file rendered by this model (ImageModel::GetImageFile()/SetImageFile()). Supported formats per the property grid's file-picker wildcard: png, bmp, jpg, gif, jpeg, webp."
+        },
+        {
+            "xmlAttribute": "OffBrightness",
+            "label": "Off Brightness",
+            "gridKey": "OffBrightness",
+            "type": "uint",
+            "default": 80,
+            "min": 0,
+            "max": 200,
+            "description": "Brightness percentage applied to the image when it is considered \"off\"/inactive (ImageModel::GetOffBrightness()/SetOffBrightness()). Range extends to 200 (not just 100), allowing an over-bright \"off\" state."
+        },
+        {
+            "xmlAttribute": "WhiteAsAlpha",
+            "label": "Read White As Alpha",
+            "gridKey": "WhiteAsAlpha",
+            "type": "bool",
+            "boolFormat": "TrueFalse",
+            "default": "False",
+            "description": "When \"True\", the image's white channel/value is treated as an alpha (transparency) mask instead of being rendered as opaque white (ImageModel::IsWhiteAsAlpha()/SetWhiteAsAlpha()). Persisted as the Title-case literal True/False (XmlNodeKeys::WhiteAsAlphaAttribute), unlike every boolean attribute elsewhere in this tree which uses lowercase true/false - verified via both BaseSerializingVisitor::Visit(const ImageModel&) (`? \"True\" : \"False\"`) and XmlDeserializingModelFactory::DeserializeImage (default \"False\", compared against \"True\")."
+        }
+    ],
+    "notes": [
+        "Properties from the shared fragments that do NOT apply to Image, and are explicitly disabled (greyed out) in its property grid by ImagePropertyAdapter::DisableUnusedProperties: faceInfo (\"ModelFaces\"), dimmingCurve (\"ModelDimmingCurves\"), stateInfo (\"ModelStates\"), StrandNames/NodeNames (\"ModelStrandNodeNames\"), subModel (\"SubModels\"), PixelSize (\"ModelPixelSize\"), Antialias/Pixel Style (\"ModelPixelStyle\"), and BlackTransparency (\"ModelPixelBlackTransparency\", all from shared/Common.json). These attributes may still be present/round-tripped if an existing file already has them (e.g. from converting another model type to Image), but the current UI provides no way to set them on an Image model.",
+        "ImageModel::GetNumPhysicalStrings() is hard-coded to 1 and SupportsWiringView()/SupportsExportAsCustom() both return false - Image has no wiring-view or export-as-custom-model concept, consistent with it not exposing the usual per-string/per-node configuration attributes that Matrix/Star/etc. do."
+    ]
+}

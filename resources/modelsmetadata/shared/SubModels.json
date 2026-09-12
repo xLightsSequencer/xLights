@@ -1,0 +1,45 @@
+{
+    "schemaVersion": 1,
+    "description": "The <subModel> child elements of a <model> node in xlights_rgbeffects.xml: user-defined sub-regions of a model's nodes (e.g. individual arches within an arch set, or windows within a window-frame prop) that can be sequenced independently of the parent model. Source of truth: src-core/XmlSerializer/BaseSerializingVisitor.cpp BaseSerializingVisitor::WriteSubmodels (writer) and src-core/XmlSerializer/XmlSerializeFunctions.cpp ParseSubModelNode plus src-core/XmlSerializer/XmlDeserializingModelFactory.cpp DeserializeSubModel (readers); backing class is src-core/models/SubModel.h/.cpp; editing UI is src-ui-wx/model/SubModelsDialog.cpp.",
+    "storage": { "file": "xlights_rgbeffects.xml", "node": "models/model", "element": "subModel" },
+    "properties": [
+        {
+            "xmlAttribute": "name",
+            "type": "string",
+            "description": "Sub-model name, unique within the parent model (XmlNodeKeys::NameAttribute = \"name\", lowercase - a distinct attribute key from the model-level \"name\" or the faceInfo/stateInfo \"Name\"). Elsewhere in the file (group membership, effects) the sub-model is referenced by its qualified name \"<ParentModel>/<name>\"."
+        },
+        {
+            "xmlAttribute": "layout",
+            "type": "enum",
+            "enum": ["vertical", "horizontal"],
+            "default": "vertical",
+            "description": "Orientation used when laying out this sub-model's default render buffer (SubModel::IsVertical(); XmlNodeKeys::LayoutAttribute). Always written; defaults to \"vertical\" on read if absent."
+        },
+        {
+            "xmlAttribute": "type",
+            "type": "enum",
+            "enum": ["ranges", "subbuffer"],
+            "default": "ranges",
+            "description": "Whether the sub-model is defined by explicit per-row node-range lists (\"ranges\": see line0/line1/... in notes) or by a single rectangular crop of the parent's default buffer (\"subbuffer\": see the subBuffer attribute). XmlNodeKeys::SMTypeAttribute; always written; defaults to \"ranges\" on read if absent."
+        },
+        {
+            "xmlAttribute": "bufferstyle",
+            "type": "enum",
+            "enum": ["Default", "Keep XY", "Stacked Strands"],
+            "default": "Default",
+            "description": "How the sub-model's node rows are packed into its own render buffer (SubModel::BUFFER_STYLES/GetSubModelBufferStyle()): \"Default\" packs each line0/line1/... row into its own buffer row; \"Keep XY\" (SubModel::IsXYBufferStyle()) preserves each node's original X/Y position from the parent's buffer; \"Stacked Strands\" overlays every row onto the same buffer row. XmlNodeKeys::BufferStyleAttribute (lowercase). Always written regardless of the \"type\" attribute (BaseSerializingVisitor::WriteSubmodels adds it unconditionally), though it is only functionally meaningful for type=\"ranges\" sub-models; defaults to \"Default\" on read if absent."
+        },
+        {
+            "xmlAttribute": "subBuffer",
+            "type": "string",
+            "appliesWhen": { "attribute": "type", "equals": "subbuffer" },
+            "encoding": "Four percentages (0-100) joined by literal 'x' characters: \"x1xy1xx2xy2\", e.g. \"0x0x100x100\" for the whole buffer or \"25x25x75x75\" for the centre quadrant (SubModel::initSubbufferRange, split on 'x'). Missing trailing values default to x1=0,y1=0,x2=100,y2=100; x1/x2 and y1/y2 are swapped if given in reverse order.",
+            "description": "Rectangular crop of the parent model's default render buffer, expressed as percentages of its width/height. Only present when type=\"subbuffer\"; mutually exclusive with the line0/line1/... rows described in notes."
+        }
+    ],
+    "notes": [
+        "Node-range rows are an open-ended, positionally-named attribute family, not enumerated here: \"line0\", \"line1\", ... \"lineN\" (0-based, contiguous - both ParseSubModelNode and Model::CreateBufferAsSubmodel read/write them by probing line0, line1, ... until one is missing). Only present when type=\"ranges\"; each value is a compressed node-number/range list in the parent model's own node numbering, e.g. \"1-50,60\" (NodeUtils::CompressNodes), one row per buffer line.",
+        "A subModel may contain a nested <Aliases> child element (zero or more <alias name=\"...\"/> children) for alternate historical names, exactly like a top-level <model> - written by the shared BaseSerializingVisitor::WriteAliases helper only when the sub-model has aliases. Legacy files may instead use the lowercase element name \"aliases\"; both spellings are accepted on read (XmlDeserializingModelFactory::DeserializeSubModel).",
+        "The specially-named sub-model \"DefaultRenderBuffer\" (Model::CreateBufferAsSubmodel) is a synthesized ranges-type subModel representing the model's own default buffer layout, generated on demand (e.g. for export) rather than user-authored; it uses the same attribute shape described here."
+    ]
+}

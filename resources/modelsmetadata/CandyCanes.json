@@ -1,0 +1,127 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Candy Canes",
+    "description": "A row of candy-cane shaped light strings: a straight upright section topped by a curved hook. Nodes run up each cane and around its hook.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumCanes",
+            "label": "# Canes",
+            "gridKey": "CandyCaneCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 20,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of candy canes in the model (CandyCaneModel::_numCanes)."
+        },
+        {
+            "xmlAttribute": "NodesPerCane",
+            "label": "Nodes Per Cane",
+            "gridKey": "CandyCaneNodes",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 250,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Node count per cane for traditional (multi-node) string types (CandyCaneModel::_nodesPerCane). SingleNode quirk: for SingleNode string types this is instead normalized to and persisted as 1, and the real per-cane light count is held in LightsPerNode - see CandyCaneModel::InitModel() (\"When a SingleNode model is saved, _nodesPerCane is stored as 1 and _lightsPerNode holds lights per cane\") and the LightsPerNode property below. The property grid reuses this same gridKey (\"CandyCaneNodes\") for both cases, only swapping its label between \"Nodes Per Cane\" and \"Lights Per Cane\" (CandyCanePropertyAdapter::AddTypeProperties/OnPropertyGridChange \"ModelStringType\")."
+        },
+        {
+            "xmlAttribute": "LightsPerNode",
+            "label": "Lights Per Node",
+            "gridKey": "CandyCaneLights",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 250,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "Lights represented by each node, for RGB pixel-cluster wiring (CandyCaneModel::_lightsPerNode). Hidden in the property grid (but still persisted) for SingleNode string types, where this attribute instead holds the real per-cane light count - see the NodesPerCane property's SingleNode quirk note."
+        },
+        {
+            "xmlAttribute": "CandyCaneHeight",
+            "label": "Height",
+            "gridKey": "CandyCaneHeight",
+            "type": "float",
+            "default": 1.0,
+            "step": 0.1,
+            "precision": 2,
+            "description": "Relative vertical scale of the upright section when Sticks is enabled (CandyCaneModel::_caneheight; CandyCaneModel::SetCaneCoord). Distinct from the generic ThreePoint \"Height\"/gridKey \"ModelHeight\" attribute documented in shared/ScreenLocation.json - this is a separate, CandyCane-specific xmlAttribute (XmlNodeKeys::CCHeightAttribute = \"CandyCaneHeight\") with its own value, not an alias."
+        },
+        {
+            "xmlAttribute": "CandyCaneReverse",
+            "label": "Reverse",
+            "gridKey": "CandyCaneReverse",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "appliesWhen": {
+                "attribute": "CandyCaneSticks",
+                "equals": "false"
+            },
+            "description": "When \"true\", the hook curves to the opposite side (CandyCaneModel::_reverse; CandyCaneModel::SetCaneCoord). Persisted as the lowercase literal true/false. Always written (unconditional, both values). Only enabled in the property grid when Sticks is false (CandyCanePropertyAdapter::AddTypeProperties/UpdateTypeProperties: `p->Enable(!_candyCane.IsSticks())`); still persisted regardless of Sticks."
+        },
+        {
+            "xmlAttribute": "CandyCaneSticks",
+            "label": "Sticks",
+            "gridKey": "CandyCaneSticks",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", renders each cane as a plain straight stick (no curved hook), scaled by CandyCaneHeight, instead of the default upright-plus-hook shape (CandyCaneModel::_sticks; CandyCaneModel::SetCaneCoord). Persisted as the lowercase literal true/false. Always written (unconditional, both values)."
+        },
+        {
+            "xmlAttribute": "AlternateNodes",
+            "label": "Alternate Nodes",
+            "gridKey": "AlternateNodes",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", interleaves node buffer positions along the cane (used for staggered/zig-zag physical wiring) instead of assigning them in simple sequential order (CandyCaneModel::_alternateNodes; CandyCaneModel::InitModel). Persisted as the lowercase literal true/false. Always written (unconditional, both values). Disabled (but still persisted) in the property grid for SingleNode string types (CandyCanePropertyAdapter::UpdateTypeProperties)."
+        }
+    ],
+    "notes": [
+        "Starting Location: the \"CandyCaneStart\" property-grid enum (gridKey \"CandyCaneStart\") is a 2-value Green Square/Blue Square picker that sets only the shared Dir attribute (shared/Common.json); StartSide is not involved for this model type (CandyCanePropertyAdapter::OnPropertyGridChange \"CandyCaneStart\" only calls SetDirection/SetIsLtoR). No property object for it appears above since Dir itself is owned by shared/Common.json.",
+        "Legacy read-only alias for Angle: XmlNodeKeys::CCSkewAttribute (\"CandyCaneSkew\") is a legacy fallback attribute name for the ThreePoint \"Angle\" attribute documented in shared/ScreenLocation.json (XmlDeserializingModelFactory::DeserializeCandyCane overrides the deserialized angle from it, if present). The current serializer never writes \"CandyCaneSkew\", only \"Angle\". Not modeled as a property in this file for the same reason as Arches.json's equivalent note (Angle is owned by shared/ScreenLocation.json)."
+    ]
+}

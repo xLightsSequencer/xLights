@@ -1,0 +1,222 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "DmxSkull",
+    "description": "A talking/animatronic skull prop: up to six independently-toggleable servo axes (jaw, pan, tilt, nod, eye up/down, eye left/right), four 3D OBJ meshes (head, jaw, left eye, right eye), a fixed per-axis orientation offset for each enabled axis, and an optional RGBW color ability for eye lighting. Source: src-core/models/DMX/DmxSkull.{h,cpp} (DisplayAs = DisplayAsType::DmxSkull; constructor attaches `color_ability = std::make_unique<DmxColorAbilityRGB>()` unconditionally, but its use is further gated by the HasColor flag below). No shutter/dimmer/beam ability.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json",
+        "shared/DmxAbilities.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions. CORRECTION vs the other seven DMX documents: DmxSkullPropertyAdapter::DisableUnusedProperties disables ModelStringType, ModelStringColor and ModelDimmingCurves, but - unlike the base DmxPropertyAdapter::DisableUnusedProperties (inherited by every other Dmx*PropertyAdapter) - it does NOT disable ModelFaces. faceInfo therefore remains fully enabled/editable in DmxSkull's property grid, unlike every other DMX document in this family."
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions. Deliberately left enabled for DMX models."
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions. Not disabled for DMX models."
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve. Round-tripped but disabled in DmxSkull's property grid (ModelDimmingCurves is disabled the same as every other DMX document)."
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        },
+        {
+            "name": "JawServo",
+            "description": "Jaw axis servo child element (fixed, axis-named - NOT part of the {n}-numbered Servo1/Servo2/... family used by DmxServo/DmxServo3d). Instantiates the Servo pattern documented in shared/DmxAbilities.json notes. Only created/present when HasJaw() is true (DmxSkull::CreateServo(\"JawServo\"))."
+        },
+        {
+            "name": "PanServo",
+            "description": "Pan axis servo child element. Same attribute set as JawServo. Only present when HasPan() is true."
+        },
+        {
+            "name": "TiltServo",
+            "description": "Tilt axis servo child element. Same attribute set as JawServo. Only present when HasTilt() is true."
+        },
+        {
+            "name": "NodServo",
+            "description": "Nod axis servo child element. Same attribute set as JawServo. Only present when HasNod() is true."
+        },
+        {
+            "name": "EyeUpDownServo",
+            "description": "Eye up/down axis servo child element. CORRECTION vs the task brief's shorthand \"EyeUD\": the actual literal element/base name is \"EyeUpDownServo\" (DmxSkull::CreateServo(\"EyeUpDownServo\"), XmlDeserializingModelFactory::DeserializeDmxSkull `if (\"EyeUpDownServo\" == name)`), not \"EyeUD\" or \"EyeUDServo\". Same attribute set as JawServo. Only present when HasEyeUD() is true."
+        },
+        {
+            "name": "EyeLeftRightServo",
+            "description": "Eye left/right axis servo child element. CORRECTION vs the task brief's shorthand \"EyeLR\": the actual literal element/base name is \"EyeLeftRightServo\", not \"EyeLR\" or \"EyeLRServo\". Same attribute set as JawServo. Only present when HasEyeLR() is true."
+        },
+        {
+            "name": "HeadMesh",
+            "description": "Head 3D mesh child element (fixed, axis-named). Instantiates the Mesh pattern documented in shared/DmxAbilities.json notes. Always created (DmxSkull::CreateMesh(\"HeadMesh\"))."
+        },
+        {
+            "name": "JawMesh",
+            "description": "Jaw 3D mesh child element. Same attribute set as HeadMesh. Always created."
+        },
+        {
+            "name": "EyeMeshL",
+            "description": "Left eye 3D mesh child element. Same attribute set as HeadMesh. Always created."
+        },
+        {
+            "name": "EyeMeshR",
+            "description": "Right eye 3D mesh child element. Same attribute set as HeadMesh. Always created."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "HasJaw",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "Whether this skull has a jaw servo axis at all (DmxSkull::HasJaw()/SetHasJaw()). Configured via the \"Skull Config\" popup dialog (SkullConfigDialog checkboxes), not a direct top-level grid row; gates whether the JawServo child element and its DmxJawOrient property exist/are shown."
+        },
+        {
+            "xmlAttribute": "HasPan",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "Whether this skull has a pan servo axis (DmxSkull::HasPan()/SetHasPan()). Configured via the Skull Config dialog; gates PanServo/DmxPanOrient."
+        },
+        {
+            "xmlAttribute": "HasTilt",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "Whether this skull has a tilt servo axis (DmxSkull::HasTilt()/SetHasTilt()). Configured via the Skull Config dialog; gates TiltServo/DmxTiltOrient."
+        },
+        {
+            "xmlAttribute": "HasNod",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "Whether this skull has a nod servo axis (DmxSkull::HasNod()/SetHasNod()). Configured via the Skull Config dialog; gates NodServo/DmxNodOrient."
+        },
+        {
+            "xmlAttribute": "HasEyeUD",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "Whether this skull has an eye up/down servo axis (DmxSkull::HasEyeUD()/SetHasEyeUD()). Configured via the Skull Config dialog; gates EyeUpDownServo/DmxEyeUDOrient."
+        },
+        {
+            "xmlAttribute": "HasEyeLR",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "Whether this skull has an eye left/right servo axis (DmxSkull::HasEyeLR()/SetHasEyeLR()). Configured via the Skull Config dialog; gates EyeLeftRightServo/DmxEyeLROrient."
+        },
+        {
+            "xmlAttribute": "HasColor",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "Whether this skull's eyes have an RGBW color ability at all (DmxSkull::HasColor()/SetHasColor()). Configured via the Skull Config dialog; gates whether the \"Color Properties\" category (DmxEyeBrtChannel + shared/DmxAbilities.json's color-ability properties) is shown/used at all - note this is a coarser, DmxSkull-specific on/off switch layered on top of (and independent from) DmxModel::HasColorAbility(), which is always true for DmxSkull since its constructor always creates the color_ability object regardless of this flag."
+        },
+        {
+            "xmlAttribute": "Bits16",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "When \"1\", servo channels are treated as 16-bit (coarse+fine) pairs (DmxSkull::Is16Bit()/SetIs16Bit()). Configured via the Skull Config dialog's \"16 bits\" checkbox."
+        },
+        {
+            "xmlAttribute": "MeshOnly",
+            "gridKey": "MeshOnly",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "When \"1\", renders only the OBJ meshes without the servo/orientation gizmo overlays (DmxSkull::IsMeshOnly()/SetMeshOnly()). Has its own direct top-level grid checkbox (unlike the Has*/Bits16 flags above, which are all Skull-Config-dialog-only)."
+        },
+        {
+            "xmlAttribute": "DmxEyeBrtChannel",
+            "gridKey": "DmxEyeBrtChannel",
+            "type": "uint",
+            "default": 15,
+            "min": 0,
+            "max": 512,
+            "description": "DMX channel controlling eye brightness/dimming (DmxSkull::GetEyeBrightnessChannel()/SetEyeBrightnessChannel()). Only shown in the property grid when HasColor() is true."
+        },
+        {
+            "xmlAttribute": "DmxJawOrient",
+            "gridKey": "DmxJawOrient",
+            "type": "int",
+            "default": 0,
+            "min": -360,
+            "max": 360,
+            "appliesWhen": { "attribute": "HasJaw", "equals": "1" },
+            "description": "Fixed orientation offset (degrees) applied to the jaw servo's rendered position (DmxSkull::GetJawOrient()/SetJawOrient()). Default is DmxSkull::default_orient[JAW] = 0, used as the read-fallback via GetDefaultOrient(SERVO_TYPE::JAW). Only present/shown when HasJaw() is true."
+        },
+        {
+            "xmlAttribute": "DmxPanOrient",
+            "gridKey": "DmxPanOrient",
+            "type": "int",
+            "default": 90,
+            "min": -360,
+            "max": 360,
+            "appliesWhen": { "attribute": "HasPan", "equals": "1" },
+            "description": "Fixed orientation offset (degrees) for the pan servo (DmxSkull::GetPanOrient()/SetPanOrient()). Default is default_orient[PAN] = 90. Only present/shown when HasPan() is true."
+        },
+        {
+            "xmlAttribute": "DmxTiltOrient",
+            "gridKey": "DmxTiltOrient",
+            "type": "int",
+            "default": -20,
+            "min": -360,
+            "max": 360,
+            "appliesWhen": { "attribute": "HasTilt", "equals": "1" },
+            "description": "Fixed orientation offset (degrees) for the tilt servo (DmxSkull::GetTiltOrient()/SetTiltOrient()). Default is default_orient[TILT] = -20. Only present/shown when HasTilt() is true."
+        },
+        {
+            "xmlAttribute": "DmxNodOrient",
+            "gridKey": "DmxNodOrient",
+            "type": "int",
+            "default": 29,
+            "min": -360,
+            "max": 360,
+            "appliesWhen": { "attribute": "HasNod", "equals": "1" },
+            "description": "Fixed orientation offset (degrees) for the nod servo (DmxSkull::GetNodOrient()/SetNodOrient()). Default is default_orient[NOD] = 29. Only present/shown when HasNod() is true."
+        },
+        {
+            "xmlAttribute": "DmxEyeUDOrient",
+            "gridKey": "DmxEyeUDOrient",
+            "type": "int",
+            "default": 35,
+            "min": -360,
+            "max": 360,
+            "appliesWhen": { "attribute": "HasEyeUD", "equals": "1" },
+            "description": "Fixed orientation offset (degrees) for the eye up/down servo (DmxSkull::GetEyeUDOrient()/SetEyeUDOrient()). Default is default_orient[EYE_UD] = 35. Only present/shown when HasEyeUD() is true."
+        },
+        {
+            "xmlAttribute": "DmxEyeLROrient",
+            "gridKey": "DmxEyeLROrient",
+            "type": "int",
+            "default": -35,
+            "min": -360,
+            "max": 360,
+            "appliesWhen": { "attribute": "HasEyeLR", "equals": "1" },
+            "description": "Fixed orientation offset (degrees) for the eye left/right servo (DmxSkull::GetEyeLROrient()/SetEyeLROrient()). Default is default_orient[EYE_LR] = -35. Only present/shown when HasEyeLR() is true."
+        }
+    ],
+    "notes": [
+        "No shutter/dimmer/beam ability: DmxSkull attaches only a color_ability (unconditionally, RGBW) plus the always-present preset ability - no shutter_ability/dimmer_ability/beam_ability - so only DmxChannelCount, DmxColorType and the RGBW-channel properties from shared/DmxAbilities.json apply beyond this document's own properties (color type is fixed at RGBW like DmxGeneral/DmxFloodlight/DmxFloodArea - never switched dynamically).",
+        "gridKey omitted for HasPan/HasTilt/HasNod/HasEyeUD/HasEyeLR/HasColor/Bits16/HasJaw above: none of the Has*/Bits16 flags have a direct property-grid row of their own - they are only editable through the \"Skull Config\" popup-dialog checkboxes (SkullConfigDialog), which read/write the model directly rather than going through a named wxPGProperty/gridKey.",
+        "Servo child-element base names use full descriptive names (JawServo/PanServo/TiltServo/NodServo/EyeUpDownServo/EyeLeftRightServo), not the short axis labels (Jaw/Pan/Tilt/Nod/EyeUD/EyeLR) the task brief's survey shorthand suggested - see the childElements entries above for the verified literal names."
+    ]
+}

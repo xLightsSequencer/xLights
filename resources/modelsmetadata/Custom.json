@@ -1,0 +1,134 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Custom",
+    "description": "A model whose node layout is an arbitrary hand-placed grid (width x height x depth), authored via the dedicated Custom Model editor dialog rather than a parametric shape. Node positions are stored as a dense grid blob (CustomModel or CustomModelCompressed), not as individual attributes.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "CustomWidth",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Grid width, in node columns (CustomModel::_customWidth, GetCustomWidth()/SetCustomWidth(), stored as a C++ long). Set via the Custom Model editor dialog (not the main property grid), which also holds the corresponding Height/Depth."
+        },
+        {
+            "xmlAttribute": "CustomHeight",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Grid height, in node rows (CustomModel::_customHeight, GetCustomHeight()/SetCustomHeight()). Set via the Custom Model editor dialog."
+        },
+        {
+            "xmlAttribute": "Depth",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "description": "Grid depth, in node layers - 1 for a flat 2D custom model, >1 for a 3D one (CustomModel::_depth, GetCustomDepth()/SetCustomDepth(), XmlNodeKeys::CMDepthAttribute = \"Depth\"). Verify-note: this reuses the bare xmlAttribute name \"Depth\" also used generically elsewhere in the codebase (e.g. view-object Width/Height/Depth attributes) - no collision here since Custom does not extend any fragment that defines a model-level \"Depth\", but the shared name is coincidental, not an alias. Set via the Custom Model editor dialog; no legacy parm fallback (unlike CustomWidth/CustomHeight)."
+        },
+        {
+            "xmlAttribute": "CustomStrings",
+            "label": "# Strings",
+            "gridKey": "CustomModelStrings",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "description": "Number of physical connections/strings from the prop to the controller (derived from CustomModel::GetNumStrings()/SetNumStrings(), written as the count read back on load); CustomPropertyAdapter help text: \"typically the number of connections from the prop to your controller.\""
+        },
+        {
+            "xmlAttribute": "CustomBkgImage",
+            "label": "Background Image",
+            "gridKey": "CustomBkgImage",
+            "type": "filepath",
+            "default": "",
+            "description": "Path to a reference image displayed behind the node grid in the Custom Model editor dialog (CustomModel::GetCustomBackground()/SetCustomBackground()). Only written when non-empty (BaseSerializingVisitor::Visit(const CustomModel&): the whole CustomBkgImage/CustomBkgLightness/CustomBkgScale/CustomBkgBrightness group is written only if the background path is set)."
+        },
+        {
+            "xmlAttribute": "CustomBkgLightness",
+            "label": "Background Lightness",
+            "type": "int",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "appliesWhen": {
+                "attribute": "CustomBkgImage",
+                "notEquals": ""
+            },
+            "description": "Background image lightness adjustment (CustomModel::GetCustomLightness()/SetCustomLightness(), stored as a C++ long). Edited via a slider in the Custom Model editor dialog (CustomModelDialog::SliderCustomLightness), not the main property grid. Only written alongside CustomBkgImage when a background is set."
+        },
+        {
+            "xmlAttribute": "CustomBkgScale",
+            "label": "Background Image Scale %",
+            "gridKey": "CustomBkgScale",
+            "type": "uint",
+            "default": 100,
+            "min": 10,
+            "max": 500,
+            "appliesWhen": {
+                "attribute": "CustomBkgImage",
+                "notEquals": ""
+            },
+            "description": "Scale of the background image as a percentage of the model size (100 = fit model bounds) (CustomModel::GetCustomBkgScale()/SetCustomBkgScale()). Only written alongside CustomBkgImage when a background is set."
+        },
+        {
+            "xmlAttribute": "CustomBkgBrightness",
+            "label": "Background Image Brightness %",
+            "gridKey": "CustomBkgBrightness",
+            "type": "uint",
+            "default": 20,
+            "min": 0,
+            "max": 100,
+            "appliesWhen": {
+                "attribute": "CustomBkgImage",
+                "notEquals": ""
+            },
+            "description": "Brightness of the background image (0 = black, 100 = full brightness) (CustomModel::GetCustomBkgBrightness()/SetCustomBkgBrightness()). Only written alongside CustomBkgImage when a background is set."
+        }
+    ],
+    "notes": [
+        "Node grid data: exactly one of \"CustomModel\" or \"CustomModelCompressed\" is written per model (BaseSerializingVisitor::Visit(const CustomModel&) writes CustomModelCompressed when GetCompressedData() is non-empty, else falls back to CustomModel/GetCustomData()); both are read via the same XmlSerialize::ParseCustomModelDataFromXml (checks CustomModelCompressed first, then CustomModel). Uncompressed \"CustomModel\" encoding: layers separated by '|', rows within a layer separated by ';', node values within a row separated by ',' - each cell is either empty (no node at that grid position) or a positive 1-based node index (XmlSerialize::ParseCustomModel). Compressed \"CustomModelCompressed\" encoding: a ';'-separated list of per-node entries, each a ','-separated tuple \"node,row,col\" (2D) or \"node,row,col,layer\" (3D) - only actual nodes are listed, so this format is compact for sparse/large grids (XmlSerialize::ParseCompressed). Not modeled as individual properties per the brief's guidance for non-scalar blob data. GRID ORIENTATION (verified against CustomModel::InitCustomMatrix, src-core/models/CustomModel.cpp: `Nodes.back()->AddBufCoord(layer*width + col, height - row - 1)`): row 0 (the FIRST ';'-separated group) is the TOP row of the model as displayed in the layout; row increases downward. Column 0 (the first value in a row's ','-separated list) is the LEFT column; column increases rightward. So the data string reads exactly like a normal top-to-bottom, left-to-right image/matrix dump - confirmed 2026-07-18 by converting a real native Matrix model to Custom and round-tripping the result through a live xLights instance via the automation API (getModel), which parsed the generated grid back into the expected layout with no distortion.",
+        "Per-string start-node overrides: when CustomStrings > 1, one attribute per string named \"NodeStart1\", \"NodeStart2\", ... \"NodeStart{CustomStrings}\" (1-based; CustomModel::StartNodeAttrName(idx) = \"NodeStart\" + (idx+1)) holds that string's starting node index. Note the different family name from PolyLine's \"PolyNode{n}\" pattern (models/PolyLine.json) - each model type defines its own StartNodeAttrName() override. Unlike PolyLine, HasIndivStartNodes() is unconditionally set true whenever CustomStrings > 1 on read (XmlDeserializingModelFactory::DeserializeCustom), not inferred from attribute presence.",
+        "widthmm/heightmm/depthmm are export-only attributes (written only when the forExport flag is set and a RulerObject is configured, giving the model's real-world physical size in millimeters) - not modeled here as they never appear in a saved xlights_rgbeffects.xml, only in exported custom-model files."
+    ]
+}

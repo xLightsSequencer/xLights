@@ -1,0 +1,34 @@
+{
+    "schemaVersion": 1,
+    "description": "The <dimmingCurve> child element of a <model> node in xlights_rgbeffects.xml: an optional per-model brightness/gamma correction curve applied before effect data reaches the model's pixels. <dimmingCurve> itself carries no attributes of its own - it is purely a wrapper around one or more per-channel child elements (see notes). Source of truth: src-core/XmlSerializer/BaseSerializingVisitor.cpp BaseSerializingVisitor::WriteDimmingCurve (writer) and src-core/XmlSerializer/XmlDeserializingModelFactory.cpp DeserializeDimmingCurve (reader); curve math is src-core/render/DimmingCurve.h/.cpp (DimmingCurve::createFromInfo); editing UI is src-ui-wx/model/ModelDimmingCurveDialog.cpp.",
+    "storage": { "file": "xlights_rgbeffects.xml", "node": "models/model", "element": "dimmingCurve" },
+    "properties": [
+        {
+            "xmlAttribute": "filename",
+            "type": "filepath",
+            "description": "Path to an external dimming-curve calibration file: a plain-text file with one 0-255 output value per line, indexed by input brightness (FileDimmingCurve, src-core/render/DimmingCurve.cpp). When present on a channel element it takes precedence over that element's brightness/gamma attributes, which are then ignored."
+        },
+        {
+            "xmlAttribute": "brightness",
+            "type": "int",
+            "default": 100,
+            "min": -100,
+            "max": 100,
+            "description": "Brightness adjustment percentage for this channel (-100..100). A value of 0 combined with gamma=1.0 yields an identity curve with no effect (BasicDimmingCurve::isIdentity()); ignored when the channel element also has a filename attribute. Range from ModelDimmingCurveDialog.cpp brightnessValidator.SetRange(-100, 100). See notes for why \"default\" here is 100, not the UI's own empty-field fallback of 0."
+        },
+        {
+            "xmlAttribute": "gamma",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.0,
+            "max": 50.0,
+            "step": 0.1,
+            "description": "Gamma correction factor for this channel (1.0 = linear/no correction). A curve with gamma exactly 0.0 blanks the model entirely and is flagged as a settings error (Model::CheckModelSettings). Range from ModelDimmingCurveDialog.cpp gammaValidator.SetRange(0.0, 50.0)."
+        }
+    ],
+    "notes": [
+        "Two-level nesting that this fragment's single storage.element cannot fully express: the attributes above do not live on <dimmingCurve> itself, but on 1-3 further child elements nested one level inside it, each named literally \"all\" (one overall curve applied to every channel) OR \"red\"+\"green\"+\"blue\" together (independent per-channel curves) - never a mix of \"all\" with a colour name (DimmingCurve::createFromInfo, src-core/render/DimmingCurve.cpp, and ModelDimmingCurveDialog.cpp which reads/writes dimmingInfo[\"all\"]/[\"red\"]/[\"green\"]/[\"blue\"] literally). For example, a single-curve model writes exactly one child: <dimmingCurve><all brightness=\"20\" gamma=\"1.0\"/></dimmingCurve>; an RGB model writes up to three: <dimmingCurve><red .../><green .../><blue .../></dimmingCurve>.",
+        "brightness has two different observed defaults depending on context: XmlDeserializingModelFactory::DeserializeDimmingCurve seeds a missing brightness attribute to \"100\" whenever a channel child element already exists in the file but the attribute itself is absent, while the curve math (DimmingCurve::createCurve) separately falls back to \"0\" only if the whole key were missing from the in-memory map, which cannot happen once a model has been loaded through the normal reader. \"default\": 100 above reflects the reader's on-disk-read behaviour, the one relevant to interpreting a file.",
+        "The whole <dimmingCurve> element is only written when at least one channel entry exists (Model::dimmingInfo non-empty); a model with no dimming curve configured has no <dimmingCurve> element at all. A legacy <model ModelBrightness=\"N\"> attribute (see shared/Common.json) is converted into a synthesized <dimmingCurve><all gamma=\"1.0\" brightness=\"N\"/></dimmingCurve> on load if no real dimmingCurve element is present and N != 0."
+    ]
+}

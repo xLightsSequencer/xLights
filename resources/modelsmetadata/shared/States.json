@@ -1,0 +1,30 @@
+{
+    "schemaVersion": 1,
+    "description": "The <stateInfo> child elements of a <model> node in xlights_rgbeffects.xml: named custom-state definitions consumed by the State effect. A model may define any number of named states (Model::stateInfo, a map of state name -> attribute map). Source of truth: src-core/models/Model.cpp (Model::stateInfo/GetStateInfo/SetStateInfo) with the shared faceInfo/stateInfo writer BaseSerializingVisitor::WriteFacesAndStates, and src-core/XmlSerializer/XmlSerializeFunctions.cpp DeserializeStateInfo (reader); editing UI is src-ui-wx/model/ModelStateDialog.cpp; consumed at render time by src-core/effects/StateEffect.cpp.",
+    "storage": { "file": "xlights_rgbeffects.xml", "node": "models/model", "element": "stateInfo" },
+    "properties": [
+        {
+            "xmlAttribute": "Name",
+            "type": "string",
+            "description": "State definition name, unique within the model. Read via the same XmlNodeKeys::StateNameAttribute (\"Name\") key faceInfo uses. Defaults to the literal string \"SingleNode\" if the attribute is missing entirely; if present but empty, falls back to the Type value instead (DeserializeStateInfo)."
+        },
+        {
+            "xmlAttribute": "Type",
+            "type": "enum",
+            "enum": ["SingleNode", "NodeRange"],
+            "default": "SingleNode",
+            "description": "How this state's rows map onto the model: named single nodes or node-range lists. CORRECTION vs a naive reading of the C++/brief: unlike faceInfo, stateInfo has no \"Matrix\" Type value - src-core/XmlSerializer/XmlSerializeFunctions.cpp DeserializeStateInfo and src-ui-wx/model/ModelStateDialog.cpp only ever construct/recognize SingleNode or NodeRange. A legacy \"Coro\" value is normalized on read to SingleNode."
+        },
+        {
+            "xmlAttribute": "CustomColors",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "When \"1\", each defined row's custom colour (the sNNN-Color attribute) is honoured; when \"0\" states render using the sequence's own colour and sNNN-Color attributes are ignored (ModelStateDialog.cpp SetGrid(); src-core/effects/StateEffect.cpp findKey(...,\"CustomColors\"))."
+        }
+    ],
+    "notes": [
+        "Row attributes are an open-ended, zero-padded attribute family - NOT the \"s1\"/\"s1-Name\"/\"s1-Color\" pattern a naive reading of the property-grid row numbers might suggest. CORRECTION (verified file:line): the persisted key is always \"s\" plus a 3-digit zero-padded row number, e.g. \"s001\", \"s002\", ... up to \"s200\" (SingleNodeGrid/NodeRangeGrid both CreateGrid(200, 3), src-ui-wx/model/ModelStateDialog.cpp). See ModelStateDialog.cpp lines 496, 640, 1009, 1490-1526 and 2309 (all wxString::Format(\"s%03d\", ...)) for the write/UI side, and src-core/XmlSerializer/XmlSerializeFunctions.cpp DeserializeStateInfo lines 250-258, which actively RE-NORMALIZES any legacy unpadded key (e.g. an old file's bare \"s1\") to \"s001\" while loading - so an unpadded form never round-trips through a save.",
+        "Each row is really up to three attributes sharing the same \"sNNN\" prefix: \"sNNN\" itself holds the node name (Type=SingleNode) or a compressed node-range list (Type=NodeRange); \"sNNN-Name\" holds the user-assigned state label, matched case-insensitively against sequence effect tokens (StateEffect.cpp); \"sNNN-Color\" holds an optional #RRGGBB override, only meaningful when CustomColors=\"1\". A row with no value is simply absent from the XML - DeserializeStateInfo only stores non-empty attribute values to keep the file small."
+    ]
+}
