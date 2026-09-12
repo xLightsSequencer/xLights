@@ -108,7 +108,60 @@ private:
 };
 std::atomic_int ControllerPingThread::pingCount(0);
 
+#include <wx/control.h>   // wxControl::EscapeMnemonics
+#include "setup/ShowDirectoriesDialog.h"
+
 #pragma region Show Directory
+void xLightsFrame::RebuildFavoriteShowFoldersMenu()
+{
+    if (FavoriteShowFoldersMenu == nullptr) return;
+
+    for (const auto& [id, path] : _favoriteMenuPaths) {
+        Disconnect(id, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuFavoriteShowFolder);
+    }
+    _favoriteMenuPaths.clear();
+    while (FavoriteShowFoldersMenu->GetMenuItemCount()) {
+        FavoriteShowFoldersMenu->Delete(FavoriteShowFoldersMenu->FindItemByPosition(0));
+    }
+
+    for (const auto& fav : ShowDirectoriesDialog::ReadFavoritesFromConfig()) {
+        const wxString& path = fav.path;
+        const wxString& name = fav.name;
+        const int menuID = wxNewId();
+        // Name only in the menu; the path lives in _favoriteMenuPaths. Escape
+        // mnemonics or an '&' in a folder name becomes an accelerator.
+        wxMenuItem* item = new wxMenuItem(FavoriteShowFoldersMenu, menuID,
+                                          wxControl::EscapeMnemonics(name), path);
+        item->SetBitmap(wxArtProvider::GetBitmapBundle("wxART_FOLDER_OPEN", wxART_MENU));
+        FavoriteShowFoldersMenu->Append(item);
+        _favoriteMenuPaths[menuID] = path;
+        Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuFavoriteShowFolder);
+    }
+    if (wxMenuItem* favItem = MenuFile->FindItem(ID_MENUITEM_FAVFOLDERS)) {
+        favItem->Enable(!_favoriteMenuPaths.empty());
+    }
+}
+
+void xLightsFrame::OnMenuFavoriteShowFolder(wxCommandEvent& event)
+{
+    auto it = _favoriteMenuPaths.find(event.GetId());
+    if (it == _favoriteMenuPaths.end()) return;
+    wxString newdir = it->second;
+
+    if (!wxFileName::DirExists(newdir)) {
+        DisplayError(wxString::Format(_("This favorite show folder no longer exists:\n%s"), newdir), this);
+        return;
+    }
+    if (!ObtainAccessToURL(newdir, true)) {
+        std::string dstr = newdir;
+        PromptForDirectorySelection("Reselect Show Directory", dstr);
+        newdir = dstr;
+    }
+    displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
+    layoutPanel->ClearUndo();
+    SetDir(newdir, true);
+}
+
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
     int id = event.GetId();
     wxString newdir = RecentShowFoldersMenu->GetLabel(id);
@@ -324,6 +377,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         RecentShowFoldersMenu->Append(mrud_MenuItem[i]);
     }
     RecentShowFoldersMenu->UpdateUI();
+    RebuildFavoriteShowFoldersMenu();
     MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->Enable(cnt != 0);
 
     if (!DirExists) {
