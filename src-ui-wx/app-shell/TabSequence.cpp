@@ -2084,6 +2084,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 {
     _sequenceControlsEnabled = enable;
     enableAllToolbarControls(MainToolBar, enable);
+    enableAllToolbarControls(ToolsToolBar, enable);
     //enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
     SetAudioControls();
     bool enableSeq = enable && _seqData.NumFrames() > 0;
