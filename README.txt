@@ -45,6 +45,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  when the show's last-saved preview no longer existed, showing no models
     -bug (derwin12)              Cloning a model group left both the original and the clone highlighted
                                  in the tree, with the property grid actually still editing the original (#7049)
+    -bug (derwin12)              Effect settings with a leading space in their value (seen in some older
+                                 sequences) were silently treated as 0, so fade in/out and other numeric
+                                 settings could render wrong (#7055)
 
 
 2026.17  September 8, 2026
