@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  imported from, other moving head props (#6926)
     -enh (derwin12)              Selecting an effect in the Select Effects panel now scrolls the
                                  sequencer grid to bring it into view
+    -bug (derwin12)              Right-click "Convert Effects to 'Per Model'" now refreshes the Layer
+                                 Settings panel when it is showing an affected effect (#7060)
     -bug (dkulp)                 Closing a sequence could crash: the waveform panel kept pointing at the
                                  sequence audio after the sequence was deleted
     -bug (dkulp)                 Fixed a crash when dragging an effect edge while the row the drag started

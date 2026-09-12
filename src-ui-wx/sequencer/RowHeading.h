@@ -71,6 +71,7 @@ private:
     bool ExpandElementIfEffects(Element* e);
     bool ModelInView(const std::string& model, int view) const;
     void SetWidth(int w);
+    void RefreshSelectedEffectPanelIfOnElement(Element* element) const;
     
     wxBitmapBundle papagayo_icon;
     wxBitmapBundle papagayox_icon;

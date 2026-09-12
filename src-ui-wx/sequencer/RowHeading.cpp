@@ -2104,6 +2104,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
         xLightsApp::GetFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
+        RefreshSelectedEffectPanelIfOnElement(element);
     } else if (id == ID_ROW_MNU_MODEL_CONVERTTOPERMODEL) {
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         xLightsApp::GetFrame()->AbortRender();
@@ -2114,6 +2115,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
         xLightsApp::GetFrame()->RenderEffectForModel(element->GetModelName(), 0, 99999999);
+        RefreshSelectedEffectPanelIfOnElement(element);
     } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
         for (int i = 0; i < (int)element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->SelectAllEffects();
@@ -2444,6 +2446,25 @@ bool RowHeading::ModelInView(const std::string& model, int view) const
     }
 
     return false;
+}
+
+// ConvertEffectsToPerModel mutates the effect's settings directly rather than
+// going through the Layer Settings (BufferPanel) controls, so if the effect
+// currently displayed there belongs to the element just converted, the panel
+// is left showing the stale buffer style until re-selected.
+void RowHeading::RefreshSelectedEffectPanelIfOnElement(Element* element) const
+{
+    if (element == nullptr)
+        return;
+
+    MainSequencer* mainSequencer = xLightsApp::GetFrame()->GetMainSequencer();
+    if (mainSequencer == nullptr || mainSequencer->PanelEffectGrid == nullptr)
+        return;
+
+    Effect* selectedEffect = mainSequencer->PanelEffectGrid->GetSelectedEffect();
+    if (selectedEffect != nullptr && selectedEffect->GetParentEffectLayer()->GetParentElement() == element) {
+        mainSequencer->PanelEffectGrid->RaiseSelectedEffectChanged(selectedEffect, false, true);
+    }
 }
 
 void RowHeading::BreakdownTimingPhrases(TimingElement* element)
