@@ -17,6 +17,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  sequencer grid to bring it into view
     -bug (derwin12)              Right-click "Convert Effects to 'Per Model'" now refreshes the Layer
                                  Settings panel when it is showing an affected effect (#7060)
+    -bug (derwin12)              Changing the effect type from the Effect panel drop-down no longer
+                                 resets the Layer Settings Render Style choices to the modelless
+                                 default when the selected effect is on a model group
     -bug (dkulp)                 Closing a sequence could crash: the waveform panel kept pointing at the
                                  sequence audio after the sequence was deleted
     -bug (dkulp)                 Fixed a crash when dragging an effect edge while the row the drag started
