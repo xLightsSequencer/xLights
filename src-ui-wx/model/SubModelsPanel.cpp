@@ -2098,13 +2098,6 @@ void SubModelsPanel::ClearNodeColor(Model *m)
 }
 
 void SubModelsPanel::SelectRow(int r) {
-    if (r != -1 && timer1.IsRunning()) {
-        // While "Output to Lights" is running, ignore incidental grid focus/
-        // edit events narrowing the selection to a single row -- keep the
-        // whole submodel (every row/strand) lit rather than just one row.
-        return;
-    }
-
     _selected.clear();
     ClearNodeColor(model);
 
@@ -4000,13 +3993,6 @@ void SubModelsPanel::OnTimer1Trigger(wxTimerEvent& event)
 void SubModelsPanel::StartOutputToLights()
 {
     if (!timer1.IsRunning()) {
-        if (TypeNotebook->GetSelection() == 0) {
-            // Node-range submodels: grid focus/edit events narrow _selected down
-            // to whatever row was last touched. Recompute it here so the whole
-            // submodel (every row/strand) lights up rather than just one row
-            // or nothing at all.
-            SelectRow(-1);
-        }
         if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
         timer1.SetOwner(this, ID_TIMER1);
         timer1.Start(50, false);
