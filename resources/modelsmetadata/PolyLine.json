@@ -1,0 +1,125 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Poly Line",
+    "description": "A chain of straight or curved segments defined by an arbitrary number of user-placed vertices, with nodes distributed along its total length and optional per-segment/per-point overrides. Uses the PolyPoint ScreenLocation style (shared/ScreenLocation.json), which already documents NumPoints, PointData, cPointData and ScaleX/Y/Z for this model - not repeated here. This file covers PolyLine's own attributes: node/light counts, drop pattern, and the dynamically-indexed per-point/per-segment/per-corner families that live directly on the <model> element.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NodesPerString",
+            "label": "# Nodes",
+            "gridKey": "PolyLineNodes",
+            "type": "uint",
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Total light/node count distributed along the whole poly-line (PolyLineModel::GetTotalLightCount()/SetTotalLightCount()) - despite the generic xmlAttribute name NodesPerString shared with Matrix/Sphere/Icicles/etc. in their own separate documents, this is a TOTAL count, not a per-string count. Grid label is \"# Lights\" for SingleNode string types, \"# Nodes\" otherwise (PolyLinePropertyAdapter::AddTypeProperties); same xmlAttribute/gridKey either way. No JSON \"default\" is given: the reader's fallback when both this attribute and legacy parm2 are absent is the out-of-range sentinel 0 (XmlDeserializingModelFactory::DeserializePolyLine), below the property grid's Min of 1."
+        },
+        {
+            "xmlAttribute": "LightsPerNode",
+            "label": "Lights/Node",
+            "gridKey": "PolyLineLights",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 300,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "appliesWhen": {
+                "attribute": "StringType",
+                "notEquals": "SingleNode"
+            },
+            "description": "Physical lights represented by each node (PolyLineModel::GetLightsPerNode()/SetLightsPerNode()). Only shown in the property grid for non-SingleNode string types, but the attribute itself is unconditional."
+        },
+        {
+            "xmlAttribute": "PolyStrings",
+            "label": "Strings",
+            "gridKey": "PolyLineStrings",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 48,
+            "description": "Number of physical connections/strings from the prop to the controller (PolyLineModel::GetNumStrings()/SetNumStrings()); PolyLinePropertyAdapter help text: \"typically the number of connections from the prop to your controller.\""
+        },
+        {
+            "xmlAttribute": "AlternateNodes",
+            "label": "Alternate Drop Nodes",
+            "gridKey": "AlternateNodes",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", interleaves buffer positions within each drop (staggered wiring) instead of simple sequential order (PolyLineModel::HasAlternateNodes()/SetAlternateNodes()). Persisted as the lowercase literal true/false; always written."
+        },
+        {
+            "xmlAttribute": "DropPattern",
+            "label": "Drop Pattern",
+            "gridKey": "IciclesDrops",
+            "type": "string",
+            "default": "1",
+            "encoding": "Comma-separated list of non-negative integers, one per drop position, cycled repeatedly along the poly-line (PolyLineModel::ParseDropSizes/SetDropPattern; reuses the same wxDropPatternProperty editor and gridKey \"IciclesDrops\" as Icicles.json's DropPattern, though PolyLineModel has its own separate _dropPatternString member/implementation, not a shared one). Each value is the node/light count of that drop.",
+            "description": "Repeating pattern of drop lengths along the poly-line, analogous to Icicles' DropPattern but with a different on-disk default (\"1\" here vs. \"3,4,5,4\" for Icicles - PolyLineModel::_dropPatternString's initializer)."
+        },
+        {
+            "xmlAttribute": "ModelHeight",
+            "label": "Height",
+            "gridKey": "ModelHeight",
+            "type": "float",
+            "default": 1.0,
+            "step": 0.1,
+            "precision": 2,
+            "description": "Cross-sectional height/thickness of the poly-line ribbon (PolyLineModel::GetModelHeight()/SetModelHeight()). No min/max is enforced by the property grid itself, but OnPropertyGridChange clamps the magnitude to at least 0.01 (preserving sign) and vetoes edits entirely while the ScreenLocation is locked or the model is from a linked base show folder. CAUTION: this shares its gridKey \"ModelHeight\" with shared/ScreenLocation.json's unrelated ThreePoint \"Height\" property (xmlAttribute \"Height\", used by Arches/CandyCanes/Icicles) - the two are different xmlAttributes (\"ModelHeight\" vs \"Height\") on different ScreenLocation styles, not an alias."
+        },
+        {
+            "xmlAttribute": "SegsExpanded",
+            "gridKey": "ModelIndividualSegments",
+            "type": "bool",
+            "boolFormat": "TRUEFALSE",
+            "default": "FALSE",
+            "description": "UI bookkeeping: whether the \"Segments\"/\"Corner Settings\" property-grid sub-trees are expanded or collapsed (PolyLineModel::AreSegsExpanded(), toggled via OnPropertyGridItemCollapsed/Expanded). Persisted as the UPPERCASE literal TRUE/FALSE; always written."
+        }
+    ],
+    "notes": [
+        "Per-point start-node overrides: when PolyStrings > 1, one attribute per string named \"PolyNode1\", \"PolyNode2\", ... \"PolyNode{PolyStrings}\" (1-based; PolyLineModel::StartNodeAttrName(idx) = \"PolyNode\" + (idx+1)) holds that string's starting node index (1-based, within GetNodeCount()). Presence of \"PolyNode1\" on read is what sets HasIndivStartNodes() (not a separate boolean attribute). Not enumerated as individual properties per the brief's guidance for patterned/dynamically-indexed attributes.",
+        "Per-segment length overrides: one attribute per segment named \"Seg1\", \"Seg2\", ... \"Seg{N}\" (1-based; PolyLineModel::SegAttrName(idx) = \"Seg\" + (idx+1), N = NumPoints-1) holds that segment's node count. CORRECTION vs. the brief's survey guess of \"SegExpanded\"/\"Seg{n}\": the boolean UI-expansion flag is \"SegsExpanded\" (plural \"Segs\", see the SegsExpanded property above), not \"SegExpanded\"; only written at all when AutoDistribute is off (PolyLineModel::GetAutoDistribute() == false), which itself is inferred purely from whether \"Seg1\" is present on read, not from any persisted boolean attribute.",
+        "Per-corner style: one attribute per point named \"Corner1\", \"Corner2\", ... \"Corner{N+1}\" (1-based; PolyLineModel::CornerAttrName(idx) = \"Corner\" + (idx+1), N = number of segments) holds one of the literal enum strings \"Leading Segment\", \"Trailing Segment\" or \"Neither\" (default \"Neither\" when absent) - PolyLinePropertyAdapter's POLY_CORNER_VALUES. Governs how the poly-line's rendered width tapers in/out at that vertex.",
+        "Starting Location: the \"PolyLineStart\" property-grid enum (gridKey \"PolyLineStart\") is a 2-value Green Square/Blue Square picker that sets only the shared Dir attribute (shared/Common.json); StartSide is not involved (PolyLinePropertyAdapter::OnPropertyGridChange \"PolyLineStart\" only calls SetIsLtoR/SetDirection). No property object for it appears above since Dir itself is owned by shared/Common.json.",
+        "NumPoints, PointData and cPointData (the vertex/curve data) plus ScaleX/Y/Z are all already documented in shared/ScreenLocation.json under the PolyPoint style and are not redefined here to avoid a duplicate-xmlAttribute validation error."
+    ]
+}
