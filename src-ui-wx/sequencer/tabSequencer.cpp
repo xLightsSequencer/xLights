@@ -1268,13 +1268,21 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     Effect* effect = nullptr;
     if(OnlyChoiceBookPage)
     {
+        // Switching the effect *type* in the choicebook doesn't change which
+        // grid effect (and therefore which model/group) is selected, so keep
+        // resolving Buffer/Blending styles against that model rather than
+        // resetting them to the modelless defaults.
+        Model* model = selectedEffect != nullptr
+            ? GetModel(selectedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName())
+            : nullptr;
+
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
         if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
             EffectsPanel1->SetEffectType(pageIndex);
             wxString effectName = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
-            ResetPanelDefaultSettings(effectName, nullptr, true);
-            EffectsPanel1->SetEffectPanelStatus(nullptr, effectName, 0, 0);
+            ResetPanelDefaultSettings(effectName, model, true);
+            EffectsPanel1->SetEffectPanelStatus(model, effectName, 0, 0);
         } else {
             const wxString eff = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
             // updateBtn=true means the event came from the choicebook dropdown
@@ -1283,11 +1291,11 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             // toolbar button — clicking/dragging the SAME effect that is already
             // selected should NOT wipe the user's current panel settings.
             if (event.updateBtn || eff == "Moving Head") {
-                ResetPanelDefaultSettings(eff, nullptr, true);
+                ResetPanelDefaultSettings(eff, model, true);
             }
             // Populate dynamic choices (timing tracks, effect-driven options) whenever
             // the panel switches, even when no grid effect is selected.
-            EffectsPanel1->SetEffectPanelStatus(nullptr, eff, 0, 0);
+            EffectsPanel1->SetEffectPanelStatus(model, eff, 0, 0);
             event.updateUI = false;
         }
     }
