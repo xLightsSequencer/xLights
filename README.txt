@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  imported from, other moving head props (#6926)
     -enh (derwin12)              Selecting an effect in the Select Effects panel now scrolls the
                                  sequencer grid to bring it into view
+    -bug (derwin12)              Testing a submodel's "Output to Lights" now sends the actual node
+                                 colour of the highlighted node range instead of a flat test value
     -bug (derwin12)              Right-click "Convert Effects to 'Per Model'" now refreshes the Layer
                                  Settings panel when it is showing an affected effect (#7060)
     -bug (derwin12)              Changing the effect type from the Effect panel drop-down no longer
