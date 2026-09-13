@@ -133,6 +133,7 @@
 #include "link_svgs.h"
 
 #include "fpp_icon.h"
+#include "tools_toolbar_icons.h"
 
 #include "wx/artprov.h"
 
@@ -593,6 +594,18 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return wxBitmapBundle::FromSVG(linkSVG, sizeof(linkSVG), wxSize(16, 16));
     } else if ("xlART_UNLINKED" == id) {
         return wxBitmapBundle::FromSVG(unlinkSVG, sizeof(unlinkSVG), wxSize(16, 16));
+    } else if ("xlART_TOOLS_TEST" == id) {
+        return wxBitmapBundle::FromSVG(tools_test_svg, tools_test_svg_len, wxSize(24, 24));
+    } else if ("xlART_TOOLS_CHECKSEQUENCE" == id) {
+        return wxBitmapBundle::FromSVG(tools_checksequence_svg, tools_checksequence_svg_len, wxSize(24, 24));
+    } else if ("xlART_TOOLS_PACKAGESEQUENCE" == id) {
+        return wxBitmapBundle::FromSVG(tools_packagesequence_svg, tools_packagesequence_svg_len, wxSize(24, 24));
+    } else if ("xlART_TOOLS_BATCHRENDER" == id) {
+        return wxBitmapBundle::FromSVG(tools_batchrender_svg, tools_batchrender_svg_len, wxSize(24, 24));
+    } else if ("xlART_TOOLS_BULKUPLOAD" == id) {
+        return wxBitmapBundle::FromSVG(tools_bulkupload_svg, tools_bulkupload_svg_len, wxSize(24, 24));
+    } else if ("xlART_TOOLS_VIEWLOG" == id) {
+        return wxBitmapBundle::FromSVG(tools_viewlog_svg, tools_viewlog_svg_len, wxSize(24, 24));
     }
 #ifdef __WXOSX__
     // macOS SF Symbol based navigation icons
@@ -653,8 +666,8 @@ wxBitmapBundle BitmapCache::GetPapgayoXIcon() {
 wxBitmapBundle BitmapCache::GetModelGroupIcon() {
     return CreateBitmapBundleFromXPMs(16, "ModelGroup", {model_16, model_64, model_64, model_64, model_64});
 }
-wxBitmapBundle BitmapCache::GetFPPIcon() {
-    return wxBitmapBundle::FromSVG(fpp_app_icon_svg, sizeof(fpp_app_icon_svg), wxSize(16, 16));
+wxBitmapBundle BitmapCache::GetFPPIcon(int size) {
+    return wxBitmapBundle::FromSVG(fpp_app_icon_svg, sizeof(fpp_app_icon_svg), wxSize(size, size));
 }
 
 const wxImage &BitmapCache::GetCornerIcon(int position, int size) {
