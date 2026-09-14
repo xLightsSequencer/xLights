@@ -614,6 +614,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     _dragItem = wxDataViewItem(nullptr);
 
     //(*Initialize(xLightsImportChannelMapDialog)
+    wxBoxSizer* donorSizer;
     wxButton* Button01;
     wxButton* Button02;
     wxFlexGridSizer* FlexGridSizer10;
@@ -737,6 +738,13 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     FlexGridSizer12->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
+    donorSizer = new wxBoxSizer(wxHORIZONTAL);
+    CheckBox_RecordDonor = new wxCheckBox(Panel1, wxID_ANY, _("Record donor sequence in this sequence\'s metadata"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_ANY"));
+    CheckBox_RecordDonor->SetValue(true);
+    donorSizer->Add(CheckBox_RecordDonor, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_DonorPath = new wxStaticText(Panel1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    donorSizer->Add(StaticText_DonorPath, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(donorSizer, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5);
     Panel1->SetSizer(Sizer1);
     Panel2 = new wxPanel(SplitterWindow1, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     Panel2->SetMinSize(wxSize(400,-1));
@@ -780,6 +788,11 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     Connect(ID_LISTCTRL1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickModelsAvail);
 
     SetSize(800, 600);
+
+    // Filename only in the label; the full path is on the tooltip and is what
+    // gets recorded into the target sequence.
+    StaticText_DonorPath->SetLabel(_filename.GetFullName());
+    StaticText_DonorPath->SetToolTip(_filename.GetFullPath());
 
     if (_filename != "") {
         SetLabel(GetLabel() + " - " + _filename.GetFullName());
@@ -2391,6 +2404,11 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
         }
         line = text.ReadLine();
     }
+}
+
+bool xLightsImportChannelMapDialog::ShouldRecordDonor() const
+{
+    return CheckBox_RecordDonor != nullptr && CheckBox_RecordDonor->IsChecked();
 }
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)

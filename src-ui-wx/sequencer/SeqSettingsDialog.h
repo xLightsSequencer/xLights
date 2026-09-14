@@ -115,6 +115,8 @@ class SeqSettingsDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Xml_Author;
 		wxTextCtrl* TextCtrl_Xml_Author_Email;
 		wxTextCtrl* TextCtrl_Xml_Comment;
+		wxStaticText* StaticText_Xml_ImportedFrom;
+		wxTextCtrl* TextCtrl_Xml_ImportedFrom;
 		wxTextCtrl* TextCtrl_Xml_Media_File;
 		wxTextCtrl* TextCtrl_Xml_Music_Url;
 		wxTextCtrl* TextCtrl_Xml_Seq_Duration;

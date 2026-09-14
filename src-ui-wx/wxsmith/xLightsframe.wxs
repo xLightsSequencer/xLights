@@ -1271,6 +1271,9 @@
 					<label>Import Effects</label>
 					<handler function="OnMenuItemImportEffects" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenu" name="ID_IMPORT_FROM_ORIGINAL" variable="ImportFromOriginalMenu" member="yes">
+					<label>Open Original File</label>
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>

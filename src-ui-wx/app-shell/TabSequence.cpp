@@ -2161,6 +2161,9 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     }
 
     MenuItem_ViewLog->Enable(true);
+
+    // Donor re-import is available only when this sequence recorded one.
+    UpdateImportFromOriginalMenu();
 }
 
 //modified for partially random -DJ
@@ -2181,7 +2184,6 @@ int xLightsFrame::ChooseRandomEffect()
     const int index = effectManager.GetEffectIndex(effect);
     return index != -1 ? index : 0;
 }
-
 void xLightsFrame::VCChanged(wxCommandEvent& event)
 {
     _valueCurvesPanel->Freeze();
