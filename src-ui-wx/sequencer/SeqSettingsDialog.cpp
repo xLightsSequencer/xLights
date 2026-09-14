@@ -376,6 +376,11 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     FlexGridSizer_Timing_Page->Add(StaticText_Xml_Comment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_Xml_Comment = new wxTextCtrl(PanelMetaData, ID_TEXTCTRL_Xml_Comment, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(PanelMetaData,wxSize(150,-1)), wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Comment"));
     FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Comment, 1, wxALL|wxEXPAND, 5);
+    StaticText_Xml_ImportedFrom = new wxStaticText(PanelMetaData, wxID_ANY, _("Imported From:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+    FlexGridSizer_Timing_Page->Add(StaticText_Xml_ImportedFrom, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_Xml_ImportedFrom = new wxTextCtrl(PanelMetaData, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(PanelMetaData,wxSize(150,-1)), wxTE_READONLY, wxDefaultValidator, _T("wxID_ANY"));
+    TextCtrl_Xml_ImportedFrom->SetToolTip(_("Sequences effects were imported from, most recent first"));
+    FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_ImportedFrom, 1, wxALL|wxEXPAND, 5);
     PanelMetaData->SetSizer(FlexGridSizer_Timing_Page);
     PanelTimings = new wxPanel(Notebook_Seq_Settings, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -619,6 +624,14 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::ALBUM));
     TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::URL));
     TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::COMMENT));
+    wxString importedFrom;
+    for (auto const& donor : xml_file->GetImportedFrom()) {
+        if (!importedFrom.IsEmpty()) {
+            importedFrom += "; ";
+        }
+        importedFrom += wxString(donor);
+    }
+    TextCtrl_Xml_ImportedFrom->SetValue(importedFrom);
     Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString(xml_file->GetSequenceType()));
     SetTimingDisplay(xml_file->GetSequenceTiming());
     if (xml_file->GetMedia() == nullptr) {

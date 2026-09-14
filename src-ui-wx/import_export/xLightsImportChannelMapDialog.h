@@ -507,6 +507,13 @@ class xLightsImportChannelMapDialog: public wxDialog
 
     bool _dirty;
     wxFileName _filename;
+
+public:
+    // True when the user wants this donor recorded in the target sequence.
+    bool ShouldRecordDonor() const;
+    const wxFileName& GetDonorFile() const { return _filename; }
+
+private:
     wxString _mappingFile = "mapping.xmap";
     bool _allowTimingOffset;
     bool _allowTimingTrack;
@@ -549,6 +556,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxButton* Button_UpdateAliases;
 		wxCheckBox* CheckBoxImportMedia;
+		wxCheckBox* CheckBox_RecordDonor;
 		wxCheckBox* CheckBox_ConvertRenderStyle;
 		wxCheckBox* CheckBox_ImportFacesToSequence;
 		wxCheckBox* CheckBox_EraseExistingEffects;

@@ -550,6 +550,24 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="wxID_ANY" variable="StaticText_Xml_ImportedFrom" member="yes">
+										<label>Imported From:</label>
+									</object>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxTextCtrl" name="wxID_ANY" variable="TextCtrl_Xml_ImportedFrom" member="yes">
+										<size>150,-1d</size>
+										<style>wxTE_READONLY</style>
+										<tooltip>Sequences effects were imported from, most recent first</tooltip>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Meta Data</label>

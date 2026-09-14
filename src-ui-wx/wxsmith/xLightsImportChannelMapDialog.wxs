@@ -90,6 +90,16 @@
 										<border>5</border>
 										<option>1</option>
 									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="wxID_ANY" variable="CheckBox_RecordDonor" member="yes">
+											<label>Record donor sequence in this sequence's metadata</label>
+											<checked>1</checked>
+											<tooltip>Remember which sequence these effects were imported from, so it shows in Sequence Settings and can be re-opened from Import &gt; Open Original File.</tooltip>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>1</border>
