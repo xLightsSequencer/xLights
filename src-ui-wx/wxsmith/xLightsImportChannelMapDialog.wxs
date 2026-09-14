@@ -361,6 +361,31 @@
 								<flag>wxALL|wxEXPAND</flag>
 								<option>1</option>
 							</object>
+							<object class="sizeritem">
+								<object class="wxBoxSizer" variable="donorSizer" member="no">
+									<orient>wxHORIZONTAL</orient>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="wxID_ANY" variable="CheckBox_RecordDonor" member="yes">
+											<label>Record donor sequence in this sequence's metadata</label>
+											<checked>1</checked>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>0</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="wxID_ANY" variable="StaticText_DonorPath" member="yes">
+											<label></label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>0</option>
+									</object>
+								</object>
+								<flag>wxLEFT|wxRIGHT|wxBOTTOM</flag>
+								<border>5</border>
+								<option>0</option>
+							</object>
 						</object>
 					</object>
 					<object class="wxPanel" name="ID_PANEL2" variable="Panel2" member="yes">

@@ -126,36 +126,113 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
             config->Write("xLightsLastImportDir", ldir);
         }
 
-        wxFileName fn = file.GetPath();
-        if (!FileExists(fn)) {
-            return;
-        }
-        wxString ext = fn.GetExt().Lower();
-        if (ext == "lms" || ext == "las") {
-            ImportLMS(fn);
-        } else if (ext == "lpe") {
-            ImportLPE(fn);
-        } else if (ext == "loredit") {
-            ImportS5(fn);
-        } else if (ext == "hlsidata") {
-            ImportHLS(fn);
-        } else if (ext == "sup") {
-            ImportSuperStar(fn);
-        } else if (ext == "tim") {
-            ImportVixen3(fn);
-        } else if (ext == "vix") {
-            ImportVix(fn);
-        } else if (ext == "xml" || ext == "xsq" || ext == "zip" || ext == "xsqz" || ext == "piz") {
-            ImportXLights(fn);
-        } else if (ext == "msq") {
-            ImportLSP(fn);
-        } else if (ext == "vsa") {
-            ImportVsa(fn);
-        }
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(this, eventRowHeaderChanged);
-        mainSequencer->PanelEffectGrid->Refresh();
+        ImportEffectsFromFile(file.GetPath());
     }
+}
+
+void xLightsFrame::ImportEffectsFromFile(const wxFileName& fn)
+{
+    if (!FileExists(fn)) {
+        return;
+    }
+    wxString ext = fn.GetExt().Lower();
+    if (ext == "lms" || ext == "las") {
+        ImportLMS(fn);
+    } else if (ext == "lpe") {
+        ImportLPE(fn);
+    } else if (ext == "loredit") {
+        ImportS5(fn);
+    } else if (ext == "hlsidata") {
+        ImportHLS(fn);
+    } else if (ext == "sup") {
+        ImportSuperStar(fn);
+    } else if (ext == "tim") {
+        ImportVixen3(fn);
+    } else if (ext == "vix") {
+        ImportVix(fn);
+    } else if (ext == "xml" || ext == "xsq" || ext == "zip" || ext == "xsqz" || ext == "piz") {
+        ImportXLights(fn);
+    } else if (ext == "msq") {
+        ImportLSP(fn);
+    } else if (ext == "vsa") {
+        ImportVsa(fn);
+    }
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(this, eventRowHeaderChanged);
+    mainSequencer->PanelEffectGrid->Refresh();
+}
+
+void xLightsFrame::RecordImportDonor(const xLightsImportChannelMapDialog& dlg)
+{
+    if (CurrentSeqXmlFile == nullptr || !dlg.ShouldRecordDonor()) {
+        return;
+    }
+    CurrentSeqXmlFile->RecordImportedFrom(dlg.GetDonorFile().GetFullPath().ToStdString());
+    // The record lives in the sequence, so it has to be saved with it.
+    _sequenceElements.IncrementChangeCount(nullptr);
+    UpdateImportFromOriginalMenu();
+}
+
+void xLightsFrame::UpdateImportFromOriginalMenu()
+{
+    if (ImportFromOriginalMenu == nullptr) {
+        return;
+    }
+
+    std::vector<std::string> donors;
+    if (CurrentSeqXmlFile != nullptr) {
+        donors = CurrentSeqXmlFile->GetImportedFrom();
+    }
+
+    // Called from EnableSequenceControls, so skip the rebuild when nothing moved.
+    std::vector<std::string> current;
+    current.reserve(_importFromOriginalDonors.size());
+    for (size_t i = 0; i < ImportFromOriginalMenu->GetMenuItemCount(); ++i) {
+        auto const it = _importFromOriginalDonors.find(ImportFromOriginalMenu->FindItemByPosition(i)->GetId());
+        if (it != _importFromOriginalDonors.end()) {
+            current.push_back(it->second);
+        }
+    }
+    if (current == donors) {
+        return;
+    }
+
+    for (auto const& [id, donor] : _importFromOriginalDonors) {
+        Unbind(wxEVT_MENU, &xLightsFrame::OnMenuItemImportFromOriginal, this, id);
+        wxWindow::UnreserveControlId(id);
+    }
+    _importFromOriginalDonors.clear();
+    while (ImportFromOriginalMenu->GetMenuItemCount() > 0) {
+        ImportFromOriginalMenu->Delete(ImportFromOriginalMenu->FindItemByPosition(0));
+    }
+
+    for (auto const& donor : donors) {
+        int const id = wxWindow::NewControlId();
+        wxFileName const fn(donor);
+        ImportFromOriginalMenu->Append(id, wxControl::EscapeMnemonics(fn.GetFullName()), donor);
+        _importFromOriginalDonors[id] = donor;
+        Bind(wxEVT_MENU, &xLightsFrame::OnMenuItemImportFromOriginal, this, id);
+    }
+
+    wxMenuItem* parent = MenuBar->FindItem(ID_IMPORT_FROM_ORIGINAL);
+    if (parent != nullptr) {
+        parent->Enable(!donors.empty());
+    }
+}
+
+void xLightsFrame::OnMenuItemImportFromOriginal(wxCommandEvent& event)
+{
+    auto const it = _importFromOriginalDonors.find(event.GetId());
+    if (it == _importFromOriginalDonors.end()) {
+        return;
+    }
+
+    wxFileName const fn(it->second);
+    if (!FileExists(fn)) {
+        DisplayError(wxString::Format(_("The sequence this was imported from no longer exists:\n%s"), wxString(it->second)), this);
+        return;
+    }
+    ImportEffectsFromFile(fn);
 }
 
 void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile, bool autoMap, bool importMedia)
@@ -258,7 +335,10 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
 {
     std::map<std::string, EffectLayer*> layerMap;
     std::map<std::string, Element*> elementMap;
-    xLightsImportChannelMapDialog dlg(this, wxFileName(xsqPkg.GetXsqFile().string()), false, true, false, false, showModelBlending);
+    // Record the archive the user opened, not the temp-extracted .xsq inside it,
+    // so "Open Original File" can find the donor again later.
+    wxFileName const donorFile(xsqPkg.IsPkg() ? xsqPkg.GetPkgFile().string() : xsqPkg.GetXsqFile().string());
+    xLightsImportChannelMapDialog dlg(this, donorFile, false, true, false, false, showModelBlending);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
     if (showModelBlending) {
@@ -362,6 +442,9 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         if (!ok || dlg.ShowModal() != wxID_OK) {
             return;
         }
+        // Only when the dialog was actually shown - an automap or a saved map
+        // file runs without the user seeing the opt-in.
+        RecordImportDonor(dlg);
     }
 
     if (showModelBlending && dlg.GetImportModelBlending()) {
@@ -918,6 +1001,7 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
     if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return;
     }
+    RecordImportDonor(dlg);
 
     spdlog::debug("Doing the import of the mapped channels.");
     for (size_t i = 0; i < dlg._dataModel->GetChildCount(); i++) {
@@ -1818,6 +1902,7 @@ bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& fi
     if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return false;
     }
+    RecordImportDonor(dlg);
 
     if (dlg.TimeAdjustSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjustSpinCtrl->GetValue();
@@ -2927,6 +3012,7 @@ bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& fil
     if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return false;
     }
+    RecordImportDonor(dlg);
 
     spdlog::debug("Importing S5 effects from {}.", ToStdString(filename.GetFullPath()));
 
@@ -3094,6 +3180,7 @@ bool xLightsFrame::ImportLPE(pugi::xml_document& input_xml, const wxFileName& fi
     if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return false;
     }
+    RecordImportDonor(dlg);
 
     spdlog::debug("Importing LPE effects from {}.", ToStdString(filename.GetFullPath()));
 
@@ -3222,6 +3309,7 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
     if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
         return false;
     }
+    RecordImportDonor(dlg);
 
     spdlog::debug("Importing Vixen 3 effects from {}.", ToStdString(filename.GetFullPath()));
 

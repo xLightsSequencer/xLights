@@ -330,6 +330,23 @@ const std::string& SequenceFile::GetHeaderInfo(HEADER_INFO_TYPES node_type) cons
     return header_info[static_cast<int>(node_type)];
 }
 
+void SequenceFile::RecordImportedFrom(const std::string& donorPath)
+{
+    if (donorPath.empty()) {
+        return;
+    }
+    auto const existing = std::find(_importedFrom.begin(), _importedFrom.end(), donorPath);
+    if (existing != _importedFrom.end()) {
+        _importedFrom.erase(existing);
+    }
+    _importedFrom.insert(_importedFrom.begin(), donorPath);
+    if (_importedFrom.size() > MAX_IMPORTED_FROM) {
+        _importedFrom.resize(MAX_IMPORTED_FROM);
+    }
+    // The most recent donor is what the metadata field shows.
+    header_info[(int)HEADER_INFO_TYPES::IMPORTED_FROM] = _importedFrom.front();
+}
+
 void SequenceFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const std::string& node_value)
 {
     header_info[static_cast<int>(name_name)] = node_value;
@@ -391,6 +408,7 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
         return std::nullopt;
     }
     is_open = true;
+    _importedFrom.clear();
 
     auto root = loadDoc.child("xsequence");
     if (!root) {
@@ -450,6 +468,16 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
                     header_info[(int)HEADER_INFO_TYPES::URL] = UnXmlSafe(content);
                 } else if (name == "comment") {
                     header_info[(int)HEADER_INFO_TYPES::COMMENT] = UnXmlSafe(content);
+                } else if (name == "importedFrom") {
+                    // One element per donor; sequences written before the list
+                    // existed have just the one.
+                    std::string const donor = UnXmlSafe(content);
+                    if (!donor.empty() && _importedFrom.size() < MAX_IMPORTED_FROM) {
+                        _importedFrom.push_back(donor);
+                        if (_importedFrom.size() == 1) {
+                            header_info[(int)HEADER_INFO_TYPES::IMPORTED_FROM] = donor;
+                        }
+                    }
                 } else if (name == "sequenceTiming") {
                     seq_timing = content;
                     spdlog::debug("LoadSequence: Sequence timing loaded from XML file. {}", seq_timing);
@@ -1354,6 +1382,9 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
     head.append_child("album").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::ALBUM)));
     head.append_child("MusicURL").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::URL)));
     head.append_child("comment").text().set(XmlSafe(GetHeaderInfo(HEADER_INFO_TYPES::COMMENT)));
+    for (auto const& donor : _importedFrom) {
+        head.append_child("importedFrom").text().set(XmlSafe(donor));
+    }
     head.append_child("sequenceTiming").text().set(seq_timing);
     head.append_child("sequenceType").text().set(seq_type);
     head.append_child("mediaFile").text().set(media_file);
