@@ -61,7 +61,7 @@ bool Experience::UploadSequence(std::string const& seq, std::string const& file,
     return CurlManager::HTTPUploadFile(url, seq, fn.filename().string(), progress);
 }
 bool Experience::DecodeFirmwareInformation(std::string const& firmware) {
-    static std::regex firmware_regex(R"(v(\d+)\.(\d+)\.(\d+)?(?:\-(\d+)))", std::regex::icase);
+    static std::regex firmware_regex(R"((\d+)\.(\d+)\.(\d+)?(?:\-(\d+)))", std::regex::icase);
     std::smatch m;
     if (std::regex_search(firmware, m, firmware_regex)) {
         _firmwareMajor = (int)std::strtol(m[1].str().c_str(), nullptr, 10);
