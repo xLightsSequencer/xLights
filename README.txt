@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (derwin12)              Import Effects (File > Import Effects) now registers any media the
+                                 imported effects reference immediately, so missing/broken images and
+                                 videos are flagged in the Media Manager right away instead of only
+                                 after closing and reopening the sequence
+    -enh (derwin12)              Media Manager panel has a new "Check Media..." button to check the
+                                 sequence's audio/video files for formats that won't render on
+                                 upcoming xLights versions on demand
     -enh (derwin12)              Moving Head Advanced - Position Zones can now be exported to, and
                                  imported from, other moving head props (#6926)
     -enh (derwin12)              Selecting an effect in the Select Effects panel now scrolls the

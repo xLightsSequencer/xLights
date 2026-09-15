@@ -38,6 +38,7 @@
 #include "../xLightsApp.h"
 #include "xLightsVersion.h"
 #include "render/SequenceMedia.h"
+#include "render/SequenceFile.h"
 #include "utils/ExternalHooks.h"
 #include "render/SequencePackage.h"
 #include "import_export/Vixen3.h"
@@ -152,6 +153,17 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         } else if (ext == "vsa") {
             ImportVsa(fn);
         }
+
+        // Imported effects are added via EffectLayer::AddEffect, which never
+        // calls loadFiles() - that only happens in the sequence-open path
+        // (SequenceFile::LoadEffectFiles). Without this, any media an
+        // imported effect references (Pictures/Video/Shader/SVG/...) is
+        // absent from SequenceMedia's caches, so the Media Manager doesn't
+        // show it - broken or not - until the sequence is closed and
+        // reopened. Re-run the same registration pass now so newly imported
+        // effects show up immediately.
+        SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
+
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
         mainSequencer->PanelEffectGrid->Refresh();

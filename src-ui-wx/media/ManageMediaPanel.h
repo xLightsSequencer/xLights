@@ -167,6 +167,7 @@ private:
     wxButton* _embedAllButton = nullptr;
     wxButton* _extractAllButton = nullptr;
     wxButton* _removeButton = nullptr;
+    wxButton* _checkMediaButton = nullptr;
     bool _expandPending = false;
 
     // Animated preview
