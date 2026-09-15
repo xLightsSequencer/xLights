@@ -916,9 +916,10 @@ void SubModelsPanel::OnImportBtnPopup(wxCommandEvent& event)
         //Import Submodels from another Model
         xLightsFrame* xlights = xLightsApp::GetFrame();
         wxArrayString choices = getModelList(&xlights->AllModels);
-        wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
-        if (dlg.ShowModal() == wxID_OK) {
-            Model *m = xlights->GetModel(dlg.GetStringSelection());
+        const wxString selectedModel = ChooseModelWithFilter(GetParent(), choices);
+        if (!selectedModel.IsEmpty()) {
+            Model *m = xlights->GetModel(selectedModel);
+            if (m == nullptr) return;
             // Convert SubModel objects directly to SubModelImportData
             std::vector<XmlSerialize::SubModelImportData> subModels;
             const std::vector<Model*>& sourceSubModels = m->GetSubModels();
@@ -4063,11 +4064,11 @@ void SubModelsPanel::ReadRGBEffectsFile(wxString const& filename) {
         }
 
         choices.Sort();
-        wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
-        if (dlg.ShowModal() == wxID_OK) {
+        const wxString selectedModel = ChooseModelWithFilter(GetParent(), choices);
+        if (!selectedModel.IsEmpty()) {
             for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling()) {
                 wxString const mn = m.attribute("name").as_string();
-                if (dlg.GetStringSelection() == mn) {
+                if (selectedModel == mn) {
                     ImportSubModelXML(m);
                     break;
                 }
