@@ -906,9 +906,8 @@ void GLContextManager::Shutdown() {
 #include <EGL/egl.h>
 #include <GL/gl.h>
 
-// One context per background render thread, plus one for the main thread.
-// Mirrors the macOS CGL pool size.
-static constexpr int kMaxPoolSize = 24;
+// Shader caches reuse GL object IDs, but Linux contexts do not share objects.
+static constexpr int kMaxPoolSize = 1;
 
 struct GLContextManager::PlatformState {
     // GLX path (X11 / XWayland)
@@ -1145,17 +1144,17 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
     std::unique_lock<std::mutex> lock(_platform->poolMutex);
 
     if (_platform->pool.empty() && _platform->contextCount < kMaxPoolSize) {
-        lock.unlock();
         PlatformState::PoolEntry entry = _platform->useEGL
             ? createEGLPoolEntry(_platform)
             : createGLXPoolEntry(_platform);
-        lock.lock();
         bool ok = _platform->useEGL
             ? (entry.eglContext != EGL_NO_CONTEXT)
             : (entry.glxContext != nullptr);
         if (ok) {
             _platform->pool.push_front(entry);
             ++_platform->contextCount;
+        } else if (_platform->contextCount == 0) {
+            return nullptr;
         }
     }
 
