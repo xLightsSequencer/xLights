@@ -906,8 +906,7 @@ void GLContextManager::Shutdown() {
 #include <EGL/egl.h>
 #include <GL/gl.h>
 
-// One context per background render thread, plus one for the main thread.
-// Mirrors the macOS CGL pool size.
+// Shader caches reuse GL object IDs, but Linux contexts do not share objects.
 static constexpr int kMaxPoolSize = 1;
 
 struct GLContextManager::PlatformState {
