@@ -920,6 +920,17 @@ struct GLContextManager::PlatformState {
     EGLConfig    eglConfig  = nullptr;
     bool         useEGL     = false;
 
+    // Persistent root every pool context shares GL objects with, so a program,
+    // buffer, renderbuffer or texture created while one pool context was
+    // current can still be named from another.  ShaderRenderCache caches those
+    // ids across frames but returns its context to the pool after each one, so
+    // without a share group the ids land in a context that never created them
+    // (GL_INVALID_OPERATION, "program id N is not a shader program").  macOS
+    // shares with sharedContext and Windows with shaderShareRoot for the same
+    // reason.  Created once during init, never made current, never rendered to.
+    GLXContext   glxShareRoot = nullptr;
+    EGLContext   eglShareRoot = EGL_NO_CONTEXT;
+
     struct PoolEntry {
         // GLX
         GLXContext  glxContext = nullptr;
@@ -940,6 +951,40 @@ struct GLContextManager::PlatformState {
 using PlatformStateLinux = GLContextManager::PlatformState;
 
 // ---- GLX path ----
+
+// `share` is the context the new one shares GL objects with (nullptr for the
+// share root itself).
+static GLXContext createGLXContext(PlatformStateLinux* ps, GLXContext share) {
+    GLXContext ctx = nullptr;
+
+    auto createCtxARB =
+        (GLXContext(*)(Display*, GLXFBConfig, GLXContext, Bool, const int*))
+        glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
+
+    if (createCtxARB) {
+        static const int ctx33[] = {
+            GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+            GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+            GLX_CONTEXT_PROFILE_MASK_ARB,  GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+            None
+        };
+        // glXCreateContextAttribsARB triggers an X11 protocol error (caught by
+        // the default handler, which calls exit()) if the driver rejects the
+        // requested profile.  Suppress it with a no-op error handler so the
+        // nullptr return value can be tested and the legacy fallback used.
+        auto prevHandler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
+        ctx = createCtxARB(ps->xDisplay, ps->fbConfig, share, True, ctx33);
+        XSync(ps->xDisplay, False);  // flush any pending X11 error
+        XSetErrorHandler(prevHandler);
+    }
+    if (!ctx) {
+        ctx = glXCreateNewContext(ps->xDisplay, ps->fbConfig, GLX_RGBA_TYPE, share, True);
+    }
+    if (!ctx) {
+        spdlog::error("GLContextManager: GLX context creation failed");
+    }
+    return ctx;
+}
 
 static bool initGLX(PlatformStateLinux* ps) {
     ps->xDisplay = XOpenDisplay(nullptr);
@@ -977,38 +1022,26 @@ static bool initGLX(PlatformStateLinux* ps) {
     }
     ps->fbConfig = configs[0];
     XFree(configs);
+
+    // Every pool context shares with this one, so it has to exist before the
+    // first of them.  If even this fails GLX is unusable here - let the caller
+    // fall through to EGL rather than build an unshared pool.
+    ps->glxShareRoot = createGLXContext(ps, nullptr);
+    if (!ps->glxShareRoot) {
+        spdlog::warn("GLContextManager: GLX share root creation failed, trying EGL");
+        XCloseDisplay(ps->xDisplay);
+        ps->xDisplay = nullptr;
+        ps->fbConfig = nullptr;
+        return false;
+    }
     return true;
 }
 
 static PlatformStateLinux::PoolEntry createGLXPoolEntry(PlatformStateLinux* ps) {
     PlatformStateLinux::PoolEntry entry;
 
-    auto createCtxARB =
-        (GLXContext(*)(Display*, GLXFBConfig, GLXContext, Bool, const int*))
-        glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
-
-    if (createCtxARB) {
-        static const int ctx33[] = {
-            GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-            GLX_CONTEXT_MINOR_VERSION_ARB, 3,
-            GLX_CONTEXT_PROFILE_MASK_ARB,  GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-            None
-        };
-        // glXCreateContextAttribsARB triggers an X11 protocol error (caught by
-        // the default handler, which calls exit()) if the driver rejects the
-        // requested profile.  Suppress it with a no-op error handler so the
-        // nullptr return value can be tested and the legacy fallback used.
-        auto prevHandler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
-        entry.glxContext = createCtxARB(ps->xDisplay, ps->fbConfig, nullptr, True, ctx33);
-        XSync(ps->xDisplay, False);  // flush any pending X11 error
-        XSetErrorHandler(prevHandler);
-    }
+    entry.glxContext = createGLXContext(ps, ps->glxShareRoot);
     if (!entry.glxContext) {
-        entry.glxContext = glXCreateNewContext(
-            ps->xDisplay, ps->fbConfig, GLX_RGBA_TYPE, nullptr, True);
-    }
-    if (!entry.glxContext) {
-        spdlog::error("GLContextManager: GLX context creation failed");
         return {};
     }
 
@@ -1031,6 +1064,27 @@ static PlatformStateLinux::PoolEntry createGLXPoolEntry(PlatformStateLinux* ps) 
 }
 
 // ---- EGL path (Wayland fallback) ----
+
+// `share` is the context the new one shares GL objects with (EGL_NO_CONTEXT for
+// the share root itself).
+static EGLContext createEGLContext(PlatformStateLinux* ps, EGLContext share) {
+    static const EGLint ctxAttribs[] = {
+        EGL_CONTEXT_MAJOR_VERSION, 3,
+        EGL_CONTEXT_MINOR_VERSION, 3,
+        EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+        EGL_NONE
+    };
+    EGLContext ctx = eglCreateContext(ps->eglDisplay, ps->eglConfig, share, ctxAttribs);
+    if (ctx == EGL_NO_CONTEXT) {
+        // Fallback: no version constraints
+        static const EGLint ctxAttribsFallback[] = { EGL_NONE };
+        ctx = eglCreateContext(ps->eglDisplay, ps->eglConfig, share, ctxAttribsFallback);
+    }
+    if (ctx == EGL_NO_CONTEXT) {
+        spdlog::error("GLContextManager: eglCreateContext failed: 0x{:X}", eglGetError());
+    }
+    return ctx;
+}
 
 static bool initEGL(PlatformStateLinux* ps) {
     ps->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -1066,28 +1120,25 @@ static bool initEGL(PlatformStateLinux* ps) {
         ps->eglDisplay = EGL_NO_DISPLAY;
         return false;
     }
+
+    // As on the GLX path: the share root has to exist before the first pool
+    // context, and no share root means no usable pool.
+    ps->eglShareRoot = createEGLContext(ps, EGL_NO_CONTEXT);
+    if (ps->eglShareRoot == EGL_NO_CONTEXT) {
+        spdlog::error("GLContextManager: EGL share root creation failed");
+        eglTerminate(ps->eglDisplay);
+        ps->eglDisplay = EGL_NO_DISPLAY;
+        ps->eglConfig = nullptr;
+        return false;
+    }
     return true;
 }
 
 static PlatformStateLinux::PoolEntry createEGLPoolEntry(PlatformStateLinux* ps) {
     PlatformStateLinux::PoolEntry entry;
 
-    static const EGLint ctxAttribs[] = {
-        EGL_CONTEXT_MAJOR_VERSION, 3,
-        EGL_CONTEXT_MINOR_VERSION, 3,
-        EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-        EGL_NONE
-    };
-    entry.eglContext = eglCreateContext(
-        ps->eglDisplay, ps->eglConfig, EGL_NO_CONTEXT, ctxAttribs);
+    entry.eglContext = createEGLContext(ps, ps->eglShareRoot);
     if (entry.eglContext == EGL_NO_CONTEXT) {
-        // Fallback: no version constraints
-        static const EGLint ctxAttribsFallback[] = { EGL_NONE };
-        entry.eglContext = eglCreateContext(
-            ps->eglDisplay, ps->eglConfig, EGL_NO_CONTEXT, ctxAttribsFallback);
-    }
-    if (entry.eglContext == EGL_NO_CONTEXT) {
-        spdlog::error("GLContextManager: eglCreateContext failed: 0x{:X}", eglGetError());
         return {};
     }
 
@@ -1156,6 +1207,10 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
         if (ok) {
             _platform->pool.push_front(entry);
             ++_platform->contextCount;
+        } else if (_platform->contextCount == 0) {
+            // First-ever creation failed and there's nothing in flight to wait
+            // for - fail fast instead of deadlocking on poolNotifier.
+            return nullptr;
         }
     }
 
@@ -1222,6 +1277,19 @@ void GLContextManager::Shutdown() {
             }
         }
         _platform->pool.clear();
+    }
+
+    // The share root outlives every context that shared with it.
+    if (_platform->useEGL) {
+        if (_platform->eglShareRoot != EGL_NO_CONTEXT && _platform->eglDisplay != EGL_NO_DISPLAY) {
+            eglDestroyContext(_platform->eglDisplay, _platform->eglShareRoot);
+        }
+        _platform->eglShareRoot = EGL_NO_CONTEXT;
+    } else {
+        if (_platform->glxShareRoot && _platform->xDisplay) {
+            glXDestroyContext(_platform->xDisplay, _platform->glxShareRoot);
+        }
+        _platform->glxShareRoot = nullptr;
     }
 
     if (_platform->useEGL && _platform->eglDisplay != EGL_NO_DISPLAY) {

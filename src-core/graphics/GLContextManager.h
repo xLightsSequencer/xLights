@@ -18,7 +18,7 @@
 // iOS:            No GL — no-op stub (shaders render via native Metal).
 // Windows (WGL):  Hidden HWND + WGL contexts, all GL ops serialized on
 //                 an internal worker thread (see ExecuteOnGLThread).
-// Linux:          Independent GLX or EGL pbuffer contexts.
+// Linux:          GLX or EGL pbuffer contexts in pool, share via share root.
 
 #include <atomic>
 #include <condition_variable>

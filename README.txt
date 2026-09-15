@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Linux - fixed Shader effect crashes and corrupt rendering with
+                                 hardware OpenGL; the offscreen render contexts now share GL
+                                 objects so cached shader programs stay valid between frames (#7052)
     -bug (derwin12)              Import Effects (File > Import Effects) now registers any media the
                                  imported effects reference immediately, so missing/broken images and
                                  videos are flagged in the Media Manager right away instead of only
