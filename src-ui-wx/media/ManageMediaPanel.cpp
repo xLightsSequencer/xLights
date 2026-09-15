@@ -782,6 +782,7 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     _removeButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnRemoveButtonClick, this);
     _checkMediaButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
         if (_xlFrame != nullptr) _xlFrame->CheckMediaCompatibility(true);
+        Populate();
     });
 
     _previewTimer.SetOwner(this);
