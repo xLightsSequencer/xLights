@@ -180,7 +180,12 @@ public:
     void UpdateVersion();
     void UpdateVersion(const std::string& version);
     void AdjustEffectSettingsForVersion(SequenceElements& elements, RenderContext* ctx);
-    void LoadEffectFiles(SequenceElements& elements, RenderContext* ctx);
+    // Registers every effect's referenced media files with SequenceMedia
+    // (RenderableEffect::loadFiles) so they show up - broken or not - in the
+    // media caches. Doesn't touch SequenceFile state, so it's static and can
+    // be re-run after effects are added outside the normal file-open path
+    // (e.g. Import Effects) without needing a SequenceFile instance.
+    static void LoadEffectFiles(SequenceElements& elements, RenderContext* ctx);
 
     bool IsOpen() const { return is_open; }
     bool HasAudioMedia() const { return audio != nullptr; }

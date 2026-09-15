@@ -1669,6 +1669,12 @@ public:
     }
     void ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues);
     int ConvertGifVideoEffectsToPictures(const std::vector<MediaCompatibilityIssue>& gifIssues);
+    // Runs MediaCompatibility::CheckSequenceMedia over the current sequence's
+    // audio + video files and shows the results. `manual` is true when
+    // triggered on demand (e.g. a "Check Media..." button) rather than the
+    // automatic post-open check: it ignores the per-version suppress setting
+    // and reports "no issues" instead of staying silent.
+    void CheckMediaCompatibility(bool manual = false);
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
