@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (ChevySSinSD)           Linux - fixed crashes and incorrect Shader effect rendering with OpenGL (#7052)
     -enh (derwin12)              Moving Head Advanced - Position Zones can now be exported to, and
                                  imported from, other moving head props (#6926)
     -enh (derwin12)              Selecting an effect in the Select Effects panel now scrolls the
