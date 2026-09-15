@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Shader effects rendered on the GPU (Metal on macOS/iPad, Vulkan on
+                                 Linux/Windows) started one frame ahead of the OpenGL path; the first
+                                 frame now renders at the lead-in time on every backend
     -bug (dkulp)                 Linux - fixed Shader effect crashes and corrupt rendering with
                                  hardware OpenGL; the offscreen render contexts now share GL
                                  objects so cached shader programs stay valid between frames (#7052)

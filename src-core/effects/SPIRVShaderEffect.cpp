@@ -284,13 +284,16 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
         cache->built = true;
     }
 
-    if (effectStart) {
-        cache->timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
-    }
-
     float oset = buffer.GetEffectTimeIntervalPosition();
     double timeRate = GetValueCurveDouble("Shader_Speed", 100, SettingsMap, oset, SHADER_SPEED_MIN, SHADER_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
-    cache->timeMS += buffer.frameTimeInMs * timeRate;
+    // The first frame renders AT the lead-in time, not one step past it, matching
+    // ShaderEffect::Render (which advances only on later frames).  Advancing here
+    // too would put every native-backend shader one frame ahead of the GL one.
+    if (effectStart) {
+        cache->timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
+    } else {
+        cache->timeMS += buffer.frameTimeInMs * timeRate;
+    }
 
     double offsetX = GetValueCurveInt("Shader_Offset_X", 0, SettingsMap, oset, SHADER_OFFSET_X_MIN, SHADER_OFFSET_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 200.0 + 0.5;
     double offsetY = GetValueCurveInt("Shader_Offset_Y", 0, SettingsMap, oset, SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 200.0 + 0.5;
