@@ -277,5 +277,25 @@ private:
     void OnFilterDebounceTimer(wxTimerEvent& event);
     bool IsFilteredOutOfNonModels(const std::string& name) const;
 
+    // Find (not filter) for the "Added" (models) list. That list's row order is
+    // the view's display order, so hiding rows would break drag-reorder, the
+    // move buttons and every "all"-scoped operation. Searching instead selects
+    // and scrolls to each match and leaves the list intact.
+    wxSearchCtrl* TextCtrl_ModelsFind = nullptr;
+    wxButton* Button_FindPrev = nullptr;
+    wxButton* Button_FindNext = nullptr;
+    void OnModelsFindText(wxCommandEvent& event);
+    void OnModelsFindCancel(wxCommandEvent& event);
+    void OnModelsFindNext(wxCommandEvent& event);
+    void OnModelsFindPrev(wxCommandEvent& event);
+    // Selects the next row at or after (forward) / at or before (backward)
+    // `startRow` whose name contains the search text, wrapping once. `startRow`
+    // may be out of range - it is normalised. Returns false when nothing
+    // matches, leaving the current selection alone.
+    bool FindModelRow(int startRow, bool forward);
+    // Runs a search from the current selection and reflects the outcome in the
+    // search box (normal background on a hit, tinted on a miss).
+    void RunModelFind(bool forward, bool fromCurrent);
+
     DECLARE_EVENT_TABLE()
 };
