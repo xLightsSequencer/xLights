@@ -754,6 +754,13 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     _removeButton->Show(!singleSelect);
     rightSizer->Add(_removeButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
 
+    rightSizer->Add(0, 4, 0);
+
+    _checkMediaButton = new wxButton(this, wxID_ANY, "Check Media...");
+    _checkMediaButton->SetToolTip("Check the sequence's audio/video files for formats that won't render on upcoming xLights versions");
+    _checkMediaButton->Show(!singleSelect && _xlFrame != nullptr);
+    rightSizer->Add(_checkMediaButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 2);
+
     mainSizer->Add(rightSizer, 0, wxALL | wxEXPAND, 2);
 
     SetSizer(mainSizer);
@@ -773,6 +780,9 @@ ManageMediaPanel::ManageMediaPanel(wxWindow* parent, SequenceMedia* sequenceMedi
     _embedAllButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnEmbedAllButtonClick, this);
     _extractAllButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnExtractAllButtonClick, this);
     _removeButton->Bind(wxEVT_BUTTON, &ManageMediaPanel::OnRemoveButtonClick, this);
+    _checkMediaButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        if (_xlFrame != nullptr) _xlFrame->CheckMediaCompatibility(true);
+    });
 
     _previewTimer.SetOwner(this);
     Bind(wxEVT_TIMER, &ManageMediaPanel::OnPreviewTimer, this, _previewTimer.GetId());
@@ -1764,16 +1774,23 @@ void ManageMediaPanel::OnBulkFindImages()
 
     // Scan every image and look it up in the pre-built folder index
     int found = 0;
-    int notFound = 0;
+    int stillMissing = 0;
     std::string lastFixedPath;
     for (const auto& oldPath : mediaPaths) {
         // Extract just the filename from the path (handles Windows
         // backslash paths even when running on macOS/Linux)
         wxString nameToFind = BaseFileName(oldPath);
-        if (nameToFind.IsEmpty()) { ++notFound; continue; }
-
-        const std::string* foundPath = LookupInIndex(folderIndex, ToStdString(nameToFind));
-        if (foundPath == nullptr) { ++notFound; continue; }
+        const std::string* foundPath = nameToFind.IsEmpty() ? nullptr
+            : LookupInIndex(folderIndex, ToStdString(nameToFind));
+        if (foundPath == nullptr) {
+            // No match in this particular folder isn't itself a problem - an
+            // image that already loads fine from its current location simply
+            // isn't sitting in the folder we searched. Only report it if it's
+            // actually still broken, so the summary reflects real red rows.
+            auto entry = _sequenceMedia->GetImage(oldPath);
+            if (!entry || !entry->IsOk()) ++stillMissing;
+            continue;
+        }
         wxString foundFile(*foundPath);
 
         std::string pickedPath = ToStdString(foundFile);
@@ -1853,7 +1870,7 @@ void ManageMediaPanel::OnBulkFindImages()
 
     wxMessageBox(wxString::Format("Bulk find complete.\n\n"
                                   "Found and updated: %d image(s)\n"
-                                  "Not found: %d image(s)", found, notFound),
+                                  "Still missing: %d image(s)", found, stillMissing),
                  "Bulk Find Images", wxICON_INFORMATION | wxOK, this);
 
     Populate(lastFixedPath);
@@ -2009,14 +2026,29 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
     BasenameIndex folderIndex = BuildBasenameIndex(searchDir);
 
     int found = 0;
-    int notFound = 0;
+    int stillMissing = 0;
     std::string lastFixedPath;
     for (const auto& oldPath : mediaPaths) {
         wxString nameToFind = BaseFileName(oldPath);
-        if (nameToFind.IsEmpty()) { ++notFound; continue; }
-
-        const std::string* foundPath = LookupInIndex(folderIndex, ToStdString(nameToFind));
-        if (foundPath == nullptr) { ++notFound; continue; }
+        const std::string* foundPath = nameToFind.IsEmpty() ? nullptr
+            : LookupInIndex(folderIndex, ToStdString(nameToFind));
+        if (foundPath == nullptr) {
+            // No match in this particular folder isn't itself a problem - a
+            // file that already loads fine from its current location simply
+            // isn't sitting in the folder we searched. Only report it if it's
+            // actually still broken, so the summary reflects real red rows.
+            std::shared_ptr<MediaCacheEntry> entry;
+            switch (type) {
+                case MediaType::Shader:     entry = _sequenceMedia->GetShader(oldPath); break;
+                case MediaType::SVG:        entry = _sequenceMedia->GetSVG(oldPath); break;
+                case MediaType::TextFile:   entry = _sequenceMedia->GetTextFile(oldPath); break;
+                case MediaType::BinaryFile: entry = _sequenceMedia->GetBinaryFile(oldPath); break;
+                case MediaType::Video:      entry = _sequenceMedia->GetVideo(oldPath); break;
+                default: break;
+            }
+            if (!entry || !entry->IsOk()) ++stillMissing;
+            continue;
+        }
         wxString foundFile(*foundPath);
 
         // finalAbsPath is the known absolute path; finalPath may be relativized below.
@@ -2043,8 +2075,8 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
 
     wxMessageBox(wxString::Format("Bulk find complete.\n\n"
                                   "Found and updated: %d %s(s)\n"
-                                  "Not found: %d %s(s)",
-                                  found, typeName.Lower(), notFound, typeName.Lower()),
+                                  "Still missing: %d %s(s)",
+                                  found, typeName.Lower(), stillMissing, typeName.Lower()),
                  "Bulk Find " + typeName, wxICON_INFORMATION | wxOK, this);
 
     Populate(lastFixedPath);

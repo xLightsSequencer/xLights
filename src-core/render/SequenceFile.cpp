@@ -1987,6 +1987,7 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, Re
     }
 }
 
+// static
 void SequenceFile::LoadEffectFiles(SequenceElements& elements, RenderContext* ctx)
 {
     std::vector<RenderableEffect*> effects(ctx->GetEffectManager().size());

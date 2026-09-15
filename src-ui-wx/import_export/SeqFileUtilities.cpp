@@ -649,139 +649,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         // Check media compatibility with AVFoundation/AudioToolbox
         if (loaded_xml && !_renderMode && !_checkSequenceMode) {
-            // Allow user to suppress this warning until the next xLights version release
-            wxString suppressedVersion;
-            GetXLightsConfig()->Read("xLightsSuppressMediaCompatWarnVersion", &suppressedVersion, "");
-            if (suppressedVersion != xlights_version_string) {
-                std::string audioFile = CurrentSeqXmlFile->GetMediaFile();
-                std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
-                auto issues = MediaCompatibility::CheckSequenceMedia(audioFile, videoFiles);
-                if (!issues.empty()) {
-                    // Build the file list once for the monospace box and the log.
-                    wxString fileList;
-                    for (const auto& issue : issues) {
-                        wxString type = issue.isVideo ? "Video" : "Audio";
-                        std::string basename = std::filesystem::path(issue.filePath).filename().string();
-                        fileList += wxString::Format("  %s: %s\n    Reason: %s\n", type, basename, issue.reason);
-                    }
-                    if (!fileList.empty() && fileList.Last() == '\n') {
-                        fileList.RemoveLast();
-                    }
-                    spdlog::warn("Media compatibility warning:\n{}", fileList.ToStdString());
-
-                    // Custom dialog: wxRichMessageDialog (=NSAlert on macOS) collapses
-                    // blank lines and is fixed-width, which made the multi-paragraph
-                    // guidance unreadable. This dialog uses system-font wxStaticText
-                    // for prose, a scrollable monospace wxTextCtrl for the file list
-                    // (in case there are many files), and a one-line monospace text
-                    // ctrl for the ffmpeg command so the user can copy it.
-                    constexpr int kWrapWidth = 660;
-                    wxDialog dlg(this, wxID_ANY, "Media Compatibility Warning",
-                                 wxDefaultPosition, wxSize(720, 560),
-                                 wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-                    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
-
-                    auto* intro = new wxStaticText(&dlg, wxID_ANY,
-                        "The following media files are in a format that will not render on upcoming versions of xLights:");
-                    intro->Wrap(kWrapWidth);
-                    topSizer->Add(intro, 0, wxALL, 12);
-
-                    wxTextCtrl* fileListCtrl = new wxTextCtrl(&dlg, wxID_ANY, fileList,
-                        wxDefaultPosition, wxSize(-1, 160),
-                        wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP | wxBORDER_SUNKEN);
-                    fileListCtrl->SetFont(wxFont(wxFontInfo(11).Family(wxFONTFAMILY_TELETYPE)));
-                    fileListCtrl->SetInsertionPoint(0);
-                    // proportion=1 → grows to fill any extra vertical space when resized
-                    topSizer->Add(fileListCtrl, 1, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 12);
-
-                    auto* advice1 = new wxStaticText(&dlg, wxID_ANY,
-                        "Consider re-encoding with Handbrake using H.264/H.265 (video) or AAC/MP3 (audio) for maximum compatibility and performance.");
-                    advice1->Wrap(kWrapWidth);
-                    topSizer->Add(advice1, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
-
-                    auto* advice2 = new wxStaticText(&dlg, wxID_ANY,
-                        "If you need pixel-perfect lossless RGB video (the original reason for using uncompressed AVI), "
-                        "re-encode the source as an uncompressed RGB MOV — support for the legacy QuickTime lossless "
-                        "codecs (Animation/qtrle, PNG, etc.) is being dropped, so uncompressed RGB in a mov container "
-                        "is the recommended bit-exact format going forward. With ffmpeg:");
-                    advice2->Wrap(kWrapWidth);
-                    topSizer->Add(advice2, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
-
-                    wxTextCtrl* cmdCtrl = new wxTextCtrl(&dlg, wxID_ANY,
-                        "ffmpeg -i input.avi -c:v rawvideo -pix_fmt rgb24 output.mov",
-                        wxDefaultPosition, wxDefaultSize,
-                        wxTE_READONLY | wxBORDER_SUNKEN);
-                    cmdCtrl->SetFont(wxFont(wxFontInfo(11).Family(wxFONTFAMILY_TELETYPE)));
-                    topSizer->Add(cmdCtrl, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 12);
-
-                    auto* note = new wxStaticText(&dlg, wxID_ANY,
-                        "xLights' model export dialog can also write this format directly via \"Lossless RGB Video, *.mov\".");
-                    note->Wrap(kWrapWidth);
-                    topSizer->Add(note, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
-
-                    // If any flagged file is an animated GIF, mention that those
-                    // are handled by switching the owning Video effect to a
-                    // Pictures effect (which already plays GIFs natively) — no
-                    // ffmpeg transcode needed for those.
-                    bool anyGif = false;
-                    for (const auto& issue : issues) {
-                        if (issue.isAnimatedGif() && issue.canConvert()) {
-                            anyGif = true;
-                            break;
-                        }
-                    }
-                    if (anyGif) {
-                        auto* gifNote = new wxStaticText(&dlg, wxID_ANY,
-                            "Animated GIFs above will be converted from Video effects to Pictures effects "
-                            "(which natively play GIF animation) — no file conversion is performed for those.");
-                        gifNote->Wrap(kWrapWidth);
-                        topSizer->Add(gifNote, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
-                    }
-
-                    wxCheckBox* suppressCheck = new wxCheckBox(&dlg, wxID_ANY,
-                        wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
-                    topSizer->Add(suppressCheck, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
-
-                    // Figure out how many flagged entries are videos — only
-                    // videos can be auto-converted here (audio would need a
-                    // separate AudioToolbox-compatible path).
-                    int videoIssueCount = 0;
-                    for (const auto& issue : issues) {
-                        if (issue.isVideo && issue.canConvert()) ++videoIssueCount;
-                    }
-
-                    // Custom ID so we can tell OK apart from "Convert Now".
-                    const int ID_CONVERT_NOW = wxID_HIGHEST + 1;
-
-                    wxBoxSizer* btnRow = new wxBoxSizer(wxHORIZONTAL);
-                    btnRow->AddStretchSpacer(1);
-                    if (videoIssueCount > 0) {
-                        wxButton* convertBtn = new wxButton(&dlg, ID_CONVERT_NOW,
-                            videoIssueCount == 1 ? "Convert Video Now..."
-                                                 : wxString::Format("Convert %d Videos Now...", videoIssueCount));
-                        btnRow->Add(convertBtn, 0, wxRIGHT, 8);
-                        convertBtn->Bind(wxEVT_BUTTON, [&dlg, ID_CONVERT_NOW](wxCommandEvent&) {
-                            dlg.EndModal(ID_CONVERT_NOW);
-                        });
-                    }
-                    wxButton* okBtn = new wxButton(&dlg, wxID_OK, "OK");
-                    btnRow->Add(okBtn, 0);
-                    topSizer->Add(btnRow, 0, wxALIGN_RIGHT | wxLEFT | wxRIGHT | wxBOTTOM, 12);
-
-                    dlg.SetSizer(topSizer);
-                    dlg.SetMinSize(wxSize(600, 480));
-                    dlg.Layout();
-                    int dlgResult = dlg.ShowModal();
-                    if (suppressCheck->IsChecked()) {
-                        GetXLightsConfig()->Write("xLightsSuppressMediaCompatWarnVersion", wxString(xlights_version_string));
-                        GetXLightsConfig()->Flush();
-                    }
-
-                    if (dlgResult == ID_CONVERT_NOW) {
-                        ConvertIncompatibleVideos(issues);
-                    }
-                }
-            }
+            CheckMediaCompatibility(false);
         }
 
         bool isEffect = CurrentSeqXmlFile->GetSequenceType() == "Effect";
@@ -893,6 +761,161 @@ int xLightsFrame::ConvertGifVideoEffectsToPictures(const std::vector<MediaCompat
         mainSequencer->PanelEffectGrid->ForceRefresh();
     }
     return rewritten;
+}
+
+void xLightsFrame::CheckMediaCompatibility(bool manual)
+{
+    if (CurrentSeqXmlFile == nullptr) return;
+
+    // The automatic post-open check is silenceable per-version; a manual
+    // "Check Media..." click should always run regardless of that setting.
+    if (!manual) {
+        wxString suppressedVersion;
+        GetXLightsConfig()->Read("xLightsSuppressMediaCompatWarnVersion", &suppressedVersion, "");
+        if (suppressedVersion == xlights_version_string) return;
+    }
+
+    std::string audioFile = CurrentSeqXmlFile->GetMediaFile();
+    std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
+    auto issues = MediaCompatibility::CheckSequenceMedia(audioFile, videoFiles);
+    if (issues.empty()) {
+        if (manual) {
+            wxMessageBox("No media compatibility issues were found.", "Check Media",
+                         wxOK | wxICON_INFORMATION, this);
+        }
+        return;
+    }
+
+    // Build the file list once for the monospace box and the log.
+    wxString fileList;
+    for (const auto& issue : issues) {
+        wxString type = issue.isVideo ? "Video" : "Audio";
+        std::string basename = std::filesystem::path(issue.filePath).filename().string();
+        fileList += wxString::Format("  %s: %s\n    Reason: %s\n", type, basename, issue.reason);
+    }
+    if (!fileList.empty() && fileList.Last() == '\n') {
+        fileList.RemoveLast();
+    }
+    spdlog::warn("Media compatibility warning:\n{}", fileList.ToStdString());
+
+    // Custom dialog: wxRichMessageDialog (=NSAlert on macOS) collapses
+    // blank lines and is fixed-width, which made the multi-paragraph
+    // guidance unreadable. This dialog uses system-font wxStaticText
+    // for prose, a scrollable monospace wxTextCtrl for the file list
+    // (in case there are many files), and a one-line monospace text
+    // ctrl for the ffmpeg command so the user can copy it.
+    constexpr int kWrapWidth = 660;
+    wxDialog dlg(this, wxID_ANY, "Media Compatibility Warning",
+                 wxDefaultPosition, wxSize(720, 560),
+                 wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+
+    auto* intro = new wxStaticText(&dlg, wxID_ANY,
+        "The following media files are in a format that will not render on upcoming versions of xLights:");
+    intro->Wrap(kWrapWidth);
+    topSizer->Add(intro, 0, wxALL, 12);
+
+    wxTextCtrl* fileListCtrl = new wxTextCtrl(&dlg, wxID_ANY, fileList,
+        wxDefaultPosition, wxSize(-1, 160),
+        wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP | wxBORDER_SUNKEN);
+    fileListCtrl->SetFont(wxFont(wxFontInfo(11).Family(wxFONTFAMILY_TELETYPE)));
+    fileListCtrl->SetInsertionPoint(0);
+    // proportion=1 → grows to fill any extra vertical space when resized
+    topSizer->Add(fileListCtrl, 1, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 12);
+
+    auto* advice1 = new wxStaticText(&dlg, wxID_ANY,
+        "Consider re-encoding with Handbrake using H.264/H.265 (video) or AAC/MP3 (audio) for maximum compatibility and performance.");
+    advice1->Wrap(kWrapWidth);
+    topSizer->Add(advice1, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+    auto* advice2 = new wxStaticText(&dlg, wxID_ANY,
+        "If you need pixel-perfect lossless RGB video (the original reason for using uncompressed AVI), "
+        "re-encode the source as an uncompressed RGB MOV — support for the legacy QuickTime lossless "
+        "codecs (Animation/qtrle, PNG, etc.) is being dropped, so uncompressed RGB in a mov container "
+        "is the recommended bit-exact format going forward. With ffmpeg:");
+    advice2->Wrap(kWrapWidth);
+    topSizer->Add(advice2, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+    wxTextCtrl* cmdCtrl = new wxTextCtrl(&dlg, wxID_ANY,
+        "ffmpeg -i input.avi -c:v rawvideo -pix_fmt rgb24 output.mov",
+        wxDefaultPosition, wxDefaultSize,
+        wxTE_READONLY | wxBORDER_SUNKEN);
+    cmdCtrl->SetFont(wxFont(wxFontInfo(11).Family(wxFONTFAMILY_TELETYPE)));
+    topSizer->Add(cmdCtrl, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 12);
+
+    auto* note = new wxStaticText(&dlg, wxID_ANY,
+        "xLights' model export dialog can also write this format directly via \"Lossless RGB Video, *.mov\".");
+    note->Wrap(kWrapWidth);
+    topSizer->Add(note, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+    // If any flagged file is an animated GIF, mention that those
+    // are handled by switching the owning Video effect to a
+    // Pictures effect (which already plays GIFs natively) — no
+    // ffmpeg transcode needed for those.
+    bool anyGif = false;
+    for (const auto& issue : issues) {
+        if (issue.isAnimatedGif() && issue.canConvert()) {
+            anyGif = true;
+            break;
+        }
+    }
+    if (anyGif) {
+        auto* gifNote = new wxStaticText(&dlg, wxID_ANY,
+            "Animated GIFs above will be converted from Video effects to Pictures effects "
+            "(which natively play GIF animation) — no file conversion is performed for those.");
+        gifNote->Wrap(kWrapWidth);
+        topSizer->Add(gifNote, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+    }
+
+    // The suppress-until-next-version checkbox only makes sense for the
+    // automatic post-open check - a manual "Check Media..." click is an
+    // explicit request, so don't offer to silence future automatic checks
+    // from inside it.
+    wxCheckBox* suppressCheck = nullptr;
+    if (!manual) {
+        suppressCheck = new wxCheckBox(&dlg, wxID_ANY,
+            wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
+        topSizer->Add(suppressCheck, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+    }
+
+    // Figure out how many flagged entries are videos — only
+    // videos can be auto-converted here (audio would need a
+    // separate AudioToolbox-compatible path).
+    int videoIssueCount = 0;
+    for (const auto& issue : issues) {
+        if (issue.isVideo && issue.canConvert()) ++videoIssueCount;
+    }
+
+    // Custom ID so we can tell OK apart from "Convert Now".
+    const int ID_CONVERT_NOW = wxID_HIGHEST + 1;
+
+    wxBoxSizer* btnRow = new wxBoxSizer(wxHORIZONTAL);
+    btnRow->AddStretchSpacer(1);
+    if (videoIssueCount > 0) {
+        wxButton* convertBtn = new wxButton(&dlg, ID_CONVERT_NOW,
+            videoIssueCount == 1 ? "Convert Video Now..."
+                                 : wxString::Format("Convert %d Videos Now...", videoIssueCount));
+        btnRow->Add(convertBtn, 0, wxRIGHT, 8);
+        convertBtn->Bind(wxEVT_BUTTON, [&dlg, ID_CONVERT_NOW](wxCommandEvent&) {
+            dlg.EndModal(ID_CONVERT_NOW);
+        });
+    }
+    wxButton* okBtn = new wxButton(&dlg, wxID_OK, "OK");
+    btnRow->Add(okBtn, 0);
+    topSizer->Add(btnRow, 0, wxALIGN_RIGHT | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
+    dlg.SetSizer(topSizer);
+    dlg.SetMinSize(wxSize(600, 480));
+    dlg.Layout();
+    int dlgResult = dlg.ShowModal();
+    if (suppressCheck != nullptr && suppressCheck->IsChecked()) {
+        GetXLightsConfig()->Write("xLightsSuppressMediaCompatWarnVersion", wxString(xlights_version_string));
+        GetXLightsConfig()->Flush();
+    }
+
+    if (dlgResult == ID_CONVERT_NOW) {
+        ConvertIncompatibleVideos(issues);
+    }
 }
 
 void xLightsFrame::AddToMRU(const std::string& filename)
