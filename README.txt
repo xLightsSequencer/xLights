@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 macOS/iPad - a GPU buffer that could not be allocated (older Macs
+                                 with little video memory, or a very large model) is no longer
+                                 published as if it had worked; that layer renders on the CPU instead
+                                 of crashing somewhere unrelated
+    -change (dkulp)              Crash reports now include the fault address, signal and the faulting
+                                 instruction, and a backtrace taken at the moment of the fault
     -bug (dkulp)                 Shader effects rendered on the GPU (Metal on macOS/iPad, Vulkan on
                                  Linux/Windows) started one frame ahead of the OpenGL path; the first
                                  frame now renders at the lead-in time on every backend

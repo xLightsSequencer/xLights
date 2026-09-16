@@ -37,6 +37,46 @@ inline void setLabel(id<MTLBuffer> buf, const std::string &s) {
 #endif
 }
 
+// Metal returns nil when the device cannot satisfy an allocation - a
+// small-VRAM GPU asked for a big buffer, or a process near its memory limit.
+// The failure itself is survivable; publishing anything derived from it is not.
+// `contents` on a nil buffer is 0, so an unchecked allocation leaves a size
+// field describing a null pointer (and, worse, a RenderBuffer's `pixels` or a
+// layer's `mask` pointing at null), and the write that follows goes through
+// address 0 plus an offset - faulting in whatever code was handed the pointer,
+// arbitrarily far from the allocation that failed.  So: allocate into a local,
+// publish nothing unless it came back non-nil.
+static id<MTLBuffer> newMetalBuffer(NSUInteger length, MTLResourceOptions options, const std::string &label) {
+    if (length == 0) {
+        return nil;
+    }
+    // XL_METAL_FAIL_ALLOC=<n>: fail every nth allocation (1 = all of them).
+    // The fallback this guards is otherwise only reachable on a machine that
+    // has actually run out of GPU memory, which is not a state worth waiting
+    // for a crash report to reproduce.
+    static const int failEvery = []() {
+        const char* e = getenv("XL_METAL_FAIL_ALLOC");
+        return e != nullptr ? (int)strtol(e, nullptr, 10) : 0;
+    }();
+    bool forceFail = false;
+    if (failEvery > 0) {
+        static std::atomic<long> allocs{0};
+        forceFail = (++allocs % failEvery) == 0;
+    }
+    id<MTLBuffer> buf = forceFail ? nil : [MetalComputeUtilities::INSTANCE.device newBufferWithLength:length options:options];
+    if (buf == nil) {
+        static std::atomic<long> failures{0};
+        long n = ++failures;
+        if ((n & (n - 1)) == 0) { // powers of two, avoid log spam
+            spdlog::error("Metal buffer allocation failed ({} bytes for {}) - falling back to CPU rendering. Failure {}.",
+                          (uint64_t)length, label, n);
+        }
+        return nil;
+    }
+    setLabel(buf, label);
+    return buf;
+}
+
 MetalPixelBufferComputeData::MetalPixelBufferComputeData() {
     sparkleBuffer = nil;
     tmpBufferBlend = nil;
@@ -82,9 +122,16 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
         // the node count outgrows it.  Keying on element count (rather than the
         // vector's data pointer) avoids a per-frame realloc.
         if (sparkleBuffer == nil || sparkleBufferCount < pixelBuffer->sparklesVector.size()) {
-            sparkleBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithBytes:&pixelBuffer->sparklesVector[0]
+            id<MTLBuffer> newBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithBytes:&pixelBuffer->sparklesVector[0]
                                              length:pixelBuffer->sparklesVector.size() * sizeof(uint16_t)
                                             options:MTLResourceStorageModeShared];
+            if (newBuffer == nil) {
+                // pixelBuffer->sparkles would otherwise be repointed at null
+                // and every later sparkle write on any path would go through
+                // it.  The CPU blend keeps using sparklesVector.
+                return false;
+            }
+            sparkleBuffer = newBuffer;
             std::string name = pixelBuffer->GetModelName() + "SparkleBuffer";
             setLabel(sparkleBuffer, name);
             sparkleBufferCount = pixelBuffer->sparklesVector.size();
@@ -93,8 +140,11 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
     }
     if (tmpBufferBlend == nil) {
         int len = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() * sizeof(uint32_t);
-        tmpBufferBlend = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared];
-        setLabel(tmpBufferBlend, pixelBuffer->GetModelName() + "-BlendBuffer");
+        tmpBufferBlend = newMetalBuffer(len, MTLResourceStorageModeShared,
+                                        pixelBuffer->GetModelName() + "-BlendBuffer");
+        if (tmpBufferBlend == nil) {
+            return false;
+        }
         // Must start zeroed, matching the CPU path's std::vector scratch: a
         // blend with NO valid input layers (a canvas layer whose below-layers
         // are all empty) writes nothing into this buffer yet still publishes
@@ -120,7 +170,13 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             if (validLayers[l]) {
                 auto layer = pixelBuffer->layers[l];
                 MetalRenderBufferComputeData *layerCD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&layer->buffer);
+                if (layerCD == nullptr) {
+                    return false;
+                }
                 id<MTLBuffer> tmpBufferLayer = layerCD->getBlendBuffer();
+                if (tmpBufferLayer == nil) {
+                    return false;
+                }
                 
                 LayerBlendingData data;
                 data.nodeCount = layer->buffer.GetNodeCount();
@@ -143,6 +199,10 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                 
                 // first, we grab the color for the node from the buffer for the layer
                 id<MTLBuffer> lcdPixelBuffer = layerCD->getPixelBuffer();
+                id<MTLBuffer> lcdIndexBuffer = layerCD->getIndexBuffer();
+                if (lcdPixelBuffer == nil || lcdIndexBuffer == nil) {
+                    return false;
+                }
                 id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
                 [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.getColorsFunction];
                 setLabel(computeEncoder, "GetColors", l);
@@ -163,6 +223,10 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                         // grow-only staging buffer rather than allocating a
                         // fresh MTLBuffer every blend.
                         mb = layerCD->getCPUMaskBuffer(layer->maskSize);
+                        if (mb == nil) {
+                            [computeEncoder endEncoding];
+                            return false;
+                        }
                         memcpy(mb.contents, layer->mask, layer->maskSize);
                     }
                     [computeEncoder setBuffer:mb offset:0 atIndex:3];
@@ -170,7 +234,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                     uint8_t tmp[4] = {0, 0, 0, 0};
                     [computeEncoder setBytes:tmp length:sizeof(tmp) atIndex:3];
                 }
-                [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:4];
+                [computeEncoder setBuffer:lcdIndexBuffer offset:0 atIndex:4];
                 NSInteger maxThreads = MetalComputeUtilities::INSTANCE.getColorsFunction.maxTotalThreadsPerThreadgroup;
                 NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
                 MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
@@ -257,7 +321,13 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             if (validLayers[l]) {
                 auto layer = pixelBuffer->layers[l];
                 MetalRenderBufferComputeData *layerCD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&layer->buffer);
+                if (layerCD == nullptr) {
+                    return false;
+                }
                 id<MTLBuffer> tmpBufferLayer = layerCD->getBlendBuffer();
+                if (tmpBufferLayer == nil) {
+                    return false;
+                }
     
                 LayerBlendingData data;
                 data.nodeCount = layer->buffer.GetNodeCount();
@@ -322,7 +392,12 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                     [computeEncoder setBuffer:tmpBufferBlend offset:0 atIndex:1];
                     [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:2];
                     if (f->needIndexes) {
-                        [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:3];
+                        id<MTLBuffer> ib = layerCD->getIndexBuffer();
+                        if (ib == nil) {
+                            [computeEncoder endEncoding];
+                            return false;
+                        }
+                        [computeEncoder setBuffer:ib offset:0 atIndex:3];
                     }
                     NSInteger maxThreads = f->function.maxTotalThreadsPerThreadgroup;
                     NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
@@ -337,6 +412,9 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
         if (saveToPixels) {
             auto layer = pixelBuffer->layers[saveLayer];
             MetalRenderBufferComputeData *layerCD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&layer->buffer);
+            if (layerCD == nullptr) {
+                return false;
+            }
             LayerBlendingData data;
             data.nodeCount = layer->buffer.GetNodeCount();
             data.bufferHi = layer->buffer.BufferHt;
@@ -355,17 +433,23 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             data.effectMixVaries = layer->effectMixVaries;
             data.fadeFactor = layer->fadeFactor;
             
+            id<MTLBuffer> savePixelBuffer = layerCD->getPixelBuffer();
+            id<MTLBuffer> saveIndexBuffer = layerCD->getIndexBuffer();
+            id<MTLBuffer> saveOwnerBuffer = layerCD->getOwnerBuffer();
+            if (savePixelBuffer == nil || saveIndexBuffer == nil || saveOwnerBuffer == nil) {
+                return false;
+            }
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
             [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.putColorsFunction];
             setLabel(computeEncoder, "PutColors", saveLayer);
             int dataSize = sizeof(data);
             [computeEncoder setBytes:&data length:dataSize atIndex:0];
-            [computeEncoder setBuffer:layerCD->getPixelBuffer() offset:0 atIndex:1];
+            [computeEncoder setBuffer:savePixelBuffer offset:0 atIndex:1];
             [computeEncoder setBuffer:tmpBufferBlend offset:0 atIndex:2];
             uint8_t tmp[4] = {0, 0, 0, 0};
             [computeEncoder setBytes:tmp length:sizeof(tmp) atIndex:3];
-            [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:4];
-            [computeEncoder setBuffer:layerCD->getOwnerBuffer() offset:0 atIndex:5];
+            [computeEncoder setBuffer:saveIndexBuffer offset:0 atIndex:4];
+            [computeEncoder setBuffer:saveOwnerBuffer offset:0 atIndex:5];
 
             NSInteger maxThreads = MetalComputeUtilities::INSTANCE.putColorsFunction.maxTotalThreadsPerThreadgroup;
             NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
@@ -400,7 +484,8 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
         for (int l = validLayers.size() - 1; l >= 0; --l) {
             if (!validLayers[l]) continue;
             MetalRenderBufferComputeData *layerCD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&pixelBuffer->layers[l]->buffer);
-            id<MTLBuffer> bb = layerCD->getBlendBuffer();
+            id<MTLBuffer> bb = (layerCD != nullptr) ? layerCD->getBlendBuffer() : nil;
+            if (bb == nil) continue;
             fprintf(stderr, "BSUM f=%d m=%s l=%d h=%016llx\n", effectPeriod, pixelBuffer->GetModelName().c_str(), l,
                     (unsigned long long)fnv((const uint8_t*)bb.contents, pixelBuffer->layers[l]->buffer.GetNodeCount() * 4));
         }
@@ -431,10 +516,20 @@ bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, i
     if (li->inMaskFactor < 1.0 || li->outMaskFactor < 1.0) {
         if (ms > li->maskMaxSize) {
             MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&li->buffer);
+            if (bd == nullptr) {
+                return false;
+            }
+            id<MTLBuffer> newBuffer = newMetalBuffer(ms, MTLResourceStorageModeShared,
+                                                     li->buffer.GetModelName() + "MaskBuffer-" + std::to_string(layer));
+            if (newBuffer == nil) {
+                // maskMaxSize and li->mask stay as they were: recording the
+                // bigger size while mask points at null (or at the smaller old
+                // buffer) is what turns a failed allocation into an
+                // out-of-bounds write on the CPU mask path.
+                return false;
+            }
+            bd->maskBuffer = newBuffer;
             li->maskMaxSize = ms;
-            bd->maskBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:li->maskMaxSize options:MTLResourceStorageModeShared];
-            std::string name = li->buffer.GetModelName() + "MaskBuffer-" + std::to_string(layer);
-            setLabel(bd->maskBuffer, name);
             li->mask = static_cast<uint8_t*>(bd->maskBuffer.contents);
         }
     }
@@ -513,6 +608,9 @@ bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, i
 }
 bool MetalPixelBufferComputeData::doMap(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer) {
     MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(buffer);
+    if (bd == nullptr) {
+        return false;
+    }
     id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer("-Map");
     if (commandBuffer == nil) {
         return false;
@@ -540,17 +638,29 @@ bool MetalPixelBufferComputeData::doMap(id<MTLComputePipelineState> f, Transitio
 
 bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB) {
     id<MTLBuffer> bufferPrev = nil;
-    if (prevRB) bufferPrev = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(prevRB)->getPixelBuffer();
+    if (prevRB) {
+        MetalRenderBufferComputeData *prevBD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(prevRB);
+        if (prevBD == nullptr) {
+            return false;
+        }
+        bufferPrev = prevBD->getPixelBuffer();
+    }
     return doTransition(f, data, buffer, bufferPrev);
 }
 bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> prev) {
     MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(buffer);
+    if (bd == nullptr) {
+        return false;
+    }
     id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer("-Transition");
     if (commandBuffer == nil) {
         return false;
     }
     id<MTLBuffer> bufferResult = bd->getPixelBuffer();
     id<MTLBuffer> bufferCopy = bd->getPixelBufferCopy();
+    if (bufferResult == nil || bufferCopy == nil) {
+        return false;
+    }
     if (prev == nil) {
         prev = bufferCopy;
     }
@@ -615,6 +725,13 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
 }
 
 id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer(const std::string &postfix) {
+    if (allocFailed) {
+        // Second half of the chokepoint: the accessor hides this object from
+        // anything that looks it up fresh, and this catches callers holding a
+        // pointer from before the allocation failed.  Every Metal effect
+        // already treats a nil command buffer as "render this on the CPU".
+        return nil;
+    }
     if (commandBuffer != nil && committed) {
         // This should not happen.  If we get here, some work was sent
         // to the GPU, but then nothing asked for the result so the
@@ -666,19 +783,40 @@ void MetalRenderBufferComputeData::abortCommandBuffer() {
         --commandBufferCount;
     }
 }
+id<MTLBuffer> MetalRenderBufferComputeData::allocBuffer(NSUInteger length, MTLResourceOptions options, const std::string &label) {
+    id<MTLBuffer> buf = newMetalBuffer(length, options, label);
+    if (buf == nil) {
+        // Sticky: one failed allocation makes the whole layer unusable on the
+        // GPU, and getMetalRenderBufferComputeData stops handing this object
+        // out, so effects take the CPU path they already have for a machine
+        // with no Metal at all.
+        allocFailed = true;
+    }
+    return buf;
+}
+
 id<MTLBuffer> MetalRenderBufferComputeData::getBlendBuffer() {
     if (blendBuffer == nil) {
         int len = renderBuffer->GetNodeCount() * sizeof(uint32_t);
-        blendBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared];
-        setLabel(blendBuffer, renderBuffer->GetModelName() + "-WorkBuffer" + std::to_string(layer));
+        blendBuffer = allocBuffer(len, MTLResourceStorageModeShared,
+                                  renderBuffer->GetModelName() + "-WorkBuffer" + std::to_string(layer));
     }
     return blendBuffer;
 }
 
 id<MTLBuffer> MetalRenderBufferComputeData::getCPUMaskBuffer(int sz) {
     if (cpuMaskBuffer == nil || cpuMaskBufferSize < sz) {
-        cpuMaskBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:sz options:MTLResourceStorageModeShared];
-        setLabel(cpuMaskBuffer, renderBuffer->GetModelName() + "-CPUMaskUpload");
+        id<MTLBuffer> newBuffer = allocBuffer(sz, MTLResourceStorageModeShared,
+                                              renderBuffer->GetModelName() + "-CPUMaskUpload");
+        if (newBuffer == nil) {
+            // nil, not the buffer we already have: the caller memcpy's sz
+            // bytes into whatever comes back, so handing out the smaller old
+            // buffer would turn a failed allocation into a heap overflow. The
+            // size field stays honest too - recording sz here would tell the
+            // next caller a buffer that big exists.
+            return nil;
+        }
+        cpuMaskBuffer = newBuffer;
         cpuMaskBufferSize = sz;
     }
     return cpuMaskBuffer;
@@ -696,9 +834,12 @@ id<MTLBuffer> MetalRenderBufferComputeData::getIndexBuffer() {
 id<MTLBuffer> MetalRenderBufferComputeData::getOwnerBuffer() {
     int pixelCount = renderBuffer->GetPixelCount();
     if (ownerBuffer == nil || ownerSize < pixelCount) {
-        ownerBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:(pixelCount * sizeof(int32_t)) options:MTLResourceStorageModeShared];
-        std::string name = renderBuffer->GetModelName() + "OwnerBuffer";
-        setLabel(ownerBuffer, name);
+        id<MTLBuffer> newBuffer = allocBuffer(pixelCount * sizeof(int32_t), MTLResourceStorageModeShared,
+                                              renderBuffer->GetModelName() + "OwnerBuffer");
+        if (newBuffer == nil) {
+            return nil;
+        }
+        ownerBuffer = newBuffer;
         ownerSize = pixelCount;
         ownerStale = true;
     }
@@ -726,10 +867,8 @@ id<MTLBuffer> MetalRenderBufferComputeData::getOwnerBuffer() {
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     if (pixelBufferCopy == nil) {
         int bufferSize = std::max((int)renderBuffer->GetPixelCount(), (int)pixelBufferSize) * 4;
-        id<MTLBuffer> newBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModePrivate];
-        std::string name = renderBuffer->GetModelName() + "PixelBufferCopy";
-        setLabel(newBuffer, name);
-        pixelBufferCopy = newBuffer;
+        pixelBufferCopy = allocBuffer(bufferSize, MTLResourceStorageModePrivate,
+                                      renderBuffer->GetModelName() + "PixelBufferCopy");
     }
     return pixelBufferCopy;
 }
@@ -749,11 +888,25 @@ void MetalRenderBufferComputeData::bufferResized() {
         }
     }
     if (indexesSize < indexCount) {
-        indexBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:(indexCount * sizeof(int32_t)) options:MTLResourceStorageModeShared];
-        std::string name = renderBuffer->GetModelName() + "IndexBuffer";
-        setLabel(indexBuffer, name);
+        id<MTLBuffer> newBuffer = allocBuffer(indexCount * sizeof(int32_t), MTLResourceStorageModeShared,
+                                              renderBuffer->GetModelName() + "IndexBuffer");
+        if (newBuffer == nil) {
+            // `indexes` and `indexesSize` stay as they were, so nothing below
+            // writes and the next call retries the allocation.  Setting the
+            // size from a failed allocation was the bug: it made `indexes`
+            // (nil.contents == nullptr) look like a buffer of indexCount
+            // int32s, and every later call skipped the retry because the size
+            // already looked big enough.
+            return;
+        }
+        indexBuffer = newBuffer;
         indexes = static_cast<int32_t*>(indexBuffer.contents);
         indexesSize = indexCount;
+    }
+    if (indexes == nullptr) {
+        // No index table means no GPU geometry; the accessor reports the
+        // failure and the effects take their CPU path.
+        return;
     }
     int idx = 0;
     int extraIdx = renderBuffer->Nodes.size();
@@ -792,9 +945,16 @@ void MetalRenderBufferComputeData::bufferResized() {
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
     if (pixelBufferSize < renderBuffer->GetPixelCount()) {
         int bufferSize = renderBuffer->GetPixelCount() * 4;
-        id<MTLBuffer> newBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared];
-        std::string name = renderBuffer->GetModelName() + "PixelBuffer";
-        setLabel(newBuffer, name);
+        id<MTLBuffer> newBuffer = allocBuffer(bufferSize, MTLResourceStorageModeShared,
+                                              renderBuffer->GetModelName() + "PixelBuffer");
+        if (newBuffer == nil) {
+            // The worst place to publish a failed allocation: the memcpy below
+            // would write through nil.contents, and renderBuffer->pixels would
+            // be left pointing at null for every CPU effect that follows.
+            // Leaving pixels where they are keeps the buffer renderable on the
+            // CPU.
+            return nil;
+        }
         // copy from the old buffer (which renderBuffer->pixels points into) before reassigning it
         memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize == 0 ? bufferSize : pixelBufferSize * 4);
         if (pixelBufferCopy) {
@@ -849,7 +1009,13 @@ id<MTLTexture> MetalRenderBufferComputeData::getPixelTexture() {
             d.storageMode = MTLStorageModePrivate;
             // Create the texture from the device by using the descriptor
             pixelTexture = [MetalComputeUtilities::INSTANCE.device newTextureWithDescriptor:d];
-            
+            if (pixelTexture == nil) {
+                // Same rule as the buffers: leave pixelTextureSize at 0,0 so
+                // nothing downstream believes a texture of that size exists.
+                allocFailed = true;
+                return nil;
+            }
+
             std::string name = renderBuffer->GetModelName() + "PixelTexture";
             NSString* mn = [NSString stringWithUTF8String:name.c_str()];
             [pixelTexture setLabel:mn];
@@ -1141,9 +1307,16 @@ bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineSta
     id<MTLBuffer> bufferResult = getPixelBuffer();
     id<MTLBuffer> bufferCopy = getPixelBufferCopy();
     int pixelCount = data.width * data.height;
+    if (bufferResult == nil || bufferCopy == nil) {
+        return false;
+    }
     if (rotoOwnerBuffer == nil || rotoOwnerSize < pixelCount) {
-        rotoOwnerBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:(pixelCount * sizeof(int32_t)) options:MTLResourceStorageModePrivate];
-        setLabel(rotoOwnerBuffer, renderBuffer->GetModelName() + "RotoOwnerBuffer");
+        id<MTLBuffer> newBuffer = allocBuffer(pixelCount * sizeof(int32_t), MTLResourceStorageModePrivate,
+                                              renderBuffer->GetModelName() + "RotoOwnerBuffer");
+        if (newBuffer == nil) {
+            return false;
+        }
+        rotoOwnerBuffer = newBuffer;
         rotoOwnerSize = pixelCount;
     }
     @autoreleasepool {
@@ -1215,7 +1388,17 @@ bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineSta
 }
 
 MetalRenderBufferComputeData *MetalRenderBufferComputeData::getMetalRenderBufferComputeData(RenderBuffer *b) {
-    return static_cast<MetalRenderBufferComputeData*>(b->gpuRenderData);
+    MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(b->gpuRenderData);
+    if (d != nullptr && d->allocationFailed()) {
+        // One place decides that a layer whose GPU buffers could not be
+        // allocated is not a GPU layer, rather than each caller having to
+        // notice a nil buffer coming back from a getter it did not check.
+        // Every caller already handles a null here - it is the "no Metal at
+        // all" case - so this reuses a fallback that is exercised on every
+        // machine without a supported GPU.
+        return nullptr;
+    }
+    return d;
 }
 
 

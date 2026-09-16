@@ -79,10 +79,21 @@ public:
     bool boxBlur(int d, int u);
     bool rotoZoom(GPURenderUtils::RotoZoomSettings &settings);
 
+    // True once any Metal allocation for this buffer has come back nil. The
+    // accessor above stops handing this object out when it is set, so every
+    // effect takes its existing CPU path instead of encoding work against
+    // buffers that do not exist.
+    bool allocationFailed() const { return allocFailed; }
+
     id<MTLBuffer> maskBuffer;
 private:
     bool callRotoZoomFunction(id<MTLComputePipelineState> f, id<MTLComputePipelineState> claimF, RotoZoomData &data);
-    
+
+    // newBufferWithLength returns nil when the device cannot satisfy the
+    // request; every allocation here goes through this so a nil is recorded and
+    // returned rather than published into a size field or a raw pointer.
+    id<MTLBuffer> allocBuffer(NSUInteger length, MTLResourceOptions options, const std::string &label);
+
     RenderBuffer *renderBuffer;
     int layer;
     id<MTLCommandBuffer> commandBuffer;
@@ -112,6 +123,7 @@ private:
     id<MTLBuffer> cpuMaskBuffer = nil;
     int cpuMaskBufferSize = 0;
     std::pair<uint32_t, uint32_t> pixelTextureSize;
+    bool allocFailed = false;
     bool committed = false;
     CurrentDataLocation currentDataLocation = BUFFER;
 
