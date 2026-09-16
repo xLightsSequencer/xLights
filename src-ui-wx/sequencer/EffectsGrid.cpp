@@ -54,6 +54,7 @@
 #include "xLightsApp.h"
 #include "render/SequenceFile.h"
 #include "effects/GlediatorEffect.h"
+#include "effects/MovingHeadEffect.h"
 #include "effects/PicturesEffect.h"
 #include "effects/ShaderEffect.h"
 #include "effects/VideoEffect.h"
@@ -5957,24 +5958,41 @@ int EffectsGrid::GetMSFromColumn(int col) const {
 }
 
 namespace {
-    // A Moving Head effect copied off a single-fixture model only ever has one
-    // of its 8 per-head E_TEXTCTRL_MHn_Settings slots populated (whichever head
-    // number that source model owns). Pasted verbatim onto a model group made
-    // entirely of moving heads, every other fixture in the group would render
-    // with no position/color data at all. EffectDroppedOnGrid (tabSequencer.cpp)
-    // already forces the buffer style to "Per Model Default" for a freshly
-    // dragged-and-dropped effect in this situation; paste needs the same
-    // treatment plus cloning that one populated slot's settings into every
-    // fixture's own slot (swapping in each fixture's actual head number so
-    // MovingHeadEffect can still tell them apart).
-    void FixupMovingHeadEffectForGroup(Effect* ef, Element* element) {
+    // A Moving Head effect's paste target can be a different model than the one
+    // it was authored for, in two distinct ways: (a) a single, non-group model
+    // with a different fixture number -- re-key the one populated
+    // E_TEXTCTRL_MHn_Settings slot to match (xLights#7080; not a version
+    // migration, so paste can't rely on adjustSettings() -- see
+    // MovingHeadEffect::RemapSingleFixtureSettings); or (b) a model group made
+    // entirely of moving heads -- a source effect copied off a single-fixture
+    // model only ever has one slot populated, so pasted verbatim every other
+    // fixture in the group would render with no position/color data at all.
+    // EffectDroppedOnGrid (tabSequencer.cpp) already forces the buffer style to
+    // "Per Model Default" for a freshly dragged-and-dropped effect in this
+    // situation; paste needs the same treatment plus cloning that one
+    // populated slot's settings into every fixture's own slot (swapping in
+    // each fixture's actual head number so MovingHeadEffect can still tell
+    // them apart).
+    //
+    // Deliberately NOT handled: pasting/moving a group-sourced effect (already
+    // multiple slots populated) onto a *different* group. Unlike the
+    // single-model case there is no principled target fixture to re-key each
+    // slot to -- two groups can have completely different physical fixture
+    // numbering with no discoverable correspondence -- so this only takes the
+    // first populated slot and broadcasts it to every member of the target
+    // group, same as the single-fixture-source case above.
+    void FixupMovingHeadEffectFixtureKeys(Effect* ef, Element* element) {
         if (ef == nullptr || element == nullptr || ef->GetEffectName() != "Moving Head")
             return;
 
         xLightsFrame* xlights = xLightsApp::GetFrame();
         Model* m = xlights->AllModels[element->GetModelName()];
-        if (m == nullptr || m->GetDisplayAs() != DisplayAsType::ModelGroup)
+        if (m == nullptr)
             return;
+        if (m->GetDisplayAs() != DisplayAsType::ModelGroup) {
+            MovingHeadEffect::RemapSingleFixtureSettings(ef->GetSettings(), m);
+            return;
+        }
 
         auto mg = dynamic_cast<ModelGroup*>(m);
         if (mg == nullptr)
@@ -6533,7 +6551,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                                 }
                                 if (!is_timing_effect) PrepareEffectFiles(ef);
                                 ef->HandlePastedSymbolLink();
-                                FixupMovingHeadEffectForGroup(ef, el->GetParentElement());
+                                FixupMovingHeadEffectFixtureKeys(ef, el->GetParentElement());
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                             }
                         }
@@ -6616,7 +6634,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                             }
                             if (!is_timing_effect) PrepareEffectFiles(ef);
                             ef->HandlePastedSymbolLink();
-                            FixupMovingHeadEffectForGroup(ef, el->GetParentElement());
+                            FixupMovingHeadEffectFixtureKeys(ef, el->GetParentElement());
                             mSequenceElements->get_undo_mgr().CreateUndoStep();
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                             if (!is_timing_effect) {
@@ -6707,7 +6725,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                                 }
                                 PrepareEffectFiles(ef);
                                 ef->HandlePastedSymbolLink();
-                                FixupMovingHeadEffectForGroup(ef, el->GetParentElement());
+                                FixupMovingHeadEffectFixtureKeys(ef, el->GetParentElement());
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                                 RaiseSelectedEffectChanged(ef, true);
                                 mSelectedEffect = ef;
@@ -8706,6 +8724,15 @@ void EffectsGrid::ApplyEffectMoveDrag() {
             newStart, newEnd,
             EFFECT_NOT_SELECTED, false);
         if (newEff) {
+            if (rowDelta != 0 && newEff->GetEffectName() == "Moving Head") {
+                // Dragging/copying a Moving Head effect to a different row can land
+                // it on a different single-fixture model than the one it was
+                // authored for, leaving its E_TEXTCTRL_MHn_Settings keyed to the
+                // wrong fixture (xLights#7080). Unlike paste, this path never runs
+                // adjustSettings(), so re-key it here directly.
+                Model* m = xlights->AllModels[targetLayer->GetParentElement()->GetModelName()];
+                MovingHeadEffect::RemapSingleFixtureSettings(newEff->GetSettings(), m);
+            }
             mSequenceElements->get_undo_mgr().CaptureAddedEffect(
                 targetLayer->GetParentElement()->GetModelName(),
                 targetLayer->GetIndex(), newEff->GetID());

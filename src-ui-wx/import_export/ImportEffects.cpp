@@ -29,6 +29,7 @@
 #include "VSAFile.h"
 #include "../import_export/VsaImportDialog.h"
 #include "effects/BufferStyles.h"
+#include "effects/MovingHeadEffect.h"
 #include "import_export/EffectMapper.h"
 #include "import_export/SuperStarImporter.h"
 #include "sequencer/BufferPanel.h"
@@ -3770,6 +3771,13 @@ void xLightsFrame::CloneXLightsEffects(EffectLayer* target, EffectLayer* src, bo
             if (ne != nullptr) {
                 // never carry the source effect's lock status into the clone
                 ne->SetLocked(false);
+                if (ne->GetEffectName() == "Moving Head") {
+                    // Cloned onto a different single-fixture moving-head model than the
+                    // source effect was authored for: re-key its E_TEXTCTRL_MHn_Settings
+                    // slots to this model's own fixture (xLights#7080).
+                    Model* m = AllModels[target->GetParentElement()->GetModelName()];
+                    MovingHeadEffect::RemapSingleFixtureSettings(ne->GetSettings(), m);
+                }
             }
         }
     }

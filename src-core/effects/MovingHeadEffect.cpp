@@ -32,6 +32,7 @@
 #include "../render/Effect.h"
 #include "../render/Element.h"
 #include "../render/SequenceElements.h"
+#include "../render/RenderContext.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
@@ -57,6 +58,92 @@ std::list<std::string> MovingHeadEffect::CheckEffectSettings(const SettingsMap& 
     std::list<std::string> res;
 
     return res;
+}
+
+void MovingHeadEffect::RemapSingleFixtureSettings(SettingsMap& settings, const Model* model)
+{
+    if (model == nullptr) return;
+
+    // A ModelGroup legitimately uses all 8 fixture slots, one per member -
+    // only a single, non-group placement is a candidate for remapping.
+    if (model->GetDisplayAs() == DisplayAsType::ModelGroup || model->GetDisplayAs() == DisplayAsType::SubModel) {
+        return;
+    }
+    auto mhead = dynamic_cast<const DmxMovingHeadComm*>(model);
+    if (mhead == nullptr) return;
+
+    int myFixture = mhead->GetFixtureVal();
+    std::string myKey = "E_TEXTCTRL_MH" + std::to_string(myFixture) + "_Settings";
+    // Read-only lookups use the const Get() accessor throughout this function,
+    // never operator[] - the mutable operator[] inserts an empty entry for any
+    // key that isn't already present, and SettingsMap::AsString() serializes
+    // every entry regardless of value, so a bare read would otherwise leave
+    // every checked-but-untouched fixture slot as a spurious empty key in the
+    // effect's saved settings.
+    if (settings.Get(myKey, xlEMPTY_STRING) != xlEMPTY_STRING) {
+        // Already correctly keyed - clear any other stale slot left behind by
+        // a prior copy off a multi-head ModelGroup.
+        for (int i = 1; i <= 8; ++i) {
+            if (i == myFixture) continue;
+            std::string key = "E_TEXTCTRL_MH" + std::to_string(i) + "_Settings";
+            if (settings.Get(key, xlEMPTY_STRING) != xlEMPTY_STRING) {
+                settings[key] = xlEMPTY_STRING;
+            }
+        }
+        return;
+    }
+
+    for (int i = 1; i <= 8; ++i) {
+        if (i == myFixture) continue;
+        std::string otherKey = "E_TEXTCTRL_MH" + std::to_string(i) + "_Settings";
+        std::string otherVal = settings.Get(otherKey, xlEMPTY_STRING);
+        if (otherVal == xlEMPTY_STRING) continue;
+
+        std::vector<std::string> newCmds;
+        for (const auto& cmd : Split(otherVal, ';')) {
+            if (cmd.empty()) continue;
+            size_t pos = cmd.find(':');
+            std::string cmdType = cmd.substr(0, pos);
+            if (cmdType == "Heads") {
+                newCmds.push_back("Heads: " + std::to_string(myFixture));
+            } else {
+                newCmds.push_back(cmd);
+            }
+        }
+        settings[myKey] = Join(newCmds, ";");
+        settings[otherKey] = xlEMPTY_STRING;
+
+        for (int j = 1; j <= 8; ++j) {
+            if (j == myFixture || j == i) continue;
+            std::string key = "E_TEXTCTRL_MH" + std::to_string(j) + "_Settings";
+            if (settings.Get(key, xlEMPTY_STRING) != xlEMPTY_STRING) {
+                settings[key] = xlEMPTY_STRING;
+            }
+        }
+        return;
+    }
+}
+
+bool MovingHeadEffect::needToAdjustSettings(const std::string& version)
+{
+    if (IsVersionOlder("2026.18", version)) return true;
+    return RenderableEffect::needToAdjustSettings(version);
+}
+
+void MovingHeadEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    RenderableEffect::adjustSettings(version, effect, removeDefaults);
+
+    if (effect == nullptr) return;
+    auto* layer = effect->GetParentEffectLayer();
+    if (layer == nullptr) return;
+    auto* element = layer->GetParentElement();
+    if (element == nullptr) return;
+    auto* seq = element->GetSequenceElements();
+    auto* ctx = seq == nullptr ? nullptr : seq->GetRenderContext();
+    if (ctx == nullptr) return;
+    const Model* model = ctx->GetModel(element->GetModelName());
+    RemapSingleFixtureSettings(effect->GetSettings(), model);
 }
 
 void MovingHeadEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
@@ -90,7 +177,6 @@ void MovingHeadEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
 
 void MovingHeadEffect::RenderMovingHeads(const Model* model_info, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    auto models = GetModels(model_info);
     for( int i = 1; i <= 8; ++i ) {
         std::string mh_textbox = "TEXTCTRL_MH" + std::to_string(i) + "_Settings";
         std::string mh_settings = SettingsMap[mh_textbox];
