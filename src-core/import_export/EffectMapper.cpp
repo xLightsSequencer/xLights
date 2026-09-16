@@ -12,6 +12,7 @@
 
 #include "effects/BufferStyles.h"
 #include "effects/EffectManager.h"
+#include "effects/MovingHeadEffect.h"
 #include "import_export/LOREdit.h"
 #include "import_export/Vixen3.h"
 #include "models/Model.h"
@@ -138,6 +139,13 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                 RenderContext* rc = target->GetParentElement()->GetSequenceElements()->GetRenderContext();
                 Model* m = rc->GetModel(target->GetParentElement()->GetModelName());
                 if (m != nullptr) {
+                    // Imported onto a different single-fixture moving-head model than the
+                    // source effect was authored for: re-key its E_TEXTCTRL_MHn_Settings
+                    // slots to this model's own fixture (xLights#7080). No-op for anything
+                    // but a single DmxMovingHead/DmxMovingHeadAdv model.
+                    if (ef->GetEffectName() == "Moving Head") {
+                        MovingHeadEffect::RemapSingleFixtureSettings(settings, m);
+                    }
                     auto mg = dynamic_cast<const ModelGroup*>(m);
                     if (mg != nullptr) {
                         if (convertRender) {

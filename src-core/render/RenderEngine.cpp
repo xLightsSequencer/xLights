@@ -4542,7 +4542,19 @@ void RenderEngine::RenderEffectForModel(const std::string &model, int startms, i
 
             for (const auto& it2 : _renderProgressInfo) {
                 RenderProgressInfo *rpi = it2;
-                if (std::find(rpi->restriction.begin(), rpi->restriction.end(), it->model) != rpi->restriction.end()) {
+                // An empty restriction means "no restriction" (e.g. a full Render All
+                // batch - see Render()'s restrictToModels.empty() handling a few
+                // hundred lines up, which turns an empty list into "every model").
+                // std::find on an empty list never matches, so a per-model
+                // RenderEffectForModel request landing while a full Render All batch
+                // is still in flight never detected the overlap and raced it: two
+                // independently-built RenderJobs writing the same model's seqData
+                // channels with no ordering between them. This bug has existed since
+                // the overlap check was introduced (9440451bda, 2017) - back then
+                // `restriction` was a single Model* and an unrestricted batch's was
+                // nullptr, which pointer-equality never matched either.
+                // (xLightsSequencer/xLights#7080)
+                if (rpi->restriction.empty() || std::find(rpi->restriction.begin(), rpi->restriction.end(), it->model) != rpi->restriction.end()) {
                     if (startframe > rpi->startFrame) {
                         startframe = rpi->startFrame;
                     }

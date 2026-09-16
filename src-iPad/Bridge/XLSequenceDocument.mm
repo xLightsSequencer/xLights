@@ -12887,6 +12887,18 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
     Effect* e = layer->AddEffect(0, name, st, pal, startMS, endMS, 0, false);
     if (!e) return -1;
+    if (name == "Moving Head") {
+        // This bridge is the common landing point for both paste and drag-move
+        // of an existing effect onto a (possibly different) row/model, neither
+        // of which runs RenderableEffect::adjustSettings(). A Moving Head
+        // effect's E_TEXTCTRL_MHn_Settings slots are keyed to the fixture
+        // number of the model it was authored on, so without this it can land
+        // on a different single-fixture model and render nothing (desktop
+        // parity fix: xLightsSequencer/xLights#7080,
+        // MovingHeadEffect::adjustSettings / RemapSingleFixtureSettings).
+        Model* m = _context->GetModelManager()[layer->GetParentElement()->GetModelName()];
+        MovingHeadEffect::RemapSingleFixtureSettings(e->GetSettings(), m);
+    }
     // The settings string handed to us came from Effect::GetSettingsAsString(),
     // which appends X_LinkedSymbolId for a symbol-linked effect. Consume it so
     // the copy re-joins the symbol instead of silently becoming an unlinked

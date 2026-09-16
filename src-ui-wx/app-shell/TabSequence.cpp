@@ -1973,7 +1973,7 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
     UpdateRecentFilesList(false);
 }
 
-void xLightsFrame::RenderAll()
+void xLightsFrame::RenderAll(bool alreadyRetried)
 {
     if (mRendering) {
         // the wxYield() below pumps the event queue, so a queued second
@@ -2002,7 +2002,7 @@ void xLightsFrame::RenderAll()
     RenderIseqData(true, nullptr); // render ISEQ layers below the Nutcracker layer
     spdlog::info("   iseq below effects done.");
     ProgressBar->SetValue(10);
-    RenderGridToSeqData([this, sw] (bool aborted) {
+    RenderGridToSeqData([this, sw, alreadyRetried] (bool aborted) {
         spdlog::info("   Effects done.");
         ProgressBar->SetValue(90);
         RenderIseqData(false, nullptr); // render ISEQ layers above the Nutcracker layer
@@ -2018,6 +2018,17 @@ void xLightsFrame::RenderAll()
         _appProgress->SetValue(0);
         _appProgress->Reset();
         GaugeSizer->Layout();
+        // A concurrent per-model render request (e.g. an effect edit posted just
+        // before this batch started) can now be correctly detected as overlapping
+        // and abort this batch - see the RenderEffectForModel overlap-check fix
+        // (xLightsSequencer/xLights#7080). Retry once so Render All always
+        // finishes fully rendered instead of silently reporting done on a
+        // partial batch, mirroring the batch-render retry in
+        // OpenRenderAndSaveSequencesF.
+        if (aborted && !alreadyRetried) {
+            spdlog::info("Render all was aborted, retrying.");
+            CallAfter(&xLightsFrame::RenderAll, true);
+        }
     });
 }
 

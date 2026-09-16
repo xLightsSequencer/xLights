@@ -1615,7 +1615,7 @@ public:
 
     void SetSequenceEnd(int ms);
     void SetFrequency(int frequency);
-    void RenderAll();
+    void RenderAll(bool alreadyRetried = false);
 
     void SetXmlSetting(const std::string& settingName, const std::string& value);
     std::string GetXmlSetting(const std::string& settingName, const std::string& defaultValue) const;

@@ -48,6 +48,23 @@ public:
     }
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
+    // Re-keys a single (non-group) moving-head model's "E_TEXTCTRL_MHn_Settings"
+    // slots in `settings` so the model's own fixture slot (per
+    // DmxMovingHeadComm::GetFixtureVal()) holds the effect's data and every
+    // other slot is cleared. Placement-time fix for xLightsSequencer/xLights#7080:
+    // an effect authored for one MH model's fixture number renders nothing once
+    // it lands on a different single-fixture model (drag/paste/import), because
+    // RenderMovingHeads only reads the slot matching the new model's own
+    // fixture. Call this wherever an existing effect's settings can land on a
+    // different model than the one it was authored for. adjustSettings()
+    // (below) calls it too, but only for files saved by a version older than
+    // the fix - every live placement path (paste, drag/move, import, clone)
+    // must call it directly instead, since none of those are version
+    // migrations. No-op for anything other than a
+    // single DmxMovingHead/DmxMovingHeadAdv model (ModelGroup placements keep
+    // all 8 slots, one per fixture, and are left untouched).
+    static void RemapSingleFixtureSettings(SettingsMap& settings, const Model* model);
+
     // Panel-time snapshot helper (NOT used by Render/RenderMovingHead): computes where a
     // single head (loc, 1-based fixture slot matching "Heads:" command indices) would sit
     // at the very start of an effect (eff_pos is always 0 there, regardless of Cycles) given
@@ -120,11 +137,17 @@ public:
         return RenderableEffect::GetSettingVCDivisor(name);
     }
 
+public:
+    // Version-gated like any other migration: heals sequences saved by a
+    // version older than this fix (xLights#7080), where a Moving Head effect
+    // could have been saved with its settings keyed to the wrong fixture. Once
+    // a file is re-saved with a fixed version this stops running for it -
+    // every *live* placement path (paste, drag/move, import, clone) now calls
+    // RemapSingleFixtureSettings directly instead of relying on this, since
+    // those aren't version migrations and must run unconditionally.
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
 protected:
-    virtual bool needToAdjustSettings(const std::string& version) override
-    {
-        return false;
-    }
     void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer& buffer);
     void WriteDMXValue(int channel, int value, RenderBuffer& buffer);
     std::list<const Model*> GetModels(const Model* model);
