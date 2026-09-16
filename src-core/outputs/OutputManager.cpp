@@ -1275,7 +1275,12 @@ bool OutputManager::StartOutput() {
 
             spdlog::error("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
             if (!Confirm(fmt::format("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, name), "Continue?")) {
-                return _outputting;
+                for (const auto& o : GetAllOutputs()) {
+                    o->Close();
+                }
+                _outputting = false;
+                _outputCriticalSection.unlock();
+                return false;
             }
             err = true;
         }
