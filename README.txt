@@ -17,6 +17,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Linux - fixed Shader effect crashes and corrupt rendering with
                                  hardware OpenGL; the offscreen render contexts now share GL
                                  objects so cached shader programs stay valid between frames (#7052)
+    -bug (derwin12)              Declining to continue after an output failed to open when starting
+                                 output left the output lock permanently held, so Stop Output silently
+                                 did nothing and controller properties stayed greyed out until restart
+                                 (#7071)
     -bug (derwin12)              Moving Head effects moved, pasted, or imported onto a different
                                  single-fixture moving head model could render nothing until the
                                  effect panel was reopened; this is now fixed automatically when the
