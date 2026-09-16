@@ -212,6 +212,11 @@ xlCrashHandler::xlCrashHandler(std::string const& appName) :
 #if wxUSE_ON_FATAL_EXCEPTION
     wxHandleFatalExceptions();
 #endif
+    // After wx, so the capture chains into wx's hook rather than replacing it.
+    // wx's hook gives us no siginfo at all, which left every signal crash
+    // reported without a fault address - the one field that says whether a
+    // pointer was null, freed or wild.
+    xlCrashCapture::InstallFaultInfoCapture();
 }
 
 
@@ -336,6 +341,27 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             }
             free(strs);
 #endif
+
+            // Appended after the existing trace, never in front of it: the
+            // server-side analyzer buckets on what backtrace.txt already
+            // starts with, and re-shaping the head would re-bucket every
+            // signature.
+            if (xlCrashCapture::FaultInfoCaptured()) {
+                backtrace_txt += "\n--- Fault details (from the signal, not from this handler) ---\n";
+                backtrace_txt += xlCrashCapture::FaultInfoReport();
+
+                wxString const faultFrames = xlCrashCapture::FaultBacktraceReport();
+                if (!faultFrames.empty()) {
+                    // The trace above starts inside this handler and reaches the
+                    // fault through the signal trampoline, which hides a
+                    // mismatched frame. This one is walked from the interrupted
+                    // registers, and names our own frames by image offset
+                    // instead of by the nearest exported symbol - a stripped
+                    // binary makes that name point at an unrelated function.
+                    backtrace_txt += "\nFaulting thread, walked from the signal context:\n";
+                    backtrace_txt += faultFrames;
+                }
+            }
 
             report.AddText("backtrace.txt", backtrace_txt, "Backtrace");
             spdlog::critical("{}", backtrace_txt.ToStdString());

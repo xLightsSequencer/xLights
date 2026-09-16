@@ -336,6 +336,126 @@ void restoreDefaultHandlers()
     }
 }
 
+// A stack overflow faults with the stack already exhausted, so a handler needs
+// a stack of its own or it cannot run at all.  Sized generously because the
+// desktop chains to wx's hook, which builds the whole debug report - zipping,
+// symbolicating, dialogs - from inside the handler, and on a worker thread the
+// normal stack it would otherwise use is only 512KB anyway.  It is BSS, so only
+// the pages actually touched ever commit.
+void ensureAltStack()
+{
+    static bool installed = false;
+    if (installed) {
+        return;
+    }
+    installed = true;
+
+    // Leave an alternate stack the host (or an earlier install) already set up
+    // alone; two of them would just fight over the same signal delivery.
+    stack_t existing {};
+    if (sigaltstack(nullptr, &existing) == 0 && existing.ss_sp != nullptr &&
+        (existing.ss_flags & SS_DISABLE) == 0) {
+        return;
+    }
+
+    static char altStack[4 * 1024 * 1024];
+    stack_t ss {};
+    ss.ss_sp = altStack;
+    ss.ss_size = sizeof(altStack);
+    ss.ss_flags = 0;
+    sigaltstack(&ss, nullptr);
+}
+
+int fatalSignalIndex(int sig)
+{
+    for (int i = 0; i < kFatalSignalCount; ++i) {
+        if (kFatalSignals[i] == sig) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// ---- fault details for a host that has its own reporter --------------------
+//
+// Filled in by faultInfoHandler and only read afterwards, from the host's crash
+// hook (which runs later, on the same thread, with the process still alive).
+struct FaultInfo {
+    volatile sig_atomic_t captured = 0;
+    int sig = 0;
+    int code = 0;
+    uint64_t address = 0;
+    uint64_t pc = 0;
+    uint64_t fp = 0;
+    uint64_t imageSlide = 0;
+    int frameCount = 0;
+    uint64_t frames[kMaxFramesPerThread] = { 0 };
+    char thread[64] = { 0 };
+    bool mainThread = false;
+};
+
+FaultInfo g_fault;
+struct sigaction g_faultPrevious[kFatalSignalCount];
+bool g_faultChainInstalled = false;
+
+// Records what the kernel handed us, then hands the signal to whoever was
+// handling it before.  Deliberately does nothing else: the host's hook is what
+// builds and ships the report, and duplicating that here would mean two
+// reporters racing over one crash.
+void faultInfoHandler(int sig, siginfo_t* info, void* uap)
+{
+    if (g_fault.captured == 0) {
+        g_fault.sig = sig;
+        g_fault.code = (info != nullptr) ? info->si_code : 0;
+        g_fault.address = (info != nullptr) ? (uint64_t)info->si_addr : 0;
+        g_fault.imageSlide = g_imageSlide;
+
+        uint64_t pc = 0;
+        uint64_t fp = 0;
+        if (uap != nullptr) {
+            ucontext_t const* uc = (ucontext_t const*)uap;
+            pcAndFpFromState(uc->uc_mcontext, pc, fp);
+        }
+        g_fault.pc = pc;
+        g_fault.fp = fp;
+        // Walked here, from the interrupted register state, because by the time
+        // the host's hook runs the leaf is the hook itself and the fault point
+        // is only reachable through the signal trampoline - which is how a
+        // mismatched frame (a bad indirect call landing mid-function, say) ends
+        // up looking like an ordinary caller/callee pair.
+        g_fault.frameCount = walkFrames(pc, fp, g_fault.frames, kMaxFramesPerThread);
+
+        if (pthread_getname_np(pthread_self(), g_fault.thread, sizeof(g_fault.thread)) != 0) {
+            g_fault.thread[0] = '\0';
+        }
+        g_fault.mainThread = pthread_main_np() != 0;
+
+        g_fault.captured = 1;
+    }
+
+    int const idx = fatalSignalIndex(sig);
+    struct sigaction prev {};
+    if (idx >= 0) {
+        prev = g_faultPrevious[idx];
+    }
+    if ((prev.sa_flags & SA_SIGINFO) != 0 && prev.sa_sigaction != nullptr) {
+        prev.sa_sigaction(sig, info, uap);
+        return;
+    }
+    if (prev.sa_handler != nullptr && prev.sa_handler != SIG_DFL && prev.sa_handler != SIG_IGN) {
+        prev.sa_handler(sig);
+        return;
+    }
+    // Nobody else wanted it: restore the default disposition and let the fault
+    // recur so Apple's own reporting and MetricKit still see the crash.
+    if (idx >= 0) {
+        sigaction(sig, &g_faultPrevious[idx], nullptr);
+    } else {
+        signal(sig, SIG_DFL);
+    }
+    raise(sig);
+}
+
 void fatalSignalHandler(int sig, siginfo_t* info, void* uap)
 {
     // A fault inside the handler must not come back through here.  Reporting
@@ -436,14 +556,7 @@ void InstallSignalHandlers(std::string const& recordPath,
     g_imageSlide = (uint64_t)_dyld_get_image_vmaddr_slide(0);
     g_imageBase = (uint64_t)(uintptr_t)_dyld_get_image_header(0);
 
-    // A stack overflow faults with the stack already exhausted, so the handler
-    // needs a stack of its own or it cannot run at all.
-    static char altStack[SIGSTKSZ * 4];
-    stack_t ss {};
-    ss.ss_sp = altStack;
-    ss.ss_size = sizeof(altStack);
-    ss.ss_flags = 0;
-    sigaltstack(&ss, nullptr);
+    ensureAltStack();
 
     struct sigaction sa {};
     sa.sa_sigaction = fatalSignalHandler;
@@ -460,6 +573,110 @@ void InstallSignalHandlers(std::string const& recordPath,
 bool HandlersInstalled()
 {
     return g_installed;
+}
+
+void InstallFaultInfoCapture()
+{
+    if (g_faultChainInstalled) {
+        return;
+    }
+
+    // Same reason as InstallSignalHandlers: _dyld_* walks dyld's own
+    // structures and is not safe to call once a fault has landed.
+    if (g_imageSlide == 0) {
+        g_imageSlide = (uint64_t)_dyld_get_image_vmaddr_slide(0);
+    }
+    if (g_imageBase == 0) {
+        g_imageBase = (uint64_t)(uintptr_t)_dyld_get_image_header(0);
+    }
+
+    ensureAltStack();
+
+    struct sigaction sa {};
+    sa.sa_sigaction = faultInfoHandler;
+    // SA_ONSTACK matters twice: the capture below has to run with the stack
+    // already blown, and the host handler we chain into inherits the same
+    // alternate stack, so its report survives a stack overflow too.
+    sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
+    sigemptyset(&sa.sa_mask);
+
+    for (int i = 0; i < kFatalSignalCount; ++i) {
+        sigaction(kFatalSignals[i], &sa, &g_faultPrevious[i]);
+    }
+
+    g_faultChainInstalled = true;
+}
+
+bool FaultInfoCaptured()
+{
+    return g_fault.captured != 0;
+}
+
+std::string FaultInfoReport()
+{
+    if (g_fault.captured == 0) {
+        return std::string();
+    }
+
+    uint64_t const imageBase = g_imageBase != 0 ? g_imageBase : (uint64_t)(uintptr_t)_dyld_get_image_header(0);
+    char buf[1024];
+    std::snprintf(buf, sizeof(buf),
+                  "Signal: %s (%d), code %d\n"
+                  "Fault address: 0x%016" PRIx64 "%s\n"
+                  "Faulting PC:   0x%016" PRIx64 "\n"
+                  "Frame pointer: 0x%016" PRIx64 "\n"
+                  "image_base:    0x%016" PRIx64 "\n"
+                  "image_slide:   0x%016" PRIx64 "\n",
+                  signalName(g_fault.sig), g_fault.sig, g_fault.code,
+                  g_fault.address,
+                  // Worth calling out, because the two cases get triaged
+                  // differently: a small address is a null object plus a member
+                  // offset, anything else is a wild or freed pointer - and a
+                  // wild one often decodes to a value from the input data.
+                  (g_fault.address < 0x10000) ? "  (near null - null base + member offset)" : "",
+                  g_fault.pc, g_fault.fp, imageBase, g_fault.imageSlide);
+
+    std::string out(buf);
+    // Only when the PC really is in our own image. "pc >= imageBase" is true of
+    // every system dylib loaded after us, and printing an offset for one of
+    // those invites resolving a libsystem address against our dSYM.
+    Dl_info pcInfo {};
+    bool const pcInMainImage = dladdr((void*)g_fault.pc, &pcInfo) != 0 &&
+                               pcInfo.dli_fbase != nullptr &&
+                               (uint64_t)(uintptr_t)pcInfo.dli_fbase == imageBase;
+    if (pcInMainImage) {
+        std::snprintf(buf, sizeof(buf),
+                      "Faulting PC is xLights + %" PRIu64 " (0x%" PRIx64 ") - resolve with\n"
+                      "  atos -o xLights.app.dSYM/Contents/Resources/DWARF/xLights -arch %s -l 0x%016" PRIx64 " 0x%016" PRIx64 "\n",
+                      g_fault.pc - imageBase, g_fault.pc - imageBase,
+#if defined(__arm64__) || defined(__aarch64__)
+                      "arm64",
+#else
+                      "x86_64",
+#endif
+                      imageBase, g_fault.pc);
+        out += buf;
+    }
+    if (g_fault.thread[0] != '\0' || g_fault.mainThread) {
+        std::snprintf(buf, sizeof(buf), "Faulting thread: %s%s%s\n",
+                      g_fault.thread,
+                      (g_fault.thread[0] != '\0' && g_fault.mainThread) ? " " : "",
+                      g_fault.mainThread ? "(main)" : "");
+        out += buf;
+    }
+    return out;
+}
+
+std::string FaultBacktraceReport()
+{
+    if (g_fault.captured == 0 || g_fault.frameCount <= 0) {
+        return std::string();
+    }
+    std::string out;
+    for (int i = 0; i < g_fault.frameCount; ++i) {
+        appendSymbolicatedFrame(out, i, g_fault.frames[i]);
+    }
+    return out;
 }
 
 std::string BuildAllThreadsReport()
@@ -529,6 +746,25 @@ void InstallSignalHandlers(std::string const&, std::string const&, std::string c
 bool HandlersInstalled()
 {
     return false;
+}
+
+void InstallFaultInfoCapture()
+{
+}
+
+bool FaultInfoCaptured()
+{
+    return false;
+}
+
+std::string FaultInfoReport()
+{
+    return std::string();
+}
+
+std::string FaultBacktraceReport()
+{
+    return std::string();
 }
 
 std::string BuildAllThreadsReport()
