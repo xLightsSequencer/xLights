@@ -11,6 +11,7 @@
         <SupportsFullxLightsControl/>
         <SupportsDefaultBrightness/>
         <SupportsAutoLayout/>
+        <PreferredInputProtocol>DDP</PreferredInputProtocol>
         <PixelProtocols>
             <Protocol>ws2811</Protocol>
         </PixelProtocols>
@@ -61,6 +62,13 @@
 			<MaxPixelPort>0</MaxPixelPort>
 			<MaxSerialPort>1</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
+		</Variant>
+	</Controller>
+	<Controller Name="Scene">
+		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+			<MaxPixelPort>2</MaxPixelPort>
+			<MaxSerialPort>4</MaxSerialPort>
+			<MaxSerialPortChannels>3</MaxSerialPortChannels>
 		</Variant>
 	</Controller>
 </Vendor>
