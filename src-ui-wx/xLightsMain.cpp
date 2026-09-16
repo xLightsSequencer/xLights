@@ -3071,8 +3071,13 @@ bool xLightsFrame::EnableOutputs(bool ignoreCheck)
         DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
     bool ok = ForceEnableOutputs();
-    CheckBoxLightOutput->SetBitmap(GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS_ON"));
-    CheckBoxLightOutput->SetValue(true);
+    if (ok) {
+        CheckBoxLightOutput->SetBitmap(GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS_ON"));
+        CheckBoxLightOutput->SetValue(true);
+    } else {
+        CheckBoxLightOutput->SetBitmap(GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS"));
+        CheckBoxLightOutput->SetValue(false);
+    }
     EnableNetworkChanges();
     return ok;
 }
