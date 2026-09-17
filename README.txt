@@ -25,6 +25,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 macOS/iPad - a GPU buffer that could not be allocated (older Macs
                                  with little video memory, or a very large model) is no longer
                                  published as if it had worked; that layer renders on the CPU instead
+    -bug (derwin12)              Copying and pasting a Moving Head effect onto the same model group
+                                 it came from no longer collapses every fixture's settings down to
+                                 one fixture's
                                  of crashing somewhere unrelated
     -change (dkulp)              Crash reports now include the fault address, signal and the faulting
                                  instruction, and a backtrace taken at the moment of the fault

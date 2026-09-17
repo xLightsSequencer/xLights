@@ -5975,12 +5975,15 @@ namespace {
     // them apart).
     //
     // Deliberately NOT handled: pasting/moving a group-sourced effect (already
-    // multiple slots populated) onto a *different* group. Unlike the
-    // single-model case there is no principled target fixture to re-key each
-    // slot to -- two groups can have completely different physical fixture
-    // numbering with no discoverable correspondence -- so this only takes the
-    // first populated slot and broadcasts it to every member of the target
-    // group, same as the single-fixture-source case above.
+    // multiple slots populated, e.g. copied off this same group or another one)
+    // onto a group. Unlike the single-model case there is no principled target
+    // fixture to re-key each slot to -- two groups can have completely
+    // different physical fixture numbering with no discoverable
+    // correspondence, and broadcasting the first populated slot to every
+    // fixture would destroy per-fixture settings that already differ member to
+    // member (xLightsSequencer/xLights - "MH Copy and Paste on Group" bug) --
+    // so this leaves the effect's settings untouched whenever more than one
+    // slot is already populated.
     void FixupMovingHeadEffectFixtureKeys(Effect* ef, Element* element) {
         if (ef == nullptr || element == nullptr || ef->GetEffectName() != "Moving Head")
             return;
@@ -6012,18 +6015,27 @@ namespace {
             return;
 
         SettingsMap& settings = ef->GetSettings();
-        settings["B_CHOICE_BufferStyle"] = "Per Model Default";
 
         std::string sourceHeadSettings;
+        int populatedSlots = 0;
         for (int i = 1; i <= 8; ++i) {
             std::string val = settings.Get("E_TEXTCTRL_MH" + std::to_string(i) + "_Settings", "");
             if (!val.empty()) {
-                sourceHeadSettings = val;
-                break;
+                ++populatedSlots;
+                if (sourceHeadSettings.empty())
+                    sourceHeadSettings = val;
             }
         }
         if (sourceHeadSettings.empty())
             return;
+        // Already a group-sourced effect (e.g. copied off this same group) with
+        // per-fixture settings in multiple slots -- broadcasting the first slot
+        // to every fixture would destroy the existing per-fixture distinction.
+        // Leave it alone; see the "Deliberately NOT handled" note above.
+        if (populatedSlots > 1)
+            return;
+
+        settings["B_CHOICE_BufferStyle"] = "Per Model Default";
 
         for (int i = 1; i <= 8; ++i) {
             settings["E_TEXTCTRL_MH" + std::to_string(i) + "_Settings"] = "";
