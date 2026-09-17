@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Butterfly, Plasma, Pinwheel, Fan and Video effects could write past the
+                                 end of the render buffer on a variable sub-buffer, corrupting the heap
+                                 and crashing later in an unrelated place
+    -bug (dkulp)                 3D layout preview no longer crashes when hovering over models with
+                                 Ctrl held after a model has been deleted
+    -bug (dkulp)                 Dragging a smart remote onto an unexpected target in the Visualiser
+                                 no longer crashes
+    -bug (dkulp)                 The Test dialog no longer crashes if a controller is removed while the
+                                 controller tree is being built
+    -bug (dkulp)                 A null model in the render tree is now skipped rather than crashing
+                                 the render
     -bug (dkulp)                 macOS/iPad - a GPU buffer that could not be allocated (older Macs
                                  with little video memory, or a very large model) is no longer
                                  published as if it had worked; that layer renders on the CPU instead

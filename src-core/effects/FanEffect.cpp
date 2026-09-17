@@ -325,7 +325,9 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
             return;
         }
 
-        int ispcMax = buffer.BufferWi * buffer.BufferHt;
+        // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+        // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+        int ispcMax = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
         constexpr int bfBlockSize = 4096;
         int blocks = ispcMax / bfBlockSize + 1;
         parallel_for(0, blocks, [&fdata, &buffer, ispcMax](int blk) {

@@ -1721,6 +1721,9 @@ void PixelTestDialog::PopulateControllerTree(OutputManager* outputManager, Model
 
     for (const auto& it : controllerNames) {
         Controller* c = outputManager->GetController(it);
+        if (c == nullptr) {
+            continue;
+        }
         auto caps = c->GetControllerCaps();
         auto cud = new UDController(c, outputManager, modelManager, false);
         if (!cud->IsValid()) {

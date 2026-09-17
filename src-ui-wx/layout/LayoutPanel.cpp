@@ -7129,6 +7129,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     float intersection_distance = 1000000000.0f;
                     if( editing_models ) {
                         for (const auto& it : modelPreview->GetModels()) {
+                            if (it == nullptr) {
+                                continue;
+                            }
                             if (it != selectedBaseObject) {
                                 if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                                     if (intersection_distance < distance) {

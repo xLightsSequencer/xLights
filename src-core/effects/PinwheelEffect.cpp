@@ -238,7 +238,9 @@ void PinwheelEffect::RenderNewArms(RenderBuffer& buffer, PinwheelData &data) {
     rdata.colorIsSpacial = &colorIsSpacial[0];
     rdata.bufferData = (void*)&buffer;
     
-    int max = buffer.BufferHt * buffer.BufferWi;
+    // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+    // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferHt * buffer.BufferWi);
     constexpr int bfBlockSize = 4096;
     int blocks = max / bfBlockSize + 1;
     parallel_for(0, blocks, [&rdata, &buffer, max](int y) {

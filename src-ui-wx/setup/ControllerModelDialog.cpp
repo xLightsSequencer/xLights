@@ -3714,6 +3714,10 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
             auto port = GetControllerPortAtLocation(location);
             auto sr = GetControllerSRAtLocation();
             auto dr = dynamic_cast<SRCMObject*>(GetDragging());
+            if (dr == nullptr) {
+                _lastDropped = nullptr;
+                return;
+            }
             int basePortFrom = dr->GetBasePort();
             int srFrom = dr->GetSmartRemote();
             int basePortTo = -1;

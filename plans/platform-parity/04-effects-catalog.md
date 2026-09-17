@@ -189,6 +189,16 @@ theme):
 
 ## Notes
 
+- **2026-09-17, shared/auto-applied (`src-core/effects/`).** Butterfly, Plasma, Pinwheel,
+  Fan and Video dispatched their ISPC kernels with a write bound of
+  `BufferWi * BufferHt` rather than the buffer's real allocation, so a variable
+  sub-buffer whose `GetPixelCount()` is smaller let the kernel write past
+  `GetPixels()` and corrupt the heap (crash sigs `143e54908d` macOS,
+  `e2fdd36e6d`/`34f007c348` Windows — all faulting in an unrelated later
+  allocation). Each now clamps with `std::min<int>(buffer.GetPixelCount(), …)`,
+  matching the seven effects already fixed this way. Both apps link the same
+  effects, so no iPad-side work; no row status changes.
+
 - **The per-effect matrix is nearly saturated, and that is the real finding.** Because
   `JsonEffectPanel` and `EffectPropertyView` consume the same
   `resources/effectmetadata/*.json`, adding an effect setting on desktop lands on iPad

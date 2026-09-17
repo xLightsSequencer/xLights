@@ -845,7 +845,9 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     rdata.bufferData = (void*)&buffer;
                     rdata.sampleSpacing = sampleSpacing;
 
-                    int max = buffer.BufferHt * buffer.BufferWi;
+                    // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+                    // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+                    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferHt * buffer.BufferWi);
                     constexpr int bfBlockSize = 4096;
                     int blocks = max / bfBlockSize + 1;
 
@@ -889,7 +891,9 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                     rdata.bufferData = (void*)&buffer;
                     rdata.sampleSpacing = sampleSpacing;
 
-                    int max = buffer.BufferHt * buffer.BufferWi;
+                    // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+                    // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+                    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferHt * buffer.BufferWi);
                     constexpr int bfBlockSize = 4096;
                     int blocks = max / bfBlockSize + 1;
 

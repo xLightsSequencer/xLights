@@ -127,7 +127,9 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         data.plasmaStyle = Style;
     }
     
-    int max = buffer.BufferHt * buffer.BufferWi;
+    // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+    // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferHt * buffer.BufferWi);
     constexpr int bfBlockSize = 4096;
     int blocks = max / bfBlockSize + 1;
     parallel_for(0, blocks, [&data, &buffer, max, Style](int y) {

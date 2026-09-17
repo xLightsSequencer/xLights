@@ -3706,6 +3706,7 @@ public:
         
         if (e == nullptr) {
             spdlog::critical("Render tree has a null model ... this is not going to end well.");
+            return;
         }
 
         ModelGroup *mg = dynamic_cast<ModelGroup*>(e);

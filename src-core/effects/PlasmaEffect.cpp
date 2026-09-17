@@ -109,7 +109,9 @@ void PlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         rdata.colors[x].v[2] = c.blue;
         rdata.colors[x].v[3] = c.alpha;
     }
-    int max = buffer.BufferHt * buffer.BufferWi;
+    // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+    // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferHt * buffer.BufferWi);
     constexpr int bfBlockSize = 4096;
     int blocks = max / bfBlockSize + 1;
     parallel_for(0, blocks, [&rdata, &buffer, max, ColorScheme](int y) {
