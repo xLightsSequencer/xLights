@@ -10,7 +10,9 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 
 #include "RenderableEffect.h"
 #include "UtilFunctions.h"
@@ -231,6 +233,28 @@ public:
     static ShaderConfig* ParseShader(const std::string& filename, SequenceElements* sequenceElements);
     static ShaderConfig* ParseShaderFromSource(const std::string& filename, const std::string& source, SequenceElements* sequenceElements);
     static bool IsShaderFile(std::string filename);
+
+    // Maps the Zoom setting (SHADER_ZOOM_MIN..MAX) to the XL_ZOOM divisor the
+    // vertex stage divides the normalised coords by. Shared by every backend so
+    // the GL, Metal and Vulkan paths cannot drift apart.
+    //
+    // The clamp is load-bearing, not defensive: the low end of the setting range
+    // reaches 0 exactly, and dividing by it gave the quad's corners +/-inf, which
+    // interpolate to NaN across the interior. A shader comparing that NaN
+    // (`length(uv) > size`) then takes the false branch, so a NaN frame is not
+    // black but whatever the else branch accumulates -- solid white for the
+    // common dot-field shaders, and driver-dependent besides (Windows rendered
+    // white where Metal rendered black). Clamping to the value Zoom -99 already
+    // produces keeps the setting monotonic and every backend in agreement.
+    static double ZoomFactor(double zoom) {
+        if (zoom < 0) {
+            return std::max(1.0 - std::abs(zoom) / 100.0, 0.01);
+        }
+        if (zoom > 0) {
+            return 1.0 + (zoom * 9.0) / 100.0;
+        }
+        return 1.0;
+    }
 
     // The fixed fullscreen-quad vertex shader (desktop GLSL 330, non-GLES), used
     // by the native Metal translation path to build a matching vertex stage.

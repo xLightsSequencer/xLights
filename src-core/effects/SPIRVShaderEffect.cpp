@@ -298,13 +298,7 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
     double offsetX = GetValueCurveInt("Shader_Offset_X", 0, SettingsMap, oset, SHADER_OFFSET_X_MIN, SHADER_OFFSET_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 200.0 + 0.5;
     double offsetY = GetValueCurveInt("Shader_Offset_Y", 0, SettingsMap, oset, SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 200.0 + 0.5;
     double zoom = GetValueCurveInt("Shader_Zoom", 0, SettingsMap, oset, SHADER_ZOOM_MIN, SHADER_ZOOM_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
-    if (zoom < 0) {
-        zoom = 1.0 - std::abs(zoom) / 100.0;
-    } else if (zoom > 0) {
-        zoom = 1.0 + (zoom * 9.0) / 100.0;
-    } else {
-        zoom = 1.0;
-    }
+    zoom = ZoomFactor(zoom);
 
     // Compute all uniform values as floats; each backend marshals float bits vs
     // int bits from its reflected/declared member types.

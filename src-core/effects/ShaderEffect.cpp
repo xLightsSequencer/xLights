@@ -716,15 +716,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     offsetY /= 200.0;
     offsetY += 0.5;
     double zoom = GetValueCurveInt("Shader_Zoom", 0, SettingsMap, oset, SHADER_ZOOM_MIN, SHADER_ZOOM_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1);
-    if (zoom < 0) {
-        zoom = 1.0 - abs(zoom) / 100.0;
-    }
-    else if (zoom > 0) {
-        zoom = 1.0 + (zoom * 9.0) / 100.0;
-    }
-    else     {
-        zoom = 1.0;
-    }
+    zoom = ZoomFactor(zoom);
 
     unsigned programId = 0u;
 

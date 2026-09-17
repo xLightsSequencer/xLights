@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Shader effect no longer renders a solid frame at the lowest Zoom
+                                 setting; the zoom divisor reached zero, which left the shader's
+                                 coordinates undefined and differed between platforms
     -bug (dkulp)                 Butterfly, Plasma, Pinwheel, Fan and Video effects could write past the
                                  end of the render buffer on a variable sub-buffer, corrupting the heap
                                  and crashing later in an unrelated place
