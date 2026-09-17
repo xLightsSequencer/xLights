@@ -1090,7 +1090,7 @@ bool WindowsHardwareVideoReader::InitVideoProcessor(DXGI_FORMAT inputFormat)
                              ? D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_0_255
                              : D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_16_235;
     _videoContext->VideoProcessorSetStreamColorSpace(_videoProcessor, 0, &inCS);
-    spdlog::info("WHVD VP: source colour range={} matrix={} (declared: range {} matrix {})",
+    spdlog::debug("WHVD VP: source colour range={} matrix={} (declared: range {} matrix {})",
                  (int)inCS.Nominal_Range, (int)inCS.YCbCr_Matrix,
                  haveRange ? (int)srcRange : -1, haveMatrix ? (int)srcMatrix : -1);
 
@@ -1159,7 +1159,7 @@ bool WindowsHardwareVideoReader::InitVideoProcessor(DXGI_FORMAT inputFormat)
         return false;
     }
 
-    spdlog::info("WHVD VP: ready {}x{} -> {}x{}, matrix BT.{}",
+    spdlog::debug("WHVD VP: ready {}x{} -> {}x{}, matrix BT.{}",
                   _nativeWidth, _nativeHeight, _width, _height, inCS.YCbCr_Matrix ? 709 : 601);
     return true;
 }
