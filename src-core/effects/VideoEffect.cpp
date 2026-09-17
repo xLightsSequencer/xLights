@@ -638,7 +638,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         _videoreader = nullptr;
 
         if (buffer.BufferHt == 1) {
-            spdlog::warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
+            spdlog::warn("VideoEffect: Cannot render video onto a 1 pixel high model '{}'. Have you set it to single line?", buffer.cur_model);
         } else if (auto* sm = buffer.GetSequenceMedia(); sm != nullptr) {
             auto vidEntry = sm->GetVideo(filename);
             if (!vidEntry) {
