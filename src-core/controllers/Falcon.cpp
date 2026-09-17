@@ -926,6 +926,17 @@ int Falcon::V4_GetStringFirstIndex(const std::vector<FALCON_V4_STRING>& falconSt
 }
 
 int Falcon::V4_EncodeColourOrder(const std::string co) const {
+    // 4 channel/white colour orders extend the 3 channel codes below: a leading
+    // W (WRGB, WRBG, WGRB, WGBR, WBRG, WBGR) is the base 3 channel code + 6; a
+    // trailing W (RGBW, RBGW, GRBW, GBRW, BRGW, BGRW) reuses the base 3 channel
+    // code as-is - the F16v4 firmware appends W automatically for RGBW pixel
+    // types (shown in its UI as e.g. "RGB[W]"). Confirmed against a controller
+    // capture - see #7085.
+    if (co.size() == 4 && (co[0] == 'W' || co[3] == 'W')) {
+        bool whiteFirst = co[0] == 'W';
+        int baseCode = V4_EncodeColourOrder(whiteFirst ? co.substr(1) : co.substr(0, 3));
+        return whiteFirst ? baseCode + 6 : baseCode;
+    }
     if (co == "RGB")
         return 0;
     if (co == "RBG")
@@ -938,6 +949,7 @@ int Falcon::V4_EncodeColourOrder(const std::string co) const {
         return 4;
     if (co == "BGR")
         return 5;
+    spdlog::info("Falcon V4_EncodeColourOrder: unrecognised colour order '{}' - falling back to RGB (0). See #7085.", co);
     return 0;
 }
 
@@ -1145,7 +1157,9 @@ bool Falcon::V4_PopulateStrings(std::vector<FALCON_V4_STRING>& uploadStrings, co
                         str.zigcount = 0;
                         str.endNulls = it->_endNullPixelsSet ? it->_endNullPixels : 0;
                         str.startNulls = it->_startNullPixelsSet ? it->_startNullPixels : 0;
+                        spdlog::debug("Falcon V4_PopulateStrings: Port {} String {} SmartRemote {} colourOrderSet {} colourOrder '{}'", p + 1, str.string, sr, it->_colourOrderSet, it->_colourOrder);
                         str.colourOrder = it->_colourOrderSet ? V4_EncodeColourOrder(it->_colourOrder) : colourOrder;
+                        spdlog::debug("Falcon V4_PopulateStrings: Port {} String {} SmartRemote {} encoded colourOrder {}", p + 1, str.string, sr, str.colourOrder);
                         str.direction = it->_reverseSet ? (it->_reverse == "Forward" ? 0 : 1) : direction;
                         str.group = it->_groupCountSet ? it->_groupCount : group;
                         str.zigcount = it->_zigZagSet ? it->_zigZag : 0; // dont carry between props
@@ -2115,6 +2129,7 @@ int Falcon::EncodeColourOrder(const std::string& colourOrder) const {
         return 4;
     if (colourOrder == "BGR")
         return 5;
+    spdlog::info("Falcon EncodeColourOrder: unrecognised colour order '{}' (likely a 4 channel/white order) - falling back to RGB (0). See #7085.", colourOrder);
     return 0;
 }
 

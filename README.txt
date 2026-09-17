@@ -38,6 +38,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)              Media Manager panel has a new "Check Media..." button to check the
                                  sequence's audio/video files for formats that won't render on
                                  upcoming xLights versions on demand
+    -bug (derwin12)              Falcon F16v4/v5 upload always sent RGB(W) for a 4 channel colour order
+                                 (e.g. WRGB), ignoring the colour order set on the model's controller
+                                 connection (#7085)
     -enh (derwin12)              Moving Head Advanced - Position Zones can now be exported to, and
                                  imported from, other moving head props (#6926)
     -enh (derwin12)              Selecting an effect in the Select Effects panel now scrolls the
