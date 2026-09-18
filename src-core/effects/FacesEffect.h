@@ -15,6 +15,8 @@
 #include <map>
 #include <string>
 class SequenceElements;
+class EffectLayer;
+class FacesRenderCache;
 
 class FacesEffect : public RenderableEffect
 {
@@ -85,5 +87,6 @@ private:
     bool ShimmerState(RenderBuffer& buffer) const;
     int GetMaxEyeDelay( std::string& eyeBlinkFreq ) const;
     int GetEyeBlinkDuration(std::string& eyeBlinkDuration) const;
-    bool IsAutoBlinkClosed(const RenderBuffer& buffer, std::string& eyeBlinkFreq, std::string& eyeBlinkDuration, int restStartMs, int restEndMs) const;
+    bool IsAutoBlinkClosed(const RenderBuffer& buffer, std::string& eyeBlinkFreq, std::string& eyeBlinkDuration) const;
+    bool IsAutoBlinkClosedInRest(const RenderBuffer& buffer, FacesRenderCache* cache, EffectLayer* layer, std::string& eyeBlinkFreq, std::string& eyeBlinkDuration) const;
 };

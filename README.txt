@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Faces effect with Eyes set to Auto rarely blinked on a tightly sung
+                                 timing track - the blink is again scheduled inside the phoneme rests
     -bug (dkulp)                 Shader effect no longer renders a solid frame at the lowest Zoom
                                  setting; the zoom divisor reached zero, which left the shader's
                                  coordinates undefined and differed between platforms

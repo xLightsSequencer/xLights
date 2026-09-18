@@ -8,8 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <filesystem>
 #include <mutex>
+#include <vector>
 #include <spdlog/fmt/fmt.h>
 #include <list>
 
@@ -44,6 +46,12 @@ class FacesRenderCache : public EffectRenderCache {
 public:
     std::map<std::string, int> nodeNameCache;
 
+    // Rest-anchored auto-blink schedule for the current effect - a deterministic
+    // function of the effect span, the blink settings and the (static) phoneme
+    // timing track, so every frame/clone rebuilds an identical copy.
+    std::string blinkKey;
+    std::vector<std::pair<int, int>> blinkWindows;
+
     FacesRenderCache() {
     }
     virtual ~FacesRenderCache() {
@@ -54,6 +62,8 @@ public:
     }
     void Clear() {
         nodeNameCache.clear();
+        blinkKey.clear();
+        blinkWindows.clear();
     }
     RenderBuffer* GetImage(std::string key) {
         if (_imageCache.find(key) != _imageCache.end()) {
@@ -288,18 +298,15 @@ int FacesEffect::GetEyeBlinkDuration(std::string& eyeBlinkDurationString) const 
     return EyeBlinkDuration;
 }
 
-// Auto-blink, computed purely.  Blink k's start time is derived from
-// hashRandomStable(k) - stable for this (model, layer, effect) on every frame -
-// so any frame reconstructs the whole schedule in isolation and frames can
-// render in any order or concurrently.  (The old implementation advanced
-// nextBlinkTime in the render cache with randInt() draws, which made frame N
-// depend on every prior frame and forced the entire effect Stateful.)  Blink
-// windows snap to the frame grid so a blink always covers at least one rendered
-// frame at any frame rate.  When the enclosing rest window is known
-// (restStartMs >= 0), a blink landing within 150ms of its start or overrunning
-// its end is suppressed, preserving the old "don't blink right at the start or
-// end of a rest" behavior.
-bool FacesEffect::IsAutoBlinkClosed(const RenderBuffer& buffer, std::string& eyeBlinkFreq, std::string& eyeBlinkDuration, int restStartMs, int restEndMs) const {
+// Auto-blink with no phoneme timing track to anchor to: blink k's start time is
+// derived from hashRandomStable(k) - stable for this (model, layer, effect) on
+// every frame - so any frame reconstructs the whole schedule in isolation and
+// frames can render in any order or concurrently.  (The old implementation
+// advanced nextBlinkTime in the render cache with randInt() draws, which made
+// frame N depend on every prior frame and forced the entire effect Stateful.)
+// Blink windows snap to the frame grid so a blink always covers at least one
+// rendered frame at any frame rate.
+bool FacesEffect::IsAutoBlinkClosed(const RenderBuffer& buffer, std::string& eyeBlinkFreq, std::string& eyeBlinkDuration) const {
     const int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
     const int blinkDuration = GetEyeBlinkDuration(eyeBlinkDuration) + 1;
     const int frameMs = buffer.frameTimeInMs;
@@ -313,20 +320,99 @@ bool FacesEffect::IsAutoBlinkClosed(const RenderBuffer& buffer, std::string& eye
         blinkStart += minInterval + buffer.hashRandomStable(k++) % 1001;
         blinkFrame = ((blinkStart + frameMs - 1) / frameMs) * frameMs;
     }
-    if (nowMs < blinkFrame) {
+    return nowMs >= blinkFrame;
+}
+
+// Auto-blink against a phoneme timing track.  The blink only ever shows while
+// the face is at rest, so the schedule has to be anchored to the rest windows
+// rather than to wall clock: on a tightly sung track the rests are a few hundred
+// ms each, and a blink placed on a free-running ~5s timer almost never lands
+// inside one (the reason auto blinks went missing after the schedule was made
+// pure).  The rest list is static, so replaying the old "wait for a rest, then
+// place the blink inside it" state machine over it is still a pure function of
+// the effect - every frame and every frame-parallel clone builds the same
+// windows - it just costs one pass over the track per effect instead of per
+// frame.  Must be called with the timing layer locked.
+bool FacesEffect::IsAutoBlinkClosedInRest(const RenderBuffer& buffer, FacesRenderCache* cache, EffectLayer* layer, std::string& eyeBlinkFreq, std::string& eyeBlinkDuration) const {
+    const int frameMs = buffer.frameTimeInMs;
+    const int effStartMs = buffer.curEffStartPer * frameMs;
+    const int effEndMs = (buffer.curEffEndPer + 1) * frameMs;
+    const int nowMs = buffer.curPeriod * frameMs;
+
+    std::string key = fmt::format("{}-{}-{}-{}-{}-{}", effStartMs, effEndMs, frameMs, layer->GetEffectCount(), eyeBlinkFreq, eyeBlinkDuration);
+    if (cache->blinkKey != key) {
+        const int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
+        const int minInterval = std::max(maxEyeDelay - 1000, 1000);
+        const int blinkDuration = GetEyeBlinkDuration(eyeBlinkDuration) + 1;
+
+        // Rest windows = the parts of the effect not covered by a spoken phoneme.
+        std::vector<std::pair<int, int>> rests;
+        int cur = effStartMs;
+        for (int x = 0; x < layer->GetEffectCount(); ++x) {
+            Effect* ef = layer->GetEffect(x);
+            if (ef->GetEndTimeMS() <= effStartMs) {
+                continue;
+            }
+            if (ef->GetStartTimeMS() >= effEndMs) {
+                break;
+            }
+            std::string nm = ef->GetEffectName();
+            if (nm.empty() || nm == "rest") {
+                continue;
+            }
+            int s = std::min(ef->GetStartTimeMS(), effEndMs);
+            if (s > cur) {
+                rests.emplace_back(cur, s);
+            }
+            cur = std::max(cur, ef->GetEndTimeMS());
+        }
+        if (cur < effEndMs) {
+            rests.emplace_back(cur, effEndMs);
+        }
+
+        cache->blinkWindows.clear();
+        uint32_t k = 0;
+        int nextBlinkTime = effStartMs;
+        for (const auto& r : rests) {
+            if (r.second <= nextBlinkTime) {
+                continue;
+            }
+            int t = std::max(r.first, nextBlinkTime);
+            if (r.first + 150 >= t) {
+                // Don't blink right at the start of a rest, and not right at the
+                // end either - if the jittered time would overrun, fall back to
+                // the middle of the rest.
+                int tmp = t + 150 + (int)(buffer.hashRandomStable(k++) % 400);
+                t = (tmp + 130 > r.second) ? (r.first + r.second) / 2 : tmp;
+                t = std::max(t, nextBlinkTime);
+                nextBlinkTime = t;
+                if (t >= r.second) {
+                    // rest ends before the delayed time - carry it to the next rest
+                    continue;
+                }
+            }
+            int startFrame = ((t + frameMs - 1) / frameMs) * frameMs;
+            cache->blinkWindows.emplace_back(startFrame, std::max(t + blinkDuration, startFrame + 1));
+            nextBlinkTime = t + minInterval + (int)(buffer.hashRandomStable(k++) % 1001);
+        }
+        cache->blinkKey = key;
+    }
+
+    auto it = std::upper_bound(cache->blinkWindows.begin(), cache->blinkWindows.end(), nowMs,
+                               [](int t, const std::pair<int, int>& w) { return t < w.first; });
+    if (it == cache->blinkWindows.begin()) {
         return false;
     }
-    if (restStartMs >= 0 && (blinkFrame < restStartMs + 150 || blinkFrame + blinkDuration + 130 > restEndMs)) {
-        return false;
-    }
-    return true;
+    --it;
+    return nowMs < it->second;
 }
 
 RenderableEffect::FrameParallelism FacesEffect::GetFrameParallelism(const SettingsMap& settings) const {
     // The PGO path reads a process-wide model cache flushed at curPeriod 0 -
     // genuinely frame-order dependent, so it stays serial.  Every other mode
     // derives frame N in isolation: auto-blink comes from the stable per-effect
-    // hash schedule (IsAutoBlinkClosed), phoneme/alpha are per-frame timing
+    // hash schedule (IsAutoBlinkClosed) or its rest-anchored replay over the
+    // static timing track (IsAutoBlinkClosedInRest), phoneme/alpha are per-frame timing
     // track lookups under the track locks, and FacesRenderCache holds only
     // deterministic memoization.
     if (settings.Get("CHOICE_Faces_FaceDefinition", sFaceDefinitionDefault) == XLIGHTS_PGOFACES_FILE) {
@@ -731,7 +817,7 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
     int end_degrees = 360;
     if (eye == "Auto") {
         if (Phoneme == 9 || Phoneme == 10) {
-            eye = IsAutoBlinkClosed(buffer, eyeBlinkFreq, eyeBlinkDuration, -1, -1) ? "Closed" : "Open";
+            eye = IsAutoBlinkClosed(buffer, eyeBlinkFreq, eyeBlinkDuration) ? "Closed" : "Open";
         } else {
             eye = "Open";
         }
@@ -1083,15 +1169,12 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         if (track == nullptr || track->GetEffectLayerCount() < 3) {
             phoneme = "rest";
             if ("Auto" == eyes) {
-                eyes = IsAutoBlinkClosed(buffer, eyeBlinkFreq, eyeBlinkDuration, -1, -1) ? "Closed" : "Open";
+                eyes = IsAutoBlinkClosed(buffer, eyeBlinkFreq, eyeBlinkDuration) ? "Closed" : "Open";
             }
         } else {
             // Limit the lock for only as long as we access the timing track - this minimises contention ... especially when using faces effect on groups
             std::recursive_timed_mutex* lock = &track->GetChangeLock();
             std::unique_lock<std::recursive_timed_mutex> locker(*lock);
-
-            int startms = -1;
-            int endms = -1;
 
             EffectLayer* layer = track->GetEffectLayer(2);
             if (layer == nullptr) {
@@ -1104,36 +1187,19 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 if (ef == nullptr) {
                     phoneme = "rest";
                 } else {
-                    startms = ef->GetStartTimeMS();
-                    endms = ef->GetEndTimeMS();
                     phoneme = ef->GetEffectName();
                     if (phoneme == "") {
                         phoneme = "rest";
                     }
                 }
                 if ("Auto" == eyes && phoneme == "rest" && type != 2) {
-                    if (startms == -1) {
-                        // need to figure out the time
-                        for (int x = 0; x < layer->GetEffectCount() && startms == -1; x++) {
-                            ef = layer->GetEffect(x);
-                            if (ef->GetStartTimeMS() > buffer.curPeriod * buffer.frameTimeInMs) {
-                                endms = ef->GetStartTimeMS();
-                                if (x > 0) {
-                                    startms = layer->GetEffect(x - 1)->GetEndTimeMS();
-                                } else {
-                                    startms = 0;
-                                }
-                            }
-                        }
-                    }
-
-                    eyes = IsAutoBlinkClosed(buffer, eyeBlinkFreq, eyeBlinkDuration, startms, endms) ? "Closed" : "Open";
+                    eyes = IsAutoBlinkClosedInRest(buffer, cache, layer, eyeBlinkFreq, eyeBlinkDuration) ? "Closed" : "Open";
                 }
             }
         }
     } else if (phoneme == "rest" || phoneme == "(off)") {
             if ("Auto" == eyes) {
-                eyes = IsAutoBlinkClosed(buffer, eyeBlinkFreq, eyeBlinkDuration, -1, -1) ? "Closed" : "Open";
+                eyes = IsAutoBlinkClosed(buffer, eyeBlinkFreq, eyeBlinkDuration) ? "Closed" : "Open";
             }
     }
 
