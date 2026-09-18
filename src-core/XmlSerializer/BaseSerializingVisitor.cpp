@@ -504,7 +504,7 @@ void BaseSerializingVisitor::WriteDimmingCurve(const Model* m) {
     for (const auto& d1 : dcInfo) {
         AttrCollector attrs;
         for (const auto& d2 : d1.second) {
-            attrs.Add(d2.first, d2.second);
+            attrs.Add(d2.first, d2.first == "filename" ? FilePathToWrite(d2.second) : d2.second);
         }
         WriteOpenTag(d1.first, attrs, true);
     }
@@ -742,7 +742,7 @@ void BaseSerializingVisitor::Visit(const CustomModel& model) {
         attrs.Add(XmlNodeKeys::CustomModelCmpAttribute, custom_data);
     }
     if (!model.GetCustomBackground().empty()) {
-        attrs.Add(XmlNodeKeys::BkgImageAttribute,     model.GetCustomBackground());
+        attrs.Add(XmlNodeKeys::BkgImageAttribute,     FilePathToWrite(model.GetCustomBackground()));
         attrs.Add(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
         attrs.Add(XmlNodeKeys::BkgScaleAttribute,      std::to_string(model.GetCustomBkgScale()));
         attrs.Add(XmlNodeKeys::BkgBrightnessAttribute, std::to_string(model.GetCustomBkgBrightness()));

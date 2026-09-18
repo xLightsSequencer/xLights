@@ -410,7 +410,7 @@ void XmlDeserializingModelFactory::DeserializeDimmingCurve(Model* model, pugi::x
     while (child) {
         std::string key = child.name();
         if (!child.attribute("filename").empty()) {
-            dimmingInfo[key]["filename"] = child.attribute("filename").as_string();
+            dimmingInfo[key]["filename"] = FileUtils::FixFile(std::string(""), std::string(child.attribute("filename").as_string()));
         } else {
             dimmingInfo[key]["brightness"] = child.attribute("brightness").as_string("100");
             dimmingInfo[key]["gamma"] = child.attribute("gamma").as_string("1.0");
@@ -608,7 +608,7 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(pugi::xml_node node, Mode
     model->SetCustomDepth(node.attribute(XmlNodeKeys::CMDepthAttribute).as_int(1));
     int num_strings = node.attribute(XmlNodeKeys::CustomStringsAttribute).as_int(1);
     model->SetNumStrings(num_strings);
-    model->SetCustomBackground(node.attribute(XmlNodeKeys::BkgImageAttribute).as_string(""));
+    model->SetCustomBackground(FileUtils::FixFile(std::string(""), std::string(node.attribute(XmlNodeKeys::BkgImageAttribute).as_string(""))));
     model->SetCustomLightness(node.attribute(XmlNodeKeys::BkgLightnessAttribute).as_int(0));
     model->SetCustomBkgScale(node.attribute(XmlNodeKeys::BkgScaleAttribute).as_int(100));
     model->SetCustomBkgBrightness(node.attribute(XmlNodeKeys::BkgBrightnessAttribute).as_int(20));

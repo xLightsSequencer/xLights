@@ -1358,7 +1358,7 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
             if (target.attribute(k)) target.remove_attribute(k);
             target.append_attribute(k) = v;
         };
-        patch("backgroundImage", bgPath);
+        patch("backgroundImage", FileUtils::MakeRelativeFileOrOriginal(bgPath));
         patchInt("backgroundBrightness", bri);
         patchInt("backgroundAlpha", alpha);
         patchInt("scaleImage", scale ? 1 : 0);

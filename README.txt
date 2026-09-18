@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (bcole808)              Background image on a named preview was lost when the show folder was
+                                 moved or opened on another machine
+    -bug (dkulp)                 Custom model background images and model dimming curve files were also
+                                 lost when the show folder moved; they are now located the same way as
+                                 other show assets and saved relative to the show folder
     -bug (dkulp)                 Faces effect with Eyes set to Auto rarely blinked on a tightly sung
                                  timing track - the blink is again scheduled inside the phoneme rests
     -bug (dkulp)                 Shader effect no longer renders a solid frame at the lowest Zoom

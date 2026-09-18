@@ -21,6 +21,7 @@
 #include "LayoutGroupData.h"
 #include "models/ModelSetManager.h"
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
 
 struct XmlSerializer {
     XmlSerializer() {}
@@ -70,7 +71,7 @@ struct XmlSerializer {
         for (const auto& lg : layoutGroups) {
             BaseSerializingVisitor::AttrCollector attr;
             attr.Add("name", lg.name);
-            attr.Add(XmlNodeKeys::BackgroundImageAttribute, lg.backgroundImage);
+            attr.Add(XmlNodeKeys::BackgroundImageAttribute, FileUtils::MakeRelativeFileOrOriginal(lg.backgroundImage));
             attr.Add(XmlNodeKeys::BackgroundBrightnessAttribute, std::to_string(lg.backgroundBrightness));
             attr.Add(XmlNodeKeys::BackgroundAlphaAttribute, std::to_string(lg.backgroundAlpha));
             attr.Add(XmlNodeKeys::ScaleImageAttribute, std::to_string(lg.backgroundScaled));
