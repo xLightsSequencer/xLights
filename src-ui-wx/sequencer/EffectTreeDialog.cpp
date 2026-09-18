@@ -22,6 +22,7 @@
 #include "shared/utils/wxUtilities.h"
 #include "render/SequenceMedia.h"
 #include <fstream>
+#include <set>
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
@@ -450,7 +451,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     }
 
     EffectPresetGroup* parentGroup = parentData->AsGroup();
-    EffectPreset* newPreset = xLightParent->CreateEffectPreset(parentGroup, name.ToStdString());
+    EffectPreset* newPreset = xLightParent->CreateEffectPreset(parentGroup, name.ToStdString(), !_layerMode);
     name += " [" + ParseLayers(name, newPreset->GetSettings()) + ", " + ParseDuration(name, newPreset->GetSettings()) + "ms]";
     wxTreeItemId newitemID = TreeCtrl1->AppendItem(parentID, name, -1,-1, new MyTreeItemData(newPreset));
     TreeCtrl1->Expand(parentID);
@@ -462,6 +463,58 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     else
         EffectsFileDirty();
     ValidateWindow();
+}
+
+// Presets saved before the LAYER: token existed (pre-2021, CopyFormat1
+// PASTE_BY_CELL era) carry no marker of their original Relative/Using
+// Layers intent at all. There's no way to recover that intent exactly,
+// but EffectsGrid::Paste's old-format "Using Layers" branch already
+// treats every distinct row value in the blob as a separate layer of
+// the drop target -- i.e. a multi-row legacy capture (e.g. a combo
+// effect stacking two effects on one element) is only meaningful when
+// applied that way. Single-row legacy captures are unaffected either
+// way, since there's nothing to stack. Used as the last-resort guess in
+// IsPresetRelative.
+static int CountDistinctLegacyEffectRows(const std::string& settings)
+{
+    std::set<int> rows;
+    wxArrayString lines = wxSplit(settings, '\n');
+    for (auto& line : lines)
+    {
+        if (line.IsEmpty()) continue;
+        wxArrayString f = wxSplit(line, '\t');
+        if (f.size() < 6) continue;
+        if (f[0] == "CopyFormat1" || f[0] == "CopyFormatAC" || f[0] == "None") continue;
+        if (f.size() > 7 && f[7] == "TIMING_EFFECT") continue;
+        rows.insert(wxAtoi(f[5]));
+    }
+    return (int)rows.size();
+}
+
+// Whether the preset's blob makes an explicit, authoritative claim about
+// its mode: RELATIVE means Relative, LAYER: (with no RELATIVE) means Using
+// Layers. A pre-LAYER: legacy preset makes no claim either way -- for a
+// single-row/single-effect capture the mode is moot anyway (nothing to
+// spread or stack), so there's nothing true to report. Used for the "R"
+// suffix ParseLayers appends to the displayed layer count, which should
+// only ever assert a fact the blob actually recorded.
+static bool HasExplicitRelativeMarker(const wxString& settings)
+{
+    return settings.Contains("\tRELATIVE");
+}
+
+// Whether a preset would apply as Relative if applied right now -- same
+// three cases as above, but a legacy preset with no explicit marker still
+// needs *some* default for the radio buttons, so this falls back to the
+// row-count guess (see CountDistinctLegacyEffectRows) instead of leaving it
+// unresolved. Drives the tree-selection auto-detect
+// (OnTreeCtrl1SelectionChanged); NOT for display -- see
+// HasExplicitRelativeMarker for that.
+static bool IsPresetRelative(const wxString& settings)
+{
+    if (HasExplicitRelativeMarker(settings)) return true;
+    if (settings.Contains("\tLAYER:")) return false;
+    return CountDistinctLegacyEffectRows(settings.ToStdString()) <= 1;
 }
 
 wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
@@ -564,6 +617,8 @@ wxString EffectTreeDialog::ParseLayers(wxString name, wxString settings)
     }
     else
     {
+        if (HasExplicitRelativeMarker(settings))
+            countStr += "R";
         return countStr;
     }
 }
@@ -662,7 +717,7 @@ void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
     MyTreeItemData *selData = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
     EffectPreset* preset = selData->AsPreset();
 
-    xLightParent->UpdateEffectPreset(preset);
+    xLightParent->UpdateEffectPreset(preset, !_layerMode);
 
     TreeCtrl1->SetItemText(itemID, StripLayers(name) + " [" + ParseLayers(StripLayers(name), preset->GetSettings()) + ", " + ParseDuration(StripLayers(name), preset->GetSettings()) + "ms]");
 
@@ -1092,7 +1147,7 @@ void EffectTreeDialog::OnTreeCtrl1SelectionChanged(wxTreeEvent& event)
     {
         MyTreeItemData* item = (MyTreeItemData*)TreeCtrl1->GetItemData(sel);
         EffectPreset* preset = item ? item->AsPreset() : nullptr;
-        _layerMode = preset != nullptr && (preset->GetSettings().find("\tLAYER:") != std::string::npos);
+        _layerMode = preset != nullptr && !IsPresetRelative(preset->GetSettings());
         UpdateModeButtons();
     }
 

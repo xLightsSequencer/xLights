@@ -4381,20 +4381,20 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent& event)
     }
 }
 
-EffectPreset* xLightsFrame::CreateEffectPreset(EffectPresetGroup* parent, const std::string& name)
+EffectPreset* xLightsFrame::CreateEffectPreset(EffectPresetGroup* parent, const std::string& name, bool relativeMode)
 {
     wxString copy_data;
-    mainSequencer->GetPresetData(copy_data);
+    mainSequencer->GetPresetData(copy_data, relativeMode);
     return _effectPresetManager.AddPreset(parent, name,
                                           copy_data.ToStdString(),
                                           XLIGHTS_RGBEFFECTS_VERSION,
                                           xlights_version_string);
 }
 
-void xLightsFrame::UpdateEffectPreset(EffectPreset* preset)
+void xLightsFrame::UpdateEffectPreset(EffectPreset* preset, bool relativeMode)
 {
     wxString copy_data;
-    mainSequencer->GetSelectedEffectsData(copy_data, false, true);
+    mainSequencer->GetSelectedEffectsData(copy_data, false, true, relativeMode);
     _effectPresetManager.UpdatePresetSettings(preset,
                                               copy_data.ToStdString(),
                                               xlights_version_string);
