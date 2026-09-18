@@ -777,11 +777,13 @@ void ViewObjectPanel::PreviewObjectAlignBacks()
                                                                OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ViewObjectPanel::PreviewObjectAlignBacks", nullptr, nullptr, layoutPanel->GetSelectedModelName());
 }
 
-void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
+void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight, bool sameDepth)
 {
     if (mSelectedObject == nullptr) return;
 
     layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+
+    float const depth = mSelectedObject->GetRestorableMDepth();
 
     if (sameWidth) {
         int width = mSelectedObject->GetWidth();
@@ -791,7 +793,7 @@ void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
                 view_object->SetWidth(width);
                 bool z_scale = view_object->GetBaseObjectScreenLocation().GetSupportsZScaling();
                 if (z_scale) {
-                    view_object->GetBaseObjectScreenLocation().SetMDepth(width);
+                    view_object->GetBaseObjectScreenLocation().SetMDepth(depth);
                 }
             }
         }
@@ -803,6 +805,15 @@ void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
             ViewObject *view_object = it->second;
             if (view_object->GroupSelected()) {
                 view_object->SetHeight(height);
+            }
+        }
+    }
+
+    if (sameDepth) {
+        for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+            ViewObject *view_object = it->second;
+            if (view_object->GroupSelected() && view_object->GetBaseObjectScreenLocation().GetSupportsZScaling()) {
+                view_object->GetBaseObjectScreenLocation().SetMDepth(depth);
             }
         }
     }

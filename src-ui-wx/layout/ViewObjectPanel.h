@@ -48,7 +48,7 @@ public:
     void PreviewObjectAlignLeft();
     void PreviewObjectAlignFronts();
     void PreviewObjectAlignBacks();
-    void PreviewObjectResize(bool sameWidth, bool sameHeight);
+    void PreviewObjectResize(bool sameWidth, bool sameHeight, bool sameDepth);
     void PreviewObjectAlignRight();
     void PreviewObjectAlignHCenter();
     void PreviewObjectAlignVCenter();

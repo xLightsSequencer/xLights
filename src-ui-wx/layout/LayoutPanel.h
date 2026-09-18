@@ -283,6 +283,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_RESIZE_SAMEWIDTH;
         static const long ID_PREVIEW_RESIZE_SAMEHEIGHT;
         static const long ID_PREVIEW_RESIZE_SAMESIZE;
+        static const long ID_PREVIEW_RESIZE_SAMEDEPTH;
         static const long ID_PREVIEW_DELETE_ACTIVE;
         static const long ID_PREVIEW_RENAME_ACTIVE;
         static const long ID_PREVIEW_MODEL_ADDPOINT;
@@ -559,7 +560,7 @@ class LayoutPanel: public wxPanel
         void PreviewModelHDistribute();
         void PreviewModelVDistribute();
         void PreviewModelDDistribute();
-        void PreviewModelResize(bool sameWidth, bool sameHeight);
+        void PreviewModelResize(bool sameWidth, bool sameHeight, bool sameDepth);
         void PreviewModelFlipV();
         void PreviewModelFlipH();
         Model *CreateNewModel(const std::string &type) const;
