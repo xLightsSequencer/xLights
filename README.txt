@@ -79,6 +79,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Changing the effect type from the Effect panel drop-down no longer
                                  resets the Layer Settings Render Style choices to the modelless
                                  default when the selected effect is on a model group
+    -bug (derwin12)              FPP upload no longer queues a 3D Image Object's or Mesh's texture
+                                 file for upload when that file is missing locally; the resulting
+                                 failed-upload dialog could make the upload look stuck (#7098)
     -bug (dkulp)                 Closing a sequence could crash: the waveform panel kept pointing at the
                                  sequence audio after the sequence was deleted
     -bug (dkulp)                 Fixed a crash when dragging an effect edge while the row the drag started
