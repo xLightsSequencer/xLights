@@ -150,6 +150,12 @@ std::string BaseController::PutURL(const std::string& url, const std::string& re
     std::string res = CurlManager::INSTANCE.doPost(furl, contentType, request, rc);
     if (rc == 0 && !needsHTTP_0_9()) {
         spdlog::error("Failure to post to {}: {}.", (const char*)furl.c_str(), res.c_str());
+        try {
+            spdlog::error("    Content-Type '{}'.", contentType.c_str());
+            spdlog::error("    With data '{}'.", (const char*)request.c_str());
+        } catch (...) {
+            spdlog::error("    Failed to log request data - invalid encoding.");
+        }
         return "";
     }
     return res;
