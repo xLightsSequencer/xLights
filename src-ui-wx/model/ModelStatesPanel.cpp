@@ -1434,13 +1434,13 @@ void ModelStatesPanel::ImportStatesFromModel()
 
     const wxArrayString choices = getModelList(&xlights->AllModels);
 
-    wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
+    const wxString selectedModel = ChooseModelWithFilter(GetParent(), choices);
 
-    if (dlg.ShowModal() == wxID_OK) {
-        Model* m = xlights->GetModel(dlg.GetStringSelection());
+    if (!selectedModel.IsEmpty()) {
+        Model* m = xlights->GetModel(selectedModel);
         if (m == nullptr) return;
         if (m->GetStateInfo().size() == 0) {
-            wxMessageBox(dlg.GetStringSelection() + " contains no states, skipping");
+            wxMessageBox(selectedModel + " contains no states, skipping");
             return;
         }
 
