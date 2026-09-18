@@ -15,6 +15,7 @@
 #include "models/Model.h"
 #include "layout/PreviewPane.h"
 #include "layout/ModelPreview.h"
+#include "utils/FileUtils.h"
 
 #include <log.h>
 
@@ -89,7 +90,7 @@ void LayoutGroup::SetPreviewSize(wxSize size_)
 void LayoutGroup::SetFromXml(pugi::xml_node LayoutGroupNode)
 {
     mName = LayoutGroupNode.attribute("name").as_string("");
-    mBackgroundImage = LayoutGroupNode.attribute("backgroundImage").as_string("");
+    mBackgroundImage = FileUtils::FixFile(xlights->GetShowDirectory(), LayoutGroupNode.attribute("backgroundImage").as_string(""));
     mBackgroundBrightness = LayoutGroupNode.attribute("backgroundBrightness").as_int(100);
     mBackgroundAlpha = LayoutGroupNode.attribute("backgroundAlpha").as_int(100);
     mScaleBackgroundImage = LayoutGroupNode.attribute("scaleImage").as_int(0) > 0;
