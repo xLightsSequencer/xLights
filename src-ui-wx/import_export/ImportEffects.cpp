@@ -539,23 +539,22 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         }
     }
 
-    if (xsqPkg.IsPkg()) {
-        if (xsqPkg.HasMissingMedia()) {
-            wxString missingAssets;
-            for (const auto& missingAsset : xsqPkg.GetMissingMedia()) {
-                missingAssets = missingAssets + wxString::Format("%s- %s\n", "    ", missingAsset);
-            }
-
-            wxString msgP1 = "The following assets were missing from the Sequence Package and could not be imported.";
-            wxString msgP2 = "Once you source them, place them in your show folder and use 'Import Effects' again making sure to select 'Erase existing effects on imported models'";
-            wxString msgP3 = "or update the effects individually.";
-
-            wxMessageBox(wxString::Format("%s %s %s\n\n%s", msgP1, msgP2, msgP3, missingAssets), "Missing Assets", wxICON_WARNING | wxOK, this);
+    if (xsqPkg.HasMissingMedia()) {
+        wxString missingAssets;
+        for (const auto& missingAsset : xsqPkg.GetMissingMedia()) {
+            missingAssets = missingAssets + wxString::Format("%s- %s\n", "    ", missingAsset);
         }
 
-        if (xsqPkg.ModelsChanged()) {
-            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsFrame::ImportXLights");
-        }
+        wxString source = xsqPkg.IsPkg() ? "the Sequence Package" : "the source show folder";
+        wxString msgP1 = wxString::Format("The following assets were missing from %s and could not be imported.", source);
+        wxString msgP2 = "Once you source them, place them in your show folder and use 'Import Effects' again making sure to select 'Erase existing effects on imported models'";
+        wxString msgP3 = "or update the effects individually.";
+
+        wxMessageBox(wxString::Format("%s %s %s\n\n%s", msgP1, msgP2, msgP3, missingAssets), "Missing Assets", wxICON_WARNING | wxOK, this);
+    }
+
+    if (xsqPkg.IsPkg() && xsqPkg.ModelsChanged()) {
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsFrame::ImportXLights");
     }
 }
 

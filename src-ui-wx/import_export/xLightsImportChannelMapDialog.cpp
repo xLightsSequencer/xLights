@@ -1228,7 +1228,7 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 }
 
 bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
-    if (_xsqPkg != nullptr && _xsqPkg->IsPkg()) {
+    if (_xsqPkg != nullptr && _xsqPkg->HasMedia()) {
         SetImportMediaTooltip();
         _xsqPkg->GetImportOptions()->SetImportActive(CheckBoxImportMedia->IsChecked());
     } else {
