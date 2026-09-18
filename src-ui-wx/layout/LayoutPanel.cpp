@@ -433,6 +433,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEWIDTH = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEHEIGHT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEDEPTH = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERNAME = wxNewId();
@@ -7623,6 +7624,9 @@ void LayoutPanel::AddDistributeOptionsToMenu(wxMenu* mnuDistribute) {
 void LayoutPanel::AddResizeOptionsToMenu(wxMenu* mnuResize) {
     mnuResize->Append(ID_PREVIEW_RESIZE_SAMEWIDTH, "Match Width");
     mnuResize->Append(ID_PREVIEW_RESIZE_SAMEHEIGHT, "Match Height");
+    if (is_3d) {
+        mnuResize->Append(ID_PREVIEW_RESIZE_SAMEDEPTH, "Match Depth");
+    }
     mnuResize->Append(ID_PREVIEW_RESIZE_SAMESIZE, "Match Size");
 }
 
@@ -7908,21 +7912,27 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         }
     } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH) {
         if (editing_models) {
-            PreviewModelResize(true, false);
+            PreviewModelResize(true, false, false);
         } else {
-            objects_panel->PreviewObjectResize(true, false);
+            objects_panel->PreviewObjectResize(true, false, false);
         }
     } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEHEIGHT) {
         if (editing_models) {
-            PreviewModelResize(false, true);
+            PreviewModelResize(false, true, false);
         } else {
-            objects_panel->PreviewObjectResize(false, true);
+            objects_panel->PreviewObjectResize(false, true, false);
+        }
+    } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEDEPTH) {
+        if (editing_models) {
+            PreviewModelResize(false, false, true);
+        } else {
+            objects_panel->PreviewObjectResize(false, false, true);
         }
     } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMESIZE) {
         if (editing_models) {
-            PreviewModelResize(true, true);
+            PreviewModelResize(true, true, true);
         } else {
-            objects_panel->PreviewObjectResize(true, true);
+            objects_panel->PreviewObjectResize(true, true, true);
         }
     } else if (event.GetId() == ID_SET_CENTER_OFFSET) {
         glm::vec3 ray_origin;
@@ -8650,7 +8660,7 @@ void LayoutPanel::PreviewModelAlignBacks()
     ReselectTreeModels(selectedModelPaths);
 }
 
-void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
+void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight, bool sameDepth)
 {
     int selectedindex = GetSelectedModelIndex();
     if (selectedindex < 0) return;
@@ -8703,30 +8713,31 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
             if ((isBoxed && selectedType == modelType && selectedType != DisplayAsType::Custom) || custom3dPrintsMatch) {
                 // boxed model, types match and not a custom model OR custom 3d model and fingerprints matched so use scale matrix
                 glm::vec3 matrixScale = selectedModel->GetModelScreenLocation().GetScaleMatrix();
+                BoxedScreenLocation& resizeLoc = (BoxedScreenLocation&)modelToResize->GetModelScreenLocation();
                 if (sameWidth && sameHeight) {
-                    modelToResize->GetModelScreenLocation().SetScaleMatrix(matrixScale);
-                } else if (sameWidth) {
-                    float scaleY = ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).GetScaleY();
-                    ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).SetScale(matrixScale.x, scaleY);
-                    ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).SetScaleZ(matrixScale.z);
+                    resizeLoc.SetScaleMatrix(matrixScale);
                 } else {
-                    float scaleX = ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).GetScaleX();
-                    ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).SetScale(scaleX, matrixScale.y);
-                    ((BoxedScreenLocation&)modelToResize->GetModelScreenLocation()).SetScaleZ(matrixScale.z);
+                    float scaleX = sameWidth ? matrixScale.x : resizeLoc.GetScaleX();
+                    float scaleY = sameHeight ? matrixScale.y : resizeLoc.GetScaleY();
+                    resizeLoc.SetScale(scaleX, scaleY);
+                    // Depth has always followed a partial resize on boxed models.
+                    resizeLoc.SetScaleZ(matrixScale.z);
                 }
             } else {
                 // no special resizing, same as 2020.24 and prior
-                bool z_scale = modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().GetSupportsZScaling();
+                bool z_scale = modelToResize->GetBaseObjectScreenLocation().GetSupportsZScaling();
 
                 if (sameWidth) {
-                    modelPreview->GetModels()[i]->SetWidth(width);
-                    if (z_scale) {
-                        modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().SetMDepth(depth);
-                    }
+                    modelToResize->SetWidth(width);
                 }
 
                 if (sameHeight) {
                     modelToResize->SetHeight(height);
+                }
+
+                // Width has always carried depth with it on models that z-scale.
+                if ((sameDepth || sameWidth) && z_scale) {
+                    modelToResize->GetBaseObjectScreenLocation().SetMDepth(depth);
                 }
             }
         }
@@ -11372,21 +11383,27 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         }
     } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH) {
         if (editing_models) {
-            PreviewModelResize(true, false);
+            PreviewModelResize(true, false, false);
         } else {
-            objects_panel->PreviewObjectResize(true, false);
+            objects_panel->PreviewObjectResize(true, false, false);
         }
     } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEHEIGHT) {
         if (editing_models) {
-            PreviewModelResize(false, true);
+            PreviewModelResize(false, true, false);
         } else {
-            objects_panel->PreviewObjectResize(false, true);
+            objects_panel->PreviewObjectResize(false, true, false);
+        }
+    } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEDEPTH) {
+        if (editing_models) {
+            PreviewModelResize(false, false, true);
+        } else {
+            objects_panel->PreviewObjectResize(false, false, true);
         }
     } else if (event.GetId() == ID_PREVIEW_RESIZE_SAMESIZE) {
         if (editing_models) {
-            PreviewModelResize(true, true);
+            PreviewModelResize(true, true, true);
         } else {
-            objects_panel->PreviewObjectResize(true, true);
+            objects_panel->PreviewObjectResize(true, true, true);
         }
     } else if (id == ID_MNU_DELETE_MODEL_GROUP) {
         spdlog::debug("LayoutPanel::OnModelsPopup DELETE_MODEL_GROUP");
