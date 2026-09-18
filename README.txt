@@ -39,6 +39,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  it came from no longer collapses every fixture's settings down to
                                  one fixture's
                                  of crashing somewhere unrelated
+    -bug (derwin12)              A preset saved or updated with "Apply preset as: Relative" selected
+                                 now actually applies as Relative afterward, instead of silently
+                                 reverting to Using Layers
     -change (dkulp)              Crash reports now include the fault address, signal and the faulting
                                  instruction, and a backtrace taken at the moment of the fault
     -bug (dkulp)                 Shader effects rendered on the GPU (Metal on macOS/iPad, Vulkan on

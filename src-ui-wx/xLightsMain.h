@@ -1601,8 +1601,8 @@ public:
     void DoConvertDataRowToEffects(EffectLayer *layer, xlColorVector &colors, int frameTime, bool eraseExisting);
     void PromoteEffects(wxCommandEvent &command);
     void DoPromoteEffects(ModelElement *element);
-    EffectPreset* CreateEffectPreset(EffectPresetGroup* parent, const std::string& name);
-    void UpdateEffectPreset(EffectPreset* preset);
+    EffectPreset* CreateEffectPreset(EffectPresetGroup* parent, const std::string& name, bool relativeMode = false);
+    void UpdateEffectPreset(EffectPreset* preset, bool relativeMode = false);
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion, bool layerMode = false);
     Effect* ApplyEffectsPreset(const std::string& presetName);
     std::vector<std::string> GetPresets() const;

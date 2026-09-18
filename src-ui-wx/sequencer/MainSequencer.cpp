@@ -1393,16 +1393,16 @@ void MainSequencer::SetSmallWaveform()
     timeDisplay->Refresh();
 }
  
-void MainSequencer::GetPresetData(wxString& copy_data)
+void MainSequencer::GetPresetData(wxString& copy_data, bool relativeMode)
 {
     if (PanelEffectGrid->IsACActive()) {
         GetACEffectsData(copy_data);
     } else {
-        GetSelectedEffectsData(copy_data, false, true);
+        GetSelectedEffectsData(copy_data, false, true, relativeMode);
     }
 }
 
-bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo, bool forPreset) {
+bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo, bool forPreset, bool relativeMode) {
     
 
     bool effectsPresent = false;
@@ -1546,6 +1546,15 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElem
             if (relAnchor >= 0)
                 anchorToken = wxString::Format("\tANCHOR_ROW:%d", relAnchor);
         }
+        // Per-effect LAYER: tokens are always written (below) so older
+        // presets/paste code keep working, but that means the mere presence
+        // of LAYER: can't tell a "Relative" preset apart from a "Using
+        // Layers" one. RELATIVE is the explicit marker for what the dialog's
+        // radio was actually set to when the preset was captured -- see
+        // EffectTreeDialog::OnTreeCtrl1SelectionChanged, which checks for it
+        // before falling back to the legacy LAYER: heuristic.
+        if (relativeMode)
+            anchorToken += "\tRELATIVE";
     }
 
     copy_data = "CopyFormat1\t" + num_timings + "\t" + num_effects + "\t" + num_timing_rows + "\t" + last_row + "\t" + starting_column;
