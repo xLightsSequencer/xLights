@@ -1870,7 +1870,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
                 MeshObject *mesh = dynamic_cast<MeshObject*>(e.second);
                 if (mesh != nullptr) {
                     std::string fn = mesh->GetObjFile();
-                    if (!fn.empty()) {
+                    if (!fn.empty() && FileExists(fn)) {
                         std::string bn = FileUtils::GetFilenameFromPath(fn);
                         obj["ObjFile"] = bn;
                         virtualDisplayData[bn] = fn;
@@ -1883,7 +1883,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
                 ImageObject *img = dynamic_cast<ImageObject*>(e.second);
                 if (img != nullptr) {
                     std::string fn = img->GetImageFile();
-                    if (!fn.empty()) {
+                    if (!fn.empty() && FileExists(fn)) {
                         std::string bn = FileUtils::GetFilenameFromPath(fn);
                         obj["Image"] = bn;
                         virtualDisplayData[bn] = fn;
