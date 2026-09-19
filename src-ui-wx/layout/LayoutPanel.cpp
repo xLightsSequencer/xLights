@@ -3922,7 +3922,7 @@ private:
 
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
-    
+
     wxStopWatch sw;
 
     highlightedBaseObject = nullptr;
@@ -3977,7 +3977,16 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         }
     }
 
-    modelPreview->ClearPortStringHighlights();
+    // The Controllers page's "models on this controller" yellow highlight is
+    // driven by the controller/port tree selection, not by this function's
+    // model-selection bookkeeping. A model click/drag in the preview while
+    // that page is active still routes through here (via the Models tree's
+    // selection-changed handlers), so clearing unconditionally would wipe the
+    // highlight as a side effect of moving a model - see ControllerListPanel::
+    // UpdatePreviewHighlights/ClearPreviewHighlights for the real owners.
+    if (CurrentObjectsPage() != ObjectsPage::Controllers) {
+        modelPreview->ClearPortStringHighlights();
+    }
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UnselectAllModels");
 
     if (!updatingProperty && addBkgProps) {
@@ -9172,13 +9181,19 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect, bool preserveFilter) {
     if (modelToSelect != nullptr) {
         // a preview click can select a model/group while another notebook page is
         // active — jump to the page that actually holds it (Models or Groups) so
-        // the selection is visible there
-        const ObjectsPage targetPageKind = (modelToSelect->GetDisplayAs() == DisplayAsType::ModelGroup) ? ObjectsPage::Groups : ObjectsPage::Models;
-        const int targetPage = FindNotebookPage(targetPageKind);
-        if (targetPage >= 0 && Notebook_Objects->GetSelection() != targetPage) {
-            Notebook_Objects->ChangeSelection(targetPage);
-            editing_models = true;
-            UpdateSettingsPaneForPage();
+        // the selection is visible there. The Controllers page is exempt: it
+        // has its own way of showing/moving a model (the controller/port tree
+        // and its "models on this controller" yellow highlight), and jumping
+        // away from it would both lose that context and wipe the highlight
+        // (UpdateSettingsPaneForPage() clears it for every non-Controllers page).
+        if (CurrentObjectsPage() != ObjectsPage::Controllers) {
+            const ObjectsPage targetPageKind = (modelToSelect->GetDisplayAs() == DisplayAsType::ModelGroup) ? ObjectsPage::Groups : ObjectsPage::Models;
+            const int targetPage = FindNotebookPage(targetPageKind);
+            if (targetPage >= 0 && Notebook_Objects->GetSelection() != targetPage) {
+                Notebook_Objects->ChangeSelection(targetPage);
+                editing_models = true;
+                UpdateSettingsPaneForPage();
+            }
         }
     }
     if (!preserveFilter && modelToSelect != nullptr && !_filterString.IsEmpty() && !ModelMatchesFilter(modelToSelect)) {
