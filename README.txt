@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (derwin12)              Selecting a controller no longer loses its yellow "models on this
+                                 controller" highlight in the layout preview when a model is moved
     -enh (derwin12)              New sequence wizard now defaults the master view to a sensible model
                                  order (groups at top by size, then models by name) when no default
                                  view is chosen
