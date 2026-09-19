@@ -207,6 +207,10 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         return false;
     }
 
+    // Past the point of no return: an open visualiser points at controllers and
+    // models from the show we are leaving.
+    ControllerModelDialog::CloseAll();
+
     // Everything below synchronously rebuilds the Layout tab's model/controller
     // trees and preview, which scales with show size and can take a while on
     // large shows. Layout is the default visible tab, so without this the
@@ -932,6 +936,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     auto logger_work = spdlog::get("work");
     if (work == OutputModelManager::WORK_NOTHING) return;
 
+    // ClearWork strips bits as we go, so keep what we were asked to do.
+    uint32_t const workAtEntry = work;
+
     std::string selectedModel = selected;
     if (selectedModel == "") selectedModel = _outputModelManager.GetSelectedModel();
 
@@ -1179,10 +1186,21 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
         OutputModelManager::WORK_SAVE_NETWORKS
     );
-    // The visualiser runs modal over the Layout tab and queues work as the user
-    // drags models between ports. Selecting into the tree from here would fight
-    // the dialog for the selection (and switch the notebook page out from under
-    // it), so defer until it closes — the tree is rebuilt on close anyway.
+    // The visualiser is modeless, so models and controllers can change while it
+    // is open. Rebuild it from current show state rather than let it hold
+    // pointers to models that have been deleted.
+    if (ControllerModelDialog::IsAnyActive() &&
+        (workAtEntry & (OutputModelManager::WORK_RELOAD_ALLMODELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_UPDATE_NETWORK_LIST))) {
+        ControllerModelDialog::RefreshAll();
+    }
+
+    // The visualiser queues work as the user drags models between ports.
+    // Selecting into the tree from here would fight it for the selection (and
+    // switch the notebook page out from under it), so defer until it closes —
+    // the tree is rebuilt on close anyway.
     if (selectedModel != "" && !ControllerModelDialog::IsAnyActive()) {
         logger_work->debug("    Selecting model '{}'.", (const char*)selectedModel.c_str());
         //SelectModel(selectModel);

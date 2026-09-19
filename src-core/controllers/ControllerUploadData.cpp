@@ -1337,6 +1337,9 @@ void UDController::ClearPorts() {
 
 void UDController::Rescan(bool eliminateOverlaps) {
     ClearPorts();
+    // Rebuilt below from the current models; keeping the old entries would leave
+    // pointers to models deleted since the last scan.
+    _noConnectionModels.clear();
 
     for (const auto& it : *_modelManager) {
         if (!ModelProcessed(it.second, 1) && it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {

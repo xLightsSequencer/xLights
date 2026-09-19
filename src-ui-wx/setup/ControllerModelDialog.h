@@ -26,6 +26,8 @@
 #include <wx/prntbase.h>
 
 #include <algorithm>
+#include <memory>
+#include <vector>
 
 #include "controllers/ControllerUploadData.h"
 
@@ -99,7 +101,7 @@ class ControllerModelDialog: public wxDialog
 
 	#pragma region Member Variables
 	std::string _title;
-    UDController* _cud = nullptr;
+    std::unique_ptr<UDController> _cud;
 	Controller* _controller = nullptr;
 	ModelManager* _mm = nullptr;
 	xLightsFrame* _xLights = nullptr;
@@ -138,10 +140,22 @@ class ControllerModelDialog: public wxDialog
 
 	public:
 
-		ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+		ControllerModelDialog(wxWindow* parent, std::unique_ptr<UDController> cud, ModelManager* mm, Controller* controller, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~ControllerModelDialog();
 
-		static bool IsAnyActive() { return s_activeCount > 0; }
+		static bool IsAnyActive() { return !s_openDialogs.empty(); }
+
+		// Opens the visualiser for a controller, or raises the one already open
+		// for it. The window is modeless, so it outlives this call.
+		static void ShowFor(xLightsFrame* frame, Controller* controller);
+		// Rebuilds every open visualiser from current show state, and closes any
+		// whose controller has gone away. Called when models or controllers change
+		// underneath us -- something that could not happen while this was modal.
+		static void RefreshAll();
+		static void CloseAll();
+		// Closes the visualiser open for this controller, if any. Call before
+		// deleting the controller it points at.
+		static void CloseFor(Controller* controller);
 
 		//(*Declarations(ControllerModelDialog)
 		wxCheckBox* CheckBox_HideOtherControllerModels;
@@ -295,7 +309,11 @@ class ControllerModelDialog: public wxDialog
 		void ClearVisualiserHighlight();
 
 	private:
-		static int s_activeCount;
+		void OnVisualiserClose(wxCloseEvent& event);
+		// True when the controller this was opened for still exists.
+		bool ControllerStillExists() const;
+
+		static std::vector<ControllerModelDialog*> s_openDialogs;
 
 		DECLARE_EVENT_TABLE()
 };
