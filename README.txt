@@ -14,6 +14,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)              New sequence wizard now defaults the master view to a sensible model
                                  order (groups at top by size, then models by name) when no default
                                  view is chosen
+    -bug (derwin12)              Import Effects from a plain .xsq no longer leaves Video/Pictures/Shader/
+                                 Glediator/Shape media referencing the source show folder - it is now
+                                 copied into the target show folder like a Sequence Package import does
     -bug (bcole808)              Background image on a named preview was lost when the show folder was
                                  moved or opened on another machine
     -bug (dkulp)                 Custom model background images and model dimming curve files were also

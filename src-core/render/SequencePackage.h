@@ -179,4 +179,10 @@ class SequencePackage {
         ProgressCallback _progressCb;
 
         void InitDefaultImportOptions();
+        // Plain `.xsq` imports have no zip manifest to enumerate the way
+        // Extract() does for a `.xsqz` package. Walk the source show
+        // directory instead so FixAndImportMedia() has the same
+        // by-filename lookup available, letting Video/Shader/Glediator/
+        // SVG references resolve and copy across show folders.
+        void IndexSourceMediaFiles(const std::filesystem::path& sourceDir);
 };

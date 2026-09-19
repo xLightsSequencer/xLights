@@ -51,6 +51,8 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                 // attempt to import it and fix settings
                 settingsStr = xsqPkg.FixAndImportMedia(ef, target);
             } else {
+                spdlog::info("MapXLightsEffects: skipping media import for '{}' effect on '{}' (HasMedia={}, ImportActive={}).",
+                             ef->GetEffectName(), target->GetParentElement()->GetFullName(), xsqPkg.HasMedia(), xsqPkg.GetImportOptions()->IsImportActive());
                 settingsStr = ef->GetSettingsAsString();
             }
 

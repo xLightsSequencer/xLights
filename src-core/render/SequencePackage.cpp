@@ -371,6 +371,13 @@ void SequencePackage::FindRGBEffectsFile()
             _hasRGBEffects = true;
         }
     }
+
+    // A plain `.xsq` import has no zip manifest the way a `.xsqz` package
+    // does, so the source show folder has to be indexed here or Video/
+    // Shader/Glediator/SVG references never get resolved (xLightsSequencer/xLights#7096).
+    _xsqName = _xsqFile.stem().string();
+    IndexSourceMediaFiles(showDir);
+    InitDefaultImportOptions();
 }
 
 bool SequencePackage::IsValid() const
@@ -395,6 +402,43 @@ bool SequencePackage::HasRGBEffects() const
 bool SequencePackage::HasMedia() const
 {
     return _media.size() > 0;
+}
+
+void SequencePackage::IndexSourceMediaFiles(const std::filesystem::path& sourceDir)
+{
+    std::error_code ec;
+    if (!std::filesystem::exists(sourceDir, ec) || ec) {
+        spdlog::warn("SequencePackage::IndexSourceMediaFiles: source show directory '{}' does not exist, cannot index media for import.", sourceDir.string());
+        return;
+    }
+
+    spdlog::info("SequencePackage::IndexSourceMediaFiles: indexing media files under '{}' for xsq import.", sourceDir.string());
+
+    int indexed = 0;
+    std::filesystem::recursive_directory_iterator it(sourceDir, std::filesystem::directory_options::skip_permission_denied, ec);
+    std::filesystem::recursive_directory_iterator end;
+    for (; !ec && it != end; it.increment(ec)) {
+        bool isDir = it->is_directory(ec);
+        if (ec || isDir) continue;
+
+        const std::filesystem::path& p = it->path();
+        std::string ext = p.extension().string();
+        if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        // .xsq/.xml (the sequence + rgbeffects/networks) are handled separately above;
+        // backups aren't candidates for effect media.
+        if (ext == "xsq" || ext == "xml" || ext == "xbkp" || ext == "jbkp") continue;
+
+        // First match wins - a best-effort by-filename lookup, same as Extract()'s
+        // flat zip-entry map for a `.xsqz` package.
+        auto inserted = _media.emplace(p.filename().string(), p);
+        if (inserted.second) {
+            spdlog::debug("SequencePackage::IndexSourceMediaFiles:   found '{}' -> '{}'.", p.filename().string(), p.string());
+            ++indexed;
+        }
+    }
+
+    spdlog::info("SequencePackage::IndexSourceMediaFiles: indexed {} media file(s) for xsq import from '{}'.", indexed, sourceDir.string());
 }
 
 bool SequencePackage::HasMissingMedia() const
@@ -427,11 +471,9 @@ bool SequencePackage::ModelsChanged() const
 
 SeqPkgImportOptions* SequencePackage::GetImportOptions()
 {
-    if (!_xsqOnly) {
-        return &_importOptions;
-    } else {
-        return nullptr;
-    }
+    // Plain `.xsq` imports now index and copy media too (see
+    // IndexSourceMediaFiles), so both import paths share these options.
+    return &_importOptions;
 }
 
 std::list<std::string> SequencePackage::GetMissingMedia()
@@ -524,6 +566,7 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
 
         if (!fileToCopy.empty() && FileExists(fileToCopy.string())) {
             std::filesystem::path copiedAsset = CopyMediaToTarget(targetMediaFolder, fileToCopy);
+            spdlog::info("SequencePackage::FixAndImportMedia: '{}' effect media '{}' -> '{}'.", effName, fileToCopy.string(), copiedAsset.string());
             settings.erase(settingEffectFile);
             std::string newSetting = copiedAsset.string();
             settings[settingEffectFile] = newSetting;
@@ -534,8 +577,11 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
                 }
             }
         } else {
-            if (!picFileName.empty())
+            if (!picFileName.empty()) {
+                spdlog::info("SequencePackage::FixAndImportMedia: '{}' effect media '{}' (setting '{}') not found in {} indexed source file(s), recording as missing.",
+                             effName, picFileName, settingPath, _media.size());
                 _missingMedia.push_back(picFileName);
+            }
         }
     }
 
