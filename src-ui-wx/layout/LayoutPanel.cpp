@@ -1501,6 +1501,11 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 //model property
                 if ("ModelName" == name) {
                     std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+                    if (safename.empty()) {
+                        SetNamePropertyInvalid(propertyEditor->GetPropertyByName("ModelName"), true);
+                        updatingProperty = false;
+                        return;
+                    }
 
                     if (safename != event.GetValue().GetString().ToStdString())
                     {
@@ -1573,6 +1578,38 @@ void LayoutPanel::SetDisplay2DCenter0(bool bb) {
     modelPreview->SetDisplay2DCenter0(bb);
 }
 
+void LayoutPanel::SetNamePropertyInvalid(wxPGProperty* prop, bool invalid) {
+    if (prop == nullptr) {
+        return;
+    }
+    if (invalid) {
+        propertyEditor->SetPropertyBackgroundColour(prop, *wxRED, wxPGPropertyValuesFlags::DontRecurse);
+        propertyEditor->SetPropertyTextColour(prop, *wxWHITE, wxPGPropertyValuesFlags::DontRecurse);
+        std::string propName = prop->GetName().ToStdString();
+        CallAfter([this, propName]() {
+            wxPGProperty* p = propertyEditor->GetPropertyByName(propName);
+            if (p == nullptr) {
+                return;
+            }
+            p->SetValue(wxVariant(wxString()));
+            wxTextCtrl* editor = propertyEditor->GetEditorTextCtrl();
+            if (editor != nullptr && propertyEditor->GetSelectedProperty() == p) {
+                editor->ChangeValue(wxEmptyString);
+            }
+            propertyEditor->RefreshProperty(p);
+        });
+    } else {
+        propertyEditor->SetPropertyColoursToDefault(prop);
+    }
+    wxTextCtrl* tc = propertyEditor->GetEditorTextCtrl();
+    if (tc != nullptr && propertyEditor->GetSelectedProperty() == prop) {
+        tc->SetBackgroundColour(invalid ? *wxRED : wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        tc->SetForegroundColour(invalid ? *wxWHITE : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+        tc->Refresh();
+    }
+    propertyEditor->RefreshProperty(prop);
+}
+
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
     xlights->AddTraceMessage("LayoutPanel::OnPropertyGridChanging  Property: " + name);
@@ -1605,6 +1642,12 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
             }
             if ("ModelName" == name) {
                 std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+                if (safename.empty()) {
+                    SetNamePropertyInvalid(prop, true);
+                    event.Veto();
+                    return;
+                }
+                SetNamePropertyInvalid(prop, false);
                 // refuse clashing names or names with unsafe characters
                 if (xlights->AllModels[safename] != nullptr || safename != event.GetValue().GetString().ToStdString()) {
                     CreateUndoPoint("ModelName", selectedModel->name, safename);
@@ -1624,6 +1667,12 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
             ViewObject* selectedObject = dynamic_cast<ViewObject*>(selectedBaseObject);
             if ("ObjectName" == name) {
                 std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+                if (safename.empty()) {
+                    SetNamePropertyInvalid(prop, true);
+                    event.Veto();
+                    return;
+                }
+                SetNamePropertyInvalid(prop, false);
                 // refuse clashing names or names with unsafe characters
                 if (xlights->AllObjects[safename] != nullptr || safename != event.GetValue().GetString().ToStdString()) {
                     CreateUndoPoint("ObjectName", selectedObject->name, safename);

@@ -344,6 +344,7 @@ class LayoutPanel: public wxPanel
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
 		void OnPropertyGridChange(wxPropertyGridEvent& event);
 		void OnPropertyGridChanging(wxPropertyGridEvent& event);
+		void SetNamePropertyInvalid(wxPGProperty* prop, bool invalid);
 		void OnModelSplitterSashPosChanged(wxSplitterEvent& event);
 		void OnSplitterWindowSashPosChanged(wxSplitterEvent& event);
 		void OnNewModelTypeButtonClicked(wxCommandEvent& event);
