@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <wx/stopwatch.h>
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/regex.h>
@@ -78,14 +79,42 @@
 #include <log.h>
 void xLightsFrame::AddAllModelsToSequence()
 {
+    // No view was picked in the New Sequence wizard or preferences, so give
+    // the master view a more useful starting order than raw name order:
+    // whole-house/large groups first (biggest first), then individual models
+    // by name -- the same as Display Elements' "By Name But Groups At Top by
+    // Size" sort.
+    wxArrayString groups;
+    wxArrayString modelsOnly;
+    for (auto& it : AllModels) {
+        Model* model = it.second;
+        if (_sequenceElements.ElementExists(model->GetName(), 0)) {
+            continue;
+        }
+        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            groups.push_back(model->GetName());
+        } else {
+            modelsOnly.push_back(model->GetName());
+        }
+    }
+
+    std::sort(groups.begin(), groups.end(), [this](const wxString& s1, const wxString& s2) {
+        ModelGroup* mg1 = dynamic_cast<ModelGroup*>(AllModels.GetModel(s1.ToStdString()));
+        ModelGroup* mg2 = dynamic_cast<ModelGroup*>(AllModels.GetModel(s2.ToStdString()));
+        size_t count1 = mg1 != nullptr ? mg1->ModelNames().size() : 0;
+        size_t count2 = mg2 != nullptr ? mg2->ModelNames().size() : 0;
+        return count1 > count2;
+    });
+    modelsOnly.Sort(wxStringNumberAwareStringCompare);
+
     std::string models_to_add;
     bool first_model = true;
-    for (auto& it : AllModels) {
-        if (!_sequenceElements.ElementExists(it.second->GetName(), 0)) {
+    for (const auto& arr : { groups, modelsOnly }) {
+        for (const auto& name : arr) {
             if (!first_model) {
                 models_to_add += ",";
             }
-            models_to_add += it.second->GetName();
+            models_to_add += name.ToStdString();
             first_model = false;
         }
     }

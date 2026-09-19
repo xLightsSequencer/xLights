@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (derwin12)              New sequence wizard now defaults the master view to a sensible model
+                                 order (groups at top by size, then models by name) when no default
+                                 view is chosen
     -bug (bcole808)              Background image on a named preview was lost when the show folder was
                                  moved or opened on another machine
     -bug (dkulp)                 Custom model background images and model dimming curve files were also
