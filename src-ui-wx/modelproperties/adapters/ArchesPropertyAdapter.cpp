@@ -169,9 +169,11 @@ int ArchesPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
         if (_arches.GetLayerSizeCount() != 0) {
             _arches.SetDirection((value == 0 || value == 1) ? "L" : "R");
             _arches.SetStartSide((value == 0 || value == 2) ? "T" : "B");
+            _arches.SetIsLtoR(value == 0 || value == 1);
             _arches.SetIsBtoT(value != 0 && value != 2);
         } else {
             _arches.SetDirection(value == 0 ? "L" : "R");
+            _arches.SetIsLtoR(value == 0);
         }
         _arches.IncrementChangeCount();
         _arches.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ArchesPropertyAdapter::OnPropertyGridChange::ArchesStart");
