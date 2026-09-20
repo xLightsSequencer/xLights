@@ -284,6 +284,15 @@ class ControllerModelDialog: public wxDialog
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
         bool MaybeSetSmartRemote(wxKeyEvent& event);
 		void ClearNotOnControllerHighlight();
+		// Blues this model in the layout preview, clearing any other. nullptr
+		// clears the highlight entirely.
+		// A press that ended where it started is a click, not a drag.
+		bool IsClickNotDrag(const wxPoint& pressAt, const wxPoint& releaseAt) const;
+		void SetVisualiserHighlight(Model* model);
+		// Read back from the models themselves rather than cached here: the
+		// layout preview clears the flags on its own click handling.
+		Model* CurrentVisualiserHighlight() const;
+		void ClearVisualiserHighlight();
 
 	private:
 		static int s_activeCount;

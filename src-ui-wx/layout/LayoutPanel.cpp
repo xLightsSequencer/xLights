@@ -5412,18 +5412,22 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
-    if (IsControllersPageActive()) {
-        bool clearedNotOnController = false;
-        for (auto m : modelPreview->GetModels()) {
-            if (m->NotOnController) {
-                m->NotOnController = false;
-                clearedNotOnController = true;
-            }
+    bool clearedHighlight = false;
+    for (auto m : modelPreview->GetModels()) {
+        // Orange is a Controllers-page affordance; the visualiser's blue can be
+        // showing on any page, so it clears on any preview click.
+        if (m->NotOnController && IsControllersPageActive()) {
+            m->NotOnController = false;
+            clearedHighlight = true;
         }
-        if (clearedNotOnController) {
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
-                "LayoutPanel::OnPreviewLeftDown::ClearNotOnController");
+        if (m->HighlightedInVisualiser) {
+            m->HighlightedInVisualiser = false;
+            clearedHighlight = true;
         }
+    }
+    if (clearedHighlight) {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+            "LayoutPanel::OnPreviewLeftDown::ClearHighlights");
     }
 
     if (m_polyline_active)
