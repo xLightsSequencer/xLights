@@ -791,14 +791,14 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ModelFilterCtrl = new wxSearchCtrl(new_panel, ID_TEXTCTRL_MODEL_FILTER,
         wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     ModelFilterCtrl->SetDescriptiveText("Filter models...");
+    ModelFilterCtrl->SetToolTip(wxFilterQuery::Hint());
     ModelFilterCtrl->ShowCancelButton(true);
     ModelFilterCtrl->Bind(wxEVT_TEXT_ENTER, &LayoutPanel::OnModelFilterTextChanged, this);
     ModelFilterCtrl->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &LayoutPanel::OnModelFilterTextChanged, this);
     ModelFilterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &LayoutPanel::OnModelFilterCancelBtn, this);
     ModelFilterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
         _filterString = ModelFilterCtrl->GetValue().Trim();
-        _filterRegex.Compile(_filterString, wxRE_ICASE);
-        _filterRegexValid = _filterRegex.IsValid();
+        _filterQuery = wxFilterQuery(_filterString);
         if (_filterString.IsEmpty()) {
             UpdateModelList(true);
         }
@@ -829,14 +829,14 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     GroupFilterCtrl = new wxSearchCtrl(groups_panel_holder, ID_TEXTCTRL_GROUP_FILTER,
         wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     GroupFilterCtrl->SetDescriptiveText("Filter groups...");
+    GroupFilterCtrl->SetToolTip(wxFilterQuery::Hint());
     GroupFilterCtrl->ShowCancelButton(true);
     GroupFilterCtrl->Bind(wxEVT_TEXT_ENTER, &LayoutPanel::OnGroupFilterTextChanged, this);
     GroupFilterCtrl->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &LayoutPanel::OnGroupFilterTextChanged, this);
     GroupFilterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &LayoutPanel::OnGroupFilterCancelBtn, this);
     GroupFilterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
         _groupFilterString = GroupFilterCtrl->GetValue().Trim();
-        _groupFilterRegex.Compile(_groupFilterString, wxRE_ICASE);
-        _groupFilterRegexValid = _groupFilterRegex.IsValid();
+        _groupFilterQuery = wxFilterQuery(_groupFilterString);
         if (_groupFilterString.IsEmpty()) {
             UpdateModelList(true);
         }
@@ -3210,6 +3210,7 @@ public:
         _filter = new wxSearchCtrl(this, wxID_ANY);
         _filter->ShowCancelButton(true);
         _filter->SetDescriptiveText(_("Filter models"));
+        _filter->SetToolTip(wxFilterQuery::Hint());
         sizer->Add(_filter, 0, wxEXPAND | wxLEFT | wxRIGHT, 8);
         _list = new wxCheckListBox(this, wxID_ANY);
         sizer->Add(_list, 1, wxEXPAND | wxALL, 8);
@@ -13400,56 +13401,41 @@ int LayoutPanel::calculateNodeCountOfSelected()
 void LayoutPanel::OnModelFilterCancelBtn(wxCommandEvent& event) {
     ModelFilterCtrl->SetValue("");
     _filterString = "";
-    _filterRegexValid = false;
+    _filterQuery = wxFilterQuery();
     UpdateModelList(true);
 }
 
 void LayoutPanel::OnModelFilterTextChanged(wxCommandEvent& event) {
     _filterString = ModelFilterCtrl->GetValue().Trim();
-    _filterRegex.Compile(_filterString, wxRE_ICASE);
-    _filterRegexValid = _filterRegex.IsValid();
+    _filterQuery = wxFilterQuery(_filterString);
     UpdateModelList(true);
 }
 
 void LayoutPanel::OnGroupFilterCancelBtn(wxCommandEvent& event) {
     GroupFilterCtrl->SetValue("");
     _groupFilterString = "";
-    _groupFilterRegexValid = false;
+    _groupFilterQuery = wxFilterQuery();
     UpdateModelList(true);
 }
 
 void LayoutPanel::OnGroupFilterTextChanged(wxCommandEvent& event) {
     _groupFilterString = GroupFilterCtrl->GetValue().Trim();
-    _groupFilterRegex.Compile(_groupFilterString, wxRE_ICASE);
-    _groupFilterRegexValid = _groupFilterRegex.IsValid();
+    _groupFilterQuery = wxFilterQuery(_groupFilterString);
     UpdateModelList(true);
 }
 
-bool LayoutPanel::MatchesFilter(Model* model, const wxString& filterString, const wxRegEx& filterRegex, bool filterRegexValid) {
+bool LayoutPanel::MatchesFilter(Model* model, const wxString& filterString, const wxFilterQuery& query) {
     if (filterString.IsEmpty()) return true;
-
-    wxArrayString terms = wxStringTokenize(filterString.Lower(), " \t");
-    if (terms.size() <= 1) {
-        if (filterRegexValid)
-            return filterRegex.Matches(model->GetName());
-        return wxString(model->GetName()).Lower().Contains(filterString.Lower());
-    }
-
-    const wxString name = wxString(model->GetName()).Lower();
-    for (const auto& term : terms) {
-        if (!name.Contains(term))
-            return false;
-    }
-    return true;
+    return query.Matches(model->GetName());
 }
 
 bool LayoutPanel::ModelMatchesFilter(Model* model) const {
     if (ModelFilterCtrl == nullptr) return true;
-    return MatchesFilter(model, _filterString, _filterRegex, _filterRegexValid);
+    return MatchesFilter(model, _filterString, _filterQuery);
 }
 
 bool LayoutPanel::GroupMatchesFilter(Model* model) const {
     if (GroupFilterCtrl == nullptr) return true;
-    return MatchesFilter(model, _groupFilterString, _groupFilterRegex, _groupFilterRegexValid);
+    return MatchesFilter(model, _groupFilterString, _groupFilterQuery);
 }
 

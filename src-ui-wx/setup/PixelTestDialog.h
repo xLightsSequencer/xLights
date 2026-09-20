@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "shared/utils/xLightsTimer.h"
+#include "shared/utils/wxUtilities.h"  // wxFilterQuery
 #include "models/ModelManager.h"
 #include "outputs/ChannelTracker.h"
 #include "outputs/OutputManager.h"
@@ -305,7 +306,7 @@ class PixelTestDialog: public wxDialog
         void AddTreeFilter(wxPanel* panel, wxFlexGridSizer* sizer, wxSearchCtrl*& ctrl, wxTreeListCtrl* tree);
         wxSearchCtrl* FilterCtrlForTree(wxTreeListCtrl* tree) const;
         void RebuildTree(wxTreeListCtrl* tree);
-        bool PruneTree(wxTreeListCtrl* tree, const wxTreeListItem& item, const wxString& filterLower);
+        bool PruneTree(wxTreeListCtrl* tree, const wxTreeListItem& item, const wxFilterQuery& filterQuery);
         void ExpandFiltered(wxTreeListCtrl* tree, const wxTreeListItem& item);
         void ApplyVisualModelFilter();
         void PopulateVisualModelTree(ModelManager* modelManager);

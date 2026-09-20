@@ -2409,12 +2409,12 @@ void MainSequencer::ApplySeqFilter(const wxString& filter)
         }
         spdlog::debug("SeqFilter: cleared");
     } else {
-        wxString lower = filter.Lower();
+        wxFilterQuery const query(filter);
         for (int i = 0; i < count; i++) {
             Element* el = mSequenceElements->GetElement(i, view);
             if (el == nullptr) continue;
             if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
-            el->SetVisible(wxString(el->GetName()).Lower().Contains(lower));
+            el->SetVisible(query.Matches(el->GetName()));
         }
         spdlog::debug("SeqFilter: filter='{}'", filter.ToStdString());
     }

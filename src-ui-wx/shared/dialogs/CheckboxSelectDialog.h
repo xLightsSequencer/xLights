@@ -1,5 +1,7 @@
 #pragma once
 
+#include "shared/utils/wxUtilities.h"  // wxFilterQuery
+
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
@@ -79,6 +81,7 @@ class CheckboxSelectDialog: public wxDialog
 		wxSearchCtrl* _filterCtrl = nullptr;
 		wxTimer _filterTimer;
 		wxString _filter;
+		wxFilterQuery _filterQuery;
 		wxArrayString _allItems;
 		std::set<wxString> _checked;
 

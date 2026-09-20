@@ -10,12 +10,15 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "utils/AppCallbacks.h"
 
 #include <wx/string.h>
+#include <wx/regex.h>
+#include <wx/intl.h>   // _()
 #include <wx/event.h>    // wxDECLARE_EVENT, wxCommandEvent
 #include <wx/gdicmn.h>   // wxPoint, wxSize
 
@@ -23,6 +26,7 @@
 #include "utils/UtilFunctions.h"
 #include "utils/FileUtils.h"
 #include "utils/xlImage.h"
+#include "utils/FilterMatch.h"
 
 #include <nlohmann/json.hpp>
 
@@ -177,6 +181,67 @@ wxString GetOSFormattedClipboardData();
 
 // ImageFilePickerCtrl — needs full wx/filepicker.h for inheritance
 #include <wx/filepicker.h>
+
+// wxString front end for the shared filter matching (xl::FilterQuery), plus the
+// one thing that needs wx: a /pattern/ query is a real regex. Build one per
+// keystroke and reuse it for every row.
+class wxFilterQuery
+{
+public:
+    wxFilterQuery() = default;
+
+    explicit wxFilterQuery(const wxString& query)
+    {
+        wxString const trimmed = wxString(query).Trim(true).Trim(false);
+        // /.../ is an explicit regex; anything else is words and wildcards, so
+        // a name containing regex punctuation is not treated as a pattern.
+        if (trimmed.length() >= 2 && trimmed.StartsWith("/") && trimmed.EndsWith("/")) {
+            wxString const pattern = trimmed.Mid(1, trimmed.length() - 2);
+            if (!pattern.IsEmpty()) {
+                auto compiled = std::make_shared<wxRegEx>();
+                if (compiled->Compile(pattern, wxRE_ICASE | wxRE_ADVANCED) && compiled->IsValid()) {
+                    _regex = std::move(compiled);
+                    return;
+                }
+            }
+            // Half-typed regex: fall back to plain matching so the list does not
+            // blank out on every keystroke.
+        }
+        // Lower() here rather than in the core matcher: wxString folds case for
+        // non-ASCII too, and utf8_string avoids the locale-dependent narrowing
+        // that ToStdString does on Windows.
+        _query = xl::FilterQuery(trimmed.Lower().utf8_string());
+    }
+
+    [[nodiscard]] bool IsEmpty() const
+    {
+        return _regex == nullptr && _query.IsEmpty();
+    }
+
+    [[nodiscard]] bool Matches(const wxString& text) const
+    {
+        if (_regex != nullptr) {
+            return _regex->Matches(text);
+        }
+        return _query.Matches(text.Lower().utf8_string());
+    }
+
+    [[nodiscard]] bool Matches(const std::string& text) const
+    {
+        return Matches(wxString::FromUTF8(text));
+    }
+
+    // For the filter boxes, so the syntax is not a secret.
+    static wxString Hint()
+    {
+        return _("Words may be in any order and separators are optional. * and ? are wildcards. /pattern/ is a regular expression.");
+    }
+
+private:
+    xl::FilterQuery _query;
+    // wxRegEx is not copyable and these are held by value in panels.
+    std::shared_ptr<wxRegEx> _regex;
+};
 
 class ImageFilePickerCtrl : public wxFilePickerCtrl
 {

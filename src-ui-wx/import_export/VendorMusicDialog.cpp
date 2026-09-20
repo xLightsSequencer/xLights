@@ -699,7 +699,7 @@ void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
                 }
             }
 
-            if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower())) {
+            if (current != TreeCtrl_Navigator->GetRootItem() && wxFilterQuery(TextCtrl_Search->GetValue()).Matches(TreeCtrl_Navigator->GetItemText(current))) {
                 TreeCtrl_Navigator->SelectItem(current);
                 TreeCtrl_Navigator->EnsureVisible(current);
                 if (current == start) {
@@ -712,7 +712,7 @@ void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
             if (tid != nullptr) {
                 if (((MSLVendorBaseTreeItemData*)tid)->GetType() == "SequenceLyric") {
                     auto doc = ((MSLSequenceLyricTreeItemData*)tid)->GetSequenceLyric();
-                    if (((wxString)doc->_creator).Lower().Contains(TextCtrl_Search->GetValue().Lower())) {
+                    if (wxFilterQuery(TextCtrl_Search->GetValue()).Matches((wxString)doc->_creator)) {
                         TreeCtrl_Navigator->SelectItem(current);
                         TreeCtrl_Navigator->EnsureVisible(current);
                         if (current == start) {

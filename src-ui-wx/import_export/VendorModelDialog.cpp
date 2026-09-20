@@ -1566,7 +1566,7 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 			if (!_filterTokens.empty()) {
 				matches = TreeCtrl_Navigator->GetChildrenCount(current, false) == 0;
 			} else {
-				matches = TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower());
+				matches = wxFilterQuery(TextCtrl_Search->GetValue()).Matches(TreeCtrl_Navigator->GetItemText(current));
 			}
 			if (current != TreeCtrl_Navigator->GetRootItem() && matches)
 			{

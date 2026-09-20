@@ -1814,12 +1814,13 @@ void PixelTestDialog::ApplyVisualModelFilter()
     if (Choice_VisualModel == nullptr || SearchCtrl_VisualModel == nullptr) return;
 
     const wxString filterLower = SearchCtrl_VisualModel->GetValue().Lower();
+    const wxFilterQuery filterQuery(filterLower);
     const wxString prevSel = Choice_VisualModel->GetStringSelection();
 
     Choice_VisualModel->Clear();
     int keepIdx = -1;
     for (const auto& name : _visualModelNames) {
-        if (filterLower.IsEmpty() || wxString::FromUTF8(name).Lower().Contains(filterLower)) {
+        if (filterQuery.IsEmpty() || filterQuery.Matches(wxString::FromUTF8(name))) {
             if (wxString::FromUTF8(name) == prevSel) {
                 keepIdx = (int)Choice_VisualModel->GetCount(); // still visible - preserve it
             }
@@ -2142,7 +2143,7 @@ void PixelTestDialog::RebuildTree(wxTreeListCtrl* tree)
     DeactivateNotClickableModels(tree);
 
     if (!filterLower.IsEmpty()) {
-        PruneTree(tree, tree->GetRootItem(), filterLower);
+        PruneTree(tree, tree->GetRootItem(), wxFilterQuery(filterLower));
         ExpandFiltered(tree, tree->GetRootItem());
     }
 
@@ -2154,7 +2155,7 @@ void PixelTestDialog::RebuildTree(wxTreeListCtrl* tree)
     tree->Refresh();
 }
 
-bool PixelTestDialog::PruneTree(wxTreeListCtrl* tree, const wxTreeListItem& item, const wxString& filterLower)
+bool PixelTestDialog::PruneTree(wxTreeListCtrl* tree, const wxTreeListItem& item, const wxFilterQuery& filterQuery)
 {
     // Returns true if item (or any descendant) matches and should be kept.
     TestItemBase* tc = (TestItemBase*)tree->GetItemData(item);
@@ -2163,7 +2164,7 @@ bool PixelTestDialog::PruneTree(wxTreeListCtrl* tree, const wxTreeListItem& item
     if (!isRoot && tc != nullptr) {
         // A matching item keeps its entire subtree intact (e.g. a matching
         // controller keeps all of its ports/models).
-        if (tree->GetItemText(item).Lower().Contains(filterLower)) {
+        if (filterQuery.Matches(tree->GetItemText(item))) {
             return true;
         }
     }
@@ -2176,7 +2177,7 @@ bool PixelTestDialog::PruneTree(wxTreeListCtrl* tree, const wxTreeListItem& item
         // own, but must not be deleted here or the branch loses its expander.
         if (tree->GetItemText(child) == "Dummy") {
             // leave it; if the parent ends up pruned it goes with it
-        } else if (PruneTree(tree, child, filterLower)) {
+        } else if (PruneTree(tree, child, filterQuery)) {
             anyKept = true;
         } else {
             // Free this pruned subtree once: release the dual-owned children to

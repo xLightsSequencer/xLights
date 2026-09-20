@@ -50,6 +50,8 @@ class wxStaticText;
 #include <map>
 #include <set>
 
+#include "shared/utils/wxUtilities.h"  // wxFilterQuery
+
 class xLightsFrame;
 class ModelPreview;
 class BaseObject;
@@ -766,15 +768,13 @@ class LayoutPanel: public wxPanel
         int GetColumnIndex(const std::string& name) const;
         wxSearchCtrl* ModelFilterCtrl = nullptr;
         wxString _filterString;
-        wxRegEx  _filterRegex;
-        bool     _filterRegexValid = false;
+        wxFilterQuery _filterQuery;
 
         wxSearchCtrl* GroupFilterCtrl = nullptr;
         wxString _groupFilterString;
-        wxRegEx  _groupFilterRegex;
-        bool     _groupFilterRegexValid = false;
+        wxFilterQuery _groupFilterQuery;
 
-        static bool MatchesFilter(Model* model, const wxString& filterString, const wxRegEx& filterRegex, bool filterRegexValid);
+        static bool MatchesFilter(Model* model, const wxString& filterString, const wxFilterQuery& query);
 
         class ModelListComparator : public wxTreeListItemComparator
         {

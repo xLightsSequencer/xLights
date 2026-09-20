@@ -240,14 +240,14 @@ ControllerListPanel::ControllerListPanel(wxWindow* parent, xLightsFrame* frame, 
     _controllerFilterCtrl = new wxSearchCtrl(this, ID_TEXTCTRL_CONTROLLER_FILTER,
         wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     _controllerFilterCtrl->SetDescriptiveText("Filter controllers...");
+    _controllerFilterCtrl->SetToolTip(wxFilterQuery::Hint());
     _controllerFilterCtrl->ShowCancelButton(true);
     _controllerFilterCtrl->Bind(wxEVT_TEXT_ENTER, &ControllerListPanel::OnControllerFilterTextChanged, this);
     _controllerFilterCtrl->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &ControllerListPanel::OnControllerFilterTextChanged, this);
     _controllerFilterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &ControllerListPanel::OnControllerFilterCancelBtn, this);
     _controllerFilterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
         _controllerFilterString = _controllerFilterCtrl->GetValue().Trim();
-        _controllerFilterRegex.Compile(_controllerFilterString, wxRE_ICASE);
-        _controllerFilterRegexValid = _controllerFilterRegex.IsValid();
+        _controllerFilterQuery = wxFilterQuery(_controllerFilterString);
         if (_controllerFilterString.IsEmpty()) {
             UpdateControllerList();
         }
@@ -517,14 +517,13 @@ bool ControllerListPanel::NetworkChangesAllowed() const {
 void ControllerListPanel::OnControllerFilterCancelBtn(wxCommandEvent& event) {
     _controllerFilterCtrl->SetValue("");
     _controllerFilterString = "";
-    _controllerFilterRegexValid = false;
+    _controllerFilterQuery = wxFilterQuery();
     UpdateControllerList();
 }
 
 void ControllerListPanel::OnControllerFilterTextChanged(wxCommandEvent& event) {
     _controllerFilterString = _controllerFilterCtrl->GetValue().Trim();
-    _controllerFilterRegex.Compile(_controllerFilterString, wxRE_ICASE);
-    _controllerFilterRegexValid = _controllerFilterRegex.IsValid();
+    _controllerFilterQuery = wxFilterQuery(_controllerFilterString);
     UpdateControllerList();
 }
 
@@ -541,19 +540,7 @@ void ControllerListPanel::OnFullColumnsClick(wxCommandEvent& event) {
 bool ControllerListPanel::ControllerMatchesFilter(const Controller* controller) const {
     if (_controllerFilterCtrl == nullptr || _controllerFilterString.IsEmpty()) return true;
 
-    wxArrayString terms = wxStringTokenize(_controllerFilterString.Lower(), " \t");
-    if (terms.size() <= 1) {
-        if (_controllerFilterRegexValid)
-            return _controllerFilterRegex.Matches(controller->GetName());
-        return wxString(controller->GetName()).Lower().Contains(_controllerFilterString.Lower());
-    }
-
-    const wxString name = wxString(controller->GetName()).Lower();
-    for (const auto& term : terms) {
-        if (!name.Contains(term))
-            return false;
-    }
-    return true;
+    return _controllerFilterQuery.Matches(controller->GetName());
 }
 
 void ControllerListPanel::OnSelectionChanged(wxTreeListEvent& event) {

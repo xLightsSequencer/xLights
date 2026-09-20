@@ -4519,8 +4519,9 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& even
     // if nothing found then find the first line containing the text
     if (index == -1)
     {
+        wxFilterQuery const query(from);
         for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i) {
-            if (ListCtrl_Available->GetItemText(i, 1).Lower().Contains(from)) {
+            if (query.Matches(ListCtrl_Available->GetItemText(i, 1))) {
                 index = i;
                 break;
             }
