@@ -878,16 +878,27 @@ void ControllerListPanel::OnPopup(wxCommandEvent& event) {
         omm->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, from);
     };
 
+    // Stamp the user's Default Max Brightness onto a freshly-added controller (0 == unset).
+    auto stampDefaultBrightness = [this](Controller* c) {
+        const int b = _frame->GetDefaultMaxBrightness();
+        if (b > 0 && c->SupportsDefaultBrightness()) {
+            c->SetDefaultBrightnessUnderFullControl(b);
+        }
+    };
+
     if (id == ID_CTRL_MNU_ADDSERIAL) {
         auto c = new ControllerSerial(om);
+        stampDefaultBrightness(c);
         om->AddController(c, insertAt);
         queueStandardWork("ControllerListPanel:ADDSERIAL", c);
     } else if (id == ID_CTRL_MNU_ADDETHERNET) {
         auto c = new ControllerEthernet(om);
+        stampDefaultBrightness(c);
         om->AddController(c, insertAt);
         queueStandardWork("ControllerListPanel:ADDETHERNET", c);
     } else if (id == ID_CTRL_MNU_ADDNULL) {
         auto c = new ControllerNull(om);
+        stampDefaultBrightness(c);
         om->AddController(c, insertAt);
         queueStandardWork("ControllerListPanel:ADDNULL", c);
     } else if (id == ID_CTRL_MNU_ACTIVE) {

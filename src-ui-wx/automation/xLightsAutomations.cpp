@@ -856,7 +856,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 }
             }
         }
-        
+        // Stamp the user's Default Max Brightness (0 == unset) now that the caps are known.
+        if (_defaultMaxBrightness > 0 && c->SupportsDefaultBrightness()) {
+            c->SetDefaultBrightnessUnderFullControl(_defaultMaxBrightness);
+        }
+
         _outputManager.AddController(c);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Automation:ADDETHERNET");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "Automation:ADDETHERNET");

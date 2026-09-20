@@ -1801,6 +1801,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsIgnoreVendorModelRecommendations2", &_ignoreVendorModelRecommendations, defVMR);
     spdlog::debug("Ignore vendor model recommendations: {}.", toStr(_ignoreVendorModelRecommendations));
 
+    config->Read("xLightsDefaultMaxBrightness", &_defaultMaxBrightness, 0);
     config->Read("xLightsControllerPingInterval", &_controllerPingInterval, 0);
     if (_controllerPingInterval > 0) {
         _pingTimer->Start(_controllerPingInterval * 1000);
@@ -2299,6 +2300,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsPromptBatchRenderIssues", _promptBatchRenderIssues);
     config->Write("xLightsIgnoreVendorModelRecommendations2", _ignoreVendorModelRecommendations);
     config->Write("xLightsControllerPingInterval", _controllerPingInterval);
+    config->Write("xLightsDefaultMaxBrightness", _defaultMaxBrightness);
     config->Write("xLightsPurgeDownloadCacheOnStart", _purgeDownloadCacheOnStart);
     config->Write("xLightsEnablePositionZones", _enablePositionZones);
     config->Write("xLightsShowZoneIndicator", _showZoneIndicator);
