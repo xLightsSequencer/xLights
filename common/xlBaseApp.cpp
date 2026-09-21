@@ -225,7 +225,18 @@ xlCrashHandler::xlCrashHandler(std::string const& appName) :
 
 
 
-void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const& msg)
+char const* xlCrashHandler::SessionTypeName(SessionType t)
+{
+    switch (t) {
+    case SessionType::MainLoopException:  return "exception-in-main-loop";
+    case SessionType::UnhandledException: return "unhandled-exception";
+    case SessionType::Assert:             return "assert";
+    case SessionType::Crash:              break;
+    }
+    return "crash";
+}
+
+void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const& msg, SessionType sessionType)
 {
     if (!isFatalException) {
         spdlog::warn("Non fatal exception: {}", msg);
@@ -394,7 +405,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
                 spdlog::critical("Exception while formatting the activity trace.");
             }
 
-            AddSessionMetadata(report, isFatalException, msg);
+            AddSessionMetadata(report, sessionType);
 
             std::string const logFilePath = GetLogFilePath().string();
             std::string const logFileName = GetLogFileName();
@@ -496,7 +507,7 @@ constexpr char const* PlatformToken() {
 }
 } // namespace
 
-void xlCrashHandler::AddSessionMetadata(wxDebugReportCompress& report, bool isFatalException, std::string const& msg)
+void xlCrashHandler::AddSessionMetadata(wxDebugReportCompress& report, SessionType sessionType)
 {
     try {
         // The banner, as a point-in-time snapshot. Recovering it from the log
@@ -527,13 +538,6 @@ void xlCrashHandler::AddSessionMetadata(wxDebugReportCompress& report, bool isFa
             }
         }
 
-        std::string sessionType = "crash";
-        if (isFatalException) {
-            sessionType = "unhandled-exception";
-        } else if (msg.rfind("Assert:", 0) == 0) {
-            sessionType = "assert";
-        }
-
         std::string json = "{\n";
         auto add = [&json](char const* key, std::string const& value, bool quoted = true) {
             json += fmt::format("  \"{}\": {}{}{},\n", key, quoted ? "\"" : "", quoted ? JsonEscape(value) : value, quoted ? "\"" : "");
@@ -548,7 +552,7 @@ void xlCrashHandler::AddSessionMetadata(wxDebugReportCompress& report, bool isFa
         add("bitness", wxPlatformInfo::Get().GetBitnessName().ToStdString());
         add("os_family", wxPlatformInfo::Get().GetOperatingSystemFamilyName().ToStdString());
         add("app_store", IsFromAppStore() ? "true" : "false", false);
-        add("session_type", sessionType);
+        add("session_type", SessionTypeName(sessionType));
         add("show_guid", showGuid);
         add("timestamp_utc", nowLocal.ToUTC().FormatISOCombined('T').ToStdString() + "Z");
         add("timestamp_local", nowLocal.FormatISOCombined('T').ToStdString());
@@ -569,7 +573,7 @@ void xlCrashHandler::HandleAssertFailure(wxChar const* file, int line, wxChar co
         << wxASCII_STR(" in ") << func << wxASCII_STR(" with message '")
         << msg << wxASCII_STR("'");
 
-    HandleCrash(false, assertMsg.ToStdString());
+    HandleCrash(false, assertMsg.ToStdString(), SessionType::Assert);
 }
 
 std::string xlCrashHandler::DescribeCurrentException()
@@ -581,7 +585,7 @@ std::string xlCrashHandler::DescribeCurrentException()
 
 void xlCrashHandler::HandleUnhandledException()
 {
-    HandleCrash(true, DescribeCurrentException());
+    HandleCrash(true, DescribeCurrentException(), SessionType::UnhandledException);
     wxAbort();
 }
 

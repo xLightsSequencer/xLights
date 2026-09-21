@@ -36,7 +36,8 @@ public:
 
     virtual bool OnExceptionInMainLoop() override
     {
-        HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException());
+        HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException(),
+                    SessionType::MainLoopException);
         return false;
     }
 

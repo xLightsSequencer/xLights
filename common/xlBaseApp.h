@@ -43,8 +43,21 @@ public:
 
     wxDebugReportCompress& GetDebugReport() const { return *m_report; }
     virtual xlFrame* GetTopWindow() = 0;
+    // What brought us here. `isFatalException` cannot answer this: it is true
+    // for a faulting signal, for an escaped exception in the main loop and for
+    // an unhandled one alike, so a plain segfault would report itself as an
+    // unhandled C++ exception.
+    enum class SessionType {
+        Crash,               // faulting signal / SEH - the ordinary case
+        MainLoopException,   // exception escaped into the main event loop
+        UnhandledException,  // exception escaped everything
+        Assert
+    };
+    static char const* SessionTypeName(SessionType t);
+
     void HandleAssertFailure(wxChar const* file, int line, wxChar const* func, wxChar const* cond, wxChar const* msg);
-    void HandleCrash(bool const isFatalException, std::string const& msg);
+    void HandleCrash(bool const isFatalException, std::string const& msg,
+                     SessionType sessionType = SessionType::Crash);
     void HandleUnhandledException();
     // Must be called from within a catch handler — rethrows and describes the in-flight exception.
     static std::string DescribeCurrentException();
@@ -101,7 +114,7 @@ private:
     // report - including the headless / no-top-window / main-thread-wedged
     // ones, which build the zip here rather than in CreateDebugReport and so
     // used to ship neither.
-    void AddSessionMetadata(wxDebugReportCompress& report, bool isFatalException, std::string const& msg);
+    void AddSessionMetadata(wxDebugReportCompress& report, SessionType sessionType);
 };
 
 class xlBaseApp : public wxApp, public xlCrashHandler
@@ -134,7 +147,8 @@ public:
 
     virtual bool OnExceptionInMainLoop() override
     {
-        HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException());
+        HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException(),
+                    SessionType::MainLoopException);
         return false;
     }
 
