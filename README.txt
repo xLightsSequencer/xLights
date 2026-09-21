@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (derwin12)              Added a keybinding for toggling the video preview panel and sort ability (#7091)
     -bug (derwin12)              Moving Head effects with a drawn Path and Cycles > 1 no longer glitch
                                  to a wild tilt/pan for one frame at each cycle repeat boundary (#7113)
     -bug (derwin12)              Selecting a controller no longer loses its yellow "models on this

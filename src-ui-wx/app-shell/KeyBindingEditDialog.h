@@ -32,6 +32,9 @@ class KeyBindingEditDialog : public wxDialog
     wxPropertyGrid* _propertyGrid = nullptr;
     xLightsFrame* _xLights = nullptr;
 
+    int _sortColumn = -1;
+    bool _sortAscending = true;
+
     void LoadList();
     void SetKeyBindingProperties();
     int GetSelectedKeyBindingIndex() const;
@@ -75,6 +78,7 @@ private:
     void OnListCtrl_BindingsItemSelect(wxListEvent& event);
     void OnListCtrl_BindingsKeyDown(wxListEvent& event);
     void OnListCtrl_BindingsDeleteItem(wxListEvent& event);
+    void OnListCtrl_BindingsColClick(wxListEvent& event);
     void OnButton_AddEffectClick(wxCommandEvent& event);
     void OnButtonAddApplySettingClick(wxCommandEvent& event);
     void OnButtonAddPresetClick(wxCommandEvent& event);
