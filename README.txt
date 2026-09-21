@@ -18,6 +18,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  dialog no longer exists
     -bug (dkulp)                 Fixed a crash rendering to a model whose node list changed while the
                                  render was running
+    -bug (dkulp)                 A Shader effect whose GPU resources cannot be created now renders yellow
+                                 like any other failed shader instead of terminating the app
     -bug (derwin12)              Moving Head effects with a drawn Path and Cycles > 1 no longer glitch
                                  to a wild tilt/pan for one frame at each cycle repeat boundary (#7113)
     -bug (derwin12)              Selecting a controller no longer loses its yellow "models on this
