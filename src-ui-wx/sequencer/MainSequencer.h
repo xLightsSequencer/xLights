@@ -97,6 +97,7 @@ class MainSequencer: public wxPanel
         void TouchButtonEvent(wxCommandEvent &event);
         void ToggleHousePreview();
         void ToggleModelPreview();
+        void ToggleVideoPreview();
         void TouchPlayControl(const std::string &event);
 
     //(*Declarations(MainSequencer)

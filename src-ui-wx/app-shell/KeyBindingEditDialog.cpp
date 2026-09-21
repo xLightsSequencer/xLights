@@ -18,6 +18,8 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/display.h>
 
+#include <algorithm>
+
 #include "KeyBindingEditDialog.h"
 #include "KeyBindings.h"
 #include "effects/EffectManager.h"
@@ -98,6 +100,7 @@ KeyBindingEditDialog::KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* 
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&KeyBindingEditDialog::OnListCtrl_BindingsItemSelect);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_ITEM_FOCUSED,(wxObjectEventFunction)&KeyBindingEditDialog::OnListCtrl_BindingsItemFocused);
 	Connect(ID_LISTCTRL1,wxEVT_COMMAND_LIST_KEY_DOWN,(wxObjectEventFunction)&KeyBindingEditDialog::OnListCtrl_BindingsKeyDown);
+	Connect(ID_LISTCTRL1,wxEVT_LIST_COL_CLICK,(wxObjectEventFunction)&KeyBindingEditDialog::OnListCtrl_BindingsColClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&KeyBindingEditDialog::OnButton_AddEffectClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&KeyBindingEditDialog::OnButtonAddPresetClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&KeyBindingEditDialog::OnButtonAddApplySettingClick);
@@ -378,33 +381,51 @@ void KeyBindingEditDialog::LoadList()
 	ListCtrl_Bindings->Freeze();
 	auto pos = ListCtrl_Bindings->GetScrollPos(wxVERTICAL);
 	ListCtrl_Bindings->DeleteAllItems();
-	for (const auto& it : _keyBindings->GetBindings())
+
+	std::vector<const KeyBinding*> bindings;
+	for (const auto& it : _keyBindings->GetBindings()) {
+		if (it.InScope(EncodeScope(Choice_Scope->GetStringSelection()))) {
+			bindings.push_back(&it);
+		}
+	}
+
+	if (_sortColumn == 0) {
+		std::stable_sort(bindings.begin(), bindings.end(), [this](const KeyBinding* a, const KeyBinding* b) {
+			return _sortAscending ? a->GetType() < b->GetType() : a->GetType() > b->GetType();
+		});
+	} else if (_sortColumn == 1) {
+		std::stable_sort(bindings.begin(), bindings.end(), [this](const KeyBinding* a, const KeyBinding* b) {
+			auto ka = KeyBinding::EncodeKey(a->GetKey(), a->RequiresShift());
+			auto kb = KeyBinding::EncodeKey(b->GetKey(), b->RequiresShift());
+			return _sortAscending ? ka < kb : ka > kb;
+		});
+	}
+
+	for (const auto* itp : bindings)
 	{
-		if (it.InScope(EncodeScope(Choice_Scope->GetStringSelection())))
+		const auto& it = *itp;
+		auto item = ListCtrl_Bindings->InsertItem(ListCtrl_Bindings->GetItemCount(), it.GetType());
+		ListCtrl_Bindings->SetItem(item, 1, it.EncodeKey(it.GetKey(), it.RequiresShift()));
+		ListCtrl_Bindings->SetItem(item, 2, it.RequiresControl() ? _("Y") : _(""));
+		ListCtrl_Bindings->SetItem(item, 3, it.RequiresAlt() ? _("Y") : _(""));
+		ListCtrl_Bindings->SetItem(item, 4, it.RequiresShift() ? _("Y") : _(""));
+        ListCtrl_Bindings->SetItem(item, 5, it.RequiresRawControl() ? _("Y") : _(""));
+		if (it.GetEffectName() != "" && it.GetEffectString() != "")
 		{
-			auto item = ListCtrl_Bindings->InsertItem(ListCtrl_Bindings->GetItemCount(), it.GetType());
-			ListCtrl_Bindings->SetItem(item, 1, it.EncodeKey(it.GetKey(), it.RequiresShift()));
-			ListCtrl_Bindings->SetItem(item, 2, it.RequiresControl() ? _("Y") : _(""));
-			ListCtrl_Bindings->SetItem(item, 3, it.RequiresAlt() ? _("Y") : _(""));
-			ListCtrl_Bindings->SetItem(item, 4, it.RequiresShift() ? _("Y") : _(""));
-            ListCtrl_Bindings->SetItem(item, 5, it.RequiresRawControl() ? _("Y") : _(""));
-			if (it.GetEffectName() != "" && it.GetEffectString() != "")
-			{
-				ListCtrl_Bindings->SetItem(item, 6, it.GetEffectName() + ":" + it.GetEffectString());
-			}
-			else if (it.GetEffectString() != "")
-			{
-				ListCtrl_Bindings->SetItem(item, 6, it.GetEffectString());
-			}
-			else if (it.GetEffectName() != "")
-			{
-				ListCtrl_Bindings->SetItem(item, 6, it.GetEffectName());
-			}
-			ListCtrl_Bindings->SetItemData(item, it.GetId());
-			if (it.GetKey() != WXK_NONE && _keyBindings->IsDuplicateKey(it))
-			{
-				ListCtrl_Bindings->SetItemTextColour(item, *wxRED);
-			}
+			ListCtrl_Bindings->SetItem(item, 6, it.GetEffectName() + ":" + it.GetEffectString());
+		}
+		else if (it.GetEffectString() != "")
+		{
+			ListCtrl_Bindings->SetItem(item, 6, it.GetEffectString());
+		}
+		else if (it.GetEffectName() != "")
+		{
+			ListCtrl_Bindings->SetItem(item, 6, it.GetEffectName());
+		}
+		ListCtrl_Bindings->SetItemData(item, it.GetId());
+		if (it.GetKey() != WXK_NONE && _keyBindings->IsDuplicateKey(it))
+		{
+			ListCtrl_Bindings->SetItemTextColour(item, *wxRED);
 		}
 	}
 	ListCtrl_Bindings->Thaw();
@@ -421,6 +442,20 @@ void KeyBindingEditDialog::OnChoice_ScopeSelect(wxCommandEvent& event)
 {
 	LoadList();
 	SetKeyBindingProperties();
+}
+
+void KeyBindingEditDialog::OnListCtrl_BindingsColClick(wxListEvent& event)
+{
+	int col = event.GetColumn();
+	if (col != 0 && col != 1) return; // only Type and Key are sortable
+
+	if (_sortColumn == col) {
+		_sortAscending = !_sortAscending;
+	} else {
+		_sortColumn = col;
+		_sortAscending = true;
+	}
+	LoadList();
 }
 
 void KeyBindingEditDialog::OnListCtrl_BindingsItemFocused(wxListEvent& event)
