@@ -414,6 +414,7 @@ void AddColorWheelProperties(wxPropertyGridInterface* grid, const DmxColorAbilit
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 512);
     p->SetEditor("SpinCtrl");
+    p->SetHelpString("Optional DMX channel that when set will enable the dimmer when a color is selected on the color wheel. Set to 0 if dimmer is set directly.");
 
     p = grid->Append(new wxUIntProperty("Color Wheel Delay(ms)", "DmxColorWheelDelay", color.GetWheelDelay()));
     p->SetAttribute("Min", 0);
