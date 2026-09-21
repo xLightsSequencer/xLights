@@ -712,6 +712,17 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
     m_sketchCanvasPanel->DrawGrid(true);
 
+    // Flags a path that crosses directly behind the fixture, where the pan/tilt
+    // fold used to reach the back hemisphere snaps 180 degrees mid-move. See
+    // MovingHeadEffect::CalculatePathPositions.
+    m_pathWarningText = new wxStaticText(PanelPathing, wxID_ANY,
+        "⚠ Path crosses behind the fixture - may cause a fast pan/tilt snap",
+        wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
+    m_pathWarningText->SetForegroundColour(*wxRED);
+    m_pathWarningText->Wrap(240);
+    FlexGridSizerPathCanvas->Add(m_pathWarningText, 0, wxALL | wxEXPAND, 2);
+    m_pathWarningText->Hide();
+
     m_rgbColorPanel = new MHRgbPickerPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(250, 250));
     FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
     PanelColor->Show();
@@ -1812,6 +1823,7 @@ void MovingHeadPanel::OnTextCtrlUpdated(wxCommandEvent& event)
                     selected_path = -1;
                 }
             }
+            UpdatePathBehindWarning();
         }
     }
     else if (event_id == IDD_TEXTCTRL_MHPan ||
@@ -2130,6 +2142,7 @@ void MovingHeadPanel::UpdatePathSettings()
             }
         }
     }
+    UpdatePathBehindWarning();
 }
 
 void MovingHeadPanel::UpdatePatternSettings()
@@ -3238,6 +3251,42 @@ void MovingHeadPanel::NotifySketchPathsUpdated()
 
 void MovingHeadPanel::NotifyPathStateUpdated(SketchCanvasPathState state)
 {
+}
+
+// Samples the current path across its full progress range using the same
+// math the renderer uses (MovingHeadEffect::CalculatePathPositions) and
+// flags a large frame-to-frame pan swing as a sign the path crosses directly
+// behind the fixture - see the "adjust pan if pointed backwards" branch
+// there for why that direction is a singularity in the pan/tilt fold.
+void MovingHeadPanel::UpdatePathBehindWarning()
+{
+    if (m_pathWarningText == nullptr) return;
+
+    bool warn = false;
+    if (m_sketch.getLength() > 0.0) {
+        float path_scale = (Slider_MHPathScale != nullptr) ? (float)Slider_MHPathScale->GetValue() : 0.0f;
+        const int NUM_SAMPLES = 100;
+        float prev_pan = 0.0f;
+        for (int i = 0; i <= NUM_SAMPLES && !warn; ++i) {
+            double progress = (double)i / (double)NUM_SAMPLES;
+            float pan_pos = 0.0f;
+            float tilt_pos = 0.0f;
+            MovingHeadEffect::CalculatePathPositions(true, true, pan_pos, tilt_pos, 0.0f, path_scale, 0.0f, progress, m_sketchDef);
+            // A smoothly-moving path can't legitimately jump pan this far between
+            // adjacent samples - this only happens at the fold's singularity.
+            if (i > 0 && std::fabs(pan_pos - prev_pan) > 45.0f) {
+                warn = true;
+            }
+            prev_pan = pan_pos;
+        }
+    }
+
+    if (m_pathWarningText->IsShown() != warn) {
+        m_pathWarningText->Show(warn);
+        if (m_pathWarningText->GetParent() != nullptr) {
+            m_pathWarningText->GetParent()->Layout();
+        }
+    }
 }
 
 void MovingHeadPanel::SelectLastPath()
