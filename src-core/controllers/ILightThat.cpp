@@ -59,10 +59,11 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     spdlog::debug("ILightThat Outputs Upload: Uploading to {}", (const char*)_ip.c_str());
 
     std::unordered_map<std::string, int> model_test_cols = {};
+    nlohmann::json jsonVal;
     std::string const json = GetURL("/settings");
     if (!json.empty()) {
         try {
-            nlohmann::json jsonVal = nlohmann::json::parse(json);
+            jsonVal = nlohmann::json::parse(json);
             if (jsonVal["ports"].is_array()) {
                 for (int i = 0; i < (int)jsonVal["ports"].size(); i++) {
                     if (jsonVal["ports"][i].contains("models")) {
@@ -104,8 +105,28 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             outputConfig["channels_per_universe"] = 510;
         }
         //GetOutputConfig(outputConfig);
-        for (int x = 0; x < cud.GetMaxPixelPort(); x++) {
-            UDControllerPort* port = cud.GetControllerPixelPort(x + 1);
+
+        // We're not actually using these as serial port - temp stand-in for relays
+        for (int x = 0; x < cud.GetMaxSerialPort(); x++) {
+            UDControllerPort* port = cud.GetControllerSerialPort(x + 1);
+            std::string const proto = port->GetProtocol();
+
+            outputConfig["ports"][x]["num_pixels"] = port->Pixels();
+
+            int i = 0;
+            for (auto model : port->GetModels()) {
+                outputConfig["ports"][x]["models"][i]["name"] = model->GetName();
+                outputConfig["ports"][x]["models"][i]["brightness"] = 100;
+                outputConfig["ports"][x]["models"][i]["start_channel"] = model->GetStartChannel() - port->GetFirstModel()->GetStartChannel();
+                outputConfig["ports"][x]["models"][i]["num_channels"] = (model->GetEndChannel() - model->GetStartChannel()) + 1;
+                outputConfig["ports"][x]["models"][i]["colour_order"] = std::string("RGB");
+                i++;
+            }
+        }
+
+        int relay_ports = controller->GetControllerCaps()->GetMaxSerialPort();
+        for (int x = 0 + relay_ports; x < cud.GetMaxPixelPort() + relay_ports; x++) {
+            UDControllerPort* port = cud.GetControllerPixelPort((x - relay_ports) + 1);
             std::string const proto = port->GetProtocol();
             outputConfig["ports"][x]["num_pixels"] = port->Pixels();
 
@@ -144,8 +165,8 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
             }
         }
 
-        for (int i = cud.GetMaxPixelPort(); i < controller->GetControllerCaps()->GetMaxPixelPort(); i++) {
-            outputConfig["ports"][i]["port_type"] = std::string("Pixel");
+        for (int i = 0; i < jsonVal["ports"].size(); i++) {
+            outputConfig["ports"][i]["port_type"] = jsonVal["ports"][i]["port_type"];
         }
 
         std::string const response = PutURL("/settings", outputConfig.dump(), "", "", "application/json");
