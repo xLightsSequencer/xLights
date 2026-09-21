@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -change (dkulp)              Crash reports from ARM Linux machines now name the CPU (the board
+                                 name, e.g. "Raspberry Pi 5 Model B Rev 1.0") and report a real
+                                 physical core count instead of zero
     -enh (derwin12)              Added a keybinding for toggling the video preview panel and sort ability (#7091)
     -change (dkulp)              Crash reports now always carry the machine configuration and a
                                  report.json describing the report, and the configuration banner
