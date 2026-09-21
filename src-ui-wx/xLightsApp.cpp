@@ -393,15 +393,12 @@ void DumpConfig()
 
     emit("Machine configuration:");
     emit("  Total memory: " + std::to_string(GetPhysicalMemorySizeMB()) + " MB");
-    wxMemorySize s = wxGetFreeMemory();
-    if (s != -1)
-    {
-#if wxUSE_LONGLONG
-        wxString msg = wxString::Format(_T("  Free Memory: %" wxLongLongFmtSpec "d."), s);
-#else
-        wxString msg = wxString::Format(_T("  Free Memory: %ld."), s);
-#endif
-        emit(msg.ToStdString());
+    // Same unit and shape as Total memory. wxGetFreeMemory reported raw bytes
+    // with a trailing period, and returns -1 on macOS, so the line was both
+    // differently scaled from the one above it and missing on a third of the
+    // reports.
+    if (uint64_t freeMB = GetFreeMemorySizeMB(); freeMB > 0) {
+        emit("  Free Memory: " + std::to_string(freeMB) + " MB");
     }
     emit("  Current directory: " + std::string(wxGetCwd().c_str()));
     emit("  Machine name: " + std::string(wxGetHostName().c_str()));
@@ -434,10 +431,18 @@ void DumpConfig()
     if (!cpuBrand.empty()) {
         emit(fmt::format("  CPU: {}", cpuBrand));
     }
-    emit(fmt::format("  CPU cores: {} physical, {} logical", GetPhysicalCoreCount(), GetLogicalCoreCount()));
-    std::string gpu = GetGPUDescription();
-    if (!gpu.empty()) {
+    emit(fmt::format("  CPU cores: physical={} logical={}", GetPhysicalCoreCount(), GetLogicalCoreCount()));
+    // One line per adapter, each a set of key=value fields - see
+    // GetGPUDescriptions(). A machine with two GPUs used to be one
+    // semicolon-separated line whose per-adapter fields had to be split back
+    // apart before anything could be read out of them.
+    for (const std::string& gpu : GetGPUDescriptions()) {
         emit(fmt::format("  GPU: {}", gpu));
+    }
+    if (!xlGraphicsCapability::Instance().HasHardwareAdapter()) {
+        // Kept as one greppable token, now under a key of its own rather than
+        // appended to the end of the adapter line.
+        emit("  GPU Status: NO HARDWARE GPU ADAPTER");
     }
 
     // Display geometry and scale: HiDPI scaling, a GL context landing on the
@@ -457,16 +462,30 @@ void DumpConfig()
         displayQuery.push_back({ wxDisplay(i).GetName().ToStdString(),
                                  g.GetX(), g.GetY(), g.GetWidth(), g.GetHeight() });
     }
-    std::vector<std::string> refreshInfo = GetDisplayRefreshInfo(displayQuery);
+    std::vector<xlDisplayRefresh> refreshInfo = GetDisplayRefreshInfo(displayQuery);
     emit(fmt::format("  Displays: {}", displayCount));
     for (unsigned i = 0; i < displayCount; ++i) {
         wxDisplay d(i);
         wxRect g = d.GetGeometry();
+        xlDisplayRefresh r = i < refreshInfo.size() ? refreshInfo[i] : xlDisplayRefresh();
+        if (!r.known()) {
+            r.rate = d.GetCurrentMode().GetRefresh();
+        }
+        // rate / rate_max / vrr as separate fields: the single string these
+        // replace ("59Hz (up to 60Hz at this resolution)", "120Hz variable
+        // 24-120Hz") repeated its own bounds, so reading the first number out
+        // of it gave the wrong nominal rate on a variable-refresh panel.
         std::string refresh;
-        if (i < refreshInfo.size() && !refreshInfo[i].empty()) {
-            refresh = " " + refreshInfo[i];
-        } else if (int hz = d.GetCurrentMode().GetRefresh(); hz > 0) {
-            refresh = fmt::format(" {}Hz", hz);
+        if (r.rate > 0) {
+            refresh = fmt::format(" rate={}", r.rate);
+            if (r.rateMax > 0) {
+                refresh += fmt::format(" rate_max={}", r.rateMax);
+            }
+        }
+        if (r.vrrMin > 0 && r.vrrMax > 0) {
+            refresh += fmt::format(" vrr={}-{}", r.vrrMin, r.vrrMax);
+        } else if (r.vrrCapable) {
+            refresh += " vrr=capable";
         }
         emit(fmt::format("    Display {}: {}x{} at {},{} scale {:.2f}{}{}",
                          i, g.GetWidth(), g.GetHeight(), g.GetX(), g.GetY(),

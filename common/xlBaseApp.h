@@ -14,6 +14,7 @@
 #include <string>
 
 #include <wx/app.h>
+#include <wx/datetime.h>
 #include <wx/debugrpt.h>
 #include <wx/frame.h>
 
@@ -48,7 +49,13 @@ public:
     // Must be called from within a catch handler — rethrows and describes the in-flight exception.
     static std::string DescribeCurrentException();
     void ProcessCrashReport(SendReportOptions sendType);
-    static void SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report);
+    // `fileName` is the upload name; empty asks SendReport to derive one, which
+    // only the manual paths need - a crash report names itself in HandleCrash
+    // so report.json and the zip agree on the timestamp.
+    static void SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report,
+                           std::string const& fileName = std::string());
+    // The zip's own name, as the server will see it: <app>-<osfamily>[_<arch>]_<version>_<stamp>.zip
+    static std::string BuildUploadFileName(std::string const& appName, wxDateTime const& when, int millis);
     static void SetupCrashHandlerForNonWxThread();
 
     // Records the last few hundred dispatched events and any notes the app
@@ -86,6 +93,15 @@ private:
     // report out from under the thread still using it.
     bool m_crashReportStarted = false;
     wxDebugReportCompress* m_report;
+    // Named in HandleCrash so the name inside report.json is the name the
+    // report is actually uploaded under.
+    std::string m_uploadFileName;
+
+    // machine_config.txt and report.json, added on every path that produces a
+    // report - including the headless / no-top-window / main-thread-wedged
+    // ones, which build the zip here rather than in CreateDebugReport and so
+    // used to ship neither.
+    void AddSessionMetadata(wxDebugReportCompress& report, bool isFatalException, std::string const& msg);
 };
 
 class xlBaseApp : public wxApp, public xlCrashHandler

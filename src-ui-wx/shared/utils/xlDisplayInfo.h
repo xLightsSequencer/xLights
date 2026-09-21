@@ -35,9 +35,23 @@ struct xlDisplayQuery {
     int height = 0;
 };
 
-// One entry per input display, in the same order. An entry is empty when
+// Structured rather than pre-formatted: the old single string mixed the
+// current rate with the panel's capability ("59Hz (up to 60Hz at this
+// resolution)", "120Hz variable 24-120Hz"), so reading the first number
+// naively gave 24 as the nominal rate on a ProMotion panel.
+struct xlDisplayRefresh {
+    int rate = 0;             // current nominal rate in Hz; 0 = not determined
+    int rateMax = 0;          // best available at the CURRENT resolution; 0 = unknown
+    int vrrMin = 0;           // variable-refresh range in Hz, when the range is known
+    int vrrMax = 0;
+    bool vrrCapable = false;  // variable refresh reported, but with no range attached
+
+    bool known() const { return rate > 0; }
+};
+
+// One entry per input display, in the same order. An entry has rate 0 when
 // nothing could be determined, which leaves the caller on wxDisplay's number.
-std::vector<std::string> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays);
+std::vector<xlDisplayRefresh> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays);
 
 // Adapter-level, Windows only: whether DXGI allows presenting outside vblank,
 // which is the flag a variable-refresh (G-Sync / FreeSync) present path gates

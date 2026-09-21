@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -change (dkulp)              Crash reports now always carry the machine configuration and a
+                                 report.json describing the report, and the configuration banner
+                                 uses one labelled field per fact
     -bug (dkulp)                 Fixed a crash when changing a named preview's background image,
                                  brightness, transparency or fill after the preview it belonged to was
                                  deleted or a different show folder was opened

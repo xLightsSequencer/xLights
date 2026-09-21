@@ -235,7 +235,11 @@ void xlGraphicsCapability::RecordGL(const char* version, const char* renderer, c
         _glRecorded = true;
         _glMajor = (version != nullptr && version[0] >= '0' && version[0] <= '9') ? version[0] - '0' : -1;
     }
-    AppendMachineConfig(fmt::format("  OpenGL: {} ({}) ({})",
+    // Fielded rather than parenthesised: renderer and vendor strings contain
+    // their own parentheses ("Intel(R) UHD Graphics 630", "llvmpipe (LLVM
+    // 19.1.1, 256 bits)"), so the old form could only be read by counting
+    // nesting depth right-to-left. " | " appears in none of them.
+    AppendMachineConfig(fmt::format("  OpenGL: version={} | renderer={} | vendor={}",
                                     version ? version : "?",
                                     renderer ? renderer : "?",
                                     vendor ? vendor : "?"));
@@ -246,16 +250,20 @@ void xlGraphicsCapability::RecordGLInitFailed() {
         std::unique_lock<std::mutex> lock(_lock);
         _glFailed = true;
     }
-    AppendMachineConfig("  OpenGL: shared context init FAILED - previews will not draw");
+    // Its own key: "OpenGL:" means "here is the device", and a reader should
+    // never have to sniff the value to find out which of the two it got.
+    AppendMachineConfig("  OpenGL Status: shared context init FAILED - previews will not draw");
 }
 
 void xlGraphicsCapability::RecordVulkan(const std::string& deviceName, int deviceType, bool computeUsable) {
-    AppendMachineConfig(fmt::format("  Vulkan: {} (type {}){}", deviceName, deviceType,
-                                    computeUsable ? "" : " - CPU implementation, compute effects stay on the CPU"));
+    AppendMachineConfig(fmt::format("  Vulkan: device={} | type={}", deviceName, deviceType));
+    if (!computeUsable) {
+        AppendMachineConfig("  Vulkan Note: CPU implementation, compute effects stay on the CPU");
+    }
 }
 
 void xlGraphicsCapability::RecordNoVulkanDevice() {
-    AppendMachineConfig("  Vulkan: no usable device");
+    AppendMachineConfig("  Vulkan Status: no usable device");
 }
 
 xlGraphicsHealth xlGraphicsCapability::Health() {
@@ -281,37 +289,28 @@ xlGraphicsHealth xlGraphicsCapability::Health() {
     return xlGraphicsHealth::OK;
 }
 
-std::string xlGraphicsCapability::DescribeAdapters() {
+std::vector<std::string> xlGraphicsCapability::DescribeAdapters() {
     std::unique_lock<std::mutex> lock(_lock);
     probe();
-    if (_adapters.empty()) {
-        return "";
-    }
-    std::string result;
-    bool anyHardware = false;
+    std::vector<std::string> result;
     for (auto const& a : _adapters) {
-        anyHardware = anyHardware || !a.software;
-        if (!result.empty()) {
-            result += "; ";
-        }
-        result += a.name;
-        result += fmt::format(" [{:04x}:{:04x}]", a.vendorId, a.deviceId);
+        std::string line = "name=" + a.name;
+        line += fmt::format(" | pci={:04x}:{:04x}", a.vendorId, a.deviceId);
         if (a.memoryKnown) {
-            result += fmt::format(" {}MB", a.dedicatedVideoMemoryMB);
+            line += fmt::format(" | memory={}MB", a.dedicatedVideoMemoryMB);
         }
         if (!a.driver.empty()) {
-            result += fmt::format(" ({})", a.driver);
+            line += " | driver=" + a.driver;
         }
         if (a.software) {
-            result += " (software)";
+            line += " | class=software";
         }
-    }
-    if (!anyHardware) {
-        // A single greppable token: this is the state we want to be able to
-        // count across crash reports, and "software" alone also appears on
-        // healthy machines that merely enumerate the Basic Render Driver
-        // alongside a real GPU.
-        result += " -- NO HARDWARE GPU ADAPTER";
+        // DXGI can enumerate one physical adapter more than once (per output
+        // group, or per LUID after a driver restart); reports listing the same
+        // card twice were the enumeration, not two cards.
+        if (std::find(result.begin(), result.end(), line) == result.end()) {
+            result.push_back(line);
+        }
     }
     return result;
 }
@@ -322,7 +321,7 @@ std::string xlGraphicsCapability::DescribeAdapters() {
 // is a duplicate symbol, and a platform that probes but is not listed here
 // silently reports nothing at all.
 #if defined(_WIN32) || defined(__linux__)
-std::string GetGPUDescription() {
+std::vector<std::string> GetGPUDescriptions() {
     return xlGraphicsCapability::Instance().DescribeAdapters();
 }
 #endif

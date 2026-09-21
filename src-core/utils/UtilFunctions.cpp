@@ -658,7 +658,19 @@ uint64_t GetPhysicalMemorySizeMB() {
     sysctl(mib, 2, &ret, &length, NULL, 0);
     ret /= 1024; // -> KB
 #elif defined(_WIN32)
-    GetPhysicallyInstalledSystemMemory(&ret);
+    // GetPhysicallyInstalledSystemMemory reads the SMBIOS memory-device table
+    // and fails outright when a machine (commonly a VM) does not populate it,
+    // leaving ret untouched - which is how crash banners ended up reporting
+    // "Total memory: 0 MB". GlobalMemoryStatusEx asks the memory manager
+    // instead and always answers; it reports usable rather than installed
+    // RAM, which is the better number to be wrong about.
+    if (!GetPhysicallyInstalledSystemMemory(&ret) || ret == 0) {
+        MEMORYSTATUSEX ms;
+        ms.dwLength = sizeof(ms);
+        if (::GlobalMemoryStatusEx(&ms)) {
+            ret = ms.ullTotalPhys / 1024;
+        }
+    }
     // already in KB
 #else
     ret = get_phys_pages();
@@ -667,6 +679,37 @@ uint64_t GetPhysicalMemorySizeMB() {
 #endif
     ret /= 1024; // -> MB
     return ret;
+}
+
+uint64_t GetFreeMemorySizeMB() {
+#if defined(_WIN32)
+    MEMORYSTATUSEX ms;
+    ms.dwLength = sizeof(ms);
+    if (::GlobalMemoryStatusEx(&ms)) {
+        return ms.ullAvailPhys / (1024 * 1024);
+    }
+    return 0;
+#elif defined(__APPLE__)
+    // Free pages alone badly understate what is available - macOS keeps most
+    // of RAM in the inactive and purgeable lists, both of which it will hand
+    // over on demand.
+    vm_size_t pageSize = 0;
+    if (host_page_size(mach_host_self(), &pageSize) != KERN_SUCCESS) {
+        return 0;
+    }
+    vm_statistics64_data_t vmstat;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    if (host_statistics64(mach_host_self(), HOST_VM_INFO64, (host_info64_t)&vmstat, &count) != KERN_SUCCESS) {
+        return 0;
+    }
+    uint64_t pages = (uint64_t)vmstat.free_count + vmstat.inactive_count + vmstat.purgeable_count;
+    return (pages * (uint64_t)pageSize) / (1024 * 1024);
+#elif defined(__linux__)
+    uint64_t pages = (uint64_t)get_avphys_pages();
+    return (pages * (uint64_t)getpagesize()) / (1024 * 1024);
+#else
+    return 0;
+#endif
 }
 
 uint64_t GetProcessMemoryUsageMB() {
@@ -822,8 +865,8 @@ int GetPhysicalCoreCount() {
 // Complementary to the guard in xlGraphicsCapability.cpp, which owns every
 // platform whose adapters can actually be enumerated.
 #if !defined(__APPLE__) && !defined(_WIN32) && !defined(__linux__)
-std::string GetGPUDescription() {
-    return "";
+std::vector<std::string> GetGPUDescriptions() {
+    return {};
 }
 #endif
 

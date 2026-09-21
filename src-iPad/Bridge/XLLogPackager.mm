@@ -14,6 +14,7 @@
 
 #include "utils/Parallel.h"
 #include "utils/RangeWorkPool.h"
+#include "utils/ShowGuid.h"
 #include "utils/ShowRedactor.h"
 #include "utils/TraceLog.h"
 #include "utils/UtilFunctions.h"
@@ -88,10 +89,9 @@ NSString* DeviceInfoText() {
     if (!cpuBrand.empty()) {
         [s appendFormat:@"CPU: %s\n", cpuBrand.c_str()];
     }
-    [s appendFormat:@"CPU cores: %d physical, %d logical\n",
+    [s appendFormat:@"CPU cores: physical=%d logical=%d\n",
         GetPhysicalCoreCount(), GetLogicalCoreCount()];
-    std::string gpu = GetGPUDescription();
-    if (!gpu.empty()) {
+    for (const std::string& gpu : GetGPUDescriptions()) {
         [s appendFormat:@"GPU: %s\n", gpu.c_str()];
     }
     UIScreen* screen = [UIScreen mainScreen];
@@ -275,6 +275,49 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
              atomically:YES
                encoding:NSUTF8StringEncoding
                   error:nil];
+    }
+
+    // 4b. The same report.json the desktop crash handler writes: the metadata
+    //     a consumer would otherwise have to recover by parsing the upload
+    //     filename. `platform` in particular is a token this code chooses,
+    //     never a name the OS or the toolkit picks and is free to change.
+    {
+        NSDateFormatter* iso = [[NSDateFormatter alloc] init];
+        iso.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+        iso.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
+        iso.timeZone = [NSTimeZone timeZoneWithAbbreviation:@"UTC"];
+        NSDictionary* info = [NSBundle mainBundle].infoDictionary ?: @{};
+        std::string showGuid;
+        if (document.showFolderPath.length > 0) {
+            showGuid = ShowGuid::ReadFromShowFolder(document.showFolderPath.UTF8String);
+        }
+#if TARGET_CPU_ARM64
+        NSString* arch = @"arm64";
+#elif TARGET_CPU_X86_64
+        NSString* arch = @"x86_64";
+#else
+        NSString* arch = @"unknown";
+#endif
+        NSDictionary* meta = @{
+            @"schema": @1,
+            @"app": @"xLights-iPad",
+            @"platform": @"ipad",
+            @"version": (info[@"CFBundleShortVersionString"] ?: @""),
+            @"build": (info[@"CFBundleVersion"] ?: @""),
+            @"arch": arch,
+            @"device": DeviceModelIdentifier(),
+            @"os_version": [[UIDevice currentDevice] systemVersion],
+            // The share-sheet package is the user asking for their own logs;
+            // the staged one leaves on its own after a crash, hang or spike.
+            @"session_type": includeUserContent ? @"package" : @"diagnostics",
+            @"show_guid": [NSString stringWithUTF8String:showGuid.c_str()],
+            @"timestamp_utc": [iso stringFromDate:[NSDate date]],
+        };
+        NSData* json = [NSJSONSerialization dataWithJSONObject:meta
+                                                       options:NSJSONWritingPrettyPrinted
+                                                         error:nil];
+        [json writeToFile:[stagingDir.path stringByAppendingPathComponent:@"report.json"]
+               atomically:YES];
     }
 
     // 5. Zip via NSFileCoordinator. .forUploading hands back a
