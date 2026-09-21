@@ -706,6 +706,9 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             else if (type == "HOUSE_PREVIEW_TOGGLE") {
                 ToggleHousePreview();
             }
+            else if (type == "VIDEO_PREVIEW_TOGGLE") {
+                ToggleVideoPreview();
+            }
             else if (type == "EFFECTS_TOGGLE") {
                 wxCommandEvent e;
                 xLightsApp::GetFrame()->ShowHideEffectDropper(e);
@@ -1225,6 +1228,13 @@ void MainSequencer::ToggleModelPreview() {
     if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr) {
         wxCommandEvent event;
         xLightsApp::GetFrame()->ShowHideModelPreview(event);
+    }
+}
+
+void MainSequencer::ToggleVideoPreview() {
+    if (mSequenceElements != nullptr && xLightsApp::GetFrame() != nullptr) {
+        wxCommandEvent event;
+        xLightsApp::GetFrame()->OnMenuItemShowHideVideoPreview(event);
     }
 }
 

@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (derwin12)              Added a keybinding for toggling the video preview panel and sort ability (#7091)
     -change (dkulp)              Crash reports now always carry the machine configuration and a
                                  report.json describing the report, and the configuration banner
                                  uses one labelled field per fact
