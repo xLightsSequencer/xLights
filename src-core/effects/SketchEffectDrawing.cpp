@@ -730,20 +730,35 @@ double SketchEffectSketch::getLength()
 
 void SketchEffectSketch::getProgressPosition( double progress, double& x, double& y )
 {
+    x = 0.0;
+    y = 0.0;
+    if (m_paths.empty()) return;
+
     double totalLength = 0.;
     for (const auto& path : m_paths)
         totalLength += path->Length();
     double targetLength = progress * totalLength;
 
-    for (const auto& path : m_paths)
+    for (size_t pi = 0; pi < m_paths.size(); ++pi)
     {
-        if( path->Length() >= targetLength ) {
-            for(const auto& segment : path->segments() ) {
-                if( segment->Length() >= targetLength ) {
-                    segment->getProgressPosition( targetLength, x, y );
+        const auto& path = m_paths[pi];
+        bool lastPath = pi + 1 == m_paths.size();
+        // Use the last path/segment unconditionally as the final fallback rather than
+        // relying on the >= comparison to trigger - floating-point rounding in the
+        // targetLength subtractions below can leave it a hair above the true remaining
+        // length even at progress==1.0, which would otherwise fall through every
+        // segment and return the caller's un-set (x, y).
+        if( lastPath || path->Length() >= targetLength ) {
+            const auto& segments = path->segments();
+            for (size_t si = 0; si < segments.size(); ++si) {
+                const auto& segment = segments[si];
+                bool lastSegment = lastPath && si + 1 == segments.size();
+                double segLength = segment->Length();
+                if( lastSegment || segLength >= targetLength ) {
+                    segment->getProgressPosition( std::min(targetLength, segLength), x, y );
                     return;
                 } else {
-                    targetLength -= segment->Length();
+                    targetLength -= segLength;
                 }
             }
         } else {
