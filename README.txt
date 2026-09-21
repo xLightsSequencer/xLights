@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fixed a crash when changing a named preview's background image,
                                  brightness, transparency or fill after the preview it belonged to was
                                  deleted or a different show folder was opened
+    -bug (dkulp)                 Fixed a crash importing submodels when the model chosen in the import
+                                 dialog no longer exists
     -bug (derwin12)              Moving Head effects with a drawn Path and Cycles > 1 no longer glitch
                                  to a wild tilt/pan for one frame at each cycle repeat boundary (#7113)
     -bug (derwin12)              Selecting a controller no longer loses its yellow "models on this

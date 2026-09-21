@@ -919,6 +919,9 @@ void SubModelsPanel::OnImportBtnPopup(wxCommandEvent& event)
         wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
         if (dlg.ShowModal() == wxID_OK) {
             Model *m = xlights->GetModel(dlg.GetStringSelection());
+            if (m == nullptr) {
+                return;
+            }
             // Convert SubModel objects directly to SubModelImportData
             std::vector<XmlSerialize::SubModelImportData> subModels;
             const std::vector<Model*>& sourceSubModels = m->GetSubModels();
