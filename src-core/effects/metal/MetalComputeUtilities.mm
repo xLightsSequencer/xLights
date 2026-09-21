@@ -883,6 +883,10 @@ void MetalRenderBufferComputeData::bufferResized() {
     ownerStale = true;
     int indexCount = renderBuffer->Nodes.size();
     for (auto &n : renderBuffer->Nodes) {
+        // Nodes can be null here for the same reason PixelBufferClass::GetColors
+        // skips them: the model's node list is rebuilt while render workers hold
+        // the buffer, so a slot can be empty mid-walk.
+        if (n == nullptr) continue;
         if (n->Coords.size() > 1) {
             indexCount += n->Coords.size() + 1;
         }
@@ -911,6 +915,11 @@ void MetalRenderBufferComputeData::bufferResized() {
     int idx = 0;
     int extraIdx = renderBuffer->Nodes.size();
     for (auto &n : renderBuffer->Nodes) {
+        if (n == nullptr) {
+            indexes[idx] = -1;
+            ++idx;
+            continue;
+        }
         if (n->Coords.size() > 1) {
             indexes[idx] = extraIdx | 0x80000000;
             int countIdx = extraIdx++;
