@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <cctype>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -22,6 +23,7 @@
 //   separators optional  "allhouse"    matches  grp_all_house_display
 //   wildcards            "grp_*_house" matches  grp_all_house_display
 //                        "h?use"       matches  grp_all_house_display
+//   regex                "/^grp_.*display$/"
 //
 // Build a FilterQuery once per keystroke and reuse it for every row -- parsing
 // it per row is what makes a filter feel slow on a large show.
@@ -108,6 +110,17 @@ namespace xl
         }
     }
 
+    // An explicit /pattern/ is a regular expression; anything else is words and
+    // wildcards, so a name full of regex punctuation is not treated as one.
+    inline bool AsRegexPattern(const std::string& query, std::string& pattern)
+    {
+        if (query.size() < 2 || query.front() != '/' || query.back() != '/') {
+            return false;
+        }
+        pattern = query.substr(1, query.size() - 2);
+        return !pattern.empty();
+    }
+
     class FilterQuery
     {
     public:
@@ -115,6 +128,18 @@ namespace xl
 
         explicit FilterQuery(const std::string& query)
         {
+            std::string pattern;
+            if (AsRegexPattern(query, pattern)) {
+                try {
+                    _regex = std::regex(pattern, std::regex::ECMAScript | std::regex::icase);
+                    _isRegex = true;
+                    return;
+                } catch (const std::regex_error&) {
+                    // Half-typed pattern: fall through to plain matching so the
+                    // list does not blank out on every keystroke.
+                }
+            }
+
             std::string const lowered = filter_detail::ToLower(query);
             std::string current;
             for (char c : lowered) {
@@ -136,11 +161,21 @@ namespace xl
 
         [[nodiscard]] bool IsEmpty() const
         {
-            return _tokens.empty();
+            return !_isRegex && _tokens.empty();
+        }
+
+        // The caller case-folds the subject for the token path; a pattern and
+        // its subject must be left alone.
+        [[nodiscard]] bool IsRegex() const
+        {
+            return _isRegex;
         }
 
         [[nodiscard]] bool Matches(const std::string& text) const
         {
+            if (_isRegex) {
+                return std::regex_search(text, _regex);
+            }
             if (_tokens.empty()) {
                 return true;
             }
@@ -211,6 +246,8 @@ namespace xl
         }
 
         std::vector<Token> _tokens;
+        std::regex _regex;
+        bool _isRegex = false;
     };
 
     // One-off convenience. Prefer building a FilterQuery when filtering a list.

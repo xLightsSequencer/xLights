@@ -17,7 +17,6 @@
 #include "utils/AppCallbacks.h"
 
 #include <wx/string.h>
-#include <wx/regex.h>
 #include <wx/intl.h>   // _()
 #include <wx/event.h>    // wxDECLARE_EVENT, wxCommandEvent
 #include <wx/gdicmn.h>   // wxPoint, wxSize
@@ -182,9 +181,10 @@ wxString GetOSFormattedClipboardData();
 // ImageFilePickerCtrl — needs full wx/filepicker.h for inheritance
 #include <wx/filepicker.h>
 
-// wxString front end for the shared filter matching (xl::FilterQuery), plus the
-// one thing that needs wx: a /pattern/ query is a real regex. Build one per
-// keystroke and reuse it for every row.
+// wxString front end for the shared matcher (xl::FilterQuery). All the matching
+// lives in core; this exists for the two things that need wx: case folding that
+// covers non-ASCII, and UTF-8 conversion. Build one per keystroke and reuse it
+// for every row.
 class wxFilterQuery
 {
 public:
@@ -193,37 +193,25 @@ public:
     explicit wxFilterQuery(const wxString& query)
     {
         wxString const trimmed = wxString(query).Trim(true).Trim(false);
-        // /.../ is an explicit regex; anything else is words and wildcards, so
-        // a name containing regex punctuation is not treated as a pattern.
-        if (trimmed.length() >= 2 && trimmed.StartsWith("/") && trimmed.EndsWith("/")) {
-            wxString const pattern = trimmed.Mid(1, trimmed.length() - 2);
-            if (!pattern.IsEmpty()) {
-                auto compiled = std::make_shared<wxRegEx>();
-                if (compiled->Compile(pattern, wxRE_ICASE | wxRE_ADVANCED) && compiled->IsValid()) {
-                    _regex = std::move(compiled);
-                    return;
-                }
-            }
-            // Half-typed regex: fall back to plain matching so the list does not
-            // blank out on every keystroke.
-        }
-        // Lower() here rather than in the core matcher: wxString folds case for
-        // non-ASCII too, and utf8_string avoids the locale-dependent narrowing
-        // that ToStdString does on Windows.
-        _query = xl::FilterQuery(trimmed.Lower().utf8_string());
+        std::string pattern;
+        // Case-fold the words-and-wildcards form only: lowering a pattern would
+        // break character classes like [A-Z].
+        _query = xl::AsRegexPattern(trimmed.utf8_string(), pattern)
+                     ? xl::FilterQuery(trimmed.utf8_string())
+                     : xl::FilterQuery(trimmed.Lower().utf8_string());
     }
 
     [[nodiscard]] bool IsEmpty() const
     {
-        return _regex == nullptr && _query.IsEmpty();
+        return _query.IsEmpty();
     }
 
     [[nodiscard]] bool Matches(const wxString& text) const
     {
-        if (_regex != nullptr) {
-            return _regex->Matches(text);
-        }
-        return _query.Matches(text.Lower().utf8_string());
+        // wxString::Lower folds non-ASCII, which the core matcher deliberately
+        // does not; a regex gets the subject untouched.
+        return _query.IsRegex() ? _query.Matches(text.utf8_string())
+                                : _query.Matches(text.Lower().utf8_string());
     }
 
     [[nodiscard]] bool Matches(const std::string& text) const
@@ -239,8 +227,6 @@ public:
 
 private:
     xl::FilterQuery _query;
-    // wxRegEx is not copyable and these are held by value in panels.
-    std::shared_ptr<wxRegEx> _regex;
 };
 
 class ImageFilePickerCtrl : public wxFilePickerCtrl
