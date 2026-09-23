@@ -28,6 +28,7 @@
 
 #ifdef __APPLE__
 #include <sys/mman.h>
+#include <sys/mount.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #define USE_MMAP_RENDERCACHE
@@ -50,7 +51,8 @@ static void RenderCacheLoadThreadEntry(RenderCache* cache)
     std::error_code ec;
     if (fs::exists(cacheFolder, ec)) {
         for (const auto& entry : fs::recursive_directory_iterator(cacheFolder, ec)) {
-            if (entry.is_regular_file() && entry.path().extension() == ".cache") {
+            // skip AppleDouble "._" sidecars that non-APFS volumes grow next to each file
+            if (entry.is_regular_file() && entry.path().extension() == ".cache" && !entry.path().filename().string().starts_with("._")) {
                 files.push_back(entry.path().string());
             }
         }
@@ -229,6 +231,16 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
             spdlog::get("render")->debug("Opening render cache folder {}.", _cacheFolder);
         }
 
+#ifdef USE_MMAP_RENDERCACHE
+        // A mapped page that can't be read back (network share dropped, file
+        // changed server-side) faults the reader rather than returning an
+        // error, so only map cache files that live on a local volume.
+        struct statfs sfs;
+        _useMMap = statfs(_cacheFolder.c_str(), &sfs) == 0 && (sfs.f_flags & MNT_LOCAL) != 0;
+        if (!_useMMap) {
+            spdlog::get("render")->info("Render cache folder {} is not on a local volume, not memory mapping cache files.", _cacheFolder);
+        }
+#endif
         LoadCache();
     }
 }
@@ -502,7 +514,7 @@ void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)
 }
 bool RenderCache::UseMMap() const {
 #ifdef USE_MMAP_RENDERCACHE
-    return true;
+    return _useMMap;
 #else
     return false;
 #endif

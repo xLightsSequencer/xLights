@@ -85,6 +85,7 @@ class RenderCache
     std::thread _loadThread;
     size_t _maximumSizeMB = 0;
     std::string _baseCache = "";
+    bool _useMMap = false;
 
     void Close();
     void LoadCache();

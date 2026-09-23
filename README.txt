@@ -18,6 +18,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  the list of sequences effects were imported from (local file paths)
     -enh (heffneil)              Highlight the model picked in the Visualizer in the Layout preview
                                  (colour set by "Model Picked In Visualiser" in Preferences)
+    -bug (dkulp)                 Fixed a render crash when the show folder's render cache is on a
+                                 network drive
     -change (dkulp)              Crash reports from ARM Linux machines now name the CPU (the board
                                  name, e.g. "Raspberry Pi 5 Model B Rev 1.0") and report a real
                                  physical core count instead of zero
