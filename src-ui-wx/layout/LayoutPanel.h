@@ -50,7 +50,7 @@ class wxStaticText;
 #include <map>
 #include <set>
 
-#include "shared/utils/wxUtilities.h"  // wxFilterQuery
+#include "shared/utils/wxFilterQuery.h"
 
 class xLightsFrame;
 class ModelPreview;

@@ -28,6 +28,7 @@
 #include "models/ModelManager.h"
 
 class LayoutGroup;
+class wxFilterQuery;
 
 enum class ImpItemKind { Model, ModelGroup, Viewpoint };
 
@@ -56,12 +57,12 @@ class ImportPreviewsModelsDialog: public wxDialog
 
     void ValidateWindow();
     void PopulateTree();
-    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxString& filter);
-    void AddViewpoints(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node viewpoints, const wxString& filter);
-    static bool MatchesFilter(const wxString& name, const wxString& filterLower);
+    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxFilterQuery& filter);
+    void AddViewpoints(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node viewpoints, const wxFilterQuery& filter);
+    static bool MatchesFilter(const wxString& name, const wxFilterQuery& filter);
     // MatchesFilter, plus rows the user has already ticked - those stay in the
     // tree so a selection assembled across several filter terms remains visible.
-    bool KeepInFilteredTree(const wxString& name, ImpItemKind kind, const wxString& filterLower) const;
+    bool KeepInFilteredTree(const wxString& name, ImpItemKind kind, const wxFilterQuery& filter) const;
     bool IsViewpointsRow(wxTreeListItem it) const;
     // Filtering rebuilds the tree, so checked state is kept in these sets
     // (which survive filtered-out rows) and synced to/from the visible tree.
@@ -137,7 +138,7 @@ class ImportPreviewsModelsDialog: public wxDialog
         };
 
         wxSearchCtrl* _filterCtrl = nullptr;
-        wxString _filter;        // lower-cased; whitespace-tokenised AND match
+        wxString _filter;        // trimmed; matched via wxFilterQuery
         wxString _appliedFilter; // what the tree currently shows; lags _filter by the debounce
         wxTimer _filterTimer;    // debounce tree rebuilds while typing
         std::set<CheckedModel> _checkedModels;

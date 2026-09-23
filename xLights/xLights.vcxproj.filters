@@ -3204,6 +3204,7 @@
     <ClInclude Include="..\src-ui-wx\layout\ControllerFullColumnsDialog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\TreeListColumnVisibility.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\wxUtilities.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\wxFilterQuery.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">

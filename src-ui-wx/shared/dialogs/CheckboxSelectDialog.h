@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shared/utils/wxUtilities.h"  // wxFilterQuery
+#include "shared/utils/wxFilterQuery.h"
 
 /***************************************************************
  * This source files comes from the xLights project

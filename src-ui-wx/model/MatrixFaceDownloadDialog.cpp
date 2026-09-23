@@ -41,6 +41,7 @@
 #include <log.h>
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+#include "shared/utils/wxFilterQuery.h"
 #include "utils/ExternalHooks.h"
 
 CachedFileDownloader& MatrixFaceDownloadDialog::GetCache() {
@@ -781,6 +782,7 @@ void MatrixFaceDownloadDialog::OnSearchCtrlFacesSearchClicked(wxCommandEvent& ev
         return;
     }
 
+    wxFilterQuery const searchQuery(SearchCtrlFaces->GetValue());
     wxTreeItemId current = TreeCtrl_Navigator->GetSelection();
     if (!current.IsOk() ) {
         current = TreeCtrl_Navigator->GetRootItem();
@@ -824,7 +826,7 @@ void MatrixFaceDownloadDialog::OnSearchCtrlFacesSearchClicked(wxCommandEvent& ev
                 }
             }
 
-            if (current != TreeCtrl_Navigator->GetRootItem() && wxFilterQuery(SearchCtrlFaces->GetValue()).Matches(TreeCtrl_Navigator->GetItemText(current))) {
+            if (current != TreeCtrl_Navigator->GetRootItem() && searchQuery.Matches(TreeCtrl_Navigator->GetItemText(current))) {
                 TreeCtrl_Navigator->SelectItem(current);
                 TreeCtrl_Navigator->EnsureVisible(current);
                 if (current == start) {
