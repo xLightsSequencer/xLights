@@ -558,7 +558,6 @@
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer" variable="FlexGridSizerPathCanvas" member="yes">
 										<cols>1</cols>
-										<rows>1</rows>
 										<growablecols>0</growablecols>
 										<growablerows>0</growablerows>
 									</object>

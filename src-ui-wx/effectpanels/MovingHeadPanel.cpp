@@ -368,7 +368,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     PanelPathing->SetScrollRate(0, 10);
     FlexGridSizerPathing = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerPathing->AddGrowableCol(0);
-    FlexGridSizerPathCanvas = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizerPathCanvas = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerPathCanvas->AddGrowableCol(0);
     FlexGridSizerPathCanvas->AddGrowableRow(0);
     FlexGridSizerPathing->Add(FlexGridSizerPathCanvas, 1, wxALL|wxEXPAND, 0);

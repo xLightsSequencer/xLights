@@ -1,14 +1,6 @@
 xLights Controller Vendor Program
 
 
-*** DRAFT — NOT YET IN EFFECT ***
-This document is circulating for feedback. Nothing here is final, and no fees
-are being collected under it yet. Dates, prices and details may change before
-it is adopted. If you have feedback, we would rather hear it now than after
-it is published.
-
-
-
 WHY THIS EXISTS
 
 xLights supports over 160 controller models from 25 vendors. That support is not
