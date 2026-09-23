@@ -621,8 +621,8 @@ void ModelStatesPanel::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     int i = wxMessageBox("Delete state model definition?", "Are you sure you want to delete " + name + "?",
-                         wxICON_WARNING | wxOK, this);
-    if (i == wxID_OK || i == wxOK) {
+                         wxICON_WARNING | wxOK | wxCANCEL, this);
+    if (i == wxOK) {
         stateData[name].clear();
         NameChoice->Delete(NameChoice->GetSelection());
         if (NameChoice->GetCount() > 0) {
