@@ -168,6 +168,7 @@ int channels = codecCtx->ch_layout.nb_channels;
     avcodec_flush_buffers(codecCtx);
     double lengthInSeconds = (double)rawSamples / codecCtx->sample_rate;
     info.lengthMS = (long)floor(lengthInSeconds * 1000.0);
+    const int callerExtra = extra;
 
     // Calculate resampled track size
     if (targetRate > 0 && targetRate != codecCtx->sample_rate) {
@@ -324,6 +325,37 @@ AVChannelLayout outLayout;
     // Finalize trackSize
     trackSize = read;
     info.trackSize = trackSize;
+
+    // Callers treat the float buffers as (trackSize + extra) samples using the
+    // extra they passed in, but a decode that ran past the estimate consumed
+    // part of that slack above, so grow the buffers to keep the contract.
+    if (read + callerExtra > allocatedFloatSamples) {
+        long newSamples = read + callerExtra;
+        size_t tail = sizeof(float) * (newSamples - allocatedFloatSamples);
+        bool grown = false;
+        if (float* l = (float*)realloc(leftData, sizeof(float) * newSamples)) {
+            memset(l + allocatedFloatSamples, 0, tail);
+            if (rightData == leftData) {
+                rightData = l;
+                grown = true;
+            }
+            leftData = l;
+            if (!grown) {
+                if (float* r = (float*)realloc(rightData, sizeof(float) * newSamples)) {
+                    memset(r + allocatedFloatSamples, 0, tail);
+                    rightData = r;
+                    grown = true;
+                }
+            }
+        }
+        if (!grown) {
+            // a failed realloc leaves the old block intact; drop the samples it can't cover
+            spdlog::error("FFmpegAudioDecoder: Can't grow channel buffers to {} samples", newSamples);
+            read = allocatedFloatSamples - callerExtra;
+            trackSize = read;
+            info.trackSize = trackSize;
+        }
+    }
 
     // Recalculate PCM data size based on actual decoded data
     pcmDataSize = read * outChannels * 2;
