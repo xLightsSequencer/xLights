@@ -824,7 +824,7 @@ void MatrixFaceDownloadDialog::OnSearchCtrlFacesSearchClicked(wxCommandEvent& ev
                 }
             }
 
-            if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(SearchCtrlFaces->GetValue().Lower())) {
+            if (current != TreeCtrl_Navigator->GetRootItem() && wxFilterQuery(SearchCtrlFaces->GetValue()).Matches(TreeCtrl_Navigator->GetItemText(current))) {
                 TreeCtrl_Navigator->SelectItem(current);
                 TreeCtrl_Navigator->EnsureVisible(current);
                 if (current == start) {

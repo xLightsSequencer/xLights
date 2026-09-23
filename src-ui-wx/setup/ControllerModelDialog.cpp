@@ -281,9 +281,15 @@ public:
     // not thousands - the per-frame cost of Lower() on model names is
     // negligible compared to the paint itself, so no separate cache.
     static wxString _visualizerFilterLower;
+    static wxFilterQuery _visualizerFilterQuery;
+    static void SetVisualizerFilter(const wxString& filter)
+    {
+        _visualizerFilterLower = filter.Lower();
+        _visualizerFilterQuery = wxFilterQuery(_visualizerFilterLower);
+    }
     static bool MatchesVisualizerFilter(const std::string& name) {
         if (_visualizerFilterLower.IsEmpty()) return true;
-        return wxString(name).Lower().Contains(_visualizerFilterLower);
+        return _visualizerFilterQuery.Matches(name);
     }
 
     enum class HITLOCATION { NONE,
@@ -403,6 +409,7 @@ public:
 // Static member definition for BaseCMObject::_visualizerFilterLower.
 // Initially empty (no filter applied).
 wxString BaseCMObject::_visualizerFilterLower;
+wxFilterQuery BaseCMObject::_visualizerFilterQuery;
 
 class PortCMObject : public BaseCMObject
 {
@@ -2210,15 +2217,15 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     // so a stale value from a previous dialog session can't carry over and
     // unexpectedly dim models on the newly-opened visualizer. The SearchCtrl
     // itself starts empty, so this just keeps the static in sync.
-    BaseCMObject::_visualizerFilterLower.Clear();
+    BaseCMObject::SetVisualizerFilter(wxEmptyString);
 
     // The model-pool filter (TextCtrl_ModelFilter) is the single filter for
     // this dialog: it hides non-matching unassigned models in the pool AND
     // dims non-matching assigned models on the controller visualizer (see
     // OnTextCtrl_ModelFilterText). No separate visualizer filter box.
-    TextCtrl_ModelFilter->SetToolTip(_(
+    TextCtrl_ModelFilter->SetToolTip(wxString::Format(_(
         "Filters the model pool and dims non-matching models on the "
-        "controller visualizer. Empty filter = normal view."));
+        "controller visualizer. Empty filter = normal view.\n%s"), wxFilterQuery::Hint()));
 
     ::SetColours(false);
 
@@ -2329,7 +2336,7 @@ ControllerModelDialog::~ControllerModelDialog()
     // Clear the static visualizer filter - otherwise a stale value would
     // linger past the lifetime of this dialog and dim models the next time
     // the dialog is constructed before the user typed anything.
-    BaseCMObject::_visualizerFilterLower.Clear();
+    BaseCMObject::SetVisualizerFilter(wxEmptyString);
 
     --s_activeCount;
     SaveWindowPosition("ControllerModelDialogPosition", this);
@@ -2418,13 +2425,14 @@ void ControllerModelDialog::ReloadModels()
     TextCtrl_Check->SetValue(check);
 
     wxString modelFilter = TextCtrl_ModelFilter->GetValue().Lower();
+    wxFilterQuery const modelFilterQuery(modelFilter);
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
                     ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                         _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
-                if (modelFilter.empty() || wxString(it.second->GetName()).Lower().Contains(modelFilter)) {
+                if (modelFilter.empty() || modelFilterQuery.Matches(it.second->GetName())) {
                     _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
                 }
             }
@@ -5410,7 +5418,7 @@ void ControllerModelDialog::OnTextCtrl_ModelFilterText(wxCommandEvent& event)
     // that ModelCMObject::Draw reads at paint time (dimming non-matching
     // assigned models on the controller). Lowercased once here so the
     // Draw-time match is a cheap Contains() per model.
-    BaseCMObject::_visualizerFilterLower = TextCtrl_ModelFilter->GetValue().Lower();
+    BaseCMObject::SetVisualizerFilter(TextCtrl_ModelFilter->GetValue());
     if (BaseCMObject::_visualizerFilterLower.IsEmpty()) {
         // Back to the full list: the tile picked out of the filtered list is no
         // longer what the user is looking at.
@@ -5424,7 +5432,7 @@ void ControllerModelDialog::OnTextCtrl_ModelFilterText(wxCommandEvent& event)
 void ControllerModelDialog::OnTextCtrl_ModelFilterCancel(wxCommandEvent& event)
 {
     TextCtrl_ModelFilter->SetValue(wxEmptyString);
-    BaseCMObject::_visualizerFilterLower.Clear();
+    BaseCMObject::SetVisualizerFilter(wxEmptyString);
     ClearVisualiserHighlight();
     ScrollBar_Models->SetThumbPosition(0);
     ReloadModels();

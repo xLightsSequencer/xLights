@@ -99,6 +99,7 @@ CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &tit
     _filterCtrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     _filterCtrl->ShowCancelButton(true);
     _filterCtrl->SetDescriptiveText(_("Filter"));
+    _filterCtrl->SetToolTip(wxFilterQuery::Hint());
     FlexGridSizer1->Insert(insertRow++, _filterCtrl, 0, wxALL | wxEXPAND, 5);
 
     // The checklist has shifted down by the rows we inserted; keep it the growable one.
@@ -174,16 +175,7 @@ bool CheckboxSelectDialog::MatchesFilter(const wxString& item) const
         return true;
     }
 
-    const wxString itemLower = item.Lower();
-    wxStringTokenizer tok(_filter.Lower());
-    while (tok.HasMoreTokens())
-    {
-        if (!itemLower.Contains(tok.GetNextToken()))
-        {
-            return false;
-        }
-    }
-    return true;
+    return _filterQuery.Matches(item);
 }
 
 void CheckboxSelectDialog::SyncCheckedFromList()
@@ -264,6 +256,7 @@ void CheckboxSelectDialog::OnFilterCancel(wxCommandEvent& event)
     SyncCheckedFromList();
     _filterCtrl->ChangeValue(wxEmptyString);
     _filter.Clear();
+    _filterQuery = wxFilterQuery();
     PopulateList();
     ValidateWindow();
 }
@@ -283,6 +276,7 @@ void CheckboxSelectDialog::ApplyFilter()
 {
     SyncCheckedFromList();
     _filter = _filterCtrl->GetValue().Trim(true).Trim(false);
+    _filterQuery = wxFilterQuery(_filter);
     PopulateList();
     ValidateWindow();
 }

@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "layout/ControllerTreeUtils.h"
+#include "shared/utils/wxUtilities.h"  // wxFilterQuery
 #include "models/ControllerObject.h"
 
 using namespace ControllerTree;
@@ -94,8 +95,7 @@ private:
 
     wxSearchCtrl* _controllerFilterCtrl = nullptr;
     wxString _controllerFilterString;
-    wxRegEx  _controllerFilterRegex;
-    bool     _controllerFilterRegexValid = false;
+    wxFilterQuery _controllerFilterQuery;
     wxButton* _btnFullColumns = nullptr;
     ControllerTree::ControllerLedIcons _ledIcons;
 

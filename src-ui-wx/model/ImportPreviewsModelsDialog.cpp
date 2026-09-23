@@ -286,12 +286,7 @@ bool ImportPreviewsModelsDialog::KeepInFilteredTree(const wxString& name, ImpIte
 bool ImportPreviewsModelsDialog::MatchesFilter(const wxString& name, const wxString& filterLower)
 {
     if (filterLower.empty()) return true;
-    const wxString hay = name.Lower();
-    wxStringTokenizer tok(filterLower);
-    while (tok.HasMoreTokens()) {
-        if (hay.Find(tok.GetNextToken()) == wxNOT_FOUND) return false;
-    }
-    return true;
+    return wxFilterQuery(filterLower).Matches(name);
 }
 
 void ImportPreviewsModelsDialog::SyncCheckedFromTree()
