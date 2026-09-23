@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (heffneil)              Store the imported sequence in meta data to reuse in import effects
+    -bug (derwin12)              Import > Open Original File is now disabled when the sequence has no
+                                 recorded donor, and the record-donor checkbox is hidden when remapping
+                                 effects within the same sequence, Packaged sequences no longer include
+                                 the list of sequences effects were imported from (local file paths)
     -enh (heffneil)              Highlight the model picked in the Visualizer in the Layout preview
                                  (colour set by "Model Picked In Visualiser" in Preferences)
     -change (dkulp)              Crash reports from ARM Linux machines now name the CPU (the board
