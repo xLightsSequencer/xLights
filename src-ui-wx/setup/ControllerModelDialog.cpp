@@ -4044,8 +4044,8 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
     for (const auto& it : _controllers) {
         if (it->GetType() == "MODEL" && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
             auto m = dynamic_cast<ModelCMObject*>(it);
+            hitTile = true;
             if (m->IsMain()) {
-                hitTile = true;
                 // A drop rebuilds _controllers, so every BaseCMObject here is
                 // dangling once DoDragDrop returns. The Model itself belongs to
                 // ModelManager and outlives that, so hold on to it instead of m.
@@ -4115,6 +4115,11 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
                 if (!wasClick || clickedModel == previousHighlight) {
                     SetVisualiserHighlight(nullptr);
                 }
+            } else {
+                // Later strings of a multi-string model can't be dragged, but
+                // they are still that model, so they pick/unpick it the same way.
+                Model* const clickedModel = m->AlwaysGetModel();
+                SetVisualiserHighlight(clickedModel == previousHighlight ? nullptr : clickedModel);
             }
             break;
         } else if (it->GetType() == "SR" && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
