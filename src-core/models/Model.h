@@ -453,6 +453,9 @@ public:
     bool CouldComputeStartChannel = false;
     bool Overlapping = false;
     bool NotOnController = false;
+    // Set while a model is picked up in the controller visualiser, so the layout
+    // preview can show which prop the tile refers to.
+    bool HighlightedInVisualiser = false;
     std::string _pixelCount{ "" };
     std::string _pixelType{ "" };
     std::string _pixelSpacing{ "" };
