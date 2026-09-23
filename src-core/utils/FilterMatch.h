@@ -13,6 +13,7 @@
 #include <cctype>
 #include <regex>
 #include <string>
+#include <utility>
 #include <vector>
 
 // Shared matching for the filter/search boxes (model trees, controller lists,
@@ -21,6 +22,7 @@
 //
 //   words in any order   "all house"   matches  grp_all_house_display
 //   separators optional  "allhouse"    matches  grp_all_house_display
+//                        "all-house"   matches  grp_all_house_display
 //   wildcards            "grp_*_house" matches  grp_all_house_display
 //                        "h?use"       matches  grp_all_house_display
 //   regex                "/^grp_.*display$/"
@@ -38,35 +40,17 @@ namespace xl
                    c == '(' || c == ')' || c == '[' || c == ']';
         }
 
+        // ASCII only: std::tolower on individual UTF-8 bytes under a code-page
+        // locale (e.g. Windows 1252) rewrites lead bytes. Non-ASCII folding is
+        // the caller's job (wxFilterQuery uses wxString::Lower).
         inline std::string ToLower(const std::string& s)
         {
             std::string out;
             out.reserve(s.size());
             for (char c : s) {
-                out += (char)std::tolower((unsigned char)c);
+                out += (c >= 'A' && c <= 'Z') ? (char)(c - 'A' + 'a') : c;
             }
             return out;
-        }
-
-        // "grp_all_house_display" -> { "grp", "all", "house", "display" }
-        inline std::vector<std::string> Segments(const std::string& lowered)
-        {
-            std::vector<std::string> segments;
-            std::string current;
-            for (char c : lowered) {
-                if (IsSeparator(c)) {
-                    if (!current.empty()) {
-                        segments.push_back(current);
-                        current.clear();
-                    }
-                } else {
-                    current += c;
-                }
-            }
-            if (!current.empty()) {
-                segments.push_back(current);
-            }
-            return segments;
         }
 
         inline std::string WithoutSeparators(const std::string& lowered)
@@ -181,21 +165,19 @@ namespace xl
             }
 
             std::string const lowered = filter_detail::ToLower(text);
-            // Only paid for when a token actually needs them.
-            bool haveExtras = false;
-            std::vector<std::string> segments;
+            // Only paid for when a token actually needs it.
+            bool haveSquashed = false;
             std::string squashed;
 
             for (auto const& token : _tokens) {
                 if (!token.hasWildcard && lowered.find(token.pattern) != std::string::npos) {
                     continue; // what a plain substring filter would have matched
                 }
-                if (!haveExtras) {
-                    segments = filter_detail::Segments(lowered);
+                if (!haveSquashed) {
                     squashed = filter_detail::WithoutSeparators(lowered);
-                    haveExtras = true;
+                    haveSquashed = true;
                 }
-                if (!MatchesToken(token, lowered, segments, squashed)) {
+                if (!MatchesToken(token, lowered, squashed)) {
                     return false;
                 }
             }
@@ -206,6 +188,11 @@ namespace xl
         struct Token
         {
             std::string pattern;
+            // pattern with separators removed, so "all-house" and "allhouse"
+            // both find all_house. Empty for a token made only of separators
+            // (e.g. the leading "/" of a regex being typed), which then
+            // constrains nothing rather than blanking the list.
+            std::string squashed;
             bool hasWildcard = false;
         };
 
@@ -213,36 +200,26 @@ namespace xl
         {
             Token token;
             token.pattern = pattern;
+            token.squashed = filter_detail::WithoutSeparators(pattern);
             token.hasWildcard = pattern.find('*') != std::string::npos ||
                                 pattern.find('?') != std::string::npos;
-            _tokens.push_back(token);
+            if (token.hasWildcard) {
+                // Anchored at neither end, so "grp_*_house" need not be the whole name.
+                token.pattern = "*" + token.pattern + "*";
+                token.squashed = "*" + token.squashed + "*";
+            }
+            _tokens.push_back(std::move(token));
         }
 
         static bool MatchesToken(const Token& token,
                                  const std::string& lowered,
-                                 const std::vector<std::string>& segments,
                                  const std::string& squashed)
         {
             if (token.hasWildcard) {
-                // Anchored at neither end, so "grp_*_house" need not be the whole name.
-                if (filter_detail::GlobMatch("*" + token.pattern + "*", lowered)) {
-                    return true;
-                }
-                for (auto const& segment : segments) {
-                    if (filter_detail::GlobMatch(token.pattern, segment)) {
-                        return true;
-                    }
-                }
-                return false;
+                return filter_detail::GlobMatch(token.pattern, lowered) ||
+                       filter_detail::GlobMatch(token.squashed, squashed);
             }
-
-            for (auto const& segment : segments) {
-                if (segment.find(token.pattern) != std::string::npos) {
-                    return true;
-                }
-            }
-            // "allhouse" for all_house: the user left the separators out.
-            return squashed.find(token.pattern) != std::string::npos;
+            return squashed.find(token.squashed) != std::string::npos;
         }
 
         std::vector<Token> _tokens;

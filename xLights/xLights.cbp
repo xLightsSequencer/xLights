@@ -1589,6 +1589,7 @@
 		<Unit filename="../src-ui-wx/shared/utils/TreeListColumnVisibility.h" />
 		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.cpp" />
 		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.h" />
+		<Unit filename="../src-ui-wx/shared/utils/wxFilterQuery.h" />
 		<Unit filename="../src-ui-wx/shared/utils/xlDisplayInfo.cpp" />
 		<Unit filename="../src-ui-wx/shared/utils/xlDisplayInfo.h" />
 		<Unit filename="../src-core/utils/GitUtils.cpp" />

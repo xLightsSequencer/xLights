@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "layout/ControllerTreeUtils.h"
-#include "shared/utils/wxUtilities.h"  // wxFilterQuery
+#include "shared/utils/wxFilterQuery.h"
 #include "models/ControllerObject.h"
 
 using namespace ControllerTree;
