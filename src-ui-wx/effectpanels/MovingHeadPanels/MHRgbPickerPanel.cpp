@@ -65,7 +65,9 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/) {
         return;
     }
 
-    wxSize dcSize = pdc.GetSize();
+    // Not pdc.GetSize(): on MSW the buffered DC uses a shared backing bitmap that
+    // can be larger than this window, which oversizes and clips the wheel.
+    wxSize dcSize = GetClientSize();
     
 // Windows leaves artifacts in the clear area of the mask without this clear but
 // with the clear OSX doesn't look as nice because it paints a background
