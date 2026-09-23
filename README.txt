@@ -11,6 +11,31 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (heffneil)              Store the imported sequence in meta data to reuse in import effects
+    -bug (derwin12)              Import > Open Original File is now disabled when the sequence has no
+                                 recorded donor, and the record-donor checkbox is hidden when remapping
+                                 effects within the same sequence, Packaged sequences no longer include
+                                 the list of sequences effects were imported from (local file paths)
+    -enh (heffneil)              Highlight the model picked in the Visualizer in the Layout preview
+                                 (colour set by "Model Picked In Visualiser" in Preferences)
+    -change (dkulp)              Crash reports from ARM Linux machines now name the CPU (the board
+                                 name, e.g. "Raspberry Pi 5 Model B Rev 1.0") and report a real
+                                 physical core count instead of zero
+    -enh (derwin12)              Added a keybinding for toggling the video preview panel and sort ability (#7091)
+    -change (dkulp)              Crash reports now always carry the machine configuration and a
+                                 report.json describing the report, and the configuration banner
+                                 uses one labelled field per fact
+    -bug (dkulp)                 Fixed a crash when changing a named preview's background image,
+                                 brightness, transparency or fill after the preview it belonged to was
+                                 deleted or a different show folder was opened
+    -bug (dkulp)                 Fixed a crash importing submodels when the model chosen in the import
+                                 dialog no longer exists
+    -bug (dkulp)                 Fixed a crash rendering to a model whose node list changed while the
+                                 render was running
+    -bug (dkulp)                 A Shader effect whose GPU resources cannot be created now renders yellow
+                                 like any other failed shader instead of terminating the app
+    -bug (derwin12)              Moving Head effects with a drawn Path and Cycles > 1 no longer glitch
+                                 to a wild tilt/pan for one frame at each cycle repeat boundary (#7113)
     -bug (derwin12)              Selecting a controller no longer loses its yellow "models on this
                                  controller" highlight in the layout preview when a model is moved
     -enh (derwin12)              New sequence wizard now defaults the master view to a sensible model

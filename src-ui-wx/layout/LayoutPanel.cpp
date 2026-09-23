@@ -1417,7 +1417,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
         }
-        else {
+        else if (pGrp != nullptr) {
             pGrp->SetBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
             modelPreview->SetBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "LayoutPanel::OnPropertyGridChange::Brightness");
@@ -1427,7 +1427,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             xlights->SetPreviewBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
         }
-        else {
+        else if (pGrp != nullptr) {
             pGrp->SetBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
             modelPreview->SetBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgTransparency");
@@ -1463,7 +1463,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             xlights->SetPreviewBackgroundImage(event.GetValue().GetString());
         }
-        else {
+        else if (pGrp != nullptr) {
             pGrp->SetBackgroundImage(event.GetValue().GetString());
             modelPreview->SetbackgroundImage(event.GetValue().GetString());
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgImage");
@@ -1473,7 +1473,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             xlights->SetPreviewBackgroundScaled(event.GetValue().GetBool());
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgFill");
-        } else {
+        } else if (pGrp != nullptr) {
             pGrp->SetBackgroundScaled(wxAtoi(event.GetValue().GetString()) > 0);
             modelPreview->SetScaleBackgroundImage(wxAtoi(event.GetValue().GetString()) > 0);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "LayoutPanel::OnPropertyGridChange::BkgFill");
@@ -5413,18 +5413,22 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
-    if (IsControllersPageActive()) {
-        bool clearedNotOnController = false;
-        for (auto m : modelPreview->GetModels()) {
-            if (m->NotOnController) {
-                m->NotOnController = false;
-                clearedNotOnController = true;
-            }
+    bool clearedHighlight = false;
+    for (auto m : modelPreview->GetModels()) {
+        // Orange is a Controllers-page affordance; the visualiser's blue can be
+        // showing on any page, so it clears on any preview click.
+        if (m->NotOnController && IsControllersPageActive()) {
+            m->NotOnController = false;
+            clearedHighlight = true;
         }
-        if (clearedNotOnController) {
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
-                "LayoutPanel::OnPreviewLeftDown::ClearNotOnController");
+        if (m->HighlightedInVisualiser) {
+            m->HighlightedInVisualiser = false;
+            clearedHighlight = true;
         }
+    }
+    if (clearedHighlight) {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+            "LayoutPanel::OnPreviewLeftDown::ClearHighlights");
     }
 
     if (m_polyline_active)
@@ -12531,12 +12535,12 @@ void LayoutPanel::ShowPropGrid(bool show) {
 void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
 {
     currentLayoutGroup = group;
+    // pGrp must never outlive the LayoutGroup it points at. Leaving the old
+    // value in place when the name isn't found kept a freed pointer alive
+    // across a show load (LayoutGroups is cleared before Reset() runs) and
+    // across DeleteCurrentPreview, which erases the group it was pointing at.
     auto it = xlights->LayoutGroups.find(group);
-    if (it != xlights->LayoutGroups.end()) {
-        pGrp = it->second.get();
-        modelPreview->SetActiveLayoutGroup(group);
-        return;
-    }
+    pGrp = (it != xlights->LayoutGroups.end()) ? it->second.get() : nullptr;
     modelPreview->SetActiveLayoutGroup(group);
 }
 

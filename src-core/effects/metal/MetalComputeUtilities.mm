@@ -883,6 +883,10 @@ void MetalRenderBufferComputeData::bufferResized() {
     ownerStale = true;
     int indexCount = renderBuffer->Nodes.size();
     for (auto &n : renderBuffer->Nodes) {
+        // Nodes can be null here for the same reason PixelBufferClass::GetColors
+        // skips them: the model's node list is rebuilt while render workers hold
+        // the buffer, so a slot can be empty mid-walk.
+        if (n == nullptr) continue;
         if (n->Coords.size() > 1) {
             indexCount += n->Coords.size() + 1;
         }
@@ -911,6 +915,11 @@ void MetalRenderBufferComputeData::bufferResized() {
     int idx = 0;
     int extraIdx = renderBuffer->Nodes.size();
     for (auto &n : renderBuffer->Nodes) {
+        if (n == nullptr) {
+            indexes[idx] = -1;
+            ++idx;
+            continue;
+        }
         if (n->Coords.size() > 1) {
             indexes[idx] = extraIdx | 0x80000000;
             int countIdx = extraIdx++;
@@ -1440,18 +1449,26 @@ int MetalComputeUtilities::gpuCoreCount() {
 
 // Apple ships no GL renderer string (Metal), so the crash log has nothing
 // identifying the GPU unless we ask Metal directly.
-std::string GetGPUDescription() {
+std::vector<std::string> GetGPUDescriptions() {
     @autoreleasepool {
         id<MTLDevice> d = MetalComputeUtilities::INSTANCE.device;
         if (d == nil) {
             d = MTLCreateSystemDefaultDevice();
         }
         if (d == nil) {
-            return "";
+            return {};
         }
-        std::string desc = [[d name] UTF8String];
-        desc += d.hasUnifiedMemory ? " (unified memory)" : " (discrete)";
-        return desc;
+        // Same `name=` / `memory=` keys every other platform emits, so the
+        // shared fields read identically; the memory class goes under its own
+        // key rather than into a trailing parenthetical whose meaning changed
+        // from platform to platform.
+        std::string desc = std::string("name=") + [[d name] UTF8String];
+        uint64_t mb = (uint64_t)[d recommendedMaxWorkingSetSize] / (1024 * 1024);
+        if (mb > 0) {
+            desc += " | memory=" + std::to_string(mb) + "MB";
+        }
+        desc += d.hasUnifiedMemory ? " | unified=true" : " | unified=false";
+        return { desc };
     }
 }
 

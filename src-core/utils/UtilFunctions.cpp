@@ -18,6 +18,9 @@
 #include <fstream>
 #include <set>
 #include <vector>
+#include <algorithm>
+#include <cctype>
+#include <iterator>
 
 #include <pugixml.hpp>
 
@@ -658,7 +661,19 @@ uint64_t GetPhysicalMemorySizeMB() {
     sysctl(mib, 2, &ret, &length, NULL, 0);
     ret /= 1024; // -> KB
 #elif defined(_WIN32)
-    GetPhysicallyInstalledSystemMemory(&ret);
+    // GetPhysicallyInstalledSystemMemory reads the SMBIOS memory-device table
+    // and fails outright when a machine (commonly a VM) does not populate it,
+    // leaving ret untouched - which is how crash banners ended up reporting
+    // "Total memory: 0 MB". GlobalMemoryStatusEx asks the memory manager
+    // instead and always answers; it reports usable rather than installed
+    // RAM, which is the better number to be wrong about.
+    if (!GetPhysicallyInstalledSystemMemory(&ret) || ret == 0) {
+        MEMORYSTATUSEX ms;
+        ms.dwLength = sizeof(ms);
+        if (::GlobalMemoryStatusEx(&ms)) {
+            ret = ms.ullTotalPhys / 1024;
+        }
+    }
     // already in KB
 #else
     ret = get_phys_pages();
@@ -667,6 +682,37 @@ uint64_t GetPhysicalMemorySizeMB() {
 #endif
     ret /= 1024; // -> MB
     return ret;
+}
+
+uint64_t GetFreeMemorySizeMB() {
+#if defined(_WIN32)
+    MEMORYSTATUSEX ms;
+    ms.dwLength = sizeof(ms);
+    if (::GlobalMemoryStatusEx(&ms)) {
+        return ms.ullAvailPhys / (1024 * 1024);
+    }
+    return 0;
+#elif defined(__APPLE__)
+    // Free pages alone badly understate what is available - macOS keeps most
+    // of RAM in the inactive and purgeable lists, both of which it will hand
+    // over on demand.
+    vm_size_t pageSize = 0;
+    if (host_page_size(mach_host_self(), &pageSize) != KERN_SUCCESS) {
+        return 0;
+    }
+    vm_statistics64_data_t vmstat;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    if (host_statistics64(mach_host_self(), HOST_VM_INFO64, (host_info64_t)&vmstat, &count) != KERN_SUCCESS) {
+        return 0;
+    }
+    uint64_t pages = (uint64_t)vmstat.free_count + vmstat.inactive_count + vmstat.purgeable_count;
+    return (pages * (uint64_t)pageSize) / (1024 * 1024);
+#elif defined(__linux__)
+    uint64_t pages = (uint64_t)get_avphys_pages();
+    return (pages * (uint64_t)getpagesize()) / (1024 * 1024);
+#else
+    return 0;
+#endif
 }
 
 uint64_t GetProcessMemoryUsageMB() {
@@ -745,13 +791,25 @@ std::string GetCPUBrand() {
     std::ifstream f("/proc/cpuinfo");
     std::string line;
     while (std::getline(f, line)) {
-        // x86 uses "model name", arm64 kernels only expose "Hardware".
+        // x86 uses "model name"; older arm64 kernels exposed "Hardware".
         if (line.rfind("model name", 0) == 0 || line.rfind("Hardware", 0) == 0) {
             auto colon = line.find(':');
             if (colon != std::string::npos) {
                 return Trim(line.substr(colon + 1));
             }
         }
+    }
+    // Current arm64 kernels publish neither (6.8 and 6.12 both expose only
+    // "CPU implementer"/"CPU part" numbers), so every ARM Linux box - a
+    // Raspberry Pi desktop as much as a VM - reported no CPU at all. The
+    // board name is the useful answer there: "Raspberry Pi 5 Model B Rev 1.0"
+    // tells you more than a decoded part number would.
+    std::ifstream dt("/proc/device-tree/model", std::ios::binary);
+    if (dt) {
+        std::string model((std::istreambuf_iterator<char>(dt)), std::istreambuf_iterator<char>());
+        // The property is a NUL-terminated device-tree string, not a line.
+        model.erase(std::find(model.begin(), model.end(), '\0'), model.end());
+        return Trim(model);
     }
 #endif
     return "";
@@ -785,6 +843,42 @@ int GetPhysicalCoreCount() {
         }
     }
 #else
+    // sysfs topology first: it is the only source that exists on every
+    // architecture. The /proc/cpuinfo fields below are x86-only, so on arm64
+    // this used to fall through to 0 - on real hardware, not just VMs.
+    {
+        std::set<std::pair<std::string, std::string>> topo;
+        std::error_code ec;
+        std::filesystem::directory_iterator it("/sys/devices/system/cpu", ec);
+        if (!ec) {
+            for (auto const& entry : it) {
+                std::string const name = entry.path().filename().string();
+                if (name.rfind("cpu", 0) != 0 || name.size() == 3) {
+                    continue;
+                }
+                if (!std::all_of(name.begin() + 3, name.end(), [](unsigned char c) { return std::isdigit(c) != 0; })) {
+                    continue;
+                }
+                std::string core;
+                std::ifstream cf(entry.path() / "topology" / "core_id");
+                if (!cf || !std::getline(cf, core) || core.empty()) {
+                    continue;
+                }
+                // Absent on some kernels; an empty package id still groups
+                // correctly because every core then shares it.
+                std::string pkg;
+                std::ifstream pf(entry.path() / "topology" / "physical_package_id");
+                if (pf) {
+                    std::getline(pf, pkg);
+                }
+                topo.emplace(Trim(pkg), Trim(core));
+            }
+        }
+        if (!topo.empty()) {
+            return (int)topo.size();
+        }
+    }
+
     // Distinct (physical id, core id) pairs; single-socket boxes report only
     // "core id", so fall back to counting those.
     std::ifstream f("/proc/cpuinfo");
@@ -822,8 +916,8 @@ int GetPhysicalCoreCount() {
 // Complementary to the guard in xlGraphicsCapability.cpp, which owns every
 // platform whose adapters can actually be enumerated.
 #if !defined(__APPLE__) && !defined(_WIN32) && !defined(__linux__)
-std::string GetGPUDescription() {
-    return "";
+std::vector<std::string> GetGPUDescriptions() {
+    return {};
 }
 #endif
 

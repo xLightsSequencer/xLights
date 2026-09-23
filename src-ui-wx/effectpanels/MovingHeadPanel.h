@@ -478,8 +478,10 @@ public:
 private:
     bool canContinuePath() const;
     void OnCharHook(wxKeyEvent& event);
+    void UpdatePathBehindWarning();
 
     SketchCanvasPanel* m_sketchCanvasPanel = nullptr;
+    wxStaticText* m_pathWarningText = nullptr;
 
     std::string m_sketchDef;
     SketchEffectSketch m_sketch;

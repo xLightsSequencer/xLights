@@ -168,9 +168,8 @@ static void LogMachineConfig() {
     if (!cpuBrand.empty()) {
         spdlog::info("  CPU: {}", cpuBrand);
     }
-    spdlog::info("  CPU cores: {} physical, {} logical", GetPhysicalCoreCount(), GetLogicalCoreCount());
-    std::string gpu = GetGPUDescription();
-    if (!gpu.empty()) {
+    spdlog::info("  CPU cores: physical={} logical={}", GetPhysicalCoreCount(), GetLogicalCoreCount());
+    for (const std::string& gpu : GetGPUDescriptions()) {
         spdlog::info("  GPU: {}", gpu);
     }
 

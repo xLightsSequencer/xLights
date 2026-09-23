@@ -51,6 +51,10 @@
 #include "xlStackWalker.h"
 #include "utils/xlCrashCapture.h"
 #include "utils/xlExceptionDescribe.h"
+#include "utils/ShowGuid.h"
+#include "utils/UtilFunctions.h"
+
+#include <wx/platinfo.h>
 
 namespace {
 
@@ -221,7 +225,18 @@ xlCrashHandler::xlCrashHandler(std::string const& appName) :
 
 
 
-void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const& msg)
+char const* xlCrashHandler::SessionTypeName(SessionType t)
+{
+    switch (t) {
+    case SessionType::MainLoopException:  return "exception-in-main-loop";
+    case SessionType::UnhandledException: return "unhandled-exception";
+    case SessionType::Assert:             return "assert";
+    case SessionType::Crash:              break;
+    }
+    return "crash";
+}
+
+void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const& msg, SessionType sessionType)
 {
     if (!isFatalException) {
         spdlog::warn("Non fatal exception: {}", msg);
@@ -390,6 +405,8 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
                 spdlog::critical("Exception while formatting the activity trace.");
             }
 
+            AddSessionMetadata(report, sessionType);
+
             std::string const logFilePath = GetLogFilePath().string();
             std::string const logFileName = GetLogFileName();
             xlFrame* const topFrame = GetTopWindow();
@@ -449,6 +466,105 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
     m_report = nullptr;
 }
 
+namespace {
+// Minimal JSON string escape - the values here are version strings, paths and
+// GUIDs, but a show folder name can legitimately contain a quote or backslash.
+std::string JsonEscape(std::string const& in) {
+    std::string out;
+    out.reserve(in.size() + 8);
+    for (char c : in) {
+        switch (c) {
+        case '"':  out += "\\\""; break;
+        case '\\': out += "\\\\"; break;
+        case '\n': out += "\\n"; break;
+        case '\r': out += "\\r"; break;
+        case '\t': out += "\\t"; break;
+        default:
+            if ((unsigned char)c < 0x20) {
+                out += fmt::format("\\u{:04x}", (int)(unsigned char)c);
+            } else {
+                out += c;
+            }
+        }
+    }
+    return out;
+}
+
+// A stable token this code chooses, never a display name the toolkit chooses.
+// The filename carries wxPlatformInfo's operating-system family name, which
+// silently changed from "Unix" to "Linux" under us and dropped every Linux
+// report on the floor until the server-side pattern was updated to match.
+constexpr char const* PlatformToken() {
+#if defined(__WXOSX__) || defined(__APPLE__)
+    return "macos";
+#elif defined(_WIN32)
+    return "windows";
+#elif defined(__linux__)
+    return "linux";
+#else
+    return "unknown";
+#endif
+}
+} // namespace
+
+void xlCrashHandler::AddSessionMetadata(wxDebugReportCompress& report, SessionType sessionType)
+{
+    try {
+        // The banner, as a point-in-time snapshot. Recovering it from the log
+        // instead means scanning a rolling file that can hold weeks of startup
+        // banners, with no way to tell which one describes the crashing run -
+        // and it may have rotated away entirely.
+        std::string const machineConfig = GetMachineConfigText();
+        if (!machineConfig.empty()) {
+            report.AddText("machine_config.txt", wxString::FromUTF8(machineConfig), "Machine configuration");
+        }
+    } catch (...) {
+        spdlog::critical("Exception while attaching the machine configuration.");
+    }
+
+    try {
+        // Everything the consumer would otherwise have to recover by parsing
+        // the upload filename, which encodes it only incidentally and in a
+        // shape the toolkit is free to change.
+        wxDateTime const nowLocal = wxDateTime::Now();
+        int const millis = wxGetUTCTimeMillis().GetLo() % 1000;
+        m_uploadFileName = BuildUploadFileName(m_appName, nowLocal, millis);
+
+        std::string showGuid;
+        if (xlFrame* const topFrame = GetTopWindow(); topFrame != nullptr) {
+            std::string const dir = topFrame->GetCurrentDir();
+            if (!dir.empty()) {
+                showGuid = ShowGuid::ReadFromShowFolder(dir);
+            }
+        }
+
+        std::string json = "{\n";
+        auto add = [&json](char const* key, std::string const& value, bool quoted = true) {
+            json += fmt::format("  \"{}\": {}{}{},\n", key, quoted ? "\"" : "", quoted ? JsonEscape(value) : value, quoted ? "\"" : "");
+        };
+        add("schema", "1", false);
+        add("app", m_appName);
+        add("platform", PlatformToken());
+        add("version", xlights_version_string);
+        add("qualifier", wxString(xlights_qualifier).Trim().Trim(false).ToStdString());
+        add("build_date", xlights_build_date);
+        add("arch", wxGetCpuArchitectureName().ToStdString());
+        add("bitness", wxPlatformInfo::Get().GetBitnessName().ToStdString());
+        add("os_family", wxPlatformInfo::Get().GetOperatingSystemFamilyName().ToStdString());
+        add("app_store", IsFromAppStore() ? "true" : "false", false);
+        add("session_type", SessionTypeName(sessionType));
+        add("show_guid", showGuid);
+        add("timestamp_utc", nowLocal.ToUTC().FormatISOCombined('T').ToStdString() + "Z");
+        add("timestamp_local", nowLocal.FormatISOCombined('T').ToStdString());
+        // Last, so it carries no trailing comma.
+        json += fmt::format("  \"report_file\": \"{}\"\n}}\n", JsonEscape(m_uploadFileName));
+
+        report.AddText("report.json", wxString::FromUTF8(json), "Report metadata");
+    } catch (...) {
+        spdlog::critical("Exception while attaching the report metadata.");
+    }
+}
+
 void xlCrashHandler::HandleAssertFailure(wxChar const* file, int line, wxChar const* func, wxChar const* cond, wxChar const* msg)
 {
     wxString assertMsg;
@@ -457,7 +573,7 @@ void xlCrashHandler::HandleAssertFailure(wxChar const* file, int line, wxChar co
         << wxASCII_STR(" in ") << func << wxASCII_STR(" with message '")
         << msg << wxASCII_STR("'");
 
-    HandleCrash(false, assertMsg.ToStdString());
+    HandleCrash(false, assertMsg.ToStdString(), SessionType::Assert);
 }
 
 std::string xlCrashHandler::DescribeCurrentException()
@@ -469,7 +585,7 @@ std::string xlCrashHandler::DescribeCurrentException()
 
 void xlCrashHandler::HandleUnhandledException()
 {
-    HandleCrash(true, DescribeCurrentException());
+    HandleCrash(true, DescribeCurrentException(), SessionType::UnhandledException);
     wxAbort();
 }
 
@@ -502,7 +618,7 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
     if ((sendOption == SendReportOptions::ALWAYS_SEND) || ((sendOption == SendReportOptions::ASK_USER_TO_SEND) && wxDebugReportPreviewStd().Show(*m_report)))
     {
         m_report->Process();
-        SendReport(m_appName, "crashUpload", *m_report);
+        SendReport(m_appName, "crashUpload", *m_report, m_uploadFileName);
         wxMessageBox("Crash report saved to " + m_report->GetCompressedFileName());
     }
     else
@@ -513,34 +629,37 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
     spdlog::critical("Created debug report: " + m_report->GetCompressedFileName().ToStdString());
 }
 
-void xlCrashHandler::SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report)
+std::string xlCrashHandler::BuildUploadFileName(std::string const& appName, wxDateTime const& when, int millis)
 {
-    
-
-    wxHTTP http;
-    http.Connect("dankulp.com");
-
-    static char const bound[] = "--------------------------b29a7c2fe47b9481";
-    wxDateTime now = wxDateTime::Now();
-    int millis = wxGetUTCTimeMillis().GetLo() % 1000;
-
     wxString ver = xlights_version_string + xlights_qualifier;
     ver.Trim();
     for (int x = 0; x < (int)ver.length(); x++) {
         if (ver[x] == ' ') ver[x] = '-';
     }
 
-    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
+    wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", when.GetYear(), when.GetMonth() + 1, when.GetDay(), when.GetHour(), when.GetMinute(), when.GetSecond(), millis);
 
     wxString arch = wxEmptyString;
 #ifdef __WXOSX__
     arch = wxPlatformInfo::Get().GetBitnessName();
 #endif
-    wxString fn;
     if (!arch.empty()) {
-        fn = wxString::Format("%s-%s_%s_%s_%s.zip", appName.c_str(), wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), arch, ver, ts);
-    } else {
-        fn = wxString::Format("%s-%s_%s_%s.zip", appName.c_str(), wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), ver, ts);
+        return wxString::Format("%s-%s_%s_%s_%s.zip", appName.c_str(), wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), arch, ver, ts).ToStdString();
+    }
+    return wxString::Format("%s-%s_%s_%s.zip", appName.c_str(), wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), ver, ts).ToStdString();
+}
+
+void xlCrashHandler::SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report,
+                                std::string const& fileName)
+{
+    wxHTTP http;
+    http.Connect("dankulp.com");
+
+    static char const bound[] = "--------------------------b29a7c2fe47b9481";
+
+    wxString fn = fileName;
+    if (fn.empty()) {
+        fn = BuildUploadFileName(appName, wxDateTime::Now(), wxGetUTCTimeMillis().GetLo() % 1000);
     }
     const char *ct = "Content-Type: application/octet-stream\n";
     std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";

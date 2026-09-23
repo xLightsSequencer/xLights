@@ -27,28 +27,26 @@
 #endif
 
 namespace {
-std::string Describe(int current, int best, bool vrrCapable) {
+xlDisplayRefresh Describe(int current, int best, bool vrrCapable) {
+    xlDisplayRefresh r;
     if (current <= 0) {
-        return "";
+        return r;
     }
-    char buf[128];
-    // "up to" only when the panel offers something higher at the resolution it
-    // is already running: a 144Hz panel left set to 60 is a user-fixable reason
-    // a high frame rate preview stutters, and a 60Hz panel is not.
-    if (best > current) {
-        snprintf(buf, sizeof(buf), "%dHz (up to %dHz at this resolution)%s",
-                 current, best, vrrCapable ? " VRR capable" : "");
-    } else {
-        snprintf(buf, sizeof(buf), "%dHz%s", current, vrrCapable ? " VRR capable" : "");
-    }
-    return buf;
+    r.rate = current;
+    // The best rate matters separately from the current one: a 144Hz panel
+    // left set to 60 is a user-fixable reason a high frame rate preview
+    // stutters, and a 60Hz panel is not.
+    r.rateMax = best > current ? best : current;
+    // Neither Windows nor X11 exposes the range, only the capability.
+    r.vrrCapable = vrrCapable;
+    return r;
 }
 } // namespace
 
 #if defined(_WIN32)
 
-std::vector<std::string> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays) {
-    std::vector<std::string> result(displays.size());
+std::vector<xlDisplayRefresh> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays) {
+    std::vector<xlDisplayRefresh> result(displays.size());
     for (size_t i = 0; i < displays.size(); i++) {
         // wxDisplayMSW::GetName() returns MONITORINFOEX::szDevice, which is
         // exactly what EnumDisplaySettings wants - so this keys off the caller's
@@ -118,8 +116,8 @@ double ModeRefresh(const XRRModeInfo& m) {
 }
 } // namespace
 
-std::vector<std::string> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays) {
-    std::vector<std::string> result(displays.size());
+std::vector<xlDisplayRefresh> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays) {
+    std::vector<xlDisplayRefresh> result(displays.size());
     // Its own connection: this runs from DumpConfig, before wx has a display,
     // and must not disturb one if it does.
     Display* dpy = XOpenDisplay(nullptr);
@@ -136,7 +134,7 @@ std::vector<std::string> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>
             // hardware or drivers that cannot do it, which is not the same as
             // "no" - so nothing is claimed when it is missing.
             Atom vrrAtom = XInternAtom(dpy, "vrr_capable", True);
-            std::vector<std::string> unmatched;
+            std::vector<xlDisplayRefresh> unmatched;
             for (int o = 0; o < res->noutput; o++) {
                 XRROutputInfo* oi = XRRGetOutputInfo(dpy, res, res->outputs[o]);
                 if (oi == nullptr) {
@@ -198,10 +196,10 @@ std::vector<std::string> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>
                             XFree(data);
                         }
                     }
-                    std::string described = Describe((int)(current + 0.5), (int)(best + 0.5), vrr);
+                    xlDisplayRefresh described = Describe((int)(current + 0.5), (int)(best + 0.5), vrr);
                     if (idx < displays.size()) {
                         result[idx] = described;
-                    } else if (!described.empty()) {
+                    } else if (described.known()) {
                         unmatched.push_back(described);
                     }
                 }
@@ -212,7 +210,7 @@ std::vector<std::string> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>
             // blank, in order. Only safe because both lists are the displays
             // this session actually has.
             for (size_t i = 0, u = 0; i < result.size() && u < unmatched.size(); i++) {
-                if (result[i].empty()) {
+                if (!result[i].known()) {
                     result[i] = unmatched[u++];
                 }
             }
@@ -229,8 +227,8 @@ std::string GetPresentCapabilityDescription() {
 
 #else
 
-std::vector<std::string> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays) {
-    return std::vector<std::string>(displays.size());
+std::vector<xlDisplayRefresh> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays) {
+    return std::vector<xlDisplayRefresh>(displays.size());
 }
 
 std::string GetPresentCapabilityDescription() {

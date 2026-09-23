@@ -2330,6 +2330,9 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 
 ControllerModelDialog::~ControllerModelDialog()
 {
+    // The highlight tracks this window's selection, so it goes with it.
+    ClearVisualiserHighlight();
+
     // Clear the static visualizer filter - otherwise a stale value would
     // linger past the lifetime of this dialog and dim models the next time
     // the dialog is constructed before the user typed anything.
@@ -4043,10 +4046,20 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 
     mouse += GetScrollPosition(PanelController);
 
+    Model* const previousHighlight = CurrentVisualiserHighlight();
+    bool hitTile = false;
+
     for (const auto& it : _controllers) {
         if (it->GetType() == "MODEL" && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
             auto m = dynamic_cast<ModelCMObject*>(it);
+            hitTile = true;
             if (m->IsMain()) {
+                // A drop rebuilds _controllers, so every BaseCMObject here is
+                // dangling once DoDragDrop returns. The Model itself belongs to
+                // ModelManager and outlives that, so hold on to it instead of m.
+                Model* const clickedModel = m->GetModel();
+                // Pick it now so the highlight is up for the whole drag.
+                SetVisualiserHighlight(clickedModel);
                 // when a model is clicked on then it becomes the last dropped
                 if (_lastDropped != m->GetModel()) {
                     // redraw the model that used to be last dropped
@@ -4095,9 +4108,26 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
                 _dragging = m;
 
                 dragSource.SetData(dragData);
+                // Screen position either side of the drag: a release over the
+                // same pane can come back as wxDragMove even when nothing moved,
+                // so the pointer is the reliable way to tell a click from a drag.
+                wxPoint const pressAt = wxGetMousePosition();
                 dragSource.DoDragDrop(wxDragMove);
+                wxPoint const releaseAt = wxGetMousePosition();
 
                 _dragging = nullptr;
+                // The blue tracks the selected tile: a click on the already
+                // picked one unselects, and a drag ends the selection once the
+                // model has been moved. Only a click on a different tile keeps it.
+                bool const wasClick = IsClickNotDrag(pressAt, releaseAt);
+                if (!wasClick || clickedModel == previousHighlight) {
+                    SetVisualiserHighlight(nullptr);
+                }
+            } else {
+                // Later strings of a multi-string model can't be dragged, but
+                // they are still that model, so they pick/unpick it the same way.
+                Model* const clickedModel = m->AlwaysGetModel();
+                SetVisualiserHighlight(clickedModel == previousHighlight ? nullptr : clickedModel);
             }
             break;
         } else if (it->GetType() == "SR" && it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
@@ -4136,6 +4166,11 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
             _dragging = nullptr;
             break;
         }
+    }
+
+    // Pressing anywhere that is not a model tile deselects.
+    if (!hitTile) {
+        SetVisualiserHighlight(nullptr);
     }
 }
 
@@ -4978,23 +5013,16 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event)
 
     mouse += GetScrollPosition(PanelModels);
 
+    Model* const previousHighlight = CurrentVisualiserHighlight();
+    bool hitTile = false;
+
     for (const auto& it : _models) {
         auto m = static_cast<ModelCMObject*>(it);
         if (it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
-            Model* clickedModel = _mm->GetModel(m->GetName());
-            if (clickedModel != nullptr && _xLights->GetLayoutPanel() != nullptr) {
-                ModelPreview* preview = _xLights->GetLayoutPanel()->GetMainPreview();
-                if (preview != nullptr) {
-                    const std::string& controllerName = clickedModel->GetControllerName();
-                    const bool unassigned = !clickedModel->IsShadowModel() &&
-                        (controllerName.empty() || controllerName == NO_CONTROLLER);
-                    for (auto pm : preview->GetModels()) {
-                        pm->NotOnController = unassigned && (pm == clickedModel);
-                    }
-                    _xLights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
-                        "ControllerModelDialog::OnPanelModelsLeftDown");
-                }
-            }
+            hitTile = true;
+            Model* const clicked = _mm->GetModel(m->GetName());
+            // Pick it now so the highlight is up for the whole drag.
+            SetVisualiserHighlight(clicked);
 
             wxTextDataObject dragData("Model:" + m->GetName());
 
@@ -5022,13 +5050,78 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event)
             }
 
             dragSource.SetData(dragData);
+            wxPoint const pressAt = wxGetMousePosition();
             dragSource.DoDragDrop(wxDragMove);
+            wxPoint const releaseAt = wxGetMousePosition();
 
             _dragging = nullptr;
             ClearNotOnControllerHighlight();
+            // The blue tracks the selected tile: a click on the already picked
+            // one unselects, and a drag ends the selection once the model has
+            // been moved. Only a click on a different tile keeps it.
+            bool const wasClick = IsClickNotDrag(pressAt, releaseAt);
+            if (!wasClick || clicked == previousHighlight) {
+                SetVisualiserHighlight(nullptr);
+            }
             break;
         }
     }
+
+    // Pressing anywhere that is not a model tile deselects.
+    if (!hitTile) {
+        SetVisualiserHighlight(nullptr);
+    }
+}
+
+bool ControllerModelDialog::IsClickNotDrag(const wxPoint& pressAt, const wxPoint& releaseAt) const
+{
+    int const slop = FromDIP(3);
+    return std::abs(pressAt.x - releaseAt.x) <= slop && std::abs(pressAt.y - releaseAt.y) <= slop;
+}
+
+Model* ControllerModelDialog::CurrentVisualiserHighlight() const
+{
+    if (_xLights == nullptr || _xLights->GetLayoutPanel() == nullptr) {
+        return nullptr;
+    }
+    ModelPreview* preview = _xLights->GetLayoutPanel()->GetMainPreview();
+    if (preview == nullptr) {
+        return nullptr;
+    }
+    for (auto pm : preview->GetModels()) {
+        if (pm->HighlightedInVisualiser) {
+            return pm;
+        }
+    }
+    return nullptr;
+}
+
+void ControllerModelDialog::SetVisualiserHighlight(Model* model)
+{
+    if (_xLights == nullptr || _xLights->GetLayoutPanel() == nullptr) {
+        return;
+    }
+    ModelPreview* preview = _xLights->GetLayoutPanel()->GetMainPreview();
+    if (preview == nullptr) {
+        return;
+    }
+    bool changed = false;
+    for (auto pm : preview->GetModels()) {
+        bool const highlight = (model != nullptr && pm == model);
+        if (pm->HighlightedInVisualiser != highlight) {
+            pm->HighlightedInVisualiser = highlight;
+            changed = true;
+        }
+    }
+    if (changed) {
+        _xLights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+            "ControllerModelDialog::SetVisualiserHighlight");
+    }
+}
+
+void ControllerModelDialog::ClearVisualiserHighlight()
+{
+    SetVisualiserHighlight(nullptr);
 }
 
 void ControllerModelDialog::ClearNotOnControllerHighlight()
@@ -5326,6 +5419,11 @@ void ControllerModelDialog::OnTextCtrl_ModelFilterText(wxCommandEvent& event)
     // assigned models on the controller). Lowercased once here so the
     // Draw-time match is a cheap Contains() per model.
     BaseCMObject::SetVisualizerFilter(TextCtrl_ModelFilter->GetValue());
+    if (BaseCMObject::_visualizerFilterLower.IsEmpty()) {
+        // Back to the full list: the tile picked out of the filtered list is no
+        // longer what the user is looking at.
+        ClearVisualiserHighlight();
+    }
     ScrollBar_Models->SetThumbPosition(0);
     ReloadModels();
     PanelController->Refresh();
@@ -5335,6 +5433,7 @@ void ControllerModelDialog::OnTextCtrl_ModelFilterCancel(wxCommandEvent& event)
 {
     TextCtrl_ModelFilter->SetValue(wxEmptyString);
     BaseCMObject::SetVisualizerFilter(wxEmptyString);
+    ClearVisualiserHighlight();
     ScrollBar_Models->SetThumbPosition(0);
     ReloadModels();
     PanelController->Refresh();

@@ -175,56 +175,75 @@ public:
         vsInfo = prog.vsInfo;
         fsInfo = prog.fsInfo;
 
-        // tpos.y is inverted relative to the GL quad: Metal render targets are
-        // top-row-first while the RenderBuffer (GL convention) is bottom-row-
-        // first, and the blit copies texture row N to buffer row N. Flipping the
-        // texture coordinate here keeps shader-space y consistent with GL.
-        static const float quad[] = { 1.f, -1.f, 1.f, 1.f,  -1.f, -1.f, 0.f, 1.f,
-                                       1.f,  1.f, 1.f, 0.f,  -1.f,  1.f, 0.f, 0.f };
-        quadBuffer = [device newBufferWithBytes:quad length:sizeof(quad) options:MTLResourceStorageModeShared];
+        // buildShaderProgram guards its own Metal calls, but the resource
+        // creation below can raise too (an unsupported texture descriptor or a
+        // degenerate buffer size on some devices). An uncaught NSException out
+        // of here terminates the app; returning false just fills the buffer
+        // yellow like any other shader build failure.
+        @try {
+            // tpos.y is inverted relative to the GL quad: Metal render targets are
+            // top-row-first while the RenderBuffer (GL convention) is bottom-row-
+            // first, and the blit copies texture row N to buffer row N. Flipping the
+            // texture coordinate here keeps shader-space y consistent with GL.
+            static const float quad[] = { 1.f, -1.f, 1.f, 1.f,  -1.f, -1.f, 0.f, 1.f,
+                                           1.f,  1.f, 1.f, 0.f,  -1.f,  1.f, 0.f, 0.f };
+            quadBuffer = [device newBufferWithBytes:quad length:sizeof(quad) options:MTLResourceStorageModeShared];
 
-        // Only for a fragment stage that actually samples.  ShaderEffect's
-        // preamble declares texSampler for every shader whether or not it is
-        // used, so most never read it — MSL reflection reports samplerTexture
-        // < 0 for those, which is also what gates the per-frame upload and bind
-        // below.  Allocating a full BufferWi x BufferHt input texture for them
-        // is pure waste: it is per (RenderBuffer, shader), so a sequence that
-        // walks a large shader library allocates one per effect instance and
-        // reads roughly a quarter of them.
-        if (fsInfo.samplerTexture >= 0) {
-            MTLSamplerDescriptor* sd = [[MTLSamplerDescriptor alloc] init];
-            sd.minFilter = MTLSamplerMinMagFilterLinear;
-            sd.magFilter = MTLSamplerMinMagFilterLinear;
-            sd.sAddressMode = MTLSamplerAddressModeClampToEdge;
-            sd.tAddressMode = MTLSamplerAddressModeClampToEdge;
-            sampler = [device newSamplerStateWithDescriptor:sd];
+            // Only for a fragment stage that actually samples.  ShaderEffect's
+            // preamble declares texSampler for every shader whether or not it is
+            // used, so most never read it — MSL reflection reports samplerTexture
+            // < 0 for those, which is also what gates the per-frame upload and bind
+            // below.  Allocating a full BufferWi x BufferHt input texture for them
+            // is pure waste: it is per (RenderBuffer, shader), so a sequence that
+            // walks a large shader library allocates one per effect instance and
+            // reads roughly a quarter of them.
+            if (fsInfo.samplerTexture >= 0) {
+                MTLSamplerDescriptor* sd = [[MTLSamplerDescriptor alloc] init];
+                sd.minFilter = MTLSamplerMinMagFilterLinear;
+                sd.magFilter = MTLSamplerMinMagFilterLinear;
+                sd.sAddressMode = MTLSamplerAddressModeClampToEdge;
+                sd.tAddressMode = MTLSamplerAddressModeClampToEdge;
+                sampler = [device newSamplerStateWithDescriptor:sd];
 
-            MTLTextureDescriptor* itd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                                                                          width:buffer.BufferWi height:buffer.BufferHt mipmapped:NO];
-            itd.usage = MTLTextureUsageShaderRead;
-            itd.storageMode = MTLStorageModeShared;
-            inputTex = [device newTextureWithDescriptor:itd];
+                MTLTextureDescriptor* itd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                              width:buffer.BufferWi height:buffer.BufferHt mipmapped:NO];
+                itd.usage = MTLTextureUsageShaderRead;
+                itd.storageMode = MTLStorageModeShared;
+                inputTex = [device newTextureWithDescriptor:itd];
 
-            if (config->IsAudioFFTShader() || config->IsAudioIntensityShader()) {
-                // Matches the GL FFTAudioTexture: 128x1 single-channel float,
-                // bound in place of the pixel input texture.
-                MTLTextureDescriptor* atd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR32Float
-                                                                                              width:128 height:1 mipmapped:NO];
-                atd.usage = MTLTextureUsageShaderRead;
-                atd.storageMode = MTLStorageModeShared;
-                audioTex = [device newTextureWithDescriptor:atd];
+                if (config->IsAudioFFTShader() || config->IsAudioIntensityShader()) {
+                    // Matches the GL FFTAudioTexture: 128x1 single-channel float,
+                    // bound in place of the pixel input texture.
+                    MTLTextureDescriptor* atd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR32Float
+                                                                                                  width:128 height:1 mipmapped:NO];
+                    atd.usage = MTLTextureUsageShaderRead;
+                    atd.storageMode = MTLStorageModeShared;
+                    audioTex = [device newTextureWithDescriptor:atd];
+                }
             }
-        }
 
-        // Render target: a normal tiled texture (buffer-backed linear textures
-        // can't be render targets on many GPUs). Blitted into the pixel buffer
-        // after each frame. Kept across frames so overlay (loadAction Load)
-        // reads the prior frame.
-        MTLTextureDescriptor* otd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                                                                      width:buffer.BufferWi height:buffer.BufferHt mipmapped:NO];
-        otd.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
-        otd.storageMode = MTLStorageModePrivate;
-        outputTex = [device newTextureWithDescriptor:otd];
+            // Render target: a normal tiled texture (buffer-backed linear textures
+            // can't be render targets on many GPUs). Blitted into the pixel buffer
+            // after each frame. Kept across frames so overlay (loadAction Load)
+            // reads the prior frame.
+            MTLTextureDescriptor* otd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                          width:buffer.BufferWi height:buffer.BufferHt mipmapped:NO];
+            otd.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+            otd.storageMode = MTLStorageModePrivate;
+            outputTex = [device newTextureWithDescriptor:otd];
+        } @catch (NSException* ex) {
+            spdlog::error("Shader '{}' Metal resources could not be created: {} - {}",
+                          config != nullptr ? config->GetFilename() : std::string("?"),
+                          ex.name != nil ? ex.name.UTF8String : "?",
+                          ex.reason != nil ? ex.reason.UTF8String : "?");
+            platformReset();
+            return false;
+        }
+        if (quadBuffer == nil || outputTex == nil ||
+            (fsInfo.samplerTexture >= 0 && (inputTex == nil || sampler == nil))) {
+            platformReset();
+            return false;
+        }
         return true;
     }
 

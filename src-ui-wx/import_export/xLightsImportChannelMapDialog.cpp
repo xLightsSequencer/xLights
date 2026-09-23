@@ -661,6 +661,10 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     CheckBox_ConvertRenderStyle->SetValue(false);
     CheckBox_ConvertRenderStyle->SetToolTip(_("When mapping model to group, convert render style to \'Per Model\' when applicable"));
     FlexGridSizer11->Add(CheckBox_ConvertRenderStyle, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_RecordDonor = new wxCheckBox(Panel1, wxID_ANY, _("Record donor sequence in this sequence\'s metadata"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_ANY"));
+    CheckBox_RecordDonor->SetValue(true);
+    CheckBox_RecordDonor->SetToolTip(_("Remember which sequence these effects were imported from, so it shows in Sequence Settings and can be re-opened from Import > Open Original File."));
+    FlexGridSizer11->Add(CheckBox_RecordDonor, 1, wxALL|wxEXPAND, 5);
     Sizer1->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 1);
     FlexGridSizer_Blend_Mode = new wxFlexGridSizer(0, 2, 0, 0);
     CheckBox_Import_Blend_Mode = new wxCheckBox(Panel1, ID_CHECKBOX2, _("Import Model Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
@@ -783,6 +787,10 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
 
     if (_filename != "") {
         SetLabel(GetLabel() + " - " + _filename.GetFullName());
+    } else {
+        // Remapping within the current sequence: there is no donor to record.
+        CheckBox_RecordDonor->SetValue(false);
+        CheckBox_RecordDonor->Hide();
     }
 
     Connect(wxID_ANY, EVT_MDDROP, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDrop);
@@ -2391,6 +2399,11 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
         }
         line = text.ReadLine();
     }
+}
+
+bool xLightsImportChannelMapDialog::ShouldRecordDonor() const
+{
+    return CheckBox_RecordDonor != nullptr && CheckBox_RecordDonor->IsChecked();
 }
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)

@@ -79,10 +79,11 @@ public:
     // --- Derived ---
 
     xlGraphicsHealth Health();
-    // The adapter list as one line, for the machine-config banner and the log.
+    // One `key=value | key=value` entry per adapter, for the machine-config
+    // banner and the log - see GetGPUDescriptions() for the field contract.
     // Empty where nothing can be enumerated (Linux, where the GL renderer
     // string is the only thing available and is logged in its own right).
-    std::string DescribeAdapters();
+    std::vector<std::string> DescribeAdapters();
 
 private:
     xlGraphicsCapability() = default;

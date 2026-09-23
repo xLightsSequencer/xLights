@@ -2036,6 +2036,13 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
         return false;
     }
     rewritePathsInXml(xsqDoc.document_element(), sortedRewrites);
+    // Import donors are local paths on the packager's machine - private and
+    // meaningless to whoever receives the package.
+    if (auto head = xsqDoc.child("xsequence").child("head")) {
+        while (auto donor = head.child("importedFrom")) {
+            head.remove_child(donor);
+        }
+    }
     tick(55);
 
     // Stage 3 — open the output zip in the system temp dir and write

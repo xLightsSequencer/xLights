@@ -13,10 +13,8 @@
 #import <AppKit/AppKit.h>
 #import <CoreGraphics/CoreGraphics.h>
 
-#include <cstdio>
-
-std::vector<std::string> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays) {
-    std::vector<std::string> result(displays.size());
+std::vector<xlDisplayRefresh> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>& displays) {
+    std::vector<xlDisplayRefresh> result(displays.size());
     @autoreleasepool {
         // CGGetActiveDisplayList is the order wxDisplayImplMacOSX enumerates in,
         // so index i here is the caller's display i. Each one's NSScreen is then
@@ -49,15 +47,15 @@ std::vector<std::string> GetDisplayRefreshInfo(const std::vector<xlDisplayQuery>
             if (fastest <= 0.0) {
                 continue;
             }
-            char buf[96];
             int fast = (int)(fastest + 0.5);
             int slow = (int)(slowest + 0.5);
+            result[i].rate = fast;
+            result[i].rateMax = fast;
             if (slowest > 0.0 && fast != slow) {
-                snprintf(buf, sizeof(buf), "%dHz variable %d-%dHz", fast, slow, fast);
-            } else {
-                snprintf(buf, sizeof(buf), "%dHz", fast);
+                result[i].vrrMin = slow;
+                result[i].vrrMax = fast;
+                result[i].vrrCapable = true;
             }
-            result[i] = buf;
         }
     }
     return result;

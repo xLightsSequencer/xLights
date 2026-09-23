@@ -35,6 +35,7 @@ enum class HEADER_INFO_TYPES {
     ALBUM,
     URL,
     COMMENT,
+    IMPORTED_FROM,
     NUM_TYPES
 };
 
@@ -139,6 +140,14 @@ public:
     }
 
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES node_type) const;
+    // Sequences effects were imported from, most recent first.
+    static constexpr size_t MAX_IMPORTED_FROM = 10;
+    const std::vector<std::string>& GetImportedFrom() const {
+        return _importedFrom;
+    }
+    // Moves donorPath to the front of the imported-from list, dropping the
+    // oldest entry once the list is full.
+    void RecordImportedFrom(const std::string& donorPath);
     void SetHeaderInfo(HEADER_INFO_TYPES node_type, const std::string& node_value);
 
     std::string GetImageDir(UICallbacks* ui);
@@ -216,6 +225,7 @@ public:
 private:
     std::vector<std::string> models;
     std::array<std::string, (int)HEADER_INFO_TYPES::NUM_TYPES> header_info;
+    std::vector<std::string> _importedFrom;
     std::vector<std::string> timing_list;
     std::vector<PendingTiming> mPendingTimings;
     std::string version_string;

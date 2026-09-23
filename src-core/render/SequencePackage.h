@@ -83,6 +83,9 @@ class SequencePackage {
         std::string GetTempShowFolder() const;
         SeqPkgImportOptions* GetImportOptions();
         const std::filesystem::path& GetXsqFile();
+        // The archive the user actually opened (a .xsqz/.zip). Only meaningful
+        // when IsPkg(); GetXsqFile() is a temp-extracted path in that case.
+        const std::filesystem::path& GetPkgFile() const { return _pkgFile; }
         pugi::xml_document& GetRgbEffectsFile();
         std::string GetTempDir() const;
 

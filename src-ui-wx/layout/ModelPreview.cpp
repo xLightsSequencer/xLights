@@ -785,6 +785,11 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
     const xlColor* overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
     const xlColor* notOnControllerColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_NOT_ON_CONTROLLER);
     bool controllersTabActive = _controllerObjectContext == ControllerObjectContext::LayoutEditorControllerTab;
+    const xlColor* inVisualiserColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_IN_VISUALISER);
+    // The visualiser floats over whichever page is showing, so this highlight is
+    // not tied to the Controllers page the way the not-on-controller one is. It
+    // still only belongs on the layout editor's own preview.
+    bool layoutEditorPreview = _controllerObjectContext != ControllerObjectContext::None;
 
     // In 3D, walk models back-to-front by camera-space Z of the model centre so that
     // alpha-blended pixels from one model composite correctly over models behind them.
@@ -822,7 +827,10 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             }
 
             const xlColor* color = defColor;
-            if (m->NotOnController && controllersTabActive) {
+            if (m->HighlightedInVisualiser && layoutEditorPreview) {
+                color = inVisualiserColor;
+            }
+            else if (m->NotOnController && controllersTabActive) {
                 color = notOnControllerColor;
             }
             else if (m->Selected() || m->GroupSelected()) {
@@ -845,7 +853,11 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             }
             const bool hasPortStringHighlight = (psh != _portStringHighlight.end() && psh->second >= 0);
             const bool hasPortChannelHighlight = (pch != _portChannelHighlight.end());
-            const bool hasPortHighlight = hasPortStringHighlight || hasPortChannelHighlight;
+            // The per-node port highlight replaces the base colour outright, so the
+            // model picked in the visualiser would never show its blue. Its
+            // siblings keep the yellow/dim treatment.
+            const bool visualiserPick = m->HighlightedInVisualiser && layoutEditorPreview;
+            const bool hasPortHighlight = (hasPortStringHighlight || hasPortChannelHighlight) && !visualiserPick;
 
             if (m->GetDisplayAs() == DisplayAsType::SubModel && !m->GroupSelected() && !m->Selected()) {
                 // we dont display submodels if they are not selected

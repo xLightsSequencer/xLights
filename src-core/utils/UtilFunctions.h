@@ -169,6 +169,12 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly = false);
 uint64_t GetPhysicalMemorySizeMB();
 
+// Physical memory currently available to allocate, in MB, or 0 when the
+// platform won't say. Every platform reports this one - wxGetFreeMemory does
+// not (it returns -1 on macOS), which left the crash banner's memory picture
+// half-present.
+uint64_t GetFreeMemorySizeMB();
+
 // This process's current memory footprint in MB, or 0 if the platform won't
 // tell us. macOS reports phys_footprint (what Activity Monitor shows and what
 // jetsam kills on), Windows the private working set, Linux RSS.
@@ -189,12 +195,19 @@ std::string GetCPUBrand();
 int GetLogicalCoreCount();
 int GetPhysicalCoreCount();
 
-// Human-readable GPU description of every adapter the OS has bound, asked of
-// the platform directly rather than of a graphics context: on Windows the GL
-// banner degrades to "GDI Generic" precisely on the machines whose adapter we
-// most need named, and it is only written once a context exists - which is the
-// thing that fails there. Empty on Linux.
-std::string GetGPUDescription();
+// One entry per GPU adapter the OS has bound, asked of the platform directly
+// rather than of a graphics context: on Windows the GL banner degrades to
+// "GDI Generic" precisely on the machines whose adapter we most need named,
+// and it is only written once a context exists - which is the thing that fails
+// there.
+//
+// Each entry is `key=value` fields joined by " | ", never a positional string:
+// the trailing parenthetical used to mean a memory class on macOS, a kernel
+// driver on Linux and nothing at all on Windows, so a reader had to guess from
+// content. `name` and `memory` are emitted by every platform that knows them;
+// anything else (pci, driver, unified, class) is platform detail under its own
+// key. Values never contain " | ".
+std::vector<std::string> GetGPUDescriptions();
 
 // The startup machine-configuration banner. DumpConfig() builds the bulk of it,
 // but the graphics backend is only known once a context has been created, which
