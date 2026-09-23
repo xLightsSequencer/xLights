@@ -180,7 +180,11 @@ void xLightsFrame::RecordImportDonor(const xLightsImportChannelMapDialog& dlg)
     if (CurrentSeqXmlFile == nullptr || !dlg.ShouldRecordDonor()) {
         return;
     }
-    CurrentSeqXmlFile->RecordImportedFrom(dlg.GetDonorFile().GetFullPath().ToStdString());
+    std::string const donor = dlg.GetDonorFile().GetFullPath().ToStdString();
+    // Persist sandbox access now; the dialog's grant is gone by the time
+    // Open Original File re-reads this path after a restart.
+    ObtainAccessToURL(donor);
+    CurrentSeqXmlFile->RecordImportedFrom(donor);
     // The record lives in the sequence, so it has to be saved with it.
     _sequenceElements.IncrementChangeCount(nullptr);
     UpdateImportFromOriginalMenu();
@@ -195,6 +199,13 @@ void xLightsFrame::UpdateImportFromOriginalMenu()
     std::vector<std::string> donors;
     if (CurrentSeqXmlFile != nullptr) {
         donors = CurrentSeqXmlFile->GetImportedFrom();
+    }
+
+    // EnableSequenceControls enables every Import item first, so this must
+    // run even when the rebuild below is skipped.
+    wxMenuItem* parent = MenuBar->FindItem(ID_IMPORT_FROM_ORIGINAL);
+    if (parent != nullptr) {
+        parent->Enable(_sequenceControlsEnabled && _seqData.NumFrames() > 0 && !donors.empty());
     }
 
     // Called from EnableSequenceControls, so skip the rebuild when nothing moved.
@@ -226,11 +237,6 @@ void xLightsFrame::UpdateImportFromOriginalMenu()
         _importFromOriginalDonors[id] = donor;
         Bind(wxEVT_MENU, &xLightsFrame::OnMenuItemImportFromOriginal, this, id);
     }
-
-    wxMenuItem* parent = MenuBar->FindItem(ID_IMPORT_FROM_ORIGINAL);
-    if (parent != nullptr) {
-        parent->Enable(!donors.empty());
-    }
 }
 
 void xLightsFrame::OnMenuItemImportFromOriginal(wxCommandEvent& event)
@@ -241,6 +247,7 @@ void xLightsFrame::OnMenuItemImportFromOriginal(wxCommandEvent& event)
     }
 
     wxFileName const fn(it->second);
+    ObtainAccessToURL(it->second);
     if (!FileExists(fn)) {
         DisplayError(wxString::Format(_("The sequence this was imported from no longer exists:\n%s"), wxString(it->second)), this);
         return;

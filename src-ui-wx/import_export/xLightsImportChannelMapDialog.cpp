@@ -787,6 +787,10 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
 
     if (_filename != "") {
         SetLabel(GetLabel() + " - " + _filename.GetFullName());
+    } else {
+        // Remapping within the current sequence: there is no donor to record.
+        CheckBox_RecordDonor->SetValue(false);
+        CheckBox_RecordDonor->Hide();
     }
 
     Connect(wxID_ANY, EVT_MDDROP, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDrop);
