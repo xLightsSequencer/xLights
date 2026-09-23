@@ -135,6 +135,7 @@ class ColorPanel;
 class EffectsPanel;
 class EffectAssist;
 class LayoutGroup;
+class xLightsImportChannelMapDialog;
 class ViewsModelsPanel;
 class PerspectivesPanel;
 class TopEffectsPanel;
@@ -466,6 +467,9 @@ public:
     bool ExportVideoPreview(wxString const& path, int desiredWidth = -1, int desiredHeight = -1);
 
 	void SetAudioControls();
+    // Records the donor sequence into the current sequence's metadata when the
+    // import dialog's opt-in is ticked. One call per import format.
+    void RecordImportDonor(const xLightsImportChannelMapDialog& dlg);
     void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string(), bool autoMap = false, bool importMedia = true);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
@@ -558,6 +562,12 @@ public:
     void ShowHideEffectDropper(wxCommandEvent& event);
     void ResetToolbarLocations(wxCommandEvent& event);
     void OnMenuItemImportEffects(wxCommandEvent& event);
+    // Dispatches an import by file extension. Shared by the Import Effects file
+    // picker and the "Open Original File" entry, which re-imports the donor
+    // recorded in the current sequence.
+    void ImportEffectsFromFile(const wxFileName& fn);
+    void OnMenuItemImportFromOriginal(wxCommandEvent& event);
+    void UpdateImportFromOriginalMenu();
     void SetPlaySpeed(wxCommandEvent& event);
     void OnNotebook1PageChanging(wxAuiNotebookEvent& event);
     void ShowHidePerspectivesWindow(wxCommandEvent& event);
@@ -865,6 +875,7 @@ public:
     static const wxWindowID ID_MNU_SUPERQUIET;
     static const wxWindowID ID_MNU_SILENT;
     static const wxWindowID ID_IMPORT_EFFECTS;
+    static const wxWindowID ID_IMPORT_FROM_ORIGINAL;
     static const wxWindowID ID_MNU_TOD;
     static const wxWindowID ID_MNU_MANUAL;
     static const wxWindowID ID_MNU_ZOOM;
@@ -986,6 +997,9 @@ public:
     wxMenuItem* MenuItem_Help_Isue_Tracker;
     wxMenuItem* MenuItem_Help_ReleaseNotes;
     wxMenuItem* MenuItem_ImportEffects;
+    wxMenu* ImportFromOriginalMenu = nullptr;
+    // Menu id -> the donor sequence that entry re-opens.
+    std::map<int, std::string> _importFromOriginalDonors;
     wxMenuItem* MenuItem_KeyBindings;
     wxMenuItem* MenuItem_LogRenderState;
     wxMenuItem* MenuItem_LoudVol;
