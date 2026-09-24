@@ -59,6 +59,7 @@
 
 #include <log.h>
 #include "shared/utils/wxUtilities.h"
+#include "shared/utils/wxFilterQuery.h"
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
@@ -4532,7 +4533,7 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& even
     // if nothing found then find the first line containing the text
     if (index == -1)
     {
-        wxFilterQuery const query(from);
+        wxFilterQuery const query(TextCtrl_FindFrom->GetValue());
         for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i) {
             if (query.Matches(ListCtrl_Available->GetItemText(i, 1))) {
                 index = i;

@@ -38,6 +38,7 @@
 #include "models/Pixels.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+#include "shared/utils/wxFilterQuery.h"
 #include "settings/XLightsConfigAdapter.h"
 #include "xLightsMain.h"
 #include "controllers/ControllerCaps.h"
@@ -285,7 +286,7 @@ public:
     static void SetVisualizerFilter(const wxString& filter)
     {
         _visualizerFilterLower = filter.Lower();
-        _visualizerFilterQuery = wxFilterQuery(_visualizerFilterLower);
+        _visualizerFilterQuery = wxFilterQuery(filter);
     }
     static bool MatchesVisualizerFilter(const std::string& name) {
         if (_visualizerFilterLower.IsEmpty()) return true;
@@ -2425,7 +2426,7 @@ void ControllerModelDialog::ReloadModels()
     TextCtrl_Check->SetValue(check);
 
     wxString modelFilter = TextCtrl_ModelFilter->GetValue().Lower();
-    wxFilterQuery const modelFilterQuery(modelFilter);
+    wxFilterQuery const modelFilterQuery(TextCtrl_ModelFilter->GetValue());
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&

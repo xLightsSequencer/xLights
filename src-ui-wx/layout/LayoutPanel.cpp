@@ -3251,12 +3251,12 @@ public:
 
 private:
     void Rebuild() {
-        const wxString f = _filter->GetValue().Lower();
+        const wxFilterQuery query(_filter->GetValue());
         _list->Freeze();
         _list->Clear();
         _visible.clear();
         for (size_t i = 0; i < _candidates.size(); ++i) {
-            if (!f.empty() && _labels[i].Lower().Find(f) == wxNOT_FOUND) continue;
+            if (!query.Matches(_labels[i])) continue;
             int pos = _list->Append(_labels[i]);
             _visible.push_back(_candidates[i]);
             if (_checked.count(_candidates[i]) != 0) {
