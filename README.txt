@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (derwin12)              Show the global controller settings (Controller Sync, Global FPP Proxy,
+                                 etc.) again when no controller is selected on the Controllers tab
     -enh (heffneil)              Store the imported sequence in meta data to reuse in import effects
     -bug (derwin12)              Import > Open Original File is now disabled when the sequence has no
                                  recorded donor, and the record-donor checkbox is hidden when remapping
