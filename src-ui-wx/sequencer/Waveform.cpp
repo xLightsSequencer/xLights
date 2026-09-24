@@ -46,6 +46,7 @@
 #include "utils/CurlManager.h"
 #include "utils/ExternalHooks.h"
 #include <atomic>
+#include <chrono>
 #include <filesystem>
 #include <thread>
 #endif
@@ -808,6 +809,7 @@ bool Waveform::PrepareStemData()
 
     // ONNX Runtime / OpenVINO path ─────────────────────────────────────────────────
     std::string modelPath = AIModelStore::FindModel(AIModelStore::kDemucsOnnxModelName, modelDirs);
+    spdlog::info("Stem separation: model {}", modelPath.empty() ? std::string("not found, offering download") : "found at " + modelPath);
 
     if (modelPath.empty()) {
         // No cached model — confirm with user, let them pick install
@@ -863,12 +865,18 @@ bool Waveform::PrepareStemData()
             }
             dlWorker.join();
             if (dlCancelled || !dlOk.load()) {
+                spdlog::warn("Stem separation: model download {} ({})", dlCancelled ? "cancelled" : "failed", local_Path);
                 if (!dlCancelled)
                     DisplayError("Download failed. Check your internet connection and try again.");
                 return false;
             }
         }
         modelPath = local_Path;
+        {
+            std::error_code ec;
+            auto sz = std::filesystem::file_size(modelPath, ec);
+            spdlog::info("Stem separation: model downloaded to {} ({} bytes)", modelPath, ec ? 0 : (unsigned long long)sz);
+        }
         if (modelPath.empty() || !std::filesystem::exists(modelPath)) {
             DisplayError("Model wasn't found anywhere under " + destDir);
             return false;
@@ -893,16 +901,33 @@ bool Waveform::PrepareStemData()
             done.store(true);
         });
         wxSetCursor(wxCURSOR_WAIT);
+        // The worker only reports progress between chunks, so a heartbeat
+        // shows in the log whether inference is slow or wedged.
+        const auto waitStart = std::chrono::steady_clock::now();
+        auto nextHeartbeat = waitStart + std::chrono::seconds(30);
         while (!done.load()) {
             if (!prog.Update(pct.load())) {
+                if (!cancelRequested.load()) {
+                    spdlog::info("Stem separation: cancel requested by user at {}%", pct.load());
+                }
                 cancelRequested.store(true);
                 _stemSeparationCancel.store(true);
+            }
+            auto now = std::chrono::steady_clock::now();
+            if (now >= nextHeartbeat) {
+                spdlog::info("Stem separation: still running after {} s, {}% done{}",
+                             std::chrono::duration_cast<std::chrono::seconds>(now - waitStart).count(),
+                             pct.load(), cancelRequested.load() ? ", waiting for current chunk to finish cancelling" : "");
+                nextHeartbeat = now + std::chrono::seconds(30);
             }
             wxMilliSleep(50);
             wxTheApp->Yield(true);
         }
         worker.join();
         wxSetCursor(wxCURSOR_ARROW);
+        spdlog::info("Stem separation: worker finished after {} s, result {}",
+                     std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - waitStart).count(),
+                     ok.load() ? "ok" : "failed/cancelled");
         // Cancellation also makes SeparateStems return false — see the
         // CoreML path above.
         if (cancelRequested.load() || _stemSeparationCancel.load()) return false;

@@ -13,6 +13,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.18  September ??, 2026
     -bug (derwin12)              Show the global controller settings (Controller Sync, Global FPP Proxy,
                                  etc.) again when no controller is selected on the Controllers tab
+    -enh (derwin12)              More logging for stem separation to help diagnose hangs, and a
+                                 StemSeparationCPU special option to skip the GPU on Windows
+    -enh (heffneil)              Filter and search boxes now match words in any order, ignore separators
+                                 ("all house" / "allhouse" / "all-house" find grp_all_house_display),
+                                 and support * ? wildcards and /regex/
     -enh (heffneil)              Store the imported sequence in meta data to reuse in import effects
     -bug (derwin12)              Import > Open Original File is now disabled when the sequence has no
                                  recorded donor, and the record-donor checkbox is hidden when remapping

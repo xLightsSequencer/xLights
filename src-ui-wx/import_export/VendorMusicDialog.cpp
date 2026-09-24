@@ -21,6 +21,7 @@
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+#include "shared/utils/wxFilterQuery.h"
 #include "xLightsMain.h"
 
 CachedFileDownloader& VendorMusicDialog::GetCache() {
@@ -660,6 +661,7 @@ void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
         return;
     }
 
+    wxFilterQuery const searchQuery(TextCtrl_Search->GetValue());
     wxTreeItemId current = TreeCtrl_Navigator->GetSelection();
     wxTreeItemId start = current;
     if (current.IsOk()) {
@@ -699,7 +701,7 @@ void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
                 }
             }
 
-            if (current != TreeCtrl_Navigator->GetRootItem() && wxFilterQuery(TextCtrl_Search->GetValue()).Matches(TreeCtrl_Navigator->GetItemText(current))) {
+            if (current != TreeCtrl_Navigator->GetRootItem() && searchQuery.Matches(TreeCtrl_Navigator->GetItemText(current))) {
                 TreeCtrl_Navigator->SelectItem(current);
                 TreeCtrl_Navigator->EnsureVisible(current);
                 if (current == start) {
@@ -712,7 +714,7 @@ void VendorMusicDialog::OnButton_SearchClick(wxCommandEvent& event)
             if (tid != nullptr) {
                 if (((MSLVendorBaseTreeItemData*)tid)->GetType() == "SequenceLyric") {
                     auto doc = ((MSLSequenceLyricTreeItemData*)tid)->GetSequenceLyric();
-                    if (wxFilterQuery(TextCtrl_Search->GetValue()).Matches((wxString)doc->_creator)) {
+                    if (searchQuery.Matches((wxString)doc->_creator)) {
                         TreeCtrl_Navigator->SelectItem(current);
                         TreeCtrl_Navigator->EnsureVisible(current);
                         if (current == start) {

@@ -39,7 +39,7 @@
 #include <vector>
 
 #include "shared/utils/xLightsTimer.h"
-#include "shared/utils/wxUtilities.h"  // wxFilterQuery
+#include "shared/utils/wxFilterQuery.h"
 #include "models/ModelManager.h"
 #include "outputs/ChannelTracker.h"
 #include "outputs/OutputManager.h"

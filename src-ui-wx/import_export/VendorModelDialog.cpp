@@ -30,6 +30,7 @@
 #include "CachedFileDownloader.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+#include "shared/utils/wxFilterQuery.h"
 #include "utils/ExternalHooks.h"
 #include "import_export/VendorCatalog.h"
 
@@ -1484,6 +1485,8 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 		ApplyFilterNow();
 	}
 
+	wxFilterQuery const searchQuery(TextCtrl_Search->GetValue());
+
 	// cant search if tree is empty
 	if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0)
 	{
@@ -1566,7 +1569,7 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 			if (!_filterTokens.empty()) {
 				matches = TreeCtrl_Navigator->GetChildrenCount(current, false) == 0;
 			} else {
-				matches = wxFilterQuery(TextCtrl_Search->GetValue()).Matches(TreeCtrl_Navigator->GetItemText(current));
+				matches = searchQuery.Matches(TreeCtrl_Navigator->GetItemText(current));
 			}
 			if (current != TreeCtrl_Navigator->GetRootItem() && matches)
 			{

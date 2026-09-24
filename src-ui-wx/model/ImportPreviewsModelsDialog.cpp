@@ -28,6 +28,7 @@
 #include "layout/LayoutGroup.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+#include "shared/utils/wxFilterQuery.h"
 
 //(*IdInit(ImportPreviewsModelsDialog)
 const long ImportPreviewsModelsDialog::ID_CHECKBOX1 = wxNewId();
@@ -110,7 +111,7 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
     _filterTimer.SetOwner(this, wxNewId());
     Bind(wxEVT_TIMER, [this](wxTimerEvent&) { PopulateTree(); }, _filterTimer.GetId());
     _filterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
-        _filter = _filterCtrl->GetValue().Lower().Trim().Trim(false);
+        _filter = _filterCtrl->GetValue().Trim().Trim(false);
         _filterTimer.StartOnce(200);
     });
     _filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, [this](wxCommandEvent&) {
@@ -215,7 +216,7 @@ bool ImportPreviewsModelsDialog::IsViewpointsRow(wxTreeListItem it) const
 }
 
 
-void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxString& filter)
+void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxFilterQuery& filter)
 {
     // Sort here and append in order rather than handing the control a comparator:
     // with a sort column installed every AppendItem re-sorts the parent's children,
@@ -251,7 +252,7 @@ void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem 
     tree->Expand(item);
 }
 
-void ImportPreviewsModelsDialog::AddViewpoints(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node viewpoints, const wxString& filter)
+void ImportPreviewsModelsDialog::AddViewpoints(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node viewpoints, const wxFilterQuery& filter)
 {
     std::vector<std::pair<std::string, pugi::xml_node>> cams;
 
@@ -272,7 +273,7 @@ void ImportPreviewsModelsDialog::AddViewpoints(wxTreeListCtrl* tree, wxTreeListI
     tree->Expand(item);
 }
 
-bool ImportPreviewsModelsDialog::KeepInFilteredTree(const wxString& name, ImpItemKind kind, const wxString& filterLower) const
+bool ImportPreviewsModelsDialog::KeepInFilteredTree(const wxString& name, ImpItemKind kind, const wxFilterQuery& filter) const
 {
     // A ticked row survives a filter that would otherwise exclude it. Its check
     // state was already preserved in _checkedModels, but hiding the row made a
@@ -280,13 +281,12 @@ bool ImportPreviewsModelsDialog::KeepInFilteredTree(const wxString& name, ImpIte
     if (_checkedModels.count({ name.ToStdString(), kind }) != 0) {
         return true;
     }
-    return MatchesFilter(name, filterLower);
+    return MatchesFilter(name, filter);
 }
 
-bool ImportPreviewsModelsDialog::MatchesFilter(const wxString& name, const wxString& filterLower)
+bool ImportPreviewsModelsDialog::MatchesFilter(const wxString& name, const wxFilterQuery& filter)
 {
-    if (filterLower.empty()) return true;
-    return wxFilterQuery(filterLower).Matches(name);
+    return filter.IsEmpty() || filter.Matches(name);
 }
 
 void ImportPreviewsModelsDialog::SyncCheckedFromTree()
@@ -349,12 +349,13 @@ void ImportPreviewsModelsDialog::PopulateTree()
     pugi::xml_node viewpoints = root.child("Viewpoints");
 
     std::vector<wxTreeListItem> topLevelRows;
+    wxFilterQuery const filterQuery(_filter);
 
     if (models || modelgroups) {
         wxTreeListItem defaultItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Default");
         wxTreeListItem unassignedItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Unassigned");
-        AddModels(TreeListCtrl1, defaultItem, models, modelgroups, "Default", _filter);
-        AddModels(TreeListCtrl1, unassignedItem, models, modelgroups, "Unassigned", _filter);
+        AddModels(TreeListCtrl1, defaultItem, models, modelgroups, "Default", filterQuery);
+        AddModels(TreeListCtrl1, unassignedItem, models, modelgroups, "Unassigned", filterQuery);
         topLevelRows.push_back(defaultItem);
         topLevelRows.push_back(unassignedItem);
 
@@ -365,7 +366,7 @@ void ImportPreviewsModelsDialog::PopulateTree()
                     wxString lg = nnn.attribute("name").as_string();
                     if (lg != "") {
                         wxTreeListItem t = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), lg);
-                        AddModels(TreeListCtrl1, t, models, modelgroups, lg, _filter);
+                        AddModels(TreeListCtrl1, t, models, modelgroups, lg, filterQuery);
                         topLevelRows.push_back(t);
                     }
                 }
@@ -379,7 +380,7 @@ void ImportPreviewsModelsDialog::PopulateTree()
         // own layoutGroup could legitimately be named "Viewpoints" too.
         wxTreeListItem viewpointsItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Viewpoints", -1, -1,
             new impTreeItemData(wxString("Viewpoints"), pugi::xml_node(), ImpItemKind::Viewpoint));
-        AddViewpoints(TreeListCtrl1, viewpointsItem, viewpoints, _filter);
+        AddViewpoints(TreeListCtrl1, viewpointsItem, viewpoints, filterQuery);
         if (TreeListCtrl1->GetFirstChild(viewpointsItem).IsOk()) {
             topLevelRows.push_back(viewpointsItem);
         } else {

@@ -1813,8 +1813,7 @@ void PixelTestDialog::ApplyVisualModelFilter()
 {
     if (Choice_VisualModel == nullptr || SearchCtrl_VisualModel == nullptr) return;
 
-    const wxString filterLower = SearchCtrl_VisualModel->GetValue().Lower();
-    const wxFilterQuery filterQuery(filterLower);
+    const wxFilterQuery filterQuery(SearchCtrl_VisualModel->GetValue());
     const wxString prevSel = Choice_VisualModel->GetStringSelection();
 
     Choice_VisualModel->Clear();
@@ -2117,7 +2116,7 @@ void PixelTestDialog::RebuildTree(wxTreeListCtrl* tree)
     if (tree == nullptr) return;
 
     wxSearchCtrl* ctrl = FilterCtrlForTree(tree);
-    const wxString filterLower = (ctrl != nullptr) ? ctrl->GetValue().Lower() : wxString();
+    const wxFilterQuery filterQuery((ctrl != nullptr) ? ctrl->GetValue() : wxString());
 
     tree->Freeze();
 
@@ -2142,8 +2141,8 @@ void PixelTestDialog::RebuildTree(wxTreeListCtrl* tree)
     }
     DeactivateNotClickableModels(tree);
 
-    if (!filterLower.IsEmpty()) {
-        PruneTree(tree, tree->GetRootItem(), wxFilterQuery(filterLower));
+    if (!filterQuery.IsEmpty()) {
+        PruneTree(tree, tree->GetRootItem(), filterQuery);
         ExpandFiltered(tree, tree->GetRootItem());
     }
 
