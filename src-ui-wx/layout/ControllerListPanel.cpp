@@ -1282,13 +1282,11 @@ void ControllerListPanel::UpdateControllerProperties() {
         _noSelectionHint->Wrap(std::max(120, _propsPanel->GetClientSize().GetWidth() - 12));
         _noSelectionHint->InvalidateBestSize();
         sizer->Show(_noSelectionHint, true);
-        sizer->Show(_propGrid, false);
-        _propsPanel->Layout();
     } else {
         sizer->Show(_noSelectionHint, false);
-        sizer->Show(_propGrid, true);
-        _propsPanel->Layout();
     }
+    sizer->Show(_propGrid, true);
+    _propsPanel->Layout();
 
     if (!haveController) {
         _adapter.reset();
