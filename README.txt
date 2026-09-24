@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (derwin12)              More logging for stem separation to help diagnose hangs, and a
+                                 StemSeparationCPU special option to skip the GPU on Windows
     -enh (heffneil)              Filter and search boxes now match words in any order, ignore separators
                                  ("all house" / "allhouse" / "all-house" find grp_all_house_display),
                                  and support * ? wildcards and /regex/

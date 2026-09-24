@@ -11,8 +11,11 @@
 #include "kiss_fft/tools/kiss_fftr.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstring>
+#include <filesystem>
+#include <optional>
 #include <vector>
 
 #ifdef __APPLE__
@@ -106,6 +109,7 @@ void AppendOutputs(const float* src,
 #endif
 
 #if !defined(__APPLE__) && defined(HAVE_ORT)
+#    include "../utils/SpecialOptions.h"
 #    include <onnxruntime_cxx_api.h>
 // Pragma only needed for the VS-native build; cmake links via target_link_libraries.
 #    if defined(_MSC_VER) && !defined(XLIGHTS_CMAKE_BUILD)
@@ -126,8 +130,21 @@ bool SeparateStems(AudioManager* audio,
                    const StemSeparatorOptions& opts,
                    std::function<void(int pct)> progress,
                    const std::atomic<bool>* cancel) {
-    if (!audio || !audio->IsOk()) return false;
-    if (modelPath.empty()) return false;
+    if (!audio || !audio->IsOk()) {
+        spdlog::error("SeparateStems: no usable audio loaded");
+        return false;
+    }
+    if (modelPath.empty()) {
+        spdlog::error("SeparateStems: no model path");
+        return false;
+    }
+    {
+        std::error_code ec;
+        auto modelBytes = std::filesystem::file_size(modelPath, ec);
+        spdlog::info("SeparateStems: starting - model '{}' ({} bytes{}), audio {} frames at {} Hz, chunk {} overlap {}",
+                     modelPath, ec ? 0 : (unsigned long long)modelBytes, ec ? ", size unreadable" : "",
+                     audio->GetTrackSize(), audio->GetRate(), opts.chunkSamples, opts.overlapSamples);
+    }
 
 // ── CoreML (Apple) ───────────────────────────────────────────────────────────
 #ifdef __APPLE__
@@ -352,6 +369,7 @@ bool SeparateStems(AudioManager* audio,
     if (!srcL) return false;
     if (!srcR) srcR = srcL;
 
+    spdlog::info("SeparateStems: ONNX Runtime {}", Ort::GetVersionString());
     Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "xLights_demucs");
     std::wstring wpath(modelPath.begin(), modelPath.end());
 
@@ -366,7 +384,15 @@ bool SeparateStems(AudioManager* audio,
     const int64_t waveformShape[] = {1, 2, (int64_t)chunkFrames};
     auto memInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 
+    // Stem separation doesn't follow the GPU rendering preference; this lets a
+    // user whose GPU grinds on HTDemucs fall back to CPU from special.options.
+    const bool forceCPU = SpecialOptions::GetOption("StemSeparationCPU", "false") == "true";
+    if (forceCPU) {
+        spdlog::info("SeparateStems: StemSeparationCPU special option set, skipping DirectML");
+    }
+
     auto makeSession = [&](bool withDML) {
+        auto t0 = std::chrono::steady_clock::now();
         Ort::SessionOptions sopts;
         sopts.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
         sopts.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
@@ -380,10 +406,20 @@ bool SeparateStems(AudioManager* audio,
         } else {
             spdlog::info("SeparateStems: running on CPU");
         }
-        return Ort::Session(env, wpath.c_str(), sopts);
+        Ort::Session s(env, wpath.c_str(), sopts);
+        spdlog::info("SeparateStems: session created in {} ms",
+                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count());
+        return s;
     };
 
-    Ort::Session session = makeSession(true);
+    std::optional<Ort::Session> sessionHolder;
+    try {
+        sessionHolder.emplace(makeSession(!forceCPU));
+    } catch (const Ort::Exception& e) {
+        spdlog::error("SeparateStems: session creation failed: {}", e.what());
+        return false;
+    }
+    Ort::Session& session = *sessionHolder;
 
     Ort::AllocatorWithDefaultOptions allocator;
     auto inputName0  = session.GetInputNameAllocated(0, allocator);
@@ -391,14 +427,20 @@ bool SeparateStems(AudioManager* audio,
     auto outShape    = session.GetOutputTypeInfo(0).GetTensorTypeAndShapeInfo().GetShape();
     // [1, S, 2, N] where S = number of stems (4 or 6). We map first 4: drums/bass/other/vocals.
     const bool isFourDim = (outShape.size() == 4);
-    spdlog::info("SeparateStems: output '{}' {} stems, {} dims",
-                 outputName0.get(), isFourDim ? outShape[1] : outShape[1] / 2, outShape.size());
+    std::string shapeStr;
+    for (auto d : outShape) {
+        shapeStr += (shapeStr.empty() ? "" : ",") + std::to_string(d);
+    }
+    spdlog::info("SeparateStems: output '{}' shape [{}] ({} dims)", outputName0.get(), shapeStr, outShape.size());
 
     const char* inputNames[]  = {inputName0.get()};
     const char* outputNames[] = {outputName0.get()};
     const long totalChunks = (trackSize + stride - 1) / stride;
+    spdlog::info("SeparateStems: {} chunks of {} samples (stride {})", totalChunks, chunkFrames, stride);
 
     for (int attempt = 0; attempt < 2; attempt++) {
+        const bool onGPU = attempt == 0 && !forceCPU;
+        const auto runStart = std::chrono::steady_clock::now();
         out.drumsL.assign(trackSize, 0.0f);  out.drumsR.assign(trackSize, 0.0f);
         out.bassL.assign(trackSize, 0.0f);   out.bassR.assign(trackSize, 0.0f);
         out.otherL.assign(trackSize, 0.0f);  out.otherR.assign(trackSize, 0.0f);
@@ -423,9 +465,23 @@ bool SeparateStems(AudioManager* audio,
                 Ort::Value inputTensor = Ort::Value::CreateTensor<float>(
                     memInfo, waveformBuf.data(), waveformBuf.size(), waveformShape, 3);
 
-                auto outputs = session.Run(Ort::RunOptions{nullptr},
-                                           inputNames, &inputTensor, 1,
-                                           outputNames, 1);
+                const auto chunkStart = std::chrono::steady_clock::now();
+                if (chunkIdx == 0) {
+                    spdlog::info("SeparateStems: running first chunk on {}", onGPU ? "DirectML" : "CPU");
+                }
+                auto outputs = sessionHolder->Run(Ort::RunOptions{nullptr},
+                                                 inputNames, &inputTensor, 1,
+                                                 outputNames, 1);
+                spdlog::info("SeparateStems: chunk {}/{} took {} ms", chunkIdx + 1, totalChunks,
+                             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - chunkStart).count());
+                if (chunkIdx == 0) {
+                    auto actual = outputs[0].GetTensorTypeAndShapeInfo().GetShape();
+                    std::string actualStr;
+                    for (auto d : actual) {
+                        actualStr += (actualStr.empty() ? "" : ",") + std::to_string(d);
+                    }
+                    spdlog::info("SeparateStems: first chunk output shape [{}]", actualStr);
+                }
 
                 const float* outData = outputs[0].GetTensorMutableData<float>();
 
@@ -469,9 +525,15 @@ bool SeparateStems(AudioManager* audio,
             if (cancelled) {
                 return false;
             }
-            if (attempt == 0) {
-                spdlog::warn("SeparateStems: DirectML inference failed ({}), retrying on CPU", e.what());
-                session = makeSession(false);
+            if (attempt == 0 && !forceCPU) {
+                spdlog::warn("SeparateStems: DirectML inference failed at chunk {} ({}), retrying on CPU", chunkIdx, e.what());
+                try {
+                    sessionHolder.reset();
+                    sessionHolder.emplace(makeSession(false));
+                } catch (const Ort::Exception& e2) {
+                    spdlog::error("SeparateStems: CPU session creation failed: {}", e2.what());
+                    return false;
+                }
                 needRetry = true;
             } else {
                 spdlog::error("SeparateStems: CPU inference failed: {}", e.what());
@@ -484,7 +546,9 @@ bool SeparateStems(AudioManager* audio,
             return false;
         }
         if (!needRetry) {
-            spdlog::info("SeparateStems: completed {} chunks, {} frames", chunkIdx, trackSize);
+            spdlog::info("SeparateStems: completed {} chunks, {} frames in {} ms on {}", chunkIdx, trackSize,
+                         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - runStart).count(),
+                         onGPU ? "DirectML" : "CPU");
             return true;
         }
     }
