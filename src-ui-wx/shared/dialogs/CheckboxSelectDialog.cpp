@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "utils/UtilFunctions.h"
+#include "shared/utils/wxFilterQuery.h"
 
 //(*IdInit(CheckboxSelectDialog)
 const wxWindowID CheckboxSelectDialog::ID_CHECKLISTBOXITEMS = wxNewId();
@@ -352,6 +353,7 @@ wxString ChooseModelWithFilter(wxWindow* parent, const wxArrayString& choices, c
     auto* filterCtrl = new wxSearchCtrl(&dlg, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     filterCtrl->SetDescriptiveText(_("Filter models..."));
     filterCtrl->ShowCancelButton(true);
+    filterCtrl->SetToolTip(wxFilterQuery::Hint());
     sizer->Add(filterCtrl, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
 
     auto* list = new wxListBox(&dlg, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SINGLE);
@@ -359,20 +361,12 @@ wxString ChooseModelWithFilter(wxWindow* parent, const wxArrayString& choices, c
     sizer->Add(dlg.CreateStdDialogButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
     dlg.SetSizer(sizer);
 
-    // Show the rows matching every whitespace-separated term (any order), like
-    // the other list filters. Cheap enough on a model list to run per keystroke;
-    // Freeze/Thaw avoids flicker.
     auto repopulate = [&list, &choices](const wxString& filterText) {
+        const wxFilterQuery query(filterText);
         list->Freeze();
         list->Clear();
-        wxArrayString terms = wxStringTokenize(filterText.Lower(), " \t");
         for (const auto& c : choices) {
-            const wxString lc = c.Lower();
-            bool matches = true;
-            for (const auto& term : terms) {
-                if (!lc.Contains(term)) { matches = false; break; }
-            }
-            if (matches) list->Append(c);
+            if (query.IsEmpty() || query.Matches(c)) list->Append(c);
         }
         list->Thaw();
     };
