@@ -537,6 +537,9 @@ public:
     bool ShouldRecordDonor() const;
     const wxFileName& GetDonorFile() const { return _filename; }
 
+    // Cancel removes any groups this dialog added to the layout.
+    void EndModal(int retCode) override;
+
 private:
     wxString _mappingFile = "mapping.xmap";
     bool _allowTimingOffset;
@@ -663,6 +666,7 @@ protected:
         static const wxWindowID ID_MNU_CLEARSELECTED;
         static const wxWindowID ID_MNU_CLEARALL;
         static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
+        static const long ID_MNU_ADD_DONOR_GROUPS;
         static const wxWindowID ID_MNU_ADD_EMPTY_GROUP;
         static const wxWindowID ID_MNU_SORT_SUBMODELS_BY_NAME;
         static const wxWindowID ID_MNU_EDIT_DISPLAY_ELEMENTS;
@@ -708,6 +712,17 @@ protected:
         int CountHiddenMappings() const;
         void ClearSelected();
         void AddEmptyGroup();
+        // Adds an empty ModelGroup to the layout plus its row, or nullptr on failure.
+        xLightsImportModelNode* CreateEmptyGroup(const wxString& groupName);
+        xLightsImportModelNode* FindTopLevelNode(const wxString& name) const;
+        void AddDonorGroupsAndMap(const std::vector<wxString>& groups);
+        bool GroupNameInUse(const wxString& name) const;
+        // Asks for a name other than `taken`, re-asking until it is unused; empty if the user gives up.
+        wxString PromptForUnusedGroupName(const wxString& taken);
+        std::vector<wxString> DonorGroupsAt(const wxPoint& screenPos);
+        void RemoveGroupsAddedThisSession();
+        // Confirms leaving without Ok: unsaved mapping changes, and groups added here that Cancel removes.
+        bool ConfirmDiscard(bool closingWindow);
         void EditDisplayElements();
         void AddNewMasterViewItems(std::set<std::string>& snapshot);
         void ShowAllMapped();
@@ -802,6 +817,10 @@ protected:
         wxTimer _nameFilterTimer;
         // Rows the filter expanded, as opposed to the user, so it undoes only its own.
         std::unordered_set<xLightsImportModelNode*> _filterExpanded;
+        // Layout groups created while this dialog is open, removed again on Cancel.
+        std::vector<std::string> _groupsAddedThisSession;
+        // Donor groups the Available context menu was opened on.
+        std::vector<wxString> _contextDonorGroups;
         std::vector<wxCheckBox*> _timingCheckboxes;
         int _timelineCol {-1};
         std::map<ImportChannel*, int> _channelImageMap;

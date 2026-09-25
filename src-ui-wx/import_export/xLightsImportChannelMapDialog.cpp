@@ -668,6 +668,7 @@ const long xLightsImportChannelMapDialog::ID_MNU_SHOWALLMAPPED = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_CLEARSELECTED = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_CLEARALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_AUTOMAPSELECTED = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_ADD_DONOR_GROUPS = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_ADD_EMPTY_GROUP = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_SORT_SUBMODELS_BY_NAME = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
@@ -951,6 +952,15 @@ void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
 void xLightsImportChannelMapDialog::RightClickModelsAvail(wxContextMenuEvent& event) {
         wxMenu mnuLayer;
         mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
+
+        _contextDonorGroups = DonorGroupsAt(event.GetPosition());
+        mnuLayer.AppendSeparator();
+        wxString const label = _contextDonorGroups.size() > 1
+                                   ? wxString::Format(_("Add %d Groups to Layout and Map"), (int)_contextDonorGroups.size())
+                                   : wxString(_("Add Group to Layout and Map"));
+        // Shown but disabled on a model, so the option is discoverable.
+        mnuLayer.Append(ID_MNU_ADD_DONOR_GROUPS, label)->Enable(!_contextDonorGroups.empty());
+
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
         PopupMenu(&mnuLayer);
 }
@@ -964,6 +974,8 @@ void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
         CollapseAll();
     } else if (id == ID_MNU_SHOWALLMAPPED) {
         ShowAllMapped();
+    } else if (id == ID_MNU_ADD_DONOR_GROUPS) {
+        AddDonorGroupsAndMap(_contextDonorGroups);
     } else if (id == ID_MNU_AUTOMAPSELECTED) {
         OnButton_AutoMapSelClick(event);
     } else if (id == ID_MNU_CLEARSELECTED) {
@@ -1068,6 +1080,13 @@ void xLightsImportChannelMapDialog::AddNewMasterViewItems(std::set<std::string>&
     }
 }
 
+// Group membership is stored as comma-separated names, so a name must go
+// through the same cleaning the layout applies.
+static wxString SafeGroupName(const wxString& name)
+{
+    return wxString::FromUTF8(Model::SafeModelName(name.utf8_string()));
+}
+
 void xLightsImportChannelMapDialog::AddEmptyGroup()
 {
     wxTextEntryDialog dialog(this, "Enter the name for the new group:", "Add New Group", "");
@@ -1075,47 +1094,198 @@ void xLightsImportChannelMapDialog::AddEmptyGroup()
         return;
     }
 
-    wxString groupName = dialog.GetValue().Trim();
+    wxString groupName = SafeGroupName(dialog.GetValue());
     if (groupName.IsEmpty()) {
         wxMessageBox("Group name cannot be empty.", "Error", wxOK | wxICON_ERROR, this);
         return;
     }
 
-    for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
-        xLightsImportModelNode* existingNode = _dataModel->GetNthChild(i);
-        if (existingNode->_model == groupName) {
-            wxMessageBox("A group or model with the name '" + groupName + "' already exists.", "Error", wxOK | wxICON_ERROR, this);
-            return;
-        }
+    // The layout, not just this list: a model can exist without being offered here.
+    if (FindTopLevelNode(groupName) != nullptr || xlights->AllModels.GetModel(groupName.ToStdString()) != nullptr) {
+        wxMessageBox("A group or model with the name '" + groupName + "' already exists.", "Error", wxOK | wxICON_ERROR, this);
+        return;
     }
 
+    if (CreateEmptyGroup(groupName) == nullptr) {
+        return;
+    }
+    TreeListCtrl_Mapping->Refresh();
+    DisplayInfo("Group '" + groupName + "' added successfully.", this);
+}
+
+xLightsImportModelNode* xLightsImportChannelMapDialog::CreateEmptyGroup(const wxString& groupName)
+{
     // Drained before the group is built, not after: a timed-out abort means
     // render jobs still hold Model* and AddModel is not safe to call.
-    if (!xlights->AbortRender()) return;
+    if (!xlights->AbortRender()) return nullptr;
 
-    // Create the model group directly using setters
+    // Name only, never members: a donor's member names mean nothing in this
+    // layout and stop the group rendering until removed (#7006).
     ModelGroup* newModelGroup = new ModelGroup(xlights->AllModels);
     newModelGroup->SetName(groupName.ToStdString());
     newModelGroup->SetLayout("minimalGrid");
     newModelGroup->SetGridSize(400);
     newModelGroup->SetLayoutGroup("Default");
     xlights->AllModels.AddModel(newModelGroup);
+    _groupsAddedThisSession.push_back(groupName.ToStdString());
 
     xLightsImportModelNode* newGroup = new xLightsImportModelNode(
         nullptr, groupName, "", true, std::list<std::string>{}, "ModelGroup", "", false, "ModelGroup", 1000,
         *wxWHITE, true, "", 0);
 
     _dataModel->BulkInsert(newGroup, _dataModel->GetChildCount());
+    _dataModel->ItemAdded(wxDataViewItem(), wxDataViewItem(newGroup));
 
-    wxDataViewItem parentItem;
-    wxDataViewItem newItem(newGroup);
-    _dataModel->ItemAdded(parentItem, newItem);
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsImportChannelMapDialog::CreateEmptyGroup");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "xLightsImportChannelMapDialog::CreateEmptyGroup", nullptr, nullptr, groupName.ToStdString());
+    return newGroup;
+}
 
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnModelsPopup::ID_MNU_ADD_MODEL_GROUP", nullptr, nullptr, groupName.ToStdString());
+xLightsImportModelNode* xLightsImportChannelMapDialog::FindTopLevelNode(const wxString& name) const
+{
+    for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+        xLightsImportModelNode* node = _dataModel->GetNthChild(i);
+        if (node->_model == name) {
+            return node;
+        }
+    }
+    return nullptr;
+}
 
-    TreeListCtrl_Mapping->Refresh();
-    DisplayInfo("Group '" + groupName + "' added successfully.", this);
+void xLightsImportChannelMapDialog::RemoveGroupsAddedThisSession()
+{
+    if (_groupsAddedThisSession.empty()) return;
+    // Same guard as adding: render jobs may still hold Model*.
+    if (!xlights->AbortRender()) {
+        spdlog::warn("Import mapping cancelled but rendering could not be stopped; leaving {} added group(s) in the layout.",
+                     _groupsAddedThisSession.size());
+        return;
+    }
+    for (auto const& name : _groupsAddedThisSession) {
+        xlights->AllModels.Delete(name);
+    }
+    _groupsAddedThisSession.clear();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsImportChannelMapDialog::RemoveGroupsAddedThisSession");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "xLightsImportChannelMapDialog::RemoveGroupsAddedThisSession");
+}
+
+void xLightsImportChannelMapDialog::EndModal(int retCode)
+{
+    // Only an explicit cancel: every caller treats anything else as success.
+    if (retCode == wxID_CANCEL) {
+        RemoveGroupsAddedThisSession();
+    }
+    wxDialog::EndModal(retCode);
+}
+
+std::vector<wxString> xLightsImportChannelMapDialog::DonorGroupsAt(const wxPoint& screenPos)
+{
+    // The row under the pointer; a keyboard-opened menu has no position, so
+    // fall back to the selection.
+    long clicked = -1;
+    if (screenPos != wxDefaultPosition) {
+        int flags = 0;
+        clicked = ListCtrl_Available->HitTest(ListCtrl_Available->ScreenToClient(screenPos), flags);
+    }
+
+    // The whole selection when the clicked row is part of it, else just that row.
+    std::vector<long> rows;
+    if (clicked < 0 || (ListCtrl_Available->GetItemState(clicked, wxLIST_STATE_SELECTED) & wxLIST_STATE_SELECTED)) {
+        for (long i = ListCtrl_Available->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); i != -1;
+             i = ListCtrl_Available->GetNextItem(i, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED)) {
+            rows.push_back(i);
+        }
+    } else {
+        rows.push_back(clicked);
+    }
+
+    std::vector<wxString> groups;
+    for (long const row : rows) {
+        wxString const name = ListCtrl_Available->GetItemText(row, 1);
+        if (findModelType(name.ToStdString()) == "ModelGroup") {
+            groups.push_back(name);
+        }
+    }
+    return groups;
+}
+
+bool xLightsImportChannelMapDialog::GroupNameInUse(const wxString& name) const
+{
+    // The layout, not just this list: a model can exist without being offered here.
+    return FindTopLevelNode(name) != nullptr || xlights->AllModels.GetModel(name.ToStdString()) != nullptr;
+}
+
+wxString xLightsImportChannelMapDialog::PromptForUnusedGroupName(const wxString& taken)
+{
+    wxString suggestion = xlights->AllModels.GenerateModelName(taken.ToStdString());
+    wxString problem = wxString::Format(_("A group or model named '%s' already exists."), taken);
+    while (true) {
+        wxTextEntryDialog dlg(this, problem + "\n\n" + _("Enter a different name for the new group:"), _("Group Already Exists"), suggestion);
+        if (dlg.ShowModal() != wxID_OK) {
+            return wxEmptyString;
+        }
+        wxString const name = SafeGroupName(dlg.GetValue());
+        if (name.IsEmpty()) {
+            problem = _("The name cannot be empty.");
+        } else if (GroupNameInUse(name)) {
+            problem = wxString::Format(_("'%s' is also already in use."), name);
+        } else {
+            return name;
+        }
+        suggestion = name.IsEmpty() ? suggestion : name;
+    }
+}
+
+void xLightsImportChannelMapDialog::AddDonorGroupsAndMap(const std::vector<wxString>& groups)
+{
+    int added = 0;
+    wxArrayString skipped;
+    xLightsImportModelNode* last = nullptr;
+
+    for (auto const& donorName : groups) {
+        wxString name = SafeGroupName(donorName);
+        if (name.IsEmpty() || GroupNameInUse(name)) {
+            name = PromptForUnusedGroupName(donorName);
+            if (name.IsEmpty()) {
+                skipped.Add(donorName);
+                continue;
+            }
+        }
+
+        xLightsImportModelNode* node = CreateEmptyGroup(name);
+        if (node == nullptr) {
+            break; // rendering could not be stopped
+        }
+        ++added;
+
+        wxDataViewItemArray target;
+        target.Add(wxDataViewItem(node));
+        wxDataViewItem applied;
+        if (!PromptAndApplyMapping(target, donorName.ToStdString(), findModelType(donorName.ToStdString()), applied)) {
+            break;
+        }
+        last = node;
+    }
+
+    MarkUsed();
+    UpdateFilterCount();
+    if (last != nullptr && _dataModel->IsShownByNameFilter(last)) {
+        TreeListCtrl_Mapping->UnselectAll();
+        TreeListCtrl_Mapping->Select(wxDataViewItem(last));
+        TreeListCtrl_Mapping->EnsureVisible(wxDataViewItem(last));
+    }
+
+    wxArrayString lines;
+    if (added > 0) {
+        lines.Add(added == 1 ? wxString(_("The group is added to this screen and mapped. It will not be committed until you press Ok in the import window."))
+                             : wxString::Format(_("%d groups are added to this screen and mapped. They will not be committed until you press Ok in the import window."), added));
+    }
+    if (!skipped.IsEmpty()) {
+        lines.Add(_("Not added: ") + wxJoin(skipped, ','));
+    }
+    if (!lines.IsEmpty()) {
+        DisplayInfo(wxJoin(lines, '\n'), this);
+    }
 }
 
 void xLightsImportChannelMapDialog::CollapseAll()
@@ -2879,14 +3049,40 @@ void xLightsImportChannelMapDialog::OnButton_OkClick(wxCommandEvent& event)
     }
 }
 
+bool xLightsImportChannelMapDialog::ConfirmDiscard(bool closingWindow)
+{
+    wxString msg;
+    if (_dirty) {
+        msg = closingWindow ? "Are you sure you want to exit WITHOUT saving your mapping changes for future imports?"
+                            : "Are you sure you want to cancel WITHOUT saving your mapping changes for future imports?";
+    }
+    // Adding a group does not mark the mapping dirty, so without this Cancel
+    // would remove the groups without a word.
+    if (!_groupsAddedThisSession.empty()) {
+        size_t const shown = std::min<size_t>(_groupsAddedThisSession.size(), 5);
+        wxArrayString names;
+        for (size_t i = 0; i < shown; ++i) {
+            names.Add(_groupsAddedThisSession[i]);
+        }
+        wxString list = wxJoin(names, ',');
+        if (_groupsAddedThisSession.size() > shown) {
+            list += wxString::Format(_(" and %d more"), (int)(_groupsAddedThisSession.size() - shown));
+        }
+        wxString const groups = _groupsAddedThisSession.size() == 1
+                                    ? wxString::Format(_("The group you added, %s, will be removed from your layout."), list)
+                                    : wxString::Format(_("The %d groups you added (%s) will be removed from your layout."),
+                                                       (int)_groupsAddedThisSession.size(), list);
+        if (msg.IsEmpty()) {
+            msg = closingWindow ? _("Are you sure you want to exit?") : _("Are you sure you want to cancel?");
+        }
+        msg += "\n\n" + groups;
+    }
+    return msg.IsEmpty() || wxMessageBox(msg, "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES;
+}
+
 void xLightsImportChannelMapDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
-    if (_dirty) {
-        if (wxMessageBox("Are you sure you want to cancel WITHOUT saving your mapping changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES) {
-            EndDialog(wxID_CANCEL);
-        }
-
-    } else {
+    if (ConfirmDiscard(false)) {
         EndDialog(wxID_CANCEL);
     }
 }
@@ -4805,12 +5001,7 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
 
 void xLightsImportChannelMapDialog::OnClose(wxCloseEvent& event)
 {
-    if (_dirty) {
-        if (wxMessageBox("Are you sure you want to exit WITHOUT saving your mapping changes for future imports?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxYES) {
-            EndDialog(wxID_CANCEL);
-        }
-
-    } else {
+    if (ConfirmDiscard(true)) {
         EndDialog(wxID_CANCEL);
     }
 }
