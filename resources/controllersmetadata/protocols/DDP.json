@@ -1,0 +1,63 @@
+{
+    "schemaVersion": 1,
+    "objectType": "output",
+    "protocol": "DDP",
+    "description": "The single <network> child node under an ethernet <Controller Protocol=\"DDP\">. DDP controllers are not universe-based - there is exactly one Output/one <network> node per controller, sized in raw channels and split into packets at send time. Source of truth: src-core/outputs/Output.cpp Output::SaveAttr (@42, base writer) and IPOutput.cpp IPOutput::SaveAttr (@27, IP-output writer) for the attributes shared by every IP-based protocol document in this tree, plus DDPOutput.cpp constructor (@58, reader) / Save (@97, writer) for the DDP-specific extras. Cross-checked against OutputPropertyAdapters.cpp DDPOutputPropertyAdapter::AddProperties (@429) for grid labels and ranges.",
+    "storage": { "file": "xlights_networks.xml", "node": "Controller/network" },
+    "properties": [
+        {
+            "xmlAttribute": "NetworkType",
+            "type": "string",
+            "default": "DDP",
+            "description": "Protocol discriminator for this <network> node; always the literal \"DDP\" (DDPOutput::GetType(), matching the OUTPUT_DDP constant in Output.h @34). Written unconditionally by Output::SaveAttr (Output.cpp @44). No property-grid row (fixed by the controller's Protocol selection)."
+        },
+        {
+            "xmlAttribute": "ComPort",
+            "type": "string",
+            "default": "",
+            "description": "IP address/hostname this controller's data is sent to. Verified trap: legacy attribute name \"ComPort\" holds an IP address, not a serial port (IPOutput::SaveAttr, IPOutput.cpp @29-31 writer / @40 reader). Only written when non-empty. No property-grid row of its own: mirrors the parent <Controller>'s IP attribute, cascaded by ControllerEthernet::SetIP (ControllerEthernet.cpp @153-177). DDP additionally requires this IP be unique across all controllers (ControllerEthernetPropertyAdapter::ValidateProperties, ControllerEthernetPropertyAdapter.cpp @573-591)."
+        },
+        {
+            "xmlAttribute": "BaudRate",
+            "type": "uint",
+            "default": 1,
+            "description": "Verified trap: for DDP this is NOT a universe or channel count - it is an internal unique id (DDPOutput::GetId()/SetId(), DDPOutput.h @92-93), used only to give the output a stable identity (e.g. when the protocol is switched to DDP, ControllerEthernet::SetProtocol assigns it OutputManager::UniqueId(), ControllerEthernet.cpp @251-259). There is no \"Universe\" property-grid row for DDP at all (DDPOutputPropertyAdapter::AddProperties has no Universe entry, OutputPropertyAdapters.cpp @429-445). New DDP outputs default this id to 64001 via DDPOutput's parameterless constructor (DDPOutput.cpp @70), distinct from the base IPOutput read-fallback of 1 used only when the attribute is missing from the file."
+        },
+        {
+            "xmlAttribute": "MaxChannels",
+            "label": "Channels",
+            "gridKey": "Channels",
+            "type": "uint",
+            "min": 1,
+            "max": 2000000,
+            "description": "Total channel count sent by this DDP output (Output::SaveAttr, Output.cpp @46 writer / @76 reader). Written unconditionally. Grid range 1 to DDPOutput::GetMaxChannels() = 2,000,000 (DDPOutput.h @105, OutputPropertyAdapters.cpp @442-444). New DDP outputs default to 512 channels via DDPOutput's parameterless constructor (DDPOutput.cpp @73)."
+        },
+        {
+            "xmlAttribute": "FPPProxy",
+            "type": "string",
+            "default": "",
+            "description": "IP/hostname of an FPP proxy this output's data is routed through. Written only when non-empty (Output::SaveAttr, Output.cpp @48-51). No property-grid row of its own: mirrors the parent <Controller>'s FPPProxy attribute, cascaded by ControllerEthernet::SetFPPProxy (ControllerEthernet.cpp @407-411). DDP is one of the protocols IsFPPProxyable() supports (ControllerEthernet.h @76, see Ethernet.json)."
+        },
+        {
+            "xmlAttribute": "ChannelsPerPacket",
+            "gridKey": "ChannelsPerPacket",
+            "label": "Channels Per Packet",
+            "type": "uint",
+            "min": 1,
+            "max": 1440,
+            "description": "Maximum channel payload per DDP UDP packet; larger outputs are split into multiple packets per frame (DDPOutput::EndFrame packet-splitting loop, DDPOutput.cpp @455-493). Written unconditionally, read with default 0 if absent (DDPOutput.cpp @61) though new outputs default to 1440 (the DDP protocol's own per-packet maximum, DDPOutput.h @24, DDPOutput.cpp @72). Grid help text: 'It would be very rare that you would ever want to change this from the default.' (OutputPropertyAdapters.cpp @430-434)."
+        },
+        {
+            "xmlAttribute": "KeepChannelNumbers",
+            "gridKey": "KeepChannelNumbers",
+            "label": "Keep Channel Numbers",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "When true, the channel offset sent on the wire starts at this output's actual xLights start channel minus one instead of at 0 (DDPOutput::EndFrame, DDPOutput.cpp @456: `chan = _keepChannelNumbers ? (_startChannel - 1) : 0`). Written unconditionally as \"1\"/\"0\" (DDPOutput::Save, DDPOutput.cpp @102); read via as_int with default 0 (DDPOutput.cpp @62), though new outputs default it to true via DDPOutput's parameterless constructor (DDPOutput.cpp @76). Grid help text: 'When not selected DDP data arrives at each controller looking like it starts at channel 1. When selected it arrives with the xLights channel number.' Hidden from the grid entirely when the controller's Vendor is \"FPP\" (OutputPropertyAdapters.cpp @436-440: `if (c == nullptr || c->GetVendor() != \"FPP\")`). CapsGate interaction: when a controller's capability definition declares DDPStartsAtOne (ControllerCaps::DDPStartsAtOne, ControllerCaps.cpp @401, driven by a <DDPStartsAtOne/> marker in the vendor's capability XML, e.g. resources/controllers/wled.xcontroller), switching that controller's Protocol to DDP forces this attribute to false (ControllerEthernet::SetProtocol, ControllerEthernet.cpp @261-263: `if (c && c->DDPStartsAtOne()) ddpo->SetKeepChannelNumber(false);`) - i.e. DDPStartsAtOne is effectively the inverse default of KeepChannelNumbers for that controller model, applied only at protocol-switch time (not a live grid capsGate)."
+        }
+    ],
+    "notes": [
+        "Unlike E1.31/Art-Net/KiNet, DDP has exactly one <network> child per controller - there is no per-node universe concept, no Universes/UniversesDisplay/IndivSizes/Sizes rows, and BaudRate is repurposed as an internal id rather than a channel-addressing value."
+    ]
+}

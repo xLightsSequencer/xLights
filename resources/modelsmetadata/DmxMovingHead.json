@@ -1,0 +1,83 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "DmxMovingHead",
+    "description": "A 2D-rendered moving-head fixture with pan/tilt motors, a switchable color ability (RGBW/ColorWheel/CMYW), dimmer, shutter and beam abilities, plus a fixed body-style silhouette (DmxStyle) drawn in the layout preview. Source: src-core/models/DMX/DmxMovingHead.{h,cpp} (DisplayAs = DisplayAsType::DmxMovingHead; derives from DmxMovingHeadComm for the shared Pan/Tilt motors + DmxFixture attribute). Compare DmxMovingHeadAdv.json for the 3D-mesh-rendered sibling, which shares the motor/color/dimmer/shutter/beam abilities but has no DmxStyle/HideBody and instead adds Base/Yoke/Head mesh children and position zones.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json",
+        "shared/DmxAbilities.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions. Round-tripped but disabled in DmxMovingHead's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions. Deliberately left enabled for DMX models."
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions. Not disabled for DMX models."
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve. Round-tripped but disabled in DmxMovingHead's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        },
+        {
+            "name": "PanMotor",
+            "description": "Pan-axis motor child element. Instantiates the {base}Motor pattern documented in shared/DmxAbilities.json notes (ChannelCoarse/ChannelFine/MinLimit/MaxLimit/RangeOfMotion/OrientZero/OrientHome/SlewLimit/Reverse/UpsideDown). Always present (DmxMovingHead::GetPanMotor(), written unconditionally by Visit(const DmxMovingHead&))."
+        },
+        {
+            "name": "TiltMotor",
+            "description": "Tilt-axis motor child element. Same attribute set as PanMotor - see shared/DmxAbilities.json notes. Always present (DmxMovingHead::GetTiltMotor())."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "DmxStyle",
+            "label": "DMX Style",
+            "gridKey": "DmxStyle",
+            "type": "enum",
+            "enum": ["Moving Head Top", "Moving Head Side", "Moving Head Bars", "Moving Head TopBars", "Moving Head SideBars", "Moving Head 3D"],
+            "labels": {
+                "Moving Head Top": "Moving Head Top",
+                "Moving Head Side": "Moving Head Side",
+                "Moving Head Bars": "Moving Head Bars",
+                "Moving Head TopBars": "Moving Head Top Bars",
+                "Moving Head SideBars": "Moving Head Side Bars",
+                "Moving Head 3D": "Moving Head 3D"
+            },
+            "default": "Moving Head Top",
+            "description": "Body-silhouette style drawn for this fixture in the 2D layout preview (DmxMovingHead::GetDMXStyle()/SetDmxStyle()). CORRECTION/trap: the property grid's displayed choice labels (DmxMovingHeadPropertyAdapter.cpp DMX_STYLE_VALUES: \"Moving Head Top Bars\", \"Moving Head Side Bars\" - WITH a space) differ from the two literal strings actually written to XML for those same two choices (DMX_STYLE_NAMES: \"Moving Head TopBars\", \"Moving Head SideBars\" - NO space); the other four choices are spelled identically in both arrays. `enum` above lists the persisted (no-space) forms; `labels` maps them to the UI's displayed (spaced) text where it differs. Only present on DmxMovingHead - DmxMovingHeadAdv has no DmxStyle attribute at all (its silhouette is the 3D mesh children instead)."
+        },
+        {
+            "xmlAttribute": "HideBody",
+            "label": "Hide Body",
+            "gridKey": "HideBody",
+            "type": "bool",
+            "boolFormat": "TrueFalse",
+            "default": "False",
+            "description": "When \"True\", suppresses drawing the DmxStyle body silhouette, showing only the beam (DmxMovingHead::GetHideBody()/SetHideBody()). Persisted as the Title-case literal True/False (`model.GetHideBody() ? \"True\" : \"False\"`, XmlDeserializingModelFactory default \"False\" compared against \"True\") - unlike most bool attributes elsewhere in this tree which use lowercase true/false. Only present on DmxMovingHead."
+        }
+    ],
+    "notes": [
+        "DmxFixture, DmxColorType + color-ability channels, MhDimmerChannel, shutter-ability and beam-ability attributes are all documented once in shared/DmxAbilities.json - DmxMovingHead genuinely shares them with DmxMovingHeadAdv (DmxFixture, color, dimmer, shutter, beam) rather than owning them uniquely, correcting the task brief's survey which attributed DmxFixture/DmxColorType to DmxMovingHead alone.",
+        "In-memory constructor starting values (only relevant for a brand-new, unsaved model, not for reading an existing file - see shared/DmxAbilities.json's DmxRedChannel/DmxBeamLength/DmxBeamWidth notes for the general caveat): DmxMovingHead's constructor seeds DmxRedChannel/DmxGreenChannel/DmxBlueChannel to 1/2/3 (matching the shared read-fallback default) and DmxBeamLength/DmxBeamWidth to 4.0/30.0.",
+        "DmxMovingHead supports neither DmxBeamOrient nor DmxBeamYOffset (its beam_ability never calls SetSupportsOrient/SetSupportsYOffset) - only DmxMovingHeadAdv writes those two."
+    ]
+}

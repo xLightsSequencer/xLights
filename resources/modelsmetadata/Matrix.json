@@ -1,0 +1,115 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Matrix",
+    "description": "A rectangular grid of nodes, wired either row-major (Horizontal) or column-major (Vertical). Orientation is carried by the \"Vertical\" attribute, not by DisplayAs: the current serializer always writes the single literal DisplayAs value \"Matrix\" (MatrixModel::MatrixModel sets DisplayAs = DisplayAsType::Matrix; DisplayAsTypeToString(DisplayAsType::Matrix) always returns \"Matrix\", src-core/models/DisplayAsType.cpp). The compound values \"Horiz Matrix\"/\"Vert Matrix\" seen in older files are legacy read-only aliases (DisplayAsTypeFromString's lookup map, plus XmlDeserializingModelFactory::DeserializeMatrix's own `if (type == \"Vert Matrix\") SetVertical(true)` check) that are never produced by this version's writer - see the Vertical property below for the resolution of this vs. the brief's alternate survey guess.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumStrings",
+            "label": "# Strings",
+            "gridKey": "MatrixStringCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of physical connections/strings from the prop to the controller (MatrixModel::_numStrings, GetNumMatrixStrings/SetNumMatrixStrings). MatrixPropertyAdapter help text: \"typically the number of connections from the prop to your controller. This would also be the 'Height' of a Horizontal Virtual Matrix.\""
+        },
+        {
+            "xmlAttribute": "NodesPerString",
+            "label": "Nodes/String",
+            "gridKey": "MatrixLightCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Nodes per string (MatrixModel::_nodesPerString). Grid label is \"Lights/String\" for SingleNode string types, \"Nodes/String\" otherwise (MatrixPropertyAdapter::AddTypeProperties), with help text noting this would also be the 'Width' of a Horizontal Virtual Matrix; same xmlAttribute/gridKey either way."
+        },
+        {
+            "xmlAttribute": "StrandsPerString",
+            "label": "Strands/String",
+            "gridKey": "MatrixStrandCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 2500,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "How many times each #String ZigZags (MatrixModel::_strandsPerString). Must divide evenly into NodesPerString - the property grid flags the row red and adds a help string when it does not (MatrixPropertyAdapter::AddTypeProperties), but the value is still persisted regardless."
+        },
+        {
+            "xmlAttribute": "Vertical",
+            "label": "Direction",
+            "gridKey": "MatrixStyle",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", nodes are wired column-major (Vertical); when \"false\" (default), row-major (Horizontal) (MatrixModel::_vMatrix, isVerticalMatrix()/SetVertical()). This IS the currently-written orientation attribute (XmlNodeKeys::VertMatrixAttribute = \"Vertical\"), confirming the brief survey's alternate hypothesis (grid enum \"MatrixStyle\" maps to attribute \"Vertical\") over its primary DisplayAs-array guess - see the description above for why DisplayAs itself no longer varies. Presented in the property grid as a 2-value enum (\"Horizontal\"/\"Vertical\", gridKey \"MatrixStyle\", MatrixPropertyAdapter::AddStyleProperties) rather than a checkbox, but persisted as the lowercase literal true/false. On read, a legacy DisplayAs value of exactly \"Vert Matrix\" forces Vertical=true even if this attribute says otherwise (XmlDeserializingModelFactory::DeserializeMatrix); the current writer never produces that legacy DisplayAs value, so this only matters for old files."
+        },
+        {
+            "xmlAttribute": "AlternateNodes",
+            "label": "Alternate Nodes",
+            "gridKey": "AlternateNodes",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", interleaves node buffer positions (staggered/zig-zag physical wiring) instead of simple sequential order (MatrixModel::_alternateNodes). Persisted as the lowercase literal true/false; always written (unconditional, both values). Mutually-enabling in the property grid with NoZig (each is disabled while the other is checked, MatrixPropertyAdapter::OnPropertyGridChange), but both attributes are always persisted regardless of the other's value."
+        },
+        {
+            "xmlAttribute": "NoZig",
+            "label": "Don't Zig Zag",
+            "gridKey": "NoZig",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", suppresses the zig-zag strand pattern within each string (MatrixModel::_noZigZag, IsNoZigZag()/SetNoZigZag()). Persisted as the lowercase literal true/false; always written. See AlternateNodes for the mutual UI enable/disable relationship."
+        }
+    ],
+    "notes": [
+        "Starting Location: the \"MatrixStart\" property-grid enum (gridKey \"MatrixStart\") is a 4-value Top Left/Top Right/Bottom Left/Bottom Right picker that sets the shared Dir and StartSide attributes (shared/Common.json) together (MatrixPropertyAdapter::OnPropertyGridChange \"MatrixStart\") - no property object for it appears above since Dir/StartSide are owned by shared/Common.json.",
+        "LowDefinition (shared/Common.json) is inherited unchanged: its appliesWhen already restricts it to DisplayAs Matrix/Sphere, and MatrixModel supports it whenever the model is not SingleNode (SupportsLowDefinitionRender() override) - no Matrix-specific redefinition needed here.",
+        "TreeModel is a C++ subclass of MatrixModel and reuses NumStrings/NodesPerString/StrandsPerString/AlternateNodes/NoZig with identical xmlAttribute names, but per this metadata tree's house style (sibling documents never extend each other) they are repeated in Tree.json rather than referenced from here. Tree does NOT reuse this file's \"Vertical\" attribute - it has its own \"StrandDir\" string attribute instead (see Tree.json).",
+        "CONVERTING TO A CUSTOM MODEL (models/Custom.json): to replicate this model's native pixel layout as a Custom model's grid (e.g. to allow arbitrary per-port pixel counts instead of the whole-NodesPerString port granularity - see shared/ControllerConnection.json's Port note), the buffer/channel math is (verified against MatrixModel::InitHMatrix, src-core/models/MatrixModel.cpp, for the default AlternateNodes=false/NoZig=false zigzag mode, Vertical=false horizontal orientation): let PixelsPerStrand = NodesPerString / StrandsPerString (must divide evenly), y = a physical strand index 0..(NumStrings*StrandsPerString-1) where stringnum=y div StrandsPerString and segmentnum=y mod StrandsPerString, x = 0..(PixelsPerStrand-1). The node's sequential channel-order index (1-based, i.e. the value to place in the Custom model's grid) is idx = y*PixelsPerStrand + x + 1 - this ordering is STRICTLY SEQUENTIAL per string+strand (segment-major, x-minor) regardless of zigzag; the 'back and forth' wiring pattern is purely a BUFFER/VISUAL concern; it does not reorder channels. Grid placement (row/col in models/Custom.json's row0-is-top/col0-is-left convention): row = y if StartSide='T' (top-to-bottom wiring start), or (NumStrings*StrandsPerString-1-y) if StartSide='B' (bottom-to-top); within a row, col = x if (Dir='L') != (segmentnum is odd), else (PixelsPerStrand-1-x) - i.e. every other physical strand reverses direction (classic boustrophedon/serpentine), producing the exact 'N, N-1, ..., N-PixelsPerStrand+1' reversed-row pattern per strand. CAVEAT (verified only for the even case): this per-string-reset segmentnum formula is mathematically identical to one continuous top-to-bottom serpentine across ALL rows only when StrandsPerString is EVEN (so each string's last strand and the next string's first strand end up on the same visual side, keeping the snake unbroken); this has NOT been verified for odd StrandsPerString and may produce a visual discontinuity between strings that the simple 'ignore string boundaries' shortcut would get wrong - re-derive from MatrixModel::InitHMatrix directly if StrandsPerString is odd."
+    ]
+}

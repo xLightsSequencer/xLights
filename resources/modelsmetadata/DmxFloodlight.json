@@ -1,0 +1,49 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "DmxFloodlight",
+    "description": "A fixed-position DMX floodlight/wash fixture: channel count, RGBW color ability, shutter ability and beam ability, rendered in the layout preview as a cone of light. Source: src-core/models/DMX/DmxFloodlight.{h,cpp} (DisplayAs = DisplayAsType::DmxFloodlight; constructor attaches `color_ability = DmxColorAbilityRGB`, `shutter_ability = DmxShutterAbility`, `beam_ability = DmxBeamAbility` - no dimmer ability). Every attribute this model type persists is already covered by shared/DmxAbilities.json (DmxChannelCount, the color/shutter/beam ability blocks, and the DmxPreset* family) - this document adds none of its own, so `properties` is intentionally empty. See DmxFloodArea.json for the visually-different but XML-identical sibling type.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json",
+        "shared/DmxAbilities.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions. Round-tripped but disabled in DmxFloodlight's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions. Deliberately left enabled for DMX models."
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions. Not disabled for DMX models."
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve. Round-tripped but disabled in DmxFloodlight's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [],
+    "notes": [
+        "No motor/servo/mesh/image child elements: DmxFloodlight has no moving parts.",
+        "DmxFloodlightPropertyAdapter additionally disables shared/Common.json's PixelSize (\"ModelPixelSize\") and Antialias (\"ModelPixelStyle\") properties, on top of the base DmxPropertyAdapter disables (ModelStringType/ModelStringColor/ModelFaces/ModelDimmingCurves) - a DMX-family-wide behavior that only Floodlight/FloodArea opt into, since their preview is a beam cone rather than discrete pixels.",
+        "DmxColorType is written (always \"0\"/RGBW) but inert on read for this document - the color ability is fixed at construction and never switched at runtime, per shared/DmxAbilities.json's DmxColorType note.",
+        "DmxBeamOrient/DmxBeamYOffset are never written for this document: DmxFloodlight's constructor never calls SetSupportsOrient(true)/SetSupportsYOffset(true), unlike DmxMovingHeadAdv."
+    ]
+}
