@@ -387,6 +387,7 @@ void xLightsImportTreeModel::Delete(const wxDataViewItem &item)
     }
 
     // free the node
+    ForgetFilterState(node);
     delete node;
 
     // notify control
@@ -508,12 +509,16 @@ unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
     wxDataViewItemArray &array) const
 {
     xLightsImportModelNode *node = (xLightsImportModelNode*)parent.GetID();
+    unsigned int added = 0;
     if (!node) {
         unsigned int count = m_children.size();
         for (unsigned int pos = 0; pos < count; ++pos) {
-            array.Add(wxDataViewItem((void*)m_children.Item(pos)));
+            xLightsImportModelNode* child = m_children.Item(pos);
+            if (!IsShownByNameFilter(child)) continue;
+            array.Add(wxDataViewItem((void*)child));
+            ++added;
         }
-        return count;
+        return added;
     } else {
         if (node->GetChildCount() == 0) {
             return 0;
@@ -522,10 +527,83 @@ unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
         for (unsigned int pos = 0; pos < node->GetChildren().GetCount(); ++pos) {
             xLightsImportModelNode *child = node->GetChildren().Item(pos);
             if (_hideUnmapped && !child->HasMapping()) continue;
+            if (!IsShownByNameFilter(child)) continue;
             array.Add(wxDataViewItem((void*)child));
+            ++added;
         }
-        return array.size();
+        return added;
     }
+}
+
+unsigned int xLightsImportTreeModel::GetAllChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const
+{
+    xLightsImportModelNode* node = (xLightsImportModelNode*)parent.GetID();
+    unsigned int added = 0;
+    if (!node) {
+        for (size_t pos = 0; pos < m_children.size(); ++pos) {
+            array.Add(wxDataViewItem((void*)m_children.Item(pos)));
+            ++added;
+        }
+    } else {
+        for (size_t pos = 0; pos < node->GetChildren().GetCount(); ++pos) {
+            array.Add(wxDataViewItem((void*)node->GetChildren().Item(pos)));
+            ++added;
+        }
+    }
+    return added;
+}
+
+bool xLightsImportTreeModel::NameFilterMatches(const xLightsImportModelNode* node) const
+{
+    // Nodes are listed by number; they follow their strand.
+    if (!node->_node.empty()) {
+        return false;
+    }
+    return _nameFilter.Matches(node->_strand.empty() ? node->_model : node->_strand);
+}
+
+void xLightsImportTreeModel::SetNameFilter(const wxString& filter)
+{
+    _nameFilter = wxFilterQuery(filter);
+    _nameFilterShown.clear();
+    if (_nameFilter.IsEmpty()) {
+        return;
+    }
+    for (size_t pos = 0; pos < m_children.size(); ++pos) {
+        CacheNameFilterShown(m_children.Item(pos), false);
+    }
+}
+
+// Returns whether this row or anything below it matches. A match keeps its whole
+// subtree; a match further down keeps the path to it.
+bool xLightsImportTreeModel::CacheNameFilterShown(const xLightsImportModelNode* node, bool ancestorMatched)
+{
+    bool const selfMatch = NameFilterMatches(node);
+    bool below = false;
+    for (size_t pos = 0; pos < node->GetChildren().GetCount(); ++pos) {
+        below |= CacheNameFilterShown(node->GetChildren().Item(pos), ancestorMatched || selfMatch);
+    }
+    _nameFilterShown[node] = ancestorMatched || selfMatch || below;
+    return selfMatch || below;
+}
+
+// A later row can reuse the freed address and must not inherit its visibility.
+void xLightsImportTreeModel::ForgetFilterState(const xLightsImportModelNode* node)
+{
+    for (size_t pos = 0; pos < node->GetChildren().GetCount(); ++pos) {
+        ForgetFilterState(node->GetChildren().Item(pos));
+    }
+    _nameFilterShown.erase(node);
+}
+
+bool xLightsImportTreeModel::IsShownByNameFilter(const xLightsImportModelNode* node) const
+{
+    if (_nameFilter.IsEmpty()) {
+        return true;
+    }
+    auto const it = _nameFilterShown.find(node);
+    // A row added after the filter was applied shows rather than vanishing.
+    return it == _nameFilterShown.end() || it->second;
 }
 
 wxDataViewItem xLightsImportTreeModel::GetNthItem(unsigned int n) const
@@ -693,7 +771,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     Sizer1->Add(TimingTrackPanel, 0, wxEXPAND | wxALL, 1);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer4->AddGrowableCol(1);
-    StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Find:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Filter:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_FindTo = new wxTextCtrl(Panel1, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
     FlexGridSizer4->Add(TextCtrl_FindTo, 1, wxALL|wxEXPAND, 5);
@@ -891,7 +969,14 @@ void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
     } else if (id == ID_MNU_CLEARSELECTED) {
         ClearSelected();
     } else if (id == ID_MNU_CLEARALL) {
-        ClearAll();
+        // Display-only filter: Clear All still clears every row, but says so first.
+        int const hidden = CountHiddenMappings();
+        if (hidden == 0 ||
+            wxMessageBox(wxString::Format(wxPLURAL("The filter is hiding %d mapped row. Clear All clears it too.\n\nClear all mappings?",
+                                                      "The filter is hiding %d mapped rows. Clear All clears those too.\n\nClear all mappings?", hidden), hidden),
+                         _("Clear All"), wxYES_NO | wxICON_WARNING, this) == wxYES) {
+            ClearAll();
+        }
     } else if (id == ID_MNU_ADD_EMPTY_GROUP) {
         AddEmptyGroup();
     } else if (id == ID_MNU_SORT_SUBMODELS_BY_NAME) {
@@ -1035,15 +1120,26 @@ void xLightsImportChannelMapDialog::AddEmptyGroup()
 
 void xLightsImportChannelMapDialog::CollapseAll()
 {
-    wxDataViewItemArray models;
-    _dataModel->GetChildren(wxDataViewItem(0), models);
-    for (size_t i = 0; i < models.size(); ++i) {
-        TreeListCtrl_Mapping->Collapse(models[i]);
+    _filterExpanded.clear();
+    if (_dataModel == nullptr) return;
+    // One rebuild is far cheaper than collapsing each model in turn.
+    wxDataViewItemArray selected;
+    TreeListCtrl_Mapping->GetSelections(selected);
+    TreeListCtrl_Mapping->Freeze();
+    _dataModel->Cleared();
+    for (auto const& item : selected) {
+        auto* n = (xLightsImportModelNode*)item.GetID();
+        // Once everything is collapsed only top-level rows are still on screen.
+        if (n != nullptr && n->GetParent() == nullptr && _dataModel->IsShownByNameFilter(n)) {
+            TreeListCtrl_Mapping->Select(item);
+        }
     }
+    TreeListCtrl_Mapping->Thaw();
 }
 
 void xLightsImportChannelMapDialog::ExpandAll()
 {
+    _filterExpanded.clear();
     wxDataViewItemArray models;
     _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); ++i) {
@@ -1094,6 +1190,8 @@ void xLightsImportChannelMapDialog::ClearAll() {
         if (m->_isStackDuplicate) {
             topChildren.RemoveAt(i);
             _dataModel->ItemDeleted(wxDataViewItem(0), wxDataViewItem(m));
+            _dataModel->ForgetFilterState(m);
+            _filterExpanded.erase(m);
             delete m;
             continue;
         }
@@ -1104,6 +1202,7 @@ void xLightsImportChannelMapDialog::ClearAll() {
             if (s->_isStackDuplicate) {
                 strandCh.RemoveAt(j);
                 _dataModel->ItemDeleted(modelItem, wxDataViewItem(s));
+                _dataModel->ForgetFilterState(s);
                 delete s;
             }
         }
@@ -1161,6 +1260,7 @@ void xLightsImportChannelMapDialog::ClearSelected() {
                             wxDataViewItem sItem(s);
                             strandCh.RemoveAt(j);
                             _dataModel->ItemDeleted(item, sItem);
+                            _dataModel->ForgetFilterState(s);
                             delete s;
                         }
                     }
@@ -1220,6 +1320,7 @@ void xLightsImportChannelMapDialog::OnPopupTimingTracks(wxCommandEvent& event)
 
 xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 {
+    _nameFilterTimer.Stop();
 	//(*Destroy(xLightsImportChannelMapDialog)
 	//*)
 
@@ -1313,21 +1414,32 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         Sizer1->Hide(FlexGridSizer_Blend_Mode, true);
     }
 
+    TextCtrl_FindTo->SetHint(_("Filter models"));
+    TextCtrl_FindTo->SetToolTip(wxString::Format(_("Shows only matching models. Every action -- Ok, Save Map, Auto Map, Clear All -- still covers the hidden rows.\n%s"), wxFilterQuery::Hint()));
+    _nameFilterTimer.SetOwner(this, wxWindow::NewControlId());
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { ApplyNameFilter(); }, _nameFilterTimer.GetId());
+
     {
         wxSizer* findSizer = TextCtrl_FindTo->GetContainingSizer();
         if (findSizer != nullptr) {
             findSizer->Detach(TextCtrl_FindTo);
             wxBoxSizer* findRowSizer = new wxBoxSizer(wxHORIZONTAL);
             findRowSizer->Add(TextCtrl_FindTo, 1, wxEXPAND | wxRIGHT, 5);
+            StaticText_FilterCount = new wxStaticText(Panel1, wxID_ANY, wxEmptyString);
+            findRowSizer->Add(StaticText_FilterCount, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
             CheckBox_HideUnmapped = new wxCheckBox(Panel1, wxID_ANY, _("Hide Unmapped"));
-            findRowSizer->Add(CheckBox_HideUnmapped, 0, wxALIGN_CENTER_VERTICAL);
+            findRowSizer->Add(CheckBox_HideUnmapped, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
+            wxButton* collapseAll = new wxButton(Panel1, wxID_ANY, _("Collapse All"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+            findRowSizer->Add(collapseAll, 0, wxALIGN_CENTER_VERTICAL);
+            collapseAll->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { CollapseAll(); });
             findSizer->Insert(1, findRowSizer, 1, wxEXPAND);
             findSizer->Layout();
             Sizer1->Layout();
             CheckBox_HideUnmapped->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
                 if (_dataModel == nullptr) return;
                 _dataModel->SetHideUnmapped(CheckBox_HideUnmapped->IsChecked());
-                _dataModel->Cleared();
+                // Rebuilds through the name filter too, so its expansion survives.
+                ApplyNameFilter();
             });
         }
     }
@@ -1869,6 +1981,8 @@ void xLightsImportChannelMapDialog::Unmap(const wxDataViewItem& item)
             node->GetParent()->GetChildren().Remove(node);
         }
         _dataModel->ItemDeleted(parentItem, item);
+        _dataModel->ForgetFilterState(node);
+        _filterExpanded.erase(node);
         delete node;
         _dirty = true;
         MarkUsed();
@@ -3093,10 +3207,10 @@ void xLightsImportChannelMapDialog::BulkMapNodes(const std::string& fromModel, w
 {
     auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
     wxDataViewItemArray strands;
-    TreeListCtrl_Mapping->GetModel()->GetChildren(toModel, strands);
+    mm->GetAllChildren(toModel, strands);
     for (auto& it : strands) {
         wxDataViewItemArray nodes;
-        TreeListCtrl_Mapping->GetModel()->GetChildren(it, nodes);
+        mm->GetAllChildren(it, nodes);
         for (auto& it2 : nodes) {
             auto sn = mm->GetStrand(it);
             auto nn = mm->GetNode(it2);
@@ -3119,7 +3233,7 @@ void xLightsImportChannelMapDialog::BulkMapSubmodelsStrands(const std::string& f
     // Find the model item in the mapping list
     auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
     wxDataViewItemArray strands;
-    TreeListCtrl_Mapping->GetModel()->GetChildren(toModel, strands);
+    mm->GetAllChildren(toModel, strands);
     for (auto& it : strands) {
         auto sn = mm->GetStrand(it);
         bool fromExist = false;
@@ -4543,67 +4657,131 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& even
 
     }
 
-    // scroll to it
-    ListCtrl_Available->EnsureVisible(index);
+    // Nothing matched, or the list is empty: leave the scroll position alone.
+    if (index >= 0 && index < ListCtrl_Available->GetItemCount()) {
+        ListCtrl_Available->EnsureVisible(index);
+    }
 }
 
 void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
 {
-    // find the first line starting with the text
-    wxDataViewItem index = wxDataViewItem(0);
-    std::string to = TextCtrl_FindTo->GetValue().Lower().ToStdString();
+    // Rebuilding the tree is the expensive part, so wait for a pause in typing.
+    _nameFilterTimer.StartOnce(400);
+}
 
-    if (to.empty()) {
-        if (TreeListCtrl_Mapping->GetSelectedItemsCount() == 1) {
-            // if there is a selection, scroll to it as that's the visible marker
-            // at this point.
-            TreeListCtrl_Mapping->EnsureVisible(TreeListCtrl_Mapping->GetSelection());
-        }
-#ifdef __WXMSW__
-        else {
-            // There isn't a way to scroll to top on MacOS and Linux as far as I can find. Honestly, this shouldn't
-            // work on Windows either as wxDataViewControl does not inherit from wxScrollHelperBase according
-            // to the wxWidgets docs and thus should not implement the Scroll method
-            TreeListCtrl_Mapping->Scroll(wxPoint(0, 0));
-        }
-#endif
-    } else {
-        for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
-            xLightsImportModelNode* m = _dataModel->GetNthChild(i);
-            if (StartsWith(::Lower(m->_model), to)) {
-                index = (wxDataViewItem)m;
-                break;
-            }
-        }
+void xLightsImportChannelMapDialog::ApplyNameFilter()
+{
+    if (_dataModel == nullptr) return;
 
-        // if nothing found then find the first line containing the text
-        if (index.GetID() == 0) {
-            for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
-                xLightsImportModelNode* m = _dataModel->GetNthChild(i);
-                if (Contains(::Lower(m->_model), to)) {
-                    index = (wxDataViewItem)m;
-                    break;
-                }
-            }
+    // Cleared() collapses everything and drops the selection; carry both across.
+    std::vector<xLightsImportModelNode*> expanded;
+    for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+        xLightsImportModelNode* m = _dataModel->GetNthChild(i);
+        if (TreeListCtrl_Mapping->IsExpanded(wxDataViewItem(m)) && _filterExpanded.count(m) == 0) {
+            expanded.push_back(m);
         }
-
-        // scroll to it
-        TreeListCtrl_Mapping->EnsureVisible(index);
     }
+    wxDataViewItemArray selected;
+    TreeListCtrl_Mapping->GetSelections(selected);
+
+    _dataModel->SetNameFilter(TextCtrl_FindTo->GetValue());
+    _filterExpanded.clear();
+    TreeListCtrl_Mapping->Freeze();
+    _dataModel->Cleared();
+
+    // Expanding or selecting a row the view does not have asserts.
+    auto shown = [this](xLightsImportModelNode* n) {
+        for (auto* p = n; p != nullptr; p = p->GetParent()) {
+            if (p->GetParent() != nullptr && _dataModel->_hideUnmapped && !p->HasMapping()) return false;
+        }
+        return _dataModel->IsShownByNameFilter(n);
+    };
+    // A cleared filter stays collapsed; re-expanding here is also what made clearing slow.
+    if (_dataModel->HasNameFilter()) {
+        for (auto* m : expanded) {
+            if (shown(m)) {
+                TreeListCtrl_Mapping->Expand(wxDataViewItem(m));
+            }
+        }
+    }
+    ExpandNameFilterMatches();
+
+    wxDataViewItem firstKept;
+    for (auto const& item : selected) {
+        auto* n = (xLightsImportModelNode*)item.GetID();
+        if (n != nullptr && shown(n)) {
+            TreeListCtrl_Mapping->Select(item);
+            if (!firstKept.IsOk()) firstKept = item;
+        }
+    }
+    TreeListCtrl_Mapping->Thaw();
+    if (firstKept.IsOk()) {
+        TreeListCtrl_Mapping->EnsureVisible(firstKept);
+    }
+    UpdateFilterCount();
+}
+
+void xLightsImportChannelMapDialog::ExpandNameFilterMatches()
+{
+    if (!_dataModel->HasNameFilter()) return;
+    // Otherwise a submodel match sits hidden inside a collapsed row.
+    wxDataViewItemArray models;
+    _dataModel->GetChildren(wxDataViewItem(0), models);
+    for (auto const& model : models) {
+        auto* m = (xLightsImportModelNode*)model.GetID();
+        if (!_dataModel->NameFilterMatches(m) && !TreeListCtrl_Mapping->IsExpanded(model)) {
+            TreeListCtrl_Mapping->Expand(model);
+            _filterExpanded.insert(m);
+        }
+    }
+}
+
+void xLightsImportChannelMapDialog::UpdateFilterCount()
+{
+    if (StaticText_FilterCount == nullptr || _dataModel == nullptr) return;
+    if (_dataModel->HasNameFilter()) {
+        wxDataViewItemArray shown;
+        _dataModel->GetChildren(wxDataViewItem(0), shown);
+        StaticText_FilterCount->SetLabel(wxString::Format(_("Showing %d of %d"), (int)shown.size(), (int)_dataModel->GetChildCount()));
+    } else {
+        StaticText_FilterCount->SetLabel(wxEmptyString);
+    }
+    if (wxSizer* sizer = StaticText_FilterCount->GetContainingSizer()) {
+        sizer->Layout();
+    }
+}
+
+static int CountHiddenMappingsUnder(const xLightsImportTreeModel& model, xLightsImportModelNode* node)
+{
+    int hidden = (!node->_mapping.empty() && !model.IsShownByNameFilter(node)) ? 1 : 0;
+    for (size_t i = 0; i < node->GetChildCount(); ++i) {
+        hidden += CountHiddenMappingsUnder(model, node->GetNthChild(i));
+    }
+    return hidden;
+}
+
+int xLightsImportChannelMapDialog::CountHiddenMappings() const
+{
+    if (_dataModel == nullptr || !_dataModel->HasNameFilter()) return 0;
+    int hidden = 0;
+    for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+        hidden += CountHiddenMappingsUnder(*_dataModel, _dataModel->GetNthChild(i));
+    }
+    return hidden;
 }
 
 void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& event)
 {
     bool addedAny = false;
     wxDataViewItemArray models;
-    _dataModel->GetChildren(wxDataViewItem(0), models);
+    _dataModel->GetAllChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (m->HasMapping() && !m->_mapping.empty()) {
             addedAny |= xlights->GetModel(m->_model)->AddAlias(m->_mapping);
         }
         wxDataViewItemArray strands;
-        _dataModel->GetChildren(models[i], strands);
+        _dataModel->GetAllChildren(models[i], strands);
         for (size_t j = 0; j < strands.size(); ++j) {
             xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
             if (astrand->HasMapping() && !astrand->_mapping.empty()) {

@@ -33,6 +33,11 @@
 #include <map>
 #include <set>
 #include <vector>
+#include "shared/utils/wxFilterQuery.h"
+#include <wx/timer.h>
+
+#include <unordered_map>
+#include <unordered_set>
 #include "Color.h"
 #include <wx/arrstr.h>
 #include <wx/filename.h>
@@ -230,6 +235,10 @@ public:
     {
         return m_children;
     }
+    const xLightsImportModelNodePtrArray& GetChildren() const
+    {
+        return m_children;
+    }
     xLightsImportModelNode* GetNthChild(unsigned int n) override
     {
         return m_children.Item(n);
@@ -399,12 +408,27 @@ public:
     bool _hideUnmapped = false;
     void SetHideUnmapped(bool h) { _hideUnmapped = h; }
 
+    // Display-only: GetChildren (what the tree draws) honours this and Hide Unmapped,
+    // so anything acting on mappings must use GetAllChildren or it skips hidden rows.
+    void SetNameFilter(const wxString& filter);
+    bool HasNameFilter() const { return !_nameFilter.IsEmpty(); }
+    bool IsShownByNameFilter(const xLightsImportModelNode* node) const;
+    bool NameFilterMatches(const xLightsImportModelNode* node) const;
+    unsigned int GetAllChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const;
+    // Call before deleting a row: the filter caches key on node pointers.
+    void ForgetFilterState(const xLightsImportModelNode* node);
+
     bool GetSortSubmodelsByName() const { return _sortSubmodelsByName; }
     void SetSortSubmodelsByName(bool sort) { _sortSubmodelsByName = sort; Resort(); }
 
     void SetCtrl(wxDataViewCtrl* ctrl) { _ctrl = ctrl; }
 
 private:
+    bool CacheNameFilterShown(const xLightsImportModelNode* node, bool ancestorMatched);
+
+    wxFilterQuery _nameFilter;
+    // Worked out once per filter change; the view queries rows constantly.
+    std::unordered_map<const xLightsImportModelNode*, bool> _nameFilterShown;
     xLightsImportModelNodePtrArray   m_children;
     wxDataViewItemArray _pendingAdditions;
     wxDataViewCtrl* _ctrl = nullptr;
@@ -677,6 +701,11 @@ protected:
         void CollapseAll();
         void ExpandAll();
         void ClearAll();
+        void ApplyNameFilter();
+        void ExpandNameFilterMatches();
+        void UpdateFilterCount();
+        // Mappings on rows the model filter currently hides.
+        int CountHiddenMappings() const;
         void ClearSelected();
         void AddEmptyGroup();
         void EditDisplayElements();
@@ -767,6 +796,12 @@ protected:
         int _sequenceDurationMS {0};
         wxCheckBox* CheckBox_ShowTimeline {nullptr};
         wxCheckBox* CheckBox_HideUnmapped {nullptr};
+        // Hidden rows are still acted on, so say how many there are.
+        wxStaticText* StaticText_FilterCount {nullptr};
+        // Debounces the model filter so the tree is not rebuilt per keystroke.
+        wxTimer _nameFilterTimer;
+        // Rows the filter expanded, as opposed to the user, so it undoes only its own.
+        std::unordered_set<xLightsImportModelNode*> _filterExpanded;
         std::vector<wxCheckBox*> _timingCheckboxes;
         int _timelineCol {-1};
         std::map<ImportChannel*, int> _channelImageMap;
