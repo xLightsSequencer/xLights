@@ -500,6 +500,13 @@ public:
     std::vector<std::pair<std::string, MediaType>> GetAllMediaPaths() const;
     // Returns {isEmbedded, isEmbeddable} for any media path across all caches
     std::pair<bool, bool> GetMediaEmbedState(const std::string& filepath) const;
+    // Copy `src`'s embedded entry for `filepath` (image, text, SVG or shader)
+    // into this cache, keeping it embedded. Returns true when `src` holds
+    // `filepath` embedded; an entry already cached here is left untouched.
+    bool CopyEmbeddedMedia(const SequenceMedia& src, const std::string& filepath);
+    // Key of the embedded entry `filepath` refers to - exact, else matched by
+    // resolved path. Empty when there is none.
+    std::string FindEmbeddedKey(const std::string& filepath) const;
 
     // === Generalized embed/extract ===
     void EmbedMedia(const std::string& filepath);
