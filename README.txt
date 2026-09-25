@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -change (derwin12)           Log what marked the layout/controller Save button as unsaved #7137
     -bug (derwin12)              Moving Head Dimmer tab now shows the saved dimmer curve when the
                                  selected heads use different colors #7133
     -bug (derwin12)              Moving Head Path Scale/Time Offset/Ignore Pan/Tilt edits no longer

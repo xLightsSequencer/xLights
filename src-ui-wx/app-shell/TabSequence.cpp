@@ -308,14 +308,14 @@ void xLightsFrame::LoadEffectsFile()
         spdlog::warn("Backup Directory not Found ... switching to Show Directory.");
         _backupDirectory = showDirectory;
         SetXmlSetting("backupDir", showDirectory);
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "backup folder not found, reset to show folder" };
     }
     
     if (_xmlSettings.empty()) {
         SetXmlSetting("previewWidth", "1280");
         SetXmlSetting("previewHeight", "720");
         SetXmlSetting("LayoutMode3D", "0");
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "default layout settings added" };
     }
 
     // Identifies the show -- not the machine or the user -- so submitted crash
@@ -380,7 +380,7 @@ void xLightsFrame::LoadEffectsFile()
             // Migrate from XML effects node
             _effectPresetManager.Load(effectsNode);
             spdlog::info("Migrated effect presets from xlights_rgbeffects.xml to JSON");
-            UnsavedRgbEffectsChanges = true; // trigger save to create the new JSON file
+            UnsavedRgbEffectsChanges = { true, "effect presets migrated to new file format" }; // trigger save to create the new JSON file
             UnsavedPresetChanges = true;
         }
     }
@@ -398,7 +398,7 @@ void xLightsFrame::LoadEffectsFile()
             if (std::string_view(el.attribute("Antialias").as_string("1")) == "0") {
                 el.remove_attribute("Antialias");
                 el.append_attribute("Antialias") = "1";
-                UnsavedRgbEffectsChanges = true;
+                UnsavedRgbEffectsChanges = { true, "older layout file upgraded (antialias)" };
             }
         }
     }
@@ -469,7 +469,7 @@ void xLightsFrame::LoadEffectsFile()
                 }
             }
         }
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "older layout file upgraded (layout groups)" };
     }
 
     if (effectsVersion < "0007") {
@@ -516,12 +516,12 @@ void xLightsFrame::LoadEffectsFile()
         node.append_attribute("RotateZ") = "0";
         node.append_attribute("versionNumber") = "3";
         node.append_attribute("Active") = "1";
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "missing default 3D gridlines added" };
     }
 
 
     if (!viewsNode) {
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "missing views section added" };
     } else {
         _sequenceViewManager.Load(viewsNode, _sequenceElements.GetCurrentView());
     }
@@ -532,7 +532,7 @@ void xLightsFrame::LoadEffectsFile()
         spdlog::warn("View Not Found ... clearing");
         _defaultSeqView.clear();
         SetXmlSetting("defaultSeqView", _defaultSeqView);
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "default sequencer view not found, cleared" };
     }
 
     if (colorsNode) {
@@ -617,14 +617,14 @@ void xLightsFrame::LoadEffectsFile()
         PromptForDirectorySelection("Reselect FSEQ Directory", fseqDirectory);
         if (fseqDirectory != orig) {
             SetXmlSetting("fseqDir", fseqDirectory);
-            UnsavedRgbEffectsChanges = true;
+            UnsavedRgbEffectsChanges = { true, "FSEQ folder reselected" };
         }
     }
     if (!wxDir::Exists(fseqDirectory)) {
         spdlog::warn("FSEQ Directory not Found ... switching to Show Directory.");
         fseqDirectory = showDirectory;
         SetXmlSetting("fseqDir", showDirectory);
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "FSEQ folder not found, reset to show folder" };
     }
     FseqDir = fseqDirectory;
     renderCacheDirectory = GetXmlSetting("renderCacheDir", fseqDirectory); // we user fseq directory if no setting is present
@@ -633,14 +633,14 @@ void xLightsFrame::LoadEffectsFile()
         PromptForDirectorySelection("Reselect RenderCache Directory", renderCacheDirectory);
         if (orig != renderCacheDirectory) {
             SetXmlSetting("renderCacheDir", renderCacheDirectory);
-            UnsavedRgbEffectsChanges = true;
+            UnsavedRgbEffectsChanges = { true, "render cache folder reselected" };
         }
     }
     if (!wxDir::Exists(renderCacheDirectory)) {
         spdlog::warn("Render Cache Directory not Found ... switching to Show Directory.");
         renderCacheDirectory = showDirectory;
         SetXmlSetting("renderCacheDir", showDirectory);
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "render cache folder not found, reset to show folder" };
     }
     _renderCache.SetRenderCacheFolder(renderCacheDirectory);
 
@@ -714,7 +714,7 @@ void xLightsFrame::LoadEffectsFile()
             bool loadedOk = AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode, &changed);
             loadedOk = AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode, &changed) && loadedOk;
             if (changed) {
-                UnsavedRgbEffectsChanges = true;
+                UnsavedRgbEffectsChanges = { true, "models updated from base show folder" };
             }
             // Only record the checkpoint if the base file actually loaded; a failed
             // load leaves it unset so the merge is retried on the next open.
@@ -738,7 +738,7 @@ void xLightsFrame::LoadEffectsFile()
     UpdateLayoutSave();
 
     if (converted) {
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "older layout file converted" };
         wxMessageBox("Your setup tab data has been converted to the new controller centric format.\nIf you choose to save either the Controller (Setup) or Layout Tab data it is critical you save both or some of your model start channels will break.\nIf this happens you can either repair them manually or roll back to a backup copy.");
     }
 }
@@ -953,7 +953,7 @@ void xLightsFrame::CreateDefaultEffectsXml(pugi::xml_document& doc)
 {
     doc.reset();
     doc.append_child("xrgb");
-    UnsavedRgbEffectsChanges = true;
+    UnsavedRgbEffectsChanges = { true, "new layout file created" };
     UpdateLayoutSave();
 }
 
