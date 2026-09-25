@@ -401,6 +401,7 @@ private:
     bool GetPosition(const std::string& ctrl_name, float& pos);
     void UpdatePositionCanvas(float pan, float tilt);
     void RecallSettings(const std::string mh_settings);
+    std::string GetCheckedHeadsCommonSettings(bool& all_same);
     bool IsHeadActive(int num);
     void GetFixturesGroups();
     void SyncLinkToNext();

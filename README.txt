@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (derwin12)              Moving Head Dimmer tab now shows the saved dimmer curve when the
+                                 selected heads use different colors #7133
+    -bug (derwin12)              Moving Head Path Scale/Time Offset/Ignore Pan/Tilt edits no longer
+                                 replace the selected heads' path with one drawn for other heads
     -bug (derwin12)              Importing effects from a sequence with embedded shaders, SVGs or text
                                  files now keeps them embedded instead of reverting them to external
     -bug (derwin12)              Show the global controller settings (Controller Sync, Global FPP Proxy,
