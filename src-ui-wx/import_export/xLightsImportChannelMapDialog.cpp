@@ -4101,25 +4101,51 @@ void xLightsImportChannelMapDialog::DoSubModelFallback(bool select)
 
 void xLightsImportChannelMapDialog::NotifyMappingItemsChanged()
 {
-    // wxDataViewCtrl on macOS (NSOutlineView) caches item values and ignores
-    // plain Refresh() calls after bulk data changes. ValueChanged() forces
-    // NSOutlineView to re-query GetValue() for each item's columns.
-    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
-        auto* model = _dataModel->GetNthChild(i);
-        if (model == nullptr) continue;
-        wxDataViewItem modelItem(model);
-        _dataModel->ValueChanged(modelItem, 2);
-        for (unsigned int j = 0; j < model->GetChildCount(); ++j) {
-            auto* strand = model->GetNthChild(j);
-            if (strand == nullptr) continue;
-            wxDataViewItem strandItem(strand);
-            _dataModel->ValueChanged(strandItem, 2);
-            for (unsigned int k = 0; k < strand->GetChildCount(); ++k) {
-                auto* node = strand->GetNthChild(k);
-                if (node != nullptr)
-                    _dataModel->ValueChanged(wxDataViewItem(node), 2);
-            }
+    if (_dataModel == nullptr) return;
+
+    // NSOutlineView caches item values and ignores a plain Refresh(), which is
+    // why this used to call ValueChanged() on every row. Each of those made it
+    // reload the row and re-sort its children, so after an Auto Map on a large
+    // show the tree took tens of seconds to settle. One Cleared() rebuilds the
+    // whole view in a few ms; carry the user's expansion and selection across.
+    std::vector<xLightsImportModelNode*> expanded;
+    for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+        xLightsImportModelNode* m = _dataModel->GetNthChild(i);
+        if (TreeListCtrl_Mapping->IsExpanded(wxDataViewItem(m))) {
+            expanded.push_back(m);
         }
+    }
+    wxDataViewItemArray selected;
+    TreeListCtrl_Mapping->GetSelections(selected);
+    wxDataViewItem const top = TreeListCtrl_Mapping->GetTopItem();
+
+    TreeListCtrl_Mapping->Freeze();
+    _dataModel->Cleared();
+
+    // Expanding or selecting a row the view does not have asserts, and Hide
+    // Unmapped keeps unmapped children out of it.
+    auto shown = [this](xLightsImportModelNode* n) {
+        for (auto* p = n; p != nullptr; p = p->GetParent()) {
+            if (p->GetParent() != nullptr && _dataModel->_hideUnmapped && !p->HasMapping()) return false;
+        }
+        return true;
+    };
+    for (auto* m : expanded) {
+        TreeListCtrl_Mapping->Expand(wxDataViewItem(m));
+    }
+    wxDataViewItem firstKept;
+    for (auto const& item : selected) {
+        auto* n = (xLightsImportModelNode*)item.GetID();
+        if (n != nullptr && shown(n)) {
+            TreeListCtrl_Mapping->Select(item);
+            if (!firstKept.IsOk()) firstKept = item;
+        }
+    }
+    TreeListCtrl_Mapping->Thaw();
+    // With nothing selected, keep the user near where they were scrolled to.
+    wxDataViewItem const keepInView = firstKept.IsOk() ? firstKept : top;
+    if (keepInView.IsOk() && shown((xLightsImportModelNode*)keepInView.GetID())) {
+        TreeListCtrl_Mapping->EnsureVisible(keepInView);
     }
 }
 
@@ -4136,11 +4162,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
     for (auto const& e : LoadMapHintsFromShowDir(xlights->CurrentDir.ToStdString())) {
         DoAutoMap(regex, regex, norm, e.toRegex, e.fromModel, e.applyTo, false);
     }
-    if (CheckBox_HideUnmapped != nullptr && CheckBox_HideUnmapped->IsChecked()) {
-        _dataModel->Cleared();
-    } else {
-        NotifyMappingItemsChanged();
-    }
+    NotifyMappingItemsChanged();
     TreeListCtrl_Mapping->Thaw();
     MarkUsed();
 }
@@ -4156,11 +4178,7 @@ void xLightsImportChannelMapDialog::AutoMap()
     for (auto const& e : LoadMapHintsFromShowDir(xlights->CurrentDir.ToStdString())) {
         DoAutoMap(regex, regex, norm, e.toRegex, e.fromModel, e.applyTo, false);
     }
-    if (CheckBox_HideUnmapped != nullptr && CheckBox_HideUnmapped->IsChecked()) {
-        _dataModel->Cleared();
-    } else {
-        NotifyMappingItemsChanged();
-    }
+    NotifyMappingItemsChanged();
     TreeListCtrl_Mapping->Thaw();
     MarkUsed();
 }
@@ -4179,11 +4197,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapSelClick(wxCommandEvent& eve
         DoAutoMap(regex, regex, norm, e.toRegex, e.fromModel, e.applyTo, false);
     }
 
-    if (CheckBox_HideUnmapped != nullptr && CheckBox_HideUnmapped->IsChecked()) {
-        _dataModel->Cleared();
-    } else {
-        NotifyMappingItemsChanged();
-    }
+    NotifyMappingItemsChanged();
     TreeListCtrl_Mapping->Thaw();
     MarkUsed();
 }
