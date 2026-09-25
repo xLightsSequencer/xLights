@@ -83,8 +83,8 @@ void ApplyLoggingSpecialOptions();
 // Thread class to ping a single controller
 class ControllerPingThread : public wxThread {
 public:
-    ControllerPingThread(Controller* controller) :
-        wxThread(wxTHREAD_DETACHED), _controller(controller) {
+    ControllerPingThread(xLightsFrame* frame, Controller* controller) :
+        wxThread(wxTHREAD_DETACHED), _frame(frame), _controller(controller) {
         ++pingCount;
     }
     virtual ~ControllerPingThread() {
@@ -99,11 +99,13 @@ protected:
     virtual ExitCode Entry() override {
         if (_controller && _controller->IsActive()) {
             _controller->Ping();
+            _frame->OnControllerPingComplete();
         }
         return (ExitCode)0;
     }
 
 private:
+    xLightsFrame* _frame;
     Controller* _controller;
 };
 std::atomic_int ControllerPingThread::pingCount(0);
@@ -1489,22 +1491,36 @@ bool xLightsFrame::IsControllerListVisible() const {
 }
 
 void xLightsFrame::PingActiveControllers() {
-    _pingInProgress = true;
+    // an unreachable controller can take seconds to time out; don't stack
+    // another round of threads behind it
+    if (ControllerPingThread::hasOutstandingPings()) {
+        return;
+    }
     for (const auto& it : _outputManager.GetControllers()) {
         if (it->IsActive()) {
-            ControllerPingThread* thread = new ControllerPingThread(it);
+            ControllerPingThread* thread = new ControllerPingThread(this, it);
             thread->Run();
         }
     }
-    _pingInProgress = false;
 }
 
 void xLightsFrame::OnPingTimer(wxTimerEvent& event) {
-    if (!IsControllerListVisible() || _pingInProgress) {
+    if (!IsControllerListVisible()) {
         return;
     }
     PingActiveControllers();
-    StatusRefreshTimer(event);
+}
+
+// Called on a ping worker thread. Results arriving together collapse into a
+// single refresh on the UI thread.
+void xLightsFrame::OnControllerPingComplete() {
+    if (_pingRefreshPending.exchange(true)) {
+        return;
+    }
+    CallAfter([this]() {
+        _pingRefreshPending = false;
+        RefreshControllerStatusColumn();
+    });
 }
 void xLightsFrame::waitForPingsToComplete() {
     while (ControllerPingThread::hasOutstandingPings()) {
@@ -1519,22 +1535,15 @@ void xLightsFrame::RefreshControllerStatusColumn() {
     }
 }
 
-void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
-    RefreshControllerStatusColumn();
-}
-
-
 void xLightsFrame::RefreshControllerStatusNow() {
-    if (_pingInProgress) {
-        return;
-    }
-    PingActiveControllers();
+    // show the last known state now; fresh results arrive via OnControllerPingComplete
     RefreshControllerStatusColumn();
-
+    PingActiveControllers();
 
     if (_controllerPingInterval > 0) {
         _pingTimer->Start(_controllerPingInterval * 1000);
-        _statusRefreshTimer->Start(_controllerPingInterval / 2 * 1000);
+    } else {
+        _pingTimer->Stop();
     }
 }
 
