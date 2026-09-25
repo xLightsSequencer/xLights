@@ -10,6 +10,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <source_location>
+
 //(*Headers(LayoutPanel)
 #include <wx/panel.h>
 class wxButton;
@@ -431,7 +433,7 @@ class LayoutPanel: public wxPanel
         const std::string& GetCurrentLayoutGroup() const {return currentLayoutGroup;}
         void Reset();
         void SyncCurrentLayoutGroupFromStored();
-        void SetDirtyHiLight(bool dirty);
+        void SetDirtyHiLight(bool dirty, std::source_location loc = std::source_location::current());
         std::string GetCurrentPreview() const;
         void SetDisplay2DBoundingBox(bool bb);
         void SetDisplay2DGridSpacing(bool grid, long spacing);

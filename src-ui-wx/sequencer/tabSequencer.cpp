@@ -371,7 +371,7 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         LogPerspective(perspective);
         _perspectives.push_back(pv);
         mCurrentPerpective = &_perspectives.back();
-        UnsavedRgbEffectsChanges = true;
+        UnsavedRgbEffectsChanges = { true, "default perspective created" };
         UpdateLayoutSave();
     } else {
         for (auto& p : _perspectives) {
@@ -453,7 +453,7 @@ static void HandleChoices(xLightsFrame *frame,
                             }
                             if (target != nullptr && !target->IsAlias("oldname:" + oldName)) {
                                 target->AddAlias("oldname:" + oldName);
-                                frame->UnsavedRgbEffectsChanges = true;
+                                frame->UnsavedRgbEffectsChanges = { true, "model rename alias added" };
                                 spdlog::debug("Sequence Element Mismatch 2: added alias 'oldname:{}' to '{}'", oldName.c_str(), newName.c_str());
                             }
                         }
@@ -700,7 +700,7 @@ void xLightsFrame::CheckForValidModels()
                             if (dialog.CheckBoxAddAlias->IsChecked() && AllModels[newName] != nullptr &&
                                 !AllModels[newName]->IsAlias("oldname:" + name)) {
                                 AllModels[newName]->AddAlias("oldname:" + name);
-                                UnsavedRgbEffectsChanges = true;
+                                UnsavedRgbEffectsChanges = { true, "model rename alias added" };
                                 spdlog::debug("Sequence Element Mismatch: added alias 'oldname:{}' to '{}'", (const char*)name.c_str(), (const char*)newName.c_str());
                             }
                         }

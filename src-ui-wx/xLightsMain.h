@@ -60,6 +60,8 @@
 #include <unordered_map>
 #include <map>
 #include <set>
+#include <source_location>
+#include <string>
 #include <vector>
 
 #ifdef LINUX
@@ -316,6 +318,47 @@ private:
     int id;
 };
 
+// A bool that logs every clean->dirty transition, so the log shows what turned
+// the layout Save button red.
+class xlUnsavedFlag {
+public:
+    struct Value {
+        bool value;
+        std::string reason;
+        std::source_location loc;
+        Value(bool v, std::source_location l = std::source_location::current()) :
+            value(v), loc(l) {}
+        Value(bool v, std::string r, std::source_location l = std::source_location::current()) :
+            value(v), reason(std::move(r)), loc(l) {}
+    };
+    explicit xlUnsavedFlag(const char* name) :
+        _name(name) {}
+    xlUnsavedFlag(const xlUnsavedFlag&) = delete;
+    xlUnsavedFlag& operator=(const xlUnsavedFlag&) = delete;
+    xlUnsavedFlag& operator=(Value v) {
+        if (v.value != _value) {
+            LogChange(v);
+        }
+        _value = v.value;
+        _reason.clear();
+        _detail.clear();
+        return *this;
+    }
+    operator bool() const { return _value; }
+    // Used for the log if the next assignment dirties the flag and gives no reason of its own.
+    void SetReason(const std::string& reason, const std::string& detail) {
+        _reason = reason;
+        _detail = detail;
+    }
+
+private:
+    void LogChange(const Value& v) const;
+    const char* _name;
+    std::string _reason;
+    std::string _detail;
+    bool _value = false;
+};
+
 class xLightsFrame: public xlFrame, public xLightsShowContext, public UICallbacks
 {
 public:
@@ -402,8 +445,8 @@ public:
 	bool SaveEffectsFile(bool backup = false);
     void SavePresetsFile(bool backup = false);
     void SaveModelsFile();
-    void MarkEffectsFileDirty();
-    void MarkPresetsDirty();
+    void MarkEffectsFileDirty(std::source_location loc = std::source_location::current());
+    void MarkPresetsDirty(std::source_location loc = std::source_location::current());
     void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0) override;
@@ -1085,7 +1128,7 @@ public:
     wxMenu *revertToMenu = nullptr;
     wxMenuItem* revertToMenuItem = nullptr;
 
-    bool UnsavedNetworkChanges = false;
+    xlUnsavedFlag UnsavedNetworkChanges{ "Network Setup" };
     unsigned int mSavedChangeCount = 0;
     unsigned int mLastAutosaveCount = 0;
     wxDateTime starttime;
@@ -1453,7 +1496,7 @@ public:
     bool PromptForDirectorySelection(const std::string &msg, std::string &dir);
     bool SaveNetworksFile();
     bool IsControllerUploadLinked() { return _linkedControllerUpload == "Inputs and Outputs"; }
-    void NetworkChange();
+    void NetworkChange(std::source_location loc = std::source_location::current());
     void NetworkChannelsChange();
 	void PingController(Controller* e);
     void SetModelData(ControllerEthernet* controller, ModelManager* modelManager, OutputManager* outputManager, std::string showDir);
@@ -1481,8 +1524,8 @@ public:
 
     // convert
 public:
-    bool UnsavedRgbEffectsChanges;
-    bool UnsavedPresetChanges = false;
+    xlUnsavedFlag UnsavedRgbEffectsChanges{ "Models, Views and Perspectives" };
+    xlUnsavedFlag UnsavedPresetChanges{ "Effect Presets" };
     bool _renderMode = false;
     bool _checkSequenceMode = false;
 
@@ -1825,6 +1868,7 @@ public:
     bool IsSequenceLoaded() const override { return CurrentSeqXmlFile != nullptr; }
     bool IsSequencerInitialized() const override { return mSequencerInitialize; }
     void MarkRgbEffectsChanged() override { UnsavedRgbEffectsChanges = true; }
+    void SetDirtyWorkReason(uint32_t work, xlUnsavedFlag& flag);
     IModelPreview* GetHousePreview() const override;
     void GetRenderPreviewSize(int& w, int& h) const override;
 

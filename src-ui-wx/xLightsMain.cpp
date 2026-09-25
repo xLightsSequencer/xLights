@@ -3531,8 +3531,12 @@ void xLightsFrame::SetXmlSetting(const std::string& settingName, const std::stri
 {
     auto& entry = _xmlSettings[settingName];
     if (entry != value) {
+        if (settingName == "xlightsVersion") {
+            UnsavedRgbEffectsChanges = { true, "layout was last saved by xLights " + (entry.empty() ? std::string("<unknown>") : entry) + ", now " + value };
+        } else {
+            UnsavedRgbEffectsChanges = { true, "setting '" + settingName + "' changed" };
+        }
         entry = value;
-        UnsavedRgbEffectsChanges = true;
     }
 }
 
@@ -4179,19 +4183,54 @@ void xLightsFrame::CheckUnsavedChanges()
     }
 }
 
-void xLightsFrame::MarkEffectsFileDirty()
+static const char* DescribeUnsavedSource(std::string_view file)
+{
+    static const std::pair<std::string_view, const char*> areas[] = {
+        { "LayoutPanel.cpp", "layout edit" },
+        { "TabPreview.cpp", "layout edit" },
+        { "tabSequencer.cpp", "sequencer view or perspective change" },
+        { "TabSequence.cpp", "layout file update" },
+        { "TabSetup.cpp", "controller change" },
+        { "ColorManager.cpp", "color setting change" },
+        { "xLightsAutomations.cpp", "automation command" },
+        { "xLightsMain.cpp", "setting change" },
+    };
+    for (const auto& [f, area] : areas) {
+        if (file == f) return area;
+    }
+    return "change";
+}
+
+void xlUnsavedFlag::LogChange(const Value& v) const
+{
+    std::string_view file = v.loc.file_name();
+    auto slash = file.find_last_of("/\\");
+    if (slash != std::string_view::npos) file.remove_prefix(slash + 1);
+    if (!v.value) {
+        spdlog::debug("Changes saved/discarded: {} ({}:{})", _name, file, v.loc.line());
+        return;
+    }
+    const std::string why = !v.reason.empty() ? v.reason : (!_reason.empty() ? _reason : DescribeUnsavedSource(file));
+    spdlog::info("Unsaved changes: {} - {}", _name, why);
+    if (_detail.empty()) {
+        spdlog::debug("    set at {}:{}", file, v.loc.line());
+    } else {
+        spdlog::debug("    set at {}:{} requested by {}", file, v.loc.line(), _detail);
+    }
+}
+
+void xLightsFrame::MarkEffectsFileDirty(std::source_location loc)
 {
     auto logger_work = spdlog::get("work");
     logger_work->debug("        MarkEffectsFileDirty.");
     spdlog::debug("MarkEffectsFileDirty called - UnsavedRgbEffectsChanges now true");
 
-    layoutPanel->SetDirtyHiLight(true);
-    UnsavedRgbEffectsChanges = true;
+    layoutPanel->SetDirtyHiLight(true, loc);
 }
 
-void xLightsFrame::MarkPresetsDirty()
+void xLightsFrame::MarkPresetsDirty(std::source_location loc)
 {
-    UnsavedPresetChanges = true;
+    UnsavedPresetChanges = { true, loc };
     UpdateLayoutSave();
 }
 

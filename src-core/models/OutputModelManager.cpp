@@ -60,6 +60,39 @@ std::string OutputModelManager::DecodeWork(uint32_t work)
 }
 #endif
 
+static constexpr uint32_t DIRTYING_WORK = OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                          OutputModelManager::WORK_NETWORK_CHANGE |
+                                          OutputModelManager::WORK_PRESET_CHANGE;
+
+void OutputModelManager::RecordDirtySource(uint32_t work, const std::string& from)
+{
+    work &= DIRTYING_WORK;
+    if (work == 0) return;
+    if (!_dirtySources.empty() && _dirtySources.back().second == from) {
+        _dirtySources.back().first |= work;
+        return;
+    }
+    if (_dirtySources.size() >= 64) _dirtySources.pop_front();
+    _dirtySources.push_back({ work, from });
+}
+
+std::vector<std::string> OutputModelManager::TakeDirtySources(uint32_t work)
+{
+    std::vector<std::string> res;
+    for (auto it = _dirtySources.begin(); it != _dirtySources.end();) {
+        if (it->first & work) {
+            res.push_back(it->second);
+            it->first &= ~work;
+        }
+        if (it->first == 0) {
+            it = _dirtySources.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    return res;
+}
+
 void OutputModelManager::SetSelectedModelIfASAPWorkExists(const std::string& selectedModel)
 {
     if (_workASAP != 0) {
@@ -81,6 +114,7 @@ void OutputModelManager::SetSelectedControllerIfASAPWorkExists(const std::string
 void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
     if (_disableASAPWork) return;
+    RecordDirtySource(work, from);
 #ifdef _DEBUG
     _sourceASAP.push_back({ work, from });
 #endif
@@ -114,6 +148,7 @@ void OutputModelManager::AddASAPWork(uint32_t work, const std::string& from, Bas
 
 void OutputModelManager::AddSetupTabWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
+    RecordDirtySource(work, from);
 #ifdef _DEBUG
     _sourceSetup.push_back({ work, from });
 #endif
@@ -136,6 +171,7 @@ void OutputModelManager::AddSetupTabWork(uint32_t work, const std::string& from,
 
 void OutputModelManager::AddLayoutTabWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
+    RecordDirtySource(work, from);
 #ifdef _DEBUG
     _sourceLayout.push_back({ work, from });
 #endif
@@ -181,6 +217,7 @@ std::string OutputModelManager::GetSelectedController()
 void OutputModelManager::AddImmediateWork(uint32_t work, const std::string& from, BaseObject* m, Controller* o, const std::string& selectedModel)
 {
     auto logger_work = spdlog::get("work");
+    RecordDirtySource(work, from);
     if (work & WORK_RELOAD_MODEL_FROM_XML)
     {
         if (m == nullptr)

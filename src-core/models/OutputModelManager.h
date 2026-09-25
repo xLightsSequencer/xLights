@@ -12,6 +12,7 @@
 
 #include <list>
 #include <string>
+#include <vector>
 #include <cstdint>
 #include <functional>
 
@@ -31,6 +32,10 @@ class OutputModelManager {
     std::string _selectedController = "";
     bool _suspendedDeferredWork = false;
     bool _disableASAPWork = true;
+    // Always kept (not just _DEBUG) so the log can say who requested work that
+    // turns the layout Save button red.
+    std::list<std::pair<uint32_t, std::string>> _dirtySources;
+    void RecordDirtySource(uint32_t work, const std::string& from);
 #ifdef _DEBUG
     std::list<std::pair<uint32_t, std::string>> _sourceASAP;
     std::list < std::pair<uint32_t, std::string>> _sourceLayout;
@@ -157,6 +162,7 @@ public:
         return res;
     }
     void RemoveWork(const std::string& type, uint32_t toremove);
+    std::vector<std::string> TakeDirtySources(uint32_t work);
     uint32_t ClearWork(const std::string& type, uint32_t currentwork, uint32_t work);
     void AddImmediateWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Controller* o = nullptr, const std::string& selectedModel = "");
     void AddASAPWork(uint32_t work, const std::string& from, BaseObject* m = nullptr, Controller* o = nullptr, const std::string& selectedModel = "");

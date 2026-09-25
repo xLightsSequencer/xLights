@@ -752,10 +752,10 @@ void xLightsFrame::UpdateChannelNames() {
 }
 
 
-void xLightsFrame::NetworkChange() {
+void xLightsFrame::NetworkChange(std::source_location loc) {
 
     _outputManager.SomethingChanged();
-    UnsavedNetworkChanges = true;
+    UnsavedNetworkChanges = { true, loc };
     UpdateLayoutSave();
 }
 
@@ -801,6 +801,37 @@ bool xLightsFrame::SaveNetworksFile() {
         DisplayError(_("Unable to save network definition file"), this);
         return false;
     }
+}
+
+static const char* DescribeWorkSource(const std::string& from)
+{
+    auto starts = [&from](std::string_view p) { return from.rfind(p, 0) == 0; };
+    auto has = [&from](std::string_view p) { return from.find(p) != std::string::npos; };
+    if (starts("SetDir")) return "show folder load";
+    if (starts("UpdateFromBaseShowFolder")) return "base show folder update";
+    if (starts("CleanupRGBEffectsFileLocations")) return "file path cleanup";
+    if (starts("Automation")) return "automation command";
+    if (starts("xLightsImport")) return "import";
+    if (starts("LayoutPanel") || starts("SetLayoutGroup") || starts("PositionZoneDialog")) return "layout edit";
+    if (starts("Controller") || has("Output")) return "controller setting change";
+    if (starts("Model") || starts("Dmx") || starts("Servo") || starts("Mesh") || has("PropertyAdapter") ||
+        has("ScreenLocation") || has("Object") || has("Model")) return "model or object property change";
+    return "other change";
+}
+
+void xLightsFrame::SetDirtyWorkReason(uint32_t work, xlUnsavedFlag& flag) {
+    std::string reason;
+    std::string detail;
+    for (const auto& from : _outputModelManager.TakeDirtySources(work)) {
+        std::string what = DescribeWorkSource(from);
+        if (reason.find(what) == std::string::npos) {
+            if (!reason.empty()) reason += ", ";
+            reason += what;
+        }
+        if (!detail.empty()) detail += ", ";
+        detail += from;
+    }
+    flag.SetReason(reason, detail);
 }
 
 void xLightsFrame::UpdateLayoutSave() {
@@ -906,6 +937,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
 
     if (work & OutputModelManager::WORK_NETWORK_CHANGE) {
         logger_work->debug("    WORK_NETWORK_CHANGE.");
+        SetDirtyWorkReason(OutputModelManager::WORK_NETWORK_CHANGE, UnsavedNetworkChanges);
         // Mark networks file dirty
         NetworkChange();
     }
@@ -985,11 +1017,13 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     );
     if (work & OutputModelManager::WORK_RGBEFFECTS_CHANGE) {
         logger_work->debug("    WORK_RGBEFFECTS_CHANGE.");
+        SetDirtyWorkReason(OutputModelManager::WORK_RGBEFFECTS_CHANGE, UnsavedRgbEffectsChanges);
         // Mark the rgb effects file as needing to be saved
         MarkEffectsFileDirty();
     }
     if (work & OutputModelManager::WORK_PRESET_CHANGE) {
         logger_work->debug("    WORK_PRESET_CHANGE.");
+        SetDirtyWorkReason(OutputModelManager::WORK_PRESET_CHANGE, UnsavedPresetChanges);
         MarkPresetsDirty();
     }
     work = _outputModelManager.ClearWork(type, work,

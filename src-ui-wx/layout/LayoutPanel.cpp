@@ -1228,9 +1228,9 @@ void LayoutPanel::Reset()
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 }
 
-void LayoutPanel::SetDirtyHiLight(bool dirty) {
+void LayoutPanel::SetDirtyHiLight(bool dirty, std::source_location loc) {
     if (dirty) {
-        xlights->UnsavedRgbEffectsChanges = true;
+        xlights->UnsavedRgbEffectsChanges = { true, loc };
     }
 //    if (dirty)
 //    {
