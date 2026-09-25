@@ -499,7 +499,6 @@ class xLightsImportChannelMapDialog: public wxDialog
 {
     xLightsImportModelNode* TreeContainsModel(std::string const& model, std::string const& strand = "", std::string const& node = "");
     wxDataViewItem FindItem(std::string const& model, std::string const& strand = "", std::string const& node = "");
-    long FindAvailableByName(const wxString& name) const;
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
@@ -705,6 +704,15 @@ protected:
         void CollapseAll();
         void ExpandAll();
         void ClearAll();
+        struct MappingTreeState {
+            std::vector<xLightsImportModelNode*> expanded;
+            wxDataViewItemArray selected;
+            wxDataViewItem top;
+        };
+        MappingTreeState CaptureMappingTreeState() const;
+        // Cleared() rebuilds the whole view in a few ms; this puts the user's
+        // expansion and selection back across it.
+        void RebuildMappingTree(const MappingTreeState& state, bool keepExpansion);
         void ApplyNameFilter();
         void ExpandNameFilterMatches();
         void UpdateFilterCount();
@@ -721,6 +729,15 @@ protected:
         wxString PromptForUnusedGroupName(const wxString& taken);
         std::vector<wxString> DonorGroupsAt(const wxPoint& screenPos);
         void RemoveGroupsAddedThisSession();
+
+        // The Available list is filtered for display only. Anything that needs to
+        // know which sources exist must read these, never the visible rows.
+        std::vector<ImportChannel*> SortedImportChannels() const;
+        bool AvailableSourceExists(const std::string& name) const;
+        std::unordered_set<std::string> SelectedAvailableNames() const;
+        std::vector<AvailableSource> BuildAvailableSources(bool withTypes);
+        void ApplyAvailFilter();
+        void UpdateAvailFilterCount();
         // Confirms leaving without Ok: unsaved mapping changes, and groups added here that Cancel removes.
         bool ConfirmDiscard(bool closingWindow);
         void EditDisplayElements();
@@ -821,6 +838,11 @@ protected:
         std::vector<std::string> _groupsAddedThisSession;
         // Donor groups the Available context menu was opened on.
         std::vector<wxString> _contextDonorGroups;
+        wxFilterQuery _availFilter;
+        wxTimer _availFilterTimer;
+        wxStaticText* StaticText_AvailFilterCount {nullptr};
+        // Which list PopulateAvailable last showed, so source lookups read the same one.
+        bool _availIsCCR = false;
         std::vector<wxCheckBox*> _timingCheckboxes;
         int _timelineCol {-1};
         std::map<ImportChannel*, int> _channelImageMap;

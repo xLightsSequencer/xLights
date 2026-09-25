@@ -559,7 +559,12 @@ bool xLightsImportTreeModel::NameFilterMatches(const xLightsImportModelNode* nod
     if (!node->_node.empty()) {
         return false;
     }
-    return _nameFilter.Matches(node->_strand.empty() ? node->_model : node->_strand);
+    if (node->_strand.empty()) {
+        return _nameFilter.Matches(node->_model);
+    }
+    // Matched as a path, the way the Available list names it, so words can span
+    // the two: "spinner circ" finds a spinner's Circles submodel.
+    return _nameFilter.Matches(node->_model + "/" + node->_strand);
 }
 
 void xLightsImportTreeModel::SetNameFilter(const wxString& filter)
@@ -829,7 +834,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     Sizer2->AddGrowableRow(1);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer3->AddGrowableCol(1);
-    StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("Find:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("Filter:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_FindFrom = new wxTextCtrl(Panel2, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
     FlexGridSizer3->Add(TextCtrl_FindFrom, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
@@ -1491,6 +1496,7 @@ void xLightsImportChannelMapDialog::OnPopupTimingTracks(wxCommandEvent& event)
 xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 {
     _nameFilterTimer.Stop();
+    _availFilterTimer.Stop();
 	//(*Destroy(xLightsImportChannelMapDialog)
 	//*)
 
@@ -1614,24 +1620,32 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         }
     }
 
-    if (_sequenceDurationMS > 0) {
+    TextCtrl_FindFrom->SetHint(_("Filter sources"));
+    TextCtrl_FindFrom->SetToolTip(wxString::Format(_("Shows only matching sources. Mappings to hidden sources are kept, and Auto Map and Load Map still see every source.\n%s"), wxFilterQuery::Hint()));
+    _availFilterTimer.SetOwner(this, wxWindow::NewControlId());
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { ApplyAvailFilter(); }, _availFilterTimer.GetId());
+    {
         wxSizer* findSizer = TextCtrl_FindFrom->GetContainingSizer();
         if (findSizer != nullptr) {
             findSizer->Detach(TextCtrl_FindFrom);
             wxBoxSizer* findRowSizer = new wxBoxSizer(wxHORIZONTAL);
             findRowSizer->Add(TextCtrl_FindFrom, 1, wxEXPAND | wxRIGHT, 5);
-            CheckBox_ShowTimeline = new wxCheckBox(Panel2, wxID_ANY, _("Show Timeline"));
-            CheckBox_ShowTimeline->SetValue(GetXLightsConfig()->ReadBool("ImportShowTimeline", true));
-            findRowSizer->Add(CheckBox_ShowTimeline, 0, wxALIGN_CENTER_VERTICAL);
+            StaticText_AvailFilterCount = new wxStaticText(Panel2, wxID_ANY, wxEmptyString);
+            findRowSizer->Add(StaticText_AvailFilterCount, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
+            if (_sequenceDurationMS > 0) {
+                CheckBox_ShowTimeline = new wxCheckBox(Panel2, wxID_ANY, _("Show Timeline"));
+                CheckBox_ShowTimeline->SetValue(GetXLightsConfig()->ReadBool("ImportShowTimeline", true));
+                findRowSizer->Add(CheckBox_ShowTimeline, 0, wxALIGN_CENTER_VERTICAL);
+                CheckBox_ShowTimeline->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+                    auto* config = GetXLightsConfig();
+                    config->Write("ImportShowTimeline", CheckBox_ShowTimeline->IsChecked());
+                    config->Flush();
+                    PopulateAvailable(CheckBox_MapCCRStrand->GetValue());
+                });
+            }
             findSizer->Insert(1, findRowSizer, 1, wxEXPAND);
             findSizer->Layout();
             Sizer2->Layout();
-            CheckBox_ShowTimeline->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
-                auto* config = GetXLightsConfig();
-                config->Write("ImportShowTimeline", CheckBox_ShowTimeline->IsChecked());
-                config->Flush();
-                PopulateAvailable(CheckBox_MapCCRStrand->GetValue());
-            });
         }
     }
 
@@ -1803,8 +1817,118 @@ void xLightsImportChannelMapDialog::SetXsqPkg(SequencePackage* xsqPkg) {
     _xsqPkg = xsqPkg;
 }
 
+std::vector<ImportChannel*> xLightsImportChannelMapDialog::SortedImportChannels() const
+{
+    // Name order, as the list shows by default, so auto-mapping sees sources in
+    // the order it always has.
+    std::vector<ImportChannel*> channels;
+    channels.reserve(importChannels.size());
+    for (auto const& channel : importChannels) {
+        channels.push_back(channel.get());
+    }
+    std::stable_sort(channels.begin(), channels.end(), [](const ImportChannel* a, const ImportChannel* b) {
+        return NumberAwareStringCompare(a->name, b->name) < 0;
+    });
+    return channels;
+}
+
+bool xLightsImportChannelMapDialog::AvailableSourceExists(const std::string& name) const
+{
+    if (_availIsCCR) {
+        return std::find(ccrNames.begin(), ccrNames.end(), name) != ccrNames.end();
+    }
+    return GetImportChannel(name) != nullptr;
+}
+
+std::unordered_set<std::string> xLightsImportChannelMapDialog::SelectedAvailableNames() const
+{
+    // Only visible rows can be selected, which is what "Selected" should mean.
+    std::unordered_set<std::string> names;
+    for (long i = ListCtrl_Available->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); i != -1;
+         i = ListCtrl_Available->GetNextItem(i, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED)) {
+        names.insert(ListCtrl_Available->GetItemText(i, 1).ToStdString());
+    }
+    return names;
+}
+
+std::vector<AvailableSource> xLightsImportChannelMapDialog::BuildAvailableSources(bool withTypes)
+{
+    std::vector<std::string> names;
+    if (_availIsCCR) {
+        names = ccrNames;
+    } else {
+        for (ImportChannel const* channel : SortedImportChannels()) {
+            names.push_back(channel->name);
+        }
+    }
+
+    // One table per call: findModelType scans every source, so calling it for
+    // each source made this quadratic, and Auto Map calls this once per pass and
+    // once per map hint.
+    std::unordered_map<std::string, std::string> typeByName;
+    if (withTypes) {
+        if (_availIsCCR) {
+            for (auto const& name : ccrNames) {
+                typeByName.emplace(::Lower(name), "Model");
+            }
+        } else {
+            for (auto const& channel : importChannels) {
+                typeByName.emplace(::Lower(channel->name), channel->type == "ModelGroup" ? "ModelGroup" : "Model");
+            }
+        }
+    }
+
+    auto const selected = SelectedAvailableNames();
+    std::vector<AvailableSource> available;
+    available.reserve(names.size());
+    for (auto const& name : names) {
+        AvailableSource src;
+        src.displayName = name;
+        src.canonicalName = wxString(name).Trim(true).Trim(false).Lower().ToStdString();
+        // findModelType only means something for bare-model entries; AutoMapper
+        // overrides strand/node entries to "Strand" / "Node" / "SubModel" / "Unknown".
+        if (withTypes && src.canonicalName.find('/') == std::string::npos) {
+            // Same answer findModelType gives, including its default for a miss.
+            auto const it = typeByName.find(::Lower(name));
+            src.modelType = it != typeByName.end() ? it->second : "ModelGroup";
+        }
+        src.selected = selected.count(name) != 0;
+        available.push_back(std::move(src));
+    }
+    return available;
+}
+
+void xLightsImportChannelMapDialog::UpdateAvailFilterCount()
+{
+    if (StaticText_AvailFilterCount == nullptr) return;
+    if (_availFilter.IsEmpty()) {
+        StaticText_AvailFilterCount->SetLabel(wxEmptyString);
+    } else {
+        size_t const total = _availIsCCR ? ccrNames.size() : importChannels.size();
+        StaticText_AvailFilterCount->SetLabel(wxString::Format(_("Showing %d of %d"), ListCtrl_Available->GetItemCount(), (int)total));
+    }
+    if (wxSizer* sizer = StaticText_AvailFilterCount->GetContainingSizer()) {
+        sizer->Layout();
+    }
+}
+
+void xLightsImportChannelMapDialog::ApplyAvailFilter()
+{
+    auto const selected = SelectedAvailableNames();
+    _availFilter = wxFilterQuery(TextCtrl_FindFrom->GetValue());
+    PopulateAvailable(_availIsCCR);
+    MarkUsed();
+    for (long i = 0; i < ListCtrl_Available->GetItemCount(); ++i) {
+        if (selected.count(ListCtrl_Available->GetItemText(i, 1).ToStdString()) != 0) {
+            ListCtrl_Available->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+        }
+    }
+    UpdateAvailFilterCount();
+}
+
 void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 {
+    _availIsCCR = ccr;
     ListCtrl_Available->Freeze();
     ListCtrl_Available->ClearAll();
 
@@ -1821,10 +1945,13 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
 
     if (ccr) {
         int j{0};
-        for (auto const& name : ccrNames) {
+        for (size_t k = 0; k < ccrNames.size(); ++k) {
+            auto const& name = ccrNames[k];
+            if (!_availFilter.IsEmpty() && !_availFilter.Matches(name)) continue;
             ListCtrl_Available->InsertItem(j, "");    // col 0 (icon col)
             ListCtrl_Available->SetItem(j, 1, name); // col 1 (name)
-            ListCtrl_Available->SetItemData(j, j);
+            // The CCR sort compares this, so it stays the source index when rows are skipped.
+            ListCtrl_Available->SetItemData(j, (long)k);
             ListCtrl_Available->SetItemColumnImage(j, 0, -1);
             j++;
         }
@@ -1897,8 +2024,11 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
             ListCtrl_Available->SetColumnWidth(timelineColIdx, TIMELINE_W);
         }
 
-        bool countEnabled{false};
+        // Decided over every source, so filtering never adds or drops the column.
+        bool const countEnabled = std::any_of(importChannels.begin(), importChannels.end(),
+                                              [](auto const& m) { return m->effectCount != 0; });
         for (auto const& m : importChannels) {
+            if (!_availFilter.IsEmpty() && !_availFilter.Matches(m->name)) continue;
             ListCtrl_Available->InsertItem(j, "");       // col 0 (icon)
             ListCtrl_Available->SetItem(j, 1, m->name); // col 1 (name)
             wxUIntPtr ptr = (wxUIntPtr)m.get();
@@ -1915,7 +2045,6 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
             }
             if (m->effectCount != 0) {
                 ListCtrl_Available->SetItem(j, 2, wxString::Format("%d", m->effectCount)); // col 2
-                countEnabled = true;
             }
             if (m->type == "ModelGroup") {
                 ListCtrl_Available->SetItemTextColour(j, ColorManager::instance()->CyanOrBlueOverride());
@@ -2234,14 +2363,6 @@ wxDataViewItem xLightsImportChannelMapDialog::FindItem(std::string const& model,
     }
 
     return wxDataViewItem(nullptr);
-}
-
-long xLightsImportChannelMapDialog::FindAvailableByName(const wxString& name) const
-{
-    for (long i = 0; i < ListCtrl_Available->GetItemCount(); ++i) {
-        if (ListCtrl_Available->GetItemText(i, 1) == name) return i;
-    }
-    return -1;
 }
 
 xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::string const& model, std::string const& strand, std::string const& node)
@@ -2720,7 +2841,7 @@ void xLightsImportChannelMapDialog::SaveXMapMapping(wxString const& filename)
             mappedModelNames.insert(m->_model);
         }
     }
-    text.WriteString(wxString::Format("%d\n", mappedModelNames.size()));
+    text.WriteString(wxString::Format("%d\n", (int)mappedModelNames.size()));
     for (const auto& mn : mappedModelNames) {
         text.WriteString(mn + "\n");
     }
@@ -3375,25 +3496,20 @@ std::string xLightsImportChannelMapDialog::findModelType(std::string modelName)
         return "Strand";
     }
 
-    for (size_t j = 0; j < (size_t)ListCtrl_Available->GetItemCount(); ++j) {
-        if (ListCtrl_Available->GetItemText(j, 1).Lower().ToStdString() == ::Lower(modelName)) {
-            wxListItem item;
-            item.SetId(j);
-            item.SetColumn(0);
-            item.SetMask(wxLIST_MASK_IMAGE);
-
-            if (ListCtrl_Available->GetItem(item)) {
-                // Retrieve the icon index
-                const int iconIndex = item.GetImage();
-
-                if (iconIndex == LayoutUtils::Icon_Group) {
-                    return "ModelGroup";
-                } else {
-                    return "Model";
-                }
+    // From the source list rather than the row's icon, so a source the filter
+    // hides still resolves instead of falling through to the default below.
+    std::string const lower = ::Lower(modelName);
+    if (_availIsCCR) {
+        for (auto const& name : ccrNames) {
+            if (::Lower(name) == lower) {
+                return "Model";
             }
-
-            break;
+        }
+    } else {
+        for (auto const& channel : importChannels) {
+            if (::Lower(channel->name) == lower) {
+                return channel->type == "ModelGroup" ? "ModelGroup" : "Model";
+            }
         }
     }
     return "ModelGroup";
@@ -3410,14 +3526,8 @@ void xLightsImportChannelMapDialog::BulkMapNodes(const std::string& fromModel, w
         for (auto& it2 : nodes) {
             auto sn = mm->GetStrand(it);
             auto nn = mm->GetNode(it2);
-            bool fromExist = false;
             auto fromname = fromModel + "/" + sn + "/" + nn;
-            for (size_t j = 0; j < (size_t)ListCtrl_Available->GetItemCount(); ++j) {
-                if (ListCtrl_Available->GetItemText(j, 1) == fromname) {
-                    fromExist = true;
-                }
-            }
-            if (fromExist) {
+            if (AvailableSourceExists(fromname)) {
                 Map(it2, fromname, "Strand");
             }
         }
@@ -3432,14 +3542,8 @@ void xLightsImportChannelMapDialog::BulkMapSubmodelsStrands(const std::string& f
     mm->GetAllChildren(toModel, strands);
     for (auto& it : strands) {
         auto sn = mm->GetStrand(it);
-        bool fromExist = false;
         auto fromname = fromModel + "/" + sn;
-        for (size_t j = 0; j < (size_t)ListCtrl_Available->GetItemCount(); ++j) {
-            if (ListCtrl_Available->GetItemText(j, 1) == fromname) {
-                fromExist = true;
-            }
-        }
-        if (fromExist) {
+        if (AvailableSourceExists(fromname)) {
             Map(it, fromname, "Strand");
         }
     }
@@ -3577,7 +3681,7 @@ wxDataViewItem xLightsImportChannelMapDialog::FindLastItem(
 void xLightsImportChannelMapDialog::ApplyMappingItem(wxString const& mapping, wxDataViewItem item, wxColor const& color)
 {
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-    ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
+    ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, AvailableSourceExists(mapping));
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
 }
@@ -4234,10 +4338,10 @@ void xLightsImportChannelMapDialog::DoAIAutoMap(bool select) {
     // build a list of possible sources .. this is the selected items in the list or all items
     bool sourceContainsNodes = false;
     std::list<ImportChannel*> sourceModels;
-    for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-        ImportChannel* m = (ImportChannel*)ListCtrl_Available->GetItemData(j);
+    auto const selectedNames = SelectedAvailableNames();
+    for (ImportChannel* m : SortedImportChannels()) {
         if (selectMapAvail) {
-            bool isSourceSelected = ListCtrl_Available->GetItemState(j, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
+            bool isSourceSelected = selectedNames.count(m->name) != 0;
             if (isSourceSelected) {
                 sourceModels.push_back(m);
                 sourceContainsNodes |= m->isNode;
@@ -4340,21 +4444,7 @@ void xLightsImportChannelMapDialog::DoAutoMap(
     // for matching, original casing for the eventual Map() call, and the
     // model-type tag resolved up-front (AutoMapper is wx-free and can't call
     // findModelType).
-    std::vector<AvailableSource> available;
-    available.reserve(ListCtrl_Available->GetItemCount());
-    for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-        AvailableSource src;
-        src.displayName = ListCtrl_Available->GetItemText(j, 1).ToStdString();
-        src.canonicalName = ListCtrl_Available->GetItemText(j, 1).Trim(true).Trim(false).Lower().ToStdString();
-        // findModelType only meaningful for bare-model entries (no slash); for
-        // strand/node entries the type is always overridden by AutoMapper to
-        // "Strand" / "Node" / "SubModel" / "Unknown".
-        if (src.canonicalName.find('/') == std::string::npos) {
-            src.modelType = findModelType(ListCtrl_Available->GetItemText(j, 1));
-        }
-        src.selected = ListCtrl_Available->GetItemState(j, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
-        available.push_back(std::move(src));
-    }
+    std::vector<AvailableSource> available = BuildAvailableSources(true);
 
     // Roots (top-level destination models) and selection set — the wx
     // selection is lifted into a pointer set so AutoMapper doesn't have to
@@ -4381,15 +4471,7 @@ void xLightsImportChannelMapDialog::DoAutoMap(
 
 void xLightsImportChannelMapDialog::DoSubModelFallback(bool select)
 {
-    std::vector<AvailableSource> available;
-    available.reserve(ListCtrl_Available->GetItemCount());
-    for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
-        AvailableSource src;
-        src.displayName = ListCtrl_Available->GetItemText(j, 1).ToStdString();
-        src.canonicalName = ListCtrl_Available->GetItemText(j, 1).Trim(true).Trim(false).Lower().ToStdString();
-        src.selected = ListCtrl_Available->GetItemState(j, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
-        available.push_back(std::move(src));
-    }
+    std::vector<AvailableSource> available = BuildAvailableSources(false);
 
     std::vector<ImportMappingNode*> roots;
     roots.reserve(_dataModel->GetChildCount());
@@ -4411,26 +4493,11 @@ void xLightsImportChannelMapDialog::DoSubModelFallback(bool select)
 
 void xLightsImportChannelMapDialog::NotifyMappingItemsChanged()
 {
-    // wxDataViewCtrl on macOS (NSOutlineView) caches item values and ignores
-    // plain Refresh() calls after bulk data changes. ValueChanged() forces
-    // NSOutlineView to re-query GetValue() for each item's columns.
-    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
-        auto* model = _dataModel->GetNthChild(i);
-        if (model == nullptr) continue;
-        wxDataViewItem modelItem(model);
-        _dataModel->ValueChanged(modelItem, 2);
-        for (unsigned int j = 0; j < model->GetChildCount(); ++j) {
-            auto* strand = model->GetNthChild(j);
-            if (strand == nullptr) continue;
-            wxDataViewItem strandItem(strand);
-            _dataModel->ValueChanged(strandItem, 2);
-            for (unsigned int k = 0; k < strand->GetChildCount(); ++k) {
-                auto* node = strand->GetNthChild(k);
-                if (node != nullptr)
-                    _dataModel->ValueChanged(wxDataViewItem(node), 2);
-            }
-        }
-    }
+    if (_dataModel == nullptr) return;
+    // NSOutlineView caches item values and ignores Refresh(). Announcing every
+    // row with ValueChanged() made it reload and re-sort each row's children --
+    // tens of seconds after an Auto Map on a large show -- so rebuild once.
+    RebuildMappingTree(CaptureMappingTreeState(), true);
 }
 
 void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
@@ -4446,11 +4513,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
     for (auto const& e : LoadMapHintsFromShowDir(xlights->CurrentDir.ToStdString())) {
         DoAutoMap(regex, regex, norm, e.toRegex, e.fromModel, e.applyTo, false);
     }
-    if (CheckBox_HideUnmapped != nullptr && CheckBox_HideUnmapped->IsChecked()) {
-        _dataModel->Cleared();
-    } else {
-        NotifyMappingItemsChanged();
-    }
+    NotifyMappingItemsChanged();
     TreeListCtrl_Mapping->Thaw();
     MarkUsed();
 }
@@ -4466,11 +4529,7 @@ void xLightsImportChannelMapDialog::AutoMap()
     for (auto const& e : LoadMapHintsFromShowDir(xlights->CurrentDir.ToStdString())) {
         DoAutoMap(regex, regex, norm, e.toRegex, e.fromModel, e.applyTo, false);
     }
-    if (CheckBox_HideUnmapped != nullptr && CheckBox_HideUnmapped->IsChecked()) {
-        _dataModel->Cleared();
-    } else {
-        NotifyMappingItemsChanged();
-    }
+    NotifyMappingItemsChanged();
     TreeListCtrl_Mapping->Thaw();
     MarkUsed();
 }
@@ -4489,11 +4548,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapSelClick(wxCommandEvent& eve
         DoAutoMap(regex, regex, norm, e.toRegex, e.fromModel, e.applyTo, false);
     }
 
-    if (CheckBox_HideUnmapped != nullptr && CheckBox_HideUnmapped->IsChecked()) {
-        _dataModel->Cleared();
-    } else {
-        NotifyMappingItemsChanged();
-    }
+    NotifyMappingItemsChanged();
     TreeListCtrl_Mapping->Thaw();
     MarkUsed();
 }
@@ -4819,44 +4874,8 @@ void xLightsImportChannelMapDialog::generateMapHintsFile(wxString const& filenam
 
 void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& event)
 {
-    // find the first line starting with the text
-    int index = -1;
-    auto from = TextCtrl_FindFrom->GetValue().Lower();
-
-    if (from == "")
-    {
-        // text just erased ... so scroll to the top
-        index = 0;
-    }
-    else
-    {
-        for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i)
-        {
-            if (ListCtrl_Available->GetItemText(i, 1).Lower().StartsWith(from))
-            {
-                index = i;
-                break;
-            }
-        }
-    }
-
-    // if nothing found then find the first line containing the text
-    if (index == -1)
-    {
-        wxFilterQuery const query(TextCtrl_FindFrom->GetValue());
-        for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i) {
-            if (query.Matches(ListCtrl_Available->GetItemText(i, 1))) {
-                index = i;
-                break;
-            }
-        }
-
-    }
-
-    // Nothing matched, or the list is empty: leave the scroll position alone.
-    if (index >= 0 && index < ListCtrl_Available->GetItemCount()) {
-        ListCtrl_Available->EnsureVisible(index);
-    }
+    // Repopulating redraws every timeline, so wait for a pause in typing.
+    _availFilterTimer.StartOnce(400);
 }
 
 void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
@@ -4865,22 +4884,22 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
     _nameFilterTimer.StartOnce(400);
 }
 
-void xLightsImportChannelMapDialog::ApplyNameFilter()
+xLightsImportChannelMapDialog::MappingTreeState xLightsImportChannelMapDialog::CaptureMappingTreeState() const
 {
-    if (_dataModel == nullptr) return;
-
-    // Cleared() collapses everything and drops the selection; carry both across.
-    std::vector<xLightsImportModelNode*> expanded;
+    MappingTreeState state;
     for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (TreeListCtrl_Mapping->IsExpanded(wxDataViewItem(m)) && _filterExpanded.count(m) == 0) {
-            expanded.push_back(m);
+            state.expanded.push_back(m);
         }
     }
-    wxDataViewItemArray selected;
-    TreeListCtrl_Mapping->GetSelections(selected);
+    TreeListCtrl_Mapping->GetSelections(state.selected);
+    state.top = TreeListCtrl_Mapping->GetTopItem();
+    return state;
+}
 
-    _dataModel->SetNameFilter(TextCtrl_FindTo->GetValue());
+void xLightsImportChannelMapDialog::RebuildMappingTree(const MappingTreeState& state, bool keepExpansion)
+{
     _filterExpanded.clear();
     TreeListCtrl_Mapping->Freeze();
     _dataModel->Cleared();
@@ -4892,9 +4911,8 @@ void xLightsImportChannelMapDialog::ApplyNameFilter()
         }
         return _dataModel->IsShownByNameFilter(n);
     };
-    // A cleared filter stays collapsed; re-expanding here is also what made clearing slow.
-    if (_dataModel->HasNameFilter()) {
-        for (auto* m : expanded) {
+    if (keepExpansion) {
+        for (auto* m : state.expanded) {
             if (shown(m)) {
                 TreeListCtrl_Mapping->Expand(wxDataViewItem(m));
             }
@@ -4903,7 +4921,7 @@ void xLightsImportChannelMapDialog::ApplyNameFilter()
     ExpandNameFilterMatches();
 
     wxDataViewItem firstKept;
-    for (auto const& item : selected) {
+    for (auto const& item : state.selected) {
         auto* n = (xLightsImportModelNode*)item.GetID();
         if (n != nullptr && shown(n)) {
             TreeListCtrl_Mapping->Select(item);
@@ -4911,10 +4929,21 @@ void xLightsImportChannelMapDialog::ApplyNameFilter()
         }
     }
     TreeListCtrl_Mapping->Thaw();
-    if (firstKept.IsOk()) {
-        TreeListCtrl_Mapping->EnsureVisible(firstKept);
+    // With nothing selected, keep the user near where they were scrolled to.
+    wxDataViewItem const keepInView = firstKept.IsOk() ? firstKept : state.top;
+    if (keepInView.IsOk() && shown((xLightsImportModelNode*)keepInView.GetID())) {
+        TreeListCtrl_Mapping->EnsureVisible(keepInView);
     }
     UpdateFilterCount();
+}
+
+void xLightsImportChannelMapDialog::ApplyNameFilter()
+{
+    if (_dataModel == nullptr) return;
+    auto const state = CaptureMappingTreeState();
+    _dataModel->SetNameFilter(TextCtrl_FindTo->GetValue());
+    // A cleared filter stays collapsed; re-expanding here is also what made clearing slow.
+    RebuildMappingTree(state, _dataModel->HasNameFilter());
 }
 
 void xLightsImportChannelMapDialog::ExpandNameFilterMatches()
