@@ -37,6 +37,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <set>
 #include <vector>
 
@@ -1646,27 +1647,10 @@ void MovingHeadPanel::ValidateWindow()
     // kept showing whatever the previously selected effect had.
     UpdateColorPanel();
     {
-        std::string last_mh = xlEMPTY_STRING;
-        bool all_same = true;
-        for (int i = 1; i <= 8; ++i) {
-            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
-            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
-            if (checkbox != nullptr && checkbox->IsChecked()) {
-                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
-                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-                if (mh_textbox != nullptr) {
-                    std::string settings = mh_textbox->GetValue();
-                    if (last_mh == xlEMPTY_STRING) {
-                        last_mh = settings;
-                    } else if (last_mh != settings) {
-                        all_same = false;
-                        break;
-                    }
-                }
-            }
-        }
-        if (last_mh != xlEMPTY_STRING && all_same) {
-            RecallSettings(last_mh);
+        bool all_same = false;
+        std::string common_mh = GetCheckedHeadsCommonSettings(all_same);
+        if (common_mh != xlEMPTY_STRING) {
+            RecallSettings(common_mh);
         }
     }
 
@@ -3450,29 +3434,12 @@ void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
     // update color panels since selected heads changed
     UpdateColorPanel();
 
-    std::string last_mh {xlEMPTY_STRING};
-    bool all_same {true};
-    for( int i = 1; i <= 8; ++i ) {
-        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
-        wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
-        if( checkbox != nullptr ) {
-            if( checkbox->IsChecked() ) {
-                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
-                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-                std::string settings = mh_textbox->GetValue();
-                if( last_mh == xlEMPTY_STRING ) {
-                    last_mh = settings;
-                } else if( last_mh != settings ) {
-                    all_same = false;
-                    break;
-                }
-            }
-        }
+    bool all_same = false;
+    std::string common_mh = GetCheckedHeadsCommonSettings(all_same);
+    if( common_mh != xlEMPTY_STRING ) {
+        RecallSettings(common_mh);
     }
-
-    if( last_mh != xlEMPTY_STRING && all_same ) {
-        RecallSettings(last_mh);
-    } else {
+    if( !all_same ) {
         UpdateMHSettings();
         FireChangeEvent();
     }
@@ -3482,6 +3449,70 @@ void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
     // whether the Dimmer/Pathing/Pattern tabs are enabled -- refresh them here rather
     // than waiting for the next ValidateWindow() (e.g. reselecting the effect).
     UpdateLinkTabState();
+}
+
+// Heads that differ in only some commands (typically Wheel/Color) must still show the
+// commands they share -- e.g. a Dimmer curve applied to all heads -- so compare per
+// command type rather than the whole settings string. Returns the full settings when
+// every checked head is identical (all_same = true), otherwise only the commands that
+// match on every checked head that has settings.
+std::string MovingHeadPanel::GetCheckedHeadsCommonSettings(bool& all_same)
+{
+    all_same = false;
+    std::vector<std::string> head_settings;
+    bool any_empty = false;
+    for( int i = 1; i <= 8; ++i ) {
+        if( !IsHeadActive(i) ) continue;
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if( mh_textbox == nullptr ) continue;
+        std::string settings = mh_textbox->GetValue().ToStdString();
+        if( settings == xlEMPTY_STRING ) {
+            any_empty = true;
+        } else {
+            head_settings.push_back(settings);
+        }
+    }
+    if( head_settings.empty() ) {
+        return xlEMPTY_STRING;
+    }
+    if( !any_empty && std::all_of(head_settings.begin(), head_settings.end(),
+                                  [&](const std::string& s) { return s == head_settings.front(); }) ) {
+        all_same = true;
+        return head_settings.front();
+    }
+
+    auto split_cmds = [](const std::string& settings) {
+        std::map<std::string, std::string> cmds;
+        wxArrayString all_cmds = wxSplit(settings, ';');
+        for( const auto& c : all_cmds ) {
+            std::string cmd = c.ToStdString();
+            if( cmd == xlEMPTY_STRING ) continue;
+            cmds[cmd.substr(0, cmd.find(':'))] = cmd;
+        }
+        return cmds;
+    };
+
+    std::vector<std::map<std::string, std::string>> others;
+    for( size_t h = 1; h < head_settings.size(); ++h ) {
+        others.push_back(split_cmds(head_settings[h]));
+    }
+
+    wxArrayString common;
+    wxArrayString first_cmds = wxSplit(head_settings.front(), ';');
+    for( const auto& c : first_cmds ) {
+        std::string cmd = c.ToStdString();
+        if( cmd == xlEMPTY_STRING ) continue;
+        std::string cmd_type = cmd.substr(0, cmd.find(':'));
+        bool shared = std::all_of(others.begin(), others.end(), [&](const std::map<std::string, std::string>& o) {
+            auto it = o.find(cmd_type);
+            return it != o.end() && it->second == cmd;
+        });
+        if( shared ) {
+            common.Add(cmd);
+        }
+    }
+    return wxJoin(common, ';').ToStdString();
 }
 
 bool MovingHeadPanel::IsHeadActive(int num)
@@ -3641,6 +3672,11 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
         m_sketchCanvasPanel->UpdatePathState(SketchCanvasPathState::DefineStartPoint);
         selected_path = -1;
     }
+    // UpdatePathSettings() writes the path from this hidden control rather than m_sketch,
+    // so it must follow the heads just recalled -- otherwise a Scale/Time Offset/Ignore
+    // edit copies whichever path was last drawn (possibly for other heads) onto them.
+    TextCtrl_MHPathDef->ChangeValue(m_sketchDef);
+    UpdatePathBehindWarning();
 
     UpdatePatternControlState();
 
