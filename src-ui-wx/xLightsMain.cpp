@@ -782,8 +782,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _sequenceViewManager.SetModelManager(&AllModels);
     _pingTimer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &xLightsFrame::OnPingTimer, this, _pingTimer->GetId());
-    _statusRefreshTimer = new wxTimer(this, wxID_ANY);
-    Bind(wxEVT_TIMER, &xLightsFrame::StatusRefreshTimer, this, _statusRefreshTimer->GetId());
     Bind(EVT_SELECTED_EFFECT_CHANGED, &xLightsFrame::SelectedEffectChanged, this);
     Bind(EVT_RENDER_RANGE, &xLightsFrame::RenderRange, this);
     wxHTTP::Initialize();
@@ -1807,8 +1805,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsControllerPingInterval", &_controllerPingInterval, 0);
     if (_controllerPingInterval > 0) {
         _pingTimer->Start(_controllerPingInterval * 1000);
-        _statusRefreshTimer->Start(_controllerPingInterval/2 * 1000);
-
     }
     spdlog::debug("Controller ping interval in seconds: {}.", toStr(_controllerPingInterval));
 
@@ -2265,9 +2261,6 @@ xLightsFrame::~xLightsFrame()
         _pingTimer->Stop();
         delete _pingTimer;
         _pingTimer = nullptr;
-        _statusRefreshTimer->Stop();
-        delete _statusRefreshTimer;
-        _statusRefreshTimer = nullptr;
     }
 
     if (_automationServer != nullptr) {

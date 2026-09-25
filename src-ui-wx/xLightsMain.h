@@ -56,6 +56,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/appprogress.h>
 
+#include <atomic>
 #include <memory>
 #include <unordered_map>
 #include <map>
@@ -735,8 +736,7 @@ private :
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
     void AddDebugFilesToReport(wxDebugReport &report);
     wxTimer* _pingTimer;
-    wxTimer* _statusRefreshTimer;
-    bool _pingInProgress = false;
+    std::atomic_bool _pingRefreshPending = false;
 
 public:
 
@@ -1470,7 +1470,7 @@ public:
     void waitForPingsToComplete();
     void PingActiveControllers();
     void RefreshControllerStatusColumn();
-    void StatusRefreshTimer(wxTimerEvent& event);
+    void OnControllerPingComplete();
     void RefreshControllerStatusNow();
     bool IsControllerListVisible() const;
     ControllerCaps* GetControllerCaps(const std::string& name);
