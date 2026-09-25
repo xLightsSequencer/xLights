@@ -675,7 +675,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_SETLAYERNAME, "Edit Layer Name");
                     mnuLayer.AppendSeparator();
                 }
-                if (mSequenceElements->GetHiddenTimingCount() > 0 && mSequenceElements->GetCurrentView() == MASTER_VIEW) {
+                if (mSequenceElements->GetHiddenTimingCount() > 0) {
                     mnuLayer.Append(ID_ROW_MNU_SHOWALLTIMING, "Show All Timing Tracks");
                 }
                 if (mSequenceElements->GetHideUnusedSubmodels()) {
@@ -793,6 +793,9 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_UNFIX_TIMING_TRACK, "Make Timing Track Variable")->Enable(el->IsFixedTimingLayer());
                     if (mSequenceElements->GetCurrentView() == MASTER_VIEW) {
                         mnuLayer.Append(ID_ROW_MNU_HIDEALLTIMING, "Hide All Timing Tracks");
+                    }
+                    if (mSequenceElements->GetHiddenTimingCount() > 0) {
+                        mnuLayer.Append(ID_ROW_MNU_SHOWALLTIMING, "Show All Timing Tracks");
                     }
                     mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS, "Add Timing Tracks to All Views");
                     mnuLayer.Append(ID_ROW_MNU_SELECT_TIMING_EFFECTS, "Select Timing Marks");
