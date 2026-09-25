@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include <limits>
+#include <type_traits>
 
 #include <log.h>
 
@@ -2057,6 +2058,84 @@ std::pair<bool, bool> SequenceMedia::GetMediaEmbedState(const std::string& filep
     if (auto r = checkCache(_videoCache)) return *r;
     if (auto r = checkCache(_audioCache)) return *r;
     return { false, false };
+}
+
+std::string SequenceMedia::FindEmbeddedKey(const std::string& filepath) const {
+    if (filepath.empty()) return {};
+    std::scoped_lock lock(_cacheMutex);
+    // An exact key hit decides it; only fall back to the (FixFile-costly)
+    // resolved-path scan when the key isn't cached at all.
+    std::optional<bool> exact;
+    auto findExact = [&](const auto& cache) {
+        auto it = cache.find(filepath);
+        if (it == cache.end()) return false;
+        exact = it->second->IsEmbedded() && !it->second->GetEmbeddedData().empty();
+        return true;
+    };
+    if (findExact(_imageCache) || findExact(_textCache) || findExact(_svgCache) || findExact(_shaderCache)) {
+        return *exact ? filepath : std::string();
+    }
+    // Effect loadFiles() may have rewritten the setting (absolute path ->
+    // show-relative) after the embedded entry was keyed.
+    std::string resolved = ResolvePath(filepath);
+    std::string key;
+    auto byResolved = [&](const auto& cache) {
+        for (const auto& [k, entry] : cache) {
+            if (!entry->IsEmbedded() || entry->GetEmbeddedData().empty()) continue;
+            if (entry->GetFilePath() == resolved || ResolvePath(k) == resolved) {
+                key = k;
+                return true;
+            }
+        }
+        return false;
+    };
+    byResolved(_imageCache) || byResolved(_textCache) || byResolved(_svgCache) || byResolved(_shaderCache);
+    return key;
+}
+
+bool SequenceMedia::CopyEmbeddedMedia(const SequenceMedia& src, const std::string& filepath) {
+    if (filepath.empty() || &src == this) return false;
+
+    MediaType type = MediaType::Image;
+    std::string data;
+    {
+        std::scoped_lock lock(src._cacheMutex);
+        std::string srcKey = src.FindEmbeddedKey(filepath);
+        if (srcKey.empty()) return false;
+        auto take = [&](const auto& cache) {
+            auto it = cache.find(srcKey);
+            if (it == cache.end()) return false;
+            type = it->second->GetType();
+            data = it->second->GetEmbeddedData();
+            return true;
+        };
+        take(src._imageCache) || take(src._textCache) || take(src._svgCache) || take(src._shaderCache);
+    }
+
+    if (type == MediaType::Image) {
+        AddEmbeddedImage(filepath, data);
+        return true;
+    }
+
+    std::shared_ptr<MediaCacheEntry> added;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        auto add = [&](auto& cache) {
+            using Entry = typename std::decay_t<decltype(cache)>::mapped_type::element_type;
+            if (cache.find(filepath) != cache.end()) return;
+            auto entry = std::make_shared<Entry>(filepath, data);
+            cache.emplace(filepath, entry);
+            added = entry;
+        };
+        switch (type) {
+        case MediaType::TextFile: add(_textCache); break;
+        case MediaType::SVG: add(_svgCache); break;
+        case MediaType::Shader: add(_shaderCache); break;
+        default: break;
+        }
+    }
+    if (added) added->Load();
+    return true;
 }
 
 void SequenceMedia::RemoveMedia(const std::string& filepath) {

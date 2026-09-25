@@ -71,17 +71,20 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                     settings["E_CHOICE_Duplicate_Model"] = it->second;
                 }
             }
-            if (ef->GetEffectIndex() == EffectManager::eff_PICTURES) {
-                // if using embedded images, need to copy it over
-                std::string v = settings.Get("E_TEXTCTRL_Pictures_Filename", "");
+            const char* mediaKey = nullptr;
+            switch (ef->GetEffectIndex()) {
+            case EffectManager::eff_PICTURES: mediaKey = "E_TEXTCTRL_Pictures_Filename"; break;
+            case EffectManager::eff_SHADER: mediaKey = "E_0FILEPICKERCTRL_IFS"; break;
+            case EffectManager::eff_SHAPE: mediaKey = "E_FILEPICKERCTRL_SVG"; break;
+            case EffectManager::eff_RIPPLE: mediaKey = "E_FILEPICKERCTRL_Ripple_SVG"; break;
+            case EffectManager::eff_TEXT: mediaKey = "E_FILEPICKERCTRL_Text_File"; break;
+            default: break;
+            }
+            if (mediaKey != nullptr) {
+                // Embedded images/shaders/SVGs/text files must stay embedded in the target
                 auto& sm = ef->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
                 auto& tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
-                if (sm.HasImage(v) && !tm.HasImage(v)) {
-                    auto img = sm.GetImage(v);
-                    if (img->IsEmbedded()) {
-                        tm.AddEmbeddedImage(v, img->GetEmbeddedData());
-                    }
-                }
+                tm.CopyEmbeddedMedia(sm, settings.Get(mediaKey, ""));
             }
             if (ef->GetEffectIndex() == EffectManager::eff_FACES) {
                 // Sequence-level face definitions travel inside the .xsq, so

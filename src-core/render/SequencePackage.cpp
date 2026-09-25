@@ -557,6 +557,13 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
     if (!settingEffectFile.empty()) {
         std::string settingPath = settings.Get(settingEffectFile, "");
 
+        // Media embedded in the source .xsq has no file to copy; leave the
+        // setting alone so MapXLightsEffects carries the embedded entry over.
+        auto& sm = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        if (!sm.FindEmbeddedKey(settingPath).empty()) {
+            return settings.AsString();
+        }
+
         // extract just the filename from the path, handling both / and \ separators
         std::string picFileName = ExtractFilename(settingPath);
 

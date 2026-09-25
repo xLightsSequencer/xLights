@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (derwin12)              Importing effects from a sequence with embedded shaders, SVGs or text
+                                 files now keeps them embedded instead of reverting them to external
     -bug (derwin12)              Show the global controller settings (Controller Sync, Global FPP Proxy,
                                  etc.) again when no controller is selected on the Controllers tab
     -enh (derwin12)              More logging for stem separation to help diagnose hangs, and a
