@@ -2453,6 +2453,19 @@ AudioManager* xLightsFrame::GetPlaybackAudio() const
     return CurrentSeqXmlFile->GetMedia();
 }
 
+void xLightsFrame::ReleaseAudio(AudioManager* audio)
+{
+    if (audio == nullptr || mainSequencer == nullptr) {
+        return;
+    }
+    if (playType != PLAY_TYPE_STOPPED && GetPlaybackAudio() == audio) {
+        DoStopSequence();
+    }
+    if (mainSequencer->PanelWaveForm->GetMedia() == audio) {
+        mainSequencer->PanelWaveForm->CloseMedia();
+    }
+}
+
 const std::string& xLightsFrame::GetHeaderInfo(HEADER_INFO_TYPES type) const
 {
     static const std::string empty;

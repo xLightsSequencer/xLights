@@ -48,6 +48,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
     public:
 		int OpenfileMedia(AudioManager* media, wxString& error);
 		void CloseMedia();
+		AudioManager* GetMedia() const { return _media; }
 
         static int GetLargeSize() { return 75; };
         static int GetSmallSize() { return 37; };
