@@ -288,7 +288,7 @@ void VsaImportDialog::SaveMapping(wxCommandEvent& event)
     if (dlg.ShowModal() == wxID_OK) {
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
-        text.WriteString(wxString::Format("%d\n", trackNames.size()));
+        text.WriteString(wxString::Format("%d\n", (int)trackNames.size()));
         for (int x = 0; x < ChannelMapGrid->GetNumberRows(); x++) {
             text.WriteString(ChannelMapGrid->GetCellValue(x, 0)
                              + "\t" + ChannelMapGrid->GetCellValue(x, 1)
