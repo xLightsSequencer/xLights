@@ -1018,6 +1018,7 @@ void SeqSettingsDialog::OnChoice_Xml_Seq_TypeSelect(wxCommandEvent& event)
     wxString type = Choice_Xml_Seq_Type->GetString(selection);
     if (type != xml_file->GetSequenceType())
     {
+        xLightsParent->ReleaseAudio(xml_file->GetMedia());
         xml_file->SetSequenceType(type);
         ProcessSequenceType();
     }
@@ -1754,6 +1755,7 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersEndLabelEdit(wxTreeEvent& event)
 
 void SeqSettingsDialog::MediaLoad(const wxString& filename)
 {
+    xLightsParent->ReleaseAudio(xml_file->GetMedia());
     xml_file->SetMediaFile(xLightsParent->GetShowDirectory(), ToStdString(filename), CheckBox_Overwrite_Tags->IsChecked());
     TextCtrl_Xml_Media_File->SetValue(filename);
     TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::SONG));
@@ -1888,6 +1890,7 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Type->SetSelection(1);
+    xLightsParent->ReleaseAudio(xml_file->GetMedia());
     xml_file->SetSequenceType("Animation");
     const double defaultDur = GetDefaultSeqDurationSeconds();
     TextCtrl_Xml_Seq_Duration->ChangeValue(wxString::Format("%.3f", defaultDur));
@@ -1901,6 +1904,7 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
 void SeqSettingsDialog::OnBitmapButton_Wiz_EffectClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString("Effect"));
+    xLightsParent->ReleaseAudio(xml_file->GetMedia());
     xml_file->SetSequenceType("Effect");
     const double defaultDur = GetDefaultSeqDurationSeconds();
     TextCtrl_Xml_Seq_Duration->ChangeValue(wxString::Format("%.3f", defaultDur));

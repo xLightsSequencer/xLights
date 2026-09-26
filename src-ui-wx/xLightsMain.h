@@ -488,6 +488,7 @@ public:
     static SequenceFile* CurrentSeqXmlFile; // global object for currently opened XML file
     AudioManager* GetCurrentMediaManager() const override;
     AudioManager* GetPlaybackAudio() const; // Returns active alt track audio if selected, else main media
+    void ReleaseAudio(AudioManager* audio); // Call before the sequence deletes audio the UI may still hold
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
