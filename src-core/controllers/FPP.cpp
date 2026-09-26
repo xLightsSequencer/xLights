@@ -2631,7 +2631,7 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         GetURLAsJSON("/api/channel/output/co-other", origJson, false);
         if (fullcontrol) {
             for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
-                if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
+                if (GetJSONStringValue(origJson["channelOutputs"][x], "type") == "VirtualMatrix") {
                     origJson["channelOutputs"].erase(x);
                     x--;
                     changed = true;
@@ -2669,8 +2669,8 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                 models[port].insert(name);
                 bool found = false;
                 for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
-                    if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix"
-                        && origJson["channelOutputs"][x]["description"].get<std::string>() == name) {
+                    if (GetJSONStringValue(origJson["channelOutputs"][x], "type") == "VirtualMatrix"
+                        && GetJSONStringValue(origJson["channelOutputs"][x], "description") == name) {
                         found = true;
                         changed |= UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 1);
                         changed |= UpdateJSONValue(origJson["channelOutputs"][x], "startChannel", startChannel);
@@ -2727,10 +2727,10 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         //we need to disable the virtual matrices that are on the ports of the
         //models we uploaded or they will conflict and produce errors
         for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
-            if (origJson["channelOutputs"][x]["type"].get<std::string>() == "VirtualMatrix") {
-                std::string dev = origJson["channelOutputs"][x]["device"].get<std::string>();
-                int port = (char)dev[2] - '0';
-                if (models[port].find(origJson["channelOutputs"][x]["description"].get<std::string>()) == models[port].end()) {
+            if (GetJSONStringValue(origJson["channelOutputs"][x], "type") == "VirtualMatrix") {
+                std::string dev = GetJSONStringValue(origJson["channelOutputs"][x], "device");
+                int port = dev.size() > 2 ? (char)dev[2] - '0' : 0;
+                if (models[port].find(GetJSONStringValue(origJson["channelOutputs"][x], "description")) == models[port].end()) {
                     UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
                 }
             }
