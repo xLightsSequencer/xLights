@@ -12,10 +12,12 @@
 
 //(*Headers(OutputSettingsPanel)
 #include <wx/panel.h>
+class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxGridBagSizer;
 class wxStaticText;
+class wxTextCtrl;
 //*)
 
 class xLightsFrame;
@@ -27,11 +29,13 @@ class OutputSettingsPanel: public wxPanel
 		virtual ~OutputSettingsPanel();
 
 		//(*Declarations(OutputSettingsPanel)
+		wxButton* ApplyBrightnessButton;
 		wxCheckBox* FrameSyncCheckBox;
 		wxChoice* DuplicateSuppressChoice;
 		wxChoice* ForceLocalIPChoice;
 		wxChoice* xFadexScheduleChoice;
 		wxStaticText* StaticText1;
+		wxTextCtrl* DefaultMaxBrightnessText;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -45,6 +49,8 @@ class OutputSettingsPanel: public wxPanel
 		static const long ID_CHOICE1;
 		static const long ID_CHOICE2;
 		static const long ID_CHOICE3;
+		static const long ID_TEXTCTRL1;
+		static const long ID_BUTTON1;
 		//*)
 
 	private:
@@ -55,6 +61,8 @@ class OutputSettingsPanel: public wxPanel
 		void OnForceLocalIPChoiceSelect(wxCommandEvent& event);
 		void OnDuplicateSuppressChoiceSelect(wxCommandEvent& event);
 		void OnxFadexScheduleChoiceSelect(wxCommandEvent& event);
+		void OnDefaultMaxBrightnessText(wxCommandEvent& event);
+		void OnApplyBrightnessButtonClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

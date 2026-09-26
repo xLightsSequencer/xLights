@@ -1170,6 +1170,7 @@ public:
     bool _enablePositionZones = true;
     bool _showZoneIndicator = false;
     int _controllerPingInterval = 0;
+    int _defaultMaxBrightness = 0; // 0 == unset: newly added controllers keep the controller default
     int _fseqVersion;
     int _timelineZooming;
     bool _wasMaximised = false;
@@ -1351,6 +1352,11 @@ public:
     void SetIgnoreVendorModelRecommendations(bool b) { _ignoreVendorModelRecommendations = b; }
     int GetControllerPingInterval() const { return _controllerPingInterval; }
     void SetControllerPingInterval(int secs) { _controllerPingInterval = secs; }
+    // 0 == unset (newly added controllers keep their own default); otherwise 5..100
+    int GetDefaultMaxBrightness() const { return _defaultMaxBrightness; }
+    void SetDefaultMaxBrightness(int b) { _defaultMaxBrightness = b; }
+    // Push the configured Default Max Brightness onto every existing controller that supports it.
+    void ApplyDefaultMaxBrightnessToAllControllers();
     void PurgeDownloadCache();
 
     bool GetPurgeDownloadCacheOnStart() const { return _purgeDownloadCacheOnStart; }
