@@ -9214,15 +9214,16 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(int row_number) {
     Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row_number);
     if (ri == nullptr || ri->element == nullptr)
         return;
-    ModelElement* me = dynamic_cast<ModelElement*>(ri->element);
+    Element* clicked = ri->element;
+    ModelElement* me = dynamic_cast<ModelElement*>(clicked);
     if (me == nullptr) {
-        auto* se = dynamic_cast<SubModelElement*>(ri->element);
+        auto* se = dynamic_cast<SubModelElement*>(clicked);
         if (se != nullptr) me = se->GetModelElement();
     }
-    PasteModelEffectsWithSubModelLayers(me);
+    PasteModelEffectsWithSubModelLayers(me, clicked);
 }
 
-void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
+void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me, Element* clickedElement) {
     if (me == nullptr)
         return;
 
@@ -9265,6 +9266,19 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
     if (element_ranges.empty())
         return;
 
+    // A plain "Copy Effects" (as opposed to "Copy Effects incl SubModels") produces
+    // exactly one untagged entry with no SUBMODEL: tag at all. If the user right-clicked
+    // a specific submodel/strand row to paste that onto (rather than the model's own
+    // row), honor that row as the destination instead of always redirecting flat,
+    // untagged content up onto the main model. A real "incl SubModels" copy (multiple
+    // entries, or a tagged one) still anchors on the model so its row layout lines up
+    // with the submodel names embedded in the clipboard.
+    bool singleUntaggedEntry = element_ranges.size() == 1 && element_ranges.begin()->first.empty();
+    Element* untaggedTarget = static_cast<Element*>(me);
+    if (singleUntaggedEntry && clickedElement != nullptr && clickedElement != static_cast<Element*>(me)) {
+        untaggedTarget = clickedElement;
+    }
+
     me->SetCollapsed(false);
     Model* destModel = xlights->AllModels[me->GetModelName()];
     if (destModel == nullptr || destModel->GetDisplayAs() != DisplayAsType::ModelGroup) {
@@ -9291,6 +9305,20 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
         deleteUnusedLayers(me->GetSubModel(s));
     }
 
+    // Only the elements the clipboard actually targets (the main model itself for an
+    // untagged/"ename empty" entry, plus any submodel named by a SUBMODEL: tag) should be
+    // considered for the "already has effects" prompt and erase - not every submodel of
+    // me. A group-level "Copy Effects" carries no submodel tags at all, so pasting it here
+    // used to wipe every submodel's effects even though none of them were being replaced.
+    std::vector<Element*> pasteTargets;
+    for (const auto& [ename, range] : element_ranges) {
+        if (range.min_row > range.max_row)
+            continue;
+        Element* target_elem = ename.empty() ? untaggedTarget : static_cast<Element*>(me->GetSubModel(ename, false));
+        if (target_elem != nullptr)
+            pasteTargets.push_back(target_elem);
+    }
+
     auto elementHasEffects = [](Element* elem) {
         for (size_t i = 0; i < elem->GetEffectLayerCount(); ++i) {
             if (elem->GetEffectLayer(i)->GetEffectCount() > 0)
@@ -9298,12 +9326,16 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
         }
         return false;
     };
-    bool hasRemainingEffects = elementHasEffects(me);
-    for (int s = 0; s < me->GetSubModelCount() && !hasRemainingEffects; ++s) {
-        hasRemainingEffects = elementHasEffects(me->GetSubModel(s));
+    bool hasRemainingEffects = false;
+    for (Element* elem : pasteTargets) {
+        if (elementHasEffects(elem)) {
+            hasRemainingEffects = true;
+            break;
+        }
     }
     if (hasRemainingEffects) {
-        int answer = wxMessageBox(wxString::Format("'%s' already has effects.\nErase existing effects before pasting?", me->GetModelName().c_str()),
+        std::string promptName = (pasteTargets.size() == 1) ? pasteTargets.front()->GetName() : me->GetModelName();
+        int answer = wxMessageBox(wxString::Format("'%s' already has effects.\nErase existing effects before pasting?", promptName.c_str()),
                                   "Erase Existing Effects", wxYES_NO | wxICON_QUESTION, (wxWindow*)mParent);
         if (answer == wxYES) {
             auto eraseAllEffects = [&undo_mgr](Element* elem) {
@@ -9311,13 +9343,9 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
                     elem->GetEffectLayer(i)->RemoveAllEffects(&undo_mgr);
                 }
             };
-            eraseAllEffects(me);
-            for (int s = 0; s < me->GetSubModelCount(); ++s) {
-                eraseAllEffects(me->GetSubModel(s));
-            }
-            deleteUnusedLayers(me);
-            for (int s = 0; s < me->GetSubModelCount(); ++s) {
-                deleteUnusedLayers(me->GetSubModel(s));
+            for (Element* elem : pasteTargets) {
+                eraseAllEffects(elem);
+                deleteUnusedLayers(elem);
             }
         }
     }
@@ -9326,7 +9354,7 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
         if (range.min_row > range.max_row)
             continue;
         int layers_needed = range.max_row - range.min_row + 1;
-        Element* target_elem = ename.empty() ? static_cast<Element*>(me) : static_cast<Element*>(me->GetSubModel(ename, false));
+        Element* target_elem = ename.empty() ? untaggedTarget : static_cast<Element*>(me->GetSubModel(ename, false));
         if (target_elem == nullptr)
             continue;
 
@@ -9340,12 +9368,14 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
 
     mSequenceElements->PopulateRowInformation();
 
-    // Find the model's absolute row
+    // Find the paste destination's absolute row - the model's own row for a real "incl
+    // SubModels" copy, or the specific submodel/strand row the user right-clicked when
+    // pasting a plain, untagged copy directly onto it (see untaggedTarget above).
     int base_abs_index = -1;
     for (size_t r = 0; r < (size_t)mSequenceElements->GetRowInformationSize(); ++r) {
         Row_Information_Struct* tr = mSequenceElements->GetRowInformation(r);
-        if (tr && tr->element == static_cast<Element*>(me) &&
-            tr->layerIndex == 0 && !tr->submodel && tr->strandIndex < 0) {
+        if (tr && tr->element == untaggedTarget &&
+            tr->layerIndex == 0 && tr->strandIndex < 0) {
             base_abs_index = tr->Index;
             break;
         }

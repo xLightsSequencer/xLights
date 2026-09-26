@@ -137,7 +137,7 @@ public:
     void PasteModelEffects(int row_number, bool allLayers);
     void PasteModelEffectsWithLayers(int row_number);
     void PasteModelEffectsWithSubModelLayers(int row_number);
-    void PasteModelEffectsWithSubModelLayers(ModelElement* me);
+    void PasteModelEffectsWithSubModelLayers(ModelElement* me, Element* clickedElement = nullptr);
     Effect* GetSelectedEffect() const;
     int GetSelectedEffectCount(const std::string& effectName) const;
     bool AreAllSelectedEffectsOnTheSameElement() const;
