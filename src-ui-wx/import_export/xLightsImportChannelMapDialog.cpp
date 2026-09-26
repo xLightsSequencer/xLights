@@ -61,6 +61,18 @@
 #include "shared/utils/wxUtilities.h"
 #include "shared/utils/wxFilterQuery.h"
 
+namespace {
+wxString JoinNames(const wxArrayString& names)
+{
+    wxString out;
+    for (auto const& n : names) {
+        if (!out.empty()) out += ", ";
+        out += n;
+    }
+    return out;
+}
+} // namespace
+
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 
 int wxCALLBACK MyCompareFunctionAscEffects(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
@@ -570,26 +582,30 @@ bool xLightsImportTreeModel::NameFilterMatches(const xLightsImportModelNode* nod
 void xLightsImportTreeModel::SetNameFilter(const wxString& filter)
 {
     _nameFilter = wxFilterQuery(filter);
-    _nameFilterShown.clear();
+    _nameFilterHidden.clear();
     if (_nameFilter.IsEmpty()) {
         return;
     }
     for (size_t pos = 0; pos < m_children.size(); ++pos) {
-        CacheNameFilterShown(m_children.Item(pos), false);
+        CacheNameFilterState(m_children.Item(pos), false);
     }
 }
 
 // Returns whether this row or anything below it matches. A match keeps its whole
 // subtree; a match further down keeps the path to it.
-bool xLightsImportTreeModel::CacheNameFilterShown(const xLightsImportModelNode* node, bool ancestorMatched)
+bool xLightsImportTreeModel::CacheNameFilterState(const xLightsImportModelNode* node, bool ancestorMatched)
 {
     bool const selfMatch = NameFilterMatches(node);
     bool below = false;
     for (size_t pos = 0; pos < node->GetChildren().GetCount(); ++pos) {
-        below |= CacheNameFilterShown(node->GetChildren().Item(pos), ancestorMatched || selfMatch);
+        below |= CacheNameFilterState(node->GetChildren().Item(pos), ancestorMatched || selfMatch);
     }
-    _nameFilterShown[node] = ancestorMatched || selfMatch || below;
-    return selfMatch || below;
+    // Only hidden rows are stored, so a big show costs entries only for what the filter removes.
+    bool const shown = ancestorMatched || selfMatch || below;
+    if (!shown) {
+        _nameFilterHidden.insert(node);
+    }
+    return shown;
 }
 
 // A later row can reuse the freed address and must not inherit its visibility.
@@ -598,7 +614,18 @@ void xLightsImportTreeModel::ForgetFilterState(const xLightsImportModelNode* nod
     for (size_t pos = 0; pos < node->GetChildren().GetCount(); ++pos) {
         ForgetFilterState(node->GetChildren().Item(pos));
     }
-    _nameFilterShown.erase(node);
+    _nameFilterHidden.erase(node);
+}
+
+// A stacked duplicate inherits its base row's visibility so a hidden row's
+// duplicate doesn't appear as an orphan.
+void xLightsImportTreeModel::CopyFilterState(const xLightsImportModelNode* from, const xLightsImportModelNode* to)
+{
+    if (_nameFilterHidden.find(from) != _nameFilterHidden.end()) {
+        _nameFilterHidden.insert(to);
+    } else {
+        _nameFilterHidden.erase(to);
+    }
 }
 
 bool xLightsImportTreeModel::IsShownByNameFilter(const xLightsImportModelNode* node) const
@@ -606,9 +633,8 @@ bool xLightsImportTreeModel::IsShownByNameFilter(const xLightsImportModelNode* n
     if (_nameFilter.IsEmpty()) {
         return true;
     }
-    auto const it = _nameFilterShown.find(node);
     // A row added after the filter was applied shows rather than vanishing.
-    return it == _nameFilterShown.end() || it->second;
+    return _nameFilterHidden.find(node) == _nameFilterHidden.end();
 }
 
 wxDataViewItem xLightsImportTreeModel::GetNthItem(unsigned int n) const
@@ -959,12 +985,23 @@ void xLightsImportChannelMapDialog::RightClickModelsAvail(wxContextMenuEvent& ev
         mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
 
         _contextDonorGroups = DonorGroupsAt(event.GetPosition());
-        mnuLayer.AppendSeparator();
-        wxString const label = _contextDonorGroups.size() > 1
-                                   ? wxString::Format(_("Add %d Groups to Layout and Map"), (int)_contextDonorGroups.size())
-                                   : wxString(_("Add Group to Layout and Map"));
-        // Shown but disabled on a model, so the option is discoverable.
-        mnuLayer.Append(ID_MNU_ADD_DONOR_GROUPS, label)->Enable(!_contextDonorGroups.empty());
+        // For formats with no group concept (e.g. LOR .lms) the entry would
+        // always be disabled, so leave it out entirely.
+        bool sourceHasGroups = false;
+        for (auto const& channel : importChannels) {
+            if (channel->type == "ModelGroup") {
+                sourceHasGroups = true;
+                break;
+            }
+        }
+        if (sourceHasGroups) {
+            mnuLayer.AppendSeparator();
+            wxString const label = _contextDonorGroups.size() > 1
+                                       ? wxString::Format(_("Add %d Groups to Layout and Map"), (int)_contextDonorGroups.size())
+                                       : wxString(_("Add Group to Layout and Map"));
+            // Shown but disabled on a model, so the option is discoverable.
+            mnuLayer.Append(ID_MNU_ADD_DONOR_GROUPS, label)->Enable(!_contextDonorGroups.empty());
+        }
 
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
         PopupMenu(&mnuLayer);
@@ -1052,6 +1089,7 @@ void xLightsImportChannelMapDialog::EditDisplayElements()
         AddNewMasterViewItems(snapshot);
     });
     dlg.ShowModal();
+    UpdateFilterCount();
 }
 
 void xLightsImportChannelMapDialog::AddNewMasterViewItems(std::set<std::string>& snapshot)
@@ -1106,7 +1144,7 @@ void xLightsImportChannelMapDialog::AddEmptyGroup()
     }
 
     // The layout, not just this list: a model can exist without being offered here.
-    if (FindTopLevelNode(groupName) != nullptr || xlights->AllModels.GetModel(groupName.ToStdString()) != nullptr) {
+    if (FindTopLevelNode(groupName) != nullptr || xlights->AllModels.GetModel(groupName.utf8_string()) != nullptr) {
         wxMessageBox("A group or model with the name '" + groupName + "' already exists.", "Error", wxOK | wxICON_ERROR, this);
         return;
     }
@@ -1127,12 +1165,12 @@ xLightsImportModelNode* xLightsImportChannelMapDialog::CreateEmptyGroup(const wx
     // Name only, never members: a donor's member names mean nothing in this
     // layout and stop the group rendering until removed (#7006).
     ModelGroup* newModelGroup = new ModelGroup(xlights->AllModels);
-    newModelGroup->SetName(groupName.ToStdString());
+    newModelGroup->SetName(groupName.utf8_string());
     newModelGroup->SetLayout("minimalGrid");
     newModelGroup->SetGridSize(400);
     newModelGroup->SetLayoutGroup("Default");
     xlights->AllModels.AddModel(newModelGroup);
-    _groupsAddedThisSession.push_back(groupName.ToStdString());
+    _groupsAddedThisSession.push_back(groupName.utf8_string());
 
     xLightsImportModelNode* newGroup = new xLightsImportModelNode(
         nullptr, groupName, "", true, std::list<std::string>{}, "ModelGroup", "", false, "ModelGroup", 1000,
@@ -1142,7 +1180,7 @@ xLightsImportModelNode* xLightsImportChannelMapDialog::CreateEmptyGroup(const wx
     _dataModel->ItemAdded(wxDataViewItem(), wxDataViewItem(newGroup));
 
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsImportChannelMapDialog::CreateEmptyGroup");
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "xLightsImportChannelMapDialog::CreateEmptyGroup", nullptr, nullptr, groupName.ToStdString());
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "xLightsImportChannelMapDialog::CreateEmptyGroup", nullptr, nullptr, groupName.utf8_string());
     return newGroup;
 }
 
@@ -1207,7 +1245,7 @@ std::vector<wxString> xLightsImportChannelMapDialog::DonorGroupsAt(const wxPoint
     std::vector<wxString> groups;
     for (long const row : rows) {
         wxString const name = ListCtrl_Available->GetItemText(row, 1);
-        if (findModelType(name.ToStdString()) == "ModelGroup") {
+        if (findModelType(name.utf8_string()) == "ModelGroup") {
             groups.push_back(name);
         }
     }
@@ -1266,7 +1304,7 @@ void xLightsImportChannelMapDialog::AddDonorGroupsAndMap(const std::vector<wxStr
         wxDataViewItemArray target;
         target.Add(wxDataViewItem(node));
         wxDataViewItem applied;
-        if (!PromptAndApplyMapping(target, donorName.ToStdString(), findModelType(donorName.ToStdString()), applied)) {
+        if (!PromptAndApplyMapping(target, donorName.utf8_string(), findModelType(donorName.utf8_string()), applied)) {
             break;
         }
         last = node;
@@ -1286,7 +1324,7 @@ void xLightsImportChannelMapDialog::AddDonorGroupsAndMap(const std::vector<wxStr
                              : wxString::Format(_("%d groups are added to this screen and mapped. They will not be committed until you press Ok in the import window."), added));
     }
     if (!skipped.IsEmpty()) {
-        lines.Add(_("Not added: ") + wxJoin(skipped, ','));
+        lines.Add(_("Not added: ") + JoinNames(skipped));
     }
     if (!lines.IsEmpty()) {
         DisplayInfo(wxJoin(lines, '\n'), this);
@@ -1297,19 +1335,31 @@ void xLightsImportChannelMapDialog::CollapseAll()
 {
     _filterExpanded.clear();
     if (_dataModel == nullptr) return;
+    auto topAncestor = [](xLightsImportModelNode* n) {
+        while (n != nullptr && n->GetParent() != nullptr) n = n->GetParent();
+        return n;
+    };
     // One rebuild is far cheaper than collapsing each model in turn.
     wxDataViewItemArray selected;
     TreeListCtrl_Mapping->GetSelections(selected);
+    auto* anchor = topAncestor((xLightsImportModelNode*)TreeListCtrl_Mapping->GetTopItem().GetID());
     TreeListCtrl_Mapping->Freeze();
     _dataModel->Cleared();
+    wxDataViewItem firstKept;
     for (auto const& item : selected) {
-        auto* n = (xLightsImportModelNode*)item.GetID();
-        // Once everything is collapsed only top-level rows are still on screen.
-        if (n != nullptr && n->GetParent() == nullptr && _dataModel->IsShownByNameFilter(n)) {
-            TreeListCtrl_Mapping->Select(item);
+        // Once everything is collapsed only top-level rows are still on screen,
+        // so a strand/node selection moves to its model row.
+        auto* n = topAncestor((xLightsImportModelNode*)item.GetID());
+        if (n != nullptr && _dataModel->IsShownByNameFilter(n)) {
+            TreeListCtrl_Mapping->Select(wxDataViewItem(n));
+            if (!firstKept.IsOk()) firstKept = wxDataViewItem(n);
         }
     }
     TreeListCtrl_Mapping->Thaw();
+    wxDataViewItem const keepInView = firstKept.IsOk() ? firstKept : wxDataViewItem(anchor);
+    if (keepInView.IsOk() && _dataModel->IsShownByNameFilter((xLightsImportModelNode*)keepInView.GetID())) {
+        TreeListCtrl_Mapping->EnsureVisible(keepInView);
+    }
 }
 
 void xLightsImportChannelMapDialog::ExpandAll()
@@ -1389,6 +1439,7 @@ void xLightsImportChannelMapDialog::ClearAll() {
     TreeListCtrl_Mapping->Thaw();
     TreeListCtrl_Mapping->Refresh();
     MarkUsed();
+    UpdateFilterCount();
 }
 
 void xLightsImportChannelMapDialog::ClearSelected() {
@@ -1592,8 +1643,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
 
     TextCtrl_FindTo->SetHint(_("Filter models"));
     TextCtrl_FindTo->SetToolTip(wxString::Format(_("Shows only matching models. Every action -- Ok, Save Map, Auto Map, Clear All -- still covers the hidden rows.\n%s"), wxFilterQuery::Hint()));
-    _nameFilterTimer.SetOwner(this, wxWindow::NewControlId());
-    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { ApplyNameFilter(); }, _nameFilterTimer.GetId());
+    _nameFilterTimer.Bind(wxEVT_TIMER, [this](wxTimerEvent&) { ApplyNameFilter(); });
 
     {
         wxSizer* findSizer = TextCtrl_FindTo->GetContainingSizer();
@@ -1615,15 +1665,14 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
                 if (_dataModel == nullptr) return;
                 _dataModel->SetHideUnmapped(CheckBox_HideUnmapped->IsChecked());
                 // Rebuilds through the name filter too, so its expansion survives.
-                ApplyNameFilter();
+                ApplyNameFilter(true);
             });
         }
     }
 
     TextCtrl_FindFrom->SetHint(_("Filter sources"));
     TextCtrl_FindFrom->SetToolTip(wxString::Format(_("Shows only matching sources. Mappings to hidden sources are kept, and Auto Map and Load Map still see every source.\n%s"), wxFilterQuery::Hint()));
-    _availFilterTimer.SetOwner(this, wxWindow::NewControlId());
-    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { ApplyAvailFilter(); }, _availFilterTimer.GetId());
+    _availFilterTimer.Bind(wxEVT_TIMER, [this](wxTimerEvent&) { ApplyAvailFilter(); });
     {
         wxSizer* findSizer = TextCtrl_FindFrom->GetContainingSizer();
         if (findSizer != nullptr) {
@@ -2285,6 +2334,7 @@ void xLightsImportChannelMapDialog::Unmap(const wxDataViewItem& item)
         delete node;
         _dirty = true;
         MarkUsed();
+        UpdateFilterCount();
         return;
     }
     _dirty = true;
@@ -2295,6 +2345,7 @@ void xLightsImportChannelMapDialog::Unmap(const wxDataViewItem& item)
         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(wxWHITE->GetAsString()), item, 4);
     }
     MarkUsed();
+    UpdateFilterCount();
 }
 
 void xLightsImportChannelMapDialog::OnSelectionChanged(wxDataViewEvent& event)
@@ -2697,6 +2748,7 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
         }
     }
 
+    UpdateFilterCount();
 }
 
 void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bool hideWarnings)
@@ -2805,6 +2857,7 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
         }
         line = text.ReadLine();
     }
+    UpdateFilterCount();
 }
 
 bool xLightsImportChannelMapDialog::ShouldRecordDonor() const
@@ -3185,7 +3238,7 @@ bool xLightsImportChannelMapDialog::ConfirmDiscard(bool closingWindow)
         for (size_t i = 0; i < shown; ++i) {
             names.Add(_groupsAddedThisSession[i]);
         }
-        wxString list = wxJoin(names, ',');
+        wxString list = JoinNames(names);
         if (_groupsAddedThisSession.size() > shown) {
             list += wxString::Format(_(" and %d more"), (int)(_groupsAddedThisSession.size() - shown));
         }
@@ -3490,6 +3543,7 @@ void xLightsImportChannelMapDialog::OnDrop(wxCommandEvent& event)
     MarkUsed();
 }
 
+
 std::string xLightsImportChannelMapDialog::findModelType(std::string modelName)
 {
     if (modelName.find('/') != std::string::npos) {
@@ -3642,11 +3696,15 @@ void xLightsImportChannelMapDialog::InsertStackDuplicate(
     newNode->_group = false;
     newNode->_isStackDuplicate = true;
 
+    _dataModel->CopyFilterState(target, newNode);
+
     auto& children = (parent == nullptr) ? _dataModel->GetChildren() : parent->GetChildren();
     for (unsigned int i = 0; i < children.GetCount(); ++i) {
         if (children[i] == target) {
             children.Insert(newNode, i + 1);
-            _dataModel->ItemAdded(wxDataViewItem(parent), wxDataViewItem(newNode));
+            if (_dataModel->IsShownByNameFilter(newNode)) {
+                _dataModel->ItemAdded(wxDataViewItem(parent), wxDataViewItem(newNode));
+            }
             break;
         }
     }
@@ -4497,7 +4555,7 @@ void xLightsImportChannelMapDialog::NotifyMappingItemsChanged()
     // NSOutlineView caches item values and ignores Refresh(). Announcing every
     // row with ValueChanged() made it reload and re-sort each row's children --
     // tens of seconds after an Auto Map on a large show -- so rebuild once.
-    RebuildMappingTree(CaptureMappingTreeState(), true);
+    RebuildMappingTree(CaptureMappingTreeState());
 }
 
 void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
@@ -4898,8 +4956,10 @@ xLightsImportChannelMapDialog::MappingTreeState xLightsImportChannelMapDialog::C
     return state;
 }
 
-void xLightsImportChannelMapDialog::RebuildMappingTree(const MappingTreeState& state, bool keepExpansion)
+void xLightsImportChannelMapDialog::RebuildMappingTree(const MappingTreeState& state)
 {
+    // Rows the filter itself expanded collapse with it; rows the user opened stay open.
+    auto const filterOwned = std::move(_filterExpanded);
     _filterExpanded.clear();
     TreeListCtrl_Mapping->Freeze();
     _dataModel->Cleared();
@@ -4911,11 +4971,9 @@ void xLightsImportChannelMapDialog::RebuildMappingTree(const MappingTreeState& s
         }
         return _dataModel->IsShownByNameFilter(n);
     };
-    if (keepExpansion) {
-        for (auto* m : state.expanded) {
-            if (shown(m)) {
-                TreeListCtrl_Mapping->Expand(wxDataViewItem(m));
-            }
+    for (auto* m : state.expanded) {
+        if (filterOwned.count(m) == 0 && shown(m)) {
+            TreeListCtrl_Mapping->Expand(wxDataViewItem(m));
         }
     }
     ExpandNameFilterMatches();
@@ -4937,13 +4995,16 @@ void xLightsImportChannelMapDialog::RebuildMappingTree(const MappingTreeState& s
     UpdateFilterCount();
 }
 
-void xLightsImportChannelMapDialog::ApplyNameFilter()
+void xLightsImportChannelMapDialog::ApplyNameFilter(bool force)
 {
     if (_dataModel == nullptr) return;
+    // Typing and deleting a character still fires the timer; don't rebuild for it.
+    wxString const value = TextCtrl_FindTo->GetValue();
+    if (!force && value == _lastNameFilterApplied) return;
+    _lastNameFilterApplied = value;
     auto const state = CaptureMappingTreeState();
-    _dataModel->SetNameFilter(TextCtrl_FindTo->GetValue());
-    // A cleared filter stays collapsed; re-expanding here is also what made clearing slow.
-    RebuildMappingTree(state, _dataModel->HasNameFilter());
+    _dataModel->SetNameFilter(value);
+    RebuildMappingTree(state);
 }
 
 void xLightsImportChannelMapDialog::ExpandNameFilterMatches()

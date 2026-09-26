@@ -424,11 +424,14 @@ public:
     void SetCtrl(wxDataViewCtrl* ctrl) { _ctrl = ctrl; }
 
 private:
-    bool CacheNameFilterShown(const xLightsImportModelNode* node, bool ancestorMatched);
+    bool CacheNameFilterState(const xLightsImportModelNode* node, bool ancestorMatched);
+public:
+    void CopyFilterState(const xLightsImportModelNode* from, const xLightsImportModelNode* to);
+private:
 
     wxFilterQuery _nameFilter;
     // Worked out once per filter change; the view queries rows constantly.
-    std::unordered_map<const xLightsImportModelNode*, bool> _nameFilterShown;
+    std::unordered_set<const xLightsImportModelNode*> _nameFilterHidden;
     xLightsImportModelNodePtrArray   m_children;
     wxDataViewItemArray _pendingAdditions;
     wxDataViewCtrl* _ctrl = nullptr;
@@ -712,8 +715,8 @@ protected:
         MappingTreeState CaptureMappingTreeState() const;
         // Cleared() rebuilds the whole view in a few ms; this puts the user's
         // expansion and selection back across it.
-        void RebuildMappingTree(const MappingTreeState& state, bool keepExpansion);
-        void ApplyNameFilter();
+        void RebuildMappingTree(const MappingTreeState& state);
+        void ApplyNameFilter(bool force = false);
         void ExpandNameFilterMatches();
         void UpdateFilterCount();
         // Mappings on rows the model filter currently hides.
@@ -834,6 +837,7 @@ protected:
         wxTimer _nameFilterTimer;
         // Rows the filter expanded, as opposed to the user, so it undoes only its own.
         std::unordered_set<xLightsImportModelNode*> _filterExpanded;
+        wxString _lastNameFilterApplied;
         // Layout groups created while this dialog is open, removed again on Cancel.
         std::vector<std::string> _groupsAddedThisSession;
         // Donor groups the Available context menu was opened on.
