@@ -96,7 +96,7 @@ const long ControllerModelDialog::CONTROLLER_COLORORDER = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GROUPCOUNT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GAMMA = wxNewId();
 
-int ControllerModelDialog::s_activeCount = 0;
+std::vector<ControllerModelDialog*> ControllerModelDialog::s_openDialogs;
 
 BEGIN_EVENT_TABLE(ControllerModelDialog, wxDialog)
 //(*EventTable(ControllerModelDialog)
@@ -2093,14 +2093,105 @@ void ControllerModelPrintout::SetDefaultPageSetup(wxPaperSize paperId, wxPrintOr
 }
 #pragma endregion
 
+#pragma region Modeless lifetime
+void ControllerModelDialog::ShowFor(xLightsFrame* frame, Controller* controller)
+{
+    if (frame == nullptr || controller == nullptr) {
+        return;
+    }
+
+    for (auto* dlg : s_openDialogs) {
+        if (dlg->_controller == controller) {
+            dlg->Raise();
+            dlg->SetFocus();
+            return;
+        }
+    }
+
+    auto cud = std::make_unique<UDController>(controller, frame->GetOutputManager(), &frame->AllModels, true);
+    auto* dlg = new ControllerModelDialog(frame, std::move(cud), &frame->AllModels, controller);
+    dlg->Show();
+}
+
+void ControllerModelDialog::RefreshAll()
+{
+    // ReloadModels -> FixDMXChannels -> DoAllWork can land us back here. The
+    // outer call has not rebuilt yet and will, so dropping the nested one is
+    // safe; recursing is not.
+    static bool refreshing = false;
+    if (refreshing) {
+        return;
+    }
+    refreshing = true;
+
+    // Rebuilding drops every BaseCMObject, so work on a copy: a dialog that can
+    // no longer find its controller closes itself and leaves s_openDialogs.
+    auto const open = s_openDialogs;
+    for (auto* dlg : open) {
+        if (!dlg->ControllerStillExists()) {
+            dlg->Close();
+            continue;
+        }
+        dlg->ReloadModels();
+        dlg->PanelController->Refresh();
+        dlg->PanelModels->Refresh();
+    }
+
+    refreshing = false;
+}
+
+void ControllerModelDialog::CloseFor(Controller* controller)
+{
+    if (controller == nullptr) {
+        return;
+    }
+    auto const open = s_openDialogs;
+    for (auto* dlg : open) {
+        if (dlg->_controller == controller) {
+            dlg->Close();
+        }
+    }
+}
+
+void ControllerModelDialog::CloseAll()
+{
+    auto const open = s_openDialogs;
+    for (auto* dlg : open) {
+        dlg->Close();
+    }
+}
+
+bool ControllerModelDialog::ControllerStillExists() const
+{
+    if (_xLights == nullptr || _controller == nullptr) {
+        return false;
+    }
+    // Compare the pointer, not the name: a deleted-and-recreated controller of
+    // the same name is a different object and our models would be stale.
+    for (auto const* c : _xLights->GetOutputManager()->GetControllers()) {
+        if (c == _controller) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void ControllerModelDialog::OnVisualiserClose(wxCloseEvent& event)
+{
+    // Modeless, so nothing is waiting on us -- tear the window down rather than
+    // just hiding it, otherwise the stale UDController stays alive.
+    Destroy();
+}
+#pragma endregion
+
 #pragma region Constructor
-ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id, const wxPoint& pos, const wxSize& size) :
-    _cud(cud),
+ControllerModelDialog::ControllerModelDialog(wxWindow* parent, std::unique_ptr<UDController> cud, ModelManager* mm, Controller* controller, wxWindowID id, const wxPoint& pos, const wxSize& size) :
+    _cud(std::move(cud)),
     _controller(controller),
     _mm(mm),
     _xLights((xLightsFrame*)parent)
 {
-    ++s_activeCount;
+    s_openDialogs.push_back(this);
 
     //(*Initialize(ControllerModelDialog)
     wxBoxSizer* BoxSizer1;
@@ -2326,6 +2417,8 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     ReloadModels();
     Layout();
 
+    Bind(wxEVT_CLOSE_WINDOW, &ControllerModelDialog::OnVisualiserClose, this);
+
     PanelModels->SetFocus();
 }
 
@@ -2339,7 +2432,7 @@ ControllerModelDialog::~ControllerModelDialog()
     // the dialog is constructed before the user typed anything.
     BaseCMObject::SetVisualizerFilter(wxEmptyString);
 
-    --s_activeCount;
+    s_openDialogs.erase(std::remove(s_openDialogs.begin(), s_openDialogs.end(), this), s_openDialogs.end());
     SaveWindowPosition("ControllerModelDialogPosition", this);
     auto* config = GetXLightsConfig();
     config->Write("ControllerModelSashPosition", SplitterWindow1->GetSashPosition());
@@ -2434,7 +2527,7 @@ void ControllerModelDialog::ReloadModels()
                     ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
                         _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
                 if (modelFilter.empty() || modelFilterQuery.Matches(it.second->GetName())) {
-                    _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
+                    _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud.get(), _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
                 }
             }
         }
@@ -2468,7 +2561,7 @@ void ControllerModelDialog::ReloadModels()
 
     int maxx = 0;
     for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxPixelPort()), _cud->GetMaxPixelPort()); i++) {
-        auto cmp = new PortCMObject(PortCMObject::PORTTYPE::PIXEL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, i + 1 > (_caps == nullptr ? _cud->GetMaxPixelPort() : _caps->GetMaxPixelPort()), _scale);
+        auto cmp = new PortCMObject(PortCMObject::PORTTYPE::PIXEL, i + 1, _cud.get(), _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, i + 1 > (_caps == nullptr ? _cud->GetMaxPixelPort() : _caps->GetMaxPixelPort()), _scale);
         _controllers.push_back(cmp);
 
         auto pp = _cud->GetControllerPixelPort(i + 1);
@@ -2522,7 +2615,7 @@ void ControllerModelDialog::ReloadModels()
                             if (it2->GetModel() != nullptr) {
                                 if (it2->GetModel()->GetSmartRemote() != 0)
                                     pixelPortsWithSmartRemotes.push_back(i + 1);
-                                auto cmm = new ModelCMObject(pp, vs, it2->GetModel()->GetName(), it2->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, _scale);
+                                auto cmm = new ModelCMObject(pp, vs, it2->GetModel()->GetName(), it2->GetName(), _mm, _cud.get(), _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, _scale);
                                 _controllers.push_back(cmm);
                                 x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
                             }
@@ -2551,7 +2644,7 @@ void ControllerModelDialog::ReloadModels()
                 int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
                 for (const auto& it : pp->GetModels()) {
                     if (it->GetModel() != nullptr) {
-                        auto cmm = new ModelCMObject(pp, 0, it->GetModel()->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, _scale);
+                        auto cmm = new ModelCMObject(pp, 0, it->GetModel()->GetName(), it->GetName(), _mm, _cud.get(), _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_PIXELS, _scale);
                         _controllers.push_back(cmm);
                         x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
                     }
@@ -2597,7 +2690,7 @@ void ControllerModelDialog::ReloadModels()
                         start = wxPoint(x, cmp->GetRect().y);
                     }
 
-                    auto csr = new SRCMObject(pp, sr, _cud, _caps, start, size, BaseCMObject::STYLE_PIXELS, _scale, _controller->GetVendor() == "HinksPix");
+                    auto csr = new SRCMObject(pp, sr, _cud.get(), _caps, start, size, BaseCMObject::STYLE_PIXELS, _scale, _controller->GetVendor() == "HinksPix");
                     _controllers.push_back(csr);
                 }
             } else {
@@ -2638,7 +2731,7 @@ void ControllerModelDialog::ReloadModels()
                         size = wxSize(2 * SRX_GAP, SRY_GAP + SRYLABEL_SIZE + VERTICAL_SIZE);
                     }
 
-                    auto csr = new SRCMObject(pp, sr, _cud, _caps, start, size, BaseCMObject::STYLE_PIXELS, _scale, _controller->GetVendor() == "HinksPix");
+                    auto csr = new SRCMObject(pp, sr, _cud.get(), _caps, start, size, BaseCMObject::STYLE_PIXELS, _scale, _controller->GetVendor() == "HinksPix");
                     _controllers.push_back(csr);
                 }
             }
@@ -2646,12 +2739,12 @@ void ControllerModelDialog::ReloadModels()
     }
 
     for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxSerialPort()), _cud->GetMaxSerialPort()); i++) {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, i + 1 > (_caps == nullptr ? _cud->GetMaxSerialPort() : _caps->GetMaxSerialPort()), _scale));
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud.get(), _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, i + 1 > (_caps == nullptr ? _cud->GetMaxSerialPort() : _caps->GetMaxSerialPort()), _scale));
         auto sp = _cud->GetControllerSerialPort(i + 1);
         if (sp != nullptr) {
             int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
             for (const auto& it : sp->GetModels()) {
-                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, _scale);
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud.get(), _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, _scale);
                 _controllers.push_back(cmm);
                 x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
             }
@@ -2662,14 +2755,14 @@ void ControllerModelDialog::ReloadModels()
     }
     
     for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxPWMPort()), _cud->GetMaxPWMPort()); i++) {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PWM, i + 1, _cud, _caps,
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PWM, i + 1, _cud.get(), _caps,
                                                 wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
                                                 BaseCMObject::STYLE_CHANNELS, false, _scale));
         auto sp = _cud->GetControllerPWMPort(i + 1);
         if (sp != nullptr) {
             int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
             for (const auto& it : sp->GetModels()) {
-                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud.get(), _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
                                              BaseCMObject::STYLE_LABEL, _scale, it->GetLabel());
                 cmm->SetString(it->GetString());
                 _controllers.push_back(cmm);
@@ -2681,14 +2774,14 @@ void ControllerModelDialog::ReloadModels()
         y += VERTICAL_GAP + VERTICAL_SIZE;
     }
     for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxVirtualMatrixPort()), _cud->GetMaxVirtualMatrixPort()); i++) {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::VIRTUAL_MATRIX, i + 1, _cud, _caps,
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::VIRTUAL_MATRIX, i + 1, _cud.get(), _caps,
                                                 wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
                                                 BaseCMObject::STYLE_CHANNELS, false, _scale));
         auto sp = _cud->GetControllerVirtualMatrixPort(i + 1);
         if (sp != nullptr) {
             int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
             for (const auto& it : sp->GetModels()) {
-                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud.get(), _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
                                              BaseCMObject::STYLE_CHANNELS, _scale);
                 _controllers.push_back(cmm);
                 x += HORIZONTAL_SIZE + HORIZONTAL_GAP;
@@ -2700,14 +2793,14 @@ void ControllerModelDialog::ReloadModels()
     }
 
     for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxLEDPanelMatrixPort()), _cud->GetMaxLEDPanelMatrixPort()); i++) {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PANEL_MATRIX, i + 1, _cud, _caps,
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::PANEL_MATRIX, i + 1, _cud.get(), _caps,
                                                 wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
                                                 BaseCMObject::STYLE_CHANNELS, false, _scale));
         auto sp = _cud->GetControllerLEDPanelMatrixPort(i + 1);
         if (sp != nullptr) {
             int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
             for (const auto& it : sp->GetModels()) {
-                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud, _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
+                auto cmm = new ModelCMObject(sp, 0, it->GetName(), it->GetName(), _mm, _cud.get(), _caps, wxPoint(x, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE),
                                              BaseCMObject::STYLE_CHANNELS, _scale);
                 _controllers.push_back(cmm);
                 x += HORIZONTAL_SIZE + HORIZONTAL_GAP;

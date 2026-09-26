@@ -743,9 +743,7 @@ void ControllerListPanel::OnItemActivated(wxTreeListEvent& event) {
         if (controller != nullptr) {
             int usingip = _frame->GetOutputManager()->GetControllerCount(controller->GetType(), controller->GetColumn2Label());
             if (usingip == 1 && controller->CanVisualise()) {
-                UDController cud(controller, _frame->GetOutputManager(), &_frame->AllModels, true);
-                ControllerModelDialog dlg(_frame, &cud, &_frame->AllModels, controller);
-                dlg.ShowModal();
+                ControllerModelDialog::ShowFor(_frame, controller);
             } else {
                 DisplayError(name + " cannot be Visualised", this);
             }
@@ -994,6 +992,8 @@ void ControllerListPanel::DeleteSelectedControllers() {
     _frame->AbortRender();
     bool objectsChanged = false;
     for (const auto& it : todel) {
+        // The visualiser points straight at the controller, so close it first.
+        ControllerModelDialog::CloseFor(_frame->GetOutputManager()->GetController(it));
         _frame->AllModels.DeleteController(it);
         _frame->GetOutputManager()->DeleteController(it);
         objectsChanged |= _frame->AllObjects.DeleteControllerObject(it);
@@ -1201,9 +1201,7 @@ wxWindow* ControllerListPanel::CreatePropertiesPanel(wxWindow* parent) {
         if (!NetworkChangesAllowed()) return;
         auto controller = GetFirstSelectedController();
         if (controller != nullptr) {
-            UDController cud(controller, _frame->GetOutputManager(), &_frame->AllModels, true);
-            ControllerModelDialog dlg(_frame, &cud, &_frame->AllModels, controller);
-            dlg.ShowModal();
+            ControllerModelDialog::ShowFor(_frame, controller);
         }
     });
     _btnUploadInput->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
