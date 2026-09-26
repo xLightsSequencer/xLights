@@ -10,6 +10,7 @@
 #include <wx/hyperlink.h>
 #include <wx/choicdlg.h>
 #include <wx/dcclient.h>
+#include <wx/settings.h>
 
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
@@ -106,8 +107,14 @@ static wxString GetMediaPath(wxTreeListCtrl* ctrl, const wxTreeListItem& item) {
     return d != nullptr ? d->media : ctrl->GetItemText(item, 2);
 }
 
-static wxColour InstanceRowShade(wxWindow* win) {
-    return win->GetBackgroundColour().ChangeLightness(IsDarkMode() ? 115 : 93);
+static wxColour InstanceRowShade(wxWindow* win, wxSystemColour fallback) {
+    // On macOS a window's default background can be a dynamic/pattern NSColor with
+    // no RGB components, which reads back as black.
+    wxColour base = win->GetBackgroundColour();
+    if (!base.IsOk() || !base.IsSolid() || base.Alpha() == 0) {
+        base = wxSystemSettings::GetColour(fallback);
+    }
+    return base.ChangeLightness(base.GetLuminance() < 0.5 ? 115 : 93);
 }
 
 static const std::string CHECK_COL = "ID_UPLOAD_";
@@ -235,7 +242,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     wxDataViewCtrl* seqDataView = CheckListBox_Sequences->GetDataView();
     seqDataView->SetWindowStyleFlag(seqDataView->GetWindowStyleFlag() | wxDV_ROW_LINES);
-    seqDataView->SetAlternateRowColour(InstanceRowShade(CheckListBox_Sequences));
+    seqDataView->SetAlternateRowColour(InstanceRowShade(CheckListBox_Sequences, wxSYS_COLOUR_LISTBOX));
     wxItemAttr headerAttr;
     headerAttr.SetFont(CheckListBox_Sequences->GetFont().Bold());
     seqDataView->SetHeaderAttr(headerAttr);
@@ -802,7 +809,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
     }
     ApplySavedHostSettings();
 
-    const wxColour shade = InstanceRowShade(FPPInstanceList);
+    const wxColour shade = InstanceRowShade(FPPInstanceList, wxSYS_COLOUR_BTNFACE);
     const int cols = FPPInstanceSizer->GetCols();
     int idx = 0;
     for (auto* item : FPPInstanceSizer->GetChildren()) {
@@ -880,7 +887,7 @@ void FPPConnectDialog::OnInstanceListPaint(wxPaintEvent& event) {
     }
 
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(InstanceRowShade(FPPInstanceList)));
+    dc.SetBrush(wxBrush(InstanceRowShade(FPPInstanceList, wxSYS_COLOUR_BTNFACE)));
     for (size_t r = 1; r < rows.size(); r += 2) {
         if (!rows[r].IsEmpty()) {
             dc.DrawRectangle(0, rows[r].GetTop() - 1, right + 2, rows[r].GetHeight() + 2);

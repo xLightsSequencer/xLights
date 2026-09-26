@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (derwin12)              FPP Connect alternating rows no longer show as black on macOS
     -bug (derwin12)              Controller ping status now updates as soon as each ping returns
                                  instead of showing the previous result
     -change (derwin12)           Log what marked the layout/controller Save button as unsaved #7137
