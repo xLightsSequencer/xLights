@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (AGFazio)               Perspectives now also capture the Layout tab's panel arrangement
+                                 (including floated onto a second monitor), so it's restored along
+                                 with the sequencer layout #6889
     -enh (derwin12)              Batch Import Sequence Lua script: browse buttons for source/destination
                                  folders and right-click Select All/None/Highlighted on the sequence list #7089
     -bug (derwin12)              Controller Visualiser's Print Preview screen is now clickable on
