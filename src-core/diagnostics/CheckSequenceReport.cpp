@@ -179,6 +179,66 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
             background-color: rgba(30 58 138 / 0.2);
         }
 
+        .toc-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 1.4;
+            padding: 0 0.4rem;
+            border-radius: 9999px;
+        }
+
+        .toc-badge-error {
+            background-color: var(--bg-error);
+            color: var(--text-error);
+        }
+
+        .toc-badge-warning {
+            background-color: var(--bg-warning);
+            color: var(--text-warning);
+        }
+
+        .toc-badge-clean {
+            background-color: var(--bg-tertiary);
+            color: var(--text-description);
+        }
+
+        .filters-bar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .issue-stepper {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 50;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .issue-stepper button:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .issue-highlight {
+            outline: 3px solid #f59e0b;
+            outline-offset: 2px;
+        }
+
+        @media print {
+            .filters-bar, .theme-toggle, .issue-stepper {
+                display: none !important;
+            }
+            .section-content, .category-content {
+                display: block !important;
+                max-height: none !important;
+                opacity: 1 !important;
+            }
+        }
+
     </style>
 </head>
 <body class="min-h-screen">
@@ -195,7 +255,9 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
                   d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
             </path>
         </svg>
-    </button>
+    </button>)";
+
+    html += R"(
     <div class="container mx-auto px-4 py-8">
 )";
 
@@ -210,8 +272,14 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
         html += GenerateSection(section);
     }
 
-    html += R"(
-    </div>)";
+    html += R"HTML(
+    </div>
+
+    <div class="issue-stepper hidden items-center gap-1 rounded-full px-2 py-1.5" id="issueStepper">
+        <button onclick="stepIssue(-1)" aria-label="Previous issue" class="px-2 py-1 rounded hover:opacity-70" title="Previous issue (Shift+N)">&#9650;</button>
+        <span id="issueStepperLabel" class="text-sm font-medium whitespace-nowrap px-1">0 / 0</span>
+        <button onclick="stepIssue(1)" aria-label="Next issue" class="px-2 py-1 rounded hover:opacity-70" title="Next issue (N)">&#9660;</button>
+    </div>)HTML";
 
     html += R"(
     <script>
@@ -244,23 +312,41 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
             const button = event.currentTarget;
             const checkbox = button.querySelector('.checkbox');
             const isActive = button.classList.contains('active');
-            
+
             button.classList.toggle('active');
             checkbox.textContent = isActive ? '' : '✓';
             button.style.opacity = isActive ? '0.5' : '1';
-            
-            if (button.dataset.section) {
-               if (isActive) {
-                   activeFilters.sections.delete(button.dataset.section);
-               } else {
-                   activeFilters.sections.add(button.dataset.section);
-               }
-            } else if (button.dataset.type === 'error') {
+
+            if (button.dataset.type === 'error') {
                 activeFilters.showErrors = !isActive;
             } else if (button.dataset.type === 'warning') {
                 activeFilters.showWarnings = !isActive;
             }
-   
+
+            applyFilters();
+        }
+
+        // Section chips are dual-purpose: clicking the chip's label/badge
+        // jumps to and expands the section (see jumpToSection), while this
+        // handles just the checkbox to show/hide it without navigating —
+        // otherwise a single click target that sometimes hides content and
+        // sometimes navigates is genuinely confusing.
+        function toggleSectionVisibility(event, sectionId) {
+            event.stopPropagation();
+            const checkbox = event.currentTarget;
+            const button = checkbox.closest('.filter-toggle');
+            const isActive = button.classList.contains('active');
+
+            button.classList.toggle('active');
+            checkbox.textContent = isActive ? '' : '✓';
+            button.style.opacity = isActive ? '0.5' : '1';
+
+            if (isActive) {
+                activeFilters.sections.delete(sectionId);
+            } else {
+                activeFilters.sections.add(sectionId);
+            }
+
             applyFilters();
         }
 
@@ -268,7 +354,8 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
             const content = document.getElementById('section-' + sectionId);
             const chevron = event.currentTarget.querySelector('.section-chevron');
             const isExpanded = content.style.display !== 'none';
-            
+            const reportSection = content.closest('.report-section');
+
             if (!isExpanded) {
                 content.style.display = 'block';
                 content.style.maxHeight = '0';
@@ -277,6 +364,7 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
                 content.offsetHeight;
                 content.style.maxHeight = content.scrollHeight + 'px';
                 content.style.opacity = '1';
+                if (reportSection) reportSection.dataset.collapsed = 'false';
             } else {
                 content.style.maxHeight = '0';
                 content.style.opacity = '0';
@@ -284,16 +372,18 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
                 setTimeout(() => {
                     content.style.display = 'none';
                 }, 300);
+                if (reportSection) reportSection.dataset.collapsed = 'true';
             }
-        
+
             chevron.style.transform = isExpanded ? 'rotate(-90deg)' : '';
+            setTimeout(updateIssueStepper, 320);
         }
 
         function toggleCategory(element) {
             const content = element.parentElement.querySelector('.category-content');
             const chevron = element.querySelector('.category-chevron');
             const section = element.parentElement;
-    
+
             if (content.style.display === 'none' || content.style.display === '') {
                 content.style.display = 'block';
                 content.style.opacity = '1';
@@ -305,7 +395,231 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
                 chevron.style.transform = 'rotate(-90deg)';
                 section.dataset.collapsed = 'true';
             }
+            setTimeout(updateIssueStepper, 20);
         }
+
+        function expandAll() {
+            document.querySelectorAll('.report-section').forEach(section => {
+                const content = section.querySelector('.section-content');
+                const chevron = section.querySelector('.section-chevron');
+                if (!content) return;
+                content.style.display = 'block';
+                content.style.maxHeight = content.scrollHeight + 'px';
+                content.style.opacity = '1';
+                if (chevron) chevron.style.transform = '';
+                section.dataset.collapsed = 'false';
+            });
+
+            document.querySelectorAll('.filter-category').forEach(category => {
+                const content = category.querySelector('.category-content');
+                const chevron = category.querySelector('.category-chevron');
+                if (!content) return;
+                content.style.display = 'block';
+                content.style.opacity = '1';
+                if (chevron) chevron.style.transform = '';
+                category.dataset.collapsed = 'false';
+            });
+
+            setTimeout(updateIssueStepper, 50);
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.report-section').forEach(section => {
+                const content = section.querySelector('.section-content');
+                const chevron = section.querySelector('.section-chevron');
+                if (!content) return;
+                content.style.maxHeight = '0';
+                content.style.opacity = '0';
+                setTimeout(() => { content.style.display = 'none'; }, 300);
+                if (chevron) chevron.style.transform = 'rotate(-90deg)';
+                section.dataset.collapsed = 'true';
+            });
+
+            document.querySelectorAll('.filter-category').forEach(category => {
+                const content = category.querySelector('.category-content');
+                const chevron = category.querySelector('.category-chevron');
+                if (!content) return;
+                content.style.opacity = '0';
+                content.style.display = 'none';
+                if (chevron) chevron.style.transform = 'rotate(-90deg)';
+                category.dataset.collapsed = 'true';
+            });
+
+            setTimeout(updateIssueStepper, 350);
+        }
+
+        function jumpToSection(event, sectionId) {
+            event.preventDefault();
+            const section = document.querySelector('.report-section[data-section="' + sectionId + '"]');
+            if (!section) return;
+
+            if (section.style.display === 'none') {
+                if (!activeFilters.sections.has(sectionId)) {
+                    activeFilters.sections.add(sectionId);
+                    const filterButton = document.querySelector('.filter-toggle[data-section="' + sectionId + '"]');
+                    if (filterButton && !filterButton.classList.contains('active')) {
+                        filterButton.classList.add('active');
+                        filterButton.style.opacity = '1';
+                        const cb = filterButton.querySelector('.checkbox');
+                        if (cb) cb.textContent = '✓';
+                    }
+                    applyFilters();
+                }
+            }
+
+            const content = document.getElementById('section-' + sectionId);
+            if (content && content.style.display === 'none') {
+                content.style.display = 'block';
+                content.style.maxHeight = content.scrollHeight + 'px';
+                content.style.opacity = '1';
+                const chevron = section.querySelector('.section-chevron');
+                if (chevron) chevron.style.transform = '';
+                section.dataset.collapsed = 'false';
+            }
+
+            scrollToReveal(section, 'start');
+            setTimeout(updateIssueStepper, 350);
+        }
+
+        // scrollIntoView doesn't know the filters bar is sticky (position:
+        // sticky, top:0) and will happily park a target's top edge right
+        // behind it. 'start' aligns just below the bar; 'center' centers
+        // within the space that's actually visible below it.
+        function scrollToReveal(el, mode) {
+            const bar = document.querySelector('.filters-bar');
+            const barHeight = bar ? bar.getBoundingClientRect().height : 0;
+            const rect = el.getBoundingClientRect();
+            const gap = 16;
+            let targetY;
+            if (mode === 'center') {
+                const availableHeight = window.innerHeight - barHeight;
+                targetY = window.scrollY + rect.top - barHeight - Math.max(gap, (availableHeight - rect.height) / 2);
+            } else {
+                targetY = window.scrollY + rect.top - barHeight - gap;
+            }
+            window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+        }
+
+        // Sections/categories with no issues start auto-collapsed (see the
+        // DOMContentLoaded handler below). A search match inside one of them
+        // has to force it back open, or the matched text stays invisible
+        // behind its own collapsed container even though the filter logic
+        // thinks it "matched".
+        function expandSectionContent(reportSection) {
+            const content = reportSection.querySelector('.section-content');
+            if (!content) return;
+            content.style.display = 'block';
+            content.style.maxHeight = content.scrollHeight + 'px';
+            content.style.opacity = '1';
+            const chevron = reportSection.querySelector('.section-chevron');
+            if (chevron) chevron.style.transform = '';
+            reportSection.dataset.collapsed = 'false';
+        }
+
+        function expandCategoryContent(category) {
+            const content = category.querySelector('.category-content');
+            if (!content) return;
+            content.style.display = 'block';
+            content.style.opacity = '1';
+            const chevron = category.querySelector('.category-chevron');
+            if (chevron) chevron.style.transform = '';
+            category.dataset.collapsed = 'false';
+        }
+
+        function getVisibleIssues() {
+            return Array.from(document.querySelectorAll('.error-item, .warning-item')).filter(el => {
+                if (el.offsetParent === null) return false;
+                return window.getComputedStyle(el).display !== 'none';
+            });
+        }
+
+        let issueStepperIndex = -1;
+
+        function initIssueStepper() {
+            issueStepperIndex = -1;
+            updateIssueStepper();
+        }
+
+        function updateIssueStepper() {
+            const stepper = document.getElementById('issueStepper');
+            if (!stepper) return;
+            const issues = getVisibleIssues();
+            const label = document.getElementById('issueStepperLabel');
+
+            if (issues.length === 0) {
+                stepper.classList.add('hidden');
+                stepper.classList.remove('flex');
+                issueStepperIndex = -1;
+                return;
+            }
+
+            stepper.classList.remove('hidden');
+            stepper.classList.add('flex');
+            if (issueStepperIndex >= issues.length) {
+                issueStepperIndex = issues.length - 1;
+            }
+            const displayIndex = issueStepperIndex < 0 ? 0 : issueStepperIndex + 1;
+            label.textContent = displayIndex + ' / ' + issues.length;
+        }
+
+        function stepIssue(direction) {
+            const issues = getVisibleIssues();
+            if (issues.length === 0) return;
+
+            if (issueStepperIndex < 0) {
+                // Nothing selected yet: Next starts at the first issue,
+                // Previous starts at the last one (not the second-to-last —
+                // wrapping "before index 0" isn't the same as being at -1).
+                issueStepperIndex = direction > 0 ? 0 : issues.length - 1;
+            } else {
+                issueStepperIndex = (issueStepperIndex + direction + issues.length) % issues.length;
+            }
+            const target = issues[issueStepperIndex];
+
+            const reportSection = target.closest('.report-section');
+            if (reportSection) {
+                const content = reportSection.querySelector('.section-content');
+                if (content && content.style.display === 'none') {
+                    content.style.display = 'block';
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    content.style.opacity = '1';
+                    const chevron = reportSection.querySelector('.section-chevron');
+                    if (chevron) chevron.style.transform = '';
+                    reportSection.dataset.collapsed = 'false';
+                }
+            }
+
+            const category = target.closest('.filter-category');
+            if (category) {
+                const content = category.querySelector('.category-content');
+                if (content && (content.style.display === 'none' || content.style.display === '')) {
+                    content.style.display = 'block';
+                    content.style.opacity = '1';
+                    const chevron = category.querySelector('.category-chevron');
+                    if (chevron) chevron.style.transform = '';
+                    category.dataset.collapsed = 'false';
+                }
+            }
+
+            target.classList.add('issue-highlight');
+            scrollToReveal(target, 'center');
+            setTimeout(() => target.classList.remove('issue-highlight'), 1600);
+
+            updateIssueStepper();
+        }
+
+        document.addEventListener('keydown', function(e) {
+            const active = document.activeElement;
+            const typing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+            if (typing) return;
+
+            if (e.key === 'n' || e.key === 'N') {
+                stepIssue(e.shiftKey ? -1 : 1);
+            } else if (e.key === '/') {
+                e.preventDefault();
+                document.querySelector('input[type="text"]')?.focus();
+            }
+        });
 
         function applyFilters() {
             const sections = document.querySelectorAll('.report-section');
@@ -343,6 +657,7 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
             
                     if (categoryMatches) {
                         category.style.display = 'block';
+                        expandCategoryContent(category);
                         category.querySelectorAll('.filterable-item').forEach(item => {
                             const isError = item.classList.contains('error-item');
                             const isWarning = item.classList.contains('warning-item');
@@ -377,7 +692,10 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
                         });
                 
                         category.style.display = categoryHasVisibleContent ? 'block' : 'none';
-                        if (categoryHasVisibleContent) sectionHasVisibleContent = true;
+                        if (categoryHasVisibleContent) {
+                            expandCategoryContent(category);
+                            sectionHasVisibleContent = true;
+                        }
                     }
                 });
 
@@ -423,7 +741,12 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
                 });
 
                 section.style.display = sectionHasVisibleContent ? 'block' : 'none';
+                if (sectionHasVisibleContent) {
+                    expandSectionContent(section);
+                }
             });
+
+            updateIssueStepper();
         }
 
         
@@ -473,16 +796,47 @@ std::string CheckSequenceReport::GenerateHTML(bool darkMode) const {
                 moonIcon.classList.remove('hidden');
             }
 
-            document.querySelectorAll('.section-content').forEach(section => {
-                section.style.display = 'block';
-                section.style.maxHeight = section.scrollHeight + 'px';
-                section.style.opacity = '1';
+            // Auto-expand sections/categories that have errors or warnings,
+            // and auto-collapse ones that came back clean so a mostly-healthy
+            // show doesn't require scrolling past a wall of "No issues found".
+            document.querySelectorAll('.report-section').forEach(reportSection => {
+                const content = reportSection.querySelector('.section-content');
+                if (!content) return;
+                const hasIssues = reportSection.querySelectorAll('.error-item, .warning-item').length > 0;
+                content.style.display = 'block';
+                if (hasIssues) {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    content.style.opacity = '1';
+                    reportSection.dataset.collapsed = 'false';
+                } else {
+                    content.style.maxHeight = '0';
+                    content.style.opacity = '0';
+                    content.style.display = 'none';
+                    const chevron = reportSection.querySelector('.section-chevron');
+                    if (chevron) chevron.style.transform = 'rotate(-90deg)';
+                    reportSection.dataset.collapsed = 'true';
+                }
             });
 
-            document.querySelectorAll('.category-content').forEach(content => {
-                content.style.maxHeight = content.scrollHeight + 'px';
-                content.style.opacity = '1';
+            document.querySelectorAll('.filter-category').forEach(category => {
+                const content = category.querySelector('.category-content');
+                if (!content) return;
+                const hasIssues = category.querySelectorAll('.error-item, .warning-item').length > 0;
+                if (hasIssues) {
+                    content.style.display = 'block';
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    content.style.opacity = '1';
+                    category.dataset.collapsed = 'false';
+                } else {
+                    content.style.display = 'none';
+                    content.style.opacity = '0';
+                    const chevron = category.querySelector('.category-chevron');
+                    if (chevron) chevron.style.transform = 'rotate(-90deg)';
+                    category.dataset.collapsed = 'true';
+                }
             });
+
+            initIssueStepper();
         });
     </script>
 </body>
@@ -541,7 +895,7 @@ std::string CheckSequenceReport::GenerateHeader() const {
 
 std::string CheckSequenceReport::GenerateFilters() const {
     std::string result = "        <!-- Search and Filter Controls -->\n"
-                         "        <div class=\"theme-card rounded-lg shadow-lg p-4 mb-8\">\n"
+                         "        <div class=\"theme-card rounded-lg shadow-lg p-4 mb-8 filters-bar\">\n"
                          "            <div class=\"flex flex-col gap-4\">\n"
                          "                <!-- Search Box - Full Width -->\n"
                          "                <div class=\"w-full\">\n"
@@ -571,15 +925,36 @@ std::string CheckSequenceReport::GenerateFilters() const {
 
     // Add section toggles
     for (const auto& section : REPORT_SECTIONS) {
-        result += "                        <button onclick=\"toggleFilter('" + section.id +
+        std::string badge;
+        auto it = mSectionIndex.find(section.id);
+        if (it != mSectionIndex.end()) {
+            const auto& s = mSections[it->second];
+            if (s.errorCount > 0) {
+                badge += "<span class=\"toc-badge toc-badge-error\">" + std::to_string(s.errorCount) + "</span>";
+            }
+            if (s.warningCount > 0) {
+                badge += "<span class=\"toc-badge toc-badge-warning\">" + std::to_string(s.warningCount) + "</span>";
+            }
+        }
+
+        result += "                        <button onclick=\"jumpToSection(event, '" + section.id +
                   "')\" class=\"filter-toggle active px-4 py-2 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-800\" data-section=\"" +
-                  section.id + "\">\n" +
-                  "                            <span class=\"inline-block w-4 h-4 border rounded flex items-center justify-center checkbox\">✓</span>\n" +
-                  "                            <span>" + section.title + "</span>\n" +
+                  section.id + "\" title=\"Jump to " + section.title + "\">\n" +
+                  "                            <span class=\"inline-block w-4 h-4 border rounded flex items-center justify-center checkbox\" onclick=\"toggleSectionVisibility(event, '" +
+                  section.id + "')\" title=\"Show/hide this section\">✓</span>\n" +
+                  "                            <span>" + section.title + "</span>" + badge + "\n" +
                   "                        </button>\n";
     }
 
     result += "                    </div>\n"
+              "                    <button onclick=\"expandAll()\" \n"
+              "                            class=\"whitespace-nowrap px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200\">\n"
+              "                        Expand All\n"
+              "                    </button>\n"
+              "                    <button onclick=\"collapseAll()\" \n"
+              "                            class=\"whitespace-nowrap px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200\">\n"
+              "                        Collapse All\n"
+              "                    </button>\n"
               "                    <button onclick=\"resetFilters()\" \n"
               "                            class=\"whitespace-nowrap px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200\">\n"
               "                        Reset All\n"
