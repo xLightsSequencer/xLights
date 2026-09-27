@@ -45,6 +45,7 @@ public:
     void ShowMessage(std::string const& text) const;
     [[nodiscard]] std::string PromptOption(std::string const& question, std::string const& title, std::string const& button1, std::string const& button2) const;
     [[nodiscard]] std::string PromptString(std::string const& text) const;
+    [[nodiscard]] std::string PromptDirectory(std::string const& message, std::string const& defaultPath) const;
     [[nodiscard]] std::string PromptSelection(sol::object const& items, std::string const& message) const;
     [[nodiscard]] std::list<std::string> PromptMultiSelection(sol::object const& items, std::string const& message) const;
     [[nodiscard]] std::pair<std::list<std::string>, bool> PromptSequences() const;

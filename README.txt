@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (derwin12)              Batch Import Sequence Lua script: browse buttons for source/destination
+                                 folders and right-click Select All/None/Highlighted on the sequence list #7089
     -bug (derwin12)              Controller Visualiser's Print Preview screen is now clickable on
                                  Windows instead of appearing but ignoring input
     -bug (derwin12)              Model > Paste Effects on a submodel/group row no longer erases every
