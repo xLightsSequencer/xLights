@@ -11,12 +11,14 @@
 #include "LuaRunner.h"
 #include "xLightsMain.h"
 #include "sequencer/BatchRenderDialog.h"
+#include "shared/dialogs/CheckboxSelectDialog.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "shared/utils/wxUtilities.h"
 
 #include <log.h>
 
+#include <wx/dirdlg.h>
 #include <wx/stdpaths.h>
 
 #include <cmath>
@@ -60,6 +62,15 @@ std::string LuaRunner::PromptString(std::string const& message) const
     return {};
 }
 
+std::string LuaRunner::PromptDirectory(std::string const& message, std::string const& defaultPath) const
+{
+    wxDirDialog dialog(_frame, message, defaultPath, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+    if (dialog.ShowModal() == wxID_OK) {
+        return dialog.GetPath();
+    }
+    return {};
+}
+
 std::string LuaRunner::PromptSelection(sol::object const& items, std::string const& message) const
 {
     wxArrayString itemList = getArrayString(items);
@@ -76,17 +87,14 @@ std::string LuaRunner::PromptSelection(sol::object const& items, std::string con
 std::list<std::string> LuaRunner::PromptMultiSelection(sol::object const& items, std::string const& message) const
 {
     wxArrayString itemList = getArrayString(items);
-    wxMultiChoiceDialog dlg(_frame, message, message, itemList);
 
     // pre-select all items
-    wxArrayInt allSelected;
-    for (size_t i = 0; i < itemList.GetCount(); ++i) allSelected.push_back(static_cast<int>(i));
-    dlg.SetSelections(allSelected);
+    CheckboxSelectDialog dlg(_frame, message, itemList, itemList);
 
     std::list<std::string> result;
     if (dlg.ShowModal() == wxID_OK) {
-        for (int idx : dlg.GetSelections()) {
-            result.push_back(ToStdString(itemList[idx]));
+        for (auto const& item : dlg.GetSelectedItems()) {
+            result.push_back(ToStdString(item));
         }
     }
     return result;
@@ -157,6 +165,7 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
     lua.set_function("ShowMessage", &LuaRunner::ShowMessage, this);
     lua.set_function("PromptOption", &LuaRunner::PromptOption, this);
     lua.set_function("PromptString", &LuaRunner::PromptString, this);
+    lua.set_function("PromptDirectory", &LuaRunner::PromptDirectory, this);
     lua.set_function("PromptSelection", &LuaRunner::PromptSelection, this);
     lua.set_function("PromptMultiSelection", &LuaRunner::PromptMultiSelection, this);
     lua.set_function("SplitString", &LuaRunner::SplitString, this);

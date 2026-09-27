@@ -23,7 +23,9 @@ The Script Runner Dialog allows the user to run [Lua](http://www.lua.org/manual/
 | PromptSequences  |                                  | table        | Opens GUI to Select Sequence Files          |
 | ShowMessage      | string message                   |              | Opens MessageBox with message               |
 | PromptString     | string message                   | table        | Opens Text Entry Dialog for User Entry      |
+| PromptDirectory  | string message, string defaultPath | string     | Opens Directory Browser Dialog for User Entry |
 | PromptSelection  | table item, string message       | string       | Opens Item Selection Dialog                 |
+| PromptMultiSelection | table item, string message    | table        | Opens Multi Item Selection Dialog (right-click for Select All/None/Highlighted) |
 | SplitString      | string text, string delimiter    | table        | Splits single string into table of strings  |
 | JoinString       | table items, string delimiter    | string       | Joins table of strings into single string   |
 | JSONToTable      | string json                      | table        | Create Table of JSON Parameters Recursively |

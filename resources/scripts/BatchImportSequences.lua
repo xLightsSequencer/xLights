@@ -4,13 +4,18 @@
 --
 -- The source folder does NOT need to be an xLights show.  Any folder containing
 -- .xsq, .xsqz, .zip, or .piz files is accepted.
+--
+-- v2: source/destination folders are now chosen with a browse dialog
+-- (PromptDirectory), and the sequence list's multi-select dialog supports
+-- right-click Select All / Deselect All / Select Highlighted / Deselect
+-- Highlighted (issue #7089).
 
 local sep = package.config:sub(1,1)  -- '/' on Mac/Linux, '\' on Windows
 
-local sourceFolder = PromptString('Source folder containing sequences or packages')
+local sourceFolder = PromptDirectory('Source folder containing sequences or packages', '')
 if sourceFolder == '' then ShowMessage('Cancelled') return end
 
-local destFolder = PromptString('Destination show folder path')
+local destFolder = PromptDirectory('Destination show folder path', '')
 if destFolder == '' then ShowMessage('Cancelled') return end
 
 local listResult = RunCommand('listSequences', {folder=sourceFolder})
