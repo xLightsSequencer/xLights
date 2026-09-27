@@ -2975,8 +2975,15 @@ wxBitmap ControllerModelDialog::RenderFullPreview()
 
 void ControllerModelDialog::PrintPreviewScreen()
 {
-    ControllerModelPrintPreviewDialog* dlg = new ControllerModelPrintPreviewDialog(this, this, "Print - " + _title);
-    dlg->Show();
+    // ControllerModelDialog itself is always opened with ShowModal()
+    // (ControllerListPanel.cpp), so a plain non-modal Show() here left this
+    // preview dialog visible but unable to receive clicks on Windows -- input
+    // routing during an app-modal loop only reaches the modal dialog's own
+    // modal chain, not an unrelated sibling top-level window. ShowModal() (and
+    // stack allocation, matching LayoutPrintPreviewDialog) fixes the input
+    // routing and the previous heap-allocated dlg leak in one move.
+    ControllerModelPrintPreviewDialog dlg(this, this, "Print - " + _title);
+    dlg.ShowModal();
 }
 
 namespace
