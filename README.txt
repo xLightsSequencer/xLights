@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (derwin12)              Controller Visualiser's Print Preview screen is now clickable on
+                                 Windows instead of appearing but ignoring input
     -bug (derwin12)              Model > Paste Effects on a submodel/group row no longer erases every
                                  submodel's effects and pastes them onto the main model instead #7141
     -bug (derwin12)              FPP Connect alternating rows no longer show as black on macOS
