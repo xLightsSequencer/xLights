@@ -281,6 +281,7 @@ private:
     // the view's display order, so hiding rows would break drag-reorder, the
     // move buttons and every "all"-scoped operation. Searching instead selects
     // and scrolls to each match and leaves the list intact.
+    wxSizer* _modelsSizer = nullptr;
     wxSearchCtrl* TextCtrl_ModelsFind = nullptr;
     wxButton* Button_FindPrev = nullptr;
     wxButton* Button_FindNext = nullptr;
