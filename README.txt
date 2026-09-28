@@ -16,11 +16,25 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  with the sequencer layout #6889
     -enh (derwin12)              Batch Import Sequence Lua script: browse buttons for source/destination
                                  folders and right-click Select All/None/Highlighted on the sequence list #7089
+    -enh (heffneil)              Import Effects mapping tree now redraws once after Auto Map
+                                 instead of updating every row individually, cutting a 30+
+                                 second stall on large macOS shows to milliseconds (#7142)
     -bug (derwin12)              Controller Visualiser's Print Preview screen is now clickable on
-                                 Windows instead of appearing but ignoring input
+                                 macOS instead of appearing but ignoring input
+    -enh (derwin12)              Check Sequence Report gets a redesigned HTML report: a jump-
+                                 to-section table of contents, a next/previous issue stepper,
+                                 per-section show/hide, and Expand All/Collapse All (#7150)
     -bug (derwin12)              Model > Paste Effects on a submodel/group row no longer erases every
                                  submodel's effects and pastes them onto the main model instead #7141
+    -bug (derwin12)              FPP status JSON parsing could crash - "description" isn't
+                                 present for many "other" controller types (#7147)
     -bug (derwin12)              FPP Connect alternating rows no longer show as black on macOS
+    -bug (derwin12)              Changing a musical sequence to Animation in Sequence Settings
+                                 (or loading a new song) could crash; the waveform panel kept
+                                 pointing at the sequence's audio after it was freed (#7144)
+    -enh (heffneil)              "Show All Timing Tracks" is now offered from any view, and
+                                 from right-clicking a timing row, not just the Master View's
+                                 model-row menu (#7145)
     -bug (derwin12)              Controller ping status now updates as soon as each ping returns
                                  instead of showing the previous result
     -change (derwin12)           Log what marked the layout/controller Save button as unsaved #7137
@@ -32,6 +46,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  files now keeps them embedded instead of reverting them to external
     -bug (derwin12)              Show the global controller settings (Controller Sync, Global FPP Proxy,
                                  etc.) again when no controller is selected on the Controllers tab
+    -enh (derwin12)              Added a Cancel option to the Model States delete confirmation
+    -bug (derwin12)              Moving Head panel could hit a wx sizer assert on creation once
+                                 the Path "crosses behind" warning added a second row to the
+                                 canvas sizer
+    -bug (derwin12)              Moving Head RGB color wheel picker was clipped/resized wrong
+                                 on Windows (now uses GetClientSize)
     -enh (derwin12)              More logging for stem separation to help diagnose hangs, and a
                                  StemSeparationCPU special option to skip the GPU on Windows
     -enh (heffneil)              Filter and search boxes now match words in any order, ignore separators
@@ -52,6 +72,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  name, e.g. "Raspberry Pi 5 Model B Rev 1.0") and report a real
                                  physical core count instead of zero
     -enh (derwin12)              Added a keybinding for toggling the video preview panel and sort ability (#7091)
+    -enh (derwin12)              Moving Head effect now warns when a drawn Path does a "bad
+                                 flip" (#7083)
+    -enh (PeteMatthews)          ILT controllers: added a new Scene controller type; serial
+                                 outputs can now stand in for relays (#7093)
     -change (dkulp)              Crash reports now always carry the machine configuration and a
                                  report.json describing the report, and the configuration banner
                                  uses one labelled field per fact
@@ -66,6 +90,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  like any other failed shader instead of terminating the app
     -bug (derwin12)              Moving Head effects with a drawn Path and Cycles > 1 no longer glitch
                                  to a wild tilt/pan for one frame at each cycle repeat boundary (#7113)
+    -bug (derwin12)              Arches model's starting location was wrong
     -bug (derwin12)              Selecting a controller no longer loses its yellow "models on this
                                  controller" highlight in the layout preview when a model is moved
     -enh (derwin12)              New sequence wizard now defaults the master view to a sensible model
@@ -74,6 +99,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Import Effects from a plain .xsq no longer leaves Video/Pictures/Shader/
                                  Glediator/Shape media referencing the source show folder - it is now
                                  copied into the target show folder like a Sequence Package import does
+    -bug (AGFazio)               Layout now rejects a blank model name instead of accepting it
+                                 (#7079)
+    -enh (heffneil)              Layout Resize right-click menu gets a Match Depth option in 3D
+                                 mode, matching the iPad layout editor (#7095)
     -bug (bcole808)              Background image on a named preview was lost when the show folder was
                                  moved or opened on another machine
     -bug (dkulp)                 Custom model background images and model dimming curve files were also
@@ -98,10 +127,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 macOS/iPad - a GPU buffer that could not be allocated (older Macs
                                  with little video memory, or a very large model) is no longer
                                  published as if it had worked; that layer renders on the CPU instead
+                                 of crashing somewhere unrelated
     -bug (derwin12)              Copying and pasting a Moving Head effect onto the same model group
                                  it came from no longer collapses every fixture's settings down to
                                  one fixture's
-                                 of crashing somewhere unrelated
     -bug (derwin12)              A preset saved or updated with "Apply preset as: Relative" selected
                                  now actually applies as Relative afterward, instead of silently
                                  reverting to Using Layers
@@ -128,11 +157,18 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)              Media Manager panel has a new "Check Media..." button to check the
                                  sequence's audio/video files for formats that won't render on
                                  upcoming xLights versions on demand
+    -bug (derwin12)              Media Manager panel wasn't repopulated after a media
+                                 conversion
+    -bug (scott)                 Experience controller firmware version wasn't detected when
+                                 the firmware string didn't start with "v" (#7078)
     -bug (derwin12)              Falcon F16v4/v5 upload always sent RGB(W) for a 4 channel colour order
                                  (e.g. WRGB), ignoring the colour order set on the model's controller
                                  connection (#7085)
     -enh (derwin12)              Moving Head Advanced - Position Zones can now be exported to, and
                                  imported from, other moving head props (#6926)
+    -enh (AGFazio)               Sequencer grid: Shift now holds timing in place while
+                                 dragging, and a collision slide actually stops instead of
+                                 continuing past the obstruction (#7042)
     -enh (derwin12)              Selecting an effect in the Select Effects panel now scrolls the
                                  sequencer grid to bring it into view
     -bug (derwin12)              Testing a submodel's "Output to Lights" now sends the actual node
@@ -142,6 +178,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Changing the effect type from the Effect panel drop-down no longer
                                  resets the Layer Settings Render Style choices to the modelless
                                  default when the selected effect is on a model group
+    -enh (AlexB)                 Added an "additional tools" toolbar (Batch Render, Bulk
+                                 Control Upload, Check Sequence, FPP Connect) (#6801)
     -bug (derwin12)              FPP upload no longer queues a 3D Image Object's or Mesh's texture
                                  file for upload when that file is missing locally; the resulting
                                  failed-upload dialog could make the upload look stuck (#7098)

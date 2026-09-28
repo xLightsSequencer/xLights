@@ -2977,7 +2977,7 @@ void ControllerModelDialog::PrintPreviewScreen()
 {
     // ControllerModelDialog itself is always opened with ShowModal()
     // (ControllerListPanel.cpp), so a plain non-modal Show() here left this
-    // preview dialog visible but unable to receive clicks on Windows -- input
+    // preview dialog visible but unable to receive clicks on macOS -- input
     // routing during an app-modal loop only reaches the modal dialog's own
     // modal chain, not an unrelated sibling top-level window. ShowModal() (and
     // stack allocation, matching LayoutPrintPreviewDialog) fixes the input
