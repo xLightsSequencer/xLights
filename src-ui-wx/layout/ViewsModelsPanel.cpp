@@ -19,6 +19,7 @@
 #include <wx/artprov.h>
 #include <wx/dnd.h>
 #include <wx/srchctrl.h>
+#include <wx/settings.h>
 #include <wx/timer.h>
 
 #include "model-16.xpm"
@@ -278,6 +279,39 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     TextCtrl_NonModelsFilter->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
         &ViewsModelsPanel::OnNonModelsFilterCancel, this);
 
+    // The "Added" list gets a find bar rather than a filter: its row order is
+    // the view's display order, so hiding rows would break reordering and every
+    // "all"-scoped operation. ListCtrlModels was placed at (3, 2) span(1, 2).
+    GridBagSizer1->Detach(ListCtrlModels);
+    TextCtrl_ModelsFind = new wxSearchCtrl(this, wxID_ANY, wxEmptyString,
+                                           wxDefaultPosition, wxDefaultSize,
+                                           wxTE_PROCESS_ENTER);
+    TextCtrl_ModelsFind->SetDescriptiveText(_("Find model..."));
+    TextCtrl_ModelsFind->ShowCancelButton(true);
+    Button_FindPrev = new wxButton(this, wxID_ANY, _T("▲"), wxDefaultPosition,
+                                   wxDLG_UNIT(this, wxSize(12, -1)));
+    Button_FindNext = new wxButton(this, wxID_ANY, _T("▼"), wxDefaultPosition,
+                                   wxDLG_UNIT(this, wxSize(12, -1)));
+    Button_FindPrev->SetToolTip(_("Previous match"));
+    Button_FindNext->SetToolTip(_("Next match"));
+    auto* findSizer = new wxBoxSizer(wxHORIZONTAL);
+    findSizer->Add(TextCtrl_ModelsFind, 1, wxEXPAND, 0);
+    findSizer->Add(Button_FindPrev, 0, wxLEFT | wxEXPAND, 2);
+    findSizer->Add(Button_FindNext, 0, wxLEFT | wxEXPAND, 2);
+    auto* modelsSizer = new wxBoxSizer(wxVERTICAL);
+    modelsSizer->Add(findSizer, 0, wxBOTTOM | wxEXPAND, 2);
+    modelsSizer->Add(ListCtrlModels, 1, wxEXPAND, 0);
+    GridBagSizer1->Add(modelsSizer, wxGBPosition(3, 2), wxGBSpan(1, 2),
+                       wxALL | wxEXPAND, 2);
+    TextCtrl_ModelsFind->Bind(wxEVT_TEXT,
+        &ViewsModelsPanel::OnModelsFindText, this);
+    TextCtrl_ModelsFind->Bind(wxEVT_TEXT_ENTER,
+        &ViewsModelsPanel::OnModelsFindNext, this);
+    TextCtrl_ModelsFind->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
+        &ViewsModelsPanel::OnModelsFindCancel, this);
+    Button_FindNext->Bind(wxEVT_BUTTON, &ViewsModelsPanel::OnModelsFindNext, this);
+    Button_FindPrev->Bind(wxEVT_BUTTON, &ViewsModelsPanel::OnModelsFindPrev, this);
+
     // Debounce keystrokes so PopulateModels (full rebuild of both lists)
     // doesn't run on every character on large shows.
     _filterDebounceTimer = new wxTimer(this);
@@ -452,7 +486,11 @@ ViewsModelsPanel::~ViewsModelsPanel()
 
 void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
 {
-    
+    // Freeze the whole panel, not just the two lists: a filter keystroke
+    // rebuilds both lists, so a change to one (e.g. the Added filter) would
+    // otherwise flash the other. A panel-level freeze paints everything once
+    // on Thaw, so unchanged content doesn't flicker.
+    Freeze();
     ListCtrlModels->Freeze();
     ListCtrlNonModels->Freeze();
 
@@ -652,6 +690,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
     ListCtrlNonModels->Thaw();
     ListCtrlModels->Refresh();
     ListCtrlNonModels->Refresh();
+    Thaw();
 }
 
 bool ViewsModelsPanel::IsModelAGroup(const std::string& modelname) const
@@ -749,7 +788,6 @@ bool ViewsModelsPanel::SelectItem(wxListCtrl* ctrl, const std::string& item, int
 void ViewsModelsPanel::OnListView_ViewItemsBeginDrag(wxListEvent& event)
 {
     if (ListCtrlModels->GetSelectedItemCount() == 0) return;
-
     _dragRowModel = true;
     _dragRowNonModel = false;
 
@@ -1575,11 +1613,17 @@ void ViewsModelsPanel::AddModelToNotList(Element* model)
 
 void ViewsModelsPanel::OnNonModelsFilterText(wxCommandEvent& /*event*/)
 {
+    // Ignore no-op text events (e.g. holding backspace on an empty field) so
+    // we don't rebuild and flicker for a value that didn't change.
+    wxString value = TextCtrl_NonModelsFilter->GetValue().Lower();
+    if (value == _nonModelFilter) {
+        return;
+    }
     // Capture the current text immediately so the cached filter stays
     // in sync with what the user sees, but debounce the expensive
     // PopulateModels rebuild — restart the one-shot timer on each
     // keystroke and only rebuild after the user pauses for ~150 ms.
-    _nonModelFilter = TextCtrl_NonModelsFilter->GetValue().Lower();
+    _nonModelFilter = value;
     if (_filterDebounceTimer != nullptr) {
         _filterDebounceTimer->Start(kFilterDebounceMs, wxTIMER_ONE_SHOT);
     }
@@ -1595,6 +1639,89 @@ void ViewsModelsPanel::OnNonModelsFilterCancel(wxCommandEvent& /*event*/)
     TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
     _nonModelFilter.Clear();
     PopulateModels();
+}
+
+bool ViewsModelsPanel::FindModelRow(int startRow, bool forward)
+{
+    const int count = ListCtrlModels->GetItemCount();
+    if (count == 0) return false;
+
+    // Whitespace-tokenised AND match, like the sequencer filter and
+    // CheckboxSelectDialog. A single contiguous match meant "mini tree" missed
+    // "Mini-Tree-2" and "MiniTree-Star" - the separator had to be typed
+    // exactly. Tokenised once here rather than per row.
+    wxArrayString tokens;
+    for (const auto& t : wxSplit(TextCtrl_ModelsFind->GetValue().Lower(), ' ')) {
+        if (!t.IsEmpty()) tokens.Add(t);
+    }
+    if (tokens.IsEmpty()) return false;
+
+    // Normalise so a wrap from either end lands inside the list.
+    int row = ((startRow % count) + count) % count;
+
+    for (int n = 0; n < count; ++n) {
+        // Column 2 holds the element name (0 and 1 are the checkbox and icon).
+        const wxString name = ListCtrlModels->GetItemText(row, 2).Lower();
+        bool match = true;
+        for (const auto& t : tokens) {
+            if (!name.Contains(t)) {
+                match = false;
+                break;
+            }
+        }
+        if (match) {
+            for (int i = 0; i < count; ++i) {
+                ListCtrlModels->SetItemState(i, i == row ? wxLIST_STATE_SELECTED : 0,
+                                             wxLIST_STATE_SELECTED);
+            }
+            ListCtrlModels->EnsureVisible(row);
+            ValidateWindow();
+            return true;
+        }
+        row = forward ? (row + 1) % count : ((row - 1) + count) % count;
+    }
+    return false;
+}
+
+void ViewsModelsPanel::RunModelFind(bool forward, bool fromCurrent)
+{
+    // Typing searches from the current row so an extra character narrows the
+    // same match; the next/prev buttons step past it.
+    const int selected = ListCtrlModels->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    const int anchor = (selected == -1) ? 0 : selected;
+    const int start = fromCurrent ? anchor : (forward ? anchor + 1 : anchor - 1);
+
+    const bool hit = FindModelRow(start, forward);
+
+    // Tint the box on a miss rather than silently doing nothing.
+    const bool empty = TextCtrl_ModelsFind->GetValue().IsEmpty();
+    TextCtrl_ModelsFind->SetBackgroundColour(
+        (hit || empty) ? wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)
+                       : wxColour(255, 210, 210));
+    TextCtrl_ModelsFind->Refresh();
+}
+
+void ViewsModelsPanel::OnModelsFindText(wxCommandEvent& /*event*/)
+{
+    RunModelFind(true, true);
+}
+
+void ViewsModelsPanel::OnModelsFindNext(wxCommandEvent& /*event*/)
+{
+    RunModelFind(true, false);
+}
+
+void ViewsModelsPanel::OnModelsFindPrev(wxCommandEvent& /*event*/)
+{
+    RunModelFind(false, false);
+}
+
+void ViewsModelsPanel::OnModelsFindCancel(wxCommandEvent& /*event*/)
+{
+    TextCtrl_ModelsFind->ChangeValue(wxEmptyString);
+    TextCtrl_ModelsFind->SetBackgroundColour(
+        wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    TextCtrl_ModelsFind->Refresh();
 }
 
 void ViewsModelsPanel::OnFilterDebounceTimer(wxTimerEvent& /*event*/)
