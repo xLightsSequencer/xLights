@@ -3856,6 +3856,7 @@ struct RenderEngine::RenderSetupRequest {
     SequenceData* seqData = nullptr;
     std::list<Model*> models;
     std::list<Model*> restrictToModels;
+    std::list<NodeRange> ranges;
     int startFrame = 0;
     int endFrame = 0;
     std::unique_ptr<IRenderProgressSink> sink;
@@ -3971,6 +3972,21 @@ void RenderEngine::Render(SequenceElements& seqElements,
     req->seqData = &seqData;
     req->models = models;
     req->restrictToModels = restrictToModels;
+    // Read the restricted models' channel ranges here rather than in the setup.
+    // RenderTreeData walks the model's live node list, and the main thread
+    // rebuilds that list whenever it likes - a ModelGroup's RebuildBuffers
+    // clears it under the group's cache lock, which a base-class node read on a
+    // pool thread does not take - so reading it from the setup job faulted on
+    // a node slot the rebuild had just nulled.
+    if (restrictToModels.empty()) {
+        req->ranges.push_back(NodeRange(0, seqData.NumChannels()));
+    } else {
+        for (const auto& it : restrictToModels) {
+            RenderTreeData data(it);
+            req->ranges.insert(req->ranges.end(), data.ranges.begin(), data.ranges.end());
+        }
+        RenderTreeData::sortRanges(req->ranges);
+    }
     req->startFrame = startFrame;
     req->endFrame = endFrame;
     req->sink = std::move(sink);
@@ -4056,16 +4072,7 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
     }
 
     auto logger_render = spdlog::get("render");
-    std::list<NodeRange> ranges;
-    if (restrictToModels.empty()) {
-        ranges.push_back(NodeRange(0, seqData.NumChannels()));
-    } else {
-        for (const auto& it : restrictToModels) {
-            RenderTreeData data(it);
-            ranges.insert(ranges.end(), data.ranges.begin(), data.ranges.end());
-        }
-        RenderTreeData::sortRanges(ranges);
-    }
+    const std::list<NodeRange>& ranges = req.ranges;
     int numRows = models.size();
     RenderJob **jobs = new RenderJob*[numRows];
     AggregatorRenderer **aggregators = new AggregatorRenderer*[numRows];

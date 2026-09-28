@@ -178,6 +178,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Effect settings with a leading space in their value (seen in some older
                                  sequences) were silently treated as 0, so fade in/out and other numeric
                                  settings could render wrong (#7055)
+    -bug (dkulp)                 Fixed a crash starting a render for a model group while the layout was
+                                 being edited or a sequence was opening
 
 
 2026.17  September 8, 2026
