@@ -29,7 +29,6 @@
     <vendor>
         <name>Your Pixel Store</name>
         <link>https://ledpixelshow.com/xlights/yps-models.xml</link>
-        <maxmodels>50</maxmodels>
     </vendor>
     <vendor>
         <name>Twinkle Forge</name>
