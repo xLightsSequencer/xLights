@@ -288,6 +288,10 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
                                            wxTE_PROCESS_ENTER);
     TextCtrl_ModelsFind->SetDescriptiveText(_("Find model..."));
     TextCtrl_ModelsFind->ShowCancelButton(true);
+    // Keep the find bar's minimum width small: it spans the View list and the
+    // view buttons, and a wide minimum stretches the button column instead of
+    // the View list.
+    TextCtrl_ModelsFind->SetMinSize(wxDLG_UNIT(this, wxSize(30, -1)));
     Button_FindPrev = new wxButton(this, wxID_ANY, _T("▲"), wxDefaultPosition,
                                    wxDLG_UNIT(this, wxSize(12, -1)));
     Button_FindNext = new wxButton(this, wxID_ANY, _T("▼"), wxDefaultPosition,
@@ -301,6 +305,7 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     auto* modelsSizer = new wxBoxSizer(wxVERTICAL);
     modelsSizer->Add(findSizer, 0, wxBOTTOM | wxEXPAND, 2);
     modelsSizer->Add(ListCtrlModels, 1, wxEXPAND, 0);
+    _modelsSizer = modelsSizer;
     GridBagSizer1->Add(modelsSizer, wxGBPosition(3, 2), wxGBSpan(1, 2),
                        wxALL | wxEXPAND, 2);
     TextCtrl_ModelsFind->Bind(wxEVT_TEXT,
@@ -318,8 +323,9 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     Bind(wxEVT_TIMER, &ViewsModelsPanel::OnFilterDebounceTimer, this,
          _filterDebounceTimer->GetId());
 
-    GridBagSizer1->AddGrowableCol(0, 2);
+    GridBagSizer1->AddGrowableCol(0, 1);
     GridBagSizer1->AddGrowableCol(2, 1);
+    FlexGridSizer8->AddGrowableCol(0);
     GridBagSizer1->AddGrowableRow(3);
 
     ListCtrlViews->SetImages((char**)eye_16, (char**)eye_16_gray);
@@ -413,8 +419,8 @@ void ViewsModelsPanel::SetEffectSequenceMode(bool effectSeq)
         Button_ViewDown->SetSize(0, 0, 0, 0);
 
         // Expand ListCtrlModels to cover the right side
-        _gridBagSizer->SetItemPosition(ListCtrlModels, wxGBPosition(0, 2));
-        _gridBagSizer->SetItemSpan(ListCtrlModels, wxGBSpan(4, 1));
+        _gridBagSizer->SetItemPosition(_modelsSizer, wxGBPosition(0, 2));
+        _gridBagSizer->SetItemSpan(_modelsSizer, wxGBSpan(4, 1));
         // Row 1 is shared with the [filter + ListCtrlNonModels] box sizer
         // on the left (col 0). Making row 1 growable lets the right-side
         // ListCtrlModels (rows 0-3) get a fair vertical share. The filter
@@ -426,8 +432,8 @@ void ViewsModelsPanel::SetEffectSequenceMode(bool effectSeq)
         _gridBagSizer->AddGrowableCol(2, 2);
     } else {
         // Restore ListCtrlModels to original position
-        _gridBagSizer->SetItemPosition(ListCtrlModels, wxGBPosition(3, 2));
-        _gridBagSizer->SetItemSpan(ListCtrlModels, wxGBSpan(1, 2));
+        _gridBagSizer->SetItemPosition(_modelsSizer, wxGBPosition(3, 2));
+        _gridBagSizer->SetItemSpan(_modelsSizer, wxGBSpan(1, 2));
 
         // Re-add views items to the sizer
         _gridBagSizer->Add(StaticText1, wxGBPosition(0, 2), wxDefaultSpan, wxALL, 2);

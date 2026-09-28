@@ -20,6 +20,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  uses one labelled field per fact
     -change (dkulp)              Crash reports now include the fault address, signal and the faulting
                                  instruction, and a backtrace taken at the moment of the fault
+    -enh (heffneil)              Display Elements: find bar with next/previous buttons for the Added models list #6929
     -enh (AGFazio)               Perspectives now also capture the Layout tab's panel arrangement
                                  (including floated onto a second monitor), so it's restored along
                                  with the sequencer layout #6889
