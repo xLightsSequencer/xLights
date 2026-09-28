@@ -4397,6 +4397,14 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
     if (mSequenceElements->GetSelectedTimingRow() == -1) {
         mCellRangeSelected = false;
     }
+    if (!mCellRangeSelected) {
+        // Abort before reading the selection, not after: AbortRender pumps the
+        // event loop while it waits, and a key repeat or selection change that
+        // runs in there can clear or replace mSelectedEffect.
+        if (GetLayersWithSelectedEffects().empty() || !xlights->AbortRender()) {
+            return;
+        }
+    }
     if (mCellRangeSelected) {
         if (shift) {
             if (mRangeEndRow > mRangeStartRow) {
@@ -4424,7 +4432,6 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
         }
 
         int row = mSelectedRow - 1;
-        xlights->AbortRender();
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while (row + mSequenceElements->GetFirstVisibleModelRow() >= mSequenceElements->GetNumberOfTimingRows()) {
             EffectLayer* new_el = mSequenceElements->GetEffectLayer(row);
@@ -4495,7 +4502,6 @@ void EffectsGrid::MoveSelectedEffectUp(bool shift) {
             // Tag all selected effects so we don't move them twice
             ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
-            xlights->AbortRender();
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             int min_source_row = -1;
             for (int row = first_model_row + 1; row < mSequenceElements->GetRowInformationSize(); row++) {
@@ -4548,6 +4554,14 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
     if (mSequenceElements->GetSelectedTimingRow() == -1) {
         mCellRangeSelected = false;
     }
+    if (!mCellRangeSelected) {
+        // Abort before reading the selection, not after: AbortRender pumps the
+        // event loop while it waits, and a key repeat or selection change that
+        // runs in there can clear or replace mSelectedEffect.
+        if (GetLayersWithSelectedEffects().empty() || !xlights->AbortRender()) {
+            return;
+        }
+    }
     if (mCellRangeSelected) {
         if (shift) {
             if (mRangeEndRow < mSequenceElements->GetRowInformationSize() - 1) {
@@ -4575,7 +4589,6 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
         }
 
         int row = mSelectedRow + 1;
-        xlights->AbortRender();
         EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
         while (row < mSequenceElements->GetRowInformationSize()) {
             EffectLayer* new_el = mSequenceElements->GetEffectLayer(row);
@@ -4647,7 +4660,6 @@ void EffectsGrid::MoveSelectedEffectDown(bool shift) {
             // Tag all selected effects so we don't move them twice
             ((MainSequencer*)mParent)->TagAllSelectedEffects();
 
-            xlights->AbortRender();
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             int max_source_row = -1;
             for (int row = last_row; row > first_model_row; row--) {

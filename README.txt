@@ -180,6 +180,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  settings could render wrong (#7055)
     -bug (dkulp)                 Fixed a crash starting a render for a model group while the layout was
                                  being edited or a sequence was opening
+    -bug (dkulp)                 Fixed a crash moving an effect up or down with the arrow keys while a
+                                 render was being stopped
 
 
 2026.17  September 8, 2026
