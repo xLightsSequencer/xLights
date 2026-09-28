@@ -29,7 +29,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              FPP status JSON parsing could crash - "description" isn't
                                  present for many "other" controller types (#7147)
     -bug (derwin12)              FPP Connect alternating rows no longer show as black on macOS
-    -bug (derwin12)              Changing a musical sequence to Animation in Sequence Settings
+    -bug (heffneil)              Changing a musical sequence to Animation in Sequence Settings
                                  (or loading a new song) could crash; the waveform panel kept
                                  pointing at the sequence's audio after it was freed (#7144)
     -enh (heffneil)              "Show All Timing Tracks" is now offered from any view, and
@@ -46,8 +46,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  files now keeps them embedded instead of reverting them to external
     -bug (derwin12)              Show the global controller settings (Controller Sync, Global FPP Proxy,
                                  etc.) again when no controller is selected on the Controllers tab
-    -enh (derwin12)              Added a Cancel option to the Model States delete confirmation
-    -bug (derwin12)              Moving Head panel could hit a wx sizer assert on creation once
+    -enh (AGFazio)               Added a Cancel option to the Model States delete confirmation
+    -bug (dkulp)                 Moving Head panel could hit a wx sizer assert on creation once
                                  the Path "crosses behind" warning added a second row to the
                                  canvas sizer
     -bug (derwin12)              Moving Head RGB color wheel picker was clipped/resized wrong
