@@ -1840,7 +1840,7 @@ void FPPConnectDialog::ApplySavedHostSettings()
             if (config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
                 SetChoiceValueIndex(FSEQ_COL + rowStr, lval);
             } else if (config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->ipAddress), &lval)) {
-                SetCheckValue(FSEQ_COL + rowStr, lval);
+                SetChoiceValueIndex(FSEQ_COL + rowStr, lval);
             }
             if (config->Read("FPPConnectUploadMedia_" + Fixitup(inst->uuid), &bval)) {
                 SetCheckValue(MEDIA_COL + rowStr, bval);
@@ -1850,12 +1850,12 @@ void FPPConnectDialog::ApplySavedHostSettings()
             if (config->Read("FPPConnectUploadModels_" + Fixitup(inst->uuid), &lval)) {
                 SetChoiceValueIndex(MODELS_COL + rowStr, lval);
             } else if (config->Read("FPPConnectUploadModels_" + Fixitup(inst->ipAddress), &lval)) {
-                SetCheckValue(MODELS_COL + rowStr, lval);
+                SetChoiceValueIndex(MODELS_COL + rowStr, lval);
             }
             if (config->Read("FPPConnectUploadUDPOut_" + Fixitup(inst->uuid), &lval)) {
                 SetChoiceValueIndex(UDP_COL + rowStr, lval);
             } else if (config->Read("FPPConnectUploadUDPOut_" + Fixitup(inst->ipAddress), &lval)) {
-                SetCheckValue(UDP_COL + rowStr, lval);
+                SetChoiceValueIndex(UDP_COL + rowStr, lval);
             }
             if (config->Read("FPPConnectUploadPixelOut_" + Fixitup(inst->uuid), &bval)) {
                 SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, bval);
