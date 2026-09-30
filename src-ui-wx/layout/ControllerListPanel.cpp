@@ -779,7 +779,7 @@ void ControllerListPanel::OnContextMenu(wxTreeListEvent& event) {
     mnu.Append(ID_CTRL_MNU_ADDSERIAL, "Insert DMX/LOR/DLight/Renard")->Enable(allowed);
     mnu.Append(ID_CTRL_MNU_ACTIVE, "Activate")->Enable(canActivate);
     mnu.Append(ID_CTRL_MNU_ACTIVEXLIGHTS, "Activate in xLights Only")->Enable(canActivate);
-    mnu.Append(ID_CTRL_MNU_INACTIVE, "Inactivate")->Enable(canActivate);
+    mnu.Append(ID_CTRL_MNU_INACTIVE, "Deactivate")->Enable(canActivate);
     mnu.Append(ID_CTRL_MNU_DELETE, "Delete")->Enable(allowed && !selected.empty());
     mnu.Append(ID_CTRL_MNU_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(allowed && allFromBase);
     {
