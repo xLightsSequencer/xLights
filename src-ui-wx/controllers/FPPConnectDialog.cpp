@@ -1438,7 +1438,15 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
             if (seq) {
                 // every frame is read in order below to build the upload
                 seq->setReadPattern(FSEQFile::ReadPattern::Bulk);
-                prgs->setActionLabel("Checking Media and FSEQ file for " + media + "/" + wxFileName(ToWXString(fseq)).GetFullName());
+                bool uploadingMedia = false;
+                for (row = 0; row < (int)doUpload.size() && !media.empty(); ++row) {
+                    uploadingMedia |= doUpload[row] && GetCheckValue(MEDIA_COL + std::to_string(row));
+                }
+                if (uploadingMedia) {
+                    prgs->setActionLabel("Checking Media and FSEQ file for " + media + "/" + wxFileName(ToWXString(fseq)).GetFullName());
+                } else {
+                    prgs->setActionLabel("Checking FSEQ file for " + wxFileName(ToWXString(fseq)).GetFullName());
+                }
                 row = 0;
                 int uploadCount = 0;
                 int prepareCount = 0;
