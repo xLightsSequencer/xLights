@@ -710,7 +710,7 @@ bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<floa
 
         is3D = jsonDoc.at("source").get<std::string>() == "3d";
 
-        auto coords = jsonDoc.at("coordinates").array();
+        const auto& coords = jsonDoc.at("coordinates");
 
         for (uint32_t i = 0; i < coords.size(); i++) {
             auto v = coords.at(i);

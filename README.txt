@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (scott)                 Import From Controller (Custom model dialog, Twinkly) silently
+                                 did nothing - the downloaded layout's coordinates were discarded
+    -bug (scott)                 Falcon "get media files" always returned an empty list
+    -bug (scott)                 Minleon controller connect could compute 0 ports instead of the
+                                 real port count
+    -bug (scott)                 Discovered DDP controllers could have their channel count computed
+                                 as 0
+    -bug (scott)                 Import Channel Map's saved-mapping loader silently failed to
+                                 restore selected timing tracks or any model/strand/node mappings
     -change (derwin12)           Log what marked the layout/controller Save button as unsaved #7137
     -change (dkulp)              Crash reports from ARM Linux machines now name the CPU (the board
                                  name, e.g. "Raspberry Pi 5 Model B Rev 1.0") and report a real

@@ -656,7 +656,7 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
 
         spdlog::debug("Getting minleon status.");
         auto config = DDPOutput::Query(_ip, DDP_ID_CONFIG);
-        _ports = config["config"]["ports"].array()->size();
+        _ports = config["config"]["ports"].size();
         ParseStringPorts(_stringPorts, config["config"]["ports"]);
         spdlog::debug("Downloaded string data.");
         DumpStringData(_stringPorts, -1);
@@ -774,7 +774,7 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
             if (val["config"].contains("nports")) {
                 _ports = getJSONNum(val["config"], "nports");
             } else {
-                _ports = val["config"]["ports"].array().size();
+                _ports = val["config"]["ports"].size();
             }
             if (val["config"].contains("rpt")) {
                 _grouping = getJSONNum(val["config"], "rpt");

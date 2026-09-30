@@ -57,7 +57,7 @@ std::vector<std::string> Falcon::V4_GetMediaFiles() {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "WV", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            for (auto item : outParams.at("F").array()) {
+            for (auto item : outParams.at("F")) {
                 res.push_back(item.get<std::string>());
             }
 

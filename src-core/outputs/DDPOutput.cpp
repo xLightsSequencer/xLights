@@ -324,7 +324,7 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
 
                     if (val.contains("config") && val["config"].contains("ports")) {
                         int channels = 0;
-                        auto ports = val["config"]["ports"].array();
+                        auto ports = val["config"]["ports"];
                         for (size_t i = 0; i < ports.size(); i++) {
                             auto ts =
                                 strtol(

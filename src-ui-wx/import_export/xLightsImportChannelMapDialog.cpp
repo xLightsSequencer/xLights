@@ -2191,7 +2191,7 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
     }
 
     //selected timmings
-    auto timingtracks = data["timingtracks"].array();
+    auto timingtracks = data["timingtracks"];
     if (timingtracks != nullptr) {
         for (size_t i = 0; i < timingtracks.size(); ++i) {
             wxString const ttname = timingtracks.at(i).at("name").get<std::string>();
@@ -2207,7 +2207,7 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
     }
 
     //mappings
-    auto mappings = data["mappings"].array();
+    auto mappings = data["mappings"];
     for (size_t i = 0; i < mappings.size(); ++i) {
         wxString const model = mappings.at(i).at("model").get<std::string>();
         wxString const strand = mappings.at(i).value("strand", "");
