@@ -107,6 +107,10 @@ static wxString GetMediaPath(wxTreeListCtrl* ctrl, const wxTreeListItem& item) {
     return d != nullptr ? d->media : ctrl->GetItemText(item, 2);
 }
 
+static wxString SequencePathKey(const wxString& path) {
+    return wxFileName(path).GetFullPath();
+}
+
 static wxColour InstanceRowShade(wxWindow* win, wxSystemColour fallback) {
     // On macOS a window's default background can be a dynamic/pattern NSColor with
     // no RGB components, which reads back as black.
@@ -998,7 +1002,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
 {
     std::set<wxString> knownPaths;
     for (auto item = CheckListBox_Sequences->GetFirstItem(); item.IsOk(); item = CheckListBox_Sequences->GetNextItem(item)) {
-        knownPaths.insert(GetSequencePath(CheckListBox_Sequences, item));
+        knownPaths.insert(SequencePathKey(GetSequencePath(CheckListBox_Sequences, item)));
     }
     LoadSequencesFromFolder(dir, knownPaths);
 }
@@ -1040,7 +1044,7 @@ void FPPConnectDialog::AddSequenceListItem(const wxString& fseqPath, const std::
         pathData->media = ToWXString(mediaName);
     }
 
-    knownPaths.insert(fseqPath);
+    knownPaths.insert(SequencePathKey(fseqPath));
 }
 
 void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxString>& knownPaths) const
@@ -1121,7 +1125,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxS
                     // such as when you have an imported subfolder this can create duplicates ... so lets first check
                     // we dont already have the fseq file in the list
 
-                    if (knownPaths.find(fseqName) == knownPaths.end()) {
+                    if (knownPaths.find(SequencePathKey(fseqName)) == knownPaths.end()) {
                         AddSequenceListItem(fseqName, mediaName, knownPaths);
                     }
                 }
@@ -1149,7 +1153,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxS
         try {
             spdlog::debug("SEQ:  {}", ToUTF8(filename));
 
-            if (knownPaths.find(filename) == knownPaths.end()) {
+            if (knownPaths.find(SequencePathKey(filename)) == knownPaths.end()) {
                 AddSequenceListItem(filename, "", knownPaths);
             }
         } catch (const std::exception& e) {
