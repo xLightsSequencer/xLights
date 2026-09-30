@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Vendor Name="JBoards">
+
+    <AbstractVariant Name="BaseJBoards">
+        <SupportsUpload/>
+        <SupportsInputOnlyUpload/>
+        <SupportsAutoLayout/>
+        <SupportsFullxLightsControl/>
+        <SupportsDefaultBrightness/>
+        <SupportsVirtualStrings/>
+        <MergeConsecutiveVirtualStrings/>
+        <SupportsPixelPortColourOrder/>
+        <SupportsPixelPortBrightness/>
+        <SupportsPixelPortGamma/>
+        <SupportsPixelPortNullPixels/>
+        <MaxStartNulls>100</MaxStartNulls>
+        <SupportsPixelPortEndNullPixels/>
+        <MaxEndNulls>100</MaxEndNulls>
+        <SupportsPixelPortDirection/>
+        <SupportsPixelPortGrouping/>
+        <SupportsPixelZigZag/>
+        <DDPStartsAtOne/>
+        <NeedsDDPInputUpload/>
+        <MaxPixelPortChannels>3000</MaxPixelPortChannels>
+        <FPS40Pixels>750</FPS40Pixels>
+        <MaxInputUniverses>128</MaxInputUniverses>
+        <AllInputUniversesMustBeSameSize/>
+        <UniversesMustBeSequential/>
+        <SupportsMultipleSimultaneousOutputProtocols/>
+        <MaxSerialPort>1</MaxSerialPort>
+        <MaxSerialPortChannels>512</MaxSerialPortChannels>
+        <DMXAfterPixels/>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+            <Protocol>ws2812</Protocol>
+            <Protocol>ws2812b</Protocol>
+            <Protocol>sk6812</Protocol>
+        </PixelProtocols>
+        <SerialProtocols>
+            <Protocol>dmx</Protocol>
+        </SerialProtocols>
+        <InputProtocols>
+            <Protocol>ddp</Protocol>
+            <Protocol>e131</Protocol>
+            <Protocol>artnet</Protocol>
+        </InputProtocols>
+        <PreferredInputProtocol>DDP</PreferredInputProtocol>
+        <ConfigDriver>JBoards</ConfigDriver>
+    </AbstractVariant>
+
+    <Controller Name="JBD16+2IR">
+        <Variant Name="" ID="JBD16+2IR" Base="JBoards:BaseJBoards">
+            <MaxPixelPort>48</MaxPixelPort>
+        </Variant>
+    </Controller>
+
+    <Controller Name="JBD8+2R">
+        <Variant Name="" ID="JBD8+2R" Base="JBoards:BaseJBoards">
+            <MaxPixelPort>16</MaxPixelPort>
+            <SupportsSmartRemotes>6</SupportsSmartRemotes>
+            <AllSmartRemoteTypesPerPortMustBeSame/>
+            <SmartRemoteTypes>
+                <Type>fpp_v2</Type>
+            </SmartRemoteTypes>
+        </Variant>
+    </Controller>
+
+</Vendor>
