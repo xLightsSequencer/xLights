@@ -32,6 +32,7 @@
 #include <zstd.h>
 
 #include "FPP.h"
+#include "JBoards.h"
 #include "../render/UICallbacks.h"
 #include "../models/CustomModel.h"
 #include "../models/Model.h"
@@ -4008,6 +4009,8 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
             inst->controller->SetAutoLayout(true);
             inst->controller->SetAutoSize(true, nullptr);
         }
+    } else if (inst->typeId == 0xC5) {
+        JBoards::ProcessFPPDiscovery(discovery, inst);
     }
     setRangesToChannelCount(inst);
 }
@@ -4676,6 +4679,11 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
         return res->mode != "bridge";
     }
 
+    if (res->typeId == 0xC5) {
+        // JBoards
+        return res->mode != "bridge";
+    }
+
     return false;
 }
 
@@ -4840,6 +4848,8 @@ void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
         inst->fppType = FPP_TYPE::GENIUS;
     } else if (typeId >= 0xD0 && typeId <= 0xDF) {
         inst->fppType = FPP_TYPE::POWERDMX;
+    } else if (typeId == 0xC5) {
+        inst->fppType = FPP_TYPE::JBOARDS;
     }
 }
 
