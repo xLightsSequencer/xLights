@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (scott)                 Import From Controller (Custom model dialog, Twinkly) silently
                                  did nothing - the downloaded layout's coordinates were discarded
     -bug (scott)                 Falcon "get media files" always returned an empty list
+    -bug (derwin12)              Crash uploading to a Falcon V4 controller when its media list
+                                 returned file names as objects
     -bug (scott)                 Minleon controller connect could compute 0 ports instead of the
                                  real port count
     -bug (scott)                 Discovered DDP controllers could have their channel count computed

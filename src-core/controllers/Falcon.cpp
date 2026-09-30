@@ -57,8 +57,18 @@ std::vector<std::string> Falcon::V4_GetMediaFiles() {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "WV", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-            for (auto item : outParams.at("F")) {
-                res.push_back(item.get<std::string>());
+            auto fit = outParams.find("F");
+            if (fit != outParams.end() && fit->is_array()) {
+                for (const auto& item : *fit) {
+                    if (item.is_string()) {
+                        res.push_back(item.get<std::string>());
+                    } else if (item.is_object()) {
+                        auto nit = item.find("f");
+                        if (nit != item.end() && nit->is_string()) {
+                            res.push_back(nit->get<std::string>());
+                        }
+                    }
+                }
             }
 
             batch++;
@@ -2443,75 +2453,80 @@ bool Falcon::UploadSequence(const std::string& seq, const std::string& file, con
     
     bool res = true;
 
-    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    std::string url = "http://" + baseIP + _baseUrl + "/upload.cgi";
-    spdlog::debug("Uploading to URL: {}", (const char*)url.c_str());
+    try {
+        std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+        std::string url = "http://" + baseIP + _baseUrl + "/upload.cgi";
+        spdlog::debug("Uploading to URL: {}", (const char*)url.c_str());
 
-    if (media != "") {
-        std::filesystem::path fn(media);
-        std::string origfile = fn.filename().string();
-        bool ismp3 = Lower(fn.extension().string()) == ".mp3";
-        std::string wavfile = (fn.stem().string() + ".wav");
-        auto lwavfile = Lower(wavfile);
+        if (media != "") {
+            std::filesystem::path fn(media);
+            std::string origfile = fn.filename().string();
+            bool ismp3 = Lower(fn.extension().string()) == ".mp3";
+            std::string wavfile = (fn.stem().string() + ".wav");
+            auto lwavfile = Lower(wavfile);
 
-        // check to see if controller has the media file
-        auto wavs = V4_GetMediaFiles();
-        bool found = false;
+            // check to see if controller has the media file
+            auto wavs = V4_GetMediaFiles();
+            bool found = false;
 
-        for (const auto& it : wavs) {
-            if (Lower(it) == lwavfile) {
-                found = true;
-                break;
-            }
-        }
-
-        // if not then upload it
-        if (!found) {
-            bool skip = false;
-
-            if (!ismp3) {
-                if (!V4_ValidateWAV(media)) {
-                    skip = true;
-                    spdlog::warn("WAV file not valid: {} : Skipping.", media);
+            for (const auto& it : wavs) {
+                if (Lower(it) == lwavfile) {
+                    found = true;
+                    break;
                 }
             }
 
-            if (!skip && res) {
-                res = res && CurlManager::HTTPUploadFile(url, media, origfile, progress);
+            // if not then upload it
+            if (!found) {
+                bool skip = false;
 
-                if (res) {
-                    if (ismp3) {
-                        if (progress != nullptr)
-                            progress(0, "Converting to WAV file.");
-                        std::this_thread::sleep_for(std::chrono::seconds(1));
-                        int p = 0;
-                        while (p != 100) {
-                            p = V4_GetConversionProgress();
+                if (!ismp3) {
+                    if (!V4_ValidateWAV(media)) {
+                        skip = true;
+                        spdlog::warn("WAV file not valid: {} : Skipping.", media);
+                    }
+                }
+
+                if (!skip && res) {
+                    res = res && CurlManager::HTTPUploadFile(url, media, origfile, progress);
+
+                    if (res) {
+                        if (ismp3) {
                             if (progress != nullptr)
-                                progress(p * 10, "Converting to WAV file.");
-                            if (p != 100)
-                                std::this_thread::sleep_for(std::chrono::seconds(5));
-                        }
-                    } else {
-                        while (V4_IsFileUploading()) {
+                                progress(0, "Converting to WAV file.");
                             std::this_thread::sleep_for(std::chrono::seconds(1));
+                            int p = 0;
+                            while (p != 100) {
+                                p = V4_GetConversionProgress();
+                                if (progress != nullptr)
+                                    progress(p * 10, "Converting to WAV file.");
+                                if (p != 100)
+                                    std::this_thread::sleep_for(std::chrono::seconds(5));
+                            }
+                        } else {
+                            while (V4_IsFileUploading()) {
+                                std::this_thread::sleep_for(std::chrono::seconds(1));
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    // upload the fseq
-    {
-        std::filesystem::path fn(file);
-        res = res && CurlManager::HTTPUploadFile(url, seq, fn.filename().string(), progress);
+        // upload the fseq
+        {
+            std::filesystem::path fn(file);
+            res = res && CurlManager::HTTPUploadFile(url, seq, fn.filename().string(), progress);
 
-        if (res) {
-            while (V4_IsFileUploading()) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (res) {
+                while (V4_IsFileUploading()) {
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                }
             }
         }
+    } catch (const nlohmann::json::exception& e) {
+        spdlog::error("Falcon::UploadSequence - unexpected JSON response from controller: {}", e.what());
+        res = false;
     }
     return res;
 }
