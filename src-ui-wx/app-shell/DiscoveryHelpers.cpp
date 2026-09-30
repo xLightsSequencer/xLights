@@ -15,6 +15,7 @@
 
 #include "controllers/FPP.h"
 #include "controllers/WLED.h"
+#include "controllers/JBoards.h"
 #include "discovery/Discovery.h"
 #include "outputs/ArtNetOutput.h"
 #include "outputs/ControllerEthernet.h"
@@ -69,6 +70,7 @@ std::list<std::string> xLightsFrame::PrepareAllControllerDiscovery(Discovery& di
     Pixlite16::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
     WLED::PrepareDiscovery(discovery);
+    JBoards::PrepareDiscovery(discovery);
     return addresses;
 }
 

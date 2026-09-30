@@ -37,6 +37,7 @@
 #include "ILightThat.h"
 #include "Experience.h"
 #include "PowerDMX.h"
+#include "JBoards.h"
 #include "utils/CurlManager.h"
 
 #pragma region Constructors and Destructors
@@ -99,6 +100,8 @@ BaseController *BaseController::CreateBaseController(Controller *controller, con
         bc = new ILightThat(ip, proxy);
     } else if (driver == "PowerDMX") {
         bc = new PowerDMX(ip, proxy);
+    } else if (driver == "JBoards") {
+        bc = new JBoards(ip, proxy);
     } else {
         spdlog::warn("Vendor not recognized ... assuming it is a FPP based vendor : {}.", (const char*)vendor.c_str());
         bc = new FPP(ip, proxy, caps->GetModel());
