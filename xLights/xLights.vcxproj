@@ -483,6 +483,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\models\ControllerConnection.cpp" />
     <ClCompile Include="..\src-core\models\handles\HitTest.cpp" />
     <ClCompile Include="..\src-core\controllers\ILightThat.cpp" />
+    <ClCompile Include="..\src-core\controllers\JBoards.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BatchRenderDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BulkEditColourPickerDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BulkEditComboDialog.cpp" />
@@ -1200,6 +1201,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\models\handles\Handles.h" />
     <ClInclude Include="..\src-core\models\handles\HitTest.h" />
     <ClInclude Include="..\src-core\controllers\ILightThat.h" />
+    <ClInclude Include="..\src-core\controllers\JBoards.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BatchRenderDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BulkEditColourPickerDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BulkEditComboDialog.h" />
