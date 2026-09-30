@@ -25,7 +25,8 @@ enum class FPP_TYPE { FPP,
                       FALCONV4V5,
                       ESPIXELSTICK,
                       GENIUS,
-                      POWERDMX };
+                      POWERDMX,
+                      JBOARDS };
 
 enum class ReceiverType {
     Standard = 0,
