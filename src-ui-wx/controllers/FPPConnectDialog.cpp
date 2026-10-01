@@ -126,6 +126,11 @@ static const std::string PROXY_COL = "ID_PROXY_";
 static const std::string PLAYLIST_COL = "ID_PLAYLIST_";
 static const std::string UPLOAD_CONTROLLER_COL = "ID_CONTROLLER_";
 
+static const char* const HOST_SETTING_PREFIXES[] = {
+    "FPPConnectUpload_", "FPPConnectUploadMedia_", "FPPConnectUploadFSEQType_", "FPPConnectUploadModels_",
+    "FPPConnectUploadUDPOut_", "FPPConnectUploadPixelOut_", "FPPConnectUploadProxy_"
+};
+
 FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, const std::string& targetIp, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _outputManager = outputManager;
@@ -1743,7 +1748,7 @@ void FPPConnectDialog::SetChoiceValueIndex(const std::string &col, int i) {
     wxWindow *w = FPPInstanceList->FindWindow(ToWXString(col));
     if (w) {
         wxItemContainer *cb = dynamic_cast<wxItemContainer*>(w);
-        if (cb) {
+        if (cb && i >= 0 && i < (int)cb->GetCount()) {
             cb->SetSelection(i);
         }
     }
@@ -1785,36 +1790,35 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
     int row = 0;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
-        wxString keyPostfx = (inst->uuid.empty() ? inst->ipAddress : inst->uuid);
-        keyPostfx = Fixitup(keyPostfx);
+        wxString keyPostfx = HostSettingKey(inst);
         bool bval;
         int lval;
         // only save the settings if they are different from defaults, or if previously changed and saved - this will help new users with auto setting up UPD & proxy
-        if (GetCheckValue(CHECK_COL + rowStr) != false || config->Read("FPPConnectUpload_" + Fixitup(inst->uuid), &bval)) {
+        if (GetCheckValue(CHECK_COL + rowStr) != false || config->Read("FPPConnectUpload_" + keyPostfx, &bval)) {
             config->Write("FPPConnectUpload_" + keyPostfx, GetCheckValue(CHECK_COL + rowStr));
         }
-        if (GetCheckValue(MEDIA_COL + rowStr) != false || config->Read("FPPConnectUploadMedia_" + Fixitup(inst->uuid), &bval)) {
+        if (GetCheckValue(MEDIA_COL + rowStr) != false || config->Read("FPPConnectUploadMedia_" + keyPostfx, &bval)) {
             config->Write("FPPConnectUploadMedia_" + keyPostfx, GetCheckValue(MEDIA_COL + rowStr));
         }
         if (inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect()) {
-            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != 2 || config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
+            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != 2 || config->Read("FPPConnectUploadFSEQType_" + keyPostfx, &lval)) {
                 config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
             }
         } else if (inst->fppType == FPP_TYPE::FALCONV4V5) {
-            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != 2 || config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
+            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != 2 || config->Read("FPPConnectUploadFSEQType_" + keyPostfx, &lval)) {
                 config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
             }
         }
-        if (GetChoiceValueIndex(MODELS_COL + rowStr) != 0 || config->Read("FPPConnectUploadModels_" + Fixitup(inst->uuid), &lval)) {
+        if (GetChoiceValueIndex(MODELS_COL + rowStr) != 0 || config->Read("FPPConnectUploadModels_" + keyPostfx, &lval)) {
             config->Write("FPPConnectUploadModels_" + keyPostfx, GetChoiceValueIndex(MODELS_COL + rowStr));
         }
-        if (GetChoiceValueIndex(UDP_COL + rowStr) > 0 || config->Read("FPPConnectUploadUDPOut_" + Fixitup(inst->uuid), &lval)) {
+        if (GetChoiceValueIndex(UDP_COL + rowStr) > 0 || config->Read("FPPConnectUploadUDPOut_" + keyPostfx, &lval)) {
             config->Write("FPPConnectUploadUDPOut_" + keyPostfx, GetChoiceValueIndex(UDP_COL + rowStr));
         }
-        if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) != false || config->Read("FPPConnectUploadPixelOut_" + Fixitup(inst->uuid), &bval)) {
+        if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) != false || config->Read("FPPConnectUploadPixelOut_" + keyPostfx, &bval)) {
             config->Write("FPPConnectUploadPixelOut_" + keyPostfx, GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr));
         }
-        if (GetCheckValue(PROXY_COL + rowStr) != false || config->Read("FPPConnectUploadProxy_" + Fixitup(inst->uuid), &bval)) {
+        if (GetCheckValue(PROXY_COL + rowStr) != false || config->Read("FPPConnectUploadProxy_" + keyPostfx, &bval)) {
             config->Write("FPPConnectUploadProxy_" + keyPostfx, GetCheckValue(PROXY_COL + rowStr));
         }
         row++;
@@ -1830,6 +1834,10 @@ wxString FPPConnectDialog::Fixitup(wxString val) {
     return val;
 }
 
+wxString FPPConnectDialog::HostSettingKey(const FPP* inst) {
+    return Fixitup(inst->uuid.empty() ? inst->ipAddress : inst->uuid);
+}
+
 void FPPConnectDialog::ApplySavedHostSettings()
 {
     auto* config = GetXLightsConfig();
@@ -1837,44 +1845,40 @@ void FPPConnectDialog::ApplySavedHostSettings()
         int row = 0;
         for (const auto& inst : instances) {
             std::string rowStr = std::to_string(row);
+            const wxString key = HostSettingKey(inst);
+
+            // Settings for a device with an ID are saved under the ID. Anything under its IP
+            // was saved before it reported one, or belonged to whichever device last held
+            // the address, so drop it rather than let it resurface.
+            if (!inst->uuid.empty() && !inst->ipAddress.empty()) {
+                const wxString ipKey = Fixitup(inst->ipAddress);
+                for (const char* prefix : HOST_SETTING_PREFIXES) {
+                    config->DeleteEntry(prefix + ipKey);
+                }
+            }
 
             bool bval;
             int lval;
-            if (config->Read("FPPConnectUpload_" + Fixitup(inst->uuid), &bval)) {
-                SetCheckValue(CHECK_COL + rowStr, bval);
-                inst->upload = bval;
-            } else if (config->Read("FPPConnectUpload_" + Fixitup(inst->ipAddress), &bval)) {
+            if (config->Read("FPPConnectUpload_" + key, &bval)) {
                 SetCheckValue(CHECK_COL + rowStr, bval);
                 inst->upload = bval;
             }
-            if (config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
-                SetChoiceValueIndex(FSEQ_COL + rowStr, lval);
-            } else if (config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->ipAddress), &lval)) {
+            if ((inst->fppType == FPP_TYPE::FPP || inst->fppType == FPP_TYPE::FALCONV4V5) && config->Read("FPPConnectUploadFSEQType_" + key, &lval)) {
                 SetChoiceValueIndex(FSEQ_COL + rowStr, lval);
             }
-            if (config->Read("FPPConnectUploadMedia_" + Fixitup(inst->uuid), &bval)) {
-                SetCheckValue(MEDIA_COL + rowStr, bval);
-            } else if (config->Read("FPPConnectUploadMedia_" + Fixitup(inst->ipAddress), &bval)) {
+            if (config->Read("FPPConnectUploadMedia_" + key, &bval)) {
                 SetCheckValue(MEDIA_COL + rowStr, bval);
             }
-            if (config->Read("FPPConnectUploadModels_" + Fixitup(inst->uuid), &lval)) {
-                SetChoiceValueIndex(MODELS_COL + rowStr, lval);
-            } else if (config->Read("FPPConnectUploadModels_" + Fixitup(inst->ipAddress), &lval)) {
+            if (config->Read("FPPConnectUploadModels_" + key, &lval)) {
                 SetChoiceValueIndex(MODELS_COL + rowStr, lval);
             }
-            if (config->Read("FPPConnectUploadUDPOut_" + Fixitup(inst->uuid), &lval)) {
-                SetChoiceValueIndex(UDP_COL + rowStr, lval);
-            } else if (config->Read("FPPConnectUploadUDPOut_" + Fixitup(inst->ipAddress), &lval)) {
+            if (config->Read("FPPConnectUploadUDPOut_" + key, &lval)) {
                 SetChoiceValueIndex(UDP_COL + rowStr, lval);
             }
-            if (config->Read("FPPConnectUploadPixelOut_" + Fixitup(inst->uuid), &bval)) {
-                SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, bval);
-            } else if (config->Read("FPPConnectUploadPixelOut_" + Fixitup(inst->ipAddress), &bval)) {
+            if (config->Read("FPPConnectUploadPixelOut_" + key, &bval)) {
                 SetCheckValue(UPLOAD_CONTROLLER_COL + rowStr, bval);
             }
-            if (config->Read("FPPConnectUploadProxy_" + Fixitup(inst->uuid), &bval)) {
-                SetCheckValue(PROXY_COL + rowStr, bval);
-            } else if (config->Read("FPPConnectUploadProxy_" + Fixitup(inst->ipAddress), &bval)) {
+            if (config->Read("FPPConnectUploadProxy_" + key, &bval)) {
                 SetCheckValue(PROXY_COL + rowStr, bval);
             }
             row++;

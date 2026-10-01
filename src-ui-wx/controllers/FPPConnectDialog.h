@@ -33,6 +33,7 @@ class FPPConnectDialog: public wxDialog
     void SaveSettings(bool onlyInsts = false);
     void ApplySavedHostSettings();
     wxString Fixitup(wxString val);
+    wxString HostSettingKey(const FPP* inst);
 
     // Shared close path for OnClose() and OnCancelButtonClick(): defers the
     // close while an upload is in progress instead of tearing this dialog

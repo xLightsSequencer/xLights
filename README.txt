@@ -18,6 +18,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Display Elements
     -enh (dkulp)                 FPP Connect model upload now also sends submodels and model groups
                                  so FPP can run overlay effects on them (FPP 10+)
+    -bug (pixelpropshop/dkulp)   FPP Connect could restore old upload settings saved under a device's
+                                 IP address in place of its current ones, and a choice set back to its
+                                 default did not stick for devices that report no ID
     -bug (dkulp)                 Crash importing a GDTF moving-head fixture
     -bug (dkulp)                 Shows and model imports from before 2024.05 with 3D moving heads
                                  failed to load ("Unknown model type: DmxMovingHead3D"); they are
