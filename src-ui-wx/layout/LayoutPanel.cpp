@@ -11056,6 +11056,11 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
     size_t idx = undoBuffer.size();
 
     std::string type = tp;
+    // Callers pick SingleModel/SingleObject from the active page, but the
+    // Controllers page edits view objects while a model can still be selected.
+    if ((type == "SingleModel" || type == "SingleObject") && _newModel == nullptr && selectedBaseObject != nullptr) {
+        type = dynamic_cast<Model*>(selectedBaseObject) != nullptr ? "SingleModel" : "SingleObject";
+    }
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
     if (idx > 0 ) {
@@ -11111,7 +11116,10 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
                 return;
             }
             m=dynamic_cast<Model*>(selectedBaseObject);
-            wxASSERT(m != nullptr);
+            if (m == nullptr) {
+                undoBuffer.resize(idx);
+                return;
+            }
         }
         
         // Use XmlSerializer to create the XML document
@@ -11127,8 +11135,11 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
             return;
         }
         obj=dynamic_cast<ViewObject*>(selectedBaseObject);
-        wxASSERT(obj != nullptr);
-        
+        if (obj == nullptr) {
+            undoBuffer.resize(idx);
+            return;
+        }
+
         StringSerializingVisitor visitor;
         serializer.SerializeObject(*obj, visitor);
         undoBuffer[idx].data = visitor.GetResult();
