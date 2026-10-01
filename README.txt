@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (derwin12)              Changing the sequencer View now clears the prop filter
     -bug (heffneil)              The sequencer prop filter is no longer saved into the sequence; models
                                  hidden by the filter in older sequences stay hidden until re-shown in
                                  Display Elements
