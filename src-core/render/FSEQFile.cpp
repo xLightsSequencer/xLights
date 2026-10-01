@@ -295,6 +295,23 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string& fn) {
         return nullptr;
     }
 
+    // The ctors index fixed header fields directly, so require at least the
+    // bytes they touch: base reads [18] (normal) or [8..11] (ESEQ), V2 reads
+    // [20],[21],[22],[24..31], V2-ESEQ reads [12..19].
+    uint64_t minHeaderSize = 19;
+    if (headerPeek[0] == V1ESEQ_HEADER_IDENTIFIER) {
+        minHeaderSize = 20;
+    } else if (seqVersionMajor == V2FSEQ_MAJOR_VERSION) {
+        minHeaderSize = 32;
+    }
+    if (seqChanDataOffset < minHeaderSize) {
+        LogErr(VB_SEQUENCE, "Error reading FSEQ file (%s) header, channel data offset %" PRIu64 " is below minimum %d bytes, file is truncated\n",
+               fn.c_str(), seqChanDataOffset, (int)minHeaderSize);
+        DumpHeader("File header peek:", headerPeek, bytesRead);
+        fclose(seqFile);
+        return nullptr;
+    }
+
     // Read the full header size (beginning at 0 and ending at seqChanDataOffset)
     std::vector<uint8_t> header(seqChanDataOffset);
     fseeko(seqFile, 0L, SEEK_SET);
@@ -356,8 +373,13 @@ std::string FSEQFile::getMediaFilename(const std::string& fn) {
 std::string FSEQFile::getMediaFilename() const {
     for (auto& a : m_variableHeaders) {
         if (a.code[0] == 'm' && a.code[1] == 'f') {
-            const char* d = (const char*)&a.data[0];
-            return d;
+            // file data: not necessarily NUL terminated
+            const char* d = (const char*)a.data.data();
+            size_t len = strnlen(d, a.data.size());
+            if (len == 0) {
+                continue;
+            }
+            return std::string(d, len);
         }
     }
     return "";
@@ -451,6 +473,13 @@ FSEQFile::FSEQFile(const std::string& fn, FILE* file, const std::vector<uint8_t>
         m_seqChannelCount = read4ByteUInt(&header[10]);
         m_seqNumFrames = read4ByteUInt(&header[14]);
         m_seqStepTime = header[18];
+        // One unvalidated byte out of the file that every consumer divides by.
+        // Clamp it here, where it enters the program, rather than at each divide.
+        if (m_seqStepTime <= 0) {
+            LogErr(VB_SEQUENCE, "Invalid FSEQ file %s: step time %d, using %dms\n",
+                   m_filename.c_str(), m_seqStepTime, FSEQ_DEFAULT_STEP_TIME);
+            m_seqStepTime = FSEQ_DEFAULT_STEP_TIME;
+        }
     }
 }
 FSEQFile::~FSEQFile() {
@@ -538,6 +567,13 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t>& header, int read
             LogInfo(VB_SEQUENCE, "VariableHeader has 0 length data: %c%c", code0, code1);
         } else if (code0 == 'E' && code1 == 'D') {
             // The actual data is elsewhere in the file
+            // The 2-byte code + 8-byte offset + 4-byte length below need 14
+            // bytes; a truncated ED block would otherwise read past the header.
+            if (readIndex + 14 > (int)header.size()) {
+                LogErr(VB_SEQUENCE, "VariableHeader 'ED' is truncated, %d bytes remain but 14 needed\n",
+                       (int)header.size() - readIndex);
+                return;
+            }
             code0 = header[readIndex];
             code1 = header[readIndex + 1];
             readIndex += VariableCodeSize;
@@ -549,13 +585,28 @@ void FSEQFile::parseVariableHeaders(const std::vector<uint8_t>& header, int read
             memcpy(&offset, &header[readIndex], 8);
             uint32_t len;
             memcpy(&len, &header[readIndex + 8], 4);
-            vheader.data.resize(len);
+            readIndex += 12;
+
+            // offset/len come straight from the file: an unchecked length is a
+            // multi-GB allocation from a tiny file.  Never read past EOF.
+            if (offset >= m_seqFileSize) {
+                LogErr(VB_SEQUENCE, "VariableHeader '%c%c' extended data offset %" PRIu64 " is past the end of the file\n", code0, code1, offset);
+                m_variableHeaders.push_back(vheader);
+                continue;
+            }
+            uint64_t toRead = len;
+            if (toRead > m_seqFileSize - offset) {
+                toRead = m_seqFileSize - offset;
+            }
+            vheader.data.resize(toRead);
 
             uint64_t t = tell();
             seek(offset, SEEK_SET);
-            read(&vheader.data[0], len);
+            uint64_t got = read(vheader.data.data(), toRead);
+            if (got < toRead) {
+                vheader.data.resize(got);
+            }
             seek(t, SEEK_SET);
-            readIndex += 12;
         } else if (readIndex + (dataLength - FSEQ_VARIABLE_HEADER_SIZE) > (int)header.size()) {
             // ensure the data length is contained within the header
             // this is primarily protection against hand modified, or corrupted, sequence files
@@ -677,7 +728,9 @@ void V1FSEQFile::writeHeader() {
         write2ByteUInt(&header[writePos], len);
         header[writePos + 2] = a.code[0];
         header[writePos + 3] = a.code[1];
-        memcpy(&header[writePos + 4], &a.data[0], a.data.size());
+        if (!a.data.empty()) {
+            memcpy(&header[writePos + 4], a.data.data(), a.data.size());
+        }
         writePos += len;
     }
 
@@ -883,7 +936,9 @@ public:
                 if (m_variableHeaderOffsets[x] != 0) {
                     uint64_t curEnd = tell();
                     auto &h = m_file->getVariableHeaders()[x];
-                    write(&h.data[0], h.data.size());
+                    if (!h.data.empty()) {
+                        write(h.data.data(), h.data.size());
+                    }
                     size_t cur = tell();
                     uint64_t off = m_variableHeaderOffsets[x];
                     seek(off, SEEK_SET);
@@ -985,6 +1040,18 @@ public:
             block++;
         }
         return block;
+    }
+
+    //Compressed size of `block`: the input length every decoder is given.  The
+    //header parse clamps the block table to the channel data, so offsets are
+    //non-decreasing and this cannot underflow.  Frames x channels is not a
+    //bound on it: a short, noisy sequence compresses to more bytes than it has
+    //channel data, and clamping to that cut off a valid block.
+    uint64_t blockLength(uint32_t block) const {
+        if (block + 1 >= m_file->m_frameOffsets.size()) {
+            return 0;
+        }
+        return m_file->m_frameOffsets[block + 1].second - m_file->m_frameOffsets[block].second;
     }
 
     virtual uint32_t computeMaxBlocks(int maxNumBlocks) override {
@@ -1176,7 +1243,7 @@ public:
             if (end > start && (end - start) > maxFramesPerBlock) {
                 maxFramesPerBlock = end - start;
             }
-            uint64_t comp = m_file->m_frameOffsets[i + 1].second - m_file->m_frameOffsets[i].second;
+            uint64_t comp = blockLength(i);
             if (comp > maxCompBytes) {
                 maxCompBytes = comp;
             }
@@ -1285,7 +1352,7 @@ public:
         }
 
         uint64_t offset = m_file->m_frameOffsets[block].second;
-        uint64_t len = m_file->m_frameOffsets[block + 1].second - offset;
+        uint64_t len = blockLength(block);
         s.comp.resize(len);
         seek(offset, SEEK_SET);
         uint64_t bread = read(s.comp.data(), len);
@@ -1413,17 +1480,7 @@ public:
             ZSTD_initDStream(m_dctx);
             seek(m_file->m_frameOffsets[m_curBlock].second, SEEK_SET);
 
-            uint64_t blockOffset = m_file->m_frameOffsets[m_curBlock].second;
-            uint64_t nextOffset = m_file->m_frameOffsets[m_curBlock + 1].second;
-            // An out-of-order block table underflows this subtraction, which then
-            // asks for an absurd allocation; a failed malloc left ZSTD reading from
-            // a null src of the full length.
-            uint64_t len = nextOffset > blockOffset ? nextOffset - blockOffset : 0;
-            uint64_t max = m_file->getNumFrames();
-            max *= (uint64_t)m_file->getChannelCount();
-            if (len > max) {
-                len = max;
-            }
+            uint64_t len = blockLength(m_curBlock);
             if (m_inBuffer.src) {
                 free((void*)m_inBuffer.src);
             }
@@ -1442,9 +1499,7 @@ public:
 
             if (m_curBlock + 2 < m_file->m_frameOffsets.size()) {
                 //let the kernel know that we'll likely need the next block in the near future
-                uint64_t len2 = m_file->m_frameOffsets[m_curBlock + 2].second;
-                len2 -= m_file->m_frameOffsets[m_curBlock + 1].second;
-                preload(tell(), len2);
+                preload(tell(), blockLength(m_curBlock + 1));
             }
 
             free(m_outBuffer.dst);
@@ -1489,8 +1544,20 @@ public:
             // block immediately which, if there are a lot of frames, could take much longer
             // than we'd have available in a latency critical step.
             m_outBuffer.size = frameEnd;
-            ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
-            m_curFrameInBlock = frameInBlock + 1;
+            size_t zr = ZSTD_decompressStream(m_dctx, &m_outBuffer, &m_inBuffer);
+            if (ZSTD_isError(zr)) {
+                // The stream is unusable after an error (zstd.h), so don't feed
+                // it again: blank the rest of the block and treat every frame in
+                // it as decoded.  The next block re-initializes the stream.
+                LogErr(VB_SEQUENCE, "Corrupt compressed data in sequence block %d at frame %d: %s\n",
+                       (int)m_curBlock, (int)frame, ZSTD_getErrorName(zr));
+                if (m_outBuffer.pos < m_outBufferCapacity) {
+                    memset((uint8_t*)m_outBuffer.dst + m_outBuffer.pos, 0, m_outBufferCapacity - m_outBuffer.pos);
+                }
+                m_curFrameInBlock = m_framesPerBlock;
+            } else {
+                m_curFrameInBlock = frameInBlock + 1;
+            }
         }
 
         uint64_t fidx = (uint64_t)frameInBlock * m_file->getChannelCount();
@@ -1511,23 +1578,39 @@ public:
         }
         return data;
     }
+    // Feeds all of `input` to the stream.  A zstd error consumes nothing and
+    // leaves the stream unusable, so stop on one rather than spin forever.
     void compressData(ZSTD_CStream* m_cctx, ZSTD_inBuffer_s& input, ZSTD_outBuffer_s& output) {
-        ZSTD_compressStream2(m_cctx, &output, &input, ZSTD_e_continue);
-        size_t count = input.pos;
-        size_t total = input.size;
-        uint8_t* curData = (uint8_t*)input.src;
-        while (count < total) {
-            curData += input.pos;
-            input.src = curData;
-            input.size -= input.pos;
-            input.pos = 0;
+        while (input.pos < input.size) {
             if (output.pos > V2FSEQ_OUT_BUFFER_FLUSH_SIZE) {
                 write(output.dst, output.pos);
                 output.pos = 0;
             }
-            ZSTD_compressStream2(m_cctx, &output, &input, ZSTD_e_continue);
-            count += input.pos;
+            size_t zr = ZSTD_compressStream2(m_cctx, &output, &input, ZSTD_e_continue);
+            if (ZSTD_isError(zr)) {
+                LogErr(VB_SEQUENCE, "zstd could not compress sequence block %d: %s\n", (int)m_curBlock, ZSTD_getErrorName(zr));
+                return;
+            }
         }
+    }
+    // Ends the current zstd frame.  ZSTD_compressStream2 returns the bytes
+    // still to flush, but its error codes are also non-zero, so an unchecked
+    // "> 0" loop never terminates on an error.
+    void endBlock() {
+        ZSTD_inBuffer_s input = {
+            0, 0, 0
+        };
+        size_t zr;
+        while ((zr = ZSTD_compressStream2(m_cctx, &m_outBuffer, &input, ZSTD_e_end)) > 0) {
+            if (ZSTD_isError(zr)) {
+                LogErr(VB_SEQUENCE, "zstd could not finish sequence block %d: %s\n", (int)m_curBlock, ZSTD_getErrorName(zr));
+                break;
+            }
+            write(m_outBuffer.dst, m_outBuffer.pos);
+            m_outBuffer.pos = 0;
+        }
+        write(m_outBuffer.dst, m_outBuffer.pos);
+        m_outBuffer.pos = 0;
     }
     // A single seekable block, buffered uncompressed while it fills, then
     // compressed on a worker thread and written (in block order) by the caller.
@@ -1698,16 +1781,8 @@ public:
         //we'll start a new block.  We want the first block to be small so startup is
         //quicker and we can get the first few frames as fast as possible.
         if ((m_curBlock == 0 && m_curFrameInBlock == 10) || (m_curFrameInBlock >= m_framesPerBlock && m_file->m_frameOffsets.size() < m_maxBlocks)) {
-            ZSTD_inBuffer_s input = {
-                0, 0, 0
-            };
-            while (ZSTD_compressStream2(m_cctx, &m_outBuffer, &input, ZSTD_e_end) > 0) {
-                write(m_outBuffer.dst, m_outBuffer.pos);
-                m_outBuffer.pos = 0;
-            }
-            write(m_outBuffer.dst, m_outBuffer.pos);
+            endBlock();
             //LogDebug(VB_SEQUENCE, "  Finalized block of data ending at frame %d.  Frames in block: %d.\n", frame, m_curFrameInBlock);
-            m_outBuffer.pos = 0;
             m_curFrameInBlock = 0;
             m_curBlock++;
         }
@@ -1718,16 +1793,8 @@ public:
             return;
         }
         if (m_curFrameInBlock) {
-            ZSTD_inBuffer_s input = {
-                0, 0, 0
-            };
-            while(ZSTD_compressStream2(m_cctx, &m_outBuffer, &input, ZSTD_e_end) > 0) {
-                write(m_outBuffer.dst, m_outBuffer.pos);
-                m_outBuffer.pos = 0;
-            }
-            write(m_outBuffer.dst, m_outBuffer.pos);
+            endBlock();
             LogDebug(VB_SEQUENCE, "  Finalized last block of data.  Frames in block: %d.\n", m_curFrameInBlock);
-            m_outBuffer.pos = 0;
             m_curFrameInBlock = 0;
             m_curBlock++;
         }
@@ -1799,23 +1866,24 @@ public:
             //frame is not in the current block
             m_curBlock = findBlockForFrame(frame);
             seek(m_file->m_frameOffsets[m_curBlock].second, SEEK_SET);
-            uint64_t len = m_file->m_frameOffsets[m_curBlock + 1].second;
-            len -= m_file->m_frameOffsets[m_curBlock].second;
+            uint64_t len = blockLength(m_curBlock);
             if (m_inBuffer) {
                 free(m_inBuffer);
             }
-            m_inBuffer = (uint8_t*)malloc(len);
-
-            int bread = read((void*)m_inBuffer, len);
-            if ((uint64_t)bread != len) {
-                LogErr(VB_SEQUENCE, "Failed to read channel data for frame %d!   Needed to read %" PRIu64 " but read %d\n", frame, len, (int)bread);
+            m_inBuffer = len ? (uint8_t*)malloc(len) : nullptr;
+            if (m_inBuffer == nullptr) {
+                len = 0;
+            } else {
+                uint64_t bread = read((void*)m_inBuffer, len);
+                if (bread != len) {
+                    LogErr(VB_SEQUENCE, "Failed to read channel data for frame %d!   Needed to read %" PRIu64 " but read %" PRIu64 "\n", frame, len, bread);
+                    len = bread;
+                }
             }
 
             if (m_curBlock + 2 < m_file->m_frameOffsets.size()) {
                 //let the kernel know that we'll likely need the next block in the near future
-                uint64_t len = m_file->m_frameOffsets[m_curBlock + 2].second;
-                len -= m_file->m_frameOffsets[m_curBlock+1].second;
-                preload(tell(), len);
+                preload(tell(), blockLength(m_curBlock + 1));
             }
 
             if (m_stream == nullptr) {
@@ -1873,6 +1941,26 @@ public:
         }
         return data;
     }
+    // One deflate() call stops once the output buffer is full, leaving the
+    // rest of the input unconsumed; the next caller then points next_in
+    // somewhere else and that remainder is silently dropped.  Keep going,
+    // flushing as needed, until all of it has been taken.
+    void deflateInput(uint8_t* in, uint32_t len) {
+        m_stream->next_in = in;
+        m_stream->avail_in = len;
+        while (m_stream->avail_in > 0) {
+            if (m_stream->avail_out == 0) {
+                write(m_outBuffer, V2FSEQ_OUT_BUFFER_SIZE);
+                m_stream->next_out = m_outBuffer;
+                m_stream->avail_out = V2FSEQ_OUT_BUFFER_SIZE;
+            }
+            int zr = deflate(m_stream, Z_NO_FLUSH);
+            if (zr != Z_OK) {
+                LogErr(VB_SEQUENCE, "zlib could not compress sequence block %d: %d\n", (int)m_curBlock, zr);
+                break;
+            }
+        }
+    }
     virtual void addFrame(uint32_t frame, const uint8_t* data) override {
         if (m_outBuffer == nullptr) {
             m_outBuffer = (uint8_t*)malloc(V2FSEQ_OUT_BUFFER_SIZE);
@@ -1898,14 +1986,10 @@ public:
 
         uint8_t* curData = (uint8_t*)data;
         if (m_file->m_sparseRanges.empty()) {
-            m_stream->next_in = curData;
-            m_stream->avail_in = m_file->getChannelCount();
-            deflate(m_stream, 0);
+            deflateInput(curData, m_file->getChannelCount());
         } else {
             for (auto& a : m_file->m_sparseRanges) {
-                m_stream->next_in = &curData[a.first];
-                m_stream->avail_in = a.second;
-                deflate(m_stream, 0);
+                deflateInput(&curData[a.first], a.second);
             }
         }
         if (m_stream->avail_out < (V2FSEQ_OUT_BUFFER_SIZE - V2FSEQ_OUT_BUFFER_FLUSH_SIZE)) {
@@ -1921,7 +2005,12 @@ public:
         //we'll start a new block.  We want the first block to be small so startup is
         //quicker and we can get the first few frames as fast as possible.
         if ((m_curBlock == 0 && m_curFrameInBlock == 10) || (m_curFrameInBlock == m_framesPerBlock && m_file->m_frameOffsets.size() < m_maxBlocks)) {
-            while (deflate(m_stream, Z_FINISH) != Z_STREAM_END) {
+            int zr;
+            while ((zr = deflate(m_stream, Z_FINISH)) != Z_STREAM_END) {
+                if (zr != Z_OK) {
+                    LogErr(VB_SEQUENCE, "zlib could not finish sequence block %d: %d\n", (int)m_curBlock, zr);
+                    break;
+                }
                 uint64_t sz = V2FSEQ_OUT_BUFFER_SIZE;
                 sz -= m_stream->avail_out;
                 write(m_outBuffer, sz);
@@ -1940,7 +2029,12 @@ public:
     }
     virtual void finalize() override {
         if (m_curFrameInBlock) {
-            while (deflate(m_stream, Z_FINISH) != Z_STREAM_END) {
+            int zr;
+            while ((zr = deflate(m_stream, Z_FINISH)) != Z_STREAM_END) {
+                if (zr != Z_OK) {
+                    LogErr(VB_SEQUENCE, "zlib could not finish sequence block %d: %d\n", (int)m_curBlock, zr);
+                    break;
+                }
                 uint64_t sz = V2FSEQ_OUT_BUFFER_SIZE;
                 sz -= m_stream->avail_out;
                 write(m_outBuffer, sz);
@@ -2157,7 +2251,9 @@ void V2FSEQFile::writeHeader() {
             writePos += 4;
         } else {
             m_handler->m_variableHeaderOffsets[idx] = 0;
-            memcpy(&header[writePos], &a.data[0], a.data.size());
+            if (!a.data.empty()) {
+                memcpy(&header[writePos], a.data.data(), a.data.size());
+            }
             writePos += a.data.size();
         }
         ++idx;
@@ -2226,6 +2322,15 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, FILE* file, const std::vector<uint
         numBlocks <<= 4;
         numBlocks |= header[21];
 
+        // The block and sparse range counts are file data too; don't let them
+        // walk readPos past the header buffer.
+        if ((uint64_t)readPos + (uint64_t)numBlocks * V2FSEQ_COMPRESSION_BLOCK_SIZE > header.size()) {
+            uint32_t fits = (header.size() - readPos) / V2FSEQ_COMPRESSION_BLOCK_SIZE;
+            LogErr(VB_SEQUENCE, "FSEQ header claims %d compression blocks but only has room for %d.  File is truncated or corrupt.\n",
+                   (int)numBlocks, (int)fits);
+            numBlocks = fits;
+        }
+
         uint32_t lastFirstFrame = 0;
         for (uint32_t i = 0; i < numBlocks; i++) {
             uint32_t firstFrame = read4ByteUInt(&header[readPos]);
@@ -2284,12 +2389,34 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, FILE* file, const std::vector<uint
         if (!haveBlocks || chanDataEnd > m_seqFileSize || chanDataEnd <= m_seqChanDataOffset) {
             chanDataEnd = m_seqFileSize;
         }
+        // Every reader takes a block's length as the next block's offset minus
+        // its own, so no block may start past the end of the data.  A table
+        // claiming more bytes than the file holds would otherwise leave the
+        // later blocks past chanDataEnd and their lengths underflow to nearly
+        // 2^64.  Clamp here, where the table is built.
+        bool clamped = false;
+        for (auto& fo : m_frameOffsets) {
+            if (fo.second > chanDataEnd) {
+                fo.second = chanDataEnd;
+                clamped = true;
+            }
+        }
+        if (clamped) {
+            LogErr(VB_SEQUENCE, "FSEQ block table runs past the end of the channel data (%" PRIu64 " bytes).  File is truncated or corrupt.\n",
+                   chanDataEnd);
+        }
         m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(getNumFrames() + 2, chanDataEnd));
 
         // Read sparse ranges
         // 6 byte size each (3 byte firstChannel + 3 byte length)
         // header[22] is the "sparse range count" field
-        for (int i = 0; i < header[22]; i++) {
+        int numRanges = header[22];
+        if (readPos + numRanges * V2FSEQ_SPARSE_RANGE_SIZE > (int)header.size()) {
+            LogErr(VB_SEQUENCE, "FSEQ header claims %d sparse ranges but only has room for %d.  File is truncated or corrupt.\n",
+                   numRanges, ((int)header.size() - readPos) / V2FSEQ_SPARSE_RANGE_SIZE);
+            numRanges = ((int)header.size() - readPos) / V2FSEQ_SPARSE_RANGE_SIZE;
+        }
+        for (int i = 0; i < numRanges; i++) {
             uint32_t startChan = read3ByteUInt(&header[readPos]);
             uint32_t length = read3ByteUInt(&header[readPos + 3]);
 

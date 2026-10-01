@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Short, noisy zstd .fseq files (very few frames) could read back
+                                 with wrong channel data
+    -bug (dkulp)                 Harden .fseq reading against truncated and corrupt files (crashes
+                                 or multi-GB allocations from bad headers and block tables)
+    -bug (dkulp)                 Saving an .fseq could hang if zstd compression failed, and zlib
+                                 compression could drop data from extremely large frames
     -bug (scott)                 Import From Controller (Custom model dialog, Twinkly) silently
                                  did nothing - the downloaded layout's coordinates were discarded
     -bug (scott)                 Falcon "get media files" always returned an empty list
