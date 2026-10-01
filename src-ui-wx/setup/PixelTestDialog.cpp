@@ -1451,6 +1451,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     Connect(ID_TREELISTCTRL_Controllers, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
 #endif
 
+    BuildModelLookup(_modelManager);
     PopulateOutputTree(_outputManager);
     PopulateModelTree(_modelManager);
     PopulateVisualModelTree(_modelManager);
@@ -2027,6 +2028,25 @@ void PixelTestDialog::SelectAllInBoundingRect(bool shiftDwn)
 #pragma endregion
 
 #pragma region ModelTab
+void PixelTestDialog::BuildModelLookup(ModelManager* modelManager)
+{
+    _lastModel = nullptr;
+    _models.clear();
+    std::list<std::string> modelNames;
+    for (const auto& it : *modelManager) {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+            modelNames.push_back(it.second->GetName());
+        }
+    }
+    modelNames.sort(stdlistNumberAwareStringCompare);
+    for (const auto& it : modelNames) {
+        Model* m = modelManager->GetModel(it);
+        if (m != nullptr) {
+            _models.push_back(std::make_unique<ModelTestItem>(m->GetName(), "", *modelManager, AreChannelsAvailable(m)));
+        }
+    }
+}
+
 void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
 {
     std::list<std::string> modelNames;
@@ -2045,7 +2065,6 @@ void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
         if (m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup) {
             // we found a model
             ModelTestItem* modelcontroller = new ModelTestItem(m->GetName(), "", *modelManager, AreChannelsAvailable(m));
-            _models.push_back(modelcontroller);
             wxTreeListItem modelitem = TreeListCtrl_Models->AppendItem(TreeListCtrl_Models->GetRootItem(), modelcontroller->GetName(), -1, -1, (wxClientData*)modelcontroller);
             modelcontroller->SetTreeListItem(modelitem);
             if (modelcontroller->IsClickable()) {
@@ -2124,11 +2143,6 @@ void PixelTestDialog::RebuildTree(wxTreeListCtrl* tree)
     // they live in _channelTracker, not in the tree items), then repopulate
     // from scratch through the same routines the constructor uses.
     TeardownTree(tree);
-
-    if (tree == TreeListCtrl_Models) {
-        _models.clear();      // the ModelTestItem* were just freed above
-        _lastModel = nullptr; // dangled into the freed list
-    }
 
     if (tree == TreeListCtrl_Outputs) {
         PopulateOutputTree(_outputManager);
@@ -3180,7 +3194,7 @@ char PixelTestDialog::GetChannelColour(long ch)
     for (const auto& it : _models) {
         char c = it->GetModelAbsoluteChannelColour(ch);
         if (c != ' ') {
-            _lastModel = it;
+            _lastModel = it.get();
             return c;
         }
     }

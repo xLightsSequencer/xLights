@@ -34,6 +34,7 @@
 #include <glm/glm.hpp>
 
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -79,7 +80,9 @@ class PixelTestDialog: public wxDialog
 		ModelManager* _modelManager = nullptr;
 		bool _cascading = false;
         ModelTestItem* _lastModel = nullptr;
-        std::list<ModelTestItem*> _models;
+        // Channel lookups for the output/colour paths. Owned here, not by the
+        // Models tree, because its filter frees the tree's items.
+        std::vector<std::unique_ptr<ModelTestItem>> _models;
         ChannelTracker _channelTracker;
         std::set<std::string> _uploadedControllers;
         ModelPreview* _modelPreview = nullptr;
@@ -299,6 +302,7 @@ class PixelTestDialog: public wxDialog
 		void PopulateOutputTree(OutputManager* outputManager);
 		void PopulateModelGroupTree(ModelManager* modelManager);
 		void PopulateModelTree(ModelManager* modelManager);
+		void BuildModelLookup(ModelManager* modelManager);
 
         // Name-filter support. RebuildTree tears down and repopulates a tree
         // (selections live in _channelTracker so they survive), then prunes to
