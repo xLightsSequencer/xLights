@@ -470,7 +470,7 @@ void LMSImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
         text.WriteString(MapByStrand->GetValue()?"true\n":"false\n");
-        text.WriteString(wxString::Format("%d\n", modelNames.size()));
+        text.WriteString(wxString::Format("%d\n", (int)modelNames.size()));
         for (size_t x = 0; x <  modelNames.size(); x++) {
             text.WriteString(modelNames[x] + "\n");
         }
