@@ -2404,29 +2404,29 @@ void MainSequencer::ShowSeqFilterPanel(bool show)
     }
 }
 
+void MainSequencer::ResetSeqFilter()
+{
+    if (_seqFilterCtrl == nullptr) return;
+    _seqFilterCtrl->ChangeValue("");
+    if (_seqFilterCtrl->IsShown()) {
+        _seqFilterCtrl->Hide();
+        GetSizer()->Layout();
+    }
+    if (mSequenceElements != nullptr) {
+        mSequenceElements->SetModelRowFilter(nullptr);
+    }
+}
+
 void MainSequencer::ApplySeqFilter(const wxString& filter)
 {
     if (mSequenceElements == nullptr) return;
 
-    int view = mSequenceElements->GetCurrentView();
-    int count = mSequenceElements->GetElementCount(view);
-
     if (filter.IsEmpty()) {
-        for (int i = 0; i < count; i++) {
-            Element* el = mSequenceElements->GetElement(i, view);
-            if (el == nullptr) continue;
-            if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
-            el->SetVisible(true);
-        }
+        mSequenceElements->SetModelRowFilter(nullptr);
         spdlog::debug("SeqFilter: cleared");
     } else {
         wxFilterQuery const query(filter);
-        for (int i = 0; i < count; i++) {
-            Element* el = mSequenceElements->GetElement(i, view);
-            if (el == nullptr) continue;
-            if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
-            el->SetVisible(query.Matches(el->GetName()));
-        }
+        mSequenceElements->SetModelRowFilter([query](const std::string& name) { return query.Matches(name); });
         spdlog::debug("SeqFilter: filter='{}'", filter.ToStdString());
     }
 

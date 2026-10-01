@@ -90,6 +90,7 @@ void SequenceElements::Clear() {
     mTimingRowCount = 0;
     mFirstVisibleModelRow = 0;
     mChangeCount = 0;
+    _modelRowFilter = nullptr;
     mMasterViewChangeCount++;
     mSequenceMedia.Clear();
     mSequenceFaces.Clear();
@@ -799,6 +800,8 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
         TraceLog::AddTraceMessage("Processing " + ename);
 
         if (ename == "DisplayElements") {
+            const bool rowFilterSafe = e.attribute(ROW_FILTER_SAFE_ATTR).as_bool(false);
+            int unhidden = 0;
             for (auto element : e.children()) {
                 bool active = false;
                 bool selected = false;
@@ -810,6 +813,10 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
 
                 std::string type = element.attribute("type").as_string("");
                 bool visible = element.attribute("visible").as_bool(false);
+                if (!rowFilterSafe && !visible && type != STR_TIMING) {
+                    visible = true;
+                    ++unhidden;
+                }
                 bool renderDisabled = element.attribute("RenderDisabled").as_bool(false);
 
                 if (type == STR_TIMING) {
@@ -826,6 +833,9 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                         dynamic_cast<TimingElement*>(elem)->SetSubType(element.attribute("subType").as_string(""));
                     }
                 }
+            }
+            if (unhidden > 0) {
+                spdlog::info("LoadSequencerFile: unhid {} model rows hidden by the old sequencer filter", unhidden);
             }
         } else if (ename == "TimingTags") {
             for (auto tag : e.children("Tag")) {
@@ -1426,7 +1436,8 @@ void SequenceElements::PopulateRowInformation()
         Element* elem = mAllViews[mCurrentView][i];
         if (elem != nullptr)
         {
-            if (elem->GetVisible() && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            if (elem->GetVisible() && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL &&
+                (!_modelRowFilter || _modelRowFilter(elem->GetName()))) {
                 addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, mAllViews[MASTER_VIEW], false, mHideUnusedSubmodels);
             }
         }

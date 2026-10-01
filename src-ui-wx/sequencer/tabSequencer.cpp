@@ -979,6 +979,7 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
     // the interactive remap dialog), PrepareViews / PopulateRowInformation, mark
     // loaded, ValueCurve wiring — the steps every host runs in this order. See
     // xLightsShowContext::LoadSequenceElements.
+    mainSequencer->ResetSeqFilter();
     if (!LoadSequenceElements(xml_file, doc)) {
         spdlog::warn("LoadSequencer: failed to load {}", (const char*)xml_file.GetFullPath().c_str());
         PopTraceContext();
