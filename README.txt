@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (heffneil)              Import Effects: the filter boxes narrow the mapping tree and the source
+                                 list (display only - Ok, Save Map, Auto Map and Clear All still cover
+                                 hidden rows)
+    -enh (heffneil)              Import Effects: right-click a donor group in the source list to add it
+                                 to the layout and map it; Cancel removes groups added during the import
     -enh (heffneil)              Layout Controllers page: the selected controller's box is highlighted
                                  along with its models, and controller labels have a Label Size setting
     -bug (heffneil)              The sequencer prop filter is no longer saved into the sequence; models

@@ -1255,12 +1255,12 @@ std::vector<wxString> xLightsImportChannelMapDialog::DonorGroupsAt(const wxPoint
 bool xLightsImportChannelMapDialog::GroupNameInUse(const wxString& name) const
 {
     // The layout, not just this list: a model can exist without being offered here.
-    return FindTopLevelNode(name) != nullptr || xlights->AllModels.GetModel(name.ToStdString()) != nullptr;
+    return FindTopLevelNode(name) != nullptr || xlights->AllModels.GetModel(name.utf8_string()) != nullptr;
 }
 
 wxString xLightsImportChannelMapDialog::PromptForUnusedGroupName(const wxString& taken)
 {
-    wxString suggestion = xlights->AllModels.GenerateModelName(taken.ToStdString());
+    wxString suggestion = wxString::FromUTF8(xlights->AllModels.GenerateModelName(taken.utf8_string()));
     wxString problem = wxString::Format(_("A group or model named '%s' already exists."), taken);
     while (true) {
         wxTextEntryDialog dlg(this, problem + "\n\n" + _("Enter a different name for the new group:"), _("Group Already Exists"), suggestion);
