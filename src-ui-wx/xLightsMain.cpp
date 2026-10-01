@@ -3001,6 +3001,19 @@ void xLightsFrame::RenderLayout()
 
 void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
 {
+    // On macOS, re-showing a floating sequencer pane below makes it first
+    // responder; its child-focus event bubbles through PanelSequencer into the
+    // notebook, which re-selects the Sequencer page and lands back here before
+    // InitSequencer has marked itself done -- recursing until the stack overflows.
+    static bool isChanged = false;
+    if (isChanged) {
+        return;
+    }
+    isChanged = true;
+    struct ResetChanged {
+        ~ResetChanged() { isChanged = false; }
+    } resetChanged;
+
     int pagenum = event.GetSelection(); // Notebook1->GetSelection();
     if (pagenum == LAYOUTTAB) {
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "OnNotebook1PageChanged");
