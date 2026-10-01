@@ -57,6 +57,7 @@ public:
     void SetControllerObjectVisibility(const std::string& controllerName, ControllerObject::Visibility vis);
     void RefreshControllerPlacementProperties(ControllerObject* co);
     void UpdateControllerObjectStatusColors();
+    void SetControllerObjectHighlights(const std::list<std::string>& controllerNames);
 
 private:
     void OnControllerPropertyGridChange(wxPropertyGridEvent& event);

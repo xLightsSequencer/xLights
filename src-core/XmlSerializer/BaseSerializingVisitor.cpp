@@ -1241,6 +1241,7 @@ void BaseSerializingVisitor::Visit(const ControllerObject& object) {
     attrs.Add(XmlNodeKeys::ControllerAttribute, object.GetControllerName());
     attrs.Add(XmlNodeKeys::VisibilityAttribute, ControllerObject::VisibilityToString(object.GetVisibility()));
     attrs.Add(XmlNodeKeys::ShowLabelAttribute, object.GetShowLabel() ? "1" : "0");
+    attrs.Add(XmlNodeKeys::LabelSizeAttribute, std::to_string(object.GetLabelSize()));
     WriteOpenTag(XmlNodeKeys::ViewObjectNodeName, attrs, true);
 }
 

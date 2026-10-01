@@ -421,6 +421,9 @@ class LayoutPanel: public wxPanel
         void SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed);
         void SelectModel(Model *model, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true );
+        // Drop a model selection left over from another page, keeping a
+        // selected view object (such as a controller box) and its properties.
+        void UnSelectModelsOnly();
         // Begin the click-to-place import flow for a known .xmodel file (e.g. the
         // temp model a KLightMapper scan produces). Selects the "Import Custom"
         // tool and presets the path so the next layout click drops the model —

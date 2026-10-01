@@ -3922,6 +3922,13 @@ private:
     wxFileName lastFileName;
 };
 
+void LayoutPanel::UnSelectModelsOnly()
+{
+    if (ModelsSelectedCount() > 0 || dynamic_cast<Model*>(selectedBaseObject) != nullptr) {
+        UnSelectAllModels(false);
+    }
+}
+
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
 
