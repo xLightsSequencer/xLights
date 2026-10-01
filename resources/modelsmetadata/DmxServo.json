@@ -1,0 +1,92 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "DmxServo",
+    "description": "A bank of independent 2D servo-driven axes, each optionally rendered via a pair of static/motion 2D images that swap based on the servo's live position (e.g. an animated prop with several image-swapped moving parts). No color/shutter/dimmer/beam ability of its own. Source: src-core/models/DMX/DmxServo.{h,cpp} (DisplayAs = DisplayAsType::DmxServo). Compare DmxServo3d.json for the 3D-mesh equivalent (which uses Mesh children instead of DmxImage children, plus a servo-to-mesh motion-linkage system).",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json",
+        "shared/DmxAbilities.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions. Round-tripped but disabled in DmxServo's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions. Deliberately left enabled for DMX models."
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions. Not disabled for DMX models."
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve. Round-tripped but disabled in DmxServo's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        },
+        {
+            "name": "Servo{n}",
+            "encoding": "1-based numbered family Servo1, Servo2, ... ServoN, where N = NumServos (up to 24, DmxServo::CreateServo(\"Servo\" + std::to_string(i+1), i)).",
+            "description": "One servo axis. Instantiates the Servo pattern documented in shared/DmxAbilities.json notes (Channel/MinLimit/MaxLimit/RangeOfMotion/PivotOffsetX-Y-Z/ServoStyle/ControllerMin-Max-Reverse-ZeroBehavior-DataType)."
+        },
+        {
+            "name": "StaticImage{n}",
+            "encoding": "1-based numbered family StaticImage1, StaticImage2, ... StaticImageN paired index-for-index with Servo{n} (N = NumServos). A legacy unnumbered \"StaticImage\" element (no digit) is accepted on read and treated as StaticImage1 (XmlDeserializingModelFactory::DeserializeDmxServo).",
+            "description": "2D image shown while the paired servo is at/near its resting position. Instantiates the DmxImage pattern documented in shared/DmxAbilities.json notes (Image/ScaleX-Y-Z/RotateX-Y-Z/OffsetX-Y-Z)."
+        },
+        {
+            "name": "MotionImage{n}",
+            "encoding": "1-based numbered family MotionImage1, MotionImage2, ... MotionImageN paired index-for-index with Servo{n}. A legacy unnumbered \"MotionImage\" element is likewise accepted on read as MotionImage1 - CORRECTION/trap: XmlDeserializingModelFactory::DeserializeDmxServo's legacy-name branch for \"MotionImage\" actually calls `model->CreateStaticImage(\"MotionImage1\", 0)` (re-using the static-image constructor, not a motion-image one) - an apparent copy/paste artifact in that one legacy-compatibility code path; the numbered MotionImage{n} branch (n >= 1) correctly calls CreateMotionImage.",
+            "description": "2D image shown while the paired servo is in motion, swapped in based on the servo's live channel value. Same attribute set as StaticImage{n}."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumServos",
+            "label": "Num Servos",
+            "gridKey": "NumServos",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 24,
+            "description": "Number of independent servo axes (DmxServo::GetNumServos()/SetNumServos()); also the count of Servo{n}/StaticImage{n}/MotionImage{n} child-element families. Grid max of 24 matches the internal SUPPORTED_SERVOS cap used by the property-grid adapter."
+        },
+        {
+            "xmlAttribute": "Bits16",
+            "label": "16 Bit",
+            "gridKey": "Bits16",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "When \"1\", each servo channel is treated as a 16-bit (coarse+fine) pair instead of a single 8-bit channel (DmxServo::Is16Bit()/SetIs16Bit()); affects the minimum required DmxChannelCount (NumServos * 2 vs * 1, enforced by the property grid) and each Servo's channel numbering."
+        },
+        {
+            "xmlAttribute": "Brightness",
+            "label": "Brightness",
+            "gridKey": "Brightness",
+            "type": "uint",
+            "default": 100,
+            "min": 0,
+            "max": 100,
+            "description": "Overall image-rendering brightness percentage for this model's static/motion images (DmxServo::GetBrightness()/SetBrightness(); stored as a float member but always an integer percentage in the property grid). Note: this is a different xmlAttribute scope than shared/ControllerConnection.json's own \"Brightness\" property - that one lives on the nested <ControllerConnection> child element, this one is a direct attribute of the <model> node itself, so there is no collision."
+        }
+    ],
+    "notes": [
+        "No color/shutter/dimmer/beam ability: DmxServo attaches none of the five DmxModel abilities beyond the always-present preset ability (no `color_ability =`/`shutter_ability =`/etc. in DmxServo::DmxServo()), so none of shared/DmxAbilities.json's color/shutter/dimmer/beam properties ever appear for this document - only DmxChannelCount and the DmxPreset* family from that fragment apply.",
+        "AMBIGUITY (flagged rather than modeled as a properties[] entry to avoid a duplicate-xmlAttribute validator error): DmxServo also persists an XML attribute literally named \"Transparency\" (XmlNodeKeys::TransparencyAttribute, DmxServo::GetTransparency()/SetTransparency(), written unconditionally by Visit(const DmxServo&) and read by XmlDeserializingModelFactory::DeserializeDmxServo) meaning per-image transparency (0-100, default 0) for this model's static/motion images - exposed in DmxServoPropertyAdapter as its own \"Transparency\" grid row. This is the EXACT SAME xmlAttribute name already owned by shared/Common.json's generic pixel \"Transparency\" property (gridKey \"ModelPixelTransparency\", default 0, description \"how opaque the element is in the layout preview\"). Neither DmxServoPropertyAdapter nor the base DmxPropertyAdapter disables/hides the inherited generic ModelPixelTransparency property for DmxServo, so in principle both the generic pixel-transparency control and DmxServo's own per-image-transparency control could appear in the same property grid, both writing the identical <model Transparency=\"...\"> attribute - an apparent unintentional attribute-name reuse in the C++ (verified: XmlNodeKeys::TransparencyAttribute is the one and only constant for the literal string \"Transparency\", used by both call sites). Per this metadata tree's rule that no attribute may be redefined once inherited from an extended fragment, this document does NOT add a second \"Transparency\" property - shared/Common.json's existing entry is authoritative for the xmlAttribute/type/bounds, and an MCP reader should treat a DmxServo file's \"Transparency\" value as DmxServo's own per-image transparency (DmxServo::GetTransparency()), not generic pixel transparency, since DmxServo has no per-pixel rendering to speak of."
+    ]
+}

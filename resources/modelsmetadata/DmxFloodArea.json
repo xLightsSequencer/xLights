@@ -1,0 +1,47 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "DmxFloodArea",
+    "description": "A C++ subclass of DmxFloodlight (src-core/models/DMX/DmxFloodArea.{h,cpp}: `class DmxFloodArea : public DmxFloodlight`) that renders its beam as a flat rectangular wash area instead of a cone, but is otherwise identical: same DisplayAs discriminator swap (DisplayAsType::DmxFloodArea), same InitModel() (calls straight through to DmxFloodlight::InitModel()), same property-grid adapter (ModelPropertyManager::CreateAdapter maps both DisplayAsType::DmxFloodArea and DisplayAsType::DmxFloodlight to DmxFloodlightPropertyAdapter), and the identical Visit(const DmxFloodArea&) serializer path (CommonVisitSteps + AddDmxModelAttributes only, no type-specific attributes). Every attribute this model type persists is already covered by shared/DmxAbilities.json - this document adds none of its own, so `properties` is intentionally empty.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json",
+        "shared/DmxAbilities.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions. Round-tripped but disabled in DmxFloodArea's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions. Deliberately left enabled for DMX models."
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions. Not disabled for DMX models."
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve. Round-tripped but disabled in DmxFloodArea's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [],
+    "notes": [
+        "No motor/servo/mesh/image child elements: DmxFloodArea has no moving parts.",
+        "See DmxFloodlight.json for the identical attribute set, PWM/pixel-property-disable behavior, and the DmxColorType/beam-orient/beam-yoffset caveats - both documents describe the same persisted XML shape; only DisplayAs and the rendered beam geometry differ."
+    ]
+}
