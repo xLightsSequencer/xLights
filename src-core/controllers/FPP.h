@@ -131,6 +131,7 @@ class FPP : public BaseController
     
     bool UploadPlaylist(const std::string &playlist);
     bool UploadModels(const nlohmann::json& models);
+    bool UploadSubModelsAndGroups(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
     bool UploadDisplayMap(std::map<std::string, std::string> &virtualDisplayData);
     bool UploadUDPOut(const nlohmann::json& udp);
 
@@ -173,6 +174,11 @@ class FPP : public BaseController
 
 #ifndef DISCOVERYONLY
     nlohmann::json CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
+    // xLights-generated overlay models on the FPP that no longer match the layout.
+    // allInRange: every xLights-generated model there lies in [startChan, endChannel].
+    std::vector<std::string> FindOutdatedXLightsModels(ModelManager* allmodels, int32_t startChan, int32_t endChannel, bool& allInRange);
+    static nlohmann::json CreateSubModelMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
+    static nlohmann::json CreateModelGroupMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
     static void CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &objects,
                                         int previewWi, int previewHi,
                                         std::map<std::string, std::string> &virtualDisplayData);

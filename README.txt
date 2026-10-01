@@ -12,9 +12,25 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
     -bug (derwin12)              Changing the sequencer View now clears the prop filter
+    -enh (heffneil)              Import Effects: the filter boxes narrow the mapping tree and the source
+                                 list (display only - Ok, Save Map, Auto Map and Clear All still cover
+                                 hidden rows)
+    -enh (heffneil)              Import Effects: right-click a donor group in the source list to add it
+                                 to the layout and map it; Cancel removes groups added during the import
+    -bug (heffneil/dkulp)        Crashes in the Test dialog after typing in a tab's name filter
+    -enh (heffneil)              Layout Controllers page: the selected controller's box is highlighted
+                                 along with its models, and controller labels have a Label Size setting
     -bug (heffneil)              The sequencer prop filter is no longer saved into the sequence; models
                                  hidden by the filter in older sequences stay hidden until re-shown in
                                  Display Elements
+    -enh (dkulp)                 FPP Connect model upload now also sends submodels and model groups
+                                 so FPP can run overlay effects on them (FPP 10+)
+    -enh (dkulp)                 FPP Connect warns when models uploaded to FPP earlier no longer match
+                                 the layout and offers to upload them again, since FPP uses them in
+                                 place of the models it creates from the outputs
+    -bug (pixelpropshop/dkulp)   FPP Connect could restore old upload settings saved under a device's
+                                 IP address in place of its current ones, and a choice set back to its
+                                 default did not stick for devices that report no ID
     -bug (dkulp)                 Crash importing a GDTF moving-head fixture
     -bug (dkulp)                 Shows and model imports from before 2024.05 with 3D moving heads
                                  failed to load ("Unknown model type: DmxMovingHead3D"); they are

@@ -3922,6 +3922,42 @@ private:
     wxFileName lastFileName;
 };
 
+void LayoutPanel::UnSelectModelsOnly()
+{
+    if (dynamic_cast<Model*>(selectedBaseObject) != nullptr) {
+        selectedBaseObject = nullptr;
+        _propertyAdapter.reset();
+        selectionLatched = false;
+    }
+    if (dynamic_cast<Model*>(highlightedBaseObject) != nullptr) {
+        highlightedBaseObject = nullptr;
+    }
+    selectedPrimaryTreeItem = nullptr;
+    selectedTreeGroups.clear();
+    selectedTreeModels.clear();
+    selectedTreeSubModels.clear();
+    // Programmatic, so no selection event comes back through
+    // HandleSelectionChanged, which would clear the view objects as well.
+    ActiveModelTree()->UnselectAll();
+
+    for (const auto& m : modelPreview->GetModels()) {
+        if (m == nullptr || (!xlights->AllModels.IsModelValid(m) && m != _newModel)) {
+            continue;
+        }
+        m->Selected(false);
+        m->Highlighted(false);
+        m->GroupSelected(false);
+        m->SelectHandle();
+        m->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
+        for (const auto& sm : m->GetSubModels()) {
+            sm->Selected(false);
+            sm->Highlighted(false);
+            sm->GroupSelected(false);
+        }
+    }
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UnSelectModelsOnly");
+}
+
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
 
@@ -12575,6 +12611,7 @@ void LayoutPanel::UpdateSettingsPaneForPage() {
             ms.Caption("Controller Properties").Show();
         }
         controllers_panel->UpdateControllerProperties();
+        controllers_panel->UpdatePreviewHighlights();
     } else {
         controllers_panel->ClearPreviewHighlights();
         if (selectedBaseObject == nullptr) {

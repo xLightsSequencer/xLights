@@ -127,6 +127,7 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeController(pugi::xml_node 
     object->SetControllerName(node.attribute(XmlNodeKeys::ControllerAttribute).as_string());
     object->SetVisibility(ControllerObject::VisibilityFromString(node.attribute(XmlNodeKeys::VisibilityAttribute).as_string()));
     object->SetShowLabel(std::string_view(node.attribute(XmlNodeKeys::ShowLabelAttribute).as_string("0")) == "1");
+    object->SetLabelSize(node.attribute(XmlNodeKeys::LabelSizeAttribute).as_int(100));
     // The name is always derived from the bound controller, never taken from the
     // file. Letting the two drift would break the base-show merge, which matches
     // objects by name and would then add base's copy as a second object on the

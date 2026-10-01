@@ -607,6 +607,36 @@ final class FPPConnectRunner {
         }
     }
 
+    /// An FPP whose xLights-generated models no longer match the layout.
+    /// fppd prefers those over the models it auto-creates from the string
+    /// outputs, so they keep lighting old channels until models are
+    /// uploaded again. Mirrors FPPConnectDialog::PromptForOutdatedModels.
+    struct OutdatedModels: Sendable {
+        let uuid: String
+        let displayName: String
+        let names: [String]
+        let mode: FPPInstanceConfig.ModelsMode
+    }
+
+    /// Checks only the targets not already set to upload models.
+    func findOutdatedModels(targets: [FPPInstance],
+                            configs: [String: FPPInstanceConfig]) async -> [OutdatedModels] {
+        let pending = targets.filter {
+            (configs[$0.uuid] ?? FPPInstanceConfig()).modelsMode == .none
+        }
+        guard !pending.isEmpty else { return [] }
+        return await Task.detached(priority: .userInitiated) { [document] in
+            pending.compactMap { tgt -> OutdatedModels? in
+                let raw = document.outdatedXLightsModels(forFPP: tgt.ipAddress) as? [String: Any] ?? [:]
+                let names = raw["names"] as? [String] ?? []
+                guard !names.isEmpty else { return nil }
+                let mode: FPPInstanceConfig.ModelsMode = (raw["mode"] as? String) == "local" ? .local : .all
+                return OutdatedModels(uuid: tgt.uuid, displayName: tgt.displayName,
+                                      names: names, mode: mode)
+            }
+        }.value
+    }
+
     func cancel() {
         forwarder.cancel()
     }
@@ -653,6 +683,15 @@ struct FPPConnectSheet: View {
     /// CTL-5 — drives the "Add FPP by IP" alert and its text field.
     @State private var showingAddFPPByIP = false
     @State private var addFPPIPText = ""
+    /// Upload held while the user decides whether to refresh outdated
+    /// xLights-generated models on the FPPs (see findOutdatedModels).
+    private struct PendingUpload {
+        let targets: [FPPInstance]
+        let sequences: [SequenceEntry]
+        let outdated: [FPPConnectRunner.OutdatedModels]
+    }
+    @State private var pendingUpload: PendingUpload? = nil
+    @State private var checkingModels = false
 
     var body: some View {
         NavigationStack {
@@ -849,21 +888,48 @@ struct FPPConnectSheet: View {
             }
             let disabled = targets.isEmpty || toUpload.isEmpty
             Button {
-                runner.startUpload(targets: targets,
-                                    sequences: toUpload,
-                                    configs: instanceConfigs)
+                checkingModels = true
+                Task {
+                    let outdated = await runner.findOutdatedModels(targets: targets,
+                                                                   configs: instanceConfigs)
+                    checkingModels = false
+                    if outdated.isEmpty {
+                        runner.startUpload(targets: targets,
+                                            sequences: toUpload,
+                                            configs: instanceConfigs)
+                    } else {
+                        pendingUpload = PendingUpload(targets: targets,
+                                                      sequences: toUpload,
+                                                      outdated: outdated)
+                    }
+                }
             } label: {
                 Text(disabled
                      ? "Select at least one FPP and one sequence"
+                     : checkingModels
+                     ? "Checking Models…"
                      : "Upload \(toUpload.count) to \(targets.count) FPP\(targets.count == 1 ? "" : "s")")
                     .font(.headline)
                     .frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(disabled)
+            .disabled(disabled || checkingModels)
             .padding(.horizontal)
             .padding(.vertical, 8)
             .background(.bar)
+        }
+        .alert("Outdated Models on FPP",
+               isPresented: Binding(get: { pendingUpload != nil },
+                                    set: { if !$0 { pendingUpload = nil } }),
+               presenting: pendingUpload) { pending in
+            Button("Upload Models") {
+                startPendingUpload(pending, refreshModels: true, runner: runner)
+            }
+            Button("Leave As Is", role: .cancel) {
+                startPendingUpload(pending, refreshModels: false, runner: runner)
+            }
+        } message: { pending in
+            Text(outdatedModelsMessage(pending.outdated))
         }
         .alert("Add FPP by IP", isPresented: $showingAddFPPByIP) {
             TextField("IP address or hostname", text: $addFPPIPText)
@@ -878,6 +944,36 @@ struct FPPConnectSheet: View {
         } message: {
             Text("Enter an FPP / ESPixelStick address that wasn't auto-discovered. Broadcast discovery still runs too.")
         }
+    }
+
+    /// Refreshing applies to this run only — the saved per-FPP Models
+    /// setting is left alone.
+    private func startPendingUpload(_ pending: PendingUpload, refreshModels: Bool,
+                                    runner: FPPConnectRunner) {
+        var configs = instanceConfigs
+        if refreshModels {
+            for o in pending.outdated {
+                configs[o.uuid, default: FPPInstanceConfig()].modelsMode = o.mode
+            }
+        }
+        runner.startUpload(targets: pending.targets,
+                            sequences: pending.sequences,
+                            configs: configs)
+    }
+
+    private func outdatedModelsMessage(_ outdated: [FPPConnectRunner.OutdatedModels]) -> String {
+        let lines = outdated.map { o -> String in
+            var names = o.names.prefix(5).joined(separator: ", ")
+            if o.names.count > 5 {
+                names += " and \(o.names.count - 5) more"
+            }
+            return "\(o.displayName): \(names)"
+        }
+        return "These FPP instances have models uploaded by xLights that no longer match the layout:\n\n"
+            + lines.joined(separator: "\n")
+            + "\n\nFPP uses them for Display Testing and pixel overlays in place of the models it creates "
+            + "from the string outputs, so they will light the wrong pixels.\n\n"
+            + "Upload models to these instances now? FPPD will restart."
     }
 
     /// CTL-5 — light validation mirroring desktop's IsIPValidOrHostname:

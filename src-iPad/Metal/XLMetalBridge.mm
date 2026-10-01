@@ -3708,6 +3708,7 @@ public:
         // site already guards; this one didn't, hence the crash here.
         if (_showViewObjects && ctx->ActivePreviewShowsViewObjects() && ctx->HasViewObjectManager()) {
             auto& allObjects = ctx->GetAllObjects();
+            _preview->SetHighlightedController(_isLayoutEditor && _controllersTabActive ? _selectedControllerName : std::string());
             for (auto it = allObjects.begin(); it != allObjects.end(); ++it) {
                 ViewObject* vo = it->second;
                 if (!vo) continue;

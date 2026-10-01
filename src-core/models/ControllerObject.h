@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <string>
@@ -71,6 +72,12 @@ public:
     void SetShowLabel(bool b) { _showLabel = b; }
     bool GetShowLabel() const { return _showLabel; }
 
+    // Percent of the automatic label size (which fits the name to the face).
+    static constexpr int MIN_LABEL_SIZE = 25;
+    static constexpr int MAX_LABEL_SIZE = 400;
+    void SetLabelSize(int pct) { _labelSize = std::clamp(pct, MIN_LABEL_SIZE, MAX_LABEL_SIZE); }
+    int GetLabelSize() const { return _labelSize; }
+
     // Body tint, driven from the controller's ping state by the UI layer. Core
     // has no notion of pinging, so this is pushed in rather than pulled.
     void SetStatusColor(const xlColor& c) { _statusColor = c; }
@@ -99,14 +106,15 @@ protected:
 private:
     // `flat` collapses everything onto the canvas plane for the 2D preview,
     // whose projection clips anything with real depth.
-    void DrawLabel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solid, bool flat);
-    void DrawFallbackBox(xlGraphicsProgram* solid);
-    void DrawFlatBody(xlGraphicsProgram* solid);
+    void DrawLabel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solid, bool flat, bool highlight);
+    void DrawFallbackBox(xlGraphicsProgram* solid, bool highlight);
+    void DrawFlatBody(xlGraphicsProgram* solid, bool highlight);
     void DrawStatusLed(xlGraphicsProgram* solid, bool flat);
 
     std::string _controllerName;
     Visibility _visibility { Visibility::Off };
     bool _showLabel { false };
+    int _labelSize { 100 };
     xlColor _statusColor { 96, 96, 104 };
 
     // The one generic enclosure, shared by every controller. Loaded lazily on

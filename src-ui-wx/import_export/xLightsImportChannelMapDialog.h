@@ -33,6 +33,11 @@
 #include <map>
 #include <set>
 #include <vector>
+#include "shared/utils/wxFilterQuery.h"
+#include <wx/timer.h>
+
+#include <unordered_map>
+#include <unordered_set>
 #include "Color.h"
 #include <wx/arrstr.h>
 #include <wx/filename.h>
@@ -230,6 +235,10 @@ public:
     {
         return m_children;
     }
+    const xLightsImportModelNodePtrArray& GetChildren() const
+    {
+        return m_children;
+    }
     xLightsImportModelNode* GetNthChild(unsigned int n) override
     {
         return m_children.Item(n);
@@ -399,12 +408,30 @@ public:
     bool _hideUnmapped = false;
     void SetHideUnmapped(bool h) { _hideUnmapped = h; }
 
+    // Display-only: GetChildren (what the tree draws) honours this and Hide Unmapped,
+    // so anything acting on mappings must use GetAllChildren or it skips hidden rows.
+    void SetNameFilter(const wxString& filter);
+    bool HasNameFilter() const { return !_nameFilter.IsEmpty(); }
+    bool IsShownByNameFilter(const xLightsImportModelNode* node) const;
+    bool NameFilterMatches(const xLightsImportModelNode* node) const;
+    unsigned int GetAllChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const;
+    // Call before deleting a row: the filter caches key on node pointers.
+    void ForgetFilterState(const xLightsImportModelNode* node);
+
     bool GetSortSubmodelsByName() const { return _sortSubmodelsByName; }
     void SetSortSubmodelsByName(bool sort) { _sortSubmodelsByName = sort; Resort(); }
 
     void SetCtrl(wxDataViewCtrl* ctrl) { _ctrl = ctrl; }
 
 private:
+    bool CacheNameFilterState(const xLightsImportModelNode* node, bool ancestorMatched);
+public:
+    void CopyFilterState(const xLightsImportModelNode* from, const xLightsImportModelNode* to);
+private:
+
+    wxFilterQuery _nameFilter;
+    // Worked out once per filter change; the view queries rows constantly.
+    std::unordered_set<const xLightsImportModelNode*> _nameFilterHidden;
     xLightsImportModelNodePtrArray   m_children;
     wxDataViewItemArray _pendingAdditions;
     wxDataViewCtrl* _ctrl = nullptr;
@@ -475,7 +502,6 @@ class xLightsImportChannelMapDialog: public wxDialog
 {
     xLightsImportModelNode* TreeContainsModel(std::string const& model, std::string const& strand = "", std::string const& node = "");
     wxDataViewItem FindItem(std::string const& model, std::string const& strand = "", std::string const& node = "");
-    long FindAvailableByName(const wxString& name) const;
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
@@ -512,6 +538,9 @@ public:
     // True when the user wants this donor recorded in the target sequence.
     bool ShouldRecordDonor() const;
     const wxFileName& GetDonorFile() const { return _filename; }
+
+    // Cancel removes any groups this dialog added to the layout.
+    void EndModal(int retCode) override;
 
 private:
     wxString _mappingFile = "mapping.xmap";
@@ -639,6 +668,7 @@ protected:
         static const wxWindowID ID_MNU_CLEARSELECTED;
         static const wxWindowID ID_MNU_CLEARALL;
         static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
+        static const long ID_MNU_ADD_DONOR_GROUPS;
         static const wxWindowID ID_MNU_ADD_EMPTY_GROUP;
         static const wxWindowID ID_MNU_SORT_SUBMODELS_BY_NAME;
         static const wxWindowID ID_MNU_EDIT_DISPLAY_ELEMENTS;
@@ -677,8 +707,42 @@ protected:
         void CollapseAll();
         void ExpandAll();
         void ClearAll();
+        struct MappingTreeState {
+            std::vector<xLightsImportModelNode*> expanded;
+            wxDataViewItemArray selected;
+            wxDataViewItem top;
+        };
+        MappingTreeState CaptureMappingTreeState() const;
+        // Cleared() rebuilds the whole view in a few ms; this puts the user's
+        // expansion and selection back across it.
+        void RebuildMappingTree(const MappingTreeState& state);
+        void ApplyNameFilter(bool force = false);
+        void ExpandNameFilterMatches();
+        void UpdateFilterCount();
+        // Mappings on rows the model filter currently hides.
+        int CountHiddenMappings() const;
         void ClearSelected();
         void AddEmptyGroup();
+        // Adds an empty ModelGroup to the layout plus its row, or nullptr on failure.
+        xLightsImportModelNode* CreateEmptyGroup(const wxString& groupName);
+        xLightsImportModelNode* FindTopLevelNode(const wxString& name) const;
+        void AddDonorGroupsAndMap(const std::vector<wxString>& groups);
+        bool GroupNameInUse(const wxString& name) const;
+        // Asks for a name other than `taken`, re-asking until it is unused; empty if the user gives up.
+        wxString PromptForUnusedGroupName(const wxString& taken);
+        std::vector<wxString> DonorGroupsAt(const wxPoint& screenPos);
+        void RemoveGroupsAddedThisSession();
+
+        // The Available list is filtered for display only. Anything that needs to
+        // know which sources exist must read these, never the visible rows.
+        std::vector<ImportChannel*> SortedImportChannels() const;
+        bool AvailableSourceExists(const std::string& name) const;
+        std::unordered_set<std::string> SelectedAvailableNames() const;
+        std::vector<AvailableSource> BuildAvailableSources(bool withTypes);
+        void ApplyAvailFilter();
+        void UpdateAvailFilterCount();
+        // Confirms leaving without Ok: unsaved mapping changes, and groups added here that Cancel removes.
+        bool ConfirmDiscard(bool closingWindow);
         void EditDisplayElements();
         void AddNewMasterViewItems(std::set<std::string>& snapshot);
         void ShowAllMapped();
@@ -767,6 +831,22 @@ protected:
         int _sequenceDurationMS {0};
         wxCheckBox* CheckBox_ShowTimeline {nullptr};
         wxCheckBox* CheckBox_HideUnmapped {nullptr};
+        // Hidden rows are still acted on, so say how many there are.
+        wxStaticText* StaticText_FilterCount {nullptr};
+        // Debounces the model filter so the tree is not rebuilt per keystroke.
+        wxTimer _nameFilterTimer;
+        // Rows the filter expanded, as opposed to the user, so it undoes only its own.
+        std::unordered_set<xLightsImportModelNode*> _filterExpanded;
+        wxString _lastNameFilterApplied;
+        // Layout groups created while this dialog is open, removed again on Cancel.
+        std::vector<std::string> _groupsAddedThisSession;
+        // Donor groups the Available context menu was opened on.
+        std::vector<wxString> _contextDonorGroups;
+        wxFilterQuery _availFilter;
+        wxTimer _availFilterTimer;
+        wxStaticText* StaticText_AvailFilterCount {nullptr};
+        // Which list PopulateAvailable last showed, so source lookups read the same one.
+        bool _availIsCCR = false;
         std::vector<wxCheckBox*> _timingCheckboxes;
         int _timelineCol {-1};
         std::map<ImportChannel*, int> _channelImageMap;

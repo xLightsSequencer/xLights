@@ -12,12 +12,14 @@
 #define NOMINMAX
 #endif
 
+#include <limits>
 #include <map>
 #include <string.h>
 #include <cctype>
 #include <thread>
 #include <unordered_set>
 #include <cinttypes>
+#include <cmath>
 #include <spdlog/fmt/fmt.h>
 
 #include <curl/curl.h>
@@ -33,6 +35,8 @@
 #include "../models/CustomModel.h"
 #include "../models/Model.h"
 #include "../models/MatrixModel.h"
+#include "../models/ModelGroup.h"
+#include "../models/SubModel.h"
 #include "../models/Pixels.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/Output.h"
@@ -1596,75 +1600,84 @@ bool FPP::UploadUDPOut(const nlohmann::json &udp) {
     return false;
 }
 
+static bool IsInModelUpload(const Model* model, int32_t startChan, int32_t endChannel) {
+    if (model->GetDisplayAs() == DisplayAsType::ModelGroup || !model->IsActive()) {
+        return false;
+    }
+    int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+    return ch >= startChan && ch <= endChannel;
+}
+
+static std::string FPPOverlayModelName(const std::string& n) {
+    std::string name(n);
+    Replace(name, " ", "_");
+    return name;
+}
+
+static nlohmann::json CreateOverlayModelJSON(Model* model, bool useCompressedData) {
+    int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+
+    int numStr = model->GetNumStrings();
+    if (numStr == 0) {
+        numStr = 1;
+    }
+    int straPerStr =  model->GetNumStrands() / numStr;
+    if (straPerStr < 1) straPerStr = 1;
+
+    nlohmann::json jm;
+    jm["Name"] = FPPOverlayModelName(model->name);
+    jm["ChannelCount"] = model->GetActChanCount();
+    jm["StartChannel"] = ch;
+    jm["ChannelCountPerNode"] = model->GetChanCountPerNode();
+    jm["xLights"] = true;
+
+    MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
+    if (mm) {
+        if (mm->isVerticalMatrix()) {
+            jm["Orientation"] = std::string("vertical");
+        } else {
+            jm["Orientation"] = std::string("horizontal");
+        }
+    } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
+        CustomModel *cm = dynamic_cast<CustomModel *>(model);
+        straPerStr = 1;
+        numStr = 1;
+        if ((cm->GetCustomWidth() * cm->GetCustomHeight() * cm->GetCustomDepth()) > (512 * 512)) {
+            jm["Orientation"] = std::string("horizontal");
+        } else {
+            jm["Orientation"] = std::string("custom");
+            std::string compressed = cm->GetCompressedData();
+            if (useCompressedData && !compressed.empty()) {
+                jm["compressedData"] = compressed;
+            } else {
+                jm["data"] = cm->GetCustomData();
+            }
+        }
+    } else {
+        jm["Orientation"] = std::string("horizontal");
+    }
+    jm["StringCount"] = numStr;
+    jm["StrandsPerString"] = straPerStr;
+    std::string corner = model->GetIsBtoT() ? "B" : "T";
+    corner += model->GetIsLtoR() ? "L" : "R";
+    jm["StartCorner"] = corner;
+    jm["Type"] = std::string("Channel");
+    return jm;
+}
+
 nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel) {
     nlohmann::json json;
     nlohmann::json models;
     std::vector<std::string> names;
-    
+
     for (const auto& m : *allmodels) {
         Model* model = m.second;
 
-        if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
+        if (!IsInModelUpload(model, startChan, endChannel)) {
             continue;
         }
-        if (!model->IsActive()) {
-            continue;
-        }
-
-        int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
-        if (ch < startChan || ch > endChannel) {
-            continue;
-        }
-
-        std::string name(model->name);
-        Replace(name, " ", "_");
-
-        int numStr = model->GetNumStrings();
-        if (numStr == 0) {
-            numStr = 1;
-        }
-        int straPerStr =  model->GetNumStrands() / numStr;
-        if (straPerStr < 1) straPerStr = 1;
-
-        nlohmann::json jm;
-        jm["Name"] = name;
-        jm["ChannelCount"] = model->GetActChanCount();
-        jm["StartChannel"] = ch;
-        jm["ChannelCountPerNode"] = model->GetChanCountPerNode();
-        jm["xLights"] = true;
-
-        MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
-        if (mm) {
-            if (mm->isVerticalMatrix()) {
-                jm["Orientation"] = std::string("vertical");
-            } else {
-                jm["Orientation"] = std::string("horizontal");
-            }
-        } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
-            CustomModel *cm = dynamic_cast<CustomModel *>(model);
-            straPerStr = 1;
-            numStr = 1;
-            if ((cm->GetCustomWidth() * cm->GetCustomHeight() * cm->GetCustomDepth()) > (512 * 512)) {
-                jm["Orientation"] = std::string("horizontal");
-            } else {
-                jm["Orientation"] = std::string("custom");
-                std::string compressed = cm->GetCompressedData();
-                if (majorVersion >= 10 && !compressed.empty()) {
-                    jm["compressedData"] = compressed;
-                } else {
-                    jm["data"] = cm->GetCustomData();
-                }
-            }
-        } else {
-            jm["Orientation"] = std::string("horizontal");
-        }
-        jm["StringCount"] = numStr;
-        jm["StrandsPerString"] = straPerStr;
-        std::string corner = model->GetIsBtoT() ? "B" : "T";
-        corner += model->GetIsLtoR() ? "L" : "R";
-        jm["StartCorner"] = corner;
-        jm["Type"] = std::string("Channel");
-        names.emplace_back(name);
+        nlohmann::json jm = CreateOverlayModelJSON(model, majorVersion >= 10);
+        names.emplace_back(jm["Name"].get<std::string>());
         models.push_back(jm);
     }
 
@@ -1725,6 +1738,336 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
 
     json["models"] = models;
     return json;
+}
+
+std::vector<std::string> FPP::FindOutdatedXLightsModels(ModelManager* allmodels, int32_t startChan, int32_t endChannel, bool& allInRange) {
+    std::vector<std::string> outdated;
+    allInRange = true;
+
+    nlohmann::json ogModelJSON;
+    if (!GetURLAsJSON("/api/models", ogModelJSON, false) || !ogModelJSON.is_array()) {
+        return outdated;
+    }
+
+    std::map<std::string, Model*> current;
+    for (const auto& m : *allmodels) {
+        if (IsInModelUpload(m.second, 0, std::numeric_limits<int32_t>::max())) {
+            current.emplace(FPPOverlayModelName(m.second->name), m.second);
+        }
+    }
+
+    for (auto const& ogmodel : ogModelJSON) {
+        if (!ogmodel.is_object() || !ogmodel.contains("Name") || !ogmodel["Name"].is_string()) {
+            continue;
+        }
+        if (!GetJSONBoolValue(ogmodel, "xLights") || GetJSONBoolValue(ogmodel, "autoCreated")) {
+            continue;
+        }
+        if (ogmodel.contains("Type") && GetJSONStringValue(ogmodel, "Type") != "Channel") {
+            continue;
+        }
+        std::string name = GetJSONStringValue(ogmodel, "Name");
+        int32_t ogStart = GetJSONIntValue(ogmodel, "StartChannel");
+        if (ogStart < startChan || ogStart > endChannel) {
+            allInRange = false;
+        }
+
+        auto it = current.find(name);
+        if (it == current.end()) {
+            // Gone from the layout, but fppd still prefers it over the model it
+            // would auto-create for a port with the same description.
+            outdated.push_back(name);
+            continue;
+        }
+        // Build with whichever custom-data encoding FPP already holds so the
+        // encoding alone never reads as a change.
+        bool compressed = ogmodel.contains("compressedData") && ogmodel["compressedData"].is_string() && !ogmodel["compressedData"].get<std::string>().empty();
+        nlohmann::json expected = CreateOverlayModelJSON(it->second, compressed);
+
+        bool same = true;
+        for (const char* key : { "StartChannel", "ChannelCount", "ChannelCountPerNode", "StringCount",
+                                 "StrandsPerString", "StartCorner", "Orientation", "data", "compressedData" }) {
+            if (!expected.contains(key)) {
+                continue;
+            }
+            if (!ogmodel.contains(key)) {
+                // FPP treats a missing ChannelCountPerNode as 3
+                if (std::string(key) == "ChannelCountPerNode" && expected[key] == 3) {
+                    continue;
+                }
+                same = false;
+                break;
+            }
+            if (ogmodel[key] != expected[key]) {
+                same = false;
+                break;
+            }
+        }
+        if (!same) {
+            outdated.push_back(name);
+        }
+    }
+    return outdated;
+}
+
+namespace {
+// A render buffer laid out the way FPP's overlay "Grid" is: row-major with row
+// 0 at the top (xLights buffer row 0 is the bottom). Each cell holds the
+// 0-based start channel of every node that lands in it.
+struct OverlayGrid {
+    int width = 0;
+    int height = 0;
+    std::vector<std::vector<uint32_t>> cells;
+};
+}
+
+static OverlayGrid BuildOverlayGrid(const std::vector<NodeBaseClassPtr>& nodes, int bufWi, int bufHi,
+                                    int outWi, int outHi, uint32_t minChanCount) {
+    OverlayGrid grid;
+    grid.width = outWi;
+    grid.height = outHi;
+    grid.cells.resize((size_t)outWi * outHi);
+    for (const auto& n : nodes) {
+        if (n->GetChanCount() < minChanCount) {
+            continue;
+        }
+        for (const auto& c : n->Coords) {
+            if (c.bufX < 0 || c.bufX >= bufWi || c.bufY < 0 || c.bufY >= bufHi) {
+                continue;
+            }
+            int x = (int)((int64_t)c.bufX * outWi / bufWi);
+            int y = outHi - 1 - (int)((int64_t)c.bufY * outHi / bufHi);
+            auto& cell = grid.cells[(size_t)y * outWi + x];
+            if (std::find(cell.begin(), cell.end(), n->ActChan) == cell.end()) {
+                cell.push_back(n->ActChan);
+            }
+        }
+    }
+    return grid;
+}
+
+// Rows are joined by ';', cells by ',' and the values within a cell by '&'; a
+// hole is an empty cell.
+template <typename F>
+static std::string SerializeOverlayGrid(const OverlayGrid& grid, F&& cellValue) {
+    std::string out;
+    for (int y = 0; y < grid.height; y++) {
+        if (y) {
+            out += ';';
+        }
+        for (int x = 0; x < grid.width; x++) {
+            if (x) {
+                out += ',';
+            }
+            const auto& cell = grid.cells[(size_t)y * grid.width + x];
+            for (size_t i = 0; i < cell.size(); i++) {
+                if (i) {
+                    out += '&';
+                }
+                out += std::to_string(cellValue(cell[i]));
+            }
+        }
+    }
+    return out;
+}
+
+static std::string FPPSubModelName(const std::string& n) {
+    std::string name = FPPOverlayModelName(n);
+    Replace(name, "/", "_");
+    return name;
+}
+
+nlohmann::json FPP::CreateSubModelMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel) {
+    nlohmann::json submodels = nlohmann::json::array();
+
+    for (const auto& m : *allmodels) {
+        Model* model = m.second;
+        if (!IsInModelUpload(model, startChan, endChannel) || model->GetSubModels().empty()) {
+            continue;
+        }
+        std::string parentName = FPPOverlayModelName(model->name);
+        uint32_t parentStart0 = model->GetNumberFromChannelString(model->ModelStartChannel) - 1;
+        uint32_t cpn = model->GetChanCountPerNode();
+        uint32_t parentChannels = model->GetActChanCount();
+        if (cpn < 1) {
+            continue;
+        }
+
+        for (Model* sm : model->GetSubModels()) {
+            if (!sm->IsActive()) {
+                continue;
+            }
+            std::vector<NodeBaseClassPtr> nodes;
+            int bufWi = 0;
+            int bufHi = 0;
+            sm->InitRenderBufferNodes("Default", "2D", "None", nodes, bufWi, bufHi, 0);
+            if (nodes.empty() || bufWi < 1 || bufHi < 1) {
+                continue;
+            }
+            OverlayGrid grid = BuildOverlayGrid(nodes, bufWi, bufHi, bufWi, bufHi, 1);
+
+            // FPP's "grid" form numbers a parent node by its channel slot,
+            // ParentStartChannel + (node - 1) * cpn, which is not xLights' node
+            // number on a model wired from its far end; so the number is derived
+            // from the channel. A channel off that stride, or a cell holding more
+            // than one node, can't be expressed that way and goes as absolute
+            // channels instead.
+            bool asNodes = true;
+            for (const auto& cell : grid.cells) {
+                if (cell.size() > 1) {
+                    asNodes = false;
+                    break;
+                }
+                if (!cell.empty() && (cell[0] < parentStart0 || cell[0] >= parentStart0 + parentChannels || (cell[0] - parentStart0) % cpn != 0)) {
+                    asNodes = false;
+                    break;
+                }
+            }
+
+            nlohmann::json js;
+            js["Name"] = FPPSubModelName(parentName) + "_" + FPPSubModelName(sm->GetName());
+            js["DisplayName"] = sm->GetName();
+            js["Type"] = "Sub";
+            js["Parent"] = parentName;
+            js["ParentStartChannel"] = parentStart0 + 1;
+            js["ChannelCountPerNode"] = cpn;
+            js["Width"] = grid.width;
+            js["Height"] = grid.height;
+            js["Orientation"] = "horizontal";
+            js["StartCorner"] = "TL";
+            js["StringCount"] = grid.height;
+            js["StrandsPerString"] = 1;
+            if (asNodes) {
+                js["SubType"] = "grid";
+                js["Grid"] = SerializeOverlayGrid(grid, [&](uint32_t ch) { return (ch - parentStart0) / cpn + 1; });
+            } else {
+                js["SubType"] = "channelgrid";
+                js["Grid"] = SerializeOverlayGrid(grid, [](uint32_t ch) { return ch + 1; });
+            }
+            submodels.push_back(js);
+        }
+    }
+
+    nlohmann::json json;
+    json["source"] = "xlights";
+    json["version"] = 1;
+    json["submodels"] = submodels;
+    return json;
+}
+
+static void CollectGroupBaseModels(const ModelGroup* grp, std::set<const Model*>& models, std::set<const Model*>& visited) {
+    if (!visited.insert(grp).second) {
+        return;
+    }
+    for (const Model* m : grp->ActiveModels()) {
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            CollectGroupBaseModels(static_cast<const ModelGroup*>(m), models, visited);
+        } else if (m->GetDisplayAs() == DisplayAsType::SubModel) {
+            models.insert(static_cast<const SubModel*>(m)->GetParent());
+        } else {
+            models.insert(m);
+        }
+    }
+}
+
+nlohmann::json FPP::CreateModelGroupMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel) {
+    nlohmann::json groups = nlohmann::json::array();
+
+    for (const auto& m : *allmodels) {
+        if (m.second->GetDisplayAs() != DisplayAsType::ModelGroup || !m.second->IsActive()) {
+            continue;
+        }
+        const ModelGroup* grp = static_cast<const ModelGroup*>(m.second);
+
+        // Only groups whose every member is part of this upload, so FPP is
+        // never handed a group that drives channels it wasn't given models for.
+        std::set<const Model*> members;
+        std::set<const Model*> visited;
+        CollectGroupBaseModels(grp, members, visited);
+        if (members.empty() || !std::all_of(members.begin(), members.end(), [&](const Model* mm) {
+                return IsInModelUpload(mm, startChan, endChannel);
+            })) {
+            continue;
+        }
+
+        std::vector<NodeBaseClassPtr> nodes;
+        int bufWi = 0;
+        int bufHi = 0;
+        grp->InitRenderBufferNodes("Default", grp->GetDefaultCamera(), "None", nodes, bufWi, bufHi, 0);
+        if (bufWi < 1 || bufHi < 1) {
+            continue;
+        }
+
+        // FPP renders a group as RGB, writing three channels per cell, so a
+        // member with narrower nodes would have its neighbours overwritten.
+        std::unordered_set<uint32_t> pixels;
+        for (const auto& n : nodes) {
+            if (n->GetChanCount() >= 3) {
+                pixels.insert(n->ActChan);
+            }
+        }
+        if (pixels.empty()) {
+            continue;
+        }
+
+        // A group's buffer is sized by its grid size, not its pixel count, so a
+        // sparse group can be hundreds of cells per pixel. FPP's effects cost
+        // per cell and the Grid string grows per cell, so bin those down.
+        int outWi = bufWi;
+        int outHi = bufHi;
+        double const maxCells = std::max(64.0 * 64.0, 4.0 * pixels.size());
+        double const cells = (double)bufWi * bufHi;
+        if (cells > maxCells) {
+            double const scale = std::sqrt(maxCells / cells);
+            outWi = std::max(1, (int)std::ceil(bufWi * scale));
+            outHi = std::max(1, (int)std::ceil(bufHi * scale));
+        }
+        OverlayGrid grid = BuildOverlayGrid(nodes, bufWi, bufHi, outWi, outHi, 3);
+
+        const auto& direct = grp->ActiveModels();
+        bool const onlySubModels = !direct.empty() && std::all_of(direct.begin(), direct.end(), [](const Model* mm) {
+            return mm->GetDisplayAs() == DisplayAsType::SubModel;
+        });
+
+        nlohmann::json js;
+        js["Name"] = FPPSubModelName(grp->GetName());
+        js["DisplayName"] = grp->GetName();
+        js["Type"] = "Sub";
+        js["SubType"] = "channelgrid";
+        js["GroupType"] = onlySubModels ? "submodel" : "model";
+        js["IsGroup"] = true;
+        js["ChannelCountPerNode"] = 3;
+        js["Width"] = grid.width;
+        js["Height"] = grid.height;
+        js["Orientation"] = "horizontal";
+        js["StartCorner"] = "TL";
+        js["StringCount"] = grid.height;
+        js["StrandsPerString"] = 1;
+        js["MemberCount"] = direct.size();
+        js["PixelCount"] = pixels.size();
+        js["Grid"] = SerializeOverlayGrid(grid, [](uint32_t ch) { return ch + 1; });
+        groups.push_back(js);
+    }
+
+    nlohmann::json json;
+    json["source"] = "xlights";
+    json["version"] = 1;
+    json["modelgroups"] = groups;
+    return json;
+}
+
+bool FPP::UploadSubModelsAndGroups(ModelManager* allmodels, int32_t startChan, int32_t endChannel) {
+    // FPP 10 is the first to read these.
+    if (!IsVersionAtLeast(10, 0)) {
+        return false;
+    }
+    // Always sent, even when empty: FPP replaces the file wholesale, which is
+    // what clears out submodels and groups that no longer exist.
+    auto const subs = CreateSubModelMap(allmodels, startChan, endChannel);
+    PostToURL("/api/configfile/xlights-submodels.json", subs.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
+    auto const groups = CreateModelGroupMap(allmodels, startChan, endChannel);
+    PostToURL("/api/configfile/xlights-modelgroups.json", groups.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
+    return false;
 }
 
 static bool Compare3dPointTuple(const std::tuple<float, float, float, int> &l,
