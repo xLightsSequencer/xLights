@@ -48,16 +48,18 @@ public:
     void RefreshStatusColumn();
     std::list<std::string> GetSelectedControllerNames() const;
     Controller* GetFirstSelectedController() const;
-    void SelectController(const std::string& name);
+    // dropModelSelection: false for programmatic re-selects (e.g. after network
+    // work), which must not disturb a model the user is working with.
+    void SelectController(const std::string& name, bool dropModelSelection = true);
     wxTreeListCtrl* GetTree() const { return _tree; }
     void SaveColumnOrder();
     wxWindow* CreatePropertiesPanel(wxWindow* parent);
     void UpdateControllerProperties();
     void ClearPreviewHighlights();
+    void UpdatePreviewHighlights();
     void SetControllerObjectVisibility(const std::string& controllerName, ControllerObject::Visibility vis);
     void RefreshControllerPlacementProperties(ControllerObject* co);
     void UpdateControllerObjectStatusColors();
-    void SetControllerObjectHighlights(const std::list<std::string>& controllerNames);
 
 private:
     void OnControllerPropertyGridChange(wxPropertyGridEvent& event);
@@ -66,6 +68,7 @@ private:
     void CreateTree();
     int ColIndex(const wxString& title) const;
     void OnSelectionChanged(wxTreeListEvent& event);
+    void ApplyTreeSelection(bool dropModelSelection);
     void OnItemActivated(wxTreeListEvent& event);
     void OnContextMenu(wxTreeListEvent& event);
     void ExpandAllControllers();
@@ -74,7 +77,6 @@ private:
     void RefreshPingIndicator(const Controller* controller);
     void PopulatePorts(wxTreeListItem ctrlItem);
     void OnItemExpanding(wxTreeListEvent& event);
-    void UpdatePreviewHighlights();
     void OnBeginDrag(wxDataViewEvent& event);
     void OnDragPossible(wxDataViewEvent& event);
     void OnDragDrop(wxDataViewEvent& event);
@@ -92,6 +94,9 @@ private:
     xLightsFrame* _frame = nullptr;
     LayoutPanel* _layoutPanel = nullptr;
     wxTreeListCtrl* _tree = nullptr;
+    // Set while UpdateControllerList rebuilds the tree: some ports report the
+    // rows it deletes and re-selects as selection changes.
+    bool _rebuildingTree = false;
     std::vector<int> _colIdx;
 
     wxSearchCtrl* _controllerFilterCtrl = nullptr;

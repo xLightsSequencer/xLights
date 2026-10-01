@@ -131,6 +131,7 @@ bool ControllerObject::Draw(IModelPreview* preview, xlGraphicsContext* ctx, xlGr
     if (!IsActive()) { return true; }
 
     const bool is3d = preview->Is3D();
+    const bool highlight = preview->IsControllerHighlighted(_controllerName);
     GetObjectScreenLocation().PrepareToDraw(is3d, allowSelected);
 
     if (!_meshLoadAttempted) {
@@ -153,10 +154,10 @@ bool ControllerObject::Draw(IModelPreview* preview, xlGraphicsContext* ctx, xlGr
         // box's own depth (and any worldPos_z picked up while dragging in 3D)
         // is far outside that, so a solid box is clipped away entirely. Draw
         // the footprint flat on the canvas plane instead.
-        DrawFlatBody(solid);
+        DrawFlatBody(solid, highlight);
         GetObjectScreenLocation().UpdateBoundingBox(BOX_WIDTH, BOX_HEIGHT, BOX_DEPTH);
         DrawStatusLed(solid, true);
-        DrawLabel(preview, ctx, solid, true);
+        DrawLabel(preview, ctx, solid, true, highlight);
         if ((Selected() || Highlighted()) && allowSelected) {
             GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), IsFromBase());
         }
@@ -165,7 +166,7 @@ bool ControllerObject::Draw(IModelPreview* preview, xlGraphicsContext* ctx, xlGr
 
     // The mesh takes its colours from its .mtl, so a highlighted box is drawn
     // as the plain box, which can be tinted.
-    if (_mesh && !_rowHighlight) {
+    if (_mesh && !highlight) {
         const glm::vec3 scale = GetObjectScreenLocation().GetScaleMatrix();
         const glm::vec3 rot = GetObjectScreenLocation().GetRotation();
         const float hcx = GetObjectScreenLocation().GetHcenterPos();
@@ -183,13 +184,13 @@ bool ControllerObject::Draw(IModelPreview* preview, xlGraphicsContext* ctx, xlGr
                 ->PopMatrix();
         });
     } else {
-        DrawFallbackBox(solid);
+        DrawFallbackBox(solid, highlight);
     }
 
     GetObjectScreenLocation().UpdateBoundingBox(BOX_WIDTH, BOX_HEIGHT, BOX_DEPTH);
 
     DrawStatusLed(solid, false);
-    DrawLabel(preview, ctx, solid, false);
+    DrawLabel(preview, ctx, solid, false, highlight);
 
     if ((Selected() || Highlighted()) && allowSelected) {
         GetObjectScreenLocation().DrawHandles(solid, preview->GetCameraZoomForHandles(), preview->GetHandleScale(), true, IsFromBase());
@@ -200,7 +201,7 @@ bool ControllerObject::Draw(IModelPreview* preview, xlGraphicsContext* ctx, xlGr
 // 2D body: the enclosure footprint as a flat filled rectangle with a lighter
 // edge, on the canvas plane. See the note in Draw for why nothing with real
 // depth survives the 2D projection.
-void ControllerObject::DrawFlatBody(xlGraphicsProgram* solid)
+void ControllerObject::DrawFlatBody(xlGraphicsProgram* solid, bool highlight)
 {
     const float hw = BOX_WIDTH * 0.5f;
     const float hh = BOX_HEIGHT * 0.5f;
@@ -216,7 +217,7 @@ void ControllerObject::DrawFlatBody(xlGraphicsProgram* solid)
     auto vac = solid->getAccumulator();
     const int startVert = vac->getCount();
     vac->PreAlloc(6);
-    const xlColor& base = _rowHighlight ? xlYELLOW : _statusColor;
+    const xlColor& base = highlight ? xlYELLOW : _statusColor;
     const xlColor body = shade(base, 0.9f);
     vac->AddVertex(px[0], py[0], pz[0], body);
     vac->AddVertex(px[1], py[1], pz[1], body);
@@ -233,7 +234,9 @@ void ControllerObject::DrawFlatBody(xlGraphicsProgram* solid)
     auto lac = solid->getAccumulator();
     const int lineStart = lac->getCount();
     lac->PreAlloc(8);
-    const xlColor edge = shade(base, 1.6f);
+    // Lightening yellow saturates to nearly the body colour, so a highlighted
+    // box darkens its edge instead.
+    const xlColor edge = shade(base, highlight ? 0.55f : 1.6f);
     for (int i = 0; i < 4; ++i) {
         const int j = (i + 1) % 4;
         lac->AddVertex(px[i], py[i], pz[i], edge);
@@ -248,7 +251,7 @@ void ControllerObject::DrawFlatBody(xlGraphicsProgram* solid)
 // Used when the shipped enclosure mesh is missing or fails to load. Keeps the
 // feature usable without the asset - which is what let phases 1-5 be built and
 // tested before it existed.
-void ControllerObject::DrawFallbackBox(xlGraphicsProgram* solid)
+void ControllerObject::DrawFallbackBox(xlGraphicsProgram* solid, bool highlight)
 {
     const float hw = BOX_WIDTH * 0.5f;
     const float hh = BOX_HEIGHT * 0.5f;
@@ -277,7 +280,7 @@ void ControllerObject::DrawFallbackBox(xlGraphicsProgram* solid)
     const int startVert = vac->getCount();
     vac->PreAlloc(36);
     for (const auto& f : faces) {
-        const xlColor fc = shade(_rowHighlight ? xlYELLOW : _statusColor, f.shading);
+        const xlColor fc = shade(highlight ? xlYELLOW : _statusColor, f.shading);
         vac->AddVertex(cx[f.a], cy[f.a], cz[f.a], fc);
         vac->AddVertex(cx[f.b], cy[f.b], cz[f.b], fc);
         vac->AddVertex(cx[f.c], cy[f.c], cz[f.c], fc);
@@ -329,7 +332,7 @@ void ControllerObject::DrawStatusLed(xlGraphicsProgram* solid, bool flat)
 // world-space geometry rather than a screen-space overlay so it rotates and
 // scales with the box like a real label, and is depth-sorted with everything
 // else instead of floating at a fixed depth.
-void ControllerObject::DrawLabel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solid, bool flat)
+void ControllerObject::DrawLabel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* solid, bool flat, bool highlight)
 {
     if (!_showLabel || _controllerName.empty()) { return; }
 
@@ -378,7 +381,9 @@ void ControllerObject::DrawLabel(IModelPreview* preview, xlGraphicsContext* ctx,
 
     const std::string label = _controllerName;
     const float baseline = charH;
-    solid->addStep([tex, factor, baseline, label, toWorld](xlGraphicsContext* ctx) {
+    // White text vanishes on the yellow highlight.
+    const xlColor textColor = highlight ? xlBLACK : xlWHITE;
+    solid->addStep([tex, factor, baseline, label, toWorld, textColor](xlGraphicsContext* ctx) {
         const xlFontInfo& font = xlFontInfo::FindFont(20);
         xlVertexTextureAccumulator* vta = ctx->createVertexTextureAccumulator();
         font.populate(*vta, 0.0f, baseline, label, factor);
@@ -386,7 +391,7 @@ void ControllerObject::DrawLabel(IModelPreview* preview, xlGraphicsContext* ctx,
             ctx->PushMatrix();
             ctx->enableBlending();
             ctx->ApplyMatrix(toWorld);
-            ctx->drawTexture(vta, tex, xlWHITE);
+            ctx->drawTexture(vta, tex, textColor);
             ctx->PopMatrix();
         }
         delete vta;

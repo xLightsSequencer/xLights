@@ -12,6 +12,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 
 #include <wx/wx.h>
 
@@ -65,6 +66,7 @@ class ModelPreview : public GRAPHICS_BASE_CLASS, public IModelPreview
     // model.
     std::map<std::string, int> _portStringHighlight;
     std::map<std::string, std::pair<uint32_t, uint32_t>> _portChannelHighlight;
+    std::set<std::string> _controllerHighlight;
 
 public:
     ModelPreview(wxPanel* parent, xLightsFrame* xlights = nullptr);
@@ -151,7 +153,9 @@ public:
 
     void SetPortStringHighlight(const Model* m, int stringIndex);
     void SetPortChannelHighlight(const Model* m, uint32_t firstChan, uint32_t lastChan);
-    void ClearPortStringHighlights() { _portStringHighlight.clear(); _portChannelHighlight.clear(); }
+    void SetControllerHighlights(std::set<std::string> controllerNames) { _controllerHighlight = std::move(controllerNames); }
+    void ClearPortStringHighlights() { _portStringHighlight.clear(); _portChannelHighlight.clear(); _controllerHighlight.clear(); }
+    bool IsControllerHighlighted(const std::string& controllerName) const override { return _controllerHighlight.count(controllerName) != 0; }
 
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);

@@ -997,7 +997,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         std::string selectedController = _outputModelManager.GetSelectedController();
         if (selectedController != "") {
             if (layoutPanel != nullptr && layoutPanel->GetControllerListPanel() != nullptr) {
-                layoutPanel->GetControllerListPanel()->SelectController(selectedController);
+                layoutPanel->GetControllerListPanel()->SelectController(selectedController, false);
             }
         }
     }

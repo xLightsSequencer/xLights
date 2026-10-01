@@ -384,6 +384,7 @@ void ControllerListPanel::UpdateControllerList() {
         }
     }
 
+    _rebuildingTree = true;
     _tree->Freeze();
     _tree->DeleteAllItems();
     wxTreeListItem root = _tree->GetRootItem();
@@ -411,6 +412,7 @@ void ControllerListPanel::UpdateControllerList() {
         }
     }
     _tree->Thaw();
+    _rebuildingTree = false;
     UpdateControllerProperties();
     UpdatePreviewHighlights();
 
@@ -493,7 +495,7 @@ Controller* ControllerListPanel::GetFirstSelectedController() const {
     return _frame->GetOutputManager()->GetController(names.front());
 }
 
-void ControllerListPanel::SelectController(const std::string& name) {
+void ControllerListPanel::SelectController(const std::string& name, bool dropModelSelection) {
     for (wxTreeListItem item = _tree->GetFirstChild(_tree->GetRootItem()); item.IsOk(); item = _tree->GetNextSibling(item)) {
         if (_tree->GetItemText(item, 0) == name) {
             _tree->UnselectAll();
@@ -503,8 +505,7 @@ void ControllerListPanel::SelectController(const std::string& name) {
             // driving selection programmatically (e.g. clicking the controller's
             // box in the layout preview) would otherwise see the tree highlight
             // update but the property grid stay stale.
-            UpdateControllerProperties();
-            UpdatePreviewHighlights();
+            ApplyTreeSelection(dropModelSelection);
             break;
         }
     }
@@ -544,9 +545,19 @@ bool ControllerListPanel::ControllerMatchesFilter(const Controller* controller) 
 }
 
 void ControllerListPanel::OnSelectionChanged(wxTreeListEvent& event) {
-    // A model picked on another page would stay selected (and yellow) next to
-    // the models this row highlights.
-    _layoutPanel->UnSelectModelsOnly();
+    if (_rebuildingTree) {
+        // UpdateControllerList refreshes the properties and highlights itself.
+        return;
+    }
+    ApplyTreeSelection(true);
+}
+
+void ControllerListPanel::ApplyTreeSelection(bool dropModelSelection) {
+    // A model clicked in the preview on this page would otherwise stay selected
+    // (with handles) next to the models the new row highlights.
+    if (dropModelSelection && _layoutPanel->IsControllersPageActive()) {
+        _layoutPanel->UnSelectModelsOnly();
+    }
     UpdateControllerProperties();
     UpdatePreviewHighlights();
 }
@@ -653,14 +664,6 @@ void ControllerListPanel::SetControllerObjectVisibility(const std::string& contr
     omm->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ControllerListPanel::SetControllerObjectVisibility");
 }
 
-void ControllerListPanel::SetControllerObjectHighlights(const std::list<std::string>& controllerNames) {
-    for (auto it = _frame->AllObjects.begin(); it != _frame->AllObjects.end(); ++it) {
-        if (auto* co = dynamic_cast<ControllerObject*>(it->second); co != nullptr) {
-            co->SetRowHighlight(std::find(controllerNames.begin(), controllerNames.end(), co->GetControllerName()) != controllerNames.end());
-        }
-    }
-}
-
 // Core has no notion of pinging, so the tint is pushed in from here whenever
 // the tree's own status indicators are refreshed.
 void ControllerListPanel::UpdateControllerObjectStatusColors() {
@@ -685,7 +688,6 @@ void ControllerListPanel::UpdateControllerObjectStatusColors() {
 }
 
 void ControllerListPanel::ClearPreviewHighlights() {
-    SetControllerObjectHighlights({});
     auto* preview = _layoutPanel->GetMainPreview();
     if (preview == nullptr) return;
     preview->ClearPortStringHighlights();
@@ -694,6 +696,12 @@ void ControllerListPanel::ClearPreviewHighlights() {
 }
 
 void ControllerListPanel::UpdatePreviewHighlights() {
+    // The tree keeps its selection while another page is showing, and network
+    // and model-list work rebuild it from there.
+    if (!_layoutPanel->IsControllersPageActive()) {
+        ClearPreviewHighlights();
+        return;
+    }
     auto* preview = _layoutPanel->GetMainPreview();
     if (preview == nullptr) return;
     preview->ClearPortStringHighlights();
@@ -743,7 +751,8 @@ void ControllerListPanel::UpdatePreviewHighlights() {
         }
     }
 
-    SetControllerObjectHighlights(GetSelectedControllerNames());
+    const auto selected = GetSelectedControllerNames();
+    preview->SetControllerHighlights(std::set<std::string>(selected.begin(), selected.end()));
     _frame->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
                                                  "ControllerListPanel::UpdatePreviewHighlights");
 }

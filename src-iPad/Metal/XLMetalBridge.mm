@@ -3708,15 +3708,11 @@ public:
         // site already guards; this one didn't, hence the crash here.
         if (_showViewObjects && ctx->ActivePreviewShowsViewObjects() && ctx->HasViewObjectManager()) {
             auto& allObjects = ctx->GetAllObjects();
+            _preview->SetHighlightedController(_isLayoutEditor && _controllersTabActive ? _selectedControllerName : std::string());
             for (auto it = allObjects.begin(); it != allObjects.end(); ++it) {
                 ViewObject* vo = it->second;
                 if (!vo) continue;
                 if (![self shouldDrawViewObject:vo context:ctx]) continue;
-                if (auto* co = dynamic_cast<ControllerObject*>(vo); co != nullptr) {
-                    co->SetRowHighlight(_isLayoutEditor && _controllersTabActive &&
-                                        !_selectedControllerName.empty() &&
-                                        co->GetControllerName() == _selectedControllerName);
-                }
                 // J-6 (sidebar canvas sync) — when the Objects tab
                 // has a pick, render that object with
                 // `allowSelected=true` so its ScreenLocation

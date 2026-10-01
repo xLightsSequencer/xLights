@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -enh (heffneil)              Layout Controllers page: the selected controller's box is highlighted
+                                 along with its models, and controller labels have a Label Size setting
     -bug (heffneil)              The sequencer prop filter is no longer saved into the sequence; models
                                  hidden by the filter in older sequences stay hidden until re-shown in
                                  Display Elements

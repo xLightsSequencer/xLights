@@ -66,6 +66,13 @@ public:
     // preview only when this is on.
     bool GetShowZoneIndicator() const override { return _showZoneIndicator; }
     void SetShowZoneIndicator(bool v) { _showZoneIndicator = v; }
+
+    // Mirrors desktop ModelPreview::IsControllerHighlighted: the controller
+    // whose row is selected on the Controllers tab, empty for none.
+    bool IsControllerHighlighted(const std::string& controllerName) const override {
+        return !_highlightedController.empty() && controllerName == _highlightedController;
+    }
+    void SetHighlightedController(const std::string& name) { _highlightedController = name; }
     float GetCameraRotationX() const override { return ActiveCamera().GetAngleX(); }
     float GetCameraRotationY() const override { return ActiveCamera().GetAngleY(); }
     glm::mat4& GetProjViewMatrix() override { return _projViewMatrix; }
@@ -157,6 +164,7 @@ private:
     bool _center2D0 = false;
     int _handleScale = 1;
     bool _showZoneIndicator = false;
+    std::string _highlightedController;
     void* _offscreenTarget = nullptr;   // id<MTLTexture>, non-owning
     void* _offscreenCapture = nullptr;  // id<MTLBuffer>, non-owning
     PreviewCamera _camera2d{false};

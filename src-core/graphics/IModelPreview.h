@@ -79,4 +79,9 @@ public:
     virtual bool IsNoCurrentModel() = 0;
     virtual bool GetShowZoneIndicator() const { return false; }
     virtual float GetPencilCatchRadiusMultiplier() const { return 8.0f; }
+    // True when this preview shows the named controller's row as selected on
+    // its Controllers page, so the controller's box draws highlighted. Held by
+    // the preview, not the shared ControllerObject, so other previews of the
+    // same layout never pick it up.
+    virtual bool IsControllerHighlighted(const std::string& controllerName) const { return false; }
 };
