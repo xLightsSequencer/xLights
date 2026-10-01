@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Import Effects groups are readable in dark mode again for layouts saved by
+                                 2024.09-2024.18, which stored the old dark blue highlight color
     -bug (derwin12)              Changing the sequencer View now clears the prop filter
     -bug (dkulp)                 FPP Connect's Add FPP by IP now reliably finds Falcon V4/V5 controllers
                                  in player/remote mode instead of depending on a single UDP reply

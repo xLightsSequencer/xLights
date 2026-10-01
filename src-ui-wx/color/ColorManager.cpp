@@ -189,8 +189,9 @@ const xlColor ColorManager::GetTimingColor(int colorIndex)
 
 void ColorManager::Save(BaseSerializingVisitor& visitor) const
 {
-    BaseSerializingVisitor::AttrCollector emptyAttrs;
-    visitor.WriteOpenTag("colors", emptyAttrs);
+    BaseSerializingVisitor::AttrCollector colorsAttrs;
+    colorsAttrs.Add("version", "1");
+    visitor.WriteOpenTag("colors", colorsAttrs);
     for (const auto& it : colors) {
         BaseSerializingVisitor::AttrCollector attrs;
         attrs.Add("Red", std::to_string(it.second.red));
@@ -214,5 +215,20 @@ void ColorManager::Load(pugi::xml_node colors_node)
             int blue = c.attribute("Blue").as_int(0);
             colors[name] = xlColor(red, green, blue);
         }
+        // 2024.09-2024.18 shipped these with xlBLUE / xlLIGHT_GREY defaults, and Save()
+        // writes every color, so shows saved then carry the old defaults as explicit values.
+        // Map them back to the xlBLACK sentinel so the dark-mode aware defaults apply. Only
+        // unversioned (pre-migration) files, so a color the user picks later is kept.
+        if (colors_node.attribute("version").as_int(0) >= 1) {
+            return;
+        }
+        auto migrateOldDefault = [this](ColorNames id, const xlColor& oldDefault) {
+            auto it = colors.find(xLights_color[id].name);
+            if (it != colors.end() && it->second == oldDefault) {
+                it->second = xlBLACK;
+            }
+        };
+        migrateOldDefault(COLOR_TEXT_HIGHLIGHTED, xlBLUE);
+        migrateOldDefault(COLOR_TEXT_UNSELECTED, xlLIGHT_GREY);
 	}
 }
