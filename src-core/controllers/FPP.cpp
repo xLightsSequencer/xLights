@@ -4584,12 +4584,20 @@ void FPP::PrepareSingleDiscovery(Discovery &discovery, const std::string &addres
     FillFPPPingBuffer(buffer);
 
     AddSystemInfoCurl(discovery, address, true);
+    AddDetectControllerTypeFallback(discovery, address);
 
     discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](uint8_t *buffer, int len, const std::string &fromIP) {
         ProcessFPPPingPacket(discovery, buffer, len);
     });
 
     discovery.SendData(FPP_CTRL_PORT, address, buffer, 207);
+}
+void FPP::PrepareControllerTypeProbes(Discovery &discovery, const std::list<std::string> &addresses) {
+    // A non-FPP device (Falcon, PowerDMX, ...) may not answer the FPP API URLs with a
+    // 404, and its UDP ping reply can be lost, so probe the web page directly.
+    for (const auto &a : addresses) {
+        AddDetectControllerTypeFallback(discovery, a);
+    }
 }
 bool FPP::supportedForFPPConnect() const {
     if (this->IsVersionAtLeast(7, 1)) {

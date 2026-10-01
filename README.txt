@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
     -bug (derwin12)              Changing the sequencer View now clears the prop filter
+    -bug (dkulp)                 FPP Connect's Add FPP by IP now reliably finds Falcon V4/V5 controllers
+                                 in player/remote mode instead of depending on a single UDP reply
+    -bug (dkulp)                 FPP Connect no longer forgets manually added addresses when more than
+                                 one has been added
     -enh (heffneil)              Import Effects: the filter boxes narrow the mapping tree and the source
                                  list (display only - Ok, Save Map, Auto Map and Clear All still cover
                                  hidden rows)

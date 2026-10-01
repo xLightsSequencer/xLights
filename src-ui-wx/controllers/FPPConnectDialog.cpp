@@ -2070,6 +2070,7 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
         wxDiscoveryDelegate delegate(this);
         Discovery discovery(_outputManager, &delegate);
         FPP::PrepareDiscovery(discovery, add, false);
+        FPP::PrepareControllerTypeProbes(discovery, add);
         discovery.Discover();
         FPP::MapToFPPInstances(discovery, instances, _outputManager);
 

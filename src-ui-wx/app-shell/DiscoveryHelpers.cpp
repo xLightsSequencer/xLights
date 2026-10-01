@@ -25,6 +25,7 @@
 #include "utils/ip_utils.h"
 
 #include <log.h>
+#include <algorithm>
 
 std::list<std::string> xLightsFrame::GetDiscoveryAddresses(std::list<std::string>* forcedOut) const {
     std::list<std::string> addresses;
@@ -34,7 +35,10 @@ std::list<std::string> xLightsFrame::GetDiscoveryAddresses(std::list<std::string
     wxString force;
     config->Read("FPPConnectForcedIPs", &force, "");
     if (!force.empty()) {
-        auto const ips = Split(force.ToStdString(), '|');
+        // older builds wrote this list back comma-separated
+        std::string forceStr = force.ToStdString();
+        std::replace(forceStr.begin(), forceStr.end(), ',', '|');
+        auto const ips = Split(forceStr, '|');
         for (const auto& a : ips) {
             if (!a.empty()) {
                 addresses.push_back(a);
@@ -140,6 +144,7 @@ std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate, 
 
     Discovery* discovery = new Discovery(&_outputManager, delegate);
     FPP::PrepareDiscovery(*discovery, addresses);
+    FPP::PrepareControllerTypeProbes(*discovery, forcedAddresses);
     discovery->Discover();
     FPP::MapToFPPInstances(*discovery, instances, &_outputManager);
     for (auto* fpp : instances) {
@@ -153,9 +158,10 @@ std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate, 
         for (const auto& fpp : instances) {
             if (case_insensitive_match(a, fpp->hostName) || case_insensitive_match(a, fpp->ipAddress)) {
                 if (!newForce.empty()) {
-                    newForce.append(",");
+                    newForce.append("|");
                 }
                 newForce.append(a);
+                break;
             }
         }
     }

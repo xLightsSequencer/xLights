@@ -746,6 +746,18 @@ DiscoveredData* Discovery::DetectControllerType(const std::string &ip, const std
             std::transform(falcModel.begin(), falcModel.end(), falcModel.begin(),
                            [](unsigned char c) { return std::toupper(c); });
             cd->SetModel(falcModel);
+            if (cd->typeId == 0) {
+                // FPP Connect only accepts a Falcon with a typeId, which otherwise
+                // comes solely from its UDP ping reply. Values match FPP's MultiSync.h.
+                static const std::map<std::string, int> falconTypeIds = {
+                    { "F16V4", 0x88 }, { "F48V4", 0x89 },
+                    { "F16V5", 0x8A }, { "F48V5", 0x8B }, { "F32V5", 0x8C }
+                };
+                auto tid = falconTypeIds.find(falcModel);
+                if (tid != falconTypeIds.end()) {
+                    cd->typeId = tid->second;
+                }
+            }
             cd->version = falc.GetFullName();
             cd->platform = "Falcon";
             std::string mode = falc.GetMode();

@@ -19671,6 +19671,7 @@ NSString* fppTypeString(FPP_TYPE t) {
     // broadcastPing defaults to true, so broadcast discovery still runs
     // alongside any user-supplied forced IPs (CTL-5 "Add FPP by IP").
     FPP::PrepareDiscovery(discovery, forcedAddresses);
+    FPP::PrepareControllerTypeProbes(discovery, forcedAddresses);
     discovery.Discover();
     FPP::MapToFPPInstances(discovery, _fppInstances, &om);
 
