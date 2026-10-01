@@ -800,8 +800,6 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
         TraceLog::AddTraceMessage("Processing " + ename);
 
         if (ename == "DisplayElements") {
-            const bool rowFilterSafe = e.attribute(ROW_FILTER_SAFE_ATTR).as_bool(false);
-            int unhidden = 0;
             for (auto element : e.children()) {
                 bool active = false;
                 bool selected = false;
@@ -813,10 +811,6 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
 
                 std::string type = element.attribute("type").as_string("");
                 bool visible = element.attribute("visible").as_bool(false);
-                if (!rowFilterSafe && !visible && type != STR_TIMING) {
-                    visible = true;
-                    ++unhidden;
-                }
                 bool renderDisabled = element.attribute("RenderDisabled").as_bool(false);
 
                 if (type == STR_TIMING) {
@@ -833,9 +827,6 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                         dynamic_cast<TimingElement*>(elem)->SetSubType(element.attribute("subType").as_string(""));
                     }
                 }
-            }
-            if (unhidden > 0) {
-                spdlog::info("LoadSequencerFile: unhid {} model rows hidden by the old sequencer filter", unhidden);
             }
         } else if (ename == "TimingTags") {
             for (auto tag : e.children("Tag")) {

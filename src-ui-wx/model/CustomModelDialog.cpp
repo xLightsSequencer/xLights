@@ -1290,7 +1290,7 @@ void CustomModelDialog::OnButtonWiringClick(wxCommandEvent& event)
 
 void CustomModelDialog::FlipHorizontal()
 {
-    // reverse the rows
+    // mirror left-right: reverse the column order within each row
     for (auto grid : _grids)
     {
         for (auto r = 0; r < grid->GetNumberRows(); r++)
@@ -1316,7 +1316,7 @@ void CustomModelDialog::FlipHorizontal()
 
 void CustomModelDialog::FlipVertical()
 {
-    // reverse the columns
+    // mirror top-bottom: reverse the row order within each column
     for (auto grid : _grids)
     {
         for (auto c = 0; c < grid->GetNumberCols(); c++)

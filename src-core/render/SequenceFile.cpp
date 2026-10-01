@@ -1441,7 +1441,6 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
 
     // DisplayElements and ElementEffects
     auto display_node = root.append_child("DisplayElements");
-    display_node.append_attribute(SequenceElements::ROW_FILTER_SAFE_ATTR) = "1";
     auto elements_node = root.append_child("ElementEffects");
 
     // lastView

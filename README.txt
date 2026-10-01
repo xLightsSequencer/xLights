@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (heffneil)              The sequencer prop filter is no longer saved into the sequence; models
+                                 hidden by the filter in older sequences stay hidden until re-shown in
+                                 Display Elements
     -bug (dkulp)                 Crash importing a GDTF moving-head fixture
     -bug (dkulp)                 Shows and model imports from before 2024.05 with 3D moving heads
                                  failed to load ("Unknown model type: DmxMovingHead3D"); they are
