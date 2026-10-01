@@ -162,16 +162,24 @@ namespace XmlSerialize {
         existingModel = nullptr;
         // Create appropriate DMX model type
         Model* model = nullptr;
-        DmxMovingHead* mh = nullptr;
+        // DmxMovingHeadAdv is a sibling of DmxMovingHead (both derive from
+        // DmxMovingHeadComm), not a subclass of it.
+        DmxMovingHeadComm* mh = nullptr;
         if (gdtfData.isMovingHead) {
             model = modelManager.CreateDefaultModel("DmxMovingHeadAdv", startChannel);
-            mh = dynamic_cast<DmxMovingHead*>(model);
         } else {
             model = modelManager.CreateDefaultModel("DmxMovingHead", startChannel);
-            mh = dynamic_cast<DmxMovingHead*>(model);
-            if (mh != nullptr) {
-                mh->SetDmxStyle("Moving Head Bars");
+            if (auto* basic = dynamic_cast<DmxMovingHead*>(model)) {
+                basic->SetDmxStyle("Moving Head Bars");
             }
+        }
+        if (model == nullptr) {
+            return nullptr;
+        }
+        mh = dynamic_cast<DmxMovingHeadComm*>(model);
+        if (mh == nullptr) {
+            delete model;
+            return nullptr;
         }
         // Restore position and scale
         model->SetHcenterPos(x);

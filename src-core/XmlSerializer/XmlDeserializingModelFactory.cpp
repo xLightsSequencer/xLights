@@ -96,6 +96,57 @@ static int ReadIntAttrWithLegacyFallback(pugi::xml_node node, const char* newAtt
     return node.attribute(legacyAttr).as_int(defaultVal);
 }
 
+static void SetAttr(pugi::xml_node node, const char* name, const std::string& value) {
+    pugi::xml_attribute a = node.attribute(name);
+    if (!a) {
+        a = node.append_attribute(name);
+    }
+    a.set_value(value.c_str());
+}
+
+// Pre-2024 moving heads kept their motor settings as flat attributes on the model node.
+static void MigrateFlatDmxMotors(pugi::xml_node node) {
+    if (node.child("PanMotor") || node.child("TiltMotor")) {
+        return;
+    }
+    auto migrate = [&](const char* motorName, const char* chanAttr, const char* slewAttr, const char* rotAttr, int defRot, const char* orientAttr) {
+        pugi::xml_node motor = node.append_child(motorName);
+        SetAttr(motor, "ChannelCoarse", std::to_string(node.attribute(chanAttr).as_int(1)));
+        SetAttr(motor, "SlewLimit", std::to_string(node.attribute(slewAttr).as_int(180)));
+        int rangeOfMotion = node.attribute(rotAttr).as_int(defRot);
+        SetAttr(motor, "RangeOfMotion", std::to_string(std::abs(rangeOfMotion)));
+        if (rangeOfMotion < 0) {
+            SetAttr(motor, "Reverse", "1");
+        }
+        int orientation = 360 - node.attribute(orientAttr).as_int(0);
+        SetAttr(motor, "OrientZero", std::to_string(orientation == 360 ? 0 : orientation));
+        for (const char* a : { chanAttr, slewAttr, rotAttr, orientAttr }) {
+            node.remove_attribute(a);
+        }
+    };
+    migrate("PanMotor", "DmxPanChannel", "DmxPanSlewLimit", "DmxPanDegOfRot", 540, "DmxPanOrient");
+    migrate("TiltMotor", "DmxTiltChannel", "DmxTiltSlewLimit", "DmxTiltDegOfRot", 180, "DmxTiltOrient");
+}
+
+// DmxMovingHead3D was folded into DmxMovingHeadAdv after 2024.05; shows and model
+// imports from before then still carry the old type.
+static void MigrateDmxMovingHead3D(pugi::xml_node node) {
+    SetAttr(node, XmlNodeKeys::DisplayAsAttribute, XmlNodeKeys::DmxMovingHeadAdvType);
+    node.remove_attribute("DmxStyle");
+    float beamLength = node.attribute("DmxBeamLength").as_float(4.0f);
+    SetAttr(node, "DmxBeamLength", fmt::format("{:6.4f}", beamLength * 1.275f)); // try to match old beam length
+    SetAttr(node, "DmxBeamYOffset", "0");
+    if (pugi::xml_node base = node.child("BaseMesh")) {
+        base.set_name("YokeMesh");
+        SetAttr(node.append_child("BaseMesh"), "ObjFile", "");
+    }
+    if (pugi::xml_node head = node.child("HeadMesh")) {
+        SetAttr(head, "ObjFile", FileUtils::GetResourcesDir() + "/meshobjects/MovingHead3D/MovingHead3DX_Head.obj");
+        SetAttr(head, "RotateY", "90");
+    }
+    MigrateFlatDmxMotors(node);
+}
+
 Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     std::string type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string("DisplayAs Missing");
 
@@ -104,6 +155,11 @@ Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManag
     }
 
     std::string node_name = node.name();  // need this to support importing old models that did not have the DisplayAs attribute
+
+    if (type == "DmxMovingHead3D") {
+        MigrateDmxMovingHead3D(node);
+        type = XmlNodeKeys::DmxMovingHeadAdvType;
+    }
 
     Model* model = nullptr;
     if (type == XmlNodeKeys::ArchesType || node_name == "archesmodel") {

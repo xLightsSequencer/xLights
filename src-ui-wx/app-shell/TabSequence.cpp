@@ -178,6 +178,11 @@ void xLightsFrame::ResetEffectsXml()
     AllModels.clear();
     AllObjects.clear();
     _sequenceViewManager.Reset();
+    // The presets tree holds raw pointers into the preset manager; drop them before it frees its items
+    if (EffectTreeDlg != nullptr) {
+        EffectTreeDlg->ClearItems();
+    }
+    _effectPresetsInitialized = false;
     _effectPresetManager.Reset();
     _xmlSettings.clear();
 }
@@ -737,6 +742,11 @@ void xLightsFrame::LoadEffectsFile()
     // visited.  The layout half has to be applied here instead, deferred so the
     // frame is up before floating panes are created.
     CallAfter([this]() { RestoreLayoutPerspective(); });
+
+    if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+        EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
+    }
 
     float elapsedTime = sw.Time() / 1000.0; //msec => sec
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), effectsFile.GetFullPath(), elapsedTime));

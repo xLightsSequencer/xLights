@@ -363,7 +363,14 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     {
         AutoReleasePool pool;
         parallel_for(0, (int)modelsToLoad.size(), [this, &modelsToLoad, previewW, previewH](int idx) {
-            createAndAddModel(modelsToLoad[idx], previewW, previewH);
+            // One unloadable model (e.g. a type this version no longer knows) must not abort
+            // the whole show load and leave _modelsLoading set forever.
+            try {
+                createAndAddModel(modelsToLoad[idx], previewW, previewH);
+            } catch (const std::exception& e) {
+                spdlog::error("Model '{}' could not be loaded and was skipped: {}",
+                              modelsToLoad[idx].attribute("name").as_string(), e.what());
+            }
         });
     }
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());

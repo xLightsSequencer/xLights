@@ -68,6 +68,7 @@ class EffectTreeDialog : public wxPanel
 		//*)
         wxTreeItemId treeRootID;
         void InitItems(EffectPresetManager& manager);
+        void ClearItems();
         bool NameCollissionInGroup(wxTreeItemId groupId, std::string name);
         static const long ID_GRID_MNU_SORT_ASC;
         static const long ID_GRID_MNU_SORT_ALL_ASC;
@@ -139,6 +140,7 @@ class EffectTreeDialog : public wxPanel
         std::mutex preset_mutex;
         bool _effectsFixed = false;
         bool _layerMode = false;
+        bool _rebuildingTree = false;
         void OnGridPopup(wxCommandEvent& event);
         void AddTreeElementsRecursive(EffectPresetGroup& group, wxTreeItemId curGroupID);
         void ApplyEffect(bool dblClick=false);

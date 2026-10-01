@@ -11,6 +11,29 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Crash importing a GDTF moving-head fixture
+    -bug (dkulp)                 Shows and model imports from before 2024.05 with 3D moving heads
+                                 failed to load ("Unknown model type: DmxMovingHead3D"); they are
+                                 converted to Moving Head Adv again
+    -bug (dkulp)                 A single model that could not be loaded aborted loading the whole
+                                 layout and could hang xLights on exit; it is now skipped and logged
+    -bug (dkulp)                 Crashes in the Moving Head path sketch editor when closing an empty
+                                 path, deleting handles, or dragging a path closed with a curve
+    -bug (dkulp)                 Crash using the Effect Presets panel after switching show folders
+    -bug (dkulp)                 Crash exporting a HinksPix HSEQ from an FSEQ rendered with fewer
+                                 channels than the current layout
+    -bug (dkulp)                 Crash uploading to a controller when the upload rebuilt its outputs
+    -bug (dkulp)                 Crash adding pre/post milliseconds when the sequence duration is
+                                 longer than the audio
+    -bug (dkulp)                 Crash rubber-band selecting with only timing rows visible, and
+                                 pasting into a timing range that no longer exists
+    -bug (dkulp)                 Crash when the main window received a second close while exiting
+    -bug (dkulp)                 Text effects naming an unknown xLights font crashed instead of
+                                 falling back to the OS font
+    -bug (dkulp)                 Crash loading a sequence with negative effect/palette references
+    -bug (dkulp)                 Crash dropping an effect on a row whose model no longer exists
+    -bug (dkulp)                 Windows crash reports attributed system/driver DLL frames to
+                                 unrelated xLights functions
     -bug (dkulp)                 Short, noisy zstd .fseq files (very few frames) could read back
                                  with wrong channel data
     -bug (dkulp)                 Harden .fseq reading against truncated and corrupt files (crashes

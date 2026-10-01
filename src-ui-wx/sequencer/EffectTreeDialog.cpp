@@ -236,6 +236,17 @@ void EffectTreeDialog::OnShow(wxShowEvent& event)
     event.Skip();
 }
 
+void EffectTreeDialog::ClearItems()
+{
+    _rebuildingTree = true;
+    TreeCtrl1->UnselectAll();
+    TreeCtrl1->DeleteChildren(treeRootID);
+    _rebuildingTree = false;
+    _baseRootID = wxTreeItemId();
+    _basePresetManager.Reset();
+    ValidateWindow();
+}
+
 void EffectTreeDialog::InitItems(EffectPresetManager& manager)
 {
     _presetManager = &manager;
@@ -247,7 +258,9 @@ void EffectTreeDialog::InitItems(EffectPresetManager& manager)
         EffectsFileDirty();
     }
 
+    _rebuildingTree = true;
     TreeCtrl1->DeleteChildren(treeRootID);
+    _rebuildingTree = false;
     _baseRootID = wxTreeItemId();
     _basePresetManager.Reset();
 
@@ -1140,6 +1153,9 @@ void EffectTreeDialog::ValidateWindow()
 
 void EffectTreeDialog::OnTreeCtrl1SelectionChanged(wxTreeEvent& event)
 {
+    // wxMSW fires selection-changed while deleting the selected item
+    if (_rebuildingTree)
+        return;
     ValidateWindow();
 
     wxTreeItemId sel = TreeCtrl1->GetSelection();

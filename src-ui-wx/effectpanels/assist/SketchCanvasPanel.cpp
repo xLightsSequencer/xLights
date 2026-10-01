@@ -151,18 +151,13 @@ void SketchCanvasPanel::OnSketchPaint(wxPaintEvent& /*event*/)
             else if (m_handles[i].handlePointType == HandlePointType::Point)
                 path.AddLineToPoint(pt);
             else if (m_handles[i].handlePointType == HandlePointType::QuadraticControlPt) {
-                auto endPt = NormalizedToUI(m_handles[i + 1].pt);
-                if (m_pathClosed && i == n - 1) {
-                    endPt = NormalizedToUI(m_handles[0].pt);
-                }
+                // A path closed this session ends in a control point; its end is the start handle
+                auto endPt = NormalizedToUI(m_handles[i + 1 < n ? i + 1 : 0].pt);
                 path.AddQuadCurveToPoint(pt.m_x, pt.m_y, endPt.m_x, endPt.m_y);
                 i += 1;
             } else if (m_handles[i].handlePointType == HandlePointType::CubicControlPt1) {
-                auto cp2 = NormalizedToUI(m_handles[i + 1].pt);
-                auto endPt = NormalizedToUI(m_handles[i + 2].pt);
-                if (m_pathClosed && i == n - 2) {
-                    endPt = NormalizedToUI(m_handles[0].pt);
-                }
+                auto cp2 = NormalizedToUI(m_handles[i + 1 < n ? i + 1 : 0].pt);
+                auto endPt = NormalizedToUI(m_handles[i + 2 < n ? i + 2 : 0].pt);
                 path.AddCurveToPoint(pt, cp2, endPt);
                 i += 2;
             }
@@ -258,9 +253,20 @@ void SketchCanvasPanel::OnSketchKeyDown(wxKeyEvent& event)
             auto startIter = m_handles.cbegin();
             auto endIter = m_handles.cbegin();
             auto p = toErase.value();
+            // the closing curve of a path closed this session is missing its end handle
+            p.second = std::min<int>(p.second, (int)m_handles.size() - p.first);
             std::advance(startIter, p.first);
             std::advance(endIter, p.second + p.first);
             m_handles.erase(startIter, endIter);
+            // Deleting the start handle of a curve leaves its control points at the
+            // front; the curve's end handle becomes the new start point.
+            while (!m_handles.empty() && m_handles.front().handlePointType != HandlePointType::Point &&
+                   m_handles.front().handlePointType != HandlePointType::QuadraticCurveEnd &&
+                   m_handles.front().handlePointType != HandlePointType::CubicCurveEnd) {
+                m_handles.erase(m_handles.begin());
+            }
+            if (!m_handles.empty())
+                m_handles.front().handlePointType = HandlePointType::Point;
             if (m_handles.size() == 1)
                 m_handles.clear();
 
@@ -753,7 +759,10 @@ void SketchCanvasPanel::UpdatePathFromHandles()
 
     auto path = std::make_shared<SketchEffectPath>();
     auto startPt = m_handles.front().pt;
-    for (size_t i = 1; i < m_handles.size();) {
+    const size_t n = m_handles.size();
+    // ClosePath() adds only the closing curve's control points; its end is the start handle
+    bool closingSegmentFromHandles = false;
+    for (size_t i = 1; i < n;) {
         std::shared_ptr<SketchPathSegment> segment;
         switch (m_handles[i].handlePointType) {
         case HandlePointType::Point:
@@ -761,25 +770,36 @@ void SketchCanvasPanel::UpdatePathFromHandles()
             ++i;
             break;
         case HandlePointType::QuadraticControlPt:
-            if (!m_pathClosed || (i < m_handles.size() - 1)) {
+            if (i + 1 < n) {
                 segment = std::make_shared<SketchQuadraticBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt);
+            } else if (m_pathClosed) {
+                segment = std::make_shared<SketchQuadraticBezier>(startPt, m_handles[i].pt, m_handles.front().pt);
+                closingSegmentFromHandles = true;
             }
             i += 2;
             break;
         case HandlePointType::CubicControlPt1:
-            if (!m_pathClosed || (i < m_handles.size() - 1)) {
+            if (i + 2 < n) {
                 segment = std::make_shared<SketchCubicBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt, m_handles[i + 2].pt);
+            } else if (m_pathClosed && i + 1 < n) {
+                segment = std::make_shared<SketchCubicBezier>(startPt, m_handles[i].pt, m_handles[i + 1].pt, m_handles.front().pt);
+                closingSegmentFromHandles = true;
             }
             i += 3;
             break;
         default:
+            ++i;
             break;
         }
-        path->appendSegment(segment);
-        startPt = segment->EndPoint();
+        if (segment != nullptr) {
+            path->appendSegment(segment);
+            startPt = segment->EndPoint();
+        }
     }
+    if (path->segments().empty())
+        return;
     if (m_pathClosed)
-        path->closePath(true, m_ClosedState);
+        path->closePath(!closingSegmentFromHandles, m_ClosedState);
 
     sketch.updatePath(pathIndex, path);
     m_sketchCanvasParent->NotifySketchUpdated();
@@ -806,7 +826,7 @@ std::shared_ptr<SketchEffectPath> SketchCanvasPanel::CreatePathFromHandles() con
             break;
         case HandlePointType::QuadraticControlPt:
             final_handle = index + 2;
-            if (m_pathClosed && (index == m_handles.size() - 2)) {
+            if (final_handle >= (int)m_handles.size()) {
                 final_handle = 0;
             }
             segment = std::make_shared<SketchQuadraticBezier>(m_handles[index].pt,
@@ -816,12 +836,12 @@ std::shared_ptr<SketchEffectPath> SketchCanvasPanel::CreatePathFromHandles() con
             break;
         case HandlePointType::CubicControlPt1:
             final_handle = index + 3;
-            if (m_pathClosed && (index == m_handles.size() - 3)) {
+            if (final_handle >= (int)m_handles.size()) {
                 final_handle = 0;
             }
             segment = std::make_shared<SketchCubicBezier>(m_handles[index].pt,
                                                           m_handles[index + 1].pt,
-                                                          m_handles[index + 2].pt,
+                                                          m_handles[index + 2 < m_handles.size() ? index + 2 : 0].pt,
                                                           m_handles[final_handle].pt);
             index += 3;
             break;
@@ -860,7 +880,7 @@ void SketchCanvasPanel::setBackgroundBitmap(std::unique_ptr<wxBitmap> bm)
 
 void SketchCanvasPanel::ClosePath()
 {
-    if (!m_pathClosed) {
+    if (!m_pathClosed && !m_handles.empty()) {
         m_pathClosed = true;
         std::shared_ptr<SketchPathSegment> segment;
         auto startPt = m_handles.back().pt;

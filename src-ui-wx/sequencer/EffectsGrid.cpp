@@ -1846,7 +1846,8 @@ void EffectsGrid::OnDropFiles(int x, int y, const wxArrayString& files) {
 
 bool EffectsGrid::IsTopModelVisible() {
     Row_Information_Struct* topRow = mSequenceElements->GetVisibleRowInformation(mSequenceElements->GetNumberOfTimingRows());
-    return topRow->Index == mSequenceElements->GetNumberOfTimingRows();
+    // no model rows at all, so there is nothing between the timing rows and the top model row
+    return topRow == nullptr || topRow->Index == mSequenceElements->GetNumberOfTimingRows();
 }
 
 bool EffectsGrid::IsMouseOverTiming(int y) {
@@ -5795,10 +5796,15 @@ Effect* EffectsGrid::OldPaste(const wxString& data, const wxString& pasteDataVer
             } else {
                 if (mCellRangeSelected && !mPartialCellSelected) {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-                    mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();
-                    mDropEndTimeMS = tel->GetEffect(mRangeEndCol)->GetEndTimeMS();
-                    int first_row = mSequenceElements->GetFirstVisibleModelRow();
-                    mDropRow = mRangeStartRow - first_row;
+                    // the range columns index marks on the selected timing row, which may have been hidden or edited since
+                    Effect* startMark = tel != nullptr ? tel->GetEffect(mRangeStartCol) : nullptr;
+                    Effect* endMark = tel != nullptr ? tel->GetEffect(mRangeEndCol) : nullptr;
+                    if (startMark != nullptr && endMark != nullptr) {
+                        mDropStartTimeMS = startMark->GetStartTimeMS();
+                        mDropEndTimeMS = endMark->GetEndTimeMS();
+                        int first_row = mSequenceElements->GetFirstVisibleModelRow();
+                        mDropRow = mRangeStartRow - first_row;
+                    }
                 }
                 int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                 if (effectIndex >= 0) {
@@ -6611,10 +6617,15 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
                 if (mCellRangeSelected && !mPartialCellSelected) {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-                    mDropStartTimeMS = tel->GetEffect(mRangeStartCol)->GetStartTimeMS();
-                    mDropEndTimeMS = tel->GetEffect(mRangeEndCol)->GetEndTimeMS();
-                    int first_row = mSequenceElements->GetFirstVisibleModelRow();
-                    mDropRow = mRangeStartRow - first_row;
+                    // the range columns index marks on the selected timing row, which may have been hidden or edited since
+                    Effect* startMark = tel != nullptr ? tel->GetEffect(mRangeStartCol) : nullptr;
+                    Effect* endMark = tel != nullptr ? tel->GetEffect(mRangeEndCol) : nullptr;
+                    if (startMark != nullptr && endMark != nullptr) {
+                        mDropStartTimeMS = startMark->GetStartTimeMS();
+                        mDropEndTimeMS = endMark->GetEndTimeMS();
+                        int first_row = mSequenceElements->GetFirstVisibleModelRow();
+                        mDropRow = mRangeStartRow - first_row;
+                    }
                 }
                 if (number_of_timings == 0 && mDropRow < number_of_timing_rows) {
                     DisplayWarning("Cannot paste model effect into timing track.");

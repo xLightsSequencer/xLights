@@ -1478,6 +1478,14 @@ public:
     bool ControllerSupportsOutputUpload(Controller* controller);
     bool UploadInputToController(Controller* controller, wxString& message);
     bool UploadOutputToController(Controller* controller, wxString& message);
+    // Controller uploads hold Output pointers across progress-dialog yields; ASAP work
+    // (which can rebuild a controller's Outputs) is deferred while one is running.
+    int _controllerUploadDepth = 0;
+    struct ControllerUploadScope {
+        explicit ControllerUploadScope(xLightsFrame* f);
+        ~ControllerUploadScope();
+        xLightsFrame* frame;
+    };
     void UploadControllerInput(Controller* controller);
     void UploadControllerOutput(Controller* controller);
     void OnButtonDiscoverClick(wxCommandEvent& event);

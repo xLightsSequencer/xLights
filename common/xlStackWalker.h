@@ -64,6 +64,16 @@ class xlStackWalker : public wxStackWalker
 
     std::string FindFunction(HMODULE hmod, void* fn)
     {
+        // The map only describes xLights.exe; looking up an offset into a system or
+        // driver DLL in it yields an unrelated xLights symbol.
+        if (hmod != ::GetModuleHandle(nullptr)) {
+            char path[MAX_PATH] = { 0 };
+            std::string mod = "??";
+            if (hmod != nullptr && ::GetModuleFileNameA(hmod, path, MAX_PATH) > 0) {
+                mod = wxFileName(path).GetFullName().ToStdString();
+            }
+            return mod + wxString::Format("+0x%llx", (uint64_t)fn - (uint64_t)hmod).ToStdString();
+        }
         wxString addr = wxString::Format("%016llx", (uint64_t)fn - (uint64_t)hmod);
         wxString res;
         

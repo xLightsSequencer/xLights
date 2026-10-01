@@ -251,13 +251,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 
     viewpoint_mgr.Clear();
 
-    // Force re-initialization of Effect Presets panel when show directory changes.
-    // If the panel is already visible, reload it immediately; otherwise defer until next show.
+    // The Effect Presets panel is rebuilt by LoadEffectsFile once the new show's presets are loaded.
     _effectPresetsInitialized = false;
-    if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
-        EffectTreeDlg->InitItems(_effectPresetManager);
-        _effectPresetsInitialized = true;
-    }
 
     // update most recently used array
     int idx = mruDirectories.Index(nd);
@@ -906,6 +901,11 @@ void xLightsFrame::DoASAPWork() {
     // ends with an AddASAPWork, which re-arms this once the model set is whole.
     if (LayoutPanel::IsFinalizingModel()) {
         logger_work->debug("Deferring ASAP Work - model placement in progress.");
+        _outputModelManager.ClearWorkRequested();
+        return;
+    }
+    if (_controllerUploadDepth > 0) {
+        logger_work->debug("Deferring ASAP Work - controller upload in progress.");
         _outputModelManager.ClearWorkRequested();
         return;
     }
@@ -1645,6 +1645,7 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
             BaseController* bc = BaseController::CreateBaseController(controller, ip);
             if (bc != nullptr) {
                 if (bc->IsConnected()) {
+                    ControllerUploadScope uploading(this);
                     if (bc->SetInputUniverses(controller, this)) {
                         spdlog::debug("Attempt to upload controller inputs successful on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                         message = vendor + " Input Upload complete.";
@@ -1687,6 +1688,18 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
     return res;
 }
 
+xLightsFrame::ControllerUploadScope::ControllerUploadScope(xLightsFrame* f) :
+    frame(f) {
+    ++frame->_controllerUploadDepth;
+}
+
+xLightsFrame::ControllerUploadScope::~ControllerUploadScope() {
+    if (--frame->_controllerUploadDepth == 0) {
+        // re-arm any ASAP work deferred during the upload
+        frame->CallAfter(&xLightsFrame::DoASAPWork);
+    }
+}
+
 bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& message) {
     message.clear();
     bool res = false;
@@ -1718,6 +1731,7 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
             BaseController* bc = BaseController::CreateBaseController(controller, ip);
             if (bc != nullptr) {
                 if (bc->IsConnected()) {
+                    ControllerUploadScope uploading(this);
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         message = vendor + " Output Upload Complete.";
                         res = true;

@@ -2250,14 +2250,17 @@ void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
 
     wxString music = inputFile;
 
-    std::map<std::string, AudioManager*> sourceSongs;
+    std::map<std::string, std::unique_ptr<AudioManager>> sourceSongs;
     double outputLength{ 0.0 };
     long sampleRate{ -1 };
     for (const auto& it : edits) {
         outputLength = std::max(outputLength, it.start + it.length);
-        sourceSongs[it.file] = new AudioManager(music);
+        auto& song = sourceSongs[it.file];
+        if (song == nullptr) {
+            song = std::make_unique<AudioManager>(music);
+        }
         if (firstAudio == nullptr) {
-            firstAudio = sourceSongs[it.file];
+            firstAudio = song.get();
         }
     }
     for (const auto& it : sourceSongs) {
@@ -2269,7 +2272,11 @@ void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
     std::vector<float> right(totalSamples);
 
     for (const auto& it : edits) {
-        auto audio = sourceSongs[it.file];
+        // silence edits contribute nothing; the output is already zeroed
+        if (it.volume == 0) {
+            continue;
+        }
+        auto* audio = sourceSongs[it.file].get();
         if (audio != nullptr) {
             if (audio->GetFrameInterval() < 0) {
                 audio->SetFrameInterval(20);
@@ -2280,12 +2287,19 @@ void SeqSettingsDialog::OnButton_AddMillisecondsClick(wxCommandEvent& event) {
             long const outputSamples = sampleRate * it.length;
             wxASSERT(startOutput + outputSamples - 1 <= totalSamples);
             long const startSample = audio->GetRate() * it.sourceoffset;
-            long const inputSamples = audio->GetRate() * it.length;
-            wxASSERT(startSample + inputSamples - 1 < audio->GetTrackSize());
-            wxASSERT(inputSamples == outputSamples);
+            // The edit length comes from the sequence duration field, which can be longer than the decoded track
+            long const inputSamples = std::min({ (long)(audio->GetRate() * it.length),
+                                                 (long)audio->GetTrackSize() - startSample,
+                                                 totalSamples - startOutput });
+            if (inputSamples <= 0 || startSample < 0 || startOutput < 0) {
+                continue;
+            }
 
             float* lsource = audio->GetRawLeftDataPtr(startSample);
             float* rsource = audio->GetRawRightDataPtr(startSample);
+            if (lsource == nullptr) {
+                continue;
+            }
             long const fadeinsamples = it.fadein * audio->GetRate();
             long const fadeoutsamples = it.fadeout * audio->GetRate();
             long const fadeoutstart = inputSamples - fadeoutsamples;

@@ -3209,7 +3209,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     static bool inClose = false;
 
-    if (inClose)
+    if (inClose || IsBeingDeleted())
         return;
 
     inClose = true;
@@ -3260,8 +3260,8 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     Destroy();
     spdlog::info("xLights Closed.");
-
-    inClose = false;
+    // inClose stays set: the frame lives on until idle-time deletion, and a second
+    // close arriving in that window must not run CloseSequence on torn-down state.
 }
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)

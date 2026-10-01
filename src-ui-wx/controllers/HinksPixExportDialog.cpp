@@ -1831,10 +1831,31 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
 
     ef->writeHeader(); // ready for frame data
 
-    uint8_t* WriteBuf = new uint8_t[ef_Num_Channel_To_Write];
+    std::vector<uint8_t> WriteBuf(ef_Num_Channel_To_Write, 0);
 
-    // read buff
-    uint8_t* tmpBuf = new uint8_t[ogNumChannels];
+    // The layout's channel ranges can extend past the end of an FSEQ rendered against
+    // an older layout; size the read buffer to cover them so those channels export as off.
+    int64_t readBufSize = ogNumChannels;
+    for (auto const& modelChan : modelStarts) {
+        readBufSize = std::max<int64_t>(readBufSize, (int64_t)modelChan.OrgStartChannel - 1 + modelChan.ChannelCount);
+    }
+    for (auto const* slave : { slave1, slave2 }) {
+        if (slave) {
+            readBufSize = std::max<int64_t>(readBufSize, (int64_t)slave->GetStartChannel() - 1 + slave->GetChannels());
+        }
+    }
+    if (readBufSize > ogNumChannels) {
+        spdlog::warn("HinksPix HSEQ {}: FSEQ has {} channels but the controller needs {}; missing channels will be off.",
+                     shortHSEQName, ogNumChannels, readBufSize);
+    }
+    std::vector<uint8_t> tmpBuf(readBufSize, 0);
+
+    auto copyChannels = [&](int64_t destOffset, int64_t srcStartChannel, int64_t count) {
+        if (count <= 0 || srcStartChannel < 1 || destOffset < 0 || destOffset + count > (int64_t)WriteBuf.size()) {
+            return;
+        }
+        memmove(WriteBuf.data() + destOffset, tmpBuf.data() + srcStartChannel - 1, count);
+    };
 
     uint32_t frame = 0;
 
@@ -1842,40 +1863,30 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
     while (frame < ogNumber_of_Frames) {
         FSEQFile::FrameData* data = xf->getFrame(frame);
 
-        data->readFrame(tmpBuf, ogNumChannels); // we have a read frame
+        data->readFrame(tmpBuf.data(), ogNumChannels); // we have a read frame
 
-        uint8_t* dest = WriteBuf;
+        int64_t dest = 0;
 
         //Loop through models channels
         for (auto const& modelChan : modelStarts) {
-            uint8_t* tempSrc = tmpBuf + modelChan.OrgStartChannel - 1;
-            uint8_t* tempDest = WriteBuf + modelChan.HinksStartChannel - 1;
-            memmove(tempDest, tempSrc, modelChan.ChannelCount);
+            copyChannels((int64_t)modelChan.HinksStartChannel - 1, modelChan.OrgStartChannel, modelChan.ChannelCount);
             dest += modelChan.ChannelCount;
         }
 
-        if (slave1) {
-            uint8_t* src = tmpBuf + slave1->GetStartChannel() - 1;
-            memmove(dest, src, slave1->GetChannels());
-            dest += slave1->GetChannels();
+        for (auto const* slave : { slave1, slave2 }) {
+            if (slave) {
+                copyChannels(dest, slave->GetStartChannel(), slave->GetChannels());
+                dest += slave->GetChannels();
+            }
         }
 
-        if (slave2) {
-            uint8_t* src = tmpBuf + slave2->GetStartChannel() - 1;
-            memmove(dest, src, slave2->GetChannels());
-            dest += slave2->GetChannels();
-        }
-
-        ef->addFrame(frame, WriteBuf);
+        ef->addFrame(frame, WriteBuf.data());
 
         delete data;
         frame++;
     }
 
     ef->finalize();
-
-    delete[] tmpBuf;
-    delete[] WriteBuf;
 
     spdlog::debug("HinksPix Completed HSEQ {}", shortHSEQName);
     return true;

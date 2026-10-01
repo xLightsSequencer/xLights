@@ -1462,7 +1462,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
 
         // Change render buffer to Per Model for models that need it
         Model* m = AllModels[el->GetParentElement()->GetModelName()];
-        if( m->GetDisplayAs() == DisplayAsType::ModelGroup ) {
+        if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
             auto mg = dynamic_cast<ModelGroup*>(m);
             if (mg != nullptr) {
                 // see if all models in the group match the desired model types

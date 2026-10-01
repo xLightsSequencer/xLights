@@ -714,7 +714,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                     std::string refStr = effect.attribute("ref").as_string("");
                     if (!refStr.empty()) {
                         int ref = std::strtol(refStr.c_str(), nullptr, 10);
-                        if (ref >= (int)effectStrings.size()) {
+                        if (ref < 0 || ref >= (int)effectStrings.size()) {
                             spdlog::warn("Effect string not found for effect {} between {} and {}. Settings ignored.", effectName, (int)startTime, (int)endTime);
                             settings = "";
                         } else {
@@ -737,7 +737,7 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                 }
                 std::string pal;
                 if (palette != -1) {
-                    if (palette >= (long)colorPalettes.size()) {
+                    if (palette < 0 || palette >= (long)colorPalettes.size()) {
                         spdlog::warn("Color palette not found for effect {} between {} and {}. Palette ignored.",
                             effectName, (int)startTime, (int)endTime);
                         pal = "";

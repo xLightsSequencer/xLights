@@ -11849,7 +11849,12 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
             it2->GetModelNode().append_attribute("name") = newName;
             it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
             scaleModelNode(it2->GetModelNode());
-            xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
+            try {
+                xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
+            } catch (const std::exception& e) {
+                spdlog::error("Model '{}' could not be imported: {}", (const char*)it2->GetName().c_str(), e.what());
+                continue;
+            }
             if (firstImported.empty()) firstImported = newName;
             spdlog::debug("Imported model '{}' as '{}'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
         }

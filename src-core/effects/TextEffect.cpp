@@ -269,8 +269,12 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     std::string xl_font = SettingsMap.Get("CHOICE_Text_Font", "Use OS Fonts");
     if( xl_font != "Use OS Fonts" )
     {
-        RenderXLText(effect, SettingsMap, buffer);
-        return;
+        // An unknown xLights font name (e.g. an OS font name written by another tool) falls back to the OS font path
+        font_mgr.init();
+        if (font_mgr.get_font(xl_font) != nullptr) {
+            RenderXLText(effect, SettingsMap, buffer);
+            return;
+        }
     }
 
     std::string text = SettingsMap["TEXTCTRL_Text"];
@@ -1447,6 +1451,9 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     font_mgr.init();
     std::string xl_font = settings["CHOICE_Text_Font"];
     xlFont* font = font_mgr.get_font(xl_font);
+    if (font == nullptr) {
+        return;
+    }
     const xlImage* image = font->get_image();
     int char_width = font->GetWidth();
     int char_height = font->GetHeight();
