@@ -41,6 +41,7 @@
 #include "controllers/Falcon.h"
 #include "controllers/Experience.h"
 #include "controllers/PowerDMX.h"
+#include "controllers/JBoards.h"
 #include <algorithm>
 #include <memory>
 
@@ -647,8 +648,8 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         wxWindow* fseqWidget = nullptr;
         int fseqBorder = 1;
         //FSEQ Type listbox
-        if (inst->fppType == FPP_TYPE::FPP) {
-            if (!inst->supportedForFPPConnect()) {
+        if (inst->fppType == FPP_TYPE::FPP || inst->fppType == FPP_TYPE::JBOARDS) {
+            if (inst->fppType == FPP_TYPE::FPP && !inst->supportedForFPPConnect()) {
                 doUploadCheckbox->SetValue(false);
                 doUploadCheckbox->Enable(false);
 
@@ -666,7 +667,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 Choice1->Append(_("V2 zstd"));
                 Choice1->Append(_("V2 Sparse/zstd"));
                 Choice1->Append(_("V2 Sparse/Uncompressed"));
-                Choice1->SetSelection(inst->mode == "master" ? 1 : 2);
+                Choice1->SetSelection(inst->fppType == FPP_TYPE::JBOARDS ? (JBoards::PrefersUncompressedFSEQ(inst->ipAddress) ? 3 : 2) : (inst->mode == "master" ? 1 : 2));
                 fseqWidget = Choice1;
                 fseqBorder = 0;
             }
@@ -761,7 +762,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 playlistWidget = new wxStaticText(FPPInstanceList, wxID_ANY, "");
             }
 
-        } else if (inst->fppType == FPP_TYPE::FALCONV4V5) {
+        } else if (inst->fppType == FPP_TYPE::FALCONV4V5 || (inst->fppType == FPP_TYPE::JBOARDS && JBoards::PlaysAudio(inst->ipAddress))) {
             // this probably needs to be moved as this is not really a zlib thing but only the falcons end up here today so I am going to put it here for now
             wxCheckBox *CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
             CheckBox1->SetValue(inst->mode != "remote");
@@ -1453,11 +1454,14 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         int fseqversion{ 1 };
                         FSEQFile::CompressionType cType{ FSEQFile::CompressionType::none };
                         bool sparse{ false };
-                        if (inst->fppType == FPP_TYPE::FPP || inst->fppType == FPP_TYPE::FALCONV4V5 || inst->fppType == FPP_TYPE::GENIUS || inst->fppType == FPP_TYPE::POWERDMX) {
+                        if (inst->fppType == FPP_TYPE::FPP || inst->fppType == FPP_TYPE::FALCONV4V5 || inst->fppType == FPP_TYPE::GENIUS || inst->fppType == FPP_TYPE::POWERDMX || inst->fppType == FPP_TYPE::JBOARDS) {
                             std::tie(fseqversion, cType, sparse) = DecodeFSEQVersionAndCompression(GetChoiceValue(FSEQ_COL + rowStr));
                         } else {
                             fseqversion = 2;
                             sparse = true;
+                        }
+                        if (inst->fppType == FPP_TYPE::JBOARDS) {
+                            JBoards::PrepareSequenceUpload(inst, _outputManager);
                         }
                         cancelled |= inst->PrepareUploadSequence(seq,
                                                                 fseq, m2,
@@ -1611,6 +1615,19 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                 } else {
                                     spdlog::debug("Upload failed as PowerDMX is not connected.");
                                     cancelled = true;
+                                }
+                                inst->ClearTempFile();
+                            } else if (inst->fppType == FPP_TYPE::JBOARDS) {
+                                std::string m2 = GetCheckValue(MEDIA_COL + std::to_string(row)) ? media : "";
+                                std::function<bool(int, std::string)> updateProg = [&prgs, inst](int val, std::string msg) {
+                                    prgs->setActionLabel(msg);
+                                    return !inst->updateProgress(val, true);
+                                };
+                                std::string error;
+                                cancelled |= !JBoards::UploadSequence(inst->ipAddress, inst->proxy(), inst->GetTempFile(), fseq, m2, updateProg, error) && error.empty();
+                                if (!error.empty()) {
+                                    inst->messages.push_back(error);
+                                    inst->faileduploads.push_back(std::filesystem::path(fseq).filename().string());
                                 }
                                 inst->ClearTempFile();
                             }
@@ -1790,8 +1807,8 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
             if (GetChoiceValueIndex(FSEQ_COL + rowStr) != 2 || config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
                 config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
             }
-        } else if (inst->fppType == FPP_TYPE::FALCONV4V5) {
-            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != 2 || config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
+        } else if (inst->fppType == FPP_TYPE::FALCONV4V5 || inst->fppType == FPP_TYPE::JBOARDS) {
+            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != (inst->fppType == FPP_TYPE::JBOARDS && JBoards::PrefersUncompressedFSEQ(inst->ipAddress) ? 3 : 2) || config->Read("FPPConnectUploadFSEQType_" + Fixitup(inst->uuid), &lval)) {
                 config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
             }
         }

@@ -15,6 +15,7 @@
 
 #include "controllers/FPP.h"
 #include "controllers/WLED.h"
+#include "controllers/JBoards.h"
 #include "discovery/Discovery.h"
 #include "outputs/ArtNetOutput.h"
 #include "outputs/ControllerEthernet.h"
@@ -74,6 +75,7 @@ void xLightsFrame::PrepareAllControllerDiscovery(Discovery& discovery) {
     Pixlite16::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
     WLED::PrepareDiscovery(discovery);
+    JBoards::PrepareDiscovery(discovery);
 }
 
 // Timer for cleaning up Discovery objects after outstanding curl requests complete
