@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (heffneil)              The sequencer prop filter is no longer saved into the sequence; models
                                  hidden by the filter in older sequences stay hidden until re-shown in
                                  Display Elements
+    -enh (dkulp)                 FPP Connect model upload now also sends submodels and model groups
+                                 so FPP can run overlay effects on them (FPP 10+)
     -bug (dkulp)                 Crash importing a GDTF moving-head fixture
     -bug (dkulp)                 Shows and model imports from before 2024.05 with 3D moving heads
                                  failed to load ("Unknown model type: DmxMovingHead3D"); they are

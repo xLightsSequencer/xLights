@@ -19946,6 +19946,10 @@ NSString* fppTypeString(FPP_TYPE t) {
                 &mm, 0, std::numeric_limits<int32_t>::max());
             cancelled = target->UploadModels(memoryMaps);
             if (!cancelled && !cancelledFlag) {
+                cancelled = target->UploadSubModelsAndGroups(
+                    &mm, 0, std::numeric_limits<int32_t>::max());
+            }
+            if (!cancelled && !cancelledFlag) {
                 std::map<std::string, std::string> virtualDisplayData;
                 if (_context->HasViewObjectManager()) {
                     FPP::CreateVirtualDisplayMap(
@@ -19970,6 +19974,11 @@ NSString* fppTypeString(FPP_TYPE t) {
                 matchedEth->GetStartChannel(),
                 matchedEth->GetEndChannel());
             cancelled = target->UploadModels(memoryMaps);
+            if (!cancelled && !cancelledFlag) {
+                cancelled = target->UploadSubModelsAndGroups(
+                    &mm, matchedEth->GetStartChannel(),
+                    matchedEth->GetEndChannel());
+            }
             if (!cancelled && !cancelledFlag) {
                 target->SetRestartFlag(true);
             }

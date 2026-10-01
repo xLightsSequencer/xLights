@@ -1378,6 +1378,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
                     auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
+                    cancelled |= inst->UploadSubModelsAndGroups(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadDisplayMap(virtualDisplayData);
                     // model uploads currently still require a full restart
                     inst->SetRestartFlag(true);
@@ -1386,6 +1387,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     if (c.size() == 1) {
                         auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                         cancelled |= inst->UploadModels(memoryMaps);
+                        cancelled |= inst->UploadSubModelsAndGroups(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                         // cancelled |= inst->UploadDisplayMap(displayMap);
                         inst->SetRestartFlag(true);
                     }

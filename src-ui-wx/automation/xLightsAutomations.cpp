@@ -414,11 +414,13 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (models == "true" || models == "all") {
             auto memoryMaps = fpp->CreateModelMemoryMap(&AllModels, 0, std::numeric_limits<int32_t>::max());
             fpp->UploadModels(memoryMaps);
-        } else if (udp == "local") {
+            fpp->UploadSubModelsAndGroups(&AllModels, 0, std::numeric_limits<int32_t>::max());
+        } else if (models == "local") {
             auto c = _outputManager.GetControllers(fpp->ipAddress);
             if (c.size() == 1) {
                 auto const& memoryMaps = fpp->CreateModelMemoryMap(&AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                 fpp->UploadModels(memoryMaps);
+                fpp->UploadSubModelsAndGroups(&AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
             }
         }
 
