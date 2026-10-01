@@ -163,7 +163,9 @@ bool ControllerObject::Draw(IModelPreview* preview, xlGraphicsContext* ctx, xlGr
         return true;
     }
 
-    if (_mesh) {
+    // The mesh takes its colours from its .mtl, so a highlighted box is drawn
+    // as the plain box, which can be tinted.
+    if (_mesh && !_rowHighlight) {
         const glm::vec3 scale = GetObjectScreenLocation().GetScaleMatrix();
         const glm::vec3 rot = GetObjectScreenLocation().GetRotation();
         const float hcx = GetObjectScreenLocation().GetHcenterPos();
@@ -214,7 +216,8 @@ void ControllerObject::DrawFlatBody(xlGraphicsProgram* solid)
     auto vac = solid->getAccumulator();
     const int startVert = vac->getCount();
     vac->PreAlloc(6);
-    const xlColor body = shade(_statusColor, 0.9f);
+    const xlColor& base = _rowHighlight ? xlYELLOW : _statusColor;
+    const xlColor body = shade(base, 0.9f);
     vac->AddVertex(px[0], py[0], pz[0], body);
     vac->AddVertex(px[1], py[1], pz[1], body);
     vac->AddVertex(px[2], py[2], pz[2], body);
@@ -230,7 +233,7 @@ void ControllerObject::DrawFlatBody(xlGraphicsProgram* solid)
     auto lac = solid->getAccumulator();
     const int lineStart = lac->getCount();
     lac->PreAlloc(8);
-    const xlColor edge = shade(_statusColor, 1.6f);
+    const xlColor edge = shade(base, 1.6f);
     for (int i = 0; i < 4; ++i) {
         const int j = (i + 1) % 4;
         lac->AddVertex(px[i], py[i], pz[i], edge);
@@ -274,7 +277,7 @@ void ControllerObject::DrawFallbackBox(xlGraphicsProgram* solid)
     const int startVert = vac->getCount();
     vac->PreAlloc(36);
     for (const auto& f : faces) {
-        const xlColor fc = shade(_statusColor, f.shading);
+        const xlColor fc = shade(_rowHighlight ? xlYELLOW : _statusColor, f.shading);
         vac->AddVertex(cx[f.a], cy[f.a], cz[f.a], fc);
         vac->AddVertex(cx[f.b], cy[f.b], cz[f.b], fc);
         vac->AddVertex(cx[f.c], cy[f.c], cz[f.c], fc);
@@ -348,9 +351,10 @@ void ControllerObject::DrawLabel(IModelPreview* preview, xlGraphicsContext* ctx,
     const float maxW = BOX_WIDTH * LABEL_MAX_WIDTH_FRACTION;
     if (textW > maxW && textW > 0.0f) {
         charH *= maxW / textW;
-        factor = (float)font.getSize() / charH;
-        textW = font.widthOf(_controllerName, factor);
     }
+    charH *= _labelSize / 100.0f;
+    factor = (float)font.getSize() / charH;
+    textW = font.widthOf(_controllerName, factor);
 
     // Build the text-space -> world transform from three probe points, so the
     // object's full TRS chain (including any rotation) carries the label.

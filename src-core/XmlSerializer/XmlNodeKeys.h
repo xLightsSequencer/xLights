@@ -116,6 +116,7 @@ namespace XmlNodeKeys {
     constexpr auto ControllerAttribute      = "Controller";
     constexpr auto VisibilityAttribute      = "Visibility";
     constexpr auto ShowLabelAttribute       = "ShowLabel";
+    constexpr auto LabelSizeAttribute       = "LabelSize";
     constexpr auto xlightsVersionAttr       = "SourceVersion";
     constexpr auto versionNumberAttribute   = "versionNumber";
     constexpr auto ActiveAttribute          = "Active";

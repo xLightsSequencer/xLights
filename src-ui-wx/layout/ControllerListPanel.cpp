@@ -544,6 +544,9 @@ bool ControllerListPanel::ControllerMatchesFilter(const Controller* controller) 
 }
 
 void ControllerListPanel::OnSelectionChanged(wxTreeListEvent& event) {
+    // A model picked on another page would stay selected (and yellow) next to
+    // the models this row highlights.
+    _layoutPanel->UnSelectModelsOnly();
     UpdateControllerProperties();
     UpdatePreviewHighlights();
 }
@@ -556,7 +559,7 @@ void ControllerListPanel::RefreshControllerPlacementProperties(ControllerObject*
     if (_propGrid == nullptr) return;
 
     static const char* kPlacementKeys[] = {
-        "LayoutShowLabel", "Locked", "ModelX", "ModelY", "ModelZ",
+        "LayoutShowLabel", "LayoutLabelSize", "Locked", "ModelX", "ModelY", "ModelZ",
         "ScaleX", "ScaleY", "ScaleZ", "RotateX", "RotateY", "RotateZ"
     };
 
@@ -578,6 +581,12 @@ void ControllerListPanel::RefreshControllerPlacementProperties(ControllerObject*
         auto* lbl = _propGrid->Append(new wxBoolProperty("Show Label", "LayoutShowLabel", co->GetShowLabel()));
         lbl->SetEditor("CheckBox");
         lbl->SetHelpString("Draws the controller name under its box in the preview.");
+        auto* sz = _propGrid->Append(new wxIntProperty("Label Size (%)", "LayoutLabelSize", co->GetLabelSize()));
+        sz->SetAttribute("Min", ControllerObject::MIN_LABEL_SIZE);
+        sz->SetAttribute("Max", ControllerObject::MAX_LABEL_SIZE);
+        sz->SetEditor("SpinCtrl");
+        sz->SetHelpString("Size of the name label, as a percentage of the size that fits it to the box.");
+        sz->Enable(co->GetShowLabel());
         // Base-reference overload - it dynamic_casts to the concrete location
         // internally; the typed ones are private.
         ScreenLocationPropertyHelper::AddSizeLocationProperties(co->GetObjectScreenLocation(), _propGrid);
@@ -594,6 +603,10 @@ void ControllerListPanel::RefreshControllerPlacementProperties(ControllerObject*
     };
     if (auto* prop = _propGrid->GetPropertyByName("LayoutShowLabel"); prop != nullptr && prop != editing) {
         prop->SetValue(co->GetShowLabel());
+    }
+    if (auto* prop = _propGrid->GetPropertyByName("LayoutLabelSize"); prop != nullptr) {
+        if (prop != editing) prop->SetValue(co->GetLabelSize());
+        prop->Enable(co->GetShowLabel());
     }
     if (auto* prop = _propGrid->GetPropertyByName("Locked"); prop != nullptr && prop != editing) {
         prop->SetValue(loc.IsLocked());
@@ -640,6 +653,14 @@ void ControllerListPanel::SetControllerObjectVisibility(const std::string& contr
     omm->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ControllerListPanel::SetControllerObjectVisibility");
 }
 
+void ControllerListPanel::SetControllerObjectHighlights(const std::list<std::string>& controllerNames) {
+    for (auto it = _frame->AllObjects.begin(); it != _frame->AllObjects.end(); ++it) {
+        if (auto* co = dynamic_cast<ControllerObject*>(it->second); co != nullptr) {
+            co->SetRowHighlight(std::find(controllerNames.begin(), controllerNames.end(), co->GetControllerName()) != controllerNames.end());
+        }
+    }
+}
+
 // Core has no notion of pinging, so the tint is pushed in from here whenever
 // the tree's own status indicators are refreshed.
 void ControllerListPanel::UpdateControllerObjectStatusColors() {
@@ -664,6 +685,7 @@ void ControllerListPanel::UpdateControllerObjectStatusColors() {
 }
 
 void ControllerListPanel::ClearPreviewHighlights() {
+    SetControllerObjectHighlights({});
     auto* preview = _layoutPanel->GetMainPreview();
     if (preview == nullptr) return;
     preview->ClearPortStringHighlights();
@@ -721,6 +743,7 @@ void ControllerListPanel::UpdatePreviewHighlights() {
         }
     }
 
+    SetControllerObjectHighlights(GetSelectedControllerNames());
     _frame->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
                                                  "ControllerListPanel::UpdatePreviewHighlights");
 }
@@ -1530,8 +1553,15 @@ void ControllerListPanel::OnControllerPropertyGridChange(wxPropertyGridEvent& ev
         if (auto* co = _frame->AllObjects.GetControllerObject(controller->GetName()); co != nullptr) {
             if (name == "LayoutShowLabel") {
                 co->SetShowLabel(event.GetValue().GetBool());
+                if (auto* sz = _propGrid->GetPropertyByName("LayoutLabelSize")) sz->Enable(co->GetShowLabel());
                 omm->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerListPanel::LayoutShowLabel");
                 omm->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ControllerListPanel::LayoutShowLabel");
+                return;
+            }
+            if (name == "LayoutLabelSize") {
+                co->SetLabelSize((int)event.GetValue().GetLong());
+                omm->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerListPanel::LayoutLabelSize");
+                omm->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ControllerListPanel::LayoutLabelSize");
                 return;
             }
             // Size / location fields share the model property-grid key names, so

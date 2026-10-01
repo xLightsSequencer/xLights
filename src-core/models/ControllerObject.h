@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <string>
@@ -71,6 +72,17 @@ public:
     void SetShowLabel(bool b) { _showLabel = b; }
     bool GetShowLabel() const { return _showLabel; }
 
+    // Percent of the automatic label size (which fits the name to the face).
+    static constexpr int MIN_LABEL_SIZE = 25;
+    static constexpr int MAX_LABEL_SIZE = 400;
+    void SetLabelSize(int pct) { _labelSize = std::clamp(pct, MIN_LABEL_SIZE, MAX_LABEL_SIZE); }
+    int GetLabelSize() const { return _labelSize; }
+
+    // Set while the controller's row is selected on the Controllers page, so
+    // the box highlights alongside the models on it. Display-only.
+    void SetRowHighlight(bool b) { _rowHighlight = b; }
+    bool GetRowHighlight() const { return _rowHighlight; }
+
     // Body tint, driven from the controller's ping state by the UI layer. Core
     // has no notion of pinging, so this is pushed in rather than pulled.
     void SetStatusColor(const xlColor& c) { _statusColor = c; }
@@ -107,6 +119,8 @@ private:
     std::string _controllerName;
     Visibility _visibility { Visibility::Off };
     bool _showLabel { false };
+    int _labelSize { 100 };
+    bool _rowHighlight { false };
     xlColor _statusColor { 96, 96, 104 };
 
     // The one generic enclosure, shared by every controller. Loaded lazily on
