@@ -36,6 +36,8 @@ class TimeDisplayControl;
 class MainSequencer: public wxPanel
 {
 	public:
+        // Empties the prop filter box and drops its row filter, e.g. when a sequence opens.
+        void ResetSeqFilter();
 
 		MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~MainSequencer();

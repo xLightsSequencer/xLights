@@ -18,6 +18,7 @@
 #include "SongStructureManager.h"
 namespace pugi { class xml_node; class xml_document; }
 #include <array>
+#include <functional>
 #include <vector>
 #include <map>
 #include <set>
@@ -108,6 +109,15 @@ public:
     void HideAllTimingTracks(bool hide);
     bool GetHideUnusedSubmodels() const { return mHideUnusedSubmodels; }
     void SetHideUnusedSubmodels(bool hide) { mHideUnusedSubmodels = hide; }
+    // Display-only model-row filter (the sequencer's prop filter box). Kept
+    // apart from Element visibility, which Display Elements owns and the
+    // sequence saves. Rows are repopulated by the caller.
+    void SetModelRowFilter(std::function<bool(const std::string&)> filter) { _modelRowFilter = std::move(filter); }
+    // Written on <DisplayElements> by every save. Older versions hid rows to
+    // filter them, and those hidden rows were saved, so a file without it has
+    // its model rows unhidden once on load.
+    static constexpr const char* ROW_FILTER_SAFE_ATTR = "rowFilterSafe";
+    bool HasModelRowFilter() const { return static_cast<bool>(_modelRowFilter); }
 
     int GetTotalNumberOfModelRows();
     void SetMaxRowsDisplayed(int maxRows);
@@ -292,6 +302,7 @@ private:
     int mCurrentView;
     bool hasPapagayoTiming;
     bool mHideUnusedSubmodels = false;
+    std::function<bool(const std::string&)> _modelRowFilter;
     int mSequenceEndMS;
     bool supportsModelBlending;
 
