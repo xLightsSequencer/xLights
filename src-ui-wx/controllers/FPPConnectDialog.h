@@ -148,6 +148,7 @@ class FPPConnectDialog: public wxDialog
         void OnSequenceListToggled(wxDataViewEvent& event);
 
         void doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload);
+        void PromptForOutdatedModels(FPPUploadProgressDialog *prgs, const std::vector<bool>& doUpload, std::vector<int>& modelsMode);
         std::vector<int> SplitIP(const wxString& ip) const; 
 
         void SequenceSelector(const std::string regexKey);

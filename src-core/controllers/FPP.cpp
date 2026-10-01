@@ -12,6 +12,7 @@
 #define NOMINMAX
 #endif
 
+#include <limits>
 #include <map>
 #include <string.h>
 #include <cctype>
@@ -1613,67 +1614,70 @@ static std::string FPPOverlayModelName(const std::string& n) {
     return name;
 }
 
+static nlohmann::json CreateOverlayModelJSON(Model* model, bool useCompressedData) {
+    int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+
+    int numStr = model->GetNumStrings();
+    if (numStr == 0) {
+        numStr = 1;
+    }
+    int straPerStr =  model->GetNumStrands() / numStr;
+    if (straPerStr < 1) straPerStr = 1;
+
+    nlohmann::json jm;
+    jm["Name"] = FPPOverlayModelName(model->name);
+    jm["ChannelCount"] = model->GetActChanCount();
+    jm["StartChannel"] = ch;
+    jm["ChannelCountPerNode"] = model->GetChanCountPerNode();
+    jm["xLights"] = true;
+
+    MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
+    if (mm) {
+        if (mm->isVerticalMatrix()) {
+            jm["Orientation"] = std::string("vertical");
+        } else {
+            jm["Orientation"] = std::string("horizontal");
+        }
+    } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
+        CustomModel *cm = dynamic_cast<CustomModel *>(model);
+        straPerStr = 1;
+        numStr = 1;
+        if ((cm->GetCustomWidth() * cm->GetCustomHeight() * cm->GetCustomDepth()) > (512 * 512)) {
+            jm["Orientation"] = std::string("horizontal");
+        } else {
+            jm["Orientation"] = std::string("custom");
+            std::string compressed = cm->GetCompressedData();
+            if (useCompressedData && !compressed.empty()) {
+                jm["compressedData"] = compressed;
+            } else {
+                jm["data"] = cm->GetCustomData();
+            }
+        }
+    } else {
+        jm["Orientation"] = std::string("horizontal");
+    }
+    jm["StringCount"] = numStr;
+    jm["StrandsPerString"] = straPerStr;
+    std::string corner = model->GetIsBtoT() ? "B" : "T";
+    corner += model->GetIsLtoR() ? "L" : "R";
+    jm["StartCorner"] = corner;
+    jm["Type"] = std::string("Channel");
+    return jm;
+}
+
 nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startChan, int32_t endChannel) {
     nlohmann::json json;
     nlohmann::json models;
     std::vector<std::string> names;
-    
+
     for (const auto& m : *allmodels) {
         Model* model = m.second;
 
         if (!IsInModelUpload(model, startChan, endChannel)) {
             continue;
         }
-
-        int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
-        std::string name = FPPOverlayModelName(model->name);
-
-        int numStr = model->GetNumStrings();
-        if (numStr == 0) {
-            numStr = 1;
-        }
-        int straPerStr =  model->GetNumStrands() / numStr;
-        if (straPerStr < 1) straPerStr = 1;
-
-        nlohmann::json jm;
-        jm["Name"] = name;
-        jm["ChannelCount"] = model->GetActChanCount();
-        jm["StartChannel"] = ch;
-        jm["ChannelCountPerNode"] = model->GetChanCountPerNode();
-        jm["xLights"] = true;
-
-        MatrixModel *mm = dynamic_cast<MatrixModel*>(model);
-        if (mm) {
-            if (mm->isVerticalMatrix()) {
-                jm["Orientation"] = std::string("vertical");
-            } else {
-                jm["Orientation"] = std::string("horizontal");
-            }
-        } else if (model->GetDisplayAs() == DisplayAsType::Custom) {
-            CustomModel *cm = dynamic_cast<CustomModel *>(model);
-            straPerStr = 1;
-            numStr = 1;
-            if ((cm->GetCustomWidth() * cm->GetCustomHeight() * cm->GetCustomDepth()) > (512 * 512)) {
-                jm["Orientation"] = std::string("horizontal");
-            } else {
-                jm["Orientation"] = std::string("custom");
-                std::string compressed = cm->GetCompressedData();
-                if (majorVersion >= 10 && !compressed.empty()) {
-                    jm["compressedData"] = compressed;
-                } else {
-                    jm["data"] = cm->GetCustomData();
-                }
-            }
-        } else {
-            jm["Orientation"] = std::string("horizontal");
-        }
-        jm["StringCount"] = numStr;
-        jm["StrandsPerString"] = straPerStr;
-        std::string corner = model->GetIsBtoT() ? "B" : "T";
-        corner += model->GetIsLtoR() ? "L" : "R";
-        jm["StartCorner"] = corner;
-        jm["Type"] = std::string("Channel");
-        names.emplace_back(name);
+        nlohmann::json jm = CreateOverlayModelJSON(model, majorVersion >= 10);
+        names.emplace_back(jm["Name"].get<std::string>());
         models.push_back(jm);
     }
 
@@ -1734,6 +1738,76 @@ nlohmann::json FPP::CreateModelMemoryMap(ModelManager* allmodels, int32_t startC
 
     json["models"] = models;
     return json;
+}
+
+std::vector<std::string> FPP::FindOutdatedXLightsModels(ModelManager* allmodels, int32_t startChan, int32_t endChannel, bool& allInRange) {
+    std::vector<std::string> outdated;
+    allInRange = true;
+
+    nlohmann::json ogModelJSON;
+    if (!GetURLAsJSON("/api/models", ogModelJSON, false) || !ogModelJSON.is_array()) {
+        return outdated;
+    }
+
+    std::map<std::string, Model*> current;
+    for (const auto& m : *allmodels) {
+        if (IsInModelUpload(m.second, 0, std::numeric_limits<int32_t>::max())) {
+            current.emplace(FPPOverlayModelName(m.second->name), m.second);
+        }
+    }
+
+    for (auto const& ogmodel : ogModelJSON) {
+        if (!ogmodel.is_object() || !ogmodel.contains("Name") || !ogmodel["Name"].is_string()) {
+            continue;
+        }
+        if (!GetJSONBoolValue(ogmodel, "xLights") || GetJSONBoolValue(ogmodel, "autoCreated")) {
+            continue;
+        }
+        if (ogmodel.contains("Type") && GetJSONStringValue(ogmodel, "Type") != "Channel") {
+            continue;
+        }
+        std::string name = GetJSONStringValue(ogmodel, "Name");
+        int32_t ogStart = GetJSONIntValue(ogmodel, "StartChannel");
+        if (ogStart < startChan || ogStart > endChannel) {
+            allInRange = false;
+        }
+
+        auto it = current.find(name);
+        if (it == current.end()) {
+            // Gone from the layout, but fppd still prefers it over the model it
+            // would auto-create for a port with the same description.
+            outdated.push_back(name);
+            continue;
+        }
+        // Build with whichever custom-data encoding FPP already holds so the
+        // encoding alone never reads as a change.
+        bool compressed = ogmodel.contains("compressedData") && ogmodel["compressedData"].is_string() && !ogmodel["compressedData"].get<std::string>().empty();
+        nlohmann::json expected = CreateOverlayModelJSON(it->second, compressed);
+
+        bool same = true;
+        for (const char* key : { "StartChannel", "ChannelCount", "ChannelCountPerNode", "StringCount",
+                                 "StrandsPerString", "StartCorner", "Orientation", "data", "compressedData" }) {
+            if (!expected.contains(key)) {
+                continue;
+            }
+            if (!ogmodel.contains(key)) {
+                // FPP treats a missing ChannelCountPerNode as 3
+                if (std::string(key) == "ChannelCountPerNode" && expected[key] == 3) {
+                    continue;
+                }
+                same = false;
+                break;
+            }
+            if (ogmodel[key] != expected[key]) {
+                same = false;
+                break;
+            }
+        }
+        if (!same) {
+            outdated.push_back(name);
+        }
+    }
+    return outdated;
 }
 
 namespace {

@@ -24,6 +24,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Display Elements
     -enh (dkulp)                 FPP Connect model upload now also sends submodels and model groups
                                  so FPP can run overlay effects on them (FPP 10+)
+    -enh (dkulp)                 FPP Connect warns when models uploaded to FPP earlier no longer match
+                                 the layout and offers to upload them again, since FPP uses them in
+                                 place of the models it creates from the outputs
     -bug (pixelpropshop/dkulp)   FPP Connect could restore old upload settings saved under a device's
                                  IP address in place of its current ones, and a choice set back to its
                                  default did not stick for devices that report no ID

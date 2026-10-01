@@ -3793,6 +3793,15 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 - (BOOL)updateChannelRangesForFPP:(NSString*)ipAddress
     NS_SWIFT_NAME(updateChannelRanges(forFPP:));
 
+// xLights-generated overlay models on the FPP that no longer match the
+// layout (FPP::FindOutdatedXLightsModels). fppd prefers them over the
+// models it auto-creates from the string outputs, so stale ones drive
+// Display Testing / overlays at old channels. Returns NSDictionary:
+//   @"names" — NSArray<NSString*> (empty when nothing is outdated)
+//   @"mode"  — @"local" / @"all": the models upload that refreshes them
+- (NSDictionary*)outdatedXLightsModelsForFPP:(NSString*)ipAddress
+    NS_SWIFT_NAME(outdatedXLightsModels(forFPP:));
+
 // Post-sequence finalize step — calls UploadPlaylist (when playlist
 // is non-empty) so the just-uploaded fseqs land in the configured
 // playlist, then `Restart(true)` for the final commit. Mirrors

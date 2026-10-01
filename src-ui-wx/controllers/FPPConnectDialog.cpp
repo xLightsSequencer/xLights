@@ -9,6 +9,7 @@
 #include <wx/dir.h>
 #include <wx/hyperlink.h>
 #include <wx/choicdlg.h>
+#include <wx/msgdlg.h>
 #include <wx/dcclient.h>
 #include <wx/settings.h>
 
@@ -1317,6 +1318,61 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     }
 }
 
+// fppd prefers a saved model over the one it auto-creates for a port with the
+// same description, so xLights-generated models left behind by an earlier
+// models upload keep driving overlays and Display Testing at their old
+// channels after the layout changes.  Offer to refresh them rather than doing
+// it silently - a models upload restarts fppd.
+void FPPConnectDialog::PromptForOutdatedModels(FPPUploadProgressDialog *prgs, const std::vector<bool>& doUpload, std::vector<int>& modelsMode) {
+    prgs->setActionLabel("Checking Models");
+
+    std::map<int, int> refresh;
+    wxString details;
+    int row = 0;
+    for (const auto& inst : instances) {
+        if (doUpload[row] && modelsMode[row] == 0 && inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect()) {
+            auto c = _outputManager->GetControllers(inst->ipAddress);
+            int32_t sc = 0;
+            int32_t ec = std::numeric_limits<int32_t>::max();
+            if (c.size() == 1) {
+                sc = c.front()->GetStartChannel();
+                ec = c.front()->GetEndChannel();
+            }
+            bool allInRange = true;
+            auto outdated = inst->FindOutdatedXLightsModels(&_frame->AllModels, sc, ec, allInRange);
+            if (!outdated.empty()) {
+                refresh[row] = (c.size() == 1 && allInRange) ? 2 : 1;
+
+                wxString names;
+                for (size_t i = 0; i < outdated.size() && i < 5; ++i) {
+                    names += (i ? ", " : "") + ToWXString(outdated[i]);
+                }
+                if (outdated.size() > 5) {
+                    names += wxString::Format(" and %d more", (int)(outdated.size() - 5));
+                }
+                details += "\n" + ToWXString(inst->hostName) + " (" + ToWXString(inst->ipAddress) + "): " + names;
+            }
+        }
+        ++row;
+    }
+    if (refresh.empty()) {
+        return;
+    }
+
+    wxString msg = "These FPP instances have models uploaded by xLights that no longer match the layout:\n" + details +
+                   "\n\nFPP uses them for Display Testing and pixel overlays in place of the models it creates from the "
+                   "string outputs, so they will light the wrong pixels.\n\n"
+                   "Upload models to these instances now? FPPD will restart.";
+    wxMessageDialog dlg(prgs, msg, "Outdated Models on FPP", wxYES_NO | wxICON_WARNING | wxCENTRE);
+    dlg.SetYesNoLabels("Upload Models", "Leave As Is");
+    if (dlg.ShowModal() != wxID_YES) {
+        return;
+    }
+    for (const auto& [r, mode] : refresh) {
+        modelsMode[r] = mode;
+    }
+}
+
 void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
     
     xLightsFrame* frame = _frame;
@@ -1325,6 +1381,12 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     std::map<std::string, std::string> virtualDisplayData;
     FPP::CreateVirtualDisplayMap(frame->AllModels, frame->AllObjects, pw, ph, virtualDisplayData);
     bool cancelled = false;
+
+    std::vector<int> modelsMode(instances.size());
+    for (size_t r = 0; r < instances.size(); ++r) {
+        modelsMode[r] = GetChoiceValueIndex(MODELS_COL + std::to_string(r));
+    }
+    PromptForOutdatedModels(prgs, doUpload, modelsMode);
 
     int row = 0;
     for (const auto& inst : instances) {
@@ -1380,14 +1442,14 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         }
                     }
                 }
-                if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
+                if (modelsMode[row] == 1) {
                     auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
                     cancelled |= inst->UploadSubModelsAndGroups(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadDisplayMap(virtualDisplayData);
                     // model uploads currently still require a full restart
                     inst->SetRestartFlag(true);
-                } else if (GetChoiceValueIndex(MODELS_COL + rowStr) == 2) {
+                } else if (modelsMode[row] == 2) {
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
                         auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());

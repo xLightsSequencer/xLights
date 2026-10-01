@@ -20018,6 +20018,36 @@ NSString* fppTypeString(FPP_TYPE t) {
     return NO;
 }
 
+- (NSDictionary*)outdatedXLightsModelsForFPP:(NSString*)ipAddress {
+    if (!_context || _fppInstances.empty() || !_context->HasModelManager()) {
+        return @{@"names": @[], @"mode": @"none"};
+    }
+    std::string targetIP = ipAddress.UTF8String;
+    FPP* target = nullptr;
+    for (FPP* f : _fppInstances) {
+        if (f && f->ipAddress == targetIP) { target = f; break; }
+    }
+    if (!target || target->fppType != FPP_TYPE::FPP) {
+        return @{@"names": @[], @"mode": @"none"};
+    }
+    // Same range choice as FPPConnectDialog::PromptForOutdatedModels.
+    auto controllers = _context->GetOutputManager().GetControllers(target->ipAddress);
+    int32_t sc = 0;
+    int32_t ec = std::numeric_limits<int32_t>::max();
+    if (controllers.size() == 1) {
+        sc = controllers.front()->GetStartChannel();
+        ec = controllers.front()->GetEndChannel();
+    }
+    bool allInRange = true;
+    auto outdated = target->FindOutdatedXLightsModels(&_context->GetModelManager(), sc, ec, allInRange);
+    NSMutableArray<NSString*>* names = [NSMutableArray arrayWithCapacity:outdated.size()];
+    for (const auto& n : outdated) {
+        [names addObject:[NSString stringWithUTF8String:n.c_str()]];
+    }
+    NSString* mode = (controllers.size() == 1 && allInRange) ? @"local" : @"all";
+    return @{@"names": names, @"mode": mode};
+}
+
 - (BOOL)finalizeFPP:(NSString*)ipAddress
             playlist:(nullable NSString*)playlist {
     if (!_context || _fppInstances.empty()) return NO;
