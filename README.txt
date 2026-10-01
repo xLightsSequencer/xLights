@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (derwin12)              Changing the sequencer View now clears the prop filter
     -enh (heffneil)              Import Effects: the filter boxes narrow the mapping tree and the source
                                  list (display only - Ok, Save Map, Auto Map and Clear All still cover
                                  hidden rows)

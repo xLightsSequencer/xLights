@@ -31,6 +31,7 @@
 #include "layout/ViewsModelsPanel.h"
 #include "render/SequenceElements.h"
 #include "xLightsMain.h"
+#include "sequencer/MainSequencer.h"
 #include "xLightsApp.h"
 #include "render/SequenceViewManager.h"
 #include "UtilFunctions.h"
@@ -1280,6 +1281,9 @@ void ViewsModelsPanel::SelectView(const std::string& view)
 
     if (view != _sequenceViewManager->GetSelectedView()->GetName()) {
         ClearUndo();
+        if (_xlFrame->GetMainSequencer() != nullptr) {
+            _xlFrame->GetMainSequencer()->ResetSeqFilter();
+        }
     }
 
     ListCtrlViews->SetChecked(_sequenceElements->GetCurrentView(), false);
