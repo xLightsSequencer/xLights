@@ -2259,6 +2259,11 @@ void PixelTestDialog::TeardownTree(wxTreeListCtrl* tree)
 {
     ReleaseDualOwnership(tree, tree->GetRootItem());
     tree->DeleteAllItems(); // the node destructors free every TestItemBase once
+    // The filter's debounce timer can rebuild a tree inside the context menu's
+    // (or Select Many's) nested event loop, after _rcItem was captured.
+    if (tree == _rcTree) {
+        _rcItem = wxTreeListItem();
+    }
 }
 
 void PixelTestDialog::DeactivateNotClickableModels(wxTreeListCtrl* tree)
@@ -2526,6 +2531,7 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
             wxNumberEntryDialog dlg(this, "Number to select", "", "", 2, 1, 1000);
             if (dlg.ShowModal() == wxID_OK) {
                 int count = dlg.GetValue();
+                selected = _rcItem; // invalidated if the tree was rebuilt while the dialog was up
 
                 while (count > 0 && selected.IsOk()) {
                     TestItemBase* tc = (TestItemBase*)tree->GetItemData(selected);
@@ -2553,6 +2559,7 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
             wxNumberEntryDialog dlg(this, "Number to deselect", "", "", 2, 1, 1000);
             if (dlg.ShowModal() == wxID_OK) {
                 int count = dlg.GetValue();
+                selected = _rcItem; // invalidated if the tree was rebuilt while the dialog was up
 
                 while (count > 0 && selected.IsOk()) {
                     TestItemBase* tc = (TestItemBase*)tree->GetItemData(selected);

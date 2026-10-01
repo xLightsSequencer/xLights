@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  hidden rows)
     -enh (heffneil)              Import Effects: right-click a donor group in the source list to add it
                                  to the layout and map it; Cancel removes groups added during the import
+    -bug (heffneil/dkulp)        Crashes in the Test dialog after typing in a tab's name filter
     -enh (heffneil)              Layout Controllers page: the selected controller's box is highlighted
                                  along with its models, and controller labels have a Label Size setting
     -bug (heffneil)              The sequencer prop filter is no longer saved into the sequence; models
