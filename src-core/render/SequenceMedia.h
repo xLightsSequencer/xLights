@@ -194,6 +194,9 @@ public:
     std::shared_ptr<xlImage> GetFrame(int x, bool suppressGIFBackground);
     int GetFrameForTime(int ms, bool loop);
     bool IsFrameBasedAnimation() const { return _frameBasedAnimation; }
+    // SVG sources rasterize on demand: GetScaledImage draws the vector at the
+    // requested size instead of resampling frame 0
+    bool IsVector() const { return !_svgSource.empty(); }
 
     std::shared_ptr<xlImage> GetScaledImage(int frameNumber, int width, int height, bool bgSuppressed);
 
@@ -217,6 +220,7 @@ private:
     void storeAnimated(AnimatedImageData result);
     void loadAnimated(const std::vector<uint8_t> &data, const AnimationLoaderFunc &loader);
     void loadImage(const std::vector<uint8_t> &data);
+    void loadSVG(const std::vector<uint8_t> &data);
     void LoadDeferredFrames();
     int GetExifOrientation(const uint8_t* data, size_t len);
 
@@ -235,6 +239,8 @@ private:
     long _totalTime = 0;
 
     std::shared_ptr<xlImage> invalidImage;
+
+    std::string _svgSource;
 
     // Scaled image cache
     mutable std::map<ScaledImageCacheKey, std::shared_ptr<xlImage>> _scaledImageCache;

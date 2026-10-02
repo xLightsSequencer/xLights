@@ -11,6 +11,7 @@
 #include "LOREdit.h"
 
 #include <algorithm>
+#include <cmath>
 #include <regex>
 #include <cstdlib>
 #include <cctype>
@@ -132,6 +133,113 @@ namespace {
         auto it = names.find(Lower(c));
         return it == names.end() ? "#FFFFFF" : it->second;
     }
+
+    // LOR numeric parameters may be plain ("10"), a ramp ("R0R100R1.00R2.00R0.00",
+    // start then end) or an oscillation ("O5O0O1.00O2.30O0.00")
+    void ParamRange(const std::string& v, double& start, double& end) {
+        if (!v.empty() && (v[0] == 'R' || v[0] == 'O' || v[0] == 'T')) {
+            auto parts = Split(v.substr(1), v[0]);
+            start = parts.size() > 0 ? loreAtof(parts[0]) : 0.0;
+            end = parts.size() > 1 ? loreAtof(parts[1]) : start;
+            if (v[0] == 'O') {
+                // oscillates between the two; settle on the middle
+                start = end = (start + end) / 2.0;
+            }
+            return;
+        }
+        start = end = loreAtof(v);
+    }
+
+    // The part of a sketch's left/top position baked into its SVG: the ramp
+    // end nearer the centre, so the drawing is clipped least. Any remaining
+    // movement is done by the Pictures vector offset.
+    void SketchBakedOffset(const std::vector<std::string>& parms, double& left, double& top) {
+        double l0, l1, t0, t1;
+        ParamRange(parms.size() > 3 ? parms[3] : std::string(), l0, l1);
+        ParamRange(parms.size() > 4 ? parms[4] : std::string(), t0, t1);
+        left = std::abs(l1) < std::abs(l0) ? l1 : l0;
+        top = std::abs(t1) < std::abs(t0) ? t1 : t0;
+    }
+
+    // LOR sketch paths are SVG-like (M, L, C, Z) except "A", which LOR uses for
+    // conic segments: control x y, end x y, weight (0.7071 = a quarter
+    // circle). Rewrite those as cubics so any SVG renderer draws them.
+    std::string ConvertLORSketchPath(const std::string& d) {
+        auto tokens = Split(d, ' ');
+        std::string out;
+        char cmd = 0;
+        double cx = 0, cy = 0, sx = 0, sy = 0;
+        std::vector<double> nums;
+        auto emit = [&](const std::string& t) {
+            if (!out.empty()) out += ' ';
+            out += t;
+        };
+        auto num = [](double v) { return fmt::format("{:.5g}", v); };
+        auto flush = [&]() {
+            size_t i = 0;
+            switch (cmd) {
+            case 'M':
+            case 'L':
+                for (; i + 1 < nums.size(); i += 2) {
+                    emit(std::string(1, (cmd == 'M' && i == 0) ? 'M' : 'L') + " " + num(nums[i]) + " " + num(nums[i + 1]));
+                    cx = nums[i];
+                    cy = nums[i + 1];
+                    if (cmd == 'M' && i == 0) {
+                        sx = cx;
+                        sy = cy;
+                    }
+                }
+                break;
+            case 'C':
+                for (; i + 5 < nums.size(); i += 6) {
+                    emit("C " + num(nums[i]) + " " + num(nums[i + 1]) + " " + num(nums[i + 2]) + " " + num(nums[i + 3]) + " " + num(nums[i + 4]) + " " + num(nums[i + 5]));
+                    cx = nums[i + 4];
+                    cy = nums[i + 5];
+                }
+                break;
+            case 'A':
+                for (; i + 4 < nums.size(); i += 5) {
+                    double px = nums[i], py = nums[i + 1], ex = nums[i + 2], ey = nums[i + 3], w = nums[i + 4];
+                    double k = 4.0 * w / (3.0 * (1.0 + w));
+                    emit("C " + num(cx + k * (px - cx)) + " " + num(cy + k * (py - cy)) + " " +
+                         num(ex + k * (px - ex)) + " " + num(ey + k * (py - ey)) + " " + num(ex) + " " + num(ey));
+                    cx = ex;
+                    cy = ey;
+                }
+                break;
+            case 'Z':
+                emit("Z");
+                cx = sx;
+                cy = sy;
+                break;
+            default:
+                break;
+            }
+            nums.clear();
+        };
+        for (const auto& t : tokens) {
+            if (t.empty()) {
+                continue;
+            }
+            char c = t[0];
+            if (t.size() == 1 && std::isalpha((unsigned char)c)) {
+                flush();
+                cmd = (char)std::toupper((unsigned char)c);
+                if (cmd == 'Z') {
+                    flush();
+                    cmd = 0;
+                }
+            } else {
+                nums.push_back(loreAtof(t));
+            }
+        }
+        flush();
+        return out;
+    }
+
+    // LOR measures sketch left/top in steps of 3% of the prop (fitted
+    // against LOR renders)
+    constexpr double kSketchOffsetStep = 0.03;
 
     std::string PercentDecode(std::string file) {
         size_t pos;
@@ -288,6 +396,7 @@ std::string LOREditEffect::GetxLightsEffect() const
     if (effectType == "singleblock") return "Morph";
     if (effectType == "countdown") return "Text"; // we dont support countdown
     if (effectType == "starfield") return "Shape";
+    if (effectType == "sketch") return GetSketchSVG().empty() ? "" : "Pictures";
     if (effectType == "movingshapes") return "Shape";
     if (effectType == "simpleshape") return "Shape";
 
@@ -344,6 +453,110 @@ std::string LOREditEffect::RescaleWithRangeF(const std::string& r, const std::st
         vc = "";
     }
     return fmt::format("{:.1f}", Rescale(loreAtof(r), sourceMin, sourceMax, targetMin, targetMax));
+}
+
+std::string LOREditEffect::GetSketchSVG() const
+{
+    if (effectType != "sketch" || effectSettings.size() < 2) {
+        return "";
+    }
+    auto parms = Split(effectSettings[1], ',');
+    if (parms.empty() || parms[0].empty()) {
+        return "";
+    }
+    parms.resize(std::max<size_t>(parms.size(), 7));
+
+    // groups are joined by '~': a "GSVG..." header (fill colour, pen, fill
+    // flag) followed by its "PPath..." paths in SVG path syntax, 0-1 and y down
+    std::string body;
+    std::string colour = "#FFFFFF";
+    std::string opacity;
+    bool fill = true;
+    float pen = 1.0f;
+    std::string d;
+    auto flush = [&]() {
+        if (d.empty()) {
+            return;
+        }
+        if (fill) {
+            // a group is one compound path: its later paths cut holes
+            body += "<path fill-rule=\"evenodd\" fill=\"" + colour + "\"" + opacity + " stroke=\"none\" d=\"" + d + "\"/>";
+        } else {
+            body += "<path fill=\"none\" stroke=\"" + colour + "\"" + opacity + fmt::format(" stroke-width=\"{:.4f}\"", std::max(pen, 1.0f) / 100.0f) + " d=\"" + d + "\"/>";
+        }
+        d.clear();
+    };
+    for (const auto& part : Split(parms[0], '~')) {
+        if (StartsWith(part, "G")) {
+            flush();
+            auto f = Split(part, ' ');
+            f.resize(std::max<size_t>(f.size(), 12));
+            // colours: AARRGGBB-<1 if selected>[;...]
+            auto cols = Split(f[9], ';');
+            std::string chosen = cols.empty() ? std::string() : cols[0];
+            for (const auto& c : cols) {
+                if (EndsWith(c, "-1")) {
+                    chosen = c;
+                    break;
+                }
+            }
+            if (chosen.size() >= 8) {
+                colour = "#" + chosen.substr(2, 6);
+                int alpha = (int)std::strtol(chosen.substr(0, 2).c_str(), nullptr, 16);
+                opacity = alpha < 255 ? fmt::format(" fill-opacity=\"{:.3f}\" stroke-opacity=\"{:.3f}\"", alpha / 255.0, alpha / 255.0) : std::string();
+            }
+            pen = (float)loreAtof(f[10]);
+            fill = f[11] != "False";
+        } else if (StartsWith(part, "P")) {
+            auto pos = part.find(" M ");
+            if (pos != std::string::npos) {
+                if (!d.empty()) {
+                    d += ' ';
+                }
+                d += ConvertLORSketchPath(Trim(part.substr(pos + 1)));
+            }
+        }
+    }
+    flush();
+    if (body.empty()) {
+        return "";
+    }
+
+    double w0, w1, h0, h1, r0, r1;
+    ParamRange(parms[1].empty() ? std::string("100") : parms[1], w0, w1);
+    ParamRange(parms[2].empty() ? std::string("100") : parms[2], h0, h1);
+    ParamRange(parms[5], r0, r1);
+    // a zoom ramp has no Pictures equivalent here; draw it at the middle size
+    double sx = (w0 + w1) / 200.0;
+    double sy = (h0 + h1) / 200.0;
+    double rot = std::fmod((r0 + r1) / 2.0, 360.0);
+    // 100% stretches the 0-1 canvas over the whole prop. Other sizes scale
+    // about the anchor: the flags are Left/Right/Top/Bottom ("FFTF" = top),
+    // a lone anchored edge stays put, otherwise the prop's centre does.
+    std::string anchor = parms[6];
+    anchor.resize(4, 'F');
+    double px = (anchor[0] == 'T') == (anchor[1] == 'T') ? 0.5 : (anchor[0] == 'T' ? 0.0 : 1.0);
+    double py = (anchor[2] == 'T') == (anchor[3] == 'T') ? 0.5 : (anchor[2] == 'T' ? 0.0 : 1.0);
+    double left, top;
+    SketchBakedOffset(parms, left, top);
+    std::string xf = fmt::format("translate({:.4f} {:.4f}) scale({:.4f} {:.4f})",
+                                 px - px * sx + left * kSketchOffsetStep, py - py * sy + top * kSketchOffsetStep, sx, sy);
+    if (std::abs(rot) > 0.01) {
+        xf = fmt::format("rotate({:.2f} {:.4f} {:.4f}) ", rot, px + left * kSketchOffsetStep, py + top * kSketchOffsetStep) + xf;
+    }
+    return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1000\" height=\"1000\" viewBox=\"0 0 1 1\" preserveAspectRatio=\"none\">"
+           "<g transform=\"" + xf + "\">" + body + "</g></svg>";
+}
+
+std::string LOREditEffect::GetSketchPictureName() const
+{
+    std::string svg = GetSketchSVG();
+    uint64_t h = 1469598103934665603ULL;
+    for (unsigned char c : svg) {
+        h ^= c;
+        h *= 1099511628211ULL;
+    }
+    return fmt::format("sketch-{:012x}.svg", h & 0xFFFFFFFFFFFFULL);
 }
 
 std::string LOREditEffect::GetBlend() const
@@ -1260,6 +1473,26 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Ripple_YC=" + topbottom;
         settings += ",E_TEXTCTRL_Ripple_Cycles=" + repeatcount;
         settings += ",E_SLIDER_Ripple_Thickness=" + std::to_string(ringwidth);
+    }
+    else if (et == "sketch") {
+        // drawing,width,height,left,top,rotation,anchor
+        // The drawing, with its size, rotation and position baked in, is
+        // embedded as an SVG; a position ramp moves it with the Pictures
+        // vector offset relative to the baked position.
+        double l0, l1, t0, t1, lb, tb;
+        ParamRange(parms[3], l0, l1);
+        ParamRange(parms[4], t0, t1);
+        SketchBakedOffset(parms, lb, tb);
+        settings += ",E_TEXTCTRL_Pictures_Filename=" + GetSketchPictureName();
+        settings += ",E_CHOICE_Scaling=Scale To Fit";
+        if (l0 == l1 && t0 == t1) {
+            settings += ",E_CHOICE_Pictures_Direction=none";
+        } else {
+            auto pct = [](double v) { return (int)std::lround(std::clamp(v * kSketchOffsetStep * 100.0, -100.0, 100.0)); };
+            // xLights y is up, LOR's down
+            settings += fmt::format(",E_CHOICE_Pictures_Direction=vector,E_SLIDER_PicturesXC={},E_SLIDER_PicturesEndXC={},E_SLIDER_PicturesYC={},E_SLIDER_PicturesEndYC={},E_TEXTCTRL_Pictures_Speed=1.0",
+                                    pct(l0 - lb), pct(l1 - lb), -pct(t0 - tb), -pct(t1 - tb));
+        }
     }
     else if (et == "wave") {
         // left,along_wave_scrolling,rainbow,triple,50,23,88,A3A50A1.00,A-14A50A1.00

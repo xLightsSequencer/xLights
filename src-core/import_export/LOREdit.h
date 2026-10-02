@@ -67,6 +67,9 @@ struct LOREditEffect
     std::string GetBlend() const;
     std::string GetLayerSettings() const;
     std::string GetSubBuffer() const;
+    // LOR sketches become an embedded SVG drawn by the Pictures effect
+    std::string GetSketchSVG() const;
+    std::string GetSketchPictureName() const;
     static std::string SafeGetStringParm(const std::vector<std::string>& arr, int param)
     {
         if (param < (int)arr.size())

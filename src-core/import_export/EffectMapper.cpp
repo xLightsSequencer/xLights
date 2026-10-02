@@ -25,6 +25,7 @@
 #include "render/SequenceElements.h"
 #include "render/SequenceMedia.h"
 #include "render/SequencePackage.h"
+#include "utils/Base64.h"
 #include "utils/string_utils.h"
 
 #include <spdlog/fmt/fmt.h>
@@ -288,7 +289,10 @@ void AddS5TrackEffect(EffectLayer* el, const LOREdit& lorEdit, const LOREditEffe
         return;
     }
     std::string settings = it.GetSettings(palette);
-    if (ef == "Pictures") {
+    if (it.effectType == "sketch") {
+        std::string svg = it.GetSketchSVG();
+        el->GetParentElement()->GetSequenceElements()->GetSequenceMedia().AddEmbeddedImage(it.GetSketchPictureName(), Base64::Encode((const uint8_t*)svg.data(), svg.size()));
+    } else if (ef == "Pictures") {
         static const std::string key = "E_TEXTCTRL_Pictures_Filename=";
         auto pos = settings.find(key);
         if (pos != std::string::npos) {

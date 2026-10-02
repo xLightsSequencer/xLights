@@ -168,7 +168,7 @@ struct EffectPropertyView: View {
         case "Pictures_FilenameBlock":
             EffectFilenameBlockView(label: "Image",
                                      settingKey: "E_TEXTCTRL_Pictures_Filename",
-                                     fileFilter: "Images (*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp",
+                                     fileFilter: "Images (*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp;*.svg)|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp;*.svg",
                                      subdirectory: "Images")
         case "Video_FilenameBlock":
             EffectFilenameBlockView(label: "Video",

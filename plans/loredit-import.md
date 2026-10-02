@@ -1,6 +1,8 @@
 # LOR `.loredit` (S5/S6) import — enhancement plan
 
-Status: **plan, nothing implemented yet.** Written from a full audit of one
+Status: Phases 7 (shared apply loop), 1 (quick wins), 2 (Single Block →
+Morph) and 3 (SVG Pictures + sketches) are implemented; 4–6 and §7a remain.
+Originally written from a full audit of one
 real-world LOR 6.6 file (a vendor store sequence for a "Pixel Bright" pixel
 layout, `saveFileVersion="16"`, ~165 s, 408 sequenced props, 67,158 effects)
 run through the *actual* importer code, not a reading of it: a scratch
@@ -329,6 +331,28 @@ nanosvgrast are in `dependencies/nanosvg`.
   anti-aliasing — a better result than downscaling a large bitmap.
 
 ### 5.2 Importer: LOR sketch → embedded SVG + Pictures
+
+**Implemented findings** (fitted against the vendor video, see §10.2):
+
+- At 100% the sketch's 0–1 canvas is stretched over the whole prop (y down).
+- Width/height % scale about an **anchor**: the flags are Left/Right/Top/
+  Bottom (`FFTF` = top); a lone anchored edge stays fixed, otherwise the
+  prop centre. Centre vs top anchoring on the singing-face body: 0.75 vs 0.97
+  correlation with the video.
+- Left/top move the drawing in steps of **3% of the prop** (fit peaks
+  sharply at 0.030 for both axes, r = 0.95).
+- The static position must be baked into the SVG, not applied as a Pictures
+  offset: a 200% drawing hangs off the canvas, and rasterizing first clips
+  what the offset would bring into view (r 0.68 → 0.95 when baked). Position
+  ramps bake the end nearer the centre and move by the Pictures vector
+  offset for the rest.
+- LOR's path command `A` is **not** an SVG arc: it is a conic segment
+  `ctrl.x ctrl.y end.x end.y weight` (0.7071 = quarter circle). It is
+  rewritten to a cubic with k = 4w / (3(1+w)); before that, every round eye
+  rendered as stray slashes.
+- Rendered through the real path (`--headless`, embedded SVG, Pictures Scale
+  To Fit on a 50×32 matrix): r = 0.995 against the same drawing as a PNG,
+  0.997 against an independent nanosvg raster, 0.31 for a control SVG.
 
 The 1,910 sketch effects contain only **16 unique drawings**, all using one
 group-header form (`Append … None <colours> 0 True 100 None Butt`): plain

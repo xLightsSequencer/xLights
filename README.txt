@@ -19,6 +19,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  draw on top, Single Block imports as Morph, embedded pictures and
                                  GIFs are carried into the sequence, and starfield, moving shapes,
                                  spin fade and simple shape effects are no longer dropped
+    -enh (dkulp)                 Pictures effect can use SVG images, drawn sharp at the model's size
+    -enh (dkulp)                 LOR S5/S6 import: LOR sketch effects (singing faces, drawings) import
+                                 as embedded SVG pictures instead of empty Sketch effects
     -bug (dkulp)                 LOR S5/S6 import: effects with an Overlay mix no longer import
                                  invisible or at half brightness, bars and spirals keep their
                                  movement, diagonal bars, text colour, meteor colours and

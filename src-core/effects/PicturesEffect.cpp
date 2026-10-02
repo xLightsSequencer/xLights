@@ -370,7 +370,8 @@ bool PicturesEffect::IsPictureFile(std::string filename)
         ext == "jpeg" ||
         ext == "png" ||
         ext == "webp" ||
-        ext == "bmp"
+        ext == "bmp" ||
+        ext == "svg"
         )
     {
         return true;

@@ -14,10 +14,12 @@
 #include "../utils/Base64.h"
 #include "../utils/xlImage.h"
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <limits>
+#include <string_view>
 #include <type_traits>
 
 #include <log.h>
@@ -252,6 +254,7 @@ void ImageCacheEntry::ReloadIfChanged() {
     _frameTimes.clear();
     _frameData.clear();
     _scaledImageCache.clear();
+    _svgSource.clear();
     _framesEmbeddable = false;
     _imageCount = 0;
     _imageWidth = 0;
@@ -260,9 +263,115 @@ void ImageCacheEntry::ReloadIfChanged() {
     ClearPreview();
     Load();
 }
+static bool LooksLikeSVG(const std::vector<uint8_t>& buffer) {
+    size_t i = 0;
+    if (buffer.size() >= 3 && buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF) {
+        i = 3;
+    }
+    while (i < buffer.size() && std::isspace(buffer[i])) {
+        ++i;
+    }
+    if (i >= buffer.size() || buffer[i] != '<') {
+        return false;
+    }
+    std::string_view head((const char*)buffer.data() + i, std::min<size_t>(buffer.size() - i, 4096));
+    return head.find("<svg") != std::string_view::npos;
+}
+
+// Rasterizes `svg` into a width x height image, stretching the drawing to fill
+// it (non-uniformly if the aspect differs from the SVG's own size).
+static std::shared_ptr<xlImage> RasterizeSVG(const std::string& svg, int width, int height) {
+    if (width <= 0 || height <= 0) {
+        return nullptr;
+    }
+    std::string copy = svg; // nsvgParse modifies its input
+    NSVGimage* img = nsvgParse(copy.data(), "px", 96);
+    if (img == nullptr || img->width <= 0 || img->height <= 0) {
+        if (img) nsvgDelete(img);
+        return nullptr;
+    }
+    float sx = (float)width / img->width;
+    float sy = (float)height / img->height;
+    float scale = sx;
+    if (std::abs(sx - sy) > 1e-4f * std::max(sx, sy)) {
+        // nanosvg only rasterizes with a uniform scale, so apply the
+        // non-uniform part to the geometry and rasterize at 1:1
+        for (NSVGshape* shape = img->shapes; shape != nullptr; shape = shape->next) {
+            for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
+                for (int i = 0; i < path->npts; ++i) {
+                    path->pts[i * 2] *= sx;
+                    path->pts[i * 2 + 1] *= sy;
+                }
+                path->bounds[0] *= sx;
+                path->bounds[1] *= sy;
+                path->bounds[2] *= sx;
+                path->bounds[3] *= sy;
+            }
+            shape->bounds[0] *= sx;
+            shape->bounds[1] *= sy;
+            shape->bounds[2] *= sx;
+            shape->bounds[3] *= sy;
+            shape->strokeWidth *= std::sqrt(sx * sy);
+            for (NSVGpaint* paint : { &shape->fill, &shape->stroke }) {
+                if (paint->type == NSVG_PAINT_LINEAR_GRADIENT || paint->type == NSVG_PAINT_RADIAL_GRADIENT) {
+                    // gradient xform maps image space to gradient space; undo the scale first
+                    float* t = paint->gradient->xform;
+                    t[0] /= sx;
+                    t[1] /= sx;
+                    t[2] /= sy;
+                    t[3] /= sy;
+                }
+            }
+        }
+        scale = 1.0f;
+    }
+    auto res = std::make_shared<xlImage>(width, height);
+    NSVGrasterizer* rast = nsvgCreateRasterizer();
+    std::vector<uint8_t> buf((size_t)width * height * 4, 0);
+    nsvgRasterize(rast, img, 0, 0, scale, buf.data(), width, height, width * 4);
+    nsvgDeleteRasterizer(rast);
+    nsvgDelete(img);
+    memcpy(res->GetData(), buf.data(), buf.size());
+    return res;
+}
+
+void ImageCacheEntry::loadSVG(const std::vector<uint8_t>& data) {
+    _svgSource.assign(data.begin(), data.end());
+    std::string copy = _svgSource;
+    NSVGimage* img = nsvgParse(copy.data(), "px", 96);
+    int w = 0;
+    int h = 0;
+    if (img != nullptr) {
+        w = (int)std::lround(img->width);
+        h = (int)std::lround(img->height);
+        nsvgDelete(img);
+    }
+    // frame 0 is drawn at the SVG's own size, capped so a huge document
+    // doesn't allocate a huge bitmap; scaled requests redraw from the vector
+    constexpr int maxSide = 2048;
+    if (w > maxSide || h > maxSide) {
+        double f = (double)maxSide / std::max(w, h);
+        w = std::max(1, (int)(w * f));
+        h = std::max(1, (int)(h * f));
+    }
+    std::shared_ptr<xlImage> i = (w > 0 && h > 0) ? RasterizeSVG(_svgSource, w, h) : nullptr;
+    if (!i) {
+        spdlog::error("Error loading SVG image: {}.", _filePath);
+        _svgSource.clear();
+        i = std::make_shared<xlImage>(5, 5);
+    }
+    _imageCount = 1;
+    _frameTimes.push_back(0);
+    _frameImages.emplace_back(i);
+    _imageWidth = i->GetWidth();
+    _imageHeight = i->GetHeight();
+}
+
 void ImageCacheEntry::LoadFromData(const std::string& data) {
     std::vector<uint8_t> buffer = Base64::Decode(data);
-    if (buffer.size() >= 4 && buffer[0] == 'G' && buffer[1] == 'I' && buffer[2] == 'F') {
+    if (LooksLikeSVG(buffer)) {
+        loadSVG(buffer);
+    } else if (buffer.size() >= 4 && buffer[0] == 'G' && buffer[1] == 'I' && buffer[2] == 'F') {
         storeAnimated(LoadAnimatedGIFFromMemory(buffer.data(), buffer.size()));
     } else if (buffer.size() >= 12 && buffer[0] == 'R' && buffer[1] == 'I' && buffer[2] == 'F' && buffer[3] == 'F'
                && buffer[8] == 'W' && buffer[9] == 'E' && buffer[10] == 'B' && buffer[11] == 'P') {
@@ -606,6 +715,13 @@ std::shared_ptr<xlImage> ImageCacheEntry::GetScaledImage(int frameNumber, int wi
         return it->second;
     }
 
+    if (!_svgSource.empty()) {
+        auto raster = RasterizeSVG(_svgSource, width, height);
+        if (raster) {
+            _scaledImageCache.emplace(key, raster);
+            return raster;
+        }
+    }
     std::shared_ptr<xlImage> img = GetFrame(frameNumber, suppressedBg);
     if (!img->IsOk()) {
         return img;
