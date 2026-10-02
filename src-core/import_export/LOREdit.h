@@ -110,9 +110,31 @@ struct LOREditEffect
     }
 };
 
+// One mark on a synthesized lip-sync timing track
+struct LORLipSyncMark {
+    uint32_t startMS;
+    uint32_t endMS;
+    std::string label;
+};
+
 class LOREdit {
     pugi::xml_document& _input_xml;
     int _frequency = 20;
+
+    // LOR singing faces are baked: one prop (or matrix row) per mouth shape,
+    // exactly one lit at a time. Each face's shape changes, gathered once.
+    struct Face {
+        std::string name;      // "<face>" or "<prop>/<row prefix>"
+        std::string trackName; // shared by faces singing the same part
+        xlColor colour = xlWHITE;
+        bool colourSet = false;
+        size_t trackSource = 0; // index of the face the shared track is built from
+        std::vector<LORLipSyncMark> shapes; // centiseconds, phoneme labels incl. "rest"
+    };
+    mutable bool _facesScanned = false;
+    mutable std::vector<Face> _faces;
+    void ScanFaces() const;
+    const Face* FindFace(const std::string& faceSource) const;
 
     std::vector<LOREditEffect> GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, pugi::xml_node prop, int offset) const;
 
@@ -136,7 +158,22 @@ class LOREdit {
     loreditType GetSequencingType(const std::string& model) const;
     // Props with effects, plus a "<prop>/<row>" entry for each custom row that
     // has effects (those rows are not applied when the bare prop is mapped)
+    // and a "<face> (Singing Face)" entry for each singing face
     std::vector<std::string> GetModelsWithEffects() const;
+
+    // Singing faces: mapped onto a model they become a Faces effect driven by
+    // a lip-sync timing track rebuilt from the mouth-shape effects
+    static bool IsFaceSource(const std::string& source);
+    std::vector<std::string> GetFaceSources() const;
+    std::vector<std::string> GetLipSyncTracks() const;
+    bool IsLipSyncTrack(const std::string& name) const;
+    std::string GetLipSyncTrackForFace(const std::string& faceSource) const;
+    // phrase, word and phoneme layers (words repeat the phrases: LOR stores no lyrics)
+    std::vector<std::vector<LORLipSyncMark>> GetLipSync(const std::string& trackName, int offset = 0) const;
+    bool GetFaceSpan(const std::string& faceSource, int offset, uint32_t& startMS, uint32_t& endMS) const;
+    xlColor GetFaceColour(const std::string& faceSource) const;
+    // LOR mouth shape name -> xLights phoneme ("rest" for closed), "" if unknown
+    static std::string MouthShapeToPhoneme(const std::string& shape);
     std::vector<std::string> GetNodesWithEffects() const;
     std::vector<LOREditEffect> GetTrackEffects(const std::string& model, int layer, int offset = 0) const;
     std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int channel, Model* m, int offset) const;

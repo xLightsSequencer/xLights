@@ -1,8 +1,8 @@
 # LOR `.loredit` (S5/S6) import — enhancement plan
 
 Status: Phases 7 (shared apply loop), 1 (quick wins), 2 (Single Block →
-Morph), 3 (SVG Pictures + sketches) and 5 (custom rows as sources) are
-implemented; 4, 6 and §7a remain.
+Morph), 3 (SVG Pictures + sketches), 5 (custom rows as sources) and §7a
+(singing faces) are implemented; 4 and 6 remain.
 Originally written from a full audit of one
 real-world LOR 6.6 file (a vendor store sequence for a "Pixel Bright" pixel
 layout, `saveFileVersion="16"`, ~165 s, 408 sequenced props, 67,158 effects)
@@ -503,7 +503,24 @@ mapped to, which only works if the user maps every LOR shape prop onto a
 matching xLights node range one by one. Nothing produces a Faces effect or a
 lip-sync timing track.
 
-**Plan:**
+**Implemented** (`LOREdit::ScanFaces`, `MapS5Face`):
+
+- Faces are detected from `<face> Mouth <shape>` channel props and from
+  `<prefix> Mouth <shape>` rows on one prop (`<prop>/<prefix>` faces).
+- Voice grouping: faces are visited richest first (most distinct shapes,
+  then most changes); a face joins the first representative containing
+  ≥95% of its own shape-change times. File 1 → one voice (the 4-shape face
+  nests under FaceV2); file 2 → lead, backing and the matrix's second face.
+  Each group's track is built from its richest face and named after it.
+- Tracks list in both import dialogs' timing lists; mapping a
+  `<face> (Singing Face)` source creates the track if needed and adds one
+  Faces effect over the singing (target's first face definition, LOR mouth
+  colour, eyes Auto).
+- Verified through `--headless`: a rebuilt track driving a Default-face
+  Faces effect renders one consistent image per phoneme on exactly the
+  scheduled frames; a fixed-phoneme control is constant.
+
+Original plan:
 
 1. **Detect face sets** in `LOREdit`: group props (or tracks) whose names
    match `<face> Mouth <shape>` / `<face> Eyes <Open|Closed>`, with a shape

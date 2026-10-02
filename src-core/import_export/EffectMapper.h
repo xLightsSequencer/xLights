@@ -109,6 +109,9 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se,
 // new timing track, suffixing the name if it already exists.
 void AddS5TimingTrack(SequenceElements& se, const std::string& name,
                       const std::vector<std::pair<uint32_t, uint32_t>>& timings);
+// Adds the named LOR timing track: a free-timing grid, or a lip-sync track
+// (phrases/words/phonemes) rebuilt from a singing face's mouth shapes.
+void AddS5TimingTrack(SequenceElements& se, const LOREdit& lorEdit, const std::string& name, int offset);
 
 // Applies one mapped destination root (model level, its strand/submodel
 // children and their nodes) from the S5 source. Shared by the desktop

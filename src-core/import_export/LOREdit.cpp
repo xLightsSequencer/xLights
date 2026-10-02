@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <regex>
+#include <set>
 #include <cstdlib>
 #include <cctype>
 
@@ -1852,6 +1853,9 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
 // assumes you cant have both channel and track sequencing on the same model ... this may not be true
 loreditType LOREdit::GetSequencingType(const std::string& model) const
 {
+    if (IsFaceSource(model)) {
+        return loreditType::NONE; // see MapS5Face
+    }
     if (model.find('/') != std::string::npos && !GetSourceLayers(model).empty()) {
         return loreditType::TRACKS;
     }
@@ -1952,8 +1956,323 @@ std::vector<std::string> LOREdit::GetModelsWithEffects() const
             }
         }
     }
+    auto faces = GetFaceSources();
+    res.insert(res.end(), faces.begin(), faces.end());
 
     return res;
+}
+
+namespace {
+    const std::string kFaceSuffix = " (Singing Face)";
+
+    // "<face> Mouth <shape>"
+    bool SplitMouthName(const std::string& name, std::string& face, std::string& shape) {
+        auto pos = name.rfind(" Mouth ");
+        if (pos == std::string::npos || pos == 0) {
+            return false;
+        }
+        face = name.substr(0, pos);
+        shape = name.substr(pos + 7);
+        return !shape.empty();
+    }
+}
+
+std::string LOREdit::MouthShapeToPhoneme(const std::string& shapeName)
+{
+    std::string shape = Lower(Trim(shapeName));
+    Replace(shape, "\"", "");
+    // "AI (Full Open)", "E (Half Open)", "L(th)"
+    auto paren = shape.find('(');
+    std::string base = Trim(paren == std::string::npos ? shape : shape.substr(0, paren));
+    if (base == "closed" || base == "rest") return "rest";
+    if (base == "ai" || base == "full open" || base == "ah") return "AI";
+    if (base == "e" || base == "half open") return "E";
+    if (base == "o" || base == "oh" || base == "ou") return "O";
+    if (base == "u") return "U";
+    if (base == "wq") return "WQ";
+    if (base == "l") return "L";
+    if (base == "fv") return "FV";
+    if (base == "mbp") return "MBP";
+    if (base == "etc") return "etc";
+    return "";
+}
+
+void LOREdit::ScanFaces() const
+{
+    if (_facesScanned) {
+        return;
+    }
+    _facesScanned = true;
+    std::map<std::string, Face> faces;
+    std::vector<std::string> order;
+    auto faceFor = [&](const std::string& name) -> Face& {
+        auto it = faces.find(name);
+        if (it == faces.end()) {
+            order.push_back(name);
+            it = faces.emplace(name, Face()).first;
+            it->second.name = name;
+        }
+        return it->second;
+    };
+    auto addEffect = [&](Face& f, pugi::xml_node ef, const std::string& phoneme) {
+        LORLipSyncMark m;
+        m.startMS = ef.attribute("startCentisecond").as_uint();
+        m.endMS = ef.attribute("endCentisecond").as_uint();
+        m.label = phoneme;
+        if (m.endMS > m.startMS) {
+            f.shapes.push_back(m);
+        }
+    };
+
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) != "SequenceProps") {
+            continue;
+        }
+        for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+            if (std::string_view(prop.name()) != "SeqProp") {
+                continue;
+            }
+            std::string name = PropName(prop);
+            std::string faceName, shape;
+            // a whole channel prop per mouth shape
+            if (SplitMouthName(name, faceName, shape)) {
+                std::string phoneme = MouthShapeToPhoneme(shape);
+                if (!phoneme.empty()) {
+                    for (pugi::xml_node ch = prop.child("channel"); ch; ch = ch.next_sibling("channel")) {
+                        for (pugi::xml_node ef = ch.first_child(); ef; ef = ef.next_sibling()) {
+                            Face& f = faceFor(faceName);
+                            if (!f.colourSet && phoneme != "rest") {
+                                // RGB props store the colour as a negative intensity
+                                int si = ef.attribute("intensity").as_int(ef.attribute("startIntensity").as_int(0));
+                                if (si < 0) {
+                                    f.colour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
+                                    f.colourSet = true;
+                                }
+                            }
+                            addEffect(f, ef, phoneme);
+                        }
+                    }
+                }
+                continue;
+            }
+            // or a motion row per mouth shape on one prop (matrix faces)
+            for (pugi::xml_node tc = prop.child("track"); tc; tc = tc.next_sibling("track")) {
+                if (!SplitMouthName(tc.attribute("name").as_string(), faceName, shape)) {
+                    continue;
+                }
+                std::string phoneme = MouthShapeToPhoneme(shape);
+                if (phoneme.empty() || !tc.first_child()) {
+                    continue;
+                }
+                Face& f = faceFor(name + "/" + faceName);
+                for (pugi::xml_node ef = tc.first_child(); ef; ef = ef.next_sibling()) {
+                    addEffect(f, ef, phoneme);
+                }
+            }
+        }
+    }
+
+    for (const auto& n : order) {
+        Face f = std::move(faces[n]);
+        std::sort(f.shapes.begin(), f.shapes.end(), [](const LORLipSyncMark& a, const LORLipSyncMark& b) { return a.startMS < b.startMS; });
+        // drop duplicates (two sides / overlapping rows) and merge runs of a shape
+        std::vector<LORLipSyncMark> merged;
+        for (const auto& m : f.shapes) {
+            if (!merged.empty() && merged.back().label == m.label && m.startMS <= merged.back().endMS) {
+                merged.back().endMS = std::max(merged.back().endMS, m.endMS);
+            } else if (!merged.empty() && m.startMS < merged.back().endMS) {
+                merged.back().endMS = m.startMS;
+                merged.push_back(m);
+            } else {
+                merged.push_back(m);
+            }
+        }
+        f.shapes = std::move(merged);
+        int spoken = 0;
+        for (const auto& m : f.shapes) {
+            if (m.label != "rest") spoken++;
+        }
+        if (spoken == 0) {
+            continue; // never sings in this sequence
+        }
+        _faces.push_back(std::move(f));
+    }
+
+    // Faces singing the same part share a timing track: nearly every shape
+    // change of the coarser face (a 4-shape face, a backing face differing by
+    // a few frames) is also a change of the other. The track is built from the
+    // face with the most distinct shapes and named after it.
+    auto changeTimes = [](const Face& f) {
+        std::set<uint32_t> t;
+        for (const auto& m : f.shapes) {
+            if (m.label != "rest") t.insert(m.startMS);
+        }
+        return t;
+    };
+    auto vocabulary = [](const Face& f) {
+        std::set<std::string> v;
+        for (const auto& m : f.shapes) v.insert(m.label);
+        return v.size();
+    };
+    std::vector<std::set<uint32_t>> times;
+    std::vector<size_t> byRichness(_faces.size());
+    for (size_t i = 0; i < _faces.size(); ++i) {
+        times.push_back(changeTimes(_faces[i]));
+        byRichness[i] = i;
+    }
+    // richest faces first, so each group is represented by its most detailed face
+    std::stable_sort(byRichness.begin(), byRichness.end(), [&](size_t a, size_t b) {
+        size_t va = vocabulary(_faces[a]), vb = vocabulary(_faces[b]);
+        return va != vb ? va > vb : times[a].size() > times[b].size();
+    });
+    std::vector<size_t> reps;
+    for (size_t i : byRichness) {
+        size_t chosen = i;
+        for (size_t r : reps) {
+            const auto& t = times[i];
+            size_t common = 0;
+            for (auto x : t) {
+                common += times[r].count(x);
+            }
+            if (!t.empty() && common * 100 >= t.size() * 95) {
+                chosen = r;
+                break;
+            }
+        }
+        if (chosen == i) {
+            reps.push_back(i);
+            std::string trackName = _faces[i].name;
+            Replace(trackName, "/", " - ");
+            _faces[i].trackName = "Lip Sync " + trackName;
+        }
+        _faces[i].trackSource = chosen;
+        _faces[i].trackName = _faces[chosen].trackName;
+    }
+}
+
+const LOREdit::Face* LOREdit::FindFace(const std::string& faceSource) const
+{
+    ScanFaces();
+    std::string name = EndsWith(faceSource, kFaceSuffix) ? faceSource.substr(0, faceSource.size() - kFaceSuffix.size()) : faceSource;
+    for (const auto& f : _faces) {
+        if (f.name == name) {
+            return &f;
+        }
+    }
+    return nullptr;
+}
+
+bool LOREdit::IsFaceSource(const std::string& source)
+{
+    return EndsWith(source, kFaceSuffix);
+}
+
+std::vector<std::string> LOREdit::GetFaceSources() const
+{
+    ScanFaces();
+    std::vector<std::string> res;
+    for (const auto& f : _faces) {
+        res.push_back(f.name + kFaceSuffix);
+    }
+    return res;
+}
+
+std::vector<std::string> LOREdit::GetLipSyncTracks() const
+{
+    ScanFaces();
+    std::vector<std::string> res;
+    for (const auto& f : _faces) {
+        if (std::find(res.begin(), res.end(), f.trackName) == res.end()) {
+            res.push_back(f.trackName);
+        }
+    }
+    return res;
+}
+
+bool LOREdit::IsLipSyncTrack(const std::string& name) const
+{
+    auto tracks = GetLipSyncTracks();
+    return std::find(tracks.begin(), tracks.end(), name) != tracks.end();
+}
+
+std::string LOREdit::GetLipSyncTrackForFace(const std::string& faceSource) const
+{
+    const Face* f = FindFace(faceSource);
+    return f == nullptr ? std::string() : f->trackName;
+}
+
+std::vector<std::vector<LORLipSyncMark>> LOREdit::GetLipSync(const std::string& trackName, int offset) const
+{
+    ScanFaces();
+    std::vector<std::vector<LORLipSyncMark>> layers(3);
+    const Face* face = nullptr;
+    for (const auto& f : _faces) {
+        if (f.trackName == trackName) {
+            face = &_faces[f.trackSource];
+            break;
+        }
+    }
+    if (face == nullptr) {
+        return layers;
+    }
+    auto toMS = [&](uint32_t cs) {
+        int t = (int)cs * 10 + offset;
+        return (uint32_t)std::max(0, RoundToMultipleOfPeriod(t, _frequency));
+    };
+    // phonemes; a closed mouth is the Faces effect's default between them
+    for (const auto& m : face->shapes) {
+        if (m.label == "rest") {
+            continue;
+        }
+        uint32_t s = toMS(m.startMS);
+        uint32_t e = toMS(m.endMS);
+        if (!layers[2].empty() && s < layers[2].back().endMS) {
+            s = layers[2].back().endMS;
+        }
+        if (e <= s) {
+            continue;
+        }
+        if (!layers[2].empty() && layers[2].back().label == m.label && layers[2].back().endMS == s) {
+            layers[2].back().endMS = e;
+        } else {
+            layers[2].push_back({ s, e, m.label });
+        }
+    }
+    // phrases: runs of phonemes split where the mouth rests for 300ms or more
+    constexpr uint32_t kPhraseGapMS = 300;
+    for (const auto& p : layers[2]) {
+        if (layers[0].empty() || p.startMS >= layers[0].back().endMS + kPhraseGapMS) {
+            layers[0].push_back({ p.startMS, p.endMS, "" });
+        } else {
+            layers[0].back().endMS = p.endMS;
+        }
+    }
+    layers[1] = layers[0];
+    return layers;
+}
+
+bool LOREdit::GetFaceSpan(const std::string& faceSource, int offset, uint32_t& startMS, uint32_t& endMS) const
+{
+    const Face* f = FindFace(faceSource);
+    if (f == nullptr || f->shapes.empty()) {
+        return false;
+    }
+    auto toMS = [&](uint32_t cs) {
+        int t = (int)cs * 10 + offset;
+        return (uint32_t)std::max(0, RoundToMultipleOfPeriod(t, _frequency));
+    };
+    startMS = toMS(f->shapes.front().startMS);
+    endMS = startMS;
+    for (const auto& m : f->shapes) {
+        endMS = std::max(endMS, toMS(m.endMS));
+    }
+    return endMS > startMS;
+}
+
+xlColor LOREdit::GetFaceColour(const std::string& faceSource) const
+{
+    const Face* f = FindFace(faceSource);
+    return f == nullptr ? xlWHITE : f->colour;
 }
 
 std::vector<std::string> LOREdit::GetNodesWithEffects() const

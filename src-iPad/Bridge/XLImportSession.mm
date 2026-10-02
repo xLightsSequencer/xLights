@@ -458,10 +458,16 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     if (rc == nullptr) return;
 
     SequenceElements& targetSE = rc->GetSequenceElements();
-    for (const auto& name : _loredit->GetTimingTracks()) {
-        auto timings = _loredit->GetTimings(name, 0);
-        if (timings.empty()) continue;
-        _loreditTimings[name] = timings;
+    std::vector<std::string> names = _loredit->GetTimingTracks();
+    for (const auto& t : _loredit->GetLipSyncTracks()) {
+        names.push_back(t);
+    }
+    for (const auto& name : names) {
+        if (!_loredit->IsLipSyncTrack(name)) {
+            auto timings = _loredit->GetTimings(name, 0);
+            if (timings.empty()) continue;
+            _loreditTimings[name] = timings;
+        }
 
         TimingTrackEntry entry;
         entry.name = name;
@@ -1878,13 +1884,11 @@ static BasicImportMappingNode* FindNodeByIDRecursive(BasicImportMappingNode* n, 
         bool const erase = eraseExisting ? true : false;
 
         // Selected timing tracks → synthesized timing elements. In .loredit
-        // mode the entries carry no source TimingElement — the marks come
-        // from _loreditTimings.
+        // mode the entries carry no source TimingElement — the marks (free
+        // grids and rebuilt lip-sync tracks) come from the LOREdit reader.
         for (const auto& track : _timingTracks) {
             if (!track.selected) continue;
-            auto itTimings = _loreditTimings.find(track.name);
-            if (itTimings == _loreditTimings.end()) continue;
-            AddS5TimingTrack(targetSE, track.name, itTimings->second);
+            AddS5TimingTrack(targetSE, *_loredit, track.name, offset);
         }
 
         for (const auto& root : _destinationRoots) {

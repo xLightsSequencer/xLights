@@ -3019,6 +3019,9 @@ bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& fil
     dlg.xlights = this;
 
     dlg.timingTracks = lorEdit.GetTimingTracks();
+    for (auto const& t : lorEdit.GetLipSyncTracks()) {
+        dlg.timingTracks.push_back(t);
+    }
     for (auto const& m : lorEdit.GetModelsWithEffects()) {
         dlg.AddChannel(m);
     }
@@ -3040,7 +3043,7 @@ bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& fil
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
-            AddS5TimingTrack(_sequenceElements, name, lorEdit.GetTimings(name, offset));
+            AddS5TimingTrack(_sequenceElements, lorEdit, name, offset);
         }
     }
 

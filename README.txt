@@ -25,6 +25,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 LOR S5/S6 import: LOR custom motion rows (bows, outlines, arms,
                                  stripes...) are listed as their own sources, prop/row, so they can be
                                  mapped to submodels or groups instead of covering the whole model
+    -enh (dkulp)                 LOR S5/S6 import: singing faces get lip-sync timing tracks rebuilt from
+                                 their mouth shapes (one per voice), and each face can be mapped as a
+                                 whole onto a model to create a Faces effect driven by that track
     -bug (dkulp)                 LOR S5/S6 import: effects with an Overlay mix no longer import
                                  invisible or at half brightness, bars and spirals keep their
                                  movement, diagonal bars, text colour, meteor colours and

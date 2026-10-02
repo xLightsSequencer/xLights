@@ -278,6 +278,8 @@ void MapXLightsEffects(Element* target,
     }
 }
 
+static void MapS5Face(Element* target, const LOREdit& lorEdit, const std::string& faceSource, int offset, bool eraseExisting);
+
 namespace {
 // Adds one converted LOR track effect, embedding any LOR picture it uses into
 // the target sequence's media so the .xsq is self-contained.
@@ -469,6 +471,10 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
 
 void MapS5Effects(const EffectManager& effectManager, Element* model, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)
 {
+    if (LOREdit::IsFaceSource(mapping)) {
+        MapS5Face(model, lorEdit, mapping, offset, eraseExisting);
+        return;
+    }
     auto st = lorEdit.GetSequencingType(mapping);
     Model* m = model->GetSequenceElements()->GetRenderContext()->GetModel(model->GetModelName());
 
@@ -532,6 +538,74 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
             MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
         }
     }
+}
+
+static TimingElement* AddS5LipSyncTrack(SequenceElements& se, const LOREdit& lorEdit, const std::string& name, int offset)
+{
+    TimingElement* target = (TimingElement*)se.AddElement(name, "timing", true, true, false, false, false);
+    char cnt = '1';
+    while (target == nullptr && cnt <= '9') {
+        target = (TimingElement*)se.AddElement(name + "-" + cnt++, "timing", true, true, false, false, false);
+    }
+    if (target == nullptr) {
+        spdlog::warn("S5 import: could not add lip sync timing element '{}'", name);
+        return nullptr;
+    }
+    auto layers = lorEdit.GetLipSync(name, offset);
+    for (size_t l = 0; l < layers.size(); ++l) {
+        EffectLayer* layer = l < target->GetEffectLayerCount() ? target->GetEffectLayer((int)l) : target->AddEffectLayer();
+        for (const auto& m : layers[l]) {
+            layer->AddEffect(0, m.label, "", "", m.startMS, m.endMS, false, false);
+        }
+    }
+    return target;
+}
+
+void AddS5TimingTrack(SequenceElements& se, const LOREdit& lorEdit, const std::string& name, int offset)
+{
+    if (lorEdit.IsLipSyncTrack(name)) {
+        AddS5LipSyncTrack(se, lorEdit, name, offset);
+    } else {
+        AddS5TimingTrack(se, name, lorEdit.GetTimings(name, offset));
+    }
+}
+
+// A LOR singing face becomes one Faces effect over the singing, driven by the
+// face's lip-sync timing track (created here if the import didn't add it).
+static void MapS5Face(Element* target, const LOREdit& lorEdit, const std::string& faceSource, int offset, bool eraseExisting)
+{
+    SequenceElements* se = target->GetSequenceElements();
+    std::string trackName = lorEdit.GetLipSyncTrackForFace(faceSource);
+    uint32_t startMS = 0;
+    uint32_t endMS = 0;
+    if (trackName.empty() || !lorEdit.GetFaceSpan(faceSource, offset, startMS, endMS)) {
+        return;
+    }
+    TimingElement* track = se->GetTimingElement(trackName);
+    if (track == nullptr || track->GetEffectLayerCount() != 3) {
+        track = AddS5LipSyncTrack(*se, lorEdit, trackName, offset);
+        if (track == nullptr) {
+            return;
+        }
+        trackName = track->GetName();
+    }
+
+    std::string definition = "Default";
+    Model* m = se->GetRenderContext()->GetModel(target->GetModelName());
+    if (m != nullptr && !m->GetFaceInfo().empty()) {
+        definition = m->GetFaceInfo().begin()->first;
+    }
+
+    EffectLayer* layer = target->GetEffectLayer(0);
+    if (eraseExisting) {
+        layer->DeleteAllEffects();
+    }
+    if (layer->HasEffectsInTimeRange(startMS, endMS)) {
+        layer = target->AddEffectLayer();
+    }
+    std::string settings = "E_CHOICE_Faces_TimingTrack=" + trackName + ",E_CHOICE_Faces_FaceDefinition=" + definition + ",E_CHOICE_Faces_Eyes=Auto";
+    std::string palette = "C_BUTTON_Palette1=" + (std::string)lorEdit.GetFaceColour(faceSource) + ",C_CHECKBOX_Palette1=1";
+    layer->AddEffect(0, "Faces", settings, palette, startMS, endMS, false, false);
 }
 
 void AddS5TimingTrack(SequenceElements& se, const std::string& name, const std::vector<std::pair<uint32_t, uint32_t>>& timings)
@@ -672,6 +746,10 @@ void MapVixen3Effects(const EffectManager& effectManager, Element* model, const 
 
 void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)
 {
+    if (LOREdit::IsFaceSource(mapping)) {
+        MapS5Face(se, lorEdit, mapping, offset, eraseExisting);
+        return;
+    }
     if (dynamic_cast<StrandElement*>(se) != nullptr) {
         return MapS5Effects(effectManager, dynamic_cast<StrandElement*>(se), lorEdit, mapping, frequency, offset, eraseExisting);
     }
