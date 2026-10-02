@@ -90,9 +90,23 @@ ActivityEntry& NextActivitySlot(uint64_t& seqOut)
     return g_activity[(seqOut - 1) % ACTIVITY_SLOTS];
 }
 
+bool g_activityFilterAdded = false;
+
 class xlActivityTraceFilter : public wxEventFilter
 {
 public:
+    ~xlActivityTraceFilter() override
+    {
+        // Paths that std::exit() out of OnInit (headless render, --fseqcmp, ...)
+        // never destroy the app, so ~xlBaseApp's StopActivityTrace() doesn't run.
+        // Still registered here, ~wxEventFilter asserts during static teardown, and
+        // the assert handler logs through an spdlog that is already destroyed.
+        if (g_activityFilterAdded) {
+            wxEvtHandler::RemoveFilter(this);
+            g_activityFilterAdded = false;
+        }
+    }
+
     int FilterEvent(wxEvent& event) override
     {
         wxEventType const type = event.GetEventType();
@@ -136,7 +150,6 @@ public:
 };
 
 xlActivityTraceFilter g_activityFilter;
-bool g_activityFilterAdded = false;
 
 } // namespace
 
