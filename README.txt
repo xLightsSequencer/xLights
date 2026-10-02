@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 Crash rendering a Candle effect (single flame, not Per Node) in some cases
     -bug (dkulp)                 iPad - Undo after dragging, aligning or distributing a Model Set member now
                                  moves the whole Set back, and an align / flip / match size / bulk edit on
                                  several models undoes in one step

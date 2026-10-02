@@ -289,7 +289,9 @@ std::unique_ptr<EffectFrameState> CandleEffect::AdvanceState(Effect* effect, con
         }
     } else {
         std::vector<CandleState>& states = cache->_states;
-        if (buffer.needToInit) {
+        // Seed on an empty cache too: needToInit can already be clear when this
+        // buffer's cache is empty, and states[0] would then be a null deref.
+        if (buffer.needToInit || states.empty()) {
             buffer.needToInit = false;
             if (states.empty()) {
                 states.resize(1);
@@ -413,7 +415,7 @@ void CandleEffect::RenderDraw(Effect* effect, const SettingsMap& SettingsMap, Re
         CandleRenderCache* cache = GetCache(buffer, id);
         std::vector<CandleState>& states = cache->_states;
 
-        if (buffer.needToInit) {
+        if (buffer.needToInit || states.empty()) {
             buffer.needToInit = false;
             if (states.empty()) {
                 states.resize(1);
