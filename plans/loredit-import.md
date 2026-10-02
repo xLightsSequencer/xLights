@@ -1,7 +1,8 @@
 # LOR `.loredit` (S5/S6) import — enhancement plan
 
 Status: Phases 7 (shared apply loop), 1 (quick wins), 2 (Single Block →
-Morph) and 3 (SVG Pictures + sketches) are implemented; 4–6 and §7a remain.
+Morph), 3 (SVG Pictures + sketches) and 5 (custom rows as sources) are
+implemented; 4, 6 and §7a remain.
 Originally written from a full audit of one
 real-world LOR 6.6 file (a vendor store sequence for a "Pixel Bright" pixel
 layout, `saveFileVersion="16"`, ~165 s, 408 sequenced props, 67,158 effects)
@@ -64,10 +65,10 @@ New breakages it exposes (harness output):
 - **Speed truncation.** Bars/Spirals convert speed with
   `(int)(speed / (20 / durationSec))` — for typical 0.2–0.6 s effects that is
   **0 for 11,130 of 13,122** bars+spirals, so they import static.
-- **Diagonal bars** (`down_right`, `up_right`, …, 10k effects) pass through
-  as invalid `E_CHOICE_Bars_Direction` values. xLights Bars has no diagonal;
-  emulate with the buffer **Rotation** (±45°) plus zoom so corners stay
-  covered, or add a diagonal direction to Bars.
+- **Diagonal bars** (`down_right`, `up_right`, …, 10k effects) passed through
+  as invalid `E_CHOICE_Bars_Direction` values. Now mapped to Bars' Custom
+  direction with `Bars_Angle` (0 right, 90 up): down_right −45, up_right 45,
+  down_left −135, up_left 135 (bars and blended bars).
 - `spinfade` (arc spinner fade) and `simpleshape` (circle with oscillating
   size `O100O174…`, `fade_inner_out`) are **dropped**; `blendedbars` maps to
   Bars with no settings. Candidates: spinfade → Pinwheel/Fan, simpleshape →
@@ -452,6 +453,12 @@ them to submodels, or drags them onto a group such as "Snowflake Arms".
 Effects on those rows are **not** applied when the parent prop is mapped —
 unmapped means "not imported", which beats today's full-prop smear.
 
+- **Implemented** with `/` as the separator: it matches xLights'
+  model/submodel naming, so the dialog shows the submodel icon and the
+  auto-mapper pairs `RGB Present L 02/Bow` with a `Bow` submodel on a model
+  named `RGB Present L 02`. Prop names that themselves contain `/` are
+  resolved by matching the whole prop name first (`GetSourceLayers`).
+  `custom_horizontal_buffer` effects get the Single Line buffer style.
 - Core: `GetModelsWithEffects` emits the extra `<prop>/<row>` names;
   `GetSequencingType` / `GetTrackEffects` resolve them to the single track;
   `GetModelLayers` / `GetTrackEffects` for the bare prop skip `custom*`

@@ -22,6 +22,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Pictures effect can use SVG images, drawn sharp at the model's size
     -enh (dkulp)                 LOR S5/S6 import: LOR sketch effects (singing faces, drawings) import
                                  as embedded SVG pictures instead of empty Sketch effects
+    -enh (dkulp)                 LOR S5/S6 import: LOR custom motion rows (bows, outlines, arms,
+                                 stripes...) are listed as their own sources, prop/row, so they can be
+                                 mapped to submodels or groups instead of covering the whole model
     -bug (dkulp)                 LOR S5/S6 import: effects with an Overlay mix no longer import
                                  invisible or at half brightness, bars and spirals keep their
                                  movement, diagonal bars, text colour, meteor colours and

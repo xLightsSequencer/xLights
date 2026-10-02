@@ -116,6 +116,14 @@ class LOREdit {
 
     std::vector<LOREditEffect> GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, pugi::xml_node prop, int offset) const;
 
+    static std::string PropName(pugi::xml_node prop);
+    // custom / custom_horizontal_buffer rows cover an arbitrary node subset
+    // of the prop, so they are offered as their own "<prop>/<row>" sources
+    static bool IsSubRowTrack(pugi::xml_node track);
+    // The (track, left side) pairs that become xLights layers for `source` (a
+    // prop name, or "<prop>/<row>"), top layer first.
+    std::vector<std::pair<pugi::xml_node, bool>> GetSourceLayers(const std::string& source) const;
+
     public:
     LOREdit(pugi::xml_document &input_xml, int frequency);
     virtual ~LOREdit() {};
@@ -126,6 +134,8 @@ class LOREdit {
     std::map<int, std::string> GetModelStrands(const std::string& model) const;
     int GetModelChannels(const std::string& model, int& rows, int& cols) const;
     loreditType GetSequencingType(const std::string& model) const;
+    // Props with effects, plus a "<prop>/<row>" entry for each custom row that
+    // has effects (those rows are not applied when the bare prop is mapped)
     std::vector<std::string> GetModelsWithEffects() const;
     std::vector<std::string> GetNodesWithEffects() const;
     std::vector<LOREditEffect> GetTrackEffects(const std::string& model, int layer, int offset = 0) const;

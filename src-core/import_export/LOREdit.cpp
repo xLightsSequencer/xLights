@@ -241,6 +241,29 @@ namespace {
     // against LOR renders)
     constexpr double kSketchOffsetStep = 0.03;
 
+    // LOR bar direction -> xLights Bars direction settings; diagonals use the
+    // Custom direction's angle (0 right, 90 up)
+    std::string BarsDirectionSettings(std::string direction) {
+        static const std::map<std::string, int> diagonals = {
+            { "down_right", -45 }, { "down_left", -135 }, { "up_right", 45 }, { "up_left", 135 }
+        };
+        auto it = diagonals.find(direction);
+        if (it != diagonals.end()) {
+            return fmt::format(",E_CHOICE_Bars_Direction=Custom,E_SLIDER_Bars_Angle={}", it->second);
+        }
+        if (direction == "V_expand") direction = "expand";
+        if (direction == "V_compress") direction = "compress";
+        if (direction == "H_expand") direction = "H-expand";
+        if (direction == "H_compress") direction = "H-compress";
+        if (direction == "left") direction = "Left";
+        if (direction == "right") direction = "Right";
+        if (direction == "block_up") direction = "Alternate Up";
+        if (direction == "block_down") direction = "Alternate Down";
+        if (direction == "block_left") direction = "Alternate Left";
+        if (direction == "block_right") direction = "Alternate Right";
+        return ",E_CHOICE_Bars_Direction=" + direction;
+    }
+
     std::string PercentDecode(std::string file) {
         size_t pos;
         while ((pos = file.find('%')) != std::string::npos) {
@@ -605,6 +628,10 @@ std::string LOREditEffect::GetLayerSettings() const
 
 std::string LOREditEffect::GetSubBuffer() const
 {
+    if (trackType == "custom_horizontal_buffer") {
+        // LOR lays this row's nodes out as one horizontal line
+        return ",B_CHOICE_BufferStyle=Single Line";
+    }
     if (trackType != "rectangle") {
         return "";
     }
@@ -827,28 +854,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Bars_BarCount=" + repeat;
         settings += vcRepeat;
 
-        if (direction == "V_expand") direction = "expand";
-        if (direction == "V_compress") direction = "compress";
-        if (direction == "H_expand") direction = "H-expand";
-        if (direction == "H_compress") direction = "H-compress";
-        if (direction == "left") direction = "Left";
-        if (direction == "right") direction = "Right";
-        if (direction == "block_up") direction = "Alternate Up";
-        if (direction == "block_down") direction = "Alternate Down";
-        if (direction == "block_left") direction = "Alternate Left";
-        if (direction == "block_right") direction = "Alternate Right";
-        // Bars has no diagonal; render up/down bars on a buffer turned ~45
-        // degrees (B_SLIDER_Rotation is a percentage of a full turn) and
-        // zoomed so the corners stay covered.
-        int rotation = 0;
-        if (direction == "down_right") { direction = "down"; rotation = 12; }
-        if (direction == "down_left") { direction = "down"; rotation = 88; }
-        if (direction == "up_right") { direction = "up"; rotation = 88; }
-        if (direction == "up_left") { direction = "up"; rotation = 12; }
-        settings += ",E_CHOICE_Bars_Direction=" + direction;
-        if (rotation != 0) {
-            settings += fmt::format(",B_SLIDER_Rotation={},B_SLIDER_Zoom=15", rotation);
-        }
+        settings += BarsDirectionSettings(direction);
 
         if (show3d == "True") {
             settings += ",E_CHECKBOX_Bars_3D=1";
@@ -1402,10 +1408,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "blendedbars") {
         // direction,count,speed,?: right,10,36,0
-        std::string direction = parms[0];
-        if (direction == "left") direction = "Left";
-        if (direction == "right") direction = "Right";
-        settings += ",E_CHOICE_Bars_Direction=" + direction;
+        settings += BarsDirectionSettings(parms[0]);
         settings += fmt::format(",E_SLIDER_Bars_BarCount={}", std::clamp(loreAtoi(parms[1]) / 2, 1, 5));
         settings += fmt::format(",E_TEXTCTRL_Bars_Cycles={:.2f}", loreAtof(parms[2]) / (20.0 / ((double)(endMS - startMS) / 1000.0)));
         settings += ",E_CHECKBOX_Bars_Gradient=1";
@@ -1679,50 +1682,97 @@ std::map<int, std::string> LOREdit::GetModelStrands(const std::string& model) co
 
 // Calculate the number of layers necessary for pixel effects on this model
 // basically one per track * whether or not there are effects on left and right
-int LOREdit::GetModelLayers(const std::string& model) const
+std::string LOREdit::PropName(pugi::xml_node prop)
 {
-    int count = 0;
-    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
-        std::string eName = e.name();
-        if (eName == "SequenceProps" || eName == "ArchivedProps") {
-            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
-                std::string propName = prop.name();
-                if (propName == "SeqProp" || propName == "ArchiveProp") {
-                    std::string name = prop.attribute("name").as_string();
-                    if (name == "")
-                    {
-                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
-                            if (std::string_view(ap.name()) == "PropClass")
-                            {
-                                name = ap.attribute("Name").as_string();
-                            }
-                        }
-                    }
-                    if (name == model) {
-                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
-                            if (std::string_view(tc.name()) == "track") {
-                                int l1 = 0;
-                                int l2 = 0;
-                                for (pugi::xml_node ef = tc.first_child(); (l1 == 0 || l2 == 0) && ef; ef = ef.next_sibling()) {
-                                    int ll1 = 0;
-                                    int ll2 = 0;
-                                    GetLayers(ef.attribute("settings").as_string(), ll1, ll2);
-                                    if (ll1 == 1) l1 = 1;
-                                    if (ll2 == 1) l2 = 1;
-                                }
-                                count += l1 + l2;
-                            }
-                        }
-                    }
-                }
+    std::string name = prop.attribute("name").as_string();
+    if (name.empty()) {
+        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+            if (std::string_view(ap.name()) == "PropClass") {
+                name = ap.attribute("Name").as_string();
             }
         }
     }
-
-    return count;
+    return name;
 }
 
-// If a prop has sequenced channels this calculates how many there are
+bool LOREdit::IsSubRowTrack(pugi::xml_node track)
+{
+    std::string_view type = track.attribute("type").as_string("none");
+    return type == "custom" || type == "custom_horizontal_buffer";
+}
+
+std::vector<std::pair<pugi::xml_node, bool>> LOREdit::GetSourceLayers(const std::string& source) const
+{
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName != "SequenceProps" && eName != "ArchivedProps") {
+            continue;
+        }
+        for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+            std::string propName = prop.name();
+            if (propName != "SeqProp" && propName != "ArchiveProp") {
+                continue;
+            }
+            std::string name = PropName(prop);
+            if (name.empty()) {
+                continue;
+            }
+            // prop names may themselves contain '/', so match the whole prop
+            // name and then look for the row
+            std::string row;
+            if (source != name) {
+                if (source.size() <= name.size() + 1 || !StartsWith(source, name + "/")) {
+                    continue;
+                }
+                row = source.substr(name.size() + 1);
+            }
+            std::vector<pugi::xml_node> tracks;
+            for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                if (std::string_view(tc.name()) != "track" || !tc.first_child()) {
+                    continue;
+                }
+                if (row.empty() ? IsSubRowTrack(tc) : (!IsSubRowTrack(tc) || row != tc.attribute("name").as_string())) {
+                    continue;
+                }
+                tracks.push_back(tc);
+            }
+            if (!row.empty() && tracks.empty()) {
+                continue; // a longer prop name may still match
+            }
+            // LOR draws later motion rows over earlier ones, so the last track
+            // becomes xLights layer 0. Within a track the left side stays
+            // above the right; the mix settings emitted for the left side
+            // account for that.
+            std::vector<std::pair<pugi::xml_node, bool>> res;
+            for (auto it = tracks.rbegin(); it != tracks.rend(); ++it) {
+                int l1 = 0;
+                int l2 = 0;
+                for (pugi::xml_node ef = it->first_child(); (l1 == 0 || l2 == 0) && ef; ef = ef.next_sibling()) {
+                    int ll1, ll2;
+                    GetLayers(ef.attribute("settings").as_string(), ll1, ll2);
+                    if (ll1 == 1) l1 = 1;
+                    if (ll2 == 1) l2 = 1;
+                }
+                if (l1 == 1) {
+                    res.emplace_back(*it, true);
+                }
+                if (l2 == 1) {
+                    res.emplace_back(*it, false);
+                }
+            }
+            return res;
+        }
+    }
+    return {};
+}
+
+// Calculate the number of layers necessary for pixel effects on this model
+// basically one per track * whether or not there are effects on left and right
+int LOREdit::GetModelLayers(const std::string& model) const
+{
+    return (int)GetSourceLayers(model).size();
+}
+
 int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) const
 {
     bool match = false;
@@ -1802,6 +1852,9 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
 // assumes you cant have both channel and track sequencing on the same model ... this may not be true
 loreditType LOREdit::GetSequencingType(const std::string& model) const
 {
+    if (model.find('/') != std::string::npos && !GetSourceLayers(model).empty()) {
+        return loreditType::TRACKS;
+    }
     for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
         std::string eName = e.name();
         if (eName == "SequenceProps" || eName == "ArchivedProps") {
@@ -1871,26 +1924,30 @@ std::vector<std::string> LOREdit::GetModelsWithEffects() const
             for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
                 std::string propName = prop.name();
                 if (propName == "SeqProp" || propName == "ArchiveProp") {
-                    std::string name = prop.attribute("name").as_string();
-                    if (name == "")
-                    {
-                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
-                            if (std::string_view(ap.name()) == "PropClass")
-                            {
-                                name = ap.attribute("Name").as_string();
+                    std::string name = PropName(prop);
+                    if (name.empty()) {
+                        continue;
+                    }
+                    bool whole = false;
+                    std::vector<std::string> rows;
+                    for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                        std::string tcName = tc.name();
+                        if (!tc.first_child() || (tcName != "channel" && tcName != "track")) {
+                            continue;
+                        }
+                        if (tcName == "track" && IsSubRowTrack(tc)) {
+                            std::string row = name + "/" + tc.attribute("name").as_string();
+                            if (std::find(rows.begin(), rows.end(), row) == rows.end()) {
+                                rows.push_back(row);
                             }
+                        } else {
+                            whole = true;
                         }
                     }
-                    if (name != "")
-                    {
-                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
-                            std::string tcName = tc.name();
-                            if ((tcName == "channel" || tcName == "track") && tc.first_child()) {
-                                res.push_back(name);
-                                break;
-                            }
-                        }
+                    if (whole) {
+                        res.push_back(name);
                     }
+                    res.insert(res.end(), rows.begin(), rows.end());
                 }
             }
         }
@@ -2058,65 +2115,11 @@ std::vector<LOREditEffect> LOREdit::AddEffects(pugi::xml_node track, bool left, 
 
 std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, int layer, int offset) const
 {
-    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
-        std::string eName = e.name();
-        if (eName == "SequenceProps" || eName == "ArchivedProps") {
-            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
-                std::string propName = prop.name();
-                if (propName == "SeqProp" || propName == "ArchiveProp") {
-                    std::string name = prop.attribute("name").as_string();
-                    if (name == "")
-                    {
-                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
-                            if (std::string_view(ap.name()) == "PropClass")
-                            {
-                                name = ap.attribute("Name").as_string();
-                            }
-                        }
-                    }
-                    if (name == model)
-                    {
-                        // LOR draws later motion rows over earlier ones, so the
-                        // last track becomes xLights layer 0. Within a track the
-                        // left side stays above the right; the mix settings
-                        // emitted for the left side account for that.
-                        std::vector<pugi::xml_node> tracks;
-                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
-                            if (std::string_view(tc.name()) == "track" && tc.first_child()) {
-                                tracks.push_back(tc);
-                            }
-                        }
-                        int tcount = 0;
-                        for (auto it = tracks.rbegin(); it != tracks.rend(); ++it) {
-                            int l1 = 0;
-                            int l2 = 0;
-                            for (pugi::xml_node ef = it->first_child(); (l1 == 0 || l2 == 0) && ef; ef = ef.next_sibling()) {
-                                int ll1, ll2;
-                                GetLayers(ef.attribute("settings").as_string(), ll1, ll2);
-                                if (ll1 == 1) l1 = 1;
-                                if (ll2 == 1) l2 = 1;
-                            }
-                            if (l1 == 1) {
-                                if (tcount == layer) {
-                                    return AddEffects(*it, true, offset);
-                                }
-                                tcount++;
-                            }
-                            if (l2 == 1) {
-                                if (tcount == layer) {
-                                    return AddEffects(*it, false, offset);
-                                }
-                                tcount++;
-                            }
-                        }
-                        return {};
-                    }
-                }
-            }
-        }
+    auto layers = GetSourceLayers(model);
+    if (layer < 0 || layer >= (int)layers.size()) {
+        return {};
     }
-
-    return {};
+    return AddEffects(layers[layer].first, layers[layer].second, offset);
 }
 
 std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, pugi::xml_node prop, int offset) const
