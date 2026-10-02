@@ -93,7 +93,7 @@ void MetalBarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     else if (dirStr == "Alternate Left") direction = 10;
     else if (dirStr == "Alternate Right")direction = 11;
     else {
-        // Custom Horz / Custom Vert — always spatial, fall back to CPU
+        // Custom Horz / Custom Vert / Custom angle — fall back to CPU
         BarsEffect::Render(effect, SettingsMap, buffer);
         return;
     }

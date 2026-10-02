@@ -10,6 +10,10 @@
 
 #define MAX_ISPC_BARS_COLORS 8
 
+#include <algorithm>
+#include <cmath>
+#include <vector>
+
 #include "BarsEffect.h"
 
 #include "../render/RenderBuffer.h"
@@ -42,6 +46,9 @@ std::string BarsEffect::sDirectionDefault = "up";
 double BarsEffect::sCenterDefault = 0;
 double BarsEffect::sCenterMin = -100;
 double BarsEffect::sCenterMax = 100;
+int BarsEffect::sAngleDefault = 90;
+int BarsEffect::sAngleMin = -180;
+int BarsEffect::sAngleMax = 180;
 bool BarsEffect::sHighlightDefault = false;
 bool BarsEffect::sUseFirstColorForHighlightDefault = false;
 bool BarsEffect::s3DDefault = false;
@@ -65,6 +72,9 @@ void BarsEffect::OnMetadataLoaded()
     sCenterDefault = GetDoubleDefault("Bars_Center", sCenterDefault);
     sCenterMin = GetMinFromMetadata("Bars_Center", sCenterMin);
     sCenterMax = GetMaxFromMetadata("Bars_Center", sCenterMax);
+    sAngleDefault = GetIntDefault("Bars_Angle", sAngleDefault);
+    sAngleMin = (int)GetMinFromMetadata("Bars_Angle", sAngleMin);
+    sAngleMax = (int)GetMaxFromMetadata("Bars_Angle", sAngleMax);
     sHighlightDefault = GetBoolDefault("Bars_Highlight", sHighlightDefault);
     sUseFirstColorForHighlightDefault = GetBoolDefault("Bars_UseFirstColorForHighlight", sUseFirstColorForHighlightDefault);
     s3DDefault = GetBoolDefault("Bars_3D", s3DDefault);
@@ -101,6 +111,8 @@ static inline int GetDirection(const std::string& DirectionString)
         return 12;
     } else if ("Custom Vert" == DirectionString) {
         return 13;
+    } else if ("Custom" == DirectionString) {
+        return 14;
     }
     return 0;
 }
@@ -149,7 +161,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         else if (ispcDirStr == "Alternate Down")  ispcDir = 9;
         else if (ispcDirStr == "Alternate Left")  ispcDir = 10;
         else if (ispcDirStr == "Alternate Right") ispcDir = 11;
-        else break; // Custom Horz / Custom Vert — fall through to CPU
+        else break; // Custom Horz / Custom Vert / Custom — fall through to CPU
 
         float ispcOffset = buffer.GetEffectTimeIntervalPosition();
         int ispcPaletteRepeat = GetValueCurveInt("Bars_BarCount", sBarCountDefault, SettingsMap, ispcOffset, sBarCountMin, sBarCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -307,8 +319,10 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
 
     xlColor color;
 
-
-    if (direction < 4 || direction == 8 || direction == 9) {
+    if (direction == 14) {
+        double angle = GetValueCurveInt("Bars_Angle", sAngleDefault, SettingsMap, offset, sAngleMin, sAngleMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+        RenderCustomAngle(buffer, angle, position, colorcnt, barCount, highlight, useFirstColorForHighlight, show3D, gradient);
+    } else if (direction < 4 || direction == 8 || direction == 9) {
         int barHt = (int)std::ceil((float)buffer.BufferHt / (float)barCount);
         if (barHt < 1)
             barHt = 1;
@@ -566,5 +580,96 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 break;
             }
         }
+    }
+}
+
+void BarsEffect::RenderCustomAngle(RenderBuffer& buffer, double angle, double position, size_t colorcnt, int barCount, bool highlight, bool useFirstColorForHighlight, bool show3D, bool gradient)
+{
+    const int width = buffer.BufferWi;
+    const int height = buffer.BufferHt;
+    const double rad = angle * 3.14159265358979323846 / 180.0;
+    // cos/sin of a right angle are a hair off 0, which would grow the extent past a whole
+    // pixel count and shift every bar; snap them so the axis angles stay exact.
+    double dx = std::cos(rad);
+    double dy = std::sin(rad);
+    if (std::abs(dx) < 1e-9)
+        dx = 0.0;
+    if (std::abs(dy) < 1e-9)
+        dy = 0.0;
+
+    // Distance is measured back from the corner the bars travel toward, so 0/90/180/-90
+    // reproduce the Right/up/Left/down pixel phases exactly.
+    const double extent = width * std::abs(dx) + height * std::abs(dy);
+    int barSize = (int)std::ceil(extent / (double)barCount);
+    if (barSize < 1)
+        barSize = 1;
+    int blockSize = colorcnt * barSize;
+    if (blockSize < 1)
+        blockSize = 1;
+    const int f_offset = position * blockSize;
+    const double maxProj = std::max(0.0, (width - 1) * dx) + std::max(0.0, (height - 1) * dy);
+
+    xlColor highlightColor = xlWHITE;
+    if (useFirstColorForHighlight) {
+        buffer.palette.GetColor(0, highlightColor);
+    }
+
+    struct BarColor {
+        xlColor color;
+        int colorIdx;
+        int color2;
+        double pct;
+        bool spatial;
+    };
+    std::vector<BarColor> lut(blockSize);
+    for (int i = 0; i < blockSize; ++i) {
+        BarColor& bc = lut[i];
+        bc.colorIdx = i / barSize;
+        if (useFirstColorForHighlight) {
+            bc.colorIdx += 1;
+        }
+        bc.color2 = (bc.colorIdx + 1) % colorcnt;
+        bc.pct = (double)(i % barSize) / (double)barSize;
+        bc.spatial = buffer.palette.IsSpatial(bc.colorIdx);
+
+        xlColor& color = bc.color;
+        buffer.palette.GetColor(bc.colorIdx, color);
+        if (gradient)
+            buffer.Get2ColorBlend(bc.colorIdx, bc.color2, bc.pct, color);
+        if (buffer.allowAlpha) {
+            if (highlight && i % barSize == 0)
+                color = highlightColor;
+            if (show3D)
+                color.alpha = 255.0 * double(barSize - i % barSize - 1) / (double)barSize;
+        } else {
+            HSVValue hsv = color.asHSV();
+            if (highlight && i % barSize == 0)
+                hsv = highlightColor.asHSV();
+            if (show3D)
+                hsv.value *= double(barSize - i % barSize - 1) / (double)barSize;
+            color = hsv;
+        }
+    }
+
+    auto renderRow = [&](int y) {
+        for (int x = 0; x < width; ++x) {
+            const double dist = maxProj - (x * dx + y * dy);
+            const int n = 4 * blockSize + (int)std::floor(dist) + f_offset;
+            const BarColor& bc = lut[n % blockSize];
+            if (bc.spatial) {
+                xlColor color = bc.color;
+                GetSpatialColor(color, bc.colorIdx, (float)x / (float)width, (float)y / (float)height, buffer, gradient, highlightColor, highlight, show3D, barSize, n, bc.pct, bc.color2);
+                buffer.SetPixel(x, y, color);
+            } else {
+                buffer.SetPixel(x, y, bc.color);
+            }
+        }
+    };
+    if (buffer.dmx_buffer) {
+        for (int y = 0; y < height; ++y) {
+            renderRow(y);
+        }
+    } else {
+        parallel_for(0, height, renderRow);
     }
 }

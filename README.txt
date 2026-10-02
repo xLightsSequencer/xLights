@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (dkulp)                 Bars: new "Custom" direction with an Angle slider (-180 to 180) to move
+                                 the bars in any direction
+
 
 2026.18  October 2, 2026
 
