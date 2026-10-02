@@ -3040,113 +3040,26 @@ bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& fil
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
-
-            auto timings = lorEdit.GetTimings(name, offset);
-
-            TimingElement* target = (TimingElement*)_sequenceElements.AddElement(name, "timing", true, true, false, false, false);
-            char cnt = '1';
-            while (target == nullptr) {
-                target = (TimingElement*)_sequenceElements.AddElement(name + "-" + cnt++, "timing", true, true, false, false, false);
-            }
-            if (target->GetEffectLayerCount() == 0) {
-                target->AddEffectLayer();
-            }
-
-            EffectLayer* targetLayer = target->GetEffectLayer(0);
-
-            for (auto t : timings) {
-                targetLayer->AddEffect(0, "", "", "", t.first, t.second, false, false);
-            }
+            AddS5TimingTrack(_sequenceElements, name, lorEdit.GetTimings(name, offset));
         }
     }
 
+    bool const erase = dlg.CheckBox_EraseExistingEffects->GetValue();
+    int const frequency = CurrentSeqXmlFile->GetFrequency();
     for (size_t i = 0; i < dlg._dataModel->GetChildCount(); ++i) {
         xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
-        std::string modelName = m->_model;
-        ModelElement* model = nullptr;
+        Element* model = nullptr;
         for (size_t x = 0; x < _sequenceElements.GetElementCount(); x++) {
-            if (_sequenceElements.GetElement(x)->GetType() == ElementType::ELEMENT_TYPE_MODEL && modelName == _sequenceElements.GetElement(x)->GetName()) {
-                model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(x));
+            Element* e = _sequenceElements.GetElement(x);
+            if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL && m->_model == e->GetName()) {
+                model = e;
                 break;
             }
         }
-        if (model != nullptr) {
-            Model* mdl = model->GetSequenceElements()->GetRenderContext()->GetModel(model->GetModelName());
-
-            if (m->_mapping != "") {
-                    if (model == nullptr) {
-                    model = AddModel(GetModel(modelName), _sequenceElements);
-                }
-                if (model == nullptr) {
-                    spdlog::error("Attempt to add model {} during S5 import failed.", modelName);
-                } else {
-                    if (!LOREdit::IsNodeStrandMapping(m->_mapping)) {
-                        MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
-                    } else {
-                        EffectLayer* targetLayer = model->GetEffectLayer(0);
-                        if (m->_isStackDuplicate) {
-                            model->AddEffectLayer(); // empty separator before stacked mapping
-                            targetLayer = model->AddEffectLayer();
-                        }
-                        MapS5ChannelEffects(effectManager, targetLayer, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
-                    }
-                }
-            }
-
-            int str = 0;
-            for (size_t j = 0; j < m->GetChildCount(); j++) {
-                xLightsImportModelNode* s = m->GetNthChild(j);
-
-                if ("" != s->_mapping) {
         if (model == nullptr) {
-                    model = AddModel(GetModel(modelName), _sequenceElements);
-                }
-                if (model == nullptr) {
-                    spdlog::error("Attempt to add model {} during S5 import failed.", modelName);
-                    }
-                    else {
-                        SubModelElement* ste = model->GetSubModel(str);
-                        if (ste != nullptr) {
-                            if (!LOREdit::IsNodeStrandMapping(s->_mapping))
-                                MapS5Effects(effectManager, ste, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
-                            else
-                                MapS5ChannelEffects(effectManager, ste->GetEffectLayer(0), lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
-                        }
-                    }
-                }
-                for (size_t n = 0; n < s->GetChildCount(); n++) {
-                    xLightsImportModelNode* ns = s->GetNthChild(n);
-                    if ("" != ns->_mapping) {
-                        if (model == nullptr) {
-                            model = AddModel(GetModel(modelName), _sequenceElements);
-                        }
-                        if (model == nullptr) {
-                            spdlog::error("Attempt to add model {} during S5 import failed.", (const char*)modelName.c_str());
-                        } else {
-                            SubModelElement* ste = model->GetSubModel(str);
-                            StrandElement* stre = dynamic_cast<StrandElement*>(ste);
-                            if (stre != nullptr) {
-                                NodeLayer* nl = stre->GetNodeLayer(n, true);
-                                if (nl != nullptr) {
-                                    if (LOREdit::IsNodeStrandMapping(s->_mapping)) {
-                                        MapS5ChannelEffects(effectManager, nl, lorEdit, s->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
-                                    } else {
-                                        auto st = lorEdit.GetSequencingType(ns->_mapping);
-                                        if (st == loreditType::CHANNELS) {
-                                            MapS5ChannelEffects(effectManager, i, nl, mdl, lorEdit, ns->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
-                                        } else if (st == loreditType::TRACKS) {
-                                            // no layers so we just map the first
-                                            MapS5(effectManager, 0, nl, lorEdit, ns->_mapping, mdl, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                str++;
-            }
+            continue;
         }
+        ApplyS5Mapping(effectManager, model, m, lorEdit, frequency, offset, erase, m->_isStackDuplicate);
     }
 
     spdlog::debug("    Importing S5 effects done.");

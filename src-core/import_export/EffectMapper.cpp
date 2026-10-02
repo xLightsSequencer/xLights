@@ -13,6 +13,7 @@
 #include "effects/BufferStyles.h"
 #include "effects/EffectManager.h"
 #include "effects/MovingHeadEffect.h"
+#include "import_export/ImportMappingNode.h"
 #include "import_export/LOREdit.h"
 #include "import_export/Vixen3.h"
 #include "models/Model.h"
@@ -276,6 +277,35 @@ void MapXLightsEffects(Element* target,
     }
 }
 
+namespace {
+// Adds one converted LOR track effect, embedding any LOR picture it uses into
+// the target sequence's media so the .xsq is self-contained.
+void AddS5TrackEffect(EffectLayer* el, const LOREdit& lorEdit, const LOREditEffect& it)
+{
+    std::string palette = it.GetPalette();
+    std::string ef = it.GetxLightsEffect();
+    if (ef.empty()) {
+        return;
+    }
+    std::string settings = it.GetSettings(palette);
+    if (ef == "Pictures") {
+        static const std::string key = "E_TEXTCTRL_Pictures_Filename=";
+        auto pos = settings.find(key);
+        if (pos != std::string::npos) {
+            pos += key.size();
+            std::string name = settings.substr(pos, settings.find(',', pos) - pos);
+            for (const auto& [lorName, data] : lorEdit.GetEmbeddedPictures()) {
+                if (LOREdit::EmbeddedPictureName(lorName) == name) {
+                    el->GetParentElement()->GetSequenceElements()->GetSequenceMedia().AddEmbeddedImage(name, data);
+                    break;
+                }
+            }
+        }
+    }
+    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+}
+}
+
 void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const std::string& model, Model* m, int frequency, int offset, bool eraseExisting)
 {
     if (el == nullptr)
@@ -310,12 +340,7 @@ void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, cons
 
         for (const auto& it : effects) {
             if (!el->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                std::string palette = it.GetPalette();
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
+                AddS5TrackEffect(el, lorEdit, it);
             }
         }
     }
@@ -355,12 +380,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
 
         for (const auto& it : effects) {
             if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                std::string palette = it.GetPalette();
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
+                AddS5TrackEffect(nl, lorEdit, it);
             }
         }
     }
@@ -437,12 +457,7 @@ void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLay
 
         for (const auto& it : effects) {
             if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                std::string palette = it.GetPalette();
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
+                AddS5TrackEffect(nl, lorEdit, it);
             }
         }
     }
@@ -511,6 +526,96 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
                 se->AddEffectLayer();
             }
             MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
+        }
+    }
+}
+
+void AddS5TimingTrack(SequenceElements& se, const std::string& name, const std::vector<std::pair<uint32_t, uint32_t>>& timings)
+{
+    TimingElement* target = (TimingElement*)se.AddElement(name, "timing", true, true, false, false, false);
+    char cnt = '1';
+    while (target == nullptr && cnt <= '9') {
+        target = (TimingElement*)se.AddElement(name + "-" + cnt++, "timing", true, true, false, false, false);
+    }
+    if (target == nullptr) {
+        spdlog::warn("S5 import: could not add timing element '{}'", name);
+        return;
+    }
+    if (target->GetEffectLayerCount() == 0) {
+        target->AddEffectLayer();
+    }
+    EffectLayer* targetLayer = target->GetEffectLayer(0);
+    for (const auto& t : timings) {
+        targetLayer->AddEffect(0, "", "", "", t.first, t.second, false, false);
+    }
+}
+
+void ApplyS5Mapping(const EffectManager& effectManager, Element* target, ImportMappingNode* root,
+                    const LOREdit& lorEdit, int frequency, int offset, bool eraseExisting, bool stackDuplicate)
+{
+    if (target == nullptr || root == nullptr) {
+        return;
+    }
+    Model* mdl = target->GetSequenceElements()->GetRenderContext()->GetModel(target->GetModelName());
+
+    const std::string& mapping = root->GetMapping();
+    if (!mapping.empty()) {
+        if (!LOREdit::IsNodeStrandMapping(mapping)) {
+            MapS5Effects(effectManager, target, lorEdit, mapping, frequency, offset, eraseExisting);
+        } else {
+            EffectLayer* targetLayer = target->GetEffectLayer(0);
+            if (stackDuplicate) {
+                target->AddEffectLayer(); // empty separator before stacked mapping
+                targetLayer = target->AddEffectLayer();
+            }
+            MapS5ChannelEffects(effectManager, targetLayer, lorEdit, mapping, frequency, offset, eraseExisting);
+        }
+    }
+
+    ModelElement* model = dynamic_cast<ModelElement*>(target);
+    if (model == nullptr) {
+        return;
+    }
+    for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+        ImportMappingNode* child = root->GetNthChild(j);
+        if (child == nullptr) {
+            continue;
+        }
+        SubModelElement* ste = model->GetSubModel((int)j);
+        const std::string& childMapping = child->GetMapping();
+        if (!childMapping.empty() && ste != nullptr) {
+            if (!LOREdit::IsNodeStrandMapping(childMapping)) {
+                MapS5Effects(effectManager, ste, lorEdit, childMapping, frequency, offset, eraseExisting);
+            } else {
+                MapS5ChannelEffects(effectManager, ste->GetEffectLayer(0), lorEdit, childMapping, frequency, offset, eraseExisting);
+            }
+        }
+
+        StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+        if (stre == nullptr) {
+            continue;
+        }
+        for (unsigned int n = 0; n < child->GetChildCount(); ++n) {
+            ImportMappingNode* nodeNode = child->GetNthChild(n);
+            if (nodeNode == nullptr || nodeNode->GetMapping().empty()) {
+                continue;
+            }
+            NodeLayer* nl = stre->GetNodeLayer((int)n, true);
+            if (nl == nullptr) {
+                continue;
+            }
+            const std::string& nodeMapping = nodeNode->GetMapping();
+            if (LOREdit::IsNodeStrandMapping(childMapping)) {
+                MapS5ChannelEffects(effectManager, nl, lorEdit, childMapping, frequency, offset, eraseExisting);
+            } else {
+                auto st = lorEdit.GetSequencingType(nodeMapping);
+                if (st == loreditType::CHANNELS) {
+                    int nodeIndex = (mdl != nullptr) ? mdl->MapToNodeIndex(stre->GetStrand(), (int)n) : (int)n;
+                    MapS5ChannelEffects(effectManager, nodeIndex, nl, mdl, lorEdit, nodeMapping, frequency, offset, eraseExisting);
+                } else if (st == loreditType::TRACKS) {
+                    MapS5(effectManager, 0, nl, lorEdit, nodeMapping, mdl, frequency, offset, eraseExisting);
+                }
+            }
         }
     }
 }

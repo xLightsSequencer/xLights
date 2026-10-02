@@ -14,7 +14,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (dkulp)                 Bars: new "Custom" direction with an Angle slider (-180 to 180) to move
                                  the bars in any direction
-
+    -enh (dkulp)                 LOR S5/S6 import: effects on LOR motion-row regions (strands, tiers,
+                                 columns) land on the matching part of the model, later LOR rows
+                                 draw on top, Single Block imports as Morph, embedded pictures and
+                                 GIFs are carried into the sequence, and starfield, moving shapes,
+                                 spin fade and simple shape effects are no longer dropped
+    -bug (dkulp)                 LOR S5/S6 import: effects with an Overlay mix no longer import
+                                 invisible or at half brightness, bars and spirals keep their
+                                 movement, diagonal bars, text colour, meteor colours and
+                                 single-colour washes convert correctly
 
 2026.18  October 2, 2026
 

@@ -10,6 +10,7 @@
 
 #include "LOREdit.h"
 
+#include <algorithm>
 #include <regex>
 #include <cstdlib>
 #include <cctype>
@@ -70,6 +71,88 @@ namespace {
             }
         }
         return digits;
+    }
+
+    // LOR text is HTML (<P>, <SPAN>, <FONT color=...>). Returns the plain text
+    // with paragraph/line breaks as newlines, and the first font colour.
+    std::string StripLORHtml(const std::string& html, std::string& colour) {
+        colour.clear();
+        static const std::regex colourRe(R"((?:^|[^-a-zA-Z])color\s*[=:]\s*["']?(#[0-9a-fA-F]{6}|[a-zA-Z]+))", std::regex::icase);
+        std::smatch m;
+        if (std::regex_search(html, m, colourRe)) {
+            colour = m[1].str();
+        }
+        std::string out;
+        out.reserve(html.size());
+        for (size_t i = 0; i < html.size(); ++i) {
+            if (html[i] == '<') {
+                size_t e = html.find('>', i);
+                if (e == std::string::npos) {
+                    break;
+                }
+                std::string tag = Lower(html.substr(i + 1, e - i - 1));
+                if (StartsWith(tag, "/p") || StartsWith(tag, "br")) {
+                    out += '\n';
+                }
+                i = e;
+            } else if (html[i] != '\r') {
+                out += html[i];
+            }
+        }
+        Replace(out, "&gt;", ">");
+        Replace(out, "&lt;", "<");
+        Replace(out, "&nbsp;", " ");
+        Replace(out, "&amp;", "&");
+        // drop blank lines LOR leaves around paragraphs
+        std::string res;
+        for (auto& line : Split(out, '\n')) {
+            std::string t = Trim(line);
+            if (t.empty()) {
+                continue;
+            }
+            if (!res.empty()) {
+                res += '\n';
+            }
+            res += t;
+        }
+        return res;
+    }
+
+    std::string ColourNameToHex(const std::string& c) {
+        if (c.empty() || c[0] == '#') {
+            return c;
+        }
+        static const std::map<std::string, std::string> names = {
+            { "white", "#FFFFFF" }, { "black", "#000000" }, { "red", "#FF0000" }, { "lime", "#00FF00" },
+            { "green", "#008000" }, { "blue", "#0000FF" }, { "yellow", "#FFFF00" }, { "cyan", "#00FFFF" },
+            { "aqua", "#00FFFF" }, { "magenta", "#FF00FF" }, { "fuchsia", "#FF00FF" }, { "orange", "#FFA500" },
+            { "purple", "#800080" }, { "silver", "#C0C0C0" }, { "gray", "#808080" }, { "grey", "#808080" },
+            { "gold", "#FFD700" }, { "pink", "#FFC0CB" }
+        };
+        auto it = names.find(Lower(c));
+        return it == names.end() ? "#FFFFFF" : it->second;
+    }
+
+    std::string PercentDecode(std::string file) {
+        size_t pos;
+        while ((pos = file.find('%')) != std::string::npos) {
+            if (pos + 2 < file.size()) {
+                char c = HexToChar(file[pos + 1], file[pos + 2]);
+                file.replace(pos, 3, std::string(1, c));
+            } else {
+                break;
+            }
+        }
+        return file;
+    }
+
+    // A picture embedded in the .loredit is referenced as *name*guid*.ext
+    std::string PictureReference(const std::string& encoded) {
+        std::string file = PercentDecode(encoded);
+        if (StartsWith(file, "*")) {
+            return LOREdit::EmbeddedPictureName(file);
+        }
+        return file;
     }
 
     // Minimal URL percent-decode, matching the wxURI::Unescape that the
@@ -143,7 +226,7 @@ std::string LOREditEffect::GetPalette() const
             }
             else
             {
-                palette += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=x=0.000^c=#" + c1 + ";x=1.000^c=#" + c2 + "|";
+                palette += ",C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=x=0.000^c=#" + c1 + ";x=1.000^c=#" + c2 + "|";
                 if (active == "1")
                 {
                     palette += ",C_CHECKBOX_Palette" + n + "=" + active;
@@ -200,9 +283,13 @@ std::string LOREditEffect::GetxLightsEffect() const
     if (effectType == "straightlines") return "Lines";
     if (effectType == "garland") return "Garlands";
     if (effectType == "spinner") return "Pinwheel";
+    if (effectType == "spinfade") return "Pinwheel";
     if (effectType == "blendedbars") return "Bars";
-    if (effectType == "singleblock") return "SingleStrand";
+    if (effectType == "singleblock") return "Morph";
     if (effectType == "countdown") return "Text"; // we dont support countdown
+    if (effectType == "starfield") return "Shape";
+    if (effectType == "movingshapes") return "Shape";
+    if (effectType == "simpleshape") return "Shape";
 
     return Capitalise(effectType);
 }
@@ -267,7 +354,10 @@ std::string LOREditEffect::GetBlend() const
     std::string blend = otherSettings[0];
 
     if (blend == "Mix_Average") return "Average";
-    if (blend == "Mix_Overlay") return "Normal";
+    // LOR overlay draws the right side over the left wherever it is lit; the
+    // left side is the upper xLights layer, so show it only where the lower
+    // (right) layer is black
+    if (blend == "Mix_Overlay") return "Layered";
     if (blend == "Mix_Maximum") return "Max";
     if (blend == "Mix_Bottom_Top") return "Bottom-Top";
     if (blend == "Mix_Left-Right") return "Left-Right";
@@ -275,6 +365,46 @@ std::string LOREditEffect::GetBlend() const
     if (blend == "Mix_Rt_Reveals_Lt") return "2 reveals 1";
 
     return "Normal";
+}
+
+std::string LOREditEffect::GetLayerSettings() const
+{
+    // The mix only combines the two sides of one effect. A side on its own
+    // renders fully, whatever mix and position it carries.
+    if (!left || !otherSidePresent || otherSettings.size() < 2) {
+        return ",T_CHOICE_LayerMethod=Normal";
+    }
+    std::string const& mix = otherSettings[0];
+    if (StartsWith(mix, "Dissolve_")) {
+        // A pixel dissolve from the left side to the right across the effect
+        // (R100R0... runs the other way). The left side is the upper layer, so
+        // it dissolves out to reveal the right, or dissolves in over it.
+        auto ramp = Split(otherSettings[1], 'R');
+        bool reverse = ramp.size() > 2 && loreAtof(ramp[1]) > loreAtof(ramp[2]);
+        double secs = (double)(endMS - startMS) / 1000.0;
+        if (reverse) {
+            return fmt::format(",T_CHOICE_LayerMethod=Normal,T_CHOICE_In_Transition_Type=Dissolve,T_TEXTCTRL_Fadein={:.2f}", secs);
+        }
+        return fmt::format(",T_CHOICE_LayerMethod=Normal,T_CHOICE_Out_Transition_Type=Dissolve,T_TEXTCTRL_Fadeout={:.2f}", secs);
+    }
+    return ",T_CHOICE_LayerMethod=" + GetBlend();
+}
+
+std::string LOREditEffect::GetSubBuffer() const
+{
+    if (trackType != "rectangle") {
+        return "";
+    }
+    // LOR measures y from the top, xLights sub-buffers from the bottom
+    auto pct = [](float v) { return std::clamp(v * 100.0f, 0.0f, 100.0f); };
+    float x1 = pct(subx);
+    float x2 = pct(subx + subw);
+    float y1 = pct(1.0f - suby - subh);
+    float y2 = pct(1.0f - suby);
+    if (x1 <= 0.0f && y1 <= 0.0f && x2 >= 100.0f && y2 >= 100.0f) {
+        return "";
+    }
+    return fmt::format(",B_CUSTOM_SubBuffer={:.2f}x{:.2f}x{:.2f}x{:.2f}", x1, y1, x2, y2);
 }
 
 std::string LOREditEffect::GetSettings(std::string& palette) const
@@ -305,7 +435,11 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
 
     std::string settings;
-    auto parms = Split(effectSettings[1], ',');
+    auto parms = Split(effectSettings.size() > 1 ? effectSettings[1] : std::string(), ',');
+    // parameter lists vary between LOR versions; never index past the end
+    if (parms.size() < 24) {
+        parms.resize(24);
+    }
     if (et == "butterfly") {
         std::string style = parms[0];
         std::string chunks = parms[1];
@@ -352,8 +486,29 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "colorwash") {
         //full, full, none, 12
+        // LOR 6: full,full,single_color|dither|..._gradient
         std::string horizontalFade = parms[0];
         std::string verticalFade = parms[1];
+
+        if (parms[2] == "single_color") {
+            // single colour mode shows only the first selected colour, where
+            // xLights would cycle through every checked palette entry
+            static const std::regex checkedRe(R"(,?C_CHECKBOX_Palette(\d)=1)");
+            std::smatch m;
+            if (std::regex_search(palette, m, checkedRe)) {
+                std::string first = m[1].str();
+                std::string res;
+                std::string rest = palette;
+                while (std::regex_search(rest, m, checkedRe)) {
+                    res += m.prefix().str();
+                    if (m[1].str() == first) {
+                        res += m.str();
+                    }
+                    rest = m.suffix().str();
+                }
+                palette = res + rest;
+            }
+        }
 
         if (horizontalFade == "full") {
         }
@@ -403,7 +558,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         std::string blend = parms[5];
         std::string show3d = parms[6];
         std::string speed = parms[7];
-        speed = fmt::format("{}", (int)(loreAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
+        speed = fmt::format("{:.2f}", loreAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0)));
         std::string vcSpeed;
         if (direction == "right_to_left") {
             speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, -50, vcSpeed, SpiralsEffect::sMovementMin, SpiralsEffect::sMovementMax);
@@ -427,7 +582,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         // dont know what to do with thickness change
 
         if (blend == "True") {
-            settings += ",E_CHECKBOX_Spirals_Blend=1,";
+            settings += ",E_CHECKBOX_Spirals_Blend=1";
         }
 
         if (show3d == "none") {
@@ -449,7 +604,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         std::string highlight = parms[2];
         std::string show3d = parms[3];
         std::string speed = parms[4];
-        speed = fmt::format("{}", (int)(loreAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
+        speed = fmt::format("{:.2f}", loreAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0)));
         std::string vcSpeed;
         speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BarsEffect::sCyclesMin, BarsEffect::sCyclesMax);
         std::string centre = parms[5];
@@ -467,16 +622,28 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         if (direction == "right") direction = "Right";
         if (direction == "block_up") direction = "Alternate Up";
         if (direction == "block_down") direction = "Alternate Down";
-        if (direction == "block_left") direction = "Alternate Right";
+        if (direction == "block_left") direction = "Alternate Left";
         if (direction == "block_right") direction = "Alternate Right";
+        // Bars has no diagonal; render up/down bars on a buffer turned ~45
+        // degrees (B_SLIDER_Rotation is a percentage of a full turn) and
+        // zoomed so the corners stay covered.
+        int rotation = 0;
+        if (direction == "down_right") { direction = "down"; rotation = 12; }
+        if (direction == "down_left") { direction = "down"; rotation = 88; }
+        if (direction == "up_right") { direction = "up"; rotation = 88; }
+        if (direction == "up_left") { direction = "up"; rotation = 12; }
         settings += ",E_CHOICE_Bars_Direction=" + direction;
+        if (rotation != 0) {
+            settings += fmt::format(",B_SLIDER_Rotation={},B_SLIDER_Zoom=15", rotation);
+        }
 
         if (show3d == "True") {
             settings += ",E_CHECKBOX_Bars_3D=1";
         }
 
-        if (highlight == "True") {
-            settings += "E_CHECKBOX_Bars_Highlight=1";
+        // older files store True/False, LOR 6 none/white/last color
+        if (highlight == "True" || highlight == "white" || highlight == "last_color") {
+            settings += ",E_CHECKBOX_Bars_Highlight=1";
         }
 
         settings += ",E_TEXTCTRL_Bars_Cycles=" + speed;
@@ -674,7 +841,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         std::string vcSpeed;
         speed = RescaleWithRangeI(speed, "E_VALUECURVE_Meteors_Speed", 1, 50, 1, 50, vcSpeed, MeteorsEffect::sSpeedMin, MeteorsEffect::sSpeedMax);
 
-        settings += ",E_CHOICE_Meteors_Type=" + Lower(colourScheme);
+        settings += ",E_CHOICE_Meteors_Type=" + Capitalise(Lower(colourScheme));
         settings += ",E_SLIDER_Meteors_Count=" + count;
         settings += vcCount;
         settings += ",E_SLIDER_Meteors_Length=" + length;
@@ -708,35 +875,26 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "picture") {
         // file.jpg,True,none,0,10,19,12
-        std::string file = parms[0];
+        // LOR 6: *name*guid*.gif,fit_both,none,0,10,,12
+        std::string file = PictureReference(parms[0]);
         std::string scale = parms[1];
         std::string movement = parms[2];
         std::string x = parms[3];
         std::string vcCrap;
         x = RescaleWithRangeI(x, "IGNORE", -50, 50, -100, 100, vcCrap, -1, -1);
-        std::string peekabooHoldTime = parms[4]; // not used
-        peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
-        std::string wiggle = parms[5]; // not used
-        wiggle = RescaleWithRangeI(wiggle, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
         std::string speed = parms[6];
         speed = RescaleWithRangeF(speed, "IGNORE", 0, 50, 0, 20, vcCrap, -1, -1);
 
-        size_t pos;
-        while ((pos = file.find('%')) != std::string::npos) {
-            if (pos + 2 < file.size()) {
-                char c = HexToChar(file[pos + 1], file[pos + 2]);
-                file.replace(pos, 3, std::string(1, c));
-            } else {
-                break;
-            }
-        }
-
         settings += ",E_TEXTCTRL_Pictures_Filename=" + file;
-        if (scale == "True") {
+        if (scale == "True" || scale == "fit_both") {
             settings += ",E_CHOICE_Scaling=Scale To Fit";
-        }
-        else {
+        } else if (StartsWith(scale, "fit_")) {
+            settings += ",E_CHOICE_Scaling=Scale Keep Aspect Ratio";
+        } else {
             settings += ",E_CHOICE_Scaling=No Scaling";
+        }
+        if (EndsWith(Lower(file), ".gif")) {
+            settings += ",E_CHECKBOX_LoopGIF=1";
         }
 
         Replace(movement, "_", "-");
@@ -759,23 +917,24 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         // file.jpg,71,104,0,R32R0R1.00,100,100,100,100,FFFF
         // file.jpg,58,136,0,0         ,100,100,100,100,FFFF,0
 
-        std::string file = parms[0];
+        std::string file = PictureReference(parms[0]);
         std::string scaleX = parms[1];
-        //std::string scaleY = parms[2];
+        std::string scaleY = parms[2];
         std::string movementLeft = parms[3];
         std::string movementTop = parms[4];
 
-        size_t pos;
-        while ((pos = file.find('%')) != std::string::npos) {
-            if (pos + 2 < file.size()) {
-                char c = HexToChar(file[pos + 1], file[pos + 2]);
-                file.replace(pos, 3, std::string(1, c));
-            } else {
-                break;
-            }
-        }
-
         settings += ",E_TEXTCTRL_Pictures_Filename=" + file;
+        if (EndsWith(Lower(file), ".gif")) {
+            settings += ",E_CHECKBOX_LoopGIF=1";
+        }
+        // width/height are percentages of the prop; 100x100 stretches the
+        // picture over the whole prop
+        auto isZero = [](const std::string& v) { return v.empty() || v == "0"; };
+        if (scaleX == "100" && scaleY == "100" && isZero(movementLeft) && isZero(movementTop)) {
+            settings += ",E_CHOICE_Scaling=Scale To Fit";
+            settings += ",E_CHOICE_Pictures_Direction=none";
+            return settings + GetLayerSettings() + GetSubBuffer();
+        }
         settings += ",E_CHOICE_Scaling=No Scaling";
 
         settings += ",E_CHOICE_Pictures_Direction=vector";
@@ -955,26 +1114,19 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "text") {
         //Hello%26nbsp%3B%20Keith,50,left,0,10,0,4,True
-        std::string text = unescapeURI(parms[0]);
-        Replace(text, "&gt;", ">");
-        Replace(text, "&lt;", "<");
-        Replace(text, "&nbsp;", " ");
-        Replace(text, "&amp;", "&");
+        // LOR 6: <html>,size,movement,position,hold,,speed,repeat,wrap,exit,smooth
+        std::string colour;
+        std::string text = StripLORHtml(unescapeURI(parms[0]), colour);
+        Replace(text, ",", "&comma;");
+        Replace(text, "\n", "\\n"); // the Text effect expands a literal \n
         std::string fontSize = parms[1];
         std::string vcCrap;
         fontSize = RescaleWithRangeI(fontSize, "IGNORE", 0, 149, 0, 149, vcCrap, -1, -1);
         std::string movement = parms[2];
         std::string position = parms[3];
         position = RescaleWithRangeI(position, "IGNORE", -50, 49, -200, 200, vcCrap, -1, -1);
-        std::string peekabooHoldTime = parms[4]; // unused
-        peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 99, 0, 99, vcCrap, -1, -1);
-        std::string bounce = parms[5]; // unused
-        bounce = RescaleWithRangeI(bounce, "IGNORE", 0, 99, 0, 99, vcCrap, -1, -1);
         std::string speed = parms[6];
         speed = RescaleWithRangeI(speed, "IGNORE", 0, 50, 0, 50, vcCrap, -1, -1);
-        if (parms.size() > 7) {
-            // std::string unknown1 = parms[7]; // unused
-        }
 
         settings += ",E_TEXTCTRL_Text=" + text;
         settings += ",E_CHOICE_Text_Font=Use OS Fonts";
@@ -999,6 +1151,12 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_CHOICE_Text_Dir=" + movement;
         settings += ",E_SLIDER_Text_XStart=" + position;
         settings += ",E_TEXTCTRL_Text_Speed=" + speed;
+
+        // LOR colours text from its markup, not the palette; unstyled text is white
+        static const std::regex paletteRe(R"((^|,)C_(BUTTON|CHECKBOX)_Palette\d=[^,]*)");
+        palette = std::regex_replace(palette, paletteRe, "");
+        palette = "C_BUTTON_Palette1=" + ColourNameToHex(colour.empty() ? std::string("white") : colour) +
+                  ",C_CHECKBOX_Palette1=1" + (StartsWith(palette, ",") || palette.empty() ? "" : ",") + palette;
     }
     else if (et == "twinkle") {
         // 50,25,twinkle,random
@@ -1030,8 +1188,51 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     else if (et == "straightlines") {
     }
     else if (et == "blendedbars") {
+        // direction,count,speed,?: right,10,36,0
+        std::string direction = parms[0];
+        if (direction == "left") direction = "Left";
+        if (direction == "right") direction = "Right";
+        settings += ",E_CHOICE_Bars_Direction=" + direction;
+        settings += fmt::format(",E_SLIDER_Bars_BarCount={}", std::clamp(loreAtoi(parms[1]) / 2, 1, 5));
+        settings += fmt::format(",E_TEXTCTRL_Bars_Cycles={:.2f}", loreAtof(parms[2]) / (20.0 / ((double)(endMS - startMS) / 1000.0)));
+        settings += ",E_CHECKBOX_Bars_Gradient=1";
     }
     else if (et == "singleblock") {
+        // direction,head,body,tail,position,size,offset,colourMode
+        // down,0,0,50,50,100,50,single_color
+        // A block crossing the prop at "fit to duration" speed: the whole block,
+        // tail included, has left the prop when the effect ends, so the head
+        // travels the width plus the block length. Morph's tail follows its
+        // head-travel duration d as travel * (1/d - 1).
+        std::string direction = parms[0];
+        float head = (float)loreAtoi(parms[1]);
+        float body = (float)loreAtoi(parms[2]);
+        float tail = (float)loreAtoi(parms[3]);
+        float size = parms[5].empty() ? 100.0f : (float)loreAtoi(parms[5]);
+        float offset = parms[6].empty() ? 50.0f : (float)loreAtoi(parms[6]);
+        int lo = (int)std::clamp(offset - size / 2.0f, 0.0f, 100.0f);
+        int hi = (int)std::clamp(offset + size / 2.0f, 0.0f, 100.0f);
+        int sx1 = 0, sy1 = 0, sx2 = 0, sy2 = 0, ex1 = 0, ey1 = 0, ex2 = 0, ey2 = 0;
+        if (direction == "up") {
+            sx1 = lo; sx2 = hi; sy1 = sy2 = 0;
+            ex1 = lo; ex2 = hi; ey1 = ey2 = 100;
+        } else if (direction == "left") {
+            sy1 = lo; sy2 = hi; sx1 = sx2 = 100;
+            ey1 = lo; ey2 = hi; ex1 = ex2 = 0;
+        } else if (direction == "right") {
+            sy1 = lo; sy2 = hi; sx1 = sx2 = 0;
+            ey1 = lo; ey2 = hi; ex1 = ex2 = 100;
+        } else { // down
+            sx1 = lo; sx2 = hi; sy1 = sy2 = 100;
+            ex1 = lo; ex2 = hi; ey1 = ey2 = 0;
+        }
+        int headLen = std::clamp((int)(head + body), 1, 100);
+        int duration = std::clamp((int)std::lround(100.0f / (1.0f + tail / 100.0f)), 1, 100);
+        settings += fmt::format(",E_SLIDER_Morph_Start_X1={},E_SLIDER_Morph_Start_Y1={},E_SLIDER_Morph_Start_X2={},E_SLIDER_Morph_Start_Y2={}", sx1, sy1, sx2, sy2);
+        settings += fmt::format(",E_SLIDER_Morph_End_X1={},E_SLIDER_Morph_End_Y1={},E_SLIDER_Morph_End_X2={},E_SLIDER_Morph_End_Y2={}", ex1, ey1, ex2, ey2);
+        settings += fmt::format(",E_SLIDER_MorphStartLength={},E_SLIDER_MorphEndLength={}", headLen, headLen);
+        settings += fmt::format(",E_SLIDER_MorphDuration={},E_SLIDER_MorphAccel=0", duration);
+        settings += ",E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_ShowHeadAtStart=0";
     } else if (et == "ripple") {
         // I actually think some of these should be shockwaves
         // Mix_Average|0|0|full|20|lightorama_ripple:FFFF8000,1;FF800080,1;FF0000FF,0;FFFF0000,1;FFFFFFFF,0;FF00FF00,1:circle,21,47,46,50,0,0,37,False,50|lightorama_none::
@@ -1062,35 +1263,101 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "wave") {
         // left,along_wave_scrolling,rainbow,triple,50,23,88,A3A50A1.00,A-14A50A1.00
+        // LOR 6: up,across_wave_scrolling,palette,double,25,10,50,12,0,sine,repeat_at_speed,0
         if (parms[0] == "left") {
             settings += ",E_CHOICE_Wave_Direction=Right to Left";
-        }
-        else {
+        } else {
             settings += ",E_CHOICE_Wave_Direction=Left to Right";
         }
-
-        // none is not handled because i dont have a sample of a file with that
         if (parms[2] == "rainbow") {
-            settings += "E_CHOICE_Fill_Colors=Rainbow";
+            settings += ",E_CHOICE_Fill_Colors=Rainbow";
+        } else if (parms[2] == "none") {
+            settings += ",E_CHOICE_Fill_Colors=None";
+        } else {
+            settings += ",E_CHOICE_Fill_Colors=Palette";
         }
-        else {
-            settings += "E_CHOICE_Fill_Colors=Palette";
+        int waves = parms[3] == "single" ? 1 : parms[3] == "double" ? 2 : parms[3] == "triple" ? 3 : 0;
+        if (waves > 0) {
+            settings += fmt::format(",E_TEXTCTRL_Number_Waves={:.2f}", (double)waves);
         }
-
-        // I dont have enough samples to know what the rest of the settings are
-        spdlog::warn("Wave effects I have never seen enough samples to truly decode the settings.");
+        std::string type = Lower(parms[9]);
+        if (type == "sine") settings += ",E_CHOICE_Wave_Type=Sine";
+        else if (type == "triangle") settings += ",E_CHOICE_Wave_Type=Triangle";
+        else if (type == "square") settings += ",E_CHOICE_Wave_Type=Square";
+    }
+    else if (et == "plasma") {
+        // style,density,speed,colourMode: 1,3,12,blended
+        settings += ",E_SLIDER_Plasma_Style=" + fmt::format("{}", std::clamp(loreAtoi(parms[0]), 1, 10));
+        settings += ",E_SLIDER_Plasma_Line_Density=" + fmt::format("{}", std::clamp(loreAtoi(parms[1]), 1, 10));
+        // 12 is LOR's default speed; xLights' default is 10
+        settings += ",E_SLIDER_Plasma_Speed=" + fmt::format("{}", std::clamp(loreAtoi(parms[2]) * 10 / 12, 0, 100));
+        settings += ",E_CHOICE_Plasma_Color=Normal";
+    }
+    else if (et == "starfield") {
+        // shape,colourMode,style,density,growth,speed,tail,arms,rotation,newStarLocation,pattern
+        // tree,palette,solid,50,50,50,1,3,0,25,random
+        std::string shape = Capitalise(Lower(parms[0]));
+        if (shape != "Heart" && shape != "Tree" && shape != "Star" && shape != "Snowflake" && shape != "Circle") {
+            shape = "Star";
+        }
+        settings += ",E_CHOICE_Shape_ObjectToDraw=" + shape;
+        settings += fmt::format(",E_SLIDER_Shape_Count={}", std::clamp(loreAtoi(parms[3]) / 5, 1, 100));
+        settings += ",E_SLIDER_Shape_StartSize=1";
+        settings += fmt::format(",E_SLIDER_Shape_Growth={}", std::clamp(loreAtoi(parms[4]) / 2, 1, 100));
+        settings += fmt::format(",E_SLIDER_Shape_Lifetime={}", std::clamp(60 - loreAtoi(parms[5]) / 2, 5, 100));
+        settings += ",E_CHECKBOX_Shape_RandomLocation=1,E_CHECKBOX_Shape_FadeAway=1";
+    }
+    else if (et == "movingshapes") {
+        // shape,count,size,speed,colourMode,style,movement,direction,rotationMode,rotation,rotationSpeed,...
+        // star5,8,73,10,palette,solid,random_wrap,90,continuous_rotation,20,12,False,0,0,1
+        std::string shape = Lower(parms[0]);
+        int points = 5;
+        std::string object = "Circle";
+        if (StartsWith(shape, "star")) {
+            object = "Star";
+            int p = loreAtoi(shape.substr(4));
+            if (p >= 2) {
+                points = std::min(p, 9);
+            }
+        } else if (shape == "heart") object = "Heart";
+        else if (shape == "tree") object = "Tree";
+        else if (shape == "snowflake") object = "Snowflake";
+        else if (shape == "square") object = "Square";
+        else if (shape == "triangle") object = "Triangle";
+        settings += ",E_CHOICE_Shape_ObjectToDraw=" + object;
+        settings += fmt::format(",E_SLIDER_Shape_Points={}", points);
+        settings += fmt::format(",E_SLIDER_Shape_Count={}", std::clamp(loreAtoi(parms[1]), 1, 100));
+        settings += fmt::format(",E_SLIDER_Shape_StartSize={}", std::clamp(loreAtoi(parms[2]), 1, 100));
+        // LOR draws solid shapes; a thick outline is the closest xLights gets
+        settings += fmt::format(",E_SLIDER_Shape_Thickness={}", parms[5] == "solid" ? 50 : 3);
+        settings += ",E_SLIDER_Shape_Growth=0,E_SLIDER_Shape_Lifetime=100,E_CHECKBOX_Shape_FadeAway=0";
+        settings += ",E_CHECKBOX_Shape_RandomLocation=1";
+        settings += fmt::format(",E_SLIDER_Shapes_Velocity={}", std::clamp(loreAtoi(parms[3]), 0, 20));
+        settings += fmt::format(",E_SLIDER_Shapes_Direction={}", std::clamp(loreAtoi(parms[7]), 0, 359));
+        if (StartsWith(parms[6], "random")) {
+            settings += ",E_CHECKBOX_Shapes_RandomMovement=1";
+        }
+    }
+    else if (et == "simpleshape") {
+        // shape,width,height,...,style: circle,O100O174O1.00O2.00O0.00,O100O174...,3,3,0,0,14,fade_inner_out
+        std::string shape = Capitalise(Lower(parms[0]));
+        settings += ",E_CHOICE_Shape_ObjectToDraw=" + (shape.empty() ? std::string("Circle") : shape);
+        settings += ",E_SLIDER_Shape_Count=1,E_SLIDER_Shape_StartSize=50,E_SLIDER_Shape_Growth=0,E_SLIDER_Shape_Lifetime=100";
+        settings += ",E_CHECKBOX_Shape_RandomLocation=0,E_CHECKBOX_Shape_FadeAway=0,E_SLIDER_Shape_Thickness=5";
+    }
+    else if (et == "spinfade") {
+        // style,arms,width,?,speed,...: arc,4,50,0,12,100,100,0,0,False
+        settings += fmt::format(",E_SLIDER_Pinwheel_Arms={}", std::clamp(loreAtoi(parms[1]), 1, 20));
+        settings += fmt::format(",E_SLIDER_Pinwheel_Thickness={}", std::clamp(loreAtoi(parms[2]), 0, 100));
+        settings += fmt::format(",E_SLIDER_Pinwheel_Speed={}", std::clamp(loreAtoi(parms[4]) * 10 / 12, 0, 50));
+        settings += ",E_CHOICE_Pinwheel_Style=New Render Method,E_CHOICE_Pinwheel_3D=Sweep";
     }
     else {
         spdlog::warn("S5 conversion for {} not created yet.", et);
     }
 
-    std::string blend = GetBlend();
-    settings += ",T_CHOICE_LayerMethod=" + blend;
-
-    int blendPos = loreAtoi(otherSettings[1]);
-    if (left && blendPos > 0) {
-        settings += ",T_SLIDER_EffectLayerMix=" + fmt::format("{}", blendPos);
-    }
+    settings += GetLayerSettings();
+    settings += GetSubBuffer();
 
     return settings;
 }
@@ -1469,9 +1736,20 @@ std::vector<LOREditEffect> LOREdit::AddEffects(pugi::xml_node track, bool left, 
 {
     std::vector<LOREditEffect> res;
 
+    std::string trackType = track.attribute("type").as_string("none");
+    float subx = track.attribute("subx").as_float(0.0f);
+    float suby = track.attribute("suby").as_float(0.0f);
+    float subw = track.attribute("subw").as_float(1.0f);
+    float subh = track.attribute("subh").as_float(1.0f);
+
     for (pugi::xml_node ef = track.first_child(); ef; ef = ef.next_sibling()) {
         LOREditEffect effect;
         effect.left = left;
+        effect.trackType = trackType;
+        effect.subx = subx;
+        effect.suby = suby;
+        effect.subw = subw;
+        effect.subh = subh;
         effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
         effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
         int si = ef.attribute("intensity").as_int(9999);
@@ -1505,6 +1783,8 @@ std::vector<LOREditEffect> LOREdit::AddEffects(pugi::xml_node track, bool left, 
             {
                 es = ss[6];
             }
+            std::string const& other = left ? ss[6] : ss[5];
+            effect.otherSidePresent = StartsWith(other, "lightorama_") && !StartsWith(other, "lightorama_none");
             auto ees = Split(es, ':');
 
             if (ees.size() > 0)
@@ -1545,8 +1825,6 @@ std::vector<LOREditEffect> LOREdit::AddEffects(pugi::xml_node track, bool left, 
 
 std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, int layer, int offset) const
 {
-    std::vector<LOREditEffect> res;
-
     for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
         std::string eName = e.name();
         if (eName == "SequenceProps" || eName == "ArchivedProps") {
@@ -1565,42 +1843,47 @@ std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, in
                     }
                     if (name == model)
                     {
-                        int tcount = 0;
+                        // LOR draws later motion rows over earlier ones, so the
+                        // last track becomes xLights layer 0. Within a track the
+                        // left side stays above the right; the mix settings
+                        // emitted for the left side account for that.
+                        std::vector<pugi::xml_node> tracks;
                         for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
-                            if (std::string_view(tc.name()) == "track") {
-                                if (tc.first_child())
-                                {
-                                    int l1 = 0;
-                                    int l2 = 0;
-                                    for (pugi::xml_node ef = tc.first_child(); (l1 == 0 || l2 == 0) && ef; ef = ef.next_sibling()) {
-                                        int ll1, ll2;
-                                        GetLayers(ef.attribute("settings").as_string(), ll1, ll2);
-                                        if (ll1 == 1) l1 = 1;
-                                        if (ll2 == 1) l2 = 1;
-                                    }
-
-                                    if (tcount == layer && l1 == 1)
-                                    {
-                                        return AddEffects(tc, true, offset);
-                                    }
-                                    if (l1 == 1) tcount++;
-
-                                    if (l2 == 1 && tcount == layer)
-                                    {
-                                        return AddEffects(tc, false, offset);
-                                    }
-                                    if (l2 == 1) tcount++;
-                                }
+                            if (std::string_view(tc.name()) == "track" && tc.first_child()) {
+                                tracks.push_back(tc);
                             }
                         }
-                        return res;
+                        int tcount = 0;
+                        for (auto it = tracks.rbegin(); it != tracks.rend(); ++it) {
+                            int l1 = 0;
+                            int l2 = 0;
+                            for (pugi::xml_node ef = it->first_child(); (l1 == 0 || l2 == 0) && ef; ef = ef.next_sibling()) {
+                                int ll1, ll2;
+                                GetLayers(ef.attribute("settings").as_string(), ll1, ll2);
+                                if (ll1 == 1) l1 = 1;
+                                if (ll2 == 1) l2 = 1;
+                            }
+                            if (l1 == 1) {
+                                if (tcount == layer) {
+                                    return AddEffects(*it, true, offset);
+                                }
+                                tcount++;
+                            }
+                            if (l2 == 1) {
+                                if (tcount == layer) {
+                                    return AddEffects(*it, false, offset);
+                                }
+                                tcount++;
+                            }
+                        }
+                        return {};
                     }
                 }
             }
         }
     }
 
-    return res;
+    return {};
 }
 
 std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, pugi::xml_node prop, int offset) const
@@ -1923,6 +2206,45 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
     }
 
     return res;
+}
+
+std::map<std::string, std::string> LOREdit::GetEmbeddedPictures() const
+{
+    std::map<std::string, std::string> res;
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "pictures") {
+            for (pugi::xml_node p = e.first_child(); p; p = p.next_sibling()) {
+                if (std::string_view(p.name()) == "picture") {
+                    std::string data = p.text().as_string();
+                    data.erase(std::remove_if(data.begin(), data.end(), [](char c) { return std::isspace((unsigned char)c); }), data.end());
+                    res[p.attribute("name").as_string()] = data;
+                }
+            }
+        }
+    }
+    return res;
+}
+
+std::string LOREdit::EmbeddedPictureName(const std::string& lorName)
+{
+    // "*guitar*f526c123-50dc-48ea-8238-5c2a4855f32e*.png" -> "guitar-f526c123.png"
+    auto parts = Split(lorName, '*');
+    std::vector<std::string> nonEmpty;
+    for (auto& p : parts) {
+        if (!p.empty()) nonEmpty.push_back(p);
+    }
+    if (nonEmpty.size() < 3) {
+        std::string res = lorName;
+        Replace(res, "*", "");
+        return res;
+    }
+    std::string ext = nonEmpty.back();
+    std::string guid = nonEmpty[nonEmpty.size() - 2];
+    std::string stem;
+    for (size_t i = 0; i + 2 < nonEmpty.size(); ++i) {
+        stem += nonEmpty[i];
+    }
+    return stem + "-" + guid.substr(0, 8) + ext;
 }
 
 std::string LOREdit::GetColor(const std::string& settings)

@@ -40,7 +40,18 @@ struct LOREditEffect
     std::string effectType;
     std::vector<std::string> effectSettings;
     std::vector<std::string> otherSettings;
-    bool pixelChannels;
+    bool pixelChannels = false;
+    // True when the effect's opposite (left/right) side also holds an effect;
+    // LOR's mix setting only means anything in that case.
+    bool otherSidePresent = false;
+    // The owning track's motion-row region: "none" (whole prop),
+    // "rectangle" (sub* are 0-1 fractions, y measured from the top),
+    // "custom" or "custom_horizontal_buffer".
+    std::string trackType = "none";
+    float subx = 0.0f;
+    float suby = 0.0f;
+    float subw = 1.0f;
+    float subh = 1.0f;
 
     std::string GetPalette() const;
     std::string GetxLightsEffect() const;
@@ -54,6 +65,8 @@ struct LOREditEffect
     static std::string RescaleWithRangeI(const std::string& r, const std::string& vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax);
     static std::string RescaleWithRangeF(const std::string& r, const std::string& vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax);
     std::string GetBlend() const;
+    std::string GetLayerSettings() const;
+    std::string GetSubBuffer() const;
     static std::string SafeGetStringParm(const std::vector<std::string>& arr, int param)
     {
         if (param < (int)arr.size())
@@ -117,6 +130,11 @@ class LOREdit {
     std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int channel, int nodes, int offset) const;
     std::vector<LOREditEffect> GetChannelEffects(const std::string& model, int targetRow, int targetCol, int targetColor, int offset) const;
     std::vector<LOREditEffect> AddEffects(pugi::xml_node track, bool left, int offset) const;
+    // base64 image data of the pictures embedded in the file, keyed by the
+    // name the picture effects reference
+    std::map<std::string, std::string> GetEmbeddedPictures() const;
+    // Name an embedded LOR picture is stored under in the xLights sequence
+    static std::string EmbeddedPictureName(const std::string& lorName);
     static void GetLayers(const std::string& settings, int& ll1, int& ll2);
 
     static std::string GetColor(const std::string& settings);

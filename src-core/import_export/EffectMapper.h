@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
@@ -24,6 +25,7 @@ class Model;
 class StrandElement;
 class SubModelElement;
 class LOREdit;
+class ImportMappingNode;
 class Vixen3;
 
 // Copy effects from a source effect layer to a target effect layer, applying
@@ -102,6 +104,19 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se,
 void MapS5Effects(const EffectManager& effectManager, SubModelElement* se,
                   const LOREdit& lorEdit, const std::string& mapping,
                   int frequency, int offset, bool eraseExisting);
+
+// Adds a LOR free-timing grid (begin/end pairs from LOREdit::GetTimings) as a
+// new timing track, suffixing the name if it already exists.
+void AddS5TimingTrack(SequenceElements& se, const std::string& name,
+                      const std::vector<std::pair<uint32_t, uint32_t>>& timings);
+
+// Applies one mapped destination root (model level, its strand/submodel
+// children and their nodes) from the S5 source. Shared by the desktop
+// ImportS5 and the iPad import session. `stackDuplicate` appends the
+// node/strand mapping onto new layers below a separator instead of layer 0.
+void ApplyS5Mapping(const EffectManager& effectManager, Element* target, ImportMappingNode* root,
+                    const LOREdit& lorEdit, int frequency, int offset, bool eraseExisting,
+                    bool stackDuplicate = false);
 
 // Vixen 3 (.tim) effect-apply helpers. MapVixen3 reads the parsed Vixen3
 // effects for `modelName` and synthesizes xLights effects onto `model`'s
