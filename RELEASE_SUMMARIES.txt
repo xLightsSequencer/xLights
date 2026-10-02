@@ -1,87 +1,80 @@
 === macOS App Store (limit 4000) ===
-xLights 2026.17 - September 8, 2026
+xLights 2026.18 - October 2, 2026
 
 New
-- Matrix faces gain the movement, positioning and scaling controls the Pictures effect has: direction, X/Y offset, start/end scale, wrap, pixel offsets and vector mode.
-- ML stem separation (Drums, Bass, Other, Vocals) now saves each stem as an alternate audio track in Sequence Settings, so the stems survive closing the sequence and never need reprocessing.
-- Picking media from outside the show folder can now file it under ImportedMedia/<sequence name>/ instead of the show folder root.
-- The Custom Model Wiring view adds a text size slider and a 3D drag-to-rotate mode that uses each node's real depth. Cube models now support the Wiring view too, and the dialog remembers its size and position.
-- The House Preview's "Keep on Top" setting is remembered across restarts.
-- A new MCP server runs alongside the REST automation API, so MCP-aware AI tools can drive xLights.
-- Apple Intelligence image generation now opens the system Image Playground, seeded with your prompt and style, and brings the image you accept back into the usual crop and save flow.
+- Sequencer grid: hold Shift to keep timing in place while dragging, and a collision slide now stops at the obstruction.
+- "Show All Timing Tracks" is available from any view and from right-clicking a timing row.
+- Selecting an effect in the Select Effects panel scrolls the grid to it.
+- Filter and search boxes match words in any order, ignore separators, and support * ? wildcards and /regex/.
+- Import Effects: filter the mapping tree and source list, right-click a source group to add it to your layout and map it, and optionally record the sequence you imported from so you can reopen it later. Auto Map on large shows no longer stalls for 30+ seconds.
+- Moving Head: warnings for a drawn Path that does a bad flip, and Position Zones can be exported to and imported from other moving heads.
+- Perspectives now also save the Layout tab's panel arrangement, including panels on a second monitor.
+- Layout: Match Depth in 3D mode, the model picked in the Visualiser is highlighted, and the Controllers page highlights the selected controller with adjustable label size.
+- Display Elements gets a find bar for the Added models list.
+- Check Sequence has a redesigned report with a table of contents and next/previous issue stepping.
+- Media Manager can check a sequence's audio and video for formats future versions won't render.
+- A new toolbar for Batch Render, Bulk Controller Upload, Check Sequence and FPP Connect, plus a keybinding to toggle the video preview.
+- FPP Connect uploads submodels and model groups for FPP overlay effects (FPP 10+) and warns when models on FPP no longer match your layout.
 
-Improved
-- Renders on large shows start noticeably sooner. Render setup runs across cores and off the interface thread, so kicking off a render no longer freezes the window while it is prepared.
-- Big speedup rendering the Faces effect on large matrix models.
-- Playback no longer stalls on a render it triggered; a model needing a re-render is picked up on a later frame.
-- SubModel, Face and State names can contain the "@" character again.
-- The startup check for a new release no longer pauses the interface while it waits on the network.
-- The log is flushed every few seconds, so a crash loses far fewer recent log lines.
-- macOS 12.0 is now the minimum supported version.
+Changed
+- The sequencer prop filter is no longer saved into the sequence.
 
 Fixed
-- Uncompressed .mov files no longer stop rendering after a few renders on macOS 26.7, and videos with B-frames no longer start two frames late.
-- Fixed crashes rendering a video effect when the decoder changed mid-file, and when generating a video effect's preview.
-- Fixed the Ripple effect drawing garbage with very short timing triggers, the Bars effect wrapping the wrong color, corrupted Text glyphs on small buffers, the Text effect ignoring Color Per Word, and crashes in Butterfly and Plasma with large palettes.
-- A Pictures effect with a missing image recovers on the next render once the file is put back.
-- Fixed Off effects on moving heads snapping the head out of position, Moving Head effect tabs staying disabled, and a crash rendering a Moving Head effect with a partial color.
-- Fixed a number of crashes and hangs on the Layout tab: rendering a model group while the layout is edited, the Faces editor on a node-less custom model, choosing a background image on very large custom models, and Output to Lights on SuperString models.
-- Fixed deleting a model leaving stale submodels in groups, groups showing submodels of inactive models, the model list losing its sort order, and the Background Properties pane collapsing to nothing.
-- Fixed Poly Line and Multi Point models with too few points failing to load, and the "model perhaps flipped" warning firing on almost every two-point model.
-- Kulp K16A-B is now split into 1.x and 2.x/3.x variants so uploads write a configuration the board can actually run. Also fixed an FPP Connect crash, a hang cancelling an upload, and duplicate loopback entries during discovery.
-- Fixed crashes toggling docked panes, loading a perspective, and opening the File menu when the show folder is on an external or network drive.
-- Fixed several automation commands mishandling settings, dropdown properties and relative file names.
-- xLights no longer hangs after sending a crash report, and crash reports now include the machine configuration.
+- Fixed a number of crashes in the sequencer grid, and when models changed or a sequence closed while a render was running.
+- Fixed crashes and wrong output in the Candle, Butterfly, Plasma, Pinwheel, Fan, Video and Text effects, and Faces with Auto eyes rarely blinking.
+- Shader effects: no more solid frame at the lowest Zoom, GPU shaders no longer start a frame early, and a shader that can't get GPU resources shows yellow instead of closing the app.
+- Moving Head: fixed a one-frame jump at each Cycles repeat, effects rendering nothing after being moved or pasted, pasting onto a group collapsing settings, Path and Dimmer tab issues, and crashes in the path sketch editor.
+- Effect settings with a leading space in older sequences no longer render as 0.
+- Paste Effects on a submodel or group row no longer wipes every submodel's effects.
+- Presets saved as Relative now stay Relative.
+- Older shows with 3D moving heads load again, and one unloadable model no longer stops the whole layout from loading.
+- Background images and dimming curve files are found again after moving the show folder to another location or machine.
+- Import Effects keeps embedded media embedded, copies referenced media into your show folder, and flags missing media right away.
+- Fixed .fseq files that could read back wrong or crash when truncated, and a hang saving an .fseq.
+- Fixed several Layout issues: Arches start location, blank model names, Polyline Z-axis handle dragging, model group cloning and the preview opening on Unassigned.
+- Fixed crashes in the Test dialog, and the global controller settings show again when no controller is selected.
+- Controller fixes for FPP Connect discovery and saved settings, Falcon colour order and media lists, HinksPix export, Minleon, DDP, Experience and Twinkly.
+- Controller Visualiser Print Preview responds to clicks, and FPP Connect rows no longer show black.
+- Uncompressed .mov files at certain widths are no longer wrongly flagged as unsupported.
+- Older Macs with little video memory fall back to the CPU instead of crashing when a GPU buffer can't be allocated.
+- Fixed a crash on exit when using a 3D mouse.
 
 === iPad App Store (limit 4000) ===
-xLights 2026.17 - September 8, 2026
-
-New
-- Matrix faces gain the movement, positioning and scaling controls the Pictures effect has: direction, X/Y offset, start/end scale, wrap, pixel offsets and vector mode.
+xLights 2026.18 - October 2, 2026
 
 Improved
-- Renders on large sequences start noticeably sooner; render setup now runs across cores.
-- Big speedup rendering the Faces effect on large matrix models.
-- Playback no longer stalls on a render it triggered; a model needing a re-render is picked up on a later frame.
-- SubModel, Face and State names can contain the "@" character again.
+- Undo after dragging, aligning or distributing a Model Set member now moves the whole Set back, and an align, flip, match size or bulk edit on several models undoes in one step.
 
 Fixed
-- Sequences opened from a writable location were all treated as read-only, which disabled Save.
-- Fixed a crash closing or re-rendering a sequence while the render progress sheet is open.
-- An effect edited while the layout is reloading is now rendered when the reload finishes instead of being dropped.
-- Batch Render no longer overwrites a good .fseq with an empty one when the render could not start; it retries and then skips that sequence.
-- Changing the frame interval of a packaged (.xsqz) sequence now reopens it correctly.
-- A media file dropped onto the grid is copied into the show folder, so the effect still finds it later.
-- Fixed a crash undoing a lyric breakdown after a phoneme was broken down again or deleted.
-- A renamed or deleted preview no longer lingers in the preview menus.
-- "Move All Models To Port" no longer chains a multi-string model after itself and rejects ports the controller does not have.
-- Restoring a show folder backup now replaces each file only after its copy succeeds, and stops if the safety backup fails.
-- "Cleanup File Locations" no longer blanks a face image, image or mesh path when the copy into the show folder fails.
-- Tip of the Day is now readable in dark mode.
-- Fixed the Ripple effect drawing garbage with very short timing triggers, the Bars effect wrapping the wrong color, the Text effect ignoring Color Per Word, and crashes in Butterfly and Plasma with large palettes.
-- A Pictures effect with a missing image recovers on the next render once the file is put back.
-- Fixed Off effects on moving heads snapping the head out of position, and a crash rendering a Moving Head effect with a partial color.
-- Fixed crashes rendering a model group while the layout is being edited or after a base show folder sync.
-- Fixed Poly Line and Multi Point models with too few points failing to load.
+- Package Sequence could leave out external shader files after the app freed memory.
+- Fixed crashes and wrong output in the Candle, Butterfly, Plasma, Pinwheel, Fan, Video and Text effects.
+- The Faces effect with Auto eyes blinks properly again on tightly sung timing tracks.
+- Shader effects no longer render a solid frame at the lowest Zoom, no longer start one frame early, and a shader that can't get GPU resources shows yellow instead of closing the app.
+- Moving Head effects with a drawn Path and multiple Cycles no longer jump for one frame at each repeat.
+- Effect settings with a leading space in older sequences no longer render as 0.
+- A layer that can't get a GPU buffer renders on the CPU instead of crashing.
+- Older shows with 3D moving heads load again, and one unloadable model no longer stops the whole layout from loading.
+- Custom model background images and dimming curve files are found again after a show folder is moved.
+- Fixed .fseq files that could read back wrong or crash when truncated, and a hang saving an .fseq.
+- Fixed a crash loading sequences with damaged effect references.
 
 === Windows Store (limit 1500) ===
-xLights 2026.17 - September 8, 2026
+xLights 2026.18 - October 2, 2026
 
 New
-- Matrix faces gain the Pictures effect's movement, positioning and scaling controls.
-- ML stem separation saves each stem as an alternate audio track that survives closing the sequence.
-- Custom Model Wiring adds a 3D drag-to-rotate mode, a text size slider and Cube model support.
-- A new MCP server lets MCP-aware AI tools drive xLights.
-
-Improved
-- Renders on large shows start much sooner; render setup runs across cores and off the interface thread.
-- Big speedup rendering the Faces effect on large matrix models.
-- Graphics "Auto" now falls back to Vulkan on machines with no vendor display driver or over Remote Desktop.
+- Sequencer grid: Shift holds timing while dragging; collision slides stop at the obstruction.
+- Show All Timing Tracks from any view; Select Effects scrolls the grid to the effect.
+- Search boxes match words in any order and support wildcards and /regex/.
+- Import Effects: filtering, add-and-map source groups, and much faster Auto Map.
+- Perspectives save the Layout tab's panels; Check Sequence has a redesigned report.
+- Moving Head bad-flip warnings and Position Zone export/import.
 
 Fixed
-- Fixed a hang when a sequence frame takes longer than the frame interval.
-- Fixed corrupted Text glyphs on small buffers and the Text effect ignoring Color Per Word.
-- Fixed crashes in Butterfly, Plasma, Moving Head, Video and Faces rendering.
-- Fixed a number of Layout tab crashes, stale submodels in groups, and lost model list sorting.
-- Hardware video decode no longer drops to software when an effect starts mid-file.
-- Kulp K16A-B is split into 1.x and 2.x/3.x variants so uploads match the board; several FPP Connect fixes.
+- Windows 11 Smart App Control no longer blocks xLights from starting.
+- Fixed many crashes in the sequencer grid, the Test dialog, and during renders.
+- Fixed Candle, Butterfly, Plasma, Pinwheel, Fan, Video, Text, Faces and Shader effect problems.
+- Moving Head path, paste and cycle-repeat fixes.
+- Presets saved as Relative stay Relative; Paste Effects on submodel rows no longer wipes effects.
+- Older shows with 3D moving heads load again.
+- Background images found after moving the show folder.
+- .fseq read/save fixes, plus controller fixes for FPP Connect, Falcon and others.

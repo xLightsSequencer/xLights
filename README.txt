@@ -10,290 +10,269 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.18  September ??, 2026
-    -bug (dkulp)                 iPad - Package Sequence could leave out external shader files after the
-                                 app freed memory under pressure
-    -bug (dkulp)                 Crash rendering a Candle effect (single flame, not Per Node) in some cases
-    -bug (dkulp)                 iPad - Undo after dragging, aligning or distributing a Model Set member now
-                                 moves the whole Set back, and an align / flip / match size / bulk edit on
-                                 several models undoes in one step
-    -bug (dkulp)                 Import Effects groups are readable in dark mode again for layouts saved by
-                                 2024.09-2024.18, which stored the old dark blue highlight color
-    -bug (derwin12)              Changing the sequencer View now clears the prop filter
-    -bug (dkulp)                 FPP Connect's Add FPP by IP now reliably finds Falcon V4/V5 controllers
-                                 in player/remote mode instead of depending on a single UDP reply
-    -bug (dkulp)                 FPP Connect no longer forgets manually added addresses when more than
-                                 one has been added
-    -enh (heffneil)              Import Effects: the filter boxes narrow the mapping tree and the source
-                                 list (display only - Ok, Save Map, Auto Map and Clear All still cover
-                                 hidden rows)
-    -enh (heffneil)              Import Effects: right-click a donor group in the source list to add it
-                                 to the layout and map it; Cancel removes groups added during the import
-    -bug (heffneil/dkulp)        Crashes in the Test dialog after typing in a tab's name filter
-    -enh (heffneil)              Layout Controllers page: the selected controller's box is highlighted
-                                 along with its models, and controller labels have a Label Size setting
-    -bug (heffneil)              The sequencer prop filter is no longer saved into the sequence; models
-                                 hidden by the filter in older sequences stay hidden until re-shown in
-                                 Display Elements
+2026.18  October 2, 2026
+
+    -change (heffneil)           The sequencer prop filter is no longer saved into the sequence;
+                                 models hidden by the filter in older sequences stay hidden until
+                                 re-shown in Display Elements
+    -change (dkulp)              Crash reports now carry more detail: the fault address, signal and
+                                 a backtrace taken at the moment of the fault, the machine
+                                 configuration on every report, and the CPU name and real core count
+                                 on ARM Linux machines such as a Raspberry Pi
+    -change (derwin12)           The log now records what marked the layout or controllers as
+                                 needing a save (#7137)
+    -enh (AGFazio)               Sequencer grid: Shift now holds timing in place while dragging, and
+                                 a collision slide stops at the obstruction instead of continuing
+                                 past it (#7042)
+    -enh (heffneil)              "Show All Timing Tracks" is now offered from any view and from
+                                 right-clicking a timing row, not just the Master View's model-row
+                                 menu (#7145)
+    -enh (derwin12)              Selecting an effect in the Select Effects panel now scrolls the
+                                 sequencer grid to bring it into view
+    -enh (derwin12)              New sequence wizard defaults the master view to a sensible model
+                                 order (groups at top by size, then models by name) when no default
+                                 view is chosen
+    -enh (heffneil)              Filter and search boxes now match words in any order, ignore
+                                 separators ("all house", "allhouse" and "all-house" all find
+                                 grp_all_house_display), and support * ? wildcards and /regex/
+    -enh (heffneil)              Display Elements: find bar with next/previous buttons for the Added
+                                 models list (#6929)
+    -enh (derwin12)              Moving Head effect now warns when a drawn Path does a "bad flip"
+                                 (#7083)
+    -enh (derwin12)              Moving Head Advanced: Position Zones can be exported to, and
+                                 imported from, other moving head props (#6926)
+    -enh (heffneil)              Import Effects: the filter boxes narrow the mapping tree and the
+                                 source list (display only - Ok, Save Map, Auto Map and Clear All
+                                 still cover hidden rows)
+    -enh (heffneil)              Import Effects: right-click a group in the source list to add it to
+                                 the layout and map it; Cancel removes groups added during the
+                                 import
+    -enh (heffneil)              Import Effects: the mapping tree redraws once after Auto Map
+                                 instead of row by row, removing a 30+ second stall on large shows
+                                 on macOS (#7142)
+    -enh (heffneil)              Import Effects can record the sequence effects were imported from
+                                 (listed in Sequence Settings > Meta Data) so it can be reopened
+                                 later from Import > Open Original File
+    -enh (AGFazio)               Perspectives now also capture the Layout tab's panel arrangement,
+                                 including panels floated onto a second monitor (#6889)
+    -enh (heffneil)              Layout Resize right-click menu gets a Match Depth option in 3D mode
+                                 (#7095)
+    -enh (heffneil)              The model picked in the Visualiser is highlighted in the Layout
+                                 preview (colour set by "Model Picked In Visualiser" in Preferences)
+    -enh (heffneil)              Layout Controllers page: the selected controller's box is
+                                 highlighted along with its models, and controller labels have a
+                                 Label Size setting
+    -enh (AGFazio)               Added a Cancel option to the Model States delete confirmation
+    -enh (derwin12)              Check Sequence has a redesigned report with a table of contents, a
+                                 next/previous issue stepper, per-section show/hide and Expand
+                                 All/Collapse All (#7150)
+    -enh (derwin12)              Media Manager: new "Check Media..." button checks the sequence's
+                                 audio and video files for formats that won't render in upcoming
+                                 xLights versions
+    -enh (derwin12)              Added a keybinding to toggle the video preview panel, and the key
+                                 binding list can be sorted by Type or Key (#7091)
+    -enh (AlexB)                 Added an "additional tools" toolbar (Batch Render, Bulk Controller
+                                 Upload, Check Sequence, FPP Connect) (#6801)
+    -enh (derwin12)              Batch Import Sequence Lua script: browse buttons for the source and
+                                 destination folders, and right-click Select All/None/Highlighted on
+                                 the sequence list (#7089)
+    -enh (dkulp)                 New -q / --quiet command line switch logs the startup notices (show
+                                 directory, files loaded) instead of showing them in a dialog
+    -enh (derwin12)              More logging for stem separation to help diagnose hangs, and a
+                                 StemSeparationCPU special option to skip the GPU on Windows
     -enh (dkulp)                 FPP Connect model upload now also sends submodels and model groups
                                  so FPP can run overlay effects on them (FPP 10+)
-    -enh (dkulp)                 FPP Connect warns when models uploaded to FPP earlier no longer match
-                                 the layout and offers to upload them again, since FPP uses them in
-                                 place of the models it creates from the outputs
-    -bug (pixelpropshop/dkulp)   FPP Connect could restore old upload settings saved under a device's
-                                 IP address in place of its current ones, and a choice set back to its
-                                 default did not stick for devices that report no ID
+    -enh (dkulp)                 FPP Connect warns when models uploaded to FPP earlier no longer
+                                 match the layout and offers to upload them again
+    -enh (PeteMatthews)          ILT controllers: added a new Scene controller type; serial outputs
+                                 can now stand in for relays (#7093)
+    -bug (dkulp)                 Fixed crashes when a model was edited, deleted, replaced or
+                                 renamed, or a sequence was opening, while a render was running;
+                                 importing models from another show and updating from the base show
+                                 folder now wait for the render to stop
+    -bug (dkulp)                 Fixed several sequencer grid crashes: dragging an effect edge or
+                                 using the right-click menu after an undo, redo or delete; closing
+                                 or deleting while a row was being drawn; rubber-band selecting with
+                                 only timing rows visible; pasting into a timing range that no
+                                 longer exists; dropping an effect on a row whose model no longer
+                                 exists; and moving an effect with the arrow keys while a render was
+                                 stopping
+    -bug (heffneil,dkulp)        Crash closing a sequence, changing a musical sequence to Animation
+                                 in Sequence Settings, or loading a new song (#7144)
+    -bug (dkulp)                 Crash adding pre/post milliseconds when the sequence duration is
+                                 longer than the audio
+    -bug (dkulp)                 Crash loading a sequence with negative effect/palette references
+    -bug (dkulp)                 Fixed a render crash when the show folder's render cache is on a
+                                 network drive
+    -bug (derwin12)              Effect settings with a leading space in their value (seen in some
+                                 older sequences) were treated as 0, so fade in/out and other
+                                 numeric settings could render wrong (#7055)
+    -bug (derwin12)              Model > Paste Effects on a submodel or group row no longer erases
+                                 every submodel's effects and pastes them onto the main model
+                                 (#7141)
+    -bug (derwin12)              Changing the sequencer View now clears the prop filter
+    -bug (derwin12)              Right-click "Convert Effects to 'Per Model'" now refreshes the
+                                 Layer Settings panel when it is showing an affected effect (#7060)
+    -bug (derwin12)              Changing the effect type from the Effect panel drop-down no longer
+                                 resets Layer Settings Render Style to the default when the effect
+                                 is on a model group
+    -bug (derwin12)              A preset saved or updated with "Apply preset as: Relative" now
+                                 applies as Relative instead of reverting to Using Layers
+    -bug (dkulp)                 Crash using the Effect Presets panel after switching show folders
+    -bug (dkulp)                 Crash rendering a Candle effect (single flame, not Per Node) in
+                                 some cases
+    -bug (dkulp)                 Butterfly, Plasma, Pinwheel, Fan and Video effects could corrupt
+                                 memory on a variable sub-buffer and crash later in an unrelated
+                                 place
+    -bug (dkulp)                 Faces effect with Eyes set to Auto rarely blinked on a tightly sung
+                                 timing track
+    -bug (dkulp)                 Text effects naming an unknown xLights font crashed instead of
+                                 falling back to the OS font
+    -bug (dkulp)                 Shader effect no longer renders a solid frame at the lowest Zoom
+                                 setting
+    -bug (dkulp)                 Shader effects rendered on the GPU (Metal on macOS/iPad, Vulkan on
+                                 Windows/Linux) started one frame ahead of the OpenGL path
+    -bug (dkulp)                 A Shader effect whose GPU resources cannot be created now renders
+                                 yellow like any other failed shader instead of closing the app
+    -bug (dkulp)                 Linux: fixed Shader effect crashes and corrupt rendering with
+                                 hardware OpenGL (#7052)
+    -bug (derwin12)              Moving Head effects with a drawn Path and Cycles > 1 no longer jump
+                                 to a wild tilt/pan for one frame at each cycle boundary (#7113)
+    -bug (derwin12)              Moving Head effects moved, pasted or imported onto a different
+                                 single-fixture moving head could render nothing until the effect
+                                 panel was reopened (#7080)
+    -bug (derwin12)              Copying and pasting a Moving Head effect onto the model group it
+                                 came from no longer collapses every fixture's settings to one
+                                 fixture's
+    -bug (derwin12)              Moving Head Path Scale/Time Offset/Ignore Pan/Tilt edits no longer
+                                 replace the selected heads' path with one drawn for other heads
+    -bug (derwin12)              Moving Head Dimmer tab now shows the saved dimmer curve when the
+                                 selected heads use different colors (#7133)
+    -bug (dkulp)                 Crashes in the Moving Head path sketch editor when closing an empty
+                                 path, deleting handles, or dragging a path closed with a curve
+    -bug (dkulp)                 Moving Head effect panel could show an assert when the Path
+                                 "crosses behind" warning appeared
+    -bug (derwin12)              Windows: Moving Head RGB color wheel picker was clipped and sized
+                                 wrong
     -bug (dkulp)                 Crash importing a GDTF moving-head fixture
     -bug (dkulp)                 Shows and model imports from before 2024.05 with 3D moving heads
                                  failed to load ("Unknown model type: DmxMovingHead3D"); they are
                                  converted to Moving Head Adv again
     -bug (dkulp)                 A single model that could not be loaded aborted loading the whole
                                  layout and could hang xLights on exit; it is now skipped and logged
-    -bug (dkulp)                 Crashes in the Moving Head path sketch editor when closing an empty
-                                 path, deleting handles, or dragging a path closed with a curve
-    -bug (dkulp)                 Crash using the Effect Presets panel after switching show folders
-    -bug (dkulp)                 Crash exporting a HinksPix HSEQ from an FSEQ rendered with fewer
-                                 channels than the current layout
-    -bug (dkulp)                 Crash uploading to a controller when the upload rebuilt its outputs
-    -bug (dkulp)                 Crash adding pre/post milliseconds when the sequence duration is
-                                 longer than the audio
-    -bug (dkulp)                 Crash rubber-band selecting with only timing rows visible, and
-                                 pasting into a timing range that no longer exists
-    -bug (dkulp)                 Crash when the main window received a second close while exiting
-    -bug (dkulp)                 Text effects naming an unknown xLights font crashed instead of
-                                 falling back to the OS font
-    -bug (dkulp)                 Crash loading a sequence with negative effect/palette references
-    -bug (dkulp)                 Crash dropping an effect on a row whose model no longer exists
-    -bug (dkulp)                 Windows crash reports attributed system/driver DLL frames to
-                                 unrelated xLights functions
-    -bug (dkulp)                 Short, noisy zstd .fseq files (very few frames) could read back
-                                 with wrong channel data
-    -bug (dkulp)                 Harden .fseq reading against truncated and corrupt files (crashes
-                                 or multi-GB allocations from bad headers and block tables)
-    -bug (dkulp)                 Saving an .fseq could hang if zstd compression failed, and zlib
+    -bug (derwin12)              Arches model's starting location was wrong
+    -bug (AGFazio)               Layout now rejects a blank model name (#7079)
+    -bug (derwin12)              Polyline: dragging a curve segment's Bezier handle along the Z axis
+                                 in 3D no longer snaps it to Z=0 and locks further Z movement
+                                 (#7045)
+    -bug (derwin12)              Cloning a model group left both the original and the clone
+                                 highlighted, with the property grid still editing the original
+                                 (#7049)
+    -bug (derwin12)              Layout tab could open on the "Unassigned" preview instead of
+                                 "Default" when the last-saved preview no longer existed, showing no
+                                 models
+    -bug (derwin12)              Selecting a controller no longer loses its yellow "models on this
+                                 controller" highlight in the layout preview when a model is moved
+    -bug (dkulp)                 3D layout preview no longer crashes when hovering over models with
+                                 Ctrl held after a model was deleted
+    -bug (dkulp)                 Fixed a crash changing a named preview's background image,
+                                 brightness, transparency or fill after that preview was deleted or
+                                 another show folder was opened
+    -bug (bcole808,dkulp)        Named preview background images, custom model background images and
+                                 model dimming curve files were lost when the show folder was moved
+                                 or opened on another machine
+    -bug (dkulp)                 Fixed a crash importing submodels when the model chosen in the
+                                 import dialog no longer exists
+    -bug (derwin12)              Opening a sequence in read only mode (.xsqz) no longer allows the
+                                 layout to be saved
+    -bug (dkulp)                 Dragging a smart remote onto an unexpected target in the Controller
+                                 Visualiser no longer crashes
+    -bug (derwin12)              macOS: Controller Visualiser's Print Preview screen now responds to
+                                 clicks
+    -bug (dkulp)                 Import Effects groups are readable in dark mode again for layouts
+                                 saved by 2024.09-2024.18
+    -bug (derwin12)              Importing effects from a sequence with embedded shaders, SVGs or
+                                 text files now keeps them embedded
+    -bug (derwin12)              Import Effects from a plain .xsq now copies
+                                 Video/Pictures/Shader/Glediator/Shape media into the target show
+                                 folder, like a Sequence Package import, instead of referencing the
+                                 source show folder
+    -bug (derwin12)              Import Effects now registers the media the imported effects use
+                                 right away, so missing images and videos are flagged in the Media
+                                 Manager without reopening the sequence
+    -bug (derwin12)              Import > Open Original File is disabled when the sequence has no
+                                 recorded source, the record checkbox is hidden when remapping
+                                 within the same sequence, and packaged sequences no longer include
+                                 the list of sequences effects were imported from
+    -bug (scott)                 Import Channel Map's saved mappings did not restore selected timing
+                                 tracks or any model/strand/node mappings
+    -bug (derwin12)              Media Manager panel wasn't refreshed after a media conversion
+    -bug (dkulp)                 macOS: uncompressed .mov files with certain widths (for example 50
+                                 pixels, 24-bit) were flagged as unsupported when the sequence
+                                 opened even though they render correctly
+    -bug (dkulp)                 Windows/Linux: fixed a possible crash loading audio whose decoded
+                                 length is longer than the file reports
+    -bug (dkulp)                 .fseq files: short zstd-compressed files could read back with wrong
+                                 channel data, and truncated or corrupt files could crash or use
+                                 huge amounts of memory
+    -bug (dkulp)                 Saving an .fseq could hang if compression failed, and zlib
                                  compression could drop data from extremely large frames
-    -bug (scott)                 Import From Controller (Custom model dialog, Twinkly) silently
-                                 did nothing - the downloaded layout's coordinates were discarded
+    -bug (heffneil,dkulp)        Fixed crashes in the Test dialog after typing in a tab's name
+                                 filter, or when a controller was removed while the controller tree
+                                 was being built
+    -bug (derwin12)              Testing a submodel's "Output to Lights" now sends the actual node
+                                 colour of the highlighted node range instead of a flat test value
+    -bug (derwin12)              Declining to continue after an output failed to open left Stop
+                                 Output doing nothing and controller properties greyed out until
+                                 restart (#7071)
+    -bug (derwin12)              Controllers tab shows the global controller settings (Controller
+                                 Sync, Global FPP Proxy, etc.) again when no controller is selected
+    -bug (derwin12)              Controller ping status now updates as soon as each ping returns
+                                 instead of showing the previous result
+    -bug (dkulp)                 Crash uploading to a controller when the upload rebuilt its outputs
+    -bug (dkulp)                 FPP Connect's Add FPP by IP now reliably finds Falcon V4/V5
+                                 controllers in player/remote mode
+    -bug (dkulp)                 FPP Connect no longer forgets manually added addresses when more
+                                 than one has been added
+    -bug (pixelpropshop/dkulp)   FPP Connect could restore old upload settings in place of a
+                                 device's current ones, and a choice set back to its default did not
+                                 stick for some devices
+    -bug (derwin12)              FPP status checks could crash for many "other" controller types
+                                 (#7147)
+    -bug (derwin12)              FPP upload no longer tries to upload a 3D Image Object's or Mesh's
+                                 texture file that is missing locally, which could make the upload
+                                 look stuck (#7098)
+    -bug (derwin12)              macOS: FPP Connect alternating rows no longer show as black
+    -bug (derwin12)              Falcon F16v4/v5 upload ignored a 4 channel colour order (e.g. WRGB)
+                                 set on the model's controller connection (#7085)
     -bug (scott)                 Falcon "get media files" always returned an empty list
     -bug (derwin12)              Crash uploading to a Falcon V4 controller when its media list
                                  returned file names as objects
+    -bug (dkulp)                 Crash exporting a HinksPix HSEQ from an FSEQ rendered with fewer
+                                 channels than the current layout
+    -bug (scott)                 Import From Controller (Custom model dialog, Twinkly) silently did
+                                 nothing
     -bug (scott)                 Minleon controller connect could compute 0 ports instead of the
                                  real port count
     -bug (scott)                 Discovered DDP controllers could have their channel count computed
                                  as 0
-    -bug (scott)                 Import Channel Map's saved-mapping loader silently failed to
-                                 restore selected timing tracks or any model/strand/node mappings
-    -change (derwin12)           Log what marked the layout/controller Save button as unsaved #7137
-    -change (dkulp)              Crash reports from ARM Linux machines now name the CPU (the board
-                                 name, e.g. "Raspberry Pi 5 Model B Rev 1.0") and report a real
-                                 physical core count instead of zero
-    -change (dkulp)              Crash reports now always carry the machine configuration and a
-                                 report.json describing the report, and the configuration banner
-                                 uses one labelled field per fact
-    -change (dkulp)              Crash reports now include the fault address, signal and the faulting
-                                 instruction, and a backtrace taken at the moment of the fault
-    -enh (heffneil)              Display Elements: find bar with next/previous buttons for the Added models list #6929
-    -enh (AGFazio)               Perspectives now also capture the Layout tab's panel arrangement
-                                 (including floated onto a second monitor), so it's restored along
-                                 with the sequencer layout #6889
-    -enh (derwin12)              Batch Import Sequence Lua script: browse buttons for source/destination
-                                 folders and right-click Select All/None/Highlighted on the sequence list #7089
-    -enh (heffneil)              Import Effects mapping tree now redraws once after Auto Map
-                                 instead of updating every row individually, cutting a 30+
-                                 second stall on large macOS shows to milliseconds (#7142)
-    -enh (derwin12)              Check Sequence Report gets a redesigned HTML report: a jump-
-                                 to-section table of contents, a next/previous issue stepper,
-                                 per-section show/hide, and Expand All/Collapse All (#7150)
-    -enh (heffneil)              "Show All Timing Tracks" is now offered from any view, and
-                                 from right-clicking a timing row, not just the Master View's
-                                 model-row menu (#7145)
-    -enh (AGFazio)               Added a Cancel option to the Model States delete confirmation
-    -enh (derwin12)              More logging for stem separation to help diagnose hangs, and a
-                                 StemSeparationCPU special option to skip the GPU on Windows
-    -enh (heffneil)              Filter and search boxes now match words in any order, ignore separators
-                                 ("all house" / "allhouse" / "all-house" find grp_all_house_display),
-                                 and support * ? wildcards and /regex/
-    -enh (heffneil)              Store the imported sequence in meta data to reuse in import effects
-    -enh (heffneil)              Highlight the model picked in the Visualizer in the Layout preview
-                                 (colour set by "Model Picked In Visualiser" in Preferences)
-    -enh (derwin12)              Added a keybinding for toggling the video preview panel and sort ability (#7091)
-    -enh (derwin12)              Moving Head effect now warns when a drawn Path does a "bad
-                                 flip" (#7083)
-    -enh (PeteMatthews)          ILT controllers: added a new Scene controller type; serial
-                                 outputs can now stand in for relays (#7093)
-    -enh (derwin12)              New sequence wizard now defaults the master view to a sensible model
-                                 order (groups at top by size, then models by name) when no default
-                                 view is chosen
-    -enh (heffneil)              Layout Resize right-click menu gets a Match Depth option in 3D
-                                 mode, matching the iPad layout editor (#7095)
-    -enh (derwin12)              Media Manager panel has a new "Check Media..." button to check the
-                                 sequence's audio/video files for formats that won't render on
-                                 upcoming xLights versions on demand
-    -enh (derwin12)              Moving Head Advanced - Position Zones can now be exported to, and
-                                 imported from, other moving head props (#6926)
-    -enh (AGFazio)               Sequencer grid: Shift now holds timing in place while
-                                 dragging, and a collision slide actually stops instead of
-                                 continuing past the obstruction (#7042)
-    -enh (derwin12)              Selecting an effect in the Select Effects panel now scrolls the
-                                 sequencer grid to bring it into view
-    -enh (AlexB)                 Added an "additional tools" toolbar (Batch Render, Bulk
-                                 Control Upload, Check Sequence, FPP Connect) (#6801)
-    -enh (dkulp)                 New -q / --quiet command line switch logs the startup notices (show
-                                 directory, files loaded) instead of showing them in a dialog
-    -bug (derwin12)              Controller Visualiser's Print Preview screen is now clickable on
-                                 macOS instead of appearing but ignoring input
-    -bug (derwin12)              Model > Paste Effects on a submodel/group row no longer erases every
-                                 submodel's effects and pastes them onto the main model instead #7141
-    -bug (derwin12)              FPP status JSON parsing could crash - "description" isn't
-                                 present for many "other" controller types (#7147)
-    -bug (derwin12)              FPP Connect alternating rows no longer show as black on macOS
-    -bug (heffneil)              Changing a musical sequence to Animation in Sequence Settings
-                                 (or loading a new song) could crash; the waveform panel kept
-                                 pointing at the sequence's audio after it was freed (#7144)
-    -bug (derwin12)              Controller ping status now updates as soon as each ping returns
-                                 instead of showing the previous result
-    -bug (derwin12)              Moving Head Dimmer tab now shows the saved dimmer curve when the
-                                 selected heads use different colors #7133
-    -bug (derwin12)              Moving Head Path Scale/Time Offset/Ignore Pan/Tilt edits no longer
-                                 replace the selected heads' path with one drawn for other heads
-    -bug (derwin12)              Importing effects from a sequence with embedded shaders, SVGs or text
-                                 files now keeps them embedded instead of reverting them to external
-    -bug (derwin12)              Show the global controller settings (Controller Sync, Global FPP Proxy,
-                                 etc.) again when no controller is selected on the Controllers tab
-    -bug (dkulp)                 Moving Head panel could hit a wx sizer assert on creation once
-                                 the Path "crosses behind" warning added a second row to the
-                                 canvas sizer
-    -bug (derwin12)              Moving Head RGB color wheel picker was clipped/resized wrong
-                                 on Windows (now uses GetClientSize)
-    -bug (derwin12)              Import > Open Original File is now disabled when the sequence has no
-                                 recorded donor, and the record-donor checkbox is hidden when remapping
-                                 effects within the same sequence, Packaged sequences no longer include
-                                 the list of sequences effects were imported from (local file paths)
-    -bug (dkulp)                 Fixed a render crash when the show folder's render cache is on a
-                                 network drive
-    -bug (dkulp)                 Fixed a possible crash loading audio whose decoded length is longer than
-                                 the file reports (Windows/Linux)
-    -bug (dkulp)                 Fixed a crash when changing a named preview's background image,
-                                 brightness, transparency or fill after the preview it belonged to was
-                                 deleted or a different show folder was opened
-    -bug (dkulp)                 Fixed a crash importing submodels when the model chosen in the import
-                                 dialog no longer exists
-    -bug (dkulp)                 Fixed a crash rendering to a model whose node list changed while the
-                                 render was running
-    -bug (dkulp)                 A Shader effect whose GPU resources cannot be created now renders yellow
-                                 like any other failed shader instead of terminating the app
-    -bug (derwin12)              Moving Head effects with a drawn Path and Cycles > 1 no longer glitch
-                                 to a wild tilt/pan for one frame at each cycle repeat boundary (#7113)
-    -bug (derwin12)              Arches model's starting location was wrong
-    -bug (derwin12)              Selecting a controller no longer loses its yellow "models on this
-                                 controller" highlight in the layout preview when a model is moved
-    -bug (derwin12)              Import Effects from a plain .xsq no longer leaves Video/Pictures/Shader/
-                                 Glediator/Shape media referencing the source show folder - it is now
-                                 copied into the target show folder like a Sequence Package import does
-    -bug (AGFazio)               Layout now rejects a blank model name instead of accepting it
-                                 (#7079)
-    -bug (bcole808)              Background image on a named preview was lost when the show folder was
-                                 moved or opened on another machine
-    -bug (dkulp)                 Custom model background images and model dimming curve files were also
-                                 lost when the show folder moved; they are now located the same way as
-                                 other show assets and saved relative to the show folder
-    -bug (dkulp)                 Faces effect with Eyes set to Auto rarely blinked on a tightly sung
-                                 timing track - the blink is again scheduled inside the phoneme rests
-    -bug (dkulp)                 Shader effect no longer renders a solid frame at the lowest Zoom
-                                 setting; the zoom divisor reached zero, which left the shader's
-                                 coordinates undefined and differed between platforms
-    -bug (dkulp)                 Butterfly, Plasma, Pinwheel, Fan and Video effects could write past the
-                                 end of the render buffer on a variable sub-buffer, corrupting the heap
-                                 and crashing later in an unrelated place
-    -bug (dkulp)                 3D layout preview no longer crashes when hovering over models with
-                                 Ctrl held after a model has been deleted
-    -bug (dkulp)                 Dragging a smart remote onto an unexpected target in the Visualiser
-                                 no longer crashes
-    -bug (dkulp)                 The Test dialog no longer crashes if a controller is removed while the
-                                 controller tree is being built
-    -bug (dkulp)                 A null model in the render tree is now skipped rather than crashing
-                                 the render
-    -bug (dkulp)                 macOS/iPad - a GPU buffer that could not be allocated (older Macs
-                                 with little video memory, or a very large model) is no longer
-                                 published as if it had worked; that layer renders on the CPU instead
-                                 of crashing somewhere unrelated
-    -bug (derwin12)              Copying and pasting a Moving Head effect onto the same model group
-                                 it came from no longer collapses every fixture's settings down to
-                                 one fixture's
-    -bug (derwin12)              A preset saved or updated with "Apply preset as: Relative" selected
-                                 now actually applies as Relative afterward, instead of silently
-                                 reverting to Using Layers
-    -bug (dkulp)                 Shader effects rendered on the GPU (Metal on macOS/iPad, Vulkan on
-                                 Linux/Windows) started one frame ahead of the OpenGL path; the first
-                                 frame now renders at the lead-in time on every backend
-    -bug (dkulp)                 Linux - fixed Shader effect crashes and corrupt rendering with
-                                 hardware OpenGL; the offscreen render contexts now share GL
-                                 objects so cached shader programs stay valid between frames (#7052)
-    -bug (derwin12)              Declining to continue after an output failed to open when starting
-                                 output left the output lock permanently held, so Stop Output silently
-                                 did nothing and controller properties stayed greyed out until restart
-                                 (#7071)
-    -bug (derwin12)              Moving Head effects moved, pasted, or imported onto a different
-                                 single-fixture moving head model could render nothing until the
-                                 effect panel was reopened; this is now fixed automatically when the
-                                 effect is placed instead of relying on a per-frame render-time check (#7080)
-    -bug (derwin12)              Import Effects (File > Import Effects) now registers any media the
-                                 imported effects reference immediately, so missing/broken images and
-                                 videos are flagged in the Media Manager right away instead of only
-                                 after closing and reopening the sequence
-    -bug (derwin12)              Media Manager panel wasn't repopulated after a media
-                                 conversion
-    -bug (scott)                 Experience controller firmware version wasn't detected when
-                                 the firmware string didn't start with "v" (#7078)
-    -bug (derwin12)              Falcon F16v4/v5 upload always sent RGB(W) for a 4 channel colour order
-                                 (e.g. WRGB), ignoring the colour order set on the model's controller
-                                 connection (#7085)
-    -bug (derwin12)              Testing a submodel's "Output to Lights" now sends the actual node
-                                 colour of the highlighted node range instead of a flat test value
-    -bug (derwin12)              Right-click "Convert Effects to 'Per Model'" now refreshes the Layer
-                                 Settings panel when it is showing an affected effect (#7060)
-    -bug (derwin12)              Changing the effect type from the Effect panel drop-down no longer
-                                 resets the Layer Settings Render Style choices to the modelless
-                                 default when the selected effect is on a model group
-    -bug (derwin12)              FPP upload no longer queues a 3D Image Object's or Mesh's texture
-                                 file for upload when that file is missing locally; the resulting
-                                 failed-upload dialog could make the upload look stuck (#7098)
-    -bug (dkulp)                 Closing a sequence could crash: the waveform panel kept pointing at the
-                                 sequence audio after the sequence was deleted
-    -bug (dkulp)                 Fixed a crash when dragging an effect edge while the row the drag started
-                                 on was removed or undone
-    -bug (dkulp)                 Fixed a crash using the effect grid right-click menu after an undo, redo
-                                 or delete removed the effect that was clicked
-    -bug (dkulp)                 Fixed a crash closing or deleting from a sequence while the sequencer was
-                                 still drawing the row it was removing
-    -bug (dkulp)                 Fixed a crash when a model was deleted, replaced or renamed while a render
-                                 was still running
-    -bug (dkulp)                 Importing models from another show's rgbeffects file, and updating from the
-                                 base show folder, now wait for any running render to stop first instead of
-                                 replacing models underneath it
-    -bug (dkulp)                 macOS - fixed a crash on exit when a 3D mouse sent motion after the app
-                                 had started shutting down
-    -bug (dkulp)                 Windows - bundled third-party DLLs are now code signed so Windows 11
+    -bug (scott)                 Experience controller firmware version wasn't detected when the
+                                 version string didn't start with "v" (#7078)
+    -bug (dkulp)                 Crash when the main window received a second close while exiting
+    -bug (dkulp)                 macOS: fixed a crash on exit when a 3D mouse sent motion after the
+                                 app started shutting down
+    -bug (dkulp)                 macOS/iPad: a GPU buffer that could not be allocated (older Macs
+                                 with little video memory, or a very large model) now falls back to
+                                 rendering that layer on the CPU instead of crashing
+    -bug (dkulp)                 Windows: bundled third-party DLLs are now code signed so Windows 11
                                  Smart App Control no longer blocks xLights from starting (#7044)
-    -bug (dkulp)                 macOS - Uncompressed .mov files whose rows are not a multiple of 8 bytes
-                                 (for example 50 pixels wide, 24-bit) were flagged as unsupported when the
-                                 sequence opened even though they render correctly
-    -bug (derwin12)              Opening a sequence in read only mode (.xsqz) no longer allows the
-                                 layout to be saved
-    -bug (derwin12)              Polyline - dragging a curve segment's Bezier handle along the Z axis in
-                                 3D no longer snaps it to Z=0 and locks up further Z-axis movement (#7045)
-    -bug (derwin12)              Layout tab could land on the "Unassigned" preview instead of "Default"
-                                 when the show's last-saved preview no longer existed, showing no models
-    -bug (derwin12)              Cloning a model group left both the original and the clone highlighted
-                                 in the tree, with the property grid actually still editing the original (#7049)
-    -bug (derwin12)              Effect settings with a leading space in their value (seen in some older
-                                 sequences) were silently treated as 0, so fade in/out and other numeric
-                                 settings could render wrong (#7055)
-    -bug (dkulp)                 Fixed a crash starting a render for a model group while the layout was
-                                 being edited or a sequence was opening
-    -bug (dkulp)                 Fixed a crash moving an effect up or down with the arrow keys while a
-                                 render was being stopped
-
+    -bug (dkulp)                 Windows: crash reports could name an unrelated xLights function for
+                                 a crash inside a system or driver DLL
+    -bug (dkulp)                 iPad - Undo after dragging, aligning or distributing a Model Set
+                                 member now moves the whole Set back, and an align, flip, match size
+                                 or bulk edit on several models undoes in one step
+    -bug (dkulp)                 iPad - Package Sequence could leave out external shader files after
+                                 the app freed memory under pressure
 
 2026.17  September 8, 2026
 
