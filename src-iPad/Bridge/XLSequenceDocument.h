@@ -2146,11 +2146,20 @@ NS_ASSUME_NONNULL_BEGIN
 // properties surface (centre, dimensions, rotation, locked,
 // layoutGroup, controllerName) before making an edit; the most
 // recent snapshot is restored by `undoLastLayoutChange`. Stack is
-// capped at 100 entries inside the render context. Multiple
+// capped at 100 steps inside the render context. Multiple
 // pushes for the same model just stack — undo walks them one at
 // a time. The drag handler pushes once at gesture-began, so a
 // single drag is one undo entry.
 - (void)pushLayoutUndoSnapshotForModel:(NSString*)modelName;
+
+// Snapshot several models as ONE undo step, so a multi-selection
+// operation reverts with a single undo. `includingSetPeers` also
+// captures the position of every other member of each model's
+// Model Set - pass YES for operations that drag Set peers along
+// (body drag, align, distribute).
+- (void)pushLayoutUndoSnapshotForModels:(NSArray<NSString*>*)modelNames
+                      includingSetPeers:(BOOL)includingSetPeers
+    NS_SWIFT_NAME(pushLayoutUndoSnapshot(forModels:includingSetPeers:));
 
 // J-17 — push a view-object snapshot onto the same unified
 // undo stack the model path uses. UndoLast dispatches by entry

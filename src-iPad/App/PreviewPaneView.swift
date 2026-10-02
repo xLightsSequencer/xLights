@@ -947,12 +947,15 @@ struct PreviewPaneView: UIViewRepresentable {
                                                           for: viewModel.document) {
                                     draggingLayoutModel = true
                                     layoutDragModelName = sel
-                                    viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
+                                    // A body drag carries the Model Set peers along.
+                                    viewModel.document.pushLayoutUndoSnapshot(forModels: [sel],
+                                                                              includingSetPeers: true)
                                 }
                             } else {
                                 draggingLayoutModel = true
                                 layoutDragModelName = sel
-                                viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
+                                viewModel.document.pushLayoutUndoSnapshot(forModels: [sel],
+                                                                          includingSetPeers: true)
                                 recognizer.setTranslation(.zero, in: view)
                             }
                         }

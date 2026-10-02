@@ -3870,9 +3870,9 @@ struct LayoutEditorView: View {
         // returns NO with a warn log), so a multi-selection of mixed
         // types just applies to the matching subset.
         let targets = bulkEditTargets(forKey: key, leader: modelName)
+        viewModel.document.pushLayoutUndoSnapshot(forModels: targets, includingSetPeers: false)
         var anyChanged = false
         for name in targets {
-            viewModel.document.pushLayoutUndoSnapshot(forModel: name)
             if viewModel.document.setPerTypeProperty(key,
                                                      onModel: name,
                                                      value: value) {
@@ -4126,14 +4126,11 @@ struct LayoutEditorView: View {
 
     private func commitProperty(modelName: String, key: String, value: Any) {
         let targets = bulkEditTargets(forKey: key, leader: modelName)
+        // Capture undo BEFORE the edit so the snapshot reflects the
+        // pre-edit state. One step for the whole bulk edit.
+        viewModel.document.pushLayoutUndoSnapshot(forModels: targets, includingSetPeers: false)
         var anyChanged = false
         for name in targets {
-            // Capture undo BEFORE the edit so the snapshot reflects
-            // the pre-edit state. Pushed per affected model — undo
-            // pops one snapshot at a time, matching the existing
-            // align / distribute / match-size pattern (one undo
-            // step per affected model).
-            viewModel.document.pushLayoutUndoSnapshot(forModel: name)
             if viewModel.document.setLayoutModelProperty(name,
                                                           key: key,
                                                           value: value) {
@@ -4339,9 +4336,9 @@ struct LayoutEditorView: View {
     // MARK: - J-4 multi-select operations
 
     /// Align all selected models' named edge / centre to the
-    /// primary (leader). Pushes an undo snapshot per moved model
-    /// so the user can revert individual moves; bumps the summary
-    /// token + dirty state and repaints the canvas.
+    /// primary (leader). Pushes one undo step covering every moved
+    /// model and the Model Set peers they drag along; bumps the
+    /// summary token + dirty state and repaints the canvas.
     ///
     /// `ground` is leader-less: every selected model snaps its
     /// bottom to Y = 0. Works with 1+ models and ignores the
@@ -4356,9 +4353,8 @@ struct LayoutEditorView: View {
                   viewModel.layoutEditorSelection.count >= 2 else { return }
         }
         let names = Array(viewModel.layoutEditorSelection)
-        for n in names where isGround || n != leader {
-            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
-        }
+        viewModel.document.pushLayoutUndoSnapshot(forModels: names.filter { isGround || $0 != leader },
+                                                  includingSetPeers: true)
         guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
         let moved = bridge.alignModels(names,
                                         toLeader: leader,
@@ -4375,13 +4371,11 @@ struct LayoutEditorView: View {
     }
 
     /// Distribute centres along the named axis. Snapshots every
-    /// candidate before mutating so single-step undo works.
+    /// candidate (and its Model Set peers) as one undo step.
     private func performDistribute(axis: String) {
         guard viewModel.layoutEditorSelection.count >= 3 else { return }
         let names = Array(viewModel.layoutEditorSelection)
-        for n in names {
-            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
-        }
+        viewModel.document.pushLayoutUndoSnapshot(forModels: names, includingSetPeers: true)
         guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
         let moved = bridge.distributeModels(names,
                                               axis: axis,
@@ -4402,9 +4396,8 @@ struct LayoutEditorView: View {
         guard let leader = viewModel.layoutEditorSelectedModel,
               viewModel.layoutEditorSelection.count >= 2 else { return }
         let names = Array(viewModel.layoutEditorSelection)
-        for n in names where n != leader {
-            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
-        }
+        viewModel.document.pushLayoutUndoSnapshot(forModels: names.filter { $0 != leader },
+                                                  includingSetPeers: false)
         guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
         let resized = bridge.matchSize(ofModels: names,
                                          toLeader: leader,
@@ -4422,14 +4415,11 @@ struct LayoutEditorView: View {
 
     /// J-7 — Flip the multi-selection 180° about the given axis.
     /// Uses the bridge implementation (matches desktop flip math).
-    /// Each model flips in place; pushing undo per model so each
-    /// flip is independently revertible.
+    /// Each model flips in place; one undo reverts the whole flip.
     private func performFlip(axis: String) {
         guard !viewModel.layoutEditorSelection.isEmpty else { return }
         let names = Array(viewModel.layoutEditorSelection)
-        for n in names {
-            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
-        }
+        viewModel.document.pushLayoutUndoSnapshot(forModels: names, includingSetPeers: false)
         guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
         let flipped = bridge.flipModels(names, axis: axis, for: viewModel.document)
         if flipped {
@@ -4460,9 +4450,8 @@ struct LayoutEditorView: View {
         bulkRotateAxis = axis
     }
 
-    /// Apply the entered rotation to every selected model. Pushes one
-    /// undo snapshot per model so each rotation is revertible. Mirrors
-    /// desktop's BulkEditRotateAxis [-180, 180] clamp.
+    /// Apply the entered rotation to every selected model as one undo
+    /// step. Mirrors desktop's BulkEditRotateAxis [-180, 180] clamp.
     private func performBulkRotate() {
         guard let axis = bulkRotateAxis else { return }
         bulkRotateAxis = nil
@@ -4470,9 +4459,7 @@ struct LayoutEditorView: View {
               degrees.isFinite else { return }
         let names = Array(viewModel.layoutEditorSelection)
         guard !names.isEmpty else { return }
-        for n in names {
-            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
-        }
+        viewModel.document.pushLayoutUndoSnapshot(forModels: names, includingSetPeers: false)
         guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
         let rotated = bridge.rotateModels(names, axis: axis, degrees: degrees, for: viewModel.document)
         if rotated {
@@ -4492,9 +4479,7 @@ struct LayoutEditorView: View {
                                      keepStartChannel: Bool, keepSubmodels: Bool,
                                      keepSizePosition: Bool, groupMode: Int) {
         guard !source.isEmpty, !targets.isEmpty else { return }
-        for n in targets {
-            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
-        }
+        viewModel.document.pushLayoutUndoSnapshot(forModels: targets, includingSetPeers: false)
         guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
         let replaced = bridge.replaceModels(targets, withSource: source,
                                             keepStartChannel: keepStartChannel,

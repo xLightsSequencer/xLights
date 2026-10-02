@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.18  September ??, 2026
+    -bug (dkulp)                 iPad - Undo after dragging, aligning or distributing a Model Set member now
+                                 moves the whole Set back, and an align / flip / match size / bulk edit on
+                                 several models undoes in one step
     -bug (dkulp)                 Import Effects groups are readable in dark mode again for layouts saved by
                                  2024.09-2024.18, which stored the old dark blue highlight color
     -bug (derwin12)              Changing the sequencer View now clears the prop filter

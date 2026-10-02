@@ -28,6 +28,7 @@
 #include "effects/ShaderEffect.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "models/ModelSet.h"
 #include "models/MeshObject.h"
 #include "models/ImageObject.h"
 #include "models/GridlinesObject.h"
@@ -1402,13 +1403,11 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
     return true;
 }
 
-void iPadRenderContext::PushLayoutUndoSnapshotForModel(const std::string& modelName) {
-    if (modelName.empty()) return;
+bool iPadRenderContext::CaptureModelUndoEntry(const std::string& modelName, LayoutUndoEntry& e) const {
     Model* m = AllModels.GetModel(modelName);
-    if (!m) return;
+    if (!m) return false;
     auto& loc = m->GetModelScreenLocation();
     glm::vec3 rot = loc.GetRotation();
-    LayoutUndoEntry e;
     e.target = UndoTarget::Model;
     e.modelName = modelName;
     e.hcenter = loc.GetHcenterPos();
@@ -1423,11 +1422,54 @@ void iPadRenderContext::PushLayoutUndoSnapshotForModel(const std::string& modelN
     e.locked  = loc.IsLocked();
     e.layoutGroup    = m->GetLayoutGroup();
     e.controllerName = m->GetControllerName();
+    return true;
+}
 
-    _layoutUndoStack.push_back(std::move(e));
+void iPadRenderContext::PushLayoutUndoStep(LayoutUndoStep&& step) {
+    if (step.empty()) return;
+    _layoutUndoStack.push_back(std::move(step));
     while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
         _layoutUndoStack.pop_front();
     }
+}
+
+void iPadRenderContext::PushLayoutUndoSnapshotForModel(const std::string& modelName) {
+    PushLayoutUndoSnapshotForModels({ modelName }, false);
+}
+
+void iPadRenderContext::PushLayoutUndoSnapshotForModels(const std::vector<std::string>& modelNames,
+                                                        bool includeSetPeers) {
+    LayoutUndoStep step;
+    std::set<std::string> seen;
+    for (const auto& n : modelNames) {
+        if (n.empty() || !seen.insert(n).second) continue;
+        LayoutUndoEntry e;
+        if (CaptureModelUndoEntry(n, e)) step.push_back(std::move(e));
+    }
+    // Peers go after every named model so a peer that was also selected
+    // keeps its full entry.
+    if (includeSetPeers) {
+        for (const auto& n : modelNames) {
+            if (n.empty() || !AllModels.GetModel(n)) continue;
+            const ModelSet* s = AllModels.GetSetManager().GetSetContaining(n);
+            if (!s) continue;
+            for (const auto& p : s->GetMembers()) {
+                if (seen.count(p)) continue;
+                Model* pm = AllModels.GetModel(p);
+                if (!pm) continue;
+                seen.insert(p);
+                auto& loc = pm->GetModelScreenLocation();
+                LayoutUndoEntry e;
+                e.target = UndoTarget::ModelPosition;
+                e.modelName = p;
+                e.hcenter = loc.GetHcenterPos();
+                e.vcenter = loc.GetVcenterPos();
+                e.dcenter = loc.GetDcenterPos();
+                step.push_back(std::move(e));
+            }
+        }
+    }
+    PushLayoutUndoStep(std::move(step));
 }
 
 // J-17 — VO common-transform snapshot. ScaleX/Y/Z come from the
@@ -1461,10 +1503,7 @@ void iPadRenderContext::PushLayoutUndoSnapshotForViewObject(const std::string& o
     e.rotateZ = rot.z;
     e.locked  = loc.IsLocked();
     e.layoutGroup = vo->GetLayoutGroup();
-    _layoutUndoStack.push_back(std::move(e));
-    while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
-        _layoutUndoStack.pop_front();
-    }
+    PushLayoutUndoStep({ std::move(e) });
 }
 
 void iPadRenderContext::PushTerrainHeightmapUndoSnapshot(const std::string& terrainName) {
@@ -1477,17 +1516,21 @@ void iPadRenderContext::PushTerrainHeightmapUndoSnapshot(const std::string& terr
     e.target = UndoTarget::ViewObjectHeightmap;
     e.modelName = terrainName;
     e.pointData = sloc.GetDataAsString();
-    _layoutUndoStack.push_back(std::move(e));
-    while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
-        _layoutUndoStack.pop_front();
-    }
+    PushLayoutUndoStep({ std::move(e) });
 }
 
 bool iPadRenderContext::UndoLastLayoutChange() {
     if (_layoutUndoStack.empty()) return false;
-    LayoutUndoEntry e = _layoutUndoStack.back();
+    LayoutUndoStep step = std::move(_layoutUndoStack.back());
     _layoutUndoStack.pop_back();
+    bool applied = false;
+    for (const auto& e : step) {
+        applied = ApplyLayoutUndoEntry(e) || applied;
+    }
+    return applied;
+}
 
+bool iPadRenderContext::ApplyLayoutUndoEntry(const LayoutUndoEntry& e) {
     switch (e.target) {
     case UndoTarget::Model: {
         Model* m = AllModels.GetModel(e.modelName);
@@ -1505,6 +1548,15 @@ bool iPadRenderContext::UndoLastLayoutChange() {
         loc.SetLocked(e.locked);
         if (m->GetLayoutGroup() != e.layoutGroup) m->SetLayoutGroup(e.layoutGroup);
         if (m->GetControllerName() != e.controllerName) m->SetControllerName(e.controllerName);
+        MarkLayoutModelDirty(e.modelName);
+        return true;
+    }
+    case UndoTarget::ModelPosition: {
+        Model* m = AllModels.GetModel(e.modelName);
+        if (!m) return false;
+        m->SetHcenterPos(e.hcenter);
+        m->SetVcenterPos(e.vcenter);
+        m->SetDcenterPos(e.dcenter);
         MarkLayoutModelDirty(e.modelName);
         return true;
     }

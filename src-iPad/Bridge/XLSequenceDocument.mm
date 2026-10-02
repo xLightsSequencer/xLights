@@ -10973,6 +10973,17 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
     _context->PushLayoutUndoSnapshotForModel(std::string([modelName UTF8String]));
 }
 
+- (void)pushLayoutUndoSnapshotForModels:(NSArray<NSString*>*)modelNames
+                      includingSetPeers:(BOOL)includingSetPeers {
+    if (!_context || !modelNames) return;
+    std::vector<std::string> names;
+    names.reserve(modelNames.count);
+    for (NSString* n in modelNames) {
+        names.emplace_back(n.UTF8String);
+    }
+    _context->PushLayoutUndoSnapshotForModels(names, includingSetPeers);
+}
+
 - (void)pushLayoutUndoSnapshotForViewObject:(NSString*)objectName {
     if (!_context || !objectName) return;
     if ([objectName isEqualToString:kBackgroundPseudoObjectName]) return;

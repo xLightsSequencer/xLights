@@ -737,8 +737,10 @@ public:
     // Caller is expected to push BEFORE making the edit. UndoLast
     // pops the most recent snapshot and reapplies its values
     // through the regular setters, which marks the model dirty
-    // again so the change persists on next save. Stack is capped
-    // at 100 entries (oldest dropped on overflow).
+    // again so the change persists on next save. Each stack entry
+    // is one step (one user gesture) holding a snapshot per model it
+    // touched, so one undo reverts the whole gesture. Stack is capped
+    // at 100 steps (oldest dropped on overflow).
     // J-17 — undo entry now discriminated. Models capture
     // hcenter/vcenter/dcenter + width/height/depth + rotation +
     // locked + layoutGroup + controllerName. View objects use
@@ -746,6 +748,10 @@ public:
     // Heightmap entries snapshot just the PointData string.
     enum class UndoTarget : uint8_t {
         Model,
+        // Centre only. A Model Set peer is translated by a move of
+        // another member but nothing else about it changes, so undo
+        // must not touch its size / controller / group either.
+        ModelPosition,
         ViewObject,
         ViewObjectHeightmap,
     };
@@ -763,7 +769,14 @@ public:
         // Heightmap snapshot — comma-delimited point data string.
         std::string pointData;
     };
+    using LayoutUndoStep = std::vector<LayoutUndoEntry>;
     void PushLayoutUndoSnapshotForModel(const std::string& modelName);
+    // One undo step covering every named model. With
+    // `includeSetPeers`, the other members of each model's Model Set
+    // get a position-only entry too - pass it for the operations that
+    // translate Set peers (body drag, align, distribute).
+    void PushLayoutUndoSnapshotForModels(const std::vector<std::string>& modelNames,
+                                         bool includeSetPeers);
     // J-17 — capture a view-object's common transform + locked
     // state. Caller pushes BEFORE the edit.
     void PushLayoutUndoSnapshotForViewObject(const std::string& objectName);
@@ -918,9 +931,12 @@ private:
     // so per-controller granularity buys nothing.
     bool _controllersDirty = false;
 
-    // J-2 — undo stack for layout edits. Bounded to 100 entries.
-    std::deque<LayoutUndoEntry> _layoutUndoStack;
+    // J-2 — undo stack for layout edits. Bounded to 100 steps.
+    std::deque<LayoutUndoStep> _layoutUndoStack;
     static constexpr size_t kLayoutUndoMaxDepth = 100;
+    bool CaptureModelUndoEntry(const std::string& modelName, LayoutUndoEntry& e) const;
+    bool ApplyLayoutUndoEntry(const LayoutUndoEntry& e);
+    void PushLayoutUndoStep(LayoutUndoStep&& step);
 
     // Cache of the show folder's <colors> palette so per-frame bracket
     // queries don't re-scan XML. Populated on every LoadShowFolder.
