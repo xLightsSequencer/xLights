@@ -342,6 +342,7 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
     if (!shader) {
         return nullptr;
     }
+    shader->MarkIsUsed();
     std::string code = shader->GetShaderSource();
     return ParseShaderFromSource(filename, code, sequenceElements);
 }
