@@ -10,6 +10,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.19  October ??, 2026
+
+
 2026.18  October 2, 2026
 
     -change (heffneil)           The sequencer prop filter is no longer saved into the sequence;
