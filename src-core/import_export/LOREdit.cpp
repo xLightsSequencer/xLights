@@ -731,6 +731,11 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         std::string horizontalFade = parms[0];
         std::string verticalFade = parms[1];
 
+        if (otherSettings.size() > 3 && otherSettings[3] == "blink_in_unison") {
+            // a whole-effect on/off strobe, measured at 10Hz for rate 20; Color
+            // Wash's shimmer blanks every other frame, the same at 50ms frames
+            settings += ",E_CHECKBOX_ColorWash_Shimmer=1";
+        }
         if (parms[2] == "single_color") {
             // single colour mode shows only the first selected colour, where
             // xLights would cycle through every checked palette entry
@@ -844,10 +849,12 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Bars_BarCount", 1, 5, 1, 5, vcRepeat, BarsEffect::sBarCountMin, BarsEffect::sBarCountMax);
         std::string highlight = parms[2];
         std::string show3d = parms[3];
+        // LOR moves the bars speed/20 prop widths a second (measured against LOR
+        // renders); one xLights cycle is also one full width of the pattern
         std::string speed = parms[4];
         speed = fmt::format("{:.2f}", loreAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0)));
         std::string vcSpeed;
-        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BarsEffect::sCyclesMin, BarsEffect::sCyclesMax);
+        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 30, 0, 30, vcSpeed, BarsEffect::sCyclesMin, BarsEffect::sCyclesMax);
         std::string centre = parms[5];
         std::string vcCentre;
         centre = RescaleWithRangeI(centre, "E_VALUECURVE_Bars_Center", -50, 50, -100, 100, vcCentre, BarsEffect::sCenterMin, BarsEffect::sCenterMax);
@@ -918,8 +925,24 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         // (post-divisor slider vs pre-divisor VC) in the import path.
         speed = RescaleWithRangeF(speed, "E_VALUECURVE_Curtain_Speed", 0, 50, 0, 10, vcSpeed, 0, 10);
 
+        if (repeat == "once_fit_to_duration") {
+            // xLights' non-repeating curtain finishes at speed x the effect's
+            // length, so 1.0 ends exactly with it. LOR 6 adds a progress ramp
+            // (R0R100... = the whole movement).
+            double p0 = 0, p1 = 100;
+            if (!parms[5].empty()) {
+                ParamRange(parms[5], p0, p1);
+            }
+            double span = (p1 - p0) / 100.0;
+            speed = fmt::format("{:.2f}", p0 == 0 && span > 0 ? span : 1.0);
+            vcSpeed.clear();
+        }
+
         settings += ",E_CHOICE_Curtain_Edge=" + edge;
         Replace(movement, "_", " ");
+        if (movement == "chase") {
+            movement = "open then close"; // no chase in xLights
+        }
         settings += ",E_CHOICE_Curtain_Effect=" + movement;
         settings += ",E_SLIDER_Curtain_Swag=" + swag;
         settings += vcSwag;

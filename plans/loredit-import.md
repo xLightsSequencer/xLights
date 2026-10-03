@@ -409,6 +409,11 @@ common 50 ms frame time this is exactly Color Wash's existing **Shimmer**
 other frame times, or other rates, use a brightness square-wave value curve
 instead (period = 2 / rate seconds).
 
+**Implemented for Color Wash** (1,797 of the 1,979 blinking effects across
+both files): `E_CHECKBOX_ColorWash_Shimmer=1`. Not mapped: 126 single blocks
+(Morph) and 56 bars, whose brightness curve already carries the intensity
+ramp — a gap.
+
 ### 6.3 Color Wash modes
 
 `single_color` (22,205), `diagonal_up_gradient` (8), `diagonal_down_gradient`
@@ -418,11 +423,29 @@ Horizontal/vertical fade fields are all `full` here (already mapped).
 
 ### 6.4 Spirals / Bars speed calibration
 
+**Bars — done.** Tracking the colour bands along the front roofline in the
+vendor video (speed 19, one bar per colour, 3.13 s): the pattern moves one
+full prop width every 1.03 s, i.e. **speed/20 widths per second**. One
+xLights Bars cycle is also one pattern width (`barCount = repeat × colours`,
+block = extent / repeat), so cycles = speed × duration / 20; the old extra
+0–50 → 0–30 rescale is gone. Re-imported and rendered through automation:
+the roofline repeats every 21 frames = 1.05 s.
+
+Spirals: same speed × duration / 20 form (no rescale); not yet measured —
+the only recorded spirals are on the 180° tree, whose projection and a
+concurrent fade make the stripes hard to track.
+
 Both convert speed with `speed / (20 / durationSeconds)` heuristics. Calibrate
 against the video: spirals here are `1, left_to_right, 20, 50, 0, False,
 trail_left, 50` at 0.18–1.2 s durations.
 
 ### 6.5 Curtain "Progress"
+
+**Done.** xLights' non-repeating curtain finishes at speed × the effect's
+length, so "once fit to duration" now writes speed 1.0 (or the progress
+ramp's span when it starts at 0) instead of 2.4, which finished every close
+at 42% of the effect. Matches the roof-snowflake curtains in the video,
+which complete exactly at the effect end. LOR `chase` → "open then close".
 
 S6 added a sixth param (`R0R100R1.00R2.00R0.00` = progress ramp 0→100 with
 `once_fit_to_duration`). Map to Curtain speed so the open/close completes in

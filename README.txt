@@ -34,8 +34,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  and/or auto map, without the mapping dialog
     -bug (dkulp)                 LOR S5/S6 import: effects with an Overlay mix no longer import
                                  invisible or at half brightness, bars and spirals keep their
-                                 movement, diagonal bars, text colour, meteor colours and
-                                 single-colour washes convert correctly
+                                 movement at LOR's speed, curtains finish with the effect, diagonal
+                                 bars, text colour, meteor colours and single-colour washes convert
+                                 correctly
 
 2026.18  October 2, 2026
 
