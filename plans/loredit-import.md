@@ -1,8 +1,10 @@
 # LOR `.loredit` (S5/S6) import — enhancement plan
 
 Status: Phases 7 (shared apply loop), 1 (quick wins), 2 (Single Block →
-Morph), 3 (SVG Pictures + sketches), 5 (custom rows as sources) and §7a
-(singing faces) are implemented; 4 and 6 remain.
+Morph), 3 (SVG Pictures + sketches), 4 (bars/curtain/blink calibration),
+5 (custom rows as sources), 6 (layer consolidation) and §7a (singing faces)
+are implemented. Open: spirals speed, two-sided Overlay below 100, colour
+wash gradient modes, blink on non-wash effects.
 Originally written from a full audit of one
 real-world LOR 6.6 file (a vendor store sequence for a "Pixel Bright" pixel
 layout, `saveFileVersion="16"`, ~165 s, 408 sequenced props, 67,158 effects)
@@ -582,6 +584,18 @@ Original plan:
    Default to Auto.
 
 ## 8. Phase 6 — layer consolidation
+
+**Implemented** (`CompactS5Layers`): after a prop's tracks are mapped, each
+effect moves up to the highest layer it can occupy without passing an effect
+that overlaps it in time, and emptied layers are dropped — only when those
+layers held nothing before the import. Nothing drawn between an effect and
+its old layer changes and each effect keeps its own blend settings, so the
+render is unchanged: imported through automation with and without
+compaction (same build tree), a copy of file 1 with its random effects
+removed renders **byte-identically** (3,320 frames × 24,150 channels);
+with them, only frames where an RNG effect is active differ, because the
+random seed includes the layer index. Singing matrix 32 → 12 layers, tree
+22 → 19.
 
 After §3.1, pack rows into the fewest layers: tracks whose regions are
 disjoint, or whose effects never overlap in time, can share a layer. Greedy

@@ -18,7 +18,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  columns) land on the matching part of the model, later LOR rows
                                  draw on top, Single Block imports as Morph, embedded pictures and
                                  GIFs are carried into the sequence, and starfield, moving shapes,
-                                 spin fade and simple shape effects are no longer dropped
+                                 spin fade and simple shape effects are no longer dropped; imported
+                                 effects are packed onto as few layers as render the same
     -enh (dkulp)                 Pictures effect can use SVG images, drawn sharp at the model's size
     -enh (dkulp)                 LOR S5/S6 import: LOR sketch effects (singing faces, drawings) import
                                  as embedded SVG pictures instead of empty Sketch effects

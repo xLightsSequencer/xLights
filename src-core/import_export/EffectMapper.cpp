@@ -280,6 +280,58 @@ void MapXLightsEffects(Element* target,
 
 static void MapS5Face(Element* target, const LOREdit& lorEdit, const std::string& faceSource, int offset, bool eraseExisting);
 
+// LOR gives every motion row its own layer. Once imported, move each effect
+// up to the highest layer it can occupy without passing an effect that
+// overlaps it in time - so nothing that was drawn between it and its old
+// layer changes, and the result renders the same - then drop the emptied
+// layers. Only for layers that held nothing before the import.
+static void CompactS5Layers(Element* el, int first, int count)
+{
+    for (int j = first + 1; j < first + count; ++j) {
+        EffectLayer* from = el->GetEffectLayer(j);
+        for (int idx = 0; idx < from->GetEffectCount();) {
+            Effect* e = from->GetEffect(idx);
+            int start = e->GetStartTimeMS();
+            int end = e->GetEndTimeMS();
+            int k = j;
+            while (k > first && !el->GetEffectLayer(k - 1)->HasEffectsInTimeRange(start, end)) {
+                --k;
+            }
+            if (k == j) {
+                ++idx;
+                continue;
+            }
+            el->GetEffectLayer(k)->AddEffect(0, e->GetEffectName(), e->GetSettingsAsString(), e->GetPaletteAsString(), start, end, false, false);
+            from->RemoveEffect(idx);
+        }
+    }
+    for (int j = first + count - 1; j >= first; --j) {
+        if (el->GetEffectLayerCount() > 1 && el->GetEffectLayer(j)->GetEffectCount() == 0) {
+            el->RemoveEffectLayer(j);
+        }
+    }
+}
+
+static void MapS5TrackLayers(const EffectManager& effectManager, Element* el, const LOREdit& lorEdit, const std::string& mapping, Model* m, int frequency, int offset, bool eraseExisting)
+{
+    int layers = lorEdit.GetModelLayers(mapping);
+    bool fresh = true;
+    for (int i = 0; i < layers && i < (int)el->GetEffectLayerCount(); ++i) {
+        if (!eraseExisting && el->GetEffectLayer(i)->GetEffectCount() > 0) {
+            fresh = false;
+        }
+    }
+    for (int i = 0; i < layers; i++) {
+        if ((int)el->GetEffectLayerCount() < i + 1) {
+            el->AddEffectLayer();
+        }
+        MapS5(effectManager, i, el->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
+    }
+    if (fresh && layers > 1) {
+        CompactS5Layers(el, 0, layers);
+    }
+}
+
 namespace {
 // Adds one converted LOR track effect, embedding any LOR picture it uses into
 // the target sequence's media so the .xsq is self-contained.
@@ -497,12 +549,7 @@ void MapS5Effects(const EffectManager& effectManager, Element* model, const LORE
             }
         }
     } else if (st == loreditType::TRACKS) {
-        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
-            if ((int)model->GetEffectLayerCount() < i + 1) {
-                model->AddEffectLayer();
-            }
-            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
-        }
+        MapS5TrackLayers(effectManager, model, lorEdit, mapping, m, frequency, offset, eraseExisting);
     }
 }
 
@@ -531,12 +578,7 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
             }
         }
     } else if (st == loreditType::TRACKS) {
-        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
-            if ((int)se->GetEffectLayerCount() < i + 1) {
-                se->AddEffectLayer();
-            }
-            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
-        }
+        MapS5TrackLayers(effectManager, se, lorEdit, mapping, m, frequency, offset, eraseExisting);
     }
 }
 
@@ -776,11 +818,6 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const
             }
         }
     } else if (st == loreditType::TRACKS) {
-        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
-            if ((int)se->GetEffectLayerCount() < i + 1) {
-                se->AddEffectLayer();
-            }
-            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
-        }
+        MapS5TrackLayers(effectManager, se, lorEdit, mapping, m, frequency, offset, eraseExisting);
     }
 }
