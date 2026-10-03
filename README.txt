@@ -12,8 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
-    -bug (jrmartin)              Models assigned to a PWM port on an auto-layout controller no longer
-                                 start one channel early until xLights is restarted
+    -bug (nsxfreddy)             Models newly assigned to a PWM or serial (DMX) port on an auto-layout
+                                 controller no longer start one channel early
     -enh (dkulp)                 Bars: new "Custom" direction with an Angle slider (-180 to 180) to move
                                  the bars in any direction
     -enh (dkulp)                 LOR S5/S6 import: effects on LOR motion-row regions (strands, tiers,
