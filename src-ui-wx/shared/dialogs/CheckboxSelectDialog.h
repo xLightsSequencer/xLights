@@ -88,3 +88,9 @@ class CheckboxSelectDialog: public wxDialog
 		DECLARE_EVENT_TABLE()
 };
 
+// Filterable single-choice model picker (a search box above a single-select
+// list). Returns the chosen model name, or an empty string if cancelled. Used
+// by the Faces/States/SubModels "Import From Model" pickers so a long model list
+// can be narrowed instead of scrolled. title defaults to "Select Model".
+wxString ChooseModelWithFilter(wxWindow* parent, const wxArrayString& choices, const wxString& title = wxString());
+
