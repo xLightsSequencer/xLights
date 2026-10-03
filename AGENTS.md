@@ -281,7 +281,8 @@ XL_FSEQCMP_DUMPCH=<ch> xLights --fseqcmp -s <showdir> <a.fseq> <b.fseq>  # dump 
   and skews timing.
 - **Sandbox:** the binary can only read paths it has a bookmark for (the show /
   fseq dirs opened in the GUI), NOT `/private/tmp`. Headless and `--fseqcmp` call
-  `ObtainAccessToURL`; stage comparison fseqs under the show dir or `~/Documents`.
+  `ObtainAccessToURL`; stage comparison fseqs under the show dir, the configured FSEQ output
+  directory, or another machine-specific location.
 - **`-r` overwrites** fseqs in the configured folder — use `--outputdir` to redirect.
 - **Expected (non-bug) diffs vs desktop:** GPU shaders (separate GL context, small
   per-channel float) and physics effects (LiquidFun/Box2D). Video effects are
