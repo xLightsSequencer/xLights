@@ -1401,7 +1401,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         std::string newProtocol = _model.GetControllerProtocol();
 
         if (!IsPixelProtocol(newProtocol)) {
-            if (_model.GetControllerDMXChannel() == -1) {
+            if (_model.GetControllerDMXChannel() <= 0) {
                 _model.SetControllerDMXChannel(1);
             }
         }
