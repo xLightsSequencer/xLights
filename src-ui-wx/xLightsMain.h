@@ -11,7 +11,8 @@
  **************************************************************/
 
 #ifdef _MSC_VER
-    #include <stdlib.h>
+    #include <optional>
+#include <stdlib.h>
 
     //#define VISUALSTUDIO_MEMORYLEAKDETECTIO
     #ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
@@ -557,7 +558,9 @@ public:
     bool ImportLMS(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportLPE(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportVixen3(const wxFileName &filename);
-    bool ImportS5(pugi::xml_document &doc, const wxFileName &filename);
+    // mapFile / autoMap run the import without showing the mapping dialog
+    bool ImportS5(pugi::xml_document &doc, const wxFileName &filename, const std::string& mapFile = std::string(),
+                  bool autoMap = false, std::optional<int> timeAdjustMS = std::nullopt);
 
     void SuspendRender(bool suspend) { _suspendRender = suspend; }
     bool IsRenderSuspended() const { return _suspendRender; }

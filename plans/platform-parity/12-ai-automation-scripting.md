@@ -110,6 +110,7 @@ _Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ miss
 | 96 | `getEffectSettings` | `:1083-1116` | 🚫 | Interactive only (`EffectSettingsView.swift`) |
 | 97 | `setEffectSettings` | `:1117-1162` | 🚫 | Interactive only |
 | 98 | `importXLightsSequence` | `:1163-1189` | 🚫 | Interactive equivalent: `ImportEffectsView.swift` |
+| 98a | `importS5Sequence` (LOR `.loredit` with mapping file / auto map) | `xLightsAutomations.cpp` `importS5Sequence` → `ImportS5(doc, fn, mapFile, autoMap, timeAdjust)` | 🚫 | Same as row 98: no automation server on iPad; interactive equivalent is the `.loredit` branch of `ImportEffectsView.swift` |
 | 99 | `getShowFolder` | `:1190-1191` | 🚫 | Interactive only |
 | 100 | `listSequences` | `:1192-1225` | 🚫 | Interactive: `RecentSequences.swift` / show-folder browse |
 | 101 | `getSequenceInfo` | `:1226-1252` | 🚫 | Interactive: `SequenceSettingsSheet.swift` |

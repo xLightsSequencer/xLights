@@ -806,6 +806,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             }
         }
 
+        if (UnsavedPresetChanges) {
+            if (force) {
+                UnsavedPresetChanges = false;
+            } else {
+                return sendResponse("Effect presets have unsaved changes.", "msg", 503, false);
+            }
+        }
+
         // Click on the File quit menu item
         wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_EXIT);
         wxPostEvent(this, evt);
@@ -1305,6 +1313,52 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         mainSequencer->PanelEffectGrid->Refresh();
 
         std::string response = "{\"msg\":\"Imported XLights Sequence.\",\"worked\":\"true\"}";
+        return sendResponse(response, "", 200, true);
+    } else if (cmd == "importS5Sequence") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto filename = params["filename"];
+        if (filename == "" || filename == "null") {
+            return sendResponse("Import file not valid.", "msg", 503, false);
+        }
+        ObtainAccessToURL(filename);
+        if (!wxFile::Exists(filename)) {
+            return sendResponse("Import file not valid.", "msg", 503, false);
+        }
+        auto mapmethod = params["mapmethod"];
+        if (mapmethod.empty()) mapmethod = "file";
+        bool autoMap = (mapmethod == "auto") || (mapmethod == "both");
+        auto mapname = params["mapfile"];
+        if (mapmethod != "auto") {
+            if (mapname == "" || mapname == "null") {
+                return sendResponse("Mapping File not valid.", "msg", 503, false);
+            }
+            ObtainAccessToURL(mapname);
+            if (!wxFile::Exists(mapname)) {
+                return sendResponse("Mapping File not valid.", "msg", 503, false);
+            }
+        } else {
+            mapname = "";
+        }
+        std::optional<int> timeAdjust;
+        auto adjust = params["timeadjust"];
+        if (!adjust.empty() && adjust != "null") {
+            timeAdjust = (int)std::strtol(adjust.c_str(), nullptr, 10);
+        }
+        pugi::xml_document doc;
+        if (!doc.load_file(filename.c_str())) {
+            return sendResponse("Could not read the LOR sequence.", "msg", 503, false);
+        }
+        if (!ImportS5(doc, wxFileName(filename), mapname, autoMap, timeAdjust)) {
+            return sendResponse("Import failed.", "msg", 503, false);
+        }
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(this, eventRowHeaderChanged);
+        mainSequencer->PanelEffectGrid->Refresh();
+
+        std::string response = "{\"msg\":\"Imported LOR Sequence.\",\"worked\":\"true\"}";
         return sendResponse(response, "", 200, true);
     } else if (cmd == "getShowFolder") {
         return sendResponse(JSONSafe(showDirectory), "folder", 200, false);

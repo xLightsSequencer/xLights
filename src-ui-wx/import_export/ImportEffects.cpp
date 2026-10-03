@@ -3002,9 +3002,10 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const pug
     }
 }
 
-bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& filename)
+bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& filename, const std::string& mapFile, bool autoMap, std::optional<int> timeAdjustMS)
 {
-    DisplayWarning(
+    bool const interactive = mapFile.empty() && !autoMap;
+    if (interactive) DisplayWarning(
         "WARNING: As at this release S5 import is experimental and its improvement relies on your feedback.\nIf it doesnt do a good job let us know by telling us:\n\
         - which effect\n\
         - which setting you had to fine tune\n\
@@ -3031,7 +3032,16 @@ bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& fil
 
     dlg.InitImport("Stands and Channels");
 
-    if (dlg.ShowModal() != wxID_OK || dlg._dataModel == nullptr) {
+    if (!mapFile.empty()) {
+        dlg.LoadMappingFile(mapFile, true);
+    }
+    if (autoMap) {
+        dlg.AutoMap();
+    }
+    if (timeAdjustMS.has_value()) {
+        dlg.TimeAdjustSpinCtrl->SetValue(*timeAdjustMS);
+    }
+    if ((interactive && dlg.ShowModal() != wxID_OK) || dlg._dataModel == nullptr) {
         return false;
     }
     RecordImportDonor(dlg);

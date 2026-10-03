@@ -28,6 +28,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 LOR S5/S6 import: singing faces get lip-sync timing tracks rebuilt from
                                  their mouth shapes (one per voice), and each face can be mapped as a
                                  whole onto a model to create a Faces effect driven by that track
+    -bug (dkulp)                 Automation: closexLights with force no longer stops at the "Save Effect
+                                 Preset changes?" prompt
+    -enh (dkulp)                 Automation: importS5Sequence imports a LOR .loredit with a mapping file
+                                 and/or auto map, without the mapping dialog
     -bug (dkulp)                 LOR S5/S6 import: effects with an Overlay mix no longer import
                                  invisible or at half brightness, bars and spirals keep their
                                  movement, diagonal bars, text colour, meteor colours and
