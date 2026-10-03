@@ -940,8 +940,8 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, &response_code);
         spdlog::info("    FPPConnect CURL Callback - URL: {}    Response: {}", ps->fullUrl, response_code);
         bool cancelled = false;
-        if (response_code != 200 && ps->errorCount < 3) {
-            // strange error on upload, let's restart and try again (up to three attempts)
+        if ((response_code == 0 || response_code >= 500) && ps->errorCount < 3) {
+            // transport or server error on upload, let's restart and try again (up to three attempts)
             ps->offset = 0;
             ps->in.clear();
             ps->in.seekg(0);
