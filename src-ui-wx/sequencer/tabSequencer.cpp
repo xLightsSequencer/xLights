@@ -1789,6 +1789,38 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
     }
 }
 
+void xLightsFrame::RememberDockSizesBeforeMaximize()
+{
+    if (m_mgr == nullptr) return;
+
+    std::map<std::tuple<int, int, int>, int> dockSizes;
+    wxStringTokenizer tok(m_mgr->SavePerspective(), "|");
+    while (tok.HasMoreTokens()) {
+        wxString part = tok.GetNextToken();
+        int dir = 0, layer = 0, row = 0, size = 0;
+        if (part.StartsWith("dock_size(") &&
+            wxSscanf(part, "dock_size(%d,%d,%d)=%d", &dir, &layer, &row, &size) == 4 &&
+            size > 0) {
+            dockSizes[{ dir, layer, row }] = size;
+        }
+    }
+
+    wxAuiPaneInfoArray& panes = m_mgr->GetAllPanes();
+    for (size_t i = 0; i < panes.GetCount(); ++i) {
+        wxAuiPaneInfo& p = panes.Item(i);
+        if (p.IsToolbar() || !p.IsDocked() || !p.IsShown()) continue;
+        auto it = dockSizes.find({ p.dock_direction, p.dock_layer, p.dock_row });
+        if (it != dockSizes.end()) {
+            p.dock_size = it->second;
+        }
+    }
+}
+
+void xLightsFrame::OnPaneMaximize(wxAuiManagerEvent& event)
+{
+    RememberDockSizesBeforeMaximize();
+}
+
 void xLightsFrame::AutoShowHouse()
 {
     if (m_mgr == nullptr || IsExiting()) return;
@@ -1810,6 +1842,7 @@ void xLightsFrame::AutoShowHouse()
                 hp.Show();
                 if (_wasMaximised)
                 {
+                    RememberDockSizesBeforeMaximize();
                     m_mgr->MaximizePane(hp);
                 }
                 m_mgr->Update();

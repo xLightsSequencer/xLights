@@ -633,6 +633,7 @@ public:
     void OnMenuItemConvertSelected(wxCommandEvent& event);
     void OnMenu_GenerateCustomModelSelected(wxCommandEvent& event);
     void OnPaneClose(wxAuiManagerEvent& event);
+    void OnPaneMaximize(wxAuiManagerEvent& event);
     void OnMenuItemPackageDebugFiles(wxCommandEvent& event);
     void OnTimer_AutoSaveTrigger(wxTimerEvent& event);
     void OnEffectSettingsTimerTrigger(wxTimerEvent& event);
@@ -2048,6 +2049,7 @@ private:
     bool CleanupSequenceFileLocations();
     void DoDonate();
     void AutoShowHouse();
+    void RememberDockSizesBeforeMaximize();
     // Asynchronous: issues the release query through CurlManager and handles the
     // result from the idle pump. Nothing here blocks, so no nested event loop.
     void CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes);
