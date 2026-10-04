@@ -52,7 +52,7 @@ static NSError* MakeError(NSInteger code, NSString* msg) {
         _ySize = 50;
         _xOffset = 0;
         _yOffset = 0;
-        _imageResize = XLSuperStarImageResizeNone;
+        _imageResize = XLSuperStarImageResizeAll;
         _layerBlend = [XLSuperStarLayerBlend2Reveals1 copy];
         _timingOffsetMs = 0;
         _imageGroupPrefix = @"";

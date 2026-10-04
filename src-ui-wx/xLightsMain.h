@@ -11,8 +11,7 @@
  **************************************************************/
 
 #ifdef _MSC_VER
-    #include <optional>
-#include <stdlib.h>
+    #include <stdlib.h>
 
     //#define VISUALSTUDIO_MEMORYLEAKDETECTIO
     #ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
@@ -61,6 +60,7 @@
 #include <memory>
 #include <unordered_map>
 #include <map>
+#include <optional>
 #include <set>
 #include <source_location>
 #include <string>
@@ -80,6 +80,7 @@
 #include "outputs/OutputManager.h"
 #include "render/PixelBuffer.h"
 #include "render/SequenceData.h"
+#include "import_export/SuperStarImporter.h"
 #include "effects/EffectManager.h"
 #include "effectpanels/EffectPanelManager.h"
 #include "shared/utils/wxUtilities.h"
@@ -529,6 +530,14 @@ public:
     void ImportLSP(const wxFileName &filename);
     void ImportVsa(const wxFileName &filename);
     void ImportSuperStar(const wxFileName &filename);
+    // Imports onto a model, submodel or strand (full name) without the
+    // dialog. With no prompt the prefix comes from opt or the file name.
+    bool ImportSuperStar(const wxFileName& filename, const std::string& modelName, SuperStar::Options opt,
+                         const SuperStar::PrefixPromptCallback& prompt, std::string& err);
+    // Deletes the unlocked effects on an element and drops its emptied
+    // layers; returns the number of effects removed.
+    int ClearElementEffects(Element* element, bool includeSubModels);
+    Element* FindModelOrSubModelElement(const std::string& fullName);
     void CloneXLightsEffects(EffectLayer* target, EffectLayer* src, bool eraseExisting);
     bool CloneXLightsEffects(const std::string& target,
                              const std::string& source,

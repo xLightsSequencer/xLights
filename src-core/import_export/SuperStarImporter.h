@@ -40,7 +40,10 @@ struct Options {
     int ySize = 50;
     int xOffset = 0;
     int yOffset = 0;
-    ImageResize imageResize = ImageResize::None;
+    // Scaling images like the rest of the effects (which are placed in
+    // percentages of the model) keeps them lined up on a model of a different
+    // size than the SuperStar layout.
+    ImageResize imageResize = ImageResize::All;
     // Layer blend choice — the literal string used as T_CHOICE_LayerMethod.
     // "Normal" (or empty) means no override is emitted. Other accepted values
     // include "Average" and "2 reveals 1".
@@ -57,7 +60,9 @@ struct Options {
     int modelHeight = 1;
     // Default group/prefix name suggested when prompting for image group.
     std::string defaultGroupName;
-    // If non-empty, used as the image-group prefix without prompting.
+    // If non-empty, used as the image-group prefix without prompting. Either
+    // way the prefix is renamed (<prefix>-2, ...) if effects still use images
+    // under it, and unreferenced leftovers under it are dropped.
     std::string imageGroupPrefix;
 };
 
@@ -84,13 +89,25 @@ public:
     }
 
     // Run the import. Returns false on prefix-prompt cancel or fatal parse
-    // failure (missing <layouts>); effects already added prior to a failure
-    // remain in place, matching desktop behaviour. If `errorOut` is non-null,
-    // a human-readable message is written there on fatal failure.
+    // failure (missing <layouts>), in which case no effects are added. If
+    // `errorOut` is non-null, a human-readable message is written there on
+    // fatal failure.
     bool Run(pugi::xml_document& doc, std::string* errorOut = nullptr);
 
 private:
+    struct QueuedEffect {
+        int layer;
+        int startMS;
+        int endMS;
+        std::string name;
+        std::string settings;
+        std::string palette;
+    };
+
     bool PromptForPrefix();
+    std::string ClaimPrefix(const std::string& base);
+    void Queue(int layer, const std::string& name, const std::string& settings, const std::string& palette, int startMS, int endMS);
+    void PlaceQueued();
 
     Element* _model;
     SequenceMedia* _media;
@@ -98,6 +115,7 @@ private:
     PrefixPromptCallback _prefixCallback;
     std::string _imagePrefix;
     std::string _blendString; // "" or ",T_CHOICE_LayerMethod=...,"
+    std::vector<QueuedEffect> _queued;
 };
 
 } // namespace SuperStar

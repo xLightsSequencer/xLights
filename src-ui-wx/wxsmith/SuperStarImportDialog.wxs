@@ -152,7 +152,7 @@
 										<item>Exact Width or Height</item>
 										<item>All</item>
 									</content>
-									<selection>0</selection>
+									<selection>4</selection>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>

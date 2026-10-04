@@ -111,6 +111,9 @@ _Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ miss
 | 97 | `setEffectSettings` | `:1117-1162` | 🚫 | Interactive only |
 | 98 | `importXLightsSequence` | `:1163-1189` | 🚫 | Interactive equivalent: `ImportEffectsView.swift` |
 | 98a | `importS5Sequence` (LOR `.loredit` with mapping file / auto map) | `xLightsAutomations.cpp` `importS5Sequence` → `ImportS5(doc, fn, mapFile, autoMap, timeAdjust)` | 🚫 | Same as row 98: no automation server on iPad; interactive equivalent is the `.loredit` branch of `ImportEffectsView.swift` |
+| 98b | `importSuperStar` (`.sup` onto a model/submodel, all dialog options, `replace` clears the target + unreferenced media first) | `xLightsAutomations.cpp` `importSuperStar` → `ImportSuperStar(fn, model, opt, nullptr, err)` | 🚫 | No automation server on iPad; interactive equivalent `SuperStarImportView.swift` (same core importer) |
+| 98c | `clearModelEffects` (optionally submodels/strands/nodes, prunes unreferenced media) | `xLightsAutomations.cpp` `clearModelEffects` → `ClearElementEffects` | 🚫 | No automation server on iPad |
+| 98d | `removeUnusedMedia` | `xLightsAutomations.cpp` `removeUnusedMedia` → core `SequenceElements::RemoveUnreferencedMedia` | 🚫 | No automation server on iPad; interactive "Remove Unused Media…" uses the same core call |
 | 99 | `getShowFolder` | `:1190-1191` | 🚫 | Interactive only |
 | 100 | `listSequences` | `:1192-1225` | 🚫 | Interactive: `RecentSequences.swift` / show-folder browse |
 | 101 | `getSequenceInfo` | `:1226-1252` | 🚫 | Interactive: `SequenceSettingsSheet.swift` |

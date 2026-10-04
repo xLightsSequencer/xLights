@@ -2216,7 +2216,7 @@ std::map<std::string, std::pair<int, int>> SequenceElements::RewriteMediaReferen
     mSequenceFaces.RewriteImagePath(from, to);
 
     const auto initRange = std::make_pair(std::numeric_limits<int>::max(), 0);
-    auto scanLayer = [&](EffectLayer* layer, const std::string& modelName) {
+    ForEachModelEffectLayer([&](EffectLayer* layer, const std::string& modelName) {
         for (int k = 0; k < layer->GetEffectCount(); ++k) {
             Effect* eff = layer->GetEffect(k);
             const SettingsMap& settings = eff->GetSettings();
@@ -2232,8 +2232,11 @@ std::map<std::string, std::pair<int, int>> SequenceElements::RewriteMediaReferen
             range.first = std::min(range.first, eff->GetStartTimeMS());
             range.second = std::max(range.second, eff->GetEndTimeMS());
         }
-    };
+    });
+    return dirtyModels;
+}
 
+void SequenceElements::ForEachModelEffectLayer(const std::function<void(EffectLayer*, const std::string&)>& fn) const {
     for (size_t i = 0; i < GetElementCount(); ++i) {
         Element* e = GetElement(i);
         if (e == nullptr || e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
@@ -2242,25 +2245,55 @@ std::map<std::string, std::pair<int, int>> SequenceElements::RewriteMediaReferen
 
         const std::string& modelName = model->GetModelName();
         for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j) {
-            scanLayer(model->GetEffectLayer(j), modelName);
+            fn(model->GetEffectLayer(j), modelName);
         }
         for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
             SubModelElement* sub = model->GetSubModel(j);
             if (sub == nullptr) continue;
             for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l) {
-                scanLayer(sub->GetEffectLayer(l), modelName);
+                fn(sub->GetEffectLayer(l), modelName);
             }
             if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                 StrandElement* strand = dynamic_cast<StrandElement*>(sub);
                 if (strand != nullptr) {
                     for (int k = 0; k < strand->GetNodeLayerCount(); ++k) {
-                        scanLayer(strand->GetNodeLayer(k), modelName);
+                        fn(strand->GetNodeLayer(k), modelName);
                     }
                 }
             }
         }
     }
-    return dirtyModels;
+}
+
+std::unordered_set<std::string> SequenceElements::GetEffectSettingValues() const {
+    std::unordered_set<std::string> values;
+    ForEachModelEffectLayer([&](EffectLayer* layer, const std::string&) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            for (const auto& kv : eff->GetSettings()) {
+                values.insert(kv.second);
+            }
+            for (const auto& kv : eff->GetPaletteMap()) {
+                values.insert(kv.second);
+            }
+        }
+    });
+    return values;
+}
+
+int SequenceElements::RemoveUnreferencedMedia() {
+    std::unordered_set<std::string> used = GetEffectSettingValues();
+    for (const auto& p : mSequenceFaces.GetImagePaths()) {
+        used.insert(p);
+    }
+    int removed = 0;
+    for (const auto& p : mSequenceMedia.GetAllMediaPaths()) {
+        if (used.count(p.first) == 0 && !mSequenceMedia.IsUsedByMetadata(p.first)) {
+            mSequenceMedia.RemoveMedia(p.first);
+            ++removed;
+        }
+    }
+    return removed;
 }
 
 std::string SequenceElements::MakeMediaPathRelative(const std::string& path) {
