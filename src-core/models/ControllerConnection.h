@@ -83,6 +83,9 @@ public:
     void SetProtocol(std::string const& protocol);
     void SetSerialProtocolSpeed(int speed);
     void SetCtrlPort(int port);
+    // Every connection setting from other (port, protocol, nulls, brightness,
+    // smart remote, ...), keeping this connection's owning model.
+    void CopySettingsFrom(const ControllerConnection& other);
     void SetBrightness(int brightness);
     void SetStartNulls(int nulls);
     void SetEndNulls(int nulls);

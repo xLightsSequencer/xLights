@@ -2414,6 +2414,15 @@ bool ModelManager::Delete(const std::string& name)
                         it3.second->SetStartChannel(model->ModelStartChannel);
                     }
                 }
+                // Likewise on the port: whatever followed us now follows what we
+                // followed. A dangling chain is reset to the start of the port
+                // by ReworkStartChannel and overlaps the first model there.
+                const std::string chainedAfterUs = ">" + model->GetName();
+                for (auto it3 : models) {
+                    if (it3.second->GetModelChain() == chainedAfterUs) {
+                        it3.second->SetModelChain(model->GetModelChain());
+                    }
+                }
 
                 FreeModel(model);
                 if (_renderContext) _renderContext->MarkRgbEffectsChanged();

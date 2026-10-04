@@ -1618,14 +1618,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         mgr.AddModel(clone);
 
         if (keepStartChannel) {
-            clone->SetStartChannel(target->ModelStartChannel);
-            clone->SetControllerProtocol(target->GetControllerProtocol());
-            clone->SetControllerPort(target->GetControllerPort());
-            clone->SetControllerName(target->GetControllerName());
-            clone->SetSmartRemote(target->GetSmartRemote());
-            clone->SetSmartRemoteType(target->GetSmartRemoteType());
-            clone->SetSRMaxCascade(target->GetSRMaxCascade());
-            clone->SetSRCascadeOnPort(target->GetSRCascadeOnPort());
+            clone->CopyChannelSettingsFrom(*target);
         }
         if (keepSubmodels) {
             for (int i = 0; i < target->GetNumSubModels(); ++i) {

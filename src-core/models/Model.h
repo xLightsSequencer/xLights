@@ -419,6 +419,9 @@ public:
     void SetAliases(const std::list<std::string>& aliases);
 
     void SetModelChain(const std::string& modelChain);
+    // Start channel, controller, full controller connection and model chain -
+    // what Replace Model keeps so a replacement lands where the original was.
+    void CopyChannelSettingsFrom(const Model& other);
     [[nodiscard]] std::string GetModelChain() const;
     [[nodiscard]] const std::vector<Model*>& GetSubModels() const {
         return subModels;

@@ -10552,14 +10552,7 @@ void LayoutPanel::ReplaceModel()
         // Per-target carryovers. These match the semantics of the three Yes/No
         // prompts in the existing single-replace flow (see ReplaceModel()).
         if (copyStartCh) {
-            clone->SetStartChannel(target->ModelStartChannel);
-            clone->SetControllerProtocol(target->GetControllerProtocol());
-            clone->SetControllerPort(target->GetControllerPort());
-            clone->SetControllerName(target->GetControllerName());
-            clone->SetSmartRemote(target->GetSmartRemote());
-            clone->SetSmartRemoteType(target->GetSmartRemoteType());
-            clone->SetSRMaxCascade(target->GetSRMaxCascade());
-            clone->SetSRCascadeOnPort(target->GetSRCascadeOnPort());
+            clone->CopyChannelSettingsFrom(*target);
         }
         if (mergeSubs) {
             for (int i = 0; i < target->GetNumSubModels(); ++i) {

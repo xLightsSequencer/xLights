@@ -99,6 +99,20 @@ void ControllerConnection::SetCtrlPort(int port)
     _model->IncrementChangeCount();
 }
 
+void ControllerConnection::CopySettingsFrom(const ControllerConnection& other)
+{
+    if (&other == this) return;
+    Model* owner = _model;
+    *this = other;
+    _model = owner;
+    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_MODELLIST, "ControllerConnection::CopySettingsFrom");
+    _model->IncrementChangeCount();
+}
+
 void ControllerConnection::SetBrightness(int brightness)
 {
      if (brightness == _brightness) return;

@@ -1086,9 +1086,15 @@ void Model::CopyGeometryFrom(const Model& other)
     auto* dstBox = dynamic_cast<BoxedScreenLocation*>(&dst);
     const auto* srcBox = dynamic_cast<const BoxedScreenLocation*>(&src);
     if (dstBox != nullptr && srcBox != nullptr) {
-        dstBox->SetScaleX(srcBox->GetScaleX());
-        dstBox->SetScaleY(srcBox->GetScaleY());
-        dstBox->SetScaleZ(srcBox->GetScaleZ());
+        // Displayed size is render size x scale, so a model with a different
+        // node layout needs its scale rescaled to come out the same size. Fall
+        // back to the raw scale while either render size is still unknown.
+        auto matchScale = [](float srcScale, float srcRender, float dstRender) {
+            return (srcRender > 0.0f && dstRender > 0.0f) ? srcScale * srcRender / dstRender : srcScale;
+        };
+        dstBox->SetScaleX(matchScale(srcBox->GetScaleX(), src.GetRenderWi(), dst.GetRenderWi()));
+        dstBox->SetScaleY(matchScale(srcBox->GetScaleY(), src.GetRenderHt(), dst.GetRenderHt()));
+        dstBox->SetScaleZ(matchScale(srcBox->GetScaleZ(), src.GetRenderDp(), dst.GetRenderDp()));
     } else {
         // No scale to copy on two-point / poly-point locations - they derive
         // size from their point data. GetRestorableM* is the inverse of the
@@ -4494,6 +4500,14 @@ int32_t Model::GetStringStartChan(int x) const
         }
         return 1;
     }
+}
+
+void Model::CopyChannelSettingsFrom(const Model& other)
+{
+    SetStartChannel(other.ModelStartChannel);
+    SetControllerName(other.GetControllerName());
+    _controllerConnection.CopySettingsFrom(other._controllerConnection);
+    SetModelChain(other.GetModelChain());
 }
 
 void Model::SetModelChain(const std::string& modelChain)
