@@ -820,6 +820,9 @@ void BaseSerializingVisitor::Visit(const MatrixModel& model) {
     attrs.Add(XmlNodeKeys::LowDefinitionAttribute, std::to_string(model.GetLowDefFactor()));
     attrs.Add(XmlNodeKeys::AlternateNodesAttribute,model.HasAlternateNodes() ? "true" : "false");
     attrs.Add(XmlNodeKeys::NoZigZagAttribute,      model.IsNoZigZag() ? "true" : "false");
+    if (model.IsZigZagAcrossStrings()) {
+        attrs.Add(XmlNodeKeys::ZigZagAcrossStringsAttribute, "true");
+    }
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));

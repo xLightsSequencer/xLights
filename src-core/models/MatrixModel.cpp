@@ -240,7 +240,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                         {
                             Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
                         } else {
-                            Nodes[idx]->Coords[0].bufY = isBotToTop == (segmentnum % 2 == 0) ? y : PixelsPerStrand - y - 1;
+                            Nodes[idx]->Coords[0].bufY = isBotToTop == ((_zigZagAcrossStrings ? x : segmentnum) % 2 == 0) ? y : PixelsPerStrand - y - 1;
                         }
                     }
                 }
@@ -279,7 +279,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
                         {
                             Nodes[idx]->Coords[0].bufY = isBotToTop == true ? y : PixelsPerStrand - y - 1;
                         } else {
-                            Nodes[idx]->Coords[0].bufY = isBotToTop == (segmentnum % 2 == 0) ? y : PixelsPerStrand - y - 1;
+                            Nodes[idx]->Coords[0].bufY = isBotToTop == ((_zigZagAcrossStrings ? x : segmentnum) % 2 == 0) ? y : PixelsPerStrand - y - 1;
                         }
                     }
                     // before we adjust the buffer capture the screen coordinates
@@ -383,7 +383,7 @@ void MatrixModel::InitHMatrix() {
                         {
                             Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
                         } else {
-                            Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
+                            Nodes[idx]->Coords[0].bufX = IsLtoR != ((_zigZagAcrossStrings ? y : segmentnum) % 2 == 0) ? PixelsPerStrand - x - 1 : x;
                         }
                     }
                 }
@@ -424,7 +424,7 @@ void MatrixModel::InitHMatrix() {
                         {
                             Nodes[idx]->Coords[0].bufX = IsLtoR != true ? PixelsPerStrand - x - 1 : x;
                         } else {
-                            Nodes[idx]->Coords[0].bufX = IsLtoR != (segmentnum % 2 == 0) ? PixelsPerStrand - x - 1 : x;
+                            Nodes[idx]->Coords[0].bufX = IsLtoR != ((_zigZagAcrossStrings ? y : segmentnum) % 2 == 0) ? PixelsPerStrand - x - 1 : x;
                         }
                     }
                     // before we adjust the buffer capture the screen coordinates
