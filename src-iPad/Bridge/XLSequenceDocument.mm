@@ -8255,6 +8255,10 @@ static void BuildMatrixProps(MatrixModel* m, NSMutableArray* out) {
                                  m->HasAlternateNodes())];
     [out addObject:MakeBoolProp(@"NoZig", @"Don't Zig Zag",
                                  m->IsNoZigZag())];
+    NSMutableDictionary* zz = MakeBoolProp(@"ZigZagStrings", @"Zig Zag Across Strings",
+                                            m->IsZigZagAcrossStrings());
+    zz[@"enabled"] = @(m->HasAlternateNodes() == false && m->IsNoZigZag() == false);
+    [out addObject:zz];
     [out addObject:MakeIntProp(@"MatrixStringCount", @"# Strings",
                                 m->GetNumPhysicalStrings(), 1, 10000)];
     NSString* lpsLabel = m->IsSingleNode() ? @"Lights/String" : @"Nodes/String";
@@ -9724,6 +9728,10 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
         BOOL v = asBool(&ok); if (!ok) return NO;
         auto* mat = dynamic_cast<MatrixModel*>(m);
         if (mat && mat->IsNoZigZag() != (v?true:false)) { mat->SetNoZigZag(v); changed = YES; }
+    } else if (k == "ZigZagStrings") {
+        BOOL v = asBool(&ok); if (!ok) return NO;
+        auto* mat = dynamic_cast<MatrixModel*>(m);
+        if (mat && mat->IsZigZagAcrossStrings() != (v?true:false)) { mat->SetZigZagAcrossStrings(v); changed = YES; }
     } else if (k == "MatrixStringCount") {
         int v = asInt(&ok); if (!ok) return NO;
         auto* mat = dynamic_cast<MatrixModel*>(m);

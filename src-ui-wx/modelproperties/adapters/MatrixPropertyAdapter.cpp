@@ -42,6 +42,11 @@ void MatrixPropertyAdapter::AddStyleProperties(wxPropertyGridInterface* grid) {
     p = grid->Append(new wxBoolProperty("Don't Zig Zag", "NoZig", _matrix.IsNoZigZag()));
     p->SetEditor("CheckBox");
     p->Enable(_matrix.HasAlternateNodes() == false);
+
+    p = grid->Append(new wxBoolProperty("Zig Zag Across Strings", "ZigZagStrings", _matrix.IsZigZagAcrossStrings()));
+    p->SetEditor("CheckBox");
+    p->Enable(_matrix.HasAlternateNodes() == false && _matrix.IsNoZigZag() == false);
+    p->SetHelpString("Each string starts where the previous string ended instead of at the Starting Location. Only changes the layout when Strands/String is odd.");
 }
 
 void MatrixPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
@@ -124,12 +129,23 @@ int MatrixPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
         _matrix.IncrementChangeCount();
         _matrix.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "MatrixPropertyAdapter::OnPropertyGridChange::AlternateNodes");
         grid->GetPropertyByName("NoZig")->Enable(event.GetPropertyValue().GetBool() == false);
+        if (wxPGProperty* zz = grid->GetPropertyByName("ZigZagStrings")) {
+            zz->Enable(_matrix.HasAlternateNodes() == false && _matrix.IsNoZigZag() == false);
+        }
         return 0;
     } else if (event.GetPropertyName() == "NoZig") {
         _matrix.SetNoZigZag(event.GetPropertyValue().GetBool());
         _matrix.IncrementChangeCount();
         _matrix.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "MatrixPropertyAdapter::OnPropertyGridChange::NoZig");
         grid->GetPropertyByName("AlternateNodes")->Enable(event.GetPropertyValue().GetBool() == false);
+        if (wxPGProperty* zz = grid->GetPropertyByName("ZigZagStrings")) {
+            zz->Enable(_matrix.HasAlternateNodes() == false && _matrix.IsNoZigZag() == false);
+        }
+        return 0;
+    } else if (event.GetPropertyName() == "ZigZagStrings") {
+        _matrix.SetZigZagAcrossStrings(event.GetPropertyValue().GetBool());
+        _matrix.IncrementChangeCount();
+        _matrix.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "MatrixPropertyAdapter::OnPropertyGridChange::ZigZagStrings");
         return 0;
     }
 

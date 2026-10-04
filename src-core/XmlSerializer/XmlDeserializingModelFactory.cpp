@@ -762,6 +762,7 @@ Model* XmlDeserializingModelFactory::DeserializeMatrix(pugi::xml_node node, Mode
     model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
     model->SetNoZigZag(std::string_view(node.attribute(XmlNodeKeys::NoZigZagAttribute).as_string("false")) == "true");
+    model->SetZigZagAcrossStrings(std::string_view(node.attribute(XmlNodeKeys::ZigZagAcrossStringsAttribute).as_string("false")) == "true");
     std::string type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string("Matrix");
     if (type == "Vert Matrix") {
         model->SetVertical(true);

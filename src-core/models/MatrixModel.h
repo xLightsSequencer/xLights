@@ -42,10 +42,12 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         [[nodiscard]] bool HasAlternateNodes() const { return _alternateNodes; }
         [[nodiscard]] bool IsNoZigZag() const { return _noZigZag; }
+        [[nodiscard]] bool IsZigZagAcrossStrings() const { return _zigZagAcrossStrings; }
         [[nodiscard]] int GetLowDefFactor() const { return _lowDefFactor; }
 
         void SetAlternateNodes(bool val) { _alternateNodes = val; }
         void SetNoZigZag(bool val) { _noZigZag = val; }
+        void SetZigZagAcrossStrings(bool val) { _zigZagAcrossStrings = val; }
         void SetVertical(bool val) { _vMatrix = val; }
 
     protected:
@@ -61,5 +63,6 @@ class MatrixModel : public ModelWithScreenLocation<BoxedScreenLocation>
         bool _vMatrix = false;
         bool _alternateNodes = false;
         bool _noZigZag = false;
+        bool _zigZagAcrossStrings = false;
     private:
 };

@@ -340,6 +340,7 @@ namespace XmlNodeKeys {
     // Matrix
     constexpr auto VertMatrixAttribute    = "Vertical";
     constexpr auto NoZigZagAttribute      = "NoZig";
+    constexpr auto ZigZagAcrossStringsAttribute = "ZigZagStrings";
 
     // MultiPoint Model
     constexpr auto MultiStringsAttribute  = "MultiStrings";
