@@ -12,6 +12,7 @@
 #define NOMINMAX
 #endif
 
+#include <algorithm>
 #include <limits>
 #include <map>
 #include <string.h>
@@ -4492,7 +4493,21 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
 
             //we found a system!!!
             std::string hostname = (char *)&buffer[19];
-            DiscoveredData* inst = discovery.FindByIp(ipStr, hostname, false);
+
+            // Ping v4 appends the sender's UUID (64 bytes + NUL) after the 294 byte
+            // v3 payload.  Gate on the length, not the version byte: anything that
+            // appends further still carries it at the same offset.
+            std::string uuid;
+            int extraDataLen = buffer[5] | (buffer[6] << 8);
+            if (extraDataLen >= 294 + 65 && len >= 7 + 294 + 65) {
+                const char *u = (const char *)&buffer[7 + 294];
+                uuid = std::string(u, strnlen(u, 64));
+            }
+
+            DiscoveredData* inst = discovery.FindByUUID(uuid, ipStr);
+            if (!inst) {
+                inst = discovery.FindByIp(ipStr, hostname, false);
+            }
 
             //int platform = buffer[9];
             //printf("%d: %s  %s     %d\n", found ? 1 : 0, hostname.c_str(), ipStr.c_str(), platform);
@@ -4507,6 +4522,9 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
             }
             if (inst->typeId == 0) {
                 inst->typeId = buffer[9];
+            }
+            if (inst->uuid.empty()) {
+                inst->uuid = uuid;
             }
             if (inst->hostname.empty()) {
                 inst->hostname = (char *)&buffer[19];
@@ -4697,7 +4715,15 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
         spdlog::info("   Instance: {} (uuid: {})(hn: {})(proxy: {})(ver: {})(http: {})(t: {:X})", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->version.c_str(), http ? "true" : "false", res->typeId);
     }
     spdlog::info("----------------------------------------------");
-    for (auto res : discovery.GetResults()) {
+    // Results sharing a UUID are one device and only the first one seen is kept
+    // below.  An FPP that started before DHCP answered can also be listed at the
+    // 169.254.x.x link-local address it had then, which is not reachable from
+    // another subnet, so consider those after every routable address.
+    std::vector<DiscoveredData*> results = discovery.GetResults();
+    std::stable_partition(results.begin(), results.end(), [](DiscoveredData* r) {
+        return r->ip.rfind("169.254.", 0) != 0;
+    });
+    for (auto res : results) {
         if (::supportedForFPPConnect(res, outputManager)) {
             spdlog::info("FPP Discovery - Found Supported FPP Instance: {} (u: {})(h: {})(p: {})(r: {})", res->ip.c_str(), res->uuid.c_str(), res->hostname.c_str(), res->proxy.c_str(), res->ranges.c_str());
             FPP *fpp = nullptr;
