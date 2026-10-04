@@ -10553,6 +10553,7 @@ void LayoutPanel::ReplaceModel()
         // prompts in the existing single-replace flow (see ReplaceModel()).
         if (copyStartCh) {
             clone->SetStartChannel(target->ModelStartChannel);
+	        clone->SetModelChain(target->GetModelChain());
             clone->SetControllerProtocol(target->GetControllerProtocol());
             clone->SetControllerPort(target->GetControllerPort());
             clone->SetControllerName(target->GetControllerName());
