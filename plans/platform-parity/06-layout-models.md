@@ -231,7 +231,7 @@ read-only category header (`ModelPropertyAdapter.cpp:307`); the iPad likewise sh
 | 140 | Collapse-state persistence of property categories | `LayoutPanel.cpp:4163-4188`, save `:1810-1830` | 🟡 | SwiftUI sections are always expanded; grepped `collapsed`, `isExpanded` in the property view (`LayoutEditorView.swift:4667-5100`) → 0 hits |
 | **Controller connection (model side)** |
 | 141 | Port | `ModelPropertyAdapter.cpp:637`, change `:1264` | ✅ | `LayoutEditorView.swift:5439` |
-| 142 | Protocol | `ModelPropertyAdapter.cpp:719`, change `:1364` | ✅ | `LayoutEditorView.swift:5443` |
+| 142 | Protocol | `ModelPropertyAdapter.cpp:719`, change `:1364` | ✅ | `LayoutEditorView.swift:5443`. A new connection's DMX channel defaults to 1 in core (`ControllerConnection.h:135`), so a PWM assignment lands at `:1` on both platforms, including the iPad drag-to-PWM path (`XLSequenceDocument.mm:19063`), which never sets the channel itself |
 | 143 | Smart Remote (use / index / type / max cascade / cascade-on-port) | `ModelPropertyAdapter.cpp:676-708`, changes `:1317-1343` | ✅ | `LayoutEditorView.swift:5478-5510`; standalone sheet `ModelSmartRemoteSheet.swift:21` (letter grid `:122`) |
 | 144 | Serial DMX channel + speed | `ModelPropertyAdapter.cpp:726`, `:738` | ✅ | `LayoutEditorView.swift:5376-5385` |
 | 145 | PWM Gamma / Brightness | `ModelPropertyAdapter.cpp:746`, `:753` | ✅ | `LayoutEditorView.swift:5388-5390` |

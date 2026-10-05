@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (nsxfreddy)             Models newly assigned to a PWM or serial (DMX) port on an auto-layout
+                                 controller no longer start one channel early
     -enh (derwin12)              Layout Controllers tab: clicking a model in the preview switches to the
                                  Models (or Groups) tab with that model selected
     -enh (dkulp)                 Automation: importSuperStar (all import dialog options, plus "replace" to
