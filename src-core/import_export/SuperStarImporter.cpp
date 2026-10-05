@@ -14,6 +14,7 @@
 #include "render/EffectLayer.h"
 #include "render/Element.h"
 #include "render/FontManager.h"
+#include "render/SequenceElements.h"
 #include "render/SequenceMedia.h"
 #include "utils/Color.h"
 #include "utils/xlImage.h"
@@ -28,6 +29,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 namespace SuperStar {
@@ -123,30 +125,6 @@ std::string GetColorString(const std::string& sRed, const std::string& sGreen, c
 
 uint8_t ChannelBlend(uint8_t c1, uint8_t c2, double ratio) {
     return static_cast<uint8_t>(c1 + std::floor(ratio * (c2 - c1) + 0.5));
-}
-
-EffectLayer* FindOpenLayer(Element* model, int layer_index, int startTimeMS, int endTimeMS, std::vector<bool>& reserved) {
-    int index = layer_index - 1;
-
-    EffectLayer* layer = model->GetEffectLayer(index);
-    if (layer != nullptr && layer->GetRangeIsClearMS(startTimeMS, endTimeMS)) {
-        return layer;
-    }
-
-    for (size_t i = 0; i < model->GetEffectLayerCount(); ++i) {
-        if (i >= reserved.size() || !reserved[i]) {
-            layer = model->GetEffectLayer(i);
-            if (layer->GetRangeIsClearMS(startTimeMS, endTimeMS)) {
-                return layer;
-            }
-        }
-    }
-
-    layer = model->AddEffectLayer();
-    if (model->GetEffectLayerCount() > reserved.size()) {
-        reserved.resize(model->GetEffectLayerCount(), false);
-    }
-    return layer;
 }
 
 struct ImageInfo {
@@ -428,9 +406,6 @@ void AdjustAllTimings(pugi::xml_node node, int offsetCentiseconds) {
 
 Importer::Importer(Element* targetModel, SequenceMedia* media, Options options)
     : _model(targetModel), _media(media), _opt(std::move(options)) {
-    if (!_opt.imageGroupPrefix.empty()) {
-        _imagePrefix = _opt.imageGroupPrefix;
-    }
     if (_opt.layerBlend != "Normal" && !_opt.layerBlend.empty()) {
         _blendString = ",T_CHOICE_LayerMethod=" + _opt.layerBlend + ",";
     }
@@ -438,24 +413,128 @@ Importer::Importer(Element* targetModel, SequenceMedia* media, Options options)
 
 bool Importer::PromptForPrefix() {
     if (!_imagePrefix.empty()) return true;
-    std::string defGroup = _opt.defaultGroupName.empty() ? std::string("SuperStar") : _opt.defaultGroupName;
-    if (!_prefixCallback) {
-        _imagePrefix = defGroup;
-        return true;
+    std::string val = _opt.imageGroupPrefix;
+    if (val.empty()) {
+        std::string defGroup = _opt.defaultGroupName.empty() ? std::string("SuperStar") : _opt.defaultGroupName;
+        if (_prefixCallback) {
+            if (!_prefixCallback(val)) return false;
+            // Trim whitespace from both ends.
+            auto first = val.find_first_not_of(" \t\r\n");
+            auto last = val.find_last_not_of(" \t\r\n");
+            if (first == std::string::npos) {
+                val.clear();
+            } else {
+                val = val.substr(first, last - first + 1);
+            }
+        }
+        if (val.empty()) val = defGroup;
     }
-    std::string val;
-    if (!_prefixCallback(val)) return false;
-    // Trim whitespace from both ends.
-    auto first = val.find_first_not_of(" \t\r\n");
-    auto last = val.find_last_not_of(" \t\r\n");
-    if (first == std::string::npos) {
-        val.clear();
-    } else {
-        val = val.substr(first, last - first + 1);
-    }
-    if (val.empty()) val = defGroup;
-    _imagePrefix = val;
+    _imagePrefix = ClaimPrefix(val);
     return true;
+}
+
+// Image names are <prefix>/<index>.png and AddEmbeddedImage keeps an existing
+// entry of the same name, so re-importing onto a model whose size changed
+// would silently reuse the old, wrongly sized images. Entries under the
+// prefix that no effect references any more are stale and get dropped; if
+// effects still use some of them, move on to an unused prefix instead.
+std::string Importer::ClaimPrefix(const std::string& base) {
+    if (_media == nullptr) return base;
+    std::unordered_set<std::string> referenced;
+    if (SequenceElements* se = _model->GetSequenceElements(); se != nullptr) {
+        referenced = se->GetEffectSettingValues();
+    }
+    const auto paths = _media->GetAllMediaPaths();
+    for (int n = 1;; ++n) {
+        std::string prefix = n == 1 ? base : base + "-" + std::to_string(n);
+        const std::string dir = prefix + "/";
+        std::vector<std::string> stale;
+        bool inUse = false;
+        for (const auto& p : paths) {
+            if (p.first.compare(0, dir.size(), dir) != 0) continue;
+            if (referenced.count(p.first) != 0 || _media->IsUsedByMetadata(p.first)) {
+                inUse = true;
+                break;
+            }
+            stale.push_back(p.first);
+        }
+        if (inUse) continue;
+        for (const auto& path : stale) {
+            _media->RemoveMedia(path);
+        }
+        return prefix;
+    }
+}
+
+void Importer::Queue(int layer, const std::string& name, const std::string& settings, const std::string& palette, int startMS, int endMS) {
+    _queued.push_back({ layer, startMS, endMS, name, settings, palette });
+}
+
+// Effects on higher SuperStar layers draw over those on lower ones, and
+// SuperStar lets effects overlap in time on one layer. Placing each effect on
+// its own layer number therefore collides, and whatever got bumped landed on
+// an arbitrary free row - often behind effects it should cover. Instead, each
+// effect goes on the first row that is in front of every overlapping effect
+// from a lower layer and free for its time range. (The file's Time Layer
+// Priority flag is ignored on purpose: SuperStar's own exports of such files
+// still draw higher layers in front.)
+void Importer::PlaceQueued() {
+    if (_queued.empty()) return;
+    std::vector<size_t> backToFront(_queued.size());
+    for (size_t i = 0; i < backToFront.size(); ++i) backToFront[i] = i;
+    std::stable_sort(backToFront.begin(), backToFront.end(), [this](size_t a, size_t b) {
+        return _queued[a].layer < _queued[b].layer;
+    });
+
+    std::vector<int> level(_queued.size(), 0);
+    std::vector<std::vector<std::pair<int, int>>> levelRanges;
+    int maxLevel = 0;
+    for (size_t i = 0; i < backToFront.size(); ++i) {
+        const QueuedEffect& e = _queued[backToFront[i]];
+        int lvl = 0;
+        for (size_t j = 0; j < i; ++j) {
+            const QueuedEffect& behind = _queued[backToFront[j]];
+            if (behind.layer != e.layer && behind.startMS < e.endMS && e.startMS < behind.endMS) {
+                lvl = std::max(lvl, level[backToFront[j]] + 1);
+            }
+        }
+        for (;; ++lvl) {
+            if (lvl >= static_cast<int>(levelRanges.size())) levelRanges.resize(lvl + 1);
+            bool clear = true;
+            for (const auto& r : levelRanges[lvl]) {
+                if (r.first < e.endMS && e.startMS < r.second) {
+                    clear = false;
+                    break;
+                }
+            }
+            if (clear) break;
+        }
+        levelRanges[lvl].emplace_back(e.startMS, e.endMS);
+        level[backToFront[i]] = lvl;
+        maxLevel = std::max(maxLevel, lvl);
+    }
+
+    // "2 reveals 1" shows the lower row wherever it is lit, so the front-most
+    // effect goes at the bottom; for the other blends the upper row wins.
+    const bool frontAtBottom = _opt.layerBlend == "2 reveals 1";
+
+    // Leave whatever is already on the model where it is.
+    int base = 0;
+    for (size_t i = 0; i < _model->GetEffectLayerCount(); ++i) {
+        if (_model->GetEffectLayer(i)->GetEffectCount() > 0) {
+            base = static_cast<int>(_model->GetEffectLayerCount());
+            break;
+        }
+    }
+    while (static_cast<int>(_model->GetEffectLayerCount()) < base + maxLevel + 1) {
+        _model->AddEffectLayer();
+    }
+    for (size_t i = 0; i < _queued.size(); ++i) {
+        const QueuedEffect& e = _queued[i];
+        const int row = base + (frontAtBottom ? level[i] : maxLevel - level[i]);
+        _model->GetEffectLayer(row)->AddEffect(0, e.name, e.settings, e.palette, e.startMS, e.endMS, false, false);
+    }
+    _queued.clear();
 }
 
 bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
@@ -469,25 +548,13 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
     bool reverse_xy = false;
     bool layout_defined = false;
     pugi::xml_node input_root = input_xml.document_element();
-    EffectLayer* layer = _model->AddEffectLayer();
     std::map<int, ImageInfo> imageInfo;
-    std::vector<bool> reserved;
+    _queued.clear();
 
-    // --- first pass: gather reserved layers, prompt for prefix, read layout ---
+    // --- first pass: prompt for prefix, read layout ---
     for (pugi::xml_node e = input_root.first_child(); e; e = e.next_sibling()) {
         std::string ename = e.name();
-        if (ename == "imageActions") {
-            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
-                if (std::string_view(element.name()) == "imageAction") {
-                    int layer_index = element.attribute("layer").as_int();
-                    if (layer_index > 0) layer_index--;
-                    if (layer_index >= static_cast<int>(reserved.size())) {
-                        reserved.resize(layer_index + 1, false);
-                    }
-                    reserved[layer_index] = true;
-                }
-            }
-        } else if (ename == "scenes" || ename == "images") {
+        if (ename == "scenes" || ename == "images") {
             for (pugi::xml_node element = e.first_child(); element && _imagePrefix.empty(); element = element.next_sibling()) {
                 std::string elemname = element.name();
                 if (elemname == "image" || elemname == "scene") {
@@ -606,11 +673,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                 palette += "C_BUTTON_Palette4=" + color + ",";
                 palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
                 settings += _blendString;
-                while (static_cast<int>(_model->GetEffectLayerCount()) < layer_index) {
-                    _model->AddEffectLayer();
-                }
-                layer = FindOpenLayer(_model, layer_index, start_time, end_time, reserved);
-                layer->AddEffect(0, "Morph", settings, palette, start_time, end_time, false, false);
+                Queue(layer_index, "Morph", settings, palette, start_time, end_time);
             }
 
         } else if (ename == "images") {
@@ -707,8 +770,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                         ",E_SLIDER_Galaxy_Start_Radius=" + std::to_string(startRadius) +
                         ",E_SLIDER_Galaxy_Start_Width=" + std::to_string(startWidth) +
                         _blendString;
-                    layer = FindOpenLayer(_model, layer_index, startms, endms, reserved);
-                    layer->AddEffect(0, "Galaxy", settings, palette, startms, endms, false, false);
+                    Queue(layer_index, "Galaxy", settings, palette, startms, endms);
                 } else if (type == "Shockwave") {
                     int startWidth = element.attribute("headWidth").as_int();
                     int endWidth = element.attribute("tailWidth").as_int();
@@ -722,8 +784,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                         ",E_SLIDER_Shockwave_Start_Radius=" + std::to_string(startRadius) +
                         ",E_SLIDER_Shockwave_Start_Width=" + std::to_string(startWidth) +
                         _blendString;
-                    layer = FindOpenLayer(_model, layer_index, startms, endms, reserved);
-                    layer->AddEffect(0, "Shockwave", settings, palette, startms, endms, false, false);
+                    Queue(layer_index, "Shockwave", settings, palette, startms, endms);
                 } else if (type == "Fan") {
                     int revolutionsPerSecond = element.attribute("revolutionsPerSecond").as_int();
                     int blades = element.attribute("blades").as_int();
@@ -754,8 +815,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                         ",E_SLIDER_Fan_Start_Angle=" + std::to_string(startAngle) +
                         ",E_SLIDER_Fan_Start_Radius=" + std::to_string(startRadius) +
                         _blendString;
-                    layer = FindOpenLayer(_model, layer_index, startms, endms, reserved);
-                    layer->AddEffect(0, "Fan", settings, palette, startms, endms, false, false);
+                    Queue(layer_index, "Fan", settings, palette, startms, endms);
                 }
             }
 
@@ -772,13 +832,9 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                 xlColor endc = GetColor(element.attribute("red2").as_string(),
                                         element.attribute("green2").as_string(),
                                         element.attribute("blue2").as_string());
-                while (static_cast<int>(_model->GetEffectLayerCount()) < layer_index) {
-                    _model->AddEffectLayer();
-                }
 
                 int start_time = ToInt(startms_s);
                 int end_time = ToInt(endms_s);
-                layer = FindOpenLayer(_model, layer_index, start_time, end_time, reserved);
                 if (!PromptForPrefix()) return false;
 
                 std::string ru = "0.0";
@@ -795,17 +851,18 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                                           ",C_CHECKBOX_Palette2=1,";
                     std::string settings = _blendString;
                     if (startc == endc) {
-                        layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
+                        Queue(layer_index, "On", settings, palette, start_time, end_time);
                     } else if (startc == xlBLACK) {
                         std::string palette1 = "C_BUTTON_Palette1=" + static_cast<std::string>(endc) +
                                                ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + static_cast<std::string>(startc) +
                                                ",C_CHECKBOX_Palette2=1";
                         settings += ",E_TEXTCTRL_Eff_On_Start=0";
-                        layer->AddEffect(0, "On", settings, palette1, start_time, end_time, false, false);
+                        Queue(layer_index, "On", settings, palette1, start_time, end_time);
                     } else if (endc == xlBLACK) {
-                        layer->AddEffect(0, "On", "E_TEXTCTRL_Eff_On_End=0", palette, start_time, end_time, false, false);
+                        settings += ",E_TEXTCTRL_Eff_On_End=0";
+                        Queue(layer_index, "On", settings, palette, start_time, end_time);
                     } else {
-                        layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
+                        Queue(layer_index, "Color Wash", settings, palette, start_time, end_time);
                     }
                 } else if (isPartOfModel && rect.x != -1) {
                     std::string palette = "C_BUTTON_Palette1=" + static_cast<std::string>(startc) +
@@ -825,7 +882,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                     if (!CalcBoundedPercentage(val, static_cast<int>(num_rows), reverse_rows ^ reverse_xy, y_offset)) continue;
                     settings += val;
                     settings += _blendString;
-                    layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
+                    Queue(layer_index, "Color Wash", settings, palette, start_time, end_time);
                 } else if (isPartOfModel) {
                     if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
                         imageName = CreateSceneImage(_imagePrefix, "", element,
@@ -888,7 +945,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                     settings += _blendString;
                     if (ru != "0.0") settings += ",T_TEXTCTRL_Fadein=" + ru;
                     if (rd != "0.0") settings += ",T_TEXTCTRL_Fadeout=" + rd;
-                    layer->AddEffect(0, "Pictures", settings, "", start_time, end_time, false, false);
+                    Queue(layer_index, "Pictures", settings, "", start_time, end_time);
                 }
             }
 
@@ -934,12 +991,8 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                                          element.attribute("blue").as_string());
 
                 int layer_index = element.attribute("layer").as_int();
-                while (static_cast<int>(_model->GetEffectLayerCount()) < layer_index) {
-                    _model->AddEffectLayer();
-                }
                 int start_time = ToInt(startms_s);
                 int end_time = ToInt(endms_s);
-                layer = FindOpenLayer(_model, layer_index, start_time, end_time, reserved);
                 int lorWidth = static_cast<int>(text.size()) * fontCellWidth;
                 int lorHeight = fontSize;
 
@@ -1030,7 +1083,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                 } else {
                     settings += _blendString;
                 }
-                layer->AddEffect(0, "Text", settings, palette, start_time, end_time, false, false);
+                Queue(layer_index, "Text", settings, palette, start_time, end_time);
             }
 
         } else if (ename == "imageActions") {
@@ -1043,9 +1096,6 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                 int layer_index = element.attribute("layer").as_int();
                 int rampDownTime = element.attribute("rampTime").as_int() * 10;
                 int rampUpTime = element.attribute("preRampTime").as_int() * 10;
-                while (static_cast<int>(_model->GetEffectLayerCount()) <= layer_index) {
-                    _model->AddEffectLayer();
-                }
                 std::string rampUpTimeString = "0";
                 if (rampUpTime) {
                     rampUpTimeString = fmt::format("{:f}", static_cast<double>(rampUpTime) / 1000.0);
@@ -1069,7 +1119,6 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                 int x = imgInfo.xOffset;
                 int y = imgInfo.yOffset;
 
-                layer = FindOpenLayer(_model, layer_index, startms, endms, reserved);
                 if (endy == starty && endx == startx) {
                     x += static_cast<int>(std::round(static_cast<double>(startx) * imgInfo.scaleX));
                     y -= static_cast<int>(std::round(static_cast<double>(starty) * imgInfo.scaleY));
@@ -1086,7 +1135,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                     if (rampUpTimeString != "0") settings += ",T_TEXTCTRL_Fadein=" + rampUpTimeString;
                     if (rampDownTimeString != "0") settings += ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
                     settings += _blendString;
-                    layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
+                    Queue(layer_index, "Pictures", settings, "", startms, endms);
                 } else {
                     int sx = x + static_cast<int>(std::round(static_cast<double>(startx) * imgInfo.scaleX));
                     int sy = y - static_cast<int>(std::round(static_cast<double>(starty) * imgInfo.scaleY));
@@ -1107,11 +1156,12 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                     if (rampUpTimeString != "0") settings += ",T_TEXTCTRL_Fadein=" + rampUpTimeString;
                     if (rampDownTimeString != "0") settings += ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
                     settings += _blendString;
-                    layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
+                    Queue(layer_index, "Pictures", settings, "", startms, endms);
                 }
             }
         }
     }
+    PlaceQueued();
     return true;
 }
 

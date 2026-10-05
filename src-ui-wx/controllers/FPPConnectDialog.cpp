@@ -1919,8 +1919,8 @@ void FPPConnectDialog::ApplySavedHostSettings()
                 }
             }
 
-            bool bval;
-            int lval;
+            bool bval = false;
+            int lval = 0;
             if (config->Read("FPPConnectUpload_" + key, &bval)) {
                 SetCheckValue(CHECK_COL + rowStr, bval);
                 inst->upload = bval;

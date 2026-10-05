@@ -988,7 +988,6 @@ void WiringDialog::Render()
 
     int dw, dh;
     GetClientSize(&dw, &dh);
-    wxSize winSize = GetSize();
     _bmp.CreateScaled(w, h, wxBITMAP_SCREEN_DEPTH, 1.0);  // Using GetContentScaleFactor() was causing it to scale too much on some Windows systems.
 
     DrawBitmap(_bmp);

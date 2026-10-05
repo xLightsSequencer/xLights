@@ -458,6 +458,40 @@ Command
 Response
     {"res":200, "msg":"Imported LOR Sequence.","worked":"true"}
 
+Import a SuperStar (.sup) file onto a model, submodel or strand in the open sequence.
+Command
+    {"cmd":"importSuperStar","filename":"sup file path","model":"Matrix","replace":"true"}
+    Optional params (defaults match the SuperStar import dialog):
+      "xsize","ysize"   : SuperStar layout size, only used for visualization-mode files (12, 50)
+      "xoffset","yoffset": offsets in SuperStar pixels (0, 0)
+      "imageresize"     : "all" (default) | "none" | "exactwidth" | "exactheight" | "exactwidthorheight"
+      "layerblend"      : "2 reveals 1" (default) | "Normal" | "Average"
+      "timeadjust"      : milliseconds to shift every imported effect (negative moves earlier)
+      "imageprefix"     : group name for the embedded images (default: the file name). If effects
+                          still use images under that name, "-2", "-3"... is appended instead of
+                          reusing them; unreferenced leftovers under it are dropped.
+      "replace"         : "true" deletes the target's existing unlocked effects and layers, and the
+                          media no effect references any more, before importing - for re-importing
+                          after the model's size or density changed
+Response
+    {"res":200, "msg":"Imported SuperStar Sequence.","worked":"true","effectsCleared":3104,"mediaRemoved":522,"layers":92}
+
+Delete all the unlocked effects on a model, submodel or strand and drop its emptied layers.
+Command
+    {"cmd":"clearModelEffects","model":"Mega Tree"}
+    Optional params:
+      "submodels"  : "true" also clears the model's submodels, strands and nodes (default false)
+      "removemedia": "false" keeps media that no effect references any more (default true removes it)
+Response
+    {"res":200, "msg":"Cleared Effects.","worked":"true","effectsCleared":812,"mediaRemoved":12}
+
+Remove every media entry (embedded or referenced image, video, shader...) that no effect or face
+definition in the open sequence uses. Embedded data is dropped; files on disk are not touched.
+Command
+    {"cmd":"removeUnusedMedia"}
+Response
+    {"res":200, "msg":"Removed Unused Media.","worked":"true","removed":12}
+
 List sequence and package files in a folder (useful for Lua batch-import scripts).
 Scans for .xsq, .xsqz, .zip, and .piz files. The folder does not need to be
 an xLights show — any folder containing package files is accepted.

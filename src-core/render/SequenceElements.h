@@ -22,6 +22,7 @@ namespace pugi { class xml_node; class xml_document; }
 #include <vector>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <string>
 #include <mutex>
 #include "UndoManager.h"
@@ -246,6 +247,17 @@ public:
     // effects that changed, so a caller can re-render just those.
     std::map<std::string, std::pair<int, int>> RewriteMediaReferences(const std::string& from, const std::string& to);
 
+    // Every value held in any model/submodel/strand/node effect's settings or
+    // palette - the set a media entry's stored path must appear in to count
+    // as referenced. A text value that happens to equal a media path keeps
+    // that entry alive, which is the safe direction for cleanup.
+    std::unordered_set<std::string> GetEffectSettingValues() const;
+
+    // Forget every media entry that no effect or face definition references.
+    // Embedded payloads are dropped; files on disk are untouched. Returns the
+    // number of entries removed.
+    int RemoveUnreferencedMedia();
+
     // Strip the show/media folder prefix off a media entry's stored path and
     // repoint every reference at the relative form. Embedded bytes travel in
     // the document, so an absolute path just pins the sequence to one machine.
@@ -299,6 +311,10 @@ private:
     bool hasPapagayoTiming;
     bool mHideUnusedSubmodels = false;
     std::function<bool(const std::string&)> _modelRowFilter;
+
+    // Visits every effect layer of every model element, including submodel,
+    // strand and node layers, with the owning model's name.
+    void ForEachModelEffectLayer(const std::function<void(EffectLayer*, const std::string&)>& fn) const;
     int mSequenceEndMS;
     bool supportsModelBlending;
 

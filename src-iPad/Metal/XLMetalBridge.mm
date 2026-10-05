@@ -1619,6 +1619,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 
         if (keepStartChannel) {
             clone->SetStartChannel(target->ModelStartChannel);
+            clone->SetModelChain(target->GetModelChain());
             clone->SetControllerProtocol(target->GetControllerProtocol());
             clone->SetControllerPort(target->GetControllerPort());
             clone->SetControllerName(target->GetControllerName());

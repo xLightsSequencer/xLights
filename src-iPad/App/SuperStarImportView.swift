@@ -28,7 +28,7 @@ struct SuperStarImportView: View {
     @State private var ySize: Int = 50
     @State private var xOffset: Int = 0
     @State private var yOffset: Int = 0
-    @State private var imageResize: XLSuperStarImageResize = .none
+    @State private var imageResize: XLSuperStarImageResize = .all
     @State private var layerBlend: String = XLSuperStarLayerBlend2Reveals1
     @State private var timingOffsetMs: Int = 0
     @State private var imageGroupPrefix: String = ""

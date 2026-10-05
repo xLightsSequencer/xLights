@@ -14,6 +14,18 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (nsxfreddy)             Models newly assigned to a PWM or serial (DMX) port on an auto-layout
                                  controller no longer start one channel early
+    -enh (derwin12)              Layout Controllers tab: clicking a model in the preview switches to the
+                                 Models (or Groups) tab with that model selected
+    -enh (dkulp)                 Automation: importSuperStar (all import dialog options, plus "replace" to
+                                 clear the model and its unused media first), clearModelEffects and
+                                 removeUnusedMedia, for re-importing after a model's size changes
+    -bug (dkulp)                 SuperStar import: effects that overlap on one SuperStar layer no longer
+                                 land behind other layers' effects, and re-importing no longer reuses the
+                                 old embedded images sized for the previous model
+    -change (dkulp)              SuperStar import: Image Resizing defaults to All so pictures scale with
+                                 the rest of the imported effects on models of a different size
+    -bug (dkulp)                 iPad - Remove Unused Media no longer drops media used only by submodel,
+                                 strand or node effects
     -enh (dkulp)                 Bars: new "Custom" direction with an Angle slider (-180 to 180) to move
                                  the bars in any direction
     -enh (dkulp)                 LOR S5/S6 import: effects on LOR motion-row regions (strands, tiers,

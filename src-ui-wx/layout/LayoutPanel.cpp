@@ -5238,7 +5238,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     m_mouse_down = true;
                 } else if (IsControllersPageActive()) {
                     if (Model* clicked = FindNearestModel3D(event)) {
-                        SelectModelInTree(clicked);
+                        SwitchToModelsPageAndSelect(clicked);
                     }
                     m_mouse_down = true;
                 } else {
@@ -5267,7 +5267,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             m_pending_deselect_click = true;
         } else if (IsControllersPageActive() && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
             if (Model* clicked = FindNearestModel3D(event)) {
-                SelectModelInTree(clicked);
+                SwitchToModelsPageAndSelect(clicked);
             }
         }
         m_mouse_down = true;
@@ -5713,6 +5713,17 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             m_previous_mouse_x = event.GetX();
             m_previous_mouse_y = event.GetY();
             return;
+        }
+
+        if (IsControllersPageActive() && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
+            std::vector<int> found;
+            if (FindModelsClicked(event.GetX(), event.GetY(), found) > 0) {
+                SwitchToModelsPageAndSelect(modelPreview->GetModels()[found[0]]);
+                m_dragging = true;
+                m_previous_mouse_x = event.GetX();
+                m_previous_mouse_y = event.GetY();
+                return;
+            }
         }
 
         Model* singleModel = editing_models ? SelectSingleModel(event.GetX(), event.GetY()) : nullptr;
@@ -9218,6 +9229,27 @@ Model* LayoutPanel::GetModelFromTreeItem(wxTreeListItem treeItem) {
     return model;
 }
 
+// A plain preview click on a model while the Controllers page is active hands
+// the model over to the Models/Groups page so it can be edited there.
+void LayoutPanel::SwitchToModelsPageAndSelect(Model* model) {
+    if (model == nullptr) {
+        return;
+    }
+    const ObjectsPage targetKind = (model->GetDisplayAs() == DisplayAsType::ModelGroup) ? ObjectsPage::Groups : ObjectsPage::Models;
+    const int targetPage = FindNotebookPage(targetKind);
+    if (targetPage < 0) {
+        return;
+    }
+    for (auto m : modelPreview->GetModels()) {
+        m->NotOnController = false;
+    }
+    Notebook_Objects->ChangeSelection(targetPage);
+    editing_models = true;
+    UpdateSettingsPaneForPage();
+    UnSelectAllModelsInTree();
+    SelectModelInTree(model);
+}
+
 // Select a Model in the tree, currently only selects top level model if found
 void LayoutPanel::SelectModelInTree(Model* modelToSelect, bool preserveFilter) {
     if (modelToSelect != nullptr) {
@@ -10553,6 +10585,7 @@ void LayoutPanel::ReplaceModel()
         // prompts in the existing single-replace flow (see ReplaceModel()).
         if (copyStartCh) {
             clone->SetStartChannel(target->ModelStartChannel);
+	        clone->SetModelChain(target->GetModelChain());
             clone->SetControllerProtocol(target->GetControllerProtocol());
             clone->SetControllerPort(target->GetControllerPort());
             clone->SetControllerName(target->GetControllerName());

@@ -91,11 +91,11 @@ SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,cons
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Image Resizing:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer6->Add(StaticText1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ImageResizeChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	ImageResizeChoice->SetSelection( ImageResizeChoice->Append(_("None")) );
+	ImageResizeChoice->Append(_("None"));
 	ImageResizeChoice->Append(_("Exact Width"));
 	ImageResizeChoice->Append(_("Exact Height"));
 	ImageResizeChoice->Append(_("Exact Width or Height"));
-	ImageResizeChoice->Append(_("All"));
+	ImageResizeChoice->SetSelection( ImageResizeChoice->Append(_("All")) );
 	FlexGridSizer6->Add(ImageResizeChoice, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, wxID_ANY, _("Timing Adjustment (ms):"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

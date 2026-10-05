@@ -1,8 +1,6 @@
 # AGENTS.md — xLights Developer Guide
 
-Single source of truth for AI agents working on the xLights codebase
-(replaces `CLAUDE.md`). Authoritative — these instructions override default
-agent behavior.
+Single source of truth for AI agents working on the xLights codebase.
 
 ---
 
@@ -12,7 +10,7 @@ xLights is a cross-platform (Windows/macOS/Linux) C++20 show sequencer for
 controlling lighting via USB/DMX/sACN/ArtNet/DDP. Built on wxWidgets 3.3
 (custom fork: `xLightsSequencer/wxWidgets`).
 
-**Minimum supported platforms:** macOS 10.15 (Catalina), Linux (Debian 12 /
+**Minimum supported platforms:** macOS 12 (Monterey), Linux (Debian 12 /
 Ubuntu 24.04), Windows 8.
 
 ### Repository layout
@@ -41,8 +39,8 @@ plans live in [`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) and
 
 ### Companion apps
 
-xSchedule, xCapture, xFade, xScanner → moved to their own repos under
-`xLightsSequencer` on GitHub. Only `xlDo/` remains here.
+xSchedule, xCapture, xFade, xScanner live in their own repos under
+`xLightsSequencer` on GitHub; `xlDo/` is the only sub-app in this repo.
 
 ---
 
@@ -52,7 +50,7 @@ xSchedule, xCapture, xFade, xScanner → moved to their own repos under
 
 | Package | Description |
 |---|---|
-| `effects/` | 55 effects: `FooEffect.cpp` (render logic, `adjustSettings` migration) + `FooPanel.cpp` (UI). All inherit `RenderableEffect`. |
+| `effects/` | `FooEffect.cpp` per effect (render logic, `adjustSettings` migration). All inherit `RenderableEffect`. Desktop setting panels are UI, not core: most are built by `src-ui-wx/effectpanels/JsonEffectPanel` from `resources/effectmetadata/*.json`; a few effects have a hand-written `FooPanel.cpp` there. |
 | `models/` | 20+ model types + 9 DMX models. All inherit `Model`. |
 | `outputs/` | Protocol handlers + controller connection config (sACN, ArtNet, DDP, USB, etc.) |
 | `controllers/` | Vendor upload handlers (Falcon, FPP, WLED, etc.) |
@@ -83,7 +81,7 @@ mode; approved exceptions live in `ci_scripts/include_policy_allowlist.txt`.
 | `xlGraphicsAccumulators.h` | Geometry/vertex accumulator interfaces |
 | `IModelPreview.h` | wx-free pure-virtual model-preview interface (used by `models/`, `effects/`) |
 | `xlFontInfo.h` | Font metadata using `xlImage` (no wxImage in public API) |
-| `xlImage.h` | wx-free RGBA pixel class (see also `utils/xlImage.h`) |
+| `../utils/xlImage.h` | wx-free RGBA pixel class (lives in `utils/`, not `graphics/`) |
 | `xlMesh.h/.cpp` | 3D mesh loading (std::filesystem, no wx) |
 
 ### Desktop UI (`src-ui-wx/`) — wxWidgets
@@ -94,7 +92,7 @@ mode; approved exceptions live in `ci_scripts/include_policy_allowlist.txt`.
 | `xLightsMain.cpp` | `xLightsFrame` — the main window |
 | `sequencer/` | Timeline UI: `MainSequencer` widget, effect grid, layers, undo manager |
 | `tabSequencer.cpp` | Sequencer event handlers on `xLightsFrame` |
-| `graphics/` | wx-dependent canvas impls — **NOT core**: OpenGL (`opengl/xlGLCanvas`, `xlOGL3GraphicsContext`), Metal (`metal/xlMetalCanvas.mm`, `xlMetalGraphicsContext.mm`). `xlGraphicsBase.h` selects Metal vs OpenGL at compile time and defines `GRAPHICS_BASE_CLASS`. |
+| `graphics/` | wx-dependent canvas impls — **NOT core**: OpenGL (`opengl/xlGLCanvas`, `xlOGL3GraphicsContext`), Metal (`metal/xlMetalCanvas.mm`; the Metal graphics context itself is core — `src-core/graphics/metal/xlMetalGraphicsContext.mm`). `xlGraphicsBase.h` selects Metal vs OpenGL at compile time and defines `GRAPHICS_BASE_CLASS`. |
 | `shared/utils/wxUtilities.h` | wx↔core conversion helpers (`wxImageToXlImage`, `wxImagesToXlImages`, `xlColorToWxColour`, `wxColourToXlColor`) |
 
 ### iPad UI (`src-iPad/`) — SwiftUI + ObjC++
@@ -111,7 +109,7 @@ Key iPad patterns:
   `NS_SWIFT_NAME(…)` to control the imported Swift name. When the desktop adds a
   new mutating op on `Effect`/`EffectLayer`/`Element`/`SequenceElements`, this
   bridge usually needs a matching wrapper.
-- **`iPadRenderContext`** (`Bridge/`): subclasses `RenderContext` from
+- **`iPadRenderContext`** (`Bridge/`): subclasses `xLightsShowContext` from
   `src-core/render/`, mirroring `xLightsFrame`'s role on desktop.
 - **`SequencerViewModel`** (`App/`): single `@Observable` class SwiftUI reads.
   All mutating ops go through it so undo registration + row reloads happen in
@@ -182,11 +180,8 @@ ship a behavior gap users discover when switching clients.
 Start at [`plans/platform-parity/README.md`](plans/platform-parity/README.md). The
 overview ([`00-overview.md`](plans/platform-parity/00-overview.md)) holds the live
 headline numbers, the severity-grouped gap inventory, the P1–P3 roadmap, recorded
-product decisions, and the desktop cross-OS summary — **read it there rather than
-trusting any count copied here, which will rot.** As of the 2026-08-01 full-code
-audit (adversarially cross-checked row-by-row), the iPad sat at **≈67% parity**
-(58% of rows at full parity), with the biggest backlogs in Layout (06),
-Import/Export (08), and Preferences (11).
+product decisions, and the desktop cross-OS summary — read parity numbers there,
+not from a copy.
 
 The 15 theme docs:
 
@@ -286,14 +281,13 @@ XL_FSEQCMP_DUMPCH=<ch> xLights --fseqcmp -s <showdir> <a.fseq> <b.fseq>  # dump 
   and skews timing.
 - **Sandbox:** the binary can only read paths it has a bookmark for (the show /
   fseq dirs opened in the GUI), NOT `/private/tmp`. Headless and `--fseqcmp` call
-  `ObtainAccessToURL`; stage comparison fseqs under the show dir or `~/Documents`.
+  `ObtainAccessToURL`; stage comparison fseqs under the show dir, the configured FSEQ output
+  directory, or another machine-specific location.
 - **`-r` overwrites** fseqs in the configured folder — use `--outputdir` to redirect.
 - **Expected (non-bug) diffs vs desktop:** GPU shaders (separate GL context, small
-  per-channel float) and physics effects (LiquidFun/Box2D). Video effects ARE
-  deterministic (the old "decoder variance" was dropped frames + inconsistent
-  frame selection in the AVFoundation bridge, both fixed; `XLDBG_VID=1` logs
-  every served frame's requested time / pts / pixel hash and every null return
-  if it regresses). Random/sparkle effects are deterministic (per-`RenderBuffer`
+  per-channel float) and physics effects (LiquidFun/Box2D). Video effects are
+  deterministic; if that regresses, `XLDBG_VID=1` logs every served frame's
+  requested time / pts / pixel hash and every null return. Random/sparkle effects are deterministic (per-`RenderBuffer`
   RNG). Headless-to-headless determinism is the regression baseline, not
   desktop byte-parity.
 
@@ -444,7 +438,7 @@ Neither file is gitignored (plain `git add`). Metal is Apple-only — **no** `.c
 
 | Piece | What to do |
 |---|---|
-| `Foo.metal` | Compute kernel `kernel void FooEffect(constant MetalFooData&, device uchar4*, uint index)`. **Auto-compiled** into `EffectComputeFunctions.metallib` by the `EffectComputeFunctions` target (it syncs all of `src-core`, no per-file list). |
+| `FooFunctions.metal` | Compute kernel `kernel void FooEffect(constant MetalFooData&, device uchar4*, uint index)`. **Auto-compiled** into `EffectComputeFunctions.metallib` by the `EffectComputeFunctions` target (it syncs all of `src-core`, no per-file list). |
 | `MetalEffectDataTypes.h` | Add `MetalFooData` struct (shared by `.mm` and `.metal`). |
 | `MetalEffects.hpp` | Declare `class MetalFooEffect : public FooEffect` + `class MetalFooEffectData;`. |
 | `MetalFooEffect.mm` | Wrapper: `data->fn = FindComputeFunction("FooEffect")`, fill the struct, dispatch one thread/pixel. Auto-discovered by `xLights-core`. |
@@ -503,9 +497,9 @@ not). For directory existence, use `std::filesystem::exists()` with the
 ### macOS sandbox: `ObtainAccessToURL`
 
 Call `ObtainAccessToURL(path, enforceWritable)` before reading/writing files on
-macOS — it handles App Sandbox security-scoped bookmarks. Defined in
-`macOS/macOS-src/osxUtils/ExternalHooksMacOS.h`, implemented in Swift
-(`xlMacUtils.swift`). Returns `bool` (`true` = access granted). Pass
+macOS — it handles App Sandbox security-scoped bookmarks. Declared in
+`macOS/src-apple-core/osxUtils/ExternalHooksApple.h`, implemented in Swift
+(`xlAppleUtils.swift`). Returns `bool` (`true` = access granted). Pass
 `enforceWritable=true` when writing. Bookmarks persist in UserDefaults (survive
 restarts); no explicit release call. On non-macOS it's a no-op. Call whenever a
 path comes from user input (file dialogs, drag-and-drop, text fields) so
@@ -516,7 +510,7 @@ persistent bookmarks get created/updated.
 **Every Xcode target uses ARC** (`CLANG_ENABLE_OBJC_ARC = YES`):
 `xLights-Apple-core`, `xLights-core`, `xLights-macOSLib-UI`, `xLights-iPadLib`,
 `xLights-iPad`, and the desktop `xLights` app. Every `.mm` file in
-`src-apple-core/`, `src-core/`, `src-mac-ui/`, `src-ui-wx/`, `src-iPad/`, and
+`macOS/src-apple-core/`, `src-core/`, `macOS/src-mac-ui/`, `src-ui-wx/`, `src-iPad/`, and
 `common/` compiles under ARC.
 
 **Do NOT write** `retain` / `release` / `autorelease` / `[obj release]; obj = nil;`
@@ -569,8 +563,8 @@ Release builds on macOS desktop **and iPad** use `-ffast-math` (`GCC_FAST_MATH =
 YES` plus an explicit `-ffast-math` in `OTHER_CFLAGS` on the Release/Archive
 configs), at `-O3` with `LLVM_LTO=YES_THIN`. `xLights-iPadLib` inherits these via
 `$(inherited)`. This affects every `.cpp`/`.mm` in `src-core/`, `src-ui-wx/`,
-`src-iPad/`. Linux/Windows release builds may not set it today, but write code
-that doesn't depend on its absence.
+`src-iPad/`. The Linux release build (`xLights.cbp` `Linux_Release`) sets it too;
+Windows may not — write code that doesn't depend on its absence.
 
 `-ffast-math` implies `-ffinite-math-only` (optimizer assumes no `inf`/`NaN`).
 Under `-O3` + LTO this silently breaks two source-correct patterns:

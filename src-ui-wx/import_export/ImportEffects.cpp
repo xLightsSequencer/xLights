@@ -1320,12 +1320,68 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
 
     wxStopWatch sw;
 
+    SuperStar::Options opt;
+    opt.xSize = wxAtoi(dlg.TextCtrl_SS_X_Size->GetValue());
+    opt.ySize = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
+    opt.xOffset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
+    opt.yOffset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
+    opt.imageResize = static_cast<SuperStar::ImageResize>(dlg.ImageResizeChoice->GetSelection());
+    opt.layerBlend = dlg.Choice_LayerBlend->GetStringSelection().ToStdString();
+    opt.timingOffsetMs = dlg.TimeAdjSpinCtrl->GetValue();
+
+    auto prompt = [this, defGroup = filename.GetName()](std::string& prefix) -> bool {
+        wxString defaultPrompt = defGroup.IsEmpty() ? wxString("SuperStar") : defGroup;
+        wxTextEntryDialog d(this,
+            "Enter a group name / prefix for embedded images:",
+            "Embedded Image Group", defaultPrompt);
+        if (d.ShowModal() == wxID_CANCEL) return false;
+        prefix = d.GetValue().ToStdString();
+        return true;
+    };
+
+    std::string err;
+    if (!ImportSuperStar(filename, model_name.ToStdString(), opt, prompt, err) && !err.empty()) {
+        DisplayError(err, this);
+    }
+
+    float elapsedTime = sw.Time() / 1000.0;
+    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+}
+
+Element* xLightsFrame::FindModelOrSubModelElement(const std::string& fullName)
+{
+    for (size_t i = 0; i < _sequenceElements.GetElementCount(); i++) {
+        Element* candidate = _sequenceElements.GetElement(i);
+        if (candidate->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        if (candidate->GetName() == fullName) {
+            return candidate;
+        }
+        ModelElement* modelEl = dynamic_cast<ModelElement*>(candidate);
+        if (modelEl == nullptr) continue;
+        for (int x = 0; x < modelEl->GetSubModelAndStrandCount(); x++) {
+            if (modelEl->GetSubModel(x)->GetFullName() == fullName) {
+                return modelEl->GetSubModel(x);
+            }
+        }
+    }
+    return nullptr;
+}
+
+bool xLightsFrame::ImportSuperStar(const wxFileName& filename, const std::string& modelName, SuperStar::Options opt,
+                                   const SuperStar::PrefixPromptCallback& prompt, std::string& err)
+{
+    Element* model = FindModelOrSubModelElement(modelName);
+    if (model == nullptr) {
+        err = "Target model '" + modelName + "' not found.";
+        return false;
+    }
+
     // Read the file into a buffer and run the SuperStar XML preprocessor
     // (replaces the legacy FixXMLInputStream wrapper).
     wxFileInputStream fin(filename.GetFullPath());
     if (!fin.IsOk()) {
-        DisplayError("Could not open SuperStar file.", this);
-        return;
+        err = "Could not open SuperStar file.";
+        return false;
     }
     std::vector<char> xmlBuffer;
     {
@@ -1341,32 +1397,8 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
 
     pugi::xml_document input_xml;
     if (!input_xml.load_buffer(xmlBuffer.data(), xmlBuffer.size())) {
-        DisplayError("Problem loading superstar file.", this);
-        return;
-    }
-
-    // Resolve the picked model name (top-level model OR submodel/strand).
-    Element* model = nullptr;
-    for (size_t i = 0; i < _sequenceElements.GetElementCount(); i++) {
-        Element* candidate = _sequenceElements.GetElement(i);
-        if (candidate->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
-        if (candidate->GetName() == model_name) {
-            model = candidate;
-            break;
-        }
-        ModelElement* modelEl = dynamic_cast<ModelElement*>(candidate);
-        if (modelEl == nullptr) continue;
-        for (int x = 0; x < modelEl->GetSubModelAndStrandCount(); x++) {
-            if (modelEl->GetSubModel(x)->GetFullName() == model_name) {
-                model = modelEl->GetSubModel(x);
-                break;
-            }
-        }
-        if (model != nullptr) break;
-    }
-    if (model == nullptr) {
-        DisplayError(wxString::Format("Target model '%s' not found.", model_name).ToStdString(), this);
-        return;
+        err = "Problem loading superstar file.";
+        return false;
     }
 
     Model* cls = GetModel(model->GetFullName());
@@ -1374,39 +1406,49 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
     if (cls != nullptr) {
         cls->GetBufferSize("Default", "2D", "None", bw, bh, 0);
     }
-
-    SuperStar::Options opt;
-    opt.xSize = wxAtoi(dlg.TextCtrl_SS_X_Size->GetValue());
-    opt.ySize = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
-    opt.xOffset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
-    opt.yOffset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
-    opt.imageResize = static_cast<SuperStar::ImageResize>(dlg.ImageResizeChoice->GetSelection());
-    opt.layerBlend = dlg.Choice_LayerBlend->GetStringSelection().ToStdString();
-    opt.timingOffsetMs = dlg.TimeAdjSpinCtrl->GetValue();
     opt.frameTimeMs = _seqData.FrameTime();
     opt.modelWidth = bw;
     opt.modelHeight = bh;
     opt.defaultGroupName = filename.GetName().ToStdString();
 
     SuperStar::Importer importer(model, &_sequenceElements.GetSequenceMedia(), opt);
-    importer.SetPrefixPromptCallback([this, defGroup = filename.GetName()](std::string& prefix) -> bool {
-        wxString defaultPrompt = defGroup.IsEmpty() ? wxString("SuperStar") : defGroup;
-        wxTextEntryDialog d(this,
-            "Enter a group name / prefix for embedded images:",
-            "Embedded Image Group", defaultPrompt);
-        if (d.ShowModal() == wxID_CANCEL) return false;
-        prefix = d.GetValue().ToStdString();
-        return true;
-    });
-
-    std::string err;
-    bool ok = importer.Run(input_xml, &err);
-    if (!ok && !err.empty()) {
-        DisplayError(err, this);
+    if (prompt) {
+        importer.SetPrefixPromptCallback(prompt);
     }
+    return importer.Run(input_xml, &err);
+}
 
-    float elapsedTime = sw.Time() / 1000.0;
-    SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
+int xLightsFrame::ClearElementEffects(Element* element, bool includeSubModels)
+{
+    int removed = 0;
+    auto clear = [&removed](Element* el) {
+        for (int i = (int)el->GetEffectLayerCount() - 1; i >= 0; --i) {
+            EffectLayer* layer = el->GetEffectLayer(i);
+            int before = layer->GetEffectCount();
+            layer->DeleteAllEffects();
+            removed += before - layer->GetEffectCount();
+            if (layer->GetEffectCount() == 0 && el->GetEffectLayerCount() > 1) {
+                el->RemoveEffectLayer(i);
+            }
+        }
+    };
+    clear(element);
+    ModelElement* me = dynamic_cast<ModelElement*>(element);
+    if (includeSubModels && me != nullptr) {
+        for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
+            SubModelElement* sub = me->GetSubModel(s);
+            clear(sub);
+            if (StrandElement* strand = dynamic_cast<StrandElement*>(sub); strand != nullptr) {
+                for (int n = 0; n < strand->GetNodeLayerCount(); n++) {
+                    NodeLayer* nl = strand->GetNodeLayer(n);
+                    int before = nl->GetEffectCount();
+                    nl->DeleteAllEffects();
+                    removed += before - nl->GetEffectCount();
+                }
+            }
+        }
+    }
+    return removed;
 }
 
 bool findRGB(pugi::xml_node e, pugi::xml_node chan, pugi::xml_node& rchannel, pugi::xml_node& gchannel, pugi::xml_node& bchannel)

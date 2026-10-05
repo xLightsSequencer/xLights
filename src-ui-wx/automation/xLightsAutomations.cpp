@@ -24,6 +24,7 @@
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
 #include "utils/ip_utils.h"
+#include "utils/string_utils.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "shared/utils/wxUtilities.h"
@@ -1359,6 +1360,112 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         mainSequencer->PanelEffectGrid->Refresh();
 
         std::string response = "{\"msg\":\"Imported LOR Sequence.\",\"worked\":\"true\"}";
+        return sendResponse(response, "", 200, true);
+    } else if (cmd == "importSuperStar") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto filename = params["filename"];
+        if (filename == "" || filename == "null") {
+            return sendResponse("Import file not valid.", "msg", 503, false);
+        }
+        ObtainAccessToURL(filename);
+        if (!wxFile::Exists(filename)) {
+            return sendResponse("Import file not valid.", "msg", 503, false);
+        }
+        auto const& modelName = params["model"];
+        Element* target = FindModelOrSubModelElement(modelName);
+        if (target == nullptr) {
+            return sendResponse("Target model not found.", "msg", 503, false);
+        }
+
+        SuperStar::Options opt;
+        auto readInt = [&params](const std::string& key, int& out) {
+            auto const& v = params[key];
+            if (!v.empty() && v != "null") out = (int)std::strtol(v.c_str(), nullptr, 10);
+        };
+        readInt("xsize", opt.xSize);
+        readInt("ysize", opt.ySize);
+        readInt("xoffset", opt.xOffset);
+        readInt("yoffset", opt.yOffset);
+        readInt("timeadjust", opt.timingOffsetMs);
+        auto resize = ::Lower(params["imageresize"]);
+        if (resize.empty()) {
+        } else if (resize == "none") {
+            opt.imageResize = SuperStar::ImageResize::None;
+        } else if (resize == "exactwidth") {
+            opt.imageResize = SuperStar::ImageResize::ExactWidth;
+        } else if (resize == "exactheight") {
+            opt.imageResize = SuperStar::ImageResize::ExactHeight;
+        } else if (resize == "exactwidthorheight") {
+            opt.imageResize = SuperStar::ImageResize::ExactWidthOrHeight;
+        } else if (resize == "all") {
+            opt.imageResize = SuperStar::ImageResize::All;
+        } else {
+            return sendResponse("Unknown imageresize.", "msg", 503, false);
+        }
+        auto const& blend = params["layerblend"];
+        if (!blend.empty()) {
+            if (blend != "2 reveals 1" && blend != "Normal" && blend != "Average") {
+                return sendResponse("Unknown layerblend.", "msg", 503, false);
+            }
+            opt.layerBlend = blend;
+        }
+        opt.imageGroupPrefix = params["imageprefix"];
+
+        int cleared = 0;
+        int mediaRemoved = 0;
+        if (ReadBool(params["replace"])) {
+            cleared = ClearElementEffects(target, false);
+            mediaRemoved = _sequenceElements.RemoveUnreferencedMedia();
+        }
+
+        std::string err;
+        if (!ImportSuperStar(wxFileName(filename), modelName, opt, nullptr, err)) {
+            return sendResponse(err.empty() ? std::string("Import failed.") : JSONSafe(err), "msg", 503, false);
+        }
+        SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
+        _sequenceElements.IncrementChangeCount(nullptr);
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(this, eventRowHeaderChanged);
+        mainSequencer->PanelEffectGrid->Refresh();
+
+        std::string response = "{\"msg\":\"Imported SuperStar Sequence.\",\"worked\":\"true\",\"effectsCleared\":" +
+                               std::to_string(cleared) + ",\"mediaRemoved\":" + std::to_string(mediaRemoved) +
+                               ",\"layers\":" + std::to_string(target->GetEffectLayerCount()) + "}";
+        return sendResponse(response, "", 200, true);
+    } else if (cmd == "clearModelEffects") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        Element* target = FindModelOrSubModelElement(params["model"]);
+        if (target == nullptr) {
+            return sendResponse("Target model not found.", "msg", 503, false);
+        }
+        int cleared = ClearElementEffects(target, ReadBool(params["submodels"]));
+        int mediaRemoved = 0;
+        if (params["removemedia"].empty() || ReadBool(params["removemedia"])) {
+            mediaRemoved = _sequenceElements.RemoveUnreferencedMedia();
+        }
+        _sequenceElements.IncrementChangeCount(nullptr);
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(this, eventRowHeaderChanged);
+        mainSequencer->PanelEffectGrid->Refresh();
+
+        std::string response = "{\"msg\":\"Cleared Effects.\",\"worked\":\"true\",\"effectsCleared\":" +
+                               std::to_string(cleared) + ",\"mediaRemoved\":" + std::to_string(mediaRemoved) + "}";
+        return sendResponse(response, "", 200, true);
+    } else if (cmd == "removeUnusedMedia") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        int removed = _sequenceElements.RemoveUnreferencedMedia();
+        if (removed > 0) {
+            _sequenceElements.IncrementChangeCount(nullptr);
+        }
+        std::string response = "{\"msg\":\"Removed Unused Media.\",\"worked\":\"true\",\"removed\":" + std::to_string(removed) + "}";
         return sendResponse(response, "", 200, true);
     } else if (cmd == "getShowFolder") {
         return sendResponse(JSONSafe(showDirectory), "folder", 200, false);

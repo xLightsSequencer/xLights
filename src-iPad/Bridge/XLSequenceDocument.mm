@@ -14305,38 +14305,6 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
 
 namespace {
 
-// Walk every effect's settings + palette map and push each value
-// into `out`. The media-reference scan uses this to decide which
-// cached paths are still in use. False-positive matches (a text
-// field with a string that happens to match a cached path) keep
-// the entry alive — harmless for cleanup, better than dropping
-// something still referenced.
-void collectAllEffectSettingValues(iPadRenderContext& ctx,
-                                    std::unordered_set<std::string>& out) {
-    auto& se = ctx.GetSequenceElements();
-    for (size_t i = 0; i < se.GetElementCount(); ++i) {
-        Element* el = se.GetElement(i);
-        if (!el) continue;
-        // All Element types iterate effect layers the same way.
-        int nLayers = (int)el->GetEffectLayerCount();
-        for (int li = 0; li < nLayers; ++li) {
-            EffectLayer* layer = el->GetEffectLayer(li);
-            if (!layer) continue;
-            int nEffects = (int)layer->GetEffectCount();
-            for (int ei = 0; ei < nEffects; ++ei) {
-                Effect* eff = layer->GetEffect(ei);
-                if (!eff) continue;
-                for (const auto& kv : eff->GetSettings()) {
-                    out.insert(kv.second);
-                }
-                for (const auto& kv : eff->GetPaletteMap()) {
-                    out.insert(kv.second);
-                }
-            }
-        }
-    }
-}
-
 // Rewrite every effect's settings + palette-map VALUES equal to
 // `oldValue` to `newValue`. Used by the rename path so effects
 // tracking the old filename don't end up broken. Returns the
@@ -14965,26 +14933,7 @@ void appendLayerMatches(EffectLayer* layer,
 
 - (int)removeUnusedMedia {
     if (!_context) return 0;
-    auto& media = _context->GetSequenceElements().GetSequenceMedia();
-
-    // Collect every value any effect refers to — the "used" set.
-    std::unordered_set<std::string> usedValues;
-    collectAllEffectSettingValues(*_context, usedValues);
-
-    // Sequence-level face definitions reference images outside any effect's
-    // settings — without this their images would always look unused.
-    for (const auto& p : _context->GetSequenceElements().GetSequenceFaces().GetImagePaths()) {
-        usedValues.insert(p);
-    }
-
-    auto paths = media.GetAllMediaPaths();
-    int removed = 0;
-    for (const auto& p : paths) {
-        if (usedValues.count(p.first) == 0 && !media.IsUsedByMetadata(p.first)) {
-            media.RemoveMedia(p.first);
-            removed++;
-        }
-    }
+    int removed = _context->GetSequenceElements().RemoveUnreferencedMedia();
     if (removed > 0) bumpSequenceDirty(_context.get());
     return removed;
 }
