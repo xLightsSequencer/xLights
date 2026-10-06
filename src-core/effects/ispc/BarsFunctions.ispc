@@ -73,19 +73,6 @@ static inline uint8<4> barsHsv2rgba(float h, float s, float v) {
     return out;
 }
 
-// Blend two HSV colors along the shortest hue arc and return RGBA.
-// Mirrors blendHSV() from BarsFunctions.metal.
-static inline uint8<4> blendHSV(float h1, float s1, float v1,
-                                 float h2, float s2, float v2,
-                                 float t) {
-    float dh = h2 - h1;
-    if (dh >  0.5f) dh -= 1.0f;
-    if (dh < -0.5f) dh += 1.0f;
-    float bh = h1 + t * dh;
-    bh = bh - floor(bh);
-    return barsHsv2rgba(bh, s1 + t * (s2 - s1), v1 + t * (v2 - v1));
-}
-
 // Linearly blend two RGBA colors.
 static inline uint8<4> blendRGBA(uint8<4> c1, uint8<4> c2, float t) {
     uint8<4> out;

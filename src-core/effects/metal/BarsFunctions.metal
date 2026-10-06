@@ -48,20 +48,6 @@ static uchar4 barsHsv2rgba(float3 hsv) {
     return uchar4((uchar)(r * 255.0f), (uchar)(g * 255.0f), (uchar)(b * 255.0f), 255);
 }
 
-// Blend two HSV colors and return RGBA
-static uchar4 blendHSV(float3 hsv1, float3 hsv2, float t) {
-    // Blend hue along the shortest arc
-    float dh = hsv2.x - hsv1.x;
-    if (dh > 0.5f) dh -= 1.0f;
-    if (dh < -0.5f) dh += 1.0f;
-    float3 blended = float3(
-        fmod(hsv1.x + t * dh + 1.0f, 1.0f),
-        hsv1.y + t * (hsv2.y - hsv1.y),
-        hsv1.z + t * (hsv2.z - hsv1.z)
-    );
-    return barsHsv2rgba(blended);
-}
-
 // Compute final pixel color given bar-index n, barSize, colorCount, and modifier flags.
 // n = BufferDim + coord + f_offset  (the raw bar position counter used by CPU)
 static uchar4 computeBarColor(int n, constant MetalBarsData &data) {
