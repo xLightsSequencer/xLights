@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              FPP Connect: no longer crashes if the temporary sequence file for an upload
+                                 cannot be created; the upload is stopped and the error logged
+    -bug (derwin12)              Bars: gradient no longer picks up extra hues (rainbow) when the layer blending
+                                 is anything other than Normal
     -enh (dkulp)                 Palette and effect colour buttons preview the colour live while the
                                  colour picker is open, and Cancel restores the original
     -bug (dkulp)                 macOS - Opening the system colour picker and clicking OK no longer

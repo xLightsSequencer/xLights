@@ -1314,6 +1314,14 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     }
     outputFile = FSEQFile::createFSEQFile(fileName, FSEQ_Version, ctype, clevel);
     outputFileIsOriginal = false;
+    if (outputFile == nullptr) {
+        spdlog::error("FPP::PrepareUploadSequence - Unable to create temporary FSEQ file {}", fileName);
+        if (tempFileName != "") {
+            { std::error_code ec; std::filesystem::remove(tempFileName, ec); }
+            tempFileName = "";
+        }
+        return true;
+    }
     outputFile->initializeFromFSEQ(*file);
     if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(7, 0)) {
         outputFile->enableMinorVersionFeatures(2);

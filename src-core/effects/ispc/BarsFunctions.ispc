@@ -121,16 +121,20 @@ static inline uint8<4> computeBarColor(int n, const uniform BarsData * uniform d
             rgba[3] = (uint8)(255.0f * (float)num / (float)data->barSize);
         }
     } else {
+        if (data->gradient) {
+            rgba = blendRGBA(data->colorsAsRGBA[colorIdx], data->colorsAsRGBA[color2], pct);
+            if (data->show3D) {
+                float scale = (float)(data->barSize - absBarN - 1) / (float)data->barSize;
+                rgba[0] = (uint8)((float)rgba[0] * scale);
+                rgba[1] = (uint8)((float)rgba[1] * scale);
+                rgba[2] = (uint8)((float)rgba[2] * scale);
+            }
+            rgba[3] = 255;
+            return rgba;
+        }
         float h = data->colorsH[colorIdx];
         float s = data->colorsS[colorIdx];
         float v = data->colorsV[colorIdx];
-        if (data->gradient) {
-            return blendHSV(h, s, v,
-                            data->colorsH[color2],
-                            data->colorsS[color2],
-                            data->colorsV[color2],
-                            pct);
-        }
         if (data->show3D) {
             int num = data->barSize - absBarN - 1;
             v *= (float)num / (float)data->barSize;
