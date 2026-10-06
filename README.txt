@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              FPP Connect: no longer crashes if the temporary sequence file for an upload
+                                 cannot be created; the upload is stopped and the error logged
+    -bug (derwin12)              Bars: gradient no longer picks up extra hues (rainbow) when the layer blending
+                                 is anything other than Normal
     -enh (dkulp)                 Automation: importSuperStar (all import dialog options, plus "replace" to
                                  clear the model and its unused media first), clearModelEffects and
                                  removeUnusedMedia, for re-importing after a model's size changes

@@ -86,10 +86,18 @@ static uchar4 computeBarColor(int n, constant MetalBarsData &data) {
             rgba.a = (uchar)(255.0f * (float)numerator / (float)data.barSize);
         }
     } else {
-        float3 hsv = data.colorsAsHSV[colorIdx];
         if (data.gradient) {
-            return blendHSV(hsv, data.colorsAsHSV[color2], pct);
+            rgba = blendRGBA(data.colorsAsRGBA[colorIdx], data.colorsAsRGBA[color2], pct);
+            if (data.show3D) {
+                float scale = (float)(data.barSize - abs(n % data.barSize) - 1) / (float)data.barSize;
+                rgba.r = (uchar)((float)rgba.r * scale);
+                rgba.g = (uchar)((float)rgba.g * scale);
+                rgba.b = (uchar)((float)rgba.b * scale);
+            }
+            rgba.a = 255;
+            return rgba;
         }
+        float3 hsv = data.colorsAsHSV[colorIdx];
         if (data.show3D) {
             int numerator = data.barSize - abs(n % data.barSize) - 1;
             hsv.z *= (float)numerator / (float)data.barSize;
