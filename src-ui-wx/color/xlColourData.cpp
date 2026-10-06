@@ -50,10 +50,12 @@ void xlColourData::SetUseCustomPicker(bool v)
     }
 }
 
-std::tuple<int, wxColour> xlColourData::ShowColorDialog(wxWindow* parent, const wxColour& colour)
+std::tuple<int, wxColour> xlColourData::ShowColorDialog(wxWindow* parent, const wxColour& colour,
+                                                       const std::function<void(const wxColour&)>& onChange)
 {
     if (m_useCustomPicker) {
         xlColourPickerDialog dlg(parent, colour);
+        dlg.SetLiveChangeCallback(onChange);
         auto result = dlg.ShowModal();
         if (result == wxID_OK) {
             wxColour chosen = dlg.GetColour();
@@ -66,6 +68,16 @@ std::tuple<int, wxColour> xlColourData::ShowColorDialog(wxWindow* parent, const 
 
     m_colorData.SetColour(colour);
     wxColourDialog dlg(parent, &m_colorData);
+    xlColor lastLive = wxColourToXlColor(colour);
+    if (onChange) {
+        dlg.Bind(wxEVT_COLOUR_CHANGED, [&onChange, &lastLive](wxColourDialogEvent& event) {
+            xlColor live = wxColourToXlColor(event.GetColour());
+            if (live != lastLive) {
+                lastLive = live;
+                onChange(xlColorToWxColour(live));
+            }
+        });
+    }
     auto result = dlg.ShowModal();
     m_colorData = dlg.GetColourData();
     xlColor c = wxColourToXlColor(m_colorData.GetColour());

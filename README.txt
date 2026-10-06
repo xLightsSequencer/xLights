@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (dkulp)                 Palette and effect colour buttons preview the colour live while the
+                                 colour picker is open, and Cancel restores the original
+    -bug (dkulp)                 macOS - Opening the system colour picker and clicking OK no longer
+                                 shifts the colour (it now opens in Generic RGB)
     -bug (nsxfreddy)             Models newly assigned to a PWM or serial (DMX) port on an auto-layout
                                  controller no longer start one channel early
     -enh (derwin12)              Layout Controllers tab: clicking a model in the preview switches to the

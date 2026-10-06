@@ -39,14 +39,30 @@ void ColorCurveButton::LeftClick(wxCommandEvent& event)
 {
     ColorCurveButton* w = static_cast<ColorCurveButton*>(event.GetEventObject());
     wxColour color = w->GetBackgroundColour();
-    auto const& [res, ncolor] = xlColourData::INSTANCE.ShowColorDialog(this, color);
-    if (res == wxID_OK) {
+    auto applyColor = [this](const wxColour& c) {
         _cc->SetActive(false);
-        color = ncolor;
-        _color = color.GetAsString();
-        _cc->SetDefault(wxColourToXlColor(color));
+        _color = c.GetAsString();
+        _cc->SetDefault(wxColourToXlColor(c));
         UpdateBitmap();
+    };
+    const ColorCurve savedCC = *_cc;
+    const std::string savedColor = _color;
+    bool previewed = false;
+    auto const& [res, ncolor] = xlColourData::INSTANCE.ShowColorDialog(this, color, [&](const wxColour& c) {
+        // Preview without reloading the colours panel, which would add every
+        // intermediate colour to its list.
+        applyColor(c);
+        previewed = true;
+        NotifyChange(false);
+    });
+    if (res == wxID_OK) {
+        applyColor(ncolor);
         NotifyChange(true);
+    } else if (previewed) {
+        *_cc = savedCC;
+        _color = savedColor;
+        UpdateBitmap();
+        NotifyChange(false);
     }
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <tuple>
 #include <wx/colourdata.h>
 
@@ -44,7 +45,11 @@ public:
     bool UseCustomPicker() const { return m_useCustomPicker; }
     void SetUseCustomPicker(bool v);
 
-    [[nodiscard]] std::tuple<int, wxColour> ShowColorDialog(wxWindow* parent, const wxColour& colour);
+    // onChange, when set, is called with each colour the user previews while the
+    // dialog is open. It is not called again on OK, and on Cancel the caller
+    // must restore its own state.
+    [[nodiscard]] std::tuple<int, wxColour> ShowColorDialog(wxWindow* parent, const wxColour& colour,
+                                                            const std::function<void(const wxColour&)>& onChange = {});
 
 private:
     xlColourData();
