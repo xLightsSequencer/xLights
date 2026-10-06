@@ -66,10 +66,20 @@ void xlColourPickerButton::SetColour(const wxColour& c)
 
 void xlColourPickerButton::OnClick(wxCommandEvent& /*event*/)
 {
-    auto [res, newcolor] = xlColourData::INSTANCE.ShowColorDialog(this, m_colour);
-    if (res == wxID_OK) {
-        SetColour(newcolor);
+    auto notify = [this](const wxColour& c) {
+        SetColour(c);
         wxColourPickerEvent evt(this, GetId(), m_colour);
         GetEventHandler()->ProcessEvent(evt);
+    };
+    const wxColour original = m_colour;
+    bool previewed = false;
+    auto [res, newcolor] = xlColourData::INSTANCE.ShowColorDialog(this, m_colour, [&](const wxColour& c) {
+        previewed = true;
+        notify(c);
+    });
+    if (res == wxID_OK) {
+        notify(newcolor);
+    } else if (previewed) {
+        notify(original);
     }
 }

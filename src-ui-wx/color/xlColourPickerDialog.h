@@ -15,6 +15,7 @@
 #include <wx/textctrl.h>
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
+#include <functional>
 #include <vector>
 
 #include "Color.h"
@@ -31,6 +32,10 @@ public:
                          const wxString& title = "Color Picker");
 
     wxColour GetColour() const;
+
+    // Called with each colour change while the dialog is open (see
+    // xlColourData::ShowColorDialog).
+    void SetLiveChangeCallback(std::function<void(const wxColour&)> cb) { m_onLiveChange = std::move(cb); }
 
 private:
     xlColorCanvas* m_disc        = nullptr;   // TYPE_WHEEL — full HSV disc
@@ -56,6 +61,8 @@ private:
     xlColor  m_color;
     wxColour m_initialColor;
     bool     m_updating = false;
+    xlColor  m_lastLiveColor;
+    std::function<void(const wxColour&)> m_onLiveChange;
 
     // ---- helpers ----
     void SyncAllFromColor(bool syncDisc = true);

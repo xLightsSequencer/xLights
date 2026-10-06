@@ -153,6 +153,7 @@ xlColourPickerDialog::xlColourPickerDialog(wxWindow* parent, const wxColour& ini
       m_initialColor(initial)
 {
     m_color = wxColourToXlColor(initial);
+    m_lastLiveColor = m_color;
     std::srand((unsigned)std::chrono::steady_clock::now().time_since_epoch().count());
 
     // ── Helpers ───────────────────────────────────────────────────────────
@@ -360,6 +361,10 @@ void xlColourPickerDialog::UpdateAfterPanel()
 {
     m_afterPanel->SetBackgroundColour(xlColorToWxColour(m_color));
     m_afterPanel->Refresh();
+    if (m_onLiveChange && m_color != m_lastLiveColor) {
+        m_lastLiveColor = m_color;
+        m_onLiveChange(xlColorToWxColour(m_color));
+    }
 }
 
 void xlColourPickerDialog::SetColorAndSync(const xlColor& c)
@@ -523,8 +528,14 @@ void xlColourPickerDialog::OnSystemPicker(wxCommandEvent& /*event*/)
     wxColourData data;
     data.SetColour(xlColorToWxColour(m_color));
     wxColourDialog dlg(this, &data);
+    dlg.Bind(wxEVT_COLOUR_CHANGED, [this](wxColourDialogEvent& event) {
+        SetColorAndSync(wxColourToXlColor(event.GetColour()));
+    });
+    xlColor before = m_color;
     if (dlg.ShowModal() == wxID_OK) {
         SetColorAndSync(wxColourToXlColor(dlg.GetColourData().GetColour()));
+    } else {
+        SetColorAndSync(before);
     }
 }
 

@@ -231,7 +231,7 @@ read-only category header (`ModelPropertyAdapter.cpp:307`); the iPad likewise sh
 | 140 | Collapse-state persistence of property categories | `LayoutPanel.cpp:4163-4188`, save `:1810-1830` | 🟡 | SwiftUI sections are always expanded; grepped `collapsed`, `isExpanded` in the property view (`LayoutEditorView.swift:4667-5100`) → 0 hits |
 | **Controller connection (model side)** |
 | 141 | Port | `ModelPropertyAdapter.cpp:637`, change `:1264` | ✅ | `LayoutEditorView.swift:5439` |
-| 142 | Protocol | `ModelPropertyAdapter.cpp:719`, change `:1364` | ✅ | `LayoutEditorView.swift:5443` |
+| 142 | Protocol | `ModelPropertyAdapter.cpp:719`, change `:1364` | ✅ | `LayoutEditorView.swift:5443`. A new connection's DMX channel defaults to 1 in core (`ControllerConnection.h:135`), so a PWM assignment lands at `:1` on both platforms, including the iPad drag-to-PWM path (`XLSequenceDocument.mm:19063`), which never sets the channel itself |
 | 143 | Smart Remote (use / index / type / max cascade / cascade-on-port) | `ModelPropertyAdapter.cpp:676-708`, changes `:1317-1343` | ✅ | `LayoutEditorView.swift:5478-5510`; standalone sheet `ModelSmartRemoteSheet.swift:21` (letter grid `:122`) |
 | 144 | Serial DMX channel + speed | `ModelPropertyAdapter.cpp:726`, `:738` | ✅ | `LayoutEditorView.swift:5376-5385` |
 | 145 | PWM Gamma / Brightness | `ModelPropertyAdapter.cpp:746`, `:753` | ✅ | `LayoutEditorView.swift:5388-5390` |
@@ -241,6 +241,7 @@ read-only category header (`ModelPropertyAdapter.cpp:307`); the iPad likewise sh
 | 148 | Sorting (groups float to top; by start/end channel, controller/port) | `ModelListComparator::SortElementsFunction` `LayoutPanel.cpp:4449-4530` | ✅ | 5-way sort menu (List Order / Name / Start Ch / End Ch / Type), `ModelSortMode` `LayoutEditorView.swift:78`, menu `:1889-1899` |
 | 149 | Per-type tree icons | `LayoutUtils::GetModelTreeIcon` `LayoutUtils.cpp:61-117` | 🟡 | SF Symbols per row; grepped `modelTypeIcon`, `iconForType` in `LayoutEditorView.swift` → the roster uses `modelTypeLabel` `:3508-3525` for text, not a per-type glyph table |
 | 150 | Show Models Not On Controller (Controllers page) | `LayoutPanel.cpp:7693` (gate `:7691`), handler `:7706` | ❌ | Grepped `notOnController`, `"Not On Controller"` under `src-iPad/` → 0 hits |
+| 150a | Click a model in preview on Controllers page jumps to Models/Groups page | `LayoutPanel.cpp` `SwitchToModelsPageAndSelect` | ❌ | iPad Controllers page is a separate `ControllerVisualizeView.swift` window with no model preview picking; desktop-only for now |
 | **Per-model dialogs — custom model** |
 | 151 | Custom-model grid editor with W/H/Depth | `CustomModelDialog.cpp` W/H/D `:403`, `ResizeCustomGrid` `:747`, save `:817` | ✅ | `CustomModelEditorSheet` `LayoutEditorView.swift:8637`, W/H/D spinners `:8795-8842`, load `:3843`, commit `:3881`, bridge `XLSequenceDocument.h:1742-1743` |
 | 152 | Paint / place nodes by dragging | Cell click + autonumber `CustomModelDialog.cpp:1209-1222` | ✅ | Drag-to-place with Bresenham fill `LayoutEditorView.swift:9637`, fat-finger snap `:9459` |

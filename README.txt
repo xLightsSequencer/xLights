@@ -16,6 +16,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  cannot be created; the upload is stopped and the error logged
     -bug (derwin12)              Bars: gradient no longer picks up extra hues (rainbow) when the layer blending
                                  is anything other than Normal
+    -enh (dkulp)                 Palette and effect colour buttons preview the colour live while the
+                                 colour picker is open, and Cancel restores the original
+    -bug (dkulp)                 macOS - Opening the system colour picker and clicking OK no longer
+                                 shifts the colour (it now opens in Generic RGB)
+    -bug (nsxfreddy)             Models newly assigned to a PWM or serial (DMX) port on an auto-layout
+                                 controller no longer start one channel early
+    -enh (derwin12)              Layout Controllers tab: clicking a model in the preview switches to the
+                                 Models (or Groups) tab with that model selected
     -enh (dkulp)                 Automation: importSuperStar (all import dialog options, plus "replace" to
                                  clear the model and its unused media first), clearModelEffects and
                                  removeUnusedMedia, for re-importing after a model's size changes
