@@ -512,6 +512,55 @@ void DumpConfig()
     }
 }
 
+#ifdef __APPLE__
+#include <sys/stat.h>
+#include <unistd.h>
+
+static bool IsWritableDir(const std::string& dir) {
+    std::string probe = dir;
+    if (probe.empty() || probe.back() != '/') {
+        probe += '/';
+    }
+    probe += "xl_tmpcheck_XXXXXX";
+    int fd = mkstemp(probe.data());
+    if (fd < 0) {
+        return false;
+    }
+    close(fd);
+    unlink(probe.c_str());
+    return true;
+}
+
+// std::filesystem::temp_directory_path() and wx use TMPDIR, falling back to /tmp,
+// which the sandbox denies writes to.  If TMPDIR is missing or unwritable, point
+// it at the per-user temp dir (the container's tmp when sandboxed).
+static void EnsureWritableTempDir() {
+    const char* env = getenv("TMPDIR");
+    std::string cur = env ? env : "";
+    if (env != nullptr && IsWritableDir(cur)) {
+        return;
+    }
+    std::vector<std::string> candidates;
+    char userTmp[PATH_MAX];
+    if (confstr(_CS_DARWIN_USER_TEMP_DIR, userTmp, sizeof(userTmp)) > 0) {
+        candidates.emplace_back(userTmp);
+    }
+    if (const char* home = getenv("HOME")) {
+        std::string homeTmp = std::string(home) + "/tmp/";
+        mkdir(homeTmp.c_str(), 0700);
+        candidates.push_back(homeTmp);
+    }
+    for (const auto& c : candidates) {
+        if (IsWritableDir(c)) {
+            spdlog::warn("TMPDIR '{}' is not writable, using {}", cur, c);
+            setenv("TMPDIR", c.c_str(), 1);
+            return;
+        }
+    }
+    spdlog::error("TMPDIR '{}' is not writable and no writable fallback was found", cur);
+}
+#endif
+
 #ifdef LINUX
     #include <X11/Xlib.h>
 #endif // LINUX
@@ -527,6 +576,10 @@ int main(int argc, char **argv)
     //     a folder the user can write to
     //     predictable ... as we want the HandleCrash function to be able to locate the file to include it in the crash
     spdlog::info("******* XLights main function executing.");
+
+#ifdef __APPLE__
+    EnsureWritableTempDir();
+#endif
 
 #ifdef LINUX
     XInitThreads();

@@ -1316,6 +1316,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     outputFileIsOriginal = false;
     if (outputFile == nullptr) {
         spdlog::error("FPP::PrepareUploadSequence - Unable to create temporary FSEQ file {}", fileName);
+        messages.push_back("Unable to create the temporary sequence file " + fileName + ".");
         if (tempFileName != "") {
             { std::error_code ec; std::filesystem::remove(tempFileName, ec); }
             tempFileName = "";

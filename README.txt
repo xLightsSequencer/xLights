@@ -20,6 +20,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  colour picker is open, and Cancel restores the original
     -bug (dkulp)                 macOS - Opening the system colour picker and clicking OK no longer
                                  shifts the colour (it now opens in Generic RGB)
+    -bug (dkulp)                 Fix crash after using a property's "..." button (states, faces, submodels,
+                                 etc.) when the property grid was refreshed while its dialog was open
+    -bug (dkulp)                 macOS - Fall back to xLights' own temporary folder when the system one isn't
+                                 writable, so FPP Connect sequence uploads and downloads work
     -bug (nsxfreddy)             Models newly assigned to a PWM or serial (DMX) port on an auto-layout
                                  controller no longer start one channel early
     -enh (derwin12)              Layout Controllers tab: clicking a model in the preview switches to the
