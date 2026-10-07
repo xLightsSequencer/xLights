@@ -519,14 +519,29 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         EnsureAudioTrackIds();
         for (int i = 0; i < 32; i++) {
             if (id == _audioTrackIdPool[i]) {
-                _activeAudioTrackIndex = i;
                 auto* frame = xLightsApp::GetFrame();
+                AudioManager* oldMedia = (frame != nullptr) ? frame->GetPlaybackAudio() : nullptr;
+                MEDIAPLAYINGSTATE oldState = oldMedia != nullptr ? oldMedia->GetPlayingState() : STOPPED;
+                long pos = (oldMedia != nullptr && oldState != STOPPED) ? oldMedia->Tell() : 0;
+                _activeAudioTrackIndex = i;
                 if (frame != nullptr && frame->CurrentSeqXmlFile != nullptr) {
                     wxString err;
                     AudioManager* newMedia = (i == 0)
                         ? frame->CurrentSeqXmlFile->GetMedia()
                         : frame->CurrentSeqXmlFile->GetAltTrackMedia(i - 1);
+                    bool handOver = oldMedia != nullptr && oldMedia != newMedia && oldState != STOPPED;
+                    if (handOver) {
+                        oldMedia->Stop();
+                    }
+                    // Reset to the raw waveform (and the media's raw data) before playback restarts, so
+                    // the dropdown and the audible filter agree even if this track was left on Bass etc.
                     OpenfileMedia(newMedia, err);
+                    if (handOver && newMedia != nullptr) {
+                        newMedia->Seek(pos);
+                        if (oldState == PLAYING) {
+                            newMedia->Play();
+                        }
+                    }
                 }
                 return;
             }
@@ -1197,7 +1212,8 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     ResetAnalysisState();
     if (_media != nullptr) {
-        _media->SwitchTo(_type);
+        // -1/-1 so the cached RAW entry (stored with notes 0/0) matches; SwitchTo's 0/127 defaults miss it
+        _media->SwitchTo(_type, _lowNote, _highNote);
         if (mTimeline) mLastEffectiveTick = mTimeline->TimePerMajorTickInMS();
         float samplesPerLine = GetSamplesPerLineFromZoomLevel();
         views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
