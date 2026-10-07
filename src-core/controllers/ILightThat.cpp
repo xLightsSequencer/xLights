@@ -142,6 +142,15 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                     }
                 }
 
+                float gamma = model->GetGamma(-1);
+                if (gamma == -1) {
+                    if (controller->IsFullxLightsControl()) {
+                        gamma = controller->GetDefaultGammaUnderFullControl();
+                    } else {
+                        gamma = 1.0;
+                    }
+                }
+
                 if (model_test_cols.find(model->GetName()) == model_test_cols.end()) {
                     outputConfig["ports"][x]["models"][i]["test_colour"] = _model_test_default_colours [_model_test_default_col_idx];
                     _model_test_default_col_idx = (_model_test_default_col_idx + 1) % _model_test_default_colours.size();
@@ -150,6 +159,7 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 }
 
                 outputConfig["ports"][x]["models"][i]["brightness"] = brightness;
+                outputConfig["ports"][x]["models"][i]["gamma"] = gamma;
                 outputConfig["ports"][x]["models"][i]["start_channel"] = model->GetStartChannel() - port->GetFirstModel()->GetStartChannel();
                 outputConfig["ports"][x]["models"][i]["num_channels"] = (model->GetEndChannel() - model->GetStartChannel()) + 1;
 
