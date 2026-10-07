@@ -163,7 +163,7 @@ public:
     std::string GetPaletteAsString() const;
     std::string GetPaletteAsJSON() const;
     void SetPalette(const std::string& i);
-    void SetColourOnlyPalette(const std::string& i, bool json = false);
+    void SetColourOnlyPalette(const std::string& i, bool json = false, bool keepCheckboxes = false);
     void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
     void EraseSettingsStartingWith(const std::string& s);
     void ErasePalette();

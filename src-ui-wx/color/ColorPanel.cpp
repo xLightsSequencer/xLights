@@ -67,6 +67,7 @@
 #define PALETTE_CC_SIZE_LARGE 18
 
 const wxWindowID ColorPanel::ID_MNU_UPDATE = wxNewId();
+const wxWindowID ColorPanel::ID_MNU_UPDATE_COLORS = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_SAVE = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_SAVE_AS = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_DELETE = wxNewId();
@@ -971,7 +972,7 @@ void ColorPanel::OnCCChanged(wxCommandEvent& event) {
     ValidateWindow();
 }
 
-void ColorPanel::UpdateColor() {
+void ColorPanel::UpdateColor(bool colorsOnly) {
     int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
     if (alleffects > 1) {
         if (!xLightsApp::GetFrame()->IsSuppressColorWarn()) {
@@ -979,6 +980,7 @@ void ColorPanel::UpdateColor() {
         }
     }
     wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
+    eventEffectUpdated.SetInt(colorsOnly ? 1 : 0);
     wxPostEvent(GetParent(), eventEffectUpdated);
     FireChangeEvent();
     Refresh();
@@ -1047,6 +1049,7 @@ wxString ColorPanel::RemoveNonAlphanumeric(wxString const& str) const {
 void ColorPanel::OnBitmapButton_MenuPaletteClick(wxCommandEvent& /*event*/) {
     wxMenu mnuLayer;
     wxMenuItem* updateItem = mnuLayer.Append(ID_MNU_UPDATE, "Update Palette");
+    wxMenuItem* updateColorsItem = mnuLayer.Append(ID_MNU_UPDATE_COLORS, "Update Only Colors");
     wxMenuItem* saveItem = mnuLayer.Append(ID_MNU_SAVE, "Save Palette");
     wxMenuItem* saveAsItem = mnuLayer.Append(ID_MNU_SAVE_AS, "Save Palette As");
     wxMenuItem* deleteItem = mnuLayer.Append(ID_MNU_DELETE, "Delete Palette");
@@ -1058,7 +1061,10 @@ void ColorPanel::OnBitmapButton_MenuPaletteClick(wxCommandEvent& /*event*/) {
                      (wxObjectEventFunction)&ColorPanel::OnListPopup, nullptr, this);
 
     const int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
-    if (alleffects == 0) updateItem->Enable(false);
+    if (alleffects == 0) {
+        updateItem->Enable(false);
+        updateColorsItem->Enable(false);
+    }
     deleteItem->Enable(false);
 
     wxString pal = wxString(GetCurrentPalette()).BeforeLast(',');
@@ -1084,6 +1090,7 @@ void ColorPanel::OnListPopup(wxCommandEvent& event) {
     else if (event.GetId() == ID_MNU_IMPORT) ImportPalette();
     else if (event.GetId() == ID_MNU_GENERATE) GeneratePalette();
     else if (event.GetId() == ID_MNU_UPDATE) UpdateColor();
+    else if (event.GetId() == ID_MNU_UPDATE_COLORS) UpdateColor(true);
 }
 
 bool ColorPanel::ValidateAndFormatPaletteString(wxString& input, wxString& /*errorMsg*/) {

@@ -20,6 +20,7 @@ struct ColorPaletteView: View {
     @State private var showingSaveAsSheet = false
     @State private var showingAISheet = false
     @State private var showingUpdatePaletteConfirm = false
+    @State private var pendingUpdateColorsOnly = false
     // Desktop Effects-Grid ▸ "Hide Color Update Warning"
     // (`EffectsGridSettingsPanel.cpp:106`): when ON, apply the palette to
     // the other selected effects without the confirmation prompt.
@@ -82,14 +83,15 @@ struct ColorPaletteView: View {
             AIPaletteGenerationSheet()
                 .environment(viewModel)
         }
-        .alert("Update Palette", isPresented: $showingUpdatePaletteConfirm) {
+        .alert(pendingUpdateColorsOnly ? "Update Only Colors" : "Update Palette",
+               isPresented: $showingUpdatePaletteConfirm) {
             Button("Update", role: .destructive) {
-                viewModel.updatePaletteOnAllSelected()
+                viewModel.updatePaletteOnAllSelected(colorsOnly: pendingUpdateColorsOnly)
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             let count = viewModel.selectedEffects.count - 1
-            Text("Apply this palette to \(count) other selected \(count == 1 ? "effect" : "effects")?")
+            Text("Apply this \(pendingUpdateColorsOnly ? "palette's colors" : "palette") to \(count) other selected \(count == 1 ? "effect" : "effects")?")
         }
         .sheet(item: Binding(
             get: { swatchPickerSlot.map { SlotRef(id: $0) } },
@@ -108,17 +110,27 @@ struct ColorPaletteView: View {
 
     // MARK: - Palette menu (save / load / import / export)
 
+    private func requestUpdatePalette(colorsOnly: Bool) {
+        if hideColorUpdateWarning {
+            viewModel.updatePaletteOnAllSelected(colorsOnly: colorsOnly)
+        } else {
+            pendingUpdateColorsOnly = colorsOnly
+            showingUpdatePaletteConfirm = true
+        }
+    }
+
     @ViewBuilder
     private func paletteMenuContent() -> some View {
         if viewModel.isMultiEffectSelection {
             Button {
-                if hideColorUpdateWarning {
-                    viewModel.updatePaletteOnAllSelected()
-                } else {
-                    showingUpdatePaletteConfirm = true
-                }
+                requestUpdatePalette(colorsOnly: false)
             } label: {
                 Label("Update Palette", systemImage: "square.stack.3d.up.fill")
+            }
+            Button {
+                requestUpdatePalette(colorsOnly: true)
+            } label: {
+                Label("Update Only Colors", systemImage: "paintpalette")
             }
             Divider()
         }

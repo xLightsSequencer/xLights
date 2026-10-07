@@ -876,7 +876,7 @@ void Effect::SetPalette(const std::string& i)
 }
 
 // This only updates the colour palette ... preserving all the other colour settings
-void Effect::SetColourOnlyPalette(const std::string& i, bool json)
+void Effect::SetColourOnlyPalette(const std::string& i, bool json, bool keepCheckboxes)
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
@@ -886,10 +886,22 @@ void Effect::SetColourOnlyPalette(const std::string& i, bool json)
     // parse in the new one
     json ? mPaletteMap.ParseJson(nullptr, i, "") : mPaletteMap.Parse(nullptr, i, "");
 
+    if (keepCheckboxes) {
+        std::vector<std::string> newChecks;
+        for (auto it = mPaletteMap.begin(); it != mPaletteMap.end(); ++it) {
+            if (StartsWith(it->first, "C_CHECKBOX_Palette")) {
+                newChecks.push_back(it->first);
+            }
+        }
+        for (const auto& k : newChecks) {
+            mPaletteMap.erase(k);
+        }
+    }
+
     // copy over all the non colour entries
     for (auto it = oldPalette.begin(); it != oldPalette.end(); ++it)
     {
-        if (!StartsWith(it->first, "C_BUTTON_Palette") && !StartsWith(it->first, "C_CHECKBOX_Palette"))
+        if (!StartsWith(it->first, "C_BUTTON_Palette") && (keepCheckboxes || !StartsWith(it->first, "C_CHECKBOX_Palette")))
         {
             mPaletteMap[it->first] = it->second;
         }

@@ -2437,6 +2437,7 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
 
     // Get only the colours from the colour panel ... ignore all the other settings
     std::string palette = colorPanel->GetColorString(true);
+    bool keepCheckboxes = event.GetInt() == 1;
 
     _sequenceElements.get_undo_mgr().CreateUndoStep();
     for (int i = 0; i < (int)_sequenceElements.GetRowInformationSize(); i++) {
@@ -2452,7 +2453,7 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
                     el->GetIndex(),
                     ef);
                 // only set the colours ... not other settings like sparkles
-                ef->SetColourOnlyPalette(palette);
+                ef->SetColourOnlyPalette(palette, false, keepCheckboxes);
                 startms = std::min(startms, ef->GetStartTimeMS());
                 endms = std::max(endms, ef->GetEndTimeMS());
             }

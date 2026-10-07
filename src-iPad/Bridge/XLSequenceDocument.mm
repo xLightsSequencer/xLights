@@ -12858,6 +12858,43 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     };
 }
 
+- (BOOL)applyColourOnlyPaletteFromRow:(int)srcRow
+                              atIndex:(int)srcIndex
+                                toRow:(int)rowIndex
+                              atIndex:(int)effectIndex
+                       keepCheckboxes:(BOOL)keepCheckboxes {
+    auto* srcLayer = [self effectLayerForRow:srcRow];
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!srcLayer || srcIndex < 0 || srcIndex >= srcLayer->GetEffectCount()) return NO;
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* src = srcLayer->GetEffect(srcIndex);
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!src || !e || src == e) return NO;
+
+    // Only the slot entries, matching ColorPanel::GetColorString(true) —
+    // SetColourOnlyPalette keeps any other key it is handed.
+    std::string colours;
+    for (const auto& [key, value] : src->GetPaletteMap()) {
+        if (key.starts_with("C_BUTTON_Palette") || key.starts_with("C_CHECKBOX_Palette")) {
+            colours += key + "=" + value + ",";
+        }
+    }
+    std::string before = e->GetPaletteAsString();
+    e->SetColourOnlyPalette(colours, false, keepCheckboxes);
+    return before != e->GetPaletteAsString();
+}
+
+- (BOOL)setEffectPaletteString:(NSString*)palette
+                         inRow:(int)rowIndex
+                       atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e) return NO;
+    e->SetPalette(palette ? std::string([palette UTF8String]) : std::string());
+    return YES;
+}
+
 // B15: replace the entire settings + palette maps of an existing
 // effect in one shot. Used by randomize / reset / (future) preset
 // apply where the whole property set changes at once. Returns NO

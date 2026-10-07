@@ -4304,61 +4304,61 @@ class SequencerViewModel {
 
     /// Apply the anchor effect's 8-slot palette (C_BUTTON_PaletteN /
     /// C_CHECKBOX_PaletteN) to every other selected effect as one
-    /// undo step. Parity with desktop UpdateColor() / ID_MNU_UPDATE.
-    func updatePaletteOnAllSelected() {
+    /// undo step, through the same core `SetColourOnlyPalette` desktop's
+    /// UpdateEffectPalette uses, so the targets' sparkles / brightness /
+    /// other colour settings are kept. `colorsOnly` also keeps each
+    /// target's checkboxes (desktop ID_MNU_UPDATE_COLORS).
+    func updatePaletteOnAllSelected(colorsOnly: Bool = false) {
         guard let anchor = selectedEffect,
               selectedEffects.count > 1 else { return }
 
-        let anchorPalette = document.effectPalette(
-            forRow: Int32(anchor.rowIndex),
-            at: Int32(anchor.effectIndex))
-        guard !anchorPalette.isEmpty else { return }
-
-        struct Prev {
-            let rowIndex: Int
-            let effectIndex: Int
-            let key: String
-            let value: String
-        }
-        var prevValues: [Prev] = []
-        var affectedTargets = Set<String>()
-
+        var rollback: [(Int, Int, String)] = []
         for sel in selectedEffects {
             if sel.rowIndex == anchor.rowIndex
                 && sel.effectIndex == anchor.effectIndex { continue }
-            var anyChange = false
-            for (key, value) in anchorPalette {
-                let prev = document.effectSettingValue(forKey: key,
-                                                        inRow: Int32(sel.rowIndex),
-                                                        at: Int32(sel.effectIndex))
-                if prev == value { continue }
-                let changed = document.setEffectSettingValue(
-                    value, forKey: key,
-                    inRow: Int32(sel.rowIndex),
-                    at: Int32(sel.effectIndex))
-                if changed {
-                    prevValues.append(Prev(rowIndex: sel.rowIndex,
-                                            effectIndex: sel.effectIndex,
-                                            key: key, value: prev))
-                    anyChange = true
-                }
-            }
-            if anyChange {
+            let prev = document.effectPaletteString(forRow: Int32(sel.rowIndex),
+                                                    at: Int32(sel.effectIndex))
+            if document.applyColourOnlyPalette(fromRow: Int32(anchor.rowIndex),
+                                               at: Int32(anchor.effectIndex),
+                                               toRow: Int32(sel.rowIndex),
+                                               at: Int32(sel.effectIndex),
+                                               keepCheckboxes: colorsOnly) {
+                rollback.append((sel.rowIndex, sel.effectIndex, prev))
                 renderEffectAndTrack(rowIndex: sel.rowIndex,
                                      effectIndex: sel.effectIndex)
-                affectedTargets.insert("\(sel.rowIndex):\(sel.effectIndex)")
             }
         }
 
-        if !prevValues.isEmpty {
+        if !rollback.isEmpty {
             inspectorRevision &+= 1
-            let rollback = prevValues.map {
-                ($0.rowIndex, $0.effectIndex, $0.key, $0.value)
-            }
             undoManager.registerUndo(withTarget: self) { vm in
-                vm.restoreBulkSettings(rollback)
+                vm.restoreBulkPalettes(rollback)
             }
-            undoManager.setActionName("Update Palette on \(affectedTargets.count) Effects")
+            undoManager.setActionName("Update \(colorsOnly ? "Colors" : "Palette") on \(rollback.count) Effects")
+        }
+    }
+
+    /// Undo/redo for `updatePaletteOnAllSelected`: puts back each
+    /// effect's captured palette string and registers the inverse.
+    func restoreBulkPalettes(_ entries: [(Int, Int, String)]) {
+        var forward: [(Int, Int, String)] = []
+        for (r, i, palette) in entries {
+            let curr = document.effectPaletteString(forRow: Int32(r), at: Int32(i))
+            if curr == palette { continue }
+            if document.setEffectPaletteString(palette, inRow: Int32(r), at: Int32(i)) {
+                forward.append((r, i, curr))
+                if selectedEffect?.rowIndex == r && selectedEffect?.effectIndex == i {
+                    refreshSelectedEffectSettings()
+                } else {
+                    renderEffectAndTrack(rowIndex: r, effectIndex: i)
+                }
+            }
+        }
+        if !forward.isEmpty {
+            inspectorRevision &+= 1
+            undoManager.registerUndo(withTarget: self) { vm in
+                vm.restoreBulkPalettes(forward)
+            }
         }
     }
 

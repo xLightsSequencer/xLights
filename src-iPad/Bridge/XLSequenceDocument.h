@@ -2344,6 +2344,26 @@ NS_ASSUME_NONNULL_BEGIN
 // the channel can't be resolved.
 - (NSArray<NSDictionary*>*)findSourceEffectsForRow:(int)rowIndex atMS:(int)ms;
 
+// Palette menu "Update Palette" / "Update Only Colors": push the source
+// effect's C_BUTTON_PaletteN (and, unless keepCheckboxes, its
+// C_CHECKBOX_PaletteN) onto the target via Effect::SetColourOnlyPalette,
+// the same core call desktop's UpdateEffectPalette makes. Sparkles,
+// brightness and the other colour-panel settings on the target are kept.
+// Returns YES if the target's palette changed.
+- (BOOL)applyColourOnlyPaletteFromRow:(int)srcRow
+                              atIndex:(int)srcIndex
+                                toRow:(int)rowIndex
+                              atIndex:(int)effectIndex
+                       keepCheckboxes:(BOOL)keepCheckboxes
+    NS_SWIFT_NAME(applyColourOnlyPalette(fromRow:at:toRow:at:keepCheckboxes:));
+
+// Replace an effect's whole palette map from a GetPaletteAsString-style
+// string (an empty string clears it). Undo partner for the above.
+- (BOOL)setEffectPaletteString:(NSString*)palette
+                         inRow:(int)rowIndex
+                       atIndex:(int)effectIndex
+    NS_SWIFT_NAME(setEffectPaletteString(_:inRow:at:));
+
 // B15: replace an effect's settings + palette wholesale. Used by
 // Randomize / Reset bulk ops and (future) preset-apply. Empty
 // palette string skips palette replacement.

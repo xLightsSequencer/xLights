@@ -28,6 +28,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  controller no longer start one channel early
     -enh (derwin12)              Layout Controllers tab: clicking a model in the preview switches to the
                                  Models (or Groups) tab with that model selected
+    -enh (dkulp)                 Palette menu: new "Update Only Colors" applies just the palette colours to the
+                                 selected effects, leaving each effect's palette checkboxes as they were
+    -bug (dkulp)                 iPad - Update Palette now matches desktop: it copies only the colours and
+                                 checkboxes (unchecking slots too), keeping each effect's sparkles,
+                                 brightness and other colour settings
     -enh (dkulp)                 Automation: importSuperStar (all import dialog options, plus "replace" to
                                  clear the model and its unused media first), clearModelEffects and
                                  removeUnusedMedia, for re-importing after a model's size changes

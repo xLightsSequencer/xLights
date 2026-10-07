@@ -112,10 +112,11 @@ private:
     void GeneratePalette();
     void SavePalette(bool saveAs);
     void DeletePalette();
-    void UpdateColor();
+    void UpdateColor(bool colorsOnly = false);
 
     // Menu action IDs
     static const wxWindowID ID_MNU_UPDATE;
+    static const wxWindowID ID_MNU_UPDATE_COLORS;
     static const wxWindowID ID_MNU_SAVE;
     static const wxWindowID ID_MNU_SAVE_AS;
     static const wxWindowID ID_MNU_DELETE;
