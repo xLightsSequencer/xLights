@@ -628,7 +628,7 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
     } else if ("xlART_EYE" == id) {
         return wxOSXCreateSystemBitmapBundle("eye", AdjustSizeForClient(client, size));
     } else if ("xlART_EYE_SLASH" == id) {
-        return wxOSXCreateSystemBitmapBundle("eye.slash", AdjustSizeForClient(client, size));
+        return wxOSXCreateSystemBitmapBundle("eye.slash.fill", AdjustSizeForClient(client, size));
     } else if ("xlART_TIMING" == id) {
         return wxOSXCreateSystemBitmapBundle("clock", AdjustSizeForClient(client, size));
     }
