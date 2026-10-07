@@ -3388,6 +3388,27 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 - (BOOL)unlinkGroupFromBase:(NSString*)groupName
     NS_SWIFT_NAME(unlinkGroupFromBase(_:));
 
+// Promote to Base Show Folder — copy controllers / models / groups / view
+// objects that live only in this show into the base show folder and link the
+// local copies to it (the inverse of unlink). Dependencies come along: a
+// model's controller, chained start channels, a group's members, a
+// controller's layout box. Shared with desktop via BaseShowPromotion.
+//
+// Describe returns the confirmation text, or nil when no base folder is set
+// or everything named is already in the base.
+- (nullable NSString*)describeBaseShowPromotionForControllers:(NSArray<NSString*>*)controllers
+                                                       models:(NSArray<NSString*>*)models
+                                                      objects:(NSArray<NSString*>*)objects
+    NS_SWIFT_NAME(describeBaseShowPromotion(controllers:models:objects:));
+
+// Writes the base folder's networks / rgbeffects files and marks the local
+// copies FromBase (dirty, so the next layout save persists the links).
+// Returns nil on success, otherwise an error message.
+- (nullable NSString*)promoteToBaseShowFolderControllers:(NSArray<NSString*>*)controllers
+                                                  models:(NSArray<NSString*>*)models
+                                                 objects:(NSArray<NSString*>*)objects
+    NS_SWIFT_NAME(promoteToBaseShowFolder(controllers:models:objects:));
+
 #pragma mark - Base Show Directory
 
 // Path of the configured base show folder, or nil if none is

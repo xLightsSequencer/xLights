@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              Switching audio tracks while a sequence is playing now moves playback to the new track
                                  instead of leaving the previous track playing (#7188)
+    -enh (derwin12)              Find Possible Source Effects is now available from any view; opening a result
+                                 for a model not in the current view switches to Master View
     -bug (derwin12)              FPP Connect: no longer crashes if the temporary sequence file for an upload
                                  cannot be created; the upload is stopped and the error logged
     -bug (derwin12)              Bars: gradient no longer picks up extra hues (rainbow) when the layer blending
@@ -35,6 +37,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 iPad - Update Palette now matches desktop: it copies only the colours and
                                  checkboxes (unchecking slots too), keeping each effect's sparkles,
                                  brightness and other colour settings
+    -enh (dkulp)                 "Promote to Base Show Folder" on models, groups, 3D objects and controllers
+                                 copies them (and what they depend on) into the base show folder and links them
     -enh (dkulp)                 Automation: importSuperStar (all import dialog options, plus "replace" to
                                  clear the model and its unused media first), clearModelEffects and
                                  removeUnusedMedia, for re-importing after a model's size changes

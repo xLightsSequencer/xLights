@@ -278,6 +278,9 @@ struct LayoutEditorView: View {
     @State private var showingXmodelExporter: Bool = false
     @State private var xmodelExportDefaultName: String = "Model.xmodel"
     @State private var layoutHousekeepingMessage: String? = nil
+    /// Promote to Base Show Folder confirmation (desktop
+    /// xLightsFrame::PromoteToBaseShowFolder).
+    @State private var pendingBasePromotion: BasePromotionRequest? = nil
     /// J-31 — Controllers tab filter + cached list. The cache is
     /// rebuilt on `.task` / `.onChange(of: showFolderLoaded)` /
     /// after layout-save (controllers are stored in the output
@@ -1010,6 +1013,9 @@ struct LayoutEditorView: View {
         .modifier(ControllerWarningAlertsModifier(
             autoSizeUniverse: $autoSizeUniverseWarning,
             zcppDeprecated: $zcppDeprecatedWarning))
+        .modifier(BasePromotionAlertModifier(
+            pending: $pendingBasePromotion,
+            onConfirm: { req in runBasePromotion(req) }))
         .modifier(ControllerDeleteAlertModifier(
             pendingName: $pendingDeleteControllerName,
             modelCount: { name in
@@ -1221,6 +1227,12 @@ struct LayoutEditorView: View {
                                     } label: {
                                         Label("Unlink from Base Show Folder", systemImage: "link.badge.minus")
                                     }
+                                } else if hasBaseShowFolder {
+                                    Button {
+                                        requestBasePromotion(models: [name])
+                                    } label: {
+                                        Label("Promote to Base Show Folder", systemImage: "link.badge.plus")
+                                    }
                                 }
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -1294,6 +1306,15 @@ struct LayoutEditorView: View {
                                       leadingSystemImage: Self.viewObjectTypeSFSymbol(forDisplayAs: displayAs),
                                       secondary: displayAs)
                                 .tag(name)
+                                .contextMenu {
+                                    if !fromBase && hasBaseShowFolder {
+                                        Button {
+                                            requestBasePromotion(objects: [name])
+                                        } label: {
+                                            Label("Promote to Base Show Folder", systemImage: "link.badge.plus")
+                                        }
+                                    }
+                                }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     // See groups list above for why
                                     // this isn't `role: .destructive`.
@@ -2099,6 +2120,13 @@ struct LayoutEditorView: View {
                 Label("Unlink from Base Show Folder", systemImage: "link.badge.minus")
             }
             Divider()
+        } else if hasBaseShowFolder {
+            Button {
+                requestBasePromotion(models: promotionTargets(for: name))
+            } label: {
+                Label("Promote to Base Show Folder", systemImage: "link.badge.plus")
+            }
+            Divider()
         }
         if !isFromBase {
             Button {
@@ -2208,6 +2236,42 @@ struct LayoutEditorView: View {
                                          object: "LayoutEditor", userInfo: [:]
         )
         layoutHousekeepingMessage = "\(groupName) unlinked from base show folder."
+    }
+
+    private var hasBaseShowFolder: Bool {
+        viewModel.document.baseShowDirectory() != nil
+    }
+
+    /// A row inside a multi-selection promotes the whole selection,
+    /// like desktop's tree / preview menus.
+    private func promotionTargets(for name: String) -> [String] {
+        let sel = viewModel.layoutEditorSelection
+        return sel.contains(name) && sel.count > 1 ? sel.sorted() : [name]
+    }
+
+    private func requestBasePromotion(controllers: [String] = [],
+                                      models: [String] = [],
+                                      objects: [String] = []) {
+        guard let message = viewModel.document.describeBaseShowPromotion(
+            controllers: controllers, models: models, objects: objects) else {
+            layoutHousekeepingMessage = "Everything selected is already in the base show folder."
+            return
+        }
+        pendingBasePromotion = BasePromotionRequest(controllers: controllers,
+                                                    models: models,
+                                                    objects: objects,
+                                                    message: message)
+    }
+
+    private func runBasePromotion(_ req: BasePromotionRequest) {
+        if let error = viewModel.document.promoteToBaseShowFolder(
+            controllers: req.controllers, models: req.models, objects: req.objects) {
+            layoutHousekeepingMessage = "Promote to base show folder failed: \(error)"
+            return
+        }
+        summaryToken &+= 1
+        refreshAfterControllerMutation()
+        layoutHousekeepingMessage = "Promoted to base show folder. Save the layout to keep the links."
     }
 
     private func finishHousekeeping(touched: Int, ok: String, none: String) {
@@ -2566,6 +2630,12 @@ struct LayoutEditorView: View {
                 refreshAfterControllerMutation()
             } label: {
                 Label("Unlink from Base Show Folder", systemImage: "link.badge.minus")
+            }
+        } else if hasBaseShowFolder {
+            Button {
+                requestBasePromotion(controllers: [name])
+            } label: {
+                Label("Promote to Base Show Folder", systemImage: "link.badge.plus")
             }
         }
         Divider()
@@ -10929,6 +10999,32 @@ private struct ControllerWarningAlertsModifier: ViewModifier {
 /// pattern as the placeholder alert above; the destructive
 /// action runs the supplied closure with the controller name
 /// before clearing the binding.
+private struct BasePromotionRequest {
+    let controllers: [String]
+    let models: [String]
+    let objects: [String]
+    let message: String
+}
+
+private struct BasePromotionAlertModifier: ViewModifier {
+    @Binding var pending: BasePromotionRequest?
+    let onConfirm: (_ req: BasePromotionRequest) -> Void
+
+    func body(content: Content) -> some View {
+        content.alert("Promote to Base Show Folder?",
+                       isPresented: Binding(
+                            get: { pending != nil },
+                            set: { if !$0 { pending = nil } })) {
+            Button("Promote") {
+                if let req = pending { onConfirm(req) }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text(pending?.message ?? "")
+        }
+    }
+}
+
 private struct ControllerDeleteAlertModifier: ViewModifier {
     @Binding var pendingName: String?
     let modelCount: (_ name: String) -> Int

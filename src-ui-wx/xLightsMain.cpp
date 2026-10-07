@@ -143,6 +143,7 @@
 #include "effects/ShaderEffect.h"
 #include "effects/StateEffect.h"
 #include "graphics/opengl/xlGLCanvas.h"
+#include "models/BaseShowPromotion.h"
 #include "models/ModelGroup.h"
 #include "models/RulerObject.h"
 #include "models/SubModel.h"
@@ -9705,6 +9706,47 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
     // - key bindings
 
     DoAllWork();
+}
+
+bool xLightsFrame::CanPromoteToBaseShowFolder() const
+{
+    return !_outputManager.GetBaseShowDir().empty() && !IsReadOnlyMode();
+}
+
+void xLightsFrame::PromoteToBaseShowFolder(const std::vector<std::string>& controllers, const std::vector<std::string>& models, const std::vector<std::string>& objects)
+{
+    if (!CanPromoteToBaseShowFolder()) return;
+    std::string const baseDir = _outputManager.GetBaseShowDir();
+    if (!ObtainAccessToURL(baseDir, true)) {
+        DisplayError("Unable to write to the base show folder " + baseDir + ".", this);
+        return;
+    }
+
+    auto plan = BaseShowPromotion::BuildPlan(_outputManager, AllModels, AllObjects, controllers, models, objects);
+    if (plan.empty()) {
+        wxMessageBox("Everything selected is already in the base show folder.", "Promote to Base Show Folder", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+    if (wxMessageBox(BaseShowPromotion::Describe(plan, baseDir), "Promote to Base Show Folder", wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+        return;
+    }
+
+    std::string error;
+    if (!BaseShowPromotion::Apply(plan, _outputManager, AllModels, AllObjects, error)) {
+        DisplayError("Promote to base show folder failed.\n" + error, this);
+        return;
+    }
+
+    if (!plan.controllers.empty()) {
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "PromoteToBaseShowFolder");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "PromoteToBaseShowFolder");
+    }
+    if (!plan.models.empty() || !plan.groups.empty() || !plan.objects.empty()) {
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "PromoteToBaseShowFolder");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "PromoteToBaseShowFolder");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PromoteToBaseShowFolder");
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "PromoteToBaseShowFolder");
+    }
 }
 
 void xLightsFrame::UpdateReadOnlyState()

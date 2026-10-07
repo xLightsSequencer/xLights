@@ -1181,6 +1181,8 @@
 		<Unit filename="../src-core/models/BaseObject.cpp" />
 		<Unit filename="../src-core/models/BaseObject.h" />
 		<Unit filename="../src-core/models/BaseObjectVisitor.h" />
+		<Unit filename="../src-core/models/BaseShowPromotion.cpp" />
+		<Unit filename="../src-core/models/BaseShowPromotion.h" />
 		<Unit filename="../src-core/models/BoxedScreenLocation.cpp" />
 		<Unit filename="../src-core/models/BoxedScreenLocation.h" />
 		<Unit filename="../src-core/models/CandyCaneModel.cpp" />

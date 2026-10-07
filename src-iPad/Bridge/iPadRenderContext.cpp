@@ -1202,6 +1202,11 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
                 } else {
                     setAttr("Active", "0");
                 }
+                if (vo->IsFromBase()) {
+                    setAttr("FromBase", "1");
+                } else {
+                    removeAttr("FromBase");
+                }
                 auto setInt = [&](const char* k, int v) {
                     if (existing.attribute(k)) existing.remove_attribute(k);
                     existing.append_attribute(k) = v;

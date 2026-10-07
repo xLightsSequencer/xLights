@@ -232,6 +232,9 @@
     <ClCompile Include="..\src-core\models\BaseObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\models\BaseShowPromotion.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\models\OutputModelManager.cpp" />
     <ClCompile Include="..\src-core\models\ModelManager.cpp">
       <Filter>Models</Filter>
@@ -1784,6 +1787,9 @@
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\BaseObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\BaseShowPromotion.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\OutputModelManager.h" />

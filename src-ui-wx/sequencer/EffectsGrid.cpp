@@ -592,14 +592,9 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
         }
 
         if (ri->nodeIndex >= 0) {
-            wxMenuItem* menu_effect_findeffect = mnuLayer.Append(ID_GRID_MNU_FINDEFFECTFORDATA, "Find Possible Source Effects");
+            mnuLayer.Append(ID_GRID_MNU_FINDEFFECTFORDATA, "Find Possible Source Effects");
             _findDataRI = ri;
             _findDataMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
-
-            // we can only do this in the master view ... other views likely wont contain the effects the user needs to look at
-            if (mSequenceElements->GetCurrentView() != MASTER_VIEW) {
-                menu_effect_findeffect->Enable(false);
-            }
         }
 
         // Effect Symbols
