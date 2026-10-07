@@ -1,6 +1,7 @@
 <Vendor Name="ILightThat">
     <AbstractVariant Name="BaseBaldrickSettings">
 		<SupportsPixelPortBrightness/>
+		<SupportsPixelPortGamma/>
 		<SupportsPixelPortColourOrder/>
         <SupportsUpload/>
         <MaxInputUniverses>36</MaxInputUniverses>
@@ -10,6 +11,7 @@
         <UniversesMustBeSequential/>
         <SupportsFullxLightsControl/>
         <SupportsDefaultBrightness/>
+        <SupportsDefaultGamma/>
         <SupportsAutoLayout/>
         <PreferredInputProtocol>DDP</PreferredInputProtocol>
         <PixelProtocols>
