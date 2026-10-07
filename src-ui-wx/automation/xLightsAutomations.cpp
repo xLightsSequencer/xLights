@@ -23,6 +23,7 @@
 #include "controllers/ControllerCaps.h"
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
+#include "controllers/JBoards.h"
 #include "utils/ip_utils.h"
 #include "utils/string_utils.h"
 #include "UtilFunctions.h"
@@ -441,6 +442,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         return sendResponse("Uploaded to FPP '" + ip + "'.", "msg", 200, false);
     } else if (cmd == "uploadSequence") {
         bool res = true;
+        std::string error;
         auto ip = params["ip"];
         auto media = ReadBool(params["media"]);
         auto format = params["format"];
@@ -508,6 +510,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (seq) {
             // every frame is read in order below to build the upload
             seq->setReadPattern(FSEQFile::ReadPattern::Bulk);
+            if (fpp->fppType == FPP_TYPE::JBOARDS) {
+                JBoards::PrepareSequenceUpload(fpp, &_outputManager);
+            }
             fpp->PrepareUploadSequence(seq, fseq, m2, fseqversion, cType, sparse);
             static const int FRAMES_TO_BUFFER = 50;
             std::vector<std::vector<uint8_t>> frames(FRAMES_TO_BUFFER);
@@ -552,6 +557,12 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     res = false;
                 }
                 fpp->ClearTempFile();
+            } else if (fpp->fppType == FPP_TYPE::JBOARDS) {
+                res = JBoards::UploadSequence(fpp->ipAddress, fpp->proxy(), fpp->GetTempFile(), fseq, m2, nullptr, error) && res;
+                for (const auto& m : fpp->messages) {
+                    error += (error.empty() ? "" : "\n") + m;
+                }
+                fpp->ClearTempFile();
             }
             delete seq;
         } else {
@@ -559,7 +570,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
 
         if (!res) {
-            return sendResponse("Failed to upload.", "msg", 503, false);
+            return sendResponse(error.empty() ? "Failed to upload." : error, "msg", 503, false);
         }
         return sendResponse("Sequence uploaded.", "msg", 200, false);
     } else if (cmd == "checkSequence") {
