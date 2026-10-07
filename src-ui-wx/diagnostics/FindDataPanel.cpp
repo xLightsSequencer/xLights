@@ -16,6 +16,7 @@
 #include "xLightsMain.h"
 #include "xLightsApp.h"
 #include "sequencer/MainSequencer.h"
+#include "layout/ViewsModelsPanel.h"
 
 //(*InternalHeaders(FindDataPanel)
 #include <wx/intl.h>
@@ -140,12 +141,22 @@ void FindDataPanel::OnListView_FoundEffectsItemActivated(wxListEvent& event)
         // this currently will only go to the model ... not the submodel/strand/node
         Element* elem = se->GetElement(ListView_FoundEffects->GetItemText(event.GetIndex(), COL_MODEL));
         if (elem != nullptr) {
-            for (int row = 0; row < se->GetRowInformationSize(); row++) {
-                EffectLayer* el = se->GetEffectLayer(row);
-                if (el->GetParentElement()->GetModelName() == elem->GetName()) {
-                    xLightsApp::GetFrame()->GetMainSequencer()->ScrollToRow(row - se->GetNumberOfTimingRows());
-                    break;
+            auto findRow = [&]() {
+                for (int row = 0; row < se->GetRowInformationSize(); row++) {
+                    EffectLayer* el = se->GetEffectLayer(row);
+                    if (el->GetParentElement()->GetModelName() == elem->GetName()) {
+                        return row;
+                    }
                 }
+                return -1;
+            };
+            int row = findRow();
+            if (row < 0 && se->GetCurrentView() != MASTER_VIEW) {
+                xLightsApp::GetFrame()->GetDisplayElementsPanel()->SelectView("Master View");
+                row = findRow();
+            }
+            if (row >= 0) {
+                xLightsApp::GetFrame()->GetMainSequencer()->ScrollToRow(row - se->GetNumberOfTimingRows());
             }
         }
     }

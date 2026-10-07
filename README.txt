@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (derwin12)              Find Possible Source Effects is now available from any view; opening a result
+                                 for a model not in the current view switches to Master View
     -bug (derwin12)              FPP Connect: no longer crashes if the temporary sequence file for an upload
                                  cannot be created; the upload is stopped and the error logged
     -bug (derwin12)              Bars: gradient no longer picks up extra hues (rainbow) when the layer blending
