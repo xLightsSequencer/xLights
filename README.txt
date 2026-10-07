@@ -28,6 +28,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  etc.) when the property grid was refreshed while its dialog was open
     -bug (dkulp)                 macOS - Fall back to xLights' own temporary folder when the system one isn't
                                  writable, so FPP Connect sequence uploads and downloads work
+    -bug (dkulp)                 FPP Connect: uploading the controller/cape configuration silently did nothing
+                                 for an Inactive controller whose IP is set to a hostname
     -bug (nsxfreddy)             Models newly assigned to a PWM or serial (DMX) port on an auto-layout
                                  controller no longer start one channel early
     -enh (derwin12)              Layout Controllers tab: clicking a model in the preview switches to the

@@ -184,24 +184,39 @@ void ControllerEthernet::SetIP(const std::string& ip) {
 }
 
 // because we dont resolve IPs on creation for inactive controllers then if the controller is set active we need to resolve it then
+// (a forced GetResolvedIP may already have resolved it, but the outputs of an inactive controller never got the address)
 void ControllerEthernet::PostSetActive()
 {
+    if (!IsActive() || _ip.empty()) {
+        return;
+    }
     std::unique_lock<std::shared_mutex> lock(_resolveMutex);
-    if (IsActive() && !_ip.empty() && _resolvedIp.empty()) {
+    if (_resolvedIp.empty()) {
         _resolvedIp = ip_utils::ResolveIP(_ip);
-        lock.unlock();
-        std::shared_lock<std::shared_mutex> lock(_resolveMutex);
-        for (auto& it : GetOutputs()) {
-            it->SetResolvedIP(_resolvedIp);
-        }
+    }
+    lock.unlock();
+    std::shared_lock<std::shared_mutex> lock2(_resolveMutex);
+    for (auto& it : GetOutputs()) {
+        it->SetResolvedIP(_resolvedIp);
     }
 }
+// A forced resolve stores its result: inactive controllers are never resolved at load, and
+// GetControllers(ip) can only match a hostname-configured controller by its resolved address.
 std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
     std::shared_lock<std::shared_mutex> lock(_resolveMutex);
     bool unresolved = _resolvedIp.empty() || _resolvedIp == _ip;
     if (!_ip.empty() && forceResolve && unresolved) {
         lock.unlock();
-        return ip_utils::ResolveIP(_ip);
+        std::string r = ip_utils::ResolveIP(_ip);
+        if (r != _ip) {
+            std::unique_lock<std::shared_mutex> wlock(_resolveMutex);
+            _resolvedIp = r;
+            wlock.unlock();
+            for (auto& it : GetOutputs()) {
+                it->SetResolvedIP(r);
+            }
+        }
+        return r;
     }
     return _resolvedIp;
 }

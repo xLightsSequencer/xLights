@@ -28,7 +28,7 @@ protected:
 
 #pragma region Member Variables
     std::string _ip;
-    std::string _resolvedIp;
+    mutable std::string _resolvedIp;
     mutable std::shared_mutex _resolveMutex;
     std::string _type;
     std::string _forceLocalIP;
