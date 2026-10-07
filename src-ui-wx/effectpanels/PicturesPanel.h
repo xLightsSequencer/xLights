@@ -35,6 +35,7 @@ public:
     ~PicturesPanel() override;
 
     void ValidateWindow() override;
+    wxString GetEffectString() override;
     void SetDefaultParameters() override;
     void SetPanelStatus(Model* cls) override;
     bool HasAssistPanel() override { return true; }

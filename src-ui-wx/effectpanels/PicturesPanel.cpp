@@ -347,6 +347,19 @@ void PicturesPanel::ValidateWindow() {
     }
 }
 
+wxString PicturesPanel::GetEffectString() {
+    // The serializer skips disabled controls; these two are disabled for non-animated
+    // images but their values must survive so copy/paste to another image keeps them.
+    bool loopWasEnabled = _loopGifCheck && _loopGifCheck->IsEnabled();
+    bool suppressWasEnabled = _suppressGifBgCheck && _suppressGifBgCheck->IsEnabled();
+    if (_loopGifCheck && !loopWasEnabled) _loopGifCheck->Enable(true);
+    if (_suppressGifBgCheck && !suppressWasEnabled) _suppressGifBgCheck->Enable(true);
+    wxString result = JsonEffectPanel::GetEffectString();
+    if (_loopGifCheck && !loopWasEnabled) _loopGifCheck->Enable(false);
+    if (_suppressGifBgCheck && !suppressWasEnabled) _suppressGifBgCheck->Enable(false);
+    return result;
+}
+
 void PicturesPanel::UpdatePreviewBitmap(const wxString& filename) {
     _previewTimer.Stop();
     _previewFrames.clear();

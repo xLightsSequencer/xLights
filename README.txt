@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Pictures: Loop Animated GIF / Suppress GIF Background settings are no longer lost when
+                                 copying and pasting the effect
     -bug (derwin12)              Switching audio tracks while a sequence is playing now moves playback to the new track
                                  instead of leaving the previous track playing (#7188)
     -enh (derwin12)              Find Possible Source Effects is now available from any view; opening a result
