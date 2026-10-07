@@ -37,6 +37,7 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 #include "models/ModelGroup.h"
+#include "shared/utils/BitmapCache.h"
 
 #include <log.h>
 
@@ -329,15 +330,6 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     FlexGridSizer8->AddGrowableCol(0);
     GridBagSizer1->AddGrowableRow(3);
 
-    ListCtrlViews->SetImages((char**)eye_16, (char**)eye_16_gray);
-
-    ListCtrlModels->SetImages((char**)eye_16, (char**)eye_16_gray);
-    ListCtrlModels->AddImage((char**)timing_16);
-    ListCtrlModels->AddImage((char**)model_16);
-
-    _imageList = new wxImageList(16, 16, true);
-    _imageList->Add(wxIcon((char**)timing_16));
-    _imageList->Add(wxIcon((char**)model_16));
 
     MyTextDropTarget *mdt = new MyTextDropTarget(this, ListCtrlModels, "Model");
     ListCtrlModels->SetDropTarget(mdt);
@@ -374,7 +366,30 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     setButtonIcon(Button_Bottom, goBottom);
     setButtonIcon(Button_ViewUp, goUp);
     setButtonIcon(Button_ViewDown, goDown);
+    
+    wxSize sz2(16, 14);
+    auto eye = wxArtProvider::GetBitmapBundle("xlART_EYE", wxART_LIST, sz2);
+    auto eyeSlash = wxArtProvider::GetBitmapBundle("xlART_EYE_SLASH", wxART_LIST, sz2);
+    ListCtrlViews->SetNormalImages({eye, eyeSlash});
+    ListCtrlViews->SetSmallImages({eye, eyeSlash});
+
+    auto timing = wxArtProvider::GetBitmapBundle("xlART_TIMING", wxART_LIST, sz2);
+    auto model = BitmapCache::GetModelGroupIcon();
+    ListCtrlModels->SetNormalImages({eyeSlash, eye, timing, model});
+    ListCtrlModels->SetSmallImages({eyeSlash, eye, timing, model});
+
+#else
+    ListCtrlViews->SetImages((char**)eye_16, (char**)eye_16_gray);
+    ListCtrlModels->SetImages((char**)eye_16, (char**)eye_16_gray);
+
+    ListCtrlModels->AddImage((char**)timing_16);
+    ListCtrlModels->AddImage((char**)model_16);
 #endif
+
+
+    _imageList = new wxImageList(16, 16, true);
+    _imageList->Add(wxIcon((char**)timing_16));
+    _imageList->Add(wxIcon((char**)model_16));
 
     int w, h;
     GetSize(&w, &h);
