@@ -78,6 +78,7 @@ protected:
     static const long ID_TREELISTVIEW_OBJECTS;
     static const long ID_MNU_DELETE_OBJECT;
     static const long ID_MNU_UNLINKFROMBASE;
+    static const long ID_MNU_PROMOTETOBASE;
 
 private:
 

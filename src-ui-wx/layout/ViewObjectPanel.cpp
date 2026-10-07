@@ -40,6 +40,7 @@ END_EVENT_TABLE()
 const long ViewObjectPanel::ID_TREELISTVIEW_OBJECTS = wxNewId();
 const long ViewObjectPanel::ID_MNU_DELETE_OBJECT = wxNewId();
 const long ViewObjectPanel::ID_MNU_UNLINKFROMBASE = wxNewId();
+const long ViewObjectPanel::ID_MNU_PROMOTETOBASE = wxNewId();
 
 ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,LayoutPanel *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
 :   layoutPanel(xl), mViewObjects(Objects), mSelectedObject(nullptr)
@@ -563,6 +564,9 @@ void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
     if (mSelectedObject != nullptr ) {
         mnuContext.Append(ID_MNU_DELETE_OBJECT,"Delete");
         mnuContext.Append(ID_MNU_UNLINKFROMBASE, "Unlink Models from Base Show Folder")->Enable(mSelectedObject->IsFromBase());
+        if (!layoutPanel->xlights->GetOutputManager()->GetBaseShowDir().empty()) {
+            mnuContext.Append(ID_MNU_PROMOTETOBASE, "Promote to Base Show Folder")->Enable(layoutPanel->xlights->CanPromoteToBaseShowFolder() && !mSelectedObject->IsFromBase());
+        }
     }
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ViewObjectPanel::OnObjectsPopup, nullptr, this);
@@ -579,6 +583,10 @@ void ViewObjectPanel::OnObjectsPopup(wxCommandEvent& event)
     } else if (id == ID_MNU_UNLINKFROMBASE) {
         spdlog::debug("ViewObjectPanel::OnObjectsPopup UNLINKFROMBASE");
         UnlinkSelectedObject();
+    } else if (id == ID_MNU_PROMOTETOBASE) {
+        if (mSelectedObject != nullptr) {
+            layoutPanel->xlights->PromoteToBaseShowFolder({}, {}, { mSelectedObject->GetName() });
+        }
     }
 }
 

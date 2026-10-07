@@ -568,4 +568,41 @@ void AbsolutizeFileReferences(pugi::xml_node node, const std::string& baseDir) {
     }
 }
 
+static void RelativizeFileAttribute(pugi::xml_node node, const char* attrName, const std::string& basePrefix) {
+    pugi::xml_attribute attr = node.attribute(attrName);
+    if (!attr) return;
+    std::string value = attr.as_string();
+    if (value.empty() || !FileUtils::IsAbsoluteOrRootedPath(value)) return;
+    std::replace(value.begin(), value.end(), '\\', '/');
+    std::string cmp = value;
+#ifdef _WIN32
+    std::transform(cmp.begin(), cmp.end(), cmp.begin(), ::tolower);
+#endif
+    if (cmp.size() > basePrefix.size() && cmp.compare(0, basePrefix.size(), basePrefix) == 0) {
+        attr.set_value(value.substr(basePrefix.size()).c_str());
+    }
+}
+
+static void RelativizeFileReferencesImpl(pugi::xml_node node, const std::string& basePrefix) {
+    RelativizeFileAttribute(node, XmlNodeKeys::ObjFileAttribute, basePrefix);
+    RelativizeFileAttribute(node, XmlNodeKeys::ImageAttribute, basePrefix);
+    for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+        RelativizeFileReferencesImpl(child, basePrefix);
+    }
+}
+
+void RelativizeFileReferences(pugi::xml_node node, const std::string& baseDir) {
+    if (!node || baseDir.empty()) return;
+
+    std::string base = baseDir;
+    std::replace(base.begin(), base.end(), '\\', '/');
+    while (!base.empty() && base.back() == '/') base.pop_back();
+    if (base.empty()) return;
+    base += '/';
+#ifdef _WIN32
+    std::transform(base.begin(), base.end(), base.begin(), ::tolower);
+#endif
+    RelativizeFileReferencesImpl(node, base);
+}
+
 } // end namespace XmlSerialize

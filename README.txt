@@ -33,6 +33,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 iPad - Update Palette now matches desktop: it copies only the colours and
                                  checkboxes (unchecking slots too), keeping each effect's sparkles,
                                  brightness and other colour settings
+    -enh (dkulp)                 "Promote to Base Show Folder" on models, groups, 3D objects and controllers
+                                 copies them (and what they depend on) into the base show folder and links them
     -enh (dkulp)                 Automation: importSuperStar (all import dialog options, plus "replace" to
                                  clear the model and its unused media first), clearModelEffects and
                                  removeUnusedMedia, for re-importing after a model's size changes

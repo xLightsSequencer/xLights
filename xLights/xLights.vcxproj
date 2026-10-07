@@ -713,6 +713,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\model\ModelChainDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ModelRemap.cpp" />
     <ClCompile Include="..\src-core\models\BaseObject.cpp" />
+    <ClCompile Include="..\src-core\models\BaseShowPromotion.cpp" />
     <ClCompile Include="..\src-core\models\BoxedScreenLocation.cpp" />
     <ClCompile Include="..\src-core\models\ChannelBlockModel.cpp" />
     <ClCompile Include="..\src-core\models\CubeModel.cpp" />
@@ -1382,6 +1383,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\model\ModelChainDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\ModelRemap.h" />
     <ClInclude Include="..\src-core\models\BaseObject.h" />
+    <ClInclude Include="..\src-core\models\BaseShowPromotion.h" />
     <ClInclude Include="..\src-core\models\BoxedScreenLocation.h" />
     <ClInclude Include="..\src-core\models\ChannelBlockModel.h" />
     <ClInclude Include="..\src-core\models\CubeModel.h" />

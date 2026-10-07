@@ -77,6 +77,7 @@ const long ID_CTRL_MNU_ACTIVEXLIGHTS = wxNewId();
 const long ID_CTRL_MNU_INACTIVE = wxNewId();
 const long ID_CTRL_MNU_DELETE = wxNewId();
 const long ID_CTRL_MNU_UNLINKFROMBASE = wxNewId();
+const long ID_CTRL_MNU_PROMOTETOBASE = wxNewId();
 // Contiguous block: OnPopup maps the offset from _OFF straight onto the
 // ControllerObject::Visibility enum, so these must stay in enum order.
 const long ID_CTRL_MNU_LAYOUT_OFF = wxNewId();
@@ -814,6 +815,9 @@ void ControllerListPanel::OnContextMenu(wxTreeListEvent& event) {
     mnu.Append(ID_CTRL_MNU_INACTIVE, "Deactivate")->Enable(canActivate);
     mnu.Append(ID_CTRL_MNU_DELETE, "Delete")->Enable(allowed && !selected.empty());
     mnu.Append(ID_CTRL_MNU_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(allowed && allFromBase);
+    if (!_frame->GetOutputManager()->GetBaseShowDir().empty()) {
+        mnu.Append(ID_CTRL_MNU_PROMOTETOBASE, "Promote to Base Show Folder")->Enable(allowed && !allFromBase && !selected.empty() && _frame->CanPromoteToBaseShowFolder());
+    }
     {
         auto* visMenu = new wxMenu();
         const ControllerObject* co = selected.size() == 1
@@ -926,6 +930,9 @@ void ControllerListPanel::OnPopup(wxCommandEvent& event) {
             SetControllerObjectVisibility(name, vis);
         }
         UpdateControllerProperties();
+    } else if (id == ID_CTRL_MNU_PROMOTETOBASE) {
+        auto names = GetSelectedControllerNames();
+        _frame->PromoteToBaseShowFolder({ names.begin(), names.end() }, {}, {});
     } else if (id == ID_CTRL_MNU_UNLINKFROMBASE) {
         UnlinkSelectedControllers();
         omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerListPanel:UNLINK");

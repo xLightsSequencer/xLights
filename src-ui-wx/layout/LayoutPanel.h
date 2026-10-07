@@ -231,6 +231,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_LOCK;
         static const long ID_PREVIEW_MODEL_UNLOCK;
         static const long ID_PREVIEW_MODEL_UNLINKFROMBASE;
+        static const long ID_PREVIEW_MODEL_PROMOTETOBASE;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM3D;
         static const long ID_PREVIEW_MODEL_CREATEGROUP;
@@ -399,6 +400,7 @@ class LayoutPanel: public wxPanel
         void DeleteSelectedGroups();
         void LockSelectedModels(bool lock);
         void UnlinkSelectedModels();
+        void PromoteSelectedModelsToBase();
         void PreviewSaveImage();
         void PreviewPrintImage();
         void ImportModelsFromRGBEffects();

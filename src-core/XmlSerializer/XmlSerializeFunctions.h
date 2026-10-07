@@ -40,6 +40,10 @@ void AddDimensions(pugi::xml_node node, const Model* m);
 // Nodes read out of a base show folder carry paths relative to *that* folder, so
 // they must be anchored before being merged into a different show folder.
 void AbsolutizeFileReferences(pugi::xml_node node, const std::string& baseDir);
+// The inverse, for nodes about to be written into a base show folder: absolute
+// references under baseDir become relative to it. Touches exactly the attributes
+// AbsolutizeFileReferences re-anchors, so the pair round-trips.
+void RelativizeFileReferences(pugi::xml_node node, const std::string& baseDir);
 
 // String-based variants (no DOM; write directly into a StringSerializingVisitor)
 // Declared here for convenience; StringSerializingVisitor is defined globally (not in this namespace).

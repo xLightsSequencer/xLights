@@ -30,6 +30,7 @@
 #include "render/ModelVideoExporter.h"
 #include "render/ModelGifExporter.h"
 #import "XLHousePreviewVideoExporter.h"
+#include "models/BaseShowPromotion.h"
 #include "utils/ShowGuid.h"
 #include "utils/UtilFunctions.h"
 #include "utils/string_utils.h"
@@ -17825,6 +17826,49 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     g->SetFromBase(false);
     _context->MarkLayoutModelDirty(std::string(groupName.UTF8String));
     return YES;
+}
+
+static std::vector<std::string> ToStringVector(NSArray<NSString*>* names) {
+    std::vector<std::string> out;
+    for (NSString* n in names) out.emplace_back(n.UTF8String);
+    return out;
+}
+
+- (nullable NSString*)describeBaseShowPromotionForControllers:(NSArray<NSString*>*)controllers
+                                                       models:(NSArray<NSString*>*)models
+                                                      objects:(NSArray<NSString*>*)objects {
+    if (!_context || !_context->HasModelManager()) return nil;
+    auto& om = _context->GetOutputManager();
+    std::string const baseDir = om.GetBaseShowDir();
+    if (baseDir.empty()) return nil;
+    ObtainAccessToURL(baseDir, /*enforceWritable=*/false);
+    auto plan = BaseShowPromotion::BuildPlan(om, _context->GetModelManager(), _context->GetAllObjects(),
+                                             ToStringVector(controllers), ToStringVector(models), ToStringVector(objects));
+    if (plan.empty()) return nil;
+    return [NSString stringWithUTF8String:BaseShowPromotion::Describe(plan, baseDir).c_str()];
+}
+
+- (nullable NSString*)promoteToBaseShowFolderControllers:(NSArray<NSString*>*)controllers
+                                                  models:(NSArray<NSString*>*)models
+                                                 objects:(NSArray<NSString*>*)objects {
+    if (!_context || !_context->HasModelManager()) return @"No show folder loaded.";
+    auto& om = _context->GetOutputManager();
+    std::string const baseDir = om.GetBaseShowDir();
+    if (baseDir.empty()) return @"No base show folder configured.";
+    if (!ObtainAccessToURL(baseDir, /*enforceWritable=*/true)) {
+        return @"Cannot write to the base show folder. Please reselect it.";
+    }
+    auto plan = BaseShowPromotion::BuildPlan(om, _context->GetModelManager(), _context->GetAllObjects(),
+                                             ToStringVector(controllers), ToStringVector(models), ToStringVector(objects));
+    std::string error;
+    if (!BaseShowPromotion::Apply(plan, om, _context->GetModelManager(), _context->GetAllObjects(), error)) {
+        return [NSString stringWithUTF8String:error.c_str()];
+    }
+    if (!plan.controllers.empty()) _context->MarkControllersDirty();
+    for (const auto& n : plan.models) _context->MarkLayoutModelDirty(n);
+    for (const auto& n : plan.groups) _context->MarkLayoutModelDirty(n);
+    for (const auto& n : plan.objects) _context->MarkLayoutViewObjectDirty(n);
+    return nil;
 }
 
 #pragma mark - Base Show Directory

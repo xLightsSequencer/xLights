@@ -418,6 +418,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_LOCK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_UNLOCK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_UNLINKFROMBASE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_PROMOTETOBASE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_CREATEGROUP = wxNewId();
@@ -7615,6 +7616,9 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         um->Enable(anySelectedModelLocked && !allSelectedModelsFromBase);
         auto ul = menu.Append(ID_PREVIEW_MODEL_UNLINKFROMBASE, "Unlink from base show folder");
         ul->Enable(anySelectedModelFromBase);
+        if (!xlights->GetOutputManager()->GetBaseShowDir().empty()) {
+            menu.Append(ID_PREVIEW_MODEL_PROMOTETOBASE, "Promote to Base Show Folder")->Enable(xlights->CanPromoteToBaseShowFolder() && !allSelectedModelsFromBase);
+        }
         
         Model* model = dynamic_cast<Model*>(selectedBaseObject);
         if (model != nullptr && model->GetDisplayAs() != DisplayAsType::ModelGroup && model->GetDisplayAs() != DisplayAsType::SubModel) {
@@ -8074,6 +8078,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
     } else if (event.GetId() == ID_PREVIEW_MODEL_UNLINKFROMBASE) {
         UnlinkSelectedModels();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLINKFROMBASE");
+    } else if (event.GetId() == ID_PREVIEW_MODEL_PROMOTETOBASE) {
+        PromoteSelectedModelsToBase();
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
@@ -10731,6 +10737,25 @@ void LayoutPanel::UnlinkSelectedModels()
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::LockSelectedModels");
 }
 
+void LayoutPanel::PromoteSelectedModelsToBase()
+{
+    // A selected group is promoted as the group (which brings its members),
+    // not expanded into its members the way GetSelectedModelsForEdit does.
+    std::vector<std::string> names;
+    for (const auto& item : selectedTreeGroups) {
+        if (Model* m = GetModelFromTreeItem(item); m != nullptr) names.push_back(m->GetName());
+    }
+    for (const auto& item : selectedTreeModels) {
+        if (Model* m = GetModelFromTreeItem(item); m != nullptr) names.push_back(m->GetName());
+    }
+    if (names.empty()) {
+        for (Model* m : GetSelectedModelsForEdit()) {
+            names.push_back(m->GetName());
+        }
+    }
+    xlights->PromoteToBaseShowFolder({}, names, {});
+}
+
 void LayoutPanel::LockSelectedModels(bool lock)
 {
     std::vector<Model*> modelsToLock = GetSelectedModelsForEdit();
@@ -11268,6 +11293,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     } else if (event.GetId() == ID_PREVIEW_MODEL_UNLINKFROMBASE) {
         UnlinkSelectedModels();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_UNLINKFROMBASE");
+    } else if (event.GetId() == ID_PREVIEW_MODEL_PROMOTETOBASE) {
+        PromoteSelectedModelsToBase();
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM) {
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr)
@@ -12757,6 +12784,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                 um->Enable(!allUnlocked);
                 auto ul = mnuContext.Append(ID_PREVIEW_MODEL_UNLINKFROMBASE, "Unlink Models from Base Show Folder");
                 ul->Enable(allFromBase);
+                if (!xlights->GetOutputManager()->GetBaseShowDir().empty()) {
+                    mnuContext.Append(ID_PREVIEW_MODEL_PROMOTETOBASE, "Promote Models to Base Show Folder")->Enable(xlights->CanPromoteToBaseShowFolder() && !allFromBase);
+                }
 
                 if (allSameParent && parent != ActiveModelTree()->GetRootItem()) {
                     mnuContext.Append(ID_MNU_REMOVE_MODEL_FROM_GROUP, "Remove Models From Group");
@@ -12869,6 +12899,9 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
             mnuContext.Append(ID_MNU_CLONE_MODEL_GROUP, "Clone Group");
             auto ul = mnuContext.Append(ID_PREVIEW_MODEL_UNLINKFROMBASE, "Unlink Group from Base Show Folder");
             ul->Enable(model->IsFromBase());
+            if (!xlights->GetOutputManager()->GetBaseShowDir().empty()) {
+                mnuContext.Append(ID_PREVIEW_MODEL_PROMOTETOBASE, "Promote Group to Base Show Folder")->Enable(xlights->CanPromoteToBaseShowFolder() && !model->IsFromBase());
+            }
         }
     }
 

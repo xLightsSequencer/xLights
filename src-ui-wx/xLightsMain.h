@@ -1510,6 +1510,8 @@ public:
     bool SetDir(const wxString& dirname, bool permanent);
     void SetBaseShowDir(const wxString& baseShowDir);
     void UpdateFromBaseShowFolder(bool prompt);
+    bool CanPromoteToBaseShowFolder() const;
+    void PromoteToBaseShowFolder(const std::vector<std::string>& controllers, const std::vector<std::string>& models, const std::vector<std::string>& objects);
     void UpdateRecentFilesList(bool reload);
     void AddToMRU(const std::string& filename);
     bool PromptForShowDirectory(bool permanent, const std::string &defaultDir = "");
