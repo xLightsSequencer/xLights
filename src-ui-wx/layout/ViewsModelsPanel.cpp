@@ -375,6 +375,8 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     setButtonIcon(Button_ViewUp, goUp);
     setButtonIcon(Button_ViewDown, goDown);
 #endif
+    // Only the models list: in the views list, unchecked just means "not the current view".
+    ListCtrlModels->SetStrikeUnchecked(true);
 
     int w, h;
     GetSize(&w, &h);

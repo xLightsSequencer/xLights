@@ -21,9 +21,13 @@ class wxCheckedListCtrl : public wxListCtrl
         void SetChecked(long item, bool checked);
         void SetImages( char** ImageChecked,char** ImageUnchecked);
         void AddImage( char** ImageXPM);
+        // Strike through the text of unchecked rows, for lists where unchecked
+        // means hidden.
+        void SetStrikeUnchecked(bool strike) { m_strikeUnchecked = strike; }
 
     private:
         wxImageList m_imageList;
+        bool m_strikeUnchecked = false;
         char** mImageChecked;
         char** mImageUnchecked;
 

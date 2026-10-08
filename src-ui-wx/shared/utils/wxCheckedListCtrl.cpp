@@ -101,4 +101,9 @@ bool wxCheckedListCtrl::IsChecked(long item) const
 void wxCheckedListCtrl::SetChecked(long item, bool checked)
 {
    SetItemImage(item, (checked ? 1 : 0), -1);
+   if (m_strikeUnchecked) {
+       wxFont font = GetFont();
+       font.SetStrikethrough(!checked);
+       SetItemFont(item, font);
+   }
 }
