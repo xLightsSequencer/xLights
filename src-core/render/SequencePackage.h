@@ -15,6 +15,7 @@
 #include <pugixml.hpp>
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -155,6 +156,16 @@ class SequencePackage {
         // Entries with an empty path indicate tracks referenced in the XSQ but not bundled.
         std::vector<std::pair<std::string, std::string>> FindAndCopyAltAudioTracks(const std::filesystem::path& targetDir);
         std::list<std::string> GetMissingMedia();
+        // Video files referenced by the effects an import added, as stored in
+        // their settings, so the host can offer to convert unsupported formats
+        // during the import rather than on the next sequence load.
+        void AddImportedVideo(const std::string& path) { if (!path.empty()) _importedVideos.insert(path); }
+        const std::set<std::string>& GetImportedVideos() const { return _importedVideos; }
+        // Delete the files this import copied into the show that a video
+        // conversion has since replaced (`convertedFiles`: source -> target, as
+        // seqmedia::VideoConversionResult reports it). Files that were already
+        // in the show before the import are never touched.
+        void RemoveConvertedCopies(const std::map<std::string, std::string>& convertedFiles);
 
         void SetSequenceElements(SequenceElements *se) { sequenceElements = se; };
         void SetProgressCallback(ProgressCallback cb) { _progressCb = std::move(cb); }
@@ -174,6 +185,8 @@ class SequencePackage {
         std::filesystem::path _pkgRoot;
         bool _leaveFiles = false;
         std::list<std::string> _missingMedia;
+        std::set<std::string> _importedVideos;
+        std::set<std::filesystem::path> _copiedMedia; // files CopyMediaToTarget created
         std::map<std::string, std::filesystem::path> _media;
         bool _modelsChanged = false;
         bool _importFacesToSequence = false;

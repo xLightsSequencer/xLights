@@ -42,6 +42,9 @@
 #include "render/SequenceFile.h"
 #include "utils/ExternalHooks.h"
 #include "render/SequencePackage.h"
+#include "media/MediaCompatibility.h"
+#include "render/SeqMediaMigration.h"
+#include "utils/FileUtils.h"
 #include "import_export/Vixen3.h"
 #include "effects/BarsEffect.h"
 #include "effects/ButterflyEffect.h"
@@ -255,7 +258,8 @@ void xLightsFrame::OnMenuItemImportFromOriginal(wxCommandEvent& event)
     ImportEffectsFromFile(fn);
 }
 
-void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile, bool autoMap, bool importMedia)
+void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile, bool autoMap, bool importMedia,
+                                 seqmedia::VideoConversionResult* autoConvertVideos)
 {
     SequencePackage xsqPkg(std::filesystem::path(ToStdString(filename.GetFullPath())),
                            GetShowDirectory(), ToStdString(GetSeqXmlFileName()), &AllModels);
@@ -295,6 +299,36 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
         elements.push_back(el);
     }
     ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile, xlf.GetSequenceDurationMS(), autoMap, importMedia);
+
+    // Offer to convert unsupported imported videos now rather than leaving it
+    // to the next open. Missing ones were already reported by the import.
+    std::vector<std::string> importedVideos;
+    for (const auto& v : xsqPkg.GetImportedVideos()) {
+        std::string resolved = FileUtils::FixFile("", v);
+        if (FileExists(resolved, false)) {
+            importedVideos.push_back(resolved);
+        }
+    }
+    auto videoIssues = MediaCompatibility::CheckSequenceMedia("", importedVideos);
+    if (!videoIssues.empty()) {
+        seqmedia::VideoConversionResult conv;
+        if (autoConvertVideos != nullptr) {
+            conv = seqmedia::ConvertIncompatibleVideos(_sequenceElements, videoIssues);
+            if (conv.effectsUpdated > 0 || conv.gifEffectsConverted > 0) {
+                _sequenceElements.IncrementChangeCount(nullptr);
+                if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
+                    mainSequencer->PanelEffectGrid->ForceRefresh();
+                }
+            }
+            *autoConvertVideos = conv;
+        } else {
+            conv = ShowMediaCompatibilityIssues(videoIssues, false);
+        }
+        // A cancelled batch leaves the effects on the originals, so keep them.
+        if (!conv.cancelled) {
+            xsqPkg.RemoveConvertedCopies(conv.convertedFiles);
+        }
+    }
 
     SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }

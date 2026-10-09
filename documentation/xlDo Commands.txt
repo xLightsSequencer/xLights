@@ -444,8 +444,13 @@ Command
     Optional params:
       "mapmethod" : "file" (default, requires mapfile) | "auto" (Auto Map by name, no mapfile needed) | "both" (Load Map first, then Auto Map for remaining; requires mapfile)
       "importmedia": "true" (default) | "false"  -- copy audio/media from package to destination show
+    Imported videos in an unsupported format (e.g. AVI) are converted automatically, as convertMedia
+    does; animated GIF Video effects become Pictures effects. The video fields are only present when
+    something needed converting.
 Response
-    {"res":200, "msg":"Imported XLights Sequence.","worked":"true"}
+    {"res":200, "msg":"Imported XLights Sequence.","worked":"true",
+     "videosattempted":1,"videosconverted":1,"videoeffectsupdated":3,"gifeffectsconverted":0,
+     "videofailures":["<filename>: <reason>"]}
 
 Import Effects from a LOR S5/S6 sequence (.loredit) into the open sequence.
 Command

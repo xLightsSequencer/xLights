@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (dkulp)                 Import Effects: copied images/videos/shaders/faces are now stored show-relative, so the
+                                 next open no longer reports them all as relocated
+    -enh (dkulp)                 Import Effects: offer to convert unsupported imported videos (e.g. AVI) during the
+                                 import instead of on the next open
     -bug (derwin12)              Pictures: Loop Animated GIF / Suppress GIF Background settings are no longer lost when
                                  copying and pasting the effect
     -bug (derwin12)              Switching audio tracks while a sequence is playing now moves playback to the new track

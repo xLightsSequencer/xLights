@@ -114,6 +114,7 @@
 #include "ai/ServiceManager.h"
 
 class wxDebugReport;
+namespace seqmedia { struct VideoConversionResult; }
 
 class aiBase;
 class BaseSerializingVisitor;
@@ -517,7 +518,11 @@ public:
     // Records the donor sequence into the current sequence's metadata when the
     // import dialog's opt-in is ticked. One call per import format.
     void RecordImportDonor(const xLightsImportChannelMapDialog& dlg);
-    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string(), bool autoMap = false, bool importMedia = true);
+    // When `autoConvertVideos` is non-null, unsupported imported videos are
+    // converted without asking and the outcome is written there (automation);
+    // otherwise the user is offered the conversion.
+    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string(), bool autoMap = false, bool importMedia = true,
+        seqmedia::VideoConversionResult* autoConvertVideos = nullptr);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
@@ -1748,7 +1753,7 @@ public:
     void OpenSequence(const wxString& passed_filename) {
      OpenSequence(passed_filename, nullptr);
     }
-    void ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues);
+    seqmedia::VideoConversionResult ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues);
     int ConvertGifVideoEffectsToPictures(const std::vector<MediaCompatibilityIssue>& gifIssues);
     // Runs MediaCompatibility::CheckSequenceMedia over the current sequence's
     // audio + video files and shows the results. `manual` is true when
@@ -1756,6 +1761,10 @@ public:
     // automatic post-open check: it ignores the per-version suppress setting
     // and reports "no issues" instead of staying silent.
     void CheckMediaCompatibility(bool manual = false);
+    // The warning dialog behind CheckMediaCompatibility, with its "Convert
+    // Now" action. `offerSuppress` adds the don't-show-again-this-version box.
+    // Returns the conversion outcome (empty when the user didn't convert).
+    seqmedia::VideoConversionResult ShowMediaCompatibilityIssues(const std::vector<MediaCompatibilityIssue>& issues, bool offerSuppress);
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();

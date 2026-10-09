@@ -2190,6 +2190,11 @@ static BasicImportMappingNode* FindNodeByIDRecursive(BasicImportMappingNode* n, 
         }
     }
 
+    // Same GIF->Pictures rewrite a load does, so imported GIF Video effects
+    // play now instead of after the next open.
+    std::vector<std::string> importedVideos(xsqPkg.GetImportedVideos().begin(), xsqPkg.GetImportedVideos().end());
+    rc->ConvertUnplayableGifVideoEffects(importedVideos);
+
     rc->MarkRgbEffectsChanged();
     return YES;
 }
