@@ -24,6 +24,7 @@ class LOROptimisedOutput : public LOROutput
     bool banks_changed[MAX_BANKS];
     bool unit_id_in_use[256];
     uint8_t _curData[LOR_MAX_CHANNELS];
+    uint8_t _lastSent[LOR_MAX_CHANNELS];
     LorControllers _controllers;
     //uint8_t _framesSinceForcedOutput = 0xFF;
     #pragma endregion Member Variables
@@ -54,12 +55,19 @@ public:
     LorControllers& GetControllers() { return _controllers; }
 
     virtual std::string GetType() const override { return OUTPUT_LOR_OPT; }
+    virtual int32_t GetMaxChannels() const override { return LOR_MAX_CHANNELS; }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= (int32_t)LOR_MAX_CHANNELS; }
 
     void EnsureTypesInitialised() { InitialiseTypes(); }
     void RecalcTotalChannels() { CalcTotalChannels(); }
     #pragma endregion 
 
     virtual bool Open() override;
+
+protected:
+    virtual bool SendsIntensityCommands() const override { return false; }
+
+public:
 
     #pragma region Frame Handling
     virtual void EndFrame(int suppressFrames) override;

@@ -79,6 +79,9 @@ public:
     // Shared-open hook: convert iOS-undecodable animated-GIF Video effects to
     // Pictures effects (base default is a no-op).
     void OnSequenceElementsLoaded(SequenceFile& file) override;
+    // Rewrites Video effects whose file (as stored) is an animated GIF iOS
+    // can't decode into Pictures effects. Returns the number rewritten.
+    int ConvertUnplayableGifVideoEffects(const std::vector<std::string>& videoFiles);
 
     // Write the rendered sequence to a v2/zstd/sparse .fseq file matching
     // desktop's `xLightsFrame::WriteFalconPiFile` format. Sparse ranges come

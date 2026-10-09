@@ -229,9 +229,9 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
 
     if ((max > _seqData.NumChannels()) ||
         (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
-        _seqData.init(max, mMediaLengthMS / ms, ms);
+        ReinitSeqData(max, mMediaLengthMS / ms, ms);
     } else {
-        _seqData.init(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+        ReinitSeqData(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
 
     // we can render now the sequence data buffers are initialised
@@ -644,9 +644,9 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     }
                 }
             }
-            _seqData.init(numChan, mMediaLengthMS / ms, ms);
+            ReinitSeqData(numChan, mMediaLengthMS / ms, ms);
         } else if (!loaded_fseq) {
-            _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            ReinitSeqData(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
         spdlog::debug("Initializing Display Elements");
@@ -705,7 +705,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
     }
 }
 
-void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues)
+seqmedia::VideoConversionResult xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues)
 {
     // The transcode + effect-rewrite work lives in core so the automation API
     // can run it headlessly; this wrapper only supplies the progress dialog
@@ -750,7 +750,7 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
     if (result.cancelled) {
         wxMessageBox("Conversion cancelled. Any files already completed were left in place but the sequence was not updated.",
                      "Cancelled", wxOK | wxICON_INFORMATION, this);
-        return;
+        return result;
     }
 
     if (result.attempted == 0) {
@@ -762,7 +762,7 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
                          "GIF effect conversion results",
                          wxOK | wxICON_INFORMATION, this);
         }
-        return;
+        return result;
     }
 
     wxString msg = wxString::Format("Converted %d of %d file(s). %d video effect(s) updated.",
@@ -781,6 +781,7 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
     wxMessageBox(msg, "Video conversion results",
                  wxOK | (result.failures.empty() ? wxICON_INFORMATION : wxICON_WARNING),
                  this);
+    return result;
 }
 
 int xLightsFrame::ConvertGifVideoEffectsToPictures(const std::vector<MediaCompatibilityIssue>& gifIssues)
@@ -814,7 +815,11 @@ void xLightsFrame::CheckMediaCompatibility(bool manual)
         }
         return;
     }
+    ShowMediaCompatibilityIssues(issues, !manual);
+}
 
+seqmedia::VideoConversionResult xLightsFrame::ShowMediaCompatibilityIssues(const std::vector<MediaCompatibilityIssue>& issues, bool offerSuppress)
+{
     // Build the file list once for the monospace box and the log.
     wxString fileList;
     for (const auto& issue : issues) {
@@ -901,7 +906,7 @@ void xLightsFrame::CheckMediaCompatibility(bool manual)
     // explicit request, so don't offer to silence future automatic checks
     // from inside it.
     wxCheckBox* suppressCheck = nullptr;
-    if (!manual) {
+    if (offerSuppress) {
         suppressCheck = new wxCheckBox(&dlg, wxID_ANY,
             wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
         topSizer->Add(suppressCheck, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
@@ -943,8 +948,9 @@ void xLightsFrame::CheckMediaCompatibility(bool manual)
     }
 
     if (dlgResult == ID_CONVERT_NOW) {
-        ConvertIncompatibleVideos(issues);
+        return ConvertIncompatibleVideos(issues);
     }
+    return {};
 }
 
 void xLightsFrame::AddToMRU(const std::string& filename)
@@ -1087,7 +1093,7 @@ bool xLightsFrame::CloseSequence()
     }
     if (displayElementsPanel != nullptr)
         displayElementsPanel->SetEffectSequenceMode(false);
-    _seqData.init(0, 0, 50);
+    ReinitSeqData(0, 0, 50);
     EnableSequenceControls(true); // let it re-evaluate menu state
     SetStatusText("");
     SetStatusText(CurrentDir, true);

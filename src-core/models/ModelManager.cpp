@@ -356,11 +356,21 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
         if (std::string_view(e.name()) == "model") {
             std::string name = Trim(e.attribute("name").as_string());
             if (!name.empty()) {
+                XmlDeserializingModelFactory::MigrateLegacyModelNode(e);
                 modelsToLoad.push_back(e);
             }
         }
     }
     {
+        // Deserializing a model posts work (e.g. ControllerConnection::SetProtocol),
+        // but OutputModelManager is main-thread only and the loader runs on workers.
+        // Nothing a load posts is a real change; the start-channel work it needs is
+        // queued below.
+        OutputModelManager* omm = GetOutputModelManager();
+        const bool asapWasDisabled = omm == nullptr || omm->IsASAPWorkDisabled();
+        if (omm != nullptr) {
+            omm->DisableASAPWork(true);
+        }
         AutoReleasePool pool;
         parallel_for(0, (int)modelsToLoad.size(), [this, &modelsToLoad, previewW, previewH](int idx) {
             // One unloadable model (e.g. a type this version no longer knows) must not abort
@@ -372,6 +382,9 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
                               modelsToLoad[idx].attribute("name").as_string(), e.what());
             }
         });
+        if (omm != nullptr) {
+            omm->DisableASAPWork(asapWasDisabled);
+        }
     }
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     auto timerElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerStart).count();
@@ -433,9 +446,6 @@ void ModelManager::ResetModelGroups() const
         }
     }
     for (auto* g : groups) {
-        g->ClearModelsChangedOnReset();
-    }
-    for (auto* g : groups) {
         g->ResetModels();
     }
 
@@ -450,7 +460,7 @@ void ModelManager::ResetModelGroups() const
     // Rebuild here instead, where the caller has already made it safe to mutate.
     std::set<ModelGroup*> stale;
     for (auto* g : groups) {
-        if (g->ModelsChangedOnReset()) {
+        if (g->NodesStale()) {
             stale.insert(g);
         }
     }

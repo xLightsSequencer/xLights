@@ -220,6 +220,13 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
     return width;
 }
 
+void ViewObjectPanel::ClearObjects() {
+    TreeListViewObjects->Freeze();
+    TreeListViewObjects->DeleteAllItems();
+    TreeListViewObjects->Thaw();
+    mSelectedObject = nullptr;
+}
+
 void ViewObjectPanel::UpdateObjectList(bool full_refresh, std::string& currentLayoutGroup) {
     std::vector<ViewObject *> objects;
     UpdateObjectList(full_refresh, objects, currentLayoutGroup);

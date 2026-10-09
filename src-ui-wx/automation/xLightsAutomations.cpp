@@ -1307,14 +1307,33 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 return sendResponse("Mapping File not valid.", "msg", 503, false);
             }
         }
-        ImportXLights(wxFileName(filename), mapname, autoMap, importMedia);
+        // Never prompt from automation: a modal here runs a nested event loop
+        // that services further automation requests mid-import.
+        seqmedia::VideoConversionResult conv;
+        ImportXLightsAutomation report;
+        report.videos = &conv;
+        if (!ImportXLights(wxFileName(filename), mapname, autoMap, importMedia, &report)) {
+            return sendResponse(report.error.empty() ? "Import failed." : report.error, "msg", 503, false);
+        }
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
         mainSequencer->PanelEffectGrid->Refresh();
 
-        std::string response = "{\"msg\":\"Imported XLights Sequence.\",\"worked\":\"true\"}";
-        return sendResponse(response, "", 200, true);
+        nlohmann::json res;
+        res["msg"] = "Imported XLights Sequence.";
+        res["worked"] = "true";
+        if (!report.warnings.empty()) {
+            res["warnings"] = report.warnings;
+        }
+        if (conv.attempted > 0 || conv.gifEffectsConverted > 0) {
+            res["videosattempted"] = conv.attempted;
+            res["videosconverted"] = conv.converted;
+            res["videoeffectsupdated"] = conv.effectsUpdated;
+            res["gifeffectsconverted"] = conv.gifEffectsConverted;
+            if (!conv.failures.empty()) res["videofailures"] = conv.failures;
+        }
+        return sendResponse(res.dump(), "", 200, true);
     } else if (cmd == "importS5Sequence") {
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);

@@ -176,6 +176,9 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 void xLightsFrame::ResetEffectsXml()
 {
     AllModels.clear();
+    if (layoutPanel != nullptr) {
+        layoutPanel->ClearViewObjects();
+    }
     AllObjects.clear();
     _sequenceViewManager.Reset();
     // The presets tree holds raw pointers into the preset manager; drop them before it frees its items
@@ -1795,7 +1798,7 @@ void xLightsFrame::SaveSequence()
                 wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
                 int ms = wxAtoi(mss);
 
-                _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+                ReinitSeqData(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
             } else {
                 spdlog::error("Render on Save: could not abort the in-flight render; skipping the seqData resize to avoid a use-after-free.");
             }
@@ -1865,7 +1868,7 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
         // can time out and reinitialising under a live job is a use-after-free
         // (crash sig 25e8b06bcc / a14ee11b9c). See the render-on-save path above.
         if (AbortRender()) {
-            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
+            ReinitSeqData(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
         } else {
             spdlog::error("SetSequenceTiming: could not abort the in-flight render; deferring the seqData reinit to avoid a use-after-free.");
         }

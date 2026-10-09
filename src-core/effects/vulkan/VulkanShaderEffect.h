@@ -35,6 +35,7 @@ public:
 
 protected:
     virtual bool nativeAvailable() const override;
+    virtual uint32_t nativeMaxTextureSize() const override;
     virtual CacheBase* newCache() const override;
     virtual bool nativeBuild(CacheBase* cache, RenderBuffer& buffer) override;
     virtual bool nativeEncode(CacheBase* cache, RenderBuffer& buffer,

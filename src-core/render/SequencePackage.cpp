@@ -575,7 +575,9 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
             std::filesystem::path copiedAsset = CopyMediaToTarget(targetMediaFolder, fileToCopy);
             spdlog::info("SequencePackage::FixAndImportMedia: '{}' effect media '{}' -> '{}'.", effName, fileToCopy.string(), copiedAsset.string());
             settings.erase(settingEffectFile);
-            std::string newSetting = copiedAsset.string();
+            // Store the show/media-relative form, as a load would, so the next
+            // open doesn't report every imported file as relocated.
+            std::string newSetting = FileUtils::MakeRelativeFileOrOriginal(copiedAsset.string());
             settings[settingEffectFile] = newSetting;
             if (effName == "Pictures") {
                 auto &tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
@@ -655,7 +657,7 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
 
                                         if (!fileToCopy.empty() && FileExists(fileToCopy.string())) {
                                             std::filesystem::path copiedAsset = CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy);
-                                            faceAttributes[attrName] = copiedAsset.string();
+                                            faceAttributes[attrName] = FileUtils::MakeRelativeFileOrOriginal(copiedAsset.string());
                                         } else {
                                             _missingMedia.push_back(faceFileName);
                                         }
@@ -767,7 +769,7 @@ bool SequencePackage::ImportSequenceFaceInfo(Effect* mappedEffect, EffectLayer* 
         auto it = _media.find(faceFileName);
         std::filesystem::path fileToCopy = (it != _media.end()) ? it->second : std::filesystem::path();
         if (!fileToCopy.empty() && FileExists(fileToCopy.string())) {
-            value = CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy).string();
+            value = FileUtils::MakeRelativeFileOrOriginal(CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy).string());
         } else if (!faceFileName.empty()) {
             _missingMedia.push_back(faceFileName);
         }
@@ -898,10 +900,30 @@ std::filesystem::path SequencePackage::CopyMediaToTarget(const std::string& targ
         }
 
         // now copy the asset
-        std::filesystem::copy_file(mediaToCopy, targetFile, std::filesystem::copy_options::skip_existing, ec);
+        if (std::filesystem::copy_file(mediaToCopy, targetFile, std::filesystem::copy_options::skip_existing, ec)) {
+            _copiedMedia.insert(targetFile);
+        }
     }
 
     return targetFile;
+}
+
+void SequencePackage::RemoveConvertedCopies(const std::map<std::string, std::string>& convertedFiles)
+{
+    for (const auto& [source, target] : convertedFiles) {
+        std::error_code ec;
+        for (auto it = _copiedMedia.begin(); it != _copiedMedia.end(); ++it) {
+            // equivalent() rather than string compare: the converter keys on the
+            // FixFile'd form of the stored show-relative path, whose separators
+            // can differ from the path the copy was made to.
+            if (std::filesystem::equivalent(*it, source, ec)) {
+                spdlog::info("SequencePackage: removing imported '{}', converted to '{}'.", it->string(), target);
+                std::filesystem::remove(*it, ec);
+                _copiedMedia.erase(it);
+                break;
+            }
+        }
+    }
 }
 
 std::filesystem::path SequencePackage::FindAndCopyAudio(const std::filesystem::path& targetDir)

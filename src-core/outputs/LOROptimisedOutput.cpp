@@ -158,17 +158,20 @@ void LOROptimisedOutput::GenerateCommand(uint8_t d[], size_t& idx, int unit_id, 
 LOROptimisedOutput::LOROptimisedOutput(const LOROptimisedOutput& from) :
     LOROutput(from), _controllers(from._controllers)
 {
+    memset(_lastSent, 0x00, sizeof(_lastSent));
     InitialiseTypes();
     SetupHistory();
 }
 
 LOROptimisedOutput::LOROptimisedOutput(pugi::xml_node node) : LOROutput(node), _controllers(node) {
+    memset(_lastSent, 0x00, sizeof(_lastSent));
     InitialiseTypes();
     SetupHistory();
     CalcTotalChannels();
 }
 
 LOROptimisedOutput::LOROptimisedOutput() : LOROutput() {
+    memset(_lastSent, 0x00, sizeof(_lastSent));
     InitialiseTypes();
     SetupHistory();
     GetControllers().GetControllers().push_back(new LorController());
@@ -187,7 +190,11 @@ bool LOROptimisedOutput::Open()
 {
     //_framesSinceForcedOutput = 0xFF;
     _changed = true;
-    return LOROutput::Open();
+    bool ok = LOROutput::Open();
+    if (_enabled) {
+        AllOff();
+    }
+    return ok;
 }
 
 void LOROptimisedOutput::EndFrame(int suppressFrames)
@@ -386,7 +393,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             }
 
             if (_serial != nullptr && frame_changed) {
-                _serial->Write((char*)d, idx);
+                WriteSerial(d, idx);
                 // After we output we dont want to close too early as that causes crashes
                 SetDontDieUntil(GetCurrentTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
                 total_bytes_sent += idx;
@@ -440,7 +447,7 @@ void LOROptimisedOutput::AllOff() {
             d[idx++] = 0x0;
 
             if (_serial != nullptr) {
-                _serial->Write((char*)d, idx);
+                WriteSerial(d, idx);
                 // After we output we dont want to close too early as that causes crashes
                 SetDontDieUntil(GetCurrentTimeMillis() + MINIMUM_MILLIS_AFTER_WRITE_BEFORE_CLOSE);
             }
@@ -453,7 +460,6 @@ void LOROptimisedOutput::AllOff() {
     memset(_lastSent, 0x00, sizeof(_lastSent));
 
     SendHeartbeat();
-    _lastheartbeat = _timer_msec;
 
     //spdlog::debug("    LOROptimisedOutput: AllOff finished");
 }

@@ -33,6 +33,7 @@
 #include <chrono>
 #include <climits>
 #include <map>
+#include <mutex>
 #include <string>
 #include <thread>
 
@@ -409,45 +410,57 @@ static void AbandonReaderObjects(IMFSourceReader* reader, MFReadSampleCallback* 
         }                                                                                                                                             \
     }
 
+// Readers are constructed on render threads, so every lookup and insert into
+// these tables must hold the lock.
+static std::mutex __delayLoadLock;
 static std::map<std::string, HINSTANCE> __delayLoadDLLs;
 static std::map<std::string, FARPROC> __delayLoadFunctions;
 
+static HINSTANCE GetDLLLocked(const std::string& dll)
+{
+    auto it = __delayLoadDLLs.find(dll);
+    if (it != __delayLoadDLLs.end()) {
+        return it->second;
+    }
+    HINSTANCE hinst = ::LoadLibraryA(dll.c_str());
+    if (hinst != nullptr) {
+        __delayLoadDLLs.emplace(dll, hinst);
+    }
+    return hinst;
+}
+
 HINSTANCE GetDLL(const std::string& dll)
 {
-    if (__delayLoadDLLs.find(dll) == end(__delayLoadDLLs)) {
-        HINSTANCE hinst = ::LoadLibraryA(dll.c_str());
-        if (hinst == nullptr)
-            return nullptr;
-        __delayLoadDLLs[dll] = hinst;
-    }
-    return __delayLoadDLLs[dll];
+    std::lock_guard<std::mutex> lock(__delayLoadLock);
+    return GetDLLLocked(dll);
 }
 
 void FreeAllDLLs()
 {
+    std::lock_guard<std::mutex> lock(__delayLoadLock);
     for (const auto& it : __delayLoadDLLs) {
         ::FreeLibrary(it.second);
     }
     __delayLoadDLLs.clear();
+    __delayLoadFunctions.clear();
 }
 
 FARPROC GetFunction(const std::string& dll, const std::string& function)
 {
-    if (__delayLoadFunctions.find(function) == end(__delayLoadFunctions)) {
-        HINSTANCE hinst = GetDLL(dll);
-        if (hinst != nullptr) {
-            FARPROC proc = ::GetProcAddress(hinst, function.c_str());
-            if (proc != nullptr) {
-                __delayLoadFunctions[function] = proc;
-            } else {
-                return nullptr;
-            }
-        } else {
-            return nullptr;
-        }
+    std::lock_guard<std::mutex> lock(__delayLoadLock);
+    auto it = __delayLoadFunctions.find(function);
+    if (it != __delayLoadFunctions.end()) {
+        return it->second;
     }
-
-    return __delayLoadFunctions[function];
+    HINSTANCE hinst = GetDLLLocked(dll);
+    if (hinst == nullptr) {
+        return nullptr;
+    }
+    FARPROC proc = ::GetProcAddress(hinst, function.c_str());
+    if (proc != nullptr) {
+        __delayLoadFunctions.emplace(function, proc);
+    }
+    return proc;
 }
 
 class WVHRStatic
@@ -541,7 +554,7 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
 
     HRESULT hr = S_OK;
 
-    IMFAttributes* attributes;
+    IMFAttributes* attributes = nullptr;
     DYNAMICCALL("mfplat.dll", MFCreateAttributes, &attributes COMMA 4, "WHVD: Failed to create Media Framework attributes");
 
 #if defined(ENABLE_HW_ACCELERATION)
@@ -596,6 +609,7 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
 
     // Attempt to find a video stream.
     SAFEEXEC(SelectVideoStream(usenativeresolution, keepaspectratio), "WHVD: Failed to find video stream");
+    _formatUnsupported = hr == MF_E_TOPO_CODEC_NOT_FOUND || hr == MF_E_UNSUPPORTED_BYTESTREAM_TYPE;
 
     if (SUCCEEDED(hr)) {
 

@@ -190,6 +190,9 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
             Effect* ne = target->AddEffect(0, ef->GetEffectName(), settings.AsString(), ef->GetPaletteAsString(),
                                            ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
             if (ne != nullptr) {
+                if (ef->GetEffectIndex() == EffectManager::eff_VIDEO) {
+                    xsqPkg.AddImportedVideo(settings.Get("E_FILEPICKERCTRL_Video_Filename", ""));
+                }
                 // honour the "Lock effects on import" option only; never carry the source
                 // effect's own lock status across (SetLocked() erases X_Effect_Locked from
                 // the new effect's settings map when false, regardless of whether it

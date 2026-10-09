@@ -147,7 +147,14 @@ static void MigrateDmxMovingHead3D(pugi::xml_node node) {
     MigrateFlatDmxMotors(node);
 }
 
+void XmlDeserializingModelFactory::MigrateLegacyModelNode(pugi::xml_node node) {
+    if (std::string_view(node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string()) == "DmxMovingHead3D") {
+        MigrateDmxMovingHead3D(node);
+    }
+}
+
 Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    MigrateLegacyModelNode(node);
     std::string type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string("DisplayAs Missing");
 
     if (type.empty()) {
@@ -155,11 +162,6 @@ Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManag
     }
 
     std::string node_name = node.name();  // need this to support importing old models that did not have the DisplayAs attribute
-
-    if (type == "DmxMovingHead3D") {
-        MigrateDmxMovingHead3D(node);
-        type = XmlNodeKeys::DmxMovingHeadAdvType;
-    }
 
     Model* model = nullptr;
     if (type == XmlNodeKeys::ArchesType || node_name == "archesmodel") {

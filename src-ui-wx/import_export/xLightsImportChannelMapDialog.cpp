@@ -1564,7 +1564,7 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
     SaveWindowPosition("xLightsImportDialogPosition", this);
 }
 
-bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
+bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::string* error) {
     if (_xsqPkg != nullptr && _xsqPkg->HasMedia()) {
         SetImportMediaTooltip();
         _xsqPkg->GetImportOptions()->SetImportActive(CheckBoxImportMedia->IsChecked());
@@ -1582,7 +1582,12 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
 
     if (importChannels.size() == 0 && timingTracks.size() == 0)
     {
-        DisplayError("No models/timing tracks to import from. Source sequence had no data.");
+        const std::string msg = "No models/timing tracks to import from. Source sequence had no data.";
+        if (error != nullptr) {
+            *error = msg;
+        } else {
+            DisplayError(msg);
+        }
         return false;
     }
 
@@ -1831,7 +1836,12 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     stretchMapToCol();
 
     if (_dataModel->GetChildCount() == 0) {
-        DisplayError("No models to import to. Add some models to the rows of the effects grid.");
+        const std::string msg = "No models to import to. Add some models to the rows of the effects grid.";
+        if (error != nullptr) {
+            *error = msg;
+        } else {
+            DisplayError(msg);
+        }
         return false;
     }
 #ifdef __WXMSW__
@@ -2605,6 +2615,10 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
         inputFile >> data;
 
     } catch (std::exception& ex) {
+        if (hideWarnings) {
+            spdlog::error("Error reading JSON mapping file: {}: {}", filename.ToStdString(), ex.what());
+            return;
+        }
         return DisplayError("Error reading JSON mapping file: " + filename + "\n" + ex.what());
     } 
 

@@ -1927,7 +1927,14 @@ void iPadRenderContext::OnSequenceElementsLoaded(SequenceFile& file) {
     // Pictures effects on load. Runs after the rows are populated, before the
     // sequence is marked loaded (xLightsShowContext::LoadSequenceElements seam).
     // Desktop keeps them as Video effects.
-    std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
+    int rewritten = ConvertUnplayableGifVideoEffects(_sequenceElements.GetSequenceMedia().GetVideoFilePaths());
+    if (rewritten > 0) {
+        spdlog::info("iPadRenderContext: converted {} animated GIF Video effect(s) to Pictures effects on load of {}",
+                     rewritten, file.GetFullPath());
+    }
+}
+
+int iPadRenderContext::ConvertUnplayableGifVideoEffects(const std::vector<std::string>& videoFiles) {
     std::vector<MediaCompatibilityIssue> gifIssues;
     for (const auto& vf : videoFiles) {
         std::string resolved = FileUtils::FixFile(showDirectory, vf);
@@ -1941,13 +1948,8 @@ void iPadRenderContext::OnSequenceElementsLoaded(SequenceFile& file) {
             gifIssues.push_back(std::move(issue));
         }
     }
-    if (!gifIssues.empty()) {
-        int rewritten = seqmedia::ConvertGifVideoEffectsToPictures(_sequenceElements, gifIssues);
-        if (rewritten > 0) {
-            spdlog::info("iPadRenderContext: converted {} animated GIF Video effect(s) to Pictures effects on load of {}",
-                         rewritten, file.GetFullPath());
-        }
-    }
+    if (gifIssues.empty()) return 0;
+    return seqmedia::ConvertGifVideoEffectsToPictures(_sequenceElements, gifIssues);
 }
 
 namespace {

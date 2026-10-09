@@ -326,6 +326,11 @@
     }
 }
 
+- (BOOL)hasTextureNamed:(NSString*)name {
+    if (!name) return NO;
+    return _textures.find(std::string([name UTF8String])) != _textures.end() ? YES : NO;
+}
+
 - (void)drawTextureNamed:(NSString*)name
                        x:(CGFloat)x
                        y:(CGFloat)y

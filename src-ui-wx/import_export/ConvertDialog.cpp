@@ -1601,6 +1601,12 @@ void ConvertDialog::ReadLorFile(const wxString& filename, int LORImportInterval)
                         curchannel = -1;
                     }
                 }
+                // ChannelNames and SeqData are sized to the xLights channel count; a LOR
+                // circuit past the end of a smaller controller resolves beyond it.
+                if (curchannel >= (int)_outputManager->GetTotalChannels()) {
+                    AppendConvertStatus(string_format(wxString("WARNING: channel '%s' maps to channel %d, but only %d are defined in xLights.\n"), ChannelName, curchannel + 1, (int)_outputManager->GetTotalChannels()));
+                    curchannel = -1;
+                }
                 if (curchannel >= 0) {
                     if (ChannelNames[curchannel].size() != 0) {
                         AppendConvertStatus(string_format(wxString("WARNING: ") + ChannelNames[curchannel] + wxString(" and ")
