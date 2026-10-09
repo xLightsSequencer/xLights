@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Chroma Key no longer turns transparent areas of the layer black, which hid the layers
+                                 below when the effect's position or buffer left part of it uncovered (#7195)
     -bug (derwin12)              Terrain: grid points can be selected and raised/lowered again when Edit Terrain is on (#7197)
     -bug (dkulp)                 LOR output now behaves like FPP's: fixes channels above 256 getting stuck, channels past
                                  unit 240 wrapping onto low units, units dropping out while paused, and lag at low baud

@@ -130,9 +130,9 @@ float ColourDistance(uvec4 e1, uvec4 e2) {
     return sqrt(f3);
 }
 
-// Mirrors Metal applyChroma: premultiplies alpha into c (even when returning
-// false) and returns true when the color matches the chroma key.
-bool applyChroma(inout uvec4 c) {
+// Premultiplies alpha into a local copy only (as the CPU path does) so the
+// caller's fg keeps its alpha when not keyed; true when it matches the key.
+bool applyChroma(uvec4 c) {
     if (c.a < 255u) {
         c.r = (c.r * c.a) / 255u;
         c.g = (c.g * c.a) / 255u;
