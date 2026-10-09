@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Chroma Key no longer turns transparent areas of the layer black, which hid the layers
+                                 below when the effect's position or buffer left part of it uncovered (#7195)
     -bug (derwin12)              Pictures: Loop Animated GIF / Suppress GIF Background settings are no longer lost when
                                  copying and pasting the effect
     -bug (derwin12)              Switching audio tracks while a sequence is playing now moves playback to the new track
