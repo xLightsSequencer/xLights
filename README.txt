@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Terrain: grid points can be selected and raised/lowered again when Edit Terrain is on (#7197)
     -bug (derwin12)              Pictures: Loop Animated GIF / Suppress GIF Background settings are no longer lost when
                                  copying and pasting the effect
     -bug (derwin12)              Switching audio tracks while a sequence is playing now moves playback to the new track
