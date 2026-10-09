@@ -81,10 +81,9 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         void ResetModels();
         bool RebuildBuffers();
 
-        // ModelManager::ResetModelGroups only: whether the last ResetModels
-        // resolved to a different set of Model* than it held before.
-        void ClearModelsChangedOnReset() const { modelsChangedOnReset = false; }
-        [[nodiscard]] bool ModelsChangedOnReset() const { return modelsChangedOnReset; }
+        // Whether the cloned render nodes (each carrying a raw Model* back to its
+        // member) were built from different members than the group now resolves to.
+        [[nodiscard]] bool NodesStale() const { return builtModels != models; }
 
         bool CheckForChanges() const;
 
@@ -152,9 +151,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         std::vector<std::string> modelNames;
         mutable std::vector<Model *> models;
         mutable std::vector<Model *> activeModels;
-        // Set by ResetModels when the resolved member pointers differ from the
-        // previous resolution; read (and cleared) by ModelManager::ResetModelGroups.
-        mutable bool modelsChangedOnReset = false;
+        // The members the current Nodes were cloned from, set only by RebuildBuffers.
+        std::vector<Model *> builtModels;
         mutable unsigned int modelsGeneration = std::numeric_limits<unsigned int>::max();
         mutable bool resolvingModels = false;
         bool selected;

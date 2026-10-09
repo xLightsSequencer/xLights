@@ -407,7 +407,8 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
             let visEndMS = Int((c.scrollOffsetX + size.width) / c.pixelsPerMS)
             if stripW > 8 && stripH > 8 && visEndMS > visStartMS {
                 let key = "\(visStartMS)-\(visEndMS)-\(stripW)x\(stripH)"
-                if key != c.spectrogramCacheKey,
+                if key != c.spectrogramCacheKey
+                    || !bridge.hasTextureNamed("topChromeSpectrogram"),
                    let data = fetch(visStartMS, visEndMS, stripW, stripH) {
                     // `replaceTextureNamed:` evicts any cached entry
                     // with the same name before (re)uploading — needed

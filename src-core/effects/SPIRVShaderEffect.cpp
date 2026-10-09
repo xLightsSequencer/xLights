@@ -17,6 +17,8 @@
 #include <mutex>
 #include <vector>
 
+#include <spdlog/spdlog.h>
+
 #include "EffectManager.h"
 #include "ShaderSourceTransforms.h"
 #include "UtilClasses.h"
@@ -240,6 +242,15 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
     }
     if (cache->failed) {
         buffer.Fill(cache->config == nullptr ? xlRED : xlYELLOW);
+        return;
+    }
+
+    const uint32_t maxSize = nativeMaxTextureSize();
+    if (buffer.BufferWi < 1 || buffer.BufferHt < 1 || (uint32_t)buffer.BufferWi > maxSize || (uint32_t)buffer.BufferHt > maxSize) {
+        if (buffer.needToInit) {
+            spdlog::warn("Shader effect: {}x{} buffer is outside the GPU texture limit of {}", buffer.BufferWi, buffer.BufferHt, maxSize);
+        }
+        buffer.Fill(xlYELLOW);
         return;
     }
 

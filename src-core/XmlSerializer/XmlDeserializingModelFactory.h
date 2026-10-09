@@ -28,6 +28,11 @@ class Servo;
 struct XmlDeserializingModelFactory {
     Model* Deserialize(pugi::xml_node node, ModelManager& modelManager, bool importing);
 
+    // Rewrites a legacy model node into its current form in place.  It mutates the
+    // document, so a caller deserializing nodes concurrently must run it over every
+    // node first: pugixml's allocator is not thread safe.
+    static void MigrateLegacyModelNode(pugi::xml_node node);
+
 private:
 
     void CommonDeserializeSteps(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing);

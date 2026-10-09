@@ -75,6 +75,10 @@ class WindowsHardwareVideoReader
     // thread if this reader is abandoned, so the slot comes back only when the
     // decoder session actually does.
     bool _reservedDecoder = false;
+    // Media Foundation has no decoder for this file's container or codec, as
+    // opposed to failing for a reason that might not recur (no decoder slot,
+    // device creation, a missing DLL).
+    bool _formatUnsupported = false;
 
     // Direct D3D11 video-processor path.
     //
@@ -118,6 +122,7 @@ public:
     WindowsHardwareVideoReader(const std::string& filename, bool wantAlpha, bool usenativeresolution, bool keepaspectratio, uint32_t maxwidth, uint32_t maxheight, AVPixelFormat pixelFormat);
     virtual ~WindowsHardwareVideoReader();
     bool IsOk() const;
+    bool FormatUnsupported() const { return _formatUnsupported; }
     uint32_t GetFrames() const
     {
         if (_frameMS == 0)

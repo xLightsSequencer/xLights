@@ -697,14 +697,17 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             else                   { bucket = 64 }
             let iconTop = e.top + (e.bottom - e.top - iconSize) / 2
             let iconBottom = iconTop + iconSize
-            if let data = c.iconProvider(e.name, bucket) {
-                let key = "\(e.name)@\(bucket)"
+            let key = "\(e.name)@\(bucket)"
+            // Only build the bytes (XPM parse + CG rescale) on a cache
+            // miss; the uploaded texture outlives frames.
+            if !c.bridge.hasTextureNamed(key),
+               let data = c.iconProvider(e.name, bucket) {
                 c.bridge.ensureTextureNamed(key, bgraData: data,
                                              w: Int32(bucket), h: Int32(bucket))
-                c.bridge.drawTextureNamed(key, x: iconLeft,
-                                           y: iconTop,
-                                           w: iconSize, h: iconSize)
             }
+            c.bridge.drawTextureNamed(key, x: iconLeft,
+                                       y: iconTop,
+                                       w: iconSize, h: iconSize)
             // Thin outline around the icon rect. Mirrors desktop's
             // `lines->AddRectAsLines(...)` call on every icon
             // (EffectsGrid.cpp:6832). Critical for the Off effect —

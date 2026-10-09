@@ -49,12 +49,22 @@ bool LOROutput::Open() {
     _ok = SerialOutput::Open();
 
     for (size_t i = 0; i < LOR_PACKET_LEN; i++) {
-        // encode brightness value according to LOR protocol
-        // see: https://github.com/Cryptkeeper/lightorama-protocol/blob/master/PROTOCOL.md#brightness
-        // 100% brightness  = 0x01
-        // 0% brightness    = 0xF0
-        // brightness range = 0xEF
-        _data[i] = (i / 255.0F) * -0xEF + 0xF0;
+        // LOR intensity is a whole percent (101 levels): 0xF0 is off, 0x01 is
+        // full, and 1-99% are 228 - 2 * percent.  The Pixie manual's "LOR
+        // %intensity to DMX Intensities" table (page 46) maps each percent to
+        // output as floor(percent * 2.55):
+        // https://www1.lightorama.com/PDF/Pixie_Man_Web.pdf
+        // A linear map over 0xF0..0x01 lands low values past the off end (the
+        // bottom of a fade goes dark) and reads 50% as about 54%.  FPP's LOR
+        // output uses this same table, so both put the same bytes on the wire.
+        int percent = (int)(i * 100 + 127) / 255;
+        if (percent == 0) {
+            _data[i] = 0xF0;
+        } else if (percent >= 100) {
+            _data[i] = 0x01;
+        } else {
+            _data[i] = 228 - percent * 2;
+        }
     }
 
     // initialise to a known state of all off
