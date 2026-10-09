@@ -11,7 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
-
+    -bug (dkulp)                 iPad - Sequencer grid no longer rebuilds every visible effect icon on each redraw;
+                                 the spectrogram strip also redraws after a low-memory purge
     -bug (dkulp)                 Fix crash loading a layout containing older DMX Moving Head 3D models
     -bug (dkulp)                 Convert: fix crash converting a LOR sequence whose channels exceed the xLights controllers
     -bug (dkulp)                 Fix crash dragging an effect from the toolbar over the Effect Presets window
