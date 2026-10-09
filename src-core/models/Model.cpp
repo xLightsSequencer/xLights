@@ -924,7 +924,12 @@ int Model::GetNumberFromChannelString(const std::string& str, bool& valid, std::
                 std::string cs = Trim(start.substr(1));
                 Controller* c = modelManager.GetOutputManager()->GetController(cs);
                 if (c != nullptr && c->GetProtocol() != OUTPUT_PLAYER_ONLY) {
-                    return c->GetStartChannel() - 1 + (int)std::strtol(sc.c_str(), nullptr, 10);
+                    int res = c->GetStartChannel() - 1 + (int)std::strtol(sc.c_str(), nullptr, 10);
+                    if (res < 1) {
+                        valid = false;
+                        res = 1;
+                    }
+                    return res;
                 }
             }
             valid = false;

@@ -22,6 +22,7 @@
 #include <list>
 #include <mutex>
 #include <set>
+#include <string_view>
 #include <tuple>
 
 extern "C" {
@@ -194,6 +195,11 @@ static bool IsAviFile(const std::string& filename)
 // makes a ProRes/MJPEG-heavy sequence slow dominates over this cost - so
 // treat this as removing pointless failure noise and redundant per-model
 // construction work, not as a render-time fix.
+//
+// That is an allow-list of codecs Media Foundation ships (or offers as a
+// Store extension) a decoder for, not a deny-list: a deny-list of ProRes
+// alone let every other QuickTime codec through to fail the same way, and
+// each failed attempt costs a D3D11 device as well as the negotiation.
 static bool IsUnsupportedProfile(const std::string& filename)
 {
     AVFormatContext* formatContext = nullptr;
@@ -208,16 +214,53 @@ static bool IsUnsupportedProfile(const std::string& filename)
     bool unsupported = false;
     if (streamIndex >= 0) {
         AVCodecParameters* pars = formatContext->streams[streamIndex]->codecpar;
-        if (pars->codec_id == AV_CODEC_ID_H264) {
+        switch (pars->codec_id) {
+        case AV_CODEC_ID_H264:
             unsupported = pars->profile == AV_PROFILE_H264_HIGH_444 ||
                           pars->profile == AV_PROFILE_H264_HIGH_444_PREDICTIVE ||
                           pars->profile == AV_PROFILE_H264_HIGH_444_INTRA;
-        } else if (pars->codec_id == AV_CODEC_ID_PRORES) {
+            break;
+        case AV_CODEC_ID_HEVC:
+        case AV_CODEC_ID_VP9:
+        case AV_CODEC_ID_AV1:
+        case AV_CODEC_ID_MPEG4:
+        case AV_CODEC_ID_MPEG2VIDEO:
+        case AV_CODEC_ID_MJPEG:
+        case AV_CODEC_ID_H263:
+        case AV_CODEC_ID_WMV1:
+        case AV_CODEC_ID_WMV2:
+        case AV_CODEC_ID_WMV3:
+        case AV_CODEC_ID_VC1:
+            break;
+        default:
             unsupported = true;
+            break;
         }
     }
     avformat_close_input(&formatContext);
     return unsupported;
+}
+
+// Files Media Foundation has no decoder for, learned this session.  Without
+// this every reader constructed on such a file - one per Video effect start,
+// plus one per effect in Check Sequence - creates a D3D11 device and a source
+// reader only to fail the same way again (typically a codec whose optional
+// Store extension is not installed).
+static std::mutex __mfRejectedLock;
+static std::set<std::string> __mfRejected;
+
+static bool MediaFoundationRejected(const std::string& filename)
+{
+    std::lock_guard<std::mutex> lock(__mfRejectedLock);
+    return __mfRejected.contains(filename);
+}
+
+static void RejectForMediaFoundation(const std::string& filename)
+{
+    std::lock_guard<std::mutex> lock(__mfRejectedLock);
+    if (__mfRejected.insert(filename).second) {
+        spdlog::info("WHVD: Media Foundation has no decoder for '{}' - decoding it with FFmpeg for the rest of this session.", filename);
+    }
 }
 #endif
 
@@ -439,7 +482,7 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
     // A recent read past its deadline stands hardware decode down for a while;
     // go straight to software rather than stall this file too.
     if (HW_ACCELERATION_ENABLED && ::IsWindows8OrGreater() && HW_ACCELERATION_TYPE == WINHARDWARERENDERTYPE::DIRECX11_API &&
-        !IsAviFile(filename) && !IsUnsupportedProfile(filename) &&
+        !IsAviFile(filename) && !MediaFoundationRejected(filename) && !IsUnsupportedProfile(filename) &&
         !WindowsHardwareVideoReader::MediaFoundationInCooldown()) {
         _windowsHardwareVideoReader = new WindowsHardwareVideoReader(filename, _wantAlpha, usenativeresolution, keepaspectratio, maxwidth, maxheight, _pixelFmt);
         if (_windowsHardwareVideoReader->IsOk()) {
@@ -461,6 +504,9 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
             spdlog::debug("      Frame ms {}", _frameMS);
             return;
         } else {
+            if (_windowsHardwareVideoReader->FormatUnsupported()) {
+                RejectForMediaFoundation(filename);
+            }
             delete _windowsHardwareVideoReader;
             _windowsHardwareVideoReader = nullptr;
         }
@@ -806,6 +852,17 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
                 __hw_pix_fmt = AV_PIX_FMT_NONE;
                 spdlog::debug("VideoReader: QSV decoder '{}' selected", qsvName);
                 break;
+            }
+
+            // These have no fixed-function Vulkan decode; FFmpeg serves them with
+            // compute-shader decoders that crash inside some GPU drivers.  They are
+            // intra-only and cheap to decode on the CPU.
+            if (candidate == AV_HWDEVICE_TYPE_VULKAN) {
+                const std::string_view name = _decoder->name;
+                if (name == "prores" || name == "prores_raw" || name == "ffv1") {
+                    spdlog::debug("VideoReader: hw candidate 'vulkan' rejected - decoder '{}' only has a compute-shader Vulkan decode.", _decoder->name);
+                    continue;
+                }
             }
 
             AVPixelFormat candidatePixFmt = AV_PIX_FMT_NONE;

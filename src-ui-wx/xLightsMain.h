@@ -518,15 +518,22 @@ public:
     // Records the donor sequence into the current sequence's metadata when the
     // import dialog's opt-in is ticked. One call per import format.
     void RecordImportDonor(const xLightsImportChannelMapDialog& dlg);
-    // When `autoConvertVideos` is non-null, unsupported imported videos are
-    // converted without asking and the outcome is written there (automation);
-    // otherwise the user is offered the conversion.
-    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string(), bool autoMap = false, bool importMedia = true,
-        seqmedia::VideoConversionResult* autoConvertVideos = nullptr);
+    // Filled by an automation import, which must never open a dialog: warnings
+    // are collected here instead of shown, unsupported imported videos are
+    // converted without asking, and an import that cannot proceed sets `error`.
+    struct ImportXLightsAutomation {
+        seqmedia::VideoConversionResult* videos = nullptr; // required
+        std::vector<std::string> warnings;
+        std::string error;
+    };
+    // Returns false when nothing was imported.
+    bool ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string(), bool autoMap = false, bool importMedia = true,
+        ImportXLightsAutomation* automation = nullptr);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
-    void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string(), int sequenceDurationMS = 0, bool autoMap = false, bool importMedia = true);
+    bool ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
+        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string(), int sequenceDurationMS = 0, bool autoMap = false, bool importMedia = true,
+        ImportXLightsAutomation* automation = nullptr);
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);

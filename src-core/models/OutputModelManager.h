@@ -180,6 +180,7 @@ public:
     void ClearModelToReload() { _modelToModelFromXml = nullptr; _workASAP &= ~WORK_RELOAD_MODEL_FROM_XML; }
     void ClearWorkRequested() { _workRequested = false; }
     void DisableASAPWork( bool disable ) { _disableASAPWork = disable; }
+    bool IsASAPWorkDisabled() const { return _disableASAPWork; }
     void SuspendDeferredWork(bool suspend) {
         _suspendedDeferredWork = suspend; 
         if (!suspend) {

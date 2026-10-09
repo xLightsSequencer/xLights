@@ -258,8 +258,8 @@ void xLightsFrame::OnMenuItemImportFromOriginal(wxCommandEvent& event)
     ImportEffectsFromFile(fn);
 }
 
-void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile, bool autoMap, bool importMedia,
-                                 seqmedia::VideoConversionResult* autoConvertVideos)
+bool xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile, bool autoMap, bool importMedia,
+                                 ImportXLightsAutomation* automation)
 {
     SequencePackage xsqPkg(std::filesystem::path(ToStdString(filename.GetFullPath())),
                            GetShowDirectory(), ToStdString(GetSeqXmlFileName()), &AllModels);
@@ -271,13 +271,23 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     }
 
     if (!xsqPkg.IsValid() && xsqPkg.IsPkg()) {
-        wxMessageBox("The file you are attempting to import doesn't appear to be a valid xLights Sequence Package.", "Invalid Sequence Package", wxICON_ERROR | wxOK);
-        return;
+        const char* msg = "The file you are attempting to import doesn't appear to be a valid xLights Sequence Package.";
+        if (automation != nullptr) {
+            automation->error = msg;
+        } else {
+            wxMessageBox(msg, "Invalid Sequence Package", wxICON_ERROR | wxOK);
+        }
+        return false;
     }
 
     SequenceFile xlf(xsqPkg.GetXsqFile().string());
     auto importDoc = xlf.Open(GetShowDirectory(), true, xsqPkg.GetXsqFile().string());
-    if (!importDoc) return;
+    if (!importDoc) {
+        if (automation != nullptr) {
+            automation->error = "The sequence to import could not be opened.";
+        }
+        return false;
+    }
     SequenceElements se(this);
     se.SetFrequency(_sequenceElements.GetFrequency());
     se.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
@@ -285,11 +295,18 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     xlf.AdjustEffectSettingsForVersion(se, this);
     xsqPkg.SetSequenceElements(&se);
 
+    auto warn = [automation](const wxString& msg, const wxString& caption) {
+        if (automation != nullptr) {
+            automation->warnings.push_back(msg.ToStdString());
+        } else {
+            wxMessageBox(msg, caption);
+        }
+    };
     if (IsVersionOlder(xlf.GetVersion(), xlights_version_string)) {
-        wxMessageBox(wxString::Format("Import version %s is newer than your current version %s.", xlf.GetVersion().c_str(), xlights_version_string.c_str()), "Version Warning");
+        warn(wxString::Format("Import version %s is newer than your current version %s.", xlf.GetVersion().c_str(), xlights_version_string.c_str()), "Version Warning");
     }
     if (_sequenceElements.GetFrequency() < xlf.GetFrequency()) {
-        wxMessageBox(wxString::Format("The import sequence is using a higher FPS than you are currently using. %d FPS", xlf.GetFrequency()));
+        warn(wxString::Format("The import sequence is using a higher FPS than you are currently using. %d FPS", xlf.GetFrequency()), wxMessageBoxCaptionStr);
     }
     bool supportsModelBlending = xlf.supportsModelBlending();
 
@@ -298,7 +315,9 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
         Element* el = se.GetElement(e);
         elements.push_back(el);
     }
-    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile, xlf.GetSequenceDurationMS(), autoMap, importMedia);
+    if (!ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile, xlf.GetSequenceDurationMS(), autoMap, importMedia, automation)) {
+        return false;
+    }
 
     // Offer to convert unsupported imported videos now rather than leaving it
     // to the next open. Missing ones were already reported by the import.
@@ -312,7 +331,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     auto videoIssues = MediaCompatibility::CheckSequenceMedia("", importedVideos);
     if (!videoIssues.empty()) {
         seqmedia::VideoConversionResult conv;
-        if (autoConvertVideos != nullptr) {
+        if (automation != nullptr) {
             conv = seqmedia::ConvertIncompatibleVideos(_sequenceElements, videoIssues);
             if (conv.effectsUpdated > 0 || conv.gifEffectsConverted > 0) {
                 _sequenceElements.IncrementChangeCount(nullptr);
@@ -320,7 +339,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
                     mainSequencer->PanelEffectGrid->ForceRefresh();
                 }
             }
-            *autoConvertVideos = conv;
+            *automation->videos = conv;
         } else {
             conv = ShowMediaCompatibilityIssues(videoIssues, false);
         }
@@ -331,6 +350,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
     }
 
     SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
+    return true;
 }
 
 ModelElement* AddModel(Model* m, SequenceElements& se)
@@ -384,8 +404,9 @@ static std::vector<std::pair<int,int>> BuildMergedIntervals(Element* el)
     return out;
 }
 
-void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, SequencePackage& xsqPkg,
-                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc, std::string const& mapFile, int sequenceDurationMS, bool autoMap, bool importMedia)
+bool xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, SequencePackage& xsqPkg,
+                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc, std::string const& mapFile, int sequenceDurationMS, bool autoMap, bool importMedia,
+                                 ImportXLightsAutomation* automation)
 {
     std::map<std::string, EffectLayer*> layerMap;
     std::map<std::string, Element*> elementMap;
@@ -485,7 +506,13 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
     if (xsqPkg.IsPkg()) {
         dlg.CheckBoxImportMedia->SetValue(importMedia);
     }
-    bool ok = dlg.InitImport();
+    std::string initError;
+    if (!dlg.InitImport("", automation != nullptr ? &initError : nullptr)) {
+        if (automation != nullptr) {
+            automation->error = initError;
+        }
+        return false;
+    }
 
     if (!mapFile.empty()) {
         dlg.LoadMappingFile(mapFile, true);
@@ -493,8 +520,8 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
     if (autoMap) {
         dlg.AutoMap();
     } else if (mapFile.empty()) {
-        if (!ok || dlg.ShowModal() != wxID_OK) {
-            return;
+        if (automation != nullptr || dlg.ShowModal() != wxID_OK) {
+            return false;
         }
         // Only when the dialog was actually shown - an automap or a saved map
         // file runs without the user seeing the opt-in.
@@ -674,12 +701,17 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
         wxString msgP2 = "Once you source them, place them in your show folder and use 'Import Effects' again making sure to select 'Erase existing effects on imported models'";
         wxString msgP3 = "or update the effects individually.";
 
-        wxMessageBox(wxString::Format("%s %s %s\n\n%s", msgP1, msgP2, msgP3, missingAssets), "Missing Assets", wxICON_WARNING | wxOK, this);
+        if (automation != nullptr) {
+            automation->warnings.push_back(wxString::Format("%s\n%s", msgP1, missingAssets).ToStdString());
+        } else {
+            wxMessageBox(wxString::Format("%s %s %s\n\n%s", msgP1, msgP2, msgP3, missingAssets), "Missing Assets", wxICON_WARNING | wxOK, this);
+        }
     }
 
     if (xsqPkg.IsPkg() && xsqPkg.ModelsChanged()) {
         GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsFrame::ImportXLights");
     }
+    return true;
 }
 
 void MapToStrandName(const std::string& name, std::vector<std::string>& strands)

@@ -12984,11 +12984,30 @@ static inline void SetToolTipForTreeList(wxTreeListCtrl *tv, const std::string &
 #endif
 }
 
+void LayoutPanel::ClearViewObjects()
+{
+    if (objects_panel != nullptr) {
+        objects_panel->ClearObjects();
+    }
+    if (dynamic_cast<ViewObject*>(selectedBaseObject) != nullptr) {
+        selectedBaseObject = nullptr;
+    }
+    if (dynamic_cast<ViewObject*>(highlightedBaseObject) != nullptr) {
+        highlightedBaseObject = nullptr;
+    }
+}
+
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 {
     if (editing_models) {
         HandleSelectionChanged();
     } else {
+        // As in HandleSelectionChanged: deleting items from a frozen tree still
+        // fires this, for items whose objects may already be gone.
+        wxWindow* tree = dynamic_cast<wxWindow*>(event.GetEventObject());
+        if (tree != nullptr && tree->IsFrozen()) {
+            return;
+        }
         UnSelectAllModels(false);
         ViewObject* view_object = nullptr;
         bool show_prop_grid = objects_panel->OnSelectionChanged(event, &view_object, currentLayoutGroup);

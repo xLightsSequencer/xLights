@@ -302,7 +302,7 @@ void xLightsFrame::InitSequencer()
                 wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
                 int ms = wxAtoi(mss);
 
-                _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+                ReinitSeqData(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
                 _sequenceElements.IncrementChangeCount(nullptr);
 
                 SetStatusTextColor("Render buffer recreated. A render all is required.", *wxRED);

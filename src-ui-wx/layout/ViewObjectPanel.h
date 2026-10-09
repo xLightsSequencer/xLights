@@ -40,6 +40,8 @@ public:
     // dropped when another page takes over object editing - otherwise those
     // operations would still act on this page's last selection.
     void ClearSelectedObject() { mSelectedObject = nullptr; }
+    // The tree's items hold raw ViewObject pointers; drop them before the objects are freed.
+    void ClearObjects();
     void refreshObjectList();
 
     void PreviewObjectAlignWithGround();

@@ -229,9 +229,9 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
 
     if ((max > _seqData.NumChannels()) ||
         (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)_seqData.NumFrames()) {
-        _seqData.init(max, mMediaLengthMS / ms, ms);
+        ReinitSeqData(max, mMediaLengthMS / ms, ms);
     } else {
-        _seqData.init(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+        ReinitSeqData(max, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
     }
 
     // we can render now the sequence data buffers are initialised
@@ -644,9 +644,9 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     }
                 }
             }
-            _seqData.init(numChan, mMediaLengthMS / ms, ms);
+            ReinitSeqData(numChan, mMediaLengthMS / ms, ms);
         } else if (!loaded_fseq) {
-            _seqData.init(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            ReinitSeqData(numChan, CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
         }
 
         spdlog::debug("Initializing Display Elements");
@@ -1093,7 +1093,7 @@ bool xLightsFrame::CloseSequence()
     }
     if (displayElementsPanel != nullptr)
         displayElementsPanel->SetEffectSequenceMode(false);
-    _seqData.init(0, 0, 50);
+    ReinitSeqData(0, 0, 50);
     EnableSequenceControls(true); // let it re-evaluate menu state
     SetStatusText("");
     SetStatusText(CurrentDir, true);

@@ -4276,7 +4276,7 @@ void xLightsFrame::UpdateSequenceLength()
         // still be writing into. Only proceed if the render actually drained —
         // AbortRender() returns false if it timed out.
         if (AbortRender()) {
-            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            ReinitSeqData(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
             _sequenceElements.IncrementChangeCount(nullptr);
         } else {
             spdlog::error("Could not abort in-flight render before reallocating sequence data; skipping reallocation to avoid a crash.");

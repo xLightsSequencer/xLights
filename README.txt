@@ -12,6 +12,25 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (dkulp)                 Fix crash loading a layout containing older DMX Moving Head 3D models
+    -bug (dkulp)                 Convert: fix crash converting a LOR sequence whose channels exceed the xLights controllers
+    -bug (dkulp)                 Fix crash dragging an effect from the toolbar over the Effect Presets window
+    -bug (dkulp)                 Windows: fix crash when several Video effects open hardware-decoded videos at once
+    -bug (dkulp)                 Windows: ProRes/FFV1 videos no longer use Vulkan hardware decode, which crashed on
+                                 some AMD drivers
+    -bug (dkulp)                 Fix crash when a sequence starts rendering while it is still being opened (e.g.
+                                 after picking missing audio in the settings dialog)
+    -bug (dkulp)                 Fix crash with a model whose start channel is "!Controller:0"
+    -bug (dkulp)                 Fix crash rendering a Music effect that starts before the beginning of the sequence
+    -bug (dkulp)                 Shader effects on a buffer larger than the GPU texture limit now show yellow instead of
+                                 crashing (Metal and Vulkan)
+    -bug (dkulp)                 Automation: importXLightsSequence no longer opens message boxes; warnings and errors are
+                                 returned in the response
+    -bug (dkulp)                 Windows: videos whose codec Media Foundation can't decode go straight to FFmpeg instead
+                                 of retrying hardware decode every time the video is opened
+    -bug (dkulp)                 Fix crash on Layout undo/redo from models being reloaded on several threads
+    -bug (dkulp)                 Fix crash playing a model group after Replace Model in Layout
+    -bug (dkulp)                 Fix crash opening a show folder while the Layout 3D Objects list is showing
     -bug (dkulp)                 Import Effects: copied images/videos/shaders/faces are now stored show-relative, so the
                                  next open no longer reports them all as relocated
     -enh (dkulp)                 Import Effects: offer to convert unsupported imported videos (e.g. AVI) during the

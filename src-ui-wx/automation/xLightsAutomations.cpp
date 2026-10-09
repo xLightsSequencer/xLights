@@ -1307,9 +1307,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                 return sendResponse("Mapping File not valid.", "msg", 503, false);
             }
         }
-        // Never prompt from automation: unsupported imported videos are converted.
+        // Never prompt from automation: a modal here runs a nested event loop
+        // that services further automation requests mid-import.
         seqmedia::VideoConversionResult conv;
-        ImportXLights(wxFileName(filename), mapname, autoMap, importMedia, &conv);
+        ImportXLightsAutomation report;
+        report.videos = &conv;
+        if (!ImportXLights(wxFileName(filename), mapname, autoMap, importMedia, &report)) {
+            return sendResponse(report.error.empty() ? "Import failed." : report.error, "msg", 503, false);
+        }
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
@@ -1318,6 +1323,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         nlohmann::json res;
         res["msg"] = "Imported XLights Sequence.";
         res["worked"] = "true";
+        if (!report.warnings.empty()) {
+            res["warnings"] = report.warnings;
+        }
         if (conv.attempted > 0 || conv.gifEffectsConverted > 0) {
             res["videosattempted"] = conv.attempted;
             res["videosconverted"] = conv.converted;
