@@ -716,7 +716,7 @@ const FrameData* AudioManager::GetFrameData(int frame, const std::string& timing
         DoPolyphonicTranscription(ProgressFunction);
     }
 #endif
-    if (frame < (int)_frameData.size()) {
+    if (frame >= 0 && frame < (int)_frameData.size()) {
         return &_frameData[frame];
     }
     return nullptr;

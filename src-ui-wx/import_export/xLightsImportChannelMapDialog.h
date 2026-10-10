@@ -558,7 +558,9 @@ private:
 		virtual ~xLightsImportChannelMapDialog();
         wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
         wxDataViewItem GetPriorTreeItem(const wxDataViewItem item) const;
-        bool InitImport(std::string checkboxText = "");
+        // A non-null `error` receives the reason for a false return instead of it
+        // being shown in a message box.
+        bool InitImport(std::string checkboxText = "", std::string* error = nullptr);
         void SetModelBlending(bool enabled);
         [[nodiscard]] bool GetImportModelBlending() const;
         [[nodiscard]] bool IsLockEffects() const;

@@ -432,7 +432,7 @@ float ColorDistance(const uint32 e1, const uniform uint32 e2) {
 }
 
 bool applyChroma(uniform const LayerBlendingData &data,
-                 uint32 &c) {
+                 uint32 c) {
     if (alpha(c) < 255) {
         float a = alpha(c);
         c = fromComponents(div_255_fast(red(c) * a), div_255_fast(green(c) * a), div_255_fast(blue(c) * a), 255);

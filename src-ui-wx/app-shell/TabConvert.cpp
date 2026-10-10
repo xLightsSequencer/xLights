@@ -86,7 +86,7 @@ void xLightsFrame::ConversionInit()
         ChannelColors.push_back(0);
         ChannelNames.push_back("");
     }
-    _seqData.init(0, 0, 50);
+    ReinitSeqData(0, 0, 50);
 }
 
 void xLightsFrame::SetMediaFilename(const wxString& filename)
@@ -1015,7 +1015,7 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName, wxString* mediaFile
     if (scancnt != 4 || strncmp(filetype, "xLights", 7) != 0 || numch <= 0 || numper <= 0) {
         PlayerError(wxString("Invalid file header:\n") + FileName);
     } else {
-        _seqData.init(numch, numper, 50);
+        ReinitSeqData(numch, numper, 50);
         char* buf = new char[numper];
         wxString filename = FromAscii(hdr + 32);
         if (mediaFilename) {

@@ -381,7 +381,7 @@ float ColourDistance(const uchar4 e1, const uchar4 e2) {
 }
 
 bool applyChroma(constant LayerBlendingData &data,
-                 thread uchar4 &c) {
+                 uchar4 c) {
     if (c.a < 255) {
         c.r = (int)(c.r * c.a) / 255;
         c.g = (int)(c.g * c.a) / 255;

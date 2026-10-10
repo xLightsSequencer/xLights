@@ -395,6 +395,9 @@ public:
     // minStorageBufferOffsetAlignment — arena sub-allocations for effect
     // param structs (bound as SSBOs) must start on this boundary.
     VkDeviceSize storageBufferAlignment = 256;
+    // Smallest of maxImageDimension2D and the framebuffer limits: the Shader
+    // effect renders into an image of the buffer's size.  4096 is the spec minimum.
+    uint32_t maxImageDimension2D = 4096;
     // ns per timestamp tick; 0 when the compute queue cannot timestamp, which
     // turns off XL_RENDER_PROFILE's per-effect GPU attribution on this device.
     float timestampPeriod = 0.0f;

@@ -396,6 +396,10 @@ SPIRVShaderEffect::CacheBase* MetalShaderEffect::newCache() const {
     return new MetalShaderNativeCache();
 }
 
+uint32_t MetalShaderEffect::nativeMaxTextureSize() const {
+    return (uint32_t)MetalComputeUtilities::INSTANCE.maxTextureSize;
+}
+
 bool MetalShaderEffect::nativeBuild(CacheBase* cache, RenderBuffer& buffer) {
     return static_cast<MetalShaderNativeCache*>(cache)->build(buffer);
 }

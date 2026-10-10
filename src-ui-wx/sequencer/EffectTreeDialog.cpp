@@ -1724,7 +1724,15 @@ wxDragResult EffectTreeDialogTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wx
         wxTreeItemId targetItem = _tree->HitTest(wxPoint(x, y), flags);
 
         if (targetItem.IsOk() || targetItem == _owner->treeRootID) {
+            // Drops are only accepted from this tree (see OnDropText), but a drag from
+            // elsewhere (e.g. the effects toolbar) also passes over it with no tree source.
             wxTreeItemId srcItem = _tree->GetSelection();
+            MyTreeItemData* srcItemData = srcItem.IsOk() ? (MyTreeItemData*)_tree->GetItemData(srcItem) : nullptr;
+            if (srcItemData == nullptr || srcItemData->GetItem() == nullptr) {
+                UpdateItemFeedback(wxTreeItemId());
+                _lastDragOverItem = wxTreeItemId();
+                return wxDragNone;
+            }
 
             if (srcItem == targetItem) {
                 return wxDragNone;
@@ -1738,8 +1746,6 @@ wxDragResult EffectTreeDialogTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wx
                 _lastDragOverItem = wxTreeItemId();
                 return wxDragNone;
             }
-
-            MyTreeItemData *srcItemData = (MyTreeItemData *)_tree->GetItemData(srcItem);
 
             wxTreeItemId parent = targetItem;
 

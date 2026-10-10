@@ -123,6 +123,10 @@ NS_ASSUME_NONNULL_BEGIN
                           w:(int)w
                           h:(int)h;
 
+// True if `name` is already in the texture cache. Lets callers skip
+// building the pixel data for `ensureTextureNamed:` on every frame.
+- (BOOL)hasTextureNamed:(NSString*)name;
+
 // Like `ensureTextureNamed:` but evicts any existing entry with the
 // same name before (re)uploading. Intended for textures whose
 // content changes frame-to-frame (e.g. a live-updated spectrogram

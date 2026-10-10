@@ -391,6 +391,7 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
     VkPhysicalDeviceProperties chosen;
     vkGetPhysicalDeviceProperties(physicalDevice, &chosen);
     storageBufferAlignment = std::max((VkDeviceSize)1, chosen.limits.minStorageBufferOffsetAlignment);
+    maxImageDimension2D = std::min({ chosen.limits.maxImageDimension2D, chosen.limits.maxFramebufferWidth, chosen.limits.maxFramebufferHeight });
     // Per-effect GPU attribution (XL_RENDER_PROFILE) needs queue timestamps.
     // Left at 0 when the queue family cannot timestamp, which disables the
     // attribution rather than reporting a wrong number.

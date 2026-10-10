@@ -267,14 +267,16 @@ void xLightsShowContext::EnsureSequenceDataSized() {
         && _seqData.FrameTime() == frameTime) {
         return;
     }
-    // init() Cleanup()s and frees the seqData storage; a render job mid-
-    // GetColors/SetColors holds a raw pointer into it, so drain any in-flight
-    // render first rather than pull the buffer out from under a live job.
+    ReinitSeqData(numChannels, numFrames, frameTime);
+}
+
+bool xLightsShowContext::ReinitSeqData(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime) {
     if (!AbortRender()) {
-        spdlog::error("xLightsShowContext: could not abort in-flight render; skipping the seqData resize");
-        return;
+        spdlog::error("xLightsShowContext: could not abort in-flight render; skipping the seqData reallocation");
+        return false;
     }
     _seqData.init(numChannels, numFrames, frameTime);
+    return true;
 }
 
 bool xLightsShowContext::CloseSequence() {

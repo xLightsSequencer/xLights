@@ -521,6 +521,10 @@ bool VulkanShaderEffect::nativeAvailable() const {
     return VulkanGraphicsUtilities::INSTANCE.available();
 }
 
+uint32_t VulkanShaderEffect::nativeMaxTextureSize() const {
+    return VulkanComputeUtilities::INSTANCE.maxImageDimension2D;
+}
+
 SPIRVShaderEffect::CacheBase* VulkanShaderEffect::newCache() const {
     return new VulkanShaderNativeCache();
 }

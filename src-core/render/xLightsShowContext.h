@@ -200,6 +200,11 @@ public:
     // changes, aborting any in-flight render first to avoid a use-after-free.
     void EnsureSequenceDataSized();
 
+    // The only way to (re)allocate _seqData. init() frees the frame blocks a live
+    // render job holds raw pointers into, so this drains the render first; when
+    // the abort times out it leaves _seqData untouched and returns false.
+    bool ReinitSeqData(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime);
+
     // The only safe way to read the render progress list from a thread that is
     // not the one driving the render. IsRenderDone() erases completed entries
     // and deletes them (and their RenderJobs) under _renderProgressDrainLock

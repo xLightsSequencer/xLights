@@ -492,13 +492,13 @@ std::vector<handles::Descriptor> TerrainScreenLocation::GetHandles(
     }
     // active_handle == 0 is CENTER (bbox); handle index 1..N
     // identifies a grid point.
-    //   - edit_active + Elevate tool: emit grid-point Vertex
-    //     descriptors so a click selects a grid point. If a grid
+    //   - edit_active: emit grid-point Vertex descriptors so a click
+    //     selects a grid point, regardless of the current tool (the
+    //     tool only becomes Elevate once a point is active). If a grid
     //     point is already active, also emit the Y-axis arrow at
     //     that point.
-    //   - edit_active + non-Elevate tool, or !edit_active: fall
-    //     back to Boxed (centre / bbox gizmo).
-    if (edit_active && tool == handles::Tool::Elevate) {
+    //   - !edit_active: fall back to Boxed (centre / bbox gizmo).
+    if (edit_active) {
         std::vector<handles::Descriptor> out;
         out.reserve(num_points + 1);
         glm::vec3 activePointWorld(0.0f);

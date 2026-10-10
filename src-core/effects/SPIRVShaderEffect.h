@@ -110,6 +110,10 @@ public:
 protected:
     // ---- backend hooks ----------------------------------------------------
     virtual bool nativeAvailable() const = 0;
+    // Largest 2D texture / render-target edge the device accepts.  Metal aborts
+    // and Vulkan has undefined behaviour on anything larger, so Render() checks
+    // the buffer against it before nativeBuild/nativeEncode create a texture.
+    virtual uint32_t nativeMaxTextureSize() const = 0;
     virtual CacheBase* newCache() const = 0;
     // Translate cache->transformedSource, build the pipeline and the
     // per-buffer-size resources. Failure renders solid yellow (latched).
