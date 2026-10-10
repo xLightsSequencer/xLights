@@ -591,7 +591,8 @@ void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx,
     int zonePanVal = -1;
     int zoneTiltVal = -1;
     std::vector<std::pair<int, xlColor>> zoneRestores;
-    if (active && !position_zones.empty()) {
+    const bool zonesEnabled = active && !position_zones.empty() && preview->GetEnablePositionZones();
+    if (zonesEnabled) {
         int panCoarse = pan_motor->GetChannelCoarse();
         int tiltCoarse = tilt_motor->GetChannelCoarse();
         zonePanVal = (panCoarse > 0 && panCoarse <= (int)Nodes.size()) ? GetChannelValue(panCoarse - 1, false) : -1;
@@ -654,7 +655,7 @@ void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx,
     pan_angle_raw = 360.0f - pan_angle_raw;
 
     // draw zone-active indicator ring at fixture base when a position zone is being applied
-    if (active && !position_zones.empty() && preview->GetShowZoneIndicator()) {
+    if (zonesEnabled && preview->GetShowZoneIndicator()) {
         bool zoneActive = false;
         for (const auto& zone : position_zones) {
             if (zonePanVal >= zone.pan_min && zonePanVal <= zone.pan_max &&
@@ -665,13 +666,29 @@ void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx,
         }
         if (zoneActive) {
             xlColor ringColor(255, 140, 0, 220);
-            float zOff = sbl * 0.5f;
-            float ro = sbl * 0.45f;
-            float ri = sbl * 0.34f;
+            // Lies flat around the base. These are pre-model-scale mesh units: the model
+            // view matrix applies ScaleX/Y/Z to everything drawn here.
+            float footprint = std::min(screenLocation.GetRenderWi(), screenLocation.GetRenderDp());
+            if (base_mesh != nullptr && base_mesh->HasObjFile()) {
+                footprint = std::min(base_mesh->GetWidth() * base_mesh->GetScaleX(), base_mesh->GetDepth() * base_mesh->GetScaleZ());
+            }
+            float ro = footprint * 0.6f;
+            float ri = footprint * 0.5f;
+            float y = 0.01f * footprint;
             auto svac = sprogram->getAccumulator();
             int rs = svac->getCount();
-            svac->AddCircleAsTriangles(0, 0, zOff,          ro, ringColor, ringColor, 0, 48);
-            svac->AddCircleAsTriangles(0, 0, zOff + 0.01f, ri, xlBLACK,   xlBLACK,   0, 48);
+            const int segs = 48;
+            for (int i = 0; i < segs; i++) {
+                float a0 = 2.0f * 3.14159265f * i / segs;
+                float a1 = 2.0f * 3.14159265f * (i + 1) / segs;
+                float c0 = std::cos(a0), s0 = std::sin(a0), c1 = std::cos(a1), s1 = std::sin(a1);
+                svac->AddVertex(ro * c0, y, ro * s0, ringColor);
+                svac->AddVertex(ri * c0, y, ri * s0, ringColor);
+                svac->AddVertex(ro * c1, y, ro * s1, ringColor);
+                svac->AddVertex(ro * c1, y, ro * s1, ringColor);
+                svac->AddVertex(ri * c0, y, ri * s0, ringColor);
+                svac->AddVertex(ri * c1, y, ri * s1, ringColor);
+            }
             int re = svac->getCount();
             sprogram->addStep([=](xlGraphicsContext* ctx) {
                 ctx->drawTriangles(svac, rs, re - rs);

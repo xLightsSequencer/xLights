@@ -78,6 +78,7 @@ public:
     virtual bool Is3D() const = 0;
     virtual bool IsNoCurrentModel() = 0;
     virtual bool GetShowZoneIndicator() const { return false; }
+    virtual bool GetEnablePositionZones() const { return true; }
     virtual float GetPencilCatchRadiusMultiplier() const { return 8.0f; }
     // True when this preview shows the named controller's row as selected on
     // its Controllers page, so the controller's box draws highlighted. Held by

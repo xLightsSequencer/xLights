@@ -2079,6 +2079,10 @@ void ModelPreview::AddGridToAccumulator(const glm::mat4& ViewScale)
 
 }
 
+bool ModelPreview::GetEnablePositionZones() const {
+    return xlights == nullptr || xlights->GetEnablePositionZones();
+}
+
 bool ModelPreview::GetShowZoneIndicator() const {
     return xlights != nullptr && xlights->GetShowZoneIndicator();
 }

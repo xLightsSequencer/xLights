@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Moving Head Adv: Position Zone colors and the zone indicator no longer show in the preview when
+                                 Enable Position Zones is off; the indicator ring is now sized to the model base
     -bug (derwin12)              Chroma Key no longer turns transparent areas of the layer black, which hid the layers
                                  below when the effect's position or buffer left part of it uncovered (#7195)
     -bug (derwin12)              Terrain: grid points can be selected and raised/lowered again when Edit Terrain is on (#7197)
