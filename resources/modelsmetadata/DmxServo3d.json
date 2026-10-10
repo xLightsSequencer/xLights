@@ -1,0 +1,130 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "DmxServo3d",
+    "description": "A bank of independent 3D servo-driven axes, each optionally linked to one of a separate pool of static/motion 3D OBJ meshes whose visibility/transform is driven by the servo's live position - e.g. a 3D-rendered animatronic prop. No color/shutter/dimmer/beam ability of its own. Source: src-core/models/DMX/DmxServo3D.{h,cpp} (DisplayAs = DisplayAsType::DmxServo3d; legacy DisplayAs alias \"DmxServo3Axis\" is accepted read-only). Compare DmxServo.json for the simpler 2D-image equivalent (no independent mesh pool or linkage system - each servo has exactly one fixed static+motion image pair).",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json",
+        "shared/DmxAbilities.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions. Round-tripped but disabled in DmxServo3d's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions. Deliberately left enabled for DMX models."
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions. Not disabled for DMX models."
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve. Round-tripped but disabled in DmxServo3d's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        },
+        {
+            "name": "Servo{n}",
+            "encoding": "1-based numbered family Servo1, Servo2, ... ServoN, where N = NumServos (up to 24, DmxServo3d::CreateServo(\"Servo\" + std::to_string(i+1), i)).",
+            "description": "One servo axis. Instantiates the Servo pattern documented in shared/DmxAbilities.json notes (Channel/MinLimit/MaxLimit/RangeOfMotion/PivotOffsetX-Y-Z/ServoStyle/ControllerMin-Max-Reverse-ZeroBehavior-DataType)."
+        },
+        {
+            "name": "StaticMesh{n}",
+            "encoding": "1-based numbered family StaticMesh1, StaticMesh2, ... StaticMeshN, where N = NumStatic (up to 24, DmxServo3d::CreateStaticMesh). A legacy unnumbered \"StaticMesh\" element (no digit) is accepted on read and treated as StaticMesh1 (XmlDeserializingModelFactory::DeserializeDmxServo3d). Independent of the Servo{n} family in count and index - linked via the Servo{n}Linkage attribute below, not by matching array position.",
+            "description": "A 3D OBJ mesh from the static-mesh pool. Instantiates the Mesh pattern documented in shared/DmxAbilities.json notes (ObjFile/MeshOnly/Brightness/Width/Height/Depth/ScaleX-Y-Z/RotateX-Y-Z/OffsetX-Y-Z)."
+        },
+        {
+            "name": "MotionMesh{n}",
+            "encoding": "1-based numbered family MotionMesh1, MotionMesh2, ... MotionMeshN, where N = NumMotion (up to 24). A legacy unnumbered \"MotionMesh\" element is likewise accepted on read as MotionMesh1. Independent of Servo{n} in count and index - linked via Mesh{n}Linkage.",
+            "description": "A 3D OBJ mesh from the motion-mesh pool, swapped in based on the linked servo's live position. Same attribute set as StaticMesh{n}."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumServos",
+            "label": "Num Servos",
+            "gridKey": "NumServos",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 24,
+            "description": "Number of independent servo axes (DmxServo3d::GetNumServos()/SetNumServos()); edited via the \"Servo Config\" popup dialog (ServoConfigDialog), not a direct top-level grid row. Grid max of 24 (ServoConfigDialog.wxs SpinCtrl_NumServos) matches SUPPORTED_SERVOS."
+        },
+        {
+            "xmlAttribute": "NumStatic",
+            "label": "Num Static Meshes",
+            "gridKey": "NumStatic",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 24,
+            "description": "Size of the static-mesh pool (DmxServo3d::GetNumStatic()/SetNumStatic()), independent of NumServos. Edited via the same Servo Config dialog."
+        },
+        {
+            "xmlAttribute": "NumMotion",
+            "label": "Num Motion Meshes",
+            "gridKey": "NumMotion",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 24,
+            "description": "Size of the motion-mesh pool (DmxServo3d::GetNumMotion()/SetNumMotion()), independent of NumServos. Its dialog spinner range is dynamically capped to [1, NumServos] at dialog-open time (ServoConfigDialogAdapter::DoShowDialog: `SpinCtrl_NumMotion->SetRange(1, m_model->GetNumServos())`), but the persisted attribute itself has no such constraint enforced on load."
+        },
+        {
+            "xmlAttribute": "Bits16",
+            "label": "16 Bit",
+            "gridKey": "Bits16",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "When \"1\", each servo channel is a 16-bit (coarse+fine) pair instead of 8-bit (DmxServo3d::Is16Bit()/SetIs16Bit()). Edited via the Servo Config dialog's \"16 bits\" checkbox, not a direct top-level grid row."
+        },
+        {
+            "xmlAttribute": "Brightness",
+            "label": "Brightness",
+            "type": "uint",
+            "default": 100,
+            "min": 0,
+            "max": 100,
+            "description": "Overall mesh-rendering brightness percentage (DmxServo3d::GetBrightness()/SetBrightness()). Always written (Visit(const DmxServo3d&) unconditionally adds it), but AMBIGUITY: unlike DmxServo, DmxServo3dPropertyAdapter::AddTypeProperties has no corresponding wxUIntProperty row for it at all - there is currently no way to edit this attribute from DmxServo3d's property grid; it round-trips whatever value a file already has (default 100 for a brand-new model). No gridKey is listed because none exists."
+        },
+        {
+            "xmlAttribute": "Servo{n}Linkage",
+            "label": "Servo {n} Linkage",
+            "gridKey": "Servo{n}Linkage",
+            "type": "string",
+            "encoding": "1-based numbered family Servo1Linkage, Servo2Linkage, ... ServoNLinkage (n = 1..NumServos). Stored value is the literal string \"Mesh \" + (1-based static-mesh-pool index), e.g. \"Mesh 1\", \"Mesh 2\" - NOT the plain integer. On read, a value with fewer than 5 characters (i.e. not matching \"Mesh N\") falls back to \"Mesh 1\" (XmlDeserializingModelFactory::DeserializeDmxServo3d); a valid value maps to DmxServo3d::SetServoLink(i, link_id - 1).",
+            "default": "Mesh {n}",
+            "description": "Which entry in the static-mesh pool servo {n}'s motion visually drives/is associated with (DmxServo3d::GetServoLink(i)/SetServoLink(i); in-memory sentinel -1 means \"defaults to its own index\", serialized as \"Mesh {n}\" either way). Edited via the \"Servo Linkage\" category's per-servo enum dropdowns (DmxServo3dPropertyAdapter.cpp), populated from a shared MOTION_LINKS choice list sized to NumServos."
+        },
+        {
+            "xmlAttribute": "Mesh{n}Linkage",
+            "label": "Mesh {n} Linkage",
+            "gridKey": "Mesh{n}Linkage",
+            "type": "string",
+            "encoding": "Same family/index/value convention as Servo{n}Linkage above, but governs DmxServo3d::GetMeshLink(i)/SetMeshLink(i) instead.",
+            "default": "Mesh {n}",
+            "description": "Which entry in the static-mesh pool is associated with motion-mesh slot {n} (DmxServo3d::GetMeshLink(i)/SetMeshLink(i)). Edited via the \"Mesh Linkage\" category's per-slot enum dropdowns."
+        }
+    ],
+    "notes": [
+        "No color/shutter/dimmer/beam ability: DmxServo3d attaches none of the five DmxModel abilities beyond the always-present preset ability, so only DmxChannelCount and the DmxPreset* family from shared/DmxAbilities.json apply.",
+        "CORRECTION vs the task brief's suggestion that DmxServo3d adds a persisted \"PivotAxes\" attribute: \"PivotAxes\" (grid label \"Show Pivot Axes\", DmxServo3d::GetShowPivot()/SetShowPivot()) is NOT written anywhere in Visit(const DmxServo3d&) and NOT read anywhere in XmlDeserializingModelFactory::DeserializeDmxServo3d - it is purely transient, in-memory, per-session UI display state (whether pivot-axis gizmos are drawn in the 3D preview) with no corresponding xmlAttribute at all. It is intentionally excluded from `properties` here.",
+        "The task brief's \"motion-link enums\" refers to the Servo{n}Linkage/Mesh{n}Linkage attributes above; they are persisted as descriptive \"Mesh N\" strings rather than as small integers or a fixed enum list, because the valid choice set (\"Mesh 1\".. \"Mesh NumServos\") is sized dynamically to the current NumServos and therefore cannot be expressed as this schema's static `enum` array - modeled as `type: string` with the value format documented in `encoding` instead, matching this metadata tree's convention for dynamically-bounded value sets (see e.g. shared/Common.json's LayoutGroup)."
+    ]
+}

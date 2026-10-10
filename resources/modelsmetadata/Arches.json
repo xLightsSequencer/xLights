@@ -1,0 +1,152 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Arches",
+    "description": "A row of curved arch segments, typically along a walkway or roofline. Nodes run along each arch; an optional layered mode instead nests concentric arch layers of independently-sized node counts sharing one arc/tilt.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumArches",
+            "label": "# Arches",
+            "gridKey": "ArchesCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "appliesWhen": {
+                "attribute": "LayerSizes",
+                "equals": ""
+            },
+            "description": "Number of arches in the model (ArchesModel::_numArches). Always written (BaseSerializingVisitor::Visit(const ArchesModel&)), but only user-editable in non-layered mode: when Layered Arches is enabled (LayerSizes non-empty) the \"Layered Arches\" checkbox handler forces this to 1 (ArchesPropertyAdapter::OnPropertyGridChange \"LayeredArches\") and the property is hidden from the grid."
+        },
+        {
+            "xmlAttribute": "NodesPerArch",
+            "label": "Nodes Per Arch",
+            "gridKey": "ArchesNodes",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Light nodes along each arch (ArchesModel::_nodesPerArch). Applies in both modes. The property grid caps entry at 1000 in non-layered mode and 10000 in layered mode (ArchesPropertyAdapter::AddTypeProperties); the XML attribute itself has no mode-specific ceiling, so this document uses the wider (layered) bound. In layered mode this must equal the sum of LayerSizes (see LayerSizes encoding INVARIANT)."
+        },
+        {
+            "xmlAttribute": "LightsPerNode",
+            "label": "Lights Per Node",
+            "gridKey": "ArchesLights",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 250,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "Number of physical lights represented by each node (e.g. for RGB pixel clusters or superstring wiring)."
+        },
+        {
+            "xmlAttribute": "Arc",
+            "label": "Arc Degrees",
+            "gridKey": "ArchesArc",
+            "type": "uint",
+            "default": 180,
+            "min": 1,
+            "max": 180,
+            "legacyAttributes": [
+                "arc"
+            ],
+            "description": "Total angular sweep of the arch, in degrees (ArchesModel::_arc). CORRECTION vs the brief's survey guess of a lowercase xmlAttribute: the canonical, currently-written attribute is \"Arc\" (XmlNodeKeys::ArcAttribute), verified in both BaseSerializingVisitor::Visit(const ArchesModel&) and XmlDeserializingModelFactory::DeserializeArches; lowercase \"arc\" (XmlNodeKeys::CArcAttribute) is a read-only legacy fallback name for older files (HasAttrOrLegacy/GetAttrWithLegacyFallback), never written by the current serializer - modeled here via legacyAttributes."
+        },
+        {
+            "xmlAttribute": "Gap",
+            "label": "Gap Between Arches",
+            "gridKey": "ArchesGap",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 500,
+            "appliesWhen": {
+                "attribute": "LayerSizes",
+                "equals": ""
+            },
+            "description": "Extra screen-space gap inserted between successive arches, in preview pixels (ArchesModel::_gap; ArchesModel::SetArchCoord). Only written when non-zero. Only shown/editable in the property grid in non-layered mode; layered mode has no equivalent control (it uses Hollow instead)."
+        },
+        {
+            "xmlAttribute": "Hollow",
+            "label": "Hollow %",
+            "gridKey": "Hollow",
+            "type": "uint",
+            "default": 70,
+            "min": 0,
+            "max": 95,
+            "appliesWhen": {
+                "attribute": "LayerSizes",
+                "notEquals": ""
+            },
+            "description": "Percentage the inner layers are pulled in toward the arc's centre in layered mode (ArchesModel::_hollow; ArchesModel::SetLayerdArchCoord). Always written regardless of mode (BaseSerializingVisitor::Visit unconditionally adds it), but only shown/editable in the property grid when Layered Arches is enabled."
+        },
+        {
+            "xmlAttribute": "ZigZag",
+            "label": "Zig-Zag Layers",
+            "gridKey": "ZigZag",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "appliesWhen": {
+                "attribute": "LayerSizes",
+                "notEquals": ""
+            },
+            "description": "When \"true\", each successive layer alternates its start direction (zig-zag) instead of every layer starting from the same side (ArchesModel::_zigzag). Persisted as the lowercase literal true/false (XmlNodeKeys::ZigZagAttribute). Only ever written when true (BaseSerializingVisitor::Visit(const ArchesModel&): `if (model.GetZigZag()) attrs.Add(ZigZagAttribute, \"true\")`), so absence on read means false. Only meaningful in layered mode."
+        },
+        {
+            "xmlAttribute": "LayerSizes",
+            "gridKey": "Layers",
+            "type": "string",
+            "default": "",
+            "encoding": "Comma-separated list of per-layer node counts, first-entry-first (Model::SerialiseLayerSizes/DeserializeLayerSizes; Model.h member comment \"inside to outside\"). A non-empty value switches the model into layered mode (concentric arch layers sharing one Arc/Hollow/ZigZag) in place of the flat NumArches x NodesPerArch grid; an empty/absent value means non-layered mode. The property grid exposes this as a \"Layers\" count spinner (gridKey \"Layers\", range 1-100) plus one \"Layer{n}\" row per entry (0-based n, range 1-1000 each; row 0 labelled \"Inside\", the last row labelled \"Outside\") - see ModelPropertyAdapter::AddLayerSizeProperty - but only this ONE xmlAttribute is ever persisted. INVARIANT for writers: xLights keeps the total-node attribute equal to the SUM of this list (NodesPerArch = sum(LayerSizes), enforced by ArchesModel::OnLayerSizesChange whenever layer sizes change in the UI); an external writer (e.g. an MCP) must set both consistently or the model will allocate the wrong node count (node allocation uses the total attribute, not this list - ArchesModel::InitModel SetNodeCount(1, _nodesPerArch, ...)).",
+            "description": "Per-layer node-count list for layered-arches mode; see encoding for the exact format. Enabling/disabling layered mode is itself UI-only bookkeeping (the \"Layered Arches\" checkbox, gridKey \"LayeredArches\") with no XML attribute of its own - its checked state is exactly \"is LayerSizes non-empty\" (ArchesPropertyAdapter::AddTypeProperties: `_arches.GetLayerSizeCount() != 0`)."
+        }
+    ],
+    "notes": [
+        "Starting Location: the \"ArchesStart\" property-grid enum (ArchesPropertyAdapter, gridKey \"ArchesStart\") decodes into the shared Dir/StartSide attributes (shared/Common.json), not a dedicated Arches attribute - so no property object for it appears above. In non-layered mode it is a 2-value Green Square/Blue Square picker that sets only Dir (StartSide is left untouched and unused - ArchesModel::IsNodeFirst ignores StartSide when LayerSizeCount()==0). In layered mode it becomes a 4-value Inside/Outside x Green/Blue Square picker that sets both Dir and StartSide together (ArchesPropertyAdapter::OnPropertyGridChange \"ArchesStart\").",
+        "Legacy read-only alias for Angle: XmlNodeKeys::ArchesSkewAttribute (\"ArchesSkew\") is a legacy fallback attribute name for the ThreePoint \"Angle\" attribute documented in shared/ScreenLocation.json (XmlDeserializingModelFactory::DeserializeArches overrides the deserialized angle from it, if present, after DeserializeThreePointScreenLocationAttributes has already read \"Angle\"). The current serializer never writes \"ArchesSkew\", only \"Angle\" (AddThreePointScreenLocationAttributes). Not modeled as a property in this file because Angle is owned by shared/ScreenLocation.json (extended, not redefined here) to avoid a duplicate-xmlAttribute validation error; flagged here for an MCP reader that needs to accept legacy files."
+    ]
+}
