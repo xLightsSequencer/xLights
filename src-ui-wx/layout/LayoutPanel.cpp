@@ -899,7 +899,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Download", download);
     AddModelButton("Import Custom", import);
     obj_button = AddModelButton("Add Object", object);
-    obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
+    UpdateAddObjectButton();
 
     // The model buttons live on a single row. Derive the column count from what
     // was actually added so adding a button here doesn't silently wrap the row.
@@ -1227,7 +1227,7 @@ void LayoutPanel::Reset()
             break;
         }
     }
-    obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
+    UpdateAddObjectButton();
 }
 
 void LayoutPanel::SetDirtyHiLight(bool dirty, std::source_location loc) {
@@ -4520,7 +4520,24 @@ void LayoutPanel::Set3d(bool is3d)
         CheckBox_3D->SetValue(is3d);
         wxCommandEvent e;
         OnCheckBox_3DClick(e);
+    } else {
+        // Checkbox already matches, so OnCheckBox_3DClick will not run.
+        // Show open can still have moved the preview onto Default after
+        // the button was last updated.
+        UpdateAddObjectButton();
     }
+    // Show open runs this before the frame is on screen. Re-apply once
+    // pending events have been processed so the button matches the
+    // settled 3D mode and preview.
+    CallAfter([this]() { UpdateAddObjectButton(); });
+}
+
+void LayoutPanel::UpdateAddObjectButton()
+{
+    if (obj_button == nullptr) {
+        return;
+    }
+    obj_button->Enable(is_3d && currentLayoutGroup == "Default");
 }
 
 std::string LayoutPanel::GetSelectedModelName() const
@@ -11875,7 +11892,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnChoiceLayoutGroupsSelect");
 
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
-    obj_button->Enable(is_3d && currentLayoutGroup == "Default");
+    UpdateAddObjectButton();
 }
 
 void LayoutPanel::PreviewSaveImage()
@@ -12133,6 +12150,7 @@ void LayoutPanel::AddPreviewChoice(const std::string& name)
                 modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
                 modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::AddPreview");
+                UpdateAddObjectButton();
                 break;
             }
         }
@@ -12191,6 +12209,10 @@ void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
 void LayoutPanel::SyncCurrentLayoutGroupFromStored() {
     SetCurrentLayoutGroup(xlights->GetStoredLayoutGroup());
     SwitchChoiceToCurrentLayoutGroup();
+    // Reset() enables Add Object from the raw stored name, before a missing
+    // preview is corrected to Default. Re-apply once that correction lands.
+    // Set3d() will not do it when 3D was already on.
+    UpdateAddObjectButton();
 }
 
 void LayoutPanel::DeleteCurrentPreview() {
@@ -12218,6 +12240,7 @@ void LayoutPanel::DeleteCurrentPreview() {
 
         SetCurrentLayoutGroup("Default");
         ChoiceLayoutGroups->SetSelection(0);
+        UpdateAddObjectButton();
         xlights->SetStoredLayoutGroup(currentLayoutGroup);
 
         UpdateModelList(true);
@@ -13311,7 +13334,7 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
         int objPage = FindNotebookPage(ObjectsPage::Objects);
         if (objPage >= 0) Notebook_Objects->RemovePage(objPage);
     }
-    obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
+    UpdateAddObjectButton();
 
     auto* config = GetXLightsConfig();
     config->Write("LayoutMode3D", is_3d);

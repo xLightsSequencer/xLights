@@ -762,6 +762,7 @@ class LayoutPanel: public wxPanel
         void RenameCurrentPreview();
         void ShowPropGrid(bool show);
         void SetCurrentLayoutGroup(const std::string& group);
+        void UpdateAddObjectButton();
         void FinalizeModel();
         void SelectBaseObject3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
