@@ -224,7 +224,7 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 
                 if (!renderCache) {
                     int vh = videoreader->GetHeight();
-                    int vw = videoreader->GetHeight();
+                    int vw = videoreader->GetWidth();
 
 #define VIDEOSIZETHRESHOLD 10
                     if (vh > VIDEOSIZETHRESHOLD * model->GetDefaultBufferHt() || vw > VIDEOSIZETHRESHOLD * model->GetDefaultBufferWi()) {
