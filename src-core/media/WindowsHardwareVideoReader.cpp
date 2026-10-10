@@ -722,6 +722,33 @@ void WindowsHardwareVideoReader::HandleReadTimeout(uint32_t timestampMS)
     _device = nullptr;
 }
 
+// The decoder answered but produced no usable frame: the read itself failed, or
+// it handed back a sample that cannot be turned into pixels. A GPU whose decoder
+// cannot take the stream (e.g. above its maximum resolution) does either, on
+// every frame, so without this the effect is served nothing - or the previous
+// frame - for the whole file instead of falling back to software.
+void WindowsHardwareVideoReader::HandleDecodeFailure(uint32_t timestampMS, const char* what)
+{
+    if (_hardwareFailed) {
+        return;
+    }
+    _hardwareFailed = true;
+
+    const int active = __mfActiveReaders.load(std::memory_order_acquire);
+    NoteHardwareFailure(active, _filename);
+
+    // With few readers open and the device intact, load is not the explanation
+    // and a fresh reader would fail the same way, so stop offering this file to
+    // Media Foundation for the session.
+    const bool deviceAlive = _device == nullptr || SUCCEEDED(_device->GetDeviceRemovedReason());
+    if (deviceAlive && active < MF_MIN_CONCURRENCY_TO_BLAME) {
+        _formatUnsupported = true;
+    }
+
+    spdlog::error("WHVD: {} at {}ms in {} ({} readers open) - falling back to software decode",
+                  what, timestampMS == 0xFFFFFFFF ? _curPos : timestampMS, _filename, active);
+}
+
 bool WindowsHardwareVideoReader::CanSeek() const
 {
     
@@ -1189,7 +1216,10 @@ bool WindowsHardwareVideoReader::BltFromSample(IMFSample* sample)
 
     IMFDXGIBuffer* dxgi = nullptr;
     if (FAILED(buf->QueryInterface(__uuidof(IMFDXGIBuffer), (void**)&dxgi)) || dxgi == nullptr) {
-        // Software-decoded sample - there is no GPU surface to process.
+        // Software-decoded sample - there is no GPU surface to process. The
+        // decoder does this when the GPU cannot take the stream.
+        spdlog::warn("WHVD VP: decoder returned a system-memory frame for {} ({}x{}) - no GPU surface to process",
+                     _filename, _nativeWidth, _nativeHeight);
         SafeRelease(&buf);
         return false;
     }
@@ -1474,6 +1504,8 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
                 else
                     spdlog::warn("WHVD: ReadSample failed but D3D11 device still alive (removed=S_OK)");
             }
+            SafeRelease(&sample);
+            HandleDecodeFailure(timestampMS, "ReadSample failed");
             return nullptr;
         }
 
@@ -1545,7 +1577,9 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
         // indistinguishable from the end of the stream.
         if (timestampMS != 0xFFFFFFFF) {
             if (_useVideoProcessor ? !BltFromSample(sample) : !BitmapFromSample(sample, _frame)) {
-                spdlog::error("WHVD: Failed to extract the frame bitmap ... Media Foundations may be in a corrupt state.");
+                SafeRelease(&sample);
+                HandleDecodeFailure(timestampMS, "could not extract the decoded frame");
+                return nullptr;
             }
         }
 #ifdef DETAILED_LOGGING

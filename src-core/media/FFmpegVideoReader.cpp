@@ -241,11 +241,11 @@ static bool IsUnsupportedProfile(const std::string& filename)
     return unsupported;
 }
 
-// Files Media Foundation has no decoder for, learned this session.  Without
-// this every reader constructed on such a file - one per Video effect start,
-// plus one per effect in Check Sequence - creates a D3D11 device and a source
-// reader only to fail the same way again (typically a codec whose optional
-// Store extension is not installed).
+// Files Media Foundation cannot decode, learned this session.  Without this
+// every reader constructed on such a file - one per Video effect start, plus
+// one per effect in Check Sequence - creates a D3D11 device and a source reader
+// only to fail the same way again (typically a codec whose optional Store
+// extension is not installed, or a stream larger than the GPU decoder takes).
 static std::mutex __mfRejectedLock;
 static std::set<std::string> __mfRejected;
 
@@ -259,7 +259,7 @@ static void RejectForMediaFoundation(const std::string& filename)
 {
     std::lock_guard<std::mutex> lock(__mfRejectedLock);
     if (__mfRejected.insert(filename).second) {
-        spdlog::info("WHVD: Media Foundation has no decoder for '{}' - decoding it with FFmpeg for the rest of this session.", filename);
+        spdlog::info("WHVD: Media Foundation cannot decode '{}' - decoding it with FFmpeg for the rest of this session.", filename);
     }
 }
 #endif
@@ -690,6 +690,9 @@ void FFmpegVideoReader::OpenWithFFmpeg(const std::string& filename, bool usenati
 // frames instead of losing the effect.
 bool FFmpegVideoReader::FallBackFromHardwareReader()
 {
+    if (_windowsHardwareVideoReader->FormatUnsupported()) {
+        RejectForMediaFoundation(_filename);
+    }
     delete _windowsHardwareVideoReader;
     _windowsHardwareVideoReader = nullptr;
 

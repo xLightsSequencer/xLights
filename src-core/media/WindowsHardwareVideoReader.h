@@ -67,17 +67,19 @@ class WindowsHardwareVideoReader
     // every render thread, and the render never finishes.
     MFReadSampleCallback* _callback = nullptr;
     // Latched when hardware decode gives up on this file: a read past its
-    // deadline, or a seek that fails or stops advancing. Under load Media
-    // Foundation does both, and a reader that cannot seek would otherwise hand
-    // the effect no video at all rather than saying so.
+    // deadline, a seek that fails or stops advancing, or a read that errors or
+    // yields a frame that cannot be extracted. Media Foundation does these
+    // under load or on a stream the GPU cannot decode, and a reader that keeps
+    // failing would otherwise hand the effect no video at all.
     bool _hardwareFailed = false;
     // Holds one of the limited hardware decoder slots. Handed to the cleanup
     // thread if this reader is abandoned, so the slot comes back only when the
     // decoder session actually does.
     bool _reservedDecoder = false;
-    // Media Foundation has no decoder for this file's container or codec, as
+    // Media Foundation cannot decode this file - no decoder for its container
+    // or codec, or a decoder that opens it but cannot deliver its frames - as
     // opposed to failing for a reason that might not recur (no decoder slot,
-    // device creation, a missing DLL).
+    // device creation, a missing DLL, load).
     bool _formatUnsupported = false;
 
     // Direct D3D11 video-processor path.
@@ -108,6 +110,7 @@ class WindowsHardwareVideoReader
         }
     }
     void HandleReadTimeout(uint32_t timestampMS);
+    void HandleDecodeFailure(uint32_t timestampMS, const char* what);
     HRESULT SelectVideoStream(bool usenativeresolution, bool keepaspectratio);
     bool CanSeek() const;
     bool BitmapFromSample(IMFSample* sample, AVFrame* frame);

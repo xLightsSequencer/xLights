@@ -27,6 +27,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Convert: fix crash converting a LOR sequence whose channels exceed the xLights controllers
     -bug (dkulp)                 Fix crash dragging an effect from the toolbar over the Effect Presets window
     -bug (dkulp)                 Windows: fix crash when several Video effects open hardware-decoded videos at once
+    -bug (dkulp)                 Windows: videos the GPU's hardware decoder cannot handle (e.g. larger than it supports)
+                                 now fall back to software decoding instead of rendering black or not at all
     -bug (dkulp)                 Windows: ProRes/FFV1 videos no longer use Vulkan hardware decode, which crashed on
                                  some AMD drivers
     -bug (dkulp)                 Fix crash when a sequence starts rendering while it is still being opened (e.g.
