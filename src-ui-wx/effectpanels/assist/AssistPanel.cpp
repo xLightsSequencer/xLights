@@ -33,7 +33,7 @@ BEGIN_EVENT_TABLE(AssistPanel,wxPanel)
 END_EVENT_TABLE()
 
 AssistPanel::AssistPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
-: mGridCanvas(nullptr), mEffect(nullptr), mModel(nullptr)
+: mGridCanvas(nullptr), mEffect(nullptr)
 {
 	//(*Initialize(AssistPanel)
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("id"));
@@ -105,13 +105,36 @@ void AssistPanel::AddPanel(wxPanel* panel, std::optional<int> panelFlags /*=std:
     SetHandlers(this);
 }
 
+// Looked up on every refresh rather than cached: a layout edit can rebuild or
+// replace the model (or a parent can rebuild its submodels) while the effect
+// stays selected, and the refresh timer would then call into a freed model.
+Model* AssistPanel::LookupModel() const {
+    if (mEffect == nullptr || mXLights == nullptr) {
+        return nullptr;
+    }
+    EffectLayer* layer = mEffect->GetParentEffectLayer();
+    Element* elem = layer == nullptr ? nullptr : layer->GetParentElement();
+    if (elem == nullptr) {
+        return nullptr;
+    }
+    Model* model = mXLights->GetModel(elem->GetModelName());
+    if (model != nullptr && dynamic_cast<SubModelElement*>(elem) != nullptr) {
+        Model* scls = model->GetSubModel(dynamic_cast<SubModelElement*>(elem)->GetName());
+        if (scls != nullptr) {
+            model = scls;
+        }
+    }
+    return model;
+}
+
 void AssistPanel::RefreshEffect() {
-    if( mGridCanvas != nullptr && mModel != nullptr && mEffect != nullptr )
+    Model* model = LookupModel();
+    if( mGridCanvas != nullptr && model != nullptr && mEffect != nullptr )
     {
-        mGridCanvas->SetModel(mModel);
+        mGridCanvas->SetModel(model);
         
         int bw, bh;
-        mModel->GetBufferSize(mEffect->GetSettings().Get("B_CHOICE_BufferStyle", "Default"),
+        model->GetBufferSize(mEffect->GetSettings().Get("B_CHOICE_BufferStyle", "Default"),
                               mEffect->GetSettings().Get("B_CHOICE_PerPreviewCamera", "2D"),
                               mEffect->GetSettings().Get("B_CHOICE_BufferTransform", "None"),
                               bw, bh, mEffect->GetSettings().GetInt("B_SPINCTRL_BufferStagger", 0));
@@ -132,24 +155,9 @@ void AssistPanel::SetEffectInfo(Effect* effect_, xLightsFrame* xlights_parent)
 
     // removed the check on the canvas as not setting the effect may be leaving the data invalid
     mEffect = effect_;
-    EffectLayer* layer = mEffect->GetParentEffectLayer();
-    if (layer == nullptr) {
-        spdlog::error("No layer found for effect {}", mEffect->GetEffectName());
-    }
-    Element* elem = layer->GetParentElement();
-    if (elem == nullptr) {
-        spdlog::error("No element found for effect {}", mEffect->GetEffectName());
-    }
-    std::string model_name = elem->GetModelName();
-    mModel = xlights_parent->GetModel(model_name);
-    if (mModel != nullptr && dynamic_cast<SubModelElement*>(elem) != nullptr) {
-        Model *scls = mModel->GetSubModel(dynamic_cast<SubModelElement*>(elem)->GetName());
-        if (scls != nullptr) {
-            mModel = scls;
-        }
-    }
-    if (mModel == nullptr) {
-        spdlog::error("No model found for effect {} for model {}", mEffect->GetEffectName(), model_name);
+    mXLights = xlights_parent;
+    if (LookupModel() == nullptr) {
+        spdlog::error("No model found for effect {}", mEffect->GetEffectName());
     }
     RefreshEffect();
 }

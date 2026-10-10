@@ -866,7 +866,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getOwnerBuffer() {
 
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     if (pixelBufferCopy == nil) {
-        int bufferSize = std::max((int)renderBuffer->GetPixelCount(), (int)pixelBufferSize) * 4;
+        size_t bufferSize = std::max((size_t)renderBuffer->GetPixelCount(), (size_t)pixelBufferSize) * 4;
         pixelBufferCopy = allocBuffer(bufferSize, MTLResourceStorageModePrivate,
                                       renderBuffer->GetModelName() + "PixelBufferCopy");
     }
@@ -953,15 +953,25 @@ void MetalRenderBufferComputeData::bufferResized() {
 
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
     if (pixelBufferSize < renderBuffer->GetPixelCount()) {
-        int bufferSize = renderBuffer->GetPixelCount() * 4;
+        size_t bufferSize = (size_t)renderBuffer->GetPixelCount() * 4;
         id<MTLBuffer> newBuffer = allocBuffer(bufferSize, MTLResourceStorageModeShared,
                                               renderBuffer->GetModelName() + "PixelBuffer");
         if (newBuffer == nil) {
-            // The worst place to publish a failed allocation: the memcpy below
-            // would write through nil.contents, and renderBuffer->pixels would
-            // be left pointing at null for every CPU effect that follows.
-            // Leaving pixels where they are keeps the buffer renderable on the
-            // CPU.
+            // pixels may still point into the old, smaller MTLBuffer while
+            // pixelVector has already grown, so leaving it there lets the next
+            // CPU write (e.g. RenderBuffer::Clear) run off the end of that
+            // buffer. Fall back to the CPU vector, as the Vulkan path does,
+            // and report no GPU buffer so effects take their CPU path.
+            if (pixelBuffer != nil) {
+                waitForCompletion();
+                memcpy(renderBuffer->pixelVector.data(), renderBuffer->pixels,
+                       std::min((size_t)pixelBufferSize, renderBuffer->pixelVector.size()) * 4);
+            }
+            renderBuffer->pixels = renderBuffer->pixelVector.data();
+            pixelBuffer = nil;
+            pixelBufferCopy = nil;
+            pixelBufferSize = 0;
+            currentDataLocation = BUFFER;
             return nil;
         }
         // copy from the old buffer (which renderBuffer->pixels points into) before reassigning it

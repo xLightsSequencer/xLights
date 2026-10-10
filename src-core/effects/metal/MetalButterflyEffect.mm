@@ -39,7 +39,8 @@ public:
                 return false;
             }
             id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
-            if (bufferResult == nil) {
+            // A zero-sized dispatch (zero-width threadgroup) traps in some drivers (seen on AMD).
+            if (bufferResult == nil || data.width <= 0 || data.height <= 0) {
                 rbcd->abortCommandBuffer();
                 return false;
             }
@@ -56,7 +57,7 @@ public:
             [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
 
             NSInteger maxThreads = functions[style].maxTotalThreadsPerThreadgroup;
-            dataSize = data.width * data.height;
+            dataSize = (NSInteger)data.width * data.height;
             NSInteger threads = std::min(dataSize, maxThreads);
             MTLSize gridSize = MTLSizeMake(dataSize, 1, 1);
             MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);

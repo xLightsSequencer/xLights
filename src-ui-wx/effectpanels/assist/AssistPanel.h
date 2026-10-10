@@ -47,13 +47,14 @@ class AssistPanel: public wxPanel
         xlGridCanvas* mGridCanvas;
         wxPanel* mPanel;
         Effect* mEffect;
-        Model *mModel;
+        xLightsFrame* mXLights = nullptr;
 
 		//(*Identifiers(AssistPanel)
 		static const long ID_SCROLLEDWINDOW_Assist;
 		//*)
 
 	private:
+        Model* LookupModel() const;
         void SetHandlers(wxWindow *);
 		void OnChar(wxKeyEvent& event);
 		void OnCharHook(wxKeyEvent& event);

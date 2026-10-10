@@ -13012,12 +13012,10 @@ void LayoutPanel::ClearViewObjects()
     if (objects_panel != nullptr) {
         objects_panel->ClearObjects();
     }
-    if (dynamic_cast<ViewObject*>(selectedBaseObject) != nullptr) {
-        selectedBaseObject = nullptr;
-    }
-    if (dynamic_cast<ViewObject*>(highlightedBaseObject) != nullptr) {
-        highlightedBaseObject = nullptr;
-    }
+    // Called as the whole show is torn down, so the selection goes whether it is a
+    // model or an object; never dereference it here, the models may already be freed.
+    selectedBaseObject = nullptr;
+    highlightedBaseObject = nullptr;
 }
 
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)

@@ -31,6 +31,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash drawing the waveform after the selected effect was deleted outside the grid (e.g. by an import)
     -bug (dkulp)                 Windows: fix Vulkan crash after a Remote Desktop reconnect or display change
     -bug (dkulp)                 Layout: fix crash selecting a model group whose name has leading/trailing spaces
+    -bug (dkulp)                 macOS/iPad: fix crash rendering an effect on a very large group buffer (e.g. Horizontal
+                                 Stack - Scaled on a big group) when the GPU buffer can't be allocated
+    -bug (dkulp)                 Fix crash re-opening or changing the show folder with a model selected in Layout
+    -bug (dkulp)                 Fix crash clicking a Search result whose effect was deleted after the search
+    -bug (dkulp)                 Fix crash in the effect Assist panel after the effect's model was changed in Layout
+    -bug (dkulp)                 Butterfly: fix crash (Intel Macs with AMD GPUs) and wrong output when the buffer is more
+                                 than 65535 pixels wide or high, e.g. Single Line on a large matrix. Style 5 rendered on
+                                 the CPU now matches the GPU on buffers over 65535 pixels (it was computing a wrapped size)
     -bug (dkulp)                 Convert: fix crash converting a LOR sequence whose channels exceed the xLights controllers
     -bug (dkulp)                 Fix crash dragging an effect from the toolbar over the Effect Presets window
     -bug (dkulp)                 Windows: fix crash when several Video effects open hardware-decoded videos at once

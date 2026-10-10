@@ -13,9 +13,11 @@ struct ButterflyData
     int curState;
 
     uint16_t colorScheme;
-    uint16_t width;
-    uint16_t height;
     uint16_t numColors;
+    // 32-bit: a Single Line buffer on a large matrix is wider than 65535, and a
+    // truncated width of 0 made a zero-sized dispatch that some drivers trap on.
+    int32_t width;
+    int32_t height;
 
     float plasmaTime;
     int plasmaStyle;

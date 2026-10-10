@@ -186,10 +186,17 @@ void SearchPanel::PopulateModelsList()
     ComboBox_Search_Model->Set(models);
 }
 
+unsigned int SearchPanel::SequenceChangeCount() const
+{
+    // Both counters only grow; deleting a whole element bumps only the master-view one.
+    return mSequenceElements->GetChangeCount() + mSequenceElements->GetMasterViewChangeCount();
+}
+
 void SearchPanel::FindSettings()
 {
     ListCtrl_Results->ClearAll();
     ListCtrl_Results->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
+    mResultsChangeCount = SequenceChangeCount();
 
     auto const& search = TextCtrlSearch->GetValue();
 
@@ -310,9 +317,15 @@ void SearchPanel::SelectEffects()
     if (!effectsSelected.empty()) {
         bool first = true;
         mSequenceElements->UnSelectAllEffects();
+        // The results hold raw Effect pointers; any edit since the search may have
+        // deleted some, so check them (by pointer only) before touching them.
+        const bool sequenceChanged = SequenceChangeCount() != mResultsChangeCount;
 
         for (auto value : effectsSelected) {
             auto* eff = (Effect*)ListCtrl_Results->GetItemData(value);
+            if (eff != nullptr && sequenceChanged && !mSequenceElements->IsValidEffect(eff)) {
+                continue;
+            }
             if (eff != nullptr) {
                 eff->SetSelected(EFFECT_SELECTED);
                 if (first) {

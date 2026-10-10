@@ -70,6 +70,9 @@ class SearchPanel: public wxPanel
 
         SequenceElements * mSequenceElements;
         MainSequencer* mainSequencer;
+        unsigned int mResultsChangeCount = 0;
+
+        unsigned int SequenceChangeCount() const;
 
 
 		std::vector<wxString> GetModelList() const;

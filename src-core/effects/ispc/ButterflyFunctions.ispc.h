@@ -68,9 +68,9 @@ struct ButterflyData {
     int32_t skip;
     int32_t curState;
     uint16_t colorScheme;
-    uint16_t width;
-    uint16_t height;
     uint16_t numColors;
+    int32_t width;
+    int32_t height;
     float plasmaTime;
     int32_t plasmaStyle;
 };

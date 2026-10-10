@@ -175,10 +175,12 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 
 void xLightsFrame::ResetEffectsXml()
 {
-    AllModels.clear();
+    // Before anything is freed: the layout panel's selection can point at a model
+    // or a view object, and must not be inspected once either is gone.
     if (layoutPanel != nullptr) {
         layoutPanel->ClearViewObjects();
     }
+    AllModels.clear();
     AllObjects.clear();
     _sequenceViewManager.Reset();
     // The presets tree holds raw pointers into the preset manager; drop them before it frees its items
