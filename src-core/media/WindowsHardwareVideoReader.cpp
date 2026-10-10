@@ -803,6 +803,15 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
     if (SUCCEEDED(hr) && pType != nullptr) {
         SAFEEXEC(MFGetAttributeSize(pType, MF_MT_FRAME_SIZE, &_nativeWidth, &_nativeHeight), "WHVD: Failed to get native size");
 
+        // A native-resolution request leaves the source reader's output at the
+        // video's own size, so the frame has to be that size too - not the
+        // requested one, which the decoded image would otherwise be copied
+        // into as a run of bytes.
+        if (SUCCEEDED(hr) && usenativeresolution) {
+            _width = _nativeWidth;
+            _height = _nativeHeight;
+        }
+
         if (SUCCEEDED(hr)) {
             PROPVARIANT var;
             PropVariantInit(&var);

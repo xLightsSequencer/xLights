@@ -29,6 +29,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Windows: fix crash when several Video effects open hardware-decoded videos at once
     -bug (dkulp)                 Windows: videos the GPU's hardware decoder cannot handle (e.g. larger than it supports)
                                  now fall back to software decoding instead of rendering black or not at all
+    -bug (dkulp)                 Windows: Video effects with Sample Spacing above 0 no longer render black/garbled when
+                                 hardware video decoding (DirectX11) is used
     -bug (dkulp)                 Windows: ProRes/FFV1 videos no longer use Vulkan hardware decode, which crashed on
                                  some AMD drivers
     -bug (dkulp)                 Fix crash when a sequence starts rendering while it is still being opened (e.g.
