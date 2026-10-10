@@ -24,6 +24,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 iPad - Sequencer grid no longer rebuilds every visible effect icon on each redraw;
                                  the spectrogram strip also redraws after a low-memory purge
     -bug (dkulp)                 Fix crash loading a layout containing older DMX Moving Head 3D models
+    -bug (dkulp)                 LOR Optimised output: fix crash when the controllers add up to more than 20480 channels
+                                 or a unit has more than 1024 channels; channels past those limits are not sent
+    -bug (dkulp)                 Fix crash opening a show with an old networks file that has an unknown network type
+    -bug (dkulp)                 ESPixelStick: fix crash uploading when the controller's input configuration can't be read
+    -bug (dkulp)                 Fix crash drawing the waveform after the selected effect was deleted outside the grid (e.g. by an import)
+    -bug (dkulp)                 Windows: fix Vulkan crash after a Remote Desktop reconnect or display change
+    -bug (dkulp)                 Layout: fix crash selecting a model group whose name has leading/trailing spaces
     -bug (dkulp)                 Convert: fix crash converting a LOR sequence whose channels exceed the xLights controllers
     -bug (dkulp)                 Fix crash dragging an effect from the toolbar over the Effect Presets window
     -bug (dkulp)                 Windows: fix crash when several Video effects open hardware-decoded videos at once

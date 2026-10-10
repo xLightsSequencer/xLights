@@ -13159,7 +13159,9 @@ void LayoutPanel::HandleSelectionChanged() {
                 tooltip = wxString::Format("Total Nodes in Group: %d", calculateNodeCountOfSelected());
             }
             ShowPropGrid(false);
-            model_grp_panel->UpdatePanel(ActiveModelTree()->GetItemText(selectedTreeGroups[0]));
+            // The tree text is a display label (it can differ from the stored name), so
+            // look the group up by the model the tree item already resolved to.
+            model_grp_panel->UpdatePanel(model != nullptr ? model->GetName() : std::string());
             model_grp_panel->Show();
         } else if (smSize == 1) {
             Model* subModel = GetModelFromTreeItem(selectedTreeSubModels[0]);

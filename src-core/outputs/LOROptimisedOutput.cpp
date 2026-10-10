@@ -17,6 +17,7 @@
 
 #include "serial.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 
@@ -104,6 +105,10 @@ void LOROptimisedOutput::CalcTotalChannels() {
         MarkUnitIdInUse(unit_id_in_use, unit_id);
         CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, it);
         total_channels += channel_count;
+    }
+    if (total_channels > (int)LOR_MAX_CHANNELS) {
+        spdlog::warn("LOROptimisedOutput: controllers on {} need {} channels, only the first {} are sent.", _commPort, total_channels, (int)LOR_MAX_CHANNELS);
+        total_channels = LOR_MAX_CHANNELS;
     }
     _channels = total_channels;
 }
@@ -225,7 +230,9 @@ void LOROptimisedOutput::SetOneChannel(int32_t channel, unsigned char data) {
         _changed = true;
     }
 
-    assert((size_t)channel < sizeof(_curData));
+    if (channel < 0 || (size_t)channel >= sizeof(_curData)) {
+        return;
+    }
     _curData[channel] = data;
 }
 
@@ -243,6 +250,8 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
 
     int cur_channel = channel;
     int total_bytes_sent = 0;
+    // EndFrame passes the whole _curData with size 0.
+    const int limit = size == 0 ? (int)LOR_MAX_CHANNELS : std::min(channel + (int)size, (int)LOR_MAX_CHANNELS);
 
     for (const auto& it : _controllers.GetControllers()) {
         int channel_count = it->GetNumChannels();
@@ -253,10 +262,16 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
         CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, it);
 
         while (controller_channels_to_process > 0) {
+            // Controllers configured past the buffers (and the data passed in) are not sent.
+            if (cur_channel + channels_per_pass > limit) {
+                return;
+            }
+            // A unit only addresses MAX_BANKS banks of 16; channels configured past that are skipped.
+            const int addressable = std::min(channels_per_pass, (int)(MAX_BANKS * 16));
             size_t idx = 0;  // running index for placing next byte
             uint8_t d[8192];
             std::vector< std::vector<std::pair<uint8_t, uint16_t>> > lorBankData;
-            lorBankData.resize((channels_per_pass / 16) + 1);
+            lorBankData.resize((addressable + 15) / 16);
 
             bool bank_changed = false;
             bool frame_changed = false;
@@ -269,7 +284,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
             //++_framesSinceForcedOutput;
 
             // gather all the data and compress common values on a per 16 channel bank basis
-            int channels_to_process = channels_per_pass;
+            int channels_to_process = addressable;
             int chan_offset = 0;
             int shift_offset = 0;
             color_mode[0] = false;
@@ -316,6 +331,7 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                 --channels_to_process;
                 ++cur_channel;
             }
+            cur_channel += channels_per_pass - addressable;
 
             // now build the commands to send out the serial port
             for (int bank = (int)lorBankData.size() - 1; bank >= 0; --bank) {
@@ -429,7 +445,7 @@ void LOROptimisedOutput::AllOff() {
         while (controller_channels_to_process > 0) {
             size_t idx = 0;
             uint8_t d[1024];
-            int channels_to_process = channels_per_pass;
+            int channels_to_process = std::min(channels_per_pass, (int)(MAX_BANKS * 16));
             while (channels_to_process > 0) {
                 d[idx++] = 0;
                 d[idx++] = unit_id;

@@ -97,7 +97,7 @@ bool ESPixelStick::CheckHTTPconnection()
     // open HTTP connection to get admininfo
     nlohmann::json HttpResponse;
     if (GetAdminInformation(HttpResponse)) {
-        if (HttpResponse.is_null()) {
+        if (!HttpResponse.is_object() || !HttpResponse.contains("version") || !HttpResponse["version"].is_string()) {
             return false;
         }
         _UsingHttpConfig = true;
@@ -351,7 +351,26 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, UICallbacks* ui) {
         bool changed = false;
         nlohmann::json inputConfig; // get the input_config element
         
-        GetInputConfig(inputConfig);
+        // An unreachable or older controller returns an empty or differently shaped
+        // config; indexing that with operator[] yields nulls and get<> throws.
+        if (!GetInputConfig(inputConfig) || !inputConfig.is_object() || !inputConfig.contains("channels") ||
+            !inputConfig["channels"].contains("0") || !inputConfig["channels"]["0"].contains("type") ||
+            !inputConfig["channels"]["0"]["type"].is_number_integer()) {
+            spdlog::warn("ESPixelStick Inputs Upload: could not read the input configuration from {}.", _ip);
+            ui->ShowMessage("ESPixelStick: could not read the input configuration from " + _ip + ".", "Error");
+            return false;
+        }
+        nlohmann::json& channel0 = inputConfig["channels"]["0"];
+        auto typeOf = [&channel0](const std::string& idx) -> std::string {
+            if (!channel0.contains(idx) || !channel0[idx].is_object() || !channel0[idx].contains("type") || !channel0[idx]["type"].is_string()) {
+                return "";
+            }
+            return channel0[idx]["type"].get<std::string>();
+        };
+        // Firmware versions differ on whether these are numbers or strings.
+        auto asString = [](const nlohmann::json& j) -> std::string {
+            return j.is_string() ? j.get<std::string>() : j.dump();
+        };
 
         std::list<Output*> outputs = controller->GetOutputs();
         if (outputs.empty()) {
@@ -370,18 +389,15 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, UICallbacks* ui) {
             startUniverse = outputs.front()->GetUniverse();
             chanPerUniverse = outputs.front()->GetChannels();
         }
-        std::string s_origTypeIdx = std::to_string(inputConfig["channels"]["0"]["type"].get<int>());
-        std::string const s_origType = inputConfig["channels"]["0"][s_origTypeIdx]["type"].get<std::string>();
+        std::string s_origTypeIdx = std::to_string(channel0["type"].get<int>());
+        std::string const s_origType = typeOf(s_origTypeIdx);
         if (s_origType != type) {
             changed = true;
             for (int x = 0; x < 10; x++) {
                 std::string idx = std::to_string(x);
-                if (!inputConfig["channels"]["0"].contains(idx)) {
-                    continue;
-                }
-                if (inputConfig["channels"]["0"][idx]["type"].get<std::string>() == type) {
+                if (typeOf(idx) == type) {
                     //found the new element, flip over to using that protocol
-                    inputConfig["channels"]["0"]["type"] = x;
+                    channel0["type"] = x;
                     s_origTypeIdx = idx;
                     break;
                 }
@@ -392,12 +408,16 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, UICallbacks* ui) {
             std::string const sizeString = std::to_string(chanPerUniverse);
 
             //{"type":"E1.31","universe":1,"universe_limit":512,"channel_start":1}
-            if (inputConfig["channels"]["0"][s_origTypeIdx]["universe"].get<std::string>() != univString) {
-                inputConfig["channels"]["0"][s_origTypeIdx]["universe"] = startUniverse;
+            if (typeOf(s_origTypeIdx) != type) {
+                ui->ShowMessage("ESPixelStick at " + _ip + " does not support " + type + " input.", "Error");
+                return false;
+            }
+            if (asString(channel0[s_origTypeIdx]["universe"]) != univString) {
+                channel0[s_origTypeIdx]["universe"] = startUniverse;
                 changed = true;
             }
-            if (inputConfig["channels"]["0"][s_origTypeIdx]["universe_limit"].get<std::string>() != sizeString) {
-                inputConfig["channels"]["0"][s_origTypeIdx]["universe_limit"] = chanPerUniverse;
+            if (asString(channel0[s_origTypeIdx]["universe_limit"]) != sizeString) {
+                channel0[s_origTypeIdx]["universe_limit"] = chanPerUniverse;
                 changed = true;
             }
             //inputConfig["channels"]["0"][s_origTypeIdx]["channel_start"] = channel_start;

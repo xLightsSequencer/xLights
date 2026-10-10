@@ -407,17 +407,30 @@ bool xlVulkanCanvas::createSwapchain() {
     VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
     VkResult res = vkCreateSwapchainKHR(vk.device, &sci, nullptr, &newSwapchain);
     destroySwapchain();
-    if (res != VK_SUCCESS) {
+    // Some drivers report VK_SUCCESS with a null handle when recreating after a
+    // display change (e.g. a Remote Desktop reconnect).
+    if (res != VK_SUCCESS || newSwapchain == VK_NULL_HANDLE) {
         spdlog::warn("Vulkan graphics: swapchain creation failed ({}) for {}", (int)res, getName());
         return false;
     }
     swapchain = newSwapchain;
     swapExtent = extent;
 
+    // A partially built swapchain must not survive a failure: beginFrame only
+    // rebuilds when swapchain is null, and would index the missing framebuffers.
+    auto fail = [this]() {
+        destroySwapchain();
+        return false;
+    };
+
     uint32_t count = 0;
-    vkGetSwapchainImagesKHR(vk.device, swapchain, &count, nullptr);
+    if (vkGetSwapchainImagesKHR(vk.device, swapchain, &count, nullptr) != VK_SUCCESS || count == 0) {
+        return fail();
+    }
     swapImages.resize(count);
-    vkGetSwapchainImagesKHR(vk.device, swapchain, &count, swapImages.data());
+    if (vkGetSwapchainImagesKHR(vk.device, swapchain, &count, swapImages.data()) != VK_SUCCESS) {
+        return fail();
+    }
 
     const bool msaa = cache.getSampleCount() != VK_SAMPLE_COUNT_1_BIT;
 
@@ -453,12 +466,12 @@ bool xlVulkanCanvas::createSwapchain() {
     if (msaa && !createTarget(cache.getColorFormat(), cache.getSampleCount(),
                               VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT,
                               VK_IMAGE_ASPECT_COLOR_BIT, msaaImage, msaaAlloc, msaaView)) {
-        return false;
+        return fail();
     }
     if (!createTarget(cache.getDepthFormat(), cache.getSampleCount(),
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT,
                       VK_IMAGE_ASPECT_DEPTH_BIT, depthImage, depthAlloc, depthView)) {
-        return false;
+        return fail();
     }
 
     swapViews.resize(count, VK_NULL_HANDLE);
@@ -472,7 +485,7 @@ bool xlVulkanCanvas::createSwapchain() {
         vci.format = cache.getColorFormat();
         vci.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
         if (vkCreateImageView(vk.device, &vci, nullptr, &swapViews[i]) != VK_SUCCESS) {
-            return false;
+            return fail();
         }
         // Attachment order matches the render pass: [color(MSAA), depth, resolve]
         // with MSAA; [color(=swapchain), depth] without.
@@ -497,12 +510,12 @@ bool xlVulkanCanvas::createSwapchain() {
         fci.height = extent.height;
         fci.layers = 1;
         if (vkCreateFramebuffer(vk.device, &fci, nullptr, &swapFramebuffers[i]) != VK_SUCCESS) {
-            return false;
+            return fail();
         }
         VkSemaphoreCreateInfo semci = {};
         semci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         if (vkCreateSemaphore(vk.device, &semci, nullptr, &renderFinished[i]) != VK_SUCCESS) {
-            return false;
+            return fail();
         }
     }
     swapchainStale = false;

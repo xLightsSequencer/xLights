@@ -220,7 +220,12 @@ bool ModelManager::IsModelValid(const Model* m) const
 Model* ModelManager::GetModel(const std::string& name) const
 {
     std::unique_lock<std::recursive_mutex> lock(_modelMutex);
-    auto it = models.find(Trim(name));
+    // Models are stored under their name as loaded, which a layout file can carry
+    // with surrounding whitespace, so an exact match must win over the trimmed one.
+    auto it = models.find(name);
+    if (it == models.end()) {
+        it = models.find(Trim(name));
+    }
     lock.unlock();
 
     if (it == models.end()) {
@@ -240,7 +245,7 @@ Model* ModelManager::GetModel(const std::string& name) const
 
 Model* ModelManager::operator[](const std::string& name) const
 {
-    return GetModel(Trim(name));
+    return GetModel(name);
 }
 
 bool ModelManager::Rename(const std::string& oldName, const std::string& newName)

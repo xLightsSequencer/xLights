@@ -467,9 +467,9 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
 
     ChoiceModelLayoutType->SetSelection(1);
 
-    if (group != "")
+    ModelGroup* g = group.empty() ? nullptr : dynamic_cast<ModelGroup*>(mModels[group]);
+    if (g != nullptr)
     {
-        ModelGroup* g = (ModelGroup*)mModels[group];
         std::list<std::string> modelsInGroup;
         modelsInGroup.push_back(g->GetName());
         for (const auto& it : g->ModelNames()) {

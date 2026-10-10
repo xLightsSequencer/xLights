@@ -303,6 +303,12 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
 
             wxString backtrace_txt = wxString::Format("%s version %s\n", m_appName.c_str(), GetDisplayVersionString());
             backtrace_txt += "Time: " + wxDateTime::Now().FormatISOCombined() + "\n";
+            // One line: the crash-report analyzer parses backtrace.txt line by line,
+            // and an assert or exception message can contain newlines.
+            wxString oneLineMsg = wxString::FromUTF8(msg);
+            oneLineMsg.Replace("\r", " ");
+            oneLineMsg.Replace("\n", " ");
+            backtrace_txt += "Message: " + oneLineMsg + "\n";
 
             wxString userEmail;
             auto* config = GetXLightsConfig();

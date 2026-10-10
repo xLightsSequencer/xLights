@@ -334,6 +334,7 @@ private:
 
     int mSelectedRow;
     Effect* mSelectedEffect;
+    unsigned int mSelectedEffectCheckedChangeCount = 0;
 
     xlVertexAccumulator *lines = nullptr;
     xlVertexAccumulator *selectedLinesFixed = nullptr;

@@ -2404,6 +2404,19 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
 }
 
 Effect* EffectsGrid::GetSelectedEffect() const {
+    // Edits outside the grid (import erase, layer removal, undo) can delete the
+    // selected effect without clearing the selection. Check by pointer only when
+    // the sequence has changed, so a freed effect is never dereferenced.
+    // Both counters only grow; deleting a whole element bumps only the master-view one.
+    const unsigned int changeCount = mSequenceElements == nullptr ? 0 : mSequenceElements->GetChangeCount() + mSequenceElements->GetMasterViewChangeCount();
+    if (mSelectedEffect != nullptr && mSequenceElements != nullptr && mSelectedEffectCheckedChangeCount != changeCount) {
+        EffectsGrid* self = const_cast<EffectsGrid*>(this);
+        self->mSelectedEffectCheckedChangeCount = changeCount;
+        if (!mSequenceElements->IsValidEffect(mSelectedEffect)) {
+            self->mSelectedEffect = nullptr;
+            self->mSelectedRow = -1;
+        }
+    }
     return mSelectedEffect;
 }
 

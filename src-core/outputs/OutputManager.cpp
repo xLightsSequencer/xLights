@@ -255,6 +255,11 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
             if (std::string_view(e.name()) == "network") {
                 Output* conversionOutput = Output::Create(nullptr, e, showdir);
+                if (conversionOutput == nullptr) {
+                    // Unknown network type; Create already logged it.
+                    cu = nullptr;
+                    continue;
+                }
 
                 std::string type = e.attribute("NetworkType").as_string("");
                 std::string port = e.attribute("ComPort").as_string("");
@@ -308,7 +313,10 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                         cu = new ControllerSerial(this);
                     }
                     else {
-                        assert(false);
+                        // e.g. OPC/Twinkly, which have no legacy controller to convert to
+                        spdlog::warn("Legacy network type {} cannot be converted, ignored.", type);
+                        delete conversionOutput;
+                        continue;
                     }
                     AddController(cu, -1);
                     cu->DeleteAllOutputs();
