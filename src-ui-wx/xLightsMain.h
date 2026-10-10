@@ -63,6 +63,7 @@
 #include <optional>
 #include <set>
 #include <source_location>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -1562,6 +1563,8 @@ public:
     xlUnsavedFlag UnsavedRgbEffectsChanges{ "Models, Views and Perspectives" };
     xlUnsavedFlag UnsavedPresetChanges{ "Effect Presets" };
     bool _renderMode = false;
+    std::vector<std::string> _sequenceBusy;
+    std::vector<std::function<void()>> _runWhenSequenceNotBusy;
     bool _checkSequenceMode = false;
 
     void SuspendAutoSave(bool dosuspend) override { _suspendAutoSave = dosuspend; }
@@ -1775,6 +1778,26 @@ public:
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
+
+    // Held across an operation that runs nested event loops (modal dialogs) over
+    // the open sequence, such as Import Effects. While held, anything that would
+    // close, reopen, batch render or replace the sequence or show is refused
+    // (CloseSequence, automation) or deferred until it is released (batch render,
+    // Finder opens), instead of running inside that loop underneath the operation.
+    class SequenceBusyScope {
+    public:
+        SequenceBusyScope(xLightsFrame* frame, const std::string& what);
+        ~SequenceBusyScope();
+        SequenceBusyScope(const SequenceBusyScope&) = delete;
+        SequenceBusyScope& operator=(const SequenceBusyScope&) = delete;
+    private:
+        xLightsFrame* _frame;
+    };
+    bool IsSequenceBusy() const { return !_sequenceBusy.empty(); }
+    std::string SequenceBusyReason() const { return _sequenceBusy.empty() ? std::string() : _sequenceBusy.back(); }
+    // Runs fn now if nothing holds a SequenceBusyScope, otherwise once the last one is released.
+    void RunWhenSequenceNotBusy(std::function<void()> fn);
+
     void NewSequence(const std::string& media = "", uint32_t durationMS = 0, uint32_t frameMS = 0, const std::string& defView = "");
     void SaveAsSequence();
     void SaveAsSequence(const std::string& filename);

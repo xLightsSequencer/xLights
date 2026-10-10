@@ -149,6 +149,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     }
 
     std::string cmd = paths[0];
+    // Requests are serviced by whatever event loop is running, including a modal
+    // dialog's; none may change the sequence underneath the operation showing it.
+    if (IsSequenceBusy() && cmd != "getVersion") {
+        return sendResponse("xLights is busy (" + SequenceBusyReason() + "); try again when it has finished.", "msg", 503, false);
+    }
     if (cmd == "getVersion") {
         return sendResponse(GetDisplayVersionString(), "version", 200, false);
     } else if (cmd == "openSequence" || cmd == "getOpenSequence" || cmd == "loadSequence") {

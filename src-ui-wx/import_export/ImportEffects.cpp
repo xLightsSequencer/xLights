@@ -140,6 +140,8 @@ void xLightsFrame::ImportEffectsFromFile(const wxFileName& fn)
     if (!FileExists(fn)) {
         return;
     }
+    // Every importer below shows modal dialogs over the open sequence.
+    SequenceBusyScope busy(this, "Import Effects");
     wxString ext = fn.GetExt().Lower();
     if (ext == "lms" || ext == "las") {
         ImportLMS(fn);
@@ -408,6 +410,9 @@ bool xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                                  bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc, std::string const& mapFile, int sequenceDurationMS, bool autoMap, bool importMedia,
                                  ImportXLightsAutomation* automation)
 {
+    // Also reached directly (copying effects between sequences, automation), not
+    // only through ImportEffectsFromFile; the mapping dialog runs a modal loop.
+    SequenceBusyScope busy(this, "Import Effects");
     std::map<std::string, EffectLayer*> layerMap;
     std::map<std::string, Element*> elementMap;
     // Record the archive the user opened, not the temp-extracted .xsq inside it,

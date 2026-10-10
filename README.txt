@@ -39,6 +39,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Butterfly: fix crash (Intel Macs with AMD GPUs) and wrong output when the buffer is more
                                  than 65535 pixels wide or high, e.g. Single Line on a large matrix. Style 5 rendered on
                                  the CPU now matches the GPU on buffers over 65535 pixels (it was computing a wrapped size)
+    -bug (dkulp)                 Fix crash when a batch render or automation request closed the sequence while the Import
+                                 Effects dialog was open; while an import is running, automation answers "busy" and batch
+                                 renders and Finder opens wait until it finishes
     -bug (dkulp)                 Convert: fix crash converting a LOR sequence whose channels exceed the xLights controllers
     -bug (dkulp)                 Fix crash dragging an effect from the toolbar over the Effect Presets window
     -bug (dkulp)                 Windows: fix crash when several Video effects open hardware-decoded videos at once

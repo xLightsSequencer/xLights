@@ -967,9 +967,48 @@ void xLightsFrame::AddToMRU(const std::string& filename)
     }
 }
 
+xLightsFrame::SequenceBusyScope::SequenceBusyScope(xLightsFrame* frame, const std::string& what) :
+    _frame(frame)
+{
+    _frame->_sequenceBusy.push_back(what);
+}
+
+xLightsFrame::SequenceBusyScope::~SequenceBusyScope()
+{
+    _frame->_sequenceBusy.pop_back();
+    if (_frame->_sequenceBusy.empty() && !_frame->_runWhenSequenceNotBusy.empty()) {
+        // Not inline: the scope is released deep inside the operation's stack.
+        xLightsFrame* frame = _frame;
+        frame->CallAfter([frame]() {
+            auto pending = std::move(frame->_runWhenSequenceNotBusy);
+            frame->_runWhenSequenceNotBusy.clear();
+            for (auto& fn : pending) {
+                frame->RunWhenSequenceNotBusy(std::move(fn));
+            }
+        });
+    }
+}
+
+void xLightsFrame::RunWhenSequenceNotBusy(std::function<void()> fn)
+{
+    if (IsSequenceBusy()) {
+        _runWhenSequenceNotBusy.push_back(std::move(fn));
+        return;
+    }
+    fn();
+}
+
 bool xLightsFrame::CloseSequence()
 {
     spdlog::debug("Closing sequence.");
+
+    // Something that arrived through a nested event loop (an automation request,
+    // a queued batch render) must not free the sequence from under the operation
+    // that is running that loop.
+    if (IsSequenceBusy()) {
+        spdlog::info("Close refused: {} is in progress.", SequenceBusyReason());
+        return false;
+    }
 
     // Stem separation runs a worker thread holding raw PCM pointers into the
     // sequence's AudioManager for the whole run, and its progress dialog pumps

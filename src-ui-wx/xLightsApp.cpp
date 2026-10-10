@@ -940,6 +940,13 @@ static bool sMacOpenInProgress = false;
 static std::vector<std::pair<wxString, wxString>> sDeferredMacOpens;
 
 static void DispatchMacOpenFile(xLightsFrame* frame, const wxString& showDir, const wxString& fileName) {
+    if (frame->IsSequenceBusy()) {
+        spdlog::info("       MacOpenFiles deferred, {} is in progress: {}", frame->SequenceBusyReason(), fileName.ToStdString());
+        frame->RunWhenSequenceNotBusy([frame, showDir, fileName] {
+            DispatchMacOpenFile(frame, showDir, fileName);
+        });
+        return;
+    }
     if (sMacOpenInProgress) {
         sDeferredMacOpens.emplace_back(showDir, fileName);
         spdlog::info("       MacOpenFiles deferred, an open is already in progress: {}", fileName.ToStdString());

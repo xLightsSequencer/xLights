@@ -1480,7 +1480,15 @@ void xLightsFrame::OpenRenderAndSaveSequencesF(const wxArrayString& origFileName
 }
 
 void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames, bool exitOnDone, bool alreadyRetried) {
-    
+    if (IsSequenceBusy()) {
+        // Queued (CallAfter) work can be dispatched inside a modal loop that is
+        // working on the open sequence; run the batch once that finishes.
+        spdlog::info("Batch render deferred: {} is in progress.", SequenceBusyReason());
+        RunWhenSequenceNotBusy([this, origFilenames, exitOnDone, alreadyRetried]() {
+            OpenRenderAndSaveSequences(origFilenames, exitOnDone, alreadyRetried);
+        });
+        return;
+    }
 
     if (origFilenames.IsEmpty()) {
         _lowDefinitionRender = _saveLowDefinitionRender;
