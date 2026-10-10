@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Moving Head Adv: Position Zone colors and the zone indicator no longer show in the preview when
+                                 Enable Position Zones is off; the indicator ring is now sized to the model base
     -bug (derwin12)              Pictures: Loop Animated GIF / Suppress GIF Background settings are no longer lost when
                                  copying and pasting the effect
     -bug (derwin12)              Switching audio tracks while a sequence is playing now moves playback to the new track
