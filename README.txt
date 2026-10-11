@@ -64,6 +64,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash on Layout undo/redo from models being reloaded on several threads
     -bug (dkulp)                 Fix crash playing a model group after Replace Model in Layout
     -bug (dkulp)                 Fix crash opening a show folder while the Layout 3D Objects list is showing
+    -bug (dkulp)                 Windows: fix Shader effect crashes with background shader rendering enabled, when
+                                 render threads that had gone idle took the GPU contexts down with them
     -bug (dkulp)                 Import Effects: copied images/videos/shaders/faces are now stored show-relative, so the
                                  next open no longer reports them all as relocated
     -enh (dkulp)                 Import Effects: offer to convert unsupported imported videos (e.g. AVI) during the
