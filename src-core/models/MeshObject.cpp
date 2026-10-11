@@ -193,6 +193,12 @@ std::list<std::string> MeshObject::GetFileReferences()
 
 void MeshObject::loadObject(xlGraphicsContext *ctx)
 {
+    if (!prefetch) {
+        prefetch = std::make_unique<xlMeshFilePrefetch>();
+    }
+    if (!prefetch->Ready(_objFile)) {
+        return;
+    }
     if (FileExists(_objFile)) {
         
 

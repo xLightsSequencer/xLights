@@ -66,6 +66,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash opening a show folder while the Layout 3D Objects list is showing
     -bug (dkulp)                 Windows: fix Shader effect crashes with background shader rendering enabled, when
                                  render threads that had gone idle took the GPU contexts down with them
+    -bug (dkulp)                 Fix the app freezing (and iOS closing the iPad app) when a 3D mesh or its textures are
+                                 in iCloud but not downloaded yet; the mesh appears once the download finishes
     -bug (dkulp)                 Import Effects: copied images/videos/shaders/faces are now stored show-relative, so the
                                  next open no longer reports them all as relocated
     -enh (dkulp)                 Import Effects: offer to convert unsupported imported videos (e.g. AVI) during the

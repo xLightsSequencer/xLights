@@ -16,6 +16,7 @@
 
 class IModelPreview;
 class xlMesh;
+class xlMeshFilePrefetch;
 
 class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
@@ -61,5 +62,6 @@ private:
     bool mesh_only {false};
 
     std::unique_ptr<xlMesh> mesh {nullptr};
+    std::unique_ptr<xlMeshFilePrefetch> prefetch;
 };
 

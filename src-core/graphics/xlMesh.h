@@ -1,5 +1,8 @@
 #pragma once
 
+#include <atomic>
+#include <chrono>
+#include <memory>
 #include <string>
 #include <vector>
 #include "Color.h"
@@ -73,5 +76,20 @@ protected:
     float xMax = -9999999;
     float yMax = -9999999;
     float zMax = -9999999;
+};
+
+// Meshes are loaded from the preview draw, on the main thread.  On Apple an
+// OBJ, MTL or texture evicted to iCloud made FileExists wait there for up to a
+// minute while it downloaded, and iOS killed the app for it (0x8BADF00D).
+// Ready() never blocks: it waits for the downloads on a background thread and
+// reports true once the OBJ is local, so the draw loads it on a later frame.
+class xlMeshFilePrefetch {
+public:
+    bool Ready(const std::string& objFile);
+
+private:
+    std::string _file;
+    std::shared_ptr<std::atomic<int>> _state;
+    std::chrono::steady_clock::time_point _started;
 };
 

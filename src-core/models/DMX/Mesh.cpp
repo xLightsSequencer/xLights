@@ -85,6 +85,12 @@ void Mesh::Init(BaseObject* base, bool set_size) {
 }
 
 void Mesh::loadObject(BaseObject* base, xlGraphicsContext *ctx) {
+    if (!prefetch) {
+        prefetch = std::make_unique<xlMeshFilePrefetch>();
+    }
+    if (!prefetch->Ready(_objFile)) {
+        return;
+    }
     if (FileExists(_objFile)) {
         
         obj_exists = true;

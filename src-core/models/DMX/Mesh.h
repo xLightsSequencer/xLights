@@ -21,6 +21,7 @@ class IModelPreview;
 class xlGraphicsContext;
 class xlGraphicsProgram;
 class xlMesh;
+class xlMeshFilePrefetch;
 
 class Mesh
 {
@@ -128,4 +129,5 @@ private:
 
     Mesh* link = nullptr;
     std::unique_ptr<xlMesh> mesh3d {nullptr};
+    std::unique_ptr<xlMeshFilePrefetch> prefetch;
 };

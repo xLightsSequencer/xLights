@@ -6,6 +6,8 @@
 
 #include <filesystem>
 #include <algorithm>
+#include <future>
+#include <thread>
 
 #include "utils/ExternalHooks.h"
 #include "UtilFunctions.h"
@@ -206,4 +208,74 @@ void xlMesh::FixMaterialFilenamesInOBJ(const std::string &obj) {
     }
 }
 
+namespace {
+enum PrefetchState : int { PREFETCH_PENDING, PREFETCH_READY, PREFETCH_FAILED };
 
+// Each FileExists here waits for an iCloud download if the file is evicted.
+// The candidates mirror what xlMesh's constructor and MeshObject look for.
+bool prefetchMeshFiles(const std::string& objFile) {
+    if (!FileExists(objFile)) {
+        return false;
+    }
+    std::filesystem::path dir = std::filesystem::path(objFile).parent_path();
+    std::vector<std::string> mtls = xlMesh::GetMaterialFilenamesFromOBJ(objFile);
+    if (mtls.empty() || xlMesh::InvalidMaterialsList(mtls)) {
+        mtls = xlMesh::GetMaterialFilenamesFromOBJ(objFile, false);
+    }
+    mtls.push_back(std::filesystem::path(objFile).replace_extension(".mtl").filename().string());
+    for (const auto& m : mtls) {
+        std::string mtl = (dir / m).string();
+        if (!FileExists(mtl)) {
+            continue;
+        }
+        auto textures = xlMesh::GetTextureFilenamesFromMTL(mtl);
+        auto loose = xlMesh::GetTextureFilenamesFromMTL(mtl, false);
+        textures.insert(textures.end(), loose.begin(), loose.end());
+        for (auto t : textures) {
+            while (!t.empty() && (t.back() == '\r' || t.back() == ' ')) {
+                t.pop_back();
+            }
+            if (t.empty()) {
+                continue;
+            }
+            if (FileExists((dir / t).string())) {
+                continue;
+            }
+            FileExists((dir / std::filesystem::path(t).filename()).string());
+        }
+    }
+    return true;
+}
+}
+
+bool xlMeshFilePrefetch::Ready(const std::string& objFile) {
+#ifdef __APPLE__
+    if (objFile.empty()) {
+        return false;
+    }
+    auto now = std::chrono::steady_clock::now();
+    // A file that never arrived (offline, or really missing) is retried, but
+    // not on every frame.
+    bool restart = !_state || objFile != _file ||
+                   (_state->load() == PREFETCH_FAILED && now - _started > std::chrono::seconds(30));
+    if (restart) {
+        _file = objFile;
+        _started = now;
+        _state = std::make_shared<std::atomic<int>>(PREFETCH_PENDING);
+        auto done = std::make_shared<std::promise<void>>();
+        std::future<void> finished = done->get_future();
+        // Owns copies only: the mesh object can be deleted before this finishes.
+        std::thread([objFile, state = _state, done]() {
+            state->store(prefetchMeshFiles(objFile) ? PREFETCH_READY : PREFETCH_FAILED);
+            done->set_value();
+        }).detach();
+        // Local files finish well inside this, so a static preview that won't
+        // redraw again still shows the mesh; only a download is left to a
+        // later frame.
+        finished.wait_for(std::chrono::milliseconds(100));
+    }
+    return _state->load() == PREFETCH_READY;
+#else
+    return true;
+#endif
+}
