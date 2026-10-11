@@ -68,6 +68,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  render threads that had gone idle took the GPU contexts down with them
     -bug (dkulp)                 Fix the app freezing (and iOS closing the iPad app) when a 3D mesh or its textures are
                                  in iCloud but not downloaded yet; the mesh appears once the download finishes
+    -bug (dkulp)                 iPad - Scrolling the sequencer no longer rebuilds every row heading on each step,
+                                 which kept the CPU busy on large sequences
     -bug (dkulp)                 Import Effects: copied images/videos/shaders/faces are now stored show-relative, so the
                                  next open no longer reports them all as relocated
     -enh (dkulp)                 Import Effects: offer to convert unsupported imported videos (e.g. AVI) during the

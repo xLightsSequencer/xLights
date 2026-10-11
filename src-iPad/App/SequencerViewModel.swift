@@ -2844,6 +2844,20 @@ class SequencerViewModel {
         return (lo, hi)
     }
 
+    /// Models that `selectedEffectsSpanForModel` would return a span for,
+    /// found in one pass over the selection. The row headings need this for
+    /// every row, and asking per row walked the whole selection once per row.
+    func modelsWithSelectedEffects() -> Set<String> {
+        var spans: [String: (lo: Int, hi: Int)] = [:]
+        for sel in selectedEffects {
+            let name = (document.rowModelName(at: Int32(sel.rowIndex)) as String?) ?? ""
+            if name.isEmpty { continue }
+            let cur = spans[name] ?? (Int.max, Int.min)
+            spans[name] = (min(cur.lo, sel.startTimeMS), max(cur.hi, sel.endTimeMS))
+        }
+        return Set(spans.compactMap { $0.value.hi > $0.value.lo ? $0.key : nil })
+    }
+
     // MARK: - Jukebox (desktop's JukeboxPanel)
 
     /// One Swift-side jukebox button, mirroring the core
@@ -8367,7 +8381,10 @@ class SequencerViewModel {
     /// session / another device via Universal Clipboard.
     var hasClipboard: Bool {
         if !clipboardEntries.isEmpty { return true }
-        return UIPasteboard.general.data(forPasteboardType: Self.effectClipboardUTI) != nil
+        // contains() checks the type without copying the clipboard's bytes over
+        // from the pasteboard server, which data(forPasteboardType:) did on
+        // every call - and the row headings ask on every redraw.
+        return UIPasteboard.general.contains(pasteboardTypes: [Self.effectClipboardUTI])
     }
 
     /// Copy the current `clipboardEntries` to `UIPasteboard` so

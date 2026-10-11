@@ -816,13 +816,14 @@ struct SequencerGridV2View: View {
                         HStack(alignment: .top, spacing: 0) {
                             SyncedScrollView(
                                 targetHOffset: nil,
-                                targetVOffset: timingScroll.vScrollOffsetPx,
+                                targetVOffset: nil,
                                 contentWidth: metrics.rowHeaderWidth,
                                 contentHeight: timingContentH,
                                 showsIndicators: false,
                                 onScroll: { newOffset in
                                     timingScroll.vScrollOffsetPx = newOffset.y
-                                }
+                                },
+                                followVOffset: { [timingScroll] in timingScroll.vScrollOffsetPx }
                             ) {
                                 timingHeaders(timingRows)
                             }
@@ -2511,13 +2512,14 @@ struct SequencerGridV2View: View {
         VStack(spacing: 0) {
             SyncedScrollView(
                 targetHOffset: nil,
-                targetVOffset: rowsScroll.vScrollOffsetPx,
+                targetVOffset: nil,
                 contentWidth: metrics.rowHeaderWidth,
                 contentHeight: modelAreaH,
                 showsIndicators: false,
                 onScroll: { newOffset in
                     rowsScroll.vScrollOffsetPx = newOffset.y
-                }
+                },
+                followVOffset: { [rowsScroll] in rowsScroll.vScrollOffsetPx }
             ) {
                 modelHeaders(modelRows)
             }
@@ -2554,6 +2556,11 @@ struct SequencerGridV2View: View {
 
     private func modelHeaders(_ rows: [SequencerViewModel.RowInfo]) -> some View {
         let selectedRowId = viewModel.selectedEffect?.rowIndex
+        // Every row is built on each pass, so anything that doesn't vary by row
+        // is read once here rather than per row.
+        let hasClipboard = viewModel.hasClipboard
+        let hasLoopRegion = viewModel.hasLoopRegion
+        let modelsWithSelection = viewModel.modelsWithSelectedEffects()
         return VStack(spacing: 0) {
             ForEach(rows) { row in
                 let h: CGFloat = (row.id == selectedRowId)
@@ -2612,9 +2619,9 @@ struct SequencerGridV2View: View {
                         copyLayersSourceRow = row.id
                     },
                     onPaste: { viewModel.pasteAtRow(rowIndex: row.id) },
-                    hasClipboard: viewModel.hasClipboard,
+                    hasClipboard: hasClipboard,
                     onFindSourceEffects: { viewModel.findSourceEffects(rowIndex: row.id) },
-                    hasLoopRegion: viewModel.hasLoopRegion,
+                    hasLoopRegion: hasLoopRegion,
                     onExportModelFSEQ: { useLoop in
                         startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop)
                     },
@@ -2643,7 +2650,8 @@ struct SequencerGridV2View: View {
                                               : "Delete Node Effects"
                         viewModel.deleteScopedEffects(rowIndex: row.id, scope: scope, actionName: name)
                     },
-                    hasSelectedEffectsOnModel: viewModel.selectedEffectsSpanForModel(rowIndex: row.id) != nil,
+                    hasSelectedEffectsOnModel: !modelsWithSelection.isEmpty
+                        && modelsWithSelection.contains(viewModel.document.rowModelName(at: Int32(row.id))),
                     onExportSelectedModelFSEQ: {
                         startSelectedFSEQExport(rowIndex: row.id)
                     },

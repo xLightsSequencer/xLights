@@ -1,3 +1,4 @@
+import Observation
 import SwiftUI
 import UIKit
 
@@ -23,6 +24,11 @@ struct SyncedScrollView<Content: View>: UIViewRepresentable {
     /// row headers) we usually hide indicators; the driver grid shows them.
     let showsIndicators: Bool
     let onScroll: (CGPoint) -> Void
+    /// Vertical offset to follow, read by the coordinator under its own
+    /// observation tracking. Use this instead of `targetVOffset` for an offset
+    /// that changes every scroll frame: passing it as a value means the caller's
+    /// body reads it, so every frame re-runs that body and rebuilds `content`.
+    var followVOffset: (() -> CGFloat)? = nil
     @ViewBuilder let content: () -> Content
 
     func makeCoordinator() -> Coordinator {
@@ -33,7 +39,7 @@ struct SyncedScrollView<Content: View>: UIViewRepresentable {
         let sv = UIScrollView()
         sv.delegate = context.coordinator
         sv.showsHorizontalScrollIndicator = showsIndicators && targetHOffset == nil
-        sv.showsVerticalScrollIndicator = showsIndicators && targetVOffset == nil
+        sv.showsVerticalScrollIndicator = showsIndicators && targetVOffset == nil && followVOffset == nil
         sv.bounces = true
         sv.bouncesZoom = false
         sv.decelerationRate = .normal
@@ -56,12 +62,25 @@ struct SyncedScrollView<Content: View>: UIViewRepresentable {
         context.coordinator.hostingController = host
         context.coordinator.widthConstraint = widthC
         context.coordinator.heightConstraint = heightC
+        if let follow = followVOffset {
+            context.coordinator.followVOffset = follow
+            context.coordinator.scrollView = sv
+            // Deferred so the first read happens outside this SwiftUI update:
+            // a read here would be merged into the representable's own
+            // tracking and bring back the per-frame update this avoids.
+            DispatchQueue.main.async { [weak coordinator = context.coordinator] in
+                coordinator?.trackVOffset()
+            }
+        }
         return sv
     }
 
     func updateUIView(_ sv: UIScrollView, context: Context) {
         // Latest callback closure.
         context.coordinator.onScroll = onScroll
+        if let follow = followVOffset {
+            context.coordinator.followVOffset = follow
+        }
 
         // Keep the hosted content fresh — pushes any view-model changes
         // into the rendered content.
@@ -97,8 +116,26 @@ struct SyncedScrollView<Content: View>: UIViewRepresentable {
         var widthConstraint: NSLayoutConstraint?
         var heightConstraint: NSLayoutConstraint?
         var ignoreDelegate = false
+        var followVOffset: (() -> CGFloat)?
+        weak var scrollView: UIScrollView?
 
         init(onScroll: @escaping (CGPoint) -> Void) { self.onScroll = onScroll }
+
+        /// Applies the followed offset and re-arms tracking; Observation's
+        /// onChange fires once per registration.
+        func trackVOffset() {
+            guard let follow = followVOffset, let sv = scrollView else { return }
+            let y = withObservationTracking {
+                follow()
+            } onChange: { [weak self] in
+                DispatchQueue.main.async { self?.trackVOffset() }
+            }
+            if abs(sv.contentOffset.y - y) > 0.5 {
+                ignoreDelegate = true
+                sv.setContentOffset(CGPoint(x: sv.contentOffset.x, y: y), animated: false)
+                ignoreDelegate = false
+            }
+        }
 
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
             guard !ignoreDelegate else { return }
