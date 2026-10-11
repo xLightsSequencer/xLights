@@ -1172,10 +1172,10 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
     return n;
 }
 
-bool OutputManager::IsIDUsed(int id)
+bool OutputManager::IsIDUsed(int id, Controller* exclude)
 {
     for (const auto& it : _controllers) {
-        if (it->GetId() == id) return true;
+        if (it != exclude && it->GetId() == id) return true;
     }
     return false;
 }

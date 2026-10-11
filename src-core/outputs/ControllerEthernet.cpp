@@ -266,7 +266,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
             _outputs.push_back(ddpo);
 
             if (oldoutputs.size() != 0) {
-                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse(), this)) {
                     ddpo->SetId(_outputManager->UniqueId());
                 } else {
                     ddpo->SetId(oldoutputs.front()->GetUniverse());
@@ -284,7 +284,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
             auto to = new TwinklyOutput();
             _outputs.push_back(to);
             if (oldoutputs.size() != 0) {
-                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse(), this)) {
                     to->SetId(_outputManager->UniqueId());
                 } else {
                     to->SetId(oldoutputs.front()->GetUniverse());
@@ -335,7 +335,7 @@ void ControllerEthernet::SetProtocol(const std::string& protocol) {
             int u = 0;
 
             if (oldoutputs.size() != 0) {
-                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse())) {
+                if (_outputManager != nullptr && _outputManager->IsIDUsed(oldoutputs.front()->GetUniverse(), this)) {
                     u = _outputManager->UniqueId() - 1;
                 } else {
                     u = oldoutputs.front()->GetUniverse() - 1;

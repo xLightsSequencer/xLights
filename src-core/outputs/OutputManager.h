@@ -200,7 +200,7 @@ public:
     
     std::string UniqueName(const std::string& prefix);
 
-    bool IsIDUsed(int id);
+    bool IsIDUsed(int id, Controller* exclude = nullptr);
     int UniqueId();
 
     void SomethingChanged() const;
