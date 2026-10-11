@@ -219,7 +219,8 @@ private:
                           const std::string &file,
                           const std::string &dir);
     bool uploadFile(const std::string &filename,
-                    const std::string &file);
+                    const std::string &file,
+                    bool forceStore = false);
     bool uploadFileV7(const std::string &filename,
                       const std::string &file,
                       const std::string &dir);

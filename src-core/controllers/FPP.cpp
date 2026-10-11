@@ -722,7 +722,7 @@ bool FPP::updateProgress(int val, bool doYield) {
 }
 
 
-bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
+bool FPP::uploadFile(const std::string &utfFilename, const std::string &file, bool forceStore) {
     std::string filename = utfFilename;
 
     updateProgress(0, true);
@@ -738,29 +738,44 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
 
     std::string fullUrl;
     bool usingMove = true;
+    std::string rawFileForRetry;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         if (this->canZipUpload) {
-            std::string zipPath = fullFileName + ".zip";
-            std::string entryName = std::filesystem::path(fullFileName).filename().string();
-            zipFile zf = zipOpen(zipPath.c_str(), APPEND_STATUS_CREATE);
-            if (zf) {
-                zip_fileinfo zi = {};
-                if (zipOpenNewFileInZip(zf, entryName.c_str(), &zi,
-                                        nullptr, 0, nullptr, 0, nullptr,
-                                        Z_DEFLATED, Z_DEFAULT_COMPRESSION) == ZIP_OK) {
-                    std::ifstream ifs(fullFileName, std::ios::binary);
-                    char buf[32768];
-                    while (ifs) {
-                        ifs.read(buf, sizeof(buf));
-                        if (ifs.gcount() > 0) {
-                            zipWriteInFileInZip(zf, buf, static_cast<unsigned>(ifs.gcount()));
+            // Stash the uncompressed source aside so that, if this attempt fails, the completion
+            // callback below can rebuild the zip as STORE (no compression) from the same bytes.
+            std::string rawPath = fullFileName + ".raw";
+            std::error_code renameEc;
+            std::filesystem::rename(fullFileName, rawPath, renameEc);
+            if (!renameEc) {
+                rawFileForRetry = rawPath;
+                std::string zipPath = fullFileName + ".zip";
+                std::string entryName = std::filesystem::path(fullFileName).filename().string();
+                int method = forceStore ? 0 : Z_DEFLATED;
+                zipFile zf = zipOpen(zipPath.c_str(), APPEND_STATUS_CREATE);
+                if (zf) {
+                    zip_fileinfo zi = {};
+                    // zip64=0 forced explicitly: the ESPixelStick's on-device unzip (a vendored, pre-Zip64-era
+                    // unzip.c) reads sizes as plain 32-bit fields and doesn't understand the Zip64 extra field,
+                    // so it must never be offered a Zip64 entry even if the linked minizip's own default changes.
+                    if (zipOpenNewFileInZip4_64(zf, entryName.c_str(), &zi,
+                                                nullptr, 0, nullptr, 0, nullptr,
+                                                method, Z_DEFAULT_COMPRESSION,
+                                                0, -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
+                                                nullptr, 0, 0, 0, 0) == ZIP_OK) {
+                        std::ifstream ifs(rawPath, std::ios::binary);
+                        char buf[32768];
+                        while (ifs) {
+                            ifs.read(buf, sizeof(buf));
+                            if (ifs.gcount() > 0) {
+                                zipWriteInFileInZip(zf, buf, static_cast<unsigned>(ifs.gcount()));
+                            }
                         }
+                        zipCloseFileInZip(zf);
                     }
-                    zipCloseFileInZip(zf);
+                    zipClose(zf, nullptr);
+                    std::error_code ec;
+                    std::filesystem::rename(zipPath, fullFileName, ec);
                 }
-                zipClose(zf, nullptr);
-                std::error_code ec;
-                std::filesystem::rename(zipPath, fullFileName, ec);
             }
             std::filesystem::path toPath(filename);
             toPath.replace_extension(".xlz");
@@ -791,6 +806,10 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     chunk = curl_slist_append(chunk, ctMime.c_str());
     chunk = curl_slist_append(chunk, "X-Requested-With: FPPConnect");
     chunk = curl_slist_append(chunk, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
+    // Suppress libcurl's automatic "Expect: 100-continue" (added for POST bodies over ~1KB) -
+    // minimal embedded HTTP servers like ESPixelStick's ESPAsyncWebServer don't implement the
+    // 100-continue handshake, which otherwise leaves curl stuck on that interim status.
+    chunk = curl_slist_append(chunk, "Expect:");
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
     FPPWriteData *data = new FPPWriteData();
@@ -815,10 +834,11 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
     data->lastDone = lastDone;
 
     
-    CurlManager::INSTANCE.addCURL(fullUrl, curl, [this, chunk, deleteFile, fullFileName, usingMove, filename, utfFilename, data] (CURL *curl) {
+    CurlManager::INSTANCE.addCURL(fullUrl, curl, [this, chunk, deleteFile, fullFileName, usingMove, filename, utfFilename, data, forceStore, rawFileForRetry] (CURL *curl) {
         long response_code = 0;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-        
+
+        bool retrying = false;
         if (response_code == 200) {
             if (usingMove) {
                 if (!callMoveFile(filename)) {
@@ -828,19 +848,38 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file) {
                 }
             }
             spdlog::debug(utfFilename + " upload complete to " + this->hostName + " (" + this->ipAddress + "). Bytes sent:" + std::to_string(data->totalWritten) + ".");
-        } else {
+        } else if (!forceStore && !rawFileForRetry.empty()) {
+            // The deflated zip may have been produced by a minizip build whose output this
+            // device's minimal on-device unzip can't parse; retry once with an uncompressed
+            // (STORE) zip from the same source bytes before giving up, since that sidesteps
+            // the device's inflate path entirely.
+            spdlog::warn("ESPixelStick upload of {} failed (response code {}); retrying with an uncompressed zip.", utfFilename, response_code);
+            std::error_code ec;
+            std::filesystem::rename(rawFileForRetry, fullFileName, ec);
+            if (!ec) {
+                retrying = true;
+                uploadFile(utfFilename, fullFileName, true);
+            }
+        }
+        if (!retrying && response_code != 200) {
             messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
             faileduploads.push_back(filename);
             spdlog::warn("Did not get 200 response code:  {}", response_code);
         }
-        
+
         delete data;
         curl_slist_free_all(chunk);
         if (deleteFile) {
             std::error_code ec;
             std::filesystem::remove(fullFileName, ec);
         }
-        updateProgress(1000, false);
+        if (!retrying) {
+            if (!rawFileForRetry.empty()) {
+                std::error_code ec;
+                std::filesystem::remove(rawFileForRetry, ec);
+            }
+            updateProgress(1000, false);
+        }
     }, true);
 
     return false;
@@ -4309,17 +4348,13 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
     if (uuid.empty()) {
         uuid = GetJSONStringValue(val, "UUID");
     }
+    // Some non-FPP controller types that still speak this API (e.g. ESPixelStick's
+    // /api/system/info) don't report a uuid at all. FindByUUID("") safely returns
+    // nullptr, falling through to the IP-based lookup/create below, so there's no
+    // need to discard an otherwise-valid sysinfo response just for lacking one.
     if (uuid.empty()) {
-        
-        spdlog::info("Could not process sysinfo for {}({}). No UUID found.", ip.c_str(), proxy.c_str());
-        DiscoveredData* inst = discovery.FindByIp(ip, "", true);
-        inst->extraData["httpConnected"] = false;
-        if (proxy != "") {
-            inst->SetProxy(proxy);
-        }
-        return;
+        spdlog::debug("No UUID in sysinfo for {}({}); falling back to IP-based identity.", ip.c_str(), proxy.c_str());
     }
-    
 
     DiscoveredData *inst = discovery.FindByUUID(uuid, ip);
     if (inst == nullptr) {
@@ -4340,7 +4375,7 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
         inst->mode += " w/multisync";
     }
     inst->uuid = uuid;
-    if (inst->typeId == 0 && val.contains("typId") && val["typeId"].is_number_integer()) {
+    if (inst->typeId == 0 && val.contains("typeId") && val["typeId"].is_number_integer()) {
         inst->typeId = val["typeId"].get<int>();
     }
     inst->canZipUpload = val.contains("zip");

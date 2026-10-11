@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (scott)                 FPP Connect: ESPixelStick uploads could fail with "Response Code: 0" and
+                                 nothing written to the SD card; failed uploads are now retried once as an
+                                 uncompressed zip, and the zip is never written in a Zip64 form the
+                                 controller's firmware can't read (#7120)
     -bug (DPattee)               Layout: Add Object is available on startup when the layout is already in 3D on the Default preview
     -bug (derwin12)              Moving Head Adv: Position Zone colors and the zone indicator no longer show in the preview when
                                  Enable Position Zones is off; the indicator ring is now sized to the model base
