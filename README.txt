@@ -16,6 +16,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Models take a Unit ID and Start Pixel instead of a channel; uploading configures FPP's
                                  LOR Enhanced output. A model longer than the rest of its unit carries on into the next
                                  unit ID, as a Pixie port set for 340 pixels does
+    -enh (dkulp)                 FPP string capes and hats: models can go on USB serial adapters plugged into the
+                                 controller (ttyUSB0-7, ttyACM0-3) as well as the cape's own serial ports, picked by
+                                 name in the model's Port and shown in the visualizer once a model is on one (or via
+                                 "Add Serial Adapter Port..."). Uploading turns off a serial output xLights wrote
+                                 earlier once its port has no models; outputs set up on the controller are left alone
     -bug (dkulp)                 LOR Optimised: zero values in bank 0 could put a 0x00 inside a command, and All Off
                                  sent the wrong banks to every unit after the first
     -bug (derwin12)              Display Elements: Show All / Hide All / Hide Unused now stick for timing

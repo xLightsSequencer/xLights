@@ -4491,6 +4491,28 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
 // "Most ports we expect" mirrors the desktop constant when no
 // caps are available — keep the iPad in sync if that changes.
 #define IPAD_MOST_CONTROLLER_PORTS 128
+
+// The serial ports a model can be put on, as {label, value}: the controller's own, then the
+// adapters it can drive.  A current port that is neither is kept so it still shows.
+static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int current, bool includeNotSet) {
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    auto add = [&](const std::string& label, int value) {
+        [out addObject:@{ @"label": [NSString stringWithUTF8String:label.c_str()], @"value": @(value) }];
+    };
+    if (includeNotSet) {
+        add("Not Set", 0);
+    }
+    for (int i = 1; i <= caps->GetMaxSerialPort(); i++) {
+        add(caps->GetSerialPortLabel(i), i);
+    }
+    for (int i : caps->GetExtraSerialPorts()) {
+        add(caps->GetSerialPortLabel(i), i);
+    }
+    if (current > 0 && !caps->IsValidSerialPort(current)) {
+        add("Serial Port " + std::to_string(current), current);
+    }
+    return out;
+}
 - (NSDictionary<NSString*, id>*)controllerConnectionFor:(Model*)m {
     if (!m) return @{};
 
@@ -4510,6 +4532,11 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
     out[@"port"]    = @(m->GetControllerPort(1));
     out[@"portMin"] = @0;
     out[@"portMax"] = @(portMax);
+    if (caps != nullptr && !protocol.empty() && m->IsSerialProtocol() && caps->SupportsExtraSerialPorts()) {
+        // The controller's own ports and the adapters it can drive, picked by name as on
+        // the desktop: an adapter's port number means nothing to a user.
+        out[@"portOptions"] = SerialPortChoices(caps, m->GetControllerPort(1), true);
+    }
 
     // --- Protocol list + selection ---
     std::vector<std::string> cp;
@@ -18681,10 +18708,14 @@ static NSDictionary* BuildWiringPortEntry(UDControllerPort* port,
     if (port->GetModelCount() > 0 && caps) {
         valid = port->Check(controller, isPixel, caps, reason);
     }
+    NSString* name = PortDisplayName(type, port->GetPort());
+    if (type == "Serial" && caps != nullptr) {
+        name = [NSString stringWithUTF8String:caps->GetSerialPortLabel(port->GetPort()).c_str()];
+    }
     return @{
         @"kind":              PortKindFromTypeString(type),
         @"port":              @(port->GetPort()),
-        @"name":              PortDisplayName(type, port->GetPort()),
+        @"name":              name,
         @"protocol":          [NSString stringWithUTF8String:port->GetProtocol().c_str()],
         @"valid":             @(valid ? YES : NO),
         @"invalidReason":     [NSString stringWithUTF8String:reason.c_str()],
@@ -18767,8 +18798,13 @@ static NSDictionary* BuildEmptyPortEntry(NSString* kind,
     for (int p = 1; p <= hiSerial; ++p) {
         if (cud.HasSerialPort(p)) {
             [ports addObject:BuildWiringPortEntry(cud.GetControllerSerialPort(p), c, caps, /*pixel*/ false)];
-        } else {
-            [ports addObject:BuildEmptyPortEntry(@"serial", p, "Serial")];
+        } else if (p <= capsSerial || caps == nullptr || !caps->IsExtraSerialPort(p)) {
+            // an adapter port only shows once a model is on it, not as a dozen empty rows
+            NSMutableDictionary* e = [BuildEmptyPortEntry(@"serial", p, "Serial") mutableCopy];
+            if (caps != nullptr) {
+                e[@"name"] = [NSString stringWithUTF8String:caps->GetSerialPortLabel(p).c_str()];
+            }
+            [ports addObject:e];
         }
     }
     // PWM and Virtual Matrix still list only the ports that hold a model.
@@ -19379,7 +19415,9 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         else if ([kind isEqualToString:@"pwm"])           maxPort = caps->GetMaxPWMPort();
         else if ([kind isEqualToString:@"virtualMatrix"]) maxPort = caps->GetMaxVirtualMatrixPort();
         else if ([kind isEqualToString:@"ledPanelMatrix"]) maxPort = caps->GetMaxLEDPanelMatrixPort();
-        if (maxPort > 0 && (toPort < 1 || toPort > maxPort)) return 0;
+        if ([kind isEqualToString:@"serial"] && caps->IsExtraSerialPort(toPort)) {
+            // an adapter plugged into the controller
+        } else if (maxPort > 0 && (toPort < 1 || toPort > maxPort)) return 0;
     }
 
     NSArray<NSString*>* names = [self modelNamesOnController:controllerName
@@ -19520,6 +19558,7 @@ static std::string CSVQuote(const std::string& s) {
         @"maxPixelPort":          @(caps->GetMaxPixelPort()),
         @"maxSerialPort":         @(caps->GetMaxSerialPort()),
         @"maxLEDPanelMatrixPort": @(caps->GetMaxLEDPanelMatrixPort()),
+        @"serialPortChoices":     SerialPortChoices(caps, 0, false),
     };
 }
 

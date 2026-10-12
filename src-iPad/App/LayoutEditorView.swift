@@ -5644,8 +5644,38 @@ private struct LayoutEditorPropertiesView: View {
     @ViewBuilder
     private func ccPortRow(_ cc: [String: Any]) -> some View {
         let maxV = (cc["portMax"] as? NSNumber)?.intValue ?? 128
-        row("Port") {
-            ccIntField("cc.port", value: cc["port"], minV: 0, maxV: Double(maxV))
+        if let opts = cc["portOptions"] as? [[String: Any]], !opts.isEmpty {
+            // Serial ports picked by name: the controller's own and the adapters it can drive.
+            let cur = (cc["port"] as? NSNumber)?.intValue ?? 0
+            let curLabel = opts.first { ($0["value"] as? NSNumber)?.intValue == cur }?["label"] as? String
+            row("Port") {
+                Menu {
+                    ForEach(Array(opts.enumerated()), id: \.offset) { _, opt in
+                        let v = (opt["value"] as? NSNumber)?.intValue ?? 0
+                        Button {
+                            commit("cc.port", NSNumber(value: v))
+                        } label: {
+                            HStack {
+                                Text(opt["label"] as? String ?? "")
+                                if v == cur {
+                                    Spacer()
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    Text(curLabel ?? "—")
+                        .truncationMode(.middle)
+                        .frame(maxWidth: 160, alignment: .trailing)
+                }
+                .menuStyle(.button)
+                .controlSize(.mini)
+            }
+        } else {
+            row("Port") {
+                ccIntField("cc.port", value: cc["port"], minV: 0, maxV: Double(maxV))
+            }
         }
     }
 

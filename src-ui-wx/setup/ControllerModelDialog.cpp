@@ -95,6 +95,7 @@ const long ControllerModelDialog::CONTROLLER_ENDNULLS = wxNewId();
 const long ControllerModelDialog::CONTROLLER_COLORORDER = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GROUPCOUNT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GAMMA = wxNewId();
+const long ControllerModelDialog::CONTROLLER_ADDSERIALPORT = wxNewId();
 
 int ControllerModelDialog::s_activeCount = 0;
 
@@ -471,7 +472,7 @@ public:
             if (port != nullptr && IsLOREnhancedProtocol(port->GetProtocol())) {
                 return LOR_ENHANCED_MAX_CHANNELS;
             }
-            return _caps->GetMaxSerialPortChannels();
+            return _caps->GetMaxSerialPortChannels(_port);
         } else if (_type == PORTTYPE::PWM) {
             return 2;
         }
@@ -635,7 +636,7 @@ public:
         } else if (_type == PORTTYPE::PWM) {
             DrawTextLimited(dc, wxString::Format("PWM Port %d", _port), pt, sz - wxSize(4, 4));
         } else {
-            DrawTextLimited(dc, wxString::Format("Serial Port %d", _port), pt, sz - wxSize(4, 4));
+            DrawTextLimited(dc, _caps != nullptr ? wxString(_caps->GetSerialPortLabel(_port)) : wxString::Format("Serial Port %d", _port), pt, sz - wxSize(4, 4));
         }
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
 
@@ -700,7 +701,7 @@ public:
             mnu.Append(ControllerModelDialog::CONTROLLER_REMOVESMARTREMOTE, "Remove Smart Remote");
         }
         mnu.Append(ControllerModelDialog::CONTROLLER_REMOVEPORTMODELS, "Remove All Models From Port");
-        if (_caps != nullptr && ((_type == PORTTYPE::PIXEL && _caps->GetMaxPixelPort() > 1) || (_type == PORTTYPE::SERIAL && _caps->GetMaxSerialPort() > 1))) {
+        if (_caps != nullptr && ((_type == PORTTYPE::PIXEL && _caps->GetMaxPixelPort() > 1) || (_type == PORTTYPE::SERIAL && (_caps->GetMaxSerialPort() > 1 || _caps->SupportsExtraSerialPorts())))) {
             mnu.Append(ControllerModelDialog::CONTROLLER_MOVEMODELSTOPORT, "Move All Models To Port");
         }
     }
@@ -735,11 +736,34 @@ public:
             if (_type == PORTTYPE::SERIAL)
                 max = _caps->GetMaxSerialPort();
 
-            wxNumberEntryDialog dlg(parent, "Enter The Port To Move The Models To", "Port", "Port", GetPort(), 1, max);
-            if (dlg.ShowModal() == wxID_OK) {
+            int target = 0;
+            if (_type == PORTTYPE::SERIAL && _caps->SupportsExtraSerialPorts()) {
+                // adapter ports are picked by name, their numbers mean nothing to a user
+                wxArrayString names;
+                std::vector<int> ports;
+                for (int i = 1; i <= max; i++) {
+                    ports.push_back(i);
+                }
+                for (int i : _caps->GetExtraSerialPorts()) {
+                    ports.push_back(i);
+                }
+                for (int i : ports) {
+                    names.push_back(_caps->GetSerialPortLabel(i));
+                }
+                wxSingleChoiceDialog dlg(parent, "Select The Port To Move The Models To", "Port", names);
+                if (dlg.ShowModal() == wxID_OK) {
+                    target = ports[dlg.GetSelection()];
+                }
+            } else {
+                wxNumberEntryDialog dlg(parent, "Enter The Port To Move The Models To", "Port", "Port", GetPort(), 1, max);
+                if (dlg.ShowModal() == wxID_OK) {
+                    target = dlg.GetValue();
+                }
+            }
+            if (target > 0) {
                 if (_type == PORTTYPE::SERIAL) {
                     auto from = _cud->GetControllerSerialPort(GetPort());
-                    auto to = _cud->GetControllerSerialPort(dlg.GetValue());
+                    auto to = _cud->GetControllerSerialPort(target);
                     if (from->GetPort() != to->GetPort()) {
                         auto last = to->GetLastModel();
                         bool first = true;
@@ -756,7 +780,7 @@ public:
                     }
                 } else {
                     auto from = _cud->GetControllerPixelPort(GetPort());
-                    auto to = _cud->GetControllerPixelPort(dlg.GetValue());
+                    auto to = _cud->GetControllerPixelPort(target);
                     if (from->GetPort() != to->GetPort()) {
                         auto last = to->GetLastModel();
                         bool first = true;
@@ -808,6 +832,9 @@ public:
                         }
                     } else if (_type == PORTTYPE::SERIAL) {
                         for (int i = 1; i <= _cud->GetMaxSerialPort(); i++) {
+                            if (!_cud->HasSerialPort(i)) {
+                                continue;
+                            }
                             for (const auto& it : _cud->GetControllerSerialPort(i)->GetModels()) {
                                 it->GetModel()->SetControllerProtocol(choices[dlg.GetSelection()]);
                             }
@@ -2654,9 +2681,29 @@ void ControllerModelDialog::ReloadModels()
         }
     }
 
-    for (int i = 0; i < std::max((_caps == nullptr ? 0 : _caps->GetMaxSerialPort()), _cud->GetMaxSerialPort()); i++) {
-        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, i + 1, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, i + 1 > (_caps == nullptr ? _cud->GetMaxSerialPort() : _caps->GetMaxSerialPort()), _scale));
-        auto sp = _cud->GetControllerSerialPort(i + 1);
+    // The controller's own serial ports always get a row.  An adapter port only gets one
+    // once a model is on it or the user adds it, so a cape doesn't show a dozen empty
+    // USB rows.
+    std::vector<int> serialPorts;
+    int const capsSerial = _caps == nullptr ? _cud->GetMaxSerialPort() : _caps->GetMaxSerialPort();
+    for (int i = 1; i <= capsSerial; i++) {
+        serialPorts.push_back(i);
+    }
+    for (int i = capsSerial + 1; i <= _cud->GetMaxSerialPort(); i++) {
+        bool const used = _cud->HasSerialPort(i) && !_cud->GetControllerSerialPort(i)->GetModels().empty();
+        if (used || (_caps != nullptr && _caps->IsExtraSerialPort(i) && _shownExtraSerialPorts.count(i))) {
+            serialPorts.push_back(i);
+        }
+    }
+    for (int i : _shownExtraSerialPorts) {
+        if (i > _cud->GetMaxSerialPort()) {
+            serialPorts.push_back(i);
+        }
+    }
+    for (int port : serialPorts) {
+        bool const invalid = _caps != nullptr && !_caps->IsValidSerialPort(port);
+        _controllers.push_back(new PortCMObject(PortCMObject::PORTTYPE::SERIAL, port, _cud, _caps, wxPoint(LEFT_RIGHT_MARGIN, y), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_CHANNELS, invalid, _scale));
+        auto sp = _cud->GetControllerSerialPort(port);
         if (sp != nullptr) {
             int x = LEFT_RIGHT_MARGIN + HORIZONTAL_SIZE + FIRST_MODEL_GAP_MULTIPLIER * HORIZONTAL_GAP;
             for (const auto& it : sp->GetModels()) {
@@ -2797,6 +2844,26 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent& event)
             _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
         }
         ReloadModels();
+    } else if (id == CONTROLLER_ADDSERIALPORT) {
+        // A row to drop models on for a USB adapter plugged into the controller.  It is not
+        // saved: once a model is on the port the row comes from the model.
+        wxArrayString names;
+        std::vector<int> ports;
+        for (int i : _caps->GetExtraSerialPorts()) {
+            bool const shown = _shownExtraSerialPorts.count(i) || (_cud->HasSerialPort(i) && !_cud->GetControllerSerialPort(i)->GetModels().empty());
+            if (!shown) {
+                ports.push_back(i);
+                names.push_back(_caps->GetSerialPortLabel(i));
+            }
+        }
+        if (ports.empty()) {
+            return;
+        }
+        wxSingleChoiceDialog dlg(this, "Serial device the adapter appears as on the controller", "Add Serial Adapter Port", names);
+        if (dlg.ShowModal() == wxID_OK) {
+            _shownExtraSerialPorts.insert(ports[dlg.GetSelection()]);
+            ReloadModels();
+        }
     } else if (_popup != nullptr) {
         if (_popup->HandlePopup(this, event, id)) {
             while (!_xLights->DoAllWork()) {
@@ -3318,6 +3385,9 @@ void ControllerModelDialog::FixDMXChannels()
 {
     bool changed = false;
     for (int i = 0; i < _cud->GetMaxSerialPort(); i++) {
+        if (!_cud->HasSerialPort(i + 1)) {
+            continue;
+        }
         int next = -1;
         auto p = _cud->GetControllerSerialPort(i + 1);
         for (const auto& it : p->GetModels()) {
@@ -4811,6 +4881,9 @@ void ControllerModelDialog::OnPanelControllerRightDown(wxMouseEvent& event)
 
     if (_cud->HasModels()) {
         mnu.Append(CONTROLLER_REMOVEALLMODELS, "Remove All Models From Controller");
+    }
+    if (_caps != nullptr && _caps->SupportsExtraSerialPorts()) {
+        mnu.Append(CONTROLLER_ADDSERIALPORT, "Add Serial Adapter Port...");
     }
 
     BaseCMObject* cm = GetControllerCMObjectAt(mouse, adjustedMouse);

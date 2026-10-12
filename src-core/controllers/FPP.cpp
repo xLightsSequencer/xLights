@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <limits>
 #include <map>
+#include <set>
 #include <string.h>
 #include <cctype>
 #include <thread>
@@ -2760,8 +2761,30 @@ static void AddLOREnhancedUnits(nlohmann::json& port, UDControllerPort* vport, i
     }
 }
 
-static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherOrigRoot, bool addDefaults) {
+// Marks a co-other.json output xLights wrote for one of the controller's serial ports.
+// FPP's own page rebuilds an output from its form when saved there, which drops the mark,
+// so an output someone has set up or edited on the controller is never turned off.
+#define XLIGHTS_MANAGED_KEY "xLightsManaged"
+
+// Merges the serial outputs xLights generated into the controller's co-other.json.  Given
+// the devices the controller's ports drive, an output xLights wrote on one of them earlier
+// and did not generate this time - its port has no models now - is turned off.
+static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherOrigRoot, bool addDefaults,
+                            const std::set<std::string>* portDevices = nullptr) {
     bool changed = false;
+    if (portDevices != nullptr) {
+        std::set<std::string> used;
+        for (auto& o : otherDmxData["channelOutputs"]) {
+            used.insert(GetJSONStringValue(o, "device"));
+            o[XLIGHTS_MANAGED_KEY] = 1;
+        }
+        for (auto& o : otherOrigRoot["channelOutputs"]) {
+            std::string const device = GetJSONStringValue(o, "device");
+            if (GetJSONIntValue(o, XLIGHTS_MANAGED_KEY) == 1 && portDevices->count(device) && !used.count(device)) {
+                changed |= UpdateJSONValue(o, "enabled", 0);
+            }
+        }
+    }
     for (int x = 0; x < (int)otherDmxData["channelOutputs"].size(); x++) {
         std::string device = GetJSONStringValue(otherDmxData["channelOutputs"][x], "device");
         std::string type = GetJSONStringValue(otherDmxData["channelOutputs"][x], "type");
@@ -2778,6 +2801,9 @@ static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherO
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "enabled", 1);
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "startChannel", GetJSONIntValue(otherDmxData["channelOutputs"][x], "startChannel"));
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "channelCount", GetJSONIntValue(otherDmxData["channelOutputs"][x], "channelCount"));
+                    if (portDevices != nullptr) {
+                        changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], XLIGHTS_MANAGED_KEY, 1);
+                    }
                     if (type == "LOREnhanced") {
                         // The units and speed come from the models on the port,
                         // so they always follow the layout.
@@ -3806,10 +3832,12 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         }
     }
 
+    // The cape's own ports share one BBBSerial output, so its mode and size come from them
+    // alone, never from an adapter plugged into the controller.
     bool isDMX = true;
     int maxChan = 0;
     bool hasSerial = false;
-    for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
+    for (int sp = 1; sp <= std::min(cud.GetMaxSerialPort(), rules->GetMaxSerialPort()); sp++) {
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* port = cud.GetControllerSerialPort(sp);
             isDMX &= ((port->GetProtocol() == "DMX") || (port->GetProtocol() == "dmx") || (port->GetProtocol() == "DMX-Open"));
@@ -3828,11 +3856,28 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     nlohmann::json bbbDmxData;
     bool hasBBBDmx = false;
-    nlohmann::json otherDmxData;
+    nlohmann::json otherDmxData = nlohmann::json::object();
+    otherDmxData["channelOutputs"] = nlohmann::json::array();
+    // every device a port of this controller drives, so an output left on one that no
+    // longer has models can be turned off
+    std::set<std::string> otherDevices;
+    std::vector<int> serialPorts;
     for (int sp = 1; sp <= rules->GetMaxSerialPort(); sp++) {
+        serialPorts.push_back(sp);
+    }
+    for (int sp : rules->GetExtraSerialPorts()) {
+        serialPorts.push_back(sp);
+    }
+    for (int sp : serialPorts) {
         nlohmann::json port;
-        std::string portType = rules->GetCustomPropertyByPath("fppSerialPort" + std::to_string(sp), "BBBSerial");
-        if (cud.HasSerialPort(sp)) {
+        std::string portType = rules->GetSerialPortDevice(sp);
+        if (portType.empty()) {
+            portType = "BBBSerial";
+        }
+        if (portType != "BBBSerial") {
+            otherDevices.insert(portType);
+        }
+        if (cud.HasSerialPort(sp) && cud.GetControllerSerialPort(sp)->GetModels().size() > 0) {
             UDControllerPort* vport = cud.GetControllerSerialPort(sp);
             //int dmxOffset = 1;
             //UDControllerPortModel* m = vport->GetFirstModel();
@@ -3871,6 +3916,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 port["type"] = tp;
                 port["description"] = ("");
                 otherDmxData["channelOutputs"].push_back(port);
+                // so a sparse sequence carries the port's channels
+                rngs[sc - 1] = mx;
             }
 
         } else if (portType == "BBBSerial") {
@@ -3903,11 +3950,12 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         bbbDmxData["device"] = (rules->GetID());
         bbbDmxData["pinoutVersion"] = pinout;
         root["channelOutputs"].push_back(bbbDmxData);
-    } else {
+    }
+    if (!otherDevices.empty()) {
         nlohmann::json otherOrigRoot = otherDmxData;
-        bool changed = true;
+        bool changed = !otherDmxData["channelOutputs"].empty();
         if (GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot, false)) {
-            changed = mergeSerialInto(otherDmxData, otherOrigRoot, true);
+            changed = mergeSerialInto(otherDmxData, otherOrigRoot, true, &otherDevices);
         }
         if (changed) {
             PostJSONToURL("/api/configfile/co-other.json", otherOrigRoot);
