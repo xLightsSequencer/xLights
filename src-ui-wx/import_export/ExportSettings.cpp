@@ -35,7 +35,7 @@ namespace ExportSettings
         choices.Add("Model Pixel Count");
         choices.Add("Model Current");
 
-        wxMultiChoiceDialog dlg(parent, "Export to CSV Options", "Fields to Include", choices);
+        wxMultiChoiceDialog dlg(parent, "Export to XLSX Options", "Fields to Include", choices);
         //OptimiseDialogPosition(&dlg);
 
         if (dlg.ShowModal() == wxID_OK ) {
