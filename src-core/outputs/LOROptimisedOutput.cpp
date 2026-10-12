@@ -357,26 +357,13 @@ void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char* data, s
                                 // send a value byte command for 0 if in color mode
                                 // otherwise its either all off or all on and will be covered
                                 // by other commands.
+                                // GenerateCommand sends bank 0 without a bank
+                                // byte; a hand-built 0x53 put bank 0 there,
+                                // which is a 0x00 (the delimiter) whenever the
+                                // mask spans both bytes.
                                 uint8_t lsb = lorBankData[bank][i].second & 0xFF;
                                 uint8_t msb = lorBankData[bank][i].second >> 8;
-                                d[idx++] = 0;
-                                d[idx++] = unit_id;
-                                d[idx++] = 0x53;
-                                d[idx++] = _data[0];
-                                d[idx] = bank;
-                                if (!msb) {
-                                    d[idx] |= 0x40;
-                                }
-                                else if (!lsb) {
-                                    d[idx] |= 0x80;
-                                }
-                                ++idx;
-                                if (lsb) {
-                                    d[idx++] = lsb;
-                                }
-                                if (msb) {
-                                    d[idx++] = msb;
-                                }
+                                GenerateCommand(d, idx, unit_id, bank, true, _data[0], lsb, msb);
                             }
                         }
                     }
@@ -433,7 +420,6 @@ void LOROptimisedOutput::AllOff() {
 
     if (!_enabled) return;
 
-    int bank = 0;
     for (const auto& it : _controllers.GetControllers()) {
         int unit_id = it->GetUnitId();
 
@@ -445,6 +431,8 @@ void LOROptimisedOutput::AllOff() {
         while (controller_channels_to_process > 0) {
             size_t idx = 0;
             uint8_t d[1024];
+            // Banks are numbered per unit ID, so every unit starts at bank 0.
+            int bank = 0;
             int channels_to_process = std::min(channels_per_pass, (int)(MAX_BANKS * 16));
             while (channels_to_process > 0) {
                 d[idx++] = 0;
