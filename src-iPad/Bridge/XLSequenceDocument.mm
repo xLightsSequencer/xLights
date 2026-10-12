@@ -4569,6 +4569,15 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
         int dmxChannelMax = (caps != nullptr) ? caps->GetMaxSerialPortChannels() : 512;
         out[@"dmxChannel"]    = @(m->GetControllerDMXChannel());
         out[@"dmxChannelMax"] = @(dmxChannelMax);
+        if (IsLOREnhancedProtocol(protocol)) {
+            // LOR Enhanced places a model by unit ID and start pixel, which
+            // are stored as its DMX channel on the port.
+            out[@"isLOREnhanced"]    = @YES;
+            out[@"lorUnitId"]        = @(LOREnhancedUnitFromChannel(m->GetControllerDMXChannel()));
+            out[@"lorUnitIdMax"]     = @(LOR_ENHANCED_MAX_UNIT);
+            out[@"lorStartPixel"]    = @(LOREnhancedPixelFromChannel(m->GetControllerDMXChannel()));
+            out[@"lorStartPixelMax"] = @(LOR_ENHANCED_PIXELS_PER_UNIT);
+        }
         if (protoIdx >= 0 && protoIdx < (int)cp.size() &&
             (cp[protoIdx] != "dmx" || protocol.find("DMX") != std::string::npos)) {
             std::vector<std::string> cs;
@@ -5421,6 +5430,12 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
     } else if (keyStr == "cc.dmxChannel") {
         double v = asDouble(&typeOk); if (!typeOk) return NO;
         if ((int)v != m->GetControllerDMXChannel()) { m->SetControllerDMXChannel((int)v); changed = YES; }
+    } else if (keyStr == "cc.lorUnitId" || keyStr == "cc.lorStartPixel") {
+        double v = asDouble(&typeOk); if (!typeOk) return NO;
+        int cur = m->GetControllerDMXChannel();
+        int ch = keyStr == "cc.lorUnitId" ? LOREnhancedChannel((int)v, LOREnhancedPixelFromChannel(cur))
+                                          : LOREnhancedChannel(LOREnhancedUnitFromChannel(cur), (int)v);
+        if (ch != cur) { m->SetControllerDMXChannel(ch); changed = YES; }
     } else if (keyStr == "cc.speedIndex") {
         double v = asDouble(&typeOk); if (!typeOk) return NO;
         std::vector<std::string> cp; int protoIdx = -1;

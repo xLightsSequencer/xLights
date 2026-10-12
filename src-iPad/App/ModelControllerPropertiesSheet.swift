@@ -38,6 +38,9 @@ struct ModelControllerPropertiesSheet: View {
     @State private var endNullsActive: Bool = false
     @State private var endNulls: Int = 0
     @State private var dmxChannel: Int = 1
+    @State private var isLOREnhanced: Bool = false
+    @State private var lorUnitId: Int = 1
+    @State private var lorStartPixel: Int = 1
 
     private var showsPixelProps: Bool { portKind == "pixel" }
     private var showsDMXChannel: Bool { portKind == "serial" }
@@ -173,6 +176,44 @@ struct ModelControllerPropertiesSheet: View {
 
     @ViewBuilder
     private var dmxSection: some View {
+        if isLOREnhanced {
+            lorEnhancedSection
+        } else {
+            dmxChannelSection
+        }
+    }
+
+    // LOR Enhanced places a model by unit ID and start pixel; the bridge
+    // stores them as the model's DMX channel on the port.
+    @ViewBuilder
+    private var lorEnhancedSection: some View {
+        Section {
+            HStack {
+                Text("Unit ID")
+                Spacer()
+                EditableNumberField(storedInt: lorUnitId, min: 1, max: 240, divisor: 1) { v in
+                    lorUnitId = v
+                    commit("cc.lorUnitId", value: v as NSNumber)
+                }
+            }
+            HStack {
+                Text("Start Pixel")
+                Spacer()
+                EditableNumberField(storedInt: lorStartPixel, min: 1, max: 170, divisor: 1) { v in
+                    lorStartPixel = v
+                    commit("cc.lorStartPixel", value: v as NSNumber)
+                }
+            }
+        } header: {
+            Text("LOR Unit")
+        } footer: {
+            Text("The LOR unit ID and pixel the model starts on. A model longer than the rest of its unit carries on into the next unit ID.")
+                .font(.caption)
+        }
+    }
+
+    @ViewBuilder
+    private var dmxChannelSection: some View {
         Section {
             HStack {
                 Text("Channel")
@@ -210,6 +251,9 @@ struct ModelControllerPropertiesSheet: View {
         endNullsActive    = d["endNullsActive"]   as? Bool ?? false
         endNulls          = d["endNulls"]         as? Int  ?? 0
         dmxChannel        = d["dmxChannel"]       as? Int  ?? 1
+        isLOREnhanced     = d["isLOREnhanced"]    as? Bool ?? false
+        lorUnitId         = d["lorUnitId"]        as? Int  ?? 1
+        lorStartPixel     = d["lorStartPixel"]    as? Int  ?? 1
     }
 
     private func commit(_ key: String, value: Any) {

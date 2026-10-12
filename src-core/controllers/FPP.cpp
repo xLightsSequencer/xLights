@@ -2723,6 +2723,43 @@ static bool UpdateJSONValue(nlohmann::json& v, const std::string& key, const std
     return false;
 }
 
+// FPP's LOR Enhanced output takes a list of units, each a run of pixels on one
+// LOR unit ID. A model's DMX channel on the port gives its unit ID and start
+// pixel (see LOREnhancedChannel); one longer than the rest of its unit carries
+// on into the next unit ID. fppStartAddr is 1-based within the output.
+static void AddLOREnhancedUnits(nlohmann::json& port, UDControllerPort* vport, int32_t portStart, int& channelCount) {
+    int speed = 1000000;
+    for (const auto& m : vport->GetModels()) {
+        int ms = m->GetModel()->GetControllerProtocolSpeed();
+        if (ms == 19200 || ms == 57600 || ms == 115200 || ms == 500000 || ms == 1000000) {
+            speed = ms;
+            break;
+        }
+    }
+    port["speed"] = speed;
+    port["units"] = nlohmann::json::array();
+    for (const auto& m : vport->GetModels()) {
+        int unit = LOREnhancedUnitFromChannel(m->GetDMXChannelOffset());
+        int pixel = LOREnhancedPixelFromChannel(m->GetDMXChannelOffset());
+        int fppStart = m->GetStartChannel() - portStart + 1;
+        int remaining = (m->Channels() + 2) / 3;
+        while (remaining > 0 && unit <= LOR_ENHANCED_MAX_UNIT) {
+            int take = std::min(remaining, LOR_ENHANCED_PIXELS_PER_UNIT + 1 - pixel);
+            nlohmann::json u;
+            u["unitId"] = unit;
+            u["numOfPixels"] = take;
+            u["lorStartPixel"] = pixel;
+            u["fppStartAddr"] = fppStart;
+            port["units"].push_back(u);
+            channelCount = std::max(channelCount, fppStart - 1 + take * 3);
+            fppStart += take * 3;
+            remaining -= take;
+            ++unit;
+            pixel = 1;
+        }
+    }
+}
+
 static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherOrigRoot, bool addDefaults) {
     bool changed = false;
     for (int x = 0; x < (int)otherDmxData["channelOutputs"].size(); x++) {
@@ -2741,6 +2778,15 @@ static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherO
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "enabled", 1);
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "startChannel", GetJSONIntValue(otherDmxData["channelOutputs"][x], "startChannel"));
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "channelCount", GetJSONIntValue(otherDmxData["channelOutputs"][x], "channelCount"));
+                    if (type == "LOREnhanced") {
+                        // The units and speed come from the models on the port,
+                        // so they always follow the layout.
+                        changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", GetJSONIntValue(otherDmxData["channelOutputs"][x], "speed"));
+                        if (otherOrigRoot["channelOutputs"][y]["units"] != otherDmxData["channelOutputs"][x]["units"]) {
+                            otherOrigRoot["channelOutputs"][y]["units"] = otherDmxData["channelOutputs"][x]["units"];
+                            changed = true;
+                        }
+                    }
 
                     if (!addDefaults) {
                         if (type == "Renard") {
@@ -3814,7 +3860,10 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 } else if (tp == "PIXELNET" || tp == "pixelnet") {
                     tp = "Pixelnet-Open";
                 }
-                if (mx < 16) {
+                if (IsLOREnhancedProtocol(tp)) {
+                    tp = "LOREnhanced";
+                    AddLOREnhancedUnits(port, vport, sc, mx);
+                } else if (mx < 16) {
                     //several controllers have issues if the DMX data stream has less than 16 channels
                     mx = 16;
                 }

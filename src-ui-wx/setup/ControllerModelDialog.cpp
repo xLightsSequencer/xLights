@@ -466,6 +466,11 @@ public:
         if (_type == PORTTYPE::PIXEL) {
             return _caps->GetMaxPixelPortChannels();
         } else if (_type == PORTTYPE::SERIAL) {
+            // A LOR Enhanced port is a run of LOR unit IDs, not one universe.
+            UDControllerPort* port = GetUDPort();
+            if (port != nullptr && IsLOREnhancedProtocol(port->GetProtocol())) {
+                return LOR_ENHANCED_MAX_CHANNELS;
+            }
             return _caps->GetMaxSerialPortChannels();
         } else if (_type == PORTTYPE::PWM) {
             return 2;
@@ -1760,18 +1765,22 @@ public:
         if (id == ControllerModelDialog::CONTROLLER_CASCADEDOWNPORT) {
             GetModel()->SetSRCascadeOnPort(((wxMenu*)event.GetEventObject())->IsChecked(id));
             return true;
-        } else if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL) {
-            wxNumberEntryDialog dlg(parent, "Enter the DMX channel", "Channel", "DMX Channel", GetModel()->GetControllerDMXChannel(), 1, 512);
-            if (dlg.ShowModal() == wxID_OK) {
-                GetModel()->SetControllerDMXChannel(dlg.GetValue());
+        } else if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL || id == ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN) {
+            // A LOR Enhanced model is placed by unit ID; its channel on the
+            // port is pixel 1 of that unit.
+            bool lorEnhanced = IsLOREnhancedProtocol(GetModel()->GetControllerProtocol());
+            int value = lorEnhanced ? LOREnhancedUnitFromChannel(GetModel()->GetControllerDMXChannel()) : GetModel()->GetControllerDMXChannel();
+            wxNumberEntryDialog dlg(parent, lorEnhanced ? "Enter the LOR unit ID" : "Enter the DMX channel", lorEnhanced ? "Unit ID" : "Channel",
+                                    lorEnhanced ? "LOR Unit ID" : "DMX Channel", value, 1, lorEnhanced ? LOR_ENHANCED_MAX_UNIT : 512);
+            if (dlg.ShowModal() != wxID_OK) {
+                return true;
             }
-            return true;
-        } else if (id == ControllerModelDialog::CONTROLLER_DMXCHANNELCHAIN) {
-            wxNumberEntryDialog dlg(parent, "Enter the DMX channel", "Channel", "DMX Channel", GetModel()->GetControllerDMXChannel(), 1, 512);
-            if (dlg.ShowModal() == wxID_OK) {
+            int ch = lorEnhanced ? LOREnhancedChannel(dlg.GetValue(), 1) : dlg.GetValue();
+            if (id == ControllerModelDialog::CONTROLLER_DMXCHANNEL) {
+                GetModel()->SetControllerDMXChannel(ch);
+            } else {
                 auto port = _cud->GetPortContainingModel(GetModel());
                 bool start = false;
-                auto ch = dlg.GetValue();
                 for (const auto& it : port->GetModels()) {
                     if (start || it->GetModel() == GetModel()) {
                         it->GetModel()->SetControllerDMXChannel(ch);

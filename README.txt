@@ -12,6 +12,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (dkulp)                 Controller Connection: "LOR Enhanced" serial protocol on FPP controllers' serial ports.
+                                 Models take a Unit ID and Start Pixel instead of a channel; uploading configures FPP's
+                                 LOR Enhanced output. A model longer than the rest of its unit carries on into the next
+                                 unit ID, as a Pixie port set for 340 pixels does
+    -bug (dkulp)                 LOR Optimised: zero values in bank 0 could put a 0x00 inside a command, and All Off
+                                 sent the wrong banks to every unit after the first
     -bug (derwin12)              Display Elements: Show All / Hide All / Hide Unused now stick for timing
                                  tracks; they no longer went hidden again after editing a timing track
     -bug (scott)                 FPP Connect: ESPixelStick uploads could fail with "Response Code: 0" and

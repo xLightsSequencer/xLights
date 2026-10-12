@@ -91,6 +91,7 @@
             <Protocol>DMX-Pro</Protocol>
             <Protocol>GenericSerial</Protocol>
             <Protocol>LOR</Protocol>
+            <Protocol>LOR Enhanced</Protocol>
             <Protocol>Pixelnet-Lynx</Protocol>
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>
@@ -182,6 +183,7 @@
             <Protocol>DMX-Pro</Protocol>
             <Protocol>GenericSerial</Protocol>
             <Protocol>LOR</Protocol>
+            <Protocol>LOR Enhanced</Protocol>
             <Protocol>Pixelnet-Lynx</Protocol>
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>
@@ -206,6 +208,7 @@
             <Protocol>DMX-Pro</Protocol>
             <Protocol>GenericSerial</Protocol>
             <Protocol>LOR</Protocol>
+            <Protocol>LOR Enhanced</Protocol>
             <Protocol>Pixelnet-Lynx</Protocol>
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>

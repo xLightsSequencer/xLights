@@ -5569,9 +5569,21 @@ private struct LayoutEditorPropertiesView: View {
             }
             // Serial-only DMX channel + Speed.
             if (cc["isSerialProtocol"] as? Bool) ?? false {
-                let dmxMax = (cc["dmxChannelMax"] as? NSNumber)?.intValue ?? 512
-                row("DMX Channel") {
-                    ccIntField("cc.dmxChannel", value: cc["dmxChannel"], minV: 1, maxV: Double(dmxMax))
+                if (cc["isLOREnhanced"] as? Bool) ?? false {
+                    // LOR Enhanced: placed by unit ID and start pixel.
+                    let unitMax = (cc["lorUnitIdMax"] as? NSNumber)?.intValue ?? 240
+                    let pixelMax = (cc["lorStartPixelMax"] as? NSNumber)?.intValue ?? 170
+                    row("Unit ID") {
+                        ccIntField("cc.lorUnitId", value: cc["lorUnitId"], minV: 1, maxV: Double(unitMax))
+                    }
+                    row("Start Pixel") {
+                        ccIntField("cc.lorStartPixel", value: cc["lorStartPixel"], minV: 1, maxV: Double(pixelMax))
+                    }
+                } else {
+                    let dmxMax = (cc["dmxChannelMax"] as? NSNumber)?.intValue ?? 512
+                    row("DMX Channel") {
+                        ccIntField("cc.dmxChannel", value: cc["dmxChannel"], minV: 1, maxV: Double(dmxMax))
+                    }
                 }
                 if let speeds = cc["speedOptions"] as? [String], !speeds.isEmpty {
                     let idx = (cc["speedIndex"] as? NSNumber)?.intValue ?? 0

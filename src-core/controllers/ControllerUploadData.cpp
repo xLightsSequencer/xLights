@@ -1121,7 +1121,17 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
                 }
             }
         }
-        if (Channels() > rules->GetMaxSerialPortChannels()) {
+        if (IsLOREnhancedProtocol(_protocol)) {
+            // Each LOR unit ID takes 510 channels of the port, so the port is
+            // not limited to one DMX universe; the unit IDs are.
+            for (const auto& it : _models) {
+                int last = LOREnhancedUnitFromChannel(it->GetDMXChannelOffset() + (int)it->Channels() - 1);
+                if (last > LOR_ENHANCED_MAX_UNIT) {
+                    res += fmt::format("ERR: Model {} on serial port {} runs to LOR unit ID {}, past the last unit ID {}.\n", it->GetName(), _port, last, LOR_ENHANCED_MAX_UNIT);
+                    success = false;
+                }
+            }
+        } else if (Channels() > rules->GetMaxSerialPortChannels()) {
             res += fmt::format("ERR: Serial port {} has {} channels allocated but maximum is {}.\n", _port, (int)Channels(), rules->GetMaxSerialPortChannels());
             success = false;
         }

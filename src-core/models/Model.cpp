@@ -267,6 +267,12 @@ void Model::GetSerialProtocolSpeeds(const std::string& protocol, std::vector<std
         cs.push_back("38400");
         cs.push_back("57600");
         cs.push_back("115200");
+    } else if (IsLOREnhancedProtocol(protocol)) {
+        cs.push_back("19200");
+        cs.push_back("57600");
+        cs.push_back("115200");
+        cs.push_back("500000");
+        cs.push_back("1000000");
     } else if (protocol == "lor" || protocol == "LOR") {
         cs.push_back("19200");
         cs.push_back("57600");
@@ -283,6 +289,10 @@ void Model::GetSerialProtocolSpeeds(const std::string& protocol, std::vector<std
     }
 
     int protocolSpeed = GetControllerProtocolSpeed();
+    if (IsLOREnhancedProtocol(protocol) && std::find(cs.begin(), cs.end(), std::to_string(protocolSpeed)) == cs.end()) {
+        // A model with no LOR Enhanced speed set yet uploads at 1M, so show that.
+        protocolSpeed = 1000000;
+    }
 
     // now work out the index
     int i = 0;
