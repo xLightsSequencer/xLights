@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Display Elements: Show All / Hide All / Hide Unused now stick for timing
+                                 tracks; they no longer went hidden again after editing a timing track
     -bug (scott)                 FPP Connect: ESPixelStick uploads could fail with "Response Code: 0" and
                                  nothing written to the SD card; failed uploads are now retried once as an
                                  uncompressed zip, and the zip is never written in a Zip64 form the
