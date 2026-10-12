@@ -2467,6 +2467,25 @@ void xLightsFrame::ReleaseAudio(AudioManager* audio)
     }
 }
 
+void xLightsFrame::ReleaseAltAudioTrack(int altIndex, bool removing)
+{
+    if (CurrentSeqXmlFile == nullptr || mainSequencer == nullptr) {
+        return;
+    }
+    ReleaseAudio(CurrentSeqXmlFile->GetAltTrackMedia(altIndex));
+    if (!removing) {
+        return;
+    }
+    Waveform* waveform = mainSequencer->PanelWaveForm;
+    int active = waveform->GetActiveAudioTrackIndex();
+    int removed = altIndex + 1;
+    if (active == removed) {
+        waveform->SetActiveAudioTrackIndex(0);
+    } else if (active > removed) {
+        waveform->SetActiveAudioTrackIndex(active - 1);
+    }
+}
+
 const std::string& xLightsFrame::GetHeaderInfo(HEADER_INFO_TYPES type) const
 {
     static const std::string empty;
@@ -3629,6 +3648,14 @@ void xLightsFrame::ShowSequenceSettings()
 
     if (ret_code == NEEDS_RENDER || numThreadsAborted > 0) {
         RenderAll();
+    }
+
+    if (mainSequencer != nullptr && mainSequencer->PanelWaveForm->GetMedia() == nullptr) {
+        AudioManager* playback = GetPlaybackAudio();
+        if (playback != nullptr) {
+            wxString error;
+            mainSequencer->PanelWaveForm->OpenfileMedia(playback, error);
+        }
     }
 
     if (ret_code != wxID_OK)
