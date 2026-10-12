@@ -129,6 +129,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
         }
 
         int GetActiveAudioTrackIndex() const { return _activeAudioTrackIndex; }
+        void SetActiveAudioTrackIndex(int index) { _activeAudioTrackIndex = index; }
 
         Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);

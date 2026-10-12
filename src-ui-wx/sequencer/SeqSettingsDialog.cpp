@@ -2461,6 +2461,9 @@ void SeqSettingsDialog::OnButton_AudioRemoveClick(wxCommandEvent& /*event*/)
     long sel = ListCtrl_AudioTracks->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if (sel <= 0) return; // row 0 is Main, not removable
     int idx = (int)sel - 1;
+    if (xLightsParent != nullptr) {
+        xLightsParent->ReleaseAltAudioTrack(idx, true);
+    }
     xml_file->RemoveAltTrack(idx);
     PopulateAudioTrackList();
 }
@@ -2483,6 +2486,9 @@ void SeqSettingsDialog::OnButton_AudioChangeFileClick(wxCommandEvent& /*event*/)
     wxString newPath = dlg.GetPath();
     ObtainAccessToURL(newPath.ToStdString());
     std::string showDir = xLightsParent ? xLightsParent->GetShowDirectory() : std::string{};
+    if (xLightsParent != nullptr) {
+        xLightsParent->ReleaseAltAudioTrack(idx, false);
+    }
     xml_file->SetAltTrackPath(showDir, idx, newPath.ToStdString());
     PopulateAudioTrackList();
 }
