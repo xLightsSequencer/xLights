@@ -163,6 +163,7 @@ public:
     void OnPreviewLeftUp(wxMouseEvent& event);
     void OnPreviewMouseMove(wxMouseEvent& event);
     void OnPreviewMouseLeave(wxMouseEvent& event);
+    void OnPreviewCaptureLost(wxMouseCaptureLostEvent& event);
     void OnPreviewLeftDClick(wxMouseEvent& event);
 
     // UI controls (same names as SubModelsDialog for easy diff)

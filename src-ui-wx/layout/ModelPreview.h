@@ -247,6 +247,7 @@ private:
     //void mouseReleased(wxMouseEvent& event);
 	void rightClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
+    void mouseCaptureLost(wxMouseCaptureLostEvent& event);
 
     void OnZoomGesture(wxZoomGestureEvent& event);
 

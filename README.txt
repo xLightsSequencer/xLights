@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Model previews (e.g. the Submodels node layout) could get stuck panning with
+                                 no mouse button held after focus or window changes mid-drag
     -bug (scott)                 FPP Connect: ESPixelStick uploads could fail with "Response Code: 0" and
                                  nothing written to the SD card; failed uploads are now retried once as an
                                  uncompressed zip, and the zip is never written in a Zip64 form the
