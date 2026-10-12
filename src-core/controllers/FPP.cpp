@@ -2725,9 +2725,9 @@ static bool UpdateJSONValue(nlohmann::json& v, const std::string& key, const std
 }
 
 // FPP's LOR Enhanced output takes a list of units, each a run of pixels on one
-// LOR unit ID. A model's DMX channel on the port gives its unit ID and start
-// pixel (see LOREnhancedChannel); one longer than the rest of its unit carries
-// on into the next unit ID. fppStartAddr is 1-based within the output.
+// LOR unit ID, laid out by Model::GetLOREnhancedRuns.  A model's place in the
+// port's channel numbering gives its first unit ID and start pixel (see
+// LOREnhancedChannel).  fppStartAddr is 1-based within the output.
 static void AddLOREnhancedUnits(nlohmann::json& port, UDControllerPort* vport, int32_t portStart, int& channelCount) {
     int speed = 1000000;
     for (const auto& m : vport->GetModels()) {
@@ -2740,23 +2740,20 @@ static void AddLOREnhancedUnits(nlohmann::json& port, UDControllerPort* vport, i
     port["speed"] = speed;
     port["units"] = nlohmann::json::array();
     for (const auto& m : vport->GetModels()) {
-        int unit = LOREnhancedUnitFromChannel(m->GetDMXChannelOffset());
-        int pixel = LOREnhancedPixelFromChannel(m->GetDMXChannelOffset());
-        int fppStart = m->GetStartChannel() - portStart + 1;
-        int remaining = (m->Channels() + 2) / 3;
-        while (remaining > 0 && unit <= LOR_ENHANCED_MAX_UNIT) {
-            int take = std::min(remaining, LOR_ENHANCED_PIXELS_PER_UNIT + 1 - pixel);
+        // the channel numbering, not the stored DMX channel, which a model chained
+        // on from the one before leaves unset
+        int const modelStart = m->GetStartChannel() - portStart + 1;
+        for (const auto& run : m->GetModel()->GetLOREnhancedRuns(modelStart)) {
+            if (run.unit > LOR_ENHANCED_MAX_UNIT) {
+                break;
+            }
             nlohmann::json u;
-            u["unitId"] = unit;
-            u["numOfPixels"] = take;
-            u["lorStartPixel"] = pixel;
-            u["fppStartAddr"] = fppStart;
+            u["unitId"] = run.unit;
+            u["numOfPixels"] = run.pixels;
+            u["lorStartPixel"] = run.startPixel;
+            u["fppStartAddr"] = modelStart + run.modelPixel * 3;
             port["units"].push_back(u);
-            channelCount = std::max(channelCount, fppStart - 1 + take * 3);
-            fppStart += take * 3;
-            remaining -= take;
-            ++unit;
-            pixel = 1;
+            channelCount = std::max(channelCount, modelStart - 1 + (run.modelPixel + run.pixels) * 3);
         }
     }
 }

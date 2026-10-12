@@ -76,6 +76,19 @@ void ControllerConnection::SetProtocol(const std::string& protocol)
     _model->IncrementChangeCount();
 }
 
+void ControllerConnection::SetLORPortPixels(int pixels) {
+    pixels = pixels == 340 ? 340 : 170;
+    if (pixels == _lorPortPixels) return;
+    _lorPortPixels = pixels;
+    // moves where the model's later strings land, and so the models after it
+    _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                        OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                        OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ControllerConnection::SetLORPortPixels");
+    _model->IncrementChangeCount();
+}
+
 void ControllerConnection::SetSerialProtocolSpeed(int speed) {
     if (speed == _protocolSpeed) return;
     if (speed != 0) {

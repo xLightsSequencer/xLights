@@ -66,6 +66,9 @@ public:
     [[nodiscard]] int GetReverse() const { return _reverse; }
     [[nodiscard]] int GetZigZag() const { return _zigzag; }
     [[nodiscard]] int GetDMXChannel() const { return _dmxChannel; }
+    // Pixels per port of the LOR Enhanced controller the model is on: 170, or 340 where the
+    // port is set for 340 pixels and so answers to two unit IDs.
+    [[nodiscard]] int GetLORPortPixels() const { return _lorPortPixels; }
 
     [[nodiscard]] bool IsValid() const;
     [[nodiscard]] bool IsPixelProtocol() const;
@@ -92,6 +95,7 @@ public:
     void SetReverse(int reverse);
     void SetZigZag(int zigzag);
     void SetDMXChannel(int ch);
+    void SetLORPortPixels(int pixels);
 
     // Smart Remote Functions
     void GetPortSR(int string, int& outport, int& outsr) const;
@@ -133,6 +137,7 @@ private:
     int _reverse {CtrlDefs::DEFAULT_REVERSE};
     int _zigzag {CtrlDefs::DEFAULT_ZIGZAG};
     int _dmxChannel {1};
+    int _lorPortPixels {170};
     bool _brightnessIsSet {false};
 
     int _smartRemote {0};

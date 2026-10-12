@@ -4604,6 +4604,18 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
             out[@"lorUnitIdMax"]     = @(LOR_ENHANCED_MAX_UNIT);
             out[@"lorStartPixel"]    = @(LOREnhancedPixelFromChannel(m->GetControllerDMXChannel()));
             out[@"lorStartPixelMax"] = @(LOR_ENHANCED_PIXELS_PER_UNIT);
+            out[@"lor340"]           = @(m->GetControllerLORPortPixels() == 340 ? YES : NO);
+            if (m->GetNumPhysicalStrings() > 1) {
+                // the unit IDs each string lands on, as the upload configures them
+                std::string ids;
+                int string = -1;
+                for (const auto& r : m->GetLOREnhancedRuns(m->GetControllerDMXChannel())) {
+                    ids += r.string == string ? "+" : (ids.empty() ? "" : ", ");
+                    ids += std::to_string(r.unit);
+                    string = r.string;
+                }
+                out[@"lorStringUnits"] = [NSString stringWithUTF8String:ids.c_str()];
+            }
         }
         if (protoIdx >= 0 && protoIdx < (int)cp.size() &&
             (cp[protoIdx] != "dmx" || protocol.find("DMX") != std::string::npos)) {
@@ -5463,6 +5475,10 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
         int ch = keyStr == "cc.lorUnitId" ? LOREnhancedChannel((int)v, LOREnhancedPixelFromChannel(cur))
                                           : LOREnhancedChannel(LOREnhancedUnitFromChannel(cur), (int)v);
         if (ch != cur) { m->SetControllerDMXChannel(ch); changed = YES; }
+    } else if (keyStr == "cc.lor340") {
+        BOOL v = asBool(&typeOk); if (!typeOk) return NO;
+        int px = v ? 340 : 170;
+        if (px != m->GetControllerLORPortPixels()) { m->SetControllerLORPortPixels(px); changed = YES; }
     } else if (keyStr == "cc.speedIndex") {
         double v = asDouble(&typeOk); if (!typeOk) return NO;
         std::vector<std::string> cp; int protoIdx = -1;
@@ -19192,13 +19208,13 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         // forward when it would overlap. Matches the desktop's
         // rhs=true serial branch.
         if (afterModel) {
-            int nextCh = afterModel->GetControllerDMXChannel() + afterModel->GetChanCount();
+            int nextCh = afterModel->GetControllerDMXChannel() + afterModel->GetSerialChannelSpan(afterModel->GetControllerDMXChannel());
             m->SetControllerDMXChannel(nextCh);
             m->SetModelChain("");
             Model* prev = m;
             Model* nxt = afterNext;
             while (nxt) {
-                int needCh = prev->GetControllerDMXChannel() + prev->GetChanCount();
+                int needCh = prev->GetControllerDMXChannel() + prev->GetSerialChannelSpan(prev->GetControllerDMXChannel());
                 if (nxt->GetControllerDMXChannel() < needCh) {
                     nxt->SetControllerDMXChannel(needCh);
                 }

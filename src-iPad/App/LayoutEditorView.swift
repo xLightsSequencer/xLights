@@ -5579,6 +5579,19 @@ private struct LayoutEditorPropertiesView: View {
                     row("Start Pixel") {
                         ccIntField("cc.lorStartPixel", value: cc["lorStartPixel"], minV: 1, maxV: Double(pixelMax))
                     }
+                    let lor340 = (cc["lor340"] as? Bool) ?? false
+                    row("340 Pixels Per Port") {
+                        Toggle("", isOn: Binding(
+                            get: { lor340 },
+                            set: { commit("cc.lor340", NSNumber(value: $0)) }
+                        ))
+                        .labelsHidden().controlSize(.mini)
+                    }
+                    if let units = cc["lorStringUnits"] as? String {
+                        row("String Unit IDs") {
+                            Text(units).foregroundStyle(.secondary)
+                        }
+                    }
                 } else {
                     let dmxMax = (cc["dmxChannelMax"] as? NSNumber)?.intValue ?? 512
                     row("DMX Channel") {

@@ -587,6 +587,9 @@ void BaseSerializingVisitor::Visit(const ControllerConnection& cc) {
     if (cc.IsSerialProtocol()) {
         attrs.Add(XmlNodeKeys::ChannelAttribute,       std::to_string(cc.GetDMXChannel()));
         attrs.Add(XmlNodeKeys::ProtocolSpeedAttribute, std::to_string(cc.GetProtocolSpeed()));
+        if (cc.GetLORPortPixels() != 170) {
+            attrs.Add(XmlNodeKeys::LORPortPixelsAttribute, std::to_string(cc.GetLORPortPixels()));
+        }
     }
     if (cc.GetSmartRemote() && cc.IsPropertySet(CtrlProps::USE_SMART_REMOTE)) {
         attrs.Add(XmlNodeKeys::SmartRemoteAttribute,     std::to_string(cc.GetSmartRemote()));

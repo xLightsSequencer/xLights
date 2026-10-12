@@ -14,8 +14,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (dkulp)                 Controller Connection: "LOR Enhanced" serial protocol on FPP controllers' serial ports.
                                  Models take a Unit ID and Start Pixel instead of a channel; uploading configures FPP's
-                                 LOR Enhanced output. A model longer than the rest of its unit carries on into the next
-                                 unit ID, as a Pixie port set for 340 pixels does
+                                 LOR Enhanced output. A string longer than the rest of its unit carries on into the next
+                                 unit ID, and each further string of a model starts on the next port's unit ID, two IDs
+                                 on with "340 Pixels Per Port"; the check flags two models on the same pixels of a unit
     -enh (dkulp)                 FPP string capes and hats: models can go on USB serial adapters plugged into the
                                  controller (ttyUSB0-7, ttyACM0-3) as well as the cape's own serial ports, picked by
                                  name in the model's Port and shown in the visualizer once a model is on one (or via

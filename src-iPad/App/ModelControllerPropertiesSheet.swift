@@ -41,6 +41,8 @@ struct ModelControllerPropertiesSheet: View {
     @State private var isLOREnhanced: Bool = false
     @State private var lorUnitId: Int = 1
     @State private var lorStartPixel: Int = 1
+    @State private var lor340: Bool = false
+    @State private var lorStringUnits: String? = nil
 
     private var showsPixelProps: Bool { portKind == "pixel" }
     private var showsDMXChannel: Bool { portKind == "serial" }
@@ -204,10 +206,21 @@ struct ModelControllerPropertiesSheet: View {
                     commit("cc.lorStartPixel", value: v as NSNumber)
                 }
             }
+            Toggle("340 Pixels Per Port", isOn: $lor340)
+                .onChange(of: lor340) { _, v in
+                    commit("cc.lor340", value: v as NSNumber)
+                }
+            if let units = lorStringUnits {
+                HStack {
+                    Text("String Unit IDs")
+                    Spacer()
+                    Text(units).foregroundStyle(.secondary)
+                }
+            }
         } header: {
             Text("LOR Unit")
         } footer: {
-            Text("The LOR unit ID and pixel the model starts on. A model longer than the rest of its unit carries on into the next unit ID.")
+            Text("The LOR unit ID and pixel the model starts on. A string longer than the rest of its unit carries on into the next unit ID, and each further string starts on the next port's unit ID - two IDs on where the ports are set for 340 pixels.")
                 .font(.caption)
         }
     }
@@ -254,6 +267,8 @@ struct ModelControllerPropertiesSheet: View {
         isLOREnhanced     = d["isLOREnhanced"]    as? Bool ?? false
         lorUnitId         = d["lorUnitId"]        as? Int  ?? 1
         lorStartPixel     = d["lorStartPixel"]    as? Int  ?? 1
+        lor340            = d["lor340"]           as? Bool ?? false
+        lorStringUnits    = d["lorStringUnits"]   as? String
     }
 
     private func commit(_ key: String, value: Any) {

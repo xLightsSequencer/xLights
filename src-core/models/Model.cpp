@@ -4494,6 +4494,53 @@ void Model::SetPixelStyle(PIXEL_STYLE style)
     }
 }
 
+std::vector<Model::LOREnhancedRun> Model::GetLOREnhancedRuns(int dmxChannel) const {
+    std::vector<LOREnhancedRun> runs;
+    int const unitsPerPort = GetControllerLORPortPixels() == 340 ? 2 : 1;
+    int const firstUnit = LOREnhancedUnitFromChannel(dmxChannel);
+    int unit = firstUnit;
+    int pixel = LOREnhancedPixelFromChannel(dmxChannel);
+    int const strings = std::max(1, GetNumPhysicalStrings());
+    int32_t const first = GetStringStartChan(0);
+    int32_t const end = first + (int32_t)GetChanCount();
+    int modelPixel = 0;
+    for (int s = 0; s < strings; s++) {
+        int32_t const start = GetStringStartChan(s);
+        int32_t const next = s + 1 < strings ? GetStringStartChan(s + 1) : end;
+        int remaining = std::max(0, (int)(next - start + 2) / 3);
+        if (s > 0) {
+            // the first unit ID of the next port after the one the last string ended on
+            unit = firstUnit + ((unit - firstUnit) / unitsPerPort + 1) * unitsPerPort;
+            pixel = 1;
+        }
+        while (remaining > 0) {
+            int const take = std::min(remaining, LOR_ENHANCED_PIXELS_PER_UNIT + 1 - pixel);
+            runs.push_back({ unit, pixel, take, modelPixel, s });
+            modelPixel += take;
+            remaining -= take;
+            if (remaining > 0) {
+                ++unit;
+                pixel = 1;
+            } else {
+                pixel += take;
+            }
+        }
+    }
+    return runs;
+}
+
+int Model::GetSerialChannelSpan(int dmxChannel) const {
+    if (!IsLOREnhancedProtocol(GetControllerProtocol())) {
+        return (int)GetChanCount();
+    }
+    auto const runs = GetLOREnhancedRuns(dmxChannel);
+    if (runs.empty()) {
+        return (int)GetChanCount();
+    }
+    auto const& last = runs.back();
+    return LOREnhancedChannel(last.unit, last.startPixel + last.pixels - 1) + 2 - std::max(1, dmxChannel) + 1;
+}
+
 int32_t Model::GetStringStartChan(int x) const
 {
     int ts = GetSmartTs();

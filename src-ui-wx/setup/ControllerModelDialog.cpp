@@ -3395,13 +3395,13 @@ void ControllerModelDialog::FixDMXChannels()
                 next = it->GetModel()->GetControllerDMXChannel();
                 if (next == 0)
                     next = 1;
-                next += it->GetModel()->GetChanCount();
+                next += it->GetModel()->GetSerialChannelSpan(next);
             } else {
                 if (it->GetModel()->GetControllerDMXChannel() < next) {
                     changed = true;
                     it->GetModel()->SetControllerDMXChannel(next);
                 }
-                next = it->GetModel()->GetControllerDMXChannel() + it->GetModel()->GetChanCount();
+                next = it->GetModel()->GetControllerDMXChannel() + it->GetModel()->GetSerialChannelSpan(it->GetModel()->GetControllerDMXChannel());
             }
         }
     }
@@ -3518,8 +3518,8 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
                 if (nextch < 1)
                     nextch = 1;
                 if (last != nullptr) {
-                    if (last->GetControllerDMXChannel() + last->GetChanCount() > (size_t)nextch) {
-                        nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                    if (last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel()) > (size_t)nextch) {
+                        nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                     }
                 }
                 if (m->GetControllerDMXChannel() < nextch)
@@ -3527,7 +3527,7 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
                 Model* next = on;
                 last = m;
                 while (next != nullptr) {
-                    nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                    nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                     if (next->GetControllerDMXChannel() < nextch)
                         next->SetControllerDMXChannel(nextch);
                     last = next;
@@ -3549,11 +3549,11 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
                 on->SetModelChain("");
                 if (next != nullptr)
                     next->SetModelChain("");
-                int nextch = on->GetControllerDMXChannel() + on->GetChanCount();
+                int nextch = on->GetControllerDMXChannel() + on->GetSerialChannelSpan(on->GetControllerDMXChannel());
                 m->SetControllerDMXChannel(nextch);
                 Model* last = m;
                 while (next != nullptr) {
-                    nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                    nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                     if (next->GetControllerDMXChannel() < nextch)
                         next->SetControllerDMXChannel(nextch);
                     last = next;
@@ -3691,7 +3691,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                             if (lm != nullptr) {
                                 if (port->GetPortType() == PortCMObject::PORTTYPE::SERIAL) {
                                     m->SetModelChain("");
-                                    int nextch = lm->GetControllerDMXChannel() + lm->GetChanCount();
+                                    int nextch = lm->GetControllerDMXChannel() + lm->GetSerialChannelSpan(lm->GetControllerDMXChannel());
                                     if (m->GetControllerDMXChannel() < nextch)
                                         m->SetControllerDMXChannel(nextch);
                                 } else {
@@ -3726,8 +3726,8 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                             if (nextch < 1)
                                 nextch = 1;
                             if (last != nullptr) {
-                                if (last->GetControllerDMXChannel() + last->GetChanCount() > (size_t)nextch) {
-                                    nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                if (last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel()) > (size_t)nextch) {
+                                    nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                                 }
                             }
                             if (m->GetControllerDMXChannel() < nextch)
@@ -3735,7 +3735,7 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                             Model* next = droppedOn;
                             last = m;
                             while (next != nullptr) {
-                                nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                                 if (next->GetControllerDMXChannel() < nextch)
                                     next->SetControllerDMXChannel(nextch);
                                 last = next;
@@ -3761,11 +3761,11 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                             droppedOn->SetModelChain("");
                             if (next != nullptr)
                                 next->SetModelChain("");
-                            int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetChanCount();
+                            int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetSerialChannelSpan(droppedOn->GetControllerDMXChannel());
                             m->SetControllerDMXChannel(nextch);
                             Model* last = m;
                             while (next != nullptr) {
-                                nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                                 if (next->GetControllerDMXChannel() < nextch)
                                     next->SetControllerDMXChannel(nextch);
                                 last = next;
@@ -4012,7 +4012,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                                 if (last == nullptr) {
                                     // nothing to do
                                 } else {
-                                    int nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                    int nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                                     if (m->GetControllerDMXChannel() < nextch) {
                                         m->SetControllerDMXChannel(nextch);
                                     }
@@ -4055,8 +4055,8 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                                 if (nextch < 1)
                                     nextch = 1;
                                 if (last != nullptr) {
-                                    if (last->GetControllerDMXChannel() + last->GetChanCount() > (size_t)nextch) {
-                                        nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                    if (last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel()) > (size_t)nextch) {
+                                        nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                                     }
                                 }
                                 if (m->GetControllerDMXChannel() < nextch) {
@@ -4067,7 +4067,7 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                                 Model* next = droppedOn;
                                 last = m;
                                 while (next != nullptr) {
-                                    nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                    nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                                     if (next != m && next->GetControllerDMXChannel() < nextch)
                                         next->SetControllerDMXChannel(nextch);
                                     last = next;
@@ -4090,11 +4090,11 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                                     droppedOn->SetModelChain("");
                                     if (next != nullptr)
                                         next->SetModelChain("");
-                                    int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetChanCount();
+                                    int nextch = droppedOn->GetControllerDMXChannel() + droppedOn->GetSerialChannelSpan(droppedOn->GetControllerDMXChannel());
                                     m->SetControllerDMXChannel(nextch);
                                     Model* last = m;
                                     while (next != nullptr) {
-                                        nextch = last->GetControllerDMXChannel() + last->GetChanCount();
+                                        nextch = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
                                         if (next != m && next->GetControllerDMXChannel() < nextch)
                                             next->SetControllerDMXChannel(nextch);
                                         last = next;

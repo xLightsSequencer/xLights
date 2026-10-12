@@ -748,12 +748,28 @@ void ModelPropertyAdapter::AddControllerProperties(wxPropertyGridInterface* grid
         sp->SetAttribute("Min", 1);
         sp->SetAttribute("Max", LOR_ENHANCED_MAX_UNIT);
         sp->SetEditor("SpinCtrl");
-        sp->SetHelpString("The LOR unit ID the model starts on. A model with more pixels than the rest of the unit carries on into the next unit ID, as a Pixie port set for 340 pixels does.");
+        sp->SetHelpString("The LOR unit ID the model starts on. A string with more pixels than the rest of the unit carries on into the next unit ID, and each further string of the model starts on the next port's unit ID.");
         sp = grid->AppendIn(p, new wxUIntProperty("Start Pixel", "ModelControllerConnectionLORStartPixel", LOREnhancedPixelFromChannel(ch)));
         sp->SetAttribute("Min", 1);
         sp->SetAttribute("Max", LOR_ENHANCED_PIXELS_PER_UNIT);
         sp->SetEditor("SpinCtrl");
         sp->SetHelpString("The pixel on the LOR unit where the model starts.");
+        sp = grid->AppendIn(p, new wxBoolProperty("340 Pixels Per Port", "ModelControllerConnectionLOR340", _model.GetControllerLORPortPixels() == 340));
+        sp->SetAttribute("UseCheckbox", true);
+        sp->SetHelpString("The controller's ports are set for 340 pixels, so each port answers to two unit IDs and each string of the model starts two unit IDs after the one before.");
+        if (_model.GetNumPhysicalStrings() > 1) {
+            // the unit IDs each string lands on, as the upload configures them
+            std::string ids;
+            int string = -1;
+            for (const auto& r : _model.GetLOREnhancedRuns(ch)) {
+                ids += r.string == string ? "+" : (ids.empty() ? "" : ", ");
+                ids += std::to_string(r.unit);
+                string = r.string;
+            }
+            sp = grid->AppendIn(p, new wxStringProperty("String Unit IDs", "ModelControllerConnectionLORStringUnits", ids));
+            sp->ChangeFlag(wxPGFlags::ReadOnly, true);
+            sp->SetHelpString("The unit ID each string of the model is on, in string order. A string that carries on into another unit ID shows it after a +.");
+        }
         wxArrayString csWx;
         for (const auto& s : cs) csWx.Add(wxString(s));
         sp = grid->AppendIn(p, new wxEnumProperty("Speed", "ModelControllerConnectionSpeed", csWx, wxArrayInt(), idxs));
@@ -1456,6 +1472,10 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
     } else if (event.GetPropertyName() == "ModelControllerConnectionLORUnitId") {
         _model.SetControllerDMXChannel(LOREnhancedChannel((int)event.GetValue().GetLong(), LOREnhancedPixelFromChannel(_model.GetControllerDMXChannel())));
         _model.AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionLORUnitId");
+        return 0;
+    } else if (event.GetPropertyName() == "ModelControllerConnectionLOR340") {
+        _model.SetControllerLORPortPixels(event.GetValue().GetBool() ? 340 : 170);
+        _model.AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionLOR340");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionLORStartPixel") {
         _model.SetControllerDMXChannel(LOREnhancedChannel(LOREnhancedUnitFromChannel(_model.GetControllerDMXChannel()), (int)event.GetValue().GetLong()));
