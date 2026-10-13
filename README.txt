@@ -21,7 +21,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  controller (ttyUSB0-7, ttyACM0-3) as well as the cape's own serial ports, picked by
                                  name in the model's Port and shown in the visualizer once a model is on one (or via
                                  "Add Serial Adapter Port..."). Uploading turns off a serial output xLights wrote
-                                 earlier once its port has no models; outputs set up on the controller are left alone
+                                 earlier once its port has no models; outputs set up on the controller are left alone.
+                                 An adapter port is written with the adapter's serial/by-id (or by-path) name, taken
+                                 the first time it is uploaded, so a reboot that renumbers the adapters doesn't move it
+                                 (with an FPP that reports its serial devices)
     -bug (dkulp)                 LOR Optimised: zero values in bank 0 could put a 0x00 inside a command, and All Off
                                  sent the wrong banks to every unit after the first
     -bug (derwin12)              Display Elements: Show All / Hide All / Hide Unused now stick for timing
