@@ -11058,6 +11058,18 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             }
         } else if (undoBuffer[sz].type == "All") {
             spdlog::debug("LayoutPanel::DoUndo All");
+            std::string reselect = undoBuffer[sz].model;
+            if (CurrentObjectsPage() == ObjectsPage::Groups && TreeListViewGroups != nullptr) {
+                wxTreeListItems items;
+                TreeListViewGroups->GetSelections(items);
+                for (const auto& item : items) {
+                    Model* m = GetModelFromTreeItem(item);
+                    if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                        reselect = m->GetName();
+                        break;
+                    }
+                }
+            }
             UnSelectAllModels();
 
             // Restore models and groups from serialized XML
@@ -11100,7 +11112,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                           OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                                                          OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, undoBuffer[sz].model);
+                                                          OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, reselect);
         } else if (undoBuffer[sz].type == "ModelName") {
             spdlog::debug("LayoutPanel::DoUndo ModelName");
             std::string origName = undoBuffer[sz].model;
