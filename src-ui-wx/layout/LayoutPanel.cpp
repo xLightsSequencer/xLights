@@ -5468,6 +5468,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
+    _dragUndoTaken = false;
     bool clearedHighlight = false;
     for (auto m : modelPreview->GetModels()) {
         // Orange is a Controllers-page affordance; the visualiser's blue can be
@@ -7458,6 +7459,14 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 touchedSets.erase(ts);
             }
 
+            auto createDragUndoPoint = [this](const std::string& type, const std::string& name) {
+                if (_dragUndoTaken) {
+                    return;
+                }
+                _dragUndoTaken = true;
+                CreateUndoPoint(ModelsSelectedCount() + ViewObjectsSelectedCount() > 1 ? "All" : type, name, "location");
+            };
+
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
                 Model* cur = modelPreview->GetModels()[i];
                 bool isSelected = cur->Selected() || cur->GroupSelected();
@@ -7476,7 +7485,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 }
                 if (isSelected || inTouchedSet) {
                     if(!cur->IsLocked()) {
-                        CreateUndoPoint("SingleModel", cur->name, "location");
+                        createDragUndoPoint("SingleModel", cur->name);
                     }
                     cur->AddOffset(delta_x, delta_y, 0.0);
                     //SetupPropGrid(modelPreview->GetModels()[i]);
@@ -7493,7 +7502,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 if (!IsObjectEditable(vo)) continue;
                 if (!vo->Selected() && !vo->GroupSelected()) continue;
                 if (!vo->GetBaseObjectScreenLocation().IsLocked()) {
-                    CreateUndoPoint("SingleObject", vo->name, "location");
+                    createDragUndoPoint("SingleObject", vo->name);
                 }
                 vo->AddOffset(delta_x, delta_y, 0.0);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");

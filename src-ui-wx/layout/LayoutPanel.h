@@ -584,6 +584,7 @@ class LayoutPanel: public wxPanel
         bool _firstTreeLoadModels = true;
         bool _firstTreeLoadGroups = true;
         bool m_dragging = false;
+        bool _dragUndoTaken = false;
         bool m_creating_bound_rect = false;
         int m_bound_start_x = 0;
         int m_bound_start_y = 0;
