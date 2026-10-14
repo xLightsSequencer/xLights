@@ -59,7 +59,7 @@ class EffectTreeDialog : public wxPanel
 		wxButton* btNewPreset;
 		wxButton* btRename;
 		wxButton* btUpdate;
-		wxScrolledWindow* ScrolledWindow1;
+		wxScrolledWindow* ScrolledWindow1 = nullptr;
 		wxStaticBitmap* StaticBitmapGif;
 		wxStaticText* StaticTextApplyLabel;
 		wxTextCtrl* TextCtrl1;
@@ -174,6 +174,7 @@ class EffectTreeDialog : public wxPanel
         bool PromptForName(wxWindow* parent, wxString& name, bool isNew, bool isGroup);
         void UpdateModeButtons();
         void OnDropEffect(wxCommandEvent& event);
+        void OnSize(wxSizeEvent& event);
 
         EffectPresetManager _basePresetManager;
         wxTreeItemId _baseRootID;
