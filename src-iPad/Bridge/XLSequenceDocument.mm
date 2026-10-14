@@ -20072,11 +20072,8 @@ NSString* fppTypeString(FPP_TYPE t) {
                 }
                 cancelled = target->UploadDisplayMap(virtualDisplayData);
             }
-            // Model uploads still require a full restart per the
-            // desktop comment at line 1185.
-            if (!cancelled && !cancelledFlag) {
-                target->SetRestartFlag(true);
-            }
+            // Each upload sets the restart flag itself, only when it
+            // changed what is on the FPP.
         } else if ([modelsMode isEqualToString:@"local"] && matchedEth) {
             // "Local": just the channels owned by the matched
             // controller. No display map upload here either (desktop
@@ -20090,9 +20087,6 @@ NSString* fppTypeString(FPP_TYPE t) {
                 cancelled = target->UploadSubModelsAndGroups(
                     &mm, matchedEth->GetStartChannel(),
                     matchedEth->GetEndChannel());
-            }
-            if (!cancelled && !cancelledFlag) {
-                target->SetRestartFlag(true);
             }
         }
     }

@@ -703,6 +703,19 @@ int FPP::PostToURL(const std::string& url, const std::string& val, const std::st
     addString(memBuffPost, val);
     return PostToURL(url, memBuffPost, contentType);
 }
+// A read that fails (an older FPP, a file not there yet) counts as different.
+bool FPP::URLContentMatches(const std::string& url, const std::string& content) {
+    std::string current;
+    return GetURLAsString(url, current, false) && current == content;
+}
+// Returns true if the content was sent.
+bool FPP::PostToURLIfChanged(const std::string& url, const std::string& content, const std::string& contentType) {
+    if (URLContentMatches(url, content)) {
+        return false;
+    }
+    PostToURL(url, content, contentType);
+    return true;
+}
 int FPP::PutToURL(const std::string& url, const std::string& val, const std::string& contentType) const {
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
@@ -1544,26 +1557,40 @@ std::vector<std::string> FPP::GetPlaylistItems(const std::string& name) {
     return items;
 }
 
+// fppd only reads the model, submodel and display-map files at startup, so a
+// change to any of them needs a full restart.  Uploading them unchanged must
+// not ask for one: FPP Connect re-sends them on every sequence upload, and a
+// restart mid-show resumes the playlist part-way through.
 bool FPP::UploadModels(const nlohmann::json &models) {
-    PostJSONToURL("/api/models", models);
+    // fppd writes the posted body to model-overlays.json byte for byte
+    std::string const str = models.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
+    if (!URLContentMatches("/api/configfile/model-overlays.json", str)) {
+        PostToURL("/api/models", str, "application/json");
+        SetRestartFlag(true);
+    }
     return false;
 }
 
 bool FPP::UploadDisplayMap(std::map<std::string, std::string> &virtualDisplayData) {
+    bool changed = false;
     if (!IsVersionAtLeast(10, 0)) {
-        PostToURL("/api/configfile/virtualdisplaymap", virtualDisplayData["/api/configfile/virtualdisplaymap"]);
+        changed |= PostToURLIfChanged("/api/configfile/virtualdisplaymap", virtualDisplayData["/api/configfile/virtualdisplaymap"]);
     } else {
         for (auto &ent : virtualDisplayData) {
             if (ent.first == "/api/configfile/virtualdisplaymap"
                 || ent.first == "/api/configfile/virtdisplay.json") {
-                PostToURL(ent.first, ent.second);
+                changed |= PostToURLIfChanged(ent.first, ent.second);
             } else {
-                // file asset that needs uploading
+                // file asset that needs uploading; only the browser reads
+                // these, so they never need a restart
                 std::string fn = ent.second;
                 std::string target = ent.first;
                 uploadFileV7(target, fn, "virtualdisplay_assets");
             }
         }
+    }
+    if (changed) {
+        SetRestartFlag(true);
     }
     return false;
 }
@@ -2111,12 +2138,16 @@ bool FPP::UploadSubModelsAndGroups(ModelManager* allmodels, int32_t startChan, i
     if (!IsVersionAtLeast(10, 0)) {
         return false;
     }
-    // Always sent, even when empty: FPP replaces the file wholesale, which is
-    // what clears out submodels and groups that no longer exist.
+    // Sent even when empty: FPP replaces the file wholesale, which is what
+    // clears out submodels and groups that no longer exist.
+    bool changed = false;
     auto const subs = CreateSubModelMap(allmodels, startChan, endChannel);
-    PostToURL("/api/configfile/xlights-submodels.json", subs.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
+    changed |= PostToURLIfChanged("/api/configfile/xlights-submodels.json", subs.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
     auto const groups = CreateModelGroupMap(allmodels, startChan, endChannel);
-    PostToURL("/api/configfile/xlights-modelgroups.json", groups.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
+    changed |= PostToURLIfChanged("/api/configfile/xlights-modelgroups.json", groups.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
+    if (changed) {
+        SetRestartFlag(true);
+    }
     return false;
 }
 
