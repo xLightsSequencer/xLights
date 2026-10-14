@@ -5468,6 +5468,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
+    _dragUndoTaken = false;
     bool clearedHighlight = false;
     for (auto m : modelPreview->GetModels()) {
         // Orange is a Controllers-page affordance; the visualiser's blue can be
@@ -7458,6 +7459,14 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 touchedSets.erase(ts);
             }
 
+            auto createDragUndoPoint = [this](const std::string& type, const std::string& name) {
+                if (_dragUndoTaken) {
+                    return;
+                }
+                _dragUndoTaken = true;
+                CreateUndoPoint(ModelsSelectedCount() + ViewObjectsSelectedCount() > 1 ? "All" : type, name, "location");
+            };
+
             for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
                 Model* cur = modelPreview->GetModels()[i];
                 bool isSelected = cur->Selected() || cur->GroupSelected();
@@ -7476,7 +7485,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 }
                 if (isSelected || inTouchedSet) {
                     if(!cur->IsLocked()) {
-                        CreateUndoPoint("SingleModel", cur->name, "location");
+                        createDragUndoPoint("SingleModel", cur->name);
                     }
                     cur->AddOffset(delta_x, delta_y, 0.0);
                     //SetupPropGrid(modelPreview->GetModels()[i]);
@@ -7493,7 +7502,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 if (!IsObjectEditable(vo)) continue;
                 if (!vo->Selected() && !vo->GroupSelected()) continue;
                 if (!vo->GetBaseObjectScreenLocation().IsLocked()) {
-                    CreateUndoPoint("SingleObject", vo->name, "location");
+                    createDragUndoPoint("SingleObject", vo->name);
                 }
                 vo->AddOffset(delta_x, delta_y, 0.0);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
@@ -11058,6 +11067,18 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             }
         } else if (undoBuffer[sz].type == "All") {
             spdlog::debug("LayoutPanel::DoUndo All");
+            std::string reselect = undoBuffer[sz].model;
+            if (CurrentObjectsPage() == ObjectsPage::Groups && TreeListViewGroups != nullptr) {
+                wxTreeListItems items;
+                TreeListViewGroups->GetSelections(items);
+                for (const auto& item : items) {
+                    Model* m = GetModelFromTreeItem(item);
+                    if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                        reselect = m->GetName();
+                        break;
+                    }
+                }
+            }
             UnSelectAllModels();
 
             // Restore models and groups from serialized XML
@@ -11100,7 +11121,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                           OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                                                          OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, undoBuffer[sz].model);
+                                                          OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, reselect);
         } else if (undoBuffer[sz].type == "ModelName") {
             spdlog::debug("LayoutPanel::DoUndo ModelName");
             std::string origName = undoBuffer[sz].model;

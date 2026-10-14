@@ -75,6 +75,7 @@
         <fppStringFileName>co-bbbStrings</fppStringFileName>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringCapeTTYs" Base="FPP:BaseFPPSettings">
+        <SupportsExtraSerialPorts/>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <MaxPixelPortChannels>4800</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
@@ -91,6 +92,7 @@
             <Protocol>DMX-Pro</Protocol>
             <Protocol>GenericSerial</Protocol>
             <Protocol>LOR</Protocol>
+            <Protocol>LOR Enhanced</Protocol>
             <Protocol>Pixelnet-Lynx</Protocol>
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>
@@ -169,6 +171,7 @@
         </PixelProtocolGroups>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringRPIWS281XPiHat" Base="FPP:BaseFPPSettings">
+        <SupportsExtraSerialPorts/>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <MaxPixelPortChannels>4200</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
@@ -182,6 +185,7 @@
             <Protocol>DMX-Pro</Protocol>
             <Protocol>GenericSerial</Protocol>
             <Protocol>LOR</Protocol>
+            <Protocol>LOR Enhanced</Protocol>
             <Protocol>Pixelnet-Lynx</Protocol>
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>
@@ -190,6 +194,7 @@
         <fppStringDriverType>RPIWS281X</fppStringDriverType>
     </AbstractVariant>
     <AbstractVariant Name="FPPStringDPIPiHat" Base="FPP:BaseFPPSettings">
+        <SupportsExtraSerialPorts/>
         <MaxSerialPortChannels>512</MaxSerialPortChannels>
         <MaxPixelPortChannels>4200</MaxPixelPortChannels>
         <SupportsVirtualStrings/>
@@ -206,6 +211,7 @@
             <Protocol>DMX-Pro</Protocol>
             <Protocol>GenericSerial</Protocol>
             <Protocol>LOR</Protocol>
+            <Protocol>LOR Enhanced</Protocol>
             <Protocol>Pixelnet-Lynx</Protocol>
             <Protocol>Pixelnet-Open</Protocol>
             <Protocol>Renard</Protocol>

@@ -634,26 +634,45 @@ void ModelPropertyAdapter::AddControllerProperties(wxPropertyGridInterface* grid
 
     wxPGProperty* p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
 
-    wxPGProperty* sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", _model.GetControllerPort(1)));
-    sp->SetAttribute("Min", 0);
-    if (caps == nullptr || protocol == "") {
-        sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
-    } else {
-        if (_model.IsSerialProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxSerialPort());
-        } else if (_model.IsPixelProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxPixelPort());
-        } else if (_model.IsLEDPanelMatrixProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxLEDPanelMatrixPort());
-        } else if (_model.IsVirtualMatrixProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxVirtualMatrixPort());
-        } else if (_model.IsPWMProtocol()) {
-            sp->SetAttribute("Max", caps->GetMaxPWMPort());
-        } else {
-            sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
+    wxPGProperty* sp = nullptr;
+    if (caps != nullptr && protocol != "" && _model.IsSerialProtocol() && caps->SupportsExtraSerialPorts()) {
+        // The controller's own ports and the adapters it can drive, by name: the adapters'
+        // port numbers mean nothing to a user.
+        int const port = _model.GetControllerPort(1);
+        wxPGChoices choices;
+        choices.Add("Not Set", 0);
+        for (int i = 1; i <= caps->GetMaxSerialPort(); i++) {
+            choices.Add(caps->GetSerialPortLabel(i), i);
         }
+        for (int i : caps->GetExtraSerialPorts()) {
+            choices.Add(caps->GetSerialPortLabel(i), i);
+        }
+        if (choices.Index(port) == wxNOT_FOUND) {
+            choices.Add(wxString::Format("Serial Port %d", port), port);
+        }
+        sp = grid->AppendIn(p, new wxEnumProperty("Port", "ModelControllerConnectionPort", choices, port));
+    } else {
+        sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", _model.GetControllerPort(1)));
+        sp->SetAttribute("Min", 0);
+        if (caps == nullptr || protocol == "") {
+            sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
+        } else {
+            if (_model.IsSerialProtocol()) {
+                sp->SetAttribute("Max", caps->GetMaxSerialPort());
+            } else if (_model.IsPixelProtocol()) {
+                sp->SetAttribute("Max", caps->GetMaxPixelPort());
+            } else if (_model.IsLEDPanelMatrixProtocol()) {
+                sp->SetAttribute("Max", caps->GetMaxLEDPanelMatrixPort());
+            } else if (_model.IsVirtualMatrixProtocol()) {
+                sp->SetAttribute("Max", caps->GetMaxVirtualMatrixPort());
+            } else if (_model.IsPWMProtocol()) {
+                sp->SetAttribute("Max", caps->GetMaxPWMPort());
+            } else {
+                sp->SetAttribute("Max", MOST_CONTROLLER_PORTS_WE_EXPECT);
+            }
+        }
+        sp->SetEditor("SpinCtrl");
     }
-    sp->SetEditor("SpinCtrl");
 
     std::vector<std::string> cp;
     int idx = -1;
@@ -722,7 +741,39 @@ void ModelPropertyAdapter::AddControllerProperties(wxPropertyGridInterface* grid
         }
     }
 
-    if (_model.IsSerialProtocol()) {
+    if (_model.IsSerialProtocol() && IsLOREnhancedProtocol(protocol)) {
+        // Stored as the DMX channel: each LOR unit ID takes 510 channels of the port.
+        int ch = _model.GetControllerDMXChannel();
+        sp = grid->AppendIn(p, new wxUIntProperty("Unit ID", "ModelControllerConnectionLORUnitId", LOREnhancedUnitFromChannel(ch)));
+        sp->SetAttribute("Min", 1);
+        sp->SetAttribute("Max", LOR_ENHANCED_MAX_UNIT);
+        sp->SetEditor("SpinCtrl");
+        sp->SetHelpString("The LOR unit ID the model starts on. A string with more pixels than the rest of the unit carries on into the next unit ID, and each further string of the model starts on the next port's unit ID.");
+        sp = grid->AppendIn(p, new wxUIntProperty("Start Pixel", "ModelControllerConnectionLORStartPixel", LOREnhancedPixelFromChannel(ch)));
+        sp->SetAttribute("Min", 1);
+        sp->SetAttribute("Max", LOR_ENHANCED_PIXELS_PER_UNIT);
+        sp->SetEditor("SpinCtrl");
+        sp->SetHelpString("The pixel on the LOR unit where the model starts.");
+        sp = grid->AppendIn(p, new wxBoolProperty("340 Pixels Per Port", "ModelControllerConnectionLOR340", _model.GetControllerLORPortPixels() == 340));
+        sp->SetAttribute("UseCheckbox", true);
+        sp->SetHelpString("The controller's ports are set for 340 pixels, so each port answers to two unit IDs and each string of the model starts two unit IDs after the one before.");
+        if (_model.GetNumPhysicalStrings() > 1) {
+            // the unit IDs each string lands on, as the upload configures them
+            std::string ids;
+            int string = -1;
+            for (const auto& r : _model.GetLOREnhancedRuns(ch)) {
+                ids += r.string == string ? "+" : (ids.empty() ? "" : ", ");
+                ids += std::to_string(r.unit);
+                string = r.string;
+            }
+            sp = grid->AppendIn(p, new wxStringProperty("String Unit IDs", "ModelControllerConnectionLORStringUnits", ids));
+            sp->ChangeFlag(wxPGFlags::ReadOnly, true);
+            sp->SetHelpString("The unit ID each string of the model is on, in string order. A string that carries on into another unit ID shows it after a +.");
+        }
+        wxArrayString csWx;
+        for (const auto& s : cs) csWx.Add(wxString(s));
+        sp = grid->AppendIn(p, new wxEnumProperty("Speed", "ModelControllerConnectionSpeed", csWx, wxArrayInt(), idxs));
+    } else if (_model.IsSerialProtocol()) {
         sp = grid->AppendIn(p, new wxUIntProperty(protocol + " Channel", "ModelControllerConnectionDMXChannel", _model.GetControllerDMXChannel()));
         sp->SetAttribute("Min", 1);
         if (caps == nullptr) {
@@ -1408,6 +1459,7 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         if (
             (IsSerialProtocol(newProtocol) && IsPixelProtocol(oldProtocol)) ||
             (IsSerialProtocol(oldProtocol) && IsPixelProtocol(newProtocol)) ||
+            (IsLOREnhancedProtocol(oldProtocol) != IsLOREnhancedProtocol(newProtocol)) ||
             (oldProtocol == "" && newProtocol != "") ||
             (newProtocol == "" && oldProtocol != "")) {
             _model.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelControllerConnectionProtocol");
@@ -1416,6 +1468,18 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionDMXChannel") {
         _model.SetControllerDMXChannel((int)event.GetValue().GetLong());
+        return 0;
+    } else if (event.GetPropertyName() == "ModelControllerConnectionLORUnitId") {
+        _model.SetControllerDMXChannel(LOREnhancedChannel((int)event.GetValue().GetLong(), LOREnhancedPixelFromChannel(_model.GetControllerDMXChannel())));
+        _model.AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionLORUnitId");
+        return 0;
+    } else if (event.GetPropertyName() == "ModelControllerConnectionLOR340") {
+        _model.SetControllerLORPortPixels(event.GetValue().GetBool() ? 340 : 170);
+        _model.AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionLOR340");
+        return 0;
+    } else if (event.GetPropertyName() == "ModelControllerConnectionLORStartPixel") {
+        _model.SetControllerDMXChannel(LOREnhancedChannel(LOREnhancedUnitFromChannel(_model.GetControllerDMXChannel()), (int)event.GetValue().GetLong()));
+        _model.AddASAPWork(OutputModelManager::WORK_CONTROLLER_CONFIG_CHANGE, "Model::OnPropertyGridChange::ModelControllerConnectionLORStartPixel");
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness") {
         wxPGProperty* prop = grid->GetFirstChild(event.GetProperty());

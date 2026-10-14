@@ -1446,9 +1446,8 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     cancelled |= inst->UploadModels(memoryMaps);
                     cancelled |= inst->UploadSubModelsAndGroups(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
+                    // each of these sets the restart flag if it changed anything
                     cancelled |= inst->UploadDisplayMap(virtualDisplayData);
-                    // model uploads currently still require a full restart
-                    inst->SetRestartFlag(true);
                 } else if (modelsMode[row] == 2) {
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
@@ -1456,7 +1455,6 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         cancelled |= inst->UploadModels(memoryMaps);
                         cancelled |= inst->UploadSubModelsAndGroups(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                         // cancelled |= inst->UploadDisplayMap(displayMap);
-                        inst->SetRestartFlag(true);
                     }
                 }
                 //if restart flag is now set, restart and recheck range

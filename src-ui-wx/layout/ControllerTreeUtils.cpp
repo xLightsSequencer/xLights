@@ -19,6 +19,7 @@
 
 #include "xLightsMain.h"
 #include "layout/LayoutUtils.h"
+#include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
 #include "models/Model.h"
 #include "outputs/Controller.h"
@@ -238,7 +239,9 @@ void PopulateControllerPorts(wxTreeListCtrl* tree, wxTreeListItem ctrlItem, xLig
     for (int p = 1; p <= cud.GetMaxSerialPort(); p++) {
         if (!cud.HasSerialPort(p)) continue;
         auto* port = cud.GetControllerSerialPort(p);
-        addPort(port, wxString::Format("Serial Port %d (%s)", p, port->GetProtocol()));
+        auto* caps = controller->GetControllerCaps();
+        wxString const name = caps != nullptr ? wxString(caps->GetSerialPortLabel(p)) : wxString::Format("Serial Port %d", p);
+        addPort(port, wxString::Format("%s (%s)", name, port->GetProtocol()));
     }
     for (int p = 1; p <= cud.GetMaxPWMPort(); p++) {
         if (!cud.HasPWMPort(p)) continue;

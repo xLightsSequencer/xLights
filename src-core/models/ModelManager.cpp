@@ -1085,8 +1085,13 @@ bool ModelManager::ReworkStartChannel() const
                 }
             } else {
                 // dmx protocols work differently ... they can be chained or by specified dmx channel
+                // A LOR Enhanced port numbers its channels by unit ID, so they run well past 512.
+                int maxdmx = 512;
+                for (const auto* m : itcc->second) {
+                    maxdmx = std::max(maxdmx, m->GetControllerDMXChannel());
+                }
                 int dmx = 1;
-                while ((*itcc).second.size() > 0 && dmx <= 512) {
+                while ((*itcc).second.size() > 0 && dmx <= maxdmx) {
                     for (auto itms = itcc->second.begin(); itms != itcc->second.end(); ++itms) {
                         if (((*itms)->GetModelChain() == "Beginning" || (*itms)->GetModelChain() == "") && (*itms)->GetControllerDMXChannel() == dmx) {
                             sortedmodels.push_back(*itms);
@@ -1179,7 +1184,7 @@ bool ModelManager::ReworkStartChannel() const
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
                         last = itm->GetName();
-                        ch += itm->GetChanCount();
+                        ch += itm->GetSerialChannelSpan(ch - chstart + 1);
                         if (osc != itm->ModelStartChannel) {
                             outputsChanged = true;
                         }
@@ -1191,7 +1196,7 @@ bool ModelManager::ReworkStartChannel() const
                         itm->SetStartChannel(sc);
                         itm->ClearIndividualStartChannels();
                         last = itm->GetName();
-                        ch = std::max(ch, (int32_t)msc + (int32_t)itm->GetChanCount());
+                        ch = std::max(ch, (int32_t)msc + (int32_t)itm->GetSerialChannelSpan(itm->GetControllerDMXChannel()));
                         if (osc != itm->ModelStartChannel) {
                             outputsChanged = true;
                         }

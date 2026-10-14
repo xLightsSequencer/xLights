@@ -5569,9 +5569,34 @@ private struct LayoutEditorPropertiesView: View {
             }
             // Serial-only DMX channel + Speed.
             if (cc["isSerialProtocol"] as? Bool) ?? false {
-                let dmxMax = (cc["dmxChannelMax"] as? NSNumber)?.intValue ?? 512
-                row("DMX Channel") {
-                    ccIntField("cc.dmxChannel", value: cc["dmxChannel"], minV: 1, maxV: Double(dmxMax))
+                if (cc["isLOREnhanced"] as? Bool) ?? false {
+                    // LOR Enhanced: placed by unit ID and start pixel.
+                    let unitMax = (cc["lorUnitIdMax"] as? NSNumber)?.intValue ?? 240
+                    let pixelMax = (cc["lorStartPixelMax"] as? NSNumber)?.intValue ?? 170
+                    row("Unit ID") {
+                        ccIntField("cc.lorUnitId", value: cc["lorUnitId"], minV: 1, maxV: Double(unitMax))
+                    }
+                    row("Start Pixel") {
+                        ccIntField("cc.lorStartPixel", value: cc["lorStartPixel"], minV: 1, maxV: Double(pixelMax))
+                    }
+                    let lor340 = (cc["lor340"] as? Bool) ?? false
+                    row("340 Pixels Per Port") {
+                        Toggle("", isOn: Binding(
+                            get: { lor340 },
+                            set: { commit("cc.lor340", NSNumber(value: $0)) }
+                        ))
+                        .labelsHidden().controlSize(.mini)
+                    }
+                    if let units = cc["lorStringUnits"] as? String {
+                        row("String Unit IDs") {
+                            Text(units).foregroundStyle(.secondary)
+                        }
+                    }
+                } else {
+                    let dmxMax = (cc["dmxChannelMax"] as? NSNumber)?.intValue ?? 512
+                    row("DMX Channel") {
+                        ccIntField("cc.dmxChannel", value: cc["dmxChannel"], minV: 1, maxV: Double(dmxMax))
+                    }
                 }
                 if let speeds = cc["speedOptions"] as? [String], !speeds.isEmpty {
                     let idx = (cc["speedIndex"] as? NSNumber)?.intValue ?? 0
@@ -5632,8 +5657,38 @@ private struct LayoutEditorPropertiesView: View {
     @ViewBuilder
     private func ccPortRow(_ cc: [String: Any]) -> some View {
         let maxV = (cc["portMax"] as? NSNumber)?.intValue ?? 128
-        row("Port") {
-            ccIntField("cc.port", value: cc["port"], minV: 0, maxV: Double(maxV))
+        if let opts = cc["portOptions"] as? [[String: Any]], !opts.isEmpty {
+            // Serial ports picked by name: the controller's own and the adapters it can drive.
+            let cur = (cc["port"] as? NSNumber)?.intValue ?? 0
+            let curLabel = opts.first { ($0["value"] as? NSNumber)?.intValue == cur }?["label"] as? String
+            row("Port") {
+                Menu {
+                    ForEach(Array(opts.enumerated()), id: \.offset) { _, opt in
+                        let v = (opt["value"] as? NSNumber)?.intValue ?? 0
+                        Button {
+                            commit("cc.port", NSNumber(value: v))
+                        } label: {
+                            HStack {
+                                Text(opt["label"] as? String ?? "")
+                                if v == cur {
+                                    Spacer()
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    Text(curLabel ?? "—")
+                        .truncationMode(.middle)
+                        .frame(maxWidth: 160, alignment: .trailing)
+                }
+                .menuStyle(.button)
+                .controlSize(.mini)
+            }
+        } else {
+            row("Port") {
+                ccIntField("cc.port", value: cc["port"], minV: 0, maxV: Double(maxV))
+            }
         }
     }
 

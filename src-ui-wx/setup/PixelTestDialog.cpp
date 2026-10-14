@@ -923,7 +923,13 @@ public:
                 }
                 for (auto p = 0; p < caps->GetMaxSerialPort(); p++) {
                     auto pud = cud->GetControllerSerialPort(p + 1);
-                    _ports.push_back(new CPR_PortTestItem(wxString::Format("Serial Port %d", p + 1), pud, modelManager, _channelsAvailable));
+                    _ports.push_back(new CPR_PortTestItem(caps->GetSerialPortLabel(p + 1), pud, modelManager, _channelsAvailable));
+                }
+                // adapters plugged into the controller, where models are on them
+                for (int p : caps->GetExtraSerialPorts()) {
+                    if (cud->HasSerialPort(p) && cud->GetControllerSerialPort(p)->GetModelCount() > 0) {
+                        _ports.push_back(new CPR_PortTestItem(caps->GetSerialPortLabel(p), cud->GetControllerSerialPort(p), modelManager, _channelsAvailable));
+                    }
                 }
                 _pixelPorts = caps->GetMaxPixelPort();
                 _serialPorts = caps->GetMaxSerialPort();

@@ -259,6 +259,7 @@ void XmlDeserializingModelFactory::DeserializeControllerConnection(Model* model,
     cc.SetDMXChannel(ccNode.attribute(XmlNodeKeys::ChannelAttribute).as_int(1));
     cc.SetProtocol(ccNode.attribute(XmlNodeKeys::ProtocolAttribute).as_string(""));
     cc.SetSerialProtocolSpeed(ccNode.attribute(XmlNodeKeys::ProtocolSpeedAttribute).as_int(CtrlDefs::DEFAULT_PROTOCOL_SPEED));
+    cc.SetLORPortPixels(ccNode.attribute(XmlNodeKeys::LORPortPixelsAttribute).as_int(170));
     cc.SetCtrlPort(ccNode.attribute(XmlNodeKeys::PortAttribute).as_int(CtrlDefs::DEFAULT_PORT));
     cc.SetBrightness(ReadIntAttrWithLegacyFallback(ccNode, XmlNodeKeys::BrightnessAttribute, XmlNodeKeys::DCBrightnessAttribute, CtrlDefs::DEFAULT_BRIGHTNESS));
     cc.SetStartNulls(ccNode.attribute(XmlNodeKeys::StartNullAttribute).as_int(CtrlDefs::DEFAULT_NULLS));

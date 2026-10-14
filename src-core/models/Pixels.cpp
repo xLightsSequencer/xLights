@@ -172,6 +172,7 @@ const static std::vector<std::vector<std::string>> __equivalentSerial = {
     { "dmx-open", "opendmx" },
     { "dmx-pro" },
     { "lor" },
+    { "lor enhanced" },
     { "renard" },
     { "genericserial" },
     { "pixelnet" },
@@ -351,6 +352,12 @@ bool IsSerialProtocol(const std::string& p1)
                std::transform(p.begin(), p.end(), p.begin(), ::tolower);
                return ser == p;
            }) != end(st);
+}
+bool IsLOREnhancedProtocol(const std::string& p1)
+{
+    std::string p = p1;
+    std::transform(p.begin(), p.end(), p.begin(), ::tolower);
+    return p == "lor enhanced";
 }
 bool IsMatrixProtocol(const std::string& p1)
 {

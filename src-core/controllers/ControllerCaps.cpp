@@ -19,6 +19,7 @@
 
 #include <log.h>
 
+#include <algorithm>
 #include <cassert>
 #include <filesystem>
 
@@ -594,6 +595,61 @@ int ControllerCaps::GetMaxPixelPort() const {
 
 int ControllerCaps::GetMaxSerialPort() const {
     return (int)strtol(GetXmlNodeContent(_config, "MaxSerialPort").c_str(), nullptr, 10);
+}
+
+// Device names in the order they take port numbers from FIRST_EXTRA_SERIAL_PORT.  Only ever
+// append: a show stores the port number.
+static const std::vector<std::string> EXTRA_SERIAL_DEVICES = {
+    "ttyUSB0", "ttyUSB1", "ttyUSB2", "ttyUSB3", "ttyUSB4", "ttyUSB5", "ttyUSB6", "ttyUSB7",
+    "ttyACM0", "ttyACM1", "ttyACM2", "ttyACM3"
+};
+
+bool ControllerCaps::SupportsExtraSerialPorts() const {
+    return DoesXmlNodeExist(_config, "SupportsExtraSerialPorts");
+}
+
+std::vector<int> ControllerCaps::GetExtraSerialPorts() const {
+    std::vector<int> ports;
+    if (SupportsExtraSerialPorts()) {
+        for (int i = 0; i < (int)EXTRA_SERIAL_DEVICES.size(); i++) {
+            ports.push_back(FIRST_EXTRA_SERIAL_PORT + i);
+        }
+    }
+    return ports;
+}
+
+bool ControllerCaps::IsExtraSerialPort(int port) const {
+    return SupportsExtraSerialPorts() && port >= FIRST_EXTRA_SERIAL_PORT && port < FIRST_EXTRA_SERIAL_PORT + (int)EXTRA_SERIAL_DEVICES.size();
+}
+
+bool ControllerCaps::IsValidSerialPort(int port) const {
+    return (port >= 1 && port <= GetMaxSerialPort()) || IsExtraSerialPort(port);
+}
+
+int ControllerCaps::GetMaxSerialPortChannels(int port) const {
+    if (IsExtraSerialPort(port)) {
+        return std::max(512, GetMaxSerialPortChannels());
+    }
+    return GetMaxSerialPortChannels();
+}
+
+std::string ControllerCaps::GetSerialPortDevice(int port) const {
+    if (IsExtraSerialPort(port)) {
+        return EXTRA_SERIAL_DEVICES[port - FIRST_EXTRA_SERIAL_PORT];
+    }
+    return GetCustomPropertyByPath("fppSerialPort" + std::to_string(port));
+}
+
+std::string ControllerCaps::GetSerialPortLabel(int port) const {
+    if (IsExtraSerialPort(port)) {
+        return GetSerialPortDevice(port);
+    }
+    std::string label = "Serial Port " + std::to_string(port);
+    std::string const dev = GetSerialPortDevice(port);
+    if (!dev.empty()) {
+        label += " (" + dev + ")";
+    }
+    return label;
 }
 
 int ControllerCaps::GetMaxPWMPort() const {
