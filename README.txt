@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Model previews (e.g. the Submodels node layout) could get stuck panning with
+                                 no mouse button held after focus or window changes mid-drag
     -enh (dkulp)                 Controller Connection: "LOR Enhanced" serial protocol on FPP controllers' serial ports.
                                  Models take a Unit ID and Start Pixel instead of a channel; uploading configures FPP's
                                  LOR Enhanced output. A string longer than the rest of its unit carries on into the next

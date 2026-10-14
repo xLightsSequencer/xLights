@@ -432,6 +432,7 @@ void SubModelsPanel::OnActivate()
         _modelPreview->Bind(wxEVT_MOTION,       &SubModelsPanel::OnPreviewMouseMove,  this);
         _modelPreview->Bind(wxEVT_LEAVE_WINDOW, &SubModelsPanel::OnPreviewMouseLeave, this);
         _modelPreview->Bind(wxEVT_LEFT_DCLICK,  &SubModelsPanel::OnPreviewLeftDClick, this);
+        _modelPreview->Bind(wxEVT_MOUSE_CAPTURE_LOST, &SubModelsPanel::OnPreviewCaptureLost, this);
         if (model) _modelPreview->SetModel(model);
     }
     if (NodesGrid && NodesGrid->GetNumberCols() >= 3) {
@@ -450,6 +451,7 @@ void SubModelsPanel::OnDeactivate()
         _modelPreview->Unbind(wxEVT_MOTION,       &SubModelsPanel::OnPreviewMouseMove,  this);
         _modelPreview->Unbind(wxEVT_LEAVE_WINDOW, &SubModelsPanel::OnPreviewMouseLeave, this);
         _modelPreview->Unbind(wxEVT_LEFT_DCLICK,  &SubModelsPanel::OnPreviewLeftDClick, this);
+        _modelPreview->Unbind(wxEVT_MOUSE_CAPTURE_LOST, &SubModelsPanel::OnPreviewCaptureLost, this);
     }
     // Don't leave this tab's timers driving the animation preview or the
     // real controller output once it's no longer visible.
@@ -2682,6 +2684,15 @@ void SubModelsPanel::OnPreviewLeftUp(wxMouseEvent& event)
         _modelPreview->ReleaseMouse();
 
         //RenderModel();
+    }
+}
+
+void SubModelsPanel::OnPreviewCaptureLost(wxMouseCaptureLostEvent& event)
+{
+    event.Skip();
+    if (m_creating_bound_rect) {
+        m_creating_bound_rect = false;
+        RenderModel();
     }
 }
 

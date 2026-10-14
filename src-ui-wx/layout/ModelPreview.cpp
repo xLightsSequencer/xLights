@@ -51,6 +51,7 @@ BEGIN_EVENT_TABLE(ModelPreview, GRAPHICS_BASE_CLASS)
 	EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
 	EVT_LEFT_UP(ModelPreview::mouseLeftUp)
 	EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
+	EVT_MOUSE_CAPTURE_LOST(ModelPreview::mouseCaptureLost)
 	EVT_RIGHT_DOWN(ModelPreview::rightClick)
 	//EVT_KEY_DOWN(ModelPreview::keyPressed)
 	//EVT_KEY_UP(ModelPreview::keyReleased)
@@ -395,6 +396,14 @@ void ModelPreview::OnMotion3DEvent(Motion3DEvent &event) {
 }
 
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
+    // A button-up can be missed (focus change, resize, lost capture); don't stay stuck panning/rotating
+    if (m_wheel_down && !event.MiddleIsDown()) {
+        m_wheel_down = false;
+    }
+    if (m_mouse_down && !event.LeftIsDown()) {
+        m_mouse_down = false;
+        SetCameraView(0, 0, true);
+    }
 	if (m_mouse_down) {
 		int delta_x = event.GetPosition().x - m_last_mouse_x;
 		int delta_y = event.GetPosition().y - m_last_mouse_y;
@@ -531,6 +540,11 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
     m_wheel_down = false;
     event.ResumePropagation(1);
     event.Skip(); // continue the event
+}
+
+void ModelPreview::mouseCaptureLost(wxMouseCaptureLostEvent& event) {
+    m_mouse_down = false;
+    m_wheel_down = false;
 }
 
 ModelGroup* ModelPreview::GetSelectedModelGroup()
