@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (dkulp)                 FPP Connect: a sparse fseq already on a remote was rebuilt and re-uploaded on every
+                                 run when the remote's channel ranges ran past the end of the sequence (or for
+                                 effect sequences); progress bars now move only for remotes that need a new file
     -bug (derwin12)              Model previews (e.g. the Submodels node layout) could get stuck panning with
                                  no mouse button held after focus or window changes mid-drag
     -enh (dkulp)                 Controller Connection: "LOR Enhanced" serial protocol on FPP controllers' serial ports.
