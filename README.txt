@@ -175,6 +175,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Model groups that contain each other crashed the Layout tab. A group can no longer be
                                  added to a group it already contains, and a layout saved with such a loop is repaired
                                  (with a warning) when it loads
+    -bug (dkulp)                 macOS/iPad: closing a sequence or changing its audio while another audio track was
+                                 playing could crash in the audio engine
 
 2026.18  October 2, 2026
 
