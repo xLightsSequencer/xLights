@@ -37,6 +37,7 @@
 #include <wx/display.h>
 #include <wx/weakref.h>
 #include <wx/tooltip.h>
+#include <wx/utils.h>
 #include <wx/valnum.h>
 #include <wx/version.h>
 #include <wx/wfstream.h>
@@ -3097,9 +3098,24 @@ bool xLightsFrame::ForceEnableOutputs(bool startTimer, bool skipAutoUpload)
             StartOutputTimer();
         }
         if (outputting && !skipAutoUpload) {
-            for (auto& controller : _outputManager.GetControllers()) {
+            std::vector<std::string> toUpload;
+            for (const auto& controller : _outputManager.GetControllers()) {
                 if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
-                    UploadControllerForImmediateOutput(controller);
+                    toUpload.push_back(controller->GetName());
+                }
+            }
+            if (!toUpload.empty()) {
+                // The uploads' HTTP calls pump the event loop (CurlManager's yield), and a show
+                // folder change or controller delete handled there frees the Controller being
+                // uploaded. Block user input for the duration, and re-resolve each controller by
+                // name in case a non-UI path (Finder open, automation) removed it in between.
+                wxWindowDisabler disableAll;
+                wxBusyCursor busy;
+                for (const auto& name : toUpload) {
+                    Controller* controller = _outputManager.GetController(name);
+                    if (controller != nullptr) {
+                        UploadControllerForImmediateOutput(controller);
+                    }
                 }
             }
         }

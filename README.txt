@@ -170,6 +170,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  movement at LOR's speed, curtains finish with the effect, diagonal
                                  bars, text colour, meteor colours and single-colour washes convert
                                  correctly
+    -bug (dkulp)                 Output to Lights: changing the show folder or deleting a controller while auto-upload
+                                 controllers were being configured could crash
 
 2026.18  October 2, 2026
 
