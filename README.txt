@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              FPP Connect: an FPP advertising a stale 169.254.x.x address could be reported as
+                                 "not a supported FPP Instance" at its real IP
     -bug (derwin12)              Model previews (e.g. the Submodels node layout) could get stuck panning with
                                  no mouse button held after focus or window changes mid-drag
     -enh (dkulp)                 Controller Connection: "LOR Enhanced" serial protocol on FPP controllers' serial ports.

@@ -4994,6 +4994,21 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
     // 169.254.x.x link-local address it had then, which is not reachable from
     // another subnet, so consider those after every routable address.
     std::vector<DiscoveredData*> results = discovery.GetResults();
+    // The type ID can be reported only against the stale address (ping and
+    // multiSyncSystems) while the routable record has none, so share it between
+    // records of the same device.
+    for (auto res : results) {
+        if (res->typeId != 0 || res->uuid.empty()) {
+            continue;
+        }
+        for (auto other : results) {
+            if (other != res && other->typeId != 0 && other->uuid == res->uuid) {
+                spdlog::info("FPP Discovery - {} has no type, using {:X} from {} (same uuid {})", res->ip.c_str(), other->typeId, other->ip.c_str(), res->uuid.c_str());
+                res->typeId = other->typeId;
+                break;
+            }
+        }
+    }
     std::stable_partition(results.begin(), results.end(), [](DiscoveredData* r) {
         return r->ip.rfind("169.254.", 0) != 0;
     });
