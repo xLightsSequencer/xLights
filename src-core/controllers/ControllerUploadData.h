@@ -371,6 +371,7 @@ class UDController
     [[nodiscard]] int GetMaxVirtualMatrixPort() const;
     [[nodiscard]] bool HasPixelPort(int port) const;
     [[nodiscard]] bool HasSerialPort(int port) const;
+    [[nodiscard]] bool IsListedSerialPort(int port) const;
     [[nodiscard]] bool HasPWMPort(int port) const;
     [[nodiscard]] bool HasLEDPanelMatrixPort(int port) const;
     [[nodiscard]] bool HasVirtualMatrixPort(int port) const;

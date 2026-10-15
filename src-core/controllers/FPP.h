@@ -206,6 +206,8 @@ private:
 
     bool GetURLAsJSON(const std::string& url, nlohmann::json& val, bool recordError = true);
     bool GetURLAsString(const std::string& url, std::string& val, bool recordError = true);
+    bool URLContentMatches(const std::string& url, const std::string& content);
+    bool PostToURLIfChanged(const std::string& url, const std::string& content, const std::string& contentType = "application/octet-stream");
 
     int PostJSONToURL(const std::string& url, const nlohmann::json& val);
     int PostJSONToURLAsFormData(const std::string& url, const std::string& extra, const nlohmann::json& val);

@@ -1913,7 +1913,11 @@ void ViewsModelsPanel::ShowAllModels(bool show)
 {
     for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
         ListCtrlModels->SetChecked(i, show);
-        ((Element*)ListCtrlModels->GetItemData(i))->SetVisible(show);
+        Element* element = (Element*)ListCtrlModels->GetItemData(i);
+        element->SetVisible(show);
+        if (auto* te = dynamic_cast<TimingElement*>(element)) {
+            te->SetMasterVisible(show);
+        }
     }
     _xlFrame->DoForceSequencerRefresh();
 }
@@ -1924,7 +1928,10 @@ void ViewsModelsPanel::HideUnusedModels()
         Element* element = (Element*)ListCtrlModels->GetItemData(i);
         if (!element->HasEffects()) {
             ListCtrlModels->SetChecked(i, false);
-            ((Element*)ListCtrlModels->GetItemData(i))->SetVisible(false);
+            element->SetVisible(false);
+            if (auto* te = dynamic_cast<TimingElement*>(element)) {
+                te->SetMasterVisible(false);
+            }
         }
     }
     _xlFrame->DoForceSequencerRefresh();

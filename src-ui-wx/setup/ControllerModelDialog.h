@@ -26,6 +26,7 @@
 #include <wx/prntbase.h>
 
 #include <algorithm>
+#include <set>
 
 #include "controllers/ControllerUploadData.h"
 
@@ -110,6 +111,8 @@ class ControllerModelDialog: public wxDialog
 	wxPoint _dragStartLocation = { -99999, -99999 };
 	BaseCMObject* _popup = nullptr;
 	bool _autoLayout = false;
+	// adapter serial ports given a row this session, before any model is on them
+	std::set<int> _shownExtraSerialPorts;
 	int _modelsy = 1;
 	int _controllersy = 1;
 	int _controllersx = 1;
@@ -181,6 +184,7 @@ class ControllerModelDialog: public wxDialog
         static const long CONTROLLER_COLORORDER;
         static const long CONTROLLER_GROUPCOUNT;
         static const long CONTROLLER_GAMMA;
+        static const long CONTROLLER_ADDSERIALPORT;
 
 		wxBitmap RenderPicture(int startY, int startX, int width, int height, wxString const& pageName);
 		void DropFromModels(const wxPoint& location, const std::string& name, wxPanel* target);

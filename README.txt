@@ -14,6 +14,23 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              Model previews (e.g. the Submodels node layout) could get stuck panning with
                                  no mouse button held after focus or window changes mid-drag
+    -enh (dkulp)                 Controller Connection: "LOR Enhanced" serial protocol on FPP controllers' serial ports.
+                                 Models take a Unit ID and Start Pixel instead of a channel; uploading configures FPP's
+                                 LOR Enhanced output. A string longer than the rest of its unit carries on into the next
+                                 unit ID, and each further string of a model starts on the next port's unit ID, two IDs
+                                 on with "340 Pixels Per Port"; the check flags two models on the same pixels of a unit
+    -enh (dkulp)                 FPP string capes and hats: models can go on USB serial adapters plugged into the
+                                 controller (ttyUSB0-7, ttyACM0-3) as well as the cape's own serial ports, picked by
+                                 name in the model's Port and shown in the visualizer once a model is on one (or via
+                                 "Add Serial Adapter Port..."). Uploading turns off a serial output xLights wrote
+                                 earlier once its port has no models; outputs set up on the controller are left alone.
+                                 An adapter port is written with the adapter's serial/by-id (or by-path) name, taken
+                                 the first time it is uploaded, so a reboot that renumbers the adapters doesn't move it
+                                 (with an FPP that reports its serial devices)
+    -bug (dkulp)                 LOR Optimised: zero values in bank 0 could put a 0x00 inside a command, and All Off
+                                 sent the wrong banks to every unit after the first
+    -bug (derwin12)              Display Elements: Show All / Hide All / Hide Unused now stick for timing
+                                 tracks; they no longer went hidden again after editing a timing track
     -bug (scott)                 FPP Connect: ESPixelStick uploads could fail with "Response Code: 0" and
                                  nothing written to the SD card; failed uploads are now retried once as an
                                  uncompressed zip, and the zip is never written in a Zip64 form the

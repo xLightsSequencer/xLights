@@ -255,6 +255,7 @@ namespace XmlNodeKeys {
     constexpr auto ChannelAttribute         = "channel";
     constexpr auto ProtocolAttribute        = "Protocol";
     constexpr auto ProtocolSpeedAttribute   = "Speed";
+    constexpr auto LORPortPixelsAttribute   = "LORPortPixels";
     constexpr auto PortAttribute            = "Port";
     constexpr auto StartNullAttribute       = "nullNodes";
     constexpr auto EndNullAttribute         = "endNullNodes";

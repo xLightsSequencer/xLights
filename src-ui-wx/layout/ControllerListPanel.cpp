@@ -1031,6 +1031,12 @@ void ControllerListPanel::DeleteSelectedControllers() {
     if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) != wxYES) return;
     _frame->waitForPingsToComplete();
     _frame->AbortRender();
+    for (const auto& it : todel) {
+        if (_frame->AllObjects.GetControllerObject(it) != nullptr) {
+            _layoutPanel->UnSelectAllModels(false);
+            break;
+        }
+    }
     bool objectsChanged = false;
     for (const auto& it : todel) {
         _frame->AllModels.DeleteController(it);

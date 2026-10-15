@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <limits>
 #include <map>
+#include <set>
 #include <string.h>
 #include <cctype>
 #include <thread>
@@ -701,6 +702,19 @@ int FPP::PostToURL(const std::string& url, const std::string& val, const std::st
     std::vector<uint8_t> memBuffPost;
     addString(memBuffPost, val);
     return PostToURL(url, memBuffPost, contentType);
+}
+// A read that fails (an older FPP, a file not there yet) counts as different.
+bool FPP::URLContentMatches(const std::string& url, const std::string& content) {
+    std::string current;
+    return GetURLAsString(url, current, false) && current == content;
+}
+// Returns true if the content was sent.
+bool FPP::PostToURLIfChanged(const std::string& url, const std::string& content, const std::string& contentType) {
+    if (URLContentMatches(url, content)) {
+        return false;
+    }
+    PostToURL(url, content, contentType);
+    return true;
 }
 int FPP::PutToURL(const std::string& url, const std::string& val, const std::string& contentType) const {
     std::vector<uint8_t> memBuffPost;
@@ -1543,26 +1557,40 @@ std::vector<std::string> FPP::GetPlaylistItems(const std::string& name) {
     return items;
 }
 
+// fppd only reads the model, submodel and display-map files at startup, so a
+// change to any of them needs a full restart.  Uploading them unchanged must
+// not ask for one: FPP Connect re-sends them on every sequence upload, and a
+// restart mid-show resumes the playlist part-way through.
 bool FPP::UploadModels(const nlohmann::json &models) {
-    PostJSONToURL("/api/models", models);
+    // fppd writes the posted body to model-overlays.json byte for byte
+    std::string const str = models.dump(3, ' ', false, nlohmann::json::error_handler_t::replace);
+    if (!URLContentMatches("/api/configfile/model-overlays.json", str)) {
+        PostToURL("/api/models", str, "application/json");
+        SetRestartFlag(true);
+    }
     return false;
 }
 
 bool FPP::UploadDisplayMap(std::map<std::string, std::string> &virtualDisplayData) {
+    bool changed = false;
     if (!IsVersionAtLeast(10, 0)) {
-        PostToURL("/api/configfile/virtualdisplaymap", virtualDisplayData["/api/configfile/virtualdisplaymap"]);
+        changed |= PostToURLIfChanged("/api/configfile/virtualdisplaymap", virtualDisplayData["/api/configfile/virtualdisplaymap"]);
     } else {
         for (auto &ent : virtualDisplayData) {
             if (ent.first == "/api/configfile/virtualdisplaymap"
                 || ent.first == "/api/configfile/virtdisplay.json") {
-                PostToURL(ent.first, ent.second);
+                changed |= PostToURLIfChanged(ent.first, ent.second);
             } else {
-                // file asset that needs uploading
+                // file asset that needs uploading; only the browser reads
+                // these, so they never need a restart
                 std::string fn = ent.second;
                 std::string target = ent.first;
                 uploadFileV7(target, fn, "virtualdisplay_assets");
             }
         }
+    }
+    if (changed) {
+        SetRestartFlag(true);
     }
     return false;
 }
@@ -2110,12 +2138,16 @@ bool FPP::UploadSubModelsAndGroups(ModelManager* allmodels, int32_t startChan, i
     if (!IsVersionAtLeast(10, 0)) {
         return false;
     }
-    // Always sent, even when empty: FPP replaces the file wholesale, which is
-    // what clears out submodels and groups that no longer exist.
+    // Sent even when empty: FPP replaces the file wholesale, which is what
+    // clears out submodels and groups that no longer exist.
+    bool changed = false;
     auto const subs = CreateSubModelMap(allmodels, startChan, endChannel);
-    PostToURL("/api/configfile/xlights-submodels.json", subs.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
+    changed |= PostToURLIfChanged("/api/configfile/xlights-submodels.json", subs.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
     auto const groups = CreateModelGroupMap(allmodels, startChan, endChannel);
-    PostToURL("/api/configfile/xlights-modelgroups.json", groups.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
+    changed |= PostToURLIfChanged("/api/configfile/xlights-modelgroups.json", groups.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace), "application/json");
+    if (changed) {
+        SetRestartFlag(true);
+    }
     return false;
 }
 
@@ -2723,8 +2755,67 @@ static bool UpdateJSONValue(nlohmann::json& v, const std::string& key, const std
     return false;
 }
 
-static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherOrigRoot, bool addDefaults) {
+// FPP's LOR Enhanced output takes a list of units, each a run of pixels on one
+// LOR unit ID, laid out by Model::GetLOREnhancedRuns.  A model's place in the
+// port's channel numbering gives its first unit ID and start pixel (see
+// LOREnhancedChannel).  fppStartAddr is 1-based within the output.
+static void AddLOREnhancedUnits(nlohmann::json& port, UDControllerPort* vport, int32_t portStart, int& channelCount) {
+    int speed = 1000000;
+    for (const auto& m : vport->GetModels()) {
+        int ms = m->GetModel()->GetControllerProtocolSpeed();
+        if (ms == 19200 || ms == 57600 || ms == 115200 || ms == 500000 || ms == 1000000) {
+            speed = ms;
+            break;
+        }
+    }
+    port["speed"] = speed;
+    port["units"] = nlohmann::json::array();
+    for (const auto& m : vport->GetModels()) {
+        // the channel numbering, not the stored DMX channel, which a model chained
+        // on from the one before leaves unset
+        int const modelStart = m->GetStartChannel() - portStart + 1;
+        for (const auto& run : m->GetModel()->GetLOREnhancedRuns(modelStart)) {
+            if (run.unit > LOR_ENHANCED_MAX_UNIT) {
+                break;
+            }
+            nlohmann::json u;
+            u["unitId"] = run.unit;
+            u["numOfPixels"] = run.pixels;
+            u["lorStartPixel"] = run.startPixel;
+            u["fppStartAddr"] = modelStart + run.modelPixel * 3;
+            port["units"].push_back(u);
+            channelCount = std::max(channelCount, modelStart - 1 + (run.modelPixel + run.pixels) * 3);
+        }
+    }
+}
+
+// Marks a co-other.json output xLights wrote for one of the controller's serial ports.
+// FPP's own page rebuilds an output from its form when saved there, which drops the mark,
+// so an output someone has set up or edited on the controller is never turned off.
+#define XLIGHTS_MANAGED_KEY "xLightsManaged"
+// The xLights port an output for a USB serial adapter was written for (see AdapterDevice).
+#define XLIGHTS_PORT_KEY "xLightsPort"
+
+// Merges the serial outputs xLights generated into the controller's co-other.json.  Given
+// the devices the controller's ports drive, an output xLights wrote on one of them earlier
+// and did not generate this time - its port has no models now - is turned off.
+static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherOrigRoot, bool addDefaults,
+                            const std::set<std::string>* portDevices = nullptr) {
     bool changed = false;
+    if (portDevices != nullptr) {
+        std::set<std::string> used;
+        for (auto& o : otherDmxData["channelOutputs"]) {
+            used.insert(GetJSONStringValue(o, "device"));
+            o[XLIGHTS_MANAGED_KEY] = 1;
+        }
+        for (auto& o : otherOrigRoot["channelOutputs"]) {
+            std::string const device = GetJSONStringValue(o, "device");
+            bool const ours = portDevices->count(device) || portDevices->count(GetJSONStringValue(o, XLIGHTS_PORT_KEY));
+            if (GetJSONIntValue(o, XLIGHTS_MANAGED_KEY) == 1 && ours && !used.count(device)) {
+                changed |= UpdateJSONValue(o, "enabled", 0);
+            }
+        }
+    }
     for (int x = 0; x < (int)otherDmxData["channelOutputs"].size(); x++) {
         std::string device = GetJSONStringValue(otherDmxData["channelOutputs"][x], "device");
         std::string type = GetJSONStringValue(otherDmxData["channelOutputs"][x], "type");
@@ -2741,6 +2832,21 @@ static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherO
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "enabled", 1);
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "startChannel", GetJSONIntValue(otherDmxData["channelOutputs"][x], "startChannel"));
                     changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "channelCount", GetJSONIntValue(otherDmxData["channelOutputs"][x], "channelCount"));
+                    if (portDevices != nullptr) {
+                        changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], XLIGHTS_MANAGED_KEY, 1);
+                    }
+                    if (otherDmxData["channelOutputs"][x].contains(XLIGHTS_PORT_KEY)) {
+                        changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], XLIGHTS_PORT_KEY, GetJSONStringValue(otherDmxData["channelOutputs"][x], XLIGHTS_PORT_KEY));
+                    }
+                    if (type == "LOREnhanced") {
+                        // The units and speed come from the models on the port,
+                        // so they always follow the layout.
+                        changed |= UpdateJSONValue(otherOrigRoot["channelOutputs"][y], "speed", GetJSONIntValue(otherDmxData["channelOutputs"][x], "speed"));
+                        if (otherOrigRoot["channelOutputs"][y]["units"] != otherDmxData["channelOutputs"][x]["units"]) {
+                            otherOrigRoot["channelOutputs"][y]["units"] = otherDmxData["channelOutputs"][x]["units"];
+                            changed = true;
+                        }
+                    }
 
                     if (!addDefaults) {
                         if (type == "Renard") {
@@ -2782,6 +2888,57 @@ static bool mergeSerialInto(nlohmann::json &otherDmxData, nlohmann::json &otherO
     return changed;
 }
 #endif
+
+// USB serial adapters are numbered in the order the controller finds them, so ttyUSB0 can be
+// a different adapter after a reboot.  An adapter port is written under a name that stays
+// with the adapter (FPP's serial/by-id or by-path link), chosen the first time the port is
+// uploaded: that of the adapter that is the port's tty at the time.  The output records the
+// port it was written for, so later uploads keep that adapter however it is numbered.
+// devices is FPP's /api/channel/output/serialDevices list, empty where FPP predates it.
+static std::string AdapterDevice(const std::string& port, const std::string& type, nlohmann::json& origRoot, const nlohmann::json& devices) {
+    std::string stable;
+    std::set<std::string> names{ port };
+    for (const auto& d : devices) {
+        if (GetJSONStringValue(d, "device") == port) {
+            stable = GetJSONStringValue(d, "stable");
+            for (const char* k : { "stable", "byId", "byPath" }) {
+                if (!GetJSONStringValue(d, k).empty()) {
+                    names.insert(GetJSONStringValue(d, k));
+                }
+            }
+        }
+    }
+    if (!origRoot.contains("channelOutputs") || !origRoot["channelOutputs"].is_array()) {
+        return stable.empty() ? port : stable;
+    }
+    // written for this port before
+    for (auto& o : origRoot["channelOutputs"]) {
+        if (GetJSONStringValue(o, XLIGHTS_PORT_KEY) == port && !GetJSONStringValue(o, "device").empty()) {
+            // under the tty itself, by an FPP that could not name the adapter: name it now
+            if (GetJSONStringValue(o, "device") == port && !stable.empty()) {
+                o["device"] = stable;
+            }
+            return GetJSONStringValue(o, "device");
+        }
+    }
+    // written before ports were recorded, under the tty itself: move it to the adapter's name
+    for (auto& o : origRoot["channelOutputs"]) {
+        if (GetJSONIntValue(o, XLIGHTS_MANAGED_KEY) == 1 && GetJSONStringValue(o, "device") == port) {
+            if (!stable.empty()) {
+                o["device"] = stable;
+            }
+            o[XLIGHTS_PORT_KEY] = port;
+            return GetJSONStringValue(o, "device");
+        }
+    }
+    // set up on the controller under one of the adapter's names
+    for (const auto& o : origRoot["channelOutputs"]) {
+        if (GetJSONStringValue(o, "type") == type && names.count(GetJSONStringValue(o, "device"))) {
+            return GetJSONStringValue(o, "device");
+        }
+    }
+    return stable.empty() ? port : stable;
+}
 
 bool FPP::IsCompatible(const ControllerCaps *rules,
                        std::string &origVend, std::string &origMod, std::string origVar, const std::string &origId,
@@ -3760,10 +3917,12 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         }
     }
 
+    // The cape's own ports share one BBBSerial output, so its mode and size come from them
+    // alone, never from an adapter plugged into the controller.
     bool isDMX = true;
     int maxChan = 0;
     bool hasSerial = false;
-    for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++) {
+    for (int sp = 1; sp <= std::min(cud.GetMaxSerialPort(), rules->GetMaxSerialPort()); sp++) {
         if (cud.HasSerialPort(sp)) {
             UDControllerPort* port = cud.GetControllerSerialPort(sp);
             isDMX &= ((port->GetProtocol() == "DMX") || (port->GetProtocol() == "dmx") || (port->GetProtocol() == "DMX-Open"));
@@ -3782,11 +3941,56 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
 
     nlohmann::json bbbDmxData;
     bool hasBBBDmx = false;
-    nlohmann::json otherDmxData;
+    nlohmann::json otherDmxData = nlohmann::json::object();
+    otherDmxData["channelOutputs"] = nlohmann::json::array();
+    // every device a port of this controller drives, so an output left on one that no
+    // longer has models can be turned off
+    std::set<std::string> otherDevices;
+    std::vector<int> serialPorts;
     for (int sp = 1; sp <= rules->GetMaxSerialPort(); sp++) {
+        serialPorts.push_back(sp);
+    }
+    bool adaptersUsed = false;
+    for (int sp : rules->GetExtraSerialPorts()) {
+        serialPorts.push_back(sp);
+        adaptersUsed |= cud.HasSerialPort(sp) && cud.GetControllerSerialPort(sp)->GetModels().size() > 0;
+    }
+    // what the controller has now, which adapter ports are matched against
+    nlohmann::json otherOrigRoot;
+    bool const haveOtherOrig = GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot, false);
+    nlohmann::json const otherFetched = otherOrigRoot; // AdapterDevice can rename an output in it
+    nlohmann::json serialDevices = nlohmann::json::array();
+    if (adaptersUsed) {
+        nlohmann::json val;
+        if (GetURLAsJSON("/api/channel/output/serialDevices", val, false) && val.contains("devices") && val["devices"].is_array()) {
+            serialDevices = val["devices"];
+        }
+    }
+    // device -> the adapter port that has it.  A port with models written for an adapter
+    // before keeps it, ahead of a port that would take it from today's numbering.
+    std::map<std::string, std::string> adapterOwner;
+    if (haveOtherOrig && otherOrigRoot.contains("channelOutputs") && otherOrigRoot["channelOutputs"].is_array()) {
+        for (int sp : rules->GetExtraSerialPorts()) {
+            if (cud.HasSerialPort(sp) && cud.GetControllerSerialPort(sp)->GetModels().size() > 0) {
+                for (const auto& o : otherOrigRoot["channelOutputs"]) {
+                    if (GetJSONStringValue(o, XLIGHTS_PORT_KEY) == rules->GetSerialPortDevice(sp)) {
+                        adapterOwner.emplace(GetJSONStringValue(o, "device"), rules->GetSerialPortDevice(sp));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    for (int sp : serialPorts) {
         nlohmann::json port;
-        std::string portType = rules->GetCustomPropertyByPath("fppSerialPort" + std::to_string(sp), "BBBSerial");
-        if (cud.HasSerialPort(sp)) {
+        std::string portType = rules->GetSerialPortDevice(sp);
+        if (portType.empty()) {
+            portType = "BBBSerial";
+        }
+        if (portType != "BBBSerial") {
+            otherDevices.insert(portType);
+        }
+        if (cud.HasSerialPort(sp) && cud.GetControllerSerialPort(sp)->GetModels().size() > 0) {
             UDControllerPort* vport = cud.GetControllerSerialPort(sp);
             //int dmxOffset = 1;
             //UDControllerPortModel* m = vport->GetFirstModel();
@@ -3806,15 +4010,36 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 hasSerial = true;
             } else {
                 int mx = vport->GetEndChannel() - sc + 1;
-                port["device"] = portType;
-                port["enabled"] = 1;
                 std::string tp = vport->GetProtocol();
                 if (tp == "DMX" || tp == "dmx") {
                     tp = "DMX-Open";
                 } else if (tp == "PIXELNET" || tp == "pixelnet") {
                     tp = "Pixelnet-Open";
+                } else if (IsLOREnhancedProtocol(tp)) {
+                    tp = "LOREnhanced";
                 }
-                if (mx < 16) {
+                std::string device = portType;
+                if (rules->IsExtraSerialPort(sp)) {
+                    device = AdapterDevice(portType, tp, otherOrigRoot, serialDevices);
+                    auto const owner = adapterOwner.find(device);
+                    if (owner != adapterOwner.end() && owner->second != portType) {
+                        // the numbering changed since the other port was set up, and this
+                        // port's tty is now the adapter that one was written for
+                        std::string const msg = "The serial adapters on " + ipAddress + " have been renumbered: " + portType + " is now the adapter " + owner->second + " was set up on (" + device + "), so the models on " + portType + " were not uploaded. Move them to another adapter port.";
+                        spdlog::warn(msg);
+                        if (_ui) {
+                            _ui->ShowMessage(msg, "Serial Adapter");
+                        }
+                        continue;
+                    }
+                    adapterOwner[device] = portType;
+                    port[XLIGHTS_PORT_KEY] = portType;
+                }
+                port["device"] = device;
+                port["enabled"] = 1;
+                if (tp == "LOREnhanced") {
+                    AddLOREnhancedUnits(port, vport, sc, mx);
+                } else if (mx < 16) {
                     //several controllers have issues if the DMX data stream has less than 16 channels
                     mx = 16;
                 }
@@ -3822,6 +4047,8 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                 port["type"] = tp;
                 port["description"] = ("");
                 otherDmxData["channelOutputs"].push_back(port);
+                // so a sparse sequence carries the port's channels
+                rngs[sc - 1] = mx;
             }
 
         } else if (portType == "BBBSerial") {
@@ -3854,11 +4081,14 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
         bbbDmxData["device"] = (rules->GetID());
         bbbDmxData["pinoutVersion"] = pinout;
         root["channelOutputs"].push_back(bbbDmxData);
-    } else {
-        nlohmann::json otherOrigRoot = otherDmxData;
-        bool changed = true;
-        if (GetURLAsJSON("/api/configfile/co-other.json", otherOrigRoot, false)) {
-            changed = mergeSerialInto(otherDmxData, otherOrigRoot, true);
+    }
+    if (!otherDevices.empty()) {
+        bool changed = !otherDmxData["channelOutputs"].empty();
+        if (haveOtherOrig) {
+            changed = mergeSerialInto(otherDmxData, otherOrigRoot, true, &otherDevices);
+            changed |= otherOrigRoot != otherFetched;
+        } else {
+            otherOrigRoot = otherDmxData;
         }
         if (changed) {
             PostJSONToURL("/api/configfile/co-other.json", otherOrigRoot);

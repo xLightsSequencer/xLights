@@ -16,6 +16,8 @@ struct MoveToPortSheet: View {
     @State private var maxPixelPort: Int = 0
     @State private var maxSerialPort: Int = 0
     @State private var maxPanelPort: Int = 0
+    // (port, label) for every serial port when the controller names them, adapters included
+    @State private var serialChoices: [(Int, String)] = []
     @State private var errorMessage: String? = nil
 
     private static func portLabel(_ kind: String) -> String {
@@ -27,7 +29,7 @@ struct MoveToPortSheet: View {
     }
 
     @ViewBuilder
-    private func portRow(kind: String, port p: Int) -> some View {
+    private func portRow(kind: String, port p: Int, label: String? = nil) -> some View {
         Button {
             assign(kind: kind, port: p)
         } label: {
@@ -35,7 +37,7 @@ struct MoveToPortSheet: View {
                 Image(systemName: "circle.fill")
                     .foregroundStyle(.tint)
                     .font(.system(size: 8))
-                Text("\(Self.portLabel(kind)) \(p)")
+                Text(label ?? "\(Self.portLabel(kind)) \(p)")
                 Spacer()
                 Image(systemName: "chevron.right")
                     .foregroundStyle(.tertiary)
@@ -55,7 +57,13 @@ struct MoveToPortSheet: View {
                         }
                     }
                 }
-                if maxSerialPort > 0 {
+                if !serialChoices.isEmpty {
+                    Section("Serial Ports") {
+                        ForEach(serialChoices, id: \.0) { choice in
+                            portRow(kind: "serial", port: choice.0, label: choice.1)
+                        }
+                    }
+                } else if maxSerialPort > 0 {
                     Section("Serial Ports") {
                         ForEach(1...maxSerialPort, id: \.self) { p in
                             portRow(kind: "serial", port: p)
@@ -73,7 +81,7 @@ struct MoveToPortSheet: View {
                         Text("The number is the panel matrix the controller's own LED Panels page shows, so it must already be configured there.")
                     }
                 }
-                if maxPixelPort == 0 && maxSerialPort == 0 && maxPanelPort == 0 {
+                if maxPixelPort == 0 && maxSerialPort == 0 && maxPanelPort == 0 && serialChoices.isEmpty {
                     Section {
                         Text("Controller capabilities aren't available — choose a vendor + model on the controller to enable port assignment.")
                             .font(.callout)
@@ -98,6 +106,11 @@ struct MoveToPortSheet: View {
             maxPixelPort  = counts["maxPixelPort"]  as? Int ?? 0
             maxSerialPort = counts["maxSerialPort"] as? Int ?? 0
             maxPanelPort  = counts["maxLEDPanelMatrixPort"] as? Int ?? 0
+            let choices = counts["serialPortChoices"] as? [[String: Any]] ?? []
+            serialChoices = choices.compactMap { c in
+                guard let v = (c["value"] as? NSNumber)?.intValue, let l = c["label"] as? String else { return nil }
+                return (v, l)
+            }
         }
         .alert("Move failed",
                isPresented: Binding(get: { errorMessage != nil },

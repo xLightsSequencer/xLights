@@ -493,6 +493,7 @@ public:
     AudioManager* GetCurrentMediaManager() const override;
     AudioManager* GetPlaybackAudio() const; // Returns active alt track audio if selected, else main media
     void ReleaseAudio(AudioManager* audio); // Call before the sequence deletes audio the UI may still hold
+    void ReleaseAltAudioTrack(int altIndex, bool removing);
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();

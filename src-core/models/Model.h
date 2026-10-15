@@ -761,6 +761,7 @@ public:
     void SetControllerName(const std::string& controllerName, bool skip_work = false);
     void SetControllerProtocol(const std::string& protocol) { _controllerConnection.SetProtocol(protocol); }
     void SetControllerSerialProtocolSpeed(int speed) { _controllerConnection.SetSerialProtocolSpeed(speed); }
+    void SetControllerLORPortPixels(int pixels) { _controllerConnection.SetLORPortPixels(pixels); }
     void SetControllerPort(int port) { _controllerConnection.SetCtrlPort(port); }
 
     void SetControllerStartNulls(int nulls) { _controllerConnection.SetStartNulls(nulls); }
@@ -788,6 +789,27 @@ public:
     [[nodiscard]] int GetControllerZigZag() const { return _controllerConnection.GetZigZag(); }
 
     [[nodiscard]] int GetControllerDMXChannel() const { return _controllerConnection.GetDMXChannel(); }
+    [[nodiscard]] int GetControllerLORPortPixels() const { return _controllerConnection.GetLORPortPixels(); }
+
+    // A run of the model's pixels on one LOR unit ID.  modelPixel is the 0 based pixel of
+    // the model the run starts with, string the 0 based string it is part of.
+    struct LOREnhancedRun {
+        int unit;
+        int startPixel;
+        int pixels;
+        int modelPixel;
+        int string;
+    };
+    // Where the model's pixels land on a LOR Enhanced port when it starts at dmxChannel of
+    // the port (see LOREnhancedChannel).  A string carries on into the next unit ID once it
+    // fills one; each string after the first is on a port of its own, so it starts on the
+    // next unit ID - or the next pair of them where the ports are set for 340 pixels, which
+    // gives every port two IDs.
+    [[nodiscard]] std::vector<LOREnhancedRun> GetLOREnhancedRuns(int dmxChannel) const;
+    // How much of a serial port's channel numbering the model takes when it starts at
+    // dmxChannel: its channel count, but on a LOR Enhanced port running to the last pixel of
+    // its last unit ID run, past the unit IDs its earlier strings leave part used.
+    [[nodiscard]] int GetSerialChannelSpan(int dmxChannel) const;
     [[nodiscard]] bool IsControllerConnectionValid() const { return _controllerConnection.IsValid(); }
     [[nodiscard]] bool IsPixelProtocol() const { return _controllerConnection.IsPixelProtocol(); }
     [[nodiscard]] bool IsSerialProtocol() const { return _controllerConnection.IsSerialProtocol(); }

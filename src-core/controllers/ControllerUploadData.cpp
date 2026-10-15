@@ -21,6 +21,8 @@
 #include "UtilFunctions.h"
 #include "../models/Pixels.h"
 
+#include <algorithm>
+
 #define NO_VALUE_INT -9999
 #define NO_VALUE_STRING "unknown"
 
@@ -1121,8 +1123,36 @@ bool UDControllerPort::Check(Controller* c, bool pixel, const ControllerCaps* ru
                 }
             }
         }
-        if (Channels() > rules->GetMaxSerialPortChannels()) {
-            res += fmt::format("ERR: Serial port {} has {} channels allocated but maximum is {}.\n", _port, (int)Channels(), rules->GetMaxSerialPortChannels());
+        if (IsLOREnhancedProtocol(_protocol)) {
+            // Each LOR unit ID takes 510 channels of the port, so the port is
+            // not limited to one DMX universe; the unit IDs are.  Two models
+            // must not drive the same pixels of a unit.
+            int32_t const portStart = GetStartChannel();
+            std::map<int, std::vector<std::pair<int, std::string>>> used; // unit -> (pixel, model)
+            for (const auto& it : _models) {
+                auto const runs = it->GetModel()->GetLOREnhancedRuns(it->GetStartChannel() - portStart + 1);
+                if (!runs.empty() && runs.back().unit > LOR_ENHANCED_MAX_UNIT) {
+                    res += fmt::format("ERR: Model {} on serial port {} runs to LOR unit ID {}, past the last unit ID {}.\n", it->GetName(), _port, runs.back().unit, LOR_ENHANCED_MAX_UNIT);
+                    success = false;
+                }
+                for (const auto& r : runs) {
+                    for (int p = r.startPixel; p < r.startPixel + r.pixels; p++) {
+                        used[r.unit].emplace_back(p, it->GetName());
+                    }
+                }
+            }
+            for (auto& [unit, pixels] : used) {
+                std::sort(pixels.begin(), pixels.end());
+                for (size_t i = 1; i < pixels.size(); i++) {
+                    if (pixels[i].first == pixels[i - 1].first && pixels[i].second != pixels[i - 1].second) {
+                        res += fmt::format("ERR: Models {} and {} on serial port {} both use pixel {} of LOR unit ID {}.\n", pixels[i - 1].second, pixels[i].second, _port, pixels[i].first, unit);
+                        success = false;
+                        break;
+                    }
+                }
+            }
+        } else if (Channels() > rules->GetMaxSerialPortChannels(_port)) {
+            res += fmt::format("ERR: Serial port {} has {} channels allocated but maximum is {}.\n", _port, (int)Channels(), rules->GetMaxSerialPortChannels(_port));
             success = false;
         }
     }
@@ -1563,6 +1593,16 @@ void UDController::TagSmartRemotePorts()
             }
         }
     }
+}
+
+// Every port of the controller's own is listed, used or not.  Past those, only the ports
+// models are on: an adapter port's number is not a count of the ports before it.
+bool UDController::IsListedSerialPort(int port) const {
+    ControllerCaps* caps = _controller != nullptr ? _controller->GetControllerCaps() : nullptr;
+    if (caps == nullptr || port <= caps->GetMaxSerialPort()) {
+        return true;
+    }
+    return HasSerialPort(port);
 }
 
 bool UDController::HasSerialPort(int port) const {
@@ -2103,14 +2143,14 @@ bool UDController::Check(const ControllerCaps* rules, std::string& res) {
         }
     }
 
-    if (rules->GetMaxSerialPort() == 0 && _serialPorts.size() > 0) {
+    if (rules->GetMaxSerialPort() == 0 && !rules->SupportsExtraSerialPorts() && _serialPorts.size() > 0) {
         res += fmt::format("ERR: Attempt to upload serial port {} but this controller does not support serial ports.\n", _serialPorts.begin()->second->GetPort());
         success = false;
     } else {
         for (const auto& it : _serialPorts) {
             success &= it.second->Check(_controller, false, rules, res);
 
-            if (it.second->GetPort() < 1 || it.second->GetPort() > rules->GetMaxSerialPort()) {
+            if (!rules->IsValidSerialPort(it.second->GetPort())) {
                 res += fmt::format("ERR: Serial port {} is not valid on this controller. Valid ports {}-{}.\n", it.second->GetPort(), 1, rules->GetMaxSerialPort());
                 success = false;
             }
@@ -2166,6 +2206,9 @@ std::vector<std::vector<std::string>> UDController::ExportAsCSV(ExportSettings::
         lines.push_back(GetControllerPixelPort(i)->ExportAsCSV(settings, brightness));
 	}
 	for (int i = 1; i <= GetMaxSerialPort(); i++) {
+        if (!IsListedSerialPort(i)) {
+            continue;
+        }
         if ((size_t)columnSize < GetControllerSerialPort(i)->GetModels().size())
             columnSize = GetControllerSerialPort(i)->GetModels().size();
 
@@ -2201,8 +2244,13 @@ std::string UDController::ExportAsJSON()
         json += GetControllerPixelPort(i)->ExportAsJSON();
     }
     json += "], \"serialports\": [" ;
+    bool firstSerial = true;
     for (int i = 1; i <= GetMaxSerialPort(); i++) {
-        if(i != 1) json += ",";
+        if (!IsListedSerialPort(i)) {
+            continue;
+        }
+        if (!firstSerial) json += ",";
+        firstSerial = false;
         json += GetControllerSerialPort(i)->ExportAsJSON();
     }
     json += "], \"virtualmatrixports\": [" ;

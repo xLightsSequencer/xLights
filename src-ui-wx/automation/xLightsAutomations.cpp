@@ -435,9 +435,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
             std::map<std::string, std::string> virtualDisplayData;
             FPP::CreateVirtualDisplayMap(AllModels, AllObjects, pw, ph, virtualDisplayData);
+            // sets the restart flag if the map changed
             fpp->UploadDisplayMap(virtualDisplayData);
-            // virtual display map  requires a restart
-            fpp->SetRestartFlag(true);
         }
 
         //if restart flag is now set, restart and recheck range

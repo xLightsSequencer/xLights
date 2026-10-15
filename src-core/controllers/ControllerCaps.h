@@ -133,6 +133,22 @@ public:
     // beyond SupportsMultipleSimultaneousOutputProtocols.
     bool ArePixelProtocolsCompatible(const std::string& a, const std::string& b) const;
     bool IsValidSerialProtocol(const std::string& protocol) const;
+
+    // Besides its own UARTs (ports 1..GetMaxSerialPort()) an FPP controller can drive serial
+    // adapters plugged into it, a USB DMX or LOR dongle say.  Those take port numbers from a
+    // fixed block so that changing the cape or variant never moves a model onto a different
+    // device.
+    static constexpr int FIRST_EXTRA_SERIAL_PORT = 17;
+    bool SupportsExtraSerialPorts() const;
+    std::vector<int> GetExtraSerialPorts() const;
+    bool IsExtraSerialPort(int port) const;
+    bool IsValidSerialPort(int port) const;
+    // An adapter is a full DMX universe even where the cape's own UARTs are limited, or absent.
+    int GetMaxSerialPortChannels(int port) const;
+    // The device the controller opens for a serial port, "" if the caps don't name one.
+    std::string GetSerialPortDevice(int port) const;
+    // What to call a serial port in the UI: "Serial Port 1 (DMX1)", "ttyUSB0".
+    std::string GetSerialPortLabel(int port) const;
     bool IsValidInputProtocol(const std::string& protocol) const;
     bool IsSerialController() const;
 
