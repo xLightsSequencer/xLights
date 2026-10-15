@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              FPP Connect: an FPP advertising a stale 169.254.x.x address could be reported as
+                                 "not a supported FPP Instance" at its real IP
     -bug (dkulp)                 FPP Connect: a sparse fseq already on a remote was rebuilt and re-uploaded on every
                                  run when the remote's channel ranges ran past the end of the sequence (or for
                                  effect sequences); progress bars now move only for remotes that need a new file
