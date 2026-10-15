@@ -1378,46 +1378,77 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
     }
 
     // try up to however many models we have left
-    int maxIter = toBeDone.size();
-    while (maxIter > 0 && toBeDone.size() > 0) {
-        maxIter--;
-        std::list<pugi::xml_node> processing(toBeDone);
-        toBeDone.clear();
-        for (const auto& it : processing) {
-            if (ModelGroup::AllModelsExist(it, *this)) {
-                Model* model = factory.Deserialize(it, *this, false);
-                if (model != nullptr) {
-                    model->GetModelScreenLocation().previewW = previewW;
-                    model->GetModelScreenLocation().previewH = previewH;
-                    ModelGroup* mg = dynamic_cast<ModelGroup*>(model);
-                    if (mg != nullptr) {
-                        bool reset = mg->RebuildBuffers();
-                        assert(reset);
-                        publish(model);
+    auto loadReady = [&]() {
+        int maxIter = toBeDone.size();
+        while (maxIter > 0 && toBeDone.size() > 0) {
+            maxIter--;
+            std::list<pugi::xml_node> processing(toBeDone);
+            toBeDone.clear();
+            for (const auto& it : processing) {
+                if (ModelGroup::AllModelsExist(it, *this)) {
+                    Model* model = factory.Deserialize(it, *this, false);
+                    if (model != nullptr) {
+                        model->GetModelScreenLocation().previewW = previewW;
+                        model->GetModelScreenLocation().previewH = previewH;
+                        ModelGroup* mg = dynamic_cast<ModelGroup*>(model);
+                        if (mg != nullptr) {
+                            bool reset = mg->RebuildBuffers();
+                            assert(reset);
+                            publish(model);
+                        }
                     }
+                } else {
+                    toBeDone.push_back(it);
                 }
-            } else {
-                toBeDone.push_back(it);
             }
         }
-    }
+    };
+    loadReady();
 
-    // anything left in toBeDone is now due to model loops
-    for (const auto& it : toBeDone) {
-        std::string name = it.attribute("name").as_string();
-        std::string msg = "Could not process model group " + name + " likely due to model groups loops. See Check Sequence for details.";
-        DisplayWarning(msg);
-        assert(false);
-        Model* model = factory.Deserialize(it, *this, false);
-        if (model != nullptr) {
-            model->GetModelScreenLocation().previewW = previewW;
-            model->GetModelScreenLocation().previewH = previewH;
-            ModelGroup* mg = dynamic_cast<ModelGroup*>(model);
-            if (mg != nullptr) {
-                bool reset = mg->RebuildBuffers();
-                assert(!reset);
-                publish(model);
+    // Anything left in toBeDone is in a loop of groups containing each other.  Every walk
+    // over group members (ResetModels, Get*Channel, node building) recurses forever on a
+    // loop, so drop each member group that leads back to the group naming it.  Removing
+    // that edge as each group is visited leaves the remaining membership acyclic.
+    if (!toBeDone.empty()) {
+        std::map<std::string, std::vector<std::string>> members;
+        for (const auto& it : toBeDone) {
+            Split(it.attribute("models").as_string(), ',', members[it.attribute("name").as_string()], true);
+        }
+        std::function<bool(const std::string&, const std::string&, std::set<std::string>&)> reaches =
+            [&](const std::string& from, const std::string& target, std::set<std::string>& visited) {
+                if (from == target) return true;
+                auto m = members.find(from);
+                if (m == members.end() || !visited.insert(from).second) return false;
+                for (const auto& n : m->second) {
+                    if (reaches(n, target, visited)) return true;
+                }
+                return false;
+            };
+        for (auto& it : toBeDone) {
+            std::string name = it.attribute("name").as_string();
+            std::vector<std::string> kept;
+            std::string removed;
+            for (const auto& m : members[name]) {
+                std::set<std::string> visited;
+                if (members.count(m) != 0 && reaches(m, name, visited)) {
+                    if (!removed.empty()) removed += ", ";
+                    removed += m;
+                } else {
+                    kept.push_back(m);
+                }
             }
+            if (!removed.empty()) {
+                members[name] = kept;
+                it.remove_attribute("models");
+                it.append_attribute("models") = Join(kept, ",");
+                changed = true;
+                DisplayWarning("Model group " + name + " and " + removed + " contain each other, which is not allowed. " +
+                               removed + " has been removed from " + name + ".");
+            }
+        }
+        loadReady();
+        for (const auto& it : toBeDone) {
+            spdlog::error("Model group {} could not be loaded.", it.attribute("name").as_string());
         }
     }
 

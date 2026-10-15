@@ -14,6 +14,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              FPP Connect: an FPP advertising a stale 169.254.x.x address could be reported as
                                  "not a supported FPP Instance" at its real IP
+    -bug (dkulp)                 FPP Connect: a sparse fseq already on a remote was rebuilt and re-uploaded on every
+                                 run when the remote's channel ranges ran past the end of the sequence (or for
+                                 effect sequences); progress bars now move only for remotes that need a new file
     -bug (derwin12)              Model previews (e.g. the Submodels node layout) could get stuck panning with
                                  no mouse button held after focus or window changes mid-drag
     -enh (dkulp)                 Controller Connection: "LOR Enhanced" serial protocol on FPP controllers' serial ports.
@@ -172,6 +175,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  movement at LOR's speed, curtains finish with the effect, diagonal
                                  bars, text colour, meteor colours and single-colour washes convert
                                  correctly
+    -bug (dkulp)                 Output to Lights: changing the show folder or deleting a controller while auto-upload
+                                 controllers were being configured could crash
+    -bug (dkulp)                 Model groups that contain each other crashed the Layout tab. A group can no longer be
+                                 added to a group it already contains, and a layout saved with such a loop is repaired
+                                 (with a warning) when it loads
+    -bug (dkulp)                 macOS/iPad: closing a sequence or changing its audio while another audio track was
+                                 playing could crash in the audio engine
 
 2026.18  October 2, 2026
 

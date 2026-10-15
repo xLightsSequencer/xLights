@@ -1653,8 +1653,9 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 SetNamePropertyInvalid(prop, false);
                 // refuse clashing names or names with unsafe characters
                 if (xlights->AllModels[safename] != nullptr || safename != event.GetValue().GetString().ToStdString()) {
-                    CreateUndoPoint("ModelName", selectedModel->name, safename);
                     event.Veto();
+                } else {
+                    CreateUndoPoint("ModelName", selectedModel->name, safename);
                 }
                 // todo do I need to do anything special here
             //} else if ("SubModels" == name) {
@@ -1678,8 +1679,9 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 SetNamePropertyInvalid(prop, false);
                 // refuse clashing names or names with unsafe characters
                 if (xlights->AllObjects[safename] != nullptr || safename != event.GetValue().GetString().ToStdString()) {
-                    CreateUndoPoint("ObjectName", selectedObject->name, safename);
                     event.Veto();
+                } else {
+                    CreateUndoPoint("ObjectName", selectedObject->name, safename);
                 }
             } else {
                 CreateUndoPoint("ObjectProperty", selectedObject->name, name, prop->GetValue().GetString().ToStdString());
@@ -11126,10 +11128,14 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             spdlog::debug("LayoutPanel::DoUndo ModelName");
             std::string origName = undoBuffer[sz].model;
             std::string newName = undoBuffer[sz].key;
-            if (lastModelName == newName) {
-                lastModelName = origName;
+            if (xlights->AllModels[origName] != nullptr) {
+                spdlog::warn("LayoutPanel::DoUndo ModelName: '{}' already exists, not renaming '{}' back.", origName, newName);
+            } else {
+                if (lastModelName == newName) {
+                    lastModelName = origName;
+                }
+                xlights->RenameModel(newName, origName);
             }
-            xlights->RenameModel(newName, origName);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                           OutputModelManager::WORK_RGBEFFECTS_CHANGE |
@@ -11138,7 +11144,11 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             spdlog::debug("LayoutPanel::DoUndo ObjectName");
             std::string origName = undoBuffer[sz].model;
             std::string newName = undoBuffer[sz].key;
-            xlights->RenameObject(newName, origName);
+            if (xlights->AllObjects[origName] != nullptr) {
+                spdlog::warn("LayoutPanel::DoUndo ObjectName: '{}' already exists, not renaming '{}' back.", origName, newName);
+            } else {
+                xlights->RenameObject(newName, origName);
+            }
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                           OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                                                           OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo", nullptr, nullptr, origName);

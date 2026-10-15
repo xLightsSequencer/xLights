@@ -1558,9 +1558,23 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     row++;
                 }
                 if (!cancelled && uploadCount) {
+                    // Only the remotes whose copy is out of date get a file built or sent;
+                    // the rest were marked done above and their bars stay that way.
+                    std::vector<FPP*> generating;
+                    std::vector<FPP*> uploading;
+                    row = 0;
+                    for (const auto& inst : instances) {
+                        if (doUpload[row] && inst->WillUploadSequence()) {
+                            uploading.push_back(inst);
+                            if (inst->NeedCustomSequence()) {
+                                generating.push_back(inst);
+                            }
+                        }
+                        row++;
+                    }
                     if (prepareCount) {
                         prgs->setActionLabel("Preparing FSEQ File for " + wxFileName(ToWXString(fseq)).GetFullName() + " (" + std::to_string(seqCountUploaded) + "/" + std::to_string(seqCountToUpload) + ")");
-                        for (const auto& inst : instances) {
+                        for (const auto& inst : generating) {
                             inst->updateProgress(0, false);
                         }
                         wxYield();
@@ -1578,7 +1592,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                             int donePct = frame * 1000 / seq->getNumFrames();
                             if (donePct != lastDone) {
                                 lastDone = donePct;
-                                for (const auto& inst : instances) {
+                                for (const auto& inst : generating) {
                                     inst->updateProgress(donePct, false);
                                 }
                                 wxYield();
@@ -1610,7 +1624,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     }
                     row = 0;
                     prgs->setActionLabel("Uploading " + wxFileName(ToWXString(fseq)).GetFullName() + " (" + std::to_string(seqCountUploaded) + "/" + std::to_string(seqCountToUpload) + ")");
-                    for (const auto& inst : instances) {
+                    for (const auto& inst : uploading) {
                         inst->updateProgress(0, false);
                     }
                     wxYield();
