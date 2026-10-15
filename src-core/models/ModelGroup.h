@@ -56,6 +56,9 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         std::list<Model*> GetFlatModels(bool removeDuplicates = true, bool activeOnly = true) const;
         bool ContainsModelGroup(ModelGroup* mg);
         bool ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited);
+        // True when adding the named model would make this group (directly or through
+        // nested groups) contain itself.
+        bool MemberWouldCreateLoop(const std::string& name);
         bool DirectlyContainsModel(Model* m) const;
         bool DirectlyContainsModel(std::string const& m) const;
         bool ContainsModel(const Model* m) const;

@@ -172,6 +172,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  correctly
     -bug (dkulp)                 Output to Lights: changing the show folder or deleting a controller while auto-upload
                                  controllers were being configured could crash
+    -bug (dkulp)                 Model groups that contain each other crashed the Layout tab. A group can no longer be
+                                 added to a group it already contains, and a layout saved with such a loop is repaired
+                                 (with a warning) when it loads
 
 2026.18  October 2, 2026
 

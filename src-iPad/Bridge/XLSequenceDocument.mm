@@ -7484,6 +7484,8 @@ static std::string LayoutGroupForNewItem(const std::string& active) {
     if (!m) return NO;
     // Bail if already a direct member (no need to mark dirty).
     if (grp->DirectlyContainsModel(modelName.UTF8String)) return NO;
+    // ModelGroup::AddModel refuses a member that would close a loop; report it.
+    if (grp->MemberWouldCreateLoop(modelName.UTF8String)) return NO;
     _context->AbortRender(5000);
     grp->AddModel(modelName.UTF8String);
     _context->MarkLayoutModelDirty(groupName.UTF8String);
