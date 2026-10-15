@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Crash rendering a model group using a "Horizontal/Vertical Stack - Scaled" buffer style
+                                 when the group's buffer would be billions of pixels; the buffer size is now capped
     -bug (derwin12)              Model previews (e.g. the Submodels node layout) could get stuck panning with
                                  no mouse button held after focus or window changes mid-drag
     -enh (dkulp)                 Controller Connection: "LOR Enhanced" serial protocol on FPP controllers' serial ports.

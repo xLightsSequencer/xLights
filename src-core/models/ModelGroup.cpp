@@ -10,6 +10,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <cstdint>
 #include <vector>
 
 #include "ModelGroup.h"
@@ -1072,6 +1074,23 @@ bool ModelGroup::CheckForChanges() const {
     return false;
 }
 
+// A scaled stack of many models, one of them very wide/tall, multiplies out to
+// billions of pixels (5.7GB seen in the wild). Nodes are rescaled into whatever
+// size we return, so shrinking it keeps the layout consistent.
+static void LimitScaledStackSize(int& wi, int& ht, int numModels, bool horizontal)
+{
+    constexpr int64_t MAX_SCALED_STACK_PIXELS = 16 * 1024 * 1024;
+    int64_t pixels = (int64_t)wi * (int64_t)ht;
+    if (pixels <= MAX_SCALED_STACK_PIXELS) {
+        return;
+    }
+    double s = std::sqrt((double)MAX_SCALED_STACK_PIXELS / (double)pixels);
+    int minWi = horizontal ? std::max(1, numModels) : 1;
+    int minHt = horizontal ? 1 : std::max(1, numModels);
+    wi = std::max(minWi, (int)(wi * s));
+    ht = std::max(minHt, (int)(ht * s));
+}
+
 void ModelGroup::GetBufferSize(const std::string &tp, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHt, int stagger) const {
     CheckForChanges();
     CacheReadLock _cacheRead(cacheLock, HoldsCacheWrite());
@@ -1144,9 +1163,11 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &camera,
     } else if (type == HORIZ_SCALED) {
         BufferHt = maxHi;
         BufferWi = maxWid * models;
+        LimitScaledStackSize(BufferWi, BufferHt, (int)modelNames.size(), true);
     } else if (type == VERT_SCALED) {
         BufferHt = maxHi * models;
         BufferWi = maxWid;
+        LimitScaledStackSize(BufferWi, BufferHt, (int)modelNames.size(), false);
     } else if (type == SINGLELINE_AS_PIXEL) {
         BufferHt = 1;
         BufferWi = models;
