@@ -120,7 +120,7 @@ read-only category header (`ModelPropertyAdapter.cpp:307`); the iPad likewise sh
 | 35 | Overlap checking toggle | `CheckBoxOverlap` `LayoutPanel.cpp:1092`, handler `:4392`, check `CheckModelForOverlaps` `:9196` | ❌ | Grepped `overlapCheck`, `Overlap` under `src-iPad/App/` + `src-iPad/Bridge/` → only the start-channel "Not Overlapping" command (`LayoutEditorView.swift:2008`); no per-model overlap highlighting |
 | **Align / distribute / resize / transform** |
 | 36 | Align Top / Bottom / Left / Right | `LayoutPanel.cpp:7552-7555`, impls `:8368`, `:8393`, `:8418`, `:8580` | ✅ | `LayoutEditorView.swift:13841-13853`, `performAlign` `:4205`, bridge `XLMetalBridge.h:549` |
-| 37 | Align Front / Back (3D) | `LayoutPanel.cpp:7557-7558`, impls `:8443`, `:8468` | ✅ | `LayoutEditorView.swift:13841-13853` (front/back), `performAlign` `:4205` |
+| 37 | Align Front / Back (3D) | `LayoutPanel.cpp:7557-7558`, impls `:8443`, `:8468` | ✅ | `LayoutEditorView.swift:13841-13853` (front/back), `performAlign` `:4205`. Boxed-model front/back now from real node Z extent (`BoxedScreenLocation.cpp` `GetWorldZExtent`) — shared core, auto-applied to both |
 | 38 | Align With Ground (3D) | `LayoutPanel.cpp:7559`, impl `:8127` | ✅ | `LayoutEditorView.swift:13841-13853` (ground) |
 | 39 | Align H/V/Depth Center | `LayoutPanel.cpp:7561-7564`, impls `:8605`, `:8630`, `:8654` | ✅ | `LayoutEditorView.swift:13841-13853` (centerH/centerV/centerD) |
 | 40 | Distribute Horizontal / Vertical / Depth | `LayoutPanel.cpp:7569-7572`, impls `:8701`, `:8761`, `:8821` | ✅ | `LayoutEditorView.swift:13861-13863`, `performDistribute` `:4238`, bridge `XLMetalBridge.h:560` |
