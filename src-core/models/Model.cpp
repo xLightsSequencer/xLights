@@ -2278,11 +2278,11 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
     }
     if (bufferWi * bufferHt > 2100000) {
         if (bufferHt > 100000) {
-            spdlog::warn("Model::InitRenderBufferNodes BufferHt was overly large ... overridden to be 100000.");
+            spdlog::warn("Model::InitRenderBufferNodes BufferHt was overly large ({}x{} on '{}') ... overridden to be 100000.", bufferWi, bufferHt, GetName());
             bufferHt = 100000;
         }
         if (bufferWi > 100000) {
-            spdlog::warn("Model::InitRenderBufferNodes BufferWi was overly large ... overridden to be 100000.");
+            spdlog::warn("Model::InitRenderBufferNodes BufferWi was overly large ({}x{} on '{}') ... overridden to be 100000.", bufferWi, bufferHt, GetName());
             bufferWi = 100000;
         }
     }

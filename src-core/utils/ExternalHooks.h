@@ -38,8 +38,14 @@ inline bool ObtainAccessToURL(const std::string &path, bool enforceWritable = fa
 inline bool IsFromAppStore() { return false; }
 
 inline bool FileExists(const std::string &s, bool waitForDownload = true) {
-    std::error_code ec;
-    return std::filesystem::exists(s, ec);
+    // Building the path from a narrow string throws on Windows when it holds a
+    // character the ANSI code page can't map (e.g. a mangled U+FFFD in a media name).
+    try {
+        std::error_code ec;
+        return std::filesystem::exists(std::filesystem::path(s), ec);
+    } catch (const std::exception&) {
+        return false;
+    }
 }
 inline void MarkNewFileRevision(const std::string &path, int retainMax = 15) {}
 inline std::list<std::string> GetFileRevisions(const std::string &path) { return std::list<std::string>(); }

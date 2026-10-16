@@ -12,6 +12,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (derwin12)              Models and groups with Render Disabled no longer allocate render buffers or run per-frame
+                                 render passes, speeding up renders of sequences with large disabled groups
+    -bug (derwin12)              Model groups whose models sit in a near-perfect row (e.g. a row of floods) could build a
+                                 giant render buffer and render very slowly
+    -bug (derwin12)              Crash rendering a Butterfly effect whose Bkgrd Skip was saved as 0
+    -bug (derwin12)              Crash opening a sequence whose media file name contains characters Windows can't map
     -bug (derwin12)              FPP Connect: an FPP advertising a stale 169.254.x.x address could be reported as
                                  "not a supported FPP Instance" at its real IP
     -bug (dkulp)                 FPP Connect: a sparse fseq already on a remote was rebuilt and re-uploaded on every

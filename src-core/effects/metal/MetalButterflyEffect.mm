@@ -95,7 +95,7 @@ void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     const int Chunks = GetValueCurveInt("Butterfly_Chunks", sChunksDefault, SettingsMap, oset, sChunksMin, sChunksMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Skip = GetValueCurveInt("Butterfly_Skip", sSkipDefault, SettingsMap, oset, sSkipMin, sSkipMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Skip = std::max(1, GetValueCurveInt("Butterfly_Skip", sSkipDefault, SettingsMap, oset, sSkipMin, sSkipMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
     int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     std::string colors = SettingsMap.Get("CHOICE_Butterfly_Colors", sColorsDefault);

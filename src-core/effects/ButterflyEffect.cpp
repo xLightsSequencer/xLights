@@ -88,7 +88,8 @@ void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
     const int Chunks = GetValueCurveInt("Butterfly_Chunks", sChunksDefault, SettingsMap, oset, sChunksMin, sChunksMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Skip = GetValueCurveInt("Butterfly_Skip", sSkipDefault, SettingsMap, oset, sSkipMin, sSkipMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    // The kernels take (int)(h*chunks) % skip, so a saved Skip of 0 divides by zero.
+    int Skip = std::max(1, GetValueCurveInt("Butterfly_Skip", sSkipDefault, SettingsMap, oset, sSkipMin, sSkipMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
     int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     const int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", sStyleDefault);
