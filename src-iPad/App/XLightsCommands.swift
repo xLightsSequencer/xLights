@@ -805,7 +805,7 @@ struct XLSequencerCommands: Commands {
             Divider()
 
             Button("xLights Forum") {
-                XLOpenURL("https://nutcracker123.com/forum/")
+                XLOpenURL("https://falconchristmas.com/forum/index.php?board=26.0")
             }
             Button("Facebook Group") {
                 XLOpenURL("https://www.facebook.com/groups/628061113896314/")
