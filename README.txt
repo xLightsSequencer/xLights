@@ -18,6 +18,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  giant render buffer and render very slowly
     -bug (derwin12)              Crash rendering a Butterfly effect whose Bkgrd Skip was saved as 0
     -bug (derwin12)              Crash opening a sequence whose media file name contains characters Windows can't map
+    -bug (derwin12)              Crash rendering a model group using a "Horizontal/Vertical Stack - Scaled" buffer style
+                                 when the group's buffer would be billions of pixels; the buffer size is now capped
     -bug (derwin12)              FPP Connect: an FPP advertising a stale 169.254.x.x address could be reported as
                                  "not a supported FPP Instance" at its real IP
     -bug (dkulp)                 FPP Connect: a sparse fseq already on a remote was rebuilt and re-uploaded on every

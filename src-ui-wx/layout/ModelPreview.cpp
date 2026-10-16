@@ -314,7 +314,7 @@ void ModelPreview::OnZoomGesture(wxZoomGestureEvent& event) {
             if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
                 Refresh();
                 Update();
-                if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                if ((xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) && currentModel == "&---none---&") {
                     Render(xlights->GetCurrentPlayTime(), &xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
                 }
             }
@@ -412,7 +412,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
             if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED || currentModel != "&---none---&") {
                 Refresh();
                 Update();
-                if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                if ((xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) && currentModel == "&---none---&") {
                     Render(xlights->GetCurrentPlayTime(), &xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
                 }
             }
@@ -462,7 +462,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
             if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED || currentModel != "&---none---&") {
                 Refresh();
                 Update();
-                if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+                if ((xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) && currentModel == "&---none---&") {
                     Render(xlights->GetCurrentPlayTime(), &xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
                 }
             }
@@ -741,7 +741,7 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
         if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED || xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
             Refresh();
             Update();
-            if (xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) {
+            if ((xlights->GetPlayStatus() == PLAY_TYPE_MODEL_PAUSED || xlights->GetPlayStatus() == PLAY_TYPE_EFFECT_PAUSED) && currentModel == "&---none---&") {
                 Render(xlights->GetCurrentPlayTime(), &xlights->_seqData[xlights->GetCurrentPlayTime() / xlights->_seqData.FrameTime()][0]);
             }
         }
