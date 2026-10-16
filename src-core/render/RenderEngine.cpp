@@ -4143,6 +4143,11 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
         if (!hasEffects && !(isRestricted && clear)) {
             return;
         }
+        // A render-disabled model never calls an effect's Render, so don't pay
+        // for its buffers and per-frame passes either.
+        if (me->IsRenderDisabled() && !(isRestricted && clear)) {
+            return;
+        }
         RenderJob* job = new RenderJob(me, seqData, &_ctx, this, &seqElements);
         job->setRenderRange(startFrame, endFrame);
         job->SetRangeRestriction(ranges);

@@ -820,12 +820,14 @@ bool ModelGroup::RebuildBuffers() {
         if( GetCentreDefined()) {
             float cx = GetCentreX();
             float cy = GetCentreY();
-            if (xmaxx == xminx) {
+            // A near-zero span (e.g. a row of models at y 162.594589 vs 162.594604)
+            // would divide into a multi-billion offset and a giant buffer.
+            if (std::abs(xmaxx - xminx) < 1.0f) {
                 offsetX = 0;
             } else {
                 offsetX = ((cx - ((xminx + xmaxx) / 2.0)) * 2000.0) / (xmaxx - xminx);
             }
-            if (xmaxy == xminy) {
+            if (std::abs(xmaxy - xminy) < 1.0f) {
                 offsetY = 0;
             } else {
                 offsetY = ((cy - ((xminy + xmaxy) / 2.0)) * 2000.0) / (xmaxy - xminy);

@@ -67,7 +67,7 @@ void VulkanButterflyEffect::Render(Effect* effect, const SettingsMap& SettingsMa
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     const int Chunks = GetValueCurveInt("Butterfly_Chunks", ButterflyEffect::sChunksDefault, SettingsMap, oset, ButterflyEffect::sChunksMin, ButterflyEffect::sChunksMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Skip = GetValueCurveInt("Butterfly_Skip", ButterflyEffect::sSkipDefault, SettingsMap, oset, ButterflyEffect::sSkipMin, ButterflyEffect::sSkipMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Skip = std::max(1, GetValueCurveInt("Butterfly_Skip", ButterflyEffect::sSkipDefault, SettingsMap, oset, ButterflyEffect::sSkipMin, ButterflyEffect::sSkipMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
     int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", ButterflyEffect::sSpeedDefault, SettingsMap, oset, ButterflyEffect::sSpeedMin, ButterflyEffect::sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     std::string colors = SettingsMap.Get("CHOICE_Butterfly_Colors", ButterflyEffect::sColorsDefault);
