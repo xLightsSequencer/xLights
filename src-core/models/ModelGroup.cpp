@@ -622,9 +622,27 @@ void ModelGroup::SetBaseModels(const std::vector<std::string>& baseModels)
     m_baseModels = baseModels;
 }
 
+bool ModelGroup::MemberWouldCreateLoop(const std::string& name)
+{
+    Model* m = modelManager.GetModel(name);
+    if (m == nullptr || m->GetDisplayAs() != DisplayAsType::ModelGroup) {
+        return false;
+    }
+    return m == this || static_cast<ModelGroup*>(m)->ContainsModelGroup(this);
+}
+
 void ModelGroup::SetModels(const std::vector<std::string>& models)
 {
-    modelNames = models;
+    // Groups that contain each other make every walk over the members recurse
+    // forever, so a member that would close a loop is never accepted.
+    modelNames.clear();
+    for (const auto& m : models) {
+        if (MemberWouldCreateLoop(m)) {
+            spdlog::warn("Model group '{}': not adding '{}' as it already contains '{}'.", GetName(), m, GetName());
+            continue;
+        }
+        modelNames.push_back(m);
+    }
     ResetModels();
 }
 
@@ -853,19 +871,22 @@ void ModelGroup::EnsureModelsCurrent() const
         // Every crash this guards against has been on the main thread.
         return;
     }
-    if (resolvingModels) {
-        // ResetModels recurses into nested groups, and two groups can name each
-        // other. Re-entering here would clear the vector an outer frame is
-        // still walking.
-        return;
-    }
-    resolvingModels = true;
     const_cast<ModelGroup*>(this)->ResetModels();
-    resolvingModels = false;
 }
 
 void ModelGroup::ResetModels()
 {
+    if (resolvingModels) {
+        // ResetModels recurses into nested groups, and two groups can name each
+        // other. Re-entering here would clear the vector an outer frame is
+        // still walking, and an A->B->A cycle would recurse until the stack overflows.
+        return;
+    }
+    resolvingModels = true;
+    struct ClearResolving {
+        bool& flag;
+        ~ClearResolving() { flag = false; }
+    } clearResolving{ resolvingModels };
     CacheWriteLock _cacheWrite(cacheLock, cacheWriter, HoldsCacheWrite());
     modelsGeneration = modelManager.GetModelGeneration();
     models.clear();
@@ -930,7 +951,11 @@ unsigned int ModelGroup::GetLastChannel() const
 
 void ModelGroup::AddModel(const std::string &name) {
     std::string trimmedName = Trim(name);
-    
+    if (MemberWouldCreateLoop(trimmedName)) {
+        spdlog::warn("Model group '{}': not adding '{}' as it already contains '{}'.", GetName(), trimmedName, GetName());
+        return;
+    }
+
     // Add to modelNames if not already present
     if (std::find(modelNames.begin(), modelNames.end(), trimmedName) == modelNames.end()) {
         modelNames.push_back(trimmedName);

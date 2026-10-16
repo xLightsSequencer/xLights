@@ -1196,6 +1196,51 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
     return cancelled;
 }
 
+// The sparse ranges a generated file will actually carry once V2FSEQFile::writeHeader
+// is done with them. The is-the-remote-copy-current check compares these against the
+// remote's header, so they must be computed exactly as the write path will.
+static std::vector<std::pair<uint32_t, uint32_t>> SparseRangesToWrite(const FSEQFile *file,
+                                                                      const V2FSEQFile *v2source,
+                                                                      bool isEffectSeq,
+                                                                      const std::vector<std::pair<uint32_t, uint32_t>> &controllerRanges) {
+    std::vector<std::pair<uint32_t, uint32_t>> wanted;
+    if (isEffectSeq && v2source != nullptr && !v2source->m_sparseRanges.empty()) {
+        // Effect sequence: only the controller channels the effect touches.
+        for (auto &cr : controllerRanges) {
+            uint32_t crEnd = cr.first + cr.second;
+            for (auto &sr : v2source->m_sparseRanges) {
+                uint32_t srEnd = sr.first + sr.second;
+                uint32_t intStart = std::max(cr.first, sr.first);
+                uint32_t intEnd = std::min(crEnd, srEnd);
+                if (intStart < intEnd) {
+                    wanted.push_back({intStart, intEnd - intStart});
+                }
+            }
+        }
+    } else {
+        wanted = controllerRanges;
+    }
+
+    // Same channel span initializeFromFSEQ gives the output file, and the same clipping
+    // writeHeader applies against it.
+    uint64_t span = file->getChannelCount();
+    if (v2source != nullptr) {
+        for (auto &sr : v2source->m_sparseRanges) {
+            span = std::max(span, (uint64_t)sr.first + sr.second);
+        }
+    }
+    std::vector<std::pair<uint32_t, uint32_t>> result;
+    for (auto a : wanted) {
+        if (a.first < span) {
+            if (a.first + a.second > span) {
+                a.second = (uint32_t)(span - a.first);
+            }
+            result.push_back(a);
+        }
+    }
+    return result;
+}
+
 bool FPP::PrepareUploadSequence(FSEQFile *file,
                                 const std::string &seq,
                                 const std::string &media,
@@ -1281,8 +1326,30 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         }
     }
 
+    V2FSEQFile *v2source = dynamic_cast<V2FSEQFile*>(file);
+    bool isEffectSeq = false;
+    if (v2source != nullptr) {
+        for (auto &vh : v2source->getVariableHeaders()) {
+            if (vh.code[0] == 'e' && vh.code[1] == 'S') {
+                isEffectSeq = true;
+                break;
+            }
+        }
+    }
+    bool uploadOriginal = fppType == FPP_TYPE::FPP
+        && ((FSEQ_Version == 1 && file->getVersionMajor() == 1)
+            || fn.extension() == ".eseq"
+            || (ctype == FSEQFile::CompressionType::zstd && !sparse && file->getVersionMajor() == 2));
+
     int channelCount = 0;
-    if (!sparse) {
+    if (sparse && uploadOriginal) {
+        // sent as-is, so the remote ends up with the source file's own ranges
+        std::vector<std::pair<uint32_t, uint32_t>> sourceRanges;
+        if (v2source != nullptr) {
+            sourceRanges = v2source->m_sparseRanges;
+        }
+        if (sourceRanges != currentRanges) doSeqUpload = true;
+    } else if (!sparse) {
         //full file, non sparse
         if (currentMaxChannel != file->getMaxChannel()) doSeqUpload = true;
         if (currentChannelCount != file->getChannelCount()) doSeqUpload = true;
@@ -1298,20 +1365,30 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         // at this point, if we are uploading a full file, we know if something has changed or not
         // and can bail quickly if not
     } else if (ranges != "") {
-        if (ranges != "") {
-            auto const r1 = Split(ranges, ',');
-            for (const auto& a : r1) {
-                auto const r = Split(a, '-');
-                int start = (int)strtol(r[0].c_str(), nullptr, 10);
-                int len = 4; //at least 4
-                if (r.size() == 2) {
-                    len = (int)strtol(r[1].c_str(), nullptr, 10) - start + 1;
-                }
-                newRanges.push_back(std::pair<uint32_t, uint32_t>(start, len));
-                channelCount += len;
+        std::vector<std::pair<uint32_t, uint32_t>> controllerRanges;
+        auto const r1 = Split(ranges, ',');
+        for (const auto& a : r1) {
+            auto const r = Split(a, '-');
+            int start = (int)strtol(r[0].c_str(), nullptr, 10);
+            int len = 4; //at least 4
+            if (r.size() == 2) {
+                len = (int)strtol(r[1].c_str(), nullptr, 10) - start + 1;
             }
-            if (newRanges != currentRanges) doSeqUpload = true;
+            controllerRanges.push_back(std::pair<uint32_t, uint32_t>(start, len));
         }
+        newRanges = SparseRangesToWrite(file, v2source, isEffectSeq, controllerRanges);
+        if (newRanges.empty() && isEffectSeq) {
+            // The effect touches none of this controller's channels, so it needs no file.
+            if (tempFileName != "") {
+                { std::error_code ec; std::filesystem::remove(tempFileName, ec); }
+                tempFileName = "";
+            }
+            return false;
+        }
+        for (auto &a : newRanges) {
+            channelCount += a.second;
+        }
+        if (newRanges != currentRanges) doSeqUpload = true;
     } else if (!currentRanges.empty()) {
         doSeqUpload = true;
     }
@@ -1321,21 +1398,12 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     }
 
     baseSeqName = baseName;
-    if (fppType == FPP_TYPE::FPP) {
-        if ((FSEQ_Version == 1 && file->getVersionMajor() == 1) || fn.extension() == ".eseq") {
-            //these just get uploaded directly
-            outputFile = file;
-            outputFileIsOriginal = true;
-            tempFileName = file->getFilename();
-            return false;
-        }
-        if (ctype == FSEQFile::CompressionType::zstd && !sparse && file->getVersionMajor() == 2) {
-            // Full v2 file, upload directly
-            outputFile = file;
-            outputFileIsOriginal = true;
-            tempFileName = file->getFilename();
-            return false;
-        }
+    if (uploadOriginal) {
+        // V1, .eseq and full zstd v2 files are uploaded directly
+        outputFile = file;
+        outputFileIsOriginal = true;
+        tempFileName = file->getFilename();
+        return false;
     }
 
     int clevel = 2;
@@ -1381,49 +1449,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         outputFile->enableMinorVersionFeatures(2);
     }
     if (sparse && !newRanges.empty()) {
-        V2FSEQFile *v2file = (V2FSEQFile*)outputFile;
-        V2FSEQFile *v2source = dynamic_cast<V2FSEQFile*>(file);
-        // Check if source is an effect sequence (marked with 'eS' variable header)
-        bool isEffectSeq = false;
-        if (v2source != nullptr) {
-            for (auto &vh : v2source->getVariableHeaders()) {
-                if (vh.code[0] == 'e' && vh.code[1] == 'S') {
-                    isEffectSeq = true;
-                    break;
-                }
-            }
-        }
-        if (isEffectSeq && !v2source->m_sparseRanges.empty()) {
-            // Effect sequence: intersect controller ranges with source
-            // sparse ranges so we only include channels the effect touches.
-            for (auto &cr : newRanges) {
-                uint32_t crEnd = cr.first + cr.second;
-                for (auto &sr : v2source->m_sparseRanges) {
-                    uint32_t srEnd = sr.first + sr.second;
-                    uint32_t intStart = std::max(cr.first, sr.first);
-                    uint32_t intEnd = std::min(crEnd, srEnd);
-                    if (intStart < intEnd) {
-                        v2file->m_sparseRanges.push_back({intStart, intEnd - intStart});
-                    }
-                }
-            }
-            if (v2file->m_sparseRanges.empty()) {
-                // No overlap between effect sequence and this controller.
-                // Skip upload entirely — this controller has no channels
-                // in the effect, so no file is needed.
-                delete outputFile;
-                outputFile = nullptr;
-                if (tempFileName != "") {
-                    { std::error_code ec; std::filesystem::remove(tempFileName, ec); }
-                    tempFileName = "";
-                }
-                return false;
-            }
-        } else {
-            for (auto &a : newRanges) {
-                v2file->m_sparseRanges.push_back(a);
-            }
-        }
+        ((V2FSEQFile*)outputFile)->m_sparseRanges = newRanges;
     }
     if (fppType != FPP_TYPE::FPP || FSEQ_Version == 1 || (ctype == FSEQFile::CompressionType::zstd && !sparse) || !IsVersionAtLeast(9, 3)) {
         // need to remove some variable headers that could trigger extra memory usage
@@ -4994,6 +5020,21 @@ void FPP::MapToFPPInstances(Discovery& discovery, std::list<FPP*>& instances, Ou
     // 169.254.x.x link-local address it had then, which is not reachable from
     // another subnet, so consider those after every routable address.
     std::vector<DiscoveredData*> results = discovery.GetResults();
+    // The type ID can be reported only against the stale address (ping and
+    // multiSyncSystems) while the routable record has none, so share it between
+    // records of the same device.
+    for (auto res : results) {
+        if (res->typeId != 0 || res->uuid.empty()) {
+            continue;
+        }
+        for (auto other : results) {
+            if (other != res && other->typeId != 0 && other->uuid == res->uuid) {
+                spdlog::info("FPP Discovery - {} has no type, using {:X} from {} (same uuid {})", res->ip.c_str(), other->typeId, other->ip.c_str(), res->uuid.c_str());
+                res->typeId = other->typeId;
+                break;
+            }
+        }
+    }
     std::stable_partition(results.begin(), results.end(), [](DiscoveredData* r) {
         return r->ip.rfind("169.254.", 0) != 0;
     });
