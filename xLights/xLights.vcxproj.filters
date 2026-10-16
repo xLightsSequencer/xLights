@@ -1491,6 +1491,9 @@
     <ClCompile Include="..\src-core\controllers\ILightThat.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\controllers\JBoards.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\media\kiss_fft\kiss_fft.c">
       <Filter>kiss_fft</Filter>
     </ClCompile>
@@ -3065,6 +3068,9 @@
       <Filter>wxJSON</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\controllers\ILightThat.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\controllers\JBoards.h">
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\utils\GitUtils.h">
