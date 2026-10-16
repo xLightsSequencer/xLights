@@ -1,0 +1,74 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "DmxMovingHeadAdv",
+    "description": "A 3D-mesh-rendered moving-head fixture: pan/tilt motors plus three OBJ mesh children (base/yoke/head) forming its 3D body, a switchable color ability (RGBW/ColorWheel/CMYW), dimmer, shutter and beam abilities (with beam orient + Y-offset support, unlike the plain DmxMovingHead), and an optional list of pan/tilt \"position zones\" that force a fixed DMX value on another channel while the beam is aimed within a given pan/tilt window. Source: src-core/models/DMX/DmxMovingHeadAdv.{h,cpp} (DisplayAs = DisplayAsType::DmxMovingHeadAdv; derives from DmxMovingHeadComm). Compare DmxMovingHead.json for the simpler 2D-silhouette sibling (which has DmxStyle/HideBody instead of mesh children/position zones).",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json",
+        "shared/DmxAbilities.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions. Round-tripped but disabled in DmxMovingHeadAdv's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions. Deliberately left enabled for DMX models."
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions. Not disabled for DMX models."
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve. Round-tripped but disabled in DmxMovingHeadAdv's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        },
+        {
+            "name": "PanMotor",
+            "description": "Pan-axis motor child element. Instantiates the {base}Motor pattern documented in shared/DmxAbilities.json notes. Always present (DmxMovingHeadAdv::GetPanMotor())."
+        },
+        {
+            "name": "TiltMotor",
+            "description": "Tilt-axis motor child element. Same attribute set as PanMotor. Always present (DmxMovingHeadAdv::GetTiltMotor())."
+        },
+        {
+            "name": "BaseMesh",
+            "description": "Fixed base 3D mesh child element. Instantiates the {base}Mesh pattern documented in shared/DmxAbilities.json notes (ObjFile/MeshOnly/Brightness/Width/Height/Depth/ScaleX-Y-Z/RotateX-Y-Z/OffsetX-Y-Z). Always present (DmxMovingHeadAdv::GetBaseMesh()/CreateBaseMesh())."
+        },
+        {
+            "name": "YokeMesh",
+            "description": "Pan/tilt yoke 3D mesh child element. Same attribute set as BaseMesh. Always present (GetYokeMesh()/CreateYokeMesh()). Its RotateZ property (\"YokeMeshRotateZ\") is hidden in the property grid (DmxMovingHeadAdvPropertyAdapter::DisableUnusedProperties: Z-axis rotation on the yoke/head conflicts with the pan/tilt rotation already being applied) but the attribute is still read/written normally."
+        },
+        {
+            "name": "HeadMesh",
+            "description": "Head 3D mesh child element. Same attribute set as BaseMesh. Always present (GetHeadMesh()/CreateHeadMesh()). Its RotateZ property (\"HeadMeshRotateZ\") is likewise hidden in the property grid for the same reason as YokeMesh's."
+        },
+        {
+            "name": "PositionZone",
+            "encoding": "Zero or more repeated PositionZone child elements, one per configured zone (DmxMovingHeadAdv::GetPositionZones()/AddPositionZone()); order is significant only for last-match-wins evaluation, not indexed by attribute name.",
+            "description": "A pan/tilt window that forces a fixed value onto another DMX channel while the beam is aimed inside it (struct PositionZone). Attributes: PanMin (uint, default 0, 0-255), PanMax (uint, default 255, 0-255), TiltMin (uint, default 0, 0-255), TiltMax (uint, default 255, 0-255), Channel (uint, default 1, min clamped to 1 on read), Value (uint, default 0, 0-255, stored/read as uint8_t)."
+        }
+    ],
+    "properties": [],
+    "notes": [
+        "All of this document's own attributes (Fixture, DmxColorType + color channels, MhDimmerChannel, shutter, beam - including DmxBeamOrient/DmxBeamYOffset, which ARE written here, unlike DmxMovingHead) are documented once in shared/DmxAbilities.json; `properties` is intentionally empty.",
+        "DmxMovingHeadAdv is the only one of the four beam-ability DMX documents whose constructor enables SetSupportsOrient(true)/SetSupportsYOffset(true) - so it is the only document that actually writes DmxBeamOrient/DmxBeamYOffset (default beam length/width/y-offset overridden to 4.0/4.0/17.0 in its constructor).",
+        "Has no DmxStyle or HideBody attribute (those belong to DmxMovingHead only) - its visual style is entirely the BaseMesh/YokeMesh/HeadMesh OBJ geometry.",
+        "PivotAxes-style caveat does not apply here (that is a DmxServo3d-only UI element); DmxMovingHeadAdv has no non-persisted UI-only properties beyond the PositionZoneConfig popup button itself, which is a UI convenience for editing the PositionZone list above rather than an attribute."
+    ]
+}

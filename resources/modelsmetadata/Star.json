@@ -1,0 +1,139 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Star",
+    "description": "A multi-pointed star of nodes, optionally built from several concentric star-shaped layers of independently-sized node counts sharing one outer/inner ratio.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumStrings",
+            "label": "# Strings",
+            "gridKey": "StarStringCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 640,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of physical connections/strings from the prop to the controller (StarModel::_numStrings, GetNumStarStrings()/SetNumStarStrings()); StarPropertyAdapter help text: \"typically the number of connections from the prop to your controller.\""
+        },
+        {
+            "xmlAttribute": "NodesPerString",
+            "label": "Nodes/String",
+            "gridKey": "StarLightCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Nodes per string (StarModel::_nodesPerString, GetNodesPerString()/SetStarNodesPerString()). Grid label is \"Lights/String\" for SingleNode string types, \"Nodes/String\" otherwise (StarPropertyAdapter::AddTypeProperties); same xmlAttribute/gridKey either way."
+        },
+        {
+            "xmlAttribute": "StarPoints",
+            "label": "# Points",
+            "gridKey": "StarStrandCount",
+            "type": "uint",
+            "default": 5,
+            "min": 1,
+            "max": 250,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "Number of points on the star (StarModel::_starPoints, GetStarPoints()/SetStarPoints()). Verified trap: xmlAttribute \"StarPoints\" differs from its wxPropertyGrid key \"StarStrandCount\"."
+        },
+        {
+            "xmlAttribute": "LayerSizes",
+            "gridKey": "Layers",
+            "type": "string",
+            "default": "",
+            "legacyAttributes": [
+                "starSizes"
+            ],
+            "encoding": "Comma-separated list of per-layer node counts (Model::SerialiseLayerSizes/DeserializeLayerSizes), identical wire format to Arches.json's LayerSizes. The property grid exposes this as a \"Layers\" count spinner (gridKey \"Layers\", range 1-100) plus one \"Layer{n}\" row per entry (0-based n, range 1-1000 each; row 0 labelled \"Inside\", the last labelled \"Outside\") via the shared ModelPropertyAdapter::AddLayerSizeProperty helper (StarPropertyAdapter::AddTypeProperties calls it directly, unconditionally, unlike Arches where it is gated by a layered-mode toggle) - but only this ONE xmlAttribute is ever persisted. INVARIANT for writers: xLights keeps the total-node attribute equal to the SUM of this list (parm2 (nodes per string) = sum(LayerSizes), enforced by StarModel::OnLayerSizesChange whenever layer sizes change in the UI); an external writer (e.g. an MCP) must set both consistently or the model will allocate the wrong node count (node allocation uses the total attribute, not this list - StarModel::InitModel).",
+            "description": "Per-layer node-count list for concentric star layers; see encoding for the exact format. Legacy files may instead use the attribute \"starSizes\" (XmlNodeKeys::StarSizesAttribute), checked first by XmlDeserializingModelFactory::DeserializeStar and, if present, used in place of \"LayerSizes\"; the current writer only ever writes \"LayerSizes\" (StarModel::SerialiseLayerSizes())."
+        },
+        {
+            "xmlAttribute": "StarStartLocation",
+            "label": "Starting Location",
+            "gridKey": "StarStart",
+            "type": "enum",
+            "enum": [
+                "Top Ctr-CCW",
+                "Top Ctr-CW",
+                "Top Ctr-CCW Inside",
+                "Top Ctr-CW Inside",
+                "Bottom Ctr-CW",
+                "Bottom Ctr-CCW",
+                "Bottom Ctr-CW Inside",
+                "Bottom Ctr-CCW Inside",
+                "Left Bottom-CW",
+                "Left Bottom-CCW",
+                "Right Bottom-CW",
+                "Right Bottom-CCW"
+            ],
+            "default": "Bottom Ctr-CW",
+            "description": "Which point the first node starts from and its winding direction (StarModel::_starStartLocation, GetStartLocation()/SetStarStartLocation(), persisted as the literal enum text). This is Star's own composite starting-location picker; it does not use the shared Dir/StartSide attributes directly. If the xmlAttribute is absent on read, XmlDeserializingModelFactory::DeserializeStar falls back to StarModel::ConvertFromDirStartSide() (deriving a value from the shared Dir/StartSide attributes instead) rather than this default."
+        },
+        {
+            "xmlAttribute": "starRatio",
+            "label": "Outer to Inner Ratio",
+            "gridKey": "StarRatio",
+            "type": "float",
+            "default": 2.618034,
+            "precision": 2,
+            "step": 0.1,
+            "description": "Ratio between the star's outer point radius and its inner valley radius (StarModel::_starRatio, GetStarRatio()/SetStarRatio()); default is the golden ratio, 2.618034. No min/max is enforced by the property grid (StarPropertyAdapter::AddTypeProperties sets only Precision/Step on the wxFloatProperty)."
+        },
+        {
+            "xmlAttribute": "starCenterPercent",
+            "label": "Inner Layer %",
+            "gridKey": "StarCenterPercent",
+            "type": "int",
+            "default": -1,
+            "min": -1,
+            "max": 100,
+            "description": "For a layered (multi-strand) star, how far in toward the center the innermost layer's points reach, as a percentage (StarModel::_innerPercent, GetInnerPercent()/SetInnerPercent()). Default/on-disk value when never configured is the sentinel -1 (\"not set\"/auto; StarModel::_innerPercent's initializer, and the fallback XmlDeserializingModelFactory::DeserializeStar reads when the attribute is absent). The property grid only exposes 0-100 (\"not set\" is not user-selectable once the control is shown), and only shows/allows editing when the star has more than one layer (StarModel::GetNumStrands() > 1, i.e. LayerSizes describes 2+ layers), but the attribute is always written regardless of layer count."
+        }
+    ],
+    "notes": [
+        "starRatio and starCenterPercent are recorded exactly as they appear on disk: lowercase-initial xmlAttribute names (XmlNodeKeys::StarRatioAttribute = \"starRatio\", StarCenterPercentAttribute = \"starCenterPercent\"), unlike every other Star attribute which is PascalCase.",
+        "This file's LayerSizes property duplicates Arches.json's LayerSizes property (same xmlAttribute, same wire encoding) but is not shared via extends, per this tree's house style that sibling model documents never extend each other; only shared/ fragments are extended."
+    ]
+}

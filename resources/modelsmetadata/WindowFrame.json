@@ -1,0 +1,98 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Window Frame",
+    "description": "A rectangular frame of nodes running along the top, both sides, and bottom of a window (or similar opening), with independently-sized top/side/bottom runs traced clockwise or counter-clockwise from one corner.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "TopNodes",
+            "label": "# Lights Top",
+            "gridKey": "WFTopCount",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 1000,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Node count along the top run of the frame (WindowFrameModel::_topNodes). May be 0 (a frame need not have a top run)."
+        },
+        {
+            "xmlAttribute": "SideNodes",
+            "label": "# Lights Left/Right",
+            "gridKey": "WFLeftRightCount",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 1000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Node count along EACH side run (left and right use the same count; WindowFrameModel::_sideNodes). Also determines the model's buffer height (WindowFrameModel::InitFrame: `SetBufferSize(height=_sideNodes, ...)`)."
+        },
+        {
+            "xmlAttribute": "BottomNodes",
+            "label": "# Lights Bottom",
+            "gridKey": "WFBottomCount",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 1000,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "Node count along the bottom run of the frame (WindowFrameModel::_bottomNodes). May be 0 (a frame need not have a bottom run)."
+        },
+        {
+            "xmlAttribute": "Rotation",
+            "label": "Direction",
+            "gridKey": "WFDirection",
+            "type": "enum",
+            "enum": [
+                "Clockwise",
+                "Counter Clockwise"
+            ],
+            "default": "Clockwise",
+            "description": "Winding direction of the frame trace, combined with the corner set by WFStartLocation (WindowFrameModel::_rotation, stored in-memory as 0=Clockwise/1=Counter Clockwise; WindowFramePropertyAdapter gridKey \"WFDirection\"). Legacy files may spell the clockwise value as the short form \"CW\" instead of \"Clockwise\" (XmlDeserializingModelFactory::DeserializeWindow: `(rotation == \"Clockwise\" || rotation == \"CW\") ? 0 : 1`); any other value (including a hypothetical \"CCW\") is treated as Counter Clockwise. The current serializer only ever writes the two full-word enum values listed here."
+        }
+    ],
+    "notes": [
+        "Starting Location: the \"WFStartLocation\" property-grid enum (gridKey \"WFStartLocation\", 4 values: Top Left/Top Right/Bottom Left/Bottom Right) decodes into the shared Dir/StartSide attributes (shared/Common.json), not a dedicated WindowFrame attribute - so no property object for it appears above. Top Left/Top Right set StartSide=T, Bottom Left/Bottom Right set StartSide=B; Top/Bottom-Left set Dir=L, Top/Bottom-Right set Dir=R (WindowFramePropertyAdapter::OnPropertyGridChange \"WFStartLocation\"). This is independent of the Rotation property above (which only controls trace winding direction, not the starting corner).",
+        "Boxed screen-location style (shared/ScreenLocation.json): Window Frame is one of the Boxed-style model types (full ScaleX/Y/Z, RotateX/Y/Z; no Angle/Shear/ThreePoint Height, no TwoPoint X2/Y2/Z2)."
+    ]
+}

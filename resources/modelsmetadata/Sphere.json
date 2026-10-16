@@ -1,0 +1,135 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Sphere",
+    "description": "A sphere/globe of nodes wound around a configurable latitude band, built from vertical matrix strands. Like Tree, SphereModel reuses MatrixModel's core string/strand attributes verbatim (repeated below, not inherited - sibling documents never extend each other), but has no orientation attribute of its own (no Vertical/StrandDir equivalent).",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumStrings",
+            "label": "# Strings",
+            "gridKey": "MatrixStringCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of physical connections/strings from the prop to the controller (SphereModel::GetNumMatrixStrings()/SetNumMatrixStrings(), inherited storage from MatrixModel). Identical attribute/semantics to Matrix.json's NumStrings; repeated here because sibling documents do not extend each other."
+        },
+        {
+            "xmlAttribute": "NodesPerString",
+            "label": "Nodes/String",
+            "gridKey": "MatrixLightCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Nodes per string. Identical attribute/semantics to Matrix.json's NodesPerString."
+        },
+        {
+            "xmlAttribute": "StrandsPerString",
+            "label": "Strands/String",
+            "gridKey": "MatrixStrandCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 2500,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "How many times each #String ZigZags. Identical attribute/semantics to Matrix.json's StrandsPerString."
+        },
+        {
+            "xmlAttribute": "Degrees",
+            "label": "Degrees",
+            "gridKey": "Degrees",
+            "type": "int",
+            "default": 360,
+            "min": 45,
+            "max": 360,
+            "description": "Total longitude sweep of the sphere, in degrees (SphereModel::GetSphereDegrees()/SetDegrees()); 360 is a complete globe, smaller values render a partial wedge. Confirms the brief's survey range exactly (SpherePropertyAdapter::AddStyleProperties: Min 45, Max 360)."
+        },
+        {
+            "xmlAttribute": "StartLatitude",
+            "label": "Southern Latitude",
+            "gridKey": "StartLatitude",
+            "type": "int",
+            "default": -86,
+            "min": -89,
+            "max": -1,
+            "description": "Southernmost latitude rendered, in degrees (SphereModel::GetStartLatitude()/SetStartLatitude()); always negative (southern hemisphere). Confirms the brief's survey range exactly (SpherePropertyAdapter::AddStyleProperties: Min -89, Max -1)."
+        },
+        {
+            "xmlAttribute": "EndLatitude",
+            "label": "Northern Latitude",
+            "gridKey": "EndLatitude",
+            "type": "uint",
+            "default": 86,
+            "min": 1,
+            "max": 89,
+            "description": "Northernmost latitude rendered, in degrees (SphereModel::GetEndLatitude()/SetEndLatitude()); always positive (northern hemisphere). Confirms the brief's survey range exactly (SpherePropertyAdapter::AddStyleProperties: Min 1, Max 89)."
+        },
+        {
+            "xmlAttribute": "AlternateNodes",
+            "label": "Alternate Nodes",
+            "gridKey": "AlternateNodes",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", interleaves node buffer positions instead of simple sequential order (SphereModel::HasAlternateNodes()/SetAlternateNodes()). Persisted as the lowercase literal true/false; always written. Mutually-enabling in the grid with NoZig."
+        },
+        {
+            "xmlAttribute": "NoZig",
+            "label": "Don't Zig Zag",
+            "gridKey": "NoZig",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", suppresses the zig-zag strand pattern (SphereModel::IsNoZigZag()/SetNoZigZag()). Persisted as the lowercase literal true/false; always written."
+        }
+    ],
+    "notes": [
+        "LowDefinition (shared/Common.json) applies to Sphere: its appliesWhen already includes DisplayAs \"Sphere\", and BaseSerializingVisitor::Visit(const SphereModel&) writes it unconditionally, same as Matrix. No Sphere-specific redefinition was needed.",
+        "versionNumber-gated migration (informational, not a property): XmlDeserializingModelFactory::DeserializeSphere applies a one-off scale correction on load for files with versionNumber < 8 (or absent), compensating for an old non-uniform sphere-scaling formula that has since been fixed to be truly round. This mutates ScaleX/Y/Z (shared/ScreenLocation.json) at load time rather than any Sphere-specific attribute, and only for old files.",
+        "Starting Location: the \"MatrixStart\" property-grid enum inherited from MatrixPropertyAdapter (SpherePropertyAdapter extends it) sets the shared Dir/StartSide attributes (shared/Common.json); no property object for it appears above."
+    ]
+}
