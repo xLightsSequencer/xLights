@@ -249,6 +249,7 @@ SubModelsPanel::SubModelsPanel(wxWindow* parent, OutputManager* om) :
     NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
     NodesGrid->CreateGrid(5,3);
     NodesGrid->SetMaxSize(wxSize(400,-1));
+    NodesGrid->SetMinSize(wxDLG_UNIT(Panel1, wxSize(-1, 100)));
     NodesGrid->EnableEditing(true);
     NodesGrid->EnableGridLines(true);
     NodesGrid->SetColLabelSize(18);
