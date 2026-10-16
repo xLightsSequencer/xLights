@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <spdlog/fmt/fmt.h>
 #include "BoxedScreenLocation.h"
 
@@ -249,6 +250,9 @@ void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> 
     if (Nodes.size() > 0) {
         aabb_min = glm::vec3(100000.0f, 100000.0f, 100000.0f);
         aabb_max = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 rawMin(std::numeric_limits<float>::max());
+        glm::vec3 rawMax(std::numeric_limits<float>::lowest());
+        bool foundCoord = false;
 
         for (const auto& it : Nodes) {
             if (!it) {
@@ -261,6 +265,10 @@ void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> 
                 float sx = coord.screenX;
                 float sy = coord.screenY;
                 float sz = coord.screenZ;
+
+                foundCoord = true;
+                rawMin = glm::min(rawMin, glm::vec3(sx, sy, sz));
+                rawMax = glm::max(rawMax, glm::vec3(sx, sy, sz));
 
                 //aabb vectors need to be the untranslated / unrotated limits
                 if (sx < aabb_min.x) {
@@ -283,6 +291,12 @@ void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> 
                 }
             }
         }
+        hasNodeExtent = foundCoord;
+        if (foundCoord) {
+            nodeMin = rawMin;
+            nodeMax = rawMax;
+        }
+
         // scale the bounding box for selection logic
         aabb_min.x = aabb_min.x * scalex;
         aabb_min.y = aabb_min.y * scaley;
@@ -582,11 +596,33 @@ float BoxedScreenLocation::GetRight() const {
 float BoxedScreenLocation::GetBottom() const {
     return worldPos_y - (RenderHt * scaley / 2.0f);
 }
+void BoxedScreenLocation::GetWorldZExtent(float& zMin, float& zMax) const {
+    if (!hasNodeExtent) {
+        zMin = worldPos_z - (RenderWi * scalez / 2.0f);
+        zMax = worldPos_z + (RenderWi * scalez / 2.0f);
+        return;
+    }
+    zMin = std::numeric_limits<float>::max();
+    zMax = std::numeric_limits<float>::lowest();
+    for (int i = 0; i < 8; ++i) {
+        glm::vec3 corner((i & 1) ? nodeMax.x : nodeMin.x,
+                         (i & 2) ? nodeMax.y : nodeMin.y,
+                         (i & 4) ? nodeMax.z : nodeMin.z);
+        corner *= glm::vec3(scalex, scaley, scalez);
+        const float z = (rotate_quat * corner).z + worldPos_z;
+        zMin = std::min(zMin, z);
+        zMax = std::max(zMax, z);
+    }
+}
 float BoxedScreenLocation::GetFront() const {
-    return worldPos_z + (RenderWi * scalez / 2.0f);
+    float zMin, zMax;
+    GetWorldZExtent(zMin, zMax);
+    return zMax;
 }
 float BoxedScreenLocation::GetBack() const {
-    return worldPos_z - (RenderWi * scalez / 2.0f);
+    float zMin, zMax;
+    GetWorldZExtent(zMin, zMax);
+    return zMin;
 }
 
 float BoxedScreenLocation::GetRestorableMWidth() const {
@@ -674,10 +710,10 @@ void BoxedScreenLocation::SetBottom(float y) {
     worldPos_y = y + (RenderHt * scaley / 2.0f);
 }
 void BoxedScreenLocation::SetFront(float z) {
-    worldPos_z = z - (RenderWi * scalez / 2.0f);
+    worldPos_z += z - GetFront();
 }
 void BoxedScreenLocation::SetBack(float z) {
-    worldPos_z = z + (RenderWi * scalez / 2.0f);
+    worldPos_z += z - GetBack();
 }
 
 namespace {

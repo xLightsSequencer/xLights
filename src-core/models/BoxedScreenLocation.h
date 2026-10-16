@@ -163,6 +163,12 @@ protected:
     BoxedScreenLocation(int points);
     float perspective;
 
+    void GetWorldZExtent(float& zMin, float& zMax) const;
+
+    glm::vec3 nodeMin = glm::vec3(0.0f);
+    glm::vec3 nodeMax = glm::vec3(0.0f);
+    bool hasNodeExtent = false;
+
     mutable float centerx;
     mutable float centery;
     mutable float centerz;

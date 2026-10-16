@@ -17,6 +17,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Model groups whose models sit in a near-perfect row (e.g. a row of floods) could build a
                                  giant render buffer and render very slowly
     -bug (derwin12)              Crash rendering a Butterfly effect whose Bkgrd Skip was saved as 0
+    -bug (derwin12)              Align Front/Back on boxed models (matrices, trees, etc.) now uses the pixels' actual depth
+                                 instead of an estimate based on model width, so flat models line up at the same depth
     -bug (derwin12)              Crash opening a sequence whose media file name contains characters Windows can't map
     -bug (derwin12)              Crash rendering a model group using a "Horizontal/Vertical Stack - Scaled" buffer style
                                  when the group's buffer would be billions of pixels; the buffer size is now capped
