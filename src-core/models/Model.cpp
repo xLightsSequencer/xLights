@@ -2479,6 +2479,9 @@ bool Model::ContainsChannel(int strand, uint32_t startChannel, uint32_t endChann
 bool Model::ContainsChannel(const std::string& submodelName, uint32_t startChannel, uint32_t endChannel) const
 {
     auto sm = GetSubModel(submodelName);
+    if (sm == nullptr) {
+        return false;
+    }
     return sm->ContainsChannel(startChannel, endChannel);
 }
 
