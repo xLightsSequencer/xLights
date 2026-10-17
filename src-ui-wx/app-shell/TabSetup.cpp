@@ -1450,6 +1450,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButton_DiscoverClick");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButton_DiscoverClick");
         _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButton_DiscoverClick");
+        PingActiveControllers();
     }
     SetStatusText("Discovery complete.");
     spdlog::debug("[Discovery] Controller discovery complete.");
