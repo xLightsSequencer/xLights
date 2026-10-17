@@ -16,6 +16,7 @@
 
 #include "render/SequencePackage.h"
 #include "render/SequenceElements.h"
+#include "render/SequenceFile.h"
 #include "render/SequenceMedia.h"
 #include "models/ModelManager.h"
 #include "models/Model.h"
@@ -1354,9 +1355,10 @@ std::string computeZipPath(const std::filesystem::path& abs,
             if (claimed.insert(relStr).second) {
                 return relStr;
             }
-            // Pre-claimed by an earlier pass — unusual (same file
-            // enumerated twice); just reuse the existing slot.
-            return relStr;
+            // Callers skip files they've already queued, so the slot
+            // belongs to a different file (e.g. the original a Cleanup
+            // File Locations copy was made from). Sharing it would write
+            // two entries under one name.
         }
     }
     return claimUniqueZipPath(claimed, typeSubdir, abs.filename().string());
@@ -1374,6 +1376,8 @@ void collectFromSequenceMedia(SequenceMedia& media,
                               std::set<std::string>& claimed,
                               std::vector<std::string>& outWarnings)
 {
+    struct Resolved { std::string raw; std::string abs; MediaType type; };
+    std::vector<Resolved> resolved;
     for (const auto& entry : media.GetAllMediaPaths()) {
         const std::string& raw = entry.first;
         MediaType t = entry.second;
@@ -1388,6 +1392,16 @@ void collectFromSequenceMedia(SequenceMedia& media,
             outWarnings.push_back(msg);
             continue;
         }
+        resolved.push_back({raw, abs, t});
+    }
+    // Show-folder files first, so they keep their show-relative paths: after
+    // Cleanup File Locations the cache still holds the external original, which
+    // would otherwise claim `Shaders/foo.fs` ahead of the copy the effects use.
+    std::stable_partition(resolved.begin(), resolved.end(), [&](const Resolved& r) {
+        return isUnderCanonDir(std::filesystem::path(r.abs), canonShowDir);
+    });
+
+    for (const auto& [raw, abs, t] : resolved) {
         if (outToPack.count(abs)) continue; // already queued (e.g. shared by multiple effects)
 
         std::string zipPath = computeZipPath(std::filesystem::path(abs), showDir, canonShowDir,
@@ -1940,6 +1954,15 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
         std::error_code ec;
         canonShowDir = std::filesystem::weakly_canonical(std::filesystem::path(showDir), ec);
         if (ec) canonShowDir = std::filesystem::path(showDir);
+    }
+
+    // SequenceMedia is filled lazily - at open, from the effect panels, and
+    // when an effect renders - so effects added since the open (Import
+    // Effects, paste, ...) that haven't rendered yet aren't in it, and the
+    // walk below would silently leave their files out. Register every
+    // effect's media first, the same pass a sequence open runs.
+    if (RenderContext* ctx = seqElements.GetRenderContext(); ctx != nullptr) {
+        SequenceFile::LoadEffectFiles(seqElements, ctx);
     }
 
     collectFromSequenceMedia(media, showDir, canonShowDir, options.excludeVideos,

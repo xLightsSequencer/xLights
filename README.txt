@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (dkulp)                 Package Sequence could leave out shader (and video/other effect media) files used by
+                                 effects added since the sequence was opened, e.g. by Import Effects or paste, until
+                                 they had been rendered
     -enh (derwin12)              Models and groups with Render Disabled no longer allocate render buffers or run per-frame
                                  render passes, speeding up renders of sequences with large disabled groups
     -bug (derwin12)              Model groups whose models sit in a near-perfect row (e.g. a row of floods) could build a

@@ -1319,6 +1319,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (!ImportXLights(wxFileName(filename), mapname, autoMap, importMedia, &report)) {
             return sendResponse(report.error.empty() ? "Import failed." : report.error, "msg", 503, false);
         }
+        SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
