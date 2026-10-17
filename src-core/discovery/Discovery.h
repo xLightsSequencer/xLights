@@ -122,6 +122,7 @@ public:
     DiscoveredData *DetectControllerType(const std::string &ip, const std::string &proxy, const std::string &htmlBuffer);
 
     DiscoveredData *FindByIp(const std::string &ip, const std::string &hostname = "", bool create = false);
+    std::string DescribeHost(const std::string &host);
     DiscoveredData *FindByUUID(const std::string &uuid, const std::string &ip);
 private:
     bool HandleAuth(const std::string &host, CURL* curl, int authStatus);
