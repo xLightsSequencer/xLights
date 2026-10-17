@@ -345,7 +345,6 @@ pugi::xml_document* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& fil
 bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
     const std::string vendorlink = "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/xlights_vendors.xml";
-    const std::string vendorlinkbackup = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
     //const std::string vendorlink = "http://localhost/xlights_vendors.xml";
 
     std::string filename;
@@ -354,11 +353,6 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
     pugi::xml_document* vd = GetXMLFromURL(wxURI(vendorlink), filename, prog, low, high, true);
     if (prog != nullptr)
         prog->Update(high, "Parsing vendor list");
-
-    if (vd == nullptr || !vd->document_element()) {
-        delete vd;
-        vd = GetXMLFromURL(wxURI(vendorlinkbackup), filename, prog, low, high, true);
-    }
 
     if (vd != nullptr && vd->document_element()) {
         pugi::xml_node root = vd->document_element();

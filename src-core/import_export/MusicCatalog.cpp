@@ -23,8 +23,6 @@ namespace music_catalog {
 namespace {
 
 constexpr const char* kVendorIndexURL =
-    "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
-constexpr const char* kVendorIndexBackupURL =
     "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/xlights_vendors.xml";
 
 std::unique_ptr<pugi::xml_document> FetchAndParse(const std::string& url) {
@@ -261,11 +259,7 @@ bool Catalog::Load(ProgressFn progress) {
     report(0, "Downloading vendor list");
     auto indexDoc = FetchAndParse(kVendorIndexURL);
     if (!indexDoc) {
-        report(5, "Trying backup vendor list");
-        indexDoc = FetchAndParse(kVendorIndexBackupURL);
-    }
-    if (!indexDoc) {
-        spdlog::warn("MusicCatalog: master + backup vendor index unreachable");
+        spdlog::warn("MusicCatalog: vendor index unreachable");
         return false;
     }
     report(10, "Parsing vendor list");
