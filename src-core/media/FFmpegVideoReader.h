@@ -68,6 +68,7 @@ private:
     bool readFrame(int timestampMS);
     void reopenContext(bool allowHWDecoder = true);
     void OpenWithFFmpeg(const std::string& filename, bool usenativeresolution, bool keepaspectratio, int maxwidth, int maxheight);
+    void CropToPicture(AVFrame* f) const;
     void NoteSwsContextGeometry(const AVFrame* f);
 #ifdef _WIN32
     // Swap a hardware reader that stopped responding for the software decoder,
