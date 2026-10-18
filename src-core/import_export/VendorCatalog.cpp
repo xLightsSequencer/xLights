@@ -27,8 +27,6 @@ namespace {
 
 constexpr const char* kVendorIndexURL =
     "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/xlights_vendors.xml";
-constexpr const char* kVendorIndexBackupURL =
-    "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
 
 // Strip ASCII whitespace from a string (mirrors the legacy
 // `std::remove_if(... isspace)` cleanup in `InterpretSize`).
@@ -478,11 +476,7 @@ bool Catalog::Load(ProgressFn progress,
     report(0, "Downloading vendor list");
     auto indexDoc = FetchAndParse(kVendorIndexURL);
     if (!indexDoc) {
-        report(5, "Trying backup vendor list");
-        indexDoc = FetchAndParse(kVendorIndexBackupURL);
-    }
-    if (!indexDoc) {
-        spdlog::warn("VendorCatalog: master + backup vendor index unreachable");
+        spdlog::warn("VendorCatalog: vendor index unreachable");
         return false;
     }
     report(10, "Parsing vendor list");
