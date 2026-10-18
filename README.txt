@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Very small videos (e.g. 70x80) decoded on NVIDIA hardware showed squashed into a corner with
+                                 gray padding to the right and below
     -bug (dkulp)                 Package Sequence could leave out shader (and video/other effect media) files used by
                                  effects added since the sequence was opened, e.g. by Import Effects or paste, until
                                  they had been rendered
