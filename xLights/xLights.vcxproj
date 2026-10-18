@@ -570,6 +570,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="..\src-core\effects\LinesEffect.cpp" />
     <ClCompile Include="..\src-core\effects\MovingHeadEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\MovingHeadSongGenerator.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHColorWheelPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp" />
@@ -604,6 +605,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\render\FSEQFile.cpp" />
     <ClCompile Include="..\src-core\render\FSEQFileIO.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\MovingHeadSongDialog.cpp" />
     <ClCompile Include="..\src-core\render\GPURenderUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.cpp" />
@@ -1299,6 +1301,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\effects\KaleidoscopeEffect.h" />
     <ClInclude Include="..\src-core\effects\LinesEffect.h" />
     <ClInclude Include="..\src-core\effects\MovingHeadEffect.h" />
+    <ClInclude Include="..\src-core\effects\MovingHeadSongGenerator.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanel.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHColorPanel.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHColorWheelPanel.h" />
@@ -1326,6 +1329,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\render\FSEQFile.h" />
     <ClInclude Include="..\src-core\render\FSEQFileIO.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\MovingHeadSongDialog.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.h" />
     <ClInclude Include="..\src-core\graphics\xlGraphicsCapability.h" />

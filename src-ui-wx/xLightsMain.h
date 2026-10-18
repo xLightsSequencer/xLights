@@ -696,6 +696,7 @@ public:
     void OnMenuItem_ShowACRampsSelected(wxCommandEvent& event);
     void OnMenuItem_PerspectiveAutosaveSelected(wxCommandEvent& event);
     void OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event);
+    void OnMenuItem_GenerateMovingHeadSongSelected(wxCommandEvent& event);
     void OnMenuItem_CrashXLightsSelected(wxCommandEvent& event);
     void OnMenuItemBatchRenderSelected(wxCommandEvent& event);
     void OnMenuItem_UpdateSelected(wxCommandEvent& event);
@@ -893,6 +894,7 @@ public:
     static const wxWindowID ID_MNU_REMAPCUSTOM;
     static const wxWindowID ID_MENUITEM_GenerateAIImage;
     static const wxWindowID ID_MNU_GENERATELYRICS;
+    static const wxWindowID ID_MNU_GENERATEMOVINGHEADSONG;
     static const wxWindowID ID_MENUITEM_CONVERT;
     static const wxWindowID ID_MNU_PREPAREAUDIO;
     static const wxWindowID ID_MENU_USER_DICT;
@@ -1061,6 +1063,7 @@ public:
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
     wxMenuItem* MenuItem_Generate2DPath;
     wxMenuItem* MenuItem_GenerateLyrics;
+    wxMenuItem* MenuItem_GenerateMovingHeadSong;
     wxMenuItem* MenuItem_Help_Download;
     wxMenuItem* MenuItem_Help_Facebook;
     wxMenuItem* MenuItem_Help_Forum;
