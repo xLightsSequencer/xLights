@@ -1,0 +1,359 @@
+{
+    "schemaVersion": 1,
+    "description": "Attributes common to every <model> node in xlights_rgbeffects.xml, regardless of DisplayAs. Extended by every models/*.json top-level document. Screen-location and controller-connection attributes are documented separately in shared/ScreenLocation.json and shared/ControllerConnection.json.",
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "properties": [
+        {
+            "xmlAttribute": "name",
+            "label": "Name",
+            "type": "string",
+            "description": "Unique model name (source: BaseObject::GetName(), written via XmlNodeKeys::NameAttribute = \"name\"). Renames must also update groups, submodel references, effects and the ModelChain of any downstream model. Not editable through the generic property grid (renamed via the layout tree / Rename dialog)."
+        },
+        {
+            "xmlAttribute": "DisplayAs",
+            "label": "Model Type",
+            "type": "enum",
+            "enum": [
+                "Arches",
+                "Candy Canes",
+                "Channel Block",
+                "Circle",
+                "Cube",
+                "Custom",
+                "DmxFloodArea",
+                "DmxFloodlight",
+                "DmxGeneral",
+                "DmxMovingHead",
+                "DmxMovingHeadAdv",
+                "DmxServo",
+                "DmxServo3d",
+                "DmxSkull",
+                "Icicles",
+                "Image",
+                "Label",
+                "Matrix",
+                "MultiPoint",
+                "Poly Line",
+                "Single Line",
+                "Sphere",
+                "Spinner",
+                "Star",
+                "Tree",
+                "Window Frame",
+                "Wreath"
+            ],
+            "description": "Model sub-type discriminator. Fixed at creation time; determines which additional per-type property fragment (e.g. Arches.json) and which ScreenLocation style (Boxed/TwoPoint/ThreePoint/PolyPoint) applies. Source: DisplayAsType enum in src-core/models/DisplayAsType.h/.cpp (DisplayAsTypeToString/DisplayAsTypeFromString); written unconditionally by BaseSerializingVisitor::AddBaseObjectAttributes. Not settable via the generic property grid. NOTE: ModelGroup also writes a DisplayAs=\"ModelGroup\" attribute but on a separate <modelGroup> element (see BaseSerializingVisitor::Visit(const ModelGroup&)), not on <model>; ModelGroup therefore does not extend this fragment and \"ModelGroup\" is intentionally excluded from this enum. DisplayAsTypeFromString also accepts legacy aliases on read (\"Vert Matrix\"/\"Horiz Matrix\" -> Matrix, \"DmxServo3Axis\" -> DmxServo3d, \"Tree ...\" compound values -> Tree) which are never written by the current version."
+        },
+        {
+            "xmlAttribute": "Description",
+            "label": "Description",
+            "gridKey": "Description",
+            "type": "string",
+            "default": "",
+            "description": "Free-text user note about the model. Only written when non-empty (Model::GetDescription())."
+        },
+        {
+            "xmlAttribute": "LayoutGroup",
+            "label": "Preview",
+            "gridKey": "ModelLayoutGroup",
+            "type": "string",
+            "default": "Unassigned",
+            "description": "Name of the layout group / preview this model is assigned to. Value is one of the user-defined layout group names (Model::GetLayoutGroups()) or the sentinel \"Unassigned\", \"All Previews\" or \"Default\" depending on configuration; not a fixed enum because layout groups are user-created."
+        },
+        {
+            "xmlAttribute": "StartChannel",
+            "label": "Start Channel",
+            "gridKey": "ModelStartChannel",
+            "type": "string",
+            "default": "1",
+            "encoding": "Free-form channel-reference string parsed by Model::GetNumberFromChannelString(). Forms: a bare integer N = absolute channel N (only meaningful when Controller is empty/StartChannel-driven); \"@ModelName:N\" = N channels after the FIRST channel of ModelName; \">ModelName:N\" = N channels after the LAST channel of ModelName, requires ModelName to have a controller assigned (used for same-controller model chaining); \"<ModelName:N\" = N channels after the LAST channel of ModelName, without the controller requirement; \"!ControllerName:N\" = N channels after ControllerName's own start channel; \"#ip:universe:channel\" or \"#universe:channel\" = absolute address resolved via OutputManager::GetAbsoluteChannel(). Written unconditionally via XmlNodeKeys::StartChannelAttribute.",
+            "description": "This model's (or its first string's) start channel, in one of several encodings (see encoding). Cleared/recomputed when a Controller is assigned. See ModelChain for controller-port-relative chaining of an already-controller-assigned model. CREATION SEMANTICS for external writers (e.g. an MCP): OMIT this attribute when creating a new model - xLights assigns/recomputes the real start channel at load time or when the model is placed on a controller port (auto-layout); the JSON default of \"1\" is only the read-side fallback. Only write an explicit value for deliberate manual channel addressing with no Controller assigned."
+        },
+        {
+            "xmlAttribute": "Advanced",
+            "label": "Indiv Start Chans",
+            "gridKey": "ModelIndividualStartChannels",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "Enables per-string individual start channels instead of one auto-computed StartChannel for the whole model. NOTE: xmlAttribute (\"Advanced\") differs from its wxPropertyGrid key (\"ModelIndividualStartChannels\") - verified trap, analogous to the Antialias/ModelPixelStyle case. When enabled, one additional attribute per physical string is written, named \"String1\", \"String2\", ... \"StringN\" (1-based; see Model::StartChanAttrName), each holding the same channel-reference encoding as StartChannel. Only present/meaningful when the model has more than one string and no Controller is assigned."
+        },
+        {
+            "xmlAttribute": "ModelChain",
+            "label": "Model Chain",
+            "gridKey": "ModelChain",
+            "type": "string",
+            "default": "",
+            "description": "For controller-port-assigned models: the name of the model this one is chained after on the same controller/port (or the literal \"Beginning\" in the UI meaning first-on-port), or empty when not chained. Only written when non-empty. Only relevant/editable when Controller, protocol and port are all set (see shared/ControllerConnection.json)."
+        },
+        {
+            "xmlAttribute": "ShadowModelFor",
+            "label": "Shadow Model For",
+            "gridKey": "ShadowModelFor",
+            "type": "string",
+            "default": "",
+            "description": "Name of another model whose node/pixel layout this model mirrors for rendering purposes (\"shadowing\"), or empty for a normal model. Only written when non-empty."
+        },
+        {
+            "xmlAttribute": "Controller",
+            "label": "Controller",
+            "gridKey": "Controller",
+            "type": "string",
+            "default": "",
+            "description": "Name of the Controller (from xlights_networks.xml) this model's output is assigned to. Empty string means the model uses StartChannel directly with no controller/port assignment (\"Use Start Channel\" in the UI). The literal value \"No Controller\" (NO_CONTROLLER sentinel, src-core/models/Model.h) is a distinct third state meaning the user explicitly excluded this model from controller auto-layout/upload. See shared/ControllerConnection.json for the associated port/protocol child element."
+        },
+        {
+            "xmlAttribute": "LowDefinition",
+            "label": "Low Definition Factor",
+            "gridKey": "LowDefinition",
+            "type": "uint",
+            "default": 100,
+            "min": 1,
+            "max": 100,
+            "appliesWhen": {
+                "attribute": "DisplayAs",
+                "oneOf": [
+                    "Matrix",
+                    "Sphere"
+                ]
+            },
+            "description": "Percentage of full node/pixel definition to render at (100 = full detail). Read into every model on load with default 100 (XmlDeserializingModelFactory::DeserializeCommonModelAttributes), but only ever written back by Matrix and Sphere models (BaseSerializingVisitor::Visit(const MatrixModel&) and Visit(const SphereModel&)); Sphere inherits Matrix's support for low-definition rendering, while TreeModel opts out via SupportsLowDefinitionRender() == false. The property grid only exposes this attribute when Model::SupportsLowDefinitionRender() is true."
+        },
+        {
+            "xmlAttribute": "Active",
+            "label": "Active",
+            "gridKey": "Active",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "When false, the model is not rendered/shown in the layout preview. Default (attribute absent) is true; only the value \"0\" is ever written (BaseSerializingVisitor::AddBaseObjectAttributes writes Active=\"0\" only when inactive, never writes \"1\")."
+        },
+        {
+            "xmlAttribute": "FromBase",
+            "label": "From Base Show Folder",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "Read-only provenance flag: true when this model's definition was merged in from a linked base show folder rather than defined locally in this show folder. Set programmatically during base-folder merge, not user-editable in the property grid. Only the value \"1\" is ever written (written only when true)."
+        },
+        {
+            "xmlAttribute": "StartSide",
+            "label": "Start Side",
+            "type": "enum",
+            "enum": [
+                "B",
+                "T"
+            ],
+            "default": "B",
+            "description": "Vertical starting corner for the model's default node layout: \"B\" = bottom-to-top, \"T\" = top-to-bottom. Written/read unconditionally for every model (Model::GetStartSide/SetIsBtoT) but has no single generic property-grid control; specific model types combine it with Dir into their own composite picker (e.g. ArchesPropertyAdapter's \"Starting Location\" combining Green/Blue Square with Inside/Outside)."
+        },
+        {
+            "xmlAttribute": "Dir",
+            "label": "Direction",
+            "type": "enum",
+            "enum": [
+                "L",
+                "R"
+            ],
+            "default": "L",
+            "description": "Horizontal starting direction for the model's default node layout: \"L\" = left-to-right, \"R\" = right-to-left. Written/read unconditionally for every model (Model::GetDirection/SetIsLtoR); see StartSide for the paired attribute and its per-model composite UI."
+        },
+        {
+            "xmlAttribute": "StringType",
+            "label": "String Type",
+            "gridKey": "ModelStringType",
+            "type": "enum",
+            "default": "RGB Nodes",
+            "enum": [
+                "RGB Nodes",
+                "RBG Nodes",
+                "GBR Nodes",
+                "GRB Nodes",
+                "BRG Nodes",
+                "BGR Nodes",
+                "Node Single Color",
+                "3 Channel RGB",
+                "4 Channel RGBW",
+                "4 Channel WRGB",
+                "Strobes",
+                "Single Color Red",
+                "Single Color Green",
+                "Single Color Blue",
+                "Single Color White",
+                "Single Color Custom",
+                "Single Color Intensity",
+                "Superstring",
+                "WRGB Nodes",
+                "WRBG Nodes",
+                "WGBR Nodes",
+                "WGRB Nodes",
+                "WBRG Nodes",
+                "WBGR Nodes",
+                "RGBW Nodes",
+                "RBGW Nodes",
+                "GBRW Nodes",
+                "GRBW Nodes",
+                "BRGW Nodes",
+                "BGRW Nodes",
+                "RGBWW Nodes"
+            ],
+            "description": "Node color-channel layout for this model's pixels. Source list: NODE_TYPES / NODE_TYPE_VALUES in src-ui-wx/modelproperties/PropertyGridHelpers.cpp (27 grid choices), passed straight through by Model::GetStringType()/SetStringType(). CORRECTION vs the generic 27-value grid list: the grid's generic \"Single Color\" choice is never itself persisted - once a color is picked it is written back as one of the five concrete values Single Color Red/Green/Blue/White/Custom (see ModelPropertyAdapter.cpp OnPropertyGridChange \"ModelStringType\"/GetColorString), so this enum lists those 5 concrete forms instead of the generic one (31 total values here vs 27 grid choices)."
+        },
+        {
+            "xmlAttribute": "CustomColor",
+            "label": "Color",
+            "gridKey": "ModelStringColor",
+            "type": "color",
+            "default": "#000000",
+            "appliesWhen": {
+                "attribute": "StringType",
+                "oneOf": [
+                    "Single Color Custom",
+                    "Single Color Intensity",
+                    "Node Single Color"
+                ]
+            },
+            "description": "Custom single-node/single-string color, in #RRGGBB. Only meaningful (and only written, since Model::GetCustomColor() != xlBLACK is required) when StringType is one of the custom/intensity/node-single-color variants; for Single Color Red/Green/Blue/White the color is implied by StringType itself and this attribute is not used."
+        },
+        {
+            "xmlAttribute": "RGBWHandling",
+            "label": "RGBW Color Handling",
+            "gridKey": "ModelRGBWHandling",
+            "type": "enum",
+            "default": "R=G=B -> W",
+            "enum": [
+                "R=G=B -> W",
+                "RGB Only",
+                "White Only",
+                "Advanced",
+                "White On All"
+            ],
+            "description": "How the white channel is derived/handled for 4+ channel-per-node string types. Only written when the string type's channel count per node exceeds 3 (Model::GetChanCountPerNode() > 3, e.g. 4 Channel RGBW/WRGB, RGBW*/WRGB* Nodes, RGBWW Nodes, or Superstring); absent/ignored for 3-channel and single-color types."
+        },
+        {
+            "xmlAttribute": "SuperStringColour{n}",
+            "label": "Colour {n+1}",
+            "gridKey": "SuperStringColour{n}",
+            "type": "color",
+            "encoding": "Family of independently-named attributes SuperStringColour0, SuperStringColour1, ... SuperStringColour{count-1} (0-based index n), one per configured superstring colour slot. Count is Model::GetNumSuperStringColours() (UI range 1-32, see \"SuperStringColours\" wxIntProperty).",
+            "appliesWhen": {
+                "attribute": "StringType",
+                "equals": "Superstring"
+            },
+            "description": "One #RRGGBB color per physical color position for a Superstring-type string (each node cycles through this many distinct wired colors). Only present when StringType == \"Superstring\"."
+        },
+        {
+            "xmlAttribute": "PixelSize",
+            "label": "Pixel Size",
+            "gridKey": "ModelPixelSize",
+            "type": "uint",
+            "default": 2,
+            "min": 1,
+            "max": 300,
+            "description": "Rendered pixel diameter in the layout/house preview (visual only, no effect on channel data)."
+        },
+        {
+            "xmlAttribute": "Antialias",
+            "label": "Pixel Style",
+            "gridKey": "ModelPixelStyle",
+            "type": "enum",
+            "default": "1",
+            "enum": [
+                "0",
+                "1",
+                "2",
+                "3"
+            ],
+            "labels": {
+                "0": "Square",
+                "1": "Smooth",
+                "2": "Solid Circle",
+                "3": "Blended Circle"
+            },
+            "description": "Verified trap: xmlAttribute is \"Antialias\", fully different from its wxPropertyGrid key \"ModelPixelStyle\". Stores Model::PIXEL_STYLE as its underlying int value (src-core/models/Model.h enum class PIXEL_STYLE). Purely a preview rendering style, no effect on channel data."
+        },
+        {
+            "xmlAttribute": "Transparency",
+            "label": "Transparency",
+            "gridKey": "ModelPixelTransparency",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "description": "Adjusts how opaque the element is in the layout preview (0 = opaque, 100 = fully transparent). Preview-only."
+        },
+        {
+            "xmlAttribute": "BlackTransparency",
+            "label": "Black Transparency",
+            "gridKey": "ModelPixelBlackTransparency",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "description": "Adjusts how transparent black/off pixels are rendered in the layout preview. Only written when non-zero (BaseSerializingVisitor::AddCommonModelAttributes)."
+        },
+        {
+            "xmlAttribute": "TagColour",
+            "label": "Tag Color",
+            "gridKey": "ModelTagColour",
+            "type": "color",
+            "default": "#000000",
+            "description": "Visual color tag shown next to the model in the model list, in #RRGGBB. Only written when different from the default #000000."
+        },
+        {
+            "xmlAttribute": "NodeNames",
+            "type": "string",
+            "default": "",
+            "description": "Opaque, semicolon-delimited per-node display name overrides (Model::GetNodeNames/SetNodeNames). Only written when non-empty; passed through verbatim on load/save. No property-grid editor currently sets this attribute in the codebase - it round-trips whatever a file already contains (e.g. from an external tool or an older xLights UI)."
+        },
+        {
+            "xmlAttribute": "StrandNames",
+            "type": "string",
+            "default": "",
+            "description": "Opaque, semicolon-delimited per-strand display name overrides (Model::GetStrandNames/SetStrandNames). Only written when non-empty; same no-active-editor caveat as NodeNames."
+        },
+        {
+            "xmlAttribute": "PixelSpacing",
+            "type": "string",
+            "default": "",
+            "description": "Opaque physical pixel-spacing descriptor (Model::GetPixelSpacing/SetPixelSpacing). Only written when non-empty. No property-grid editor currently sets this attribute; format is not otherwise documented in the C++ - treat as pass-through data."
+        },
+        {
+            "xmlAttribute": "PixelCount",
+            "type": "string",
+            "default": "",
+            "description": "Opaque physical pixel-count descriptor (Model::GetPixelCount/SetPixelCount). Only written when non-empty. No property-grid editor currently sets this attribute; treat as pass-through data."
+        },
+        {
+            "xmlAttribute": "PixelType",
+            "type": "string",
+            "default": "",
+            "description": "Opaque physical pixel/product-type descriptor (Model::GetPixelType/SetPixelType). Only written when non-empty. No property-grid editor currently sets this attribute; treat as pass-through data."
+        },
+        {
+            "xmlAttribute": "versionNumber",
+            "type": "uint",
+            "default": 0,
+            "description": "Read-only provenance: model position/attribute schema version written by the exporting xLights build (CUR_MODEL_POS_VER), used internally by the deserializer to trigger one-off migrations for specific model types (e.g. Sphere scale-correction for version < 8, XmlDeserializingModelFactory::DeserializeSphere). Always written; not user-editable. Current value written by this codebase: 8 (CUR_MODEL_POS_VER, src-core/models/ModelScreenLocation.h). External writers creating NEW models should write the current value, not the JSON default of 0 - old values trigger one-off migrations on load."
+        },
+        {
+            "xmlAttribute": "SourceVersion",
+            "type": "string",
+            "default": "",
+            "description": "Read-only provenance: the xLights version string that last saved this model (xlights_version_string). Always written; never read back by the deserializer (informational only)."
+        },
+        {
+            "xmlAttribute": "ModelBrightness",
+            "type": "int",
+            "description": "Legacy/import-only attribute from older xLights versions that stored per-model brightness directly. On load, if present and no dimmingCurve child element already exists, its value seeds a synthesized dimmingCurve entry (gamma 1.0, brightness = this value) instead - see XmlDeserializingModelFactory::DeserializeCommonModelAttributes and shared/DimmingCurves.json. Never written by the current serializer (no corresponding attrs.Add call in BaseSerializingVisitor); current files persist brightness only via the dimmingCurve child element."
+        }
+    ],
+    "notes": [
+        "DisplayAs enum scope: this list covers only values written on a <model> node. ModelGroup writes DisplayAs=\"ModelGroup\" on a separate <modelGroup> element (different storage.node) and does not extend this fragment; ViewObject types (Gridlines, Terrain, Mesh, Ruler) and the in-memory-only SubModel/ObjectGroup values never appear as a <model> DisplayAs value.",
+        "Two DisplayAsType model values present in the enum here (Label, MultiPoint) do not yet have a corresponding models/*.json top-level document in this metadata tree's coverage list; they are included here because the C++ demonstrably supports and persists them (BaseSerializingVisitor::Visit(const LabelModel&) / Visit(const MultiPointModel&)). Treat their absence from the coverage list as an existing gap outside this task's scope, not a contradiction of this fragment.",
+        "parm1/parm2/parm3 (XmlNodeKeys::Parm1Attribute etc.) are legacy, read-only fallback attributes used by individual model types when their own named attribute is absent; they are not modeled here since Common.json has no parm-aliased attribute of its own (see legacyAttributes on the specific per-model properties that alias them in other files)."
+    ]
+}
