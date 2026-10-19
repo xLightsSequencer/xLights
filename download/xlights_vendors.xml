@@ -50,7 +50,7 @@
     </vendor>
     <musicvendor>
         <name>Free</name>
-        <link>https://nutcracker123.com/xlights/vendors/xlights_music_free.xml</link>
+        <link>https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/xlights_music_free.xml</link>
     </musicvendor>
     <musicvendor>
         <name>Singing Faces Project</name>

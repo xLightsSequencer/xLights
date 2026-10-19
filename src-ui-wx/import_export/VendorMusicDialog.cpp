@@ -218,16 +218,11 @@ pugi::xml_document* VendorMusicDialog::GetXMLFromURL(wxURI url, std::string& fil
 
 bool VendorMusicDialog::LoadTree(std::string hash)
 {
-    const std::string vendorlink = "https://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
-    const std::string vendorlinkbackup = "https://github.com/xLightsSequencer/xLights/raw/master/download/xlights_vendors.xml";
+    const std::string vendorlink = "https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/xlights_vendors.xml";
     //const std::string vendorlink = "http://127.0.0.1:3000/xlights_vendors.xml";
 
     std::string filename;
     pugi::xml_document* vd = GetXMLFromURL(wxURI(vendorlink), filename);
-    if (vd == nullptr || !vd->document_element()) {
-        delete vd;
-        vd = GetXMLFromURL(wxURI(vendorlinkbackup), filename);
-    }
     if (vd != nullptr && vd->document_element()) {
         pugi::xml_node root = vd->document_element();
 

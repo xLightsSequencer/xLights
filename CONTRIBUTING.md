@@ -4,7 +4,7 @@ Did you find a bug?
 
 Ensure the bug was not already reported by searching on GitHub under Issues. Are you really really sure it
 is our bug ... maybe its you ... try asking on the official xLights Facebook page (https://www.facebook.com/groups/628061113896314)
-or the xLights forum (nutcracker123.com/forum) first ... and if that doesnt help then sure create an issue.
+or the xLights forum (falconchristmas.com/forum) first ... and if that doesnt help then sure create an issue.
 
 If you're unable to find an open issue addressing the problem, open a new one. Be sure to include a title and
 clear description, as much relevant information as possible. Include images, even a video and where appropriate either attach

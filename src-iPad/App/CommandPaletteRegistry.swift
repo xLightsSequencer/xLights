@@ -246,7 +246,7 @@ enum CommandPaletteRegistry {
             XLOpenURL("https://videos.xlights.org")
         }
         add("xLights Forum", "Help", "bubble.left.and.bubble.right", "", true) {
-            XLOpenURL("https://nutcracker123.com/forum/")
+            XLOpenURL("https://falconchristmas.com/forum/index.php?board=26.0")
         }
         add("Issue Tracker", "Help", "ladybug", "", true) {
             XLOpenURL("https://github.com/xLightsSequencer/xLights/issues")

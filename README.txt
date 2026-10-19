@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              FPP Connect / controller discovery no longer asks for a password when another local web
                                  server (e.g. AdGuard) answers on localhost, and cancelling a password prompt no longer
                                  cuts discovery short
+    -bug (derwin12)              Very small videos (e.g. 70x80) decoded on NVIDIA hardware showed squashed into a corner with
+                                 gray padding to the right and below
     -bug (dkulp)                 Package Sequence could leave out shader (and video/other effect media) files used by
                                  effects added since the sequence was opened, e.g. by Import Effects or paste, until
                                  they had been rendered
@@ -25,6 +27,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Crash rendering a Butterfly effect whose Bkgrd Skip was saved as 0
     -bug (derwin12)              Align Front/Back on boxed models (matrices, trees, etc.) now uses the pixels' actual depth
                                  instead of an estimate based on model width, so flat models line up at the same depth
+    -change (derwin12)           Removed remaining nutcracker123.com links: vendor/music lists now come from GitHub and the Help
+                                 Forum entry (desktop and iPad) opens the xLights board on the Falcon Christmas forum
     -bug (derwin12)              Crash opening a sequence whose media file name contains characters Windows can't map
     -bug (derwin12)              Crash rendering a model group using a "Horizontal/Vertical Stack - Scaled" buffer style
                                  when the group's buffer would be billions of pixels; the buffer size is now capped
