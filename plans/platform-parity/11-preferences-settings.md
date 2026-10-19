@@ -176,6 +176,14 @@ iPad model: a fixed `.keyboardShortcut` set declared inline in `src-iPad/App/XLi
 | 102 | Import / export bindings as a file | Not on desktop either — there is no import/export button; the XML file itself is the transport (`KeyBindings.cpp:1019`, `:1141`) | ➖ | Neither client has an import/export UI; recorded here so the gap is not mis-read as iPad-only |
 | 113 | Mark Spot (Ctrl+.) / Return to Spot (Ctrl+/) — bookmark the sequencer position and jump back to it | Default bindings `KeyBindings.cpp:369-372` (plus the RCTRL variants), scope `Sequence` `:67-68`, help strings `:202-203`, display map `:450-453`; dispatch `src-ui-wx/sequencer/MainSequencer.cpp:722-725` → `MainSequencer::SavePosition` `:2235` / `RestorePosition` `:2217` | ❌ | grep `markSpot`, `Mark Spot`, `returnToSpot`, `SavePosition`, `RestorePosition`, `savedPosition` over `src-iPad/` → 0 files. No position bookmark in the command menu (`XLightsCommands.swift`) or `CommandPaletteRegistry.swift`; the nearest iPad concept is timeline tags (`XLightsCommands.swift:718-723` Go To Tag ⌃0-9, `:727-734` Set Tag at Play Head ⌃⇧0-9), which are persisted sequence data rather than a transient view bookmark |
 
+### Page: Control Surface (`src-ui-wx/preferences/ControlSurfaceSettingsPanel.cpp`)
+
+Mackie Control (MCU) surfaces over MIDI. The protocol layer is wx-free core (`src-core/utils/MCUControlSurface.h` - button/jog decode, LED + timecode-display encode) and is already compiled into the iPad lib; the MIDI transport (`src-ui-wx/sequencer/ControlSurfaceManager.cpp`, RtMidi from `dependencies/rtmidi`) and the action mapping (`src-ui-wx/sequencer/tabControlSurface.cpp`, `xLightsFrame::ExecuteControlSurfaceAction`) are desktop-only.
+
+| # | Page / Setting | Desktop evidence | iPad status | iPad evidence / gap |
+|---|---|---|---|---|
+| 114 | MCU control surface: enable, MIDI in/out port, transport (Play/Stop/Rew/FF/Cycle), jog/scrub, zoom, arrows, Marker -> timing mark, timecode display + LEDs | `ControlSurfaceSettingsPanel.cpp` (page registered `xLightsPreferences.cpp`), settings `ControlSurfaceManager.cpp` `LoadSettings`/`Configure`; actions `tabControlSurface.cpp` `ExecuteControlSurfaceAction` | ❌ | No MIDI input on iPad - grep `CoreMIDI`, `MIDIClient`, `ControlSurface` over `src-iPad/` -> 0 files. Port path: a CoreMIDI transport in `src-iPad/Bridge/` feeding `mcu::ControlSurface` (core, reusable as-is), mapping `mcu::Command` onto `SequencerViewModel` playback/zoom/selection ops; USB, Bluetooth-LE and network MIDI are all available on iPadOS |
+
 ### Page: Services (`src-ui-wx/preferences/ServicesPanel.cpp`, gated by `ENABLE_SERVICES` at `src-ui-wx/xLightsMain.h:23`)
 
 | # | Page / Setting | Desktop evidence | iPad status | iPad evidence / gap |

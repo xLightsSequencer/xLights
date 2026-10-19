@@ -51,6 +51,7 @@
 
 #include "app-shell/AboutDialog.h"
 #include "sequencer/BatchRenderDialog.h"
+#include "sequencer/ControlSurfaceManager.h"
 #include "CachedFileDownloader.h"
 #include "shared/dialogs/CheckboxSelectDialog.h"
 #include "shared/dialogs/OptionChooser.h"
@@ -1982,6 +1983,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         _serviceManager = std::make_unique<ServiceManager>(_serviceSettingsStore.get(), pluginDir);
     }
 
+    _controlSurface = std::make_unique<ControlSurfaceManager>(this);
+    _controlSurface->LoadSettings();
+
     starttime = wxDateTime::UNow();
     ResetEffectsXml();
     EnableSequenceControls(true);
@@ -2248,6 +2252,7 @@ xLightsFrame::~xLightsFrame()
     delete _presetModelManager;
     _presetModelManager = nullptr;
 
+    _controlSurface.reset();
     AutoSaveTimer.Stop();
     EffectSettingsTimer.Stop();
     OutputTimer.Stop();

@@ -66,6 +66,7 @@
 					<Add option="`pkg-config --libs freetype2 harfbuzz fontconfig`" />
 					<Add option="`pkg-config --libs avahi-compat-libdns_sd`" />
 					<Add option="-lexpat" />
+					<Add option="-lasound" />
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
@@ -145,6 +146,7 @@
 					<Add option="`pkg-config --libs freetype2 harfbuzz fontconfig`" />
 					<Add option="`pkg-config --libs avahi-compat-libdns_sd`" />
 					<Add option="-lexpat" />
+					<Add option="-lasound" />
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
 					<Add option="-lzstd" />
@@ -629,6 +631,8 @@
 		<Unit filename="../src-ui-wx/sequencer/TopEffectsPanel.h" />
 		<Unit filename="../src-core/utils/ShowGuid.cpp" />
 		<Unit filename="../src-core/utils/ShowGuid.h" />
+		<Unit filename="../src-core/utils/MCUControlSurface.cpp" />
+		<Unit filename="../src-core/utils/MCUControlSurface.h" />
 		<Unit filename="../src-core/utils/ShowRedactor.cpp" />
 		<Unit filename="../src-core/utils/ShowRedactor.h" />
 		<Unit filename="../src-core/utils/TraceLog.cpp" />
@@ -1416,6 +1420,8 @@
 		<Unit filename="../src-ui-wx/preferences/SequenceFileSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/ServicesPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/ServicesPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/ControlSurfaceSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ControlSurfaceSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/ViewSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/ViewSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/xLightsPreferences.cpp" />
@@ -1473,6 +1479,10 @@
 		<Unit filename="../src-ui-wx/sequencer/Waveform.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/Waveform.h" />
 		<Unit filename="../src-ui-wx/sequencer/tabSequencer.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/tabControlSurface.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/ControlSurfaceManager.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/ControlSurfaceManager.h" />
+		<Unit filename="../src-ui-wx/sequencer/RtMidiImpl.cpp" />
 		<Unit filename="../src-ui-wx/support/EzGrid.cpp" />
 		<Unit filename="../src-ui-wx/support/EzGrid.h" />
 		<Unit filename="../src-ui-wx/support/FastComboEditor.cpp" />

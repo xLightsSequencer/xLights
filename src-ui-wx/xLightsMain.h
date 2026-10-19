@@ -113,8 +113,10 @@
 
 #include "ai/aiType.h"
 #include "ai/ServiceManager.h"
+#include "utils/MCUControlSurface.h"
 
 class wxDebugReport;
+class ControlSurfaceManager;
 namespace seqmedia { struct VideoConversionResult; }
 
 class aiBase;
@@ -494,6 +496,9 @@ public:
     AudioManager* GetPlaybackAudio() const; // Returns active alt track audio if selected, else main media
     void ReleaseAudio(AudioManager* audio); // Call before the sequence deletes audio the UI may still hold
     void ReleaseAltAudioTrack(int altIndex, bool removing);
+    ControlSurfaceManager* GetControlSurfaceManager() const { return _controlSurface.get(); }
+    void ExecuteControlSurfaceAction(const mcu::Action& action);
+    mcu::Status GetControlSurfaceStatus() const;
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
@@ -2000,6 +2005,8 @@ private:
     std::unique_ptr<ScriptsDialog> _scriptsDialog{ nullptr };
     std::unique_ptr<class WxServiceSettingsStore> _serviceSettingsStore;
     std::unique_ptr<ServiceManager> _serviceManager{ nullptr };
+    std::unique_ptr<ControlSurfaceManager> _controlSurface;
+    void MoveControlSurfaceCursor(int deltaMS, bool scrubAudio);
     int mMediaLengthMS;
     bool _usedRuler = false;
 

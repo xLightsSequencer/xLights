@@ -633,6 +633,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\models\DMX\MovingHeads\MhChannel.cpp" />
     <ClCompile Include="..\src-core\models\DMX\MovingHeads\MhFeature.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\ServicesPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\ControlSurfaceSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.cpp" />
     <ClCompile Include="..\src-core\utils\SpecialOptions.cpp" />
     <ClCompile Include="..\src-core\utils\TempFileManager.cpp" />
@@ -1038,6 +1039,9 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\render\SequenceFaces.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\tabSequencer.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\tabControlSurface.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\ControlSurfaceManager.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\RtMidiImpl.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\TimeLine.cpp" />
     <ClCompile Include="..\src-core\render\UndoManager.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\Waveform.cpp" />
@@ -1069,6 +1073,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\shared\utils\tmGridCell.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\TopEffectsPanel.cpp" />
     <ClCompile Include="..\src-core\utils\ShowGuid.cpp" />
+    <ClCompile Include="..\src-core\utils\MCUControlSurface.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
@@ -1357,6 +1362,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\models\DMX\MovingHeads\MhChannel.h" />
     <ClInclude Include="..\src-core\models\DMX\MovingHeads\MhFeature.h" />
     <ClInclude Include="..\src-ui-wx\preferences\ServicesPanel.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\ControlSurfaceSettingsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\ControlSurfaceManager.h" />
     <ClInclude Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.h" />
     <ClInclude Include="..\src-core\utils\TempFileManager.h" />
     <ClInclude Include="..\src-core\utils\CurlManager.h" />
@@ -1739,6 +1746,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\shared\utils\tmGridCell.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TopEffectsPanel.h" />
     <ClInclude Include="..\src-core\utils\ShowGuid.h" />
+    <ClInclude Include="..\src-core\utils\MCUControlSurface.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />
