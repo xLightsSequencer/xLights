@@ -147,9 +147,28 @@ static void MigrateDmxMovingHead3D(pugi::xml_node node) {
     MigrateFlatDmxMotors(node);
 }
 
+// Before the 2020 DMX split every DMX fixture was DisplayAs="DMX" with the real
+// type carried in DmxStyle. Old vendor .xmodel downloads still use this form.
+static void MigrateLegacyDmx(pugi::xml_node node) {
+    std::string_view style = node.attribute(XmlNodeKeys::DmxStyleAttribute).as_string();
+    if (style == "Flood Light") {
+        SetAttr(node, XmlNodeKeys::DisplayAsAttribute, XmlNodeKeys::DmxFloodlightType);
+    } else if (style == "Skulltronix Skull") {
+        SetAttr(node, XmlNodeKeys::DisplayAsAttribute, XmlNodeKeys::DmxSkullType);
+    } else {
+        SetAttr(node, XmlNodeKeys::DisplayAsAttribute, XmlNodeKeys::DmxMovingHeadType);
+        MigrateFlatDmxMotors(node);
+    }
+}
+
 void XmlDeserializingModelFactory::MigrateLegacyModelNode(pugi::xml_node node) {
-    if (std::string_view(node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string()) == "DmxMovingHead3D") {
+    std::string_view type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string();
+    if (type == "DmxMovingHead3D") {
         MigrateDmxMovingHead3D(node);
+    } else if (type == "DMX") {
+        MigrateLegacyDmx(node);
+    } else if (type == XmlNodeKeys::DmxMovingHeadType) {
+        MigrateFlatDmxMotors(node);
     }
 }
 
