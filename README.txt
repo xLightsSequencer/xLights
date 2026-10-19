@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              FPP Connect / controller discovery no longer asks for a password when another local web
+                                 server (e.g. AdGuard) answers on localhost, and cancelling a password prompt no longer
+                                 cuts discovery short
     -bug (derwin12)              Very small videos (e.g. 70x80) decoded on NVIDIA hardware showed squashed into a corner with
                                  gray padding to the right and below
     -bug (dkulp)                 Package Sequence could leave out shader (and video/other effect media) files used by

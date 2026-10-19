@@ -144,6 +144,7 @@ private:
     public:
         CurlData() {}
         ~CurlData();
+        // 0 = none, 1 = prompted password, 2 = stored password, 3 = declined (don't prompt again)
         int authStatus = 0;
         std::set<std::string> urls;
     };
