@@ -513,7 +513,7 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
 
         logger->info("    Discovery CURL Callback - URL: {}  Host: {}  RC: {}    Size: {}", furl.c_str(), hostDesc.c_str(), rc, cpd ? cpd->resp.size() : -1);
         if (rc == 401) {
-            if (HandleAuth(host, c, authStatus) || authStatus != data->authStatus) {
+            if (HandleAuth(host, c, authStatus) || (authStatus != data->authStatus && data->authStatus != 3)) {
                 data->urls.erase(furl);
                 AddCurl(host, url, [callback, furl](int rc, const std::string &buffer, const std::string &errorBuffer) {
                     return callback(rc, buffer, errorBuffer);
@@ -531,6 +531,9 @@ void Discovery::AddCurl(const std::string &host, const std::string &url, std::fu
 bool Discovery::HandleAuth(const std::string &host, CURL* curl, int origAuthStatus) {
     // we need to authenticate and redo
     Discovery::CurlData *data = https[host];
+    if (data->authStatus == 3) {
+        return false;
+    }
     if (origAuthStatus != 0) {
         // still 401 so password must not be correct, remove it and re-prompt
         data->authStatus = 0;
@@ -552,18 +555,30 @@ bool Discovery::HandleAuth(const std::string &host, CURL* curl, int origAuthStat
                 }
             }
         }
-        if (!handled) {
+        if (!handled && host == "localhost") {
+            // localhost is always probed in case FPP runs on this machine; other local
+            // web servers (e.g. AdGuard Home) answer 401 and must not trigger a prompt
+            spdlog::get("curl")->info("    Discovery - localhost requires authentication, skipping");
+            data->authStatus = 3;
+        } else if (!handled) {
             std::string username = "admin";
             std::string password;
             bool savePassword = false;
-            if (_delegate->PromptForPassword(ip, username, password, savePassword)) {
+            // the modal prompt must not eat into the discovery time budget
+            uint64_t promptStart = GetCurrentTimeMillis();
+            bool ok = _delegate->PromptForPassword(ip, username, password, savePassword);
+            uint64_t now = GetCurrentTimeMillis();
+            discoveryFinishTime += now - promptStart;
+            if (ok) {
                 if (savePassword) {
                     _delegate->StorePassword(ip, username, password);
                 }
                 CurlManager::INSTANCE.setHostUsernamePassword(host, username, password);
                 handled = true;
-                discoveryFinishTime = GetCurrentTimeMillis() + 10000L;
+                discoveryFinishTime = std::max(discoveryFinishTime, now + 10000L);
                 data->authStatus = 1;
+            } else {
+                data->authStatus = 3;
             }
         }
         CurlManager::INSTANCE.setProcessCallbacks(true);

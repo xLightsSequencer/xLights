@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              FPP Connect / controller discovery no longer asks for a password when another local web
+                                 server (e.g. AdGuard) answers on localhost, and cancelling a password prompt no longer
+                                 cuts discovery short
     -bug (dkulp)                 Package Sequence could leave out shader (and video/other effect media) files used by
                                  effects added since the sequence was opened, e.g. by Import Effects or paste, until
                                  they had been rendered
