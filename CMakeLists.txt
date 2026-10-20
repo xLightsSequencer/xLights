@@ -947,6 +947,9 @@ elseif(UNIX AND NOT APPLE)
         target_include_directories(xLights PRIVATE ${LIBUSB_INCLUDE_DIRS})
         target_link_libraries(xLights PRIVATE ${LIBUSB_LIBRARIES})
     endif()
+elseif(APPLE)
+    # RtMidi (control surfaces) uses the CoreMIDI backend
+    target_link_libraries(xLights PRIVATE "-framework CoreMIDI" "-framework CoreAudio" "-framework CoreFoundation")
 endif()
 
 # ─── Stem separation backends ───────────────────────────────────────────────

@@ -76,6 +76,7 @@ class MainSequencer: public wxPanel
         void UnselectAllEffects();
         void SelectEffect(Effect* ef);
         bool HandleSequencerKeyBinding(wxKeyEvent& event);
+        void InsertTimingMarkFromRange();
         void ScrollToRow(int row);
         void EnsureEffectVisible(Effect* eff);
         void UpdateEffectGridHorizontalScrollBar();
@@ -155,7 +156,6 @@ class MainSequencer: public wxPanel
 
         void mouseWheelMoved(wxMouseEvent& event);
         void TimeLineSelectionChanged(wxCommandEvent& event);
-        void InsertTimingMarkFromRange();
         void SplitTimingMark();
         void DivideTimingTrack(int divisor);
         void SetHandlers(wxWindow *);

@@ -24,6 +24,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Package Sequence could leave out shader (and video/other effect media) files used by
                                  effects added since the sequence was opened, e.g. by Import Effects or paste, until
                                  they had been rendered
+    -enh (scott)                 Mackie Control (MCU) control surface support (Preferences > Control Surface): transport,
+                                 jog/scrub, zoom, effect navigation, Marker adds a timing mark, timecode display
     -enh (derwin12)              Models and groups with Render Disabled no longer allocate render buffers or run per-frame
                                  render passes, speeding up renders of sequences with large disabled groups
     -bug (derwin12)              Model groups whose models sit in a near-perfect row (e.g. a row of floods) could build a

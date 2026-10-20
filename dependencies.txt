@@ -110,6 +110,16 @@ Version:     ? [As at Jan 2021 this seems to have been last updated Jun 2020 ...
 License:     freeBSD
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
+Library:     RtMidi
+Usage:       Live MIDI input/output for control surfaces (Mackie Control)
+Link:        https://www.music.mcgill.ca/~gary/rtmidi/
+Source:      https://github.com/thestk/rtmidi
+Last Pulled: Oct 2026
+Version:     6.0.0
+License:     MIT style
+Strategy:    Git submodule at dependencies/rtmidi; RtMidi.cpp is compiled into xLights by src-ui-wx/sequencer/RtMidiImpl.cpp,
+             which selects WinMM / CoreMIDI / ALSA. Linux needs libasound2-dev.
+
 Library:     GLM
 Usage:       ?
 Link:        https://glm.g-truc.net/0.9.8/index.html

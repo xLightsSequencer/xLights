@@ -30,6 +30,7 @@
 #include "CheckSequenceSettingsPanel.h"
 #include "ToolbarsSettingsPanel.h"
 #include "ServicesPanel.h"
+#include "ControlSurfaceSettingsPanel.h"
 
 #include "grid_icon.xpm"
 #include "settings_panel_icon.xpm"
@@ -232,6 +233,10 @@ void xLightsFrame::ShowPreferencesDialog(const wxString& initialPage)
                       wxArtProvider::GetBitmapBundle(wxART_LIST_VIEW, wxART_BUTTON, iconSize),
                       wxArtProvider::GetBitmapBundle(wxART_LIST_VIEW, wxART_BUTTON, listIconSize),
                       [this](wxWindow* p) { return (wxWindow*)(new ToolbarsSettingsPanel(p, this)); } });
+    pages.push_back({ "Control Surface",
+                      wxArtProvider::GetBitmapBundle("xlART_SETTINGS", wxART_BUTTON, iconSize),
+                      wxArtProvider::GetBitmapBundle("xlART_SETTINGS", wxART_BUTTON, listIconSize),
+                      [this](wxWindow* p) { return (wxWindow*)(new ControlSurfaceSettingsPanel(p, this)); } });
 #ifdef ENABLE_SERVICES
     pages.push_back({ "Services",
                       wxArtProvider::GetBitmapBundle("xlART_SETTINGS", wxART_BUTTON, iconSize),

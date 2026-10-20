@@ -605,6 +605,7 @@
     <ClCompile Include="..\src-ui-wx\color\ColoursPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.cpp" />
     <ClCompile Include="..\src-core\utils\ShowGuid.cpp" />
+    <ClCompile Include="..\src-core\utils\MCUControlSurface.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
@@ -806,6 +807,15 @@
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\sequencer\tabSequencer.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\sequencer\tabControlSurface.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\sequencer\ControlSurfaceManager.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\sequencer\RtMidiImpl.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\sequencer\TimeLine.cpp">
@@ -1249,6 +1259,9 @@
       <Filter>Effects\vulkan</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\preferences\ServicesPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\ControlSurfaceSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.cpp">
@@ -2177,6 +2190,7 @@
     <ClInclude Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.h" />
     <ClInclude Include="..\src-core\utils\SpecialOptions.h" />
     <ClInclude Include="..\src-core\utils\ShowGuid.h" />
+    <ClInclude Include="..\src-core\utils\MCUControlSurface.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />
@@ -2750,6 +2764,12 @@
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\ServicesPanel.h">
       <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\ControlSurfaceSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\sequencer\ControlSurfaceManager.h">
+      <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\ai\aiBase.h">
       <Filter>ai</Filter>
