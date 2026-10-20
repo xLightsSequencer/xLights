@@ -26,9 +26,12 @@
 
 #include <log.h>
 #include <algorithm>
+#include <chrono>
 
 std::list<std::string> xLightsFrame::GetDiscoveryAddresses(std::list<std::string>* forcedOut) const {
     std::list<std::string> addresses;
+    auto gdaStart = std::chrono::steady_clock::now();
+    spdlog::info("FPP Discovery - gathering discovery addresses");
 
     // Read forced IPs from config
     auto* config = GetXLightsConfig();
@@ -67,6 +70,8 @@ std::list<std::string> xLightsFrame::GetDiscoveryAddresses(std::list<std::string
 
     addresses.sort();
     addresses.unique();
+    spdlog::info("FPP Discovery - gathered {} discovery addresses in {} ms", addresses.size(),
+                 std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - gdaStart).count());
     return addresses;
 }
 

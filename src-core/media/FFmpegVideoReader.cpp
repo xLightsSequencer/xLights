@@ -548,19 +548,23 @@ void FFmpegVideoReader::OpenWithFFmpeg(const std::string& filename, bool usenati
     }
 
     // at this point it is open and ready
+    // The stream's own size, not the decoder's: h264_cuvid pads very small
+    // videos up to NVDEC's minimum surface size and reports that padded size.
+    const int picWidth = _videoStream->codecpar->width > 0 ? _videoStream->codecpar->width : _codecContext->width;
+    const int picHeight = _videoStream->codecpar->height > 0 ? _videoStream->codecpar->height : _codecContext->height;
     if (usenativeresolution) {
-        _height = _codecContext->height;
-        _width = _codecContext->width;
+        _height = picHeight;
+        _width = picWidth;
     } else {
         if (keepaspectratio) {
-            if (_codecContext->width == 0 || _codecContext->height == 0) {
-                spdlog::error("VideoReader: Invalid input reader dimensions ({},{}) {}", _codecContext->width, _codecContext->height, filename);
+            if (picWidth == 0 || picHeight == 0) {
+                spdlog::error("VideoReader: Invalid input reader dimensions ({},{}) {}", picWidth, picHeight, filename);
                 return;
             }
 
-            float shrink = std::min((float)maxwidth / (float)_codecContext->width, (float)maxheight / (float)_codecContext->height);
-            _height = (int)((float)_codecContext->height * shrink);
-            _width = (int)((float)_codecContext->width * shrink);
+            float shrink = std::min((float)maxwidth / (float)picWidth, (float)maxheight / (float)picHeight);
+            _height = (int)((float)picHeight * shrink);
+            _width = (int)((float)picWidth * shrink);
         } else {
             _height = maxheight;
             _width = maxwidth;
@@ -666,7 +670,7 @@ void FFmpegVideoReader::OpenWithFFmpeg(const std::string& filename, bool usenati
     spdlog::debug("      _videoStream->nb_frames: {}", _videoStream->nb_frames);
     spdlog::debug("      _frames: {}", _frames);
     spdlog::debug("      Frames per second {}", (double)_frames * 1000.0 / _lengthMS);
-    spdlog::debug("      Source size: {}x{}", _codecContext->width, _codecContext->height);
+    spdlog::debug("      Source size: {}x{}", picWidth, picHeight);
     spdlog::debug("      Source coded size: {}x{}", _codecContext->coded_width, _codecContext->coded_height);
     spdlog::debug("      Output size: {}x{}", _width, _height);
     spdlog::debug("      Guessed key frame frequency: {}", _keyFrameCount);
@@ -989,6 +993,21 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     av_dict_free(&opts);
 }
 
+// Drops decoder padding (e.g. cuvid's 192x96 surface for a 70x80 picture) so
+// the scaler sees only the real picture.
+void FFmpegVideoReader::CropToPicture(AVFrame* f) const
+{
+    if (f == nullptr || _videoStream == nullptr) return;
+    const int w = _videoStream->codecpar->width;
+    const int h = _videoStream->codecpar->height;
+    if (w <= 0 || h <= 0 || (f->width <= w && f->height <= h)) return;
+    f->crop_left = 0;
+    f->crop_top = 0;
+    f->crop_right = f->width > w ? f->width - w : 0;
+    f->crop_bottom = f->height > h ? f->height - h : 0;
+    av_frame_apply_cropping(f, AV_FRAME_CROP_UNALIGNED);
+}
+
 static int64_t MStoDTS(int ms, double dtspersec)
 {
     return (int64_t)(((double)ms * dtspersec) / 1000.0);
@@ -1246,6 +1265,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                         } else {
                             unrefSrcFrame2 = true;
                             f = _srcFrame2;
+                            CropToPicture(f);
                         }
                     }
                 } else {

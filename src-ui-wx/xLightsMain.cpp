@@ -2223,10 +2223,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     UpdateLayoutSave();
 
-    // remove the forum for now until/if Sean restores the forum
-    MenuItem_Help_Forum->GetMenu()->Remove(MenuItem_Help_Forum);
-    MenuItem_Help_Forum = nullptr;
-
     if (renderOnlyMode) {
         DisablePromptBatchRenderIssues();
     }
@@ -5864,7 +5860,7 @@ void xLightsFrame::OnMenuItemCheckSequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_Help_ForumSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("https://nutcracker123.com/forum/");
+    ::wxLaunchDefaultBrowser("https://falconchristmas.com/forum/index.php?board=26.0");
 }
 
 void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)

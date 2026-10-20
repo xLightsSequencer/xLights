@@ -174,7 +174,13 @@ namespace ip_utils
             }
         }
         std::string r;
-        if (!ResolveHostnameToIP(ip, r)) {
+        auto resolveStart = std::chrono::steady_clock::now();
+        bool resolved = ResolveHostnameToIP(ip, r);
+        auto resolveMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - resolveStart).count();
+        if (resolveMs > 250) {
+            spdlog::info("ResolveIP: '{}' took {} ms ({})", ip, resolveMs, resolved ? "resolved to " + r : "failed");
+        }
+        if (!resolved) {
             r = ip;
         }
         if (r == "0.0.0.0") {

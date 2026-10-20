@@ -10,7 +10,7 @@
 
 #include "MatrixFaceDownloadDialog.h"
 
-// The xml file that has the list of faces is held https://nutcracker123.com/xlights/faces/xlights_faces.xml
+// The xml file that has the list of faces is held https://raw.githubusercontent.com/xLightsSequencer/xLights/master/download/xlights_faces.xml
 // 
 // The file format is a zip file containing the following:
 //
@@ -473,7 +473,6 @@ bool MatrixFaceDownloadDialog::LoadTree()
         _categories.pop_front();
     }
 
-    //const std::string facelink = "https://nutcracker123.com/xlights/faces/xlights_faces.xml";
     //const std::string facelink = "http://localhost:3000/xlights/faces/xlights_faces.xml";
     const std::string facelink = "https://raw.githubusercontent.com/xLightsSequencer/xLights/refs/heads/master/download/xlights_faces.xml";
 
