@@ -1,5 +1,5 @@
-// HTDemucs 4-stem source separation. Three backends, selected by the
-// build:
+// HTDemucs source separation (4-stem, or 6-stem on the ONNX Runtime
+// path). Three backends, selected by the build:
 //   __APPLE__       → CoreML via macOS/src-apple-core bridge
 //   HAVE_OPENVINO   → OpenVINO (cmake / Linux)
 //   HAVE_ORT        → ONNX Runtime + DirectML (VS / Windows)
@@ -373,15 +373,8 @@ bool SeparateStems(AudioManager* audio,
     Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "xLights_demucs");
     std::wstring wpath(modelPath.begin(), modelPath.end());
 
-    const long chunkFrames = opts.chunkSamples;
-    const long overlap = std::max<long>(0, std::min<long>(opts.overlapSamples, chunkFrames / 2));
-    const long stride  = chunkFrames - overlap;
-    if (stride <= 0) return false;
-
     out.sampleRate = rate;
 
-    std::vector<float> waveformBuf(2 * (size_t)chunkFrames);
-    const int64_t waveformShape[] = {1, 2, (int64_t)chunkFrames};
     auto memInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 
     // Stem separation doesn't follow the GPU rendering preference; this lets a
@@ -425,13 +418,31 @@ bool SeparateStems(AudioManager* audio,
     auto inputName0  = session.GetInputNameAllocated(0, allocator);
     auto outputName0 = session.GetOutputNameAllocated(0, allocator);
     auto outShape    = session.GetOutputTypeInfo(0).GetTensorTypeAndShapeInfo().GetShape();
-    // [1, S, 2, N] where S = number of stems (4 or 6). We map first 4: drums/bass/other/vocals.
+    // [1, S, 2, N] where S = number of stems: 4 (drums/bass/other/vocals)
+    // or 6 (htdemucs_6s, which appends guitar/piano).
     const bool isFourDim = (outShape.size() == 4);
     std::string shapeStr;
     for (auto d : outShape) {
         shapeStr += (shapeStr.empty() ? "" : ",") + std::to_string(d);
     }
     spdlog::info("SeparateStems: output '{}' shape [{}] ({} dims)", outputName0.get(), shapeStr, outShape.size());
+
+    // The exported models have a fixed segment length; honour it if the
+    // input shape declares one rather than assuming every variant matches.
+    long chunkFrames = opts.chunkSamples;
+    {
+        auto inShape = session.GetInputTypeInfo(0).GetTensorTypeAndShapeInfo().GetShape();
+        if (inShape.size() == 3 && inShape[2] > 0 && inShape[2] != chunkFrames) {
+            spdlog::info("SeparateStems: model segment is {} samples, overriding {}", (long)inShape[2], chunkFrames);
+            chunkFrames = (long)inShape[2];
+        }
+    }
+    const long overlap = std::max<long>(0, std::min<long>(opts.overlapSamples, chunkFrames / 2));
+    const long stride  = chunkFrames - overlap;
+    if (stride <= 0) return false;
+
+    std::vector<float> waveformBuf(2 * (size_t)chunkFrames);
+    const int64_t waveformShape[] = {1, 2, (int64_t)chunkFrames};
 
     const char* inputNames[]  = {inputName0.get()};
     const char* outputNames[] = {outputName0.get()};
@@ -445,6 +456,8 @@ bool SeparateStems(AudioManager* audio,
         out.bassL.assign(trackSize, 0.0f);   out.bassR.assign(trackSize, 0.0f);
         out.otherL.assign(trackSize, 0.0f);  out.otherR.assign(trackSize, 0.0f);
         out.vocalsL.assign(trackSize, 0.0f); out.vocalsR.assign(trackSize, 0.0f);
+        out.guitarL.clear(); out.guitarR.clear();
+        out.pianoL.clear();  out.pianoR.clear();
 
         bool needRetry = false;
         bool cancelled = false;
@@ -486,25 +499,42 @@ bool SeparateStems(AudioManager* audio,
                 const float* outData = outputs[0].GetTensorMutableData<float>();
 
                 if (isFourDim) {
-                    // [1, S, 2, N] — read first 4 stems: drums/bass/other/vocals
-                    for (long i = 0; i < validCount; i++) {
-                        long dstIdx = srcPos + i;
-                        if (dstIdx >= trackSize) break;
-                        auto get = [&](int stem, int ch) {
-                            return outData[stem * 2 * chunkFrames + ch * chunkFrames + i];
-                        };
-                        auto blend = [&](std::vector<float>& dst, float v) {
-                            if (chunkIdx > 0 && i < overlap) {
-                                float t = float(i) / float(overlap);
-                                dst[dstIdx] = dst[dstIdx] * (1.0f - t) + v * t;
-                            } else {
-                                dst[dstIdx] = v;
+                    // [1, S, 2, N] in demucs source order:
+                    // drums, bass, other, vocals[, guitar, piano]
+                    auto actual = outputs[0].GetTensorTypeAndShapeInfo().GetShape();
+                    const int numStems = actual.size() == 4 ? (int)actual[1] : 4;
+                    if (numStems < 4) {
+                        spdlog::error("SeparateStems: model produced {} stems, need at least 4", numStems);
+                        return false;
+                    }
+                    if (numStems >= 6 && out.guitarL.empty()) {
+                        out.guitarL.assign(trackSize, 0.0f); out.guitarR.assign(trackSize, 0.0f);
+                        out.pianoL.assign(trackSize, 0.0f);  out.pianoR.assign(trackSize, 0.0f);
+                    }
+                    std::vector<float>* targets[6][2] = {
+                        { &out.drumsL,  &out.drumsR },
+                        { &out.bassL,   &out.bassR },
+                        { &out.otherL,  &out.otherR },
+                        { &out.vocalsL, &out.vocalsR },
+                        { &out.guitarL, &out.guitarR },
+                        { &out.pianoL,  &out.pianoR },
+                    };
+                    const int mapped = std::min(numStems, 6);
+                    for (int stem = 0; stem < mapped; stem++) {
+                        for (int ch = 0; ch < 2; ch++) {
+                            std::vector<float>& dst = *targets[stem][ch];
+                            const float* row = outData + (long)stem * 2 * chunkFrames + (long)ch * chunkFrames;
+                            for (long i = 0; i < validCount; i++) {
+                                long dstIdx = srcPos + i;
+                                if (dstIdx >= trackSize) break;
+                                if (chunkIdx > 0 && i < overlap) {
+                                    float t = float(i) / float(overlap);
+                                    dst[dstIdx] = dst[dstIdx] * (1.0f - t) + row[i] * t;
+                                } else {
+                                    dst[dstIdx] = row[i];
+                                }
                             }
-                        };
-                        blend(out.drumsL,  get(0, 0)); blend(out.drumsR,  get(0, 1));
-                        blend(out.bassL,   get(1, 0)); blend(out.bassR,   get(1, 1));
-                        blend(out.otherL,  get(2, 0)); blend(out.otherR,  get(2, 1));
-                        blend(out.vocalsL, get(3, 0)); blend(out.vocalsR, get(3, 1));
+                        }
                     }
                 } else {
                     // [1, 8, N] — interleaved channels

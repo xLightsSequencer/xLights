@@ -40,6 +40,8 @@ enum class AUDIOSAMPLETYPE {
     STEM_OTHER,   // A8: everything-else stem from HTDemucs
     STEM_VOCALS,  // A8: ML-isolated vocals from HTDemucs (full separation,
                   //     not to be confused with the M/S trick above)
+    STEM_GUITAR,  // 6-stem model (htdemucs_6s) only
+    STEM_PIANO,   // 6-stem model (htdemucs_6s) only
     ANY
 };
 
@@ -117,12 +119,15 @@ class AudioManager {
     float _classifyGateTimeStep = 1.0f;
     // A8: cached output of the HTDemucs stem separator. Set via
     // `SetStemData` and consumed by
-    // `EnsureFilteredAudioData(STEM_*)`. All eight vectors must be
-    // the same length (the track's sample count).
+    // `EnsureFilteredAudioData(STEM_*)`. All non-empty vectors must be
+    // the same length (the track's sample count). Guitar/piano are
+    // empty unless the 6-stem model produced them.
     std::vector<float> _stemDrumsL, _stemDrumsR;
     std::vector<float> _stemBassL, _stemBassR;
     std::vector<float> _stemOtherL, _stemOtherR;
     std::vector<float> _stemVocalsL, _stemVocalsR;
+    std::vector<float> _stemGuitarL, _stemGuitarR;
+    std::vector<float> _stemPianoL, _stemPianoR;
     mutable int _sdlid = 0;
     bool _ok = false;
     std::string _hash;
@@ -241,16 +246,20 @@ public:
 
     // A8: drop in the output of `StemSeparator::SeparateStems` so
     // the filter cache can serve it through `AUDIOSAMPLETYPE::
-    // STEM_{DRUMS,BASS,OTHER,VOCALS}`. Each vector holds a full-track
-    // mono signal; stereo is reconstructed from the L/R pairs. Any
-    // stale STEM_* cache entries are evicted so subsequent
+    // STEM_{DRUMS,BASS,OTHER,VOCALS,GUITAR,PIANO}`. Each vector holds a
+    // full-track mono signal; stereo is reconstructed from the L/R pairs.
+    // Any stale STEM_* cache entries are evicted so subsequent
     // `EnsureFilteredAudioData(STEM_X)` rebuilds from the new data.
-    // Pass empty vectors (or all-zero-length) to clear.
+    // Pass empty vectors (or all-zero-length) to clear. Guitar/piano
+    // stay empty for 4-stem separations.
     void SetStemData(const std::vector<float>& drumsL, const std::vector<float>& drumsR,
                       const std::vector<float>& bassL, const std::vector<float>& bassR,
                       const std::vector<float>& otherL, const std::vector<float>& otherR,
-                      const std::vector<float>& vocalsL, const std::vector<float>& vocalsR);
+                      const std::vector<float>& vocalsL, const std::vector<float>& vocalsR,
+                      const std::vector<float>& guitarL = {}, const std::vector<float>& guitarR = {},
+                      const std::vector<float>& pianoL = {}, const std::vector<float>& pianoR = {});
     bool HasStemData() const { return !_stemDrumsL.empty(); }
+    bool HasSixStemData() const { return !_stemGuitarL.empty(); }
 
     // Write the currently selected audio (whatever AUDIOSAMPLETYPE
     // the most recent SwitchTo landed on — RAW, STEM_VOCALS, a

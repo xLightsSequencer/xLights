@@ -1486,7 +1486,9 @@ FilteredAudioData* AudioManager::EnsureFilteredAudioData(AUDIOSAMPLETYPE type, i
     case AUDIOSAMPLETYPE::STEM_DRUMS:
     case AUDIOSAMPLETYPE::STEM_BASS:
     case AUDIOSAMPLETYPE::STEM_OTHER:
-    case AUDIOSAMPLETYPE::STEM_VOCALS: {
+    case AUDIOSAMPLETYPE::STEM_VOCALS:
+    case AUDIOSAMPLETYPE::STEM_GUITAR:
+    case AUDIOSAMPLETYPE::STEM_PIANO: {
         // A8: build the FilteredAudioData from the cached stem
         // buffers set by `SetStemData`. Picks the right vector pair
         // per stem type; absent data → return nullptr so the bridge
@@ -1498,6 +1500,8 @@ FilteredAudioData* AudioManager::EnsureFilteredAudioData(AUDIOSAMPLETYPE type, i
         case AUDIOSAMPLETYPE::STEM_BASS:   L = &_stemBassL;   R = &_stemBassR; break;
         case AUDIOSAMPLETYPE::STEM_OTHER:  L = &_stemOtherL;  R = &_stemOtherR; break;
         case AUDIOSAMPLETYPE::STEM_VOCALS: L = &_stemVocalsL; R = &_stemVocalsR; break;
+        case AUDIOSAMPLETYPE::STEM_GUITAR: L = &_stemGuitarL; R = &_stemGuitarR; break;
+        case AUDIOSAMPLETYPE::STEM_PIANO:  L = &_stemPianoL;  R = &_stemPianoR; break;
         default: break;
         }
         if (L == nullptr || L->empty()) {
@@ -1553,7 +1557,9 @@ FilteredAudioData* AudioManager::EnsureFilteredAudioData(AUDIOSAMPLETYPE type, i
         type != AUDIOSAMPLETYPE::STEM_DRUMS &&
         type != AUDIOSAMPLETYPE::STEM_BASS &&
         type != AUDIOSAMPLETYPE::STEM_OTHER &&
-        type != AUDIOSAMPLETYPE::STEM_VOCALS) {
+        type != AUDIOSAMPLETYPE::STEM_VOCALS &&
+        type != AUDIOSAMPLETYPE::STEM_GUITAR &&
+        type != AUDIOSAMPLETYPE::STEM_PIANO) {
         float peak = 0;
         for (long i = 0; i < _trackSize; i++) {
             float a = std::fabs(fad->data0[i]);
@@ -1627,19 +1633,24 @@ FilteredAudioData* AudioManager::GetFilteredAudioData(AUDIOSAMPLETYPE type, int 
 void AudioManager::SetStemData(const std::vector<float>& drumsL, const std::vector<float>& drumsR,
                                 const std::vector<float>& bassL, const std::vector<float>& bassR,
                                 const std::vector<float>& otherL, const std::vector<float>& otherR,
-                                const std::vector<float>& vocalsL, const std::vector<float>& vocalsR) {
+                                const std::vector<float>& vocalsL, const std::vector<float>& vocalsR,
+                                const std::vector<float>& guitarL, const std::vector<float>& guitarR,
+                                const std::vector<float>& pianoL, const std::vector<float>& pianoR) {
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
     _stemDrumsL = drumsL;   _stemDrumsR = drumsR;
     _stemBassL = bassL;     _stemBassR = bassR;
     _stemOtherL = otherL;   _stemOtherR = otherR;
     _stemVocalsL = vocalsL; _stemVocalsR = vocalsR;
+    _stemGuitarL = guitarL; _stemGuitarR = guitarR;
+    _stemPianoL = pianoL;   _stemPianoR = pianoR;
     std::lock_guard<std::recursive_mutex> flock(_filteredMutex);
     // Evict any cached STEM_* entries so the next
     // `EnsureFilteredAudioData(STEM_X)` rebuilds from the new data.
     for (auto it = _filtered.begin(); it != _filtered.end(); ) {
         AUDIOSAMPLETYPE t = (*it)->type;
         if (t == AUDIOSAMPLETYPE::STEM_DRUMS || t == AUDIOSAMPLETYPE::STEM_BASS ||
-            t == AUDIOSAMPLETYPE::STEM_OTHER || t == AUDIOSAMPLETYPE::STEM_VOCALS) {
+            t == AUDIOSAMPLETYPE::STEM_OTHER || t == AUDIOSAMPLETYPE::STEM_VOCALS ||
+            t == AUDIOSAMPLETYPE::STEM_GUITAR || t == AUDIOSAMPLETYPE::STEM_PIANO) {
             if ((*it)->data0) free((*it)->data0);
             if ((*it)->data1 && (*it)->data1 != (*it)->data0) free((*it)->data1);
             if ((*it)->pcmdata) free((*it)->pcmdata);
