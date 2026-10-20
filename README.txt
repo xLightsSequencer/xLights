@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (derwin12)              Tools > Generate Moving Head Effects adds white moving head effects (section sweeps, chorus
+                                 ping-pong, outro, dark pre-position links) from bars and sections timing tracks
     -bug (derwin12)              Older DMX models from the vendor download library (and old shows) failed to load with
                                  "Unknown Model Type: DMX"
     -bug (derwin12)              FPP Connect / controller discovery no longer asks for a password when another local web
