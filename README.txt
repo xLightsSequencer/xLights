@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Some shaders (e.g. Neon_Futures) rendered as random noise since 2026.13 because
+                                 variables declared outside functions without a starting value were not zeroed
     -enh (derwin12)              Tools > Generate Moving Head Effects adds white moving head effects (section sweeps, chorus
                                  ping-pong, outro, dark pre-position links) from bars and sections timing tracks
     -bug (derwin12)              Older DMX models from the vendor download library (and old shows) failed to load with
