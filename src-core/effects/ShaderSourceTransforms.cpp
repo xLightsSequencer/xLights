@@ -120,9 +120,14 @@ std::string trim(const std::string& s) {
     return s.substr(a, b - a + 1);
 }
 
-// Add "= <zero>" to uninitialized local scalar/vector declarations inside
-// function bodies. Brace-depth and comment aware; skips struct bodies, for(...)
-// headers (not at statement start), arrays and consts.
+// Add "= <zero>" to uninitialized scalar/vector declarations, both locals and
+// file-scope globals. Brace-depth and comment aware; skips struct bodies,
+// for(...) headers (not at statement start), arrays, consts and anything
+// qualified (uniform/in/out don't start with a bare type).
+//
+// Globals matter as much as locals: GL drivers zeroed them, but a SPIR-V
+// Private variable with no initializer is undefined, and Shadertoy ports
+// routinely declare state like `vec4 fc;` at file scope and accumulate into it.
 std::string zeroInitLocals(const std::string& src) {
     std::string out;
     out.reserve(src.size() + 256);
@@ -171,11 +176,12 @@ std::string zeroInitLocals(const std::string& src) {
             structDepth = depthAtLineStart + 1;
         }
 
-        // Only rewrite simple single-line declaration statements inside a
-        // function body (not struct members, not globals, not for-headers).
+        // Only rewrite simple single-line declaration statements (not struct
+        // members, not for-headers). Function prototypes fall out below: their
+        // "declarator" isn't a bare identifier.
         std::string t = trim(code);
         bool rewritten = false;
-        if (depthAtLineStart >= 1 && structDepth < 0 && !t.empty() && t.back() == ';' &&
+        if (depthAtLineStart >= 0 && structDepth < 0 && !t.empty() && t.back() == ';' &&
             t.find('{') == std::string::npos && t.find("const ") == std::string::npos) {
             for (const auto& tz : kZeroable) {
                 const size_t tl = std::strlen(tz.type);

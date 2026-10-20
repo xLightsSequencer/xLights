@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Some shaders (e.g. Neon_Futures) rendered as random noise since 2026.13 because
+                                 variables declared outside functions without a starting value were not zeroed
     -bug (derwin12)              Older DMX models from the vendor download library (and old shows) failed to load with
                                  "Unknown Model Type: DMX"
     -bug (derwin12)              FPP Connect / controller discovery no longer asks for a password when another local web
