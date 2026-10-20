@@ -26,6 +26,7 @@
 #include "xLightsMain.h"
 #include "media/JukeboxPanel.h"
 #include "sequencer/SeqSettingsDialog.h"
+#include "sequencer/BatchRenderProgressDialog.h"
 #include "render/SequenceFile.h"
 #include "render/SongStructureManager.h"
 #include "render/Effect.h"
@@ -1495,6 +1496,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         _renderMode = false;
         EnableSequenceControls(true);
         spdlog::debug("Batch render done.");
+        FinishBatchRenderDialog(_batchRenderStopRequested);
         if (_batchRenderStarted) {
             spdlog::info("Batch render total time: {:.3f} seconds.", _batchRenderStopWatch.Time() / 1000.0);
             _batchRenderStarted = false;
@@ -1523,9 +1525,10 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         return;
     }
 
-    if (wxGetKeyState(WXK_ESCAPE))
+    if (wxGetKeyState(WXK_ESCAPE) || _batchRenderStopRequested)
     {
         spdlog::debug("Batch render cancelled.");
+        FinishBatchRenderDialog(true);
         _lowDefinitionRender = _saveLowDefinitionRender;
         _renderMode = false;
         EnableSequenceControls(true);
@@ -1562,6 +1565,22 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     if (!_batchRenderStarted) {
         _batchRenderStarted = true;
         _batchRenderStopWatch.Start();
+        _batchRenderStopRequested = false;
+        if (_batchRenderDialog != nullptr) {
+            _batchRenderDialog->Destroy();
+            _batchRenderDialog = nullptr;
+        }
+        if (!exitOnDone) {
+            _batchRenderDialog = new BatchRenderProgressDialog(
+                this, origFilenames, showDirectory,
+                [this]() {
+                    _batchRenderStopRequested = true;
+                    AbortRender();
+                },
+                [this]() { return ProgressBar != nullptr ? ProgressBar->GetValue() : 0; },
+                [this]() { _batchRenderDialog = nullptr; });
+            _batchRenderDialog->Show();
+        }
     }
 
     wxArrayString fileNames = origFilenames;
@@ -1587,6 +1606,9 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     spdlog::info("=== Batch Render [{} remaining] HWAccel={} GPU={} File: {}",
              fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", UseGPURendering() ? "ON" : "OFF", seq.ToStdString());
     LogMemoryUsage("batch-render sequence start: " + seq.ToStdString());
+    if (_batchRenderDialog != nullptr) {
+        _batchRenderDialog->SetRendering(seq);
+    }
     OpenSequence(seq, nullptr, "", true);
 
     // OpenSequence returns void and has several paths that leave nothing open
@@ -1595,6 +1617,9 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     // batch rather than faulting on the whole run.
     if (CurrentSeqXmlFile == nullptr) {
         spdlog::error("Batch render: {} could not be opened - skipping.", seq.ToStdString());
+        if (_batchRenderDialog != nullptr) {
+            _batchRenderDialog->SetResult(seq, BatchRenderProgressDialog::Result::Failed, _("could not be opened"));
+        }
         auto nFileNames = fileNames;
         nFileNames.RemoveAt(0);
         CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, nFileNames, (exitOnDone ? RENDER_EXIT_ON_DONE : 0));
@@ -1634,12 +1659,26 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         _appProgress->Reset();
         GaugeSizer->Layout();
 
+        if (_batchRenderStopRequested) {
+            spdlog::info("Batch render stopped by the user; {} was not saved.", xlightsFilename.ToStdString());
+            if (_batchRenderDialog != nullptr) {
+                _batchRenderDialog->SetResult(fileNames[0], BatchRenderProgressDialog::Result::Stopped);
+            }
+            auto nFileNames = fileNames;
+            nFileNames.RemoveAt(0);
+            CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, nFileNames, (exitOnDone ? RENDER_EXIT_ON_DONE : 0));
+            return;
+        }
+
         if (!aborted || alreadyRetried) {
             spdlog::info("Saving fseq file.");
             LogMemoryUsage("batch-render fseq save: " + xlightsFilename.ToStdString());
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
             spdlog::info("fseq file done.");
+            if (_batchRenderDialog != nullptr) {
+                _batchRenderDialog->SetResult(fileNames[0], BatchRenderProgressDialog::Result::Rendered);
+            }
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"), xlightsFilename, elapsedTime);
@@ -1656,6 +1695,16 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
             CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, fileNames, (exitOnDone ? RENDER_EXIT_ON_DONE : 0) | RENDER_ALREADY_RETRIED);
         }
     } );
+}
+
+void xLightsFrame::FinishBatchRenderDialog(bool stopped)
+{
+    _batchRenderStopRequested = false;
+    if (_batchRenderDialog != nullptr) {
+        _batchRenderDialog->Finished(stopped);
+        _batchRenderDialog->Show();
+        _batchRenderDialog->Raise();
+    }
 }
 
 void xLightsFrame::SaveSequence()

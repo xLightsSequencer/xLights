@@ -5,6 +5,7 @@
     <ClCompile Include="..\src-ui-wx\import_export\ImportEffects.cpp" />
     <ClCompile Include="..\src-core\import_export\TimingImport.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BatchRenderDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\BatchRenderProgressDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\controls\BulkEditControls.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BulkEditSliderDialog.cpp" />
     <ClCompile Include="..\src-core\utils\CachedFileDownloader.cpp" />
@@ -1561,6 +1562,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src-ui-wx\sequencer\BatchRenderDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\BatchRenderProgressDialog.h" />
     <ClInclude Include="..\src-ui-wx\shared\controls\BulkEditControls.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BulkEditSliderDialog.h" />
     <ClInclude Include="..\src-core\utils\CachedFileDownloader.h" />
