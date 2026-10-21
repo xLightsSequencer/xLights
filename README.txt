@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Multi-string Cube models showed every node on string 2 in the wiring view and
+                                 controller port highlighting #7248
     -bug (derwin12)              Model Sets can no longer mix base show folder models with the show's own models (the base
                                  folder moved its models without the rest of the Set); existing mixed Sets are held in place
     -bug (derwin12)              Multi-layer arches from pre-2026 layouts lost their Zig-Zag Layers setting when opened
