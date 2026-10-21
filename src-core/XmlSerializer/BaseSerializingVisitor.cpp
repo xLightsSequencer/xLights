@@ -646,9 +646,7 @@ void BaseSerializingVisitor::Visit(const ArchesModel& model) {
     attrs.Add(XmlNodeKeys::NodesPerArchAttribute, std::to_string(model.GetNodesPerArch()));
     attrs.Add(XmlNodeKeys::LightsPerNodeAttribute, std::to_string(model.GetLightsPerNode()));
     AddThreePointScreenLocationAttributes(model, attrs);
-    if (model.GetZigZag()) {
-        attrs.Add(XmlNodeKeys::ZigZagAttribute, "true");
-    }
+    attrs.Add(XmlNodeKeys::ZigZagAttribute, model.GetZigZag() ? "true" : "false");
     attrs.Add(XmlNodeKeys::HollowAttribute, std::to_string(model.GetHollow()));
     if (model.GetGap()) {
         attrs.Add(XmlNodeKeys::GapAttribute, std::to_string(model.GetGap()));
