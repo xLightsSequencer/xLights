@@ -21,6 +21,7 @@
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/gbsizer.h>
+#include <wx/listbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -62,6 +63,9 @@ class SeqSettingsDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Close;
 		wxButton* Button_Download;
+		wxButton* Button_ImportedFrom_Add;
+		wxButton* Button_ImportedFrom_Change;
+		wxButton* Button_ImportedFrom_Remove;
 		wxButton* Button_SetDefaultDuration;
 		wxButton* Button_SetDefaultTiming;
 		wxButton* Button_EmailSend;
@@ -116,7 +120,7 @@ class SeqSettingsDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Xml_Author_Email;
 		wxTextCtrl* TextCtrl_Xml_Comment;
 		wxStaticText* StaticText_Xml_ImportedFrom;
-		wxTextCtrl* TextCtrl_Xml_ImportedFrom;
+		wxListBox* ListBox_Xml_ImportedFrom;
 		wxTextCtrl* TextCtrl_Xml_Media_File;
 		wxTextCtrl* TextCtrl_Xml_Music_Url;
 		wxTextCtrl* TextCtrl_Xml_Seq_Duration;
@@ -209,6 +213,10 @@ class SeqSettingsDialog: public wxDialog
 		static const wxWindowID ID_BUTTON2;
 		static const wxWindowID ID_STATICTEXT_Xml_Comment;
 		static const wxWindowID ID_TEXTCTRL_Xml_Comment;
+		static const wxWindowID ID_LISTBOX_ImportedFrom;
+		static const wxWindowID ID_BUTTON_ImportedFrom_Add;
+		static const wxWindowID ID_BUTTON_ImportedFrom_Change;
+		static const wxWindowID ID_BUTTON_ImportedFrom_Remove;
 		static const wxWindowID ID_PANEL1;
 		static const wxWindowID ID_BUTTON_Xml_New_Timing;
 		static const wxWindowID ID_BUTTON_Xml_Import_Timing;
@@ -281,6 +289,10 @@ class SeqSettingsDialog: public wxDialog
 		void OnTextCtrl_Xml_AlbumText(wxCommandEvent& event);
 		void OnTextCtrl_Xml_Music_UrlText(wxCommandEvent& event);
 		void OnTextCtrl_Xml_CommentText(wxCommandEvent& event);
+		void OnListBox_ImportedFromSelect(wxCommandEvent& event);
+		void OnButton_ImportedFrom_AddClick(wxCommandEvent& event);
+		void OnButton_ImportedFrom_ChangeClick(wxCommandEvent& event);
+		void OnButton_ImportedFrom_RemoveClick(wxCommandEvent& event);
 		void OnTextCtrl_Xml_Seq_DurationText(wxCommandEvent& event);
 		void OnButton_Xml_New_TimingClick(wxCommandEvent& event);
 		void OnButton_Xml_Import_TimingClick(wxCommandEvent& event);
@@ -306,6 +318,9 @@ class SeqSettingsDialog: public wxDialog
         void OnButton_SetDefaultDurationClick(wxCommandEvent& event);
         void OnButton_SetDefaultTimingClick(wxCommandEvent& event);
 		//*)
+		void PopulateImportedFrom();
+		void UpdateImportedFromButtons();
+		bool PickImportedFromFile(wxString& path);
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
         void OnButton_Xml_Delete_TimingClick(wxCommandEvent& event);

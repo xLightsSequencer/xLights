@@ -3661,6 +3661,7 @@ void xLightsFrame::ShowSequenceSettings()
     dialog.Fit();
     dialog.Centre();
     int ret_code = dialog.ShowModal();
+    UpdateImportFromOriginalMenu();
 
     if (ret_code == NEEDS_RENDER || numThreadsAborted > 0) {
         RenderAll();
