@@ -31,7 +31,7 @@ exists, so every `src-core/models/` type renders identically on both clients.
 
 | # | Model type | iPad create | iPad edit properties | iPad renders | Evidence |
 |---|---|---|---|---|---|
-| M1 | Arches | ✅ | ✅ full (incl. `LayerSizes`) | ✅ | Desktop `LayoutPanel.cpp:881`, `ModelManager.cpp:1289`, adapter `adapters/ArchesPropertyAdapter.cpp:37-96`; iPad `XLSequenceDocument.mm:5463`, `BuildArchesProps` `:7791`, layers `:7822` |
+| M1 | Arches | ✅ | ✅ full (incl. `LayerSizes`) | ✅ | Desktop `LayoutPanel.cpp:881`, `ModelManager.cpp:1289`, adapter `adapters/ArchesPropertyAdapter.cpp:37-96`; iPad `XLSequenceDocument.mm:5463`, `BuildArchesProps` `:7791`, layers `:7822`. `ZigZag` load default (true when absent, matching pre-2026 files) is core-side in `XmlDeserializingModelFactory.cpp` — shared/auto-applied |
 | M2 | Candy Canes | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:882`, `ModelManager.cpp:1295`, `adapters/CandyCanePropertyAdapter.cpp:29-79`; iPad `XLSequenceDocument.mm:5464`, `BuildCandyCaneProps` `:7932` |
 | M3 | Channel Block | ✅ | 🟡 count + per-channel colours; no `DisableUnusedProperties` equivalent for the appearance block | ✅ | Desktop `LayoutPanel.cpp:883`, `adapters/ChannelBlockPropertyAdapter.cpp:25-39`, `:69`; iPad `XLSequenceDocument.mm:5465`, `BuildChannelBlockProps` `:8053`; iPad greys keys via `LayoutEditorView.swift:6135-6144` |
 | M4 | Circle | ✅ | ✅ full (incl. `LayerSizes`) | ✅ | Desktop `LayoutPanel.cpp:884`, `adapters/CirclePropertyAdapter.cpp:33-68`; iPad `XLSequenceDocument.mm:5466`, `BuildCircleProps` `:7878`, layers `:7893` |

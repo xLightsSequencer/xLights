@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Multi-layer arches from pre-2026 layouts lost their Zig-Zag Layers setting when opened
     -bug (derwin12)              Some shaders (e.g. Neon_Futures) rendered as random noise since 2026.13 because
                                  variables declared outside functions without a starting value were not zeroed
     -enh (derwin12)              Tools > Generate Moving Head Effects adds white moving head effects (section sweeps, chorus
