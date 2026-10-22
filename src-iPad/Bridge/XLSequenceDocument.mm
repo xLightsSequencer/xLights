@@ -5806,11 +5806,21 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
         }
         members.push_back(name);
     }
-    if (members.size() < 2) return nil;
+    if (members.size() < 2 || mgr.ModelsMixBaseAndLocal(members)) return nil;
     auto* s = mgr.GetSetManager().CreateSet(
         members, suggestedName ? std::string(suggestedName.UTF8String) : std::string());
     if (!s) return nil;
     return [NSString stringWithUTF8String:s->GetName().c_str()];
+}
+
+- (BOOL)modelsMixBaseAndLocal:(NSArray<NSString*>*)modelNames {
+    if (!_context || !_context->HasModelManager()) return NO;
+    std::vector<std::string> names;
+    names.reserve(modelNames.count);
+    for (NSString* n in modelNames) {
+        names.push_back(n.UTF8String);
+    }
+    return _context->GetModelManager().ModelsMixBaseAndLocal(names) ? YES : NO;
 }
 
 - (NSString*)suggestedModelSetName {
@@ -5847,6 +5857,9 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
     auto& setMgr = mgr.GetSetManager();
     auto* s = setMgr.GetSetByName(setName.UTF8String);
     if (!s) return NO;
+    std::vector<std::string> combined = s->GetMembers();
+    combined.push_back(modelName.UTF8String);
+    if (mgr.ModelsMixBaseAndLocal(combined)) return NO;
     setMgr.AddMember(s, modelName.UTF8String);
     return YES;
 }
@@ -13609,11 +13622,13 @@ static std::string iPadLiftNestedStemModel(const std::string& rootDir) {
     std::error_code ec;
     if (!std::filesystem::exists(rootDir, ec)) return {};
     std::string found;
-    for (auto& entry : std::filesystem::recursive_directory_iterator(rootDir, ec)) {
-        if (ec) break;
-        if (entry.is_directory(ec) &&
-            entry.path().filename().string() == AIModelStore::kDemucsModelName) {
-            found = entry.path().string();
+    // increment(ec) rather than range-for: the latter's operator++ throws on a damaged folder
+    std::filesystem::recursive_directory_iterator it(rootDir, std::filesystem::directory_options::skip_permission_denied, ec);
+    for (; !ec && it != std::filesystem::recursive_directory_iterator(); it.increment(ec)) {
+        std::error_code dec;
+        if (it->is_directory(dec) &&
+            it->path().filename().string() == AIModelStore::kDemucsModelName) {
+            found = it->path().string();
             break;
         }
     }

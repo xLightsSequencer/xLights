@@ -217,6 +217,32 @@ bool ModelManager::IsModelValid(const Model* m) const
     return false;
 }
 
+bool ModelManager::IsModelSetFrozen(const ModelSet* s) const
+{
+    if (s == nullptr) return false;
+    for (const auto& n : s->GetMembers()) {
+        Model* m = GetModel(n);
+        if (m != nullptr && (m->IsLocked() || m->IsFromBase())) return true;
+    }
+    return false;
+}
+
+bool ModelManager::ModelsMixBaseAndLocal(const std::vector<std::string>& names) const
+{
+    bool anyBase = false;
+    bool anyLocal = false;
+    for (const auto& n : names) {
+        Model* m = GetModel(n);
+        if (m == nullptr) continue;
+        if (m->IsFromBase()) {
+            anyBase = true;
+        } else {
+            anyLocal = true;
+        }
+    }
+    return anyBase && anyLocal;
+}
+
 Model* ModelManager::GetModel(const std::string& name) const
 {
     std::unique_lock<std::recursive_mutex> lock(_modelMutex);

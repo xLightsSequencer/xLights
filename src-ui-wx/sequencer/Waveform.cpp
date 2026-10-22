@@ -1031,11 +1031,13 @@ bool Waveform::PrepareStemData()
         std::error_code ec;
         if (!std::filesystem::exists(rootDir, ec)) return {};
         std::string found;
-        for (auto& entry : std::filesystem::recursive_directory_iterator(rootDir, ec)) {
-            if (ec) break;
-            if (entry.is_directory(ec) &&
-                entry.path().filename().string() == AIModelStore::kDemucsModelName) {
-                found = entry.path().string();
+        // increment(ec) rather than range-for: the latter's operator++ throws on a damaged folder
+        std::filesystem::recursive_directory_iterator it(rootDir, std::filesystem::directory_options::skip_permission_denied, ec);
+        for (; !ec && it != std::filesystem::recursive_directory_iterator(); it.increment(ec)) {
+            std::error_code dec;
+            if (it->is_directory(dec) &&
+                it->path().filename().string() == AIModelStore::kDemucsModelName) {
+                found = it->path().string();
                 break;
             }
         }

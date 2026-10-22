@@ -1546,9 +1546,15 @@ NS_ASSUME_NONNULL_BEGIN
 /// auto-generated "Set N". Returns the created Set's name (which may be
 /// uniquified) or nil — a Set needs at least two members, and members
 /// already in another Set are moved across (dissolving that Set if it
-/// drops below two).
+/// drops below two). Also nil when the members mix base-show-folder and
+/// local models (see `modelsMixBaseAndLocal:`).
 - (nullable NSString*)createModelSetWithModels:(NSArray<NSString*>*)modelNames
                                           named:(NSString*)suggestedName;
+
+/// YES when `modelNames` holds both base-show-folder and local models,
+/// which can't share a Set — the base merge moves base models without
+/// moving the rest of the Set.
+- (BOOL)modelsMixBaseAndLocal:(NSArray<NSString*>*)modelNames;
 
 /// Name to pre-fill a "new Set" prompt with.
 - (NSString*)suggestedModelSetName;

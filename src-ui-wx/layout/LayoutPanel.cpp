@@ -2638,15 +2638,9 @@ void LayoutPanel::BulkEditRotateY() { BulkEditRotateAxis('Y'); }
 void LayoutPanel::BulkEditRotateZ() { BulkEditRotateAxis('Z'); }
 
 namespace {
-// A Set containing a locked model is frozen: no member may be translated
-// or rotated as part of Set movement, so the locked arrangement survives.
-bool ModelSetHasLockedMember(ModelManager& mgr, ModelSet* s) {
-    if (s == nullptr) return false;
-    for (const auto& n : s->GetMembers()) {
-        Model* m = mgr[n];
-        if (m != nullptr && m->IsLocked()) return true;
-    }
-    return false;
+wxString MixedBaseSetMessage() {
+    return _("Models from the base show folder can't be in a Set with this show's own models - "
+             "the base folder can move its models without moving the rest of the Set.");
 }
 // Which axes a model's screen-location class meaningfully rotates around.
 // BoxedScreenLocation supports all three. ThreePointScreenLocation (Arches,
@@ -2773,7 +2767,7 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
     // locked arrangement survives.
     std::set<ModelSet*> blockedSets;
     for (ModelSet* s : touchedSets) {
-        if (ModelSetHasLockedMember(xlights->AllModels, s)) {
+        if (xlights->AllModels.IsModelSetFrozen(s)) {
             blockedSets.insert(s);
         }
     }
@@ -2895,7 +2889,7 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
             if (!names.empty()) names += ", ";
             names += wxString::Format("'%s'", wxString(s->GetName()));
         }
-        wxMessageBox(wxString::Format(_("Set %s was not rotated because it contains a locked model."), names),
+        wxMessageBox(wxString::Format(_("Set %s was not rotated because it contains a locked or base show model."), names),
                      _("Bulk Edit Rotate"), wxOK | wxICON_INFORMATION, this);
     }
     if (!unsupportedModels.empty()) {
@@ -2966,7 +2960,7 @@ bool LayoutPanel::AlignSetAware(Model* model, float target, float (BaseObject::*
     if (doneSets.count(s) != 0 || blockedSets.count(s) != 0) {
         return false;
     }
-    if (ModelSetHasLockedMember(xlights->AllModels, s)) {
+    if (xlights->AllModels.IsModelSetFrozen(s)) {
         blockedSets.insert(s);
         return false;
     }
@@ -2986,8 +2980,8 @@ void LayoutPanel::ReportBlockedSets(const std::set<ModelSet*>& blockedSets, cons
         names += wxString::Format("'%s'", wxString(s->GetName()));
     }
     const wxString msg = blockedSets.size() == 1
-        ? wxString::Format(_("Set %s was not moved because it contains a locked model."), names)
-        : wxString::Format(_("Sets %s were not moved because they contain a locked model."), names);
+        ? wxString::Format(_("Set %s was not moved because it contains a locked or base show model."), names)
+        : wxString::Format(_("Sets %s were not moved because they contain a locked or base show model."), names);
     wxMessageBox(msg, operation, wxOK | wxICON_INFORMATION, this);
 }
 
@@ -3048,6 +3042,16 @@ void LayoutPanel::DoLinkAsSet()
     if (selected.size() < 2) return;
     auto& setMgr = xlights->AllModels.GetSetManager();
 
+    std::vector<std::string> names;
+    names.reserve(selected.size());
+    for (auto* m : selected) {
+        names.push_back(m->GetName());
+    }
+    if (xlights->AllModels.ModelsMixBaseAndLocal(names)) {
+        wxMessageBox(MixedBaseSetMessage(), _("Link as Set"), wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
     // Re-prompt on a name collision (keeping what the user typed) rather
     // than making them start the whole action over.
     std::string setName;
@@ -3066,11 +3070,6 @@ void LayoutPanel::DoLinkAsSet()
         current = setName;
     }
 
-    std::vector<std::string> names;
-    names.reserve(selected.size());
-    for (auto* m : selected) {
-        names.push_back(m->GetName());
-    }
     CreateUndoPoint("All", names.front());
     setMgr.CreateSet(names, setName);
     xlights->UnsavedRgbEffectsChanges = true;
@@ -3085,6 +3084,15 @@ void LayoutPanel::DoAddSelectedToSet(const std::string& setName)
     auto& setMgr = xlights->AllModels.GetSetManager();
     ModelSet* target = setMgr.GetSetByName(setName);
     if (target == nullptr) return;
+
+    std::vector<std::string> combined = target->GetMembers();
+    for (auto* m : selected) {
+        combined.push_back(m->GetName());
+    }
+    if (xlights->AllModels.ModelsMixBaseAndLocal(combined)) {
+        wxMessageBox(MixedBaseSetMessage(), _("Add to Set"), wxOK | wxICON_INFORMATION, this);
+        return;
+    }
 
     bool anyMoved = false;
     for (auto* m : selected) {
@@ -3311,6 +3319,21 @@ void LayoutPanel::DoManageSet()
             nonMembers.push_back(m->GetName());
         }
     }
+    // Only offer models that could legally join: base-folder and local
+    // models can't share a Set.
+    bool anyBase = false;
+    bool anyLocal = false;
+    for (const auto& n : members) {
+        Model* m = xlights->AllModels[n];
+        if (m == nullptr) continue;
+        (m->IsFromBase() ? anyBase : anyLocal) = true;
+    }
+    nonMembers.erase(std::remove_if(nonMembers.begin(), nonMembers.end(),
+                                    [&](const std::string& n) {
+                                        Model* m = xlights->AllModels[n];
+                                        return m != nullptr && (m->IsFromBase() ? anyLocal : anyBase);
+                                    }),
+                     nonMembers.end());
     std::sort(members.begin(), members.end());
     std::sort(nonMembers.begin(), nonMembers.end());
 
@@ -5144,9 +5167,9 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                     Model* selModel = dynamic_cast<Model*>(selectedBaseObject);
                                     if (selModel != nullptr) {
                                         ModelSet* ms = xlights->AllModels.GetSetManager().GetSetContaining(selModel->GetName());
-                                        if (ms != nullptr && ModelSetHasLockedMember(xlights->AllModels, ms)) {
+                                        if (ms != nullptr && xlights->AllModels.IsModelSetFrozen(ms)) {
                                             xlights->SetStatusText(wxString::Format(
-                                                _("Set '%s' contains a locked model - unlock it to move the Set."), ms->GetName()));
+                                                _("Set '%s' contains a locked or base show model - unlock it (or remove the base model from the Set) to move the Set."), ms->GetName()));
                                             handledByNewApi = true;
                                             m_last_mouse_x = event.GetX();
                                             m_last_mouse_y = event.GetY();
@@ -6978,7 +7001,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         // members from following a multi-select drag.
                         std::set<ModelSet*> blockedSets;
                         for (auto* ts : touchedSets) {
-                            if (ModelSetHasLockedMember(xlights->AllModels, ts)) {
+                            if (xlights->AllModels.IsModelSetFrozen(ts)) {
                                 blockedSets.insert(ts);
                             }
                         }
@@ -7477,7 +7500,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             // (the dragged one included), so the locked arrangement survives.
             std::set<ModelSet*> blockedSets;
             for (auto* ts : touchedSets) {
-                if (ModelSetHasLockedMember(xlights->AllModels, ts)) {
+                if (xlights->AllModels.IsModelSetFrozen(ts)) {
                     blockedSets.insert(ts);
                 }
             }
@@ -7538,7 +7561,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         m_previous_mouse_x = event.GetPosition().x;
         m_previous_mouse_y = event.GetPosition().y;
         if (setDragBlocked) {
-            xlights->SetStatusText(_("Model Set contains a locked model - unlock it to move the Set (Alt-drag moves a single model)."));
+            xlights->SetStatusText(_("Model Set contains a locked or base show model - unlock it (or remove the base model from the Set) to move the Set (Alt-drag moves a single model)."));
         } else {
             xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
         }
@@ -8377,7 +8400,7 @@ void LayoutPanel::PreviewModelAlignWithGround()
             if (doneSets.count(s) != 0 || blockedSets.count(s) != 0) {
                 continue;
             }
-            if (ModelSetHasLockedMember(xlights->AllModels, s)) {
+            if (xlights->AllModels.IsModelSetFrozen(s)) {
                 blockedSets.insert(s);
                 continue;
             }
