@@ -15,6 +15,7 @@
 
 #include <log.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <filesystem>
@@ -38,6 +39,24 @@
 
 namespace fs = std::filesystem;
 
+// The range-for form of recursive_directory_iterator advances with the throwing
+// operator++, so a damaged folder (e.g. Windows error 1392 on a OneDrive show
+// folder) escapes as an uncaught filesystem_error. Step with increment(ec).
+static void ForEachRegularFile(const std::string& folder, const std::function<void(const fs::directory_entry&)>& fn)
+{
+    std::error_code ec;
+    fs::recursive_directory_iterator it(folder, fs::directory_options::skip_permission_denied, ec);
+    for (; !ec && it != fs::recursive_directory_iterator(); it.increment(ec)) {
+        std::error_code fec;
+        if (it->is_regular_file(fec)) {
+            fn(*it);
+        }
+    }
+    if (ec) {
+        spdlog::get("render")->warn("Render cache folder scan of {} stopped early: {}", folder, ec.message());
+    }
+}
+
 static void RenderCacheLoadThreadEntry(RenderCache* cache)
 {
     std::unique_lock<std::mutex> lock(cache->GetLoadMutex());
@@ -50,12 +69,12 @@ static void RenderCacheLoadThreadEntry(RenderCache* cache)
     std::vector<std::string> files;
     std::error_code ec;
     if (fs::exists(cacheFolder, ec)) {
-        for (const auto& entry : fs::recursive_directory_iterator(cacheFolder, ec)) {
+        ForEachRegularFile(cacheFolder, [&files](const fs::directory_entry& entry) {
             // skip AppleDouble "._" sidecars that non-APFS volumes grow next to each file
-            if (entry.is_regular_file() && entry.path().extension() == ".cache" && !entry.path().filename().string().starts_with("._")) {
+            if (entry.path().extension() == ".cache" && !entry.path().filename().string().starts_with("._")) {
                 files.push_back(entry.path().string());
             }
-        }
+        });
     }
 
     for (const auto& it : files) {
@@ -113,11 +132,13 @@ void RenderCache::EnforceMaximumSize()
 
     // Calculate total size of cache directory
     uintmax_t total = 0;
-    for (const auto& entry : fs::recursive_directory_iterator(_baseCache, ec)) {
-        if (entry.is_regular_file()) {
-            total += entry.file_size();
+    ForEachRegularFile(_baseCache, [&total](const fs::directory_entry& entry) {
+        std::error_code sec;
+        uintmax_t const size = entry.file_size(sec);
+        if (!sec) {
+            total += size;
         }
-    }
+    });
     if (total / 1024 / 1024 < _maximumSizeMB)
         return;
 
@@ -135,29 +156,36 @@ void RenderCache::EnforceMaximumSize()
 
     std::list<CacheEntry> entries;
 
-    for (const auto& entry : fs::recursive_directory_iterator(_baseCache, ec)) {
-        if (entry.is_regular_file() && entry.path().extension() == ".cache") {
+    ForEachRegularFile(_baseCache, [&](const fs::directory_entry& entry) {
+        if (entry.path().extension() == ".cache") {
+            std::error_code sec;
             CacheEntry ce;
             ce.name = entry.path().string();
-            ce.size = entry.file_size();
-            ce.modified = entry.last_write_time();
+            ce.size = entry.file_size(sec);
+            if (sec) {
+                return;
+            }
+            ce.modified = entry.last_write_time(sec);
+            if (sec) {
+                return;
+            }
 
             if (ce.size / 1024 / 1024 > _maximumSizeMB / 2) {
                 // we always delete anything larger than half the maximum as these are essentially making the cache useless
-                fs::remove(ce.name, ec);
-                total -= ce.size;
+                fs::remove(ce.name, sec);
+                total -= std::min(total, ce.size);
             } else {
                 entries.push_back(ce);
             }
         }
-    }
+    });
 
     entries.sort();
 
     while (total / 1024 / 1024 > _maximumSizeMB && entries.size() > 0) {
         if (fs::exists(entries.front().name, ec)) {
             fs::remove(entries.front().name, ec);
-            total -= entries.front().size;
+            total -= std::min(total, entries.front().size);
         }
         entries.pop_front();
     }
@@ -610,6 +638,11 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
 {
     if (_purged) return false;
 
+    // items loaded from disk may be missing keys if the file was damaged
+    for (const char* key : { "StartMS", "EndMS", "Frames", "EffectLayer", "Element", "Effect" }) {
+        if (_properties.find(key) == _properties.end()) return false;
+    }
+
     if (std::atoi(_properties.at("StartMS").c_str()) != effect->GetStartTimeMS()) return false;
 
     EffectLayer* el = effect->GetParentEffectLayer();
@@ -633,7 +666,8 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
             return false;
         }
         std::string mname = GetModelName(buffer);
-        if ((size_t)_frameSize.at(mname) != sizeof(xlColor) * buffer->GetPixelCount()) return false;
+        auto fsIt = _frameSize.find(mname);
+        if (fsIt == _frameSize.end() || (size_t)fsIt->second != sizeof(xlColor) * buffer->GetPixelCount()) return false;
     }
 
     if (std::atoi(_properties.at("EndMS").c_str()) != effect->GetEndTimeMS()) return false;
@@ -930,49 +964,93 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
     FILE* fp = std::fopen(_cacheFile.c_str(), "rb");
 
     if (fp != nullptr) {
+        auto rejectCorrupt = [&](const char* reason) {
+            spdlog::get("render")->warn("Cache file {} appears corrupt: {}.", filename, reason);
+            _frames.clear();
+            _frameSize.clear();
+            _purged = true;
+            std::fclose(fp);
+        };
+
+        std::error_code sec;
+        uintmax_t const fileSize = fs::file_size(_cacheFile, sec);
+        if (sec) {
+            rejectCorrupt("cannot read file size");
+            return;
+        }
+
         char headerBuffer[8192];
         memset(headerBuffer, 0x00, sizeof(headerBuffer));
-        std::fread(headerBuffer, 1, sizeof(headerBuffer), fp);
+        // leave the last byte as a terminator so a damaged header can't run strlen off the buffer
+        size_t const headerRead = std::fread(headerBuffer, 1, sizeof(headerBuffer) - 1, fp);
+        const char* const headerEnd = headerBuffer + headerRead;
 
-        char* ps = headerBuffer;
-
-        while (strcmp(ps, "RC_HEADEREND") != 0) {
-            std::string key(ps);
-            ps += strlen(ps) + 1;
-            std::string value(ps);
-            ps += strlen(ps) + 1;
-
-            if (key == "") {
-                // file looks corrupt
-                spdlog::get("render")->debug("Cache file {} appears corrupt.", (const char*)filename.c_str());
-                _purged = true;
-                std::fclose(fp);
-                return;
-            } else {
-                _properties[key] = value;
+        const char* ps = headerBuffer;
+        auto nextString = [&ps, headerEnd](std::string& out) {
+            if (ps >= headerEnd) {
+                return false;
             }
+            out = ps;
+            ps += out.size() + 1;
+            return true;
+        };
+
+        std::string key;
+        bool headerEndFound = false;
+        while (nextString(key)) {
+            if (key == "RC_HEADEREND") {
+                headerEndFound = true;
+                break;
+            }
+            std::string value;
+            if (key.empty() || !nextString(value)) {
+                break;
+            }
+            _properties[key] = value;
         }
-        ps += strlen(ps) + 1;
+        if (!headerEndFound) {
+            rejectCorrupt("bad header");
+            return;
+        }
 
-        int models = std::atoi(_properties["Models"].c_str());
+        long const models = std::strtol(_properties["Models"].c_str(), nullptr, 10);
+        if (models < 0) {
+            rejectCorrupt("bad model count");
+            return;
+        }
 
-        for (int i = 0; i < models; i++) {
-            std::string model(ps);
-            ps += strlen(ps) + 1;
-            std::string frames(ps);
-            ps += strlen(ps) + 1;
-            int frameCount = std::atoi(frames.c_str());
-            std::string frameSize(ps);
-            ps += strlen(ps) + 1;
-            long fsz = std::strtol(frameSize.c_str(), nullptr, 10);
+        uintmax_t frameBytes = 0;
+        for (long i = 0; i < models; i++) {
+            std::string model;
+            std::string frames;
+            std::string frameSize;
+            if (!nextString(model) || !nextString(frames) || !nextString(frameSize)) {
+                rejectCorrupt("truncated model list");
+                return;
+            }
+            long const frameCount = std::strtol(frames.c_str(), nullptr, 10);
+            long const fsz = std::strtol(frameSize.c_str(), nullptr, 10);
+            // bound each model by the file size before multiplying so garbage counts can't overflow or
+            // request a huge allocation
+            if (frameCount < 0 || fsz <= 0 || (uintmax_t)fsz > fileSize || (frameCount > 0 && (uintmax_t)frameCount > fileSize / (uintmax_t)fsz)) {
+                rejectCorrupt("bad frame dimensions");
+                return;
+            }
+            frameBytes += (uintmax_t)frameCount * (uintmax_t)fsz;
+            if (frameBytes > fileSize) {
+                rejectCorrupt("frame data larger than file");
+                return;
+            }
 
-            std::vector<unsigned char *> n;
-            _frames[model] = n;
-            _frames.at(model).resize(frameCount);
+            _frames[model].resize(frameCount);
             _frameSize[model] = fsz;
         }
 
         _firstFrameOffset = ps - headerBuffer;
+        if (_firstFrameOffset + frameBytes > fileSize) {
+            rejectCorrupt("file is truncated");
+            return;
+        }
 #ifdef USE_MMAP_RENDERCACHE
         if (renderCache->UseMMap()) {
             struct stat st;
