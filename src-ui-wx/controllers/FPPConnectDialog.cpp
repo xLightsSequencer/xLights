@@ -1515,6 +1515,16 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     prgs->setActionLabel("Checking FSEQ file for " + wxFileName(ToWXString(fseq)).GetFullName());
                 }
                 row = 0;
+                for (const auto& inst : instances) {
+                    if (!cancelled && doUpload[row]) {
+                        inst->PrefetchSequenceMeta(fseq);
+                    }
+                    row++;
+                }
+                while (CurlManager::INSTANCE.processCurls()) {
+                    wxYield();
+                }
+                row = 0;
                 int uploadCount = 0;
                 int prepareCount = 0;
                 for (const auto& inst : instances) {
