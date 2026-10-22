@@ -1292,14 +1292,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     selected_timing == "Audio Onsets" ? ID_ROW_MNU_GENERATE_FROM_ONSETS :
                     selected_timing == "Audio Tempo" ? ID_ROW_MNU_GENERATE_FROM_TEMPO :
                     ID_ROW_MNU_GENERATE_FROM_CHORDS;
-                dialog.Destroy();
                 wxCommandEvent evt(wxEVT_MENU, detectorId);
                 OnLayerPopup(evt);
                 return;
             } else if (selected_timing == "AI Lyrics from Audio") {
                 // Reuse the EVT_AI_LYRICS handler that powers the
                 // row-context-menu "AI Speech 2 Lyrics" entry.
-                dialog.Destroy();
                 wxCommandEvent aiEvt(EVT_AI_LYRICS);
                 wxPostEvent(GetParent(), aiEvt);
                 return;
@@ -1456,8 +1454,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 }
             }
         }
-        dialog.Destroy();
-        
+
         if (timing_added) {
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
