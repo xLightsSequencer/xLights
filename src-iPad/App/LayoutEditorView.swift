@@ -4751,6 +4751,10 @@ struct LayoutEditorView: View {
         let name = newSetName.trimmingCharacters(in: .whitespacesAndNewlines)
         let members = Array(viewModel.layoutEditorSelection)
         guard members.count >= 2 else { return }
+        if viewModel.document.modelsMixBaseAndLocal(members) {
+            saveErrorMessage = Self.mixedBaseSetMessage
+            return
+        }
         guard viewModel.document.createModelSet(withModels: members, named: name) != nil else {
             saveErrorMessage = "Couldn't create the Set — it needs at least two models, and groups or submodels can't be members."
             return
@@ -4758,7 +4762,16 @@ struct LayoutEditorView: View {
         afterModelSetChange()
     }
 
+    private static let mixedBaseSetMessage =
+        "Models from the base show folder can't be in a Set with this show's own models — the base folder can move its models without moving the rest of the Set."
+
     private func addSelectionToSet(_ setName: String) {
+        let existing = viewModel.document.modelSets()
+            .first { ($0["name"] as? String) == setName }?["models"] as? [String] ?? []
+        if viewModel.document.modelsMixBaseAndLocal(existing + Array(viewModel.layoutEditorSelection)) {
+            saveErrorMessage = Self.mixedBaseSetMessage
+            return
+        }
         for name in viewModel.layoutEditorSelection {
             _ = viewModel.document.addModel(name, toModelSet: setName)
         }
