@@ -47,6 +47,16 @@ namespace FileUtils
 	// portable show-relative path from a foreign absolute one.
 	bool IsAbsoluteOrRootedPath(const std::string& path);
 
+	// Windows runs xLights with a UTF-8 ANSI code page, so building a
+	// std::filesystem::path from bytes that are not valid UTF-8 throws. Old
+	// sequences can carry Windows-1252 bytes (e.g. a smart quote in a media
+	// name) and zip entries without the UTF-8 flag are CP437. Returns s
+	// unchanged when it is valid UTF-8; otherwise each byte that is not part of
+	// a valid UTF-8 sequence is decoded with the given legacy code page.
+	enum class LegacyEncoding { CP1252, CP437 };
+	bool IsValidUTF8(const std::string& s);
+	std::string ToValidUTF8(const std::string& s, LegacyEncoding enc = LegacyEncoding::CP1252);
+
 	void ClearNonExistentFiles();
 	bool IsFileInShowDir(const std::string& showDir, const std::string& filename);
 	std::string FixEffectFileParameter(const std::string& paramname, const std::string& paramvalue, const std::string& showDir);

@@ -14,6 +14,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (derwin12)              Windows - Stem separation adds Guitar and Piano stems (downloads the 6-stem model
                                  the first time either is picked)
+    -bug (derwin12)              Fix a batch of crashes from the 2026.18 crash reports: FPP Connect with an invalid JSON
+                                 reply, Falcon V4/V5 controllers whose status query times out, controller discovery
+                                 when FPP and DDP both answer from one IP, HinksPix export of a damaged FSEQ, Fire effect
+                                 with an overflowing buffer size, loading a corrupt FSEQ, Check Sequence with effects on
+                                 models missing from the layout, dragging an effect after the timing rows changed,
+                                 playback/scrub after the previewed model was removed, the 3D layout after switching
+                                 show folders, the Video effect preview, and the New Sequence wizard
+    -bug (derwin12)              Crash importing effects from a zip, or opening a sequence, whose file names use old
+                                 Windows/DOS accented characters
+    -bug (derwin12)              Videos whose hardware decode already failed now decode in software for the rest of the
+                                 session instead of retrying the GPU decoder for every model
     -bug (derwin12)              Crash when the render cache folder or its files are damaged
     -bug (derwin12)              Multi-string Cube models showed every node on string 2 in the wiring view and
                                  controller port highlighting #7248

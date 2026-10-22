@@ -1714,12 +1714,11 @@ bool EffectsGrid::DragOver(int x, int y) {
             bool freeform_drop = false;
             if (selectedTimingIndex >= 0) {
                 EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(selectedTimingIndex);
-                if (tel == nullptr) {
-                    spdlog::critical("EffectsGrid::DragOver tel is nullptr ... this is going to crash.");
-                }
-
                 int timingIndex = 0;
-                if (tel->HitTestEffectByTime(time, timingIndex)) {
+                if (tel == nullptr) {
+                    // selected timing row index can be stale (e.g. after an import changed the rows)
+                    freeform_drop = true;
+                } else if (tel->HitTestEffectByTime(time, timingIndex)) {
                     EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
                     if (el != nullptr) {
                         mDropStartX = mTimeline->GetPositionFromTimeMS(tel->GetEffect(timingIndex)->GetStartTimeMS());

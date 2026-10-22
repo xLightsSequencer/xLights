@@ -1172,8 +1172,9 @@ xlSize RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
     std::string bufferstyle = SettingsMap.Get("CHOICE_BufferStyle", "Default");
     std::string transform = SettingsMap.Get("CHOICE_BufferTransform", "None");
     std::string camera = SettingsMap.Get("CHOICE_PerPreviewCamera", "2D");
-    int w, h;
-    
+    int w = -1;
+    int h = -1;
+
     static const std::string PER_MODEL("Per Model");
     static const std::string DEEP("Deep");
     if (bufferstyle.compare(0, 9, PER_MODEL) == 0) {
@@ -1184,6 +1185,12 @@ xlSize RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
     }
     
     m->GetBufferSize(bufferstyle, camera, transform, w, h, SettingsMap.GetInt("B_SPINCTRL_BufferStagger", 0));
+    // Render buffers are capped at 100000 per side (Model::InitRenderBufferNodes).
+    // Anything outside that scaled into an int overflowed to INT_MIN, which Fire
+    // then used as its grid width and wrote far outside its grid.
+    if (w <= 0 || h <= 0 || w > 100000 || h > 100000) {
+        return xlSize(-1, -1);
+    }
     float xScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
     float yScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
     return xlSize(xScale * w, yScale * h);
