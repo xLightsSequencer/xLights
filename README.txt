@@ -14,6 +14,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (derwin12)              Windows - Stem separation adds Guitar and Piano stems (downloads the 6-stem model
                                  the first time either is picked)
+    -bug (derwin12)              Crash when the render cache folder or its files are damaged
+    -bug (derwin12)              Multi-string Cube models showed every node on string 2 in the wiring view and
+                                 controller port highlighting #7248
+    -bug (derwin12)              Model Sets can no longer mix base show folder models with the show's own models (the base
+                                 folder moved its models without the rest of the Set); existing mixed Sets are held in place
+    -bug (derwin12)              Multi-layer arches from pre-2026 layouts lost their Zig-Zag Layers setting when opened
     -bug (derwin12)              Some shaders (e.g. Neon_Futures) rendered as random noise since 2026.13 because
                                  variables declared outside functions without a starting value were not zeroed
     -enh (derwin12)              Tools > Generate Moving Head Effects adds white moving head effects (section sweeps, chorus

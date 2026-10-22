@@ -147,6 +147,14 @@ class ModelManager : public ObjectManager
         // See plans/layout-group-move-lock.md and ModelSetManager.h.
         ModelSetManager& GetSetManager() { return _setManager; }
         const ModelSetManager& GetSetManager() const { return _setManager; }
+        // A frozen Set moves as no unit: some member is locked or comes from
+        // the base show folder (base models can't move in a child show), so
+        // moving the rest would pull the arrangement apart.
+        bool IsModelSetFrozen(const ModelSet* s) const;
+        // Base-folder models and this show's own models can't share a Set:
+        // the base merge repositions base models without knowing about Sets,
+        // which leaves the local members behind (#7251).
+        bool ModelsMixBaseAndLocal(const std::vector<std::string>& names) const;
 
     private:
 

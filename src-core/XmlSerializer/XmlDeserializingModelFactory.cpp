@@ -96,6 +96,14 @@ static int ReadIntAttrWithLegacyFallback(pugi::xml_node node, const char* newAtt
     return node.attribute(legacyAttr).as_int(defaultVal);
 }
 
+// True when the model node was written before the 2026.04 serializer, whose files can omit
+// attributes whose missing-value default differs from the current one. Versions are
+// "YYYY.NN[.x]" so a string compare orders them.
+static bool IsPre2026Serializer(pugi::xml_node node) {
+    std::string_view ver = node.attribute(XmlNodeKeys::xlightsVersionAttr).as_string();
+    return ver.empty() || ver < "2026.04";
+}
+
 static void SetAttr(pugi::xml_node node, const char* name, const std::string& value) {
     pugi::xml_attribute a = node.attribute(name);
     if (!a) {
@@ -587,7 +595,9 @@ Model* XmlDeserializingModelFactory::DeserializeArches(pugi::xml_node node, Mode
     model->SetNodesPerArch(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerArchAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
-    model->SetZigZag(std::string_view(node.attribute(XmlNodeKeys::ZigZagAttribute).as_string()) == "true");
+    // Pre-2026 files omit ZigZag when never toggled and treated that as on; 2026.04+ omitted it when off
+    const char* zigZagDefault = IsPre2026Serializer(node) ? "true" : "false";
+    model->SetZigZag(std::string_view(node.attribute(XmlNodeKeys::ZigZagAttribute).as_string(zigZagDefault)) == "true");
     if (!node.attribute(XmlNodeKeys::HollowAttribute).empty()) { model->SetHollow(node.attribute(XmlNodeKeys::HollowAttribute).as_int(0)); }
     if (!node.attribute(XmlNodeKeys::GapAttribute).empty()) { model->SetGap(node.attribute(XmlNodeKeys::GapAttribute).as_int(0)); }
     if (HasAttrOrLegacy(node, XmlNodeKeys::ArcAttribute, XmlNodeKeys::CArcAttribute)) {
