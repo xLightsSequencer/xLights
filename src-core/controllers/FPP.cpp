@@ -272,22 +272,28 @@ CURL *FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
     return curl;
 }
 
-bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
-    
-    auto logger = spdlog::get("curl");
-
+std::string FPP::MakeFullURL(const std::string& url, std::string& ipAddForGet) const {
     std::string fullUrl = (ip_utils::IsIPv6(ipAddress) ? "[" + ipAddress + "]" : ipAddress) + url;
-    std::string ipAddForGet = ipAddress;
+    ipAddForGet = ipAddress;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" + url;
     }
     if (!_fppProxy.empty()) {
-        fullUrl = "http://" +  (ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy) + "/proxy/" + fullUrl;
+        fullUrl = "http://" + (ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy) + "/proxy/" + fullUrl;
         ipAddForGet = _fppProxy;
     } else {
         fullUrl = "http://" + fullUrl;
     }
+    return fullUrl;
+}
+
+bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
     
+    auto logger = spdlog::get("curl");
+
+    std::string ipAddForGet;
+    std::string fullUrl = MakeFullURL(url, ipAddForGet);
+
     if (username != "") {
         CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
@@ -332,18 +338,9 @@ int FPP::PutToURL(const std::string& url, const std::vector<uint8_t>& val, const
 }
 int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType, bool isPost) const {
 
-    std::string fullUrl = (ip_utils::IsIPv6(ipAddress) ? "[" + ipAddress + "]" : ipAddress) + url;
-    std::string ipAddForGet = ipAddress;
-    if (fppType == FPP_TYPE::ESPIXELSTICK) {
-        fullUrl = ipAddress + "/fpp?path=" +  url;
-    }
-    if (!_fppProxy.empty()) {
-        fullUrl = "http://" +  (ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy) + "/proxy/" + fullUrl;
-        ipAddForGet = _fppProxy;
-    } else {
-        fullUrl = "http://" + fullUrl;
-    }
-    
+    std::string ipAddForGet;
+    std::string fullUrl = MakeFullURL(url, ipAddForGet);
+
     if (username != "") {
         CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
@@ -1247,6 +1244,27 @@ static std::vector<std::pair<uint32_t, uint32_t>> SparseRangesToWrite(const FSEQ
     return result;
 }
 
+void FPP::PrefetchSequenceMeta(const std::string &seq) {
+    _prefetchedMetaName.clear();
+    _prefetchedMeta.clear();
+    _prefetchedMetaRC = -1;
+    if (fppType != FPP_TYPE::FPP) {
+        return;
+    }
+    std::string baseName = std::filesystem::path(seq).filename().string();
+    std::string ipAddForGet;
+    std::string fullUrl = MakeFullURL("/api/sequence/" + URLEncode(baseName) + "/meta", ipAddForGet);
+    if (username != "") {
+        CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
+    }
+    _prefetchedMetaName = baseName;
+    CurlManager::INSTANCE.addGet(fullUrl, [this, fullUrl](int rc, const std::string &resp) {
+        _prefetchedMetaRC = rc;
+        _prefetchedMeta = resp;
+        spdlog::info("FPPConnect GET {}  - Return: RC: {}", fullUrl, rc);
+    });
+}
+
 bool FPP::PrepareUploadSequence(FSEQFile *file,
                                 const std::string &seq,
                                 const std::string &media,
@@ -1291,7 +1309,20 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     std::vector<std::pair<uint32_t, uint32_t>> newRanges;
     if (fppType == FPP_TYPE::FPP) {
         nlohmann::json currentMeta;
-        if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false)) {
+        bool haveMeta = false;
+        // A 401 goes through the synchronous path so the password prompt still runs.
+        if (_prefetchedMetaName == baseName && _prefetchedMetaRC >= 0 && _prefetchedMetaRC != 401) {
+            if (_prefetchedMetaRC == 200) {
+                currentMeta = nlohmann::json::parse(_prefetchedMeta, nullptr, false);
+                haveMeta = !currentMeta.is_discarded();
+            }
+        } else {
+            haveMeta = GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false);
+        }
+        _prefetchedMetaName.clear();
+        _prefetchedMeta.clear();
+        _prefetchedMetaRC = -1;
+        if (haveMeta) {
             doSeqUpload = false;
             char buf[24];
             snprintf(buf, sizeof(buf), "%" PRIu64, file->getUniqueId());
