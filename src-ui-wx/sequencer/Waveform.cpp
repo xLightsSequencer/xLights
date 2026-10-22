@@ -87,6 +87,8 @@ const long Waveform::ID_WAVE_MNU_STEM_DRUMS = wxNewId();
 const long Waveform::ID_WAVE_MNU_STEM_BASS = wxNewId();
 const long Waveform::ID_WAVE_MNU_STEM_OTHER = wxNewId();
 const long Waveform::ID_WAVE_MNU_STEM_VOCALS = wxNewId();
+const long Waveform::ID_WAVE_MNU_STEM_GUITAR = wxNewId();
+const long Waveform::ID_WAVE_MNU_STEM_PIANO = wxNewId();
 #endif
 #ifdef __APPLE__
 const long Waveform::ID_WAVE_MNU_CLASSIFY = wxNewId();
@@ -293,6 +295,14 @@ void Waveform::rightClick(wxMouseEvent& event)
             ->Check(_type == AUDIOSAMPLETYPE::STEM_OTHER);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_VOCALS, "Stem — Vocals (ML)")
             ->Check(_type == AUDIOSAMPLETYPE::STEM_VOCALS);
+#ifdef HAVE_ORT
+        // Guitar/piano come from the 6-stem model; picking either runs it
+        // (and downloads it on first use) if the current stems are 4-stem.
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_GUITAR, "Stem — Guitar")
+            ->Check(_type == AUDIOSAMPLETYPE::STEM_GUITAR);
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_PIANO, "Stem — Piano")
+            ->Check(_type == AUDIOSAMPLETYPE::STEM_PIANO);
+#endif
 #endif
 #ifdef __APPLE__
         // Keep the classify entry inside the same radio group so its
@@ -435,11 +445,20 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     } else if (id == ID_WAVE_MNU_STEM_DRUMS ||
                id == ID_WAVE_MNU_STEM_BASS ||
                id == ID_WAVE_MNU_STEM_OTHER ||
-               id == ID_WAVE_MNU_STEM_VOCALS) {
+               id == ID_WAVE_MNU_STEM_VOCALS ||
+               id == ID_WAVE_MNU_STEM_GUITAR ||
+               id == ID_WAVE_MNU_STEM_PIANO) {
         if (_media == nullptr) return;
-        if (!_media->HasStemData()) {
-            if (!PrepareStemData()) {
+        const bool sixStem = id == ID_WAVE_MNU_STEM_GUITAR || id == ID_WAVE_MNU_STEM_PIANO;
+        if (!_media->HasStemData() || (sixStem && !_media->HasSixStemData())) {
+            if (!PrepareStemData(sixStem)) {
                 // User cancelled or error — bail without switching.
+                ForceRedraw();
+                Refresh();
+                return;
+            }
+            if (sixStem && !_media->HasSixStemData()) {
+                DisplayError("The stem-separation model didn't produce guitar/piano stems. Check the log for details.");
                 ForceRedraw();
                 Refresh();
                 return;
@@ -449,6 +468,8 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
             id == ID_WAVE_MNU_STEM_DRUMS  ? AUDIOSAMPLETYPE::STEM_DRUMS :
             id == ID_WAVE_MNU_STEM_BASS   ? AUDIOSAMPLETYPE::STEM_BASS :
             id == ID_WAVE_MNU_STEM_OTHER  ? AUDIOSAMPLETYPE::STEM_OTHER :
+            id == ID_WAVE_MNU_STEM_GUITAR ? AUDIOSAMPLETYPE::STEM_GUITAR :
+            id == ID_WAVE_MNU_STEM_PIANO  ? AUDIOSAMPLETYPE::STEM_PIANO :
                                              AUDIOSAMPLETYPE::STEM_VOCALS;
         _type = stem;
         views.clear();
@@ -735,6 +756,8 @@ void Waveform::SaveStemTracksAsAltTracks(const StemOutput& stems)
         { "Bass",   &stems.bassL,   &stems.bassR },
         { "Other",  &stems.otherL,  &stems.otherR },
         { "Vocals", &stems.vocalsL, &stems.vocalsR },
+        { "Guitar", &stems.guitarL, &stems.guitarR },
+        { "Piano",  &stems.pianoL,  &stems.pianoR },
     };
 
     // Registering a track replaces the AudioManager an alt track wraps and
@@ -781,7 +804,7 @@ void Waveform::SaveStemTracksAsAltTracks(const StemOutput& stems)
 #if defined(HAVE_OPENVINO) || defined(HAVE_ORT)
 // Non-Apple PrepareStemData:
 //    ONNX Runtime or OpenVINO
-bool Waveform::PrepareStemData()
+bool Waveform::PrepareStemData(bool sixStem)
 {
     if (_media == nullptr) return false;
     auto* frame = xLightsApp::GetFrame();
@@ -823,8 +846,31 @@ bool Waveform::PrepareStemData()
     auto modelDirs = AIModelStore::CandidateModelDirs(roots);
 
     // ONNX Runtime / OpenVINO path ─────────────────────────────────────────────────
-    std::string modelPath = AIModelStore::FindModel(AIModelStore::kDemucsOnnxModelName, modelDirs);
-    spdlog::info("Stem separation: model {}", modelPath.empty() ? std::string("not found, offering download") : "found at " + modelPath);
+    // Drums/bass/other/vocals keep using the 4-stem model when it's installed so
+    // existing stems don't change; guitar/piano need the 6-stem model.
+    std::string modelPath;
+    if (sixStem) {
+        // Re-running with the 6-stem model rewrites any existing stem files,
+        // and "Other" loses the guitar/piano content it used to carry.
+        std::filesystem::path src(_media->FileName());
+        std::filesystem::path existingOther = src.parent_path() / (src.stem().string() + "_Stem_Other.m4a");
+        if (FileExists(existingOther.string()) &&
+            wxMessageBox("This song already has separated stems. Separating guitar and piano re-runs the separation "
+                         "with the 6-stem model and replaces the existing Drums, Bass, Other and Vocals stem files. "
+                         "The Other stem will no longer include guitar or piano, so effects driven by it may change.\n\nContinue?",
+                         "Separate Guitar and Piano", wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+            return false;
+        }
+        modelPath = AIModelStore::FindModel(AIModelStore::kDemucs6sOnnxModelName, modelDirs);
+    } else {
+        modelPath = AIModelStore::FindModel(AIModelStore::kDemucsOnnxModelName, modelDirs);
+        if (modelPath.empty()) {
+            modelPath = AIModelStore::FindModel(AIModelStore::kDemucs6sOnnxModelName, modelDirs);
+        }
+    }
+    const char* modelName = sixStem ? AIModelStore::kDemucs6sOnnxModelName : AIModelStore::kDemucsOnnxModelName;
+    const char* modelURL = sixStem ? AIModelStore::kDemucs6sOnnxDownloadURL : AIModelStore::kDemucsOnnxDownloadURL;
+    spdlog::info("Stem separation: {}-stem model {}", sixStem ? 6 : 4, modelPath.empty() ? std::string("not found, offering download") : "found at " + modelPath);
 
     if (modelPath.empty()) {
         // No cached model — confirm with user, let them pick install
@@ -837,10 +883,11 @@ bool Waveform::PrepareStemData()
         for (const auto& r : roots) {
             choices.Add(wxString::FromUTF8(r));
         }
-        wxSingleChoiceDialog locDlg(this,
-                                    "The HTDemucs stem-separation model isn't installed yet.\n"
-                                    "Download (~300 MB) and install it to:",
-                                    "Install Stem Separation Model", choices);
+        wxString prompt = sixStem ? "The 6-stem HTDemucs model (adds guitar and piano) isn't installed yet.\n"
+                                    "Download (~250 MB) and install it to:"
+                                  : "The HTDemucs stem-separation model isn't installed yet.\n"
+                                    "Download (~300 MB) and install it to:";
+        wxSingleChoiceDialog locDlg(this, prompt, "Install Stem Separation Model", choices);
         if (locDlg.ShowModal() != wxID_OK)
             return false;
         const std::string chosenRoot = roots[locDlg.GetSelection()];
@@ -850,7 +897,7 @@ bool Waveform::PrepareStemData()
             return false;
         }
 
-        const std::string local_Path = destDir + "\\" + AIModelStore::kDemucsOnnxModelName;
+        const std::string local_Path = destDir + "\\" + modelName;
         {
             wxProgressDialog prog("Downloading Model",
                                     "Downloading HTDemucs stem-separation model…",
@@ -865,7 +912,7 @@ bool Waveform::PrepareStemData()
                     dlPct.store(pos);
                     return !dlAbort.load();
                 };
-                dlOk = CurlManager::HTTPSGetFile(AIModelStore::kDemucsOnnxDownloadURL, local_Path, {}, {}, 300, cb);
+                dlOk = CurlManager::HTTPSGetFile(modelURL, local_Path, {}, {}, 300, cb);
                 dlDone.store(true);
             });
             bool dlCancelled = false;
@@ -901,7 +948,8 @@ bool Waveform::PrepareStemData()
     StemOutput stems;
     {
         wxProgressDialog prog("Separating Stems",
-            "Running HTDemucs — drums, bass, vocals, other…",
+            sixStem ? "Running HTDemucs — drums, bass, vocals, guitar, piano, other…"
+                    : "Running HTDemucs — drums, bass, vocals, other…",
             100, this,
                               wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_ELAPSED_TIME | wxPD_REMAINING_TIME | wxPD_CAN_ABORT);
         std::atomic<bool> done(false);
@@ -956,7 +1004,9 @@ bool Waveform::PrepareStemData()
         stems.drumsL, stems.drumsR,
         stems.bassL,  stems.bassR,
         stems.otherL, stems.otherR,
-        stems.vocalsL, stems.vocalsR);
+        stems.vocalsL, stems.vocalsR,
+        stems.guitarL, stems.guitarR,
+        stems.pianoL,  stems.pianoR);
     SaveStemTracksAsAltTracks(stems);
     return true;
 }
@@ -968,7 +1018,7 @@ bool Waveform::PrepareStemData()
 // confirmation) if not, then run the separator and hand the result
 // off to `AudioManager::SetStemData`. Returns true if stem data is
 // now available.
-bool Waveform::PrepareStemData()
+bool Waveform::PrepareStemData(bool /*sixStem*/)
 {
     if (_media == nullptr) return false;
     // The CoreML model uses Float16 MLMultiArray I/O — macOS 12+.

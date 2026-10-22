@@ -86,7 +86,9 @@ class Waveform : public GRAPHICS_BASE_CLASS
         // `SetStemData`. Returns true if stem data is now available,
         // false on user cancel / download / inference failure.
         // ONNX Runtime/OpenVINO: download ONNX model from huggingface and put in ai-models/ folder in the show folder.
-        bool PrepareStemData();
+        // `sixStem` requires the htdemucs_6s model (guitar + piano); otherwise
+        // the 4-stem model is used if installed. CoreML ignores it (4-stem only).
+        bool PrepareStemData(bool sixStem = false);
         // Issue #6856: persist the separated stems to disk as .m4a
         // files and register each as an alternate audio track (Sequence
         // Settings → Audio Tracks) so they survive closing the sequence
@@ -223,14 +225,16 @@ class Waveform : public GRAPHICS_BASE_CLASS
         static const long ID_WAVE_MNU_SHOW_PITCH;
         static const long ID_WAVE_MNU_SHOW_SPECTROGRAM;
 #if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT)
-        // A8 — HTDemucs-based 4-stem separation. One radio item per
+        // A8 — HTDemucs-based stem separation. One radio item per
         // stem; selecting any triggers a first-run download flow if
         // the model isn't present.
-        // Non-Apple: ONNX/OpenVINO ONNX model.
+        // Non-Apple: ONNX/OpenVINO ONNX model; guitar/piano need the 6-stem model.
         static const long ID_WAVE_MNU_STEM_DRUMS;
         static const long ID_WAVE_MNU_STEM_BASS;
         static const long ID_WAVE_MNU_STEM_OTHER;
         static const long ID_WAVE_MNU_STEM_VOCALS;
+        static const long ID_WAVE_MNU_STEM_GUITAR;
+        static const long ID_WAVE_MNU_STEM_PIANO;
 #endif
 #ifdef __APPLE__
         static const long ID_WAVE_MNU_CLASSIFY;

@@ -24,6 +24,12 @@ constexpr const char* kDemucsDownloadURL =
 constexpr const char* kDemucsOnnxModelName = "htdemucs.onnx";
 constexpr const char* kDemucsOnnxDownloadURL = "https://huggingface.co/smank/htdemucs-onnx/resolve/main/htdemucs.onnx";
 
+// HTDemucs 6-stem ONNX model (adds guitar + piano). Same `mix` input as
+// the 4-stem export; output is [1, 6, 2, N] in the order drums, bass,
+// other, vocals, guitar, piano.
+constexpr const char* kDemucs6sOnnxModelName = "htdemucs_6s.onnx";
+constexpr const char* kDemucs6sOnnxDownloadURL = "https://huggingface.co/smank/htdemucs-onnx/resolve/main/htdemucs_6s.onnx";
+
 // Subdirectory under each root where models are stored.
 constexpr const char* kModelsSubdir = "ai-models";
 

@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (derwin12)              Windows - Stem separation adds Guitar and Piano stems (downloads the 6-stem model
+                                 the first time either is picked)
     -bug (derwin12)              Fix a batch of crashes from the 2026.18 crash reports: FPP Connect with an invalid JSON
                                  reply, Falcon V4/V5 controllers whose status query times out, controller discovery
                                  when FPP and DDP both answer from one IP, HinksPix export of a damaged FSEQ, Fire effect
