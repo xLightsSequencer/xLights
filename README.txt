@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Crash adding an Audio Tempo or Audio Chords timing track from the Add Timing Track dialog
     -bug (derwin12)              Circle models with an Inner starting location and different layer sizes put the
                                  outer layer's nodes on the inner ring
     -enh (derwin12)              Windows - Stem separation adds Guitar and Piano stems (downloads the 6-stem model
