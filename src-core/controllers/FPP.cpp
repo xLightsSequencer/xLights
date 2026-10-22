@@ -365,6 +365,12 @@ bool FPP::GetURLAsJSON(const std::string& url, nlohmann::json& val, bool recordE
             if (!val.is_discarded()) {
                 return true;
             }
+            // a discarded value throws on operator[]; callers index the result even on failure
+            val = nlohmann::json();
+            if (recordError) {
+                std::string preview = sval.length() > 500 ? sval.substr(0, 500) + "..." : sval;
+                spdlog::warn("FPP::GetURLAsJSON - invalid JSON for {}, Response: {}", url, preview);
+            }
         } catch (nlohmann::json::parse_error& e) {
             if (recordError) {
                 std::string preview = sval.length() > 500 ? sval.substr(0, 500) + "..." : sval;

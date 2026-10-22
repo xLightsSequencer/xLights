@@ -247,7 +247,10 @@ void SequencePackage::Extract()
             continue;
         }
 
-        std::string entryNameStr(entryName);
+        // Names without the zip UTF-8 flag are CP437 (what Windows' "Send to
+        // compressed folder" writes); used raw, an accented name throws when
+        // it becomes a std::filesystem::path.
+        std::string entryNameStr = FileUtils::ToValidUTF8(entryName, FileUtils::LegacyEncoding::CP437);
         bool isDir = (!entryNameStr.empty() && entryNameStr.back() == '/') || (fileInfo.external_fa & 0x10);
 
         std::filesystem::path fnEntry = _tempDir / entryNameStr;
@@ -942,7 +945,7 @@ std::filesystem::path SequencePackage::FindAndCopyAudio(const std::filesystem::p
             if (headNode) {
                 auto mediaFileNode = headNode.child("mediaFile");
                 if (mediaFileNode) {
-                    std::filesystem::path p(mediaFileNode.text().as_string());
+                    std::filesystem::path p(FileUtils::ToValidUTF8(mediaFileNode.text().as_string()));
                     xsqAudioName = p.filename().string();
                 }
             }
@@ -1008,7 +1011,7 @@ std::vector<std::pair<std::string, std::string>> SequencePackage::FindAndCopyAlt
 
         std::string filename;
         {
-            std::filesystem::path p(tpath);
+            std::filesystem::path p(FileUtils::ToValidUTF8(tpath));
             filename = p.filename().string();
         }
 

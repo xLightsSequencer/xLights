@@ -314,11 +314,11 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
                 dd = discovery.AddController(controller);
             }
             ControllerEthernet* controller = dd->controller;
-            controller->SetProtocol(OUTPUT_DDP);
             if (controller == nullptr){
                 spdlog::warn("Unsupported DDP controller");
             }
             else {
+                controller->SetProtocol(OUTPUT_DDP);
                 try {
                     nlohmann::json val = nlohmann::json::parse(std::string(reinterpret_cast<char*>(&response[10])));
 
