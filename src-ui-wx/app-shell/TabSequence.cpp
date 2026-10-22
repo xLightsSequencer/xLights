@@ -1496,6 +1496,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         _renderMode = false;
         EnableSequenceControls(true);
         spdlog::debug("Batch render done.");
+        _batchRenderShowProgress = false;
         FinishBatchRenderDialog(_batchRenderStopRequested);
         if (_batchRenderStarted) {
             spdlog::info("Batch render total time: {:.3f} seconds.", _batchRenderStopWatch.Time() / 1000.0);
@@ -1570,7 +1571,9 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
             _batchRenderDialog->Destroy();
             _batchRenderDialog = nullptr;
         }
-        if (!exitOnDone) {
+        const bool showProgress = _batchRenderShowProgress && !exitOnDone;
+        _batchRenderShowProgress = false;
+        if (showProgress) {
             _batchRenderDialog = new BatchRenderProgressDialog(
                 this, origFilenames, showDirectory,
                 [this]() {

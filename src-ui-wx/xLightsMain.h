@@ -1190,6 +1190,8 @@ public:
     wxStopWatch _batchRenderStopWatch;
     BatchRenderProgressDialog* _batchRenderDialog = nullptr;
     bool _batchRenderStopRequested = false;
+    // Set by the Batch Render menu; scripted and command-line batches get no progress window.
+    bool _batchRenderShowProgress = false;
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _renderBellEnabled = false;

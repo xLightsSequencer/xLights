@@ -7817,6 +7817,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
             if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
                 _lowDefinitionRender = false;
             }
+            _batchRenderShowProgress = true;
             OpenRenderAndSaveSequences(filesToRender, false);
             if (filesToRender.size() == 0) {
                 _lowDefinitionRender = _saveLowDefinitionRender;
