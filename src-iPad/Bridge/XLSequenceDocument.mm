@@ -20351,6 +20351,12 @@ NSString* fppTypeString(FPP_TYPE t) {
         while (CurlManager::INSTANCE.processCurls()) {}
     };
 
+    // Ask every target for its copy's metadata at once so Prepare doesn't wait on each in turn.
+    for (TargetCtx& c : ctxs) {
+        c.fpp->PrefetchSequenceMeta(fseq);
+    }
+    pumpCurls();
+
     // Phase 1 — Prepare each target. Mirrors FPPConnectDialog.cpp:1253.
     for (TargetCtx& c : ctxs) {
         if (cancelledFlag) break;
