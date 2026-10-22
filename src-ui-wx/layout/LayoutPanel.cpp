@@ -1208,6 +1208,8 @@ void LayoutPanel::Reset()
     _newModel = nullptr;
     selectedBaseObject = nullptr;
     highlightedBaseObject = nullptr;
+    last_highlight = nullptr;
+    last_selection = nullptr;
     SetCurrentLayoutGroup(xlights->GetStoredLayoutGroup());
     ChoiceLayoutGroups->Clear();
     ChoiceLayoutGroups->Append("Default");
@@ -7296,6 +7298,28 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         }
                     }
                     if (last_highlight != nullptr && last_highlight != which_object) {
+                        // last_highlight is a cached raw pointer that is not cleared when models/objects
+                        // are deleted or the show folder changes, so only touch it if it still exists
+                        bool lastHighlightValid = false;
+                        for (const auto& it : modelPreview->GetModels()) {
+                            if (it != nullptr && static_cast<BaseObject*>(it) == last_highlight) {
+                                lastHighlightValid = true;
+                                break;
+                            }
+                        }
+                        if (!lastHighlightValid) {
+                            for (const auto& it : xlights->AllObjects) {
+                                if (static_cast<BaseObject*>(it.second) == last_highlight) {
+                                    lastHighlightValid = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!lastHighlightValid) {
+                            last_highlight = nullptr;
+                        }
+                    }
+                    if (last_highlight != nullptr && last_highlight != which_object) {
                         if (last_highlight->Highlighted() &&
                             !(last_highlight->Selected() || last_highlight->GroupSelected())) {
                             last_highlight->Highlighted(false);
@@ -13047,6 +13071,8 @@ void LayoutPanel::ClearViewObjects()
     // model or an object; never dereference it here, the models may already be freed.
     selectedBaseObject = nullptr;
     highlightedBaseObject = nullptr;
+    last_highlight = nullptr;
+    last_selection = nullptr;
 }
 
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)

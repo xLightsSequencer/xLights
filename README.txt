@@ -12,6 +12,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (derwin12)              Fix a batch of crashes from the 2026.18 crash reports: FPP Connect with an invalid JSON
+                                 reply, Falcon V4/V5 controllers whose status query times out, controller discovery
+                                 when FPP and DDP both answer from one IP, HinksPix export of a damaged FSEQ, Fire effect
+                                 with an overflowing buffer size, loading a corrupt FSEQ, Check Sequence with effects on
+                                 models missing from the layout, dragging an effect after the timing rows changed,
+                                 playback/scrub after the previewed model was removed, the 3D layout after switching
+                                 show folders, the Video effect preview, and the New Sequence wizard
+    -bug (derwin12)              Crash importing effects from a zip, or opening a sequence, whose file names use old
+                                 Windows/DOS accented characters
+    -bug (derwin12)              Videos whose hardware decode already failed now decode in software for the rest of the
+                                 session instead of retrying the GPU decoder for every model
     -bug (derwin12)              Some shaders (e.g. Neon_Futures) rendered as random noise since 2026.13 because
                                  variables declared outside functions without a starting value were not zeroed
     -enh (derwin12)              Tools > Generate Moving Head Effects adds white moving head effects (section sweeps, chorus

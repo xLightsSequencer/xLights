@@ -529,6 +529,9 @@ void VideoPanel::ShowPreviewFrame(size_t index) {
         double pw = widgetSize.x * scaleFactor;
         double ph = widgetSize.y * scaleFactor;
         double scale = std::min(pw / sw, ph / sh);
+        // a transient/runaway layout size must not turn into a huge allocation
+        constexpr double MAX_PREVIEW_DIM = 4096.0;
+        scale = std::min(scale, std::min(MAX_PREVIEW_DIM / sw, MAX_PREVIEW_DIM / sh));
         sw = std::max(1, (int)(sw * scale));
         sh = std::max(1, (int)(sh * scale));
     }
@@ -538,7 +541,9 @@ void VideoPanel::ShowPreviewFrame(size_t index) {
         scaled.Rescale(sw, sh);
     }
 
-    wxBitmap bmp(xlImageToWxImage(scaled));
+    wxImage wximg = xlImageToWxImage(scaled);
+    if (!wximg.IsOk()) return;
+    wxBitmap bmp(wximg);
     bmp.SetScaleFactor(scaleFactor);
     _previewBitmap->SetBitmap(bmp);
     _previewBitmap->InvalidateBestSize();

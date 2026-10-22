@@ -100,10 +100,12 @@ wxImage xlImageToWxImage(const xlImage& img) {
     int w = img.GetWidth();
     int h = img.GetHeight();
     wxImage result(w, h);
+    if (!result.IsOk()) return wxImage(); // allocation failed
     result.InitAlpha();
     const uint8_t* src = img.GetData();
     unsigned char* rgb = result.GetData();
     unsigned char* alpha = result.GetAlpha();
+    if (rgb == nullptr || alpha == nullptr) return wxImage();
     int count = w * h;
     for (int i = 0; i < count; i++) {
         rgb[i * 3]     = src[i * 4];

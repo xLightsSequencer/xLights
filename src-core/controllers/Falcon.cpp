@@ -2263,9 +2263,14 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
 
         if (_versionnum == 4 || _versionnum == 5) {
             // this is going to need special handling
-            if (V4_GetStatus(_v4status)) {
+            if (V4_GetStatus(_v4status) && _v4status.contains("BR") && _v4status["BR"].is_number_integer()) {
                 _modelnum = _v4status["BR"].get<int>();
                 _model = fmt::format("F{}v{}", _modelnum, _versionnum);
+            } else {
+                // everything V4 reads its mode/board settings from _v4status
+                spdlog::error("    Error retrieving V4 status from falcon controller.");
+                _v4status = nlohmann::json();
+                _connected = false;
             }
         } else {
             if (_versionnum == 0 || _modelnum == 0 || _firmwareVersion == "") {
@@ -2380,6 +2385,9 @@ std::string Falcon::DecodeMode(int mode) {
 #pragma region Getters and Setters
 std::string Falcon::GetMode() {
     if (_versionnum == 4 || _versionnum == 5) {
+        if (!_v4status.contains("O") || !_v4status["O"].is_number_integer()) {
+            return std::string();
+        }
         return V4_DecodeMode(_v4status["O"].get<int>());
     }
     return DecodeMode((int)std::strtol(_status["m"].get<std::string>().c_str(), nullptr, 10));
@@ -2538,6 +2546,10 @@ bool Falcon::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     }
 
     if (_versionnum == 4 || _versionnum == 5) {
+        if (!_v4status.is_object()) {
+            ui->ShowMessage("Falcon Inputs Upload: Failed to retrieve current configuration.", "Error");
+            return false;
+        }
         return V4_SetInputUniverses(controller, ui);
     }
 
@@ -2673,6 +2685,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     }
 
     if (_versionnum == 4 || _versionnum == 5) {
+        if (!_v4status.is_object()) {
+            ui->ShowMessage("Falcon Outputs Upload: Failed to retrieve current configuration.", "Error");
+            return false;
+        }
         return V4_SetOutputs(allmodels, outputManager, controller, ui, doProgress);
     }
 
