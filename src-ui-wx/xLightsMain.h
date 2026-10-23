@@ -995,6 +995,7 @@ public:
     wxGauge* ProgressBar;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* AudioMenu;
+    wxMenu* FavoriteShowFoldersMenu;
     wxMenu* Menu1;
     wxMenu* Menu3;
     wxMenu* MenuFile;
@@ -1005,7 +1006,6 @@ public:
     wxMenu* MenuView;
     wxMenu* RecentSequencesMenu;
     wxMenu* RecentShowFoldersMenu;
-    wxMenu* FavoriteShowFoldersMenu = nullptr;
     wxMenuBar* MenuBar;
     wxMenuItem* ActionTestMenuItem;
     wxMenuItem* MenuItem33;
@@ -1534,6 +1534,9 @@ public:
     // menu label the way OnMenuMRU does - keep an id -> path map instead.
     void OnMenuFavoriteShowFolder(wxCommandEvent& event);
     void RebuildFavoriteShowFoldersMenu();
+    // Skips the current folder, checks access and existence, and closes the
+    // sequence before clearing layout undo, so a failed switch changes nothing.
+    bool SwitchToShowFolder(const wxString& dir, bool permanent);
     std::map<int, wxString> _favoriteMenuPaths;
     void OnMRUSequence(wxCommandEvent& event);
     bool SetDir(const wxString& dirname, bool permanent);

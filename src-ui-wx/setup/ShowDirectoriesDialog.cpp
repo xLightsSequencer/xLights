@@ -15,14 +15,12 @@
 #include "layout/LayoutPanel.h"
 #include "layout/ViewsModelsPanel.h"
 #include "settings/XLightsConfigAdapter.h"
-#include "ExternalHooks.h"
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/gbsizer.h>
 #include <wx/dirdlg.h>
 #include <wx/settings.h>
 #include <wx/filename.h>
-#include <wx/msgdlg.h>
 
 #include <algorithm>
 
@@ -30,6 +28,12 @@ namespace {
     constexpr int MAX_SHOW_FAVORITES = 30;
     const std::string FAV_KEY_PREFIX = "ShowFolderFavorite";      // legacy: path only
     const std::string FAV_NAME_PREFIX = "ShowFolderFavoriteName";
+
+    wxString FolderDisplayName(const wxString& path)
+    {
+        const wxFileName fn = wxFileName::DirName(path);
+        return fn.GetDirs().IsEmpty() ? path : fn.GetDirs().Last();
+    }
 }
 
 const wxWindowID ShowDirectoriesDialog::ID_BUTTON_CHANGE_PERMANENT = wxNewId();
@@ -43,7 +47,7 @@ const wxWindowID ShowDirectoriesDialog::ID_BUTTON_CLEAR_BASE = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_STATICTEXT_BASE_PATH = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_CHECKBOX_AUTO_UPDATE = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_BUTTON_UPDATE_BASE = wxNewId();
-const wxWindowID ShowDirectoriesDialog::ID_LISTBOX_FAVORITES = wxNewId();
+const wxWindowID ShowDirectoriesDialog::ID_LISTCTRL_FAVORITES = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_BUTTON_RENAME_FAV = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_BUTTON_ADD_FAV = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_BUTTON_REMOVE_FAV = wxNewId();
@@ -63,9 +67,9 @@ wxBEGIN_EVENT_TABLE(ShowDirectoriesDialog, wxDialog)
     EVT_BUTTON(ID_BUTTON_REMOVE_FAV, ShowDirectoriesDialog::OnRemoveFavorite)
     EVT_BUTTON(ID_BUTTON_GO_FAV_PERM, ShowDirectoriesDialog::OnGoFavoritePermanent)
     EVT_BUTTON(ID_BUTTON_GO_FAV_TEMP, ShowDirectoriesDialog::OnGoFavoriteTemporary)
-    EVT_LIST_ITEM_SELECTED(ID_LISTBOX_FAVORITES, ShowDirectoriesDialog::OnFavoriteSelectionChanged)
-    EVT_LIST_ITEM_DESELECTED(ID_LISTBOX_FAVORITES, ShowDirectoriesDialog::OnFavoriteSelectionChanged)
-    EVT_LIST_ITEM_ACTIVATED(ID_LISTBOX_FAVORITES, ShowDirectoriesDialog::OnFavoriteDoubleClick)
+    EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_FAVORITES, ShowDirectoriesDialog::OnFavoriteSelectionChanged)
+    EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_FAVORITES, ShowDirectoriesDialog::OnFavoriteSelectionChanged)
+    EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_FAVORITES, ShowDirectoriesDialog::OnFavoriteDoubleClick)
     EVT_BUTTON(ID_BUTTON_RENAME_FAV, ShowDirectoriesDialog::OnRenameFavorite)
 wxEND_EVENT_TABLE()
 
@@ -153,7 +157,7 @@ ShowDirectoriesDialog::ShowDirectoriesDialog(xLightsFrame* parent)
 
     // Favorites: pinned quick-switch slots for show folders you use often.
     wxStaticBoxSizer* favBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Favorite Show Folders"));
-    FavoritesList = new wxListCtrl(this, ID_LISTBOX_FAVORITES, wxDefaultPosition, wxSize(-1, FromDIP(120)),
+    FavoritesList = new wxListCtrl(this, ID_LISTCTRL_FAVORITES, wxDefaultPosition, wxSize(-1, FromDIP(120)),
                                    wxLC_REPORT | wxLC_SINGLE_SEL);
     FavoritesList->AppendColumn(_("Name"), wxLIST_FORMAT_LEFT, FromDIP(160));
     FavoritesList->AppendColumn(_("Folder"), wxLIST_FORMAT_LEFT, FromDIP(420));
@@ -356,8 +360,7 @@ std::vector<ShowDirectoriesDialog::ShowFavorite> ShowDirectoriesDialog::ReadFavo
         config->Read(FAV_NAME_PREFIX + std::to_string(i), &name);
         if (name.IsEmpty()) {
             // Favorites saved before names existed - fall back to the folder name.
-            const wxFileName fn = wxFileName::DirName(path);
-            name = fn.GetDirs().IsEmpty() ? path : fn.GetDirs().Last();
+            name = FolderDisplayName(path);
         }
         out.push_back({ name, path });
     }
@@ -372,12 +375,16 @@ void ShowDirectoriesDialog::LoadFavorites()
 void ShowDirectoriesDialog::SaveFavorites() const
 {
     auto* config = GetXLightsConfig();
-    // Write current entries and blank out any trailing slots left from a longer
-    // previous list so removed favorites don't reappear on reload.
     for (int i = 0; i < MAX_SHOW_FAVORITES; ++i) {
-        const bool live = i < (int)_favorites.size();
-        config->Write(FAV_KEY_PREFIX + std::to_string(i), live ? _favorites[i].path : wxString());
-        config->Write(FAV_NAME_PREFIX + std::to_string(i), live ? _favorites[i].name : wxString());
+        const std::string pathKey = FAV_KEY_PREFIX + std::to_string(i);
+        const std::string nameKey = FAV_NAME_PREFIX + std::to_string(i);
+        if (i < (int)_favorites.size()) {
+            config->Write(pathKey, _favorites[i].path);
+            config->Write(nameKey, _favorites[i].name);
+        } else {
+            config->DeleteEntry(pathKey);
+            config->DeleteEntry(nameKey);
+        }
     }
     config->Flush();
 }
@@ -418,54 +425,42 @@ wxString ShowDirectoriesDialog::PromptFavoriteName(const wxString& suggested, co
     return dlg.GetValue().Trim(true).Trim(false);
 }
 
+bool ShowDirectoriesDialog::IsFavorite(const wxString& path) const
+{
+    return std::any_of(_favorites.begin(), _favorites.end(),
+                       [&path](const ShowFavorite& f) { return f.path == path; });
+}
+
 void ShowDirectoriesDialog::UpdateFavoriteButtons()
 {
     if (FavoritesList == nullptr) return;
+    const bool readOnly = _xLights->IsReadOnlyMode();
     const bool hasSel = SelectedFavorite() != wxNOT_FOUND;
-    Button_RemoveFavorite->Enable(hasSel);
-    Button_RenameFavorite->Enable(hasSel);
-    Button_GoFavPermanent->Enable(hasSel);
-    Button_GoFavTemporary->Enable(hasSel);
+    Button_RemoveFavorite->Enable(hasSel && !readOnly);
+    Button_RenameFavorite->Enable(hasSel && !readOnly);
+    Button_GoFavPermanent->Enable(hasSel && !readOnly);
+    Button_GoFavTemporary->Enable(hasSel && !readOnly);
 
     const wxString cur = _xLights->CurrentDir;
-    const bool already = std::any_of(_favorites.begin(), _favorites.end(),
-                                     [&cur](const ShowFavorite& f) { return f.path == cur; });
-    Button_AddFavorite->Enable(!cur.IsEmpty() && !already && (int)_favorites.size() < MAX_SHOW_FAVORITES);
+    Button_AddFavorite->Enable(!readOnly && !cur.IsEmpty() && !IsFavorite(cur) && (int)_favorites.size() < MAX_SHOW_FAVORITES);
 }
 
 void ShowDirectoriesDialog::SwitchToFolder(const wxString& dir, bool permanent)
 {
-    if (dir.IsEmpty() || dir == _xLights->CurrentDir) return;
-    if (!wxFileName::DirExists(dir)) {
-        wxMessageBox(wxString::Format(_("This show folder no longer exists:\n%s"), dir),
-                     _("Favorite Show Folder"), wxOK | wxICON_WARNING, this);
+    if (_xLights->IsReadOnlyMode()) return;
+    if (_xLights->SwitchToShowFolder(dir, permanent)) {
+        EndModal(wxID_OK);
         return;
     }
-    if (!ObtainAccessToURL(dir.ToStdString(), true)) {
-        wxMessageBox(wxString::Format(_("xLights could not get access to:\n%s"), dir),
-                     _("Favorite Show Folder"), wxOK | wxICON_WARNING, this);
-        return;
-    }
-    _xLights->GetDisplayElementsPanel()->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
-    _xLights->GetLayoutPanel()->ClearUndo();
-    _xLights->SetDir(dir, permanent);
     UpdateControlsState();
-    UpdateFavoriteButtons();
 }
 
 void ShowDirectoriesDialog::OnAddFavorite(wxCommandEvent& event)
 {
     const wxString cur = _xLights->CurrentDir;
-    if (cur.IsEmpty()) return;
-    if (std::any_of(_favorites.begin(), _favorites.end(),
-                    [&cur](const ShowFavorite& f) { return f.path == cur; })) {
-        return;
-    }
-    if ((int)_favorites.size() >= MAX_SHOW_FAVORITES) return;
+    if (cur.IsEmpty() || IsFavorite(cur) || (int)_favorites.size() >= MAX_SHOW_FAVORITES) return;
 
-    const wxFileName fn = wxFileName::DirName(cur);
-    const wxString suggested = fn.GetDirs().IsEmpty() ? cur : fn.GetDirs().Last();
-    const wxString name = PromptFavoriteName(suggested, _("Add Favorite"));
+    const wxString name = PromptFavoriteName(FolderDisplayName(cur), _("Add Favorite"));
     if (name.IsEmpty()) return; // cancelled, or blanked out
 
     _favorites.push_back({ name, cur });

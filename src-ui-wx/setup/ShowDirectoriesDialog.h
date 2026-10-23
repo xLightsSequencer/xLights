@@ -15,7 +15,6 @@
 #include <wx/button.h>
 #include <wx/stattext.h>
 #include <wx/checkbox.h>
-#include <wx/listbox.h>
 
 #include <vector>
 
@@ -32,8 +31,6 @@ public:
     // Single source of truth for the config keys, shared with the File menu.
     static std::vector<ShowFavorite> ReadFavoritesFromConfig();
 
-private:
-public:
     ShowDirectoriesDialog(xLightsFrame* parent);
     virtual ~ShowDirectoriesDialog();
 
@@ -62,6 +59,7 @@ private:
     void RefreshFavoritesList();
     void UpdateFavoriteButtons();
     void SwitchToFolder(const wxString& dir, bool permanent);
+    bool IsFavorite(const wxString& path) const;
 
     void OnAddFavorite(wxCommandEvent& event);
     void OnRemoveFavorite(wxCommandEvent& event);
@@ -105,7 +103,7 @@ private:
     static const wxWindowID ID_STATICTEXT_BASE_PATH;
     static const wxWindowID ID_CHECKBOX_AUTO_UPDATE;
     static const wxWindowID ID_BUTTON_UPDATE_BASE;
-    static const wxWindowID ID_LISTBOX_FAVORITES;
+    static const wxWindowID ID_LISTCTRL_FAVORITES;
     static const wxWindowID ID_BUTTON_RENAME_FAV;
     static const wxWindowID ID_BUTTON_ADD_FAV;
     static const wxWindowID ID_BUTTON_REMOVE_FAV;

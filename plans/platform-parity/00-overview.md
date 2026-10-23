@@ -18,7 +18,7 @@ fine-grained — a menu entry, a dialog field, a gesture):
 
 | Theme | ✅ | 🟡 | ❌ | 🚫 | 🔵 | Biggest gap in one line |
 |---|---|---|---|---|---|---|
-| 01 File & show lifecycle | 79 | 47 | 28 | 7 | 18 | Show-folder backup/restore landed 2026-08-10 in desktop's interchange format; biggest remaining: Data Layers and the legacy converter bridge |
+| 01 File & show lifecycle | 79 | 47 | 30 | 7 | 18 | Show-folder backup/restore landed 2026-08-10 in desktop's interchange format; biggest remaining: Data Layers and the legacy converter bridge |
 | 02 Sequencer grid & editing | 122 | 35 | 29 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
 | 03 Timing, lyrics & audio | 118 | 20 | 18 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
 | 04 Effects catalog & panels | 84 | 10 | 3 | 2 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
@@ -31,12 +31,12 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 108 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
 | 13 Tools, diagnostics, help | 58 | 13 | 12 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **1024** | **285** | **343** | **165** | **88** | |
+| **Total (01–13)** | **1024** | **285** | **345** | **165** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **49** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,652 rows where an iPad status is meaningful (✅+🟡+❌), **62%** are
+**Parity index:** of the 1,654 rows where an iPad status is meaningful (✅+🟡+❌), **62%** are
 at full parity and **79%** at full-or-partial. Counting partials at half weight the iPad sits
 at **≈71% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
 writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (165) is dominated by one block: 108 automation verbs/endpoints iOS cannot host (theme 12).

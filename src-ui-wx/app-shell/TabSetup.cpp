@@ -19,6 +19,7 @@
 #include <wx/stdpaths.h>
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/artprov.h>
+#include <wx/control.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/thread.h>
@@ -43,6 +44,7 @@
 #include "utils/SpecialOptions.h"
 #include "layout/LayoutGroup.h"
 #include "setup/ControllerModelDialog.h"
+#include "setup/ShowDirectoriesDialog.h"
 #include "utils/ExternalHooks.h"
 #include "utils/ip_utils.h"
 
@@ -110,9 +112,6 @@ private:
 };
 std::atomic_int ControllerPingThread::pingCount(0);
 
-#include <wx/control.h>   // wxControl::EscapeMnemonics
-#include "setup/ShowDirectoriesDialog.h"
-
 #pragma region Show Directory
 void xLightsFrame::RebuildFavoriteShowFoldersMenu()
 {
@@ -148,20 +147,42 @@ void xLightsFrame::OnMenuFavoriteShowFolder(wxCommandEvent& event)
 {
     auto it = _favoriteMenuPaths.find(event.GetId());
     if (it == _favoriteMenuPaths.end()) return;
-    wxString newdir = it->second;
+    // Copy: a successful switch rebuilds the menu and clears _favoriteMenuPaths.
+    const wxString dir = it->second;
+    SwitchToShowFolder(dir, true);
+}
 
-    if (!wxFileName::DirExists(newdir)) {
-        DisplayError(wxString::Format(_("This favorite show folder no longer exists:\n%s"), newdir), this);
-        return;
+bool xLightsFrame::SwitchToShowFolder(const wxString& dir, bool permanent)
+{
+    wxString nd = dir;
+    if (nd.EndsWith(wxFileName::GetPathSeparator())) {
+        nd.RemoveLast();
     }
-    if (!ObtainAccessToURL(newdir, true)) {
-        std::string dstr = newdir;
-        PromptForDirectorySelection("Reselect Show Directory", dstr);
-        newdir = dstr;
+    if (nd.IsEmpty()) return false;
+    if (nd == CurrentDir && (!permanent || _permanentShowFolder.empty() || _permanentShowFolder == ToStdString(nd))) {
+        return true;
+    }
+    if (readOnlyMode) {
+        wxMessageBox("Show directory cannot be changed in read only mode.", "Read Only Mode", wxICON_INFORMATION | wxOK);
+        return false;
+    }
+    // Access before the existence check: on the sandboxed build the folder may
+    // not be stat-able until its security-scoped bookmark is resolved.
+    if (!ObtainAccessToURL(ToStdString(nd), true)) {
+        DisplayError(wxString::Format(_("xLights could not get access to the show folder:\n%s"), nd), this);
+        return false;
+    }
+    if (!wxFileName::DirExists(nd)) {
+        DisplayError(wxString::Format(_("This show folder no longer exists:\n%s"), nd), this);
+        return false;
+    }
+    // Close first so a cancelled save prompt leaves the current show untouched.
+    if (!CloseSequence()) {
+        return false;
     }
     displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
     layoutPanel->ClearUndo();
-    SetDir(newdir, true);
+    return SetDir(nd, permanent);
 }
 
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
