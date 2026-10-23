@@ -12,6 +12,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -bug (heffneil)              Controller visualizer: moving a model to the front of its chain no longer knocks the
+                                 next model off the port
+    -bug (dkulp)                 Controller visualizer: moving a multi-string model, or dropping a model on the header of
+                                 the port it already ends, no longer breaks the port's chain
+    -bug (dkulp)                 iPad - Controller visualizer: moving a model keeps the rest of its old chain in place, also
+                                 after saving and reopening the show
     -bug (dkulp)                 iPad - FPP Connect now uploads outputs to inactive controllers set by hostname, and finds
                                  configured controllers on other subnets without typing their addresses in
     -bug (dkulp)                 iPad - LOR S5 import no longer drops sources added with "Add Additional"

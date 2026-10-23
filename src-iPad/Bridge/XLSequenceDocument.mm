@@ -19118,10 +19118,17 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         ? dstPort->GetModelAfter(afterModel)
         : nullptr;
 
-    // If m is moving within this controller, whatever followed it now follows what m followed.
+    // Whatever followed m in its old chain, possibly on another controller, now follows what m followed.
     Model* oldNext = cud.GetModelAfter(m);
-    if (oldNext != nullptr && oldNext != m) {
+    if (oldNext == nullptr && m->GetControllerName() != c->GetName()) {
+        if (Controller* oldC = om.GetController(m->GetControllerName())) {
+            UDController oldCud(oldC, &om, &mm, /*eliminateOverlaps=*/false);
+            oldNext = oldCud.GetModelAfter(m);
+        }
+    }
+    if (oldNext != nullptr) {
         oldNext->SetModelChain(m->GetModelChain());
+        _context->MarkLayoutModelDirty(oldNext->GetName());
     }
     if (afterNext == m) {
         afterNext = oldNext;
@@ -19195,9 +19202,10 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         }
     }
 
-    // 4) Chain. Pixel uses modelChain string ("@PrevModel:1");
-    //    serial uses controllerDMXChannel arithmetic.
-    if ([portKind isEqualToString:@"pixel"]) {
+    // 4) Chain. Serial uses controllerDMXChannel arithmetic; every
+    //    other kind uses the modelChain string (">PrevModel"), as
+    //    desktop's DropFromController does.
+    if (![portKind isEqualToString:@"serial"]) {
         if (afterModel) {
             // Insert after `afterModel`: it stays where it was;
             // `m` chains off it; whatever was chained off
@@ -19216,7 +19224,7 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         } else {
             m->SetModelChain("");
         }
-    } else if ([portKind isEqualToString:@"serial"]) {
+    } else {
         // Walk forward from `m` (now in the chain at the desired
         // position), pushing each downstream model's DMX channel
         // forward when it would overlap. Matches the desktop's
@@ -19228,16 +19236,35 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
             Model* prev = m;
             Model* nxt = afterNext;
             while (nxt) {
-                int needCh = prev->GetControllerDMXChannel() + prev->GetSerialChannelSpan(prev->GetControllerDMXChannel());
-                if (nxt->GetControllerDMXChannel() < needCh) {
-                    nxt->SetControllerDMXChannel(needCh);
+                // m may still sit further down this port in the stale snapshot
+                if (nxt != m) {
+                    int needCh = prev->GetControllerDMXChannel() + prev->GetSerialChannelSpan(prev->GetControllerDMXChannel());
+                    if (nxt->GetControllerDMXChannel() < needCh) {
+                        nxt->SetControllerDMXChannel(needCh);
+                    }
+                    nxt->SetModelChain("");
+                    _context->MarkLayoutModelDirty(nxt->GetName());
+                    prev = nxt;
                 }
-                nxt->SetModelChain("");
-                prev = nxt;
                 // dstPort is stale once we mutate channels, but
                 // GetModelAfter only reads ordered list, which
                 // hasn't been re-sorted; safe to keep walking.
                 nxt = dstPort->GetModelAfter(nxt);
+            }
+        } else {
+            // Append: start after whatever is last on the port.
+            m->SetModelChain("");
+            if (auto* tail = dstPort->GetLastModel()) {
+                Model* last = tail->GetModel();
+                if (last == m) {
+                    last = dstPort->GetModelBefore(m);
+                }
+                if (last != nullptr) {
+                    int nextCh = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
+                    if (m->GetControllerDMXChannel() < nextCh) {
+                        m->SetControllerDMXChannel(nextCh);
+                    }
+                }
             }
         }
     }

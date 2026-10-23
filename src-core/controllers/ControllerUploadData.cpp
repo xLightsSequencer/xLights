@@ -334,9 +334,11 @@ UDControllerPortModel* UDControllerPort::GetLastModel() const
 
 Model* UDControllerPort::GetModelAfter(Model* m) const
 {
+    // A multi-string model has an entry per string; skip its own repeats so callers
+    // never get m back (they would chain m to itself or loop forever walking the port).
     bool takenext = false;
     for (const auto& it : _models) {
-        if (takenext) return it->GetModel();
+        if (takenext && it->GetModel() != m) return it->GetModel();
         if (it->GetModel() == m) takenext = true;
     }
     return nullptr;

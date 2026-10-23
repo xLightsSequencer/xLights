@@ -3999,7 +3999,8 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                         } else {
                             if (fmud != nullptr && fmud->IsFirstModelString()) {
                                 Model* lm = fmud->GetModel();
-                                if (lm != nullptr) {
+                                // m already last on this port: it stays where it is
+                                if (lm != nullptr && lm != m) {
                                     m->SetModelChain(">" + lm->GetName());
                                 }
                             }
@@ -4033,8 +4034,9 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                         if (nextfrom != nullptr) {
                             // Already right after droppedOn only means "not moved" for a right-hand drop;
                             // dropping on its left swaps them, so whatever followed m must be re-chained.
-                            if ((nextfrom == droppedOn && hit == BaseCMObject::HITLOCATION::LEFT) ||
-                                (hit != BaseCMObject::HITLOCATION::LEFT && ">" + droppedOn->GetName() == m->GetModelChain())) {
+                            bool unmoved = hit == BaseCMObject::HITLOCATION::LEFT ? nextfrom == droppedOn
+                                                                                  : m->GetModelChain() == ">" + droppedOn->GetName();
+                            if (unmoved) {
                                 spdlog::debug("    Model did not actually move.");
                             } else {
                                 spdlog::debug("    Model {} was removed from existing chain so {} now chains to {}", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());
