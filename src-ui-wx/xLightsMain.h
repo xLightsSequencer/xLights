@@ -125,6 +125,7 @@ class ControllerCaps;
 class Discovery;
 class DiscoveryDelegate;
 class EffectTreeDialog;
+class BatchRenderProgressDialog;
 class FPP;
 class ConvertDialog;
 class ConvertLogDialog;
@@ -1190,6 +1191,10 @@ public:
     bool _saveLowDefinitionRender = false; // saves the value of the low definition render during batch render when it may be temporarily overridden
     bool _batchRenderStarted = false;
     wxStopWatch _batchRenderStopWatch;
+    BatchRenderProgressDialog* _batchRenderDialog = nullptr;
+    bool _batchRenderStopRequested = false;
+    // Set by the Batch Render menu; scripted and command-line batches get no progress window.
+    bool _batchRenderShowProgress = false;
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _renderBellEnabled = false;
@@ -1740,6 +1745,7 @@ protected:
     void SetCommandLineFseqDir(const std::string& dir) { _commandLineFseqDir = dir; }
     std::string _commandLineFseqDir;
     void OpenRenderAndSaveSequences(const wxArrayString& filenames, bool exitOnDone, bool alreadyRetried = false);
+    void FinishBatchRenderDialog(bool stopped);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
