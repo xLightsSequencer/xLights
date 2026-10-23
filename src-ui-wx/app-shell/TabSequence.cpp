@@ -10,6 +10,7 @@
 
 #include <wx/stopwatch.h>
 #include <wx/utils.h>
+#include <wx/evtloop.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
 #include "settings/XLightsConfigAdapter.h"
@@ -1526,6 +1527,11 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         return;
     }
 
+    if (_batchRenderDialog != nullptr && wxEventLoopBase::GetActive() != nullptr && !wxEventLoopBase::GetActive()->IsYielding()) {
+        // A Stop click made while the previous sequence was saving is still queued; handle it
+        // before opening the next one.
+        wxYield();
+    }
     if (wxGetKeyState(WXK_ESCAPE) || _batchRenderStopRequested)
     {
         spdlog::debug("Batch render cancelled.");
@@ -1629,6 +1635,19 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         return;
     }
 
+    if (_batchRenderStopRequested) {
+        spdlog::info("Batch render stopped by the user before {} was rendered.", seq.ToStdString());
+        if (_batchRenderDialog != nullptr) {
+            _batchRenderDialog->SetResult(seq, BatchRenderProgressDialog::Result::Stopped);
+        }
+        mSavedChangeCount = _sequenceElements.GetChangeCount();
+        mLastAutosaveCount = mSavedChangeCount;
+        auto nFileNames = fileNames;
+        nFileNames.RemoveAt(0);
+        CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, nFileNames, (exitOnDone ? RENDER_EXIT_ON_DONE : 0));
+        return;
+    }
+
     EnableSequenceControls(false);
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
@@ -1667,6 +1686,9 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
             if (_batchRenderDialog != nullptr) {
                 _batchRenderDialog->SetResult(fileNames[0], BatchRenderProgressDialog::Result::Stopped);
             }
+            // Missing models were dropped while opening; without this CloseSequence would offer to save that.
+            mSavedChangeCount = _sequenceElements.GetChangeCount();
+            mLastAutosaveCount = mSavedChangeCount;
             auto nFileNames = fileNames;
             nFileNames.RemoveAt(0);
             CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, nFileNames, (exitOnDone ? RENDER_EXIT_ON_DONE : 0));
@@ -1680,7 +1702,8 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
             WriteFalconPiFile(xlightsFilename);
             spdlog::info("fseq file done.");
             if (_batchRenderDialog != nullptr) {
-                _batchRenderDialog->SetResult(fileNames[0], BatchRenderProgressDialog::Result::Rendered);
+                _batchRenderDialog->SetResult(fileNames[0], BatchRenderProgressDialog::Result::Rendered,
+                                              aborted ? _("aborted twice, may be incomplete") : wxString());
             }
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms

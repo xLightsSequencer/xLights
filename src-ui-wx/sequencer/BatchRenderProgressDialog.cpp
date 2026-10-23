@@ -18,12 +18,21 @@
 #include <wx/intl.h>
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
+#include <wx/settings.h>
 #include <wx/stattext.h>
 
 #include <algorithm>
 
 namespace {
 enum Column { COL_SEQUENCE = 0, COL_STATUS, COL_TIME };
+
+bool IsDarkMode()
+{
+    return wxSystemSettings::GetAppearance().IsDark();
+}
+wxColour OkColour() { return IsDarkMode() ? wxColour(90, 200, 90) : wxColour(0, 140, 0); }
+wxColour WarnColour() { return IsDarkMode() ? wxColour(240, 160, 60) : wxColour(200, 120, 0); }
+wxColour FailColour() { return IsDarkMode() ? wxColour(255, 100, 100) : *wxRED; }
 }
 
 BatchRenderProgressDialog::BatchRenderProgressDialog(wxWindow* parent, const wxArrayString& files, const wxString& showDir,
@@ -48,8 +57,8 @@ BatchRenderProgressDialog::BatchRenderProgressDialog(wxWindow* parent, const wxA
     sizer->Add(_gauge, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
 
     _list = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(640, 360)), wxLC_REPORT | wxLC_SINGLE_SEL);
-    _list->AppendColumn(_("Sequence"), wxLIST_FORMAT_LEFT, FromDIP(400));
-    _list->AppendColumn(_("Status"), wxLIST_FORMAT_LEFT, FromDIP(140));
+    _list->AppendColumn(_("Sequence"), wxLIST_FORMAT_LEFT, FromDIP(360));
+    _list->AppendColumn(_("Status"), wxLIST_FORMAT_LEFT, FromDIP(180));
     _list->AppendColumn(_("Time"), wxLIST_FORMAT_RIGHT, FromDIP(80));
     for (size_t i = 0; i < files.size(); ++i) {
         long row = _list->InsertItem((long)i, DisplayName(files[i]));
@@ -115,8 +124,12 @@ wxString BatchRenderProgressDialog::FormatDuration(long ms)
 
 void BatchRenderProgressDialog::SetRendering(const wxString& file)
 {
-    _renderingRow = RowFor(file);
-    _sequence.Start();
+    long row = RowFor(file);
+    // A retry of the same sequence keeps timing from the first attempt.
+    if (row != _renderingRow || row < 0) {
+        _sequence.Start();
+    }
+    _renderingRow = row;
     _gauge->SetValue(0);
     _current->SetLabel(wxString::Format(_("Rendering %s"), DisplayName(file)));
     if (_renderingRow >= 0) {
@@ -136,20 +149,20 @@ void BatchRenderProgressDialog::SetResult(const wxString& file, Result result, c
         wxColour colour;
         switch (result) {
         case Result::Rendered:
-            status = _("Rendered");
-            colour = wxColour(0, 140, 0);
+            status = detail.IsEmpty() ? _("Rendered") : wxString::Format(_("Rendered (%s)"), detail);
+            colour = detail.IsEmpty() ? OkColour() : WarnColour();
             ++_rendered;
             _completedMs += ms;
             _list->SetItem(row, COL_TIME, FormatDuration(ms));
             break;
         case Result::Failed:
             status = detail.IsEmpty() ? _("Failed") : wxString::Format(_("Failed: %s"), detail);
-            colour = *wxRED;
+            colour = FailColour();
             ++_failed;
             break;
         case Result::Stopped:
             status = _("Stopped - not rendered");
-            colour = wxColour(200, 120, 0);
+            colour = WarnColour();
             break;
         }
         _list->SetItem(row, COL_STATUS, status);
@@ -170,7 +183,7 @@ void BatchRenderProgressDialog::Finished(bool stopped)
         if (!_done[row]) {
             ++notStarted;
             _list->SetItem((long)row, COL_STATUS, _("Not started"));
-            _list->SetItemTextColour((long)row, wxColour(128, 128, 128));
+            _list->SetItemTextColour((long)row, wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
         }
     }
     _gauge->SetValue(0);
