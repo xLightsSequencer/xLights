@@ -1286,8 +1286,9 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     wxDiscoveryDelegate delegate(this);
     Discovery discovery(&_outputManager, &delegate);
-    PrepareAllControllerDiscovery(discovery);
+    auto seeded = PrepareAllControllerDiscovery(discovery);
     discovery.Discover();
+    FPP::FinishControllerSeeding(discovery, seeded);
 
     SetStatusText("Processing discovered controllers...");
     spdlog::debug("[Discovery] Processing discovered controllers...");

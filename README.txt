@@ -22,6 +22,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 macOS - A video VideoToolbox can't decode now goes straight to the software decoder for the
                                  rest of the session instead of being retried for every model
     -bug (dkulp)                 Windows/Linux - Bars gradient colours on the GPU (Vulkan) path match the CPU and macOS
+    -bug (dkulp)                 Discover and FPP Connect could take minutes to start when several controllers set by
+                                 hostname weren't on the network; their names are now looked up all at once
     -bug (derwin12)              Crash adding an Audio Tempo or Audio Chords timing track from the Add Timing Track dialog
     -bug (derwin12)              Circle models with an Inner starting location and different layer sizes put the
                                  outer layer's nodes on the inner ring

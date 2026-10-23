@@ -1945,7 +1945,7 @@ public:
     // FPP-only discovery: discover FPP instances using addresses from GetDiscoveryAddresses
     std::list<FPP*> DiscoverFPPInstances(DiscoveryDelegate* delegate, const std::string& targetIp = "");
     // Full multi-protocol discovery: prepare all protocol handlers on the given Discovery object
-    void PrepareAllControllerDiscovery(Discovery& discovery);
+    std::list<std::string> PrepareAllControllerDiscovery(Discovery& discovery);
 
     void RenderLayout();
     ViewsModelsPanel* GetDisplayElementsPanel() const { return displayElementsPanel; }

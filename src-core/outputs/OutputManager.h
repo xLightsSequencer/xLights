@@ -219,6 +219,7 @@ public:
 
     #pragma region Start and Stop
     bool StartOutput();
+    void ResolveControllerIPs(bool includeInactive, bool wait = true) const;
     bool StartControllerOutputs(Controller* controller);
     void StopOutput();
     bool IsOutputting() const { return _outputting; }

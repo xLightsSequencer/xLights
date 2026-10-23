@@ -138,6 +138,26 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
     return changed;
 }
 
+// Resolves on the resolve pool, so N unreachable hostnames cost one lookup timeout rather than
+// N back to back. Without wait, the caller must ip_utils::waitForAllToResolve() before relying
+// on the resolved addresses.
+void OutputManager::ResolveControllerIPs(bool includeInactive, bool wait) const {
+    if (!_globalFPPProxy.empty()) {
+        ip_utils::ResolveIP(_globalFPPProxy, [](const std::string&) {});
+    }
+    for (const auto& ctrl : GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(ctrl);
+        if (eth == nullptr || (!includeInactive && !eth->IsActive())) continue;
+        eth->RefreshResolvedIP();
+        if (!eth->GetFPPProxy().empty()) {
+            ip_utils::ResolveIP(eth->GetFPPProxy(), [](const std::string&) {});
+        }
+    }
+    if (wait) {
+        ip_utils::waitForAllToResolve();
+    }
+}
+
 void OutputManager::AsyncPingAll() {
 
     std::for_each(begin(_controllers), end(_controllers), [](Controller* c) { c->AsyncPing(); });
@@ -1263,11 +1283,7 @@ bool OutputManager::StartOutput() {
     bool err = false;
 
     // Re-resolve any controllers whose hostnames failed to resolve at startup
-    for (const auto& ctrl : GetControllers()) {
-        auto eth = dynamic_cast<ControllerEthernet*>(ctrl);
-        if (eth != nullptr) eth->RefreshResolvedIP();
-    }
-    ip_utils::waitForAllToResolve();
+    ResolveControllerIPs(false);
 
     for (const auto& it : GetAllOutputs()) {
 

@@ -4954,6 +4954,69 @@ void FPP::PrepareControllerTypeProbes(Discovery &discovery, const std::list<std:
         AddDetectControllerTypeFallback(discovery, a);
     }
 }
+// Kicks off resolving every controller -- inactive ones too, since a discovered instance can only be
+// matched back to a controller set by hostname through its resolved address -- and returns the
+// addresses already known, so discovery runs while the lookups do. FinishControllerSeeding must
+// follow Discover() and come before anything matches results to controllers.
+std::list<std::string> FPP::StartControllerSeeding(const OutputManager* outputManager) {
+    outputManager->ResolveControllerIPs(true, false);
+
+    std::list<std::string> addresses;
+    for (const auto& it : outputManager->GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth == nullptr || eth->GetIP().empty() || eth->GetIP() == "MULTICAST") {
+            continue;
+        }
+        if (eth->IsActive()) {
+            std::string resolved = eth->GetResolvedIP();
+            if (resolved.empty()) {
+                resolved = eth->GetIP();
+            }
+            if (ip_utils::IsIPValid(resolved) || resolved != eth->GetIP()) {
+                addresses.push_back(::Lower(resolved));
+            }
+        }
+        if (!eth->GetFPPProxy().empty()) {
+            addresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
+        }
+    }
+    addresses.sort();
+    addresses.unique();
+    return addresses;
+}
+
+// An active controller whose hostname only resolved during discovery missed the unicast seeding,
+// which is all that reaches one on another subnet, so probe those in a second round.
+void FPP::FinishControllerSeeding(Discovery &discovery, const std::list<std::string> &seeded) {
+    ip_utils::waitForAllToResolve();
+
+    std::list<std::string> late;
+    for (const auto& it : discovery.GetOutputManager()->GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth == nullptr || !eth->IsActive()) {
+            continue;
+        }
+        std::string ip = ::Lower(eth->GetResolvedIP());
+        if (ip_utils::IsIPValid(ip) && std::find(seeded.begin(), seeded.end(), ip) == seeded.end() && discovery.FindByIp(ip) == nullptr) {
+            late.push_back(ip);
+        }
+    }
+    if (late.empty()) {
+        return;
+    }
+    late.sort();
+    late.unique();
+    spdlog::info("FPP Discovery - probing {} controller(s) whose hostname resolved during discovery", late.size());
+
+    uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
+    FillFPPPingBuffer(buffer);
+    for (const auto &a : late) {
+        AddMultiSyncSystemsCurl(discovery, a, true);
+        AddSystemInfoCurl(discovery, a, false);
+        discovery.SendData(FPP_CTRL_PORT, a, buffer, 207);
+    }
+    discovery.Discover();
+}
 bool FPP::supportedForFPPConnect() const {
     if (this->IsVersionAtLeast(7, 1)) {
         return true;

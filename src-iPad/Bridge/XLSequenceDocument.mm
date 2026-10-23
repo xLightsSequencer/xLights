@@ -18404,33 +18404,6 @@ public:
     return results;
 }
 
-// Unicast probe targets the way desktop's GetDiscoveryAddresses
-// (DiscoveryHelpers.cpp) builds them: every ethernet controller's resolved IP
-// plus any FPP proxy. Broadcast alone misses anything on another subnet or
-// behind a proxy. The forced resolve also stores the address on Inactive
-// hostname controllers, which FPP Connect needs to match them to a discovered
-// instance (`OutputManager::GetControllers(ip)`).
-static std::list<std::string> ControllerDiscoverySeedAddresses(OutputManager& om) {
-    std::list<std::string> seedAddresses;
-    for (auto* ctrl : om.GetControllers()) {
-        auto* eth = dynamic_cast<ControllerEthernet*>(ctrl);
-        if (!eth || eth->GetIP().empty() || eth->GetIP() == "MULTICAST") continue;
-        const std::string resolved = eth->GetResolvedIP(true);
-        if (resolved.empty()) {
-            seedAddresses.push_back(::Lower(eth->GetIP()));
-        } else if (eth->IsActive() &&
-                   (ip_utils::IsIPValid(resolved) || resolved != eth->GetIP())) {
-            seedAddresses.push_back(::Lower(resolved));
-        }
-        if (!eth->GetFPPProxy().empty()) {
-            seedAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
-        }
-    }
-    seedAddresses.sort();
-    seedAddresses.unique();
-    return seedAddresses;
-}
-
 - (NSDictionary*)runControllerDiscovery {
     NSMutableArray<NSString*>* addedNames = [NSMutableArray array];
     NSMutableArray<NSDictionary*>* mismatches = [NSMutableArray array];
@@ -18454,13 +18427,13 @@ static std::list<std::string> ControllerDiscoverySeedAddresses(OutputManager& om
     Discovery discovery(&om, _fppAuthDelegate.get());
 
     // Seed unicast probes the way desktop's GetDiscoveryAddresses does
-    // (DiscoveryHelpers.cpp:29-66): every active ethernet controller's
-    // resolved IP, plus any FPP proxy. Broadcast alone misses anything
+    // (shared FPP::StartControllerSeeding): every active ethernet
+    // controller's resolved IP, plus any FPP proxy. Broadcast alone misses anything
     // on another subnet or behind a proxy, which is the case seeding
     // exists for. (The iPad has no FPPConnectForcedIPs preference, so
     // that source contributes nothing here — FPP Connect keeps its own
     // forced-IP list separately.)
-    std::list<std::string> seedAddresses = ControllerDiscoverySeedAddresses(om);
+    std::list<std::string> seedAddresses = FPP::StartControllerSeeding(&om);
     FPP::PrepareDiscovery(discovery, seedAddresses);
     ArtNetOutput::PrepareDiscovery(discovery);
     TwinklyOutput::PrepareDiscovery(discovery);
@@ -18469,6 +18442,7 @@ static std::list<std::string> ControllerDiscoverySeedAddresses(OutputManager& om
     WLED::PrepareDiscovery(discovery);
 
     discovery.Discover();
+    FPP::FinishControllerSeeding(discovery, seedAddresses);
 
     // Walk each result. Auto-add when there's no conflict;
     // otherwise capture the conflict for the SwiftUI side to
@@ -19809,7 +19783,7 @@ NSString* fppTypeString(FPP_TYPE t) {
     for (NSString* ip in forcedIPs) {
         if (ip.length > 0) forcedAddresses.push_back(std::string([ip UTF8String]));
     }
-    std::list<std::string> addresses = ControllerDiscoverySeedAddresses(om);
+    std::list<std::string> addresses = FPP::StartControllerSeeding(&om);
     addresses.insert(addresses.end(), forcedAddresses.begin(), forcedAddresses.end());
     addresses.sort();
     addresses.unique();
@@ -19818,6 +19792,7 @@ NSString* fppTypeString(FPP_TYPE t) {
     FPP::PrepareDiscovery(discovery, addresses);
     FPP::PrepareControllerTypeProbes(discovery, forcedAddresses);
     discovery.Discover();
+    FPP::FinishControllerSeeding(discovery, addresses);
     FPP::MapToFPPInstances(discovery, _fppInstances, &om);
 
     _fppInstances.sort(sortByIP);

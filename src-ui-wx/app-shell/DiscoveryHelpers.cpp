@@ -52,21 +52,7 @@ std::list<std::string> xLightsFrame::GetDiscoveryAddresses(std::list<std::string
         }
     }
 
-    // Add active controller IPs from OutputManager
-    for (auto& it : _outputManager.GetControllers()) {
-        auto eth = dynamic_cast<ControllerEthernet*>(it);
-        if (eth != nullptr && !eth->GetIP().empty() && eth->GetIP() != "MULTICAST") {
-            std::string resolvedIP = eth->GetResolvedIP(true);
-            if (resolvedIP.empty()) {
-                addresses.push_back(::Lower(eth->GetIP()));
-            } else if (eth->IsActive() && (ip_utils::IsIPValid(resolvedIP) || resolvedIP != eth->GetIP())) {
-                addresses.push_back(::Lower(resolvedIP));
-            }
-            if (!eth->GetFPPProxy().empty()) {
-                addresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
-            }
-        }
-    }
+    addresses.splice(addresses.end(), FPP::StartControllerSeeding(&_outputManager));
 
     addresses.sort();
     addresses.unique();
@@ -75,7 +61,7 @@ std::list<std::string> xLightsFrame::GetDiscoveryAddresses(std::list<std::string
     return addresses;
 }
 
-void xLightsFrame::PrepareAllControllerDiscovery(Discovery& discovery) {
+std::list<std::string> xLightsFrame::PrepareAllControllerDiscovery(Discovery& discovery) {
     auto addresses = GetDiscoveryAddresses();
     FPP::PrepareDiscovery(discovery, addresses);
     ArtNetOutput::PrepareDiscovery(discovery);
@@ -83,6 +69,7 @@ void xLightsFrame::PrepareAllControllerDiscovery(Discovery& discovery) {
     Pixlite16::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
     WLED::PrepareDiscovery(discovery);
+    return addresses;
 }
 
 // Timer for cleaning up Discovery objects after outstanding curl requests complete
@@ -151,6 +138,7 @@ std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate, 
     FPP::PrepareDiscovery(*discovery, addresses);
     FPP::PrepareControllerTypeProbes(*discovery, forcedAddresses);
     discovery->Discover();
+    FPP::FinishControllerSeeding(*discovery, addresses);
     FPP::MapToFPPInstances(*discovery, instances, &_outputManager);
     for (auto* fpp : instances) {
         fpp->_authDelegate = delegate;
