@@ -19,27 +19,27 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | Theme | ✅ | 🟡 | ❌ | 🚫 | 🔵 | Biggest gap in one line |
 |---|---|---|---|---|---|---|
 | 01 File & show lifecycle | 79 | 47 | 28 | 7 | 18 | Show-folder backup/restore landed 2026-08-10 in desktop's interchange format; biggest remaining: Data Layers and the legacy converter bridge |
-| 02 Sequencer grid & editing | 122 | 35 | 27 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
-| 03 Timing, lyrics & audio | 118 | 19 | 17 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
-| 04 Effects catalog & panels | 84 | 10 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
-| 05 Color, palettes & curves | 72 | 16 | 27 | 3 | 9 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
-| 06 Layout, models, 3D | 167 | 50 | 63 | 5 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
-| 07 Controllers, outputs, upload | 70 | 30 | 28 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
-| 08 Import & export | 50 | 11 | 44 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
+| 02 Sequencer grid & editing | 122 | 35 | 29 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
+| 03 Timing, lyrics & audio | 118 | 20 | 18 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
+| 04 Effects catalog & panels | 84 | 10 | 3 | 2 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
+| 05 Color, palettes & curves | 74 | 16 | 27 | 3 | 9 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
+| 06 Layout, models, 3D | 171 | 52 | 63 | 5 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
+| 07 Controllers, outputs, upload | 73 | 30 | 30 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
+| 08 Import & export | 52 | 12 | 46 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
 | 09 Render & playback | 63 | 11 | 18 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
-| 10 Presets, views, jukebox | 57 | 13 | 14 | 5 | 3 | Preset formats don't interchange; jukebox ported 2026-08-10; no workspace layouts |
+| 10 Presets, views, jukebox | 56 | 14 | 15 | 6 | 3 | Preset formats don't interchange; jukebox ported 2026-08-10; no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
-| 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
-| 13 Tools, diagnostics, help | 59 | 12 | 11 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **1015** | **279** | **333** | **158** | **88** | |
+| 12 AI, automation, scripting | 41 | 6 | 3 | 108 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
+| 13 Tools, diagnostics, help | 58 | 13 | 12 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
+| **Total (01–13)** | **1024** | **285** | **343** | **165** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,627 rows where an iPad status is meaningful (✅+🟡+❌), **62%** are
-at full parity and **80%** at full-or-partial. Counting partials at half weight the iPad sits
+**Parity index:** of the 1,652 rows where an iPad status is meaningful (✅+🟡+❌), **62%** are
+at full parity and **79%** at full-or-partial. Counting partials at half weight the iPad sits
 at **≈71% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
-writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (159) is dominated by one block: 103 automation verbs/endpoints iOS cannot host (theme 12).
+writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (165) is dominated by one block: 108 automation verbs/endpoints iOS cannot host (theme 12).
 
 **The structural headline:** the iPad is not a viewer. It creates 25/28 model types, runs all
 six discovery scanners, renders 52/56 effects with shared-core fidelity, imports 11 of 13
@@ -96,10 +96,10 @@ All survived adversarial re-verification.
 | 7 | ~~Stop doesn't blank outputs — lights hold the last frame~~ | 09 r88 | **FIXED 2026-08-06** — `blankOutputs` calls `AllOff()` from Stop and both natural end-of-playback paths; `stopOutput` blanks before closing |
 | 8 | FPP Connect FSEQ type — **the three-mis-served-families claim was wrong**: iPad discovery admits only FPP and ESPixelStick, so Falcon V4/V5 and Genius/PowerDMX never receive an upload at all. The one real case, a master-mode FPP getting sparse, is **FIXED 2026-08-06** | 07 r69 | Downgraded from S1 to a missing picker (07 r69, still partial). A reminder that a ❌ needs the reachability check, not just the code read |
 | 9 | ~~`DidConvert` never consulted; no `NetworkChangesAllowed()` guard~~ | 07 r81 / r26 | **BOTH FIXED 2026-08-06** — the load path now flags a converted legacy networks file dirty so the migration persists, and controller edits are blocked while outputting |
-| 10 | 57 | 13 | 14 |
+| 10 | 56 | 14 | 15 |
 | 11 | 33 | 19 | 51 |
 | 12 | 41 | 6 | 3 |
-| 13 | 59 | 12 | 11 |
+| 13 | 58 | 13 | 12 |
 | 14 | ~~Different default palette colors *and* default-enabled slots~~ | 05 r5–6 | **FIXED 2026-08-06** — the new-effect seed now carries desktop's eight colours in desktop's slot order plus `C_CHECKBOX_Palette1/2=1`; without the checkboxes `ParseColorMap` gave the effect an empty colour list |
 | 15 | ~~Missing `SetDefaultParameters` seeding on effect drop~~ | 04 | **FIXED 2026-08-06** — the bridge supplies the list-derived defaults at creation (State's first state, Faces' phoneme source) |
 | 16 | ~~AI-generated images land as loose files, never embedded~~ | 12 r34 | **FIXED 2026-08-06** — embedded under the same `AIImages/…` key desktop uses, so the image travels inside the `.xsq`; loose file remains the fallback |
@@ -162,8 +162,9 @@ Highest-leverage first within rough effort bands.
   2026-08-07** (r83/84, r211). Still open in this cluster: the persisted 2D bounding-box and
   grid-spacing settings (r77/78 — the live view toggles work, the stored show setting is
   read-only) and the persistent 3D-mode setter.
-- **Moving Head authoring depth** (04 r29/40): multi-handle wheel/picker, user `.xmh` preset
-  scan, panel reset.
+- **Moving Head authoring depth** (04 r29/40/42): multi-handle wheel/picker, user `.xmh` preset
+  scan, panel reset, and the Tools ▸ Generate Moving Head Effects song generator (the generator
+  itself is wx-free core; only the dialog is missing).
 - **Preview transport overlay + auto-show** (09 r95–98); **Force High Definition in batch
   render** (09 r47); **FSEQ version selector** (09 r30).
 - ~~**Discovery seeding + FPP auth on the discovery path** (07 r51–52); **visualizer bulk port
