@@ -253,6 +253,8 @@
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/BatchRenderDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/BatchRenderDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/BatchRenderProgressDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/BatchRenderProgressDialog.h" />
 		<Unit filename="../src-ui-wx/shared/utils/BitmapCache.cpp" />
 		<Unit filename="../src-ui-wx/shared/utils/BitmapCache.h" />
 		<Unit filename="../src-ui-wx/sequencer/BufferPanel.cpp" />

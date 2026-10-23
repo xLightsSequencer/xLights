@@ -15,6 +15,32 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (heffneil)              FPP Connect upload window shows the current step and sequence, time left, and a
                                  list of each finished step and sequence with per-controller results (Keep Open)
     -enh (derwin12)              FPP Connect remembers the Keep Open setting
+    -enh (heffneil)              Pin favorite show folders with a name in the Directories dialog and switch to them
+                                 from File > Favorite Show Folders
+    -enh (heffneil)              Batch Render shows a window with each sequence's result and time, overall progress and
+                                 time left, a Stop button, and Copy Results
+    -enh (heffneil)              The Faces, States and SubModels "Import From Model" pickers have a filter box to
+                                 narrow a long model list
+    -enh (dkulp)                 iPad - Controller visualizer: drop a model on the top half of a row to put it before that
+                                 model, and Move to Front puts a model at the head of its port
+    -bug (heffneil)              Controller visualizer: moving a model to the front of its chain no longer knocks the
+                                 next model off the port
+    -bug (dkulp)                 Controller visualizer: moving a multi-string model, or dropping a model on the header of
+                                 the port it already ends, no longer breaks the port's chain
+    -bug (dkulp)                 iPad - Controller visualizer: moving a model keeps the rest of its old chain in place, also
+                                 after saving and reopening the show
+    -bug (dkulp)                 iPad - FPP Connect now uploads outputs to inactive controllers set by hostname, and finds
+                                 configured controllers on other subnets without typing their addresses in
+    -bug (dkulp)                 iPad - LOR S5 import no longer drops sources added with "Add Additional"
+    -bug (dkulp)                 iPad - Find Possible Source Effects: opening a result for a model not in the current view
+                                 switches to Master View
+    -bug (dkulp)                 iPad - Media Manager lists the media of just-imported effects without reopening the sequence
+    -bug (dkulp)                 iPad - Switching audio tracks while a sequence is playing keeps playing on the new track
+    -bug (dkulp)                 macOS - A video VideoToolbox can't decode now goes straight to the software decoder for the
+                                 rest of the session instead of being retried for every model
+    -bug (dkulp)                 Windows/Linux - Bars gradient colours on the GPU (Vulkan) path match the CPU and macOS
+    -bug (dkulp)                 Discover and FPP Connect could take minutes to start when several controllers set by
+                                 hostname weren't on the network; their names are now looked up all at once
     -bug (derwin12)              Crash adding an Audio Tempo or Audio Chords timing track from the Add Timing Track dialog
     -bug (derwin12)              Circle models with an Inner starting location and different layer sizes put the
                                  outer layer's nodes on the inner ring

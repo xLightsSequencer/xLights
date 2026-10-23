@@ -125,6 +125,7 @@ class ControllerCaps;
 class Discovery;
 class DiscoveryDelegate;
 class EffectTreeDialog;
+class BatchRenderProgressDialog;
 class FPP;
 class ConvertDialog;
 class ConvertLogDialog;
@@ -863,6 +864,7 @@ public:
     static const wxWindowID ID_MENUITEM2;
     static const wxWindowID ID_MENUITEM8;
     static const wxWindowID ID_MENUITEM_RECENTFOLDERS;
+    static const wxWindowID ID_MENUITEM_FAVFOLDERS;
     static const wxWindowID ID_FILE_BACKUP;
     static const wxWindowID ID_FILE_RESTOREBACKUP;
     static const wxWindowID ID_FILE_ALTBACKUP;
@@ -993,6 +995,7 @@ public:
     wxGauge* ProgressBar;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* AudioMenu;
+    wxMenu* FavoriteShowFoldersMenu;
     wxMenu* Menu1;
     wxMenu* Menu3;
     wxMenu* MenuFile;
@@ -1190,6 +1193,10 @@ public:
     bool _saveLowDefinitionRender = false; // saves the value of the low definition render during batch render when it may be temporarily overridden
     bool _batchRenderStarted = false;
     wxStopWatch _batchRenderStopWatch;
+    BatchRenderProgressDialog* _batchRenderDialog = nullptr;
+    bool _batchRenderStopRequested = false;
+    // Set by the Batch Render menu; scripted and command-line batches get no progress window.
+    bool _batchRenderShowProgress = false;
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _renderBellEnabled = false;
@@ -1523,6 +1530,14 @@ public:
     void OnButtonAddControllerNullClick(wxCommandEvent& event);
 
     void OnMenuMRU(wxCommandEvent& event);
+    // Favorites show a user-chosen name, so the path cannot be read back off the
+    // menu label the way OnMenuMRU does - keep an id -> path map instead.
+    void OnMenuFavoriteShowFolder(wxCommandEvent& event);
+    void RebuildFavoriteShowFoldersMenu();
+    // Skips the current folder, checks access and existence, and closes the
+    // sequence before clearing layout undo, so a failed switch changes nothing.
+    bool SwitchToShowFolder(const wxString& dir, bool permanent);
+    std::map<int, wxString> _favoriteMenuPaths;
     void OnMRUSequence(wxCommandEvent& event);
     bool SetDir(const wxString& dirname, bool permanent);
     void SetBaseShowDir(const wxString& baseShowDir);
@@ -1740,6 +1755,9 @@ protected:
     void SetCommandLineFseqDir(const std::string& dir) { _commandLineFseqDir = dir; }
     std::string _commandLineFseqDir;
     void OpenRenderAndSaveSequences(const wxArrayString& filenames, bool exitOnDone, bool alreadyRetried = false);
+    void AdvanceBatchRender(const wxArrayString& fileNames, bool exitOnDone);
+    void SkipStoppedBatchSequence(const wxArrayString& fileNames, bool exitOnDone);
+    void FinishBatchRenderDialog(bool stopped);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     std::string OpenAndCheckSequence(const std::string& origFilenames);
     void AddAllModelsToSequence();
@@ -1945,7 +1963,7 @@ public:
     // FPP-only discovery: discover FPP instances using addresses from GetDiscoveryAddresses
     std::list<FPP*> DiscoverFPPInstances(DiscoveryDelegate* delegate, const std::string& targetIp = "");
     // Full multi-protocol discovery: prepare all protocol handlers on the given Discovery object
-    void PrepareAllControllerDiscovery(Discovery& discovery);
+    std::list<std::string> PrepareAllControllerDiscovery(Discovery& discovery);
 
     void RenderLayout();
     ViewsModelsPanel* GetDisplayElementsPanel() const { return displayElementsPanel; }

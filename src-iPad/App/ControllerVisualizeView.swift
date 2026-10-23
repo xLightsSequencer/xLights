@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 // J-32.5 — Transferable payload for Visualize drag-drop. Uses
 // a String ProxyRepresentation so the transferred bytes are
@@ -483,11 +484,9 @@ struct ControllerVisualizeView: View {
                     .draggable(VisualizeModelDrag(name: entry.name)) {
                         modelDragPreview(entry.name)
                     }
-                    .dropDestination(for: VisualizeModelDrag.self) { payloads, _ in
-                        return handleDrop(payloads: payloads,
-                                           section: section,
-                                           afterModel: entry.name)
-                    }
+                    .modifier(ModelRowDropTarget { name, before in
+                        handleRowDrop(name, on: entry, section: section, before: before)
+                    })
                     .contextMenu {
                         Button {
                             onTapModel(entry.name)
@@ -517,6 +516,14 @@ struct ControllerVisualizeView: View {
                         } label: {
                             Label("Move to Port…",
                                   systemImage: "arrow.right.circle")
+                        }
+                        if let first = frontModel(for: entry, in: section) {
+                            Button {
+                                assign(entry.name, section: section, beforeModel: first)
+                            } label: {
+                                Label("Move to Front",
+                                      systemImage: "arrow.up.to.line")
+                            }
                         }
                         Button {
                             startChannelTarget = StartChannelTarget(modelName: entry.name)
@@ -592,6 +599,45 @@ struct ControllerVisualizeView: View {
         }
         portEditError = "Couldn't move \(drop.name) onto \(section.displayName)."
         return false
+    }
+
+    /// A drop on a model row: the top half lands before that model,
+    /// the bottom half after it (desktop's left/right-half drop). A
+    /// later string of a multi-string model can't be split from its
+    /// first, so only "after" applies there.
+    private func handleRowDrop(_ name: String, on entry: ModelEntry,
+                               section: PortSection, before: Bool) {
+        if before && entry.string <= 0 {
+            assign(name, section: section, beforeModel: entry.name)
+        } else {
+            _ = handleDrop(payloads: [VisualizeModelDrag(name: name)],
+                           section: section,
+                           afterModel: entry.name)
+        }
+    }
+
+    private func assign(_ name: String, section: PortSection, beforeModel: String) {
+        if name == beforeModel { return }
+        let ok = viewModel.document.assignModel(
+            name,
+            toController: controllerName,
+            kind: section.kind,
+            port: Int32(section.port),
+            beforeModel: beforeModel,
+            smartRemote: -1)
+        if ok {
+            loadToken &+= 1
+        } else {
+            portEditError = "Couldn't move \(name) onto \(section.displayName)."
+        }
+    }
+
+    /// The model at the head of `entry`'s chain — the first on its port
+    /// sharing its smart remote — or nil when `entry` is already there.
+    private func frontModel(for entry: ModelEntry, in section: PortSection) -> String? {
+        guard let first = section.modelEntries.first(where: { $0.smartRemote == entry.smartRemote }),
+              first.name != entry.name else { return nil }
+        return first.name
     }
 
     private func unassignModel(_ name: String) {
@@ -1013,5 +1059,58 @@ private struct PortBulkActionsModifier: ViewModifier {
     /// rather than being inferred here.
     private func remoteLabel(_ index: Int) -> String {
         smartRemoteUsesNumbers ? String(index) : String(UnicodeScalar(UInt8(65 + index)))
+    }
+}
+
+/// Drop target for a model row in a port section. The top half of the
+/// row means "before this model", the bottom half "after it", and a
+/// line on that edge shows which while a drag hovers.
+private struct ModelRowDropTarget: ViewModifier {
+    let onDrop: @MainActor (_ modelName: String, _ before: Bool) -> Void
+    @State private var height: CGFloat = 0
+    @State private var hoverEdge: VerticalEdge? = nil
+
+    func body(content: Content) -> some View {
+        content
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
+            .overlay(alignment: hoverEdge == .top ? .top : .bottom) {
+                if let hoverEdge {
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(height: 3)
+                        .offset(y: hoverEdge == .top ? -4 : 4)
+                        .allowsHitTesting(false)
+                }
+            }
+            .onDrop(of: [UTType.plainText],
+                    delegate: Delegate(height: height, hoverEdge: $hoverEdge, onDrop: onDrop))
+    }
+
+    private struct Delegate: DropDelegate {
+        let height: CGFloat
+        @Binding var hoverEdge: VerticalEdge?
+        let onDrop: @MainActor (String, Bool) -> Void
+
+        private func side(of info: DropInfo) -> VerticalEdge {
+            info.location.y < height / 2 ? .top : .bottom
+        }
+        func dropEntered(info: DropInfo) { hoverEdge = side(of: info) }
+        func dropUpdated(info: DropInfo) -> DropProposal? {
+            hoverEdge = side(of: info)
+            return DropProposal(operation: .move)
+        }
+        func dropExited(info: DropInfo) { hoverEdge = nil }
+        func performDrop(info: DropInfo) -> Bool {
+            let before = side(of: info) == .top
+            hoverEdge = nil
+            guard let provider = info.itemProviders(for: [UTType.plainText]).first else { return false }
+            let onDrop = self.onDrop
+            _ = provider.loadTransferable(type: VisualizeModelDrag.self) { result in
+                guard case .success(let drop) = result else { return }
+                let name = drop.name
+                Task { @MainActor in onDrop(name, before) }
+            }
+            return true
+        }
     }
 }

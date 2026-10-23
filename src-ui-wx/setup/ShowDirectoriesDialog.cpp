@@ -9,16 +9,32 @@
  **************************************************************/
 
 #include "ShowDirectoriesDialog.h"
+
+#include <wx/textdlg.h>
 #include "xLightsMain.h"
 #include "layout/LayoutPanel.h"
 #include "layout/ViewsModelsPanel.h"
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/gbsizer.h>
 #include <wx/dirdlg.h>
 #include <wx/settings.h>
+#include <wx/filename.h>
 
 #include <algorithm>
+
+namespace {
+    constexpr int MAX_SHOW_FAVORITES = 30;
+    const std::string FAV_KEY_PREFIX = "ShowFolderFavorite";      // legacy: path only
+    const std::string FAV_NAME_PREFIX = "ShowFolderFavoriteName";
+
+    wxString FolderDisplayName(const wxString& path)
+    {
+        const wxFileName fn = wxFileName::DirName(path);
+        return fn.GetDirs().IsEmpty() ? path : fn.GetDirs().Last();
+    }
+}
 
 const wxWindowID ShowDirectoriesDialog::ID_BUTTON_CHANGE_PERMANENT = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_BUTTON_CHANGE_TEMPORARY = wxNewId();
@@ -31,6 +47,12 @@ const wxWindowID ShowDirectoriesDialog::ID_BUTTON_CLEAR_BASE = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_STATICTEXT_BASE_PATH = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_CHECKBOX_AUTO_UPDATE = wxNewId();
 const wxWindowID ShowDirectoriesDialog::ID_BUTTON_UPDATE_BASE = wxNewId();
+const wxWindowID ShowDirectoriesDialog::ID_LISTCTRL_FAVORITES = wxNewId();
+const wxWindowID ShowDirectoriesDialog::ID_BUTTON_RENAME_FAV = wxNewId();
+const wxWindowID ShowDirectoriesDialog::ID_BUTTON_ADD_FAV = wxNewId();
+const wxWindowID ShowDirectoriesDialog::ID_BUTTON_REMOVE_FAV = wxNewId();
+const wxWindowID ShowDirectoriesDialog::ID_BUTTON_GO_FAV_PERM = wxNewId();
+const wxWindowID ShowDirectoriesDialog::ID_BUTTON_GO_FAV_TEMP = wxNewId();
 
 wxBEGIN_EVENT_TABLE(ShowDirectoriesDialog, wxDialog)
     EVT_BUTTON(ID_BUTTON_CHANGE_PERMANENT, ShowDirectoriesDialog::OnButtonChangeShowDirPermanently)
@@ -41,6 +63,14 @@ wxBEGIN_EVENT_TABLE(ShowDirectoriesDialog, wxDialog)
     EVT_BUTTON(ID_BUTTON_CLEAR_BASE, ShowDirectoriesDialog::OnButtonClearBaseShowDir)
     EVT_CHECKBOX(ID_CHECKBOX_AUTO_UPDATE, ShowDirectoriesDialog::OnCheckBoxAutoUpdateBase)
     EVT_BUTTON(ID_BUTTON_UPDATE_BASE, ShowDirectoriesDialog::OnButtonUpdateBase)
+    EVT_BUTTON(ID_BUTTON_ADD_FAV, ShowDirectoriesDialog::OnAddFavorite)
+    EVT_BUTTON(ID_BUTTON_REMOVE_FAV, ShowDirectoriesDialog::OnRemoveFavorite)
+    EVT_BUTTON(ID_BUTTON_GO_FAV_PERM, ShowDirectoriesDialog::OnGoFavoritePermanent)
+    EVT_BUTTON(ID_BUTTON_GO_FAV_TEMP, ShowDirectoriesDialog::OnGoFavoriteTemporary)
+    EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_FAVORITES, ShowDirectoriesDialog::OnFavoriteSelectionChanged)
+    EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_FAVORITES, ShowDirectoriesDialog::OnFavoriteSelectionChanged)
+    EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_FAVORITES, ShowDirectoriesDialog::OnFavoriteDoubleClick)
+    EVT_BUTTON(ID_BUTTON_RENAME_FAV, ShowDirectoriesDialog::OnRenameFavorite)
 wxEND_EVENT_TABLE()
 
 ShowDirectoriesDialog::ShowDirectoriesDialog(xLightsFrame* parent)
@@ -123,7 +153,33 @@ ShowDirectoriesDialog::ShowDirectoriesDialog(xLightsFrame* parent)
 
     gridBagSizer->AddGrowableCol(1);
     staticBoxSizer->Add(gridBagSizer, 1, wxALL | wxEXPAND, 5);
-    mainSizer->Add(staticBoxSizer, 1, wxALL | wxEXPAND, 10);
+    mainSizer->Add(staticBoxSizer, 0, wxALL | wxEXPAND, 10);
+
+    // Favorites: pinned quick-switch slots for show folders you use often.
+    wxStaticBoxSizer* favBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Favorite Show Folders"));
+    FavoritesList = new wxListCtrl(this, ID_LISTCTRL_FAVORITES, wxDefaultPosition, wxSize(-1, FromDIP(120)),
+                                   wxLC_REPORT | wxLC_SINGLE_SEL);
+    FavoritesList->AppendColumn(_("Name"), wxLIST_FORMAT_LEFT, FromDIP(160));
+    FavoritesList->AppendColumn(_("Folder"), wxLIST_FORMAT_LEFT, FromDIP(420));
+    favBox->Add(FavoritesList, 1, wxALL | wxEXPAND, 5);
+
+    wxBoxSizer* favButtons = new wxBoxSizer(wxHORIZONTAL);
+    Button_AddFavorite = new wxButton(this, ID_BUTTON_ADD_FAV, _("Add Current"));
+    Button_AddFavorite->SetToolTip(_("Pin the current show folder as a favorite"));
+    favButtons->Add(Button_AddFavorite, 0, wxRIGHT, 8);
+    Button_RenameFavorite = new wxButton(this, ID_BUTTON_RENAME_FAV, _("Rename"));
+    Button_RenameFavorite->SetToolTip(_("Change the name shown in the File menu"));
+    favButtons->Add(Button_RenameFavorite, 0, wxRIGHT, 8);
+    Button_RemoveFavorite = new wxButton(this, ID_BUTTON_REMOVE_FAV, _("Remove"));
+    favButtons->Add(Button_RemoveFavorite, 0, wxRIGHT, 8);
+    favButtons->AddStretchSpacer(1);
+    Button_GoFavPermanent = new wxButton(this, ID_BUTTON_GO_FAV_PERM, _("Switch Permanently"));
+    favButtons->Add(Button_GoFavPermanent, 0, wxRIGHT, 8);
+    Button_GoFavTemporary = new wxButton(this, ID_BUTTON_GO_FAV_TEMP, _("Switch Temporarily"));
+    favButtons->Add(Button_GoFavTemporary, 0, 0, 0);
+    favBox->Add(favButtons, 0, wxALL | wxEXPAND, 5);
+
+    mainSizer->Add(favBox, 1, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 10);
 
     // Dialog buttons (Close)
     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -134,6 +190,8 @@ ShowDirectoriesDialog::ShowDirectoriesDialog(xLightsFrame* parent)
     // Populate the real path labels before Fit() so the sizer measures their
     // actual (possibly long) text instead of the short placeholder strings the
     // labels were constructed with.
+    LoadFavorites();
+    RefreshFavoritesList();
     UpdateControlsState();
 
     SetSizerAndFit(mainSizer);
@@ -203,6 +261,7 @@ void ShowDirectoriesDialog::UpdateControlsState()
         Button_ChangeTemporarilyAgain->Show();
     }
 
+    UpdateFavoriteButtons();
     Layout();
 }
 
@@ -284,4 +343,162 @@ void ShowDirectoriesDialog::OnButtonUpdateBase(wxCommandEvent& event)
     _xLights->UpdateFromBaseShowFolder(true);
     SetCursor(wxCURSOR_ARROW);
     UpdateControlsState();
+}
+
+// ---- Favorite (pinned) show folders ----
+
+std::vector<ShowDirectoriesDialog::ShowFavorite> ShowDirectoriesDialog::ReadFavoritesFromConfig()
+{
+    std::vector<ShowFavorite> out;
+    auto* config = GetXLightsConfig();
+    for (int i = 0; i < MAX_SHOW_FAVORITES; ++i) {
+        wxString path;
+        if (!config->Read(FAV_KEY_PREFIX + std::to_string(i), &path) || path.IsEmpty()) {
+            continue;
+        }
+        wxString name;
+        config->Read(FAV_NAME_PREFIX + std::to_string(i), &name);
+        if (name.IsEmpty()) {
+            // Favorites saved before names existed - fall back to the folder name.
+            name = FolderDisplayName(path);
+        }
+        out.push_back({ name, path });
+    }
+    return out;
+}
+
+void ShowDirectoriesDialog::LoadFavorites()
+{
+    _favorites = ReadFavoritesFromConfig();
+}
+
+void ShowDirectoriesDialog::SaveFavorites() const
+{
+    auto* config = GetXLightsConfig();
+    for (int i = 0; i < MAX_SHOW_FAVORITES; ++i) {
+        const std::string pathKey = FAV_KEY_PREFIX + std::to_string(i);
+        const std::string nameKey = FAV_NAME_PREFIX + std::to_string(i);
+        if (i < (int)_favorites.size()) {
+            config->Write(pathKey, _favorites[i].path);
+            config->Write(nameKey, _favorites[i].name);
+        } else {
+            config->DeleteEntry(pathKey);
+            config->DeleteEntry(nameKey);
+        }
+    }
+    config->Flush();
+}
+
+void ShowDirectoriesDialog::RefreshFavoritesList()
+{
+    if (FavoritesList == nullptr) return;
+    FavoritesList->DeleteAllItems();
+    for (const auto& f : _favorites) {
+        const long row = FavoritesList->InsertItem(FavoritesList->GetItemCount(), f.name);
+        FavoritesList->SetItem(row, 1, f.path);
+    }
+    UpdateFavoriteButtons();
+}
+
+long ShowDirectoriesDialog::SelectedFavorite() const
+{
+    if (FavoritesList == nullptr) return wxNOT_FOUND;
+    return FavoritesList->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+}
+
+void ShowDirectoriesDialog::OnRenameFavorite(wxCommandEvent& event)
+{
+    const long sel = SelectedFavorite();
+    if (sel == wxNOT_FOUND || sel >= (long)_favorites.size()) return;
+    const wxString name = PromptFavoriteName(_favorites[sel].name, _("Rename Favorite"));
+    if (name.IsEmpty()) return;
+    _favorites[sel].name = name;
+    SaveFavorites();
+    RefreshFavoritesList();
+    FavoritesList->SetItemState(sel, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+}
+
+wxString ShowDirectoriesDialog::PromptFavoriteName(const wxString& suggested, const wxString& title)
+{
+    wxTextEntryDialog dlg(this, _("Name for this show folder:"), title, suggested);
+    if (dlg.ShowModal() != wxID_OK) return wxEmptyString;
+    return dlg.GetValue().Trim(true).Trim(false);
+}
+
+bool ShowDirectoriesDialog::IsFavorite(const wxString& path) const
+{
+    return std::any_of(_favorites.begin(), _favorites.end(),
+                       [&path](const ShowFavorite& f) { return f.path == path; });
+}
+
+void ShowDirectoriesDialog::UpdateFavoriteButtons()
+{
+    if (FavoritesList == nullptr) return;
+    const bool readOnly = _xLights->IsReadOnlyMode();
+    const bool hasSel = SelectedFavorite() != wxNOT_FOUND;
+    Button_RemoveFavorite->Enable(hasSel && !readOnly);
+    Button_RenameFavorite->Enable(hasSel && !readOnly);
+    Button_GoFavPermanent->Enable(hasSel && !readOnly);
+    Button_GoFavTemporary->Enable(hasSel && !readOnly);
+
+    const wxString cur = _xLights->CurrentDir;
+    Button_AddFavorite->Enable(!readOnly && !cur.IsEmpty() && !IsFavorite(cur) && (int)_favorites.size() < MAX_SHOW_FAVORITES);
+}
+
+void ShowDirectoriesDialog::SwitchToFolder(const wxString& dir, bool permanent)
+{
+    if (_xLights->IsReadOnlyMode()) return;
+    if (_xLights->SwitchToShowFolder(dir, permanent)) {
+        EndModal(wxID_OK);
+        return;
+    }
+    UpdateControlsState();
+}
+
+void ShowDirectoriesDialog::OnAddFavorite(wxCommandEvent& event)
+{
+    const wxString cur = _xLights->CurrentDir;
+    if (cur.IsEmpty() || IsFavorite(cur) || (int)_favorites.size() >= MAX_SHOW_FAVORITES) return;
+
+    const wxString name = PromptFavoriteName(FolderDisplayName(cur), _("Add Favorite"));
+    if (name.IsEmpty()) return; // cancelled, or blanked out
+
+    _favorites.push_back({ name, cur });
+    SaveFavorites();
+    RefreshFavoritesList();
+    const long row = (long)_favorites.size() - 1;
+    FavoritesList->SetItemState(row, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    UpdateFavoriteButtons();
+}
+
+void ShowDirectoriesDialog::OnRemoveFavorite(wxCommandEvent& event)
+{
+    const long sel = SelectedFavorite();
+    if (sel == wxNOT_FOUND || sel >= (long)_favorites.size()) return;
+    _favorites.erase(_favorites.begin() + sel);
+    SaveFavorites();
+    RefreshFavoritesList();
+}
+
+void ShowDirectoriesDialog::OnGoFavoritePermanent(wxCommandEvent& event)
+{
+    const long sel = SelectedFavorite();
+    if (sel != wxNOT_FOUND && sel < (long)_favorites.size()) SwitchToFolder(_favorites[sel].path, true);
+}
+
+void ShowDirectoriesDialog::OnGoFavoriteTemporary(wxCommandEvent& event)
+{
+    const long sel = SelectedFavorite();
+    if (sel != wxNOT_FOUND && sel < (long)_favorites.size()) SwitchToFolder(_favorites[sel].path, false);
+}
+
+void ShowDirectoriesDialog::OnFavoriteSelectionChanged(wxListEvent& event)
+{
+    UpdateFavoriteButtons();
+}
+
+void ShowDirectoriesDialog::OnFavoriteDoubleClick(wxListEvent& event)
+{
+    const long sel = SelectedFavorite();
+    if (sel != wxNOT_FOUND && sel < (long)_favorites.size()) SwitchToFolder(_favorites[sel].path, true);
 }

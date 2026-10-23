@@ -19,6 +19,7 @@
 #include <wx/stdpaths.h>
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/artprov.h>
+#include <wx/control.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/thread.h>
@@ -43,6 +44,7 @@
 #include "utils/SpecialOptions.h"
 #include "layout/LayoutGroup.h"
 #include "setup/ControllerModelDialog.h"
+#include "setup/ShowDirectoriesDialog.h"
 #include "utils/ExternalHooks.h"
 #include "utils/ip_utils.h"
 
@@ -111,6 +113,78 @@ private:
 std::atomic_int ControllerPingThread::pingCount(0);
 
 #pragma region Show Directory
+void xLightsFrame::RebuildFavoriteShowFoldersMenu()
+{
+    if (FavoriteShowFoldersMenu == nullptr) return;
+
+    for (const auto& [id, path] : _favoriteMenuPaths) {
+        Disconnect(id, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuFavoriteShowFolder);
+    }
+    _favoriteMenuPaths.clear();
+    while (FavoriteShowFoldersMenu->GetMenuItemCount()) {
+        FavoriteShowFoldersMenu->Delete(FavoriteShowFoldersMenu->FindItemByPosition(0));
+    }
+
+    for (const auto& fav : ShowDirectoriesDialog::ReadFavoritesFromConfig()) {
+        const wxString& path = fav.path;
+        const wxString& name = fav.name;
+        const int menuID = wxNewId();
+        // Name only in the menu; the path lives in _favoriteMenuPaths. Escape
+        // mnemonics or an '&' in a folder name becomes an accelerator.
+        wxMenuItem* item = new wxMenuItem(FavoriteShowFoldersMenu, menuID,
+                                          wxControl::EscapeMnemonics(name), path);
+        item->SetBitmap(wxArtProvider::GetBitmapBundle("wxART_FOLDER_OPEN", wxART_MENU));
+        FavoriteShowFoldersMenu->Append(item);
+        _favoriteMenuPaths[menuID] = path;
+        Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuFavoriteShowFolder);
+    }
+    if (wxMenuItem* favItem = MenuFile->FindItem(ID_MENUITEM_FAVFOLDERS)) {
+        favItem->Enable(!_favoriteMenuPaths.empty());
+    }
+}
+
+void xLightsFrame::OnMenuFavoriteShowFolder(wxCommandEvent& event)
+{
+    auto it = _favoriteMenuPaths.find(event.GetId());
+    if (it == _favoriteMenuPaths.end()) return;
+    // Copy: a successful switch rebuilds the menu and clears _favoriteMenuPaths.
+    const wxString dir = it->second;
+    SwitchToShowFolder(dir, true);
+}
+
+bool xLightsFrame::SwitchToShowFolder(const wxString& dir, bool permanent)
+{
+    wxString nd = dir;
+    if (nd.EndsWith(wxFileName::GetPathSeparator())) {
+        nd.RemoveLast();
+    }
+    if (nd.IsEmpty()) return false;
+    if (nd == CurrentDir && (!permanent || _permanentShowFolder.empty() || _permanentShowFolder == ToStdString(nd))) {
+        return true;
+    }
+    if (readOnlyMode) {
+        wxMessageBox("Show directory cannot be changed in read only mode.", "Read Only Mode", wxICON_INFORMATION | wxOK);
+        return false;
+    }
+    // Access before the existence check: on the sandboxed build the folder may
+    // not be stat-able until its security-scoped bookmark is resolved.
+    if (!ObtainAccessToURL(ToStdString(nd), true)) {
+        DisplayError(wxString::Format(_("xLights could not get access to the show folder:\n%s"), nd), this);
+        return false;
+    }
+    if (!wxFileName::DirExists(nd)) {
+        DisplayError(wxString::Format(_("This show folder no longer exists:\n%s"), nd), this);
+        return false;
+    }
+    // Close first so a cancelled save prompt leaves the current show untouched.
+    if (!CloseSequence()) {
+        return false;
+    }
+    displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
+    layoutPanel->ClearUndo();
+    return SetDir(nd, permanent);
+}
+
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
     int id = event.GetId();
     wxString newdir = RecentShowFoldersMenu->GetLabel(id);
@@ -321,6 +395,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         RecentShowFoldersMenu->Append(mrud_MenuItem[i]);
     }
     RecentShowFoldersMenu->UpdateUI();
+    RebuildFavoriteShowFoldersMenu();
     MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->Enable(cnt != 0);
 
     if (!DirExists) {
@@ -1286,8 +1361,9 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     wxDiscoveryDelegate delegate(this);
     Discovery discovery(&_outputManager, &delegate);
-    PrepareAllControllerDiscovery(discovery);
+    auto seeded = PrepareAllControllerDiscovery(discovery);
     discovery.Discover();
+    FPP::FinishControllerSeeding(discovery, seeded);
 
     SetStatusText("Processing discovered controllers...");
     spdlog::debug("[Discovery] Processing discovered controllers...");

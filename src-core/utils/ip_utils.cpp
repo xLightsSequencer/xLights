@@ -37,7 +37,20 @@
 namespace ip_utils
 {
     static std::map<std::string, std::string> __resolvedIPMap;
+    // When each hostname last failed to resolve. A failed mDNS lookup costs ~5s, and one
+    // discovery/FPP Connect pass looks the same unreachable hostname up several times.
+    static std::map<std::string, std::chrono::steady_clock::time_point> __failedResolveMap;
+    static constexpr std::chrono::seconds FAILED_RESOLVE_TTL{ 60 };
     static std::mutex __resolvedIPMapLock;
+
+    static void RecordResolveResult(const std::string& ip, const std::string& r) {
+        __resolvedIPMap[ip] = r;
+        if (r == ip) {
+            __failedResolveMap[ip] = std::chrono::steady_clock::now();
+        } else {
+            __failedResolveMap.erase(ip);
+        }
+    }
 
     namespace {
         bool ResolveHostnameToIP(const std::string& host, std::string& outIp) {
@@ -172,6 +185,10 @@ namespace ip_utils
             if (it != __resolvedIPMap.end() && !it->second.empty() && it->second != ip) {
                 return it->second;
             }
+            auto f = __failedResolveMap.find(ip);
+            if (f != __failedResolveMap.end() && std::chrono::steady_clock::now() - f->second < FAILED_RESOLVE_TTL) {
+                return ip;
+            }
         }
         std::string r;
         auto resolveStart = std::chrono::steady_clock::now();
@@ -190,7 +207,7 @@ namespace ip_utils
             r = ip;
         }
         std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
-        __resolvedIPMap[ip] = r;
+        RecordResolveResult(ip, r);
         return r;
     }
 
@@ -244,7 +261,7 @@ namespace ip_utils
             }
             func(ip4Addr);
             std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
-            __resolvedIPMap[ip] = ip4Addr;
+            RecordResolveResult(ip, ip4Addr);
             lock.unlock();
         }
         std::string ip;

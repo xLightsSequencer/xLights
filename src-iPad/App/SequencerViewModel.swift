@@ -173,6 +173,9 @@ class SequencerViewModel {
         let endMS: Int
         let visibleRow: Int
         let effectIndex: Int
+        let modelName: String
+        let effectName: String
+        let layerIndex: Int
     }
     var sourceEffectMatches: [SourceEffectMatch] = []
     var sourceEffectsPresented: Bool = false
@@ -7444,20 +7447,28 @@ class SequencerViewModel {
                   let visibleRow = (d["visibleRow"] as? NSNumber)?.intValue,
                   let effectIndex = (d["effectIndex"] as? NSNumber)?.intValue else { continue }
             matches.append(.init(label: label, startMS: startMS, endMS: endMS,
-                                  visibleRow: visibleRow, effectIndex: effectIndex))
+                                  visibleRow: visibleRow, effectIndex: effectIndex,
+                                  modelName: d["modelName"] as? String ?? "",
+                                  effectName: d["effectName"] as? String ?? "",
+                                  layerIndex: (d["layerIndex"] as? NSNumber)?.intValue ?? -1))
         }
         sourceEffectMatches = matches
         sourceEffectsPresented = true
     }
 
     /// Jump to a Find-Source result: move the play head to its start
-    /// and select the effect when its owning row is currently visible.
+    /// and select the effect. A model that isn't in the current view is
+    /// found in Master View, as on desktop.
     func jumpToSourceEffect(_ match: SourceEffectMatch) {
-        seekTo(ms: match.startMS)
         if match.visibleRow >= 0, match.effectIndex >= 0,
            match.visibleRow < rows.count {
+            seekTo(ms: match.startMS)
             selectEffect(rowIndex: match.visibleRow, effectIndex: match.effectIndex)
+            return
         }
+        seekTo(ms: match.startMS)
+        jumpToEffect(modelName: match.modelName, effectName: match.effectName,
+                     startTimeMS: match.startMS, layerIndex: match.layerIndex)
     }
 
     /// B54: cut every effect across a model — copy then delete on
@@ -9288,20 +9299,26 @@ class SequencerViewModel {
 
     /// B43: switch the waveform display source. -1 = main; 0..N-1 =
     /// alt track. Reloads the waveform peaks for the current view
-    /// range. Playback is unaffected.
+    /// range. Playback follows the selection and keeps playing, as on
+    /// desktop.
     func setActiveWaveformTrack(_ index: Int) {
         guard hasAudio else { return }
         let clamped = (index < -1 || index >= altAudioTrackNames.count) ? -1 : index
         guard clamped != activeWaveformTrack else { return }
-        // Playback follows this selection now, so park the transport
-        // before the audio underneath it changes, then seek the newly
-        // selected track to the current position — otherwise Play would
-        // resume the new stem from wherever it happened to be left.
-        if isPlaying { pause() }
+        // Park the transport before the audio underneath it changes, then
+        // seek the newly selected track to the current position — otherwise
+        // the new stem would resume from wherever it happened to be left.
+        let wasPlaying = isPlaying
+        let stopAtMS = playbackStopAtMS
+        if wasPlaying { pause() }
         document.setActiveWaveformTrack(clamped)
         activeWaveformTrack = clamped
         document.audioSeek(toMS: playPositionMS)
         reloadWaveformCurrent()
+        if wasPlaying {
+            play()
+            playbackStopAtMS = stopAtMS
+        }
     }
 
     /// Route the current `waveformFilter` through `AudioManager::

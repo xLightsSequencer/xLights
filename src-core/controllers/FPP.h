@@ -168,6 +168,8 @@ class FPP : public BaseController
     static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
     static void PrepareSingleDiscovery(Discovery &discovery, const std::string &address);
     static void PrepareControllerTypeProbes(Discovery &discovery, const std::list<std::string> &addresses);
+    static std::list<std::string> StartControllerSeeding(const OutputManager* outputManager);
+    static void FinishControllerSeeding(Discovery &discovery, const std::list<std::string> &seeded);
     static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager);
     static bool ValidateProxy(const std::string& to, const std::string& via);
 

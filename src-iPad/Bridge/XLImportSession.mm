@@ -1575,6 +1575,27 @@ static BasicImportMappingNode* FindNodeByIDRecursive(BasicImportMappingNode* n, 
                   convertRenderStyle:(BOOL)convertRenderStyle
                importFacesToSequence:(BOOL)importFacesToSequence
                                 error:(NSError**)outError {
+    BOOL ok = [self applyImportEffectsWithEraseExisting:eraseExisting
+                                                   lock:lock
+                                     convertRenderStyle:convertRenderStyle
+                                  importFacesToSequence:importFacesToSequence
+                                                  error:outError];
+    // Imported effects are added via EffectLayer::AddEffect, which never
+    // registers their media with SequenceMedia (only the sequence-open path
+    // does), so Media Manager wouldn't list it until the sequence is reopened.
+    // Same pass the desktop runs after every import.
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (ok && rc != nullptr) {
+        SequenceFile::LoadEffectFiles(rc->GetSequenceElements(), rc);
+    }
+    return ok;
+}
+
+- (BOOL)applyImportEffectsWithEraseExisting:(BOOL)eraseExisting
+                                       lock:(BOOL)lock
+                         convertRenderStyle:(BOOL)convertRenderStyle
+                      importFacesToSequence:(BOOL)importFacesToSequence
+                                      error:(NSError**)outError {
     iPadRenderContext* rc = RawRenderContext(_document);
     if (_lpeMode) {
         // LOR Pixel Editor (.lpe) effect synthesis — the iPad equivalent of
@@ -1899,6 +1920,33 @@ static BasicImportMappingNode* FindNodeByIDRecursive(BasicImportMappingNode* n, 
                 continue;
             }
             ApplyS5Mapping(effectManager, targetEl, root.get(), *_loredit, frequency, offset, erase);
+
+            // Stacked ("Add Additional") sources: desktop applies each as its
+            // own duplicate row with `_isStackDuplicate` set; replay them the
+            // same way through a one-off node holding just that mapping. They
+            // never erase - the primary mapping already did.
+            auto applyStacked = [&](unsigned int childIndex, bool isChild, const std::string& source) {
+                BasicImportMappingNode stacked;
+                if (isChild) {
+                    for (unsigned int c = 0; c <= childIndex; ++c) {
+                        auto* n = stacked.AddChild(std::make_unique<BasicImportMappingNode>());
+                        if (c == childIndex) n->Map(source, "");
+                    }
+                } else {
+                    stacked.Map(source, "");
+                }
+                ApplyS5Mapping(effectManager, targetEl, &stacked, *_loredit, frequency, offset, false, true);
+            };
+            for (const auto& s : root->_stackedMappings) {
+                applyStacked(0, false, s);
+            }
+            for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+                BasicImportMappingNode* child = root->GetNthChild(j);
+                if (child == nullptr) continue;
+                for (const auto& s : child->_stackedMappings) {
+                    applyStacked(j, true, s);
+                }
+            }
         }
 
         rc->MarkRgbEffectsChanged();

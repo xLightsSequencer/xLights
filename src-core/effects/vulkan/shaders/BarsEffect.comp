@@ -76,18 +76,6 @@ uvec4 barsHsv2rgba(vec3 hsv) {
     return uvec4(uint(r * 255.0), uint(g * 255.0), uint(b * 255.0), 255u);
 }
 
-uvec4 blendHSV(vec3 hsv1, vec3 hsv2, float t) {
-    // Blend hue along the shortest arc
-    float dh = hsv2.x - hsv1.x;
-    if (dh > 0.5) dh -= 1.0;
-    if (dh < -0.5) dh += 1.0;
-    vec3 blended = vec3(
-        xl_fmod(hsv1.x + t * dh + 1.0, 1.0),
-        hsv1.y + t * (hsv2.y - hsv1.y),
-        hsv1.z + t * (hsv2.z - hsv1.z));
-    return barsHsv2rgba(blended);
-}
-
 uvec4 computeBarColor(int n) {
     int absN = abs(imod(n, data.blockSize));
     int colorIdx = absN / data.barSize;
@@ -109,10 +97,18 @@ uvec4 computeBarColor(int n) {
             rgba.a = uint(255.0 * float(numerator) / float(data.barSize));
         }
     } else {
-        vec3 hsv = data.colorsAsHSV[colorIdx];
         if (data.gradient != 0) {
-            return blendHSV(hsv, data.colorsAsHSV[color2], pct);
+            rgba = blendRGBA(unpackPx(data.colorsAsRGBA[colorIdx]), unpackPx(data.colorsAsRGBA[color2]), pct);
+            if (data.show3D != 0) {
+                float scale = float(data.barSize - abs(imod(n, data.barSize)) - 1) / float(data.barSize);
+                rgba.r = uint(float(rgba.r) * scale);
+                rgba.g = uint(float(rgba.g) * scale);
+                rgba.b = uint(float(rgba.b) * scale);
+            }
+            rgba.a = 255u;
+            return rgba;
         }
+        vec3 hsv = data.colorsAsHSV[colorIdx];
         if (data.show3D != 0) {
             int numerator = data.barSize - abs(imod(n, data.barSize)) - 1;
             hsv.z *= float(numerator) / float(data.barSize);
