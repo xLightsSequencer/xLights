@@ -20,11 +20,13 @@
 #include <wx/artprov.h>
 #include <wx/numdlg.h>
 #include <wx/filedlg.h>
+#include <wx/filename.h>
 #include <wx/treectrl.h>
 #include <wx/dir.h>
 #include <wx/listctrl.h>
 #include <wx/textdlg.h>
 
+#include <algorithm>
 #include <list>
 #include <sstream>
 
@@ -96,6 +98,10 @@ const wxWindowID SeqSettingsDialog::ID_TEXTCTRL_Xml_Music_Url = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_BUTTON2 = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_STATICTEXT_Xml_Comment = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_TEXTCTRL_Xml_Comment = wxNewId();
+const wxWindowID SeqSettingsDialog::ID_LISTBOX_ImportedFrom = wxNewId();
+const wxWindowID SeqSettingsDialog::ID_BUTTON_ImportedFrom_Add = wxNewId();
+const wxWindowID SeqSettingsDialog::ID_BUTTON_ImportedFrom_Change = wxNewId();
+const wxWindowID SeqSettingsDialog::ID_BUTTON_ImportedFrom_Remove = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_PANEL1 = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_BUTTON_Xml_New_Timing = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_BUTTON_Xml_Import_Timing = wxNewId();
@@ -224,6 +230,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     wxFlexGridSizer* FlexGridSizer8;
     wxFlexGridSizer* FlexGridSizer9;
     wxFlexGridSizer* FlexGridSizer_Timing_Grid;
+    wxBoxSizer* BoxSizer_ImportedFrom;
+    wxBoxSizer* BoxSizer_ImportedFromButtons;
     wxFlexGridSizer* FlexGridSizer_Timing_Page;
     wxGridBagSizer* GridBagSizer1;
     wxStaticText* StaticText2;
@@ -377,10 +385,20 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     TextCtrl_Xml_Comment = new wxTextCtrl(PanelMetaData, ID_TEXTCTRL_Xml_Comment, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(PanelMetaData,wxSize(150,-1)), wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Comment"));
     FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_Comment, 1, wxALL|wxEXPAND, 5);
     StaticText_Xml_ImportedFrom = new wxStaticText(PanelMetaData, wxID_ANY, _("Imported From:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    FlexGridSizer_Timing_Page->Add(StaticText_Xml_ImportedFrom, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_Xml_ImportedFrom = new wxTextCtrl(PanelMetaData, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDLG_UNIT(PanelMetaData,wxSize(150,-1)), wxTE_READONLY, wxDefaultValidator, _T("wxID_ANY"));
-    TextCtrl_Xml_ImportedFrom->SetToolTip(_("Sequences effects were imported from, most recent first"));
-    FlexGridSizer_Timing_Page->Add(TextCtrl_Xml_ImportedFrom, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer_Timing_Page->Add(StaticText_Xml_ImportedFrom, 1, wxALL|wxALIGN_RIGHT|wxALIGN_TOP, 5);
+    BoxSizer_ImportedFrom = new wxBoxSizer(wxHORIZONTAL);
+    ListBox_Xml_ImportedFrom = new wxListBox(PanelMetaData, ID_LISTBOX_ImportedFrom, wxDefaultPosition, wxDLG_UNIT(PanelMetaData,wxSize(150,40)), 0, 0, wxLB_SINGLE|wxLB_HSCROLL, wxDefaultValidator, _T("ID_LISTBOX_ImportedFrom"));
+    ListBox_Xml_ImportedFrom->SetToolTip(_("Sequences effects were imported from, most recent first"));
+    BoxSizer_ImportedFrom->Add(ListBox_Xml_ImportedFrom, 1, wxRIGHT|wxEXPAND, 5);
+    BoxSizer_ImportedFromButtons = new wxBoxSizer(wxVERTICAL);
+    Button_ImportedFrom_Add = new wxButton(PanelMetaData, ID_BUTTON_ImportedFrom_Add, _("Add..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ImportedFrom_Add"));
+    BoxSizer_ImportedFromButtons->Add(Button_ImportedFrom_Add, 0, wxBOTTOM|wxEXPAND, 2);
+    Button_ImportedFrom_Change = new wxButton(PanelMetaData, ID_BUTTON_ImportedFrom_Change, _("Change..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ImportedFrom_Change"));
+    BoxSizer_ImportedFromButtons->Add(Button_ImportedFrom_Change, 0, wxBOTTOM|wxEXPAND, 2);
+    Button_ImportedFrom_Remove = new wxButton(PanelMetaData, ID_BUTTON_ImportedFrom_Remove, _("Remove"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ImportedFrom_Remove"));
+    BoxSizer_ImportedFromButtons->Add(Button_ImportedFrom_Remove, 0, wxEXPAND, 0);
+    BoxSizer_ImportedFrom->Add(BoxSizer_ImportedFromButtons, 0, wxALIGN_TOP, 0);
+    FlexGridSizer_Timing_Page->Add(BoxSizer_ImportedFrom, 1, wxALL|wxEXPAND, 5);
     PanelMetaData->SetSizer(FlexGridSizer_Timing_Page);
     PanelTimings = new wxPanel(Notebook_Seq_Settings, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -483,6 +501,10 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     Connect(ID_TEXTCTRL_Xml_Music_Url, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Music_UrlText);
     Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_MusicOpenClick);
     Connect(ID_TEXTCTRL_Xml_Comment, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_CommentText);
+    Connect(ID_LISTBOX_ImportedFrom, wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&SeqSettingsDialog::OnListBox_ImportedFromSelect);
+    Connect(ID_BUTTON_ImportedFrom_Add, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_ImportedFrom_AddClick);
+    Connect(ID_BUTTON_ImportedFrom_Change, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_ImportedFrom_ChangeClick);
+    Connect(ID_BUTTON_ImportedFrom_Remove, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_ImportedFrom_RemoveClick);
     Connect(ID_BUTTON_Xml_New_Timing, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_New_TimingClick);
     Connect(ID_BUTTON_Xml_Import_Timing, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_Xml_Import_TimingClick);
     Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&SeqSettingsDialog::OnRenderModeChoiceSelect);
@@ -624,14 +646,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::ALBUM));
     TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::URL));
     TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::COMMENT));
-    wxString importedFrom;
-    for (auto const& donor : xml_file->GetImportedFrom()) {
-        if (!importedFrom.IsEmpty()) {
-            importedFrom += "; ";
-        }
-        importedFrom += wxString(donor);
-    }
-    TextCtrl_Xml_ImportedFrom->SetValue(importedFrom);
+    PopulateImportedFrom();
     Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString(xml_file->GetSequenceType()));
     SetTimingDisplay(xml_file->GetSequenceTiming());
     if (xml_file->GetMedia() == nullptr) {
@@ -736,6 +751,10 @@ std::string SeqSettingsDialog::BuildSettingsSignature() const
     for (int i = 0; i < (int)HEADER_INFO_TYPES::NUM_TYPES; ++i) {
         sig << xml_file->GetHeaderInfo((HEADER_INFO_TYPES)i) << "|";
     }
+    for (auto const& donor : xml_file->GetImportedFrom()) {
+        sig << donor << ";";
+    }
+    sig << "|";
 
     auto timings = xml_file->GetSequenceLoaded() ? xml_file->GetTimingList(xLightsParent->GetSequenceElements()) : xml_file->GetTimingList();
     for (const auto& t : timings) {
@@ -2571,4 +2590,87 @@ void SeqSettingsDialog::OnListCtrl_AudioTracksActivated(wxListEvent& event)
         return;
     }
     OnButton_AudioEditShortnameClick(dummy);
+}
+
+void SeqSettingsDialog::PopulateImportedFrom()
+{
+    const int sel = ListBox_Xml_ImportedFrom->GetSelection();
+    ListBox_Xml_ImportedFrom->Clear();
+    for (auto const& donor : xml_file->GetImportedFrom()) {
+        ListBox_Xml_ImportedFrom->Append(wxString::FromUTF8(donor));
+    }
+    if (sel != wxNOT_FOUND && sel < (int)ListBox_Xml_ImportedFrom->GetCount()) {
+        ListBox_Xml_ImportedFrom->SetSelection(sel);
+    }
+    UpdateImportedFromButtons();
+}
+
+void SeqSettingsDialog::UpdateImportedFromButtons()
+{
+    const bool selected = ListBox_Xml_ImportedFrom->GetSelection() != wxNOT_FOUND;
+    Button_ImportedFrom_Add->Enable(xml_file->GetImportedFrom().size() < SequenceFile::MAX_IMPORTED_FROM);
+    Button_ImportedFrom_Change->Enable(selected);
+    Button_ImportedFrom_Remove->Enable(selected);
+}
+
+bool SeqSettingsDialog::PickImportedFromFile(wxString& path)
+{
+    wxString dir = path.IsEmpty() ? wxString::FromUTF8(xLightsParent->GetShowDirectory()) : wxFileName(path).GetPath();
+    wxFileDialog dlg(this, _("Choose the sequence effects were imported from"), dir, wxFileName(path).GetFullName(),
+                     _("xLights Sequences (*.xsq)|*.xsq|All files (*.*)|*.*"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dlg.ShowModal() != wxID_OK) {
+        return false;
+    }
+    path = dlg.GetPath();
+    ObtainAccessToURL(path.ToStdString());
+    return true;
+}
+
+void SeqSettingsDialog::OnListBox_ImportedFromSelect(wxCommandEvent& event)
+{
+    UpdateImportedFromButtons();
+}
+
+void SeqSettingsDialog::OnButton_ImportedFrom_AddClick(wxCommandEvent& event)
+{
+    wxString path;
+    if (!PickImportedFromFile(path)) {
+        return;
+    }
+    xml_file->RecordImportedFrom(path.utf8_string());
+    PopulateImportedFrom();
+    ListBox_Xml_ImportedFrom->SetSelection(0);
+    UpdateImportedFromButtons();
+}
+
+void SeqSettingsDialog::OnButton_ImportedFrom_ChangeClick(wxCommandEvent& event)
+{
+    const int sel = ListBox_Xml_ImportedFrom->GetSelection();
+    auto donors = xml_file->GetImportedFrom();
+    if (sel == wxNOT_FOUND || sel >= (int)donors.size()) {
+        return;
+    }
+    wxString path = wxString::FromUTF8(donors[sel]);
+    if (!PickImportedFromFile(path)) {
+        return;
+    }
+    donors[sel] = path.utf8_string();
+    xml_file->SetImportedFrom(donors);
+    PopulateImportedFrom();
+}
+
+void SeqSettingsDialog::OnButton_ImportedFrom_RemoveClick(wxCommandEvent& event)
+{
+    const int sel = ListBox_Xml_ImportedFrom->GetSelection();
+    auto donors = xml_file->GetImportedFrom();
+    if (sel == wxNOT_FOUND || sel >= (int)donors.size()) {
+        return;
+    }
+    donors.erase(donors.begin() + sel);
+    xml_file->SetImportedFrom(donors);
+    PopulateImportedFrom();
+    if (ListBox_Xml_ImportedFrom->GetCount() > 0) {
+        ListBox_Xml_ImportedFrom->SetSelection(std::min(sel, (int)ListBox_Xml_ImportedFrom->GetCount() - 1));
+    }
+    UpdateImportedFromButtons();
 }

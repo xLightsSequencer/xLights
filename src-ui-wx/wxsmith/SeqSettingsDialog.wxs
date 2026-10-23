@@ -554,15 +554,53 @@
 									<object class="wxStaticText" name="wxID_ANY" variable="StaticText_Xml_ImportedFrom" member="yes">
 										<label>Imported From:</label>
 									</object>
-									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+									<flag>wxALL|wxALIGN_RIGHT|wxALIGN_TOP</flag>
 									<border>5</border>
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxTextCtrl" name="wxID_ANY" variable="TextCtrl_Xml_ImportedFrom" member="yes">
-										<size>150,-1d</size>
-										<style>wxTE_READONLY</style>
-										<tooltip>Sequences effects were imported from, most recent first</tooltip>
+									<object class="wxBoxSizer" variable="BoxSizer_ImportedFrom" member="no">
+										<object class="sizeritem">
+											<object class="wxListBox" name="ID_LISTBOX_ImportedFrom" variable="ListBox_Xml_ImportedFrom" member="yes">
+												<default>-1</default>
+												<size>150,40d</size>
+												<tooltip>Sequences effects were imported from, most recent first</tooltip>
+												<style>wxLB_SINGLE|wxLB_HSCROLL</style>
+												<handler function="OnListBox_ImportedFromSelect" entry="EVT_LISTBOX" />
+											</object>
+											<flag>wxRIGHT|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBoxSizer" variable="BoxSizer_ImportedFromButtons" member="no">
+												<orient>wxVERTICAL</orient>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON_ImportedFrom_Add" variable="Button_ImportedFrom_Add" member="yes">
+														<label>Add...</label>
+														<handler function="OnButton_ImportedFrom_AddClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxBOTTOM|wxEXPAND</flag>
+													<border>2</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON_ImportedFrom_Change" variable="Button_ImportedFrom_Change" member="yes">
+														<label>Change...</label>
+														<handler function="OnButton_ImportedFrom_ChangeClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxBOTTOM|wxEXPAND</flag>
+													<border>2</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON_ImportedFrom_Remove" variable="Button_ImportedFrom_Remove" member="yes">
+														<label>Remove</label>
+														<handler function="OnButton_ImportedFrom_RemoveClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxEXPAND</flag>
+												</object>
+											</object>
+											<flag>wxALIGN_TOP</flag>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>

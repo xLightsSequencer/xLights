@@ -347,6 +347,21 @@ void SequenceFile::RecordImportedFrom(const std::string& donorPath)
     header_info[(int)HEADER_INFO_TYPES::IMPORTED_FROM] = _importedFrom.front();
 }
 
+void SequenceFile::SetImportedFrom(const std::vector<std::string>& donors)
+{
+    _importedFrom.clear();
+    for (auto const& donor : donors) {
+        if (donor.empty() || std::find(_importedFrom.begin(), _importedFrom.end(), donor) != _importedFrom.end()) {
+            continue;
+        }
+        _importedFrom.push_back(donor);
+        if (_importedFrom.size() == MAX_IMPORTED_FROM) {
+            break;
+        }
+    }
+    header_info[(int)HEADER_INFO_TYPES::IMPORTED_FROM] = _importedFrom.empty() ? std::string() : _importedFrom.front();
+}
+
 void SequenceFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const std::string& node_value)
 {
     header_info[static_cast<int>(name_name)] = node_value;
