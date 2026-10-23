@@ -10,6 +10,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.20  October ??, 2026
+
+
 2026.19  October 23, 2026
 
     -change (dkulp)              SuperStar import: Image Resizing now defaults to All, so pictures
