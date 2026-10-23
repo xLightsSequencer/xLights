@@ -1,80 +1,104 @@
 === macOS App Store (limit 4000) ===
-xLights 2026.18 - October 2, 2026
+xLights 2026.19 - October 23, 2026
 
 New
-- Sequencer grid: hold Shift to keep timing in place while dragging, and a collision slide now stops at the obstruction.
-- "Show All Timing Tracks" is available from any view and from right-clicking a timing row.
-- Selecting an effect in the Select Effects panel scrolls the grid to it.
-- Filter and search boxes match words in any order, ignore separators, and support * ? wildcards and /regex/.
-- Import Effects: filter the mapping tree and source list, right-click a source group to add it to your layout and map it, and optionally record the sequence you imported from so you can reopen it later. Auto Map on large shows no longer stalls for 30+ seconds.
-- Moving Head: warnings for a drawn Path that does a bad flip, and Position Zones can be exported to and imported from other moving heads.
-- Perspectives now also save the Layout tab's panel arrangement, including panels on a second monitor.
-- Layout: Match Depth in 3D mode, the model picked in the Visualiser is highlighted, and the Controllers page highlights the selected controller with adjustable label size.
-- Display Elements gets a find bar for the Added models list.
-- Check Sequence has a redesigned report with a table of contents and next/previous issue stepping.
-- Media Manager can check a sequence's audio and video for formats future versions won't render.
-- A new toolbar for Batch Render, Bulk Controller Upload, Check Sequence and FPP Connect, plus a keybinding to toggle the video preview.
-- FPP Connect uploads submodels and model groups for FPP overlay effects (FPP 10+) and warns when models on FPP no longer match your layout.
+- Bars: a new Custom direction with an Angle slider moves the bars in any direction.
+- The Pictures effect can use SVG images, drawn sharp at the model's size.
+- Colour buttons preview the colour live while the colour picker is open, and Cancel restores the original.
+- Palette menu: "Update Only Colors" applies just the palette colours to the selected effects.
+- Find Possible Source Effects is available from any view.
+- Tools > Generate Moving Head Effects builds moving head effects from bars and sections timing tracks.
+- Faster renders for sequences with large models or groups set to Render Disabled.
+- LOR S5/S6 import: effects land on the matching strands, tiers and columns of the model, custom motion rows can be mapped to submodels or groups, sketches import as SVG pictures, singing faces get lip-sync timing tracks and Faces effects, and many more LOR effects come across.
+- Import Effects can convert unsupported videos during the import.
+- Pin favorite show folders and switch to them from File > Favorite Show Folders.
+- "Promote to Base Show Folder" copies models, groups, 3D objects and controllers into the base show folder and links them.
+- Batch Render and FPP Connect show a progress window with each sequence's and controller's result and the time left.
+- The Faces, States and SubModels "Import From Model" pickers have a filter box.
+- FPP controllers: the new LOR Enhanced serial protocol, and models on USB serial adapters plugged into the controller.
 
 Changed
-- The sequencer prop filter is no longer saved into the sequence.
+- SuperStar import scales pictures with the rest of the imported effects by default.
+- Help > Forum opens the xLights board on the Falcon Christmas forum.
 
 Fixed
-- Fixed a number of crashes in the sequencer grid, and when models changed or a sequence closed while a render was running.
-- Fixed crashes and wrong output in the Candle, Butterfly, Plasma, Pinwheel, Fan, Video and Text effects, and Faces with Auto eyes rarely blinking.
-- Shader effects: no more solid frame at the lowest Zoom, GPU shaders no longer start a frame early, and a shader that can't get GPU resources shows yellow instead of closing the app.
-- Moving Head: fixed a one-frame jump at each Cycles repeat, effects rendering nothing after being moved or pasted, pasting onto a group collapsing settings, Path and Dimmer tab issues, and crashes in the path sketch editor.
-- Effect settings with a leading space in older sequences no longer render as 0.
-- Paste Effects on a submodel or group row no longer wipes every submodel's effects.
-- Presets saved as Relative now stay Relative.
-- Older shows with 3D moving heads load again, and one unloadable model no longer stops the whole layout from loading.
-- Background images and dimming curve files are found again after moving the show folder to another location or machine.
-- Import Effects keeps embedded media embedded, copies referenced media into your show folder, and flags missing media right away.
-- Fixed .fseq files that could read back wrong or crash when truncated, and a hang saving an .fseq.
-- Fixed several Layout issues: Arches start location, blank model names, Polyline Z-axis handle dragging, model group cloning and the preview opening on Unassigned.
-- Fixed crashes in the Test dialog, and the global controller settings show again when no controller is selected.
-- Controller fixes for FPP Connect discovery and saved settings, Falcon colour order and media lists, HinksPix export, Minleon, DDP, Experience and Twinkly.
-- Controller Visualiser Print Preview responds to clicks, and FPP Connect rows no longer show black.
-- Uncompressed .mov files at certain widths are no longer wrongly flagged as unsupported.
-- Older Macs with little video memory fall back to the CPU instead of crashing when a GPU buffer can't be allocated.
-- Fixed a crash on exit when using a 3D mouse.
+- Some shaders rendered as random noise, and shaders on very large buffers crashed.
+- Bars gradients picked up extra hues with non-Normal layer blending.
+- Chroma Key turned uncovered areas black, hiding the layers below.
+- Fixed crashes in the Butterfly and Music effects, and on very large model group buffers.
+- Model groups in a near-perfect row could render very slowly.
+- Switching audio tracks during playback now moves playback to the new track.
+- Display Elements Show All / Hide All now stick for timing tracks.
+- Package Sequence could leave out media used by effects added since the sequence was opened.
+- Imported media is no longer reported as relocated on the next open.
+- SuperStar and LOR S5/S6 import: overlapping effects, overlay mixes, bar and spiral speeds and several colour conversions are fixed.
+- Layout: fixes for Circle, multi-string Cube and multi-layer arch models, older DMX models failing to load, Align Front/Back depth, Model Sets in base show folders, Terrain editing and Add Object in 3D.
+- Model groups that contain each other no longer crash the Layout tab.
+- Controller visualizer: moving models no longer breaks a port's chain.
+- FPP Connect: faster startup when controllers are offline, no stray password prompts, no repeated re-upload of unchanged sequences, inactive controllers set by hostname, and ESPixelStick uploads and discovery.
+- LOR output now behaves like FPP's, fixing stuck channels, wrapped units and lag.
+- Videos the hardware decoder can't handle switch to software decoding once, and small videos are no longer squashed.
+- The system colour picker no longer shifts the chosen colour.
+- FPP Connect works when the system temporary folder isn't writable.
+- The app no longer freezes while a 3D mesh downloads from iCloud.
+- Fixed a large number of crashes, including in timing tracks, the waveform, Search, Effect Presets, the Assist panel, Layout undo/redo, show folder switching, controller discovery and upload, damaged FSEQ and render cache files, and closing a sequence while audio plays.
 
 === iPad App Store (limit 4000) ===
-xLights 2026.18 - October 2, 2026
-
-Improved
-- Undo after dragging, aligning or distributing a Model Set member now moves the whole Set back, and an align, flip, match size or bulk edit on several models undoes in one step.
-
-Fixed
-- Package Sequence could leave out external shader files after the app freed memory.
-- Fixed crashes and wrong output in the Candle, Butterfly, Plasma, Pinwheel, Fan, Video and Text effects.
-- The Faces effect with Auto eyes blinks properly again on tightly sung timing tracks.
-- Shader effects no longer render a solid frame at the lowest Zoom, no longer start one frame early, and a shader that can't get GPU resources shows yellow instead of closing the app.
-- Moving Head effects with a drawn Path and multiple Cycles no longer jump for one frame at each repeat.
-- Effect settings with a leading space in older sequences no longer render as 0.
-- A layer that can't get a GPU buffer renders on the CPU instead of crashing.
-- Older shows with 3D moving heads load again, and one unloadable model no longer stops the whole layout from loading.
-- Custom model background images and dimming curve files are found again after a show folder is moved.
-- Fixed .fseq files that could read back wrong or crash when truncated, and a hang saving an .fseq.
-- Fixed a crash loading sequences with damaged effect references.
-
-=== Windows Store (limit 1500) ===
-xLights 2026.18 - October 2, 2026
+xLights 2026.19 - October 23, 2026
 
 New
-- Sequencer grid: Shift holds timing while dragging; collision slides stop at the obstruction.
-- Show All Timing Tracks from any view; Select Effects scrolls the grid to the effect.
-- Search boxes match words in any order and support wildcards and /regex/.
-- Import Effects: filtering, add-and-map source groups, and much faster Auto Map.
-- Perspectives save the Layout tab's panels; Check Sequence has a redesigned report.
-- Moving Head bad-flip warnings and Position Zone export/import.
+- Bars: a new Custom direction with an Angle slider moves the bars in any direction.
+- The Pictures effect can use SVG images, drawn sharp at the model's size.
+- "Update Only Colors" applies just the palette colours to the selected effects.
+- LOR S5/S6 import: effects land on the matching strands, tiers and columns of the model, custom motion rows can be mapped to submodels or groups, sketches import as SVG pictures, singing faces get lip-sync timing tracks and Faces effects, and many more LOR effects come across.
+- "Promote to Base Show Folder" copies models, groups, 3D objects and controllers into the base show folder and links them.
+- Controller visualizer: drop a model on the top half of a row to put it before that model, and Move to Front puts a model at the head of its port.
+- Faster renders for sequences with large models or groups set to Render Disabled.
+
+Changed
+- SuperStar import scales pictures with the rest of the imported effects by default.
+- Help > Forum opens the xLights board on the Falcon Christmas forum.
 
 Fixed
-- Windows 11 Smart App Control no longer blocks xLights from starting.
-- Fixed many crashes in the sequencer grid, the Test dialog, and during renders.
-- Fixed Candle, Butterfly, Plasma, Pinwheel, Fan, Video, Text, Faces and Shader effect problems.
-- Moving Head path, paste and cycle-repeat fixes.
-- Presets saved as Relative stay Relative; Paste Effects on submodel rows no longer wipes effects.
-- Older shows with 3D moving heads load again.
-- Background images found after moving the show folder.
-- .fseq read/save fixes, plus controller fixes for FPP Connect, Falcon and others.
+- Smoother scrolling on large sequences: the grid and row headings no longer redraw everything on every step.
+- Update Palette now matches desktop, copying only colours and checkboxes.
+- Switching audio tracks during playback keeps playing on the new track.
+- Find Possible Source Effects opens results for models outside the current view.
+- Media Manager shows the media of just-imported effects right away.
+- Remove Unused Media no longer drops media used only by submodel, strand or node effects.
+- LOR S5 import no longer drops sources added with "Add Additional".
+- FPP Connect uploads to inactive controllers set by hostname and finds controllers on other subnets.
+- Controller visualizer: moving a model keeps the rest of its old chain in place.
+- Some shaders rendered as random noise, and shaders on very large buffers crashed.
+- Bars gradients picked up extra hues with non-Normal layer blending.
+- Chroma Key turned uncovered areas black, hiding the layers below.
+- Fixed crashes in the Butterfly and Music effects, and on very large model group buffers.
+- Package Sequence could leave out media used by effects added since the sequence was opened.
+- SuperStar and LOR S5/S6 import: overlapping effects, overlay mixes, bar and spiral speeds and several colour conversions are fixed.
+- Layout: fixes for Circle, multi-string Cube and multi-layer arch models, older DMX models failing to load, and Model Sets in base show folders.
+- The app is no longer closed while a 3D mesh downloads from iCloud.
+- Fixed crashes when closing a sequence or changing its audio during playback, and with model groups that contain each other.
+
+=== Windows Store (limit 1500) ===
+xLights 2026.19 - October 23, 2026
+
+New
+- Bars: a Custom direction with an Angle slider.
+- The Pictures effect can use SVG images.
+- Colour buttons preview live while the colour picker is open.
+- "Update Only Colors" on the palette menu.
+- Generate Moving Head Effects from bars and sections timing.
+- Stem separation adds Guitar and Piano stems.
+- Much improved LOR S5/S6 import.
+- Faster renders when large models or groups are set to Render Disabled.
+- Find Possible Source Effects is available from any view.
+- Favorite show folders, and progress windows for Batch Render and FPP Connect.
+
+Fixed
+- Some shaders rendered as random noise.
+- Bars gradient and Chroma Key layer fixes.
+- Switching audio tracks during playback now plays the new track.
+- Package Sequence could leave out media of newly added effects.
+- Many Layout, FPP Connect and LOR output fixes.
+- Video: hardware decode failures fall back to software instead of black or garbled output.
+- Fixed many crashes, including in shaders, video and Vulkan.
