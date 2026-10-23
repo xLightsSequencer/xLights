@@ -32,6 +32,8 @@ class JBoards : public BaseController
     int _chainSlots = 6;
     int _serialPorts = 0;
     int _pixelPorts = 0;
+    int _maxStringsPerPort = 8;
+    int _maxStringsPerReceiverOutput = 8;
     bool _audio = false;
     int64_t _sequenceStartChannel = 0;
     #pragma endregion
@@ -44,7 +46,7 @@ class JBoards : public BaseController
 #ifndef DISCOVERYONLY
     bool CheckBoard(Controller* controller, ControllerCaps*& caps, std::string& error) const;
     static nlohmann::json StringJson(const UDVirtualString& vs,
-                                     bool fullControl, int defaultBrightness);
+                                     bool fullControl, int defaultBrightness, float defaultGamma);
     bool UploadChains(UDController& cud, Controller* controller, bool fullControl,
                       std::set<int>& chainPorts, std::string& error);
     bool UploadPixelPorts(UDController& cud, ControllerCaps* caps, Controller* controller,
@@ -87,8 +89,7 @@ public:
                                std::function<bool(int, std::string)> progress, std::string& error);
     static void PrepareSequenceUpload(FPP* inst, OutputManager* outputManager);
 #endif
-    [[nodiscard]] static bool PlaysAudio(const std::string& ip);
-    [[nodiscard]] static bool PrefersUncompressedFSEQ(const std::string& ip);
+    [[nodiscard]] static bool PlaysAudio(const std::string& ip, const std::string& hostname = "");
     #pragma endregion
 
     #pragma region Static Functions
