@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (dkulp)                 iPad - Controller visualizer: drop a model on the top half of a row to put it before that
+                                 model, and Move to Front puts a model at the head of its port
     -bug (heffneil)              Controller visualizer: moving a model to the front of its chain no longer knocks the
                                  next model off the port
     -bug (dkulp)                 Controller visualizer: moving a multi-string model, or dropping a model on the header of

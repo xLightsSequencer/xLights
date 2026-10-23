@@ -33,7 +33,7 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 13 Tools, diagnostics, help | 58 | 13 | 12 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
 | **Total (01–13)** | **1024** | **285** | **343** | **165** | **88** | |
 
-Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
+Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **49** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
 **Parity index:** of the 1,652 rows where an iPad status is meaningful (✅+🟡+❌), **62%** are
@@ -289,7 +289,7 @@ The ones that matter most:
 
 ## Reverse parity — iPad features desktop should adopt
 
-From [14-reverse-parity-ipad-only.md](14-reverse-parity-ipad-only.md), now 48 verified
+From [14-reverse-parity-ipad-only.md](14-reverse-parity-ipad-only.md), now 49 verified
 iPad-only behaviors with a 14-rank adoption shortlist. The top of the list:
 
 1. **Remove Unused Media** — core API exists with no desktop caller; menu item + confirm.

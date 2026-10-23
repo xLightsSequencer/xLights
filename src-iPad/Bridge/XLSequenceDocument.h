@@ -3667,6 +3667,20 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
                      smartRemote:(int)smartRemote
     NS_SWIFT_NAME(assignModel(_:toController:kind:port:afterModel:smartRemote:));
 
+// Same, but lands the model immediately BEFORE `beforeModel` (which
+// must already be on that port), like desktop's left-half drop: the
+// model takes over `beforeModel`'s chain and smart remote and
+// `beforeModel` chains off it. Before the port's first model is
+// "move to front". A no-op returning YES when the model already sits
+// directly before `beforeModel`.
+- (BOOL)assignModelToController:(NSString*)modelName
+                  controllerName:(NSString*)controllerName
+                            kind:(NSString*)portKind
+                            port:(int)port
+                     beforeModel:(NSString*)beforeModelName
+                     smartRemote:(int)smartRemote
+    NS_SWIFT_NAME(assignModel(_:toController:kind:port:beforeModel:smartRemote:));
+
 // Phase J-32.5 — remove a model's controller assignment so it
 // returns to the "No Connection" bucket / models pane. Clears
 // `controllerName`, `controllerPort`, `modelChain`, and any
