@@ -34,8 +34,7 @@
 #include <log.h>
 
 namespace {
-constexpr int kMaxStringsPerPort = 8;
-constexpr int kChainLanes = 4;
+constexpr int CHAIN_LANES = 4;
 
 std::string JsonString(const nlohmann::json& j, const char* key) {
     if (!j.is_object()) return std::string();
@@ -94,7 +93,8 @@ std::string ErrorText(const nlohmann::json& response) {
 
 struct DiscoveredBoardInfo {
     bool audio = false;
-    std::string arch;
+    std::string hostname;
+    std::string identity;
 };
 std::map<std::string, DiscoveredBoardInfo>& DiscoveredBoards() {
     static std::map<std::string, DiscoveredBoardInfo> boards;
@@ -113,7 +113,7 @@ DiscoveredData* ReadoptJBoardsBoard(Discovery& discovery, const std::string& ip)
     return nullptr;
 }
 
-constexpr auto kPreparedUploadReuse = std::chrono::seconds(60);
+constexpr auto PREPARED_UPLOAD_REUSE = std::chrono::seconds(60);
 
 struct PreparedUpload {
     std::chrono::steady_clock::time_point when;
@@ -150,7 +150,39 @@ void JBoards::ProcessDiscoveryInfo(Discovery& discovery, const std::string& ip, 
         spdlog::debug("JBoards discovery: ignoring {} (vendor '{}', model '{}')", ip, vendor, model);
         return;
     }
+    const std::string hostname = JsonString(info, "name");
+    const std::string boardIp = JsonString(info, "ip");
+    std::string identity = Lower(JsonString(info, "mac"));
+    if (identity.empty()) identity = Lower(hostname);
+    DiscoveredData* other = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(DiscoveredBoardsLock());
+        DiscoveredBoardInfo& board = DiscoveredBoards()[ip];
+        board.hostname = hostname;
+        board.identity = identity;
+        if (info.contains("audio") && info["audio"].is_boolean()) {
+            board.audio = info["audio"].get<bool>();
+        }
+        for (DiscoveredData* r : discovery.GetResults()) {
+            if (r->ip == ip || r->controller == nullptr || identity.empty()) continue;
+            auto it = DiscoveredBoards().find(r->ip);
+            if (it != DiscoveredBoards().end() && it->second.identity == identity) {
+                other = r;
+                break;
+            }
+        }
+    }
     DiscoveredData* cd = discovery.FindByIp(ip);
+    if (other != nullptr) {
+        DiscoveredData* extra = (ip == boardIp && other->ip != boardIp) ? other : cd;
+        if (extra != nullptr && extra->controller != nullptr) {
+            spdlog::debug("JBoards discovery: {} is another address of the board at {}; keeping one controller.",
+                          extra->ip, extra == other ? ip : other->ip);
+            delete extra->controller;
+            extra->controller = nullptr;
+        }
+        if (extra == cd) return;
+    }
     ControllerEthernet* ce = cd ? cd->controller : nullptr;
     if (!ce) {
         ce = new ControllerEthernet(discovery.GetOutputManager(), false);
@@ -162,7 +194,10 @@ void JBoards::ProcessDiscoveryInfo(Discovery& discovery, const std::string& ip, 
             cd = discovery.AddController(ce);
         }
     }
-    cd->hostname = JsonString(info, "name");
+    if (!hostname.empty() && (ce->GetName() == "DDP_" + ip || ce->GetName().rfind("Ethernet_", 0) == 0)) {
+        ce->SetName(hostname);
+    }
+    cd->hostname = hostname;
     const std::string description = JsonString(info, "description");
     cd->extraData["description"] = description.empty() ? cd->hostname : description;
     cd->SetVendor("JBoards");
@@ -170,17 +205,6 @@ void JBoards::ProcessDiscoveryInfo(Discovery& discovery, const std::string& ip, 
     cd->SetVariant("");
     cd->version = JsonString(info, "version");
     cd->platform = "JBoards";
-    {
-        std::lock_guard<std::mutex> lock(DiscoveredBoardsLock());
-        DiscoveredBoardInfo& board = DiscoveredBoards()[ip];
-        if (info.contains("audio") && info["audio"].is_boolean()) {
-            board.audio = info["audio"].get<bool>();
-        }
-        const std::string arch = JsonString(info, "arch");
-        if (!arch.empty()) {
-            board.arch = arch;
-        }
-    }
     if ((cd->mode.empty() || cd->mode == "bridge") && info.contains("mode") && info["mode"].is_string()) {
         cd->mode = info["mode"].get<std::string>();
     }
@@ -215,7 +239,15 @@ void JBoards::PrepareDiscovery(Discovery& discovery) {
     });
     discovery.AddBroadcast(DDP_PORT, [&discovery](uint8_t* buffer, int len, const std::string& fromIP) {
         if (len >= 4 && (buffer[0] & DDP_FLAGS1_QUERY) == 0 && (buffer[3] == DDP_ID_CONFIG || buffer[3] == DDP_ID_STATUS)) {
-            AdoptDiscoveredBoard(discovery, ReadoptJBoardsBoard(discovery, fromIP));
+            DiscoveredData* cd = ReadoptJBoardsBoard(discovery, fromIP);
+            if (cd != nullptr) {
+                AdoptDiscoveredBoard(discovery, cd);
+            } else {
+                discovery.AddCurl(fromIP, "/xlights/info", [&discovery, fromIP](int rc, const std::string& body, const std::string&) {
+                    if (rc == 200) ProcessDiscoveryInfo(discovery, fromIP, body);
+                    return true;
+                });
+            }
         }
     });
 }
@@ -234,16 +266,15 @@ void JBoards::ProcessFPPDiscovery(Discovery& discovery, DiscoveredData* cd) {
     });
 }
 
-bool JBoards::PlaysAudio(const std::string& ip) {
+bool JBoards::PlaysAudio(const std::string& ip, const std::string& hostname) {
     std::lock_guard<std::mutex> lock(DiscoveredBoardsLock());
     auto it = DiscoveredBoards().find(ip);
-    return it != DiscoveredBoards().end() && it->second.audio;
-}
-
-bool JBoards::PrefersUncompressedFSEQ(const std::string& ip) {
-    std::lock_guard<std::mutex> lock(DiscoveredBoardsLock());
-    auto it = DiscoveredBoards().find(ip);
-    return it != DiscoveredBoards().end() && Lower(it->second.arch).rfind("esp32", 0) == 0;
+    if (it != DiscoveredBoards().end()) return it->second.audio;
+    if (hostname.empty()) return false;
+    for (const auto& [boardIp, board] : DiscoveredBoards()) {
+        if (Lower(board.hostname) == Lower(hostname)) return board.audio;
+    }
+    return false;
 }
 #pragma endregion
 
@@ -265,6 +296,8 @@ JBoards::JBoards(const std::string& ip, const std::string& proxy) : BaseControll
     _chainSlots = JsonInt(info, "smartReceiverSlots", _chainSlots);
     _serialPorts = JsonInt(info, "maxSerialPorts", _serialPorts);
     _pixelPorts = JsonInt(info, "maxPixelPorts", _pixelPorts);
+    _maxStringsPerPort = JsonInt(info, "maxStringsPerPort", _maxStringsPerPort);
+    _maxStringsPerReceiverOutput = JsonInt(info, "maxStringsPerReceiverOutput", _maxStringsPerReceiverOutput);
     if (info.contains("audio") && info["audio"].is_boolean()) {
         _audio = info["audio"].get<bool>();
     }
@@ -309,12 +342,12 @@ std::string JBoards::SkippedText(const nlohmann::json& response) {
 
 bool JBoards::InChain(int port) const {
     return std::any_of(_chainBases.begin(), _chainBases.end(),
-                       [port](int base) { return port >= base && port < base + kChainLanes; });
+                       [port](int base) { return port >= base && port < base + CHAIN_LANES; });
 }
 
 #ifndef DISCOVERYONLY
 nlohmann::json JBoards::StringJson(const UDVirtualString& vs, bool fullControl,
-                                   int defaultBrightness) {
+                                   int defaultBrightness, float defaultGamma) {
     nlohmann::json s;
     const int cpp = std::max(1, vs._channelsPerPixel);
     int pixels = vs.Channels() / cpp;
@@ -335,7 +368,11 @@ nlohmann::json JBoards::StringJson(const UDVirtualString& vs, bool fullControl,
     } else if (fullControl) {
         s["brightness"] = defaultBrightness;
     }
-    if (vs._gammaSet) s["gamma"] = vs._gamma;
+    if (vs._gammaSet) {
+        s["gamma"] = vs._gamma;
+    } else if (fullControl) {
+        s["gamma"] = defaultGamma;
+    }
     if (vs._startNullPixelsSet) s["nullPixels"] = vs._startNullPixels;
     if (vs._endNullPixelsSet) s["endNullPixels"] = vs._endNullPixels;
     if (vs._zigZagSet) s["zigzag"] = vs._zigZag;
@@ -346,14 +383,15 @@ nlohmann::json JBoards::StringJson(const UDVirtualString& vs, bool fullControl,
 bool JBoards::UploadChains(UDController& cud, Controller* controller, bool fullControl,
                            std::set<int>& chainPorts, std::string& error) {
     const int defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
+    const float defaultGamma = controller->GetDefaultGammaUnderFullControl();
 
     for (const int base : _chainBases) {
-        std::vector<std::array<nlohmann::json, kChainLanes>> cells(std::max(0, _chainSlots));
+        std::vector<std::array<nlohmann::json, CHAIN_LANES>> cells(std::max(0, _chainSlots));
         for (auto& row : cells) for (auto& c : row) c = nlohmann::json::array();
         int receivers = 0;
         bool plainModels = false;
 
-        for (int lane = 0; lane < kChainLanes; ++lane) {
+        for (int lane = 0; lane < CHAIN_LANES; ++lane) {
             const int port = base + lane;
             if (!cud.HasPixelPort(port)) continue;
             for (const auto* vs : cud.GetControllerPixelPort(port)->GetVirtualStrings()) {
@@ -366,12 +404,12 @@ bool JBoards::UploadChains(UDController& cud, Controller* controller, bool fullC
                     return false;
                 }
                 auto& cell = cells[sr - 1][lane];
-                if (static_cast<int>(cell.size()) >= kMaxStringsPerPort) {
+                if (static_cast<int>(cell.size()) >= _maxStringsPerReceiverOutput) {
                     error = "Port " + std::to_string(port) + " Smart Remote " + SmartRemoteLetter(sr) +
-                            " has more than " + std::to_string(kMaxStringsPerPort) + " strings.";
+                            " has more than " + std::to_string(_maxStringsPerReceiverOutput) + " strings.";
                     return false;
                 }
-                const nlohmann::json s = StringJson(*vs, fullControl, defaultBrightness);
+                const nlohmann::json s = StringJson(*vs, fullControl, defaultBrightness, defaultGamma);
                 nlohmann::json seg;
                 seg["pixelCount"] = s["pixels"];
                 seg["streamingStartChannel"] = s["startChannel"];
@@ -396,7 +434,7 @@ bool JBoards::UploadChains(UDController& cud, Controller* controller, bool fullC
                 if (!PutJSON("/api/pixels/jbsr-group/" + std::to_string(base), rm, response)) {
                     const std::string reason = JsonString(response, "error");
                     error = "The controller could not remove the smart-receiver chain on ports " +
-                            std::to_string(base) + "-" + std::to_string(base + kChainLanes - 1) +
+                            std::to_string(base) + "-" + std::to_string(base + CHAIN_LANES - 1) +
                             (reason.empty() ? std::string(".") : ": " + reason + ".");
                     return false;
                 }
@@ -404,7 +442,7 @@ bool JBoards::UploadChains(UDController& cud, Controller* controller, bool fullC
             continue;
         }
         if (plainModels) {
-            error = "Ports " + std::to_string(base) + "-" + std::to_string(base + kChainLanes - 1) +
+            error = "Ports " + std::to_string(base) + "-" + std::to_string(base + CHAIN_LANES - 1) +
                     " mix smart-remote models with plain models; a chain is all smart remotes or none.";
             return false;
         }
@@ -415,7 +453,7 @@ bool JBoards::UploadChains(UDController& cud, Controller* controller, bool fullC
         nlohmann::json ports = nlohmann::json::array();
         for (int sr = 0; sr < receivers; ++sr) {
             nlohmann::json row = nlohmann::json::array();
-            for (int lane = 0; lane < kChainLanes; ++lane) row.push_back(cells[sr][lane]);
+            for (int lane = 0; lane < CHAIN_LANES; ++lane) row.push_back(cells[sr][lane]);
             ports.push_back(row);
         }
         body["ports"] = ports;
@@ -423,11 +461,11 @@ bool JBoards::UploadChains(UDController& cud, Controller* controller, bool fullC
         if (!PutJSON("/api/pixels/jbsr-group/" + std::to_string(base), body, response)) {
             const std::string reason = JsonString(response, "error");
             error = "The controller refused the smart-receiver chain on ports " + std::to_string(base) +
-                    "-" + std::to_string(base + kChainLanes - 1) + ": " +
+                    "-" + std::to_string(base + CHAIN_LANES - 1) + ": " +
                     (reason.empty() ? std::string("a lane may exceed its pixel budget") : reason) + ".";
             return false;
         }
-        for (int lane = 0; lane < kChainLanes; ++lane) chainPorts.insert(base + lane);
+        for (int lane = 0; lane < CHAIN_LANES; ++lane) chainPorts.insert(base + lane);
     }
     return true;
 }
@@ -436,6 +474,7 @@ bool JBoards::UploadPixelPorts(UDController& cud, ControllerCaps* caps, Controll
                                bool fullControl, const std::set<int>& chainPorts,
                                nlohmann::json& sent, std::string& warning, std::string& error) {
     const int defaultBrightness = controller->GetDefaultBrightnessUnderFullControl();
+    const float defaultGamma = controller->GetDefaultGammaUnderFullControl();
     nlohmann::json outputs = nlohmann::json::array();
 
     for (int port = 1; port <= caps->GetMaxPixelPort(); ++port) {
@@ -451,11 +490,11 @@ bool JBoards::UploadPixelPorts(UDController& cud, ControllerCaps* caps, Controll
                             ") but is not part of an uploaded smart-receiver chain.";
                     return false;
                 }
-                strings.push_back(StringJson(*vs, fullControl, defaultBrightness));
+                strings.push_back(StringJson(*vs, fullControl, defaultBrightness, defaultGamma));
             }
-            if (static_cast<int>(strings.size()) > kMaxStringsPerPort) {
+            if (static_cast<int>(strings.size()) > _maxStringsPerPort) {
                 error = "Port " + std::to_string(port) + " needs " + std::to_string(strings.size()) +
-                        " strings; this controller takes " + std::to_string(kMaxStringsPerPort) +
+                        " strings; this controller takes " + std::to_string(_maxStringsPerPort) +
                         " per port. Give props on this port matching settings, or move some to another port.";
                 return false;
             }
@@ -607,10 +646,6 @@ bool JBoards::InputConfig(Controller* c, nlohmann::json& cfg, std::string& error
             return false;
         }
         const char* key = (o->GetType() == OUTPUT_E131) ? "e131" : "artnet";
-        if (o->GetType() == OUTPUT_ARTNET && o->GetUniverse() < 1) {
-            error = "Art-Net universe 0 is not supported. Set this controller's start universe to 1 or higher.";
-            return false;
-        }
         cfg[key]["enabled"] = true;
         cfg[key]["startUniverse"] = o->GetUniverse();
         cfg[key]["universeCount"] = controller->GetOutputCount();
@@ -706,19 +741,20 @@ bool JBoards::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
                 return fail("Port " + std::to_string(port) + " uses Smart Remote " + SmartRemoteLetter(vs->_smartRemote) +
                             "; this controller has " + std::to_string(_chainSlots) + " receivers per chain.");
             }
-            if (++stringsPerRemote[vs->_smartRemote] > kMaxStringsPerPort) {
+            const int maxStrings = vs->_smartRemote != 0 ? _maxStringsPerReceiverOutput : _maxStringsPerPort;
+            if (++stringsPerRemote[vs->_smartRemote] > maxStrings) {
                 return fail("Port " + std::to_string(port) +
                             (vs->_smartRemote != 0 ? " Smart Remote " + SmartRemoteLetter(vs->_smartRemote) : std::string()) +
-                            " needs more than " + std::to_string(kMaxStringsPerPort) + " strings; this controller takes " +
-                            std::to_string(kMaxStringsPerPort) + " per port. Give props on this port matching settings, " +
-                            "or move some to another port.");
+                            " needs more than " + std::to_string(maxStrings) + " strings; this controller takes " +
+                            std::to_string(maxStrings) + (vs->_smartRemote != 0 ? " per receiver output" : " per port") +
+                            ". Give props on this port matching settings, or move some to another port.");
             }
         }
     }
     for (const int base : _chainBases) {
         bool smart = false;
         bool plain = false;
-        for (int port = base; port < base + kChainLanes; ++port) {
+        for (int port = base; port < base + CHAIN_LANES; ++port) {
             if (!cud.HasPixelPort(port)) continue;
             for (const auto* vs : cud.GetControllerPixelPort(port)->GetVirtualStrings()) {
                 if (vs->_isDummy) continue;
@@ -726,7 +762,7 @@ bool JBoards::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, 
             }
         }
         if (smart && plain) {
-            return fail("Ports " + std::to_string(base) + "-" + std::to_string(base + kChainLanes - 1) +
+            return fail("Ports " + std::to_string(base) + "-" + std::to_string(base + CHAIN_LANES - 1) +
                         " mix smart-remote models with plain models; a chain is all smart remotes or none.");
         }
     }
@@ -764,7 +800,7 @@ bool JBoards::UploadForImmediateOutput(ModelManager* allmodels, OutputManager* o
 #pragma region Sequence Upload
 #ifndef DISCOVERYONLY
 namespace {
-constexpr uint64_t kUploadBlockSize = 16 * 1024 * 1024;
+constexpr uint64_t UPLOAD_BLOCK_SIZE = 16 * 1024 * 1024;
 
 struct ChunkProgress {
     const std::function<bool(int, std::string)>* progress = nullptr;
@@ -825,7 +861,7 @@ bool JBoards::UploadFile(const std::string& ip, const std::string& proxy, const 
 
     int errorCount = 0;
     do {
-        const uint64_t chunk = std::min(kUploadBlockSize, length - cp.offset);
+        const uint64_t chunk = std::min(UPLOAD_BLOCK_SIZE, length - cp.offset);
         CurlManager::CurlPrivateData* cpd = nullptr;
         CURL* curl = CurlManager::INSTANCE.createCurl(url, &cpd, true);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 1000L * 3 * 60);
@@ -898,7 +934,7 @@ bool JBoards::SendSequence(const std::string& ip, const std::string& proxy, cons
     {
         std::lock_guard<std::mutex> lock(PreparedUploadsLock());
         auto it = PreparedUploads().find(ip);
-        if (it != PreparedUploads().end() && std::chrono::steady_clock::now() - it->second.when < kPreparedUploadReuse) {
+        if (it != PreparedUploads().end() && std::chrono::steady_clock::now() - it->second.when < PREPARED_UPLOAD_REUSE) {
             known = true;
             answered = it->second.answered;
             audio = it->second.audio;
@@ -969,7 +1005,7 @@ void JBoards::PrepareSequenceUpload(FPP* inst, OutputManager* outputManager) {
     {
         std::lock_guard<std::mutex> lock(PreparedUploadsLock());
         auto it = PreparedUploads().find(inst->ipAddress);
-        if (it != PreparedUploads().end() && std::chrono::steady_clock::now() - it->second.when < kPreparedUploadReuse &&
+        if (it != PreparedUploads().end() && std::chrono::steady_clock::now() - it->second.when < PREPARED_UPLOAD_REUSE &&
             (!it->second.answered || it->second.startChannel == startChannel)) {
             prepared = it->second;
             reuse = true;

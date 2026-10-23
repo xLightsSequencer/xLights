@@ -673,7 +673,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 Choice1->Append(_("V2 zstd"));
                 Choice1->Append(_("V2 Sparse/zstd"));
                 Choice1->Append(_("V2 Sparse/Uncompressed"));
-                Choice1->SetSelection(inst->fppType == FPP_TYPE::JBOARDS ? (JBoards::PrefersUncompressedFSEQ(inst->ipAddress) ? 3 : 2) : (inst->mode == "master" ? 1 : 2));
+                Choice1->SetSelection(inst->fppType == FPP_TYPE::FPP && inst->mode == "master" ? 1 : 2);
                 fseqWidget = Choice1;
                 fseqBorder = 0;
             }
@@ -768,7 +768,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 playlistWidget = new wxStaticText(FPPInstanceList, wxID_ANY, "");
             }
 
-        } else if (inst->fppType == FPP_TYPE::FALCONV4V5 || (inst->fppType == FPP_TYPE::JBOARDS && JBoards::PlaysAudio(inst->ipAddress))) {
+        } else if (inst->fppType == FPP_TYPE::FALCONV4V5 || (inst->fppType == FPP_TYPE::JBOARDS && JBoards::PlaysAudio(inst->ipAddress, inst->hostName))) {
             // this probably needs to be moved as this is not really a zlib thing but only the falcons end up here today so I am going to put it here for now
             wxCheckBox *CheckBox1 = new wxCheckBox(FPPInstanceList, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, MEDIA_COL + rowStr);
             CheckBox1->SetValue(inst->mode != "remote");
@@ -1906,7 +1906,7 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
                 config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
             }
         } else if (inst->fppType == FPP_TYPE::FALCONV4V5 || inst->fppType == FPP_TYPE::JBOARDS) {
-            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != (inst->fppType == FPP_TYPE::JBOARDS && JBoards::PrefersUncompressedFSEQ(inst->ipAddress) ? 3 : 2) || config->Read("FPPConnectUploadFSEQType_" + keyPostfx, &lval)) {
+            if (GetChoiceValueIndex(FSEQ_COL + rowStr) != 2 || config->Read("FPPConnectUploadFSEQType_" + keyPostfx, &lval)) {
                 config->Write("FPPConnectUploadFSEQType_" + keyPostfx, GetChoiceValueIndex(FSEQ_COL + rowStr));
             }
         }
@@ -1964,7 +1964,7 @@ void FPPConnectDialog::ApplySavedHostSettings()
                 SetCheckValue(CHECK_COL + rowStr, bval);
                 inst->upload = bval;
             }
-            if ((inst->fppType == FPP_TYPE::FPP || inst->fppType == FPP_TYPE::FALCONV4V5) && config->Read("FPPConnectUploadFSEQType_" + key, &lval)) {
+            if ((inst->fppType == FPP_TYPE::FPP || inst->fppType == FPP_TYPE::FALCONV4V5 || inst->fppType == FPP_TYPE::JBOARDS) && config->Read("FPPConnectUploadFSEQType_" + key, &lval)) {
                 SetChoiceValueIndex(FSEQ_COL + rowStr, lval);
             }
             if (config->Read("FPPConnectUploadMedia_" + key, &bval)) {
