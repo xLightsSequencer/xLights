@@ -4031,8 +4031,10 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                         // Because we are moving a model already in a chain we need to patch that over first
                         Model* nextfrom = _cud->GetModelAfter(m);
                         if (nextfrom != nullptr) {
+                            // Already right after droppedOn only means "not moved" for a right-hand drop;
+                            // dropping on its left swaps them, so whatever followed m must be re-chained.
                             if ((nextfrom == droppedOn && hit == BaseCMObject::HITLOCATION::LEFT) ||
-                                (">" + droppedOn->GetName() == m->GetModelChain())) {
+                                (hit != BaseCMObject::HITLOCATION::LEFT && ">" + droppedOn->GetName() == m->GetModelChain())) {
                                 spdlog::debug("    Model did not actually move.");
                             } else {
                                 spdlog::debug("    Model {} was removed from existing chain so {} now chains to {}", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());

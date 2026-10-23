@@ -19118,6 +19118,15 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         ? dstPort->GetModelAfter(afterModel)
         : nullptr;
 
+    // If m is moving within this controller, whatever followed it now follows what m followed.
+    Model* oldNext = cud.GetModelAfter(m);
+    if (oldNext != nullptr && oldNext != m) {
+        oldNext->SetModelChain(m->GetModelChain());
+    }
+    if (afterNext == m) {
+        afterNext = oldNext;
+    }
+
     // 1) Controller + port assignment.
     m->SetControllerName(c->GetName());
     m->SetControllerPort(port);
