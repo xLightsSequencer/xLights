@@ -319,6 +319,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         return sendResponse("Rendered.", "msg", 200, false);
     } else if (cmd == "batchRender") {
+        if (_batchRenderStarted) {
+            return sendResponse("A batch render is already running.", "msg", 503, false);
+        }
         wxArrayString files;
 
         auto ld = _lowDefinitionRender;

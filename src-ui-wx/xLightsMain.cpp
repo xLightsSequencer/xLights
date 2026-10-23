@@ -51,6 +51,7 @@
 
 #include "app-shell/AboutDialog.h"
 #include "sequencer/BatchRenderDialog.h"
+#include "sequencer/BatchRenderProgressDialog.h"
 #include "CachedFileDownloader.h"
 #include "shared/dialogs/CheckboxSelectDialog.h"
 #include "shared/dialogs/OptionChooser.h"
@@ -7803,7 +7804,18 @@ void xLightsFrame::OnMenuItem_CrashXLightsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 {
-    
+    // The main window stays usable during a batch; starting another would close the
+    // sequence the running one is rendering.
+    if (_batchRenderStarted) {
+        if (_batchRenderDialog != nullptr) {
+            _batchRenderDialog->Show();
+            _batchRenderDialog->Raise();
+        } else {
+            wxMessageBox(_("A batch render is already running."), _("Batch Render"), wxOK | wxICON_INFORMATION, this);
+        }
+        return;
+    }
+
     BatchRenderDialog dlg(this, &_outputManager);
     if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() == wxID_OK && CloseSequence()) {
         wxArrayString files = dlg.GetFileList();

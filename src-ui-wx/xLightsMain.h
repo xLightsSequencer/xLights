@@ -1745,6 +1745,8 @@ protected:
     void SetCommandLineFseqDir(const std::string& dir) { _commandLineFseqDir = dir; }
     std::string _commandLineFseqDir;
     void OpenRenderAndSaveSequences(const wxArrayString& filenames, bool exitOnDone, bool alreadyRetried = false);
+    void AdvanceBatchRender(const wxArrayString& fileNames, bool exitOnDone);
+    void SkipStoppedBatchSequence(const wxArrayString& fileNames, bool exitOnDone);
     void FinishBatchRenderDialog(bool stopped);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     std::string OpenAndCheckSequence(const std::string& origFilenames);

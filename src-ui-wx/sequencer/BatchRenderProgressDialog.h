@@ -47,6 +47,7 @@ private:
     void OnCopy(wxCommandEvent& event);
     void OnCloseButton(wxCommandEvent& event);
     void OnCloseWindow(wxCloseEvent& event);
+    void SetRowResult(long row, Result result, const wxString& detail);
     void UpdateOverall();
     long RowFor(const wxString& file) const;
     wxString DisplayName(const wxString& file) const;

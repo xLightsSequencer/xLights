@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (heffneil)              Batch Render shows a window with each sequence's result and time, overall progress and
+                                 time left, a Stop button, and Copy Results
     -enh (heffneil)              The Faces, States and SubModels "Import From Model" pickers have a filter box to
                                  narrow a long model list
     -enh (dkulp)                 iPad - Controller visualizer: drop a model on the top half of a row to put it before that

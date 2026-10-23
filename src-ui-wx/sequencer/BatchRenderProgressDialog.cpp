@@ -141,7 +141,11 @@ void BatchRenderProgressDialog::SetRendering(const wxString& file)
 
 void BatchRenderProgressDialog::SetResult(const wxString& file, Result result, const wxString& detail)
 {
-    long row = RowFor(file);
+    SetRowResult(RowFor(file), result, detail);
+}
+
+void BatchRenderProgressDialog::SetRowResult(long row, Result result, const wxString& detail)
+{
     long ms = _sequence.Time();
     if (row >= 0 && !_done[row]) {
         _done[row] = true;
@@ -176,6 +180,11 @@ void BatchRenderProgressDialog::SetResult(const wxString& file, Result result, c
 
 void BatchRenderProgressDialog::Finished(bool stopped)
 {
+    // A sequence still marked Rendering here was rendered at least once (an internal abort
+    // queued a retry that never ran) but not saved.
+    if (_renderingRow >= 0 && !_done[_renderingRow]) {
+        SetRowResult(_renderingRow, Result::Stopped, wxString());
+    }
     _finished = true;
     _timer.Stop();
     int notStarted = 0;
