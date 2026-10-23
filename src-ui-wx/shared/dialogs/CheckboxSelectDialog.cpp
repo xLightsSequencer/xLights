@@ -16,7 +16,9 @@
 //*)
 
 #include <wx/font.h>
+#include <wx/listbox.h>
 #include <wx/menu.h>
+#include <wx/sizer.h>
 #include <wx/srchctrl.h>
 #include <wx/stattext.h>
 #include <wx/tokenzr.h>
@@ -25,6 +27,7 @@
 #include <vector>
 
 #include "utils/UtilFunctions.h"
+#include "shared/utils/wxFilterQuery.h"
 
 //(*IdInit(CheckboxSelectDialog)
 const wxWindowID CheckboxSelectDialog::ID_CHECKLISTBOXITEMS = wxNewId();
@@ -339,4 +342,49 @@ void CheckboxSelectDialog::SelectHighLightedLayers(bool select)
 	}
     SyncCheckedFromList();
     ValidateWindow();
+}
+
+wxString ChooseModelWithFilter(wxWindow* parent, const wxArrayString& choices, const wxString& title)
+{
+    wxDialog dlg(parent, wxID_ANY, title.IsEmpty() ? _("Select Model") : title,
+                 wxDefaultPosition, wxSize(380, 460), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+    auto* filterCtrl = new wxSearchCtrl(&dlg, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    filterCtrl->SetDescriptiveText(_("Filter models..."));
+    filterCtrl->ShowCancelButton(true);
+    filterCtrl->SetToolTip(wxFilterQuery::Hint());
+    sizer->Add(filterCtrl, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
+
+    auto* list = new wxListBox(&dlg, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SINGLE);
+    sizer->Add(list, 1, wxEXPAND | wxALL, 8);
+    sizer->Add(dlg.CreateStdDialogButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
+    dlg.SetSizer(sizer);
+
+    auto repopulate = [&list, &choices](const wxString& filterText) {
+        const wxFilterQuery query(filterText);
+        list->Freeze();
+        list->Clear();
+        for (const auto& c : choices) {
+            if (query.IsEmpty() || query.Matches(c)) list->Append(c);
+        }
+        list->Thaw();
+    };
+    repopulate(wxEmptyString);
+
+    filterCtrl->Bind(wxEVT_TEXT, [filterCtrl, &repopulate](wxCommandEvent&) { repopulate(filterCtrl->GetValue()); });
+    filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, [filterCtrl, &repopulate](wxCommandEvent&) {
+        filterCtrl->ChangeValue(wxEmptyString);
+        repopulate(wxEmptyString);
+    });
+    list->Bind(wxEVT_LISTBOX_DCLICK, [&dlg, list](wxCommandEvent&) {
+        if (list->GetSelection() != wxNOT_FOUND) dlg.EndModal(wxID_OK);
+    });
+
+    dlg.SetMinSize(wxSize(300, 280));
+    dlg.CentreOnParent();
+
+    if (dlg.ShowModal() != wxID_OK) return wxEmptyString;
+    const int sel = list->GetSelection();
+    return sel == wxNOT_FOUND ? wxEmptyString : list->GetString(sel);
 }

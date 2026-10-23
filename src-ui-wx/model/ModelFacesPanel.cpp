@@ -1712,15 +1712,15 @@ void ModelFacesPanel::ImportFacesFromModel()
 
     const wxArrayString choices = getModelList(&xlights->AllModels);
 
-    wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
+    const wxString selectedModel = ChooseModelWithFilter(GetParent(), choices);
 
-    if (dlg.ShowModal() == wxID_OK)
+    if (!selectedModel.IsEmpty())
     {
-        Model* m = xlights->GetModel(dlg.GetStringSelection());
+        Model* m = xlights->GetModel(selectedModel);
         if (m == nullptr) return;
         if (m->GetFaceInfo().size() == 0)
         {
-            wxMessageBox(dlg.GetStringSelection() + " contains no signing faces, skipping");
+            wxMessageBox(selectedModel + " contains no signing faces, skipping");
             return;
         }
 
