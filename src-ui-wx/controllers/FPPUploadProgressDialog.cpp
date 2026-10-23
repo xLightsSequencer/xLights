@@ -1,7 +1,10 @@
 #include "FPPUploadProgressDialog.h"
 
 #include <wx/gauge.h>
+#include <wx/settings.h>
 #include <wx/treectrl.h>
+
+#include "shared/utils/wxUtilities.h"
 
 #include <algorithm>
 
@@ -88,9 +91,18 @@ void FPPUploadProgressDialog::OnClose(wxCloseEvent& event)
 }
 
 namespace {
-const wxColour OK_COLOUR(0, 140, 0);
-const wxColour CANCELLED_COLOUR(200, 120, 0);
-const wxColour NOT_STARTED_COLOUR(128, 128, 128);
+wxColour OkColour() {
+    return IsDarkMode() ? wxColour(90, 200, 90) : wxColour(0, 140, 0);
+}
+wxColour WarningColour() {
+    return IsDarkMode() ? wxColour(240, 170, 60) : wxColour(200, 120, 0);
+}
+wxColour FailedColour() {
+    return IsDarkMode() ? wxColour(255, 100, 100) : *wxRED;
+}
+wxColour NotStartedColour() {
+    return wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT);
+}
 
 wxString FormatDuration(long ms) {
     long secs = ms / 1000;
@@ -104,7 +116,9 @@ wxString FormatDuration(long ms) {
 void FPPUploadProgressDialog::setSequences(const std::vector<std::string>& names)
 {
     auto* sizer = dynamic_cast<wxFlexGridSizer*>(GetSizer());
-    if (names.empty() || sizer == nullptr || _completedTree != nullptr) return;
+    // Built even with no sequences: a settings-only upload still reports its
+    // steps and controller messages here.
+    if (sizer == nullptr || _completedTree != nullptr) return;
     _sequenceNames = names;
     _sequenceDone.assign(names.size(), false);
 
@@ -130,7 +144,11 @@ void FPPUploadProgressDialog::setSequences(const std::vector<std::string>& names
 
     _totalTime.Start();
     _elapsedTimer.Start(1000);
-    _sequenceHeader->SetLabel(wxString::Format(wxPLURAL("Getting ready to upload %d sequence", "Getting ready to upload %d sequences", (int)names.size()), (int)names.size()));
+    if (names.empty()) {
+        _sequenceHeader->SetLabel(_("Getting ready to upload"));
+    } else {
+        _sequenceHeader->SetLabel(wxString::Format(wxPLURAL("Getting ready to upload %d sequence", "Getting ready to upload %d sequences", (int)names.size()), (int)names.size()));
+    }
     _completedLabel->SetLabel(_("Completed"));
     updateOverall();
 }
@@ -158,22 +176,22 @@ void FPPUploadProgressDialog::finishSequence(size_t index, SequenceState state, 
     switch (state) {
     case SequenceState::Uploaded:
         status = wxString::Format(_("Uploaded (%s)"), FormatDuration(_sequenceTime.Time()));
-        colour = OK_COLOUR;
+        colour = OkColour();
         ++_uploadedCount;
         break;
     case SequenceState::UpToDate:
         status = _("Already up to date");
-        colour = OK_COLOUR;
+        colour = OkColour();
         ++_upToDateCount;
         break;
     case SequenceState::Failed:
         status = detail.empty() ? _("Failed") : wxString::Format(_("Failed: %s"), wxString::FromUTF8(detail));
-        colour = *wxRED;
+        colour = FailedColour();
         ++_failedCount;
         break;
     case SequenceState::Cancelled:
         status = _("Cancelled");
-        colour = CANCELLED_COLOUR;
+        colour = WarningColour();
         ++_cancelledCount;
         break;
     }
@@ -194,7 +212,7 @@ void FPPUploadProgressDialog::finishStep(const std::string& title, const std::st
 {
     if (_completedTree == nullptr) return;
     bool failed = std::any_of(controllers.begin(), controllers.end(), [](auto const& c) { return c.failed; });
-    wxColour colour = failed ? *wxRED : (warning ? CANCELLED_COLOUR : OK_COLOUR);
+    wxColour colour = failed ? FailedColour() : (warning ? WarningColour() : OkColour());
     addCompleted(wxString::FromUTF8(title) + " - " + wxString::FromUTF8(status), colour, controllers, failed || warning);
 }
 
@@ -209,7 +227,7 @@ void FPPUploadProgressDialog::addCompleted(const wxString& text, const wxColour&
         }
         wxTreeItemId child = _completedTree->AppendItem(item, label);
         if (c.failed) {
-            _completedTree->SetItemTextColour(child, *wxRED);
+            _completedTree->SetItemTextColour(child, FailedColour());
         }
         for (auto const& d : c.details) {
             _completedTree->AppendItem(child, wxString::FromUTF8(d));
@@ -228,7 +246,8 @@ void FPPUploadProgressDialog::updateOverall()
 {
     if (_overallLabel == nullptr || _finished) return;
     int total = (int)_sequenceDone.size();
-    wxString text = wxString::Format(_("%d of %d done - elapsed %s"), _completedCount, total, FormatDuration(_totalTime.Time()));
+    wxString text = total == 0 ? wxString::Format(_("Elapsed %s"), FormatDuration(_totalTime.Time()))
+                               : wxString::Format(_("%d of %d done - elapsed %s"), _completedCount, total, FormatDuration(_totalTime.Time()));
     if (_completedCount > 0 && _completedCount < total && _firstSequenceStartMs >= 0) {
         long avg = (_totalTime.Time() - _firstSequenceStartMs) / _completedCount;
         text += wxString::Format(_(" - about %s left"), FormatDuration(avg * (total - _completedCount)));
@@ -237,9 +256,15 @@ void FPPUploadProgressDialog::updateOverall()
     _overallLabel->Update();
 }
 
-void FPPUploadProgressDialog::finish(bool wasCancelled, int returnCode)
+void FPPUploadProgressDialog::finish(bool wasCancelled, int returnCode, bool stayOpen)
 {
     _returnCode = returnCode;
+    if (!stayOpen) {
+        _finished = true;
+        _elapsedTimer.Stop();
+        EndModal(returnCode);
+        return;
+    }
     int notStarted = 0;
     if (_completedTree != nullptr) {
         for (size_t i = 0; i < _sequenceDone.size(); ++i) {
@@ -247,17 +272,22 @@ void FPPUploadProgressDialog::finish(bool wasCancelled, int returnCode)
                 ++notStarted;
                 wxTreeItemId item = _completedTree->AppendItem(_completedTree->GetRootItem(),
                                                                wxString::FromUTF8(_sequenceNames[i]) + " - " + _("Not started"));
-                _completedTree->SetItemTextColour(item, NOT_STARTED_COLOUR);
+                _completedTree->SetItemTextColour(item, NotStartedColour());
             }
         }
     }
     _finished = true;
     _elapsedTimer.Stop();
-    wxString summary = wxString::Format(_("%d uploaded, %d already up to date, %d failed"), _uploadedCount, _upToDateCount, _failedCount);
-    if (_cancelledCount + notStarted > 0) {
-        summary += wxString::Format(_(", %d not uploaded"), _cancelledCount + notStarted);
+    wxString summary;
+    if (_sequenceDone.empty()) {
+        summary = wxString::Format(_("Total time %s"), FormatDuration(_totalTime.Time()));
+    } else {
+        summary = wxString::Format(_("%d uploaded, %d already up to date, %d failed"), _uploadedCount, _upToDateCount, _failedCount);
+        if (_cancelledCount + notStarted > 0) {
+            summary += wxString::Format(_(", %d not uploaded"), _cancelledCount + notStarted);
+        }
+        summary += wxString::Format(_(" - total time %s"), FormatDuration(_totalTime.Time()));
     }
-    summary += wxString::Format(_(" - total time %s"), FormatDuration(_totalTime.Time()));
     if (_overallLabel != nullptr) {
         _overallLabel->SetLabel(summary);
     }

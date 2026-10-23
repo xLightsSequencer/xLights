@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (heffneil)              FPP Connect upload window shows the current step and sequence, time left, and a
+                                 list of each finished step and sequence with per-controller results (Keep Open)
+    -enh (derwin12)              FPP Connect remembers the Keep Open setting
     -bug (derwin12)              Crash adding an Audio Tempo or Audio Chords timing track from the Add Timing Track dialog
     -bug (derwin12)              Circle models with an Inner starting location and different layer sizes put the
                                  outer layer's nodes on the inner ring

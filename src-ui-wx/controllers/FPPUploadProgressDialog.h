@@ -53,9 +53,9 @@ class FPPUploadProgressDialog: public wxDialog
         void finishStep(const std::string& title, const std::string& status, bool warning, const std::vector<ControllerResult>& controllers);
         // Moves the sequence to the completed list with one child row per controller.
         void finishSequence(size_t index, SequenceState state, const std::string& detail, const std::vector<ControllerResult>& controllers);
-        // Upload is over: show the summary and turn Cancel into Close, which
-        // ends the dialog with returnCode.
-        void finish(bool wasCancelled, int returnCode);
+        // Upload is over. Without stayOpen the dialog ends with returnCode now;
+        // with it, show the summary and turn Cancel into Close, which ends it.
+        void finish(bool wasCancelled, int returnCode, bool stayOpen);
     protected:
 
         //(*Identifiers(FPPUploadProgressDialog)
