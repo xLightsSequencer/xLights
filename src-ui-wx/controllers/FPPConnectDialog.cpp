@@ -43,6 +43,7 @@
 #include "controllers/Experience.h"
 #include "controllers/PowerDMX.h"
 #include <algorithm>
+#include <iterator>
 #include <memory>
 
 //(*IdInit(FPPConnectDialog)
@@ -203,7 +204,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer4->Add(KeepWinOpen, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Upload = new wxButton(this, ID_BUTTON_Upload, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Upload"));
 	FlexGridSizer4->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	cancelButton = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_CANCEL"));
+	cancelButton = new wxButton(this, wxID_CANCEL, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_CANCEL"));
 	FlexGridSizer4->Add(cancelButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
@@ -349,6 +350,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
         h /= 100;
     }
     SplitterWindow1->SetSashPosition(h);
+    KeepWinOpen->SetValue(config->ReadBool("FPPConnectKeepOpen", false));
     EnsureWindowHeaderIsOnScreen(this);
     Layout();
 
@@ -989,6 +991,7 @@ FPPConnectDialog::~FPPConnectDialog()
 
     int i = SplitterWindow1->GetSashPosition();
     config->Write("FPPConnectSashPosition", i);
+    config->Write("FPPConnectKeepOpen", KeepWinOpen->GetValue());
 
     SaveWindowPosition("xLightsFPPConnectPos", this);
 
@@ -1283,6 +1286,13 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
         prgs.scrolledWindow->SetSizer(prgs.scrolledWindowSizer);
         prgs.scrolledWindow->FitInside();
         prgs.scrolledWindow->SetScrollRate(5, 5);
+        std::vector<std::string> seqNames;
+        for (wxTreeListItem it = CheckListBox_Sequences->GetFirstItem(); it.IsOk(); it = CheckListBox_Sequences->GetNextItem(it)) {
+            if (CheckListBox_Sequences->GetCheckedState(it) == wxCHK_CHECKED) {
+                seqNames.push_back(ToUTF8(wxFileName(GetSequencePath(CheckListBox_Sequences, it)).GetFullName()));
+            }
+        }
+        prgs.setSequences(seqNames);
         prgs.SetSizeHints(350, 400);
         prgs.Fit();
         prgs.setActionLabel("Preparing Configuration");
@@ -1324,13 +1334,20 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 // channels after the layout changes.  Offer to refresh them rather than doing
 // it silently - a models upload restarts fppd.
 void FPPConnectDialog::PromptForOutdatedModels(FPPUploadProgressDialog *prgs, const std::vector<bool>& doUpload, std::vector<int>& modelsMode) {
-    prgs->setActionLabel("Checking Models");
+    prgs->startStep(ToUTF8(_("Checking models")));
+    prgs->setActionLabel(ToUTF8(_("Comparing the models on each FPP with the layout")));
 
     std::map<int, int> refresh;
+    std::map<int, size_t> resultIndex;
+    std::vector<FPPUploadProgressDialog::ControllerResult> results;
+    int checkedCount = 0;
     wxString details;
     int row = 0;
     for (const auto& inst : instances) {
-        if (doUpload[row] && modelsMode[row] == 0 && inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect()) {
+        if (doUpload[row] && inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect() && modelsMode[row] != 0) {
+            results.push_back({ inst->hostName + " - " + inst->ipAddress, ToUTF8(_("Models will be uploaded")) });
+        } else if (doUpload[row] && modelsMode[row] == 0 && inst->fppType == FPP_TYPE::FPP && inst->supportedForFPPConnect()) {
+            ++checkedCount;
             auto c = _outputManager->GetControllers(inst->ipAddress);
             int32_t sc = 0;
             int32_t ec = std::numeric_limits<int32_t>::max();
@@ -1351,13 +1368,20 @@ void FPPConnectDialog::PromptForOutdatedModels(FPPUploadProgressDialog *prgs, co
                     names += wxString::Format(" and %d more", (int)(outdated.size() - 5));
                 }
                 details += "\n" + ToWXString(inst->hostName) + " (" + ToWXString(inst->ipAddress) + "): " + names;
+                resultIndex[row] = results.size();
+                results.push_back({ inst->hostName + " - " + inst->ipAddress, ToUTF8(_("Out of date: ") + names) });
+            } else {
+                results.push_back({ inst->hostName + " - " + inst->ipAddress, ToUTF8(_("Up to date")) });
             }
         }
         ++row;
     }
     if (refresh.empty()) {
+        wxString status = results.empty() ? _("nothing to check") : (checkedCount > 0 ? _("up to date") : _("will be uploaded"));
+        prgs->finishStep(ToUTF8(_("Models")), ToUTF8(status), false, results);
         return;
     }
+    const wxString outdatedOn = wxString::Format(wxPLURAL("out of date on %d controller", "out of date on %d controllers", (int)refresh.size()), (int)refresh.size());
 
     wxString msg = "These FPP instances have models uploaded by xLights that no longer match the layout:\n" + details +
                    "\n\nFPP uses them for Display Testing and pixel overlays in place of the models it creates from the "
@@ -1366,11 +1390,19 @@ void FPPConnectDialog::PromptForOutdatedModels(FPPUploadProgressDialog *prgs, co
     wxMessageDialog dlg(prgs, msg, "Outdated Models on FPP", wxYES_NO | wxICON_WARNING | wxCENTRE);
     dlg.SetYesNoLabels("Upload Models", "Leave As Is");
     if (dlg.ShowModal() != wxID_YES) {
+        for (const auto& [r, idx] : resultIndex) {
+            results[idx].status += ToUTF8(_(" - left as is"));
+        }
+        prgs->finishStep(ToUTF8(_("Models")), ToUTF8(outdatedOn + _(", left as is")), true, results);
         return;
     }
     for (const auto& [r, mode] : refresh) {
         modelsMode[r] = mode;
     }
+    for (const auto& [r, idx] : resultIndex) {
+        results[idx].status += ToUTF8(_(" - will be uploaded"));
+    }
+    prgs->finishStep(ToUTF8(_("Models")), ToUTF8(outdatedOn + _(", will be uploaded")), false, results);
 }
 
 void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
@@ -1388,10 +1420,16 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     }
     PromptForOutdatedModels(prgs, doUpload, modelsMode);
 
+    prgs->startStep(ToUTF8(_("Sending controller settings")));
+    std::vector<FPPUploadProgressDialog::ControllerResult> settingsResults;
+    int settingsFailed = 0;
     int row = 0;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
         if (!cancelled && doUpload[row]) {
+            prgs->setActionLabel(ToUTF8(wxString::Format(_("Sending settings to %s - %s"), wxString::FromUTF8(inst->hostName), wxString::FromUTF8(inst->ipAddress))));
+            std::vector<wxString> sent;
+            bool noConnection = false;
             auto controller = _outputManager->GetControllers(inst->ipAddress);
             if (controller.size() == 1 && inst->ranges == "") {
                 ControllerEthernet *ipcontroller = dynamic_cast<ControllerEthernet*>(controller.front());
@@ -1404,9 +1442,11 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 std::string playlist = GetChoiceValue(PLAYLIST_COL + rowStr);
                 if (playlist != "") {
                     cancelled |= inst->UploadPlaylist(playlist);
+                    sent.push_back(_("playlist"));
                 }
                 if (GetCheckValue(PROXY_COL + rowStr)) {
                     cancelled |= inst->UploadControllerProxies(_outputManager);
+                    sent.push_back(_("proxies"));
                 }
                 if (GetChoiceValueIndex(UDP_COL + rowStr) == 1) {
                     std::map<int, int> udpRanges;
@@ -1417,9 +1457,11 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     inst->FillRanges(rngs);
                     inst->SetNewRanges(rngs);
                     inst->SetRestartFlag();
+                    sent.push_back(_("UDP outputs"));
                 } else if (GetChoiceValueIndex(UDP_COL + rowStr) == 2) {
                     cancelled |= inst->UploadUDPOutputsForProxy(_outputManager);
                     inst->SetRestartFlag();
+                    sent.push_back(_("UDP outputs"));
                 }
                 if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
                     auto c = _outputManager->GetControllers(inst->ipAddress);
@@ -1431,6 +1473,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         controllerCancelled |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
                         controllerCancelled |= inst->SetInputUniversesBridge(c.front());
                         cancelled |= controllerCancelled;
+                        sent.push_back(_("controller outputs"));
 
                         if (!controllerCancelled) {
                             auto ts = FormatTimestamp();
@@ -1448,12 +1491,14 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     cancelled |= inst->UploadSubModelsAndGroups(&frame->AllModels, 0, std::numeric_limits<int32_t>::max());
                     // each of these sets the restart flag if it changed anything
                     cancelled |= inst->UploadDisplayMap(virtualDisplayData);
+                    sent.push_back(_("models"));
                 } else if (modelsMode[row] == 2) {
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
                         auto const& memoryMaps = inst->CreateModelMemoryMap(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
                         cancelled |= inst->UploadModels(memoryMaps);
                         cancelled |= inst->UploadSubModelsAndGroups(&frame->AllModels, c.front()->GetStartChannel(), c.front()->GetEndChannel());
+                        sent.push_back(_("models"));
                         // cancelled |= inst->UploadDisplayMap(displayMap);
                     }
                 }
@@ -1466,7 +1511,9 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     // caps, or resolves to a multicast address. Every other caller
                     // checks; this one made a virtual call through the null instead.
                     inst->messages.push_back("Unable to upload: no usable connection for this controller.");
+                    noConnection = true;
                 } else if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
+                    sent.push_back(_("controller outputs"));
                     auto ts = FormatTimestamp();
                     auto* config = GetXLightsConfig();
                     auto ctrlName = controller.front()->GetName();
@@ -1476,9 +1523,36 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 }
                 delete bc;
             }
+            const bool failed = cancelled && !prgs->isCancelled();
+            wxString status;
+            for (auto const& what : sent) {
+                status += (status.empty() ? _("Sent ") : wxString(", ")) + what;
+            }
+            if (noConnection) {
+                status = _("Failed: no usable connection");
+                ++settingsFailed;
+            } else if (failed) {
+                status = _("Failed") + (status.empty() ? wxString() : " (" + status + ")");
+                ++settingsFailed;
+            } else if (cancelled) {
+                status = _("Cancelled");
+            } else if (status.empty()) {
+                status = _("Nothing to send");
+            }
+            settingsResults.push_back({ inst->hostName + " - " + inst->ipAddress, ToUTF8(status), failed || noConnection });
+        } else if (doUpload[row]) {
+            // skipped because an earlier controller failed or the upload was cancelled
+            settingsResults.push_back({ inst->hostName + " - " + inst->ipAddress, ToUTF8(_("Not sent")) });
         }
         ++row;
     }
+    wxString settingsStatus = _("done");
+    if (settingsFailed > 0) {
+        settingsStatus = wxString::Format(wxPLURAL("failed on %d controller", "failed on %d controllers", settingsFailed), settingsFailed);
+    } else if (cancelled) {
+        settingsStatus = _("cancelled");
+    }
+    prgs->finishStep(ToUTF8(_("Controller settings")), ToUTF8(settingsStatus), cancelled, settingsResults);
     row = 0;
     for (const auto& inst : instances) {
         if (!cancelled && doUpload[row]) {
@@ -1488,20 +1562,27 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
         ++row;
     }
     row = 0;
-    uint32_t seqCountToUpload = GetSelectedSeqCount();
-    uint32_t seqCountUploaded = 0;
+    size_t seqIndex = 0;
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
             for (const auto& inst : instances) {
                 inst->updateProgress(0, true);
             }
-            seqCountUploaded++;
+            prgs->startSequence(seqIndex);
+            std::vector<size_t> failuresBefore;
+            for (const auto& inst : instances) {
+                failuresBefore.push_back(inst->faileduploads.size());
+            }
+            std::vector<bool> willUpload(instances.size(), false);
+            std::vector<bool> prepareFailed(instances.size(), false);
+            int seqUploadTargets = 0;
             wxString fseqRaw = GetSequencePath(CheckListBox_Sequences, item);
             std::string fseq = ToUTF8(fseqRaw);
             std::string media = ToUTF8(GetMediaPath(CheckListBox_Sequences, item));
 
             FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
+            const bool seqOpened = seq != nullptr;
             if (seq) {
                 // every frame is read in order below to build the upload
                 seq->setReadPattern(FSEQFile::ReadPattern::Bulk);
@@ -1510,9 +1591,9 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     uploadingMedia |= doUpload[row] && GetCheckValue(MEDIA_COL + std::to_string(row));
                 }
                 if (uploadingMedia) {
-                    prgs->setActionLabel("Checking Media and FSEQ file for " + media + "/" + wxFileName(ToWXString(fseq)).GetFullName());
+                    prgs->setActionLabel(ToUTF8(wxString::Format(_("Checking media (%s) and FSEQ file for %s"), wxFileName(ToWXString(media)).GetFullName(), wxFileName(ToWXString(fseq)).GetFullName())));
                 } else {
-                    prgs->setActionLabel("Checking FSEQ file for " + wxFileName(ToWXString(fseq)).GetFullName());
+                    prgs->setActionLabel(ToUTF8(wxString::Format(_("Checking FSEQ file for %s"), wxFileName(ToWXString(fseq)).GetFullName())));
                 }
                 row = 0;
                 for (const auto& inst : instances) {
@@ -1544,9 +1625,10 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                             fseqversion = 2;
                             sparse = true;
                         }
-                        cancelled |= inst->PrepareUploadSequence(seq,
-                                                                fseq, m2,
-                                                                fseqversion, cType, sparse);
+                        if (inst->PrepareUploadSequence(seq, fseq, m2, fseqversion, cType, sparse)) {
+                            prepareFailed[row] = true;
+                            cancelled = true;
+                        }
                     }
                     row++;
                 }
@@ -1557,6 +1639,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 for (const auto& inst : instances) {
                     if (!cancelled && doUpload[row]) {
                         if (inst->WillUploadSequence()) {
+                            willUpload[row] = true;
                             uploadCount++;
                             if (inst->NeedCustomSequence()) {
                                 prepareCount++;
@@ -1567,6 +1650,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     }
                     row++;
                 }
+                seqUploadTargets = uploadCount;
                 if (!cancelled && uploadCount) {
                     // Only the remotes whose copy is out of date get a file built or sent;
                     // the rest were marked done above and their bars stay that way.
@@ -1583,7 +1667,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         row++;
                     }
                     if (prepareCount) {
-                        prgs->setActionLabel("Preparing FSEQ File for " + wxFileName(ToWXString(fseq)).GetFullName() + " (" + std::to_string(seqCountUploaded) + "/" + std::to_string(seqCountToUpload) + ")");
+                        prgs->setActionLabel(ToUTF8(wxString::Format(_("Preparing FSEQ file for %s"), wxFileName(ToWXString(fseq)).GetFullName())));
                         for (const auto& inst : generating) {
                             inst->updateProgress(0, false);
                         }
@@ -1633,7 +1717,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         }
                     }
                     row = 0;
-                    prgs->setActionLabel("Uploading " + wxFileName(ToWXString(fseq)).GetFullName() + " (" + std::to_string(seqCountUploaded) + "/" + std::to_string(seqCountToUpload) + ")");
+                    prgs->setActionLabel(ToUTF8(wxString::Format(_("Sending %s to controllers"), wxFileName(ToWXString(fseq)).GetFullName())));
                     for (const auto& inst : uploading) {
                         inst->updateProgress(0, false);
                     }
@@ -1723,6 +1807,49 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 }
             }
             delete seq;
+            std::vector<FPPUploadProgressDialog::ControllerResult> results;
+            int failedControllers = 0;
+            if (seqOpened) {
+                size_t i = 0;
+                for (const auto& inst : instances) {
+                    if (doUpload[i]) {
+                        FPPUploadProgressDialog::ControllerResult r;
+                        r.name = inst->hostName + " - " + inst->ipAddress;
+                        if (inst->faileduploads.size() > failuresBefore[i]) {
+                            std::string files;
+                            for (auto f = std::next(inst->faileduploads.begin(), failuresBefore[i]); f != inst->faileduploads.end(); ++f) {
+                                files += (files.empty() ? "" : ", ") + *f;
+                            }
+                            r.status = ToUTF8(wxString::Format(_("Failed: %s"), wxString::FromUTF8(files)));
+                            r.failed = true;
+                            ++failedControllers;
+                        } else if (prepareFailed[i]) {
+                            r.status = prgs->isCancelled() ? ToUTF8(_("Cancelled")) : ToUTF8(_("Failed: media upload"));
+                            r.failed = !prgs->isCancelled();
+                            failedControllers += r.failed ? 1 : 0;
+                        } else if (!willUpload[i]) {
+                            r.status = cancelled && seqUploadTargets == 0 ? ToUTF8(_("Not uploaded")) : ToUTF8(_("Already up to date"));
+                        } else {
+                            r.status = cancelled ? ToUTF8(_("Cancelled")) : ToUTF8(_("Uploaded"));
+                        }
+                        results.push_back(r);
+                    }
+                    ++i;
+                }
+            }
+            if (!seqOpened) {
+                prgs->finishSequence(seqIndex, FPPUploadProgressDialog::SequenceState::Failed, ToUTF8(_("could not open the fseq")), results);
+            } else if (failedControllers > 0) {
+                prgs->finishSequence(seqIndex, FPPUploadProgressDialog::SequenceState::Failed,
+                                     ToUTF8(wxString::Format(wxPLURAL("on %d controller", "on %d controllers", failedControllers), failedControllers)), results);
+            } else if (cancelled) {
+                prgs->finishSequence(seqIndex, FPPUploadProgressDialog::SequenceState::Cancelled, "", results);
+            } else if (seqUploadTargets == 0) {
+                prgs->finishSequence(seqIndex, FPPUploadProgressDialog::SequenceState::UpToDate, "", results);
+            } else {
+                prgs->finishSequence(seqIndex, FPPUploadProgressDialog::SequenceState::Uploaded, "", results);
+            }
+            ++seqIndex;
         }
         item = CheckListBox_Sequences->GetNextItem(item);
     }
@@ -1730,6 +1857,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
 
 
     std::string messages;
+    std::vector<FPPUploadProgressDialog::ControllerResult> messageResults;
     wxString failedUploadsList;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
@@ -1754,6 +1882,10 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 messages += m;
                 messages += "\n";
             }
+            FPPUploadProgressDialog::ControllerResult r;
+            r.name = inst->hostName + " - " + inst->ipAddress;
+            r.details.assign(inst->messages.begin(), inst->messages.end());
+            messageResults.push_back(r);
         }
         if (!inst->faileduploads.empty()) {
             for (auto& m : inst->faileduploads) {
@@ -1775,18 +1907,26 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
         config->Flush();
     };
     xLightsFrame* xlframe = _frame;
+    // The results list is only worth keeping on screen when FPP Connect itself stays open.
+    const bool stayOpen = KeepWinOpen->Get3StateValue() == wxCHK_CHECKED && !_closeRequestedDuringUpload;
     if (messages != "") {
         xlframe->SetStatusText("FPP Connect Upload had errors or warnings", 0);
-        wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
         spdlog::warn("FPP Connect Upload had errors or warnings:\n" + messages);
-        prgs->EndModal(2);
+        if (stayOpen) {
+            prgs->finishStep(ToUTF8(_("Controller messages")),
+                             ToUTF8(wxString::Format(wxPLURAL("%d controller reported problems", "%d controllers reported problems", (int)messageResults.size()), (int)messageResults.size())),
+                             true, messageResults);
+        } else {
+            wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
+        }
+        prgs->finish(cancelled, 2, stayOpen);
     } else {
         if (cancelled) {
             xlframe->SetStatusText("FPP Connect Upload Cancelled", 0);
-            prgs->EndModal(1);
+            prgs->finish(true, 1, stayOpen);
         } else {
             xlframe->SetStatusText("FPP Connect Upload Complete", 0);
-            prgs->EndModal(0);
+            prgs->finish(false, 0, stayOpen);
         }
     };
 }
