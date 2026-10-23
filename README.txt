@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.19  October ??, 2026
 
+    -enh (heffneil)              The Faces, States and SubModels "Import From Model" pickers have a filter box to
+                                 narrow a long model list
     -enh (dkulp)                 iPad - Controller visualizer: drop a model on the top half of a row to put it before that
                                  model, and Move to Front puts a model at the head of its port
     -bug (heffneil)              Controller visualizer: moving a model to the front of its chain no longer knocks the

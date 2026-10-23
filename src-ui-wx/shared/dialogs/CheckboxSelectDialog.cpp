@@ -347,7 +347,7 @@ void CheckboxSelectDialog::SelectHighLightedLayers(bool select)
 wxString ChooseModelWithFilter(wxWindow* parent, const wxArrayString& choices, const wxString& title)
 {
     wxDialog dlg(parent, wxID_ANY, title.IsEmpty() ? _("Select Model") : title,
-                 wxDefaultPosition, wxSize(380, 460), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+                 wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     auto* filterCtrl = new wxSearchCtrl(&dlg, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
@@ -360,28 +360,47 @@ wxString ChooseModelWithFilter(wxWindow* parent, const wxArrayString& choices, c
     sizer->Add(list, 1, wxEXPAND | wxALL, 8);
     sizer->Add(dlg.CreateStdDialogButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
     dlg.SetSizer(sizer);
+    wxWindow* okButton = dlg.FindWindow(wxID_OK);
 
-    auto repopulate = [&list, &choices](const wxString& filterText) {
+    auto updateOk = [list, okButton]() {
+        if (okButton != nullptr) okButton->Enable(list->GetSelection() != wxNOT_FOUND);
+    };
+
+    // Keep a row selected whenever any is shown, as wxSingleChoiceDialog did, so
+    // Enter or OK straight after typing takes the top match rather than nothing.
+    auto repopulate = [list, &choices, &updateOk](const wxString& filterText) {
+        const wxString previous = list->GetStringSelection();
         const wxFilterQuery query(filterText);
-        list->Freeze();
-        list->Clear();
+        wxArrayString shown;
         for (const auto& c : choices) {
-            if (query.IsEmpty() || query.Matches(c)) list->Append(c);
+            if (query.IsEmpty() || query.Matches(c)) shown.Add(c);
+        }
+        list->Freeze();
+        list->Set(shown);
+        if (!shown.IsEmpty()) {
+            const int keep = previous.IsEmpty() ? wxNOT_FOUND : shown.Index(previous);
+            list->SetSelection(keep == wxNOT_FOUND ? 0 : keep);
         }
         list->Thaw();
+        updateOk();
     };
     repopulate(wxEmptyString);
 
+    auto accept = [&dlg, list](wxCommandEvent&) {
+        if (list->GetSelection() != wxNOT_FOUND) dlg.EndModal(wxID_OK);
+    };
+
     filterCtrl->Bind(wxEVT_TEXT, [filterCtrl, &repopulate](wxCommandEvent&) { repopulate(filterCtrl->GetValue()); });
+    filterCtrl->Bind(wxEVT_TEXT_ENTER, accept);
     filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, [filterCtrl, &repopulate](wxCommandEvent&) {
         filterCtrl->ChangeValue(wxEmptyString);
         repopulate(wxEmptyString);
     });
-    list->Bind(wxEVT_LISTBOX_DCLICK, [&dlg, list](wxCommandEvent&) {
-        if (list->GetSelection() != wxNOT_FOUND) dlg.EndModal(wxID_OK);
-    });
+    list->Bind(wxEVT_LISTBOX, [&updateOk](wxCommandEvent&) { updateOk(); });
+    list->Bind(wxEVT_LISTBOX_DCLICK, accept);
 
-    dlg.SetMinSize(wxSize(300, 280));
+    dlg.SetSize(dlg.FromDIP(wxSize(380, 460)));
+    dlg.SetMinSize(dlg.FromDIP(wxSize(300, 280)));
     dlg.CentreOnParent();
 
     if (dlg.ShowModal() != wxID_OK) return wxEmptyString;
