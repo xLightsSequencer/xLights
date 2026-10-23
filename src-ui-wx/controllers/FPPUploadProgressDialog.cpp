@@ -292,7 +292,13 @@ void FPPUploadProgressDialog::finish(bool wasCancelled, int returnCode, bool sta
         _overallLabel->SetLabel(summary);
     }
     if (_sequenceHeader != nullptr) {
-        _sequenceHeader->SetLabel(wasCancelled ? _("Upload cancelled") : _("Upload complete"));
+        if (wasCancelled) {
+            _sequenceHeader->SetLabel(_("Upload cancelled"));
+        } else if (returnCode != 0) {
+            _sequenceHeader->SetLabel(_("Upload finished with problems"));
+        } else {
+            _sequenceHeader->SetLabel(_("Upload complete"));
+        }
     }
     ActionLabel->SetLabel(wxEmptyString);
     CancelButton->SetLabelText(_("Close"));

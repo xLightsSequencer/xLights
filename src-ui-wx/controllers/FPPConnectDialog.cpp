@@ -1566,6 +1566,11 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED) {
+            cancelled |= prgs->isCancelled();
+            if (cancelled) {
+                // nothing more is sent; finish() lists the rest as not started
+                break;
+            }
             for (const auto& inst : instances) {
                 inst->updateProgress(0, true);
             }
@@ -1575,7 +1580,9 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 failuresBefore.push_back(inst->faileduploads.size());
             }
             std::vector<bool> willUpload(instances.size(), false);
-            std::vector<bool> prepareFailed(instances.size(), false);
+            std::vector<bool> sendFailed(instances.size(), false);
+            std::vector<bool> upToDate(instances.size(), false);
+            std::vector<bool> uploaded(instances.size(), false);
             int seqUploadTargets = 0;
             wxString fseqRaw = GetSequencePath(CheckListBox_Sequences, item);
             std::string fseq = ToUTF8(fseqRaw);
@@ -1626,8 +1633,10 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                             sparse = true;
                         }
                         if (inst->PrepareUploadSequence(seq, fseq, m2, fseqversion, cType, sparse)) {
-                            prepareFailed[row] = true;
+                            sendFailed[row] = true;
                             cancelled = true;
+                        } else {
+                            upToDate[row] = !inst->WillUploadSequence();
                         }
                     }
                     row++;
@@ -1797,6 +1806,11 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                 }
                                 inst->ClearTempFile();
                             }
+                            if (cancelled) {
+                                sendFailed[row] = true;
+                            } else {
+                                uploaded[row] = willUpload[row];
+                            }
                         }
                         row++;
                     }
@@ -1823,14 +1837,18 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                             r.status = ToUTF8(wxString::Format(_("Failed: %s"), wxString::FromUTF8(files)));
                             r.failed = true;
                             ++failedControllers;
-                        } else if (prepareFailed[i]) {
-                            r.status = prgs->isCancelled() ? ToUTF8(_("Cancelled")) : ToUTF8(_("Failed: media upload"));
+                        } else if (sendFailed[i]) {
+                            r.status = prgs->isCancelled() ? ToUTF8(_("Cancelled")) : ToUTF8(_("Failed"));
                             r.failed = !prgs->isCancelled();
                             failedControllers += r.failed ? 1 : 0;
-                        } else if (!willUpload[i]) {
-                            r.status = cancelled && seqUploadTargets == 0 ? ToUTF8(_("Not uploaded")) : ToUTF8(_("Already up to date"));
+                        } else if (upToDate[i]) {
+                            r.status = ToUTF8(_("Already up to date"));
+                        } else if (uploaded[i]) {
+                            // an upload still in flight when Cancel was pressed is abandoned
+                            r.status = prgs->isCancelled() ? ToUTF8(_("Cancelled")) : ToUTF8(_("Uploaded"));
                         } else {
-                            r.status = cancelled ? ToUTF8(_("Cancelled")) : ToUTF8(_("Uploaded"));
+                            // skipped because another controller failed or the upload was cancelled
+                            r.status = ToUTF8(_("Not uploaded"));
                         }
                         results.push_back(r);
                     }
@@ -1919,11 +1937,11 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
         } else {
             wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
         }
-        prgs->finish(cancelled, 2, stayOpen);
+        prgs->finish(prgs->isCancelled(), 2, stayOpen);
     } else {
         if (cancelled) {
             xlframe->SetStatusText("FPP Connect Upload Cancelled", 0);
-            prgs->finish(true, 1, stayOpen);
+            prgs->finish(prgs->isCancelled(), 1, stayOpen);
         } else {
             xlframe->SetStatusText("FPP Connect Upload Complete", 0);
             prgs->finish(false, 0, stayOpen);
