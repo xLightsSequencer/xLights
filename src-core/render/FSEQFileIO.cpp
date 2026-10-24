@@ -195,7 +195,7 @@ bool Write(const std::string& path,
     }
 
     if (options.version >= 2) {
-        file->enableMinorVersionFeatures(2);
+        file->enableMinorVersionFeatures(3);
     }
     const long channelCount = options.isEffectSeq ? (long)seqData.NumChannels()
                                                   : roundTo4((long)seqData.NumChannels());

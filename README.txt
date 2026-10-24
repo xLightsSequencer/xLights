@@ -25,7 +25,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  self-limiting
     -enh (derwin12)              SubModels Symmetrize (Rotational) is available again on Circle, Star, Wreath and
                                  full-circle Spinner models, not just Custom (#7276)
-
+    -bug (merryoncherry/dkulp)   Sparse FSEQ files with more than 255 sparse ranges lost most of their
+                                 channels.  They now save every range (FSEQ 2.3), and files already
+                                 saved that way load correctly.  FPP older than 10.4 is sent the
+                                 ranges merged down to 255 (effect sequences: their first 255)
 
 2026.19  October 23, 2026
 

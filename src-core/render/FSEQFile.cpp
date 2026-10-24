@@ -2,6 +2,7 @@
 #define _FILE_OFFSET_BITS 64
 #define __STDC_FORMAT_MACROS
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 
@@ -2099,6 +2100,29 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, CompressionType ct, int cl) :
 
     createHandler();
 }
+void V2FSEQFile::fitSparseRangesToHeader(std::vector<std::pair<uint32_t, uint32_t>>& ranges) {
+    if (ranges.size() <= 255) {
+        return;
+    }
+    std::sort(ranges.begin(), ranges.end());
+    while (ranges.size() > 255) {
+        size_t best = 1;
+        uint32_t bestGap = UINT32_MAX;
+        for (size_t i = 1; i < ranges.size(); ++i) {
+            uint32_t prevEnd = ranges[i - 1].first + ranges[i - 1].second;
+            uint32_t gap = ranges[i].first > prevEnd ? ranges[i].first - prevEnd : 0;
+            if (gap < bestGap) {
+                bestGap = gap;
+                best = i;
+            }
+        }
+        auto& prev = ranges[best - 1];
+        uint32_t end = std::max(prev.first + prev.second, ranges[best].first + ranges[best].second);
+        prev.second = end - prev.first;
+        ranges.erase(ranges.begin() + best);
+    }
+}
+
 void V2FSEQFile::writeHeader() {
     if (!m_sparseRanges.empty()) {
         //make sure the sparse ranges fit, and then
@@ -2113,6 +2137,9 @@ void V2FSEQFile::writeHeader() {
             }
         }
         m_sparseRanges = newRanges;
+        if (m_seqVersionMinor < 3) {
+            fitSparseRangesToHeader(m_sparseRanges);
+        }
         if (!m_sparseRanges.empty()) {
             m_seqChannelCount = 0;
             for (auto& a : m_sparseRanges) {
@@ -2126,10 +2153,28 @@ void V2FSEQFile::writeHeader() {
 
     uint16_t maxBlocks = m_handler->computeMaxBlocks(m_allowExtendedBlocks ? 4095 : 255) & 0xFFF;
 
+    // A table longer than the header can count goes whole into an 'SR' block.  The
+    // header keeps the first 255 so readers that predate 'SR' still play those channels.
+    std::erase_if(m_variableHeaders, [](const VariableHeader& vh) { return vh.code[0] == 'S' && vh.code[1] == 'R'; });
+    size_t headerRanges = m_sparseRanges.size();
+    if (headerRanges > 255) {
+        headerRanges = 255;
+        VariableHeader sr;
+        sr.code[0] = 'S';
+        sr.code[1] = 'R';
+        sr.extendedData = true;
+        sr.data.resize(m_sparseRanges.size() * V2FSEQ_SPARSE_RANGE_SIZE);
+        for (size_t i = 0; i < m_sparseRanges.size(); i++) {
+            write3ByteUInt(&sr.data[i * V2FSEQ_SPARSE_RANGE_SIZE], m_sparseRanges[i].first);
+            write3ByteUInt(&sr.data[i * V2FSEQ_SPARSE_RANGE_SIZE + 3], m_sparseRanges[i].second);
+        }
+        m_variableHeaders.push_back(sr);
+    }
+
     // Compute headerSize to include the header, compression blocks and sparse ranges
     int headerSize = V2FSEQ_HEADER_SIZE;
     headerSize += maxBlocks * V2FSEQ_COMPRESSION_BLOCK_SIZE;
-    headerSize += m_sparseRanges.size() * V2FSEQ_SPARSE_RANGE_SIZE;
+    headerSize += headerRanges * V2FSEQ_SPARSE_RANGE_SIZE;
 
     // Channel data offset is the headerSize plus size of variable headers
     // Round to a product of 4 for better memory alignment
@@ -2176,7 +2221,9 @@ void V2FSEQFile::writeHeader() {
     write2ByteUInt(&header[4], m_seqChanDataOffset);
 
     // File format version - 2 bytes
-    header[6] = m_seqVersionMinor;
+    // 2.3 only changes how the sparse ranges are stored, so a file that doesn't
+    // need it is marked 2.2 and older readers take it without complaint.
+    header[6] = (m_seqVersionMinor >= 3 && headerRanges == m_sparseRanges.size()) ? 2 : m_seqVersionMinor;
     header[7] = m_seqVersionMajor;
 
     // Computed header length - 2 bytes
@@ -2195,7 +2242,7 @@ void V2FSEQFile::writeHeader() {
     // Number of blocks in compressed channel data (should be 0 if not compressed) - 1 byte, lower 8 bits
     header[21] = maxBlocks & 0xFF;
     // Number of ranges in sparse range index - 1 byte
-    header[22] = m_sparseRanges.size();
+    header[22] = headerRanges;
     // Flags (unused & reserved, should be 0) - 1 byte
     header[23] = 0;
 
@@ -2213,9 +2260,9 @@ void V2FSEQFile::writeHeader() {
 
     // Sparse ranges
     // 6 byte size (3 byte value + 3 byte value)
-    for (auto& a : m_sparseRanges) {
-        write3ByteUInt(&header[writePos], a.first);
-        write3ByteUInt(&header[writePos + 3], a.second);
+    for (size_t i = 0; i < headerRanges; i++) {
+        write3ByteUInt(&header[writePos], m_sparseRanges[i].first);
+        write3ByteUInt(&header[writePos + 3], m_sparseRanges[i].second);
         writePos += V2FSEQ_SPARSE_RANGE_SIZE;
     }
 
@@ -2280,7 +2327,7 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, FILE* file, const std::vector<uint
     m_compressionType(none),
     m_allowExtendedBlocks(false),
     m_handler(nullptr) {
-    if (m_seqVersionMajor == 2 && m_seqVersionMinor > 2) {
+    if (m_seqVersionMajor == 2 && m_seqVersionMinor > 3) {
         LogErr(VB_SEQUENCE, "Unknown minor version: %d.  FSEQ may not load properly.\n", m_seqVersionMinor);
     }
 
@@ -2411,6 +2458,23 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, FILE* file, const std::vector<uint
         // 6 byte size each (3 byte firstChannel + 3 byte length)
         // header[22] is the "sparse range count" field
         int numRanges = header[22];
+        // Writers before 2.3 stored tables of more than 255 ranges with only the low
+        // byte of the count.  Take the count implied by the header size (bytes 8-9) when
+        // its low byte matches, the table fits in the header, and the ranges add up to
+        // the channel count.
+        int tableEnd = read2ByteUInt(&header[8]);
+        if (tableEnd > readPos + numRanges * V2FSEQ_SPARSE_RANGE_SIZE && tableEnd <= (int)header.size() &&
+            (tableEnd - readPos) % V2FSEQ_SPARSE_RANGE_SIZE == 0) {
+            int fullRanges = (tableEnd - readPos) / V2FSEQ_SPARSE_RANGE_SIZE;
+            uint64_t total = 0;
+            for (int i = 0; i < fullRanges; i++) {
+                total += read3ByteUInt(&header[readPos + i * V2FSEQ_SPARSE_RANGE_SIZE + 3]);
+            }
+            if ((fullRanges & 0xFF) == numRanges && total == m_seqChannelCount) {
+                LogInfo(VB_SEQUENCE, "FSEQ header range count %d is the low byte of %d, using %d.\n", numRanges, fullRanges, fullRanges);
+                numRanges = fullRanges;
+            }
+        }
         if (readPos + numRanges * V2FSEQ_SPARSE_RANGE_SIZE > (int)header.size()) {
             LogErr(VB_SEQUENCE, "FSEQ header claims %d sparse ranges but only has room for %d.  File is truncated or corrupt.\n",
                    numRanges, ((int)header.size() - readPos) / V2FSEQ_SPARSE_RANGE_SIZE);
@@ -2441,6 +2505,27 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, FILE* file, const std::vector<uint
         // This will loop and continue reading until it hits padding or m_seqChanDataOffset
         // As long as readPos == headerSize prior to this call, the read is a success
         parseVariableHeaders(header, readPos);
+
+        // 2.3+: the whole table when it is longer than the 255 the header can count.
+        // Only take it when it extends the header's table and covers the channel count,
+        // so a stale copy carried along by an older writer is ignored.
+        auto sr = std::find_if(m_variableHeaders.begin(), m_variableHeaders.end(),
+                               [](const VariableHeader& vh) { return vh.code[0] == 'S' && vh.code[1] == 'R'; });
+        if (sr != m_variableHeaders.end()) {
+            std::vector<std::pair<uint32_t, uint32_t>> ranges;
+            uint64_t total = 0;
+            for (size_t pos = 0; pos + V2FSEQ_SPARSE_RANGE_SIZE <= sr->data.size(); pos += V2FSEQ_SPARSE_RANGE_SIZE) {
+                ranges.emplace_back(read3ByteUInt(&sr->data[pos]), read3ByteUInt(&sr->data[pos + 3]));
+                total += ranges.back().second;
+            }
+            if (sr->data.size() % V2FSEQ_SPARSE_RANGE_SIZE == 0 && ranges.size() > 255 && m_sparseRanges.size() == 255 &&
+                std::equal(m_sparseRanges.begin(), m_sparseRanges.end(), ranges.begin()) && total == m_seqChannelCount) {
+                m_sparseRanges = std::move(ranges);
+            } else {
+                LogErr(VB_SEQUENCE, "FSEQ extended sparse range block does not match the header, using the %d ranges in the header.\n", (int)m_sparseRanges.size());
+            }
+            m_variableHeaders.erase(sr);
+        }
     }
 
     createHandler();

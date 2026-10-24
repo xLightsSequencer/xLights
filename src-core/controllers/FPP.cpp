@@ -1205,6 +1205,7 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
 static std::vector<std::pair<uint32_t, uint32_t>> SparseRangesToWrite(const FSEQFile *file,
                                                                       const V2FSEQFile *v2source,
                                                                       bool isEffectSeq,
+                                                                      bool extendedRanges,
                                                                       const std::vector<std::pair<uint32_t, uint32_t>> &controllerRanges) {
     std::vector<std::pair<uint32_t, uint32_t>> wanted;
     if (isEffectSeq && v2source != nullptr && !v2source->m_sparseRanges.empty()) {
@@ -1240,6 +1241,9 @@ static std::vector<std::pair<uint32_t, uint32_t>> SparseRangesToWrite(const FSEQ
             }
             result.push_back(a);
         }
+    }
+    if (!extendedRanges) {
+        V2FSEQFile::fitSparseRangesToHeader(result);
     }
     return result;
 }
@@ -1373,10 +1377,22 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             }
         }
     }
+    // FSEQ 2.3 carries more than 255 sparse ranges; older FPP only reads the first 255.
+    // Effect sequences use it regardless: merging their ranges would overlay the
+    // channels in the gaps, while older FPP playing just the first 255 does no harm.
+    const bool extendedRanges = fppType == FPP_TYPE::FPP && (IsVersionAtLeast(10, 4) || isEffectSeq);
+    // Older FPP also reports only those first 255, so compare against that.
+    auto rangesOnRemote = [this](std::vector<std::pair<uint32_t, uint32_t>> r) {
+        if (r.size() > 255 && !IsVersionAtLeast(10, 4)) {
+            r.resize(255);
+        }
+        return r;
+    };
     bool uploadOriginal = fppType == FPP_TYPE::FPP
         && ((FSEQ_Version == 1 && file->getVersionMajor() == 1)
             || fn.extension() == ".eseq"
-            || (ctype == FSEQFile::CompressionType::zstd && !sparse && file->getVersionMajor() == 2));
+            || (ctype == FSEQFile::CompressionType::zstd && !sparse && file->getVersionMajor() == 2
+                && (extendedRanges || v2source == nullptr || v2source->m_sparseRanges.size() <= 255)));
 
     int channelCount = 0;
     if (sparse && uploadOriginal) {
@@ -1385,7 +1401,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         if (v2source != nullptr) {
             sourceRanges = v2source->m_sparseRanges;
         }
-        if (sourceRanges != currentRanges) doSeqUpload = true;
+        if (rangesOnRemote(sourceRanges) != currentRanges) doSeqUpload = true;
     } else if (!sparse) {
         //full file, non sparse
         if (currentMaxChannel != file->getMaxChannel()) doSeqUpload = true;
@@ -1413,7 +1429,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             }
             controllerRanges.push_back(std::pair<uint32_t, uint32_t>(start, len));
         }
-        newRanges = SparseRangesToWrite(file, v2source, isEffectSeq, controllerRanges);
+        newRanges = SparseRangesToWrite(file, v2source, isEffectSeq, extendedRanges, controllerRanges);
         if (newRanges.empty() && isEffectSeq) {
             // The effect touches none of this controller's channels, so it needs no file.
             if (tempFileName != "") {
@@ -1425,7 +1441,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         for (auto &a : newRanges) {
             channelCount += a.second;
         }
-        if (newRanges != currentRanges) doSeqUpload = true;
+        if (rangesOnRemote(newRanges) != currentRanges) doSeqUpload = true;
     } else if (!currentRanges.empty()) {
         doSeqUpload = true;
     }
@@ -1482,7 +1498,9 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         return true;
     }
     outputFile->initializeFromFSEQ(*file);
-    if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(7, 0)) {
+    if (extendedRanges) {
+        outputFile->enableMinorVersionFeatures(3);
+    } else if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(7, 0)) {
         outputFile->enableMinorVersionFeatures(2);
     }
     if (sparse && !newRanges.empty()) {
