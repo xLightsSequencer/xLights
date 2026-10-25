@@ -29,6 +29,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  channels.  They now save every range (FSEQ 2.3), and files already
                                  saved that way load correctly.  FPP older than 10.4 is sent the
                                  ranges merged down to 255 (effect sequences: their first 255)
+    -bug (dkulp)                 Sparse FSEQ files now cover the whole model when a group in the sequence
+                                 holds its submodels, instead of a separate range per submodel
 
 2026.19  October 23, 2026
 

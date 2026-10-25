@@ -55,8 +55,8 @@ struct WriteOptions {
 
 // Compute the master-view sparse channel ranges (merged) from the sequence's
 // ELEMENT_TYPE_MODEL rows, resolving models via ctx.GetModel and expanding
-// ModelGroups. Same algorithm as xLightsFrame::WriteFalconPiFile. Exposed so
-// callers (e.g. iPad's TryLoadFseq validity check) share the one definition.
+// ModelGroups. Exposed so callers (the desktop save, iPad's TryLoadFseq validity
+// check) share the one definition.
 std::vector<std::pair<uint32_t, uint32_t>> ComputeSparseRanges(SequenceElements& elements,
                                                                RenderContext& ctx);
 

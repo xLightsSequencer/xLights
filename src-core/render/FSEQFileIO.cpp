@@ -18,6 +18,7 @@
 #include "render/RenderContext.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "models/SubModel.h"
 #include "utils/UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 
@@ -64,13 +65,17 @@ std::vector<uint8_t> zstdCompressFile(const std::string& path) {
 }
 
 // Collect each model's [firstChannel, chanCount], expanding ModelGroups to their
-// members. Port of xLightsFrame::WriteFalconPiFile's addRanges.
+// members.  A group's submodels count as their whole parent model: ranges per
+// submodel leave a gap at every unused node between them, and enough of those
+// gaps overflow the 255 ranges a header holds.
 void addModelRanges(Model* m, std::map<uint32_t, uint32_t>& ranges) {
     if (m == nullptr) return;
     if (ModelGroup* grp = dynamic_cast<ModelGroup*>(m)) {
         for (auto* m2 : grp->Models()) {
             addModelRanges(m2, ranges);
         }
+    } else if (SubModel* sm = dynamic_cast<SubModel*>(m)) {
+        addModelRanges(sm->GetParent(), ranges);
     } else {
         uint32_t cur = ranges[m->GetFirstChannel()];
         ranges[m->GetFirstChannel()] = std::max(m->GetChanCount(), cur);
