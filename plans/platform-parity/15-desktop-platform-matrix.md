@@ -1,6 +1,6 @@
 # 15. Desktop Platform Matrix — macOS vs Windows vs Linux
 
-_Generated from code on 2026-07-31; rows 55, 60, 71, 86, 87, 93, 97, 114 and the
+_Generated from code on 2026-07-31; rows 42, 55, 60, 71, 86, 87, 93, 97, 114 and the
 practical-impact summary spot-updated 2026-10-24 to reflect Linux fixes landed
 since — the rest of the doc has not been regenerated and may have drifted
 further._
@@ -34,7 +34,7 @@ Build configurations referenced throughout:
 | Render byte-parity | `-O3 -ffast-math` + ThinLTO | `/O2 /fp:precise`, no fast-math | `-O2 -ffast-math`, no LTO | Same sequence is **not** guaranteed to render byte-identical FSEQ across the three OSes. |
 | ISPC SIMD kernels | `-O3`, precise math | no `-O`, precise math | `--math-lib=fast` | A fourth source of per-OS pixel divergence; absent entirely on Windows ARM. |
 | Video decode | AVFoundation (HW on by default), FFmpeg fallback | **Media Foundation + D3D11 video processor, HW on by default** (2026-08-03), FFmpeg fallback | FFmpeg, HW pref hidden | Windows now matches macOS on decode colour/frame selection and is 2-3x faster on video-heavy sequences. Both still take the stateful frame path; only macOS is frame-parallel. |
-| Video encode | VideoToolbox via AVFoundation | NVENC/AMF/QSV with retry chain | software libx264/libx265 only | Video export is markedly slower on Linux and fails hard where Windows would degrade. |
+| Video encode | VideoToolbox via AVFoundation | NVENC/AMF/QSV with retry chain | VAAPI with software retry ✅ (fixed 2026-10-24) | All three OSes now prefer a hardware encoder with a software fallback. |
 | Audio playback | AVAudioEngine | SDL2 | SDL2 | Speed change is instant on macOS, stalls (and can silently no-op) on Win/Linux. |
 | Audio analysis rate | 48 kHz | 44.1 kHz | 44.1 kHz | Timing marks and audio-reactive effect values are not identical across OSes for the same song. |
 | ML / AI features | CoreML stems, SoundAnalysis, Apple Intelligence (Apple Silicon) | ONNX/DirectML stems | ONNX/CPU stems ✅ (fixed 2026-10-24); no sound classification or on-device AI services | Stem separation now works on all three OSes; Classify Audio / Apple Intelligence remain Apple-only. |
@@ -95,7 +95,7 @@ Build configurations referenced throughout:
 | 39a | Video decode | A file the platform decoder has already rejected skips it for the rest of the session instead of retrying it for every reader (one per model per Video effect) | AVFoundation: files VideoToolbox rejects (the first-frame probe decodes nothing and VideoToolbox returned bad-data errors, `-8969` codecBadDataErr, e.g. lossless H.264 High 4:4:4 under 64px; or rawvideo with an unaligned row stride) go straight to the FFmpeg fallback. Failures to start a reader are not cached, since they can be transient under decoder churn, and neither is any file that has decoded this session | Media Foundation: files it has no decoder for (`__mfRejected`) or that fail to decode with few readers open; FFmpeg: files whose hardware decode failed fall back to software | FFmpeg: same per-file hardware-failure cache as Windows | macOS `macOS/src-apple-core/media/AVFoundationVideoBridge.mm` `g_vtRejectedFiles` / `acquireDecoder` (a 12-model test went from 16 probes to 1, render 1.6s to 0.14s, byte-identical output); `src-core/media/WindowsHardwareVideoReader.cpp`; `src-core/media/FFmpegVideoReader.cpp` `HWDecodeFailedForFile`. iPad shares the AVFoundation bridge (no FFmpeg fallback, so a rejected file just fails faster) |
 | 40 | Render speed | Video effect frame parallelism — Windows/Linux always take the stateful path (extra frame-0 decode + seek per reader open) because `FFmpegVideoReader` never overrides `SupportsFrameIndependentAccess()` | `FrameParallelism::Pure` for all-intra files | always `Stateful` | always `Stateful` | `src-core/media/VideoReaderImpl.h:53`; `src-core/media/AVFoundationVideoReader.cpp:110-112`; consumers `src-core/effects/VideoEffect.cpp:148-150`, `:690-703` |
 | 41 | Render speed | Decode-at-target-size hint is populated by the render pre-pass on all OSes but read only by the AVFoundation reader, so 4K sources decode at native res then scale per reader instance off-Apple | consumed | ignored | ignored | `AVFoundationVideoReader.cpp:57-62` vs `src-core/effects/VideoEffect.cpp:332`, `:380` |
-| 42 | Video encode | Encoder selection for H.264/H.265 | `h264_videotoolbox` / `hevc_videotoolbox` | NVENC→AMF→QSV→software with a second-chance retry | **plain software libx264/libx265, no VAAPI/NVENC preference, no retry** — slower export, and a codec-open failure aborts instead of degrading | `src-core/media/VideoWriter.cpp:42-54`; `src-core/media/FFmpegVideoWriter.cpp:187-238`, Windows retry `:507-520` |
+| 42 | Video encode | Encoder selection for H.264/H.265 | `h264_videotoolbox` / `hevc_videotoolbox` | NVENC→AMF→QSV→software with a second-chance retry | ✅ **fixed 2026-10-24** — VAAPI (`h264_vaapi`/`hevc_vaapi`) preferred, software retry on open failure. Unlike NVENC/QSV, VAAPI needs an explicit `hw_frames_ctx` + per-frame `av_hwframe_transfer_data` upload (confirmed empirically — a bare software pix_fmt is rejected even with `hw_device_ctx` set); verified end-to-end (both H.264 and H.265) against this machine's Intel iHD driver, producing valid decodable output | `src-core/media/FFmpegVideoWriter.cpp` `findLinuxEncoder`, VAAPI setup branch, upload in `pushVideoUntilPacketFilled`, software retry alongside the Windows retry block |
 | 43 | Video encode | Quality knobs at the same nominal target → different file size/quality for the same export | `preset=fast, crf=18` | per-vendor rate control (`nvenc cq=18 p4`, `amf qp=18`, `qsv global_quality=18`) | `preset=fast, crf=18` | `FFmpegVideoWriter.cpp:441-473` |
 | 44 | Video export | "Uncompressed Video, *.avi" entry in the Export Sequence format list | **absent** | present | present | `src-ui-wx/import_export/SeqExportDialog.cpp:70-88` (guard `:81-83`) |
 | 45 | Video export | House-preview export resolution on a HiDPI display | real content scale | content scale forced to `1.0` → half the pixel dimensions | real content scale | `src-ui-wx/xLightsMain.cpp:3726-3745` |
@@ -229,10 +229,11 @@ Build configurations referenced throughout:
 4. **Linux's operational-plumbing backlog has mostly closed out.** Logs in
    `/tmp` (row 71), render-cache memory back-off (row 60), fixed serial-port
    names (rows 86-87), mDNS (row 93), stem separation (row 55), webcam node
-   identification (row 114), and packaged-sequence fonts (row 97) are all
-   fixed as of 2026-08–2026-10-24. Still open: software-only video encode
-   (row 42, no VAAPI/NVENC preference or retry chain) and no 3D-mouse support
-   (row 82, `__USE_HIDAPI__` gated to `__WXOSX__ || __WXMSW__` only).
+   identification (row 114), packaged-sequence fonts (row 97), and
+   software-only video encode (row 42) are all fixed as of 2026-08–2026-10-24.
+   Still open: no 3D-mouse support (row 82, `__USE_HIDAPI__` gated to
+   `__WXOSX__ || __WXMSW__` only) and no Python scripting (row 99, Windows-only
+   `PYTHON_RUNNER`).
 
 5. **Windows-ARM is an unflagged third Windows target** (row 18) with no Vulkan,
    no GPU compute, no native Shader path and no SIMD kernels — a materially

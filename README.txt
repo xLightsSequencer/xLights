@@ -23,6 +23,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (scott)                 Linux: the render cache now backs off before driving the system
                                  into swap (same signal/threshold as macOS), instead of never
                                  self-limiting
+    -enh (scott)                 Linux: video export (house preview and model export) now prefers
+                                 VAAPI hardware H.264/H.265 encode when a device is present, falling
+                                 back to software automatically - previously software-only, with no
+                                 GPU preference or retry chain
     -enh (derwin12)              SubModels Symmetrize (Rotational) is available again on Circle, Star, Wreath and
                                  full-circle Spinner models, not just Custom (#7276)
     -bug (merryoncherry/dkulp)   Sparse FSEQ files with more than 255 sparse ranges lost most of their
