@@ -617,6 +617,18 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier) {
     }
     return false;
 #endif
+#elif defined(__linux__)
+    // Same signal and threshold as macOS above (system-wide swap in use), via
+    // sysinfo() instead of vm.swapusage. mem_unit scales every field (usually
+    // 1 on modern kernels, but not guaranteed).
+    constexpr uint64_t MAX = 24ULL * 1024 * 1024 * 1024;
+    struct sysinfo info;
+    if (sysinfo(&info) == 0) {
+        uint64_t unit = info.mem_unit > 0 ? info.mem_unit : 1;
+        uint64_t swapUsed = (uint64_t)(info.totalswap - info.freeswap) * unit;
+        return swapUsed > MAX;
+    }
+    return false;
 #else
     return false;
 #endif

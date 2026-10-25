@@ -82,3 +82,8 @@ src-core/graphics/vulkan/shaders/compiled/*.spv.h
 # (ci_scripts/fetch_dependencies.ps1). The DLL under bin64 and the import
 # library under lib/windows64 are already covered by the rules above.
 include/onnxruntime/
+
+# ONNX Runtime (Linux) — fetched from its GitHub release tarball, not
+# committed (ci_scripts/fetch_onnxruntime_linux.sh).
+lib/linux/libonnxruntime.so*
+lib/linux/.onnxruntime_version

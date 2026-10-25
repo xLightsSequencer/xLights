@@ -169,6 +169,7 @@
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
+			<Add option="-DHAVE_ORT" />
 			<Add option="-DHAVE_VULKAN" />
 				<Add option="-DHAVE_VULKAN_SHADER" />
 			<Add option="-DVK_NO_PROTOTYPES" />
@@ -221,6 +222,10 @@
 		<Unit filename="../src-core/media/Spectrogram.h" />
 		<Unit filename="../src-core/media/AIModelStore.cpp" />
 		<Unit filename="../src-core/media/AIModelStore.h" />
+		<Unit filename="../src-core/media/StemSeparator.cpp" />
+		<Unit filename="../src-core/media/StemSeparator.h" />
+		<Unit filename="../src-core/media/LiveCameraCapture.cpp" />
+		<Unit filename="../src-core/media/LiveCameraCapture.h" />
 		<Unit filename="../src-core/media/MediaCompatibility.cpp" />
 		<Unit filename="../src-core/media/MediaCompatibility.h" />
 		<Unit filename="../src-core/media/VideoTranscoder.cpp" />
@@ -389,6 +394,8 @@
 		<Unit filename="../src-ui-wx/model/GenerateCustomModelDialog.h" />
 		<Unit filename="../src-ui-wx/klightmapper/CustomModelMethodPickerDialog.cpp" />
 		<Unit filename="../src-ui-wx/klightmapper/CustomModelMethodPickerDialog.h" />
+		<Unit filename="../src-ui-wx/custommodelbuilder/CustomModelBuilderDialog.cpp" />
+		<Unit filename="../src-ui-wx/custommodelbuilder/CustomModelBuilderDialog.h" />
 		<Unit filename="../src-ui-wx/klightmapper/KLightMapperBridge.h" />
 		<Unit filename="../src-ui-wx/klightmapper/KLightMapperBridge_win.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/GenerateLyricsDialog.cpp" />

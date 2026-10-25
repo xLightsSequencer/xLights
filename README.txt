@@ -12,6 +12,18 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
+                                 plus Guitar/Piano on the 6-stem model) now works, via ONNX Runtime -
+                                 previously the Linux build never defined HAVE_ORT or HAVE_OPENVINO,
+                                 so the feature silently did not exist
+    -enh (scott)                 Linux: Generate Custom Model offers webcam-based node
+                                 identification (via V4L2), same as Windows/macOS
+    -bug (scott)                 Linux: Package Sequence now bundles the fonts used by Text/Shape
+                                 effects (resolved via fontconfig) instead of silently including none
+    -bug (scott)                 Linux: the render cache now backs off before driving the system
+                                 into swap (same signal/threshold as macOS), instead of never
+                                 self-limiting
+
 
 2026.19  October 23, 2026
 

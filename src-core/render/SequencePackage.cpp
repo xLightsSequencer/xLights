@@ -32,6 +32,9 @@
 #include <CoreText/CoreText.h>
 #include <CoreFoundation/CoreFoundation.h>
 #endif
+#if !defined(_WIN32) && !defined(__APPLE__)
+#include <fontconfig/fontconfig.h>
+#endif
 
 extern "C" {
 #include <minizip/unzip.h>
@@ -1609,8 +1612,31 @@ static std::string resolveFontFaceToFile(const std::string& faceName)
     return path;
 }
 
-#else
-static std::string resolveFontFaceToFile(const std::string&) { return {}; }
+#else // Linux (fontconfig)
+static std::string resolveFontFaceToFile(const std::string& faceName)
+{
+    FcConfig* config = FcConfigGetCurrent(); // lazy-initializes fontconfig on first call
+    if (config == nullptr) return {};
+
+    FcPattern* pattern = FcPatternCreate();
+    if (pattern == nullptr) return {};
+    FcPatternAddString(pattern, FC_FAMILY, reinterpret_cast<const FcChar8*>(faceName.c_str()));
+    FcConfigSubstitute(config, pattern, FcMatchPattern);
+    FcDefaultSubstitute(pattern);
+
+    FcResult result;
+    FcPattern* match = FcFontMatch(config, pattern, &result);
+    FcPatternDestroy(pattern);
+    if (match == nullptr) return {};
+
+    std::string path;
+    FcChar8* file = nullptr;
+    if (FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file != nullptr) {
+        path = reinterpret_cast<const char*>(file);
+    }
+    FcPatternDestroy(match);
+    return path;
+}
 #endif
 
 // Collect OS font files used by Text/Shape/etc. effects and queue them

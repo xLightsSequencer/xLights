@@ -116,9 +116,12 @@ void AppendOutputs(const float* src,
 #        pragma comment(lib, "onnxruntime.lib")
 #    endif
 // Forward-declare DirectML EP entry point — avoids pulling in dml_provider_factory.h
-// (which requires d3d12.h + DirectML.h).
+// (which requires d3d12.h + DirectML.h). DirectML is Windows-only; the Linux/Mac
+// ORT build runs CPU-only (see makeSession's withDML branch below).
+#    ifdef _WIN32
 extern "C" OrtStatus* ORT_API_CALL OrtSessionOptionsAppendExecutionProvider_DML(
     OrtSessionOptions* options, int device_id);
+#    endif
 #endif
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -371,7 +374,12 @@ bool SeparateStems(AudioManager* audio,
 
     spdlog::info("SeparateStems: ONNX Runtime {}", Ort::GetVersionString());
     Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "xLights_demucs");
-    std::wstring wpath(modelPath.begin(), modelPath.end());
+    // Ort::Session takes ORTCHAR_T* (wchar_t on Windows, plain char elsewhere).
+#ifdef _WIN32
+    std::wstring modelPathNative(modelPath.begin(), modelPath.end());
+#else
+    const std::string& modelPathNative = modelPath;
+#endif
 
     out.sampleRate = rate;
 
@@ -389,6 +397,7 @@ bool SeparateStems(AudioManager* audio,
         Ort::SessionOptions sopts;
         sopts.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
         sopts.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
+#ifdef _WIN32
         if (withDML) {
             try {
                 Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_DML(sopts, 0));
@@ -396,10 +405,14 @@ bool SeparateStems(AudioManager* audio,
             } catch (const Ort::Exception& e) {
                 spdlog::warn("SeparateStems: DirectML unavailable ({}), using CPU", e.what());
             }
-        } else {
+        } else
+#else
+        (void)withDML;
+#endif
+        {
             spdlog::info("SeparateStems: running on CPU");
         }
-        Ort::Session s(env, wpath.c_str(), sopts);
+        Ort::Session s(env, modelPathNative.c_str(), sopts);
         spdlog::info("SeparateStems: session created in {} ms",
                      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count());
         return s;
@@ -450,7 +463,11 @@ bool SeparateStems(AudioManager* audio,
     spdlog::info("SeparateStems: {} chunks of {} samples (stride {})", totalChunks, chunkFrames, stride);
 
     for (int attempt = 0; attempt < 2; attempt++) {
+#ifdef _WIN32
         const bool onGPU = attempt == 0 && !forceCPU;
+#else
+        const bool onGPU = false; // DirectML is Windows-only; see makeSession above
+#endif
         const auto runStart = std::chrono::steady_clock::now();
         out.drumsL.assign(trackSize, 0.0f);  out.drumsR.assign(trackSize, 0.0f);
         out.bassL.assign(trackSize, 0.0f);   out.bassR.assign(trackSize, 0.0f);
@@ -556,7 +573,11 @@ bool SeparateStems(AudioManager* audio,
                 return false;
             }
             if (attempt == 0 && !forceCPU) {
+#ifdef _WIN32
                 spdlog::warn("SeparateStems: DirectML inference failed at chunk {} ({}), retrying on CPU", chunkIdx, e.what());
+#else
+                spdlog::warn("SeparateStems: CPU inference failed at chunk {} ({}), retrying", chunkIdx, e.what());
+#endif
                 try {
                     sessionHolder.reset();
                     sessionHolder.emplace(makeSession(false));

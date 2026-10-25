@@ -351,6 +351,7 @@ elseif(APPLE)
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_posix.cpp)
 else()
+    list(APPEND SRC_CORE src-core/media/LiveCameraCapture.cpp)
     list(REMOVE_ITEM SRC_CORE
         ${CMAKE_SOURCE_DIR}/src-core/media/WindowsHardwareVideoReader.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp
@@ -528,7 +529,7 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/support/*.cpp
 )
 
-if(WIN32)
+if(WIN32 OR (UNIX AND NOT APPLE))
     file(GLOB SRC_UI_CUSTOM_MODEL_BUILDER src-ui-wx/custommodelbuilder/*.cpp)
     list(APPEND SRC_UI ${SRC_UI_CUSTOM_MODEL_BUILDER})
 endif()

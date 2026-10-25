@@ -891,13 +891,13 @@ bool Waveform::PrepareStemData(bool sixStem)
         if (locDlg.ShowModal() != wxID_OK)
             return false;
         const std::string chosenRoot = roots[locDlg.GetSelection()];
-        const std::string destDir = chosenRoot + "\\" + AIModelStore::kModelsSubdir;
+        const std::string destDir = (std::filesystem::path(chosenRoot) / AIModelStore::kModelsSubdir).string();
         if (!AIModelStore::EnsureDirectory(destDir)) {
             DisplayError("Couldn't create directory: " + destDir);
             return false;
         }
 
-        const std::string local_Path = destDir + "\\" + modelName;
+        const std::string local_Path = (std::filesystem::path(destDir) / modelName).string();
         {
             wxProgressDialog prog("Downloading Model",
                                     "Downloading HTDemucs stem-separation model…",

@@ -43,7 +43,7 @@ endif
 .NOTPARALLEL:
 .SECONDEXPANSION:
 
-all: wxwidgets33 cbp2make linkliquid ispc klightmapper makefile vulkanshaders subdirs
+all: wxwidgets33 cbp2make linkliquid ispc klightmapper onnxruntime makefile vulkanshaders subdirs
 
 #############################################################################
 
@@ -105,6 +105,13 @@ wxwidgets33: FORCE
 klightmapper: FORCE
 	@printf "Checking KLightMapper desktop scan library\n"
 	@bash ci_scripts/fetch_klightmapper.sh
+
+# Called unconditionally: the script itself compares the staged copy's version
+# stamp against ci_scripts/onnxruntime_version.txt and exits immediately when
+# they match.
+onnxruntime: FORCE
+	@printf "Checking ONNX Runtime (stem separation)\n"
+	@bash ci_scripts/fetch_onnxruntime_linux.sh
 
 ispc: FORCE
 	@printf "Checking ispc\n"
