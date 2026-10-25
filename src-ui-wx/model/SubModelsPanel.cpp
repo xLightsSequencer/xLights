@@ -1304,7 +1304,7 @@ void SubModelsPanel::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.Append(SUBMODEL_DIALOG_SORT_POINTS_ALL, "Geometrically Sort Points All Strands...");
 
     mnu.AppendSeparator();
-    if (model->IsCustom()) {
+    if (SubModelSymmetrize::SupportsModel(model)) {
         mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
         wxString mname = GetSelectedName();
         SubModelInfo* sm = mname.empty() ? nullptr : GetSubModelInfo(mname);

@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <set>
 
+#include "Model.h"
+#include "SpinnerModel.h"
 #include "../utils/NodeUtils.h"
 #include "../utils/string_utils.h"
 
@@ -63,6 +65,22 @@ namespace SubModelSymmetrize {
 
 bool ShouldOfferSquarify(const std::map<int, std::pair<float, float>>& coords) {
     return ComputeAspect(coords).offer;
+}
+
+bool SupportsModel(const Model* model) {
+    if (model == nullptr)
+        return false;
+    switch (model->GetDisplayAs()) {
+    case DisplayAsType::Custom:
+    case DisplayAsType::Circle:
+    case DisplayAsType::Star:
+    case DisplayAsType::Wreath:
+        return true;
+    case DisplayAsType::Spinner:
+        return static_cast<const SpinnerModel*>(model)->GetArcAngle() >= 360;
+    default:
+        return false;
+    }
 }
 
 Result Symmetrize(const std::map<int, std::pair<float, float>>& coordsIn,

@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (heffneil)              FPP Connect upload window shows the current step and sequence, time left, and a
                                  list of each finished step and sequence with per-controller results (Keep Open)
     -enh (derwin12)              FPP Connect remembers the Keep Open setting
+    -enh (derwin12)              SubModels Symmetrize (Rotational) is available again on Circle, Star, Wreath and
+                                 full-circle Spinner models, not just Custom (#7276)
     -enh (heffneil)              Pin favorite show folders with a name in the Directories dialog and switch to them
                                  from File > Favorite Show Folders
     -enh (heffneil)              Batch Render shows a window with each sequence's result and time, overall progress and

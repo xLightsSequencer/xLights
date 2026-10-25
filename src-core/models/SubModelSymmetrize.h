@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+class Model;
+
 // Rotational symmetrize generator for submodel node selections.
 // Extracted wx-free from SubModelsDialog::Symmetrize so both the desktop
 // dialog and the iPad submodel editor can share the algorithm.
@@ -40,5 +42,9 @@ Result Symmetrize(const std::map<int, std::pair<float, float>>& coords,
 // Returns true when the node cloud's aspect ratio is far enough from square
 // that the caller should offer to squarify (mirrors the desktop prompt).
 bool ShouldOfferSquarify(const std::map<int, std::pair<float, float>>& coords);
+
+// True for model types whose screen layout can be rotationally symmetric.
+// A partial-arc Spinner is excluded: its arms don't map onto each other (#3990).
+bool SupportsModel(const Model* model);
 
 } // namespace SubModelSymmetrize
