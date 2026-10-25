@@ -72,6 +72,7 @@
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
 #include "models/SubModelOps.h"
+#include "models/SubModelSymmetrize.h"
 #include "models/ViewObject.h"
 #include "models/ViewObjectManager.h"
 #include "models/MeshObject.h"
@@ -7039,6 +7040,11 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
     if (!m) return 0;
     return (NSInteger)m->GetNodeCount();
+}
+
+- (BOOL)canSymmetrizeModel:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return NO;
+    return SubModelSymmetrize::SupportsModel(_context->GetModelManager()[std::string(modelName.UTF8String)]);
 }
 
 - (nullable NSString*)exportSubmodelsCSVForModel:(NSString*)parentName {
