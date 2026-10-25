@@ -7971,15 +7971,17 @@ private struct SubModelDetailEditor: View {
             }
             .buttonStyle(.bordered)
 
-            HStack(spacing: 12) {
-                Button {
-                    showSymmetrizeSheet = true
-                } label: {
-                    Label("Symmetrize", systemImage: "circle.hexagonpath")
+            if document.canSymmetrize(model: parentModelName) {
+                HStack(spacing: 12) {
+                    Button {
+                        showSymmetrizeSheet = true
+                    } label: {
+                        Label("Symmetrize", systemImage: "circle.hexagonpath")
+                    }
+                    .disabled(entry.strands.isEmpty)
                 }
-                .disabled(entry.strands.isEmpty)
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
         }
     }
 

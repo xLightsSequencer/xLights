@@ -1647,6 +1647,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSInteger)nodeCountForModel:(NSString*)modelName
     NS_SWIFT_NAME(nodeCount(forModel:));
 
+// Whether SubModels Symmetrize applies to this model's type (core
+// SubModelSymmetrize::SupportsModel — same gate as the desktop menu).
+- (BOOL)canSymmetrizeModel:(NSString*)modelName
+    NS_SWIFT_NAME(canSymmetrize(model:));
+
 // Submodel geometry toolbox — the desktop SubModelsPanel's node-grid
 // operations, running the shared core `submodel_ops`.
 //

@@ -23,6 +23,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (scott)                 Linux: the render cache now backs off before driving the system
                                  into swap (same signal/threshold as macOS), instead of never
                                  self-limiting
+    -enh (derwin12)              SubModels Symmetrize (Rotational) is available again on Circle, Star, Wreath and
+                                 full-circle Spinner models, not just Custom (#7276)
 
 
 2026.19  October 23, 2026
