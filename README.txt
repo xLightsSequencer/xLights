@@ -46,6 +46,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash when an automation client disconnects while its request
                                  (such as a render) is still running
     -bug (dkulp)                 Fix crash undoing a custom model data edit in Layout
+    -bug (scott)                 Video effect: a Custom value curve on the Buffer's Sub-Buffer could
+                                 render solid red - tiny per-frame size drift was forcing a video file
+                                 reopen on nearly every frame (#7284)
 
 2026.19  October 23, 2026
 
