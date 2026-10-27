@@ -35,6 +35,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  ranges merged down to 255 (effect sequences: their first 255)
     -bug (dkulp)                 Sparse FSEQ files now cover the whole model when a group in the sequence
                                  holds its submodels, instead of a separate range per submodel
+    -bug (scott)                 Linux: fixed the Effect Presets pane rendering empty (just a tiny
+                                 artifact in the corner) since 2026.17 - the scrolled window had no
+                                 min size, so wxWidgets collapsed its best size to roughly a
+                                 scrollbar's width (#7223)
 
 2026.19  October 23, 2026
 
