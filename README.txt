@@ -39,6 +39,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  artifact in the corner) since 2026.17 - the scrolled window had no
                                  min size, so wxWidgets collapsed its best size to roughly a
                                  scrollbar's width (#7223)
+    -bug (dkulp)                 Fix crash when searching lyrics online (or removing words/phonemes)
+                                 on a timing track that already had words and phonemes
+    -bug (dkulp)                 Fix crash when an automation client disconnects while its request
+                                 (such as a render) is still running
+    -bug (dkulp)                 Fix crash undoing a custom model data edit in Layout
 
 2026.19  October 23, 2026
 

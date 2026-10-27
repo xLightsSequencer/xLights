@@ -115,7 +115,7 @@ bool HttpServer::IsConnectionValid(HttpConnection* connection) const
 {
     for (const auto& it : _connections) {
         if (it.second == connection) {
-            return true;
+            return !connection->_lost;
         }
     }
 
@@ -221,14 +221,27 @@ void HttpServer::OnSocketEvent(wxSocketEvent& event)
 			socket->SetNotify(wxSOCKET_LOST_FLAG);
 			socket->SetFlags(wxSOCKET_NOWAIT);
 
+			// The request handler can yield to the event loop (an xLights automation call can
+			// render for minutes), so the client can disconnect while HandleRequest is still on
+			// the stack. wxSOCKET_LOST then only marks the connection, and it is deleted here
+			// once HandleRequest has returned.
+			connection->_inRequest = true;
 			connection->HandleRequest();
+			connection->_inRequest = false;
 
-			// Enable input events again.
-			socket->SetNotify(wxSOCKET_LOST_FLAG | wxSOCKET_INPUT_FLAG);
-			break;
+			if (!connection->_lost) {
+				// Enable input events again.
+				socket->SetNotify(wxSOCKET_LOST_FLAG | wxSOCKET_INPUT_FLAG);
+				break;
+			}
+			[[fallthrough]];
 		}
 	case wxSOCKET_LOST:
 		{
+			if (connection->_inRequest) {
+				connection->_lost = true;
+				break;
+			}
 			_connections.erase(_connections.find(socket));
 			delete connection;
 

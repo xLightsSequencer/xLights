@@ -160,8 +160,11 @@ void CustomPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
 
 int CustomPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("CustomData" == event.GetPropertyName()) {
-        if (grid->GetPropertyByName("CustomBkgImage")->GetValue() != _custom.GetCustomBackground()) {
-            grid->GetPropertyByName("CustomBkgImage")->SetValue(wxVariant(_custom.GetCustomBackground()));
+        // Undo replays this event without the grid having been rebuilt for this
+        // model, so the background property may not be in it.
+        wxPGProperty* bkg = grid->GetPropertyByName("CustomBkgImage");
+        if (bkg != nullptr && bkg->GetValue() != _custom.GetCustomBackground()) {
+            bkg->SetValue(wxVariant(_custom.GetCustomBackground()));
         }
         _custom.IncrementChangeCount();
         _custom.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |

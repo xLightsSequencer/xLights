@@ -7989,8 +7989,10 @@ void EffectsGrid::DrawTimingEffects(int row) {
     TimingElement* element = dynamic_cast<TimingElement*>(ri->element);
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
 
-    if (effectLayer == nullptr)
+    if (effectLayer == nullptr || element == nullptr) {
         spdlog::debug("EffectsGrid::DrawTimingEffects null effectLayer.");
+        return;
+    }
 
     bool fixed = element->IsFixedTiming();
 

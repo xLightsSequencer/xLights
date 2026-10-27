@@ -2361,6 +2361,11 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), evt);
     }
 
+    // Several of the actions above add or remove layers. The posted refresh rebuilds
+    // the rows too, but the grid can paint before it is handled (as soon as a modal
+    // dialog closes), and the stale rows would still point at the removed layers.
+    mSequenceElements->PopulateRowInformation();
+
     // Make sure message box is painted over by grid.
     wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
     wxPostEvent(GetParent(), eventForceRefresh);
