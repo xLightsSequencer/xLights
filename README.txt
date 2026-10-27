@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -change (derwin12)           Layout show folder footer opens the Directories dialog on a single click
+                                 (Shift+click opens the folder); added tooltip
     -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
                                  plus Guitar/Piano on the 6-stem model) now works, via ONNX Runtime -
                                  previously the Linux build never defined HAVE_ORT or HAVE_OPENVINO,

@@ -1700,9 +1700,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     layoutPanel = new LayoutPanel(PanelPreview, this, PanelSequencer);
     spdlog::debug("LayoutPanel creation done.");
-    layoutPanel->LabelDirectoriesFooter->Bind(wxEVT_LEFT_DCLICK,
-                             [this](wxMouseEvent&) {
-                                                  if (wxGetKeyState(WXK_SHIFT)) {
+    layoutPanel->LabelDirectoriesFooter->SetToolTip("Click to change the show folder. Shift+click to open it in the file manager.");
+    layoutPanel->LabelDirectoriesFooter->SetCursor(wxCursor(wxCURSOR_HAND));
+    layoutPanel->LabelDirectoriesFooter->Bind(wxEVT_LEFT_UP,
+                             [this](wxMouseEvent& e) {
+                                                  if (e.ShiftDown()) {
                                                       wxLaunchDefaultApplication(showDirectory);
                                                   } else {
                                                       OpenShowDirectoriesDialog();
