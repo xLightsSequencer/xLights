@@ -73,42 +73,47 @@ export void ColorWashEffectISPC(const uniform ColorWashData * uniform data,
     float halfWi = (float)(data->width  - 1) * 0.5f;
     float halfHt = (float)(data->height - 1) * 0.5f;
 
-    foreach (index = startIdx ... endIdx) {
-        int px = index % data->width;
-        int py = index / data->width;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    uniform int width = (int)data->width;
+    for (uniform int py = startIdx / max(width, 1); width > 0 && py * width < endIdx; py++) {
+        uniform int rowStart = py * width;
+        foreach (px = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + px;
 
-        float multH = 1.0f;
-        float multV = 1.0f;
+            float multH = 1.0f;
+            float multV = 1.0f;
 
-        if (data->horizFade) {
-            float dist = abs((float)px - halfWi);
-            if (data->reverseFades) {
-                multH = (halfWi > 0.0f) ? dist / halfWi : 0.0f;
-            } else {
-                multH = (halfWi > 0.0f) ? 1.0f - dist / halfWi : 1.0f;
+            if (data->horizFade) {
+                float dist = abs((float)px - halfWi);
+                if (data->reverseFades) {
+                    multH = (halfWi > 0.0f) ? dist / halfWi : 0.0f;
+                } else {
+                    multH = (halfWi > 0.0f) ? 1.0f - dist / halfWi : 1.0f;
+                }
+                multH = clamp(multH, 0.0f, 1.0f);
             }
-            multH = clamp(multH, 0.0f, 1.0f);
-        }
 
-        if (data->vertFade) {
-            float dist = abs((float)py - halfHt);
-            if (data->reverseFades) {
-                multV = (halfHt > 0.0f) ? dist / halfHt : 0.0f;
-            } else {
-                multV = (halfHt > 0.0f) ? 1.0f - dist / halfHt : 1.0f;
+            if (data->vertFade) {
+                float dist = abs((float)py - halfHt);
+                if (data->reverseFades) {
+                    multV = (halfHt > 0.0f) ? dist / halfHt : 0.0f;
+                } else {
+                    multV = (halfHt > 0.0f) ? 1.0f - dist / halfHt : 1.0f;
+                }
+                multV = clamp(multV, 0.0f, 1.0f);
             }
-            multV = clamp(multV, 0.0f, 1.0f);
-        }
 
-        if (data->allowAlpha) {
-            float alpha = (float)data->color[3] * multH * multV;
-            result[index][0] = data->color[0];
-            result[index][1] = data->color[1];
-            result[index][2] = data->color[2];
-            result[index][3] = (uint8)clamp(alpha, 0.0f, 255.0f);
-        } else {
-            float v = clamp(data->colorV * multH * multV, 0.0f, 1.0f);
-            result[index] = cwHsv2rgba(data->colorH, data->colorS, v);
+            if (data->allowAlpha) {
+                float alpha = (float)data->color[3] * multH * multV;
+                result[index][0] = data->color[0];
+                result[index][1] = data->color[1];
+                result[index][2] = data->color[2];
+                result[index][3] = (uint8)clamp(alpha, 0.0f, 255.0f);
+            } else {
+                float v = clamp(data->colorV * multH * multV, 0.0f, 1.0f);
+                result[index] = cwHsv2rgba(data->colorH, data->colorS, v);
+            }
         }
     }
 }

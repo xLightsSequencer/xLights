@@ -200,6 +200,13 @@ theme):
   matching the seven effects already fixed this way. Both apps link the same
   effects, so no iPad-side work; no row status changes.
 
+- **2026-10-27, shared/auto-applied (`src-core/effects/ispc/`).** The pixel kernels
+  for Bars, Candle, Circles, Color Wash, Fan, Fill, Galaxy, Garlands, Kaleidoscope,
+  Life, Shimmer, Shockwave, Spirals, Tree and Wave walk rows instead of deriving x/y
+  from `index % width` (ispc has no vector integer divide, so it ran those a lane at a
+  time). Output is byte-identical; the iPad links the same kernels, so no iPad-side
+  work; no row status changes.
+
 - **The per-effect matrix is nearly saturated, and that is the real finding.** Because
   `JsonEffectPanel` and `EffectPropertyView` consume the same
   `resources/effectmetadata/*.json`, adding an effect setting on desktop lands on iPad

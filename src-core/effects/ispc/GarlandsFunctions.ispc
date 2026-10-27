@@ -68,53 +68,57 @@ export void GarlandsEffectISPC(const uniform GarlandsData * uniform data,
     uniform float invPS        = data->invPS;
     uniform float posOffOverPS = data->posOffOverPS;
 
-    foreach (index = startIdx ... endIdx) {
-        int bx = index % width;
-        int by = index / width;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int by = startIdx / max(width, 1); width > 0 && by * width < endIdx; by++) {
+        uniform int rowStart = by * width;
+        foreach (bx = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + bx;
 
-        // Map the buffer pixel back to (column, ring-axis value v) for this direction.
-        int col;
-        int v;
-        if (dir <= 1) {
-            col = bx;
-            v = (dir == 0) ? by : (buffMax - by - 1);
-        } else {
-            col = by;
-            v = (dir == 2) ? (buffMax - bx - 1) : bx;
-        }
-
-        int po = garlandOffset(type, col);
-
-        // Analytic seed for the covering ring (float — candidate selection only).
-        float rg = ((float)(v + po) - 1.0f) * invPS + posOffOverPS;
-        int base = (int)floor(rg);
-
-        // yadj(r) = max(yb[r] - po, r) is strictly increasing in r, so at most one
-        // ring maps to v: the clamp region gives r == v, the free region a ring near
-        // base. Check both; the integer yb table decides exactly.
-        int cands[7];
-        cands[0] = v;
-        cands[1] = base - 2;
-        cands[2] = base - 1;
-        cands[3] = base;
-        cands[4] = base + 1;
-        cands[5] = base + 2;
-        cands[6] = base + 3;
-
-        int foundRing = -1;
-        for (uniform int c = 0; c < 7; c++) {
-            int r = cands[c];
-            if (r >= 0 && r < buffMax) {
-                int gi = min(r, buffMax - 1); // no-op clamp; guards an ispc gather miscompile
-                int ya = yb[gi] - po;
-                if (ya < r) ya = r;
-                if (ya == v) foundRing = r;
+            // Map the buffer pixel back to (column, ring-axis value v) for this direction.
+            int col;
+            int v;
+            if (dir <= 1) {
+                col = bx;
+                v = (dir == 0) ? by : (buffMax - by - 1);
+            } else {
+                col = by;
+                v = (dir == 2) ? (buffMax - bx - 1) : bx;
             }
-        }
 
-        if (foundRing >= 0) {
-            int gi = min(foundRing, buffMax - 1); // no-op clamp; guards an ispc gather miscompile
-            result[index] = colors[gi];
+            int po = garlandOffset(type, col);
+
+            // Analytic seed for the covering ring (float — candidate selection only).
+            float rg = ((float)(v + po) - 1.0f) * invPS + posOffOverPS;
+            int base = (int)floor(rg);
+
+            // yadj(r) = max(yb[r] - po, r) is strictly increasing in r, so at most one
+            // ring maps to v: the clamp region gives r == v, the free region a ring near
+            // base. Check both; the integer yb table decides exactly.
+            int cands[7];
+            cands[0] = v;
+            cands[1] = base - 2;
+            cands[2] = base - 1;
+            cands[3] = base;
+            cands[4] = base + 1;
+            cands[5] = base + 2;
+            cands[6] = base + 3;
+
+            int foundRing = -1;
+            for (uniform int c = 0; c < 7; c++) {
+                int r = cands[c];
+                if (r >= 0 && r < buffMax) {
+                    int gi = min(r, buffMax - 1); // no-op clamp; guards an ispc gather miscompile
+                    int ya = yb[gi] - po;
+                    if (ya < r) ya = r;
+                    if (ya == v) foundRing = r;
+                }
+            }
+
+            if (foundRing >= 0) {
+                int gi = min(foundRing, buffMax - 1); // no-op clamp; guards an ispc gather miscompile
+                result[index] = colors[gi];
+            }
         }
     }
 }

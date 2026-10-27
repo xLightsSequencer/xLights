@@ -49,6 +49,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (scott)                 Video effect: a Custom value curve on the Buffer's Sub-Buffer could
                                  render solid red - tiny per-frame size drift was forcing a video file
                                  reopen on nearly every frame (#7284)
+    -enh (dkulp)                 Faster CPU rendering of many effects (Shockwave, Color Wash, Bars,
+                                 Spirals, Fan, Galaxy and others); Spirals is about 2x faster
 
 2026.19  October 23, 2026
 

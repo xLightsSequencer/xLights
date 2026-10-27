@@ -74,25 +74,29 @@ export void ShockwaveEffectISPC(const uniform ShockwaveData * uniform data,
     uniform float colorS        = data->colorS;
     uniform float colorV        = data->colorV;
 
-    foreach (index = startIdx ... endIdx) {
-        int   x  = index % width;
-        int   y  = index / width;
-        float x1 = (float)x - xc_adj;
-        float y1 = (float)y - yc_adj;
-        float r  = sqrt(x1 * x1 + y1 * y1);
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int y = startIdx / max(width, 1); width > 0 && y * width < endIdx; y++) {
+        uniform int rowStart = y * width;
+        foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + x;
+            float x1 = (float)x - xc_adj;
+            float y1 = (float)y - yc_adj;
+            float r  = sqrt(x1 * x1 + y1 * y1);
 
-        if (r >= radius1 && r <= radius2) {
-            if (blend_edges) {
-                float color_pct = 1.0f - abs(r - radius_center) / half_width;
-                uint8<4> ncolor = color;
-                if (allowAlpha) {
-                    ncolor[3] = (uint8)(255.0f * color_pct);
+            if (r >= radius1 && r <= radius2) {
+                if (blend_edges) {
+                    float color_pct = 1.0f - abs(r - radius_center) / half_width;
+                    uint8<4> ncolor = color;
+                    if (allowAlpha) {
+                        ncolor[3] = (uint8)(255.0f * color_pct);
+                    } else {
+                        ncolor = shockwaveHsv2rgba(colorH, colorS, colorV * color_pct);
+                    }
+                    result[index] = ncolor;
                 } else {
-                    ncolor = shockwaveHsv2rgba(colorH, colorS, colorV * color_pct);
+                    result[index] = color;
                 }
-                result[index] = ncolor;
-            } else {
-                result[index] = color;
             }
         }
     }

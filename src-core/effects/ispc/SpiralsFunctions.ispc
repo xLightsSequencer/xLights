@@ -78,51 +78,59 @@ export void SpiralsEffectISPC(const uniform SpiralsData * uniform data,
     uniform int   show3D          = data->show3D;
     uniform int   allowAlpha      = data->allowAlpha;
 
-    foreach (index = startIdx ... endIdx) {
-        int   x = index % width;
-        int   y = index / width;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int y = startIdx / max(width, 1); width > 0 && y * width < endIdx; y++) {
+        uniform int rowStart = y * width;
+        foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + x;
 
-        // Invert the strand formula:
-        //   original: x = (int)(strand + spiralState/10 + y*rotation/height) % width
-        //   where strand = (strand_base + thick) % width
-        // So raw = x - spiralState/10 - y*rotation/height  (mod width) gives
-        // the "virtual strand + thick" coordinate.
-        float raw = (float)x - spiralState / 10.0f - (float)y * rotation / fheight;
+            // Invert the strand formula:
+            //   original: x = (int)(strand + spiralState/10 + y*rotation/height) % width
+            //   where strand = (strand_base + thick) % width
+            // So raw = x - spiralState/10 - y*rotation/height  (mod width) gives
+            // the "virtual strand + thick" coordinate.
+            float raw = (float)x - spiralState / 10.0f - (float)y * rotation / fheight;
 
-        // Bring raw into [0, fwidth)
-        raw = raw - floor(raw / fwidth) * fwidth;
+            // Bring raw into [0, fwidth)
+            raw = raw - floor(raw / fwidth) * fwidth;
 
-        // Which spiral stripe does this pixel fall on?
-        int   ns  = (int)(raw / deltaStrands);
-        float pos = raw - (float)ns * deltaStrands;  // position within stripe [0, deltaStrands)
+            // Which spiral stripe does this pixel fall on?
+            int   ns  = (int)(raw / deltaStrands);
+            float pos = raw - (float)ns * deltaStrands;  // position within stripe [0, deltaStrands)
 
-        if (pos >= 0.0f && pos < spiralThickness) {
-            int ColorIdx = (ns % spiralCount) % colorCount;
+            if (pos >= 0.0f && pos < spiralThickness) {
+                // ns is almost always already in range; only lanes that are not pay
+                // for a varying % (same result as (ns % spiralCount) % colorCount).
+                int ColorIdx = ns;
+                if (ColorIdx < 0 || ColorIdx >= spiralCount) ColorIdx = ColorIdx % spiralCount;
+                if (ColorIdx < 0 || ColorIdx >= colorCount) ColorIdx = ColorIdx % colorCount;
 
-            uint8<4> out;
-            if (show3D) {
-                // Continuous 3D gradient across the stripe thickness.
-                // rotation_sign >= 0: brightest at leading edge (pos=0), dims outward.
-                // rotation_sign <  0: dims at leading edge, brightest at trailing edge.
-                float f;
-                if (rotation_sign < 0.0f) {
-                    f = (pos + 1.0f) / spiralThickness;
+                uint8<4> out;
+                if (show3D) {
+                    // Continuous 3D gradient across the stripe thickness.
+                    // rotation_sign >= 0: brightest at leading edge (pos=0), dims outward.
+                    // rotation_sign <  0: dims at leading edge, brightest at trailing edge.
+                    float f;
+                    if (rotation_sign < 0.0f) {
+                        f = (pos + 1.0f) / spiralThickness;
+                    } else {
+                        f = (spiralThickness - pos) / spiralThickness;
+                    }
+                    f = clamp(f, 0.0f, 1.0f);
+                    if (allowAlpha) {
+                        out    = data->colorsAsRGBA[ColorIdx];
+                        out[3] = (uint8)(255.0f * f);
+                    } else {
+                        out = spiralsHsv2rgba(data->colorsH[ColorIdx],
+                                             data->colorsS[ColorIdx],
+                                             data->colorsV[ColorIdx] * f);
+                    }
                 } else {
-                    f = (spiralThickness - pos) / spiralThickness;
+                    out = data->colorsAsRGBA[ColorIdx];
                 }
-                f = clamp(f, 0.0f, 1.0f);
-                if (allowAlpha) {
-                    out    = data->colorsAsRGBA[ColorIdx];
-                    out[3] = (uint8)(255.0f * f);
-                } else {
-                    out = spiralsHsv2rgba(data->colorsH[ColorIdx],
-                                         data->colorsS[ColorIdx],
-                                         data->colorsV[ColorIdx] * f);
-                }
-            } else {
-                out = data->colorsAsRGBA[ColorIdx];
+                result[index] = out;
             }
-            result[index] = out;
         }
     }
 }

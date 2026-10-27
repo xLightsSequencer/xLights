@@ -116,52 +116,59 @@ export void LifeEffectISPC(const uniform LifeISPCData* uniform d,
     const uniform int n_x[8] = { -1, -1, -1, 0, 1, 1, 1, 0 };
     const uniform int n_y[8] = { -1, 0, 1, 1, 1, 0, -1, -1 };
 
-    foreach (index = startIdx ... endIdx) {
-        int x0 = index % width;
-        int y0 = index / width;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int y0 = startIdx / max(width, 1); width > 0 && y0 * width < endIdx; y0++) {
+        uniform int rowStart = y0 * width;
+        foreach (x0 = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + x0;
 
-        int gi = min(index, npix - 1);
-        unsigned int selfc = prev[gi];
-        bool live = lifeIsLive(selfc);
+            int gi = min(index, npix - 1);
+            unsigned int selfc = prev[gi];
+            bool live = lifeIsLive(selfc);
 
-        int cnt = 0;
-        for (uniform int i = 0; i < 8; ++i) {
-            int nx = (x0 + n_x[i]) % width;
-            int ny = (y0 + n_y[i]) % height;
-            if (nx < 0) nx += width;
-            if (ny < 0) ny += height;
-            int nidx = ny * width + nx;
-            // Out-of-allocation neighbours read as black (scalar GetTempPixelRGB
-            // bounds guard); clamp the gather index so the read is always in range.
-            int rd = min(nidx, npix - 1);
-            if (nidx < npix && lifeIsLive(prev[rd])) ++cnt;
+            int cnt = 0;
+            for (uniform int i = 0; i < 8; ++i) {
+                // Offsets are -1/0/+1, so wrapping is one compare each way (no %).
+                int nx = x0 + n_x[i];
+                int ny = y0 + n_y[i];
+                if (nx >= width) nx -= width;
+                if (ny >= height) ny -= height;
+                if (nx < 0) nx += width;
+                if (ny < 0) ny += height;
+                int nidx = ny * width + nx;
+                // Out-of-allocation neighbours read as black (scalar GetTempPixelRGB
+                // bounds guard); clamp the gather index so the read is always in range.
+                int rd = min(nidx, npix - 1);
+                if (nidx < npix && lifeIsLive(prev[rd])) ++cnt;
+            }
+
+            bool survive = false;
+            bool birth = false;
+            if (type == 0) {
+                survive = live && cnt >= 2 && cnt <= 3;
+                birth = !live && cnt == 3;
+            } else if (type == 1) {
+                survive = live && (cnt == 2 || cnt == 3 || cnt == 6);
+                birth = !live && (cnt == 3 || cnt == 5);
+            } else if (type == 2) {
+                survive = live && (cnt == 1 || cnt == 3 || cnt == 5 || cnt == 8);
+                birth = !live && (cnt == 3 || cnt == 5 || cnt == 7);
+            } else if (type == 3) {
+                survive = live && (cnt == 2 || cnt == 3 || cnt >= 5);
+                birth = !live && (cnt == 3 || cnt == 7 || cnt == 8);
+            } else if (type == 4) {
+                survive = live && (cnt >= 5);
+                birth = !live && (cnt == 2 || cnt >= 5);
+            }
+
+            unsigned int out = 0u;
+            if (survive) {
+                out = selfc;
+            } else if (birth) {
+                out = lifeBirthColor(d, palette, (unsigned int32)index);
+            }
+            result[gi] = out;
         }
-
-        bool survive = false;
-        bool birth = false;
-        if (type == 0) {
-            survive = live && cnt >= 2 && cnt <= 3;
-            birth = !live && cnt == 3;
-        } else if (type == 1) {
-            survive = live && (cnt == 2 || cnt == 3 || cnt == 6);
-            birth = !live && (cnt == 3 || cnt == 5);
-        } else if (type == 2) {
-            survive = live && (cnt == 1 || cnt == 3 || cnt == 5 || cnt == 8);
-            birth = !live && (cnt == 3 || cnt == 5 || cnt == 7);
-        } else if (type == 3) {
-            survive = live && (cnt == 2 || cnt == 3 || cnt >= 5);
-            birth = !live && (cnt == 3 || cnt == 7 || cnt == 8);
-        } else if (type == 4) {
-            survive = live && (cnt >= 5);
-            birth = !live && (cnt == 2 || cnt >= 5);
-        }
-
-        unsigned int out = 0u;
-        if (survive) {
-            out = selfc;
-        } else if (birth) {
-            out = lifeBirthColor(d, palette, (unsigned int32)index);
-        }
-        result[gi] = out;
     }
 }

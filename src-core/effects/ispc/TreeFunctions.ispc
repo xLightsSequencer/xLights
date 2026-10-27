@@ -37,34 +37,38 @@ export void TreeEffectISPC(const uniform TreeISPCData * uniform data,
     uniform int b = data->branch_row;
     uniform int odd_even = b % 2;
 
-    foreach (index = startIdx ... endIdx) {
-        int x = index % width;
-        int y = index / width;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int y = startIdx / max(width, 1); width > 0 && y * width < endIdx; y++) {
+        uniform int rowStart = y * width;
+        foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + x;
 
-        int mod = y % ppb;
-        if (mod == 0)
-            mod = ppb;
-        uint8<4> color = data->bgColors[mod - 1];
+            int mod = y % ppb;
+            if (mod == 0)
+                mod = ppb;
+            uint8<4> color = data->bgColors[mod - 1];
 
-        if (data->showlights) {
-            int branch = (y - 1) / ppb;
-            int row = ppb - mod;
-            int m = x % 6;
-            if (m == 0)
-                m = 6;
-            if (branch <= b && x <= data->frame &&
-                ((row == 3 && (m == 1 || m == 6)) ||
-                 (row == 2 && (m == 2 || m == 5)) ||
-                 (row == 1 && (m == 3 || m == 4)))) {
-                int s_odd_row = width - x + 1;
-                if ((odd_even == 0 && x <= data->f_mod) || (odd_even == 1 && s_odd_row <= data->f_mod)) {
-                    int r = branch % 5;
-                    if (r < 0)
-                        r = 0; // branch is -1 only when y==0 && ppb==1; hue clamps to red
-                    color = data->lightColors[r];
+            if (data->showlights) {
+                int branch = (y - 1) / ppb;
+                int row = ppb - mod;
+                int m = x % 6;
+                if (m == 0)
+                    m = 6;
+                if (branch <= b && x <= data->frame &&
+                    ((row == 3 && (m == 1 || m == 6)) ||
+                     (row == 2 && (m == 2 || m == 5)) ||
+                     (row == 1 && (m == 3 || m == 4)))) {
+                    int s_odd_row = width - x + 1;
+                    if ((odd_even == 0 && x <= data->f_mod) || (odd_even == 1 && s_odd_row <= data->f_mod)) {
+                        int r = branch % 5;
+                        if (r < 0)
+                            r = 0; // branch is -1 only when y==0 && ppb==1; hue clamps to red
+                        color = data->lightColors[r];
+                    }
                 }
             }
+            result[index] = color;
         }
-        result[index] = color;
     }
 }
