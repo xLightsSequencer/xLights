@@ -2956,17 +2956,20 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         }
     }
 
-    // Handle the effect Assist
-    if (tempEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
-        if (sEffectAssist->GetPanel() != sEffectAssist->GetDefaultAssistPanel() && sEffectAssist->GetPanel() != nullptr) {
+    // Handle the effect Assist. When hiding, the loop above already hid it with
+    // the other panes; applying the mode here would show it again on Layout.
+    if (show) {
+        if (tempEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
+            if (sEffectAssist->GetPanel() != sEffectAssist->GetDefaultAssistPanel() && sEffectAssist->GetPanel() != nullptr) {
+                SetEffectAssistWindowState(true);
+            } else {
+                SetEffectAssistWindowState(false);
+            }
+        } else if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
             SetEffectAssistWindowState(true);
         } else {
             SetEffectAssistWindowState(false);
         }
-    } else if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
-        SetEffectAssistWindowState(true);
-    } else {
-        SetEffectAssistWindowState(false);
     }
     UpdateViewMenu();
 
