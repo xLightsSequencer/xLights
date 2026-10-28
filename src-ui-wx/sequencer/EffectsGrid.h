@@ -272,6 +272,7 @@ private:
 
     std::set<EffectLayer *> GetLayersWithSelectedEffects() const;
     bool MultipleEffectsSelected() const;
+    bool GetSelectedEffectsTimeRange(int& startMS, int& endMS) const;
     std::list<Effect*> GetSelectedEffects() const;
     bool PapagayoEffectsSelected() const;
     bool AtLeastOneEffectSelected() const;
