@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (derwin12)              Floating Effect Assist window no longer stays open when switching
+                                 to the Layout tab (#7241)
     -change (derwin12)           Layout show folder footer opens the Directories dialog on a single click
                                  (Shift+click opens the folder); added tooltip
     -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
