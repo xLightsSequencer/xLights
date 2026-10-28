@@ -4,16 +4,23 @@ ISPC_ARCH=$(shell uname -m)
 ifeq '$(ISPC_ARCH)' 'aarch64'
 ISPC_FLAGS=--target-os=linux --target=neon-i32x8 --arch=aarch64 --pic
 else
-ISPC_FLAGS=--target-os=linux --target=avx2-i32x16 --target=avx1-i32x16  --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64 --pic
+# One comma-separated --target list: ispc keeps only the last of repeated
+# --target flags. Multi-target writes a dispatcher object plus one object per
+# ISA (_avx2/_avx/_sse4/_sse2); they are merged into the single $@ with ld -r.
+ISPC_FLAGS=--target-os=linux --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64 --pic
 endif
 
 $(OBJDIR_LINUX_DEBUG)/__/src-core/%.o: ../src-core/%.ispc
-	@mkdir -p $(dir $@)
-	../ispc -g $(ISPC_FLAGS) -o $@ $<
+	@mkdir -p $(dir $@) $(@:.o=.ispcobjs)
+	@rm -f $(@:.o=.ispcobjs)/*.o
+	../ispc -g $(ISPC_FLAGS) -o $(@:.o=.ispcobjs)/$(notdir $@) $<
+	ld -r -o $@ $(@:.o=.ispcobjs)/*.o
 
 $(OBJDIR_LINUX_RELEASE)/__/src-core/%.o: ../src-core/%.ispc
-	@mkdir -p $(dir $@)
-	../ispc --math-lib=fast $(ISPC_FLAGS) -o $@ $<
+	@mkdir -p $(dir $@) $(@:.o=.ispcobjs)
+	@rm -f $(@:.o=.ispcobjs)/*.o
+	../ispc --math-lib=fast $(ISPC_FLAGS) -o $(@:.o=.ispcobjs)/$(notdir $@) $<
+	ld -r -o $@ $(@:.o=.ispcobjs)/*.o
 
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/LayerBlendingFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/LayerBlendingFunctions.o

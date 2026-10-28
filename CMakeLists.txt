@@ -437,7 +437,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|ARM64")
     set(_ispc_targets "neon-i32x8")
     set(_ispc_arch    "aarch64")
 else()
-    set(_ispc_targets "avx2-i32x16,avx1-i32x16,sse4.2-i32x8,sse2-i32x8")
+    set(_ispc_targets "avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8")
     set(_ispc_arch    "x86_64")
 endif()
 
@@ -463,7 +463,7 @@ else()
     if(ISPC_EXECUTABLE)
         message(STATUS "ISPC: using add_custom_command — ${ISPC_EXECUTABLE}")
         # Multi-target produces: Name.obj (dispatcher) + Name_avx2/_avx/_sse4/_sse2.obj
-        # Note: ISPC uses "_avx" (not "_avx1") as the suffix for the avx1-i32x16 target.
+        # Note: ISPC uses "_avx" (not "_avx1") as the suffix for the avx1-i32x8 target.
         set(_ispc_suffixes "_avx2" "_avx" "_sse4" "_sse2")
         set(_ispc_obj_dir "${CMAKE_CURRENT_BINARY_DIR}/ispc_objs")
         file(GLOB _ispc_sources "${CMAKE_SOURCE_DIR}/src-core/effects/ispc/*.ispc")

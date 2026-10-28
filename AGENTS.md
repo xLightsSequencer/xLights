@@ -425,8 +425,15 @@ dir). Every one of these is required:
 | CMake | Auto-globs `*.ispc` — no edit. |
 
 Generate the committed header with the same flags the build's header step uses:
-`ispc --target-os=macos --target=avx2-i32x16 --target=avx1-i32x16 --arch=x86_64
--h Foo.ispc.h Foo.ispc`, then `sed -i '' '/.ispc.h/d' Foo.ispc.h`.
+`ispc --target-os=macos --target=avx1-i32x16 --arch=x86_64 -h Foo.ispc.h Foo.ispc`,
+then `sed -i '' '/.ispc.h/d' Foo.ispc.h`.
+
+**x86 multi-target must be ONE comma-separated `--target=` list**
+(`--target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8`). ispc silently keeps only
+the last of repeated `--target=` flags, which builds SSE2 only with no dispatch. The
+comma form writes a dispatcher object plus `_avx2`/`_avx`/`_sse4`/`_sse2` objects, and
+all five must be linked: the vcxproj lists them in the block's `<Outputs>`, while
+`ispc_compile` and `ispc.mak` merge them into the one declared object with `ld -r`.
 
 ### Metal kernels (`src-core/effects/metal/*.metal` + `Metal*Effect.mm`) — Apple only
 
