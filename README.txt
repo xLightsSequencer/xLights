@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              Floating Effect Assist window no longer stays open when switching
                                  to the Layout tab (#7241)
+    -bug (derwin12)              Ctrl+Left/Right on multiple selected effects slides them as a group
+                                 instead of collapsing the gaps between them
     -change (derwin12)           Layout show folder footer opens the Directories dialog on a single click
                                  (Shift+click opens the folder); added tooltip
     -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
@@ -48,11 +50,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash when an automation client disconnects while its request
                                  (such as a render) is still running
     -bug (dkulp)                 Fix crash undoing a custom model data edit in Layout
-    -bug (scott)                 Video effect: a Custom value curve on the Buffer's Sub-Buffer could
-                                 render solid red - tiny per-frame size drift was forcing a video file
-                                 reopen on nearly every frame (#7284)
     -enh (dkulp)                 Faster CPU rendering of many effects (Shockwave, Color Wash, Bars,
                                  Spirals, Fan, Galaxy and others); Spirals is about 2x faster
+    -bug (derwin12)              Video effect showed a red square when a buffer value curve changed the
+                                 buffer size mid-effect (Windows/Linux) (#7284)
 
 2026.19  October 23, 2026
 
