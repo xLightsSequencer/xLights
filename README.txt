@@ -18,6 +18,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  instead of collapsing the gaps between them
     -change (derwin12)           Layout show folder footer opens the Directories dialog on a single click
                                  (Shift+click opens the folder); added tooltip
+    -bug (derwin12)              Matrix face editor preview showed transparent image areas as white
     -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
                                  plus Guitar/Piano on the 6-stem model) now works, via ONNX Runtime -
                                  previously the Linux build never defined HAVE_ORT or HAVE_OPENVINO,
