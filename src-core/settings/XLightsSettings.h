@@ -11,6 +11,8 @@
  **************************************************************/
 
 #include <filesystem>
+#include <map>
+#include <set>
 #include <shared_mutex>
 #include <string>
 #include <vector>
@@ -32,8 +34,13 @@ public:
     /// Load settings from disk. No-op if path not set or file not found.
     void Load();
 
-    /// Write current state to disk if dirty (atomic rename).
+    /// Write this process's changed keys to disk if dirty (atomic rename).
+    /// Keys changed by other running instances since our last load are kept.
     void Flush();
+
+    /// Pick up changes other running instances wrote to disk, keeping any
+    /// of our own changes that have not been flushed yet.
+    void Reload();
 
     // --- Section-level operations ----------------------------------------
 
@@ -93,6 +100,10 @@ private:
     nlohmann::json _data;
     std::filesystem::path _filePath;
     bool _dirty { false };
+    std::map<std::string, std::set<std::string>> _changedKeys;
+    std::set<std::string> _clearedSections;
 
     void EnsureSections();
+    void MarkChanged(const std::string& section, const std::string& key);
+    void MergeFromDisk();
 };
