@@ -737,28 +737,18 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
     if (_videoreader != nullptr && sampleSpacing == 0) {
         int width = CropScaledDecodeDim(buffer.BufferWi, cropRight - cropLeft);
         int height = CropScaledDecodeDim(buffer.BufferHt, cropTop - cropBottom);
-        // A variable sub-buffer (e.g. a Custom value curve panning/zooming the crop
-        // window) drifts this computed size by a pixel or two on nearly every frame,
-        // unlike a Ramp curve's typically-constant width. Resize() is unimplemented
-        // for the FFmpeg/Windows reader (always returns false, see
-        // VideoReaderImpl.h), so an exact-equality check here forces a full video
-        // file reopen almost every frame; rapid reopen churn can exhaust/fail the
-        // Windows Media Foundation reader outright (#7284). Ignore small drift so
-        // only a real size change triggers a reopen.
-        auto closeEnough = [](int a, int b) {
-            int tolerance = std::max(2, std::max(a, b) / 50); // ~2%, floor of 2px
-            return std::abs(a - b) <= tolerance;
-        };
-        bool vwidthEq = closeEnough(width, cache->_openedWidth);
-        bool vheightEq = closeEnough(height, cache->_openedHeight);
+        bool vwidthEq = width == cache->_openedWidth;
+        bool vheightEq = height == cache->_openedHeight;
         if (!vwidthEq || !vheightEq) {
             // Try to retarget the existing reader to the new size first — recreating
             // the AVURLAsset on every size change leaks ~48-byte FigAsset entries
             // into MediaToolbox's process-global cache. Fall back to delete+new
             // when the impl can't resize in place (FFmpeg today).
             if (!_videoreader->Resize(width, height)) {
+                // filename is only resolved on the init frame; reuse the path the reader opened
+                std::string openedFile = _videoreader->GetFilename();
                 delete _videoreader;
-                _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
+                _videoreader = new VideoReader(openedFile, width, height, aspectratio, false, true);
             }
             cache->_openedWidth = width;
             cache->_openedHeight = height;
