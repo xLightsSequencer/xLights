@@ -4748,19 +4748,23 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt) {
         if (control && mSelectedEffect != nullptr && mSequenceElements->GetSelectedTimingRow() >= 0) {
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
             if (tel != nullptr) {
-                Effect* teff = tel->GetEffectAtTime(mSelectedEffect->GetEndTimeMS());
-                if (teff != nullptr && (mSelectedEffect->GetEndTimeMS() == teff->GetEndTimeMS())) {
-                    teff = tel->GetEffectAtTime(mSelectedEffect->GetEndTimeMS() + 1);
+                // Align the end of the whole selection, not just the primary effect's
+                int selStart = mSelectedEffect->GetStartTimeMS();
+                int selEnd = mSelectedEffect->GetEndTimeMS();
+                GetSelectedEffectsTimeRange(selStart, selEnd);
+                Effect* teff = tel->GetEffectAtTime(selEnd);
+                if (teff != nullptr && (selEnd == teff->GetEndTimeMS())) {
+                    teff = tel->GetEffectAtTime(selEnd + 1);
                 }
                 if (teff == nullptr) {
-                    teff = tel->GetEffectAfterTime(mSelectedEffect->GetEndTimeMS());
+                    teff = tel->GetEffectAfterTime(selEnd);
                     if (teff == nullptr) {
-                        by = mTimeline->GetTimeLength() - mSelectedEffect->GetEndTimeMS();
+                        by = mTimeline->GetTimeLength() - selEnd;
                     } else {
-                        by = teff->GetStartTimeMS() - mSelectedEffect->GetEndTimeMS();
+                        by = teff->GetStartTimeMS() - selEnd;
                     }
                 } else {
-                    by = teff->GetEndTimeMS() - mSelectedEffect->GetEndTimeMS();
+                    by = teff->GetEndTimeMS() - selEnd;
                 }
                 if (!MultipleEffectsSelected() && !shift) {
                     int col = -1;
@@ -4869,19 +4873,23 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt) {
         if (control && mSelectedEffect != nullptr && mSequenceElements->GetSelectedTimingRow() >= 0) {
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
             if (tel != nullptr) {
-                Effect* teff = tel->GetEffectAtTime(mSelectedEffect->GetStartTimeMS());
-                if (teff != nullptr && (mSelectedEffect->GetStartTimeMS() == teff->GetStartTimeMS())) {
-                    teff = tel->GetEffectAtTime(mSelectedEffect->GetStartTimeMS() - 1);
+                // Align the start of the whole selection, not just the primary effect's
+                int selStart = mSelectedEffect->GetStartTimeMS();
+                int selEnd = mSelectedEffect->GetEndTimeMS();
+                GetSelectedEffectsTimeRange(selStart, selEnd);
+                Effect* teff = tel->GetEffectAtTime(selStart);
+                if (teff != nullptr && (selStart == teff->GetStartTimeMS())) {
+                    teff = tel->GetEffectAtTime(selStart - 1);
                 }
                 if (teff == nullptr) {
-                    teff = tel->GetEffectBeforeTime(mSelectedEffect->GetStartTimeMS());
+                    teff = tel->GetEffectBeforeTime(selStart);
                     if (teff == nullptr) {
-                        by = -1 * mSelectedEffect->GetStartTimeMS();
+                        by = -1 * selStart;
                     } else {
-                        by = -1 * (mSelectedEffect->GetStartTimeMS() - teff->GetEndTimeMS());
+                        by = -1 * (selStart - teff->GetEndTimeMS());
                     }
                 } else {
-                    by = -1 * (mSelectedEffect->GetStartTimeMS() - teff->GetStartTimeMS());
+                    by = -1 * (selStart - teff->GetStartTimeMS());
                 }
                 if (!MultipleEffectsSelected() && !shift) {
                     int col = -1;
@@ -5691,6 +5699,27 @@ bool EffectsGrid::MultipleEffectsSelected() const {
         }
     }
     return false;
+}
+
+bool EffectsGrid::GetSelectedEffectsTimeRange(int& startMS, int& endMS) const {
+    bool found = false;
+    for (auto layer : GetLayersWithSelectedEffects()) {
+        for (int i = 0; i < layer->GetEffectCount(); i++) {
+            Effect* eff = layer->GetEffect(i);
+            if (eff->GetSelected() == EFFECT_NOT_SELECTED) {
+                continue;
+            }
+            if (!found) {
+                startMS = eff->GetStartTimeMS();
+                endMS = eff->GetEndTimeMS();
+                found = true;
+            } else {
+                startMS = std::min(startMS, eff->GetStartTimeMS());
+                endMS = std::max(endMS, eff->GetEndTimeMS());
+            }
+        }
+    }
+    return found;
 }
 
 bool EffectsGrid::OneCellSelected() {
@@ -6888,11 +6917,23 @@ void EffectsGrid::ButtUpResizeMoveMultipleEffects(bool right) {
 
     spdlog::debug("EffectsGrid::ButtUpResizeMoveMultipleEffects.");
 
-    ((MainSequencer*)mParent)->TagAllSelectedEffects();
+    // Slide the selection as a block until its first effect butts up against a
+    // neighbour, so the spacing between the selected effects is preserved.
+    int toLeft, toRight;
+    GetRangeOfMovementForSelectedEffects(toLeft, toRight);
 
-    for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
-        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
-        el->ButtUpMoveAllSelectedEffects(right, mTimeline->GetTimeLength(), mSequenceElements->get_undo_mgr());
+    int delta = 0;
+    int selStart, selEnd;
+    if (right) {
+        if (GetSelectedEffectsTimeRange(selStart, selEnd)) {
+            delta = std::min(toRight, mTimeline->GetTimeLength() - selEnd);
+        }
+    } else if (toLeft != NO_MAX) {
+        delta = -toLeft;
+    }
+
+    if (delta != 0) {
+        MoveAllSelectedEffects(delta, false);
     }
 
     mCellRangeSelected = false;
