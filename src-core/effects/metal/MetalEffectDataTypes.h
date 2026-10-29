@@ -316,7 +316,7 @@ struct MetalSpiralsData {
 
     int32_t  show3D;
     int32_t  allowAlpha;
-    float    rotation_sign;     // +1 if rotation >= 0, -1 otherwise (for 3D direction)
+    float    rotation_sign;     // -1 flips the 3D fade side (movement < 0, xor Reverse 3D)
 
     simd::uchar4  colorsAsRGBA[MAX_METAL_SPIRALS_COLORS];
     simd::float3  colorsAsHSV[MAX_METAL_SPIRALS_COLORS];

@@ -43,6 +43,7 @@ public:
     static int sThicknessMax;
     static bool sBlendDefault;
     static bool s3DDefault;
+    static bool sReverse3DDefault;
     static bool sGrowDefault;
     static bool sShrinkDefault;
 

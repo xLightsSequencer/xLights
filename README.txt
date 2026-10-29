@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -enh (derwin12)              Spirals: new Reverse 3D option to choose which edge of the 3D fade leads;
+                                 GPU-rendered Spirals now fade on the same side as CPU (#6614)
     -bug (derwin12)              Shift+mouse wheel scrolling no longer clears the effect grid selection,
                                  so lasso and Shift+click range selection work across a scroll (#6891)
     -bug (derwin12)              Timeline tags (Ctrl+0-9) carried over from the previous sequence after

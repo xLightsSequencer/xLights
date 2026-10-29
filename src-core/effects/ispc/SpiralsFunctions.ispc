@@ -22,7 +22,7 @@ struct SpiralsData {
     int          colorCount;
     float        spiralState;    // SpiralState (long cast to float)
     float        rotation;       // Rotation (degrees per height)
-    float        rotation_sign;  // -1 if Rotation < 0, else +1
+    float        rotation_sign;  // -1 flips the 3D fade side (Movement < 0, xor Reverse 3D)
     float        deltaStrands;   // BufferWi / spiralCount
     float        spiralThickness;
     int          show3D;
