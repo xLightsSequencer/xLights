@@ -82,6 +82,7 @@ void MetalSpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
     int Thickness = GetValueCurveInt("Spirals_Thickness", sThicknessDefault, SettingsMap, offset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool Blend   = SettingsMap.GetBool("CHECKBOX_Spirals_Blend", sBlendDefault);
     bool Show3D  = SettingsMap.GetBool("CHECKBOX_Spirals_3D", s3DDefault);
+    bool Reverse3D = SettingsMap.GetBool("CHECKBOX_Spirals_Reverse3D", sReverse3DDefault);
     bool grow    = SettingsMap.GetBool("CHECKBOX_Spirals_Grow", sGrowDefault);
     bool shrink  = SettingsMap.GetBool("CHECKBOX_Spirals_Shrink", sShrinkDefault);
 
@@ -135,7 +136,7 @@ void MetalSpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
     sdata.rotation       = (float)Rotation;
     sdata.show3D         = Show3D ? 1 : 0;
     sdata.allowAlpha     = buffer.allowAlpha ? 1 : 0;
-    sdata.rotation_sign  = (Rotation >= 0.0f) ? 1.0f : -1.0f;
+    sdata.rotation_sign  = ((Direction < 0) != Reverse3D) ? -1.0f : 1.0f;
 
     for (int i = 0; i < (int)colorcnt; i++) {
         xlColor c;

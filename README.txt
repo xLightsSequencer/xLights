@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -enh (derwin12)              Spirals: new Reverse 3D option to choose which edge of the 3D fade leads;
+                                 GPU-rendered Spirals now fade on the same side as CPU (#6614)
     -bug (derwin12)              Floating Effect Assist window no longer stays open when switching
                                  to the Layout tab (#7241)
     -bug (derwin12)              Ctrl+Left/Right on multiple selected effects slides them as a group

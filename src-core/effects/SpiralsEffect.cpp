@@ -41,6 +41,7 @@ int SpiralsEffect::sThicknessMin = 0;
 int SpiralsEffect::sThicknessMax = 100;
 bool SpiralsEffect::sBlendDefault = false;
 bool SpiralsEffect::s3DDefault = false;
+bool SpiralsEffect::sReverse3DDefault = false;
 bool SpiralsEffect::sGrowDefault = false;
 bool SpiralsEffect::sShrinkDefault = false;
 
@@ -72,6 +73,7 @@ void SpiralsEffect::OnMetadataLoaded()
     sThicknessMax = (int)GetMaxFromMetadata("Spirals_Thickness", sThicknessMax);
     sBlendDefault = GetBoolDefault("Spirals_Blend", sBlendDefault);
     s3DDefault = GetBoolDefault("Spirals_3D", s3DDefault);
+    sReverse3DDefault = GetBoolDefault("Spirals_Reverse3D", sReverse3DDefault);
     sGrowDefault = GetBoolDefault("Spirals_Grow", sGrowDefault);
     sShrinkDefault = GetBoolDefault("Spirals_Shrink", sShrinkDefault);
 }
@@ -94,6 +96,7 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     int Thickness = GetValueCurveInt("Spirals_Thickness", sThicknessDefault, SettingsMap, offset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool Blend = SettingsMap.GetBool("CHECKBOX_Spirals_Blend", sBlendDefault);
     bool Show3D = SettingsMap.GetBool("CHECKBOX_Spirals_3D", s3DDefault);
+    bool Reverse3D = SettingsMap.GetBool("CHECKBOX_Spirals_Reverse3D", sReverse3DDefault);
     bool grow = SettingsMap.GetBool("CHECKBOX_Spirals_Grow", sGrowDefault);
     bool shrink = SettingsMap.GetBool("CHECKBOX_Spirals_Shrink", sShrinkDefault);
 
@@ -107,6 +110,7 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     double spiralGap = deltaStrands - SpiralThickness;
 
     int Direction = Movement > 0.001 ? 1 : (Movement < -0.001 ? -1 : 0);
+    bool fadeFlipped = (Direction < 0) != Reverse3D;
     double position = buffer.GetEffectTimeIntervalPosition(std::abs(Movement));
     long ThicknessState = 0;
     if (grow && shrink) {
@@ -134,7 +138,7 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         sdata.colorCount     = (int)colorcnt;
         sdata.spiralState    = (float)SpiralState;
         sdata.rotation       = Rotation;
-        sdata.rotation_sign  = Direction < 0 ? -1.0f : 1.0f;
+        sdata.rotation_sign  = fadeFlipped ? -1.0f : 1.0f;
         sdata.deltaStrands   = (float)deltaStrands;
         sdata.spiralThickness = (float)SpiralThickness;
         sdata.show3D         = Show3D ? 1 : 0;
@@ -199,7 +203,7 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                 if (Show3D) {
                     double f = 1.0;
 
-                    if (Direction < 0) {
+                    if (fadeFlipped) {
                         f = double(thick + 1) / SpiralThickness;
                     } else {
                         f = double(SpiralThickness - thick) / SpiralThickness;
