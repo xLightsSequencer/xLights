@@ -14,12 +14,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (derwin12)              Spirals: new Reverse 3D option to choose which edge of the 3D fade leads;
                                  GPU-rendered Spirals now fade on the same side as CPU (#6614)
+    -bug (derwin12)              Shift+mouse wheel scrolling no longer clears the effect grid selection,
+                                 so lasso and Shift+click range selection work across a scroll (#6891)
+    -bug (derwin12)              Timeline tags (Ctrl+0-9) carried over from the previous sequence after
+                                 close/open; "Clear all tags" now also clears them from the saved file
     -bug (derwin12)              Floating Effect Assist window no longer stays open when switching
                                  to the Layout tab (#7241)
     -bug (derwin12)              Ctrl+Left/Right on multiple selected effects slides them as a group
                                  instead of collapsing the gaps between them
     -change (derwin12)           Layout show folder footer opens the Directories dialog on a single click
                                  (Shift+click opens the folder); added tooltip
+    -bug (derwin12)              Matrix face editor preview showed transparent image areas as white
     -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
                                  plus Guitar/Piano on the 6-stem model) now works, via ONNX Runtime -
                                  previously the Linux build never defined HAVE_ORT or HAVE_OPENVINO,

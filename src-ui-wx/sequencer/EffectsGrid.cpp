@@ -2360,6 +2360,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             if (!mDragging) {
                 if (!event.ShiftDown() || (mDragStartX == -1)) {
                     mDragStartX = event.GetX();
+                    mDragStartTimeMS = mTimeline->GetRawTimeMSfromPosition(event.GetX());
                     mDragStartY = event.GetY();
                     mDragStartRow = mSequenceElements->GetFirstVisibleModelRow();
                     if (selectedEffect == nullptr) {
@@ -7369,14 +7370,11 @@ void EffectsGrid::EstablishSelectionRectangle() {
     mRangeCursorRow = row2;
     mRangeEndRow = row2;
 
-    int start_x = mDragStartX;
-    int end_x = mDragEndX;
-    if (start_x > end_x) {
-        std::swap(start_x, end_x);
+    int startTime = GetDragStartTimeMS();
+    int endTime = mTimeline->GetAbsoluteTimeMSfromPosition(mDragEndX);
+    if (startTime > endTime) {
+        std::swap(startTime, endTime);
     }
-
-    int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(start_x);
-    int endTime = mTimeline->GetAbsoluteTimeMSfromPosition(end_x);
 
     if (mSequenceElements->GetSelectedTimingRow() >= 0) {
         EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -7443,14 +7441,11 @@ void EffectsGrid::UpdateSelectionRectangle() {
             std::swap(row1, row2);
         }
 
-        int start_x = mDragStartX;
-        int end_x = mDragEndX;
-        if (start_x > end_x) {
-            std::swap(start_x, end_x);
+        int startTime = GetDragStartTimeMS();
+        int endTime = mTimeline->GetAbsoluteTimeMSfromPosition(mDragEndX);
+        if (startTime > endTime) {
+            std::swap(startTime, endTime);
         }
-
-        int startTime = mTimeline->GetAbsoluteTimeMSfromPosition(start_x);
-        int endTime = mTimeline->GetAbsoluteTimeMSfromPosition(end_x);
         if (mSequenceElements->SelectEffectsInRowAndTimeRange(row1, row2, startTime, endTime)) {
             SetFirstEffectSelected();
         }
@@ -7931,7 +7926,14 @@ void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
                     highlight_color = xlights->color_mgr.GetTimingColor(0);
                 }
                 highlight_color.alpha = TIMING_ALPHA;
-                selectedBoxes->AddRectAsTriangles(mDropStartX, y3, mDropStartX + mDropEndX - mDropStartX, y3 + DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
+                int dropStartX = mDropStartX;
+                int dropEndX = mDropEndX;
+                if (!mDragDropping) {
+                    // a selected empty cell must follow the timeline when it scrolls
+                    dropStartX = mTimeline->GetPositionFromTimeMS(mDropStartTimeMS);
+                    dropEndX = mTimeline->GetPositionFromTimeMS(mDropEndTimeMS);
+                }
+                selectedBoxes->AddRectAsTriangles(dropStartX, y3, dropEndX, y3 + DEFAULT_ROW_HEADING_HEIGHT, highlight_color);
                 xLightsApp::GetFrame()->GetMainSequencer()->PanelRowHeadings->Refresh(false);
             }
         }
@@ -8252,7 +8254,7 @@ void EffectsGrid::Draw() {
         if (mDragging && !has_timing_effects) {
             int offset = (mDragStartRow - mSequenceElements->GetFirstVisibleModelRow()) * DEFAULT_ROW_HEADING_HEIGHT;
             xlVertexAccumulator* va = ctx->createVertexAccumulator();
-            va->AddRectAsDashedLines(mDragStartX, mDragStartY + offset, mDragEndX, mDragEndY, translateToBacking(8));
+            va->AddRectAsDashedLines(mTimeline->GetPositionFromTimeMS(mDragStartTimeMS), mDragStartY + offset, mDragEndX, mDragEndY, translateToBacking(8));
             ctx->drawLines(va, xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES));
             delete va;
         }
@@ -8387,6 +8389,19 @@ void EffectsGrid::mouseWheelMoved(wxMouseEvent& event) {
 
 int EffectsGrid::GetRow(int y) const {
     return y / DEFAULT_ROW_HEADING_HEIGHT;
+}
+
+int EffectsGrid::GetDragStartTimeMS() const {
+    return TimeLine::RoundToMultipleOfPeriod(mDragStartTimeMS, mTimeline->GetTimeFrequency());
+}
+
+void EffectsGrid::HorizontalScrolled() {
+    // Keep an in-progress lasso / shift-click range anchored to its start time
+    // instead of dropping it when the view scrolls under it.
+    if (mDragging && mDragThresholdExceeded) {
+        UpdateSelectionRectangle();
+    }
+    Draw();
 }
 
 void EffectsGrid::RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI, bool async) const {

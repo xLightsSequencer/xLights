@@ -988,6 +988,7 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
 
     // Desktop UI on top of the shared load:
     SetFrequency(xml_file.GetFrequency()); // also refreshes the timeline/waveform panels
+    mainSequencer->PanelTimeLine->SyncTagsFrom(_sequenceElements);
 
     // Sync jukebox UI from sequence data
     if (GetJukeboxPanel()) {
@@ -1103,7 +1104,7 @@ void xLightsFrame::Scroll( wxCommandEvent& event)
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(position);
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
     mainSequencer->HorizontalScrollChanged(eventScroll);
-    mainSequencer->PanelEffectGrid->ClearSelection();
+    mainSequencer->PanelEffectGrid->HorizontalScrolled();
 }
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
