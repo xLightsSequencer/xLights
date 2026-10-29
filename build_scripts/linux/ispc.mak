@@ -19,7 +19,7 @@ $(OBJDIR_LINUX_DEBUG)/__/src-core/%.o: ../src-core/%.ispc
 $(OBJDIR_LINUX_RELEASE)/__/src-core/%.o: ../src-core/%.ispc
 	@mkdir -p $(dir $@) $(@:.o=.ispcobjs)
 	@rm -f $(@:.o=.ispcobjs)/*.o
-	../ispc --math-lib=fast $(ISPC_FLAGS) -o $(@:.o=.ispcobjs)/$(notdir $@) $<
+	../ispc $(ISPC_FLAGS) -o $(@:.o=.ispcobjs)/$(notdir $@) $<
 	ld -r -o $@ $(@:.o=.ispcobjs)/*.o
 
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/LayerBlendingFunctions.o

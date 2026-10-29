@@ -207,6 +207,13 @@ theme):
   time). Output is byte-identical; the iPad links the same kernels, so no iPad-side
   work; no row status changes.
 
+- **2026-10-28, shared/auto-applied (`src-core/effects/VideoEffect.cpp`, #7284).** When a
+  variable sub-buffer changed the buffer size mid-effect, a reader that can't `Resize`
+  in place was recreated from the unresolved settings filename, failed to open, and
+  the effect rendered red. It now reopens from the reader's own resolved path. Only
+  FFmpeg/Windows-hardware readers hit the fallback (AVFoundation resizes in place), so
+  macOS/iPad were unaffected; no row status changes.
+
 - **The per-effect matrix is nearly saturated, and that is the real finding.** Because
   `JsonEffectPanel` and `EffectPropertyView` consume the same
   `resources/effectmetadata/*.json`, adding an effect setting on desktop lands on iPad
