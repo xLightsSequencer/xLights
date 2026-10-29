@@ -265,8 +265,8 @@ Full detail in [15-desktop-platform-matrix.md](15-desktop-platform-matrix.md) (1
 The ones that matter most:
 
 1. **Render byte-parity across OSes does not exist** — fast-math on mac/Linux but not
-   Windows, `-O3`+ThinLTO vs `/O2` vs `-O2`, ISPC `--math-lib=fast` on Linux only, runtime
-   GPU-vs-CPU selection. FSEQ regression diffs must be same-OS.
+   Windows, `-O3`+ThinLTO vs `/O2` vs `-O2`, ISPC kernels that vary with the CPU's instruction
+   set (NEON vs the x86 AVX2/SSE dispatch), runtime GPU-vs-CPU selection. FSEQ regression diffs must be same-OS.
 2. **macOS has no in-app update check — mostly moot**: ~98% of macOS installs come from the
    App Store, which updates automatically (Windows likewise skips its check for
    Store-packaged builds). Only the ~2% direct-download tail gets no new-version signal.
