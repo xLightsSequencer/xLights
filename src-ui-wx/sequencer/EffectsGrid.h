@@ -196,6 +196,7 @@ public:
     }
 
     void ClearSelection();
+    void HorizontalScrolled();
 
     static EffectLayer* FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS);
 
@@ -294,6 +295,7 @@ private:
     void DrawEffectMoveDragOverlay(xlGraphicsContext* ctx);
     void StretchAllSelectedEffects(int deltaMS, bool offset) const;
     int GetRow(int y) const;
+    int GetDragStartTimeMS() const;
     void OnGridPopup(wxCommandEvent& event);
     Effect* FillRandomEffects();
     bool OneCellSelected();
@@ -372,6 +374,7 @@ private:
     std::vector<Effect*> mAdditiveDragBaseSelection;
     int mDragStartRow;
     int mDragStartX;
+    int mDragStartTimeMS = 0; // lasso anchor in time so it survives horizontal scroll/zoom
     int mDragStartY;
     int mDragEndX;
     int mDragEndY;
