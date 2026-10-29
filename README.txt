@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (derwin12)              Shift+mouse wheel scrolling no longer clears the effect grid selection,
+                                 so lasso and Shift+click range selection work across a scroll (#6891)
     -change (derwin12)           Layout show folder footer opens the Directories dialog on a single click
                                  (Shift+click opens the folder); added tooltip
     -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
