@@ -1132,6 +1132,8 @@ bool xLightsFrame::CloseSequence()
         }
         if (mainSequencer->ViewLabel != nullptr)
             mainSequencer->ViewLabel->Show();
+        if (!IsExiting() && mainSequencer->PanelTimeLine != nullptr)
+            mainSequencer->PanelTimeLine->SyncTagsFrom(_sequenceElements);
     }
     if (displayElementsPanel != nullptr)
         displayElementsPanel->SetEffectSequenceMode(false);

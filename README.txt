@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (derwin12)              Timeline tags (Ctrl+0-9) carried over from the previous sequence after
+                                 close/open; "Clear all tags" now also clears them from the saved file
     -change (derwin12)           Layout show folder footer opens the Directories dialog on a single click
                                  (Shift+click opens the folder); added tooltip
     -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
