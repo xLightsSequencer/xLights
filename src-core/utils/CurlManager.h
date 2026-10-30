@@ -108,12 +108,18 @@ public:
 
     void setHostUsernamePassword(const std::string& host, const std::string& username, const std::string password);
     void setHostAllowHTTP_0_9(const std::string &host, bool v = true);
-    bool processCurls() {
+    // maxWaitMs > 0 first waits up to that long for a transfer to be able to
+    // make progress (curl_multi_poll returns as soon as one can), so a loop that
+    // pumps until done doesn't spin a core.  0 never blocks, for the idle handler.
+    bool processCurls(int maxWaitMs = 0) {
         if (numCurls) {
-            return doProcessCurls();
+            return doProcessCurls(maxWaitMs);
         }
         return false;
     }
+    // The wait for loops that pump transfers to completion: short enough that
+    // the UI they yield to stays responsive.
+    static constexpr int PUMP_WAIT_MS = 10;
 
     void setProcessCallbacks(bool b) {
         doCurlCallbacks = b;
@@ -122,7 +128,7 @@ private:
     CurlManager();
     ~CurlManager();
 
-    bool doProcessCurls();
+    bool doProcessCurls(int maxWaitMs);
     std::string getHost(const std::string& url);
 
     CURLM* curlMulti = nullptr;

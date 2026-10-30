@@ -1609,7 +1609,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     }
                     row++;
                 }
-                while (CurlManager::INSTANCE.processCurls()) {
+                while (CurlManager::INSTANCE.processCurls(CurlManager::PUMP_WAIT_MS)) {
                     wxYield();
                 }
                 row = 0;
@@ -1641,7 +1641,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     }
                     row++;
                 }
-                while (CurlManager::INSTANCE.processCurls()) {
+                while (CurlManager::INSTANCE.processCurls(CurlManager::PUMP_WAIT_MS)) {
                     wxYield();
                 }
                 row = 0;
@@ -1814,7 +1814,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         }
                         row++;
                     }
-                    while (CurlManager::INSTANCE.processCurls()) {
+                    while (CurlManager::INSTANCE.processCurls(CurlManager::PUMP_WAIT_MS)) {
                         wxYield();
                     }
                     cancelled |= prgs->isCancelled();

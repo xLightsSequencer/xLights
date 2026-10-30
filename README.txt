@@ -17,6 +17,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Crash setting a model's String Type through the automation API, which
                                  also never applied the new String Type / RGBW handling
     -bug (dkulp)                 Stem separation no longer holds two copies of every stem in memory
+    -bug (dkulp)                 FPP Connect and other controller uploads no longer use a full CPU core
+                                 while waiting on a slow or unreachable controller
     -bug (dkulp)                 iPad - Crash in the media picker when an animated thumbnail is reloaded
                                  while it is still cycling
     -bug (dkulp)                 iPad - Opening a sequence with a large saved .fseq could be killed by
