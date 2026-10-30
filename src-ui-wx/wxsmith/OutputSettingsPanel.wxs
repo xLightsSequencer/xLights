@@ -93,6 +93,42 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="wxID_ANY" variable="StaticText4" member="no">
+					<label>Default Max Brightness</label>
+				</object>
+				<col>0</col>
+				<row>4</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="DefaultMaxBrightnessText" member="yes">
+					<tooltip>Brightness (1-100) stamped on newly added controllers. Leave blank to keep new controllers at their own default (100).</tooltip>
+					<validator class="wxTextValidator">
+						<style>wxFILTER_DIGITS</style>
+					</validator>
+					<handler function="OnDefaultMaxBrightnessText" entry="EVT_TEXT" />
+				</object>
+				<col>1</col>
+				<row>4</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxButton" name="ID_BUTTON1" variable="ApplyBrightnessButton" member="yes">
+					<label>Apply to all existing controllers</label>
+					<handler function="OnApplyBrightnessButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>5</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

@@ -831,6 +831,23 @@ void xLightsFrame::NetworkChange(std::source_location loc) {
     UpdateLayoutSave();
 }
 
+void xLightsFrame::ApplyDefaultMaxBrightnessToAllControllers() {
+
+    if (_defaultMaxBrightness <= 0) return;
+
+    int changed = 0;
+    for (const auto& c : _outputManager.GetControllers()) {
+        if (c->SupportsDefaultBrightness() && c->GetDefaultBrightnessUnderFullControl() != _defaultMaxBrightness) {
+            c->SetDefaultBrightnessUnderFullControl(_defaultMaxBrightness);
+            ++changed;
+        }
+    }
+    if (changed > 0) {
+        NetworkChange();
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ApplyDefaultMaxBrightnessToAllControllers");
+    }
+}
+
 void xLightsFrame::NetworkChannelsChange() {
 
     auto logger_work = spdlog::get("work");
@@ -1535,6 +1552,9 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 void xLightsFrame::OnButtonAddControllerSerialClick(wxCommandEvent& event) {
 
     auto c = new ControllerSerial(&_outputManager);
+    if (_defaultMaxBrightness > 0 && c->SupportsDefaultBrightness()) {
+        c->SetDefaultBrightnessUnderFullControl(_defaultMaxBrightness);
+    }
     _outputManager.AddController(c, -1);
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButtonAddControllerSerialClick");
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButtonAddControllerSerialClick");
@@ -1545,6 +1565,9 @@ void xLightsFrame::OnButtonAddControllerSerialClick(wxCommandEvent& event) {
 void xLightsFrame::OnButtonAddControllerEthernetClick(wxCommandEvent& event) {
 
     auto c = new ControllerEthernet(&_outputManager);
+    if (_defaultMaxBrightness > 0 && c->SupportsDefaultBrightness()) {
+        c->SetDefaultBrightnessUnderFullControl(_defaultMaxBrightness);
+    }
     _outputManager.AddController(c, -1);
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButtonAddControllerEthernetClick");
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButtonAddControllerEthernetClick");
@@ -1555,6 +1578,9 @@ void xLightsFrame::OnButtonAddControllerEthernetClick(wxCommandEvent& event) {
 void xLightsFrame::OnButtonAddControllerNullClick(wxCommandEvent& event) {
 
     auto c = new ControllerNull(&_outputManager);
+    if (_defaultMaxBrightness > 0 && c->SupportsDefaultBrightness()) {
+        c->SetDefaultBrightnessUnderFullControl(_defaultMaxBrightness);
+    }
     _outputManager.AddController(c, -1);
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnButtonAddControllerNullClick");
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnButtonAddControllerNullClick");
