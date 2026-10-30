@@ -65,6 +65,7 @@ public:
     void DeleteEntry(const std::string& key);
     void DeleteAll();
     void Flush();
+    void Reload(); // pick up changes other running instances flushed
     void SetPath(const std::string& path); // no-op: JSON store is flat
 
     // --- Iteration (used for config dump in debug reports) --------------

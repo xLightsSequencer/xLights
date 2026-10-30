@@ -117,6 +117,19 @@ void xLightsFrame::RebuildFavoriteShowFoldersMenu()
 {
     if (FavoriteShowFoldersMenu == nullptr) return;
 
+    std::vector<std::pair<wxString, wxString>> entries;
+    for (const auto& fav : ShowDirectoriesDialog::ReadFavoritesFromConfig()) {
+        entries.emplace_back(fav.name, fav.path);
+    }
+    if (wxMenuItem* favItem = MenuFile->FindItem(ID_MENUITEM_FAVFOLDERS)) {
+        favItem->Enable(!entries.empty());
+    }
+    // Called every time the File menu opens, so leave the menu alone when nothing changed.
+    if (entries == _favoriteMenuEntries && FavoriteShowFoldersMenu->GetMenuItemCount() == entries.size()) {
+        return;
+    }
+    _favoriteMenuEntries = entries;
+
     for (const auto& [id, path] : _favoriteMenuPaths) {
         Disconnect(id, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuFavoriteShowFolder);
     }
@@ -125,9 +138,7 @@ void xLightsFrame::RebuildFavoriteShowFoldersMenu()
         FavoriteShowFoldersMenu->Delete(FavoriteShowFoldersMenu->FindItemByPosition(0));
     }
 
-    for (const auto& fav : ShowDirectoriesDialog::ReadFavoritesFromConfig()) {
-        const wxString& path = fav.path;
-        const wxString& name = fav.name;
+    for (const auto& [name, path] : entries) {
         const int menuID = wxNewId();
         // Name only in the menu; the path lives in _favoriteMenuPaths. Escape
         // mnemonics or an '&' in a folder name becomes an accelerator.
@@ -137,9 +148,6 @@ void xLightsFrame::RebuildFavoriteShowFoldersMenu()
         FavoriteShowFoldersMenu->Append(item);
         _favoriteMenuPaths[menuID] = path;
         Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuFavoriteShowFolder);
-    }
-    if (wxMenuItem* favItem = MenuFile->FindItem(ID_MENUITEM_FAVFOLDERS)) {
-        favItem->Enable(!_favoriteMenuPaths.empty());
     }
 }
 
