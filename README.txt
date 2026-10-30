@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (derwin12)              Embedded media referenced with both \ and / in its path (e.g. Shaders\x.fs
+                                 and Shaders/x.fs) showed a second, external copy when opening a package
     -bug (dkulp)                 Crash opening a sequence where a submodel effect row is attached to a
                                  timing track or submodel instead of a model; the row is now skipped
     -bug (dkulp)                 Crash setting a model's String Type through the automation API, which
