@@ -760,7 +760,7 @@ void HinksPix::UpdateUniverseControllerChannels(UDControllerPort* stringData, st
     }
 }
 
-void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const
+void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, int32_t const ddpStart, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const
 {
     const int sc = serialData->GetStartChannel();
     const int usc = serialData->GetUniverseStartChannel();
@@ -803,8 +803,10 @@ void HinksPix::UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData
             hinkstartChan += maxChan;
         }
     } else { //1 is DDP
-        if (pd.ddpDMXStartChannel != sc) {
-            pd.ddpDMXStartChannel = sc;
+        // firmware indexes the DMX source relative to DDP_START, not the absolute show channel
+        int const ddpsc = sc - ddpStart + 1;
+        if (pd.ddpDMXStartChannel != ddpsc) {
+            pd.ddpDMXStartChannel = ddpsc;
             pd.upload = true;
         }
         if (pd.ddpDMXNumOfChan != maxChan) {
@@ -1427,7 +1429,7 @@ bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager,
 
     if (cud.HasSerialPort(1)) {
         UDControllerPort* portData = cud.GetControllerSerialPort(1);
-        UpdateSerialData(*_serialOutput, portData, mode, inputUniverses, hinkstartChan, univIdx, controller->IsUniversePerString());
+        UpdateSerialData(*_serialOutput, portData, mode, o->GetStartChannel(), inputUniverses, hinkstartChan, univIdx, controller->IsUniversePerString());
     }
 
     spdlog::info("Uploading Input Universes Information.");
