@@ -61,6 +61,15 @@ public:
     void HandleUnhandledException();
     // Must be called from within a catch handler — rethrows and describes the in-flight exception.
     static std::string DescribeCurrentException();
+    // Called from the app's CallEventHandler override, inside its catch, to
+    // record which handler the exception is escaping from.  By the time wx
+    // reaches OnExceptionInMainLoop the stack has unwound back to the event
+    // loop, so the report otherwise names no xLights frame at all.
+    static void NoteEventHandlerException(wxEvtHandler* handler, wxEventFunctor& functor, wxEvent& event);
+    // " (while ...)" for the in-flight exception, or empty.  Names the handler
+    // noted above, else the most recent CallAfter: wx runs those without going
+    // through CallEventHandler.  Must be called from within a catch handler.
+    static std::string DescribeExceptionContext();
     void ProcessCrashReport(SendReportOptions sendType);
     // `fileName` is the upload name; empty asks SendReport to derive one, which
     // only the manual paths need - a crash report names itself in HandleCrash
@@ -145,9 +154,21 @@ public:
         wxApp::OnAssertFailure(file, line, func, cond, msg);
     }
 
+#if wxUSE_EXCEPTIONS
+    virtual void CallEventHandler(wxEvtHandler* handler, wxEventFunctor& functor, wxEvent& event) const override
+    {
+        try {
+            wxApp::CallEventHandler(handler, functor, event);
+        } catch (...) {
+            xlCrashHandler::NoteEventHandlerException(handler, functor, event);
+            throw;
+        }
+    }
+#endif
+
     virtual bool OnExceptionInMainLoop() override
     {
-        HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException(),
+        HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException() + xlCrashHandler::DescribeExceptionContext(),
                     SessionType::MainLoopException);
         return false;
     }
