@@ -14,6 +14,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              Embedded media referenced with both \ and / in its path (e.g. Shaders\x.fs
                                  and Shaders/x.fs) showed a second, external copy when opening a package
+    -bug (dkulp)                 Crash opening a sequence where a submodel effect row is attached to a
+                                 timing track or submodel instead of a model; the row is now skipped
+    -bug (dkulp)                 Crash setting a model's String Type through the automation API, which
+                                 also never applied the new String Type / RGBW handling
+    -bug (dkulp)                 Stem separation no longer holds two copies of every stem in memory
+    -bug (dkulp)                 FPP Connect and other controller uploads no longer use a full CPU core
+                                 while waiting on a slow or unreachable controller
+    -bug (dkulp)                 iPad - Crash in the media picker when an animated thumbnail is reloaded
+                                 while it is still cycling
+    -bug (dkulp)                 iPad - Opening a sequence with a large saved .fseq could be killed by
+                                 the iPadOS watchdog; the .fseq now loads in the background
     -enh (derwin12)              Spirals: new Reverse 3D option to choose which edge of the 3D fade leads;
                                  GPU-rendered Spirals now fade on the same side as CPU (#6614)
     -bug (derwin12)              Shift+mouse wheel scrolling no longer clears the effect grid selection,

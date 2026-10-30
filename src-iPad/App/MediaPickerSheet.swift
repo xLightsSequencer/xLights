@@ -367,6 +367,7 @@ struct MediaThumbnailView: View {
             }
         }
         .task(id: path) { await loadAndCycle() }
+        .onDisappear { cycleTask?.cancel() }
         .onChange(of: scenePhase) { _, newPhase in
             // Background / inactive: cancel the cycle timer. SwiftUI
             // also pauses .task when the scene deactivates but being
@@ -421,6 +422,9 @@ struct MediaThumbnailView: View {
             }
         }
 
+        // `.task(id:)` cancels this call when `path` changes; a newer call
+        // owns the state now, and a cycler started here would index its arrays.
+        if Task.isCancelled { return }
         frames = loaded.0
         frameDurations = loaded.1
         if frames.isEmpty {
@@ -429,14 +433,18 @@ struct MediaThumbnailView: View {
         }
         if frames.count == 1 { return }
 
-        // Multi-frame: run a cooperative cycler. Cancels on view
-        // disappear (.task cancellation) or scene-phase change.
+        // Multi-frame: run a cooperative cycler. It is unstructured, so
+        // `.task` cancellation doesn't reach it; onDisappear, scene-phase
+        // change and the next load cancel it.
+        let durations = loaded.1
+        cycleTask?.cancel()
         cycleTask = Task { @MainActor in
+            var frame = 0
             while !Task.isCancelled {
-                let seconds = frameDurations[currentFrame]
-                try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                try? await Task.sleep(nanoseconds: UInt64(durations[frame] * 1_000_000_000))
                 if Task.isCancelled { return }
-                currentFrame = (currentFrame + 1) % frames.count
+                frame = (frame + 1) % durations.count
+                currentFrame = frame
             }
         }
     }
