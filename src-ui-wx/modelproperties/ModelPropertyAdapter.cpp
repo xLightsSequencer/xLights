@@ -259,6 +259,27 @@ wxString FormatSubModelsLabel(const Model& m) {
 wxString FormatAliasesLabel(const Model& m) {
     return wxString::Format("Aliases (%zu)", m.GetAliases().size());
 }
+// Choice index for an enum property: the changed property's index comes from
+// the event (the grid can still hold the old value, or not have the property at
+// all, when the change is injected by automation, which may pass the label
+// instead of the index). Other properties are read from the grid. -1 if unknown.
+int GetChoiceIndex(wxPropertyGridInterface* grid, wxPropertyGridEvent& event, const wxString& name, const wxArrayString& choices) {
+    long idx = -1;
+    if (event.GetPropertyName() == name) {
+        wxVariant v = event.GetValue();
+        if (v.GetType() == "string") {
+            idx = choices.Index(v.GetString());
+            if (idx == wxNOT_FOUND && !v.GetString().ToLong(&idx)) {
+                idx = -1;
+            }
+        } else {
+            idx = v.GetLong();
+        }
+    } else if (wxPGProperty* p = grid->GetPropertyByName(name); p != nullptr) {
+        idx = p->GetValue().GetLong();
+    }
+    return (idx >= 0 && (size_t)idx < choices.GetCount()) ? (int)idx : -1;
+}
 } // namespace
 
 class StartChannelProperty : public wxStringProperty {
@@ -1693,8 +1714,10 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         event.GetProperty()->SetValue(WXVARIANT(xlColorToWxColour(xc)));
         return 0;
     } else if (event.GetPropertyName() == "ModelStringColor" || event.GetPropertyName() == "ModelStringType" || event.GetPropertyName() == "ModelRGBWHandling") {
-        wxPGProperty* p2 = grid->GetPropertyByName("ModelStringType");
-        int i = p2->GetValue().GetLong();
+        int i = GetChoiceIndex(grid, event, "ModelStringType", NODE_TYPES);
+        if (i < 0) {
+            return 0;
+        }
         if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity" || NODE_TYPES[i] == "Node Single Color") {
             wxPGProperty* p = grid->GetPropertyByName("ModelStringColor");
             xlColor c;
@@ -1720,8 +1743,10 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
             _model.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ModelStringType");
         }
         if (_model.GetNodeChannelCount(_model.GetStringType()) > 3) {
-            p2 = grid->GetPropertyByName("ModelRGBWHandling");
-            _model.SetRGBWHandling(RGBW_HANDLING[p2->GetValue().GetLong()]);
+            int rgbw = GetChoiceIndex(grid, event, "ModelRGBWHandling", RGBW_HANDLING);
+            if (rgbw >= 0) {
+                _model.SetRGBWHandling(RGBW_HANDLING[rgbw]);
+            }
         }
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |

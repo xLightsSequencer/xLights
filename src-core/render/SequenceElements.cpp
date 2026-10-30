@@ -917,12 +917,16 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                                 while (!smName.empty() && (smName.front() == ' ' || smName.front() == '\t')) smName.erase(smName.begin());
                                 while (!smName.empty() && (smName.back() == ' ' || smName.back() == '\t')) smName.pop_back();
                                 int layer = effectLayerNode.attribute("layer").as_int(0);
-                                SubModelElement* se = dynamic_cast<ModelElement*>(element)->GetSubModel(smName, true);
-                                assert(se != nullptr);
-                                while (layer >= 0 && static_cast<size_t>(layer) >= se->GetEffectLayerCount()) {
-                                    se->AddEffectLayer();
+                                ModelElement* me = dynamic_cast<ModelElement*>(element);
+                                if (me != nullptr) {
+                                    SubModelElement* se = me->GetSubModel(smName, true);
+                                    while (layer >= 0 && static_cast<size_t>(layer) >= se->GetEffectLayerCount()) {
+                                        se->AddEffectLayer();
+                                    }
+                                    effectLayer = se->GetEffectLayer(layer);
+                                } else {
+                                    spdlog::error("Element {} was not a model element, skipping submodel layer {}.", element->GetName(), smName);
                                 }
-                                effectLayer = se->GetEffectLayer(layer);
                             } else {
                                 if (dynamic_cast<ModelElement*>(element) != nullptr) {
                                     StrandElement* se = dynamic_cast<ModelElement*>(element)->GetStrand(effectLayerNode.attribute("index").as_int(0), true);

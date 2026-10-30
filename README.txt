@@ -12,6 +12,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 Crash opening a sequence where a submodel effect row is attached to a
+                                 timing track or submodel instead of a model; the row is now skipped
+    -bug (dkulp)                 Crash setting a model's String Type through the automation API, which
+                                 also never applied the new String Type / RGBW handling
+    -bug (dkulp)                 Stem separation no longer holds two copies of every stem in memory
+    -bug (dkulp)                 iPad - Crash in the media picker when an animated thumbnail is reloaded
+                                 while it is still cycling
+    -bug (dkulp)                 iPad - Opening a sequence with a large saved .fseq could be killed by
+                                 the iPadOS watchdog; the .fseq now loads in the background
     -enh (derwin12)              Spirals: new Reverse 3D option to choose which edge of the 3D fade leads;
                                  GPU-rendered Spirals now fade on the same side as CPU (#6614)
     -bug (derwin12)              Shift+mouse wheel scrolling no longer clears the effect grid selection,
