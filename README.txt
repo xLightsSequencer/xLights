@@ -74,6 +74,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Spirals, Fan, Galaxy and others); Spirals is about 2x faster
     -bug (derwin12)              Video effect showed a red square when a buffer value curve changed the
                                  buffer size mid-effect (Windows/Linux) (#7284)
+    -bug (NotAFlightRisk)        ArtNet discovery only added the first universe of a node with several output ports
+                                 in one reply
 
 2026.19  October 23, 2026
 
