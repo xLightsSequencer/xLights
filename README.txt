@@ -36,6 +36,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Ctrl+Left/Right on multiple selected effects slides them as a group
                                  instead of collapsing the gaps between them
     -change (derwin12)           Layout show folder footer opens the Directories dialog on a single click
+    -bug (derwin12)              HinksPix DDP upload sent an absolute DMX start channel; now relative to the
+                                 controller start so DMX works when the controller isn't at channel 1 (#7297)
                                  (Shift+click opens the folder); added tooltip
     -bug (derwin12)              Matrix face editor preview showed transparent image areas as white
     -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
