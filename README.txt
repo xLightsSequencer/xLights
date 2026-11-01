@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 iPad - Faces and State effects could not switch to Timing Track; the
+                                 Source selector snapped back until a track was chosen
     -bug (derwin12)              Embedded media referenced with both \ and / in its path (e.g. Shaders\x.fs
                                  and Shaders/x.fs) showed a second, external copy when opening a package
     -bug (dkulp)                 Crash opening a sequence where a submodel effect row is attached to a
