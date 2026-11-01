@@ -100,6 +100,7 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "NODE_LAYOUT", KBSCOPE::Layout },
     { "SAVE_LAYOUT", KBSCOPE::Layout },
     { "SELECT_ALL_MODELS", KBSCOPE::Layout },
+    { "DUPLICATE_MODEL", KBSCOPE::Layout },
     { "MODEL_ALIGN_TOP", KBSCOPE::Layout },
     { "MODEL_ALIGN_BOTTOM", KBSCOPE::Layout },
     { "MODEL_ALIGN_LEFT", KBSCOPE::Layout },
@@ -237,6 +238,7 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "NODE_LAYOUT", "Display the node layout for the selected model." },
     { "SAVE_LAYOUT", "Save the layout tab." },
     { "SELECT_ALL_MODELS", "Select all models." },
+    { "DUPLICATE_MODEL", "Duplicate the selected models or object. Whether copies join the original's groups is set in Preferences > Other." },
     { "MODEL_ALIGN_TOP", "Align the selected models to the top edge." },
     { "MODEL_ALIGN_BOTTOM", "Align the selected models to the bottom edge." },
     { "MODEL_ALIGN_LEFT", "Align the selected models to the left edge." },
@@ -396,6 +398,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("l", false, "LOCK_MODEL", true),
     KeyBinding("u", false, "UNLOCK_MODEL", true),
     KeyBinding("g", false, "GROUP_MODELS", true),
+    KeyBinding("d", false, "DUPLICATE_MODEL", true),
     KeyBinding("", true, "WIRING_VIEW", true),
     KeyBinding("", true, "EXPORT_MODEL_CAD", true),
     KeyBinding("", true, "EXPORT_LAYOUT_DXF", true),
@@ -1085,7 +1088,7 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                 }
             }
 
-            // add in all the missing key bindings ... but disable them
+            // add in all the missing key bindings ... with their default key if it is free, otherwise disabled
             for (auto kbt : KeyBindingTypes) {
                 // const auto&[type, scope] = kbt;
                 auto type = kbt.first;
@@ -1094,8 +1097,20 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                 if (type != "EFFECT" && type != "PRESET" && type != "APPLYSETTING") {
                     bool found = std::find_if(begin(_bindings), end(_bindings), [type](const KeyBinding& b) {return b.GetType() == type; }) != _bindings.end();
                     if (!found) {
-                        spdlog::debug("Adding missing keybinding {}.", (const char*)type.c_str());
-                        _bindings.emplace_back(KeyBinding(WXK_NONE, true, type, false, false, false, false));
+                        bool added = false;
+                        for (const auto& def : DefaultBindings) {
+                            if (def.GetType() != type || def.IsDisabled()) continue;
+                            KeyBinding kb(def.GetKey(), false, type, def.RequiresControl(), def.RequiresAlt(), def.RequiresShift(), def.RequiresRawControl());
+                            if (!IsDuplicateKey(kb)) {
+                                spdlog::debug("Adding missing keybinding {} as {}.", (const char*)type.c_str(), (const char*)kb.KeyDescription().c_str());
+                                _bindings.emplace_back(kb);
+                                added = true;
+                            }
+                        }
+                        if (!added) {
+                            spdlog::debug("Adding missing keybinding {}.", (const char*)type.c_str());
+                            _bindings.emplace_back(KeyBinding(WXK_NONE, true, type, false, false, false, false));
+                        }
                     }
                 }
             }
