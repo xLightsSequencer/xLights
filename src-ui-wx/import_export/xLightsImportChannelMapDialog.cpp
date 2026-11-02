@@ -927,6 +927,8 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
         SetPosition(loc);
         SetSize(sz);
         Layout();
+    } else {
+        CentreOnParent();
     }
 
     auto* config = GetXLightsConfig();
