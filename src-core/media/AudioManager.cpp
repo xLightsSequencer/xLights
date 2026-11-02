@@ -1630,19 +1630,19 @@ FilteredAudioData* AudioManager::GetFilteredAudioData(AUDIOSAMPLETYPE type, int 
     }
 }
 
-void AudioManager::SetStemData(const std::vector<float>& drumsL, const std::vector<float>& drumsR,
-                                const std::vector<float>& bassL, const std::vector<float>& bassR,
-                                const std::vector<float>& otherL, const std::vector<float>& otherR,
-                                const std::vector<float>& vocalsL, const std::vector<float>& vocalsR,
-                                const std::vector<float>& guitarL, const std::vector<float>& guitarR,
-                                const std::vector<float>& pianoL, const std::vector<float>& pianoR) {
+void AudioManager::SetStemData(std::vector<float> drumsL, std::vector<float> drumsR,
+                                std::vector<float> bassL, std::vector<float> bassR,
+                                std::vector<float> otherL, std::vector<float> otherR,
+                                std::vector<float> vocalsL, std::vector<float> vocalsR,
+                                std::vector<float> guitarL, std::vector<float> guitarR,
+                                std::vector<float> pianoL, std::vector<float> pianoR) {
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
-    _stemDrumsL = drumsL;   _stemDrumsR = drumsR;
-    _stemBassL = bassL;     _stemBassR = bassR;
-    _stemOtherL = otherL;   _stemOtherR = otherR;
-    _stemVocalsL = vocalsL; _stemVocalsR = vocalsR;
-    _stemGuitarL = guitarL; _stemGuitarR = guitarR;
-    _stemPianoL = pianoL;   _stemPianoR = pianoR;
+    _stemDrumsL = std::move(drumsL);   _stemDrumsR = std::move(drumsR);
+    _stemBassL = std::move(bassL);     _stemBassR = std::move(bassR);
+    _stemOtherL = std::move(otherL);   _stemOtherR = std::move(otherR);
+    _stemVocalsL = std::move(vocalsL); _stemVocalsR = std::move(vocalsR);
+    _stemGuitarL = std::move(guitarL); _stemGuitarR = std::move(guitarR);
+    _stemPianoL = std::move(pianoL);   _stemPianoR = std::move(pianoR);
     std::lock_guard<std::recursive_mutex> flock(_filteredMutex);
     // Evict any cached STEM_* entries so the next
     // `EnsureFilteredAudioData(STEM_X)` rebuilds from the new data.

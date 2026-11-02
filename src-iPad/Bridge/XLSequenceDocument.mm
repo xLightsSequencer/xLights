@@ -13835,14 +13835,14 @@ static std::string iPadLiftNestedStemModel(const std::string& rootDir) {
                                   });
         std::vector<std::pair<std::string, std::string>> encoded;
         if (ok) {
-            am->SetStemData(
-                stems.drumsL, stems.drumsR,
-                stems.bassL, stems.bassR,
-                stems.otherL, stems.otherR,
-                stems.vocalsL, stems.vocalsR);
             // The encode is the slow part and only writes files, so it stays
             // here; registering the tracks mutates the sequence and must not.
             encoded = [self encodeStemFiles:stems source:am];
+            am->SetStemData(
+                std::move(stems.drumsL), std::move(stems.drumsR),
+                std::move(stems.bassL), std::move(stems.bassR),
+                std::move(stems.otherL), std::move(stems.otherR),
+                std::move(stems.vocalsL), std::move(stems.vocalsR));
         }
         dispatch_async(dispatch_get_main_queue(), ^{
             if (!encoded.empty()) {
@@ -20452,7 +20452,7 @@ NSString* fppTypeString(FPP_TYPE t) {
         // Drain any in-flight transfers (Prepare may have queued
         // capability probes / mediaUpload PUTs; Finalize will queue
         // the bulk fseq transfer; AddFrameToUpload is CPU-only).
-        while (CurlManager::INSTANCE.processCurls()) {}
+        while (CurlManager::INSTANCE.processCurls(CurlManager::PUMP_WAIT_MS)) {}
     };
 
     // Ask every target for its copy's metadata at once so Prepare doesn't wait on each in turn.

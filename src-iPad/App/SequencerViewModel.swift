@@ -1555,7 +1555,20 @@ class SequencerViewModel {
             // which tripped the 0x8BADF00D watchdog once applyOpenResult had
             // hopped back to the main actor.
             let readOnly = opened ? SequencerViewModel.detectReadOnly(path: path) : false
-            await self?.applyOpenResult(opened: opened, path: path, readOnly: readOnly, forceRender: forceRender)
+            // FSEQ short-circuit: if the user has the feature on and a
+            // matching .fseq exists, skip the render and load frame data
+            // straight from disk. On any mismatch (stale, wrong shape,
+            // missing) we fall through to the normal background render.
+            // `forceRender` (used by Batch Render) bypasses the
+            // short-circuit so we always re-render against the current
+            // layout regardless of any cached fseq. Done here, not on the
+            // main actor: reading every frame of a large fseq tripped the
+            // 0x8BADF00D watchdog.
+            var fseqLoaded = false
+            if opened, !forceRender, let fseqPath = FolderConfig.fseqPath(forXsq: path) {
+                fseqLoaded = document.tryLoadFseq(fseqPath: fseqPath, xsqPath: path)
+            }
+            await self?.applyOpenResult(opened: opened, path: path, readOnly: readOnly, fseqLoaded: fseqLoaded)
         }
     }
 
@@ -1574,7 +1587,7 @@ class SequencerViewModel {
         return !FileManager.default.isWritableFile(atPath: path)
     }
 
-    private func applyOpenResult(opened: Bool, path: String, readOnly: Bool, forceRender: Bool) {
+    private func applyOpenResult(opened: Bool, path: String, readOnly: Bool, fseqLoaded: Bool) {
         defer { openInFlight = false }
         guard opened else { return }
 
@@ -1597,16 +1610,7 @@ class SequencerViewModel {
         // a higher-resolution waveform once it knows the zoom level
         // via `refreshWaveformForZoom`.
         loadWaveform(startMS: 0, endMS: sequenceDurationMS)
-        // FSEQ short-circuit: if the user has the feature on and a
-        // matching .fseq exists, skip the render and load frame data
-        // straight from disk. On any mismatch (stale, wrong shape,
-        // missing) we fall through to the normal background render.
-        // `forceRender` (used by Batch Render) bypasses the
-        // short-circuit so we always re-render against the current
-        // layout regardless of any cached fseq.
-        if !forceRender,
-           let fseqPath = FolderConfig.fseqPath(forXsq: path),
-           document.tryLoadFseq(fseqPath: fseqPath, xsqPath: path) {
+        if fseqLoaded {
             isRendering = false
             isRenderDone = true
         } else {

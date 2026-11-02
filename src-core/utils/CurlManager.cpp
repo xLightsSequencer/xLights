@@ -828,7 +828,7 @@ std::string CurlManager::doGet(const std::string& furl, int& rc) {
     
     bool done = false;
     addCURL(furl, curl, [&done](CURL* c) { done = true; }, false);
-    while (!done && processCurls()) {
+    while (!done && processCurls(PUMP_WAIT_MS)) {
         CurlManager::INSTANCE.yield();
     }
 
@@ -901,7 +901,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
 
     bool done = false;
     addCURL(furl, curl, [&done](CURL* c) { done = true; }, false);
-    while (!done && processCurls()) {
+    while (!done && processCurls(PUMP_WAIT_MS)) {
         CurlManager::INSTANCE.yield();
     }
 
@@ -957,7 +957,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)data.size());
 
     addCURL(furl, curl, [](CURL* c) {}, false);
-    while (processCurls()) {
+    while (processCurls(PUMP_WAIT_MS)) {
         CurlManager::INSTANCE.yield();
     }
 
@@ -985,9 +985,14 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     return doPut(furl, contentType, vdata,  rc);
 }
 
-bool CurlManager::doProcessCurls() {
+bool CurlManager::doProcessCurls(int maxWaitMs) {
     int stillRunning = 0;
     std::unique_lock<std::recursive_mutex> l(lock);
+    if (maxWaitMs > 0) {
+        // Also bounded by curl's own next timeout, which is 0 for a handle that
+        // has just been added, so a new transfer starts without waiting.
+        curl_multi_poll(curlMulti, nullptr, 0, maxWaitMs, nullptr);
+    }
     curl_multi_perform(curlMulti, &stillRunning);
     if (doCurlCallbacks && stillRunning != numCurls) {
         CURLMsg* m = nullptr;
