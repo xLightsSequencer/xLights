@@ -1025,6 +1025,9 @@ struct LayoutEditorView: View {
         .modifier(ControllerDiscoveryModifier(
             running: $controllerDiscoveryRunning,
             result: $controllerDiscoveryResult))
+        .modifier(NewControllersConfirmModifier(
+            names: pendingNewControllers?.names,
+            onResolve: { add in resolveNewControllers(add: add) }))
         .modifier(ControllerUploadModifier(
             pendingConfirmName: $pendingUploadConfirmName,
             running: $uploadRunning,
@@ -1786,9 +1789,8 @@ struct LayoutEditorView: View {
         let doc = viewModel.document
         Task.detached {
             let raw = doc.runControllerDiscovery() as NSDictionary
-            let added   = (raw["added"]   as? NSNumber)?.intValue ?? 0
             let already = (raw["already"] as? NSNumber)?.intValue ?? 0
-            let names   = (raw["addedNames"] as? [String]) ?? []
+            let pending = (raw["pendingNames"] as? [String]) ?? []
             // Coerce keys to String — ObjC NSDictionary bridges
             // to `[AnyHashable: Any]`, the descriptor renderer
             // needs string keys.
@@ -1803,34 +1805,54 @@ struct LayoutEditorView: View {
             }
             await MainActor.run {
                 controllerDiscoveryRunning = false
-                refreshModelList()
-                hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
-                if added == 0 && already == 0 && mismatches.isEmpty {
-                    controllerDiscoveryResult = "No controllers found. Make sure the iPad is on the same Wi-Fi network as your controllers, then try again."
-                } else if added == 0 && mismatches.isEmpty {
-                    controllerDiscoveryResult = "Discovery complete — all \(already) responding controllers are already in your show."
+                if pending.isEmpty {
+                    finishControllerDiscovery(added: [], already: already, mismatches: mismatches)
                 } else {
-                    // If there are conflicts to resolve, present
-                    // the resolution sheet FIRST. The auto-add
-                    // summary is folded into a follow-up alert
-                    // after the user finishes resolving.
-                    if !mismatches.isEmpty {
-                        pendingDiscoveryMismatches = mismatches
-                    } else {
-                        controllerDiscoveryResult =
-                            "Added \(added) controller\(added == 1 ? "" : "s")." +
-                            ((already > 0) ? " \(already) other\(already == 1 ? " was" : "s were") already in the show." : "") +
-                            (names.isEmpty ? "" : "\n\n• " + names.joined(separator: "\n• "))
-                        if let first = names.first {
-                            viewModel.layoutEditorSelectedController = first
-                        }
-                    }
-                    // Stash the auto-add summary so we can append
-                    // it to the mismatch-resolution completion
-                    // alert later.
-                    discoveryAutoAddSummary = (added, already, names)
+                    pendingNewControllers = (pending, already, mismatches)
                 }
             }
+        }
+    }
+
+    @State private var pendingNewControllers: (names: [String], already: Int, mismatches: [[String: Any]])? = nil
+
+    private func resolveNewControllers(add: Bool) {
+        guard let p = pendingNewControllers else { return }
+        pendingNewControllers = nil
+        let names = viewModel.document.resolvePendingDiscoveredControllers(add: add)
+        finishControllerDiscovery(added: names, declined: add ? 0 : p.names.count,
+                                  already: p.already, mismatches: p.mismatches)
+    }
+
+    private func finishControllerDiscovery(added names: [String], declined: Int = 0, already: Int, mismatches: [[String: Any]]) {
+        let added = names.count
+        refreshModelList()
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        if added == 0 && declined == 0 && already == 0 && mismatches.isEmpty {
+            controllerDiscoveryResult = "No controllers found. Make sure the iPad is on the same Wi-Fi network as your controllers, then try again."
+        } else if added == 0 && mismatches.isEmpty {
+            controllerDiscoveryResult = (declined > 0 ? "Didn't add \(declined) new controller\(declined == 1 ? "" : "s")." : "Discovery complete —") +
+                (already > 0 ? " \(already) responding controller\(already == 1 ? " is" : "s are") already in your show." : "")
+        } else {
+            // If there are conflicts to resolve, present
+            // the resolution sheet FIRST. The auto-add
+            // summary is folded into a follow-up alert
+            // after the user finishes resolving.
+            if !mismatches.isEmpty {
+                pendingDiscoveryMismatches = mismatches
+            } else {
+                controllerDiscoveryResult =
+                    "Added \(added) controller\(added == 1 ? "" : "s")." +
+                    ((already > 0) ? " \(already) other\(already == 1 ? " was" : "s were") already in the show." : "") +
+                    (names.isEmpty ? "" : "\n\n• " + names.joined(separator: "\n• "))
+                if let first = names.first {
+                    viewModel.layoutEditorSelectedController = first
+                }
+            }
+            // Stash the auto-add summary so we can append
+            // it to the mismatch-resolution completion
+            // alert later.
+            discoveryAutoAddSummary = (added, already, names)
         }
     }
 
@@ -1864,7 +1886,7 @@ struct LayoutEditorView: View {
         var parts: [String] = []
         let summary = discoveryAutoAddSummary
         if summary.added > 0 {
-            parts.append("Auto-added \(summary.added) controller\(summary.added == 1 ? "" : "s").")
+            parts.append("Added \(summary.added) new controller\(summary.added == 1 ? "" : "s").")
         }
         if summary.already > 0 {
             parts.append("\(summary.already) other\(summary.already == 1 ? " was" : "s were") already in the show.")
@@ -11446,6 +11468,26 @@ private struct DiscoveryMismatchResolveSheet: View {
         Binding(
             get: { actions[id] ?? defaultValue },
             set: { actions[id] = $0 })
+    }
+}
+
+private struct NewControllersConfirmModifier: ViewModifier {
+    let names: [String]?
+    let onResolve: (_ add: Bool) -> Void
+
+    func body(content: Content) -> some View {
+        content.alert("Add New Controllers",
+                      isPresented: Binding(get: { names != nil },
+                                           set: { if !$0 && names != nil { onResolve(false) } })) {
+            Button("Add") { onResolve(true) }
+            Button("Don't Add", role: .cancel) { onResolve(false) }
+        } message: {
+            let list = names ?? []
+            Text("Discovery found \(list.count) controller\(list.count == 1 ? "" : "s") that aren't in your controller list:\n\n• " +
+                 list.prefix(20).joined(separator: "\n• ") +
+                 (list.count > 20 ? "\n…and \(list.count - 20) more" : "") +
+                 "\n\nAre you sure you want to add them?")
+        }
     }
 }
 

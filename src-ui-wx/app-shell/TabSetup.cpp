@@ -24,6 +24,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/thread.h>
 
+#include <set>
 #include <thread>
 #include <chrono>
 #include <ctime>
@@ -1422,6 +1423,9 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
     std::map<std::string, std::string> renames;
     bool found = false;
+    // second = the user already chose "Add New" for this one
+    std::vector<std::pair<DiscoveredData*, bool>> newControllers;
+    std::set<std::string> newControllerIPs;
 
     for (int x = 0; x < (int)discovery.GetResults().size(); x++) {
         auto discovered = discovery.GetResults()[x];
@@ -1444,6 +1448,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         auto c = _outputManager.GetControllers(it->GetIP());
         if (c.size() == 0) {
             bool updated = false;
+            bool addNew = false;
             for (const auto& itc : _outputManager.GetControllers()) {
                 auto eth = dynamic_cast<ControllerEthernet*>(itc);
                 if (eth != nullptr
@@ -1464,6 +1469,8 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                             } else if (result == wxID_CANCEL) {
                                 updated = true;
                                 found = true;
+                            } else {
+                                addNew = true;
                             }
                         } else {
                             updated = true;
@@ -1473,24 +1480,14 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
                 }
             }
             if (!updated) {
-                // we need to ensure the id is still unique
-                it->EnsureUniqueId();
-                it->EnsureUniqueName();
-
                 if (isPingable[it->GetIP()]) {
-                    std::string hostName = discovered->hostname;
-                    spdlog::debug("[Discovery] Adding: {} at: {}", hostName.c_str(), it->GetIP().c_str());
-                    if (!hostName.empty()) {
-                        if (ip_utils::ResolveIP(hostName + ".local") != hostName + ".local") {
-                            it->SetIP(::Lower(hostName) + ".local");
-                        } else if (ip_utils::ResolveIP(hostName) != hostName) {
-                            it->SetIP(::Lower(hostName));
-                        }
+                    if (newControllerIPs.insert(it->GetIP()).second) {
+                        newControllers.emplace_back(discovered, addNew);
                     }
-                    _outputManager.AddController(it);
+                } else {
+                    discovered->controller = nullptr;
+                    found = true;
                 }
-                discovered->controller = nullptr;
-                found = true;
             }
         } else {
             if (c.size() == 1
@@ -1506,6 +1503,50 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             }
         }
     }
+    if (!newControllers.empty()) {
+        bool confirmed = true;
+        wxString list;
+        int unconfirmed = 0;
+        for (const auto& [d, explicitAdd] : newControllers) {
+            if (!explicitAdd) {
+                if (unconfirmed < 20) {
+                    list += "\n    " + wxString::FromUTF8(d->controller->GetName()) + "  (" + wxString::FromUTF8(d->controller->GetIP()) + ")";
+                }
+                ++unconfirmed;
+            }
+        }
+        if (unconfirmed > 20) {
+            list += wxString::Format(_("\n    ...and %d more"), unconfirmed - 20);
+        }
+        if (unconfirmed > 0) {
+            SetCursor(wxCURSOR_DEFAULT);
+            confirmed = wxMessageBox(wxString::Format(_("Discovery found %d controller(s) that aren't in your controller list:\n%s\n\nAre you sure you want to add them?"), unconfirmed, list),
+                                     _("Add New Controllers"), wxYES_NO | wxICON_QUESTION, this) == wxYES;
+        }
+        for (auto& [d, explicitAdd] : newControllers) {
+            if (!confirmed && !explicitAdd) {
+                continue;
+            }
+            ControllerEthernet* it = d->controller;
+            // we need to ensure the id is still unique
+            it->EnsureUniqueId();
+            it->EnsureUniqueName();
+
+            std::string hostName = d->hostname;
+            spdlog::debug("[Discovery] Adding: {} at: {}", hostName.c_str(), it->GetIP().c_str());
+            if (!hostName.empty()) {
+                if (ip_utils::ResolveIP(hostName + ".local") != hostName + ".local") {
+                    it->SetIP(::Lower(hostName) + ".local");
+                } else if (ip_utils::ResolveIP(hostName) != hostName) {
+                    it->SetIP(::Lower(hostName));
+                }
+            }
+            _outputManager.AddController(it);
+            d->controller = nullptr;
+            found = true;
+        }
+    }
+
     if (found) {
         hasChanges = true;
         // update the controller name on any models which use renamed controllers

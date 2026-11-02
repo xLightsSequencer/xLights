@@ -284,6 +284,10 @@ static int IndexOfString(NSArray<NSString*>* options, const std::string& v);
     // FPP Connect (Slice A) section.
     std::unique_ptr<class XLiPadDiscoveryAuthDelegate> _fppAuthDelegate;
 
+    // Discovered controllers not yet in the show, held until the user
+    // confirms via resolvePendingDiscoveredControllers:.
+    std::vector<std::unique_ptr<ControllerEthernet>> _pendingDiscoveredControllers;
+
     // Shift-Effects undo snapshots, keyed by token. The token is a
     // monotonically increasing id handed to Swift; `restoreShiftSnapshot:`
     // consumes the entry.
@@ -18411,14 +18415,16 @@ public:
 }
 
 - (NSDictionary*)runControllerDiscovery {
-    NSMutableArray<NSString*>* addedNames = [NSMutableArray array];
+    NSMutableArray<NSString*>* pendingNames = [NSMutableArray array];
     NSMutableArray<NSDictionary*>* mismatches = [NSMutableArray array];
     NSInteger already = 0;
     if (!_context) {
-        return @{@"added": @0, @"already": @0,
-                 @"addedNames": addedNames, @"mismatches": mismatches};
+        return @{@"already": @0,
+                 @"pendingNames": pendingNames, @"mismatches": mismatches};
     }
     auto& om = _context->GetOutputManager();
+    _pendingDiscoveredControllers.clear();
+    std::set<std::string> pendingIPs;
 
     // Construct a single Discovery instance and register every
     // protocol scanner desktop's PrepareAllControllerDiscovery
@@ -18530,28 +18536,42 @@ public:
             continue;
         }
 
-        // Auto-add path (no conflict).
-        eth->EnsureUniqueId();
-        eth->EnsureUniqueName();
+        // No conflict — hold it until the user confirms the add.
+        if (!pendingIPs.insert(eth->GetIP()).second) continue;
         if (d->typeId > 0 && d->typeId < 0x80) {
             eth->SetActive("xLights Only");
             if (eth->GetVendor().empty()) {
                 eth->SetVendor("FPP");
             }
         }
-        om.AddController(eth);
-        [addedNames addObject:[NSString stringWithUTF8String:eth->GetName().c_str()]];
-        d->controller = nullptr;  // ownership now belongs to OutputManager
-    }
-    if (addedNames.count > 0) {
-        _context->MarkControllersDirty();
+        [pendingNames addObject:[NSString stringWithFormat:@"%s (%s)", eth->GetName().c_str(), eth->GetIP().c_str()]];
+        _pendingDiscoveredControllers.emplace_back(eth);
+        d->controller = nullptr;
     }
     return @{
-        @"added":      @(addedNames.count),
-        @"already":    @(already),
-        @"addedNames": addedNames,
-        @"mismatches": mismatches,
+        @"already":      @(already),
+        @"pendingNames": pendingNames,
+        @"mismatches":   mismatches,
     };
+}
+
+- (NSArray<NSString*>*)resolvePendingDiscoveredControllers:(BOOL)add {
+    NSMutableArray<NSString*>* addedNames = [NSMutableArray array];
+    if (add && _context) {
+        auto& om = _context->GetOutputManager();
+        for (auto& c : _pendingDiscoveredControllers) {
+            c->EnsureUniqueId();
+            c->EnsureUniqueName();
+            ControllerEthernet* eth = c.release();
+            om.AddController(eth);
+            [addedNames addObject:[NSString stringWithUTF8String:eth->GetName().c_str()]];
+        }
+        if (addedNames.count > 0) {
+            _context->MarkControllersDirty();
+        }
+    }
+    _pendingDiscoveredControllers.clear();
+    return addedNames;
 }
 
 - (BOOL)applyDiscoveryMismatch:(NSDictionary*)descriptor
