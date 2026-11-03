@@ -6805,10 +6805,21 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                     float f = event.GetWheelRotation();
                     zoom_delta = -f / 100.0f;
                 }
-                modelPreview->SetZoomDelta(zoom_delta);
-                float zoom = modelPreview->GetZoom();
-                float new_x = deltax * zoom_delta / zoom;
-                float new_y = deltay * zoom_delta / zoom;
+                const float zoom_before = modelPreview->GetZoom();
+                const float world_per_px = modelPreview->GetWorldPerPixel();
+                modelPreview->SetZoomDelta(zoom_delta, deltax, deltay);
+                // Hold the point under the cursor still. A world offset at the
+                // orbit plane covers a screen distance proportional to zoom, so
+                // the correction has to scale with zoom and with the fraction
+                // zoom actually moved. Dividing by zoom here and multiplying by
+                // it again below cancelled out, leaving a correction that was
+                // only ever calibrated at zoom 1 and grew badly wrong as the
+                // view zoomed in. Once the dolly is spent zoom stops moving and
+                // the flight aims down the cursor's own ray, so the fraction is
+                // zero and no correction is wanted.
+                const float moved = zoom_before > 0.0f ? (modelPreview->GetZoom() - zoom_before) / zoom_before : 0.0f;
+                float new_x = deltax * moved;
+                float new_y = deltay * moved;
 
                 // account for grid rotation
                 float angleX = glm::radians(modelPreview->GetCameraRotationX());
@@ -6835,9 +6846,9 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                         delta_y *= -1.0f;
                     }
                 }
-                delta_x *= modelPreview->GetZoom() * 2.0f;
-                delta_y *= modelPreview->GetZoom() * 2.0f;
-                delta_z *= modelPreview->GetZoom() * 2.0f;
+                delta_x *= world_per_px;
+                delta_y *= world_per_px;
+                delta_z *= world_per_px;
                 modelPreview->SetPan(delta_x, delta_y, delta_z);
             } else {
                 float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
