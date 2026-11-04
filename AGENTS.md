@@ -336,6 +336,9 @@ kernels differ by one level on a few channels between CPU types) are still rende
 identical and not blank, but are not compared to the manifest. Keep that list short and give a reason.
 `--junit <file>` writes a JUnit XML report (one testcase per sequence) for CI; `.github/workflows/Render_Tests.yml`
 runs the harness on Linux x64 (manual dispatch for now) and uploads it with the rendered output.
+`.github/workflows/Nightly_Tests.yml` runs the Catch2 and render suites on every platform each night,
+aggregates the JUnit reports (`ci_scripts/nightly_report.py`) and publishes a dashboard to GitHub Pages
+(`ci_scripts/build_dashboard.py`, history carried in the site's `history.json`).
 Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
 
 ### Unit tests (Catch2)

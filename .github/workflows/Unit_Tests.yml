@@ -20,9 +20,10 @@ on:
       - 'dependencies/**'
       - '.github/workflows/Unit_Tests.yml'
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-unit
   cancel-in-progress: true
 
 jobs:
@@ -80,7 +81,17 @@ jobs:
       run: cmake --build build-tests -j $(nproc)
 
     - name: Test
-      run: ctest --test-dir build-tests --output-on-failure -j $(nproc)
+      run: |
+        mkdir -p results
+        ctest --test-dir build-tests --output-on-failure -j $(nproc) --output-junit "$PWD/results/unit-linux-x64.xml"
 
     - name: ccache stats
       run: ccache --show-stats
+
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: results-unit-linux-x64
+        path: results
+        retention-days: 14
