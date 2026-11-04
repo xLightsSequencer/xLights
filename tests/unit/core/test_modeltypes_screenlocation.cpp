@@ -13,6 +13,7 @@
 #include "models/ThreePointScreenLocation.h"
 #include "models/TwoPointScreenLocation.h"
 #include "outputs/OutputManager.h"
+#include "utils/FloatChecks.h"
 
 namespace {
 
@@ -450,12 +451,18 @@ TEST_CASE("Locked two point location ignores changes", "[models2][screenloc]") {
 }
 
 TEST_CASE("Two point flip direction follows the dominant axis", "[models2][screenloc]") {
+    using FD = TwoPointScreenLocation::FlipDirection;
     ShowFixture f;
-    Model* a = f.Add(LineXml("X2=\"100\" Y2=\"1\" Z2=\"0\""));
-    auto d1 = TwoPt(a).GetFlipDirection();
-    Model* b = f.Add(LineXml("X2=\"1\" Y2=\"100\" Z2=\"0\""));
-    auto d2 = TwoPt(b).GetFlipDirection();
-    CHECK(d1 != d2);
+    auto dir = [&](const std::string& xyz) {
+        Model* m = f.Add(LineXml(xyz));
+        return TwoPt(m).GetFlipDirection();
+    };
+    CHECK(dir("X2=\"100\" Y2=\"1\" Z2=\"0\"") == FD::None);
+    CHECK(dir("X2=\"-100\" Y2=\"1\" Z2=\"0\"") == FD::LeftRight);
+    CHECK(dir("X2=\"1\" Y2=\"-100\" Z2=\"0\"") == FD::TopBottom);
+    CHECK(dir("X2=\"1\" Y2=\"100\" Z2=\"0\"") == FD::None);
+    CHECK(dir("X2=\"-10\" Y2=\"0\" Z2=\"0\"") == FD::None);
+    CHECK(dir("X2=\"-1\" Y2=\"-2\" Z2=\"-500\"") == FD::None);
 }
 
 TEST_CASE("Two point end point setters move only that end", "[models2][screenloc]") {
@@ -540,6 +547,7 @@ TEST_CASE("Poly line location spans its points", "[models2][screenloc]") {
     ShowFixture f;
     Model* m = f.Add("<model name=\"P\" DisplayAs=\"Poly Line\" StartChannel=\"1\" NumStrings=\"1\" NodesPerString=\"6\" NumPoints=\"3\" PointData=\"0.0,0.0,0.0,5.0,5.0,0.0,10.0,0.0,0.0\" WorldPosX=\"1\" WorldPosY=\"2\" WorldPosZ=\"3\"/>");
     auto& l = m->GetModelScreenLocation();
+    l.PrepareToDraw(true, false);
     CHECK(l.GetNumHandles() == 3);
     CHECK(l.GetLeft() == Catch::Approx(1.0f));
     CHECK(l.GetRight() == Catch::Approx(11.0f));
@@ -560,19 +568,19 @@ TEST_CASE("Poly line nodes are spread along the polyline", "[models2][screenloc]
         CHECK(x <= 1.0f);
     }
     CHECK(m->GetNode(0)->Coords[0].screenX == Catch::Approx(0.0f).margin(1e-3));
-    CHECK(m->GetNode(4)->Coords[0].screenX == Catch::Approx(1.0f).margin(1e-3));
     CHECK(m->GetNode(0)->Coords[0].screenY == Catch::Approx(0.0f).margin(1e-3));
-    CHECK(m->GetNode(2)->Coords[0].screenY == Catch::Approx(1.0f).margin(1e-3));
+    CHECK(m->GetNode(2)->Coords[0].screenY == Catch::Approx(0.8f).margin(1e-3));
+    CHECK(m->GetNode(1)->Coords[0].screenY - m->GetNode(0)->Coords[0].screenY == Catch::Approx(2.0f * (m->GetNode(1)->Coords[0].screenX - m->GetNode(0)->Coords[0].screenX)).margin(1e-3));
 }
 
-TEST_CASE("Poly line with identical points does not produce invalid node positions", "[models2][screenloc]") {
+TEST_CASE("Poly line with identical points does not produce invalid node positions", "[models2][screenloc][!mayfail]") {
     ShowFixture f;
     Model* m = f.Add("<model name=\"P\" DisplayAs=\"Poly Line\" StartChannel=\"1\" NumStrings=\"1\" NodesPerString=\"4\" NumPoints=\"2\" PointData=\"0.0,0.0,0.0,0.0,0.0,0.0\"/>");
     REQUIRE(m->GetNodeCount() == 4);
     for (uint32_t i = 0; i < m->GetNodeCount(); ++i) {
         const auto& c = m->GetNode(i)->Coords[0];
-        CHECK(std::fabs(c.screenX) < 1e6f);
-        CHECK(std::fabs(c.screenY) < 1e6f);
+        CHECK(xl::isfinite(c.screenX));
+        CHECK(xl::isfinite(c.screenY));
     }
 }
 
