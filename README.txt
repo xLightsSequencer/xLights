@@ -80,7 +80,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  buffer size mid-effect (Windows/Linux) (#7284)
     -change (dkulp)              SIMD effect and blend kernels now use ispc's fast math library; a few
                                  effects (e.g. Plasma, Pinwheel, Snowstorm) may differ by a last-bit rounding
-    -bug (dkulp)                 Strobe, Lightning, Shape, Tendril and several transitions (Circles, Pinwheel,
+    -bug (dkulp)                 Strobe, Lightning, Shape, Tendril, Pinwheel and several transitions (Circles, Pinwheel,
                                  Dissolve, Fold, Star, Bow Tie, Circular Swirl) rendered differently on
                                  Windows and macOS; they now render the same on both
     -bug (dkulp)                 Transitions on a one-pixel-high model (such as a single line) could render
