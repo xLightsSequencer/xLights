@@ -96,6 +96,8 @@ def make_entry(results, run_url):
             "seconds": s["time"], "render_seconds": rs,
             "failed_names": [{"name": f["name"], "message": f["message"]} for f in s["failed"][:MAX_FAILED]],
         }
+    if not str(run_url).startswith(("https://", "http://")):
+        run_url = ""
     return {"date": results["date"][:16] + "Z", "run": run_url, "sha": results.get("sha", ""),
             "event": results.get("event", ""), "suites": suites}
 
@@ -155,29 +157,36 @@ def render(history):
     order = lambda k: (SUITE_ORDER.index(k.split("-")[0]) if k.split("-")[0] in SUITE_ORDER else len(SUITE_ORDER), k)
     keys = sorted(latest["suites"], key=order)
     all_keys = sorted({k for h in history for k in h["suites"]}, key=order)
+    # Each suite shows its own most recent result: the Xcode Cloud (macOS) and GitHub (Linux, Windows)
+    # nightlies run at different times, so the newest entry does not always hold every suite.
+    carry = {}
+    for h in history:
+        for k, s in h["suites"].items():
+            carry[k] = (h, s)
     sha = latest.get("sha", "")
     parts = ['<!doctype html><html lang="en"><head><meta charset="utf-8">',
              '<meta name="viewport" content="width=device-width, initial-scale=1">',
              "<title>xLights tests</title><style>%s</style></head><body><main>" % CSS,
              "<h1>xLights tests</h1>",
              '<p class="sub">Nightly runs of the xLights unit tests (Catch2) and the render regression '
-             "(a synthetic show rendered headlessly and compared to recorded hashes, on every platform). "
+             "(a synthetic show rendered headlessly and compared to recorded hashes), on Linux and Windows "
+             "from GitHub Actions and on macOS from the Xcode Cloud nightly. "
              "Last run %s" % esc(latest["date"].replace("T", " ")),
              (', commit <a href="https://github.com/%s/commit/%s">%s</a>' % (REPO, esc(sha), esc(sha[:10]))) if sha else "",
              (' (<a href="%s">run log</a>)' % esc(latest["run"])) if latest.get("run") else "", ".</p>"]
 
     parts.append('<div class="cards">')
-    for k in keys:
-        s = latest["suites"][k]
+    for k in all_keys:
+        h, s = carry[k]
         parts.append('<div class="card %s"><h3>%s</h3><div class="big">%d <small>/ %d passed</small></div>'
                      "<p>%d failed &middot; %d skipped &middot; %.1f min &middot; %s</p></div>" % (
                          "good" if ok(s) else "bad", esc(label(s["suite"], s["platform"])), s["passed"], s["tests"],
-                         s["failed"], s["skipped"], s["seconds"] / 60.0, esc(latest["date"][:10])))
+                         s["failed"], s["skipped"], s["seconds"] / 60.0, esc(h["date"][:10])))
     parts.append("</div>")
 
-    failing = [(k, latest["suites"][k]) for k in keys if not ok(latest["suites"][k])]
+    failing = [(k, carry[k][1]) for k in all_keys if not ok(carry[k][1])]
     if failing:
-        parts.append("<section><h2>Failing in the last run</h2>")
+        parts.append("<section><h2>Failing now</h2>")
         for k, s in failing:
             parts.append("<h3>%s</h3><ul class='fails'>" % esc(label(s["suite"], s["platform"])))
             for f in s["failed_names"]:

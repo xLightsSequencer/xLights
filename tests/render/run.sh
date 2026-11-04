@@ -60,11 +60,12 @@ fi
 # The sandboxed macOS app can only touch directories it holds a bookmark for,
 # plus its own container, which it can always use. So on macOS the work dir
 # defaults to the container's tmp (XL_TEST_BUNDLE_ID overrides the bundle id).
-# Elsewhere a normal temp dir is used.
-if [ "$(uname)" = "Darwin" ]; then
+# Elsewhere, or when XL_TEST_WORK is set (an app built without the sandbox, e.g. on a CI
+# runner with no container), a normal directory is used.
+if [ "$(uname)" = "Darwin" ] && [ -z "${XL_TEST_WORK:-}" ]; then
     CONTAINER="$HOME/Library/Containers/${XL_TEST_BUNDLE_ID:-org.xlights}/Data"
     [ -d "$CONTAINER" ] || { echo "no sandbox container $CONTAINER (run the app once, or set XL_TEST_BUNDLE_ID/XL_TEST_WORK)" >&2; exit 2; }
-    WORK="${XL_TEST_WORK:-$CONTAINER/tmp/xlights-render-tests}"
+    WORK="$CONTAINER/tmp/xlights-render-tests"
 else
     WORK="${XL_TEST_WORK:-${TMPDIR:-/tmp}/xlights-render-tests}"
 fi

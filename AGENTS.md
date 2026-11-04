@@ -339,6 +339,11 @@ runs the harness on Linux x64 and Windows x64 and uploads each report with the r
 `.github/workflows/Nightly_Tests.yml` runs the Catch2 and render suites on every platform each night,
 aggregates the JUnit reports (`ci_scripts/nightly_report.py`) and publishes a dashboard to GitHub Pages
 (`ci_scripts/build_dashboard.py`, history carried in the site's `history.json`).
+The Xcode Cloud nightly (the TestFlight build) also runs the unit tests and the render regression on macOS:
+`ci_post_xcodebuild.sh` calls `ci_scripts/xcode_cloud_tests.sh` after the archive action when the workflow sets
+`XL_NIGHTLY_TESTS=1`; it pushes the results to GitHub (a `repository_dispatch`, handled by `Xcode_Cloud_Results.yml`)
+using the secret `GITHUB_DISPATCH_TOKEN` and adds a one-line summary to the TestFlight notes. Do not run its render
+step on a developer Mac (it launches a re-signed copy of the app that shares the real bundle id).
 Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
 
 ### Unit tests (Catch2)

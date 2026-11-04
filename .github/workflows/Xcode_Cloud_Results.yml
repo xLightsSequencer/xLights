@@ -1,0 +1,61 @@
+name: Xcode Cloud Results
+
+# The Xcode Cloud nightly (which also produces the TestFlight build) runs the
+# unit tests and the render regression on macOS and sends the results here as a
+# repository_dispatch event (ci_scripts/xcode_cloud_tests.sh). This adds them to
+# the dashboard history and republishes the page. A payload with "dry_run": true
+# builds the page and uploads it as an artifact without publishing.
+on:
+  repository_dispatch:
+    types: [xcode-cloud-results]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build the dashboard
+      env:
+        RESULTS: ${{ toJson(github.event.client_payload.results) }}
+        BUILD_NUMBER: ${{ github.event.client_payload.build_number }}
+      run: |
+        printf '%s' "$RESULTS" > nightly-results.json
+        python3 -c "import json; d = json.load(open('nightly-results.json')); assert d['suites'], 'no suites in the payload'"
+        # A cache-busting query keeps a CDN-cached history.json from dropping an entry made minutes ago.
+        curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json?t=$(date +%s)" \
+          -H 'Cache-Control: no-cache' -o history.json || echo "no published history yet"
+        python3 ci_scripts/build_dashboard.py nightly-results.json site history.json \
+          "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+    - name: Upload the site
+      if: ${{ github.event.client_payload.dry_run != true }}
+      uses: actions/upload-pages-artifact@v5
+      with:
+        path: site
+
+    - name: Deploy
+      if: ${{ github.event.client_payload.dry_run != true }}
+      id: deploy
+      uses: actions/deploy-pages@v5
+
+    - name: Keep the dry-run page for inspection
+      if: ${{ github.event.client_payload.dry_run == true }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: dry-run-site
+        path: site
+        retention-days: 3

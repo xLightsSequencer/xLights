@@ -43,7 +43,10 @@ def parse_report(path):
             bad = case.find("failure")
             if bad is None:
                 bad = case.find("error")
-            if bad is not None:
+            skip = case.find("skipped")
+            if bad is not None and skip is not None and "mayfail" in (skip.get("message") or ""):
+                skipped += 1        # Catch2 [!mayfail]: a known failure, not counted against the run
+            elif bad is not None:
                 msg = (bad.get("message") or (bad.text or "")).strip().splitlines()
                 failed.append((case.get("name", "?"), msg[0][:200] if msg else ""))
             elif case.find("skipped") is not None:

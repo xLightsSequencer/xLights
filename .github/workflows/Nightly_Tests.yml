@@ -111,8 +111,9 @@ jobs:
 
     - name: Build the dashboard
       run: |
-        curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json" \
-          -o history.json || echo "no published history yet"
+        # A cache-busting query keeps a CDN-cached history.json from dropping an entry made minutes ago.
+        curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json?t=$(date +%s)" \
+          -H 'Cache-Control: no-cache' -o history.json || echo "no published history yet"
         python3 ci_scripts/build_dashboard.py nightly-results.json site history.json \
           "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
