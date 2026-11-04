@@ -32,7 +32,12 @@ TempoResult DetectTempo(AudioManager* audio,
     for (float f : env.flux) sumFlux += f;
     const double meanFlux = sumFlux / double(F);
     std::vector<float> centered(F);
-    for (int i = 0; i < F; i++) centered[i] = float(env.flux[i] - meanFlux);
+    double energy = 0;
+    for (int i = 0; i < F; i++) {
+        centered[i] = float(env.flux[i] - meanFlux);
+        energy += double(centered[i]) * double(centered[i]);
+    }
+    if (energy / double(F) < 1e-12) return out;
 
     // Autocorrelation over the BPM search window. `denom` scales so
     // shorter lags don't get an unfair advantage from the larger

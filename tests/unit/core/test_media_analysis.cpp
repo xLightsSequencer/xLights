@@ -344,12 +344,14 @@ TEST_CASE("RenderSpectrogramBGRA handles degenerate arguments", "[media][spectro
     CHECK(img.empty());
 }
 
-TEST_CASE("RenderSpectrogramBGRA negative dimensions do not throw", "[media][spectrogram][!mayfail]") {
+TEST_CASE("RenderSpectrogramBGRA negative dimensions do not throw", "[media][spectrogram]") {
     Loaded L(Sine(kSR, 1000.0, 0.5));
     Spectrogram sg = ComputeSpectrogram(L.get());
     std::vector<uint8_t> img;
-    // Spectrogram.cpp assigns size_t(outWidth)*size_t(outHeight)*4 before validating, so -1 throws length_error
     CHECK_NOTHROW(RenderSpectrogramBGRA(sg, 0, 100, 4, -1, img));
+    CHECK(img.empty());
+    img.assign(16, 7);
+    CHECK_NOTHROW(RenderSpectrogramBGRA(sg, 0, 100, -3, 4, img));
     CHECK(img.empty());
 }
 
@@ -428,10 +430,9 @@ TEST_CASE("Tempo detector on silence stays finite", "[media][tempo]") {
     CHECK(r.bpm >= 0.0f);
 }
 
-TEST_CASE("Tempo detector returns zero for silence", "[media][tempo][!mayfail]") {
+TEST_CASE("Tempo detector returns zero for silence", "[media][tempo]") {
     Loaded L(Silence(10.0));
     TempoResult r = DetectTempo(L.get());
-    // TempoDetector.h documents {0,0,{}} for a flat onset envelope, but a flat envelope currently yields maxBPM
     CHECK(r.bpm == 0.0f);
     CHECK(r.confidence == 0.0f);
     CHECK(r.beatMS.empty());
@@ -640,14 +641,25 @@ TEST_CASE("Pitch detector recovers pure tones", "[media][pitch]") {
     }
 }
 
-TEST_CASE("Pitch detector recovers low pure tones", "[media][pitch][!mayfail]") {
+TEST_CASE("Pitch detector recovers low pure tones", "[media][pitch]") {
     for (double f : { 100.0, 110.0 }) {
         Loaded L(Sine(kSR, f, 1.0, 0.7));
         PitchContour pc = DetectPitch(L.get());
         REQUIRE(pc.samples.size() > 20);
         INFO("freq " << f);
-        // the lag search starts at the highest allowed pitch, so the slowly decaying first ACF lobe wins over the true period
         CHECK_THAT(double(pc.samples[pc.samples.size() / 2].frequency), WithinAbs(f, f * 0.02));
+    }
+}
+
+TEST_CASE("Pitch detector recovers pure tones across the supported range", "[media][pitch]") {
+    for (double f : { 80.0, 100.0, 110.0, 220.0, 440.0, 880.0 }) {
+        Loaded L(Sine(kSR, f, 1.0, 0.7));
+        PitchContour pc = DetectPitch(L.get());
+        REQUIRE(pc.samples.size() > 20);
+        INFO("freq " << f);
+        for (size_t i = 5; i + 5 < pc.samples.size(); i += 7) {
+            CHECK_THAT(double(pc.samples[i].frequency), WithinAbs(f, f * 0.04));
+        }
     }
 }
 
@@ -848,8 +860,7 @@ TEST_CASE("Chord segments are contiguous and cover the track", "[media][chord]")
     CHECK(h.chords.back().endMS == L.get()->LengthMS());
 }
 
-TEST_CASE("Chord detector estimates the key of a tonic triad", "[media][chord][!mayfail]") {
-    // key scoring is an uncentred dot product, which favours minor profiles (larger sum), so C-E-G comes out as E minor
+TEST_CASE("Chord detector estimates the key of a tonic triad", "[media][chord]") {
     Loaded L(Chord({ 261.63, 329.63, 392.00 }, 2.0, 0.8));
     HarmonyAnalysis h = DetectChords(L.get());
     CHECK(h.key == "C major");
@@ -858,7 +869,13 @@ TEST_CASE("Chord detector estimates the key of a tonic triad", "[media][chord][!
 TEST_CASE("Chord detector key of an A minor triad", "[media][chord]") {
     Loaded L(Chord({ 220.00, 261.63, 329.63 }, 2.0, 0.8));
     HarmonyAnalysis h = DetectChords(L.get());
-    CHECK((h.key == "A minor" || h.key == "C major"));
+    CHECK(h.key == "A minor");
+}
+
+TEST_CASE("Chord detector key of silence is unchanged", "[media][chord]") {
+    Loaded L(Silence(2.0));
+    HarmonyAnalysis h = DetectChords(L.get());
+    CHECK(h.key == "C major");
 }
 
 TEST_CASE("Chord detector is transposition-consistent", "[media][chord]") {

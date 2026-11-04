@@ -1626,6 +1626,15 @@ FilteredAudioData* AudioManager::GetFilteredAudioData(AUDIOSAMPLETYPE type, int 
             return nullptr;
         }
         flock.unlock();
+        if (!IsOk()) return nullptr;
+        if (_intervalMS <= 0 && !_prepFrameData.valid()) {
+            // No frame-data preparation will ever build the RAW cache, so build it here.
+            while (IsOk() && !IsDataLoaded()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+            if (EnsureFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1) == nullptr) return nullptr;
+            continue;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }

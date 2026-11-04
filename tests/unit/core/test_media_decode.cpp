@@ -2,6 +2,9 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <atomic>
+#include <chrono>
+#include <future>
+#include <memory>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -111,6 +114,44 @@ TEST_CASE("AudioManager decodes a stereo WAV with distinct channels", "[media][d
     REQUIRE(R != nullptr);
     CHECK(RmsOf(L + 1000, 20000) > 0.4);
     CHECK(RmsOf(R + 1000, 20000) < 0.01);
+}
+
+namespace {
+template <class F>
+bool FinishesWithin(F f, int ms) {
+    auto done = std::make_shared<std::promise<void>>();
+    auto fut = done->get_future();
+    std::thread([done, f]() { f(); done->set_value(); }).detach();
+    return fut.wait_for(std::chrono::milliseconds(ms)) == std::future_status::ready;
+}
+}
+
+TEST_CASE("AudioManager raw accessors do not hang without a frame interval", "[media][decode]") {
+    TempDir td;
+    const int sr = 44100;
+    std::string f = td.Write("noint.wav", MakeWav(sr, 1, Sine(sr, 440.0, 1.0, 0.5)));
+    auto am = std::make_shared<AudioManager>(f);
+    REQUIRE(am->IsOk());
+    auto result = std::make_shared<std::atomic<float*>>(nullptr);
+    bool ok = FinishesWithin([am, result]() {
+        *result = am->GetRawLeftDataPtr(0);
+        (void)am->GetRawRightDataPtr(0);
+        (void)am->GetRawLeftData(100);
+        (void)am->GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
+    }, 5000);
+    REQUIRE(ok);
+    CHECK(result->load() != nullptr);
+}
+
+TEST_CASE("AudioManager raw accessors do not hang after a failed load", "[media][decode]") {
+    TempDir td;
+    auto am = std::make_shared<AudioManager>(td.Write("bad.wav", "not audio at all"), 50);
+    bool ok = FinishesWithin([am]() {
+        (void)am->GetRawLeftDataPtr(0);
+        (void)am->GetRawRightDataPtr(0);
+        (void)am->GetFilteredAudioData(AUDIOSAMPLETYPE::RAW, -1, -1);
+    }, 5000);
+    CHECK(ok);
 }
 
 TEST_CASE("AudioManager sample values and RMS of a full-scale sine", "[media][decode]") {
