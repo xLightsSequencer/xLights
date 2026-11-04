@@ -256,6 +256,30 @@ void SequencePackage::Extract()
         std::string entryNameStr = FileUtils::ToValidUTF8(entryName, FileUtils::LegacyEncoding::CP437);
         bool isDir = (!entryNameStr.empty() && entryNameStr.back() == '/') || (fileInfo.external_fa & 0x10);
 
+        {
+            std::string chk = entryNameStr;
+            std::replace(chk.begin(), chk.end(), '\\', '/');
+            bool unsafe = chk.empty() || chk[0] == '/' || (chk.size() >= 2 && chk[1] == ':');
+            int depth = 0;
+            size_t cpos = 0;
+            while (!unsafe && cpos <= chk.size()) {
+                size_t nx = chk.find('/', cpos);
+                std::string comp = chk.substr(cpos, nx == std::string::npos ? std::string::npos : nx - cpos);
+                if (comp == "..") {
+                    if (--depth < 0) unsafe = true;
+                } else if (!comp.empty() && comp != ".") {
+                    ++depth;
+                }
+                if (nx == std::string::npos) break;
+                cpos = nx + 1;
+            }
+            if (unsafe) {
+                spdlog::warn("Skipping package entry with unsafe path '{}'.", entryNameStr);
+                ret = unzGoToNextFile(uf);
+                continue;
+            }
+        }
+
         std::filesystem::path fnEntry = _tempDir / entryNameStr;
 
         if (fnEntry.string().find("__MACOSX") != std::string::npos) {

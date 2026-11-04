@@ -146,12 +146,8 @@ TEST_CASE("BreakdownPhrase handles huge and zero length ranges without crashing"
     SUCCEED();
 }
 
-TEST_CASE("BreakdownPhrase with start after end must not dereference a rejected effect", "[impexp][lyrics][phrase][known-crash]") {
-    if (std::getenv("XL_RUN_KNOWN_CRASH") == nullptr) {
-        SKIP("crashes the process; set XL_RUN_KNOWN_CRASH to run");
-    }
+TEST_CASE("BreakdownPhrase with start after end must not dereference a rejected effect", "[impexp][lyrics][phrase]") {
     Fixture f;
-    // AddEffect returns nullptr when start > end and BreakdownPhrase calls ef->GetID() unchecked
     BreakdownPhrase(f.words, 5000, 1000, "backwards phrase", 20, f.Undo());
     SUCCEED();
 }

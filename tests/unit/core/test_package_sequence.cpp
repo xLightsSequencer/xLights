@@ -426,7 +426,7 @@ TEST_CASE("Extracted package keeps its files when asked to", "[impexp][package][
     CHECK(fs::exists(tempDirUsed));
 }
 
-TEST_CASE("Package entries cannot escape the extraction folder", "[impexp][package][extract][!mayfail]") {
+TEST_CASE("Package entries cannot escape the extraction folder", "[impexp][package][extract]") {
     ScopedTmp tmp;
     TempDir d;
     auto zip = d.File("evil.xsqz");
@@ -434,11 +434,26 @@ TEST_CASE("Package entries cannot escape the extraction folder", "[impexp][packa
     {
         SequencePackage pkg(zip, d.path.string(), "t.xsq", nullptr);
         pkg.Extract();
-        // entry names are appended to the temp dir without removing ".." components
         CHECK_FALSE(fs::exists(tmp.tmp / "escape1.txt"));
         CHECK_FALSE(fs::exists(tmp.tmp / "escape2.txt"));
         CHECK_FALSE(fs::exists(tmp.root.path / "escape2.txt"));
     }
+}
+
+TEST_CASE("Package extraction rejects absolute and backslash escapes but keeps nested paths", "[impexp][package][extract]") {
+    ScopedTmp tmp;
+    TempDir d;
+    auto zip = d.File("evil2.xsqz");
+    auto abs = (d.path / "abs_escape.txt").generic_string();
+    REQUIRE(BuildZip(zip, { { "a.xsq", XsqDoc("") }, { "xlights_rgbeffects.xml", kRgbEffects }, { "..\\\\bs_escape.txt", "x" }, { abs, "x" }, { "C:/drive_escape.txt", "x" }, { "good/sub/../ok.png", "y" }, { "deep/er/pic.png", "z" } }));
+    SequencePackage pkg(zip, d.path.string(), "t.xsq", nullptr);
+    pkg.Extract();
+    CHECK_FALSE(fs::exists(tmp.tmp / "bs_escape.txt"));
+    CHECK_FALSE(fs::exists(d.path / "abs_escape.txt"));
+    CHECK(pkg.IsValid());
+    CHECK(pkg.HasMedia());
+    CHECK(fs::exists(fs::path(pkg.GetTempDir()) / "deep" / "er" / "pic.png"));
+    CHECK(fs::exists(fs::path(pkg.GetTempDir()) / "good" / "ok.png"));
 }
 
 TEST_CASE("Package extraction skips macOS resource fork folders", "[impexp][package][extract]") {

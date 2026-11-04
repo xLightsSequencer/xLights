@@ -222,14 +222,14 @@ TEST_CASE("ConvertDataRowToEffects does not overwrite effects already in the ran
     CHECK(f.layer->GetEffectCount() == 1);
 }
 
-TEST_CASE("ConvertDataRowToEffects with fewer than three colours must not run off the end", "[impexp][dataRow][known-crash]") {
-    if (std::getenv("XL_RUN_KNOWN_CRASH") == nullptr) {
-        SKIP("crashes the process; set XL_RUN_KNOWN_CRASH to run");
-    }
+TEST_CASE("ConvertDataRowToEffects with fewer than three colours must not run off the end", "[impexp][dataRow]") {
     LayerFixture f;
     xlColorVector colors;
     colors.push_back(xlRED);
-    // colors.size() - 3 underflows once the sentinel black is appended
+    ConvertDataRowToEffects(f.layer, colors, 50, false);
+    colors.clear();
+    ConvertDataRowToEffects(f.layer, colors, 50, false);
+    colors = { xlRED, xlBLUE };
     ConvertDataRowToEffects(f.layer, colors, 50, false);
     SUCCEED();
 }

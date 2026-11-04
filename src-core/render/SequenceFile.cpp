@@ -744,7 +744,7 @@ void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& fi
             int endTime = RoundToMultipleOfPeriod(std::strtol(end_times[k].c_str(), nullptr, 10), GetFrequency());
             if (startTime == endTime) {
                 if (k == start_times.size() - 1) {
-                    endTime = startTime + GetFrequency();
+                    endTime = startTime + GetFrameMS();
                 } else {
                     endTime = RoundToMultipleOfPeriod(std::strtol(start_times[k + 1].c_str(), nullptr, 10), GetFrequency());
                 }
@@ -842,7 +842,7 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, R
                                     grid_times.push_back(std::to_string(time));
                                 }
 
-                                for (size_t k = 0; k < grid_times.size()-1; ++k )
+                                for (size_t k = 0; k + 1 < grid_times.size(); ++k )
                                 {
                                     int startTime = RoundToMultipleOfPeriod(std::strtol(grid_times[k].c_str(), nullptr, 10),GetFrequency());
                                     int endTime = RoundToMultipleOfPeriod(std::strtol(grid_times[k+1].c_str(), nullptr, 10),GetFrequency());
@@ -1037,6 +1037,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
         linenum++;
         if (samppersec < 1) {
             DisplayError(fmt::format("Invalid file @line {} ('{}' samples per sec)", linenum, line));
+            return;
         }
         int ms = 1000 / samppersec;
 
@@ -1282,12 +1283,13 @@ void SequenceFile::ProcessSRT(const std::vector<std::string>& filenames, RenderC
 
         std::string line = ReadSRTLine(lines, idx, linenum++, startMS, endMS);
 
-        do {
+        while (true) {
             if (!line.empty() && endMS > startMS) {
                 el1->AddEffect(0, line, "", "", startMS, endMS, EFFECT_NOT_SELECTED, false);
             }
+            if (idx >= lines.size()) break;
             line = ReadSRTLine(lines, idx, linenum++, startMS, endMS);
-        } while (idx < lines.size());
+        }
     }
 }
 
@@ -1752,6 +1754,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, Rende
             TimingElement* element = xLightsParent->AddTimingElement(interval_name);
             element->SetFixedTiming(interval);
             EffectLayer* effectLayer = element->GetEffectLayer(0);
+            if (interval < 1) return;
             int time = 0;
             int end_time = GetSequenceDurationMS();
             while (time <= end_time) {
@@ -1779,6 +1782,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int i
         TimingElement* element = xLightsParent->AddTimingElement(interval_name);
         element->SetFixedTiming(interval);
         EffectLayer* effectLayer = element->GetEffectLayer(0);
+        if (interval < 1) return;
         int time = 0;
         int end_time = GetSequenceDurationMS();
         while (time <= end_time) {
@@ -1825,6 +1829,7 @@ void SequenceFile::AddMetronomeLabelTimingSection(const std::string& interval_na
     int lastRandomState = -1;
     while (time < end_time) {
         int interval = minForRandomRange == -1 ? _interval : intRand(minForRandomRange, _interval);
+        if (interval < 1) break;
         int next_time = (time + interval <= end_time) ? time + interval : end_time;
         int startTime = RoundToMultipleOfPeriod(time, GetFrequency());
         int endTime = RoundToMultipleOfPeriod(next_time, GetFrequency());

@@ -68,7 +68,6 @@ struct Silence {
     ~Silence() { AppCallbacks::SetDisplayMessageCallback(nullptr); }
 };
 
-bool KnownCrashEnabled() { return std::getenv("XL_RUN_KNOWN_CRASH") != nullptr; }
 
 using Mark = std::tuple<int, int, std::string>;
 
@@ -161,7 +160,7 @@ TEST_CASE("Audacity import with a missing end time borrows the next start", "[im
     CHECK(m[2] == Mark{ 2000, 3000, "C" });
 }
 
-TEST_CASE("Audacity import gives a trailing zero length mark one frame", "[impexp][timing][audacity][!mayfail]") {
+TEST_CASE("Audacity import gives a trailing zero length mark one frame", "[impexp][timing][audacity]") {
     TempDir d;
     TimingCtx c;
     SequenceFile sf("x.xsq");
@@ -170,7 +169,6 @@ TEST_CASE("Audacity import gives a trailing zero length mark one frame", "[impex
     sf.ProcessAudacityTimingFiles({ f }, &c);
     auto m = Marks(c, "z");
     REQUIRE(m.size() == 2);
-    // endTime = startTime + GetFrequency() adds 20 (Hz) rather than the 50 ms frame
     CHECK(std::get<1>(m[1]) - std::get<0>(m[1]) == sf.GetFrameMS());
 }
 
@@ -410,7 +408,7 @@ TEST_CASE("SRT import reads times and joined text lines", "[impexp][timing][srt]
     CHECK(m[2] == Mark{ 3600000, 3601000, "Hour" });
 }
 
-TEST_CASE("SRT import keeps the final subtitle", "[impexp][timing][srt][!mayfail]") {
+TEST_CASE("SRT import keeps the final subtitle", "[impexp][timing][srt]") {
     TempDir d;
     TimingCtx c;
     SequenceFile sf("x.xsq");
@@ -419,8 +417,19 @@ TEST_CASE("SRT import keeps the final subtitle", "[impexp][timing][srt][!mayfail
         "1\n00:00:01,000 --> 00:00:02,000\nA\n\n"
         "2\n00:00:03,000 --> 00:00:04,000\nB\n\n");
     sf.ProcessSRT({ f }, &c);
-    // the do/while in ProcessSRT stops once the index reaches the end, before adding the last entry it just read
     CHECK(Marks(c, "two").size() == 2);
+}
+
+TEST_CASE("SRT import keeps the final subtitle without a trailing blank line", "[impexp][timing][srt]") {
+    TempDir d;
+    TimingCtx c;
+    SequenceFile sf("x.xsq");
+    sf.SetSequenceLoaded(true);
+    auto f = d.Write("nonl.srt",
+        "1\n00:00:01,000 --> 00:00:02,000\nA\n\n"
+        "2\n00:00:03,000 --> 00:00:04,000\nB");
+    sf.ProcessSRT({ f }, &c);
+    CHECK(Marks(c, "nonl") == std::vector<Mark>{ { 1000, 2000, "A" }, { 3000, 4000, "B" } });
 }
 
 TEST_CASE("SRT import drops entries with a non positive duration and tolerates junk", "[impexp][timing][srt]") {
@@ -530,14 +539,12 @@ TEST_CASE("Papagayo import survives truncated files", "[impexp][timing][papagayo
     SUCCEED();
 }
 
-TEST_CASE("Papagayo import handles zero sample rate without crashing", "[impexp][timing][papagayo][known-crash]") {
-    if (!KnownCrashEnabled()) { SKIP("crashes the process; set XL_RUN_KNOWN_CRASH to run"); }
+TEST_CASE("Papagayo import handles zero sample rate without crashing", "[impexp][timing][papagayo]") {
     TempDir d;
     UICtx c;
     Silence quiet;
     SequenceFile sf("x.xsq");
     sf.SetSequenceLoaded(true);
-    // samples per second 0: DisplayError is raised but parsing continues into 1000 / 0
     sf.ProcessPapagayo({ d.Write("z.pgo", "LipSync Version 1\nx.wav\n0\n10\n1\n") }, &c);
     SUCCEED();
 }
@@ -559,7 +566,7 @@ TEST_CASE("ElevenLabs import creates phrase and word layers", "[impexp][timing][
     CHECK(Marks(c, "speech", 1) == std::vector<Mark>{ { 0, 500, "Hello" }, { 500, 1000, "world" }, { 2000, 2400, "Again" } });
 }
 
-TEST_CASE("ElevenLabs zero length items are widened by one frame", "[impexp][timing][elevenlabs][!mayfail]") {
+TEST_CASE("ElevenLabs zero length items are widened by one frame", "[impexp][timing][elevenlabs]") {
     TempDir d;
     TimingCtx c;
     SequenceFile sf("x.xsq");
@@ -569,8 +576,7 @@ TEST_CASE("ElevenLabs zero length items are widened by one frame", "[impexp][tim
     sf.ProcessElevenLabsTimingFiles({ f }, &c);
     auto m = Marks(c, "zero", 0);
     REQUIRE(m.size() == 1);
-    // startTime + GetFrequency() (20) rounds back to startTime so the mark stays zero length
-    CHECK(std::get<1>(m[0]) > std::get<0>(m[0]));
+    CHECK(std::get<1>(m[0]) - std::get<0>(m[0]) == sf.GetFrameMS());
 }
 
 TEST_CASE("ElevenLabs import with bad json adds at most an empty track", "[impexp][timing][elevenlabs]") {
@@ -662,14 +668,12 @@ TEST_CASE("LOR timing import reports missing and malformed files", "[impexp][tim
     CHECK(quiet.errors == 2);
 }
 
-TEST_CASE("LOR timing import of an empty freeform grid must not run off the end", "[impexp][timing][lor][known-crash]") {
-    if (!KnownCrashEnabled()) { SKIP("crashes the process; set XL_RUN_KNOWN_CRASH to run"); }
+TEST_CASE("LOR timing import of an empty freeform grid must not run off the end", "[impexp][timing][lor]") {
     TempDir d;
     UICtx c;
     c.ui.choice = { "Empty" };
     SequenceFile sf("x.xsq");
     sf.SetSequenceLoaded(true);
-    // grid_times.size() - 1 underflows for a grid with no <timing> children
     sf.ProcessLorTiming({ d.Write("e.lms", "<sequence><timingGrids><timingGrid saveID=\"0\" name=\"Empty\" type=\"freeform\"/></timingGrids></sequence>") }, &c);
     SUCCEED();
 }
@@ -747,6 +751,13 @@ TEST_CASE("Timing sections added through SequenceFile helpers", "[impexp][timing
         auto* t = dynamic_cast<TimingElement*>(c.se().GetElement("100ms"));
         REQUIRE(t != nullptr);
         CHECK(t->GetFixedTiming() == 100);
+    }
+    SECTION("zero interval does not hang") {
+        sf.AddFixedTimingSection("zero", 0, &c);
+        sf.AddFixedTimingSection("0ms Metronome", &c);
+        CHECK(Marks(c, "zero").empty());
+        sf.AddMetronomeLabelTimingSection("MetroZero", 0, {}, &c);
+        CHECK(Marks(c, "MetroZero").empty());
     }
     SECTION("non fixed names give an empty track") {
         sf.AddFixedTimingSection("Mine", &c);
