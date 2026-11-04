@@ -44,6 +44,11 @@ namespace {
     }
 
     float SmoothStep(float edge0, float edge1, float x) {
+        // Degenerate range: x/0 is inf/NaN, which -ffast-math is free to treat as anything.
+        // Define it as the step IEEE arithmetic gives (1 at and above the edge, 0 below).
+        if (!(edge1 > edge0)) {
+            return x >= edge0 ? 1.0f : 0.0f;
+        }
         float t = CLAMP((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
         return t * t * (3.0f - 2.0f * t);
     }
@@ -251,6 +256,21 @@ namespace {
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
+    // Pixel index -> [0,1] texture coordinate. A one-pixel dimension has no span to divide
+    // by (0/0 is NaN, and what a NaN does downstream differs by CPU and compiler), so it maps to
+    // the centre.
+    inline float normCoord(int i, int n) {
+        return n > 1 ? float(i) / float(n - 1) : 0.5f;
+    }
+
+    // Snap to a 1/1024 grid (a power of two, so exact) before taking a fractional part. A value that
+    // is mathematically an integer (an edge pixel times a cell count, or an angle on the atan2
+    // branch cut) otherwise lands one ulp either side of it, and modf then flips between 0 and
+    // 0.99999 depending on the compiler, fast-math reciprocal rewrites, libm or SIMD width.
+    inline float snapForFract(float v) {
+        return std::nearbyint(v * 1024.f) / 1024.f;
+    }
+
     // code for fold transition
     xlColor foldIn(const ColorBuffer& cb0, const RenderBuffer* rb1, float s, float t, float progress, bool isReverse) {
         const float CAMERA_DIST = 2.f;
@@ -320,9 +340,9 @@ namespace {
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, isReverse](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, foldIn(cb0, rb1, s, t, progress, isReverse));
                 }
             },
@@ -333,9 +353,9 @@ namespace {
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, isReverse](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, foldOut(cb0, rb1, s, t, progress, isReverse));
                 }
             },
@@ -364,9 +384,9 @@ namespace {
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, dissolveIn(cb0, s, t, progress));
                 }
             },
@@ -382,9 +402,9 @@ namespace {
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, dissolveOut(cb0, s, t, progress));
                 }
             },
@@ -414,9 +434,9 @@ namespace {
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, xy, speed, progress](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, circularSwirl(cb0, xy, speed, s, t, progress));
                 }
             },
@@ -479,9 +499,9 @@ namespace {
         double bowTieAdjust = 0.01 * adjust;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, bowTieAdjust, isReversed](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, bowTie(cb0, rb1, s, t, progress, bowTieAdjust, isReversed));
                 }
             },
@@ -500,9 +520,9 @@ namespace {
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, zoomTransition(cb0, s, t, progress));
                 }
             },
@@ -557,9 +577,9 @@ namespace {
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, doorway(cb0, rb1, s, t, progress));
                 }
             },
@@ -620,9 +640,9 @@ namespace {
         float smoothness = blobsSmoothness + (blur / 25.0f) * 0.49f;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, scale, smoothness](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, blobs(cb0, rb1, s, t, progress, scale, smoothness));
                 }
             },
@@ -640,7 +660,8 @@ namespace {
         }
         float arcTangent = std::atan2(y, x);
         float dummy;
-        float toProgress = std::modf(arcTangent / (float)M_PI * wheelAdjust, &dummy);
+        float turns = snapForFract(arcTangent / (float)M_PI * wheelAdjust);
+        float toProgress = std::modf(turns, &dummy);
         return (toProgress > progress) ? (tex2D(cb0, s, t)) : ((rb1 == nullptr) ? xlBLACK : tex2D(*rb1, s, t));
     }
     void pinwheelTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress, int wheelAdjust) {
@@ -650,9 +671,9 @@ namespace {
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, adjust](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, pinwheelTransition(cb0, rb1, s, t, progress, adjust));
                 }
             },
@@ -693,9 +714,9 @@ namespace {
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, numSegments, shouldReverse](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, starTransition(cb0, rb1, s, t, progress, numSegments, shouldReverse));
                 }
             },
@@ -763,9 +784,9 @@ namespace {
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, swapTransition(cb0, rb1, s, t, progress));
                 }
             },
@@ -841,9 +862,9 @@ namespace {
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, shatterTransition(cb0, rb1, s, t, progress));
                 }
             },
@@ -855,7 +876,7 @@ namespace {
         const int NumCircles = 3;
 
         float dummy1, dummy2;
-        Vec2D cell(std::modf(s * n, &dummy1), std::modf(t * n, &dummy2));
+        Vec2D cell(std::modf(snapForFract(s * n), &dummy1), std::modf(snapForFract(t * n), &dummy2));
 
         float m = 0.f;
 
@@ -877,9 +898,9 @@ namespace {
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, n](int y) {
-                float t = float(y) / (rb0.BufferHt - 1);
+                float t = normCoord(y, rb0.BufferHt);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    float s = float(x) / (rb0.BufferWi - 1);
+                    float s = normCoord(x, rb0.BufferWi);
                     rb0.SetPixel(x, y, circlesTransition(cb0, rb1, s, t, progress, n));
                 }
             },
