@@ -447,7 +447,7 @@ if(NOT WIN32)
     check_language(ISPC)
     if(CMAKE_ISPC_COMPILER)
         enable_language(ISPC)
-        set(CMAKE_ISPC_FLAGS "--target=${_ispc_targets} --arch=${_ispc_arch} --pic")
+        set(CMAKE_ISPC_FLAGS "--math-lib=fast --target=${_ispc_targets} --arch=${_ispc_arch} --pic")
         file(GLOB _ispc_sources "${CMAKE_SOURCE_DIR}/src-core/effects/ispc/*.ispc")
         list(APPEND SRC_EFFECTS ${_ispc_sources})
         message(STATUS "ISPC: using enable_language(ISPC) — ${CMAKE_ISPC_COMPILER}")
@@ -479,7 +479,7 @@ else()
                 OUTPUT  ${_outputs}
                 COMMAND "${CMAKE_COMMAND}" -E make_directory "${_ispc_obj_dir}"
                 COMMAND "${ISPC_EXECUTABLE}" "${_src}"
-                        "--target=${_ispc_targets}" "--arch=${_ispc_arch}"
+                        "--math-lib=fast" "--target=${_ispc_targets}" "--arch=${_ispc_arch}"
                         -o "${_primary}"
                 DEPENDS "${_src}"
                 COMMENT "ISPC: ${_name}"

@@ -476,7 +476,6 @@ export void Effect1_2_Function(uniform const LayerBlendingData &data,
                                 uniform uint32 result[],
                                 const uniform uint32 src[],
                                 const uniform uint32 indexes[]) {
-    const int n = 0; // increase to change the curve of the crossfade
     foreach (index = data.startNode...data.endNode) {
         uint32 fg = src[index];
         if (!data.isChromaKey || !applyChroma(data, fg)) {
@@ -487,9 +486,10 @@ export void Effect1_2_Function(uniform const LayerBlendingData &data,
                 emt = data.effectMixThreshold;
                 if ((emt > 0.000001) && (emt < 0.99999)) {
                     emtNot = 1.0 - data.effectMixThreshold;
-                    // make cross-fade linear
-                    emt = cos((M_PI_F / 4.0) * (pow(2.0 * emt - 1.0, 2.0 * n + 1.0) + 1.0));
-                    emtNot = cos((M_PI_F / 4.0) * (pow(2.0 * emtNot - 1.0, 2.0 * n + 1.0) + 1.0));
+                    // make cross-fade linear. No pow() here: the base is negative below 0.5
+                    // and --math-lib=fast pow() returns NaN for a negative base.
+                    emt = cos((M_PI_F / 4.0) * (2.0 * emt - 1.0 + 1.0));
+                    emtNot = cos((M_PI_F / 4.0) * (2.0 * emtNot - 1.0 + 1.0));
                 } else {
                     emtNot = data.effectMixThreshold;
                     emt = 1.0 - data.effectMixThreshold;

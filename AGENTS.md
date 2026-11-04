@@ -320,8 +320,17 @@ CPU-only path, hashes each `.fseq` with `xLights --fseqhash` (per-model with
 `-s`; ignores the header uniqueId), renders twice for a determinism check, and
 compares against `tests/render/manifest-<show>.txt`. `--update` rewrites the
 manifest and `data.version` (the pinned data revision) — commit both with the
-change that caused the new output. On macOS the data is staged under
-`~/tmp/xLights/` because the sandboxed app can only read bookmarked folders.
+change that caused the new output. On macOS the sandboxed app can only touch
+bookmarked folders and its own container, so the harness stages the show and
+renders inside the container (`~/Library/Containers/<bundle-id>/Data/tmp/`;
+`XL_TEST_BUNDLE_ID` / `XL_TEST_WORK` override). **The container must be left
+clean:** the script deletes everything it created on exit (pass, fail or error).
+Use `--save <dir>` to copy the hash reports, manifest diff and rendered fseqs to
+a normal working directory first; `--keep` skips cleanup and then you must
+`rm -rf` the printed scratch dir yourself. Any ad-hoc render or `--fseqcmp` you
+stage in the container outside this script gets the same treatment: copy results
+out, then delete the staged files. The script refuses a binary that predates
+`--fseqhash` (an old build pops an "unrecognized option" dialog instead of failing).
 Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
 
 ### Linux

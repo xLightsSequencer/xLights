@@ -90,14 +90,14 @@ effect_on.fseq  frames=40 channels=2310 step=50  4383bcfc70365bfe
   model Line  56f48e88a5288c38
   model Matrix  1c6952974f4a413b
   model Tree  0777a8f414be9e1b
-effect_pinwheel.fseq  frames=40 channels=2310 step=50  3009431c8d6ac03d
+effect_pinwheel.fseq  frames=40 channels=2310 step=50  6f182401ae810470
   model Line  9b6e8c1544808755
-  model Matrix  daec47567550c23b
-  model Tree  37aed68a96fd4425
-effect_plasma.fseq  frames=40 channels=2310 step=50  3c97f2f4dd426e41
+  model Matrix  fced3198522eb647
+  model Tree  301d823d9cc2886e
+effect_plasma.fseq  frames=40 channels=2310 step=50  0e9e1948a3eba1a4
   model Line  33c395fef4366b35
-  model Matrix  ca745ae272befc8a
-  model Tree  49732c1c435d86d1
+  model Matrix  d220fcb95297c3cf
+  model Tree  9a90bb63d014ddd1
 effect_ripple.fseq  frames=40 channels=2310 step=50  712a3f63434b48d7
   model Line  c50dbeec2c3407f1
   model Matrix  8768ab1de151407e
@@ -114,10 +114,10 @@ effect_snowflakes.fseq  frames=40 channels=2310 step=50  ea34b255be4da3cb
   model Line  a76c80101396fd2e
   model Matrix  63845ad39ea2ec5f
   model Tree  67511335230d1959
-effect_snowstorm.fseq  frames=40 channels=2310 step=50  d6fd59676283715d
-  model Line  971058580eff3a1e
-  model Matrix  6f64f2b4a6f6841b
-  model Tree  ef80598eab65d6be
+effect_snowstorm.fseq  frames=40 channels=2310 step=50  bd8a1edcaec21b88
+  model Line  ae4fc3dc7466382d
+  model Matrix  cf155567bf4098bb
+  model Tree  a66c4458062e51e0
 effect_spirals.fseq  frames=40 channels=2310 step=50  70477dbd3e595c23
   model Line  41230ce776e2ca83
   model Matrix  dadd49a69f1dc53a
@@ -130,10 +130,10 @@ effect_strobe.fseq  frames=40 channels=2310 step=50  ebea2cd9bd0d448d
   model Line  f74072996696ad32
   model Matrix  6a7ad3c3e5259d67
   model Tree  834c56639f8afc30
-effect_tendril.fseq  frames=40 channels=2310 step=50  6fcec028a952b22a
+effect_tendril.fseq  frames=40 channels=2310 step=50  05232cd8d3135f6e
   model Line  d6aa6e65241e698a
-  model Matrix  10075fd944ac01b6
-  model Tree  d76fe16cf4428ce3
+  model Matrix  421a580d08049e94
+  model Tree  96c0c52438dab8d3
 effect_tree.fseq  frames=40 channels=2310 step=50  28b4209b1a9bc35b
   model Line  2d08c1127f3c809f
   model Matrix  ff17a36a2a65e281
@@ -214,20 +214,20 @@ transition_blinds.fseq  frames=40 channels=2310 step=50  d2690b1487757ffc
   model Line  eccf0bedfbb0677a
   model Matrix  c97e87a8c86391e9
   model Tree  6b15a38fb69d1ce8
-transition_bow_tie.fseq  frames=40 channels=2310 step=50  d2f46dc2d5282369
-  model Line  4a7eba9cbbdca7da
+transition_bow_tie.fseq  frames=40 channels=2310 step=50  1efdd19c2862d464
+  model Line  004f372d88271b24
   model Matrix  ab7256d9f89c6312
   model Tree  9fbd045fd8788f78
 transition_circle_explode.fseq  frames=40 channels=2310 step=50  5adb75547779a8c6
   model Line  f29abd4213822be2
   model Matrix  baf1d6d9b31729d2
   model Tree  0c834893205c629d
-transition_circles.fseq  frames=40 channels=2310 step=50  a945a3adf6d60f5e
-  model Line  857f8f885ef12e47
+transition_circles.fseq  frames=40 channels=2310 step=50  3593ecbe7c3c62f4
+  model Line  51c9091b48341286
   model Matrix  f64f17bbba614f26
   model Tree  5100f2a4620b0aed
-transition_circular_swirl.fseq  frames=40 channels=2310 step=50  0a88bdefe0ab79bb
-  model Line  51c9091b48341286
+transition_circular_swirl.fseq  frames=40 channels=2310 step=50  89b751d91d01df0c
+  model Line  857f8f885ef12e47
   model Matrix  34cffbf03138486d
   model Tree  9d2ee9d39d1a8abe
 transition_clock.fseq  frames=40 channels=2310 step=50  795bead9ac6761af
@@ -238,8 +238,8 @@ transition_dissolve.fseq  frames=40 channels=2310 step=50  b9c5e5144ebacd1f
   model Line  4a7c624712ea99ac
   model Matrix  7803d587bf0e9049
   model Tree  840437bc0a33171d
-transition_doorway.fseq  frames=40 channels=2310 step=50  1134f9b96b6375dc
-  model Line  51c9091b48341286
+transition_doorway.fseq  frames=40 channels=2310 step=50  795aab6119024900
+  model Line  6d524bb9c6a97154
   model Matrix  efc2cc2146f84460
   model Tree  73be59e0b1554483
 transition_fade.fseq  frames=40 channels=2310 step=50  f3ff0c4e9908cdb8

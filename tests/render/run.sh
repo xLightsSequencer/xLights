@@ -6,11 +6,17 @@
 #
 #   tests/render/run.sh --bin <xLights binary> [--data <xLights-test-data dir>]
 #                       [--show basic] [--filter <substring>] [--update]
+#                       [--save <dir>] [--keep]
+#
+# Scratch files are always deleted on exit (pass/fail/error) so nothing is left
+# behind -- on macOS they live inside the app's sandbox container. --save <dir>
+# first copies the hash reports, manifest diff and render logs out to <dir>;
+# --keep skips the cleanup (then clean up by hand, see the notice printed).
 #
 # Exit 0 = all match; 1 = mismatch/non-determinism; 2 = setup error.
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BIN=""; DATA="${XL_TEST_DATA:-}"; SHOW="basic"; FILTER=""; UPDATE=0
+BIN=""; DATA="${XL_TEST_DATA:-}"; SHOW="basic"; FILTER=""; UPDATE=0; SAVE=""; KEEP=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --bin) BIN="$2"; shift 2;;
@@ -18,10 +24,15 @@ while [ $# -gt 0 ]; do
         --show) SHOW="$2"; shift 2;;
         --filter) FILTER="$2"; shift 2;;
         --update) UPDATE=1; shift;;
+        --save) SAVE="$2"; shift 2;;
+        --keep) KEEP=1; shift;;
         *) echo "unknown argument: $1" >&2; exit 2;;
     esac
 done
 [ -x "$BIN" ] || { echo "--bin <xLights executable> is required" >&2; exit 2; }
+# A binary that predates --fseqhash would pop an "unrecognized option" dialog
+# on every call instead of failing, so check the option table up front.
+strings -a "$BIN" | grep -q -- "fseqhash" || { echo "$BIN does not support --fseqhash; rebuild it" >&2; exit 2; }
 if [ -z "$DATA" ]; then
     for d in "$HERE/../../../xLights-test-data" "$HOME/working/xLights-test-data"; do
         [ -d "$d/shows/$SHOW" ] && DATA="$d" && break
@@ -37,14 +48,37 @@ if [ -n "$PIN" ] && [ -n "$HAVE" ] && [ "$PIN" != "$HAVE" ]; then
     echo "WARNING: test data is at ${HAVE:0:10}, manifest was generated from ${PIN:0:10}" >&2
 fi
 
-# The macOS app is sandboxed and can only read directories it holds a bookmark
-# for; ~/tmp/xLights is one. Elsewhere the data is used in place.
+# The sandboxed macOS app can only touch directories it holds a bookmark for,
+# plus its own container, which it can always use. So on macOS the work dir
+# defaults to the container's tmp (XL_TEST_BUNDLE_ID overrides the bundle id).
+# Elsewhere a normal temp dir is used.
 if [ "$(uname)" = "Darwin" ]; then
-    WORK="${XL_TEST_WORK:-$HOME/tmp/xLights/fseq/render-tests}"
+    CONTAINER="$HOME/Library/Containers/${XL_TEST_BUNDLE_ID:-org.xlights}/Data"
+    [ -d "$CONTAINER" ] || { echo "no sandbox container $CONTAINER (run the app once, or set XL_TEST_BUNDLE_ID/XL_TEST_WORK)" >&2; exit 2; }
+    WORK="${XL_TEST_WORK:-$CONTAINER/tmp/xlights-render-tests}"
 else
     WORK="${XL_TEST_WORK:-${TMPDIR:-/tmp}/xlights-render-tests}"
 fi
 STAGE="$WORK/show-$SHOW"
+
+# Remove only what this script creates (never the whole of a user-supplied
+# XL_TEST_WORK), leaving the container exactly as found.
+cleanup() {
+    if [ $KEEP -eq 1 ]; then
+        echo "NOTICE: --keep given; scratch left in $WORK -- delete it when done: rm -rf '$WORK'" >&2
+        return
+    fi
+    if [ -n "$SAVE" ]; then
+        mkdir -p "$SAVE" && cp -R "$WORK"/hashes*.txt "$WORK"/manifest.diff "$WORK"/expected.txt "$SAVE"/ 2>/dev/null
+        local o; for o in out1 out2; do
+            [ -d "$WORK/$o" ] && mkdir -p "$SAVE/$o" && cp -R "$WORK/$o"/. "$SAVE/$o"/
+        done
+    fi
+    rm -rf "$STAGE" "$WORK/out1" "$WORK/out2" "$WORK"/hashes1.txt "$WORK"/hashes2.txt \
+        "$WORK"/expected.txt "$WORK"/manifest.diff
+    rmdir "$WORK" 2>/dev/null
+}
+trap cleanup EXIT
 rm -rf "$STAGE" "$WORK/out1" "$WORK/out2"
 mkdir -p "$STAGE" "$WORK/out1" "$WORK/out2" || exit 2
 cp -R "$SRC/." "$STAGE/"
@@ -109,7 +143,8 @@ else
     echo "FAIL: render output differs from the manifest. Changed sequences / models:"
     awk '/^[<>] [^ ]/{seq=$2} /^[<>]   model/{print "  " seq " " $3 " (" ($1=="<"?"expected":"got") ")"}' "$WORK/manifest.diff" | sort -u | head -40
     grep -E '^[<>] [^ ]' "$WORK/manifest.diff" | awk '{print "  " $2}' | sort -u | head -40
-    echo "full diff: $WORK/manifest.diff   outputs: $WORK/out1"
+    head -60 "$WORK/manifest.diff"
+    [ -n "$SAVE" ] && echo "full diff and outputs saved to $SAVE" || echo "(use --save <dir> to keep the full diff and rendered fseqs)"
     rc=1
 fi
 exit $rc

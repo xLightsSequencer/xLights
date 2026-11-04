@@ -78,6 +78,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Spirals, Fan, Galaxy and others); Spirals is about 2x faster
     -bug (derwin12)              Video effect showed a red square when a buffer value curve changed the
                                  buffer size mid-effect (Windows/Linux) (#7284)
+    -change (dkulp)              SIMD effect and blend kernels now use ispc's fast math library; a few
+                                 effects (e.g. Plasma, Pinwheel, Snowstorm) may differ by a last-bit rounding
 
 2026.19  October 23, 2026
 
