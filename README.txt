@@ -111,6 +111,86 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Newlines and tabs in XML-escaped text now survive a save and load
     -bug (dkulp)                 Reading a corrupt or truncated .fseq no longer returns stale memory as
                                  channel data; the blocks are blanked instead
+    -bug (dkulp)                 Sequences rendering in parallel could crash while
+                                 logging render status
+    -bug (dkulp)                 Pixels drawn exactly at the buffer edge are now
+                                 wrapped instead of dropped
+    -bug (dkulp)                 Possible hang when shutting down the render thread
+                                 pool
+    -bug (dkulp)                 Layer blending (e.g. Shadow 2 on 1) rendered black
+                                 when the hue went negative
+    -bug (dkulp)                 Tempo detection on silent or flat audio now
+                                 returns no tempo instead of ~304 BPM
+    -bug (dkulp)                 Spectrogram rendering with a negative size no
+                                 longer throws
+    -bug (dkulp)                 Audio accessors no longer hang when no frame
+                                 interval is set or the load failed
+    -bug (dkulp)                 Pitch detection of low tones (about 80-200 Hz) no
+                                 longer reports ~1225 Hz
+    -bug (dkulp)                 Key detection now correlates against mean-centred
+                                 profiles, so a C major triad reads as C major
+    -bug (dkulp)                 Sequence package extraction no longer writes files
+                                 outside the destination folder (zip-slip)
+    -bug (dkulp)                 SRT import no longer drops the last subtitle
+    -bug (dkulp)                 Audacity and ElevenLabs timing import give zero-
+                                 length marks one frame
+    -bug (dkulp)                 Fixed crashes importing Papagayo with 0 samples
+                                 per second, an empty LOR freeform grid, and 1-2
+                                 frame Vixen2/HLS data
+    -bug (dkulp)                 Fixed a crash in lyric breakdown when the phrase
+                                 start is after its end
+    -bug (dkulp)                 Fixed-interval and metronome timing sections no
+                                 longer hang on a 0 interval
+    -bug (dkulp)                 Fixed a crash loading .obj models whose faces
+                                 reference missing vertices
+    -bug (dkulp)                 Fixed text rendering with an unloaded font size
+                                 above 88
+    -bug (dkulp)                 Fixed FPP range upload merging separate ranges
+    -bug (dkulp)                 Fixed controller pixel protocol matching and
+                                 channels per pixel for mixed-case names
+    -bug (dkulp)                 Fixed Pixlite16 bank voltages above 25.5V being
+                                 truncated
+    -bug (dkulp)                 Fixed crashes on damaged settings files and
+                                 ESPixelStick ports without a type
+    -bug (dkulp)                 Fixed unescaped markup in the Check Sequence HTML
+                                 report
+    -bug (dkulp)                 Fixed the smart remote letter being exported as a
+                                 number in controller JSON
+    -bug (dkulp)                 Image and Label models no longer read
+                                 uninitialised buffer coordinates
+    -bug (dkulp)                 DMX Skull with disabled servos no longer crashes
+                                 when naming nodes or saving
+    -bug (dkulp)                 DMX Advanced Moving Head no longer crashes when
+                                 its channel count is smaller than its motor
+                                 channels
+    -bug (dkulp)                 DMX Servo and Servo 3D models no longer crash with
+                                 a zero channel count
+    -bug (dkulp)                 Hand-edited DMX servo, image or mesh element names
+                                 without a valid number no longer crash loading
+    -bug (dkulp)                 Legacy DMX servo MotionImage no longer overwrites
+                                 the static image
+    -bug (dkulp)                 DMX servo image offsets no longer shrink 100x on
+                                 every save
+    -bug (dkulp)                 DMX Servo 3D unlinked servos and meshes stay
+                                 unlinked after save and load
+    -bug (dkulp)                 DMX models without a StringType no longer get an
+                                 inflated channel count
+    -bug (dkulp)                 Icicles with an empty or zero drop pattern no
+                                 longer hang on load
+    -bug (dkulp)                 Poly Line and Custom models with zero or invalid
+                                 string counts no longer crash
+    -bug (dkulp)                 Corrupt negative values in Custom, Spinner and
+                                 Window Frame models no longer crash
+    -bug (dkulp)                 Submodel legacy single-line buffer no longer reads
+                                 out of bounds
+    -bug (dkulp)                 Submodel per-strand buffer sizes match the
+                                 rendered buffer
+    -bug (dkulp)                 Zeros to Blanks keeps leading zero cells
+    -bug (dkulp)                 Zero-length poly lines no longer produce invalid
+                                 node positions
+    -bug (dkulp)                 Huge submodel node ranges are limited to the
+                                 model's node count
+    -bug (dkulp)                 GDTF import rejects absurd channel counts
 
 2026.19  October 23, 2026
 
