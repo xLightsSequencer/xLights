@@ -114,10 +114,10 @@ effect_snowflakes.fseq  frames=40 channels=2310 step=50  ea34b255be4da3cb
   model Line  a76c80101396fd2e
   model Matrix  63845ad39ea2ec5f
   model Tree  67511335230d1959
-effect_snowstorm.fseq  frames=40 channels=2310 step=50  bd8a1edcaec21b88
-  model Line  ae4fc3dc7466382d
-  model Matrix  cf155567bf4098bb
-  model Tree  a66c4458062e51e0
+effect_snowstorm.fseq  frames=40 channels=2310 step=50  d6fd59676283715d
+  model Line  971058580eff3a1e
+  model Matrix  6f64f2b4a6f6841b
+  model Tree  ef80598eab65d6be
 effect_spirals.fseq  frames=40 channels=2310 step=50  70477dbd3e595c23
   model Line  41230ce776e2ca83
   model Matrix  dadd49a69f1dc53a

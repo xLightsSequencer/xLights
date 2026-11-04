@@ -331,6 +331,9 @@ a normal working directory first; `--keep` skips cleanup and then you must
 stage in the container outside this script gets the same treatment: copy results
 out, then delete the staged files. The script refuses a binary that predates
 `--fseqhash` (an old build pops an "unrecognized option" dialog instead of failing).
+Sequences listed in `tests/render/determinism-only-<show>.txt` (Plasma and Butterfly: their SIMD
+kernels differ by one level on a few channels between CPU types) are still rendered twice and must be
+identical and not blank, but are not compared to the manifest. Keep that list short and give a reason.
 Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
 
 ### Unit tests (Catch2)

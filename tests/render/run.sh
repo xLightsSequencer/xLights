@@ -137,8 +137,27 @@ if [ -n "$FILTER" ]; then
 else
     cp "$MANIFEST" "$WORK/expected.txt"
 fi
+# Determinism-only sequences (see determinism-only-<show>.txt): must not render blank, and are left out
+# of the comparison against the recorded hashes.
+DETONLY=""
+if [ -f "$HERE/determinism-only-$SHOW.txt" ]; then
+    DETONLY="$(grep -v '^[[:space:]]*#' "$HERE/determinism-only-$SHOW.txt" | tr -s '[:space:]' ' ')"
+fi
+if [ -n "$DETONLY" ]; then
+    BLACK="$(awk '$1=="effect_off.fseq"{print $NF}' "$MANIFEST")"
+    for n in $DETONLY; do
+        got="$(awk -v n="$n.fseq" '$1==n{print $NF}' "$WORK/hashes1.txt")"
+        [ -z "$got" ] && continue
+        if [ -n "$BLACK" ] && [ "$got" = "$BLACK" ]; then
+            echo "FAIL: $n renders blank (same hash as effect_off)"; rc=1
+        fi
+    done
+    dropdet() { awk -v skip="$DETONLY" 'BEGIN{k=split(skip,a," "); for(i=1;i<=k;i++) s[a[i]".fseq"]=1} /^[^ ]/{drop=($1 in s)} !drop' "$1" >"$1.tmp" && mv "$1.tmp" "$1"; }
+    dropdet "$WORK/expected.txt"; dropdet "$WORK/hashes1.txt"
+    echo "NOTE: not compared to the manifest (determinism-only): $DETONLY"
+fi
 if diff "$WORK/expected.txt" "$WORK/hashes1.txt" >"$WORK/manifest.diff"; then
-    echo "PASS: $(grep -c 'frames=' "$WORK/hashes1.txt") sequences match the manifest"
+    [ $rc -eq 0 ] && echo "PASS: $(grep -c 'frames=' "$WORK/hashes1.txt") sequences match the manifest"
 else
     echo "FAIL: render output differs from the manifest. Changed sequences / models:"
     awk '/^[<>] [^ ]/{seq=$2} /^[<>]   model/{print "  " seq " " $3 " (" ($1=="<"?"expected":"got") ")"}' "$WORK/manifest.diff" | sort -u | head -40

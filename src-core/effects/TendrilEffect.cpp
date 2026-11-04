@@ -27,8 +27,13 @@
 // The spring/friction simulation feeds its float state back every frame, so it is sensitive to the
 // last bit. Strict FP (no fast-math reassociation, no fused multiply-add) keeps it identical
 // across compilers and CPUs.
+#if defined(__GNUC__) && !defined(__clang__)
+// GCC has no float_control. Release builds use -ffast-math, so turn it (and fused multiply-add) off here.
+#pragma GCC optimize("no-fast-math", "fp-contract=off")
+#else
 #pragma float_control(precise, on)
 #pragma STDC FP_CONTRACT OFF
+#endif
 
 #define wrdebug(...)
 

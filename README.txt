@@ -83,6 +83,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Strobe, Lightning, Shape, Tendril, Pinwheel and several transitions (Circles, Pinwheel,
                                  Dissolve, Fold, Star, Bow Tie, Circular Swirl) rendered differently on
                                  Windows and macOS; they now render the same on both
+    -bug (dkulp)                 Snowstorm with alpha enabled drew the oldest tail points at a random
+                                 brightness instead of fading them out; output differs from earlier versions
     -bug (dkulp)                 Transitions on a one-pixel-high model (such as a single line) could render
                                  blank or differ between machines
 
