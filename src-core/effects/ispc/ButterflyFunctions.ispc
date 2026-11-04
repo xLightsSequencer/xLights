@@ -99,7 +99,7 @@ export void ButterflyEffectStyle1(const uniform ButterflyData &data,
                                   uniform int startIdx, uniform int endIdx,
                                   uniform uint8<4> result[]) {
     uniform float sz = data.height + data.width;
-    uniform float rsz = rcp(sz) * pi2;
+    uniform float rsz = 1.0f / sz * pi2;
     uniform float offset = (uniform float)data.offset;
     uniform float width = data.width;
     uniform float rszw = 1.0 / width;
@@ -189,7 +189,7 @@ export void ButterflyEffectStyle4(const uniform ButterflyData &data,
     uniform float width = data.width;
     uniform float rszw = 1.0 / width;
     uniform float sz = data.height + data.width;
-    uniform float rsz = rcp(sz) * pi2;
+    uniform float rsz = 1.0f / sz * pi2;
 
     foreach (index = startIdx...endIdx) {
         float fidx = index;
@@ -254,8 +254,8 @@ export void ButterflyEffectPlasmaStyles(const uniform ButterflyData &data,
                                     uniform uint8<4> result[]) {
     uniform float width = data.width;
     uniform float rszw = 1.0 / width;
-    uniform float invh = rcp((uniform float)data.height);
-    uniform float invw = rcp((uniform float)data.width);
+    uniform float invh = 1.0f / (uniform float)data.height;
+    uniform float invw = 1.0f / (uniform float)data.width;
     uniform float time = data.plasmaTime;
     uniform const float onehalf = 1.0 / 2.0;
     uniform const float onethird = 1.0 / 3.0;

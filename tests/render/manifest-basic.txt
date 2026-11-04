@@ -14,8 +14,8 @@ effect_bars.fseq  frames=40 channels=2310 step=50  f29cf1335abbefa2
   model Line  857f8f885ef12e47
   model Matrix  3dc708338566b964
   model Tree  c6e3665a7eaafeeb
-effect_butterfly.fseq  frames=40 channels=2310 step=50  2bf2779e26706157
-  model Line  2f00ecf06b72861c
+effect_butterfly.fseq  frames=40 channels=2310 step=50  02fe0a8dc5355d33
+  model Line  c943fa71a18d1f0b
   model Matrix  0d3391b44caabe37
   model Tree  39deac9ab62a87ad
 effect_candle.fseq  frames=40 channels=2310 step=50  ef36a99748cbb9af
