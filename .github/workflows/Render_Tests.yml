@@ -61,22 +61,27 @@ jobs:
     - name: ccache stats
       run: ccache --show-stats
 
+    # The app initializes GTK before it parses its command line, so even --headless needs a display.
+    - name: Install a virtual display
+      run: |
+        command -v xvfb-run >/dev/null || { apt-get update -qq && apt-get install -y -qq xvfb xauth; }
+        command -v xvfb-run
+
     - name: Binary diagnostics
       if: always()
       run: |
-        ls -la bin/xLights lib/linux 2>&1 | head -8
+        ls -la bin/xLights 2>&1 | head -2
         echo "DISPLAY=${DISPLAY:-unset}; xvfb-run: $(command -v xvfb-run || echo missing)"
         export LD_LIBRARY_PATH="$PWD/lib/linux:${LD_LIBRARY_PATH:-}"
         echo "--- missing shared libraries:"; ldd bin/xLights 2>&1 | grep "not found" || echo none
-        echo "--- --help (first lines):"; bin/xLights --help 2>&1 | head -6 || true
+        echo "--- --help (first lines):"; xvfb-run -a bin/xLights --help 2>&1 | head -6 || true
 
     - name: Render regression
       run: |
-        mkdir -p results
+        mkdir -p results "$RUNNER_TEMP/home"
+        export HOME="$RUNNER_TEMP/home"
         export LD_LIBRARY_PATH="$PWD/lib/linux:${LD_LIBRARY_PATH:-}"
-        RUN=""
-        command -v xvfb-run >/dev/null && RUN="xvfb-run -a"
-        $RUN bash tests/render/run.sh --bin "$PWD/bin/xLights" --data "$PWD/xLights-test-data" \
+        xvfb-run -a bash tests/render/run.sh --bin "$PWD/bin/xLights" --data "$PWD/xLights-test-data" \
           --save results/render --junit results/render-linux-x64.xml
 
     - name: Summary
