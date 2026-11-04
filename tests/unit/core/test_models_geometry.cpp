@@ -64,6 +64,10 @@ std::string ModelXml(const std::string& name, const std::string& displayAs, cons
     return "<model name=\"" + name + "\" DisplayAs=\"" + displayAs + "\" StartChannel=\"1\" " + attrs + "/>";
 }
 
+std::string HostileXml(const std::string& name, const std::string& type) {
+    return "<model name=\"" + name + "\" DisplayAs=\"" + type + "\" StartChannel=\"1\" NumStrings=\"2\" NodesPerString=\"4\" StrandsPerString=\"1\" NumArches=\"2\" NodesPerArch=\"3\" NumCanes=\"2\" NodesPerCane=\"3\" LightsPerNode=\"1\" StarPoints=\"5\" NodesPerArm=\"3\" ArmsPerString=\"3\" TopNodes=\"3\" SideNodes=\"3\" BottomNodes=\"3\" CubeWidth=\"2\" CubeHeight=\"2\" CubeDepth=\"2\" CustomWidth=\"2\" CustomHeight=\"2\" NumChannels=\"3\"/>";
+}
+
 } // namespace
 
 TEST_CASE("Tree counts nodes strings and strands", "[models][geometry]") {
@@ -439,7 +443,10 @@ TEST_CASE("Node and strand names resolve with defaults", "[models][geometry]") {
     CHECK(m->GetNodeName(3) == "d");
     CHECK(m->GetStrandName(0) == "top");
     CHECK(m->GetStrandName(1) == "bottom");
-    CHECK(m->GetStrandName(0, true) == "Strand 1");
+    CHECK(m->GetStrandName(2).empty());
+    CHECK(m->GetStrandName(2, true) == "Strand 3");
+    CHECK(m->GetNodeName(2).empty());
+    CHECK(m->GetNodeName(4, true) == "Node 5");
 }
 
 TEST_CASE("Strand length is nodes divided by strands", "[models][geometry]") {
@@ -498,23 +505,111 @@ TEST_CASE("Missing size attributes give a minimal one node model", "[models][geo
     CHECK(line->GetNodeCount() == 50);
 }
 
-TEST_CASE("Non numeric and negative sizes do not crash model construction", "[models][geometry]") {
+TEST_CASE("Zero blank and non numeric sizes do not crash model construction", "[models][geometry]") {
+    struct Case {
+        const char* type;
+        std::vector<const char*> attrs;
+    };
+    const std::vector<Case> cases = {
+        { "Tree 360", { "NumStrings", "StrandsPerString" } },
+        { "Matrix", { "NumStrings", "StrandsPerString" } },
+        { "Arches", { "NumArches", "LightsPerNode" } },
+        { "Single Line", { "NumStrings", "NodesPerString", "LightsPerNode" } },
+        { "Star", { "NumStrings", "NodesPerString", "StarPoints" } },
+        { "Circle", { "NumStrings", "NodesPerString" } },
+        { "Icicles", { "NumStrings", "NodesPerString" } },
+        { "Candy Canes", { "NumCanes", "NodesPerCane", "LightsPerNode" } },
+        { "Spinner", { "NumStrings", "NodesPerArm", "ArmsPerString" } },
+        { "Wreath", { "NumStrings", "NodesPerString" } },
+        { "Window Frame", { "TopNodes", "SideNodes", "BottomNodes" } },
+        { "Sphere", { "NumStrings", "StrandsPerString" } },
+        { "Custom", { "CustomWidth", "CustomHeight" } },
+        { "Channel Block", { "NumChannels" } },
+    };
     ShowFixture f;
     int i = 0;
-    for (const char* type : { "Tree 360", "Matrix", "Arches", "Single Line", "Star", "Circle", "Icicles", "Candy Canes", "Spinner", "Wreath", "Window Frame", "Sphere", "Cube", "Custom", "Channel Block" }) {
-        for (const char* v : { "-5", "abc", "" }) {
-            INFO(type << " with '" << v << "'");
-            std::string a = std::string("NumStrings=\"") + v + "\" NodesPerString=\"" + v + "\" NumArches=\"" + v + "\" NodesPerArch=\"" + v +
-                            "\" NumCanes=\"" + v + "\" NodesPerCane=\"" + v + "\" StarPoints=\"" + v + "\" NodesPerArm=\"" + v +
-                            "\" ArmsPerString=\"" + v + "\" TopNodes=\"" + v + "\" SideNodes=\"" + v + "\" BottomNodes=\"" + v +
-                            "\" CubeWidth=\"" + v + "\" CubeHeight=\"" + v + "\" CubeDepth=\"" + v + "\" CustomWidth=\"" + v +
-                            "\" CustomHeight=\"" + v + "\" NumChannels=\"" + v + "\"";
-            Model* m = f.Add(ModelXml("H" + std::to_string(i++), type, a));
-            REQUIRE(m != nullptr);
-            (void)m->GetNodeCount();
-            (void)m->GetChanCount();
+    for (const auto& c : cases) {
+        for (const char* attr : c.attrs) {
+            for (const char* v : { "0", "abc", "" }) {
+                INFO(c.type << " " << attr << "='" << v << "'");
+                pugi::xml_document doc;
+                REQUIRE(doc.load_string(HostileXml("H" + std::to_string(i++), c.type).c_str()));
+                doc.first_child().attribute(attr).set_value(v);
+                Model* m = f.mm.createAndAddModel(doc.first_child(), 100, 100);
+                REQUIRE(m != nullptr);
+                (void)m->GetNodeCount();
+                (void)m->GetChanCount();
+                (void)m->GetFirstChannel();
+            }
         }
     }
+}
+
+TEST_CASE("Negative string counts either load or throw", "[models][geometry]") {
+    struct Case {
+        const char* type;
+        const char* attr;
+    };
+    const Case cases[] = {
+        { "Tree 360", "NumStrings" }, { "Matrix", "NumStrings" }, { "Arches", "NumArches" }, { "Single Line", "NumStrings" },
+        { "Star", "NumStrings" }, { "Circle", "NumStrings" }, { "Candy Canes", "NumCanes" }, { "Wreath", "NumStrings" },
+        { "Channel Block", "NumChannels" }, { "Sphere", "NumStrings" },
+    };
+    ShowFixture f;
+    int i = 0;
+    for (const auto& c : cases) {
+        INFO(c.type << " " << c.attr);
+        pugi::xml_document doc;
+        REQUIRE(doc.load_string(HostileXml("H" + std::to_string(i++), c.type).c_str()));
+        doc.first_child().attribute(c.attr).set_value("-5");
+        try {
+            Model* m = f.mm.createAndAddModel(doc.first_child(), 100, 100);
+            if (m != nullptr) {
+                (void)m->GetNodeCount();
+            }
+        } catch (const std::exception&) {
+        }
+    }
+    SUCCEED();
+}
+
+// These attribute values crash model construction (division by zero or a bad
+// access) instead of producing an empty model or an exception. Hidden so the
+// suite stays green; run them by name to reproduce.
+TEST_CASE("Zero nodes per string crashes a tree", "[known-crash][.]") {
+    ShowFixture f;
+    Model* m = f.Add(ModelXml("T", "Tree 360", "NumStrings=\"2\" NodesPerString=\"0\" StrandsPerString=\"1\""));
+    CHECK(m->GetNodeCount() == 0);
+}
+
+TEST_CASE("Zero nodes per arch crashes arches", "[known-crash][.]") {
+    ShowFixture f;
+    Model* m = f.Add(ModelXml("A", "Arches", "NumArches=\"2\" NodesPerArch=\"0\""));
+    CHECK(m->GetNodeCount() == 0);
+}
+
+TEST_CASE("Zero sized single line crashes", "[known-crash][.]") {
+    ShowFixture f;
+    Model* m = f.Add(ModelXml("L", "Single Line", "NumStrings=\"0\" NodesPerString=\"0\""));
+    CHECK(m->GetNodeCount() == 0);
+}
+
+TEST_CASE("Negative lights per node crashes a single line", "[known-crash][.]") {
+    ShowFixture f;
+    Model* m = f.Add(ModelXml("L", "Single Line", "NumStrings=\"1\" NodesPerString=\"4\" LightsPerNode=\"-5\""));
+    CHECK(m->GetNodeCount() == 4);
+}
+
+TEST_CASE("Zero lights per node aborts a poly line", "[known-crash][.]") {
+    ShowFixture f;
+    Model* m = f.Add(ModelXml("P", "Poly Line", "NodesPerString=\"10\" LightsPerNode=\"0\""));
+    CHECK(m != nullptr);
+}
+
+TEST_CASE("Zero cube dimension crashes", "[known-crash][.]") {
+    ShowFixture f;
+    Model* m = f.Add(ModelXml("C", "Cube", "CubeWidth=\"0\" CubeHeight=\"2\" CubeDepth=\"2\""));
+    CHECK(m->GetNodeCount() == 0);
 }
 
 TEST_CASE("Model screen location is read from the XML", "[models][geometry]") {

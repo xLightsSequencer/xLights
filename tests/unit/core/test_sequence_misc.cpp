@@ -137,7 +137,7 @@ TEST_CASE("SongStructure MoveBoundary clamps between neighbours", "[sequence][so
     m.MoveBoundary(15000, 100000);
     CHECK(m.GetRegion(1).startTimeMS == 29999);
     m.MoveBoundary(29999, -100);
-    CHECK(m.GetRegion(1).startTimeMS == 29999 - (29999 - 1));
+    CHECK(m.GetRegion(1).startTimeMS == 1);
     m.MoveBoundary(555, 777);
     CHECK(m.GetRegionCount() == 3);
 }

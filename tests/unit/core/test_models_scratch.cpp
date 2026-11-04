@@ -36,6 +36,7 @@ TEST_CASE("scratch", "[scratch]") {
     Fx f;
     std::string type = getenv("XT"), attr = getenv("XA"), v = getenv("XV");
     std::string x = "<model name=\"H\" DisplayAs=\"" + type + "\" NumStrings=\"2\" NodesPerString=\"4\" StrandsPerString=\"1\" NumArches=\"2\" NodesPerArch=\"3\" NumCanes=\"2\" NodesPerCane=\"3\" StarPoints=\"5\" NodesPerArm=\"3\" ArmsPerString=\"3\" TopNodes=\"3\" SideNodes=\"3\" BottomNodes=\"3\" CubeWidth=\"2\" CubeHeight=\"2\" CubeDepth=\"2\" CustomWidth=\"2\" CustomHeight=\"2\" NumChannels=\"3\" StartChannel=\"1\" " + (attr == "ALL" ? std::string("") : attr + "=\"" + v + "\"") + "/>";
+    if (attr != "ALL") { pugi::xml_document d; d.load_string(x.c_str()); std::istringstream is(attr); std::string tok; while (std::getline(is, tok, ',')) d.first_child().attribute(tok.c_str()).set_value(v.c_str()); std::ostringstream os; d.save(os); x = os.str(); }
     if (attr == "ALL") { pugi::xml_document d; d.load_string(x.c_str()); for (auto a : d.first_child().attributes()) { std::string n = a.name(); if (n != "name" && n != "DisplayAs" && n != "StartChannel") a.set_value(v.c_str()); } std::ostringstream os; d.save(os); x = os.str(); }
     Model* m = f.Add(x);
     if (!m) { std::cout << "null\n"; return; }
