@@ -120,14 +120,21 @@ TEST_CASE("SetPixel with wrap folds negative coordinates back in", "[render][buf
     CHECK(Same(rb->GetPixel(0, 2), kBlue));
 }
 
-// SetPixel's wrap loop uses '>' so a coordinate equal to the width/height is left alone and then dropped.
-TEST_CASE("SetPixel with wrap folds a coordinate equal to the size to zero", "[render][buffer][!mayfail]") {
+TEST_CASE("SetPixel with wrap folds a coordinate equal to the size to zero", "[render][buffer]") {
     BufferFixture f;
     auto rb = f.Make(4, 3);
     rb->SetPixel(4, 1, kRed, true);
     rb->SetPixel(1, 3, kBlue, true);
     CHECK(Same(rb->GetPixel(0, 1), kRed));
     CHECK(Same(rb->GetPixel(1, 0), kBlue));
+}
+
+TEST_CASE("SetPixel HSV overload with wrap folds a coordinate equal to the size to zero", "[render][buffer]") {
+    BufferFixture f;
+    auto rb = f.Make(4, 3);
+    HSVValue hsv(0.0, 1.0, 1.0);
+    rb->SetPixel(4, 3, hsv, true);
+    CHECK(Same(rb->GetPixel(0, 0), xlColor(hsv)));
 }
 
 TEST_CASE("SetPixel with alpha blends over the existing pixel", "[render][buffer]") {
