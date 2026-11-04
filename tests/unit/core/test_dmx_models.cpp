@@ -744,14 +744,14 @@ TEST_CASE("DMX models keep their screen location through a round trip", "[models
     CHECK(s1.find("ScaleY=\"3.000000\"") != std::string::npos);
 }
 
-TEST_CASE("DMX model with a missing StringType keeps the DMX channel count", "[models2][dmx][!mayfail]") {
+TEST_CASE("DMX model with a missing StringType keeps the DMX channel count", "[models2][dmx]") {
     ShowFixture f;
     Model* m = f.Add("<model name=\"D\" DisplayAs=\"DmxFloodlight\" StartChannel=\"1\" DmxChannelCount=\"10\"/>");
     CHECK(m->GetNodeCount() == 10);
     CHECK(m->GetChanCount() == 10);
 }
 
-TEST_CASE("Legacy servo MotionImage element stays separate from StaticImage", "[models2][dmx][!mayfail]") {
+TEST_CASE("Legacy servo MotionImage element stays separate from StaticImage", "[models2][dmx]") {
     ShowFixture f;
     auto* sv = As<DmxServo>(f.Add(Dmx("S", "DmxServo", "NumServos=\"1\" DmxChannelCount=\"2\"", "<StaticImage Image=\"a.png\"/><MotionImage Image=\"b.png\"/>")));
     REQUIRE(sv->GetStaticImage(0) != nullptr);
@@ -760,26 +760,26 @@ TEST_CASE("Legacy servo MotionImage element stays separate from StaticImage", "[
     CHECK(sv->GetMotionImage(0)->GetImageFile().find("b.png") != std::string::npos);
 }
 
-TEST_CASE("Skull node names with disabled servos do not crash", "[models2-crash][dmx][known-crash][.]") {
+TEST_CASE("Skull node names with disabled servos do not crash", "[models2][dmx]") {
     ShowFixture f;
     auto* sk = As<DmxSkull>(f.Add(Dmx("S", "DmxSkull", "DmxChannelCount=\"26\" HasJaw=\"0\"")));
     auto names = sk->GenerateNodeNames();
     CHECK(names.size() == 26);
 }
 
-TEST_CASE("Advanced moving head with fewer channels than its motors does not crash", "[models2-crash][dmx][known-crash][.]") {
+TEST_CASE("Advanced moving head with fewer channels than its motors does not crash", "[models2][dmx]") {
     ShowFixture f;
     Model* m = f.Add(Dmx("MH", "DmxMovingHeadAdv", "DmxChannelCount=\"2\""));
     CHECK(m != nullptr);
 }
 
-TEST_CASE("Serializing a skull with a disabled servo that has no element does not crash", "[models2-crash][dmx][known-crash][.]") {
+TEST_CASE("Serializing a skull with a disabled servo that has no element does not crash", "[models2][dmx]") {
     ShowFixture f;
     Model* m = f.Add(Dmx("S", "DmxSkull", "DmxChannelCount=\"26\" HasNod=\"0\""));
     CHECK(!Serialize(m).empty());
 }
 
-TEST_CASE("Servo image offsets survive a save and load unchanged", "[models2][dmx][!mayfail]") {
+TEST_CASE("Servo image offsets survive a save and load unchanged", "[models2][dmx]") {
     ShowFixture a;
     Model* m = a.Add(Dmx("S", "DmxServo", "NumServos=\"1\" DmxChannelCount=\"2\"", "<StaticImage1 Image=\"\" OffsetX=\"50\" OffsetY=\"20\" OffsetZ=\"10\"/>"));
     pugi::xml_document doc;
@@ -790,7 +790,7 @@ TEST_CASE("Servo image offsets survive a save and load unchanged", "[models2][dm
     CHECK(img.attribute("OffsetY").as_float() == Catch::Approx(20.0f));
 }
 
-TEST_CASE("Unlinked servos stay unlinked after a save and load", "[models2][dmx][!mayfail]") {
+TEST_CASE("Unlinked servos stay unlinked after a save and load", "[models2][dmx]") {
     ShowFixture a;
     Model* m = a.Add(Dmx("S", "DmxServo3d", "NumServos=\"2\" NumStatic=\"2\" NumMotion=\"2\" DmxChannelCount=\"4\" Bits16=\"1\""));
     auto* sv = As<DmxServo3d>(m);

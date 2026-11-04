@@ -427,6 +427,9 @@ void BaseSerializingVisitor::WriteMeshElement(const Mesh* mesh) {
 }
 
 void BaseSerializingVisitor::WriteServoElement(const Servo* servo) {
+    if (servo == nullptr) {
+        return;
+    }
     AttrCollector attrs;
     attrs.Add("Channel",             std::to_string(servo->GetChannel()));
     attrs.Add("MinLimit",            std::to_string(servo->GetMinLimit()));
@@ -453,9 +456,9 @@ void BaseSerializingVisitor::WriteDmxImageElement(const DmxImage* img) {
     attrs.Add(XmlNodeKeys::RotateXAttribute, std::to_string(img->GetRotateX()));
     attrs.Add(XmlNodeKeys::RotateYAttribute, std::to_string(img->GetRotateY()));
     attrs.Add(XmlNodeKeys::RotateZAttribute, std::to_string(img->GetRotateZ()));
-    attrs.Add(XmlNodeKeys::OffsetXAttribute, std::to_string(img->GetOffsetX()));
-    attrs.Add(XmlNodeKeys::OffsetYAttribute, std::to_string(img->GetOffsetY()));
-    attrs.Add(XmlNodeKeys::OffsetZAttribute, std::to_string(img->GetOffsetZ()));
+    attrs.Add(XmlNodeKeys::OffsetXAttribute, std::to_string(img->GetOffsetX() * img->OFFSET_SCALE));
+    attrs.Add(XmlNodeKeys::OffsetYAttribute, std::to_string(img->GetOffsetY() * img->OFFSET_SCALE));
+    attrs.Add(XmlNodeKeys::OffsetZAttribute, std::to_string(img->GetOffsetZ() * img->OFFSET_SCALE));
     WriteOpenTag(img->GetName(), attrs, true);
 }
 

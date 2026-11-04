@@ -1136,6 +1136,9 @@ Model* XmlDeserializingModelFactory::DeserializeModelGroup(pugi::xml_node node, 
 // **********************                        DMX Section                           ************************
 // ************************************************************************************************************
 void XmlDeserializingModelFactory::DeserializeDmxModel(DmxModel* dmx_model, pugi::xml_node node) {
+    if (node.attribute(XmlNodeKeys::StringTypeAttribute).empty()) {
+        dmx_model->SetStringType("Single Color White");
+    }
     dmx_model->SetDmxChannelCount(ReadAttrWithParmFallback(node, XmlNodeKeys::DmxChannelCountAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     if (dmx_model->HasBeamAbility()) {
         DeserializeBeamAbility(dmx_model, node);
@@ -1364,21 +1367,21 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(pugi::xml_node node, 
         } else if (static_idx != std::string::npos) {
             std::string num = name.substr(10, name.length());
             int id = atoi(num.c_str()) - 1;
-            if (id < model->GetNumStatic()) {
+            if (id >= 0 && id < model->GetNumStatic()) {
                 Mesh* msh = model->CreateStaticMesh(name, id);
                 DeserializeMesh(msh, n);
             }
         } else if (motion_idx != std::string::npos) {
             std::string num = name.substr(10, name.length());
             int id = atoi(num.c_str()) - 1;
-            if (id < model->GetNumMotion()) {
+            if (id >= 0 && id < model->GetNumMotion()) {
                 Mesh* msh = model->CreateMotionMesh(name, id);
                 DeserializeMesh(msh, n);
             }
         } else if (servo_idx != std::string::npos) {
             std::string num = name.substr(5, name.length());
             int id = atoi(num.c_str()) - 1;
-            if (id < model->GetNumServos()) {
+            if (id >= 0 && id < model->GetNumServos()) {
                 Servo* sv = model->CreateServo(name, id);
                 DeserializeServo(sv, n);
             }
@@ -1397,7 +1400,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(pugi::xml_node node, 
         }
         std::string num2 = link.substr(5, link.length());
         int link_id = atoi(num2.c_str());
-        if (link_id < 1) {
+        if (link_id < 0) {
             link_id = 1;
         }
         if (link_id != i + 1) {
@@ -1416,7 +1419,7 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo3d(pugi::xml_node node, 
         }
         std::string num2 = link.substr(5, link.length());
         int link_id = atoi(num2.c_str());
-        if (link_id < 1) {
+        if (link_id < 0) {
             link_id = 1;
         }
         if (link_id != i + 1) {
@@ -1448,26 +1451,26 @@ Model* XmlDeserializingModelFactory::DeserializeDmxServo(pugi::xml_node node, Mo
             DmxImage* img = model->CreateStaticImage("StaticImage1", 0);
             DeserializeDmxImage(img, n);
         } else if ("MotionImage" == name) { // convert original name that had no number
-            DmxImage* img = model->CreateStaticImage("MotionImage1", 0);
+            DmxImage* img = model->CreateMotionImage("MotionImage1", 0);
             DeserializeDmxImage(img, n);
         } else if (static_idx != std::string::npos) {
             std::string num = name.substr(11, name.length());
             int id = atoi(num.c_str()) - 1;
-            if (id < model->GetNumServos()) {
+            if (id >= 0 && id < model->GetNumServos()) {
                 DmxImage* img = model->CreateStaticImage(name, id);
                 DeserializeDmxImage(img, n);
             }
         } else if (motion_idx != std::string::npos) {
             std::string num = name.substr(11, name.length());
             int id = atoi(num.c_str()) - 1;
-            if (id < model->GetNumServos()) {
+            if (id >= 0 && id < model->GetNumServos()) {
                 DmxImage* img = model->CreateMotionImage(name, id);
                 DeserializeDmxImage(img, n);
             }
         } else if (servo_idx != std::string::npos) {
             std::string num = name.substr(5, name.length());
             int id = atoi(num.c_str()) - 1;
-            if (id < model->GetNumServos()) {
+            if (id >= 0 && id < model->GetNumServos()) {
                 Servo* sv = model->CreateServo(name, id);
                 DeserializeServo(sv, n);
             }

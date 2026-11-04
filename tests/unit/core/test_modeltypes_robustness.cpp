@@ -351,13 +351,13 @@ TEST_CASE("Serializing models with no nodes does not crash", "[models2][robustne
     }
 }
 
-TEST_CASE("DMX servo with a zero channel count does not crash", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("DMX servo with a zero channel count does not crash", "[models2][robustness]") {
     ShowFixture f;
     Model* m = f.TryAdd("<model name=\"M\" DisplayAs=\"DmxServo\" StartChannel=\"1\" StringType=\"Single Color White\" DmxChannelCount=\"0\"/>");
     CHECK(m != nullptr);
 }
 
-TEST_CASE("DMX servo 3d with a zero channel count does not crash", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("DMX servo 3d with a zero channel count does not crash", "[models2][robustness]") {
     ShowFixture f;
     Model* m = f.TryAdd("<model name=\"M\" DisplayAs=\"DmxServo3d\" StartChannel=\"1\" StringType=\"Single Color White\" DmxChannelCount=\"0\"/>");
     CHECK(m != nullptr);
@@ -397,7 +397,7 @@ TEST_CASE("Custom model with zero or invalid strings loads", "[models2-crash][ro
     }
 }
 
-TEST_CASE("Servo model with servo element names lacking a valid number loads", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("Servo model with servo element names lacking a valid number loads", "[models2][robustness]") {
     for (const char* e : { "<ServoX Channel=\"1\"/>", "<Servo0 Channel=\"1\"/>", "<Servo Channel=\"1\"/>", "<StaticImage0 Image=\"\"/>", "<StaticImageX Image=\"\"/>" }) {
         INFO(e);
         ShowFixture f;

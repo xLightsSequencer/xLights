@@ -191,7 +191,7 @@ TEST_CASE("Image and label models are a single selectable node", "[models2][mode
     }
 }
 
-TEST_CASE("Image and label first buffer coordinate is initialised", "[models2][modeltypes][!mayfail]") {
+TEST_CASE("Image and label first buffer coordinate is initialised", "[models2][modeltypes]") {
     for (const char* type : { "Image", "Label" }) {
         INFO(type);
         ShowFixture f;
