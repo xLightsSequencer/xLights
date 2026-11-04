@@ -74,6 +74,9 @@ const long MultiControllerUploadDialog::ID_MCU_SELECTNONE = wxNewId();
 const long MultiControllerUploadDialog::ID_MCU_SELECTACTIVE = wxNewId();
 const long MultiControllerUploadDialog::ID_MCU_DESELECTINACTIVE = wxNewId();
 const long MultiControllerUploadDialog::ID_MCU_SELECTAUTO = wxNewId();
+const long MultiControllerUploadDialog::ID_MCU_CHECKSELECTED = wxNewId();
+const long MultiControllerUploadDialog::ID_MCU_UNCHECKSELECTED = wxNewId();
+const long MultiControllerUploadDialog::ID_MCU_INVERTSELECTION = wxNewId();
 
 BEGIN_EVENT_TABLE(MultiControllerUploadDialog, wxDialog)
 	//(*EventTable(MultiControllerUploadDialog)
@@ -97,7 +100,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
     FlexGridSizer1->AddGrowableRow(1);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Select all the controllers you want to upload to."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer1->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
-    ListCtrl_Controllers = new wxListCtrl(this, ID_LISTCTRL_CONTROLLERS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxLC_SINGLE_SEL|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL_CONTROLLERS"));
+    ListCtrl_Controllers = new wxListCtrl(this, ID_LISTCTRL_CONTROLLERS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxVSCROLL, wxDefaultValidator, _T("ID_LISTCTRL_CONTROLLERS"));
     FlexGridSizer1->Add(ListCtrl_Controllers, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Upload = new wxButton(this, ID_BUTTON1, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -118,6 +121,35 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
     //*)
 
     Connect(ID_LISTCTRL_CONTROLLERS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&MultiControllerUploadDialog::OnListRClick);
+
+    auto* headerRow = new wxBoxSizer(wxHORIZONTAL);
+    _selectAllCB = new wxCheckBox(this, wxID_ANY, _("Select All"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE);
+    _selectAllCB->SetToolTip(_("Select / clear all controllers shown in the list"));
+    headerRow->Add(_selectAllCB, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 12);
+    headerRow->Add(new wxStaticText(this, wxID_ANY, _("Filter:")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+    _filterCtrl = new wxSearchCtrl(this, wxID_ANY);
+    _filterCtrl->ShowCancelButton(true);
+    _filterCtrl->SetDescriptiveText(_("name, IP or description"));
+    headerRow->Add(_filterCtrl, 1, wxALIGN_CENTER_VERTICAL);
+    FlexGridSizer1->Insert(1, headerRow, 0, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, 5);
+    FlexGridSizer1->RemoveGrowableRow(1);
+    FlexGridSizer1->AddGrowableRow(2);
+
+    _selectAllCB->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        const bool check = _selectAllCB->Get3StateValue() != wxCHK_UNCHECKED;
+        for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
+            CheckRow(i, check);
+        }
+        ValidateWindow();
+    });
+    _filterTimer.SetOwner(this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { RebuildList(); }, _filterTimer.GetId());
+    _filterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { _filterTimer.StartOnce(200); });
+    _filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, [this](wxCommandEvent&) {
+        _filterCtrl->ChangeValue(wxEmptyString);
+        _filterTimer.Stop();
+        RebuildList();
+    });
 
     const int RESULT_COLUMN_WIDTH = FromDIP(26);
     ListCtrl_Controllers->EnableCheckBoxes(true);
@@ -166,18 +198,19 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
                 } else {
                     label = eth->GetIP() + " " + eth->GetDescription() + " " + eth->GetName();
                 }
-                long row = ListCtrl_Controllers->InsertItem(ListCtrl_Controllers->GetItemCount(), label);
-                ListCtrl_Controllers->SetItemColumnImage(row, 0, -1);
+                _labels.push_back(label);
             }
         }
     }
+    _checked.assign(_controllers.size(), false);
+    _resultIcons.assign(_controllers.size(), -1);
 
-    RefreshPingIcons();
+    LoadChecked();
+    RebuildList();
     _pingRefreshTimer.SetOwner(this);
     Bind(wxEVT_TIMER, [this](wxTimerEvent& WXUNUSED(evt)) { RefreshPingIcons(); }, _pingRefreshTimer.GetId());
     _pingRefreshTimer.Start(1000);
 
-    LoadChecked();
     Fit();
     ValidateWindow();
 }
@@ -187,18 +220,91 @@ MultiControllerUploadDialog::~MultiControllerUploadDialog()
 	//(*Destroy(MultiControllerUploadDialog)
 	//*)
     _pingRefreshTimer.Stop();
+    _filterTimer.Stop();
+}
+
+bool MultiControllerUploadDialog::MatchesFilter(size_t idx, const wxArrayString& tokens) const
+{
+    if (tokens.empty()) {
+        return true;
+    }
+    const wxString label = _labels[idx].Lower();
+    for (const auto& token : tokens) {
+        if (!token.empty() && !label.Contains(token)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Checked controllers stay listed whatever the filter, so nothing hidden gets uploaded.
+void MultiControllerUploadDialog::RebuildList()
+{
+    _rebuilding = true;
+    ListCtrl_Controllers->Freeze();
+    ListCtrl_Controllers->DeleteAllItems();
+    _rows.clear();
+    const wxString filter = _filterCtrl->GetValue().Lower().Trim().Trim(false);
+    const wxArrayString tokens = filter.empty() ? wxArrayString() : wxSplit(filter, ' ');
+    for (size_t i = 0; i < _controllers.size(); i++) {
+        if (!_checked[i] && !MatchesFilter(i, tokens)) {
+            continue;
+        }
+        long row = ListCtrl_Controllers->InsertItem(ListCtrl_Controllers->GetItemCount(), _labels[i]);
+        ListCtrl_Controllers->SetItemColumnImage(row, 0, -1);
+        ListCtrl_Controllers->SetItemColumnImage(row, 1, _resultIcons[i]);
+        ListCtrl_Controllers->CheckItem(row, _checked[i]);
+        _rows.push_back((int)i);
+    }
+    ListCtrl_Controllers->Thaw();
+    _rebuilding = false;
+    RefreshPingIcons();
+    ValidateWindow();
+}
+
+void MultiControllerUploadDialog::CheckRow(long row, bool checked)
+{
+    if (row < 0 || row >= (long)_rows.size()) {
+        return;
+    }
+    _checked[_rows[row]] = checked;
+    ListCtrl_Controllers->CheckItem(row, checked);
+}
+
+long MultiControllerUploadDialog::RowForController(int idx) const
+{
+    auto it = std::find(_rows.begin(), _rows.end(), idx);
+    return it == _rows.end() ? -1 : (long)(it - _rows.begin());
+}
+
+void MultiControllerUploadDialog::UpdateSelectAll()
+{
+    size_t checkedRows = 0;
+    for (int idx : _rows) {
+        if (_checked[idx]) {
+            ++checkedRows;
+        }
+    }
+    _selectAllCB->Enable(!_rows.empty());
+    if (checkedRows == 0) {
+        _selectAllCB->Set3StateValue(wxCHK_UNCHECKED);
+    } else if (checkedRows == _rows.size()) {
+        _selectAllCB->Set3StateValue(wxCHK_CHECKED);
+    } else {
+        _selectAllCB->Set3StateValue(wxCHK_UNDETERMINED);
+    }
 }
 
 void MultiControllerUploadDialog::RefreshPingIcons()
 {
-    for (size_t i = 0; i < _controllers.size(); i++) {
+    for (size_t row = 0; row < _rows.size(); row++) {
         int idx = _pingIcons.idxGray;
-        switch (ControllerTree::ClassifyControllerPing(_controllers[i])) {
+        switch (ControllerTree::ClassifyControllerPing(_controllers[_rows[row]])) {
         case ControllerTree::ControllerPingBucket::Green: idx = _pingIcons.idxGreen; break;
         case ControllerTree::ControllerPingBucket::Red: idx = _pingIcons.idxRed; break;
         default: break;
         }
-        ListCtrl_Controllers->SetItemColumnImage((long)i, 0, idx);
+        ListCtrl_Controllers->SetItemColumnImage((long)row, 0, idx);
     }
 }
 
@@ -209,20 +315,26 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
     ListCtrl_Controllers->Disable();
     Button_Upload->Disable();
     Button_Cancel->Disable();
+    _filterCtrl->Disable();
+    _selectAllCB->Disable();
 
     // ensure all start channels etc are up to date
     _frame->RecalcModels();
 
-    wxArrayInt ch = GetCheckedRows();
+    const std::vector<int> ch = GetCheckedControllers();
 
-    for (int i = 0; i < (int)ch.Count() && wxGetKeyState(WXK_ESCAPE) == false; i++) {
-        int row = ch[i];
-        auto c = _controllers[row];
+    for (size_t i = 0; i < ch.size() && wxGetKeyState(WXK_ESCAPE) == false; i++) {
+        const int idx = ch[i];
+        const long row = RowForController(idx);
+        auto c = _controllers[idx];
         wxString message;
 
-        ListCtrl_Controllers->SetItemColumnImage(row, 1, _resultIconProcessing);
-        ListCtrl_Controllers->Refresh();
-        ListCtrl_Controllers->Update();
+        _resultIcons[idx] = _resultIconProcessing;
+        if (row >= 0) {
+            ListCtrl_Controllers->SetItemColumnImage(row, 1, _resultIconProcessing);
+            ListCtrl_Controllers->Refresh();
+            ListCtrl_Controllers->Update();
+        }
 
         TextCtrl_Log->AppendText("Uploading to controller '" + c->GetName() + "' [" + c->GetIP() + "] " + c->GetVMV() + "\n");
         _frame->UploadInputToController(c, message);
@@ -234,12 +346,17 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
         TextCtrl_Log->AppendText("    Done.");
 	TextCtrl_Log->AppendText("\n");
 
-        ListCtrl_Controllers->SetItemColumnImage(row, 1, outputOk ? _resultIconSuccess : _resultIconFailure);
+        _resultIcons[idx] = outputOk ? _resultIconSuccess : _resultIconFailure;
+        if (row >= 0) {
+            ListCtrl_Controllers->SetItemColumnImage(row, 1, _resultIcons[idx]);
+        }
     }
 
     ListCtrl_Controllers->Enable();
     Button_Upload->Enable();
     Button_Cancel->Enable();
+    _filterCtrl->Enable();
+    UpdateSelectAll();
     SetCursor(wxCURSOR_ARROW);
 }
 
@@ -251,15 +368,32 @@ void MultiControllerUploadDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void MultiControllerUploadDialog::OnListCtrl_ControllersItemChecked(wxListEvent& event)
 {
+    if (_rebuilding) {
+        return;
+    }
+    const long row = event.GetIndex();
+    if (row >= 0 && row < (long)_rows.size()) {
+        const bool checked = ListCtrl_Controllers->IsItemChecked(row);
+        _checked[_rows[row]] = checked;
+        // Ticking one row of a multi-row selection applies to the whole selection.
+        if (ListCtrl_Controllers->GetItemState(row, wxLIST_STATE_SELECTED) != 0 && ListCtrl_Controllers->GetSelectedItemCount() > 1) {
+            _rebuilding = true;
+            for (long i = ListCtrl_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); i != -1;
+                 i = ListCtrl_Controllers->GetNextItem(i, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED)) {
+                CheckRow(i, checked);
+            }
+            _rebuilding = false;
+        }
+    }
     ValidateWindow();
 }
 
-wxArrayInt MultiControllerUploadDialog::GetCheckedRows() const
+std::vector<int> MultiControllerUploadDialog::GetCheckedControllers() const
 {
-    wxArrayInt result;
-    for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
-        if (ListCtrl_Controllers->IsItemChecked(i)) {
-            result.Add(i);
+    std::vector<int> result;
+    for (size_t i = 0; i < _checked.size(); i++) {
+        if (_checked[i]) {
+            result.push_back((int)i);
         }
     }
     return result;
@@ -267,14 +401,21 @@ wxArrayInt MultiControllerUploadDialog::GetCheckedRows() const
 
 void MultiControllerUploadDialog::ValidateWindow()
 {
-    Button_Upload->Enable(GetCheckedRows().Count() > 0);
+    Button_Upload->Enable(!GetCheckedControllers().empty());
+    UpdateSelectAll();
 }
 
 void MultiControllerUploadDialog::OnListRClick(wxContextMenuEvent& event)
 {
     wxMenu mnu;
+    if (ListCtrl_Controllers->GetSelectedItemCount() > 0) {
+        mnu.Append(ID_MCU_CHECKSELECTED, _("Check Selected"));
+        mnu.Append(ID_MCU_UNCHECKSELECTED, _("Uncheck Selected"));
+        mnu.AppendSeparator();
+    }
     mnu.Append(ID_MCU_SELECTALL, "Select All");
     mnu.Append(ID_MCU_SELECTNONE, "Select None");
+    mnu.Append(ID_MCU_INVERTSELECTION, _("Invert Selection"));
     mnu.Append(ID_MCU_SELECTACTIVE, "Select Active");
     mnu.Append(ID_MCU_SELECTAUTO, "Select Auto Config");
     mnu.Append(ID_MCU_DESELECTINACTIVE, "Deselect Inactive");
@@ -306,35 +447,47 @@ void MultiControllerUploadDialog::OnListRClick(wxContextMenuEvent& event)
 
 void MultiControllerUploadDialog::OnPopup(wxCommandEvent& event)
 {
-    if (event.GetId() == ID_MCU_SELECTALL) {
+    if (event.GetId() == ID_MCU_CHECKSELECTED || event.GetId() == ID_MCU_UNCHECKSELECTED) {
+        const bool check = event.GetId() == ID_MCU_CHECKSELECTED;
+        for (long i = ListCtrl_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); i != -1;
+             i = ListCtrl_Controllers->GetNextItem(i, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED)) {
+            CheckRow(i, check);
+        }
+        ValidateWindow();
+    } else if (event.GetId() == ID_MCU_SELECTALL) {
         for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
-            ListCtrl_Controllers->CheckItem(i, true);
+            CheckRow(i, true);
+        }
+        ValidateWindow();
+    } else if (event.GetId() == ID_MCU_INVERTSELECTION) {
+        for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
+            CheckRow(i, !_checked[_rows[i]]);
         }
         ValidateWindow();
     } else if (event.GetId() == ID_MCU_SELECTNONE) {
         for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
-            ListCtrl_Controllers->CheckItem(i, false);
+            CheckRow(i, false);
         }
         ValidateWindow();
     } else if (event.GetId() == ID_MCU_SELECTACTIVE) {
         for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
-            if (_controllers[i]->IsActive()) {
-                ListCtrl_Controllers->CheckItem(i, true);
+            if (_controllers[_rows[i]]->IsActive()) {
+                CheckRow(i, true);
             }
 
         }
         ValidateWindow();
     } else if (event.GetId() == ID_MCU_DESELECTINACTIVE) {
         for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
-            if (!_controllers[i]->IsActive()) {
-                ListCtrl_Controllers->CheckItem(i, false);
+            if (!_controllers[_rows[i]]->IsActive()) {
+                CheckRow(i, false);
             }
         }
         ValidateWindow();
     } else if (event.GetId() == ID_MCU_SELECTAUTO) {
         for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
-            if (_controllers[i]->IsAutoLayout()) {
-                ListCtrl_Controllers->CheckItem(i, true);
+            if (_controllers[_rows[i]]->IsAutoLayout()) {
+                CheckRow(i, true);
             }
         }
         ValidateWindow();
@@ -346,11 +499,11 @@ void MultiControllerUploadDialog::OnProxyPopup(wxCommandEvent& event)
     auto id = event.GetId();
     wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
     for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
-        if (!_controllers[i] || _controllers[i]->GetControllerFPPProxy().empty()) {
+        if (!_controllers[_rows[i]] || _controllers[_rows[i]]->GetControllerFPPProxy().empty()) {
             continue;
         }
-        if (label.compare(_controllers[i]->GetControllerFPPProxy()) == 0) {
-            ListCtrl_Controllers->CheckItem(i, true);
+        if (label.compare(_controllers[_rows[i]]->GetControllerFPPProxy()) == 0) {
+            CheckRow(i, true);
         }
     }
     ValidateWindow();
@@ -358,11 +511,9 @@ void MultiControllerUploadDialog::OnProxyPopup(wxCommandEvent& event)
 
 void MultiControllerUploadDialog::SaveChecked()
 {
-    wxArrayInt ch = GetCheckedRows();
     std::vector<std::string> selected_controllers;
-    for (int i = 0; i < (int)ch.Count() ; i++) {
-        auto c = _controllers[ch[i]];
-        selected_controllers.push_back(c->GetIP());
+    for (int idx : GetCheckedControllers()) {
+        selected_controllers.push_back(_controllers[idx]->GetIP());
     }
 
     auto* config = GetXLightsConfig();
@@ -379,10 +530,9 @@ void MultiControllerUploadDialog::LoadChecked()
 
         config->Read("MultiControllerUploadSelection", &controllerSelect);
         std::vector<std::string> selected_controllers = Split(controllerSelect, ',');
-        for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
-            auto c = _controllers[i];
-            if (std::find(selected_controllers.begin(), selected_controllers.end(), c->GetIP()) != selected_controllers.end()) {
-                ListCtrl_Controllers->CheckItem(i, true);
+        for (size_t i = 0; i < _controllers.size(); i++) {
+            if (std::find(selected_controllers.begin(), selected_controllers.end(), _controllers[i]->GetIP()) != selected_controllers.end()) {
+                _checked[i] = true;
             }
         }
     }
