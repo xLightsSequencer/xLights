@@ -2203,7 +2203,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         }
         else {
             int next = GetSubsequentTimingMark(_timingTrack, time + 1, false, _filterLabelText, _isFilterLabelRegex);
-            if (next == 1) {
+            if (next == -1) {
                 res = min;
             }
             else {
