@@ -363,7 +363,7 @@ TEST_CASE("DMX servo 3d with a zero channel count does not crash", "[models2][ro
     CHECK(m != nullptr);
 }
 
-TEST_CASE("Icicles with an empty or zero drop pattern load", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("Icicles with an empty or zero drop pattern load", "[models2][robustness]") {
     for (const char* v : { "", "abc", "0" }) {
         INFO(v);
         ShowFixture f;
@@ -371,17 +371,17 @@ TEST_CASE("Icicles with an empty or zero drop pattern load", "[models2-crash][ro
     }
 }
 
-TEST_CASE("Spinner with negative arms per string loads", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("Spinner with negative arms per string loads", "[models2][robustness]") {
     ShowFixture f;
     f.TryAdd("<model name=\"M\" DisplayAs=\"Spinner\" StartChannel=\"1\" NumStrings=\"1\" NodesPerArm=\"3\" ArmsPerString=\"-1\"/>");
 }
 
-TEST_CASE("Window frame with negative bottom nodes loads", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("Window frame with negative bottom nodes loads", "[models2][robustness]") {
     ShowFixture f;
     f.TryAdd("<model name=\"M\" DisplayAs=\"Window Frame\" StartChannel=\"1\" TopNodes=\"3\" SideNodes=\"2\" BottomNodes=\"-1\"/>");
 }
 
-TEST_CASE("Poly line with zero or invalid poly strings loads", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("Poly line with zero or invalid poly strings loads", "[models2][robustness]") {
     for (const char* v : { "", "abc", "0" }) {
         INFO(v);
         ShowFixture f;
@@ -389,7 +389,7 @@ TEST_CASE("Poly line with zero or invalid poly strings loads", "[models2-crash][
     }
 }
 
-TEST_CASE("Custom model with zero or invalid strings loads", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("Custom model with zero or invalid strings loads", "[models2][robustness]") {
     for (const char* v : { "", "abc", "0" }) {
         INFO(v);
         ShowFixture f;
@@ -405,15 +405,70 @@ TEST_CASE("Servo model with servo element names lacking a valid number loads", "
     }
 }
 
-TEST_CASE("Custom model with negative compressed coordinates loads", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("Custom model with negative compressed coordinates loads", "[models2][robustness]") {
     ShowFixture f;
     f.TryAdd("<model name=\"C\" DisplayAs=\"Custom\" StartChannel=\"1\" CustomWidth=\"2\" CustomHeight=\"2\" CustomModelCompressed=\"1,-1,-1\"/>");
 }
 
-TEST_CASE("Legacy single line buffer of a wide sub model reads in bounds", "[models2-crash][robustness][known-crash][.]") {
+TEST_CASE("Legacy single line buffer of a wide sub model reads in bounds", "[models2][robustness]") {
     ShowFixture f;
     Model* m = f.TryAdd("<model name=\"M\" DisplayAs=\"Matrix\" StartChannel=\"1\" NumStrings=\"1\" NodesPerString=\"24\" StrandsPerString=\"4\">"
                         "<subModel name=\"s\" type=\"subbuffer\" layout=\"horizontal\" subBuffer=\"garbage\"/></model>");
+    REQUIRE(m != nullptr);
+    std::vector<NodeBaseClassPtr> nodes;
+    int w = 0, h = 0;
+    m->GetSubModel("s")->InitRenderBufferNodes("** Single Line Legacy", "2D", "None", nodes, w, h, 0);
+    CHECK(nodes.size() == 24);
+}
+
+TEST_CASE("Icicles with an unusable drop pattern use the default pattern", "[models2][robustness]") {
+    for (const char* v : { "", "abc", "0", "0,0" }) {
+        INFO(v);
+        ShowFixture f;
+        Model* m = f.TryAdd(std::string("<model name=\"M\" DisplayAs=\"Icicles\" StartChannel=\"1\" NumStrings=\"2\" NodesPerString=\"5\" DropPattern=\"") + v + "\"/>");
+        REQUIRE(m != nullptr);
+        CHECK(m->GetNodeCount() == 10);
+        int w = 0, h = 0;
+        m->GetBufferSize("Default", "2D", "None", w, h, 0);
+        CHECK(w >= 1);
+        CHECK(h == 5);
+    }
+}
+
+TEST_CASE("Poly line and custom string counts are at least one", "[models2][robustness]") {
+    for (const char* v : { "", "abc", "0", "-3" }) {
+        INFO(v);
+        ShowFixture f;
+        Model* p = f.TryAdd(std::string("<model name=\"P\" DisplayAs=\"Poly Line\" StartChannel=\"1\" NumStrings=\"1\" NodesPerString=\"6\" NumPoints=\"3\" PointData=\"0.0,0.0,0.0,5.0,5.0,0.0,10.0,0.0,0.0\" PolyStrings=\"") + v + "\"/>");
+        REQUIRE(p != nullptr);
+        CHECK(p->GetNumStrings() >= 1);
+        Model* c = f.TryAdd(std::string("<model name=\"C\" DisplayAs=\"Custom\" StartChannel=\"1000\" CustomWidth=\"3\" CustomHeight=\"2\" CustomModel=\"1,2,3;4,5,6\" CustomStrings=\"") + v + "\"/>");
+        REQUIRE(c != nullptr);
+        CHECK(c->GetNumStrings() >= 1);
+    }
+}
+
+TEST_CASE("Window frame and spinner ignore negative counts", "[models2][robustness]") {
+    ShowFixture f;
+    Model* w = f.TryAdd("<model name=\"W\" DisplayAs=\"Window Frame\" StartChannel=\"1\" TopNodes=\"3\" SideNodes=\"2\" BottomNodes=\"-1\"/>");
+    REQUIRE(w != nullptr);
+    CHECK(w->GetNodeCount() == 7);
+    Model* s = f.TryAdd("<model name=\"S\" DisplayAs=\"Spinner\" StartChannel=\"100\" NumStrings=\"1\" NodesPerArm=\"3\" ArmsPerString=\"-1\"/>");
+    REQUIRE(s != nullptr);
+    CHECK(s->GetNodeCount() == 3);
+}
+
+TEST_CASE("Custom model compressed data skips negative coordinates", "[models2][robustness]") {
+    ShowFixture f;
+    Model* m = f.TryAdd("<model name=\"C\" DisplayAs=\"Custom\" StartChannel=\"1\" CustomWidth=\"2\" CustomHeight=\"2\" CustomModelCompressed=\"1,-1,-1;2,0,1\"/>");
+    REQUIRE(m != nullptr);
+    CHECK(m->GetNodeCount() == 1);
+}
+
+TEST_CASE("Legacy single line sub model buffer keeps every node in bounds", "[models2][robustness]") {
+    ShowFixture f;
+    Model* m = f.TryAdd("<model name=\"M\" DisplayAs=\"Matrix\" StartChannel=\"1\" NumStrings=\"1\" NodesPerString=\"24\" StrandsPerString=\"4\">"
+                        "<subModel name=\"s\" type=\"subbuffer\" layout=\"vertical\" subBuffer=\"garbage\"/></model>");
     REQUIRE(m != nullptr);
     std::vector<NodeBaseClassPtr> nodes;
     int w = 0, h = 0;

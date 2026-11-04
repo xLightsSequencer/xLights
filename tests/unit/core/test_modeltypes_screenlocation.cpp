@@ -573,7 +573,7 @@ TEST_CASE("Poly line nodes are spread along the polyline", "[models2][screenloc]
     CHECK(m->GetNode(1)->Coords[0].screenY - m->GetNode(0)->Coords[0].screenY == Catch::Approx(2.0f * (m->GetNode(1)->Coords[0].screenX - m->GetNode(0)->Coords[0].screenX)).margin(1e-3));
 }
 
-TEST_CASE("Poly line with identical points does not produce invalid node positions", "[models2][screenloc][!mayfail]") {
+TEST_CASE("Poly line with identical points does not produce invalid node positions", "[models2][screenloc]") {
     ShowFixture f;
     Model* m = f.Add("<model name=\"P\" DisplayAs=\"Poly Line\" StartChannel=\"1\" NumStrings=\"1\" NodesPerString=\"4\" NumPoints=\"2\" PointData=\"0.0,0.0,0.0,0.0,0.0,0.0\"/>");
     REQUIRE(m->GetNodeCount() == 4);

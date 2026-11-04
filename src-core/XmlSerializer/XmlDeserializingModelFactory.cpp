@@ -960,7 +960,7 @@ Model* XmlDeserializingModelFactory::DeserializeSpinner(pugi::xml_node node, Mod
     CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumSpinnerStrings(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerArm(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerArmAttribute, XmlNodeKeys::Parm2Attribute, "1"));
-    model->SetArmsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::ArmsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetArmsPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::ArmsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetHollow(node.attribute(XmlNodeKeys::HollowAttribute).as_int(20));
     model->SetStartAngle(node.attribute(XmlNodeKeys::StartAngleAttribute).as_int(0));
     model->SetArc(node.attribute(XmlNodeKeys::ArcAttribute).as_int(360));

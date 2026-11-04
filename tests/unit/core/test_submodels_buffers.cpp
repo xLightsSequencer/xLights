@@ -295,7 +295,7 @@ TEST_CASE("Horizontal per strand on a vertical submodel rotates the default", "[
     CHECK(seen.size() == 6);
 }
 
-TEST_CASE("Submodel per strand buffer size matches its render buffer", "[models2][submodel][!mayfail]") {
+TEST_CASE("Submodel per strand buffer size matches its render buffer", "[models2][submodel]") {
     for (const char* layout : { "horizontal", "vertical" }) {
         for (const char* style : { "Horizontal Per Strand", "Vertical Per Strand" }) {
             INFO(layout << " " << style);
@@ -417,4 +417,11 @@ TEST_CASE("Submodel line attributes with unusual numbering are tolerated", "[mod
     Model* m = f.Matrix("<subModel name=\"s\" layout=\"horizontal\" type=\"ranges\" bufferstyle=\"Default\" line0=\"1-2\" line2=\"5-6\"/>");
     SubModel* s = Sub(m);
     CHECK(s->GetNodeCount() >= 2);
+}
+
+TEST_CASE("Submodel XY range is clamped to the parent node count", "[models2][submodel]") {
+    ShowFixture f;
+    Model* m = f.Matrix(SubXml("horizontal", "Keep XY", "line0=\"1-2000000000\""));
+    SubModel* s = Sub(m);
+    CHECK(s->GetNodeCount() <= m->GetNodeCount());
 }

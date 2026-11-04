@@ -613,8 +613,14 @@ TEST_CASE("OrderPoints clamps a row range that runs past the grid", "[models2][s
     CHECK_FALSE(s[0].empty());
 }
 
-TEST_CASE("ZerosToBlanks keeps leading zeros as blank cells", "[models2][submodel-ops][!mayfail]") {
+TEST_CASE("ZerosToBlanks keeps leading zeros as blank cells", "[models2][submodel-ops]") {
     CHECK(ZerosToBlanks("0,0,5") == ",,5");
     CHECK(ZerosToBlanks("0,5") == ",5");
     CHECK(ZerosToBlanks("0,0") == ",");
+}
+
+TEST_CASE("ZerosToBlanks leaves non-zero cells and single zeros correct", "[models2][submodel-ops]") {
+    CHECK(ZerosToBlanks("0") == "");
+    CHECK(ZerosToBlanks("1,0,0") == "1,,");
+    CHECK(ZerosToBlanks("0,0,0,7") == ",,,7");
 }

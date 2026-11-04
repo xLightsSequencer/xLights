@@ -479,3 +479,12 @@ TEST_CASE("GDTF conversion ignores channels beyond the total", "[models2][gdtf]"
     CHECK(m->GetNodeNames() == "Dimmer,");
     delete m;
 }
+
+TEST_CASE("GDTF model creation rejects an absurd channel count", "[models2][gdtf]") {
+    Gdtf g;
+    REQUIRE(g.Parse(Wrap(Mode("Std", Chan("1", "Pan") + Chan("2000000000", "Dimmer")))));
+    Model* existing = g.mm.CreateDefaultModel("Custom", "1");
+    REQUIRE(existing != nullptr);
+    Model* m = XmlSerialize::CreateDmxModelFromGdtfData(existing, g.data, g.mm);
+    CHECK(m == nullptr);
+}
