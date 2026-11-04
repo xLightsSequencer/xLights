@@ -330,6 +330,8 @@ TEST_CASE("TraceLog messages are separate per thread", "[utils]") {
     TraceLog::AddTraceMessage("main-only");
     std::list<std::string> other;
     std::thread t([&] {
+        // Thread ids are recycled and logs outlive their thread, so start clean.
+        TraceLog::ClearTraceMessages();
         TraceLog::AddTraceMessage("worker-only");
         TraceLog::GetTraceMessages(other);
     });
