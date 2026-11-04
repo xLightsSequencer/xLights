@@ -185,6 +185,9 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
 }
 
 std::unique_ptr<EffectFrameState> SnowstormEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    if (buffer.BufferWi <= 0 || buffer.BufferHt <= 0) {
+        return std::make_unique<SnowstormFrameState>();
+    }
     int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", sCountDefault);
     int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", sLengthDefault);
     int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", sSpeedDefault);

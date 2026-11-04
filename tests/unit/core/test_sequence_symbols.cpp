@@ -214,10 +214,7 @@ TEST_CASE("Linking an effect of the same type to a symbol applies the symbol", "
     CHECK(e->GetSettingsAsString().find("X_LinkedSymbolId=" + s->GetId()) != std::string::npos);
 }
 
-// Looks like a production bug: LinkToSymbol marks the effect linked before applying the symbol, so each
-// change it makes propagates the still empty effect back over the symbol, wiping its palette (and, when
-// the effect type differs, its settings).
-TEST_CASE("Linking an effect of a different type to a symbol keeps the symbol contents", "[sequence][symbol][!mayfail]") {
+TEST_CASE("Linking an effect of a different type to a symbol keeps the symbol contents", "[sequence][symbol]") {
     SeqFixture f;
     auto* l = f.Layer();
     auto* s = f.sym.CreateEmptySymbol("Look", "Bars", f.se.GetEffectManager().GetEffectIndex("Bars"));

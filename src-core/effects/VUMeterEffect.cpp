@@ -271,7 +271,7 @@ void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, b
     }
     SettingsMap& settings = effect->GetSettings();
     if (IsVersionOlder("2022.04", version)) {
-        if (settings.Get("CHOICE_VUMeter_Type", sTypeDefault) == "Timing Event Color") {
+        if (settings.Get("E_CHOICE_VUMeter_Type", sTypeDefault) == "Timing Event Color") {
             settings["E_SLIDER_VUMeter_Sensitivity"] = "100";
         }
     }
