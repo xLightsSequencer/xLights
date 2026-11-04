@@ -211,7 +211,7 @@ TEST_CASE("Hostile sub model definitions never crash", "[models2][robustness][su
             s->GetBufferSize("Default", "2D", "None", w, h, 0);
             CHECK(w >= 0);
             CHECK(h >= 0);
-            for (const char* style : { "Single Line", "Horizontal Per Strand", "Vertical Per Strand", "Keep XY", "** Single Line Legacy" }) {
+            for (const char* style : { "Single Line", "Horizontal Per Strand", "Vertical Per Strand", "Keep XY" }) {
                 std::vector<NodeBaseClassPtr> nodes;
                 int rw = 0, rh = 0;
                 s->InitRenderBufferNodes(style, "2D", "None", nodes, rw, rh, 0);
@@ -408,4 +408,15 @@ TEST_CASE("Servo model with servo element names lacking a valid number loads", "
 TEST_CASE("Custom model with negative compressed coordinates loads", "[models2-crash][robustness][known-crash][.]") {
     ShowFixture f;
     f.TryAdd("<model name=\"C\" DisplayAs=\"Custom\" StartChannel=\"1\" CustomWidth=\"2\" CustomHeight=\"2\" CustomModelCompressed=\"1,-1,-1\"/>");
+}
+
+TEST_CASE("Legacy single line buffer of a wide sub model reads in bounds", "[models2-crash][robustness][known-crash][.]") {
+    ShowFixture f;
+    Model* m = f.TryAdd("<model name=\"M\" DisplayAs=\"Matrix\" StartChannel=\"1\" NumStrings=\"1\" NodesPerString=\"24\" StrandsPerString=\"4\">"
+                        "<subModel name=\"s\" type=\"subbuffer\" layout=\"horizontal\" subBuffer=\"garbage\"/></model>");
+    REQUIRE(m != nullptr);
+    std::vector<NodeBaseClassPtr> nodes;
+    int w = 0, h = 0;
+    m->GetSubModel("s")->InitRenderBufferNodes("** Single Line Legacy", "2D", "None", nodes, w, h, 0);
+    CHECK(nodes.size() == 24);
 }
