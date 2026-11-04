@@ -56,7 +56,14 @@ jobs:
 
     - name: Tools
       run: |
-        command -v cmake ninja || (apt-get update -qq && apt-get install -y -qq cmake ninja-build)
+        for t in cmake ninja; do
+          command -v $t >/dev/null || NEED="$NEED $t"
+        done
+        if [ -n "$NEED" ]; then
+          apt-get update -qq && apt-get install -y -qq $(echo $NEED | sed 's/ninja/ninja-build/')
+        fi
+        cmake --version | head -1
+        ninja --version
         ispc --version
         cat /etc/ispc_version || true
 
