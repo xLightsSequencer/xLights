@@ -532,10 +532,7 @@ TEST_CASE("Effect SetColourOnlyPalette preserves non colour palette settings", "
     CHECK(e->GetPalette()[0] == xlColor(0, 0, 255));
 }
 
-TEST_CASE("Effect EraseSettingsStartingWith only erases settings with the given prefix", "[effects][settingsmap][effect][!mayfail]") {
-    // Effect::EraseSettingsStartingWith ignores its argument and always erases "B_" settings
-    // (src-core/render/Effect.cpp), so RenderEngine's Duplicate-override-timing path wipes
-    // buffer settings when it asked for the T_ ones.
+TEST_CASE("Effect EraseSettingsStartingWith only erases settings with the given prefix", "[effects][settingsmap][effect]") {
     EffectFixture f;
     Effect* e = f.Make("On", "B_CHOICE_BufferStyle=Default,T_CHECKBOX_Canvas=1,E_SLIDER_X=2");
     REQUIRE(e != nullptr);
@@ -565,4 +562,15 @@ TEST_CASE("Effect index tracks the manager's index for the effect name", "[effec
     REQUIRE(e != nullptr);
     CHECK(e->GetEffectIndex() == f.ctx.effectManager.GetEffectIndex("Color Wash"));
     CHECK(e->GetEffectName() == "Color Wash");
+}
+
+TEST_CASE("Effect EraseSettingsStartingWith with B_ keeps transition settings", "[effects][settingsmap][effect]") {
+    EffectFixture f;
+    Effect* e = f.Make("On", "B_CHOICE_BufferStyle=Default,B_SLIDER_A=1,T_CHECKBOX_Canvas=1,E_SLIDER_X=2");
+    REQUIRE(e != nullptr);
+    e->EraseSettingsStartingWith("B_");
+    CHECK_FALSE(e->GetSettings().Contains("B_CHOICE_BufferStyle"));
+    CHECK_FALSE(e->GetSettings().Contains("B_SLIDER_A"));
+    CHECK(e->GetSettings().Contains("T_CHECKBOX_Canvas"));
+    CHECK(e->GetSettings().Contains("E_SLIDER_X"));
 }

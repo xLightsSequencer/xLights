@@ -464,8 +464,6 @@ TEST_CASE("Rendering a single row or column does not crash", "[effects][render][
 
 TEST_CASE("Rendering an empty buffer does not crash", "[effects][render][edge]") {
     for (const auto& name : CpuEffects()) {
-        // SnowstormEffect.cpp takes xy.x %= BufferWi, so a 0 wide buffer raises SIGFPE
-        if (name == "Snowstorm") continue;
         INFO("effect " << name);
         RenderFixture f;
         Frames fr = f.Render(name, "", kRedBlue, 0, 0, Range(0, 2));

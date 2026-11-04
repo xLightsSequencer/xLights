@@ -87,6 +87,30 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  brightness instead of fading them out; output differs from earlier versions
     -bug (dkulp)                 Transitions on a one-pixel-high model (such as a single line) could render
                                  blank or differ between machines
+    -bug (dkulp)                 Duplicate effect with Override Timing no longer wipes the copy's buffer
+                                 settings; output differs from earlier versions
+    -bug (dkulp)                 Linking an effect to a symbol no longer wipes the symbol's palette and
+                                 settings
+    -bug (dkulp)                 VU Meter Timing Event Color sensitivity migration now applies when opening
+                                 sequences saved before 2022.04; output may differ
+    -bug (dkulp)                 Snowstorm no longer crashes on an empty (zero-size) buffer
+    -bug (dkulp)                 Malformed or empty color curve data no longer crashes
+    -bug (dkulp)                 Layout files with zero or negative string/node counts or dimensions no
+                                 longer crash on load
+    -bug (dkulp)                 Model groups no longer match models by name prefix (a group holding Tree10
+                                 no longer also claims Tree1), cyclic groups no longer crash, and a self-
+                                 referencing start channel no longer drifts
+    -bug (dkulp)                 Start channel shown for a model's first channel in controller (!Name:n) form
+                                 was the last channel
+    -bug (dkulp)                 Controller hostnames with several dots (e.g. falcon.home.lan) are now
+                                 accepted
+    -bug (dkulp)                 Import channel map: model names containing a dot now match literally
+    -bug (dkulp)                 Changing a controller's IP in setup now marks it changed so it is saved, and
+                                 copying a serial controller keeps its port, speed and prefix
+    -bug (dkulp)                 Setting the global force local IP no longer also sets the FPP proxy
+    -bug (dkulp)                 Newlines and tabs in XML-escaped text now survive a save and load
+    -bug (dkulp)                 Reading a corrupt or truncated .fseq no longer returns stale memory as
+                                 channel data; the blocks are blanked instead
 
 2026.19  October 23, 2026
 

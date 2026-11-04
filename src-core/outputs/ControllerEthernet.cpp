@@ -144,6 +144,10 @@ bool ControllerEthernet::UpdateFrom(Controller* from)
         _forceLocalIP = fromEth->_forceLocalIP;
     }
 
+    if (changed) {
+        _dirty = true;
+    }
+
     return changed;
 }
 Controller* ControllerEthernet::Copy(OutputManager* om)

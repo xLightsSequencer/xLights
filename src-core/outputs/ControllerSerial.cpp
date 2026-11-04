@@ -141,12 +141,22 @@ ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om) {
 ControllerSerial::ControllerSerial(OutputManager* om, const ControllerSerial& from) :
     Controller(om, from)
 {
+    auto itfrom = from._outputs.begin();
+    for (auto itto = _outputs.begin(); itto != _outputs.end() && itfrom != from._outputs.end(); ++itto, ++itfrom) {
+        if (*itfrom == from._serialOutput) {
+            _serialOutput = static_cast<SerialOutput*>(*itto);
+            break;
+        }
+    }
+    if (_serialOutput == nullptr) {
+        _serialOutput = static_cast<SerialOutput*>(from._serialOutput->Copy());
+        _outputs.push_back(_serialOutput);
+    }
     SetSpeed(from._speed);
     SetPrefix(from._saveablePrefix);
     SetPostfix(from._saveablePostfix);
     SetFPPProxy(from._fppProxy);
     SetPort(from._port);
-    _serialOutput = static_cast<SerialOutput*>(from._serialOutput->Copy());
 }
 
 pugi::xml_node ControllerSerial::Save(pugi::xml_node parent) {

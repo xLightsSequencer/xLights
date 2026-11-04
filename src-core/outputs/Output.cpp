@@ -231,7 +231,7 @@ bool Output::operator==(const Output& output) const {
     if (GetType() != output.GetType()) return false;
 
     if (IsIpOutput()) {
-        return _universe == output.GetUniverse() && (_ip == output.GetIP() || _resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP());
+        return _universe == output.GetUniverse() && (_ip == output.GetIP() || (!_resolvedIp.empty() && (_resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP())));
     }
     else {
         return _commPort == output.GetCommPort();

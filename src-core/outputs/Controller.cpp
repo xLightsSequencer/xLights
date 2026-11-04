@@ -438,7 +438,7 @@ void Controller::SearchForNewVendor( std::string const& vendor, std::string cons
 #pragma region Getters and Setters
 Output* Controller::GetOutput(int outputNumber) const {
 
-    if (outputNumber < 0 || (size_t)outputNumber > _outputs.size()) return nullptr;
+    if (outputNumber < 0 || (size_t)outputNumber >= _outputs.size()) return nullptr;
 
     auto it = _outputs.begin();
     std::advance(it, outputNumber);
@@ -507,7 +507,7 @@ void Controller::ClearDirty() {
 }
 
 void Controller::EnsureUniqueId() {
-    if (_outputManager != nullptr) _id = _outputManager->UniqueId();
+    if (_outputManager != nullptr) SetId(_outputManager->UniqueId());
 }
 
 void Controller::EnsureUniqueName() {

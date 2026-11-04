@@ -191,7 +191,7 @@ TEST_CASE("A self referencing start channel is invalid", "[models][startchannel]
 // Model::UpdateChannels passes CouldComputeStartChannel as the 'valid' out
 // parameter, so GetNumberFromChannelString's own reset to true makes its
 // self-reference check (Model.cpp:901) unreachable.
-TEST_CASE("A self referencing start channel is not computable and does not drift", "[models][startchannel][!mayfail]") {
+TEST_CASE("A self referencing start channel is not computable and does not drift", "[models][startchannel]") {
     ShowFixture f;
     Model* self = f.Line("Self", "@Self:1");
     f.mm.RecalcStartChannels();
@@ -408,7 +408,7 @@ TEST_CASE("First and last channel can be expressed in the model start channel fo
 
 // Model.cpp:1596 formats GetLastChannel() for the '!' format regardless of the
 // channel asked for, so the first channel comes back as the last channel.
-TEST_CASE("First channel in controller start channel format is the first channel", "[models][startchannel][!mayfail]") {
+TEST_CASE("First channel in controller start channel format is the first channel", "[models][startchannel]") {
     ShowFixture f;
     Model* c = f.Line("C", "!Ctl2:3", 10);
     f.mm.RecalcStartChannels();

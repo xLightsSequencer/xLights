@@ -174,7 +174,7 @@ TEST_CASE("Twinkle migration keeps the Steps value curve data", "[effects][adjus
 }
 
 TEST_CASE("Twinkle migration widens an active Steps value curve maximum to 400", "[effects][adjust][!mayfail]") {
-    // TwinkleEffect::sStepsVCMax falls back to 100 until Twinkle.json (vcMax 400) is loaded,
+    // Not a production bug: the app loads effect metadata before any sequence is read. TwinkleEffect::sStepsVCMax falls back to 100 until Twinkle.json (vcMax 400) is loaded,
     // so without effect metadata the migration re-applies the old maximum.
     AdjustFixture f;
     const std::string vc = "Active=TRUE|Id=ID_VALUECURVE_Twinkle_Steps|Type=Flat|Min=2.00|Max=100.00|P1=50.00|RV=TRUE|";
@@ -430,9 +430,7 @@ TEST_CASE("SingleStrand migration leaves single line buffers on plain models", "
     CHECK(e->GetSettings().Get("B_CHOICE_BufferStyle", "?") == "Single Line");
 }
 
-TEST_CASE("VUMeter migration sets Sensitivity for the Timing Event Color type", "[effects][adjust][!mayfail]") {
-    // VUMeterEffect::adjustSettings looks up "CHOICE_VUMeter_Type" on the raw effect settings,
-    // which carry the E_ prefix, so the migration can never trigger (VUMeterEffect.cpp).
+TEST_CASE("VUMeter migration sets Sensitivity for the Timing Event Color type", "[effects][adjust]") {
     AdjustFixture f;
     Effect* e = f.Migrate("VU Meter", "2022.01", "E_CHOICE_VUMeter_Type=Timing Event Color");
     CHECK(e->GetSettings().Get("E_SLIDER_VUMeter_Sensitivity", "?") == "100");

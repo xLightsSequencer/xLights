@@ -289,7 +289,7 @@ TEST_CASE("Output equality compares transport identity", "[outputs]") {
     CHECK_FALSE(*a == *otherIp);
 }
 
-TEST_CASE("Output equality with different unresolved ips", "[outputs][!mayfail]") {
+TEST_CASE("Output equality with different unresolved ips", "[outputs]") {
     // Outputs loaded for inactive controllers keep an empty resolved ip, and operator== then
     // matches on "" == "" even though the configured IPs differ.
     auto a = Make(R"(<network NetworkType="E131" ComPort="10.0.0.1" BaudRate="1" MaxChannels="10"/>)");

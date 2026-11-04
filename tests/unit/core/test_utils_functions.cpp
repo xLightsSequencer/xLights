@@ -106,6 +106,15 @@ TEST_CASE("IsVersionOlder handles a third component", "[utils]") {
     CHECK_FALSE(IsVersionOlder("2024.10", "2024.10.1"));
 }
 
+TEST_CASE("IsVersionOlder tolerates short versions", "[utils]") {
+    CHECK(IsVersionOlder("2025", "2024"));
+    CHECK_FALSE(IsVersionOlder("2024", "2025"));
+    CHECK_FALSE(IsVersionOlder("2024", "2024"));
+    CHECK(IsVersionOlder("2024.1", "2024"));
+    CHECK_FALSE(IsVersionOlder("2024", "2024.1"));
+    CHECK_FALSE(IsVersionOlder("2024", "2024.0"));
+}
+
 TEST_CASE("JSONSafe escapes backslash and quote", "[utils]") {
     CHECK(JSONSafe("plain") == "plain");
     CHECK(JSONSafe("a\"b") == "a\\\"b");
@@ -134,11 +143,12 @@ TEST_CASE("XmlSafe then UnXmlSafe round trips printable text", "[utils]") {
     CHECK(UnXmlSafe(XmlSafe(s)) == s);
 }
 
-TEST_CASE("UnXmlSafe round trips whitespace entities written by XmlSafe", "[utils][!mayfail]") {
-    // UnXmlSafe looks for "&#9" without the trailing ';' so the ';' is left behind
-    // and "&#10;" is matched by the "&#1" pattern first.
+TEST_CASE("UnXmlSafe round trips whitespace entities written by XmlSafe", "[utils]") {
     CHECK(UnXmlSafe(XmlSafe("a\tb")) == "a\tb");
     CHECK(UnXmlSafe(XmlSafe("a\nb")) == "a\nb");
+    CHECK(UnXmlSafe(XmlSafe("a\r\nb1")) == "a\r\nb1");
+    CHECK(UnXmlSafe("x&#10;1") == "x\n1");
+    CHECK(UnXmlSafe("&#65;") == "&#65;");
 }
 
 TEST_CASE("IsXmlSafe rejects control, non ascii, comma and apostrophe", "[utils]") {
@@ -174,8 +184,7 @@ TEST_CASE("EscapeRegex escapes metacharacters", "[utils]") {
     CHECK(EscapeRegex("[x{1}") == "\\[x\\{1}");
 }
 
-TEST_CASE("EscapeRegex escapes the dot", "[utils][!mayfail]") {
-    // The function's own comment lists '.', but the character set omits it.
+TEST_CASE("EscapeRegex escapes the dot", "[utils]") {
     CHECK(EscapeRegex("a.b") == "a\\.b");
 }
 

@@ -547,7 +547,7 @@ TEST_CASE("VectorMath rotationBetweenVectors rotates start onto dest for quarter
     }
 }
 
-TEST_CASE("VectorMath rotationBetweenVectors rotates start onto dest for any angle", "[utils][!mayfail]") {
+TEST_CASE("VectorMath rotationBetweenVectors rotates start onto dest for any angle", "[utils]") {
     // xyz is built from the normalised axis times 1/s instead of the unnormalised cross
     // product, so the result is only right when the angle is exactly 90 degrees.
     const glm::vec3 pairs[][2] = { { { 0, 1, 0 }, { 1, 1, 1 } }, { { 1, 2, 3 }, { -3, 2, 1 } } };
@@ -558,6 +558,7 @@ TEST_CASE("VectorMath rotationBetweenVectors rotates start onto dest for any ang
         CHECK_THAT(r.x, WithinAbs(want.x, 1e-4));
         CHECK_THAT(r.y, WithinAbs(want.y, 1e-4));
         CHECK_THAT(r.z, WithinAbs(want.z, 1e-4));
+        CHECK_THAT(glm::length(q), WithinAbs(1.0, 1e-4));
     }
 }
 
@@ -567,13 +568,21 @@ TEST_CASE("VectorMath rotationBetweenVectors parallel vectors give identity", "[
     CHECK_THAT(q.x, WithinAbs(0.0, 1e-6));
 }
 
-TEST_CASE("VectorMath rotationBetweenVectors handles opposite vectors", "[utils][!mayfail]") {
+TEST_CASE("VectorMath rotationBetweenVectors handles opposite vectors", "[utils]") {
     // The 180 degree branch builds glm::quat(180.0f, axis), which is a (w, xyz) constructor
     // and not an angle/axis one, so the result is neither unit length nor a half turn.
     glm::quat q = VectorMath::rotationBetweenVectors({ 1, 0, 0 }, { -1, 0, 0 });
     CHECK_THAT(glm::length(q), WithinAbs(1.0, 1e-4));
     glm::vec3 r = q * glm::vec3(1, 0, 0);
     CHECK_THAT(r.x, WithinAbs(-1.0, 1e-3));
+
+    glm::quat q2 = VectorMath::rotationBetweenVectors({ 1, 2, 3 }, { -2, -4, -6 });
+    CHECK_THAT(glm::length(q2), WithinAbs(1.0, 1e-4));
+    glm::vec3 r2 = q2 * glm::normalize(glm::vec3(1, 2, 3));
+    glm::vec3 want2 = glm::normalize(glm::vec3(-1, -2, -3));
+    CHECK_THAT(r2.x, WithinAbs(want2.x, 1e-4));
+    CHECK_THAT(r2.y, WithinAbs(want2.y, 1e-4));
+    CHECK_THAT(r2.z, WithinAbs(want2.z, 1e-4));
 }
 
 TEST_CASE("VectorMath rotation matrices from the X axis", "[utils]") {
@@ -599,7 +608,7 @@ TEST_CASE("VectorMath rotMatrixFromXAxisToVector quarter turns", "[utils]") {
     }
 }
 
-TEST_CASE("VectorMath rotMatrixFromXAxisToVector arbitrary and opposite directions", "[utils][!mayfail]") {
+TEST_CASE("VectorMath rotMatrixFromXAxisToVector arbitrary and opposite directions", "[utils]") {
     // Inherits the rotationBetweenVectors problems (wrong half angle, bad 180 degree quaternion).
     const glm::vec3 targets[] = { { 1, 1, 0 }, { 1, 2, 3 }, { -1, 0, 0 } };
     for (const auto& t : targets) {

@@ -585,7 +585,7 @@ TEST_CASE("OutputManager global FPP proxy reaches outputs", "[outputs]") {
     CHECK(om.IsDirty());
 }
 
-TEST_CASE("OutputManager global force local ip does not touch the FPP proxy", "[outputs][!mayfail]") {
+TEST_CASE("OutputManager global force local ip does not touch the FPP proxy", "[outputs]") {
     // OutputManager::SetGlobalForceLocalIP forwards the value to SetGlobalFPPProxy on every
     // controller (a copy and paste slip), so outputs end up with the local ip as their proxy.
     OutputManager om;
