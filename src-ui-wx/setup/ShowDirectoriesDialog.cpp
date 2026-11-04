@@ -351,6 +351,8 @@ std::vector<ShowDirectoriesDialog::ShowFavorite> ShowDirectoriesDialog::ReadFavo
 {
     std::vector<ShowFavorite> out;
     auto* config = GetXLightsConfig();
+    // Another open xLights may have changed the favorites since we started.
+    config->Reload();
     for (int i = 0; i < MAX_SHOW_FAVORITES; ++i) {
         wxString path;
         if (!config->Read(FAV_KEY_PREFIX + std::to_string(i), &path) || path.IsEmpty()) {

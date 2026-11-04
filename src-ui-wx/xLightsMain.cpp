@@ -1754,6 +1754,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->SetBitmap(GetMenuItemBitmapBundle("wxART_FOLDER_OPEN"));
     MenuFile->FindItem(ID_MENUITEM_FAVFOLDERS)->SetBitmap(GetMenuItemBitmapBundle("wxART_FOLDER_OPEN"));
     RebuildFavoriteShowFoldersMenu();
+    MenuFile->Bind(wxEVT_MENU_OPEN, [this](wxMenuEvent& event) {
+        event.Skip();
+        if (event.GetMenu() == MenuFile) {
+            RebuildFavoriteShowFoldersMenu();
+        }
+    });
     MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->SetBitmap(GetMenuItemBitmapBundle("wxART_FILE_OPEN"));
 
     spdlog::debug("xLightsFrame constructor loading config.");

@@ -63,6 +63,60 @@ void XLightsSettings::Load()
     }
     EnsureSections();
     _dirty = false;
+    _changedKeys.clear();
+    _clearedSections.clear();
+}
+
+void XLightsSettings::MarkChanged(const std::string& section, const std::string& key)
+{
+    _changedKeys[section].insert(key);
+    _dirty = true;
+}
+
+// Several xLights instances share one settings file, so start from what is on
+// disk now and lay only our own changes on top. Caller holds _mutex.
+void XLightsSettings::MergeFromDisk()
+{
+    if (_filePath.empty()) {
+        return;
+    }
+    std::ifstream f(_filePath);
+    if (!f.is_open()) {
+        return;
+    }
+    nlohmann::json disk;
+    try {
+        disk = nlohmann::json::parse(f);
+    } catch (const std::exception& e) {
+        spdlog::warn("XLightsSettings: ignoring unreadable '{}' while merging: {}", _filePath.string(), e.what());
+        return;
+    }
+    if (!disk.is_object()) {
+        return;
+    }
+    for (const auto& sec : _clearedSections) {
+        disk[sec] = nlohmann::json::object();
+    }
+    for (const auto& [sec, keys] : _changedKeys) {
+        if (!disk.contains(sec) || !disk[sec].is_object()) {
+            disk[sec] = nlohmann::json::object();
+        }
+        for (const auto& key : keys) {
+            if (_data.contains(sec) && _data[sec].contains(key)) {
+                disk[sec][key] = _data[sec][key];
+            } else {
+                disk[sec].erase(key);
+            }
+        }
+    }
+    _data = std::move(disk);
+    EnsureSections();
+}
+
+void XLightsSettings::Reload()
+{
+    std::unique_lock lock(_mutex);
+    MergeFromDisk();
 }
 
 void XLightsSettings::Flush()
@@ -70,6 +124,8 @@ void XLightsSettings::Flush()
     std::unique_lock lock(_mutex);
     if (_filePath.empty() || !_dirty)
         return;
+
+    MergeFromDisk();
 
     // Write atomically via temp file + rename
     auto tmp = _filePath;
@@ -88,6 +144,8 @@ void XLightsSettings::Flush()
         spdlog::error("XLightsSettings: rename failed: {}", ec.message());
     } else {
         _dirty = false;
+        _changedKeys.clear();
+        _clearedSections.clear();
     }
 }
 
@@ -95,16 +153,18 @@ void XLightsSettings::DeleteAll(const std::string& section)
 {
     std::unique_lock lock(_mutex);
     _data[section] = nlohmann::json::object();
+    _changedKeys.erase(section);
+    _clearedSections.insert(section);
     _dirty = true;
 }
 
 void XLightsSettings::DeleteEntry(const std::string& key, const std::string& section)
 {
     std::unique_lock lock(_mutex);
-    if (_data.contains(section) && _data[section].contains(key)) {
+    if (_data.contains(section)) {
         _data[section].erase(key);
-        _dirty = true;
     }
+    MarkChanged(section, key);
 }
 
 bool XLightsSettings::HasEntry(const std::string& key, const std::string& section) const
@@ -187,7 +247,7 @@ void XLightsSettings::WriteString(const std::string& key, const std::string& val
 {
     std::unique_lock lock(_mutex);
     _data[section][key] = val;
-    _dirty = true;
+    MarkChanged(section, key);
 }
 
 void XLightsSettings::WriteBool(const std::string& key, bool val,
@@ -195,7 +255,7 @@ void XLightsSettings::WriteBool(const std::string& key, bool val,
 {
     std::unique_lock lock(_mutex);
     _data[section][key] = val;
-    _dirty = true;
+    MarkChanged(section, key);
 }
 
 void XLightsSettings::WriteLong(const std::string& key, long val,
@@ -203,7 +263,7 @@ void XLightsSettings::WriteLong(const std::string& key, long val,
 {
     std::unique_lock lock(_mutex);
     _data[section][key] = static_cast<long long>(val);
-    _dirty = true;
+    MarkChanged(section, key);
 }
 
 void XLightsSettings::WriteDouble(const std::string& key, double val,
@@ -211,7 +271,7 @@ void XLightsSettings::WriteDouble(const std::string& key, double val,
 {
     std::unique_lock lock(_mutex);
     _data[section][key] = val;
-    _dirty = true;
+    MarkChanged(section, key);
 }
 
 std::vector<std::string> XLightsSettings::GetAllKeys(const std::string& section) const
@@ -253,5 +313,5 @@ void XLightsSettings::SetMigrated()
 {
     std::unique_lock lock(_mutex);
     _data["_meta"]["migrated"] = true;
-    _dirty = true;
+    MarkChanged("_meta", "migrated");
 }

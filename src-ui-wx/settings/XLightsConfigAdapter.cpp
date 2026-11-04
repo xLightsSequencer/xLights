@@ -307,6 +307,11 @@ void XLightsConfigAdapter::Flush()
     XLightsSettings::Get().Flush();
 }
 
+void XLightsConfigAdapter::Reload()
+{
+    XLightsSettings::Get().Reload();
+}
+
 void XLightsConfigAdapter::SetPath(const std::string& /*path*/) {
     // JSON store is flat — path navigation is a no-op
 }

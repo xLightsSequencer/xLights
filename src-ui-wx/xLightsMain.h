@@ -1538,6 +1538,7 @@ public:
     // sequence before clearing layout undo, so a failed switch changes nothing.
     bool SwitchToShowFolder(const wxString& dir, bool permanent);
     std::map<int, wxString> _favoriteMenuPaths;
+    std::vector<std::pair<wxString, wxString>> _favoriteMenuEntries;
     void OnMRUSequence(wxCommandEvent& event);
     bool SetDir(const wxString& dirname, bool permanent);
     void SetBaseShowDir(const wxString& baseShowDir);
