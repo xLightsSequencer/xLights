@@ -69,6 +69,9 @@ if(XL_TEST_FULL_CORE)
 endif()
 add_executable(xlights_unit_tests ${XL_TEST_SOURCES})
 target_link_libraries(xlights_unit_tests PRIVATE xlights_core_testlib Catch2::Catch2WithMain)
+if(XL_TEST_FULL_CORE AND NOT APPLE)
+    target_sources(xlights_unit_tests PRIVATE ${CMAKE_CURRENT_LIST_DIR}/support/GLFunctionPointers.cpp)
+endif()
 
 # Release builds use -ffast-math; the NaN/inf guards only mean something when
 # the test is compiled the same way.
