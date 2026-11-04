@@ -948,74 +948,97 @@ public:
         return false;
     }
 
-    void LogToLogger(int logLevel) {
+    static bool WillLog(int logLevel) {
         // these can only be set at start time
-        static bool debug = m_logger->level() == spdlog::level::debug;
-        static bool info = m_logger->level() == spdlog::level::info;
+        static bool debug = spdlog::get("render")->level() == spdlog::level::debug;
+        static bool info = spdlog::get("render")->level() == spdlog::level::info;
+        return (debug && logLevel == spdlog::level::debug) ||
+               (info && logLevel == spdlog::level::info);
+    }
 
-        if ((debug && logLevel == spdlog::level::debug) ||
-            (info && logLevel == spdlog::level::info))
-        {
+    void LogToLogger(int logLevel) {
+        if (WillLog(logLevel)) {
             m_logger->log((spdlog::level::level_enum)logLevel, GetStatusString());
         }
     }
 
     void SetGenericStatus(const std::string &msg, int frame, bool debugLog = false, bool includeStatusMap = false) {
-        statusType = includeStatusMap ? 8 : 4;
-        statusMsg = msg;
-        statusFrame = frame;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = includeStatusMap ? 8 : 4;
+            statusMsg = msg;
+            statusFrame = frame;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
     void SetGenericStatus(const std::string &msg, int frame, int layer, bool debugLog = false, bool includeStatusMap = false) {
-        statusType = includeStatusMap ? 9 : 5;
-        statusMsg = msg;
-        statusFrame = frame;
-        statusLayer = layer;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = includeStatusMap ? 9 : 5;
+            statusMsg = msg;
+            statusFrame = frame;
+            statusLayer = layer;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
+    // statusMapStr is rendered by the thread that owns the map; other windows
+    // render in parallel and must never walk a map they don't own.
     std::string PrintStatusMap() const {
-        if (statusMap == nullptr) return "";
-        return statusMap->AsString();
+        return statusMapStr;
     }
 
     void SetRenderingStatus(int frame, SettingsMap*map, int layer, int submodel, int strand, int node, bool debugLog = false) {
-        statusType = 2;
-        statusFrame = frame;
-        statusLayer = layer;
-        statusStrand = strand;
-        statusSubmodel = submodel;
-        statusNode = node;
-        statusMap = map;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = 2;
+            statusFrame = frame;
+            statusLayer = layer;
+            statusStrand = strand;
+            statusSubmodel = submodel;
+            statusNode = node;
+            statusMap = map;
+            statusMapStr = (map != nullptr && WillLog(debugLog ? spdlog::level::debug : spdlog::level::info)) ? map->AsString() : std::string();
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
     void SetCalOutputStatus(int frame, int submodel, int strand, int node, bool debugLog = true) {
-        statusType = 3;
-        statusFrame = frame;
-        statusStrand = strand;
-        statusSubmodel = submodel;
-        statusNode = node;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = 3;
+            statusFrame = frame;
+            statusStrand = strand;
+            statusSubmodel = submodel;
+            statusNode = node;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
     void SetInializingStatus(int frame, int layer, int submodel, int strand, int node, bool debugLog = false) {
-        statusType = 1;
-        statusFrame = frame;
-        statusLayer = layer;
-        statusStrand = strand;
-        statusSubmodel = submodel;
-        statusNode = node;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = 1;
+            statusFrame = frame;
+            statusLayer = layer;
+            statusStrand = strand;
+            statusSubmodel = submodel;
+            statusNode = node;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
     void SetWaitingStatus(int frame, bool debugLog = false) {
+        std::lock_guard<std::mutex> lk(statusMutex);
         statusType = 13;
         statusFrame = frame;
     }
     void SetStatus(const std::string &st, bool debugLog = false) {
-        statusMsg = st;
-        statusType = 0;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusMsg = st;
+            statusType = 0;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
@@ -1135,6 +1158,7 @@ public:
     }
 
     std::string GetStatusString() const override {
+        std::lock_guard<std::mutex> lk(statusMutex);
         int frame = statusFrame;
         int layer = statusLayer;
         int strand = statusStrand;
@@ -3555,6 +3579,8 @@ private:
     std::string statusMsg;
     volatile int statusType;
     volatile int statusFrame;
+    mutable std::mutex statusMutex;
+    std::string statusMapStr;
     SettingsMap *statusMap;
     volatile int statusLayer;
     volatile int statusSubmodel = -1;
