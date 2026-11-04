@@ -23,6 +23,7 @@
 #include <wx/dcbuffer.h>
 #include <wx/msgdlg.h>
 #include <wx/colordlg.h>
+#include <wx/display.h>
 #include <wx/regex.h>
 #include <wx/stdpaths.h>
 
@@ -37,7 +38,10 @@
 #include "models/CandyCaneModel.h"
 #include "models/CustomModel.h"
 #include "models/PolyLineModel.h"
+#include "models/SubModel.h"
 #include "models/TreeModel.h"
+#include "layout/ModelPreview.h"
+#include "render/DimmingCurve.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "color/ColorManager.h"
 #include "UtilFunctions.h"
@@ -109,6 +113,16 @@ int wxCALLBACK MyCompareFunctionDescName(wxIntPtr item1, wxIntPtr item2, wxIntPt
     ImportChannel *i1 = (ImportChannel*)item1;
     ImportChannel *i2 = (ImportChannel*)item2;
     return NumberAwareStringCompareRev(i1->name, i2->name);
+}
+
+int wxCALLBACK MyCompareFunctionMasterView(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+{
+    if (sortData) {
+        return item1 - item2;
+    }
+    ImportChannel* i1 = (ImportChannel*)item1;
+    ImportChannel* i2 = (ImportChannel*)item2;
+    return i1->masterOrder - i2->masterOrder;
 }
 
 class MDDropSource : public wxDropSource
@@ -307,6 +321,20 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
             int idx2 = findChildIndex(node2->GetParent(), node2->_strand);
             return idx1 - idx2;
         } else {
+            if (_sortMasterView) {
+                const bool inView1 = node1->_masterViewIndex >= 0;
+                const bool inView2 = node2->_masterViewIndex >= 0;
+                int cmp = inView1 != inView2 ? (inView1 ? -1 : 1) : node1->_masterViewIndex - node2->_masterViewIndex;
+                if (cmp == 0) {
+                    int idx1 = -1, idx2 = -1;
+                    for (unsigned int i = 0; i < m_children.GetCount(); ++i) {
+                        if (m_children[i] == node1) idx1 = (int)i;
+                        if (m_children[i] == node2) idx2 = (int)i;
+                    }
+                    cmp = idx1 - idx2;
+                }
+                return ascending ? cmp : -cmp;
+            }
             // GetModel() returns the name by value as a wxString, so going
             // through it here cost two UTF-8 round trips per argument on every
             // comparison. The node already holds the std::string the comparator
@@ -702,6 +730,10 @@ const long xLightsImportChannelMapDialog::ID_MNU_AUTOMAPSELECTED = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_ADD_DONOR_GROUPS = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_ADD_EMPTY_GROUP = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_SORT_SUBMODELS_BY_NAME = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_MNU_SORT_ALPHABETICAL = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_MNU_SORT_MASTER_VIEW = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_MNU_AVAIL_SORT_ALPHABETICAL = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_MNU_AVAIL_SORT_MASTER_VIEW = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
 
 
@@ -965,6 +997,8 @@ void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
         mnuLayer.Append(ID_MNU_SHOWALLMAPPED, "Show All Mapped Models");
         mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
         mnuLayer.AppendSeparator();
+        mnuLayer.AppendRadioItem(ID_MNU_SORT_ALPHABETICAL, _("Sort by Name"))->Check(!_dataModel->GetSortMasterView());
+        mnuLayer.AppendRadioItem(ID_MNU_SORT_MASTER_VIEW, _("Sort by Master View"))->Check(_dataModel->GetSortMasterView());
         if (_dataModel->GetSortSubmodelsByName()) {
             mnuLayer.Append(ID_MNU_SORT_SUBMODELS_BY_NAME, "Reset Submodel Sort");
         } else {
@@ -1005,6 +1039,12 @@ void xLightsImportChannelMapDialog::RightClickModelsAvail(wxContextMenuEvent& ev
             mnuLayer.Append(ID_MNU_ADD_DONOR_GROUPS, label)->Enable(!_contextDonorGroups.empty());
         }
 
+        if (!_availIsCCR) {
+            mnuLayer.AppendSeparator();
+            mnuLayer.AppendRadioItem(ID_MNU_AVAIL_SORT_ALPHABETICAL, _("Sort by Name"))->Check(!_availMasterView);
+            mnuLayer.AppendRadioItem(ID_MNU_AVAIL_SORT_MASTER_VIEW, _xsqPkg != nullptr ? _("Sort by Master View") : _("Sort in File Order"))->Check(_availMasterView);
+        }
+
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
         PopupMenu(&mnuLayer);
 }
@@ -1037,6 +1077,14 @@ void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
         AddEmptyGroup();
     } else if (id == ID_MNU_SORT_SUBMODELS_BY_NAME) {
         _dataModel->SetSortSubmodelsByName(!_dataModel->GetSortSubmodelsByName());
+    } else if (id == ID_MNU_SORT_ALPHABETICAL || id == ID_MNU_SORT_MASTER_VIEW) {
+        SetMappingSortMasterView(id == ID_MNU_SORT_MASTER_VIEW);
+    } else if (id == ID_MNU_AVAIL_SORT_ALPHABETICAL || id == ID_MNU_AVAIL_SORT_MASTER_VIEW) {
+        _availMasterView = id == ID_MNU_AVAIL_SORT_MASTER_VIEW;
+        auto* config = GetXLightsConfig();
+        config->Write("ImportAvailSortMasterView", _availMasterView);
+        config->Flush();
+        ApplyAvailSort();
     } else if (id == ID_MNU_EDIT_DISPLAY_ELEMENTS) {
         EditDisplayElements();
     }
@@ -1091,7 +1139,23 @@ void xLightsImportChannelMapDialog::EditDisplayElements()
         AddNewMasterViewItems(snapshot);
     });
     dlg.ShowModal();
+    UpdateMasterViewIndexes();
+    if (_dataModel->GetSortMasterView()) {
+        RebuildMappingTree(CaptureMappingTreeState());
+    }
     UpdateFilterCount();
+}
+
+void xLightsImportChannelMapDialog::UpdateMasterViewIndexes()
+{
+    std::unordered_map<std::string, int> positions;
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+        positions.emplace(mSequenceElements->GetElement(i)->GetName(), (int)i);
+    }
+    for (auto* row : _dataModel->GetChildren()) {
+        auto it = positions.find(row->_model);
+        row->_masterViewIndex = it != positions.end() ? it->second : -1;
+    }
 }
 
 void xLightsImportChannelMapDialog::AddNewMasterViewItems(std::set<std::string>& snapshot)
@@ -1111,6 +1175,7 @@ void xLightsImportChannelMapDialog::AddNewMasterViewItems(std::set<std::string>&
 
         unsigned int prevCount = _dataModel->GetChildCount();
         AddModel(m, ms);
+        UpdateMasterViewIndexes();
 
         for (unsigned int j = prevCount; j < _dataModel->GetChildCount(); ++j) {
             _dataModel->ItemAdded(wxDataViewItem(nullptr), wxDataViewItem(_dataModel->GetNthChild(j)));
@@ -1550,6 +1615,10 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
 {
     _nameFilterTimer.Stop();
     _availFilterTimer.Stop();
+    _layoutHoverTimer.Stop();
+    _layoutSlot.model = nullptr;
+    _vendorSlot.model = nullptr;
+    _vendorModels.clear();
 	//(*Destroy(xLightsImportChannelMapDialog)
 	//*)
 
@@ -1684,6 +1753,15 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::st
         wxSizer* findSizer = TextCtrl_FindFrom->GetContainingSizer();
         if (findSizer != nullptr) {
             findSizer->Detach(TextCtrl_FindFrom);
+            findSizer->Detach(StaticText1);
+            wxBoxSizer* labelSizer = new wxBoxSizer(wxHORIZONTAL);
+            CheckBox_ShowCompare = new wxCheckBox(Panel2, wxID_ANY, _("Show Compare"));
+            labelSizer->Add(CheckBox_ShowCompare, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
+            if (_xsqPkg == nullptr) {
+                CheckBox_ShowCompare->Disable();
+                CheckBox_ShowCompare->SetToolTip(_("Compare is only available when importing an xLights sequence (.xsq, .xsqz, .piz, .zip or .xml)."));
+            }
+            labelSizer->Add(StaticText1, 0, wxALIGN_CENTER_VERTICAL);
             wxBoxSizer* findRowSizer = new wxBoxSizer(wxHORIZONTAL);
             findRowSizer->Add(TextCtrl_FindFrom, 1, wxEXPAND | wxRIGHT, 5);
             StaticText_AvailFilterCount = new wxStaticText(Panel2, wxID_ANY, wxEmptyString);
@@ -1699,15 +1777,18 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::st
                     PopulateAvailable(CheckBox_MapCCRStrand->GetValue());
                 });
             }
+            findSizer->Insert(0, labelSizer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
             findSizer->Insert(1, findRowSizer, 1, wxEXPAND);
             findSizer->Layout();
             Sizer2->Layout();
         }
     }
 
+    _availMasterView = GetXLightsConfig()->ReadBool("ImportAvailSortMasterView", false);
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
+    _dataModel->SetSortMasterView(GetXLightsConfig()->ReadBool("ImportMappingSortMasterView", false));
     //fill in the datamodel prior to sticking it in the tree
     int ms = 0;
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
@@ -1721,6 +1802,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::st
         }
 
     }
+    UpdateMasterViewIndexes();
 #ifndef __WXMSW__
     if (_dataModel->GetChildCount() != 0) {
         _dataModel->Resort();
@@ -1759,6 +1841,10 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::st
     // This does not work ... I suspect the control is not letting it through
     //Connect(ID_TREELISTCTRL1, wxEVT_KEY_DOWN, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnKeyDown);
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickModels);
+
+    if (_xsqPkg != nullptr) {
+        CreateComparePane();
+    }
 
 
 #ifdef __WXOSX__
@@ -1827,12 +1913,16 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::st
             availFixed += ListCtrl_Available->GetColumnWidth(2);
         if (_timelineCol >= 0 && _timelineCol < ListCtrl_Available->GetColumnCount())
             availFixed += ListCtrl_Available->GetColumnWidth(_timelineCol);
+        if (IsCompareShown())
+            availFixed += _comparePanel->GetMinSize().GetWidth() + _compareSash->GetSize().GetWidth() + 10;
 
         // Symmetric: each "name" column gets half the remaining space.
         int sharedW = (totalW - mappingFixed - availFixed - sashW) / 2;
         sharedW = std::max(sharedW, 150);
 
         SplitterWindow1->SetSashPosition(mappingFixed + sharedW);
+        if (_comparePanel != nullptr)
+            FitComparePane();
         stretchMapToCol();
     });
     stretchMapToCol();
@@ -2120,11 +2210,7 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
         }
     }
 
-    _sortOrder = 1;
-
-    ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
-    ListCtrl_Available->ShowSortIndicator(1, true); // name is col 1
-    RefreshTimelineColumnImages();
+    ApplyAvailSort();
 
     // Auto-size the name column (col 1) after population
     ListCtrl_Available->SetColumnWidth(0, 25); // keep icon col fixed
@@ -2362,6 +2448,9 @@ void xLightsImportChannelMapDialog::Unmap(const wxDataViewItem& item)
 
 void xLightsImportChannelMapDialog::OnSelectionChanged(wxDataViewEvent& event)
 {
+    if (_comparePanel != nullptr) {
+        ShowLayoutPreview(SelectedMappingRow(), false);
+    }
 }
 
 void xLightsImportChannelMapDialog::OnValueChanged(wxDataViewEvent& event)
@@ -3279,6 +3368,523 @@ void xLightsImportChannelMapDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect(wxListEvent& event)
 {
+    if (_comparePanel != nullptr && !_availIsCCR) {
+        ShowVendorPreview(ListCtrl_Available->GetItemText(event.GetIndex(), 1).ToStdString());
+    }
+}
+
+static void HighlightCompareNodes(Model* model, const std::vector<const SubModel*>& subModels, const xlColor& lit)
+{
+    xlColor dim(xlDARK_GREY);
+    if (model->GetDimmingCurve() != nullptr) {
+        model->GetDimmingCurve()->apply(dim);
+    }
+    uint32_t nodeCount = model->GetNodeCount();
+    for (uint32_t n = 0; n < nodeCount; ++n) {
+        model->SetNodeColor(n, subModels.empty() ? lit : dim);
+    }
+    for (const SubModel* subModel : subModels) {
+        for (const auto& [parentNode, subNode] : subModel->GetNodeIndexMap()) {
+            if (parentNode >= 0 && (uint32_t)parentNode < nodeCount) {
+                model->SetNodeColor(parentNode, lit);
+            }
+        }
+    }
+}
+
+static void HighlightCompareNodes(Model* model, const SubModel* subModel, const xlColor& lit)
+{
+    HighlightCompareNodes(model, subModel == nullptr ? std::vector<const SubModel*>() : std::vector<const SubModel*>{ subModel }, lit);
+}
+
+namespace {
+const xlColor CompareLayoutLit(0x2C, 0xC0, 0xBB);
+
+using GroupMember = std::pair<Model*, const SubModel*>;
+
+struct GroupPreview {
+    Model* model = nullptr;
+    std::vector<const SubModel*> subModels;
+    size_t memberCount = 0;
+    size_t parentCount = 0;
+};
+
+bool AlikeGroupMembers(const GroupMember& a, const GroupMember& b)
+{
+    return a.first != nullptr && b.first != nullptr && (a.second == nullptr) == (b.second == nullptr) &&
+           a.first->GetDisplayAs() == b.first->GetDisplayAs() && a.first->GetNodeCount() == b.first->GetNodeCount();
+}
+}
+
+static std::optional<GroupPreview> PickGroupPreview(const std::vector<GroupMember>& members)
+{
+    if (members.empty()) {
+        return std::nullopt;
+    }
+    for (const auto& member : members) {
+        if (!AlikeGroupMembers(members.front(), member)) {
+            return std::nullopt;
+        }
+    }
+    const bool ofSubModels = members.front().second != nullptr;
+
+    GroupPreview preview;
+    preview.memberCount = members.size();
+    if (!ofSubModels) {
+        preview.model = members.front().first;
+        preview.parentCount = members.size();
+        return preview;
+    }
+    std::vector<Model*> parents;
+    std::map<Model*, std::vector<const SubModel*>> byParent;
+    for (const auto& [m, s] : members) {
+        auto& subModels = byParent[m];
+        if (subModels.empty()) {
+            parents.push_back(m);
+        }
+        if (std::find(subModels.begin(), subModels.end(), s) == subModels.end()) {
+            subModels.push_back(s);
+        }
+    }
+    Model* best = parents.front();
+    for (Model* parent : parents) {
+        if (byParent[parent].size() > byParent[best].size()) {
+            best = parent;
+        }
+    }
+    preview.model = best;
+    preview.subModels = byParent[best];
+    preview.parentCount = parents.size();
+    return preview;
+}
+
+static wxString GroupPreviewLabel(const std::string& groupName, const GroupPreview& preview)
+{
+    if (preview.subModels.empty()) {
+        return wxString::Format(_("%s - showing %s of %d"), groupName, preview.model->GetName(), (int)preview.memberCount);
+    }
+    if (preview.parentCount == 1) {
+        return wxString::Format(_("%s - %d submodels of %s"), groupName, (int)preview.subModels.size(), preview.model->GetName());
+    }
+    return wxString::Format(_("%s - showing %s (%d of %d submodels)"), groupName, preview.model->GetName(), (int)preview.subModels.size(), (int)preview.memberCount);
+}
+
+void xLightsImportChannelMapDialog::CollectVendorGroupMemberNames(const std::string& groupName, std::set<std::string>& visited, std::vector<std::string>& names) const
+{
+    auto group = _vendorGroupMembers.find(groupName);
+    if (group == _vendorGroupMembers.end() || !visited.insert(groupName).second) {
+        return;
+    }
+    for (const auto& name : Split(group->second, ',', true)) {
+        if (name.empty()) {
+            continue;
+        }
+        if (_vendorGroupMembers.count(name) != 0) {
+            CollectVendorGroupMemberNames(name, visited, names);
+        } else {
+            names.push_back(name);
+        }
+    }
+}
+
+std::pair<Model*, const SubModel*> xLightsImportChannelMapDialog::ResolveVendorName(const std::string& name)
+{
+    size_t slash = name.find('/');
+    Model* model = GetVendorModel(name.substr(0, slash));
+    if (model == nullptr || slash == std::string::npos) {
+        return { model, nullptr };
+    }
+    const SubModel* subModel = dynamic_cast<const SubModel*>(model->GetSubModel(name.substr(slash + 1)));
+    return { subModel != nullptr ? model : nullptr, subModel };
+}
+
+void xLightsImportChannelMapDialog::CreateComparePane()
+{
+    int listIndex = -1;
+    int index = 0;
+    for (auto* item : Sizer2->GetChildren()) {
+        if (item->GetWindow() == ListCtrl_Available) {
+            listIndex = index;
+            break;
+        }
+        ++index;
+    }
+    if (listIndex < 0) {
+        return;
+    }
+
+    int listMin = FromDIP(250);
+    const int displayIndex = wxDisplay::GetFromWindow(this);
+    const int screenWidth = wxDisplay(displayIndex == wxNOT_FOUND ? 0u : (unsigned)displayIndex).GetClientArea().GetWidth();
+    const int spare = screenWidth - Panel1->GetMinWidth() - 220 - FromDIP(60);
+    if (spare < listMin) {
+        listMin = std::max(FromDIP(120), spare);
+    }
+    TreeListCtrl_Mapping->SetMinSize(wxSize(listMin, TreeListCtrl_Mapping->GetMinSize().GetHeight()));
+    ListCtrl_Available->SetMinSize(wxSize(listMin, -1));
+
+    const bool dark = IsDarkMode();
+    _comparePanel = new wxPanel(Panel2, wxID_ANY);
+    wxBoxSizer* compareSizer = new wxBoxSizer(wxVERTICAL);
+    auto addSlot = [this, compareSizer](ComparePreviewSlot& slot, const wxString& hint, const wxColour& colour) {
+        slot.label = new wxStaticText(_comparePanel, wxID_ANY, hint, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+        slot.label->SetForegroundColour(colour);
+        compareSizer->Add(slot.label, 0, wxEXPAND | wxBOTTOM, 3);
+        slot.preview = new ModelPreview(_comparePanel);
+        slot.preview->SetMinSize(wxSize(220, 220));
+        compareSizer->Add(slot.preview, 1, wxEXPAND);
+
+        ComparePreviewSlot* shown = &slot;
+        slot.preview->Bind(wxEVT_PAINT, [shown](wxPaintEvent&) {
+            wxPaintDC dc(shown->preview);
+            if (shown->model != nullptr) {
+                shown->model->DisplayEffectOnWindow(shown->preview, PIXEL_SIZE_ON_DIALOGS);
+            } else if (shown->preview->StartDrawing(PIXEL_SIZE_ON_DIALOGS, true)) {
+                shown->preview->EndDrawing();
+            }
+        });
+    };
+    addSlot(_vendorSlot, _xsqPkg->HasRGBEffects() ? _("Click a vendor model to show it here") : _("No preview available (sequence has no layout data)"),
+            dark ? wxColour(0xFF, 0xFF, 0x00) : wxColour(0x9A, 0x80, 0x00));
+    compareSizer->AddSpacer(8);
+    addSlot(_layoutSlot, _("Hover or click your models to compare"), dark ? wxColour(0x2C, 0xC0, 0xBB) : wxColour(0x0D, 0x87, 0x84));
+    _comparePanel->SetSizer(compareSizer);
+
+    wxWindow* treeWindow = TreeListCtrl_Mapping->GetMainWindow();
+    treeWindow->Bind(wxEVT_MOTION, &xLightsImportChannelMapDialog::OnMappingTreeMotion, this);
+    treeWindow->Bind(wxEVT_LEAVE_WINDOW, &xLightsImportChannelMapDialog::OnMappingTreeLeave, this);
+    _layoutHoverTimer.Bind(wxEVT_TIMER, [this](wxTimerEvent&) {
+        wxDataViewItem item = MappingTreeItemAtScreen(wxGetMousePosition());
+        if (item.IsOk()) {
+            ShowLayoutPreview(item, true);
+        } else {
+            ShowLayoutPreview(SelectedMappingRow(), false);
+        }
+    });
+
+    _compareWidth = (int)std::max(220L, GetXLightsConfig()->ReadLong("ImportCompareWidth", 220));
+    _compareSash = new wxWindow(Panel2, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(6, -1)));
+    _compareSash->SetCursor(wxCursor(wxCURSOR_SIZEWE));
+    _compareSash->SetToolTip(_("Drag to resize the compare previews. Double-click to reset."));
+    _compareSash->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+        _compareDragStartX = _compareSash->ClientToScreen(evt.GetPosition()).x;
+        _compareDragStartWidth = _comparePanel->GetMinSize().GetWidth();
+        _compareSash->CaptureMouse();
+    });
+    _compareSash->Bind(wxEVT_MOTION, [this](wxMouseEvent& evt) {
+        if (_compareSash->HasCapture()) {
+            _compareWidth = _compareDragStartWidth + _compareSash->ClientToScreen(evt.GetPosition()).x - _compareDragStartX;
+            ApplyCompareWidth(true);
+        }
+    });
+    auto endDrag = [this]() {
+        _compareWidth = _comparePanel->GetMinSize().GetWidth();
+        auto* config = GetXLightsConfig();
+        config->Write("ImportCompareWidth", _compareWidth);
+        config->Flush();
+    };
+    _compareSash->Bind(wxEVT_LEFT_UP, [this, endDrag](wxMouseEvent&) {
+        if (_compareSash->HasCapture()) {
+            _compareSash->ReleaseMouse();
+            endDrag();
+        }
+    });
+    _compareSash->Bind(wxEVT_MOUSE_CAPTURE_LOST, [endDrag](wxMouseCaptureLostEvent&) { endDrag(); });
+    _compareSash->Bind(wxEVT_LEFT_DCLICK, [this, endDrag](wxMouseEvent&) {
+        _compareWidth = 220;
+        ApplyCompareWidth(true);
+        endDrag();
+    });
+
+    Sizer2->Detach(ListCtrl_Available);
+    _compareRowSizer = new wxBoxSizer(wxHORIZONTAL);
+    _compareRowSizer->Add(_comparePanel, 0, wxTOP | wxBOTTOM | wxLEFT | wxEXPAND, 5);
+    _compareRowSizer->Add(_compareSash, 0, wxEXPAND);
+    _compareRowSizer->Add(ListCtrl_Available, 1, wxTOP | wxBOTTOM | wxRIGHT | wxEXPAND, 5);
+    Sizer2->Insert(listIndex, _compareRowSizer, 1, wxEXPAND);
+    _comparePanel->SetMinSize(wxSize(_compareWidth, -1));
+    Panel2->Bind(wxEVT_SIZE, [this](wxSizeEvent& evt) {
+        ApplyCompareWidth(false);
+        evt.Skip();
+    });
+
+    const bool show = GetXLightsConfig()->ReadBool("ImportShowCompare", true);
+    if (CheckBox_ShowCompare != nullptr) {
+        CheckBox_ShowCompare->SetToolTip(_("Show the vendor's model next to yours so you can see whether they look alike."));
+        CheckBox_ShowCompare->SetValue(show);
+        CheckBox_ShowCompare->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+            auto* config = GetXLightsConfig();
+            config->Write("ImportShowCompare", CheckBox_ShowCompare->IsChecked());
+            config->Flush();
+            SetCompareShown(CheckBox_ShowCompare->IsChecked());
+            FitComparePane();
+        });
+    }
+    SetCompareShown(show);
+
+    SplitterWindow1->Bind(wxEVT_SPLITTER_SASH_POS_CHANGING, [this](wxSplitterEvent& evt) {
+        const int maxSash = SplitterWindow1->GetClientSize().GetWidth() - SplitterWindow1->GetSashSize() - CompareRightPaneMinWidth();
+        if (evt.GetSashPosition() > maxSash) {
+            evt.SetSashPosition(std::max(maxSash, Panel1->GetMinWidth()));
+        }
+        evt.Skip();
+    });
+}
+
+int xLightsImportChannelMapDialog::CompareRightPaneMinWidth() const
+{
+    int extraCompareWidth = 0;
+    if (IsCompareShown()) {
+        extraCompareWidth = std::max(0, _comparePanel->GetMinSize().GetWidth() - 220);
+    }
+    return std::max(Panel2->GetMinWidth(), Sizer2->GetMinSize().GetWidth() - extraCompareWidth);
+}
+
+void xLightsImportChannelMapDialog::ApplyCompareWidth(bool layout)
+{
+    const int available = Panel2->GetClientSize().GetWidth() - ListCtrl_Available->GetMinWidth() - _compareSash->GetSize().GetWidth() - 20;
+    const int width = std::max(220, std::min(_compareWidth, available));
+    if (_comparePanel->GetMinSize().GetWidth() != width) {
+        _comparePanel->SetMinSize(wxSize(width, -1));
+        if (layout) {
+            Panel2->Layout();
+        }
+    }
+}
+
+void xLightsImportChannelMapDialog::FitComparePane()
+{
+    const int sashWidth = SplitterWindow1->GetSashSize();
+    const int leftMin = Panel1->GetMinWidth();
+    const int rightMin = CompareRightPaneMinWidth();
+    const int needed = leftMin + sashWidth + rightMin + GetSize().GetWidth() - SplitterWindow1->GetClientSize().GetWidth();
+    if (GetSize().GetWidth() < needed) {
+        const int displayIndex = wxDisplay::GetFromWindow(this);
+        const wxRect area = wxDisplay(displayIndex == wxNOT_FOUND ? 0u : (unsigned)displayIndex).GetClientArea();
+        const int width = std::min(needed, area.GetWidth());
+        wxPoint pos = GetPosition();
+        pos.x = std::max(area.GetLeft(), std::min(pos.x, area.GetRight() + 1 - width));
+        SetSize(pos.x, pos.y, width, GetSize().GetHeight());
+        Layout();
+    }
+    const int maxSash = SplitterWindow1->GetClientSize().GetWidth() - sashWidth - rightMin;
+    const int sash = std::max(std::min(SplitterWindow1->GetSashPosition(), maxSash), leftMin);
+    if (sash != SplitterWindow1->GetSashPosition()) {
+        SplitterWindow1->SetSashPosition(sash);
+    }
+    ApplyCompareWidth(true);
+}
+
+bool xLightsImportChannelMapDialog::IsCompareShown() const
+{
+    return _comparePanel != nullptr && _comparePanel->IsShown();
+}
+
+void xLightsImportChannelMapDialog::SetCompareShown(bool show)
+{
+    _compareRowSizer->Show(_comparePanel, show);
+    _compareRowSizer->Show(_compareSash, show);
+    if (!show) {
+        _layoutHoverTimer.Stop();
+        _layoutHoverItem = nullptr;
+    }
+    Panel2->Layout();
+    if (show) {
+        if (!_vendorPreviewChannel.empty()) {
+            ShowVendorPreview(_vendorPreviewChannel);
+        } else {
+            ShowLayoutPreview(SelectedMappingRow(), false);
+        }
+    }
+}
+
+Model* xLightsImportChannelMapDialog::GetVendorModel(const std::string& modelName)
+{
+    if (auto it = _vendorModels.find(modelName); it != _vendorModels.end()) {
+        return it->second.get();
+    }
+    Model* model = nullptr;
+    if (auto it = _vendorModelNodes.find(modelName); it != _vendorModelNodes.end()) {
+        model = xlights->AllModels.CreateModel(it->second);
+    }
+    _vendorModels[modelName].reset(model);
+    return model;
+}
+
+void xLightsImportChannelMapDialog::ShowVendorPreview(const std::string& channelName)
+{
+    _vendorPreviewChannel = channelName;
+    if (!IsCompareShown()) {
+        return;
+    }
+    _vendorSlot.model = nullptr;
+    const bool hasLayoutData = _xsqPkg->HasRGBEffects();
+    wxString label = hasLayoutData ? wxString::Format(_("No preview available for %s"), channelName) : _("No preview available (sequence has no layout data)");
+
+    if (hasLayoutData && _vendorGroupMembers.count(channelName) != 0) {
+        std::set<std::string> visited;
+        std::vector<std::string> names;
+        CollectVendorGroupMemberNames(channelName, visited, names);
+        std::vector<GroupMember> members;
+        for (const auto& name : names) {
+            GroupMember member = ResolveVendorName(name);
+            if (!AlikeGroupMembers(members.empty() ? member : members.front(), member)) {
+                members.clear();
+                break;
+            }
+            members.push_back(member);
+        }
+        if (auto preview = PickGroupPreview(members); preview) {
+            HighlightCompareNodes(preview->model, preview->subModels, xlYELLOW);
+            _vendorSlot.model = preview->model;
+            label = GroupPreviewLabel(channelName, *preview);
+        } else {
+            label = wxString::Format(_("No preview available for %s (group has different models)"), channelName);
+        }
+    } else if (hasLayoutData) {
+        auto [model, subModel] = ResolveVendorName(channelName);
+        if (model != nullptr) {
+            HighlightCompareNodes(model, subModel, xlYELLOW);
+            _vendorSlot.model = model;
+            label = channelName;
+        }
+    }
+
+    _vendorSlot.label->SetLabel(label);
+    _vendorSlot.label->SetToolTip(label);
+    _vendorSlot.preview->Refresh();
+}
+
+wxDataViewItem xLightsImportChannelMapDialog::SelectedMappingRow() const
+{
+    wxDataViewItem current = TreeListCtrl_Mapping->GetCurrentItem();
+    if (current.IsOk() && TreeListCtrl_Mapping->IsSelected(current)) {
+        return current;
+    }
+    wxDataViewItemArray selected;
+    if (TreeListCtrl_Mapping->GetSelections(selected) > 0) {
+        return selected[0];
+    }
+    return wxDataViewItem();
+}
+
+bool xLightsImportChannelMapDialog::ResolveLayoutRow(const xLightsImportModelNode* node, Model*& model, const SubModel*& subModel) const
+{
+    model = nullptr;
+    subModel = nullptr;
+    if (node == nullptr || node->IsGroup() || node->IsNode() || node->IsStrand()) {
+        return false;
+    }
+    Model* m = xlights->GetModel(node->_model);
+    if (m == nullptr || dynamic_cast<ModelGroup*>(m) != nullptr) {
+        return false;
+    }
+    if (node->IsSubModel()) {
+        subModel = dynamic_cast<const SubModel*>(m->GetSubModel(node->_strand));
+        if (subModel == nullptr) {
+            return false;
+        }
+    }
+    model = m;
+    return true;
+}
+
+wxDataViewItem xLightsImportChannelMapDialog::MappingTreeItemAtScreen(const wxPoint& screenPos) const
+{
+    wxDataViewItem item;
+    wxDataViewColumn* col = nullptr;
+    if (TreeListCtrl_Mapping->GetMainWindow()->GetScreenRect().Contains(screenPos)) {
+        TreeListCtrl_Mapping->HitTest(TreeListCtrl_Mapping->ScreenToClient(screenPos), item, col);
+    }
+    return item;
+}
+
+void xLightsImportChannelMapDialog::OnMappingTreeMotion(wxMouseEvent& event)
+{
+    event.Skip();
+    if (!IsCompareShown()) {
+        return;
+    }
+    wxDataViewItem item = MappingTreeItemAtScreen(TreeListCtrl_Mapping->GetMainWindow()->ClientToScreen(event.GetPosition()));
+    if (item.GetID() != _layoutHoverItem) {
+        _layoutHoverItem = item.GetID();
+        _layoutHoverTimer.StartOnce(120);
+    }
+}
+
+void xLightsImportChannelMapDialog::OnMappingTreeLeave(wxMouseEvent& event)
+{
+    event.Skip();
+    _layoutHoverTimer.Stop();
+    _layoutHoverItem = nullptr;
+    ShowLayoutPreview(SelectedMappingRow(), false);
+}
+
+void xLightsImportChannelMapDialog::ShowLayoutPreview(const wxDataViewItem& item, bool hovering)
+{
+    if (!IsCompareShown()) {
+        return;
+    }
+    _layoutSlot.model = nullptr;
+    wxString label = _("Hover or click your models to compare");
+
+    auto* node = static_cast<xLightsImportModelNode*>(item.GetID());
+    if (node != nullptr) {
+        label = wxString::Format(_("No preview available for %s"), node->GetModelName());
+        Model* model = nullptr;
+        const SubModel* subModel = nullptr;
+        if (ResolveLayoutRow(node, model, subModel)) {
+            HighlightCompareNodes(model, subModel, CompareLayoutLit);
+            _layoutSlot.model = model;
+            label = wxString::Format("%s (%s)", node->GetModelName(), hovering ? _("hovering") : _("selected"));
+        } else if (auto* group = node->_strand.empty() ? dynamic_cast<ModelGroup*>(xlights->GetModel(node->_model)) : nullptr; group != nullptr) {
+            std::vector<GroupMember> members;
+            for (Model* member : group->GetFlatModels(true, false)) {
+                if (auto* memberSubModel = dynamic_cast<const SubModel*>(member); memberSubModel != nullptr) {
+                    members.emplace_back(memberSubModel->GetParent(), memberSubModel);
+                } else {
+                    members.emplace_back(member, nullptr);
+                }
+            }
+            if (auto preview = PickGroupPreview(members); preview) {
+                HighlightCompareNodes(preview->model, preview->subModels, CompareLayoutLit);
+                _layoutSlot.model = preview->model;
+                label = wxString::Format("%s (%s)", GroupPreviewLabel(node->_model, *preview), hovering ? _("hovering") : _("selected"));
+            } else {
+                label = wxString::Format(_("No preview available for %s (group has different models)"), node->_model);
+            }
+        }
+    }
+
+    _layoutSlot.label->SetLabel(label);
+    _layoutSlot.label->SetToolTip(label);
+    _layoutSlot.preview->Refresh();
+}
+
+void xLightsImportChannelMapDialog::ApplyAvailSort()
+{
+    if (_availMasterView) {
+        _sortOrder = 0;
+        ListCtrl_Available->SortItems(MyCompareFunctionMasterView, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
+        ListCtrl_Available->RemoveSortIndicator();
+    } else {
+        _sortOrder = 1;
+        ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
+        ListCtrl_Available->ShowSortIndicator(1, true);
+    }
+    RefreshTimelineColumnImages();
+}
+
+void xLightsImportChannelMapDialog::SetMappingSortMasterView(bool masterView)
+{
+    if (_dataModel == nullptr || _dataModel->GetSortMasterView() == masterView) {
+        return;
+    }
+    _dataModel->SetSortMasterView(masterView);
+    auto* config = GetXLightsConfig();
+    config->Write("ImportMappingSortMasterView", masterView);
+    config->Flush();
+    RebuildMappingTree(CaptureMappingTreeState());
 }
 
 void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent& event)
@@ -3289,6 +3895,7 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent&
     if (_timelineCol >= 0 && event.m_col == _timelineCol) {
         return;
     }
+    _availMasterView = false;
     if (event.m_col == 1) { // name column
         if (_sortOrder == 0) {
             _sortOrder = 1;
@@ -3711,6 +4318,7 @@ void xLightsImportChannelMapDialog::InsertStackDuplicate(
     newNode->_node = target->_node;
     newNode->_group = false;
     newNode->_isStackDuplicate = true;
+    newNode->_masterViewIndex = target->_masterViewIndex;
 
     _dataModel->CopyFilterState(target, newNode);
 
@@ -4715,6 +5323,7 @@ void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
 
         if (grpNode) {
             for (pugi::xml_node node = grpNode.first_child(); node; node = node.next_sibling()) {
+                _vendorGroupMembers[node.attribute(XmlNodeKeys::NameAttribute).as_string()] = node.attribute(XmlNodeKeys::mgModelsAttribute).as_string();
                 if (auto mm = GetImportChannel(node.attribute(XmlNodeKeys::NameAttribute).as_string()); mm) {
                     mm->type = XmlNodeKeys::ModelGroupType;
                     mm->groupModels = node.attribute(XmlNodeKeys::mgModelsAttribute).as_string();
@@ -4724,6 +5333,7 @@ void xLightsImportChannelMapDialog::LoadRgbEffectsFile() {
         }
         if (modelNode) {
             for (pugi::xml_node node = modelNode.first_child(); node; node = node.next_sibling()) {
+                _vendorModelNodes[node.attribute(XmlNodeKeys::NameAttribute).as_string()] = node;
                 if (auto mm = GetImportChannel(node.attribute(XmlNodeKeys::NameAttribute).as_string()); mm) {
                     mm->type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string();
                     bool singingFace = false;
@@ -4871,6 +5481,7 @@ void xLightsImportChannelMapDialog::AddChannel(std::string const& name, int effe
 {
     auto ch = new ImportChannel(name, effectCount, isNode);
     ch->effectIntervals = std::move(intervals);
+    ch->masterOrder = (int)importChannels.size();
     importChannels.emplace_back(ch);
 }
 
