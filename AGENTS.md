@@ -312,6 +312,18 @@ without drawing the wrong conclusion about GPU effects, frame-parallel telemetry
 number trustworthy (which metric to quote, why process wall-clock is often the
 wrong one, and how noisy a machine has to be before a result is meaningless).
 
+### Render regression tests
+
+`tests/render/run.sh --bin <xLights> [--data <xLights-test-data>]` renders the
+synthetic show in the separate `xLights-test-data` repo headlessly on the
+CPU-only path, hashes each `.fseq` with `xLights --fseqhash` (per-model with
+`-s`; ignores the header uniqueId), renders twice for a determinism check, and
+compares against `tests/render/manifest-<show>.txt`. `--update` rewrites the
+manifest and `data.version` (the pinned data revision) — commit both with the
+change that caused the new output. On macOS the data is staged under
+`~/tmp/xLights/` because the sandboxed app can only read bookmarked folders.
+Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
+
 ### Linux
 
 ```bash

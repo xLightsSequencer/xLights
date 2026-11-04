@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# Render-regression harness: render every .xsq in a test show headlessly on the
+# CPU-only path, hash the .fseq output with `xLights --fseqhash`, and compare to
+# the committed manifest. Also renders twice and requires identical hashes, which
+# is the run-to-run determinism check (no stored data needed for that one).
+#
+#   tests/render/run.sh --bin <xLights binary> [--data <xLights-test-data dir>]
+#                       [--show basic] [--filter <substring>] [--update]
+#
+# Exit 0 = all match; 1 = mismatch/non-determinism; 2 = setup error.
+set -u
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BIN=""; DATA="${XL_TEST_DATA:-}"; SHOW="basic"; FILTER=""; UPDATE=0
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --bin) BIN="$2"; shift 2;;
+        --data) DATA="$2"; shift 2;;
+        --show) SHOW="$2"; shift 2;;
+        --filter) FILTER="$2"; shift 2;;
+        --update) UPDATE=1; shift;;
+        *) echo "unknown argument: $1" >&2; exit 2;;
+    esac
+done
+[ -x "$BIN" ] || { echo "--bin <xLights executable> is required" >&2; exit 2; }
+if [ -z "$DATA" ]; then
+    for d in "$HERE/../../../xLights-test-data" "$HOME/working/xLights-test-data"; do
+        [ -d "$d/shows/$SHOW" ] && DATA="$d" && break
+    done
+fi
+SRC="$DATA/shows/$SHOW"
+[ -d "$SRC" ] || { echo "test show not found: $SRC (use --data)" >&2; exit 2; }
+MANIFEST="$HERE/manifest-$SHOW.txt"
+# The manifest is only valid for the data revision it was generated from.
+PIN="$(tr -d '[:space:]' <"$HERE/data.version" 2>/dev/null)"
+HAVE="$(git -C "$DATA" rev-parse HEAD 2>/dev/null)"
+if [ -n "$PIN" ] && [ -n "$HAVE" ] && [ "$PIN" != "$HAVE" ]; then
+    echo "WARNING: test data is at ${HAVE:0:10}, manifest was generated from ${PIN:0:10}" >&2
+fi
+
+# The macOS app is sandboxed and can only read directories it holds a bookmark
+# for; ~/tmp/xLights is one. Elsewhere the data is used in place.
+if [ "$(uname)" = "Darwin" ]; then
+    WORK="${XL_TEST_WORK:-$HOME/tmp/xLights/fseq/render-tests}"
+else
+    WORK="${XL_TEST_WORK:-${TMPDIR:-/tmp}/xlights-render-tests}"
+fi
+STAGE="$WORK/show-$SHOW"
+rm -rf "$STAGE" "$WORK/out1" "$WORK/out2"
+mkdir -p "$STAGE" "$WORK/out1" "$WORK/out2" || exit 2
+cp -R "$SRC/." "$STAGE/"
+
+# Everything that can legitimately differ between hosts or runs is switched off:
+# GPU compute, per-effect Metal, GPU shader context, threaded scheduling.
+export XL_SERIAL=1 XL_NO_GPU_COMPUTE=1 XL_NO_METAL_FX=ALL XL_HEADLESS_NO_GL=1
+
+render() { # outdir
+    local files=()
+    while IFS= read -r f; do files+=("$f"); done < <(ls "$STAGE"/*.xsq | grep -F -- "$FILTER" | sort)
+    [ ${#files[@]} -gt 0 ] || { echo "no sequences match '$FILTER'" >&2; return 2; }
+    "$BIN" --headless -s "$STAGE" --outputdir "$1" "${files[@]}" >"$1/render.log" 2>&1 || {
+        echo "render failed (see $1/render.log)" >&2; return 1; }
+    local f n=0
+    for f in "${files[@]}"; do
+        [ -s "$1/$(basename "${f%.xsq}").fseq" ] || { echo "no output for $(basename "$f")" >&2; n=1; }
+    done
+    return $n
+}
+hashes() { # outdir -> sorted hash report on stdout
+    local files=()
+    while IFS= read -r f; do files+=("$f"); done < <(ls "$1"/*.fseq | sort)
+    "$BIN" --fseqhash -s "$STAGE" "${files[@]}" 2>/dev/null | grep -E '^(  model |[^ ].*  frames=)'
+}
+
+echo "rendering $(ls "$STAGE"/*.xsq | grep -c -F -- "$FILTER") sequence(s) from $SRC (x2 for determinism)"
+render "$WORK/out1" || exit 2
+render "$WORK/out2" || exit 2
+hashes "$WORK/out1" >"$WORK/hashes1.txt"
+hashes "$WORK/out2" >"$WORK/hashes2.txt"
+[ -s "$WORK/hashes1.txt" ] || { echo "no hashes produced" >&2; exit 2; }
+
+rc=0
+if ! diff -q "$WORK/hashes1.txt" "$WORK/hashes2.txt" >/dev/null; then
+    echo "NON-DETERMINISTIC: two identical renders hash differently:"
+    diff "$WORK/hashes1.txt" "$WORK/hashes2.txt" | grep '^[<>]  *[^ ]' | head -20
+    rc=1
+fi
+
+if [ $UPDATE -eq 1 ]; then
+    if [ -n "$FILTER" ]; then echo "--update refuses to run with --filter" >&2; exit 2; fi
+    cp "$WORK/hashes1.txt" "$MANIFEST"
+    [ -n "$HAVE" ] && echo "$HAVE" >"$HERE/data.version"
+    echo "wrote $MANIFEST ($(grep -c 'frames=' "$MANIFEST") sequences)"
+    # Sequences that render identically are suspect: an effect that silently
+    # does nothing hashes the same as "Off" and then guards nothing.
+    grep 'frames=' "$MANIFEST" | awk '{h[$NF]=h[$NF]" "$1; c[$NF]++} END{for(k in c) if(c[k]>1) print "NOTE: identical output ("c[k]"):" h[k]}'
+    exit $rc
+fi
+
+[ -f "$MANIFEST" ] || { echo "no manifest $MANIFEST (run with --update)" >&2; exit 2; }
+if [ -n "$FILTER" ]; then
+    # compare only the sequences we rendered
+    awk -v pat="$FILTER" '/^[^ ]/{keep=index($1,pat)>0} keep' "$MANIFEST" >"$WORK/expected.txt"
+else
+    cp "$MANIFEST" "$WORK/expected.txt"
+fi
+if diff "$WORK/expected.txt" "$WORK/hashes1.txt" >"$WORK/manifest.diff"; then
+    echo "PASS: $(grep -c 'frames=' "$WORK/hashes1.txt") sequences match the manifest"
+else
+    echo "FAIL: render output differs from the manifest. Changed sequences / models:"
+    awk '/^[<>] [^ ]/{seq=$2} /^[<>]   model/{print "  " seq " " $3 " (" ($1=="<"?"expected":"got") ")"}' "$WORK/manifest.diff" | sort -u | head -40
+    grep -E '^[<>] [^ ]' "$WORK/manifest.diff" | awk '{print "  " $2}' | sort -u | head -40
+    echo "full diff: $WORK/manifest.diff   outputs: $WORK/out1"
+    rc=1
+fi
+exit $rc
