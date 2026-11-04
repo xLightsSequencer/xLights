@@ -1080,3 +1080,12 @@ endif()
 include(GNUInstallDirs)
 install(TARGETS xLights DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY resources/ DESTINATION ${CMAKE_INSTALL_DATADIR}/xLights)
+
+# ─── Unit tests (Catch2) ────────────────────────────────────────────────────
+# Off by default. tests/unit is also a standalone project, which is the easier
+# route on macOS: cmake -S tests/unit -B build-tests -G Xcode
+option(XL_BUILD_TESTS "Build the src-core unit tests" OFF)
+if(XL_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests/unit)
+endif()

@@ -333,6 +333,25 @@ out, then delete the staged files. The script refuses a binary that predates
 `--fseqhash` (an old build pops an "unrecognized option" dialog instead of failing).
 Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
 
+### Unit tests (Catch2)
+
+`tests/unit/` is a standalone CMake project (no wx, no dependency bundle) that
+builds a static `xlights_core_testlib` from the `src-core` files listed in
+`tests/unit/core_sources.cmake` and links every `tests/unit/test_*.cpp` into one
+Catch2 executable. Add a source to `core_sources.cmake` when a test needs it, then
+add a `test_*.cpp`. Keep tests to wx-free code — the same rule as `src-core/`.
+
+```bash
+cmake -S tests/unit -B build-tests -G Xcode     # macOS: open the generated .xcodeproj, or build below
+cmake --build build-tests --config Debug
+ctest --test-dir build-tests -C Debug --output-on-failure
+```
+
+Use `-G Ninja` (or any generator) on Linux/Windows; `-DXL_BUILD_TESTS=ON` on the
+root build also adds it. Catch2 3.8.1 is used from the system if present, else
+fetched. `test_float_checks.cpp` is compiled with `-ffast-math` on purpose (see §6).
+Render regressions are covered by the harness above, not here.
+
 ### Linux
 
 ```bash
