@@ -4360,10 +4360,18 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
         pi->progressSink->OnRenderSetupComplete();
     }
 
+    // Decide which rows depend on others before anything is pushed: once the
+    // independent jobs are on the pool they can all finish and the host's drain
+    // frees pi->aggregators, so it can't be read again after the first push.
+    std::vector<bool> hasUpstream(numRows, false);
+    for (row = 0; row < (size_t)numRows; ++row) {
+        hasUpstream[row] = jobs[row] && aggregators[row]->getNumAggregated() != 0;
+    }
+
     // First pass: push jobs that have no upstream dependencies so they can
     // start rendering while we finish setup on the rest.
     for (row = 0; row < (size_t)numRows; ++row) {
-        if (jobs[row] && aggregators[row]->getNumAggregated() == 0) {
+        if (jobs[row] && !hasUpstream[row]) {
             jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
             _jobPool.PushJob(jobs[row]);
         }
@@ -4373,7 +4381,7 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
 
     // Second pass: push the dependent jobs.
     for (row = 0; row < (size_t)numRows; ++row) {
-        if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
+        if (jobs[row] && hasUpstream[row]) {
             _jobPool.PushJob(jobs[row]);
         }
     }
