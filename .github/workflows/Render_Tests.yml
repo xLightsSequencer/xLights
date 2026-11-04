@@ -61,6 +61,15 @@ jobs:
     - name: ccache stats
       run: ccache --show-stats
 
+    - name: Binary diagnostics
+      if: always()
+      run: |
+        ls -la bin/xLights lib/linux 2>&1 | head -8
+        echo "DISPLAY=${DISPLAY:-unset}; xvfb-run: $(command -v xvfb-run || echo missing)"
+        export LD_LIBRARY_PATH="$PWD/lib/linux:${LD_LIBRARY_PATH:-}"
+        echo "--- missing shared libraries:"; ldd bin/xLights 2>&1 | grep "not found" || echo none
+        echo "--- --help (first lines):"; bin/xLights --help 2>&1 | head -6 || true
+
     - name: Render regression
       run: |
         mkdir -p results

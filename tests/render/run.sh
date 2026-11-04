@@ -35,7 +35,11 @@ done
 [ -x "$BIN" ] || { echo "--bin <xLights executable> is required" >&2; exit 2; }
 # A binary that predates --fseqhash would pop an "unrecognized option" dialog
 # on every call instead of failing, so check its own option list up front.
-"$BIN" --help 2>&1 | grep -q -- "fseqhash" || { echo "$BIN does not support --fseqhash; rebuild it" >&2; exit 2; }
+HELP="$("$BIN" --help 2>&1)"
+printf '%s\n' "$HELP" | grep -q -- "fseqhash" || {
+    echo "$BIN does not support --fseqhash (or failed to start); its --help said:" >&2
+    printf '%s\n' "$HELP" | head -8 >&2
+    exit 2; }
 if [ -z "$DATA" ]; then
     for d in "$HERE/../../../xLights-test-data" "$HOME/working/xLights-test-data"; do
         [ -d "$d/shows/$SHOW" ] && DATA="$d" && break
