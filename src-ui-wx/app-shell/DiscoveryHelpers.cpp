@@ -104,7 +104,7 @@ namespace {
     }
 }
 
-std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate, const std::string& targetIp) {
+std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate, const std::string& targetIp, bool onlyListed) {
     std::list<FPP*> instances;
     if (!targetIp.empty()) {
         Discovery* discovery = new Discovery(&_outputManager, delegate);
@@ -135,11 +135,17 @@ std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate, 
     auto addresses = GetDiscoveryAddresses(&forcedAddresses);
 
     Discovery* discovery = new Discovery(&_outputManager, delegate);
-    FPP::PrepareDiscovery(*discovery, addresses);
+    if (onlyListed) {
+        FPP::RestrictDiscoveryToListed(*discovery, addresses);
+    }
+    FPP::PrepareDiscovery(*discovery, addresses, !onlyListed, !onlyListed);
     FPP::PrepareControllerTypeProbes(*discovery, forcedAddresses);
     discovery->Discover();
     FPP::FinishControllerSeeding(*discovery, addresses);
     FPP::MapToFPPInstances(*discovery, instances, &_outputManager);
+    if (onlyListed) {
+        FPP::DropUnlistedInstances(instances, &_outputManager, addresses);
+    }
     for (auto* fpp : instances) {
         fpp->_authDelegate = delegate;
     }

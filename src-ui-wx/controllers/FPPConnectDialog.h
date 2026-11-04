@@ -50,6 +50,7 @@ class FPPConnectDialog: public wxDialog
 		wxButton* AddFPPButton;
 		wxButton* Button_Upload;
 		wxButton* ReDiscover;
+		wxCheckBox* CheckBox_OnlyListed;
 		wxCheckBox* KeepWinOpen;
 		wxChoice* ChoiceFilter;
 		wxChoice* ChoiceFolder;
@@ -81,6 +82,7 @@ class FPPConnectDialog: public wxDialog
 		static const wxWindowID ID_SPLITTERWINDOW1;
 		static const wxWindowID ID_BUTTON1;
 		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_CHECKBOX_ONLY_LISTED;
 		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_BUTTON_Upload;
 		//*)
@@ -107,6 +109,7 @@ class FPPConnectDialog: public wxDialog
 		void SequenceListPopup(wxTreeListEvent& event);
 		void OnAddFPPButtonClick(wxCommandEvent& event);
         void OnFPPReDiscoverClick(wxCommandEvent& event);
+		void OnCheckBox_OnlyListedClick(wxCommandEvent& event);
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
 		void HostSortMenu(wxContextMenuEvent& event);
@@ -125,6 +128,7 @@ class FPPConnectDialog: public wxDialog
         void AddSequenceListItem(const wxString& fseqPath, const std::string& media, std::set<wxString>& knownPaths) const;
         void LoadSequences();
         void PopulateFPPInstanceList(wxProgressDialog *prgs = nullptr);
+        void Rediscover(bool dropMissing);
         void AddInstanceRow(const FPP &inst);
         wxPanel *AddInstanceHeader(const std::string &h, const std::string &tt = std::string());
         void OnInstanceListPaint(wxPaintEvent& event);

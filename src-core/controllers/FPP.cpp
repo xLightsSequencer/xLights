@@ -4925,7 +4925,7 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
         }
     }
 }
-void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing) {
+void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing, bool searchNetwork) {
     uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
     FillFPPPingBuffer(buffer);
 
@@ -4933,8 +4933,10 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
         AddMultiSyncSystemsCurl(discovery, a, true);
         AddSystemInfoCurl(discovery, a, false);
     }
-    AddSystemInfoCurl(discovery, "localhost", false);
-    AddMultiSyncSystemsCurl(discovery, "localhost", false);
+    if (searchNetwork) {
+        AddSystemInfoCurl(discovery, "localhost", false);
+        AddMultiSyncSystemsCurl(discovery, "localhost", false);
+    }
 
     discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](uint8_t *buffer, int len, const std::string &fromIP) {
         ProcessFPPPingPacket(discovery, buffer, len);
@@ -4947,10 +4949,46 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
         // go ahead and send a unicast ping as well
         discovery.SendData(FPP_CTRL_PORT, a, buffer, 207);
     }
-    discovery.AddBonjour("_fppd._udp", [&](const std::string &ip) {
-        AddMultiSyncSystemsCurl(discovery, ip, false);
-        AddSystemInfoCurl(discovery, ip, false);
+    if (searchNetwork) {
+        discovery.AddBonjour("_fppd._udp", [&](const std::string &ip) {
+            AddMultiSyncSystemsCurl(discovery, ip, false);
+            AddSystemInfoCurl(discovery, ip, false);
+        });
+    }
+}
+static bool IsListedHost(const OutputManager *outputManager, const std::list<std::string> &addresses, const std::string &host) {
+    if (host.empty()) {
+        return false;
+    }
+    for (const auto &a : addresses) {
+        if (case_insensitive_match(a, host)) {
+            return true;
+        }
+    }
+    for (const auto &it : outputManager->GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth != nullptr && (case_insensitive_match(eth->GetIP(), host) || case_insensitive_match(eth->GetResolvedIP(), host))) {
+            return true;
+        }
+    }
+    return false;
+}
+void FPP::RestrictDiscoveryToListed(Discovery &discovery, const std::list<std::string> &addresses) {
+    const OutputManager *outputManager = discovery.GetOutputManager();
+    discovery.SetHostFilter([outputManager, addresses](const std::string &host) {
+        return IsListedHost(outputManager, addresses, host);
     });
+}
+void FPP::DropUnlistedInstances(std::list<FPP*> &instances, const OutputManager *outputManager, const std::list<std::string> &addresses) {
+    for (auto it = instances.begin(); it != instances.end();) {
+        if (!IsListedHost(outputManager, addresses, (*it)->ipAddress) && !IsListedHost(outputManager, addresses, (*it)->hostName)) {
+            spdlog::info("FPP Discovery - dropping {} ({}), not in the controller list", (*it)->ipAddress, (*it)->hostName);
+            delete *it;
+            it = instances.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 void FPP::PrepareSingleDiscovery(Discovery &discovery, const std::string &address) {
     uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
