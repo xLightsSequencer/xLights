@@ -43,13 +43,15 @@ public:
     ReplaceModelDialog(wxWindow* parent,
                        const wxString& sourceName,
                        const std::vector<std::string>& candidateNames,
-                       const std::set<std::string>& baseLinkedNames = {})
+                       const std::set<std::string>& baseLinkedNames = {},
+                       const std::set<std::string>& stringLayoutNames = {})
         : wxDialog(parent, wxID_ANY,
                    wxString::Format("Replace Model(s) With: %s", sourceName),
                    wxDefaultPosition, wxDefaultSize,
                    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
           _allCandidates(candidateNames),
-          _baseLinked(baseLinkedNames)
+          _baseLinked(baseLinkedNames),
+          _stringLayoutNames(stringLayoutNames)
     {
         auto* top = new wxBoxSizer(wxVERTICAL);
 
@@ -128,6 +130,10 @@ public:
             "Keep each target's submodels");
         _copySizePosCB = new wxCheckBox(this, wxID_ANY,
             "Keep each target's position and size");
+        _copyStringsCB = new wxCheckBox(this, wxID_ANY,
+            "Keep each target's # strings and start nodes");
+        _copyStringsCB->SetToolTip("Offered only for targets with no more pixels than the new model");
+        _copyStringsCB->SetValue(true);
         _copyStartChannelCB->SetValue(true);
         _copySizePosCB->SetValue(true);
         const int cbFlags = wxLEFT | wxRIGHT | wxTOP;
@@ -135,6 +141,7 @@ public:
         top->Add(_copyStartChannelCB, 0, cbFlags, cbPad);
         top->Add(_mergeSubmodelsCB,   0, cbFlags, cbPad);
         top->Add(_copySizePosCB,      0, cbFlags, cbPad);
+        top->Add(_copyStringsCB,      0, cbFlags, cbPad);
 
         // Model-group handling. The replacement clone takes the target's name,
         // so it already inherits the target's own groups (group membership is
@@ -169,6 +176,7 @@ public:
 
         BuildRows();
         ApplyFilter();
+        UpdateStringsOption();
 
         _filterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
             ApplyFilter();
@@ -189,6 +197,7 @@ public:
                 }
             }
             UpdateMasterState();
+            UpdateStringsOption();
         });
     }
 
@@ -201,6 +210,7 @@ public:
     bool CopyStartChannel() const { return _copyStartChannelCB->IsChecked(); }
     bool MergeSubmodels()   const { return _mergeSubmodelsCB->IsChecked(); }
     bool CopySizePos()      const { return _copySizePosCB->IsChecked(); }
+    bool CopyStrings()      const { return _copyStringsCB->IsShown() && _copyStringsCB->IsChecked(); }
 
     // How to reconcile each replaced model's group memberships against the
     // current (source) model's. Returns the shared core enum so desktop and
@@ -262,6 +272,7 @@ private:
                         _checkedSet.erase(capturedName);
                     }
                     UpdateMasterState();
+                    UpdateStringsOption();
                 });
             }
 
@@ -316,6 +327,16 @@ private:
         if (_okBtn != nullptr) _okBtn->Enable(!_checkedSet.empty());
     }
 
+    // Shown only while a checked target has no more pixels than the new model.
+    void UpdateStringsOption() {
+        const bool applies = std::any_of(_checkedSet.begin(), _checkedSet.end(),
+            [this](const std::string& n) { return _stringLayoutNames.count(n) > 0; });
+        if (_copyStringsCB->IsShown() != applies) {
+            _copyStringsCB->Show(applies);
+            Layout();
+        }
+    }
+
     struct RowEntry {
         std::string name;
         wxCheckBox* cb;
@@ -330,11 +351,13 @@ private:
     wxCheckBox* _copyStartChannelCB = nullptr;
     wxCheckBox* _mergeSubmodelsCB = nullptr;
     wxCheckBox* _copySizePosCB = nullptr;
+    wxCheckBox* _copyStringsCB = nullptr;
     wxRadioBox* _groupModeRB = nullptr;
     wxButton*   _okBtn = nullptr;
 
     std::vector<std::string> _allCandidates;
     std::set<std::string> _baseLinked;
+    std::set<std::string> _stringLayoutNames;
     std::vector<RowEntry> _allRows;
     std::set<std::string> _checkedSet;
 };

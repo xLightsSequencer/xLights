@@ -1088,6 +1088,36 @@ void Model::UpdateChannels()
     IncrementChangeCount();
 }
 
+bool Model::CanCopyStringLayoutFrom(const Model& other) const
+{
+    const int strings = other.GetNumStrings();
+    if (strings < 1 || (strings == 1 && GetNumStrings() == 1)) {
+        return false;
+    }
+    return !SingleNode && !other.SingleNode && GetNodeCount() >= other.GetNodeCount();
+}
+
+bool Model::CopyStringLayoutFrom(const Model& other)
+{
+    if (!CanCopyStringLayoutFrom(other)) {
+        return false;
+    }
+    const int strings = other.GetNumStrings();
+    std::vector<int> startNodes;
+    if (strings > 1 && !StartNodeAttrName(0).empty()) {
+        startNodes.reserve(strings);
+        for (int i = 0; i < strings; ++i) {
+            const bool indiv = other.HasIndivStartNodes() && i < other.GetIndivStartNodesCount();
+            startNodes.push_back(indiv ? other.GetIndivStartNode(i) : other.ComputeStringStartNode(i));
+        }
+    }
+    if (!ApplyStringLayout(strings, startNodes)) {
+        return false;
+    }
+    Setup();
+    return true;
+}
+
 void Model::CopyGeometryFrom(const Model& other)
 {
     ModelScreenLocation& dst = GetModelScreenLocation();

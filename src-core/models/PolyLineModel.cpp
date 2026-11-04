@@ -923,3 +923,13 @@ void PolyLineModel::ParseDropSizes()
         _dropSizes.push_back(5);
     }
 }
+
+bool PolyLineModel::ApplyStringLayout(int strings, const std::vector<int>& startNodes)
+{
+    _strings = strings;
+    _hasIndivNodes = strings > 1 && (int)startNodes.size() == strings;
+    if (_hasIndivNodes) {
+        _indivStartNodes = startNodes;
+    }
+    return true;
+}

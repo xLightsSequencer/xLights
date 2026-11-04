@@ -1328,3 +1328,13 @@ bool CustomModel::ChangeStringCount(long count, std::string& message)
                 OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "MatrixModel::ChangeStringCount::MatrixStringCount");
     return true;
 }
+
+bool CustomModel::ApplyStringLayout(int strings, const std::vector<int>& startNodes)
+{
+    _strings = strings;
+    _hasIndivNodes = strings > 1 && (int)startNodes.size() == strings;
+    if (_hasIndivNodes) {
+        _indivStartNodes = startNodes;
+    }
+    return true;
+}

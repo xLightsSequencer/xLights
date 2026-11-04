@@ -61,6 +61,7 @@ public:
     float GetModelHeight() const { return _height; }
     void SetNumStrings(int strings) { _strings = strings; }
     void SetModelHeight(float height) { _height = height; }
+    bool ApplyStringLayout(int strings, const std::vector<int>& startNodes) override;
     void SetAlternateNodes(bool val) { _alternateNodes = val; }
     void SetNumSegments(int val) { _polyLineSizes.resize(val); _polyLeadOffset.resize(val); _polyTrailOffset.resize(val); _polyLineSegDropSizes.resize(val); _polyCorner.resize(val+1); }
     void SetSegmentSize(int idx, int val);
