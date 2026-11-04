@@ -246,9 +246,7 @@ TEST_CASE("A group naming itself in XML never resolves itself as a member", "[mo
     CHECK(g->Models()[0] == a);
 }
 
-// ModelGroup::GetFlatModels has no cycle guard, so a group that names itself
-// (accepted when loaded through createAndAddModel) recurses forever.
-TEST_CASE("A self naming group crashes GetFlatModels", "[known-crash][.]") {
+TEST_CASE("A self naming group is flattened without recursing", "[models][group]") {
     ShowFixture f;
     Model* a = f.Line("A", 5);
     ModelGroup* g = f.Group("G", "A,G");
@@ -268,18 +266,15 @@ TEST_CASE("Groups that would contain each other are refused", "[models][group]")
     CHECK(one->ModelNames() == std::vector<std::string>{ "A" });
 }
 
-// Two groups that name each other can both be created through
-// createAndAddModel when the first is created before the second exists (the
-// loop check only sees groups already in the manager). RecalcStartChannels then
-// recurses until the stack overflows. LoadGroups avoids this path, so it is
-// hidden; run it by name to reproduce.
-TEST_CASE("Mutually referencing groups crash a recalculation", "[known-crash][.]") {
+TEST_CASE("Mutually referencing groups survive a recalculation", "[models][group]") {
     ShowFixture f;
     f.Line("A", 5);
     f.Group("One", "A,Two");
     f.Group("Two", "One");
     f.mm.RecalcStartChannels();
-    SUCCEED();
+    ModelGroup* one = dynamic_cast<ModelGroup*>(f.mm["One"]);
+    REQUIRE(one != nullptr);
+    CHECK(one->GetFlatModels().size() == 1);
 }
 
 TEST_CASE("Submodels can be group members", "[models][group][submodel]") {
@@ -310,10 +305,7 @@ TEST_CASE("Group buffer with a submodel counts only the submodel nodes", "[model
     CHECK(nodes.size() == 5);
 }
 
-// ModelGroup::ContainsModelOrSubmodel and OnlyContainsModel compare names with
-// StartsWith (ModelGroup.cpp:204, 283, 310), so "Tree10" is mistaken for a
-// submodel of "Tree1".
-TEST_CASE("Group membership of a model is not confused by a longer model name", "[models][group][!mayfail]") {
+TEST_CASE("Group membership of a model is not confused by a longer model name", "[models][group]") {
     ShowFixture f;
     Model* tree1 = f.Line("Tree1", 5);
     f.Line("Tree10", 5, "100");

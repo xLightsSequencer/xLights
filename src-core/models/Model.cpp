@@ -1066,7 +1066,9 @@ void Model::UpdateChannels()
     // alternative function that only performs channel calculation instead of calling the full Setup function
     CouldComputeStartChannel = false;
     std::string dependsonmodel;
-    int32_t StartChannel = GetNumberFromChannelString(ModelStartChannel, CouldComputeStartChannel, dependsonmodel);
+    bool startValid = false;
+    int32_t StartChannel = GetNumberFromChannelString(ModelStartChannel, startValid, dependsonmodel);
+    CouldComputeStartChannel = startValid;
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings = GetNumStrings();
@@ -1592,8 +1594,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
         if (c != nullptr) {
             start = c->GetStartChannel();
         }
-        unsigned int lastChannel = GetLastChannel() + 1;
-        return Trim(BeforeFirst(modelFormat, ':')) + ":" + std::to_string(lastChannel - start + 1) + " (" + std::to_string(lastChannel) + ")";
+        return Trim(BeforeFirst(modelFormat, ':')) + ":" + std::to_string(channel - start + 1) + " (" + std::to_string(channel) + ")";
     } else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0) {
         // absolute
         return std::to_string(channel);
