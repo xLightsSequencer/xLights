@@ -56,6 +56,12 @@ private:
     std::string _name;
 };
 
+// RangeWorkPool workers are detached and the destructor does not wait for them, so a pool
+// must outlive its workers: tests leak theirs on purpose.
+RangeWorkPool& LeakedPool(const char* name, int workers) {
+    return *new RangeWorkPool(name, workers);
+}
+
 } // namespace
 
 TEST_CASE("JobPool runs every pushed job exactly once", "[utils]") {
@@ -63,7 +69,7 @@ TEST_CASE("JobPool runs every pushed job exactly once", "[utils]") {
     std::atomic<int> counter{ 0 };
     Latch latch(N);
     {
-        JobPool pool("TESTPOOL", 0, 4);
+        JobPool pool("TESTPOOL", 4, 4);
         for (int i = 0; i < N; ++i) {
             pool.PushJob(new CountingJob(counter, latch));
         }
@@ -78,7 +84,7 @@ TEST_CASE("JobPool PushJobs batches and respects the thread cap", "[utils]") {
     constexpr int N = 50;
     std::atomic<int> counter{ 0 };
     Latch latch(N);
-    JobPool pool("TESTPOOL2", 0, 3);
+    JobPool pool("TESTPOOL2", 3, 3);
     std::list<Job*> jobs;
     for (int i = 0; i < N; ++i) {
         jobs.push_back(new CountingJob(counter, latch));
@@ -94,7 +100,7 @@ TEST_CASE("JobPool PushJobs batches and respects the thread cap", "[utils]") {
 TEST_CASE("JobPool becomes empty after jobs complete", "[utils]") {
     std::atomic<int> counter{ 0 };
     Latch latch(5);
-    JobPool pool("TESTPOOL3", 0, 2);
+    JobPool pool("TESTPOOL3", 2, 2);
     CHECK(pool.isEmpty());
     for (int i = 0; i < 5; ++i) pool.PushJob(new CountingJob(counter, latch));
     REQUIRE(latch.Wait());
@@ -106,7 +112,7 @@ TEST_CASE("JobPool becomes empty after jobs complete", "[utils]") {
 TEST_CASE("JobPool high priority jobs also run", "[utils]") {
     std::atomic<int> counter{ 0 };
     Latch latch(6);
-    JobPool pool("TESTPOOL4", 0, 2);
+    JobPool pool("TESTPOOL4", 2, 2);
     for (int i = 0; i < 6; ++i) {
         auto* j = new CountingJob(counter, latch);
         j->SetHighPriority(i % 2 == 0);
@@ -183,7 +189,7 @@ TEST_CASE("parallel_for supports nested loops without deadlock", "[utils]") {
 }
 
 TEST_CASE("parallel_for runs on a caller supplied pool", "[utils]") {
-    RangeWorkPool pool("test_parfor", 2);
+    RangeWorkPool& pool = LeakedPool("test_parfor", 2);
     CHECK(pool.Workers() == 2);
     std::atomic<int> sum{ 0 };
     parallel_for(0, 1000, [&](int i) { sum += i; }, 1, &pool);
@@ -191,7 +197,7 @@ TEST_CASE("parallel_for runs on a caller supplied pool", "[utils]") {
 }
 
 TEST_CASE("RangeWorkPool item runs each index once on the owner thread", "[utils]") {
-    RangeWorkPool pool("test_range", 3);
+    RangeWorkPool& pool = LeakedPool("test_range", 3);
     constexpr int N = 300;
     std::vector<std::atomic<int>> hits(N);
     for (auto& h : hits) h = 0;
@@ -206,7 +212,7 @@ TEST_CASE("RangeWorkPool item runs each index once on the owner thread", "[utils
 }
 
 TEST_CASE("RangeWorkPool concurrency cap is respected", "[utils]") {
-    RangeWorkPool pool("test_cap", 4);
+    RangeWorkPool& pool = LeakedPool("test_cap", 4);
     std::atomic<int> running{ 0 };
     std::atomic<int> peak{ 0 };
     std::atomic<int> done{ 0 };
@@ -228,7 +234,7 @@ TEST_CASE("RangeWorkPool concurrency cap is respected", "[utils]") {
 }
 
 TEST_CASE("RangeWorkPool Extend adds work and Close stops new claims", "[utils]") {
-    RangeWorkPool pool("test_extend", 2);
+    RangeWorkPool& pool = LeakedPool("test_extend", 2);
     std::atomic<int> count{ 0 };
     {
         auto item = pool.Register([&](int) { ++count; }, 0, 10, 1);
@@ -242,7 +248,7 @@ TEST_CASE("RangeWorkPool Extend adds work and Close stops new claims", "[utils]"
 }
 
 TEST_CASE("RangeWorkPool RunOwnerOne claims one index at a time", "[utils]") {
-    RangeWorkPool pool("test_one", 1);
+    RangeWorkPool& pool = LeakedPool("test_one", 1);
     std::mutex m;
     std::vector<int> seen;
     auto item = pool.Register([&](int i) {
@@ -257,7 +263,7 @@ TEST_CASE("RangeWorkPool RunOwnerOne claims one index at a time", "[utils]") {
 }
 
 TEST_CASE("RangeWorkPool reports status lines for live items", "[utils]") {
-    RangeWorkPool pool("test_status", 1);
+    RangeWorkPool& pool = LeakedPool("test_status", 1);
     CHECK(pool.GetStatus().find("test_status") != std::string::npos);
 }
 
