@@ -316,7 +316,7 @@ TEST_CASE("XLightsSettings ReadLong parses numeric prefixes of strings", "[misc]
 }
 
 // A hand-edited or damaged file with a non-object section makes the write path throw json type_error.
-TEST_CASE("XLightsSettings writing into a damaged non object section should not throw", "[misc][settings][!mayfail]") {
+TEST_CASE("XLightsSettings writing into a damaged non object section should not throw", "[misc][settings]") {
     TempDir t;
     auto& c = XLightsSettings::Get();
     c.SetFilePath(t.Write("dmg.json", R"({"main":5})"));

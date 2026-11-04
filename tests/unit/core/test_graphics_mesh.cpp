@@ -203,7 +203,7 @@ TEST_CASE("xlMesh survives malformed content", "[misc][mesh]") {
 
 // tinyobj asserts (debug) or reads out of bounds (release) when a face names a vertex that does not exist,
 // and xlMesh does not validate the file first.
-TEST_CASE("xlMesh must not crash on faces that reference missing vertices", "[mesh][known-crash][.]") {
+TEST_CASE("xlMesh must not crash on faces that reference missing vertices", "[mesh]") {
     TempDir t;
     const std::vector<std::string> bodies = {
         "v a b c\nf 1 2 3\n",

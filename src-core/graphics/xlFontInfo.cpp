@@ -96,6 +96,9 @@ bool xlFontInfo::load(const FontInfoStruct &fi) {
 }
 float xlFontInfo::widthOf(const std::string &text, float factor) const {
     float w = 0;
+    if (widths.size() < (size_t)('~' - ' ' + 1)) {
+        return w;
+    }
     for (int idx = 0; idx < (int)text.size(); idx++) {
         char ch = text[idx];
         if (ch < ' ' || ch > '~') {
@@ -179,15 +182,15 @@ static std::mutex FONTS_MUTEX;
 const xlFontInfo &xlFontInfo::FindFont(int size) {
     std::lock_guard<std::mutex> lock(FONTS_MUTEX);
     int tsize = size;
-    while (!FONTS[tsize].valid() && tsize > 0) {
-        if (FONTS[tsize].init(tsize)) {
+    while (tsize > 0) {
+        if (FONTS[tsize].valid() || FONTS[tsize].init(tsize)) {
             return FONTS[tsize];
         }
         tsize--;
     }
     tsize = size;
-    while (!FONTS[tsize].valid() && tsize <= 88) {
-        if (FONTS[tsize].init(tsize)) {
+    while (tsize <= 88) {
+        if (FONTS[tsize].valid() || FONTS[tsize].init(tsize)) {
             return FONTS[tsize];
         }
         tsize++;

@@ -333,7 +333,7 @@ TEST_CASE("Pixlite16 V4 parse of an all zero packet gives empty strings", "[misc
 }
 
 // _bankVoltage is a vector<uint8_t> but the packet carries 16 bit values, so anything above 255 is truncated.
-TEST_CASE("Pixlite16 V4 keeps bank voltages above 255", "[misc][vendors][pixlite][!mayfail]") {
+TEST_CASE("Pixlite16 V4 keeps bank voltages above 255", "[misc][vendors][pixlite]") {
     auto buf = MakeV4("PixLite 16", true, 500);
     Pixlite16::Config c;
     REQUIRE(PixliteAccess::ParseV4Config(buf.data(), c));

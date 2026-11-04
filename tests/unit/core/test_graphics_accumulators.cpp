@@ -424,7 +424,7 @@ TEST_CASE("xlFontInfo FindFont gives a usable font for every size up to 88", "[m
 
 // FindFont's downward search stops without returning when the stock size it reaches (88) was already
 // loaded, then the upward search never runs for sizes above 88, so an unloaded font comes back.
-TEST_CASE("xlFontInfo FindFont above the largest stock size uses the largest font", "[misc][graphics][font][!mayfail]") {
+TEST_CASE("xlFontInfo FindFont above the largest stock size uses the largest font", "[misc][graphics][font]") {
     (void)xlFontInfo::FindFont(88);
     auto const& big = xlFontInfo::FindFont(100);
     CHECK(big.getImage().IsOk());
@@ -509,7 +509,7 @@ TEST_CASE("xlFontInfo populate scales by the factor", "[misc][graphics][font]") 
 }
 
 // widthOf indexes widths[] without the emptiness guard populate() has.
-TEST_CASE("xlFontInfo widthOf on an unloaded font must not crash", "[graphics][font][known-crash][.]") {
+TEST_CASE("xlFontInfo widthOf on an unloaded font must not crash", "[graphics][font]") {
     xlFontInfo f;
     CHECK(f.widthOf("abc") == 0);
 }

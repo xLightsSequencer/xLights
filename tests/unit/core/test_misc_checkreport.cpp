@@ -240,7 +240,7 @@ TEST_CASE("CheckSequenceReport duplicate section ids point at the latest one", "
 }
 
 // Issue messages go into the page through CleanMessage only, so markup in a message (a model named "<b>") is not escaped.
-TEST_CASE("CheckSequenceReport HTML escapes markup inside issue messages", "[misc][diagnostics][!mayfail]") {
+TEST_CASE("CheckSequenceReport HTML escapes markup inside issue messages", "[misc][diagnostics]") {
     auto r = Standard();
     r.AddIssue("preferences", Issue(Issue::CRITICAL, "ERR: path <img src=x onerror=alert(1)>", "backup"));
     auto html = r.GenerateHTML();

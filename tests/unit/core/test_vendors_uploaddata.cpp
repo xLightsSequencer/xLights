@@ -152,7 +152,7 @@ TEST_CASE("GetChannelsPerPixel by chip family", "[misc][vendors][pixels]") {
 }
 
 // IsPixelProtocol and the protocol tables are lower case and case insensitive; this lookup is not.
-TEST_CASE("GetChannelsPerPixel is case insensitive", "[misc][vendors][pixels][!mayfail]") {
+TEST_CASE("GetChannelsPerPixel is case insensitive", "[misc][vendors][pixels]") {
     CHECK(GetChannelsPerPixel("TM1814") == 4);
     CHECK(GetChannelsPerPixel("SM16825") == 5);
 }
@@ -240,7 +240,7 @@ TEST_CASE("ChooseBestControllerPixel exact upper case match is returned as is", 
 
 // The lower case retry in ChooseBestControllerPixel calls ChooseBestControllerSerial, so an upper case
 // name that needs the group lookup finds nothing.
-TEST_CASE("ChooseBestControllerPixel retries a mixed case name against the pixel groups", "[misc][vendors][pixels][!mayfail]") {
+TEST_CASE("ChooseBestControllerPixel retries a mixed case name against the pixel groups", "[misc][vendors][pixels]") {
     CHECK(ChooseBestControllerPixel({ "ws2811" }, "WS2812") == "ws2811");
 }
 

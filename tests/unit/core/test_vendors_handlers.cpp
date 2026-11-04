@@ -193,7 +193,7 @@ TEST_CASE("FPP ranges round trip through Fill and Set", "[misc][vendors][fpp]") 
 
 // The "start is inside the previous range" test is s < first + last - 1, which also fires for a gap
 // that lies below that sum, so two separate ranges are joined into one.
-TEST_CASE("FPP SetNewRanges keeps a real gap between ranges", "[misc][vendors][fpp][!mayfail]") {
+TEST_CASE("FPP SetNewRanges keeps a real gap between ranges", "[misc][vendors][fpp]") {
     FPP f;
     f.SetNewRanges({ { 10, 91 }, { 105, 6 } });
     CHECK(f.ranges == "10-100,105-110");
@@ -435,7 +435,7 @@ TEST_CASE("EspsPort WriteConfigToJson switches the type and updates the protocol
 }
 
 // A port without a numeric "type" makes WriteConfigToJson throw a json type_error nobody catches.
-TEST_CASE("EspsPort WriteConfigToJson tolerates a port with no type", "[misc][vendors][esps][!mayfail]") {
+TEST_CASE("EspsPort WriteConfigToJson tolerates a port with no type", "[misc][vendors][esps]") {
     EspsPort port;
     port.PortId = "0";
     REQUIRE(port.ParseV4Settings(MakeEspsPort()));
