@@ -300,10 +300,16 @@ TEST_CASE("IsValidHostname", "[utils]") {
     CHECK_FALSE(ip_utils::IsValidHostname("under_score"));
 }
 
-TEST_CASE("IsValidHostname accepts multi label names", "[utils][!mayfail]") {
-    // The regex allows only a single optional '.', so a normal FQDN is rejected.
+TEST_CASE("IsValidHostname accepts multi label names", "[utils]") {
     CHECK(ip_utils::IsValidHostname("www.example.com"));
     CHECK(ip_utils::IsIPValidOrHostname("falcon.home.lan"));
+    CHECK_FALSE(ip_utils::IsIPValidOrHostname("falcon.home.lan", true));
+    CHECK_FALSE(ip_utils::IsValidHostname("-bad.example.com"));
+    CHECK_FALSE(ip_utils::IsValidHostname("bad-.example.com"));
+    CHECK_FALSE(ip_utils::IsValidHostname("example..com"));
+    CHECK_FALSE(ip_utils::IsValidHostname(".example.com"));
+    CHECK_FALSE(ip_utils::IsValidHostname("example.com."));
+    CHECK_FALSE(ip_utils::IsValidHostname("300.1.1.1"));
 }
 
 TEST_CASE("IsIPv6", "[utils]") {
