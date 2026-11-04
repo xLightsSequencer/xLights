@@ -573,43 +573,77 @@ TEST_CASE("Negative string counts either load or throw", "[models][geometry]") {
     SUCCEED();
 }
 
-// These attribute values crash model construction (division by zero or a bad
-// access) instead of producing an empty model or an exception. Hidden so the
-// suite stays green; run them by name to reproduce.
-TEST_CASE("Zero nodes per string crashes a tree", "[known-crash][.]") {
+// Zero or negative counts and dimensions in a corrupt file are clamped to 1 when the
+// model is deserialised, so construction yields a small sane model instead of crashing.
+TEST_CASE("Zero nodes per string does not crash a tree", "[models][geometry]") {
     ShowFixture f;
     Model* m = f.Add(ModelXml("T", "Tree 360", "NumStrings=\"2\" NodesPerString=\"0\" StrandsPerString=\"1\""));
-    CHECK(m->GetNodeCount() == 0);
+    REQUIRE(m != nullptr);
+    CHECK(m->GetNodeCount() == 2);
 }
 
-TEST_CASE("Zero nodes per arch crashes arches", "[known-crash][.]") {
+TEST_CASE("Zero nodes per string does not crash a matrix or sphere", "[models][geometry]") {
+    ShowFixture f;
+    Model* m = f.Add(ModelXml("M", "Matrix", "NumStrings=\"2\" NodesPerString=\"0\" StrandsPerString=\"1\""));
+    REQUIRE(m != nullptr);
+    CHECK(m->GetNodeCount() == 2);
+    Model* s = f.Add(ModelXml("S", "Sphere", "NumStrings=\"1\" NodesPerString=\"0\" StrandsPerString=\"1\""));
+    REQUIRE(s != nullptr);
+    CHECK(s->GetNodeCount() == 1);
+}
+
+TEST_CASE("Zero nodes per arch does not crash arches", "[models][geometry]") {
     ShowFixture f;
     Model* m = f.Add(ModelXml("A", "Arches", "NumArches=\"2\" NodesPerArch=\"0\""));
-    CHECK(m->GetNodeCount() == 0);
+    REQUIRE(m != nullptr);
+    CHECK(m->GetNodeCount() == 2);
 }
 
-TEST_CASE("Zero sized single line crashes", "[known-crash][.]") {
+TEST_CASE("Zero sized single line does not crash", "[models][geometry]") {
     ShowFixture f;
     Model* m = f.Add(ModelXml("L", "Single Line", "NumStrings=\"0\" NodesPerString=\"0\""));
-    CHECK(m->GetNodeCount() == 0);
+    REQUIRE(m != nullptr);
+    CHECK(m->GetNodeCount() == 1);
 }
 
-TEST_CASE("Negative lights per node crashes a single line", "[known-crash][.]") {
+TEST_CASE("Negative lights per node does not crash a single line", "[models][geometry]") {
     ShowFixture f;
     Model* m = f.Add(ModelXml("L", "Single Line", "NumStrings=\"1\" NodesPerString=\"4\" LightsPerNode=\"-5\""));
+    REQUIRE(m != nullptr);
     CHECK(m->GetNodeCount() == 4);
 }
 
-TEST_CASE("Zero lights per node aborts a poly line", "[known-crash][.]") {
+TEST_CASE("Zero lights per node does not crash a poly line", "[models][geometry]") {
     ShowFixture f;
     Model* m = f.Add(ModelXml("P", "Poly Line", "NodesPerString=\"10\" LightsPerNode=\"0\""));
     CHECK(m != nullptr);
 }
 
-TEST_CASE("Zero cube dimension crashes", "[known-crash][.]") {
+TEST_CASE("Zero cube dimension does not crash", "[models][geometry]") {
     ShowFixture f;
     Model* m = f.Add(ModelXml("C", "Cube", "CubeWidth=\"0\" CubeHeight=\"2\" CubeDepth=\"2\""));
-    CHECK(m->GetNodeCount() == 0);
+    REQUIRE(m != nullptr);
+    CHECK(m->GetNodeCount() > 0);
+}
+
+TEST_CASE("Negative node counts do not hang or crash", "[models][geometry]") {
+    const char* types[] = { "Tree 360", "Matrix", "Sphere", "Single Line", "Star", "Circle", "Wreath", "Icicles", "Candy Canes", "Arches" };
+    ShowFixture f;
+    int i = 0;
+    for (const char* t : types) {
+        INFO(t);
+        pugi::xml_document doc;
+        REQUIRE(doc.load_string(HostileXml("N" + std::to_string(i++), t).c_str()));
+        for (const char* a : { "NodesPerString", "NodesPerArch", "NodesPerCane", "LightsPerNode" }) {
+            if (doc.first_child().attribute(a)) {
+                doc.first_child().attribute(a).set_value("-5");
+            }
+        }
+        Model* m = f.mm.createAndAddModel(doc.first_child(), 100, 100);
+        if (m != nullptr) {
+            CHECK(m->GetNodeCount() >= 0);
+        }
+    }
 }
 
 TEST_CASE("Model screen location is read from the XML", "[models][geometry]") {

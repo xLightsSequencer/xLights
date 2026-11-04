@@ -61,6 +61,7 @@
 #include "../render/UICallbacks.h"
 #include "../utils/string_utils.h"
 #include "../utils/FileUtils.h"
+#include <algorithm>
 #include <cstring>
 #include <set>
 #include <string_view>
@@ -86,6 +87,11 @@ static long ReadAttrWithParmFallback(pugi::xml_node node, const char* newAttr, c
         return std::strtol(node.attribute(newAttr).as_string(defaultVal), nullptr, 10);
     }
     return std::strtol(node.attribute(parmAttr).as_string(defaultVal), nullptr, 10);
+}
+
+// Counts and dimensions are divisors and allocation sizes in the models, so a zero or negative value in a corrupt file must not reach them
+static long ReadPositiveAttrWithParmFallback(pugi::xml_node node, const char* newAttr, const char* parmAttr, const char* defaultVal) {
+    return std::max(1L, ReadAttrWithParmFallback(node, newAttr, parmAttr, defaultVal));
 }
 
 // Helper to read an integer attribute, falling back to a legacy attribute name
@@ -591,9 +597,9 @@ void XmlDeserializingModelFactory::DeserializeSuperStrings(Model* model, pugi::x
 Model* XmlDeserializingModelFactory::DeserializeArches(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     ArchesModel* model = new ArchesModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumArches(ReadAttrWithParmFallback(node, XmlNodeKeys::NumArchesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetNodesPerArch(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerArchAttribute, XmlNodeKeys::Parm2Attribute, "1"));
-    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetNumArches(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumArchesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerArch(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerArchAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetLightsPerNode(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
     // Pre-2026 files omit ZigZag when never toggled and treated that as on; 2026.04+ omitted it when off
     const char* zigZagDefault = IsPre2026Serializer(node) ? "true" : "false";
@@ -616,9 +622,9 @@ Model* XmlDeserializingModelFactory::DeserializeArches(pugi::xml_node node, Mode
 Model* XmlDeserializingModelFactory::DeserializeCandyCane(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     CandyCaneModel* model = new CandyCaneModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumCanes(ReadAttrWithParmFallback(node, XmlNodeKeys::NumCanesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetNodesPerCane(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerCaneAttribute, XmlNodeKeys::Parm2Attribute, "1"));
-    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetNumCanes(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumCanesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerCane(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerCaneAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetLightsPerNode(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
     model->SetReverse(std::string_view(node.attribute(XmlNodeKeys::CCReverseAttribute).as_string("false")) == "true");
     model->SetSticks(std::string_view(node.attribute(XmlNodeKeys::CCSticksAttribute).as_string("false")) == "true");
@@ -636,7 +642,7 @@ Model* XmlDeserializingModelFactory::DeserializeCandyCane(pugi::xml_node node, M
 Model* XmlDeserializingModelFactory::DeserializeChannelBlock(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     ChannelBlockModel* model = new ChannelBlockModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumChannels(ReadAttrWithParmFallback(node, XmlNodeKeys::NumChannelsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNumChannels(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumChannelsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     DeserializeTwoPointScreenLocationAttributes(model, node);
     // Setup the model early to size the vector for number of colors
     model->Setup();
@@ -650,8 +656,8 @@ Model* XmlDeserializingModelFactory::DeserializeChannelBlock(pugi::xml_node node
 Model* XmlDeserializingModelFactory::DeserializeCircle(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     CircleModel* model = new CircleModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumCircleStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetCircleNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetNumCircleStrings(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetCircleNodesPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     // convert old circle sizes to new Layer sizes setting - this also reverses the order
     std::string layer_sizes;
     std::string circleSizes = node.attribute(XmlNodeKeys::CircleSizesAttribute).as_string("");
@@ -673,9 +679,9 @@ Model* XmlDeserializingModelFactory::DeserializeCircle(pugi::xml_node node, Mode
 Model* XmlDeserializingModelFactory::DeserializeCube(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     CubeModel* model = new CubeModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetCubeWidth(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeWidthAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetCubeHeight(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeHeightAttribute, XmlNodeKeys::Parm2Attribute, "1"));
-    model->SetCubeDepth(ReadAttrWithParmFallback(node, XmlNodeKeys::CubeDepthAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetCubeWidth(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::CubeWidthAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetCubeHeight(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::CubeHeightAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetCubeDepth(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::CubeDepthAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetCubeStrings(node.attribute(XmlNodeKeys::CubeStringsAttribute).as_int(1));
     model->SetCubeStart(node.attribute(XmlNodeKeys::CubeStartAttribute).as_string(""));
     model->SetCubeStyle(node.attribute(XmlNodeKeys::StyleAttribute).as_string(""));
@@ -755,8 +761,8 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(pugi::xml_node node, Mode
 Model* XmlDeserializingModelFactory::DeserializeIcicles(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     IciclesModel* model = new IciclesModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumIcicleStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetLightsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetNumIcicleStrings(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetLightsPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     DeserializeThreePointScreenLocationAttributes(model, node);
     model->SetDropPattern(node.attribute(XmlNodeKeys::DropPatternAttribute).as_string("3,4,5,4"));
     model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
@@ -789,9 +795,9 @@ Model* XmlDeserializingModelFactory::DeserializeLabel(pugi::xml_node node, Model
 Model* XmlDeserializingModelFactory::DeserializeMatrix(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     MatrixModel* model = new MatrixModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
-    model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetNumMatrixStrings(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStrandsPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
     model->SetNoZigZag(std::string_view(node.attribute(XmlNodeKeys::NoZigZagAttribute).as_string("false")) == "true");
     std::string type = node.attribute(XmlNodeKeys::DisplayAsAttribute).as_string("Matrix");
@@ -836,9 +842,9 @@ Model* XmlDeserializingModelFactory::DeserializeMultiPoint(pugi::xml_node node, 
 Model* XmlDeserializingModelFactory::DeserializeSingleLine(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     SingleLineModel* model = new SingleLineModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumLines(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetNodesPerLine(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
-    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetNumLines(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerLine(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
+    model->SetLightsPerNode(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     DeserializeTwoPointScreenLocationAttributes(model, node);
     model->Setup();
     return model;
@@ -847,7 +853,7 @@ Model* XmlDeserializingModelFactory::DeserializeSingleLine(pugi::xml_node node, 
 Model* XmlDeserializingModelFactory::DeserializePolyLine(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     PolyLineModel* model = new PolyLineModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetLightsPerNode(ReadAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetLightsPerNode(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetTotalLightCount(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "0"));
     // A Poly Line's segment count is num_points - 1 and is used to size the
     // per-segment lead/trail offset vectors below; a saved NumPoints < 2
@@ -908,9 +914,9 @@ Model* XmlDeserializingModelFactory::DeserializePolyLine(pugi::xml_node node, Mo
 Model* XmlDeserializingModelFactory::DeserializeSphere(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     SphereModel* model = new SphereModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
-    model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetNumMatrixStrings(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStrandsPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetStartLatitude(node.attribute(XmlNodeKeys::StartLatAttribute).as_int(-86));
     model->SetEndLatitude(node.attribute(XmlNodeKeys::EndLatAttribute).as_int(86));
     model->SetDegrees(node.attribute(XmlNodeKeys::DegreesAttribute).as_int(360));
@@ -952,8 +958,8 @@ Model* XmlDeserializingModelFactory::DeserializeSphere(pugi::xml_node node, Mode
 Model* XmlDeserializingModelFactory::DeserializeSpinner(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     SpinnerModel* model = new SpinnerModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumSpinnerStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetNodesPerArm(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerArmAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetNumSpinnerStrings(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerArm(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerArmAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetArmsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::ArmsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetHollow(node.attribute(XmlNodeKeys::HollowAttribute).as_int(20));
     model->SetStartAngle(node.attribute(XmlNodeKeys::StartAngleAttribute).as_int(0));
@@ -967,8 +973,8 @@ Model* XmlDeserializingModelFactory::DeserializeSpinner(pugi::xml_node node, Mod
 Model* XmlDeserializingModelFactory::DeserializeStar(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     StarModel* model = new StarModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumStarStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetStarNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetNumStarStrings(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetStarNodesPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetStarPoints(ReadAttrWithParmFallback(node, XmlNodeKeys::StarPointsAttribute, XmlNodeKeys::Parm3Attribute, "5"));
 
     // convert old star sizes to new Layer sizes setting
@@ -996,9 +1002,9 @@ Model* XmlDeserializingModelFactory::DeserializeStar(pugi::xml_node node, ModelM
 Model* XmlDeserializingModelFactory::DeserializeTree(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     TreeModel* model = new TreeModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumMatrixStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
-    model->SetStrandsPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetNumMatrixStrings(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetNodesPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "1"));
+    model->SetStrandsPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::StrandsPerStringAttribute, XmlNodeKeys::Parm3Attribute, "1"));
     model->SetAlternateNodes(std::string_view(node.attribute(XmlNodeKeys::AlternateNodesAttribute).as_string("false")) == "true");
     model->SetNoZigZag(std::string_view(node.attribute(XmlNodeKeys::NoZigZagAttribute).as_string("false")) == "true");
     model->SetVertical(std::string_view(node.attribute(XmlNodeKeys::StrandDirAttribute).as_string("Vertical")) == "Vertical");
@@ -1048,8 +1054,8 @@ Model* XmlDeserializingModelFactory::DeserializeWindow(pugi::xml_node node, Mode
 Model* XmlDeserializingModelFactory::DeserializeWreath(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     WreathModel* model = new WreathModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetNumWreathStrings(ReadAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
-    model->SetWreathNodesPerString(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
+    model->SetNumWreathStrings(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
+    model->SetWreathNodesPerString(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
     model->Setup();
     return model;
 }
