@@ -1,8 +1,8 @@
-// The OpenGL entry points ShaderEffect.cpp declares extern are defined by the
-// desktop UI layer (src-ui-wx/graphics/opengl/xlOGL3GraphicsContext.cpp). The
-// unit tests have no UI layer and no GL context, so define them (null) here;
-// otherwise the linker resolves the names against libGL's real functions.
-// Keep in sync with the extern list at the top of src-core/effects/ShaderEffect.cpp.
+// The OpenGL entry points ShaderEffect.cpp and OpenGLShaders.cpp declare extern
+// are defined by the desktop UI layer (src-ui-wx/graphics/opengl/
+// xlOGL3GraphicsContext.cpp). The unit tests have no UI layer and no GL context,
+// so define them (null) here; otherwise the linker resolves the names against
+// libGL's real functions. Keep in sync with the extern lists in those two files.
 #if !defined(__APPLE__)
 
 #ifdef _WIN32
@@ -47,5 +47,16 @@ PFNGLUNIFORM1IPROC glUniform1i;
 PFNGLUNIFORM1FPROC glUniform1f;
 PFNGLUNIFORM2FPROC glUniform2f;
 PFNGLUNIFORM4FPROC glUniform4f;
+PFNGLCREATESHADERPROC glCreateShader;
+PFNGLSHADERSOURCEPROC glShaderSource;
+PFNGLCOMPILESHADERPROC glCompileShader;
+PFNGLGETSHADERIVPROC glGetShaderiv;
+PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+PFNGLCREATEPROGRAMPROC glCreateProgram;
+PFNGLATTACHSHADERPROC glAttachShader;
+PFNGLLINKPROGRAMPROC glLinkProgram;
+PFNGLDETACHSHADERPROC glDetachShader;
+PFNGLDELETESHADERPROC glDeleteShader;
+PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 
 #endif
