@@ -333,6 +333,47 @@ out, then delete the staged files. The script refuses a binary that predates
 `--fseqhash` (an old build pops an "unrecognized option" dialog instead of failing).
 Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
 
+### Unit tests (Catch2)
+
+`tests/unit/` holds Catch2 tests for `src-core`. Every `tests/unit/test_*.cpp` is
+compiled into one executable; tests that need the real core (models, XML
+serialization, effects...) live in `tests/unit/core/`. Keep tests wx-free — the
+same rule as `src-core/`. Shared helpers are in `tests/unit/support/`
+(`TempDir.h`).
+
+**macOS (primary): Xcode.** Use the **`xLights-unit-tests`** scheme in
+`macOS/xLights.xcodeproj` (Cmd-R runs every test; edit the scheme's arguments for
+Catch2 filters such as `"[color]"`). It compiles `tests/unit/**` plus Catch2 from
+the `dependencies/Catch2` submodule and links `libxLights-core.a`,
+`libxLights-Apple-core.a` and `libISPCEffectComputeFunctions.a` with the same
+non-wx libraries and frameworks the app links. A new test file is picked up
+automatically; a test that needs a library the target doesn't link yet needs it
+added to that target's link settings.
+
+**Linux / CI: CMake.**
+
+```bash
+git submodule update --init            # spdlog pugixml nanosvg liquidfun midifile Catch2...
+cmake -S tests/unit -B build-tests -G Ninja -DXL_TEST_FULL_CORE=ON
+cmake --build build-tests && ctest --test-dir build-tests --output-on-failure
+```
+
+`-DXL_TEST_FULL_CORE=ON` builds the real `src-core` + effects as the static library
+`xlights_core` (`tests/unit/XLightsCoreLib.cmake`) from the same source list the root
+build uses (`cmake/XLightsCoreSources.cmake` — edit that file, not a copy, when a core
+`.cpp` is added or excluded). It needs the distro dev packages listed in
+`XLightsCoreLib.cmake` and **ISPC 1.31** (`Makefile` pins `ISPC_VERSION`; the distro
+`ispc` is too old — pass `-DCMAKE_ISPC_COMPILER=<path>`). Without the option, a lean
+build of a few leaf files (`core_sources.cmake`) needs no third-party libraries but
+skips `core/` tests; `-G Xcode`/Visual Studio generators work too. Windows full-core
+is not wired up yet (dependency discovery lives in the root build).
+`-DXL_BUILD_TESTS=ON` on the root build adds `tests/unit` as a subdirectory. CI runs
+this in the Ubuntu build container (`.github/workflows/Unit_Tests.yml`), which already has
+the dev packages and the pinned ISPC.
+`test_float_checks.cpp` is compiled with `-ffast-math` on purpose (see §6). Catch2
+3.8.1 is used from the system if present, else fetched. Render regressions are
+covered by the harness above, not here.
+
 ### Linux
 
 ```bash
