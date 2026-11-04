@@ -1113,7 +1113,9 @@ void OutputManager::SetGlobalForceLocalIP(const std::string& forceLocalIP)
         _globalForceLocalIP = forceLocalIP;
         _dirty = true;
         for (const auto& it : _controllers) {
-            it->SetGlobalFPPProxy(forceLocalIP);
+            if (auto* e = dynamic_cast<ControllerEthernet*>(it)) {
+                e->SetGlobalForceLocalIP(forceLocalIP);
+            }
         }
     }
 }

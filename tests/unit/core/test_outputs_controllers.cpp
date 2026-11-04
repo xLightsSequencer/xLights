@@ -549,7 +549,7 @@ TEST_CASE("Controller UpdateFrom reports changes", "[outputs]") {
     CHECK_FALSE(a->UpdateFrom(b.get()));
 }
 
-TEST_CASE("Ethernet UpdateFrom marks the controller dirty", "[outputs][!mayfail]") {
+TEST_CASE("Ethernet UpdateFrom marks the controller dirty", "[outputs]") {
     // ControllerEthernet::UpdateFrom only sets its own fields; _dirty is set solely by the base
     // class when a base field differs, so an IP-only change is never flagged for saving.
     OutputManager om;
@@ -607,7 +607,7 @@ TEST_CASE("Controller GetId and unique ids come from the manager", "[outputs]") 
     CHECK(fresh.GetId() == 1);
 }
 
-TEST_CASE("EnsureUniqueId keeps the output id in step", "[outputs][!mayfail]") {
+TEST_CASE("EnsureUniqueId keeps the output id in step", "[outputs]") {
     // Controller::EnsureUniqueId assigns _id directly instead of calling the virtual SetId, so
     // the Null/DDP/serial output keeps the stale id.
     OutputManager om;
@@ -741,7 +741,7 @@ TEST_CASE("Serial controller Copy and UpdateFrom", "[outputs]") {
     CHECK(copy->GetChannels() == 100);
 }
 
-TEST_CASE("Serial controller Copy keeps the port and speed", "[outputs][!mayfail]") {
+TEST_CASE("Serial controller Copy keeps the port and speed", "[outputs]") {
     // The copy constructor calls SetPort/SetSpeed/SetPrefix before _serialOutput is assigned,
     // and all of them do nothing while it is null, so the copy has an empty port and speed 0.
     OutputManager om;
@@ -779,4 +779,14 @@ TEST_CASE("Controller vendor model conversion table", "[outputs]") {
     CHECK(vendor.empty());
     CHECK(model.empty());
     CHECK(variant.empty());
+}
+
+TEST_CASE("Controller GetOutput rejects an index equal to the size", "[outputs]") {
+    OutputManager om;
+    auto c = Load(om, kEthXml);
+    const int n = c->GetOutputCount();
+    REQUIRE(n > 0);
+    CHECK(c->GetOutput(n - 1) != nullptr);
+    CHECK(c->GetOutput(n) == nullptr);
+    CHECK(c->GetOutput(-1) == nullptr);
 }
