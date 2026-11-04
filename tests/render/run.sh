@@ -35,8 +35,10 @@ done
 [ -x "$BIN" ] || { echo "--bin <xLights executable> is required" >&2; exit 2; }
 # A binary that predates --fseqhash would pop an "unrecognized option" dialog
 # on every call instead of failing, so check its own option list up front.
-HELP="$("$BIN" --help 2>&1)"
-printf '%s\n' "$HELP" | grep -q -- "fseqhash" || {
+# XL_TEST_SKIP_PREFLIGHT=1 skips it (CI builds the binary from the same commit, and on Windows --help may
+# open a dialog instead of printing).
+HELP=""; [ -n "${XL_TEST_SKIP_PREFLIGHT:-}" ] || HELP="$("$BIN" --help 2>&1)"
+[ -n "${XL_TEST_SKIP_PREFLIGHT:-}" ] || printf '%s\n' "$HELP" | grep -q -- "fseqhash" || {
     echo "$BIN does not support --fseqhash (or failed to start); its --help said:" >&2
     printf '%s\n' "$HELP" | head -8 >&2
     exit 2; }

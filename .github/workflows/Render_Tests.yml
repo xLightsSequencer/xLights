@@ -106,3 +106,68 @@ jobs:
         name: render-linux-x64
         path: results
         retention-days: 14
+
+  # Reuse the Windows CI build (it uploads the exe as the xLights_Exe artifact).
+  build-windows:
+    uses: ./.github/workflows/win_CI.yml
+
+  render-windows-x64:
+    needs: build-windows
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Read pinned test-data revision
+      id: data
+      run: echo "rev=$(tr -d '[:space:]' < tests/render/data.version)" >> "$GITHUB_OUTPUT"
+
+    - name: Check out test data
+      uses: actions/checkout@v4
+      with:
+        repository: xLightsSequencer/xLights-test-data
+        ref: ${{ steps.data.outputs.rev }}
+        path: xLights-test-data
+
+    - name: Download the Windows build
+      uses: actions/download-artifact@v4
+      with:
+        name: xLights_Exe
+        path: xlights-exe
+
+    - name: Render regression
+      timeout-minutes: 15
+      env:
+        XL_TEST_SKIP_PREFLIGHT: "1"
+      run: |
+        mkdir -p results
+        ls xlights-exe | head -5
+        bash tests/render/run.sh --bin "$PWD/xlights-exe/xLights.exe" --data "$PWD/xLights-test-data" \
+          --save results/render --junit results/render-windows-x64.xml
+
+    - name: Summary
+      if: always()
+      run: |
+        {
+          echo "### Render tests (Windows x64)"
+          if [ -f results/render-windows-x64.xml ]; then
+            grep -o '<testsuite [^>]*' results/render-windows-x64.xml | sed 's/<testsuite //'
+            echo
+            echo "Failed sequences:"
+            grep '<failure' results/render-windows-x64.xml | sed -e 's/.*name="\([^"]*\)".*message="\([^"]*\)".*/- \1: \2/' || true
+          else
+            echo "No report was produced (the harness failed before rendering)."
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: render-windows-x64
+        path: results
+        retention-days: 14
