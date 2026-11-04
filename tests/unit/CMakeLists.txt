@@ -14,9 +14,7 @@
 # executable. Growing coverage = add a source to core_sources.cmake (once the
 # test needs it) and drop a test_*.cpp next to this file.
 cmake_minimum_required(VERSION 3.20)
-if(NOT CMAKE_PROJECT_NAME)
-    project(xLights-unit-tests CXX C)
-endif()
+project(xLights-unit-tests CXX C)
 
 set(XL_REPO_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." CACHE INTERNAL "")
 get_filename_component(XL_REPO_ROOT "${XL_REPO_ROOT}" ABSOLUTE)
@@ -37,21 +35,38 @@ if(NOT Catch2_FOUND)
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/core_sources.cmake)
+# Two ways to get src-core under test:
+#   lean (default)  - the handful of leaf files in core_sources.cmake; no third-party
+#                     libraries needed. Runs everywhere.
+#   full core       - the real src-core as the static library xlights_core (the same
+#                     source list the root build uses), plus the tests in core/.
+#                     Needs the third-party dev packages (see XLightsCoreLib.cmake).
+option(XL_TEST_FULL_CORE "Link the tests against the whole of src-core (needs third-party libs)" OFF)
 
-add_library(xlights_core_testlib STATIC ${XL_TEST_CORE_SOURCES})
-target_include_directories(xlights_core_testlib PUBLIC
-    ${XL_REPO_ROOT}/src-core
-    ${XL_REPO_ROOT}/src-core/utils
-    ${CMAKE_CURRENT_LIST_DIR}                        # support/TempDir.h
-    ${XL_REPO_ROOT}/include                          # log.h
-    ${XL_REPO_ROOT}/dependencies/spdlog/include
-    ${XL_REPO_ROOT}/dependencies/pugixml/src)
-if(MSVC)
-    target_compile_options(xlights_core_testlib PUBLIC /utf-8)
+if(XL_TEST_FULL_CORE)
+    include(${CMAKE_CURRENT_LIST_DIR}/XLightsCoreLib.cmake)
+    add_library(xlights_core_testlib INTERFACE)
+    target_link_libraries(xlights_core_testlib INTERFACE xlights_core)
+else()
+    include(${CMAKE_CURRENT_LIST_DIR}/core_sources.cmake)
+    add_library(xlights_core_testlib STATIC ${XL_TEST_CORE_SOURCES})
+    target_include_directories(xlights_core_testlib PUBLIC
+        ${XL_REPO_ROOT}/src-core
+        ${XL_REPO_ROOT}/src-core/utils
+        ${CMAKE_CURRENT_LIST_DIR}                        # support/TempDir.h
+        ${XL_REPO_ROOT}/include                          # log.h
+        ${XL_REPO_ROOT}/dependencies/spdlog/include
+        ${XL_REPO_ROOT}/dependencies/pugixml/src)
+    if(MSVC)
+        target_compile_options(xlights_core_testlib PUBLIC /utf-8)
+    endif()
 endif()
 
 file(GLOB XL_TEST_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/test_*.cpp)
+if(XL_TEST_FULL_CORE)
+    file(GLOB XL_TEST_CORE_ONLY CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/core/test_*.cpp)
+    list(APPEND XL_TEST_SOURCES ${XL_TEST_CORE_ONLY})
+endif()
 add_executable(xlights_unit_tests ${XL_TEST_SOURCES})
 target_link_libraries(xlights_unit_tests PRIVATE xlights_core_testlib Catch2::Catch2WithMain)
 

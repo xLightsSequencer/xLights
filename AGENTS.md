@@ -335,34 +335,42 @@ Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
 
 ### Unit tests (Catch2)
 
-`tests/unit/` is a standalone CMake project (no wx, no dependency bundle) that
-builds a static `xlights_core_testlib` from the `src-core` files listed in
-`tests/unit/core_sources.cmake` and links every `tests/unit/test_*.cpp` into one
-Catch2 executable. Add a source to `core_sources.cmake` when a test needs it, then
-add a `test_*.cpp`. Keep tests to wx-free code — the same rule as `src-core/`.
+`tests/unit/` holds Catch2 tests for `src-core`. Every `tests/unit/test_*.cpp` is
+compiled into one executable; tests that need the real core (models, XML
+serialization, effects...) live in `tests/unit/core/`. Keep tests wx-free — the
+same rule as `src-core/`. Shared helpers are in `tests/unit/support/`
+(`TempDir.h`).
+
+**macOS (primary): Xcode.** Use the **`xLights-unit-tests`** scheme in
+`macOS/xLights.xcodeproj` (Cmd-R runs every test; edit the scheme's arguments for
+Catch2 filters such as `"[color]"`). It compiles `tests/unit/**` plus Catch2 from
+the `dependencies/Catch2` submodule and links `libxLights-core.a`,
+`libxLights-Apple-core.a` and `libISPCEffectComputeFunctions.a` with the same
+non-wx libraries and frameworks the app links. A new test file is picked up
+automatically; a test that needs a library the target doesn't link yet needs it
+added to that target's link settings.
+
+**Linux / CI: CMake.**
 
 ```bash
-cmake -S tests/unit -B build-tests -G Xcode     # macOS: open the generated .xcodeproj, or build below
-cmake --build build-tests --config Debug
-ctest --test-dir build-tests -C Debug --output-on-failure
+git submodule update --init            # spdlog pugixml nanosvg liquidfun midifile Catch2...
+cmake -S tests/unit -B build-tests -G Ninja -DXL_TEST_FULL_CORE=ON
+cmake --build build-tests && ctest --test-dir build-tests --output-on-failure
 ```
 
-On macOS you can instead use the **`xLights-unit-tests`** scheme in
-`macOS/xLights.xcodeproj` (Cmd-R runs every test; edit the scheme's arguments for
-Catch2 filters such as `"[color]"`). It compiles `tests/unit/test_*.cpp` plus
-Catch2 from the `dependencies/Catch2` submodule and links `libxLights-core.a`, so
-a test needs no source list there — but a test that pulls in a core object with
-extra dependencies (curl, FFmpeg, ...) must add the matching link flags to that
-target. Keep the CMake and Xcode paths both working. `tests/unit/support/` holds shared
-helpers (`TempDir.h`) and `ExternalHooksTestStubs.cpp`, which stands in for the
-Swift-based Apple file hooks so the Xcode target doesn't link `xLights-Apple-core`;
-it is Xcode-only (CMake globs just `test_*.cpp`). pugixml and spdlog are submodules
-(`git submodule update --init dependencies/spdlog dependencies/pugixml`).
-
-Use `-G Ninja` (or any generator) on Linux/Windows; `-DXL_BUILD_TESTS=ON` on the
-root build also adds it. Catch2 3.8.1 is used from the system if present, else
-fetched. `test_float_checks.cpp` is compiled with `-ffast-math` on purpose (see §6).
-Render regressions are covered by the harness above, not here.
+`-DXL_TEST_FULL_CORE=ON` builds the real `src-core` + effects as the static library
+`xlights_core` (`tests/unit/XLightsCoreLib.cmake`) from the same source list the root
+build uses (`cmake/XLightsCoreSources.cmake` — edit that file, not a copy, when a core
+`.cpp` is added or excluded). It needs the distro dev packages listed in
+`XLightsCoreLib.cmake` and **ISPC 1.31** (`Makefile` pins `ISPC_VERSION`; the distro
+`ispc` is too old — pass `-DCMAKE_ISPC_COMPILER=<path>`). Without the option, a lean
+build of a few leaf files (`core_sources.cmake`) needs no third-party libraries but
+skips `core/` tests; `-G Xcode`/Visual Studio generators work too. Windows full-core
+is not wired up yet (dependency discovery lives in the root build).
+`-DXL_BUILD_TESTS=ON` on the root build adds `tests/unit` as a subdirectory.
+`test_float_checks.cpp` is compiled with `-ffast-math` on purpose (see §6). Catch2
+3.8.1 is used from the system if present, else fetched. Render regressions are
+covered by the harness above, not here.
 
 ### Linux
 
