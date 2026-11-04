@@ -353,7 +353,11 @@ Catch2 filters such as `"[color]"`). It compiles `tests/unit/test_*.cpp` plus
 Catch2 from the `dependencies/Catch2` submodule and links `libxLights-core.a`, so
 a test needs no source list there — but a test that pulls in a core object with
 extra dependencies (curl, FFmpeg, ...) must add the matching link flags to that
-target. Keep the CMake and Xcode paths both working.
+target. Keep the CMake and Xcode paths both working. `tests/unit/support/` holds shared
+helpers (`TempDir.h`) and `ExternalHooksTestStubs.cpp`, which stands in for the
+Swift-based Apple file hooks so the Xcode target doesn't link `xLights-Apple-core`;
+it is Xcode-only (CMake globs just `test_*.cpp`). pugixml and spdlog are submodules
+(`git submodule update --init dependencies/spdlog dependencies/pugixml`).
 
 Use `-G Ninja` (or any generator) on Linux/Windows; `-DXL_BUILD_TESTS=ON` on the
 root build also adds it. Catch2 3.8.1 is used from the system if present, else

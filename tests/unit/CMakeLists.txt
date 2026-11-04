@@ -40,7 +40,13 @@ endif()
 include(${CMAKE_CURRENT_LIST_DIR}/core_sources.cmake)
 
 add_library(xlights_core_testlib STATIC ${XL_TEST_CORE_SOURCES})
-target_include_directories(xlights_core_testlib PUBLIC ${XL_REPO_ROOT}/src-core ${XL_REPO_ROOT}/src-core/utils)
+target_include_directories(xlights_core_testlib PUBLIC
+    ${XL_REPO_ROOT}/src-core
+    ${XL_REPO_ROOT}/src-core/utils
+    ${CMAKE_CURRENT_LIST_DIR}                        # support/TempDir.h
+    ${XL_REPO_ROOT}/include                          # log.h
+    ${XL_REPO_ROOT}/dependencies/spdlog/include
+    ${XL_REPO_ROOT}/dependencies/pugixml/src)
 if(MSVC)
     target_compile_options(xlights_core_testlib PUBLIC /utf-8)
 endif()
