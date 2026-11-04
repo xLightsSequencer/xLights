@@ -80,7 +80,7 @@ jobs:
       run: cmake --build build-tests -j $(nproc)
 
     - name: Test
-      run: ctest --test-dir build-tests --output-on-failure
+      run: ctest --test-dir build-tests --output-on-failure -j $(nproc)
 
     - name: ccache stats
       run: ccache --show-stats
