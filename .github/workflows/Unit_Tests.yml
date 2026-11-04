@@ -1,0 +1,79 @@
+name: Unit Tests
+
+# Catch2 tests for src-core (tests/unit). Runs in the same build container as
+# Ubuntu CI, which already has the dev packages and the pinned ISPC.
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src-core/**'
+      - 'tests/unit/**'
+      - 'cmake/**'
+      - 'dependencies/**'
+      - '.github/workflows/Unit_Tests.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'src-core/**'
+      - 'tests/unit/**'
+      - 'cmake/**'
+      - 'dependencies/**'
+      - '.github/workflows/Unit_Tests.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-24.04
+
+    container:
+      image: ghcr.io/xlightssequencer/xlights-build-docker:master
+
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    - name: Restore ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: ccache-unit-tests-${{ github.sha }}
+        restore-keys: |
+          ccache-unit-tests-
+
+    - name: Configure ccache
+      run: |
+        ccache --max-size=2G
+        ccache --set-config=compression=true
+        ccache --zero-stats
+
+    - name: Tools
+      run: |
+        command -v cmake ninja || (apt-get update -qq && apt-get install -y -qq cmake ninja-build)
+        ispc --version
+        cat /etc/ispc_version || true
+
+    - name: Configure
+      run: |
+        cmake -S tests/unit -B build-tests -G Ninja \
+          -DXL_TEST_FULL_CORE=ON \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_ISPC_COMPILER=$(command -v ispc) \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+    - name: Build
+      run: cmake --build build-tests -j $(nproc)
+
+    - name: Test
+      run: ctest --test-dir build-tests --output-on-failure
+
+    - name: ccache stats
+      run: ccache --show-stats

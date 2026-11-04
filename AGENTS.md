@@ -367,7 +367,9 @@ build uses (`cmake/XLightsCoreSources.cmake` — edit that file, not a copy, whe
 build of a few leaf files (`core_sources.cmake`) needs no third-party libraries but
 skips `core/` tests; `-G Xcode`/Visual Studio generators work too. Windows full-core
 is not wired up yet (dependency discovery lives in the root build).
-`-DXL_BUILD_TESTS=ON` on the root build adds `tests/unit` as a subdirectory.
+`-DXL_BUILD_TESTS=ON` on the root build adds `tests/unit` as a subdirectory. CI runs
+this in the Ubuntu build container (`.github/workflows/Unit_Tests.yml`), which already has
+the dev packages and the pinned ISPC.
 `test_float_checks.cpp` is compiled with `-ffast-math` on purpose (see §6). Catch2
 3.8.1 is used from the system if present, else fetched. Render regressions are
 covered by the harness above, not here.
