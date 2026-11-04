@@ -347,6 +347,14 @@ cmake --build build-tests --config Debug
 ctest --test-dir build-tests -C Debug --output-on-failure
 ```
 
+On macOS you can instead use the **`xLights-unit-tests`** scheme in
+`macOS/xLights.xcodeproj` (Cmd-R runs every test; edit the scheme's arguments for
+Catch2 filters such as `"[color]"`). It compiles `tests/unit/test_*.cpp` plus
+Catch2 from the `dependencies/Catch2` submodule and links `libxLights-core.a`, so
+a test needs no source list there — but a test that pulls in a core object with
+extra dependencies (curl, FFmpeg, ...) must add the matching link flags to that
+target. Keep the CMake and Xcode paths both working.
+
 Use `-G Ninja` (or any generator) on Linux/Windows; `-DXL_BUILD_TESTS=ON` on the
 root build also adds it. Catch2 3.8.1 is used from the system if present, else
 fetched. `test_float_checks.cpp` is compiled with `-ffast-math` on purpose (see §6).
