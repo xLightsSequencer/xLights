@@ -361,6 +361,8 @@ public:
     VulkanBuffer dissolveBuffer;
 
     bool enabled = false;
+    // Which device, and why compute is off when it is (GPURenderUtils::Status).
+    std::string status = "Vulkan: not initialised";
     std::atomic<bool> pg{false};
     uint32_t bufferSizeThreshold = 8192;
 

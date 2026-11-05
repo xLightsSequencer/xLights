@@ -1542,7 +1542,13 @@ MetalComputeUtilities::MetalComputeUtilities() {
     if (device == nil) {
         device = MTLCreateSystemDefaultDevice();
     }
+    if (device == nil) {
+        status = "Metal: no device";
+        return;
+    }
+    std::string name = device.name ? [device.name UTF8String] : "?";
     if (device.argumentBuffersSupport == MTLArgumentBuffersTier1) {
+        status = "Metal: '" + name + "' only has tier 1 argument buffers; compute disabled";
         device = nil;
         return;
     }
@@ -1561,6 +1567,8 @@ MetalComputeUtilities::MetalComputeUtilities() {
     NSString *libraryFile = [[NSBundle mainBundle] pathForResource:@"EffectComputeFunctions" ofType:@"metallib"];
     if (!libraryFile) {
         NSLog(@"Library file error");
+        status = "Metal: '" + name + "', but EffectComputeFunctions.metallib is not in " +
+                 std::string([[[NSBundle mainBundle] bundlePath] UTF8String]) + "; compute disabled";
         return;
     }
     
@@ -1568,12 +1576,15 @@ MetalComputeUtilities::MetalComputeUtilities() {
     library = [device newLibraryWithURL:libraryURL error:&libraryError];
     if (!library) {
         NSLog(@"Library error: %@", libraryError);
+        status = "Metal: '" + name + "', but EffectComputeFunctions.metallib did not load (" +
+                 std::string(libraryError ? [[libraryError localizedDescription] UTF8String] : "?") + "); compute disabled";
         return;
     }
     [library setLabel:@"EffectComputeFunctionsLibrary"];
     
     commandQueue = [device newCommandQueueWithMaxCommandBufferCount:MAX_COMMANDBUFFER_COUNT];
     if (!commandQueue) {
+        status = "Metal: '" + name + "', but no command queue; compute disabled";
         return;
     }
     [commandQueue setLabel:@"MetalEffectCommandQueue"];
@@ -1581,6 +1592,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
     printf("CommandQueue: %p\n", (__bridge void*)commandQueue);
 #endif
     enabled = true;
+    status = "Metal: '" + name + "'";
 
     // Sweepable without a rebuild so the GPU/CPU break-even can be compared
     // against the other backends (see the Vulkan side).

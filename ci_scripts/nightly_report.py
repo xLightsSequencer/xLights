@@ -27,13 +27,32 @@ import xml.etree.ElementTree as ET
 MAX_LISTED = 20
 
 
+def skip_reason(case, skip):
+    """The reason a skipped testcase gives. Catch2's JUnit reporter writes "SKIPPED", the
+    SKIP() message and an "at file:line" as the element text; ctest's JUnit leaves the
+    Catch2 console output in system-out, where the message follows "explicitly with message:"."""
+    lines = [l.strip() for l in (skip.text or "").splitlines()]
+    lines = [l for l in lines if l and l != "SKIPPED" and not l.startswith("at ")]
+    if lines:
+        return lines[0][:200]
+    out = case.find("system-out")
+    if out is not None and out.text:
+        console = [l.strip() for l in out.text.splitlines()]
+        for i, l in enumerate(console):
+            if l == "explicitly with message:" and i + 1 < len(console):
+                return console[i + 1][:200]
+    return (skip.get("message") or "").strip()[:200]
+
+
 def parse_report(path):
-    """Return (tests, failed[(name, message)], skipped, seconds, properties) for one XML file."""
+    """Return (tests, failed[(name, message)], skipped[(name, message)], seconds, properties)
+    for one XML file."""
     root = ET.parse(path).getroot()
     suites = [root] if root.tag == "testsuite" else list(root.iter("testsuite"))
-    tests = skipped = 0
+    tests = 0
     seconds = 0.0
     failed = []
+    skipped = []
     props = {}
     for suite in suites:
         try:
@@ -49,12 +68,13 @@ def parse_report(path):
                 bad = case.find("error")
             skip = case.find("skipped")
             if bad is not None and skip is not None and "mayfail" in (skip.get("message") or ""):
-                skipped += 1        # Catch2 [!mayfail]: a known failure, not counted against the run
+                # Catch2 [!mayfail]: a known failure, not counted against the run
+                skipped.append((case.get("name", "?"), "known failure ([!mayfail])"))
             elif bad is not None:
                 msg = (bad.get("message") or (bad.text or "")).strip().splitlines()
                 failed.append((case.get("name", "?"), msg[0][:200] if msg else ""))
-            elif case.find("skipped") is not None:
-                skipped += 1
+            elif skip is not None:
+                skipped.append((case.get("name", "?"), skip_reason(case, skip)))
     return tests, failed, skipped, seconds, props
 
 
@@ -76,7 +96,7 @@ def collect(results_dir):
         if not xmls:
             continue
         suite, platform = split_id(entry)
-        agg = {"artifact": entry, "suite": suite, "platform": platform, "tests": 0, "skipped": 0,
+        agg = {"artifact": entry, "suite": suite, "platform": platform, "tests": 0, "skipped": [],
                "time": 0.0, "failed": [], "properties": {}, "status": "ok"}
         for x in xmls:
             try:
@@ -110,7 +130,7 @@ def main():
         if name not in found:
             suite, platform = split_id(name)
             found[name] = {"artifact": name, "suite": suite, "platform": platform, "tests": 0,
-                           "skipped": 0, "time": 0.0, "failed": [("(whole suite)", "no report was produced")],
+                           "skipped": [], "time": 0.0, "failed": [("(whole suite)", "no report was produced")],
                            "properties": {}, "status": "no-report"}
     suites = sorted(found.values(), key=lambda s: (s["suite"], s["platform"]))
 
@@ -131,7 +151,7 @@ def main():
     for s in suites:
         mark = "" if s["status"] == "ok" else (" **no report**" if s["status"] == "no-report" else "")
         lines.append("| %s | %s | %d | %d%s | %d | %.0f |" % (
-            s["suite"], s["platform"], s["tests"], len(s["failed"]), mark, s["skipped"], s["time"]))
+            s["suite"], s["platform"], s["tests"], len(s["failed"]), mark, len(s["skipped"]), s["time"]))
     lines.append("")
     lines.append("**%d tests, %d failed.**" % (total_tests, total_failed))
     for s in suites:
@@ -142,6 +162,14 @@ def main():
             lines.append("- `%s`%s" % (name, (": " + msg) if msg else ""))
         if len(s["failed"]) > MAX_LISTED:
             lines.append("- ...and %d more" % (len(s["failed"]) - MAX_LISTED))
+    for s in suites:
+        if not s["skipped"]:
+            continue
+        lines += ["", "#### Skipped: %s (%s)" % (s["suite"], s["platform"])]
+        for name, msg in s["skipped"][:MAX_LISTED]:
+            lines.append("- `%s`%s" % (name, (": " + msg) if msg else ""))
+        if len(s["skipped"]) > MAX_LISTED:
+            lines.append("- ...and %d more" % (len(s["skipped"]) - MAX_LISTED))
     coverage = None
     if args.coverage:
         try:
@@ -161,8 +189,9 @@ def main():
     out["totals"] = {"tests": total_tests, "failed": total_failed, "suites": len(suites)}
     out["suites"] = [{"suite": s["suite"], "platform": s["platform"], "artifact": s["artifact"],
                       "status": s["status"], "tests": s["tests"], "failed_count": len(s["failed"]),
-                      "skipped": s["skipped"], "time": round(s["time"], 2),
+                      "skipped": len(s["skipped"]), "time": round(s["time"], 2),
                       "failed": [{"name": n, "message": m} for n, m in s["failed"]],
+                      "skipped_tests": [{"name": n, "message": m} for n, m in s["skipped"][:MAX_LISTED]],
                       "properties": s["properties"]} for s in suites]
     if coverage and coverage.get("lines"):
         out["coverage"] = coverage

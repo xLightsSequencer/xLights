@@ -126,6 +126,7 @@ payload = {"event_type": "xcode-cloud-results",
 if len(json.dumps(payload)) > 60000:          # the API limit is 65535 characters: keep fewer failure details
     for s in res["suites"]:
         s["failed"] = s["failed"][:5]
+        s["skipped_tests"] = s.get("skipped_tests", [])[:5]
 with open(sys.argv[2], "w") as f:
     json.dump(payload, f)
 PY

@@ -165,6 +165,8 @@ public:
     id<MTLComputePipelineState> FindComputeFunction(const char *name);
 
     bool enabled = true;
+    // Which device, and why compute is off when it is (GPURenderUtils::Status).
+    std::string status;
     std::atomic<bool> pg = false;
 
     id<MTLDevice> device;

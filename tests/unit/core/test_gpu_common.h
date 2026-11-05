@@ -32,8 +32,10 @@ inline bool GpuCompute() {
     return GPURenderUtils::IsEnabled();
 }
 
+// The skip message names the backend and device and why compute is off, so a
+// CI report shows why the GPU tests did not run there.
 #define XL_REQUIRE_GPU() \
-    if (!gpuhelp::GpuCompute()) SKIP("no GPU compute backend (on Linux, XL_VULKAN_ALLOW_CPU=1 allows a software Vulkan device)")
+    if (!gpuhelp::GpuCompute()) SKIP("no GPU compute: " << GPURenderUtils::Status())
 
 struct GpuPreference {
     bool saved = GPURenderUtils::IsPreferenceEnabled();

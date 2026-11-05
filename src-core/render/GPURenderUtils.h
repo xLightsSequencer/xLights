@@ -31,6 +31,11 @@ public:
     // device - see VulkanComputeUtilities::computeWorthwhile) can still serve
     // it, and IsEnabled() would wrongly send it to a solid-colour fill.
     static bool IsPreferenceEnabled() { return INSTANCE != nullptr && INSTANCE->preferenceEnabled(); }
+    // The backend and device, and why compute is off when it is - for a log,
+    // a report or a skipped test.
+    static std::string Status() {
+        return INSTANCE == nullptr ? std::string("no GPU backend in this build") : INSTANCE->backendStatus();
+    }
     static void SetEnabled(bool b) {
         if (INSTANCE) {
             INSTANCE->enable(b);
@@ -185,6 +190,7 @@ protected:
     // Default: same answer as enabled().  A backend whose enabled() folds in
     // more than the preference overrides this (see VulkanRenderUtils).
     virtual bool preferenceEnabled() { return enabled(); }
+    virtual std::string backendStatus() { return "unknown"; }
     virtual void enable(bool b) = 0;
     virtual void doCleanUp(PixelBufferClass *c) = 0;
     virtual void doCleanUp(RenderBuffer *c) = 0;

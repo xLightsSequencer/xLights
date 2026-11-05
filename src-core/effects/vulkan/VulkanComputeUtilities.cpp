@@ -169,6 +169,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vulkanDebugCallback(
 bool VulkanComputeUtilities::createInstance(bool wantValidation) {
     uint32_t loaderVersion = volkGetInstanceVersion();
     if (loaderVersion < VK_API_VERSION_1_1) {
+        status = "Vulkan: loader/ICD only supports 1.0";
         spdlog::info("Vulkan compute disabled: loader/ICD only supports 1.0");
         return false;
     }
@@ -259,6 +260,7 @@ bool VulkanComputeUtilities::createInstance(bool wantValidation) {
 
     VkResult res = vkCreateInstance(&ci, nullptr, &instance);
     if (res != VK_SUCCESS) {
+        status = fmt::format("Vulkan: vkCreateInstance failed ({})", (int)res);
         spdlog::info("Vulkan compute disabled: vkCreateInstance failed ({})", (int)res);
         return false;
     }
@@ -282,6 +284,7 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
     uint32_t count = 0;
     vkEnumeratePhysicalDevices(instance, &count, nullptr);
     if (count == 0) {
+        status = "Vulkan: no physical devices";
         spdlog::info("Vulkan compute disabled: no physical devices");
         return false;
     }
@@ -380,12 +383,15 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
         }
     }
     if (physicalDevice == VK_NULL_HANDLE) {
+        status = "Vulkan: no usable device";
         spdlog::info("Vulkan compute disabled: no usable device");
         xlGraphicsCapability::Instance().RecordNoVulkanDevice();
         return false;
     }
     computeWorthwhile = (deviceType != VK_PHYSICAL_DEVICE_TYPE_CPU) || allowCpuCompute;
+    status = "Vulkan: '" + deviceName + "'";
     if (!computeWorthwhile) {
+        status += " is a CPU implementation; compute stays on the CPU (XL_VULKAN_ALLOW_CPU=1 to use it)";
         spdlog::info("Vulkan: '{}' is a CPU implementation - using it for shaders only, compute effects stay on the CPU/ISPC path (XL_VULKAN_ALLOW_CPU=1 to use it for compute as well)",
                      deviceName);
     }
@@ -450,6 +456,7 @@ bool VulkanComputeUtilities::createDeviceAndQueue() {
 
     VkResult res = vkCreateDevice(physicalDevice, &ci, nullptr, &device);
     if (res != VK_SUCCESS) {
+        status = fmt::format("Vulkan: vkCreateDevice failed ({})", (int)res);
         spdlog::info("Vulkan compute disabled: vkCreateDevice failed ({})", (int)res);
         return false;
     }
@@ -485,9 +492,11 @@ void VulkanComputeUtilities::doInit() {
     // Must never touch libvulkan when disabled so XL_NO_GPU_COMPUTE gives a
     // pure-CPU run for A/B determinism testing.
     if (envSet("XL_NO_GPU_COMPUTE")) {
+        status = "Vulkan: off (XL_NO_GPU_COMPUTE)";
         return;
     }
     if (volkInitialize() != VK_SUCCESS) {
+        status = "Vulkan: no Vulkan loader";
         spdlog::info("Vulkan compute disabled: no Vulkan loader");
         return;
     }
@@ -499,6 +508,7 @@ void VulkanComputeUtilities::doInit() {
     }
     enabled = true;
     if (!buildPipelines()) {
+        status = "Vulkan: pipeline creation failed";
         spdlog::info("Vulkan compute disabled: pipeline creation failed");
         enabled = false;
         return;

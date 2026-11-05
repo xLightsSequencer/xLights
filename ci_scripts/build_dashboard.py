@@ -102,6 +102,7 @@ def make_entry(results, run_url):
             "tests": tests, "passed": max(tests - failed, 0), "failed": failed, "skipped": s["skipped"],
             "seconds": s["time"], "render_seconds": rs,
             "failed_names": [{"name": f["name"], "message": f["message"]} for f in s["failed"][:MAX_FAILED]],
+            "skipped_names": [{"name": t["name"], "message": t["message"]} for t in s.get("skipped_tests", [])[:MAX_FAILED]],
         }
     if not str(run_url).startswith(("https://", "http://")):
         run_url = ""
@@ -289,6 +290,18 @@ def render(history, report=None):
                 parts.append("<li><code>%s</code>%s</li>" % (esc(f["name"]), (": " + esc(f["message"])) if f["message"] else ""))
             if s["failed"] > len(s["failed_names"]):
                 parts.append("<li>...and %d more (see the run log)</li>" % (s["failed"] - len(s["failed_names"])))
+            parts.append("</ul>")
+        parts.append("</section>")
+
+    skipping = [(k, carry[k][1]) for k in all_keys if carry[k][1].get("skipped_names")]
+    if skipping:
+        parts.append("<section><h2>Skipped</h2>")
+        for k, s in skipping:
+            parts.append("<h3>%s</h3><ul class='skips'>" % esc(label(s["suite"], s["platform"])))
+            for t in s["skipped_names"]:
+                parts.append("<li><code>%s</code>%s</li>" % (esc(t["name"]), (": " + esc(t["message"])) if t["message"] else ""))
+            if s["skipped"] > len(s["skipped_names"]):
+                parts.append("<li>...and %d more (see the run log)</li>" % (s["skipped"] - len(s["skipped_names"])))
             parts.append("</ul>")
         parts.append("</section>")
 
