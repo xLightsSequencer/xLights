@@ -885,7 +885,7 @@ std::string SequenceFile::UniqueTimingName(RenderContext* xLightsParent, std::st
 
 void SequenceFile::ProcessXTiming(const pugi::xml_node& node, RenderContext* xLightsParent)
 {
-    std::string name = UnXmlSafe(node.attribute("name").as_string(""));
+    std::string name = node.attribute("name").as_string("");
     //std::string v = node.attribute("SourceVersion").as_string("");
     std::string st = node.attribute("subType").as_string("");
 
@@ -913,7 +913,7 @@ void SequenceFile::ProcessXTiming(const pugi::xml_node& node, RenderContext* xLi
             {
                 if (strcmp(effects.name(), "Effect") == 0)
                 {
-                    std::string label = UnXmlSafe(effects.attribute("label").as_string(""));
+                    std::string label = effects.attribute("label").as_string("");
                     std::string start = effects.attribute("starttime").as_string("");
                     std::string end = effects.attribute("endtime").as_string("");
                     int s = std::strtol(start.c_str(), nullptr, 10);
@@ -1498,7 +1498,7 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
                     for (int k = 0; k < layer->GetEffectCount(); ++k) {
                         Effect* effect = layer->GetEffect(k);
                         auto effect_node = effect_layer_node.append_child("Effect");
-                        effect_node.append_attribute("label") = effect->GetEffectName();
+                        effect_node.append_attribute("label") = XmlSafe(effect->GetEffectName());
                         if (effect->GetProtected()) {
                             effect_node.append_attribute("protected") = "1";
                         }

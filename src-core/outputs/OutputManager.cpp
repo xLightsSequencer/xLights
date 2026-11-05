@@ -1031,7 +1031,7 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
         }
         else {
             auto parts = Split(startChannelString, ':');
-            if (parts.size() > 2) return 0;
+            if (parts.size() != 2) return 0;
             int output = (int)strtol(parts[0].c_str(), nullptr, 10);
             long sc = strtol(parts[1].c_str(), nullptr, 10);
             if (output < 1) return 0;
@@ -1042,7 +1042,9 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
         }
     }
     else {
-        return strtol(startChannelString.c_str(), nullptr, 10);
+        long sc = strtol(startChannelString.c_str(), nullptr, 10);
+        if (sc < 0 || sc > INT32_MAX) return 0;
+        return (int32_t)sc;
     }
 }
 #pragma endregion

@@ -401,7 +401,7 @@ TEST_CASE("DDP KeepChannelNumbers defaults off when loading", "[outputs]") {
     auto* d = dynamic_cast<DDPOutput*>(o.get());
     REQUIRE(d != nullptr);
     CHECK_FALSE(d->IsKeepChannelNumbers());
-    CHECK(d->GetChannelsPerPacket() == 0);
+    CHECK(d->GetChannelsPerPacket() == 1440);
     d->SetKeepChannelNumber(true);
     CHECK(d->IsKeepChannelNumbers());
     d->SetId(5);

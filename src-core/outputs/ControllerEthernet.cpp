@@ -819,7 +819,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
     }
     else {
 
-        int channels_per_universe = universeSize;
+        int channels_per_universe = universeSize > 0 ? (int)universeSize : 510;
         int universes = 0;
         if (IsUniversePerString() && models.size() > 0) {
             // number of universes should equal sum(((stringsize -1) / 510) + 1)
@@ -850,6 +850,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
             else {
 
             if (_outputs.size() != 0) channels_per_universe = _outputs.front()->GetChannels();
+            if (channels_per_universe <= 0) channels_per_universe = 510;
             }
 
             //calculate required universes

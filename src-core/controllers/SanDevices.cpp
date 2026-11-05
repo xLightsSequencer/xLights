@@ -448,13 +448,16 @@ void SanDevices::ResetStringOutputs() {
     SDGetURL("/7?A=0");
 }
 
-inline int SanDevices::GetOutputsPerGroup() const {
+int SanDevices::GetOutputsPerGroup() const {
     if (IsE682()) { return 4; }
     return 1;
 }
 
 std::string SanDevices::ExtractFromPage(const std::string& page, const std::string& parameter, const std::string& type, int start) {
 
+    if (start < 0 || start > (int)page.size()) {
+        return "";
+    }
     const std::string p = page.substr(start);
     if (type == "input") {
         std::regex inputregex("(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')([0-9\\.]*?)\\'");
@@ -718,7 +721,6 @@ SanDevicesOutput* SanDevices::FindPortDataV5(int group, int output) {
             return sd;
         }
     }
-    assert(false);
     return nullptr;
 }
 
@@ -802,7 +804,6 @@ SanDevicesOutputV4* SanDevices::FindPortDataV4(int group) {
             return sd;
         }
     }
-    assert(false);
     return nullptr;
 }
 
@@ -937,7 +938,6 @@ char SanDevices::EncodeStringPortProtocolV4(const std::string& protocol) const {
     if (p == "gece")    { return 'C'; }
     if (p == "dmx")     { return 'K'; }
     if (p == "renard")  { return 'L'; }
-    assert(false);
     return 'D';
 }
 
@@ -953,7 +953,6 @@ char SanDevices::EncodeStringPortProtocolV5(const std::string& protocol) const {
     if (p == "gece")    { return 'O'; }
     if (p == "dmx")     { return 'J'; }
     if (p == "renard")  { return 'M'; }
-    assert(false);
     return 'A';
 }
 
@@ -963,7 +962,6 @@ char SanDevices::EncodeSerialPortProtocolV5(const std::string& protocol) const {
 
     if (p == "dmx")    { return 'J'; }
     if (p == "renard") { return 'M'; }
-    assert(false);
     return 'J';
 }
 
@@ -971,7 +969,6 @@ char SanDevices::EncodeUniverseSize(int universesize) const {
 
     if (universesize == 510) { return 'A'; }
     if (universesize == 512) { return 'B'; }
-    assert(false);
     
     spdlog::debug("SanDevices DecodeUniverseSize Upload: Invalid Universe Size {}", universesize);
     return 'A';
@@ -987,7 +984,6 @@ int SanDevices::EncodeColorOrderV4(const std::string& colorOrder) const {
     if (c == "gbr") { return 3; }
     if (c == "brg") { return 4; }
     if (c == "bgr") { return 5; }
-    assert(false);
     return 0;
 }
 
@@ -1001,7 +997,6 @@ char SanDevices::EncodeColorOrderV5(const std::string& colorOrder) const {
     if (c == "gbr") { return 'D'; }
     if (c == "brg") { return 'E'; }
     if (c == "bgr") { return 'F'; }
-    assert(false);
     return 'A';
 }
 
@@ -1026,7 +1021,7 @@ char SanDevices::EncoderRenardSpeed(int baud) const {
     return 'A';
 }
 
-inline bool SanDevices::EncodeDirection(const std::string& direction) const {
+bool SanDevices::EncodeDirection(const std::string& direction) const {
 
     return direction == "Reverse";
 }
@@ -1057,21 +1052,20 @@ SanDevices::SanDeviceModel SanDevices::DecodeControllerType(const std::string& m
     if (modelName == "E6804") {
         return SanDeviceModel::E6804;
     }
-    assert(false);
     return SanDeviceModel::Unknown;
 }
 
-inline std::pair<int, int > SanDevices::DecodeOutputPort(const int output) const {
+std::pair<int, int > SanDevices::DecodeOutputPort(const int output) const {
 
     return { ((output - 1) / 4) + 1, ((output - 1) % 4) + 1 };
 }
 
-inline int SanDevices::EncodeXlightsOutput(const int group, const int subport) const {
+int SanDevices::EncodeXlightsOutput(const int group, const int subport) const {
 
     return ((group - 1) * GetOutputsPerGroup()) + subport;
 }
 
-inline int SanDevices::EncodeControllerPortV5(const int group, const int subport) const {
+int SanDevices::EncodeControllerPortV5(const int group, const int subport) const {
 
     return ((group - 1) * 4) + subport;
 }

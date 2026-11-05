@@ -166,7 +166,7 @@ void BaseSerializingVisitor::AddCommonModelAttributes(const Model& model, AttrCo
     if (!model.GetDescription().empty()) {
         attrs.Add(XmlNodeKeys::DescriptionAttribute, model.GetDescription());
     }
-    if (model.GetTagColourAsString() != "#000000") {
+    if (!model.GetTagColourAsString().empty() && model.GetTagColourAsString() != "#000000") {
         attrs.Add(XmlNodeKeys::TagColourAttribute, model.GetTagColourAsString());
     }
     attrs.Add(XmlNodeKeys::StartChannelAttribute, model.GetModelStartChannel());
@@ -435,9 +435,9 @@ void BaseSerializingVisitor::WriteServoElement(const Servo* servo) {
     attrs.Add("MinLimit",            std::to_string(servo->GetMinLimit()));
     attrs.Add("MaxLimit",            std::to_string(servo->GetMaxLimit()));
     attrs.Add("RangeOfMotion",       std::to_string(servo->GetRangeOfMotion()));
-    attrs.Add("PivotOffsetX",        std::to_string(servo->GetPivotOffsetX()));
-    attrs.Add("PivotOffsetY",        std::to_string(servo->GetPivotOffsetY()));
-    attrs.Add("PivotOffsetZ",        std::to_string(servo->GetPivotOffsetZ()));
+    attrs.Add("PivotOffsetX",        std::to_string(servo->GetScaledPivotOffsetX()));
+    attrs.Add("PivotOffsetY",        std::to_string(servo->GetScaledPivotOffsetY()));
+    attrs.Add("PivotOffsetZ",        std::to_string(servo->GetScaledPivotOffsetZ()));
     attrs.Add("ServoStyle",          servo->GetStyle());
     attrs.Add("ControllerMin",       std::to_string(servo->GetControllerMin()));
     attrs.Add("ControllerMax",       std::to_string(servo->GetControllerMax()));
@@ -859,7 +859,7 @@ void BaseSerializingVisitor::Visit(const ModelGroup& model) {
         attrs.Add("centreMaxx",    std::to_string(model.GetCentreMaxx()));
         attrs.Add("centreMaxy",    std::to_string(model.GetCentreMaxy()));
     }
-    if (model.GetTagColourAsString() != "#000000") {
+    if (!model.GetTagColourAsString().empty() && model.GetTagColourAsString() != "#000000") {
         attrs.Add(XmlNodeKeys::TagColourAttribute, model.GetTagColourAsString());
     }
 
