@@ -3,6 +3,7 @@
 
 #include "render/ValueCurve.h"
 
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -332,6 +333,29 @@ TEST_CASE("ValueCurve Custom round trip keeps points", "[curves][valuecurve]") {
     CHECK(back.GetPointCount() == 3);
     CHECK_THAT(back.GetPointAt(0.4f), WithinAbs(0.9, 1e-3));
     CHECK_THAT(back.GetValueAt(0.2f, 0, 1000), WithinAbs(0.5, 1e-3));
+    CHECK(back.Serialise() == s);
+}
+
+TEST_CASE("ValueCurve Custom round trip keeps half-step x and third-decimal y", "[curves][valuecurve]") {
+    ValueCurve vc("ID_X", 0, 100, "Custom", 1);
+    vc.SetValueAt(0.0f, 1.0f);
+    vc.SetValueAt(0.005f, 0.123f);
+    vc.SetValueAt(0.015f, 0.5f);
+    vc.SetValueAt(1.0f, 0.25f);
+    vc.SetActive(true);
+    std::string s = vc.Serialise();
+    // two-decimal values keep their old spelling; only values needing a third digit grow
+    CHECK(s.find("|Min=0.00|Max=100.00|") != std::string::npos);
+    CHECK(s.find("Values=0.00:1.00;0.005:0.123;0.015:0.50;1.00:0.25|") != std::string::npos);
+
+    ValueCurve back(s);
+    REQUIRE(back.GetPointCount() == 4);
+    auto pts = back.GetPoints();
+    auto it = std::next(pts.begin());
+    CHECK(it->x == vcSortablePoint::Normalise(0.005f));
+    CHECK_THAT(it->y, WithinAbs(0.123, 1e-6));
+    ++it;
+    CHECK(it->x == vcSortablePoint::Normalise(0.015f));
     CHECK(back.Serialise() == s);
 }
 

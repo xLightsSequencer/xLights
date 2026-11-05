@@ -41,15 +41,20 @@ static bool IsStartEndLevelType(const std::string& type)
            type == "Parabolic Down" || type == "Parabolic Up";
 }
 
-static std::string fmt2f(float v) {
+static std::string fmtVC(float v) {
     // Note: deliberately using snprintf rather than std::to_chars. The floating-point
     // overloads of std::to_chars are only available in Apple's libc++ starting with
-    // macOS 13.3; xLights supports macOS 11, so using them causes a dyld "Symbol not
+    // macOS 13.3; xLights supports macOS 12, so using them causes a dyld "Symbol not
     // found" crash at launch on older systems.
+    //
+    // Three decimals so custom points keep their 1/VC_X_POINTS (0.005) x grid and finer
+    // y, but a trailing zero is dropped so any value that fits in two decimals is
+    // written exactly as before ("1.00", "0.50") and existing sequences don't churn.
     char buf[32];
-    int n = std::snprintf(buf, sizeof(buf), "%.2f", v);
+    int n = std::snprintf(buf, sizeof(buf), "%.3f", v);
     if (n < 0) return {};
     if (static_cast<size_t>(n) >= sizeof(buf)) n = sizeof(buf) - 1;
+    if (n > 0 && buf[n - 1] == '0') --n;
     return std::string(buf, n);
 }
 
@@ -1623,8 +1628,8 @@ std::string ValueCurve::Serialise()
         {
             res += "Type=" + _type + "|";
         }
-        res += "Min=" + fmt2f(_min) + "|";
-        res += "Max=" + fmt2f(_max) + "|";
+        res += "Min=" + fmtVC(_min) + "|";
+        res += "Max=" + fmtVC(_max) + "|";
         if (_timingTrack != "") {
             res += "TT=" + EscapePipe(_timingTrack) + "|";
         }
@@ -1639,27 +1644,27 @@ std::string ValueCurve::Serialise()
         }
         if (_parameter1 != 0)
         {
-            res += "P1=" + fmt2f(_parameter1) + "|";
+            res += "P1=" + fmtVC(_parameter1) + "|";
         }
         if (_parameter2 != 0)
         {
-            res += "P2=" + fmt2f(_parameter2) + "|";
+            res += "P2=" + fmtVC(_parameter2) + "|";
         }
         if (_hasStartEndLevel)
         {
             res += "SE=Y|";
-            res += "P3=" + fmt2f(_parameter3) + "|";
-            res += "P4=" + fmt2f(_parameter4) + "|";
+            res += "P3=" + fmtVC(_parameter3) + "|";
+            res += "P4=" + fmtVC(_parameter4) + "|";
         }
         else
         {
             if (_parameter3 != 0)
             {
-                res += "P3=" + fmt2f(_parameter3) + "|";
+                res += "P3=" + fmtVC(_parameter3) + "|";
             }
             if (_parameter4 != 0)
             {
-                res += "P4=" + fmt2f(_parameter4) + "|";
+                res += "P4=" + fmtVC(_parameter4) + "|";
             }
         }
         if (_timeOffset != 0)
@@ -1680,7 +1685,7 @@ std::string ValueCurve::Serialise()
             res += "Values=";
             for (auto it = _values.begin(); it != _values.end(); ++it)
             {
-                res += fmt2f(it->x) + ":" + fmt2f(it->y);
+                res += fmtVC(it->x) + ":" + fmtVC(it->y);
                 if (std::next(it) != _values.end())
                 {
                     res += ";";
@@ -1695,7 +1700,7 @@ std::string ValueCurve::Serialise()
             res += "Values=";
             for (auto it = _values.begin(); it != _values.end(); ++it)
             {
-                res += fmt2f(it->x) + ":" + fmt2f(it->y);
+                res += fmtVC(it->x) + ":" + fmtVC(it->y);
                 if (std::next(it) != _values.end())
                 {
                     res += ";";
