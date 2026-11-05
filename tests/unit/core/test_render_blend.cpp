@@ -207,9 +207,7 @@ TEST_CASE("Shadow 2 on 1 shifts the top hue using the bottom", "[render][blend]"
     CHECK(Near(c, 0, 255, 255, 2));
 }
 
-// The CPU mixColors path clamps an out-of-range hue to red; the ISPC blend kernel
-// (LayerBlendingFunctions.ispc fromHSV) has no clamp so a negative hue yields black.
-TEST_CASE("Shadow 2 on 1 with a hue that goes negative is not black", "[render][blend][!mayfail]") {
+TEST_CASE("Shadow 2 on 1 with a hue that goes negative is not black", "[render][blend]") {
     Rgb c = Mix("#FF0000", "#00FF00", "Shadow 2 on 1");
     CHECK((c.r != 0 || c.g != 0 || c.b != 0));
 }
