@@ -83,7 +83,7 @@ TEST_CASE("SanDevices2 V5 string protocol encoding", "[vendors2][sandevices2]") 
     CHECK(s->EncodeStringPortProtocolV5(std::get<0>(row)) == std::get<1>(row));
 }
 
-TEST_CASE("SanDevices2 unsupported protocols assert", "[vendors2][sandevices2][.][known-crash]") {
+TEST_CASE("SanDevices2 unsupported protocols assert", "[vendors2][sandevices2]") {
     // SanDevices.cpp Encode*: assert(false) on any protocol/colour order/universe size they do not know; a user can pick
     // e.g. APA102 on a firmware 4 port or a 511 channel universe and a debug build aborts (release silently picks a default)
     auto s = MakeDisconnectedSan();
@@ -166,7 +166,7 @@ TEST_CASE("SanDevices2 controller type decoding", "[vendors2][sandevices2]") {
     CHECK(s->DecodeControllerType("E6804") == SanDevices::SanDeviceModel::E6804);
 }
 
-TEST_CASE("SanDevices2 unknown controller type asserts", "[vendors2][sandevices2][.][known-crash]") {
+TEST_CASE("SanDevices2 unknown controller type asserts", "[vendors2][sandevices2]") {
     // SanDevices.cpp DecodeControllerType: assert(false) for a model the regex matched but the table lacks (e.g. "E683")
     auto s = MakeDisconnectedSan();
     CHECK(s->DecodeControllerType("E683") == SanDevices::SanDeviceModel::Unknown);
@@ -240,7 +240,7 @@ TEST_CASE("SanDevices2 ExtractFromPage respects the start offset", "[vendors2][s
     CHECK(s->ExtractFromPage(page, "A", "input", (int)page.size()).empty());
 }
 
-TEST_CASE("SanDevices2 ExtractFromPage with a start beyond the page should not throw", "[vendors2][sandevices2][!mayfail]") {
+TEST_CASE("SanDevices2 ExtractFromPage with a start beyond the page should not throw", "[vendors2][sandevices2]") {
     // SanDevices.cpp ExtractFromPage: page.substr(start) throws std::out_of_range for start > size, and a failed
     // p.find(...) (npos) reaches it as start == -1, so a truncated/unexpected controller page throws out of the parse
     auto s = MakeDisconnectedSan();
@@ -366,7 +366,7 @@ TEST_CASE("SanDevices2 ExtractOutputDataV5 reads one output block", "[vendors2][
     CHECK(second->output == 2);
 }
 
-TEST_CASE("SanDevices2 ExtractOutputDataV5 on a page without the block should not throw", "[vendors2][sandevices2][!mayfail]") {
+TEST_CASE("SanDevices2 ExtractOutputDataV5 on a page without the block should not throw", "[vendors2][sandevices2]") {
     // SanDevices.cpp ExtractOutputDataV5: p.find(tofind) is npos -> int -1 -> ExtractFromPage page.substr(-1) throws out_of_range
     auto s = MakeDisconnectedSan();
     s->_sdmodel = SanDevices::SanDeviceModel::E682;
@@ -374,14 +374,14 @@ TEST_CASE("SanDevices2 ExtractOutputDataV5 on a page without the block should no
     CHECK_NOTHROW(o.reset(s->ExtractOutputDataV5("<html></html>", 1, 1)));
 }
 
-TEST_CASE("SanDevices2 ParseV5OutputWebpage on a page that is not the output page should not throw", "[vendors2][sandevices2][!mayfail]") {
+TEST_CASE("SanDevices2 ParseV5OutputWebpage on a page that is not the output page should not throw", "[vendors2][sandevices2]") {
     // same substr(-1) problem reached through the public upload flow when the controller returns the wrong page
     auto s = MakeDisconnectedSan();
     s->_sdmodel = SanDevices::SanDeviceModel::E682;
     CHECK_NOTHROW(s->ParseV5OutputWebpage("<html>wrong page</html>"));
 }
 
-TEST_CASE("SanDevices2 ParseV4Webpage on an empty page should not throw", "[vendors2][sandevices2][!mayfail]") {
+TEST_CASE("SanDevices2 ParseV4Webpage on an empty page should not throw", "[vendors2][sandevices2]") {
     // SanDevices.cpp ParseV4Webpage: " Universe" is not found so start is -1 and ExtractFromPage throws out_of_range
     auto s = MakeDisconnectedSan();
     CHECK_NOTHROW(s->ParseV4Webpage(""));
@@ -471,7 +471,7 @@ TEST_CASE("SanDevices2 constructor with an unreachable controller", "[vendors2][
     CHECK(s->GetModel().empty());
 }
 
-TEST_CASE("SanDevices2 constructor with an unsupported model name asserts", "[vendors2][sandevices2][http][.][known-crash]") {
+TEST_CASE("SanDevices2 constructor with an unsupported model name asserts", "[vendors2][sandevices2][http]") {
     // SanDevices.cpp constructor: the model regex accepts any E\d+ and DecodeControllerType asserts for models outside the table
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest&) {

@@ -203,7 +203,7 @@ TEST_CASE("Falcon2 IsEnhancedV2Firmware parses the firmware string", "[vendors2]
     CHECK(f.IsEnhancedV2Firmware() == std::get<1>(row));
 }
 
-TEST_CASE("Falcon2 IsEnhancedV2Firmware with an absurdly large major version", "[vendors2][falcon2][!mayfail]") {
+TEST_CASE("Falcon2 IsEnhancedV2Firmware with an absurdly large major version", "[vendors2][falcon2]") {
     // Falcon.cpp IsEnhancedV2Firmware: strtol saturates to LONG_MAX and the (int) cast makes it -1, so a huge major reads as old
     Falcon f = MakeFalcon(16, 2, "99999999999999999999.0");
     CHECK(f.IsEnhancedV2Firmware());
@@ -422,7 +422,7 @@ TEST_CASE("Falcon2 V4 GetStartChannel wraps when the model starts before the con
     CHECK(sc > 1000000UL);
 }
 
-TEST_CASE("Falcon2 V4 GetStartChannel without status A throws", "[vendors2][falcon2][!mayfail]") {
+TEST_CASE("Falcon2 V4 GetStartChannel without status A throws", "[vendors2][falcon2]") {
     // Falcon.cpp V4_GetStartChannel: _v4status["A"].get<int>() throws type_error when the key is missing
     Falcon f = MakeFalcon(16, 4);
     int universe = 0;
@@ -439,7 +439,7 @@ TEST_CASE("Falcon2 V4 GetRebootSecs depends on whether the status IP matches", "
     CHECK(f.V4_GetRebootSecs() == 20);
 }
 
-TEST_CASE("Falcon2 V4 GetRebootSecs with no status IP throws", "[vendors2][falcon2][!mayfail]") {
+TEST_CASE("Falcon2 V4 GetRebootSecs with no status IP throws", "[vendors2][falcon2]") {
     // Falcon.cpp V4_GetRebootSecs: _v4status["I"].get<std::string>() throws on a missing/non-string key
     Falcon f = MakeFalcon(16, 4);
     CHECK_NOTHROW(f.V4_GetRebootSecs());
@@ -470,7 +470,7 @@ TEST_CASE("Falcon2 GetMode for V3 decodes the status m value", "[vendors2][falco
     CHECK(f.GetMode() == "E131/ArtNET"); // strtol failure reads as 0
 }
 
-TEST_CASE("Falcon2 GetMode for V3 without an m entry throws", "[vendors2][falcon2][!mayfail]") {
+TEST_CASE("Falcon2 GetMode for V3 without an m entry throws", "[vendors2][falcon2]") {
     // Falcon.cpp GetMode: _status["m"].get<std::string>() on a missing key throws type_error
     Falcon f = MakeFalcon(16, 3);
     CHECK_NOTHROW(f.GetMode());
@@ -496,7 +496,7 @@ TEST_CASE("Falcon2 V4 input json round trip", "[vendors2][falcon2]") {
     CHECK(Falcon::FALCON_V4_INPUTS(j).protocol == 1);
 }
 
-TEST_CASE("Falcon2 V4 input json with a missing key should throw not assert", "[vendors2][falcon2][.][known-crash]") {
+TEST_CASE("Falcon2 V4 input json with a missing key should throw not assert", "[vendors2][falcon2]") {
     // Falcon.h FALCON_V4_INPUTS(json const&): json["u"] on a const object with a missing key is an
     // assert (debug) / undefined behaviour (release) rather than an exception; use json.at() or contains().
     nlohmann::json good = { { "u", 1 }, { "c", 512 }, { "uc", 3 }, { "p", "e" } };
@@ -563,7 +563,7 @@ TEST_CASE("Falcon2 V4 string json round trip", "[vendors2][falcon2]") {
     CHECK(b.startChannel == 4000UL);
 }
 
-TEST_CASE("Falcon2 V4 string json with a missing key should throw not assert", "[vendors2][falcon2][.][known-crash]") {
+TEST_CASE("Falcon2 V4 string json with a missing key should throw not assert", "[vendors2][falcon2]") {
     // same const operator[] problem as FALCON_V4_INPUTS: a missing key aborts instead of throwing
     Falcon::FALCON_V4_STRING s{};
     s.name = "x";
@@ -955,7 +955,7 @@ TEST_CASE("Falcon2 V4_GetInputs reports failure on a bad reply", "[vendors2][fal
     CHECK(in.empty());
 }
 
-TEST_CASE("Falcon2 V4_GetInputs with an incomplete A entry should not crash", "[vendors2][falcon2][http][.][known-crash]") {
+TEST_CASE("Falcon2 V4_GetInputs with an incomplete A entry should not crash", "[vendors2][falcon2][http]") {
     // Falcon.cpp V4_GetInputs: emplace_back(inpj) builds FALCON_V4_INPUTS from a const json, so a reply
     // entry with a missing key hits json const operator[] (assert/UB) instead of an exception
     VendorsTestInit();
@@ -1071,7 +1071,7 @@ TEST_CASE("Falcon2 V4_IsFileUploading treats an error reply as not uploading", "
     CHECK_FALSE(f.V4_IsFileUploading());
 }
 
-TEST_CASE("Falcon2 V4_IsFileUploading without D throws", "[vendors2][falcon2][http][!mayfail]") {
+TEST_CASE("Falcon2 V4_IsFileUploading without D throws", "[vendors2][falcon2][http]") {
     // Falcon.cpp V4_IsFileUploading: outParams["D"].get<int>() throws type_error on a reply without D
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest&) {

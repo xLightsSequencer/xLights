@@ -130,7 +130,7 @@ TEST_CASE("Esps2 GetFromJSON with a missing section does not throw", "[vendors2]
     CHECK_NOTHROW(e->GetFromJSON("s", "k", "[1,2]"));
 }
 
-TEST_CASE("Esps2 GetFromJSON with huge integers does not overflow into garbage", "[vendors2][esps2][!mayfail]") {
+TEST_CASE("Esps2 GetFromJSON with huge integers does not overflow into garbage", "[vendors2][esps2]") {
     // ESPixelStick.cpp GetFromJSON: integers are read with get<int>(), so 4294967296 prints as 0
     FakeHttpServer srv(AdminHandler(R"({"admin":{"version":"4.0"}})"));
     auto e = MakeHttpEsps(srv);
@@ -173,7 +173,7 @@ TEST_CASE("Esps2 ParseV4Config with an empty channel list succeeds with no ports
     CHECK(e->EspsConfig.empty());
 }
 
-TEST_CASE("Esps2 ParseV4Config with a scalar port should not throw", "[vendors2][esps2][http][!mayfail]") {
+TEST_CASE("Esps2 ParseV4Config with a scalar port should not throw", "[vendors2][esps2][http]") {
     // ESPixelStick.cpp EspsPort/EspsV4Protocol::ParseV4Settings: items() of a scalar yields one entry with an empty key and
     // JsonConfig[""] on a const non-object throws type_error, so a port value of 5 aborts the parse
     FakeHttpServer srv(AdminHandler(R"({"admin":{"version":"4.0"}})"));
@@ -217,7 +217,7 @@ TEST_CASE("Esps2 port accepts two character protocol keys", "[vendors2][esps2]")
     CHECK_FALSE(port.ProtocolsByName["serial"].IsPixel());
 }
 
-TEST_CASE("Esps2 port with a non integer type should not throw", "[vendors2][esps2][!mayfail]") {
+TEST_CASE("Esps2 port with a non integer type should not throw", "[vendors2][esps2]") {
     // ESPixelStick.cpp EspsPort::ParseV4Settings: Elementval.get<int>() throws for a string "type"
     EspsPort port;
     auto j = nlohmann::json::parse(R"({"type":"one","0":{"type":"Disabled"}})");
@@ -255,7 +255,7 @@ TEST_CASE("Esps2 protocol parse of an empty object keeps nothing", "[vendors2][e
     CHECK_FALSE(p.GetSetting("anything", v));
 }
 
-TEST_CASE("Esps2 protocol parse of an array should not throw", "[vendors2][esps2][!mayfail]") {
+TEST_CASE("Esps2 protocol parse of an array should not throw", "[vendors2][esps2]") {
     // ESPixelStick.cpp EspsV4Protocol::ParseV4Settings: items() on an array yields index keys, but JsonConfig[ElementId] then indexes the array with a string and throws
     EspsV4Protocol p;
     CHECK_NOTHROW(p.ParseV4Settings("3", nlohmann::json::parse(R"([5,"a"])")));
@@ -302,7 +302,7 @@ TEST_CASE("Esps2 protocol WriteConfigToJson with non numeric text gives zero", "
     CHECK(target["i"] == 0);
 }
 
-TEST_CASE("Esps2 protocol WriteConfigToJson of text beyond int range wraps", "[vendors2][esps2][!mayfail]") {
+TEST_CASE("Esps2 protocol WriteConfigToJson of text beyond int range wraps", "[vendors2][esps2]") {
     // ESPixelStick.cpp WriteConfigToJson: (int)strtol saturates then truncates, so "99999999999" is written as -1
     EspsV4Protocol p;
     p.ParseV4Settings("1", nlohmann::json::parse(R"({"type":"t","i":"99999999999"})"));

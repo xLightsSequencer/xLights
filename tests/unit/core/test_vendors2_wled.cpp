@@ -64,7 +64,7 @@ TEST_CASE("WLED2 EncodeColorOrder maps names to WLED codes", "[vendors2][wled2]"
     CHECK(w.EncodeColorOrder(std::get<0>(row)) == std::get<1>(row));
 }
 
-TEST_CASE("WLED2 EncodeColorOrder of an unknown order asserts", "[vendors2][wled2][.][known-crash]") {
+TEST_CASE("WLED2 EncodeColorOrder of an unknown order asserts", "[vendors2][wled2]") {
     // WLED.cpp EncodeColorOrder: assert(false) for an unrecognised order (e.g. an empty colour order from a model); release builds return 1
     WLED w = MakeDisconnectedWLED();
     CHECK(w.EncodeColorOrder("") == 1);
@@ -79,7 +79,7 @@ TEST_CASE("WLED2 EncodeStringPortProtocol maps chips to WLED types", "[vendors2]
     CHECK(w.EncodeStringPortProtocol(std::get<0>(row)) == std::get<1>(row));
 }
 
-TEST_CASE("WLED2 EncodeStringPortProtocol of an unknown chip should return minus one", "[vendors2][wled2][.][known-crash]") {
+TEST_CASE("WLED2 EncodeStringPortProtocol of an unknown chip should return minus one", "[vendors2][wled2]") {
     // WLED.cpp EncodeStringPortProtocol: assert(false) then return 22, but UpdatePortData tests for -1 to mean "unknown",
     // so an unsupported chip aborts a debug build and silently becomes WS2811 in release
     WLED w = MakeDisconnectedWLED();
@@ -187,7 +187,7 @@ TEST_CASE("WLED2 ExtractOutputJSON tolerates a null instance", "[vendors2][wled2
     CHECK(M(out)->pin == 16);
 }
 
-TEST_CASE("WLED2 ExtractOutputJSON with an empty pin array should not throw", "[vendors2][wled2][!mayfail]") {
+TEST_CASE("WLED2 ExtractOutputJSON with an empty pin array should not throw", "[vendors2][wled2]") {
     // WLED.cpp ExtractOutputJSON: json.at("pin").at(0) throws out_of_range for "pin":[] (and get<int> throws for a non-number pin)
     VendorCapsFixture fx(kWledVendor);
     auto* caps = ControllerCaps::GetControllerConfig("WLED", "WLED", "Generic ESP32");
@@ -196,7 +196,7 @@ TEST_CASE("WLED2 ExtractOutputJSON with an empty pin array should not throw", "[
     CHECK_NOTHROW(w.ExtractOutputJSON(cfg, 1, caps, false));
 }
 
-TEST_CASE("WLED2 ExtractOutputJSON with a string pin should not throw", "[vendors2][wled2][!mayfail]") {
+TEST_CASE("WLED2 ExtractOutputJSON with a string pin should not throw", "[vendors2][wled2]") {
     // WLED.cpp ExtractOutputJSON: pin array element is read with get<int>() without a type check
     VendorCapsFixture fx(kWledVendor);
     auto* caps = ControllerCaps::GetControllerConfig("WLED", "WLED", "Generic ESP32");
@@ -205,7 +205,7 @@ TEST_CASE("WLED2 ExtractOutputJSON with a string pin should not throw", "[vendor
     CHECK_NOTHROW(w.ExtractOutputJSON(cfg, 1, caps, false));
 }
 
-TEST_CASE("WLED2 ExtractOutputJSON with a pin above 255 truncates", "[vendors2][wled2][!mayfail]") {
+TEST_CASE("WLED2 ExtractOutputJSON with a pin above 255 truncates", "[vendors2][wled2]") {
     // WLED.cpp ExtractOutputJSON: the pin is stored in a uint8_t so 256 becomes 0 instead of being rejected
     VendorCapsFixture fx(kWledVendor);
     auto* caps = ControllerCaps::GetControllerConfig("WLED", "WLED", "Generic ESP32");
@@ -215,7 +215,7 @@ TEST_CASE("WLED2 ExtractOutputJSON with a pin above 255 truncates", "[vendors2][
     CHECK(M(out)->pin != 0);
 }
 
-TEST_CASE("WLED2 ExtractOutputJSON with ins as an object should not throw", "[vendors2][wled2][!mayfail]") {
+TEST_CASE("WLED2 ExtractOutputJSON with ins as an object should not throw", "[vendors2][wled2]") {
     // WLED.cpp ExtractOutputJSON: ins.size() > port-1 is checked but .at(int) on an object throws type_error
     VendorCapsFixture fx(kWledVendor);
     auto* caps = ControllerCaps::GetControllerConfig("WLED", "WLED", "Generic ESP32");
@@ -240,7 +240,7 @@ TEST_CASE("WLED2 ExtractOutputJSON copes with hw of the wrong type", "[vendors2]
     CHECK_NOTHROW(w.ExtractOutputJSON(cfg, 1, caps, false));
 }
 
-TEST_CASE("WLED2 ExtractOutputJSON with ins as a scalar should not throw", "[vendors2][wled2][!mayfail]") {
+TEST_CASE("WLED2 ExtractOutputJSON with ins as a scalar should not throw", "[vendors2][wled2]") {
     // WLED.cpp ExtractOutputJSON: a scalar has size() 1, so .at(0) is attempted on a number and throws type_error
     VendorCapsFixture fx(kWledVendor);
     auto* caps = ControllerCaps::GetControllerConfig("WLED", "WLED", "Generic ESP32");
@@ -250,7 +250,7 @@ TEST_CASE("WLED2 ExtractOutputJSON with ins as a scalar should not throw", "[ven
     CHECK_NOTHROW(w.ExtractOutputJSON(cfg, 1, caps, false));
 }
 
-TEST_CASE("WLED2 ExtractOutputJSON for port zero should not throw", "[vendors2][wled2][!mayfail]") {
+TEST_CASE("WLED2 ExtractOutputJSON for port zero should not throw", "[vendors2][wled2]") {
     // WLED.cpp ExtractOutputJSON: (int)size() > port-1 is true for port 0 and .at(-1) throws out_of_range
     VendorCapsFixture fx(kWledVendor);
     auto* caps = ControllerCaps::GetControllerConfig("WLED", "WLED", "Generic ESP32");
@@ -287,7 +287,7 @@ TEST_CASE("WLED2 FindPortData is one based", "[vendors2][wled2]") {
     CHECK(M(w.FindPortData(1))->output == 1);
 }
 
-TEST_CASE("WLED2 FindPortData of a missing port asserts", "[vendors2][wled2][.][known-crash]") {
+TEST_CASE("WLED2 FindPortData of a missing port asserts", "[vendors2][wled2]") {
     // WLED.cpp FindPortData: assert(false) before returning nullptr, and SetOutputs relies on the nullptr
     WLED w = MakeDisconnectedWLED();
     CHECK(w.FindPortData(7) == nullptr);
@@ -316,7 +316,7 @@ TEST_CASE("WLED2 UpdatePixelOutputs writes totals and only uploaded ports", "[ve
     CHECK(val["hw"]["led"]["ins"][0]["ref"] == false);
 }
 
-TEST_CASE("WLED2 UpdatePixelOutputs with nothing to upload should write an empty array", "[vendors2][wled2][!mayfail]") {
+TEST_CASE("WLED2 UpdatePixelOutputs with nothing to upload should write an empty array", "[vendors2][wled2]") {
     // WLED.cpp UpdatePixelOutputs: newLEDS stays a null json when no port uploads, so "ins" becomes null rather than []
     WLED w = MakeDisconnectedWLED();
     nlohmann::json val;
@@ -355,7 +355,7 @@ TEST_CASE("WLED2 constructor rejects bad info documents", "[vendors2][wled2][htt
     CHECK_FALSE(w.IsConnected());
 }
 
-TEST_CASE("WLED2 constructor with mistyped info members should not throw", "[vendors2][wled2][http][!mayfail]") {
+TEST_CASE("WLED2 constructor with mistyped info members should not throw", "[vendors2][wled2][http]") {
     // WLED.cpp constructor: ver/vid/arch are read with get<>() after only contains() checks, so a numeric ver or a string vid throws out of the constructor
     VendorsTestInit();
     auto body = GENERATE(std::string(R"({"ver":14,"vid":1,"arch":"x","name":"x"})"), std::string(R"({"ver":"1","vid":"1","arch":"x","name":"x"})"),

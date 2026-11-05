@@ -68,7 +68,7 @@ TEST_CASE("AlphaPix2 ExtractFromPage reads text inputs", "[vendors2][alphapix2]"
     CHECK(a->ExtractFromPage("", "SU1", "input").empty());
 }
 
-TEST_CASE("AlphaPix2 ExtractFromPage on a single line with two inputs picks the right one", "[vendors2][alphapix2][!mayfail]") {
+TEST_CASE("AlphaPix2 ExtractFromPage on a single line with two inputs picks the right one", "[vendors2][alphapix2]") {
     // AlphaPix.cpp ExtractFromPage: the regex uses greedy .* for style and value, so on a page without line breaks between inputs the
     // match starts at the first input and the capture spans several inputs
     auto a = MakeDisconnectedAlpha();
@@ -107,7 +107,7 @@ TEST_CASE("AlphaPix2 ExtractFromPage guards the start offset", "[vendors2][alpha
     CHECK(a->ExtractFromPage(page, "SU1", "input", 1).empty());
 }
 
-TEST_CASE("AlphaPix2 ExtractFromPage with an unknown type asserts", "[vendors2][alphapix2][.][known-crash]") {
+TEST_CASE("AlphaPix2 ExtractFromPage with an unknown type asserts", "[vendors2][alphapix2]") {
     // AlphaPix.cpp ExtractFromPage: an unknown type hits assert(false) after logging
     auto a = MakeDisconnectedAlpha();
     CHECK(a->ExtractFromPage("x", "A", "bogus").empty());
@@ -246,7 +246,7 @@ TEST_CASE("AlphaPix2 string protocol encoding depends on the model", "[vendors2]
     CHECK(a->EncodeStringPortProtocol("ws2811") == 0);
 }
 
-TEST_CASE("AlphaPix2 tls3001 on the flex asserts", "[vendors2][alphapix2][.][known-crash]") {
+TEST_CASE("AlphaPix2 tls3001 on the flex asserts", "[vendors2][alphapix2]") {
     // AlphaPix.cpp EncodeStringPortProtocol: tls3001 on a 48 port (Flex) hits assert(false)
     auto a = MakeDisconnectedAlpha();
     a->_modelnum = 48;
@@ -265,7 +265,7 @@ TEST_CASE("AlphaPix2 colour order and direction encoding", "[vendors2][alphapix2
     CHECK_FALSE(a->EncodeDirection("Forward"));
 }
 
-TEST_CASE("AlphaPix2 unknown colour order asserts", "[vendors2][alphapix2][.][known-crash]") {
+TEST_CASE("AlphaPix2 unknown colour order asserts", "[vendors2][alphapix2]") {
     // AlphaPix.cpp EncodeColorOrder: assert(false) for an order such as rgbw
     auto a = MakeDisconnectedAlpha();
     CHECK(a->EncodeColorOrder("rgbw") == 0);
@@ -314,7 +314,7 @@ TEST_CASE("AlphaPix2 FindPortData and FindSerialData look up by output number", 
     CHECK(a->FindSerialData(1) == a->_serialOutputs[0]);
 }
 
-TEST_CASE("AlphaPix2 FindPortData of a missing port asserts", "[vendors2][alphapix2][.][known-crash]") {
+TEST_CASE("AlphaPix2 FindPortData of a missing port asserts", "[vendors2][alphapix2]") {
     // AlphaPix.cpp FindPortData / FindSerialData: assert(false) before returning nullptr
     auto a = MakeDisconnectedAlpha();
     CHECK(a->FindPortData(9) == nullptr);
@@ -399,7 +399,7 @@ TEST_CASE("AlphaPix2 constructor with an unreachable controller is not connected
     CHECK(a->_revision == 1);
 }
 
-TEST_CASE("AlphaPix2 constructor with a model number too large for int", "[vendors2][alphapix2][http][!mayfail]") {
+TEST_CASE("AlphaPix2 constructor with a model number too large for int", "[vendors2][alphapix2][http]") {
     // AlphaPix.cpp constructor: (int)strtol saturates and truncates to -1, the "unknown model" sentinel, yet _connected is set true
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest&) {

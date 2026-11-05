@@ -21,6 +21,7 @@
 #include "../outputs/Output.h"
 #include "../models/ModelManager.h"
 
+#include <climits>
 #include <regex>
 
 #include "../render/UICallbacks.h"
@@ -287,7 +288,8 @@ J1Sys::J1Sys(const std::string& ip, const std::string& proxy) : BaseController(i
             static std::regex outputsregex("([0-9]+)");
             std::smatch outm;
             if (std::regex_search(_model, outm, outputsregex)) {
-                _outputs = (int)std::strtol(outm[1].str().c_str(), nullptr, 10);
+                const long outputs = std::strtol(outm[1].str().c_str(), nullptr, 10);
+                _outputs = (outputs >= 0 && outputs <= INT_MAX) ? (int)outputs : 0;
                 spdlog::debug("     outputs {}.", _outputs);
             }
         }
