@@ -136,7 +136,7 @@ TEST_CASE("Experience2 EncodeBrightness of negative values", "[vendors2][experie
     CHECK(e.EncodeBrightness(INT32_MIN + 10) <= 0);
 }
 
-TEST_CASE("Experience2 EncodeBrightness near INT_MAX overflows", "[vendors2][experience2][.][known-crash]") {
+TEST_CASE("Experience2 EncodeBrightness near INT_MAX overflows", "[vendors2][experience2]") {
     // Experience.cpp EncodeBrightness: brightness + 5 overflows a signed int for values near INT_MAX (UB)
     Experience e = MakeDisconnectedExperience();
     CHECK(e.EncodeBrightness(INT32_MAX) > 0);
@@ -252,7 +252,7 @@ TEST_CASE("Experience2 constructor with a non json state is not connected", "[ve
     CHECK(srv.Requests().size() == 1);
 }
 
-TEST_CASE("Experience2 constructor with a state missing members should not throw", "[vendors2][experience2][http][!mayfail]") {
+TEST_CASE("Experience2 constructor with a state missing members should not throw", "[vendors2][experience2][http]") {
     // Experience.cpp constructor: data["system"][...].get<>() on missing/mistyped members throws out of the constructor
     VendorsTestInit();
     auto state = GENERATE(std::string(R"({"system":{}})"), std::string(R"({"x":1})"), std::string(R"({"system":5})"),
@@ -277,7 +277,7 @@ TEST_CASE("Experience2 constructor with an empty state object is not connected",
     CHECK_FALSE(e.IsConnected());
 }
 
-TEST_CASE("Experience2 constructor with a config lacking operating_mode should not throw", "[vendors2][experience2][http][!mayfail]") {
+TEST_CASE("Experience2 constructor with a config lacking operating_mode should not throw", "[vendors2][experience2][http]") {
     // Experience.cpp constructor: config["system"]["operating_mode"].get<std::string>() throws when the member is absent
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest& r) {
@@ -414,7 +414,7 @@ TEST_CASE("Experience2 SetInputUniverses rejects non ethernet controllers", "[ve
     CHECK(data.is_null());
 }
 
-TEST_CASE("Experience2 SetInputUniverses with an ethernet controller that has no outputs should not crash", "[vendors2][experience2][.][known-crash]") {
+TEST_CASE("Experience2 SetInputUniverses with an ethernet controller that has no outputs should not crash", "[vendors2][experience2]") {
     // Experience.cpp SetInputUniverses: outputs.front() is dereferenced without checking for an empty output list
     OutputManager om;
     ControllerEthernet c(&om, false);

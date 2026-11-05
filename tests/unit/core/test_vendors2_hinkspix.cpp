@@ -108,7 +108,7 @@ TEST_CASE("HinksPix2 setControllerChannels with no pixels ends before it starts"
     CHECK(o.getControllerEndChannel() == 9);
 }
 
-TEST_CASE("HinksPix2 setControllerChannels with a huge pixel count overflows", "[vendors2][hinkspix2][.][known-crash]") {
+TEST_CASE("HinksPix2 setControllerChannels with a huge pixel count overflows", "[vendors2][hinkspix2]") {
     // HinksPix.cpp setControllerChannels: pixels * chanPerPix is a signed int multiply, so a pixel count above ~700 million is undefined behaviour
     HinksPixOutput o(1, 100);
     o.pixels = 2000000000;
@@ -234,7 +234,7 @@ TEST_CASE("HinksPix2 string protocol encoding", "[vendors2][hinkspix2]") {
     CHECK(h->EncodeStringPortProtocol(std::get<0>(row)) == std::get<1>(row));
 }
 
-TEST_CASE("HinksPix2 unknown string protocol asserts", "[vendors2][hinkspix2][.][known-crash]") {
+TEST_CASE("HinksPix2 unknown string protocol asserts", "[vendors2][hinkspix2]") {
     // HinksPix.cpp EncodeStringPortProtocol: assert(false) for e.g. tm1814; UpdatePortData compares the result with -1 which can never happen
     auto h = MakeDisconnectedHinks();
     CHECK(h->EncodeStringPortProtocol("tm1814") == -1);
@@ -465,7 +465,7 @@ TEST_CASE("HinksPix2 constructor with a non json reply is not connected", "[vend
     CHECK_FALSE(h.IsConnected());
 }
 
-TEST_CASE("HinksPix2 constructor with a short MCPU string should not throw", "[vendors2][hinkspix2][http][!mayfail]") {
+TEST_CASE("HinksPix2 constructor with a short MCPU string should not throw", "[vendors2][hinkspix2][http]") {
     // HinksPix.cpp constructor: data.at("MCPU").get<std::string>().substr(3) throws std::out_of_range when the string has fewer than 3 characters
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest&) {
@@ -476,7 +476,7 @@ TEST_CASE("HinksPix2 constructor with a short MCPU string should not throw", "[v
     CHECK_NOTHROW(HinksPix(srv.Address(), ""));
 }
 
-TEST_CASE("HinksPix2 constructor with an info document lacking Type or Controller should not throw", "[vendors2][hinkspix2][http][!mayfail]") {
+TEST_CASE("HinksPix2 constructor with an info document lacking Type or Controller should not throw", "[vendors2][hinkspix2][http]") {
     // HinksPix.cpp constructor: data.at("Type") / data.at("Controller") throw out_of_range and _connected is already true
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest&) {
@@ -487,7 +487,7 @@ TEST_CASE("HinksPix2 constructor with an info document lacking Type or Controlle
     CHECK_NOTHROW(HinksPix(srv.Address(), ""));
 }
 
-TEST_CASE("HinksPix2 constructor with a numeric MaxU should not throw", "[vendors2][hinkspix2][http][!mayfail]") {
+TEST_CASE("HinksPix2 constructor with a numeric MaxU should not throw", "[vendors2][hinkspix2][http]") {
     // HinksPix.cpp constructor: MaxU is read with get<std::string>() so a controller that reports a number throws
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest&) {
@@ -537,7 +537,7 @@ TEST_CASE("HinksPix2 InitExpansionBoardData ignores a list of the wrong length",
     CHECK(h->_pixelOutputs[0].pixels == 0);
 }
 
-TEST_CASE("HinksPix2 InitExpansionBoardData with list members that are not objects should not throw", "[vendors2][hinkspix2][http][!mayfail]") {
+TEST_CASE("HinksPix2 InitExpansionBoardData with list members that are not objects should not throw", "[vendors2][hinkspix2][http]") {
     // HinksPix.cpp InitExpansionBoardData: ports.at(i)["V"].get<std::string>() throws when an entry has no V or is not an object
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest&) {

@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <filesystem>
 #include <unordered_set>
 
@@ -34,6 +35,16 @@
 #include <spdlog/fmt/fmt.h>
 
 #pragma region Private Functions
+namespace {
+std::string JsonStr(nlohmann::json const& j, const char* key, std::string const& def = {}) {
+    auto it = j.find(key);
+    return (it != j.end() && it->is_string()) ? it->get<std::string>() : def;
+}
+int JsonInt(nlohmann::json const& j, const char* key, int def = 0) {
+    auto it = j.find(key);
+    return (it != j.end() && it->is_number()) ? it->get<int>() : def;
+}
+}
 bool Experience::GetJSONData(std::string const& url, nlohmann::json& val) const {
     std::string const sval = GetURL(url);
     if (!sval.empty()) {
@@ -111,9 +122,9 @@ int Experience::EncodeBrightness(int brightness) const
         i -= i % 5;
         return i;
     }
-    int ii = brightness + 5;
+    int64_t ii = (int64_t)brightness + 5;
     ii -= ii % 10;
-    return ii;
+    return (int)std::min<int64_t>(ii, INT32_MAX);
 }
 
 int Experience::EncodeGamma(double gamma) const
@@ -161,17 +172,18 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
         return;
     }
 
-    if (data.size() > 0) {
+    if (data.is_object() && data.contains("system") && data["system"].is_object()) {
         // decode controller type
-        _model = data["system"]["controller_model_name"].get<std::string>();
-        auto const controller_model = data["system"]["controller_model"].get<std::string>();
-        _version = data["system"]["firmware_version"].get<std::string>();
-        _controllerType = data["system"]["controller_line"].get<std::string>();
-        _numberOfPixelOutputs = data["system"]["number_of_local_outputs"].get<int>();
-        _numberOfRemoteOutputs = data["system"]["number_of_long_range_pixel_ports"].get<int>();
-        _numberOfSerialOutputs = data["system"]["number_of_long_range_dmx_ports"].get<int>();
-        if (data["system"].contains("has_efuses")) {
-            _has_efuses = data["system"]["has_efuses"].get<bool>();
+        auto const& sys = data["system"];
+        _model = JsonStr(sys, "controller_model_name");
+        auto const controller_model = JsonStr(sys, "controller_model");
+        _version = JsonStr(sys, "firmware_version");
+        _controllerType = JsonStr(sys, "controller_line");
+        _numberOfPixelOutputs = JsonInt(sys, "number_of_local_outputs");
+        _numberOfRemoteOutputs = JsonInt(sys, "number_of_long_range_pixel_ports");
+        _numberOfSerialOutputs = JsonInt(sys, "number_of_long_range_dmx_ports");
+        if (sys.contains("has_efuses") && sys["has_efuses"].is_boolean()) {
+            _has_efuses = sys["has_efuses"].get<bool>();
         }
         DecodeModelInformation(controller_model);
         DecodeFirmwareInformation(_version);
@@ -183,8 +195,8 @@ Experience::Experience(std::string const& ip, std::string const& proxy) :
         DisplayError(fmt::format("Error connecting to Genius controller on {}.", _ip));
     }
 
-    if (config.size() > 0) {
-        _opMode = config["system"]["operating_mode"].get<std::string>();
+    if (config.is_object() && config.contains("system") && config["system"].is_object()) {
+        _opMode = JsonStr(config["system"], "operating_mode", _opMode);
     }
 }
 
@@ -204,6 +216,9 @@ int32_t Experience::SetInputUniverses(nlohmann::json& data, Controller* controll
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
+    if (outputs.empty()) {
+        return startChannel;
+    }
 
     data["system"]["friendly_name"] = eth->GetName();
     data["system"]["auto_chain_all_outputs"] = false; //disable for xLights to handle

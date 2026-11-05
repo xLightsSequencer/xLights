@@ -99,7 +99,7 @@ TEST_CASE("FPP2 parseSysInfo keeps the longest channel range list", "[vendors2][
     CHECK(f->ranges == "1-100,200-300");
 }
 
-TEST_CASE("FPP2 parseSysInfo with a two digit major version", "[vendors2][fpp2][!mayfail]") {
+TEST_CASE("FPP2 parseSysInfo with a two digit major version", "[vendors2][fpp2]") {
     // FPP.cpp parseSysInfo: the minor version is read from fullVersion.substr(2), which assumes a one digit major, so "10.25" gives minor 0
     auto f = MakeFpp();
     nlohmann::json j = { { "Version", "10.25" } };
@@ -108,7 +108,7 @@ TEST_CASE("FPP2 parseSysInfo with a two digit major version", "[vendors2][fpp2][
     CHECK(f->minorVersion == 25);
 }
 
-TEST_CASE("FPP2 parseSysInfo with a one character version should not throw", "[vendors2][fpp2][.][known-crash]") {
+TEST_CASE("FPP2 parseSysInfo with a one character version should not throw", "[vendors2][fpp2]") {
     // FPP.cpp parseSysInfo: fullVersion[2] reads past the end of a one character string (undefined behaviour, valgrind flags it) and substr(2)
     // then throws out_of_range; "7.x" throws at substr(4)
     auto f = MakeFpp();
@@ -174,14 +174,14 @@ TEST_CASE("FPP2 parseControllerType copes with missing or mistyped documents", "
     CHECK(f->pixelControllerType.empty());
 }
 
-TEST_CASE("FPP2 parseControllerType with a string channelOutputs should not throw", "[vendors2][fpp2][!mayfail]") {
+TEST_CASE("FPP2 parseControllerType with a string channelOutputs should not throw", "[vendors2][fpp2]") {
     // FPP.cpp parseControllerType: a scalar has size() 1 so val["channelOutputs"][0] is attempted on a string and throws type_error
     auto f = MakeFpp();
     nlohmann::json bad = { { "channelOutputs", "none" } };
     CHECK_NOTHROW(f->parseControllerType(bad));
 }
 
-TEST_CASE("FPP2 parseControllerType with a null document should not throw", "[vendors2][fpp2][!mayfail]") {
+TEST_CASE("FPP2 parseControllerType with a null document should not throw", "[vendors2][fpp2]") {
     // FPP.cpp parseControllerType: val["channelOutputs"] on a json array or scalar throws type_error; callers pass whatever the controller returned
     auto f = MakeFpp();
     nlohmann::json arr = nlohmann::json::array();
@@ -199,7 +199,7 @@ TEST_CASE("FPP2 parseProxies collects host names", "[vendors2][fpp2]") {
     CHECK(f->proxies.size() == 2);
 }
 
-TEST_CASE("FPP2 parseProxies with FPP 8 objects should not throw", "[vendors2][fpp2][!mayfail]") {
+TEST_CASE("FPP2 parseProxies with FPP 8 objects should not throw", "[vendors2][fpp2]") {
     // FPP.cpp parseProxies: val[x].get<std::string>() throws for the FPP 8 object form ({"host":..}) that GetProxies already handles
     auto f = MakeFpp();
     nlohmann::json j = nlohmann::json::array({ nlohmann::json{ { "host", "10.0.0.2" } } });
@@ -224,7 +224,7 @@ TEST_CASE("FPP2 parseConfig leaves the type for other titles", "[vendors2][fpp2]
     CHECK(f->fppType == FPP_TYPE::GENIUS);
 }
 
-TEST_CASE("FPP2 parseConfig with a truncated settings line should not throw", "[vendors2][fpp2][!mayfail]") {
+TEST_CASE("FPP2 parseConfig with a truncated settings line should not throw", "[vendors2][fpp2]") {
     // FPP.cpp parseConfig: to.substr(10) throws std::out_of_range for a line that starts with "settings" but is shorter than 10 characters
     auto f = MakeFpp();
     CHECK_NOTHROW(f->parseConfig("settings\n"));
@@ -249,7 +249,7 @@ TEST_CASE("FPP2 FillRanges tolerates odd range text", "[vendors2][fpp2]") {
     CHECK(r.size() == 1);
 }
 
-TEST_CASE("FPP2 FillRanges with empty list items should not misbehave", "[vendors2][fpp2][!mayfail]") {
+TEST_CASE("FPP2 FillRanges with empty list items should not misbehave", "[vendors2][fpp2]") {
     // FPP.cpp FillRanges: Split() of an empty item can yield an empty vector and r[0] is then read out of bounds
     auto f = MakeFpp();
     std::map<int, int> r;
@@ -270,7 +270,7 @@ TEST_CASE("FPP2 SetNewRanges handles adjacent and single channel entries", "[ven
     CHECK(f->ranges == "1-149");
 }
 
-TEST_CASE("FPP2 SetNewRanges with a negative length should not produce an inverted range", "[vendors2][fpp2][!mayfail]") {
+TEST_CASE("FPP2 SetNewRanges with a negative length should not produce an inverted range", "[vendors2][fpp2]") {
     // FPP.cpp FillRanges/SetNewRanges: "10-5" gives length -4 and the next SetNewRanges prints "10-5"
     auto f = MakeFpp();
     f->ranges = "10-5";
@@ -280,7 +280,7 @@ TEST_CASE("FPP2 SetNewRanges with a negative length should not produce an invert
     CHECK(f->ranges != "10-5");
 }
 
-TEST_CASE("FPP2 SetNewRanges near INT_MAX does not wrap", "[vendors2][fpp2][!mayfail]") {
+TEST_CASE("FPP2 SetNewRanges near INT_MAX does not wrap", "[vendors2][fpp2]") {
     // FPP.cpp SetNewRanges: s + l - 1 is a signed int addition, so a range ending at INT_MAX overflows
     auto f = MakeFpp();
     f->SetNewRanges({ { 2147483000, 2000 } });
@@ -478,7 +478,7 @@ TEST_CASE("FPP2 IsDDPInputEnabled looks at the first channel input", "[vendors2]
     CHECK(f->IsDDPInputEnabled() == std::get<1>(row));
 }
 
-TEST_CASE("FPP2 IsDDPInputEnabled with a scalar channelInputs should not throw", "[vendors2][fpp2][http][!mayfail]") {
+TEST_CASE("FPP2 IsDDPInputEnabled with a scalar channelInputs should not throw", "[vendors2][fpp2][http]") {
     // FPP.cpp IsDDPInputEnabled: size() of a scalar is 1 so .at(0) is attempted on a number and throws type_error
     FakeHttpServer srv([](const FakeRequest&) {
         FakeResponse resp;
@@ -531,7 +531,7 @@ TEST_CASE("FPP2 GetProxies handles strings and FPP 8 objects", "[vendors2][fpp2]
     CHECK(names.size() == 2);
 }
 
-TEST_CASE("FPP2 GetProxies with an object missing its host should not throw", "[vendors2][fpp2][http][!mayfail]") {
+TEST_CASE("FPP2 GetProxies with an object missing its host should not throw", "[vendors2][fpp2][http]") {
     // FPP.cpp GetProxies: val[x]["host"].get<std::string>() throws when an FPP 8 proxy object lacks host or description
     FakeHttpServer srv([](const FakeRequest&) {
         FakeResponse resp;
@@ -575,7 +575,7 @@ TEST_CASE("FPP2 copy constructor copies the descriptive fields", "[vendors2][fpp
     CHECK(c.fppType == FPP_TYPE::GENIUS);
 }
 
-TEST_CASE("FPP2 copy constructor keeps the connection details of the base", "[vendors2][fpp2][!mayfail]") {
+TEST_CASE("FPP2 copy constructor keeps the connection details of the base", "[vendors2][fpp2]") {
     // FPP.cpp FPP(const FPP&): the base class is default constructed, so the copy has an empty _ip / _fppProxy and reports not connected
     auto f = MakeFpp("10.0.0.7");
     f->_fppProxy = "10.0.0.9";
@@ -584,7 +584,7 @@ TEST_CASE("FPP2 copy constructor keeps the connection details of the base", "[ve
     CHECK(c.IsConnected() == f->IsConnected());
 }
 
-TEST_CASE("FPP2 default constructed instance leaves upload uninitialised", "[vendors2][fpp2][.][known-crash]") {
+TEST_CASE("FPP2 default constructed instance leaves upload uninitialised", "[vendors2][fpp2]") {
     // FPP.h: `bool upload;` has no initialiser and none of the constructors set it, so sortByUpload and any read of it is undefined behaviour
     FPP f;
     CHECK_FALSE(f.upload);

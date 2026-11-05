@@ -96,7 +96,7 @@ TEST_CASE("PowerDMX2 constructor on an unusable status stays disconnected", "[ve
     CHECK_FALSE(p.IsConnected());
 }
 
-TEST_CASE("PowerDMX2 constructor with a status missing members should not throw", "[vendors2][powerdmx2][http][!mayfail]") {
+TEST_CASE("PowerDMX2 constructor with a status missing members should not throw", "[vendors2][powerdmx2][http]") {
     // PowerDMX.cpp constructor: status["system"]["variant"].get<std::string>() etc. throw on missing or mistyped members
     VendorsTestInit();
     auto body = GENERATE(std::string(R"({"system":{}})"), std::string(R"({"a":1})"), std::string(R"({"system":{"variant":"x","version":"1"}})"),

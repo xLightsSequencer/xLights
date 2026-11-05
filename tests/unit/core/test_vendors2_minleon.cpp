@@ -180,7 +180,7 @@ TEST_CASE("Minleon2 FindPort returns the matching string", "[vendors2][minleon2]
     Free(v);
 }
 
-TEST_CASE("Minleon2 FindPort for a missing port asserts", "[vendors2][minleon2][.][known-crash]") {
+TEST_CASE("Minleon2 FindPort for a missing port asserts", "[vendors2][minleon2]") {
     // Minleon.cpp FindPort: assert(false) before returning nullptr
     auto m = MakeDisconnectedMinleon();
     std::vector<MinleonString*> v;
@@ -250,7 +250,7 @@ TEST_CASE("Minleon2 ParseStringPorts of a null document gives nothing", "[vendor
     CHECK(v.empty());
 }
 
-TEST_CASE("Minleon2 ParseStringPorts with a string rev should not throw", "[vendors2][minleon2][!mayfail]") {
+TEST_CASE("Minleon2 ParseStringPorts with a string rev should not throw", "[vendors2][minleon2]") {
     // Minleon.cpp MinleonString(json): rev is read with get<int>() while every other member accepts a string, but the NDB+ upload
     // itself posts "rev" as a string, so a round trip through the controller throws
     auto m = MakeDisconnectedMinleon();
@@ -260,7 +260,7 @@ TEST_CASE("Minleon2 ParseStringPorts with a string rev should not throw", "[vend
     Free(v);
 }
 
-TEST_CASE("Minleon2 ParseStringPorts with missing members should not throw", "[vendors2][minleon2][!mayfail]") {
+TEST_CASE("Minleon2 ParseStringPorts with missing members should not throw", "[vendors2][minleon2]") {
     // Minleon.cpp MinleonString(json): val["ts"] / ["l"] / ["ss"] on a missing key is null and get<int>() throws type_error
     auto m = MakeDisconnectedMinleon();
     std::vector<MinleonString*> v;
@@ -269,7 +269,7 @@ TEST_CASE("Minleon2 ParseStringPorts with missing members should not throw", "[v
     Free(v);
 }
 
-TEST_CASE("Minleon2 ParseNDBHTML finds the value of a numbered input", "[vendors2][minleon2][!mayfail]") {
+TEST_CASE("Minleon2 ParseNDBHTML finds the value of a numbered input", "[vendors2][minleon2]") {
     // Minleon.cpp ParseNDBHTML: the pattern is built as name="I" + "I004", i.e. name="II004", so the real name="I004" input is never matched
     auto m = MakeDisconnectedMinleon();
     std::string html = "<input name=\"I004\"value=\"255\"><input name=\"I005\"value=\"128\">";
@@ -363,7 +363,7 @@ TEST_CASE("Minleon2 constructor with nothing reachable is disconnected", "[vendo
     CHECK(m._stringPorts.empty());
 }
 
-TEST_CASE("Minleon2 constructor with an invalid config document should not throw", "[vendors2][minleon2][http][!mayfail]") {
+TEST_CASE("Minleon2 constructor with an invalid config document should not throw", "[vendors2][minleon2][http]") {
     // Minleon.cpp constructor: nlohmann::json::parse(configJSON) is not guarded, so html/text where JSON is expected throws out of the constructor
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest& r) {
@@ -374,7 +374,7 @@ TEST_CASE("Minleon2 constructor with an invalid config document should not throw
     CHECK_NOTHROW(Minleon(srv.Address(), "", ""));
 }
 
-TEST_CASE("Minleon2 constructor with a config lacking conv should not throw", "[vendors2][minleon2][http][!mayfail]") {
+TEST_CASE("Minleon2 constructor with a config lacking conv should not throw", "[vendors2][minleon2][http]") {
     // Minleon.cpp constructor: val["config"]["conv"].get<int>() throws when conv is absent
     VendorsTestInit();
     FakeHttpServer srv([](const FakeRequest& r) {
@@ -431,7 +431,7 @@ TEST_CASE("Minleon2 UploadNDPPlus with an ip that has fewer than four octets pad
     REQUIRE(reqs.size() == 1);
     CHECK(reqs[0].body.find("I000=127") != std::string::npos);
     CHECK(reqs[0].body.find("I013=0") != std::string::npos);
-    CHECK(reqs[0].body.find("I004=&") != std::string::npos); // an empty netmask posts a blank field, not 0
+    CHECK(reqs[0].body.find("I004=0&") != std::string::npos); // an empty netmask posts 0, not a blank field
 }
 
 TEST_CASE("Minleon2 UploadNDBPro posts a json document", "[vendors2][minleon2][http]") {
