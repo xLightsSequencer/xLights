@@ -342,7 +342,7 @@ aggregates the JUnit reports (`ci_scripts/nightly_report.py`) and publishes a da
 The Xcode Cloud nightly (the TestFlight build) also runs the unit tests and the render regression on macOS:
 `ci_post_xcodebuild.sh` calls `ci_scripts/xcode_cloud_tests.sh` after the archive action when the workflow sets
 `XL_NIGHTLY_TESTS=1`; it pushes the results to GitHub (a `repository_dispatch`, handled by `Xcode_Cloud_Results.yml`)
-using the secret `GITHUB_DISPATCH_TOKEN` and adds a one-line summary to the TestFlight notes. Do not run its render
+using the secret `XL_DISPATCH_TOKEN` and adds a one-line summary to the TestFlight notes. Do not run its render
 step on a developer Mac (it launches a re-signed copy of the app that shares the real bundle id).
 Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
 

@@ -13,7 +13,7 @@
 #
 # Xcode Cloud workflow settings:
 #   XL_NIGHTLY_TESTS=1            turn this on (ci_post_xcodebuild.sh checks it)
-#   GITHUB_DISPATCH_TOKEN (secret) fine-grained token, xLights repo, Contents: write
+#   XL_DISPATCH_TOKEN (secret) fine-grained token, xLights repo, Contents: write
 # Optional for local testing:
 #   XL_APP_PATH      xLights.app to use instead of the archive's
 #   XL_NIGHTLY_DRY_RUN=1  the GitHub workflow builds the page but does not publish it
@@ -116,7 +116,7 @@ PY
 log "summary: $(cat "$SUMMARY_FILE" 2>/dev/null)"
 
 # ------------------------------------------------------------- push to GitHub
-if [ -n "${GITHUB_DISPATCH_TOKEN:-}" ]; then
+if [ -n "${XL_DISPATCH_TOKEN:-}" ]; then
     python3 - "$OUT/results.json" "$OUT/payload.json" <<'PY'
 import json, os, sys
 res = json.load(open(sys.argv[1]))
@@ -130,11 +130,11 @@ with open(sys.argv[2], "w") as f:
     json.dump(payload, f)
 PY
     CODE=$(curl -sS --max-time 60 -o "$OUT/dispatch.out" -w '%{http_code}' -X POST \
-        -H "Authorization: Bearer $GITHUB_DISPATCH_TOKEN" -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer $XL_DISPATCH_TOKEN" -H "Accept: application/vnd.github+json" \
         https://api.github.com/repos/xLightsSequencer/xLights/dispatches --data @"$OUT/payload.json")
     log "GitHub dispatch: HTTP $CODE"
     [ "$CODE" = "204" ] || head -c 300 "$OUT/dispatch.out"
 else
-    log "GITHUB_DISPATCH_TOKEN is not set; not pushing results"
+    log "XL_DISPATCH_TOKEN is not set; not pushing results"
 fi
 exit 0
