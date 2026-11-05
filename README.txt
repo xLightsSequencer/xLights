@@ -23,6 +23,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Windows and Linux
     -bug (dkulp)                 Sequence durations set in milliseconds could come back a few milliseconds
                                  long (a day-long sequence gained 8 ms)
+    -bug (dkulp)                 Butterfly and Plasma render the same colours on the GPU (macOS/iPad) as on
+                                 the CPU
+    -bug (dkulp)                 Butterfly styles 6-9 no longer show stray black pixels at full brightness
     -bug (dkulp)                 Buffer rotation and zoom render the same with GPU rendering on as off; on
                                  the GPU they filled a slightly different set of pixels
     -bug (dkulp)                 iPad - 3D objects (gridlines, terrain, mesh, image, ruler) stay in the Default

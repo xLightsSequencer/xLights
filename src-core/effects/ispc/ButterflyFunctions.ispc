@@ -249,6 +249,11 @@ export void ButterflyEffectStyle5(const uniform ButterflyData &data,
 }
 
 
+// (s + 1) * 128 reaches 256 at s == 1, which the uint8 store wraps to 0.
+inline float butterflyLevel(float s) {
+    return min((s + 1.0) * 128.0, 255.0);
+}
+
 export void ButterflyEffectPlasmaStyles(const uniform ButterflyData &data,
                                     uniform int startIdx, uniform int endIdx,
                                     uniform uint8<4> result[]) {
@@ -295,22 +300,22 @@ export void ButterflyEffectPlasmaStyles(const uniform ButterflyData &data,
         color.a = 255;
         switch (data.plasmaStyle) {
             case 6:
-                color.r = (sin(v * chunks * pi) + 1.0) * 128.0;
-                color.g= (cos(v * chunks * pi) + 1.0) * 128.0;
+                color.r = butterflyLevel(sin(v * chunks * pi));
+                color.g= butterflyLevel(cos(v * chunks * pi));
                 color.b = 0;
             break;
             case 7:
                 color.r = 1;
-                color.g = (cos(v * chunks * pi) + 1.0) * 128.0;
-                color.b = (sin(v * chunks * pi) + 1.0) * 128.0;
+                color.g = butterflyLevel(cos(v * chunks * pi));
+                color.b = butterflyLevel(sin(v * chunks * pi));
                 break;
             case 8:
-                color.r = (sin(v * chunks * pi) + 1.0) * 128.0;
-                color.g= (sin(v * chunks * pi + 2.0 * pi * onethird) + 1.0) * 128.0;
-                color.b =(sin(v * chunks * pi + 4.0 * pi * onethird) + 1.0) * 128.0;
+                color.r = butterflyLevel(sin(v * chunks * pi));
+                color.g= butterflyLevel(sin(v * chunks * pi + 2.0 * pi * onethird));
+                color.b =butterflyLevel(sin(v * chunks * pi + 4.0 * pi * onethird));
                 break;
             case 9:
-                color.r = color.g = color.b = (sin(v * chunks * pi) + 1.0) * 128.0;
+                color.r = color.g = color.b = butterflyLevel(sin(v * chunks * pi));
                 break;
             case 10:
                 if (data.numColors >= 2) {

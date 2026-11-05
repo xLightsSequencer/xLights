@@ -24,21 +24,10 @@ struct GpuEffect {
     Budget budget = {};
 };
 
-#ifdef __APPLE__
-// On Metal these two drift from the CPU by a few levels over much of the
-// buffer (Butterfly ~17% of channels by up to 4, Plasma ~2.4% by 1); the
-// Metal kernels build with -fmetal-math-mode=fast.
-constexpr Budget kButterfly = { 0.25, 6 };
-constexpr Budget kPlasma = { 0.05, 2 };
-#else
-constexpr Budget kButterfly = {};
-constexpr Budget kPlasma = {};
-#endif
-
 const std::vector<GpuEffect>& GpuEffects() {
     static const std::vector<GpuEffect> v = {
         { "Bars", "E_CHOICE_Bars_Direction=up", false },
-        { "Butterfly", "", false, kButterfly },
+        { "Butterfly", "", false },
         { "Candle", "E_CHECKBOX_PerNode=1", false },
         { "Circles", "", false },
         { "Color Wash", "", false },
@@ -53,7 +42,7 @@ const std::vector<GpuEffect>& GpuEffects() {
         { "Life", "", false },
         { "Meteors", "", false },
         { "Pinwheel", "E_CHOICE_Pinwheel_Style=New Render Method", false },
-        { "Plasma", "", false, kPlasma },
+        { "Plasma", "", false },
         { "Shimmer", "", false },
         { "Shockwave", "", false },
         // A few pixels on the spiral edges round the other way.
@@ -128,5 +117,26 @@ TEST_CASE("GPU pipeline stages match their CPU render", "[gpu][stages]") {
         Pair p = RenderBoth(MatrixShow(s.effects), [counter] { return counter->load(); });
         MaybePrintHash(s.name, p.gpu);
         CheckWithin(p, s.budget);
+    }
+}
+
+// Each style and colour mode of the two effects with more than one GPU kernel.
+TEST_CASE("GPU Butterfly and Plasma variants match their CPU render", "[gpu][effects]") {
+    XL_REQUIRE_GPU();
+    std::vector<std::pair<std::string, std::string>> variants;
+    for (int style = 1; style <= 10; ++style) {
+        for (const char* colors : { "Rainbow", "Palette" }) {
+            variants.push_back({ "Butterfly", "E_SLIDER_Butterfly_Style=" + std::to_string(style) + ",E_CHOICE_Butterfly_Colors=" + colors });
+        }
+    }
+    variants.push_back({ "Butterfly", "E_SLIDER_Butterfly_Style=1,E_SLIDER_Butterfly_Chunks=4,E_SLIDER_Butterfly_Skip=3" });
+    for (const char* color : { "Normal", "Preset Colors 1", "Preset Colors 2", "Preset Colors 3", "Preset Colors 4" }) {
+        variants.push_back({ "Plasma", std::string("E_CHOICE_Plasma_Color=") + color + ",E_SLIDER_Plasma_Style=3,E_SLIDER_Plasma_Line_Density=2" });
+    }
+    for (const auto& [name, settings] : variants) {
+        INFO(name << " " << settings);
+        Pair p = RenderBoth(MatrixShow({ Eff("M", 0, name, 0, 500, Pal("#FF0000", "#00FF00", "C_BUTTON_Palette3=#0000FF,C_CHECKBOX_Palette3=1"), settings) }),
+                            [] { return GPURenderUtils::stats.effect.load(); });
+        CheckWithin(p, {});
     }
 }
