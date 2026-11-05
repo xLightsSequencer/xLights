@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 iPad - 3D objects (gridlines, terrain, mesh, image, ruler) stay in the Default
+                                 preview instead of a layout group that was lost on reopen
     -bug (dkulp)                 DMX Moving Head Adv with 16-bit tilt showed the "Tilt Fine" channel name
                                  on the channel after the real fine-tilt channel
     -enh (dkulp)                 Custom value curves save points with finer time and value precision, so

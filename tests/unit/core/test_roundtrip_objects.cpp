@@ -35,15 +35,6 @@ std::string SerObj(const ViewObject* o) {
     return p == std::string::npos ? s : s.substr(p + 2);
 }
 
-std::string NoLayoutGroup(std::string s) {
-    auto p = s.find(" LayoutGroup=\"");
-    if (p != std::string::npos) {
-        auto e = s.find('"', p + 14);
-        s.erase(p, e - p + 1);
-    }
-    return s;
-}
-
 std::string ObjXml(const std::string& type, const std::string& name, const Attrs& attrs) {
     std::string x = "<view_object name=\"" + Esc(name) + "\" DisplayAs=\"" + type + "\"";
     for (auto& a : attrs) x += " " + a.first + "=\"" + Esc(a.second) + "\"";
@@ -87,32 +78,33 @@ void CheckObjectDefault(const std::string& type) {
     ObjFixture a;
     ViewObject* o = a.vom.CreateAndAddObject(type);
     REQUIRE(o != nullptr);
-    std::string s1 = NoLayoutGroup(SerObj(o));
+    std::string s1 = SerObj(o);
     ObjFixture b;
     ViewObject* o2 = b.Add(s1);
     REQUIRE(o2 != nullptr);
-    std::string s2 = NoLayoutGroup(SerObj(o2));
+    std::string s2 = SerObj(o2);
     INFO("save1 vs save2:" << DiffAttrs(s1, s2));
     CHECK(s2 == s1);
 }
 
 } // namespace
 
-// KNOWN BUG: a freshly created view object writes LayoutGroup="" but one loaded from that text writes "Default".
-TEST_CASE("Roundtrip default view object LayoutGroup is stable", "[roundtrip][objects][!mayfail]") {
+TEST_CASE("Roundtrip default view object LayoutGroup is stable", "[roundtrip][objects]") {
     ObjFixture a;
     ViewObject* o = a.vom.CreateAndAddObject("Gridlines");
     REQUIRE(o != nullptr);
+    CHECK(o->GetLayoutGroup() == "Default");
     std::string s1 = SerObj(o);
     ObjFixture b;
     CHECK(SerObj(b.Add(s1)) == s1);
 }
-// KNOWN BUG: DeserializeBaseObjectAttributes forces LayoutGroup to "Default", discarding the saved value.
-TEST_CASE("Roundtrip view object keeps its LayoutGroup", "[roundtrip][objects][!mayfail]") {
+// Only the Default preview is 3D, so a view object's saved LayoutGroup is always loaded as "Default".
+TEST_CASE("Roundtrip view object LayoutGroup is always Default", "[roundtrip][objects]") {
     ObjFixture a;
     ViewObject* o = a.Add(ObjXml("Gridlines", "G", { { "LayoutGroup", "Back Yard" } }));
     REQUIRE(o != nullptr);
-    CHECK(o->GetLayoutGroup() == "Back Yard");
+    CHECK(o->GetLayoutGroup() == "Default");
+    CHECK(SerObj(o).find(" LayoutGroup=\"Default\"") != std::string::npos);
 }
 
 TEST_CASE("Roundtrip gridlines object keeps every attribute", "[roundtrip][objects]") {

@@ -2895,7 +2895,6 @@ struct LayoutEditorView: View {
                     LayoutEditorObjectPropertiesView(
                         objectName: name,
                         summary: summary,
-                        layoutGroups: layoutGroups,
                         token: summaryToken,
                         commit: { key, value in
                             commitObjectProperty(objectName: name, key: key, value: value)
@@ -12902,7 +12901,6 @@ private struct LayoutEditorObjectPropertiesView: View {
     @Environment(SequencerViewModel.self) var viewModel
     let objectName: String
     let summary: [String: Any]
-    let layoutGroups: [String]
     let token: Int
     let commit: (_ key: String, _ value: Any) -> Void
     let onPickFile: (_ key: String, _ accepting: [UTType]) -> Void
@@ -12956,7 +12954,10 @@ private struct LayoutEditorObjectPropertiesView: View {
                         .labelsHidden()
                         .controlSize(.mini)
                 }
-                row("Layout group") { layoutGroupPicker }
+                row("Layout group") {
+                    Text(summary["layoutGroup"] as? String ?? "Default")
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if !((summary["twoPoint"] as? Bool) ?? false) {
@@ -13298,29 +13299,6 @@ private struct LayoutEditorObjectPropertiesView: View {
             get: { summary[key] as? Bool ?? false },
             set: { commit(key, NSNumber(value: $0)) }
         )
-    }
-
-    private var layoutGroupPicker: some View {
-        Menu {
-            ForEach(layoutGroups, id: \.self) { name in
-                Button {
-                    commit("layoutGroup", name as NSString)
-                } label: {
-                    HStack {
-                        Text(name)
-                        if name == (summary["layoutGroup"] as? String) {
-                            Spacer()
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            }
-        } label: {
-            Text(summary["layoutGroup"] as? String ?? "Default")
-                .truncationMode(.middle)
-        }
-        .menuStyle(.button)
-        .controlSize(.mini)
     }
 
     private func doubleVal(_ key: String) -> Double {
