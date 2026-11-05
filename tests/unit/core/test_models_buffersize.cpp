@@ -10,6 +10,7 @@
 #include "models/ModelManager.h"
 #include "models/Node.h"
 #include "outputs/OutputManager.h"
+#include "utils/FloatChecks.h"
 
 // GetBufferSize answers "how big is this buffer" without building it; the
 // render buffer sizes sub-buffers and value curves from it. It must agree with
@@ -34,7 +35,10 @@ struct ShowFixture {
         Add(R"(<model name="Matrix" DisplayAs="Horiz Matrix" NumStrings="2" NodesPerString="20" StrandsPerString="4" StartChannel="1" WorldPosX="300" WorldPosY="200" ScaleX="2" ScaleY="1"/>)");
         Add(R"(<model name="Tree" DisplayAs="Tree 360" NumStrings="6" NodesPerString="10" StrandsPerString="1" StartChannel="1" WorldPosX="500" WorldPosY="100"/>)");
         Add(R"(<model name="Star" DisplayAs="Star" NumStrings="1" NodesPerString="25" StrandsPerString="5" StartChannel="1" WorldPosX="150" WorldPosY="300"/>)");
-        Add(R"(<model name="Arches" DisplayAs="Arches" NumStrings="3" NodesPerString="8" LightsPerNode="1" StartChannel="1" WorldPosX="200" WorldPosY="50" X2="100" Y2="0"/>)");
+        Add(R"(<model name="Arches" DisplayAs="Arches" NumArches="3" NodesPerArch="8" LightsPerNode="1" StartChannel="1" WorldPosX="200" WorldPosY="50" X2="100" Y2="0"/>)");
+        // A single light used to divide 0 by 0 for its position: NaN, which
+        // becomes INT_MIN on x86 (and 0 on arm64, hiding it on a Mac).
+        Add(R"(<model name="Arch1" DisplayAs="Arches" NumArches="1" NodesPerArch="1" LightsPerNode="1" StartChannel="1" WorldPosX="260" WorldPosY="50" X2="20" Y2="0"/>)");
         Add(R"(<model name="Circle" DisplayAs="Circle" NumStrings="1" NodesPerString="16" StartChannel="1" WorldPosX="400" WorldPosY="400"/>)");
         Add(R"(<model name="Custom" DisplayAs="Custom" CustomWidth="3" CustomHeight="2" CustomModel="1,,2;3,4,5" StartChannel="1" WorldPosX="50" WorldPosY="450"/>)");
         // One white channel lighting several cells, as a dumb string drawn as a shape
@@ -97,7 +101,7 @@ const char* kTransforms[] = { "None", "Rotate CC 90", "Rotate CW 90", "Rotate 18
 TEST_CASE("Model buffer size matches the buffer built for every style", "[models][buffersize]") {
     ShowFixture f;
     f.Populate();
-    for (const char* name : { "Line", "Matrix", "Tree", "Star", "Arches", "Circle", "Custom", "CustomSingle", "Custom3D" }) {
+    for (const char* name : { "Line", "Matrix", "Tree", "Star", "Arches", "Arch1", "Circle", "Custom", "CustomSingle", "Custom3D" }) {
         Model* m = f.mm.GetModel(name);
         REQUIRE(m != nullptr);
         for (const auto& style : m->GetBufferStyles()) {
@@ -116,7 +120,7 @@ TEST_CASE("Model buffer size matches the buffer built for every style", "[models
 TEST_CASE("Group buffer size matches the buffer built for every style", "[models][buffersize][group]") {
     ShowFixture f;
     f.Populate();
-    ModelGroup* g = f.Group("All", "Line,Matrix,Tree,Star,Arches,Circle,Custom", "layout=\"minimalGrid\" GridSize=\"400\"");
+    ModelGroup* g = f.Group("All", "Line,Matrix,Tree,Star,Arches,Arch1,Circle,Custom", "layout=\"minimalGrid\" GridSize=\"400\"");
     for (const auto& style : g->GetBufferStyles()) {
         if (IsPerModel(style)) {
             // Rendered model by model, not as one group buffer.
@@ -203,5 +207,25 @@ TEST_CASE("An empty group reports a one by one buffer", "[models][buffersize][gr
         Size s = Reported(g, style, "None");
         CHECK(s.w >= 1);
         CHECK(s.h >= 1);
+    }
+}
+
+TEST_CASE("Every model's nodes have finite preview positions", "[models][buffersize]") {
+    // A NaN position converts to an undefined buffer cell: 0 on arm64, INT_MIN on
+    // x86, so only the position itself shows the problem on every platform.
+    ShowFixture f;
+    f.Populate();
+    for (auto it = f.mm.begin(); it != f.mm.end(); ++it) {
+        Model* m = it->second;
+        std::vector<NodeBaseClassPtr> nodes;
+        int w = 0, h = 0;
+        m->InitRenderBufferNodes("Per Preview", "2D", "None", nodes, w, h, 0);
+        for (size_t n = 0; n < nodes.size(); ++n) {
+            for (const auto& c : nodes[n]->Coords) {
+                INFO(m->GetName() << " node " << n);
+                CHECK(xl::isfinite(c.screenX));
+                CHECK(xl::isfinite(c.screenY));
+            }
+        }
     }
 }

@@ -19,6 +19,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Unique X and Y buffer styles, render every node inside the buffer
     -bug (dkulp)                 Sub-buffers and buffer sizes are right for the Rotate CC/CW 90 Flip
                                  Horizontal buffer transforms
+    -bug (dkulp)                 An arch of a single light got no position, and did not render on
+                                 Windows and Linux
     -bug (dkulp)                 iPad - 3D objects (gridlines, terrain, mesh, image, ruler) stay in the Default
                                  preview instead of a layout group that was lost on reopen
     -change (dkulp)              iPad - Adding a 3D object needs the Default preview in 3D, as on desktop
