@@ -17,6 +17,7 @@
 
 #include <wx/artprov.h>
 #include <wx/time.h>
+#include <cmath>
 #include <regex>
 
 #include "layout/ModelGroupPanel.h"
@@ -591,8 +592,8 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             }
         }
         SizeSpinCtrl->SetValue(g->GetGridSize());
-        SpinCtrl_XCentreOffset->SetValue(g->GetXCentreOffset());
-        SpinCtrl_YCentreOffset->SetValue(g->GetYCentreOffset());
+        SpinCtrl_XCentreOffset->SetValue(static_cast<int>(std::lround(g->GetXCentreOffset())));
+        SpinCtrl_YCentreOffset->SetValue(static_cast<int>(std::lround(g->GetYCentreOffset())));
         ColourPickerCtrl_ModelGroupTagColour->SetColour(xlColorToWxColour(g->GetTagColour()));
     }
 
@@ -805,8 +806,14 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
     g->SetGridSize(SizeSpinCtrl->GetValue());
     
     if (ChoiceModelLayoutType->GetSelection() == 1) {
-        g->SetXCentreOffset(SpinCtrl_XCentreOffset->GetValue());
-        g->SetYCentreOffset(SpinCtrl_YCentreOffset->GetValue());
+        // The spin controls are whole numbers; only take their value when it was changed
+        // so that saving another group edit does not round away a fractional offset.
+        if (SpinCtrl_XCentreOffset->GetValue() != std::lround(g->GetXCentreOffset())) {
+            g->SetXCentreOffset(SpinCtrl_XCentreOffset->GetValue());
+        }
+        if (SpinCtrl_YCentreOffset->GetValue() != std::lround(g->GetYCentreOffset())) {
+            g->SetYCentreOffset(SpinCtrl_YCentreOffset->GetValue());
+        }
     } else {
         g->SetXCentreOffset(0);
         g->SetYCentreOffset(0);

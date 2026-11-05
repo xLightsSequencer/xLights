@@ -14,6 +14,7 @@
 #include "BaseSerializingVisitor.h"
 
 #include <charconv>
+#include <cmath>
 
 #include "../models/ArchesModel.h"
 #include "../models/BaseObject.h"
@@ -837,10 +838,15 @@ void BaseSerializingVisitor::Visit(const ModelGroup& model) {
     attrs.Add("layout",        model.GetLayout());
     attrs.Add("DefaultCamera", model.GetDefaultCamera());
 
-    int xOffset = model.GetXCentreOffset();
-    int yOffset = model.GetYCentreOffset();
-    if (xOffset != 0) attrs.Add("XCentreOffset", std::to_string(xOffset));
-    if (yOffset != 0) attrs.Add("YCentreOffset", std::to_string(yOffset));
+    // Whole offsets keep their integer form; %.6g would switch large ones to an exponent.
+    auto offsetString = [](float o) {
+        float whole = std::trunc(o);
+        return (o == whole && std::abs(o) < 2e9f) ? std::to_string(static_cast<long>(whole)) : FloatToString(o);
+    };
+    float xOffset = model.GetXCentreOffset();
+    float yOffset = model.GetYCentreOffset();
+    if (xOffset != 0) attrs.Add("XCentreOffset", offsetString(xOffset));
+    if (yOffset != 0) attrs.Add("YCentreOffset", offsetString(yOffset));
 
     std::string modelsStr;
     const auto& modelNames = model.ModelNames();

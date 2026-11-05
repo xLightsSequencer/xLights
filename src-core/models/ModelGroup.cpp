@@ -528,24 +528,24 @@ int ModelGroup::GetGridSize() const
     return m_gridSize;
 }
 
-int ModelGroup::GetXCentreOffset() const
+float ModelGroup::GetXCentreOffset() const
 {
     return m_xCentreOffset;
 }
 
-int ModelGroup::GetYCentreOffset() const
+float ModelGroup::GetYCentreOffset() const
 {
     return m_yCentreOffset;
 }
 
 void ModelGroup::SetXCentreOffset( float cx )
 {
-    m_xCentreOffset = static_cast<int>(cx);
+    m_xCentreOffset = cx;
 }
 
 void ModelGroup::SetYCentreOffset( float cy )
 {
-    m_yCentreOffset = static_cast<int>(cy);
+    m_yCentreOffset = cy;
 }
 
 std::string ModelGroup::GetDefaultCamera() const
@@ -849,8 +849,8 @@ bool ModelGroup::RebuildBuffers() {
                 offsetY = ((cy - ((xminy + xmaxy) / 2.0)) * 2000.0) / (xmaxy - xminy);
             }
         } else {
-            offsetX = GetXCentreOffset();
-            offsetY = GetYCentreOffset();
+            offsetX = static_cast<int>(GetXCentreOffset());
+            offsetY = static_cast<int>(GetYCentreOffset());
         }
 
         int offx = (offsetX * BufferWi) / 1000;

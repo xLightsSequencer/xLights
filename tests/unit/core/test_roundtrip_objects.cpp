@@ -285,8 +285,7 @@ TEST_CASE("Roundtrip model group centre defined", "[roundtrip][groups]") {
 TEST_CASE("Roundtrip model group integer centre offsets", "[roundtrip][groups]") {
     CheckGroup(G("models=\"A\" layout=\"minimalGrid\" GridSize=\"400\" DefaultCamera=\"2D\" XCentreOffset=\"12\" YCentreOffset=\"-9\""));
 }
-// KNOWN BUG: XCentreOffset/YCentreOffset are read as float but GetXCentreOffset() is written through an int, so fractional offsets are truncated.
-TEST_CASE("Roundtrip model group fractional centre offsets", "[roundtrip][groups][!mayfail]") {
+TEST_CASE("Roundtrip model group fractional centre offsets", "[roundtrip][groups]") {
     CheckGroup(G("models=\"A\" layout=\"minimalGrid\" GridSize=\"400\" DefaultCamera=\"2D\" XCentreOffset=\"12.5\" YCentreOffset=\"-9.75\""));
 }
 TEST_CASE("Roundtrip model group tag colour and aliases", "[roundtrip][groups]") {
