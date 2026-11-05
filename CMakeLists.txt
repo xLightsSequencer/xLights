@@ -312,38 +312,7 @@ set(XLIGHTS_VULKAN_ENABLED FALSE)
 # the glslc CustomBuild + ClCompile entries, so the .sln build stays CPU-only;
 # only the CMake path builds the Vulkan backend on Windows.
 if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
-    list(APPEND SRC_EFFECTS
-        src-core/effects/vulkan/VulkanComputeUtilities.cpp
-        src-core/effects/vulkan/VulkanGraphicsUtilities.cpp
-        src-core/effects/vulkan/VulkanShaderTranslate.cpp
-        src-core/effects/vulkan/VulkanEffectManager.cpp
-        src-core/effects/vulkan/VulkanLibs.cpp
-        src-core/effects/vulkan/VulkanBarsEffect.cpp
-        src-core/effects/vulkan/VulkanColorWashEffect.cpp
-        src-core/effects/vulkan/VulkanShockwaveEffect.cpp
-        src-core/effects/vulkan/VulkanFanEffect.cpp
-        src-core/effects/vulkan/VulkanSpiralsEffect.cpp
-        src-core/effects/vulkan/VulkanGalaxyEffect.cpp
-        src-core/effects/vulkan/VulkanCirclesEffect.cpp
-        src-core/effects/vulkan/VulkanPlasmaEffect.cpp
-        src-core/effects/vulkan/VulkanButterflyEffect.cpp
-        src-core/effects/vulkan/VulkanPinwheelEffect.cpp
-        src-core/effects/vulkan/VulkanKaleidoscopeEffect.cpp
-        src-core/effects/vulkan/VulkanWarpEffect.cpp
-        src-core/effects/vulkan/VulkanTreeEffect.cpp
-        src-core/effects/vulkan/VulkanShimmerEffect.cpp
-        src-core/effects/vulkan/VulkanCandleEffect.cpp
-        src-core/effects/vulkan/VulkanWaveEffect.cpp
-        src-core/effects/vulkan/VulkanGarlandsEffect.cpp
-        src-core/effects/vulkan/VulkanFillEffect.cpp
-        src-core/effects/vulkan/VulkanMeteorsEffect.cpp
-        src-core/effects/vulkan/VulkanTwinkleEffect.cpp
-        src-core/effects/vulkan/VulkanFireEffect.cpp
-        src-core/effects/vulkan/VulkanLifeEffect.cpp
-        # Vulkan graphics backend (runtime-switchable OpenGL/Vulkan canvas)
-        src-core/graphics/vulkan/VulkanPipelineCache.cpp
-        src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp
-        src-core/effects/vulkan/VulkanShaderEffect.cpp)
+    list(APPEND SRC_EFFECTS ${SRC_VULKAN})
     set(XLIGHTS_VULKAN_ENABLED TRUE)
 endif()
 
@@ -628,12 +597,7 @@ if(XLIGHTS_VULKAN_ENABLED)
             "Install it (Ubuntu/Debian: apt-get install glslc; or the Vulkan SDK)\n"
             "or reconfigure with -DXLIGHTS_USE_VULKAN=OFF.")
     endif()
-    file(GLOB _vulkan_comp CONFIGURE_DEPENDS
-        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.comp
-        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.vert
-        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.frag
-        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.vert
-        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.frag)
+    xl_vulkan_shader_headers(_vulkan_shaders)
     # Windows has no bash by default — run the PowerShell counterpart there.
     # Both scripts honor the GLSLC env var (CMake's find_program result) and emit
     # the same *.spv.h headers.
@@ -642,13 +606,15 @@ if(XLIGHTS_VULKAN_ENABLED)
             COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
                     powershell -NoProfile -ExecutionPolicy Bypass
                     -File ${CMAKE_SOURCE_DIR}/build_scripts/msw/compile_vulkan_shaders.ps1
-            SOURCES ${_vulkan_comp}
+            BYPRODUCTS ${_vulkan_shaders_HEADERS}
+            SOURCES ${_vulkan_shaders}
             COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
     else()
         add_custom_target(vulkan_shaders
             COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
                     bash ${CMAKE_SOURCE_DIR}/build_scripts/compile_vulkan_shaders.sh
-            SOURCES ${_vulkan_comp}
+            BYPRODUCTS ${_vulkan_shaders_HEADERS}
+            SOURCES ${_vulkan_shaders}
             COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
     endif()
     add_dependencies(xLights vulkan_shaders)

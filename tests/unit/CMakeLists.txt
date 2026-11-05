@@ -81,4 +81,12 @@ if(NOT MSVC)
 endif()
 
 include(Catch)
-catch_discover_tests(xlights_unit_tests)
+if(XL_TEST_VULKAN)
+    catch_discover_tests(xlights_unit_tests TEST_SPEC "~[gpu]")
+    # A software Vulkan device (lavapipe on CI) only takes compute work with
+    # XL_VULKAN_ALLOW_CPU set. Only these tests get it: the rest keep their CPU paths.
+    catch_discover_tests(xlights_unit_tests TEST_SPEC "[gpu]" TEST_LIST xlights_unit_tests_GPU
+        PROPERTIES ENVIRONMENT "XL_VULKAN_ALLOW_CPU=1")
+else()
+    catch_discover_tests(xlights_unit_tests)
+endif()

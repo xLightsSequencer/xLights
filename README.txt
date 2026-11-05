@@ -21,6 +21,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Horizontal buffer transforms
     -bug (dkulp)                 An arch of a single light got no position, and did not render on
                                  Windows and Linux
+    -bug (dkulp)                 Buffer rotation and zoom render the same with GPU rendering on as off; on
+                                 the GPU they filled a slightly different set of pixels
     -bug (dkulp)                 iPad - 3D objects (gridlines, terrain, mesh, image, ruler) stay in the Default
                                  preview instead of a layout group that was lost on reopen
     -change (dkulp)              iPad - Adding a 3D object needs the Default preview in 3D, as on desktop

@@ -3,6 +3,7 @@
 #
 # Sets in the includer's scope:
 #   SRC_CORE      - every src-core .cpp (minus the ones other platforms/libs exclude)
+#   SRC_VULKAN    - the Vulkan compute/graphics backend; the includer adds it (Linux/Windows only)
 #   LIBUSB_*      - libusb detection result; uDMXOutput is dropped when absent
 
 # Core (wx-free)
@@ -28,6 +29,7 @@ file(GLOB_RECURSE SRC_CORE
     ${XL_SRC_ROOT}/src-core/media/FFmpegAudioDecoder.cpp
     ${XL_SRC_ROOT}/src-core/media/FFmpegVideoReader.cpp
     ${XL_SRC_ROOT}/src-core/media/MediaCompatibility.cpp
+    ${XL_SRC_ROOT}/src-core/media/NoteImporter.cpp
     ${XL_SRC_ROOT}/src-core/media/OnsetDetector.cpp
     ${XL_SRC_ROOT}/src-core/media/PitchDetector.cpp
     ${XL_SRC_ROOT}/src-core/media/SDLAudioOutput.cpp
@@ -49,6 +51,39 @@ file(GLOB_RECURSE SRC_CORE
     ${XL_SRC_ROOT}/src-core/settings/*.cpp
     ${XL_SRC_ROOT}/src-core/utils/*.cpp
 )
+set(SRC_VULKAN
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanComputeUtilities.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanGraphicsUtilities.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanShaderTranslate.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanEffectManager.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanLibs.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanBarsEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanColorWashEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanShockwaveEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanFanEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanSpiralsEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanGalaxyEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanCirclesEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanPlasmaEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanButterflyEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanPinwheelEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanKaleidoscopeEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanWarpEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanTreeEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanShimmerEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanCandleEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanWaveEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanGarlandsEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanFillEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanMeteorsEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanTwinkleEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanFireEffect.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanLifeEffect.cpp
+    ${XL_SRC_ROOT}/src-core/graphics/vulkan/VulkanPipelineCache.cpp
+    ${XL_SRC_ROOT}/src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp
+    ${XL_SRC_ROOT}/src-core/effects/vulkan/VulkanShaderEffect.cpp
+)
+
 if(WIN32)
     list(APPEND SRC_CORE
         ${XL_SRC_ROOT}/src-core/media/WindowsHardwareVideoReader.cpp
@@ -91,3 +126,29 @@ if(NOT LIBUSB_FOUND)
 else()
     message(STATUS "libusb found — uDMX output enabled")
 endif()
+
+# The SPIR-V headers build_scripts/compile_vulkan_shaders.sh generates, for the
+# shader target's BYPRODUCTS. Without them Ninja does not know the target writes
+# the headers, so a changed shader only reaches the C++ that embeds it on the
+# build after next.
+function(xl_vulkan_shader_headers out_var)
+    file(GLOB _shaders CONFIGURE_DEPENDS
+        ${XL_SRC_ROOT}/src-core/effects/vulkan/shaders/*.comp
+        ${XL_SRC_ROOT}/src-core/effects/vulkan/shaders/*.vert
+        ${XL_SRC_ROOT}/src-core/effects/vulkan/shaders/*.frag
+        ${XL_SRC_ROOT}/src-core/graphics/vulkan/shaders/*.vert
+        ${XL_SRC_ROOT}/src-core/graphics/vulkan/shaders/*.frag)
+    set(_headers "")
+    foreach(_s ${_shaders})
+        get_filename_component(_dir ${_s} DIRECTORY)
+        get_filename_component(_base ${_s} NAME_WLE)
+        get_filename_component(_ext ${_s} LAST_EXT)
+        if(_ext STREQUAL ".comp")
+            list(APPEND _headers ${_dir}/compiled/${_base}.spv.h)
+        else()
+            list(APPEND _headers ${_dir}/compiled/${_base}${_ext}.spv.h)
+        endif()
+    endforeach()
+    set(${out_var} ${_shaders} ${_headers} PARENT_SCOPE)
+    set(${out_var}_HEADERS ${_headers} PARENT_SCOPE)
+endfunction()

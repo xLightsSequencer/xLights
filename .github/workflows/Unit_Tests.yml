@@ -67,6 +67,9 @@ jobs:
         ninja --version
         ispc --version
         cat /etc/ispc_version || true
+        # lavapipe, the software Vulkan device the [gpu] tests render on
+        ls /usr/share/vulkan/icd.d/lvp_icd*.json >/dev/null 2>&1 || \
+          { apt-get update -qq && apt-get install -y -qq mesa-vulkan-drivers libvulkan1; }
 
     - name: Configure
       run: |

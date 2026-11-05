@@ -13,6 +13,7 @@
 #include "VulkanGraphicsUtilities.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -1639,6 +1640,7 @@ bool VulkanRenderBufferComputeData::encodeEffectDispatch(VkCommandBuffer cb, VkP
         vkCmdDispatch(cb, (gridW + 7) / 8, (gridH + 7) / 8, 1);
     }
     u.statEffect++;
+    GPURenderUtils::NoteEffect();
     return true;
 }
 
@@ -2212,6 +2214,11 @@ bool VulkanRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings& s
         // Smallish buffer, overhead of sending to GPU will be more than the gain
         return false;
     }
+    // The Z claim key orders every (pixel, sub-sample) write, so it must fit an int.
+    int q = std::max(1, (int)settings.zoomquality);
+    if ((int64_t)renderBuffer->BufferWi * renderBuffer->BufferHt * q * q > INT32_MAX) {
+        return false;
+    }
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
 
     RotoZoomData data;
@@ -2228,6 +2235,15 @@ bool VulkanRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings& s
     data.zoomquality = settings.zoomquality;
     data.pivotpointx = settings.pivotpointx;
     data.pivotpointy = settings.pivotpointy;
+    data.xsine = settings.xsine;
+    data.xpivotPx = settings.xpivotPx;
+    data.ysine = settings.ysine;
+    data.ypivotPx = settings.ypivotPx;
+    data.zcos = settings.zcos;
+    data.zsin = settings.zsin;
+    data.zxoff = settings.zxoff;
+    data.zyoff = settings.zyoff;
+    data.zinc = settings.zinc;
 
     if (!getPixelBuffer()) {
         return false;

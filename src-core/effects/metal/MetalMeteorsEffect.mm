@@ -66,35 +66,25 @@ public:
             [blit fillBuffer:keyBuffer range:NSMakeRange(0, pixels * sizeof(uint32_t)) value:0];
             [blit endEncoding];
 
-            id<MTLComputeCommandEncoder> enc = [commandBuffer computeCommandEncoder];
-            if (enc == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, scatterFn, @"MeteorsRadialScatter", [&](id<MTLComputeCommandEncoder> enc) {
+                [enc setBytes:&mdata length:sizeof(mdata) atIndex:0];
+                [enc setBuffer:partBuffer offset:0 atIndex:1];
+                [enc setBuffer:keyBuffer offset:0 atIndex:2];
+                MetalRenderBufferComputeData::dispatch1D(enc, scatterFn, (NSInteger)parts.size() * (NSInteger)mdata.stride);
+            });
+            if (!encoded) {
                 return false;
             }
-            [enc setLabel:@"MeteorsRadialScatter"];
-            [enc setComputePipelineState:scatterFn];
-            [enc setBytes:&mdata length:sizeof(mdata) atIndex:0];
-            [enc setBuffer:partBuffer offset:0 atIndex:1];
-            [enc setBuffer:keyBuffer offset:0 atIndex:2];
-            NSInteger steps = (NSInteger)parts.size() * (NSInteger)mdata.stride;
-            NSInteger tg = std::min(steps, (NSInteger)scatterFn.maxTotalThreadsPerThreadgroup);
-            [enc dispatchThreads:MTLSizeMake(steps, 1, 1) threadsPerThreadgroup:MTLSizeMake(tg, 1, 1)];
-            [enc endEncoding];
-
-            id<MTLComputeCommandEncoder> enc2 = [commandBuffer computeCommandEncoder];
-            if (enc2 == nil) {
-                rbcd->abortCommandBuffer();
+            encoded = rbcd->encodeEffect(commandBuffer, resolveFn, @"MeteorsRadialResolve", [&](id<MTLComputeCommandEncoder> enc2) {
+                [enc2 setBytes:&mdata length:sizeof(mdata) atIndex:0];
+                [enc2 setBuffer:bufferResult offset:0 atIndex:1];
+                [enc2 setBuffer:partBuffer offset:0 atIndex:2];
+                [enc2 setBuffer:keyBuffer offset:0 atIndex:3];
+                MetalRenderBufferComputeData::dispatch1D(enc2, resolveFn, (NSInteger)pixels);
+            });
+            if (!encoded) {
                 return false;
             }
-            [enc2 setLabel:@"MeteorsRadialResolve"];
-            [enc2 setComputePipelineState:resolveFn];
-            [enc2 setBytes:&mdata length:sizeof(mdata) atIndex:0];
-            [enc2 setBuffer:bufferResult offset:0 atIndex:1];
-            [enc2 setBuffer:partBuffer offset:0 atIndex:2];
-            [enc2 setBuffer:keyBuffer offset:0 atIndex:3];
-            NSInteger tg2 = std::min((NSInteger)pixels, (NSInteger)resolveFn.maxTotalThreadsPerThreadgroup);
-            [enc2 dispatchThreads:MTLSizeMake(pixels, 1, 1) threadsPerThreadgroup:MTLSizeMake(tg2, 1, 1)];
-            [enc2 endEncoding];
         }
         return true;
     }
@@ -138,29 +128,19 @@ public:
                 return false;
             }
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"MeteorsEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                [computeEncoder setBytes:&mdata length:sizeof(mdata) atIndex:0];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+                [computeEncoder setBuffer:partBuffer offset:0 atIndex:2];
+                [computeEncoder setBuffer:itemBuffer offset:0 atIndex:3];
+                [computeEncoder setBuffer:startBuffer offset:0 atIndex:4];
+
+                NSInteger pixelCount = mdata.width * mdata.height;
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, fn, pixelCount);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"MeteorsEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            [computeEncoder setBytes:&mdata length:sizeof(mdata) atIndex:0];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
-            [computeEncoder setBuffer:partBuffer offset:0 atIndex:2];
-            [computeEncoder setBuffer:itemBuffer offset:0 atIndex:3];
-            [computeEncoder setBuffer:startBuffer offset:0 atIndex:4];
-
-            NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
-            NSInteger pixelCount = mdata.width * mdata.height;
-            NSInteger threads = std::min(pixelCount, maxThreads);
-            MTLSize gridSize = MTLSizeMake(pixelCount, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
         }
         return true;
     }

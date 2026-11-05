@@ -91,6 +91,9 @@ jobs:
         ccache --max-size=2G
         ccache --set-config=compression=true
         gcovr --version | head -1
+        # lavapipe, the software Vulkan device the [gpu] tests render on
+        ls /usr/share/vulkan/icd.d/lvp_icd*.json >/dev/null 2>&1 || \
+          { apt-get update -qq && apt-get install -y -qq mesa-vulkan-drivers libvulkan1; }
 
     - name: Configure
       run: |
@@ -113,7 +116,9 @@ jobs:
       id: test
       continue-on-error: true
       working-directory: build-cov
-      run: ./xlights_unit_tests --reporter console::out=-::colour-mode=none
+      run: |
+        ./xlights_unit_tests "~[gpu]" --reporter console::out=-::colour-mode=none
+        XL_VULKAN_ALLOW_CPU=1 ./xlights_unit_tests "[gpu]" --reporter console::out=-::colour-mode=none
 
     - name: Coverage report
       if: steps.test.outcome == 'success'

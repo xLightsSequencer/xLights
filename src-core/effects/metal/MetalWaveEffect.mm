@@ -49,31 +49,21 @@ public:
                 return false;
             }
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"WaveEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                NSInteger dataSize = sizeof(wd);
+                [computeEncoder setBytes:&wd length:dataSize atIndex:0];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+                [computeEncoder setBuffer:colBuffer offset:0 atIndex:2];
+
+                // Bound by the actual pixel allocation — a variable sub-buffer can
+                // leave GetPixelCount() < width * height and the kernel writes
+                // result[index] with no bounds check beyond width*height.
+                NSInteger pixelCount = std::min((NSInteger)(wd.width * wd.height), (NSInteger)buffer.GetPixelCount());
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, fn, pixelCount);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"WaveEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            NSInteger dataSize = sizeof(wd);
-            [computeEncoder setBytes:&wd length:dataSize atIndex:0];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
-            [computeEncoder setBuffer:colBuffer offset:0 atIndex:2];
-
-            NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
-            // Bound by the actual pixel allocation — a variable sub-buffer can
-            // leave GetPixelCount() < width * height and the kernel writes
-            // result[index] with no bounds check beyond width*height.
-            NSInteger pixelCount = std::min((NSInteger)(wd.width * wd.height), (NSInteger)buffer.GetPixelCount());
-            NSInteger threads = std::min(pixelCount, maxThreads);
-            MTLSize gridSize = MTLSizeMake(pixelCount, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
         }
         return true;
     }

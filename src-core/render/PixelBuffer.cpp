@@ -2942,19 +2942,35 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
     }
 }
 
+// The values the rotations derive from the settings for one buffer size. The
+// GPU kernels take them from here rather than recomputing them, so both sides
+// map every source pixel to the same destination.
+static void PrepareRotoZoom(GPURenderUtils::RotoZoomSettings& settings, int width, int height) {
+    static const float PI_2 = 6.283185307f;
+    settings.xsine = sin((settings.xrotation + 90) * M_PI / 180);
+    settings.xpivotPx = settings.xpivot * width / 100;
+    settings.ysine = sin((settings.yrotation + 90) * M_PI / 180);
+    settings.ypivotPx = settings.ypivot * height / 100;
+    float angle = PI_2 * -settings.zrotation;
+    settings.zcos = cos(-angle);
+    settings.zsin = sin(-angle);
+    settings.zxoff = (settings.pivotpointx * width) / 100.0;
+    settings.zyoff = (settings.pivotpointy * height) / 100.0;
+    int q = settings.zoomquality;
+    settings.zinc = 1.0 / (float)q;
+}
+
 void PixelBufferClass::RotateX(RenderBuffer& buffer, GPURenderUtils::RotoZoomSettings& settings) {
     // Now do the rotation around a point on the x axis
 
     float xrotation = settings.xrotation;
     if (xrotation != 0 && xrotation != 360) {
         GPURenderUtils::waitForRenderCompletion(&buffer);
-        int xpivot = settings.xpivot;
-
         buffer.SnapshotTransformScratch();
         buffer.Clear();
 
-        float sine = sin((xrotation + 90) * M_PI / 180);
-        float pivot = xpivot * buffer.BufferWi / 100;
+        float sine = settings.xsine;
+        float pivot = settings.xpivotPx;
 
         for (int x = pivot; x < buffer.BufferWi; ++x) {
             float tox = sine * (x - pivot) + pivot;
@@ -2978,12 +2994,11 @@ void PixelBufferClass::RotateY(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
     if (yrotation != 0 && yrotation != 360) {
         GPURenderUtils::waitForRenderCompletion(&buffer);
 
-        int ypivot = settings.ypivot;
         buffer.SnapshotTransformScratch();
         buffer.Clear();
 
-        float sine = sin((yrotation + 90) * M_PI / 180);
-        float pivot = ypivot * buffer.BufferHt / 100;
+        float sine = settings.ysine;
+        float pivot = settings.ypivotPx;
 
         for (int y = pivot; y < buffer.BufferHt; ++y) {
             float toy = sine * (y - pivot) + pivot;
@@ -3009,19 +3024,14 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
     if (rotation != 0.0 || zoom != 1.0) {
         GPURenderUtils::waitForRenderCompletion(&buffer);
 
-        static const float PI_2 = 6.283185307f;
         xlColor c;
         buffer.SnapshotTransformScratch();
         int q = settings.zoomquality;
-        int cx = settings.pivotpointx;
-        int cy = settings.pivotpointy;
-        float inc = 1.0 / (float)q;
-
-        float angle = PI_2 * -rotation;
-        float xoff = (cx * buffer.BufferWi) / 100.0;
-        float yoff = (cy * buffer.BufferHt) / 100.0;
-        float anglecos = cos(-angle);
-        float anglesin = sin(-angle);
+        float inc = settings.zinc;
+        float xoff = settings.zxoff;
+        float yoff = settings.zyoff;
+        float anglecos = settings.zcos;
+        float anglesin = settings.zsin;
 
         buffer.Clear();
         for (int x = 0; x < buffer.BufferWi; x++) {
@@ -3116,6 +3126,7 @@ void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset) {
     willDoRZ |= (settings.zrotation != 0.0 || settings.zoom != 1.0);
 
     if (willDoRZ) {
+        PrepareRotoZoom(settings, layer->buffer.BufferWi, layer->buffer.BufferHt);
         if (!GPURenderUtils::RotoZoom(&layer->buffer, settings)) {
             for (auto& c : layer->rotationorder) {
                 switch (c) {

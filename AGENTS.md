@@ -397,6 +397,18 @@ is not wired up yet (dependency discovery lives in the root build).
 `-DXL_BUILD_TESTS=ON` on the root build adds `tests/unit` as a subdirectory. CI runs
 this in the Ubuntu build container (`.github/workflows/Unit_Tests.yml`), which already has
 the dev packages and the pinned ISPC.
+On Linux the full core is built with the Vulkan backend (`HAVE_VULKAN`, as the app is;
+needs `glslc` and `glslang-dev`). The `[gpu]` tests render a show on the CPU and on the
+GPU and compare (`tests/unit/core/test_gpu_common.h`): `test_gpu_effects.cpp` (every GPU
+effect, blur, blend, transitions) and `test_gpu_rotozoom.cpp` run on Metal (Mac Xcode
+scheme, which builds `EffectComputeFunctions.metallib` next to the test binary) and on
+Vulkan (Linux). A quiet CPU fallback fails them: each case checks that the backend's
+`GPURenderUtils::stats` counter moved, so a new Metal effect must encode its kernel through
+`MetalRenderBufferComputeData::encodeEffect`. `test_vulkan.cpp` holds GLSL→SPIR-V tests that
+need no device. The `[gpu]` tests skip without a GPU compute backend. A software Vulkan
+device (lavapipe) only takes compute work with `XL_VULKAN_ALLOW_CPU=1`, so on Linux run
+them as `XL_VULKAN_ALLOW_CPU=1 ./xlights_unit_tests "[gpu]"` (ctest sets it for them; CI
+installs `mesa-vulkan-drivers`). Don't set it for the other tests, which expect CPU paths.
 `test_float_checks.cpp` is compiled with `-ffast-math` on purpose (see §6). Catch2
 3.8.1 is used from the system if present, else fetched. Render regressions are
 covered by the harness above, not here.

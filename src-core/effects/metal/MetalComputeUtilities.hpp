@@ -5,6 +5,7 @@
 
 #include <array>
 #include <atomic>
+#include <functional>
 
 #include "GPURenderUtils.h"
 #include "MetalEffectDataTypes.h"
@@ -49,6 +50,19 @@ public:
 
     id<MTLCommandBuffer> getCommandBuffer(const std::string &postfix = "");
     void abortCommandBuffer();
+
+    // An effect's compute pass on `commandBuffer` (from getCommandBuffer()):
+    // opens an encoder labelled `label` with `fn` bound, lets `encode` set the
+    // arguments and dispatch (it may bind another pipeline for a later pass),
+    // ends it and counts a GPU effect render in GPURenderUtils::stats. False,
+    // with the command buffer aborted, when no encoder can be had; the effect
+    // then renders on the CPU.
+    bool encodeEffect(id<MTLCommandBuffer> commandBuffer, id<MTLComputePipelineState> fn, NSString *label,
+                      const std::function<void(id<MTLComputeCommandEncoder>)> &encode);
+    // One thread per element, in threadgroups as large as `fn` allows.
+    static void dispatch1D(id<MTLComputeCommandEncoder> encoder, id<MTLComputePipelineState> fn, NSInteger count);
+    // width x height threads, threadExecutionWidth wide threadgroups.
+    static void dispatch2D(id<MTLComputeCommandEncoder> encoder, id<MTLComputePipelineState> fn, NSInteger width, NSInteger height);
     
     id<MTLBuffer> getPixelBuffer(bool sendToGPU = true);
     id<MTLTexture> getPixelTexture();

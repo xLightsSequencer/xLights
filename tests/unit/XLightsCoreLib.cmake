@@ -6,7 +6,9 @@
 #   Debian/Ubuntu: libcurl4-openssl-dev libavcodec-dev libavformat-dev libavutil-dev
 #     libavfilter-dev libswscale-dev libswresample-dev libzstd-dev libminizip-dev
 #     libsdl2-dev libgl-dev libxlsxwriter-dev libusb-1.0-0-dev liblua5.4-dev zlib1g-dev
-#   (plus the dependencies/ submodules: spdlog pugixml nanosvg liquidfun midifile)
+#     glslc glslang-dev (Linux: the Vulkan backend is built in, as in the app)
+#   (plus the dependencies/ submodules: spdlog pugixml nanosvg liquidfun midifile
+#   volk Vulkan-Headers VulkanMemoryAllocator)
 # On Windows build from the root project with -DXL_BUILD_TESTS=ON instead - it has
 # already located the dependency bundle.
 #
@@ -68,7 +70,45 @@ set(CMAKE_ISPC_INSTRUCTION_SETS ${_ispc_sets})
 file(GLOB _ispc_sources ${XL_REPO_ROOT}/src-core/effects/ispc/*.ispc)
 list(APPEND SRC_EFFECTS ${_ispc_sources} ${XL_REPO_ROOT}/src-core/effects/ispc/ISPCComputeUtilities.cpp)
 
+# Vulkan backend, as the Linux app builds it (Windows full-core goes through the
+# root build). volk dlopens the loader, so a machine without Vulkan still links
+# and the effects take their CPU paths; the [gpu] tests skip there.
+set(XL_TEST_VULKAN FALSE)
+if(UNIX AND NOT APPLE)
+    find_program(GLSLC_EXECUTABLE glslc HINTS $ENV{VULKAN_SDK}/bin)
+    if(NOT GLSLC_EXECUTABLE)
+        message(FATAL_ERROR "glslc not found: the Vulkan backend needs it (apt install glslc)")
+    endif()
+    list(APPEND SRC_EFFECTS ${SRC_VULKAN})
+    set(XL_TEST_VULKAN TRUE)
+endif()
+
 add_library(xlights_core STATIC ${SRC_CORE} ${SRC_EFFECTS})
+
+if(XL_TEST_VULKAN)
+    target_compile_definitions(xlights_core PUBLIC HAVE_VULKAN HAVE_VULKAN_SHADER VK_NO_PROTOTYPES)
+    target_include_directories(xlights_core PUBLIC
+        ${XL_REPO_ROOT}/dependencies/Vulkan-Headers/include
+        ${XL_REPO_ROOT}/dependencies/volk
+        ${XL_REPO_ROOT}/dependencies/VulkanMemoryAllocator/include)
+    # glslang from the distro, in the root build's order (the packaged glslang is
+    # built with the optimizer, so it needs SPIRV-Tools after it).
+    foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent SPIRV-Tools-opt SPIRV-Tools)
+        find_library(GLSLANG_${_gl}_LIB NAMES ${_gl})
+        if(GLSLANG_${_gl}_LIB)
+            target_link_libraries(xlights_core PUBLIC ${GLSLANG_${_gl}_LIB})
+        endif()
+    endforeach()
+    # The SPIR-V headers the vulkan/ sources #include are generated, not committed.
+    xl_vulkan_shader_headers(_vulkan_shaders)
+    add_custom_target(xlights_core_vulkan_shaders
+        COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
+                bash ${XL_REPO_ROOT}/build_scripts/compile_vulkan_shaders.sh
+        BYPRODUCTS ${_vulkan_shaders_HEADERS}
+        SOURCES ${_vulkan_shaders}
+        COMMENT "Compiling Vulkan shaders to SPIR-V headers")
+    add_dependencies(xlights_core xlights_core_vulkan_shaders)
+endif()
 target_include_directories(xlights_core PUBLIC
     ${XL_REPO_ROOT}/src-core
     ${XL_REPO_ROOT}/src-core/render
