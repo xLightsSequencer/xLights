@@ -94,6 +94,16 @@ static long ReadPositiveAttrWithParmFallback(pugi::xml_node node, const char* ne
     return std::max(1L, ReadAttrWithParmFallback(node, newAttr, parmAttr, defaultVal));
 }
 
+// Colour channels are unsigned in the models, so a negative value must not wrap around to a huge channel number
+static int ReadChannelAttr(pugi::xml_node node, const char* attr, int defaultVal) {
+    return std::max(0, node.attribute(attr).as_int(defaultVal));
+}
+
+// Every model allocates a coordinate per light per node, so an absurd value in a corrupt file would exhaust memory
+static int ReadLightsPerNodeAttr(pugi::xml_node node) {
+    return (int)std::min(1000L, ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+}
+
 // Helper to read an integer attribute, falling back to a legacy attribute name
 static int ReadIntAttrWithLegacyFallback(pugi::xml_node node, const char* newAttr, const char* legacyAttr, int defaultVal) {
     if (!node.attribute(newAttr).empty()) {
@@ -599,7 +609,7 @@ Model* XmlDeserializingModelFactory::DeserializeArches(pugi::xml_node node, Mode
     CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumArches(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumArchesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerArch(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerArchAttribute, XmlNodeKeys::Parm2Attribute, "1"));
-    model->SetLightsPerNode(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetLightsPerNode(ReadLightsPerNodeAttr(node));
     DeserializeThreePointScreenLocationAttributes(model, node);
     // Pre-2026 files omit ZigZag when never toggled and treated that as on; 2026.04+ omitted it when off
     const char* zigZagDefault = IsPre2026Serializer(node) ? "true" : "false";
@@ -624,7 +634,7 @@ Model* XmlDeserializingModelFactory::DeserializeCandyCane(pugi::xml_node node, M
     CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumCanes(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumCanesAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerCane(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerCaneAttribute, XmlNodeKeys::Parm2Attribute, "1"));
-    model->SetLightsPerNode(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetLightsPerNode(ReadLightsPerNodeAttr(node));
     DeserializeThreePointScreenLocationAttributes(model, node);
     model->SetReverse(std::string_view(node.attribute(XmlNodeKeys::CCReverseAttribute).as_string("false")) == "true");
     model->SetSticks(std::string_view(node.attribute(XmlNodeKeys::CCSticksAttribute).as_string("false")) == "true");
@@ -682,7 +692,9 @@ Model* XmlDeserializingModelFactory::DeserializeCube(pugi::xml_node node, ModelM
     model->SetCubeWidth(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::CubeWidthAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetCubeHeight(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::CubeHeightAttribute, XmlNodeKeys::Parm2Attribute, "1"));
     model->SetCubeDepth(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::CubeDepthAttribute, XmlNodeKeys::Parm3Attribute, "1"));
-    model->SetCubeStrings(node.attribute(XmlNodeKeys::CubeStringsAttribute).as_int(1));
+    // Each string needs a start channel, so more strings than nodes (or a huge corrupt value) is clamped
+    double cubeNodes = (double)model->GetCubeWidth() * model->GetCubeHeight() * model->GetCubeDepth();
+    model->SetCubeStrings((int)std::clamp((double)node.attribute(XmlNodeKeys::CubeStringsAttribute).as_int(1), 1.0, std::max(1.0, cubeNodes)));
     model->SetCubeStart(node.attribute(XmlNodeKeys::CubeStartAttribute).as_string(""));
     model->SetCubeStyle(node.attribute(XmlNodeKeys::StyleAttribute).as_string(""));
     model->SetStrandStyle(node.attribute(XmlNodeKeys::StrandPerLineAttribute).as_string(""));
@@ -844,7 +856,7 @@ Model* XmlDeserializingModelFactory::DeserializeSingleLine(pugi::xml_node node, 
     CommonDeserializeSteps(model, node, modelManager, importing);
     model->SetNumLines(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NumStringsAttribute, XmlNodeKeys::Parm1Attribute, "1"));
     model->SetNodesPerLine(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "50"));
-    model->SetLightsPerNode(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetLightsPerNode(ReadLightsPerNodeAttr(node));
     DeserializeTwoPointScreenLocationAttributes(model, node);
     model->Setup();
     return model;
@@ -853,7 +865,7 @@ Model* XmlDeserializingModelFactory::DeserializeSingleLine(pugi::xml_node node, 
 Model* XmlDeserializingModelFactory::DeserializePolyLine(pugi::xml_node node, ModelManager& modelManager, bool importing) {
     PolyLineModel* model = new PolyLineModel(modelManager);
     CommonDeserializeSteps(model, node, modelManager, importing);
-    model->SetLightsPerNode(ReadPositiveAttrWithParmFallback(node, XmlNodeKeys::LightsPerNodeAttribute, XmlNodeKeys::Parm3Attribute, "1"));
+    model->SetLightsPerNode(ReadLightsPerNodeAttr(node));
     model->SetTotalLightCount(ReadAttrWithParmFallback(node, XmlNodeKeys::NodesPerStringAttribute, XmlNodeKeys::Parm2Attribute, "0"));
     // A Poly Line's segment count is num_points - 1 and is used to size the
     // per-segment lead/trail offset vectors below; a saved NumPoints < 2
@@ -1199,10 +1211,10 @@ void XmlDeserializingModelFactory::DeserializeColorAbility(DmxModel* model, pugi
 }
 
 void XmlDeserializingModelFactory::DeserializeColorAbilityRGBAttributes(DmxColorAbilityRGB* ability, pugi::xml_node node) {
-    ability->SetRedChannel(node.attribute("DmxRedChannel").as_int(1));
-    ability->SetGreenChannel(node.attribute("DmxGreenChannel").as_int(2));
-    ability->SetBlueChannel(node.attribute("DmxBlueChannel").as_int(3));
-    ability->SetWhiteChannel(node.attribute("DmxWhiteChannel").as_int(0));
+    ability->SetRedChannel(ReadChannelAttr(node, "DmxRedChannel", 1));
+    ability->SetGreenChannel(ReadChannelAttr(node, "DmxGreenChannel", 2));
+    ability->SetBlueChannel(ReadChannelAttr(node, "DmxBlueChannel", 3));
+    ability->SetWhiteChannel(ReadChannelAttr(node, "DmxWhiteChannel", 0));
 
     ability->SetRedBrightness(node.attribute("DmxRedBrightness").as_int(100));
     ability->SetGreenBrightness(node.attribute("DmxGreenBrightness").as_int(100));
@@ -1216,8 +1228,8 @@ void XmlDeserializingModelFactory::DeserializeColorAbilityRGBAttributes(DmxColor
  }
 
 void XmlDeserializingModelFactory::DeserializeColorWheelAttributes(DmxColorAbilityWheel* ability, pugi::xml_node node) {
-    ability->SetWheelChannel(node.attribute("DmxColorWheelChannel").as_int(0));
-    ability->SetDimmerChannel(node.attribute("DmxDimmerChannel").as_int(0));
+    ability->SetWheelChannel(ReadChannelAttr(node, "DmxColorWheelChannel", 0));
+    ability->SetDimmerChannel(ReadChannelAttr(node, "DmxDimmerChannel", 0));
     ability->SetWheelDelay(node.attribute("DmxColorWheelDelay").as_int(0));
     ability->ClearColors();
     for (int i = 0; i< DmxColorAbilityWheel::MAX_COLORS; ++i) {
@@ -1233,10 +1245,10 @@ void XmlDeserializingModelFactory::DeserializeColorWheelAttributes(DmxColorAbili
 }
 
 void XmlDeserializingModelFactory::DeserializeColorAbilityCMYAttributes(DmxColorAbilityCMY* ability, pugi::xml_node node) {
-    ability->SetCyanChannel(node.attribute("DmxCyanChannel").as_int(1));
-    ability->SetMagentaChannel(node.attribute("DmxMagentaChannel").as_int(2));
-    ability->SetYellowChannel(node.attribute("DmxYellowChannel").as_int(3));
-    ability->SetWhiteChannel(node.attribute("DmxWhiteChannel").as_int(0));
+    ability->SetCyanChannel(ReadChannelAttr(node, "DmxCyanChannel", 1));
+    ability->SetMagentaChannel(ReadChannelAttr(node, "DmxMagentaChannel", 2));
+    ability->SetYellowChannel(ReadChannelAttr(node, "DmxYellowChannel", 3));
+    ability->SetWhiteChannel(ReadChannelAttr(node, "DmxWhiteChannel", 0));
 }
 
 void XmlDeserializingModelFactory::DeserializeShutterAbility(DmxModel* model, pugi::xml_node node) {

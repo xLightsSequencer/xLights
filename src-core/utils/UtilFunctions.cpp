@@ -179,7 +179,7 @@ std::string UnXmlSafe(const std::string& res) {
 std::string XmlSafe(const std::string& s) {
     std::string res = "";
     for (auto c = s.begin(); c != s.end(); ++c) {
-        if ((int)(*c) < 32) {
+        if ((unsigned char)(*c) < 32) {
             int cc = (int)*c;
             if (cc == 9 || cc == 10 || cc == 13) {
                 char buf[8];

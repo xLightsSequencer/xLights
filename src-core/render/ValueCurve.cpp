@@ -617,19 +617,14 @@ void ValueCurve::Reverse()
     //    SetParameter1(100.0 - p1);
     //    SetParameter2(p2);
     //}
-    else if (_type == "Sine")   
+    else if (_type == "Sine" || _type == "Abs Sine")
     {
-        SetParameter1((int)(GetParameter1() + 25.0) % 100);
-        _timeOffset = 100 - _timeOffset;
-        _timeOffset += 0.5 * 100 * 10 / _parameter3;
-        _timeOffset %= 100;
-    }
-    else if (_type == "Abs Sine")
-    {
-        SetParameter1((int)(GetParameter1() + 25.0) % 100);
-        _timeOffset = 100 - _timeOffset;
-        _timeOffset += 0.5 * 100 * 10 / _parameter3;
-        _timeOffset %= 100;
+        // y(x) = sin(x * 2pi * cycles + phase) reversed in time is another sine with phase pi - 2pi * cycles - phase
+        // (|sin| has period pi, so the half cycle shift is not needed for Abs Sine)
+        float p = (_type == "Sine" ? 50.0f : 0.0f) - 10.0f * GetParameter3() - GetParameter1();
+        p = std::fmod(p, 100.0f);
+        if (p < 0) p += 100.0f;
+        SetParameter1(p);
     }
     else if (_type == "Square")
     {
@@ -751,7 +746,7 @@ void ValueCurve::UnFixChangedScale(float newmin, float newmax)
 
     float oldrange = newmax - newmin;
     float newrange = 100 - 0;
-    float mindiff = 0 - newmin;
+    float mindiff = -newmin * newrange / oldrange;
 
     float min, max;
     GetRangeParm(1, _type, min, max);
@@ -1501,6 +1496,18 @@ ValueCurve::ValueCurve(const std::string& s)
     Deserialise(s);
 }
 
+namespace {
+std::string EscapePipe(std::string s) {
+    Replace(s, "|", "&#124;");
+    return s;
+}
+
+std::string UnescapePipe(std::string s) {
+    Replace(s, "&#124;", "|");
+    return s;
+}
+}
+
 void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
 {
     ClearCachedOffsets();
@@ -1637,13 +1644,13 @@ std::string ValueCurve::Serialise()
         res += "Min=" + fmt2f(_min) + "|";
         res += "Max=" + fmt2f(_max) + "|";
         if (_timingTrack != "") {
-            res += "TT=" + _timingTrack + "|";
+            res += "TT=" + EscapePipe(_timingTrack) + "|";
         }
         if (_audioTrackName != "") {
-            res += "AT=" + _audioTrackName + "|";
+            res += "AT=" + EscapePipe(_audioTrackName) + "|";
         }
         if (_filterLabelText != "") {
-            res += "FT=" + _filterLabelText + "|";
+            res += "FT=" + EscapePipe(_filterLabelText) + "|";
         }
         if (_isFilterLabelRegex) {
             res += "FLR=Y|";
@@ -1692,7 +1699,7 @@ std::string ValueCurve::Serialise()
             for (auto it = _values.begin(); it != _values.end(); ++it)
             {
                 res += fmt2f(it->x) + ":" + fmt2f(it->y);
-                if (!(*it == _values.back()))
+                if (std::next(it) != _values.end())
                 {
                     res += ";";
                 }
@@ -1707,7 +1714,7 @@ std::string ValueCurve::Serialise()
             for (auto it = _values.begin(); it != _values.end(); ++it)
             {
                 res += fmt2f(it->x) + ":" + fmt2f(it->y);
-                if (!(*it == _values.back()))
+                if (std::next(it) != _values.end())
                 {
                     res += ";";
                 }
@@ -1819,11 +1826,11 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
         _type = s;
     }
     else if (k == "TT") {
-        _timingTrack = s;
+        _timingTrack = UnescapePipe(s);
     } else if (k == "AT") {
-        _audioTrackName = s;
+        _audioTrackName = UnescapePipe(s);
     } else if (k == "FT") {
-        _filterLabelText = s;
+        _filterLabelText = UnescapePipe(s);
     } else if (k == "FLR") {
         _isFilterLabelRegex = (s == "Y");
     } else if (k == "Min") {

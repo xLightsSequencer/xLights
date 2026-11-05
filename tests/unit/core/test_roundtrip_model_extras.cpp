@@ -861,8 +861,7 @@ TEST_CASE("Roundtrip model unknown extra attributes and children settle", "[roun
     CHECK(c.s3 == c.s2);
 }
 
-// KNOWN BUG: a huge LightsPerNode makes loading a Single Line model segfault (no clamp on the per-node channel multiplier).
-TEST_CASE("Roundtrip huge LightsPerNode loads safely", "[.][known-crash][roundtrip_crash]") {
+TEST_CASE("Roundtrip huge LightsPerNode loads safely", "[roundtrip][roundtrip_crash]") {
     ShowFixture a;
     Model* m = a.Add(ModelXml("E", "Single Line", { { "NumStrings", "2" }, { "NodesPerString", "5" }, { "LightsPerNode", "2147483647" } }));
     if (m != nullptr) {
@@ -870,8 +869,7 @@ TEST_CASE("Roundtrip huge LightsPerNode loads safely", "[.][known-crash][roundtr
         CHECK(b.Add(Ser(m)) != nullptr);
     }
 }
-// KNOWN BUG: a huge Cube Strings value hangs the loader (no upper clamp on the string count).
-TEST_CASE("Roundtrip huge cube string count loads safely", "[.][known-crash][roundtrip_crash]") {
+TEST_CASE("Roundtrip huge cube string count loads safely", "[roundtrip][roundtrip_crash]") {
     ShowFixture a;
     Model* m = a.Add(ModelXml("E", "Cube", { { "CubeWidth", "2" }, { "CubeHeight", "2" }, { "CubeDepth", "2" }, { "Strings", "2147483647" } }));
     if (m != nullptr) {
@@ -879,8 +877,7 @@ TEST_CASE("Roundtrip huge cube string count loads safely", "[.][known-crash][rou
         CHECK(b.Add(Ser(m)) != nullptr);
     }
 }
-// KNOWN BUG: a negative DMX colour channel is stored unsigned (4294967295), written as such, and then clamped to INT_MAX on the next load.
-TEST_CASE("Roundtrip negative DMX colour channel settles", "[roundtrip][dmx][!mayfail]") {
+TEST_CASE("Roundtrip negative DMX colour channel settles", "[roundtrip][dmx]") {
     for (const char* attr : { "DmxRedChannel", "DmxGreenChannel", "DmxBlueChannel" }) {
         INFO(attr);
         Cycle c = RunCycle(ModelXml("E", "DmxGeneral", { { "DmxChannelCount", "6" }, { "StringType", "Single Color White" }, { attr, "-1" } }));

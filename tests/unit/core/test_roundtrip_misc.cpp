@@ -73,9 +73,7 @@ TEST_CASE("Roundtrip XmlSafe control characters other than tab and newline are d
     CHECK(XmlSafe(std::string("a\x01" "b\x1F" "c")) == "abc");
     CHECK(XmlSafe(std::string("a\0b", 3)) == "ab");
 }
-// KNOWN BUG: XmlSafe tests "(int)*c < 32" on a (signed) char, so every byte >= 0x80 of a UTF-8 sequence is treated as a control
-// character and dropped. Used for the sequence header, timing exports, test preset and camera names.
-TEST_CASE("Roundtrip XmlSafe keeps UTF-8 text", "[roundtrip][xmlsafe][!mayfail]") {
+TEST_CASE("Roundtrip XmlSafe keeps UTF-8 text", "[roundtrip][xmlsafe]") {
     for (const char* s : { "caf\xC3\xA9", "\xE6\x97\xA5\xE6\x9C\xAC", "\xE2\x9D\x84", "\xF0\x9F\x8E\x84", "na\xC3\xAFve \xC3\xBC\xC3\xB1" }) {
         INFO(s);
         CHECK(UnXmlSafe(XmlSafe(s)) == s);
@@ -312,8 +310,7 @@ TEST_CASE("Roundtrip test preset names with specials", "[roundtrip][outputs][tes
         CHECK(q.GetName() == name);
     }
 }
-// KNOWN BUG: TestPreset::Save writes XmlSafe(name), which strips non-ASCII characters from preset names.
-TEST_CASE("Roundtrip test preset name with non-ASCII text", "[roundtrip][outputs][testpreset][!mayfail]") {
+TEST_CASE("Roundtrip test preset name with non-ASCII text", "[roundtrip][outputs][testpreset]") {
     OutputManager om;
     om.CreateTestPreset("caf\xC3\xA9 \xE2\x9D\x84")->AddChannel(3);
     pugi::xml_document d;
@@ -408,13 +405,11 @@ TEST_CASE("Roundtrip timing export and import with an empty label", "[roundtrip]
     std::vector<std::vector<Mark>> in = { { { 0, 500, "" }, { 500, 1000, "x" } } };
     CHECK(ExportImport(in) == in);
 }
-// KNOWN BUG: TimingElement::GetExport() writes XmlSafe(label), which drops non-ASCII bytes, so lyrics/labels such as "caf\xC3\xA9" are exported as "caf".
-TEST_CASE("Roundtrip timing export and import of non-ASCII labels", "[roundtrip][timing][!mayfail]") {
+TEST_CASE("Roundtrip timing export and import of non-ASCII labels", "[roundtrip][timing]") {
     std::vector<std::vector<Mark>> in = { { { 0, 500, "caf\xC3\xA9" }, { 500, 1000, "\xE6\x97\xA5\xE6\x9C\xAC" } } };
     CHECK(ExportImport(in) == in);
 }
-// KNOWN BUG: an exported label that literally contains "&amp;" is turned into "&" by the importer (UnXmlSafe applied to already unescaped text).
-TEST_CASE("Roundtrip timing export and import of entity lookalike labels", "[roundtrip][timing][!mayfail]") {
+TEST_CASE("Roundtrip timing export and import of entity lookalike labels", "[roundtrip][timing]") {
     std::vector<std::vector<Mark>> in = { { { 0, 500, "AT&amp;T" }, { 500, 1000, "&lt;3" } } };
     CHECK(ExportImport(in) == in);
 }

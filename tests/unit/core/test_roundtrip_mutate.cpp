@@ -107,9 +107,7 @@ void CheckMutated(const char* type, const std::set<std::string>& skip = {}) {
 
 } // namespace
 
-// KNOWN BUG: BaseSerializingVisitor::WriteServoElement writes GetPivotOffsetX() (already divided by offset_scale) but
-// the loader calls SetScaledPivotOffsetX() which divides again, so the pivot offset shrinks by the scale every save/load cycle.
-TEST_CASE("Roundtrip servo pivot offset does not drift", "[roundtrip][mutate][!mayfail]") {
+TEST_CASE("Roundtrip servo pivot offset does not drift", "[roundtrip][mutate]") {
     ShowFixture a;
     Model* m = a.mm.CreateDefaultModel("DmxServo", "1");
     REQUIRE(m != nullptr);

@@ -253,9 +253,7 @@ NAME_CASE("backslash", "a\\b")
 NAME_CASE("long", std::string(500, 'n'))
 NAME_CASE("digits", "12345")
 
-// KNOWN BUG: the xsq loader runs timing labels through UnXmlSafe() but the writer does not apply XmlSafe(), so a label that literally
-// contains an entity such as "&amp;" or "&lt;" is rewritten ("Label &amp;" -> "Label &") on the first load.
-TEST_CASE("Roundtrip xsq timing label containing an entity lookalike", "[roundtrip][sequence][names][!mayfail]") {
+TEST_CASE("Roundtrip xsq timing label containing an entity lookalike", "[roundtrip][sequence][names]") {
     TempDir td;
     auto r = Cycle(td, [&](Source& s, SequenceFile&) {
         auto* t = dynamic_cast<TimingElement*>(s.se.AddElement("T", "timing", true, false, true, false, false));
@@ -265,9 +263,7 @@ TEST_CASE("Roundtrip xsq timing label containing an entity lookalike", "[roundtr
     CHECK(r.second == r.first);
     CHECK(r.loaded->se().GetTimingElement("T")->GetEffectLayer(0)->GetEffect(0)->GetEffectName() == "AT&amp;T &lt;3");
 }
-// KNOWN BUG: XmlSafe() tests "(int)*c < 32" on a signed char, so every byte of a multi-byte UTF-8 character is treated as a control
-// character and silently dropped: the sequence header (author, song, artist, album, comment...) loses all non-ASCII text on save.
-TEST_CASE("Roundtrip xsq header info keeps non-ASCII text", "[roundtrip][sequence][header][!mayfail]") {
+TEST_CASE("Roundtrip xsq header info keeps non-ASCII text", "[roundtrip][sequence][header]") {
     const std::vector<std::string> values = { "caf\xC3\xA9", "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E", "\xE2\x9D\x84 snow", "\xF0\x9F\x8E\x84" };
     for (auto& v : values) {
         INFO(v);

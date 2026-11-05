@@ -159,21 +159,20 @@ TEST_CASE("Roundtrip value curve timing track names", "[roundtrip][curves]") {
         CHECK(b.Serialise() == s1);
     }
 }
-// KNOWN BUG: '|' and '=' are the serialisation delimiters but timing track / label filter text / audio track names are written unescaped.
-TEST_CASE("Roundtrip value curve timing track name containing a pipe", "[roundtrip][curves][!mayfail]") {
+TEST_CASE("Roundtrip value curve timing track name containing a pipe", "[roundtrip][curves]") {
     ValueCurve vc = Make("Ramp", 0, 100, 10, 90);
     vc.SetTimingTrack("Beats|1");
     ValueCurve b(vc.Serialise());
     CHECK(b.GetTimingTrack() == "Beats|1");
     CHECK(b.GetParameter1() == Catch::Approx(10.0f).margin(0.01));
 }
-TEST_CASE("Roundtrip value curve filter text containing an equals sign", "[roundtrip][curves][!mayfail]") {
+TEST_CASE("Roundtrip value curve filter text containing an equals sign", "[roundtrip][curves]") {
     ValueCurve vc = Make("Ramp", 0, 100, 10, 90);
     vc.SetFilterLabelText("a=b");
     ValueCurve b(vc.Serialise());
     CHECK(b.GetFilterLabelText() == "a=b");
 }
-TEST_CASE("Roundtrip value curve audio track containing a pipe", "[roundtrip][curves][!mayfail]") {
+TEST_CASE("Roundtrip value curve audio track containing a pipe", "[roundtrip][curves]") {
     ValueCurve vc = Make("Ramp", 0, 100, 10, 90);
     vc.SetAudioTrack("Drums|Kick");
     ValueCurve b(vc.Serialise());
@@ -308,8 +307,7 @@ TEST_CASE("Roundtrip value curve reverse and flip twice restores serialisation",
         CHECK(vc.Serialise() == s1);
     }
 }
-// KNOWN BUG: ValueCurve::Reverse() on Sine / Abs Sine is not an involution: every call adds 25 to P1 and rewrites the time offset (P1 20 -> 45 -> 70, TO 0 -> 66 -> 32).
-TEST_CASE("Roundtrip value curve reverse twice on sine restores serialisation", "[roundtrip][curves][!mayfail]") {
+TEST_CASE("Roundtrip value curve reverse twice on sine restores serialisation", "[roundtrip][curves]") {
     for (const char* type : { "Sine", "Abs Sine" }) {
         INFO(type);
         ValueCurve vc = Make(type, 0, 100, 20, 60, 3, 40);
@@ -393,9 +391,7 @@ TEST_CASE("Roundtrip value curve xvc file with zero based ranges", "[roundtrip][
         }
     }
 }
-// KNOWN BUG: ValueCurve::UnFixChangedScale (used by SaveXVC) adds -min without scaling it by 100/range, so for any range with
-// min != 0 and range != 100 the parameters written to the .xvc are wrong and do not come back (e.g. -100..100: P1 -60 -> 70 -> 40).
-TEST_CASE("Roundtrip value curve xvc file with offset ranges", "[roundtrip][curves][!mayfail]") {
+TEST_CASE("Roundtrip value curve xvc file with offset ranges", "[roundtrip][curves]") {
     for (auto& r : Ranges()) {
         if (r.min == 0) continue;
         for (const char* type : { "Ramp", "Sine" }) {
@@ -497,9 +493,7 @@ TEST_CASE("Roundtrip color curve single point", "[roundtrip][curves][colorcurve]
     ColorCurve b(s1);
     CHECK(b.Serialise() == s1);
 }
-// KNOWN BUG: points whose x collides after snapping (2.0 and 0.996 both clamp/snap to 1.0) are serialised without a ';' separator
-// because the separator test compares the point with the last point by x only; the result "x=1.000^c=#ff0000x=1.000^c=#0000ff" re-parses to one point.
-TEST_CASE("Roundtrip color curve points that snap to the same position", "[roundtrip][curves][colorcurve][!mayfail]") {
+TEST_CASE("Roundtrip color curve points that snap to the same position", "[roundtrip][curves][colorcurve]") {
     for (const char* x : { "2.0", "0.996" }) {
         INFO(x);
         ColorCurve a(std::string("Active=TRUE|Id=ID_COLORCURVE_T|Values=x=") + x + "^c=#FF0000;x=1.000^c=#0000FF;|");

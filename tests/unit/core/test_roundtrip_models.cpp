@@ -298,8 +298,7 @@ DEFAULT_CASE("Matrix")
 DEFAULT_CASE("Spinner")
 DEFAULT_CASE("Icicles")
 
-// KNOWN BUG: a freshly created model writes TagColour="" but a model loaded from that text omits it.
-TEST_CASE("Roundtrip default model TagColour is written consistently", "[roundtrip][models][!mayfail]") {
+TEST_CASE("Roundtrip default model TagColour is written consistently", "[roundtrip][models]") {
     ShowFixture a;
     Model* m = a.mm.CreateDefaultModel("Star", "1");
     REQUIRE(m != nullptr);
