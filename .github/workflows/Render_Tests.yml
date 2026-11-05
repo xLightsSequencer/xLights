@@ -7,9 +7,10 @@ name: Render Tests
 # (Unit_Tests.yml) and publishes a dashboard.
 on:
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-render
   cancel-in-progress: true
 
 jobs:
@@ -103,7 +104,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: render-linux-x64
+        name: results-render-linux-x64
         path: results
         retention-days: 14
 
@@ -168,6 +169,6 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: render-windows-x64
+        name: results-render-windows-x64
         path: results
         retention-days: 14

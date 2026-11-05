@@ -387,18 +387,37 @@ TEST_CASE("Controller GetOutput by index", "[outputs]") {
     CHECK(c->GetOutput(100) == nullptr);
 }
 
-TEST_CASE("Controller ContainsChannels includes its last channel", "[outputs][!mayfail]") {
-    // ContainsChannels compares start < GetEndChannel() so a query that begins exactly on
-    // the controller's last channel is reported as not contained.
+TEST_CASE("Controller ContainsChannels treats its range as 1-based inclusive", "[outputs]") {
+    // The controller spans channels 1-1120 (510 + 510 + 100). Both edges count.
     OutputManager om;
     auto c = Load(om, kEthXml);
     int32_t start = 1;
     int nulls = 0;
     c->SetTransientData(start, nulls);
+    REQUIRE(c->GetStartChannel() == 1);
+    REQUIRE(c->GetEndChannel() == 1120);
     CHECK(c->ContainsChannels(1, 10));
     CHECK(c->ContainsChannels(1000, 2000));
+    CHECK(c->ContainsChannels(1120, 1120));  // last channel only
+    CHECK(c->ContainsChannels(1, 1));        // first channel only
     CHECK_FALSE(c->ContainsChannels(1121, 1200));
-    CHECK(c->ContainsChannels(1120, 1120));
+}
+
+TEST_CASE("Controller ContainsChannels edges with a controller that does not start at 1", "[outputs]") {
+    // Callers holding a model's 0-based GetFirstChannel()/GetLastChannel() must add 1.
+    // With the controller at 101-1220, a model on 0-based 0..100 ends on channel 101
+    // (the controller's first) and one starting at 0-based 1220 is channel 1221 (past it).
+    OutputManager om;
+    auto c = Load(om, kEthXml);
+    int32_t start = 101;
+    int nulls = 0;
+    c->SetTransientData(start, nulls);
+    REQUIRE(c->GetStartChannel() == 101);
+    REQUIRE(c->GetEndChannel() == 1220);
+    CHECK_FALSE(c->ContainsChannels(1, 100));
+    CHECK(c->ContainsChannels(0 + 1, 100 + 1));
+    CHECK(c->ContainsChannels(1220, 1300));
+    CHECK_FALSE(c->ContainsChannels(1220 + 1, 1300 + 1));
 }
 
 TEST_CASE("Controller dirty tracking includes outputs", "[outputs]") {

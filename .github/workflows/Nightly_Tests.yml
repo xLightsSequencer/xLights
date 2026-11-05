@@ -1,0 +1,138 @@
+name: Nightly Tests
+
+# Runs the Catch2 unit tests and the render regression on every platform,
+# aggregates their JUnit reports, and publishes a dashboard to GitHub Pages
+# (https://xlightssequencer.github.io/xLights/), modelled on the fpp-tests
+# dashboard: the page and its history.json are rebuilt each night, with the
+# previous history fetched from the published site.
+#
+# A manual dispatch skips the "any commits in the last 24 hours" gate.
+on:
+  schedule:
+    - cron: '0 7 * * *'   # 07:00 UTC, after win_nightly (05:00) and include_policy (06:00)
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - id: check
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" != "schedule" ]; then
+          echo "should_run=true" >> "$GITHUB_OUTPUT"; exit 0
+        fi
+        CUTOFF_TIME=$(date -d '24 hours ago' +%s)
+        LATEST_COMMIT=$(git log -1 --format=%ct)
+        if [ "$LATEST_COMMIT" -gt "$CUTOFF_TIME" ]; then
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "should_run=false" >> "$GITHUB_OUTPUT"
+        fi
+
+  unit-tests:
+    needs: gate
+    if: ${{ needs.gate.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/Unit_Tests.yml
+
+  render-tests:
+    needs: gate
+    if: ${{ needs.gate.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/Render_Tests.yml
+
+  # Always runs once the suites are done, even if one failed, so the dashboard
+  # shows the failure. A suite that produced no report counts as failed.
+  report:
+    needs: [gate, unit-tests, render-tests]
+    if: ${{ always() && needs.gate.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      failed: ${{ steps.agg.outputs.failed }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download the reports
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        pattern: results-*
+        path: results
+
+    - name: Aggregate
+      id: agg
+      run: |
+        mkdir -p results
+        python3 ci_scripts/nightly_report.py --results results \
+          --expect results-unit-linux-x64,results-render-linux-x64,results-render-windows-x64 \
+          --summary "$GITHUB_STEP_SUMMARY" --json nightly-results.json
+        echo "failed=$(python3 -c "import json; print(json.load(open('nightly-results.json'))['totals']['failed'])")" >> "$GITHUB_OUTPUT"
+
+    - name: Upload the aggregate
+      uses: actions/upload-artifact@v4
+      with:
+        name: nightly-results
+        path: nightly-results.json
+        retention-days: 90
+
+  publish:
+    needs: report
+    if: ${{ always() && needs.report.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download the aggregate
+      uses: actions/download-artifact@v4
+      with:
+        name: nightly-results
+        path: .
+
+    - name: Build the dashboard
+      run: |
+        # A cache-busting query keeps a CDN-cached history.json from dropping an entry made minutes ago.
+        curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json?t=$(date +%s)" \
+          -H 'Cache-Control: no-cache' -o history.json || echo "no published history yet"
+        python3 ci_scripts/build_dashboard.py nightly-results.json site history.json \
+          "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+    - name: Upload the site
+      uses: actions/upload-pages-artifact@v5
+      with:
+        path: site
+
+    - name: Deploy
+      id: deploy
+      uses: actions/deploy-pages@v5
+
+  # Make the workflow red when any test failed, after the dashboard is published.
+  verdict:
+    needs: [gate, report, publish]
+    if: ${{ always() && needs.gate.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Fail if any test failed
+      run: |
+        if [ "${{ needs.report.result }}" != "success" ]; then echo "report job: ${{ needs.report.result }}"; exit 1; fi
+        if [ "${{ needs.report.outputs.failed }}" != "0" ]; then echo "${{ needs.report.outputs.failed }} test(s) failed"; exit 1; fi
