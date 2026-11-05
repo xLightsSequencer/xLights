@@ -12,6 +12,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 PWM ports for a plain (non-DMX) model each drive their own channel;
+                                 every colour of a node was set to one channel past the node's first
+    -bug (dkulp)                 PWM port labels name the right colour on RBGW and BRGW models
+    -bug (dkulp)                 Custom models with a rotated buffer, and with the Stacked, Overlaid and
+                                 Unique X and Y buffer styles, render every node inside the buffer
+    -bug (dkulp)                 Sub-buffers and buffer sizes are right for the Rotate CC/CW 90 Flip
+                                 Horizontal buffer transforms
     -bug (dkulp)                 iPad - 3D objects (gridlines, terrain, mesh, image, ruler) stay in the Default
                                  preview instead of a layout group that was lost on reopen
     -change (dkulp)              iPad - Adding a 3D object needs the Default preview in 3D, as on desktop
