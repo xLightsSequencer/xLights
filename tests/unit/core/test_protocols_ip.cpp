@@ -310,7 +310,7 @@ TEST_CASE("E131 disabled output ignores data", "[protocols][ip][e131]") {
     CHECK_FALSE(PT(o, out_changed));
 }
 
-TEST_CASE("E131 priority is stored in 8 bits", "[protocols][ip][e131][!mayfail]") {
+TEST_CASE("E131 priority is stored in 8 bits", "[protocols][ip][e131]") {
     // _priority is a uint8_t, so SetPriority(300) and Priority="300" wrap modulo 256 instead of being rejected or
     // clamped to the E1.31 range of 0-200.
     E131Output o;
@@ -695,7 +695,7 @@ TEST_CASE("DDP Close frees the full data buffer", "[protocols][ip][ddp]") {
     o.Close();
 }
 
-TEST_CASE("DDP xml without ChannelsPerPacket gets a usable packet size", "[protocols][ip][ddp][!mayfail]") {
+TEST_CASE("DDP xml without ChannelsPerPacket gets a usable packet size", "[protocols][ip][ddp]") {
     // ChannelsPerPacket defaults to 0 when missing, and EndFrame then loops forever because every pass sends 0 channels.
     pugi::xml_document doc;
     auto n = ParseNode(doc, R"(<network NetworkType="DDP" ComPort="1.1.1.1" BaudRate="64001" MaxChannels="100"/>)");
@@ -703,7 +703,7 @@ TEST_CASE("DDP xml without ChannelsPerPacket gets a usable packet size", "[proto
     CHECK(o.GetChannelsPerPacket() > 0);
 }
 
-TEST_CASE("DDP EndFrame with a zero packet size does not hang", "[protocols][ip][ddp][.][known-crash]") {
+TEST_CASE("DDP EndFrame with a zero packet size does not hang", "[protocols][ip][ddp]") {
     DDPOutput o;
     DdpGuard guard_(o);
     Prep(o, 64001, 100);
@@ -713,7 +713,7 @@ TEST_CASE("DDP EndFrame with a zero packet size does not hang", "[protocols][ip]
     SUCCEED();
 }
 
-TEST_CASE("DDP EndFrame with a packet size over 1440 overruns the packet buffer", "[protocols][ip][ddp][.][known-crash]") {
+TEST_CASE("DDP EndFrame with a packet size over 1440 overruns the packet buffer", "[protocols][ip][ddp]") {
     DDPOutput o;
     DdpGuard guard_(o);
     Prep(o, 64001, 3000);
@@ -723,7 +723,7 @@ TEST_CASE("DDP EndFrame with a packet size over 1440 overruns the packet buffer"
     SUCCEED();
 }
 
-TEST_CASE("DDP Open then destroy frees the buffer with the right deallocator", "[protocols][ip][ddp][.][known-crash]") {
+TEST_CASE("DDP Open then destroy frees the buffer with the right deallocator", "[protocols][ip][ddp]") {
     // _fulldata is malloc()ed but the destructor and the second Open() use delete: invalid free / mismatched
     // deallocation under valgrind or ASan.
     DDPOutput o;
@@ -839,7 +839,7 @@ TEST_CASE("KiNet sequence is a 32 bit little endian counter", "[protocols][ip][k
     CHECK(PT(o, kin_seq) == 0);
 }
 
-TEST_CASE("KiNet copy keeps the protocol version", "[protocols][ip][kinet][!mayfail]") {
+TEST_CASE("KiNet copy keeps the protocol version", "[protocols][ip][kinet]") {
     // KinetOutput's copy constructor does not copy _version, so a version 1 output copies as version 2.
     KinetOutput o;
     Prep(o, 1, 20);
@@ -937,7 +937,7 @@ TEST_CASE("OPC channel count is clamped at 65535 from xml", "[protocols][ip][opc
     CHECK(o.GetChannels() == 65535);
 }
 
-TEST_CASE("OPC SetManyChannels stays inside the buffer", "[protocols][ip][opc][.][known-crash]") {
+TEST_CASE("OPC SetManyChannels stays inside the buffer", "[protocols][ip][opc]") {
     // OPCOutput::SetManyChannels clamps to GetMaxChannels() (65535) rather than _channels, and _data is only
     // _channels + 4 bytes long: a size larger than the output overruns the heap buffer.
     OPCOutput o;
@@ -1024,7 +1024,7 @@ TEST_CASE("xxx Ethernet channel data", "[protocols][ip][xxxeth]") {
     CHECK(p[37] == 0x81);
 }
 
-TEST_CASE("xxx Ethernet buffer grows with SetChannels", "[protocols][ip][xxxeth][.][known-crash]") {
+TEST_CASE("xxx Ethernet buffer grows with SetChannels", "[protocols][ip][xxxeth]") {
     // The data buffer is allocated once in the constructor from the channel count at that time and there is no
     // SetChannels override, so growing a default-constructed output (0 channels) and writing a channel is a heap overflow.
     xxxEthernetOutput o;
@@ -1262,7 +1262,7 @@ TEST_CASE("ZCPP multicast data address", "[protocols][zcpp]") {
     CHECK(ZCPP_GetDataMulticastAddress(row.in) == row.out);
 }
 
-TEST_CASE("ZCPP multicast data address rejects an empty octet", "[protocols][zcpp][!mayfail]") {
+TEST_CASE("ZCPP multicast data address rejects an empty octet", "[protocols][zcpp]") {
     // the octet check only rejects non-digits, and an empty component passes isdigit-by-vacuity and atoi("") == 0
     CHECK(ZCPP_GetDataMulticastAddress("1..3.4") == "");
     CHECK(ZCPP_GetDataMulticastAddress("..3.4") == "");
@@ -1509,7 +1509,7 @@ TEST_CASE("ZCPP loads model data and works out the used channels", "[protocols][
     CHECK(o->GetChannels() == row.used);
 }
 
-TEST_CASE("ZCPP used channels count a two channel string", "[protocols][zcpp][!mayfail]") {
+TEST_CASE("ZCPP used channels count a two channel string", "[protocols][zcpp]") {
     // ExtractUsedChannelsFromModelData tests `start + len - 1 > used` against an initial value of 1, so a string of
     // exactly 2 channels at 0 (or 1 channel at 1) leaves the used count at 1, one channel short.
     OutputManager om;
@@ -1579,7 +1579,7 @@ TEST_CASE("ZCPP model data file end marker stops reading", "[protocols][zcpp]") 
     CHECK(PT(*o, zc_used) == 4);
 }
 
-TEST_CASE("ZCPP model data with an impossible port count is rejected", "[protocols][zcpp][.][known-crash]") {
+TEST_CASE("ZCPP model data with an impossible port count is rejected", "[protocols][zcpp]") {
     // the debug assert in ExtractUsedChannelsFromModelData aborts before the corrupt-file handling that follows it can run
     OutputManager om;
     TempDir td;
@@ -1622,7 +1622,7 @@ TEST_CASE("ZCPP xml attribute defaults", "[protocols][zcpp]") {
     CHECK(PT(o, zc_data) == nullptr);
 }
 
-TEST_CASE("ZCPP created with no controller does not crash", "[protocols][zcpp][.][known-crash]") {
+TEST_CASE("ZCPP created with no controller does not crash", "[protocols][zcpp]") {
     // Output::Create passes the controller straight to the ZCPPOutput constructor, which calls c->IsActive() without
     // a null check (every other network type guards with `c && c->IsActive()`).
     pugi::xml_document doc;
@@ -1631,7 +1631,7 @@ TEST_CASE("ZCPP created with no controller does not crash", "[protocols][zcpp][.
     CHECK(o != nullptr);
 }
 
-TEST_CASE("ZCPP model packets freed with the matching deallocator", "[protocols][zcpp][.][known-crash]") {
+TEST_CASE("ZCPP model packets freed with the matching deallocator", "[protocols][zcpp]") {
     // The constructor malloc()s each packet read from the .zcpp file but the destructor delete()s them:
     // mismatched deallocation under valgrind / ASan.
     OutputManager om;

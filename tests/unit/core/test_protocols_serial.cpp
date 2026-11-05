@@ -78,7 +78,7 @@ TEST_CASE("Renard frame length tracks the channel count", "[protocols][serial][r
     CHECK(f.back() == 9);
 }
 
-TEST_CASE("Renard AllOff clears every channel of the frame", "[protocols][serial][renard][!mayfail]") {
+TEST_CASE("Renard AllOff clears every channel of the frame", "[protocols][serial][renard]") {
     // RenardOutput::AllOff calls SetOneChannel(i + 2, 0) but SetOneChannel already adds the 2 byte header
     // offset, so the first two channels are never cleared and two bytes past the frame are written instead.
     RenardOutput r;
@@ -550,7 +550,7 @@ TEST_CASE("Generic serial maximum channels fills the whole buffer", "[protocols]
     CHECK(f.back() == 0xFF);
 }
 
-TEST_CASE("Generic serial prefix and postfix that overflow the buffer fail the open", "[protocols][serial][generic][!mayfail]") {
+TEST_CASE("Generic serial prefix and postfix that overflow the buffer fail the open", "[protocols][serial][generic]") {
     // Open() returns false for this case but leaves _ok true (set by SerialOutput::Open) and _datalen larger than
     // the buffer, so EndFrame would then write past the end of _data. Open should leave the output not-ok.
     GenericSerialOutput o;
@@ -616,14 +616,14 @@ TEST_CASE("xxx serial garbage device channels", "[protocols][serial][xxx]") {
     CHECK((o.*PT_FN(xs_dev_from))(0) <= 3);
 }
 
-TEST_CASE("xxx serial 256 channels of device data is valid", "[protocols][serial][xxx][!mayfail]") {
+TEST_CASE("xxx serial 256 channels of device data is valid", "[protocols][serial][xxx]") {
     // SetDeviceChannels accumulates into a uint8_t, so the documented maximum of 256 channels ("128,128") wraps to 0.
     xxxSerialOutput o;
     o.SetDeviceChannels("128,128");
     CHECK(o.GetChannels() == 256);
 }
 
-TEST_CASE("xxx serial device channel sums over 255 do not wrap", "[protocols][serial][xxx][!mayfail]") {
+TEST_CASE("xxx serial device channel sums over 255 do not wrap", "[protocols][serial][xxx]") {
     // same uint8_t accumulator: "200,100" gives 44 instead of 300 (which would then be rejected as too many channels)
     xxxSerialOutput o;
     o.SetDeviceChannels("200,100");
@@ -1156,7 +1156,7 @@ TEST_CASE("LOR optimised split mode with an odd channel count", "[protocols][ser
     CHECK(PT(o, lo_inuse)[2]);
 }
 
-TEST_CASE("LOR optimised split mode with one channel does not hang", "[protocols][serial][loroptimised][.][known-crash]") {
+TEST_CASE("LOR optimised split mode with one channel does not hang", "[protocols][serial][loroptimised]") {
     // channels_per_pass = 1 / 2 = 0, so `controller_channels_to_process -= channels_per_pass` never reaches zero and
     // SetManyChannels / AllOff (and therefore Open) loop forever.
     LorOptRig r(R"(<controller UnitId="1" NumChannels="1" CntlrType="AC Controller" AddrMode="2"/>)");

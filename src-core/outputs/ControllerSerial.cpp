@@ -92,15 +92,18 @@ std::vector<uint8_t> ControllerSerial::Encode(const std::string& s)
                 state = 3;
             }
             else {
-                state = 0;
+                state = (c == '\\') ? 1 : 0;
             }
         }
         else if (state == 3) {
             // last three chars were \x9
             if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')) {
                 res.push_back(HexToChar(c1, c));
+                state = 0;
             }
-            state = 0;
+            else {
+                state = (c == '\\') ? 1 : 0;
+            }
         }
     }
 

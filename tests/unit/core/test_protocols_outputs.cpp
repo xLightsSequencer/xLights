@@ -74,7 +74,7 @@ TEST_CASE("Every output type loads from a node with no attributes", "[protocols]
     CHECK(o->GetChannels() >= 0);
 }
 
-TEST_CASE("xxx Ethernet loaded without an Id attribute is not dirty", "[protocols][outputs][xml][!mayfail]") {
+TEST_CASE("xxx Ethernet loaded without an Id attribute is not dirty", "[protocols][outputs][xml]") {
     // xxxEthernetOutput(node) calls SetId() after the base constructors cleared the dirty flag and never clears it again,
     // so an Id that differs from the BaudRate(universe) attribute leaves a freshly loaded output dirty.
     auto o = Make(Net("xxx Ethernet", "ComPort=\"1.1.1.1\" BaudRate=\"1\" MaxChannels=\"30\""));
@@ -123,7 +123,7 @@ TEST_CASE("Channel counts above the protocol maximum are clamped on load", "[pro
     CHECK(o->GetChannels() >= std::min(atoi(v), c.max) );
 }
 
-TEST_CASE("Negative channel counts are not carried into the layout", "[protocols][outputs][xml][!mayfail]") {
+TEST_CASE("Negative channel counts are not carried into the layout", "[protocols][outputs][xml]") {
     // MaxChannels="-1" (or an overflowing value) is stored as given, so GetChannels() is negative and
     // SetTransientData then moves the following outputs' start channel backwards.
     const char* type = GENERATE("E131", "ArtNet", "KINET", "DDP", "DMX", "Renard", "NULL", "Twinkly");
@@ -134,7 +134,7 @@ TEST_CASE("Negative channel counts are not carried into the layout", "[protocols
     CHECK(o->GetChannels() >= 0);
 }
 
-TEST_CASE("Unknown network types are not created", "[protocols][outputs][xml][.][known-crash]") {
+TEST_CASE("Unknown network types are not created", "[protocols][outputs][xml]") {
     // Output::Create does assert(false) for an unknown NetworkType before returning nullptr, so a debug build aborts
     // on a hand edited / future-version file instead of skipping the output.
     auto o = Make(Net("Bogus", ""));
@@ -228,7 +228,7 @@ TEST_CASE("Copy of a serial output keeps the port, baud rate, size and enabled s
     CHECK(c->GetType() == a->GetType());
 }
 
-TEST_CASE("Copy of a serial or null output keeps its id", "[protocols][outputs][clone][!mayfail]") {
+TEST_CASE("Copy of a serial or null output keeps its id", "[protocols][outputs][clone]") {
     // Output's copy constructor does not copy _universe, and SerialOutput / NullOutput do not add it back, so the Id
     // of a copied serial / NULL output reverts to 0.
     const char* type = GENERATE("DMX", "xxx Serial", "Pixelnet", "LOR", "Renard", "OpenDMX", "Pixelnet-Open", "Generic Serial", "NULL");
@@ -340,7 +340,7 @@ TEST_CASE("Serial outputs compare by port only", "[protocols][outputs][compare]"
     CHECK_FALSE(*mk("LOR", "COM1", 1, 19200) == *mk("LOR Optimised", "COM1", 1, 19200));
 }
 
-TEST_CASE("NULL outputs with different ids do not compare equal", "[protocols][outputs][compare][!mayfail]") {
+TEST_CASE("NULL outputs with different ids do not compare equal", "[protocols][outputs][compare]") {
     // NullOutput is neither IP nor serial, so Output::operator== falls into the serial branch and compares the (empty)
     // comm ports: every NULL output equals every other NULL output.
     auto a = Make(Net("NULL", "Id=\"64001\" MaxChannels=\"10\""));
@@ -543,7 +543,7 @@ TEST_CASE("Ethernet SetChannelSize keeps the placed start channel", "[protocols]
     CHECK(c.GetEndChannel() == 1000 + 1530 - 1);
 }
 
-TEST_CASE("Ethernet SetChannelSize with a zero channel first universe", "[protocols][outputs][controller][.][known-crash]") {
+TEST_CASE("Ethernet SetChannelSize with a zero channel first universe", "[protocols][outputs][controller]") {
     // channels_per_universe is taken from the first output; when that is 0 the universe count calculation divides by zero.
     OutputManager om;
     ControllerEthernet c(&om);
@@ -768,7 +768,7 @@ TEST_CASE("OutputManager DecodeStartChannel numeric forms", "[protocols][outputs
     CHECK(om.DecodeStartChannel(row.s) == row.v);
 }
 
-TEST_CASE("OutputManager DecodeStartChannel rejects values that do not fit 32 bits or are negative", "[protocols][outputs][manager][!mayfail]") {
+TEST_CASE("OutputManager DecodeStartChannel rejects values that do not fit 32 bits or are negative", "[protocols][outputs][manager]") {
     // the absolute form returns strtol() truncated to int32_t: "2147483648" becomes a large negative number and
     // "-5" is returned as a negative start channel instead of the documented 0 for an error.
     OutputManager om;
@@ -830,7 +830,7 @@ TEST_CASE("Serial controller Encode table", "[protocols][outputs][serial]") {
     CHECK(s->Encode(row.in) == row.out);
 }
 
-TEST_CASE("Serial controller Encode keeps the backslash after a malformed hex escape", "[protocols][outputs][serial][!mayfail]") {
+TEST_CASE("Serial controller Encode keeps the backslash after a malformed hex escape", "[protocols][outputs][serial]") {
     // "\\x4\\n": the one digit \\x4 is malformed, and the state machine drops the *next* character (the backslash that starts
     // \\n) instead of re-reading it, so the newline escape turns into a literal 'n'.
     OutputManager om;
