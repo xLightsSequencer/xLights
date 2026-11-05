@@ -1,6 +1,7 @@
 name: Nightly Tests
 
 # Runs the Catch2 unit tests and the render regression on every platform,
+# measures the unit tests' coverage of src-core in a Linux --coverage build,
 # aggregates their JUnit reports, and publishes a dashboard to GitHub Pages
 # (https://xlightssequencer.github.io/xLights/), modelled on the fpp-tests
 # dashboard: the page and its history.json are rebuilt each night, with the
@@ -52,10 +53,87 @@ jobs:
     if: ${{ needs.gate.outputs.should_run == 'true' }}
     uses: ./.github/workflows/Render_Tests.yml
 
+  # The unit tests again, in an unoptimized --coverage build, run once as a
+  # single process (ctest would start one per test case, each writing every
+  # counter file). Its pass/fail is the unit-tests job's to report; this job
+  # only measures. ccache keeps its own cache: the flags differ from Release.
+  # The counters are updated atomically: the render engine runs tests on
+  # several threads, and plain counters lose updates and can go negative.
+  coverage:
+    needs: gate
+    if: ${{ needs.gate.outputs.should_run == 'true' }}
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/xlightssequencer/xlights-build-docker:master
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    - name: Restore ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: ccache-unit-coverage-${{ github.sha }}
+        restore-keys: |
+          ccache-unit-coverage-
+
+    - name: Tools
+      run: |
+        for t in cmake ninja gcovr; do
+          command -v $t >/dev/null || NEED="$NEED $t"
+        done
+        if [ -n "$NEED" ]; then
+          apt-get update -qq && apt-get install -y -qq $(echo $NEED | sed 's/ninja/ninja-build/')
+        fi
+        ccache --max-size=2G
+        ccache --set-config=compression=true
+        gcovr --version | head -1
+
+    - name: Configure
+      run: |
+        cmake -S tests/unit -B build-cov -G Ninja \
+          -DXL_TEST_FULL_CORE=ON \
+          -DCMAKE_BUILD_TYPE= \
+          "-DCMAKE_C_FLAGS=-O0 --coverage -fprofile-update=atomic" \
+          "-DCMAKE_CXX_FLAGS=-O0 --coverage -fprofile-update=atomic" \
+          -DCMAKE_EXE_LINKER_FLAGS=--coverage \
+          -DCMAKE_ISPC_COMPILER=$(command -v ispc) \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+    - name: Build
+      run: cmake --build build-cov -j $(nproc)
+
+    # A test that crashes takes the counters with it (they are written at exit),
+    # so a failed run publishes no coverage rather than a number that is too low.
+    - name: Test
+      id: test
+      continue-on-error: true
+      working-directory: build-cov
+      run: ./xlights_unit_tests --reporter console::out=-::colour-mode=none
+
+    - name: Coverage report
+      if: steps.test.outcome == 'success'
+      run: |
+        python3 ci_scripts/coverage_report.py . build-cov coverage
+        cat coverage/summary.md >> "$GITHUB_STEP_SUMMARY"
+        tar czf coverage.tar.gz --exclude coverage/coverage.json coverage
+
+    - name: Upload the coverage report
+      if: steps.test.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage.tar.gz
+        retention-days: 14
+
   # Always runs once the suites are done, even if one failed, so the dashboard
   # shows the failure. A suite that produced no report counts as failed.
   report:
-    needs: [gate, unit-tests, render-tests]
+    needs: [gate, unit-tests, render-tests, coverage]
     if: ${{ always() && needs.gate.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     outputs:
@@ -70,11 +148,19 @@ jobs:
         pattern: results-*
         path: results
 
+    - name: Download the coverage report
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: coverage-report
+        path: .
+
     - name: Aggregate
       id: agg
       run: |
         mkdir -p results
-        python3 ci_scripts/nightly_report.py --results results \
+        if [ -s coverage.tar.gz ]; then tar xzf coverage.tar.gz coverage/totals.json || true; fi
+        python3 ci_scripts/nightly_report.py --coverage coverage --results results \
           --expect results-unit-linux-x64,results-render-linux-x64,results-render-windows-x64 \
           --summary "$GITHUB_STEP_SUMMARY" --json nightly-results.json
         echo "failed=$(python3 -c "import json; print(json.load(open('nightly-results.json'))['totals']['failed'])")" >> "$GITHUB_OUTPUT"
@@ -109,8 +195,16 @@ jobs:
         name: nightly-results
         path: .
 
+    - name: Download the coverage report
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: coverage-report
+        path: .
+
     - name: Build the dashboard
       run: |
+        sh ci_scripts/stage_coverage.sh site "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}" coverage.tar.gz
         # A cache-busting query keeps a CDN-cached history.json from dropping an entry made minutes ago.
         curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json?t=$(date +%s)" \
           -H 'Cache-Control: no-cache' -o history.json || echo "no published history yet"

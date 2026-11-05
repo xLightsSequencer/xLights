@@ -8,10 +8,14 @@ and the directory name gives the suite ("render") and platform ("linux-x64").
 
   nightly_report.py --results <dir> [--expect results-unit-linux-x64,...]
                     [--summary <file.md>] [--json <file.json>] [--fail-on-failures]
+                    [--coverage <dir>]
 
 A name in --expect with no report counts as a failure ("no report"): a suite
 that crashed before writing its XML must not look like a pass. Only the
-standard library is used so it runs on any CI runner.
+standard library is used so it runs on any CI runner. --coverage names the
+directory holding coverage_report.py's totals.json; its numbers go into the
+JSON as "coverage" (left out when the file is missing: the coverage build
+failed or did not run).
 """
 import argparse
 import datetime
@@ -98,6 +102,7 @@ def main():
     ap.add_argument("--summary")
     ap.add_argument("--json")
     ap.add_argument("--fail-on-failures", action="store_true")
+    ap.add_argument("--coverage")
     args = ap.parse_args()
 
     found = collect(args.results) if os.path.isdir(args.results) else {}
@@ -137,6 +142,19 @@ def main():
             lines.append("- `%s`%s" % (name, (": " + msg) if msg else ""))
         if len(s["failed"]) > MAX_LISTED:
             lines.append("- ...and %d more" % (len(s["failed"]) - MAX_LISTED))
+    coverage = None
+    if args.coverage:
+        try:
+            with open(os.path.join(args.coverage, "totals.json")) as f:
+                coverage = json.load(f)
+        except (OSError, ValueError):
+            coverage = None
+        if coverage and coverage.get("lines"):
+            lines += ["", "**src-core coverage (unit tests): lines %.1f%%, functions %.1f%%.**" % (
+                100.0 * coverage["lines_hit"] / coverage["lines"],
+                100.0 * coverage["functions_hit"] / max(coverage["functions"], 1))]
+        else:
+            lines += ["", "**No coverage report.**"]
     md = "\n".join(lines) + "\n"
 
     out = dict(meta)
@@ -146,6 +164,8 @@ def main():
                       "skipped": s["skipped"], "time": round(s["time"], 2),
                       "failed": [{"name": n, "message": m} for n, m in s["failed"]],
                       "properties": s["properties"]} for s in suites]
+    if coverage and coverage.get("lines"):
+        out["coverage"] = coverage
 
     if args.summary:
         with open(args.summary, "a") as f:

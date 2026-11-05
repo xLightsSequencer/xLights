@@ -46,6 +46,8 @@ jobs:
         # A cache-busting query keeps a CDN-cached history.json from dropping an entry made minutes ago.
         curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json?t=$(date +%s)" \
           -H 'Cache-Control: no-cache' -o history.json || echo "no published history yet"
+        # A deploy replaces the whole site: keep the coverage report the nightly published.
+        sh ci_scripts/stage_coverage.sh site "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
         if [ "$EVENT" = "workflow_dispatch" ]; then
           python3 ci_scripts/build_dashboard.py unused site history.json "$RUN_URL" --no-entry --drop-run "$DROP_RUN"
         else
