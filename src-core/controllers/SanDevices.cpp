@@ -448,7 +448,7 @@ void SanDevices::ResetStringOutputs() {
     SDGetURL("/7?A=0");
 }
 
-inline int SanDevices::GetOutputsPerGroup() const {
+int SanDevices::GetOutputsPerGroup() const {
     if (IsE682()) { return 4; }
     return 1;
 }
@@ -1021,7 +1021,7 @@ char SanDevices::EncoderRenardSpeed(int baud) const {
     return 'A';
 }
 
-inline bool SanDevices::EncodeDirection(const std::string& direction) const {
+bool SanDevices::EncodeDirection(const std::string& direction) const {
 
     return direction == "Reverse";
 }
@@ -1055,17 +1055,17 @@ SanDevices::SanDeviceModel SanDevices::DecodeControllerType(const std::string& m
     return SanDeviceModel::Unknown;
 }
 
-inline std::pair<int, int > SanDevices::DecodeOutputPort(const int output) const {
+std::pair<int, int > SanDevices::DecodeOutputPort(const int output) const {
 
     return { ((output - 1) / 4) + 1, ((output - 1) % 4) + 1 };
 }
 
-inline int SanDevices::EncodeXlightsOutput(const int group, const int subport) const {
+int SanDevices::EncodeXlightsOutput(const int group, const int subport) const {
 
     return ((group - 1) * GetOutputsPerGroup()) + subport;
 }
 
-inline int SanDevices::EncodeControllerPortV5(const int group, const int subport) const {
+int SanDevices::EncodeControllerPortV5(const int group, const int subport) const {
 
     return ((group - 1) * 4) + subport;
 }
