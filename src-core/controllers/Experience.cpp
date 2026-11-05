@@ -16,6 +16,7 @@
 #include "ControllerCaps.h"
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
+#include "../utils/FloatChecks.h"
 #include "../utils/string_utils.h"
 #include "../models/Model.h"
 #include "../models/ModelManager.h"
@@ -129,6 +130,10 @@ int Experience::EncodeBrightness(int brightness) const
 
 int Experience::EncodeGamma(double gamma) const
 {
+    // NaN fails every comparison below only without -ffast-math.
+    if (xl::isnan(gamma)) {
+        return 30;
+    }
     if (1.5 > gamma ) {
         return 10;
     }

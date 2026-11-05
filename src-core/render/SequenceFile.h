@@ -102,7 +102,7 @@ public:
 
     const std::string& GetVersion() const { return version_string; }
 
-    int GetSequenceDurationMS() const { return int(seq_duration * 1000); }
+    int GetSequenceDurationMS() const;
     double GetSequenceDurationDouble() const { return seq_duration; }
     std::string GetSequenceDurationString() const;
 

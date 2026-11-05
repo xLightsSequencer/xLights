@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -617,9 +618,20 @@ std::string SequenceFile::GetSequenceDurationString() const
     return fmt::format("{:.3f}", seq_duration);
 }
 
+int SequenceFile::GetSequenceDurationMS() const
+{
+    // Seconds with three decimals rarely land exactly on the millisecond in
+    // binary, so round rather than truncate.
+    return (int)std::lround(seq_duration * 1000);
+}
+
 void SequenceFile::SetSequenceDurationMS(int length)
 {
-    SetSequenceDuration(length / 1000.0f);
+    // Integer formatting: a float division here becomes a multiply by 0.001f
+    // under -ffast-math and loses milliseconds on long sequences (a day came
+    // back 8 ms long).
+    int ms = std::abs(length);
+    SetSequenceDuration(fmt::format("{}{}.{:03d}", length < 0 ? "-" : "", ms / 1000, ms % 1000));
 }
 
 void SequenceFile::SetSequenceDuration(double length)

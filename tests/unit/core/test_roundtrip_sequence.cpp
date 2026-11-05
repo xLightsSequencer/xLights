@@ -355,7 +355,8 @@ TEST_CASE("Roundtrip xsq very long effect", "[roundtrip][sequence][times]") {
     CHECK(e->GetEndTimeMS() == 3 * 3600 * 1000);
 }
 TEST_CASE("Roundtrip xsq sequence duration values", "[roundtrip][sequence][times]") {
-    for (int ms : { 50, 1000, 12345, 60000, 3599950, 86400000 }) {
+    // 16777217 is past float precision, which a ms -> s conversion through float loses.
+    for (int ms : { 50, 1000, 12345, 60000, 3599950, 16777217, 86400000 }) {
         INFO(ms);
         TempDir td;
         auto r = Cycle(td, [&](Source& s, SequenceFile& sf) {
