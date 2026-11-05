@@ -485,8 +485,11 @@ int32_t Controller::GetChannels() const {
     return std::accumulate(begin(_outputs), end(_outputs), 0, [](uint32_t accumulator, Output* const o) { return accumulator + o->GetChannels(); });
 }
 
+// start and end are 1-based and inclusive, like GetStartChannel()/GetEndChannel().
+// True when [start, end] overlaps any channel on this controller.
 bool Controller::ContainsChannels(uint32_t start, uint32_t end) const {
-    return end >= (uint32_t)GetStartChannel() && start < (uint32_t)GetEndChannel();
+    if (_outputs.empty()) return false;
+    return end >= (uint32_t)GetStartChannel() && start <= (uint32_t)GetEndChannel();
 }
 
 bool Controller::IsDirty() const {

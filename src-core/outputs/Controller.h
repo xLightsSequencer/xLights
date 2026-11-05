@@ -104,6 +104,7 @@ public:
     int32_t GetStartChannel() const;
     int32_t GetEndChannel() const;
     int32_t GetChannels() const;
+    // 1-based inclusive channel range; true if it overlaps this controller
     bool ContainsChannels(uint32_t start, uint32_t end) const;
 
     bool IsDirty() const;

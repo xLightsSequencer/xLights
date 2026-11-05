@@ -2438,7 +2438,7 @@ void ControllerModelDialog::ReloadModels()
 
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
-            if (_controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())) {
+            if (_controller->ContainsChannels(it.second->GetFirstChannel() + 1, it.second->GetLastChannel() + 1)) {
                 auto shadows = it.second->GetShadowedBy();
                 if (shadows.size() > 0) {
                     std::string sh;
@@ -2467,8 +2467,8 @@ void ControllerModelDialog::ReloadModels()
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
-                    ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
-                        _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
+                    ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel() + 1, it.second->GetLastChannel() + 1))) ||
+                        _controller->ContainsChannels(it.second->GetFirstChannel() + 1, it.second->GetLastChannel() + 1)))) {
                 if (modelFilter.empty() || modelFilterQuery.Matches(it.second->GetName())) {
                     _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
                 }
