@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 DMX Moving Head Adv with 16-bit tilt showed the "Tilt Fine" channel name
+                                 on the channel after the real fine-tilt channel
     -bug (dkulp)                 Wrapped Sine, Parabolic, Logarithmic and Exponential value curves rendered
                                  as steps inside the wrapped part and swept back across the wrap point
     -bug (derwin12)              Import Effects and other dialogs no longer open on a monitor that is no

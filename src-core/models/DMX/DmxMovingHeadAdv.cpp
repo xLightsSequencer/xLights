@@ -193,9 +193,7 @@ void DmxMovingHeadAdv::InitModel()
         MapChannelName(nodestrings, chan, "Tilt");
         if (tilt_motor->Is16Bit()) {
             chan = tilt_motor->GetChannelFine();
-            if (chan >= 0 && chan < (int)nodestrings.size()) {
-                nodestrings[chan] = "Tilt Fine";
-            }
+            MapChannelName(nodestrings, chan, "Tilt Fine");
         }
         if (nullptr != color_ability) {
             if (color_ability->GetColorType() == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {
