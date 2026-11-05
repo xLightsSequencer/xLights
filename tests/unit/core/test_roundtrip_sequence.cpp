@@ -515,14 +515,14 @@ TEST_CASE("Roundtrip xsq effect flags", "[roundtrip][sequence][structure]") {
     CHECK(l->GetEffect(0)->GetProtected());
     CHECK_FALSE(l->GetEffect(1)->GetProtected());
 }
-// KNOWN BUG (minor): the selected flag is written to the file (selected="1") but ignored on load, so the second save differs from the first.
-TEST_CASE("Roundtrip xsq selected effect flag", "[roundtrip][sequence][structure][!mayfail]") {
+TEST_CASE("Roundtrip xsq selected effect flag is not saved", "[roundtrip][sequence][structure]") {
     TempDir td;
     auto r = Cycle(td, [&](Source& s, SequenceFile&) {
         AddModel(s, "M")->AddEffectLayer()->AddEffect(0, "On", "", "", 0, 100, 1, false);
     });
     REQUIRE(r.ok);
     CHECK(r.second == r.first);
+    CHECK(r.first.find("selected=") == std::string::npos);
 }
 TEST_CASE("Roundtrip xsq element flag combinations", "[roundtrip][sequence][structure]") {
     for (int mask = 0; mask < 16; ++mask) {

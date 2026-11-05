@@ -1336,9 +1336,6 @@ static void WriteEffectsPugi(EffectLayer* layer,
         if (effect->GetProtected()) {
             effect_node.append_attribute("protected") = "1";
         }
-        if (effect->GetSelected()) {
-            effect_node.append_attribute("selected") = "1";
-        }
         if (effect->GetID()) {
             effect_node.append_attribute("id") = effect->GetID();
         }
@@ -1501,9 +1498,6 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
                         effect_node.append_attribute("label") = XmlSafe(effect->GetEffectName());
                         if (effect->GetProtected()) {
                             effect_node.append_attribute("protected") = "1";
-                        }
-                        if (effect->GetSelected()) {
-                            effect_node.append_attribute("selected") = "1";
                         }
                         effect_node.append_attribute("startTime") = effect->GetStartTimeMS();
                         effect_node.append_attribute("endTime") = effect->GetEndTimeMS();
