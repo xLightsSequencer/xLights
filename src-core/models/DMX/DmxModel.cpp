@@ -66,7 +66,7 @@ void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string&
 
 void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 {
-    _dmxChannelCount = num_channels;
+    _dmxChannelCount = std::max(0, num_channels);
     if (do_work) {
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxModel::UpdateChannelCount::DMXChannelCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST |

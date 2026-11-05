@@ -97,7 +97,7 @@ public:
     Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const;
     const std::list<Output*> &GetOutputs() const { return _outputs; }
     int GetOutputCount() const { return _outputs.size(); }
-    Output* GetFirstOutput() const { return _outputs.front(); }
+    Output* GetFirstOutput() const { return _outputs.empty() ? nullptr : _outputs.front(); }
 
     void DeleteAllOutputs();
 

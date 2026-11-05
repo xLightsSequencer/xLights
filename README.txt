@@ -16,6 +16,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  on the channel after the real fine-tilt channel
     -enh (dkulp)                 Custom value curves save points with finer time and value precision, so
                                  points placed at the editor's half steps no longer shift or merge
+    -bug (dkulp)                 Crash loading a DMX model with a negative channel count
+    -bug (dkulp)                 Crash reading the current config of a J1Sys controller whose model name
+                                 reports more than 26 outputs
     -bug (dkulp)                 Wrapped Sine, Parabolic, Logarithmic and Exponential value curves rendered
                                  as steps inside the wrapped part and swept back across the wrap point
     -bug (derwin12)              Import Effects and other dialogs no longer open on a monitor that is no

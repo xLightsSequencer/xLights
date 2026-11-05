@@ -21,6 +21,7 @@
 #include "../outputs/Output.h"
 #include "../models/ModelManager.h"
 
+#include <algorithm>
 #include <climits>
 #include <regex>
 
@@ -70,6 +71,9 @@ struct J1SysSerialOutput
 //static std::string J1SYS_P12D = "J1Sys-P12D";
 //static std::string J1SYS_P2 = "J1Sys P2";
 //
+// Ports are addressed by a single letter (sAA, sAB, ...), so only A-Z exist.
+static constexpr int J1SYS_MAX_PORTS = 26;
+
 static std::string J1SYS_MODEL_P12S = "ECG-P12S";
 static std::string J1SYS_MODEL_P12R = "ECG-P12R";
 static std::string J1SYS_MODEL_P12D = "ECG-P12D";
@@ -137,7 +141,7 @@ void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
     std::string config = GetURL("/protect/stringConfig.htm");
 
     if (!config.empty()) {
-        for (auto i = 0; i < (int)j.size(); i++) {
+        for (auto i = 0; i < std::min((int)j.size(), J1SYS_MAX_PORTS); i++) {
             j[i].port = i;
             std::regex ar(fmt::format("sA{:c}[^>]*checked", (char)(i + 65)));
             j[i].active = std::regex_search(config, ar);
@@ -289,7 +293,7 @@ J1Sys::J1Sys(const std::string& ip, const std::string& proxy) : BaseController(i
             std::smatch outm;
             if (std::regex_search(_model, outm, outputsregex)) {
                 const long outputs = std::strtol(outm[1].str().c_str(), nullptr, 10);
-                _outputs = (outputs >= 0 && outputs <= INT_MAX) ? (int)outputs : 0;
+                _outputs = (outputs >= 0 && outputs <= J1SYS_MAX_PORTS) ? (int)outputs : 0;
                 spdlog::debug("     outputs {}.", _outputs);
             }
         }
