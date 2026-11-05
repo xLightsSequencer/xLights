@@ -257,8 +257,7 @@ TEST_CASE("Roundtrip value curve Min Max precision", "[roundtrip][curves]") {
         CHECK(b.Serialise() == s1);
     }
 }
-// KNOWN BUG (precision): serialisation uses %.2f so ranges below 0.01 collapse (Max=0.00) and cannot be restored.
-TEST_CASE("Roundtrip value curve tiny ranges keep their limits", "[roundtrip][curves][!mayfail]") {
+TEST_CASE("Roundtrip value curve tiny ranges keep their limits", "[roundtrip][curves]") {
     ValueCurve vc = Make("Ramp", 0, 0.004f, 0, 0.004f);
     ValueCurve b(vc.Serialise());
     CHECK(b.GetMax() == Catch::Approx(0.004f).margin(1e-6));
