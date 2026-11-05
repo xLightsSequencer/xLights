@@ -7887,11 +7887,6 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
     auto& vm = _context->GetAllObjects();
     ViewObject* vo = vm.CreateAndAddObject(t);
     if (!vo) return nil;
-    // Default to the active layout group so the new object
-    // immediately renders in the current preview. "All Models"
-    // is virtual — fall back to "Default" so the object is
-    // actually stored against a real preview.
-    vo->SetLayoutGroup(LayoutGroupForNewItem(_context->GetActiveLayoutGroup()));
     // Ruler is a TwoPoint object — without initial geometry both
     // endpoints sit at world origin so the line is zero-length and
     // invisible. Match desktop's Add Ruler defaults (100-unit
@@ -8057,9 +8052,8 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
         BOOL v = asBool(&ok); if (!ok) return NO;
         if ((v ? true : false) != loc.IsLocked()) { loc.SetLocked(v ? true : false); changed = YES; }
     } else if (k == "layoutGroup") {
-        NSString* s = asString(&ok); if (!ok) return NO;
-        std::string newGroup = s.UTF8String;
-        if (newGroup != vo->GetLayoutGroup()) { vo->SetLayoutGroup(newGroup); changed = YES; }
+        // View objects are Default-only (matches desktop + the loader).
+        return NO;
     } else if (k == "active") {
         BOOL v = asBool(&ok); if (!ok) return NO;
         if ((v ? true : false) != vo->IsActive()) { vo->SetActive(v ? true : false); changed = YES; }

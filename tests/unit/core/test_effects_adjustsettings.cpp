@@ -173,9 +173,7 @@ TEST_CASE("Twinkle migration keeps the Steps value curve data", "[effects][adjus
     CHECK(out.find("P1=50.00") != std::string::npos);
 }
 
-TEST_CASE("Twinkle migration widens an active Steps value curve maximum to 400", "[effects][adjust][!mayfail]") {
-    // Not a production bug: the app loads effect metadata before any sequence is read. TwinkleEffect::sStepsVCMax falls back to 100 until Twinkle.json (vcMax 400) is loaded,
-    // so without effect metadata the migration re-applies the old maximum.
+TEST_CASE("Twinkle migration widens an active Steps value curve maximum to 400", "[effects][adjust]") {
     AdjustFixture f;
     const std::string vc = "Active=TRUE|Id=ID_VALUECURVE_Twinkle_Steps|Type=Flat|Min=2.00|Max=100.00|P1=50.00|RV=TRUE|";
     Effect* e = f.MigrateWithCurve("Twinkle", "2026.01", "", "E_VALUECURVE_Twinkle_Steps", vc);

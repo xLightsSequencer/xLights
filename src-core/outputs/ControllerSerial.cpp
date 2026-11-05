@@ -278,6 +278,7 @@ void ControllerSerial::VMVChanged() {
             out->SetIP(ip, IsActive());
             out->SetFPPProxyIP(_fppProxy != "" ? _fppProxy : _outputManager->GetGlobalFPPProxy());
             out->SetChannels(ch);
+            out->Enable(IsActive());
             _outputs.push_back(out);
             _dirty = true;
         }
@@ -400,6 +401,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
         _speed = o->GetBaudRate(); // because the old speed may have been overridden
         o->SetChannels(c);
         o->SetId(_id);
+        o->Enable(IsActive());
 
         if (_serialOutput == _outputs.front()) {
             _outputs.pop_front();

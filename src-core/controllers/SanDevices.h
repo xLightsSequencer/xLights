@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <list>
+#include <memory>
 #include <string>
 
 #include "ControllerUploadData.h"
@@ -108,10 +109,10 @@ class SanDevices : public BaseController
     std::string _page;
     FirmwareVersion _firmware;
     SanDeviceModel _sdmodel = SanDeviceModel::Unknown;
-    std::vector<SanDevicesOutput*> _outputData;
-    std::vector<SanDevicesProtocol*> _protocolData;
+    std::vector<std::unique_ptr<SanDevicesOutput>> _outputData;
+    std::vector<std::unique_ptr<SanDevicesProtocol>> _protocolData;
     std::vector<int> _universes;
-    std::vector < SanDevicesOutputV4*> _outputDataV4;
+    std::vector<std::unique_ptr<SanDevicesOutputV4>> _outputDataV4;
     #pragma endregion 
 
     #pragma region Encode and Decode

@@ -84,17 +84,6 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
 #pragma region Constructors and Destructors
 Controller::Controller(OutputManager* om, pugi::xml_node node, const std::string& showDir) : _outputManager(om)
 {
-    std::string activeState = node.attribute("ActiveState").as_string("");
-    if (activeState.empty()) {
-        if (std::string_view(node.attribute("Active").as_string("1")) == "0") {
-            SetActive("Inactive");
-        } else {
-            SetActive("Active");
-        }
-    } else {
-        SetActive(activeState);
-    }
-
     for (pugi::xml_node n = node.first_child(); n; n = n.next_sibling()) {
         if (std::string_view(n.name()) == "network") {
             _outputs.push_back(Output::Create(this, n, showDir));
@@ -105,6 +94,18 @@ Controller::Controller(OutputManager* om, pugi::xml_node node, const std::string
         } else if (std::string_view(n.name()) == "ExtraProperty") {
             _extraProperties[n.attribute("name").as_string("")] = n.attribute("value").as_string("");
         }
+    }
+
+    // after the outputs exist, so SetActive cascades the state onto them
+    std::string activeState = node.attribute("ActiveState").as_string("");
+    if (activeState.empty()) {
+        if (std::string_view(node.attribute("Active").as_string("1")) == "0") {
+            SetActive("Inactive");
+        } else {
+            SetActive("Active");
+        }
+    } else {
+        SetActive(activeState);
     }
 
     _id = node.attribute("Id").as_int(64001);

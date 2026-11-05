@@ -36,10 +36,10 @@ int TwinkleEffect::sCountMin = 2;
 int TwinkleEffect::sCountMax = 100;
 int TwinkleEffect::sStepsDefault = 30;
 int TwinkleEffect::sStepsVCMin = 2;
-int TwinkleEffect::sStepsVCMax = 100;
+int TwinkleEffect::sStepsVCMax = 400;
 bool TwinkleEffect::sStrobeDefault = false;
 bool TwinkleEffect::sReRandomDefault = false;
-std::string TwinkleEffect::sStyleDefault = "Old Render Method";
+std::string TwinkleEffect::sStyleDefault = "New Render Method";
 
 TwinkleEffect::TwinkleEffect(int id) : RenderableEffect(id, "Twinkle", twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_64)
 {
