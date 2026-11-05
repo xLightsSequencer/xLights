@@ -222,3 +222,31 @@ TEST_CASE("Transition end state is full colour for every in transition", "[rende
         }
     }
 }
+
+TEST_CASE("Transition mask covers each light of a multi-light node at its own position", "[render][transitions]") {
+    // Same 6x3 grid twice: one node per cell, and one node per column (3 lights each).
+    const std::string single = R"(<model name="M" DisplayAs="Custom" CustomWidth="6" CustomHeight="3" CustomModel="1,2,3,4,5,6;7,8,9,10,11,12;13,14,15,16,17,18" StartChannel="1"/>)";
+    const std::string multi = R"(<model name="M" DisplayAs="Custom" CustomWidth="6" CustomHeight="3" CustomModel="1,2,3,4,5,6;1,2,3,4,5,6;1,2,3,4,5,6" StartChannel="1"/>)";
+    for (const char* type : { "Wipe", "Clock", "Blinds" }) {
+        Rendered s = Transition("in", type, "", single);
+        Rendered m = Transition("in", type, "", multi);
+        bool partial = false;
+        for (unsigned f = 0; f < 10; ++f) {
+            int litCols = 0;
+            for (unsigned col = 0; col < 6; ++col) {
+                bool anyLit = false;
+                for (unsigned row = 0; row < 3; ++row) {
+                    auto c = s.rgb(f, row * 6 + col);
+                    if (c.r || c.g || c.b) anyLit = true;
+                }
+                auto c = m.rgb(f, col);
+                INFO(type << " frame " << f << " column " << col);
+                CHECK((c.r || c.g || c.b) == anyLit);
+                if (anyLit) ++litCols;
+            }
+            if (litCols > 0 && litCols < 6) partial = true;
+        }
+        INFO(type);
+        CHECK(partial);
+    }
+}

@@ -52,6 +52,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  while it is still cycling
     -bug (dkulp)                 iPad - Opening a sequence with a large saved .fseq could be killed by
                                  the iPadOS watchdog; the .fseq now loads in the background
+    -bug (derwin12)              Clock, Wipe and other masked transitions revealed models with more than
+                                 one light per node in a scrambled order instead of sweeping smoothly (#7301)
     -enh (derwin12)              Spirals: new Reverse 3D option to choose which edge of the 3D fade leads;
                                  GPU-rendered Spirals now fade on the same side as CPU (#6614)
     -bug (derwin12)              Shift+mouse wheel scrolling no longer clears the effect grid selection,
