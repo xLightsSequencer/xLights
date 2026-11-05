@@ -65,6 +65,7 @@ class FPPConnectDialog: public wxDialog
 		//*)
 
         wxTreeListCtrl* CheckListBox_Sequences;
+        wxStaticText* CloudNoticeLabel = nullptr;
 
 	protected:
 
@@ -122,7 +123,9 @@ class FPPConnectDialog: public wxDialog
 
         void LoadSequencesFromFolder(wxString const& dir) const;
         void LoadSequencesFromFolder(wxString const& dir, std::set<wxString>& knownPaths) const;
-        void AddSequenceListItem(const wxString& fseqPath, const std::string& media, std::set<wxString>& knownPaths) const;
+        void AddSequenceListItem(const wxString& fseqPath, const std::string& media, std::set<wxString>& knownPaths, const wxString& cloudXsq = wxEmptyString) const;
+        std::string ResolveSequenceMedia(const std::string& mediaName) const;
+        void ResolveCloudSequence(FPPUploadProgressDialog* prgs, const wxTreeListItem& item);
         void LoadSequences();
         void PopulateFPPInstanceList(wxProgressDialog *prgs = nullptr);
         void AddInstanceRow(const FPP &inst);

@@ -8,8 +8,19 @@
 #include <thread>
 #include <vector>
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+
 #include "support/TempDir.h"
 #include "utils/AppCallbacks.h"
+#include "utils/FileUtils.h"
 #include "utils/ShowGuid.h"
 #include "utils/SpecialOptions.h"
 #include "utils/TempFileManager.h"
@@ -386,3 +397,24 @@ TEST_CASE("SpecialOptions with no file anywhere returns the default", "[misc][ut
     SpecialOptions::StashExeDir(prevExe.empty() ? "unused_exe_dir" : prevExe);
     SpecialOptions::GetOption("");
 }
+
+TEST_CASE("IsCloudPlaceholder is false for local files, folders and missing paths", "[misc][utils][cloud]") {
+    TempDir dir;
+    CHECK_FALSE(FileUtils::IsCloudPlaceholder(dir.Write("local.fseq", "PSEQ")));
+    CHECK_FALSE(FileUtils::IsCloudPlaceholder(dir.path.string()));
+    CHECK_FALSE(FileUtils::IsCloudPlaceholder(dir.File("missing.fseq")));
+    CHECK_FALSE(FileUtils::IsCloudPlaceholder(""));
+}
+
+#ifdef _WIN32
+TEST_CASE("IsCloudPlaceholder detects a file whose data is offline", "[misc][utils][cloud]") {
+    // The recall attributes OneDrive sets cannot be set by an app, but OFFLINE can
+    TempDir dir;
+    const std::string f = dir.Write("offline.fseq", "PSEQ");
+    const std::wstring wf = std::filesystem::path(f).wstring();
+    REQUIRE(::SetFileAttributesW(wf.c_str(), FILE_ATTRIBUTE_OFFLINE));
+    CHECK(FileUtils::IsCloudPlaceholder(f));
+    ::SetFileAttributesW(wf.c_str(), FILE_ATTRIBUTE_NORMAL);
+    CHECK_FALSE(FileUtils::IsCloudPlaceholder(f));
+}
+#endif

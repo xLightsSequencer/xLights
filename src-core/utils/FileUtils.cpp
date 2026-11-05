@@ -21,8 +21,43 @@
 #include <chrono>
 #include <ctime>
 #include <cstdlib>
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+
 namespace FileUtils
 {
+
+bool IsCloudPlaceholder(const std::string& path)
+{
+#ifdef _WIN32
+    if (path.empty()) {
+        return false;
+    }
+    try {
+        DWORD attrs = ::GetFileAttributesW(std::filesystem::path(path).c_str());
+        if (attrs == INVALID_FILE_ATTRIBUTES || (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+            return false;
+        }
+        // Older SDKs lack the recall flags
+        constexpr DWORD recallOnOpen = 0x00040000;       // FILE_ATTRIBUTE_RECALL_ON_OPEN
+        constexpr DWORD recallOnDataAccess = 0x00400000; // FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS
+        return (attrs & (recallOnOpen | recallOnDataAccess | FILE_ATTRIBUTE_OFFLINE)) != 0;
+    } catch (const std::exception&) {
+        return false;
+    }
+#else
+    (void)path;
+    return false;
+#endif
+}
 
 std::optional<long long> GetFileModTimeTicks(const std::string& path)
 {
