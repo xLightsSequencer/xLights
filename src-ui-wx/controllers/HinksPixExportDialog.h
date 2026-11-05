@@ -3,6 +3,7 @@
 
 #include <algorithm>
 
+#include <map>
 #include <optional>
 #include <vector>
 
@@ -444,6 +445,8 @@ private:
     void CreateDriveList();
     void LoadSequencesFromFolder(wxString dir) const;
     void LoadSequences();
+    void ResolveCloudSequence(long index);
+    void OnSequenceItemChecked(wxListEvent& event);
     void PopulateControllerList(OutputManager* outputManager);
 
     void GetFolderList(const wxString& folder);
@@ -503,6 +506,9 @@ private:
     void UploadFile(ControllerEthernet* controller);
     void ExtractFirmware(ControllerEthernet* controller);
     void UploadSchedules(ControllerEthernet* controller);
+
+    // fseq path -> its cloud-only xsq; rows showing "(cloud only)" read their media from it
+    mutable std::map<wxString, wxString> m_cloudXsq;
 
     DECLARE_EVENT_TABLE()
 };

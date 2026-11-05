@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (derwin12)              FPP Connect and HinksPix Export no longer hang downloading every OneDrive
+                                 cloud-only sequence just to list them; files are downloaded only when used
     -bug (dkulp)                 PWM ports for a plain (non-DMX) model each drive their own channel;
                                  every colour of a node was set to one channel past the node's first
     -bug (dkulp)                 PWM port labels name the right colour on RBGW and BRGW models

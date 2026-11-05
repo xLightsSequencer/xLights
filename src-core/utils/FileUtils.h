@@ -37,6 +37,14 @@ namespace FileUtils
 	// to rewrite a path, they do not read the file.
 	bool CachedFileExists(const std::string& file);
 
+	// True when the file is a cloud-sync placeholder (OneDrive Files On-Demand
+	// and other Windows cloud-filter providers) whose data is not on disk.
+	// Reading any byte of such a file blocks while the provider downloads the
+	// whole file, so callers that only want to list or describe files should
+	// check this first and avoid opening them. Never triggers a download.
+	// Always false off Windows.
+	bool IsCloudPlaceholder(const std::string& path);
+
 	// Filename component of a path, splitting on both '/' and '\'
 	std::string GetFilenameFromPath(const std::string& path);
 

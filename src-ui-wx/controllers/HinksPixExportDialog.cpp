@@ -332,6 +332,7 @@ HinksPixExportDialog::HinksPixExportDialog(wxWindow* parent, OutputManager* outp
     AddInstanceHeader("Audio");
 
     CheckListBox_Sequences->EnableCheckBoxes();
+    CheckListBox_Sequences->Bind(wxEVT_LIST_ITEM_CHECKED, &HinksPixExportDialog::OnSequenceItemChecked, this);
 
     wxGridCellAttr* attr = new wxGridCellAttr();
     attr->SetEditor(new wxGridCellBoolEditor());
@@ -899,10 +900,18 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
         if (file != XLIGHTS_RGBEFFECTS_FILE && file != OutputManager::GetNetworksFileName() && file != XLIGHTS_KEYBINDING_FILE && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
             && FileExists(filename)) {
 
-            // Quick scan of first few KB to detect xLights sequence and media file
-            XsqFileInfo info = ScanXsqFile(filename.ToStdString());
-            bool isSequence = info.isSequence;
-            std::string mediaName = info.mediaFile;
+            // Reading even the first few KB of a cloud-only xsq downloads all of it.
+            // Skip the scan, let a matching fseq decide that it is a sequence and
+            // read the media name only if the sequence is picked.
+            const bool xsqInCloud = FileUtils::IsCloudPlaceholder(filename.ToStdString());
+            bool isSequence = true;
+            std::string mediaName;
+            if (!xsqInCloud) {
+                // Quick scan of first few KB to detect xLights sequence and media file
+                XsqFileInfo info = ScanXsqFile(filename.ToStdString());
+                isSequence = info.isSequence;
+                mediaName = info.mediaFile;
+            }
 
 
             xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
@@ -942,7 +951,10 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
             if (isSequence) {
                 long index = CheckListBox_Sequences->GetItemCount();
                 CheckListBox_Sequences->InsertItem(index, fseqName);
-                if (!mediaName.empty()) {
+                if (xsqInCloud) {
+                    m_cloudXsq[fseqName] = filename;
+                    CheckListBox_Sequences->SetItem(index, 1, _("(cloud only)"));
+                } else if (!mediaName.empty()) {
                     CheckListBox_Sequences->SetItem(index, 1, mediaName);
                 }
             }
@@ -960,7 +972,64 @@ void HinksPixExportDialog::LoadSequencesFromFolder(wxString dir) const {
     }
 }
 
+void HinksPixExportDialog::ResolveCloudSequence(long index) {
+    if (CheckListBox_Sequences->GetItemText(index, 1) != _("(cloud only)")) {
+        return;
+    }
+    // Kept for the life of the list so a row can always be resolved, even if
+    // its "(cloud only)" text was carried somewhere by a row move
+    auto it = m_cloudXsq.find(CheckListBox_Sequences->GetItemText(index));
+    if (it == m_cloudXsq.end()) {
+        return;
+    }
+    const std::string xsq = it->second.ToStdString();
+
+    spdlog::info("Downloading cloud only sequence to read its media: {}", xsq);
+    std::string mediaName;
+    {
+        wxBusyCursor busy;
+        mediaName = ScanXsqFile(xsq).mediaFile;
+    }
+    if (!mediaName.empty() && !FileExists(mediaName)) {
+        xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+        wxFileName fn(mediaName);
+        std::string found;
+        for (auto const& md : frame->GetMediaFolders()) {
+            std::string tmn = md + GetPathSeparator() + fn.GetFullName();
+            if (FileExists(tmn)) {
+                found = tmn;
+                break;
+            }
+        }
+        if (found.empty()) {
+            found = FileUtils::FixFile(frame->CurrentDir.ToStdString(), mediaName);
+            if (!FileExists(found)) {
+                spdlog::info("Could not find media: {}", mediaName);
+                found.clear();
+            }
+        }
+        mediaName = found;
+    }
+    CheckListBox_Sequences->SetItem(index, 1, mediaName);
+}
+
+void HinksPixExportDialog::OnSequenceItemChecked(wxListEvent& event) {
+    // moveSequenceItem checks rows mid-swap, before their text has moved, so
+    // resolve once the swap is done and find the row again by its fseq
+    const wxString fseq = CheckListBox_Sequences->GetItemText(event.GetIndex());
+    if (m_cloudXsq.count(fseq) != 0) {
+        CallAfter([this, fseq]() {
+            const long index = CheckListBox_Sequences->FindItem(-1, fseq);
+            if (index != wxNOT_FOUND) {
+                ResolveCloudSequence(index);
+            }
+        });
+    }
+    event.Skip();
+}
+
 void HinksPixExportDialog::LoadSequences() {
+    m_cloudXsq.clear();
     CheckListBox_Sequences->ClearAll();
     CheckListBox_Sequences->AppendColumn("Sequence");
     CheckListBox_Sequences->AppendColumn("Media");
@@ -2186,6 +2255,7 @@ void HinksPixExportDialog::StoreToObjectPlayList(std::string const& playlist) {
         playlist.Items.clear();
         for (int fs = 0; fs < CheckListBox_Sequences->GetItemCount(); fs++) {
             if (CheckListBox_Sequences->IsItemChecked(fs)) {
+                ResolveCloudSequence(fs);
                 wxString const fseq = CheckListBox_Sequences->GetItemText(fs);
                 wxString const media = CheckListBox_Sequences->GetItemText(fs, 1);
                 playlist.Items.emplace_back(fseq, media);

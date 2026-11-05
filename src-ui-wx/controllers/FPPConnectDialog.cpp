@@ -43,6 +43,8 @@
 #include "controllers/Experience.h"
 #include "controllers/PowerDMX.h"
 #include <algorithm>
+#include <chrono>
+#include <future>
 #include <iterator>
 #include <memory>
 
@@ -97,7 +99,15 @@ class SequencePathData : public wxClientData {
 public:
     wxString fseq;
     wxString media;
+    // Set while the fseq or xsq is a cloud-only placeholder whose header we
+    // have not read yet; resolved (downloaded) only when it is uploaded.
+    bool cloud = false;
+    wxString cloudXsq;
 };
+
+static SequencePathData* GetSequencePathData(wxTreeListCtrl* ctrl, const wxTreeListItem& item) {
+    return dynamic_cast<SequencePathData*>(ctrl->GetItemData(item));
+}
 
 static wxString GetSequencePath(wxTreeListCtrl* ctrl, const wxTreeListItem& item) {
     auto* d = dynamic_cast<SequencePathData*>(ctrl->GetItemData(item));
@@ -258,6 +268,14 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     CheckListBoxHolder->Destroy();
 
+    CloudNoticeLabel = new wxStaticText(Panel1, wxID_ANY, wxEmptyString);
+    CloudNoticeLabel->SetToolTip(_("These files are stored only in the cloud (e.g. OneDrive Files On-Demand). "
+                                   "Their details are read, and the files downloaded, only when they are uploaded.\n\n"
+                                   "To avoid the wait, right-click the show folder in Explorer and choose 'Always keep on this device'."));
+    CloudNoticeLabel->Hide();
+    FlexGridSizer2->SetRows(3);
+    FlexGridSizer2->Add(CloudNoticeLabel, 1, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
+
     FlexGridSizer2->Layout();
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -364,16 +382,32 @@ void FPPConnectDialog::UpdateSeqCount()
 {
     uint32_t items = 0;
     uint32_t selected = 0;
+    uint32_t cloudItems = 0;
+    uint32_t cloudSelected = 0;
 
     auto item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         items++;
-        if (CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED)
+        const bool checked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
+        if (checked)
             selected++;
+        auto* d = GetSequencePathData(CheckListBox_Sequences, item);
+        if (d != nullptr && d->cloud) {
+            cloudItems++;
+            if (checked)
+                cloudSelected++;
+        }
         item = CheckListBox_Sequences->GetNextItem(item);
     }
 
     Selected_Label->SetLabel(wxString::Format("Selected: %u/%u", selected, items));
+    if (CloudNoticeLabel != nullptr) {
+        if (cloudItems > 0) {
+            CloudNoticeLabel->SetLabel(wxString::Format(_("Cloud only: %u sequence(s), %u selected. They are downloaded when uploaded, which may take a while."),
+                                                        cloudItems, cloudSelected));
+        }
+        CloudNoticeLabel->Show(cloudItems > 0);
+    }
     Panel1->Layout();
 }
 
@@ -1012,7 +1046,90 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
     LoadSequencesFromFolder(dir, knownPaths);
 }
 
-void FPPConnectDialog::AddSequenceListItem(const wxString& fseqPath, const std::string& media, std::set<wxString>& knownPaths) const
+std::string FPPConnectDialog::ResolveSequenceMedia(const std::string& media) const
+{
+    std::string mediaName = media;
+    if (mediaName.empty() || FileExists(mediaName)) {
+        return mediaName;
+    }
+    xLightsFrame* frame = _frame;
+    wxFileName fn(mediaName);
+    for (auto& md : frame->GetMediaFolders()) {
+        wxString tmn = md + GetPathSeparator() + fn.GetFullName();
+        if (FileExists(tmn)) {
+            return ToUTF8(tmn);
+        }
+    }
+    std::string fixedMN = FileUtils::FixFile(ToUTF8(frame->CurrentDir), mediaName);
+    if (!FileExists(fixedMN)) {
+        spdlog::info("Could not find media: {} ", mediaName.c_str());
+        return "";
+    }
+    return fixedMN;
+}
+
+void FPPConnectDialog::ResolveCloudSequence(FPPUploadProgressDialog* prgs, const wxTreeListItem& item)
+{
+    auto* pathData = GetSequencePathData(CheckListBox_Sequences, item);
+    if (pathData == nullptr || !pathData->cloud) {
+        return;
+    }
+    const std::string fseq = ToUTF8(pathData->fseq);
+    const std::string xsq = ToUTF8(pathData->cloudXsq);
+    prgs->setActionLabel(ToUTF8(wxString::Format(_("Downloading %s from the cloud"), wxFileName(pathData->fseq).GetFullName())));
+    spdlog::info("Downloading cloud only sequence before upload: {}", fseq);
+
+    struct CloudSequenceInfo {
+        bool opened = false;
+        unsigned long long channels = 0;
+        std::string xsqMedia;
+        std::string fseqMedia;
+    };
+    // The first read of a placeholder blocks until the whole file is downloaded;
+    // do it off the UI thread so the progress dialog keeps painting.
+    auto pending = std::async(std::launch::async, [fseq, xsq]() {
+        CloudSequenceInfo info;
+        if (!xsq.empty()) {
+            info.xsqMedia = ScanXsqFile(xsq).mediaFile;
+        }
+        try {
+            std::unique_ptr<FSEQFile> sf(FSEQFile::openFSEQFile(fseq));
+            if (sf != nullptr) {
+                info.opened = true;
+                info.channels = static_cast<unsigned long long>(sf->getChannelCount());
+                info.fseqMedia = sf->getMediaFilename();
+            }
+        } catch (...) {
+            spdlog::warn("ResolveCloudSequence: exception reading FSEQ file: {}", fseq);
+        }
+        return info;
+    });
+    while (pending.wait_for(std::chrono::milliseconds(50)) != std::future_status::ready) {
+        wxYield();
+    }
+    const CloudSequenceInfo info = pending.get();
+
+    pathData->cloud = false;
+    pathData->cloudXsq.clear();
+    CheckListBox_Sequences->SetItemText(item, 3, info.opened ? wxString::Format("%llu", info.channels) : wxString());
+
+    if (pathData->media.empty()) {
+        std::string mediaName = ResolveSequenceMedia(info.xsqMedia);
+        if (mediaName.empty() && !info.fseqMedia.empty() && pathData->fseq.Lower().EndsWith(".fseq")) {
+            std::string m = FileUtils::FixFile(std::string(""), info.fseqMedia);
+            if (FileExists(m)) {
+                mediaName = m;
+            }
+        }
+        if (!mediaName.empty()) {
+            pathData->media = ToWXString(mediaName);
+            CheckListBox_Sequences->SetItemText(item, 2, wxFileName(pathData->media).GetFullName() + "  ");
+        }
+    }
+    UpdateSeqCount();
+}
+
+void FPPConnectDialog::AddSequenceListItem(const wxString& fseqPath, const std::string& media, std::set<wxString>& knownPaths, const wxString& cloudXsq) const
 {
     wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(),
                                                              "  " + SequenceDisplayName(fseqPath) + "  ");
@@ -1023,7 +1140,13 @@ void FPPConnectDialog::AddSequenceListItem(const wxString& fseqPath, const std::
     DisplayDateModified(fseqPath, item);
 
     std::string mediaName = media;
-    if (FileExists(fseqPath)) {
+    if (FileUtils::IsCloudPlaceholder(ToUTF8(fseqPath))) {
+        // Opening it to read the header would download the whole fseq
+        spdlog::debug("FSEQ is cloud only, details deferred to upload: {}", ToUTF8(fseqPath));
+        pathData->cloud = true;
+        pathData->cloudXsq = cloudXsq;
+        CheckListBox_Sequences->SetItemText(item, 3, _("Cloud only") + "  ");
+    } else if (FileExists(fseqPath)) {
         try {
             std::unique_ptr<FSEQFile> sf(FSEQFile::openFSEQFile(ToUTF8(fseqPath)));
             if (sf != nullptr) {
@@ -1041,6 +1164,11 @@ void FPPConnectDialog::AddSequenceListItem(const wxString& fseqPath, const std::
             }
         } catch (...) {
             spdlog::warn("AddSequenceListItem: exception reading FSEQ file: {}", ToUTF8(fseqPath));
+        }
+        if (mediaName.empty() && !cloudXsq.empty()) {
+            // The fseq header named no usable media and the xsq that would is cloud only
+            pathData->cloud = true;
+            pathData->cloudXsq = cloudXsq;
         }
     }
 
@@ -1083,10 +1211,17 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxS
                 && file != XLIGHTS_KEYBINDING_FILE
                 && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
                 && FileExists(filename)) {
-                // Quick scan of first few KB to detect xLights sequence and media file
-                XsqFileInfo info = ScanXsqFile(ToUTF8(filename));
-                bool isSequence = info.isSequence;
-                std::string mediaName = info.mediaFile;
+                // Reading even the first few KB of a cloud-only xsq downloads all of it.
+                // Skip the scan and let a matching fseq decide that it is a sequence.
+                const bool xsqInCloud = FileUtils::IsCloudPlaceholder(ToUTF8(filename));
+                bool isSequence = true;
+                std::string mediaName;
+                if (!xsqInCloud) {
+                    // Quick scan of first few KB to detect xLights sequence and media file
+                    XsqFileInfo info = ScanXsqFile(ToUTF8(filename));
+                    isSequence = info.isSequence;
+                    mediaName = info.mediaFile;
+                }
 
                 xLightsFrame* frame = _frame;
 
@@ -1102,28 +1237,8 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxS
                         isSequence = false;
                     }
                 }
-                if (mediaName != "") {
-                    if (!FileExists(mediaName)) {
-                        wxFileName fn(mediaName);
-                        for (auto &md : frame->GetMediaFolders()) {
-                            wxString tmn = md + GetPathSeparator() + fn.GetFullName();
-                            if (FileExists(tmn)) {
-                                mediaName = ToUTF8(tmn);
-                                break;
-                            }
-                        }
-                        if (!FileExists(mediaName)) {
-                            std::string fixedMN = FileUtils::FixFile(ToUTF8(frame->CurrentDir), mediaName);
-                            if (!FileExists(fixedMN)) {
-                                spdlog::info("Could not find media: {} ", mediaName.c_str());
-                                mediaName = "";
-                            } else {
-                                mediaName = fixedMN;
-                            }
-                        }
-                    }
-                }
-                spdlog::debug("XML:  {}   IsSeq:  {}    FSEQ:  {}   Media:  {}", (const char*)file.c_str(), isSequence, (const char*)fseqName.c_str(), (const char*)mediaName.c_str());
+                mediaName = ResolveSequenceMedia(mediaName);
+                spdlog::debug("XML:  {}   IsSeq:  {}    FSEQ:  {}   Media:  {}   Cloud: {}", (const char*)file.c_str(), isSequence, (const char*)fseqName.c_str(), (const char*)mediaName.c_str(), xsqInCloud);
                 if (isSequence) {
 
                     // where you have show folders within show folders and sequences with the same name
@@ -1131,7 +1246,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxS
                     // we dont already have the fseq file in the list
 
                     if (knownPaths.find(fseqName) == knownPaths.end()) {
-                        AddSequenceListItem(fseqName, mediaName, knownPaths);
+                        AddSequenceListItem(fseqName, mediaName, knownPaths, xsqInCloud ? filename : wxString());
                     }
                 }
             }
@@ -1584,6 +1699,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
             std::vector<bool> upToDate(instances.size(), false);
             std::vector<bool> uploaded(instances.size(), false);
             int seqUploadTargets = 0;
+            ResolveCloudSequence(prgs, item);
             wxString fseqRaw = GetSequencePath(CheckListBox_Sequences, item);
             std::string fseq = ToUTF8(fseqRaw);
             std::string media = ToUTF8(GetMediaPath(CheckListBox_Sequences, item));
