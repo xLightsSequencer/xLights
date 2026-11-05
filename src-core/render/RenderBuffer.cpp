@@ -429,10 +429,10 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
         while (y < 0) {
             y += BufferHt;
         }
-        while (x > BufferWi) {
+        while (x >= BufferWi) {
             x -= BufferWi;
         }
-        while (y > BufferHt) {
+        while (y >= BufferHt) {
             y -= BufferHt;
         }
     }
@@ -506,10 +506,10 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
         while (y < 0) {
             y += BufferHt;
         }
-        while (x > BufferWi) {
+        while (x >= BufferWi) {
             x -= BufferWi;
         }
-        while (y > BufferHt) {
+        while (y >= BufferHt) {
             y -= BufferHt;
         }
     }

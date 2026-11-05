@@ -149,6 +149,20 @@ if(UNIX AND NOT APPLE)
         endif()
     endforeach()
 endif()
+# SequencePackage embeds fonts through fontconfig on Linux (wx brings it in for the app).
+if(UNIX AND NOT APPLE)
+    pkg_check_modules(FONTCONFIG QUIET fontconfig)
+    if(FONTCONFIG_FOUND)
+        target_include_directories(xlights_core PUBLIC ${FONTCONFIG_INCLUDE_DIRS})
+        target_link_libraries(xlights_core PUBLIC ${FONTCONFIG_LIBRARIES})
+    else()
+        find_library(FONTCONFIG_LIB NAMES fontconfig)
+        if(FONTCONFIG_LIB)
+            target_link_libraries(xlights_core PUBLIC ${FONTCONFIG_LIB})
+        endif()
+    endif()
+endif()
+
 # DNS-SD (Discovery.cpp uses it when <dns_sd.h> is present; the root build links
 # avahi-compat-libdns_sd for the same reason).
 if(UNIX AND NOT APPLE)

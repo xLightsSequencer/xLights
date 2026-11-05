@@ -1270,7 +1270,7 @@ std::string UDControllerPort::ExportAsJSON() const
         if(!first) json += ",";
         json += "{\"name\":\"" + JSONSafe(it->GetName()) + "\"";
         if (it->GetSmartRemote() > 0) {
-            json += ",\"smartremote\":\"" + std::to_string(it->GetSmartRemoteLetter()) + "\"";
+            json += ",\"smartremote\":\"" + std::string(1, it->GetSmartRemoteLetter()) + "\"";
         }
         json += ",\"description\":\"";
         auto desp = it->GetModel()->description;

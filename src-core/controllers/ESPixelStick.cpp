@@ -287,7 +287,7 @@ bool EspsPort::WriteConfigToJson(nlohmann::json& JsonConfig) {
     uint32_t NumItemsChanged = 0;
     nlohmann::json& CurrentPort = JsonConfig["channels"][PortId];
 
-    if (std::to_string(CurrentPort["type"].get<int>()) != CurrentProtocolId)
+    if (!CurrentPort["type"].is_number_integer() || std::to_string(CurrentPort["type"].get<int>()) != CurrentProtocolId)
     {
         NumItemsChanged++;
         CurrentPort["type"] = (int)std::strtol(CurrentProtocolId.c_str(), nullptr, 10);

@@ -64,7 +64,7 @@ void ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int fram
     int startTime = 0;
     xlColor lastColor(xlBLACK);
 
-    for (size_t x = 0; x < colors.size() - 3; ++x) {
+    for (size_t x = 0; x + 3 < colors.size(); ++x) {
         if (colors[x] != colors[x + 1]) {
             int len = RampLenColor(x, colors);
             if (len >= 3) {

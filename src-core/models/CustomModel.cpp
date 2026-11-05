@@ -298,7 +298,7 @@ std::list<std::string> CustomModel::GetFileReferences()
 
 void CustomModel::SetNumStrings(int strings)
 {
-    _strings = strings;
+    _strings = std::max(1, strings);
 }
 
 void CustomModel::SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString)

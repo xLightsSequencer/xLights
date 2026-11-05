@@ -83,8 +83,9 @@ void DmxModel::InitModel()
     SetNodeCount(numChannels, 1, rgbOrder);
 
     int curNode = 0;
+    int32_t startChan = stringStartChan.empty() ? 0 : stringStartChan[0];
     for (int x = 0; x < numChannels; x++) {
-        Nodes[curNode]->ActChan = stringStartChan[0] + curNode * GetNodeChannelCount(StringType);
+        Nodes[curNode]->ActChan = startChan + curNode * GetNodeChannelCount(StringType);
         Nodes[curNode]->StringNum = 0;
         // the screenx/screeny positions are used to fake it into giving a bigger selection area
         if (x == 0) {

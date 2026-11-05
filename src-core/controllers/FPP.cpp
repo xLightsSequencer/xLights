@@ -2440,7 +2440,7 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
             curLast = s + l - 1;
         } else if (s == (curLast + 1)) {
             curLast += l;
-        } else if (s < (curFirst + curLast -1)) {
+        } else if (s <= curLast) {
             //start is within the previous's range
             int nl = s + l - 1;
             curLast = std::max(curLast, nl);
