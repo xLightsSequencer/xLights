@@ -359,6 +359,15 @@ serialization, effects...) live in `tests/unit/core/`. Keep tests wx-free — th
 same rule as `src-core/`. Shared helpers are in `tests/unit/support/`
 (`TempDir.h`).
 
+**Every `src-core/` change needs a unit test.** A bug fix gets a test that fails
+without the fix and passes with it (run that control). A new feature or behavior
+change gets tests for the new behavior. Add the test in the same commit/PR as
+the change, under `tests/unit/` (or `tests/unit/core/` if it needs the real
+core). The only exceptions are changes a unit test can't reasonably reach:
+render-output changes covered by the render regression harness (update its
+manifest instead), GPU-only (Metal/Vulkan) paths, and pure refactors already
+covered by existing tests. If you skip the test, say why in the PR description.
+
 **macOS (primary): Xcode.** Use the **`xLights-unit-tests`** scheme in
 `macOS/xLights.xcodeproj` (Cmd-R runs every test; edit the scheme's arguments for
 Catch2 filters such as `"[color]"`). It compiles `tests/unit/**` plus Catch2 from
@@ -771,6 +780,9 @@ the two platforms stand relative to each other.
 | `src-core/` + `src-ui-wx/` | macOS desktop (Debug) + iPad library |
 | `src-core/` + `src-iPad/` | macOS desktop (Debug) + iPad library |
 | Cross-platform (`.cbp`/`.vcxproj`/`CMakeLists.txt`) | macOS + Linux + Windows |
+
+Any change to `src-core/` also adds or updates a unit test in `tests/unit/` and runs
+the `xLights-unit-tests` scheme (see §4, *Unit tests*).
 
 ### Common pitfalls
 
