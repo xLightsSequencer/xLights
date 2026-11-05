@@ -1337,6 +1337,7 @@ struct LayoutEditorView: View {
                             Image(systemName: "plus.circle.fill")
                         }
                         .buttonStyle(.plain)
+                        .disabled(!canAddViewObject)
                         .accessibilityLabel("New view object")
                     }
                 }
@@ -1358,6 +1359,7 @@ struct LayoutEditorView: View {
                             addViewObjectSheetVisible = true
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(!canAddViewObject)
                     }
                 } else if filteredObjectNames.isEmpty {
                     ContentUnavailableView.search(text: objectFilter)
@@ -1367,6 +1369,10 @@ struct LayoutEditorView: View {
             controllersList
         }
     }
+
+    /// Desktop's `LayoutPanel::UpdateAddObjectButton()`: view objects
+    /// live only in the Default preview, which is the 3D one.
+    private var canAddViewObject: Bool { settings.is3D && activeLayoutGroup == "Default" }
 
     /// Desktop's `ControllerListPanel::NetworkChangesAllowed()` — no
     /// controller add/delete/reorder/edit/upload while the show is
