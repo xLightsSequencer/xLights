@@ -351,16 +351,27 @@ TEST_CASE("Unused media can be pruned", "[impexp][media][embed]") {
     a.AddEmbeddedImage("drop.png", Pattern(2, 2));
     a.MarkAllUnused();
     a.GetImage("keep.png")->MarkIsUsed(true);
-    a.RemoveUnusedImages();
-    CHECK(a.HasImage("keep.png"));
-    CHECK_FALSE(a.HasImage("drop.png"));
     TempDir d;
     auto ext = WritePng(d, "ext.png", Pattern(2, 2));
+    auto used = WritePng(d, "used.png", Pattern(2, 2));
     a.GetImage(ext);
-    a.MarkAllUnused();
+    a.GetImage(used)->MarkIsUsed(true);
     a.RemoveUnusedMedia();
     CHECK_FALSE(a.HasImage(ext));
+    CHECK(a.HasImage(used));
     CHECK(a.HasImage("keep.png"));
+    // Embedded entries are document content: an unused one keeps its entry
+    // and its data still saves.
+    CHECK(a.HasImage("drop.png"));
+    CHECK(a.GetMediaEmbedState("drop.png").first);
+    auto doc = Save(a);
+    bool saved = false;
+    for (auto n : doc.child("root").child("SequenceMedia").children()) {
+        if (std::string(n.attribute("path").as_string()) == "drop.png") {
+            saved = !std::string(n.child("Data").text().as_string()).empty();
+        }
+    }
+    CHECK(saved);
 }
 
 TEST_CASE("Renaming media refuses to merge entries", "[impexp][media][embed]") {

@@ -468,7 +468,6 @@ public:
     bool RenameImage(const std::string& oldPath, const std::string& newPath);
     size_t GetImageCount() const { return _imageCache.size(); }
     std::vector<std::string> GetImagePaths() const;
-    void RemoveUnusedImages();
 
     std::vector<std::pair<std::string, std::string>> GetImageRelocations() const;
     void RecordRelocation(const std::string& from, const std::string& to);
