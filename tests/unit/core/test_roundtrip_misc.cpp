@@ -175,6 +175,11 @@ TEST_CASE("Roundtrip settings file is byte stable across load and flush", "[roun
     c.WriteDouble("dbl", 0.125, s.name);
     c.WriteBool("bool", true, s.name);
     c.Flush();
+    // The first load adds the default sections, so measure stability from the second save on.
+    c.Load();
+    c.WriteString("touch", "x", s.name);
+    c.DeleteEntry("touch", s.name);
+    c.Flush();
     std::string first = ReadAll(path);
     for (int i = 0; i < 3; ++i) {
         c.Load();

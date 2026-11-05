@@ -428,13 +428,16 @@ TEST_CASE("Relocation records can be queued and cleared", "[impexp][media][embed
 TEST_CASE("Image files reload when they change on disk", "[impexp][media][embed]") {
     TempDir d;
     auto path = WritePng(d, "chg.png", Pattern(2, 2));
+    const auto before = std::filesystem::file_time_type::clock::now() - std::chrono::hours(1);
+    std::filesystem::last_write_time(path, before);
     SequenceMedia a;
     auto e = a.GetImage(path);
     REQUIRE(e->IsOk());
     CHECK(e->GetImageWidth() == 2);
     WritePng(d, "chg.png", Pattern(7, 3));
-    std::filesystem::last_write_time(path, std::filesystem::last_write_time(path) + std::chrono::seconds(5));
+    std::filesystem::last_write_time(path, before + std::chrono::minutes(30));
     auto again = a.GetImage(path);
+    CHECK(again->IsOk());
     CHECK(again->GetImageWidth() == 7);
     CHECK(again->GetImageHeight() == 3);
 }

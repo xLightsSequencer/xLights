@@ -3,6 +3,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <random>
 #include <string>
 #include <system_error>
 
@@ -13,7 +14,9 @@ struct TempDir {
     TempDir() {
         static int counter = 0;
         auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-        path = std::filesystem::temp_directory_path() / ("xl_unit_" + std::to_string(stamp) + "_" + std::to_string(counter++));
+        // ctest runs many test processes at once, so the clock alone can collide
+        std::random_device rd;
+        path = std::filesystem::temp_directory_path() / ("xl_unit_" + std::to_string(stamp) + "_" + std::to_string(rd()) + "_" + std::to_string(counter++));
         std::filesystem::create_directories(path);
     }
     ~TempDir() {
