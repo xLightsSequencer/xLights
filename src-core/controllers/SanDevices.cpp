@@ -25,7 +25,6 @@
 
 #include <regex>
 
-#include <cassert>
 #include <chrono>
 #include <spdlog/fmt/fmt.h>
 #include <thread>
@@ -377,10 +376,9 @@ bool SanDevices::ParseV4Webpage(const std::string& page) {
         group->Dump();
         _outputDataV4.push_back(group);
     }
-    if (_outputDataV4.size() == 4 && _universes.size() == 12) {
-        return true;
+    if (_outputDataV4.size() != 4 || _universes.size() != 12) {
+        spdlog::warn("SanDevices: V4 page parsed {} output groups and {} universes", _outputDataV4.size(), _universes.size());
     }
-    assert(false);
     return true;
 }
 
@@ -403,10 +401,9 @@ bool SanDevices::ParseV5MainWebpage(const std::string& page) {
         group->Dump();
         _protocolData.push_back(group);
     }
-    if (_protocolData.size() == 4 && _universes.size() == 12) {
-        return true;
+    if (_protocolData.size() != 4 || _universes.size() != 12) {
+        spdlog::warn("SanDevices: V5 main page parsed {} protocol groups and {} universes", _protocolData.size(), _universes.size());
     }
-    assert(false);
     return true;
 }
 
@@ -419,10 +416,9 @@ bool SanDevices::ParseV5OutputWebpage(const std::string& page) {
             _outputData.push_back(group);
         }
     }
-    if ((int)_outputData.size() == GetMaxStringOutputs()) {
-        return true;
+    if ((int)_outputData.size() != GetMaxStringOutputs()) {
+        spdlog::warn("SanDevices: V5 output page parsed {} outputs, expected {}", _outputData.size(), GetMaxStringOutputs());
     }
-    assert(false);
     return true;
 }
 
@@ -1311,7 +1307,7 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     if (IsFirmware4()) {
         return SetOutputsV4(allmodels, outputManager, controller, ui);
     }
-    assert(false);
+    spdlog::error("SanDevices Outputs Upload: unsupported firmware version {}", static_cast<int>(_firmware));
     return false;
 }
 #pragma endregion
