@@ -182,7 +182,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy-retry.outputs.page_url }}
     concurrency:
       group: pages
       cancel-in-progress: false
@@ -211,14 +211,35 @@ jobs:
         python3 ci_scripts/build_dashboard.py nightly-results.json site history.json \
           "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
+    # The artifact is named per attempt: "Re-run failed jobs" uploads another
+    # one into the same run, and deploy-pages refuses a run holding two
+    # artifacts of one name.
     - name: Upload the site
       uses: actions/upload-pages-artifact@v5
       with:
         path: site
+        name: github-pages-${{ github.run_attempt }}
 
+    # The Pages API answers with the odd 5xx (sometimes after the site has
+    # already gone live); one more try a minute later rides that out, and
+    # deploying the same site twice is harmless.
     - name: Deploy
       id: deploy
+      continue-on-error: true
       uses: actions/deploy-pages@v5
+      with:
+        artifact_name: github-pages-${{ github.run_attempt }}
+
+    - name: Wait before retrying the deploy
+      if: ${{ steps.deploy.outcome == 'failure' }}
+      run: sleep 60
+
+    - name: Deploy (retry)
+      if: ${{ steps.deploy.outcome == 'failure' }}
+      id: deploy-retry
+      uses: actions/deploy-pages@v5
+      with:
+        artifact_name: github-pages-${{ github.run_attempt }}
 
   # Make the workflow red when any test failed, after the dashboard is published.
   verdict:
