@@ -344,6 +344,7 @@ The Xcode Cloud nightly (the TestFlight build) also runs the unit tests and the 
 `XL_NIGHTLY_TESTS=1`; it pushes the results to GitHub (a `repository_dispatch`, handled by `Xcode_Cloud_Results.yml`)
 using the secret `XL_DISPATCH_TOKEN` and adds a one-line summary to the TestFlight notes. Do not run its render
 step on a developer Mac (it launches a re-signed copy of the app that shares the real bundle id).
+A bad dashboard entry is removed with a manual run of `Xcode_Cloud_Results.yml` (`drop_run` = the run id of the run that made it).
 Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
 
 ### Unit tests (Catch2)

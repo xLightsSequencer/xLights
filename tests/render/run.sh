@@ -112,7 +112,20 @@ render() { # outdir
 hashes() { # outdir -> sorted hash report on stdout
     local files=()
     while IFS= read -r f; do files+=("$f"); done < <(ls "$1"/*.fseq | sort)
-    "$BIN" --fseqhash -s "$STAGE" "${files[@]}" 2>/dev/null | grep -E '^(  model |[^ ].*  frames=)'
+    # The app can print stray text to stdout without a newline (e.g. a device-detection message on a headless
+    # builder), which glues itself onto the next line. Re-anchor each sequence line on the file name it must start with.
+    local names=""; for f in "${files[@]}"; do names="$names $(basename "$f")"; done
+    "$BIN" --fseqhash -s "$STAGE" "${files[@]}" 2>/dev/null | awk -v names="$names" '
+        BEGIN { k = split(names, a, " ") }
+        /^  model / { print; next }
+        /  frames=/ {
+            best = ""; pos = 0
+            for (i = 1; i <= k; i++) {
+                p = index($0, a[i] "  frames=")
+                if (p > 0 && (best == "" || p < pos)) { best = a[i]; pos = p }
+            }
+            if (best != "") print substr($0, pos)
+        }'
 }
 
 echo "rendering $(ls "$STAGE"/*.xsq | grep -c -F -- "$FILTER") sequence(s) from $SRC (x2 for determinism)"

@@ -4,10 +4,17 @@ name: Xcode Cloud Results
 # unit tests and the render regression on macOS and sends the results here as a
 # repository_dispatch event (ci_scripts/xcode_cloud_tests.sh). This adds them to
 # the dashboard history and republishes the page. A payload with "dry_run": true
-# builds the page and uploads it as an artifact without publishing.
+# builds the page and uploads it as an artifact without publishing. A manual run
+# with drop_run takes the history entry made by an earlier run of this workflow
+# (a bad result) out of the dashboard.
 on:
   repository_dispatch:
     types: [xcode-cloud-results]
+  workflow_dispatch:
+    inputs:
+      drop_run:
+        description: Run id of a run of this workflow whose dashboard entry should be removed
+        required: true
 
 permissions:
   contents: read
@@ -32,14 +39,20 @@ jobs:
       env:
         RESULTS: ${{ toJson(github.event.client_payload.results) }}
         BUILD_NUMBER: ${{ github.event.client_payload.build_number }}
+        EVENT: ${{ github.event_name }}
+        DROP_RUN: ${{ github.event.inputs.drop_run }}
       run: |
-        printf '%s' "$RESULTS" > nightly-results.json
-        python3 -c "import json; d = json.load(open('nightly-results.json')); assert d['suites'], 'no suites in the payload'"
+        RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         # A cache-busting query keeps a CDN-cached history.json from dropping an entry made minutes ago.
         curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json?t=$(date +%s)" \
           -H 'Cache-Control: no-cache' -o history.json || echo "no published history yet"
-        python3 ci_scripts/build_dashboard.py nightly-results.json site history.json \
-          "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        if [ "$EVENT" = "workflow_dispatch" ]; then
+          python3 ci_scripts/build_dashboard.py unused site history.json "$RUN_URL" --no-entry --drop-run "$DROP_RUN"
+        else
+          printf '%s' "$RESULTS" > nightly-results.json
+          python3 -c "import json; d = json.load(open('nightly-results.json')); assert d['suites'], 'no suites in the payload'"
+          python3 ci_scripts/build_dashboard.py nightly-results.json site history.json "$RUN_URL"
+        fi
 
     - name: Upload the site
       if: ${{ github.event.client_payload.dry_run != true }}
