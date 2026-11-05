@@ -32,7 +32,7 @@ struct Loaded {
     Loaded(const std::string& path, const std::string& showDir) {
         ctx.showDirectory = showDir;
         file = std::make_unique<SequenceFile>(path);
-        auto doc = file->Open(showDir, true, path);
+        auto doc = file->Open(showDir, false, path);
         if (doc) {
             ok = ctx.LoadSequenceElements(*file, *doc);
         }
@@ -751,9 +751,8 @@ TEST_CASE("Roundtrip sequence views empty view list", "[roundtrip][sequence][vie
     LoadViews(b.vm, s1);
     CHECK(SaveViews(b.vm) == s1);
 }
-// KNOWN BUG (data loss): alternate audio track entries whose file is missing/undecodable are dropped on load, so the next save silently
-// forgets them and the file written after a load no longer matches the original.
-TEST_CASE("Roundtrip xsq alternate audio tracks", "[roundtrip][sequence][structure][!mayfail]") {
+// The alt track files are never created, so this also covers tracks whose media is missing when the sequence is opened.
+TEST_CASE("Roundtrip xsq alternate audio tracks", "[roundtrip][sequence][structure]") {
     TempDir td;
     auto r = Cycle(td, [&](Source& s, SequenceFile& sf) {
         sf.AddAltTrack(td.path.string(), td.File("alt1.mp3"), "Drums & Bass");
@@ -762,7 +761,9 @@ TEST_CASE("Roundtrip xsq alternate audio tracks", "[roundtrip][sequence][structu
     });
     REQUIRE(r.ok);
     CHECK(r.second == r.first);
-    CHECK(r.loaded->file->GetAltTrackCount() == 2);
+    REQUIRE(r.loaded->file->GetAltTrackCount() == 2);
+    CHECK(r.loaded->file->GetAltTrack(1).shortname == "Vocals");
+    CHECK(r.loaded->file->GetAltTrackMedia(1) == nullptr);
 }
 TEST_CASE("Roundtrip xsq imported from list with specials", "[roundtrip][sequence][structure]") {
     TempDir td;
