@@ -191,6 +191,70 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Huge submodel node ranges are limited to the
                                  model's node count
     -bug (dkulp)                 GDTF import rejects absurd channel counts
+    -bug (dkulp)                 Fixed non-ASCII (UTF-8) text being dropped from
+                                 sequence header info, timing exports and test
+                                 preset names on save
+    -bug (dkulp)                 DMX servo pivot offsets no longer shrink every
+                                 time a model is saved (values saved by earlier
+                                 versions are not recovered)
+    -bug (dkulp)                 Value curves exported to .xvc with a non-zero
+                                 minimum (e.g. -100..100) now import correctly
+    -bug (dkulp)                 Reverse on Sine and Abs Sine value curves is now a
+                                 true reversal (renders differently than before)
+    -bug (dkulp)                 Colour curves and custom value curves no longer
+                                 lose points that land on the same position when
+                                 saved
+    -bug (dkulp)                 Timing, audio and filter text containing a | no
+                                 longer breaks value curves (older versions show
+                                 &#124; for it)
+    -bug (dkulp)                 Timing labels containing text such as &amp; are no
+                                 longer altered when a sequence or .xtiming file is
+                                 loaded
+    -bug (dkulp)                 Negative DMX colour channels are no longer turned
+                                 into a huge channel number
+    -bug (dkulp)                 Fixed a crash (huge Lights Per Node, now capped at
+                                 1000) and a hang (huge Cube string count) loading
+                                 corrupt models
+    -bug (dkulp)                 An empty model tag colour is no longer saved
+                                 differently on the first and second save
+    -bug (dkulp)                 LOR Optimised in split mode with one channel, and
+                                 DDP with a missing or oversized Channels Per
+                                 Packet, no longer hang
+    -bug (dkulp)                 Fixed crashes and memory overruns in ZCPP, DDP,
+                                 OPC and xxx Ethernet outputs and resizing an
+                                 Ethernet controller
+    -bug (dkulp)                 Renard AllOff now clears the first two channels,
+                                 and xxx Serial device channel totals above 255 no
+                                 longer wrap
+    -bug (dkulp)                 Copied KiNet outputs keep their protocol version
+                                 and copied serial/NULL outputs keep their Id
+    -bug (dkulp)                 E1.31 priority is limited to 0-200, and negative
+                                 or out-of-range MaxChannels and start channels
+                                 from show files are rejected
+    -bug (dkulp)                 Different NULL outputs are no longer treated as
+                                 equal, and xxx Ethernet outputs no longer load as
+                                 modified
+    -bug (dkulp)                 Serial prefix/postfix hex escapes no longer drop
+                                 the escape sequence after a malformed one
+    -bug (dkulp)                 Falcon, SanDevices, WLED, ESPixelStick, AlphaPix
+                                 and J1Sys uploads no longer crash on incomplete or
+                                 unexpected controller replies
+    -bug (dkulp)                 WLED upload handles unusual pin and LED instance
+                                 settings, and no longer sets an unsupported chip
+                                 to WS2811
+    -bug (dkulp)                 ESPixelStick settings with large numeric values
+                                 are no longer corrupted on upload
+    -bug (dkulp)                 Experience, PowerDMX, HinksPix and Minleon
+                                 controllers no longer crash or fail to connect on
+                                 incomplete status replies
+    -bug (dkulp)                 Minleon Original NDB controllers are now detected
+                                 and the legacy upload no longer sends a blank
+                                 netmask
+    -bug (dkulp)                 FPP version parsing handles two-digit versions,
+                                 FPP 8 proxy lists, truncated settings and
+                                 malformed channel ranges
+    -bug (dkulp)                 A duplicated FPP controller keeps its IP address
+                                 and proxy
 
 2026.19  October 23, 2026
 
