@@ -336,17 +336,20 @@ TEST_CASE("Roundtrip controller with many outputs keeps order", "[roundtrip][out
     CHECK(SaveCtrl(*Load(om2, s1)) == s1);
 }
 TEST_CASE("Roundtrip output enabled and suppress flags", "[roundtrip][outputs]") {
-    for (const char* en : { "Yes", "No" }) {
-        INFO(en);
-        OutputManager om;
-        auto c = Load(om, Ctrl("Ethernet", { { "Name", "N" }, { "Protocol", "E131" }, { "IP", "1.2.3.4" } }, Net("E131", std::string("ComPort=\"1.2.3.4\" BaudRate=\"1\" MaxChannels=\"10\" Enabled=\"") + en + "\" SuppressDuplicates=\"Yes\"")));
-        REQUIRE(c != nullptr);
-        std::string s1 = SaveCtrl(*c);
-        pugi::xml_document d;
-        REQUIRE(d.load_string(s1.c_str()));
-        CHECK(std::string(d.first_child().child("network").attribute("Enabled").value()) == en);
-        OutputManager om2;
-        CHECK(SaveCtrl(*Load(om2, s1)) == s1);
+    // the output's Enabled flag is derived from the controller's ActiveState, whatever the file says
+    for (const char* active : { "Active", "Inactive" }) {
+        for (const char* en : { "Yes", "No" }) {
+            INFO(active << " / " << en);
+            OutputManager om;
+            auto c = Load(om, Ctrl("Ethernet", { { "Name", "N" }, { "Protocol", "E131" }, { "IP", "1.2.3.4" }, { "ActiveState", active } }, Net("E131", std::string("ComPort=\"1.2.3.4\" BaudRate=\"1\" MaxChannels=\"10\" Enabled=\"") + en + "\" SuppressDuplicates=\"Yes\"")));
+            REQUIRE(c != nullptr);
+            std::string s1 = SaveCtrl(*c);
+            pugi::xml_document d;
+            REQUIRE(d.load_string(s1.c_str()));
+            CHECK(std::string(d.first_child().child("network").attribute("Enabled").value()) == (std::string(active) == "Active" ? "Yes" : "No"));
+            OutputManager om2;
+            CHECK(SaveCtrl(*Load(om2, s1)) == s1);
+        }
     }
 }
 TEST_CASE("Roundtrip output FPP proxy per output", "[roundtrip][outputs]") {
@@ -511,16 +514,38 @@ TEST_CASE("Roundtrip output manager start channels are stable", "[roundtrip][out
     }
 }
 
-// KNOWN BUG: an Inactive controller saves its outputs as Enabled="Yes" until the layout is recalculated, after which it saves Enabled="No";
-// the saved file depends on whether SomethingChanged()/SetTransientData() ran before the save.
-TEST_CASE("Roundtrip inactive controller output enabled flag does not depend on layout recalculation", "[roundtrip][outputs][!mayfail]") {
+TEST_CASE("Roundtrip inactive controller output enabled flag does not depend on layout recalculation", "[roundtrip][outputs]") {
+    const std::string serialNet = Net("DMX", "ComPort=\"COM3\" BaudRate=\"250000\" MaxChannels=\"10\"");
+    const std::vector<std::pair<std::string, std::string>> cases = {
+        { "Ethernet", Ctrl("Ethernet", { { "Name", "N" }, { "Protocol", "E131" }, { "IP", "1.2.3.4" }, { "ActiveState", "Inactive" } }, Net("E131", "ComPort=\"1.2.3.4\" BaudRate=\"1\" MaxChannels=\"10\"")) },
+        { "Serial", Ctrl("Serial", { { "Name", "N" }, { "Protocol", "DMX" }, { "Port", "COM3" }, { "Speed", "250000" }, { "ActiveState", "Inactive" } }, serialNet) },
+        // the FPP model swaps the serial output for a DDP output after the base constructor has run
+        { "Serial FPP", Ctrl("Serial", { { "Name", "N" }, { "Protocol", "DMX" }, { "Port", "1.2.3.4:ttyS0" }, { "Speed", "250000" }, { "Vendor", "FPP" }, { "Model", "FPP" }, { "ActiveState", "Inactive" } }, serialNet) },
+    };
+    for (const auto& [label, xml] : cases) {
+        INFO(label);
+        OutputManager om;
+        pugi::xml_document doc;
+        REQUIRE(doc.load_string(xml.c_str()));
+        Controller* c = Controller::Create(&om, doc.first_child(), "");
+        REQUIRE(c != nullptr);
+        om.AddController(c);
+        for (auto* o : c->GetOutputs()) CHECK_FALSE(o->IsEnabled());
+        std::string before = ManagerXml(om);
+        om.SomethingChanged();
+        CHECK(ManagerXml(om) == before);
+    }
+}
+
+TEST_CASE("Inactive serial controller keeps its outputs disabled across a protocol change", "[outputs]") {
     OutputManager om;
     pugi::xml_document doc;
-    REQUIRE(doc.load_string(Ctrl("Ethernet", { { "Name", "N" }, { "Protocol", "E131" }, { "IP", "1.2.3.4" }, { "ActiveState", "Inactive" } }, Net("E131", "ComPort=\"1.2.3.4\" BaudRate=\"1\" MaxChannels=\"10\"")).c_str()));
-    Controller* c = Controller::Create(&om, doc.first_child(), "");
-    REQUIRE(c != nullptr);
-    om.AddController(c);
-    std::string before = ManagerXml(om);
-    om.SomethingChanged();
-    CHECK(ManagerXml(om) == before);
+    REQUIRE(doc.load_string(Ctrl("Serial", { { "Name", "N" }, { "Protocol", "DMX" }, { "Port", "COM3" }, { "Speed", "250000" }, { "ActiveState", "Inactive" } }, Net("DMX", "ComPort=\"COM3\" BaudRate=\"250000\" MaxChannels=\"10\"")).c_str()));
+    std::unique_ptr<Controller> c(Controller::Create(&om, doc.first_child(), ""));
+    auto* sc = dynamic_cast<ControllerSerial*>(c.get());
+    REQUIRE(sc != nullptr);
+    sc->SetProtocol("Renard");
+    REQUIRE(sc->GetFirstOutput() != nullptr);
+    CHECK(sc->GetFirstOutput()->GetType() == "Renard");
+    CHECK_FALSE(sc->GetFirstOutput()->IsEnabled());
 }
