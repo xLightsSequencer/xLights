@@ -614,3 +614,27 @@ TEST_CASE("ValueCurve resampled offsets without timing marks are evenly spaced",
     CHECK(vc.GetResampledOffsets(0, 1000, 0).size() == 2);
     CHECK(vc.GetResampledOffsets(0, 1000, 99).size() == 11);
 }
+
+// A wrapped wobble around 0: y = 0.05*sin(2*pi*(x + 0.01)), so the negative
+// half-cycle wraps up to 0.95..1.0. Samples are every 0.025; the curve enters
+// the wrapped region between 0.475 and 0.5 and leaves it between 0.975 and 1.0.
+TEST_CASE("ValueCurve wrapped Sine interpolates inside the wrapped region", "[curves][valuecurve]") {
+    auto vc = MakeActive("Sine", 0, 100, 1, 10, 10, 25, true);
+    float a = At(vc, 0.600f);
+    float b = At(vc, 0.625f);
+    float mid = At(vc, 0.610f);
+    REQUIRE(a > 0.9f);
+    REQUIRE(b > 0.9f);
+    REQUIRE(a > b);
+    CHECK(mid < a);
+    CHECK(mid > b);
+}
+
+TEST_CASE("ValueCurve wrapped Sine jumps across the wrap instead of sweeping", "[curves][valuecurve]") {
+    auto vc = MakeActive("Sine", 0, 100, 1, 10, 10, 25, true);
+    for (int i = 0; i <= 200; ++i) {
+        float v = At(vc, i / 200.0f);
+        INFO("offset " << i / 200.0f << " value " << v);
+        CHECK(std::min(v, 1.0f - v) <= 0.051f);
+    }
+}

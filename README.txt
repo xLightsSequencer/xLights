@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 Wrapped Sine, Parabolic, Logarithmic and Exponential value curves rendered
+                                 as steps inside the wrapped part and swept back across the wrap point
     -bug (derwin12)              Import Effects and other dialogs no longer open on a monitor that is no
                                  longer attached (which looked like a hang); they open centred instead (#7304)
     -bug (dkulp)                 iPad - Faces and State effects could not switch to Timing Track; the

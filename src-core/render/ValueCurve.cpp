@@ -1024,15 +1024,13 @@ void ValueCurve::RenderType()
                     y += 1.0f;
                 }
             }
-            bool lastwrapped = false;
-            if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
             if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
             }
-            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
+            _values.push_back(vcSortablePoint(i, fy, wrapped));
         }
     }
     else if (_type == "Parabolic Up")
@@ -1063,15 +1061,13 @@ void ValueCurve::RenderType()
                     y += 1.0f;
                 }
             }
-            bool lastwrapped = false;
-            if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
             if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
             }
-            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
+            _values.push_back(vcSortablePoint(i, fy, wrapped));
         }
     }
     else if (_type == "Logarithmic Up")
@@ -1101,15 +1097,13 @@ void ValueCurve::RenderType()
                     y += 1.0f;
                 }
             }
-            bool lastwrapped = false;
-            if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
             if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
             }
-            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
+            _values.push_back(vcSortablePoint(i, fy, wrapped));
         }
     }
     else if (_type == "Logarithmic Down")
@@ -1139,15 +1133,13 @@ void ValueCurve::RenderType()
                     y += 1.0f;
                 }
             }
-            bool lastwrapped = false;
-            if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
             if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
             }
-            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
+            _values.push_back(vcSortablePoint(i, fy, wrapped));
         }
     }
     else if (_type == "Exponential Up")
@@ -1177,15 +1169,13 @@ void ValueCurve::RenderType()
                     y += 1.0f;
                 }
             }
-            bool lastwrapped = false;
-            if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
             if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
             }
-            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
+            _values.push_back(vcSortablePoint(i, fy, wrapped));
         }
     }
     else if (_type == "Exponential Down")
@@ -1215,15 +1205,13 @@ void ValueCurve::RenderType()
                     y += 1.0f;
                 }
             }
-            bool lastwrapped = false;
-            if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
             if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
             }
-            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
+            _values.push_back(vcSortablePoint(i, fy, wrapped));
         }
     }
     else if (_type == "Sine")
@@ -1253,9 +1241,7 @@ void ValueCurve::RenderType()
                     y += 1.0f;
                 }
             }
-            bool lastwrapped = false;
-            if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            _values.push_back(vcSortablePoint(i, Safe01(y), wrapped));
         }
     }
     else if (_type == "Decaying Sine")
@@ -1287,9 +1273,7 @@ void ValueCurve::RenderType()
                     y += 1.0f;
                 }
             }
-            bool lastwrapped = false;
-            if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            _values.push_back(vcSortablePoint(i, Safe01(y), wrapped));
         }
     }
     else if (_type == "Random")
@@ -1379,9 +1363,7 @@ void ValueCurve::RenderType()
                     y += 1.0f;
                 }
             }
-            bool lastwrapped = false;
-            if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            _values.push_back(vcSortablePoint(i, Safe01(y), wrapped));
         }
     }
     else if (_type == "Custom")
@@ -2301,7 +2283,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             if (it->x == queryOffset) {
                 res = it->y;
             }
-            else if (it->IsWrapped()) {
+            else if (it->IsWrapped() != last.IsWrapped()) {
                 res = it->y;
             }
             else {
