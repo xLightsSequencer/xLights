@@ -3523,12 +3523,10 @@ void xLightsImportChannelMapDialog::CreateComparePane()
     TreeListCtrl_Mapping->SetMinSize(wxSize(listMin, TreeListCtrl_Mapping->GetMinSize().GetHeight()));
     ListCtrl_Available->SetMinSize(wxSize(listMin, -1));
 
-    const bool dark = IsDarkMode();
     _comparePanel = new wxPanel(Panel2, wxID_ANY);
     wxBoxSizer* compareSizer = new wxBoxSizer(wxVERTICAL);
-    auto addSlot = [this, compareSizer](ComparePreviewSlot& slot, const wxString& hint, const wxColour& colour) {
+    auto addSlot = [this, compareSizer](ComparePreviewSlot& slot, const wxString& hint) {
         slot.label = new wxStaticText(_comparePanel, wxID_ANY, hint, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
-        slot.label->SetForegroundColour(colour);
         compareSizer->Add(slot.label, 0, wxEXPAND | wxBOTTOM, 3);
         slot.preview = new ModelPreview(_comparePanel);
         slot.preview->SetMinSize(wxSize(220, 220));
@@ -3544,10 +3542,9 @@ void xLightsImportChannelMapDialog::CreateComparePane()
             }
         });
     };
-    addSlot(_vendorSlot, _xsqPkg->HasRGBEffects() ? _("Click a vendor model to show it here") : _("No preview available (sequence has no layout data)"),
-            dark ? wxColour(0xFF, 0xFF, 0x00) : wxColour(0x9A, 0x80, 0x00));
+    addSlot(_vendorSlot, _xsqPkg->HasRGBEffects() ? _("Click a vendor model to show it here") : _("No preview available (sequence has no layout data)"));
     compareSizer->AddSpacer(8);
-    addSlot(_layoutSlot, _("Hover or click your models to compare"), dark ? wxColour(0x2C, 0xC0, 0xBB) : wxColour(0x0D, 0x87, 0x84));
+    addSlot(_layoutSlot, _("Hover or click your models to compare"));
     _comparePanel->SetSizer(compareSizer);
 
     wxWindow* treeWindow = TreeListCtrl_Mapping->GetMainWindow();
