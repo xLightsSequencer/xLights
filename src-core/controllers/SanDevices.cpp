@@ -181,7 +181,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
         ui->UpdateProgress(progressTk, p, "Sending Output Data to Controller.");
         outputD->Dump();
         if (outputD->upload) {
-            const std::string url = GenerateOutputURLV4(outputD);
+            const std::string url = GenerateOutputURLV4(outputD.get());
             SDGetURL(url);
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         }
@@ -292,7 +292,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     for (const auto& proro : _protocolData) {
         proro->Dump();
         if (proro->shouldUpload()) {
-            const std::string url = GenerateProtocolURLV5(proro);
+            const std::string url = GenerateProtocolURLV5(proro.get());
             SDGetURL(url);
             std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         }
@@ -348,7 +348,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
         ui->UpdateProgress(progressTk, p, "Sending Output Data to Controller.");
         outputD->Dump();
         if (outputD->upload) {
-            const std::string url = GenerateOutputURLV5(outputD);
+            const std::string url = GenerateOutputURLV5(outputD.get());
             SDGetURL(url);
             std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         }
@@ -374,7 +374,7 @@ bool SanDevices::ParseV4Webpage(const std::string& page) {
     for (int i = 1; i <= GetNumberOfOutputGroups(); i++) {
         SanDevicesOutputV4* group = ExtractOutputDataV4(page, i);
         group->Dump();
-        _outputDataV4.push_back(group);
+        _outputDataV4.emplace_back(group);
     }
     if (_outputDataV4.size() != 4 || _universes.size() != 12) {
         spdlog::warn("SanDevices: V4 page parsed {} output groups and {} universes", _outputDataV4.size(), _universes.size());
@@ -399,7 +399,7 @@ bool SanDevices::ParseV5MainWebpage(const std::string& page) {
     for (int i = 1; i <= GetNumberOfOutputGroups(); i++) {
         SanDevicesProtocol* group = ExtractProtocalDataV5(page, i);
         group->Dump();
-        _protocolData.push_back(group);
+        _protocolData.emplace_back(group);
     }
     if (_protocolData.size() != 4 || _universes.size() != 12) {
         spdlog::warn("SanDevices: V5 main page parsed {} protocol groups and {} universes", _protocolData.size(), _universes.size());
@@ -413,7 +413,7 @@ bool SanDevices::ParseV5OutputWebpage(const std::string& page) {
         for (int j = 1; j <= GetOutputsPerGroup(); j++) {
             SanDevicesOutput* group = ExtractOutputDataV5(page, i, j);
             group->Dump();
-            _outputData.push_back(group);
+            _outputData.emplace_back(group);
         }
     }
     if ((int)_outputData.size() != GetMaxStringOutputs()) {
@@ -714,7 +714,7 @@ void SanDevices::UpdatePortDataV5(int group, int output, UDControllerPort* strin
 SanDevicesOutput* SanDevices::FindPortDataV5(int group, int output) {
     for (const auto& sd : _outputData) {
         if (sd->group == group && sd->output == output) {
-            return sd;
+            return sd.get();
         }
     }
     return nullptr;
@@ -797,7 +797,7 @@ SanDevicesOutputV4* SanDevices::FindPortDataV4(int group) {
 
     for (const auto& sd : _outputDataV4) {
         if (sd->group == group) {
-            return sd;
+            return sd.get();
         }
     }
     return nullptr;
@@ -1121,22 +1121,7 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
     }
 }
 
-SanDevices::~SanDevices() {
-    for (const auto& it : _outputData) {
-        delete it;
-    }
-    _outputData.clear();
-
-    for (const auto& it : _protocolData) {
-        delete it;
-    }
-    _protocolData.clear();
-
-    for (const auto& it : _outputDataV4) {
-        delete it;
-    }
-    _outputDataV4.clear();
-}
+SanDevices::~SanDevices() = default;
 #pragma endregion
 
 #pragma region Getters and Setters

@@ -403,7 +403,6 @@ TEST_CASE("SanDevices2 ParseV5MainWebpage reads universes and protocol groups", 
     CHECK(s->_protocolData[0]->getProtocol() == 'B');
     CHECK(s->_protocolData[3]->getProtocol() == 'E');
     CHECK(s->_protocolData[2]->getTiming() == 'B');
-    // the parse allocates the protocol objects with new and the destructor frees them
 }
 
 TEST_CASE("SanDevices2 ParseV5MainWebpage again replaces the stored data", "[vendors2][sandevices2]") {
@@ -413,8 +412,6 @@ TEST_CASE("SanDevices2 ParseV5MainWebpage again replaces the stored data", "[ven
         page += "<td>" + std::to_string(g) + "-1 thru " + std::to_string(g) + "-4</td>" + Select("E", 'B') + Select("K", 'A');
     }
     CHECK(s->ParseV5MainWebpage(page));
-    for (auto* p : s->_protocolData) delete p; // ParseV5MainWebpage clears without freeing, so release them first
-    s->_protocolData.clear();
     CHECK(s->ParseV5MainWebpage(page));
     CHECK(s->_protocolData.size() == 4);
 }
