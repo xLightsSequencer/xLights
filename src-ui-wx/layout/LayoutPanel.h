@@ -89,6 +89,18 @@ struct OwnedXmlNode {
     explicit operator bool() const { return _doc && _doc->document_element(); }
 };
 
+// placement of a duplicated model, used to repeat the step on the next duplicate
+struct DuplicatePose {
+    glm::vec3 centre{ 0.0f };
+    glm::vec3 rotation{ 0.0f };
+    glm::vec3 scale{ 1.0f };
+    glm::vec3 end{ 0.0f };          // two/three point
+    float height = 0.0f;            // three point
+    float shear = 0.0f;
+    int angle = 0;
+    std::vector<glm::vec3> points;  // poly point, world coordinates
+};
+
 class CopyPasteBaseObject
 {
     bool _ok = false;
@@ -245,6 +257,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_WIRETOCLOSESTCONTROLLER;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;
         static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
+        static const long ID_PREVIEW_MODEL_DUPLICATE;
         static const long ID_PREVIEW_BULKEDIT;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION;
         static const long ID_PREVIEW_BULKEDIT_CONTROLLERNAME;
@@ -401,6 +414,14 @@ class LayoutPanel: public wxPanel
         void LockSelectedModels(bool lock);
         void UnlinkSelectedModels();
         void PromoteSelectedModelsToBase();
+        void DuplicateSelected();
+        bool CanDuplicateSelected();
+        std::vector<Model*> GetModelsToDuplicate();
+        ViewObject* GetViewObjectToDuplicate() const;
+        void DuplicateSelectedModels();
+        bool AnyModelToDuplicateInGroups();
+        void AddDuplicateToSourceGroups(const std::string& sourceName, const std::string& copyName);
+        void DuplicateSelectedViewObject();
         void PreviewSaveImage();
         void PreviewPrintImage();
         void ImportModelsFromRGBEffects();
@@ -663,6 +684,9 @@ class LayoutPanel: public wxPanel
         std::string _lastXlightsModel = "";
         std::string selectedDmxModelType;
         Model *_newModel = nullptr;
+        // copy name -> source placement, for the last duplicate
+        std::vector<std::pair<std::string, DuplicatePose>> _lastDuplicate;
+        bool _lastDuplicateWasModels = true;
         ModelGroupPanel *model_grp_panel = nullptr;
         ViewObjectPanel *objects_panel = nullptr;
         ControllerListPanel* controllers_panel = nullptr;
