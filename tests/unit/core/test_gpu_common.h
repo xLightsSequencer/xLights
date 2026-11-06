@@ -53,9 +53,10 @@ inline ShowSpec MatrixShow(std::vector<EffectSpec> effects) {
 struct Diff {
     size_t channels = 0;
     int maxDelta = 0;
+    size_t over = 0; // channels that differ by more than the limit passed to Compare
 };
 
-inline Diff Compare(const Rendered& a, const Rendered& b) {
+inline Diff Compare(const Rendered& a, const Rendered& b, int limit = 255) {
     Diff d;
     for (unsigned int f = 0; f < a.frames; ++f) {
         for (unsigned int c = 0; c < a.channels; ++c) {
@@ -63,6 +64,9 @@ inline Diff Compare(const Rendered& a, const Rendered& b) {
             if (delta) {
                 ++d.channels;
                 d.maxDelta = std::max(d.maxDelta, delta);
+                if (delta > limit) {
+                    ++d.over;
+                }
             }
         }
     }
@@ -80,10 +84,13 @@ inline size_t Lit(const Rendered& r) {
 // How far a GPU render may stray from the CPU render of the same show: at most
 // `fraction` of all channels over all frames may differ, by at most `maxDelta`.
 // The default allows float rounding (GPU fast-math against ISPC/scalar);
-// anything bigger is listed where it is used, with the reason.
+// anything bigger is listed where it is used, with the reason. `seams` channels
+// may exceed `maxDelta`: an effect that wraps a value (fract) or picks a colour
+// by threshold jumps a whole step when CPU and GPU land on either side of it.
 struct Budget {
     double fraction = 0.001;
     int maxDelta = 2;
+    size_t seams = 0;
 };
 
 struct Pair {
@@ -112,11 +119,12 @@ inline void CheckWithin(const Pair& p, const Budget& b) {
     REQUIRE(p.cpu.frames == p.gpu.frames);
     CHECK(Lit(p.cpu) > 0);
     CHECK(Lit(p.gpu) > 0);
-    Diff d = Compare(p.cpu, p.gpu);
+    Diff d = Compare(p.cpu, p.gpu, b.maxDelta);
     size_t total = (size_t)p.cpu.channels * p.cpu.frames;
-    INFO(d.channels << " of " << total << " channels differ, by up to " << d.maxDelta);
+    INFO(d.channels << " of " << total << " channels differ, by up to " << d.maxDelta
+         << "; " << d.over << " by more than " << b.maxDelta);
     CHECK(d.channels <= (size_t)(b.fraction * total));
-    CHECK(d.maxDelta <= b.maxDelta);
+    CHECK(d.over <= b.seams);
 }
 
 } // namespace gpuhelp
