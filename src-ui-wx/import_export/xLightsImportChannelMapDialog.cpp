@@ -3633,16 +3633,19 @@ void xLightsImportChannelMapDialog::CreateComparePane()
         evt.Skip();
     });
 
-    // Until the user picks, start hidden where the compare column can't fit.
-    bool show = !narrowScreen;
-    GetXLightsConfig()->Read("ImportShowCompare", &show);
+    // Other formats have no vendor half, so they keep their own setting and
+    // start hidden. Until the user picks, xLights imports start hidden only
+    // where the compare column can't fit.
+    const wxString showKey = _xsqPkg != nullptr ? "ImportShowCompare" : "ImportShowCompareOtherFormats";
+    bool show = _xsqPkg != nullptr && !narrowScreen;
+    GetXLightsConfig()->Read(showKey, &show);
     if (CheckBox_ShowCompare != nullptr) {
         CheckBox_ShowCompare->SetToolTip(_xsqPkg != nullptr ? _("Show the vendor's model next to yours so you can see whether they look alike.")
                                                             : _("Show your hovered or selected model. Only xLights sequences include the vendor's layout."));
         CheckBox_ShowCompare->SetValue(show);
-        CheckBox_ShowCompare->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        CheckBox_ShowCompare->Bind(wxEVT_CHECKBOX, [this, showKey](wxCommandEvent&) {
             auto* config = GetXLightsConfig();
-            config->Write("ImportShowCompare", CheckBox_ShowCompare->IsChecked());
+            config->Write(showKey, CheckBox_ShowCompare->IsChecked());
             config->Flush();
             SetCompareShown(CheckBox_ShowCompare->IsChecked());
             FitComparePane();
