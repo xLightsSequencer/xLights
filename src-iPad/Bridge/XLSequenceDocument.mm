@@ -18537,6 +18537,12 @@ public:
         }
 
         // No conflict — hold it until the user confirms the add.
+        // A device answering on several IPs (e.g. wifi + ethernet) is one controller.
+        bool sameNamePending = std::any_of(_pendingDiscoveredControllers.begin(), _pendingDiscoveredControllers.end(),
+                                           [eth](const auto& p) {
+                                               return p->GetName() == eth->GetName() && p->GetProtocol() == eth->GetProtocol();
+                                           });
+        if (sameNamePending) continue;
         if (!pendingIPs.insert(eth->GetIP()).second) continue;
         if (d->typeId > 0 && d->typeId < 0x80) {
             eth->SetActive("xLights Only");

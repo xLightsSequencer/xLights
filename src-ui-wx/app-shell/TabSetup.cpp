@@ -24,6 +24,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/thread.h>
 
+#include <algorithm>
 #include <set>
 #include <thread>
 #include <chrono>
@@ -1481,7 +1482,12 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
             }
             if (!updated) {
                 if (isPingable[it->GetIP()]) {
-                    if (newControllerIPs.insert(it->GetIP()).second) {
+                    // a device answering on several IPs (e.g. wifi + ethernet) is one controller
+                    bool sameNameQueued = std::any_of(newControllers.begin(), newControllers.end(), [&](const auto& p) {
+                        return p.first->controller->GetName() == it->GetName()
+                            && p.first->controller->GetProtocol() == it->GetProtocol();
+                    });
+                    if (!sameNameQueued && newControllerIPs.insert(it->GetIP()).second) {
                         newControllers.emplace_back(discovered, addNew);
                     }
                 } else {
@@ -1521,7 +1527,7 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
         if (unconfirmed > 0) {
             SetCursor(wxCURSOR_DEFAULT);
             confirmed = wxMessageBox(wxString::Format(_("Discovery found %d controller(s) that aren't in your controller list:\n%s\n\nAre you sure you want to add them?"), unconfirmed, list),
-                                     _("Add New Controllers"), wxYES_NO | wxICON_QUESTION, this) == wxYES;
+                                     _("Add New Controllers"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) == wxYES;
         }
         for (auto& [d, explicitAdd] : newControllers) {
             if (!confirmed && !explicitAdd) {
