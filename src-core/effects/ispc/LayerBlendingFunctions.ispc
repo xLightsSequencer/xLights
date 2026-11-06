@@ -175,8 +175,8 @@ export void GetColorsISPCKernel(uniform const LayerBlendingData &data,
                         result[index] = c;
                         nc = cnt;
                     } else {
-                        int32 x = nidx / data.bufferHi;
-                        int32 y = nidx - (x * data.bufferHi);
+                        int32 x = nidx % data.bufferWi;
+                        int32 y = nidx / data.bufferWi;
                         int32 midx = x * data.bufferHi + y;
                         if (mask[midx] == 0) {
                             result[index] = c;
@@ -230,8 +230,8 @@ export void PutColorsForNodes(uniform const LayerBlendingData &data,
                 int nidx = indexes[idx + n];
                 if (nidx >= 0) {
                     if (data.useMask && mask) {
-                        int32 x = nidx / data.bufferHi;
-                        int32 y = nidx - (x * data.bufferHi);
+                        int32 x = nidx % data.bufferWi;
+                        int32 y = nidx / data.bufferWi;
                         int32 midx = x * data.bufferHi + y;
                         if (mask[midx] > 0) {
                             result[nidx] = ZERO_COLOR;
@@ -244,8 +244,8 @@ export void PutColorsForNodes(uniform const LayerBlendingData &data,
                 }
             }
         } else if (data.useMask && mask) {
-            int32 x = idx / data.bufferHi;
-            int32 y = idx - (x * data.bufferHi);
+            int32 x = idx % data.bufferWi;
+            int32 y = idx / data.bufferWi;
             int32 midx = x * data.bufferHi + y;
             if (mask[midx] > 0) {
                 result[idx] = ZERO_COLOR;
