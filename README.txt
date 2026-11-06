@@ -12,53 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
-    -bug (dkulp)                 Guitar effect: Bass Guitar uses bass chord shapes, and the Wave appearance
-                                 swings to both sides of the string (it differed between Intel and Apple Silicon)
-    -bug (dkulp)                 Faces "Short" blink duration was the same as Normal
-    -bug (dkulp)                 VU Meter bar types fill the whole width when it does not divide evenly by
-                                 the bar count, and the Level Pulse types no longer flash in silence at the
-                                 start of a sequence
-    -bug (dkulp)                 Bars "Use first color for highlight" drew white highlights with the custom
-                                 directions and with spatial colors
-    -bug (dkulp)                 Single Strand FX: Phased, Phased Noise and Fireworks 1D could change when other
-                                 effects of the same mode rendered; the "* Color Gradient" palette was dark or
-                                 missing color 1 with one or two colors
-    -bug (dkulp)                 Single Strand chase "From Tail" fade with transparency left the tail nearly
-                                 transparent
-    -bug (dkulp)                 Galaxy with 100% head duration, and old-style Ripple squares with no movement,
-                                 drew nothing
-    -bug (dkulp)                 Text word flip with the built-in xLights fonts placed the word off center
-    -bug (dkulp)                 Moving Head following a sketch path got an invalid position on a repeated point
-    -bug (dkulp)                 Servo values that land on a whole number (e.g. 40%) could come out one lower on
-                                 macOS and iPad than on Windows and Linux
-    -bug (dkulp)                 PWM ports for a plain (non-DMX) model each drive their own channel;
-                                 every colour of a node was set to one channel past the node's first
-    -bug (dkulp)                 PWM port labels name the right colour on RBGW and BRGW models
-    -bug (dkulp)                 Custom models with a rotated buffer, and with the Stacked, Overlaid and
-                                 Unique X and Y buffer styles, render every node inside the buffer
-    -bug (dkulp)                 Sub-buffers and buffer sizes are right for the Rotate CC/CW 90 Flip
-                                 Horizontal buffer transforms
-    -bug (dkulp)                 An arch of a single light got no position, and did not render on
-                                 Windows and Linux
-    -bug (dkulp)                 Sequence durations set in milliseconds could come back a few milliseconds
-                                 long (a day-long sequence gained 8 ms)
-    -bug (dkulp)                 Butterfly and Plasma render the same colours on the GPU (macOS/iPad) as on
-                                 the CPU
-    -bug (dkulp)                 Butterfly styles 6-9 no longer show stray black pixels at full brightness
-    -bug (dkulp)                 Buffer rotation and zoom render the same with GPU rendering on as off; on
-                                 the GPU they filled a slightly different set of pixels
-    -bug (dkulp)                 iPad - 3D objects (gridlines, terrain, mesh, image, ruler) stay in the Default
-                                 preview instead of a layout group that was lost on reopen
-    -change (dkulp)              iPad - Adding a 3D object needs the Default preview in 3D, as on desktop
-    -bug (dkulp)                 DMX Moving Head Adv with 16-bit tilt showed the "Tilt Fine" channel name
-                                 on the channel after the real fine-tilt channel
-    -enh (dkulp)                 Custom value curves save points with finer time and value precision, so
-                                 points placed at the editor's half steps no longer shift or merge
-    -bug (dkulp)                 Crash loading a DMX model with a negative channel count
-    -bug (dkulp)                 Crash reading the current config of a J1Sys controller whose model name
-                                 reports more than 26 outputs
-    -bug (dkulp)                 Wrapped Sine, Parabolic, Logarithmic and Exponential value curves rendered
-                                 as steps inside the wrapped part and swept back across the wrap point
+    -bug (entendu)               3D preview zoom could only reach part way in, crept closer with every
+                                 zoom in and out, and mistracked the cursor once zoomed well in
     -bug (derwin12)              Import Effects and other dialogs no longer open on a monitor that is no
                                  longer attached (which looked like a hang); they open centred instead (#7304)
     -bug (dkulp)                 iPad - Faces and State effects could not switch to Timing Track; the

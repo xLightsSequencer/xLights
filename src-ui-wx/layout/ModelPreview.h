@@ -109,7 +109,7 @@ public:
 
 	void SetCameraView(int camerax, int cameray, bool latch, bool reset = false);
 	void SetCameraPos(int camerax, int cameray, bool latch, bool reset = false);
-    void SetZoomDelta(float delta);
+    void SetZoomDelta(float delta, float cursor_dx = 0.0f, float cursor_dy = 0.0f);
     float GetCameraZoomForHandles() const override;
     int GetHandleScale() const override;
 
@@ -161,6 +161,8 @@ public:
     void SetActive(bool show);
     bool GetActive() const;
     float GetZoom() const { return (is3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
+    // World distance one screen pixel spans at the plane the 3D camera orbits.
+    float GetWorldPerPixel() const;
     double GetCurrentScaleFactor() const { return std::max((float)virtualWidth / (float)mWindowWidth, (float)virtualHeight / (float)mWindowHeight); }
     float GetCameraRotationX() const override { return (is3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
     float GetCameraRotationY() const override { return (is3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
@@ -309,6 +311,11 @@ private:
     glm::mat4 ViewMatrix;
     glm::mat4 ProjMatrix;
     glm::mat4 ProjViewMatrix;
+
+    void FlyAlongCursorRay(float distance, float cursor_dx, float cursor_dy);
+    // how far the 3D view has flown along the cursor ray because the zoom
+    // dolly was spent; retraced on the way back out, see SetZoomDelta
+    float m_zoom_fly_forward = 0.0f;
 
     PreviewCamera* camera3d;
     PreviewCamera* camera2d;

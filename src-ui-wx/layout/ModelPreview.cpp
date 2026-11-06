@@ -1436,6 +1436,7 @@ void ModelPreview::Reset()
     // Reset
     if (is3d) {
         camera3d->Reset();
+        m_zoom_fly_forward = 0.0f;
         SetCameraPos(0, 0, false, true);
         SetCameraView(0, 0, false, true);
     } else {
@@ -1731,10 +1732,78 @@ int ModelPreview::GetHandleScale() const
     return xlights->GetModelHandleSize();
 }
 
-void ModelPreview::SetZoomDelta(float delta)
+// tan(22.5 degrees) -- half of the 45 degree vertical field of view the 3D
+// projection uses, so one unit of depth spans this much world height either
+// side of the view axis.
+static constexpr float HALF_FOV_EXTENT = 0.41421356f;
+
+float ModelPreview::GetWorldPerPixel() const
+{
+    const int h = getHeight();
+    if (!is3d || h <= 0) {
+        return GetZoom() * 2.0f;
+    }
+    // the orbit plane sits distance*zoom away, so its visible half-height is
+    // distance*zoom*tan(22.5) and that covers half a window height of pixels
+    return std::abs(camera3d->GetDistance()) * camera3d->GetZoom() * 2.0f * HALF_FOV_EXTENT / (float)h;
+}
+
+// Move the 3D camera and the point it orbits together along the ray the cursor
+// points down, which is the view axis when the cursor is centred. Pan is applied
+// before the view rotation, so shifting it by a world-space offset moves the
+// orbit point and carries the camera with it.
+void ModelPreview::FlyAlongCursorRay(float distance, float cursor_dx, float cursor_dy)
+{
+    const glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleX()), glm::vec3(1.0f, 0.0f, 0.0f))
+                           * glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleY()), glm::vec3(0.0f, 1.0f, 0.0f))
+                           * glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleZ()), glm::vec3(0.0f, 0.0f, 1.0f));
+    // camera space looks down -Z; screen y runs downward
+    const int w = getWidth();
+    const int h = getHeight();
+    const float aspect = h > 0 ? (float)w / (float)h : 1.0f;
+    const glm::vec3 aim(w > 0 ? 2.0f * cursor_dx / (float)w * aspect * HALF_FOV_EXTENT : 0.0f,
+                        h > 0 ? -2.0f * cursor_dy / (float)h * HALF_FOV_EXTENT : 0.0f,
+                        -1.0f);
+    const glm::vec3 forward = glm::normalize(glm::vec3(glm::inverse(rotate) * glm::vec4(aim, 0.0f)));
+    SetPan(-distance * forward.x, -distance * forward.y, -distance * forward.z);
+}
+
+void ModelPreview::SetZoomDelta(float delta, float cursor_dx, float cursor_dy)
 {
     if (is3d) {
-        camera3d->SetZoom(camera3d->GetZoom() * (1.0f + delta));
+        // Zoom is a dolly to distance*zoom, so it only ever approaches the
+        // point the camera orbits and can never reach or pass it. Two faults
+        // followed from that:
+        //
+        // 1. +/-0.1 steps were not inverses (0.9 * 1.1 == 0.99), so every
+        //    in-then-out pair ratcheted 1% closer and ordinary use drifted
+        //    the view into the range where the picture barely changes.
+        //    Reciprocal factors make the wheel exactly reversible.
+        // 2. Past that range the dolly is spent. Keep zooming by flying the
+        //    orbit point down the cursor's ray instead, so the camera carries
+        //    its pivot forward and can move past what it was circling.
+        constexpr float MIN_DOLLY_ZOOM = 0.1f;
+        constexpr float MAX_DOLLY_ZOOM = 50.0f;
+        const bool zooming_in = delta < 0.0f;
+        const float mag = std::min(std::abs(delta), 0.9f);
+        const float factor = zooming_in ? (1.0f - mag) : 1.0f / (1.0f - mag);
+        const float wanted = camera3d->GetZoom() * factor;
+        // one wheel click of travel at the closest useful dolly distance;
+        // mag/(1-mag) is the same both ways, so a flight in undoes exactly
+        const float step = std::abs(camera3d->GetDistance()) * MIN_DOLLY_ZOOM * mag / (1.0f - mag);
+
+        if (!zooming_in && m_zoom_fly_forward > 0.0f) {
+            // retrace the flight before dollying back out
+            const float back = std::min(step, m_zoom_fly_forward);
+            m_zoom_fly_forward -= back;
+            FlyAlongCursorRay(-back, cursor_dx, cursor_dy);
+        } else if (zooming_in && wanted < MIN_DOLLY_ZOOM) {
+            camera3d->SetZoom(MIN_DOLLY_ZOOM);
+            m_zoom_fly_forward += step;
+            FlyAlongCursorRay(step, cursor_dx, cursor_dy);
+        } else {
+            camera3d->SetZoom(std::min(wanted, MAX_DOLLY_ZOOM));
+        }
     } else {
         camera2d->SetZoom(camera2d->GetZoom() * (1.0f - delta));
         camera2d->SetZoomCorrX(((mWindowWidth * camera2d->GetZoom()) - mWindowWidth) / 2.0f);
