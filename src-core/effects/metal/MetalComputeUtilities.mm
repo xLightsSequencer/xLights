@@ -1547,11 +1547,16 @@ MetalComputeUtilities::MetalComputeUtilities() {
         return;
     }
     std::string name = device.name ? [device.name UTF8String] : "?";
+    // The kernels don't use argument buffers; tier 1 is a proxy for older Intel/AMD
+    // and A11/A12 GPUs. Every Apple-silicon Mac GPU is tier 2, so on arm64 macOS
+    // tier 1 only means a VM's paravirtual device (e.g. Xcode Cloud CI), so allow it there.
+#if TARGET_OS_IPHONE || !defined(__arm64__)
     if (device.argumentBuffersSupport == MTLArgumentBuffersTier1) {
         status = "Metal: '" + name + "' only has tier 1 argument buffers; compute disabled";
         device = nil;
         return;
     }
+#endif
 
     if ([device supportsFamily:MTLGPUFamilyApple10]) {
         maxTextureSize = 32768; // A19/M5 and later (per Metal Feature Set Tables, Feb 2026)
