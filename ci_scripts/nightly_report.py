@@ -44,6 +44,24 @@ def skip_reason(case, skip):
     return (skip.get("message") or "").strip()[:200]
 
 
+def failure_message(bad):
+    """The failed expression plus what Catch2 adds after it in its JUnit text: the
+    expanded values and any INFO/CAPTURE lines (e.g. '39 == 40', 'channel 7'), which
+    is what tells one failing variant or value from another."""
+    text = [l.strip() for l in (bad.text or "").splitlines() if l.strip()]
+    head = (bad.get("message") or "").strip() or (text[0] if text else "")
+    extra = []
+    for l in text:
+        if l == "FAILED:" or l in ("with expansion:", "with message:", "with messages:"):
+            continue
+        if l.startswith(("CHECK", "REQUIRE", "at ")) or l == head:
+            continue
+        extra.append(l)
+    if extra:
+        head += " [" + "; ".join(extra) + "]"
+    return head[:400]
+
+
 def parse_report(path):
     """Return (tests, failed[(name, message)], skipped[(name, message)], seconds, properties)
     for one XML file."""
@@ -71,8 +89,7 @@ def parse_report(path):
                 # Catch2 [!mayfail]: a known failure, not counted against the run
                 skipped.append((case.get("name", "?"), "known failure ([!mayfail])"))
             elif bad is not None:
-                msg = (bad.get("message") or (bad.text or "")).strip().splitlines()
-                failed.append((case.get("name", "?"), msg[0][:200] if msg else ""))
+                failed.append((case.get("name", "?"), failure_message(bad)))
             elif skip is not None:
                 skipped.append((case.get("name", "?"), skip_reason(case, skip)))
     return tests, failed, skipped, seconds, props
