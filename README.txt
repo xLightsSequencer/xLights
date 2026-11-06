@@ -304,6 +304,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  malformed channel ranges
     -bug (dkulp)                 A duplicated FPP controller keeps its IP address
                                  and proxy
+    -enh (derwin12)              Visualizer warns when more than 10 models are hidden because their Preview
+                                 is 'Unassigned' #7323
 
 2026.19  October 23, 2026
 

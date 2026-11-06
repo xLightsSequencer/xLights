@@ -2436,8 +2436,12 @@ void ControllerModelDialog::ReloadModels()
 
     FixDMXChannels();
 
+    int hiddenUnassignedPreview = 0;
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+            if (it.second->IsActive() && it.second->GetLayoutGroup() == "Unassigned" && _cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr) {
+                ++hiddenUnassignedPreview;
+            }
             if (_controller->ContainsChannels(it.second->GetFirstChannel() + 1, it.second->GetLastChannel() + 1)) {
                 auto shadows = it.second->GetShadowedBy();
                 if (shadows.size() > 0) {
@@ -2457,6 +2461,10 @@ void ControllerModelDialog::ReloadModels()
     }
     if (!_controller->IsAutoSize()) {
         check += "WARN: Auto Size not set. Some functionality disabled.\n";
+    }
+    // a handful is normal; many usually means an import or deleted preview left models with nowhere to show
+    if (hiddenUnassignedPreview > 10) {
+        check += "WARN: " + std::to_string(hiddenUnassignedPreview) + " models are not shown because their Preview is 'Unassigned'. Set their Preview in Layout to make them available here.\n";
     }
 
     TextCtrl_Check->SetValue(check);
