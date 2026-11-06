@@ -266,7 +266,8 @@ void OPCOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t siz
     //    _fppProxyOutput->SetManyChannels(channel, data, size);
     //} 
     //else {
-        size_t chs = (std::min)(size, (size_t)(GetMaxChannels() - channel));
+        if (channel < 0 || channel >= _channels) return;
+        size_t chs = (std::min)(size, (size_t)(_channels - channel));
 
         if (memcmp(&_data[channel + OPC_PACKET_HEADERLEN], data, chs) == 0) {
             // nothing changed

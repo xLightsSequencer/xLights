@@ -1,0 +1,174 @@
+name: Render Tests
+
+# Render-regression harness (tests/render): renders the synthetic show in the
+# separate xLights-test-data repo headlessly on the CPU path, hashes the fseq
+# output, and compares to tests/render/manifest-<show>.txt. Manual for now; it
+# is the first step toward a nightly suite that also runs the Catch2 tests
+# (Unit_Tests.yml) and publishes a dashboard.
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-render
+  cancel-in-progress: true
+
+jobs:
+  render-linux-x64:
+    runs-on: ubuntu-24.04
+
+    container:
+      image: ghcr.io/xlightssequencer/xlights-build-docker:master
+
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    # The manifest is only valid for the data revision it was recorded from.
+    - name: Read pinned test-data revision
+      id: data
+      run: echo "rev=$(tr -d '[:space:]' < tests/render/data.version)" >> "$GITHUB_OUTPUT"
+
+    - name: Check out test data
+      uses: actions/checkout@v4
+      with:
+        repository: xLightsSequencer/xLights-test-data
+        ref: ${{ steps.data.outputs.rev }}
+        path: xLights-test-data
+
+    # Same cache family as Ubuntu CI so a normal CI build warms this one.
+    - name: Restore ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: ccache-render-${{ github.sha }}
+        restore-keys: |
+          ccache-render-
+          ccache-ubuntu-
+
+    - name: Configure ccache
+      run: |
+        ccache --max-size=2G
+        ccache --set-config=compression=true
+        ccache --zero-stats
+
+    - name: Make
+      run: PATH=/usr/lib/ccache:$PATH make -j $(nproc)
+
+    - name: ccache stats
+      run: ccache --show-stats
+
+    # The app initializes GTK before it parses its command line, so even --headless needs a display.
+    - name: Install a virtual display
+      run: |
+        command -v xvfb-run >/dev/null || { apt-get update -qq && apt-get install -y -qq xvfb xauth; }
+        command -v xvfb-run
+
+    - name: Binary diagnostics
+      if: always()
+      run: |
+        ls -la bin/xLights 2>&1 | head -2
+        echo "DISPLAY=${DISPLAY:-unset}; xvfb-run: $(command -v xvfb-run || echo missing)"
+        export LD_LIBRARY_PATH="$PWD/lib/linux:${LD_LIBRARY_PATH:-}"
+        echo "--- missing shared libraries:"; ldd bin/xLights 2>&1 | grep "not found" || echo none
+        echo "--- --help (first lines):"; xvfb-run -a bin/xLights --help 2>&1 | head -6 || true
+
+    - name: Render regression
+      run: |
+        mkdir -p results "$RUNNER_TEMP/home"
+        export HOME="$RUNNER_TEMP/home"
+        export LD_LIBRARY_PATH="$PWD/lib/linux:${LD_LIBRARY_PATH:-}"
+        xvfb-run -a bash tests/render/run.sh --bin "$PWD/bin/xLights" --data "$PWD/xLights-test-data" \
+          --save results/render --junit results/render-linux-x64.xml
+
+    - name: Summary
+      if: always()
+      run: |
+        {
+          echo "### Render tests (Linux x64)"
+          if [ -f results/render-linux-x64.xml ]; then
+            grep -o '<testsuite [^>]*' results/render-linux-x64.xml | sed 's/<testsuite //'
+            echo
+            echo "Failed sequences:"
+            grep -B0 '<failure' results/render-linux-x64.xml | sed -e 's/.*name="\([^"]*\)".*message="\([^"]*\)".*/- \1: \2/' || true
+          else
+            echo "No report was produced (the harness failed before rendering)."
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: results-render-linux-x64
+        path: results
+        retention-days: 14
+
+  # Reuse the Windows CI build (it uploads the exe as the xLights_Exe artifact).
+  build-windows:
+    uses: ./.github/workflows/win_CI.yml
+
+  render-windows-x64:
+    needs: build-windows
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Read pinned test-data revision
+      id: data
+      run: echo "rev=$(tr -d '[:space:]' < tests/render/data.version)" >> "$GITHUB_OUTPUT"
+
+    - name: Check out test data
+      uses: actions/checkout@v4
+      with:
+        repository: xLightsSequencer/xLights-test-data
+        ref: ${{ steps.data.outputs.rev }}
+        path: xLights-test-data
+
+    - name: Download the Windows build
+      uses: actions/download-artifact@v4
+      with:
+        name: xLights_Exe
+        path: xlights-exe
+
+    - name: Render regression
+      timeout-minutes: 15
+      env:
+        XL_TEST_SKIP_PREFLIGHT: "1"
+      run: |
+        mkdir -p results
+        ls xlights-exe | head -5
+        bash tests/render/run.sh --bin "$PWD/xlights-exe/xLights.exe" --data "$PWD/xLights-test-data" \
+          --save results/render --junit results/render-windows-x64.xml
+
+    - name: Summary
+      if: always()
+      run: |
+        {
+          echo "### Render tests (Windows x64)"
+          if [ -f results/render-windows-x64.xml ]; then
+            grep -o '<testsuite [^>]*' results/render-windows-x64.xml | sed 's/<testsuite //'
+            echo
+            echo "Failed sequences:"
+            grep '<failure' results/render-windows-x64.xml | sed -e 's/.*name="\([^"]*\)".*message="\([^"]*\)".*/- \1: \2/' || true
+          else
+            echo "No report was produced (the harness failed before rendering)."
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: results-render-windows-x64
+        path: results
+        retention-days: 14

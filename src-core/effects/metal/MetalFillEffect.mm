@@ -38,31 +38,21 @@ public:
                 return false;
             }
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"FillEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                [computeEncoder setBytes:&fdata length:sizeof(fdata) atIndex:0];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+                [computeEncoder setBytes:lut.data() length:(lut.size() * sizeof(xlColor)) atIndex:2];
+                [computeEncoder setBytes:painted.data() length:(painted.size() * sizeof(uint8_t)) atIndex:3];
+
+                // Bound by the actual pixel allocation, not the logical dimensions — a
+                // variable sub-buffer can leave GetPixelCount() < width * height and the
+                // kernel writes result[index] with no bounds check.
+                NSInteger pixelCount = std::min((NSInteger)(fdata.width * fdata.height), (NSInteger)buffer.GetPixelCount());
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, fn, pixelCount);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"FillEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            [computeEncoder setBytes:&fdata length:sizeof(fdata) atIndex:0];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
-            [computeEncoder setBytes:lut.data() length:(lut.size() * sizeof(xlColor)) atIndex:2];
-            [computeEncoder setBytes:painted.data() length:(painted.size() * sizeof(uint8_t)) atIndex:3];
-
-            NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
-            // Bound by the actual pixel allocation, not the logical dimensions — a
-            // variable sub-buffer can leave GetPixelCount() < width * height and the
-            // kernel writes result[index] with no bounds check.
-            NSInteger pixelCount = std::min((NSInteger)(fdata.width * fdata.height), (NSInteger)buffer.GetPixelCount());
-            NSInteger threads = std::min(pixelCount, maxThreads);
-            MTLSize gridSize = MTLSizeMake(pixelCount, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
         }
         return true;
     }

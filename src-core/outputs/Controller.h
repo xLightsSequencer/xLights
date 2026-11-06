@@ -97,13 +97,14 @@ public:
     Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const;
     const std::list<Output*> &GetOutputs() const { return _outputs; }
     int GetOutputCount() const { return _outputs.size(); }
-    Output* GetFirstOutput() const { return _outputs.front(); }
+    Output* GetFirstOutput() const { return _outputs.empty() ? nullptr : _outputs.front(); }
 
     void DeleteAllOutputs();
 
     int32_t GetStartChannel() const;
     int32_t GetEndChannel() const;
     int32_t GetChannels() const;
+    // 1-based inclusive channel range; true if it overlaps this controller
     bool ContainsChannels(uint32_t start, uint32_t end) const;
 
     bool IsDirty() const;

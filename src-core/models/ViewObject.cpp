@@ -16,6 +16,8 @@
 ViewObject::ViewObject(const ObjectManager &manager)
     : objectManager(manager)
 {
+    // Only the Default preview is 3D, so view objects never belong to any other layout group.
+    layout_group = "Default";
 }
 
 ViewObject::~ViewObject()

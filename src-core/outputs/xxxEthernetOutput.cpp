@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "xxxEthernetOutput.h"
+#include <algorithm>
 #include <cstring>
 
 #include <cassert>
@@ -101,6 +102,7 @@ xxxEthernetOutput::xxxEthernetOutput(pugi::xml_node node, bool isActive) : IPOut
     }
     _data = (uint8_t*)malloc(_channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
     memset(_data, 0, _channels + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN);
+    _dirty = false;
 }
 
 xxxEthernetOutput::xxxEthernetOutput() : IPOutput() {
@@ -138,6 +140,15 @@ pugi::xml_node xxxEthernetOutput::Save(pugi::xml_node parent) {
 #pragma endregion
 
 #pragma region Getters and Setters
+void xxxEthernetOutput::SetChannels(int32_t channels) {
+
+    IPOutput::SetChannels(channels);
+    free(_data);
+    const size_t size = (size_t)std::max<int32_t>(_channels, 0) + xxxETHERNET_PACKET_HEADERLEN + xxxETHERNET_PACKET_FOOTERLEN;
+    _data = (uint8_t*)malloc(size);
+    memset(_data, 0, size);
+}
+
 std::string xxxEthernetOutput::GetLongDescription() const {
 
     std::string res = "";
@@ -252,7 +263,8 @@ void xxxEthernetOutput::SetOneChannel(int32_t channel, unsigned char data) {
 
 void xxxEthernetOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size) {
 
-    size_t chs = (std::min)(size, (size_t)(GetMaxChannels() - channel));
+    if (channel < 0 || channel >= _channels) return;
+    size_t chs = (std::min)(size, (size_t)(_channels - channel));
     if (memcmp(&_data[channel], data, chs) != 0) {
         memcpy(&_data[channel], data, chs);
         _changed = true;

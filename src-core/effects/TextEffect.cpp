@@ -1542,6 +1542,14 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     text = msg;
 
     auto lines = Split(text, '\n');
+    // flip before measuring so each line is placed by the width of the word it shows
+    TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
+    if (dir == TEXTDIR_WORDFLIP) {
+        for (size_t i = 0; i < lines.size(); i++) {
+            lines[i] = FlipWord(settings, lines[i], buffer);
+        }
+    }
+
     std::vector<int> line_lengths;
     int max_line_length = 0;
     for (const auto& line : lines) {
@@ -1564,13 +1572,6 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         rotate_90 = true;
         if (text_effect == 4) {
             up = true;
-        }
-    }
-
-    TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
-    if (dir == TEXTDIR_WORDFLIP) {
-        for (size_t i = 0; i < lines.size(); i++) {
-            lines[i] = FlipWord(settings, lines[i], buffer);
         }
     }
 

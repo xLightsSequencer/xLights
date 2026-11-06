@@ -32,8 +32,8 @@ void main() {
         for (int n = 0; n < cnt; n++) {
             int nidx = indexes[ii + n];
             if (owner[nidx] != int(index)) continue;
-            uint x = uint(nidx) / data.bufferHi;
-            uint y = uint(nidx) - (x * data.bufferHi);
+            uint x = uint(nidx) % data.bufferWi;
+            uint y = uint(nidx) / data.bufferWi;
             uint midx = x * data.bufferHi + y;
             if (data.useMask != 0u && maskAt(midx) > 0u) {
                 result[nidx] = 0u;
@@ -44,8 +44,8 @@ void main() {
     } else if (owner[idx] != int(index)) {
         // another node owns this pixel
     } else if (data.useMask != 0u) {
-        uint x = uint(idx) / data.bufferHi;
-        uint y = uint(idx) - (x * data.bufferHi);
+        uint x = uint(idx) % data.bufferWi;
+        uint y = uint(idx) / data.bufferWi;
         uint midx = x * data.bufferHi + y;
         if (maskAt(midx) > 0u) {
             result[idx] = 0u;

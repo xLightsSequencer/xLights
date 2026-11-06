@@ -84,17 +84,6 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
 #pragma region Constructors and Destructors
 Controller::Controller(OutputManager* om, pugi::xml_node node, const std::string& showDir) : _outputManager(om)
 {
-    std::string activeState = node.attribute("ActiveState").as_string("");
-    if (activeState.empty()) {
-        if (std::string_view(node.attribute("Active").as_string("1")) == "0") {
-            SetActive("Inactive");
-        } else {
-            SetActive("Active");
-        }
-    } else {
-        SetActive(activeState);
-    }
-
     for (pugi::xml_node n = node.first_child(); n; n = n.next_sibling()) {
         if (std::string_view(n.name()) == "network") {
             _outputs.push_back(Output::Create(this, n, showDir));
@@ -105,6 +94,18 @@ Controller::Controller(OutputManager* om, pugi::xml_node node, const std::string
         } else if (std::string_view(n.name()) == "ExtraProperty") {
             _extraProperties[n.attribute("name").as_string("")] = n.attribute("value").as_string("");
         }
+    }
+
+    // after the outputs exist, so SetActive cascades the state onto them
+    std::string activeState = node.attribute("ActiveState").as_string("");
+    if (activeState.empty()) {
+        if (std::string_view(node.attribute("Active").as_string("1")) == "0") {
+            SetActive("Inactive");
+        } else {
+            SetActive("Active");
+        }
+    } else {
+        SetActive(activeState);
     }
 
     _id = node.attribute("Id").as_int(64001);
@@ -438,7 +439,7 @@ void Controller::SearchForNewVendor( std::string const& vendor, std::string cons
 #pragma region Getters and Setters
 Output* Controller::GetOutput(int outputNumber) const {
 
-    if (outputNumber < 0 || (size_t)outputNumber > _outputs.size()) return nullptr;
+    if (outputNumber < 0 || (size_t)outputNumber >= _outputs.size()) return nullptr;
 
     auto it = _outputs.begin();
     std::advance(it, outputNumber);
@@ -485,8 +486,11 @@ int32_t Controller::GetChannels() const {
     return std::accumulate(begin(_outputs), end(_outputs), 0, [](uint32_t accumulator, Output* const o) { return accumulator + o->GetChannels(); });
 }
 
+// start and end are 1-based and inclusive, like GetStartChannel()/GetEndChannel().
+// True when [start, end] overlaps any channel on this controller.
 bool Controller::ContainsChannels(uint32_t start, uint32_t end) const {
-    return end >= (uint32_t)GetStartChannel() && start < (uint32_t)GetEndChannel();
+    if (_outputs.empty()) return false;
+    return end >= (uint32_t)GetStartChannel() && start <= (uint32_t)GetEndChannel();
 }
 
 bool Controller::IsDirty() const {
@@ -507,7 +511,7 @@ void Controller::ClearDirty() {
 }
 
 void Controller::EnsureUniqueId() {
-    if (_outputManager != nullptr) _id = _outputManager->UniqueId();
+    if (_outputManager != nullptr) SetId(_outputManager->UniqueId());
 }
 
 void Controller::EnsureUniqueName() {

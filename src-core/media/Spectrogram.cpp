@@ -123,6 +123,10 @@ void RenderSpectrogramBGRA(const Spectrogram& sg,
                             int outWidth, int outHeight,
                             std::vector<uint8_t>& outBGRA,
                             float dBFloor) {
+    if (outWidth <= 0 || outHeight <= 0) {
+        outBGRA.clear();
+        return;
+    }
     outBGRA.assign(size_t(outWidth) * size_t(outHeight) * 4, 0);
     if (sg.frames <= 0 || sg.bins <= 0 || outWidth <= 0 || outHeight <= 0) return;
     if (endMS <= startMS) return;

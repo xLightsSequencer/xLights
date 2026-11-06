@@ -9836,7 +9836,6 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_IMAGE");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Image");
-        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
     }
@@ -9845,7 +9844,6 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
-        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
     }
@@ -9854,7 +9852,6 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_TERRIAN");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Terrain");
-        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
     }
@@ -9862,7 +9859,6 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_RULER");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Ruler");
-        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         vobj->GetObjectScreenLocation().SetVcenterPos(100);
         vobj->GetObjectScreenLocation().SetLeft(-50);
         vobj->GetObjectScreenLocation().SetMWidth(100);
@@ -9874,7 +9870,6 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         spdlog::debug("OnAddObjectPopup - ID_ADD_OBJECT_MESH");
         CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Mesh");
-        vobj->SetLayoutGroup("Default"); // only Default supports 3D and hence objects
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
         object_created = true;
     }
@@ -9885,6 +9880,8 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         editing_models = false;
         SelectViewObject(vobj, true);
         //SetupPropGrid(vobj);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnAddObjectPopup");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnAddObjectPopup");
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewModelPopup::ID_ADD_OBJECT_MESH");
     }
 

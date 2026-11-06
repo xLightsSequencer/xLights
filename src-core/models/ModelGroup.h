@@ -41,8 +41,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool SubModelRenamed(const std::string &oldName, const std::string &newName);
         void AddModel(const std::string &name);
         int GetGridSize() const;
-        int GetXCentreOffset() const;
-        int GetYCentreOffset() const;
+        float GetXCentreOffset() const;
+        float GetYCentreOffset() const;
         void SetXCentreOffset( float cx );
         void SetYCentreOffset( float cy );
         std::string GetDefaultCamera() const;
@@ -123,8 +123,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 
     private:
         int m_gridSize = 400;
-        int m_xCentreOffset = 0;
-        int m_yCentreOffset = 0;
+        float m_xCentreOffset = 0;
+        float m_yCentreOffset = 0;
         std::string m_defaultCamera = "2D";
         std::string m_layout = "minimalGrid";
         std::vector<std::string> m_baseModels;  // Models from base show
