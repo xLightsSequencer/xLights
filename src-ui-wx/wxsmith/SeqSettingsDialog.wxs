@@ -567,6 +567,7 @@
 												<tooltip>Sequences effects were imported from, most recent first</tooltip>
 												<style>wxLB_SINGLE|wxLB_HSCROLL</style>
 												<handler function="OnListBox_ImportedFromSelect" entry="EVT_LISTBOX" />
+												<handler function="OnListBox_ImportedFromDClick" entry="EVT_LISTBOX_DCLICK" />
 											</object>
 											<flag>wxRIGHT|wxEXPAND</flag>
 											<border>5</border>
@@ -577,16 +578,8 @@
 												<orient>wxVERTICAL</orient>
 												<object class="sizeritem">
 													<object class="wxButton" name="ID_BUTTON_ImportedFrom_Add" variable="Button_ImportedFrom_Add" member="yes">
-														<label>Add...</label>
+														<label>Add</label>
 														<handler function="OnButton_ImportedFrom_AddClick" entry="EVT_BUTTON" />
-													</object>
-													<flag>wxBOTTOM|wxEXPAND</flag>
-													<border>2</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxButton" name="ID_BUTTON_ImportedFrom_Change" variable="Button_ImportedFrom_Change" member="yes">
-														<label>Change...</label>
-														<handler function="OnButton_ImportedFrom_ChangeClick" entry="EVT_BUTTON" />
 													</object>
 													<flag>wxBOTTOM|wxEXPAND</flag>
 													<border>2</border>
@@ -595,6 +588,14 @@
 													<object class="wxButton" name="ID_BUTTON_ImportedFrom_Remove" variable="Button_ImportedFrom_Remove" member="yes">
 														<label>Remove</label>
 														<handler function="OnButton_ImportedFrom_RemoveClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxBOTTOM|wxEXPAND</flag>
+													<border>2</border>
+												</object>
+												<object class="sizeritem">
+													<object class="wxButton" name="ID_BUTTON_ImportedFrom_Change" variable="Button_ImportedFrom_Change" member="yes">
+														<label>Change File</label>
+														<handler function="OnButton_ImportedFrom_ChangeClick" entry="EVT_BUTTON" />
 													</object>
 													<flag>wxEXPAND</flag>
 												</object>

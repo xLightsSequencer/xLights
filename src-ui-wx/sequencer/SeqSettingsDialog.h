@@ -290,6 +290,7 @@ class SeqSettingsDialog: public wxDialog
 		void OnTextCtrl_Xml_Music_UrlText(wxCommandEvent& event);
 		void OnTextCtrl_Xml_CommentText(wxCommandEvent& event);
 		void OnListBox_ImportedFromSelect(wxCommandEvent& event);
+		void OnListBox_ImportedFromDClick(wxCommandEvent& event);
 		void OnButton_ImportedFrom_AddClick(wxCommandEvent& event);
 		void OnButton_ImportedFrom_ChangeClick(wxCommandEvent& event);
 		void OnButton_ImportedFrom_RemoveClick(wxCommandEvent& event);

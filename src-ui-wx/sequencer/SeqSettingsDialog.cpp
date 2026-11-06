@@ -391,12 +391,12 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     ListBox_Xml_ImportedFrom->SetToolTip(_("Sequences effects were imported from, most recent first"));
     BoxSizer_ImportedFrom->Add(ListBox_Xml_ImportedFrom, 1, wxRIGHT|wxEXPAND, 5);
     BoxSizer_ImportedFromButtons = new wxBoxSizer(wxVERTICAL);
-    Button_ImportedFrom_Add = new wxButton(PanelMetaData, ID_BUTTON_ImportedFrom_Add, _("Add..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ImportedFrom_Add"));
+    Button_ImportedFrom_Add = new wxButton(PanelMetaData, ID_BUTTON_ImportedFrom_Add, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ImportedFrom_Add"));
     BoxSizer_ImportedFromButtons->Add(Button_ImportedFrom_Add, 0, wxBOTTOM|wxEXPAND, 2);
-    Button_ImportedFrom_Change = new wxButton(PanelMetaData, ID_BUTTON_ImportedFrom_Change, _("Change..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ImportedFrom_Change"));
-    BoxSizer_ImportedFromButtons->Add(Button_ImportedFrom_Change, 0, wxBOTTOM|wxEXPAND, 2);
     Button_ImportedFrom_Remove = new wxButton(PanelMetaData, ID_BUTTON_ImportedFrom_Remove, _("Remove"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ImportedFrom_Remove"));
-    BoxSizer_ImportedFromButtons->Add(Button_ImportedFrom_Remove, 0, wxEXPAND, 0);
+    BoxSizer_ImportedFromButtons->Add(Button_ImportedFrom_Remove, 0, wxBOTTOM|wxEXPAND, 2);
+    Button_ImportedFrom_Change = new wxButton(PanelMetaData, ID_BUTTON_ImportedFrom_Change, _("Change File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ImportedFrom_Change"));
+    BoxSizer_ImportedFromButtons->Add(Button_ImportedFrom_Change, 0, wxEXPAND, 0);
     BoxSizer_ImportedFrom->Add(BoxSizer_ImportedFromButtons, 0, wxALIGN_TOP, 0);
     FlexGridSizer_Timing_Page->Add(BoxSizer_ImportedFrom, 1, wxALL|wxEXPAND, 5);
     PanelMetaData->SetSizer(FlexGridSizer_Timing_Page);
@@ -502,6 +502,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_MusicOpenClick);
     Connect(ID_TEXTCTRL_Xml_Comment, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_CommentText);
     Connect(ID_LISTBOX_ImportedFrom, wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&SeqSettingsDialog::OnListBox_ImportedFromSelect);
+    Connect(ID_LISTBOX_ImportedFrom, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnListBox_ImportedFromDClick);
     Connect(ID_BUTTON_ImportedFrom_Add, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_ImportedFrom_AddClick);
     Connect(ID_BUTTON_ImportedFrom_Change, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_ImportedFrom_ChangeClick);
     Connect(ID_BUTTON_ImportedFrom_Remove, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_ImportedFrom_RemoveClick);
@@ -2608,7 +2609,6 @@ void SeqSettingsDialog::PopulateImportedFrom()
 void SeqSettingsDialog::UpdateImportedFromButtons()
 {
     const bool selected = ListBox_Xml_ImportedFrom->GetSelection() != wxNOT_FOUND;
-    Button_ImportedFrom_Add->Enable(xml_file->GetImportedFrom().size() < SequenceFile::MAX_IMPORTED_FROM);
     Button_ImportedFrom_Change->Enable(selected);
     Button_ImportedFrom_Remove->Enable(selected);
 }
@@ -2622,13 +2622,18 @@ bool SeqSettingsDialog::PickImportedFromFile(wxString& path)
         return false;
     }
     path = dlg.GetPath();
-    ObtainAccessToURL(path.ToStdString());
+    ObtainAccessToURL(path.utf8_string());
     return true;
 }
 
 void SeqSettingsDialog::OnListBox_ImportedFromSelect(wxCommandEvent& event)
 {
     UpdateImportedFromButtons();
+}
+
+void SeqSettingsDialog::OnListBox_ImportedFromDClick(wxCommandEvent& event)
+{
+    OnButton_ImportedFrom_ChangeClick(event);
 }
 
 void SeqSettingsDialog::OnButton_ImportedFrom_AddClick(wxCommandEvent& event)
