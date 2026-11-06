@@ -146,6 +146,25 @@ TEST_CASE("Matrix start side and direction change where node zero is", "[models]
     CHECK(BufferPoints(right) == std::vector<Pt>{ { 2, 0 }, { 1, 0 }, { 0, 0 }, { 0, 1 }, { 1, 1 }, { 2, 1 } });
 }
 
+TEST_CASE("New matrix keeps its start location through copy and paste", "[models][geometry]") {
+    ShowFixture f;
+    Model* m = f.Default("Matrix");
+    CHECK(m->GetStartSide() == "B");
+    CHECK(m->GetIsBtoT());
+
+    pugi::xml_document doc;
+    XmlSerializingVisitor v(&doc);
+    m->Accept(v);
+    pugi::xml_node nd = doc.document_element();
+    nd.attribute("name").set_value("Pasted");
+    Model* pasted = f.mm.createAndAddModel(nd, 100, 100);
+    f.mm.RecalcStartChannels();
+    REQUIRE(pasted != nullptr);
+    CHECK(pasted->GetIsBtoT() == m->GetIsBtoT());
+    CHECK(pasted->GetIsLtoR() == m->GetIsLtoR());
+    CHECK(BufferPoints(pasted) == BufferPoints(m));
+}
+
 TEST_CASE("Matrix with several strings numbers nodes by string", "[models][geometry]") {
     ShowFixture f;
     Model* m = f.Add(ModelXml("M", "Matrix", "NumStrings=\"2\" NodesPerString=\"6\" StrandsPerString=\"2\""));
