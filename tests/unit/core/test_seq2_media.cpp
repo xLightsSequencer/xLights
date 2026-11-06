@@ -10,6 +10,7 @@
 #include <pugixml.hpp>
 
 #include <chrono>
+#include <filesystem>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -877,4 +878,31 @@ TEST_CASE("Embedded entries can be saved back to a file", "[seq2][media]") {
     TextMediaCacheEntry empty("x");
     CHECK_FALSE(empty.SaveToFile(d.File("never.txt")));
     CHECK_FALSE(fs::exists(d.File("never.txt")));
+}
+
+TEST_CASE("ReloadMedia re-reads an image whose modification time did not change", "[seq2][media]") {
+    TempDir d;
+    SequenceMedia m;
+    auto img = d.Write("i.png", Png(2, 2));
+    REQUIRE(m.GetImage(img)->GetImageWidth() == 2);
+    auto when = std::filesystem::last_write_time(img);
+    d.Write("i.png", Png(5, 1));
+    // a rewrite within the file system's timestamp granularity looks unchanged
+    std::filesystem::last_write_time(img, when);
+    REQUIRE(m.ReloadMedia(img));
+    CHECK(m.GetImage(img)->GetImageWidth() == 5);
+}
+
+TEST_CASE("A removed image is loaded again rather than returned from the path cache", "[seq2][media]") {
+    TempDir d;
+    SequenceMedia m;
+    auto img = d.Write("i.png", Png(2, 2));
+    auto first = m.GetImage(img);
+    REQUIRE(first);
+    m.RemoveImage(img);
+    auto second = m.GetImage(img);
+    REQUIRE(second);
+    CHECK(second != first);
+    m.RemoveMedia(img);
+    CHECK(m.GetImage(img) != second);
 }

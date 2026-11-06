@@ -962,6 +962,9 @@ std::string HinksPix::GetJSONControllerData(std::string const& url, std::string 
 
         /* Perform the request, res will get the return code */
         CURLcode r = curl_easy_perform(_curl);
+        // _curl is reused: never leave it pointing at this call's locals
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, nullptr);
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, nullptr);
 
         if (r != CURLE_OK) {
             spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(r));
@@ -1002,7 +1005,11 @@ void HinksPix::PostToControllerNoResponse(std::string const& url, std::string co
         curl_easy_setopt(_curl, CURLOPT_TIMEOUT_MS, 1L); // just time out
 
         /* Perform the request, res will get the return code */
+        // no reply is wanted: with a null target writeFunction ends the transfer
+        curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, nullptr);
         curl_easy_perform(_curl);
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, nullptr);
         /* always cleanup */
        // curl_easy_cleanup(curl);
     } else {
@@ -1573,6 +1580,9 @@ std::string HinksPix::GetControllerRowData(int rowIndex, const std::string& url,
 
         /* Perform the request, res will get the return code */
         CURLcode r = curl_easy_perform(_curl);
+        // _curl is reused: never leave it pointing at this call's locals
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, nullptr);
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, nullptr);
 
         if (r != CURLE_OK) {
             spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(r));

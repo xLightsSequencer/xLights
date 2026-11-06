@@ -1034,10 +1034,19 @@ bool SequenceMedia::IsUsedByMetadata(const std::string& filepath) const
            check(_audioCache);
 }
 
+void SequenceMedia::EraseImageLocked(const std::string& filepath)
+{
+    auto it = _imageCache.find(filepath);
+    if (it == _imageCache.end()) return;
+    auto entry = it->second;
+    _imageCache.erase(it);
+    std::erase_if(_imageResolvedCache, [&](const auto& kv) { return kv.second == entry; });
+}
+
 void SequenceMedia::RemoveImage(const std::string& filepath)
 {
     std::scoped_lock lock(_cacheMutex);
-    _imageCache.erase(filepath);
+    EraseImageLocked(filepath);
     _missingImages.erase(filepath);
 }
 
@@ -2256,7 +2265,7 @@ bool SequenceMedia::CopyEmbeddedMedia(const SequenceMedia& src, const std::strin
 
 void SequenceMedia::RemoveMedia(const std::string& filepath) {
     std::scoped_lock lock(_cacheMutex);
-    _imageCache.erase(filepath);
+    EraseImageLocked(filepath);
     _textCache.erase(filepath);
     _svgCache.erase(filepath);
     _shaderCache.erase(filepath);
@@ -2277,7 +2286,7 @@ bool SequenceMedia::ReloadMedia(const std::string& filepath) {
     };
 
     if (found(_imageCache)) {
-        _imageCache.erase(filepath);
+        EraseImageLocked(filepath);
         GetImage(filepath);
         return true;
     }

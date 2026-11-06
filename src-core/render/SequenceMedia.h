@@ -551,6 +551,9 @@ private:
     // Per-type caches
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageResolvedCache;
+    // Removes an image from _imageCache and every _imageResolvedCache alias of it,
+    // so a later GetImage can't hand the dropped entry back. Caller holds _cacheMutex.
+    void EraseImageLocked(const std::string& filepath);
     std::map<std::string, std::shared_ptr<TextMediaCacheEntry>> _textCache;
     std::map<std::string, std::shared_ptr<SVGMediaCacheEntry>> _svgCache;
     std::map<std::string, std::shared_ptr<ShaderMediaCacheEntry>> _shaderCache;

@@ -13,6 +13,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.20  October ??, 2026
 
     -enh (heffneil)              Sequence Settings > Meta Data: Imported From sequences can now be added, changed or removed
+    -bug (dkulp)                 HinksPix upload could crash or corrupt memory when the controller answered
+                                 the reboot request
+    -bug (dkulp)                 Linux - packaging a sequence bundled a substitute font for fonts that are
+                                 not installed
+    -bug (dkulp)                 Reloading or removing an image could leave the old image in use
     -bug (dkulp)                 Poly Line with more than one string gave its strings overlapping channels
     -bug (dkulp)                 Poly Line auto distribution put the first light on the start point instead of
                                  centring every light in its share of the line, so arches were lopsided

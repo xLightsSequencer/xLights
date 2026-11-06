@@ -24,6 +24,7 @@
 #include "models/ViewObject.h"
 #include "utils/ExternalHooks.h"
 #include "utils/FileUtils.h"
+#include "utils/string_utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1653,9 +1654,16 @@ static std::string resolveFontFaceToFile(const std::string& faceName)
     FcPatternDestroy(pattern);
     if (match == nullptr) return {};
 
+    // FcFontMatch always returns the closest font, so a face that is not installed
+    // comes back as a substitute (e.g. DejaVu Sans); only accept a family match.
+    bool sameFamily = false;
+    FcChar8* family = nullptr;
+    for (int i = 0; !sameFamily && FcPatternGetString(match, FC_FAMILY, i, &family) == FcResultMatch; ++i) {
+        sameFamily = family != nullptr && Lower(reinterpret_cast<const char*>(family)) == Lower(faceName);
+    }
     std::string path;
     FcChar8* file = nullptr;
-    if (FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file != nullptr) {
+    if (sameFamily && FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file != nullptr) {
         path = reinterpret_cast<const char*>(file);
     }
     FcPatternDestroy(match);
