@@ -56,6 +56,8 @@
 
 #include <algorithm>
 #include <fstream>
+#include <functional>
+#include <optional>
 #include <set>
 #include <string>
 #include <iostream>
@@ -1285,6 +1287,8 @@ void xLightsImportChannelMapDialog::EndModal(int retCode)
     if (retCode == wxID_CANCEL) {
         RemoveGroupsAddedThisSession();
     }
+    _layoutHoverTimer.Stop();
+    RestoreLayoutNodeColors();
     wxDialog::EndModal(retCode);
 }
 
@@ -1616,6 +1620,7 @@ xLightsImportChannelMapDialog::~xLightsImportChannelMapDialog()
     _nameFilterTimer.Stop();
     _availFilterTimer.Stop();
     _layoutHoverTimer.Stop();
+    RestoreLayoutNodeColors();
     _layoutSlot.model = nullptr;
     _vendorSlot.model = nullptr;
     _vendorModels.clear();
@@ -1757,10 +1762,6 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::st
             wxBoxSizer* labelSizer = new wxBoxSizer(wxHORIZONTAL);
             CheckBox_ShowCompare = new wxCheckBox(Panel2, wxID_ANY, _("Show Compare"));
             labelSizer->Add(CheckBox_ShowCompare, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
-            if (_xsqPkg == nullptr) {
-                CheckBox_ShowCompare->Disable();
-                CheckBox_ShowCompare->SetToolTip(_("Compare is only available when importing an xLights sequence (.xsq, .xsqz, .piz, .zip or .xml)."));
-            }
             labelSizer->Add(StaticText1, 0, wxALIGN_CENTER_VERTICAL);
             wxBoxSizer* findRowSizer = new wxBoxSizer(wxHORIZONTAL);
             findRowSizer->Add(TextCtrl_FindFrom, 1, wxEXPAND | wxRIGHT, 5);
@@ -1842,9 +1843,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::st
     //Connect(ID_TREELISTCTRL1, wxEVT_KEY_DOWN, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnKeyDown);
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickModels);
 
-    if (_xsqPkg != nullptr) {
-        CreateComparePane();
-    }
+    CreateComparePane();
 
 
 #ifdef __WXOSX__
@@ -3513,15 +3512,21 @@ void xLightsImportChannelMapDialog::CreateComparePane()
         return;
     }
 
+    _treeMinSize = TreeListCtrl_Mapping->GetMinSize();
+    _availMinSize = ListCtrl_Available->GetMinSize();
     int listMin = FromDIP(250);
+    // Panel1's explicit minimum is smaller than its button row really needs, so
+    // measure the sizer with the tree already at the width it will get.
+    TreeListCtrl_Mapping->SetMinSize(wxSize(listMin, _treeMinSize.GetHeight()));
+    const int leftNeeded = std::max(Panel1->GetMinWidth(), Sizer1->CalcMin().GetWidth());
     const int displayIndex = wxDisplay::GetFromWindow(this);
     const int screenWidth = wxDisplay(displayIndex == wxNOT_FOUND ? 0u : (unsigned)displayIndex).GetClientArea().GetWidth();
-    const int spare = screenWidth - Panel1->GetMinWidth() - 220 - FromDIP(60);
-    if (spare < listMin) {
+    const int spare = screenWidth - leftNeeded - CompareMinWidth() - FromDIP(60);
+    const bool narrowScreen = spare < listMin;
+    if (narrowScreen) {
         listMin = std::max(FromDIP(120), spare);
     }
-    TreeListCtrl_Mapping->SetMinSize(wxSize(listMin, TreeListCtrl_Mapping->GetMinSize().GetHeight()));
-    ListCtrl_Available->SetMinSize(wxSize(listMin, -1));
+    _compareListMin = listMin;
 
     _comparePanel = new wxPanel(Panel2, wxID_ANY);
     wxBoxSizer* compareSizer = new wxBoxSizer(wxVERTICAL);
@@ -3529,7 +3534,7 @@ void xLightsImportChannelMapDialog::CreateComparePane()
         slot.label = new wxStaticText(_comparePanel, wxID_ANY, hint, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
         compareSizer->Add(slot.label, 0, wxEXPAND | wxBOTTOM, 3);
         slot.preview = new ModelPreview(_comparePanel);
-        slot.preview->SetMinSize(wxSize(220, 220));
+        slot.preview->SetMinSize(FromDIP(wxSize(100, 100)));
         compareSizer->Add(slot.preview, 1, wxEXPAND);
 
         ComparePreviewSlot* shown = &slot;
@@ -3542,7 +3547,12 @@ void xLightsImportChannelMapDialog::CreateComparePane()
             }
         });
     };
-    addSlot(_vendorSlot, _xsqPkg->HasRGBEffects() ? _("Click a vendor model to show it here") : _("No preview available (sequence has no layout data)"));
+    if (_xsqPkg == nullptr) {
+        addSlot(_vendorSlot, _("Only xLights sequences include the vendor's layout"));
+        compareSizer->Hide(_vendorSlot.preview);
+    } else {
+        addSlot(_vendorSlot, _xsqPkg->HasRGBEffects() ? _("Click a vendor model to show it here") : _("No preview available (sequence has no layout data)"));
+    }
     compareSizer->AddSpacer(8);
     addSlot(_layoutSlot, _("Hover or click your models to compare"));
     _comparePanel->SetSizer(compareSizer);
@@ -3550,16 +3560,34 @@ void xLightsImportChannelMapDialog::CreateComparePane()
     wxWindow* treeWindow = TreeListCtrl_Mapping->GetMainWindow();
     treeWindow->Bind(wxEVT_MOTION, &xLightsImportChannelMapDialog::OnMappingTreeMotion, this);
     treeWindow->Bind(wxEVT_LEAVE_WINDOW, &xLightsImportChannelMapDialog::OnMappingTreeLeave, this);
+    // Use the row the motion handler hit-tested rather than hit-testing the
+    // mouse's screen position again: on GTK that conversion includes the
+    // column header, which shifts the hit by a row. The tree may have been
+    // rebuilt since, so only trust the row if it is still in it.
     _layoutHoverTimer.Bind(wxEVT_TIMER, [this](wxTimerEvent&) {
-        wxDataViewItem item = MappingTreeItemAtScreen(wxGetMousePosition());
-        if (item.IsOk()) {
-            ShowLayoutPreview(item, true);
+        std::function<bool(const xLightsImportModelNode*)> contains = [&](const xLightsImportModelNode* parent) {
+            for (const auto* child : parent->GetChildren()) {
+                if (child == _layoutHoverItem || contains(child)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        bool live = false;
+        for (const auto* row : _dataModel->GetChildren()) {
+            if (row == _layoutHoverItem || contains(row)) {
+                live = true;
+                break;
+            }
+        }
+        if (live) {
+            ShowLayoutPreview(wxDataViewItem(_layoutHoverItem), true);
         } else {
             ShowLayoutPreview(SelectedMappingRow(), false);
         }
     });
 
-    _compareWidth = (int)std::max(220L, GetXLightsConfig()->ReadLong("ImportCompareWidth", 220));
+    _compareWidth = std::max(CompareMinWidth(), FromDIP((int)GetXLightsConfig()->ReadLong("ImportCompareWidth", 220)));
     _compareSash = new wxWindow(Panel2, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(6, -1)));
     _compareSash->SetCursor(wxCursor(wxCURSOR_SIZEWE));
     _compareSash->SetToolTip(_("Drag to resize the compare previews. Double-click to reset."));
@@ -3577,7 +3605,7 @@ void xLightsImportChannelMapDialog::CreateComparePane()
     auto endDrag = [this]() {
         _compareWidth = _comparePanel->GetMinSize().GetWidth();
         auto* config = GetXLightsConfig();
-        config->Write("ImportCompareWidth", _compareWidth);
+        config->Write("ImportCompareWidth", ToDIP(_compareWidth));
         config->Flush();
     };
     _compareSash->Bind(wxEVT_LEFT_UP, [this, endDrag](wxMouseEvent&) {
@@ -3588,7 +3616,7 @@ void xLightsImportChannelMapDialog::CreateComparePane()
     });
     _compareSash->Bind(wxEVT_MOUSE_CAPTURE_LOST, [endDrag](wxMouseCaptureLostEvent&) { endDrag(); });
     _compareSash->Bind(wxEVT_LEFT_DCLICK, [this, endDrag](wxMouseEvent&) {
-        _compareWidth = 220;
+        _compareWidth = CompareMinWidth();
         ApplyCompareWidth(true);
         endDrag();
     });
@@ -3605,9 +3633,12 @@ void xLightsImportChannelMapDialog::CreateComparePane()
         evt.Skip();
     });
 
-    const bool show = GetXLightsConfig()->ReadBool("ImportShowCompare", true);
+    // Until the user picks, start hidden where the compare column can't fit.
+    bool show = !narrowScreen;
+    GetXLightsConfig()->Read("ImportShowCompare", &show);
     if (CheckBox_ShowCompare != nullptr) {
-        CheckBox_ShowCompare->SetToolTip(_("Show the vendor's model next to yours so you can see whether they look alike."));
+        CheckBox_ShowCompare->SetToolTip(_xsqPkg != nullptr ? _("Show the vendor's model next to yours so you can see whether they look alike.")
+                                                            : _("Show your hovered or selected model. Only xLights sequences include the vendor's layout."));
         CheckBox_ShowCompare->SetValue(show);
         CheckBox_ShowCompare->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
             auto* config = GetXLightsConfig();
@@ -3632,7 +3663,7 @@ int xLightsImportChannelMapDialog::CompareRightPaneMinWidth() const
 {
     int extraCompareWidth = 0;
     if (IsCompareShown()) {
-        extraCompareWidth = std::max(0, _comparePanel->GetMinSize().GetWidth() - 220);
+        extraCompareWidth = std::max(0, _comparePanel->GetMinSize().GetWidth() - CompareMinWidth());
     }
     return std::max(Panel2->GetMinWidth(), Sizer2->GetMinSize().GetWidth() - extraCompareWidth);
 }
@@ -3640,7 +3671,7 @@ int xLightsImportChannelMapDialog::CompareRightPaneMinWidth() const
 void xLightsImportChannelMapDialog::ApplyCompareWidth(bool layout)
 {
     const int available = Panel2->GetClientSize().GetWidth() - ListCtrl_Available->GetMinWidth() - _compareSash->GetSize().GetWidth() - 20;
-    const int width = std::max(220, std::min(_compareWidth, available));
+    const int width = std::max(CompareMinWidth(), std::min(_compareWidth, available));
     if (_comparePanel->GetMinSize().GetWidth() != width) {
         _comparePanel->SetMinSize(wxSize(width, -1));
         if (layout) {
@@ -3672,6 +3703,11 @@ void xLightsImportChannelMapDialog::FitComparePane()
     ApplyCompareWidth(true);
 }
 
+int xLightsImportChannelMapDialog::CompareMinWidth() const
+{
+    return FromDIP(220);
+}
+
 bool xLightsImportChannelMapDialog::IsCompareShown() const
 {
     return _comparePanel != nullptr && _comparePanel->IsShown();
@@ -3681,6 +3717,9 @@ void xLightsImportChannelMapDialog::SetCompareShown(bool show)
 {
     _compareRowSizer->Show(_comparePanel, show);
     _compareRowSizer->Show(_compareSash, show);
+    TreeListCtrl_Mapping->SetMinSize(show ? wxSize(_compareListMin, _treeMinSize.GetHeight()) : _treeMinSize);
+    ListCtrl_Available->SetMinSize(show ? wxSize(_compareListMin, -1) : _availMinSize);
+    Panel1->Layout();
     if (!show) {
         _layoutHoverTimer.Stop();
         _layoutHoverItem = nullptr;
@@ -3711,7 +3750,7 @@ Model* xLightsImportChannelMapDialog::GetVendorModel(const std::string& modelNam
 void xLightsImportChannelMapDialog::ShowVendorPreview(const std::string& channelName)
 {
     _vendorPreviewChannel = channelName;
-    if (!IsCompareShown()) {
+    if (!IsCompareShown() || _xsqPkg == nullptr) {
         return;
     }
     _vendorSlot.model = nullptr;
@@ -3831,7 +3870,7 @@ void xLightsImportChannelMapDialog::ShowLayoutPreview(const wxDataViewItem& item
         Model* model = nullptr;
         const SubModel* subModel = nullptr;
         if (ResolveLayoutRow(node, model, subModel)) {
-            HighlightCompareNodes(model, subModel, CompareLayoutLit);
+            HighlightLayoutModel(model, subModel == nullptr ? std::vector<const SubModel*>() : std::vector<const SubModel*>{ subModel });
             _layoutSlot.model = model;
             label = wxString::Format("%s (%s)", node->GetModelName(), hovering ? _("hovering") : _("selected"));
         } else if (auto* group = node->_strand.empty() ? dynamic_cast<ModelGroup*>(xlights->GetModel(node->_model)) : nullptr; group != nullptr) {
@@ -3844,7 +3883,7 @@ void xLightsImportChannelMapDialog::ShowLayoutPreview(const wxDataViewItem& item
                 }
             }
             if (auto preview = PickGroupPreview(members); preview) {
-                HighlightCompareNodes(preview->model, preview->subModels, CompareLayoutLit);
+                HighlightLayoutModel(preview->model, preview->subModels);
                 _layoutSlot.model = preview->model;
                 label = wxString::Format("%s (%s)", GroupPreviewLabel(node->_model, *preview), hovering ? _("hovering") : _("selected"));
             } else {
@@ -3856,6 +3895,37 @@ void xLightsImportChannelMapDialog::ShowLayoutPreview(const wxDataViewItem& item
     _layoutSlot.label->SetLabel(label);
     _layoutSlot.label->SetToolTip(label);
     _layoutSlot.preview->Refresh();
+}
+
+// The layout preview colours the user's real models, so keep their channel
+// values to put back when the dialog closes.
+void xLightsImportChannelMapDialog::HighlightLayoutModel(Model* model, const std::vector<const SubModel*>& subModels)
+{
+    if (_layoutNodeBackup.count(model->GetName()) == 0) {
+        const size_t stride = std::max(4, model->GetChanCountPerNode());
+        std::vector<unsigned char> data(stride * model->GetNodeCount());
+        for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
+            model->GetNodeChannelValues(n, &data[n * stride]);
+        }
+        _layoutNodeBackup[model->GetName()] = { model, std::move(data) };
+    }
+    HighlightCompareNodes(model, subModels, CompareLayoutLit);
+}
+
+void xLightsImportChannelMapDialog::RestoreLayoutNodeColors()
+{
+    for (auto& [name, saved] : _layoutNodeBackup) {
+        Model* model = xlights->GetModel(name);
+        if (model != saved.first) {
+            continue;
+        }
+        const size_t stride = std::max(4, model->GetChanCountPerNode());
+        const uint32_t nodeCount = (uint32_t)std::min<size_t>(model->GetNodeCount(), saved.second.size() / stride);
+        for (uint32_t n = 0; n < nodeCount; ++n) {
+            model->SetNodeChannelValues(n, &saved.second[n * stride]);
+        }
+    }
+    _layoutNodeBackup.clear();
 }
 
 void xLightsImportChannelMapDialog::ApplyAvailSort()
@@ -3892,7 +3962,12 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent&
     if (_timelineCol >= 0 && event.m_col == _timelineCol) {
         return;
     }
-    _availMasterView = false;
+    if (_availMasterView) {
+        _availMasterView = false;
+        auto* config = GetXLightsConfig();
+        config->Write("ImportAvailSortMasterView", false);
+        config->Flush();
+    }
     if (event.m_col == 1) { // name column
         if (_sortOrder == 0) {
             _sortOrder = 1;

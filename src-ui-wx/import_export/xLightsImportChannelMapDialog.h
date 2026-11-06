@@ -781,6 +781,9 @@ protected:
         int CompareRightPaneMinWidth() const;
         void FitComparePane();
         void ApplyCompareWidth(bool layout);
+        int CompareMinWidth() const;
+        void HighlightLayoutModel(Model* model, const std::vector<const SubModel*>& subModels);
+        void RestoreLayoutNodeColors();
         wxDataViewItem MappingTreeItemAtScreen(const wxPoint& screenPos) const;
         void OnMappingTreeMotion(wxMouseEvent& event);
         void OnMappingTreeLeave(wxMouseEvent& event);
@@ -898,13 +901,19 @@ protected:
         wxPanel* _comparePanel {nullptr};
         wxBoxSizer* _compareRowSizer {nullptr};
         wxWindow* _compareSash {nullptr};
-        int _compareWidth {220};
+        int _compareWidth {0};
         int _compareDragStartX {0};
         int _compareDragStartWidth {0};
         wxCheckBox* CheckBox_ShowCompare {nullptr};
         std::string _vendorPreviewChannel;
         wxTimer _layoutHoverTimer;
         void* _layoutHoverItem {nullptr};
+        wxSize _treeMinSize;
+        wxSize _availMinSize;
+        int _compareListMin {0};
+        // Raw channel values of the layout models the compare preview recoloured,
+        // put back on close so the house preview isn't left dimmed.
+        std::map<std::string, std::pair<Model*, std::vector<unsigned char>>> _layoutNodeBackup;
         std::map<int, int> m_iconIndexMap; // Order in list->one we got
 
 		DECLARE_EVENT_TABLE()
