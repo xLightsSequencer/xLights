@@ -11,6 +11,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace {
 struct Loaded {
@@ -124,6 +125,30 @@ TEST_CASE("SequenceFile RecordImportedFrom keeps a bounded most recent first lis
     }
     CHECK(sf.GetImportedFrom().size() == SequenceFile::MAX_IMPORTED_FROM);
     CHECK(sf.GetImportedFrom().front() == "f29");
+}
+
+TEST_CASE("SequenceFile SetImportedFrom replaces the list and keeps the header in sync", "[sequence][xsq]") {
+    SequenceFile sf("dummy.xsq");
+    sf.RecordImportedFrom("old.xsq");
+
+    sf.SetImportedFrom({ "", "a.xsq", "b.xsq", "a.xsq", "" });
+    REQUIRE(sf.GetImportedFrom().size() == 2);
+    CHECK(sf.GetImportedFrom()[0] == "a.xsq");
+    CHECK(sf.GetImportedFrom()[1] == "b.xsq");
+    CHECK(sf.GetHeaderInfo(HEADER_INFO_TYPES::IMPORTED_FROM) == "a.xsq");
+
+    std::vector<std::string> many;
+    for (int i = 0; i < 30; ++i) {
+        many.push_back("f" + std::to_string(i));
+    }
+    sf.SetImportedFrom(many);
+    CHECK(sf.GetImportedFrom().size() == SequenceFile::MAX_IMPORTED_FROM);
+    CHECK(sf.GetImportedFrom().front() == "f0");
+    CHECK(sf.GetImportedFrom().back() == "f" + std::to_string(SequenceFile::MAX_IMPORTED_FROM - 1));
+
+    sf.SetImportedFrom({});
+    CHECK(sf.GetImportedFrom().empty());
+    CHECK(sf.GetHeaderInfo(HEADER_INFO_TYPES::IMPORTED_FROM).empty());
 }
 
 TEST_CASE("SequenceFile timing list helpers", "[sequence][xsq]") {
