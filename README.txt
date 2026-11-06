@@ -29,6 +29,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  drew nothing
     -bug (dkulp)                 Text word flip with the built-in xLights fonts placed the word off center
     -bug (dkulp)                 Moving Head following a sketch path got an invalid position on a repeated point
+    -bug (dkulp)                 Servo values that land on a whole number (e.g. 40%) could come out one lower on
+                                 macOS and iPad than on Windows and Linux
     -bug (dkulp)                 PWM ports for a plain (non-DMX) model each drive their own channel;
                                  every colour of a node was set to one channel past the node's first
     -bug (dkulp)                 PWM port labels name the right colour on RBGW and BRGW models

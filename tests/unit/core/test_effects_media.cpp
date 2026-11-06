@@ -1103,6 +1103,15 @@ TEST_CASE("Servo on a plain DMX model uses 0 to 100 and an unknown channel write
     Frames fr = f.RunDmx(e, { 0 });
     CHECK(fr.ch(0, 5) == 40);
     CHECK(fr.lit(0) == 1);
+    // fractions truncate
+    Effect* frac = f.Add("Servo", "E_TEXTCTRL_Servo=40.6,E_TEXTCTRL_EndValue=40.6,E_CHECKBOX_16bit=0", { { "E_CHOICE_Channel", "e" } });
+    CHECK(f.RunDmx(frac, { 0 }).ch(0, 5) == 40);
+    // every whole percentage lands on itself, however the build evaluates position / 100
+    for (int pct = 0; pct <= 100; ++pct) {
+        INFO("percent " << pct);
+        Effect* w = f.Add("Servo", "E_TEXTCTRL_Servo=" + std::to_string(pct) + ".0,E_TEXTCTRL_EndValue=" + std::to_string(pct) + ".0,E_CHECKBOX_16bit=0", { { "E_CHOICE_Channel", "e" } });
+        CHECK(f.RunDmx(w, { 0 }).ch(0, 5) == pct);
+    }
     Effect* none = f.Add("Servo", "E_TEXTCTRL_Servo=40.0", { { "E_CHOICE_Channel", "No Such Channel" } });
     Frames fn = f.RunDmx(none, { 0 });
     CHECK(fn.lit(0) == 0);
