@@ -247,3 +247,13 @@ inline std::string Pal(const std::string& c1, const std::string& c2 = "", const 
 }
 
 } // namespace renderhelp
+
+#include <catch2/catch_tostring.hpp>
+
+// Every TU that compares Rgb values must see the same printer, so it lives here.
+template <>
+struct Catch::StringMaker<renderhelp::Rendered::Rgb> {
+    static std::string convert(const renderhelp::Rendered::Rgb& c) {
+        return "{" + std::to_string(c.r) + "," + std::to_string(c.g) + "," + std::to_string(c.b) + "}";
+    }
+};

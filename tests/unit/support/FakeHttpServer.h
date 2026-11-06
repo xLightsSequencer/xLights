@@ -24,6 +24,7 @@ struct FakeRequest {
     std::string method;
     std::string path;
     std::string body;
+    std::string headers; // raw header lines after the request line, as sent
 };
 
 struct FakeResponse {
@@ -108,6 +109,8 @@ private:
         req.path = buf.substr(sp1 + 1, sp2 - sp1 - 1);
         size_t clen = 0;
         std::string head = buf.substr(0, hdrEnd);
+        size_t firstEol = head.find("\r\n");
+        req.headers = firstEol == std::string::npos ? std::string() : head.substr(firstEol + 2);
         for (auto& ch : head) ch = (char)tolower((unsigned char)ch);
         size_t cl = head.find("content-length:");
         if (cl != std::string::npos) clen = (size_t)strtoul(head.c_str() + cl + 15, nullptr, 10);
