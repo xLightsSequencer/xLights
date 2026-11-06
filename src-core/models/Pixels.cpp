@@ -215,7 +215,7 @@ std::string ChooseBestControllerPixel(const std::vector<std::string>& controller
     std::string p1 = selectedPixel;
     std::transform(p1.begin(), p1.end(), p1.begin(), ::tolower);
     if (p1 != selectedPixel) {
-        return ChooseBestControllerSerial(controllerPixels, p1);
+        return ChooseBestControllerPixel(controllerPixels, p1);
     }
 
     // no good match
@@ -381,8 +381,10 @@ bool IsPWMProtocol(const std::string& p1) {
     return p1 == "PWM";
 }
 
-int GetChannelsPerPixel(const std::string& p)
+int GetChannelsPerPixel(const std::string& protocol)
 {
+    std::string p = protocol;
+    std::transform(p.begin(), p.end(), p.begin(), ::tolower);
     const static std::vector<std::string> fourChanPixels = { "apa109", "sk6812rgbw", "sk6818", "sm16704", "sm16804", "ucs2904", "ws2814", "dmx512p-4", "dmx512", "my9291", "tm1814", "tm1814a", "ucs8904", "ucs8904 (16)" };
 
     if (std::find(begin(fourChanPixels), end(fourChanPixels), p) != end(fourChanPixels)) {

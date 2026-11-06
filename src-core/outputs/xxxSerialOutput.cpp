@@ -10,6 +10,7 @@
  **************************************************************/
 
 #include "xxxSerialOutput.h"
+#include <algorithm>
 #include <cstring>
 #include "serial.h"
 
@@ -39,11 +40,11 @@ void xxxSerialOutput::SetDeviceChannels(const std::string& deviceChannels) {
         _dirty = true;
     }
     auto ch = Split(_deviceChannels, ',');
-    uint8_t channels = 0;
+    int channels = 0;
     for (const auto& it : ch) {
-        channels += (uint8_t)std::strtol(it.c_str(), nullptr, 10);
+        channels += std::clamp((int)std::strtol(it.c_str(), nullptr, 10), 0, 255);
     }
-    SetChannels(channels);
+    SetChannels(std::min(channels, (int)xxx_MAX_CHANNELS));
 }
 #pragma endregion
 

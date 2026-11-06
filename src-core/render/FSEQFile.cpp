@@ -770,7 +770,8 @@ public:
         FrameData(frame),
         m_ranges(ranges) {
         m_size = sz;
-        m_data = (uint8_t*)malloc(sz);
+        // zeroed so a short read or corrupt block hands out blank channels, not stale heap bytes
+        m_data = (uint8_t*)calloc(1, sz);
     }
     virtual ~UncompressedFrameData() {
         if (m_data != nullptr) {
@@ -1106,7 +1107,7 @@ public:
 
             //we'll use the offset to the data for the 0 frame
             seek(0, SEEK_SET);
-            uint8_t header[10];
+            uint8_t header[10] = {};
             read(header, 10);
             int seqChanDataOffset = read2ByteUInt(&header[4]);
             seek(off, SEEK_SET);
@@ -1907,6 +1908,10 @@ public:
 
             if (m_outBuffer != nullptr) {
                 inflate(m_stream, Z_SYNC_FLUSH);
+                // corrupt data leaves the rest of the block unwritten; blank it, as the zstd path does
+                if (m_stream->total_out < m_outBufferSize) {
+                    memset(m_outBuffer + m_stream->total_out, 0, m_outBufferSize - m_stream->total_out);
+                }
             }
             inflateEnd(m_stream);
             free(m_stream);

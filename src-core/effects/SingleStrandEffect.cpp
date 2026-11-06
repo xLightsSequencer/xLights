@@ -909,7 +909,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                     break;
                 case FADE_FROM_TAIL:
                     if (buffer.allowAlpha) {
-                        color.alpha = 255.0 * (max_chase_width - i + 1.0) / max_chase_width;
+                        color.alpha = 255.0 * (max_chase_width - i) / max_chase_width;
                     } else {
                         HSVValue hsv1 = color.asHSV();
                         hsv1.value = ((max_chase_width - (i + 1.0)) / max_chase_width);

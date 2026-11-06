@@ -170,6 +170,7 @@ class ModelManager : public ObjectManager
     // renderer idle, and unconditionally at destruction.
     void FreeModel(Model* m);
     void DrainParkedModels();
+    void AddASAPWorkIfAny(uint32_t work, const std::string& from) const;
 
     OutputManager* _outputManager = nullptr;
     RenderContext* _renderContext = nullptr;

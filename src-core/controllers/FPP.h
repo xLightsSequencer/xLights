@@ -77,7 +77,7 @@ class FPP : public BaseController
     std::string controllerVendor;
     std::string controllerModel;
     std::string controllerVariant;
-    bool upload;
+    bool upload{ false };
     bool canZipUpload = false;
 
     UICallbacks *_ui = nullptr;

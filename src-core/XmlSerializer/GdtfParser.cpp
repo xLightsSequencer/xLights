@@ -160,6 +160,9 @@ namespace XmlSerialize {
         TraceLog::AddTraceMessage("GetXlightsModel converted model to DMX");
         delete existingModel;
         existingModel = nullptr;
+        if (gdtfData.totalChannels < 0 || gdtfData.totalChannels > 65536) {
+            return nullptr;
+        }
         // Create appropriate DMX model type
         Model* model = nullptr;
         // DmxMovingHeadAdv is a sibling of DmxMovingHead (both derive from

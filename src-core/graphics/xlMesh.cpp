@@ -6,6 +6,8 @@
 
 #include <filesystem>
 #include <algorithm>
+#include <cstdlib>
+#include <fstream>
 #include <future>
 #include <thread>
 
@@ -15,11 +17,72 @@
 
 #include <log.h>
 
+namespace {
+// tinyobj asserts or reads out of bounds on face indices that name a missing vertex
+bool ObjFacesAreInRange(const std::string &file) {
+    std::ifstream in(file);
+    if (!in.is_open()) {
+        return true;
+    }
+    long counts[3] = { 0, 0, 0 };
+    std::string line;
+    while (std::getline(in, line)) {
+        size_t i = line.find_first_not_of(" \t");
+        if (i == std::string::npos) {
+            continue;
+        }
+        const char *p = line.c_str() + i;
+        if (p[0] == 'v' && (p[1] == ' ' || p[1] == '\t')) {
+            counts[0]++;
+        } else if (p[0] == 'v' && p[1] == 't' && (p[2] == ' ' || p[2] == '\t')) {
+            counts[1]++;
+        } else if (p[0] == 'v' && p[1] == 'n' && (p[2] == ' ' || p[2] == '\t')) {
+            counts[2]++;
+        } else if ((p[0] == 'f' || p[0] == 'l' || p[0] == 'p') && (p[1] == ' ' || p[1] == '\t')) {
+            p += 1;
+            while (*p) {
+                while (*p == ' ' || *p == '\t' || *p == '\r') {
+                    p++;
+                }
+                if (!*p) {
+                    break;
+                }
+                for (int k = 0; k < 3; k++) {
+                    char *end = nullptr;
+                    long v = std::strtol(p, &end, 10);
+                    if (end != p) {
+                        long a = v < 0 ? -v : v;
+                        if (v == 0 || a > counts[k]) {
+                            return false;
+                        }
+                    }
+                    p = end;
+                    if (*p == '/') {
+                        p++;
+                    } else {
+                        break;
+                    }
+                }
+                while (*p && *p != ' ' && *p != '\t') {
+                    p++;
+                }
+            }
+        }
+    }
+    return true;
+}
+}
+
 xlMesh::xlMesh(xlGraphicsContext *ctx, const std::string &f) : filename(f), graphicsContext(ctx) {
 
     objectsLoaded = false;
     std::filesystem::path fp(filename);
     std::string dirPath = fp.parent_path().string();
+
+    if (!ObjFacesAreInRange(filename)) {
+        spdlog::error("Mesh {} has faces that reference missing vertices", filename);
+        return;
+    }
 
     tinyobj::ObjReaderConfig reader_config;
     reader_config.triangulate = true;

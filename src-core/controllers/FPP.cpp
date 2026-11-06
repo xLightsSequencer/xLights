@@ -131,7 +131,7 @@ FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& m
 }
 
 FPP::FPP(const FPP &c)
-    : hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
+    : BaseController(c), hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
     model(c.model), majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion),
     ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password),
     fppType(c.fppType), _ui(nullptr), capeInfo(c.capeInfo), outputFile(nullptr) {
@@ -488,13 +488,24 @@ bool FPP::parseSysInfo(nlohmann::json& val) {
 
     if (fullVersion != "") {
         majorVersion = (int)strtol(fullVersion.c_str(), nullptr, 10);
-        if (fullVersion[2] == 'x') {
-            minorVersion = (int)strtol(fullVersion.substr(4).c_str(), nullptr, 10) + 1000;
+        auto const dot = fullVersion.find('.');
+        if (dot == std::string::npos) {
+            minorVersion = 0;
         } else {
-            minorVersion = (int)strtol(fullVersion.substr(2).c_str(), nullptr, 10);
-        }
-        if (fullVersion.size() > 3 && (fullVersion[3] == '-' || fullVersion[3] == '.')) {
-            patchVersion = (int)strtol(fullVersion.substr(4).c_str(), nullptr, 10);
+            std::string const rest = fullVersion.substr(dot + 1);
+            if (rest[0] == 'x') {
+                std::string const after = rest.size() > 2 ? rest.substr(2) : std::string();
+                minorVersion = (int)strtol(after.c_str(), nullptr, 10) + 1000;
+                if (rest.size() > 1 && (rest[1] == '-' || rest[1] == '.')) {
+                    patchVersion = (int)strtol(after.c_str(), nullptr, 10);
+                }
+            } else {
+                char* end = nullptr;
+                minorVersion = (int)strtol(rest.c_str(), &end, 10);
+                if (*end == '-' || *end == '.') {
+                    patchVersion = (int)strtol(end + 1, nullptr, 10);
+                }
+            }
         }
     }
     if (val.contains("channelRanges")) {
@@ -515,7 +526,7 @@ bool FPP::parseSysInfo(nlohmann::json& val) {
 bool FPP::IsDDPInputEnabled() {
     nlohmann::json origRoot;
     if (GetURLAsJSON("/api/configfile/ci-universes.json", origRoot, false)) {
-        if (origRoot.contains("channelInputs") && origRoot.at("channelInputs").size() > 0
+        if (origRoot.contains("channelInputs") && origRoot.at("channelInputs").is_array() && origRoot.at("channelInputs").size() > 0
             && GetJSONIntValue(origRoot.at("channelInputs").at(0), "enabled", 0) == 1) {
             return true;
         }
@@ -535,10 +546,17 @@ void FPP::probePixelControllerType() {
 }
 void FPP::parseProxies(nlohmann::json& val) {
     for (int x = 0; x < (int)val.size(); x++) {
-        proxies.emplace(val[x].get<std::string>());
+        if (val[x].is_string()) {
+            proxies.emplace(val[x].get<std::string>());
+        } else if (val[x].is_object() && val[x].contains("host") && val[x]["host"].is_string()) { // FPP 8 change
+            proxies.emplace(val[x]["host"].get<std::string>());
+        }
     }
 }
 void FPP::parseControllerType(nlohmann::json& val) {
+    if (!val.is_object() || !val.contains("channelOutputs") || !val["channelOutputs"].is_array()) {
+        return;
+    }
     for (int x = 0; x < (int)val["channelOutputs"].size(); x++) {
         if (GetJSONIntValue(val["channelOutputs"][x], "enabled")) {
             std::string outputType = GetJSONStringValue(val["channelOutputs"][x], "type");
@@ -592,7 +610,7 @@ void FPP::parseConfig(const std::string& v) {
     std::map<std::string, std::string> settings;
     while(std::getline(ss, to, '\n')) {
         to = trimfront(to);
-        if (to.substr(0, 8) == "settings") {
+        if (to.substr(0, 8) == "settings" && to.size() >= 10) {
             to = to.substr(10);
             int i = to.find("'");
             std::string key = to.substr(0, i);
@@ -2414,11 +2432,17 @@ void FPP::FillRanges(std::map<int, int> &rngs) {
     if (ranges != "") {
         auto const r1 = Split(ranges, ',');
         for (const auto& a : r1) {
+            if (a.empty()) {
+                continue;
+            }
             auto const r = Split(a, '-');
+            if (r.empty()) {
+                continue;
+            }
             int const start = (int)std::strtol(r[0].c_str(), nullptr, 10);
             int len = 4; //at least 4
             if (r.size() == 2) {
-                len = (int)std::strtol(r[1].c_str(), nullptr, 10) - start + 1;
+                len = std::max(1, (int)std::strtol(r[1].c_str(), nullptr, 10) - start + 1);
             }
             rngs[start] = len;
         }
@@ -2430,19 +2454,19 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
         return;
     }
     std::string rngList;
-    int curFirst = -1;
-    int curLast = -1;
+    int64_t curFirst = -1;
+    int64_t curLast = -1;
     for (const auto &a : rngs) {
-        int s = a.first;
-        int l = a.second;
+        int64_t const s = a.first;
+        int64_t const l = a.second;
         if (curFirst == -1) {
             curFirst = s;
             curLast = s + l - 1;
         } else if (s == (curLast + 1)) {
             curLast += l;
-        } else if (s < (curFirst + curLast -1)) {
+        } else if (s <= curLast) {
             //start is within the previous's range
-            int nl = s + l - 1;
+            int64_t const nl = s + l - 1;
             curLast = std::max(curLast, nl);
         } else {
             if (rngList != "") {
@@ -2450,7 +2474,7 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
             }
             rngList += std::to_string(curFirst) + "-" + std::to_string(curLast);
             curFirst = s;
-            curLast = a.first + l - 1;
+            curLast = s + l - 1;
         }
     }
     if (curFirst != -1) {
@@ -5296,9 +5320,9 @@ std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
                 if (val[x].is_string()) {
                     spdlog::debug("FPP {} proxies {}.", (const char*)ipAddress.c_str(), (const char*)val[x].get<std::string>().c_str());
                     res.push_back({ (val[x].get<std::string>()), std::string() });
-                } else if (val[x].is_object()) { // FPP 8 change
+                } else if (val[x].is_object() && val[x].contains("host") && val[x]["host"].is_string()) { // FPP 8 change
                     spdlog::debug("FPP {} proxies {}.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].get<std::string>().c_str());
-                    res.push_back({ (val[x]["host"].get<std::string>()), (val[x]["description"].get<std::string>()) });
+                    res.push_back({ (val[x]["host"].get<std::string>()), GetJSONStringValue(val[x], "description") });
                 }
             }
         }

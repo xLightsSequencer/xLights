@@ -3484,16 +3484,15 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // Phase J-31.4 — controller network discovery. Runs the cross-
 // protocol scanner (FPP / ArtNet / Twinkly / Pixlite / DDP) on
 // the **calling thread** — Swift wraps it in `Task.detached`
-// to keep the UI responsive (typical run is 5–10s). Auto-adds
-// each freshly-discovered ethernet controller whose name +
-// protocol + IP are all unique; collects every other hit into
-// a mismatches array the SwiftUI side resolves via
-// `applyDiscoveryMismatch:action:`.
+// to keep the UI responsive (typical run is 5–10s). Holds each
+// freshly-discovered ethernet controller whose name + protocol +
+// IP are all unique until `resolvePendingDiscoveredControllers:`;
+// collects every other hit into a mismatches array the SwiftUI
+// side resolves via `applyDiscoveryMismatch:action:`.
 //
 // Returns:
-//   @"added"           — NSNumber (count of newly-added controllers)
 //   @"already"         — NSNumber (count whose IP + name matched an existing one)
-//   @"addedNames"      — NSArray<NSString> of new controller names
+//   @"pendingNames"    — NSArray<NSString> "name (ip)" of controllers awaiting confirmation
 //   @"mismatches"      — NSArray<NSDictionary>; each entry self-contained
 //                        with everything needed to apply a choice:
 //     For kind="ip-update":
@@ -3505,6 +3504,11 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //       @"id", @"kind"="rename",
 //       @"existingName", @"existingIP", @"discoveredName"
 - (NSDictionary*)runControllerDiscovery;
+
+// Adds (add=YES) or discards the controllers listed in the last
+// runControllerDiscovery's `pendingNames`. Returns the added names.
+- (NSArray<NSString*>*)resolvePendingDiscoveredControllers:(BOOL)add
+    NS_SWIFT_NAME(resolvePendingDiscoveredControllers(add:));
 
 // Phase J-31.7 — resolve a discovery mismatch. The `descriptor`
 // is one of the dicts from `runControllerDiscovery`'s

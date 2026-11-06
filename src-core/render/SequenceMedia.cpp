@@ -1446,26 +1446,6 @@ void SequenceMedia::ClearRelocations()
     _pendingRelocations.clear();
 }
 
-void SequenceMedia::RemoveUnusedImages()
-{
-
-    std::scoped_lock lock(_cacheMutex);
-
-    // Remove unused static images
-    std::vector<std::string> toRemove;
-
-    for (const auto& pair : _imageCache) {
-        if (!pair.second->IsUsed()) {
-            toRemove.push_back(pair.first);
-        }
-    }
-
-    for (const auto& path : toRemove) {
-        spdlog::debug("Removing unused image from cache: {}", path);
-        _imageCache.erase(path);
-    }
-}
-
 void SequenceMedia::MarkAllUnused() {
     std::scoped_lock lock(_cacheMutex);
     for (const auto& pair : _imageCache) {

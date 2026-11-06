@@ -41,7 +41,7 @@ public:
     }
     float x;
     float y;
-    bool wrapped;
+    bool wrapped; // y was wrapped into 0..1; a change between neighbours is a jump, not a slope
     vcSortablePoint(float xx, float yy, bool wrap)
     {
         x = Normalise(xx);

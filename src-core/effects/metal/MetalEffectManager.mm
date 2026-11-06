@@ -15,6 +15,9 @@ public:
     virtual bool enabled() override {
         return isEnabled && MetalComputeUtilities::INSTANCE.computeEnabled();
     }
+    virtual std::string backendStatus() override {
+        return MetalComputeUtilities::INSTANCE.status + (isEnabled ? "" : " (GPU rendering preference is off)");
+    }
     virtual void enable(bool b) override {
         if (getenv("XL_NATIVE_SHADER_DEBUG")) {
             fprintf(stderr, "NATIVE enable(%d) this=%p (was %d)\n", (int)b, (void*)this, (int)isEnabled);

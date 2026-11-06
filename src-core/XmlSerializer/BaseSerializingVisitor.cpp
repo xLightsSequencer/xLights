@@ -14,6 +14,7 @@
 #include "BaseSerializingVisitor.h"
 
 #include <charconv>
+#include <cmath>
 
 #include "../models/ArchesModel.h"
 #include "../models/BaseObject.h"
@@ -166,7 +167,7 @@ void BaseSerializingVisitor::AddCommonModelAttributes(const Model& model, AttrCo
     if (!model.GetDescription().empty()) {
         attrs.Add(XmlNodeKeys::DescriptionAttribute, model.GetDescription());
     }
-    if (model.GetTagColourAsString() != "#000000") {
+    if (!model.GetTagColourAsString().empty() && model.GetTagColourAsString() != "#000000") {
         attrs.Add(XmlNodeKeys::TagColourAttribute, model.GetTagColourAsString());
     }
     attrs.Add(XmlNodeKeys::StartChannelAttribute, model.GetModelStartChannel());
@@ -427,14 +428,17 @@ void BaseSerializingVisitor::WriteMeshElement(const Mesh* mesh) {
 }
 
 void BaseSerializingVisitor::WriteServoElement(const Servo* servo) {
+    if (servo == nullptr) {
+        return;
+    }
     AttrCollector attrs;
     attrs.Add("Channel",             std::to_string(servo->GetChannel()));
     attrs.Add("MinLimit",            std::to_string(servo->GetMinLimit()));
     attrs.Add("MaxLimit",            std::to_string(servo->GetMaxLimit()));
     attrs.Add("RangeOfMotion",       std::to_string(servo->GetRangeOfMotion()));
-    attrs.Add("PivotOffsetX",        std::to_string(servo->GetPivotOffsetX()));
-    attrs.Add("PivotOffsetY",        std::to_string(servo->GetPivotOffsetY()));
-    attrs.Add("PivotOffsetZ",        std::to_string(servo->GetPivotOffsetZ()));
+    attrs.Add("PivotOffsetX",        std::to_string(servo->GetScaledPivotOffsetX()));
+    attrs.Add("PivotOffsetY",        std::to_string(servo->GetScaledPivotOffsetY()));
+    attrs.Add("PivotOffsetZ",        std::to_string(servo->GetScaledPivotOffsetZ()));
     attrs.Add("ServoStyle",          servo->GetStyle());
     attrs.Add("ControllerMin",       std::to_string(servo->GetControllerMin()));
     attrs.Add("ControllerMax",       std::to_string(servo->GetControllerMax()));
@@ -453,9 +457,9 @@ void BaseSerializingVisitor::WriteDmxImageElement(const DmxImage* img) {
     attrs.Add(XmlNodeKeys::RotateXAttribute, std::to_string(img->GetRotateX()));
     attrs.Add(XmlNodeKeys::RotateYAttribute, std::to_string(img->GetRotateY()));
     attrs.Add(XmlNodeKeys::RotateZAttribute, std::to_string(img->GetRotateZ()));
-    attrs.Add(XmlNodeKeys::OffsetXAttribute, std::to_string(img->GetOffsetX()));
-    attrs.Add(XmlNodeKeys::OffsetYAttribute, std::to_string(img->GetOffsetY()));
-    attrs.Add(XmlNodeKeys::OffsetZAttribute, std::to_string(img->GetOffsetZ()));
+    attrs.Add(XmlNodeKeys::OffsetXAttribute, std::to_string(img->GetOffsetX() * img->OFFSET_SCALE));
+    attrs.Add(XmlNodeKeys::OffsetYAttribute, std::to_string(img->GetOffsetY() * img->OFFSET_SCALE));
+    attrs.Add(XmlNodeKeys::OffsetZAttribute, std::to_string(img->GetOffsetZ() * img->OFFSET_SCALE));
     WriteOpenTag(img->GetName(), attrs, true);
 }
 
@@ -834,10 +838,15 @@ void BaseSerializingVisitor::Visit(const ModelGroup& model) {
     attrs.Add("layout",        model.GetLayout());
     attrs.Add("DefaultCamera", model.GetDefaultCamera());
 
-    int xOffset = model.GetXCentreOffset();
-    int yOffset = model.GetYCentreOffset();
-    if (xOffset != 0) attrs.Add("XCentreOffset", std::to_string(xOffset));
-    if (yOffset != 0) attrs.Add("YCentreOffset", std::to_string(yOffset));
+    // Whole offsets keep their integer form; %.6g would switch large ones to an exponent.
+    auto offsetString = [](float o) {
+        float whole = std::trunc(o);
+        return (o == whole && std::abs(o) < 2e9f) ? std::to_string(static_cast<long>(whole)) : FloatToString(o);
+    };
+    float xOffset = model.GetXCentreOffset();
+    float yOffset = model.GetYCentreOffset();
+    if (xOffset != 0) attrs.Add("XCentreOffset", offsetString(xOffset));
+    if (yOffset != 0) attrs.Add("YCentreOffset", offsetString(yOffset));
 
     std::string modelsStr;
     const auto& modelNames = model.ModelNames();
@@ -856,7 +865,7 @@ void BaseSerializingVisitor::Visit(const ModelGroup& model) {
         attrs.Add("centreMaxx",    std::to_string(model.GetCentreMaxx()));
         attrs.Add("centreMaxy",    std::to_string(model.GetCentreMaxy()));
     }
-    if (model.GetTagColourAsString() != "#000000") {
+    if (!model.GetTagColourAsString().empty() && model.GetTagColourAsString() != "#000000") {
         attrs.Add(XmlNodeKeys::TagColourAttribute, model.GetTagColourAsString());
     }
 

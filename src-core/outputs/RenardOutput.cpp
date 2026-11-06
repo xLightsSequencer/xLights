@@ -93,7 +93,7 @@ void RenardOutput::AllOff()
 
     for (int i = 0; i < _channels; i++)
     {
-        SetOneChannel(i + 2, 0x00);
+        SetOneChannel(i, 0x00);
     }
 }
 #pragma endregion Data Setting

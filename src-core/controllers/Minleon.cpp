@@ -78,35 +78,28 @@ public:
         // }
 
         // This is the DDP config response
-        if (val.contains("port")) {
-            if (val["port"].is_string()) {
-                _port = (int)std::strtol(val["port"].get<std::string>().c_str(), nullptr, 10) - 1;
-            } else {
-                _port = val["port"].get<int>() - 1;
+        auto const readInt = [&val](const char* key, int def) {
+            auto it = val.find(key);
+            if (it == val.end()) {
+                return def;
             }
+            if (it->is_string()) {
+                return (int)std::strtol(it->get<std::string>().c_str(), nullptr, 10);
+            }
+            if (it->is_number()) {
+                return it->get<int>();
+            }
+            return def;
+        };
+        if (val.contains("port")) {
+            _port = readInt("port", 0) - 1;
         } else {
-            _port = val["p"].get<int>() - 1;
+            _port = readInt("p", 0) - 1;
         }
-        if (val["ts"].is_string()) {
-            _tees = (int)std::strtol(val["ts"].get<std::string>().c_str(), nullptr, 10);
-        } else {
-            _tees = val["ts"].get<int>();
-        }
-        if (val.contains("rev")) {
-            _reverse = val["rev"].get<int>() == 1;
-        } else {
-            _reverse = false;
-        }
-        if (val["l"].is_string()) {
-            _nodes = (int)std::strtol(val["l"].get<std::string>().c_str(), nullptr, 10);
-        } else {
-            _nodes = val["l"].get<int>();
-        }
-        if (val["ss"].is_string()) {
-            _startChannel = (int)std::strtol(val["ss"].get<std::string>().c_str(), nullptr, 10);
-        } else {
-            _startChannel = val["ss"].get<int>();
-        }
+        _tees = readInt("ts", 0);
+        _reverse = readInt("rev", 0) == 1;
+        _nodes = readInt("l", 0);
+        _startChannel = readInt("ss", 0);
     }
 
     MinleonString(int port, int ts, bool reverse, int nodes, int startChannel)
@@ -179,7 +172,6 @@ MinleonString* Minleon::FindPort(const std::vector<MinleonString*>& stringData, 
             return it;
         }
     }
-    assert(false);
     return nullptr;
 }
 
@@ -358,6 +350,10 @@ std::string Minleon::ConvForProtocol(const std::string& chip, const std::string&
     return oldConv;
 }
 
+static std::string Octet(std::vector<std::string> const& parts, size_t i) {
+    return (i < parts.size() && !parts[i].empty()) ? parts[i] : "0";
+}
+
 void Minleon::UploadNDBPro(bool reboot)
 {
     
@@ -407,22 +403,22 @@ void Minleon::UploadNDB(bool reboot)
     std::map<std::string, std::string> parms;
 
     auto ips = Split(_ip, '.');
-    parms["I000"] = ips.size() > 0 ? ips[0] : "0";
-    parms["I001"] = ips.size() > 1 ? ips[1] : "0";
-    parms["I002"] = ips.size() > 2 ? ips[2] : "0";
-    parms["I003"] = ips.size() > 3 ? ips[3] : "0";
+    parms["I000"] = Octet(ips, 0);
+    parms["I001"] = Octet(ips, 1);
+    parms["I002"] = Octet(ips, 2);
+    parms["I003"] = Octet(ips, 3);
 
     auto nms = Split(_nm, '.');
-    parms["I004"] = nms.size() > 0 ? nms[0] : "0";
-    parms["I005"] = nms.size() > 1 ? nms[1] : "0";
-    parms["I006"] = nms.size() > 2 ? nms[2] : "0";
-    parms["I007"] = nms.size() > 3 ? nms[3] : "0";
+    parms["I004"] = Octet(nms, 0);
+    parms["I005"] = Octet(nms, 1);
+    parms["I006"] = Octet(nms, 2);
+    parms["I007"] = Octet(nms, 3);
 
     auto gws = Split(_gw, '.');
-    parms["I008"] = gws.size() > 0 ? gws[0] : "0";
-    parms["I009"] = gws.size() > 1 ? gws[1] : "0";
-    parms["I010"] = gws.size() > 2 ? gws[2] : "0";
-    parms["I011"] = gws.size() > 3 ? gws[3] : "0";
+    parms["I008"] = Octet(gws, 0);
+    parms["I009"] = Octet(gws, 1);
+    parms["I010"] = Octet(gws, 2);
+    parms["I011"] = Octet(gws, 3);
 
     parms["I012"] = std::to_string(EncodeInputProtocol(_protocol));
 
@@ -480,22 +476,22 @@ void Minleon::UploadNDPPlus(bool reboot)
     std::map<std::string, std::string> parms;
 
     auto ips = Split(_ip, '.');
-    parms["I000"] = ips.size() > 0 ? ips[0]: "0";
-    parms["I001"] = ips.size() > 1 ? ips[1]: "0";
-    parms["I002"] = ips.size() > 2 ? ips[2] : "0";
-    parms["I003"] = ips.size() > 3 ? ips[3] : "0";
+    parms["I000"] = Octet(ips, 0);
+    parms["I001"] = Octet(ips, 1);
+    parms["I002"] = Octet(ips, 2);
+    parms["I003"] = Octet(ips, 3);
 
     auto nms = Split(_nm, '.');
-    parms["I004"] = nms.size() > 0 ? nms[0] : "0";
-    parms["I005"] = nms.size() > 1 ? nms[1] : "0";
-    parms["I006"] = nms.size() > 2 ? nms[2] : "0";
-    parms["I007"] = nms.size() > 3 ? nms[3] : "0";
+    parms["I004"] = Octet(nms, 0);
+    parms["I005"] = Octet(nms, 1);
+    parms["I006"] = Octet(nms, 2);
+    parms["I007"] = Octet(nms, 3);
 
     auto gws = Split(_gw, '.');
-    parms["I008"] = gws.size() > 0 ? gws[0] : "0";
-    parms["I009"] = gws.size() > 1 ? gws[1] : "0";
-    parms["I010"] = gws.size() > 2 ? gws[2] : "0";
-    parms["I011"] = gws.size() > 3 ? gws[3] : "0";
+    parms["I008"] = Octet(gws, 0);
+    parms["I009"] = Octet(gws, 1);
+    parms["I010"] = Octet(gws, 2);
+    parms["I011"] = Octet(gws, 3);
 
     parms["I012"] = std::to_string(EncodeInputProtocol(_protocol));
 
@@ -718,7 +714,9 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
                 }
             }
 
-            _ndbPro = true;
+            if (!_ndbOrig) {
+                _ndbPro = true;
+            }
 
             spdlog::debug("api/config:\n{}", (const char*)configJSON.c_str());
 
@@ -727,7 +725,12 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
         }
 
         if (!_ndbOrig) {
-            nlohmann::json val = nlohmann::json::parse(configJSON);
+            nlohmann::json val = nlohmann::json::parse(configJSON, nullptr, false);
+            if (!val.is_object() || !val.contains("config") || !val["config"].is_object()) {
+                spdlog::warn("    Invalid configuration returned from Minleon controller.");
+                _connected = false;
+                return;
+            }
             _nm = val["config"].value("nm", std::string());
             _gw = val["config"].value("gw", std::string());
             _t0h = getJSONNum(val["config"], "t0h");
@@ -735,14 +738,14 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
             _tbit = getJSONNum(val["config"], "tbit");
             _tres = getJSONNum(val["config"], "tres");
             // if conv is a string
-            if (val["config"]["conv"].is_string()) {
+            if (val["config"].contains("conv") && val["config"]["conv"].is_string()) {
                 _conv = val["config"].value("conv", std::string());
             } else {
-                _conv = std::to_string(val["config"]["conv"].get<int>());
+                _conv = std::to_string(getJSONNum(val["config"], "conv"));
             }
 
             std::string p;
-            if (val["config"].contains("protocol")) {
+            if (val["config"].contains("protocol") && val["config"]["protocol"].is_string()) {
                 p = val["config"]["protocol"].get<std::string>();
             } else {
                 html = GetURL("/pout.html");
@@ -774,14 +777,16 @@ Minleon::Minleon(const std::string& ip, const std::string& proxy, const std::str
             if (val["config"].contains("nports")) {
                 _ports = getJSONNum(val["config"], "nports");
             } else {
-                _ports = val["config"]["ports"].size();
+                _ports = val["config"].contains("ports") ? (int)val["config"]["ports"].size() : 0;
             }
             if (val["config"].contains("rpt")) {
                 _grouping = getJSONNum(val["config"], "rpt");
             } else {
                 _grouping = 1;
             }
-            ParseStringPorts(_stringPorts, val["config"]["ports"]);
+            if (val["config"].contains("ports") && val["config"]["ports"].is_array()) {
+                ParseStringPorts(_stringPorts, val["config"]["ports"]);
+            }
         }
 
         spdlog::debug("Downloaded string data.");
@@ -805,7 +810,7 @@ Minleon::~Minleon() {
 std::string Minleon::ParseNDBHTML(const std::string& html, uint8_t index)
 {
     auto tag = fmt::format("I{:03d}", index);
-    std::regex extractTagValue("name=\"I" + tag + "\"value=\"([^\"]*)\"");
+    std::regex extractTagValue("name=\"" + tag + "\"\\s*value=\"([^\"]*)\"");
     std::smatch etm;
     if (std::regex_search(html, etm, extractTagValue)) {
         return etm[1].str();

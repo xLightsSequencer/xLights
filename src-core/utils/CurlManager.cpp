@@ -925,9 +925,7 @@ std::string CurlManager::doPost(const std::string& furl, const std::string& cont
     return resp;
 }
 std::string CurlManager::doPost(const std::string& furl, const std::string& contentType, const std::string &data, int& rc) {
-    std::vector<uint8_t> vdata;
-    vdata.resize(data.size());
-    memcpy((void*)&vdata[0], (void*)data.c_str(), data.size());
+    std::vector<uint8_t> vdata(data.begin(), data.end());
     return doPost(furl, contentType, vdata,  rc);
 }
 
@@ -979,9 +977,7 @@ std::string CurlManager::doPut(const std::string& furl, const std::string& conte
     return resp;
 }
 std::string CurlManager::doPut(const std::string& furl, const std::string& contentType, const std::string &data, int& rc) {
-    std::vector<uint8_t> vdata;
-    vdata.resize(data.size());
-    memcpy((void*)&vdata[0], (void*)data.c_str(), data.size());
+    std::vector<uint8_t> vdata(data.begin(), data.end());
     return doPut(furl, contentType, vdata,  rc);
 }
 
