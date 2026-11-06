@@ -672,10 +672,8 @@ TEST_CASE("Text xLights font word flip shows one word at a time", "[effects][dra
     CHECK_FALSE(fr.same(1, fr, 2));
 }
 
-// TextEffect::RenderXLText measures line_lengths from the whole line before
-// FlipWord replaces the line with a single word, so the word is placed as if the
-// whole line were still there: shifted left, and off a narrow buffer entirely.
-TEST_CASE("Text xLights font word flip centres the shown word like static text", "[.knownbug]") {
+// each word is placed by its own width, not the width of the whole line
+TEST_CASE("Text xLights font word flip centres the shown word like static text", "[effects][drawing]") {
     Fixture f;
     Settings flip = XL("AB CD EF", "5-5x5 Thin", { { "E_CHOICE_Text_Dir", "word-flip" }, { "E_TEXTCTRL_Text_Speed", "1" } });
     Frames fr = f.Render("Text", flip, kRed, 20, 8, { 0, 8, 15 });
@@ -1543,11 +1541,8 @@ TEST_CASE("Sketch progress position walks across paths", "[effects][drawing][ske
     CHECK(y == 0.0);
 }
 
-// SketchLine::getProgressPosition divides by Length(), so a zero-length line
-// (a repeated point, which the default sketch itself contains) yields NaN when
-// the walk lands on it: here progress 0 on a path whose first segment is a
-// repeated start point. MovingHeadEffect follows these positions.
-TEST_CASE("Sketch progress position on a repeated point is that point", "[.knownbug]") {
+// a zero-length segment (a repeated point, as in the default sketch) is that point, not NaN
+TEST_CASE("Sketch progress position on a repeated point is that point", "[effects][drawing]") {
     auto sk = SketchEffectSketch::SketchFromString("0.5,0.5;L0.5,0.5;L1,1");
     double x = -1, y = -1;
     sk.getProgressPosition(0.0, x, y);

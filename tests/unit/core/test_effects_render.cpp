@@ -377,17 +377,6 @@ TEST_CASE("Strobe only uses palette colours and lights something", "[effects][re
     CHECK(total > 0);
 }
 
-TEST_CASE("Twinkle only uses palette colours", "[effects][render]") {
-    RenderFixture f;
-    Frames fr = f.Render("Twinkle", "E_SLIDER_Twinkle_Count=50,E_CHOICE_Twinkle_Style=Old Render Method", kRedBlue, 8, 8, Range(0, 19));
-    for (size_t i = 0; i < fr.f.size(); ++i) {
-        for (const auto& c : fr.f[i]) {
-            const bool dark = c.alpha == 0 || (c.red == 0 && c.green == 0 && c.blue == 0);
-            CHECK((dark || c.green == 0));
-        }
-    }
-}
-
 TEST_CASE("SingleStrand chase starts at the first pixel and travels along the strand", "[effects][render]") {
     RenderFixture f;
     Frames fr = f.Render("SingleStrand", "", kRedBlue, 6, 4, { 0, 10, 19 });

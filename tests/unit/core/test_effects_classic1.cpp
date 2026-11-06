@@ -458,10 +458,8 @@ TEST_CASE("Bars highlight adds white edges and can use the first colour instead"
     CHECK(count(one, xlWHITE) > 0);
 }
 
-// The Custom Horz / Custom Vert paths (and every spatial-palette path) only desaturate the
-// highlight row when alpha is off, so "use first colour for highlight" draws white there while
-// the other directions draw the first colour.
-TEST_CASE("Bars custom horizontal and vertical honour use first colour for highlight", "[.knownbug][classic1_knownbug]") {
+// the CPU paths (custom directions, spatial palettes) draw the highlight in the first colour, as the SIMD path does
+TEST_CASE("Bars custom horizontal and vertical honour use first colour for highlight", "[effects][classic1]") {
     Fixture f;
     const char* pal = "C_BUTTON_Palette1=#00FF00,C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=#FF0000,C_CHECKBOX_Palette2=1,"
                       "C_BUTTON_Palette3=#0000FF,C_CHECKBOX_Palette3=1";
@@ -721,9 +719,8 @@ TEST_CASE("Ripple old style draws every object with every movement", "[effects][
     }
 }
 
-// The old-style square only draws for Explode and Implode, so Movement=None renders nothing,
-// while every other object draws a full-size shape for None.
-TEST_CASE("Ripple old style square with no movement draws something", "[.knownbug][classic1_knownbug]") {
+// like every other object, the square draws a shape when Movement is None
+TEST_CASE("Ripple old style square with no movement draws something", "[effects][classic1]") {
     Fixture f;
     Frames sq = f.Render("Ripple", "E_CHOICE_Ripple_Object_To_Draw=Square,E_CHOICE_Ripple_Movement=None", kRed, 24, 24, { 5, 10 });
     CHECK(sq.lit(0) + sq.lit(1) > 0);

@@ -266,7 +266,8 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     double pos_y = buffer.BufferHt * center_y / 100.0;
 
     double head_duration = duration / 100.0; // time the head is in the frame
-    double tail_length = revs * (1.0 - head_duration);
+    // capped so 100% keeps the shortest tail (99%) instead of a zero-length spiral that draws nothing
+    double tail_length = revs * (1.0 - std::min(head_duration, 0.99));
     double color_length = tail_length / num_colors;
     if (color_length < 1.0)
         color_length = 1.0;

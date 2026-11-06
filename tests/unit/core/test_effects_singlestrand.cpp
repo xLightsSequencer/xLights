@@ -295,9 +295,6 @@ TEST_CASE("SingleStrand FX: every mode renders column-uniform, deterministic, vi
     // Modes that do not change within the rendered 1.5 s at these settings: Percent at intensity 200 has
     // reached its (empty) target, ICU and Traffic Light step on a longer period.
     const std::set<std::string> slow = { "Percent", "ICU", "Traffic Light" };
-    // Phased and Phased Noise keep their phase in a function-level static shared by every instance, so a
-    // second render of the same effect differs from the first (see the hidden known-bug case below).
-    const std::set<std::string> sharedState = { "Phased", "Phased Noise" };
     // Modes whose output is a fixed pattern for fixed settings (no animation).
     const std::set<std::string> isStatic = { "Solid", "Solid Pattern", "Solid Pattern Tri", "Spots" };
 
@@ -308,7 +305,7 @@ TEST_CASE("SingleStrand FX: every mode renders column-uniform, deterministic, vi
         const std::string settings = FX(mode, "E_SLIDER_FX_Speed=200,E_SLIDER_FX_Intensity=200");
         Frames fa = a.Render(settings, kRGB, W, H, frames);
         Frames fb = b.Render(settings, kRGB, W, H, frames);
-        if (!sharedState.count(mode)) CHECK(fa == fb);
+        CHECK(fa == fb);
 
         // The effect clock starts at 0 on the first frame, which is inside WLED's minimum show delay, so
         // nothing is drawn yet.
@@ -623,10 +620,7 @@ TEST_CASE("SingleStrand FX: the colour gradient palette uses as many effect colo
     CHECK(outs.size() == 6);
 }
 
-TEST_CASE("SingleStrand FX: the colour gradient palette with one or two colours includes colour 1", "[.knownbug][singlestrand-knownbug]") {
-    // FX.cpp handle_palette, case 4: the gradient always starts from colour 3 (then 2, then 1), so with only one
-    // colour set it is built from the empty colour 3 slot (black) and the strand is dark, and with two colours
-    // it is black-to-colour-2 and colour 1 never appears.
+TEST_CASE("SingleStrand FX: the colour gradient palette with one or two colours includes colour 1", "[effects][singlestrand]") {
     Fixture f;
     Frames one = f.Render(FX("Palette", "E_CHOICE_SingleStrand_FX_Palette=* Color Gradient"), NColours(1), 32, 1, Range(0, 4));
     CHECK(one.lit(4) > 0);
@@ -636,9 +630,8 @@ TEST_CASE("SingleStrand FX: the colour gradient palette with one or two colours 
     CHECK(red);
 }
 
-TEST_CASE("SingleStrand FX: Phased renders the same effect the same way twice", "[.knownbug][singlestrand-knownbug]") {
-    // FX.cpp phased_base keeps its phase in a function-level static, shared by every effect instance and every
-    // render thread, so the output depends on whatever Phased render ran before (and races between models).
+TEST_CASE("SingleStrand FX: Phased renders the same effect the same way twice", "[effects][singlestrand]") {
+    // the phase is per effect, so an earlier render can't shift a later one
     Fixture f;
     for (const char* mode : { "Phased", "Phased Noise" }) {
         INFO("mode " << mode);
@@ -873,7 +866,8 @@ TEST_CASE("SingleStrand chase fades darken one end of the chase", "[effects][sin
         CHECK(level(head.at(1, 6), alpha) < level(head.at(1, 10), alpha));
         CHECK(level(head.at(1, 10), alpha) < level(head.at(1, 15), alpha));
         CHECK(level(head.at(1, 15), alpha) >= 250);
-        // From Tail: the reverse ramp, falling towards the head (pixel 6 is left out, see the known-bug case)
+        // From Tail: the reverse ramp, falling towards the head
+        CHECK(level(tail.at(1, 6), alpha) > level(tail.at(1, 7), alpha));
         CHECK(level(tail.at(1, 7), alpha) > level(tail.at(1, 11), alpha));
         CHECK(level(tail.at(1, 11), alpha) > level(tail.at(1, 15), alpha));
         // Head and Tail and Middle differ from no fade and from each other
@@ -888,10 +882,7 @@ TEST_CASE("SingleStrand chase fades darken one end of the chase", "[effects][sin
     }
 }
 
-TEST_CASE("SingleStrand chase From Tail fade with alpha keeps the tail pixel opaque", "[.knownbug][singlestrand-knownbug]") {
-    // SingleStrandEffect.cpp draw_chase, FADE_FROM_TAIL with allowAlpha: alpha = 255 * (w - i + 1) / w is
-    // 280.5 for i == 0, out of range for the uint8_t alpha, so the tail pixel comes out nearly transparent
-    // instead of the most opaque pixel of the ramp.
+TEST_CASE("SingleStrand chase From Tail fade with alpha keeps the tail pixel opaque", "[effects][singlestrand]") {
     Fixture f;
     RenderOpts o;
     o.allowAlpha = true;

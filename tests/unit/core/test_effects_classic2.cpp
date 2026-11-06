@@ -2170,12 +2170,11 @@ TEST_CASE("EffectPresetManager imports XML and fixes illegal or duplicate names"
 }
 
 // ---------------------------------------------------------------------------
-// Known bugs (hidden from the default run)
+// Edge cases
 // ---------------------------------------------------------------------------
 
-// Duration 100 (the metadata maximum) makes the tail length zero, so head and tail ends
-// coincide and nothing is drawn for the whole effect.
-TEST_CASE("Galaxy with a 100 percent head duration still draws the head", "[.knownbug]") {
+// 100 is the slider maximum; it must not shrink the tail to nothing
+TEST_CASE("Galaxy with a 100 percent head duration still draws the head", "[effects][classic2]") {
     Fx f;
     Opts o;
     o.w = 20;

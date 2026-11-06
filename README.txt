@@ -12,6 +12,23 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 Guitar effect: Bass Guitar uses bass chord shapes, and the Wave appearance
+                                 swings to both sides of the string (it differed between Intel and Apple Silicon)
+    -bug (dkulp)                 Faces "Short" blink duration was the same as Normal
+    -bug (dkulp)                 VU Meter bar types fill the whole width when it does not divide evenly by
+                                 the bar count, and the Level Pulse types no longer flash in silence at the
+                                 start of a sequence
+    -bug (dkulp)                 Bars "Use first color for highlight" drew white highlights with the custom
+                                 directions and with spatial colors
+    -bug (dkulp)                 Single Strand FX: Phased, Phased Noise and Fireworks 1D could change when other
+                                 effects of the same mode rendered; the "* Color Gradient" palette was dark or
+                                 missing color 1 with one or two colors
+    -bug (dkulp)                 Single Strand chase "From Tail" fade with transparency left the tail nearly
+                                 transparent
+    -bug (dkulp)                 Galaxy with 100% head duration, and old-style Ripple squares with no movement,
+                                 drew nothing
+    -bug (dkulp)                 Text word flip with the built-in xLights fonts placed the word off center
+    -bug (dkulp)                 Moving Head following a sketch path got an invalid position on a repeated point
     -bug (dkulp)                 PWM ports for a plain (non-DMX) model each drive their own channel;
                                  every colour of a node was set to one channel past the node's first
     -bug (dkulp)                 PWM port labels name the right colour on RBGW and BRGW models

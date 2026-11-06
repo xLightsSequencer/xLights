@@ -710,6 +710,23 @@ TEST_CASE("Faces suppressed when not singing goes dark between phonemes, with le
     CHECK(a5 > a6);
 }
 
+TEST_CASE("Faces short blinks keep the eyes closed for fewer frames than normal ones", "[effects][timingdriven]") {
+    auto closedFrames = [](const char* duration) {
+        EngineShow s(Line("M", 12, kFaceNR), "", 6000,
+                     { { "M", { { "Faces", 0, 6000, FaceSettings(std::string("E_CHOICE_Faces_Phoneme=rest,E_CHOICE_Faces_Eyes=Auto,E_CHOICE_Faces_EyeBlinkFrequency=Fastest,E_CHOICE_Faces_EyeBlinkDuration=") + duration), kFacePal } } } }, {});
+        REQUIRE(s.r.rendered);
+        int closed = 0;
+        for (unsigned f = 0; f < s.r.frames; ++f) {
+            if (LitNodes(s.r, f).count(10)) ++closed;
+        }
+        return closed;
+    };
+    int shortBlinks = closedFrames("Short");
+    int normalBlinks = closedFrames("Normal");
+    CHECK(shortBlinks > 0);
+    CHECK(shortBlinks < normalBlinks);
+}
+
 TEST_CASE("Faces auto eyes blink while the face rests", "[effects][timingdriven]") {
     // no track: blinks follow the stable per-effect schedule
     EngineShow s(Line("M", 12, kFaceNR), "", 6000,
@@ -1178,6 +1195,18 @@ TEST_CASE("Guitar wave appearance draws a thin moving wave", "[effects][timingdr
     }
     CHECK(bottomHalf > 0);
     CHECK(wave.f[0] != wave.f[1]);
+    // the wave swings to both sides of the string line (row 55 is the middle of rows 50-59)
+    bool below = false;
+    bool above = false;
+    for (int x = 0; x < 40; ++x) {
+        for (int y = 50; y < 60; ++y) {
+            if (!wave.on(0, x, y)) continue;
+            below = below || y < 55;
+            above = above || y > 55;
+        }
+    }
+    CHECK(below);
+    CHECK(above);
 
     Fixture g;
     Frames vary = Guitar(g, { { 0, 1000, "A2" } }, "E_CHOICE_StringAppearance=Wave,E_CHECKBOX_VaryWaveLengthOnFret=0,E_CHECKBOX_Collapse=1,E_CHECKBOX_Fade=1,E_TEXTCTRL_StringWaveFactor=2.0,E_TEXTCTRL_BaseWaveFactor=3.0", 40, 12, { 2 });
@@ -1257,10 +1286,8 @@ TEST_CASE("Guitar settings checks, renames and wave-factor migration", "[effects
     CHECK_FALSE(both->GetSettings().Contains("E_SLIDER_BaseWaveFactor"));
 }
 
-TEST_CASE("Guitar bass chords use the bass fingering", "[.knownbug]") {
-    // Guitar.json offers "Bass Guitar", but the chord lookups compare against "Bass",
-    // so a bass track gets the guitar chord shapes (A major: open low string on guitar,
-    // fret 5 on bass).
+TEST_CASE("Guitar bass chords use the bass fingering", "[effects][timingdriven]") {
+    // A major: the low string is open on a guitar but fretted at 5 on a bass
     Fixture f;
     Frames fr = Guitar(f, { { 0, 1000, "CA" } }, "E_CHOICE_Guitar_Type=Bass Guitar,E_CHOICE_StringAppearance=On", 19, 4, { 2 });
     CAPTURE(fr.litInRow(0, 3));

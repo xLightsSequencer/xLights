@@ -779,19 +779,15 @@ TEST_CASE("VU Meter settings check, timing rename and frame parallelism", "[effe
     }
 }
 
-TEST_CASE("VU Meter Timing Event Bars covers the whole width when it does not divide evenly", "[.knownbug][vumeter]") {
-    // The bar width is std::ceil(BufferWi / usebars) with integer division, so the
-    // BufferWi % usebars right-most columns are never drawn.
+TEST_CASE("VU Meter Timing Event Bars covers the whole width when it does not divide evenly", "[effects][audiofx]") {
     AudioFixture fx;
     fx.AddTiming("T", kMarks);
     Frames fr = fx.Render("VU Meter", VU("Timing Event Bars", "E_CHOICE_VUMeter_TimingTrack=T"), kRedBlue, 8, 6, { 21 });
     CHECK(fr.lit(0) == 48);
 }
 
-TEST_CASE("VU Meter level pulses stay dark in silence at the start of an effect", "[.knownbug][vumeter]") {
-    // _lasttimingmark starts at -1, so the first frames of an effect that begins at period 0
-    // pulse as if a beat had happened just before it, even in silence (and Level Pulse Color
-    // uses colour index -1, which the palette answers with white).
+TEST_CASE("VU Meter level pulses stay dark in silence at the start of an effect", "[effects][audiofx]") {
+    // no level has been seen yet, so nothing is fading out
     AudioFixture fx;
     fx.LoadAudio(SilentThenTone());
     for (const char* t : { "Level Pulse", "Level Pulse Color", "Note Level Pulse" }) {
