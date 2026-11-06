@@ -7195,7 +7195,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
 
         [outNodes addObject:@{
             @"node":    @(m->GetNodeNumber((size_t)i)),
-            @"string":  @(m->GetNodeStringNumber((size_t)i)),
+            @"string":  @(m->GetNodePhysicalStringIndex((size_t)i)),
             @"x":       @((double)x),
             @"y":       @((double)y),
             @"channel": [NSString stringWithUTF8String:chan.c_str()],

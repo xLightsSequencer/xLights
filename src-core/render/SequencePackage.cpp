@@ -677,7 +677,7 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
                                 std::string attrValue = attr.as_string();
 
                                 // import files
-                                if (attrName.substr(0, 5) == "Mouth" || attrName.substr(0, 4) == "Eyes") {
+                                if (SequenceFaces::IsImageKey(attrName)) {
                                     if (!attrValue.empty()) {
                                         // extract just the filename from the path
                                         std::string faceFileName = ExtractFilename(attrValue);

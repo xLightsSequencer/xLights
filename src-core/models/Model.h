@@ -485,7 +485,7 @@ public:
     virtual uint32_t GetFirstChannel() const;
     virtual uint32_t GetLastChannel() const;
     uint32_t GetNumChannels() const;
-    uint32_t GetNodeNumber(size_t nodenum) const;
+    [[nodiscard]] virtual uint32_t GetNodeNumber(size_t nodenum) const;
     uint32_t GetNodeNumber(int bufY, int bufX) const;
     int GetNumberFromChannelString(const std::string& sc) const;
     int GetNumberFromChannelString(const std::string& sc, bool& valid, std::string& dependsonmodel) const;

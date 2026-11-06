@@ -377,7 +377,7 @@ TEST_CASE("Controller connection defaults when attributes are missing", "[models
     CHECK(m->GetCtrlConn().GetColorOrder() == "RGB");
     CHECK(m->GetCtrlConn().GetGamma() == 1.0f);
     CHECK(m->GetCtrlConn().GetGroupCount() == 0);
-    CHECK(m->GetCtrlConn().GetProtocolSpeed() == 25000);
+    CHECK(m->GetCtrlConn().GetProtocolSpeed() == 250000);
 }
 
 TEST_CASE("Controller connection with junk values does not crash", "[models][serialization]") {

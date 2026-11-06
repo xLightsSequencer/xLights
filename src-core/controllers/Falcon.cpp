@@ -1507,7 +1507,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
         auto sp = cud.GetControllerSerialPort(1);
 
-        int rate = 2500000;
+        int rate = 250000;
 
         if (sp->GetFirstModel() != nullptr) {
             rate = sp->GetFirstModel()->GetModel()->GetControllerProtocolSpeed();
@@ -1612,7 +1612,7 @@ public:
         if (virtualStringIndex < other.virtualStringIndex)
             return true;
 
-        return true;
+        return false;
     }
 };
 

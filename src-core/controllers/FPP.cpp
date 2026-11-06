@@ -155,6 +155,7 @@ struct FPPWriteData {
         postData(nullptr), postDataSize(0), instance(nullptr), totalWritten(0), lastDone(0), cancelled(false) {}
 
     std::ifstream realFile;
+    char curlError[CURL_ERROR_SIZE] = { 0 };
     std::vector<uint8_t> memBuffPost;
     std::vector<uint8_t> memBuffPre;
 
@@ -469,7 +470,7 @@ static bool GetJSONBoolValue(const nlohmann::json& val, const std::string &key, 
     }
     return def;
 }
-[[maybe_unused]] static bool GetJSONDoubleValue(const nlohmann::json& val, const std::string &key, double def = 0.0) {
+[[maybe_unused]] static double GetJSONDoubleValue(const nlohmann::json& val, const std::string &key, double def = 0.0) {
     if (val.contains(key) && val[key].is_number()) {
         return val[key].get<double>();
     }
@@ -675,16 +676,10 @@ static std::string URLEncode(const std::string &value) {
 }
 
 static inline void addString(std::vector<uint8_t> &buffer, const char *str) {
-    size_t sz = strlen(str);
-    size_t pos = buffer.size();
-    buffer.resize(pos + sz);
-    memcpy(&buffer[pos], str, sz);
+    buffer.insert(buffer.end(), str, str + strlen(str));
 }
 static inline void addString(std::vector<uint8_t> &buffer, const std::string &str) {
-    size_t sz = str.length();
-    size_t pos = buffer.size();
-    buffer.resize(pos + sz);
-    memcpy(&buffer[pos], str.c_str(), sz);
+    buffer.insert(buffer.end(), str.begin(), str.end());
 }
 
 int FPP::PostJSONToURL(const std::string& url, const nlohmann::json& val) {
@@ -768,7 +763,6 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file, bo
     std::string fullFileName = file;
 
     curlInputBuffer.clear();
-    char error[1024];
 
 
     std::string fullUrl;
@@ -830,7 +824,9 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file, bo
     }
     //if we cannot upload it in 5 minutes, we have serious issues
     CURL *curl = setupCurl(fullUrl, false, 5*60*1000);
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    // Fast open gains nothing on a file upload, and on macOS the retry's fast-open
+    // connect fails its first send with "Socket is not connected".
+    curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 0L);
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
@@ -848,6 +844,8 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file, bo
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
     FPPWriteData *data = new FPPWriteData();
+    // the transfer runs after this returns, so the buffer must live with data
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, data->curlError);
     data->realFile.open(fullFileName, std::ios::binary);
     data->realFile.seekg(0, std::ios::end);
     data->fileLength = static_cast<size_t>(data->realFile.tellg());
@@ -897,7 +895,11 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file, bo
             }
         }
         if (!retrying && response_code != 200) {
-            messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
+            std::string err = "ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code);
+            if (data->curlError[0] != 0) {
+                err += " (" + std::string(data->curlError) + ")";
+            }
+            messages.push_back(err);
             faileduploads.push_back(filename);
             spdlog::warn("Did not get 200 response code:  {}", response_code);
         }
@@ -2424,7 +2426,7 @@ inline std::string stripInvalidChars(std::string s) {
     Replace(s, "&", "_");
     Replace(s, "<", "_");
     Replace(s, ">", "_");
-    Replace(s, "\"", "\\\"");
+    // quotes are left for the JSON writer to escape
     return s;
 }
 
@@ -3383,7 +3385,14 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
             if (GetJSONStringValue(origJson["channelOutputs"][x], "type") == "VirtualMatrix") {
                 std::string dev = GetJSONStringValue(origJson["channelOutputs"][x], "device");
-                int port = dev.size() > 2 ? (char)dev[2] - '0' : 0;
+                // "fbN" before FPP 8, "HDMI-A-N" (1 based) after
+                int port = 0;
+                if (StartsWith(dev, "HDMI-")) {
+                    auto pos = dev.find_last_of('-');
+                    port = (int)std::strtol(dev.c_str() + pos + 1, nullptr, 10) - 1;
+                } else if (StartsWith(dev, "fb")) {
+                    port = (int)std::strtol(dev.c_str() + 2, nullptr, 10);
+                }
                 if (models[port].find(GetJSONStringValue(origJson["channelOutputs"][x], "description")) == models[port].end()) {
                     UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
                 }
@@ -4167,10 +4176,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     }
     if (hasBBBDmx) {
         bbbDmxData["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
-        if (maxChan == 0) {
-            bbbDmxData["enabled"] = 0;
-            bbbDmxData["subType"] = ("off");
-        }
     }
     // let the string handling know if it's safe to use the other PRU
     // or if the serial out will need it
@@ -4179,10 +4184,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     nlohmann::json root;
     root["channelOutputs"].push_back(stringData);
     if (hasBBBDmx) {
-        bbbDmxData["enabled"] = 1;
+        // an unused cape serial output stays off
+        bbbDmxData["enabled"] = maxChan == 0 ? 0 : 1;
         bbbDmxData["startChannel"] = 1;
         bbbDmxData["type"] = ("BBBSerial");
-        bbbDmxData["subType"] = isDMX ? ("DMX") : ("PixelNet") ;
+        bbbDmxData["subType"] = maxChan == 0 ? "off" : (isDMX ? "DMX" : "PixelNet");
         bbbDmxData["device"] = (rules->GetID());
         bbbDmxData["pinoutVersion"] = pinout;
         root["channelOutputs"].push_back(bbbDmxData);

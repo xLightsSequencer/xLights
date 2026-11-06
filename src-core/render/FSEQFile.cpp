@@ -846,6 +846,9 @@ FrameData* V1FSEQFile::getFrame(uint32_t frame) {
         range.push_back(std::pair<uint32_t, uint32_t>(0, m_seqChannelCount));
         prepareRead(range, frame);
     }
+    if (frame >= m_seqNumFrames) {
+        return nullptr;
+    }
     uint64_t offset = m_seqChannelCount;
     offset *= frame;
     offset += m_seqChanDataOffset;

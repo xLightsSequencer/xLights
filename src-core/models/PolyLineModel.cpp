@@ -134,7 +134,7 @@ void PolyLineModel::SetStringStartChannels(int NumberOfStrings, int StartChannel
     if (_strings == 1) {
         Model::SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
     } else {
-        ChannelsPerString /= _strings;
+        // ChannelsPerString is already per string: NodesPerString() divides by _strings
         Model::SetStringStartChannels(_strings, StartChannel, ChannelsPerString);
     }
 }
@@ -597,7 +597,8 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
     size_t c = 0;
     int segment = 0;
     int sub_segment = 0;
-    float seg_start = current_pos;
+    // current_pos starts half a gap in so each light sits in the middle of its slot
+    float seg_start = 0.0f;
     float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
     float seg_end = seg_start + segment_length;
     int xpos = 0;  // the horizontal position in the buffer

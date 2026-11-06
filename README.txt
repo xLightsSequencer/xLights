@@ -13,6 +13,32 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.20  October ??, 2026
 
     -enh (heffneil)              Sequence Settings > Meta Data: Imported From sequences can now be added, changed or removed
+    -bug (dkulp)                 Poly Line with more than one string gave its strings overlapping channels
+    -bug (dkulp)                 Poly Line auto distribution put the first light on the start point instead of
+                                 centring every light in its share of the line, so arches were lopsided
+    -bug (dkulp)                 Cube "Stacked Z Vertically", "Unique X and Y X" and "Unique X and Y Z" buffer
+                                 styles left lights outside the buffer or stacked on top of each other
+    -bug (dkulp)                 Falcon V2/V3 controller upload could crash; serial ports with no speed set
+                                 uploaded DMX at 25000 baud instead of 250000
+    -bug (dkulp)                 FPP Connect: uploads to ESPixelStick and older FPP could crash, the
+                                 ESPixelStick uncompressed retry failed on macOS, and upload errors now say why
+    -bug (dkulp)                 FPP upload: an unused cape serial output was switched on as DMX, FPP 8+
+                                 virtual matrices were turned off when not under full control, quotes in
+                                 universe descriptions gained a backslash, the playlist duration was wrong,
+                                 and proxy upload to FPP 7 could crash
+    -bug (dkulp)                 DMX: a moving head with pan/tilt on its last channel did not move in the
+                                 preview, functions on the last channel were not named, and an uncoloured
+                                 skull kept its material eye colour instead of black
+    -bug (dkulp)                 Layout: scaling a poly line moved it away from its centre, 2D curve handles
+                                 picked up a depth, space mouse rotation of two point models changed their
+                                 length, and a terrain kept the elevate tool after leaving a grid point
+    -bug (dkulp)                 Renaming a model did not update other models' individual string start
+                                 channels that referred to it
+    -bug (dkulp)                 Fixed interval timing tracks ended with an empty zero length mark
+    -bug (dkulp)                 Package import dropped face colours and reported them as missing media
+    -bug (dkulp)                 Plain poly lines were mapped as icicles when importing sequences
+    -bug (dkulp)                 Image model effect preview loaded its image again on every redraw
+    -bug (dkulp)                 iPad - Custom model node list showed wrong node and string numbers
     -bug (dkulp)                 Guitar effect: Bass Guitar uses bass chord shapes, and the Wave appearance
                                  swings to both sides of the string (it differed between Intel and Apple Silicon)
     -bug (dkulp)                 Faces "Short" blink duration was the same as Normal

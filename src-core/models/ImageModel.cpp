@@ -156,6 +156,7 @@ void ImageModel::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
                 width = img.GetWidth();
                 height = img.GetHeight();
                 texture = ctx->createTexture(img, GetName(), true);
+                _images[preview->getName()] = texture;
 
                 // Modify image for color overlay
                 if (drawColor) {
@@ -163,12 +164,13 @@ void ImageModel::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
                         for (int y = 0; y < img.GetHeight(); y++) {
                             int l = img.GetGreen(x, y); // Take green as luminance. Red, Green, Blue should now be equal after grayscale conversion
                             int a = img.GetAlpha(x, y);
-                            l = (l * 255) / maxBrightness;
+                            l = maxBrightness > 0 ? (l * 255) / maxBrightness : 0;
                             img.SetAlpha(x, y, std::min(a, l));
                         }
                     }
                 }
                 textureColorOverlay = ctx->createTexture(img, GetName() + "_color_overlay", true);
+                _images[preview->getName() + "_color_overlay"] = textureColorOverlay;
             }
         }
         if (texture) {
@@ -306,7 +308,7 @@ void ImageModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext 
                     for (int y = 0; y < img.GetHeight(); y++) {
                         int l = img.GetGreen(x, y); // Take green as luminance. Red and Blue should now be equal to Green after grayscale conversion
                         int a = img.GetAlpha(x, y);
-                        l = (l * 255) / maxBrightness;
+                        l = maxBrightness > 0 ? (l * 255) / maxBrightness : 0;
                         img.SetAlpha(x, y, std::min(a, l));
                     }
                 }

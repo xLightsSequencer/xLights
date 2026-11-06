@@ -114,6 +114,9 @@ int DmxModel::GetChannelValue(int channel, bool bits16)
     int msb = 0;
     int ret_val = 0;
 
+    if (channel < 0) {
+        return 0;
+    }
     if (bits16) {
         if ((int)Nodes.size() > channel + 1) {
             Nodes[channel]->GetColor(color_angle);
@@ -140,12 +143,11 @@ int DmxModel::GetChannelValue(int channel_coarse, int channel_fine)
     int msb = 0;
     int ret_val = 0;
 
-    if ((int)Nodes.size() > channel_coarse + 1) {
+    if (channel_coarse >= 0 && channel_coarse < (int)Nodes.size()) {
         Nodes[channel_coarse]->GetColor(color_angle);
         msb = color_angle.red;
     }
-    if( channel_fine >= 0 )
-    if ((int)Nodes.size() > channel_fine + 1) {
+    if (channel_fine >= 0 && channel_fine < (int)Nodes.size()) {
         Nodes[channel_fine]->GetColor(color_angle);
         lsb = color_angle.red;
     }

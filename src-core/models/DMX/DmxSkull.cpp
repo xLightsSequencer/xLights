@@ -598,46 +598,25 @@ void DmxSkull::GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const {
 std::vector<std::string> DmxSkull::GenerateNodeNames() const {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (nullptr != pan_servo && 0 != pan_servo->GetChannel() && pan_servo->GetChannel() < (int)names.size()) {
-        names[pan_servo->GetChannel() - 1] = "Pan";
-        if (pan_servo->Is16Bit()) {
-            names[pan_servo->GetChannel()] = "Pan Fine";
+    auto nameServo = [&names](const Servo* servo, const char* name) {
+        if (nullptr == servo || servo->GetChannel() <= 0 || servo->GetChannel() > (int)names.size()) {
+            return;
         }
-    }
-    if (nullptr != tilt_servo && 0 != tilt_servo->GetChannel() && tilt_servo->GetChannel() < (int)names.size()) {
-        names[tilt_servo->GetChannel() - 1] = "Tilt";
-        if (tilt_servo->Is16Bit()) {
-            names[tilt_servo->GetChannel()] = "Tilt Fine";
+        names[servo->GetChannel() - 1] = name;
+        if (servo->Is16Bit() && servo->GetChannel() < (int)names.size()) {
+            names[servo->GetChannel()] = std::string(name) + " Fine";
         }
-    }
-    if (nullptr != nod_servo && 0 != nod_servo->GetChannel() && nod_servo->GetChannel() < (int)names.size()) {
-        names[nod_servo->GetChannel() - 1] = "Nod";
-        if (nod_servo->Is16Bit()) {
-            names[nod_servo->GetChannel()] = "Nod Fine";
-        }
-    }
-    if (nullptr != jaw_servo && 0 != jaw_servo->GetChannel() && jaw_servo->GetChannel() < (int)names.size()) {
-        names[jaw_servo->GetChannel() - 1] = "Jaw";
-        if (jaw_servo->Is16Bit()) {
-            names[jaw_servo->GetChannel()] = "Jaw Fine";
-        }
-    }
-    if (nullptr != eye_ud_servo && 0 != eye_ud_servo->GetChannel() && eye_ud_servo->GetChannel() < (int)names.size()) {
-        names[eye_ud_servo->GetChannel() - 1] = "Eye U-D";
-        if (eye_ud_servo->Is16Bit()) {
-            names[eye_ud_servo->GetChannel()] = "Eye U-D Fine";
-        }
-    }
-    if (nullptr != eye_lr_servo && 0 != eye_lr_servo->GetChannel() && eye_lr_servo->GetChannel() < (int)names.size()) {
-        names[eye_lr_servo->GetChannel() - 1] = "Eye L-R";
-        if (eye_lr_servo->Is16Bit()) {
-            names[eye_lr_servo->GetChannel()] = "Eye L-R Fine";
-        }
-    }
+    };
+    nameServo(pan_servo.get(), "Pan");
+    nameServo(tilt_servo.get(), "Tilt");
+    nameServo(nod_servo.get(), "Nod");
+    nameServo(jaw_servo.get(), "Jaw");
+    nameServo(eye_ud_servo.get(), "Eye U-D");
+    nameServo(eye_lr_servo.get(), "Eye L-R");
     if (nullptr != color_ability) {
         color_ability->SetNodeNames(names, "Eye ");
     }
-    if (eye_brightness_channel > 0) {
+    if (eye_brightness_channel > 0 && eye_brightness_channel <= (int)names.size()) {
         names[eye_brightness_channel - 1] = "Eye Bright";
     }
     return names;

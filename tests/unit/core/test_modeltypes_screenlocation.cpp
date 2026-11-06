@@ -567,9 +567,11 @@ TEST_CASE("Poly line nodes are spread along the polyline", "[models2][screenloc]
         CHECK(x >= 0.0f);
         CHECK(x <= 1.0f);
     }
-    CHECK(m->GetNode(0)->Coords[0].screenX == Catch::Approx(0.0f).margin(1e-3));
-    CHECK(m->GetNode(0)->Coords[0].screenY == Catch::Approx(0.0f).margin(1e-3));
-    CHECK(m->GetNode(2)->Coords[0].screenY == Catch::Approx(0.8f).margin(1e-3));
+    // lights are centred in equal slots, so the middle one sits on the apex
+    CHECK(m->GetNode(0)->Coords[0].screenX == Catch::Approx(0.1f).margin(1e-3));
+    CHECK(m->GetNode(0)->Coords[0].screenY == Catch::Approx(0.2f).margin(1e-3));
+    CHECK(m->GetNode(2)->Coords[0].screenX == Catch::Approx(0.5f).margin(1e-3));
+    CHECK(m->GetNode(2)->Coords[0].screenY == Catch::Approx(1.0f).margin(1e-3));
     CHECK(m->GetNode(1)->Coords[0].screenY - m->GetNode(0)->Coords[0].screenY == Catch::Approx(2.0f * (m->GetNode(1)->Coords[0].screenX - m->GetNode(0)->Coords[0].screenX)).margin(1e-3));
 }
 

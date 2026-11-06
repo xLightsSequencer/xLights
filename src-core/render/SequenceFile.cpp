@@ -434,11 +434,15 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
 
     // Handle CompressedData sections
     for (auto e = root.child("CompressedData"); e; ) {
-        int size = e.attribute("size").as_int(0);
+        int size = std::max(0, e.attribute("size").as_int(0));
         std::string b64Content = e.text().as_string("");
         std::vector<uint8_t> decoded = Base64::Decode(b64Content);
-        std::vector<uint8_t> bytes(size + 50);
-        int sz = ZSTD_decompress(bytes.data(), bytes.size(), decoded.data(), decoded.size());
+        std::vector<uint8_t> bytes((size_t)size + 50);
+        size_t sz = ZSTD_decompress(bytes.data(), bytes.size(), decoded.data(), decoded.size());
+        if (ZSTD_isError(sz)) {
+            spdlog::error("Could not decompress a CompressedData section: {}", ZSTD_getErrorName(sz));
+            sz = 0;
+        }
 
         pugi::xml_document tempDoc;
         tempDoc.load_buffer(bytes.data(), sz);
@@ -1778,7 +1782,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, Rende
             if (interval < 1) return;
             int time = 0;
             int end_time = GetSequenceDurationMS();
-            while (time <= end_time) {
+            while (time < end_time) {
                 int next_time = (time + interval <= end_time) ? time + interval : end_time;
                 int startTime = RoundToMultipleOfPeriod(time, GetFrequency());
                 int endTime = RoundToMultipleOfPeriod(next_time, GetFrequency());
@@ -1806,7 +1810,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int i
         if (interval < 1) return;
         int time = 0;
         int end_time = GetSequenceDurationMS();
-        while (time <= end_time) {
+        while (time < end_time) {
             int next_time = (time + interval <= end_time) ? time + interval : end_time;
             int startTime = RoundToMultipleOfPeriod(time, GetFrequency());
             int endTime = RoundToMultipleOfPeriod(next_time, GetFrequency());

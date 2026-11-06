@@ -2256,13 +2256,17 @@ std::string UDController::ExportAsJSON()
         json += GetControllerSerialPort(i)->ExportAsJSON();
     }
     json += "], \"virtualmatrixports\": [" ;
+    bool firstVirtualMatrix = true;
     for (auto &vm : _virtualMatrixPorts) {
-        if(vm.first != 1) json += ",";
+        if (!firstVirtualMatrix) json += ",";
+        firstVirtualMatrix = false;
         json += vm.second->ExportAsJSON();
     }
     json += "], \"ledpanelmatrixports\": [" ;
+    bool firstPanelMatrix = true;
     for (auto &vm : _ledPanelMatrixPorts) {
-        if(vm.first != 1) json += ",";
+        if (!firstPanelMatrix) json += ",";
+        firstPanelMatrix = false;
         json += vm.second->ExportAsJSON();
     }
     json += "]}" ;

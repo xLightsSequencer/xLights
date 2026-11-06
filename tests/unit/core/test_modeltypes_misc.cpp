@@ -284,7 +284,8 @@ TEST_CASE("Poly line screen positions follow the point list", "[models2][modelty
         maxY = std::max(maxY, c.screenY);
     }
     CHECK(maxY > 0.5f);
-    CHECK(m->GetNode(0)->Coords[0].screenY == Catch::Approx(0.0f).margin(1e-3));
+    // the first light sits half a slot (1/12 of the length) in from the start
+    CHECK(m->GetNode(0)->Coords[0].screenY == Catch::Approx(1.0f / 6.0f).margin(1e-3));
 }
 
 TEST_CASE("Each model type writes its own display type", "[models2][modeltypes]") {

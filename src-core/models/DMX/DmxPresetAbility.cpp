@@ -63,7 +63,7 @@ void DmxPresetAbility::SetNodeNames(std::vector<std::string>& names) const
 {
     for (auto const& pre : _presets) {
 
-        if (0 != pre.DMXChannel && pre.DMXChannel < names.size() && !pre.Description.empty()) {
+        if (0 != pre.DMXChannel && pre.DMXChannel <= names.size() && !pre.Description.empty()) {
             names[pre.DMXChannel - 1] = pre.Description;
         }
     }
