@@ -15,11 +15,11 @@
 // indefinitely (live preview, live bulb detection) without memory growing
 // over the session.
 //
-// Two backends behind one API: Media Foundation on Windows (in the .cpp),
+// Three backends behind one API: Media Foundation on Windows, V4L2 on Linux,
 // AVFoundation on Apple (via AppleLiveCameraBridge, so no ObjC leaks into
-// src-core).
+// src-core) - all in the .cpp.
 //
-// There is no third backend, so nothing here is DEFINED on other platforms.
+// There is no fourth backend, so nothing here is DEFINED on other platforms.
 // Callers must gate on XLIGHTS_HAVE_LIVE_CAMERA and offer the feature only
 // where it exists, rather than link against a stub that always says "no
 // camera" - a greyed-out menu entry the user can't explain is worse than an
@@ -33,7 +33,7 @@
 // iPad app, so without this the whole AVFoundation capture stack would
 // compile and link into an app that has no UI for it - dead weight, and a
 // camera code path in a target that never offers a camera.
-#if defined(_WIN32) || (defined(__APPLE__) && !TARGET_OS_IPHONE)
+#if defined(_WIN32) || defined(__linux__) || (defined(__APPLE__) && !TARGET_OS_IPHONE)
 #define XLIGHTS_HAVE_LIVE_CAMERA 1
 #endif
 
@@ -44,8 +44,9 @@
 struct LiveCameraDevice {
     std::string name;         // friendly name shown to the user
     std::string symbolicLink; // opaque device id used to (re)open it: a Media
-                              // Foundation symbolic link on Windows, an
-                              // AVCaptureDevice uniqueID on Apple
+                              // Foundation symbolic link on Windows, a
+                              // /dev/videoN path on Linux, an AVCaptureDevice
+                              // uniqueID on Apple
 };
 
 // Enumerates the video capture devices currently attached (webcams, capture

@@ -15,7 +15,15 @@ layout(push_constant) uniform PC {
     float zoomquality;
     int pivotpointx;
     int pivotpointy;
+
+    float xsine;
+    float xpivotPx;
+    float ysine;
+    float ypivotPx;
+    float zcos;
+    float zsin;
+    float zxoff;
+    float zyoff;
+    float zinc;
 } data;
 
-const float XL_PI = 3.1415926535897932384626433832;
-const float XL_PI2 = XL_PI * 2.0;

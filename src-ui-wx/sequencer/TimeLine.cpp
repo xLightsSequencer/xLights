@@ -403,6 +403,9 @@ void TimeLine::ClearTags()
     {
         _tagPositions[i] = -1;
     }
+    if (_sequenceElements) {
+        _sequenceElements->ClearTags();
+    }
     Refresh(false);
 }
 

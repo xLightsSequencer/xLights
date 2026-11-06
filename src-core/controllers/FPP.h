@@ -77,7 +77,7 @@ class FPP : public BaseController
     std::string controllerVendor;
     std::string controllerModel;
     std::string controllerVariant;
-    bool upload;
+    bool upload{ false };
     bool canZipUpload = false;
 
     UICallbacks *_ui = nullptr;
@@ -118,6 +118,9 @@ class FPP : public BaseController
                                FSEQFile::CompressionType ctype,
                                bool sparse);
     bool CheckUploadMedia(const std::string &media, std::string &mediaBaseName);
+    // Queues the remote's metadata request for seq so several remotes can be asked at once;
+    // PrepareUploadSequence uses the answer. Completes when CurlManager::processCurls runs.
+    void PrefetchSequenceMeta(const std::string &seq);
     bool WillUploadSequence() const;
     bool NeedCustomSequence() const;
     bool AddFrameToUpload(uint32_t frame, uint8_t *data);
@@ -165,6 +168,8 @@ class FPP : public BaseController
     static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
     static void PrepareSingleDiscovery(Discovery &discovery, const std::string &address);
     static void PrepareControllerTypeProbes(Discovery &discovery, const std::list<std::string> &addresses);
+    static std::list<std::string> StartControllerSeeding(const OutputManager* outputManager);
+    static void FinishControllerSeeding(Discovery &discovery, const std::list<std::string> &seeded);
     static void MapToFPPInstances(Discovery &discovery, std::list<FPP*> &instances, OutputManager* outputManager);
     static bool ValidateProxy(const std::string& to, const std::string& via);
 
@@ -204,6 +209,7 @@ private:
     
     void DumpJSON(const nlohmann::json& json) const;
 
+    std::string MakeFullURL(const std::string& url, std::string& ipAddForGet) const;
     bool GetURLAsJSON(const std::string& url, nlohmann::json& val, bool recordError = true);
     bool GetURLAsString(const std::string& url, std::string& val, bool recordError = true);
     bool URLContentMatches(const std::string& url, const std::string& content);
@@ -253,6 +259,9 @@ private:
     std::map<std::string, PlaylistEntry> sequences;
     nlohmann::json capeInfo;
     std::string tempFileName;
+    std::string _prefetchedMetaName;
+    std::string _prefetchedMeta;
+    int _prefetchedMetaRC = -1;
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;
     bool outputFileIsOriginal = false;

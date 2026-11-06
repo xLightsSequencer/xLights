@@ -82,55 +82,60 @@ export void FanEffectISPC(const uniform FanData * uniform data,
     float halfW = (float)data->width  * 0.5f;
     float halfH = (float)data->height * 0.5f;
 
-    foreach (index = startIdx ... endIdx) {
-        int x = index % data->width;
-        int y = index / data->width;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    uniform int width = (int)data->width;
+    for (uniform int y = startIdx / max(width, 1); width > 0 && y * width < endIdx; y++) {
+        uniform int rowStart = y * width;
+        foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + x;
 
-        float x1 = (float)x - (float)data->xc_adj - halfW;
-        float y1 = (float)y - (float)data->yc_adj - halfH;
+            float x1 = (float)x - (float)data->xc_adj - halfW;
+            float y1 = (float)y - (float)data->yc_adj - halfH;
 
-        float r = sqrt(x1 * x1 + y1 * y1);
+            float r = sqrt(x1 * x1 + y1 * y1);
 
-        if (r >= data->radius1 && r <= data->radius2) {
-            float degrees_twist = (data->max_radius > 0.0f)
-                ? ((r / data->max_radius) * data->blade_angle)
-                : 0.0f;
-            float theta = (atan2(x1, y1) * (180.0f / FAN_PI)) + degrees_twist + data->start_angle;
+            if (r >= data->radius1 && r <= data->radius2) {
+                float degrees_twist = (data->max_radius > 0.0f)
+                    ? ((r / data->max_radius) * data->blade_angle)
+                    : 0.0f;
+                float theta = (atan2(x1, y1) * (180.0f / FAN_PI)) + degrees_twist + data->start_angle;
 
-            if (data->reverse_dir) {
-                theta = data->angle_offset - theta + 180.0f;
-            } else {
-                theta = theta + 180.0f + data->angle_offset;
-            }
+                if (data->reverse_dir) {
+                    theta = data->angle_offset - theta + 180.0f;
+                } else {
+                    theta = theta + 180.0f + data->angle_offset;
+                }
 
-            if (theta < 0.0f) theta += 360.0f;
+                if (theta < 0.0f) theta += 360.0f;
 
-            // Integer truncation mod (matches CPU and Metal)
-            float current_blade_angle = theta - (float)((int)(theta / data->blade_div_angle)) * data->blade_div_angle;
+                // Integer truncation mod (matches CPU and Metal)
+                float current_blade_angle = theta - (float)((int)(theta / data->blade_div_angle)) * data->blade_div_angle;
 
-            if (current_blade_angle <= data->blade_width_angle) {
-                float current_element_angle = current_blade_angle
-                    - (float)((int)(current_blade_angle / data->element_angle)) * data->element_angle;
+                if (current_blade_angle <= data->blade_width_angle) {
+                    float current_element_angle = current_blade_angle
+                        - (float)((int)(current_blade_angle / data->element_angle)) * data->element_angle;
 
-                if (current_element_angle <= data->element_size) {
-                    int color_index = (int)(current_blade_angle / data->color_angle);
-                    if (color_index < 0) color_index = 0;
-                    if (color_index >= data->num_colors) color_index = data->num_colors - 1;
+                    if (current_element_angle <= data->element_size) {
+                        int color_index = (int)(current_blade_angle / data->color_angle);
+                        if (color_index < 0) color_index = 0;
+                        if (color_index >= data->num_colors) color_index = data->num_colors - 1;
 
-                    float color_pct = 1.0f - ((abs(current_element_angle - data->element_size * 0.5f) * 2.0f) / data->element_size);
+                        float color_pct = 1.0f - ((abs(current_element_angle - data->element_size * 0.5f) * 2.0f) / data->element_size);
 
-                    if (data->blend_edges) {
-                        if (data->allowAlpha) {
-                            result[index][0] = data->colorsAsRGBA[color_index][0];
-                            result[index][1] = data->colorsAsRGBA[color_index][1];
-                            result[index][2] = data->colorsAsRGBA[color_index][2];
-                            result[index][3] = (uint8)(255.0f * color_pct);
+                        if (data->blend_edges) {
+                            if (data->allowAlpha) {
+                                result[index][0] = data->colorsAsRGBA[color_index][0];
+                                result[index][1] = data->colorsAsRGBA[color_index][1];
+                                result[index][2] = data->colorsAsRGBA[color_index][2];
+                                result[index][3] = (uint8)(255.0f * color_pct);
+                            } else {
+                                float v = clamp(data->colorsV[color_index] * color_pct, 0.0f, 1.0f);
+                                result[index] = fanHsv2rgba(data->colorsH[color_index], data->colorsS[color_index], v);
+                            }
                         } else {
-                            float v = clamp(data->colorsV[color_index] * color_pct, 0.0f, 1.0f);
-                            result[index] = fanHsv2rgba(data->colorsH[color_index], data->colorsS[color_index], v);
+                            result[index] = fanHsv2rgba(data->colorsH[color_index], data->colorsS[color_index], data->colorsV[color_index]);
                         }
-                    } else {
-                        result[index] = fanHsv2rgba(data->colorsH[color_index], data->colorsS[color_index], data->colorsV[color_index]);
                     }
                 }
             }

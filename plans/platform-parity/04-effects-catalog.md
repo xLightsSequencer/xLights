@@ -78,7 +78,7 @@ falls through to the read-only `customPlaceholder` (`EffectPropertyView.swift:48
 | 42 | Sketch | ✅ `SketchEffect.cpp` + `SketchEffectDrawing.cpp` + `SketchSVGImport.cpp`, no gate | ✅ `Sketch.json` (9 props, 4 custom → `SketchInfoRowView`, `SketchDefRowView`, `SketchPathEditorRowView`, `SketchBackgroundRowView`); `Sketch_PathEditor` is `"platform": "ipad"` | `RegisterJsonSubclass<SketchPanel>` (`:147`); **assist panel** (`SketchPanel.h:51`) → `SketchAssistPanel` + `SketchCanvasPanel` | — | Unlike Pictures, the Sketch assist canvas *does* have an iPad counterpart — inline as a settings row rather than a docked pane. |
 | 43 | Snowflakes | ✅ | ✅ `Snowflakes.json` (5) | `RegisterJsonSubclass<SnowflakesPanel>` (`:148`) — `ValidateWindow` only | — | |
 | 44 | Snowstorm | ✅ | ✅ `Snowstorm.json` (3) | `RegisterJson` (`:149`) | — | |
-| 45 | Spirals | ✅ | ✅ `Spirals.json` (8) | `RegisterJson` (`:150`) | ISPC + Metal (`:228`) + Vulkan | |
+| 45 | Spirals | ✅ | ✅ `Spirals.json` (9) | `RegisterJson` (`:150`) | ISPC + Metal (`:228`) + Vulkan | Reverse 3D (#6614) is JSON-driven — shared |
 | 46 | Spirograph | ✅ | ✅ `Spirograph.json` (7) | `RegisterJson` (`:151`) | — | |
 | 47 | State | 🟡 renders; needs model state definitions | 🟡 `State.json` (5 props, 1 custom → `StateStateSourceRowView`); `dynamicOptions: states` (`SequencerViewModel.swift:3568`) | `RegisterJsonSubclass<StatePanel>` (`:152`); `SetRenderableEffect`, `SetPanelStatus` (`StatePanel.h:25-32`) | — | **Gap:** same root cause as Faces — `StatePanel::SetDefaultParameters` (`StatePanel.cpp:114-121`) selects state[0] and timing-track[0] on a new effect; iPad seeds an empty settings string. Desktop-only crash fix 2026-08-11: `StatePanel` held the panel's model as a raw `Model*` across model-list rebuilds and now keeps the name, resolving through `AllModels` at use; no iPad counterpart because `dynamicOptions: states` resolves per call from the selected effect's row (`SequencerViewModel.swift:3845-3849`) and never caches a model. |
 | 48 | Strobe | ✅ | ✅ `Strobe.json` (4) | `RegisterJson` (`:153`) | — | |
@@ -136,7 +136,7 @@ is no iPad allow-list or per-effect suppression anywhere in the palette path.
 | 22 | Layer blending: 24 mix modes | `BlendingPanel` is a `JsonEffectPanel` subclass over `shared/Blending.json` (`BlendingPanel.cpp:101-111`); list at `BlendingPanel.cpp:89-99` | ✅ | `LayerMethodRowView` (`BlendingPanelViews.swift:138`) over `kLayerMethods` (`:24-33`). Diffed programmatically against desktop's `LAYER_METHODS`: **24 vs 24, same members, same order.** See Notes for the duplication risk. |
 | 23 | Canvas mode | `CanvasRow` custom row in `shared/Blending.json` | ✅ | `CanvasRowView` (`EffectPropertyView.swift:202`) — checkbox + Layers… button. |
 | 24 | Layer morph + effect-layer mix | `LayerMorphRow` in `shared/Blending.json` | ✅ | `LayerMorphRowView` (`EffectPropertyView.swift:198`). |
-| 25 | In/out transitions: 22 types + fade time, Adjust, Reverse, Blur | `BlendingPanel::BuildTransitionHeader` (`BlendingPanel.cpp:248-275`); `TRANSITION_TYPES` at `:261`, `TRANSITIONS_NO_ADJUST` at `:70`, `TRANSITIONS_NO_REVERSE` at `:76`, `TRANSITIONS_WITH_BLUR` at `:82` | ✅ | `TransitionHeaderRowView` (`BlendingPanelViews.swift:440`) over `kTransitionTypes` (`:40-45`), `kTransitionsNoAdjust`/`kTransitionsNoReverse`/`kTransitionsWithBlur` (`:51-68`). All four lists diffed programmatically against their desktop counterparts: 22/10/12/10 entries respectively, **identical members in identical order**. |
+| 25 | In/out transitions: 22 types + fade time, Adjust, Reverse, Blur | `BlendingPanel::BuildTransitionHeader` (`BlendingPanel.cpp:248-275`); `TRANSITION_TYPES` at `:261`, `TRANSITIONS_NO_ADJUST` at `:70`, `TRANSITIONS_NO_REVERSE` at `:76`, `TRANSITIONS_WITH_BLUR` at `:82` | ✅ | `TransitionHeaderRowView` (`BlendingPanelViews.swift:440`) over `kTransitionTypes` (`:40-45`), `kTransitionsNoAdjust`/`kTransitionsNoReverse`/`kTransitionsWithBlur` (`:51-68`). All four lists diffed programmatically against their desktop counterparts: 22/10/12/10 entries respectively, **identical members in identical order**. Mask lookup for multi-light nodes in the shared ISPC/Metal/Vulkan GetColors/PutColors kernels (`LayerBlendingFunctions.metal:130`) is core, so its fix applies to iPad automatically. |
 | 26 | Persistent render flag | `Persistent` checkbox in `shared/Buffer.json:87`; `Effect::IsPersistent()` (`src-core/render/Effect.h:139`) | ✅ | Shared JSON → rendered by the generic checkbox branch on the iPad Buffer tab. |
 | 27 | `SuppressEffectUntil` / `FreezeEffectAtFrame` | `shared/Blending.json` spin properties | ✅ | Generic spin branch with typed entry (`EffectPropertyView.swift:421-452`). |
 | 28 | Effect icon rendering (grid + palette) | `EffectIconCache::GetEffectIcon` → `wxBitmapBundle` from compiled-in XPMs, keyed by (effect, size) (`src-ui-wx/effectpanels/EffectIconCache.h:19-27`) | ✅ | `EffectIconCache` (`src-iPad/App/EffectIconCache.swift:9-45`) — same 16/24/32/48/64 bucket ladder, pulls BGRA from `iconBGRA(forEffectNamed:desiredSize:outputSize:)` which parses the same desktop XPM data; caches misses so a missing icon isn't re-probed per frame. |
@@ -199,6 +199,20 @@ theme):
   allocation). Each now clamps with `std::min<int>(buffer.GetPixelCount(), …)`,
   matching the seven effects already fixed this way. Both apps link the same
   effects, so no iPad-side work; no row status changes.
+
+- **2026-10-27, shared/auto-applied (`src-core/effects/ispc/`).** The pixel kernels
+  for Bars, Candle, Circles, Color Wash, Fan, Fill, Galaxy, Garlands, Kaleidoscope,
+  Life, Shimmer, Shockwave, Spirals, Tree and Wave walk rows instead of deriving x/y
+  from `index % width` (ispc has no vector integer divide, so it ran those a lane at a
+  time). Output is byte-identical; the iPad links the same kernels, so no iPad-side
+  work; no row status changes.
+
+- **2026-10-28, shared/auto-applied (`src-core/effects/VideoEffect.cpp`, #7284).** When a
+  variable sub-buffer changed the buffer size mid-effect, a reader that can't `Resize`
+  in place was recreated from the unresolved settings filename, failed to open, and
+  the effect rendered red. It now reopens from the reader's own resolved path. Only
+  FFmpeg/Windows-hardware readers hit the fallback (AVFoundation resizes in place), so
+  macOS/iPad were unaffected; no row status changes.
 
 - **The per-effect matrix is nearly saturated, and that is the real finding.** Because
   `JsonEffectPanel` and `EffectPropertyView` consume the same

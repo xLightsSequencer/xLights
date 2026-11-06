@@ -137,6 +137,13 @@ bool VUMeterEffect::sRegexDefault = false;
 std::string VUMeterEffect::sTypeDefault = "Waveform";
 std::string VUMeterEffect::sShapeDefault = "Circle";
 
+// Splits width columns into bars equal-ish bars that cover every column; bar is 0-based.
+static void BarSpan(int width, int bars, int bar, int& startx, int& endx)
+{
+    startx = width * bar / bars;
+    endx = width * (bar + 1) / bars;
+}
+
 VUMeterEffect::VUMeterEffect(int id) : RenderableEffect(id, "VU Meter", vumeter_16, vumeter_24, vumeter_32, vumeter_48, vumeter_64)
 {
 }
@@ -271,7 +278,7 @@ void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, b
     }
     SettingsMap& settings = effect->GetSettings();
     if (IsVersionOlder("2022.04", version)) {
-        if (settings.Get("CHOICE_VUMeter_Type", sTypeDefault) == "Timing Event Color") {
+        if (settings.Get("E_CHOICE_VUMeter_Type", sTypeDefault) == "Timing Event Color") {
             settings["E_SLIDER_VUMeter_Sensitivity"] = "100";
         }
     }
@@ -408,6 +415,10 @@ void VUMeterEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
            SettingsMap.Get("FILEPICKERCTRL_SVGFile", ""));
 }
 
+// "No mark seen yet": far enough in the past that it is never the previous frame and never
+// inside a fade window (-1 was both at period 0, so effects starting there pulsed in silence).
+static constexpr int NO_TIMING_MARK = -1000000;
+
 class VUMeterRenderCache : public EffectRenderCache
 {
 
@@ -416,7 +427,7 @@ public:
 	{
         _lastsize = 0;
         _colourindex = 0;
-        _lasttimingmark = 0;
+        _lasttimingmark = NO_TIMING_MARK;
         _nCount = 0;
         _lastDirection = 1;
 	};
@@ -770,9 +781,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
                 if (s.draw && s.bar >= 0) {
                     xlColor color1;
                     buffer.palette.GetColor(s.colourindex, color1);
-                    int startx = buffer.BufferWi / usebars * s.bar;
-                    int endx = std::ceil(buffer.BufferWi / usebars) * (s.bar + 1);
-                    if (endx > buffer.BufferWi) endx = buffer.BufferWi;
+                    int startx, endx;
+                    BarSpan(buffer.BufferWi, usebars, s.bar, startx, endx);
                     for (int x = startx; x < endx; x++)
                         for (int y = 0; y < buffer.BufferHt; ++y)
                             buffer.SetPixel(x, y, color1);
@@ -784,9 +794,8 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
                     xlColor color;
                     buffer.palette.GetColor(ci, color);
                     for (int i = 0; i < usebars; i++) {
-                        int startx = buffer.BufferWi / usebars * i;
-                        int endx = std::ceil(buffer.BufferWi / usebars) * (i + 1);
-                        if (endx > buffer.BufferWi) endx = buffer.BufferWi;
+                        int startx, endx;
+                        BarSpan(buffer.BufferWi, usebars, i, startx, endx);
                         for (int x = startx; x < endx; x++)
                             for (int y = 0; y < buffer.BufferHt; y++)
                                 buffer.SetPixel(x, y, color);
@@ -856,7 +865,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
         _nCount = 0;
         _colourindex = -1;
 		_timingmarks.clear();
-		_lasttimingmark = -1;
+		_lasttimingmark = NO_TIMING_MARK;
 		_lastvalues.clear();
 		_lastpeaks.clear();
         _pausepeakfall.clear();
@@ -1069,7 +1078,7 @@ std::unique_ptr<EffectFrameState> VUMeterEffect::AdvanceState(Effect* effect, co
         _nCount = 0;
         _colourindex = -1;
         cache->_timingmarks.clear();
-        _lasttimingmark = -1;
+        _lasttimingmark = NO_TIMING_MARK;
         cache->_lastvalues.clear();
         cache->_lastpeaks.clear();
         cache->_pausepeakfall.clear();
@@ -3487,9 +3496,8 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
         int bar = lastbar - 1;
         buffer.palette.GetColor(colourindex, color1);
 
-        int startx = buffer.BufferWi / bars * bar;
-        int endx = std::ceil(buffer.BufferWi / bars) * (bar + 1);
-        if (endx > buffer.BufferWi) endx = buffer.BufferWi;
+        int startx, endx;
+        BarSpan(buffer.BufferWi, bars, bar, startx, endx);
 
         if (bar >= 0)
         {
@@ -3545,10 +3553,8 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
 
         if (all) {
             for (int i = 0; i < bars; i++) {
-                int startx = buffer.BufferWi / bars * i;
-                int endx = std::ceil(buffer.BufferWi / bars) * (i + 1);
-                if (endx > buffer.BufferWi)
-                    endx = buffer.BufferWi;
+                int startx, endx;
+                BarSpan(buffer.BufferWi, bars, i, startx, endx);
 
                 for (int x = startx; x < endx; x++) {
                     for (int y = 0; y < buffer.BufferHt; y++) {
@@ -3562,10 +3568,8 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
                 buffer.palette.GetColor(ci, color);
             }
         } else {
-            int startx = buffer.BufferWi / bars * bar;
-            int endx = std::ceil(buffer.BufferWi / bars) * (bar + 1);
-            if (endx > buffer.BufferWi)
-                endx = buffer.BufferWi;
+            int startx, endx;
+            BarSpan(buffer.BufferWi, bars, bar, startx, endx);
 
             if (bar >= 0) {
                 for (int x = startx; x < endx; x++) {
@@ -3621,10 +3625,8 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int 
         int bar = lastbar - 1;
         buffer.palette.GetColor(colourindex, color1);
 
-        int startx = buffer.BufferWi / bars * bar;
-        int endx = std::ceil(buffer.BufferWi / bars) * (bar + 1);
-        if (endx > buffer.BufferWi)
-            endx = buffer.BufferWi;
+        int startx, endx;
+        BarSpan(buffer.BufferWi, bars, bar, startx, endx);
 
         if (bar >= 0) {
             for (int x = startx; x < endx; x++) {

@@ -853,10 +853,13 @@ void CubeModel::InitModel()
         }
     };
 
+    int strings = std::max(_cubeStrings, 1);
+    int nodesPerString = std::max((width * height * depth) / strings, 1);
+
     for (size_t n = 0; n < Nodes.size(); n++)
     {
         Nodes[n]->ActChan = stringStartChan[0] + n * chanPerNode;
-        Nodes[n]->StringNum = 1;
+        Nodes[n]->StringNum = std::min((int)n / nodesPerString, strings - 1);
         int lx = std::get<0>(locations[n]);
         int ly = std::get<1>(locations[n]);
         int lz = std::get<2>(locations[n]);

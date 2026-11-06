@@ -384,7 +384,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         int w = std::max(buffer.BufferWi, cache->maxBuffer.width);
         int h = std::max(buffer.BufferHt, cache->maxBuffer.height);
 
-        cache->FireBuffer.resize(w * h);
+        cache->FireBuffer.resize((size_t)std::max(1, w) * (size_t)std::max(1, h));
         for (size_t i = 0; i < cache->FireBuffer.size(); ++i) {
             cache->FireBuffer[i] = 0;
         }
@@ -400,10 +400,13 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     if (maxMHt < 1) {
         maxMHt = 1;
     }
+    if (maxMWi < 1) {
+        maxMWi = 1;
+    }
 
-    if ((maxMHt * maxMWi) > (int)cache->FireBuffer.size()) {
+    if ((size_t)maxMHt * (size_t)maxMWi > cache->FireBuffer.size()) {
         // this shouldn't happen, but just in case we'll do this as a safety measure
-        cache->FireBuffer.resize(maxMHt * maxMWi);
+        cache->FireBuffer.resize((size_t)maxMHt * (size_t)maxMWi);
     }
     
     int step = std::max(1, 255 * 100 / curHt / HeightPct);

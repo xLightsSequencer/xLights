@@ -44,6 +44,26 @@ private:
     std::string _filepath;
 };
 
+// A sequence can reference one file as both "Shaders\x.fs" and "Shaders/x.fs"
+// (Windows-authored settings vs. the file picker). The resolved-path fallback
+// in the Get* lookups can't fold those together once the file isn't on disk
+// (e.g. an embedded entry opened from a package), so retry with the other
+// separator before treating the path as new.
+template <typename Cache>
+static auto FindAnySeparator(Cache& cache, const std::string& filepath) {
+    auto it = cache.find(filepath);
+    if (it != cache.end()) return it;
+    std::string alt = filepath;
+    if (alt.find('\\') != std::string::npos) {
+        std::replace(alt.begin(), alt.end(), '\\', '/');
+    } else if (alt.find('/') != std::string::npos) {
+        std::replace(alt.begin(), alt.end(), '/', '\\');
+    } else {
+        return it;
+    }
+    return cache.find(alt);
+}
+
 // =====================================================================
 // MediaCacheEntry (base class) Implementation
 // =====================================================================
@@ -791,7 +811,7 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
     if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
     // Check if image is already cached
-    auto it = _imageCache.find(filepath);
+    auto it = FindAnySeparator(_imageCache, filepath);
     if (it != _imageCache.end()) {
         auto ret = it->second;
         if (!ret->isLoaded()) {
@@ -1426,26 +1446,6 @@ void SequenceMedia::ClearRelocations()
     _pendingRelocations.clear();
 }
 
-void SequenceMedia::RemoveUnusedImages()
-{
-
-    std::scoped_lock lock(_cacheMutex);
-
-    // Remove unused static images
-    std::vector<std::string> toRemove;
-
-    for (const auto& pair : _imageCache) {
-        if (!pair.second->IsUsed()) {
-            toRemove.push_back(pair.first);
-        }
-    }
-
-    for (const auto& path : toRemove) {
-        spdlog::debug("Removing unused image from cache: {}", path);
-        _imageCache.erase(path);
-    }
-}
-
 void SequenceMedia::MarkAllUnused() {
     std::scoped_lock lock(_cacheMutex);
     for (const auto& pair : _imageCache) {
@@ -1977,7 +1977,7 @@ ResolvedMediaPath SequenceMedia::ResolveFilePath(const std::string& filepath)
 std::shared_ptr<TextMediaCacheEntry> SequenceMedia::GetTextFile(const std::string& filepath) {
     if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
-    auto it = _textCache.find(filepath);
+    auto it = FindAnySeparator(_textCache, filepath);
     if (it != _textCache.end()) {
         auto ret = it->second;
         if (!ret->isLoaded()) {
@@ -2005,7 +2005,7 @@ std::shared_ptr<TextMediaCacheEntry> SequenceMedia::GetTextFile(const std::strin
 std::shared_ptr<SVGMediaCacheEntry> SequenceMedia::GetSVG(const std::string& filepath) {
     if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
-    auto it = _svgCache.find(filepath);
+    auto it = FindAnySeparator(_svgCache, filepath);
     if (it != _svgCache.end()) {
         auto ret = it->second;
         if (!ret->isLoaded()) {
@@ -2033,7 +2033,7 @@ std::shared_ptr<SVGMediaCacheEntry> SequenceMedia::GetSVG(const std::string& fil
 std::shared_ptr<ShaderMediaCacheEntry> SequenceMedia::GetShader(const std::string& filepath) {
     if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
-    auto it = _shaderCache.find(filepath);
+    auto it = FindAnySeparator(_shaderCache, filepath);
     if (it != _shaderCache.end()) {
         auto ret = it->second;
         if (!ret->isLoaded()) {
@@ -2063,7 +2063,7 @@ std::shared_ptr<ShaderMediaCacheEntry> SequenceMedia::GetShader(const std::strin
 std::shared_ptr<BinaryMediaCacheEntry> SequenceMedia::GetBinaryFile(const std::string& filepath, const std::string& subtype) {
     if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
-    auto it = _binaryCache.find(filepath);
+    auto it = FindAnySeparator(_binaryCache, filepath);
     if (it != _binaryCache.end()) {
         auto ret = it->second;
         if (!ret->isLoaded()) {
@@ -2091,7 +2091,7 @@ std::shared_ptr<BinaryMediaCacheEntry> SequenceMedia::GetBinaryFile(const std::s
 std::shared_ptr<VideoMediaCacheEntry> SequenceMedia::GetVideo(const std::string& filepath) {
     if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
-    auto it = _videoCache.find(filepath);
+    auto it = FindAnySeparator(_videoCache, filepath);
     if (it != _videoCache.end()) {
         auto ret = it->second;
         if (!ret->isLoaded()) {
@@ -2120,7 +2120,7 @@ std::shared_ptr<VideoMediaCacheEntry> SequenceMedia::GetVideo(const std::string&
 std::shared_ptr<AudioMediaCacheEntry> SequenceMedia::GetAudio(const std::string& filepath) {
     if (filepath.empty()) return nullptr;
     std::unique_lock lock(_cacheMutex);
-    auto it = _audioCache.find(filepath);
+    auto it = FindAnySeparator(_audioCache, filepath);
     if (it != _audioCache.end()) {
         auto ret = it->second;
         if (!ret->isLoaded()) {
@@ -2161,7 +2161,7 @@ bool SequenceMedia::HasMedia(const std::string& filepath) const {
 std::pair<bool, bool> SequenceMedia::GetMediaEmbedState(const std::string& filepath) const {
     std::scoped_lock lock(_cacheMutex);
     auto checkCache = [&](const auto& cache) -> std::optional<std::pair<bool, bool>> {
-        auto it = cache.find(filepath);
+        auto it = FindAnySeparator(cache, filepath);
         if (it != cache.end())
             return std::pair{ it->second->IsEmbedded(), it->second->IsEmbeddable() };
         return std::nullopt;
@@ -2181,15 +2181,15 @@ std::string SequenceMedia::FindEmbeddedKey(const std::string& filepath) const {
     std::scoped_lock lock(_cacheMutex);
     // An exact key hit decides it; only fall back to the (FixFile-costly)
     // resolved-path scan when the key isn't cached at all.
-    std::optional<bool> exact;
+    std::optional<std::string> exact;
     auto findExact = [&](const auto& cache) {
-        auto it = cache.find(filepath);
+        auto it = FindAnySeparator(cache, filepath);
         if (it == cache.end()) return false;
-        exact = it->second->IsEmbedded() && !it->second->GetEmbeddedData().empty();
+        exact = (it->second->IsEmbedded() && !it->second->GetEmbeddedData().empty()) ? it->first : std::string();
         return true;
     };
     if (findExact(_imageCache) || findExact(_textCache) || findExact(_svgCache) || findExact(_shaderCache)) {
-        return *exact ? filepath : std::string();
+        return *exact;
     }
     // Effect loadFiles() may have rewritten the setting (absolute path ->
     // show-relative) after the embedded entry was keyed.

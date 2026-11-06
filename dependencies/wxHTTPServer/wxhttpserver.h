@@ -224,6 +224,12 @@ protected:
 	IPaddress         _address;
 	bool              _isWebSocket;
 	WebSocketMessage *_message;
+
+	// Added for xLights: HttpServer defers deleting a connection whose request is still running
+	bool              _inRequest = false;
+	bool              _lost = false;
+
+	friend class HttpServer;
 };
 
 //WX_DECLARE_EXPORTED_HASH_MAP(wxSocketBase *, HttpConnection *, wxPointerHash, wxPointerEqual, ConnectionMap);

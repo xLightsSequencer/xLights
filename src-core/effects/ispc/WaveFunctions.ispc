@@ -127,49 +127,53 @@ export void WaveEffectISPC(const uniform WaveISPCData * uniform d,
     uniform int yoff = d->yoffset;
     uniform int numColors = d->numColors;
 
-    foreach (index = startIdx ... endIdx) {
-        int x = index % width;
-        int Y = index / width;
-        int yy = Y - yoff;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int Y = startIdx / max(width, 1); width > 0 && Y * width < endIdx; Y++) {
+        uniform int rowStart = Y * width;
+        foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + x;
+            int yy = Y - yoff;
 
-        // Proactive no-op clamp before the gather (x is always < width).
-        int cx = min(x, width - 1);
-        int y1 = cols[2 * cx];
-        int y2 = cols[2 * cx + 1];
+            // Proactive no-op clamp before the gather (x is always < width).
+            int cx = min(x, width - 1);
+            int y1 = cols[2 * cx];
+            int y2 = cols[2 * cx + 1];
 
-        // The scalar draws the main band [y1,y2] then, when mirroring, overwrites
-        // with the reflected band [height-y2, height-y1] (span = y2-y1), so the
-        // mirror wins on overlap. deltay = y2-y1 (the main band) is the color
-        // divisor for both bands.
-        int bandY1 = y1;
-        bool inBand = false;
-        if (mirror != 0) {
-            int mlo = height - y2;
-            int mhi = height - y1;
-            if (yy >= mlo && yy <= mhi) {
-                bandY1 = mlo;
+            // The scalar draws the main band [y1,y2] then, when mirroring, overwrites
+            // with the reflected band [height-y2, height-y1] (span = y2-y1), so the
+            // mirror wins on overlap. deltay = y2-y1 (the main band) is the color
+            // divisor for both bands.
+            int bandY1 = y1;
+            bool inBand = false;
+            if (mirror != 0) {
+                int mlo = height - y2;
+                int mhi = height - y1;
+                if (yy >= mlo && yy <= mhi) {
+                    bandY1 = mlo;
+                    inBand = true;
+                }
+            }
+            if (!inBand && yy >= y1 && yy <= y2) {
+                bandY1 = y1;
                 inBand = true;
             }
-        }
-        if (!inBand && yy >= y1 && yy <= y2) {
-            bandY1 = y1;
-            inBand = true;
-        }
 
-        if (inBand) {
-            int deltay = y2 - y1;
-            int k = yy - bandY1;
-            uint8<4> out;
-            if (fill == WAVE_FILL_NONE) {
-                out = d->noneColor;
-            } else if (fill == WAVE_FILL_RAINBOW) {
-                double hue = (double)k / (double)deltay;
-                out = waveRainbow(hue);
-            } else {
-                double hue = (double)k / (double)deltay;
-                out = wavePalette(d, (float)hue, numColors);
+            if (inBand) {
+                int deltay = y2 - y1;
+                int k = yy - bandY1;
+                uint8<4> out;
+                if (fill == WAVE_FILL_NONE) {
+                    out = d->noneColor;
+                } else if (fill == WAVE_FILL_RAINBOW) {
+                    double hue = (double)k / (double)deltay;
+                    out = waveRainbow(hue);
+                } else {
+                    double hue = (double)k / (double)deltay;
+                    out = wavePalette(d, (float)hue, numColors);
+                }
+                result[index] = out;
             }
-            result[index] = out;
         }
     }
 }

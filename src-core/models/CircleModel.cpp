@@ -24,7 +24,11 @@ CircleModel::~CircleModel()
 }
 
 int CircleModel::GetStrandLength(int strand) const {
-    return SingleNode ? 1 : GetLayerSize(GetLayerSizeCount() - strand - 1);
+    if (SingleNode) {
+        return 1;
+    }
+    // strands are in wiring order; layer sizes are stored inside -> outside
+    return GetLayerSize(_insideOut ? strand : GetLayerSizeCount() - strand - 1);
 }
 
 int CircleModel::MapToNodeIndex(int strand, int node) const {

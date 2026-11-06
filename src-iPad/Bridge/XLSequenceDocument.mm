@@ -72,6 +72,7 @@
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
 #include "models/SubModelOps.h"
+#include "models/SubModelSymmetrize.h"
 #include "models/ViewObject.h"
 #include "models/ViewObjectManager.h"
 #include "models/MeshObject.h"
@@ -5806,11 +5807,21 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
         }
         members.push_back(name);
     }
-    if (members.size() < 2) return nil;
+    if (members.size() < 2 || mgr.ModelsMixBaseAndLocal(members)) return nil;
     auto* s = mgr.GetSetManager().CreateSet(
         members, suggestedName ? std::string(suggestedName.UTF8String) : std::string());
     if (!s) return nil;
     return [NSString stringWithUTF8String:s->GetName().c_str()];
+}
+
+- (BOOL)modelsMixBaseAndLocal:(NSArray<NSString*>*)modelNames {
+    if (!_context || !_context->HasModelManager()) return NO;
+    std::vector<std::string> names;
+    names.reserve(modelNames.count);
+    for (NSString* n in modelNames) {
+        names.push_back(n.UTF8String);
+    }
+    return _context->GetModelManager().ModelsMixBaseAndLocal(names) ? YES : NO;
 }
 
 - (NSString*)suggestedModelSetName {
@@ -5847,6 +5858,9 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
     auto& setMgr = mgr.GetSetManager();
     auto* s = setMgr.GetSetByName(setName.UTF8String);
     if (!s) return NO;
+    std::vector<std::string> combined = s->GetMembers();
+    combined.push_back(modelName.UTF8String);
+    if (mgr.ModelsMixBaseAndLocal(combined)) return NO;
     setMgr.AddMember(s, modelName.UTF8String);
     return YES;
 }
@@ -7028,6 +7042,11 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     return (NSInteger)m->GetNodeCount();
 }
 
+- (BOOL)canSymmetrizeModel:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return NO;
+    return SubModelSymmetrize::SupportsModel(_context->GetModelManager()[std::string(modelName.UTF8String)]);
+}
+
 - (nullable NSString*)exportSubmodelsCSVForModel:(NSString*)parentName {
     if (!_context || !_context->HasModelManager() || !parentName) return nil;
     Model* m = _context->GetModelManager()[std::string(parentName.UTF8String)];
@@ -7868,11 +7887,6 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
     auto& vm = _context->GetAllObjects();
     ViewObject* vo = vm.CreateAndAddObject(t);
     if (!vo) return nil;
-    // Default to the active layout group so the new object
-    // immediately renders in the current preview. "All Models"
-    // is virtual — fall back to "Default" so the object is
-    // actually stored against a real preview.
-    vo->SetLayoutGroup(LayoutGroupForNewItem(_context->GetActiveLayoutGroup()));
     // Ruler is a TwoPoint object — without initial geometry both
     // endpoints sit at world origin so the line is zero-length and
     // invisible. Match desktop's Add Ruler defaults (100-unit
@@ -8038,9 +8052,8 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
         BOOL v = asBool(&ok); if (!ok) return NO;
         if ((v ? true : false) != loc.IsLocked()) { loc.SetLocked(v ? true : false); changed = YES; }
     } else if (k == "layoutGroup") {
-        NSString* s = asString(&ok); if (!ok) return NO;
-        std::string newGroup = s.UTF8String;
-        if (newGroup != vo->GetLayoutGroup()) { vo->SetLayoutGroup(newGroup); changed = YES; }
+        // View objects are Default-only (matches desktop + the loader).
+        return NO;
     } else if (k == "active") {
         BOOL v = asBool(&ok); if (!ok) return NO;
         if ((v ? true : false) != vo->IsActive()) { vo->SetActive(v ? true : false); changed = YES; }
@@ -12719,6 +12732,9 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
             @"endMS": @(ef->GetEndTimeMS()),
             @"visibleRow": @(vis.first),
             @"effectIndex": @(vis.second),
+            @"modelName": [NSString stringWithUTF8String:container->GetModelName().c_str()],
+            @"effectName": [NSString stringWithUTF8String:ef->GetEffectName().c_str()],
+            @"layerIndex": @(layer->GetIndex()),
         }];
     };
 
@@ -13609,11 +13625,13 @@ static std::string iPadLiftNestedStemModel(const std::string& rootDir) {
     std::error_code ec;
     if (!std::filesystem::exists(rootDir, ec)) return {};
     std::string found;
-    for (auto& entry : std::filesystem::recursive_directory_iterator(rootDir, ec)) {
-        if (ec) break;
-        if (entry.is_directory(ec) &&
-            entry.path().filename().string() == AIModelStore::kDemucsModelName) {
-            found = entry.path().string();
+    // increment(ec) rather than range-for: the latter's operator++ throws on a damaged folder
+    std::filesystem::recursive_directory_iterator it(rootDir, std::filesystem::directory_options::skip_permission_denied, ec);
+    for (; !ec && it != std::filesystem::recursive_directory_iterator(); it.increment(ec)) {
+        std::error_code dec;
+        if (it->is_directory(dec) &&
+            it->path().filename().string() == AIModelStore::kDemucsModelName) {
+            found = it->path().string();
             break;
         }
     }
@@ -13811,14 +13829,14 @@ static std::string iPadLiftNestedStemModel(const std::string& rootDir) {
                                   });
         std::vector<std::pair<std::string, std::string>> encoded;
         if (ok) {
-            am->SetStemData(
-                stems.drumsL, stems.drumsR,
-                stems.bassL, stems.bassR,
-                stems.otherL, stems.otherR,
-                stems.vocalsL, stems.vocalsR);
             // The encode is the slow part and only writes files, so it stays
             // here; registering the tracks mutates the sequence and must not.
             encoded = [self encodeStemFiles:stems source:am];
+            am->SetStemData(
+                std::move(stems.drumsL), std::move(stems.drumsR),
+                std::move(stems.bassL), std::move(stems.bassR),
+                std::move(stems.otherL), std::move(stems.otherR),
+                std::move(stems.vocalsL), std::move(stems.vocalsR));
         }
         dispatch_async(dispatch_get_main_queue(), ^{
             if (!encoded.empty()) {
@@ -18409,29 +18427,13 @@ public:
     Discovery discovery(&om, _fppAuthDelegate.get());
 
     // Seed unicast probes the way desktop's GetDiscoveryAddresses does
-    // (DiscoveryHelpers.cpp:29-66): every active ethernet controller's
-    // resolved IP, plus any FPP proxy. Broadcast alone misses anything
+    // (shared FPP::StartControllerSeeding): every active ethernet
+    // controller's resolved IP, plus any FPP proxy. Broadcast alone misses anything
     // on another subnet or behind a proxy, which is the case seeding
     // exists for. (The iPad has no FPPConnectForcedIPs preference, so
     // that source contributes nothing here — FPP Connect keeps its own
     // forced-IP list separately.)
-    std::list<std::string> seedAddresses;
-    for (auto* ctrl : om.GetControllers()) {
-        auto* eth = dynamic_cast<ControllerEthernet*>(ctrl);
-        if (!eth || eth->GetIP().empty() || eth->GetIP() == "MULTICAST") continue;
-        const std::string resolved = eth->GetResolvedIP(true);
-        if (resolved.empty()) {
-            seedAddresses.push_back(::Lower(eth->GetIP()));
-        } else if (eth->IsActive() &&
-                   (ip_utils::IsIPValid(resolved) || resolved != eth->GetIP())) {
-            seedAddresses.push_back(::Lower(resolved));
-        }
-        if (!eth->GetFPPProxy().empty()) {
-            seedAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
-        }
-    }
-    seedAddresses.sort();
-    seedAddresses.unique();
+    std::list<std::string> seedAddresses = FPP::StartControllerSeeding(&om);
     FPP::PrepareDiscovery(discovery, seedAddresses);
     ArtNetOutput::PrepareDiscovery(discovery);
     TwinklyOutput::PrepareDiscovery(discovery);
@@ -18440,6 +18442,7 @@ public:
     WLED::PrepareDiscovery(discovery);
 
     discovery.Discover();
+    FPP::FinishControllerSeeding(discovery, seedAddresses);
 
     // Walk each result. Auto-add when there's no conflict;
     // otherwise capture the conflict for the SwiftUI side to
@@ -19081,6 +19084,28 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
                             port:(int)port
                       afterModel:(nullable NSString*)afterModelName
                      smartRemote:(int)smartRemote {
+    return [self assignModelToController:modelName controllerName:controllerName kind:portKind port:port
+                              afterModel:afterModelName beforeModel:nil smartRemote:smartRemote];
+}
+
+- (BOOL)assignModelToController:(NSString*)modelName
+                  controllerName:(NSString*)controllerName
+                            kind:(NSString*)portKind
+                            port:(int)port
+                     beforeModel:(NSString*)beforeModelName
+                     smartRemote:(int)smartRemote {
+    if (beforeModelName.length == 0) return NO;
+    return [self assignModelToController:modelName controllerName:controllerName kind:portKind port:port
+                              afterModel:nil beforeModel:beforeModelName smartRemote:smartRemote];
+}
+
+- (BOOL)assignModelToController:(NSString*)modelName
+                  controllerName:(NSString*)controllerName
+                            kind:(NSString*)portKind
+                            port:(int)port
+                      afterModel:(nullable NSString*)afterModelName
+                     beforeModel:(nullable NSString*)beforeModelName
+                     smartRemote:(int)smartRemote {
     if (!_context || !modelName || !controllerName || !portKind) return NO;
     if (!_context->HasModelManager()) return NO;
     auto& om = _context->GetOutputManager();
@@ -19106,6 +19131,22 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
     Model* afterModel = nullptr;
     if (afterModelName && afterModelName.length > 0) {
         afterModel = mm[afterModelName.UTF8String];
+        if (afterModel == m) return NO;
+    }
+
+    Model* beforeModel = nullptr;
+    std::string beforeChain;
+    if (afterModel == nullptr && beforeModelName.length > 0) {
+        beforeModel = mm[beforeModelName.UTF8String];
+        if (beforeModel == nullptr || beforeModel == m) return NO;
+        const auto onPort = dstPort->GetModels();
+        if (std::none_of(onPort.begin(), onPort.end(),
+                         [beforeModel](UDControllerPortModel* pm) { return pm->GetModel() == beforeModel; })) {
+            return NO;
+        }
+        beforeChain = beforeModel->GetModelChain();
+        // already directly before it
+        if (dstPort->GetModelBefore(beforeModel) == m || beforeChain == ">" + m->GetName()) return YES;
     }
 
     // Whoever is currently chained AFTER the target needs to
@@ -19114,6 +19155,25 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
     Model* afterNext = (afterModel != nullptr)
         ? dstPort->GetModelAfter(afterModel)
         : nullptr;
+
+    // Whatever followed m in its old chain, possibly on another controller, now follows what m followed.
+    Model* oldNext = cud.GetModelAfter(m);
+    if (oldNext == nullptr && m->GetControllerName() != c->GetName()) {
+        if (Controller* oldC = om.GetController(m->GetControllerName())) {
+            UDController oldCud(oldC, &om, &mm, /*eliminateOverlaps=*/false);
+            oldNext = oldCud.GetModelAfter(m);
+        }
+    }
+    if (oldNext != nullptr) {
+        oldNext->SetModelChain(m->GetModelChain());
+        _context->MarkLayoutModelDirty(oldNext->GetName());
+    }
+    if (afterNext == m) {
+        afterNext = oldNext;
+    }
+
+    // the model being dropped next to; protocol and smart remote follow it
+    Model* anchor = afterModel != nullptr ? afterModel : beforeModel;
 
     // 1) Controller + port assignment.
     m->SetControllerName(c->GetName());
@@ -19134,8 +19194,8 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
             } else if (!m->IsPixelProtocol()) {
                 m->SetControllerProtocol("ws2811");
             }
-        } else if (afterModel) {
-            m->SetControllerProtocol(afterModel->GetControllerProtocol());
+        } else if (anchor) {
+            m->SetControllerProtocol(anchor->GetControllerProtocol());
         }
         if (caps && !caps->SupportsSmartRemotes()) {
             m->SetSmartRemote(0);
@@ -19154,8 +19214,8 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
             if (m->GetControllerDMXChannel() == 0) {
                 m->SetControllerDMXChannel(1);
             }
-        } else if (afterModel) {
-            m->SetControllerProtocol(afterModel->GetControllerProtocol());
+        } else if (anchor) {
+            m->SetControllerProtocol(anchor->GetControllerProtocol());
         }
         m->SetSmartRemote(0);
     } else if ([portKind isEqualToString:@"pwm"]) {
@@ -19172,20 +19232,21 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         m->SetSmartRemote(0);
     }
 
-    // 3) Smart-remote inheritance. -1 = inherit from afterModel
-    //    (or leave the model's own value when there's no chain
-    //    target); >= 0 = explicit override.
+    // 3) Smart-remote inheritance. -1 = inherit from the model
+    //    dropped next to (or leave the model's own value when
+    //    there's no chain target); >= 0 = explicit override.
     if ([portKind isEqualToString:@"pixel"]) {
         if (smartRemote >= 0) {
             m->SetSmartRemote(smartRemote);
-        } else if (afterModel) {
-            m->SetSmartRemote(afterModel->GetSmartRemote());
+        } else if (anchor) {
+            m->SetSmartRemote(anchor->GetSmartRemote());
         }
     }
 
-    // 4) Chain. Pixel uses modelChain string ("@PrevModel:1");
-    //    serial uses controllerDMXChannel arithmetic.
-    if ([portKind isEqualToString:@"pixel"]) {
+    // 4) Chain. Serial uses controllerDMXChannel arithmetic; every
+    //    other kind uses the modelChain string (">PrevModel"), as
+    //    desktop's DropFromController does.
+    if (![portKind isEqualToString:@"serial"]) {
         if (afterModel) {
             // Insert after `afterModel`: it stays where it was;
             // `m` chains off it; whatever was chained off
@@ -19194,6 +19255,10 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
             if (afterNext) {
                 afterNext->SetModelChain(">" + m->GetName());
             }
+        } else if (beforeModel) {
+            // Take `beforeModel`'s place in the chain; it now chains off `m`.
+            m->SetModelChain(beforeChain);
+            beforeModel->SetModelChain(">" + m->GetName());
         } else if (dstPort->GetModelCount() > 0) {
             // No after-target but port non-empty → append at end.
             if (auto* tail = dstPort->GetLastModel()) {
@@ -19204,7 +19269,7 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         } else {
             m->SetModelChain("");
         }
-    } else if ([portKind isEqualToString:@"serial"]) {
+    } else {
         // Walk forward from `m` (now in the chain at the desired
         // position), pushing each downstream model's DMX channel
         // forward when it would overlap. Matches the desktop's
@@ -19216,22 +19281,66 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
             Model* prev = m;
             Model* nxt = afterNext;
             while (nxt) {
+                // m may still sit further down this port in the stale snapshot
+                if (nxt != m) {
+                    int needCh = prev->GetControllerDMXChannel() + prev->GetSerialChannelSpan(prev->GetControllerDMXChannel());
+                    if (nxt->GetControllerDMXChannel() < needCh) {
+                        nxt->SetControllerDMXChannel(needCh);
+                    }
+                    nxt->SetModelChain("");
+                    _context->MarkLayoutModelDirty(nxt->GetName());
+                    prev = nxt;
+                }
+                // dstPort is stale once we mutate channels, but
+                // GetModelAfter only reads ordered list, which
+                // hasn't been re-sorted; safe to keep walking.
+                nxt = dstPort->GetModelAfter(nxt);
+            }
+        } else if (beforeModel) {
+            // Desktop's left-hand serial drop: fit m just below
+            // `beforeModel` (but past the model before it), then push
+            // `beforeModel` and everything after it up as needed.
+            m->SetModelChain("");
+            int nextCh = std::max(1, beforeModel->GetControllerDMXChannel() - (int)m->GetChanCount());
+            if (Model* prev = dstPort->GetModelBefore(beforeModel)) {
+                nextCh = std::max(nextCh, (int)(prev->GetControllerDMXChannel() + prev->GetSerialChannelSpan(prev->GetControllerDMXChannel())));
+            }
+            if (m->GetControllerDMXChannel() < nextCh ||
+                m->GetControllerDMXChannel() > beforeModel->GetControllerDMXChannel() - (int)m->GetChanCount()) {
+                m->SetControllerDMXChannel(nextCh);
+            }
+            Model* prev = m;
+            for (Model* nxt = beforeModel; nxt != nullptr; nxt = dstPort->GetModelAfter(nxt)) {
+                if (nxt == m) continue;
                 int needCh = prev->GetControllerDMXChannel() + prev->GetSerialChannelSpan(prev->GetControllerDMXChannel());
                 if (nxt->GetControllerDMXChannel() < needCh) {
                     nxt->SetControllerDMXChannel(needCh);
                 }
                 nxt->SetModelChain("");
+                _context->MarkLayoutModelDirty(nxt->GetName());
                 prev = nxt;
-                // dstPort is stale once we mutate channels, but
-                // GetModelAfter only reads ordered list, which
-                // hasn't been re-sorted; safe to keep walking.
-                nxt = dstPort->GetModelAfter(nxt);
+            }
+        } else {
+            // Append: start after whatever is last on the port.
+            m->SetModelChain("");
+            if (auto* tail = dstPort->GetLastModel()) {
+                Model* last = tail->GetModel();
+                if (last == m) {
+                    last = dstPort->GetModelBefore(m);
+                }
+                if (last != nullptr) {
+                    int nextCh = last->GetControllerDMXChannel() + last->GetSerialChannelSpan(last->GetControllerDMXChannel());
+                    if (m->GetControllerDMXChannel() < nextCh) {
+                        m->SetControllerDMXChannel(nextCh);
+                    }
+                }
             }
         }
     }
 
     _context->MarkLayoutModelDirty(m->GetName());
     if (afterNext) _context->MarkLayoutModelDirty(afterNext->GetName());
+    if (beforeModel) _context->MarkLayoutModelDirty(beforeModel->GetName());
     [self reworkAndRecalcStartChannels];
     return YES;
 }
@@ -19770,9 +19879,8 @@ NSString* fppTypeString(FPP_TYPE t) {
     if (!_context) return out;
     auto& om = _context->GetOutputManager();
 
-    // Reuse the same broadcast-ping path desktop's
-    // `DiscoverFPPInstances` (DiscoveryHelpers.cpp:96) uses. No forced
-    // IPs today — iPad has no `FPPConnectForcedIPs` preference yet.
+    // Same discovery desktop's `DiscoverFPPInstances` (DiscoveryHelpers.cpp)
+    // runs: the user's forced IPs plus the configured controllers' addresses.
     // Discovery runs synchronously on the calling thread; Swift wraps
     // in `Task.detached`.
     DiscoveryDelegate defaultDelegate;
@@ -19781,11 +19889,16 @@ NSString* fppTypeString(FPP_TYPE t) {
     for (NSString* ip in forcedIPs) {
         if (ip.length > 0) forcedAddresses.push_back(std::string([ip UTF8String]));
     }
+    std::list<std::string> addresses = FPP::StartControllerSeeding(&om);
+    addresses.insert(addresses.end(), forcedAddresses.begin(), forcedAddresses.end());
+    addresses.sort();
+    addresses.unique();
     // broadcastPing defaults to true, so broadcast discovery still runs
-    // alongside any user-supplied forced IPs (CTL-5 "Add FPP by IP").
-    FPP::PrepareDiscovery(discovery, forcedAddresses);
+    // alongside the unicast probes (CTL-5 "Add FPP by IP").
+    FPP::PrepareDiscovery(discovery, addresses);
     FPP::PrepareControllerTypeProbes(discovery, forcedAddresses);
     discovery.Discover();
+    FPP::FinishControllerSeeding(discovery, addresses);
     FPP::MapToFPPInstances(discovery, _fppInstances, &om);
 
     _fppInstances.sort(sortByIP);
@@ -20333,8 +20446,14 @@ NSString* fppTypeString(FPP_TYPE t) {
         // Drain any in-flight transfers (Prepare may have queued
         // capability probes / mediaUpload PUTs; Finalize will queue
         // the bulk fseq transfer; AddFrameToUpload is CPU-only).
-        while (CurlManager::INSTANCE.processCurls()) {}
+        while (CurlManager::INSTANCE.processCurls(CurlManager::PUMP_WAIT_MS)) {}
     };
+
+    // Ask every target for its copy's metadata at once so Prepare doesn't wait on each in turn.
+    for (TargetCtx& c : ctxs) {
+        c.fpp->PrefetchSequenceMeta(fseq);
+    }
+    pumpCurls();
 
     // Phase 1 — Prepare each target. Mirrors FPPConnectDialog.cpp:1253.
     for (TargetCtx& c : ctxs) {

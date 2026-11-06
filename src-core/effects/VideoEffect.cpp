@@ -745,8 +745,10 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             // into MediaToolbox's process-global cache. Fall back to delete+new
             // when the impl can't resize in place (FFmpeg today).
             if (!_videoreader->Resize(width, height)) {
+                // filename is only resolved on the init frame; reuse the path the reader opened
+                std::string openedFile = _videoreader->GetFilename();
                 delete _videoreader;
-                _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
+                _videoreader = new VideoReader(openedFile, width, height, aspectratio, false, true);
             }
             cache->_openedWidth = width;
             cache->_openedHeight = height;

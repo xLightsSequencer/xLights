@@ -35,11 +35,17 @@ export void FillEffectISPC(const uniform FillData * uniform data,
     // keeps ispc's gather-index analysis happy at -O1+ (ispc/ispc#3881/#3882).
     uniform int maxLine = (vert ? (int)data->height : w) - 1;
 
-    foreach (index = startIdx ... endIdx) {
-        int line = vert ? (index / w) : (index % w);
-        line = min(line, maxLine);
-        if (painted[line] != 0) {
-            result[index] = lut[line];
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int y = startIdx / max(w, 1); w > 0 && y * w < endIdx; y++) {
+        uniform int rowStart = y * w;
+        foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, w)) {
+            int index = rowStart + x;
+            int line = vert ? y : x;
+            line = min(line, maxLine);
+            if (painted[line] != 0) {
+                result[index] = lut[line];
+            }
         }
     }
 }

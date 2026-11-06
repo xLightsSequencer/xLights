@@ -1066,7 +1066,9 @@ void Model::UpdateChannels()
     // alternative function that only performs channel calculation instead of calling the full Setup function
     CouldComputeStartChannel = false;
     std::string dependsonmodel;
-    int32_t StartChannel = GetNumberFromChannelString(ModelStartChannel, CouldComputeStartChannel, dependsonmodel);
+    bool startValid = false;
+    int32_t StartChannel = GetNumberFromChannelString(ModelStartChannel, startValid, dependsonmodel);
+    CouldComputeStartChannel = startValid;
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings = GetNumStrings();
@@ -1592,8 +1594,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
         if (c != nullptr) {
             start = c->GetStartChannel();
         }
-        unsigned int lastChannel = GetLastChannel() + 1;
-        return Trim(BeforeFirst(modelFormat, ':')) + ":" + std::to_string(lastChannel - start + 1) + " (" + std::to_string(lastChannel) + ")";
+        return Trim(BeforeFirst(modelFormat, ':')) + ":" + std::to_string(channel - start + 1) + " (" + std::to_string(channel) + ")";
     } else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0) {
         // absolute
         return std::to_string(channel);
@@ -1771,7 +1772,9 @@ void Model::GetBufferSize(const std::string& tp, const std::string& camera, cons
 void Model::AdjustForTransform(const std::string& transform,
                                int& bufferWi, int& bufferHi) const
 {
-    if (transform == "Rotate CC 90" || transform == "Rotate CW 90") {
+    // Every rotation by 90 degrees ApplyTransform performs swaps the sides
+    if (transform == "Rotate CC 90" || transform == "Rotate CW 90" ||
+        transform == "Rotate CC 90 Flip Horizontal" || transform == "Rotate CW 90 Flip Horizontal") {
         int x = bufferHi;
         bufferHi = bufferWi;
         bufferWi = x;
@@ -1887,7 +1890,7 @@ void Model::ApplyTransform(const std::string& type,
         }
         std::swap(bufferWi, bufferHi);
 
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
             }
@@ -4879,7 +4882,7 @@ std::vector<PWMOutput> Model::GetPWMOutputs() const {
                 }
                 float g = _controllerConnection.GetGamma();
                 int b = _controllerConnection.GetBrightness();
-                ret.emplace_back(n->ActChan + 1, PWMOutput::Type::LED, 1, label, b, g);
+                ret.emplace_back(n->ActChan + x, PWMOutput::Type::LED, 1, label, b, g);
             }
             cur++;
         }

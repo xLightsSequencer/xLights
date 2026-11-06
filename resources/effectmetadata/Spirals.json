@@ -11,6 +11,7 @@
             "max": 5,
             "valueCurve": true,
             "lockable": true,
+            "tooltip": "Number of times the color palette repeats around the model",
             "description": "Number of times the full color palette is repeated across the spirals. Higher values create more spiral arms by duplicating the palette pattern."
         },
         {
@@ -38,6 +39,7 @@
             "max": 100,
             "valueCurve": true,
             "lockable": true,
+            "tooltip": "Width of each spiral band as a percentage of the available space",
             "description": "Width of each spiral arm as a percentage of the available space. At 100% the arms fill the entire model with no gaps between them."
         },
         {
@@ -49,6 +51,7 @@
             "divisor": 10,
             "valueCurve": true,
             "lockable": true,
+            "tooltip": "Speed and direction the spirals travel; negative reverses direction",
             "min": -200,
             "max": 200,
             "description": "Speed and direction of the spiral rotation. Positive values rotate in one direction, negative in the other. Zero keeps the spirals stationary."
@@ -60,6 +63,7 @@
             "controlType": "checkbox",
             "default": false,
             "lockable": true,
+            "tooltip": "Blend palette colors from bottom to top instead of one color per band",
             "description": "When enabled, blends all palette colors vertically across each spiral arm instead of using distinct per-arm colors."
         },
         {
@@ -69,7 +73,18 @@
             "controlType": "checkbox",
             "default": false,
             "lockable": true,
+            "tooltip": "Fade each band from a solid edge to a faded edge for a 3D look",
             "description": "When enabled, applies a brightness gradient across each spiral arm to simulate a 3D shading effect, making the arms appear rounded."
+        },
+        {
+            "id": "Spirals_Reverse3D",
+            "label": "Reverse 3D",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "lockable": true,
+            "tooltip": "Swap the solid and faded edges of the 3D shading",
+            "description": "Flips which edge of each spiral arm is solid and which is faded when 3D is enabled, so the solid edge can lead the movement instead of trail it."
         },
         {
             "id": "Spirals_Grow",
@@ -78,6 +93,7 @@
             "controlType": "checkbox",
             "default": false,
             "lockable": true,
+            "tooltip": "Bands get thicker over the duration of the effect",
             "description": "When enabled, the spiral arms gradually increase in thickness over the effect duration."
         },
         {
@@ -87,7 +103,14 @@
             "controlType": "checkbox",
             "default": false,
             "lockable": true,
+            "tooltip": "Bands get thinner over the duration of the effect; with Grow, they grow then shrink",
             "description": "When enabled, the spiral arms gradually decrease in thickness over the effect duration. When both Grow and Shrink are enabled, the arms grow then shrink."
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Spirals_3D", "equals": true },
+            "enable": ["Spirals_Reverse3D"]
         }
     ]
 }

@@ -209,14 +209,14 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     //wxASSERT(NumPixels < 500000);
 
     if (NumPixels != pixelVector.size()) {
-        bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
+        bool resetPtr = pixelVector.size() == 0 || pixels == pixelVector.data();
         pixelVector.resize(NumPixels);
         if (resetPtr) {
             // If the pixels ptr did not point to the first element
             // originally, then it is pointing into GPU memory and we need
             // to keep that pointer pointing there so the data can be retreived
             // from the GPU.
-            pixels = &pixelVector[0];
+            pixels = pixelVector.data();
         }
         // tempbufVector is lazily allocated (most effects never touch tempbuf -
         // see ensureTempBuf()); only keep it in step with the pixel count if
@@ -429,10 +429,10 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
         while (y < 0) {
             y += BufferHt;
         }
-        while (x > BufferWi) {
+        while (x >= BufferWi) {
             x -= BufferWi;
         }
-        while (y > BufferHt) {
+        while (y >= BufferHt) {
             y -= BufferHt;
         }
     }
@@ -506,10 +506,10 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
         while (y < 0) {
             y += BufferHt;
         }
-        while (x > BufferWi) {
+        while (x >= BufferWi) {
             x -= BufferWi;
         }
-        while (y > BufferHt) {
+        while (y >= BufferHt) {
             y -= BufferHt;
         }
     }
@@ -1172,8 +1172,9 @@ xlSize RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
     std::string bufferstyle = SettingsMap.Get("CHOICE_BufferStyle", "Default");
     std::string transform = SettingsMap.Get("CHOICE_BufferTransform", "None");
     std::string camera = SettingsMap.Get("CHOICE_PerPreviewCamera", "2D");
-    int w, h;
-    
+    int w = -1;
+    int h = -1;
+
     static const std::string PER_MODEL("Per Model");
     static const std::string DEEP("Deep");
     if (bufferstyle.compare(0, 9, PER_MODEL) == 0) {
@@ -1184,6 +1185,12 @@ xlSize RenderBuffer::GetMaxBuffer(const SettingsMap& SettingsMap) const
     }
     
     m->GetBufferSize(bufferstyle, camera, transform, w, h, SettingsMap.GetInt("B_SPINCTRL_BufferStagger", 0));
+    // Render buffers are capped at 100000 per side (Model::InitRenderBufferNodes).
+    // Anything outside that scaled into an int overflowed to INT_MIN, which Fire
+    // then used as its grid width and wrote far outside its grid.
+    if (w <= 0 || h <= 0 || w > 100000 || h > 100000) {
+        return xlSize(-1, -1);
+    }
     float xScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
     float yScale = (SB_RIGHT_TOP_MAX - SB_LEFT_BOTTOM_MIN) / 100.0;
     return xlSize(xScale * w, yScale * h);
@@ -1341,7 +1348,7 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     rngLayerIndex = buffer.rngLayerIndex;
     rngSeededForPeriod = buffer.rngSeededForPeriod;
 
-    pixels = &pixelVector[0];
+    pixels = pixelVector.data();
     _textDrawingContext = buffer._textDrawingContext;
     gpuRenderData = nullptr;
 }

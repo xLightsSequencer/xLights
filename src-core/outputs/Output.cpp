@@ -36,6 +36,8 @@
 #include "../utils/ip_utils.h"
 #include "Controller.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <log.h>
 
 #pragma region Private Functions
@@ -61,6 +63,7 @@ Output::Output(const Output& from) {
     _ok = true;
     _dirty = from.IsDirty();
     _channels = from.GetChannels();
+    _universe = from._universe;
     _startChannel = from.GetStartChannel();
     _suppressDuplicateFrames = from.IsSuppressDuplicateFrames();
     _description_CONVERT = from.GetDescription_CONVERT();
@@ -75,7 +78,7 @@ Output::Output(const Output& from) {
 Output::Output(pugi::xml_node node) {
     _ok = true;
 
-    _channels = node.attribute("MaxChannels").as_int(0);
+    _channels = (int)std::clamp(node.attribute("MaxChannels").as_llong(0), 0LL, (long long)INT32_MAX);
 
     // Only kept for conversion
     _autoSize_CONVERT = std::string_view(node.attribute("AutoSize").as_string("FALSE")) == "TRUE";
@@ -172,7 +175,6 @@ Output* Output::Create(Controller* c, pugi::xml_node node, std::string showDir) 
     }
 
     spdlog::warn("Unknown network type {} ignored.", type.c_str());
-    assert(false);
     return nullptr;
 }
 #pragma endregion
@@ -231,7 +233,10 @@ bool Output::operator==(const Output& output) const {
     if (GetType() != output.GetType()) return false;
 
     if (IsIpOutput()) {
-        return _universe == output.GetUniverse() && (_ip == output.GetIP() || _resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP());
+        return _universe == output.GetUniverse() && (_ip == output.GetIP() || (!_resolvedIp.empty() && (_resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP())));
+    }
+    else if (GetType() == OUTPUT_NULL) {
+        return _universe == output.GetUniverse();
     }
     else {
         return _commPort == output.GetCommPort();

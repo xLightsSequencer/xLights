@@ -28,27 +28,17 @@ public:
                 return false;
             }
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"SpiralsEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                NSInteger dataSize = sizeof(sdata);
+                [computeEncoder setBytes:&sdata length:dataSize atIndex:0];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+
+                NSInteger pixelCount = sdata.width * sdata.height;
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, fn, pixelCount);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"SpiralsEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            NSInteger dataSize = sizeof(sdata);
-            [computeEncoder setBytes:&sdata length:dataSize atIndex:0];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
-
-            NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
-            NSInteger pixelCount = sdata.width * sdata.height;
-            NSInteger threads = std::min(pixelCount, maxThreads);
-            MTLSize gridSize = MTLSizeMake(pixelCount, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
         }
         return true;
     }
@@ -82,6 +72,7 @@ void MetalSpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
     int Thickness = GetValueCurveInt("Spirals_Thickness", sThicknessDefault, SettingsMap, offset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool Blend   = SettingsMap.GetBool("CHECKBOX_Spirals_Blend", sBlendDefault);
     bool Show3D  = SettingsMap.GetBool("CHECKBOX_Spirals_3D", s3DDefault);
+    bool Reverse3D = SettingsMap.GetBool("CHECKBOX_Spirals_Reverse3D", sReverse3DDefault);
     bool grow    = SettingsMap.GetBool("CHECKBOX_Spirals_Grow", sGrowDefault);
     bool shrink  = SettingsMap.GetBool("CHECKBOX_Spirals_Shrink", sShrinkDefault);
 
@@ -135,7 +126,7 @@ void MetalSpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
     sdata.rotation       = (float)Rotation;
     sdata.show3D         = Show3D ? 1 : 0;
     sdata.allowAlpha     = buffer.allowAlpha ? 1 : 0;
-    sdata.rotation_sign  = (Rotation >= 0.0f) ? 1.0f : -1.0f;
+    sdata.rotation_sign  = ((Direction < 0) != Reverse3D) ? -1.0f : 1.0f;
 
     for (int i = 0; i < (int)colorcnt; i++) {
         xlColor c;

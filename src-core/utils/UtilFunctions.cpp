@@ -144,11 +144,28 @@ std::string DecodeMidi(int midi) {
 std::string UnXmlSafe(const std::string& res) {
     if (Contains(res, "&")) {
         std::string r2(res);
-        for (int i = 0; i < 32; ++i) {
-            std::string ss = "&#" + std::to_string(i);
-            char buf[2] = { (char)i, 0 };
-            Replace(r2, ss, buf);
+        std::string out;
+        out.reserve(r2.size());
+        for (size_t i = 0; i < r2.size();) {
+            if (r2[i] == '&' && i + 2 < r2.size() && r2[i + 1] == '#' && std::isdigit((unsigned char)r2[i + 2])) {
+                size_t j = i + 2;
+                int v = 0;
+                while (j < r2.size() && std::isdigit((unsigned char)r2[j]) && v < 1000) {
+                    v = v * 10 + (r2[j] - '0');
+                    ++j;
+                }
+                if (v < 32) {
+                    out += (char)v;
+                    if (j < r2.size() && r2[j] == ';') {
+                        ++j;
+                    }
+                    i = j;
+                    continue;
+                }
+            }
+            out += r2[i++];
         }
+        r2 = out;
         Replace(r2, "&lt;", "<");
         Replace(r2, "&gt;", ">");
         Replace(r2, "&apos;", "'");
@@ -162,7 +179,7 @@ std::string UnXmlSafe(const std::string& res) {
 std::string XmlSafe(const std::string& s) {
     std::string res = "";
     for (auto c = s.begin(); c != s.end(); ++c) {
-        if ((int)(*c) < 32) {
+        if ((unsigned char)(*c) < 32) {
             int cc = (int)*c;
             if (cc == 9 || cc == 10 || cc == 13) {
                 char buf[8];
@@ -325,7 +342,7 @@ std::string EscapeCSV(const std::string& s) {
 
 std::string EscapeRegex(const std::string& s) {
     // \,*,+,?,|,{,[, (,),^,$,.,#,
-    constexpr std::string_view BADREX{ R"(\*+?|{[()^$,#)" };
+    constexpr std::string_view BADREX{ R"(\*+?|{[()^$.,#)" };
     std::string safe;
     for (auto& c : s) {
         if (BADREX.find(c) != std::string::npos) {
@@ -452,13 +469,17 @@ bool IsVersionOlder(const std::string& compare, const std::string& version) {
         return (int)std::strtol(s.c_str(), nullptr, 10);
     };
 
-    if (safeInt(version_parts[0]) < safeInt(compare_parts[0]))
+    auto part = [&](const std::vector<std::string>& v, size_t i) -> int {
+        return i < v.size() ? safeInt(v[i]) : 0;
+    };
+
+    if (part(version_parts, 0) < part(compare_parts, 0))
         return true;
-    if (safeInt(version_parts[0]) > safeInt(compare_parts[0]))
+    if (part(version_parts, 0) > part(compare_parts, 0))
         return false;
-    if (safeInt(version_parts[1]) < safeInt(compare_parts[1]))
+    if (part(version_parts, 1) < part(compare_parts, 1))
         return true;
-    if (safeInt(version_parts[1]) > safeInt(compare_parts[1]))
+    if (part(version_parts, 1) > part(compare_parts, 1))
         return false;
     if (version_parts.size() > 2 && compare_parts.size() == 2)
         return false; // remote version has 2 components but local has three so local must be newer
@@ -617,6 +638,18 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier) {
     }
     return false;
 #endif
+#elif defined(__linux__)
+    // Same signal and threshold as macOS above (system-wide swap in use), via
+    // sysinfo() instead of vm.swapusage. mem_unit scales every field (usually
+    // 1 on modern kernels, but not guaranteed).
+    constexpr uint64_t MAX = 24ULL * 1024 * 1024 * 1024;
+    struct sysinfo info;
+    if (sysinfo(&info) == 0) {
+        uint64_t unit = info.mem_unit > 0 ? info.mem_unit : 1;
+        uint64_t swapUsed = (uint64_t)(info.totalswap - info.freeswap) * unit;
+        return swapUsed > MAX;
+    }
+    return false;
 #else
     return false;
 #endif

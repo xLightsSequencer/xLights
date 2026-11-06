@@ -33,6 +33,7 @@
 #include "render/EffectLayer.h"
 #include "xLightsMain.h"
 #include "render/FSEQFile.h"
+#include "render/FSEQFileIO.h"
 #include "sequencer/CopyFormat1.h"
 #include "media/VideoWriter.h"
 #include "render/ModelVideoExporter.h"
@@ -1041,19 +1042,6 @@ void xLightsFrame::ReadXlightsFile(const wxString& FileName, wxString* mediaFile
     f.Close();
 }
 
-static void addRanges(Model* m, std::map<uint32_t, uint32_t>& ranges)
-{
-    ModelGroup* grp = dynamic_cast<ModelGroup*>(m);
-    if (grp != nullptr) {
-        for (auto m2 : grp->Models()) {
-            addRanges(m2, ranges);
-        }
-    } else {
-        uint32_t cur = ranges[m->GetFirstChannel()];
-        ranges[m->GetFirstChannel()] = std::max(m->GetChanCount(), cur);
-    }
-}
-
 void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
 {
     
@@ -1070,48 +1058,7 @@ void xLightsFrame::WriteFalconPiFile(const wxString& filename, bool allowSparse)
                                    filename);
     write_params.elements = &_sequenceElements;
     if (allowSparse) {
-        std::map<uint32_t, uint32_t> ranges;
-        int numElements = _sequenceElements.GetElementCount();
-        for (int i = 0; i < numElements; ++i) {
-            Element* element = _sequenceElements.GetElement(i);
-            if (element == nullptr)
-                spdlog::critical("Element {} returns as null.", i);
-            if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                std::string modelName = element->GetModelName();
-                Model* m = this->GetModel(modelName);
-                if (m == nullptr) {
-                    spdlog::critical("Model {} returns as null.", modelName);
-                } else {
-                    addRanges(m, ranges);
-                }
-            }
-        }
-
-        uint32_t gapEliminate = 0; // set if we want to eliminate gaps
-        std::pair<uint32_t, uint32_t> cur(INT_MAX, INT_MAX);
-        for (auto& a : ranges) {
-            if (cur.first == INT_MAX) {
-                cur.first = a.first;
-                cur.second = a.second;
-            } else {
-                if (a.first <= (cur.first + cur.second + gapEliminate)) {
-                    // overlap or within 1025 channels of an overlap, need to combine
-                    // if the two ranges are "close" (wthin 1025 channels) we'll combine
-                    // as the overhead of doing ranges wouldn't benefit with a small gap
-                    uint32_t max = cur.first + cur.second - 1;
-                    uint32_t amax = a.first + a.second - 1;
-                    max = std::max(max, amax);
-                    cur.second = max - cur.first + 1;
-                } else {
-                    write_params.ranges.push_back(cur);
-                    cur.first = a.first;
-                    cur.second = a.second;
-                }
-            }
-        }
-        if (cur.first != INT_MAX) {
-            write_params.ranges.push_back(cur);
-        }
+        write_params.ranges = FSEQFileIO::ComputeSparseRanges(_sequenceElements, *this);
     }
 
     FileConverter::WriteFalconPiFile(write_params);

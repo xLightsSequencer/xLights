@@ -988,6 +988,7 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
 
     // Desktop UI on top of the shared load:
     SetFrequency(xml_file.GetFrequency()); // also refreshes the timeline/waveform panels
+    mainSequencer->PanelTimeLine->SyncTagsFrom(_sequenceElements);
 
     // Sync jukebox UI from sequence data
     if (GetJukeboxPanel()) {
@@ -1059,6 +1060,9 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
 
     //have the frame, copy from SeqData
     TimerOutput(frame);
+    if (playModel != nullptr && !AllModels.IsModelValid(playModel)) {
+        playModel = nullptr;
+    }
     if (playModel != nullptr) {
         int nn = playModel->GetNodeCount();
         for (int node = 0; node < nn; node++) {
@@ -1100,7 +1104,7 @@ void xLightsFrame::Scroll( wxCommandEvent& event)
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(position);
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
     mainSequencer->HorizontalScrollChanged(eventScroll);
-    mainSequencer->PanelEffectGrid->ClearSelection();
+    mainSequencer->PanelEffectGrid->HorizontalScrolled();
 }
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
@@ -2884,6 +2888,12 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         //spdlog::debug("Outputting Frame {}", frame);
         // have the frame, copy from SeqData
         TimerOutput(frame);
+        // playModel is a cached raw pointer set on row selection; if the model it
+        // points to has since been freed, drop it rather than call into freed memory
+        if (playModel != nullptr && !AllModels.IsModelValid(playModel)) {
+            spdlog::warn("TimerRgbSeq: playModel no longer exists, clearing it.");
+            playModel = nullptr;
+        }
         if (playModel != nullptr && NeedToRenderFrame(_modelPreviewPanel, OutputTimer, didRender)) {
             int nn = playModel->GetNodeCount();
             for (int node = 0; node < nn; node++) {

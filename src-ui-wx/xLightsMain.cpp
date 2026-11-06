@@ -51,6 +51,7 @@
 
 #include "app-shell/AboutDialog.h"
 #include "sequencer/BatchRenderDialog.h"
+#include "sequencer/BatchRenderProgressDialog.h"
 #include "CachedFileDownloader.h"
 #include "shared/dialogs/CheckboxSelectDialog.h"
 #include "shared/dialogs/OptionChooser.h"
@@ -287,6 +288,7 @@ const wxWindowID xLightsFrame::ID_EXPORT_VIDEO = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM2 = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM8 = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_RECENTFOLDERS = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_FAVFOLDERS = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_RESTOREBACKUP = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
@@ -993,6 +995,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem11 = new wxMenuItem(RecentShowFoldersMenu, ID_MENUITEM8, _("RECENTFOLDER1"), wxEmptyString, wxITEM_NORMAL);
     RecentShowFoldersMenu->Append(MenuItem11);
     MenuFile->Append(ID_MENUITEM_RECENTFOLDERS, _("Recent Show Folders"), RecentShowFoldersMenu, wxEmptyString);
+    FavoriteShowFoldersMenu = new wxMenu();
+    MenuFile->Append(ID_MENUITEM_FAVFOLDERS, _("Favorite Show Folders"), FavoriteShowFoldersMenu, wxEmptyString);
     MenuItemBackup = new wxMenuItem(MenuFile, ID_FILE_BACKUP, _("Backup\tF10"), wxEmptyString, wxITEM_NORMAL);
     MenuItemBackup->SetBitmap(GetMenuItemBitmapBundle("wxART_HARDDISK"));
     MenuFile->Append(MenuItemBackup);
@@ -1696,9 +1700,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     layoutPanel = new LayoutPanel(PanelPreview, this, PanelSequencer);
     spdlog::debug("LayoutPanel creation done.");
-    layoutPanel->LabelDirectoriesFooter->Bind(wxEVT_LEFT_DCLICK,
-                             [this](wxMouseEvent&) {
-                                                  if (wxGetKeyState(WXK_SHIFT)) {
+    layoutPanel->LabelDirectoriesFooter->SetToolTip("Click to change the show folder. Shift+click to open it in the file manager.");
+    layoutPanel->LabelDirectoriesFooter->SetCursor(wxCursor(wxCURSOR_HAND));
+    layoutPanel->LabelDirectoriesFooter->Bind(wxEVT_LEFT_UP,
+                             [this](wxMouseEvent& e) {
+                                                  if (e.ShiftDown()) {
                                                       wxLaunchDefaultApplication(showDirectory);
                                                   } else {
                                                       OpenShowDirectoriesDialog();
@@ -1746,6 +1752,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         mruf_MenuItem[i] = nullptr;
     }
     MenuFile->FindItem(ID_MENUITEM_RECENTFOLDERS)->SetBitmap(GetMenuItemBitmapBundle("wxART_FOLDER_OPEN"));
+    MenuFile->FindItem(ID_MENUITEM_FAVFOLDERS)->SetBitmap(GetMenuItemBitmapBundle("wxART_FOLDER_OPEN"));
+    RebuildFavoriteShowFoldersMenu();
     MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->SetBitmap(GetMenuItemBitmapBundle("wxART_FILE_OPEN"));
 
     spdlog::debug("xLightsFrame constructor loading config.");
@@ -2948,17 +2956,20 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         }
     }
 
-    // Handle the effect Assist
-    if (tempEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
-        if (sEffectAssist->GetPanel() != sEffectAssist->GetDefaultAssistPanel() && sEffectAssist->GetPanel() != nullptr) {
+    // Handle the effect Assist. When hiding, the loop above already hid it with
+    // the other panes; applying the mode here would show it again on Layout.
+    if (show) {
+        if (tempEffectAssistMode == EFFECT_ASSIST_TOGGLE_MODE) {
+            if (sEffectAssist->GetPanel() != sEffectAssist->GetDefaultAssistPanel() && sEffectAssist->GetPanel() != nullptr) {
+                SetEffectAssistWindowState(true);
+            } else {
+                SetEffectAssistWindowState(false);
+            }
+        } else if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
             SetEffectAssistWindowState(true);
         } else {
             SetEffectAssistWindowState(false);
         }
-    } else if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
-        SetEffectAssistWindowState(true);
-    } else {
-        SetEffectAssistWindowState(false);
     }
     UpdateViewMenu();
 
@@ -6854,6 +6865,9 @@ bool xLightsFrame::CleanupRGBEffectsFileLocations()
 void xLightsFrame::OpenShowDirectoriesDialog() {
     ShowDirectoriesDialog dlg(this);
     dlg.ShowModal();
+    // Favorites may have been added, renamed or removed - the dialog can close
+    // without a folder change, which is what otherwise refreshes the menu.
+    RebuildFavoriteShowFoldersMenu();
 }
 
 void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event)
@@ -7804,7 +7818,18 @@ void xLightsFrame::OnMenuItem_CrashXLightsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 {
-    
+    // The main window stays usable during a batch; starting another would close the
+    // sequence the running one is rendering.
+    if (_batchRenderStarted) {
+        if (_batchRenderDialog != nullptr) {
+            _batchRenderDialog->Show();
+            _batchRenderDialog->Raise();
+        } else {
+            wxMessageBox(_("A batch render is already running."), _("Batch Render"), wxOK | wxICON_INFORMATION, this);
+        }
+        return;
+    }
+
     BatchRenderDialog dlg(this, &_outputManager);
     if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() == wxID_OK && CloseSequence()) {
         wxArrayString files = dlg.GetFileList();
@@ -7822,6 +7847,7 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
             if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
                 _lowDefinitionRender = false;
             }
+            _batchRenderShowProgress = true;
             OpenRenderAndSaveSequences(filesToRender, false);
             if (filesToRender.size() == 0) {
                 _lowDefinitionRender = _saveLowDefinitionRender;

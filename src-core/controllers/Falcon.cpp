@@ -10,6 +10,7 @@
 
 #include "Falcon.h"
 #include "../render/UICallbacks.h"
+#include <climits>
 #include <regex>
 #include <cassert>
 #include <filesystem>
@@ -37,6 +38,11 @@
 #include <spdlog/fmt/fmt.h>
 
 #pragma region V4
+
+static int V4StatusA(const nlohmann::json& status) {
+    auto it = status.find("A");
+    return (it != status.end() && it->is_number_integer()) ? it->get<int>() : -1;
+}
 
 std::string Falcon::SendToFalconV4(std::string msg) {
     return PutURL("/api", msg, "", "", "application/json");
@@ -93,9 +99,8 @@ bool Falcon::V4_IsFileUploading() {
 
     bool uploading = true;
     if (CallFalconV4API("Q", "WD", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-        int const d = outParams["D"].get<int>();
-
-        if (d == 1) {
+        auto dit = outParams.find("D");
+        if (dit == outParams.end() || !dit->is_number_integer() || dit->get<int>() == 1) {
             uploading = false;
         }
     } else {
@@ -113,13 +118,16 @@ int Falcon::V4_GetConversionProgress() {
     nlohmann::json p;
     nlohmann::json outParams;
     if (CallFalconV4API("Q", "WD", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
-        int const d = outParams["D"].get<int>();
-
-        if (d == 1) {
+        auto dit = outParams.find("D");
+        if (dit == outParams.end() || !dit->is_number_integer() || dit->get<int>() == 1) {
             return 100;
         }
 
-        int const mp3 = outParams["MP3"].get<int>();
+        auto mit = outParams.find("MP3");
+        if (mit == outParams.end() || !mit->is_number_integer()) {
+            return 100;
+        }
+        int const mp3 = mit->get<int>();
 
         if (mp3 == 100) {
             return 99;
@@ -198,8 +206,19 @@ bool Falcon::V4_GetInputs(std::vector<FALCON_V4_INPUTS>& res) {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "IN", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
+            bool valid = true;
             for (auto const& inpj : outParams["A"]) {
+                if (!inpj.is_object() || !inpj.contains("u") || !inpj.contains("c") || !inpj.contains("uc") || !inpj.contains("p")) {
+                    valid = false;
+                    break;
+                }
                 res.emplace_back(inpj);
+            }
+            if (!valid) {
+                done = true;
+                res.clear();
+                success = false;
+                continue;
             }
 
             batch++;
@@ -340,7 +359,7 @@ bool Falcon::V4_SetSerialConfig(int protocol, int universe, int startChannel, in
 }
 
 void Falcon::V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel, unsigned long modelStartChannel, int& universe, unsigned long& startChannel, bool oneBased, uint32_t controllerFirstChannel) {
-    if (_v4status["A"].get<int>() == 0) {
+    if (V4StatusA(_v4status) == 0) {
         universe = 0;
         startChannel = modelStartChannel - 1;
         if (oneBased) {
@@ -353,7 +372,7 @@ void Falcon::V4_GetStartChannel(int modelUniverse, int modelUniverseStartChannel
 }
 
 bool Falcon::V4_IsValidStartChannel(Controller* controller, int universe, long startChannel) {
-    if (_v4status["A"].get<int>() == 0) {
+    if (V4StatusA(_v4status) == 0) {
         if (universe != 0) {
             return false;
         }
@@ -387,8 +406,25 @@ bool Falcon::V4_GetStrings(std::vector<FALCON_V4_STRING>& res) {
         bool reboot;
         nlohmann::json outParams;
         if (CallFalconV4API("Q", "SP", batch, 0, 0, p, finalCall, outBatch, reboot, outParams) == 200) {
+            bool valid = true;
             for (auto const& inpj : outParams["A"]) {
-                res.emplace_back(inpj);
+                if (!inpj.is_object()) {
+                    valid = false;
+                    break;
+                }
+                try {
+                    res.emplace_back(inpj);
+                } catch (const nlohmann::json::exception& ex) {
+                    spdlog::error("Falcon V4 string entry invalid: {}", ex.what());
+                    valid = false;
+                    break;
+                }
+            }
+            if (!valid) {
+                done = true;
+                res.clear();
+                success = false;
+                continue;
             }
             ++batch;
             if (finalCall) {
@@ -799,7 +835,7 @@ int Falcon::V4_EncodeInputProtocol(const std::string& protocol) {
 }
 
 int Falcon::V4_GetRebootSecs() {
-    if (_ip == _v4status["I"].get<std::string>()) {
+    if (_v4status.contains("I") && _v4status["I"].is_string() && _ip == _v4status["I"].get<std::string>()) {
         return 8;
     } else {
         return 20;
@@ -1345,7 +1381,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         }
 
         // we need to make sure all the returned strings are valid against the input channels
-        V4_MakeStringsValid(controller, cud, falconStrings, _v4status["A"].get<int>());
+        V4_MakeStringsValid(controller, cud, falconStrings, V4StatusA(_v4status));
 
         spdlog::info("Retrieved falcon string configuration.");
         V4_DumpStrings(falconStrings);
@@ -1452,7 +1488,7 @@ bool Falcon::V4_SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     }
 
     bool reboot = false;
-    if (!V4_SendOutputs(uploadStrings, _v4status["A"].get<int>(), cud.GetFirstOutput()->GetStartChannel(), reboot)) {
+    if (!V4_SendOutputs(uploadStrings, V4StatusA(_v4status), cud.GetFirstOutput()->GetStartChannel(), reboot)) {
         ui->ShowMessage("Falcon Outputs Upload: Problem uploading string configuration.", "Error");
         if (doProgress) {
             ui->UpdateProgress(progressTk, 100, "Aborting.");
@@ -2185,9 +2221,9 @@ bool Falcon::IsEnhancedV2Firmware() const {
     int minorfw = 0;
 
     if (fwv.size() > 0) {
-        majorfw = (int)std::strtol(fwv[0].c_str(), nullptr, 10);
+        majorfw = (int)std::min<long>(std::strtol(fwv[0].c_str(), nullptr, 10), INT_MAX);
         if (fwv.size() > 1) {
-            minorfw = (int)std::strtol(fwv[1].c_str(), nullptr, 10);
+            minorfw = (int)std::min<long>(std::strtol(fwv[1].c_str(), nullptr, 10), INT_MAX);
         }
     }
 
@@ -2263,9 +2299,14 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
 
         if (_versionnum == 4 || _versionnum == 5) {
             // this is going to need special handling
-            if (V4_GetStatus(_v4status)) {
+            if (V4_GetStatus(_v4status) && _v4status.contains("BR") && _v4status["BR"].is_number_integer()) {
                 _modelnum = _v4status["BR"].get<int>();
                 _model = fmt::format("F{}v{}", _modelnum, _versionnum);
+            } else {
+                // everything V4 reads its mode/board settings from _v4status
+                spdlog::error("    Error retrieving V4 status from falcon controller.");
+                _v4status = nlohmann::json();
+                _connected = false;
             }
         } else {
             if (_versionnum == 0 || _modelnum == 0 || _firmwareVersion == "") {
@@ -2380,9 +2421,16 @@ std::string Falcon::DecodeMode(int mode) {
 #pragma region Getters and Setters
 std::string Falcon::GetMode() {
     if (_versionnum == 4 || _versionnum == 5) {
+        if (!_v4status.contains("O") || !_v4status["O"].is_number_integer()) {
+            return std::string();
+        }
         return V4_DecodeMode(_v4status["O"].get<int>());
     }
-    return DecodeMode((int)std::strtol(_status["m"].get<std::string>().c_str(), nullptr, 10));
+    auto mit = _status.find("m");
+    if (mit == _status.end() || !mit->is_string()) {
+        return std::string();
+    }
+    return DecodeMode((int)std::strtol(mit->get<std::string>().c_str(), nullptr, 10));
 }
 
 #ifndef DISCOVERYONLY
@@ -2538,6 +2586,10 @@ bool Falcon::SetInputUniverses(Controller* controller, UICallbacks* ui) {
     }
 
     if (_versionnum == 4 || _versionnum == 5) {
+        if (!_v4status.is_object()) {
+            ui->ShowMessage("Falcon Inputs Upload: Failed to retrieve current configuration.", "Error");
+            return false;
+        }
         return V4_SetInputUniverses(controller, ui);
     }
 
@@ -2673,6 +2725,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
     }
 
     if (_versionnum == 4 || _versionnum == 5) {
+        if (!_v4status.is_object()) {
+            ui->ShowMessage("Falcon Outputs Upload: Failed to retrieve current configuration.", "Error");
+            return false;
+        }
         return V4_SetOutputs(allmodels, outputManager, controller, ui, doProgress);
     }
 

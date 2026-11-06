@@ -1858,12 +1858,22 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
     };
 
     uint32_t frame = 0;
+    bool loggedBadFrame = false;
 
     //mostly copied from Joe's pull request(#1441) in Jan 2019
     while (frame < ogNumber_of_Frames) {
         FSEQFile::FrameData* data = xf->getFrame(frame);
 
-        data->readFrame(tmpBuf.data(), ogNumChannels); // we have a read frame
+        // a corrupt/truncated FSEQ returns no frame data; export that frame as off
+        if (data == nullptr) {
+            if (!loggedBadFrame) {
+                spdlog::warn("HinksPix HSEQ {}: could not read frame {} from {}; unreadable frames export as off.", shortHSEQName, frame, fseqFile);
+                loggedBadFrame = true;
+            }
+            std::fill(tmpBuf.begin(), tmpBuf.end(), 0);
+        } else {
+            data->readFrame(tmpBuf.data(), ogNumChannels); // we have a read frame
+        }
 
         int64_t dest = 0;
 

@@ -137,6 +137,26 @@ static bool NoteHWStreamFailed(AVHWDeviceType type, AVCodecID codec, int profile
     return true;
 }
 
+// Files whose hardware decode has already failed this session (decode error on
+// a format the device has decoded before, or a failed frame transfer).  Without
+// this every new reader on the file - one per model - opens another hardware
+// session only to fail again; crash reports show thousands of such retries on
+// one file ending in a crash inside the GPU driver's decoder.
+static std::mutex s_hwFailedFilesMutex;
+static std::set<std::string> s_hwFailedFiles;
+
+static bool HWDecodeFailedForFile(const std::string& filename)
+{
+    std::lock_guard<std::mutex> lock(s_hwFailedFilesMutex);
+    return s_hwFailedFiles.count(filename) != 0;
+}
+
+static void NoteHWDecodeFailedForFile(const std::string& filename)
+{
+    std::lock_guard<std::mutex> lock(s_hwFailedFilesMutex);
+    s_hwFailedFiles.insert(filename);
+}
+
 static std::string DescribeStream(AVCodecID codec, int profile)
 {
     std::string desc = avcodec_get_name(codec);
@@ -780,6 +800,9 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     // decoder rather than by a hwaccel of the native decoder - see the QSV branch
     // in the candidate loop below.
     const AVCodec* qsvDecoder = nullptr;
+    if (allowHWDecoder && IsHardwareAcceleratedVideo() && HWDecodeFailedForFile(_filename)) {
+        allowHWDecoder = false;
+    }
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(_WIN32)
         std::list<std::string> hwdecoders = { "cuda", "qsv", "d3d11va", "vulkan" };
@@ -1253,6 +1276,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                             spdlog::warn("VideoReader: av_hwframe_transfer_data failed for {} — abandoning hardware decode.", _filename);
                             spdlog::default_logger()->flush();
                             _abandonHardwareDecode = true;
+                            NoteHWDecodeFailedForFile(_filename);
                             // The transfer allocates the destination before it can
                             // fail, so a failed call can still leave buffers on
                             // _srcFrame2.  Without this the frame keeps them and the
@@ -1460,6 +1484,7 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
                                          hwName != nullptr ? hwName : "GPU", DescribeStream(codecId, profile), _filename);
                         } else {
                             spdlog::warn("VideoReader: Hardware video decoding failed for {}. Using software decoding for this file.", _filename);
+                            NoteHWDecodeFailedForFile(_filename);
                         }
                         spdlog::debug("VideoReader: hardware decode error was '{}' ({})", errbuf, ret);
                         reopenContext(false);

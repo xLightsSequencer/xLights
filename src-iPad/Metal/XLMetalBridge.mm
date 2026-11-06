@@ -533,10 +533,10 @@ static iPadRenderContext* ContextFromDoc(XLSequenceDocument* doc) {
 namespace {
 
 /// The other members of `modelName`'s Set. Empty when it's in no Set.
-/// `outFrozen` is set when *any* member is locked: desktop freezes the
-/// whole Set in that case rather than letting it deform
-/// (`LayoutPanel.cpp` `ModelSetHasLockedMember`), so the drag is
-/// refused outright.
+/// `outFrozen` is set when *any* member is locked or from the base show
+/// folder: desktop freezes the whole Set in that case rather than letting
+/// it deform (`ModelManager::IsModelSetFrozen`), so the drag is refused
+/// outright.
 std::vector<Model*> ModelSetPeers(iPadRenderContext* rctx,
                                    const std::string& modelName,
                                    bool& outFrozen) {
@@ -546,14 +546,13 @@ std::vector<Model*> ModelSetPeers(iPadRenderContext* rctx,
     auto& mgr = rctx->GetModelManager();
     ModelSet* s = mgr.GetSetManager().GetSetContaining(modelName);
     if (!s) return peers;
+    if (mgr.IsModelSetFrozen(s)) {
+        outFrozen = true;
+        return {};
+    }
     for (const auto& n : s->GetMembers()) {
         Model* m = mgr[n];
-        if (!m) continue;
-        if (m->IsLocked()) {
-            outFrozen = true;
-            return {};
-        }
-        if (n != modelName) peers.push_back(m);
+        if (m && n != modelName) peers.push_back(m);
     }
     return peers;
 }

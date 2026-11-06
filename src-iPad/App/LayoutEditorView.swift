@@ -1337,6 +1337,7 @@ struct LayoutEditorView: View {
                             Image(systemName: "plus.circle.fill")
                         }
                         .buttonStyle(.plain)
+                        .disabled(!canAddViewObject)
                         .accessibilityLabel("New view object")
                     }
                 }
@@ -1358,6 +1359,7 @@ struct LayoutEditorView: View {
                             addViewObjectSheetVisible = true
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(!canAddViewObject)
                     }
                 } else if filteredObjectNames.isEmpty {
                     ContentUnavailableView.search(text: objectFilter)
@@ -1367,6 +1369,10 @@ struct LayoutEditorView: View {
             controllersList
         }
     }
+
+    /// Desktop's `LayoutPanel::UpdateAddObjectButton()`: view objects
+    /// live only in the Default preview, which is the 3D one.
+    private var canAddViewObject: Bool { settings.is3D && activeLayoutGroup == "Default" }
 
     /// Desktop's `ControllerListPanel::NetworkChangesAllowed()` — no
     /// controller add/delete/reorder/edit/upload while the show is
@@ -2895,7 +2901,6 @@ struct LayoutEditorView: View {
                     LayoutEditorObjectPropertiesView(
                         objectName: name,
                         summary: summary,
-                        layoutGroups: layoutGroups,
                         token: summaryToken,
                         commit: { key, value in
                             commitObjectProperty(objectName: name, key: key, value: value)
@@ -4751,6 +4756,10 @@ struct LayoutEditorView: View {
         let name = newSetName.trimmingCharacters(in: .whitespacesAndNewlines)
         let members = Array(viewModel.layoutEditorSelection)
         guard members.count >= 2 else { return }
+        if viewModel.document.modelsMixBaseAndLocal(members) {
+            saveErrorMessage = Self.mixedBaseSetMessage
+            return
+        }
         guard viewModel.document.createModelSet(withModels: members, named: name) != nil else {
             saveErrorMessage = "Couldn't create the Set — it needs at least two models, and groups or submodels can't be members."
             return
@@ -4758,7 +4767,16 @@ struct LayoutEditorView: View {
         afterModelSetChange()
     }
 
+    private static let mixedBaseSetMessage =
+        "Models from the base show folder can't be in a Set with this show's own models — the base folder can move its models without moving the rest of the Set."
+
     private func addSelectionToSet(_ setName: String) {
+        let existing = viewModel.document.modelSets()
+            .first { ($0["name"] as? String) == setName }?["models"] as? [String] ?? []
+        if viewModel.document.modelsMixBaseAndLocal(existing + Array(viewModel.layoutEditorSelection)) {
+            saveErrorMessage = Self.mixedBaseSetMessage
+            return
+        }
         for name in viewModel.layoutEditorSelection {
             _ = viewModel.document.addModel(name, toModelSet: setName)
         }
@@ -7958,15 +7976,17 @@ private struct SubModelDetailEditor: View {
             }
             .buttonStyle(.bordered)
 
-            HStack(spacing: 12) {
-                Button {
-                    showSymmetrizeSheet = true
-                } label: {
-                    Label("Symmetrize", systemImage: "circle.hexagonpath")
+            if document.canSymmetrize(model: parentModelName) {
+                HStack(spacing: 12) {
+                    Button {
+                        showSymmetrizeSheet = true
+                    } label: {
+                        Label("Symmetrize", systemImage: "circle.hexagonpath")
+                    }
+                    .disabled(entry.strands.isEmpty)
                 }
-                .disabled(entry.strands.isEmpty)
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
         }
     }
 
@@ -12887,7 +12907,6 @@ private struct LayoutEditorObjectPropertiesView: View {
     @Environment(SequencerViewModel.self) var viewModel
     let objectName: String
     let summary: [String: Any]
-    let layoutGroups: [String]
     let token: Int
     let commit: (_ key: String, _ value: Any) -> Void
     let onPickFile: (_ key: String, _ accepting: [UTType]) -> Void
@@ -12941,7 +12960,10 @@ private struct LayoutEditorObjectPropertiesView: View {
                         .labelsHidden()
                         .controlSize(.mini)
                 }
-                row("Layout group") { layoutGroupPicker }
+                row("Layout group") {
+                    Text(summary["layoutGroup"] as? String ?? "Default")
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if !((summary["twoPoint"] as? Bool) ?? false) {
@@ -13283,29 +13305,6 @@ private struct LayoutEditorObjectPropertiesView: View {
             get: { summary[key] as? Bool ?? false },
             set: { commit(key, NSNumber(value: $0)) }
         )
-    }
-
-    private var layoutGroupPicker: some View {
-        Menu {
-            ForEach(layoutGroups, id: \.self) { name in
-                Button {
-                    commit("layoutGroup", name as NSString)
-                } label: {
-                    HStack {
-                        Text(name)
-                        if name == (summary["layoutGroup"] as? String) {
-                            Spacer()
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            }
-        } label: {
-            Text(summary["layoutGroup"] as? String ?? "Default")
-                .truncationMode(.middle)
-        }
-        .menuStyle(.button)
-        .controlSize(.mini)
     }
 
     private func doubleVal(_ key: String) -> Double {

@@ -2436,9 +2436,13 @@ void ControllerModelDialog::ReloadModels()
 
     FixDMXChannels();
 
+    int hiddenUnassignedPreview = 0;
     for (const auto& it : *_mm) {
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
-            if (_controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())) {
+            if (it.second->IsActive() && it.second->GetLayoutGroup() == "Unassigned" && _cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr) {
+                ++hiddenUnassignedPreview;
+            }
+            if (_controller->ContainsChannels(it.second->GetFirstChannel() + 1, it.second->GetLastChannel() + 1)) {
                 auto shadows = it.second->GetShadowedBy();
                 if (shadows.size() > 0) {
                     std::string sh;
@@ -2458,6 +2462,10 @@ void ControllerModelDialog::ReloadModels()
     if (!_controller->IsAutoSize()) {
         check += "WARN: Auto Size not set. Some functionality disabled.\n";
     }
+    // a handful is normal; many usually means an import or deleted preview left models with nowhere to show
+    if (hiddenUnassignedPreview > 10) {
+        check += "WARN: " + std::to_string(hiddenUnassignedPreview) + " models are not shown because their Preview is 'Unassigned'. Set their Preview in Layout to make them available here.\n";
+    }
 
     TextCtrl_Check->SetValue(check);
 
@@ -2467,8 +2475,8 @@ void ControllerModelDialog::ReloadModels()
         if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
-                    ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel()))) ||
-                        _controller->ContainsChannels(it.second->GetFirstChannel(), it.second->GetLastChannel())))) {
+                    ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel() + 1, it.second->GetLastChannel() + 1))) ||
+                        _controller->ContainsChannels(it.second->GetFirstChannel() + 1, it.second->GetLastChannel() + 1)))) {
                 if (modelFilter.empty() || modelFilterQuery.Matches(it.second->GetName())) {
                     _models.push_back(new ModelCMObject(nullptr, 0, it.second->GetName(), it.second->GetName(), _mm, _cud, _caps, wxPoint(5, 0), wxSize(HORIZONTAL_SIZE, VERTICAL_SIZE), BaseCMObject::STYLE_STRINGS, _scale));
                 }
@@ -3999,7 +4007,8 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                         } else {
                             if (fmud != nullptr && fmud->IsFirstModelString()) {
                                 Model* lm = fmud->GetModel();
-                                if (lm != nullptr) {
+                                // m already last on this port: it stays where it is
+                                if (lm != nullptr && lm != m) {
                                     m->SetModelChain(">" + lm->GetName());
                                 }
                             }
@@ -4031,8 +4040,11 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                         // Because we are moving a model already in a chain we need to patch that over first
                         Model* nextfrom = _cud->GetModelAfter(m);
                         if (nextfrom != nullptr) {
-                            if ((nextfrom == droppedOn && hit == BaseCMObject::HITLOCATION::LEFT) ||
-                                (">" + droppedOn->GetName() == m->GetModelChain())) {
+                            // Already right after droppedOn only means "not moved" for a right-hand drop;
+                            // dropping on its left swaps them, so whatever followed m must be re-chained.
+                            bool unmoved = hit == BaseCMObject::HITLOCATION::LEFT ? nextfrom == droppedOn
+                                                                                  : m->GetModelChain() == ">" + droppedOn->GetName();
+                            if (unmoved) {
                                 spdlog::debug("    Model did not actually move.");
                             } else {
                                 spdlog::debug("    Model {} was removed from existing chain so {} now chains to {}", (const char*)m->GetName().c_str(), (const char*)nextfrom->GetName().c_str(), (const char*)m->GetModelChain().c_str());

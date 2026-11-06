@@ -219,6 +219,11 @@ public:
         }
     }
 
+    // The fixed header holds at most 255 sparse ranges.  From minor version 3 a longer
+    // table also goes in an 'SR' extended data block; below that, the ranges are
+    // merged across their smallest gaps until they fit.
+    static void fitSparseRangesToHeader(std::vector<std::pair<uint32_t, uint32_t>>& ranges);
+
     [[nodiscard]] std::string CompressionTypeString() const {
         return CompressionTypeStrings[(int)m_compressionType];
     }

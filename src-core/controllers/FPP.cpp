@@ -131,7 +131,7 @@ FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& m
 }
 
 FPP::FPP(const FPP &c)
-    : hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
+    : BaseController(c), hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
     model(c.model), majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion),
     ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password),
     fppType(c.fppType), _ui(nullptr), capeInfo(c.capeInfo), outputFile(nullptr) {
@@ -272,22 +272,28 @@ CURL *FPP::setupCurl(const std::string &url, bool isGet, int timeout) {
     return curl;
 }
 
-bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
-    
-    auto logger = spdlog::get("curl");
-
+std::string FPP::MakeFullURL(const std::string& url, std::string& ipAddForGet) const {
     std::string fullUrl = (ip_utils::IsIPv6(ipAddress) ? "[" + ipAddress + "]" : ipAddress) + url;
-    std::string ipAddForGet = ipAddress;
+    ipAddForGet = ipAddress;
     if (fppType == FPP_TYPE::ESPIXELSTICK) {
         fullUrl = ipAddress + "/fpp?path=" + url;
     }
     if (!_fppProxy.empty()) {
-        fullUrl = "http://" +  (ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy) + "/proxy/" + fullUrl;
+        fullUrl = "http://" + (ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy) + "/proxy/" + fullUrl;
         ipAddForGet = _fppProxy;
     } else {
         fullUrl = "http://" + fullUrl;
     }
+    return fullUrl;
+}
+
+bool FPP::GetURLAsString(const std::string& url, std::string& val, bool recordError) {
     
+    auto logger = spdlog::get("curl");
+
+    std::string ipAddForGet;
+    std::string fullUrl = MakeFullURL(url, ipAddForGet);
+
     if (username != "") {
         CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
@@ -332,18 +338,9 @@ int FPP::PutToURL(const std::string& url, const std::vector<uint8_t>& val, const
 }
 int FPP::TransferToURL(const std::string& url, const std::vector<uint8_t>& val, const std::string& contentType, bool isPost) const {
 
-    std::string fullUrl = (ip_utils::IsIPv6(ipAddress) ? "[" + ipAddress + "]" : ipAddress) + url;
-    std::string ipAddForGet = ipAddress;
-    if (fppType == FPP_TYPE::ESPIXELSTICK) {
-        fullUrl = ipAddress + "/fpp?path=" +  url;
-    }
-    if (!_fppProxy.empty()) {
-        fullUrl = "http://" +  (ip_utils::IsIPv6(_fppProxy) ? "[" + _fppProxy + "]" : _fppProxy) + "/proxy/" + fullUrl;
-        ipAddForGet = _fppProxy;
-    } else {
-        fullUrl = "http://" + fullUrl;
-    }
-    
+    std::string ipAddForGet;
+    std::string fullUrl = MakeFullURL(url, ipAddForGet);
+
     if (username != "") {
         CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
     }
@@ -364,6 +361,12 @@ bool FPP::GetURLAsJSON(const std::string& url, nlohmann::json& val, bool recordE
             val = nlohmann::json::parse(sval, nullptr, false);
             if (!val.is_discarded()) {
                 return true;
+            }
+            // a discarded value throws on operator[]; callers index the result even on failure
+            val = nlohmann::json();
+            if (recordError) {
+                std::string preview = sval.length() > 500 ? sval.substr(0, 500) + "..." : sval;
+                spdlog::warn("FPP::GetURLAsJSON - invalid JSON for {}, Response: {}", url, preview);
             }
         } catch (nlohmann::json::parse_error& e) {
             if (recordError) {
@@ -485,13 +488,24 @@ bool FPP::parseSysInfo(nlohmann::json& val) {
 
     if (fullVersion != "") {
         majorVersion = (int)strtol(fullVersion.c_str(), nullptr, 10);
-        if (fullVersion[2] == 'x') {
-            minorVersion = (int)strtol(fullVersion.substr(4).c_str(), nullptr, 10) + 1000;
+        auto const dot = fullVersion.find('.');
+        if (dot == std::string::npos) {
+            minorVersion = 0;
         } else {
-            minorVersion = (int)strtol(fullVersion.substr(2).c_str(), nullptr, 10);
-        }
-        if (fullVersion.size() > 3 && (fullVersion[3] == '-' || fullVersion[3] == '.')) {
-            patchVersion = (int)strtol(fullVersion.substr(4).c_str(), nullptr, 10);
+            std::string const rest = fullVersion.substr(dot + 1);
+            if (rest[0] == 'x') {
+                std::string const after = rest.size() > 2 ? rest.substr(2) : std::string();
+                minorVersion = (int)strtol(after.c_str(), nullptr, 10) + 1000;
+                if (rest.size() > 1 && (rest[1] == '-' || rest[1] == '.')) {
+                    patchVersion = (int)strtol(after.c_str(), nullptr, 10);
+                }
+            } else {
+                char* end = nullptr;
+                minorVersion = (int)strtol(rest.c_str(), &end, 10);
+                if (*end == '-' || *end == '.') {
+                    patchVersion = (int)strtol(end + 1, nullptr, 10);
+                }
+            }
         }
     }
     if (val.contains("channelRanges")) {
@@ -512,7 +526,7 @@ bool FPP::parseSysInfo(nlohmann::json& val) {
 bool FPP::IsDDPInputEnabled() {
     nlohmann::json origRoot;
     if (GetURLAsJSON("/api/configfile/ci-universes.json", origRoot, false)) {
-        if (origRoot.contains("channelInputs") && origRoot.at("channelInputs").size() > 0
+        if (origRoot.contains("channelInputs") && origRoot.at("channelInputs").is_array() && origRoot.at("channelInputs").size() > 0
             && GetJSONIntValue(origRoot.at("channelInputs").at(0), "enabled", 0) == 1) {
             return true;
         }
@@ -532,10 +546,17 @@ void FPP::probePixelControllerType() {
 }
 void FPP::parseProxies(nlohmann::json& val) {
     for (int x = 0; x < (int)val.size(); x++) {
-        proxies.emplace(val[x].get<std::string>());
+        if (val[x].is_string()) {
+            proxies.emplace(val[x].get<std::string>());
+        } else if (val[x].is_object() && val[x].contains("host") && val[x]["host"].is_string()) { // FPP 8 change
+            proxies.emplace(val[x]["host"].get<std::string>());
+        }
     }
 }
 void FPP::parseControllerType(nlohmann::json& val) {
+    if (!val.is_object() || !val.contains("channelOutputs") || !val["channelOutputs"].is_array()) {
+        return;
+    }
     for (int x = 0; x < (int)val["channelOutputs"].size(); x++) {
         if (GetJSONIntValue(val["channelOutputs"][x], "enabled")) {
             std::string outputType = GetJSONStringValue(val["channelOutputs"][x], "type");
@@ -589,7 +610,7 @@ void FPP::parseConfig(const std::string& v) {
     std::map<std::string, std::string> settings;
     while(std::getline(ss, to, '\n')) {
         to = trimfront(to);
-        if (to.substr(0, 8) == "settings") {
+        if (to.substr(0, 8) == "settings" && to.size() >= 10) {
             to = to.substr(10);
             int i = to.find("'");
             std::string key = to.substr(0, i);
@@ -1202,6 +1223,7 @@ bool FPP::CheckUploadMedia(const std::string &media, std::string &mediaBaseName)
 static std::vector<std::pair<uint32_t, uint32_t>> SparseRangesToWrite(const FSEQFile *file,
                                                                       const V2FSEQFile *v2source,
                                                                       bool isEffectSeq,
+                                                                      bool extendedRanges,
                                                                       const std::vector<std::pair<uint32_t, uint32_t>> &controllerRanges) {
     std::vector<std::pair<uint32_t, uint32_t>> wanted;
     if (isEffectSeq && v2source != nullptr && !v2source->m_sparseRanges.empty()) {
@@ -1238,7 +1260,31 @@ static std::vector<std::pair<uint32_t, uint32_t>> SparseRangesToWrite(const FSEQ
             result.push_back(a);
         }
     }
+    if (!extendedRanges) {
+        V2FSEQFile::fitSparseRangesToHeader(result);
+    }
     return result;
+}
+
+void FPP::PrefetchSequenceMeta(const std::string &seq) {
+    _prefetchedMetaName.clear();
+    _prefetchedMeta.clear();
+    _prefetchedMetaRC = -1;
+    if (fppType != FPP_TYPE::FPP) {
+        return;
+    }
+    std::string baseName = std::filesystem::path(seq).filename().string();
+    std::string ipAddForGet;
+    std::string fullUrl = MakeFullURL("/api/sequence/" + URLEncode(baseName) + "/meta", ipAddForGet);
+    if (username != "") {
+        CurlManager::INSTANCE.setHostUsernamePassword(ipAddForGet, username, password);
+    }
+    _prefetchedMetaName = baseName;
+    CurlManager::INSTANCE.addGet(fullUrl, [this, fullUrl](int rc, const std::string &resp) {
+        _prefetchedMetaRC = rc;
+        _prefetchedMeta = resp;
+        spdlog::info("FPPConnect GET {}  - Return: RC: {}", fullUrl, rc);
+    });
 }
 
 bool FPP::PrepareUploadSequence(FSEQFile *file,
@@ -1285,7 +1331,20 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     std::vector<std::pair<uint32_t, uint32_t>> newRanges;
     if (fppType == FPP_TYPE::FPP) {
         nlohmann::json currentMeta;
-        if (GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false)) {
+        bool haveMeta = false;
+        // A 401 goes through the synchronous path so the password prompt still runs.
+        if (_prefetchedMetaName == baseName && _prefetchedMetaRC >= 0 && _prefetchedMetaRC != 401) {
+            if (_prefetchedMetaRC == 200) {
+                currentMeta = nlohmann::json::parse(_prefetchedMeta, nullptr, false);
+                haveMeta = !currentMeta.is_discarded();
+            }
+        } else {
+            haveMeta = GetURLAsJSON("/api/sequence/" + URLEncode(baseName) + "/meta", currentMeta, false);
+        }
+        _prefetchedMetaName.clear();
+        _prefetchedMeta.clear();
+        _prefetchedMetaRC = -1;
+        if (haveMeta) {
             doSeqUpload = false;
             char buf[24];
             snprintf(buf, sizeof(buf), "%" PRIu64, file->getUniqueId());
@@ -1336,10 +1395,22 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             }
         }
     }
+    // FSEQ 2.3 carries more than 255 sparse ranges; older FPP only reads the first 255.
+    // Effect sequences use it regardless: merging their ranges would overlay the
+    // channels in the gaps, while older FPP playing just the first 255 does no harm.
+    const bool extendedRanges = fppType == FPP_TYPE::FPP && (IsVersionAtLeast(10, 4) || isEffectSeq);
+    // Older FPP also reports only those first 255, so compare against that.
+    auto rangesOnRemote = [this](std::vector<std::pair<uint32_t, uint32_t>> r) {
+        if (r.size() > 255 && !IsVersionAtLeast(10, 4)) {
+            r.resize(255);
+        }
+        return r;
+    };
     bool uploadOriginal = fppType == FPP_TYPE::FPP
         && ((FSEQ_Version == 1 && file->getVersionMajor() == 1)
             || fn.extension() == ".eseq"
-            || (ctype == FSEQFile::CompressionType::zstd && !sparse && file->getVersionMajor() == 2));
+            || (ctype == FSEQFile::CompressionType::zstd && !sparse && file->getVersionMajor() == 2
+                && (extendedRanges || v2source == nullptr || v2source->m_sparseRanges.size() <= 255)));
 
     int channelCount = 0;
     if (sparse && uploadOriginal) {
@@ -1348,7 +1419,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         if (v2source != nullptr) {
             sourceRanges = v2source->m_sparseRanges;
         }
-        if (sourceRanges != currentRanges) doSeqUpload = true;
+        if (rangesOnRemote(sourceRanges) != currentRanges) doSeqUpload = true;
     } else if (!sparse) {
         //full file, non sparse
         if (currentMaxChannel != file->getMaxChannel()) doSeqUpload = true;
@@ -1376,7 +1447,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             }
             controllerRanges.push_back(std::pair<uint32_t, uint32_t>(start, len));
         }
-        newRanges = SparseRangesToWrite(file, v2source, isEffectSeq, controllerRanges);
+        newRanges = SparseRangesToWrite(file, v2source, isEffectSeq, extendedRanges, controllerRanges);
         if (newRanges.empty() && isEffectSeq) {
             // The effect touches none of this controller's channels, so it needs no file.
             if (tempFileName != "") {
@@ -1388,7 +1459,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         for (auto &a : newRanges) {
             channelCount += a.second;
         }
-        if (newRanges != currentRanges) doSeqUpload = true;
+        if (rangesOnRemote(newRanges) != currentRanges) doSeqUpload = true;
     } else if (!currentRanges.empty()) {
         doSeqUpload = true;
     }
@@ -1445,7 +1516,9 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         return true;
     }
     outputFile->initializeFromFSEQ(*file);
-    if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(7, 0)) {
+    if (extendedRanges) {
+        outputFile->enableMinorVersionFeatures(3);
+    } else if (fppType == FPP_TYPE::FPP && IsVersionAtLeast(7, 0)) {
         outputFile->enableMinorVersionFeatures(2);
     }
     if (sparse && !newRanges.empty()) {
@@ -2359,11 +2432,17 @@ void FPP::FillRanges(std::map<int, int> &rngs) {
     if (ranges != "") {
         auto const r1 = Split(ranges, ',');
         for (const auto& a : r1) {
+            if (a.empty()) {
+                continue;
+            }
             auto const r = Split(a, '-');
+            if (r.empty()) {
+                continue;
+            }
             int const start = (int)std::strtol(r[0].c_str(), nullptr, 10);
             int len = 4; //at least 4
             if (r.size() == 2) {
-                len = (int)std::strtol(r[1].c_str(), nullptr, 10) - start + 1;
+                len = std::max(1, (int)std::strtol(r[1].c_str(), nullptr, 10) - start + 1);
             }
             rngs[start] = len;
         }
@@ -2375,19 +2454,19 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
         return;
     }
     std::string rngList;
-    int curFirst = -1;
-    int curLast = -1;
+    int64_t curFirst = -1;
+    int64_t curLast = -1;
     for (const auto &a : rngs) {
-        int s = a.first;
-        int l = a.second;
+        int64_t const s = a.first;
+        int64_t const l = a.second;
         if (curFirst == -1) {
             curFirst = s;
             curLast = s + l - 1;
         } else if (s == (curLast + 1)) {
             curLast += l;
-        } else if (s < (curFirst + curLast -1)) {
+        } else if (s <= curLast) {
             //start is within the previous's range
-            int nl = s + l - 1;
+            int64_t const nl = s + l - 1;
             curLast = std::max(curLast, nl);
         } else {
             if (rngList != "") {
@@ -2395,7 +2474,7 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
             }
             rngList += std::to_string(curFirst) + "-" + std::to_string(curLast);
             curFirst = s;
-            curLast = a.first + l - 1;
+            curLast = s + l - 1;
         }
     }
     if (curFirst != -1) {
@@ -4917,6 +4996,69 @@ void FPP::PrepareControllerTypeProbes(Discovery &discovery, const std::list<std:
         AddDetectControllerTypeFallback(discovery, a);
     }
 }
+// Kicks off resolving every controller -- inactive ones too, since a discovered instance can only be
+// matched back to a controller set by hostname through its resolved address -- and returns the
+// addresses already known, so discovery runs while the lookups do. FinishControllerSeeding must
+// follow Discover() and come before anything matches results to controllers.
+std::list<std::string> FPP::StartControllerSeeding(const OutputManager* outputManager) {
+    outputManager->ResolveControllerIPs(true, false);
+
+    std::list<std::string> addresses;
+    for (const auto& it : outputManager->GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth == nullptr || eth->GetIP().empty() || eth->GetIP() == "MULTICAST") {
+            continue;
+        }
+        if (eth->IsActive()) {
+            std::string resolved = eth->GetResolvedIP();
+            if (resolved.empty()) {
+                resolved = eth->GetIP();
+            }
+            if (ip_utils::IsIPValid(resolved) || resolved != eth->GetIP()) {
+                addresses.push_back(::Lower(resolved));
+            }
+        }
+        if (!eth->GetFPPProxy().empty()) {
+            addresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
+        }
+    }
+    addresses.sort();
+    addresses.unique();
+    return addresses;
+}
+
+// An active controller whose hostname only resolved during discovery missed the unicast seeding,
+// which is all that reaches one on another subnet, so probe those in a second round.
+void FPP::FinishControllerSeeding(Discovery &discovery, const std::list<std::string> &seeded) {
+    ip_utils::waitForAllToResolve();
+
+    std::list<std::string> late;
+    for (const auto& it : discovery.GetOutputManager()->GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(it);
+        if (eth == nullptr || !eth->IsActive()) {
+            continue;
+        }
+        std::string ip = ::Lower(eth->GetResolvedIP());
+        if (ip_utils::IsIPValid(ip) && std::find(seeded.begin(), seeded.end(), ip) == seeded.end() && discovery.FindByIp(ip) == nullptr) {
+            late.push_back(ip);
+        }
+    }
+    if (late.empty()) {
+        return;
+    }
+    late.sort();
+    late.unique();
+    spdlog::info("FPP Discovery - probing {} controller(s) whose hostname resolved during discovery", late.size());
+
+    uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
+    FillFPPPingBuffer(buffer);
+    for (const auto &a : late) {
+        AddMultiSyncSystemsCurl(discovery, a, true);
+        AddSystemInfoCurl(discovery, a, false);
+        discovery.SendData(FPP_CTRL_PORT, a, buffer, 207);
+    }
+    discovery.Discover();
+}
 bool FPP::supportedForFPPConnect() const {
     if (this->IsVersionAtLeast(7, 1)) {
         return true;
@@ -5178,9 +5320,9 @@ std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
                 if (val[x].is_string()) {
                     spdlog::debug("FPP {} proxies {}.", (const char*)ipAddress.c_str(), (const char*)val[x].get<std::string>().c_str());
                     res.push_back({ (val[x].get<std::string>()), std::string() });
-                } else if (val[x].is_object()) { // FPP 8 change
+                } else if (val[x].is_object() && val[x].contains("host") && val[x]["host"].is_string()) { // FPP 8 change
                     spdlog::debug("FPP {} proxies {}.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].get<std::string>().c_str());
-                    res.push_back({ (val[x]["host"].get<std::string>()), (val[x]["description"].get<std::string>()) });
+                    res.push_back({ (val[x]["host"].get<std::string>()), GetJSONStringValue(val[x], "description") });
                 }
             }
         }

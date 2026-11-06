@@ -1106,6 +1106,10 @@ void ModelFacesPanel::UpdatePreview(const std::string& channels, wxColor c)
                     offsetX = (bufW - scaledW) / 2;
                     offsetY = (bufH - scaledH) / 2;
                 }
+                if (img.HasMask() && !img.HasAlpha()) {
+                    img.InitAlpha();
+                }
+                bool hasAlpha = img.HasAlpha();
                 int nodeCount = (int)model->GetNodeCount();
                 for (int n = 0; n < nodeCount; ++n) {
                     NodeBaseClass* node = model->GetNode(n);
@@ -1113,7 +1117,12 @@ void ModelFacesPanel::UpdatePreview(const std::string& channels, wxColor c)
                         int imgX = node->Coords[0].bufX - offsetX;
                         int imgY = scaledH - 1 - (node->Coords[0].bufY - offsetY);
                         if (imgX >= 0 && imgX < scaledW && imgY >= 0 && imgY < scaledH) {
-                            xlColor col(img.GetRed(imgX, imgY), img.GetGreen(imgX, imgY), img.GetBlue(imgX, imgY));
+                            // transparent pixels often carry white RGB; leave them as background
+                            int alpha = hasAlpha ? img.GetAlpha(imgX, imgY) : 255;
+                            if (alpha == 0) {
+                                continue;
+                            }
+                            xlColor col(img.GetRed(imgX, imgY) * alpha / 255, img.GetGreen(imgX, imgY) * alpha / 255, img.GetBlue(imgX, imgY) * alpha / 255);
                             model->SetNodeColor(n, col);
                         }
                     }
@@ -1712,15 +1721,15 @@ void ModelFacesPanel::ImportFacesFromModel()
 
     const wxArrayString choices = getModelList(&xlights->AllModels);
 
-    wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
+    const wxString selectedModel = ChooseModelWithFilter(GetParent(), choices);
 
-    if (dlg.ShowModal() == wxID_OK)
+    if (!selectedModel.IsEmpty())
     {
-        Model* m = xlights->GetModel(dlg.GetStringSelection());
+        Model* m = xlights->GetModel(selectedModel);
         if (m == nullptr) return;
         if (m->GetFaceInfo().size() == 0)
         {
-            wxMessageBox(dlg.GetStringSelection() + " contains no signing faces, skipping");
+            wxMessageBox(selectedModel + " contains no signing faces, skipping");
             return;
         }
 

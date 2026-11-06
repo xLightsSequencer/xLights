@@ -1,11 +1,10 @@
 #pragma once
 
-// A8: HTDemucs-based 4-stem source separation. Splits the
-// AudioManager's stereo signal into drums / bass / other / vocals
-// streams via an on-device CoreML model (download-on-first-use, see
-// `AIModelStore`). Apple-only; the `.mm` implementation isn't
-// compiled on non-Apple targets and callers must guard with
-// `#ifdef __APPLE__`.
+// A8: HTDemucs-based source separation. Splits the AudioManager's
+// stereo signal into drums / bass / other / vocals streams (plus
+// guitar / piano with the 6-stem ONNX model) via an on-device model
+// (download-on-first-use, see `AIModelStore`). Backends: CoreML on
+// Apple (4-stem only), ONNX Runtime or OpenVINO elsewhere.
 //
 // Model source: https://github.com/john-rocky/CoreML-Models/releases/tag/demucs-v1
 // Filename:     HTDemucs_SourceSeparation_F32.mlpackage
@@ -24,8 +23,11 @@ struct StemOutput {
     std::vector<float> bassL, bassR;
     std::vector<float> otherL, otherR;
     std::vector<float> vocalsL, vocalsR;
-    // Number of samples in each vector. All vectors share the same
-    // length and sample rate as the source audio.
+    // Only filled by the 6-stem model (htdemucs_6s); empty otherwise.
+    std::vector<float> guitarL, guitarR;
+    std::vector<float> pianoL, pianoR;
+    // Number of samples in each vector. All non-empty vectors share the
+    // same length and sample rate as the source audio.
     long sampleRate = 0;
 };
 

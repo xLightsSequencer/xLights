@@ -100,46 +100,50 @@ export void CandleEffectISPC(const uniform CandleISPCData* uniform d,
     uniform int maxWid = d->maxWid;
     uniform unsigned int32 numStates = d->numStates;
 
-    foreach (index = startIdx ... endIdx) {
-        int x = index % width;
-        int y = index / width;
-        unsigned int32 stateIdx = (unsigned int32)(y * maxWid + x);
-        if (stateIdx < numStates) {
-            unsigned int8 flameprimer = states[stateIdx * 5 + 0];
-            unsigned int8 flamer = states[stateIdx * 5 + 1];
-            unsigned int8 wind = states[stateIdx * 5 + 2];
-            unsigned int8 flameprimeg = states[stateIdx * 5 + 3];
-            unsigned int8 flameg = states[stateIdx * 5 + 4];
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int y = startIdx / max(width, 1); width > 0 && y * width < endIdx; y++) {
+        uniform int rowStart = y * width;
+        foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + x;
+            unsigned int32 stateIdx = (unsigned int32)(y * maxWid + x);
+            if (stateIdx < numStates) {
+                unsigned int8 flameprimer = states[stateIdx * 5 + 0];
+                unsigned int8 flamer = states[stateIdx * 5 + 1];
+                unsigned int8 wind = states[stateIdx * 5 + 2];
+                unsigned int8 flameprimeg = states[stateIdx * 5 + 3];
+                unsigned int8 flameg = states[stateIdx * 5 + 4];
 
-            unsigned int32 seed = stateIdx * 131101u;
-            candleUpdate(d, seed, flameprimer, flamer, wind);
-            candleUpdate(d, seed + 4u, flameprimeg, flameg, wind);
+                unsigned int32 seed = stateIdx * 131101u;
+                candleUpdate(d, seed, flameprimer, flamer, wind);
+                candleUpdate(d, seed + 4u, flameprimeg, flameg, wind);
 
-            if (flameprimeg > flameprimer) {
-                flameprimeg = flameprimer;
+                if (flameprimeg > flameprimer) {
+                    flameprimeg = flameprimer;
+                }
+                if (flameg > flamer) {
+                    flameprimeg = flameprimer;
+                }
+
+                states[stateIdx * 5 + 0] = flameprimer;
+                states[stateIdx * 5 + 1] = flamer;
+                states[stateIdx * 5 + 2] = wind;
+                states[stateIdx * 5 + 3] = flameprimeg;
+                states[stateIdx * 5 + 4] = flameg;
+
+                uint8<4> out;
+                if (d->usePalette) {
+                    out[0] = candlePaletteBlend(d->c1r, d->c2r, flameprimer);
+                    out[1] = candlePaletteBlend(d->c1g, d->c2g, flameprimer);
+                    out[2] = candlePaletteBlend(d->c1b, d->c2b, flameprimer);
+                } else {
+                    out[0] = flameprimer;
+                    out[1] = flameprimeg / 2;
+                    out[2] = 0;
+                }
+                out[3] = 255;
+                result[index] = out;
             }
-            if (flameg > flamer) {
-                flameprimeg = flameprimer;
-            }
-
-            states[stateIdx * 5 + 0] = flameprimer;
-            states[stateIdx * 5 + 1] = flamer;
-            states[stateIdx * 5 + 2] = wind;
-            states[stateIdx * 5 + 3] = flameprimeg;
-            states[stateIdx * 5 + 4] = flameg;
-
-            uint8<4> out;
-            if (d->usePalette) {
-                out[0] = candlePaletteBlend(d->c1r, d->c2r, flameprimer);
-                out[1] = candlePaletteBlend(d->c1g, d->c2g, flameprimer);
-                out[2] = candlePaletteBlend(d->c1b, d->c2b, flameprimer);
-            } else {
-                out[0] = flameprimer;
-                out[1] = flameprimeg / 2;
-                out[2] = 0;
-            }
-            out[3] = 255;
-            result[index] = out;
         }
     }
 }

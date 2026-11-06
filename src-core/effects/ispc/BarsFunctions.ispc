@@ -144,45 +144,49 @@ export void BarsEffectISPC(const uniform BarsData * uniform data,
     uniform int  newCenter = data->newCenter;
     uniform int  f_offset  = data->f_offset;
 
-    foreach (index = startIdx ... endIdx) {
-        int px = index % width;
-        int py = index / width;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int py = startIdx / max(width, 1); width > 0 && py * width < endIdx; py++) {
+        uniform int rowStart = py * width;
+        foreach (px = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + px;
 
-        int n;
-        if (isVert) {
-            // Vertical directions: bars run horizontally, animate along Y.
-            int y;
-            if (dir == BARS_DIR_DOWN) {
-                y = py;
-            } else if (dir == BARS_DIR_EXPAND) {
-                y = (py <= newCenter) ? py : (2 * newCenter - py);
-            } else if (dir == BARS_DIR_COMPRESS) {
-                y = (py >= newCenter) ? py : (2 * newCenter - py);
-            } else { // BARS_DIR_UP
-                y = height - py - 1;
+            int n;
+            if (isVert) {
+                // Vertical directions: bars run horizontally, animate along Y.
+                int y;
+                if (dir == BARS_DIR_DOWN) {
+                    y = py;
+                } else if (dir == BARS_DIR_EXPAND) {
+                    y = (py <= newCenter) ? py : (2 * newCenter - py);
+                } else if (dir == BARS_DIR_COMPRESS) {
+                    y = (py >= newCenter) ? py : (2 * newCenter - py);
+                } else { // BARS_DIR_UP
+                    y = height - py - 1;
+                }
+                // Offset by a multiple of blockSize (not height) so the modulo phase isn't
+                // shifted when height doesn't divide evenly by colorCount (blockSize > height);
+                // adding height directly caused the first row to wrap to the wrong color.
+                n = 4 * data->blockSize + y + f_offset;
+            } else {
+                // Horizontal directions: bars run vertically, animate along X.
+                int x;
+                if (dir == BARS_DIR_RIGHT) {
+                    x = width - px - 1;
+                } else if (dir == BARS_DIR_HEXPAND) {
+                    x = (px <= newCenter) ? px : (2 * newCenter - px);
+                } else if (dir == BARS_DIR_HCOMPRESS) {
+                    x = (px >= newCenter) ? px : (2 * newCenter - px);
+                } else { // BARS_DIR_LEFT
+                    x = px;
+                }
+                // Offset by a multiple of blockSize (not width) so the modulo phase isn't
+                // shifted when width doesn't divide evenly by colorCount (blockSize > width);
+                // adding width directly caused the first column to wrap to the wrong color.
+                n = 4 * data->blockSize + x + f_offset;
             }
-            // Offset by a multiple of blockSize (not height) so the modulo phase isn't
-            // shifted when height doesn't divide evenly by colorCount (blockSize > height);
-            // adding height directly caused the first row to wrap to the wrong color.
-            n = 4 * data->blockSize + y + f_offset;
-        } else {
-            // Horizontal directions: bars run vertically, animate along X.
-            int x;
-            if (dir == BARS_DIR_RIGHT) {
-                x = width - px - 1;
-            } else if (dir == BARS_DIR_HEXPAND) {
-                x = (px <= newCenter) ? px : (2 * newCenter - px);
-            } else if (dir == BARS_DIR_HCOMPRESS) {
-                x = (px >= newCenter) ? px : (2 * newCenter - px);
-            } else { // BARS_DIR_LEFT
-                x = px;
-            }
-            // Offset by a multiple of blockSize (not width) so the modulo phase isn't
-            // shifted when width doesn't divide evenly by colorCount (blockSize > width);
-            // adding width directly caused the first column to wrap to the wrong color.
-            n = 4 * data->blockSize + x + f_offset;
+
+            result[index] = computeBarColor(n, data);
         }
-
-        result[index] = computeBarColor(n, data);
     }
 }

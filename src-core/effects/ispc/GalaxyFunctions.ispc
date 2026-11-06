@@ -156,82 +156,86 @@ export void GalaxyEffectISPC(const uniform GalaxyISPCData * uniform d,
 
     if (i_hi <= i_lo) return;
 
-    foreach (index = startIdx ... endIdx) {
-        int x = index % width;
-        int y = index / width;
-        float dx = (float)x + 0.5f - px;
-        float dy = (float)y + 0.5f - py;
-        float rho = sqrt(dx*dx + dy*dy);
-        float theta = atan2(dx, dy) * 180.0f / PI;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    for (uniform int y = startIdx / max(width, 1); width > 0 && y * width < endIdx; y++) {
+        uniform int rowStart = y * width;
+        foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, width)) {
+            int index = rowStart + x;
+            float dx = (float)x + 0.5f - px;
+            float dy = (float)y + 0.5f - py;
+            float rho = sqrt(dx*dx + dy*dy);
+            float theta = atan2(dx, dy) * 180.0f / PI;
 
-        float base = rev ? (-theta - sa) : (theta - sa);
-        base = base - floor(base / 360.0f) * 360.0f;
-        int   k0    = (int)ceil((i_lo - base) / 360.0f);
-        float icapT = base + 360.0f * (ceil((i_lo - base)/360.0f) - 1.0f);
-        float icapH = base + 360.0f * (floor((i_hi - base)/360.0f) + 1.0f);
+            float base = rev ? (-theta - sa) : (theta - sa);
+            base = base - floor(base / 360.0f) * 360.0f;
+            int   k0    = (int)ceil((i_lo - base) / 360.0f);
+            float icapT = base + 360.0f * (ceil((i_lo - base)/360.0f) - 1.0f);
+            float icapH = base + 360.0f * (floor((i_hi - base)/360.0f) + 1.0f);
 
-        float accR = 0.0f, accG = 0.0f, accB = 0.0f;
-        bool any = false;
+            float accR = 0.0f, accG = 0.0f, accB = 0.0f;
+            bool any = false;
 
-        // Spill arms sit at i +/- 180 from the pixel's own arms, interleaving between them at
-        // exactly 180-degree spacing. The scalar renderer's deferred blend-down only preserves
-        // a pending write once the sweep has moved 180+ degrees past it, so any contribution
-        // whose 180-later neighbor also covers the pixel gets overwritten, never blended.
-        // Emit in draw order (tail->head, or head->tail for inward), dropping each
-        // contribution whose successor covers the pixel.
-        if (!spillOn) {                    // no spill anywhere: every arm's successor misses
-            if (!inward) {                 // tail cap, arms tail->head, head cap
+            // Spill arms sit at i +/- 180 from the pixel's own arms, interleaving between them at
+            // exactly 180-degree spacing. The scalar renderer's deferred blend-down only preserves
+            // a pending write once the sweep has moved 180+ degrees past it, so any contribution
+            // whose 180-later neighbor also covers the pixel gets overwritten, never blended.
+            // Emit in draw order (tail->head, or head->tail for inward), dropping each
+            // contribution whose successor covers the pixel.
+            if (!spillOn) {                    // no spill anywhere: every arm's successor misses
+                if (!inward) {                 // tail cap, arms tail->head, head cap
+                    if (icapT < i_lo) galaxyEmitCap(d, blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any);
+                    for (uniform int m = 0; m < maxRev; m++) {
+                        float i = base + 360.0f * (float)(k0 + m);
+                        if (i >= i_lo && i <= i_hi) galaxyEmitArm(d, blend, i, rho, invRevs, accR, accG, accB, any);
+                    }
+                    if (icapH > i_hi) galaxyEmitCap(d, blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any);
+                } else {                       // head cap, arms head->tail, tail cap
+                    if (icapH > i_hi) galaxyEmitCap(d, blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any);
+                    for (uniform int m = maxRev - 1; m >= 0; m--) {
+                        float i = base + 360.0f * (float)(k0 + m);
+                        if (i >= i_lo && i <= i_hi) galaxyEmitArm(d, blend, i, rho, invRevs, accR, accG, accB, any);
+                    }
+                    if (icapT < i_lo) galaxyEmitCap(d, blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any);
+                }
+            } else if (!inward) {              // tail cap, spill/arm tail->head, head cap
                 if (icapT < i_lo) galaxyEmitCap(d, blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any);
+                float spI = base + 360.0f * (float)(k0 - 1) + 180.0f;
+                float spA = galaxySpillAlpha(d, spI, i_lo, i_hi, rho, invRevs);
                 for (uniform int m = 0; m < maxRev; m++) {
                     float i = base + 360.0f * (float)(k0 + m);
-                    if (i >= i_lo && i <= i_hi) galaxyEmitArm(d, blend, i, rho, invRevs, accR, accG, accB, any);
+                    float aArm = galaxyArmAlpha(d, i, i_lo, i_hi, rho, invRevs);
+                    if (spA > 0.0f && aArm <= 0.0f) galaxyEmitAt(d, blend, spI, spA, accR, accG, accB, any);
+                    spI = i + 180.0f;
+                    spA = galaxySpillAlpha(d, spI, i_lo, i_hi, rho, invRevs);
+                    if (aArm > 0.0f && spA <= 0.0f) galaxyEmitAt(d, blend, i, aArm, accR, accG, accB, any);
                 }
+                if (spA > 0.0f) galaxyEmitAt(d, blend, spI, spA, accR, accG, accB, any);
                 if (icapH > i_hi) galaxyEmitCap(d, blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any);
-            } else {                       // head cap, arms head->tail, tail cap
+            } else {                           // head cap, spill/arm head->tail, tail cap
                 if (icapH > i_hi) galaxyEmitCap(d, blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any);
+                float spA = galaxySpillAlpha(d, base + 360.0f * (float)(k0 + maxRev - 1) + 180.0f, i_lo, i_hi, rho, invRevs);
+                float spI = 0.0f;
                 for (uniform int m = maxRev - 1; m >= 0; m--) {
                     float i = base + 360.0f * (float)(k0 + m);
-                    if (i >= i_lo && i <= i_hi) galaxyEmitArm(d, blend, i, rho, invRevs, accR, accG, accB, any);
+                    float aArm = galaxyArmAlpha(d, i, i_lo, i_hi, rho, invRevs);
+                    if (spA > 0.0f && aArm <= 0.0f) galaxyEmitAt(d, blend, i + 180.0f, spA, accR, accG, accB, any);
+                    spI = i - 180.0f;
+                    spA = galaxySpillAlpha(d, spI, i_lo, i_hi, rho, invRevs);
+                    if (aArm > 0.0f && spA <= 0.0f) galaxyEmitAt(d, blend, i, aArm, accR, accG, accB, any);
                 }
+                if (spA > 0.0f) galaxyEmitAt(d, blend, spI, spA, accR, accG, accB, any);
                 if (icapT < i_lo) galaxyEmitCap(d, blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any);
             }
-        } else if (!inward) {              // tail cap, spill/arm tail->head, head cap
-            if (icapT < i_lo) galaxyEmitCap(d, blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any);
-            float spI = base + 360.0f * (float)(k0 - 1) + 180.0f;
-            float spA = galaxySpillAlpha(d, spI, i_lo, i_hi, rho, invRevs);
-            for (uniform int m = 0; m < maxRev; m++) {
-                float i = base + 360.0f * (float)(k0 + m);
-                float aArm = galaxyArmAlpha(d, i, i_lo, i_hi, rho, invRevs);
-                if (spA > 0.0f && aArm <= 0.0f) galaxyEmitAt(d, blend, spI, spA, accR, accG, accB, any);
-                spI = i + 180.0f;
-                spA = galaxySpillAlpha(d, spI, i_lo, i_hi, rho, invRevs);
-                if (aArm > 0.0f && spA <= 0.0f) galaxyEmitAt(d, blend, i, aArm, accR, accG, accB, any);
-            }
-            if (spA > 0.0f) galaxyEmitAt(d, blend, spI, spA, accR, accG, accB, any);
-            if (icapH > i_hi) galaxyEmitCap(d, blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any);
-        } else {                           // head cap, spill/arm head->tail, tail cap
-            if (icapH > i_hi) galaxyEmitCap(d, blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any);
-            float spA = galaxySpillAlpha(d, base + 360.0f * (float)(k0 + maxRev - 1) + 180.0f, i_lo, i_hi, rho, invRevs);
-            float spI = 0.0f;
-            for (uniform int m = maxRev - 1; m >= 0; m--) {
-                float i = base + 360.0f * (float)(k0 + m);
-                float aArm = galaxyArmAlpha(d, i, i_lo, i_hi, rho, invRevs);
-                if (spA > 0.0f && aArm <= 0.0f) galaxyEmitAt(d, blend, i + 180.0f, spA, accR, accG, accB, any);
-                spI = i - 180.0f;
-                spA = galaxySpillAlpha(d, spI, i_lo, i_hi, rho, invRevs);
-                if (aArm > 0.0f && spA <= 0.0f) galaxyEmitAt(d, blend, i, aArm, accR, accG, accB, any);
-            }
-            if (spA > 0.0f) galaxyEmitAt(d, blend, spI, spA, accR, accG, accB, any);
-            if (icapT < i_lo) galaxyEmitCap(d, blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any);
-        }
 
-        if (any) {
-            uint8<4> out;
-            out[0] = (uint8)min(255.0f, accR);
-            out[1] = (uint8)min(255.0f, accG);
-            out[2] = (uint8)min(255.0f, accB);
-            out[3] = 255;
-            result[index] = out;
+            if (any) {
+                uint8<4> out;
+                out[0] = (uint8)min(255.0f, accR);
+                out[1] = (uint8)min(255.0f, accG);
+                out[2] = (uint8)min(255.0f, accB);
+                out[3] = 255;
+                result[index] = out;
+            }
         }
     }
 }

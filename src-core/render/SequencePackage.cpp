@@ -32,6 +32,9 @@
 #include <CoreText/CoreText.h>
 #include <CoreFoundation/CoreFoundation.h>
 #endif
+#if !defined(_WIN32) && !defined(__APPLE__)
+#include <fontconfig/fontconfig.h>
+#endif
 
 extern "C" {
 #include <minizip/unzip.h>
@@ -247,8 +250,35 @@ void SequencePackage::Extract()
             continue;
         }
 
-        std::string entryNameStr(entryName);
+        // Names without the zip UTF-8 flag are CP437 (what Windows' "Send to
+        // compressed folder" writes); used raw, an accented name throws when
+        // it becomes a std::filesystem::path.
+        std::string entryNameStr = FileUtils::ToValidUTF8(entryName, FileUtils::LegacyEncoding::CP437);
         bool isDir = (!entryNameStr.empty() && entryNameStr.back() == '/') || (fileInfo.external_fa & 0x10);
+
+        {
+            std::string chk = entryNameStr;
+            std::replace(chk.begin(), chk.end(), '\\', '/');
+            bool unsafe = chk.empty() || chk[0] == '/' || (chk.size() >= 2 && chk[1] == ':');
+            int depth = 0;
+            size_t cpos = 0;
+            while (!unsafe && cpos <= chk.size()) {
+                size_t nx = chk.find('/', cpos);
+                std::string comp = chk.substr(cpos, nx == std::string::npos ? std::string::npos : nx - cpos);
+                if (comp == "..") {
+                    if (--depth < 0) unsafe = true;
+                } else if (!comp.empty() && comp != ".") {
+                    ++depth;
+                }
+                if (nx == std::string::npos) break;
+                cpos = nx + 1;
+            }
+            if (unsafe) {
+                spdlog::warn("Skipping package entry with unsafe path '{}'.", entryNameStr);
+                ret = unzGoToNextFile(uf);
+                continue;
+            }
+        }
 
         std::filesystem::path fnEntry = _tempDir / entryNameStr;
 
@@ -942,7 +972,7 @@ std::filesystem::path SequencePackage::FindAndCopyAudio(const std::filesystem::p
             if (headNode) {
                 auto mediaFileNode = headNode.child("mediaFile");
                 if (mediaFileNode) {
-                    std::filesystem::path p(mediaFileNode.text().as_string());
+                    std::filesystem::path p(FileUtils::ToValidUTF8(mediaFileNode.text().as_string()));
                     xsqAudioName = p.filename().string();
                 }
             }
@@ -1008,7 +1038,7 @@ std::vector<std::pair<std::string, std::string>> SequencePackage::FindAndCopyAlt
 
         std::string filename;
         {
-            std::filesystem::path p(tpath);
+            std::filesystem::path p(FileUtils::ToValidUTF8(tpath));
             filename = p.filename().string();
         }
 
@@ -1606,8 +1636,31 @@ static std::string resolveFontFaceToFile(const std::string& faceName)
     return path;
 }
 
-#else
-static std::string resolveFontFaceToFile(const std::string&) { return {}; }
+#else // Linux (fontconfig)
+static std::string resolveFontFaceToFile(const std::string& faceName)
+{
+    FcConfig* config = FcConfigGetCurrent(); // lazy-initializes fontconfig on first call
+    if (config == nullptr) return {};
+
+    FcPattern* pattern = FcPatternCreate();
+    if (pattern == nullptr) return {};
+    FcPatternAddString(pattern, FC_FAMILY, reinterpret_cast<const FcChar8*>(faceName.c_str()));
+    FcConfigSubstitute(config, pattern, FcMatchPattern);
+    FcDefaultSubstitute(pattern);
+
+    FcResult result;
+    FcPattern* match = FcFontMatch(config, pattern, &result);
+    FcPatternDestroy(pattern);
+    if (match == nullptr) return {};
+
+    std::string path;
+    FcChar8* file = nullptr;
+    if (FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file != nullptr) {
+        path = reinterpret_cast<const char*>(file);
+    }
+    FcPatternDestroy(match);
+    return path;
+}
 #endif
 
 // Collect OS font files used by Text/Shape/etc. effects and queue them

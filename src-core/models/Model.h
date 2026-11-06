@@ -527,7 +527,8 @@ public:
 
     bool HitTest(IModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     const std::string& GetStringType() const { return StringType; }
-    void SetStringType(std::string const& st) { StringType = st; }
+    // Setup and the node-type helpers index up to StringType[3].
+    void SetStringType(std::string const& st) { StringType = st.size() < 3 ? std::string("RGB Nodes") : st; }
 
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const;

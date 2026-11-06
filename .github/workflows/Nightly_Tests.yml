@@ -1,0 +1,258 @@
+name: Nightly Tests
+
+# Runs the Catch2 unit tests and the render regression on every platform,
+# measures the unit tests' coverage of src-core in a Linux --coverage build,
+# aggregates their JUnit reports, and publishes a dashboard to GitHub Pages
+# (https://xlightssequencer.github.io/xLights/), modelled on the fpp-tests
+# dashboard: the page and its history.json are rebuilt each night, with the
+# previous history fetched from the published site.
+#
+# A manual dispatch skips the "any commits in the last 24 hours" gate.
+on:
+  schedule:
+    - cron: '0 7 * * *'   # 07:00 UTC, after win_nightly (05:00) and include_policy (06:00)
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - id: check
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" != "schedule" ]; then
+          echo "should_run=true" >> "$GITHUB_OUTPUT"; exit 0
+        fi
+        CUTOFF_TIME=$(date -d '24 hours ago' +%s)
+        LATEST_COMMIT=$(git log -1 --format=%ct)
+        if [ "$LATEST_COMMIT" -gt "$CUTOFF_TIME" ]; then
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "should_run=false" >> "$GITHUB_OUTPUT"
+        fi
+
+  unit-tests:
+    needs: gate
+    if: ${{ needs.gate.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/Unit_Tests.yml
+
+  render-tests:
+    needs: gate
+    if: ${{ needs.gate.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/Render_Tests.yml
+
+  # The unit tests again, in an unoptimized --coverage build, run once as a
+  # single process (ctest would start one per test case, each writing every
+  # counter file). Its pass/fail is the unit-tests job's to report; this job
+  # only measures. ccache keeps its own cache: the flags differ from Release.
+  # The counters are updated atomically: the render engine runs tests on
+  # several threads, and plain counters lose updates and can go negative.
+  coverage:
+    needs: gate
+    if: ${{ needs.gate.outputs.should_run == 'true' }}
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/xlightssequencer/xlights-build-docker:master
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    - name: Restore ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: ccache-unit-coverage-${{ github.sha }}
+        restore-keys: |
+          ccache-unit-coverage-
+
+    - name: Tools
+      run: |
+        for t in cmake ninja gcovr; do
+          command -v $t >/dev/null || NEED="$NEED $t"
+        done
+        if [ -n "$NEED" ]; then
+          apt-get update -qq && apt-get install -y -qq $(echo $NEED | sed 's/ninja/ninja-build/')
+        fi
+        ccache --max-size=2G
+        ccache --set-config=compression=true
+        gcovr --version | head -1
+        # lavapipe, the software Vulkan device the [gpu] tests render on
+        ls /usr/share/vulkan/icd.d/lvp_icd*.json >/dev/null 2>&1 || \
+          { apt-get update -qq && apt-get install -y -qq mesa-vulkan-drivers libvulkan1; }
+
+    - name: Configure
+      run: |
+        cmake -S tests/unit -B build-cov -G Ninja \
+          -DXL_TEST_FULL_CORE=ON \
+          -DCMAKE_BUILD_TYPE= \
+          "-DCMAKE_C_FLAGS=-O0 --coverage -fprofile-update=atomic" \
+          "-DCMAKE_CXX_FLAGS=-O0 --coverage -fprofile-update=atomic" \
+          -DCMAKE_EXE_LINKER_FLAGS=--coverage \
+          -DCMAKE_ISPC_COMPILER=$(command -v ispc) \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+    - name: Build
+      run: cmake --build build-cov -j $(nproc)
+
+    # A test that crashes takes the counters with it (they are written at exit),
+    # so a failed run publishes no coverage rather than a number that is too low.
+    - name: Test
+      id: test
+      continue-on-error: true
+      working-directory: build-cov
+      run: |
+        ./xlights_unit_tests "~[gpu]" --reporter console::out=-::colour-mode=none
+        XL_VULKAN_ALLOW_CPU=1 ./xlights_unit_tests "[gpu]" --reporter console::out=-::colour-mode=none
+
+    - name: Coverage report
+      if: steps.test.outcome == 'success'
+      run: |
+        python3 ci_scripts/coverage_report.py . build-cov coverage
+        cat coverage/summary.md >> "$GITHUB_STEP_SUMMARY"
+        tar czf coverage.tar.gz --exclude coverage/coverage.json coverage
+
+    - name: Upload the coverage report
+      if: steps.test.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage.tar.gz
+        retention-days: 14
+
+  # Always runs once the suites are done, even if one failed, so the dashboard
+  # shows the failure. A suite that produced no report counts as failed.
+  report:
+    needs: [gate, unit-tests, render-tests, coverage]
+    if: ${{ always() && needs.gate.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      failed: ${{ steps.agg.outputs.failed }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download the reports
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        pattern: results-*
+        path: results
+
+    - name: Download the coverage report
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: coverage-report
+        path: .
+
+    - name: Aggregate
+      id: agg
+      run: |
+        mkdir -p results
+        if [ -s coverage.tar.gz ]; then tar xzf coverage.tar.gz coverage/totals.json || true; fi
+        python3 ci_scripts/nightly_report.py --coverage coverage --results results \
+          --expect results-unit-linux-x64,results-render-linux-x64,results-render-windows-x64 \
+          --summary "$GITHUB_STEP_SUMMARY" --json nightly-results.json
+        echo "failed=$(python3 -c "import json; print(json.load(open('nightly-results.json'))['totals']['failed'])")" >> "$GITHUB_OUTPUT"
+
+    - name: Upload the aggregate
+      uses: actions/upload-artifact@v4
+      with:
+        name: nightly-results
+        path: nightly-results.json
+        retention-days: 90
+
+  publish:
+    needs: report
+    if: ${{ always() && needs.report.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy-retry.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download the aggregate
+      uses: actions/download-artifact@v4
+      with:
+        name: nightly-results
+        path: .
+
+    - name: Download the coverage report
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: coverage-report
+        path: .
+
+    - name: Build the dashboard
+      run: |
+        sh ci_scripts/stage_coverage.sh site "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}" coverage.tar.gz
+        # A cache-busting query keeps a CDN-cached history.json from dropping an entry made minutes ago.
+        curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/history.json?t=$(date +%s)" \
+          -H 'Cache-Control: no-cache' -o history.json || echo "no published history yet"
+        python3 ci_scripts/build_dashboard.py nightly-results.json site history.json \
+          "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+    # The artifact is named per attempt: "Re-run failed jobs" uploads another
+    # one into the same run, and deploy-pages refuses a run holding two
+    # artifacts of one name.
+    - name: Upload the site
+      uses: actions/upload-pages-artifact@v5
+      with:
+        path: site
+        name: github-pages-${{ github.run_attempt }}
+
+    # The Pages API answers with the odd 5xx (sometimes after the site has
+    # already gone live); one more try a minute later rides that out, and
+    # deploying the same site twice is harmless.
+    - name: Deploy
+      id: deploy
+      continue-on-error: true
+      uses: actions/deploy-pages@v5
+      with:
+        artifact_name: github-pages-${{ github.run_attempt }}
+
+    - name: Wait before retrying the deploy
+      if: ${{ steps.deploy.outcome == 'failure' }}
+      run: sleep 60
+
+    - name: Deploy (retry)
+      if: ${{ steps.deploy.outcome == 'failure' }}
+      id: deploy-retry
+      uses: actions/deploy-pages@v5
+      with:
+        artifact_name: github-pages-${{ github.run_attempt }}
+
+  # Make the workflow red when any test failed, after the dashboard is published.
+  verdict:
+    needs: [gate, report, publish]
+    if: ${{ always() && needs.gate.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Fail if any test failed
+      run: |
+        if [ "${{ needs.report.result }}" != "success" ]; then echo "report job: ${{ needs.report.result }}"; exit 1; fi
+        if [ "${{ needs.report.outputs.failed }}" != "0" ]; then echo "${{ needs.report.outputs.failed }} test(s) failed"; exit 1; fi

@@ -75,10 +75,21 @@ protected:
     uint32_t _curVideoFrame = 0;
     int64_t _curPts = 0LL;
 
-    // Optional hardware acceleration context (used for VideoToolbox on Apple).
-    // When populated, _videoCodecContext->pix_fmt is AV_PIX_FMT_VIDEOTOOLBOX and
-    // each AVFrame's data[3] is a pool-allocated CVPixelBufferRef, which skips
-    // the CPU-side sws_scale conversion entirely.
+    // Optional hardware acceleration context (used for VideoToolbox on Apple,
+    // VAAPI on Linux). On Apple, _videoCodecContext->pix_fmt is
+    // AV_PIX_FMT_VIDEOTOOLBOX and each AVFrame's data[3] is a pool-allocated
+    // CVPixelBufferRef, which skips the CPU-side sws_scale conversion
+    // entirely. VAAPI has no equivalent direct-render-into-GPU-surface path:
+    // every frame is still produced in software (sws_scale into _outPfmt =
+    // AV_PIX_FMT_NV12) and then explicitly uploaded into a pool frame from
+    // _hwFramesCtx via av_hwframe_transfer_data - see _vaapiUpload/_vaapiFrame.
     AVBufferRef* _hwDeviceCtx = nullptr;
     AVBufferRef* _hwFramesCtx = nullptr;
+
+    // Linux VAAPI: true once _hwFramesCtx holds a VAAPI surface pool. Keeps
+    // the software CPU pipeline (_colorConversionFrame/_swsContext/
+    // _videoFrames[]) in play - only the final upload+send step differs from
+    // the plain-software case, unlike Apple's zero-copy path.
+    bool _vaapiUpload = false;
+    AVFrame* _vaapiFrame = nullptr; // scratch hw-surface frame, reused/unref'd per push
 };

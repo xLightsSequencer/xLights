@@ -1372,6 +1372,20 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
         return;
     }
 
+    // Channel and frame counts come straight from the file header. A damaged
+    // header can claim more channel data than the machine has memory; loading
+    // it exhausted memory part way through and the next allocation anywhere
+    // threw std::bad_alloc out of the main loop.
+    const uint64_t neededBytes = (uint64_t)std::max(numChannels, 0) * (uint64_t)std::max(falconPeriods, 0);
+    const uint64_t physicalMB = GetPhysicalMemorySizeMB();
+    if (numChannels < 0 || falconPeriods < 0 || (physicalMB > 0 && neededBytes / (1024 * 1024) > physicalMB)) {
+        spdlog::error("FSEQ file {} claims {} channels x {} frames which is more than this machine can load - the file is probably corrupt.",
+                      (const char*)params.inp_filename.c_str(), numChannels, falconPeriods);
+        params.PlayerError(wxString("Unable to load sequence data, the file appears to be corrupt:\n") + params.inp_filename);
+        delete file;
+        return;
+    }
+
     std::vector<std::pair<uint32_t, uint32_t>> rng;
     rng.push_back(std::pair<uint32_t, uint32_t>(0, numChannels));
     if (!params.skip_frame_data) {
@@ -1396,8 +1410,19 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     int periodsRead = 0;
     while (periodsRead < falconPeriods) {
         FSEQFile::FrameData *data = file->getFrame(periodsRead);
-        if (data == nullptr) break;
-        
+        if (data == nullptr) {
+            // The reader swallows its own exceptions (typically running out of
+            // memory) and hands back no frame. Release the partly loaded data so
+            // the rest of the app is not left without memory.
+            spdlog::error("FSEQ file {} could not be read past frame {} of {}; discarding its data.",
+                          (const char*)params.inp_filename.c_str(), periodsRead, falconPeriods);
+            if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ||
+                params.read_mode == ConvertParameters::READ_MODE_IMPORT) {
+                params.seq_data.init(0, 0, seqStepTime);
+            }
+            break;
+        }
+
         if (channel_offset == 0 && params.read_mode != ConvertParameters::READ_MODE_IGNORE_BLACK) {
             if (!data->readFrame(&params.seq_data[periodsRead][0], params.seq_data.NumChannels()))
             {

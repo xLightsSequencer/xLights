@@ -174,7 +174,6 @@ class EffectTreeDialog : public wxPanel
         bool PromptForName(wxWindow* parent, wxString& name, bool isNew, bool isGroup);
         void UpdateModeButtons();
         void OnDropEffect(wxCommandEvent& event);
-        void OnSize(wxSizeEvent& event);
 
         EffectPresetManager _basePresetManager;
         wxTreeItemId _baseRootID;

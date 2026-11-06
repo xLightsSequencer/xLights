@@ -134,30 +134,34 @@ export void CirclesEffectISPC(const uniform CirclesData * uniform data,
         uniform int bk   = data->blockSize > 0 ? data->blockSize : 1;
         uniform int foff = data->f_offset;
 
-        foreach (index = startIdx ... endIdx) {
-            int   px   = index % w;
-            int   py   = index / w;
-            float dx   = (float)px - (float)data->cx;
-            float dy   = (float)py - (float)data->cy;
-            float dist = sqrt(dx * dx + dy * dy);
-            int   ii   = (int)dist;
+        // Walk rows instead of deriving x/y from index % width: there is no
+        // vector integer divide, so ispc runs a varying % or / one lane at a time.
+        for (uniform int py = startIdx / max(w, 1); w > 0 && py * w < endIdx; py++) {
+            uniform int rowStart = py * w;
+            foreach (px = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, w)) {
+                int index = rowStart + px;
+                float dx   = (float)px - (float)data->cx;
+                float dy   = (float)py - (float)data->cy;
+                float dist = sqrt(dx * dx + dy * dy);
+                int   ii   = (int)dist;
 
-            if (ii > data->maxRadius) {
-                // outside ring — leave buffer background untouched
-            } else if (mode == CIRCLES_MODE_RADIAL_3D) {
-                uniform float denom = (float)data->maxRadius /
-                                      (float)(data->number > 0 ? data->number : 1);
-                float hue = (float)(ii + data->effectState) /
-                            (denom > 0.0f ? denom : 1.0f);
-                hue = hue - floor(hue);
-                result[index] = circ_hsv2rgba(hue, 1.0f, 1.0f);
-            } else {
-                int n        = ii - foff + bk;
-                int colorIdx = ((n % bk) + bk) % bk / bs;
-                colorIdx     = clamp(colorIdx, 0, data->colorCount - 1);
-                result[index] = circ_hsv2rgba(data->colorsH[colorIdx],
-                                              data->colorsS[colorIdx],
-                                              data->colorsV[colorIdx]);
+                if (ii > data->maxRadius) {
+                    // outside ring — leave buffer background untouched
+                } else if (mode == CIRCLES_MODE_RADIAL_3D) {
+                    uniform float denom = (float)data->maxRadius /
+                                          (float)(data->number > 0 ? data->number : 1);
+                    float hue = (float)(ii + data->effectState) /
+                                (denom > 0.0f ? denom : 1.0f);
+                    hue = hue - floor(hue);
+                    result[index] = circ_hsv2rgba(hue, 1.0f, 1.0f);
+                } else {
+                    int n        = ii - foff + bk;
+                    int colorIdx = ((n % bk) + bk) % bk / bs;
+                    colorIdx     = clamp(colorIdx, 0, data->colorCount - 1);
+                    result[index] = circ_hsv2rgba(data->colorsH[colorIdx],
+                                                  data->colorsS[colorIdx],
+                                                  data->colorsV[colorIdx]);
+                }
             }
         }
         return;
@@ -165,32 +169,34 @@ export void CirclesEffectISPC(const uniform CirclesData * uniform data,
 
     // ── METABALLS ─────────────────────────────────────────────────────────
     if (mode == CIRCLES_MODE_METABALLS) {
-        foreach (index = startIdx ... endIdx) {
-            int px = index % w;
-            int py = index / w;
+        for (uniform int py = startIdx / max(w, 1); w > 0 && py * w < endIdx; py++) {
+            uniform int rowStart = py * w;
+            foreach (px = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, w)) {
+                int index = rowStart + px;
 
-            float totalSum = 0.0f;
-            float accH = 0.0f, accS = 0.0f, accV = 0.0f;
+                float totalSum = 0.0f;
+                float accH = 0.0f, accS = 0.0f, accV = 0.0f;
 
-            for (uniform int ii = 0; ii < data->numBalls; ii++) {
-                float dx  = (float)px - data->balls[ii].x;
-                float dy  = (float)py - data->balls[ii].y;
-                float d   = sqrt(dx * dx + dy * dy);
-                float val = (d > 0.0001f) ? (data->balls[ii].radius / d) : 1.0f;
-                totalSum += val;
-                if (val > 0.30f) {
-                    int   cidx   = clamp(data->balls[ii].colorIdx, 0, data->colorCount - 1);
-                    float ball_h = data->colorsH[cidx];
-                    float ball_s = data->colorsS[cidx];
-                    float ball_v = val > 1.0f ? 1.0f : val;
-                    addHSV(accH, accS, accV, ball_h, ball_s, ball_v);
+                for (uniform int ii = 0; ii < data->numBalls; ii++) {
+                    float dx  = (float)px - data->balls[ii].x;
+                    float dy  = (float)py - data->balls[ii].y;
+                    float d   = sqrt(dx * dx + dy * dy);
+                    float val = (d > 0.0001f) ? (data->balls[ii].radius / d) : 1.0f;
+                    totalSum += val;
+                    if (val > 0.30f) {
+                        int   cidx   = clamp(data->balls[ii].colorIdx, 0, data->colorCount - 1);
+                        float ball_h = data->colorsH[cidx];
+                        float ball_s = data->colorsS[cidx];
+                        float ball_v = val > 1.0f ? 1.0f : val;
+                        addHSV(accH, accS, accV, ball_h, ball_s, ball_v);
+                    }
                 }
-            }
 
-            if (totalSum >= 0.90f) {
-                result[index] = circ_hsv2rgba(accH, accS, accV);
+                if (totalSum >= 0.90f) {
+                    result[index] = circ_hsv2rgba(accH, accS, accV);
+                }
+                // below threshold — leave buffer background untouched
             }
-            // below threshold — leave buffer background untouched
         }
         return;
     }
@@ -198,60 +204,62 @@ export void CirclesEffectISPC(const uniform CirclesData * uniform data,
     // ── REGULAR / FADING ──────────────────────────────────────────────────
     // CIRCLES_MODE_REGULAR: solid filled circles, last-writer-wins per pixel.
     // CIRCLES_MODE_FADING:  brightness fades from centre toward edge.
-    foreach (index = startIdx ... endIdx) {
-        int px = index % w;
-        int py = index / w;
+    for (uniform int py = startIdx / max(w, 1); w > 0 && py * w < endIdx; py++) {
+        uniform int rowStart = py * w;
+        foreach (px = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, w)) {
+            int index = rowStart + px;
 
-        uint8<4> outColor;
-        bool hit = false;
+            uint8<4> outColor;
+            bool hit = false;
 
-        for (uniform int ii = 0; ii < data->numBalls; ii++) {
-            float ballR = data->balls[ii].radius;
-            float dx    = (float)px - data->balls[ii].x;
-            float dy    = (float)py - data->balls[ii].y;
+            for (uniform int ii = 0; ii < data->numBalls; ii++) {
+                float ballR = data->balls[ii].radius;
+                float dx    = (float)px - data->balls[ii].x;
+                float dy    = (float)py - data->balls[ii].y;
 
-            if (data->wrap) {
-                if (dx >  (float)w * 0.5f) dx -= (float)w;
-                if (dx < -(float)w * 0.5f) dx += (float)w;
-                if (dy >  (float)h * 0.5f) dy -= (float)h;
-                if (dy < -(float)h * 0.5f) dy += (float)h;
-            }
+                if (data->wrap) {
+                    if (dx >  (float)w * 0.5f) dx -= (float)w;
+                    if (dx < -(float)w * 0.5f) dx += (float)w;
+                    if (dy >  (float)h * 0.5f) dy -= (float)h;
+                    if (dy < -(float)h * 0.5f) dy += (float)h;
+                }
 
-            float d = sqrt(dx * dx + dy * dy);
+                float d = sqrt(dx * dx + dy * dy);
 
-            if (d <= ballR) {
-                int cidx = clamp(data->balls[ii].colorIdx, 0, data->colorCount - 1);
+                if (d <= ballR) {
+                    int cidx = clamp(data->balls[ii].colorIdx, 0, data->colorCount - 1);
 
-                if (mode == CIRCLES_MODE_FADING) {
-                    float bv    = data->colorsV[cidx];
-                    float alpha = bv * (1.0f - d / ballR);
-                    if (alpha > 0.0f) {
-                        if (data->allowAlpha) {
-                            uint8<4> base = data->colorsAsRGBA[cidx];
-                            uint8<4> c;
-                            c[0] = base[0];
-                            c[1] = base[1];
-                            c[2] = base[2];
-                            c[3] = (uint8)clamp((float)base[3] * (1.0f - d / ballR),
-                                                0.0f, 255.0f);
-                            outColor = c;
-                        } else {
-                            outColor = circ_hsv2rgba(data->colorsH[cidx],
-                                                     data->colorsS[cidx],
-                                                     alpha);
+                    if (mode == CIRCLES_MODE_FADING) {
+                        float bv    = data->colorsV[cidx];
+                        float alpha = bv * (1.0f - d / ballR);
+                        if (alpha > 0.0f) {
+                            if (data->allowAlpha) {
+                                uint8<4> base = data->colorsAsRGBA[cidx];
+                                uint8<4> c;
+                                c[0] = base[0];
+                                c[1] = base[1];
+                                c[2] = base[2];
+                                c[3] = (uint8)clamp((float)base[3] * (1.0f - d / ballR),
+                                                    0.0f, 255.0f);
+                                outColor = c;
+                            } else {
+                                outColor = circ_hsv2rgba(data->colorsH[cidx],
+                                                         data->colorsS[cidx],
+                                                         alpha);
+                            }
+                            hit = true;
                         }
+                    } else {
+                        outColor = data->colorsAsRGBA[cidx];
                         hit = true;
                     }
-                } else {
-                    outColor = data->colorsAsRGBA[cidx];
-                    hit = true;
                 }
             }
-        }
 
-        if (hit) {
-            result[index] = outColor;
+            if (hit) {
+                result[index] = outColor;
+            }
+            // no hit — leave buffer background untouched
         }
-        // no hit — leave buffer background untouched
     }
 }

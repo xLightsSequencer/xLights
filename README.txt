@@ -10,204 +10,589 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.19  October ??, 2026
+2026.20  October ??, 2026
 
-    -bug (derwin12)              Some shaders (e.g. Neon_Futures) rendered as random noise since 2026.13 because
-                                 variables declared outside functions without a starting value were not zeroed
-    -enh (derwin12)              Tools > Generate Moving Head Effects adds white moving head effects (section sweeps, chorus
-                                 ping-pong, outro, dark pre-position links) from bars and sections timing tracks
-    -bug (derwin12)              Older DMX models from the vendor download library (and old shows) failed to load with
-                                 "Unknown Model Type: DMX"
-    -bug (derwin12)              FPP Connect / controller discovery no longer asks for a password when another local web
-                                 server (e.g. AdGuard) answers on localhost, and cancelling a password prompt no longer
-                                 cuts discovery short
-    -bug (derwin12)              Very small videos (e.g. 70x80) decoded on NVIDIA hardware showed squashed into a corner with
-                                 gray padding to the right and below
-    -bug (dkulp)                 Package Sequence could leave out shader (and video/other effect media) files used by
-                                 effects added since the sequence was opened, e.g. by Import Effects or paste, until
-                                 they had been rendered
-    -enh (derwin12)              Models and groups with Render Disabled no longer allocate render buffers or run per-frame
-                                 render passes, speeding up renders of sequences with large disabled groups
-    -bug (derwin12)              Model groups whose models sit in a near-perfect row (e.g. a row of floods) could build a
-                                 giant render buffer and render very slowly
-    -bug (derwin12)              Crash rendering a Butterfly effect whose Bkgrd Skip was saved as 0
-    -bug (derwin12)              Align Front/Back on boxed models (matrices, trees, etc.) now uses the pixels' actual depth
-                                 instead of an estimate based on model width, so flat models line up at the same depth
-    -change (derwin12)           Removed remaining nutcracker123.com links: vendor/music lists now come from GitHub and the Help
-                                 Forum entry (desktop and iPad) opens the xLights board on the Falcon Christmas forum
-    -bug (derwin12)              Crash opening a sequence whose media file name contains characters Windows can't map
-    -bug (derwin12)              Crash rendering a model group using a "Horizontal/Vertical Stack - Scaled" buffer style
-                                 when the group's buffer would be billions of pixels; the buffer size is now capped
-    -bug (derwin12)              FPP Connect: an FPP advertising a stale 169.254.x.x address could be reported as
-                                 "not a supported FPP Instance" at its real IP
-    -bug (dkulp)                 FPP Connect: a sparse fseq already on a remote was rebuilt and re-uploaded on every
-                                 run when the remote's channel ranges ran past the end of the sequence (or for
-                                 effect sequences); progress bars now move only for remotes that need a new file
-    -bug (derwin12)              Model previews (e.g. the Submodels node layout) could get stuck panning with
-                                 no mouse button held after focus or window changes mid-drag
-    -enh (dkulp)                 Controller Connection: "LOR Enhanced" serial protocol on FPP controllers' serial ports.
-                                 Models take a Unit ID and Start Pixel instead of a channel; uploading configures FPP's
-                                 LOR Enhanced output. A string longer than the rest of its unit carries on into the next
-                                 unit ID, and each further string of a model starts on the next port's unit ID, two IDs
-                                 on with "340 Pixels Per Port"; the check flags two models on the same pixels of a unit
-    -enh (dkulp)                 FPP string capes and hats: models can go on USB serial adapters plugged into the
-                                 controller (ttyUSB0-7, ttyACM0-3) as well as the cape's own serial ports, picked by
-                                 name in the model's Port and shown in the visualizer once a model is on one (or via
-                                 "Add Serial Adapter Port..."). Uploading turns off a serial output xLights wrote
-                                 earlier once its port has no models; outputs set up on the controller are left alone.
-                                 An adapter port is written with the adapter's serial/by-id (or by-path) name, taken
-                                 the first time it is uploaded, so a reboot that renumbers the adapters doesn't move it
-                                 (with an FPP that reports its serial devices)
-    -bug (dkulp)                 LOR Optimised: zero values in bank 0 could put a 0x00 inside a command, and All Off
-                                 sent the wrong banks to every unit after the first
-    -bug (derwin12)              Display Elements: Show All / Hide All / Hide Unused now stick for timing
-                                 tracks; they no longer went hidden again after editing a timing track
-    -bug (scott)                 FPP Connect: ESPixelStick uploads could fail with "Response Code: 0" and
-                                 nothing written to the SD card; failed uploads are now retried once as an
-                                 uncompressed zip, and the zip is never written in a Zip64 form the
-                                 controller's firmware can't read (#7120)
-    -bug (scott)                 FPP Connect: a configured, reachable controller (e.g. ESPixelStick) could be
-                                 missing from the instance list, and from Add FPP, if its status response
-                                 didn't include a uuid - it no longer needs one (#7120)
-    -bug (scott)                 Controller Connection: changing an Ethernet controller's Vendor/Model/Variant
-                                 while using DDP, Twinkly, or a multi-universe protocol (E1.31/Art-Net/KiNET/
-                                 OPC) could shift its ID by one each time, even when nothing else changed
-    -bug (DPattee)               Layout: Add Object is available on startup when the layout is already in 3D on the Default preview
-    -bug (derwin12)              Moving Head Adv: Position Zone colors and the zone indicator no longer show in the preview when
-                                 Enable Position Zones is off; the indicator ring is now sized to the model base
-    -bug (derwin12)              Chroma Key no longer turns transparent areas of the layer black, which hid the layers
-                                 below when the effect's position or buffer left part of it uncovered (#7195)
-    -bug (derwin12)              Terrain: grid points can be selected and raised/lowered again when Edit Terrain is on (#7197)
-    -bug (dkulp)                 LOR output now behaves like FPP's: fixes channels above 256 getting stuck, channels past
-                                 unit 240 wrapping onto low units, units dropping out while paused, and lag at low baud
-                                 rates; unchanged channels are refreshed in the background
-    -bug (dkulp)                 iPad - Sequencer grid no longer rebuilds every visible effect icon on each redraw;
-                                 the spectrogram strip also redraws after a low-memory purge
-    -bug (dkulp)                 Fix crash loading a layout containing older DMX Moving Head 3D models
-    -bug (dkulp)                 LOR Optimised output: fix crash when the controllers add up to more than 20480 channels
-                                 or a unit has more than 1024 channels; channels past those limits are not sent
-    -bug (dkulp)                 Fix crash opening a show with an old networks file that has an unknown network type
-    -bug (dkulp)                 ESPixelStick: fix crash uploading when the controller's input configuration can't be read
-    -bug (dkulp)                 Fix crash drawing the waveform after the selected effect was deleted outside the grid (e.g. by an import)
-    -bug (dkulp)                 Windows: fix Vulkan crash after a Remote Desktop reconnect or display change
-    -bug (dkulp)                 Layout: fix crash selecting a model group whose name has leading/trailing spaces
-    -bug (dkulp)                 macOS/iPad: fix crash rendering an effect on a very large group buffer (e.g. Horizontal
-                                 Stack - Scaled on a big group) when the GPU buffer can't be allocated
-    -bug (dkulp)                 Fix crash re-opening or changing the show folder with a model selected in Layout
-    -bug (dkulp)                 Fix crash clicking a Search result whose effect was deleted after the search
-    -bug (dkulp)                 Fix crash in the effect Assist panel after the effect's model was changed in Layout
-    -bug (dkulp)                 Butterfly: fix crash (Intel Macs with AMD GPUs) and wrong output when the buffer is more
-                                 than 65535 pixels wide or high, e.g. Single Line on a large matrix. Style 5 rendered on
-                                 the CPU now matches the GPU on buffers over 65535 pixels (it was computing a wrapped size)
-    -bug (dkulp)                 Fix crash when a batch render or automation request closed the sequence while the Import
-                                 Effects dialog was open; while an import is running, automation answers "busy" and batch
-                                 renders and Finder opens wait until it finishes
-    -bug (dkulp)                 Convert: fix crash converting a LOR sequence whose channels exceed the xLights controllers
-    -bug (dkulp)                 Fix crash dragging an effect from the toolbar over the Effect Presets window
-    -bug (dkulp)                 Windows: fix crash when several Video effects open hardware-decoded videos at once
-    -bug (dkulp)                 Windows: videos the GPU's hardware decoder cannot handle (e.g. larger than it supports)
-                                 now fall back to software decoding instead of rendering black or not at all
-    -bug (dkulp)                 Windows: Video effects with Sample Spacing above 0 no longer render black/garbled when
-                                 hardware video decoding (DirectX11) is used
-    -bug (dkulp)                 Windows: ProRes/FFV1 videos no longer use Vulkan hardware decode, which crashed on
-                                 some AMD drivers
-    -bug (dkulp)                 Fix crash when a sequence starts rendering while it is still being opened (e.g.
-                                 after picking missing audio in the settings dialog)
-    -bug (dkulp)                 Fix crash with a model whose start channel is "!Controller:0"
-    -bug (dkulp)                 Fix crash rendering a Music effect that starts before the beginning of the sequence
-    -bug (dkulp)                 Shader effects on a buffer larger than the GPU texture limit now show yellow instead of
-                                 crashing (Metal and Vulkan)
-    -bug (dkulp)                 Automation: importXLightsSequence no longer opens message boxes; warnings and errors are
-                                 returned in the response
-    -bug (dkulp)                 Windows: videos whose codec Media Foundation can't decode go straight to FFmpeg instead
-                                 of retrying hardware decode every time the video is opened
-    -bug (dkulp)                 Fix crash on Layout undo/redo from models being reloaded on several threads
-    -bug (dkulp)                 Fix crash playing a model group after Replace Model in Layout
-    -bug (dkulp)                 Fix crash opening a show folder while the Layout 3D Objects list is showing
-    -bug (dkulp)                 Windows: fix Shader effect crashes with background shader rendering enabled, when
-                                 render threads that had gone idle took the GPU contexts down with them
-    -bug (dkulp)                 Fix the app freezing (and iOS closing the iPad app) when a 3D mesh or its textures are
-                                 in iCloud but not downloaded yet; the mesh appears once the download finishes
-    -bug (dkulp)                 iPad - Scrolling the sequencer no longer rebuilds every row heading on each step,
-                                 which kept the CPU busy on large sequences
-    -bug (dkulp)                 Import Effects: copied images/videos/shaders/faces are now stored show-relative, so the
-                                 next open no longer reports them all as relocated
-    -enh (dkulp)                 Import Effects: offer to convert unsupported imported videos (e.g. AVI) during the
-                                 import instead of on the next open
-    -bug (derwin12)              Pictures: Loop Animated GIF / Suppress GIF Background settings are no longer lost when
-                                 copying and pasting the effect
-    -bug (derwin12)              Switching audio tracks while a sequence is playing now moves playback to the new track
-                                 instead of leaving the previous track playing (#7188)
-    -enh (derwin12)              Find Possible Source Effects is now available from any view; opening a result
-                                 for a model not in the current view switches to Master View
-    -bug (derwin12)              FPP Connect: no longer crashes if the temporary sequence file for an upload
-                                 cannot be created; the upload is stopped and the error logged
-    -bug (derwin12)              Bars: gradient no longer picks up extra hues (rainbow) when the layer blending
-                                 is anything other than Normal
+    -bug (dkulp)                 Guitar effect: Bass Guitar uses bass chord shapes, and the Wave appearance
+                                 swings to both sides of the string (it differed between Intel and Apple Silicon)
+    -bug (dkulp)                 Faces "Short" blink duration was the same as Normal
+    -bug (dkulp)                 VU Meter bar types fill the whole width when it does not divide evenly by
+                                 the bar count, and the Level Pulse types no longer flash in silence at the
+                                 start of a sequence
+    -bug (dkulp)                 Bars "Use first color for highlight" drew white highlights with the custom
+                                 directions and with spatial colors
+    -bug (dkulp)                 Single Strand FX: Phased, Phased Noise and Fireworks 1D could change when other
+                                 effects of the same mode rendered; the "* Color Gradient" palette was dark or
+                                 missing color 1 with one or two colors
+    -bug (dkulp)                 Single Strand chase "From Tail" fade with transparency left the tail nearly
+                                 transparent
+    -bug (dkulp)                 Galaxy with 100% head duration, and old-style Ripple squares with no movement,
+                                 drew nothing
+    -bug (dkulp)                 Text word flip with the built-in xLights fonts placed the word off center
+    -bug (dkulp)                 Moving Head following a sketch path got an invalid position on a repeated point
+    -bug (dkulp)                 Servo values that land on a whole number (e.g. 40%) could come out one lower on
+                                 macOS and iPad than on Windows and Linux
+    -bug (dkulp)                 PWM ports for a plain (non-DMX) model each drive their own channel;
+                                 every colour of a node was set to one channel past the node's first
+    -bug (dkulp)                 PWM port labels name the right colour on RBGW and BRGW models
+    -bug (dkulp)                 Custom models with a rotated buffer, and with the Stacked, Overlaid and
+                                 Unique X and Y buffer styles, render every node inside the buffer
+    -bug (dkulp)                 Sub-buffers and buffer sizes are right for the Rotate CC/CW 90 Flip
+                                 Horizontal buffer transforms
+    -bug (dkulp)                 An arch of a single light got no position, and did not render on
+                                 Windows and Linux
+    -bug (dkulp)                 Sequence durations set in milliseconds could come back a few milliseconds
+                                 long (a day-long sequence gained 8 ms)
+    -bug (dkulp)                 Butterfly and Plasma render the same colours on the GPU (macOS/iPad) as on
+                                 the CPU
+    -bug (dkulp)                 Butterfly styles 6-9 no longer show stray black pixels at full brightness
+    -bug (dkulp)                 Buffer rotation and zoom render the same with GPU rendering on as off; on
+                                 the GPU they filled a slightly different set of pixels
+    -bug (dkulp)                 iPad - 3D objects (gridlines, terrain, mesh, image, ruler) stay in the Default
+                                 preview instead of a layout group that was lost on reopen
+    -change (dkulp)              iPad - Adding a 3D object needs the Default preview in 3D, as on desktop
+    -bug (dkulp)                 DMX Moving Head Adv with 16-bit tilt showed the "Tilt Fine" channel name
+                                 on the channel after the real fine-tilt channel
+    -enh (dkulp)                 Custom value curves save points with finer time and value precision, so
+                                 points placed at the editor's half steps no longer shift or merge
+    -bug (dkulp)                 Crash loading a DMX model with a negative channel count
+    -bug (dkulp)                 Crash reading the current config of a J1Sys controller whose model name
+                                 reports more than 26 outputs
+    -bug (dkulp)                 Wrapped Sine, Parabolic, Logarithmic and Exponential value curves rendered
+                                 as steps inside the wrapped part and swept back across the wrap point
+    -bug (derwin12)              Import Effects and other dialogs no longer open on a monitor that is no
+                                 longer attached (which looked like a hang); they open centred instead (#7304)
+    -bug (dkulp)                 iPad - Faces and State effects could not switch to Timing Track; the
+                                 Source selector snapped back until a track was chosen
+    -bug (derwin12)              Embedded media referenced with both \ and / in its path (e.g. Shaders\x.fs
+                                 and Shaders/x.fs) showed a second, external copy when opening a package
+    -bug (dkulp)                 Crash opening a sequence where a submodel effect row is attached to a
+                                 timing track or submodel instead of a model; the row is now skipped
+    -bug (dkulp)                 Crash setting a model's String Type through the automation API, which
+                                 also never applied the new String Type / RGBW handling
+    -bug (dkulp)                 Stem separation no longer holds two copies of every stem in memory
+    -bug (dkulp)                 FPP Connect and other controller uploads no longer use a full CPU core
+                                 while waiting on a slow or unreachable controller
+    -bug (dkulp)                 iPad - Crash in the media picker when an animated thumbnail is reloaded
+                                 while it is still cycling
+    -bug (dkulp)                 iPad - Opening a sequence with a large saved .fseq could be killed by
+                                 the iPadOS watchdog; the .fseq now loads in the background
+    -bug (derwin12)              Clock, Wipe and other masked transitions revealed models with more than
+                                 one light per node in a scrambled order instead of sweeping smoothly (#7301)
+    -enh (derwin12)              Spirals: new Reverse 3D option to choose which edge of the 3D fade leads;
+                                 GPU-rendered Spirals now fade on the same side as CPU (#6614)
+    -bug (derwin12)              Shift+mouse wheel scrolling no longer clears the effect grid selection,
+                                 so lasso and Shift+click range selection work across a scroll (#6891)
+    -bug (derwin12)              Timeline tags (Ctrl+0-9) carried over from the previous sequence after
+                                 close/open; "Clear all tags" now also clears them from the saved file
+    -bug (derwin12)              Floating Effect Assist window no longer stays open when switching
+                                 to the Layout tab (#7241)
+    -bug (derwin12)              Ctrl+Left/Right on multiple selected effects slides them as a group
+                                 instead of collapsing the gaps between them
+    -change (derwin12)           Layout show folder footer opens the Directories dialog on a single click
+                                 (Shift+click opens the folder); added tooltip
+    -bug (derwin12)              Matrix face editor preview showed transparent image areas as white
+    -enh (scott)                 Linux: stem separation (Waveform > Stem - Drums/Bass/Other/Vocals,
+                                 plus Guitar/Piano on the 6-stem model) now works, via ONNX Runtime -
+                                 previously the Linux build never defined HAVE_ORT or HAVE_OPENVINO,
+                                 so the feature silently did not exist
+    -enh (scott)                 Linux: Generate Custom Model offers webcam-based node
+                                 identification (via V4L2), same as Windows/macOS
+    -bug (scott)                 Linux: Package Sequence now bundles the fonts used by Text/Shape
+                                 effects (resolved via fontconfig) instead of silently including none
+    -bug (scott)                 Linux: the render cache now backs off before driving the system
+                                 into swap (same signal/threshold as macOS), instead of never
+                                 self-limiting
+    -enh (scott)                 Linux: video export (house preview and model export) now prefers
+                                 VAAPI hardware H.264/H.265 encode when a device is present, falling
+                                 back to software automatically - previously software-only, with no
+                                 GPU preference or retry chain
+    -enh (derwin12)              SubModels Symmetrize (Rotational) is available again on Circle, Star, Wreath and
+                                 full-circle Spinner models, not just Custom (#7276)
+    -bug (merryoncherry/dkulp)   Sparse FSEQ files with more than 255 sparse ranges lost most of their
+                                 channels.  They now save every range (FSEQ 2.3), and files already
+                                 saved that way load correctly.  FPP older than 10.4 is sent the
+                                 ranges merged down to 255 (effect sequences: their first 255)
+    -bug (dkulp)                 Sparse FSEQ files now cover the whole model when a group in the sequence
+                                 holds its submodels, instead of a separate range per submodel
+    -bug (scott)                 Linux: fixed the Effect Presets pane rendering empty (just a tiny
+                                 artifact in the corner) since 2026.17 - the scrolled window had no
+                                 min size, so wxWidgets collapsed its best size to roughly a
+                                 scrollbar's width (#7223)
+    -bug (dkulp)                 Fix crash when searching lyrics online (or removing words/phonemes)
+                                 on a timing track that already had words and phonemes
+    -bug (dkulp)                 Fix crash when an automation client disconnects while its request
+                                 (such as a render) is still running
+    -bug (dkulp)                 Fix crash undoing a custom model data edit in Layout
+    -enh (dkulp)                 Faster CPU rendering of many effects (Shockwave, Color Wash, Bars,
+                                 Spirals, Fan, Galaxy and others); Spirals is about 2x faster
+    -bug (derwin12)              Video effect showed a red square when a buffer value curve changed the
+                                 buffer size mid-effect (Windows/Linux) (#7284)
+    -change (dkulp)              SIMD effect and blend kernels now use ispc's fast math library; a few
+                                 effects (Plasma, Butterfly) can differ by one level on a few channels between CPU types
+    -bug (dkulp)                 Strobe, Lightning, Shape, Tendril, Pinwheel and several transitions (Circles, Pinwheel,
+                                 Dissolve, Fold, Star, Bow Tie, Circular Swirl) rendered differently on
+                                 Windows and macOS; they now render the same on both
+    -bug (dkulp)                 Snowstorm with alpha enabled drew the oldest tail points at a random
+                                 brightness instead of fading them out; output differs from earlier versions
+    -bug (dkulp)                 Transitions on a one-pixel-high model (such as a single line) could render
+                                 blank or differ between machines
+    -bug (dkulp)                 Duplicate effect with Override Timing no longer wipes the copy's buffer
+                                 settings; output differs from earlier versions
+    -bug (dkulp)                 Linking an effect to a symbol no longer wipes the symbol's palette and
+                                 settings
+    -bug (dkulp)                 VU Meter Timing Event Color sensitivity migration now applies when opening
+                                 sequences saved before 2022.04; output may differ
+    -bug (dkulp)                 Snowstorm no longer crashes on an empty (zero-size) buffer
+    -bug (dkulp)                 Malformed or empty color curve data no longer crashes
+    -bug (dkulp)                 Layout files with zero or negative string/node counts or dimensions no
+                                 longer crash on load
+    -bug (dkulp)                 Model groups no longer match models by name prefix (a group holding Tree10
+                                 no longer also claims Tree1), cyclic groups no longer crash, and a self-
+                                 referencing start channel no longer drifts
+    -bug (dkulp)                 Start channel shown for a model's first channel in controller (!Name:n) form
+                                 was the last channel
+    -bug (dkulp)                 Controller hostnames with several dots (e.g. falcon.home.lan) are now
+                                 accepted
+    -bug (dkulp)                 Import channel map: model names containing a dot now match literally
+    -bug (dkulp)                 Changing a controller's IP in setup now marks it changed so it is saved, and
+                                 copying a serial controller keeps its port, speed and prefix
+    -bug (dkulp)                 Setting the global force local IP no longer also sets the FPP proxy
+    -bug (dkulp)                 Newlines and tabs in XML-escaped text now survive a save and load
+    -bug (dkulp)                 Reading a corrupt or truncated .fseq no longer returns stale memory as
+                                 channel data; the blocks are blanked instead
+    -bug (dkulp)                 Sequences rendering in parallel could crash while
+                                 logging render status
+    -bug (dkulp)                 Pixels drawn exactly at the buffer edge are now
+                                 wrapped instead of dropped
+    -bug (dkulp)                 Possible hang when shutting down the render thread
+                                 pool
+    -bug (dkulp)                 Layer blending (e.g. Shadow 2 on 1) rendered black
+                                 when the hue went negative
+    -bug (dkulp)                 Tempo detection on silent or flat audio now
+                                 returns no tempo instead of ~304 BPM
+    -bug (dkulp)                 Spectrogram rendering with a negative size no
+                                 longer throws
+    -bug (dkulp)                 Audio accessors no longer hang when no frame
+                                 interval is set or the load failed
+    -bug (dkulp)                 Pitch detection of low tones (about 80-200 Hz) no
+                                 longer reports ~1225 Hz
+    -bug (dkulp)                 Key detection now correlates against mean-centred
+                                 profiles, so a C major triad reads as C major
+    -bug (dkulp)                 Sequence package extraction no longer writes files
+                                 outside the destination folder (zip-slip)
+    -bug (dkulp)                 SRT import no longer drops the last subtitle
+    -bug (dkulp)                 Audacity and ElevenLabs timing import give zero-
+                                 length marks one frame
+    -bug (dkulp)                 Fixed crashes importing Papagayo with 0 samples
+                                 per second, an empty LOR freeform grid, and 1-2
+                                 frame Vixen2/HLS data
+    -bug (dkulp)                 Fixed a crash in lyric breakdown when the phrase
+                                 start is after its end
+    -bug (dkulp)                 Fixed-interval and metronome timing sections no
+                                 longer hang on a 0 interval
+    -bug (dkulp)                 Fixed a crash loading .obj models whose faces
+                                 reference missing vertices
+    -bug (dkulp)                 Fixed text rendering with an unloaded font size
+                                 above 88
+    -bug (dkulp)                 Fixed FPP range upload merging separate ranges
+    -bug (dkulp)                 Fixed controller pixel protocol matching and
+                                 channels per pixel for mixed-case names
+    -bug (dkulp)                 Fixed Pixlite16 bank voltages above 25.5V being
+                                 truncated
+    -bug (dkulp)                 Fixed crashes on damaged settings files and
+                                 ESPixelStick ports without a type
+    -bug (dkulp)                 Fixed unescaped markup in the Check Sequence HTML
+                                 report
+    -bug (dkulp)                 Fixed the smart remote letter being exported as a
+                                 number in controller JSON
+    -bug (dkulp)                 Image and Label models no longer read
+                                 uninitialised buffer coordinates
+    -bug (dkulp)                 DMX Skull with disabled servos no longer crashes
+                                 when naming nodes or saving
+    -bug (dkulp)                 DMX Advanced Moving Head no longer crashes when
+                                 its channel count is smaller than its motor
+                                 channels
+    -bug (dkulp)                 DMX Servo and Servo 3D models no longer crash with
+                                 a zero channel count
+    -bug (dkulp)                 Hand-edited DMX servo, image or mesh element names
+                                 without a valid number no longer crash loading
+    -bug (dkulp)                 Legacy DMX servo MotionImage no longer overwrites
+                                 the static image
+    -bug (dkulp)                 DMX servo image offsets no longer shrink 100x on
+                                 every save
+    -bug (dkulp)                 DMX Servo 3D unlinked servos and meshes stay
+                                 unlinked after save and load
+    -bug (dkulp)                 DMX models without a StringType no longer get an
+                                 inflated channel count
+    -bug (dkulp)                 Icicles with an empty or zero drop pattern no
+                                 longer hang on load
+    -bug (dkulp)                 Poly Line and Custom models with zero or invalid
+                                 string counts no longer crash
+    -bug (dkulp)                 Corrupt negative values in Custom, Spinner and
+                                 Window Frame models no longer crash
+    -bug (dkulp)                 Submodel legacy single-line buffer no longer reads
+                                 out of bounds
+    -bug (dkulp)                 Submodel per-strand buffer sizes match the
+                                 rendered buffer
+    -bug (dkulp)                 Zeros to Blanks keeps leading zero cells
+    -bug (dkulp)                 Zero-length poly lines no longer produce invalid
+                                 node positions
+    -bug (dkulp)                 Huge submodel node ranges are limited to the
+                                 model's node count
+    -bug (dkulp)                 GDTF import rejects absurd channel counts
+    -bug (dkulp)                 Fixed non-ASCII (UTF-8) text being dropped from
+                                 sequence header info, timing exports and test
+                                 preset names on save
+    -bug (dkulp)                 DMX servo pivot offsets no longer shrink every
+                                 time a model is saved (values saved by earlier
+                                 versions are not recovered)
+    -bug (dkulp)                 Value curves exported to .xvc with a non-zero
+                                 minimum (e.g. -100..100) now import correctly
+    -bug (dkulp)                 Reverse on Sine and Abs Sine value curves is now a
+                                 true reversal (renders differently than before)
+    -bug (dkulp)                 Colour curves and custom value curves no longer
+                                 lose points that land on the same position when
+                                 saved
+    -bug (dkulp)                 Timing, audio and filter text containing a | no
+                                 longer breaks value curves (older versions show
+                                 &#124; for it)
+    -bug (dkulp)                 Timing labels containing text such as &amp; are no
+                                 longer altered when a sequence or .xtiming file is
+                                 loaded
+    -bug (dkulp)                 Negative DMX colour channels are no longer turned
+                                 into a huge channel number
+    -bug (dkulp)                 Fixed a crash (huge Lights Per Node, now capped at
+                                 1000) and a hang (huge Cube string count) loading
+                                 corrupt models
+    -bug (dkulp)                 An empty model tag colour is no longer saved
+                                 differently on the first and second save
+    -bug (dkulp)                 LOR Optimised in split mode with one channel, and
+                                 DDP with a missing or oversized Channels Per
+                                 Packet, no longer hang
+    -bug (dkulp)                 Fixed crashes and memory overruns in ZCPP, DDP,
+                                 OPC and xxx Ethernet outputs and resizing an
+                                 Ethernet controller
+    -bug (dkulp)                 Renard AllOff now clears the first two channels,
+                                 and xxx Serial device channel totals above 255 no
+                                 longer wrap
+    -bug (dkulp)                 Copied KiNet outputs keep their protocol version
+                                 and copied serial/NULL outputs keep their Id
+    -bug (dkulp)                 E1.31 priority is limited to 0-200, and negative
+                                 or out-of-range MaxChannels and start channels
+                                 from show files are rejected
+    -bug (dkulp)                 Different NULL outputs are no longer treated as
+                                 equal, and xxx Ethernet outputs no longer load as
+                                 modified
+    -bug (dkulp)                 Serial prefix/postfix hex escapes no longer drop
+                                 the escape sequence after a malformed one
+    -bug (dkulp)                 Falcon, SanDevices, WLED, ESPixelStick, AlphaPix
+                                 and J1Sys uploads no longer crash on incomplete or
+                                 unexpected controller replies
+    -bug (dkulp)                 WLED upload handles unusual pin and LED instance
+                                 settings, and no longer sets an unsupported chip
+                                 to WS2811
+    -bug (dkulp)                 ESPixelStick settings with large numeric values
+                                 are no longer corrupted on upload
+    -bug (dkulp)                 Experience, PowerDMX, HinksPix and Minleon
+                                 controllers no longer crash or fail to connect on
+                                 incomplete status replies
+    -bug (dkulp)                 Minleon Original NDB controllers are now detected
+                                 and the legacy upload no longer sends a blank
+                                 netmask
+    -bug (dkulp)                 FPP version parsing handles two-digit versions,
+                                 FPP 8 proxy lists, truncated settings and
+                                 malformed channel ranges
+    -bug (dkulp)                 A duplicated FPP controller keeps its IP address
+                                 and proxy
+    -enh (derwin12)              Visualizer warns when more than 10 models are hidden because their Preview
+                                 is 'Unassigned' #7323
+
+2026.19  October 23, 2026
+
+    -change (dkulp)              SuperStar import: Image Resizing now defaults to All, so pictures
+                                 scale with the rest of the imported effects on models of a
+                                 different size
+    -change (derwin12)           Removed the remaining nutcracker123.com links: the vendor and music
+                                 lists now come from GitHub, and Help > Forum (desktop and iPad)
+                                 opens the xLights board on the Falcon Christmas forum
+    -enh (dkulp)                 Bars: new "Custom" direction with an Angle slider (-180 to 180) to
+                                 move the bars in any direction
+    -enh (dkulp)                 Pictures effect can use SVG images, drawn sharp at the model's size
     -enh (dkulp)                 Palette and effect colour buttons preview the colour live while the
                                  colour picker is open, and Cancel restores the original
-    -bug (dkulp)                 macOS - Opening the system colour picker and clicking OK no longer
-                                 shifts the colour (it now opens in Generic RGB)
-    -bug (dkulp)                 Fix crash after using a property's "..." button (states, faces, submodels,
-                                 etc.) when the property grid was refreshed while its dialog was open
-    -bug (dkulp)                 macOS - Fall back to xLights' own temporary folder when the system one isn't
-                                 writable, so FPP Connect sequence uploads and downloads work
-    -bug (dkulp)                 FPP Connect: uploading the controller/cape configuration silently did nothing
-                                 for an Inactive controller whose IP is set to a hostname
-    -bug (nsxfreddy)             Models newly assigned to a PWM or serial (DMX) port on an auto-layout
-                                 controller no longer start one channel early
-    -enh (derwin12)              Layout Controllers tab: clicking a model in the preview switches to the
-                                 Models (or Groups) tab with that model selected
-    -enh (dkulp)                 Palette menu: new "Update Only Colors" applies just the palette colours to the
-                                 selected effects, leaving each effect's palette checkboxes as they were
-    -bug (dkulp)                 iPad - Update Palette now matches desktop: it copies only the colours and
-                                 checkboxes (unchecking slots too), keeping each effect's sparkles,
-                                 brightness and other colour settings
-    -enh (dkulp)                 "Promote to Base Show Folder" on models, groups, 3D objects and controllers
-                                 copies them (and what they depend on) into the base show folder and links them
-    -enh (dkulp)                 Automation: importSuperStar (all import dialog options, plus "replace" to
-                                 clear the model and its unused media first), clearModelEffects and
-                                 removeUnusedMedia, for re-importing after a model's size changes
-    -bug (dkulp)                 SuperStar import: effects that overlap on one SuperStar layer no longer
-                                 land behind other layers' effects, and re-importing no longer reuses the
-                                 old embedded images sized for the previous model
-    -change (dkulp)              SuperStar import: Image Resizing defaults to All so pictures scale with
-                                 the rest of the imported effects on models of a different size
-    -bug (dkulp)                 iPad - Remove Unused Media no longer drops media used only by submodel,
-                                 strand or node effects
-    -enh (dkulp)                 Bars: new "Custom" direction with an Angle slider (-180 to 180) to move
-                                 the bars in any direction
-    -enh (dkulp)                 LOR S5/S6 import: effects on LOR motion-row regions (strands, tiers,
-                                 columns) land on the matching part of the model, later LOR rows
-                                 draw on top, Single Block imports as Morph, embedded pictures and
-                                 GIFs are carried into the sequence, and starfield, moving shapes,
-                                 spin fade and simple shape effects are no longer dropped; imported
-                                 effects are packed onto as few layers as render the same
-    -enh (dkulp)                 Pictures effect can use SVG images, drawn sharp at the model's size
-    -enh (dkulp)                 LOR S5/S6 import: LOR sketch effects (singing faces, drawings) import
-                                 as embedded SVG pictures instead of empty Sketch effects
-    -enh (dkulp)                 LOR S5/S6 import: LOR custom motion rows (bows, outlines, arms,
-                                 stripes...) are listed as their own sources, prop/row, so they can be
-                                 mapped to submodels or groups instead of covering the whole model
-    -enh (dkulp)                 LOR S5/S6 import: singing faces get lip-sync timing tracks rebuilt from
-                                 their mouth shapes (one per voice), and each face can be mapped as a
-                                 whole onto a model to create a Faces effect driven by that track
-    -bug (dkulp)                 Automation: closexLights with force no longer stops at the "Save Effect
-                                 Preset changes?" prompt
-    -enh (dkulp)                 Automation: importS5Sequence imports a LOR .loredit with a mapping file
-                                 and/or auto map, without the mapping dialog
+    -enh (dkulp)                 Palette menu: new "Update Only Colors" applies just the palette
+                                 colours to the selected effects, leaving each effect's palette
+                                 checkboxes as they were
+    -enh (derwin12)              Find Possible Source Effects is available from any view; opening a
+                                 result for a model not in the current view switches to Master View
+    -enh (derwin12)              Tools > Generate Moving Head Effects adds white moving head effects
+                                 (section sweeps, chorus ping-pong, outro, dark pre-position links)
+                                 from bars and sections timing tracks
+    -enh (derwin12)              Windows: Stem separation adds Guitar and Piano stems (the 6-stem
+                                 model is downloaded the first time either is picked)
+    -enh (derwin12)              Faster renders for sequences with large models or groups set to
+                                 Render Disabled
+    -enh (dkulp)                 Import Effects: unsupported imported videos (e.g. AVI) can be
+                                 converted during the import instead of on the next open
+    -enh (dkulp)                 LOR S5/S6 import: effects on LOR motion-row regions (strands,
+                                 tiers, columns) land on the matching part of the model, later LOR
+                                 rows draw on top, Single Block imports as Morph, embedded pictures
+                                 and GIFs are carried into the sequence, and starfield, moving
+                                 shapes, spin fade and simple shape effects are no longer dropped;
+                                 imported effects use as few layers as possible
+    -enh (dkulp)                 LOR S5/S6 import: custom motion rows (bows, outlines, arms,
+                                 stripes...) are listed as their own sources so they can be mapped
+                                 to submodels or groups instead of covering the whole model
+    -enh (dkulp)                 LOR S5/S6 import: sketch effects (singing faces, drawings) import
+                                 as SVG pictures instead of empty Sketch effects
+    -enh (dkulp)                 LOR S5/S6 import: singing faces get lip-sync timing tracks built
+                                 from their mouth shapes (one per voice), and each face can be
+                                 mapped onto a model as a Faces effect driven by that track
+    -enh (heffneil)              The Faces, States and SubModels "Import From Model" pickers have a
+                                 filter box to narrow a long model list
+    -enh (derwin12)              Layout Controllers tab: clicking a model in the preview switches to
+                                 the Models (or Groups) tab with that model selected
+    -enh (dkulp)                 "Promote to Base Show Folder" on models, groups, 3D objects and
+                                 controllers copies them (and what they depend on) into the base
+                                 show folder and links them
+    -enh (heffneil)              Pin favorite show folders with a name in the Directories dialog and
+                                 switch to them from File > Favorite Show Folders
+    -enh (heffneil)              Batch Render shows a window with each sequence's result and time,
+                                 overall progress and time left, a Stop button, and Copy Results
+    -enh (heffneil)              FPP Connect upload window shows the current step and sequence, time
+                                 left, and a list of each finished step and sequence with per-
+                                 controller results (Keep Open)
+    -enh (derwin12)              FPP Connect remembers the Keep Open setting
+    -enh (dkulp)                 Controller Connection: "LOR Enhanced" protocol on FPP controllers'
+                                 serial ports. Models take a Unit ID and Start Pixel instead of a
+                                 channel, long strings carry on into the next unit ID, and uploading
+                                 configures FPP's LOR Enhanced output; Check Sequence flags two
+                                 models on the same pixels of a unit
+    -enh (dkulp)                 FPP string capes and hats: models can go on USB serial adapters
+                                 plugged into the controller (ttyUSB0-7, ttyACM0-3) as well as the
+                                 cape's own serial ports. Uploading turns off a serial output
+                                 xLights wrote earlier once its port has no models, and adapter
+                                 ports stay put when a reboot renumbers the adapters (on an FPP that
+                                 reports its serial devices)
+    -enh (dkulp)                 Automation: importSuperStar (with all import dialog options, plus
+                                 "replace" to clear the model and its unused media first),
+                                 clearModelEffects and removeUnusedMedia, for re-importing after a
+                                 model's size changes
+    -enh (dkulp)                 Automation: importS5Sequence imports a LOR .loredit with a mapping
+                                 file and/or auto map, without the mapping dialog
+    -enh (dkulp)                 iPad - Controller visualizer: drop a model on the top half of a row
+                                 to put it before that model, and Move to Front puts a model at the
+                                 head of its port
+    -bug (derwin12)              Some shaders rendered as random noise since 2026.13
+    -bug (dkulp)                 Shader effects on a buffer larger than the GPU texture limit now
+                                 show yellow instead of crashing
+    -bug (dkulp)                 Windows: fix Shader effect crashes with background shader rendering
+                                 enabled
+    -bug (derwin12)              Bars: the gradient no longer picks up extra hues (rainbow) when the
+                                 layer blending is anything other than Normal
+    -bug (dkulp)                 Windows/Linux: Bars gradient colours rendered on the GPU (Vulkan)
+                                 now match macOS and CPU rendering
+    -bug (derwin12)              Chroma Key no longer turns transparent areas of the layer black,
+                                 which hid the layers below when the effect didn't cover the whole
+                                 buffer (#7195)
+    -bug (derwin12)              Pictures: Loop Animated GIF and Suppress GIF Background are no
+                                 longer lost when copying and pasting the effect
+    -bug (derwin12)              Moving Head Adv: Position Zone colours and the zone indicator no
+                                 longer show in the preview when Enable Position Zones is off; the
+                                 indicator ring is now sized to the model base
+    -bug (derwin12)              Fix crash rendering a Butterfly effect whose Bkgrd Skip was saved
+                                 as 0
+    -bug (dkulp)                 Butterfly: fix crash (Intel Macs with AMD GPUs) and wrong output on
+                                 buffers more than 65535 pixels wide or high, e.g. Single Line on a
+                                 large matrix
+    -bug (dkulp)                 Fix crash rendering a Music effect that starts before the beginning
+                                 of the sequence
+    -bug (derwin12,dkulp)        Fix crash rendering a model group with a very large buffer (e.g.
+                                 Horizontal/Vertical Stack - Scaled on a big group); the buffer size
+                                 is now capped
+    -bug (derwin12)              Model groups whose models sit in a near-perfect row (e.g. a row of
+                                 floods) could build a giant render buffer and render very slowly
+    -bug (derwin12)              Fix crash when the render cache folder or its files are damaged
+    -bug (dkulp)                 Fix crash when a sequence starts rendering while it is still being
+                                 opened (e.g. after picking missing audio in the settings dialog)
+    -bug (derwin12)              Switching audio tracks while a sequence is playing now moves
+                                 playback to the new track instead of leaving the previous track
+                                 playing (#7188)
+    -bug (dkulp)                 macOS/iPad: fix crash closing a sequence or changing its audio
+                                 while another audio track was playing
+    -bug (derwin12)              Display Elements: Show All / Hide All / Hide Unused now stick for
+                                 timing tracks instead of going hidden again after editing a timing
+                                 track
+    -bug (derwin12)              Fix crash adding an Audio Tempo or Audio Chords timing track from
+                                 the Add Timing Track dialog
+    -bug (dkulp)                 Fix crash drawing the waveform after the selected effect was
+                                 deleted outside the grid (e.g. by an import)
+    -bug (dkulp)                 Fix crash clicking a Search result whose effect was deleted after
+                                 the search
+    -bug (dkulp)                 Fix crash dragging an effect from the toolbar over the Effect
+                                 Presets window
+    -bug (dkulp)                 Fix crash in the effect Assist panel after the effect's model was
+                                 changed in Layout
+    -bug (dkulp)                 Fix crash playing a model group after Replace Model in Layout
+    -bug (dkulp)                 macOS: picking a colour in the system colour picker and clicking OK
+                                 no longer shifts the colour
+    -bug (derwin12)              Fix crashes reported against 2026.18: FPP Connect with an invalid
+                                 reply, Falcon V4/V5 controllers whose status query times out,
+                                 controller discovery when FPP and DDP both answer from one IP,
+                                 HinksPix export of a damaged FSEQ, the Fire effect on oversized
+                                 buffers, loading a corrupt FSEQ, Check Sequence with effects on
+                                 models missing from the layout, dragging an effect after the timing
+                                 rows changed, playback/scrub after the previewed model was removed,
+                                 the 3D layout after switching show folders, the Video effect
+                                 preview, and the New Sequence wizard
+    -bug (dkulp)                 Package Sequence could leave out shader, video and other media
+                                 files used by effects added since the sequence was opened (e.g. by
+                                 Import Effects or paste)
+    -bug (dkulp)                 Import Effects: copied images, videos, shaders and faces are stored
+                                 show-relative, so the next open no longer reports them all as
+                                 relocated
+    -bug (derwin12)              Fix crash importing effects from a zip, or opening a sequence,
+                                 whose file names use old Windows/DOS accented characters
+    -bug (derwin12)              Fix crash opening a sequence whose media file name contains
+                                 characters Windows can't map
+    -bug (dkulp)                 Fix crash when a batch render or automation request closed the
+                                 sequence while the Import Effects dialog was open
+    -bug (dkulp)                 SuperStar import: effects that overlap on one SuperStar layer no
+                                 longer land behind other layers' effects, and re-importing no
+                                 longer reuses old images sized for the previous model
     -bug (dkulp)                 LOR S5/S6 import: effects with an Overlay mix no longer import
-                                 invisible or at half brightness, bars and spirals keep their
-                                 movement at LOR's speed, curtains finish with the effect, diagonal
-                                 bars, text colour, meteor colours and single-colour washes convert
-                                 correctly
-    -bug (dkulp)                 Output to Lights: changing the show folder or deleting a controller while auto-upload
-                                 controllers were being configured could crash
-    -bug (dkulp)                 Model groups that contain each other crashed the Layout tab. A group can no longer be
-                                 added to a group it already contains, and a layout saved with such a loop is repaired
-                                 (with a warning) when it loads
-    -bug (dkulp)                 macOS/iPad: closing a sequence or changing its audio while another audio track was
-                                 playing could crash in the audio engine
+                                 invisible or at half brightness, bars and spirals move at LOR's
+                                 speed, curtains finish with the effect, and diagonal bars, text
+                                 colour, meteor colours and single-colour washes convert correctly
+    -bug (dkulp)                 Convert: fix crash converting a LOR sequence whose channels exceed
+                                 the xLights controllers
+    -bug (derwin12)              Circle models with an Inner starting location and different layer
+                                 sizes put the outer layer's nodes on the inner ring
+    -bug (derwin12)              Multi-string Cube models showed every node on string 2 in the
+                                 wiring view and controller port highlighting (#7248)
+    -bug (derwin12)              Multi-layer arches from pre-2026 layouts lost their Zig-Zag Layers
+                                 setting when opened
+    -bug (derwin12)              Older DMX models from the vendor download library (and old shows)
+                                 failed to load with "Unknown Model Type: DMX"
+    -bug (dkulp)                 Fix crash loading a layout containing older DMX Moving Head 3D
+                                 models
+    -bug (derwin12)              Align Front/Back on boxed models (matrices, trees, etc.) uses the
+                                 pixels' actual depth, so flat models line up at the same depth
+    -bug (derwin12)              Model Sets can no longer mix base show folder models with the
+                                 show's own models; existing mixed Sets are held in place
+    -bug (derwin12)              Model previews (e.g. the Submodels node layout) could get stuck
+                                 panning with no mouse button held
+    -bug (DPattee)               Layout: Add Object is available on startup when the layout is
+                                 already in 3D on the Default preview
+    -bug (derwin12)              Terrain: grid points can be selected and raised/lowered again when
+                                 Edit Terrain is on (#7197)
+    -bug (dkulp)                 Model groups that contain each other crashed the Layout tab. A
+                                 group can no longer be added to a group it already contains, and a
+                                 layout saved with such a loop is repaired (with a warning) when it
+                                 loads
+    -bug (dkulp)                 Layout: fix crash selecting a model group whose name has
+                                 leading/trailing spaces
+    -bug (dkulp)                 Fix crash on Layout undo/redo
+    -bug (dkulp)                 Fix crash re-opening or changing the show folder with a model
+                                 selected in Layout
+    -bug (dkulp)                 Fix crash opening a show folder while the Layout 3D Objects list is
+                                 showing
+    -bug (dkulp)                 Fix crash after using a property's "..." button (states, faces,
+                                 submodels, etc.) when the property grid was refreshed while its
+                                 dialog was open
+    -bug (dkulp)                 Fix the app freezing (and iOS closing the iPad app) when a 3D mesh
+                                 or its textures are in iCloud but not downloaded yet; the mesh
+                                 appears once the download finishes
+    -bug (dkulp)                 Fix crash with a model whose start channel is "!Controller:0"
+    -bug (dkulp)                 Fix crash opening a show with an old networks file that has an
+                                 unknown network type
+    -bug (heffneil,dkulp)        Controller visualizer: moving a model to the front of its chain,
+                                 moving a multi-string model, or dropping a model on the header of
+                                 the port it already ends no longer breaks the port's chain
+    -bug (nsxfreddy)             Models newly assigned to a PWM or serial (DMX) port on an auto-
+                                 layout controller no longer start one channel early
+    -bug (scott)                 Controller Connection: changing an Ethernet controller's
+                                 Vendor/Model/Variant while using DDP, Twinkly, or a multi-universe
+                                 protocol (E1.31/Art-Net/KiNET/OPC) could shift its ID by one each
+                                 time
+    -bug (dkulp)                 Discover and FPP Connect could take minutes to start when several
+                                 controllers set by hostname weren't on the network
+    -bug (derwin12)              FPP Connect / controller discovery no longer asks for a password
+                                 when another local web server (e.g. AdGuard) answers on localhost,
+                                 and cancelling a password prompt no longer cuts discovery short
+    -bug (derwin12)              FPP Connect: an FPP advertising a stale 169.254.x.x address could
+                                 be reported as "not a supported FPP Instance" at its real IP
+    -bug (dkulp)                 FPP Connect: a sparse fseq already on a remote was re-uploaded on
+                                 every run when the remote's channel ranges ran past the end of the
+                                 sequence (or for effect sequences); progress bars now move only for
+                                 remotes that need a new file
+    -bug (dkulp)                 FPP Connect: uploading the controller/cape configuration silently
+                                 did nothing for an Inactive controller whose IP is set to a
+                                 hostname
+    -bug (derwin12)              FPP Connect: no longer crashes if the temporary sequence file for
+                                 an upload can't be created; the upload is stopped and the error
+                                 logged
+    -bug (dkulp)                 macOS: FPP Connect sequence uploads and downloads work when the
+                                 system temporary folder isn't writable
+    -bug (scott)                 FPP Connect: ESPixelStick uploads could fail with "Response Code:
+                                 0" and nothing written to the SD card; failed uploads are retried
+                                 once as an uncompressed zip in a form the controller can read
+                                 (#7120)
+    -bug (scott)                 FPP Connect: a configured, reachable controller (e.g. ESPixelStick)
+                                 could be missing from the instance list, and from Add FPP (#7120)
+    -bug (dkulp)                 ESPixelStick: fix crash uploading when the controller's input
+                                 configuration can't be read
+    -bug (dkulp)                 LOR output now behaves like FPP's: fixes channels above 256 getting
+                                 stuck, channels past unit 240 wrapping onto low units, units
+                                 dropping out while paused, and lag at low baud rates
+    -bug (dkulp)                 LOR Optimised: zero values in bank 0 could corrupt commands, and
+                                 All Off sent the wrong banks to every unit after the first
+    -bug (dkulp)                 LOR Optimised: fix crash when the controllers add up to more than
+                                 20480 channels or a unit has more than 1024 channels
+    -bug (dkulp)                 Output to Lights: fix crash changing the show folder or deleting a
+                                 controller while auto-upload controllers were being configured
+    -bug (derwin12,dkulp)        Videos the hardware decoder can't handle now switch to software
+                                 decoding for the rest of the session instead of retrying the
+                                 hardware decoder for every model
+    -bug (derwin12)              Very small videos (e.g. 70x80) decoded on NVIDIA hardware showed
+                                 squashed into a corner with gray padding
+    -bug (dkulp)                 Windows: videos the GPU's hardware decoder cannot handle (e.g.
+                                 larger than it supports) fall back to software decoding instead of
+                                 rendering black or not at all
+    -bug (dkulp)                 Windows: Video effects with Sample Spacing above 0 no longer render
+                                 black/garbled with hardware (DirectX11) video decoding
+    -bug (dkulp)                 Windows: ProRes/FFV1 videos no longer use Vulkan hardware decode,
+                                 which crashed on some AMD drivers
+    -bug (dkulp)                 Windows: fix crash when several Video effects open hardware-decoded
+                                 videos at once
+    -bug (dkulp)                 Windows: fix Vulkan crash after a Remote Desktop reconnect or
+                                 display change
+    -bug (dkulp)                 Automation: importXLightsSequence no longer opens message boxes;
+                                 warnings and errors are returned in the response
+    -bug (dkulp)                 Automation: closexLights with force no longer stops at the "Save
+                                 Effect Preset changes?" prompt
+    -bug (dkulp)                 iPad - Controller visualizer: moving a model keeps the rest of its
+                                 old chain in place, including after saving and reopening the show
+    -bug (dkulp)                 iPad - FPP Connect uploads outputs to inactive controllers set by
+                                 hostname, and finds configured controllers on other subnets without
+                                 typing their addresses in
+    -bug (dkulp)                 iPad - LOR S5 import no longer drops sources added with "Add
+                                 Additional"
+    -bug (dkulp)                 iPad - Find Possible Source Effects: opening a result for a model
+                                 not in the current view switches to Master View
+    -bug (dkulp)                 iPad - Update Palette now matches desktop: it copies only the
+                                 colours and checkboxes, keeping each effect's sparkles, brightness
+                                 and other colour settings
+    -bug (dkulp)                 iPad - Media Manager lists the media of just-imported effects
+                                 without reopening the sequence
+    -bug (dkulp)                 iPad - Remove Unused Media no longer drops media used only by
+                                 submodel, strand or node effects
+    -bug (dkulp)                 iPad - Switching audio tracks while a sequence is playing keeps
+                                 playing on the new track
+    -bug (dkulp)                 iPad - Smoother sequencer scrolling and redraws on large sequences;
+                                 the spectrogram strip also redraws after a low-memory purge
+    -bug (dkulp)                 iPad - Scrolling the sequencer no longer keeps the CPU busy
+                                 rebuilding every row heading
 
 2026.18  October 2, 2026
 

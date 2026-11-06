@@ -842,10 +842,8 @@ void ControllerListPanel::OnContextMenu(wxTreeListEvent& event) {
     bool isIpController = false;
     std::string targetIp;
     if (selected.size() == 1) {
-        targetIp = selected.front()->GetResolvedIP(true);
-        if (targetIp.empty()) {
-            targetIp = selected.front()->GetIP();
-        }
+        // Not resolved here: an unreachable hostname would stall the menu for the lookup timeout.
+        targetIp = selected.front()->GetIP();
         isIpController = !targetIp.empty() && targetIp != "MULTICAST";
     }
 

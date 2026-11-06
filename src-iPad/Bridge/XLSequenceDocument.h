@@ -1546,9 +1546,15 @@ NS_ASSUME_NONNULL_BEGIN
 /// auto-generated "Set N". Returns the created Set's name (which may be
 /// uniquified) or nil — a Set needs at least two members, and members
 /// already in another Set are moved across (dissolving that Set if it
-/// drops below two).
+/// drops below two). Also nil when the members mix base-show-folder and
+/// local models (see `modelsMixBaseAndLocal:`).
 - (nullable NSString*)createModelSetWithModels:(NSArray<NSString*>*)modelNames
                                           named:(NSString*)suggestedName;
+
+/// YES when `modelNames` holds both base-show-folder and local models,
+/// which can't share a Set — the base merge moves base models without
+/// moving the rest of the Set.
+- (BOOL)modelsMixBaseAndLocal:(NSArray<NSString*>*)modelNames;
 
 /// Name to pre-fill a "new Set" prompt with.
 - (NSString*)suggestedModelSetName;
@@ -1640,6 +1646,11 @@ NS_ASSUME_NONNULL_BEGIN
 // range numbers and animate playback through the full range.
 - (NSInteger)nodeCountForModel:(NSString*)modelName
     NS_SWIFT_NAME(nodeCount(forModel:));
+
+// Whether SubModels Symmetrize applies to this model's type (core
+// SubModelSymmetrize::SupportsModel — same gate as the desktop menu).
+- (BOOL)canSymmetrizeModel:(NSString*)modelName
+    NS_SWIFT_NAME(canSymmetrize(model:));
 
 // Submodel geometry toolbox — the desktop SubModelsPanel's node-grid
 // operations, running the shared core `submodel_ops`.
@@ -3660,6 +3671,20 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
                       afterModel:(nullable NSString*)afterModelName
                      smartRemote:(int)smartRemote
     NS_SWIFT_NAME(assignModel(_:toController:kind:port:afterModel:smartRemote:));
+
+// Same, but lands the model immediately BEFORE `beforeModel` (which
+// must already be on that port), like desktop's left-half drop: the
+// model takes over `beforeModel`'s chain and smart remote and
+// `beforeModel` chains off it. Before the port's first model is
+// "move to front". A no-op returning YES when the model already sits
+// directly before `beforeModel`.
+- (BOOL)assignModelToController:(NSString*)modelName
+                  controllerName:(NSString*)controllerName
+                            kind:(NSString*)portKind
+                            port:(int)port
+                     beforeModel:(NSString*)beforeModelName
+                     smartRemote:(int)smartRemote
+    NS_SWIFT_NAME(assignModel(_:toController:kind:port:beforeModel:smartRemote:));
 
 // Phase J-32.5 — remove a model's controller assignment so it
 // returns to the "No Connection" bucket / models pane. Clears

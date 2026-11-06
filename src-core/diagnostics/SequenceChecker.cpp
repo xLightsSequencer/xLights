@@ -1391,10 +1391,15 @@ void SequenceChecker::CheckEffect(Effect* ef, CheckSequenceReport& report,
             // VU Meter etc. report "unknown timing track" even when the
             // track exists. Set it for the call and restore so we don't
             // leave a dangling pointer once this checker goes away.
-            SequenceElements* prevSeqElements = re->GetSequenceElements();
-            re->SetSequenceElements(&_elements);
-            std::list<std::string> warnings = re->CheckEffectSettings(sm, media, m, ef, renderCache);
-            re->SetSequenceElements(prevSeqElements);
+            // The effect checks dereference the model, so an element whose model is
+            // no longer in the layout is skipped here.
+            std::list<std::string> warnings;
+            if (m != nullptr) {
+                SequenceElements* prevSeqElements = re->GetSequenceElements();
+                re->SetSequenceElements(&_elements);
+                warnings = re->CheckEffectSettings(sm, media, m, ef, renderCache);
+                re->SetSequenceElements(prevSeqElements);
+            }
             for (const auto& s : warnings) {
                 auto issueType = (s.find("WARN:") != std::string::npos)
                                      ? CheckSequenceReport::ReportIssue::WARNING

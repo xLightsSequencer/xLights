@@ -61,6 +61,8 @@ void LabelModel::InitModel()
     Nodes[0]->Coords[0].screenX = -0.5f;
     Nodes[0]->Coords[0].screenY = -0.5f;
     Nodes[0]->Coords[0].screenZ = -0.5f;
+    Nodes[0]->Coords[0].bufX = 0;
+    Nodes[0]->Coords[0].bufY = 0;
     Nodes[0]->AddBufCoord(0, 0);
     Nodes[0]->Coords[1].screenX = 0.5f;
     Nodes[0]->Coords[1].screenY = 0.5f;

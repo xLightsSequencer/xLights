@@ -89,44 +89,50 @@ export void KaleidoscopeEffectISPC(const uniform KaleidoscopeData * uniform data
         uniform float sinNeg   = sin(-data->rotRad);
         uniform float cosPos   = cos(data->rotRad);
         uniform float sinPos   = sin(data->rotRad);
-        foreach (index = startIdx ... endIdx) {
-            int x = index % iwidth;
-            int y = index / iwidth;
-            float dx = (float)x - data->cx;
-            float dy = (float)y - data->cy;
-            float lx = dx * cosNeg - dy * sinNeg;
-            float ly = dx * sinNeg + dy * cosNeg;
-            lx = ReflectCoord(lx, halfSize);
-            ly = ReflectCoord(ly, halfSize);
-            float wx = lx * cosPos - ly * sinPos + data->cx;
-            float wy = lx * sinPos + ly * cosPos + data->cy;
-            int sx = (int)floor(wx + 0.5f);
-            int sy = (int)floor(wy + 0.5f);
-            if (sx >= 0 && sx < iwidth && sy >= 0 && sy < iheight)
-                if (sx != x || sy != y)
-                    result[index] = src[sy * iwidth + sx];
+        // Walk rows instead of deriving x/y from index % width: there is no
+        // vector integer divide, so ispc runs a varying % or / one lane at a time.
+        for (uniform int y = startIdx / max(iwidth, 1); iwidth > 0 && y * iwidth < endIdx; y++) {
+            uniform int rowStart = y * iwidth;
+            foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, iwidth)) {
+                int index = rowStart + x;
+                float dx = (float)x - data->cx;
+                float dy = (float)y - data->cy;
+                float lx = dx * cosNeg - dy * sinNeg;
+                float ly = dx * sinNeg + dy * cosNeg;
+                lx = ReflectCoord(lx, halfSize);
+                ly = ReflectCoord(ly, halfSize);
+                float wx = lx * cosPos - ly * sinPos + data->cx;
+                float wy = lx * sinPos + ly * cosPos + data->cy;
+                int sx = (int)floor(wx + 0.5f);
+                int sy = (int)floor(wy + 0.5f);
+                if (sx >= 0 && sx < iwidth && sy >= 0 && sy < iheight)
+                    if (sx != x || sy != y)
+                        result[index] = src[sy * iwidth + sx];
+            }
         }
     } else if (data->style == KALE_STYLE_RADIAL) {
         uniform int   segments   = max(2, (int)data->size);
         uniform float wedgeAngle = 2.0f * KALE_PI / (float)segments;
-        foreach (index = startIdx ... endIdx) {
-            int x = index % iwidth;
-            int y = index / iwidth;
-            float dx = (float)x - data->cx;
-            float dy = (float)y - data->cy;
-            float radius = sqrt(dx * dx + dy * dy);
-            if (radius < 0.5f) continue;
-            float angle = atan2(dy, dx) - data->rotRad;
-            angle = fmod(angle, 2.0f * KALE_PI);
-            if (angle < 0.0f) angle += 2.0f * KALE_PI;
-            float folded = fmod(angle, 2.0f * wedgeAngle);
-            if (folded > wedgeAngle) folded = 2.0f * wedgeAngle - folded;
-            folded += data->rotRad;
-            int sx = (int)floor(data->cx + radius * cos(folded) + 0.5f);
-            int sy = (int)floor(data->cy + radius * sin(folded) + 0.5f);
-            if (sx >= 0 && sx < iwidth && sy >= 0 && sy < iheight)
-                if (sx != x || sy != y)
-                    result[index] = src[sy * iwidth + sx];
+        for (uniform int y = startIdx / max(iwidth, 1); iwidth > 0 && y * iwidth < endIdx; y++) {
+            uniform int rowStart = y * iwidth;
+            foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, iwidth)) {
+                int index = rowStart + x;
+                float dx = (float)x - data->cx;
+                float dy = (float)y - data->cy;
+                float radius = sqrt(dx * dx + dy * dy);
+                if (radius < 0.5f) continue;
+                float angle = atan2(dy, dx) - data->rotRad;
+                angle = fmod(angle, 2.0f * KALE_PI);
+                if (angle < 0.0f) angle += 2.0f * KALE_PI;
+                float folded = fmod(angle, 2.0f * wedgeAngle);
+                if (folded > wedgeAngle) folded = 2.0f * wedgeAngle - folded;
+                folded += data->rotRad;
+                int sx = (int)floor(data->cx + radius * cos(folded) + 0.5f);
+                int sy = (int)floor(data->cy + radius * sin(folded) + 0.5f);
+                if (sx >= 0 && sx < iwidth && sy >= 0 && sy < iheight)
+                    if (sx != x || sy != y)
+                        result[index] = src[sy * iwidth + sx];
+            }
         }
     } else {
         // Triangle types: iterative reflection into the reference triangle
@@ -135,28 +141,30 @@ export void KaleidoscopeEffectISPC(const uniform KaleidoscopeData * uniform data
         uniform float v1x    = data->v1x, v1y = data->v1y;
         uniform float v2x    = data->v2x, v2y = data->v2y;
         uniform int   maxIter = data->maxIter;
-        foreach (index = startIdx ... endIdx) {
-            int x = index % iwidth;
-            int y = index / iwidth;
-            float px = (float)x;
-            float py = (float)y;
-            for (int i = 0; i < maxIter; i++) {
-                float d0 = SignedDist(px, py, v0x, v0y, v1x, v1y);
-                float d1 = SignedDist(px, py, v1x, v1y, v2x, v2y);
-                float d2 = SignedDist(px, py, v2x, v2y, v0x, v0y);
-                if (d0 >= -0.5f && d1 >= -0.5f && d2 >= -0.5f) break;
-                if (d0 < d1 && d0 < d2)
-                    ReflectPointAcrossLine(px, py, v0x, v0y, v1x, v1y);
-                else if (d1 < d0 && d1 < d2)
-                    ReflectPointAcrossLine(px, py, v1x, v1y, v2x, v2y);
-                else
-                    ReflectPointAcrossLine(px, py, v2x, v2y, v0x, v0y);
+        for (uniform int y = startIdx / max(iwidth, 1); iwidth > 0 && y * iwidth < endIdx; y++) {
+            uniform int rowStart = y * iwidth;
+            foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, iwidth)) {
+                int index = rowStart + x;
+                float px = (float)x;
+                float py = (float)y;
+                for (int i = 0; i < maxIter; i++) {
+                    float d0 = SignedDist(px, py, v0x, v0y, v1x, v1y);
+                    float d1 = SignedDist(px, py, v1x, v1y, v2x, v2y);
+                    float d2 = SignedDist(px, py, v2x, v2y, v0x, v0y);
+                    if (d0 >= -0.5f && d1 >= -0.5f && d2 >= -0.5f) break;
+                    if (d0 < d1 && d0 < d2)
+                        ReflectPointAcrossLine(px, py, v0x, v0y, v1x, v1y);
+                    else if (d1 < d0 && d1 < d2)
+                        ReflectPointAcrossLine(px, py, v1x, v1y, v2x, v2y);
+                    else
+                        ReflectPointAcrossLine(px, py, v2x, v2y, v0x, v0y);
+                }
+                int sx = (int)floor(px + 0.5f);
+                int sy = (int)floor(py + 0.5f);
+                if (sx >= 0 && sx < iwidth && sy >= 0 && sy < iheight)
+                    if (sx != x || sy != y)
+                        result[index] = src[sy * iwidth + sx];
             }
-            int sx = (int)floor(px + 0.5f);
-            int sy = (int)floor(py + 0.5f);
-            if (sx >= 0 && sx < iwidth && sy >= 0 && sy < iheight)
-                if (sx != x || sy != y)
-                    result[index] = src[sy * iwidth + sx];
         }
     }
 }

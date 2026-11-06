@@ -54,6 +54,11 @@ bool xlCodecPrefersVideoToolbox(const AVCodec* codec) {
     const enum AVPixelFormat* fmts = xlCodecPixelFormats(codec);
     return fmts != nullptr && fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX;
 }
+
+bool xlCodecIsVaapi(const AVCodec* codec) {
+    return codec != nullptr && codec->name != nullptr &&
+           std::string(codec->name).find("_vaapi") != std::string::npos;
+}
 } // namespace
 
 #include <algorithm>
@@ -226,6 +231,14 @@ void FFmpegVideoWriter::initialize()
             if (c == nullptr) c = ::avcodec_find_encoder(id);
             return c;
         };
+#elif defined(__linux__)
+        // Prefer VAAPI (Intel/AMD); falls back to software if no VAAPI device
+        // is present or the driver lacks an encode entrypoint for this codec.
+        auto findLinuxEncoder = [](AVCodecID id) -> const AVCodec* {
+            const AVCodec* c = ::avcodec_find_encoder_by_name((id == AV_CODEC_ID_H265) ? "hevc_vaapi" : "h264_vaapi");
+            if (c == nullptr) c = ::avcodec_find_encoder(id);
+            return c;
+        };
 #endif
         if (_outParams.lossless) {
             // VideoToolbox H.264/H.265 cannot encode true lossless (its top
@@ -251,6 +264,8 @@ void FFmpegVideoWriter::initialize()
             }
 #elif defined(_WIN32)
             videoCodec = findWindowsEncoder(best);
+#elif defined(__linux__)
+            videoCodec = findLinuxEncoder(best);
 #else
             videoCodec = ::avcodec_find_encoder(best);
 #endif
@@ -266,6 +281,8 @@ void FFmpegVideoWriter::initialize()
             }
 #elif defined(_WIN32)
             videoCodec = findWindowsEncoder(best);
+#elif defined(__linux__)
+            videoCodec = findLinuxEncoder(best);
 #else
             videoCodec = ::avcodec_find_encoder(best);
 #endif
@@ -453,6 +470,51 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
             _videoCodecContext->rc_max_rate = _videoCodecContext->bit_rate;
 #endif
         }
+    } else if (xlCodecIsVaapi(codec)) {
+#if defined(__linux__)
+        // VAAPI has no direct-render-into-GPU-surface path like VideoToolbox:
+        // every frame is still produced on the CPU (sws_scale into _outPfmt,
+        // switched to NV12 below to match the surface pool's sw_format) and
+        // then explicitly uploaded via av_hwframe_transfer_data before being
+        // sent to the encoder — see pushVideoUntilPacketFilled. Confirmed
+        // empirically against this FFmpeg build: h264_vaapi/hevc_vaapi reject
+        // a bare software pix_fmt even with hw_device_ctx set (no implicit
+        // upload), so hw_frames_ctx is mandatory, unlike NVENC/QSV.
+        int hwErr = ::av_hwdevice_ctx_create(&_hwDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, nullptr, nullptr, 0);
+        if (hwErr >= 0) {
+            _hwFramesCtx = ::av_hwframe_ctx_alloc(_hwDeviceCtx);
+            if (_hwFramesCtx) {
+                auto* frames = reinterpret_cast<AVHWFramesContext*>(_hwFramesCtx->data);
+                frames->format    = AV_PIX_FMT_VAAPI;
+                frames->sw_format = AV_PIX_FMT_NV12;
+                frames->width     = _outParams.width;
+                frames->height    = _outParams.height;
+                frames->initial_pool_size = 4; // only ever one frame in flight for upload, unlike the VideoToolbox ring
+                hwErr = ::av_hwframe_ctx_init(_hwFramesCtx);
+                if (hwErr >= 0) {
+                    _videoCodecContext->pix_fmt       = AV_PIX_FMT_VAAPI;
+                    _videoCodecContext->hw_frames_ctx = ::av_buffer_ref(_hwFramesCtx);
+                    _outPfmt = AV_PIX_FMT_NV12;
+                    _vaapiUpload = true;
+                    _vaapiFrame = ::av_frame_alloc();
+                } else {
+                    spdlog::warn("VideoWriter - VAAPI av_hwframe_ctx_init failed ({}), falling back to software pix_fmt", hwErr);
+                    ::av_buffer_unref(&_hwFramesCtx);
+                }
+            }
+            if (_hwFramesCtx == nullptr) {
+                ::av_buffer_unref(&_hwDeviceCtx);
+            }
+        } else {
+            spdlog::warn("VideoWriter - av_hwdevice_ctx_create(VAAPI) failed ({})", hwErr);
+        }
+#endif
+        // VAAPI's lossless mode isn't requested here: _outParams.lossless already
+        // routes to a software encoder earlier (same as VideoToolbox), so this
+        // branch only ever runs for the normal-quality case.
+        if (_outParams.videoBitrate == 0) {
+            ::av_opt_set_int(_videoCodecContext->priv_data, "qp", 18, AV_OPT_SEARCH_CHILDREN);
+        }
     } else if (codec->id == AV_CODEC_ID_RAWVIDEO) {
         // Uncompressed RGB. .mov needs pasp + fiel atoms in the stsd, which the
         // muxer only emits when these are populated before avcodec_open2.
@@ -568,6 +630,36 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
             return false;
         }
     }
+#elif defined(__linux__)
+    if (status != 0 && xlCodecIsVaapi(codec)) {
+        spdlog::warn("VideoWriter - VAAPI encoder '{}' failed to open ({}), falling back to software", codec->name, status);
+        const char* swName = (codec->id == AV_CODEC_ID_H265) ? "libx265" : "libx264";
+        const AVCodec* swCodec = ::avcodec_find_encoder_by_name(swName);
+        if (swCodec == nullptr) {
+            swCodec = ::avcodec_find_encoder(codec->id);
+        }
+        if (swCodec != nullptr) {
+            ::avcodec_free_context(&_videoCodecContext);
+            _videoCodecContext = nullptr;
+            // Tear down the VAAPI contexts and the upload-scratch frame; the
+            // software fallback expects a plain YUV420P pix_fmt (see the
+            // revert below), not the NV12/VAAPI setup the failed attempt made.
+            if (_vaapiFrame != nullptr) {
+                ::av_frame_free(&_vaapiFrame);
+            }
+            if (_hwFramesCtx != nullptr) {
+                ::av_buffer_unref(&_hwFramesCtx);
+            }
+            if (_hwDeviceCtx != nullptr) {
+                ::av_buffer_unref(&_hwDeviceCtx);
+            }
+            _vaapiUpload = false;
+            _outPfmt = AV_PIX_FMT_YUV420P;
+            return initializeVideo(swCodec);
+        }
+        spdlog::error("VideoWriter - No software fallback encoder available after VAAPI failed");
+        return false;
+    }
 #endif
     if (status != 0) {
         if (_videoCodecContext) {
@@ -630,7 +722,11 @@ void FFmpegVideoWriter::initializeAudio(const AVCodec* codec)
 void FFmpegVideoWriter::initializeFrames()
 {
     int status = 0;
-    const bool useHwFrames = (_hwFramesCtx != nullptr);
+    // VAAPI also has _hwFramesCtx set, but unlike VideoToolbox it has no
+    // direct-render-into-GPU-surface path - keep it on the software
+    // staging/sws_scale branch below; pushVideoUntilPacketFilled uploads the
+    // result afterward.
+    const bool useHwFrames = (_hwFramesCtx != nullptr) && !_vaapiUpload;
     for (int x = 0; x < MAX_EXPORT_BUFFER_FRAMES; x++) {
         _videoFrames[x] = ::av_frame_alloc();
         _videoFrames[x]->width  = _outParams.width;
@@ -870,6 +966,9 @@ void FFmpegVideoWriter::cleanup()
         _swsContext = nullptr;
     }
 
+    if (_vaapiFrame != nullptr) {
+        ::av_frame_free(&_vaapiFrame);
+    }
     if (_hwFramesCtx != nullptr) {
         ::av_buffer_unref(&_hwFramesCtx);
     }
@@ -898,7 +997,9 @@ int FFmpegVideoWriter::pushVideoUntilPacketFilled(int index)
         vf.width = _inParams.width;
         vf.height = _inParams.height;
 
-        if (_hwFramesCtx != nullptr) {
+        AVFrame* frameToSend = _videoFrames[_curVideoFrame];
+
+        if (_hwFramesCtx != nullptr && !_vaapiUpload) {
             // When using a hw frames pool, the encoder may still hold a reference
             // to the CVPixelBuffer from a previous pass through this ring slot.
             // av_frame_make_writable() detects that and pulls a fresh buffer from
@@ -919,9 +1020,26 @@ int FFmpegVideoWriter::pushVideoUntilPacketFilled(int index)
                     throw std::runtime_error("VideoWriter - color conversion error");
                 }
             }
+            if (_vaapiUpload) {
+                // sws_scale just filled a software NV12 frame above; upload it into
+                // a VAAPI-surface frame from the pool before handing it to the encoder
+                // (confirmed empirically — h264_vaapi/hevc_vaapi reject software
+                // frames directly, see initializeVideo).
+                ::av_frame_unref(_vaapiFrame);
+                int upErr = ::av_hwframe_get_buffer(_hwFramesCtx, _vaapiFrame, 0);
+                if (upErr >= 0) {
+                    upErr = ::av_hwframe_transfer_data(_vaapiFrame, _videoFrames[_curVideoFrame], 0);
+                }
+                if (upErr >= 0) {
+                    _vaapiFrame->pts = _videoFrames[_curVideoFrame]->pts;
+                    frameToSend = _vaapiFrame;
+                } else {
+                    spdlog::warn("VideoWriter - VAAPI frame upload failed ({}); encoder will likely reject this frame", upErr);
+                }
+            }
         }
 
-        status = ::avcodec_send_frame(_videoCodecContext, _videoFrames[_curVideoFrame]);
+        status = ::avcodec_send_frame(_videoCodecContext, frameToSend);
         if (status < 0) {
             throw std::runtime_error("VideoWriter - error sending video frame to compresssor");
         }

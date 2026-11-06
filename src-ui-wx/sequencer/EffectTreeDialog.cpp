@@ -67,7 +67,6 @@ BEGIN_EVENT_TABLE(EffectTreeDialog,wxPanel)
 	//(*EventTable(EffectTreeDialog)
 	//*)
     EVT_COMMAND(wxID_ANY, EVT_EFFTREEDROP, EffectTreeDialog::OnDropEffect)
-    EVT_SIZE(EffectTreeDialog::OnSize)
 END_EVENT_TABLE()
 
 #define MIN_PREVIEW_SIZE 64
@@ -207,22 +206,13 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     StaticBitmapGif->SetMinSize(wxSize(previewSize, previewSize));
     StaticBitmapGif->SetMaxSize(wxSize(MAX_PREVIEW_SIZE, MAX_PREVIEW_SIZE));
 
+    ScrolledWindow1->SetMinSize(wxSize(50, 50));
     ScrolledWindow1->SetScrollRate(10, 10);
     ScrolledWindow1->FitInside();
 
     Layout();
 
     ValidateWindow();
-}
-
-void EffectTreeDialog::OnSize(wxSizeEvent& event)
-{
-    event.Skip();
-    // GTK doesn't always lay out the inner scrolled window's sizer when the pane is first shown
-    if (ScrolledWindow1 != nullptr) {
-        ScrolledWindow1->Layout();
-        ScrolledWindow1->FitInside();
-    }
 }
 
 EffectTreeDialog::~EffectTreeDialog()

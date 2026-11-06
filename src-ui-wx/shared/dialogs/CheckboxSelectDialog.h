@@ -88,3 +88,7 @@ class CheckboxSelectDialog: public wxDialog
 		DECLARE_EVENT_TABLE()
 };
 
+// Filterable single-choice model picker (a search box above a single-select
+// list). Returns the chosen model name, or an empty string if cancelled.
+// title defaults to "Select Model".
+wxString ChooseModelWithFilter(wxWindow* parent, const wxArrayString& choices, const wxString& title = wxString());

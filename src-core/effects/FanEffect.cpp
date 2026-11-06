@@ -39,7 +39,7 @@ int FanEffect::sStartRadiusMax = 2500;
 int FanEffect::sStartAngleDefault = 0;
 int FanEffect::sStartAngleMin = 0;
 int FanEffect::sStartAngleMax = 360;
-int FanEffect::sEndRadiusDefault = 10;
+int FanEffect::sEndRadiusDefault = 50;
 int FanEffect::sEndRadiusMin = 0;
 int FanEffect::sEndRadiusMax = 2500;
 int FanEffect::sRevolutionsDefault = 720; // pre-divisor (= JSON 2.0 * divisor 360)

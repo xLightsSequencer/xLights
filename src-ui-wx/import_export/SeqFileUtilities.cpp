@@ -163,6 +163,9 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     int ret_code = wxID_ANY;
     if(wizardactive) {
         setting_dlg.Fit();
+        // The wizard edits CurrentSeqXmlFile in place; an automation request or queued
+        // batch render serviced by its modal loop must not close/replace it underneath us.
+        SequenceBusyScope busy(this, "New Sequence");
         ret_code = setting_dlg.ShowModal();
     }
     if (wizardactive && ret_code == wxID_CANCEL) {
@@ -1129,6 +1132,8 @@ bool xLightsFrame::CloseSequence()
         }
         if (mainSequencer->ViewLabel != nullptr)
             mainSequencer->ViewLabel->Show();
+        if (!IsExiting() && mainSequencer->PanelTimeLine != nullptr)
+            mainSequencer->PanelTimeLine->SyncTagsFrom(_sequenceElements);
     }
     if (displayElementsPanel != nullptr)
         displayElementsPanel->SetEffectSequenceMode(false);

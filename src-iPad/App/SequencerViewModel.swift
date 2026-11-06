@@ -173,6 +173,9 @@ class SequencerViewModel {
         let endMS: Int
         let visibleRow: Int
         let effectIndex: Int
+        let modelName: String
+        let effectName: String
+        let layerIndex: Int
     }
     var sourceEffectMatches: [SourceEffectMatch] = []
     var sourceEffectsPresented: Bool = false
@@ -1552,7 +1555,20 @@ class SequencerViewModel {
             // which tripped the 0x8BADF00D watchdog once applyOpenResult had
             // hopped back to the main actor.
             let readOnly = opened ? SequencerViewModel.detectReadOnly(path: path) : false
-            await self?.applyOpenResult(opened: opened, path: path, readOnly: readOnly, forceRender: forceRender)
+            // FSEQ short-circuit: if the user has the feature on and a
+            // matching .fseq exists, skip the render and load frame data
+            // straight from disk. On any mismatch (stale, wrong shape,
+            // missing) we fall through to the normal background render.
+            // `forceRender` (used by Batch Render) bypasses the
+            // short-circuit so we always re-render against the current
+            // layout regardless of any cached fseq. Done here, not on the
+            // main actor: reading every frame of a large fseq tripped the
+            // 0x8BADF00D watchdog.
+            var fseqLoaded = false
+            if opened, !forceRender, let fseqPath = FolderConfig.fseqPath(forXsq: path) {
+                fseqLoaded = document.tryLoadFseq(fseqPath: fseqPath, xsqPath: path)
+            }
+            await self?.applyOpenResult(opened: opened, path: path, readOnly: readOnly, fseqLoaded: fseqLoaded)
         }
     }
 
@@ -1571,7 +1587,7 @@ class SequencerViewModel {
         return !FileManager.default.isWritableFile(atPath: path)
     }
 
-    private func applyOpenResult(opened: Bool, path: String, readOnly: Bool, forceRender: Bool) {
+    private func applyOpenResult(opened: Bool, path: String, readOnly: Bool, fseqLoaded: Bool) {
         defer { openInFlight = false }
         guard opened else { return }
 
@@ -1594,16 +1610,7 @@ class SequencerViewModel {
         // a higher-resolution waveform once it knows the zoom level
         // via `refreshWaveformForZoom`.
         loadWaveform(startMS: 0, endMS: sequenceDurationMS)
-        // FSEQ short-circuit: if the user has the feature on and a
-        // matching .fseq exists, skip the render and load frame data
-        // straight from disk. On any mismatch (stale, wrong shape,
-        // missing) we fall through to the normal background render.
-        // `forceRender` (used by Batch Render) bypasses the
-        // short-circuit so we always re-render against the current
-        // layout regardless of any cached fseq.
-        if !forceRender,
-           let fseqPath = FolderConfig.fseqPath(forXsq: path),
-           document.tryLoadFseq(fseqPath: fseqPath, xsqPath: path) {
+        if fseqLoaded {
             isRendering = false
             isRenderDone = true
         } else {
@@ -7444,20 +7451,28 @@ class SequencerViewModel {
                   let visibleRow = (d["visibleRow"] as? NSNumber)?.intValue,
                   let effectIndex = (d["effectIndex"] as? NSNumber)?.intValue else { continue }
             matches.append(.init(label: label, startMS: startMS, endMS: endMS,
-                                  visibleRow: visibleRow, effectIndex: effectIndex))
+                                  visibleRow: visibleRow, effectIndex: effectIndex,
+                                  modelName: d["modelName"] as? String ?? "",
+                                  effectName: d["effectName"] as? String ?? "",
+                                  layerIndex: (d["layerIndex"] as? NSNumber)?.intValue ?? -1))
         }
         sourceEffectMatches = matches
         sourceEffectsPresented = true
     }
 
     /// Jump to a Find-Source result: move the play head to its start
-    /// and select the effect when its owning row is currently visible.
+    /// and select the effect. A model that isn't in the current view is
+    /// found in Master View, as on desktop.
     func jumpToSourceEffect(_ match: SourceEffectMatch) {
-        seekTo(ms: match.startMS)
         if match.visibleRow >= 0, match.effectIndex >= 0,
            match.visibleRow < rows.count {
+            seekTo(ms: match.startMS)
             selectEffect(rowIndex: match.visibleRow, effectIndex: match.effectIndex)
+            return
         }
+        seekTo(ms: match.startMS)
+        jumpToEffect(modelName: match.modelName, effectName: match.effectName,
+                     startTimeMS: match.startMS, layerIndex: match.layerIndex)
     }
 
     /// B54: cut every effect across a model — copy then delete on
@@ -9288,20 +9303,26 @@ class SequencerViewModel {
 
     /// B43: switch the waveform display source. -1 = main; 0..N-1 =
     /// alt track. Reloads the waveform peaks for the current view
-    /// range. Playback is unaffected.
+    /// range. Playback follows the selection and keeps playing, as on
+    /// desktop.
     func setActiveWaveformTrack(_ index: Int) {
         guard hasAudio else { return }
         let clamped = (index < -1 || index >= altAudioTrackNames.count) ? -1 : index
         guard clamped != activeWaveformTrack else { return }
-        // Playback follows this selection now, so park the transport
-        // before the audio underneath it changes, then seek the newly
-        // selected track to the current position — otherwise Play would
-        // resume the new stem from wherever it happened to be left.
-        if isPlaying { pause() }
+        // Park the transport before the audio underneath it changes, then
+        // seek the newly selected track to the current position — otherwise
+        // the new stem would resume from wherever it happened to be left.
+        let wasPlaying = isPlaying
+        let stopAtMS = playbackStopAtMS
+        if wasPlaying { pause() }
         document.setActiveWaveformTrack(clamped)
         activeWaveformTrack = clamped
         document.audioSeek(toMS: playPositionMS)
         reloadWaveformCurrent()
+        if wasPlaying {
+            play()
+            playbackStopAtMS = stopAtMS
+        }
     }
 
     /// Route the current `waveformFilter` through `AudioManager::

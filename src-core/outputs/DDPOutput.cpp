@@ -13,6 +13,7 @@
 
 
 #include "DDPOutput.h"
+#include <algorithm>
 #include <cassert>
 #include "OutputManager.h"
 #include "UtilFunctions.h"
@@ -58,7 +59,7 @@ void DDPOutput::OpenDatagram() {
 DDPOutput::DDPOutput(pugi::xml_node node, bool isActive) : IPOutput(node, isActive) {
 
     _fulldata = nullptr;
-    _channelsPerPacket = node.attribute("ChannelsPerPacket").as_int(0);
+    _channelsPerPacket = std::clamp(node.attribute("ChannelsPerPacket").as_int(1440), 1, 1440);
     _keepChannelNumbers = node.attribute("KeepChannelNumbers").as_int(0);
     _sequenceNum = 0;
     _datagram = nullptr;
@@ -81,7 +82,7 @@ DDPOutput::DDPOutput(const DDPOutput& from) :
     IPOutput(from)
 {
     _fulldata = nullptr;
-    _channelsPerPacket = from._channelsPerPacket;
+    _channelsPerPacket = std::clamp(from._channelsPerPacket, 1, 1440);
     _keepChannelNumbers = from._keepChannelNumbers;
     _sequenceNum = 0;
     _datagram = nullptr;
@@ -91,7 +92,7 @@ DDPOutput::DDPOutput(const DDPOutput& from) :
 DDPOutput::~DDPOutput() {
 
     if (_datagram != nullptr) delete _datagram;
-    if (_fulldata != nullptr) delete _fulldata;
+    if (_fulldata != nullptr) free(_fulldata);
 }
 
 pugi::xml_node DDPOutput::Save(pugi::xml_node parent) {
@@ -314,11 +315,11 @@ void DDPOutput::PrepareDiscovery(Discovery &discovery) {
                 dd = discovery.AddController(controller);
             }
             ControllerEthernet* controller = dd->controller;
-            controller->SetProtocol(OUTPUT_DDP);
             if (controller == nullptr){
                 spdlog::warn("Unsupported DDP controller");
             }
             else {
+                controller->SetProtocol(OUTPUT_DDP);
                 try {
                     nlohmann::json val = nlohmann::json::parse(std::string(reinterpret_cast<char*>(&response[10])));
 
@@ -382,7 +383,7 @@ bool DDPOutput::Open() {
     if (_ip == "") return false;
     if (!ip_utils::IsIPValid(GetResolvedIP())) return false;
 
-    if (_fulldata != nullptr) delete _fulldata;
+    if (_fulldata != nullptr) free(_fulldata);
     _fulldata = (uint8_t*)malloc(_channels);
     if (_fulldata == nullptr) {
         spdlog::error("Problem allocating {} memory for DDP output '{}'.", _channels, GetIP());

@@ -45,22 +45,29 @@ export void ShimmerEffectISPC(const uniform ShimmerData* uniform data,
                               const uniform uint8<4>* uniform lut,
                               uniform uint8<4>* uniform result)
 {
-    foreach (index = startIdx ... endIdx) {
-        int lutIdx = 0;
-        if (data->lutMode == SHIMMER_LUT_RANDOM) {
-            // randInt-style fixed-point mapping of the hash to a palette index
-            unsigned int32 r = shimmerHashRandom(data->frameSeed, (unsigned int32)index);
-            lutIdx = (int)(((unsigned int64)r * (unsigned int32)data->colorCount) >> 32);
-            // Mathematically a no-op ((r * n) >> 32 < n), but required: without an
-            // opaque op between the 64-bit hash math and the gather below, ISPC's
-            // gather-index analysis hits an assert and the compiler crashes
-            // (ispc 1.30/1.31, llvmutil.cpp:893; https://github.com/ispc/ispc/issues/3881).
-            lutIdx = min(lutIdx, data->colorCount - 1);
-        } else if (data->lutMode == SHIMMER_LUT_X) {
-            lutIdx = index % data->width;
-        } else if (data->lutMode == SHIMMER_LUT_Y) {
-            lutIdx = index / data->width;
+    // Walk rows instead of deriving x/y from index % width: there is no
+    // vector integer divide, so ispc runs a varying % or / one lane at a time.
+    uniform int w = (int)data->width;
+    for (uniform int y = startIdx / max(w, 1); w > 0 && y * w < endIdx; y++) {
+        uniform int rowStart = y * w;
+        foreach (x = max(startIdx - rowStart, 0) ... min(endIdx - rowStart, w)) {
+            int index = rowStart + x;
+            int lutIdx = 0;
+            if (data->lutMode == SHIMMER_LUT_RANDOM) {
+                // randInt-style fixed-point mapping of the hash to a palette index
+                unsigned int32 r = shimmerHashRandom(data->frameSeed, (unsigned int32)index);
+                lutIdx = (int)(((unsigned int64)r * (unsigned int32)data->colorCount) >> 32);
+                // Mathematically a no-op ((r * n) >> 32 < n), but required: without an
+                // opaque op between the 64-bit hash math and the gather below, ISPC's
+                // gather-index analysis hits an assert and the compiler crashes
+                // (ispc 1.30/1.31, llvmutil.cpp:893; https://github.com/ispc/ispc/issues/3881).
+                lutIdx = min(lutIdx, data->colorCount - 1);
+            } else if (data->lutMode == SHIMMER_LUT_X) {
+                lutIdx = x;
+            } else if (data->lutMode == SHIMMER_LUT_Y) {
+                lutIdx = y;
+            }
+            result[index] = lut[lutIdx];
         }
-        result[index] = lut[lutIdx];
     }
 }

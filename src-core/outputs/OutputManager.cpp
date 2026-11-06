@@ -138,6 +138,26 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
     return changed;
 }
 
+// Resolves on the resolve pool, so N unreachable hostnames cost one lookup timeout rather than
+// N back to back. Without wait, the caller must ip_utils::waitForAllToResolve() before relying
+// on the resolved addresses.
+void OutputManager::ResolveControllerIPs(bool includeInactive, bool wait) const {
+    if (!_globalFPPProxy.empty()) {
+        ip_utils::ResolveIP(_globalFPPProxy, [](const std::string&) {});
+    }
+    for (const auto& ctrl : GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(ctrl);
+        if (eth == nullptr || (!includeInactive && !eth->IsActive())) continue;
+        eth->RefreshResolvedIP();
+        if (!eth->GetFPPProxy().empty()) {
+            ip_utils::ResolveIP(eth->GetFPPProxy(), [](const std::string&) {});
+        }
+    }
+    if (wait) {
+        ip_utils::waitForAllToResolve();
+    }
+}
+
 void OutputManager::AsyncPingAll() {
 
     std::for_each(begin(_controllers), end(_controllers), [](Controller* c) { c->AsyncPing(); });
@@ -1011,7 +1031,7 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
         }
         else {
             auto parts = Split(startChannelString, ':');
-            if (parts.size() > 2) return 0;
+            if (parts.size() != 2) return 0;
             int output = (int)strtol(parts[0].c_str(), nullptr, 10);
             long sc = strtol(parts[1].c_str(), nullptr, 10);
             if (output < 1) return 0;
@@ -1022,7 +1042,9 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
         }
     }
     else {
-        return strtol(startChannelString.c_str(), nullptr, 10);
+        long sc = strtol(startChannelString.c_str(), nullptr, 10);
+        if (sc < 0 || sc > INT32_MAX) return 0;
+        return (int32_t)sc;
     }
 }
 #pragma endregion
@@ -1093,7 +1115,9 @@ void OutputManager::SetGlobalForceLocalIP(const std::string& forceLocalIP)
         _globalForceLocalIP = forceLocalIP;
         _dirty = true;
         for (const auto& it : _controllers) {
-            it->SetGlobalFPPProxy(forceLocalIP);
+            if (auto* e = dynamic_cast<ControllerEthernet*>(it)) {
+                e->SetGlobalForceLocalIP(forceLocalIP);
+            }
         }
     }
 }
@@ -1263,11 +1287,7 @@ bool OutputManager::StartOutput() {
     bool err = false;
 
     // Re-resolve any controllers whose hostnames failed to resolve at startup
-    for (const auto& ctrl : GetControllers()) {
-        auto eth = dynamic_cast<ControllerEthernet*>(ctrl);
-        if (eth != nullptr) eth->RefreshResolvedIP();
-    }
-    ip_utils::waitForAllToResolve();
+    ResolveControllerIPs(false);
 
     for (const auto& it : GetAllOutputs()) {
 

@@ -831,6 +831,9 @@
 						<label>RECENTFOLDER1</label>
 					</object>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM_FAVFOLDERS" variable="FavoriteShowFoldersMenu" member="yes">
+					<label>Favorite Show Folders</label>
+				</object>
 				<object class="wxMenuItem" name="ID_FILE_BACKUP" variable="MenuItemBackup" member="yes">
 					<label>Backup</label>
 					<accel>F10</accel>
