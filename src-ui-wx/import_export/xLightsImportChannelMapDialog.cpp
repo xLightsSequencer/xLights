@@ -1762,6 +1762,10 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::st
             wxBoxSizer* labelSizer = new wxBoxSizer(wxHORIZONTAL);
             CheckBox_ShowCompare = new wxCheckBox(Panel2, wxID_ANY, _("Show Compare"));
             labelSizer->Add(CheckBox_ShowCompare, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
+            if (_xsqPkg == nullptr) {
+                CheckBox_ShowCompare->Disable();
+                CheckBox_ShowCompare->SetToolTip(_("Compare is only available when importing an xLights sequence (.xsq, .xsqz, .piz, .zip or .xml)."));
+            }
             labelSizer->Add(StaticText1, 0, wxALIGN_CENTER_VERTICAL);
             wxBoxSizer* findRowSizer = new wxBoxSizer(wxHORIZONTAL);
             findRowSizer->Add(TextCtrl_FindFrom, 1, wxEXPAND | wxRIGHT, 5);
@@ -1843,7 +1847,9 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText, std::st
     //Connect(ID_TREELISTCTRL1, wxEVT_KEY_DOWN, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnKeyDown);
     Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickModels);
 
-    CreateComparePane();
+    if (_xsqPkg != nullptr) {
+        CreateComparePane();
+    }
 
 
 #ifdef __WXOSX__
@@ -3547,12 +3553,7 @@ void xLightsImportChannelMapDialog::CreateComparePane()
             }
         });
     };
-    if (_xsqPkg == nullptr) {
-        addSlot(_vendorSlot, _("Only xLights sequences include the vendor's layout"));
-        compareSizer->Hide(_vendorSlot.preview);
-    } else {
-        addSlot(_vendorSlot, _xsqPkg->HasRGBEffects() ? _("Click a vendor model to show it here") : _("No preview available (sequence has no layout data)"));
-    }
+    addSlot(_vendorSlot, _xsqPkg->HasRGBEffects() ? _("Click a vendor model to show it here") : _("No preview available (sequence has no layout data)"));
     compareSizer->AddSpacer(8);
     addSlot(_layoutSlot, _("Hover or click your models to compare"));
     _comparePanel->SetSizer(compareSizer);
@@ -3633,19 +3634,15 @@ void xLightsImportChannelMapDialog::CreateComparePane()
         evt.Skip();
     });
 
-    // Other formats have no vendor half, so they keep their own setting and
-    // start hidden. Until the user picks, xLights imports start hidden only
-    // where the compare column can't fit.
-    const wxString showKey = _xsqPkg != nullptr ? "ImportShowCompare" : "ImportShowCompareOtherFormats";
-    bool show = _xsqPkg != nullptr && !narrowScreen;
-    GetXLightsConfig()->Read(showKey, &show);
+    // Until the user picks, start hidden where the compare column can't fit.
+    bool show = !narrowScreen;
+    GetXLightsConfig()->Read("ImportShowCompare", &show);
     if (CheckBox_ShowCompare != nullptr) {
-        CheckBox_ShowCompare->SetToolTip(_xsqPkg != nullptr ? _("Show the vendor's model next to yours so you can see whether they look alike.")
-                                                            : _("Show your hovered or selected model. Only xLights sequences include the vendor's layout."));
+        CheckBox_ShowCompare->SetToolTip(_("Show the vendor's model next to yours so you can see whether they look alike."));
         CheckBox_ShowCompare->SetValue(show);
-        CheckBox_ShowCompare->Bind(wxEVT_CHECKBOX, [this, showKey](wxCommandEvent&) {
+        CheckBox_ShowCompare->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
             auto* config = GetXLightsConfig();
-            config->Write(showKey, CheckBox_ShowCompare->IsChecked());
+            config->Write("ImportShowCompare", CheckBox_ShowCompare->IsChecked());
             config->Flush();
             SetCompareShown(CheckBox_ShowCompare->IsChecked());
             FitComparePane();
@@ -3753,7 +3750,7 @@ Model* xLightsImportChannelMapDialog::GetVendorModel(const std::string& modelNam
 void xLightsImportChannelMapDialog::ShowVendorPreview(const std::string& channelName)
 {
     _vendorPreviewChannel = channelName;
-    if (!IsCompareShown() || _xsqPkg == nullptr) {
+    if (!IsCompareShown()) {
         return;
     }
     _vendorSlot.model = nullptr;
