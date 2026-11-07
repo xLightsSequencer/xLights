@@ -31,6 +31,7 @@
 #include "outputs/ControllerEthernet.h"
 
 #include "utils/ip_utils.h"
+#include "shared/utils/wxUtilities.h"
 
 namespace {
 
@@ -212,6 +213,13 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
     _pingRefreshTimer.Start(1000);
 
     Fit();
+    wxPoint loc;
+    wxSize sz;
+    LoadWindowPosition("xLightsMultiControllerUploadPos", sz, loc);
+    if (loc.x != -1) {
+        SetPosition(loc);
+        SetSize(sz);
+    }
     ValidateWindow();
 }
 
@@ -221,6 +229,7 @@ MultiControllerUploadDialog::~MultiControllerUploadDialog()
 	//*)
     _pingRefreshTimer.Stop();
     _filterTimer.Stop();
+    SaveWindowPosition("xLightsMultiControllerUploadPos", this);
 }
 
 bool MultiControllerUploadDialog::MatchesFilter(size_t idx, const wxArrayString& tokens) const
@@ -267,8 +276,12 @@ void MultiControllerUploadDialog::CheckRow(long row, bool checked)
     if (row < 0 || row >= (long)_rows.size()) {
         return;
     }
+    // CheckItem fires EVT_LIST_ITEM_CHECKED on MSW; keep the handler from spreading it to the selection.
+    const bool wasRebuilding = _rebuilding;
+    _rebuilding = true;
     _checked[_rows[row]] = checked;
     ListCtrl_Controllers->CheckItem(row, checked);
+    _rebuilding = wasRebuilding;
 }
 
 long MultiControllerUploadDialog::RowForController(int idx) const

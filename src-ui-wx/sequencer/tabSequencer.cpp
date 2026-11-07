@@ -281,6 +281,13 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     SaveWindowPosition("xLightsNodeSelectDialogPosition", nullptr);
     SaveWindowPosition("ControllerModelDialogPosition", nullptr);
     SaveWindowPosition("xLightsTestDialogPosition", nullptr);
+    SaveWindowPosition("xLightsMultiControllerUploadPos", nullptr);
+    SaveWindowPosition("xLightsFPPConnectPos", nullptr);
+    SaveWindowPosition("RenderProgress", nullptr);
+    SaveWindowPosition("BatchRendererPos", nullptr);
+    SaveWindowPosition("ControllerFullColumnsDialogPosition", nullptr);
+    SaveWindowPosition("xLightsBufferSizeDialogPosition", nullptr);
+    SaveWindowPosition("xLightsWiringDialogPosition", nullptr);
 
     UpdateViewMenu();
 }
