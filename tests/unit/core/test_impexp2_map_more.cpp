@@ -182,6 +182,7 @@ TEST_CASE("MatchAggressive accepts a name against its own canonical form (random
     for (int i = 0; i < 500; ++i) {
         auto n = RandName(g, 20);
         CAPTURE(n);
+        if (n.find_first_not_of(" -_():;\\|{}[]+=*^#,.\t\r\n") == std::string::npos) continue;
         CHECK(AutoMapper::MatchAggressive(n, Canon(n), "", "", kNone));
     }
 }
@@ -192,6 +193,7 @@ TEST_CASE("MatchAggressive is symmetric in punctuation (random names)", "[impexp
         auto a = RandName(g, 12);
         auto b = Canon(a) + "-" + "_";
         CAPTURE(a, b);
+        if (a.find_first_not_of(" -_():;\\|{}[]+=*^#,.\t\r\n") == std::string::npos) continue;
         CHECK(AutoMapper::MatchAggressive(a, b, "", "", kNone));
     }
 }

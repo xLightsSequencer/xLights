@@ -354,7 +354,7 @@ TEST_CASE("ExportEffects effect description column", "[impexp2][export]") {
     CHECK(rows[1][4] == "Nice glow");
 }
 
-TEST_CASE("ExportEffects description with a double quote stays one well formed CSV field", "[impexp2][export][!mayfail]") {
+TEST_CASE("ExportEffects description with a double quote stays one well formed CSV field", "[impexp2][export]") {
     // ExportEffectsReport.cpp WriteEffectRow: description/element name are written inside "%s" without doubling embedded quotes.
     EffShow e(Spec({ Eff("A", 0, "On", 0, 1000, Pal("#FF0000")) }));
     e.show->ctx->GetSequenceElements().GetElement("A")->GetEffectLayer(0)->GetEffect(0)->GetSettings()["X_Effect_Description"] = "say \"hi\"";
@@ -384,7 +384,7 @@ TEST_CASE("ExportEffects unicode element names", "[impexp2][export]") {
     CHECK(rows[1][5] == "Árbol 日本");
 }
 
-TEST_CASE("ExportEffects file path containing a comma stays one field", "[impexp2][export][!mayfail]") {
+TEST_CASE("ExportEffects file path containing a comma stays one field", "[impexp2][export]") {
     // Files column is written unquoted, so a path with a comma splits into extra columns.
     ShowSpec s = Spec({ Eff("A", 0, "Pictures", 0, 1000, Pal("#FF0000"), "E_TEXTCTRL_Pictures_Filename=a\\,b.png") });
     EffShow e(s);

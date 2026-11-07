@@ -132,14 +132,14 @@ TEST_CASE("InterpretSize inch quote form accepts trailing junk", "[impexp2][cata
     CHECK(Model::InterpretSize("0\"(0cm)") == 0);
 }
 
-TEST_CASE("InterpretSize with a very long digit string", "[impexp2][catalog][!mayfail]") {
+TEST_CASE("InterpretSize with a very long digit string", "[impexp2][catalog]") {
     std::string digits(5000, '1');
     // strtod gives inf and the double->int cast is undefined
     int r = Model::InterpretSize(digits + "mm");
     CHECK((r == -1 || r > 0));
 }
 
-TEST_CASE("InterpretSize with huge numbers does not overflow int", "[impexp2][catalog][!mayfail]") {
+TEST_CASE("InterpretSize with huge numbers does not overflow int", "[impexp2][catalog]") {
     // static_cast<int>(double) of an out-of-range value is undefined (INT_MIN on x86).
     auto in = GENERATE(as<std::string>{}, "99999999999mm", "99999999999cm", "99999999999", "99999999999\"", "99999999999Feet", "99999999999'2\"");
     CAPTURE(in);
@@ -523,7 +523,7 @@ TEST_CASE("Music catalog GetExt", "[impexp2][catalog]") {
     CHECK(it.GetExt() == expected);
 }
 
-TEST_CASE("Music catalog GetExt ignores dots in the host name and query", "[impexp2][catalog][!mayfail]") {
+TEST_CASE("Music catalog GetExt ignores dots in the host name and query", "[impexp2][catalog]") {
     // MusicCatalog.cpp Item::GetExt takes everything after the last '.' even if it is the host's TLD or a query string.
     auto [url, expected] = GENERATE(table<std::string, std::string>({
         { "http://host.com", "" },
@@ -557,7 +557,7 @@ TEST_CASE("Music catalog GetDownloadFileName", "[impexp2][catalog]") {
     CHECK(it.GetDownloadFileName() == expected);
 }
 
-TEST_CASE("Music catalog file name from a title never contains path separators", "[impexp2][catalog][!mayfail]") {
+TEST_CASE("Music catalog file name from a title never contains path separators", "[impexp2][catalog]") {
     // Item::GetDownloadFileName falls back to the raw title, so "AC/DC" or "../x" yields a path, not a file name.
     auto title = GENERATE(as<std::string>{}, "AC/DC", "../../evil", "back\\slash");
     auto doc = Parse("<song><sequence/><title>" + title + "</title></song>");
