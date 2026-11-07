@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -enh (heffneil)              Bulk Controller Upload: Select All checkbox, filter box, multi-row
+                                 checking, Invert Selection; the dialog remembers its size and position
     -bug (derwin12)              Text effect reading from a text file kept showing the old text after the
                                  file was edited when the render cache was on
     -enh (derwin12)              Media Manager: Re-embed from Disk refreshes an embedded text, SVG, shader or
