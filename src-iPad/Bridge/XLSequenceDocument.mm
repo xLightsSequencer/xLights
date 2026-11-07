@@ -14392,6 +14392,18 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     std::string dest = FileUtils::FixFile("", spath);
     if (dest.empty()) dest = entry->GetFilePath();
     if (dest.empty()) return NO;
+    // FixFile hands a missing show-relative path back unchanged
+    if (!FileUtils::IsAbsoluteOrRootedPath(dest) && !_context->GetShowDirectory().empty()) {
+        dest = (std::filesystem::path(_context->GetShowDirectory()) / dest).string();
+    }
+
+    if (*type != MediaType::Image) {
+        // Keeps a file already on disk and re-reads the entry from it,
+        // so later edits to the file are picked up.
+        if (!media.ExtractMediaToDisk(spath, dest)) return NO;
+        bumpSequenceDirty(_context.get());
+        return YES;
+    }
 
     // Desktop's ExtractImageToFile pattern: write the payload out,
     // flip _isEmbedded off, keep the stored path.
@@ -15119,6 +15131,15 @@ bool registerMediaPath(SequenceMedia& media, const std::string& path,
     if (!_context || path.length == 0) return NO;
     auto& media = _context->GetSequenceElements().GetSequenceMedia();
     return media.ReloadMedia(std::string([path UTF8String])) ? YES : NO;
+}
+
+- (BOOL)reembedMediaAtPath:(NSString*)path {
+    if (!_context || path.length == 0) return NO;
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    std::string spath([path UTF8String]);
+    if (!media.ReembedMediaFromDisk(spath)) return NO;
+    bumpSequenceDirty(_context.get());
+    return YES;
 }
 
 - (int)reloadAllMedia {

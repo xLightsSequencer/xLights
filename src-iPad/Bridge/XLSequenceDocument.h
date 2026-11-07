@@ -2887,6 +2887,10 @@ NS_ASSUME_NONNULL_BEGIN
 // reloaded.
 - (BOOL)reloadMediaAtPath:(NSString*)path
     NS_SWIFT_NAME(reloadMedia(atPath:));
+// Re-read an embedded text / SVG / shader / binary entry from its file on
+// disk and keep it embedded. NO when the file can't be read.
+- (BOOL)reembedMediaAtPath:(NSString*)path
+    NS_SWIFT_NAME(reembedMedia(atPath:));
 - (int)reloadAllMedia;
 
 // Cleanup File Locations (CLN-1 — parity with desktop
