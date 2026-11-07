@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -enh (derwin12)              Snowflakes renders much faster on large buffers (e.g. whole-house groups
+                                 with an enlarged sub-buffer); output is unchanged
     -bug (derwin12)              Models imported from an LOR S5 preview, iPad arches after changing Starting
                                  Location, and old circles without a start side could show and render one
                                  start corner and switch to another after save and reload

@@ -10,8 +10,11 @@
 
 #include "SnowflakesEffect.h"
 
+#include <bit>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <vector>
 
 #include "../render/Effect.h"
@@ -58,29 +61,40 @@ void SnowflakesEffect::OnMetadataLoaded()
     sWarmupFramesDefault = GetIntDefault("Snowflakes_WarmupFrames", sWarmupFramesDefault);
 }
 
-int static possible_downward_moves(RenderBuffer &buffer, int x, int y)
-{
-    int moves = 0;
+// The flake layer is scanned per pixel every frame, and the sub-buffer can be
+// millions of pixels, so the hot loops index the temp buffer directly rather
+// than going through the bounds-checked GetTempPixel/SetTempPixel calls.
+// "Black" compares RGB only, matching xlColor::operator==.
+static inline bool isBlack(const xlColor& c) {
+    static_assert(sizeof(xlColor) == 4 && offsetof(xlColor, alpha) == 3, "xlColor layout is r,g,b,a bytes");
+    constexpr uint32_t rgbMask = std::endian::native == std::endian::little ? 0x00FFFFFFu : 0xFFFFFF00u;
+    uint32_t v;
+    std::memcpy(&v, &c, sizeof(v));
+    return (v & rgbMask) == 0;
+}
 
+static inline int possible_downward_moves(const xlColor* tb, int wi, int x, int y)
+{
     // no moves possible from bottom row
     if (y == 0) {
         return 0;
     }
 
-    if (buffer.GetTempPixel(x-1 < 0 ? x-1+buffer.BufferWi : x-1, y-1) == xlBLACK) {
+    const xlColor* row = tb + (size_t)(y - 1) * wi;
+    int moves = 0;
+    if (isBlack(row[x - 1 < 0 ? x - 1 + wi : x - 1])) {
         moves += 1;
     }
-    if (buffer.GetTempPixel(x, y-1) == xlBLACK) {
+    if (isBlack(row[x])) {
         moves += 2;
     }
-    if (buffer.GetTempPixel(x+1 >= buffer.BufferWi ? x+1-buffer.BufferWi : x+1, y-1) == xlBLACK) {
+    if (isBlack(row[x + 1 >= wi ? x + 1 - wi : x + 1])) {
         moves += 4;
     }
-
     return moves;
 }
 
-static void set_pixel_if_not_color(RenderBuffer &buffer, int x, int y, xlColor toColor, xlColor notColor, bool wrapx, bool wrapy)
+static void set_pixel_if_not_color(RenderBuffer &buffer, const xlColor* tb, int x, int y, xlColor toColor, xlColor notColor, bool wrapx, bool wrapy)
 {
     int adjx = x;
     int adjy = y;
@@ -119,7 +133,7 @@ static void set_pixel_if_not_color(RenderBuffer &buffer, int x, int y, xlColor t
     }
 
     // strip off alpha when comparing
-    if (buffer.GetTempPixel(adjx, adjy).GetRGB() != notColor.GetRGB()) {
+    if (tb[(size_t)adjy * buffer.BufferWi + adjx].GetRGB() != notColor.GetRGB()) {
         buffer.SetPixel(adjx, adjy, toColor);
     }
 }
@@ -170,23 +184,46 @@ RenderableEffect::FrameParallelism SnowflakesEffect::GetFrameParallelism(const S
 
 void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const std::string& falling, int count, const xlColor& color1, int& effectState)
 {
-    int starty = 0;
-    if (falling == "Falling & Accumulating") {
-        starty = 1;
+    const bool accumulating = falling == "Falling & Accumulating";
+    const bool fallingOnly = falling == "Falling";
+    const int starty = accumulating ? 1 : 0;
+
+    const int wi = buffer.BufferWi;
+    const int ht = buffer.BufferHt;
+    if (wi <= 0 || ht <= 0 || (size_t)wi * ht > buffer.GetTempBufVector().size()) {
+        return;
+    }
+    xlColor* tb = buffer.GetTempBuf();
+
+    // Most columns hold no flake, and a column that is all black when its turn
+    // comes does nothing (no RNG, no writes), so only scan columns that held a
+    // flake at the start or had one moved into them during this pass.
+    std::vector<uint8_t> colHasFlake(wi, 0);
+    for (int y = starty; y < ht; y++) {
+        const xlColor* row = tb + (size_t)y * wi;
+        for (int x = 0; x < wi; x++) {
+            if (!isBlack(row[x])) {
+                colHasFlake[x] = 1;
+            }
+        }
     }
 
-    for (int x = 0; x < buffer.BufferWi; x++) {
-        for (int y = starty; y < buffer.BufferHt; y++) {
+    // x-outer order is load-bearing: a flake moved into column x+1 is moved
+    // again when that column is scanned, and the RNG is consumed in this order.
+    for (int x = 0; x < wi; x++) {
+        if (!colHasFlake[x]) {
+            continue;
+        }
+        for (int y = starty; y < ht; y++) {
                 // if there is a flake to move
-                xlColor color3;
-                buffer.GetTempPixel(x, y, color3);
-                if (color3 != xlBLACK) {
+                xlColor color3 = tb[(size_t)y * wi + x];
+                if (!isBlack(color3)) {
                     // check where we can move to?
-                    int moves = possible_downward_moves(buffer, x, y);
+                    int moves = possible_downward_moves(tb, wi, x, y);
 
                     // we have something to move
                     //  randomly move the flake left or right
-                    if (moves > 0 || (falling == "Falling" && y == 0)) {
+                    if (moves > 0 || (fallingOnly && y == 0)) {
                         int x0;
                         switch (buffer.randInt(0, 8)) {
                         case 0:
@@ -233,21 +270,22 @@ void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const
 
                         // handle wrap around
                         if (x0 < 0) {
-                            x0 += buffer.BufferWi;
-                        } else if (x0 >= buffer.BufferWi) {
-                            x0 -= buffer.BufferWi;
+                            x0 += wi;
+                        } else if (x0 >= wi) {
+                            x0 -= wi;
                         }
 
                         // and move it down
                         int y0 = y - 1;
 
-                        buffer.SetTempPixel(x, y, xlBLACK);
+                        tb[(size_t)y * wi + x] = xlBLACK;
                         if (y0 >= 0) {
                             // move the flake down
-                            buffer.SetTempPixel(x0, y0, color3);
+                            tb[(size_t)y0 * wi + x0] = color3;
+                            colHasFlake[x0] = 1;
 
-                            if (falling == "Falling & Accumulating") {
-                                int nextmoves = possible_downward_moves(buffer, x0, y0);
+                            if (accumulating) {
+                                int nextmoves = possible_downward_moves(tb, wi, x0, y0);
                                 if (nextmoves == 0) {
                                     // we cant move any further so we can add one at the top
                                     effectState--;
@@ -267,12 +305,12 @@ void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const
     int placedFullCount = 0;
     while (effectState < count && check < 20) {
         // find unused space
-        int x = buffer.randInt(0, buffer.BufferWi - 1);
-        if (buffer.GetTempPixel(x, buffer.BufferHt - 1) == xlBLACK) {
+        int x = buffer.randInt(0, wi - 1);
+        if (isBlack(tb[(size_t)(ht - 1) * wi + x])) {
             effectState++;
-            buffer.SetTempPixel(x, buffer.BufferHt - 1, color1, snowflakeType == 0 ? buffer.randInt(0, 8) : snowflakeType - 1);
+            buffer.SetTempPixel(x, ht - 1, color1, snowflakeType == 0 ? buffer.randInt(0, 8) : snowflakeType - 1);
 
-            int nextmoves = possible_downward_moves(buffer, x, buffer.BufferHt - 1);
+            int nextmoves = possible_downward_moves(tb, wi, x, ht - 1);
             if (nextmoves == 0) {
                 // the placed pixel fills the column, make sure we note that so we can place
                 // another snowflake
@@ -287,9 +325,9 @@ void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const
 // A type-2 ("3 nodes") flake has "settled" when the whole column below it (rows
 // 0 .. y-2) is filled.  Used identically by AdvanceState's pre-roll and the draw
 // so their per-flake roll decisions stay in lockstep.
-static bool flakeIsAtBottom(RenderBuffer& buffer, int x, int y) {
+static bool flakeIsAtBottom(const xlColor* tb, int wi, int x, int y) {
     for (int yt = 0; yt < y - 1; yt++) {
-        if (buffer.GetTempPixel(x, yt) == xlBLACK) {
+        if (isBlack(tb[(size_t)yt * wi + x])) {
             return false;
         }
     }
@@ -301,10 +339,16 @@ static bool flakeIsAtBottom(RenderBuffer& buffer, int x, int y) {
 // orientation choice, which reads the pre-rolled decisions from fs.rolls in the
 // same pixel-scan order AdvanceState baked them.
 static void DrawSnowflakes(RenderBuffer& buffer, const SnowflakesFrameState& fs) {
-    // Load the flake layer this snapshot carries.  Essential in the frame-parallel
-    // draw pass (the clone buffer's temp layer is otherwise stale); a harmless
-    // idempotent copy in the serial path (AdvanceState already advanced it here).
-    buffer.SetTempBufVector(fs.tempbuf);
+    // Read the flake layer straight from the snapshot rather than loading it
+    // into the buffer's temp layer: the clone buffers in the frame-parallel
+    // draw pass hold a stale one, and in the serial path it is a multi-MB copy
+    // of what AdvanceState already left there.
+    const int wi = buffer.BufferWi;
+    const int ht = buffer.BufferHt;
+    if ((size_t)wi * ht > fs.tempbuf.size()) {
+        return;
+    }
+    const xlColor* tb = fs.tempbuf.data();
 
     const bool wrapx = false; // snowflakes do not draw wrapped near the x edges
     const xlColor c1(0, 1, 0);
@@ -313,22 +357,29 @@ static void DrawSnowflakes(RenderBuffer& buffer, const SnowflakesFrameState& fs)
     const xlColor& color2 = fs.color2;
 
     if (fs.driving) {
+        // Each output pixel is written at most once, so scanning row-major
+        // (cache-friendly for the temp reads) gives the same result.
         const int movement = fs.movement;
-        for (int x = 0; x < buffer.BufferWi; x++) {
-            int new_x = (x + movement / 20) % buffer.BufferWi;  // CW
-            int new_x2 = (x - movement / 20) % buffer.BufferWi; // CCW
+        std::vector<int> newX(wi), newX2(wi);
+        for (int x = 0; x < wi; x++) {
+            newX[x] = (x + movement / 20) % wi;  // CW
+            int new_x2 = (x - movement / 20) % wi; // CCW
             if (new_x2 < 0)
-                new_x2 += buffer.BufferWi;
-            for (int y = 0; y < buffer.BufferHt; y++) {
-                int new_y = (y + movement / 10) % buffer.BufferHt;
-                int new_y2 = (new_y + buffer.BufferHt / 2) % buffer.BufferHt;
-                xlColor color3;
-                buffer.GetTempPixel(new_x, new_y, color3);
-                if (color3 == xlBLACK)
-                    buffer.GetTempPixel(new_x2, new_y2, color3); // strip off the alpha channel
-                if (color3 == c1) {
+                new_x2 += wi;
+            newX2[x] = new_x2;
+        }
+        for (int y = 0; y < ht; y++) {
+            int new_y = (y + movement / 10) % ht;
+            int new_y2 = (new_y + ht / 2) % ht;
+            const xlColor* row = tb + (size_t)new_y * wi;
+            const xlColor* row2 = tb + (size_t)new_y2 * wi;
+            for (int x = 0; x < wi; x++) {
+                const xlColor* color3 = &row[newX[x]];
+                if (isBlack(*color3))
+                    color3 = &row2[newX2[x]];
+                if (*color3 == c1) {
                     buffer.SetPixel(x, y, color1);
-                } else if (color3 == c2) {
+                } else if (*color3 == c2) {
                     buffer.SetPixel(x, y, color2);
                 }
             }
@@ -338,11 +389,14 @@ static void DrawSnowflakes(RenderBuffer& buffer, const SnowflakesFrameState& fs)
 
     // paint my current state
     size_t rollIdx = 0;
-    for (int y = 0; y < buffer.BufferHt; y++) {
-        for (int x = 0; x < buffer.BufferWi; x++) {
-            xlColor color3;
-            buffer.GetTempPixel(x, y, color3);
-            if (color3 != xlBLACK) {
+    for (int y = 0; y < ht; y++) {
+        const xlColor* row = tb + (size_t)y * wi;
+        for (int x = 0; x < wi; x++) {
+            if (isBlack(row[x])) {
+                continue;
+            }
+            const xlColor color3 = row[x];
+            {
                 // draw flake, SnowflakeType=0 is random type
                 switch (color3.Alpha()) {
                 case 0:
@@ -352,26 +406,26 @@ static void DrawSnowflakes(RenderBuffer& buffer, const SnowflakesFrameState& fs)
                 case 1:
                     // 5 nodes
                     buffer.SetPixel(x, y, color1);
-                    set_pixel_if_not_color(buffer, x - 1, y, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x + 1, y, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x, y - 1, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x, y + 1, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x - 1, y, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x + 1, y, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x, y - 1, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x, y + 1, color2, color1, wrapx, false);
                     break;
                 case 2: {
                     // 3 nodes
                     buffer.SetPixel(x, y, color1);
                     // when flake has settled always paint it horizontally, else
                     // paint per the pre-rolled orientation decision
-                    if (flakeIsAtBottom(buffer, x, y)) {
-                        set_pixel_if_not_color(buffer, x - 1, y, color2, color1, wrapx, false);
-                        set_pixel_if_not_color(buffer, x + 1, y, color2, color1, wrapx, false);
+                    if (flakeIsAtBottom(tb, wi, x, y)) {
+                        set_pixel_if_not_color(buffer, tb, x - 1, y, color2, color1, wrapx, false);
+                        set_pixel_if_not_color(buffer, tb, x + 1, y, color2, color1, wrapx, false);
                     } else {
                         if (fs.rolls[rollIdx++]) {
-                            set_pixel_if_not_color(buffer, x - 1, y, color2, color1, wrapx, false);
-                            set_pixel_if_not_color(buffer, x + 1, y, color2, color1, wrapx, false);
+                            set_pixel_if_not_color(buffer, tb, x - 1, y, color2, color1, wrapx, false);
+                            set_pixel_if_not_color(buffer, tb, x + 1, y, color2, color1, wrapx, false);
                         } else {
-                            set_pixel_if_not_color(buffer, x, y - 1, color2, color1, wrapx, false);
-                            set_pixel_if_not_color(buffer, x, y + 1, color2, color1, wrapx, false);
+                            set_pixel_if_not_color(buffer, tb, x, y - 1, color2, color1, wrapx, false);
+                            set_pixel_if_not_color(buffer, tb, x, y + 1, color2, color1, wrapx, false);
                         }
                     }
                 } break;
@@ -379,28 +433,28 @@ static void DrawSnowflakes(RenderBuffer& buffer, const SnowflakesFrameState& fs)
                     // 9 nodes
                     buffer.SetPixel(x, y, color1);
                     for (uint8_t i = 1; i <= 2; i++) {
-                        set_pixel_if_not_color(buffer, x - i, y, color2, color1, wrapx, false);
-                        set_pixel_if_not_color(buffer, x + i, y, color2, color1, wrapx, false);
-                        set_pixel_if_not_color(buffer, x, y - i, color2, color1, wrapx, false);
-                        set_pixel_if_not_color(buffer, x, y + i, color2, color1, wrapx, false);
+                        set_pixel_if_not_color(buffer, tb, x - i, y, color2, color1, wrapx, false);
+                        set_pixel_if_not_color(buffer, tb, x + i, y, color2, color1, wrapx, false);
+                        set_pixel_if_not_color(buffer, tb, x, y - i, color2, color1, wrapx, false);
+                        set_pixel_if_not_color(buffer, tb, x, y + i, color2, color1, wrapx, false);
                     }
                     break;
                 case 4:
                     // 13 nodes
                     buffer.SetPixel(x, y, color1);
-                    set_pixel_if_not_color(buffer, x - 1, y, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x + 1, y, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x, y + 1, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x, y - 1, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x - 1, y, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x + 1, y, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x, y + 1, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x, y - 1, color2, color1, wrapx, false);
 
-                    set_pixel_if_not_color(buffer, x - 1, y + 2, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x + 1, y + 2, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x - 1, y - 2, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x + 1, y - 2, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x + 2, y - 1, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x + 2, y + 1, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x - 2, y - 1, color2, color1, wrapx, false);
-                    set_pixel_if_not_color(buffer, x - 2, y + 1, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x - 1, y + 2, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x + 1, y + 2, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x - 1, y - 2, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x + 1, y - 2, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x + 2, y - 1, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x + 2, y + 1, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x - 2, y - 1, color2, color1, wrapx, false);
+                    set_pixel_if_not_color(buffer, tb, x - 2, y + 1, color2, color1, wrapx, false);
                     break;
                 case 5:
                     buffer.SetPixel(x, y, color1);
@@ -747,12 +801,18 @@ std::unique_ptr<EffectFrameState> SnowflakesEffect::AdvanceState(Effect *effect,
     fs->movement = movement;
     fs->color1 = color1;
     fs->color2 = color2;
-    if (!driving) {
-        for (int y = 0; y < buffer.BufferHt; y++) {
-            for (int x = 0; x < buffer.BufferWi; x++) {
-                xlColor color3;
-                buffer.GetTempPixel(x, y, color3);
-                if (color3 != xlBLACK && color3.Alpha() == 2 && !flakeIsAtBottom(buffer, x, y)) {
+    const int wi = buffer.BufferWi;
+    const int ht = buffer.BufferHt;
+    // Only type 3 ("3 nodes") and type 0 (random) place alpha-2 flakes; a type
+    // change re-inits and clears the layer, so other types have nothing to roll.
+    const bool mayHaveType2 = SnowflakeType == 0 || SnowflakeType == 3;
+    if (!driving && mayHaveType2 && (size_t)wi * ht <= buffer.GetTempBufVector().size()) {
+        const xlColor* tb = buffer.GetTempBuf();
+        for (int y = 0; y < ht; y++) {
+            const xlColor* row = tb + (size_t)y * wi;
+            for (int x = 0; x < wi; x++) {
+                const xlColor& color3 = row[x];
+                if (!isBlack(color3) && color3.Alpha() == 2 && !flakeIsAtBottom(tb, wi, x, y)) {
                     fs->rolls.push_back(buffer.randInt(0, 99) > 50 ? 1 : 0); // % 2 was not so random
                 }
             }
