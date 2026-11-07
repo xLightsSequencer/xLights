@@ -269,15 +269,6 @@ struct RecordingCVA : xlVertexColorAccumulator {
     void SetVertex(uint32_t, const xlColor&) override {}
 };
 
-// Runs a sweep of setting strings through one effect and checks every run lights something.
-void SweepLights(Fx& f, const std::string& name, const std::vector<std::string>& settings, const std::string& palette, const Opts& o) {
-    for (const auto& s : settings) {
-        INFO(name << " settings: " << s);
-        Frames fr = f.Render(name, s, palette, o);
-        CHECK(fr.totalLit() > 0);
-    }
-}
-
 } // namespace
 
 // ---------------------------------------------------------------------------

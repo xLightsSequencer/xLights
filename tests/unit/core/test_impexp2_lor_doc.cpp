@@ -17,7 +17,6 @@ using Catch::Approx;
 using namespace lortest;
 
 namespace {
-bool Has(const std::string& s, const std::string& sub) { return s.find(sub) != std::string::npos; }
 
 std::string Timings(const std::string& name, const std::vector<int>& cs, const char* tag = "TimingGridFree") {
     std::string s = std::string("<") + tag + " name=\"" + name + "\">";

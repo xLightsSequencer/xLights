@@ -48,9 +48,9 @@ std::map<std::pair<int, int>, int> BufferMap(const std::string& models, int& w, 
     m->InitRenderBufferNodes("Default", "2D", "None", nodes, w, h, 0);
     std::map<std::pair<int, int>, int> out;
     for (size_t i = 0; i < nodes.size(); ++i) {
-        for (auto& c : nodes[i]->Coords) {
+        if (!nodes[i]->Coords.empty()) {
+            const auto& c = nodes[i]->Coords.front();
             out[{ c.bufX, c.bufY }] = (int)i;
-            break;
         }
     }
     return out;

@@ -363,7 +363,7 @@ TEST_CASE("Experience2 SetInputUniverses lists universes of different sizes indi
     REQUIRE(c);
     Experience e = MakeDisconnectedExperience();
     nlohmann::json data;
-    e.SetInputUniverses(data, c.get());
+    static_cast<void>(e.SetInputUniverses(data, c.get()));
     CHECK(data["system"]["operating_mode"] == "artnet");
     REQUIRE(data["inputs"].size() == 2);
     CHECK(data["inputs"][0]["number_of_universes"] == 1);
@@ -380,7 +380,7 @@ TEST_CASE("Experience2 SetInputUniverses keeps standalone and remote modes", "[v
         Experience e = MakeDisconnectedExperience();
         e._opMode = mode;
         nlohmann::json data;
-        e.SetInputUniverses(data, c.get());
+        static_cast<void>(e.SetInputUniverses(data, c.get()));
         CHECK(data["system"]["operating_mode"] == mode);
     }
 }
@@ -392,7 +392,7 @@ TEST_CASE("Experience2 SetInputUniverses for DDP sets the start channel", "[vend
     REQUIRE(c);
     Experience e = MakeDisconnectedExperience();
     nlohmann::json data;
-    e.SetInputUniverses(data, c.get());
+    static_cast<void>(e.SetInputUniverses(data, c.get()));
     CHECK(data["system"]["operating_mode"] == "ddp");
     CHECK_FALSE(data.contains("inputs"));
     auto* ddp = dynamic_cast<DDPOutput*>(c->GetFirstOutput());

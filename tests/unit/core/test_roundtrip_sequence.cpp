@@ -648,7 +648,7 @@ TEST_CASE("Roundtrip xsq model blending flag", "[roundtrip][sequence][structure]
     }
 }
 TEST_CASE("Roundtrip xsq render mode", "[roundtrip][sequence][structure]") {
-    for (const std::string m : { SequenceFile::ERASE_MODE, SequenceFile::CANVAS_MODE }) {
+    for (const std::string& m : { SequenceFile::ERASE_MODE, SequenceFile::CANVAS_MODE }) {
         INFO(m);
         TempDir td;
         auto r = Cycle(td, [&](Source& s, SequenceFile& sf) {
