@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (derwin12)              SuperStar import: the dialog took over a minute to open on large layouts, and
+                                 closing it with Esc or the close box went on with the import
     -enh (AGFazio)               Import Effects: compare preview of the vendor's model next to yours, and
                                  Sort by Name / Master View for both mapping lists
     -enh (heffneil)              Sequence Settings > Meta Data: Imported From sequences can now be added, changed or removed
