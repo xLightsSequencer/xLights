@@ -661,6 +661,9 @@
     <ClCompile Include="..\src-core\models\DMX\Servo.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\CloudStorageSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\preferences\BackupSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
@@ -935,6 +938,9 @@
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\app-shell\TipOfTheDayDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ModelRemap.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\CloudBackupDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\CloudRestoreDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\CloudStorageSettings.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\RestoreBackupDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\CheckSequenceSettingsPanel.cpp">
@@ -1106,6 +1112,18 @@
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\sequencer\MetronomeLabelDialog.cpp" />
+    <ClCompile Include="..\src-core\utils\S3Client.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\utils\Sha256.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\utils\CloudBackupStore.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\utils\ShowArchiver.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\utils\CurlManager.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -2235,6 +2253,9 @@
     <ClInclude Include="..\src-core\models\DMX\Servo.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\CloudStorageSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\BackupSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
@@ -2503,6 +2524,9 @@
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\app-shell\TipOfTheDayDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\ModelRemap.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\CloudBackupDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\CloudRestoreDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\CloudStorageSettings.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\RestoreBackupDialog.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutUtils.h" />
     <ClInclude Include="..\src-ui-wx\preferences\CheckSequenceSettingsPanel.h">
@@ -2544,6 +2568,18 @@
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\sequencer\MetronomeLabelDialog.h" />
+    <ClInclude Include="..\src-core\utils\S3Client.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\utils\Sha256.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\utils\CloudBackupStore.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\utils\ShowArchiver.h">
+      <Filter>utils</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\utils\CurlManager.h">
       <Filter>utils</Filter>
     </ClInclude>

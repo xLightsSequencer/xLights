@@ -639,6 +639,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.cpp" />
     <ClCompile Include="..\src-core\utils\SpecialOptions.cpp" />
     <ClCompile Include="..\src-core\utils\TempFileManager.cpp" />
+    <ClCompile Include="..\src-core\utils\S3Client.cpp" />
+    <ClCompile Include="..\src-core\utils\Sha256.cpp" />
+    <ClCompile Include="..\src-core\utils\CloudBackupStore.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowArchiver.cpp" />
     <ClCompile Include="..\src-core\utils\CurlManager.cpp" />
     <ClCompile Include="..\src-core\utils\ip_utils.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\controls\MediaPickerCtrl.cpp" />
@@ -979,6 +983,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\render\PixelBuffer.cpp" />
     <ClCompile Include="..\src-core\models\Pixels.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\PixelTestDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\CloudStorageSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\BackupSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\CheckSequenceSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.cpp" />
@@ -1006,6 +1011,9 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\sequencer\RenderCommandEvent.cpp" />
     <ClCompile Include="..\src-ui-wx\diagnostics\RenderProgressDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\media\ResizeImageDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\CloudBackupDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\CloudRestoreDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\CloudStorageSettings.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\RestoreBackupDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\SaveChangesDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\ScriptsDialog.cpp" />
@@ -1365,6 +1373,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\preferences\ServicesPanel.h" />
     <ClInclude Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.h" />
     <ClInclude Include="..\src-core\utils\TempFileManager.h" />
+    <ClInclude Include="..\src-core\utils\S3Client.h" />
+    <ClInclude Include="..\src-core\utils\Sha256.h" />
+    <ClInclude Include="..\src-core\utils\CloudBackupStore.h" />
+    <ClInclude Include="..\src-core\utils\ShowArchiver.h" />
     <ClInclude Include="..\src-core\utils\CurlManager.h" />
     <ClInclude Include="..\src-core\utils\FloatChecks.h" />
     <ClInclude Include="..\src-core\utils\AutoReleasePool.h" />
@@ -1658,6 +1670,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\render\PixelBuffer.h" />
     <ClInclude Include="..\src-core\models\Pixels.h" />
     <ClInclude Include="..\src-ui-wx\setup\PixelTestDialog.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\CloudStorageSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\BackupSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\CheckSequenceSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.h" />
@@ -1682,6 +1695,9 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\render\RenderUtils.h" />
     <ClInclude Include="..\src-core\render\ViewpointMgr.h" />
     <ClInclude Include="..\src-ui-wx\media\ResizeImageDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\CloudBackupDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\CloudRestoreDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\CloudStorageSettings.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\RestoreBackupDialog.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\SaveChangesDialog.h" />
     <ClInclude Include="..\src-ui-wx\automation\ScriptsDialog.h" />

@@ -319,6 +319,11 @@ static wxBitmapBundle CreateBitmapBundleFromPNGs(const wxString &id,
 }
 
 
+static const char cloudSVG[] =
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\">"
+    "<path d=\"M7 19h10.5a4.5 4.5 0 0 0 .6-8.96A6 6 0 0 0 6.3 9.1A5 5 0 0 0 7 19z\" "
+    "fill=\"#4A90D9\" stroke=\"#2C5F94\" stroke-width=\"1.2\" stroke-linejoin=\"round\"/></svg>";
+
 inline wxSize AdjustSizeForClient(const wxArtClient& client,
                                   const wxSize& size) {
     if (size == wxDefaultSize) {
@@ -357,7 +362,13 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
     if ("xlART_DICE_ICON" == id) {
         return wxOSXCreateSystemBitmapBundle("dice", AdjustSizeForClient(client, size));
     }
+    if ("xlART_CLOUD" == id) {
+        return wxOSXCreateSystemBitmapBundle("cloud", AdjustSizeForClient(client, size));
+    }
 #endif
+    if ("xlART_CLOUD" == id) {
+        return wxBitmapBundle::FromSVG(reinterpret_cast<const wxByte*>(cloudSVG), sizeof(cloudSVG) - 1, wxSize(24, 24));
+    }
     if ("xlART_STOP_NOW" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {stop_sign_16, stop_sign_24, stop_sign_32, stop_sign_48, stop_sign_64});
     } else if ("xlART_LIGHTS_OFF" == id) {

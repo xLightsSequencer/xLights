@@ -4,7 +4,7 @@ _Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ miss
 
 ## Features (grouped by preferences page)
 
-Desktop scope: the Preferences dialog is assembled in `src-ui-wx/preferences/xLightsPreferences.cpp:194-240` (11 pages: Backup, View, Effects Grid, Sequences, Output, Check Sequence, Random Effects, Colors, Other, Toolbars, Services). It is opened from File ▸ "Preferences...\tCTRL-," (`src-ui-wx/xLightsMain.cpp:947`).
+Desktop scope: the Preferences dialog is assembled in `src-ui-wx/preferences/xLightsPreferences.cpp:194-240` (12 pages: Backup, Cloud Storage, View, Effects Grid, Sequences, Output, Check Sequence, Random Effects, Colors, Other, Toolbars, Services). It is opened from File ▸ "Preferences...\tCTRL-," (`src-ui-wx/xLightsMain.cpp:947`).
 
 iPad scope: there is **no** Preferences/Settings screen or menu item. `FolderConfigView` (titled "Folders", `src-iPad/App/FolderConfigView.swift:7`, `:371`) is the de-facto global-preferences screen, reachable only from a toolbar gear in the sequence picker (`src-iPad/App/XLightsApp.swift:1022`, `:1253`). The rest of the settings are scattered across the sequencer options menu (`src-iPad/App/SequencerGridV2View.swift:1948-1988`), the Check Sequence sheet, the Layout editor, and `SequenceSettingsSheet`. There is no `⌘,` binding and no `CommandGroup(replacing: .appSettings)` anywhere in `src-iPad/`.
 
@@ -19,6 +19,12 @@ iPad scope: there is **no** Preferences/Settings screen or menu item. `FolderCon
 | 5 | Backup Directory — "Use Show Folder" checkbox | `BackupSettingsPanel.cpp:76`; `:133-135`/`:169` → `xLightsMain.cpp:4962` | ❌ | Backup dir hard-coded to `<show>/Backup` (`SequencerViewModel.swift:1872`); no key, no picker |
 | 6 | Backup Directory — path picker | `BackupSettingsPanel.cpp:79` | ❌ | Same as row 5 |
 | 7 | Alternative Backup Directory | `BackupSettingsPanel.cpp:83`; `:137-138`/`:170` → `xLightsMain.cpp:1829`, `:4993` | ❌ | grep `altBackup`, `AltBackup` over `src-iPad/` → 0 files |
+
+### Page: Cloud Storage (`src-ui-wx/preferences/CloudStorageSettingsPanel.cpp`)
+
+| # | Page / Setting | Desktop evidence | iPad status | iPad evidence / gap |
+|---|---|---|---|---|
+| 114 | Cloud Storage page (provider, endpoint, bucket, prefix, keys, Test Connection; include `.fseq` / layout thumbnail in backups, keep the last N backups) | Registered `xLightsPreferences.cpp:200` (cloud icon `xlART_CLOUD`); settings `app-shell/CloudStorageSettings.cpp:25` (config keys `CloudStorage*`, secret in `wxSecretStore`) | ❌ | No cloud storage on iPad — see 01 rows 182–184 |
 
 ### Page: View (`src-ui-wx/preferences/ViewSettingsPanel.cpp`)
 

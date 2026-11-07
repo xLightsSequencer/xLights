@@ -23,6 +23,7 @@
 #include "EffectsGridSettingsPanel.h"
 #include "SequenceFileSettingsPanel.h"
 #include "BackupSettingsPanel.h"
+#include "CloudStorageSettingsPanel.h"
 #include "OutputSettingsPanel.h"
 #include "RandomEffectsSettingsPanel.h"
 #include "ColorManagerSettingsPanel.h"
@@ -196,6 +197,10 @@ void xLightsFrame::ShowPreferencesDialog(const wxString& initialPage)
                       wxArtProvider::GetBitmapBundle(wxART_HARDDISK, wxART_BUTTON, wxSize(28, 28)),
                       wxArtProvider::GetBitmapBundle(wxART_HARDDISK, wxART_BUTTON, listIconSize),
                       [this](wxWindow* p) { return (wxWindow*)(new BackupSettingsPanel(p, this)); } });
+    pages.push_back({ "Cloud Storage",
+                      wxArtProvider::GetBitmapBundle("xlART_CLOUD", wxART_BUTTON, wxSize(28, 28)),
+                      wxArtProvider::GetBitmapBundle("xlART_CLOUD", wxART_BUTTON, listIconSize),
+                      [](wxWindow* p) { return (wxWindow*)(new CloudStorageSettingsPanel(p)); } });
     pages.push_back({ "View",
                       wxArtProvider::GetBitmapBundle(wxART_FULL_SCREEN, wxART_BUTTON, iconSize),
                       wxArtProvider::GetBitmapBundle(wxART_FULL_SCREEN, wxART_BUTTON, listIconSize),
