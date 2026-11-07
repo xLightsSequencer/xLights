@@ -139,6 +139,12 @@ FPP::FPP(const FPP &c)
 }
 
 FPP::~FPP() {
+    if (pendingV7Uploads > 0) {
+        // the callbacks belong to whoever set them and may already be gone
+        _progress = ProgressCallback();
+        while (pendingV7Uploads > 0 && CurlManager::INSTANCE.processCurls(CurlManager::PUMP_WAIT_MS)) {
+        }
+    }
     if (outputFile && !outputFileIsOriginal) {
         delete outputFile;
         outputFile = nullptr;
@@ -1034,6 +1040,7 @@ void prepareCurlForMulti(V7ProgressStruct *ps) {
         cancelled |= ps->instance->updateProgress(pct, false);
         if (cancelled || ps->offset >= ps->length) {
             spdlog::debug(ps->filename + " upload complete to " + ps->instance->hostName + " (" + ps->instance->ipAddress + "). Bytes sent:" + std::to_string(ps->length) + ".");
+            --ps->instance->pendingV7Uploads;
             delete ps;
         } else {
             prepareCurlForMulti(ps);
@@ -1068,6 +1075,7 @@ bool FPP::uploadFileV7(const std::string &filename,
         if (_progress.SetValue) {
             cancelled |= updateProgress(0, true);
         }
+        ++pendingV7Uploads;
         prepareCurlForMulti(ps);
     } else {
         spdlog::warn("ERROR Uploading file: {}    Could not open source file: {}", filename, file);

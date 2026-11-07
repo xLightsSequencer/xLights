@@ -114,6 +114,25 @@ TEST_CASE("FPP 7 upload retries a failed chunk three times then gives up", "[fpp
     CHECK_THAT(f->messages.back(), ContainsSubstring("ERROR Uploading file: a.fseq. Response code: 500"));
 }
 
+// The chunks are pumped by whoever runs CurlManager next (the app's idle handler), so
+// an FPP destroyed mid-upload must finish the transfer itself rather than leave the
+// callbacks holding a dangling pointer to it.
+TEST_CASE("FPP 7 upload in flight when the FPP is destroyed completes first", "[fpp3][transfer]") {
+    TempDir dir;
+    dir.Write("bg.png", "0123456789");
+    FppServer srv;
+    auto f = MakeFpp(srv, 9);
+    bool ownerAlive = true;
+    int lateProgress = 0;
+    f->setProgress({ [&](int) { if (!ownerAlive) ++lateProgress; }, [] { return false; }, [] {} });
+    f->uploadFileV7("bg.png", (dir.path / "bg.png").string(), "virtualdisplay_assets");
+    ownerAlive = false;
+    f.reset();
+    CHECK(srv.Count("PATCH", "/api/file/virtualdisplay_assets") == 1);
+    CHECK(lateProgress == 0);
+    CHECK_FALSE(CurlManager::INSTANCE.processCurls());
+}
+
 TEST_CASE("FPP 7 upload of a missing file reports it", "[fpp3][transfer]") {
     FppServer srv;
     auto f = MakeFpp(srv, 9);

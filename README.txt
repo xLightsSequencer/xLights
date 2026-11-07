@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 Crash in the Layout preview when Mesh Only was turned on for a mesh that
+                                 had no geometry
+    -bug (dkulp)                 Crash after FPP Connect sent controller settings with a virtual display
+                                 background image and no sequence checked
     -bug (derwin12)              Models imported from an LOR S5 preview, iPad arches after changing Starting
                                  Location, and old circles without a start side could show and render one
                                  start corner and switch to another after save and reload
