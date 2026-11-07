@@ -109,13 +109,18 @@ int CalcUnBoundedPercentage(int val, int base) {
     return static_cast<int>(percent);
 }
 
+double ClampChannel(double v) {
+    if (!(v > 0.0)) return 0.0;
+    return v > 255.0 ? 255.0 : v;
+}
+
 xlColor GetColor(const std::string& sRed, const std::string& sGreen, const std::string& sBlue) {
     double red = std::strtod(sRed.c_str(), nullptr);
-    red = red / 100.0 * 255.0;
+    red = ClampChannel(red / 100.0 * 255.0);
     double green = std::strtod(sGreen.c_str(), nullptr);
-    green = green / 100.0 * 255.0;
+    green = ClampChannel(green / 100.0 * 255.0);
     double blue = std::strtod(sBlue.c_str(), nullptr);
-    blue = blue / 100.0 * 255.0;
+    blue = ClampChannel(blue / 100.0 * 255.0);
     return xlColor(static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue));
 }
 
@@ -230,7 +235,7 @@ std::string CreateSceneImage(const std::string& imagePfx, const std::string& pos
             if (rotate ^ reverse) {
                 y = numRows - y;
             }
-            if (x < numCols && y >= 0 && y < numRows) {
+            if (x >= 0 && x < numCols && y >= 0 && y < numRows) {
                 i.SetRGBA(x, y, color.Red(), color.Green(), color.Blue(), 255);
             }
         }
@@ -268,6 +273,9 @@ bool IsPartOfModel(pugi::xml_node element, int num_rows, int num_columns, bool& 
             int y = e.attribute("pixelIndex").as_int();
             if (reverse) {
                 std::swap(x, y);
+            }
+            if (x < 0 || y < 0) {
+                return false;
             }
             if (x < num_columns && y < num_rows) {
                 data[x][y] = true;
@@ -308,7 +316,7 @@ bool IsPartOfModel(pugi::xml_node element, int num_rows, int num_columns, bool& 
 
 // Build "C_BUTTON_PaletteN=<color>,C_CHECKBOX_PaletteN=1" entries for a flowy.
 std::string BuildFlowyPalette(const std::string& color_string) {
-    std::string palette = "C_BUTTON_Palette1=,";
+    std::string palette;
     int cnt = 1;
     for (auto const& tok : Tokenize(color_string, " ")) {
         // wxStringTokenizer with whitespace delimiters skips empties
@@ -370,7 +378,14 @@ void PreprocessXmlBuffer(std::vector<char>& buffer) {
         } else if (buf[x - 1] == '>' && needToClose) {
             if (buf[x - 2] != '/') {
                 buf[x - 1] = '/';
-                buf[x] = '>';
+                const char c = buf[x];
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                    buf[x] = '>';
+                } else {
+                    buffer.insert(buffer.begin() + x, '>');
+                    buf = buffer.data();
+                    bufLen = buffer.size();
+                }
             }
             needToClose = false;
         }
@@ -417,6 +432,7 @@ bool Importer::PromptForPrefix() {
     if (val.empty()) {
         std::string defGroup = _opt.defaultGroupName.empty() ? std::string("SuperStar") : _opt.defaultGroupName;
         if (_prefixCallback) {
+            val = defGroup;
             if (!_prefixCallback(val)) return false;
             // Trim whitespace from both ends.
             auto first = val.find_first_not_of(" \t\r\n");
@@ -586,6 +602,8 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
             layout_defined = true;
         }
     }
+    num_rows = std::max(1.0, num_rows);
+    num_columns = std::max(1.0, num_columns);
 
     const int x_offset = _opt.xOffset;
     const int y_offset = _opt.yOffset;
@@ -617,9 +635,10 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                 int end_time = ToInt(state2_time) * 10;
                 int ramp_time = ToInt(ramp_time_ext) * 10;
                 end_time += ramp_time;
-                double head_duration = (1.0 - static_cast<double>(ramp_time) / (static_cast<double>(end_time) - static_cast<double>(start_time))) * 100.0;
-                std::string settings = "E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_ShowHeadAtStart=0,E_NOTEBOOK_Morph=Start,E_SLIDER_MorphAccel=0,E_SLIDER_Morph_Repeat_Count=0,E_SLIDER_Morph_Repeat_Skip=1,E_SLIDER_Morph_Stagger=0";
-                settings += acceleration + ",";
+                const double morph_span = static_cast<double>(end_time) - static_cast<double>(start_time);
+                double head_duration = morph_span != 0.0 ? (1.0 - static_cast<double>(ramp_time) / morph_span) * 100.0 : 100.0;
+                std::string settings = "E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_ShowHeadAtStart=0,E_NOTEBOOK_Morph=Start,E_SLIDER_Morph_Repeat_Count=0,E_SLIDER_Morph_Repeat_Skip=1,E_SLIDER_Morph_Stagger=0";
+                settings += ",E_SLIDER_MorphAccel=" + std::to_string(ToInt(acceleration)) + ",";
                 settings += "E_SLIDER_MorphDuration=" + std::to_string(static_cast<int>(head_duration)) + ",";
                 attr = state2.attribute("trailLen").as_string();
                 settings += "E_SLIDER_MorphEndLength=" + attr + ",";
@@ -687,6 +706,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                     int idx = element.attribute("savedIndex").as_int();
                     int xOffsetA = element.attribute("xOffset").as_int();
                     int yOffsetA = element.attribute("yOffset").as_int();
+                    if (w <= 0 || h <= 0) continue;
 
                     xlImage image(w, h);
                     int p = 0;
@@ -753,7 +773,8 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                 if (type == "Spiral") {
                     int tailms = element.attribute("tailTimeLength").as_int() * 10;
                     endms += tailms;
-                    double duration = (1.0 - static_cast<double>(tailms) / (static_cast<double>(endms) - static_cast<double>(startms))) * 100.0;
+                    const double spiral_span = static_cast<double>(endms) - static_cast<double>(startms);
+                    double duration = spiral_span != 0.0 ? (1.0 - static_cast<double>(tailms) / spiral_span) * 100.0 : 100.0;
                     int startWidth = element.attribute("startDotSize").as_int();
                     int endWidth = element.attribute("endDotSize").as_int();
                     std::string settings =
@@ -897,7 +918,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                         // Colour-changing scene: build one animated entry, one frame per sequence frame.
                         int time = ToInt(endms_s) - ToInt(startms_s);
                         int ft = _opt.frameTimeMs > 0 ? _opt.frameTimeMs : 50;
-                        int numFrames = time / ft;
+                        int numFrames = std::max(0, time / ft);
                         std::string animName = _imagePrefix + "/s" +
                                                element.attribute("savedIndex").as_string() + ".png";
                         std::vector<xlImage> animFrames;
@@ -916,7 +937,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                                     int px = e2.attribute("ribbonIndex").as_int();
                                     int py = e2.attribute("pixelIndex").as_int() - y_offset;
                                     if (reverse_xy) std::swap(px, py);
-                                    if (px < nc && py >= 0 && py < nr) {
+                                    if (px >= 0 && px < nc && py >= 0 && py < nr) {
                                         img.SetRGBA(px, py, color.Red(), color.Green(), color.Blue(), 255);
                                     }
                                 }
@@ -1048,6 +1069,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                 if (use_xl_font) {
                     if (colorType == "rainbow") {
                         const char* colors[] = { "#FF0000", "#FF8000", "#FFFF00", "#00FF00", "#0000FF", "#8000FF" };
+                        if (fCI < 0 || fCI >= 6) fCI = 0;
                         palette = std::string("C_BUTTON_Palette1=") + colors[fCI];
                         palette += std::string(",C_BUTTON_Palette2=") + colors[(fCI + 1) % 6];
                         palette += std::string(",C_BUTTON_Palette3=") + colors[(fCI + 2) % 6];
@@ -1058,6 +1080,7 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                         palette += ",C_CHECKBOX_Palette5=1,C_CHECKBOX_Palette6=1,C_CHECKBOX_Palette7=0,C_CHECKBOX_Palette8=0";
                     } else if (colorType == "redGreenBlue") {
                         const char* colors[] = { "#FF0000", "#00FF00", "#0000FF" };
+                        if (fCI < 0 || fCI >= 3) fCI = 0;
                         palette = std::string("C_BUTTON_Palette1=") + colors[fCI];
                         palette += std::string(",C_BUTTON_Palette2=") + colors[(fCI + 1) % 3];
                         palette += std::string(",C_BUTTON_Palette3=") + colors[(fCI + 2) % 3];
@@ -1065,8 +1088,15 @@ bool Importer::Run(pugi::xml_document& input_xml, std::string* errorOut) {
                         palette += ",C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,C_CHECKBOX_Palette7=0,C_CHECKBOX_Palette8=0";
                     }
                 }
+                std::string escapedText = text;
+                for (size_t pos = 0; (pos = escapedText.find('&', pos)) != std::string::npos; pos += 5) {
+                    escapedText.replace(pos, 1, "&amp;");
+                }
+                for (size_t pos = 0; (pos = escapedText.find(',', pos)) != std::string::npos; pos += 7) {
+                    escapedText.replace(pos, 1, "&comma;");
+                }
                 std::string settings =
-                    "E_CHECKBOX_TextToCenter=0,E_TEXTCTRL_Text=" + text +
+                    "E_CHECKBOX_TextToCenter=0,E_TEXTCTRL_Text=" + escapedText +
                     ",E_TEXTCTRL_Text_Speed=26,E_CHOICE_Text_Count=none," +
                     "E_CHOICE_Text_Dir=vector,E_CHECKBOX_Text_PixelOffsets=0," +
                     "E_CHOICE_Text_Effect=" + eff + "," +

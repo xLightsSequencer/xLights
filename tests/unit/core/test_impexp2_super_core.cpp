@@ -84,7 +84,7 @@ TEST_CASE("Preprocess handles a truncated buffer ending inside an open tag", "[i
     }
 }
 
-TEST_CASE("Preprocess closing a tag must not eat the character after the >", "[impexp2][super][!mayfail]") {
+TEST_CASE("Preprocess closing a tag must not eat the character after the >", "[impexp2][super]") {
     // PreprocessXmlBuffer: rewrites buf[x] (the char after '>') to '>' instead of inserting; <timing a="1"><b/> loses its '<'
     auto out = Pre("<r><timing a=\"1\"><b/></r>");
     pugi::xml_document d;
@@ -363,14 +363,14 @@ TEST_CASE("Non visualization layouts take the grid from the ribbon count", "[imp
     CHECK(e.Get("E_SLIDER_Shockwave_CenterY") == c.ey);
 }
 
-TEST_CASE("Zero sized grid does not divide by zero", "[impexp2][super][.][known-crash]") {
+TEST_CASE("Zero sized grid does not divide by zero", "[impexp2][super]") {
     // CalcPercentage: val %= static_cast<int>(base) with base == 0 (xSize 0 or nbrOfRibbons missing) is SIGFPE
     Fixture f;
     f.opt.xSize = 0;
     CHECK(f.RunRaw(Doc(Layout(), Shock(1, 1))));
 }
 
-TEST_CASE("Missing ribbon count in a non visualization layout does not divide by zero", "[impexp2][super][.][known-crash]") {
+TEST_CASE("Missing ribbon count in a non visualization layout does not divide by zero", "[impexp2][super]") {
     // layouts with visualizationMode=false and no nbrOfRibbons gives num_columns == 0
     Fixture f;
     CHECK(f.RunRaw(Doc(Layout("vertical", "false"), Shock(1, 1))));
@@ -478,7 +478,7 @@ TEST_CASE("Without a callback an empty prefix uses SuperStar", "[impexp2][super]
     CHECK(f.Media().HasMedia("SuperStar/s2.png"));
 }
 
-TEST_CASE("Prefix prompt receives the suggested default group name", "[impexp2][super][!mayfail]") {
+TEST_CASE("Prefix prompt receives the suggested default group name", "[impexp2][super]") {
     // PromptForPrefix: callback gets an empty string even though Options::defaultGroupName says it is the suggestion
     Fixture f;
     f.opt.imageGroupPrefix.clear();

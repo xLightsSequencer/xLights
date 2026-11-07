@@ -56,7 +56,7 @@ TEST_CASE("Morph effect carries timing, positions, trails and palette", "[impexp
     CHECK(e.Get("E_NOTEBOOK_Morph") == "Start");
 }
 
-TEST_CASE("Morph acceleration must land in MorphAccel", "[impexp2][super][morph][!mayfail]") {
+TEST_CASE("Morph acceleration must land in MorphAccel", "[impexp2][super][morph]") {
     // SuperStarImporter.cpp Run/morphs: acceleration is appended straight after "E_SLIDER_Morph_Stagger=0" with no key,
     // so "5" turns Stagger into 05 and MorphAccel stays 0
     Fixture f;
@@ -118,7 +118,7 @@ TEST_CASE("Morph layer attribute is parsed as a number", "[impexp2][super][morph
     CHECK(f.Count() == 1);
 }
 
-TEST_CASE("Morph with zero duration must give a sane head duration", "[impexp2][super][morph][!mayfail]") {
+TEST_CASE("Morph with zero duration must give a sane head duration", "[impexp2][super][morph]") {
     // head_duration = (1 - ramp / (end - start)) * 100 divides by zero (NaN cast to int is undefined)
     Fixture f;
     std::string a = "time=\"10\" x1=\"1\" y1=\"1\" x2=\"1\" y2=\"1\"";
@@ -155,7 +155,7 @@ TEST_CASE("Morph colour percentages scale to 0-255", "[impexp2][super][morph]") 
     CHECK(f.Find("Morph").Get("C_BUTTON_Palette1") == std::string("#") + c.hex + "0000");
 }
 
-TEST_CASE("Morph colour above 100 percent does not wrap", "[impexp2][super][morph][!mayfail]") {
+TEST_CASE("Morph colour above 100 percent does not wrap", "[impexp2][super][morph]") {
     // GetColor: static_cast<uint8_t>(double > 255) is undefined; 500% should clamp to ff
     Fixture f;
     std::string s1 = "time=\"0\" x1=\"1\" y1=\"1\" x2=\"1\" y2=\"1\" red=\"500\" green=\"-50\" blue=\"0\"";
@@ -209,7 +209,7 @@ TEST_CASE("Horizontal orientation rotates flowy angles by 90 degrees", "[impexp2
     CHECK(e.Get("E_SLIDER_Galaxy_Start_Angle") == c.ea);
 }
 
-TEST_CASE("Spiral with no duration must give a sane head duration", "[impexp2][super][flowy][!mayfail]") {
+TEST_CASE("Spiral with no duration must give a sane head duration", "[impexp2][super][flowy]") {
     // duration = (1 - tail/(end-start))*100 with end==start (tail 0): 0/0 NaN converted to int is undefined
     Fixture f;
     REQUIRE(f.RunRaw(Doc(Layout(), "<flowys><flowy flowyType=\"Spiral\" layer=\"1\" startTime=\"10\" endTime=\"10\" centerX=\"1\" centerY=\"1\"/></flowys>")));
@@ -290,7 +290,7 @@ TEST_CASE("Flowy palette lists the file colours", "[impexp2][super][flowy]") {
     CHECK(e.Get("C_CHECKBOX_Palette6") == "0");
 }
 
-TEST_CASE("Flowy palette first colour must be the first file colour", "[impexp2][super][flowy][!mayfail]") {
+TEST_CASE("Flowy palette first colour must be the first file colour", "[impexp2][super][flowy]") {
     // BuildFlowyPalette starts with "C_BUTTON_Palette1=," and then adds C_BUTTON_Palette1=<colour> again: the first (empty) wins
     Fixture f;
     REQUIRE(f.RunRaw(Doc(Layout(), Flowy("Shockwave", "Colors=\"100,0,0 0,100,0\""))));
@@ -394,7 +394,7 @@ TEST_CASE("Scene elements beyond the grid drop the whole scene", "[impexp2][supe
     CHECK(f.Count() == 0);
 }
 
-TEST_CASE("Scene with a negative element index must not corrupt memory", "[impexp2][super][.][known-crash]") {
+TEST_CASE("Scene with a negative element index must not corrupt memory", "[impexp2][super]") {
     // IsPartOfModel: x < num_columns is true for negative x, then data[x][y] indexes before the vector
     Fixture f;
     f.opt.xSize = 2;
@@ -402,7 +402,7 @@ TEST_CASE("Scene with a negative element index must not corrupt memory", "[impex
     CHECK(f.RunRaw(Doc(Layout(), "<scenes>" + Scene(1, 1, 0, 100, RED, Grid(2, 2) + Elem(-1, 0)) + "</scenes>")));
 }
 
-TEST_CASE("Scene with a negative pixel index must not corrupt memory", "[impexp2][super][.][known-crash]") {
+TEST_CASE("Scene with a negative pixel index must not corrupt memory", "[impexp2][super]") {
     Fixture f;
     f.opt.xSize = 2;
     f.opt.ySize = 2;
@@ -514,7 +514,7 @@ TEST_CASE("Partial colour changing scene builds one frame per sequence frame", "
     }
 }
 
-TEST_CASE("Colour changing partial scene with reversed time must not reserve a huge vector", "[impexp2][super][scene][!mayfail]") {
+TEST_CASE("Colour changing partial scene with reversed time must not reserve a huge vector", "[impexp2][super][scene]") {
     // animFrames.reserve(numFrames) with numFrames < 0 throws std::length_error out of Run
     Fixture f;
     f.opt.xSize = 3;
@@ -680,13 +680,13 @@ TEST_CASE("Image pixels element is recognised only as pixe after preprocessing",
     CHECK_FALSE(f.Media().HasMedia("P/1.png"));
 }
 
-TEST_CASE("Image with zero width and pixel data must not divide by zero", "[impexp2][super][image][.][known-crash]") {
+TEST_CASE("Image with zero width and pixel data must not divide by zero", "[impexp2][super][image]") {
     // Run/images: px = p % w with w == 0 is SIGFPE
     Fixture f;
     CHECK(f.RunRaw(Doc(Layout(), "<images>" + Image(1, 0, 2, "100,100") + "</images>")));
 }
 
-TEST_CASE("Image with negative width and pixel data must not crash", "[impexp2][super][image][.][known-crash]") {
+TEST_CASE("Image with negative width and pixel data must not crash", "[impexp2][super][image]") {
     // xlImage(w<0) has no buffer, but SetRGBA is still called
     Fixture f;
     CHECK(f.RunRaw(Doc(Layout(), "<images>" + Image(1, -2, 2, "100,100") + "</images>")));
@@ -916,11 +916,11 @@ TEST_CASE("Text action with empty text and zero start end", "[impexp2][super][te
     SUCCEED();
 }
 
-TEST_CASE("Text action text with commas and equals must reach the effect intact", "[impexp2][super][text][!mayfail]") {
-    // the text is concatenated into the comma separated settings string unescaped
+TEST_CASE("Text action text with commas and equals must reach the effect intact", "[impexp2][super][text]") {
+    // settings strings escape ',' as &comma; and '&' as &amp; (SettingsMap::Parse undoes it)
     Fixture f;
-    REQUIRE(f.RunRaw(Doc(Layout(), Text("text=\"Hello, World=1\" fontName=\"Zzz\""))));
-    CHECK(f.Find("Text").Get("E_TEXTCTRL_Text") == "Hello, World=1");
+    REQUIRE(f.RunRaw(Doc(Layout(), Text("text=\"Hello, World=1 &amp; x\" fontName=\"Zzz\""))));
+    CHECK(f.Find("Text").Get("E_TEXTCTRL_Text") == "Hello&comma; World=1 &amp; x");
 }
 
 TEST_CASE("Text action font size and cell widths from huge or negative values", "[impexp2][super][text]") {
