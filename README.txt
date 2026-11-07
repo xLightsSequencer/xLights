@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (scott)                 A new Matrix model's Starting Location showed Bottom Left in the property
+                                 grid even though the saved file had StartSide="T" (Top)
     -enh (FrenchMakers)          File > Backup to Cloud uploads the whole show folder (media, rendered .fseq
                                  files and a layout thumbnail included) to Cloudflare R2 or any S3-compatible
                                  storage, in the background with progress. File > Restore from Cloud brings a

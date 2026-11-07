@@ -138,11 +138,15 @@ TEST_CASE("GPU Butterfly and Plasma variants match their CPU render", "[gpu][eff
         Pair p = RenderBoth(MatrixShow({ Eff("M", 0, name, 0, 500, Pal("#FF0000", "#00FF00", "C_BUTTON_Palette3=#0000FF,C_CHECKBOX_Palette3=1"), settings) }),
                             [] { return GPURenderUtils::stats.effect.load(); });
         Budget budget = {};
-        if (settings.find("Style=4,") != std::string::npos && settings.find("Palette") != std::string::npos) {
-            // Style 4 wraps the hue with h - floor(h), and the palette blend is not
-            // circular: where CPU and GPU sin() differ by an ulp at the wrap, a pixel
-            // takes the last colour on one and the first on the other (seen on a
-            // paravirtual Metal device: one pixel, 2 channels by 255).
+        bool wraps = settings.find("Style=4,") != std::string::npos && settings.find("Palette") != std::string::npos;
+        bool chunks = settings.find("Chunks") != std::string::npos;
+        if (wraps || chunks) {
+            // Both jump a whole step where CPU and GPU sin() differ by an ulp at a
+            // threshold (seen on a paravirtual Metal device, one or two pixels each):
+            // style 4 wraps the hue with h - floor(h) and the palette blend is not
+            // circular, so a pixel takes the last colour on one and the first on the
+            // other; with chunks, a pixel on a chunk edge is drawn on one and skipped
+            // on the other.
             budget.seams = 6;
         }
         CheckWithin(p, budget);
