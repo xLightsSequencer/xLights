@@ -150,8 +150,9 @@ bool TextEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap &SettingsM
 
 bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
 {
-    // we dont want to use render cache if text is coming from a file as the file might have changed
-    if (settings["TEXTCTRL_Text"] == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
+    // we dont want to use render cache if text is coming from a file as the file might have changed.
+    // The path is usually show-folder relative, so FileExists() here would test it against the cwd.
+    if (settings["TEXTCTRL_Text"] == "" && settings["FILEPICKERCTRL_Text_File"] != "")
         return false;
     // we dont want to use render cache if text is coming from lyric track, if you have text then it overrides the lyric track
     if (settings["TEXTCTRL_Text"] == ""  && settings["CHOICE_Text_LyricTrack"] != "")

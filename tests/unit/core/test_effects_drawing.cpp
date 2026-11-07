@@ -958,6 +958,9 @@ TEST_CASE("Text effect settings checks, cache rules and file references", "[effe
     SettingsMap fileOnly;
     fileOnly["FILEPICKERCTRL_Text_File"] = present;
     CHECK_FALSE(fx->SupportsRenderCache(fileOnly));
+    // Text files are stored show-folder relative; editing one must not leave a stale cached render
+    fileOnly["FILEPICKERCTRL_Text_File"] = "Text Files/present.txt";
+    CHECK_FALSE(fx->SupportsRenderCache(fileOnly));
 
     SettingsMap pure;
     CHECK(fx->GetFrameParallelism(pure) == RenderableEffect::FrameParallelism::Pure);

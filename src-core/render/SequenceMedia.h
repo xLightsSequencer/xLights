@@ -518,6 +518,15 @@ public:
     void EmbedAllMedia();
     void ExtractMedia(const std::string& filepath);
     void ExtractAllMedia();
+    // Text, SVG, shader and binary entries only. Re-reads an embedded entry
+    // from its file on disk and keeps it embedded. Returns false, leaving the
+    // entry as it was, when it isn't embedded or the file can't be read.
+    bool ReembedMediaFromDisk(const std::string& filepath);
+    // Text, SVG, shader and binary entries only. Makes an embedded entry
+    // external; when its file isn't on disk the embedded data is first written
+    // to `destPath`. The entry is then re-read from disk so later edits to the
+    // file are picked up. Returns false, leaving it embedded, if the write fails.
+    bool ExtractMediaToDisk(const std::string& filepath, const std::string& destPath);
 
     // === Query helpers ===
     std::vector<std::string> GetVideoFilePaths() const;
@@ -544,6 +553,8 @@ private:
     void LoadQueuedImage(const std::string& filepath);
     // Helper to resolve relative paths via FileUtils::FixFile
     static std::string ResolvePath(const std::string& filepath);
+    // ResolvePath, retried after dropping FixFile's memo of missing files
+    static std::string ResolveOnDisk(const std::string& filepath);
     void RegisterImage(const std::string& filepath, const std::string& loadPath);
 
     std::vector<std::pair<std::string, std::string>> _pendingRelocations;

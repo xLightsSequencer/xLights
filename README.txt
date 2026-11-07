@@ -12,6 +12,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (derwin12)              Text effect reading from a text file kept showing the old text after the
+                                 file was edited when the render cache was on
+    -enh (derwin12)              Media Manager: Re-embed from Disk refreshes an embedded text, SVG, shader or
+                                 binary file from its file on disk
+    -bug (derwin12)              Media Manager: extracting an embedded text, SVG, shader or binary file now
+                                 writes it to disk when missing, and later edits to the file are picked up
     -bug (derwin12)              SuperStar import: the dialog took over a minute to open on large layouts, and
                                  closing it with Esc or the close box went on with the import
     -enh (AGFazio)               Import Effects: compare preview of the vendor's model next to yours, and

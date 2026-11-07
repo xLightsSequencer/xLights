@@ -2471,6 +2471,82 @@ void SequenceMedia::ExtractMedia(const std::string& filepath) {
     if (ib != _binaryCache.end()) { ib->second->Extract(); return; }
 }
 
+// Calls fn(cache, makeEntry) for the text/SVG/shader/binary cache holding
+// `filepath`, where makeEntry(loadPath) builds an unloaded entry of that type.
+// Returns false when no such cache holds it. Caller holds _cacheMutex.
+template<typename Fn>
+static bool WithFileEntry(const std::string& filepath,
+                          std::map<std::string, std::shared_ptr<TextMediaCacheEntry>>& text,
+                          std::map<std::string, std::shared_ptr<SVGMediaCacheEntry>>& svg,
+                          std::map<std::string, std::shared_ptr<ShaderMediaCacheEntry>>& shader,
+                          std::map<std::string, std::shared_ptr<BinaryMediaCacheEntry>>& binary,
+                          Fn&& fn) {
+    if (text.count(filepath)) return fn(text, [](const std::string& p) { return std::make_shared<TextMediaCacheEntry>(p); });
+    if (svg.count(filepath)) return fn(svg, [](const std::string& p) { return std::make_shared<SVGMediaCacheEntry>(p); });
+    if (shader.count(filepath)) return fn(shader, [](const std::string& p) { return std::make_shared<ShaderMediaCacheEntry>(p); });
+    if (auto it = binary.find(filepath); it != binary.end()) {
+        std::string subtype = it->second->GetSubtype();
+        return fn(binary, [subtype](const std::string& p) { return std::make_shared<BinaryMediaCacheEntry>(p, subtype); });
+    }
+    return false;
+}
+
+std::string SequenceMedia::ResolveOnDisk(const std::string& filepath) {
+    std::string loadPath = ResolvePath(filepath);
+    if (!FileExists(loadPath)) {
+        // FixFile remembers misses; the file may have been put there since
+        FileUtils::ClearNonExistentFiles();
+        loadPath = ResolvePath(filepath);
+    }
+    return loadPath;
+}
+
+bool SequenceMedia::ReembedMediaFromDisk(const std::string& filepath) {
+    std::scoped_lock lock(_cacheMutex);
+    return WithFileEntry(filepath, _textCache, _svgCache, _shaderCache, _binaryCache, [&](auto& cache, auto makeEntry) {
+        auto& slot = cache[filepath];
+        if (!slot->IsEmbedded()) return false;
+        std::string loadPath = ResolveOnDisk(filepath);
+        if (!FileExists(loadPath)) return false;
+        auto fresh = makeEntry(loadPath);
+        fresh->Load();
+        if (!fresh->isLoaded()) return false;
+        fresh->MarkIsUsed(slot->IsUsed());
+        fresh->SetUsedByMetadata(slot->IsUsedByMetadata());
+        fresh->Embed();
+        fresh->SetFilePath(filepath);
+        slot = fresh;
+        return true;
+    });
+}
+
+bool SequenceMedia::ExtractMediaToDisk(const std::string& filepath, const std::string& destPath) {
+    std::scoped_lock lock(_cacheMutex);
+    return WithFileEntry(filepath, _textCache, _svgCache, _shaderCache, _binaryCache, [&](auto& cache, auto makeEntry) {
+        auto& slot = cache[filepath];
+        if (!slot->IsEmbedded()) return false;
+        std::string loadPath = ResolveOnDisk(filepath);
+        if (!FileExists(loadPath)) {
+            if (destPath.empty()) return false;
+            std::error_code ec;
+            auto parent = std::filesystem::path(destPath).parent_path();
+            if (!parent.empty()) std::filesystem::create_directories(parent, ec);
+            if (!slot->SaveToFile(destPath)) return false;
+            // FixFile may still remember the path as missing, so load from where it was written
+            loadPath = destPath;
+        }
+        slot->Extract();
+        auto fresh = makeEntry(loadPath);
+        fresh->Load();
+        if (fresh->isLoaded()) {
+            fresh->MarkIsUsed(slot->IsUsed());
+            fresh->SetUsedByMetadata(slot->IsUsedByMetadata());
+            slot = fresh;
+        }
+        return true;
+    });
+}
+
 void SequenceMedia::ExtractAllMedia() {
     std::scoped_lock lock(_cacheMutex);
     for (auto& p : _imageCache) p.second->Extract();

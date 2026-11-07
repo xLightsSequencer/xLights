@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <vector>
@@ -905,4 +906,95 @@ TEST_CASE("A removed image is loaded again rather than returned from the path ca
     CHECK(second != first);
     m.RemoveMedia(img);
     CHECK(m.GetImage(img) != second);
+}
+
+namespace {
+pugi::xml_document EmbeddedTextDoc(const std::string& path, const std::string& body) {
+    pugi::xml_document doc;
+    auto node = doc.append_child("SequenceMedia").append_child("TextFile");
+    node.append_attribute("path") = path.c_str();
+    node.append_child("Data").text().set(B64(body).c_str());
+    return doc;
+}
+
+void Touch(const std::string& file) {
+    fs::last_write_time(file, fs::last_write_time(file) + std::chrono::seconds(5));
+}
+} // namespace
+
+TEST_CASE("ReembedMediaFromDisk refreshes an embedded text file and keeps it embedded", "[seq2][media]") {
+    TempDir d;
+    FixFileGuard g(d.path.string());
+    SequenceMedia m;
+    auto doc = EmbeddedTextDoc("t.txt", "old");
+    REQUIRE(m.LoadFromXml(doc.child("SequenceMedia")));
+    REQUIRE(m.GetTextFile("t.txt")->GetContent() == "old");
+
+    // missing file: nothing changes
+    CHECK_FALSE(m.ReembedMediaFromDisk("t.txt"));
+    CHECK(m.GetTextFile("t.txt")->GetContent() == "old");
+
+    d.Write("t.txt", "new");
+    // an embedded copy ignores edits on disk
+    CHECK(m.GetTextFile("t.txt")->GetContent() == "old");
+    REQUIRE(m.ReembedMediaFromDisk("t.txt"));
+    auto e = m.GetTextFile("t.txt");
+    CHECK(e->GetContent() == "new");
+    CHECK(e->IsEmbedded());
+    auto node = SaveDoc(m).child("root").child("SequenceMedia").child("TextFile");
+    REQUIRE(node);
+    CHECK(std::string(node.attribute("path").as_string()) == "t.txt");
+    CHECK(Base64::Decode(node.child("Data").text().as_string()) == std::vector<uint8_t>{ 'n', 'e', 'w' });
+
+    m.ExtractMedia("t.txt");
+    CHECK_FALSE(m.ReembedMediaFromDisk("t.txt"));
+    CHECK_FALSE(m.ReembedMediaFromDisk("unknown.txt"));
+}
+
+TEST_CASE("ExtractMediaToDisk writes a missing text file and then follows edits to it", "[seq2][media]") {
+    TempDir d;
+    FixFileGuard g(d.path.string());
+    SequenceMedia m;
+    auto doc = EmbeddedTextDoc("Text/t.txt", "embedded");
+    REQUIRE(m.LoadFromXml(doc.child("SequenceMedia")));
+
+    auto dest = (d.path / "Text" / "t.txt").string();
+    REQUIRE(m.ExtractMediaToDisk("Text/t.txt", dest));
+    CHECK_FALSE(m.GetMediaEmbedState("Text/t.txt").first);
+    std::ifstream in(dest, std::ios::binary);
+    CHECK(std::string(std::istreambuf_iterator<char>(in), {}) == "embedded");
+    in.close();
+    CHECK(m.GetTextFile("Text/t.txt")->GetContent() == "embedded");
+
+    d.Write("Text/t.txt", "edited");
+    Touch(dest);
+    CHECK(m.GetTextFile("Text/t.txt")->GetContent() == "edited");
+
+    CHECK_FALSE(m.ExtractMediaToDisk("Text/t.txt", dest));
+}
+
+TEST_CASE("ExtractMediaToDisk uses a file already on disk instead of overwriting it", "[seq2][media]") {
+    TempDir d;
+    FixFileGuard g(d.path.string());
+    d.Write("t.txt", "disk");
+    SequenceMedia m;
+    auto doc = EmbeddedTextDoc("t.txt", "embedded");
+    REQUIRE(m.LoadFromXml(doc.child("SequenceMedia")));
+
+    REQUIRE(m.ExtractMediaToDisk("t.txt", d.File("other.txt")));
+    CHECK_FALSE(fs::exists(d.File("other.txt")));
+    CHECK(m.GetTextFile("t.txt")->GetContent() == "disk");
+}
+
+TEST_CASE("ExtractMediaToDisk leaves the entry embedded when the file cannot be written", "[seq2][media]") {
+    TempDir d;
+    FixFileGuard g(d.path.string());
+    SequenceMedia m;
+    auto doc = EmbeddedTextDoc("t.txt", "embedded");
+    REQUIRE(m.LoadFromXml(doc.child("SequenceMedia")));
+    // the destination's parent is a file, so it can't be created
+    d.Write("blocked", "x");
+    CHECK_FALSE(m.ExtractMediaToDisk("t.txt", (d.path / "blocked" / "t.txt").string()));
+    CHECK(m.GetMediaEmbedState("t.txt").first);
+    CHECK(m.GetTextFile("t.txt")->GetContent() == "embedded");
 }
