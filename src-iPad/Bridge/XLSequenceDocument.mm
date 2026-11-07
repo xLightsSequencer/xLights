@@ -19919,6 +19919,10 @@ NSString* fppTypeString(FPP_TYPE t) {
 }
 
 - (NSArray<NSDictionary*>*)discoverFPPInstancesWithForcedAddresses:(NSArray<NSString*>*)forcedIPs {
+    return [self discoverFPPInstancesWithForcedAddresses:forcedIPs onlyListed:NO];
+}
+
+- (NSArray<NSDictionary*>*)discoverFPPInstancesWithForcedAddresses:(NSArray<NSString*>*)forcedIPs onlyListed:(BOOL)onlyListed {
     for (FPP* f : _fppInstances) delete f;
     _fppInstances.clear();
 
@@ -19940,13 +19944,19 @@ NSString* fppTypeString(FPP_TYPE t) {
     addresses.insert(addresses.end(), forcedAddresses.begin(), forcedAddresses.end());
     addresses.sort();
     addresses.unique();
-    // broadcastPing defaults to true, so broadcast discovery still runs
-    // alongside the unicast probes (CTL-5 "Add FPP by IP").
-    FPP::PrepareDiscovery(discovery, addresses);
+    // Unless onlyListed, broadcast discovery still runs alongside the
+    // unicast probes (CTL-5 "Add FPP by IP").
+    if (onlyListed) {
+        FPP::RestrictDiscoveryToListed(discovery, addresses);
+    }
+    FPP::PrepareDiscovery(discovery, addresses, !onlyListed, !onlyListed);
     FPP::PrepareControllerTypeProbes(discovery, forcedAddresses);
     discovery.Discover();
     FPP::FinishControllerSeeding(discovery, addresses);
     FPP::MapToFPPInstances(discovery, _fppInstances, &om);
+    if (onlyListed) {
+        FPP::DropUnlistedInstances(_fppInstances, &om, addresses);
+    }
 
     _fppInstances.sort(sortByIP);
 

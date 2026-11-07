@@ -165,7 +165,11 @@ class FPP : public BaseController
 
     [[nodiscard]] std::vector<std::string> GetPlaylistItems(const std::string& name);
 
-    static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true);
+    static void PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing = true, bool searchNetwork = true);
+    // Limits discovery to the configured controllers plus the given addresses.
+    static void RestrictDiscoveryToListed(Discovery &discovery, const std::list<std::string> &addresses);
+    // Multicast announcements and other FPPs' MultiSync lists can still add unlisted instances.
+    static void DropUnlistedInstances(std::list<FPP*> &instances, const OutputManager *outputManager, const std::list<std::string> &addresses);
     static void PrepareSingleDiscovery(Discovery &discovery, const std::string &address);
     static void PrepareControllerTypeProbes(Discovery &discovery, const std::list<std::string> &addresses);
     static std::list<std::string> StartControllerSeeding(const OutputManager* outputManager);

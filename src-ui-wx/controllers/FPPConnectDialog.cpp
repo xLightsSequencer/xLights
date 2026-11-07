@@ -59,6 +59,7 @@ const wxWindowID FPPConnectDialog::ID_PANEL1 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_BUTTON1 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_BUTTON2 = wxNewId();
+const wxWindowID FPPConnectDialog::ID_CHECKBOX_ONLY_LISTED = wxNewId();
 const wxWindowID FPPConnectDialog::ID_CHECKBOX1 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_BUTTON_Upload = wxNewId();
 //*)
@@ -190,13 +191,17 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Panel1->SetSizer(FlexGridSizer2);
 	SplitterWindow1->SplitHorizontally(FPPInstanceList, Panel1);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 6, 0, 0);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 7, 0, 0);
 	FlexGridSizer4->AddGrowableCol(1);
 	FlexGridSizer4->AddGrowableRow(0);
 	AddFPPButton = new wxButton(this, ID_BUTTON1, _("Add FPP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer4->Add(AddFPPButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ReDiscover = new wxButton(this, ID_BUTTON2, _("Re-Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer4->Add(ReDiscover, 1, wxALL, 5);
+	CheckBox_OnlyListed = new wxCheckBox(this, ID_CHECKBOX_ONLY_LISTED, _("Only My Controllers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ONLY_LISTED"));
+	CheckBox_OnlyListed->SetValue(true);
+	CheckBox_OnlyListed->SetToolTip(_("Only contact the controllers on the Controllers tab and FPP instances added with Add FPP, instead of searching the network for every FPP."));
+	FlexGridSizer4->Add(CheckBox_OnlyListed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxEXPAND, 5);
 	KeepWinOpen = new wxCheckBox(this, ID_CHECKBOX1, _("Keep Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
@@ -214,12 +219,17 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(ID_CHOICE_FOLDER, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&FPPConnectDialog::OnChoiceFolderSelect);
 	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnAddFPPButtonClick);
 	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnFPPReDiscoverClick);
+	Connect(ID_CHECKBOX_ONLY_LISTED, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnCheckBox_OnlyListedClick);
 	Connect(ID_BUTTON_Upload, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadClick);
 	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&FPPConnectDialog::OnClose);
 	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnCancelButtonClick);
 	//*)
 
     FPPInstanceList->Bind(wxEVT_PAINT, &FPPConnectDialog::OnInstanceListPaint, this);
+    CheckBox_OnlyListed->SetValue(GetXLightsConfig()->ReadBool("FPPConnectOnlyListedControllers", true));
+    if (!_targetIp.empty()) {
+        CheckBox_OnlyListed->Hide();
+    }
 
     ShowDirLabel->SetFont(ShowDirLabel->GetFont().Bold());
     ShowDirLabel->SetLabel(xLightsFrame::CurrentDir);
@@ -268,7 +278,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Show();
 
     wxDiscoveryDelegate delegate(this);
-    instances = _frame->DiscoverFPPInstances(&delegate, _targetIp);
+    instances = _frame->DiscoverFPPInstances(&delegate, _targetIp, CheckBox_OnlyListed->GetValue());
 
     wxPanel *p1 = AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     p1->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::UploadPopupMenu, nullptr, this);
@@ -2178,18 +2188,43 @@ void FPPConnectDialog::SequenceListPopup(wxTreeListEvent& event)
 }
 
 void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
+    Rediscover(false);
+}
+
+void FPPConnectDialog::OnCheckBox_OnlyListedClick(wxCommandEvent& event) {
+    auto* config = GetXLightsConfig();
+    config->Write("FPPConnectOnlyListedControllers", CheckBox_OnlyListed->GetValue());
+    config->Flush();
+    Rediscover(CheckBox_OnlyListed->GetValue());
+}
+
+void FPPConnectDialog::Rediscover(bool dropMissing) {
     int curSize = instances.size();
-    std::list<std::string> add;
-  
+
     wxProgressDialog prgs("Discovering FPP Instances",
                           "Discovering FPP Instances", 100, this);
     prgs.Pulse("Discovering FPP Instances");
 
-    std::string fppConnectIP = "";
     prgs.Show();
     wxDiscoveryDelegate delegate(this);
-    std::list<FPP*> newInstances = _frame->DiscoverFPPInstances(&delegate, _targetIp);
-    
+    std::list<FPP*> newInstances = _frame->DiscoverFPPInstances(&delegate, _targetIp, CheckBox_OnlyListed->GetValue());
+
+    bool dropped = false;
+    if (dropMissing) {
+        SaveSettings(true);
+        for (auto it = instances.begin(); it != instances.end();) {
+            bool const found = std::any_of(newInstances.begin(), newInstances.end(), [it](const FPP* f) { return f->ipAddress == (*it)->ipAddress; });
+            if (!found) {
+                delete *it;
+                it = instances.erase(it);
+                dropped = true;
+            } else {
+                ++it;
+            }
+        }
+        curSize = instances.size();
+    }
+
     for (FPP* fpp : newInstances) {
         bool found = false;
         
@@ -2208,7 +2243,7 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
             delete fpp;
         }
     }
-    if ((size_t)curSize < instances.size()) {
+    if (dropped || (size_t)curSize < instances.size()) {
         instances.sort(sortByIP);
         // it worked, we found some new instances, record this
         auto* config = GetXLightsConfig();
@@ -2249,7 +2284,11 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
 
         wxDiscoveryDelegate delegate(this);
         Discovery discovery(_outputManager, &delegate);
-        FPP::PrepareDiscovery(discovery, add, false);
+        bool const onlyListed = CheckBox_OnlyListed->GetValue();
+        if (onlyListed) {
+            FPP::RestrictDiscoveryToListed(discovery, add);
+        }
+        FPP::PrepareDiscovery(discovery, add, false, !onlyListed);
         FPP::PrepareControllerTypeProbes(discovery, add);
         discovery.Discover();
         FPP::MapToFPPInstances(discovery, instances, _outputManager);

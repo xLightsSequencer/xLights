@@ -3806,6 +3806,11 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // discovery still runs alongside). Empty array == plain broadcast discovery.
 - (NSArray<NSDictionary*>*)discoverFPPInstancesWithForcedAddresses:(NSArray<NSString*>*)forcedIPs
     NS_SWIFT_NAME(discoverFPPInstances(withForcedAddresses:));
+// onlyListed: contact only the configured controllers and the forced IPs, no
+// network-wide search.
+- (NSArray<NSDictionary*>*)discoverFPPInstancesWithForcedAddresses:(NSArray<NSString*>*)forcedIPs
+                                                        onlyListed:(BOOL)onlyListed
+    NS_SWIFT_NAME(discoverFPPInstances(withForcedAddresses:onlyListed:));
 
 // Drop the internal `std::list<FPP*>` and free every instance. Call
 // when the FPP Connect sheet dismisses so the next open re-discovers

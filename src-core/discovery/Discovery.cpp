@@ -483,6 +483,10 @@ Discovery::CurlData::~CurlData() {
 void Discovery::AddCurl(const std::string &host, const std::string &url, std::function<bool(int rc, const std::string &buffer, const std::string &errorBuffer)>&& callback) {
     auto logger = spdlog::get("curl");
     std::string furl = "http://" + host + url;
+    if (_hostFilter && !_hostFilter(host)) {
+        logger->debug("Discovery skipping CURL to unlisted host - URL: {}", furl.c_str());
+        return;
+    }
     Discovery::CurlData *data = https[host];
     if (data == nullptr) {
         https[host] = new Discovery::CurlData();
@@ -636,6 +640,9 @@ void Discovery::SendBroadcastData(int port, uint8_t *buffer, int len) {
 }
 
 void Discovery::SendData(int port, const std::string &host, uint8_t *buffer, int len) {
+    if (_hostFilter && !_hostFilter(host)) {
+        return;
+    }
     for (auto &a : datagrams) {
         if (port == a->port) {
             // only need to send on the first socket as it's routed via the hostname
