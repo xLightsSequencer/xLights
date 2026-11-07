@@ -37,6 +37,28 @@ xlColor ConvertXYZToColour(double x, double y, double z)
                   );
 }
 
+static float ParseVixenDuration(std::string t)
+{
+    if (StartsWith(t, "PT")) {
+        t = AfterFirst(t, 'T');
+    }
+    float hours = 0;
+    if (Contains(t, "H")) {
+        hours = std::strtod(BeforeFirst(t, 'H').c_str(), nullptr);
+        t = AfterFirst(t, 'H');
+    }
+    float mins = 0;
+    if (Contains(t, "M")) {
+        mins = std::strtod(BeforeFirst(t, 'M').c_str(), nullptr);
+        t = AfterFirst(t, 'M');
+    }
+    float secs = 0;
+    if (EndsWith(t, "S")) {
+        secs = std::strtod(BeforeLast(t, 'S').c_str(), nullptr);
+    }
+    return hours * 3600.0 + mins * 60.0 + secs;
+}
+
 std::string BoolToIntStr (std::string str)
 {
     if (str == "true")
@@ -94,16 +116,22 @@ std::string VixenEffect::GetPalette() const
     return res;
 }
 
+std::string VixenEffect::Setting(const std::string& key) const
+{
+    auto it = settings.find(key);
+    return it == settings.end() ? std::string() : it->second;
+}
+
 std::string VixenEffect::GetSettings() const
 {
     std::string res;
     if (type == "AlternatingData") {
-        res = "B_CHOICE_BufferStyle=Single Line,E_SLIDER_Marquee_Band_Size=" + settings.at("GroupLevel");
+        res = "B_CHOICE_BufferStyle=Single Line,E_SLIDER_Marquee_Band_Size=" + Setting("GroupLevel");
     }
     else if (type == "AudioData") {}
     else if (type == "BarsData") {
         // Up/Down and Left/Right are backwards in V3
-        auto s = settings.at("Direction");
+        auto s = Setting("Direction");
         std::string dir = "down";
         if (s == "Moves Down") dir = "up";
         else if (s == "Expands") dir = "expand";
@@ -117,26 +145,26 @@ std::string VixenEffect::GetSettings() const
         else if (s == "Alternate Left") dir = "Alternate Right";
         else if (s == "Alternate Right") dir = "Alternate Left";
 
-        if (settings.at("TargetPositioning") == "Strings") {
-            if (settings.at("Orientation") == "Vertical") {
+        if (Setting("TargetPositioning") == "Strings") {
+            if (Setting("Orientation") == "Vertical") {
                 res = "B_CHOICE_BufferStyle=Horizontal Per Model/Strand,";
             } else {
                 res = "B_CHOICE_BufferStyle=Vertical Per Model/Strand,";
             }
         }
 
-        res += "E_CHECKBOX_Bars_3D=" + settings.at("Show3D") +
-               ",E_CHECKBOX_Bars_Highlight=" + settings.at("Highlight") +
+        res += "E_CHECKBOX_Bars_3D=" + Setting("Show3D") +
+               ",E_CHECKBOX_Bars_Highlight=" + Setting("Highlight") +
                ",E_CHOICE_Bars_Direction=" + dir +
-               ",E_SLIDER_Bars_BarCount=" + std::to_string(std::min((int)std::strtol(settings.at("Repeat").c_str(), nullptr, 10), 5)) +
-               ",E_TEXTCTRL_Bars_Cycles=" + settings.at("Speed");
+               ",E_SLIDER_Bars_BarCount=" + std::to_string(std::min((int)std::strtol(Setting("Repeat").c_str(), nullptr, 10), 5)) +
+               ",E_TEXTCTRL_Bars_Cycles=" + Setting("Speed");
     }
     else if (type == "ButterflyData") {
-        res = "E_SLIDER_Butterfly_Chunks=" + settings.at("BackgroundChunks") +
-              ",E_SLIDER_Butterfly_Skip=" + settings.at("BackgroundSkips") +
-              ",E_SLIDER_Butterfly_Style=" + AfterFirst(settings.at("ButterflyType"), 'e') +
-              ",E_CHOICE_Butterfly_Direction=" + (settings.at("Direction") == "Forward" ? "0" : "1") +
-              ",E_CHOICE_Butterfly_Colors=" + (settings.at("ColorScheme") == "Gradient" ? "Palette" : "Rainbow");
+        res = "E_SLIDER_Butterfly_Chunks=" + Setting("BackgroundChunks") +
+              ",E_SLIDER_Butterfly_Skip=" + Setting("BackgroundSkips") +
+              ",E_SLIDER_Butterfly_Style=" + AfterFirst(Setting("ButterflyType"), 'e') +
+              ",E_CHOICE_Butterfly_Direction=" + (Setting("Direction") == "Forward" ? "0" : "1") +
+              ",E_CHOICE_Butterfly_Colors=" + (Setting("ColorScheme") == "Gradient" ? "Palette" : "Rainbow");
     }
     else if (type == "ChaseData") {}
     else if (type == "CirclesData") {}
@@ -155,8 +183,8 @@ std::string VixenEffect::GetSettings() const
         }
     }
     else if (type == "TwinkleData") {
-        res = "E_SLIDER_Twinkle_Steps=" + settings.at("AveragePulseTime") +
-              ",E_SLIDER_Twinkle_Count=" + settings.at("AverageCoverage");
+        res = "E_SLIDER_Twinkle_Steps=" + Setting("AveragePulseTime") +
+              ",E_SLIDER_Twinkle_Count=" + Setting("AverageCoverage");
     }
     else if (type == "SetLevelData") {}
     else if (type == "SpinData") {}
@@ -168,8 +196,8 @@ std::string VixenEffect::GetSettings() const
     }
 
     else if (type == "WipeData") {
-        auto d = settings.at("Direction");
-        auto r = settings.at("ReverseDirection");
+        auto d = Setting("Direction");
+        auto r = Setting("ReverseDirection");
         std::string chase = "From Middle";
         std::string transform = "";
 
@@ -192,23 +220,23 @@ std::string VixenEffect::GetSettings() const
         if (transform != "")
             res = res + ",B_CHOICE_BufferTransform=" + transform;
 
-        if (settings.at("WipeMovement") == "Count")
-            res = res + ",E_TEXTCTRL_Chase_Rotations=" + settings.at("PassCount");
+        if (Setting("WipeMovement") == "Count")
+            res = res + ",E_TEXTCTRL_Chase_Rotations=" + Setting("PassCount");
     }
     else if (type == "NutcrackerModuleData") {
-        std::string nc = settings.at("CurrentEffect");
-        std::string fit = BoolToIntStr(settings.at("FitToTime"));  // Not sure this can be mapped
-        int speed = (int)std::strtol(settings.at("Speed").c_str(), nullptr, 10); // Max of 20
+        std::string nc = Setting("CurrentEffect");
+        std::string fit = BoolToIntStr(Setting("FitToTime"));  // Not sure this can be mapped
+        int speed = (int)std::strtol(Setting("Speed").c_str(), nullptr, 10); // Max of 20
 
         // V3 Nutcracker wasn't spatially aware so switch render style
-        if (settings.at("StringOrienation") == "Vertical") {
+        if (Setting("StringOrienation") == "Vertical") {
             res = "B_CHOICE_BufferStyle=Horizontal Per Model/Strand";
         } else {
             res = "B_CHOICE_BufferStyle=Vertical Per Model/Strand";
         }
 
         if (nc == "Bars") {
-            int i = (int)std::strtol(settings.at("Bars_Direction").c_str(), nullptr, 10);
+            int i = (int)std::strtol(Setting("Bars_Direction").c_str(), nullptr, 10);
             std::string dir = "up";
             if (i == 1) dir = "down";
             else if (i == 2) dir = "expand";
@@ -221,23 +249,23 @@ std::string VixenEffect::GetSettings() const
             else if (i == 9) dir = "Alternate Down";
             else if (i == 10) dir = "Alternate Left";
             else if (i == 11) dir = "Alternate Right";
-            res += ",E_CHECKBOX_Bars_3D=" + BoolToIntStr(settings.at("Bars_3D")) +
-                   ",E_CHECKBOX_Bars_Highlight=" + BoolToIntStr(settings.at("Bars_Highlight")) +
+            res += ",E_CHECKBOX_Bars_3D=" + BoolToIntStr(Setting("Bars_3D")) +
+                   ",E_CHECKBOX_Bars_Highlight=" + BoolToIntStr(Setting("Bars_Highlight")) +
                    ",E_CHOICE_Bars_Direction=" + dir +
-                   ",E_TEXTCTRL_Bars_BarCount=" + settings.at("Bars_PaletteRepeat");
+                   ",E_TEXTCTRL_Bars_BarCount=" + Setting("Bars_PaletteRepeat");
         } else if (nc == "Butterfly") {
-            res += ",E_Butterfly_Chunks=" + settings.at("Butterfly_BkgrdChunks") +
-                   ",E_Butterfly_Skip=" + settings.at("Butterfly_BkgrdSkip") +
+            res += ",E_SLIDER_Butterfly_Chunks=" + Setting("Butterfly_BkgrdChunks") +
+                   ",E_SLIDER_Butterfly_Skip=" + Setting("Butterfly_BkgrdSkip") +
                    ",E_SLIDER_Butterfly_Speed=" + std::to_string(speed * 5) + // max 100
-                   ",E_SLIDER_Butterfly_Style=" + settings.at("Butterfly_Style") +
-                   ",E_CHOICE_Butterfly_Direction=" + settings.at("Butterfly_Direction") +
-                   ",E_CHOICE_Butterfly_Colors=" + (settings.at("Butterfly_Colors") == "0" ? std::string("Rainbow") : std::string("Palette"));
+                   ",E_SLIDER_Butterfly_Style=" + Setting("Butterfly_Style") +
+                   ",E_CHOICE_Butterfly_Direction=" + Setting("Butterfly_Direction") +
+                   ",E_CHOICE_Butterfly_Colors=" + (Setting("Butterfly_Colors") == "0" ? std::string("Rainbow") : std::string("Palette"));
         } else if (nc == "ColorWash") {
-            res += ",E_TEXTCTRL_ColorWash_Cycles=" + settings.at("ColorWash_Count") +
-                   ",E_CHECKBOX_ColorWash_HFade=" + BoolToIntStr(settings.at("ColorWash_FadeHorizontal")) +
-                   ",E_CHECKBOX_ColorWash_VFade=" + BoolToIntStr(settings.at("ColorWash_FadeVertical"));
+            res += ",E_TEXTCTRL_ColorWash_Cycles=" + Setting("ColorWash_Count") +
+                   ",E_CHECKBOX_ColorWash_HFade=" + BoolToIntStr(Setting("ColorWash_FadeHorizontal")) +
+                   ",E_CHECKBOX_ColorWash_VFade=" + BoolToIntStr(Setting("ColorWash_FadeVertical"));
         } else if (nc == "Curtain") {
-            int i = (int)std::strtol(settings.at("Curtain_Edge").c_str(), nullptr, 10);
+            int i = (int)std::strtol(Setting("Curtain_Edge").c_str(), nullptr, 10);
             std::string edge = "left";
             if (i == 1) edge = "center";
             else if (i == 2) edge = "right";
@@ -245,45 +273,45 @@ std::string VixenEffect::GetSettings() const
             else if (i == 4) edge = "middle";
             else if (i == 5) edge = "top";
 
-            i = (int)std::strtol(settings.at("Curtain_Effect").c_str(), nullptr, 10);
+            i = (int)std::strtol(Setting("Curtain_Effect").c_str(), nullptr, 10);
             std::string effect = "open";
             if (i == 1) effect = "close";
             else if (i == 2) effect = "open then close";
             else if (i == 3) effect = "close then open";
-            res += ",E_CHECKBOX_Curtain_Repeat=" + BoolToIntStr(settings.at("Curtain_Repeat")) +
+            res += ",E_CHECKBOX_Curtain_Repeat=" + BoolToIntStr(Setting("Curtain_Repeat")) +
                    ",E_CHOICE_Curtain_Edge=" + edge +
                    ",E_CHOICE_Curtain_Effect=" + effect +
-                   ",E_SLIDER_Curtain_Swag=" + settings.at("Curtain_SwagWidth");
+                   ",E_SLIDER_Curtain_Swag=" + Setting("Curtain_SwagWidth");
         } else if (nc == "Fire") {
-            res += ",E_SLIDER_Fire_Height=" + settings.at("Fire_Height") +
-                   ",E_SLIDER_Fire_HueShift=" + settings.at("Fire_Hue");
+            res += ",E_SLIDER_Fire_Height=" + Setting("Fire_Height") +
+                   ",E_SLIDER_Fire_HueShift=" + Setting("Fire_Hue");
         } else if (nc == "Fireworks") {
-            res += ",E_SLIDER_Fireworks_Count=" + settings.at("Fireworks_Particles") +
-                   ",E_SLIDER_Fireworks_Explosions=" + std::to_string((int)std::strtol(settings.at("Fireworks_Explosions").c_str(), nullptr, 10) / 2) +
-                   ",E_SLIDER_Fireworks_Fade=" + settings.at("Fireworks_Fade") +
-                   ",E_SLIDER_Fireworks_Velocity=" + settings.at("Fireworks_Fade");
+            res += ",E_SLIDER_Fireworks_Count=" + Setting("Fireworks_Particles") +
+                   ",E_SLIDER_Fireworks_Explosions=" + std::to_string((int)std::strtol(Setting("Fireworks_Explosions").c_str(), nullptr, 10) / 2) +
+                   ",E_SLIDER_Fireworks_Fade=" + Setting("Fireworks_Fade") +
+                   ",E_SLIDER_Fireworks_Velocity=" + Setting("Fireworks_Velocity");
         } else if (nc == "Garlands") {
-            res += ",E_SLIDER_Garlands_Spacing=" + settings.at("Garland_Spacing") +
-                   ",E_SLIDER_Garlands_Type=" + settings.at("Garland_Type");
+            res += ",E_SLIDER_Garlands_Spacing=" + Setting("Garland_Spacing") +
+                   ",E_SLIDER_Garlands_Type=" + Setting("Garland_Type");
         } else if (nc == "Glediator") {
-            res += ",E_FILEPICKERCTRL_Glediator_Filename=" + settings.at("Glediator_Filename");
+            res += ",E_FILEPICKERCTRL_Glediator_Filename=" + Setting("Glediator_Filename");
         } else if (nc == "Life") {
-            res += ",E_SLIDER_Life_Count=" + settings.at("Life_CellsToStart") +
-                   ",E_SLIDER_Life_Seed=" + settings.at("Life_Type") +
+            res += ",E_SLIDER_Life_Count=" + Setting("Life_CellsToStart") +
+                   ",E_SLIDER_Life_Seed=" + Setting("Life_Type") +
                    ",E_SLIDER_Life_Speed=" + std::to_string((int)std::lround(speed * 1.5)); // max 30
         } else if (nc == "Meteors") {
-            int i = (int)std::strtol(settings.at("Meteor_Colors").c_str(), nullptr, 10);
+            int i = (int)std::strtol(Setting("Meteor_Colors").c_str(), nullptr, 10);
             std::string colors = "Rainbow";
             if (i == 1) colors = "Range";
             else if (i == 2) colors = "Palette";
             res += ",E_CHOICE_Meteors_Type=" + colors +
-                   ",E_SLIDER_Meteors_Count=" + settings.at("Meteor_Count") +
-                   ",E_SLIDER_Meteors_Length=" + settings.at("Meteor_TrailLength") +
+                   ",E_SLIDER_Meteors_Count=" + Setting("Meteor_Count") +
+                   ",E_SLIDER_Meteors_Length=" + Setting("Meteor_TrailLength") +
                    ",E_SLIDER_Meteors_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Movie") {
-            res += ",E_FILEPICKERCTRL_Video_Filename=" + settings.at("Movie_DataPath");
+            res += ",E_FILEPICKERCTRL_Video_Filename=" + Setting("Movie_DataPath");
         } else if (nc == "Picture") {
-            int i = (int)std::strtol(settings.at("Picture_Direction").c_str(), nullptr, 10);
+            int i = (int)std::strtol(Setting("Picture_Direction").c_str(), nullptr, 10);
             std::string dir = "left";
             if (i == 1) dir = "right";
             else if (i == 2) dir = "up";
@@ -299,46 +327,46 @@ std::string VixenEffect::GetSettings() const
             else if (i == 12) dir = "peekaboo 270";
             else if (i == 13) dir = "wiggle";
             res += ",E_CHOICE_Pictures_Direction=" + dir +
-                   ",E_TEXTCTRL_Pictures_Filename=" + settings.at("Picture_FileName") +
-                   ",E_TEXTCTRL_Pictures_Speed=" + settings.at("Picture_GifSpeed");
+                   ",E_TEXTCTRL_Pictures_Filename=" + Setting("Picture_FileName") +
+                   ",E_TEXTCTRL_Pictures_Speed=" + Setting("Picture_GifSpeed");
         } else if (nc == "PictureTile") {
-            res += ",E_TEXTCTRL_Pictures_Filename=" + settings.at("PictureTile_FileName");
+            res += ",E_TEXTCTRL_Pictures_Filename=" + Setting("PictureTile_FileName");
         } else if (nc == "Snowflakes") {
-            res += ",E_SLIDER_Snowflakes_Count=" + std::to_string((int)std::strtol(settings.at("Snowflakes_Max").c_str(), nullptr, 10) * 5) + // max 20 in V3 / 100 in xLights
+            res += ",E_SLIDER_Snowflakes_Count=" + std::to_string((int)std::strtol(Setting("Snowflakes_Max").c_str(), nullptr, 10) * 5) + // max 20 in V3 / 100 in xLights
                    ",E_SLIDER_Snowflakes_Speed=" + std::to_string((int)std::lround(speed * 2.5)) + // max 50
-                   ",E_SLIDER_Snowflakes_Type=" + settings.at("Snowflakes_Type");
+                   ",E_SLIDER_Snowflakes_Type=" + Setting("Snowflakes_Type");
         } else if (nc == "Snowstorm") {
-            res += ",E_SLIDER_Snowstorm_Count=" + settings.at("Snowstorm_MaxFlakes") +
-                   ",E_SLIDER_Snowstorm_Length=" + settings.at("Snowstorm_TrailLength") +
+            res += ",E_SLIDER_Snowstorm_Count=" + Setting("Snowstorm_MaxFlakes") +
+                   ",E_SLIDER_Snowstorm_Length=" + Setting("Snowstorm_TrailLength") +
                    ",E_SLIDER_Snowstorm_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Spirals") {
-            res += ",E_CHECKBOX_Spirals_3D=" + BoolToIntStr(settings.at("Spirals_3D")) +
-                   ",E_CHECKBOX_Spirals_Blend=" + BoolToIntStr(settings.at("Spirals_Blend")) +
-                   ",E_SLIDER_Spirals_Thickness=" + settings.at("Spirals_Thickness");
+            res += ",E_CHECKBOX_Spirals_3D=" + BoolToIntStr(Setting("Spirals_3D")) +
+                   ",E_CHECKBOX_Spirals_Blend=" + BoolToIntStr(Setting("Spirals_Blend")) +
+                   ",E_SLIDER_Spirals_Thickness=" + Setting("Spirals_Thickness");
         } else if (nc == "Spirograph") {
-            res += ",E_SLIDER_Spirograph_R=" + settings.at("Spirograph_ROuter") +
-                   ",E_SLIDER_Spirograph_d=" + settings.at("Spirograph_Distance") +
-                   ",E_SLIDER_Spirograph_r=" + settings.at("Spirograph_RInner") +
+            res += ",E_SLIDER_Spirograph_R=" + Setting("Spirograph_ROuter") +
+                   ",E_SLIDER_Spirograph_d=" + Setting("Spirograph_Distance") +
+                   ",E_SLIDER_Spirograph_r=" + Setting("Spirograph_RInner") +
                    ",E_TEXTCTRL_Spirograph_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Text") {
-            int i = (int)std::strtol(settings.at("Picture_Direction").c_str(), nullptr, 10);
+            int i = (int)std::strtol(Setting("Picture_Direction").c_str(), nullptr, 10);
             std::string dir = "left";
             if (i == 1) dir = "right";
             else if (i == 2) dir = "up";
             else if (i == 3) dir = "down";
             else if (i == 4) dir = "none";
-            res += ",E_CHECKBOX_TextToCenter=" + BoolToIntStr(settings.at("Text_CenterStop")) +
+            res += ",E_CHECKBOX_TextToCenter=" + BoolToIntStr(Setting("Text_CenterStop")) +
                    ",E_CHOICE_Text_Dir=" + dir +
-                   ",E_TEXTCTRL_Text=" + settings.at("Text_Line1") + "\n" + settings.at("Text_Line2") + "\n" + settings.at("Text_Line3") + "\n" + settings.at("Text_Line4") +
+                   ",E_TEXTCTRL_Text=" + Setting("Text_Line1") + "\n" + Setting("Text_Line2") + "\n" + Setting("Text_Line3") + "\n" + Setting("Text_Line4") +
                    ",E_TEXTCTRL_Text_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Tree") {
-            res += ",E_SLIDER_Tree_Branches=" + settings.at("Tree_Branches") +
+            res += ",E_SLIDER_Tree_Branches=" + Setting("Tree_Branches") +
                    ",E_SLIDER_Tree_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Twinkles") {
-            res += ",E_CHECKBOX_Twinkle_Strobe=1" + BoolToIntStr(settings.at("Twinkles_Strobe")) +
+            res += ",E_CHECKBOX_Twinkle_Strobe=" + BoolToIntStr(Setting("Twinkles_Strobe")) +
                    ",E_CHOICE_Twinkle_Style=Old Render Method" +
-                   ",E_SLIDER_Twinkle_Count=" + settings.at("Twinkles_Count") +
-                   ",E_SLIDER_Twinkle_Steps=" + settings.at("Twinkles_Steps");
+                   ",E_SLIDER_Twinkle_Count=" + Setting("Twinkles_Count") +
+                   ",E_SLIDER_Twinkle_Steps=" + Setting("Twinkles_Steps");
         }
     }
 
@@ -379,7 +407,7 @@ std::string VixenEffect::GetXLightsType() const
         return "Morph";
     }
     if (type == "NutcrackerModuleData") {
-        auto nc = settings.at("CurrentEffect");
+        auto nc = Setting("CurrentEffect");
         if (nc == "ColorWash") nc = "Color Wash";
         else if (nc == "Movie") nc = "Video";
         else if (nc == "Picture") nc = "Pictures";
@@ -532,23 +560,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     {
                                         if (std::string_view(nnnnn.name()) == "d3p1:duration")
                                         {
-                                            std::string markTime = nnnnn.text().get();
-                                            if (StartsWith(markTime, "PT"))
-                                            {
-                                                markTime = AfterFirst(markTime, 'T');
-                                            }
-                                            float mins = 0;
-                                            if (Contains(markTime, "M"))
-                                            {
-                                                mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
-                                                markTime = AfterFirst(markTime, 'M');
-                                            }
-                                            float secs = 0;
-                                            if (EndsWith(markTime, "S"))
-                                            {
-                                                secs = std::strtod(BeforeLast(markTime, 'S').c_str(), nullptr);
-                                            }
-                                            float mt = mins * 60.0 + secs;
+                                            float mt = ParseVixenDuration(nnnnn.text().get());
                                             timing.push_back(VixenTiming(last, mt, ""));
                                             last = mt;
                                         }
@@ -594,51 +606,11 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                             {
                                                 if (std::string_view(nnnnnn.name()) == "d2p1:StartTime")
                                                 {
-                                                    std::string markTime = nnnnnn.text().get();
-                                                    if (StartsWith(markTime, "PT"))
-                                                    {
-                                                        markTime = AfterFirst(markTime, 'T');
-                                                    }
-
-                                                    float mins = 0;
-                                                    if (Contains(markTime, "M"))
-                                                    {
-                                                        mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
-                                                        markTime = AfterFirst(markTime, 'M');
-                                                    }
-
-                                                    float secs = 0;
-                                                    if (EndsWith(markTime, "S"))
-                                                    {
-                                                        markTime = BeforeLast(markTime, 'S');
-                                                        secs = std::strtod(markTime.c_str(), nullptr);
-                                                    }
-
-                                                    end = mins * 60 + secs;
+                                                    end = ParseVixenDuration(nnnnnn.text().get());
                                                 }
                                                 else if (std::string_view(nnnnnn.name()) == "d2p1:Duration")
                                                 {
-                                                    std::string markTime = nnnnnn.text().get();
-                                                    if (StartsWith(markTime, "PT"))
-                                                    {
-                                                        markTime = AfterFirst(markTime, 'T');
-                                                    }
-
-                                                    float mins = 0;
-                                                    if (Contains(markTime, "M"))
-                                                    {
-                                                        mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
-                                                        markTime = AfterFirst(markTime, 'M');
-                                                    }
-
-                                                    float secs = 0;
-                                                    if (EndsWith(markTime, "S"))
-                                                    {
-                                                        markTime = BeforeLast(markTime, 'S');
-                                                        secs = std::strtod(markTime.c_str(), nullptr);
-                                                    }
-
-                                                    duration = mins * 60 + secs;
+                                                    duration = ParseVixenDuration(nnnnnn.text().get());
                                                 }
                                                 else if (std::string_view(nnnnnn.name()) == "d2p1:Text")
                                                 {
@@ -704,43 +676,11 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                 }
                                 else if (std::string_view(nnnn.name()) == "StartTime")
                                 {
-                                    std::string markTime = nnnn.text().get();
-                                    if (StartsWith(markTime, "PT"))
-                                    {
-                                        markTime = AfterFirst(markTime, 'T');
-                                    }
-                                    float mins = 0;
-                                    if (Contains(markTime, "M"))
-                                    {
-                                        mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
-                                        markTime = AfterFirst(markTime, 'M');
-                                    }
-                                    float secs = 0;
-                                    if (EndsWith(markTime, "S"))
-                                    {
-                                        secs = std::strtod(BeforeLast(markTime, 'S').c_str(), nullptr);
-                                    }
-                                    start = mins * 60.0 + secs;
+                                    start = ParseVixenDuration(nnnn.text().get());
                                 }
                                 else if (std::string_view(nnnn.name()) == "TimeSpan")
                                 {
-                                    std::string markTime = nnnn.text().get();
-                                    if (StartsWith(markTime, "PT"))
-                                    {
-                                        markTime = AfterFirst(markTime, 'T');
-                                    }
-                                    float mins = 0;
-                                    if (Contains(markTime, "M"))
-                                    {
-                                        mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
-                                        markTime = AfterFirst(markTime, 'M');
-                                    }
-                                    float secs = 0;
-                                    if (EndsWith(markTime, "S"))
-                                    {
-                                        secs = std::strtod(BeforeLast(markTime, 'S').c_str(), nullptr);
-                                    }
-                                    duration = mins * 60.0 + secs;
+                                    duration = ParseVixenDuration(nnnn.text().get());
                                 }
                                 else if (std::string_view(nnnn.name()) == "TargetNodes")
                                 {
@@ -849,8 +789,8 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                                     for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
                                                         std::string nm4 = AfterFirst(nnnn.name(), ':');
                                                         if (nm4 == "boolean") {
-                                                            if (std::string_view(nnnn.text().get()) == "true") {
-                                                                uint32_t argb = VixenEffect::KNOWN_COLOR[knownColor.at(index)];
+                                                            if (std::string_view(nnnn.text().get()) == "true" && index < (int)knownColor.size() && knownColor[index] >= 0 && knownColor[index] < (int)(sizeof(VixenEffect::KNOWN_COLOR) / sizeof(VixenEffect::KNOWN_COLOR[0]))) {
+                                                                uint32_t argb = VixenEffect::KNOWN_COLOR[knownColor[index]];
                                                                 char r = (argb & 0x00FF0000) >> 16;
                                                                 char g = (argb & 0x0000FF00) >> 8;
                                                                 char b = (argb & 0x000000FF);
@@ -879,13 +819,13 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
                                 std::string nm2 = AfterFirst(nn.name(), ':');
                                 if (nm2 == "_r") {
-                                    r = 255.0 * std::strtod(nn.text().get(), nullptr);
+                                    r = (int)std::clamp(255.0 * std::strtod(nn.text().get(), nullptr), 0.0, 255.0);
                                 }
                                 else if (nm2 == "_g") {
-                                    g = 255.0 * std::strtod(nn.text().get(), nullptr);
+                                    g = (int)std::clamp(255.0 * std::strtod(nn.text().get(), nullptr), 0.0, 255.0);
                                 }
                                 else if (nm2 == "_b") {
-                                    b = 255.0 * std::strtod(nn.text().get(), nullptr);
+                                    b = (int)std::clamp(255.0 * std::strtod(nn.text().get(), nullptr), 0.0, 255.0);
                                 }
                             }
                             palleteDefault.push_back({ VixenColor(xlColor((uint8_t)r, (uint8_t)g, (uint8_t)b), 0) });
