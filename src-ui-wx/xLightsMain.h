@@ -55,6 +55,8 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/appprogress.h>
+#include <wx/dialog.h>
+#include <wx/weakref.h>
 
 #include <atomic>
 #include <memory>
@@ -663,6 +665,8 @@ public:
     void OnRenderStatusTimerTrigger(wxTimerEvent& event);
     void OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event);
     void OnmAltBackupMenuItemSelected(wxCommandEvent& event);
+    void OnMenuItemCloudBackupSelected(wxCommandEvent& event);
+    void OnMenuItemCloudRestoreSelected(wxCommandEvent& event);
     void OnmExportModelsMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_ViewLogSelected(wxCommandEvent& event);
     void OnMenuItemCheckSequenceSelected(wxCommandEvent& event);
@@ -868,6 +872,8 @@ public:
     static const wxWindowID ID_FILE_BACKUP;
     static const wxWindowID ID_FILE_RESTOREBACKUP;
     static const wxWindowID ID_FILE_ALTBACKUP;
+    static const wxWindowID ID_FILE_CLOUDBACKUP;
+    static const wxWindowID ID_FILE_CLOUDRESTORE;
     static const wxWindowID ID_SHIFT_EFFECTS_AND_TIMING;
     static const wxWindowID ID_SHIFT_EFFECTS;
     static const wxWindowID ID_MNU_SHIFT_SELECTED_EFFECTS;
@@ -1022,6 +1028,8 @@ public:
     wxMenuItem* MenuItemBackup;
     wxMenuItem* MenuItemBulkControllerUpload;
     wxMenuItem* MenuItemCheckSequence;
+    wxMenuItem* MenuItemCloudBackup;
+    wxMenuItem* MenuItemCloudRestore;
     wxMenuItem* MenuItemColourDropper;
     wxMenuItem* MenuItemColours;
     wxMenuItem* MenuItemConvert;
@@ -1170,6 +1178,8 @@ public:
     int effGridPrevX;
     int effGridPrevY;
     bool _backupSubfolders = true;
+    wxWeakRef<wxDialog> _cloudBackupDialog;
+    wxWeakRef<wxDialog> _cloudRestoreDialog;
     bool _excludeVideosFromPackagedSequences = false;
     bool _excludeAudioFromPackagedSequences = true;
     bool _promptBatchRenderIssues = true;

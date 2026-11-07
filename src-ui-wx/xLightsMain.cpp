@@ -108,6 +108,8 @@
 #include "setup/PixelTestDialog.h"
 #include "sequencer/RenderCommandEvent.h"
 #include "app-shell/RestoreBackupDialog.h"
+#include "app-shell/CloudBackupDialog.h"
+#include "app-shell/CloudRestoreDialog.h"
 #include "sequencer/SeqSettingsDialog.h"
 #include "effects/ShaderDownloadDialog.h"
 #include "utils/ShowGuid.h"
@@ -292,6 +294,8 @@ const wxWindowID xLightsFrame::ID_MENUITEM_FAVFOLDERS = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_RESTOREBACKUP = wxNewId();
 const wxWindowID xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
+const wxWindowID xLightsFrame::ID_FILE_CLOUDBACKUP = wxNewId();
+const wxWindowID xLightsFrame::ID_FILE_CLOUDRESTORE = wxNewId();
 const wxWindowID xLightsFrame::ID_SHIFT_EFFECTS_AND_TIMING = wxNewId();
 const wxWindowID xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_SHIFT_SELECTED_EFFECTS = wxNewId();
@@ -1004,6 +1008,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuFile->Append(MenuItemRestoreBackup);
     mAltBackupMenuItem = new wxMenuItem(MenuFile, ID_FILE_ALTBACKUP, _("Alternate Backup\tF11"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(mAltBackupMenuItem);
+    MenuItemCloudBackup = new wxMenuItem(MenuFile, ID_FILE_CLOUDBACKUP, _("Backup to Cloud"), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(MenuItemCloudBackup);
+    MenuItemCloudRestore = new wxMenuItem(MenuFile, ID_FILE_CLOUDRESTORE, _("Restore from Cloud"), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(MenuItemCloudRestore);
     QuitMenuItem = new wxMenuItem(MenuFile, wxID_EXIT, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
     QuitMenuItem->SetBitmap(GetMenuItemBitmapBundle("wxART_QUIT"));
     MenuFile->Append(QuitMenuItem);
@@ -1325,6 +1333,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_FILE_BACKUP, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
     Connect(ID_FILE_RESTOREBACKUP, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemRestoreBackupSelected);
     Connect(ID_FILE_ALTBACKUP, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
+    Connect(ID_FILE_CLOUDBACKUP, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemCloudBackupSelected);
+    Connect(ID_FILE_CLOUDRESTORE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemCloudRestoreSelected);
     Connect(wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnQuit);
     Connect(ID_SHIFT_EFFECTS_AND_TIMING, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsAndTimingSelected);
     Connect(ID_SHIFT_EFFECTS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsSelected);
@@ -3272,6 +3282,23 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     if (inClose || IsBeingDeleted())
         return;
 
+    if (auto* cloud = static_cast<CloudBackupDialog*>(_cloudBackupDialog.get()); cloud && cloud->IsRunning()) {
+        if (event.CanVeto() &&
+            wxMessageBox("A cloud backup is still running. Cancel it and quit?", "Backup to Cloud", wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+            event.Veto();
+            return;
+        }
+        cloud->CancelAndWait();
+    }
+    if (auto* restore = static_cast<CloudRestoreDialog*>(_cloudRestoreDialog.get()); restore && restore->IsRunning()) {
+        if (event.CanVeto() &&
+            wxMessageBox("A restore from the cloud is still running. Cancel it and quit?", "Restore from Cloud", wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+            event.Veto();
+            return;
+        }
+        restore->CancelAndWait();
+    }
+
     inClose = true;
 
     spdlog::info("xLights Closing");
@@ -3419,6 +3446,70 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     SaveWorking();
 
     DoBackup(true);
+}
+
+void xLightsFrame::OnMenuItemCloudBackupSelected(wxCommandEvent& event)
+{
+    if (_cloudBackupDialog) {
+        _cloudBackupDialog->Raise();
+        return;
+    }
+    if (showDirectory.empty()) {
+        DisplayError("No show folder is open.", this);
+        return;
+    }
+
+    CloudStorageSettings settings = CloudStorageSettings::Load();
+    std::string problem = settings.Validate();
+    if (!problem.empty()) {
+        wxMessageBox("Cloud storage is not set up yet: " + problem + ".\n\nEnter the storage details in Preferences > Cloud Storage.",
+                     "Backup to Cloud", wxICON_INFORMATION | wxOK, this);
+        ShowPreferencesDialog("Cloud Storage");
+        return;
+    }
+
+    // The archive is built from the files on disk, so get pending edits there first.
+    CheckUnsavedChanges();
+    if (CurrentSeqXmlFile != nullptr && mSavedChangeCount != _sequenceElements.GetChangeCount()) {
+        int r = wxMessageBox("The open sequence has unsaved changes. Save it before the backup?",
+                             "Backup to Cloud", wxYES_NO | wxCANCEL | wxICON_QUESTION, this);
+        if (r == wxCANCEL) {
+            return;
+        }
+        if (r == wxYES) {
+            SaveSequence();
+        }
+    }
+
+    CloudBackupJob job;
+    job.settings = settings;
+    job.archive.showDir = showDirectory;
+    job.archive.fseqDir = fseqDirectory;
+    job.archive.mediaDirs = mediaDirectories;
+    job.archive.includeFseq = settings.includeFseq;
+    if (settings.includeThumbnail) {
+        job.thumbnailPng = CaptureLayoutThumbnailPng(GetLayoutPreview(), 1280, job.thumbnailWarning);
+    }
+
+    // The dialog shows itself once scanning and any prompt are out of the way.
+    auto* dlg = new CloudBackupDialog(this, std::move(job));
+    _cloudBackupDialog = dlg;
+    dlg->Start();
+}
+
+void xLightsFrame::OnMenuItemCloudRestoreSelected(wxCommandEvent& event)
+{
+    if (_cloudRestoreDialog) {
+        _cloudRestoreDialog->Raise();
+        return;
+    }
+    CloudRestoreHooks hooks;
+    hooks.currentShowDir = showDirectory;
+    hooks.openSettings = [this]() { ShowPreferencesDialog("Cloud Storage"); };
+    hooks.openShow = [this](const std::string& dir) { SwitchToShowFolder(wxString::FromUTF8(dir), true); };
+    auto* dlg = new CloudRestoreDialog(this, std::move(hooks));
+    _cloudRestoreDialog = dlg;
+    dlg->Show();
 }
 
 void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors)

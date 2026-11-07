@@ -12,6 +12,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -enh (FrenchMakers)          File > Backup to Cloud uploads the whole show folder (media, rendered .fseq
+                                 files and a layout thumbnail included) to Cloudflare R2 or any S3-compatible
+                                 storage, in the background with progress. File > Restore from Cloud brings a
+                                 chosen backup back into a new folder, and can delete old backups; older ones
+                                 can also be removed automatically. Set it up in Preferences > Cloud Storage
     -enh (heffneil)              Bulk Controller Upload: Select All checkbox, filter box, multi-row
                                  checking, Invert Selection; the dialog remembers its size and position
     -bug (derwin12)              Text effect reading from a text file kept showing the old text after the

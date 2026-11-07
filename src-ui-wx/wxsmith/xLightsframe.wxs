@@ -849,6 +849,14 @@
 					<accel>F11</accel>
 					<handler function="OnmAltBackupMenuItemSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_FILE_CLOUDBACKUP" variable="MenuItemCloudBackup" member="yes">
+					<label>Backup to Cloud</label>
+					<handler function="OnMenuItemCloudBackupSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_FILE_CLOUDRESTORE" variable="MenuItemCloudRestore" member="yes">
+					<label>Restore from Cloud</label>
+					<handler function="OnMenuItemCloudRestoreSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="wxID_EXIT" variable="QuitMenuItem" member="yes">
 					<label>Quit</label>
 					<accel>Alt-F4</accel>
