@@ -59,6 +59,7 @@ public:
     std::string GetPalette() const;
     std::string GetSettings() const;
     std::string GetXLightsType() const;
+    std::string Setting(const std::string& key) const;
 
     float start;
     float end;
@@ -269,6 +270,8 @@ class Vixen3 {
 
     inline static long ConvertTiming(float time, int frame)
     {
+        if (frame <= 0)
+            return 0;
         return std::round(time * 1000.0 / (float)frame) * frame;
     }
     const std::string& GetFilename() const { return _filename; }

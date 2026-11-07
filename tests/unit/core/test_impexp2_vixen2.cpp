@@ -446,7 +446,7 @@ TEST_CASE("HLS with fewer than four frames does not read past the data", "[impex
     }
 }
 
-TEST_CASE("HLS negative frame count must not throw from mapping", "[impexp2][hls][!mayfail]") {
+TEST_CASE("HLS negative frame count must not throw from mapping", "[impexp2][hls]") {
     // std::vector<unsigned char> redData(_frames) with _frames < 0 throws std::length_error
     auto doc = Parse(HlsDoc("-5", "50", HlsChan("L, Normal", "<a>0-FF</a>")));
     HLSFile h(doc);
@@ -723,7 +723,7 @@ TEST_CASE("Map hints special characters round trip", "[impexp2][maphints]") {
     }
 }
 
-TEST_CASE("Map hints writer must escape xml special characters", "[impexp2][maphints][!mayfail]") {
+TEST_CASE("Map hints writer must escape xml special characters", "[impexp2][maphints]") {
     // WriteMapHintsFile writes attribute values raw, so a literal &amp; is read back as & (and a \" makes the file unparseable)
     TempDir d;
     REQUIRE(WriteMapHintsFile(d.File("s.xmaphint"), { { "a&amp;b", "x&lt;y", "B" } }));
@@ -733,7 +733,7 @@ TEST_CASE("Map hints writer must escape xml special characters", "[impexp2][maph
     CHECK(out[0].fromModel == "x&lt;y");
 }
 
-TEST_CASE("Map hints writer with a quote must not lose the other entries", "[impexp2][maphints][!mayfail]") {
+TEST_CASE("Map hints writer with a quote must not lose the other entries", "[impexp2][maphints]") {
     TempDir d;
     REQUIRE(WriteMapHintsFile(d.File("q.xmaphint"), { { "ok", "ok", "B" }, { "has\"quote", "x", "B" }, { "after", "after", "B" } }));
     CHECK(LoadMapHintsFile(d.File("q.xmaphint")).size() == 3);

@@ -74,7 +74,7 @@ TEST_CASE("Vixen3 ConvertTiming rounds to the frame grid", "[impexp2][vixen]") {
     CHECK(Vixen3::ConvertTiming(c.t, c.f) == c.e);
 }
 
-TEST_CASE("Vixen3 ConvertTiming with a zero frame time must not produce garbage", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 ConvertTiming with a zero frame time must not produce garbage", "[impexp2][vixen]") {
     // round(t*1000/0) = inf, inf*0 = NaN converted to long is undefined; expected 0
     CHECK(Vixen3::ConvertTiming(1.0f, 0) == 0);
 }
@@ -198,7 +198,7 @@ TEST_CASE("Vixen3 effect times", "[impexp2][vixen]") {
     CHECK(effs.front().effectSettingsId == "E1");
 }
 
-TEST_CASE("Vixen3 durations with hours are read correctly", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 durations with hours are read correctly", "[impexp2][vixen]") {
     // time parsing handles only PT<m>M<s>S; PT1H2M3S is read as 1 minute 3 seconds
     auto d = OneEffect("SetLevelData", "", "PT1H2M3S", "PT1S");
     Vixen3 v(d.seq);
@@ -447,7 +447,7 @@ TEST_CASE("Vixen3 set level colour is scaled from 0-1 floats", "[impexp2][vixen]
     CHECK(e.GetPalette() == "C_BUTTON_Palette1=#ff7f00,C_CHECKBOX_Palette1=1");
 }
 
-TEST_CASE("Vixen3 set level colour out of range does not wrap", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 set level colour out of range does not wrap", "[impexp2][vixen]") {
     // int r = 255 * 2.0 = 510 is cast to uint8_t, wrapping to 254
     auto d = OneEffect("SetLevelData", "<d2p1:color><d2p1:_r>2</d2p1:_r><d2p1:_g>-1</d2p1:_g><d2p1:_b>0</d2p1:_b></d2p1:color>");
     Vixen3 v(d.seq);
@@ -550,7 +550,7 @@ TEST_CASE("Vixen3 nutcracker palette uses known colours that are active", "[impe
     CHECK(e.GetXLightsType() == "Fire");
 }
 
-TEST_CASE("Vixen3 nutcracker palette with more active flags than colours must not throw", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 nutcracker palette with more active flags than colours must not throw", "[impexp2][vixen]") {
     // knownColor.at(index) throws std::out_of_range out of the constructor
     std::string pal = "<d2p1:Palette><d2p1:_colors><d2p1:Color><d2p1:knownColor>37</d2p1:knownColor></d2p1:Color></d2p1:_colors>"
                       "<d2p1:_colorsActive><d2p1:boolean>true</d2p1:boolean><d2p1:boolean>true</d2p1:boolean></d2p1:_colorsActive></d2p1:Palette>";
@@ -558,7 +558,7 @@ TEST_CASE("Vixen3 nutcracker palette with more active flags than colours must no
     CHECK_NOTHROW(Vixen3(d.seq));
 }
 
-TEST_CASE("Vixen3 nutcracker palette active flags before colours must not throw", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 nutcracker palette active flags before colours must not throw", "[impexp2][vixen]") {
     std::string pal = "<d2p1:Palette><d2p1:_colorsActive><d2p1:boolean>true</d2p1:boolean></d2p1:_colorsActive><d2p1:_colors><d2p1:Color><d2p1:knownColor>37</d2p1:knownColor></d2p1:Color></d2p1:_colors></d2p1:Palette>";
     auto d = OneEffect("NutcrackerModuleData", "<d2p1:NutcrackerData>" + pal + "</d2p1:NutcrackerData>");
     CHECK_NOTHROW(Vixen3(d.seq));
@@ -601,7 +601,7 @@ TEST_CASE("Vixen3 nutcracker effect type mapping", "[impexp2][vixen]") {
     CHECK(e.GetXLightsType() == c.x);
 }
 
-TEST_CASE("Vixen3 nutcracker effect type without CurrentEffect must not throw", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 nutcracker effect type without CurrentEffect must not throw", "[impexp2][vixen]") {
     // settings.at("CurrentEffect") throws std::out_of_range
     VixenEffect e(0, 1, "x");
     e.type = "NutcrackerModuleData";
@@ -688,9 +688,9 @@ TEST_CASE("Vixen3 nutcracker effects", "[impexp2][vixen]") {
     struct C { std::string eff; std::map<std::string, std::string> kv; std::string tail; };
     auto c = GENERATE(values<C>({
         { "Butterfly", { { "Butterfly_BkgrdChunks", "3" }, { "Butterfly_BkgrdSkip", "2" }, { "Butterfly_Style", "4" }, { "Butterfly_Direction", "1" }, { "Butterfly_Colors", "0" } },
-          ",E_Butterfly_Chunks=3,E_Butterfly_Skip=2,E_SLIDER_Butterfly_Speed=50,E_SLIDER_Butterfly_Style=4,E_CHOICE_Butterfly_Direction=1,E_CHOICE_Butterfly_Colors=Rainbow" },
+          ",E_SLIDER_Butterfly_Chunks=3,E_SLIDER_Butterfly_Skip=2,E_SLIDER_Butterfly_Speed=50,E_SLIDER_Butterfly_Style=4,E_CHOICE_Butterfly_Direction=1,E_CHOICE_Butterfly_Colors=Rainbow" },
         { "Butterfly", { { "Butterfly_BkgrdChunks", "3" }, { "Butterfly_BkgrdSkip", "2" }, { "Butterfly_Style", "4" }, { "Butterfly_Direction", "1" }, { "Butterfly_Colors", "1" } },
-          ",E_Butterfly_Chunks=3,E_Butterfly_Skip=2,E_SLIDER_Butterfly_Speed=50,E_SLIDER_Butterfly_Style=4,E_CHOICE_Butterfly_Direction=1,E_CHOICE_Butterfly_Colors=Palette" },
+          ",E_SLIDER_Butterfly_Chunks=3,E_SLIDER_Butterfly_Skip=2,E_SLIDER_Butterfly_Speed=50,E_SLIDER_Butterfly_Style=4,E_CHOICE_Butterfly_Direction=1,E_CHOICE_Butterfly_Colors=Palette" },
         { "ColorWash", { { "ColorWash_Count", "2" }, { "ColorWash_FadeHorizontal", "true" }, { "ColorWash_FadeVertical", "false" } }, ",E_TEXTCTRL_ColorWash_Cycles=2,E_CHECKBOX_ColorWash_HFade=1,E_CHECKBOX_ColorWash_VFade=0" },
         { "Fire", { { "Fire_Height", "40" }, { "Fire_Hue", "5" } }, ",E_SLIDER_Fire_Height=40,E_SLIDER_Fire_HueShift=5" },
         { "Garlands", { { "Garland_Spacing", "3" }, { "Garland_Type", "2" } }, ",E_SLIDER_Garlands_Spacing=3,E_SLIDER_Garlands_Type=2" },
@@ -706,7 +706,7 @@ TEST_CASE("Vixen3 nutcracker effects", "[impexp2][vixen]") {
         { "Spirals", { { "Spirals_3D", "true" }, { "Spirals_Blend", "false" }, { "Spirals_Thickness", "7" } }, ",E_CHECKBOX_Spirals_3D=1,E_CHECKBOX_Spirals_Blend=0,E_SLIDER_Spirals_Thickness=7" },
         { "Spirograph", { { "Spirograph_ROuter", "1" }, { "Spirograph_Distance", "2" }, { "Spirograph_RInner", "3" } }, ",E_SLIDER_Spirograph_R=1,E_SLIDER_Spirograph_d=2,E_SLIDER_Spirograph_r=3,E_TEXTCTRL_Spirograph_Speed=25" },
         { "Tree", { { "Tree_Branches", "5" } }, ",E_SLIDER_Tree_Branches=5,E_SLIDER_Tree_Speed=25" },
-        { "Twinkles", { { "Twinkles_Strobe", "true" }, { "Twinkles_Count", "5" }, { "Twinkles_Steps", "6" } }, ",E_CHECKBOX_Twinkle_Strobe=11,E_CHOICE_Twinkle_Style=Old Render Method,E_SLIDER_Twinkle_Count=5,E_SLIDER_Twinkle_Steps=6" },
+        { "Twinkles", { { "Twinkles_Strobe", "true" }, { "Twinkles_Count", "5" }, { "Twinkles_Steps", "6" } }, ",E_CHECKBOX_Twinkle_Strobe=1,E_CHOICE_Twinkle_Style=Old Render Method,E_SLIDER_Twinkle_Count=5,E_SLIDER_Twinkle_Steps=6" },
         { "Unknown", {}, "" },
     }));
     auto e = Eff("NutcrackerModuleData", NC(c.eff, c.kv));
@@ -714,13 +714,13 @@ TEST_CASE("Vixen3 nutcracker effects", "[impexp2][vixen]") {
     CHECK(e.GetSettings() == "B_CHOICE_BufferStyle=Horizontal Per Model/Strand" + c.tail);
 }
 
-TEST_CASE("Vixen3 nutcracker twinkle strobe flag is a clean boolean", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 nutcracker twinkle strobe flag is a clean boolean", "[impexp2][vixen]") {
     // "E_CHECKBOX_Twinkle_Strobe=1" + BoolToIntStr(...) yields 10 or 11 rather than 0 or 1
     auto e = Eff("NutcrackerModuleData", NC("Twinkles", { { "Twinkles_Strobe", "false" }, { "Twinkles_Count", "5" }, { "Twinkles_Steps", "6" } }));
     CHECK(e.GetSettings().find("E_CHECKBOX_Twinkle_Strobe=0,") != std::string::npos);
 }
 
-TEST_CASE("Vixen3 nutcracker fireworks velocity should not copy the fade value", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 nutcracker fireworks velocity should not copy the fade value", "[impexp2][vixen]") {
     // E_SLIDER_Fireworks_Velocity is fed from Fireworks_Fade
     auto e = Eff("NutcrackerModuleData", NC("Fireworks", { { "Fireworks_Particles", "10" }, { "Fireworks_Explosions", "8" }, { "Fireworks_Fade", "30" }, { "Fireworks_Velocity", "70" } }));
     auto s = e.GetSettings();
@@ -728,7 +728,7 @@ TEST_CASE("Vixen3 nutcracker fireworks velocity should not copy the fade value",
     CHECK(s.find("E_SLIDER_Fireworks_Velocity=70") != std::string::npos);
 }
 
-TEST_CASE("Vixen3 nutcracker butterfly setting names carry the slider prefix", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 nutcracker butterfly setting names carry the slider prefix", "[impexp2][vixen]") {
     // chunks and skip are written as E_Butterfly_Chunks / E_Butterfly_Skip, not E_SLIDER_Butterfly_*
     auto e = Eff("NutcrackerModuleData", NC("Butterfly", { { "Butterfly_BkgrdChunks", "3" }, { "Butterfly_BkgrdSkip", "2" }, { "Butterfly_Style", "4" }, { "Butterfly_Direction", "1" }, { "Butterfly_Colors", "0" } }));
     CHECK(e.GetSettings().find("E_SLIDER_Butterfly_Chunks=3") != std::string::npos);
@@ -771,7 +771,7 @@ TEST_CASE("Vixen3 nutcracker speed scaling", "[impexp2][vixen]") {
     CHECK(e.GetSettings().find(std::string("E_SLIDER_Snowstorm_Speed=") + c.snow) != std::string::npos);
 }
 
-TEST_CASE("Vixen3 settings with a missing key must not throw", "[impexp2][vixen][!mayfail]") {
+TEST_CASE("Vixen3 settings with a missing key must not throw", "[impexp2][vixen]") {
     // GetSettings uses settings.at() everywhere: a file lacking a key terminates the import with std::out_of_range
     for (auto t : { "AlternatingData", "BarsData", "ButterflyData", "TwinkleData", "WipeData", "NutcrackerModuleData" }) {
         VixenEffect e(0, 1, "x");
