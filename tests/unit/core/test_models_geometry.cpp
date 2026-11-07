@@ -149,8 +149,8 @@ TEST_CASE("Matrix start side and direction change where node zero is", "[models]
 TEST_CASE("New matrix keeps its start location through copy and paste", "[models][geometry]") {
     ShowFixture f;
     Model* m = f.Default("Matrix");
-    CHECK(m->GetStartSide() == "B");
-    CHECK(m->GetIsBtoT());
+    CHECK(m->GetStartSide() == "T");
+    CHECK_FALSE(m->GetIsBtoT());
 
     pugi::xml_document doc;
     XmlSerializingVisitor v(&doc);
