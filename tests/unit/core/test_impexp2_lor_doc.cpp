@@ -109,7 +109,7 @@ TEST_CASE("LOR timing offsets", "[impexp2][lor][timing]") {
     }
 }
 
-TEST_CASE("LOR timing marks before zero after a negative offset start at zero", "[impexp2][lor][timing][!mayfail]") {
+TEST_CASE("LOR timing marks before zero after a negative offset start at zero", "[impexp2][lor][timing]") {
     // BUG: GetTimings assigns lastMS = adjTime even when the mark is not kept, so a mark that lands below zero becomes the
     // start of the next segment (a ~4 billion uint32) instead of 0
     auto doc = Parse(TimingDoc(Timings("T", { 100, 200 })));
@@ -120,7 +120,7 @@ TEST_CASE("LOR timing marks before zero after a negative offset start at zero", 
     CHECK(l.GetTimings("T", -100000).empty());
 }
 
-TEST_CASE("LOR out of order timing marks do not create overlapping segments", "[impexp2][lor][timing][!mayfail]") {
+TEST_CASE("LOR out of order timing marks do not create overlapping segments", "[impexp2][lor][timing]") {
     // BUG: lastMS follows every mark, so a mark earlier than the previous one rewinds the next segment start
     auto doc = Parse(TimingDoc(Timings("T", { 100, 50, 200 })));
     LOREdit l(doc, 20);
@@ -161,7 +161,7 @@ TEST_CASE("LOR timing track names repeated in two grids are both read", "[impexp
     CHECK(l.GetTimings("T").size() == 2);
 }
 
-TEST_CASE("LOR timing track at frequency over 1000 does not divide by zero", "[impexp2][lor][timing][.][known-crash]") {
+TEST_CASE("LOR timing track at frequency over 1000 does not divide by zero", "[impexp2][lor][timing]") {
     // BUG: RoundToMultipleOfPeriod computes ms = int(1000/period) = 0 for period > 1000 and then divides by it (SIGFPE)
     auto doc = Parse(TimingDoc(Timings("T", { 100 })));
     LOREdit l(doc, 2000);
@@ -243,7 +243,7 @@ TEST_CASE("LOR model channel counting falls back to a prefix match", "[impexp2][
     CHECK(l.GetModelChannels("Tre", r, c) == 0);
 }
 
-TEST_CASE("LOR model channel counting does not match every model to an unnamed prop", "[impexp2][lor][model][!mayfail]") {
+TEST_CASE("LOR model channel counting does not match every model to an unnamed prop", "[impexp2][lor][model]") {
     // BUG: the prefix fallback is StartsWith(model, name) with name == "" which is always true, so a prop that has no name
     // is claimed by any model that has no exact match
     auto doc = Parse(Seq(Props("<SeqProp>" + Chan(0, 0, 0, ChEff(0, 10)) + "</SeqProp>")));
@@ -252,7 +252,7 @@ TEST_CASE("LOR model channel counting does not match every model to an unnamed p
     CHECK(l.GetModelChannels("Anything", r, c) == 0);
 }
 
-TEST_CASE("LOR sequencing type does not match every model to an unnamed prop", "[impexp2][lor][model][!mayfail]") {
+TEST_CASE("LOR sequencing type does not match every model to an unnamed prop", "[impexp2][lor][model]") {
     // BUG: same empty-name prefix match in GetSequencingType
     auto doc = Parse(Seq(Props("<SeqProp>" + Chan(0, 0, 0, ChEff(0, 10)) + "</SeqProp>")));
     LOREdit l(doc, 20);
@@ -423,7 +423,7 @@ TEST_CASE("LOR track effect time and intensity attributes", "[impexp2][lor][adde
     }
 }
 
-TEST_CASE("LOR track effect with a negative offset", "[impexp2][lor][addeffects][!mayfail]") {
+TEST_CASE("LOR track effect with a negative offset", "[impexp2][lor][addeffects]") {
     // BUG: startMS/endMS are uint32_t, so cs*10 + negative offset below zero wraps to ~4 billion instead of clamping/dropping
     auto doc = Parse(OneEffectDoc(Settings(Layer("fire", "50,0")), 10, 50));
     LOREdit l(doc, 20);
@@ -529,7 +529,7 @@ TEST_CASE("LOR track effect with garbage numbers", "[impexp2][lor][addeffects]")
     auto v = l.AddEffects(doc.child("track"), true, 0);
     REQUIRE(v.size() == 1);
     CHECK(v[0].startMS == 0);
-    CHECK(v[0].endMS == (uint32_t)-50);
+    CHECK(v[0].endMS == 0);
     // intensity "x" reads as 0 (not the 9999 sentinel)
     CHECK(v[0].startIntensity == 0);
 }
@@ -595,7 +595,7 @@ TEST_CASE("LOR channel effect pixel channel flag", "[impexp2][lor][channel]") {
     CHECK_FALSE(l.GetChannelEffects("Tree", 0, 0, -1, 0)[0].pixelChannels);
 }
 
-TEST_CASE("LOR channel effect without any intensity attribute is initialised", "[impexp2][lor][channel][.][uninit]") {
+TEST_CASE("LOR channel effect without any intensity attribute is initialised", "[impexp2][lor][channel]") {
     // BUG: when neither intensity nor startIntensity is present, startIntensity/endIntensity are never assigned
     // (LOREditEffect has no default member initialisers) and the colours keep their default
     auto doc = Parse(ChannelDoc(Chan(0, 0, 0, "<effect startCentisecond=\"0\" endCentisecond=\"10\" settings=\"INTENSITY\"/>")));

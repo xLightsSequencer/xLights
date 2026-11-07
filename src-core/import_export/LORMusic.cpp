@@ -52,13 +52,13 @@ bool findRGB(pugi::xml_node e, pugi::xml_node chan, pugi::xml_node& rchannel, pu
     for (pugi::xml_node ch = e.first_child(); ch; ch = ch.next_sibling()) {
         if (std::string_view(ch.name()) == "channel") {
             std::string idx = ch.attribute("savedIndex").as_string();
-            if (idx == idxs[0]) {
+            if (cnt > 0 && idx == idxs[0]) {
                 rchannel = ch;
             }
-            if (idx == idxs[1]) {
+            if (cnt > 1 && idx == idxs[1]) {
                 gchannel = ch;
             }
-            if (idx == idxs[2]) {
+            if (cnt > 2 && idx == idxs[2]) {
                 bchannel = ch;
             }
         }
@@ -184,6 +184,10 @@ void UnifyData(int x, std::vector<RGBData>& red, std::vector<RGBData>& green, st
 
 bool GetRGBEffectData(RGBData& red, RGBData& green, RGBData& blue, xlColor& sc, xlColor& ec)
 {
+    for (RGBData* d : { &red, &green, &blue }) {
+        d->starti = std::clamp(d->starti, 0, 100);
+        d->endi = std::clamp(d->endi, 0, 100);
+    }
     sc.red = red.starti * 255 / 100;
     sc.green = green.starti * 255 / 100;
     sc.blue = blue.starti * 255 / 100;
@@ -305,11 +309,15 @@ void MapOnEffects(EffectLayer* layer, pugi::xml_node channel, int chancountperno
             bool doscale = (type == "DMX intensity");
             int starttime = ch.attribute("startCentisecond").as_int() * 10;
             int endtime = ch.attribute("endCentisecond").as_int() * 10;
+            if (starttime < 0 || endtime <= starttime) {
+                continue;
+            }
             std::string intensity = ch.attribute("intensity").as_string("-1");
             std::string starti, endi;
             if (intensity == "-1") {
-                starti = Scale255To100(ch.attribute("startIntensity").as_string(), doscale);
-                endi = Scale255To100(ch.attribute("endIntensity").as_string(), doscale);
+                const char* full = doscale ? "255" : "100";
+                starti = Scale255To100(ch.attribute("startIntensity").as_string(full), doscale);
+                endi = Scale255To100(ch.attribute("endIntensity").as_string(full), doscale);
             } else {
                 starti = endi = Scale255To100(intensity, doscale);
             }
@@ -438,7 +446,11 @@ bool LORMusic::IsCCRName(const std::string& name) const
 {
     for (const auto& prefix : _ccrNames) {
         if (name.size() > prefix.size() && name.compare(0, prefix.size(), prefix) == 0) {
-            return true;
+            // same node suffixes Index() recognises: "-P", " P" or " p" then a positive number
+            std::string rest = name.substr(prefix.size());
+            if ((rest.compare(0, 2, "-P") == 0 || rest.compare(0, 2, " P") == 0 || rest.compare(0, 2, " p") == 0) && std::strtol(rest.c_str() + 2, nullptr, 10) > 0) {
+                return true;
+            }
         }
     }
     return false;
@@ -465,7 +477,7 @@ std::vector<std::pair<uint32_t, uint32_t>> LORMusic::GetTimings(const std::strin
     if (it == _timingTracks.end()) {
         return res;
     }
-    long last = offset;
+    long last = std::max(offset, 0);
     for (pugi::xml_node t = it->second.first_child(); t; t = t.next_sibling()) {
         if (std::string_view(t.name()) == "timing") {
             int time = t.attribute("centisecond").as_int() * 10 + offset;

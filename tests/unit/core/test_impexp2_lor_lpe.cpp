@@ -274,7 +274,7 @@ TEST_CASE("LPE effect names", "[impexp2][lor][lpe]") {
     CHECK(m.name == r.name);
 }
 
-TEST_CASE("LPE garland and movie are named as xLights effects", "[impexp2][lor][lpe][!mayfail]") {
+TEST_CASE("LPE garland and movie are named as xLights effects", "[impexp2][lor][lpe]") {
     // BUG: MapLPEEffectType only special cases colorwash/picture/countdown; "garland" -> "Garland" (xLights: "Garlands")
     // and "movie" -> "Movie" (xLights: "Video"), neither of which exists
     // The effects are not even added: AddEffect refuses the unknown names so they vanish from the import
@@ -455,7 +455,7 @@ TEST_CASE("LPE palette parsing", "[impexp2][lor][lpe][palette]") {
     if (*r.hasNot) CHECK_FALSE(Has(m.palette, r.hasNot));
 }
 
-TEST_CASE("LPE gradient palette entries are comma separated", "[impexp2][lor][lpe][palette][!mayfail]") {
+TEST_CASE("LPE gradient palette entries are comma separated", "[impexp2][lor][lpe][palette]") {
     // BUG: ExtractLPEPallette emits "C_BUTTON_PaletteN=Active=TRUE|..." without the leading comma that every other entry has,
     // so after an earlier entry it is glued onto that entry's checkbox value
     auto d = P(One(PE7(Side("fire", "50,0", "FF000000,1;FFFF0000,FF00FF00,1"))));
@@ -473,7 +473,7 @@ TEST_CASE("LPE gradient palette on its own", "[impexp2][lor][lpe][palette]") {
     CHECK(Has(m.palette, "C_BUTTON_Palette1=Active=TRUE"));
 }
 
-TEST_CASE("LPE palette entries too short to hold a colour do not throw", "[impexp2][lor][lpe][palette][!mayfail]") {
+TEST_CASE("LPE palette entries too short to hold a colour do not throw", "[impexp2][lor][lpe][palette]") {
     // BUG: cc[0].substr(2) with no size check throws std::out_of_range for "F,1" or ",1"
     auto d = P(One(PE7(Side("fire", "50,0", "F,1"))));
     LORPixelEditor l(d, 20);
@@ -519,16 +519,16 @@ LPE_CASE("bars block up", "bars", "block_up,2,False,False,8,0", HAS(m, "Bars_Dir
 LPE_CASE("bars block down", "bars", "block_down,2,False,False,8,0", HAS(m, "Bars_Direction=Alternate Down");)
 LPE_CASE("bars block right", "bars", "block_right,2,False,False,8,0", HAS(m, "Bars_Direction=Alternate Right");)
 
-TEST_CASE("LPE bars block left is Alternate Left", "[impexp2][lor][lpe][effects][!mayfail]") {
+TEST_CASE("LPE bars block left is Alternate Left", "[impexp2][lor][lpe][effects]") {
     // BUG: block_left is mapped to "Alternate Right" (copy and paste; LOREdit maps it to Alternate Left)
     auto m = Run(PE7(Side("bars", "block_left,2,False,False,8,0")));
     HAS(m, "Bars_Direction=Alternate Left");
 }
 
-TEST_CASE("LPE bars highlight keeps its own setting separator", "[impexp2][lor][lpe][effects][!mayfail]") {
+TEST_CASE("LPE bars highlight keeps its own setting separator", "[impexp2][lor][lpe][effects]") {
     // BUG: "E_CHECKBOX_Bars_Highlight=1" is appended without a leading comma so it is glued onto the direction value
     auto m = Run(PE7(Side("bars", "down,2,True,False,8,0")));
-    HAS(m, ",E_CHECKBOX_Bars_Highlight=1");
+    HAS(m, "E_CHECKBOX_Bars_Highlight=1");
     HAS(m, "E_CHOICE_Bars_Direction=down,");
 }
 
@@ -564,7 +564,7 @@ TEST_CASE("LPE text with a truncated escape", "[impexp2][lor][lpe][effects]") {
     HAS(m, "E_TEXTCTRL_Text=ab%4");
 }
 
-TEST_CASE("LPE start layer beyond the model's layers", "[impexp2][lor][lpe][.][known-crash]") {
+TEST_CASE("LPE start layer beyond the model's layers", "[impexp2][lor][lpe]") {
     // BUG: MapPropEffects adds a single layer when `count < layer + 1`, so a start layer two or more past the end leaves
     // GetEffectLayer(layer) out of range (null deref)
     auto d = P(One(PE7(Side("fire", "50,0"))));
@@ -576,25 +576,25 @@ TEST_CASE("LPE start layer beyond the model's layers", "[impexp2][lor][lpe][.][k
 
 // ---------- crashers (out of range reads on short parameter lists) ----------
 
-TEST_CASE("LPE effect with fewer parameters than the effect needs", "[impexp2][lor][lpe][effects][.][known-crash]") {
+TEST_CASE("LPE effect with fewer parameters than the effect needs", "[impexp2][lor][lpe][effects]") {
     // BUG: LPEParseEffectSettings splits the parameters with no padding (LOREdit pads to 24) and indexes parms[1].. directly
     auto m = Run(PE7(Side("fire", "50")));
     CHECK(m.count <= 1);
 }
 
-TEST_CASE("LPE effect with palette but no parameter field", "[impexp2][lor][lpe][effects][.][known-crash]") {
+TEST_CASE("LPE effect with palette but no parameter field", "[impexp2][lor][lpe][effects]") {
     // BUG: `arrSettings.size() > 1` guards but arrSettings[2] is read
     auto m = Run(PE7("fire:FFFF0000,1"));
     CHECK(m.count <= 1);
 }
 
-TEST_CASE("LPE effect with only a type", "[impexp2][lor][lpe][effects][.][known-crash]") {
+TEST_CASE("LPE effect with only a type", "[impexp2][lor][lpe][effects]") {
     // BUG: ExtractLPEPallette reads ps[1] with no size check
     auto m = Run(PE7("fire"));
     CHECK(m.count <= 1);
 }
 
-TEST_CASE("LPE node mapping of a pixel effect string with too few fields", "[impexp2][lor][lpe][.][known-crash]") {
+TEST_CASE("LPE node mapping of a pixel effect string with too few fields", "[impexp2][lor][lpe]") {
     // BUG: MapLPE indexes settingsArray[3]/[4] (and [0..2]) after only checking for size 7; MapPropEffects guards with HasEffects but
     // MapPropNodeEffects does not
     auto d = P(One("a|b"));

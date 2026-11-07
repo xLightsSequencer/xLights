@@ -390,7 +390,7 @@ TEST_CASE("LOR mutated documents never crash the loredit readers", "[impexp2][lo
     SUCCEED();
 }
 
-TEST_CASE("LOR mutated documents do not throw from the loredit readers", "[impexp2][lor][fuzz][!mayfail]") {
+TEST_CASE("LOR mutated documents do not throw from the loredit readers", "[impexp2][lor][fuzz]") {
     // BUG: palette and ramp parsing throw std::out_of_range (substr) on short fields; xLights has no exception handling
     std::string base = SmallLorEdit();
     Lcg g(77);

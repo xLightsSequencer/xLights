@@ -43,7 +43,7 @@ TEST_CASE("LOR effect type names map to xLights effects", "[impexp2][lor][effect
     CHECK(e.GetxLightsEffect() == r.xl);
 }
 
-TEST_CASE("LOR movie effect maps to the xLights Video effect", "[impexp2][lor][effects][!mayfail]") {
+TEST_CASE("LOR movie effect maps to the xLights Video effect", "[impexp2][lor][effects]") {
     // BUG: GetxLightsEffect falls through to Capitalise("movie") = "Movie", which is not an xLights effect (it is "Video")
     LOREditEffect e;
     e.effectType = "movie";
@@ -76,7 +76,7 @@ TEST_CASE("LOR palette gradient entry keeps its comma separator", "[impexp2][lor
     CHECK(Has(c.palette, ",C_BUTTON_Palette2=Active=TRUE"));
 }
 
-TEST_CASE("LOR palette entries too short to hold a colour do not throw", "[impexp2][lor][palette][!mayfail]") {
+TEST_CASE("LOR palette entries too short to hold a colour do not throw", "[impexp2][lor][palette]") {
     // BUG: GetPalette does cc[0].substr(2) with no size check; "F,1" or ",1" throws std::out_of_range
     auto doc = Parse(OneEffectDoc(Settings(Layer("colorwash", "full,full,none", "F,1"))));
     LOREdit l(doc, 20);
@@ -85,7 +85,7 @@ TEST_CASE("LOR palette entries too short to hold a colour do not throw", "[impex
     CHECK_NOTHROW(v[0].GetPalette());
 }
 
-TEST_CASE("LOR palette empty colour field does not throw", "[impexp2][lor][palette][!mayfail]") {
+TEST_CASE("LOR palette empty colour field does not throw", "[impexp2][lor][palette]") {
     // BUG: same substr(2) on an empty first field (",1")
     auto doc = Parse(OneEffectDoc(Settings(Layer("colorwash", "full,full,none", ",1"))));
     LOREdit l(doc, 20);
@@ -222,7 +222,7 @@ TEST_CASE("LOR colorwash single colour with no checked entries", "[impexp2][lor]
     CHECK_FALSE(Has(c.palette, "C_CHECKBOX_Palette"));
 }
 
-TEST_CASE("LOR colorwash single colour with ten palette entries only matches single digit ids", "[impexp2][lor][effects][!mayfail]") {
+TEST_CASE("LOR colorwash single colour with ten palette entries only matches single digit ids", "[impexp2][lor][effects]") {
     // BUG: the checkbox regex uses (\d) so Palette10 / Palette11 are matched as Palette1 followed by "0"/"1"
     std::string pal;
     for (int i = 0; i < 11; ++i) pal += std::string(i ? ";" : "") + "FFFF0000,1";
@@ -353,14 +353,14 @@ LOR_CASE("picture x negative extremes", "picture", "a.png,True,none,-500,0,0,0",
 LOR_CASE("picture percent encoded name", "picture", "my%20pic.png,True,none,0,0,0,0", HAS(c, "Pictures_Filename=my pic.png");)
 LOR_CASE("picture no params", "picture", "", CHECK(c.name == "Pictures"); HAS(c, "Pictures_Filename=,");)
 
-TEST_CASE("LOR picture name percent decoding is a single pass", "[impexp2][lor][effects][!mayfail]") {
+TEST_CASE("LOR picture name percent decoding is a single pass", "[impexp2][lor][effects]") {
     // BUG: PercentDecode loops on find('%') so "%2541" decodes to "%41" and is then decoded again to "A"
     auto c = Convert(Settings(Layer("picture", "a%2541.png,True,none,0,0,0,0")));
     REQUIRE(c.ok);
     HAS(c, "Pictures_Filename=a%41.png");
 }
 
-TEST_CASE("LOR picture name with invalid percent escape stays readable", "[impexp2][lor][effects][!mayfail]") {
+TEST_CASE("LOR picture name with invalid percent escape stays readable", "[impexp2][lor][effects]") {
     // BUG: PercentDecode does not check isHexChar, so "%zz" is replaced by an arbitrary control character
     auto c = Convert(Settings(Layer("picture", "a%zzb.png,True,none,0,0,0,0")));
     REQUIRE(c.ok);
@@ -387,13 +387,13 @@ LOR_CASE("picturexy empty movement is full prop", "picturexy", "file.jpg,100,100
 LOR_CASE("picturexy gif", "picturexy", "a.gif,50,50,0,0", HAS(c, "LoopGIF=1");)
 LOR_CASE("picturexy embedded", "picturexy", "*img*abcdef12-0000*.png,50,50,0,0", HAS(c, "Pictures_Filename=img-abcdef12.png");)
 
-TEST_CASE("LOR picturexy ramp with too few fields", "[impexp2][lor][effects][.][known-crash]") {
+TEST_CASE("LOR picturexy ramp with too few fields", "[impexp2][lor][effects]") {
     // BUG: Split(movementLeft,'R') then rr[1]/rr[2] with no size check; "R32" yields only two tokens -> out of range read
     auto c = Convert(Settings(Layer("picturexy", "file.jpg,50,50,R32,0")));
     CHECK(c.ok);
 }
 
-TEST_CASE("LOR picturexy lone R", "[impexp2][lor][effects][.][known-crash]") {
+TEST_CASE("LOR picturexy lone R", "[impexp2][lor][effects]") {
     // BUG: same rr[2] out of range for "R"
     auto c = Convert(Settings(Layer("picturexy", "file.jpg,R,R,R,R")));
     CHECK(c.ok);
@@ -661,7 +661,7 @@ TEST_CASE("LOR dissolve mix becomes a transition", "[impexp2][lor][blend]") {
     }
 }
 
-TEST_CASE("LOR dissolve of a backwards effect does not produce a huge fade", "[impexp2][lor][blend][!mayfail]") {
+TEST_CASE("LOR dissolve of a backwards effect does not produce a huge fade", "[impexp2][lor][blend]") {
     // BUG: (endMS - startMS) is unsigned so an effect whose end precedes its start gives a ~4.29 million second fade
     LOREditEffect e;
     e.left = true;
@@ -810,7 +810,7 @@ TEST_CASE("LOR RescaleWithRangeI and F", "[impexp2][lor][rescale]") {
     }
 }
 
-TEST_CASE("LOR ramp values are taken from the numbers after each R", "[impexp2][lor][rescale][!mayfail]") {
+TEST_CASE("LOR ramp values are taken from the numbers after each R", "[impexp2][lor][rescale]") {
     // BUG: "R0R10" splits on 'R' into {"", "0", "10"} but RescaleWithRange* read rr[0] (empty) and rr[1] (the start), so the
     // ramp becomes start=0 .. end=<start> and the real end value is dropped. (picturexy correctly uses rr[1] and rr[2].)
     std::string vc;
@@ -819,14 +819,14 @@ TEST_CASE("LOR ramp values are taken from the numbers after each R", "[impexp2][
     CHECK(Has(vc, "P1=20.00|P2=80.00"));
 }
 
-TEST_CASE("LOR butterfly hue of zero adds no hue adjust", "[impexp2][lor][effects][!mayfail]") {
+TEST_CASE("LOR butterfly hue of zero adds no hue adjust", "[impexp2][lor][effects]") {
     // BUG: hue 0 is rescaled 0..359 -> -100..100 giving -100 so the `hue != "0"` guard never skips it; only ~180 would
     auto c = Convert(Settings(Layer("butterfly", "linear,5,3,forward,0,10,rainbow")));
     REQUIRE(c.ok);
     CHECK_FALSE(Has(c.palette, "HueAdjust"));
 }
 
-TEST_CASE("LOR butterfly ramp chunks carry both ends", "[impexp2][lor][effects][!mayfail]") {
+TEST_CASE("LOR butterfly ramp chunks carry both ends", "[impexp2][lor][effects]") {
     // BUG: see the RescaleWithRange ramp parsing above
     auto c = Convert(Settings(Layer("butterfly", "linear,R2R8,3,forward,0,10,rainbow")));
     REQUIRE(c.ok);
@@ -848,7 +848,7 @@ TEST_CASE("LOR parameter helpers", "[impexp2][lor][helpers]") {
     CHECK(LOREditEffect::SafeGetStringParm({}, 0) == "");
 }
 
-TEST_CASE("LOR parameter helpers with a negative index", "[impexp2][lor][helpers][.][known-crash]") {
+TEST_CASE("LOR parameter helpers with a negative index", "[impexp2][lor][helpers]") {
     // BUG: SafeGet*Parm compare `param < size` only, so a negative index reads arr[-1]
     std::vector<std::string> v{ "a" };
     CHECK(LOREditEffect::SafeGetStringParm(v, -1) == "");

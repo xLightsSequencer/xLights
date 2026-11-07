@@ -167,7 +167,7 @@ TEST_CASE("LMS DMX ramp scales both ends", "[impexp2][lor][lms]") {
     CHECK(Settings(f.At(0), "E_TEXTCTRL_Eff_On_End") == "<none>");
 }
 
-TEST_CASE("LMS effect without intensity attributes", "[impexp2][lor][lms][!mayfail]") {
+TEST_CASE("LMS effect without intensity attributes", "[impexp2][lor][lms]") {
     // BUG: with neither intensity nor startIntensity/endIntensity the strings stay empty and the settings read
     // "E_TEXTCTRL_Eff_On_Start=,E_TEXTCTRL_Eff_On_End=" (empty values), instead of defaulting to full intensity
     auto d = P(Doc(Ch("A", 0, "<effect type=\"intensity\" startCentisecond=\"0\" endCentisecond=\"10\"/>")));
@@ -211,7 +211,7 @@ TEST_CASE("LMS effects with odd times", "[impexp2][lor][lms]") {
     CHECK(f.Count() == r.expectCount);
 }
 
-TEST_CASE("LMS zero length and negative start effects are skipped", "[impexp2][lor][lms][!mayfail]") {
+TEST_CASE("LMS zero length and negative start effects are skipped", "[impexp2][lor][lms]") {
     // SUSPECT: MapOnEffects (unlike the rgb path, which requires start < end) adds zero-length and negative-start effects
     for (auto se : { std::make_pair(10, 10), std::make_pair(0, 0), std::make_pair(-10, 10) }) {
         auto d = P(Doc(Ch("A", 0, Eff("intensity", se.first, se.second, I(50)))));
@@ -436,7 +436,7 @@ TEST_CASE("LMS rgb with zero length and backwards effects ignores them", "[impex
     CHECK(f.Count() == 0);
 }
 
-TEST_CASE("LMS rgb intensity above 100 clamps in the colour", "[impexp2][lor][lms][rgb][!mayfail]") {
+TEST_CASE("LMS rgb intensity above 100 clamps in the colour", "[impexp2][lor][lms][rgb]") {
     // BUG: GetRGBEffectData stores intensity*255/100 in a uint8_t without clamping, so 255 wraps to 0x8a
     auto d = P(RgbDoc(Eff("intensity", 0, 10, I(255)), "", ""));
     LORMusic l(d, 20);
@@ -480,7 +480,7 @@ TEST_CASE("LMS rgb with no child refs", "[impexp2][lor][lms][rgb]") {
     CHECK(f.Count() == 0);
 }
 
-TEST_CASE("LMS rgb with fewer than three refs ignores channels that have no savedIndex", "[impexp2][lor][lms][rgb][!mayfail]") {
+TEST_CASE("LMS rgb with fewer than three refs ignores channels that have no savedIndex", "[impexp2][lor][lms][rgb]") {
     // BUG: findRGB compares each channel's savedIndex ("" when the attribute is missing) with the unfilled idxs[1]/idxs[2]
     // (also ""), so a channel without a savedIndex is taken as both the green and the blue channel
     auto d = P(Doc(Rgb("Tree", 9, { 0 }) + Ch("r", 0, "") + "<channel name=\"stray\">" + Eff("intensity", 0, 10, I(100)) + "</channel>"));
@@ -585,7 +585,7 @@ TEST_CASE("LMS ccr node resolution with out of range node numbers", "[impexp2][l
     CHECK(l.ResolveCCRNodeName("R", 2147483647).size() > 0);
 }
 
-TEST_CASE("LMS plain channels sharing a ccr prefix remain available", "[impexp2][lor][lms][ccr][!mayfail]") {
+TEST_CASE("LMS plain channels sharing a ccr prefix remain available", "[impexp2][lor][lms][ccr]") {
     // BUG: IsCCRName is a plain starts-with test, so once any rgbChannel "Tree-P01" defines the prefix "Tree" every ordinary
     // channel whose name merely begins with "Tree" (e.g. "Tree Star") is erased from the available list
     auto d = P(Doc(Rgb("Tree-P01", 0, { 1, 2, 3 }) + Ch("Tree Star", 1)));
@@ -600,7 +600,8 @@ TEST_CASE("LMS ccr prefix matching needs a longer name", "[impexp2][lor][lms][cc
     CHECK_FALSE(l.IsCCRName("Tree"));
     CHECK_FALSE(l.IsCCRName(""));
     CHECK(l.IsCCRName("Tree-P01"));
-    CHECK(l.IsCCRName("Tree anything"));
+    CHECK(l.IsCCRName("Tree p02"));
+    CHECK_FALSE(l.IsCCRName("Tree anything"));
     CHECK_FALSE(l.IsCCRName("tree-P01"));
 }
 
@@ -644,7 +645,7 @@ TEST_CASE("LMS timing rounding and offsets", "[impexp2][lor][lms][timing]") {
     CHECK(l.GetTimings("T", r.off) == r.expect);
 }
 
-TEST_CASE("LMS timing negative offsets", "[impexp2][lor][lms][timing][!mayfail]") {
+TEST_CASE("LMS timing negative offsets", "[impexp2][lor][lms][timing]") {
     // BUG: `last` starts at the raw negative offset and is pushed as (uint32_t)last, so the first mark's segment starts at ~4 billion
     auto d = P(Doc("", Grid("T", { 100, 200 })));
     LORMusic l(d, 20);
@@ -662,7 +663,7 @@ TEST_CASE("LMS timing track with duplicate names uses the last grid", "[impexp2]
     CHECK(t[0] == std::make_pair(0u, 2000u));
 }
 
-TEST_CASE("LMS timing at a frequency over 1000 does not divide by zero", "[impexp2][lor][lms][timing][.][known-crash]") {
+TEST_CASE("LMS timing at a frequency over 1000 does not divide by zero", "[impexp2][lor][lms][timing]") {
     // BUG: RoundToMultipleOfPeriod: int(1000/period) == 0 for period > 1000, then divides by it
     auto d = P(Doc("", Grid("T", { 100 })));
     LORMusic l(d, 2000);
