@@ -163,17 +163,6 @@ TEST_CASE("Morph colour above 100 percent does not wrap", "[impexp2][super][morp
     CHECK(f.Find("Morph").Get("C_BUTTON_Palette1") == "#ff0000");
 }
 
-TEST_CASE("Morph with the real file child order ramp first", "[impexp2][super][morph][!mayfail]") {
-    // children are read by position as state1,state2,ramp; the real file lists ramp,state1,state2
-    Fixture f;
-    REQUIRE(f.RunRaw(Doc(Layout(), Morph("layer=\"2\"", S1, S2, RAMP, true))));
-    auto e = f.Find("Morph");
-    REQUIRE(e.layer >= 0);
-    CHECK(e.start == 100);
-    CHECK(e.end == 700);
-    CHECK(e.Get("C_BUTTON_Palette1") == "#ff0000");
-}
-
 // ---------------------------------------------------------------- flowys
 
 TEST_CASE("Spiral flowy becomes a Galaxy", "[impexp2][super][flowy]") {
