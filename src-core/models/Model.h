@@ -131,8 +131,10 @@ public:
     void SetCustomColor(std::string const& color) { customColor = color; }
     [[nodiscard]] xlColor GetCustomColor() const { return customColor; }
     
-    void SetDirection( const std::string dir ) { _dir = dir; }
-    void SetStartSide( const std::string start_side ) { _startSide = start_side; }
+    // The strings are what gets saved; IsLtoR/isBotToTop are what renders and shows in the
+    // property grid. Keep them in step so a model never saves a different corner than it shows.
+    void SetDirection( const std::string dir ) { _dir = dir; IsLtoR = dir != "R"; }
+    void SetStartSide( const std::string start_side ) { _startSide = start_side; isBotToTop = start_side == "B"; }
 
     virtual bool SupportsChangingStringCount() const { return false; };
     virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
