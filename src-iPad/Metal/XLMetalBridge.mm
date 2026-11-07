@@ -1567,11 +1567,32 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return anyRotated;
 }
 
+- (NSArray<NSString*>*)stringLayoutTargets:(NSArray<NSString*>*)targets
+                                forSource:(NSString*)source
+                              forDocument:(XLSequenceDocument*)doc {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!doc || source.length == 0) return out;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return out;
+    auto& mgr = rctx->GetModelManager();
+    Model* sourceModel = mgr[std::string(source.UTF8String)];
+    if (!sourceModel) return out;
+    for (NSString* t in targets) {
+        if (t.length == 0) continue;
+        Model* target = mgr[std::string(t.UTF8String)];
+        if (target && target != sourceModel && sourceModel->CanCopyStringLayoutFrom(*target)) {
+            [out addObject:t];
+        }
+    }
+    return out;
+}
+
 - (NSInteger)replaceModels:(NSArray<NSString*>*)targets
                 withSource:(NSString*)source
           keepStartChannel:(BOOL)keepStartChannel
              keepSubmodels:(BOOL)keepSubmodels
           keepSizePosition:(BOOL)keepSizePosition
+               keepStrings:(BOOL)keepStrings
                  groupMode:(NSInteger)groupMode
                forDocument:(XLSequenceDocument*)doc {
     if (!doc || targets.count == 0 || source.length == 0) return 0;
@@ -1642,6 +1663,9 @@ float ReadAlignReference(Model* model, const std::string& edge) {
             // so a locked clone still copies, sizes before centring, and copies
             // scale rather than M-dimensions - the clone has no render size yet.
             clone->CopyGeometryFrom(*target);
+        }
+        if (keepStrings && clone->CanCopyStringLayoutFrom(*target)) {
+            clone->CopyStringLayoutFrom(*target);
         }
 
         // Atomic name swap: park the old target under a trash name,

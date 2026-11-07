@@ -136,6 +136,8 @@ public:
 
     virtual bool SupportsChangingStringCount() const { return false; };
     virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
+    // startNodes is 1-based per string; empty when the model has no start nodes.
+    virtual bool ApplyStringLayout(int strings, const std::vector<int>& startNodes) { return strings == GetNumStrings(); }
 
     std::string description;
     int _controller = 0; // this is used to pass the selected controller name between property create and property change only
@@ -467,6 +469,9 @@ public:
     // replacement model has to keep the geometry of the model it replaces.
     // Callers still own Setup() / IncrementChangeCount().
     void CopyGeometryFrom(const Model& other);
+    // Takes other's string count and per-string start nodes when this model has at least as many nodes.
+    bool CanCopyStringLayoutFrom(const Model& other) const;
+    bool CopyStringLayoutFrom(const Model& other);
     virtual bool ModelRenamed(const std::string& oldName, const std::string& newName);
     [[nodiscard]] uint32_t GetNodeCount() const;
     [[nodiscard]] NodeBaseClass* GetNode(uint32_t node) const;

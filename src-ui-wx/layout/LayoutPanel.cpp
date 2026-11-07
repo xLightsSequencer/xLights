@@ -10539,12 +10539,16 @@ void LayoutPanel::ReplaceModel()
     // disabled: replacing one would delete a model the base folder owns.
     std::vector<std::string> candidates;
     std::set<std::string> baseLinked;
+    std::set<std::string> stringLayoutTargets;
     candidates.reserve(modelPreview->GetModels().size());
     for (auto* m : modelPreview->GetModels()) {
         if (m != nullptr && m != sourceModel) {
             candidates.push_back(m->GetName());
             if (m->IsFromBase()) {
                 baseLinked.insert(m->GetName());
+            }
+            if (sourceModel->CanCopyStringLayoutFrom(*m)) {
+                stringLayoutTargets.insert(m->GetName());
             }
         }
     }
@@ -10555,7 +10559,7 @@ void LayoutPanel::ReplaceModel()
     }
     std::sort(candidates.begin(), candidates.end());
 
-    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates, baseLinked);
+    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates, baseLinked, stringLayoutTargets);
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() != wxID_OK) return;
 
@@ -10565,6 +10569,7 @@ void LayoutPanel::ReplaceModel()
     const bool copyStartCh = dlg.CopyStartChannel();
     const bool mergeSubs   = dlg.MergeSubmodels();
     const bool copySizePos = dlg.CopySizePos();
+    const bool copyStrings = dlg.CopyStrings();
     const ReplaceGroupMode groupMode = dlg.GroupHandling();
 
     xlights->UnselectEffect(); // in case an effect lives on one of the targets
@@ -10603,6 +10608,7 @@ void LayoutPanel::ReplaceModel()
     int successCount = 0;
     std::vector<std::string> failures;
     std::vector<std::string> replacedNames; // targets successfully swapped, for group reconciliation
+    std::vector<std::string> stringsNotKept;
 
     for (const auto& targetName : targetNames) {
         // Re-resolve the target from the model manager each iteration - names
@@ -10687,6 +10693,9 @@ void LayoutPanel::ReplaceModel()
         if (copySizePos) {
             CopyGeometryFromTarget(clone, target);
         }
+        if (copyStrings && clone->CanCopyStringLayoutFrom(*target) && !clone->CopyStringLayoutFrom(*target)) {
+            stringsNotKept.push_back(targetName);
+        }
 
         // Rename dance: swap the target out and the clone in under the target's
         // original name, then delete the parked target. Mirrors the approach
@@ -10760,6 +10769,15 @@ void LayoutPanel::ReplaceModel()
                                                   OutputModelManager::WORK_RELOAD_MODELLIST,
                                                   workCtx);
 
+    wxString stringsNote;
+    if (!stringsNotKept.empty()) {
+        stringsNote = "\n\n# strings and start nodes could not be applied to: ";
+        for (size_t i = 0; i < stringsNotKept.size(); ++i) {
+            if (i > 0) stringsNote += ", ";
+            stringsNote += wxString::FromUTF8(stringsNotKept[i]);
+        }
+    }
+
     // Always show a confirmation so the user knows the operation finished,
     // even when it was a silent full success. The icon makes the outcome
     // obvious at a glance (info / warning / error).
@@ -10767,8 +10785,8 @@ void LayoutPanel::ReplaceModel()
         wxMessageBox(
             wxString::Format("Successfully replaced %d model%s.%s",
                              successCount, successCount == 1 ? "" : "s",
-                             sourceDeleted ? wxString::Format(" Source model '%s' was deleted.", sourceName) : ""),
-            "Replace Model", wxOK | wxICON_INFORMATION, this);
+                             sourceDeleted ? wxString::Format(" Source model '%s' was deleted.", sourceName) : "") + stringsNote,
+            "Replace Model", wxOK | (stringsNote.empty() ? wxICON_INFORMATION : wxICON_WARNING), this);
     } else if (successCount == 0) {
         wxString msg = "No models were replaced.";
         if (!failures.empty()) {
@@ -10792,6 +10810,7 @@ void LayoutPanel::ReplaceModel()
                 msg += failures[i];
             }
         }
+        msg += stringsNote;
         wxMessageBox(msg, "Replace Model", wxOK | wxICON_WARNING, this);
     }
 

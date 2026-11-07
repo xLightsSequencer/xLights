@@ -601,7 +601,8 @@ NS_ASSUME_NONNULL_BEGIN
 // start-channel + controller/port/smart-remote assignment,
 // `keepSubmodels` carries the target's submodels onto the clone,
 // `keepSizePosition` preserves the target's centre / size /
-// rotation. Models from the base show or named `source` are
+// rotation, `keepStrings` keeps the target's # strings and start
+// nodes when the source has as many nodes or more. Models from the base show or named `source` are
 // skipped. Returns the count of targets replaced.
 // `groupMode` reconciles each replaced model's group memberships against the
 // source: 0 = leave unchanged, 1 = replace with the source's direct groups,
@@ -612,8 +613,15 @@ NS_ASSUME_NONNULL_BEGIN
           keepStartChannel:(BOOL)keepStartChannel
              keepSubmodels:(BOOL)keepSubmodels
           keepSizePosition:(BOOL)keepSizePosition
+               keepStrings:(BOOL)keepStrings
                  groupMode:(NSInteger)groupMode
                forDocument:(XLSequenceDocument*)doc;
+
+// Targets whose # strings and start nodes `source` can take on (source has as
+// many nodes or more, and it isn't single-string on both sides).
+- (NSArray<NSString*>*)stringLayoutTargets:(NSArray<NSString*>*)targets
+                                forSource:(NSString*)source
+                              forDocument:(XLSequenceDocument*)doc;
 
 // Phase J-7 (multi-select) — duplicate each named model. Each
 // copy is offset by (+50, +50, 0) world units from the source so
