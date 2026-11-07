@@ -67,22 +67,24 @@ inline HSVColor toHSV(const uint32 &c)
 
 inline uint32 fromHSV(const HSVColor &hsv, uint8 alph = 255) {
     float red, green, blue;
+    float sat = clamp(hsv.y, 0.0f, 1.0f);
+    float val = clamp(hsv.z, 0.0f, 1.0f);
 
-    if (0.0f == hsv.y) {
+    if (0.0f == sat) {
         // Grey
-        red = hsv.z;
-        green = hsv.z;
-        blue = hsv.z;
+        red = val;
+        green = val;
+        blue = val;
     } else { // not grey
-        float hue = hsv.x * 6.0;      // sector 0 to 5
+        float hue = clamp(hsv.x, 0.0f, 1.0f) * 6.0;      // sector 0 to 5
         int i = (int)floor(hue);
         float f = hue - i;          // fractional part of h
         int sec = i > 5 ? 5 : i;    // hue==1.0 lands in sector 6; the old
                                     // switch's default folded it into 5, so match.
-        float v = hsv.z;
-        float p = hsv.z * (1.0 - hsv.y);
-        float q = hsv.z * (1.0 - hsv.y * f);
-        float t = hsv.z * (1.0 - hsv.y * (1.0 - f));
+        float v = val;
+        float p = val * (1.0 - sat);
+        float q = val * (1.0 - sat * f);
+        float t = val * (1.0 - sat * (1.0 - f));
         // Branchless sector select - replaces a switch(i) on the varying lane
         // index (which forced SIMD divergence).  Identical per-sector values:
         //   sector: 0  1  2  3  4  5
@@ -173,8 +175,8 @@ export void GetColorsISPCKernel(uniform const LayerBlendingData &data,
                         result[index] = c;
                         nc = cnt;
                     } else {
-                        int32 x = nidx / data.bufferHi;
-                        int32 y = nidx - (x * data.bufferHi);
+                        int32 x = nidx % data.bufferWi;
+                        int32 y = nidx / data.bufferWi;
                         int32 midx = x * data.bufferHi + y;
                         if (mask[midx] == 0) {
                             result[index] = c;
@@ -228,8 +230,8 @@ export void PutColorsForNodes(uniform const LayerBlendingData &data,
                 int nidx = indexes[idx + n];
                 if (nidx >= 0) {
                     if (data.useMask && mask) {
-                        int32 x = nidx / data.bufferHi;
-                        int32 y = nidx - (x * data.bufferHi);
+                        int32 x = nidx % data.bufferWi;
+                        int32 y = nidx / data.bufferWi;
                         int32 midx = x * data.bufferHi + y;
                         if (mask[midx] > 0) {
                             result[nidx] = ZERO_COLOR;
@@ -242,8 +244,8 @@ export void PutColorsForNodes(uniform const LayerBlendingData &data,
                 }
             }
         } else if (data.useMask && mask) {
-            int32 x = idx / data.bufferHi;
-            int32 y = idx - (x * data.bufferHi);
+            int32 x = idx % data.bufferWi;
+            int32 y = idx / data.bufferWi;
             int32 midx = x * data.bufferHi + y;
             if (mask[midx] > 0) {
                 result[idx] = ZERO_COLOR;

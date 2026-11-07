@@ -11,8 +11,6 @@ using namespace metal;
 #include "MetalEffectDataTypes.h"
 
 
-constant float M_PI = 3.1415926535897932384626433832;
-constant float M_PI2 = M_PI*2;
 
 
 kernel void RotoZoomBlank(constant RotoZoomData &data,
@@ -89,36 +87,36 @@ kernel void BoxBlur(constant BoxBlurData &data,
     if (sm == 0) sm = 1;
     dst[y * data.width + x] = uchar4(uchar(r / sm), uchar(g / sm), uchar(b / sm), uchar(a / sm));
 }
-// The rotate kernels scatter: several source pixels can round() to the same
-// destination, and concurrent GPU threads racing for it made the output
-// non-deterministic run to run.  Each rotation therefore runs in two phases:
-// a Claim pass records the highest source index per destination via
-// atomic_max, then the write pass lets only that winner store its color.
+// The rotate kernels scatter, so several source pixels can land on one
+// destination. Each rotation runs in two phases: a Claim pass records, per
+// destination, the source the CPU loop in PixelBufferClass::RotateX/Y/
+// RotateZAndZoom writes LAST (atomic_max of its write-order key), then the
+// write pass lets only that source store its color. Destinations truncate
+// like SetPixel, and the trig, pivots and offsets come precomputed from the
+// host (RotoZoomSettings), so the output is deterministic and equal to the
+// CPU render.
 
+// X: x from the pivot up, then from pivot - 1 down; key = that order.
 kernel void RotoZoomRotateXClaim(constant RotoZoomData &data,
                                  device atomic_int* owner,
                                  uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
-    uint sidx = index.y * data.width + index.x;
-
-    float x = index.x;
-    float sine = sin((data.xrotation + 90.0) * M_PI / 180.0);
-    float pivot = data.xpivot * data.width / 100.0;
+    int x = index.x;
+    int pivot = (int)data.xpivotPx;
     float tox;
+    int key;
     if (x >= pivot) {
-        tox = sine * (x - pivot) + pivot;
+        tox = data.xsine * (float)(x - pivot) + data.xpivotPx;
+        key = x - pivot;
     } else {
-        tox = -1 * sine * (pivot - x) + pivot;
+        tox = -1 * data.xsine * (float)(pivot - x) + data.xpivotPx;
+        key = (int)data.width + (pivot - 1 - x);
     }
-    // Bounds-check the ROUNDED index, not the float: round() can push a value
-    // in [width-0.5, width) up to width, which would scatter past the end of
-    // the buffer into the next layer's Metal allocation (a run-to-run
-    // determinism corruption).  Matches the CPU SetPixel bounds drop.
-    int toxi = (int)round(tox);
+    int toxi = (int)tox;
     if (toxi >= 0 && toxi < (int)data.width) {
         uint didx = index.y * data.width + toxi;
-        atomic_fetch_max_explicit(&owner[didx], (int)sidx, memory_order_relaxed);
+        atomic_fetch_max_explicit(&owner[didx], key, memory_order_relaxed);
     }
 }
 
@@ -129,51 +127,47 @@ kernel void RotoZoomRotateX(constant RotoZoomData &data,
                             uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
-    uint sidx = index.y * data.width + index.x;
-
-    float x = index.x;
-    float sine = sin((data.xrotation + 90.0) * M_PI / 180.0);
-    float pivot = data.xpivot * data.width / 100.0;
+    int x = index.x;
+    int pivot = (int)data.xpivotPx;
     float tox;
+    int key;
     if (x >= pivot) {
-        tox = sine * (x - pivot) + pivot;
+        tox = data.xsine * (float)(x - pivot) + data.xpivotPx;
+        key = x - pivot;
     } else {
-        tox = -1 * sine * (pivot - x) + pivot;
+        tox = -1 * data.xsine * (float)(pivot - x) + data.xpivotPx;
+        key = (int)data.width + (pivot - 1 - x);
     }
-    int toxi = (int)round(tox);
+    int toxi = (int)tox;
     if (toxi >= 0 && toxi < (int)data.width) {
         uint didx = index.y * data.width + toxi;
-        if (owner[didx] == (int)sidx) {
-            result[didx] = src[sidx];
+        if (owner[didx] == key) {
+            result[didx] = src[index.y * data.width + index.x];
         }
     }
 }
 
+// Y: y from the pivot up, then from pivot - 1 down; key = that order.
 kernel void RotoZoomRotateYClaim(constant RotoZoomData &data,
                                  device atomic_int* owner,
                                  uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
-    uint sidx = index.y * data.width + index.x;
-
-    float y = index.y;
-    float sine = sin((data.yrotation + 90.0) * M_PI / 180.0);
-    float pivot = (data.ypivot * data.height) / 100.0;
-
+    int y = index.y;
+    int pivot = (int)data.ypivotPx;
     float toy;
+    int key;
     if (y >= pivot) {
-        toy = sine * (y - pivot) + pivot;
+        toy = data.ysine * (float)(y - pivot) + data.ypivotPx;
+        key = y - pivot;
     } else {
-        toy = -1 * sine * (pivot - y) + pivot;
+        toy = -1 * data.ysine * (float)(pivot - y) + data.ypivotPx;
+        key = (int)data.height + (pivot - 1 - y);
     }
-    // Bounds-check the ROUNDED index (see RotoZoomRotateXClaim): on a height-1
-    // buffer, toy in [0.5, 1.0) passes the float guard but rounds to 1, so
-    // didx = 1*width + x scatters a full row past the buffer end into the
-    // adjacent layer's Metal buffer.
-    int toyi = (int)round(toy);
+    int toyi = (int)toy;
     if (toyi >= 0 && toyi < (int)data.height) {
         uint didx = toyi * data.width + index.x;
-        atomic_fetch_max_explicit(&owner[didx], (int)sidx, memory_order_relaxed);
+        atomic_fetch_max_explicit(&owner[didx], key, memory_order_relaxed);
     }
 }
 
@@ -184,61 +178,47 @@ kernel void RotoZoomRotateY(constant RotoZoomData &data,
                             uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
-    uint sidx = index.y * data.width + index.x;
-
-    float y = index.y;
-    float sine = sin((data.yrotation + 90.0) * M_PI / 180.0);
-    float pivot = (data.ypivot * data.height) / 100.0;
-
+    int y = index.y;
+    int pivot = (int)data.ypivotPx;
     float toy;
+    int key;
     if (y >= pivot) {
-        toy = sine * (y - pivot) + pivot;
+        toy = data.ysine * (float)(y - pivot) + data.ypivotPx;
+        key = y - pivot;
     } else {
-        toy = -1 * sine * (pivot - y) + pivot;
+        toy = -1 * data.ysine * (float)(pivot - y) + data.ypivotPx;
+        key = (int)data.height + (pivot - 1 - y);
     }
-    int toyi = (int)round(toy);
+    int toyi = (int)toy;
     if (toyi >= 0 && toyi < (int)data.height) {
         uint didx = toyi * data.width + index.x;
-        if (owner[didx] == (int)sidx) {
-            result[didx] = src[sidx];
+        if (owner[didx] == key) {
+            result[didx] = src[index.y * data.width + index.x];
         }
     }
 }
 
+// Z/zoom: loops x, i, y, j with a float bounds check before SetPixel; key =
+// that loop order (the host keeps it within an int).
 kernel void RotoZoomRotateZClaim(constant RotoZoomData &data,
                                  device atomic_int* owner,
                                  uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
-    uint sidx = index.y * data.width + index.x;
-
-    float zoom = data.zoom;
-    float q = data.zoomquality;
-    int cx = data.pivotpointx;
-    int cy = data.pivotpointy;
-    float rotation = data.zrotation;
-
-    float inc = 1.0 / (float)q;
-
-    float angle = M_PI2 * -rotation;
-    float xoff = (cx * data.width) / 100.0;
-    float yoff = (cy * data.height) / 100.0;
-    float anglecos = cos(-angle);
-    float anglesin = sin(-angle);
-
-    float x = index.x;
-    float y = index.y;
-
+    int q = (int)data.zoomquality;
+    int x = index.x;
+    int y = index.y;
     for (int i = 0; i < q; i++) {
         for (int j = 0; j < q; j++) {
-            float xx = x + ((float)i * inc) - xoff;
-            float yy = y + ((float)j * inc) - yoff;
-            int u = round(xoff + anglecos * xx * zoom + anglesin * yy * zoom);
-            if (u >= 0 && u < (int)data.width) {
-                int v = round(yoff + -anglesin * xx * zoom + anglecos * yy * zoom);
-                if (v >= 0 && v < (int)data.height) {
-                    uint didx = v * data.width + u;
-                    atomic_fetch_max_explicit(&owner[didx], (int)sidx, memory_order_relaxed);
+            float xx = (float)x + ((float)i * data.zinc) - data.zxoff;
+            float yy = (float)y + ((float)j * data.zinc) - data.zyoff;
+            float u = data.zxoff + data.zcos * xx * data.zoom + data.zsin * yy * data.zoom;
+            if (u >= 0 && u < (float)data.width) {
+                float v = data.zyoff + -data.zsin * xx * data.zoom + data.zcos * yy * data.zoom;
+                if (v >= 0 && v < (float)data.height) {
+                    uint didx = (uint)v * data.width + (uint)u;
+                    int key = ((x * q + i) * (int)data.height + y) * q + j;
+                    atomic_fetch_max_explicit(&owner[didx], key, memory_order_relaxed);
                 }
             }
         }
@@ -252,37 +232,21 @@ kernel void RotoZoomRotateZ(constant RotoZoomData &data,
                             uint2 index [[thread_position_in_grid]]) {
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
-    uint sidx = index.y * data.width + index.x;
-
-    float zoom = data.zoom;
-    float q = data.zoomquality;
-    int cx = data.pivotpointx;
-    int cy = data.pivotpointy;
-    float rotation = data.zrotation;
-
-    float inc = 1.0 / (float)q;
-
-    float angle = M_PI2 * -rotation;
-    float xoff = (cx * data.width) / 100.0;
-    float yoff = (cy * data.height) / 100.0;
-    float anglecos = cos(-angle);
-    float anglesin = sin(-angle);
-
-    float x = index.x;
-    float y = index.y;
-
-    uchar4 c = src[sidx];
-
+    int q = (int)data.zoomquality;
+    int x = index.x;
+    int y = index.y;
+    uchar4 c = src[index.y * data.width + index.x];
     for (int i = 0; i < q; i++) {
         for (int j = 0; j < q; j++) {
-            float xx = x + ((float)i * inc) - xoff;
-            float yy = y + ((float)j * inc) - yoff;
-            int u = round(xoff + anglecos * xx * zoom + anglesin * yy * zoom);
-            if (u >= 0 && u < (int)data.width) {
-                int v = round(yoff + -anglesin * xx * zoom + anglecos * yy * zoom);
-                if (v >= 0 && v < (int)data.height) {
-                    uint didx = v * data.width + u;
-                    if (owner[didx] == (int)sidx) {
+            float xx = (float)x + ((float)i * data.zinc) - data.zxoff;
+            float yy = (float)y + ((float)j * data.zinc) - data.zyoff;
+            float u = data.zxoff + data.zcos * xx * data.zoom + data.zsin * yy * data.zoom;
+            if (u >= 0 && u < (float)data.width) {
+                float v = data.zyoff + -data.zsin * xx * data.zoom + data.zcos * yy * data.zoom;
+                if (v >= 0 && v < (float)data.height) {
+                    uint didx = (uint)v * data.width + (uint)u;
+                    int key = ((x * q + i) * (int)data.height + y) * q + j;
+                    if (owner[didx] == key) {
                         result[didx] = c;
                     }
                 }

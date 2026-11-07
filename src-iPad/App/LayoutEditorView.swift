@@ -1025,6 +1025,9 @@ struct LayoutEditorView: View {
         .modifier(ControllerDiscoveryModifier(
             running: $controllerDiscoveryRunning,
             result: $controllerDiscoveryResult))
+        .modifier(NewControllersConfirmModifier(
+            names: pendingNewControllers?.names,
+            onResolve: { add in resolveNewControllers(add: add) }))
         .modifier(ControllerUploadModifier(
             pendingConfirmName: $pendingUploadConfirmName,
             running: $uploadRunning,
@@ -1337,6 +1340,7 @@ struct LayoutEditorView: View {
                             Image(systemName: "plus.circle.fill")
                         }
                         .buttonStyle(.plain)
+                        .disabled(!canAddViewObject)
                         .accessibilityLabel("New view object")
                     }
                 }
@@ -1358,6 +1362,7 @@ struct LayoutEditorView: View {
                             addViewObjectSheetVisible = true
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(!canAddViewObject)
                     }
                 } else if filteredObjectNames.isEmpty {
                     ContentUnavailableView.search(text: objectFilter)
@@ -1367,6 +1372,10 @@ struct LayoutEditorView: View {
             controllersList
         }
     }
+
+    /// Desktop's `LayoutPanel::UpdateAddObjectButton()`: view objects
+    /// live only in the Default preview, which is the 3D one.
+    private var canAddViewObject: Bool { settings.is3D && activeLayoutGroup == "Default" }
 
     /// Desktop's `ControllerListPanel::NetworkChangesAllowed()` — no
     /// controller add/delete/reorder/edit/upload while the show is
@@ -1786,9 +1795,8 @@ struct LayoutEditorView: View {
         let doc = viewModel.document
         Task.detached {
             let raw = doc.runControllerDiscovery() as NSDictionary
-            let added   = (raw["added"]   as? NSNumber)?.intValue ?? 0
             let already = (raw["already"] as? NSNumber)?.intValue ?? 0
-            let names   = (raw["addedNames"] as? [String]) ?? []
+            let pending = (raw["pendingNames"] as? [String]) ?? []
             // Coerce keys to String — ObjC NSDictionary bridges
             // to `[AnyHashable: Any]`, the descriptor renderer
             // needs string keys.
@@ -1803,34 +1811,54 @@ struct LayoutEditorView: View {
             }
             await MainActor.run {
                 controllerDiscoveryRunning = false
-                refreshModelList()
-                hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
-                if added == 0 && already == 0 && mismatches.isEmpty {
-                    controllerDiscoveryResult = "No controllers found. Make sure the iPad is on the same Wi-Fi network as your controllers, then try again."
-                } else if added == 0 && mismatches.isEmpty {
-                    controllerDiscoveryResult = "Discovery complete — all \(already) responding controllers are already in your show."
+                if pending.isEmpty {
+                    finishControllerDiscovery(added: [], already: already, mismatches: mismatches)
                 } else {
-                    // If there are conflicts to resolve, present
-                    // the resolution sheet FIRST. The auto-add
-                    // summary is folded into a follow-up alert
-                    // after the user finishes resolving.
-                    if !mismatches.isEmpty {
-                        pendingDiscoveryMismatches = mismatches
-                    } else {
-                        controllerDiscoveryResult =
-                            "Added \(added) controller\(added == 1 ? "" : "s")." +
-                            ((already > 0) ? " \(already) other\(already == 1 ? " was" : "s were") already in the show." : "") +
-                            (names.isEmpty ? "" : "\n\n• " + names.joined(separator: "\n• "))
-                        if let first = names.first {
-                            viewModel.layoutEditorSelectedController = first
-                        }
-                    }
-                    // Stash the auto-add summary so we can append
-                    // it to the mismatch-resolution completion
-                    // alert later.
-                    discoveryAutoAddSummary = (added, already, names)
+                    pendingNewControllers = (pending, already, mismatches)
                 }
             }
+        }
+    }
+
+    @State private var pendingNewControllers: (names: [String], already: Int, mismatches: [[String: Any]])? = nil
+
+    private func resolveNewControllers(add: Bool) {
+        guard let p = pendingNewControllers else { return }
+        pendingNewControllers = nil
+        let names = viewModel.document.resolvePendingDiscoveredControllers(add: add)
+        finishControllerDiscovery(added: names, declined: add ? 0 : p.names.count,
+                                  already: p.already, mismatches: p.mismatches)
+    }
+
+    private func finishControllerDiscovery(added names: [String], declined: Int = 0, already: Int, mismatches: [[String: Any]]) {
+        let added = names.count
+        refreshModelList()
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        if added == 0 && declined == 0 && already == 0 && mismatches.isEmpty {
+            controllerDiscoveryResult = "No controllers found. Make sure the iPad is on the same Wi-Fi network as your controllers, then try again."
+        } else if added == 0 && mismatches.isEmpty {
+            controllerDiscoveryResult = (declined > 0 ? "Didn't add \(declined) new controller\(declined == 1 ? "" : "s")." : "Discovery complete —") +
+                (already > 0 ? " \(already) responding controller\(already == 1 ? " is" : "s are") already in your show." : "")
+        } else {
+            // If there are conflicts to resolve, present
+            // the resolution sheet FIRST. The auto-add
+            // summary is folded into a follow-up alert
+            // after the user finishes resolving.
+            if !mismatches.isEmpty {
+                pendingDiscoveryMismatches = mismatches
+            } else {
+                controllerDiscoveryResult =
+                    "Added \(added) controller\(added == 1 ? "" : "s")." +
+                    ((already > 0) ? " \(already) other\(already == 1 ? " was" : "s were") already in the show." : "") +
+                    (names.isEmpty ? "" : "\n\n• " + names.joined(separator: "\n• "))
+                if let first = names.first {
+                    viewModel.layoutEditorSelectedController = first
+                }
+            }
+            // Stash the auto-add summary so we can append
+            // it to the mismatch-resolution completion
+            // alert later.
+            discoveryAutoAddSummary = (added, already, names)
         }
     }
 
@@ -1864,7 +1892,7 @@ struct LayoutEditorView: View {
         var parts: [String] = []
         let summary = discoveryAutoAddSummary
         if summary.added > 0 {
-            parts.append("Auto-added \(summary.added) controller\(summary.added == 1 ? "" : "s").")
+            parts.append("Added \(summary.added) new controller\(summary.added == 1 ? "" : "s").")
         }
         if summary.already > 0 {
             parts.append("\(summary.already) other\(summary.already == 1 ? " was" : "s were") already in the show.")
@@ -2895,7 +2923,6 @@ struct LayoutEditorView: View {
                     LayoutEditorObjectPropertiesView(
                         objectName: name,
                         summary: summary,
-                        layoutGroups: layoutGroups,
                         token: summaryToken,
                         commit: { key, value in
                             commitObjectProperty(objectName: name, key: key, value: value)
@@ -11449,6 +11476,26 @@ private struct DiscoveryMismatchResolveSheet: View {
     }
 }
 
+private struct NewControllersConfirmModifier: ViewModifier {
+    let names: [String]?
+    let onResolve: (_ add: Bool) -> Void
+
+    func body(content: Content) -> some View {
+        content.alert("Add New Controllers",
+                      isPresented: Binding(get: { names != nil },
+                                           set: { if !$0 && names != nil { onResolve(false) } })) {
+            Button("Add") { onResolve(true) }
+            Button("Don't Add", role: .cancel) { onResolve(false) }
+        } message: {
+            let list = names ?? []
+            Text("Discovery found \(list.count) controller\(list.count == 1 ? "" : "s") that aren't in your controller list:\n\n• " +
+                 list.prefix(20).joined(separator: "\n• ") +
+                 (list.count > 20 ? "\n…and \(list.count - 20) more" : "") +
+                 "\n\nAre you sure you want to add them?")
+        }
+    }
+}
+
 /// J-31.4 — Discovery progress overlay + result alert. Bundles
 /// both into a single modifier so the outer body chain stays
 /// within Swift's type-checker budget (same pattern as the
@@ -12902,7 +12949,6 @@ private struct LayoutEditorObjectPropertiesView: View {
     @Environment(SequencerViewModel.self) var viewModel
     let objectName: String
     let summary: [String: Any]
-    let layoutGroups: [String]
     let token: Int
     let commit: (_ key: String, _ value: Any) -> Void
     let onPickFile: (_ key: String, _ accepting: [UTType]) -> Void
@@ -12956,7 +13002,10 @@ private struct LayoutEditorObjectPropertiesView: View {
                         .labelsHidden()
                         .controlSize(.mini)
                 }
-                row("Layout group") { layoutGroupPicker }
+                row("Layout group") {
+                    Text(summary["layoutGroup"] as? String ?? "Default")
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if !((summary["twoPoint"] as? Bool) ?? false) {
@@ -13298,29 +13347,6 @@ private struct LayoutEditorObjectPropertiesView: View {
             get: { summary[key] as? Bool ?? false },
             set: { commit(key, NSNumber(value: $0)) }
         )
-    }
-
-    private var layoutGroupPicker: some View {
-        Menu {
-            ForEach(layoutGroups, id: \.self) { name in
-                Button {
-                    commit("layoutGroup", name as NSString)
-                } label: {
-                    HStack {
-                        Text(name)
-                        if name == (summary["layoutGroup"] as? String) {
-                            Spacer()
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            }
-        } label: {
-            Text(summary["layoutGroup"] as? String ?? "Default")
-                .truncationMode(.middle)
-        }
-        .menuStyle(.button)
-        .controlSize(.mini)
     }
 
     private func doubleVal(_ key: String) -> Double {

@@ -292,92 +292,9 @@ endif()
 
 # ─── Source file collection ─────────────────────────────────────────────────
 
-# Core (wx-free)
-file(GLOB_RECURSE SRC_CORE
-    src-core/XmlSerializer/*.cpp
-    src-core/ai/*.cpp
-    src-core/cad/*.cpp
-    src-core/controllers/*.cpp
-	src-core/diagnostics/*.cpp
-    src-core/discovery/*.cpp
-    src-core/import_export/*.cpp
-    src-core/graphics/GLBackend.cpp
-    src-core/graphics/GLContextManager.cpp
-    src-core/graphics/xlFontInfo.cpp
-    src-core/graphics/xlGraphicsAccumulators.cpp
-    src-core/graphics/xlGraphicsCapability.cpp
-    src-core/graphics/xlMesh.cpp
-    src-core/lyrics/*.cpp
-    src-core/media/AudioLoader.cpp
-    src-core/media/AIModelStore.cpp
-    src-core/media/AudioManager.cpp
-    src-core/media/ChordDetector.cpp
-    src-core/media/FFmpegAudioDecoder.cpp
-    src-core/media/FFmpegVideoReader.cpp
-    src-core/media/MediaCompatibility.cpp
-    src-core/media/OnsetDetector.cpp
-    src-core/media/PitchDetector.cpp
-    src-core/media/SDLAudioOutput.cpp
-    src-core/media/Spectrogram.cpp
-    src-core/media/StemSeparator.cpp
-    src-core/media/TempoDetector.cpp
-    src-core/media/FFmpegVideoWriter.cpp
-    src-core/media/VideoDecodeSizeRegistry.cpp
-    src-core/media/VideoReader.cpp
-    src-core/media/VideoTranscoder.cpp
-    src-core/media/VideoWriter.cpp
-    src-core/media/kiss_fft/kiss_fft.c
-    src-core/media/kiss_fft/tools/kiss_fftr.c
-    src-core/models/*.cpp
-    src-core/models/DMX/*.cpp
-    src-core/models/DMX/MovingHeads/*.cpp
-    src-core/outputs/*.cpp
-    src-core/render/*.cpp
-    src-core/settings/*.cpp
-    src-core/utils/*.cpp
-)
-if(WIN32)
-    list(APPEND SRC_CORE
-        src-core/media/WindowsHardwareVideoReader.cpp
-        src-core/media/LiveCameraCapture.cpp)
-    list(REMOVE_ITEM SRC_CORE
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_posix.cpp
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_osx.cpp
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp)
-elseif(APPLE)
-    list(APPEND SRC_CORE src-core/media/AVFoundationVideoWriter.cpp)
-    list(REMOVE_ITEM SRC_CORE
-        ${CMAKE_SOURCE_DIR}/src-core/media/WindowsHardwareVideoReader.cpp
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_posix.cpp)
-else()
-    list(APPEND SRC_CORE src-core/media/LiveCameraCapture.cpp)
-    list(REMOVE_ITEM SRC_CORE
-        ${CMAKE_SOURCE_DIR}/src-core/media/WindowsHardwareVideoReader.cpp
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_osx.cpp)
-endif()
-
-# uDMX requires libusb — detect here so SRC_CORE can be filtered before add_executable
-find_package(PkgConfig QUIET)
-if(PkgConfig_FOUND)
-    pkg_check_modules(LIBUSB QUIET libusb-1.0)
-endif()
-if(NOT LIBUSB_FOUND)
-    find_library(LIBUSB_LIBRARIES NAMES usb-1.0 usb)
-    find_path(LIBUSB_INCLUDE_DIRS NAMES libusb.h PATH_SUFFIXES libusb-1.0)
-    if(LIBUSB_LIBRARIES AND LIBUSB_INCLUDE_DIRS)
-        set(LIBUSB_FOUND TRUE)
-    endif()
-endif()
-if(NOT LIBUSB_FOUND)
-    message(STATUS "libusb not found — uDMX output disabled")
-    list(REMOVE_ITEM SRC_CORE
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/uDMXOutput.h
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/uDMXOutput.cpp)
-else()
-    message(STATUS "libusb found — uDMX output enabled")
-endif()
+# Core (wx-free) source list: shared with tests/unit (see the file for details).
+set(XL_SRC_ROOT ${CMAKE_SOURCE_DIR})
+include(${CMAKE_SOURCE_DIR}/cmake/XLightsCoreSources.cmake)
 
 # Effects
 file(GLOB SRC_EFFECTS
@@ -395,38 +312,7 @@ set(XLIGHTS_VULKAN_ENABLED FALSE)
 # the glslc CustomBuild + ClCompile entries, so the .sln build stays CPU-only;
 # only the CMake path builds the Vulkan backend on Windows.
 if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
-    list(APPEND SRC_EFFECTS
-        src-core/effects/vulkan/VulkanComputeUtilities.cpp
-        src-core/effects/vulkan/VulkanGraphicsUtilities.cpp
-        src-core/effects/vulkan/VulkanShaderTranslate.cpp
-        src-core/effects/vulkan/VulkanEffectManager.cpp
-        src-core/effects/vulkan/VulkanLibs.cpp
-        src-core/effects/vulkan/VulkanBarsEffect.cpp
-        src-core/effects/vulkan/VulkanColorWashEffect.cpp
-        src-core/effects/vulkan/VulkanShockwaveEffect.cpp
-        src-core/effects/vulkan/VulkanFanEffect.cpp
-        src-core/effects/vulkan/VulkanSpiralsEffect.cpp
-        src-core/effects/vulkan/VulkanGalaxyEffect.cpp
-        src-core/effects/vulkan/VulkanCirclesEffect.cpp
-        src-core/effects/vulkan/VulkanPlasmaEffect.cpp
-        src-core/effects/vulkan/VulkanButterflyEffect.cpp
-        src-core/effects/vulkan/VulkanPinwheelEffect.cpp
-        src-core/effects/vulkan/VulkanKaleidoscopeEffect.cpp
-        src-core/effects/vulkan/VulkanWarpEffect.cpp
-        src-core/effects/vulkan/VulkanTreeEffect.cpp
-        src-core/effects/vulkan/VulkanShimmerEffect.cpp
-        src-core/effects/vulkan/VulkanCandleEffect.cpp
-        src-core/effects/vulkan/VulkanWaveEffect.cpp
-        src-core/effects/vulkan/VulkanGarlandsEffect.cpp
-        src-core/effects/vulkan/VulkanFillEffect.cpp
-        src-core/effects/vulkan/VulkanMeteorsEffect.cpp
-        src-core/effects/vulkan/VulkanTwinkleEffect.cpp
-        src-core/effects/vulkan/VulkanFireEffect.cpp
-        src-core/effects/vulkan/VulkanLifeEffect.cpp
-        # Vulkan graphics backend (runtime-switchable OpenGL/Vulkan canvas)
-        src-core/graphics/vulkan/VulkanPipelineCache.cpp
-        src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp
-        src-core/effects/vulkan/VulkanShaderEffect.cpp)
+    list(APPEND SRC_EFFECTS ${SRC_VULKAN})
     set(XLIGHTS_VULKAN_ENABLED TRUE)
 endif()
 
@@ -711,12 +597,7 @@ if(XLIGHTS_VULKAN_ENABLED)
             "Install it (Ubuntu/Debian: apt-get install glslc; or the Vulkan SDK)\n"
             "or reconfigure with -DXLIGHTS_USE_VULKAN=OFF.")
     endif()
-    file(GLOB _vulkan_comp CONFIGURE_DEPENDS
-        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.comp
-        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.vert
-        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.frag
-        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.vert
-        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.frag)
+    xl_vulkan_shader_headers(_vulkan_shaders)
     # Windows has no bash by default — run the PowerShell counterpart there.
     # Both scripts honor the GLSLC env var (CMake's find_program result) and emit
     # the same *.spv.h headers.
@@ -725,13 +606,15 @@ if(XLIGHTS_VULKAN_ENABLED)
             COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
                     powershell -NoProfile -ExecutionPolicy Bypass
                     -File ${CMAKE_SOURCE_DIR}/build_scripts/msw/compile_vulkan_shaders.ps1
-            SOURCES ${_vulkan_comp}
+            BYPRODUCTS ${_vulkan_shaders_HEADERS}
+            SOURCES ${_vulkan_shaders}
             COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
     else()
         add_custom_target(vulkan_shaders
             COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
                     bash ${CMAKE_SOURCE_DIR}/build_scripts/compile_vulkan_shaders.sh
-            SOURCES ${_vulkan_comp}
+            BYPRODUCTS ${_vulkan_shaders_HEADERS}
+            SOURCES ${_vulkan_shaders}
             COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
     endif()
     add_dependencies(xLights vulkan_shaders)
@@ -1080,3 +963,12 @@ endif()
 include(GNUInstallDirs)
 install(TARGETS xLights DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY resources/ DESTINATION ${CMAKE_INSTALL_DATADIR}/xLights)
+
+# ─── Unit tests (Catch2) ────────────────────────────────────────────────────
+# Off by default. tests/unit is also a standalone project, which is the easier
+# route on macOS: cmake -S tests/unit -B build-tests -G Xcode
+option(XL_BUILD_TESTS "Build the src-core unit tests" OFF)
+if(XL_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests/unit)
+endif()

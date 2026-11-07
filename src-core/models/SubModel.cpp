@@ -135,7 +135,7 @@ void SubModel::GetBufferSize(const std::string &type, const std::string &camera,
             Model::GetBufferSize("Default", camera, "Rotate CC 90", BufferWi, BufferHi, stagger);
             AdjustForTransform(transform, BufferWi, BufferHi);
         } else {
-            Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+            Model::GetBufferSize("Default", camera, transform, BufferWi, BufferHi, stagger);
         }
     } else if (_isRanges && (type == HORIZ_PER_MODELSTRAND || type == VERT_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND || type == PERMODEL_VERT_PER_STRAND)) {
         if (!_vert && (type == HORIZ_PER_MODELSTRAND || type == PERMODEL_HORIZ_PER_STRAND)) {
@@ -145,7 +145,7 @@ void SubModel::GetBufferSize(const std::string &type, const std::string &camera,
             Model::GetBufferSize("Default", camera, "Rotate CC 90", BufferWi, BufferHi, stagger);
             AdjustForTransform(transform, BufferWi, BufferHi);
         } else {
-            Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+            Model::GetBufferSize("Default", camera, transform, BufferWi, BufferHi, stagger);
         }
     } else if (type == LEGACY_SINGLE_LINE) {
         std::vector<int> vsizes;
@@ -245,16 +245,16 @@ void SubModel::InitRenderBufferNodes(const std::string &type, const std::string 
                 int curY = c.bufY;
                 int pos = 0;
                 if (_vert) {
-                    while (curX > 0 && curY > vsizes[curX]) {
-                        pos += vsizes[curX] + 1;
-                        curY -= (vsizes[curX] + 1);
+                    while (curX > 0 && curY > hsizes[curX]) {
+                        pos += hsizes[curX] + 1;
+                        curY -= (hsizes[curX] + 1);
                         --curX;
                     }
                     pos += curY;
                 } else {
-                    while (curY > 0 && curX > hsizes[curY]) {
-                        pos += hsizes[curY] + 1;
-                        curX -= (hsizes[curY] + 1);
+                    while (curY > 0 && curX > vsizes[curY]) {
+                        pos += vsizes[curY] + 1;
+                        curX -= (vsizes[curY] + 1);
                         --curY;
                     }
                     pos += curX;
@@ -391,6 +391,7 @@ void SubModel::initRangeXY(std::string const& nodes) {
             }
             start--;
             end--;
+            end = std::min(end, (int)parent->GetNodeCount() - 1);
             for (int i = start; i <= end; i++) {
                 _nodeIdx.insert(i);
                 _nodeIndexes.push_back(i);

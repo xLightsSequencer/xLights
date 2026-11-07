@@ -131,7 +131,7 @@ FPP::FPP(const std::string& ip_, const std::string& proxy_, const std::string& m
 }
 
 FPP::FPP(const FPP &c)
-    : hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
+    : BaseController(c), hostName(c.hostName), description(c.description), ipAddress(c.ipAddress), fullVersion(c.fullVersion), platform(c.platform),
     model(c.model), majorVersion(c.majorVersion), minorVersion(c.minorVersion), patchVersion(c.patchVersion),
     ranges(c.ranges), mode(c.mode), pixelControllerType(c.pixelControllerType), username(c.username), password(c.password),
     fppType(c.fppType), _ui(nullptr), capeInfo(c.capeInfo), outputFile(nullptr) {
@@ -155,6 +155,7 @@ struct FPPWriteData {
         postData(nullptr), postDataSize(0), instance(nullptr), totalWritten(0), lastDone(0), cancelled(false) {}
 
     std::ifstream realFile;
+    char curlError[CURL_ERROR_SIZE] = { 0 };
     std::vector<uint8_t> memBuffPost;
     std::vector<uint8_t> memBuffPre;
 
@@ -469,7 +470,7 @@ static bool GetJSONBoolValue(const nlohmann::json& val, const std::string &key, 
     }
     return def;
 }
-[[maybe_unused]] static bool GetJSONDoubleValue(const nlohmann::json& val, const std::string &key, double def = 0.0) {
+[[maybe_unused]] static double GetJSONDoubleValue(const nlohmann::json& val, const std::string &key, double def = 0.0) {
     if (val.contains(key) && val[key].is_number()) {
         return val[key].get<double>();
     }
@@ -488,13 +489,24 @@ bool FPP::parseSysInfo(nlohmann::json& val) {
 
     if (fullVersion != "") {
         majorVersion = (int)strtol(fullVersion.c_str(), nullptr, 10);
-        if (fullVersion[2] == 'x') {
-            minorVersion = (int)strtol(fullVersion.substr(4).c_str(), nullptr, 10) + 1000;
+        auto const dot = fullVersion.find('.');
+        if (dot == std::string::npos) {
+            minorVersion = 0;
         } else {
-            minorVersion = (int)strtol(fullVersion.substr(2).c_str(), nullptr, 10);
-        }
-        if (fullVersion.size() > 3 && (fullVersion[3] == '-' || fullVersion[3] == '.')) {
-            patchVersion = (int)strtol(fullVersion.substr(4).c_str(), nullptr, 10);
+            std::string const rest = fullVersion.substr(dot + 1);
+            if (rest[0] == 'x') {
+                std::string const after = rest.size() > 2 ? rest.substr(2) : std::string();
+                minorVersion = (int)strtol(after.c_str(), nullptr, 10) + 1000;
+                if (rest.size() > 1 && (rest[1] == '-' || rest[1] == '.')) {
+                    patchVersion = (int)strtol(after.c_str(), nullptr, 10);
+                }
+            } else {
+                char* end = nullptr;
+                minorVersion = (int)strtol(rest.c_str(), &end, 10);
+                if (*end == '-' || *end == '.') {
+                    patchVersion = (int)strtol(end + 1, nullptr, 10);
+                }
+            }
         }
     }
     if (val.contains("channelRanges")) {
@@ -515,7 +527,7 @@ bool FPP::parseSysInfo(nlohmann::json& val) {
 bool FPP::IsDDPInputEnabled() {
     nlohmann::json origRoot;
     if (GetURLAsJSON("/api/configfile/ci-universes.json", origRoot, false)) {
-        if (origRoot.contains("channelInputs") && origRoot.at("channelInputs").size() > 0
+        if (origRoot.contains("channelInputs") && origRoot.at("channelInputs").is_array() && origRoot.at("channelInputs").size() > 0
             && GetJSONIntValue(origRoot.at("channelInputs").at(0), "enabled", 0) == 1) {
             return true;
         }
@@ -535,10 +547,17 @@ void FPP::probePixelControllerType() {
 }
 void FPP::parseProxies(nlohmann::json& val) {
     for (int x = 0; x < (int)val.size(); x++) {
-        proxies.emplace(val[x].get<std::string>());
+        if (val[x].is_string()) {
+            proxies.emplace(val[x].get<std::string>());
+        } else if (val[x].is_object() && val[x].contains("host") && val[x]["host"].is_string()) { // FPP 8 change
+            proxies.emplace(val[x]["host"].get<std::string>());
+        }
     }
 }
 void FPP::parseControllerType(nlohmann::json& val) {
+    if (!val.is_object() || !val.contains("channelOutputs") || !val["channelOutputs"].is_array()) {
+        return;
+    }
     for (int x = 0; x < (int)val["channelOutputs"].size(); x++) {
         if (GetJSONIntValue(val["channelOutputs"][x], "enabled")) {
             std::string outputType = GetJSONStringValue(val["channelOutputs"][x], "type");
@@ -592,7 +611,7 @@ void FPP::parseConfig(const std::string& v) {
     std::map<std::string, std::string> settings;
     while(std::getline(ss, to, '\n')) {
         to = trimfront(to);
-        if (to.substr(0, 8) == "settings") {
+        if (to.substr(0, 8) == "settings" && to.size() >= 10) {
             to = to.substr(10);
             int i = to.find("'");
             std::string key = to.substr(0, i);
@@ -657,16 +676,10 @@ static std::string URLEncode(const std::string &value) {
 }
 
 static inline void addString(std::vector<uint8_t> &buffer, const char *str) {
-    size_t sz = strlen(str);
-    size_t pos = buffer.size();
-    buffer.resize(pos + sz);
-    memcpy(&buffer[pos], str, sz);
+    buffer.insert(buffer.end(), str, str + strlen(str));
 }
 static inline void addString(std::vector<uint8_t> &buffer, const std::string &str) {
-    size_t sz = str.length();
-    size_t pos = buffer.size();
-    buffer.resize(pos + sz);
-    memcpy(&buffer[pos], str.c_str(), sz);
+    buffer.insert(buffer.end(), str.begin(), str.end());
 }
 
 int FPP::PostJSONToURL(const std::string& url, const nlohmann::json& val) {
@@ -750,7 +763,6 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file, bo
     std::string fullFileName = file;
 
     curlInputBuffer.clear();
-    char error[1024];
 
 
     std::string fullUrl;
@@ -812,7 +824,9 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file, bo
     }
     //if we cannot upload it in 5 minutes, we have serious issues
     CURL *curl = setupCurl(fullUrl, false, 5*60*1000);
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error);
+    // Fast open gains nothing on a file upload, and on macOS the retry's fast-open
+    // connect fails its first send with "Socket is not connected".
+    curl_easy_setopt(curl, CURLOPT_TCP_FASTOPEN, 0L);
     if (username != "") {
         curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password.c_str());
@@ -830,6 +844,8 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file, bo
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
     FPPWriteData *data = new FPPWriteData();
+    // the transfer runs after this returns, so the buffer must live with data
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, data->curlError);
     data->realFile.open(fullFileName, std::ios::binary);
     data->realFile.seekg(0, std::ios::end);
     data->fileLength = static_cast<size_t>(data->realFile.tellg());
@@ -879,7 +895,11 @@ bool FPP::uploadFile(const std::string &utfFilename, const std::string &file, bo
             }
         }
         if (!retrying && response_code != 200) {
-            messages.push_back("ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code));
+            std::string err = "ERROR Uploading file: " + utfFilename + "     Response Code: " + std::to_string(response_code);
+            if (data->curlError[0] != 0) {
+                err += " (" + std::string(data->curlError) + ")";
+            }
+            messages.push_back(err);
             faileduploads.push_back(filename);
             spdlog::warn("Did not get 200 response code:  {}", response_code);
         }
@@ -2406,7 +2426,7 @@ inline std::string stripInvalidChars(std::string s) {
     Replace(s, "&", "_");
     Replace(s, "<", "_");
     Replace(s, ">", "_");
-    Replace(s, "\"", "\\\"");
+    // quotes are left for the JSON writer to escape
     return s;
 }
 
@@ -2414,11 +2434,17 @@ void FPP::FillRanges(std::map<int, int> &rngs) {
     if (ranges != "") {
         auto const r1 = Split(ranges, ',');
         for (const auto& a : r1) {
+            if (a.empty()) {
+                continue;
+            }
             auto const r = Split(a, '-');
+            if (r.empty()) {
+                continue;
+            }
             int const start = (int)std::strtol(r[0].c_str(), nullptr, 10);
             int len = 4; //at least 4
             if (r.size() == 2) {
-                len = (int)std::strtol(r[1].c_str(), nullptr, 10) - start + 1;
+                len = std::max(1, (int)std::strtol(r[1].c_str(), nullptr, 10) - start + 1);
             }
             rngs[start] = len;
         }
@@ -2430,19 +2456,19 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
         return;
     }
     std::string rngList;
-    int curFirst = -1;
-    int curLast = -1;
+    int64_t curFirst = -1;
+    int64_t curLast = -1;
     for (const auto &a : rngs) {
-        int s = a.first;
-        int l = a.second;
+        int64_t const s = a.first;
+        int64_t const l = a.second;
         if (curFirst == -1) {
             curFirst = s;
             curLast = s + l - 1;
         } else if (s == (curLast + 1)) {
             curLast += l;
-        } else if (s < (curFirst + curLast -1)) {
+        } else if (s <= curLast) {
             //start is within the previous's range
-            int nl = s + l - 1;
+            int64_t const nl = s + l - 1;
             curLast = std::max(curLast, nl);
         } else {
             if (rngList != "") {
@@ -2450,7 +2476,7 @@ void FPP::SetNewRanges(const std::map<int, int> &rngs) {
             }
             rngList += std::to_string(curFirst) + "-" + std::to_string(curLast);
             curFirst = s;
-            curLast = a.first + l - 1;
+            curLast = s + l - 1;
         }
     }
     if (curFirst != -1) {
@@ -3359,7 +3385,14 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
         for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
             if (GetJSONStringValue(origJson["channelOutputs"][x], "type") == "VirtualMatrix") {
                 std::string dev = GetJSONStringValue(origJson["channelOutputs"][x], "device");
-                int port = dev.size() > 2 ? (char)dev[2] - '0' : 0;
+                // "fbN" before FPP 8, "HDMI-A-N" (1 based) after
+                int port = 0;
+                if (StartsWith(dev, "HDMI-")) {
+                    auto pos = dev.find_last_of('-');
+                    port = (int)std::strtol(dev.c_str() + pos + 1, nullptr, 10) - 1;
+                } else if (StartsWith(dev, "fb")) {
+                    port = (int)std::strtol(dev.c_str() + 2, nullptr, 10);
+                }
                 if (models[port].find(GetJSONStringValue(origJson["channelOutputs"][x], "description")) == models[port].end()) {
                     UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
                 }
@@ -4143,10 +4176,6 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     }
     if (hasBBBDmx) {
         bbbDmxData["channelCount"] = isDMX ? (maxChan < 16 ? 16 : maxChan) : 4096;
-        if (maxChan == 0) {
-            bbbDmxData["enabled"] = 0;
-            bbbDmxData["subType"] = ("off");
-        }
     }
     // let the string handling know if it's safe to use the other PRU
     // or if the serial out will need it
@@ -4155,10 +4184,11 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
     nlohmann::json root;
     root["channelOutputs"].push_back(stringData);
     if (hasBBBDmx) {
-        bbbDmxData["enabled"] = 1;
+        // an unused cape serial output stays off
+        bbbDmxData["enabled"] = maxChan == 0 ? 0 : 1;
         bbbDmxData["startChannel"] = 1;
         bbbDmxData["type"] = ("BBBSerial");
-        bbbDmxData["subType"] = isDMX ? ("DMX") : ("PixelNet") ;
+        bbbDmxData["subType"] = maxChan == 0 ? "off" : (isDMX ? "DMX" : "PixelNet");
         bbbDmxData["device"] = (rules->GetID());
         bbbDmxData["pinoutVersion"] = pinout;
         root["channelOutputs"].push_back(bbbDmxData);
@@ -5296,9 +5326,9 @@ std::vector<std::tuple<std::string, std::string>> FPP::GetProxies() {
                 if (val[x].is_string()) {
                     spdlog::debug("FPP {} proxies {}.", (const char*)ipAddress.c_str(), (const char*)val[x].get<std::string>().c_str());
                     res.push_back({ (val[x].get<std::string>()), std::string() });
-                } else if (val[x].is_object()) { // FPP 8 change
+                } else if (val[x].is_object() && val[x].contains("host") && val[x]["host"].is_string()) { // FPP 8 change
                     spdlog::debug("FPP {} proxies {}.", (const char*)ipAddress.c_str(), (const char*)val[x]["host"].get<std::string>().c_str());
-                    res.push_back({ (val[x]["host"].get<std::string>()), (val[x]["description"].get<std::string>()) });
+                    res.push_back({ (val[x]["host"].get<std::string>()), GetJSONStringValue(val[x], "description") });
                 }
             }
         }

@@ -38,27 +38,17 @@ public:
                 return false;
             }
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"GalaxyEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                NSInteger dataSize = sizeof(gdata);
+                [computeEncoder setBytes:&gdata length:dataSize atIndex:0];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+
+                NSInteger pixelCount = gdata.width * gdata.height;
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, fn, pixelCount);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"GalaxyEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            NSInteger dataSize = sizeof(gdata);
-            [computeEncoder setBytes:&gdata length:dataSize atIndex:0];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
-
-            NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
-            NSInteger pixelCount = gdata.width * gdata.height;
-            NSInteger threads = std::min(pixelCount, maxThreads);
-            MTLSize gridSize = MTLSizeMake(pixelCount, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
         }
         return true;
     }

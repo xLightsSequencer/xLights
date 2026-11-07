@@ -52,28 +52,18 @@ public:
                 return false;
             }
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"CandleEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                NSInteger dataSize = sizeof(cd);
+                [computeEncoder setBytes:&cd length:dataSize atIndex:0];
+                [computeEncoder setBuffer:stateBuffer offset:0 atIndex:1];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:2];
+
+                NSInteger pixelCount = cd.width * cd.height;
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, fn, pixelCount);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"CandleEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            NSInteger dataSize = sizeof(cd);
-            [computeEncoder setBytes:&cd length:dataSize atIndex:0];
-            [computeEncoder setBuffer:stateBuffer offset:0 atIndex:1];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:2];
-
-            NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
-            NSInteger pixelCount = cd.width * cd.height;
-            NSInteger threads = std::min(pixelCount, maxThreads);
-            MTLSize gridSize = MTLSizeMake(pixelCount, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
 
             rbcd->commit();
             rbcd->waitForCompletion();

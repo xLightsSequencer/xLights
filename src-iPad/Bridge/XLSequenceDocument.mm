@@ -284,6 +284,10 @@ static int IndexOfString(NSArray<NSString*>* options, const std::string& v);
     // FPP Connect (Slice A) section.
     std::unique_ptr<class XLiPadDiscoveryAuthDelegate> _fppAuthDelegate;
 
+    // Discovered controllers not yet in the show, held until the user
+    // confirms via resolvePendingDiscoveredControllers:.
+    std::vector<std::unique_ptr<ControllerEthernet>> _pendingDiscoveredControllers;
+
     // Shift-Effects undo snapshots, keyed by token. The token is a
     // monotonically increasing id handed to Swift; `restoreShiftSnapshot:`
     // consumes the entry.
@@ -7191,7 +7195,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
 
         [outNodes addObject:@{
             @"node":    @(m->GetNodeNumber((size_t)i)),
-            @"string":  @(m->GetNodeStringNumber((size_t)i)),
+            @"string":  @(m->GetNodePhysicalStringIndex((size_t)i)),
             @"x":       @((double)x),
             @"y":       @((double)y),
             @"channel": [NSString stringWithUTF8String:chan.c_str()],
@@ -7887,11 +7891,6 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
     auto& vm = _context->GetAllObjects();
     ViewObject* vo = vm.CreateAndAddObject(t);
     if (!vo) return nil;
-    // Default to the active layout group so the new object
-    // immediately renders in the current preview. "All Models"
-    // is virtual — fall back to "Default" so the object is
-    // actually stored against a real preview.
-    vo->SetLayoutGroup(LayoutGroupForNewItem(_context->GetActiveLayoutGroup()));
     // Ruler is a TwoPoint object — without initial geometry both
     // endpoints sit at world origin so the line is zero-length and
     // invisible. Match desktop's Add Ruler defaults (100-unit
@@ -8057,9 +8056,8 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
         BOOL v = asBool(&ok); if (!ok) return NO;
         if ((v ? true : false) != loc.IsLocked()) { loc.SetLocked(v ? true : false); changed = YES; }
     } else if (k == "layoutGroup") {
-        NSString* s = asString(&ok); if (!ok) return NO;
-        std::string newGroup = s.UTF8String;
-        if (newGroup != vo->GetLayoutGroup()) { vo->SetLayoutGroup(newGroup); changed = YES; }
+        // View objects are Default-only (matches desktop + the loader).
+        return NO;
     } else if (k == "active") {
         BOOL v = asBool(&ok); if (!ok) return NO;
         if ((v ? true : false) != vo->IsActive()) { vo->SetActive(v ? true : false); changed = YES; }
@@ -14394,6 +14392,18 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     std::string dest = FileUtils::FixFile("", spath);
     if (dest.empty()) dest = entry->GetFilePath();
     if (dest.empty()) return NO;
+    // FixFile hands a missing show-relative path back unchanged
+    if (!FileUtils::IsAbsoluteOrRootedPath(dest) && !_context->GetShowDirectory().empty()) {
+        dest = (std::filesystem::path(_context->GetShowDirectory()) / dest).string();
+    }
+
+    if (*type != MediaType::Image) {
+        // Keeps a file already on disk and re-reads the entry from it,
+        // so later edits to the file are picked up.
+        if (!media.ExtractMediaToDisk(spath, dest)) return NO;
+        bumpSequenceDirty(_context.get());
+        return YES;
+    }
 
     // Desktop's ExtractImageToFile pattern: write the payload out,
     // flip _isEmbedded off, keep the stored path.
@@ -15121,6 +15131,15 @@ bool registerMediaPath(SequenceMedia& media, const std::string& path,
     if (!_context || path.length == 0) return NO;
     auto& media = _context->GetSequenceElements().GetSequenceMedia();
     return media.ReloadMedia(std::string([path UTF8String])) ? YES : NO;
+}
+
+- (BOOL)reembedMediaAtPath:(NSString*)path {
+    if (!_context || path.length == 0) return NO;
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    std::string spath([path UTF8String]);
+    if (!media.ReembedMediaFromDisk(spath)) return NO;
+    bumpSequenceDirty(_context.get());
+    return YES;
 }
 
 - (int)reloadAllMedia {
@@ -18411,14 +18430,16 @@ public:
 }
 
 - (NSDictionary*)runControllerDiscovery {
-    NSMutableArray<NSString*>* addedNames = [NSMutableArray array];
+    NSMutableArray<NSString*>* pendingNames = [NSMutableArray array];
     NSMutableArray<NSDictionary*>* mismatches = [NSMutableArray array];
     NSInteger already = 0;
     if (!_context) {
-        return @{@"added": @0, @"already": @0,
-                 @"addedNames": addedNames, @"mismatches": mismatches};
+        return @{@"already": @0,
+                 @"pendingNames": pendingNames, @"mismatches": mismatches};
     }
     auto& om = _context->GetOutputManager();
+    _pendingDiscoveredControllers.clear();
+    std::set<std::string> pendingIPs;
 
     // Construct a single Discovery instance and register every
     // protocol scanner desktop's PrepareAllControllerDiscovery
@@ -18530,28 +18551,48 @@ public:
             continue;
         }
 
-        // Auto-add path (no conflict).
-        eth->EnsureUniqueId();
-        eth->EnsureUniqueName();
+        // No conflict — hold it until the user confirms the add.
+        // A device answering on several IPs (e.g. wifi + ethernet) is one controller.
+        bool sameNamePending = std::any_of(_pendingDiscoveredControllers.begin(), _pendingDiscoveredControllers.end(),
+                                           [eth](const auto& p) {
+                                               return p->GetName() == eth->GetName() && p->GetProtocol() == eth->GetProtocol();
+                                           });
+        if (sameNamePending) continue;
+        if (!pendingIPs.insert(eth->GetIP()).second) continue;
         if (d->typeId > 0 && d->typeId < 0x80) {
             eth->SetActive("xLights Only");
             if (eth->GetVendor().empty()) {
                 eth->SetVendor("FPP");
             }
         }
-        om.AddController(eth);
-        [addedNames addObject:[NSString stringWithUTF8String:eth->GetName().c_str()]];
-        d->controller = nullptr;  // ownership now belongs to OutputManager
-    }
-    if (addedNames.count > 0) {
-        _context->MarkControllersDirty();
+        [pendingNames addObject:[NSString stringWithFormat:@"%s (%s)", eth->GetName().c_str(), eth->GetIP().c_str()]];
+        _pendingDiscoveredControllers.emplace_back(eth);
+        d->controller = nullptr;
     }
     return @{
-        @"added":      @(addedNames.count),
-        @"already":    @(already),
-        @"addedNames": addedNames,
-        @"mismatches": mismatches,
+        @"already":      @(already),
+        @"pendingNames": pendingNames,
+        @"mismatches":   mismatches,
     };
+}
+
+- (NSArray<NSString*>*)resolvePendingDiscoveredControllers:(BOOL)add {
+    NSMutableArray<NSString*>* addedNames = [NSMutableArray array];
+    if (add && _context) {
+        auto& om = _context->GetOutputManager();
+        for (auto& c : _pendingDiscoveredControllers) {
+            c->EnsureUniqueId();
+            c->EnsureUniqueName();
+            ControllerEthernet* eth = c.release();
+            om.AddController(eth);
+            [addedNames addObject:[NSString stringWithUTF8String:eth->GetName().c_str()]];
+        }
+        if (addedNames.count > 0) {
+            _context->MarkControllersDirty();
+        }
+    }
+    _pendingDiscoveredControllers.clear();
+    return addedNames;
 }
 
 - (BOOL)applyDiscoveryMismatch:(NSDictionary*)descriptor

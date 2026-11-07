@@ -468,7 +468,6 @@ public:
     bool RenameImage(const std::string& oldPath, const std::string& newPath);
     size_t GetImageCount() const { return _imageCache.size(); }
     std::vector<std::string> GetImagePaths() const;
-    void RemoveUnusedImages();
 
     std::vector<std::pair<std::string, std::string>> GetImageRelocations() const;
     void RecordRelocation(const std::string& from, const std::string& to);
@@ -519,6 +518,15 @@ public:
     void EmbedAllMedia();
     void ExtractMedia(const std::string& filepath);
     void ExtractAllMedia();
+    // Text, SVG, shader and binary entries only. Re-reads an embedded entry
+    // from its file on disk and keeps it embedded. Returns false, leaving the
+    // entry as it was, when it isn't embedded or the file can't be read.
+    bool ReembedMediaFromDisk(const std::string& filepath);
+    // Text, SVG, shader and binary entries only. Makes an embedded entry
+    // external; when its file isn't on disk the embedded data is first written
+    // to `destPath`. The entry is then re-read from disk so later edits to the
+    // file are picked up. Returns false, leaving it embedded, if the write fails.
+    bool ExtractMediaToDisk(const std::string& filepath, const std::string& destPath);
 
     // === Query helpers ===
     std::vector<std::string> GetVideoFilePaths() const;
@@ -545,6 +553,8 @@ private:
     void LoadQueuedImage(const std::string& filepath);
     // Helper to resolve relative paths via FileUtils::FixFile
     static std::string ResolvePath(const std::string& filepath);
+    // ResolvePath, retried after dropping FixFile's memo of missing files
+    static std::string ResolveOnDisk(const std::string& filepath);
     void RegisterImage(const std::string& filepath, const std::string& loadPath);
 
     std::vector<std::pair<std::string, std::string>> _pendingRelocations;
@@ -552,6 +562,9 @@ private:
     // Per-type caches
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageResolvedCache;
+    // Removes an image from _imageCache and every _imageResolvedCache alias of it,
+    // so a later GetImage can't hand the dropped entry back. Caller holds _cacheMutex.
+    void EraseImageLocked(const std::string& filepath);
     std::map<std::string, std::shared_ptr<TextMediaCacheEntry>> _textCache;
     std::map<std::string, std::shared_ptr<SVGMediaCacheEntry>> _svgCache;
     std::map<std::string, std::shared_ptr<ShaderMediaCacheEntry>> _shaderCache;

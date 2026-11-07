@@ -331,7 +331,87 @@ a normal working directory first; `--keep` skips cleanup and then you must
 stage in the container outside this script gets the same treatment: copy results
 out, then delete the staged files. The script refuses a binary that predates
 `--fseqhash` (an old build pops an "unrecognized option" dialog instead of failing).
+Sequences listed in `tests/render/determinism-only-<show>.txt` (Plasma and Butterfly: their SIMD
+kernels differ by one level on a few channels between CPU types) are still rendered twice and must be
+identical and not blank, but are not compared to the manifest. Keep that list short and give a reason.
+`--junit <file>` writes a JUnit XML report (one testcase per sequence) for CI; `.github/workflows/Render_Tests.yml`
+runs the harness on Linux x64 and Windows x64 and uploads each report with the rendered output.
+`.github/workflows/Nightly_Tests.yml` runs the Catch2 and render suites on every platform each night,
+aggregates the JUnit reports (`ci_scripts/nightly_report.py`) and publishes a dashboard to GitHub Pages
+(`ci_scripts/build_dashboard.py`, history carried in the site's `history.json`). Its `coverage` job runs the unit
+tests once more in a Linux `-O0 --coverage` build and `ci_scripts/coverage_report.py` (gcovr, `src-core` only)
+turns the counts into the dashboard's coverage cards and tables plus a line-by-line report under `coverage/`.
+Every Pages deploy replaces the whole site, so `ci_scripts/stage_coverage.sh` carries the published report
+(`coverage.tar.gz`) over into any deploy that did not produce one (the Xcode Cloud results, a failed coverage run).
+The Xcode Cloud nightly (the TestFlight build) also runs the unit tests and the render regression on macOS:
+`ci_post_xcodebuild.sh` calls `ci_scripts/xcode_cloud_tests.sh` after the archive action when the workflow sets
+`XL_NIGHTLY_TESTS=1`; it pushes the results to GitHub (a `repository_dispatch`, handled by `Xcode_Cloud_Results.yml`)
+using the secret `XL_DISPATCH_TOKEN` and adds a one-line summary to the TestFlight notes. Do not run its render
+step on a developer Mac (it launches a re-signed copy of the app that shares the real bundle id).
+A bad dashboard entry is removed with a manual run of `Xcode_Cloud_Results.yml` (`drop_run` = the run id of the run that made it).
 Never md5 `.fseq` files; use `--fseqhash` / `--fseqcmp`.
+
+### Unit tests (Catch2)
+
+`tests/unit/` holds Catch2 tests for `src-core`. Every `tests/unit/test_*.cpp` is
+compiled into one executable; tests that need the real core (models, XML
+serialization, effects...) live in `tests/unit/core/`. Keep tests wx-free — the
+same rule as `src-core/`. Shared helpers are in `tests/unit/support/`
+(`TempDir.h`).
+
+**Every `src-core/` change needs a unit test.** A bug fix gets a test that fails
+without the fix and passes with it (run that control). A new feature or behavior
+change gets tests for the new behavior. Add the test in the same commit/PR as
+the change, under `tests/unit/` (or `tests/unit/core/` if it needs the real
+core). The only exceptions are changes a unit test can't reasonably reach:
+render-output changes covered by the render regression harness (update its
+manifest instead), GPU-only (Metal/Vulkan) paths, and pure refactors already
+covered by existing tests. If you skip the test, say why in the PR description.
+
+**macOS (primary): Xcode.** Use the **`xLights-unit-tests`** scheme in
+`macOS/xLights.xcodeproj` (Cmd-R runs every test; edit the scheme's arguments for
+Catch2 filters such as `"[color]"`). It compiles `tests/unit/**` plus Catch2 from
+the `dependencies/Catch2` submodule and links `libxLights-core.a`,
+`libxLights-Apple-core.a` and `libISPCEffectComputeFunctions.a` with the same
+non-wx libraries and frameworks the app links. A new test file is picked up
+automatically; a test that needs a library the target doesn't link yet needs it
+added to that target's link settings.
+
+**Linux / CI: CMake.**
+
+```bash
+git submodule update --init            # spdlog pugixml nanosvg liquidfun midifile Catch2...
+cmake -S tests/unit -B build-tests -G Ninja -DXL_TEST_FULL_CORE=ON
+cmake --build build-tests && ctest --test-dir build-tests --output-on-failure
+```
+
+`-DXL_TEST_FULL_CORE=ON` builds the real `src-core` + effects as the static library
+`xlights_core` (`tests/unit/XLightsCoreLib.cmake`) from the same source list the root
+build uses (`cmake/XLightsCoreSources.cmake` — edit that file, not a copy, when a core
+`.cpp` is added or excluded). It needs the distro dev packages listed in
+`XLightsCoreLib.cmake` and **ISPC 1.31** (`Makefile` pins `ISPC_VERSION`; the distro
+`ispc` is too old — pass `-DCMAKE_ISPC_COMPILER=<path>`). Without the option, a lean
+build of a few leaf files (`core_sources.cmake`) needs no third-party libraries but
+skips `core/` tests; `-G Xcode`/Visual Studio generators work too. Windows full-core
+is not wired up yet (dependency discovery lives in the root build).
+`-DXL_BUILD_TESTS=ON` on the root build adds `tests/unit` as a subdirectory. CI runs
+this in the Ubuntu build container (`.github/workflows/Unit_Tests.yml`), which already has
+the dev packages and the pinned ISPC.
+On Linux the full core is built with the Vulkan backend (`HAVE_VULKAN`, as the app is;
+needs `glslc` and `glslang-dev`). The `[gpu]` tests render a show on the CPU and on the
+GPU and compare (`tests/unit/core/test_gpu_common.h`): `test_gpu_effects.cpp` (every GPU
+effect, blur, blend, transitions) and `test_gpu_rotozoom.cpp` run on Metal (Mac Xcode
+scheme, which builds `EffectComputeFunctions.metallib` next to the test binary) and on
+Vulkan (Linux). A quiet CPU fallback fails them: each case checks that the backend's
+`GPURenderUtils::stats` counter moved, so a new Metal effect must encode its kernel through
+`MetalRenderBufferComputeData::encodeEffect`. `test_vulkan.cpp` holds GLSL→SPIR-V tests that
+need no device. The `[gpu]` tests skip without a GPU compute backend. A software Vulkan
+device (lavapipe) only takes compute work with `XL_VULKAN_ALLOW_CPU=1`, so on Linux run
+them as `XL_VULKAN_ALLOW_CPU=1 ./xlights_unit_tests "[gpu]"` (ctest sets it for them; CI
+installs `mesa-vulkan-drivers`). Don't set it for the other tests, which expect CPU paths.
+`test_float_checks.cpp` is compiled with `-ffast-math` on purpose (see §6). Catch2
+3.8.1 is used from the system if present, else fetched. Render regressions are
+covered by the harness above, not here.
 
 ### Linux
 
@@ -712,6 +792,9 @@ the two platforms stand relative to each other.
 | `src-core/` + `src-ui-wx/` | macOS desktop (Debug) + iPad library |
 | `src-core/` + `src-iPad/` | macOS desktop (Debug) + iPad library |
 | Cross-platform (`.cbp`/`.vcxproj`/`CMakeLists.txt`) | macOS + Linux + Windows |
+
+Any change to `src-core/` also adds or updates a unit test in `tests/unit/` and runs
+the `xLights-unit-tests` scheme (see §4, *Unit tests*).
 
 ### Common pitfalls
 

@@ -8,24 +8,26 @@ using namespace metal;
 constant float pi = 3.1415926535897932384626433832;
 constant float pi3 = 3.1415926535897932384626433832 / 3.0;
 
-uint8_t plasma_channelBlend(uint8_t c1, uint8_t c2, half ratio) {
-    return c1 + floor(ratio * (c2 - c1) + 0.5h);
+// Float, as in PlasmaFunctions.ispc, so the GPU render matches the CPU one.
+uint8_t plasma_channelBlend(float c1, float c2, float ratio) {
+    return c1 + floor(ratio * (c2 - c1) + 0.5f);
 }
-uchar4 plasma_getMultiColorBlend(constant PlasmaData &data, half n, bool circular) {
+uchar4 plasma_getMultiColorBlend(constant PlasmaData &data, float n, bool circular) {
     if (data.numColors <= 1) {
         return data.colors[0];
     }
-
-    if (n >= 1.0) n = 0.99999f;
-    if (n < 0.0) n = 0.0f;
-    half realidx = circular ? n * data.numColors : n * (data.numColors - 1);
+    float nc = data.numColors;
+    n = clamp(n, 0.0f, 0.999999999f);
+    float realidx = circular ? n * nc : n * (nc - 1);
     int coloridx1 = floor(realidx);
     int coloridx2 = (coloridx1 + 1) % data.numColors;
-    half ratio = realidx - half(coloridx1);
+    float ratio = realidx - ((float)(coloridx1));
+    uchar4 c1 = data.colors[coloridx1];
+    uchar4 c2 = data.colors[coloridx2];
     uchar4 ret;
-    ret.r = plasma_channelBlend(data.colors[coloridx1].r, data.colors[coloridx2].r,  ratio);
-    ret.g = plasma_channelBlend(data.colors[coloridx1].g, data.colors[coloridx2].g,  ratio);
-    ret.b = plasma_channelBlend(data.colors[coloridx1].b, data.colors[coloridx2].b,  ratio);
+    ret.r = plasma_channelBlend(c1.r, c2.r, ratio);
+    ret.g = plasma_channelBlend(c1.g, c2.g, ratio);
+    ret.b = plasma_channelBlend(c1.b, c2.b, ratio);
     ret.a = 255;
     return ret;
 }
@@ -69,7 +71,7 @@ kernel void PlasmaEffectStyle0(constant PlasmaData &data,
                                device uchar4* result,
                                uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     uint32_t x = index % data.width;
     uint32_t y = index / data.width;
 
@@ -83,7 +85,7 @@ kernel void PlasmaEffectStyle1(constant PlasmaData &data,
                                device uchar4* result,
                                uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     uint32_t x = index % data.width;
     uint32_t y = index / data.width;
 
@@ -100,7 +102,7 @@ kernel void PlasmaEffectStyle2(constant PlasmaData &data,
                                device uchar4* result,
                                uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     uint32_t x = index % data.width;
     uint32_t y = index / data.width;
        
@@ -117,7 +119,7 @@ kernel void PlasmaEffectStyle3(constant PlasmaData &data,
                                device uchar4* result,
                                uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     int x = index % data.width;
     int y = index / data.width;
     
@@ -136,7 +138,7 @@ kernel void PlasmaEffectStyle4(constant PlasmaData &data,
                                device uchar4* result,
                                uint index [[thread_position_in_grid]])
 {
-    if (index > (data.width * data.height)) return;
+    if (index >= (data.width * data.height)) return;
     int x = index % data.width;
     int y = index / data.width;
     float vldpi = plasmaCalc_vldpi(data, x, y);

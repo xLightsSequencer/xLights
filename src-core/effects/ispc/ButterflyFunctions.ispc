@@ -99,7 +99,7 @@ export void ButterflyEffectStyle1(const uniform ButterflyData &data,
                                   uniform int startIdx, uniform int endIdx,
                                   uniform uint8<4> result[]) {
     uniform float sz = data.height + data.width;
-    uniform float rsz = rcp(sz) * pi2;
+    uniform float rsz = 1.0f / sz * pi2;
     uniform float offset = (uniform float)data.offset;
     uniform float width = data.width;
     uniform float rszw = 1.0 / width;
@@ -189,7 +189,7 @@ export void ButterflyEffectStyle4(const uniform ButterflyData &data,
     uniform float width = data.width;
     uniform float rszw = 1.0 / width;
     uniform float sz = data.height + data.width;
-    uniform float rsz = rcp(sz) * pi2;
+    uniform float rsz = 1.0f / sz * pi2;
 
     foreach (index = startIdx...endIdx) {
         float fidx = index;
@@ -249,13 +249,18 @@ export void ButterflyEffectStyle5(const uniform ButterflyData &data,
 }
 
 
+// (s + 1) * 128 reaches 256 at s == 1, which the uint8 store wraps to 0.
+inline float butterflyLevel(float s) {
+    return min((s + 1.0) * 128.0, 255.0);
+}
+
 export void ButterflyEffectPlasmaStyles(const uniform ButterflyData &data,
                                     uniform int startIdx, uniform int endIdx,
                                     uniform uint8<4> result[]) {
     uniform float width = data.width;
     uniform float rszw = 1.0 / width;
-    uniform float invh = rcp((uniform float)data.height);
-    uniform float invw = rcp((uniform float)data.width);
+    uniform float invh = 1.0f / (uniform float)data.height;
+    uniform float invw = 1.0f / (uniform float)data.width;
     uniform float time = data.plasmaTime;
     uniform const float onehalf = 1.0 / 2.0;
     uniform const float onethird = 1.0 / 3.0;
@@ -295,22 +300,22 @@ export void ButterflyEffectPlasmaStyles(const uniform ButterflyData &data,
         color.a = 255;
         switch (data.plasmaStyle) {
             case 6:
-                color.r = (sin(v * chunks * pi) + 1.0) * 128.0;
-                color.g= (cos(v * chunks * pi) + 1.0) * 128.0;
+                color.r = butterflyLevel(sin(v * chunks * pi));
+                color.g= butterflyLevel(cos(v * chunks * pi));
                 color.b = 0;
             break;
             case 7:
                 color.r = 1;
-                color.g = (cos(v * chunks * pi) + 1.0) * 128.0;
-                color.b = (sin(v * chunks * pi) + 1.0) * 128.0;
+                color.g = butterflyLevel(cos(v * chunks * pi));
+                color.b = butterflyLevel(sin(v * chunks * pi));
                 break;
             case 8:
-                color.r = (sin(v * chunks * pi) + 1.0) * 128.0;
-                color.g= (sin(v * chunks * pi + 2.0 * pi * onethird) + 1.0) * 128.0;
-                color.b =(sin(v * chunks * pi + 4.0 * pi * onethird) + 1.0) * 128.0;
+                color.r = butterflyLevel(sin(v * chunks * pi));
+                color.g= butterflyLevel(sin(v * chunks * pi + 2.0 * pi * onethird));
+                color.b =butterflyLevel(sin(v * chunks * pi + 4.0 * pi * onethird));
                 break;
             case 9:
-                color.r = color.g = color.b = (sin(v * chunks * pi) + 1.0) * 128.0;
+                color.r = color.g = color.b = butterflyLevel(sin(v * chunks * pi));
                 break;
             case 10:
                 if (data.numColors >= 2) {

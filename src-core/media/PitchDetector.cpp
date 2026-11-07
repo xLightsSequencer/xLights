@@ -98,10 +98,12 @@ PitchContour DetectPitch(AudioManager* audio, const PitchDetectorOptions& opts) 
             continue;
         }
 
+        // Only true peaks qualify: the slowly decaying shoulder of the zero-lag lobe
+        // would otherwise beat the real period of any low pitch.
         int bestTau = minTau;
-        float bestR = acf[minTau];
-        for (int tau = minTau + 1; tau <= maxTau; tau++) {
-            if (acf[tau] > bestR) {
+        float bestR = 0.0f;
+        for (int tau = minTau; tau <= maxTau; tau++) {
+            if (acf[tau] > acf[tau - 1] && acf[tau] >= acf[tau + 1] && acf[tau] > bestR) {
                 bestR = acf[tau];
                 bestTau = tau;
             }
