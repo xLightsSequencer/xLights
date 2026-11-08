@@ -370,7 +370,7 @@ TEST_CASE("Scene that is a rectangle becomes a sub buffer Color Wash", "[impexp2
     REQUIRE(f.RunRaw(Doc(Layout(), "<scenes>" + Scene(1, 1, 0, 100, RED_TO_BLUE, Elem(0, 0) + Elem(1, 0) + Elem(0, 1) + Elem(1, 1)) + "</scenes>")));
     auto e = f.Find("Color Wash");
     REQUIRE(e.layer >= 0);
-    CHECK(e.Get("B_CUSTOM_SubBuffer") == "0.0x99.9x49x62");
+    CHECK(e.Get("B_CUSTOM_SubBuffer") == "0.0x99.9x50x62");
 }
 
 TEST_CASE("Scene rectangle edge values are mapped to 0 and 99.9", "[impexp2][super][scene]") {
@@ -380,7 +380,7 @@ TEST_CASE("Scene rectangle edge values are mapped to 0 and 99.9", "[impexp2][sup
     REQUIRE(f.RunRaw(Doc(Layout(), "<scenes>" + Scene(1, 1, 0, 100, RED, Elem(2, 3) + Elem(1, 3) + Elem(2, 2) + Elem(1, 2)) + "</scenes>")));
     auto e = f.Find("Color Wash");
     REQUIRE(e.layer >= 0);
-    CHECK(e.Get("B_CUSTOM_SubBuffer") == "49x37x99.9x0.0");
+    CHECK(e.Get("B_CUSTOM_SubBuffer") == "50x37x99.9x0.0");
 }
 
 TEST_CASE("Scene elements beyond the grid drop the whole scene", "[impexp2][super][scene]") {

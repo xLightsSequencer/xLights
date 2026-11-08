@@ -23,6 +23,8 @@
 #include <spdlog/fmt/fmt.h>
 
 #include <algorithm>
+#include <climits>
+#include <cstdint>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -72,18 +74,25 @@ bool Contains(const std::string& haystack, const char* needle) {
 
 // --- ports of the static helpers in src-ui-wx/import_export/ImportEffects.cpp ---
 
+// Integer percentage of a cell's centre, (val + 0.5) / base * 100 truncated toward zero.
+// Done in integers so cells whose centre is a whole percent (e.g. 1 of 3 = 50) come out the
+// same with and without -ffast-math; the double form lands either side of the integer.
+int CellCentrePercent(int64_t val, int64_t base, bool reverse) {
+    int64_t num = 200 * val + 100;
+    if (reverse) {
+        num = 200 * base - num;
+    }
+    return static_cast<int>(std::clamp<int64_t>(num / (2 * base), INT_MIN, INT_MAX));
+}
+
 bool CalcPercentage(std::string& value, double base, bool reverse, int offset) {
+    int ibase = static_cast<int>(base);
     int val = ToInt(value);
     val -= offset;
-    val %= static_cast<int>(base);
+    val %= ibase;
     if (val < 0)
         return false;
-    double half_width = 1.0 / base * 50.0;
-    double percent = static_cast<double>(val) / base * 100.0 + half_width;
-    if (reverse) {
-        percent = 100.0 - percent;
-    }
-    value = std::to_string(static_cast<int>(percent));
+    value = std::to_string(CellCentrePercent(val, ibase, reverse));
     return true;
 }
 
@@ -104,9 +113,9 @@ bool CalcBoundedPercentage(std::string& value, int base, bool reverse, int offse
 }
 
 int CalcUnBoundedPercentage(int val, int base) {
-    double half_width = 50.0 / base;
-    double percent = static_cast<double>(val) / base * 100.0 + half_width;
-    return static_cast<int>(percent);
+    if (base <= 0)
+        return 0;
+    return CellCentrePercent(val, base, false);
 }
 
 double ClampChannel(double v) {
