@@ -2134,7 +2134,8 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     _cud(cud),
     _controller(controller),
     _mm(mm),
-    _xLights((xLightsFrame*)parent)
+    _xLights((xLightsFrame*)parent),
+    _history(*mm)
 {
     ++s_activeCount;
 
@@ -2250,6 +2251,37 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     Connect(ID_SCROLLBAR3, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
     //*)
 
+    auto* buttonRow = new wxBoxSizer(wxHORIZONTAL);
+    _undoButton = new wxButton(this, wxID_ANY, _("Undo"));
+    _undoButton->SetToolTip(_("Undo the last change (Cmd/Ctrl+Z)"));
+    _undoButton->Disable();
+    buttonRow->Add(_undoButton, 0, wxALL, 5);
+    buttonRow->AddStretchSpacer();
+    auto* cancelButton = new wxButton(this, wxID_ANY, _("Cancel"));
+    cancelButton->SetToolTip(_("Discard every change made since the visualiser was opened"));
+    buttonRow->Add(cancelButton, 0, wxALL, 5);
+    auto* saveButton = new wxButton(this, wxID_ANY, _("Save"));
+    saveButton->SetToolTip(_("Keep the changes and close"));
+    buttonRow->Add(saveButton, 0, wxALL, 5);
+    FlexGridSizer1->SetRows(2);
+    FlexGridSizer1->Add(buttonRow, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
+
+    const int undoId = wxWindow::NewControlId();
+    wxAcceleratorEntry undoAccel(wxACCEL_CMD, (int)'Z', undoId);
+    SetAcceleratorTable(wxAcceleratorTable(1, &undoAccel));
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { UndoLastChange(); }, undoId);
+    _undoButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { UndoLastChange(); });
+    cancelButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        ApplyRestoredConnections(_history.Revert());
+        _closeDecided = true;
+        Close();
+    });
+    saveButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        _closeDecided = true;
+        Close();
+    });
+    Bind(wxEVT_CLOSE_WINDOW, &ControllerModelDialog::OnVisualiserClose, this);
+
     // Reset the static visualizer filter to empty on every dialog construction
     // so a stale value from a previous dialog session can't carry over and
     // unexpectedly dim models on the newly-opened visualizer. The SearchCtrl
@@ -2316,6 +2348,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     SetLabel(_title);
 
     _caps = ControllerCaps::GetControllerConfig(_controller);
+    _history.Begin();
 
     CMDTextDropTarget* cmdt = new CMDTextDropTarget(&_controllers, this, PanelController, false, _scale, _caps);
     PanelController->SetDropTarget(cmdt);
@@ -2359,6 +2392,8 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
         }
     }
 
+    // The automatic fixes above are reverted by Cancel but aren't an undo step.
+    _history.SkipStep();
     ReloadModels();
     Layout();
 
@@ -2412,8 +2447,56 @@ bool ModelSortName(const BaseCMObject* first, const BaseCMObject* second)
     return NumberAwareStringCompare(m1, m2) < 0;
 }
 
+void ControllerModelDialog::ApplyRestoredConnections(const std::vector<std::string>& changed)
+{
+    if (changed.empty()) {
+        return;
+    }
+    _xLights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                   OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                   OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                                                   OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                                                   OutputModelManager::WORK_RELOAD_MODELLIST,
+                                                   "ControllerModelDialog::ApplyRestoredConnections");
+    while (!_xLights->DoAllWork()) {
+        // dont get into a redraw loop from here
+        _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+    }
+}
+
+void ControllerModelDialog::UndoLastChange()
+{
+    if (!_history.CanUndo()) {
+        return;
+    }
+    ApplyRestoredConnections(_history.Undo());
+    ReloadModels();
+    PanelController->Refresh();
+    PanelModels->Refresh();
+}
+
+void ControllerModelDialog::OnVisualiserClose(wxCloseEvent& event)
+{
+    if (!_closeDecided && event.CanVeto() && _history.HasChanges()) {
+        const int answer = wxMessageBox(_("Keep the changes you made in the Controller Visualiser?"), _("Controller Visualiser"),
+                                        wxYES_NO | wxCANCEL | wxICON_QUESTION, this);
+        if (answer == wxCANCEL) {
+            event.Veto();
+            return;
+        }
+        if (answer == wxNO) {
+            ApplyRestoredConnections(_history.Revert());
+        }
+    }
+    event.Skip();
+}
+
 void ControllerModelDialog::ReloadModels()
 {
+    // Every edit ends with a reload, so each change in state becomes one undo step.
+    _history.Record();
+    _undoButton->Enable(_history.CanUndo());
+
     // we are  deleting the models, make sure the deleted stuff is not referenced
     _dragging = nullptr;
     _popup = nullptr;
@@ -4315,7 +4398,7 @@ void ControllerModelDialog::OnPanelControllerKeyDown(wxKeyEvent& event)
     }
 
     if (event.GetKeyCode() == WXK_ESCAPE) {
-        EndDialog(wxCLOSE);
+        Close();
     }
     event.Skip();
 }
@@ -4327,7 +4410,7 @@ void ControllerModelDialog::OnKeyDown(wxKeyEvent& event)
     }
 
     if (event.GetKeyCode() == WXK_ESCAPE) {
-        EndDialog(wxCLOSE);
+        Close();
     }
     event.Skip();
 }
@@ -4339,7 +4422,7 @@ void ControllerModelDialog::OnPanelModelsKeyDown(wxKeyEvent& event)
     }
 
     if (event.GetKeyCode() == WXK_ESCAPE) {
-        EndDialog(wxCLOSE);
+        Close();
     }
     event.Skip();
 }
