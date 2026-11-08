@@ -152,7 +152,10 @@ static void DrawSnowstormItems(RenderBuffer& buffer, const Container& items, int
             HSVValue hsv = it.hsv;
             if (buffer.allowAlpha) {
                 xlColor c(hsv);
-                c.alpha = 255.8 * (1.0 - double(sz - pt + it.ssDecay) / TailLength);
+                // Old tail points go negative; converting that straight to a byte is undefined (clang
+                // wraps it to a bright value, GCC saturates to 0), so clamp. Matches the non-alpha path.
+                double alpha = 255.8 * (1.0 - double(sz - pt + it.ssDecay) / TailLength);
+                c.alpha = alpha <= 0.0 ? 0 : (alpha >= 255.0 ? 255 : (uint8_t)alpha);
                 buffer.SetPixel(it.points[pt].x, it.points[pt].y, c);
             }
             else {
@@ -182,6 +185,9 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
 }
 
 std::unique_ptr<EffectFrameState> SnowstormEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    if (buffer.BufferWi <= 0 || buffer.BufferHt <= 0) {
+        return std::make_unique<SnowstormFrameState>();
+    }
     int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", sCountDefault);
     int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", sLengthDefault);
     int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", sSpeedDefault);

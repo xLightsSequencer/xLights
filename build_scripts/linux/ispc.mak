@@ -2,12 +2,12 @@
 ISPC_ARCH=$(shell uname -m)
 
 ifeq '$(ISPC_ARCH)' 'aarch64'
-ISPC_FLAGS=--target-os=linux --target=neon-i32x8 --arch=aarch64 --pic
+ISPC_FLAGS=--math-lib=fast --target-os=linux --target=neon-i32x8 --arch=aarch64 --pic
 else
 # One comma-separated --target list: ispc keeps only the last of repeated
 # --target flags. Multi-target writes a dispatcher object plus one object per
 # ISA (_avx2/_avx/_sse4/_sse2); they are merged into the single $@ with ld -r.
-ISPC_FLAGS=--target-os=linux --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64 --pic
+ISPC_FLAGS=--math-lib=fast --target-os=linux --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64 --pic
 endif
 
 $(OBJDIR_LINUX_DEBUG)/__/src-core/%.o: ../src-core/%.ispc

@@ -430,7 +430,8 @@ void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position)
         // xLights look hung). Only restore it if enough of the title bar lands
         // on a current display to grab and drag.
         int headerHeight = std::max(wxSystemSettings::GetMetric(wxSYS_CAPTION_Y), 20);
-        wxRect header(p.x, p.y, std::max(s.GetWidth(), 1), headerHeight);
+        // const so Intersect() returns a new rect instead of shrinking header in place.
+        const wxRect header(p.x, p.y, std::max(s.GetWidth(), 1), headerHeight);
         int needed = std::min(100, header.GetWidth());
         bool onScreen = false;
         for (unsigned int i = 0; i < wxDisplay::GetCount() && !onScreen; ++i) {

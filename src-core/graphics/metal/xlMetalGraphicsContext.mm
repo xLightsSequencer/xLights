@@ -1444,6 +1444,9 @@ xlGraphicsContext* xlMetalGraphicsContext::drawMeshWireframe(xlMesh *mesh, int b
     if (m->vbuffer == nil) {
         m->LoadBuffers();
     }
+    if (m->vbuffer == nil || m->ibuffer == nil || m->wireframeCount == 0) {
+        return this;
+    }
     setPipelineState("meshWireframeProgram", "meshWireframeVertexShader", "meshSolidFragmentShader");
     std::string n2 = m->GetName() + " Wireframe";
     NSString *n = [NSString stringWithUTF8String:n2.c_str()];

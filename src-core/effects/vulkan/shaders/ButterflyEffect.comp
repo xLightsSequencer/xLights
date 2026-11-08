@@ -70,6 +70,11 @@ uvec4 getMultiColorBlend(float n, bool circular) {
 // formula as the shared hsv2rgb(vec3) in vulkan_common.glsl, so the shared
 // one is used directly (no local reimplementation needed).
 
+// (s + 1) * 128 reaches 256 at s == 1, which packPx would wrap to 0.
+float butterflyLevel(float s) {
+    return min((s + 1.0) * 128.0, 255.0);
+}
+
 void main() {
     uint index = gl_GlobalInvocationID.x;
     uint px = index % data.width;
@@ -160,23 +165,23 @@ void main() {
     uvec4 color = uvec4(0u, 0u, 0u, 255u);
     switch (data.style) {
         case 6:
-            color.r = uint((sin(v * chunksF * bfPi) + 1.0) * 128.0);
-            color.g = uint((cos(v * chunksF * bfPi) + 1.0) * 128.0);
+            color.r = uint(butterflyLevel(sin(v * chunksF * bfPi)));
+            color.g = uint(butterflyLevel(cos(v * chunksF * bfPi)));
             color.b = 0u;
             break;
         case 7:
             color.r = 1u;
-            color.g = uint((cos(v * chunksF * bfPi) + 1.0) * 128.0);
-            color.b = uint((sin(v * chunksF * bfPi) + 1.0) * 128.0);
+            color.g = uint(butterflyLevel(cos(v * chunksF * bfPi)));
+            color.b = uint(butterflyLevel(sin(v * chunksF * bfPi)));
             break;
         case 8:
-            color.r = uint((sin(v * chunksF * bfPi) + 1.0) * 128.0);
-            color.g = uint((sin(v * chunksF * bfPi + 2.0 * bfPi * onethird) + 1.0) * 128.0);
-            color.b = uint((sin(v * chunksF * bfPi + 4.0 * bfPi * onethird) + 1.0) * 128.0);
+            color.r = uint(butterflyLevel(sin(v * chunksF * bfPi)));
+            color.g = uint(butterflyLevel(sin(v * chunksF * bfPi + 2.0 * bfPi * onethird)));
+            color.b = uint(butterflyLevel(sin(v * chunksF * bfPi + 4.0 * bfPi * onethird)));
             break;
         case 9:
             {
-                uint g = uint((sin(v * chunksF * bfPi) + 1.0) * 128.0);
+                uint g = uint(butterflyLevel(sin(v * chunksF * bfPi)));
                 color.r = g; color.g = g; color.b = g;
             }
             break;

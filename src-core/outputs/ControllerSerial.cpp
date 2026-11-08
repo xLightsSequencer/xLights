@@ -92,15 +92,18 @@ std::vector<uint8_t> ControllerSerial::Encode(const std::string& s)
                 state = 3;
             }
             else {
-                state = 0;
+                state = (c == '\\') ? 1 : 0;
             }
         }
         else if (state == 3) {
             // last three chars were \x9
             if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')) {
                 res.push_back(HexToChar(c1, c));
+                state = 0;
             }
-            state = 0;
+            else {
+                state = (c == '\\') ? 1 : 0;
+            }
         }
     }
 
@@ -141,12 +144,22 @@ ControllerSerial::ControllerSerial(OutputManager* om) : Controller(om) {
 ControllerSerial::ControllerSerial(OutputManager* om, const ControllerSerial& from) :
     Controller(om, from)
 {
+    auto itfrom = from._outputs.begin();
+    for (auto itto = _outputs.begin(); itto != _outputs.end() && itfrom != from._outputs.end(); ++itto, ++itfrom) {
+        if (*itfrom == from._serialOutput) {
+            _serialOutput = static_cast<SerialOutput*>(*itto);
+            break;
+        }
+    }
+    if (_serialOutput == nullptr) {
+        _serialOutput = static_cast<SerialOutput*>(from._serialOutput->Copy());
+        _outputs.push_back(_serialOutput);
+    }
     SetSpeed(from._speed);
     SetPrefix(from._saveablePrefix);
     SetPostfix(from._saveablePostfix);
     SetFPPProxy(from._fppProxy);
     SetPort(from._port);
-    _serialOutput = static_cast<SerialOutput*>(from._serialOutput->Copy());
 }
 
 pugi::xml_node ControllerSerial::Save(pugi::xml_node parent) {
@@ -265,6 +278,7 @@ void ControllerSerial::VMVChanged() {
             out->SetIP(ip, IsActive());
             out->SetFPPProxyIP(_fppProxy != "" ? _fppProxy : _outputManager->GetGlobalFPPProxy());
             out->SetChannels(ch);
+            out->Enable(IsActive());
             _outputs.push_back(out);
             _dirty = true;
         }
@@ -387,6 +401,7 @@ void ControllerSerial::SetProtocol(const std::string& type)
         _speed = o->GetBaudRate(); // because the old speed may have been overridden
         o->SetChannels(c);
         o->SetId(_id);
+        o->Enable(IsActive());
 
         if (_serialOutput == _outputs.front()) {
             _outputs.pop_front();

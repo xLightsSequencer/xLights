@@ -42,9 +42,10 @@ on:
       - '*.docx'
       - 'README.*'
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-win-ci
   cancel-in-progress: true
   
 jobs:

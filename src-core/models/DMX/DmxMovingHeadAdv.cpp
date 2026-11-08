@@ -127,7 +127,7 @@ Mesh* DmxMovingHeadAdv::CreateHeadMesh(const std::string& name)
 
 void DmxMovingHeadAdv::MapChannelName(std::vector<std::string>& array, int chan, std::string name)
 {
-    if (chan > 0) {
+    if (chan > 0 && chan <= (int)array.size()) {
         array[chan-1] = name;
     }
 }
@@ -193,7 +193,7 @@ void DmxMovingHeadAdv::InitModel()
         MapChannelName(nodestrings, chan, "Tilt");
         if (tilt_motor->Is16Bit()) {
             chan = tilt_motor->GetChannelFine();
-            nodestrings[chan] = "Tilt Fine";
+            MapChannelName(nodestrings, chan, "Tilt Fine");
         }
         if (nullptr != color_ability) {
             if (color_ability->GetColorType() == DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_RGBW) {

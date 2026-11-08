@@ -346,7 +346,7 @@ void SequenceFile::ProcessElevenLabsTimingFiles(const std::vector<std::string>& 
                 int const startTime = RoundToMultipleOfPeriod((int)(start * 1000.0F), GetFrequency());
                 int endTime = RoundToMultipleOfPeriod((int)(end * 1000.0F), GetFrequency());
                 if (startTime == endTime) {
-                    endTime = RoundToMultipleOfPeriod(startTime + GetFrequency(), GetFrequency());
+                    endTime = RoundToMultipleOfPeriod(startTime + GetFrameMS(), GetFrequency());
                 }
                 return std::make_pair(startTime, endTime);
             };

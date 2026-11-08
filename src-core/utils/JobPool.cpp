@@ -525,11 +525,13 @@ void JobPool::Start(size_t poolSize, size_t minPoolSize)
 void JobPool::Stop()
 {
     LockThreads();
-    for (JobPoolWorker *worker : threads) {
-        worker->Stop();
-    }
-    
-    while (!threads.empty()) {
+    while (true) {
+        for (JobPoolWorker *worker : threads) {
+            worker->Stop();
+        }
+        if (threads.empty()) {
+            break;
+        }
         UnlockThreads();
         signal.notify_all();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));

@@ -169,7 +169,8 @@ void HinksPixOutput::setControllerChannels(const int startChan) {
     if (colorOrder == 6 || colorOrder == 7) { //RGBW nodes
         chanPerPix = 4;
     }
-    controllerEndChannel = controllerStartChannel + (pixels * chanPerPix) - 1;
+    int64_t const endChan = (int64_t)controllerStartChannel + ((int64_t)pixels * chanPerPix) - 1;
+    controllerEndChannel = (int)std::min<int64_t>(endChan, INT32_MAX);
 }
 #pragma endregion
 
@@ -308,15 +309,18 @@ void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) 
     }
     auto ports = data.at("LIST");
 
-    if ((int)ports.size() != length) {
+    if (!ports.is_array() || (int)ports.size() != length) {
         spdlog::error("Data from controller size and Expansion Size don't match");
         spdlog::error(data.at("LIST").dump());
         return;
     }
 
     for (size_t i = 0; i < ports.size(); i++) {
-        auto stringValue = ports.at(i)["V"].get<std::string>();
-        _pixelOutputs[(startport - 1) + i].SetConfig(stringValue);
+        auto const& entry = ports.at(i);
+        if (!entry.is_object() || !entry.contains("V") || !entry["V"].is_string()) {
+            continue;
+        }
+        _pixelOutputs[(startport - 1) + i].SetConfig(entry["V"].get<std::string>());
     }
 }
 
@@ -743,14 +747,15 @@ void HinksPix::UpdateUniverseControllerChannels(UDControllerPort* stringData, st
 
             while (sizeofchan > 0) {
                 auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [uni](auto const& inp) { return inp.universe == uni; });
-                if (inpUn != inputUniverses.end()) {
-                    (*inpUn).index = index;
-                    (*inpUn).hinksPixStartChannel = hinkstartChan;
-                    sizeofchan -= (*inpUn).numOfChan;
-                    uni++;
-                    index++;
-                    hinkstartChan += (*inpUn).numOfChan;
+                if (inpUn == inputUniverses.end() || (*inpUn).numOfChan <= 0) {
+                    break;
                 }
+                (*inpUn).index = index;
+                (*inpUn).hinksPixStartChannel = hinkstartChan;
+                sizeofchan -= (*inpUn).numOfChan;
+                uni++;
+                index++;
+                hinkstartChan += (*inpUn).numOfChan;
             }
         }
     } else {
@@ -957,6 +962,9 @@ std::string HinksPix::GetJSONControllerData(std::string const& url, std::string 
 
         /* Perform the request, res will get the return code */
         CURLcode r = curl_easy_perform(_curl);
+        // _curl is reused: never leave it pointing at this call's locals
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, nullptr);
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, nullptr);
 
         if (r != CURLE_OK) {
             spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(r));
@@ -997,7 +1005,11 @@ void HinksPix::PostToControllerNoResponse(std::string const& url, std::string co
         curl_easy_setopt(_curl, CURLOPT_TIMEOUT_MS, 1L); // just time out
 
         /* Perform the request, res will get the return code */
+        // no reply is wanted: with a null target writeFunction ends the transfer
+        curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, writeFunction);
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, nullptr);
         curl_easy_perform(_curl);
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, nullptr);
         /* always cleanup */
        // curl_easy_cleanup(curl);
     } else {
@@ -1045,8 +1057,7 @@ int HinksPix::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "apa102") {
         return 7;
     }
-    assert(false);
-    return 1;
+    return -1;
 }
 
 int HinksPix::EncodeColorOrder(const std::string& colorOrder) const {
@@ -1129,34 +1140,46 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
         }
     }
 
-    if (data.size() > 0) {
+    if (data.is_object() && data.contains("Type") && data["Type"].is_string() && data.contains("Controller") && data["Controller"].is_string()) {
+        auto const getStr = [&data](const char* key) {
+            return (data.contains(key) && data[key].is_string()) ? data[key].get<std::string>() : std::string();
+        };
         //get output type options
         for (int i = 0; i < EXP_PORTS; i++) {
-            if (data.find("BD" + std::to_string(i + 1)) == data.end()) {
+            auto const key = "BD" + std::to_string(i + 1);
+            if (data.find(key) == data.end() || !data[key].is_string()) {
                 _EXP_Outputs[i] = EXPType::Not_Present;
                 continue;
             }
-            _EXP_Outputs[i] = DecodeExpansionType(data.at("BD" + std::to_string(i + 1)).get<std::string>());
-        }        
+            _EXP_Outputs[i] = DecodeExpansionType(data[key].get<std::string>());
+        }
 
         _connected = true;
 
-       auto const pix_type = data.at("Type").get<std::string>();   //"P" for Pixel, "A" for AC
-        _controllerType = data.at("Controller").get<std::string>(); //"H" for Pro, "E" for EasyLights
+        auto const pix_type = data["Type"].get<std::string>();   //"P" for Pixel, "A" for AC
+        _controllerType = data["Controller"].get<std::string>(); //"H" for Pro, "E" for EasyLights
 
         if (data.contains("MaxU")) {
-            _numberOfUniverses = (int)strtol(data.at("MaxU").get<std::string>().c_str(), nullptr, 10);
+            if (data["MaxU"].is_string()) {
+                _numberOfUniverses = (int)strtol(data["MaxU"].get<std::string>().c_str(), nullptr, 10);
+            } else if (data["MaxU"].is_number()) {
+                _numberOfUniverses = data["MaxU"].get<int>();
+            }
         }
+        auto const fwVersion = [&getStr](const char* key) {
+            auto const v = getStr(key);
+            return v.size() > 3 ? v.substr(3) : std::string();
+        };
         if (data.contains("MCPU") && data.contains("PCPU") && data.contains("ECPU") && data.contains("WEB")) {
             _version = fmt::format("MAIN:{},POWER:{},WIFI:{},WEB:{}",
-                                        data.at("MCPU").get<std::string>().substr(3),
-                                        data.at("PCPU").get<std::string>().substr(3),
-                                        data.at("ECPU").get<std::string>().substr(3),
-                                        data.at("WEB").get<std::string>().substr(3));
+                                   fwVersion("MCPU"),
+                                   fwVersion("PCPU"),
+                                   fwVersion("ECPU"),
+                                   fwVersion("WEB"));
         }
 
         if (data.contains("MCPU")) {
-            _MCPU_Version = (int)std::strtol(data.at("MCPU").get<std::string>().substr(3).c_str(), nullptr, 10);
+            _MCPU_Version = (int)std::strtol(fwVersion("MCPU").c_str(), nullptr, 10);
         }
 
         if (_controllerType == "E") {
@@ -1557,6 +1580,9 @@ std::string HinksPix::GetControllerRowData(int rowIndex, const std::string& url,
 
         /* Perform the request, res will get the return code */
         CURLcode r = curl_easy_perform(_curl);
+        // _curl is reused: never leave it pointing at this call's locals
+        curl_easy_setopt(_curl, CURLOPT_WRITEDATA, nullptr);
+        curl_easy_setopt(_curl, CURLOPT_HTTPHEADER, nullptr);
 
         if (r != CURLE_OK) {
             spdlog::error("Failure to access {}: {}.", url, curl_easy_strerror(r));

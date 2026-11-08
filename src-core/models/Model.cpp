@@ -460,10 +460,13 @@ bool Model::AddAlias(const std::string& alias)
 
 void Model::DeleteAlias(const std::string& alias)
 {
+    // matches what IsAlias accepts: the alias itself or its "oldname:" form
     std::string lAlias = ::Lower(alias);
-    while (IsAlias(alias)) { // while should not be required ... but just in case it ever ends up there more than once
+    std::string oldAlias = ::Lower("oldname:" + alias);
+    size_t before = aliases.size();
+    aliases.remove_if([&](const std::string& a) { return a == lAlias || a == oldAlias; });
+    if (aliases.size() != before) {
         IncrementChangeCount();
-        aliases.remove(lAlias);
     }
 }
 
@@ -688,7 +691,8 @@ void Model::ImportExtraModels(pugi::xml_node n, ModelManager& modelMgr, const st
     for (auto m = n.first_child(); m; m = m.next_sibling()) {
         bool cancelled = false;
         Model* model = modelMgr.CreateDefaultModel("Custom", "1"); // start with a custom model
-        model = model->CreateDefaultModelFromSavedModelNode(model, m, modelMgr, cancelled);
+        // only its cancelled answer is used; the model itself is deserialized again below
+        delete model->CreateDefaultModelFromSavedModelNode(model, m, modelMgr, cancelled);
         XmlSerializer serializer;
         model = serializer.DeserializeModel(m, modelMgr, true);
 
@@ -788,7 +792,7 @@ bool Model::ModelRenamed(const std::string& oldName, const std::string& newName)
 {
     bool changed = false;
     std::string sc = ModelStartChannel;
-    if ((sc[0] == '@' || sc[0] == '<' || sc[0] == '>') && sc.size() > 1) {
+    if (sc.size() > 1 && (sc[0] == '@' || sc[0] == '<' || sc[0] == '>') && sc.find(':') != std::string::npos) {
         std::string mn = sc.substr(1, sc.find(':') - 1);
         if (mn == oldName) {
             sc = sc[0] + newName + sc.substr(sc.find(':'), sc.size());
@@ -808,11 +812,11 @@ bool Model::ModelRenamed(const std::string& oldName, const std::string& newName)
     }
 
     for (size_t i = 0; i < stringStartChan.size() && i < _indivStartChannels.size(); ++i) {
-        if ((sc[0] == '@' || sc[0] == '<' || sc[0] == '>') && sc.size() > 1) {
-            std::string mn = sc.substr(1, sc.find(':') - 1);
+        const std::string& isc = _indivStartChannels[i];
+        if (isc.size() > 1 && (isc[0] == '@' || isc[0] == '<' || isc[0] == '>') && isc.find(':') != std::string::npos) {
+            std::string mn = isc.substr(1, isc.find(':') - 1);
             if (mn == oldName) {
-                sc = sc[0] + newName + sc.substr(sc.find(':'), sc.size());
-                _indivStartChannels[i] = sc;
+                _indivStartChannels[i] = isc[0] + newName + isc.substr(isc.find(':'));
                 changed = true;
             }
         }
@@ -1066,7 +1070,9 @@ void Model::UpdateChannels()
     // alternative function that only performs channel calculation instead of calling the full Setup function
     CouldComputeStartChannel = false;
     std::string dependsonmodel;
-    int32_t StartChannel = GetNumberFromChannelString(ModelStartChannel, CouldComputeStartChannel, dependsonmodel);
+    bool startValid = false;
+    int32_t StartChannel = GetNumberFromChannelString(ModelStartChannel, startValid, dependsonmodel);
+    CouldComputeStartChannel = startValid;
 
     // calculate starting channel numbers for each string
     size_t NumberOfStrings = GetNumStrings();
@@ -1592,8 +1598,7 @@ std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, 
         if (c != nullptr) {
             start = c->GetStartChannel();
         }
-        unsigned int lastChannel = GetLastChannel() + 1;
-        return Trim(BeforeFirst(modelFormat, ':')) + ":" + std::to_string(lastChannel - start + 1) + " (" + std::to_string(lastChannel) + ")";
+        return Trim(BeforeFirst(modelFormat, ':')) + ":" + std::to_string(channel - start + 1) + " (" + std::to_string(channel) + ")";
     } else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0) {
         // absolute
         return std::to_string(channel);
@@ -1771,7 +1776,9 @@ void Model::GetBufferSize(const std::string& tp, const std::string& camera, cons
 void Model::AdjustForTransform(const std::string& transform,
                                int& bufferWi, int& bufferHi) const
 {
-    if (transform == "Rotate CC 90" || transform == "Rotate CW 90") {
+    // Every rotation by 90 degrees ApplyTransform performs swaps the sides
+    if (transform == "Rotate CC 90" || transform == "Rotate CW 90" ||
+        transform == "Rotate CC 90 Flip Horizontal" || transform == "Rotate CW 90 Flip Horizontal") {
         int x = bufferHi;
         bufferHi = bufferWi;
         bufferWi = x;
@@ -1887,7 +1894,7 @@ void Model::ApplyTransform(const std::string& type,
         }
         std::swap(bufferWi, bufferHi);
 
-        for (size_t x = 0; x < newNodes.size(); ++x) {
+        for (size_t x = startNode; x < newNodes.size(); ++x) {
             for (auto& it2 : newNodes[x]->Coords) {
                 SetCoords(it2, it2.bufX, bufferHi - it2.bufY - 1);
             }
@@ -4879,7 +4886,7 @@ std::vector<PWMOutput> Model::GetPWMOutputs() const {
                 }
                 float g = _controllerConnection.GetGamma();
                 int b = _controllerConnection.GetBrightness();
-                ret.emplace_back(n->ActChan + 1, PWMOutput::Type::LED, 1, label, b, g);
+                ret.emplace_back(n->ActChan + x, PWMOutput::Type::LED, 1, label, b, g);
             }
             cur++;
         }
@@ -4940,7 +4947,8 @@ std::string Model::DetermineClass(const std::string& displayAs, bool isSingingFa
         auto drops = Split(dropPattern, ',');
         for (const auto& it : drops) {
             int i = (int)std::strtol(it.c_str(), nullptr, 10);
-            if (i != 0) {
+            // a drop of one light is no drop at all
+            if (std::abs(i) > 1) {
                 dropPatternDir = i < 0 ? -1 : 1;
                 break;
             }

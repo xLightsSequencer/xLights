@@ -1424,8 +1424,7 @@ void RippleEffect::Drawsquare(RenderBuffer& buffer, int Movement, int x1, int x2
                 hrun(y1 + i, x1 + i, x2 - i);
                 hrun(y2 - i, x1 + i, x2 - i);
             }
-        }
-        if (Movement == MOVEMENT_IMPLODE) {
+        } else { // implode and none, as for the other shapes
             if (buffer.dmx_buffer) {
                 for (int y = y2 + i; y >= y1 - i; y--) {
                     buffer.SetPixel(x1 - i, y, color);

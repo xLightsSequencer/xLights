@@ -128,6 +128,7 @@ KinetOutput::KinetOutput(const KinetOutput& from) :
     IPOutput(from)
 {
     _channels = from._channels;
+    _version = from._version;
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));

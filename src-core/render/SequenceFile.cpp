@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -347,6 +348,21 @@ void SequenceFile::RecordImportedFrom(const std::string& donorPath)
     header_info[(int)HEADER_INFO_TYPES::IMPORTED_FROM] = _importedFrom.front();
 }
 
+void SequenceFile::SetImportedFrom(const std::vector<std::string>& donors)
+{
+    _importedFrom.clear();
+    for (auto const& donor : donors) {
+        if (donor.empty() || std::find(_importedFrom.begin(), _importedFrom.end(), donor) != _importedFrom.end()) {
+            continue;
+        }
+        _importedFrom.push_back(donor);
+        if (_importedFrom.size() == MAX_IMPORTED_FROM) {
+            break;
+        }
+    }
+    header_info[(int)HEADER_INFO_TYPES::IMPORTED_FROM] = _importedFrom.empty() ? std::string() : _importedFrom.front();
+}
+
 void SequenceFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const std::string& node_value)
 {
     header_info[static_cast<int>(name_name)] = node_value;
@@ -418,11 +434,15 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
 
     // Handle CompressedData sections
     for (auto e = root.child("CompressedData"); e; ) {
-        int size = e.attribute("size").as_int(0);
+        int size = std::max(0, e.attribute("size").as_int(0));
         std::string b64Content = e.text().as_string("");
         std::vector<uint8_t> decoded = Base64::Decode(b64Content);
-        std::vector<uint8_t> bytes(size + 50);
-        int sz = ZSTD_decompress(bytes.data(), bytes.size(), decoded.data(), decoded.size());
+        std::vector<uint8_t> bytes((size_t)size + 50);
+        size_t sz = ZSTD_decompress(bytes.data(), bytes.size(), decoded.data(), decoded.size());
+        if (ZSTD_isError(sz)) {
+            spdlog::error("Could not decompress a CompressedData section: {}", ZSTD_getErrorName(sz));
+            sz = 0;
+        }
 
         pugi::xml_document tempDoc;
         tempDoc.load_buffer(bytes.data(), sz);
@@ -617,9 +637,20 @@ std::string SequenceFile::GetSequenceDurationString() const
     return fmt::format("{:.3f}", seq_duration);
 }
 
+int SequenceFile::GetSequenceDurationMS() const
+{
+    // Seconds with three decimals rarely land exactly on the millisecond in
+    // binary, so round rather than truncate.
+    return (int)std::lround(seq_duration * 1000);
+}
+
 void SequenceFile::SetSequenceDurationMS(int length)
 {
-    SetSequenceDuration(length / 1000.0f);
+    // Integer formatting: a float division here becomes a multiply by 0.001f
+    // under -ffast-math and loses milliseconds on long sequences (a day came
+    // back 8 ms long).
+    int ms = std::abs(length);
+    SetSequenceDuration(fmt::format("{}{}.{:03d}", length < 0 ? "-" : "", ms / 1000, ms % 1000));
 }
 
 void SequenceFile::SetSequenceDuration(double length)
@@ -744,7 +775,7 @@ void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& fi
             int endTime = RoundToMultipleOfPeriod(std::strtol(end_times[k].c_str(), nullptr, 10), GetFrequency());
             if (startTime == endTime) {
                 if (k == start_times.size() - 1) {
-                    endTime = startTime + GetFrequency();
+                    endTime = startTime + GetFrameMS();
                 } else {
                     endTime = RoundToMultipleOfPeriod(std::strtol(start_times[k + 1].c_str(), nullptr, 10), GetFrequency());
                 }
@@ -842,7 +873,7 @@ void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, R
                                     grid_times.push_back(std::to_string(time));
                                 }
 
-                                for (size_t k = 0; k < grid_times.size()-1; ++k )
+                                for (size_t k = 0; k + 1 < grid_times.size(); ++k )
                                 {
                                     int startTime = RoundToMultipleOfPeriod(std::strtol(grid_times[k].c_str(), nullptr, 10),GetFrequency());
                                     int endTime = RoundToMultipleOfPeriod(std::strtol(grid_times[k+1].c_str(), nullptr, 10),GetFrequency());
@@ -885,7 +916,7 @@ std::string SequenceFile::UniqueTimingName(RenderContext* xLightsParent, std::st
 
 void SequenceFile::ProcessXTiming(const pugi::xml_node& node, RenderContext* xLightsParent)
 {
-    std::string name = UnXmlSafe(node.attribute("name").as_string(""));
+    std::string name = node.attribute("name").as_string("");
     //std::string v = node.attribute("SourceVersion").as_string("");
     std::string st = node.attribute("subType").as_string("");
 
@@ -913,7 +944,7 @@ void SequenceFile::ProcessXTiming(const pugi::xml_node& node, RenderContext* xLi
             {
                 if (strcmp(effects.name(), "Effect") == 0)
                 {
-                    std::string label = UnXmlSafe(effects.attribute("label").as_string(""));
+                    std::string label = effects.attribute("label").as_string("");
                     std::string start = effects.attribute("starttime").as_string("");
                     std::string end = effects.attribute("endtime").as_string("");
                     int s = std::strtol(start.c_str(), nullptr, 10);
@@ -1037,6 +1068,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
         linenum++;
         if (samppersec < 1) {
             DisplayError(fmt::format("Invalid file @line {} ('{}' samples per sec)", linenum, line));
+            return;
         }
         int ms = 1000 / samppersec;
 
@@ -1282,12 +1314,13 @@ void SequenceFile::ProcessSRT(const std::vector<std::string>& filenames, RenderC
 
         std::string line = ReadSRTLine(lines, idx, linenum++, startMS, endMS);
 
-        do {
+        while (true) {
             if (!line.empty() && endMS > startMS) {
                 el1->AddEffect(0, line, "", "", startMS, endMS, EFFECT_NOT_SELECTED, false);
             }
+            if (idx >= lines.size()) break;
             line = ReadSRTLine(lines, idx, linenum++, startMS, endMS);
-        } while (idx < lines.size());
+        }
     }
 }
 
@@ -1333,9 +1366,6 @@ static void WriteEffectsPugi(EffectLayer* layer,
         effect_node.append_attribute("name") = XmlSafe(effect->GetEffectName());
         if (effect->GetProtected()) {
             effect_node.append_attribute("protected") = "1";
-        }
-        if (effect->GetSelected()) {
-            effect_node.append_attribute("selected") = "1";
         }
         if (effect->GetID()) {
             effect_node.append_attribute("id") = effect->GetID();
@@ -1496,12 +1526,9 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
                     for (int k = 0; k < layer->GetEffectCount(); ++k) {
                         Effect* effect = layer->GetEffect(k);
                         auto effect_node = effect_layer_node.append_child("Effect");
-                        effect_node.append_attribute("label") = effect->GetEffectName();
+                        effect_node.append_attribute("label") = XmlSafe(effect->GetEffectName());
                         if (effect->GetProtected()) {
                             effect_node.append_attribute("protected") = "1";
-                        }
-                        if (effect->GetSelected()) {
-                            effect_node.append_attribute("selected") = "1";
                         }
                         effect_node.append_attribute("startTime") = effect->GetStartTimeMS();
                         effect_node.append_attribute("endTime") = effect->GetEndTimeMS();
@@ -1752,9 +1779,10 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, Rende
             TimingElement* element = xLightsParent->AddTimingElement(interval_name);
             element->SetFixedTiming(interval);
             EffectLayer* effectLayer = element->GetEffectLayer(0);
+            if (interval < 1) return;
             int time = 0;
             int end_time = GetSequenceDurationMS();
-            while (time <= end_time) {
+            while (time < end_time) {
                 int next_time = (time + interval <= end_time) ? time + interval : end_time;
                 int startTime = RoundToMultipleOfPeriod(time, GetFrequency());
                 int endTime = RoundToMultipleOfPeriod(next_time, GetFrequency());
@@ -1779,9 +1807,10 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int i
         TimingElement* element = xLightsParent->AddTimingElement(interval_name);
         element->SetFixedTiming(interval);
         EffectLayer* effectLayer = element->GetEffectLayer(0);
+        if (interval < 1) return;
         int time = 0;
         int end_time = GetSequenceDurationMS();
-        while (time <= end_time) {
+        while (time < end_time) {
             int next_time = (time + interval <= end_time) ? time + interval : end_time;
             int startTime = RoundToMultipleOfPeriod(time, GetFrequency());
             int endTime = RoundToMultipleOfPeriod(next_time, GetFrequency());
@@ -1825,6 +1854,7 @@ void SequenceFile::AddMetronomeLabelTimingSection(const std::string& interval_na
     int lastRandomState = -1;
     while (time < end_time) {
         int interval = minForRandomRange == -1 ? _interval : intRand(minForRandomRange, _interval);
+        if (interval < 1) break;
         int next_time = (time + interval <= end_time) ? time + interval : end_time;
         int startTime = RoundToMultipleOfPeriod(time, GetFrequency());
         int endTime = RoundToMultipleOfPeriod(next_time, GetFrequency());

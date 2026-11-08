@@ -29,14 +29,14 @@ enum class loreditType
 
 struct LOREditEffect
 {
-    loreditType type;
-    uint32_t startMS;
-    uint32_t endMS;
-    uint16_t startIntensity;
-    uint16_t endIntensity;
+    loreditType type = loreditType::NONE;
+    uint32_t startMS = 0;
+    uint32_t endMS = 0;
+    uint16_t startIntensity = 100;
+    uint16_t endIntensity = 100;
     xlColor startColour;
     xlColor endColour;
-    bool left;
+    bool left = false;
     std::string effectType;
     std::vector<std::string> effectSettings;
     std::vector<std::string> otherSettings;
@@ -72,19 +72,19 @@ struct LOREditEffect
     std::string GetSketchPictureName() const;
     static std::string SafeGetStringParm(const std::vector<std::string>& arr, int param)
     {
-        if (param < (int)arr.size())
+        if (param >= 0 && param < (int)arr.size())
             return arr[param];
         return "";
     }
     static int SafeGetIntParm(const std::vector<std::string>& arr, int param)
     {
-        if (param < (int)arr.size())
+        if (param >= 0 && param < (int)arr.size())
             return (int)std::strtol(arr[param].c_str(), nullptr, 10);
         return 0;
     }
     static bool SafeGetBoolParm(const std::vector<std::string>& arr, int param)
     {
-        if (param < (int)arr.size())
+        if (param >= 0 && param < (int)arr.size())
             return arr[param] == "True";
         return false;
     }

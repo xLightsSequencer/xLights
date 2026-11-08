@@ -24,6 +24,7 @@
 #include "models/ViewObject.h"
 #include "utils/ExternalHooks.h"
 #include "utils/FileUtils.h"
+#include "utils/string_utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -255,6 +256,30 @@ void SequencePackage::Extract()
         // it becomes a std::filesystem::path.
         std::string entryNameStr = FileUtils::ToValidUTF8(entryName, FileUtils::LegacyEncoding::CP437);
         bool isDir = (!entryNameStr.empty() && entryNameStr.back() == '/') || (fileInfo.external_fa & 0x10);
+
+        {
+            std::string chk = entryNameStr;
+            std::replace(chk.begin(), chk.end(), '\\', '/');
+            bool unsafe = chk.empty() || chk[0] == '/' || (chk.size() >= 2 && chk[1] == ':');
+            int depth = 0;
+            size_t cpos = 0;
+            while (!unsafe && cpos <= chk.size()) {
+                size_t nx = chk.find('/', cpos);
+                std::string comp = chk.substr(cpos, nx == std::string::npos ? std::string::npos : nx - cpos);
+                if (comp == "..") {
+                    if (--depth < 0) unsafe = true;
+                } else if (!comp.empty() && comp != ".") {
+                    ++depth;
+                }
+                if (nx == std::string::npos) break;
+                cpos = nx + 1;
+            }
+            if (unsafe) {
+                spdlog::warn("Skipping package entry with unsafe path '{}'.", entryNameStr);
+                ret = unzGoToNextFile(uf);
+                continue;
+            }
+        }
 
         std::filesystem::path fnEntry = _tempDir / entryNameStr;
 
@@ -653,7 +678,7 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
                                 std::string attrValue = attr.as_string();
 
                                 // import files
-                                if (attrName.substr(0, 5) == "Mouth" || attrName.substr(0, 4) == "Eyes") {
+                                if (SequenceFaces::IsImageKey(attrName)) {
                                     if (!attrValue.empty()) {
                                         // extract just the filename from the path
                                         std::string faceFileName = ExtractFilename(attrValue);
@@ -1629,9 +1654,16 @@ static std::string resolveFontFaceToFile(const std::string& faceName)
     FcPatternDestroy(pattern);
     if (match == nullptr) return {};
 
+    // FcFontMatch always returns the closest font, so a face that is not installed
+    // comes back as a substitute (e.g. DejaVu Sans); only accept a family match.
+    bool sameFamily = false;
+    FcChar8* family = nullptr;
+    for (int i = 0; !sameFamily && FcPatternGetString(match, FC_FAMILY, i, &family) == FcResultMatch; ++i) {
+        sameFamily = family != nullptr && Lower(reinterpret_cast<const char*>(family)) == Lower(faceName);
+    }
     std::string path;
     FcChar8* file = nullptr;
-    if (FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file != nullptr) {
+    if (sameFamily && FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file != nullptr) {
         path = reinterpret_cast<const char*>(file);
     }
     FcPatternDestroy(match);

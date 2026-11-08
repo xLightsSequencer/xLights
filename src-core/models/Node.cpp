@@ -89,7 +89,7 @@ void NodeClassRGBWW::SetFromChannels(const unsigned char* buf)
 
         for (int x = 0; x < 3; x++) {
                 if (offsets[x] != 255) {
-                    c[x] = buf[offsets[x] + wOffset] + buf[wIndex];
+                    c[x] = std::min(255, buf[offsets[x] + wOffset] + buf[wIndex]);
                 }
         }
 
@@ -203,12 +203,12 @@ const std::string& NodeClassRGBW::GetNodeType() const
             if (offsets[1] == 1) {
                 return wIndex == 0 ? WRGB : RGBW;
             }
-            return RBG;
+            return wIndex == 0 ? WRBG : RBGW;
         case 1:
             if (offsets[1] == 0) {
                 return wIndex == 0 ? WGRB : GRBW;
             }
-            return wIndex == 0 ? WBRG : GRBW;
+            return wIndex == 0 ? WBRG : BRGW;
         default:
             break;
     }
@@ -236,7 +236,7 @@ void NodeClassRGBW::SetFromChannels(const unsigned char* buf)
 
         for (int x = 0; x < 3; x++) {
             if (offsets[x] != 255) {
-                c[x] = buf[offsets[x] + wOffset] + buf[wIndex];
+                c[x] = std::min(255, buf[offsets[x] + wOffset] + buf[wIndex]);
             }
         }
 

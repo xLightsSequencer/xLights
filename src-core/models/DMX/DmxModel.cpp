@@ -66,7 +66,7 @@ void DmxModel::InitRenderBufferNodes(const std::string& type, const std::string&
 
 void DmxModel::UpdateChannelCount(int num_channels, bool do_work)
 {
-    _dmxChannelCount = num_channels;
+    _dmxChannelCount = std::max(0, num_channels);
     if (do_work) {
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "DmxModel::UpdateChannelCount::DMXChannelCount");
         AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST |
@@ -83,8 +83,9 @@ void DmxModel::InitModel()
     SetNodeCount(numChannels, 1, rgbOrder);
 
     int curNode = 0;
+    int32_t startChan = stringStartChan.empty() ? 0 : stringStartChan[0];
     for (int x = 0; x < numChannels; x++) {
-        Nodes[curNode]->ActChan = stringStartChan[0] + curNode * GetNodeChannelCount(StringType);
+        Nodes[curNode]->ActChan = startChan + curNode * GetNodeChannelCount(StringType);
         Nodes[curNode]->StringNum = 0;
         // the screenx/screeny positions are used to fake it into giving a bigger selection area
         if (x == 0) {
@@ -113,6 +114,9 @@ int DmxModel::GetChannelValue(int channel, bool bits16)
     int msb = 0;
     int ret_val = 0;
 
+    if (channel < 0) {
+        return 0;
+    }
     if (bits16) {
         if ((int)Nodes.size() > channel + 1) {
             Nodes[channel]->GetColor(color_angle);
@@ -139,12 +143,11 @@ int DmxModel::GetChannelValue(int channel_coarse, int channel_fine)
     int msb = 0;
     int ret_val = 0;
 
-    if ((int)Nodes.size() > channel_coarse + 1) {
+    if (channel_coarse >= 0 && channel_coarse < (int)Nodes.size()) {
         Nodes[channel_coarse]->GetColor(color_angle);
         msb = color_angle.red;
     }
-    if( channel_fine >= 0 )
-    if ((int)Nodes.size() > channel_fine + 1) {
+    if (channel_fine >= 0 && channel_fine < (int)Nodes.size()) {
         Nodes[channel_fine]->GetColor(color_angle);
         lsb = color_angle.red;
     }

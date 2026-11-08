@@ -1,0 +1,11 @@
+# Sequences whose output is deterministic on one machine but is not bit-identical across CPU types, so
+# the recorded hash in manifest-basic.txt cannot gate other machines. For these the harness still renders
+# twice and requires identical hashes, and fails if the output is blank (same hash as effect_off), but it
+# does not compare against the manifest.
+#
+# Plasma and Butterfly truncate sin() results to bytes and a fused multiply-add (NEON, and the AVX2
+# target on x86) rounds differently from a separate multiply and add, so a few channels differ by one
+# level between CPU types. Building those kernels with --opt=disable-fma makes them identical everywhere
+# at a 17-30 percent cost in the kernels, so it is not enabled.
+effect_butterfly
+effect_plasma

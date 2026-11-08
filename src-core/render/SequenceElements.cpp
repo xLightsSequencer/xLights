@@ -39,6 +39,15 @@ static const std::string STR_NODE("Node");
 static const std::string STR_STRAND("Strand");
 static const std::string STR_TIMING("timing");
 
+
+// A timing's view list is comma separated; an empty list (or one saved with a
+// stray comma) must not yield empty view names.
+static std::vector<std::string> SplitViews(const std::string& views) {
+    auto v = Split(views, ',');
+    std::erase_if(v, [](const std::string& s) { return s.empty(); });
+    return v;
+}
+
 SequenceElements::SequenceElements(RenderContext *ctx)
     : renderContext(ctx), mFrequency(20), mSequenceEndMS(0), undo_mgr(this)
 {
@@ -339,7 +348,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
 bool SequenceElements::TimingIsPartOfView(TimingElement* timing, int view) const
 {
     std::string view_name = GetViewName(view);
-    auto views = Split(timing->GetViews(), ',');
+    auto views = SplitViews(timing->GetViews());
     for (size_t v = 0; v < views.size(); v++)
     {
         if (views[v] == view_name)
@@ -507,7 +516,7 @@ void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
     if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING)
     {
         std::string views = elem->GetViews();
-        auto all_views = Split(views, ',');
+        auto all_views = SplitViews(views);
         int found = -1;
         for (size_t j = 0; j < all_views.size(); j++)
         {
@@ -536,7 +545,7 @@ void SequenceElements::DeleteTimingsFromView(int view)
         {
             TimingElement* te = dynamic_cast<TimingElement*>(el);
             std::string views = te->GetViews();
-            auto all_views = Split(views, ',');
+            auto all_views = SplitViews(views);
             int found = -1;
             for (size_t j = 0; j < all_views.size(); j++)
             {
@@ -1070,7 +1079,7 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
             else {
                 te->SetVisible(false);
                 if (te->GetMasterVisible()) {
-                    auto views = Split(te->GetViews(), ',');
+                    auto views = SplitViews(te->GetViews());
                     for (size_t v = 0; v < views.size(); v++) {
                         const std::string& viewName = views[v];
                         if (name == viewName) {
@@ -1120,7 +1129,7 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
     if( elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING )
     {
         std::string views = te->GetViews();
-        auto all_views = Split(views,',');
+        auto all_views = SplitViews(views);
         bool found = false;
         for( size_t j = 0; j < all_views.size(); j++ )
         {
