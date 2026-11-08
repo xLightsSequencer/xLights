@@ -23,6 +23,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  start corner and switch to another after save and reload
     -bug (scott)                 A new Matrix model's Starting Location showed Bottom Left in the property
                                  grid even though the saved file had StartSide="T" (Top)
+    -enh (scott)                 Bulk Edit: new "Edit Properties" popup edits a shared model type's
+                                 properties across every selected model of that type at once
     -enh (heffneil)              Bulk Controller Upload: Select All checkbox, filter box, multi-row
                                  checking, Invert Selection; the dialog remembers its size and position
     -bug (derwin12)              Text effect reading from a text file kept showing the old text after the
