@@ -81,12 +81,23 @@ if(NOT MSVC)
 endif()
 
 include(Catch)
+# ctest runs each test case in its own process, in parallel. The PixLite tests (core/, not
+# built on Windows) all need the fixed UDP discovery port 49150, so they take a lock and run
+# one at a time.
+set(XL_NOT_LOCKED "")
+if(XL_TEST_FULL_CORE AND NOT WIN32)
+    catch_discover_tests(xlights_unit_tests TEST_SPEC "[pixlite3]" TEST_LIST xlights_unit_tests_PIXLITE
+        PROPERTIES RESOURCE_LOCK pixlite_udp_port)
+    set(XL_NOT_LOCKED "~[pixlite3]")
+endif()
 if(XL_TEST_VULKAN)
-    catch_discover_tests(xlights_unit_tests TEST_SPEC "~[gpu]")
+    catch_discover_tests(xlights_unit_tests TEST_SPEC "~[gpu]${XL_NOT_LOCKED}")
     # A software Vulkan device (lavapipe on CI) only takes compute work with
     # XL_VULKAN_ALLOW_CPU set. Only these tests get it: the rest keep their CPU paths.
     catch_discover_tests(xlights_unit_tests TEST_SPEC "[gpu]" TEST_LIST xlights_unit_tests_GPU
         PROPERTIES ENVIRONMENT "XL_VULKAN_ALLOW_CPU=1")
+elseif(XL_NOT_LOCKED)
+    catch_discover_tests(xlights_unit_tests TEST_SPEC "${XL_NOT_LOCKED}")
 else()
     catch_discover_tests(xlights_unit_tests)
 endif()
