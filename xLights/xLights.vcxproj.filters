@@ -981,6 +981,9 @@
     <ClCompile Include="..\src-ui-wx\controllerproperties\OutputPropertyAdapters.cpp">
       <Filter>controllerproperties</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\modelproperties\BulkEditModelPropertiesDialog.cpp">
+      <Filter>modelproperties</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\modelproperties\ModelPropertyAdapter.cpp">
       <Filter>modelproperties</Filter>
     </ClCompile>
@@ -2600,6 +2603,9 @@
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\controllerproperties\OutputPropertyAdapters.h">
       <Filter>controllerproperties</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\modelproperties\BulkEditModelPropertiesDialog.h">
+      <Filter>modelproperties</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\modelproperties\ModelPropertyAdapter.h">
       <Filter>modelproperties</Filter>

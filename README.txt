@@ -12,6 +12,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -enh (derwin12)              Snowflakes renders much faster on large buffers (e.g. whole-house groups
+                                 with an enlarged sub-buffer); output is unchanged
+    -bug (dkulp)                 Crash in the Layout preview when Mesh Only was turned on for a mesh that
+                                 had no geometry
+    -bug (dkulp)                 Crash after FPP Connect sent controller settings with a virtual display
+                                 background image and no sequence checked
+    -bug (derwin12)              Models imported from an LOR S5 preview, iPad arches after changing Starting
+                                 Location, and old circles without a start side could show and render one
+                                 start corner and switch to another after save and reload
     -bug (scott)                 A new Matrix model's Starting Location showed Bottom Left in the property
                                  grid even though the saved file had StartSide="T" (Top)
     -enh (FrenchMakers)          File > Backup to Cloud uploads the whole show folder (media, rendered .fseq
@@ -19,6 +28,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  storage, in the background with progress. File > Restore from Cloud brings a
                                  chosen backup back into a new folder, and can delete old backups; older ones
                                  can also be removed automatically. Set it up in Preferences > Cloud Storage
+    -enh (scott)                 Bulk Edit: new "Edit Properties" popup edits a shared model type's
+                                 properties across every selected model of that type at once
     -enh (heffneil)              Bulk Controller Upload: Select All checkbox, filter box, multi-row
                                  checking, Invert Selection; the dialog remembers its size and position
     -bug (derwin12)              Text effect reading from a text file kept showing the old text after the
@@ -355,6 +366,53 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  malformed channel ranges
     -bug (dkulp)                 A duplicated FPP controller keeps its IP address
                                  and proxy
+    -bug (dkulp)                 SuperStar import: fixed crashes with a zero-size
+                                 grid, a layout missing its ribbon count, negative
+                                 scene element indexes and images with zero or
+                                 negative width
+    -bug (dkulp)                 SuperStar import: Morph acceleration no longer
+                                 merges into Stagger, and the first colour of
+                                 Spiral, Shockwave and Fan palettes is kept
+    -bug (dkulp)                 SuperStar import: colour percentages above 100 or
+                                 below 0 no longer wrap, equal start and end times
+                                 no longer give bad durations, and text containing
+                                 commas is no longer cut off
+    -bug (dkulp)                 SuperStar import: the image group name prompt
+                                 shows the suggested name and file pre-processing
+                                 no longer drops the character after a force-closed
+                                 tag
+    -bug (dkulp)                 Vixen 3 import: no longer crashes on effects with
+                                 missing settings or odd Nutcracker palette data,
+                                 and durations with hours are read correctly
+    -bug (dkulp)                 Vixen 3 import: Nutcracker Twinkles, Fireworks and
+                                 Butterfly settings import with the right names and
+                                 values, and out-of-range set-level colours no
+                                 longer wrap
+    -bug (dkulp)                 HLS import no longer crashes when the file reports
+                                 a negative time cell count, and map hint files are
+                                 written with XML characters escaped
+    -bug (dkulp)                 LOR import: fixed crashes with missing or short
+                                 effect parameters (LOREdit and Pixel Editor) and
+                                 timing at frame rates above 1000
+    -bug (dkulp)                 LOR import: negative offsets no longer give huge
+                                 start times, and ramp values (R..R..) import with
+                                 the right end value
+    -bug (dkulp)                 LOR import: Pixel Editor garland and movie
+                                 effects, bars direction, highlight and gradient
+                                 colours, and Butterfly hue 0 now import correctly
+    -bug (dkulp)                 LOR Music import: RGB intensities above 100, zero-
+                                 length effects, effects without intensity and
+                                 channels sharing a pixel tree name prefix import
+                                 correctly
+    -bug (dkulp)                 Auto-map no longer crashes on extremely long names
+                                 with a regex rule, and aggressive matching no
+                                 longer treats punctuation-only names as identical
+    -bug (dkulp)                 The effects CSV export quotes descriptions and
+                                 file lists correctly, and vendor model sizes with
+                                 huge values are handled
+    -bug (dkulp)                 Music catalog downloads derive the file extension
+                                 correctly and can no longer write outside the
+                                 destination folder
     -enh (derwin12)              Visualizer warns when more than 10 models are hidden because their Preview
                                  is 'Unassigned' #7323
 

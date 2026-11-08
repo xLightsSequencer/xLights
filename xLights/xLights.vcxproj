@@ -659,6 +659,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerPropertyManager.cpp" />
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerSerialPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\controllerproperties\OutputPropertyAdapters.cpp" />
+    <ClCompile Include="..\src-ui-wx\modelproperties\BulkEditModelPropertiesDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\ModelPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\ModelPropertyManager.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\adapters\ArchesPropertyAdapter.cpp" />
@@ -1853,6 +1854,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerPropertyManager.h" />
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerSerialPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\controllerproperties\OutputPropertyAdapters.h" />
+    <ClInclude Include="..\src-ui-wx\modelproperties\BulkEditModelPropertiesDialog.h" />
     <ClInclude Include="..\src-ui-wx\modelproperties\ModelPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\modelproperties\ModelPropertyManager.h" />
     <ClInclude Include="..\src-ui-wx\modelproperties\adapters\ArchesPropertyAdapter.h" />

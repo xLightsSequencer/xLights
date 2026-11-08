@@ -209,7 +209,7 @@ bool HLSFile::MapChannelEffects(EffectLayer* layer, const std::string& name, con
             }
         }
     }
-    if (!redNode) {
+    if (!redNode || _frames < 0) {
         return false;
     }
 

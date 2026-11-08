@@ -101,6 +101,7 @@
 #include "color/xlColourData.h"
 #include "shared/utils/xlPropertyGrid.h"
 #include "modelproperties/ModelPropertyManager.h"
+#include "modelproperties/BulkEditModelPropertiesDialog.h"
 #include "modelproperties/ViewObjectPropertyManager.h"
 #include "modelproperties/ViewObjectPropertyAdapter.h"
 #include "modelproperties/ModelPropertyAdapter.h"
@@ -448,6 +449,7 @@ const long LayoutPanel::ID_PREVIEW_BULKEDIT_PIXELSTYLE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_TRANSPARENCY = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_SHADOWMODELFOR = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_MODELPROPERTIES = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERGAMMA = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCOLOURORDER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERBRIGHTNESS = wxNewId();
@@ -2629,6 +2631,55 @@ void LayoutPanel::BulkEditPixelSize() {
         xlights->GetOutputModelManager()->ClearSelectedModel();
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditPixelSize");
         // reselect all the models
+        ReselectTreeModels(selectedModelPaths);
+    }
+}
+
+// Generic Bulk Edit popup: builds its property grid from whichever type's
+// ModelPropertyAdapter::AddTypeProperties the selection shares (see
+// BulkEditModelPropertiesDialog), so it isn't hand-written per type/property
+// - it works for any DisplayAsType that has type-specific properties
+// (string count, node/light count, strands/string, start location,
+// direction, ...). Menu entry is gated by IsAllSelectedModelsSameDisplayType
+// so the dialog is never shown for a mixed-type selection.
+void LayoutPanel::BulkEditModelProperties() {
+    std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
+    if (modelsToEdit.size() < 2) {
+        return;
+    }
+
+    // remember the selected models
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    // The dialog edits the primary (modelsToEdit.front()) model live, the
+    // same way a single-model edit in the main property grid does, so its
+    // own grid behaves normally while open. Snapshot that model first so a
+    // Cancel can revert those live edits - without this, clicking Cancel
+    // left whatever was changed before the Cancel click applied to the
+    // primary model even though nothing was replayed to the rest of the
+    // selection.
+    CreateUndoPoint("SingleModel", modelsToEdit.front()->name);
+
+    BulkEditModelPropertiesDialog dlg(this, xlights, modelsToEdit);
+    if (dlg.ShowAndApply()) {
+        // see comment in BulkEditActive()
+        xlights->GetOutputModelManager()->ClearSelectedModel();
+        xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BulkEditModelProperties");
+        // reselect all the models
+        ReselectTreeModels(selectedModelPaths);
+    } else {
+        // Cancelled (or accepted with nothing actually changed, in which
+        // case this just restores the primary model to itself). DoUndo pops
+        // the snapshot above and restores the primary model from it, same
+        // as a user-initiated Ctrl+Z; it also collapses the selection down
+        // to that one model, so restore the original multi-selection after.
+        wxCommandEvent undoEvt(wxEVT_MENU, wxID_UNDO);
+        DoUndo(undoEvt);
+        // DoUndo's model-list refresh is queued as ASAP (deferred) work, not
+        // immediate - flush it now so the tree is rebuilt before we try to
+        // reselect by path below (same reasoning as the ASAP-flush fixes in
+        // BulkEditModelPropertiesDialog::ShowAndApply).
+        xlights->DoASAPWork();
         ReselectTreeModels(selectedModelPaths);
     }
 }
@@ -7619,6 +7670,27 @@ bool LayoutPanel::IsAllSelectedModelsArePixelProtocol() const
     return true;
 }
 
+// Gates the generic "Edit Properties..." Bulk Edit menu entry: true when at
+// least 2 models are selected and every one shares the same DisplayAsType
+// (mixed-type selections have no common type-specific property set to edit).
+bool LayoutPanel::IsAllSelectedModelsSameDisplayType() const
+{
+    DisplayAsType type = DisplayAsType::Unknown;
+    int count = 0;
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+        Model* m = modelPreview->GetModels()[i];
+        if (m->Selected() || m->GroupSelected()) {
+            if (count == 0) {
+                type = m->GetDisplayAs();
+            } else if (m->GetDisplayAs() != type) {
+                return false;
+            }
+            count++;
+        }
+    }
+    return count >= 2;
+}
+
 void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
 
     if (selectedBaseObject == nullptr)
@@ -7756,6 +7828,9 @@ void LayoutPanel::AddBulkEditOptionsToMenu(wxMenu* mnuBulkEdit) {
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_TRANSPARENCY, "Transparency");
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY, "Black Transparency");
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SHADOWMODELFOR, "Shadow Model For");
+        if (IsAllSelectedModelsSameDisplayType()) {
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_MODELPROPERTIES, "Edit Properties...");
+        }
 
         mnuBulkEdit->AppendSeparator();
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEX, "Rotate X");
@@ -8036,6 +8111,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         BulkEditBlackTranparency();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_SHADOWMODELFOR) {
         BulkEditShadowModelFor();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_MODELPROPERTIES) {
+        BulkEditModelProperties();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW) {
         BulkEditControllerPreview();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_DIMMINGCURVES) {
@@ -11586,6 +11663,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         BulkEditBlackTranparency();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_SHADOWMODELFOR) {
         BulkEditShadowModelFor();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_MODELPROPERTIES) {
+        BulkEditModelProperties();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PREVIEW) {
         BulkEditControllerPreview();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_DIMMINGCURVES) {
@@ -13224,8 +13303,8 @@ void LayoutPanel::HandleSelectionChanged() {
         std::string tooltip = "";
 
         if (totalSelections > 1) {
-            showBackgroundProperties();
             tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n\nTotal Nodes: %d", gSize, mSize, smSize, calculateNodeCountOfSelected());
+            showBackgroundProperties();
         } else if (gSize == 1) {
             Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
             if (model != nullptr && model->IsFromBase()) {

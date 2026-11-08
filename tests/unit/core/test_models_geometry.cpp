@@ -165,6 +165,60 @@ TEST_CASE("New matrix keeps its start location through copy and paste", "[models
     CHECK(BufferPoints(pasted) == BufferPoints(m));
 }
 
+TEST_CASE("Setting start side and direction also sets the wiring the model renders with", "[models][geometry]") {
+    ShowFixture f;
+    for (const char* type : { "Matrix", "Tree 360", "Sphere", "Window Frame", "Wreath", "Circle", "Arches", "Single Line" }) {
+        INFO(type);
+        Model* m = f.Default(type);
+        m->SetStartSide("B");
+        m->SetDirection("R");
+        CHECK(m->GetIsBtoT());
+        CHECK_FALSE(m->GetIsLtoR());
+        m->SetStartSide("T");
+        m->SetDirection("L");
+        CHECK_FALSE(m->GetIsBtoT());
+        CHECK(m->GetIsLtoR());
+    }
+}
+
+TEST_CASE("Matrix given a start corner in code wires the same after save and reload", "[models][geometry]") {
+    ShowFixture f;
+    Model* m = f.Default("Matrix");
+    m->SetStartSide("B");
+    m->SetDirection("R");
+    m->Setup();
+
+    pugi::xml_document doc;
+    XmlSerializingVisitor v(&doc);
+    m->Accept(v);
+    pugi::xml_node nd = doc.document_element();
+    nd.attribute("name").set_value("Reloaded");
+    Model* reloaded = f.mm.createAndAddModel(nd, 100, 100);
+    f.mm.RecalcStartChannels();
+    REQUIRE(reloaded != nullptr);
+    CHECK(reloaded->GetIsBtoT() == m->GetIsBtoT());
+    CHECK(reloaded->GetIsLtoR() == m->GetIsLtoR());
+    CHECK(BufferPoints(reloaded) == BufferPoints(m));
+}
+
+TEST_CASE("Circle saved without a start side keeps its start through save and reload", "[models][geometry]") {
+    ShowFixture f;
+    Model* c = f.Add(ModelXml("Ci", "Circle", "NumStrings=\"1\" NodesPerString=\"8\""));
+    CHECK_FALSE(c->GetIsBtoT());
+    CHECK(c->GetStartSide() == "T");
+
+    pugi::xml_document doc;
+    XmlSerializingVisitor v(&doc);
+    c->Accept(v);
+    pugi::xml_node nd = doc.document_element();
+    nd.attribute("name").set_value("Reloaded");
+    Model* reloaded = f.mm.createAndAddModel(nd, 100, 100);
+    f.mm.RecalcStartChannels();
+    REQUIRE(reloaded != nullptr);
+    CHECK_FALSE(reloaded->GetIsBtoT());
+    CHECK(BufferPoints(reloaded) == BufferPoints(c));
+}
+
 TEST_CASE("Matrix with several strings numbers nodes by string", "[models][geometry]") {
     ShowFixture f;
     Model* m = f.Add(ModelXml("M", "Matrix", "NumStrings=\"2\" NodesPerString=\"6\" StrandsPerString=\"2\""));

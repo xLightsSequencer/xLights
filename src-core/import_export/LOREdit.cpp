@@ -265,28 +265,6 @@ namespace {
         return ",E_CHOICE_Bars_Direction=" + direction;
     }
 
-    std::string PercentDecode(std::string file) {
-        size_t pos;
-        while ((pos = file.find('%')) != std::string::npos) {
-            if (pos + 2 < file.size()) {
-                char c = HexToChar(file[pos + 1], file[pos + 2]);
-                file.replace(pos, 3, std::string(1, c));
-            } else {
-                break;
-            }
-        }
-        return file;
-    }
-
-    // A picture embedded in the .loredit is referenced as *name*guid*.ext
-    std::string PictureReference(const std::string& encoded) {
-        std::string file = PercentDecode(encoded);
-        if (StartsWith(file, "*")) {
-            return LOREdit::EmbeddedPictureName(file);
-        }
-        return file;
-    }
-
     // Minimal URL percent-decode, matching the wxURI::Unescape that the
     // text effect's encoded label needs.
     std::string unescapeURI(const std::string& in) {
@@ -301,6 +279,35 @@ namespace {
             }
         }
         return out;
+    }
+
+    // A picture embedded in the .loredit is referenced as *name*guid*.ext
+    std::string PictureReference(const std::string& encoded) {
+        std::string file = unescapeURI(encoded);
+        if (StartsWith(file, "*")) {
+            return LOREdit::EmbeddedPictureName(file);
+        }
+        return file;
+    }
+
+    std::string DropAlpha(const std::string& c) {
+        return c.size() > 2 ? c.substr(2) : std::string();
+    }
+
+    // "R2R8" splits into {"", "2", "8"}; always returns at least three entries
+    std::vector<std::string> RampParts(const std::string& r) {
+        std::vector<std::string> rr = Split(r, 'R');
+        if (rr.size() < 3) {
+            rr.resize(3);
+        }
+        if (rr[2].empty()) {
+            rr[2] = rr[1];
+        }
+        return rr;
+    }
+
+    uint32_t ClampMS(int v) {
+        return v < 0 ? 0u : (uint32_t)v;
     }
 }
 
@@ -332,7 +339,7 @@ std::string LOREditEffect::GetPalette() const
         std::vector<std::string> cc = Split(c[i], ',');
         if (cc.size() == 2)
         {
-            std::string c1 = cc[0].substr(2); // drop transparency
+            std::string c1 = DropAlpha(cc[0]); // drop transparency
             std::string active = cc[1];
 
             palette += ",C_BUTTON_Palette" + n + "=#" + c1;
@@ -344,8 +351,8 @@ std::string LOREditEffect::GetPalette() const
         }
         else if (cc.size() == 3)
         {
-            std::string c1 = cc[0].substr(2); // drop transparency
-            std::string c2 = cc[1].substr(2); // drop transparency
+            std::string c1 = DropAlpha(cc[0]); // drop transparency
+            std::string c2 = DropAlpha(cc[1]); // drop transparency
             std::string active = cc[2];
 
             if (c1 == c2)
@@ -374,7 +381,7 @@ std::string LOREditEffect::GetPalette() const
         }
     }
 
-    int sparkle = loreAtoi(otherSettings[2]);
+    int sparkle = loreAtoi(SafeGetStringParm(otherSettings, 2));
 
     if (sparkle > 0)
     {
@@ -414,6 +421,7 @@ std::string LOREditEffect::GetxLightsEffect() const
     if (effectType == "linesvertical") return "Lines";
     if (effectType == "straightlines") return "Lines";
     if (effectType == "garland") return "Garlands";
+    if (effectType == "movie") return "Video";
     if (effectType == "spinner") return "Pinwheel";
     if (effectType == "spinfade") return "Pinwheel";
     if (effectType == "blendedbars") return "Bars";
@@ -445,13 +453,13 @@ std::string LOREditEffect::RescaleWithRangeI(const std::string& r, const std::st
     if (Contains(r, "R"))
     {
         // it is a range
-        std::vector<std::string> rr = Split(r, 'R');
+        std::vector<std::string> rr = RampParts(r);
         vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + fmt::format("{:.2f}", targetRealMin) +
             "|Max=" + fmt::format("{:.2f}", targetRealMax) +
-            "|P1=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
-            "|P2=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|P1=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|P2=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[2]), sourceMin, sourceMax, targetMin, targetMax)) +
             "|RV=TRUE|";
-        return fmt::format("{}", (int)Rescale(loreAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax));
+        return fmt::format("{}", (int)Rescale(loreAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax));
     }
     else
     {
@@ -465,18 +473,18 @@ std::string LOREditEffect::RescaleWithRangeF(const std::string& r, const std::st
     if (Contains(r, "R"))
     {
         // it is a range
-        std::vector<std::string> rr = Split(r, 'R');
+        std::vector<std::string> rr = RampParts(r);
         vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + fmt::format("{:.2f}", targetRealMin) +
             "|Max=" + fmt::format("{:.2f}", targetRealMax) +
-            "|P1=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
-            "|P2=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|P1=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|P2=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[2]), sourceMin, sourceMax, targetMin, targetMax)) +
             "|RV=TRUE|";
     }
     else
     {
         vc = "";
     }
-    return fmt::format("{:.1f}", Rescale(loreAtof(r), sourceMin, sourceMax, targetMin, targetMax));
+    return fmt::format("{:.1f}", Rescale(loreAtof(Contains(r, "R") ? RampParts(r)[1] : r), sourceMin, sourceMax, targetMin, targetMax));
 }
 
 std::string LOREditEffect::GetSketchSVG() const
@@ -618,7 +626,7 @@ std::string LOREditEffect::GetLayerSettings() const
         // it dissolves out to reveal the right, or dissolves in over it.
         auto ramp = Split(otherSettings[1], 'R');
         bool reverse = ramp.size() > 2 && loreAtof(ramp[1]) > loreAtof(ramp[2]);
-        double secs = (double)(endMS - startMS) / 1000.0;
+        double secs = endMS > startMS ? (double)(endMS - startMS) / 1000.0 : 0.0;
         if (reverse) {
             return fmt::format(",T_CHOICE_LayerMethod=Normal,T_CHOICE_In_Transition_Type=Dissolve,T_TEXTCTRL_Fadein={:.2f}", secs);
         }
@@ -692,6 +700,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         skip = RescaleWithRangeI(skip, "E_VALUECURVE_Butterfly_Skip", 2, 10, 2, 10, vcSkip, ButterflyEffect::sSkipMin, ButterflyEffect::sSkipMax);
         std::string direction = parms[3];
         std::string hue = parms[4];
+        const bool noHue = hue.empty() || hue == "0";
         std::string vcHue;
         hue = RescaleWithRangeI(hue, "C_VALUECURVE_Color_HueAdjust", 0, 359, -100, 100, vcHue, -100, 100);
         std::string speed = parms[5];
@@ -720,7 +729,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_SLIDER_Butterfly_Speed=" + speed;
         settings += vcSpeed;
 
-        if (hue != "0") {
+        if (!noHue) {
             palette += ",C_SLIDER_Color_HueAdjust=" + hue;
             palette += vcHue;
         }
@@ -739,7 +748,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         if (parms[2] == "single_color") {
             // single colour mode shows only the first selected colour, where
             // xLights would cycle through every checked palette entry
-            static const std::regex checkedRe(R"(,?C_CHECKBOX_Palette(\d)=1)");
+            static const std::regex checkedRe(R"(,?C_CHECKBOX_Palette(\d+)=1)");
             std::smatch m;
             if (std::regex_search(palette, m, checkedRe)) {
                 std::string first = m[1].str();
@@ -1183,25 +1192,31 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_CHOICE_Pictures_Direction=vector";
         if (Contains(movementLeft, "R"))
         {
-            std::vector<std::string> rr = Split(movementLeft, 'R');
-            settings += ",E_SLIDER_PicturesXC=" + rr[1];
-            settings += ",E_SLIDER_PicturesEndXC=" + rr[2];
+            std::vector<std::string> rr = RampParts(movementLeft);
+            if (isNumber(rr[1])) {
+                settings += ",E_SLIDER_PicturesXC=" + rr[1];
+                settings += ",E_SLIDER_PicturesEndXC=" + rr[2];
+            }
         } else if (isNumber(movementLeft)) {
             settings += ",E_SLIDER_PicturesXC=" + movementLeft;
             settings += ",E_SLIDER_PicturesEndXC=" + movementLeft;
         }
         if (Contains(movementTop, "R")) {
-            std::vector<std::string> rr = Split(movementTop, 'R');
-            settings += ",E_SLIDER_PicturesYC=" + rr[1];
-            settings += ",E_SLIDER_PicturesEndYC=" + rr[2];
+            std::vector<std::string> rr = RampParts(movementTop);
+            if (isNumber(rr[1])) {
+                settings += ",E_SLIDER_PicturesYC=" + rr[1];
+                settings += ",E_SLIDER_PicturesEndYC=" + rr[2];
+            }
         } else if (isNumber(movementTop)) {
             settings += ",E_SLIDER_PicturesYC=" + movementTop;
             settings += ",E_SLIDER_PicturesEndYC=" + movementTop;
         }
         if (Contains(scaleX, "R")) {
-            std::vector<std::string> rr = Split(scaleX, 'R');
-            settings += ",E_SLIDER_Pictures_StartScale=" + rr[1];
-            settings += ",E_SLIDER_Pictures_EndScale=" + rr[2];
+            std::vector<std::string> rr = RampParts(scaleX);
+            if (isNumber(rr[1])) {
+                settings += ",E_SLIDER_Pictures_StartScale=" + rr[1];
+                settings += ",E_SLIDER_Pictures_EndScale=" + rr[2];
+            }
         } else if (isNumber(scaleX)) {
             settings += ",E_SLIDER_Pictures_StartScale=" + scaleX;
             settings += ",E_SLIDER_Pictures_EndScale=" + scaleX;
@@ -1665,8 +1680,8 @@ std::vector<std::pair<uint32_t, uint32_t>> LOREdit::GetTimings(const std::string
                                 if (adjTime > lastMS)
                                 {
                                     res.push_back({ lastMS, adjTime });
+                                    lastMS = adjTime;
                                 }
-                                lastMS = adjTime;
                             }
                         }
                     }
@@ -1846,7 +1861,7 @@ int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) co
                                 }
                             }
                         }
-                        if (StartsWith(model, name)) {
+                        if (!name.empty() && StartsWith(model, name)) {
                             for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
                                 if (std::string_view(tc.name()) == "channel") {
                                     if (tc.first_child()) {
@@ -1925,7 +1940,7 @@ loreditType LOREdit::GetSequencingType(const std::string& model) const
                             }
                         }
                     }
-                    if (StartsWith(model, name)) {
+                    if (!name.empty() && StartsWith(model, name)) {
                         for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
                             if (std::string_view(tc.name()) == "channel" && tc.first_child()) {
                                 return loreditType::CHANNELS;
@@ -2382,8 +2397,8 @@ std::vector<LOREditEffect> LOREdit::AddEffects(pugi::xml_node track, bool left, 
         effect.suby = suby;
         effect.subw = subw;
         effect.subh = subh;
-        effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
-        effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
+        effect.startMS = ClampMS(ef.attribute("startCentisecond").as_int() * 10 + offset);
+        effect.endMS = ClampMS(ef.attribute("endCentisecond").as_int() * 10 + offset);
         int si = ef.attribute("intensity").as_int(9999);
         if (si != 9999)
         {
@@ -2481,8 +2496,8 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int 
                 for (pugi::xml_node ef = tc.first_child(); ef; ef = ef.next_sibling()) {
                     LOREditEffect effect;
                     effect.pixelChannels = std::string_view(prop.attribute("EnablePixelChannels").as_string("0")) == "1";
-                    effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
-                    effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
+                    effect.startMS = ClampMS(ef.attribute("startCentisecond").as_int() * 10 + offset);
+                    effect.endMS = ClampMS(ef.attribute("endCentisecond").as_int() * 10 + offset);
                     int si = ef.attribute("intensity").as_int(9999);
                     if (si != 9999) {
                         if (si < 0) {
@@ -2710,8 +2725,8 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
                                     for (pugi::xml_node ef = tc.first_child(); ef; ef = ef.next_sibling()) {
                                         LOREditEffect effect;
                                         effect.pixelChannels = std::string_view(prop.attribute("EnablePixelChannels").as_string("0")) == "1";
-                                        effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
-                                        effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
+                                        effect.startMS = ClampMS(ef.attribute("startCentisecond").as_int() * 10 + offset);
+                                        effect.endMS = ClampMS(ef.attribute("endCentisecond").as_int() * 10 + offset);
                                         int si = ef.attribute("intensity").as_int(9999);
                                         if (si != 9999)
                                         {

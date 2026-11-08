@@ -269,6 +269,56 @@ struct Fixture {
         }
         return out;
     }
+
+    // The frame-parallel draw pass: advance a Snapshottable effect serially on
+    // one buffer, then draw every captured snapshot on its own fresh buffer
+    // (whose temp layer has never been touched), as the clone buffers do.
+    Frames RenderSnapshotsOnFreshBuffers(const std::string& name, const std::string& settings, const std::string& palette,
+                                         int w, int h, const std::vector<int>& periods, const Opts& o = Opts()) {
+        Effect* e = layer->AddEffect(0, name, settings, palette, 0, o.endMs, 0, false);
+        REQUIRE(e != nullptr);
+        last = e;
+        RenderableEffect* fx = Fx(name);
+
+        xlColorVector colors;
+        xlColorCurveVector curves;
+        e->CopyPalette(colors, curves);
+        auto makeBuffer = [&](RenderBuffer& rb) {
+            rb.InitBuffer(h, w, "None");
+            rb.SetPalette(colors, curves);
+            rb.SetFrameTimeInMs(50);
+            rb.SetEffectDuration(0, o.endMs);
+        };
+        SettingsMap renderSettings;
+        e->CopySettingsMap(renderSettings, true);
+
+        RenderBuffer advance(&ctx, nullptr, model.get());
+        makeBuffer(advance);
+        std::vector<std::unique_ptr<EffectFrameState>> snaps;
+        bool first = true;
+        for (int p : periods) {
+            advance.Clear();
+            advance.SetState(p, first);
+            first = false;
+            snaps.push_back(fx->AdvanceState(e, renderSettings, advance));
+            REQUIRE(snaps.back() != nullptr);
+        }
+
+        Frames out;
+        out.w = w;
+        out.h = h;
+        for (size_t i = 0; i < periods.size(); ++i) {
+            RenderBuffer draw(&ctx, nullptr, model.get());
+            makeBuffer(draw);
+            draw.Clear();
+            draw.SetState(periods[i], false);
+            draw.pendingSnapshot = snaps[i].get();
+            fx->Render(e, renderSettings, draw);
+            draw.pendingSnapshot = nullptr;
+            out.f.emplace_back(draw.GetPixels(), draw.GetPixels() + (size_t)w * h);
+        }
+        return out;
+    }
 };
 
 // ---- synthetic audio --------------------------------------------------------
@@ -1118,6 +1168,29 @@ TEST_CASE("Snowflakes driving speed zero holds still and warm up advances fallin
     Frames cold = f.Render("Snowflakes", "E_CHOICE_Falling=Falling & Accumulating,E_SLIDER_Snowflakes_Speed=50,E_SLIDER_Snowflakes_Count=10",
                            kRed, 16, 16, { 0 });
     CHECK_FALSE(warm == cold);
+}
+
+TEST_CASE("Snowflakes snapshots draw identically on a fresh buffer", "[effects][classic1]") {
+    // A wide, short buffer with many fast flakes: flakes drift across the
+    // column 0 / last column wrap, settle in the accumulating mode, and the
+    // random type mixes in "3 nodes" flakes whose orientation is pre-rolled.
+    for (int type = 0; type <= 9; ++type) {
+        for (const char* mode : { "Driving", "Falling", "Falling & Accumulating" }) {
+            for (const char* warmup : { "", ",E_SLIDER_Snowflakes_WarmupFrames=40" }) {
+                INFO("type " << type << " " << mode << warmup);
+                const std::string settings = "E_SLIDER_Snowflakes_Type=" + std::to_string(type) + ",E_CHOICE_Falling=" + mode +
+                                             ",E_SLIDER_Snowflakes_Count=40,E_SLIDER_Snowflakes_Speed=50" + warmup;
+                Opts o;
+                o.endMs = 5000;
+                Fixture serial;
+                Frames a = serial.Render("Snowflakes", settings, kRedBlue, 48, 9, Range(0, 60), o);
+                Fixture parallel;
+                Frames b = parallel.RenderSnapshotsOnFreshBuffers("Snowflakes", settings, kRedBlue, 48, 9, Range(0, 60), o);
+                CHECK(a.totalLit() > 0);
+                CHECK(a == b);
+            }
+        }
+    }
 }
 
 TEST_CASE("Snowflakes count changes re-seed driving flakes", "[effects][classic1]") {
