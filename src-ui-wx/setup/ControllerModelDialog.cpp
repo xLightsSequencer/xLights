@@ -19,6 +19,7 @@
 #include <wx/button.h>
 #include <wx/choice.h>
 #include <wx/scrolwin.h>
+#include <wx/settings.h>
 #include <wx/statbmp.h>
 #include <wx/dcbuffer.h>
 #include <wx/dcclient.h>
@@ -2257,12 +2258,11 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     _undoButton->Disable();
     buttonRow->Add(_undoButton, 0, wxALL, 5);
     buttonRow->AddStretchSpacer();
-    auto* cancelButton = new wxButton(this, wxID_ANY, _("Cancel"));
-    cancelButton->SetToolTip(_("Discard every change made since the visualiser was opened"));
-    buttonRow->Add(cancelButton, 0, wxALL, 5);
-    auto* saveButton = new wxButton(this, wxID_ANY, _("Save"));
-    saveButton->SetToolTip(_("Keep the changes and close"));
-    buttonRow->Add(saveButton, 0, wxALL, 5);
+    _cancelButton = new wxButton(this, wxID_ANY, _("Close"));
+    buttonRow->Add(_cancelButton, 0, wxALL, 5);
+    _saveButton = new wxButton(this, wxID_ANY, _("Save"));
+    _saveButton->SetToolTip(_("Save the layout"));
+    buttonRow->Add(_saveButton, 0, wxALL, 5);
     FlexGridSizer1->SetRows(2);
     FlexGridSizer1->Add(buttonRow, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
 
@@ -2271,15 +2271,14 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     SetAcceleratorTable(wxAcceleratorTable(1, &undoAccel));
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { UndoLastChange(); }, undoId);
     _undoButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { UndoLastChange(); });
-    cancelButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        ApplyRestoredConnections(_history.Revert());
+    _cancelButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        if (_history.HasChanges()) {
+            ApplyRestoredConnections(_history.Revert());
+        }
         _closeDecided = true;
         Close();
     });
-    saveButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        _closeDecided = true;
-        Close();
-    });
+    _saveButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { SaveLayout(); });
     Bind(wxEVT_CLOSE_WINDOW, &ControllerModelDialog::OnVisualiserClose, this);
 
     // Reset the static visualizer filter to empty on every dialog construction
@@ -2475,6 +2474,32 @@ void ControllerModelDialog::UndoLastChange()
     PanelModels->Refresh();
 }
 
+void ControllerModelDialog::UpdateHistoryButtons()
+{
+    _undoButton->Enable(_history.CanUndo());
+    const bool unsaved = _history.HasChanges();
+    _cancelButton->SetLabel(unsaved ? _("Cancel") : _("Close"));
+    _cancelButton->SetToolTip(unsaved ? _("Discard the unsaved changes and close") : wxString());
+#ifdef __WXOSX__
+    SetButtonBackground(_saveButton, unsaved ? wxColour(255, 0, 0) : wxTransparentColour, 2);
+#else
+    _saveButton->SetBackgroundColour(unsaved ? wxColour(255, 108, 108) : wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+#endif
+    _saveButton->Refresh();
+    Layout();
+}
+
+void ControllerModelDialog::SaveLayout()
+{
+    if (_xLights->IsReadOnlyMode() || _xLights->GetLayoutPanel() == nullptr) {
+        return;
+    }
+    wxCommandEvent evt;
+    _xLights->GetLayoutPanel()->OnButtonSavePreviewClick(evt);
+    _history.MarkSaved();
+    UpdateHistoryButtons();
+}
+
 void ControllerModelDialog::OnVisualiserClose(wxCloseEvent& event)
 {
     if (!_closeDecided && event.CanVeto() && _history.HasChanges()) {
@@ -2495,7 +2520,7 @@ void ControllerModelDialog::ReloadModels()
 {
     // Every edit ends with a reload, so each change in state becomes one undo step.
     _history.Record();
-    _undoButton->Enable(_history.CanUndo());
+    UpdateHistoryButtons();
 
     // we are  deleting the models, make sure the deleted stuff is not referenced
     _dragging = nullptr;

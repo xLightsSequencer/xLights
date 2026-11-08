@@ -31,6 +31,8 @@ public:
     void Begin();
     // Makes the current state the undo baseline without adding a step.
     void SkipStep();
+    // The current state was written to disk: Revert() and HasChanges() now compare against it.
+    void MarkSaved();
     // Adds an undo step if anything changed since the last call.
     bool Record();
     [[nodiscard]] bool CanUndo() const { return !_undo.empty(); }

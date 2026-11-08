@@ -18845,6 +18845,10 @@ static NSDictionary* BuildEmptyPortEntry(NSString* kind,
     return _visualiserHistory && _visualiserHistory->HasChanges();
 }
 
+- (void)markVisualiserSaved {
+    if (_visualiserHistory) _visualiserHistory->MarkSaved();
+}
+
 - (void)applyRestoredVisualiserModels:(const std::vector<std::string>&)changed {
     if (changed.empty() || !_context) return;
     for (const auto& name : changed) {

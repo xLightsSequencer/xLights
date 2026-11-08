@@ -106,17 +106,24 @@ struct ControllerVisualizeView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            viewModel.document.revertVisualiserChanges()
+                        Button(hasChanges ? "Cancel" : "Close") {
+                            if hasChanges {
+                                viewModel.document.revertVisualiserChanges()
+                            }
                             viewModel.document.endVisualiserHistory()
                             onDismiss()
                         }
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Save") {
-                            viewModel.document.endVisualiserHistory()
-                            onDismiss()
+                            if viewModel.document.saveLayoutChanges() {
+                                viewModel.document.markVisualiserSaved()
+                                hasChanges = viewModel.document.visualiserHasChanges()
+                            } else {
+                                portEditError = "Couldn't write xlights_rgbeffects.xml. Check the Tools → Package Logs output for details."
+                            }
                         }
+                        .tint(hasChanges ? .red : nil)
                     }
                     ToolbarItem(placement: .primaryAction) {
                         Button {

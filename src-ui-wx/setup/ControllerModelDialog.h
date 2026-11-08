@@ -130,10 +130,14 @@ class ControllerModelDialog: public wxDialog
 	ControllerConnectionHistory _history;
 	bool _closeDecided = false;
 	wxButton* _undoButton = nullptr;
+	wxButton* _cancelButton = nullptr;
+	wxButton* _saveButton = nullptr;
 	#pragma endregion
 
 	void ApplyRestoredConnections(const std::vector<std::string>& changed);
 	void UndoLastChange();
+	void UpdateHistoryButtons();
+	void SaveLayout();
 	void OnVisualiserClose(wxCloseEvent& event);
 
 	void DropModelFromModelsPaneOnModel(ModelCMObject* dropped, Model* on, bool rhs);

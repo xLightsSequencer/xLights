@@ -3583,6 +3583,7 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 - (void)recordVisualiserHistory NS_SWIFT_NAME(recordVisualiserHistory());
 - (BOOL)canUndoVisualiserChange NS_SWIFT_NAME(canUndoVisualiserChange());
 - (BOOL)visualiserHasChanges NS_SWIFT_NAME(visualiserHasChanges());
+- (void)markVisualiserSaved NS_SWIFT_NAME(markVisualiserSaved());
 - (void)undoVisualiserChange NS_SWIFT_NAME(undoVisualiserChange());
 - (void)revertVisualiserChanges NS_SWIFT_NAME(revertVisualiserChanges());
 - (void)endVisualiserHistory NS_SWIFT_NAME(endVisualiserHistory());

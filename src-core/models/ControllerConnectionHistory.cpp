@@ -70,6 +70,12 @@ void ControllerConnectionHistory::SkipStep()
     }
 }
 
+void ControllerConnectionHistory::MarkSaved()
+{
+    _original = Capture();
+    _baseline = _original;
+}
+
 bool ControllerConnectionHistory::HasChanges() const
 {
     return !Same(Capture(), _baseline);
