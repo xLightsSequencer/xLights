@@ -98,6 +98,9 @@ class FPP : public BaseController
     std::list<std::string> messages;
     std::list<std::string> faileduploads;
     int defaultConnectTimeout = 2000;
+    // V7 chunked uploads queued on CurlManager that still point at this
+    // instance; the destructor drains them so none outlives it.
+    int pendingV7Uploads = 0;
 
     std::map<int, int> GetExpansionPorts(ControllerCaps* caps) const;
     bool AuthenticateAndUpdateVersions();
