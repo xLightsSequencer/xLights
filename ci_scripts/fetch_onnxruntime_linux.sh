@@ -74,8 +74,8 @@ cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
 
 TARBALL="$TMP_DIR/$ASSET"
-echo "fetch_onnxruntime_linux: downloading $URL"
-if ! curl -fL --retry 3 -o "$TARBALL" "$URL"; then
+. "$SCRIPT_DIR/gh_release_fetch.sh"
+if ! gh_release_fetch microsoft/onnxruntime "v$VERSION" "$ASSET" "$TARBALL"; then
     echo "fetch_onnxruntime_linux: download failed ($URL) — stem separation will be disabled." >&2
     exit 1
 fi
