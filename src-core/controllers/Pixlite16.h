@@ -77,7 +77,7 @@ public:
         uint16_t _temperature = 0;
         uint8_t _maxTargetTemp = 0;
         uint8_t _numBanks = 0;
-        std::vector<uint8_t> _bankVoltage;
+        std::vector<uint16_t> _bankVoltage;
         uint8_t _testMode = 0;
         std::vector<uint8_t> _testParameters;
         uint8_t _protocolVersion = 0;

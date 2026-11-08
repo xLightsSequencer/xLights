@@ -928,7 +928,7 @@ void Effect::EraseSettingsStartingWith(const std::string& s)
 {
     auto it = GetSettings().begin();
     while (it != GetSettings().end()) {
-        if (StartsWith(it->first, "B_")) {
+        if (StartsWith(it->first, s)) {
             auto next = it;
             ++next;
             GetSettings().erase(it->first);
@@ -1037,6 +1037,7 @@ void Effect::LinkToSymbol(const std::string& symbolId)
 
                 EffectSymbol* symbol = symbolManager.GetSymbol(symbolId);
                 if (symbol != nullptr) {
+                    ScopedSymbolPropagationSuppressor suppress;
                     SetEffectName(symbol->GetEffectType());
                     SetSettings(symbol->GetSettingsAsString(), true);
                     SetPalette(symbol->GetPalette());

@@ -154,6 +154,37 @@ $Dependencies = @(
     }
 )
 
+# Downloads $url to $outFile, retrying. For a github.com release asset it then
+# falls back to the REST API asset endpoint: the two are served by different
+# front ends, and the download URL has gone down with 504s for every repo while
+# the API kept serving the same files. Throws when every attempt fails.
+function Get-Download([string]$url, [string]$outFile) {
+    $lastError = $null
+    for ($i = 1; $i -le 4; $i++) {
+        try {
+            Invoke-WebRequest -Uri $url -OutFile $outFile -UseBasicParsing
+            return
+        } catch {
+            $lastError = $_
+            Write-Host "fetch_dependencies: attempt $i failed for ${url}: $($_.Exception.Message)"
+            if ($i -lt 4) { Start-Sleep -Seconds 5 }
+        }
+    }
+    if ($url -notmatch '^https://github\.com/([^/]+/[^/]+)/releases/download/([^/]+)/([^/]+)$') {
+        throw $lastError
+    }
+    $repo = $Matches[1]; $tag = $Matches[2]; $asset = $Matches[3]
+    Write-Host "fetch_dependencies: trying the GitHub API asset endpoint for $repo $tag $asset"
+    $headers = @{ 'User-Agent' = 'xLights-fetch-dependencies' }
+    $token = if ($env:GITHUB_TOKEN) { $env:GITHUB_TOKEN } else { $env:GH_TOKEN }
+    if ($token) { $headers['Authorization'] = "Bearer $token" }
+    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases/tags/$tag" -Headers $headers -UseBasicParsing
+    $match = @($release.assets | Where-Object { $_.name -eq $asset })
+    if ($match.Count -eq 0) { throw "asset $asset not found in release $tag of $repo" }
+    $headers['Accept'] = 'application/octet-stream'
+    Invoke-WebRequest -Uri $match[0].url -Headers $headers -OutFile $outFile -UseBasicParsing
+}
+
 function Fetch-Dependency($dep) {
     # Every sentinel must be present; one missing means something was cleaned
     # out from under us and the dependency has to be staged again.
@@ -209,7 +240,7 @@ function Fetch-Dependency($dep) {
         # the download actually is one.
         $dl = if ($dep.Archive -eq $false) { Join-Path $tmp 'dep.bin' } else { Join-Path $tmp 'dep.zip' }
         try {
-            Invoke-WebRequest -Uri $dep.Url -OutFile $dl -UseBasicParsing
+            Get-Download $dep.Url $dl
         } catch {
             Write-Warning "fetch_dependencies: download failed for $($dep.Name) ($($dep.Url)): $($_.Exception.Message)"
             return $false

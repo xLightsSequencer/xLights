@@ -91,6 +91,11 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] static std::string ToCustomModel(const std::vector<std::vector<std::vector<int>>>& model);
         [[nodiscard]] std::vector<std::vector<std::vector<int>>> & GetData() { return _locations; }  // letting the XmlSerializer functions access this member data for speed
         [[nodiscard]] int GetCustomNodeStringNumber(int node) const;
+        using Model::GetNodeNumber;
+        // StringNum holds the node's index in the custom grid, not its string
+        [[nodiscard]] uint32_t GetNodeNumber(size_t nodenum) const override {
+            return nodenum < Nodes.size() ? (uint32_t)Nodes[nodenum]->StringNum + 1 : 0;
+        }
         // On a custom model StringNum holds the zero-based custom node number
         // (InitModel sets it from the grid value), not a string number, so the
         // base implementation would return nonsense. -1 means "unknown".

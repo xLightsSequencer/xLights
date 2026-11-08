@@ -69,6 +69,17 @@ struct RotoZoomData {
     float zoomquality;
     int32_t pivotpointx;
     int32_t pivotpointy;
+
+    // From RotoZoomSettings (PixelBufferClass computes them for the CPU path too).
+    float xsine;
+    float xpivotPx;
+    float ysine;
+    float ypivotPx;
+    float zcos;
+    float zsin;
+    float zxoff;
+    float zyoff;
+    float zinc;
 };
 
 struct TentBlurData {

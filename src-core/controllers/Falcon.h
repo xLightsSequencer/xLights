@@ -41,10 +41,10 @@ class Falcon : public BaseController
     struct FALCON_V4_INPUTS {
         FALCON_V4_INPUTS() = default;
         explicit FALCON_V4_INPUTS(nlohmann::json const& json) {
-            universe = json["u"].get<int>();
-            channels = json["c"].get<int>();
-            universeCount = json["uc"].get<int>();
-            protocol = json["p"].get<std::string>() == "e" ? 0 : 1;
+            universe = json.at("u").get<int>();
+            channels = json.at("c").get<int>();
+            universeCount = json.at("uc").get<int>();
+            protocol = json.at("p").get<std::string>() == "e" ? 0 : 1;
         }
 
         nlohmann::json asJson() const {
@@ -67,23 +67,23 @@ class Falcon : public BaseController
         FALCON_V4_STRING() = default;
         explicit FALCON_V4_STRING(nlohmann::json const& json)
         {
-            port = json["p"].get<int>();                   // p
-            string = json["s"].get<int>();                 // s
-            smartRemote = json["r"].get<int>();            // r
-            universe = json["u"].get<int>();               // u
-            name = json["nm"].get<std::string>();          // nm
-            blank = json["bl"].get<int>();                 // bl
-            gamma = json["g"].get<int>();                  // g
-            brightness = json["b"].get<int>();             // b
-            zigcount = json["z"].get<int>();               // z
-            endNulls = json["ne"].get<int>();              // ne
-            startNulls = json["ns"].get<int>();         // ns
-            colourOrder = json["o"].get<int>();            // o
-            direction = json["v"].get<int>();           // v
-            group = json["gp"].get<int>();                 // gp
-            pixels = json["n"].get<int>();              // n
-            protocol = json["l"].get<int>();
-            startChannel = json["sc"].get<int>();
+            port = json.at("p").get<int>();                   // p
+            string = json.at("s").get<int>();                 // s
+            smartRemote = json.at("r").get<int>();            // r
+            universe = json.at("u").get<int>();               // u
+            name = json.at("nm").get<std::string>();          // nm
+            blank = json.at("bl").get<int>();                 // bl
+            gamma = json.at("g").get<int>();                  // g
+            brightness = json.at("b").get<int>();             // b
+            zigcount = json.at("z").get<int>();               // z
+            endNulls = json.at("ne").get<int>();              // ne
+            startNulls = json.at("ns").get<int>();         // ns
+            colourOrder = json.at("o").get<int>();            // o
+            direction = json.at("v").get<int>();           // v
+            group = json.at("gp").get<int>();                 // gp
+            pixels = json.at("n").get<int>();              // n
+            protocol = json.at("l").get<int>();
+            startChannel = json.at("sc").get<int>();
         }
         nlohmann::json asJson() const {
             nlohmann::json json;

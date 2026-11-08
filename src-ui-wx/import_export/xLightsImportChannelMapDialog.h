@@ -50,6 +50,8 @@
 class SequenceElements;
 class xLightsFrame;
 class Model;
+class SubModel;
+class ModelPreview;
 class wxProgressDialog;
 
 wxDECLARE_EVENT(EVT_MDDROP, wxCommandEvent);
@@ -299,6 +301,7 @@ public:     // public to avoid getters/setters
     int _effectCount = 0;
     std::string _mappingModelType;
     bool _isStackDuplicate = false;
+    int _masterViewIndex = -1;
 
     // TODO/FIXME:
     // the GTK version of wxDVC (in particular wxDataViewCtrlInternal::ItemAdded)
@@ -420,6 +423,8 @@ public:
 
     bool GetSortSubmodelsByName() const { return _sortSubmodelsByName; }
     void SetSortSubmodelsByName(bool sort) { _sortSubmodelsByName = sort; Resort(); }
+    bool GetSortMasterView() const { return _sortMasterView; }
+    void SetSortMasterView(bool sort) { _sortMasterView = sort; }
 
     void SetCtrl(wxDataViewCtrl* ctrl) { _ctrl = ctrl; }
 
@@ -436,6 +441,7 @@ private:
     wxDataViewItemArray _pendingAdditions;
     wxDataViewCtrl* _ctrl = nullptr;
     bool _sortSubmodelsByName = false;
+    bool _sortMasterView = false;
 };
 
 class StashedMapping
@@ -457,6 +463,7 @@ struct ImportChannel
     std::string name;
     std::string type;
     int effectCount{0};
+    int masterOrder{0};
     bool isNode = false;
     bool isUsed = false;
     std::string groupModels;
@@ -673,6 +680,10 @@ protected:
         static const long ID_MNU_ADD_DONOR_GROUPS;
         static const wxWindowID ID_MNU_ADD_EMPTY_GROUP;
         static const wxWindowID ID_MNU_SORT_SUBMODELS_BY_NAME;
+        static const wxWindowID ID_MNU_SORT_ALPHABETICAL;
+        static const wxWindowID ID_MNU_SORT_MASTER_VIEW;
+        static const wxWindowID ID_MNU_AVAIL_SORT_ALPHABETICAL;
+        static const wxWindowID ID_MNU_AVAIL_SORT_MASTER_VIEW;
         static const wxWindowID ID_MNU_EDIT_DISPLAY_ELEMENTS;
 
 	private:
@@ -742,6 +753,9 @@ protected:
         std::unordered_set<std::string> SelectedAvailableNames() const;
         std::vector<AvailableSource> BuildAvailableSources(bool withTypes);
         void ApplyAvailFilter();
+        void ApplyAvailSort();
+        void SetMappingSortMasterView(bool masterView);
+        void UpdateMasterViewIndexes();
         void UpdateAvailFilterCount();
         // Confirms leaving without Ok: unsaved mapping changes, and groups added here that Cancel removes.
         bool ConfirmDiscard(bool closingWindow);
@@ -754,6 +768,25 @@ protected:
         void HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName, std::string availableModelType);
         void SetImportMediaTooltip();
         void LoadRgbEffectsFile();
+        void CreateComparePane();
+        Model* GetVendorModel(const std::string& modelName);
+        void ShowVendorPreview(const std::string& channelName);
+        void ShowLayoutPreview(const wxDataViewItem& item, bool hovering);
+        wxDataViewItem SelectedMappingRow() const;
+        bool ResolveLayoutRow(const xLightsImportModelNode* node, Model*& model, const SubModel*& subModel) const;
+        void CollectVendorGroupMemberNames(const std::string& groupName, std::set<std::string>& visited, std::vector<std::string>& names) const;
+        std::pair<Model*, const SubModel*> ResolveVendorName(const std::string& name);
+        bool IsCompareShown() const;
+        void SetCompareShown(bool show);
+        int CompareRightPaneMinWidth() const;
+        void FitComparePane();
+        void ApplyCompareWidth(bool layout);
+        int CompareMinWidth() const;
+        void HighlightLayoutModel(Model* model, const std::vector<const SubModel*>& subModels);
+        void RestoreLayoutNodeColors();
+        wxDataViewItem MappingTreeItemAtScreen(const wxPoint& screenPos) const;
+        void OnMappingTreeMotion(wxMouseEvent& event);
+        void OnMappingTreeLeave(wxMouseEvent& event);
         void BulkMapSubmodelsStrands(const std::string& fromModel, wxDataViewItem& toModel);
         void BulkMapNodes(const std::string& fromModel, wxDataViewItem& toModel);
         std::string findModelType(std::string modelName);
@@ -849,11 +882,38 @@ protected:
         wxStaticText* StaticText_AvailFilterCount {nullptr};
         // Which list PopulateAvailable last showed, so source lookups read the same one.
         bool _availIsCCR = false;
+        bool _availMasterView = false;
         std::vector<wxCheckBox*> _timingCheckboxes;
         int _timelineCol {-1};
         std::map<ImportChannel*, int> _channelImageMap;
 
         std::vector<std::unique_ptr<ImportChannel>> importChannels;
+        std::map<std::string, pugi::xml_node> _vendorModelNodes;
+        std::map<std::string, std::string> _vendorGroupMembers;
+        std::map<std::string, std::unique_ptr<Model>> _vendorModels;
+        struct ComparePreviewSlot {
+            ModelPreview* preview = nullptr;
+            wxStaticText* label = nullptr;
+            Model* model = nullptr;
+        };
+        ComparePreviewSlot _vendorSlot;
+        ComparePreviewSlot _layoutSlot;
+        wxPanel* _comparePanel {nullptr};
+        wxBoxSizer* _compareRowSizer {nullptr};
+        wxWindow* _compareSash {nullptr};
+        int _compareWidth {0};
+        int _compareDragStartX {0};
+        int _compareDragStartWidth {0};
+        wxCheckBox* CheckBox_ShowCompare {nullptr};
+        std::string _vendorPreviewChannel;
+        wxTimer _layoutHoverTimer;
+        void* _layoutHoverItem {nullptr};
+        wxSize _treeMinSize;
+        wxSize _availMinSize;
+        int _compareListMin {0};
+        // Raw channel values of the layout models the compare preview recoloured,
+        // put back on close so the house preview isn't left dimmed.
+        std::map<std::string, std::pair<Model*, std::vector<unsigned char>>> _layoutNodeBackup;
         std::map<int, int> m_iconIndexMap; // Order in list->one we got
 
 		DECLARE_EVENT_TABLE()

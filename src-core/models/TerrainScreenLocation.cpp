@@ -238,7 +238,8 @@ void TerrainScreenLocation::SetAxisTool(handles::Tool mode)
         if (axis_tool == handles::Tool::Elevate) {
             axis_tool = handles::Tool::Translate;
         }
-        ModelScreenLocation::SetAxisTool(mode);
+        // Elevate only applies to grid points.
+        ModelScreenLocation::SetAxisTool(mode == handles::Tool::Elevate ? handles::Tool::Translate : mode);
     }
 }
 
@@ -272,6 +273,9 @@ void TerrainScreenLocation::SetDataFromString(const std::string& point_data)
         float val = (float)std::strtof(point_array[p].c_str(), nullptr);
         if (val == 0.0f) {
             p++;
+            if (p >= (int)point_array.size()) {
+                break;
+            }
             float num_zeroes = (float)std::strtof(point_array[p].c_str(), nullptr);
             for (int j = 0; j < num_zeroes; ++j) {
                 if (i == num_points) {

@@ -111,6 +111,7 @@ private:
     std::string color_name;
     xlColor new_color = xlBLACK;
     xlColor last_color = xlBLACK;
+    bool color_applied = false;
     float offset_x = 0.0f;
     float offset_y = 0.0f;
     float offset_z = 0.0f;

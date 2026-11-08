@@ -55,26 +55,15 @@ public:
             else if (type == "Radial") fn = fnRadial;
             else fn = fnTriangle;   // 6-Fold, 8-Fold, 12-Fold
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"KaleidoscopeEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                [computeEncoder setBytes:&kdata length:sizeof(kdata) atIndex:0];
+                [computeEncoder setBuffer:bufferCopy   offset:0 atIndex:1];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:2];
+                MetalRenderBufferComputeData::dispatch2D(computeEncoder, fn, kdata.width, kdata.height);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"KaleidoscopeEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            [computeEncoder setBytes:&kdata length:sizeof(kdata) atIndex:0];
-            [computeEncoder setBuffer:bufferCopy   offset:0 atIndex:1];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:2];
-
-            int w = fn.threadExecutionWidth;
-            int h = fn.maxTotalThreadsPerThreadgroup / w;
-            MTLSize threadsPerThreadgroup = MTLSizeMake(w, h, 1);
-            MTLSize threadsPerGrid = MTLSizeMake(kdata.width, kdata.height, 1);
-
-            [computeEncoder dispatchThreads:threadsPerGrid
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
         }
         return true;
     }

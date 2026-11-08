@@ -167,7 +167,8 @@ WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip,
         if (jsonVal.is_discarded()) {
             spdlog::error("Non-JSON response from WLED controller on {}.", _ip);
             _connected = false;
-        } else if (jsonVal.contains("ver") && jsonVal.contains("vid") && jsonVal.contains("arch") && jsonVal.contains("name")) {
+        } else if (jsonVal.is_object() && jsonVal.contains("ver") && jsonVal["ver"].is_string() && jsonVal.contains("vid") && jsonVal["vid"].is_number_integer() &&
+                   jsonVal.contains("arch") && jsonVal["arch"].is_string() && jsonVal.contains("name")) {
             _version = jsonVal["ver"].get<std::string>();
             _vid = jsonVal["vid"].get<int>();
             _model = jsonVal["arch"].get<std::string>();
@@ -210,8 +211,8 @@ std::unique_ptr<WLEDOutput> WLED::ExtractOutputJSON(nlohmann::json const& jsonVa
 
     std::unique_ptr<WLEDOutput> output = std::make_unique<WLEDOutput>(port);
 
-    if (!fullControl && jsonVal.contains("hw") && jsonVal.at("hw").contains("led") &&
-        jsonVal.at("hw").at("led").contains("ins") &&
+    if (!fullControl && port >= 1 && jsonVal.contains("hw") && jsonVal.at("hw").contains("led") &&
+        jsonVal.at("hw").at("led").contains("ins") && jsonVal.at("hw").at("led").at("ins").is_array() &&
         (int)jsonVal.at("hw").at("led").at("ins").size() > (port - 1)) {
         auto const& json = jsonVal.at("hw").at("led").at("ins").at(port - 1);
 
@@ -222,9 +223,10 @@ std::unique_ptr<WLEDOutput> WLED::ExtractOutputJSON(nlohmann::json const& jsonVa
             if (json.contains("start") && json.at("start").is_number_integer()) {
                 output->startCount = json.at("start").get<int>();
             }
-            if (json.contains("pin") && json.at("pin").is_array()) {
-                if (!json.at("pin").at(0).is_null()) {
-                    output->pin = json.at("pin").at(0).get<int>();
+            if (json.contains("pin") && json.at("pin").is_array() && !json.at("pin").empty()) {
+                auto const& pin = json.at("pin").at(0);
+                if (pin.is_number_integer() && pin.get<int>() >= 0 && pin.get<int>() <= 255) {
+                    output->pin = (uint8_t)pin.get<int>();
                 }
             }
             if (json.contains("type") && json.at("type").is_number_integer()) {
@@ -297,7 +299,7 @@ void WLED::UpdatePixelOutputs(bool& worked, int totalPixelCount, nlohmann::json&
     jsonVal["hw"]["led"]["total"] = totalPixelCount;
 
     //Port Pixel Count
-    nlohmann::json newLEDS;
+    nlohmann::json newLEDS = nlohmann::json::array();
     for (const auto& pixelPort : _pixelOutputs) {
         if (pixelPort->upload) {
             newLEDS.push_back(pixelPort->GetJSON());
@@ -445,8 +447,7 @@ int WLED::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "p9813") return 53;
     if (p == "lpd6803") return 54;
 
-    assert(false);
-    return 22;
+    return -1;
 }
 
 int WLED::EncodeColorOrder(const std::string& colorOrder) const {
@@ -466,7 +467,6 @@ int WLED::EncodeColorOrder(const std::string& colorOrder) const {
     if (c == "wbgr") return 35;
     if (c == "wgbr") return 33;
 
-    assert(false);
     return 1;
 }
 
@@ -481,7 +481,6 @@ WLEDOutput* WLED::FindPortData(int port) const {
             return sd.get();
         }
     }
-    assert(false);
     return nullptr;
 }
 

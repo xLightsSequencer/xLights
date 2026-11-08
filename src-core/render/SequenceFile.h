@@ -102,7 +102,7 @@ public:
 
     const std::string& GetVersion() const { return version_string; }
 
-    int GetSequenceDurationMS() const { return int(seq_duration * 1000); }
+    int GetSequenceDurationMS() const;
     double GetSequenceDurationDouble() const { return seq_duration; }
     std::string GetSequenceDurationString() const;
 
@@ -148,6 +148,8 @@ public:
     // Moves donorPath to the front of the imported-from list, dropping the
     // oldest entry once the list is full.
     void RecordImportedFrom(const std::string& donorPath);
+    // Replaces the whole list (deduplicated, capped at MAX_IMPORTED_FROM).
+    void SetImportedFrom(const std::vector<std::string>& donors);
     void SetHeaderInfo(HEADER_INFO_TYPES node_type, const std::string& node_value);
 
     std::string GetImageDir(UICallbacks* ui);

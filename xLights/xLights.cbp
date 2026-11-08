@@ -1516,6 +1516,8 @@
 		<Unit filename="../src-ui-wx/controllerproperties/ControllerSerialPropertyAdapter.h" />
 		<Unit filename="../src-ui-wx/controllerproperties/OutputPropertyAdapters.cpp" />
 		<Unit filename="../src-ui-wx/controllerproperties/OutputPropertyAdapters.h" />
+		<Unit filename="../src-ui-wx/modelproperties/BulkEditModelPropertiesDialog.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/BulkEditModelPropertiesDialog.h" />
 		<Unit filename="../src-ui-wx/modelproperties/ModelPropertyAdapter.cpp" />
 		<Unit filename="../src-ui-wx/modelproperties/ModelPropertyAdapter.h" />
 		<Unit filename="../src-ui-wx/modelproperties/ModelPropertyManager.cpp" />

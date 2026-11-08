@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include "ControllerCaps.h"
 #include "PowerDMX.h"
 #include "UtilFunctions.h"
@@ -26,6 +27,16 @@
 #include <spdlog/fmt/fmt.h>
 
 #pragma region Private Functions
+namespace {
+std::string JsonStr(nlohmann::json const& j, const char* key, std::string const& def = {}) {
+    auto it = j.find(key);
+    return (it != j.end() && it->is_string()) ? it->get<std::string>() : def;
+}
+int JsonInt(nlohmann::json const& j, const char* key, int def = 0) {
+    auto it = j.find(key);
+    return (it != j.end() && it->is_number()) ? it->get<int>() : def;
+}
+}
 bool PowerDMX::GetJSONData(std::string const& url, nlohmann::json& val) const {
     std::string const sval = GetURL(url);
     if (!sval.empty()) {
@@ -60,9 +71,9 @@ int PowerDMX::EncodeBrightness(int brightness) const {
         i -= i % 5;
         return i;
     }
-    int ii = brightness + 5;
+    int64_t ii = (int64_t)brightness + 5;
     ii -= ii % 10;
-    return ii;
+    return (int)std::min<int64_t>(ii, INT32_MAX);
 }
 
 int PowerDMX::EncodeGamma(double gamma) const {
@@ -145,11 +156,13 @@ PowerDMX::PowerDMX(std::string const& ip, std::string const& proxy) :
     }
     */
 
-    if (status.size() > 0) {
+    if (status.is_object() && status.contains("system") && status["system"].is_object()) {
         // decode controller type
-        _model = status["system"]["variant"].get<std::string>();
-        _version = status["system"]["version"].get<std::string>();
-        _numberOfPixelOutputs = status["capabilities"]["max_ports"].get<int>();
+        _model = JsonStr(status["system"], "variant");
+        _version = JsonStr(status["system"], "version");
+        if (status.contains("capabilities") && status["capabilities"].is_object()) {
+            _numberOfPixelOutputs = JsonInt(status["capabilities"], "max_ports", _numberOfPixelOutputs);
+        }
         _connected = true;
         spdlog::debug("Connected to PowerDMX controller model {} v{}.", _model, _version);
     } else {

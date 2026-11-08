@@ -1546,6 +1546,11 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
         }
         ++row;
     }
+    // UploadDisplayMap queues the virtual display assets; finish them here
+    // rather than leaving them to an idle pump after the dialog is gone
+    while (CurlManager::INSTANCE.processCurls(CurlManager::PUMP_WAIT_MS)) {
+        wxYield();
+    }
     wxString settingsStatus = _("done");
     if (settingsFailed > 0) {
         settingsStatus = wxString::Format(wxPLURAL("failed on %d controller", "failed on %d controllers", settingsFailed), settingsFailed);

@@ -485,6 +485,7 @@ inline std::string ZCPP_GetDataMulticastAddress(const std::string& controllerIP)
 
 	// check each value is in range 0-255
 	for (const auto& it : ipComp) {
+		if (it.empty()) return "";
 		for (const auto it2 : it) {
 			if (!std::isdigit(it2)) return "";
 		}

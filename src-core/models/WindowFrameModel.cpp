@@ -107,7 +107,9 @@ void WindowFrameModel::GetCoordinates(int side, bool clockwise, bool LtoR, bool 
 // _bottomNodes=Nodes on Bottom
 void WindowFrameModel::InitFrame()
 {
-    //
+    _topNodes = std::max(0, _topNodes);
+    _sideNodes = std::max(0, _sideNodes);
+    _bottomNodes = std::max(0, _bottomNodes);
 
     SetNodeCount(1, _topNodes + 2 * _sideNodes + _bottomNodes, rgbOrder);
 

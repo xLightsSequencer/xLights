@@ -57,6 +57,7 @@ public:
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_xxxETHERNET; }
 
+    virtual void SetChannels(int32_t channels) override;
     virtual int32_t GetMaxChannels() const override { return xxxETHERNET_MAX_CHANNELS; }
     static int GetMaxxxxChannels() { return xxxETHERNET_MAX_CHANNELS; }
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && static_cast<uint32_t>(channelCount) <= xxxETHERNET_MAX_CHANNELS; }

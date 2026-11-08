@@ -127,8 +127,8 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
             int nidx = indexes[idx + nc];
             uchar4 c = src[nidx];
             
-            x = nidx / data.bufferHi;
-            y = nidx % data.bufferHi;
+            x = nidx % data.bufferWi;
+            y = nidx / data.bufferWi;
             midx = x * data.bufferHi + y;
             
             if (c.a > 0 && (!data.useMask || mask[midx] == 0)) {
@@ -165,8 +165,8 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
         for (int n = 0; n < cnt; n++) {
             int nidx = indexes[idx + n];
             if (owner[nidx] != (int32_t)index) continue;
-            int32_t x = nidx / data.bufferHi;
-            int32_t y = nidx - (x * data.bufferHi);
+            int32_t x = nidx % data.bufferWi;
+            int32_t y = nidx / data.bufferWi;
             int32_t midx = x * data.bufferHi + y;
             if (data.useMask && mask[midx] > 0) {
                 result[nidx] = {0, 0, 0, 0};
@@ -177,8 +177,8 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
     } else if (owner[idx] != (int32_t)index) {
         // another node owns this pixel
     } else if (data.useMask) {
-        int32_t x = idx / data.bufferHi;
-        int32_t y = idx - (x * data.bufferHi);
+        int32_t x = idx % data.bufferWi;
+        int32_t y = idx / data.bufferWi;
         int32_t midx = x * data.bufferHi + y;
         if (mask[midx] > 0) {
             result[idx] = {0, 0, 0, 0};

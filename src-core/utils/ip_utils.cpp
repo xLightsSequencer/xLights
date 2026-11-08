@@ -114,7 +114,7 @@ namespace ip_utils
         }
 
         const std::string ips = Trim(ip);
-        static const std::regex hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
+        static const std::regex hostAddr(R"(^(?=.{2,}$)(?![0-9]+(\.[0-9]+)+$)[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*$)");
         if (std::regex_match(ips, hostAddr)) {
             return true;
         }
@@ -124,7 +124,7 @@ namespace ip_utils
 
     bool IsValidHostname(const std::string& ip) {
         const std::string ips = Trim(ip);
-        static const std::regex hostAddr(R"(^([a-zA-Z0-9\-]+)(\.?)([a-zA-Z0-9\-]{2,})$)");
+        static const std::regex hostAddr(R"(^(?=.{2,}$)(?![0-9]+(\.[0-9]+)+$)[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*$)");
         return std::regex_match(ips, hostAddr);
     }
 

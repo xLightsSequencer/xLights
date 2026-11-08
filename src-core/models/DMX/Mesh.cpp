@@ -97,6 +97,7 @@ void Mesh::loadObject(BaseObject* base, xlGraphicsContext *ctx) {
                 
         spdlog::debug("Loading mesh model file {}.", _objFile);
         mesh3d = ctx->loadMeshFromObjFile(_objFile);
+        color_applied = false;
         width = mesh3d->GetXMax() - mesh3d->GetXMin();
         height = mesh3d->GetYMax() - mesh3d->GetYMin();
         depth = mesh3d->GetZMax() - mesh3d->GetZMin();
@@ -155,8 +156,9 @@ void Mesh::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *spr
 
         // skip updating color if it hasn't changed.
         if (update_color) {
-            if (new_color != last_color) {
+            if (!color_applied || new_color != last_color) {
                 last_color = new_color;
+                color_applied = true;
             } else {
                 update_color = false;
             }

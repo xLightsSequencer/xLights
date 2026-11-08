@@ -134,7 +134,7 @@ void PolyLineModel::SetStringStartChannels(int NumberOfStrings, int StartChannel
     if (_strings == 1) {
         Model::SetStringStartChannels(NumberOfStrings, StartChannel, ChannelsPerString);
     } else {
-        ChannelsPerString /= _strings;
+        // ChannelsPerString is already per string: NodesPerString() divides by _strings
         Model::SetStringStartChannels(_strings, StartChannel, ChannelsPerString);
     }
 }
@@ -214,6 +214,11 @@ void PolyLineModel::SwapStartEnd() {
     Nodes.clear();
     InitModel();
     IncrementChangeCount();
+}
+
+void PolyLineModel::SetNumStrings(int strings)
+{
+    _strings = std::max(1, strings);
 }
 
 void PolyLineModel::InitModel()
@@ -394,7 +399,7 @@ void PolyLineModel::InitModel()
         glm::vec3 pt2(x2p, y2p, z2p);
         glm::vec3 a = pt2 - pt1;
         float scale = glm::length(a);
-        glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
+        glm::mat4 rotationMatrix = scale > 0.0f ? VectorMath::rotationMatrixFromXAxisToVector(a) : glm::mat4(1.0f);
         glm::mat4 scalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scaley, scalez));
         glm::mat4 translateMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x1p, y1p, z1p));
         glm::mat4 mat = translateMatrix * rotationMatrix * scalingMatrix;
@@ -592,7 +597,8 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
     size_t c = 0;
     int segment = 0;
     int sub_segment = 0;
-    float seg_start = current_pos;
+    // current_pos starts half a gap in so each light sits in the middle of its slot
+    float seg_start = 0.0f;
     float segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
     float seg_end = seg_start + segment_length;
     int xpos = 0;  // the horizontal position in the buffer
