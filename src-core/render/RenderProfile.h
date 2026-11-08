@@ -44,7 +44,21 @@ struct RenderJobProfile {
     uint64_t suspendedNs = 0;   // suspended awaiting an upstream frame
     uint64_t sliceNs = 0;       // active wall time across all slices
 
-    uint64_t frames = 0;        // frames actually rendered
+    // Overhead table: what the stage columns above don't cover.  frameNs is the
+    // inclusive produce+output time of every frame; the rest are pieces of it.
+    uint64_t frameNs = 0;       // RenderFrame produce + output, inclusive
+    uint64_t setLayerNs = 0;    // PixelBufferClass::SetLayer before each effect render
+    uint64_t clearNs = 0;       // per-layer buffer Clear
+    uint64_t initNs = 0;        // effect (re)initialisation when a layer's effect changes
+    uint64_t canvasFillNs = 0;  // canvas-mix preload outside CalcOutput (coverage + gap fill)
+    uint64_t subBufNs = 0;      // PrepareVariableSubBuffer (value-curve sub-buffers, per frame)
+    uint64_t subBufRebuilds = 0;   // ...of which actually rebuilt the layer's nodes (rect changed)
+    uint64_t subBufNodesNs = 0;    //    Model::InitRenderBufferNodes (node clone + buffer-style coords)
+    uint64_t subBufInitNs = 0;     //    RenderBuffer::InitBuffer
+    uint64_t subBufGpuNs = 0;      //    GPURenderUtils::setupRenderBuffer
+    uint64_t layerLoopNs = 0;   // ProduceFrame's whole per-layer loop, inclusive
+
+    uint64_t frames = 0;       // frames actually rendered
     uint64_t slices = 0;        // ProcessSlice entries
     uint64_t suspends = 0;      // suspension count
 
@@ -93,6 +107,17 @@ struct RenderJobProfile {
         gpuWaitNs += o.gpuWaitNs;
         suspendedNs += o.suspendedNs;
         sliceNs += o.sliceNs;
+        frameNs += o.frameNs;
+        setLayerNs += o.setLayerNs;
+        clearNs += o.clearNs;
+        initNs += o.initNs;
+        canvasFillNs += o.canvasFillNs;
+        subBufNs += o.subBufNs;
+        subBufRebuilds += o.subBufRebuilds;
+        subBufNodesNs += o.subBufNodesNs;
+        subBufInitNs += o.subBufInitNs;
+        subBufGpuNs += o.subBufGpuNs;
+        layerLoopNs += o.layerLoopNs;
         frames += o.frames;
         slices += o.slices;
         suspends += o.suspends;

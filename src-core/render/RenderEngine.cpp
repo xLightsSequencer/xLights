@@ -1291,6 +1291,7 @@ public:
             partOfCanvas[x] = false;
         }
 
+        StageTimer layerLoopTimer(profRender ? &profile.layerLoopNs : nullptr);
         // To support canvas mix type we must render them bottom to top
         for (int layer = effectiveNumLayers - 1; layer >= 0; --layer) {
             // Layer restriction (tier-2 capture pre-pass): skip layers not opted in.
@@ -1383,11 +1384,13 @@ public:
                     info.currentEffects[layer] = ef;
                 }
                 SetInializingStatus(frame, layer, info.submodel, strand, -1);
+                StageTimer st(profRender ? &profile.initNs : nullptr);
                 initialize(layer, frame, ef, info.settingsMaps[layer], buffer);
                 info.effectStates[layer] = true;
             }
 
             if (buffer->IsVariableSubBuffer(layer)) {
+                StageTimer st(profRender ? &profile.subBufNs : nullptr);
                 buffer->PrepareVariableSubBuffer(frame, layer);
             }
 
@@ -1398,6 +1401,7 @@ public:
             }
 
             if ((!persist && !freeze) || info.currentEffects[layer] == nullptr || info.currentEffects[layer]->GetEffectIndex() == -1) {
+                StageTimer st(profRender ? &profile.clearNs : nullptr);
                 buffer->Clear(layer);
             }
 
@@ -1472,6 +1476,7 @@ public:
                     // We have to calc the output here to apply blend, rotozoom and transitions
                     { StageTimer st(profRender ? &profile.blendNs : nullptr);
                       buffer->CalcOutput(frame, vl, layer, true); }
+                    StageTimer fillTimer(profRender ? &profile.canvasFillNs : nullptr);
                     std::vector<uint8_t> done(rb.GetPixelCount());
                     parallel_for(0, rb.GetNodes().size(), [&](int n) {
                         for (auto &a : rb.GetNodes()[n]->Coords) {
@@ -3122,7 +3127,8 @@ public:
             if (profRender) {
                 ++profile.frames;
             }
-            ProduceAndOutputFrameAll(frame);
+            { StageTimer st(profRender ? &profile.frameNs : nullptr);
+              ProduceAndOutputFrameAll(frame); }
             //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
             if (HasNext()) {
                 SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
@@ -3140,7 +3146,8 @@ public:
             if (profRender) {
                 ++profile.frames;
             }
-            ProduceFrameAll(frame);
+            { StageTimer st(profRender ? &profile.frameNs : nullptr);
+              ProduceFrameAll(frame); }
             producedFrame = frame;
         }
 
@@ -3158,7 +3165,8 @@ public:
             SetGenericStatus("{}: Processing frame {} ", frame, true, true);
         }
 
-        OutputFrameAll(frame);
+        { StageTimer st(profRender ? &profile.frameNs : nullptr);
+          OutputFrameAll(frame); }
         //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
         if (HasNext()) {
             SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
@@ -4735,7 +4743,10 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
     bool retval = true;
 
-    buffer.SetLayer(layer, period, resetEffectState);
+    {
+        StageTimer st((profRender && tlsRenderProfile != nullptr) ? &tlsRenderProfile->setLayerNs : nullptr);
+        buffer.SetLayer(layer, period, resetEffectState);
+    }
     resetEffectState = false;
     int eidx = -1;
 
@@ -5165,6 +5176,32 @@ static void DumpRenderProfile(RenderProgressInfo* rpi, long long elapsedMS) {
             ms(total.effectNs), ms(total.gpuBusyNs), ms(total.blurZoomNs), ms(total.transitionNs), ms(total.blendNs), ms(total.getColorsNs), ms(total.setColorsNs),
             ms(total.gpuWaitNs), ms(total.suspendedNs), ms(total.wallNs()),
             pct(total.gpuWaitNs, total.wallNs()), pct(total.suspendedNs, total.wallNs()), "");
+
+    // Overhead table for the slowest rows: where a row's frame time goes beyond
+    // the stage columns.  `unattr` = frame time not covered by any timer here
+    // (effect lookup, layer locks, status updates, sub-buffer prep, ...);
+    // `outside` = active slice time spent outside frames (scheduling, job setup).
+    // gpuWait can overlap the stage timers, so it is not subtracted.
+    fprintf(stderr, "--- per-row overhead (slowest rows) ---\n");
+    fprintf(stderr, "%-28s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s\n",
+            "model", "slice", "frame", "layers", "setLayer", "clear", "init", "cnvFill", "subBuf", "unattr", "outside");
+    for (size_t i = 0; i < rows.size() && i < 12; i++) {
+        const RenderJobProfile* p = rows[i].p;
+        const uint64_t known = p->stageSumNs() + p->setLayerNs + p->clearNs + p->initNs + p->canvasFillNs + p->subBufNs;
+        const double unattr = ms(p->frameNs) - ms(known);
+        const double outside = ms(p->sliceNs) - ms(p->frameNs);
+        fprintf(stderr, "%-28.28s %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f\n",
+                rows[i].name.c_str(), ms(p->sliceNs), ms(p->frameNs), ms(p->layerLoopNs), ms(p->setLayerNs), ms(p->clearNs),
+                ms(p->initNs), ms(p->canvasFillNs), ms(p->subBufNs), unattr, outside);
+    }
+    for (size_t i = 0; i < rows.size() && i < 12; i++) {
+        const RenderJobProfile* p = rows[i].p;
+        if (p->subBufRebuilds > 0) {
+            fprintf(stderr, "  subBuf %-28.28s rebuilds %7llu  nodes %9.1f  initBuffer %9.1f  gpuSetup %9.1f  (%.3f ms/rebuild)\n",
+                    rows[i].name.c_str(), (unsigned long long)p->subBufRebuilds, ms(p->subBufNodesNs), ms(p->subBufInitNs),
+                    ms(p->subBufGpuNs), ms(p->subBufNs) / (double)p->subBufRebuilds);
+        }
+    }
 
     // Per-effect table, ranked by cpu+gpu.  Keys are the union of the CPU and GPU
     // maps: GPU-only rows appear for stage work no effect owns ("(gpu blend)" etc).

@@ -28,6 +28,7 @@
 #include "GPURenderUtils.h"
 #include "effects/ispc/ISPCComputeUtilities.h"
 #include "Parallel.h"
+#include "RenderProfile.h"
 #include "UtilFunctions.h"
 #include <cmath>
 #include <random>
@@ -3192,13 +3193,20 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
         return;
     }
 
+    RenderJobProfile* prof = tlsRenderProfile;
+    if (prof != nullptr) {
+        prof->subBufRebuilds++;
+    }
     const std::string& type = inf->type;
     const std::string& camera = inf->camera;
     const std::string& transform = inf->transform;
-    inf->buffer.Nodes.clear();
-    inf->BufferOffsetX = 0;
-    inf->BufferOffsetY = 0;
-    model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger);
+    {
+        StageTimer st(prof != nullptr ? &prof->subBufNodesNs : nullptr);
+        inf->buffer.Nodes.clear();
+        inf->BufferOffsetX = 0;
+        inf->BufferOffsetY = 0;
+        model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger);
+    }
 
     inf->fullBufferWi = inf->BufferWi;
     inf->fullBufferHt = inf->BufferHt;
@@ -3215,7 +3223,11 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
     if (inf->buffer.BufferHt == 0)
         inf->buffer.BufferHt = 1;
 
-    inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, transform);
+    {
+        StageTimer st(prof != nullptr ? &prof->subBufInitNs : nullptr);
+        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, transform);
+    }
+    StageTimer st(prof != nullptr ? &prof->subBufGpuNs : nullptr);
     GPURenderUtils::setupRenderBuffer(this, &inf->buffer, layer);
 }
 

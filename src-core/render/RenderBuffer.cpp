@@ -245,15 +245,29 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     // listing both a nested group and that group's members).  GetColors'
     // parallel path would let those nodes race for fdata[ActChan], so flag
     // the buffer and let callers fall back to the serial last-node-wins loop.
+    //
+    // A plain model lists its nodes in ascending channel order, and a strictly
+    // ascending sequence cannot repeat, so one linear pass settles it.  This
+    // runs on every rebuild of a value-curve sub-buffer (every frame it moves),
+    // where a hash-set insert per node was most of InitBuffer's cost on a large
+    // matrix.  Anything not ascending falls back to sorting a copy.
     dupActChans = false;
     {
-        std::unordered_set<uint32_t> seen;
-        seen.reserve(Nodes.size());
-        for (auto &n : Nodes) {
-            if (!seen.insert(n->ActChan).second) {
-                dupActChans = true;
+        bool ascending = true;
+        for (size_t i = 1; i < Nodes.size(); i++) {
+            if (Nodes[i]->ActChan <= Nodes[i - 1]->ActChan) {
+                ascending = false;
                 break;
             }
+        }
+        if (!ascending) {
+            std::vector<uint32_t> chans;
+            chans.reserve(Nodes.size());
+            for (auto &n : Nodes) {
+                chans.push_back(n->ActChan);
+            }
+            std::sort(chans.begin(), chans.end());
+            dupActChans = std::adjacent_find(chans.begin(), chans.end()) != chans.end();
         }
     }
     allSimpleIndex = true;
