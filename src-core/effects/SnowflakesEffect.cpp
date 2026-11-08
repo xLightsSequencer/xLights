@@ -11,6 +11,7 @@
 #include "SnowflakesEffect.h"
 
 #include <bit>
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -195,26 +196,28 @@ void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const
     }
     xlColor* tb = buffer.GetTempBuf();
 
-    // Most columns hold no flake, and a column that is all black when its turn
-    // comes does nothing (no RNG, no writes), so only scan columns that held a
-    // flake at the start or had one moved into them during this pass.
-    std::vector<uint8_t> colHasFlake(wi, 0);
+    // Most cells hold no flake, and a black cell does nothing when its turn
+    // comes (no RNG, no writes), so only scan each column's occupied row range:
+    // the rows that held a flake at the start, widened by any flake moved into
+    // the column during this pass.  Moves land one row down, so a column's
+    // range only grows before its turn (from columns to its left, or from
+    // column 0 wrapping to the last column), never during it.
+    std::vector<int> ymin(wi, ht), ymax(wi, -1);
     for (int y = starty; y < ht; y++) {
         const xlColor* row = tb + (size_t)y * wi;
         for (int x = 0; x < wi; x++) {
-            if (!isBlack(row[x])) {
-                colHasFlake[x] = 1;
-            }
+            // branch-free so the pass vectorizes
+            const bool lit = !isBlack(row[x]);
+            ymin[x] = std::min(ymin[x], lit ? y : ht);
+            ymax[x] = lit ? y : ymax[x];
         }
     }
 
     // x-outer order is load-bearing: a flake moved into column x+1 is moved
     // again when that column is scanned, and the RNG is consumed in this order.
     for (int x = 0; x < wi; x++) {
-        if (!colHasFlake[x]) {
-            continue;
-        }
-        for (int y = starty; y < ht; y++) {
+        const int yend = ymax[x];
+        for (int y = ymin[x]; y <= yend; y++) {
                 // if there is a flake to move
                 xlColor color3 = tb[(size_t)y * wi + x];
                 if (!isBlack(color3)) {
@@ -282,7 +285,14 @@ void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const
                         if (y0 >= 0) {
                             // move the flake down
                             tb[(size_t)y0 * wi + x0] = color3;
-                            colHasFlake[x0] = 1;
+                            if (y0 >= starty) {
+                                if (ymin[x0] > y0) {
+                                    ymin[x0] = y0;
+                                }
+                                if (ymax[x0] < y0) {
+                                    ymax[x0] = y0;
+                                }
+                            }
 
                             if (accumulating) {
                                 int nextmoves = possible_downward_moves(tb, wi, x0, y0);
