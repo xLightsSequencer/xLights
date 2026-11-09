@@ -16,6 +16,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  with an enlarged sub-buffer); output is unchanged
     -bug (dkulp)                 Windows: LOR LMS and Vixen 2 imports could give channels the wrong colour
                                  for large colour values
+    -bug (dkulp)                 Windows: a damaged AI plugin DLL no longer stops startup with a system
+                                 "Bad Image" dialog
     -bug (dkulp)                 Crash in the Layout preview when Mesh Only was turned on for a mesh that
                                  had no geometry
     -bug (dkulp)                 Crash after FPP Connect sent controller settings with a virtual display

@@ -85,7 +85,7 @@ jobs:
       shell: bash
       run: |
         mkdir -p results
-        ctest --test-dir "$BUILD_DIR/tests/unit" --output-on-failure -j 4 \
+        ctest --test-dir "$BUILD_DIR/tests/unit" --output-on-failure -j 4 --timeout 300 \
           --output-junit "$PWD/results/unit-windows-x64.xml"
 
     - name: Upload results
