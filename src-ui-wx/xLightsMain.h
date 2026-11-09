@@ -509,6 +509,9 @@ public:
     void ClearSequenceData();
     void LoadAudioData(SequenceFile& xml_file);
     virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
+#ifdef __WXMSW__
+    virtual WXLRESULT MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lParam) override;
+#endif
     virtual std::string GetCurrentDir() const override { return CurrentDir.ToStdString(); }
     wxString GetThreadStatusReport();
     void PushTraceContext();
