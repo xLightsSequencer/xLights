@@ -30,7 +30,7 @@ using namespace renderhelp;
 namespace {
 
 std::string Slurp(const std::string& p) {
-    std::ifstream f(p, std::ios::binary);
+    std::ifstream f(p); // text mode: Windows writers emit CRLF
     std::stringstream ss;
     ss << f.rdbuf();
     return ss.str();

@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (derwin12)              Snowflakes renders much faster on large buffers (e.g. whole-house groups
                                  with an enlarged sub-buffer); output is unchanged
+    -bug (dkulp)                 Windows: LOR LMS and Vixen 2 imports could give channels the wrong colour
+                                 for large colour values
     -bug (dkulp)                 Crash in the Layout preview when Mesh Only was turned on for a mesh that
                                  had no geometry
     -bug (dkulp)                 Crash after FPP Connect sent controller settings with a virtual display

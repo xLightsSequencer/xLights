@@ -188,7 +188,7 @@ TEST_CASE("SequenceFile GetFSEQForXSQ looks beside the xsq then in the fseq fold
     CHECK(SequenceFile::GetFSEQForXSQ(xsq, td.File("fseq")).empty());
     std::filesystem::create_directories(td.path / "fseq");
     td.Write("fseq/a.fseq", "x");
-    CHECK(SequenceFile::GetFSEQForXSQ(xsq, td.File("fseq")) == td.File("fseq/a.fseq"));
+    CHECK(SequenceFile::GetFSEQForXSQ(xsq, td.File("fseq")) == (td.path / "fseq" / "a.fseq").string());
     td.Write("a.fseq", "x");
     CHECK(SequenceFile::GetFSEQForXSQ(xsq, td.File("fseq")) == td.File("a.fseq"));
     CHECK(SequenceFile::GetFSEQForXSQ(td.File("missing.xsq"), td.File("fseq")).empty());

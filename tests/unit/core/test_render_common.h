@@ -121,7 +121,7 @@ struct Rendered {
     Rgb rgb(unsigned int frame, unsigned int node) const {
         return { at(frame, node * 3), at(frame, node * 3 + 1), at(frame, node * 3 + 2) };
     }
-    bool near(unsigned int frame, unsigned int node, int r, int g, int b, int tol = 2) const {
+    bool isNear(unsigned int frame, unsigned int node, int r, int g, int b, int tol = 2) const {
         auto c = rgb(frame, node);
         return std::abs(c.r - r) <= tol && std::abs(c.g - g) <= tol && std::abs(c.b - b) <= tol;
     }
