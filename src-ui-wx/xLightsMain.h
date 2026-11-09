@@ -511,6 +511,9 @@ public:
     virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
 #ifdef __WXMSW__
     virtual WXLRESULT MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lParam) override;
+    bool _inSizeMove = false;
+    bool _dpiChangePending = false;
+    unsigned int _appliedDpi = 0;
 #endif
     virtual std::string GetCurrentDir() const override { return CurrentDir.ToStdString(); }
     wxString GetThreadStatusReport();
