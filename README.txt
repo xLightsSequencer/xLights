@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 Import Effects: matrix faces imported onto a model from the base show
+                                 folder were lost on the next load; they now go into the sequence
     -bug (frenchmakers)          Windows: the main window got stuck when dragged between monitors with
                                  different scaling (e.g. 100% and 125%)
     -enh (derwin12)              Snowflakes renders much faster on large buffers (e.g. whole-house groups

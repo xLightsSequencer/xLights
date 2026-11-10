@@ -136,6 +136,10 @@ class SequencePackage {
         // unaffected and continue through the legacy layout path.
         void SetImportFacesToSequence(bool b) { _importFacesToSequence = b; }
         bool IsImportFacesToSequence() const { return _importFacesToSequence; }
+        // Faces for this target go into the sequence: the option is set, or the
+        // target model comes from the base show folder (its local copy is
+        // replaced by the base one on load, so a face added to it is lost).
+        bool ImportsFacesToSequence(EffectLayer* target) const;
         // Import the source model's Matrix face definition named faceName ("Default"
         // or empty resolves to the model's first Matrix face) into the target
         // sequence, embedding each referenced image. Returns true when a Matrix
@@ -170,6 +174,8 @@ class SequencePackage {
         void SetSequenceElements(SequenceElements *se) { sequenceElements = se; };
         void SetProgressCallback(ProgressCallback cb) { _progressCb = std::move(cb); }
     private:
+        bool IsTargetFromBase(EffectLayer* target) const;
+
         std::string     _showDirectory;
         std::string     _seqXmlFileName;
         ModelManager*   _modelManager;
