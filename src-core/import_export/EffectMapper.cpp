@@ -135,7 +135,7 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                 // for plain .xsq imports too (FixAndImportMedia isn't called there).
                 // No-op when the source rendered a sequence-level def (handled above)
                 // or a node/Coro face; idempotent across effects.
-                if (xsqPkg.IsImportFacesToSequence()) {
+                if (xsqPkg.ImportsFacesToSequence(target)) {
                     xsqPkg.ImportModelFaceToSequence(ef, target, settings.Get("E_CHOICE_Faces_FaceDefinition", ""));
                 }
             }

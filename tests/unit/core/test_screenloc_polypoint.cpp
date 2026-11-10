@@ -242,9 +242,9 @@ TEST_CASE("Poly point hit test finds straight segments and the bounding area", "
     Poly x(glm::vec3(100, 100, 0), glm::vec3(1.0f), "0,0,0,10,0,0", 2);
     auto& p = x.p;
     glm::vec3 d(0, 0, -1);
-    glm::vec3 near(105, 103, 0), far(105, 106, 0), before(97, 100, 0);
-    CHECK(p.HitTest(near, d));
-    CHECK_FALSE(p.HitTest(far, d));
+    glm::vec3 nearPt(105, 103, 0), farPt(105, 106, 0), before(97, 100, 0);
+    CHECK(p.HitTest(nearPt, d));
+    CHECK_FALSE(p.HitTest(farPt, d));
     CHECK_FALSE(p.HitTest(before, d));
 
     // inside the vertex bounding rectangle counts as a hit

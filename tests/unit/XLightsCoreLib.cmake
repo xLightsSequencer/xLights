@@ -10,7 +10,7 @@
 #   (plus the dependencies/ submodules: spdlog pugixml nanosvg liquidfun midifile
 #   volk Vulkan-Headers VulkanMemoryAllocator)
 # On Windows build from the root project with -DXL_BUILD_TESTS=ON instead - it has
-# already located the dependency bundle.
+# already located the dependency bundle (see XLightsCoreLibWindows.cmake).
 #
 # On macOS the Xcode project's xLights-unit-tests scheme links the existing
 # xLights-core target and doesn't use this file.
@@ -25,6 +25,11 @@ list(REMOVE_ITEM SRC_CORE
     ${XL_REPO_ROOT}/src-core/outputs/uDMXOutput.cpp
     ${XL_REPO_ROOT}/src-core/outputs/uDMXOutput.h)
 set(LIBUSB_FOUND FALSE)
+
+if(WIN32)
+    include(${CMAKE_CURRENT_LIST_DIR}/XLightsCoreLibWindows.cmake)
+    return()
+endif()
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)

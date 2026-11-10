@@ -375,6 +375,12 @@ else()
         endforeach()
         set_source_files_properties(${ISPC_OBJECTS}
             PROPERTIES EXTERNAL_OBJECT TRUE GENERATED TRUE)
+        # The unit tests (tests/unit, another directory) link these objects too;
+        # a custom command's outputs only get a build rule through a target in
+        # the directory that defines them.
+        if(XL_BUILD_TESTS)
+            add_custom_target(xl_ispc_objects DEPENDS ${ISPC_OBJECTS})
+        endif()
     else()
         message(WARNING "ispc not found — SIMD kernels disabled (install ISPC and add to PATH)")
     endif()
@@ -491,6 +497,9 @@ add_executable(xLights WIN32 MACOSX_BUNDLE
 # Add ISPC-generated object files to the link step.
 if(ISPC_OBJECTS)
     target_sources(xLights PRIVATE ${ISPC_OBJECTS})
+    if(TARGET xl_ispc_objects)
+        add_dependencies(xLights xl_ispc_objects)
+    endif()
 endif()
 
 # ─── IDE source grouping (Visual Studio Solution Explorer) ──────────────────

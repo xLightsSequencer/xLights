@@ -121,7 +121,11 @@ TEST_CASE("Roundtrip settings longs survive flush and load", "[roundtrip][settin
     Scratch s("rt_longs");
     auto& c = XLightsSettings::Get();
     c.SetFilePath(t.File("s.json"));
-    const std::vector<long> values = { 0, 1, -1, 255, 65535, 2147483647L, -2147483648L, 4294967296L, std::numeric_limits<long>::max(), std::numeric_limits<long>::min(), 9007199254740993L };
+    std::vector<long> values = { 0, 1, -1, 255, 65535, 2147483647L, -2147483647L - 1, std::numeric_limits<long>::max(), std::numeric_limits<long>::min() };
+    if constexpr (sizeof(long) == 8) { // long is 32-bit on Windows
+        values.push_back(static_cast<long>(4294967296LL));
+        values.push_back(static_cast<long>(9007199254740993LL));
+    }
     for (size_t i = 0; i < values.size(); ++i) c.WriteLong("l" + std::to_string(i), values[i], s.name);
     c.Flush();
     c.DeleteAll(s.name);

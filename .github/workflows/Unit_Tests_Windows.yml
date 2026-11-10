@@ -1,0 +1,97 @@
+name: Unit Tests (Windows)
+
+# The Catch2 tests for src-core (tests/unit) on Windows x64. Windows has no
+# system packages to find, so the tests are built from the root project, which
+# locates the dependency bundle (tests/unit/XLightsCoreLibWindows.cmake); only
+# the test target is built, not the app. Run by the nightly (Nightly_Tests.yml)
+# and by hand.
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-unit-windows
+  cancel-in-progress: true
+
+jobs:
+  unit-tests-windows:
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 120
+
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      BUILD_DIR: build-tests
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Setup MSVC (x64)
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Install ISPC
+      uses: ispc/install-ispc-action@main
+      with:
+        version: 1.31.0
+
+    # glslc compiles the Vulkan kernels; glslang/SPIRV-Tools libs link the shader effect.
+    - name: Install Vulkan SDK
+      uses: jakoch/install-vulkan-sdk-action@v1
+      with:
+        install_runtime: false
+        cache: true
+
+    - name: Setup sccache
+      uses: mozilla-actions/sccache-action@v0.0.10
+
+    - name: Configure sccache
+      shell: bash
+      run: |
+        if ! sccache --zero-stats; then
+          echo "::warning::sccache GHA backend unavailable; falling back to local disk"
+          echo "SCCACHE_GHA_ENABLED=" >> "$GITHUB_ENV"
+          sccache --stop-server 2>/dev/null || true
+        fi
+
+    - name: Stage the dependency bundle
+      shell: pwsh
+      run: powershell -NoProfile -ExecutionPolicy Bypass -File ci_scripts\fetch_dependencies.ps1
+
+    - name: Configure
+      shell: cmd
+      run: |
+        cmake -S . -B %BUILD_DIR% ^
+          -G Ninja ^
+          -DCMAKE_BUILD_TYPE=Release ^
+          -DCMAKE_C_COMPILER=cl ^
+          -DCMAKE_CXX_COMPILER=cl ^
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
+          -DwxWidgets_ROOT_DIR=${{ github.workspace }}\dependencies-bundle\wxWidgets ^
+          -DXL_BUILD_TESTS=ON ^
+          -DXL_TEST_FULL_CORE=ON
+
+    - name: Build
+      shell: cmd
+      run: cmake --build %BUILD_DIR% --target xlights_unit_tests --parallel 8
+
+    - name: sccache stats
+      run: sccache --show-stats
+
+    - name: Test
+      shell: bash
+      run: |
+        mkdir -p results
+        ctest --test-dir "$BUILD_DIR/tests/unit" --output-on-failure -j 4 --timeout 300 \
+          --output-junit "$PWD/results/unit-windows-x64.xml"
+
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: results-unit-windows-x64
+        path: results
+        retention-days: 14

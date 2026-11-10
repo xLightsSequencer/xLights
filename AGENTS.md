@@ -392,9 +392,13 @@ build uses (`cmake/XLightsCoreSources.cmake` — edit that file, not a copy, whe
 `XLightsCoreLib.cmake` and **ISPC 1.31** (`Makefile` pins `ISPC_VERSION`; the distro
 `ispc` is too old — pass `-DCMAKE_ISPC_COMPILER=<path>`). Without the option, a lean
 build of a few leaf files (`core_sources.cmake`) needs no third-party libraries but
-skips `core/` tests; `-G Xcode`/Visual Studio generators work too. Windows full-core
-is not wired up yet (dependency discovery lives in the root build).
-`-DXL_BUILD_TESTS=ON` on the root build adds `tests/unit` as a subdirectory. CI runs
+skips `core/` tests; `-G Xcode`/Visual Studio generators work too.
+`-DXL_BUILD_TESTS=ON` on the root build adds `tests/unit` as a subdirectory. Windows
+full-core builds only that way, reusing the root build's dependency-bundle discovery
+(`tests/unit/XLightsCoreLibWindows.cmake`; run `ci_scripts/fetch_dependencies.ps1` first):
+`cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DXL_BUILD_TESTS=ON -DXL_TEST_FULL_CORE=ON`,
+then `cmake --build build --target xlights_unit_tests` and `ctest --test-dir build/tests/unit`.
+The nightly runs it via `.github/workflows/Unit_Tests_Windows.yml`. CI runs
 this in the Ubuntu build container (`.github/workflows/Unit_Tests.yml`), which already has
 the dev packages and the pinned ISPC.
 On Linux the full core is built with the Vulkan backend (`HAVE_VULKAN`, as the app is;

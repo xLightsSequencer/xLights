@@ -55,7 +55,7 @@ ShowSpec TwoMemberGroup() {
 TEST_CASE("Dimming curve gamma is applied to the output", "[render2][canvas][dimming]") {
     Rendered half = OneLayer(kGammaLine, Pal("#808080"));
     // 255 * (128 / 255)^2.2 = 56
-    CHECK(half.near(5, 0, 56, 56, 56, 2));
+    CHECK(half.isNear(5, 0, 56, 56, 56, 2));
     Rendered full = OneLayer(kGammaLine, Pal("#FF0000"));
     CHECK(full.rgb(5, 3) == kRed);
 }

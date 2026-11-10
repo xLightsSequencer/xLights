@@ -48,6 +48,11 @@ jobs:
     if: ${{ needs.gate.outputs.should_run == 'true' }}
     uses: ./.github/workflows/Unit_Tests.yml
 
+  unit-tests-windows:
+    needs: gate
+    if: ${{ needs.gate.outputs.should_run == 'true' }}
+    uses: ./.github/workflows/Unit_Tests_Windows.yml
+
   render-tests:
     needs: gate
     if: ${{ needs.gate.outputs.should_run == 'true' }}
@@ -138,7 +143,7 @@ jobs:
   # Always runs once the suites are done, even if one failed, so the dashboard
   # shows the failure. A suite that produced no report counts as failed.
   report:
-    needs: [gate, unit-tests, render-tests, coverage]
+    needs: [gate, unit-tests, unit-tests-windows, render-tests, coverage]
     if: ${{ always() && needs.gate.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     outputs:
@@ -166,7 +171,7 @@ jobs:
         mkdir -p results
         if [ -s coverage.tar.gz ]; then tar xzf coverage.tar.gz coverage/totals.json || true; fi
         python3 ci_scripts/nightly_report.py --coverage coverage --results results \
-          --expect results-unit-linux-x64,results-render-linux-x64,results-render-windows-x64 \
+          --expect results-unit-linux-x64,results-unit-windows-x64,results-render-linux-x64,results-render-windows-x64 \
           --summary "$GITHUB_STEP_SUMMARY" --json nightly-results.json
         echo "failed=$(python3 -c "import json; print(json.load(open('nightly-results.json'))['totals']['failed'])")" >> "$GITHUB_OUTPUT"
 
