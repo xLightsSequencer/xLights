@@ -146,6 +146,10 @@ inline wxCursor CursorTypeToWx(CursorType ct) {
 
 // Layout sizing constants
 static constexpr int kPaneMinHeight        = 50;  // absolute floor: prevents panes from being fully hidden
+// The list pane has fixed chrome above its rows (notebook tabs, the Controllers
+// filter/"Show All Info" row, the tree column header) that alone exceeds
+// kPaneMinHeight, so it needs a larger, DPI-scaled floor to keep a few rows visible.
+static constexpr int kListPaneMinHeightDIP = 150;
 static constexpr int kFloatingFrameMinHeight = 200; // minimum height for floating panel windows
 static constexpr int kListHeightFallback   = 200; // fallback half-height used when container is hidden
 static constexpr int kMinPaneWidth         = 150; // absolute floor for left-panel sash drag (px)
@@ -238,12 +242,56 @@ public:
     // the clamp below for the rest of the drag and let the sash run the pane's size to
     // zero with no caption/gripper left to grab it back afterwards.
     bool m_horizResizeBothVisible = false;
+    // The dragged dock's own minimum (pane min + caption + border, as wxAUI computes
+    // it), and whether it is the top dock (list above the sash) or bottom dock.
+    int m_horizResizeDockMin = 0;
+    bool m_horizResizeDockIsTop = true;
+
+    int ClampSashY(int y) const {
+        // new_size = (y - m_horizResizeActionOffsetY) - m_horizResizeDockY
+        // Enforce both panes >= 10% of containerH, and the dragged dock >= its own minimum.
+        int containerH = GetManagedWindow()->GetClientSize().GetHeight();
+        int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
+        int topMin = paneMin;
+        int bottomMin = paneMin;
+        if (m_horizResizeDockIsTop) {
+            topMin = std::max(topMin, m_horizResizeDockMin);
+        } else {
+            bottomMin = std::max(bottomMin, m_horizResizeDockMin);
+        }
+        int minY = topMin + m_horizResizeActionOffsetY + m_horizResizeDockY;
+        int maxY = (containerH - bottomMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
+        if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
+        return std::clamp(y, minY, maxY);
+    }
+
+    // wxAUI sizes a dock only once, when it is first laid out (dock.size == 0), and
+    // keeps that size (and saves it in the perspective) from then on. These let the
+    // owner spot a dock stuck at its minimum and have it sized again from BestSize().
+    bool IsPaneDockAtMinimum(const wxAuiPaneInfo& pane) const {
+        for (const auto& d : m_docks) {
+            if (d.dock_direction == pane.dock_direction && d.dock_layer == pane.dock_layer && d.dock_row == pane.dock_row) {
+                return d.size > 0 && d.size <= d.min_size;
+            }
+        }
+        return false;
+    }
+
+    void ResetPaneDockSize(const wxAuiPaneInfo& pane) {
+        for (auto& d : m_docks) {
+            if (d.dock_direction == pane.dock_direction && d.dock_layer == pane.dock_layer && d.dock_row == pane.dock_row) {
+                d.size = 0;
+            }
+        }
+    }
 
     void OnLeftDown(wxMouseEvent& event) {
         // Reset per-drag clamping state before the base class sets m_actionPart.
         m_horizResizeDockY = -1;
         m_horizResizeActionOffsetY = 0;
         m_horizResizeBothVisible = false;
+        m_horizResizeDockMin = 0;
+        m_horizResizeDockIsTop = true;
         wxAuiDockUIPart* part = HitTest(event.GetX(), event.GetY());
         if (part &&
             (part->type == wxAuiDockUIPart::typeCaption ||
@@ -316,6 +364,8 @@ public:
                      part->dock->dock_direction == wxAUI_DOCK_BOTTOM)) {
                     m_horizResizeDockY = part->dock->rect.y;
                     m_horizResizeActionOffsetY = m_actionOffset.y;
+                    m_horizResizeDockMin = part->dock->min_size;
+                    m_horizResizeDockIsTop = part->dock->dock_direction == wxAUI_DOCK_TOP;
 
                     wxAuiPaneInfo& listPane = GetPane("ModelList");
                     wxAuiPaneInfo& settingsPane = GetPane("ModelSettings");
@@ -327,14 +377,7 @@ public:
 
             if (m_horizResizeDockY >= 0) {
                 if (m_horizResizeBothVisible) {
-                    // new_size = (event.m_y - m_horizResizeActionOffsetY) - m_horizResizeDockY
-                    // Enforce new_size >= 10% of containerH and (containerH - new_size) >= 10%.
-                    int containerH = GetManagedWindow()->GetClientSize().GetHeight();
-                    int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
-                    int minY = paneMin + m_horizResizeActionOffsetY + m_horizResizeDockY;
-                    int maxY = (containerH - paneMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
-                    if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
-                    event.m_y = std::clamp(event.m_y, minY, maxY);
+                    event.m_y = ClampSashY(event.m_y);
                 }
             }
         }
@@ -355,17 +398,14 @@ public:
         // pane collapse past its minimum. Clamp here too, using the same saved
         // per-drag state, before it gets reset below.
         if (m_action == actionResize && m_horizResizeDockY >= 0 && m_horizResizeBothVisible) {
-            int containerH = GetManagedWindow()->GetClientSize().GetHeight();
-            int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
-            int minY = paneMin + m_horizResizeActionOffsetY + m_horizResizeDockY;
-            int maxY = (containerH - paneMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
-            if (maxY < minY) maxY = minY;
-            event.m_y = std::clamp(event.m_y, minY, maxY);
+            event.m_y = ClampSashY(event.m_y);
         }
         // Reset per-drag clamping state.
         m_horizResizeDockY = -1;
         m_horizResizeActionOffsetY = 0;
         m_horizResizeBothVisible = false;
+        m_horizResizeDockMin = 0;
+        m_horizResizeDockIsTop = true;
         event.Skip();
         // After the base-class finishes processing the mouse-up (which may have
         // docked or floated a pane), update the splitter state.
@@ -1021,7 +1061,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     layout_mgr = new_layout_mgr;
     new_layout_mgr->Bind(wxEVT_AUI_PANE_CLOSE, &LayoutPanel::OnLayoutPaneClose, this);
 
-    FirstPanel->SetMinSize(wxSize(0, kPaneMinHeight));
+    FirstPanel->SetMinSize(wxSize(0, FromDIP(kListPaneMinHeightDIP)));
     int listHeight = (msp > 0) ? msp : kListHeightFallback;
     layout_mgr->AddPane(FirstPanel, wxAuiPaneInfo()
         .Name("ModelList")
@@ -1038,7 +1078,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         .Top().Layer(0).Row(0)
         .BestSize(-1, listHeight)
         .FloatingSize(600, 1000)
-        .MinSize(300, kPaneMinHeight));
+        .MinSize(300, FromDIP(kListPaneMinHeightDIP)));
 
     SettingsPaneContainer->SetMinSize(wxSize(0, kPaneMinHeight));
     layout_mgr->AddPane(SettingsPaneContainer, wxAuiPaneInfo()
@@ -1061,7 +1101,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         layout_mgr->LoadPerspective(auiPerspective);
     }
     // Always reapply settings that LoadPerspective overwrites via SafeSet()
-    layout_mgr->GetPane("ModelList").MinSize(300, kPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
+    layout_mgr->GetPane("ModelList").MinSize(300, FromDIP(kListPaneMinHeightDIP)).CaptionVisible(true).Caption("").GripperTop(true)
         .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
     layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Background Properties")
         .Floatable(true).CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
@@ -1075,6 +1115,16 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     // Enable splitter auto-collapse / expand logic now that AUI is fully set up.
     _auiInitialized = true;
     UpdateLayoutSplitter();
+
+    // The Update() above runs before the frame has its real size, so the list dock
+    // can be sized from a tiny placeholder height and stick there. Re-check once
+    // the container has been given a real size.
+    ModelPanelContainer->Bind(wxEVT_SIZE, [this](wxSizeEvent& event) {
+        event.Skip();
+        if (!_listHeightChecked) {
+            CallAfter(&LayoutPanel::FixCollapsedModelList);
+        }
+    });
 
     // Move 3D / Overlap / Save controls to a bar at the bottom-center of the
     // layout preview canvas, below the GL canvas.
@@ -12559,7 +12609,7 @@ void LayoutPanel::ResetToDefaults() {
         .Top().Layer(0).Row(0)
         .BestSize(-1, halfHeight)
         .FloatingSize(600, 1000)
-        .MinSize(300, kPaneMinHeight));
+        .MinSize(300, FromDIP(kListPaneMinHeightDIP)));
 
     layout_mgr->AddPane(SettingsPaneContainer, wxAuiPaneInfo()
         .Name("ModelSettings")
@@ -12664,7 +12714,7 @@ void LayoutPanel::RestoreFloatingPanes() {
 void LayoutPanel::ReapplyPaneAttributes() {
     wxAuiPaneInfo& modelListPane = layout_mgr->GetPane("ModelList");
     if (modelListPane.IsOk()) {
-        modelListPane.MinSize(300, kPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
+        modelListPane.MinSize(300, FromDIP(kListPaneMinHeightDIP)).CaptionVisible(true).Caption("").GripperTop(true)
             .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
     }
     wxAuiPaneInfo& modelSettingsPane = layout_mgr->GetPane("ModelSettings");
@@ -12752,6 +12802,24 @@ void LayoutPanel::DockPanesOnMissingDisplays() {
     if (docked) {
         xlights->SetStatusText("A saved floating Layout panel was off-screen and has been docked.");
     }
+}
+
+void LayoutPanel::FixCollapsedModelList() {
+    if (_listHeightChecked || layout_mgr == nullptr) return;
+    int listMin = FromDIP(kListPaneMinHeightDIP);
+    int containerH = ModelPanelContainer->GetClientSize().GetHeight();
+    if (containerH < listMin * 2) return; // still the pre-layout placeholder size
+    _listHeightChecked = true;
+
+    wxAuiPaneInfo& listPane = layout_mgr->GetPane("ModelList");
+    if (!listPane.IsOk() || !listPane.IsShown() || listPane.IsFloating()) return;
+    auto* mgr = static_cast<LayoutAuiManager*>(layout_mgr);
+    if (!mgr->IsPaneDockAtMinimum(listPane)) return;
+
+    spdlog::info("LayoutPanel: model/controller list was collapsed to its minimum height, resizing it.");
+    listPane.BestSize(-1, containerH / 2);
+    mgr->ResetPaneDockSize(listPane);
+    layout_mgr->Update();
 }
 
 int LayoutPanel::LeftPanelMinWidth() const

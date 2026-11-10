@@ -187,6 +187,8 @@ class LayoutPanel: public wxPanel
         wxString _savedFloatingPerspective;
         int _savedSashPos = -1;
         bool _auiInitialized = false;
+        bool _listHeightChecked = false;
+        void FixCollapsedModelList();
         void UpdateLayoutSplitter();
         void ReapplyPaneAttributes();
         void DockPanesOnMissingDisplays();

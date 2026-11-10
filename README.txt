@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (derwin12)              Layout: the Models/Controllers list could be shrunk (or open at startup) so
+                                 small that no rows showed, making controllers look missing
     -enh (derwin12)              Snowflakes renders much faster on large buffers (e.g. whole-house groups
                                  with an enlarged sub-buffer); output is unchanged
     -bug (dkulp)                 Crash in the Layout preview when Mesh Only was turned on for a mesh that
