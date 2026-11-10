@@ -145,6 +145,7 @@ inline wxCursor CursorTypeToWx(CursorType ct) {
 
 // Layout sizing constants
 static constexpr int kPaneMinHeight        = 50;  // absolute floor: prevents panes from being fully hidden
+static constexpr int kListPaneMinHeight    = kPaneMinHeight + 50;
 static constexpr int kFloatingFrameMinHeight = 200; // minimum height for floating panel windows
 static constexpr int kListHeightFallback   = 200; // fallback half-height used when container is hidden
 static constexpr int kMinPaneWidth         = 150; // absolute floor for left-panel sash drag (px)
@@ -330,7 +331,7 @@ public:
                     // Enforce new_size >= 10% of containerH and (containerH - new_size) >= 10%.
                     int containerH = GetManagedWindow()->GetClientSize().GetHeight();
                     int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
-                    int minY = paneMin + m_horizResizeActionOffsetY + m_horizResizeDockY;
+                    int minY = paneMin + (kListPaneMinHeight - kPaneMinHeight) + m_horizResizeActionOffsetY + m_horizResizeDockY;
                     int maxY = (containerH - paneMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
                     if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
                     event.m_y = std::clamp(event.m_y, minY, maxY);
@@ -356,7 +357,7 @@ public:
         if (m_action == actionResize && m_horizResizeDockY >= 0 && m_horizResizeBothVisible) {
             int containerH = GetManagedWindow()->GetClientSize().GetHeight();
             int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
-            int minY = paneMin + m_horizResizeActionOffsetY + m_horizResizeDockY;
+            int minY = paneMin + (kListPaneMinHeight - kPaneMinHeight) + m_horizResizeActionOffsetY + m_horizResizeDockY;
             int maxY = (containerH - paneMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
             if (maxY < minY) maxY = minY;
             event.m_y = std::clamp(event.m_y, minY, maxY);
@@ -1019,7 +1020,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     layout_mgr = new_layout_mgr;
     new_layout_mgr->Bind(wxEVT_AUI_PANE_CLOSE, &LayoutPanel::OnLayoutPaneClose, this);
 
-    FirstPanel->SetMinSize(wxSize(0, kPaneMinHeight));
+    FirstPanel->SetMinSize(wxSize(0, kListPaneMinHeight));
     int listHeight = (msp > 0) ? msp : kListHeightFallback;
     layout_mgr->AddPane(FirstPanel, wxAuiPaneInfo()
         .Name("ModelList")
@@ -1036,7 +1037,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         .Top().Layer(0).Row(0)
         .BestSize(-1, listHeight)
         .FloatingSize(600, 1000)
-        .MinSize(300, kPaneMinHeight));
+        .MinSize(300, kListPaneMinHeight));
 
     SettingsPaneContainer->SetMinSize(wxSize(0, kPaneMinHeight));
     layout_mgr->AddPane(SettingsPaneContainer, wxAuiPaneInfo()
@@ -1059,7 +1060,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         layout_mgr->LoadPerspective(auiPerspective);
     }
     // Always reapply settings that LoadPerspective overwrites via SafeSet()
-    layout_mgr->GetPane("ModelList").MinSize(300, kPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
+    layout_mgr->GetPane("ModelList").MinSize(300, kListPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
         .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
     layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Background Properties")
         .Floatable(true).CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
@@ -12480,7 +12481,7 @@ void LayoutPanel::ResetToDefaults() {
         .Top().Layer(0).Row(0)
         .BestSize(-1, halfHeight)
         .FloatingSize(600, 1000)
-        .MinSize(300, kPaneMinHeight));
+        .MinSize(300, kListPaneMinHeight));
 
     layout_mgr->AddPane(SettingsPaneContainer, wxAuiPaneInfo()
         .Name("ModelSettings")
@@ -12585,7 +12586,7 @@ void LayoutPanel::RestoreFloatingPanes() {
 void LayoutPanel::ReapplyPaneAttributes() {
     wxAuiPaneInfo& modelListPane = layout_mgr->GetPane("ModelList");
     if (modelListPane.IsOk()) {
-        modelListPane.MinSize(300, kPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
+        modelListPane.MinSize(300, kListPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
             .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
     }
     wxAuiPaneInfo& modelSettingsPane = layout_mgr->GetPane("ModelSettings");
