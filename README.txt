@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (frenchmakers)          Windows: the main window got stuck when dragged between monitors with
+                                 different scaling (e.g. 100% and 125%)
     -enh (derwin12)              Snowflakes renders much faster on large buffers (e.g. whole-house groups
                                  with an enlarged sub-buffer); output is unchanged
     -bug (dkulp)                 Windows: LOR LMS and Vixen 2 imports could give channels the wrong colour

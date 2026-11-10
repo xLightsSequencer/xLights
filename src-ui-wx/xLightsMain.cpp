@@ -1440,6 +1440,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
 
+    // Moving between monitors with different scaling: keep the frame's pixel size (see
+    // MSWWindowProc) instead of letting wx resize it, and just relayout the contents.
+    Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent& event) {
+        if (event.GetEventObject() != this) {
+            event.Skip();
+            return;
+        }
+        Layout();
+        MainAuiManager->Update();
+    });
+
     auto* config = GetXLightsConfig();
     if (config == nullptr) {
         spdlog::error("Null config ... this wont end well.");
@@ -4634,6 +4645,63 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
 
 #ifdef __APPLE__
 static std::vector<std::filesystem::path> AddMetricKitPayloadsToReport(wxDebugReport& report);
+#endif
+
+#ifdef __WXMSW__
+#ifndef WM_GETDPISCALEDSIZE
+#define WM_GETDPISCALEDSIZE 0x02E4
+#endif
+WXLRESULT xLightsFrame::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lParam)
+{
+    // Dragging the frame onto a monitor with a different scale factor:
+    // - Windows would grow or shrink it by the scale ratio, which can drop it back onto
+    //   the previous monitor and flip the DPI again and again. Keep the pixel size.
+    // - Rescaling every control takes seconds and freezes the drag, so while the user
+    //   is still dragging, defer it until the window is released.
+    switch (message) {
+    case WM_GETDPISCALEDSIZE:
+        if (lParam != 0 && !IsMaximized()) {
+            RECT rc;
+            if (::GetWindowRect(GetHwnd(), &rc)) {
+                SIZE* size = reinterpret_cast<SIZE*>(lParam);
+                size->cx = rc.right - rc.left;
+                size->cy = rc.bottom - rc.top;
+                return TRUE;
+            }
+        }
+        break;
+    case WM_ENTERSIZEMOVE:
+        _inSizeMove = true;
+        if (_appliedDpi == 0) {
+            _appliedDpi = GetDPI().x;
+        }
+        break;
+    case WM_DPICHANGED:
+        if (_inSizeMove) {
+            _dpiChangePending = true;
+            return 0;
+        }
+        _appliedDpi = LOWORD(wParam);
+        break;
+    case WM_EXITSIZEMOVE: {
+        _inSizeMove = false;
+        WXLRESULT rc = xlFrame::MSWWindowProc(message, wParam, lParam);
+        if (_dpiChangePending) {
+            _dpiChangePending = false;
+            const unsigned int dpi = GetDPI().x;
+            RECT wr;
+            if (dpi != 0 && dpi != _appliedDpi && ::GetWindowRect(GetHwnd(), &wr)) {
+                _appliedDpi = dpi;
+                xlFrame::MSWWindowProc(WM_DPICHANGED, MAKEWPARAM(dpi, dpi), reinterpret_cast<WXLPARAM>(&wr));
+            }
+        }
+        return rc;
+    }
+    default:
+        break;
+    }
+    return xlFrame::MSWWindowProc(message, wParam, lParam);
+}
 #endif
 
 void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)

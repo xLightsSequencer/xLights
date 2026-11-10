@@ -2,7 +2,7 @@
 
 _Generated from code on 2026-07-31; rows 42, 55, 60, 71, 86, 87, 93, 97, 114 and the
 practical-impact summary spot-updated 2026-10-24 to reflect Linux fixes landed
-since — the rest of the doc has not been regenerated and may have drifted
+since; row 115 added 2026-11-09 — the rest of the doc has not been regenerated and may have drifted
 further._
 
 Scope: user-visible differences between the macOS, Windows and Linux builds of the
@@ -168,8 +168,9 @@ Build configurations referenced throughout:
 | 112 | Shortcuts | Keybinding editor column headers and modifier matching — some shortcuts that fire with either Ctrl on Windows/Linux are stricter on macOS | Command ⌘ / Option ⌥ / Shift ⇧ / Control ⌃, exact match | Control / Alt / Shift / Control, either Ctrl matches | same as Windows | `src-ui-wx/app-shell/KeyBindingEditDialog.cpp:120-131`; `src-ui-wx/app-shell/KeyBindings.cpp:885-895` |
 | 113 | About | About box shows an "- App Store" version suffix and a EULA hyperlink | App Store build only | no | no | `src-ui-wx/xLightsApp.cpp:380-384`; `xLightsMain.cpp:2700-2704` |
 | 114 | Layout | Generate Custom Model ▸ "Webcam node identification" — lights an existing model one node at a time and reads each node's position off a live camera | yes, added 2026-08-23 — AVFoundation, and the picker also offers the built-in camera and a paired iPhone (Continuity, macOS 14+); dark mode can only *lock* exposure/white balance, since `setExposureModeCustomWithDuration:ISO:` is `API_UNAVAILABLE(macos)`, so ambient rejection is weaker than Windows | yes — Media Foundation; dark mode pins a short manual exposure, floors `VideoProcAmp_Gain` and disables backlight compensation | ✅ **fixed 2026-10-24** — raw V4L2 ioctl backend (no new dependency); dark mode pins `V4L2_CID_EXPOSURE_ABSOLUTE`, floors `V4L2_CID_GAIN`, disables `V4L2_CID_BACKLIGHT_COMPENSATION`, mirroring Windows. `CustomModelBuilderDialog.cpp` wasn't even compiled into the Linux build before this fix (absent from `xLights.cbp` and gated `WIN32`-only in `CMakeLists.txt`) | `src-core/media/LiveCameraCapture.{h,cpp}` Linux branch (`#elif defined(__linux__)`), `src-ui-wx/custommodelbuilder/CustomModelBuilderDialog.cpp`, picker `src-ui-wx/klightmapper/CustomModelMethodPickerDialog.cpp:115-152`; Linux build wiring `xLights.cbp` new `<Unit>` entries, `CMakeLists.txt` `custommodelbuilder` glob condition and `else()` branch |
+| 115 | DPI | Dragging the main window onto a monitor with a different scale factor (e.g. 100% and 125%) | not affected — window size is in points, only the backing scale changes | ✅ **fixed 2026-11-09** — Windows resized the frame by the scale ratio; the resized frame could fall back onto the previous monitor and flip the DPI back and forth, so the window looked stuck mid-drag. The frame now keeps its pixel size, and its controls are rescaled once when the drag ends rather than at every crossing. A ~1.5 s pause per scale change remains: Windows rescales every child HWND (~3,000, mostly the hidden effect-panel controls) | not affected — one scale for the whole X session | `src-ui-wx/xLightsMain.cpp:1443-1452` (`wxEVT_DPI_CHANGED`), `:4650-4705` (`MSWWindowProc`, `WM_GETDPISCALEDSIZE`) |
 
-**Row counts:** practical-impact summary 19 rows; detailed differences 114 rows.
+**Row counts:** practical-impact summary 19 rows; detailed differences 115 rows.
 
 ---
 
