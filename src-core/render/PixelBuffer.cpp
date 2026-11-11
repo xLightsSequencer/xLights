@@ -2781,8 +2781,9 @@ static void ReadClampedNode(NodeBaseClass& n, const unsigned char* fdata, size_t
 // pool.  Measured on a 65-sequence show: the fan-out was 76% of the whole
 // output stage (369s -> 88s) and 41% of the process's system time.  A threshold
 // sweep was monotonic all the way to "never parallelise" - no model size beat
-// serial.  Being serial also makes the dupActChans case (two nodes sharing an
-// output channel) correct by construction - last node wins, rather than
+// serial.  Being serial also makes the duplicated-channel case (two nodes
+// sharing an output channel, e.g. a group listing a nested group plus that
+// group's members) correct by construction - last node wins, rather than
 // whichever thread got there last.
 void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange, unsigned int numChannels) {
     if (layers[0] != nullptr) { // I dont like this ... it should never be null
