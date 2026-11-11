@@ -38,7 +38,6 @@ extern "C" {
 #include "../utils/SpecialOptions.h"
 #include "Parallel.h"
 #include <log.h>
-#include <spdlog/fmt/fmt.h>
 
 #ifdef __APPLE__
 #include "media/VideoToolboxBridge.h"
@@ -156,22 +155,6 @@ static void NoteHWDecodeFailedForFile(const std::string& filename)
 {
     std::lock_guard<std::mutex> lock(s_hwFailedFilesMutex);
     s_hwFailedFiles.insert(filename);
-}
-
-// Readers are created per model (and per frame-parallel clone), so report the
-// decode path once per file - debug logging is normally off, and without this
-// the log cannot say which decoder a slow video went through.
-static void LogDecodePathOnce(const std::string& filename, const std::string& path)
-{
-    static std::mutex lock;
-    static std::set<std::string> logged;
-    {
-        std::lock_guard<std::mutex> lk(lock);
-        if (!logged.insert(filename + "|" + path).second) {
-            return;
-        }
-    }
-    spdlog::info("VideoReader: {} decoding {}", path, filename);
 }
 
 static std::string DescribeStream(AVCodecID codec, int profile)
@@ -1000,10 +983,8 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         }
         _hwDeviceType = type;
         spdlog::debug("Hardware decoding('{}') enabled for codec '{}'", av_hwdevice_get_type_name(type), decoderToUse->long_name);
-        LogDecodePathOnce(_filename, fmt::format("hardware ({}, {})", av_hwdevice_get_type_name(type), decoderToUse->name));
     } else {
         spdlog::debug("Software decoding enabled for codec '{}'", decoderToUse->long_name);
-        LogDecodePathOnce(_filename, fmt::format("software ({})", decoderToUse->name));
     }
     const bool allowVideoToolbox = HW_ACCELERATION_ENABLED && allowHWDecoder &&
                                    !IsHWStreamRejected(AV_HWDEVICE_TYPE_VIDEOTOOLBOX, streamCodecId, streamProfile);
@@ -1026,9 +1007,6 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         _codecContext = nullptr;
         if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
             spdlog::warn("VideoReader: HW decoder '{}' failed to open for {}; falling back to software decode", decoderToUse->name, _filename.c_str());
-            // Remember it: every later reader on this file (one per model and
-            // effect) would otherwise create another device and fail the same way.
-            NoteHWDecodeFailedForFile(_filename);
             reopenContext(false);
         } else {
             spdlog::error("VideoReader: Couldn't open the context with the decoder in {}", _filename.c_str());
