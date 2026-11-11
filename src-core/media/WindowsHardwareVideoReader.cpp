@@ -908,6 +908,19 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
     if (SUCCEEDED(hr) && pType != nullptr) {
         _stride = (LONG)MFGetAttributeUINT32(pType, MF_MT_DEFAULT_STRIDE, 1);
         assert(_stride = _width * GetPixelBytes());
+        UpdatePictureRect(pType);
+
+        // The video processor stretches to fill whatever size it is given, so
+        // fit the output to the picture here - the same shrink FFmpeg and
+        // AVFoundation apply; the Video effect centres the smaller frame.
+        if (_useVideoProcessor && keepaspectratio &&
+            _pictureRect.right > _pictureRect.left && _pictureRect.bottom > _pictureRect.top) {
+            const float pw = (float)(_pictureRect.right - _pictureRect.left);
+            const float ph = (float)(_pictureRect.bottom - _pictureRect.top);
+            const float shrink = std::min((float)_width / pw, (float)_height / ph);
+            _width = (uint32_t)std::max(1, (int)(pw * shrink));
+            _height = (uint32_t)std::max(1, (int)(ph * shrink));
+        }
 
         GUID subtype = { 0 };
         SAFEEXEC(pType->GetGUID(MF_MT_SUBTYPE, &subtype), "WHVD: Failed to get media subtype");
@@ -1240,6 +1253,18 @@ bool WindowsHardwareVideoReader::BltFromSample(IMFSample* sample)
 
     bool ok = false;
     if (SUCCEEDED(hr) && tex != nullptr) {
+        // Without a source rect the processor scales the whole padded surface.
+        D3D11_TEXTURE2D_DESC texDesc = {};
+        tex->GetDesc(&texDesc);
+        RECT src = _pictureRect;
+        src.right = std::min(src.right, (LONG)texDesc.Width);
+        src.bottom = std::min(src.bottom, (LONG)texDesc.Height);
+        if (src.right > src.left && src.bottom > src.top) {
+            _videoContext->VideoProcessorSetStreamSourceRect(_videoProcessor, 0, TRUE, &src);
+        } else {
+            _videoContext->VideoProcessorSetStreamSourceRect(_videoProcessor, 0, FALSE, nullptr);
+        }
+
         D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC ivd = {};
         ivd.FourCC = 0;
         ivd.ViewDimension = D3D11_VPIV_DIMENSION_TEXTURE2D;
@@ -1303,6 +1328,34 @@ bool WindowsHardwareVideoReader::BltFromSample(IMFSample* sample)
     SafeRelease(&dxgi);
     SafeRelease(&buf);
     return ok;
+}
+
+void WindowsHardwareVideoReader::UpdatePictureRect(IMFMediaType* type)
+{
+    UINT32 w = 0;
+    UINT32 h = 0;
+    MFGetAttributeSize(type, MF_MT_FRAME_SIZE, &w, &h);
+    RECT r = { 0, 0, (LONG)w, (LONG)h };
+
+    for (const GUID* key : { &MF_MT_MINIMUM_DISPLAY_APERTURE, &MF_MT_GEOMETRIC_APERTURE }) {
+        MFVideoArea area = {};
+        UINT32 size = 0;
+        if (SUCCEEDED(type->GetBlob(*key, (UINT8*)&area, sizeof(area), &size)) && size == sizeof(area) &&
+            area.Area.cx > 0 && area.Area.cy > 0) {
+            r.left = std::max(0, (int)area.OffsetX.value);
+            r.top = std::max(0, (int)area.OffsetY.value);
+            r.right = r.left + area.Area.cx;
+            r.bottom = r.top + area.Area.cy;
+            break;
+        }
+    }
+
+    if (r.right != _pictureRect.right || r.bottom != _pictureRect.bottom ||
+        r.left != _pictureRect.left || r.top != _pictureRect.top) {
+        spdlog::debug("WHVD: {} picture is ({},{})-({},{}) of a {}x{} surface",
+                      _filename, r.left, r.top, r.right, r.bottom, w, h);
+    }
+    _pictureRect = r;
 }
 
 void WindowsHardwareVideoReader::ReleaseVideoProcessor()
@@ -1532,6 +1585,16 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
 #ifdef DETAILED_LOGGING
             spdlog::debug("Read video at {}ms", _curPos);
 #endif
+        }
+
+        // A hardware decoder switches to its padded surface size on the first
+        // sample, so the picture rectangle has to be re-read here.
+        if (_useVideoProcessor && (dwFlags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED)) {
+            IMFMediaType* cur = nullptr;
+            if (SUCCEEDED(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &cur)) && cur != nullptr) {
+                UpdatePictureRect(cur);
+                SafeRelease(&cur);
+            }
         }
 
         // Stop on the frame NEAREST the requested time, not the first frame at

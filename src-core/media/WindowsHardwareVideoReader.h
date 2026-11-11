@@ -100,6 +100,10 @@ class WindowsHardwareVideoReader
     ID3D11Texture2D* _vpOutput = nullptr;              // BGRA, target size, render target
     ID3D11VideoProcessorOutputView* _vpOutputView = nullptr;
     ID3D11Texture2D* _staging = nullptr;               // BGRA, target size, CPU readable
+    // The picture inside the decoder's surface. Hardware decoders pad small
+    // videos to a minimum surface (a 24x100 H.264 comes back as 192x112 on
+    // NVIDIA) and round every size up to whole macroblocks (1080 -> 1088).
+    RECT _pictureRect = {};
 
     template<class T>
     void SafeRelease(T** ppT)
@@ -116,6 +120,7 @@ class WindowsHardwareVideoReader
     bool BitmapFromSample(IMFSample* sample, AVFrame* frame);
     bool InitVideoProcessor(DXGI_FORMAT inputFormat);
     bool BltFromSample(IMFSample* sample);
+    void UpdatePictureRect(IMFMediaType* type);
     void ReleaseVideoProcessor();
     uint8_t GetPixelBytes() const;
     std::string DecodeDXGIReason(HRESULT reason) const;
