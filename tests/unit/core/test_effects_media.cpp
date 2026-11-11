@@ -694,6 +694,60 @@ TEST_CASE("Pictures numbered image sequences play as frames", "[effects][media]"
     CHECK(AllColour(fr, 4, 0, 0, 255));
 }
 
+// ================================================================== Morph repeat check
+
+namespace {
+bool HasWarning(const std::list<std::string>& l, const std::string& s) {
+    return std::any_of(l.begin(), l.end(), [&](const std::string& x) { return x.find(s) != std::string::npos; });
+}
+
+// Morph settings whose Start/End lines are `xdelta` apart on X and `ydelta`
+// apart on Y, plus the repeat count/skip.
+std::string MorphSettings(int xdelta, int ydelta, int count, int skip) {
+    auto v = [](int n) { return std::to_string(n); };
+    return "E_SLIDER_Morph_Start_X1=0,E_SLIDER_Morph_Start_X2=" + v(xdelta) +
+           ",E_SLIDER_Morph_Start_Y1=0,E_SLIDER_Morph_Start_Y2=" + v(ydelta) +
+           ",E_SLIDER_Morph_End_X1=0,E_SLIDER_Morph_End_X2=" + v(xdelta) +
+           ",E_SLIDER_Morph_End_Y1=0,E_SLIDER_Morph_End_Y2=" + v(ydelta) +
+           ",E_SLIDER_Morph_Repeat_Count=" + v(count) +
+           ",E_SLIDER_Morph_Repeat_Skip=" + v(skip);
+}
+} // namespace
+
+TEST_CASE("Morph check settings measures repeated copies by their real extent", "[effects][media]") {
+    // 16x16 buffer, 2 * maxmodel = 32. A 30-unit delta is 6 px.
+    Fx f("<model name=\"M\" DisplayAs=\"Matrix\" StartChannel=\"1\" NumStrings=\"16\" NodesPerString=\"16\" StringType=\"RGB Nodes\"/>");
+    REQUIRE(f.model->GetDefaultBufferWi() == 16);
+    REQUIRE(f.model->GetDefaultBufferHt() == 16);
+    auto* me = f.Get("Morph");
+
+    // 10 copies at 2 px spacing span 6 + 10 * 2 = 26 px: inside the model.
+    // The old (6 + 2) * 10 = 80 estimate flagged this.
+    Effect* e = f.Add("Morph", MorphSettings(30, 30, 10, 2));
+    CHECK_FALSE(HasWarning(me->CheckEffectSettings(e->GetSettings(), nullptr, f.model, e, false),
+                           "repeat count and skip"));
+
+    // 10 copies at 3 px spacing span 6 + 10 * 3 = 36 px: over the threshold.
+    Fx f2("<model name=\"M\" DisplayAs=\"Matrix\" StartChannel=\"1\" NumStrings=\"16\" NodesPerString=\"16\" StringType=\"RGB Nodes\"/>");
+    Effect* e2 = f2.Add("Morph", MorphSettings(30, 30, 10, 3));
+    CHECK(HasWarning(f2.Get("Morph")->CheckEffectSettings(e2->GetSettings(), nullptr, f2.model, e2, false),
+                     "repeat count and skip"));
+}
+
+TEST_CASE("Morph check settings scales the Y extent by the buffer height", "[effects][media]") {
+    // 16 wide x 32 high. A 15-unit Y delta is 15 * 32 / 80 = 6 px; with the
+    // buffer width it would be 15 * 16 / 80 = 3 px.
+    Fx f("<model name=\"M\" DisplayAs=\"Matrix\" StartChannel=\"1\" NumStrings=\"16\" NodesPerString=\"32\" StringType=\"RGB Nodes\"/>");
+    REQUIRE(f.model->GetDefaultBufferWi() == 16);
+    REQUIRE(f.model->GetDefaultBufferHt() == 32);
+
+    // 6 + 30 * 2 = 66 px > 2 * 32 = 64: warns. With the wrong (3 px) height
+    // the extent is 63 px and the warning would be missed.
+    Effect* e = f.Add("Morph", MorphSettings(30, 15, 30, 2));
+    CHECK(HasWarning(f.Get("Morph")->CheckEffectSettings(e->GetSettings(), nullptr, f.model, e, false),
+                     "repeat count and skip"));
+}
+
 // ================================================================== Glediator
 
 namespace {
