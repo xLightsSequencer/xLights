@@ -163,7 +163,11 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
         int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", sRepeatSkipDefault);
         int maxmodel = std::max(model->GetDefaultBufferWi(), model->GetDefaultBufferHt());
 
-        if ((minmorph + repeat_skip) * repeat_count > 2 * maxmodel) {
+        // Each copy is the same shape translated by repeat_skip pixels, so the
+        // copies span minmorph + repeat_count * repeat_skip. Do not multiply the
+        // shape thickness by the count: that is only correct if every copy were
+        // grown by repeat_skip, which the renderer never does.
+        if (minmorph + repeat_count * std::abs(repeat_skip) > 2 * maxmodel) {
             res.push_back(fmt::format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
