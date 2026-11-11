@@ -413,6 +413,26 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     double head_end_of_tail_pos = -1;
     double tail_end_of_tail_pos = -1;
 
+    // The loops below step 0.1 of a line index, so up to ten consecutive steps
+    // draw the identical line.  DrawThickLine only stores pixels (no blending),
+    // so in a run of identical lines only the last colour survives: hold each
+    // line until the next one differs and draw just that.
+    bool pendingLine = false;
+    int px0 = 0, py0 = 0, px1 = 0, py1 = 0;
+    xlColor pendingColor;
+    const bool lineDirection = direction >= 0;
+    auto queueLine = [&](int x0, int y0, int x1, int y1, const xlColor& c) {
+        if (pendingLine && (x0 != px0 || y0 != py0 || x1 != px1 || y1 != py1)) {
+            buffer.DrawThickLine(px0, py0, px1, py1, pendingColor, lineDirection);
+        }
+        pendingLine = true;
+        px0 = x0;
+        py0 = y0;
+        px1 = x1;
+        py1 = y1;
+        pendingColor = c;
+    };
+
     for( int repeat = 0; repeat <= repeat_count; repeat++ )
     {
         double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
@@ -495,7 +515,7 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             if( buffer.allowAlpha ) {
                 tail_color.alpha = 255 * alpha_pct;
             }
-            buffer.DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), tail_color, direction >= 0);
+            queueLine((*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), tail_color);
         }
 
         // draw the head
@@ -504,8 +524,11 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             double pct = ((total_length == 0) ? 0.0 : i / total_length);
             pos_a = i;
             pos_b = v_shtx->size() * pct;
-            buffer.DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), head_color, direction >= 0);
+            queueLine((*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), head_color);
         }
+    }
+    if (pendingLine) {
+        buffer.DrawThickLine(px0, py0, px1, py1, pendingColor, lineDirection);
     }
 }
 

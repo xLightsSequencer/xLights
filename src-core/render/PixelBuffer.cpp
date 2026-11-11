@@ -28,6 +28,7 @@
 #include "GPURenderUtils.h"
 #include "effects/ispc/ISPCComputeUtilities.h"
 #include "Parallel.h"
+#include "RenderProfile.h"
 #include "UtilFunctions.h"
 #include <cmath>
 #include <random>
@@ -2780,8 +2781,9 @@ static void ReadClampedNode(NodeBaseClass& n, const unsigned char* fdata, size_t
 // pool.  Measured on a 65-sequence show: the fan-out was 76% of the whole
 // output stage (369s -> 88s) and 41% of the process's system time.  A threshold
 // sweep was monotonic all the way to "never parallelise" - no model size beat
-// serial.  Being serial also makes the dupActChans case (two nodes sharing an
-// output channel) correct by construction - last node wins, rather than
+// serial.  Being serial also makes the duplicated-channel case (two nodes
+// sharing an output channel, e.g. a group listing a nested group plus that
+// group's members) correct by construction - last node wins, rather than
 // whichever thread got there last.
 void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange, unsigned int numChannels) {
     if (layers[0] != nullptr) { // I dont like this ... it should never be null
@@ -3192,13 +3194,20 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
         return;
     }
 
+    RenderJobProfile* prof = tlsRenderProfile;
+    if (prof != nullptr) {
+        prof->subBufRebuilds++;
+    }
     const std::string& type = inf->type;
     const std::string& camera = inf->camera;
     const std::string& transform = inf->transform;
-    inf->buffer.Nodes.clear();
-    inf->BufferOffsetX = 0;
-    inf->BufferOffsetY = 0;
-    model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger);
+    {
+        StageTimer st(prof != nullptr ? &prof->subBufNodesNs : nullptr);
+        inf->buffer.Nodes.clear();
+        inf->BufferOffsetX = 0;
+        inf->BufferOffsetY = 0;
+        model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger);
+    }
 
     inf->fullBufferWi = inf->BufferWi;
     inf->fullBufferHt = inf->BufferHt;
@@ -3215,7 +3224,11 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
     if (inf->buffer.BufferHt == 0)
         inf->buffer.BufferHt = 1;
 
-    inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, transform);
+    {
+        StageTimer st(prof != nullptr ? &prof->subBufInitNs : nullptr);
+        inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, transform);
+    }
+    StageTimer st(prof != nullptr ? &prof->subBufGpuNs : nullptr);
     GPURenderUtils::setupRenderBuffer(this, &inf->buffer, layer);
 }
 
