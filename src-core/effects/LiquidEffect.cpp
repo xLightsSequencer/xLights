@@ -335,7 +335,10 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
     // long the effect has to reach that steady state.
     const double lifeTimeSec = GetValueCurveIntMax("LifeTime", sLifeTimeDefault, settings, sLifeTimeMin, sLifeTimeMax) / 100.0;
     const double effectSec = (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / 1000.0;
-    const double lifetimeSec = std::min(lifeTimeSec, effectSec);
+    // LifeTime 0 disables age-based destruction (CreateParticleSystem() only
+    // enables it when lifetime > 0), so particles never die and there is no
+    // steady state. Keep the effect-duration estimate for that case.
+    const double lifetimeSec = lifeTimeSec > 0.0 ? std::min(lifeTimeSec, effectSec) : effectSec;
     // Flow is now in particles-per-second (frame-rate independent),
     // mapped through linear/exponential curve. Estimated steady-state
     // particle count = lifetime_seconds * total_per_sec, which is
