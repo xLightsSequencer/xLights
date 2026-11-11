@@ -155,8 +155,8 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
     } else {
         int startx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_X1", sStartX1Default) - settings.GetInt("E_SLIDER_Morph_Start_X2", sStartX2Default)) * model->GetDefaultBufferWi() / 80);
         int endx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_X1", sEndX1Default) - settings.GetInt("E_SLIDER_Morph_End_X2", sEndX2Default)) * model->GetDefaultBufferWi() / 80);
-        int starty = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_Y1", sStartY1Default) - settings.GetInt("E_SLIDER_Morph_Start_Y2", sStartY2Default)) * model->GetDefaultBufferWi() / 80);
-        int endy = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_Y1", sEndY1Default) - settings.GetInt("E_SLIDER_Morph_End_Y2", sEndY2Default)) * model->GetDefaultBufferWi() / 80);
+        int starty = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_Y1", sStartY1Default) - settings.GetInt("E_SLIDER_Morph_Start_Y2", sStartY2Default)) * model->GetDefaultBufferHt() / 80);
+        int endy = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_Y1", sEndY1Default) - settings.GetInt("E_SLIDER_Morph_End_Y2", sEndY2Default)) * model->GetDefaultBufferHt() / 80);
 
         int minmorph = std::min(startx, std::min(starty, std::min(endx, endy)));
         int repeat_count = settings.GetInt("E_SLIDER_Morph_Repeat_Count", sRepeatCountDefault);
