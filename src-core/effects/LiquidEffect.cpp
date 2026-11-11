@@ -328,17 +328,17 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
         res.push_back(fmt::format("    WARN: Liquid effect cant change flow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
-    // A particle lives for LifeTime/100 seconds; CreateParticles() uses exactly
-    // that ("float lt = lifetime / 100.0"). The steady-state particle count is
-    // therefore lifetime_seconds * total_per_sec, which is independent of the
-    // frame rate and of the effect duration. The effect duration only limits how
-    // long the effect has to reach that steady state.
-    const double lifeTimeSec = GetValueCurveIntMax("LifeTime", sLifeTimeDefault, settings, sLifeTimeMin, sLifeTimeMax) / 100.0;
-    const double effectSec = (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / 1000.0;
+    // CreateParticles() gives each particle LifeTime/100 seconds scaled by a
+    // random 0.99..1.19, about 1.1 on average, so the steady-state count is
+    // 1.1 * lifetime_seconds * total_per_sec regardless of frame rate. The
+    // effect can only get that far if it runs that long, and Warm Up Time
+    // runs the simulation before the effect starts.
+    const double lifeTimeSec = 1.1 * GetValueCurveIntMax("LifeTime", sLifeTimeDefault, settings, sLifeTimeMin, sLifeTimeMax) / 100.0;
+    const double runSec = (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / 1000.0 +
+                          settings.GetInt("E_TEXTCTRL_WarmUpTime", sWarmUpTimeDefault) / 100.0;
     // LifeTime 0 disables age-based destruction (CreateParticleSystem() only
-    // enables it when lifetime > 0), so particles never die and there is no
-    // steady state. Keep the effect-duration estimate for that case.
-    const double lifetimeSec = lifeTimeSec > 0.0 ? std::min(lifeTimeSec, effectSec) : effectSec;
+    // enables it when lifetime > 0), so particles live for the whole run.
+    const double lifetimeSec = lifeTimeSec > 0.0 ? std::min(lifeTimeSec, runSec) : runSec;
     // Flow is now in particles-per-second (frame-rate independent),
     // mapped through linear/exponential curve. Estimated steady-state
     // particle count = lifetime_seconds * total_per_sec, which is

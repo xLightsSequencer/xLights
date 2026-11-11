@@ -137,39 +137,64 @@ bool MorphEffect::PressButton(const std::string& id, SettingsMap& paletteMap, Se
     return false;
 }
 
+static int calcPosition(int value, int base)
+{
+    if( value == 100 ) return (base - 1);
+    double band = 100.0 / (double)base;
+    return (int)((double)value / band);
+}
+
 std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (settings.Get("E_VALUECURVE_Morph_Start_X1", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_Start_X2", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_Start_Y1", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_Start_Y2", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_End_X1", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_End_X2", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_End_Y1", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_End_Y2", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_MorphRepeat_Count", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_MorphRepeat_Skip", "").find("Active=TRUE") != std::string::npos) {
-        // we cant validate a value curve
+    auto hasVC = [&settings](const char* id) {
+        return settings.Get(std::string("E_VALUECURVE_") + id, "").find("Active=TRUE") != std::string::npos;
+    };
+    // Auto Repeat ignores the Repeat Count slider and picks a count that covers the model.
+    if (settings.GetBool("E_CHECKBOX_Morph_AutoRepeat", sAutoRepeatDefault) ||
+        hasVC("Morph_Start_X1") || hasVC("Morph_Start_X2") || hasVC("Morph_Start_Y1") || hasVC("Morph_Start_Y2") ||
+        hasVC("Morph_End_X1") || hasVC("Morph_End_X2") || hasVC("Morph_End_Y1") || hasVC("Morph_End_Y2") ||
+        hasVC("Morph_Repeat_Count") || hasVC("Morph_Repeat_Skip")) {
+        return res;
+    }
+
+    const int repeat_count = settings.GetInt("E_SLIDER_Morph_Repeat_Count", sRepeatCountDefault);
+    const int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", sRepeatSkipDefault);
+    if (repeat_count <= 0) {
+        return res;
+    }
+
+    // Same geometry as Render(): the copies are offset along X when the morph
+    // travels mostly vertically, otherwise along Y, so only the line's extent
+    // on that axis and that buffer dimension matter.
+    const int wi = model->GetDefaultBufferWi();
+    const int ht = model->GetDefaultBufferHt();
+    const int x1a = calcPosition(settings.GetInt("E_SLIDER_Morph_Start_X1", sStartX1Default), wi);
+    const int y1a = calcPosition(settings.GetInt("E_SLIDER_Morph_Start_Y1", sStartY1Default), ht);
+    const int x2a = calcPosition(settings.GetInt("E_SLIDER_Morph_End_X1", sEndX1Default), wi);
+    const int y2a = calcPosition(settings.GetInt("E_SLIDER_Morph_End_Y1", sEndY1Default), ht);
+    const bool start_linked = settings.GetBool("E_CHECKBOX_Morph_Start_Link", sStartLinkDefault);
+    const bool end_linked = settings.GetBool("E_CHECKBOX_Morph_End_Link", sEndLinkDefault);
+    const int x1b = start_linked ? x1a : calcPosition(settings.GetInt("E_SLIDER_Morph_Start_X2", sStartX2Default), wi);
+    const int y1b = start_linked ? y1a : calcPosition(settings.GetInt("E_SLIDER_Morph_Start_Y2", sStartY2Default), ht);
+    const int x2b = end_linked ? x2a : calcPosition(settings.GetInt("E_SLIDER_Morph_End_X2", sEndX2Default), wi);
+    const int y2b = end_linked ? y2a : calcPosition(settings.GetInt("E_SLIDER_Morph_End_Y2", sEndY2Default), ht);
+
+    int lineExtent;
+    int axisSize;
+    if (std::abs(x2a - x1a) + std::abs(x2b - x1b) < std::abs(y2a - y1a) + std::abs(y2b - y1b)) {
+        lineExtent = std::max(std::abs(x1a - x1b), std::abs(x2a - x2b)) + 1;
+        axisSize = wi;
     } else {
-        int startx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_X1", sStartX1Default) - settings.GetInt("E_SLIDER_Morph_Start_X2", sStartX2Default)) * model->GetDefaultBufferWi() / 80);
-        int endx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_X1", sEndX1Default) - settings.GetInt("E_SLIDER_Morph_End_X2", sEndX2Default)) * model->GetDefaultBufferWi() / 80);
-        int starty = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_Y1", sStartY1Default) - settings.GetInt("E_SLIDER_Morph_Start_Y2", sStartY2Default)) * model->GetDefaultBufferHt() / 80);
-        int endy = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_Y1", sEndY1Default) - settings.GetInt("E_SLIDER_Morph_End_Y2", sEndY2Default)) * model->GetDefaultBufferHt() / 80);
+        lineExtent = std::max(std::abs(y1a - y1b), std::abs(y2a - y2b)) + 1;
+        axisSize = ht;
+    }
 
-        int minmorph = std::min(startx, std::min(starty, std::min(endx, endy)));
-        int repeat_count = settings.GetInt("E_SLIDER_Morph_Repeat_Count", sRepeatCountDefault);
-        int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", sRepeatSkipDefault);
-        int maxmodel = std::max(model->GetDefaultBufferWi(), model->GetDefaultBufferHt());
-
-        // Each copy is the same shape translated by repeat_skip pixels, so the
-        // copies span minmorph + repeat_count * repeat_skip. Do not multiply the
-        // shape thickness by the count: that is only correct if every copy were
-        // grown by repeat_skip, which the renderer never does.
-        if (minmorph + repeat_count * std::abs(repeat_skip) > 2 * maxmodel) {
-            res.push_back(fmt::format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-        }
+    // Each copy is the same line shifted by repeat_skip, so the copies span
+    // lineExtent + repeat_count * repeat_skip on the repeat axis.
+    if (lineExtent + repeat_count * std::abs(repeat_skip) > 2 * axisSize) {
+        res.push_back(fmt::format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -252,13 +277,6 @@ static void StoreLine( const int x0_, const int y0_, const int x1_, const int y1
         if (e2 >-dx) { err -= dy; x0 += sx; }
         if (e2 < dy) { err += dx; y0 += sy; }
     }
-}
-
-static int calcPosition(int value, int base)
-{
-    if( value == 100 ) return (base - 1);
-    double band = 100.0 / (double)base;
-    return (int)((double)value / band);
 }
 
 void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {

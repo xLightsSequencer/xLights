@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (MrPaulAR)              Check Sequence: fewer false Morph "repeat count and skip" warnings; the
+                                 check now matches how Morph repeats and ignores Auto Repeat
+    -bug (MrPaulAR)              Check Sequence: the Liquid particle-count warning follows Life Time and
+                                 Warm Up Time instead of how long the effect is
     -bug (frenchmakers)          Automation: JSON requests (POST /xlDoAutomation, xlDo) can carry Windows
                                  paths; backslashes were lost and the request failed with "No command"
     -bug (frenchmakers)          Automation: saveSequence reports an error when the sequence was not saved
