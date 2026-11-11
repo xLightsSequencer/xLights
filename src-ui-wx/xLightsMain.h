@@ -1827,6 +1827,9 @@ public:
     void SaveAsSequence();
     bool SaveAsSequence(const std::string& filename);
     bool IsSequenceInShowDir(const wxString& filename) const;
+    // Why the open sequence can't be saved to `path` ("" = it can). An empty
+    // path skips the show-folder check.
+    std::string SequenceSaveRefusal(const wxString& path) const;
     wxString GetLastSequenceDialogDir() const;
     void SetLastSequenceDialogDir(const wxString& dir);
     void SetPasteByCell();

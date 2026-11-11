@@ -72,7 +72,7 @@ _Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ miss
 | 58 | `closeSequence` | `:217-235` | 🚫 | Interactive only |
 | 59 | `saveLayout` | `:236-246` | 🚫 | Interactive only (`LayoutEditorView.swift`) |
 | 60 | `newSequence` | `:247-265` | 🚫 | Interactive only (`NewSequenceWizardView.swift`) |
-| 61 | `saveSequence` (503 when the file is outside the show folder or was not written: `SaveSequence()` / `SaveAsSequence()` return whether the xsq was saved) | `:266-280` | 🚫 | Interactive only |
+| 61 | `saveSequence` (503 with the reason when the save is refused - outside the show folder, read-only mode, no sequence data - checked by `SequenceSaveRefusal()` before anything is renamed; 503 when the xsq was not written) | `:266-280` | 🚫 | Interactive only |
 | 62 | `renderAll` | `:281-302` | 🚫 | Interactive only |
 | 63 | `batchRender` (multi-sequence, `highdef` + `promptIssues` params) | `:303-343` | 🚫 | Interactive equivalent exists: `src-iPad/App/BatchRenderSheet.swift` + `BatchRenderRunner.swift:16`, presented from `XLightsApp.swift:1247,1299-1300` |
 | 64 | `uploadController` | `:344-368` | 🚫 | Interactive only |
