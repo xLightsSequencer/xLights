@@ -27,12 +27,14 @@ HttpRequest::HttpRequest(HttpConnection &connection, const wxString &input) :
 
 void HttpRequest::Parse(const wxString &input)
 {
-	wxArrayString rows = wxSplit(input, '\n');
+	// No escape character: wxSplit's default ('\\') turned every "\\" of the
+	// body into "\", so a JSON body could not carry a Windows path.
+	wxArrayString rows = wxSplit(input, '\n', '\0');
     _data = "";
 
 	if (rows.Count() > 0)
 	{
-		wxArrayString tokens = wxSplit(rows[0], ' ');
+		wxArrayString tokens = wxSplit(rows[0], ' ', '\0');
 
 		if (tokens.Count() > 0)
 			_method = tokens[0].Trim(true).Trim(false);
