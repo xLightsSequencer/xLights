@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (derwin12)              Windows: with the DirectX11 video renderer, small videos showed a grey
+                                 band in the preview and the Video effect thumbnail
+    -bug (derwin12)              Windows: with the DirectX11 video renderer, the Video effect's Maintain
+                                 Aspect Ratio option was ignored and the video was stretched
     -enh (derwin12)              Faster rendering of Morph effects and of effects with an animated
                                  sub-buffer on large models; output is unchanged
     -bug (dkulp)                 Import Effects: matrix faces imported onto a model from the base show
