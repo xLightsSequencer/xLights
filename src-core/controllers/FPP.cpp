@@ -4382,6 +4382,10 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
         if (inst->controller->GetProtocol() != OUTPUT_DDP) {
             inst->controller->SetProtocol(OUTPUT_DDP);
         }
+        inst->controller->SetVendor("ForkInEye");
+        inst->controller->SetModel(inst->typeId == 0xC2 ? "ESPixelStickV3" : "ESPixelStickV4");
+        inst->controller->SetVariant(inst->platformModel);
+
         dynamic_cast<DDPOutput*>(inst->controller->GetOutputs().front())->SetKeepChannelNumber(false);
         inst->pixelControllerType = inst->platformModel;
         SetControllerType(inst);
@@ -5105,6 +5109,10 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
             if (c.size() == 1) {
                 ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c.front());
                 if (controller) {
+                    controller->SetVendor("ForkInEye");
+                    controller->SetModel(res->typeId == 0xC2 ? "ESPixelStickV3" : "ESPixelStickV4");
+                    controller->SetVariant(res->platformModel);
+
                     uint32_t sc = controller->GetStartChannel() - 1;
                     res->ranges = std::to_string(sc) + "-" + std::to_string(sc + controller->GetChannels()-1);
                 } else {
