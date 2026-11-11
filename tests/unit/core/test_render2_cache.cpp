@@ -31,8 +31,13 @@ using Rgb = Rendered::Rgb;
 // HeadlessRenderContext turns the render cache off when it builds its engine
 // unless this variable is set.
 struct CacheEnv {
+#ifdef _WIN32
+    CacheEnv() { _putenv_s("XL_HEADLESS_RENDERCACHE", "1"); }
+    ~CacheEnv() { _putenv_s("XL_HEADLESS_RENDERCACHE", ""); }
+#else
     CacheEnv() { setenv("XL_HEADLESS_RENDERCACHE", "1", 1); }
     ~CacheEnv() { unsetenv("XL_HEADLESS_RENDERCACHE"); }
+#endif
 };
 
 // Flags the end of a render cache folder load, seen through the render logger.

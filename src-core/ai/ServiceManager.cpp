@@ -126,8 +126,14 @@ void ServiceManager::loadPlugins(const std::string& pluginDir) {
         // LOAD_WITH_ALTERED_SEARCH_PATH makes Windows search the DLL's own
         // directory first, so whisper.dll / ggml.dll etc. can live alongside
         // the plugin without needing to be on the system PATH.
+        // A file that isn't a valid DLL otherwise raises the modal "Bad Image"
+        // system dialog, which blocks startup until someone dismisses it.
+        DWORD oldErrorMode = 0;
+        SetThreadErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX, &oldErrorMode);
         void* handle = static_cast<void*>(
             LoadLibraryExA(path.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH));
+        DWORD loadError = handle ? 0 : GetLastError();
+        SetThreadErrorMode(oldErrorMode, nullptr);
 #else
         void* handle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
 #endif
@@ -142,7 +148,7 @@ void ServiceManager::loadPlugins(const std::string& pluginDir) {
 
         if (!handle) {
 #ifdef _WIN32
-            PLUGIN_WARNF("failed to load '{}': error {}", path, GetLastError());
+            PLUGIN_WARNF("failed to load '{}': error {}", path, loadError);
 #else
             PLUGIN_WARNF("failed to load '{}': {}", path, dlerror());
 #endif

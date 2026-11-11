@@ -181,16 +181,16 @@ TEST_CASE("Rotation value curves animate the rotozoom", "[render2][layers][rotoz
 TEST_CASE("Brightness value curve ramps the layer brightness", "[render2][layers][adjust]") {
     Rendered r = OneLayer(kLine8, "On", Pal("#FF0000", "", "C_VALUECURVE_Brightness=" + Ramp("Brightness", 0, 400, 0, 100)), "");
     CHECK(r.rgb(0, 0) == kBlack);
-    CHECK(r.near(19, 0, 255, 0, 0, 1));
+    CHECK(r.isNear(19, 0, 255, 0, 0, 1));
     for (unsigned f = 1; f < 20; ++f) CHECK(r.rgb(f, 0).r >= r.rgb(f - 1, 0).r);
-    CHECK(r.near(10, 0, 134, 0, 0, 3));
+    CHECK(r.isNear(10, 0, 134, 0, 0, 3));
 }
 
 TEST_CASE("Colour adjust value curves change the colour over time", "[render2][layers][adjust]") {
     Rendered hue = OneLayer(kLine8, "On", Pal("#FF0000", "", "C_VALUECURVE_Color_HueAdjust=" + Ramp("Color_HueAdjust", -100, 100, 0, 33)), "");
     CHECK(hue.rgb(0, 0) == kRed);
     // a third of the way round the wheel is green
-    CHECK(hue.near(19, 0, 0, 255, 0, 8));
+    CHECK(hue.isNear(19, 0, 0, 255, 0, 8));
 
     Rendered sat = OneLayer(kLine8, "On", Pal("#FF0000", "", "C_VALUECURVE_Color_SaturationAdjust=" + Ramp("Color_SaturationAdjust", -100, 100, 0, -100)), "");
     CHECK(sat.rgb(0, 0) == kRed);
@@ -504,7 +504,7 @@ TEST_CASE("Group default buffer style can be a per model style", "[render2][laye
 TEST_CASE("Per model buffers apply layer adjustments to every member", "[render2][layers][group]") {
     Rendered r = Render(GroupSpec("Per Model Default", "T_SLIDER_Brightness=50,B_SLIDER_Rotation=0"));
     REQUIRE(r.rendered);
-    for (unsigned n = 0; n < 8; ++n) CHECK(r.near(5, n, 127, 0, 0, 1));
+    for (unsigned n = 0; n < 8; ++n) CHECK(r.isNear(5, n, 127, 0, 0, 1));
 }
 
 TEST_CASE("Per Preview group buffer with a 3D camera still renders", "[render2][layers][group]") {

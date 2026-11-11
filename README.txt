@@ -14,8 +14,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (derwin12)              Faster rendering of Morph effects and of effects with an animated
                                  sub-buffer on large models; output is unchanged
+    -bug (dkulp)                 Import Effects: matrix faces imported onto a model from the base show
+                                 folder were lost on the next load; they now go into the sequence
+    -bug (frenchmakers)          Windows: the main window got stuck when dragged between monitors with
+                                 different scaling (e.g. 100% and 125%)
     -enh (derwin12)              Snowflakes renders much faster on large buffers (e.g. whole-house groups
                                  with an enlarged sub-buffer); output is unchanged
+    -bug (dkulp)                 Windows: LOR LMS and Vixen 2 imports could give channels the wrong colour
+                                 for large colour values
+    -bug (dkulp)                 Windows: a damaged AI plugin DLL no longer stops startup with a system
+                                 "Bad Image" dialog
     -bug (dkulp)                 Crash in the Layout preview when Mesh Only was turned on for a mesh that
                                  had no geometry
     -bug (dkulp)                 Crash after FPP Connect sent controller settings with a virtual display
@@ -186,6 +194,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Spirals, Fan, Galaxy and others); Spirals is about 2x faster
     -bug (derwin12)              Video effect showed a red square when a buffer value curve changed the
                                  buffer size mid-effect (Windows/Linux) (#7284)
+    -bug (NotAFlightRisk)        ArtNet discovery only added the first universe of a node with several output ports
+                                 in one reply
     -change (dkulp)              SIMD effect and blend kernels now use ispc's fast math library; a few
                                  effects (Plasma, Butterfly) can differ by one level on a few channels between CPU types
     -bug (dkulp)                 Strobe, Lightning, Shape, Tendril, Pinwheel and several transitions (Circles, Pinwheel,

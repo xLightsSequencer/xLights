@@ -91,7 +91,7 @@ Vixen2File::Vixen2File(pugi::xml_document& input_xml, const std::string& vixDir,
     pugi::xml_node channelsNode = root.child("Channels");
     if (channelsNode) {
         for (pugi::xml_node channel : channelsNode.children("Channel")) {
-            int chanColor = (int)std::strtol(channel.attribute("color").value(), nullptr, 10) & 0xFFFFFF;
+            int chanColor = (int)std::strtoll(channel.attribute("color").value(), nullptr, 10) & 0xFFFFFF;
             std::string nameAttr = channel.attribute("name").value();
             if (nameAttr.empty()) {
                 nameAttr = channel.child_value();

@@ -186,7 +186,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
                     if ((buffer[174 + i] & 0x80) != 0) {
                         // we only add universes if sequential ... while this wont always be true it will most of the time and it prevents us having issues
                         // where due to network pathing we see controllers more than once.
-                        int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
+                        int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]);
                         if (u == existing->GetOutputs().back()->GetUniverse() + 1) {
                             existing->AddOutput();
                             spdlog::info("        ArtNet adding extra universe ({}) to {} : {}.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), ip, existing->GetOutputCount());
@@ -209,7 +209,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
                         if ((buffer[174 + i] & 0x80) != 0) {
                             // we only add universes if sequential ... while this wont always be true it will most of the time and it prevents us having issues
                             // where due to network pathing we see controllers more than once.
-                            int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190]);
+                            int u = GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]);
                             if (u == c->GetOutputs().back()->GetUniverse() + 1) {
                                 c->AddOutput();
                                 spdlog::info("    ArtNet adding extra universe ({}) to {} : {}.", GetArtNetCombinedUniverse(buffer[18], buffer[19], buffer[190 + i]), ip, c->GetOutputCount());

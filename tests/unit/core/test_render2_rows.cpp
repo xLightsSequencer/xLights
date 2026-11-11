@@ -164,7 +164,7 @@ TEST_CASE("Duplicate can override the palette", "[render2][rows][duplicate]") {
 TEST_CASE("Duplicate can override the layer timing settings", "[render2][rows][duplicate]") {
     Rendered r = Duplicate(",E_CHECKBOX_Duplicate_Override_Timing=1,T_SLIDER_Brightness=50");
     CHECK(r.rgb(5, 0) == kRed);
-    CHECK(r.near(5, 2, 127, 0, 0, 1));
+    CHECK(r.isNear(5, 2, 127, 0, 0, 1));
     // without the override the copy keeps the source's own (full) brightness
     Rendered plain = Duplicate(",T_SLIDER_Brightness=50");
     CHECK(plain.rgb(5, 2) == kRed);
@@ -196,7 +196,7 @@ TEST_CASE("Duplicate can override colour settings", "[render2][rows][duplicate]"
     REQUIRE(show.result.rendered);
     CHECK(show.result.rgb(5, 0) == kRed);
     // the palette colour stays the source's, the brightness is the duplicate's
-    CHECK(show.result.near(5, 2, 127, 0, 0, 1));
+    CHECK(show.result.isNear(5, 2, 127, 0, 0, 1));
 }
 
 TEST_CASE("Duplicate of a missing model or layer renders nothing", "[render2][rows][duplicate]") {

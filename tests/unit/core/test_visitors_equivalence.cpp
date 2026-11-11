@@ -104,7 +104,7 @@ std::string ViaString(const Model* m, bool exporting = false, bool pretty = true
 }
 
 std::string ReadFile(const std::string& path) {
-    std::ifstream in(path, std::ios::binary);
+    std::ifstream in(path); // text mode: Windows writers emit CRLF
     return std::string(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
 }
 

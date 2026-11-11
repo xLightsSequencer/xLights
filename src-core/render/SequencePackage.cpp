@@ -20,6 +20,7 @@
 #include "render/SequenceMedia.h"
 #include "models/ModelManager.h"
 #include "models/Model.h"
+#include "models/SubModel.h"
 #include "models/ViewObjectManager.h"
 #include "models/ViewObject.h"
 #include "utils/ExternalHooks.h"
@@ -568,7 +569,7 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
             // copy is done in MapXLightsEffects (covers plain .xsq too), so skip
             // the legacy model->layout import here. ImportFaceInfo is Matrix-only,
             // so node/Coro faces are unaffected either way.
-            if (!_importFacesToSequence && !faceName.empty()) {
+            if (!ImportsFacesToSequence(target) && !faceName.empty()) {
                 ImportFaceInfo(mappedEffect, target, faceName);
             }
         }
@@ -629,14 +630,43 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
     return settings.AsString();
 }
 
+bool SequencePackage::IsTargetFromBase(EffectLayer* target) const
+{
+    if (_modelManager == nullptr || target == nullptr) {
+        return false;
+    }
+    Model* m = (*_modelManager)[target->GetParentElement()->GetModelName()];
+    if (auto* sm = dynamic_cast<SubModel*>(m)) {
+        m = sm->GetParent();
+    }
+    return m != nullptr && m->IsFromBase();
+}
+
+bool SequencePackage::ImportsFacesToSequence(EffectLayer* target) const
+{
+    return _importFacesToSequence || IsTargetFromBase(target);
+}
+
 void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, const std::string& faceName)
 {
     if (_modelManager == nullptr)
         return;
 
+    // A base show folder model is replaced by the base copy on the next
+    // load, so a face added to it here would be silently lost.
+    if (IsTargetFromBase(target)) {
+        spdlog::info("SequencePackage::ImportFaceInfo: '{}' is from the base show folder, importing face '{}' into the sequence instead.",
+                     target->GetParentElement()->GetModelName(), faceName);
+        ImportModelFaceToSequence(mappedEffect, target, faceName);
+        return;
+    }
+
     auto targetModelName = target->GetParentElement()->GetModelName();
     auto srcModelName = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName();
     Model* targetModel = (*_modelManager)[targetModelName];
+    if (targetModel == nullptr) {
+        return;
+    }
 
     const auto& faceInfo = targetModel->GetFaceInfo().find(faceName);
     if (faceInfo != targetModel->GetFaceInfo().end()) {

@@ -5,6 +5,7 @@
 
 #include "models/Model.h"
 #include "models/ModelManager.h"
+#include "import_export/EffectMapper.h"
 #include "render/Effect.h"
 #include "render/SeqMediaMigration.h"
 #include "render/EffectLayer.h"
@@ -550,4 +551,35 @@ TEST_CASE("Pack bundles the images of the face definitions the sequence uses", "
     // the rgbeffects file is always packaged
     auto rgb = ZipUtils::ReadEntry(out.string(), "xlights_rgbeffects.xml");
     REQUIRE(rgb.has_value());
+}
+
+TEST_CASE("Model Faces onto a base show folder model go into the sequence", "[seq2][package]") {
+    // The base copy replaces a FromBase model on the next load, so a face
+    // added to it would be lost - the definition must land in the sequence.
+    ImportFixture f(true, true);
+    f.tgtModel->SetFromBase(true);
+    REQUIRE_FALSE(f.pkg->IsImportFacesToSequence());
+    CHECK(f.pkg->ImportsFacesToSequence(f.tgtLayer));
+
+    f.SrcEffect("Faces", "E_CHOICE_Faces_FaceDefinition=Happy");
+    std::vector<EffectLayer*> mapped;
+    MapXLightsEffects(f.tgtLayer, f.srcLayer, mapped, false, *f.pkg, false, { { "Src", "Tgt" } }, false, {});
+    REQUIRE(f.tgtLayer->GetEffectCount() == 1);
+    CHECK(f.tgtModel->GetFaceInfo().count("Happy") == 0);
+    CHECK_FALSE(f.pkg->ModelsChanged());
+    const auto* def = f.tgtCtx.GetSequenceElements().GetSequenceFaces().GetFace("Happy");
+    REQUIRE(def != nullptr);
+    CHECK(def->at("Type") == "Matrix");
+    CHECK(f.tgtCtx.GetSequenceElements().GetSequenceMedia().HasImage(def->at("Mouth-AI-EyesOpen")));
+
+    // calling the layout path directly is redirected the same way
+    ImportFixture g(true, true);
+    g.tgtModel->SetFromBase(true);
+    g.pkg->ImportFaceInfo(g.SrcEffect("Faces", ""), g.tgtLayer, "Happy");
+    CHECK(g.tgtModel->GetFaceInfo().count("Happy") == 0);
+    CHECK(g.tgtCtx.GetSequenceElements().GetSequenceFaces().GetFace("Happy") != nullptr);
+
+    // a local model still takes the face when the option is off
+    ImportFixture h(true, true);
+    CHECK_FALSE(h.pkg->ImportsFacesToSequence(h.tgtLayer));
 }

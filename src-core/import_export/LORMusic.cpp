@@ -22,7 +22,7 @@ namespace {
 
 xlColor LMSGetColor(const std::string& rgb)
 {
-    int i = (int)std::strtol(rgb.c_str(), nullptr, 10);
+    int i = (int)std::strtoll(rgb.c_str(), nullptr, 10);
     xlColor cl;
     cl.red = (i & 0xff);
     cl.green = ((i >> 8) & 0xFF);

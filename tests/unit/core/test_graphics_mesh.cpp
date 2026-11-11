@@ -31,7 +31,7 @@ struct TestMesh : xlMesh {
 };
 
 std::string ReadAll(const std::string& path) {
-    std::ifstream f(path, std::ios::binary);
+    std::ifstream f(path); // text mode: Windows writers emit CRLF
     std::stringstream ss;
     ss << f.rdbuf();
     return ss.str();

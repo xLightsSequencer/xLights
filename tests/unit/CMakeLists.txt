@@ -33,6 +33,11 @@ if(NOT Catch2_FOUND)
         GIT_TAG v3.8.1)
     FetchContent_MakeAvailable(Catch2)
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+    # Under the root build, wx's directory-wide _UNICODE makes Catch2 define wmain,
+    # which a /subsystem:console exe doesn't link against.
+    if(WIN32)
+        target_compile_definitions(Catch2WithMain PRIVATE DO_NOT_USE_WMAIN)
+    endif()
 endif()
 
 # Two ways to get src-core under test:
@@ -71,6 +76,15 @@ add_executable(xlights_unit_tests ${XL_TEST_SOURCES})
 target_link_libraries(xlights_unit_tests PRIVATE xlights_core_testlib Catch2::Catch2WithMain)
 if(XL_TEST_FULL_CORE AND NOT APPLE)
     target_sources(xlights_unit_tests PRIVATE ${CMAKE_CURRENT_LIST_DIR}/support/GLFunctionPointers.cpp)
+endif()
+# The bundle's DLLs (bin64) next to the exe; catch_discover_tests runs it as part of the build.
+if(XL_TEST_FULL_CORE AND WIN32)
+    add_custom_command(TARGET xlights_unit_tests PRE_LINK
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${XL_REPO_ROOT}/bin64"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xlights_unit_tests>"
+            "-DGLOB_PAT=*.dll"
+            -P "${XL_REPO_ROOT}/cmake/safe_copy_dlls.cmake")
 endif()
 
 # Release builds use -ffast-math; the NaN/inf guards only mean something when

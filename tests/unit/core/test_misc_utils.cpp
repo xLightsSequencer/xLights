@@ -76,10 +76,16 @@ TEST_CASE("DescribeCurrentException extracts both paths from filesystem errors",
 
 TEST_CASE("DescribeCurrentException describes non standard types", "[misc][utils][exception]") {
     auto d = Describe([] { throw 42; });
+    struct Custom {};
+#if defined(__GNUC__) || defined(__clang__)
     CHECK(d.find("non-standard type") != std::string::npos);
     CHECK(d.find("int") != std::string::npos);
-    struct Custom {};
     CHECK(Describe([] { throw Custom(); }).find("non-standard type") != std::string::npos);
+#else
+    // MSVC has no __cxa_current_exception_type, so the type can't be named.
+    CHECK(d == "An unknown exception occurred.");
+    CHECK(Describe([] { throw Custom(); }) == "An unknown exception occurred.");
+#endif
 }
 
 TEST_CASE("TraceLog records messages in order for this thread", "[misc][utils][tracelog]") {

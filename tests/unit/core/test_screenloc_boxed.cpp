@@ -1,5 +1,6 @@
 #include <cmath>
 #include <memory>
+#include <numbers>
 #include <string>
 #include <vector>
 
@@ -91,7 +92,7 @@ TEST_CASE("Resize cursor follows the corner and the preview rotation", "[screenl
 
 TEST_CASE("rotate_point turns a point about a centre", "[screenloc]") {
     float x = 2.0f, y = 1.0f;
-    rotate_point(1.0f, 1.0f, (float)M_PI / 2.0f, x, y);
+    rotate_point(1.0f, 1.0f, std::numbers::pi_v<float> / 2.0f, x, y);
     CHECK(x == Approx(1.0f).margin(1e-5));
     CHECK(y == Approx(2.0f).margin(1e-5));
 }
