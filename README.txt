@@ -12,6 +12,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (frenchmakers)          Automation: JSON requests (POST /xlDoAutomation, xlDo) can carry Windows
+                                 paths; backslashes were lost and the request failed with "No command"
+    -bug (frenchmakers)          Automation: saveSequence reports an error when the sequence was not saved
+                                 instead of "Sequence Saved."
+    -bug (frenchmakers)          xlDo works when its output is redirected (e.g. called from a script)
     -bug (derwin12)              Windows: with the DirectX11 video renderer, small videos showed a grey
                                  band in the preview and the Video effect thumbnail
     -bug (derwin12)              Windows: with the DirectX11 video renderer, the Video effect's Maintain

@@ -1800,7 +1800,7 @@ public:
     // Now" action. `offerSuppress` adds the don't-show-again-this-version box.
     // Returns the conversion outcome (empty when the user didn't convert).
     seqmedia::VideoConversionResult ShowMediaCompatibilityIssues(const std::vector<MediaCompatibilityIssue>& issues, bool offerSuppress);
-    void SaveSequence();
+    bool SaveSequence(); // false when the xsq was not written
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
 
@@ -1825,7 +1825,7 @@ public:
 
     void NewSequence(const std::string& media = "", uint32_t durationMS = 0, uint32_t frameMS = 0, const std::string& defView = "");
     void SaveAsSequence();
-    void SaveAsSequence(const std::string& filename);
+    bool SaveAsSequence(const std::string& filename);
     bool IsSequenceInShowDir(const wxString& filename) const;
     wxString GetLastSequenceDialogDir() const;
     void SetLastSequenceDialogDir(const wxString& dir);

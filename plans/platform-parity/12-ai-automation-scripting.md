@@ -62,7 +62,7 @@ _Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ miss
 | **F. Automation transport (REST / xlDo)** |
 | 50 | HTTP automation listener bound to the xFade A/B port (49913 / 49914) | `src-ui-wx/automation/xLightsAutomations.cpp:1393-1424`; started from `xLightsMain.cpp:1858-1882` | 🚫 | No listener exists. Grepped all of `src-iPad/` for `HttpServer`, `HttpConnection`, `ProcessAutomation`, `xlDoAutomation`, `listener`: zero hits. iOS forbids a long-lived background listening socket for a foreground app (the process is suspended on backgrounding), and an inbound control channel is not something the App Store sandbox model supports |
 | 51 | Preference to enable/select the automation port (Off / A / B) | `src-ui-wx/preferences/OutputSettingsPanel.cpp:117` → `xLightsMain.cpp:7921-7929` (`SetXFadePort`), persisted `xLightsMain.cpp:1858,2281` | 🚫 | Follows from row 50 — nothing to configure |
-| 52 | JSON command endpoint `POST /xlDoAutomation` (`{"cmd":…}` body, arrays flattened to `key_0`, `key_1`, …) | `xLightsAutomations.cpp:1307-1349` | 🚫 | Row 50 |
+| 52 | JSON command endpoint `POST /xlDoAutomation` (`{"cmd":…}` body, arrays flattened to `key_0`, `key_1`, …). The body keeps its backslashes (`dependencies/wxHTTPServer/request.cpp` splits lines with no escape character), so Windows paths written `C:\\show` work; an invalid body answers 503 with the parse error | `xLightsAutomations.cpp:1307-1349` | 🚫 | Row 50 |
 | 53 | Path-style REST endpoints (`GET /verb/arg1/arg2?params`, `Accept:` selects JSON vs text) | `xLightsAutomations.cpp:1284-1305,1358-1379` | 🚫 | Row 50 |
 | 54 | In-process automation entry (`ProcessxlDoAutomation`) used by Lua/Python `runcommand` | `xLightsAutomations.cpp:1426-1489` | 🚫 | Row 50 + row 105 (no script runtime) |
 | 55 | CORS header on every automation response | `xLightsAutomations.cpp:1316,1361` | 🚫 | Row 50 |
@@ -72,7 +72,7 @@ _Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ miss
 | 58 | `closeSequence` | `:217-235` | 🚫 | Interactive only |
 | 59 | `saveLayout` | `:236-246` | 🚫 | Interactive only (`LayoutEditorView.swift`) |
 | 60 | `newSequence` | `:247-265` | 🚫 | Interactive only (`NewSequenceWizardView.swift`) |
-| 61 | `saveSequence` | `:266-280` | 🚫 | Interactive only |
+| 61 | `saveSequence` (503 when the file is outside the show folder or was not written: `SaveSequence()` / `SaveAsSequence()` return whether the xsq was saved) | `:266-280` | 🚫 | Interactive only |
 | 62 | `renderAll` | `:281-302` | 🚫 | Interactive only |
 | 63 | `batchRender` (multi-sequence, `highdef` + `promptIssues` params) | `:303-343` | 🚫 | Interactive equivalent exists: `src-iPad/App/BatchRenderSheet.swift` + `BatchRenderRunner.swift:16`, presented from `XLightsApp.swift:1247,1299-1300` |
 | 64 | `uploadController` | `:344-368` | 🚫 | Interactive only |
@@ -167,7 +167,7 @@ _Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ miss
 | **L. `xlDo` CLI (separate binary)** |
 | 140 | `xlDo` command-line automation client | `xlDo/xlDo.cpp:32-79` → `DoXLDoCommands` in `src-ui-wx/automation/automation.cpp:313-420` | 🚫 | Row 50 — there is no endpoint on iPad for a client to talk to |
 | 141 | `xlDo` switches `-h`, `-v`, `-A`, `-B`, `-i <ip>`, `-t <templatefile>`, `-c <command>`, `-s <scriptout>` | `automation.cpp:267-291` | 🚫 | Row 140 |
-| 142 | `xlDo` template-substitution parameters `-p1` … `-p9`, substituted for `%P1`…`%P9` in the command | `automation.cpp:293-310` (declaration), `:157-162` (substitution) | 🚫 | Row 140 |
+| 142 | `xlDo` template-substitution parameters `-p1` … `-p9`, substituted for `%P1`…`%P9` in the command (JSON-escaped when the command is JSON, so Windows paths are safe); xlDo also runs with its output redirected | `automation.cpp:293-310` (declaration), `:157-162` (substitution) | 🚫 | Row 140 |
 | 143 | `xlDo` command sources: `-c` literal, `-t` template file, or stdin | `automation.cpp:82-118` | 🚫 | Row 140 |
 | 144 | `xlDo` `startxLights` pseudo-command — launches xLights (optionally only if not already running) and polls `getVersion` for up to 60 s | `automation.cpp:136-205` | 🚫 | Row 140 |
 | 145 | `xlDo` shell-variable output file (`-s`) — writes each JSON response key as a settable shell/batch variable | `automation.cpp:35-76` | 🚫 | Row 140 |
