@@ -4574,7 +4574,7 @@ struct LayoutEditorView: View {
     /// start channel / controller, position / size and submodels.
     private func performReplaceModel(source: String, targets: [String],
                                      keepStartChannel: Bool, keepSubmodels: Bool,
-                                     keepSizePosition: Bool, groupMode: Int) {
+                                     keepSizePosition: Bool, keepStrings: Bool, groupMode: Int) {
         guard !source.isEmpty, !targets.isEmpty else { return }
         viewModel.document.pushLayoutUndoSnapshot(forModels: targets, includingSetPeers: false)
         guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
@@ -4582,6 +4582,7 @@ struct LayoutEditorView: View {
                                             keepStartChannel: keepStartChannel,
                                             keepSubmodels: keepSubmodels,
                                             keepSizePosition: keepSizePosition,
+                                            keepStrings: keepStrings,
                                             groupMode: groupMode,
                                             for: viewModel.document)
         if replaced > 0 {
@@ -4621,11 +4622,16 @@ struct LayoutEditorView: View {
 
     @ViewBuilder
     private func replaceModelSheet(for target: ReplaceModelTarget) -> some View {
+        let candidates = replaceModelCandidates(excluding: target.source)
+        let stringTargets = XLightsBridgeBox.bridgeForLayoutEditor()?
+            .stringLayoutTargets(candidates, forSource: target.source, for: viewModel.document) ?? []
         ReplaceModelSheet(source: target.source,
-                          candidates: replaceModelCandidates(excluding: target.source)) { picks, keepSC, keepSubs, keepSizePos, groupMode in
+                          candidates: candidates,
+                          stringLayoutTargets: Set(stringTargets)) { picks, keepSC, keepSubs, keepSizePos, keepStrings, groupMode in
             performReplaceModel(source: target.source, targets: picks,
                                 keepStartChannel: keepSC, keepSubmodels: keepSubs,
-                                keepSizePosition: keepSizePos, groupMode: groupMode)
+                                keepSizePosition: keepSizePos, keepStrings: keepStrings,
+                                groupMode: groupMode)
         }
     }
 
@@ -14007,9 +14013,11 @@ private struct BulkRotateAndReplaceModifier<RotateButtons: View, ReplaceContent:
 private struct ReplaceModelSheet: View {
     let source: String
     let candidates: [String]
+    /// Targets `source` has enough pixels for to keep their # strings and start nodes.
+    let stringLayoutTargets: Set<String>
     let onReplace: (_ targets: [String], _ keepStartChannel: Bool,
                     _ keepSubmodels: Bool, _ keepSizePosition: Bool,
-                    _ groupMode: Int) -> Void
+                    _ keepStrings: Bool, _ groupMode: Int) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var search: String = ""
@@ -14017,9 +14025,14 @@ private struct ReplaceModelSheet: View {
     @State private var keepStartChannel: Bool = true
     @State private var keepSubmodels: Bool = false
     @State private var keepSizePosition: Bool = true
+    @State private var keepStrings: Bool = true
     // 0 = leave groups unchanged, 1 = replace with source's, 2 = merge in.
     // Matches ReplaceGroupMode in ModelManager.h / the desktop dialog.
     @State private var groupMode: Int = 0
+
+    private var stringsApply: Bool {
+        !picked.isDisjoint(with: stringLayoutTargets)
+    }
 
     private var filtered: [String] {
         let q = search.trimmingCharacters(in: .whitespaces)
@@ -14035,10 +14048,15 @@ private struct ReplaceModelSheet: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
-                Section("Keep from each target") {
+                Section {
                     Toggle("Start channel & controller", isOn: $keepStartChannel)
                     Toggle("Submodels", isOn: $keepSubmodels)
                     Toggle("Position & size", isOn: $keepSizePosition)
+                    if stringsApply {
+                        Toggle("# Strings & start nodes", isOn: $keepStrings)
+                    }
+                } header: {
+                    Text("Keep from each target")
                 }
                 Section {
                     Picker("Model Groups", selection: $groupMode) {
@@ -14087,7 +14105,8 @@ private struct ReplaceModelSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Replace") {
-                        onReplace(Array(picked), keepStartChannel, keepSubmodels, keepSizePosition, groupMode)
+                        onReplace(Array(picked), keepStartChannel, keepSubmodels, keepSizePosition,
+                                  keepStrings && stringsApply, groupMode)
                         dismiss()
                     }
                     .disabled(picked.isEmpty)
