@@ -182,12 +182,17 @@ install:
 			install -m 755 -p "$$shim" $(DESTDIR)/${PREFIX}/lib/; \
 		done; \
 	fi
+	@if ls lib/linux/libonnxruntime.so* >/dev/null 2>&1; then \
+		install -d -m 755 $(DESTDIR)/${PREFIX}/lib; \
+		cp -fP lib/linux/libonnxruntime.so* $(DESTDIR)/${PREFIX}/lib/; \
+	fi
 
 uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/lib/libklightmapper.so
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/lib/libklightmapper_av*.so
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/lib/libonnxruntime.so*
 
 #############################################################################
 
