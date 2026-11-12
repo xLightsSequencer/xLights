@@ -3576,6 +3576,18 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //     @"models", @"channels", @"pixelPorts", @"serialPorts"  — NSNumber
 - (nullable NSDictionary*)wiringForController:(NSString*)name;
 
+// Controller Visualize undo / cancel (shared core ControllerConnectionHistory).
+// Begin on open, record after every edit (one undo step per change), then
+// either keep the changes or revert to the state at Begin.
+- (void)beginVisualiserHistory NS_SWIFT_NAME(beginVisualiserHistory());
+- (void)recordVisualiserHistory NS_SWIFT_NAME(recordVisualiserHistory());
+- (BOOL)canUndoVisualiserChange NS_SWIFT_NAME(canUndoVisualiserChange());
+- (BOOL)visualiserHasChanges NS_SWIFT_NAME(visualiserHasChanges());
+- (void)markVisualiserSaved NS_SWIFT_NAME(markVisualiserSaved());
+- (void)undoVisualiserChange NS_SWIFT_NAME(undoVisualiserChange());
+- (void)revertVisualiserChanges NS_SWIFT_NAME(revertVisualiserChanges());
+- (void)endVisualiserHistory NS_SWIFT_NAME(endVisualiserHistory());
+
 // Phase J-32.2 — protocols the user can choose for a port of
 // `kind` ("pixel" / "serial") on the named controller. Filtered
 // through `ControllerCaps` when available (falls back to the
