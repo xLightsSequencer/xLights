@@ -2437,8 +2437,7 @@ std::vector<handles::Descriptor> PolyPointScreenLocation::GetHandles(
             handles::Descriptor d;
             d.id.role  = handles::Role::CentreCycle;
             d.id.index = CENTER_HANDLE;
-            d.worldPos = glm::vec3(cx, cy, cz);
-            d.suggestedRadius = 5.0f;
+            handles::SetHandleSphere(d, glm::vec3(cx, cy, cz), view);
             d.editable = !IsLocked();
             d.selectionOnly = true;
             out.push_back(d);
@@ -2533,16 +2532,13 @@ std::vector<handles::Descriptor> PolyPointScreenLocation::GetHandles(
         if (!active_handle) return out;
         const auto& ah = *active_handle;
         const glm::vec3 activePos = GetActiveSubHandleWorldPos();
-        const float kArrowLen = view.axisArrowLength;
-        const float kHitOffset = kArrowLen - view.axisHeadLength * 0.5f;
         auto emitAxisArrow = [&](handles::Axis a, glm::vec3 dir, int idx, int seg) {
             handles::Descriptor d;
             d.id.role    = handles::Role::AxisArrow;
             d.id.axis    = a;
             d.id.index   = idx;
             d.id.segment = seg;
-            d.worldPos   = activePos + dir * kHitOffset;
-            d.suggestedRadius = view.axisRadius;
+            handles::SetAxisArrowCone(d, activePos, dir, view);
             d.editable   = !IsLocked();
             out.push_back(d);
         };
@@ -2575,8 +2571,11 @@ std::vector<handles::Descriptor> PolyPointScreenLocation::GetHandles(
                 d.id.axis    = a;
                 d.id.index   = kWholeModelAxisIndex;
                 d.id.segment = -1;
-                d.worldPos   = activePos + dir * kHitOffset;
-                d.suggestedRadius = view.axisRadius;
+                if (centerRole == handles::Role::AxisArrow) {
+                    handles::SetAxisArrowCone(d, activePos, dir, view);
+                } else {
+                    handles::SetAxisTipCube(d, activePos, dir, view);
+                }
                 d.editable   = !IsLocked();
                 out.push_back(d);
             };

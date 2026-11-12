@@ -1492,22 +1492,20 @@ std::vector<handles::Descriptor> BoxedScreenLocation::GetHandles(
     // for hit-testing; handle drawing is still the frontend's job.
     handles::Descriptor centre;
     centre.id.role  = handles::Role::CentreCycle;
-    centre.worldPos = glm::vec3(GetHcenterPos(), GetVcenterPos(), GetDcenterPos());
-    centre.suggestedRadius = 6.0f;
+    handles::SetHandleSphere(centre, glm::vec3(GetHcenterPos(), GetVcenterPos(), GetDcenterPos()), view);
     centre.editable = !IsLocked();
     centre.selectionOnly = true;     // tap → AdvanceAxisTool, no drag
     out.push_back(centre);
 
-    const float kArrowLen = view.axisArrowLength;
-    // Descriptor sits at the centre of the visible arrow head, not the
-    // tip — keeps the hit area aligned with what the user sees.
-    const float kHitOffset = kArrowLen - view.axisHeadLength * 0.5f;
     auto emitAxisHandle = [&](handles::Role role, handles::Axis a, glm::vec3 dir) {
         handles::Descriptor d;
         d.id.role = role;
         d.id.axis = a;
-        d.worldPos = centre.worldPos + dir * kHitOffset;
-        d.suggestedRadius = view.axisRadius;
+        if (role == handles::Role::AxisArrow) {
+            handles::SetAxisArrowCone(d, centre.worldPos, dir, view);
+        } else {
+            handles::SetAxisTipCube(d, centre.worldPos, dir, view);
+        }
         d.editable = !IsLocked();
         out.push_back(d);
     };

@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (Edward Catchpole)      The 3D gizmo in Layout (move arrows, scale/rotate cubes and the centre
+                                 handle) responds anywhere on the drawn shape, not just a small spot in its middle
 
 2026.20  November 12, 2026
 

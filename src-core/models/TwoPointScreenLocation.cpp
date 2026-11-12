@@ -1324,8 +1324,7 @@ std::vector<handles::Descriptor> TwoPointScreenLocation::GetHandles(
         handles::Descriptor d;
         d.id.role  = handles::Role::Endpoint;
         d.id.index = legacyHandle;
-        d.worldPos = worldPos;
-        d.suggestedRadius = 5.0f;
+        handles::SetHandleSphere(d, worldPos, view);
         d.editable = !IsLocked();
         d.selectionOnly = true;
         out.push_back(d);
@@ -1351,8 +1350,6 @@ std::vector<handles::Descriptor> TwoPointScreenLocation::GetHandles(
         case END_HANDLE:    activePos = point2; break;
         default:            return out;
     }
-    const float kArrowLen = view.axisArrowLength;
-    const float kHitOffset = kArrowLen - view.axisHeadLength * 0.5f;
     const handles::Role role = (tool == handles::Tool::Translate)
         ? handles::Role::AxisArrow
         : handles::Role::AxisRing;
@@ -1361,8 +1358,11 @@ std::vector<handles::Descriptor> TwoPointScreenLocation::GetHandles(
         d.id.role  = role;
         d.id.axis  = a;
         d.id.index = activeIdx;     // carry the sub-handle through
-        d.worldPos = activePos + dir * kHitOffset;
-        d.suggestedRadius = view.axisRadius;
+        if (role == handles::Role::AxisArrow) {
+            handles::SetAxisArrowCone(d, activePos, dir, view);
+        } else {
+            handles::SetAxisTipCube(d, activePos, dir, view);
+        }
         d.editable = !IsLocked();
         out.push_back(d);
     };

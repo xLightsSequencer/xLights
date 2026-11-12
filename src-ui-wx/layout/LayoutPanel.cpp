@@ -5157,6 +5157,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     view.axisArrowLength = sloc0.GetAxisArrowLength(zoom, hscale);
                     view.axisHeadLength  = sloc0.GetAxisHeadLength(zoom, hscale);
                     view.axisRadius      = sloc0.GetAxisRadius(zoom, hscale);
+                    view.handleRadius    = sloc0.GetRectHandleWidth(zoom, hscale);
                     auto descriptors = selectedBaseObject->GetHandles(
                         handles::ViewMode::ThreeD, currentTool, view);
                     if (!descriptors.empty()) {
@@ -5175,6 +5176,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         opts.handleTolerance = (currentTool == handles::Tool::XYTranslate ||
                                                 currentTool == handles::Tool::Elevate)
                                                 ? 28.0f : 8.0f;
+                        opts.exactGizmoShapes = true;
                         glm::vec2 mousePx{ static_cast<float>(event.GetX()),
                                            static_cast<float>(event.GetY()) };
                         auto hit = handles::HitTest(descriptors, proj, mousePx, opts);
@@ -7303,6 +7305,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         hoverView.axisArrowLength = sloc.GetAxisArrowLength(zoom, hscale);
                         hoverView.axisHeadLength  = sloc.GetAxisHeadLength(zoom, hscale);
                         hoverView.axisRadius      = sloc.GetAxisRadius(zoom, hscale);
+                        hoverView.handleRadius    = sloc.GetRectHandleWidth(zoom, hscale);
                         const auto hoverDescs = selectedBaseObject->GetHandles(handles::ViewMode::ThreeD, hoverTool, hoverView);
                         if (!hoverDescs.empty()) {
                             handles::ScreenProjection hoverProj{
@@ -7313,6 +7316,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                             hoverOpts.handleTolerance = (hoverTool == handles::Tool::XYTranslate ||
                                                           hoverTool == handles::Tool::Elevate)
                                                           ? 28.0f : 8.0f;
+                            hoverOpts.exactGizmoShapes = true;
                             glm::vec2 hoverPx{ static_cast<float>(event.GetX()),
                                                static_cast<float>(event.GetY()) };
                             if (auto h = handles::HitTest(hoverDescs, hoverProj, hoverPx, hoverOpts)) {
