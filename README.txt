@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.20  October ??, 2026
 
+    -bug (dkulp)                 HinksPix Export: crash when a HinksPix controller has no model selected;
+                                 the export now reports the problem instead
     -bug (MrPaulAR)              Check Sequence: fewer false Morph "repeat count and skip" warnings; the
                                  check now matches how Morph repeats and ignores Auto Repeat
     -bug (MrPaulAR)              Check Sequence: the Liquid particle-count warning follows Life Time and
