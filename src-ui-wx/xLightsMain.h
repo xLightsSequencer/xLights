@@ -1968,7 +1968,7 @@ public:
     // Gather start addresses from OutputManager controllers + forced IPs from config
     std::list<std::string> GetDiscoveryAddresses(std::list<std::string>* forcedOut = nullptr) const;
     // FPP-only discovery: discover FPP instances using addresses from GetDiscoveryAddresses
-    std::list<FPP*> DiscoverFPPInstances(DiscoveryDelegate* delegate, const std::string& targetIp = "");
+    std::list<FPP*> DiscoverFPPInstances(DiscoveryDelegate* delegate, const std::string& targetIp = "", bool onlyListed = false);
     // Full multi-protocol discovery: prepare all protocol handlers on the given Discovery object
     std::list<std::string> PrepareAllControllerDiscovery(Discovery& discovery);
 
