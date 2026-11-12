@@ -3,6 +3,7 @@
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
 #include "render/Element.h"
+#include "media/AudioManager.h"
 #include "render/HeadlessRenderContext.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceFile.h"
@@ -216,6 +217,76 @@ TEST_CASE("Alternate audio track names stay unique and follow removals", "[seq2]
     CHECK(sf.GetAltTrackDisplayName(0) == "Drums_2");
     sf.RemoveAltTrack(5);
     CHECK(sf.GetAltTrackCount() == 2);
+}
+
+namespace {
+std::string SilentWav() {
+    auto put = [](std::string& s, uint32_t v, int bytes) {
+        for (int i = 0; i < bytes; i++) s.push_back(char((v >> (8 * i)) & 0xFF));
+    };
+    const uint32_t rate = 8000, dataBytes = rate * 2; // one second, mono 16-bit
+    std::string s = "RIFF";
+    put(s, 36 + dataBytes, 4);
+    s += "WAVEfmt ";
+    put(s, 16, 4); put(s, 1, 2); put(s, 1, 2); put(s, rate, 4); put(s, rate * 2, 4); put(s, 2, 2); put(s, 16, 2);
+    s += "data";
+    put(s, dataBytes, 4);
+    s.append(dataBytes, '\0');
+    return s;
+}
+} // namespace
+
+TEST_CASE("The host is told before the sequence deletes an AudioManager", "[seq2][xsq][audio]") {
+    TempDir td;
+    std::string const show = td.path.string();
+    std::string const a = td.Write("a.wav", SilentWav());
+    std::string const b = td.Write("b.wav", SilentWav());
+
+    SequenceFile sf(td.File("audio.xsq"), 50);
+    std::vector<AudioManager*> released;
+    // Every pointer handed over must still be owned by the sequence, i.e. not yet deleted.
+    std::vector<AudioManager*> owned;
+    sf.SetAudioReleasingCallback([&](AudioManager* am) {
+        bool stillOwned = am == sf.GetMedia();
+        for (int i = 0; i < sf.GetAltTrackCount(); i++) stillOwned = stillOwned || am == sf.GetAltTrackMedia(i);
+        CHECK(stillOwned);
+        released.push_back(am);
+    });
+
+    sf.SetMediaFile(show, a, false);
+    AudioManager* first = sf.GetMedia();
+    REQUIRE(first != nullptr);
+    CHECK(released.empty());
+
+    sf.SetMediaFile(show, b, false);
+    REQUIRE(released.size() == 1);
+    CHECK(released.back() == first);
+    REQUIRE(sf.GetMedia() != nullptr);
+
+    AudioManager* second = sf.GetMedia();
+    sf.ClearMediaFile();
+    REQUIRE(released.size() == 2);
+    CHECK(released.back() == second);
+    CHECK(sf.GetMedia() == nullptr);
+
+    sf.SetMediaFile(show, a, false);
+    AudioManager* third = sf.GetMedia();
+    sf.SetSequenceType("Animation");
+    REQUIRE(released.size() == 3);
+    CHECK(released.back() == third);
+
+    sf.AddAltTrack(show, a, "Drums");
+    AudioManager* alt = sf.GetAltTrackMedia(0);
+    REQUIRE(alt != nullptr);
+    sf.SetAltTrackPath(show, 0, b);
+    REQUIRE(released.size() == 4);
+    CHECK(released.back() == alt);
+
+    AudioManager* alt2 = sf.GetAltTrackMedia(0);
+    REQUIRE(alt2 != nullptr);
+    sf.RemoveAltTrack(0);
+    REQUIRE(released.size() == 5);
+    CHECK(released.back() == alt2);
 }
 
 TEST_CASE("ClearMediaFile resets the song tags", "[seq2][xsq]") {

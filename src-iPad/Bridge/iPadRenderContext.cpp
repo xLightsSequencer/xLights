@@ -1886,6 +1886,14 @@ bool iPadRenderContext::OpenSequence(const std::string& path) {
     }
 
     _sequenceFile = std::make_unique<SequenceFile>(path);
+    // Render workers (audio-reactive effects) and playback can still be using an
+    // AudioManager the sequence is about to delete on a media/type/alt-track change.
+    _sequenceFile->SetAudioReleasingCallback([this](AudioManager* audio) {
+        if (!AbortRender(5000)) {
+            spdlog::warn("iPadRenderContext: render did not stop before the sequence audio was replaced");
+        }
+        audio->Stop();
+    });
     _sequenceDoc = _sequenceFile->Open(showDirectory, false, path);
 
     if (!_sequenceDoc) {

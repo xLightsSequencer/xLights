@@ -2487,6 +2487,32 @@ void xLightsFrame::ReleaseAudio(AudioManager* audio)
     }
 }
 
+// Whenever the open sequence is about to delete an AudioManager, stop whatever
+// still uses it. The waveform is reopened on the replacement once the change that
+// deleted it has finished, and a render that had to be stopped is restarted.
+void xLightsFrame::WatchSequenceAudio(SequenceFile* sf)
+{
+    sf->SetAudioReleasingCallback([this, sf](AudioManager* audio) {
+        int numThreadsAborted = 0;
+        AbortRender(60000, &numThreadsAborted);
+        ReleaseAudio(audio);
+        CallAfter([this, sf, numThreadsAborted]() {
+            if (CurrentSeqXmlFile != sf || mainSequencer == nullptr) {
+                return;
+            }
+            if (mainSequencer->PanelWaveForm->GetMedia() == nullptr) {
+                if (AudioManager* playback = GetPlaybackAudio(); playback != nullptr) {
+                    wxString error;
+                    mainSequencer->PanelWaveForm->OpenfileMedia(playback, error);
+                }
+            }
+            if (numThreadsAborted > 0) {
+                RenderAll();
+            }
+        });
+    });
+}
+
 void xLightsFrame::ReleaseAltAudioTrack(int altIndex, bool removing)
 {
     if (CurrentSeqXmlFile == nullptr || mainSequencer == nullptr) {

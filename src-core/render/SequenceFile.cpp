@@ -157,11 +157,6 @@ void SequenceFile::SetSequenceType(const std::string& type)
     seq_type = type;
     if (type == "Animation" || type == "Effect") {
         SetMediaFile("", "", false);
-        if (audio != nullptr) {
-            ValueCurve::SetAudio(nullptr);
-            delete audio;
-            audio = nullptr;
-        }
     }
 }
 
@@ -186,11 +181,7 @@ void SequenceFile::SetMediaFile(const std::string& ShowDir, const std::string& f
 {
     media_file = FileUtils::FixFile(ShowDir, filename);
 
-    if (audio != nullptr) {
-        ValueCurve::SetAudio(nullptr);
-        delete audio;
-        audio = nullptr;
-    }
+    DisposeAudio(audio);
 
     ObtainAccessToURL(filename);
     std::error_code ec;
@@ -214,13 +205,24 @@ void SequenceFile::SetMediaFile(const std::string& ShowDir, const std::string& f
     }
 }
 
+void SequenceFile::DisposeAudio(AudioManager*& a)
+{
+    if (a == nullptr) {
+        return;
+    }
+    if (_onAudioReleasing) {
+        _onAudioReleasing(a);
+    }
+    if (a == audio) {
+        ValueCurve::SetAudio(nullptr);
+    }
+    delete a;
+    a = nullptr;
+}
+
 void SequenceFile::ClearMediaFile()
 {
-    if (audio != nullptr) {
-        ValueCurve::SetAudio(nullptr);
-        delete audio;
-        audio = nullptr;
-    }
+    DisposeAudio(audio);
 
     media_file = "";
     SetHeaderInfo(HEADER_INFO_TYPES::SONG, "");
@@ -246,7 +248,7 @@ void SequenceFile::RemoveAltTrack(int idx)
 {
     if (idx < 0 || idx >= (int)alt_tracks.size()) return;
     std::string displayName = GetAltTrackDisplayName(idx);
-    delete alt_tracks[idx].audio;
+    DisposeAudio(alt_tracks[idx].audio);
     alt_tracks.erase(alt_tracks.begin() + idx);
     // Rebuild alt audio map in ValueCurve
     ValueCurve::ClearAltAudio();
@@ -258,8 +260,7 @@ void SequenceFile::RemoveAltTrack(int idx)
 void SequenceFile::SetAltTrackPath(const std::string& ShowDir, int idx, const std::string& path)
 {
     if (idx < 0 || idx >= (int)alt_tracks.size()) return;
-    delete alt_tracks[idx].audio;
-    alt_tracks[idx].audio = nullptr;
+    DisposeAudio(alt_tracks[idx].audio);
     alt_tracks[idx].path = FileUtils::FixFile(ShowDir, path);
     if (::FileExists(alt_tracks[idx].path)) {
         ObtainAccessToURL(alt_tracks[idx].path);
@@ -512,9 +513,7 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
                         }
                         if (audio != nullptr) {
                             spdlog::debug("LoadSequence: removing prior audio.");
-                            ValueCurve::SetAudio(nullptr);
-                            delete audio;
-                            audio = nullptr;
+                            DisposeAudio(audio);
                         }
                         if (::FileExists(media_file)) {
                             std::error_code ec2;

@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (dkulp)                 HinksPix Export: crash when a HinksPix controller has no model selected;
                                  the export now reports the problem instead
+    -bug (dkulp)                 Crash ("mutex lock failed") when zooming the sequencer after the song was
+                                 replaced, e.g. by Cleanup File Locations; renders using the old song stop
     -bug (MrPaulAR)              Check Sequence: fewer false Morph "repeat count and skip" warnings; the
                                  check now matches how Morph repeats and ignores Auto Repeat
     -bug (MrPaulAR)              Check Sequence: the Liquid particle-count warning follows Life Time and
