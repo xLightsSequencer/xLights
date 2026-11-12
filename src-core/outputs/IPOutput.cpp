@@ -40,9 +40,9 @@ IPOutput::IPOutput(pugi::xml_node node, bool isActive) : Output(node) {
     _ip = node.attribute("ComPort").as_string("");
     if (isActive) {
         SetResolvedIP(_ip);
-        ip_utils::ResolveIP(_ip, [this](const std::string &r) {
+        ip_utils::ResolveIP(_ip, _resolveGuard.Wrap([this](const std::string &r) {
             SetResolvedIP(r);
-        });
+        }));
     }
     _universe = node.attribute("BaudRate").as_int(1);
 }
@@ -60,7 +60,7 @@ IPOutput::IPOutput(const IPOutput& from) :
 }
 
 IPOutput::~IPOutput() {
-    ip_utils::waitForAllToResolve();
+    _resolveGuard.Cancel();
 }
 
 pugi::xml_node IPOutput::Save(pugi::xml_node parent) {
@@ -132,9 +132,9 @@ void IPOutput::SetIP(const std::string& ip, bool isActive, bool resolve) {
     if (isActive) {
         SetResolvedIP(ip);
         if (resolve) {
-            ip_utils::ResolveIP(_ip, [this](const std::string &r) {
+            ip_utils::ResolveIP(_ip, _resolveGuard.Wrap([this](const std::string &r) {
                 SetResolvedIP(r);
-            });
+            }));
         }
     }
 }
