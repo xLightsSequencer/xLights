@@ -10,6 +10,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.21  November ??, 2026
+
+
 2026.20  November 12, 2026
 
     -change (dkulp)              CPU effect rendering now uses a fast math library; Plasma and
