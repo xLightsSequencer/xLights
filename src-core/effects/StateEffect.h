@@ -26,6 +26,8 @@ class StateEffect : public RenderableEffect
         virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
         std::list<std::string> GetStates(Model* cls, std::string model);
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
+        virtual bool needToAdjustSettings(const std::string& version) override;
+        virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
         std::list<std::string> GetStatesUsed(const SettingsMap& SettingsMap);
