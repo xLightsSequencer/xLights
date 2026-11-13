@@ -89,6 +89,23 @@ TEST_CASE("Esps2 SetHttpConfig posts the wrapped document", "[vendors2][esps2][h
     CHECK(reqs.back().body == R"({"input_config":{"a":1}})");
 }
 
+TEST_CASE("Esps2 SetHttpConfig posts through the FPP proxy", "[vendors2][esps2][http]") {
+    FakeHttpServer srv([](const FakeRequest& r) {
+        FakeResponse resp;
+        if (r.path == "/proxy/192.0.2.5/conf/admininfo.json") resp.body = R"({"admin":{"version":"4.0"}})";
+        else if (r.path != "/proxy/192.0.2.5/conf/output_config.json") resp.status = 404;
+        return resp;
+    });
+    VendorsTestInit();
+    auto e = std::make_unique<ESPixelStick>("192.0.2.5", srv.Address());
+    REQUIRE(e->_UsingHttpConfig);
+    CHECK(e->SetHttpConfig("output_config", "output_config", nlohmann::json::object()));
+    auto reqs = srv.Requests();
+    REQUIRE_FALSE(reqs.empty());
+    CHECK(reqs.back().method == "POST");
+    CHECK(reqs.back().path == "/proxy/192.0.2.5/conf/output_config.json");
+}
+
 TEST_CASE("Esps2 SetHttpConfig fails when the controller rejects the post", "[vendors2][esps2][http]") {
     FakeHttpServer srv([](const FakeRequest& r) {
         FakeResponse resp;
