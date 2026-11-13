@@ -2228,6 +2228,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsLayoutDoubleClickAction", &_layoutDoubleClickAction, "Faces/States/Submodels");
     spdlog::debug("Layout double-click action: {}.", (const char*)_layoutDoubleClickAction.c_str());
 
+    config->Read("xLightsDuplicateGroups", &_duplicateGroupsBehavior, "Ask");
+    spdlog::debug("Layout duplicate adds to groups: {}.", (const char*)_duplicateGroupsBehavior.c_str());
+
     std::thread th([this]() {
         try {
             xlCrashHandler::SetupCrashHandlerForNonWxThread();
@@ -9237,6 +9240,15 @@ void xLightsFrame::SetLayoutDoubleClickAction(const wxString& e)
     config->Write("xLightsLayoutDoubleClickAction", _layoutDoubleClickAction);
     config->Flush();
     spdlog::info("Layout double-click action set to {}", _layoutDoubleClickAction.ToStdString());
+}
+
+void xLightsFrame::SetDuplicateGroupsBehavior(const wxString& e)
+{
+    _duplicateGroupsBehavior = e;
+    auto* config = GetXLightsConfig();
+    config->Write("xLightsDuplicateGroups", _duplicateGroupsBehavior);
+    config->Flush();
+    spdlog::info("Layout duplicate adds to groups set to {}", _duplicateGroupsBehavior.ToStdString());
 }
 
 void xLightsFrame::CollectUserEmail()

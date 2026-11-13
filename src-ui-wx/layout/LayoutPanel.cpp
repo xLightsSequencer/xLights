@@ -63,6 +63,9 @@
 #include "layout/LayoutGroup.h"
 #include "layout/LayoutPrintPreviewDialog.h"
 #include "models/BoxedScreenLocation.h"
+#include "models/PolyPointScreenLocation.h"
+#include "models/ThreePointScreenLocation.h"
+#include "models/TwoPointScreenLocation.h"
 #include "models/ModelImages.h"
 #include "models/SubModel.h"
 #include "models/PolyLineModel.h"
@@ -434,6 +437,7 @@ const long LayoutPanel::ID_PREVIEW_MODEL_WIRINGVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_WIRETOCLOSESTCONTROLLER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_DUPLICATE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEWIDTH = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMEHEIGHT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE_SAMESIZE = wxNewId();
@@ -7938,6 +7942,10 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     }
 
     if (selectedObjectCnt > 0) {
+        if (CanDuplicateSelected()) {
+            mnu.Append(ID_PREVIEW_MODEL_DUPLICATE, _("Duplicate"));
+            mnu.AppendSeparator();
+        }
         AddSingleModelOptionsToBaseMenu(mnu);
     }
 
@@ -8028,6 +8036,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
             "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODELS_NOT_ON_CONTROLLER");
+    } else if (event.GetId() == ID_PREVIEW_MODEL_DUPLICATE) {
+        DuplicateSelected();
     } else if (event.GetId() == ID_PREVIEW_MODEL_LINKASSET) {
         DoLinkAsSet();
     } else if (event.GetId() == ID_PREVIEW_MODEL_ADDTOSET) {
@@ -10917,6 +10927,414 @@ void LayoutPanel::LockSelectedModels(bool lock)
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::LockSelectedModels");
 }
 
+static constexpr double DUPLICATE_OFFSET = 50.0;
+
+static float WrapDegrees(float a) {
+    a = std::fmod(a, 360.0f);
+    if (a > 180.0f) {
+        a -= 360.0f;
+    } else if (a < -180.0f) {
+        a += 360.0f;
+    }
+    return a;
+}
+
+static glm::vec3 Centroid(const std::vector<glm::vec3>& pts) {
+    glm::vec3 c(0.0f);
+    for (const auto& p : pts) {
+        c += p;
+    }
+    return pts.empty() ? c : c / static_cast<float>(pts.size());
+}
+
+static glm::quat RotationBetween(glm::vec3 from, glm::vec3 to) {
+    from = glm::normalize(from);
+    to = glm::normalize(to);
+    const float d = glm::clamp(glm::dot(from, to), -1.0f, 1.0f);
+    glm::vec3 axis = glm::cross(from, to);
+    if (glm::length(axis) < 1e-6f) {
+        if (d > 0.0f) {
+            return glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+        }
+        axis = glm::cross(from, std::abs(from.x) < 0.9f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+    return glm::angleAxis(std::acos(d), glm::normalize(axis));
+}
+
+// rotation taking point set a to b, if b is only a rotated and moved copy of a
+static std::optional<glm::mat3> RigidRotation(const std::vector<glm::vec3>& a, const std::vector<glm::vec3>& b) {
+    if (a.size() != b.size() || a.size() < 2) return std::nullopt;
+    const glm::vec3 ga = Centroid(a);
+    const glm::vec3 gb = Centroid(b);
+
+    size_t farthest = 0;
+    float extent = 0.0f;
+    for (size_t i = 0; i < a.size(); ++i) {
+        const float d = glm::length(a[i] - ga);
+        if (d > extent) {
+            extent = d;
+            farthest = i;
+        }
+    }
+    if (extent < 0.001f || glm::length(b[farthest] - gb) < 0.001f) return std::nullopt;
+    const glm::vec3 a1 = glm::normalize(a[farthest] - ga);
+    const glm::vec3 b1 = glm::normalize(b[farthest] - gb);
+
+    size_t side = 0;
+    float offAxis = 0.0f;
+    for (size_t i = 0; i < a.size(); ++i) {
+        const glm::vec3 v = a[i] - ga;
+        const float d = glm::length(v - glm::dot(v, a1) * a1);
+        if (d > offAxis) {
+            offAxis = d;
+            side = i;
+        }
+    }
+
+    glm::mat3 r;
+    if (offAxis < 0.001f * extent) {
+        r = glm::mat3_cast(RotationBetween(a1, b1)); // collinear
+    } else {
+        const glm::vec3 va = a[side] - ga;
+        const glm::vec3 vb = b[side] - gb;
+        const glm::vec3 pb = vb - glm::dot(vb, b1) * b1;
+        if (glm::length(pb) < 0.001f) return std::nullopt;
+        const glm::vec3 a2 = glm::normalize(va - glm::dot(va, a1) * a1);
+        const glm::vec3 b2 = glm::normalize(pb);
+        const glm::mat3 fa(a1, a2, glm::cross(a1, a2));
+        const glm::mat3 fb(b1, b2, glm::cross(b1, b2));
+        r = fb * glm::transpose(fa);
+    }
+
+    const float tolerance = std::max(0.5f, extent * 0.01f);
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (glm::length(r * (a[i] - ga) - (b[i] - gb)) > tolerance) return std::nullopt;
+    }
+    return r;
+}
+
+// degrees for r = Rz * Rx * Ry, i.e. RotateAboutPoint called for Y, then X, then Z
+static glm::vec3 EulerZXYDegrees(const glm::mat3& r) {
+    const float x = std::asin(glm::clamp(r[1][2], -1.0f, 1.0f));
+    float y = 0.0f;
+    float z;
+    if (std::abs(std::cos(x)) > 1e-5f) {
+        y = std::atan2(-r[0][2], r[2][2]);
+        z = std::atan2(-r[1][0], r[1][1]);
+    } else {
+        z = std::atan2(r[0][1], r[0][0]);
+    }
+    return glm::degrees(glm::vec3(x, y, z));
+}
+
+// per axis median of how far the points moved
+static glm::vec3 MedianMove(const std::vector<glm::vec3>& a, const std::vector<glm::vec3>& b) {
+    glm::vec3 m(0.0f);
+    for (int axis = 0; axis < 3; ++axis) {
+        std::vector<float> d;
+        for (size_t i = 0; i < a.size() && i < b.size(); ++i) {
+            d.push_back(b[i][axis] - a[i][axis]);
+        }
+        if (d.empty()) continue;
+        std::nth_element(d.begin(), d.begin() + d.size() / 2, d.end());
+        m[axis] = d[d.size() / 2];
+    }
+    return m;
+}
+
+static DuplicatePose CaptureDuplicatePose(const ModelScreenLocation& loc) {
+    DuplicatePose pose;
+    pose.centre = loc.GetCenterPosition();
+    pose.rotation = loc.GetRotation();
+    pose.scale = loc.GetScaleMatrix();
+    if (const auto* two = dynamic_cast<const TwoPointScreenLocation*>(&loc)) {
+        pose.end = glm::vec3(two->GetX2(), two->GetY2(), two->GetZ2());
+        if (const auto* three = dynamic_cast<const ThreePointScreenLocation*>(two)) {
+            pose.height = three->GetHeight();
+            pose.shear = three->GetShear();
+            pose.angle = three->GetAngle();
+        }
+    } else if (const auto* poly = dynamic_cast<const PolyPointScreenLocation*>(&loc)) {
+        for (int i = 0; i < poly->GetNumPoints(); ++i) {
+            pose.points.push_back(poly->GetPoint(i) * pose.scale + loc.GetWorldPosition());
+        }
+    }
+    return pose;
+}
+
+// apply the change from prev to cur again to loc (a copy of cur), turning about its own centre
+static void RepeatDuplicateStep(const DuplicatePose& prev, const DuplicatePose& cur, ModelScreenLocation& loc) {
+    if (auto* two = dynamic_cast<TwoPointScreenLocation*>(&loc)) {
+        glm::vec3 end = cur.end;
+        const float before = glm::length(prev.end);
+        const float now = glm::length(cur.end);
+        if (before > 0.001f && now > 0.001f) {
+            end = (now / before) * (RotationBetween(prev.end, cur.end) * cur.end);
+        }
+        two->SetWorldPosition(cur.centre + (cur.centre - prev.centre) - end * 0.5f);
+        two->SetX2(end.x);
+        two->SetY2(end.y);
+        two->SetZ2(end.z);
+        if (auto* three = dynamic_cast<ThreePointScreenLocation*>(two)) {
+            three->SetHeight(cur.height + (cur.height - prev.height));
+            three->SetShear(cur.shear + (cur.shear - prev.shear));
+            three->SetAngle(cur.angle + (cur.angle - prev.angle));
+            three->SetRotateX(WrapDegrees(cur.rotation.x + WrapDegrees(cur.rotation.x - prev.rotation.x)));
+        }
+        return;
+    }
+
+    glm::vec3 step = cur.centre - prev.centre;
+    if (dynamic_cast<PolyPointScreenLocation*>(&loc) != nullptr) {
+        if (!prev.points.empty() && prev.points.size() == cur.points.size()) {
+            const glm::vec3 pivot = Centroid(cur.points);
+            if (auto turn = RigidRotation(prev.points, cur.points)) {
+                step = pivot - Centroid(prev.points);
+                const glm::vec3 e = EulerZXYDegrees(*turn);
+                if (std::abs(e.y) > 0.01f) loc.RotateAboutPoint(pivot, glm::vec3(0.0f, e.y, 0.0f));
+                if (std::abs(e.x) > 0.01f) loc.RotateAboutPoint(pivot, glm::vec3(e.x, 0.0f, 0.0f));
+                if (std::abs(e.z) > 0.01f) loc.RotateAboutPoint(pivot, glm::vec3(0.0f, 0.0f, e.z));
+            } else {
+                // reshaped rather than rotated
+                step = MedianMove(prev.points, cur.points);
+            }
+        }
+    } else {
+        glm::vec3 rotation = cur.rotation;
+        glm::vec3 scale = cur.scale;
+        for (int i = 0; i < 3; ++i) {
+            rotation[i] = WrapDegrees(cur.rotation[i] + WrapDegrees(cur.rotation[i] - prev.rotation[i]));
+            if (std::abs(prev.scale[i]) > 1e-6f) {
+                scale[i] *= cur.scale[i] / prev.scale[i];
+            }
+        }
+        if (rotation != cur.rotation) {
+            loc.SetRotation(rotation);
+        }
+        if (scale != cur.scale) {
+            loc.SetScaleMatrix(scale);
+        }
+    }
+    loc.AddOffset(step.x, step.y, step.z);
+}
+
+// groups and submodels are not duplicated
+std::vector<Model*> LayoutPanel::GetModelsToDuplicate() {
+    std::vector<Model*> models;
+    auto add = [&](Model* m) {
+        if (m == nullptr || m == _newModel || !xlights->AllModels.IsModelValid(m)) return;
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup || m->GetDisplayAs() == DisplayAsType::SubModel) return;
+        if (std::find(models.begin(), models.end(), m) == models.end()) {
+            models.push_back(m);
+        }
+    };
+    for (const auto& item : selectedTreeModels) {
+        add(GetModelFromTreeItem(item));
+    }
+    if (models.empty()) {
+        add(dynamic_cast<Model*>(selectedBaseObject));
+    }
+    return models;
+}
+
+ViewObject* LayoutPanel::GetViewObjectToDuplicate() const {
+    auto* v = dynamic_cast<ViewObject*>(selectedBaseObject);
+    if (!IsObjectEditable(v) || dynamic_cast<ControllerObject*>(v) != nullptr || v->GetDisplayAs() == DisplayAsType::ObjectGroup) {
+        return nullptr;
+    }
+    return v;
+}
+
+bool LayoutPanel::CanDuplicateSelected() {
+    if (m_polyline_active || m_creating_bound_rect || _newModel != nullptr) return false;
+    return editing_models ? !GetModelsToDuplicate().empty() : GetViewObjectToDuplicate() != nullptr;
+}
+
+void LayoutPanel::DuplicateSelected() {
+    if (!CanDuplicateSelected()) {
+        wxBell();
+        return;
+    }
+    if (editing_models) {
+        DuplicateSelectedModels();
+    } else {
+        DuplicateSelectedViewObject();
+    }
+}
+
+bool LayoutPanel::AnyModelToDuplicateInGroups() {
+    for (const Model* m : GetModelsToDuplicate()) {
+        if (!xlights->AllModels.GetGroupsContainingModel(m).empty()) return true;
+    }
+    return false;
+}
+
+// add the copy to the groups the source is directly in, including any of its submodels they list
+void LayoutPanel::AddDuplicateToSourceGroups(const std::string& sourceName, const std::string& copyName) {
+    const Model* source = xlights->AllModels[sourceName];
+    if (source == nullptr) return;
+    for (const auto& groupName : xlights->AllModels.GetGroupsContainingModel(source)) {
+        auto* group = dynamic_cast<ModelGroup*>(xlights->AllModels[groupName]);
+        if (group == nullptr || group->IsFromBase()) continue;
+        const std::vector<std::string> members = group->ModelNames(); // copy, AddModel changes the list
+        for (const auto& member : members) {
+            if (member == sourceName) {
+                group->AddModel(copyName);
+            } else if (StartsWith(member, sourceName + "/")) {
+                group->AddModel(copyName + member.substr(sourceName.size()));
+            }
+        }
+    }
+}
+
+void LayoutPanel::DuplicateSelectedModels() {
+    std::vector<Model*> sources = GetModelsToDuplicate();
+    if (sources.empty()) return;
+
+    bool withGroups = xlights->GetDuplicateGroupsBehavior() == "Always";
+    if (xlights->GetDuplicateGroupsBehavior() != "Always" && xlights->GetDuplicateGroupsBehavior() != "Never" &&
+        AnyModelToDuplicateInGroups()) {
+        wxMessageDialog dlg(this, _("Would you like the duplicated model to be added to the same groups as the original?"),
+                            _("Add to Groups?"), wxYES_NO | wxCANCEL | wxICON_QUESTION);
+        const int answer = dlg.ShowModal();
+        if (answer != wxID_YES && answer != wxID_NO) return;
+        withGroups = answer == wxID_YES;
+    }
+
+    if (!xlights->AbortRender()) return;
+
+    // duplicating the copies made by the last duplicate repeats whatever was done to them since
+    auto last = std::move(_lastDuplicate);
+    _lastDuplicate.clear();
+    bool repeat = _lastDuplicateWasModels && last.size() == sources.size();
+    for (const Model* src : sources) {
+        repeat = repeat && std::any_of(last.begin(), last.end(), [src](const auto& d) { return d.first == src->GetName(); });
+    }
+
+    CreateUndoPoint("All", sources.front()->GetName());
+
+    UnSelectAllModels();
+    UnSelectAllModelsInTree();
+
+    std::vector<std::pair<std::string, DuplicatePose>> made;
+    std::vector<std::string> madeFrom;
+    for (Model* src : sources) {
+        CopyPasteBaseObject copyData;
+        copyData.SetBaseObject(src);
+        if (!copyData.IsOk()) continue;
+
+        auto owned = copyData.GetBaseObjectXml();
+        pugi::xml_node nd = owned;
+        if (!nd) continue;
+
+        Model* newModel = xlights->AllModels.CreateModel(nd);
+        if (newModel == nullptr) continue;
+
+        // as with paste, clear the wiring so the copy gets its own channels
+        newModel->SetModelChain("");
+        const std::string name = xlights->AllModels.GenerateModelName(src->GetName());
+        newModel->SetControllerName(NO_CONTROLLER);
+        newModel->SetStartChannel("");
+        newModel->name = name;
+        newModel->SetFromBase(false);
+        newModel->Lock(false);
+
+        DuplicatePose srcPose = CaptureDuplicatePose(src->GetBaseObjectScreenLocation());
+        auto prev = std::find_if(last.begin(), last.end(), [src](const auto& d) { return d.first == src->GetName(); });
+        if (repeat && prev != last.end()) {
+            RepeatDuplicateStep(prev->second, srcPose, newModel->GetBaseObjectScreenLocation());
+            newModel->Reinitialize();
+            newModel->IncrementChangeCount();
+        } else {
+            newModel->AddOffset(DUPLICATE_OFFSET, 0.0, 0.0);
+        }
+        xlights->AllModels.AddModel(newModel);
+        made.emplace_back(name, std::move(srcPose));
+        madeFrom.push_back(src->GetName());
+    }
+
+    if (made.empty()) {
+        wxBell();
+        return;
+    }
+
+    if (withGroups) {
+        for (size_t i = 0; i < made.size(); ++i) {
+            AddDuplicateToSourceGroups(madeFrom[i], made[i].first);
+        }
+    }
+
+    // immediate so the tree is rebuilt before the other copies are selected
+    xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                       OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                       OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                       OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                                                       OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::DuplicateSelectedModels", nullptr, nullptr, made.front().first);
+    for (size_t i = 1; i < made.size(); ++i) {
+        if (Model* m = xlights->AllModels[made[i].first]; m != nullptr) {
+            SelectModelInTree(m, true);
+        }
+    }
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::DuplicateSelectedModels");
+
+    _lastDuplicate = std::move(made);
+    _lastDuplicateWasModels = true;
+}
+
+void LayoutPanel::DuplicateSelectedViewObject() {
+    ViewObject* src = GetViewObjectToDuplicate();
+    if (src == nullptr || !xlights->AbortRender()) return;
+
+    CopyPasteBaseObject copyData;
+    copyData.SetBaseObject(src);
+    if (!copyData.IsOk()) {
+        wxBell();
+        return;
+    }
+    auto owned = copyData.GetBaseObjectXml();
+    pugi::xml_node nd = owned;
+    if (!nd) {
+        wxBell();
+        return;
+    }
+
+    const bool repeat = !_lastDuplicateWasModels && _lastDuplicate.size() == 1 && _lastDuplicate.front().first == src->name;
+    const DuplicatePose prev = repeat ? _lastDuplicate.front().second : DuplicatePose();
+    _lastDuplicate.clear();
+
+    CreateUndoPoint("All", src->name);
+
+    ViewObject* newObject = xlights->AllObjects.CreateObject(nd);
+    if (newObject == nullptr) {
+        wxBell();
+        return;
+    }
+    const std::string name = xlights->AllObjects.GenerateObjectName(src->name);
+    newObject->name = name;
+    newObject->SetFromBase(false);
+    newObject->Lock(false);
+
+    DuplicatePose srcPose = CaptureDuplicatePose(src->GetBaseObjectScreenLocation());
+    if (repeat) {
+        RepeatDuplicateStep(prev, srcPose, newObject->GetBaseObjectScreenLocation());
+        newObject->IncrementChangeCount();
+    } else {
+        newObject->AddOffset(DUPLICATE_OFFSET, 0.0, 0.0);
+    }
+
+    UnSelectAllModels();
+    xlights->AllObjects.AddViewObject(newObject);
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                  OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                  OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                  OutputModelManager::WORK_RELOAD_OBJECTLIST |
+                                                  OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::DuplicateSelectedViewObject", nullptr, nullptr, name);
+
+    _lastDuplicate.emplace_back(name, std::move(srcPose));
+    _lastDuplicateWasModels = false;
+}
+
 void LayoutPanel::DoCopy(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !ActiveModelTree()->HasFocus() && !ActiveModelTree()->GetView()->HasFocus() && !objects_panel->ObjectListHasFocus()) {
         event.Skip();
@@ -11106,6 +11524,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 void LayoutPanel::DoUndo(wxCommandEvent& event) {
     
     spdlog::debug("LayoutPanel::DoUndo");
+    _lastDuplicate.clear();
     int sz = undoBuffer.size() - 1;
     if (sz >= 0) {
         UnSelectAllModels();
@@ -13592,6 +14011,12 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
                                                           OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::HandleLayoutKey::UNLOCK_MODEL");
         } else if (type == "GROUP_MODELS") {
             CreateModelGroupFromSelected();
+        } else if (type == "DUPLICATE_MODEL") {
+            // leave the key to text fields
+            if (dynamic_cast<wxTextEntry*>(wxWindow::FindFocus()) != nullptr) {
+                return false;
+            }
+            DuplicateSelected();
         } else if (type == "WIRING_VIEW") {
             ShowWiring();
         } else if (type == "EXPORT_MODEL_CAD") {

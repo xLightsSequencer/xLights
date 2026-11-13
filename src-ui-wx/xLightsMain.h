@@ -486,6 +486,7 @@ public:
     wxString _aliasRenameBehavior = "Always Prompt";
     wxString _keybindingsLocation = "Show Folder";
     wxString _layoutDoubleClickAction = "Faces/States/Submodels";
+    wxString _duplicateGroupsBehavior = "Ask";
     static wxString CurrentDir; //expose current folder name -DJ
     static wxString FseqDir; //expose current fseq name
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
@@ -1366,6 +1367,10 @@ public:
 
     const wxString& GetLayoutDoubleClickAction() const { return _layoutDoubleClickAction; }
     void SetLayoutDoubleClickAction(const wxString& e);
+
+    // "Ask", "Always" or "Never": whether layout duplicate adds copies to the source's groups
+    const wxString& GetDuplicateGroupsBehavior() const { return _duplicateGroupsBehavior; }
+    void SetDuplicateGroupsBehavior(const wxString& e);
 
     int SaveFSEQVersion() const { return _fseqVersion; }
     void SetSaveFSEQVersion(int i) { _fseqVersion = i; }
