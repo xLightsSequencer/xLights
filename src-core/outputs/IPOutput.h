@@ -13,10 +13,13 @@
 #include <map>
 
 #include "Output.h"
+#include "../utils/ip_utils.h"
 
 class IPOutput : public Output
 {
 protected:
+
+    ip_utils::ResolveGuard _resolveGuard;
 
     #pragma region Private Functions
     virtual void SaveAttr(pugi::xml_node node) override;

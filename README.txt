@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (derwin12)              FPP Connect / Discover could show most FPP controllers as unavailable
+                                 when controllers set by .local hostname were slow to resolve
 
 2026.20  November 12, 2026
 
