@@ -19,7 +19,10 @@
 #include "../models/ModelGroup.h"
 #include "../models/SubModel.h"
 #include "../render/Effect.h"
+#include "../render/Element.h"
+#include "../render/EffectLayer.h"
 #include "../render/SequenceElements.h"
+#include "../render/RenderContext.h"
 
 #include "../utils/string_utils.h"
 
@@ -64,6 +67,50 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
         res.push_back(fmt::format("    ERR: State effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
+}
+
+bool StateEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2026.21", version) || RenderableEffect::needToAdjustSettings(version);
+}
+
+// Older versions lowercased the picked state before matching, so a saved pick can differ in case
+// from the model's state name. Rewrite it to the model's spelling so the exact match finds it.
+void StateEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    RenderableEffect::adjustSettings(version, effect, removeDefaults);
+
+    if (effect == nullptr || !IsVersionOlder("2026.21", version)) return;
+    auto& settings = effect->GetSettings();
+    const std::string picked = settings.Get("E_CHOICE_State_State", "");
+    if (picked.empty() || picked == "<ALL>" || picked == "*") return;
+
+    auto* layer = effect->GetParentEffectLayer();
+    auto* element = layer == nullptr ? nullptr : layer->GetParentElement();
+    auto* seq = element == nullptr ? nullptr : element->GetSequenceElements();
+    auto* ctx = seq == nullptr ? nullptr : seq->GetRenderContext();
+    if (ctx == nullptr) return;
+    const Model* model = ctx->GetModel(element->GetFullName());
+    if (model != nullptr && model->GetDisplayAs() == DisplayAsType::SubModel) {
+        const auto* sm = dynamic_cast<const SubModel*>(model);
+        model = sm == nullptr ? nullptr : sm->GetParent();
+    }
+    if (model == nullptr) return;
+
+    const auto& stateInfo = model->GetStateInfo();
+    auto def = stateInfo.find(settings.Get("E_CHOICE_State_StateDefinition", ""));
+    if (def == stateInfo.end()) return;
+
+    const std::string lower = Lower(picked);
+    std::string match;
+    for (const auto& [key, name] : def->second) {
+        if (!EndsWith(key, "-Name")) continue;
+        if (name == picked) return;
+        if (match.empty() && name == lower) match = name;
+    }
+    if (!match.empty()) {
+        settings["E_CHOICE_State_State"] = match;
+    }
 }
 
 std::list<std::string> StateEffect::GetStatesUsed(const SettingsMap& SettingsMap) {
@@ -273,11 +320,11 @@ void StateEffect::RenderState(RenderBuffer& buffer,
                 if (token == "*" || token == "<ALL>") {
                     for (auto it2 : definitionSi) {
                         if (EndsWith(it2.first, "-Name") && it2.second != "") {
-                            sstates.push_back(Lower(it2.second));
+                            sstates.push_back(it2.second);
                         }
                     }
                 } else {
-                    sstates.push_back(Lower(token));
+                    sstates.push_back(token);
                 }
             }
             pos = next + 1;
@@ -401,11 +448,11 @@ void StateEffect::RenderState(RenderBuffer& buffer,
                 if (token == "*" || token == "<ALL>") {
                     for (auto it2 : definitionSi) {
                         if (EndsWith(it2.first, "-Name") && it2.second != "") {
-                            sstates.push_back(Lower(it2.second));
+                            sstates.push_back(it2.second);
                         }
                     }
                 } else {
-                    tmpstates.push_back(Lower(token));
+                    tmpstates.push_back(token);
                 }
             }
             tpos = tnext + 1;
@@ -420,56 +467,68 @@ void StateEffect::RenderState(RenderBuffer& buffer,
 
     bool customColor = found ? findKey(definitionSi, "CustomColors") == "1" : false;
 
-    // process each token
-    for (size_t i = 0; i < sstates.size(); i++) {
-        for (const auto& it : definitionSi) {
-            if (it.second == sstates[i] && EndsWith(it.first, "-Name")) {
-                // get the channels
-                std::string statename = BeforeFirst(it.first, '-'); // FindState(model_info->stateInfo[definition], sstates[i]);
-                std::string channels = findKey(definitionSi, statename);
+    auto lightState = [&](const std::string& statename) {
+        std::string channels = findKey(definitionSi, statename);
 
-                if (statename != "" && channels != "") {
-                    xlColor color;
-                    if (colourmode == "Graduate") {
-                        buffer.GetMultiColorBlend(buffer.GetEffectTimeIntervalPosition(), false, color);
-                    } else if (colourmode == "Cycle") {
-                        buffer.palette.GetColor((intervalnumber - 1) % buffer.GetColorCount(), color);
-                    } else {
-                        // allocate
-                        int statenum = std::strtol(statename.substr(1).c_str(), nullptr, 10);
-                        buffer.palette.GetColor((statenum - 1) % buffer.GetColorCount(), color);
+        if (statename != "" && channels != "") {
+            xlColor color;
+            if (colourmode == "Graduate") {
+                buffer.GetMultiColorBlend(buffer.GetEffectTimeIntervalPosition(), false, color);
+            } else if (colourmode == "Cycle") {
+                buffer.palette.GetColor((intervalnumber - 1) % buffer.GetColorCount(), color);
+            } else {
+                // allocate
+                int statenum = std::strtol(statename.substr(1).c_str(), nullptr, 10);
+                buffer.palette.GetColor((statenum - 1) % buffer.GetColorCount(), color);
+            }
+            if (customColor) {
+                std::string cname = findKey(definitionSi, statename + "-Color");
+                if (cname == "") {
+                    color = xlWHITE;
+                } else {
+                    color = xlColor(cname);
+                }
+            }
+            color.alpha = ((int)alpha * color.alpha) / 255;
+            if (type == 1) {
+                const auto& nodeMap = model_info->GetStateInfoNodes();
+                auto nodeIt = nodeMap.find(definition);
+                if (nodeIt != nodeMap.end()) {
+                    for (const auto it : findNodeKey(nodeIt->second, statename)) {
+                        int localIdx = toLocalNode(it);
+                        if (localIdx >= 0) buffer.SetNodePixel(localIdx, color, true);
                     }
-                    if (customColor) {
-                        std::string cname = findKey(definitionSi, statename + "-Color");
-                        if (cname == "") {
-                            color = xlWHITE;
-                        } else {
-                            color = xlColor(cname);
-                        }
-                    }
-                    color.alpha = ((int)alpha * color.alpha) / 255;
-                    if (type == 1) {
-                        const auto& nodeMap = model_info->GetStateInfoNodes();
-                        auto nodeIt = nodeMap.find(definition);
-                        if (nodeIt != nodeMap.end()) {
-                            for (const auto it : findNodeKey(nodeIt->second, statename)) {
-                                int localIdx = toLocalNode(it);
+                }
+            } else {
+                for (const auto& valstr : Split(channels, ',')) {
+                    if (type == 0) {
+                        for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
+                            std::string nn = model_info->GetNodeName(n, true);
+                            if (nn == valstr) {
+                                int localIdx = toLocalNode(n);
                                 if (localIdx >= 0) buffer.SetNodePixel(localIdx, color, true);
                             }
                         }
-                    } else {
-                        for (const auto& valstr : Split(channels, ',')) {
-                            if (type == 0) {
-                                for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
-                                    std::string nn = model_info->GetNodeName(n, true);
-                                    if (nn == valstr) {
-                                        int localIdx = toLocalNode(n);
-                                        if (localIdx >= 0) buffer.SetNodePixel(localIdx, color, true);
-                                    }
-                                }
-                            }
-                        }
                     }
+                }
+            }
+        }
+    };
+
+    // Exact name first; otherwise the lowercase match older versions used, so existing sequences keep rendering.
+    for (const auto& want : sstates) {
+        bool exact = false;
+        for (const auto& it : definitionSi) {
+            if (it.second == want && EndsWith(it.first, "-Name")) {
+                lightState(BeforeFirst(it.first, '-'));
+                exact = true;
+            }
+        }
+        if (!exact) {
+            const std::string lower = Lower(want);
+            for (const auto& it : definitionSi) {
+                if (it.second == lower && EndsWith(it.first, "-Name")) {
+                    lightState(BeforeFirst(it.first, '-'));
                 }
             }
         }
