@@ -1095,6 +1095,7 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
         view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
         view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
         view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
+        view.handleRadius    = loc.GetRectHandleWidth(zoom, hscale);
         auto descriptors = (currentTool != handles::Tool::None)
             ? m->GetHandles(handles::ViewMode::ThreeD, currentTool, view)
             : std::vector<handles::Descriptor>{};
@@ -1206,6 +1207,7 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
     view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
     view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
+    view.handleRadius    = loc.GetRectHandleWidth(zoom, hscale);
     const auto descs = m->GetHandles(handles::ViewMode::ThreeD, centerTool, view);
     if (descs.empty()) return NO;
     handles::ScreenProjection proj;
@@ -2047,6 +2049,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
     view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
     view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
+    view.handleRadius    = loc.GetRectHandleWidth(zoom, hscale);
 
     auto mode = _preview->Is3D() ? handles::ViewMode::ThreeD
                                    : handles::ViewMode::TwoD;
@@ -2554,6 +2557,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
         view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
         view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
+        view.handleRadius    = loc.GetRectHandleWidth(zoom, hscale);
     }
     const auto descs = m->GetHandles(
         _preview->Is3D() ? handles::ViewMode::ThreeD : handles::ViewMode::TwoD,
@@ -3169,6 +3173,7 @@ public:
         view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
         view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
         view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
+        view.handleRadius    = loc.GetRectHandleWidth(zoom, hscale);
     }
     const auto descs = m->GetHandles(
         _preview->Is3D() ? handles::ViewMode::ThreeD : handles::ViewMode::TwoD,

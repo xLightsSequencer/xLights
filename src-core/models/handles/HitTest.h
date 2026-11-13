@@ -30,6 +30,12 @@ struct HitTestOptions {
     bool  preferAxisHandles   = true;   // axis arrows beat body-shaped handles
                                         // when both are within tolerance
     bool  ignoreNonEditable   = false;  // skip descriptors with editable=false
+    // Gizmo handles with a shape (Descriptor::hitShape Cone / Cube) are
+    // always ray-cast against the drawn shape first, and a shape hit
+    // beats every other handle. On a miss, false lets them fall back to
+    // the screen-tolerance test around the shape's centre (touch slop);
+    // true means only the shape itself counts (mouse).
+    bool  exactGizmoShapes    = false;
 };
 
 // Project worldPoint to screen coords using the supplied

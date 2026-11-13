@@ -89,6 +89,7 @@ struct ViewParams {
     float axisArrowLength = 60.0f;
     float axisHeadLength  = 12.0f;     // Length of the arrow head (cone tip).
     float axisRadius      = 4.0f;
+    float handleRadius    = 6.0f;      // 3D handle "sphere" radius (GetRectHandleWidth).
 };
 
 // ---------------------------------------------------------------
@@ -137,6 +138,16 @@ struct Id {
 };
 
 // ---------------------------------------------------------------
+// HitShape — how HitTest picks a descriptor.
+//   Point: screen distance to worldPos within the caller's tolerance.
+//   Cone:  arrowhead. endPos is the apex (tip), worldPos the midpoint
+//          of the head, suggestedRadius the base radius.
+//   Cube:  axis-aligned cube centred on worldPos, half-side
+//          suggestedRadius.
+// ---------------------------------------------------------------
+enum class HitShape : uint8_t { Point, Cone, Cube };
+
+// ---------------------------------------------------------------
 // Descriptor — one handle's worth of "everything the frontend needs
 // to draw and hit-test it." Pure data; `GetHandleStream()` produces
 // a `vector<Descriptor>` per call.
@@ -159,6 +170,36 @@ struct Descriptor {
     bool      selectionOnly  {false}; // handle is hit-testable for selection but not draggable. CreateDragSession
                                       // returns nullptr; frontend translates the descriptor id into a SetActiveHandle
                                       // call. Used in 3D for sphere-style sub-handle picks (CENTER/START/END/Vertex etc.).
+    HitShape  hitShape       {HitShape::Point}; // Cone / Cube: HitTest ray-casts against the drawn gizmo
+                                                // shape. Set via SetAxisArrowCone / SetAxisTipCube.
 };
+
+// Fill an AxisArrow descriptor with the arrowhead cone exactly as
+// ModelScreenLocation::DrawAxisTool draws it for the Translate tool:
+// apex at origin + dir * axisArrowLength, base axisHeadLength back
+// from it, base radius axisRadius.
+inline void SetAxisArrowCone(Descriptor& d, const glm::vec3& origin, const glm::vec3& dir, const ViewParams& view) {
+    d.worldPos        = origin + dir * (view.axisArrowLength - view.axisHeadLength * 0.5f);
+    d.endPos          = origin + dir * view.axisArrowLength;
+    d.suggestedRadius = view.axisRadius;
+    d.hitShape        = HitShape::Cone;
+}
+
+// Fill an AxisCube / AxisRing descriptor with the tip cube exactly as
+// DrawAxisTool draws it for the Scale and Rotate tools: axis-aligned,
+// side 2 * axisRadius, its outer face at origin + dir * axisArrowLength.
+inline void SetAxisTipCube(Descriptor& d, const glm::vec3& origin, const glm::vec3& dir, const ViewParams& view) {
+    d.worldPos        = origin + dir * (view.axisArrowLength - view.axisRadius);
+    d.suggestedRadius = view.axisRadius;
+    d.hitShape        = HitShape::Cube;
+}
+
+// Fill a 3D sphere handle (gizmo centre, two-point endpoints) to match
+// AddSphereAsTriangles, which draws a cube of half-side handleRadius.
+inline void SetHandleSphere(Descriptor& d, const glm::vec3& centre, const ViewParams& view) {
+    d.worldPos        = centre;
+    d.suggestedRadius = view.handleRadius;
+    d.hitShape        = HitShape::Cube;
+}
 
 } // namespace handles
