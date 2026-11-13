@@ -40,6 +40,25 @@
 
 // Property choices moved to ui/controllerproperties/ControllerEthernetPropertyAdapter
 
+namespace {
+// A pending lookup's callback walks the outputs, so before outputs are deleted drop it
+// (waiting for one already running) and queue the lookup again once they are rebuilt.
+class ResolveDuringOutputRebuild {
+public:
+    ResolveDuringOutputRebuild(ControllerEthernet* controller, ip_utils::ResolveGuard& guard) :
+        _controller(controller), _dropped(guard.Reset()) {}
+    ~ResolveDuringOutputRebuild() {
+        if (_dropped) {
+            _controller->RefreshResolvedIP();
+        }
+    }
+
+private:
+    ControllerEthernet* _controller;
+    bool _dropped;
+};
+}
+
 #pragma region Constructors and Destructors
 ControllerEthernet::ControllerEthernet(OutputManager* om, pugi::xml_node node, const std::string& showDir) : Controller(om, node, showDir) {
 
@@ -80,7 +99,7 @@ ControllerEthernet::ControllerEthernet(OutputManager* om, const ControllerEthern
 }
 
 ControllerEthernet::~ControllerEthernet() {
-    ip_utils::waitForAllToResolve();
+    _resolveGuard.Cancel();
     // wait for an active ping to finish
     if (_asyncPing.valid()) {
         _asyncPing.wait_for(std::chrono::seconds(2));
@@ -104,6 +123,7 @@ pugi::xml_node ControllerEthernet::Save(pugi::xml_node parent) {
 }
 bool ControllerEthernet::UpdateFrom(Controller* from)
 {
+    ResolveDuringOutputRebuild rebuild(this, _resolveGuard);
     bool changed = Controller::UpdateFrom(from);
 
     ControllerEthernet* fromEth = dynamic_cast<ControllerEthernet*>(from);
@@ -166,7 +186,7 @@ void ControllerEthernet::SetIP(const std::string& ip) {
             std::unique_lock<std::shared_mutex> lock(_resolveMutex);
             _resolvedIp = _ip;
             lock.unlock();
-            ip_utils::ResolveIP(_ip, [this](const std::string &r) {
+            ip_utils::ResolveIP(_ip, _resolveGuard.Wrap([this](const std::string &r) {
                 std::unique_lock<std::shared_mutex> lock(_resolveMutex);
                 _resolvedIp = r;
                 lock.unlock();
@@ -174,7 +194,7 @@ void ControllerEthernet::SetIP(const std::string& ip) {
                 for (auto& it : GetOutputs()) {
                     it->SetResolvedIP(_resolvedIp);
                 }
-            });
+            }));
         }
         _dirty = true;
         if (_outputManager != nullptr) _outputManager->UpdateUnmanaged();
@@ -233,7 +253,7 @@ void ControllerEthernet::RefreshResolvedIP() {
     }
     if (!needsRefresh) return;
 
-    ip_utils::ResolveIP(_ip, [this](const std::string& r) {
+    ip_utils::ResolveIP(_ip, _resolveGuard.Wrap([this](const std::string& r) {
         std::unique_lock<std::shared_mutex> lock(_resolveMutex);
         _resolvedIp = r;
         lock.unlock();
@@ -241,11 +261,12 @@ void ControllerEthernet::RefreshResolvedIP() {
         for (auto& it : GetOutputs()) {
             it->SetResolvedIP(r);
         }
-    });
+    }));
 }
 
 void ControllerEthernet::SetProtocol(const std::string& protocol) {
 
+    ResolveDuringOutputRebuild rebuild(this, _resolveGuard);
     int totchannels = GetChannels();
     auto const oldtype = _type;
     auto oldoutputs = _outputs;
@@ -556,6 +577,7 @@ std::string ControllerEthernet::GetShortDescription() const {
 
 void ControllerEthernet::Convert(pugi::xml_node node, std::string showDir) {
 
+    ResolveDuringOutputRebuild rebuild(this, _resolveGuard);
     _outputs.push_back(Output::Create(this, node, showDir));
     if (_outputs.back() == nullptr) {
         // this shouldnt happen unless we are loading a future file with an output type we dont recognise
@@ -807,6 +829,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
 {
     
     if (_outputs.size() == 0) return false;
+    ResolveDuringOutputRebuild rebuild(this, _resolveGuard);
 
     for (auto& it2 : GetOutputs()) {
         it2->AllOff();

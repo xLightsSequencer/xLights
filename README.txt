@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (Edward Catchpole)      The 3D gizmo in Layout (move arrows, scale/rotate cubes and the centre
                                  handle) responds anywhere on the drawn shape, not just a small spot in its middle
+    -bug (derwin12)              FPP Connect / Discover could show most FPP controllers as unavailable
+                                 when controllers set by .local hostname were slow to resolve
 
 2026.20  November 12, 2026
 

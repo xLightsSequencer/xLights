@@ -169,7 +169,8 @@ bool ESPixelStick::SetHttpConfig(std::string const& filename, std::string const&
     
     spdlog::debug("SetHttpConfig: Setting ESPSv4 HTTP config file");
 
-    std::string const url = "http://" + _ip + "/conf/" + filename + ".json";
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+    std::string const url = "http://" + baseIP + _baseUrl + "/conf/" + filename + ".json";
 
     nlohmann::json newJson;
     newJson[key] = Data;
