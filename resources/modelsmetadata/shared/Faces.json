@@ -1,0 +1,41 @@
+{
+    "schemaVersion": 1,
+    "description": "The <faceInfo> child elements of a <model> node in xlights_rgbeffects.xml: singing-face definitions consumed by the Faces effect. A model may define any number of named faces (Model::faceInfo, a map of face name -> attribute map). Source of truth: src-core/models/Model.cpp Model::WriteFaceInfo (writer, prepends one <faceInfo> per entry) and src-core/XmlSerializer/XmlSerializeFunctions.cpp DeserializeFaceInfo (reader); the SingleNode/NodeRange/Matrix editing UI is src-ui-wx/model/ModelFaceDialog.cpp; consumed at render time by src-core/effects/FacesEffect.cpp.",
+    "storage": { "file": "xlights_rgbeffects.xml", "node": "models/model", "element": "faceInfo" },
+    "properties": [
+        {
+            "xmlAttribute": "Name",
+            "type": "string",
+            "description": "Face definition name, unique within the model (map key in Model::faceInfo). Read via XmlNodeKeys::StateNameAttribute (\"Name\" - the same attribute key used by stateInfo). Defaults to the literal string \"SingleNode\" if the attribute is missing entirely; if present but empty, falls back to the Type value instead (DeserializeFaceInfo)."
+        },
+        {
+            "xmlAttribute": "Type",
+            "type": "enum",
+            "enum": ["SingleNode", "NodeRange", "Matrix"],
+            "default": "SingleNode",
+            "description": "How this face's parts map onto the model: named single nodes, node-range lists, or whole-matrix overlay images. Defaults to \"SingleNode\" when the attribute is absent; a legacy/unrecognized Type value is normalized on read to SingleNode (if the raw value was \"Coro\") or otherwise Matrix (DeserializeFaceInfo)."
+        },
+        {
+            "xmlAttribute": "CustomColors",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "appliesWhen": { "attribute": "Type", "oneOf": ["SingleNode", "NodeRange"] },
+            "description": "When \"1\", per-part colours (the <Part>-Color attributes) and the alternate \"...2\"/\"...3\" alternate-region rows are active in the face editor; when \"0\" all parts render using the sequence's own colour and the -Color attributes are ignored. Only meaningful for SingleNode/NodeRange faces - the Matrix editor tab has no CustomColors control (ModelFaceDialog.cpp SetGrid()/OnCheckBox handlers)."
+        },
+        {
+            "xmlAttribute": "ImagePlacement",
+            "type": "enum",
+            "enum": ["Centered", "Scaled", "Scale Keep Aspect Ratio", "Scale Keep Aspect Ratio Crop"],
+            "default": "Scaled",
+            "appliesWhen": { "attribute": "Type", "equals": "Matrix" },
+            "description": "How each phoneme/eye image is fitted into the model's render buffer for a Matrix face (MatrixImagePlacementChoice, ModelFaceDialog.cpp). Only present/meaningful for Type=\"Matrix\"; only ever set by the Matrix tab's placement dropdown (OnMatricImagePlacementChoiceSelect)."
+        }
+    ],
+    "notes": [
+        "Part names are an open-ended attribute vocabulary, not enumerated here: \"FaceOutline\" (plus an alternate region \"FaceOutline2\"), \"Eyes-Open\"/\"Eyes-Closed\" (plus alternates \"Eyes-Open2\"/\"Eyes-Open3\"/\"Eyes-Closed2\"/\"Eyes-Closed3\"), and \"Mouth-<Phoneme>\" for the 10 fixed phoneme codes AI, E, etc, FV, L, MBP, O, rest, U, WQ (plus each mouth phoneme's alternate \"Mouth-<Phoneme>2\" region) - see src-core/effects/FacesEffect.cpp for the canonical phoneme list and src-ui-wx/model/ModelFaceDialog.cpp SingleNodeGrid/NodeRangeGrid row labels.",
+        "For Type=SingleNode/NodeRange, each part attribute's value is either a single node name (SingleNode) or a compressed node-range list such as \"1-50,60\" (NodeRange; NodeUtils::CompressNodes). For Type=Matrix, each part instead has TWO attributes named \"<Part>-EyesOpen\" and \"<Part>-EyesClosed\" (e.g. \"Mouth-AI-EyesOpen\") each holding an image file path (SelectMatrixImage/GenerateKey, ModelFaceDialog.cpp) - Matrix faces never use the bare \"<Part>\" attribute name.",
+        "Optional per-part colour attributes use the suffix \"-Color\" with #RRGGBB values (e.g. \"Mouth-AI-Color\", \"FaceOutline-Color\"), only meaningful when CustomColors=\"1\"; unset/blank is treated as white (#FFFFFF) by the editor.",
+        "CORRECTION vs a naive reading of the brief: faceInfo's Type enum has 3 values (SingleNode/NodeRange/Matrix); stateInfo's Type enum (see shared/States.json) has only 2 (SingleNode/NodeRange) - there is no Matrix state type."
+    ]
+}
