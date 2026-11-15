@@ -59,6 +59,7 @@ const wxWindowID FPPConnectDialog::ID_PANEL1 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_BUTTON1 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_BUTTON2 = wxNewId();
+const wxWindowID FPPConnectDialog::ID_CHECKBOX2 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_CHECKBOX1 = wxNewId();
 const wxWindowID FPPConnectDialog::ID_BUTTON_Upload = wxNewId();
 //*)
@@ -190,13 +191,17 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Panel1->SetSizer(FlexGridSizer2);
 	SplitterWindow1->SplitHorizontally(FPPInstanceList, Panel1);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 6, 0, 0);
-	FlexGridSizer4->AddGrowableCol(1);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 7, 0, 0);
+	FlexGridSizer4->AddGrowableCol(3);
 	FlexGridSizer4->AddGrowableRow(0);
 	AddFPPButton = new wxButton(this, ID_BUTTON1, _("Add FPP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer4->Add(AddFPPButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ReDiscover = new wxButton(this, ID_BUTTON2, _("Re-Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer4->Add(ReDiscover, 1, wxALL, 5);
+	ShowOnlyConfigured = new wxCheckBox(this, ID_CHECKBOX2, _("Only Show Configured FPPs"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	ShowOnlyConfigured->SetValue(false);
+	ShowOnlyConfigured->SetToolTip(_("When checked, only FPPs configured as controllers in this show folder are listed. Uncheck to also list other FPPs found on the network. Show players and Video only players should always be configured in the show folder."));
+	FlexGridSizer4->Add(ShowOnlyConfigured, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer4->Add(StaticText3, 1, wxALL|wxEXPAND, 5);
 	KeepWinOpen = new wxCheckBox(this, ID_CHECKBOX1, _("Keep Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
@@ -214,6 +219,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(ID_CHOICE_FOLDER, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&FPPConnectDialog::OnChoiceFolderSelect);
 	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnAddFPPButtonClick);
 	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnFPPReDiscoverClick);
+	Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnShowOnlyConfiguredClick);
 	Connect(ID_BUTTON_Upload, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadClick);
 	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&FPPConnectDialog::OnClose);
 	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&FPPConnectDialog::OnCancelButtonClick);
@@ -269,6 +275,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     wxDiscoveryDelegate delegate(this);
     instances = _frame->DiscoverFPPInstances(&delegate, _targetIp);
+    ShowOnlyConfigured->SetValue(config->ReadBool("FPPConnectOnlyConfigured", false));
+    ApplyConfiguredFilter();
 
     wxPanel *p1 = AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     p1->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::UploadPopupMenu, nullptr, this);
@@ -357,6 +365,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     UpdateSeqCount();
     if (!_targetIp.empty()) {
         AddFPPButton->Hide();
+        ShowOnlyConfigured->Hide();
     }
 }
 
@@ -992,6 +1001,9 @@ FPPConnectDialog::~FPPConnectDialog()
     int i = SplitterWindow1->GetSashPosition();
     config->Write("FPPConnectSashPosition", i);
     config->Write("FPPConnectKeepOpen", KeepWinOpen->GetValue());
+    if (_targetIp.empty()) {
+        config->Write("FPPConnectOnlyConfigured", ShowOnlyConfigured->GetValue());
+    }
 
     SaveWindowPosition("xLightsFPPConnectPos", this);
 
@@ -999,6 +1011,9 @@ FPPConnectDialog::~FPPConnectDialog()
 	//*)
 
     for (const auto& a : instances) {
+        delete a;
+    }
+    for (const auto& a : _hiddenInstances) {
         delete a;
     }
 }
@@ -2182,6 +2197,54 @@ void FPPConnectDialog::SequenceListPopup(wxTreeListEvent& event)
     PopupMenu(&mnu);
 }
 
+void FPPConnectDialog::SortInstances() {
+    if (locationSortCol == "name") {
+        instances.sort(sortByName);
+    } else {
+        instances.sort([this](const FPP* a, const FPP* b) {
+            std::vector<int> aComponents = SplitIP(a->ipAddress);
+            std::vector<int> bComponents = SplitIP(b->ipAddress);
+            for (size_t i = 0; i < aComponents.size() && i < bComponents.size(); ++i) {
+                if (aComponents[i] != bComponents[i])
+                    return aComponents[i] < bComponents[i];
+            }
+            return aComponents.size() < bComponents.size();
+        });
+    }
+}
+
+void FPPConnectDialog::ApplyConfiguredFilter() {
+    instances.splice(instances.end(), _hiddenInstances);
+    if (!_targetIp.empty() || !ShowOnlyConfigured->GetValue()) {
+        return;
+    }
+
+    std::set<std::string> configured;
+    for (const auto& ctrl : _outputManager->GetControllers()) {
+        auto c = dynamic_cast<ControllerEthernet*>(ctrl);
+        if (c != nullptr) {
+            configured.insert(c->GetIP());
+            configured.insert(c->GetResolvedIP());
+        }
+    }
+    configured.erase("");
+
+    for (auto it = instances.begin(); it != instances.end();) {
+        auto cur = it++;
+        const FPP* f = *cur;
+        if (configured.find(f->ipAddress) == configured.end() && configured.find(f->hostName) == configured.end()) {
+            _hiddenInstances.splice(_hiddenInstances.end(), instances, cur);
+        }
+    }
+}
+
+void FPPConnectDialog::OnShowOnlyConfiguredClick(wxCommandEvent& event) {
+    SaveSettings(true);
+    ApplyConfiguredFilter();
+    SortInstances();
+    PopulateFPPInstanceList();
+}
+
 void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
     int curSize = instances.size();
     std::list<std::string> add;
@@ -2203,6 +2266,11 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
                 found = true;
             }
         }
+        for (auto f : _hiddenInstances) {
+            if (f->ipAddress == fpp->ipAddress) {
+                found = true;
+            }
+        }
         
         if (!found) {
             prgs.Pulse("Gathering configuration for " + fpp->hostName + " - " + fpp->ipAddress);
@@ -2214,6 +2282,7 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
         }
     }
     if ((size_t)curSize < instances.size()) {
+        ApplyConfiguredFilter();
         instances.sort(sortByIP);
         // it worked, we found some new instances, record this
         auto* config = GetXLightsConfig();
@@ -2242,6 +2311,14 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
     wxTextEntryDialog dlg(this, "Find FPP Instance", "Enter IP address or hostname for FPP Instance");
     if (dlg.ShowModal() == wxID_OK && ip_utils::IsIPValidOrHostname(ToStdString(dlg.GetValue()))) {
         std::string ipAd = ToStdString(dlg.GetValue());
+        if (ShowOnlyConfigured->GetValue()) {
+            // A manually added FPP may not be a configured controller; make sure it isn't filtered out
+            SaveSettings(true);
+            ShowOnlyConfigured->SetValue(false);
+            ApplyConfiguredFilter();
+            SortInstances();
+            PopulateFPPInstanceList();
+        }
         int curSize = instances.size();
 
         wxProgressDialog prgs("Gathering configuration for " + ipAd,

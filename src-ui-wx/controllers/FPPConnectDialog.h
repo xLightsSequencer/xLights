@@ -51,6 +51,7 @@ class FPPConnectDialog: public wxDialog
 		wxButton* Button_Upload;
 		wxButton* ReDiscover;
 		wxCheckBox* KeepWinOpen;
+		wxCheckBox* ShowOnlyConfigured;
 		wxChoice* ChoiceFilter;
 		wxChoice* ChoiceFolder;
 		wxFlexGridSizer* FPPInstanceSizer;
@@ -81,11 +82,15 @@ class FPPConnectDialog: public wxDialog
 		static const wxWindowID ID_SPLITTERWINDOW1;
 		static const wxWindowID ID_BUTTON1;
 		static const wxWindowID ID_BUTTON2;
+		static const wxWindowID ID_CHECKBOX2;
 		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_BUTTON_Upload;
 		//*)
 
         std::list<FPP*> instances;
+        // Discovered FPPs that are not configured in the show folder; owned here, kept out of
+        // `instances` (which is indexed by row everywhere) while the configured-only filter is on.
+        std::list<FPP*> _hiddenInstances;
         OutputManager* _outputManager;
         std::string _targetIp;
         xLightsFrame* _frame = nullptr;
@@ -109,6 +114,7 @@ class FPPConnectDialog: public wxDialog
         void OnFPPReDiscoverClick(wxCommandEvent& event);
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
+		void OnShowOnlyConfiguredClick(wxCommandEvent& event);
 		void HostSortMenu(wxContextMenuEvent& event);
 		void OnHostSortClick(wxCommandEvent& event);
         void OnIPSortClick(wxCommandEvent& event);
@@ -120,6 +126,8 @@ class FPPConnectDialog: public wxDialog
         void OnMediaPopupClick(wxCommandEvent& event);
 		//*)
 
+        void ApplyConfiguredFilter();
+        void SortInstances();
         void LoadSequencesFromFolder(wxString const& dir) const;
         void LoadSequencesFromFolder(wxString const& dir, std::set<wxString>& knownPaths) const;
         void AddSequenceListItem(const wxString& fseqPath, const std::string& media, std::set<wxString>& knownPaths) const;
