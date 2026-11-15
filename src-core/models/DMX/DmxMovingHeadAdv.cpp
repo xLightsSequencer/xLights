@@ -570,6 +570,7 @@ void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx,
     base_mesh->Draw(this, preview, sprogram, tprogram, Identity, Identity, false, 0, 0, 0, false, false);
     yoke_mesh->Draw(this, preview, sprogram, tprogram, Identity, Identity, 0, pan_angle_raw, 0, false, 0, 0, 0, false, !active);
     head_mesh->Draw(this, preview, sprogram, tprogram, Identity, Identity, tilt_angle, pan_angle_raw, 0, false, 0, 0, 0, false, !active);
+    const float yoke_pan_angle = pan_angle_raw;
 
     // Everything below here is for drawing the light beam
     float beam_length_displayed = beam_ability->GetBeamLength();
@@ -666,28 +667,43 @@ void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx,
         }
         if (zoneActive) {
             xlColor ringColor(255, 140, 0, 220);
-            // Lies flat around the base. These are pre-model-scale mesh units: the model
-            // view matrix applies ScaleX/Y/Z to everything drawn here.
-            float footprint = std::min(screenLocation.GetRenderWi(), screenLocation.GetRenderDp());
-            if (base_mesh != nullptr && base_mesh->HasObjFile()) {
-                footprint = std::min(base_mesh->GetWidth() * base_mesh->GetScaleX(), base_mesh->GetDepth() * base_mesh->GetScaleZ());
+            // Stands upright around the yoke, just in front of it, and pans with it. These
+            // are pre-model-scale mesh units: the model view matrix applies ScaleX/Y/Z to
+            // everything drawn here.
+            float yokeHt = screenLocation.GetRenderHt();
+            float yokeCy = yokeHt * 0.5f;
+            float yokeReach = std::max(screenLocation.GetRenderWi(), screenLocation.GetRenderDp()) * 0.5f;
+            float yokeOx = 0.0f;
+            float yokeOz = 0.0f;
+            if (yoke_mesh != nullptr && yoke_mesh->HasObjFile()) {
+                yokeOx = yoke_mesh->GetOffsetX();
+                yokeOz = yoke_mesh->GetOffsetZ();
+                yokeHt = yoke_mesh->GetHeight() * yoke_mesh->GetScaleY();
+                yokeCy = yoke_mesh->GetOffsetY() + (yoke_mesh->GetMinY() + yoke_mesh->GetHeight() * 0.5f) * yoke_mesh->GetScaleY();
+                yokeReach = std::max(yoke_mesh->GetWidth() * yoke_mesh->GetScaleX(), yoke_mesh->GetDepth() * yoke_mesh->GetScaleZ()) * 0.5f;
             }
-            float ro = footprint * 0.6f;
-            float ri = footprint * 0.5f;
-            float y = 0.01f * footprint;
+            float ro = yokeHt * 0.54f;
+            float ri = yokeHt * 0.45f;
+            float z = yokeReach + 0.01f * yokeHt;
+            // same rotation about Y that Mesh::Draw gives the yoke for its pan
+            const glm::mat4 panRot = glm::rotate(glm::mat4(1.0f), glm::radians(yoke_pan_angle), glm::vec3(0.0f, 1.0f, 0.0f));
             auto svac = sprogram->getAccumulator();
+            auto addRingVertex = [&](float x, float y) {
+                glm::vec4 p = panRot * glm::vec4(x, 0.0f, z, 1.0f);
+                svac->AddVertex(yokeOx + p.x, yokeCy + y, yokeOz + p.z, ringColor);
+            };
             int rs = svac->getCount();
             const int segs = 48;
             for (int i = 0; i < segs; i++) {
                 float a0 = 2.0f * 3.14159265f * i / segs;
                 float a1 = 2.0f * 3.14159265f * (i + 1) / segs;
                 float c0 = std::cos(a0), s0 = std::sin(a0), c1 = std::cos(a1), s1 = std::sin(a1);
-                svac->AddVertex(ro * c0, y, ro * s0, ringColor);
-                svac->AddVertex(ri * c0, y, ri * s0, ringColor);
-                svac->AddVertex(ro * c1, y, ro * s1, ringColor);
-                svac->AddVertex(ro * c1, y, ro * s1, ringColor);
-                svac->AddVertex(ri * c0, y, ri * s0, ringColor);
-                svac->AddVertex(ri * c1, y, ri * s1, ringColor);
+                addRingVertex(ro * c0, ro * s0);
+                addRingVertex(ri * c0, ri * s0);
+                addRingVertex(ro * c1, ro * s1);
+                addRingVertex(ro * c1, ro * s1);
+                addRingVertex(ri * c0, ri * s0);
+                addRingVertex(ri * c1, ri * s1);
             }
             int re = svac->getCount();
             sprogram->addStep([=](xlGraphicsContext* ctx) {

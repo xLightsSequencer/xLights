@@ -3,6 +3,7 @@
 // matrices, slew limiting, shutter/dimmer/colour applied to the beam, and the
 // red "invalid" cross drawn when a channel is out of range.
 
+#include <algorithm>
 #include <cmath>
 #include <sstream>
 #include <string>
@@ -732,12 +733,22 @@ TEST_CASE("Advanced moving head position zone overrides the beam channels", "[dm
     CHECK(c.red == 255);
     // and an orange ring of 48 segments marks the active zone
     size_t orange = 0;
+    float minY = 1e9f, maxY = -1e9f, minZ = 1e9f, maxZ = -1e9f;
     for (auto& v : p.SolidAcc().v) {
         if (v.c == xlColor(255, 140, 0, 220)) {
             ++orange;
+            minY = std::min(minY, v.y);
+            maxY = std::max(maxY, v.y);
+            minZ = std::min(minZ, v.z);
+            maxZ = std::max(maxZ, v.z);
         }
     }
     CHECK(orange == 48 * 6);
+    // the ring stands upright facing the front, centred on the unit-cube yoke and just in front of it
+    CHECK(minZ == Approx(maxZ));
+    CHECK(minZ > 0.5f);
+    CHECK((minY + maxY) * 0.5f == Approx(0.5f).margin(0.01f));
+    CHECK(maxY - minY == Approx(1.08f).margin(0.01f));
 
     // outside the zone nothing changes and no ring is drawn
     Chan(mh, 1, 200);
@@ -755,6 +766,25 @@ TEST_CASE("Advanced moving head position zone overrides the beam channels", "[dm
     p3.zonesEnabled = false;
     DrawEffect(mh, p3);
     CHECK(p3.TransAcc().v[2].c.red == 255);
+
+    // the ring pans with the yoke: a quarter turn puts it on the +X side, facing sideways
+    mh->GetPanMotor()->SetOrientZero(90);
+    FakePreview p4;
+    p4.frameTime = 5000;
+    p4.zoneIndicator = true;
+    DrawEffect(mh, p4);
+    float minX = 1e9f, maxX = -1e9f;
+    size_t turned = 0;
+    for (auto& v : p4.SolidAcc().v) {
+        if (v.c == xlColor(255, 140, 0, 220)) {
+            ++turned;
+            minX = std::min(minX, v.x);
+            maxX = std::max(maxX, v.x);
+        }
+    }
+    CHECK(turned == 48 * 6);
+    CHECK(minX == Approx(maxX).margin(0.001f));
+    CHECK(minX > 0.5f);
 }
 
 TEST_CASE("Advanced moving head with too few channels draws the invalid cross", "[dmx2]") {

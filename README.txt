@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              FPP Connect / Discover could show most FPP controllers as unavailable
                                  when controllers set by .local hostname were slow to resolve
+    -bug (derwin12)              Moving Head Adv: the position zone indicator ring stands upright around
+                                 the yoke again instead of lying flat around the base
 
 2026.20  November 12, 2026
 
