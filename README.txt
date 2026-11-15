@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              FPP Connect / Discover could show most FPP controllers as unavailable
                                  when controllers set by .local hostname were slow to resolve
+    -enh (alex)                  FPP Connect: new "Only Show Configured FPPs" checkbox hides FPPs found on
+                                 the network that are not configured as controllers in the show folder
 
 2026.20  November 12, 2026
 
