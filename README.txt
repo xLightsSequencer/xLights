@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (alex)                  SubModels: Import Custom Model Overlay ignored the chosen alignment column (always
+                                 left) and placed the overlay upside down; all 9 positions now work
     -bug (derwin12)              FPP Connect / Discover could show most FPP controllers as unavailable
                                  when controllers set by .local hostname were slow to resolve
 
