@@ -70,7 +70,7 @@ public:
     }
     void Compare(RemapModelProperties& original);
     void Remap(RemapModelProperties& original);
-    void Save(wxWindow* parent);
+    bool Save(wxWindow* parent);
     bool ContainsFSSM()
     {
         // if we are asking and it contains none then it really isnt ok.
