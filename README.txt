@@ -16,6 +16,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  when controllers set by .local hostname were slow to resolve
     -bug (derwin12)              Moving Head Adv: the position zone indicator ring stands upright around
                                  the yoke again instead of lying flat around the base
+    -bug (NotAFlightRisk)        AI Lyrics from Audio could add a very short word as a zero-length mark
+                                 on 50 ms sequences
 
 2026.20  November 12, 2026
 
