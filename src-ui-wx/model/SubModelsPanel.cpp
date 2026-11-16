@@ -3272,8 +3272,31 @@ void SubModelsPanel::ImportCustomModel(std::string filename)
     }
     
     // Calculate alignment offsets
-    int xStart = CalculateAlignmentOffset((int)dlg.GetX(), modelw, customModel.width);
-    int yStart = CalculateAlignmentOffset((int)dlg.GetY(), modelh, customModel.height);
+    NodeUtils::OverlayAnchor xAnchor = NodeUtils::OverlayAnchor::Centre;
+    switch (dlg.GetX()) {
+    case AlignmentDialog::Alignment::LEFT:
+        xAnchor = NodeUtils::OverlayAnchor::Start;
+        break;
+    case AlignmentDialog::Alignment::RIGHT:
+        xAnchor = NodeUtils::OverlayAnchor::End;
+        break;
+    default:
+        break;
+    }
+    // Buffer Y runs bottom-up, so BOTTOM is the low-index edge.
+    NodeUtils::OverlayAnchor yAnchor = NodeUtils::OverlayAnchor::Centre;
+    switch (dlg.GetY()) {
+    case AlignmentDialog::Alignment::BOTTOM:
+        yAnchor = NodeUtils::OverlayAnchor::Start;
+        break;
+    case AlignmentDialog::Alignment::TOP:
+        yAnchor = NodeUtils::OverlayAnchor::End;
+        break;
+    default:
+        break;
+    }
+    int xStart = NodeUtils::OverlayOffset(xAnchor, modelw, customModel.width);
+    int yStart = NodeUtils::OverlayOffset(yAnchor, modelh, customModel.height);
     
     // Create node mapping and main submodel
     std::map<int, int> nodeMap;
@@ -3302,18 +3325,6 @@ void SubModelsPanel::ImportCustomModel(std::string filename)
     TextCtrl_Name->SelectAll();
 }
 
-// Helper: Calculate alignment offset
-int SubModelsPanel::CalculateAlignmentOffset(int alignment, int targetSize, int sourceSize)
-{
-    // AlignmentDialog::Alignment enum values: LEFT=0, CENTRE=1, RIGHT=2, BOTTOM=0, MIDDLE=1, TOP=2
-    if (alignment == 1) { // CENTRE or MIDDLE
-        return (float)targetSize / 2.0 - (float)sourceSize / 2.0;
-    } else if (alignment == 2) { // RIGHT or TOP
-        return targetSize - sourceSize;
-    }
-    return 0; // LEFT or BOTTOM
-}
-
 // Helper: Create submodel from custom model data
 SubModelsPanel::SubModelInfo* SubModelsPanel::CreateSubModelFromCustomModelData(
     const XmlSerialize::CustomModelImportData& customModel,
@@ -3329,11 +3340,14 @@ SubModelsPanel::SubModelInfo* SubModelsPanel::CreateSubModelFromCustomModelData(
     
     const auto& data = customModel.modelData;
     
-    int rnum = yStart;
-    for (size_t row = 0; row < data[0].size(); ++row) {
+    // Row 0 of the xmodel data is the top row; buffer Y 0 is the bottom, so walk
+    // the rows bottom-up to keep the overlay the right way up.
+    const int rows = (int)data[0].size();
+    for (int row = rows - 1; row >= 0; --row) {
+        int const rnum = yStart + (rows - 1 - row);
         int cnum = xStart;
         wxString outRow = "";
-        
+
         for (size_t col = 0; col < data[0][0].size(); ++col) {
             if (data[0][row][col] == 0) {
                 outRow += ",";
@@ -3348,15 +3362,14 @@ SubModelsPanel::SubModelInfo* SubModelsPanel::CreateSubModelFromCustomModelData(
             }
             cnum++;
         }
-        
+
         // Remove trailing comma
         if (outRow.size() > 0) {
             outRow = outRow.Left(outRow.size() - 1);
         }
         sm->strands.push_back(outRow.ToStdString());
-        rnum++;
     }
-    
+
     return sm;
 }
 

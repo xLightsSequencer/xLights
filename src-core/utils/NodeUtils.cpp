@@ -210,4 +210,21 @@ namespace NodeUtils
             }
 		}
 	}
+
+	int OverlayOffset(OverlayAnchor anchor, int target, int source)
+	{
+		int const room = target - source;
+		if (room <= 0) {
+			return 0;
+		}
+		switch (anchor) {
+		case OverlayAnchor::Centre:
+			return room / 2;
+		case OverlayAnchor::End:
+			return room;
+		case OverlayAnchor::Start:
+		default:
+			return 0;
+		}
+	}
 };

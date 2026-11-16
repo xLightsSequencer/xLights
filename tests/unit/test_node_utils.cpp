@@ -73,3 +73,14 @@ TEST_CASE("ReverseNodes", "[nodeutils]") {
     CHECK(nodes["Line1Color"] == "1-3");
     CHECK(nodes["Empty"] == "");
 }
+
+TEST_CASE("OverlayOffset places an overlay at each anchor", "[nodeutils]") {
+    using A = OverlayAnchor;
+    CHECK(OverlayOffset(A::Start, 10, 4) == 0);
+    CHECK(OverlayOffset(A::Centre, 10, 4) == 3);
+    CHECK(OverlayOffset(A::End, 10, 4) == 6);
+    CHECK(OverlayOffset(A::Centre, 11, 4) == 3);
+    CHECK(OverlayOffset(A::End, 4, 4) == 0);
+    CHECK(OverlayOffset(A::End, 3, 4) == 0);
+    CHECK(OverlayOffset(A::Centre, 3, 4) == 0);
+}
