@@ -18,6 +18,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  when controllers set by .local hostname were slow to resolve
     -bug (derwin12)              Moving Head Adv: the position zone indicator ring stands upright around
                                  the yoke again instead of lying flat around the base
+    -bug (derwin12)              Falcon upload: the serial port start channel limit now only blocks
+                                 an F16V3 in DDP mode, not E1.31/ArtNet or other V3 boards
+
     -bug (NotAFlightRisk)        AI Lyrics from Audio could add a very short word as a zero-length mark
                                  on 50 ms sequences
 

@@ -2416,6 +2416,17 @@ std::string Falcon::DecodeMode(int mode) {
     }
     return std::string();
 }
+
+// The F16V3 web UI rejects a serial start channel at or above MaxDDPChannels when the
+// controller is in DDP mode. In E1.31/ArtNet mode the start channel is sent as a
+// universe + offset, so the limit does not apply.
+std::string Falcon::CheckSerialStartChannel(int maxDDPChannels, bool ddpInput, int port, int startChannel) {
+    if (!ddpInput || maxDDPChannels <= 0 || startChannel < maxDDPChannels) {
+        return std::string();
+    }
+    return fmt::format("ERROR: Serial port {} start channel {} is too high. In DDP mode this controller needs a serial start channel below {}. Change the start channel or uncheck Keep Channel Numbers.\n",
+                       port, startChannel, maxDDPChannels);
+}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -3249,10 +3260,10 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
                 spdlog::info("Serial Port {} Protocol {} Start Channel {}.", sp, (const char*)port->GetProtocol().c_str(), sc);
 
-                const int maxDDPChannels = caps ? caps->GetMaxDDPChannels() : 0;
-                if (maxDDPChannels > 0 && sc >= maxDDPChannels) {
-                    check += fmt::format("ERROR: Serial port {} start channel {} exceeds the maximum DDP channel number {} supported by this controller. Consider changing the start channel or unchecking Keep Channel Numbers.\n",
-                                         sp, sc, maxDDPChannels - 1);
+                const std::string scError = CheckSerialStartChannel(caps ? caps->GetMaxDDPChannels() : 0,
+                                                                    controller->GetFirstOutput()->GetType() == OUTPUT_DDP, sp, sc);
+                if (!scError.empty()) {
+                    check += scError;
                     success = false;
                 }
 

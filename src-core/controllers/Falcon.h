@@ -247,6 +247,7 @@ public:
     #pragma region Static Functions
     static void DecodeModelVersion(int p, int& model, int& version);
     static std::string DecodeMode(int mode);
+    static std::string CheckSerialStartChannel(int maxDDPChannels, bool ddpInput, int port, int startChannel);
     #pragma endregion
 
     #pragma region Getters and Setters
