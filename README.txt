@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (derwin12)              Print Layout printed a different, shifted part of the layout than
+                                 the dialog's preview showed
     -bug (derwin12)              FPP Connect / Discover could show most FPP controllers as unavailable
                                  when controllers set by .local hostname were slow to resolve
     -bug (derwin12)              Moving Head Adv: the position zone indicator ring stands upright around
@@ -19,6 +21,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Falcon upload: the serial port start channel limit now only blocks
                                  an F16V3 in DDP mode, not E1.31/ArtNet or other V3 boards
 
+    -bug (NotAFlightRisk)        AI Lyrics from Audio could add a very short word as a zero-length mark
+                                 on 50 ms sequences
 
 2026.20  November 12, 2026
 
