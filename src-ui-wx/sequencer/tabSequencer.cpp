@@ -4795,7 +4795,7 @@ void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
             int const startTime = RoundToMultipleOfPeriod(start , CurrentSeqXmlFile->GetFrequency());
             int endTime = RoundToMultipleOfPeriod(end , CurrentSeqXmlFile->GetFrequency());
             if (startTime == endTime) {
-                endTime = RoundToMultipleOfPeriod(startTime + CurrentSeqXmlFile->GetFrequency(), CurrentSeqXmlFile->GetFrequency());
+                endTime = RoundToMultipleOfPeriod(startTime + CurrentSeqXmlFile->GetFrameMS(), CurrentSeqXmlFile->GetFrequency());
             }
             return std::make_pair(startTime, endTime);
         };

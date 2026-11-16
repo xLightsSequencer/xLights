@@ -101,6 +101,7 @@ void Mesh::loadObject(BaseObject* base, xlGraphicsContext *ctx) {
         width = mesh3d->GetXMax() - mesh3d->GetXMin();
         height = mesh3d->GetYMax() - mesh3d->GetYMin();
         depth = mesh3d->GetZMax() - mesh3d->GetZMin();
+        min_y = mesh3d->GetYMin();
         obj_loaded = true;
         
         std::string name = base->GetName() + ":" + base_name;

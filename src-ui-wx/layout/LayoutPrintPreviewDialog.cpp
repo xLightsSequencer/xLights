@@ -157,6 +157,19 @@ namespace
         if (canvas == nullptr || captureSize.GetWidth() <= 0 || captureSize.GetHeight() <= 0) {
             return nullptr;
         }
+        // The 2D pan/zoom offset is in window pixels but the layout scales with
+        // the canvas, so at a larger capture size the layout grows around a fixed
+        // offset and can slide entirely out of frame. Scale the offset by the
+        // same factor so every capture size frames what the Layout tab shows.
+        const bool scaleOffset = !canvas->Is3D() && canvas->GetVirtualCanvasWidth() > 0 && canvas->GetVirtualCanvasHeight() > 0 && restoreSize.GetWidth() > 0 && restoreSize.GetHeight() > 0;
+        const ModelPreview::View2DOffset originalOffset = canvas->Get2DViewOffset();
+        if (scaleOffset) {
+            auto fit = [canvas](const wxSize& s) {
+                return std::min(float(s.GetWidth()) / canvas->GetVirtualCanvasWidth(), float(s.GetHeight()) / canvas->GetVirtualCanvasHeight());
+            };
+            const float k = fit(captureSize) / fit(restoreSize);
+            canvas->Set2DViewOffset({ originalOffset.panX * k, originalOffset.panY * k, originalOffset.zoomCorrX * k, originalOffset.zoomCorrY * k });
+        }
         wxSize originalMin = canvas->GetMinSize();
         wxSize originalMax = canvas->GetMaxSize();
         canvas->SetMinSize(captureSize);
@@ -164,6 +177,9 @@ namespace
         canvas->SetSize(captureSize);
         wxYield();
         wxImage* img = canvas->GrabImage(wxSize(canvas->getWidth(), canvas->getHeight()));
+        if (scaleOffset) {
+            canvas->Set2DViewOffset(originalOffset);
+        }
         canvas->SetMinSize(originalMin);
         canvas->SetMaxSize(originalMax);
         canvas->SetSize(restoreSize);
@@ -173,12 +189,16 @@ namespace
         return img;
     }
 
-    // Reused by both the live preview refresh and the real print job.
+    // Captures at the same size as the dialog's on-screen preview, not at the
+    // page size: the 2D pan/zoom offset is in canvas pixels while the layout
+    // itself scales with the canvas, so any other capture size frames a
+    // different part of the layout than the preview showed (issue #7370).
+    // OnPrintPage scales the result to fit the page.
     class Printout : public wxPrintout
     {
     public:
-        Printout(ModelPreview* canvas, const wxSize& restoreSize, bool invert) :
-            m_canvas(canvas), _restoreSize(restoreSize), _invert(invert) {}
+        Printout(ModelPreview* canvas, const wxSize& captureSize, const wxSize& restoreSize, bool invert) :
+            m_canvas(canvas), _captureSize(captureSize), _restoreSize(restoreSize), _invert(invert) {}
         virtual ~Printout() { clearImage(); }
 
         void clearImage()
@@ -193,11 +213,7 @@ namespace
         {
             clearImage();
 
-            wxRect rect = GetLogicalPageRect();
-            rect.Deflate(rect.GetWidth() / 20, rect.GetHeight() / 20);
-            wxRect adjustedRect = scaledRect(m_canvas->getWidth(), m_canvas->getHeight(), rect.GetWidth(), rect.GetHeight());
-
-            m_image = GrabPreviewImage(m_canvas, wxSize(adjustedRect.GetWidth(), adjustedRect.GetHeight()), _restoreSize);
+            m_image = GrabPreviewImage(m_canvas, _captureSize, _restoreSize);
 
             if (_invert && m_image != nullptr) {
                 InvertImageRGB(*m_image);
@@ -229,6 +245,7 @@ namespace
 
     protected:
         ModelPreview* m_canvas = nullptr;
+        wxSize _captureSize;
         wxSize _restoreSize;
         wxImage* m_image = nullptr;
         bool m_grabbedImage = false;
@@ -350,8 +367,8 @@ LayoutPrintPreviewDialog::LayoutPrintPreviewDialog(wxWindow* parent, xLightsFram
     mainSizer->Add(checkSizer, 0, wxLEFT | wxRIGHT, 4);
 
     mainSizer->Add(new wxStaticText(this, wxID_ANY,
-                                     _("Resolution controls the preview render only -- the printed page still fits\n"
-                                       "to whatever paper size/orientation you choose in the print dialog.")),
+                                     _("The layout is rendered at this resolution, then scaled to fit\n"
+                                       "the paper size/orientation you choose in the print dialog.")),
                     0, wxALL, 10);
 
     _canvas = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_SUNKEN);
@@ -497,7 +514,7 @@ void LayoutPrintPreviewDialog::RefreshPreview()
     // makes the containing wxScrolledWindow report that as its own minimum
     // size, ballooning the dialog and pushing the Print/Close buttons off the
     // bottom. The full-resolution image is unaffected: printing re-grabs at
-    // the page-fit size via Printout::GrabImage(), not from this bitmap.
+    // the same resolution via Printout::GrabImage(), not from this bitmap.
     _lastCapturedImage = *img;
     delete img;
     UpdateDisplayBitmap();
@@ -547,7 +564,7 @@ void LayoutPrintPreviewDialog::OnPrint(wxCommandEvent& event)
     }
     _previewCanvas->SetLabelColor(labelColor);
 
-    Printout printout(_previewCanvas, _originalSize, _invertCheck->GetValue());
+    Printout printout(_previewCanvas, wxSize(GetPreviewWidth(), GetPreviewHeight()), _originalSize, _invertCheck->GetValue());
 
     wxPrintData printdata;
     static wxPrintDialogData printDialogData(printdata);
