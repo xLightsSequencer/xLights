@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (derwin12)              Print Layout printed a different, shifted part of the layout than
+                                 the dialog's preview showed
     -bug (derwin12)              FPP Connect / Discover could show most FPP controllers as unavailable
                                  when controllers set by .local hostname were slow to resolve
     -bug (derwin12)              Moving Head Adv: the position zone indicator ring stands upright around
