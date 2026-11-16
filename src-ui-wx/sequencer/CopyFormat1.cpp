@@ -260,6 +260,12 @@ CopyFormat1Effect::CopyFormat1Effect(const std::string& data, bool pasteByCell)
     // parse the effect line
     wxArrayString cols = wxSplit(data, '\t');
 
+    // A paste-by-cell copy still writes NO_PASTE_BY_CELL lines for effects that start or
+    // end outside a timing mark, so decide per line rather than from the header alone.
+    if (pasteByCell && cols.size() >= 8 && cols[7] == "NO_PASTE_BY_CELL") {
+        pasteByCell = false;
+    }
+
     if (!pasteByCell) {
         if (cols.size() < 8) {
             // not the right number of columns
@@ -279,7 +285,8 @@ CopyFormat1Effect::CopyFormat1Effect(const std::string& data, bool pasteByCell)
         }
     }
     else {
-        if (cols.size() != 11) {
+        // Trailing tokens (SUBMODEL:, LAYER:) may follow the 11 fixed columns
+        if (cols.size() < 11) {
             // not the right number of columns
             return;
         }
