@@ -3349,7 +3349,7 @@ SubModelsPanel::SubModelInfo* SubModelsPanel::CreateSubModelFromCustomModelData(
         wxString outRow = "";
 
         for (size_t col = 0; col < data[0][0].size(); ++col) {
-            if (data[0][row][col] == 0) {
+            if (data[0][row][col] < 0) { // the parser marks empty cells as -1
                 outRow += ",";
             } else {
                 long nn = model->GetNodeNumber(rnum, cnum);
