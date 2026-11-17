@@ -1266,7 +1266,6 @@ wxWindow* ControllerListPanel::CreatePropertiesPanel(wxWindow* parent) {
         }
     });
     _btnOpen->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        if (!NetworkChangesAllowed()) return;
         auto controller = GetFirstSelectedController();
         if (controller != nullptr && controller->GetIP() != "") {
             if (controller->GetFPPProxy() != "" && controller->GetFPPProxy() != controller->GetIP()) {
@@ -1277,7 +1276,6 @@ wxWindow* ControllerListPanel::CreatePropertiesPanel(wxWindow* parent) {
         }
     });
     _btnOpenProxy->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        if (!NetworkChangesAllowed()) return;
         auto controller = GetFirstSelectedController();
         if (controller != nullptr && controller->GetFPPProxy() != "") {
             ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy());
@@ -1343,7 +1341,7 @@ void ControllerListPanel::UpdateControllerProperties() {
         _btnOpen->Enable(false);
         bool showOpenProxy = (om->GetGlobalFPPProxy() != "");
         _btnOpenProxy->Show(showOpenProxy);
-        _btnOpenProxy->Enable(NetworkChangesAllowed() && showOpenProxy);
+        _btnOpenProxy->Enable(showOpenProxy);
 
         wxPGProperty* p = _propGrid->Append(new wxBoolProperty("Controller Sync", "ControllerSync", _frame->E131Sync()));
         p->SetEditor("CheckBox");
@@ -1408,7 +1406,7 @@ void ControllerListPanel::UpdateControllerProperties() {
             }
 
             _btnUploadOutput->Enable(allowed && usingip == 1 && _frame->ControllerSupportsOutputUpload(controller));
-            _btnOpen->Enable(allowed && eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetIP() != "" && (caps == nullptr || !caps->NoWebUI()));
+            _btnOpen->Enable(eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetIP() != "" && (caps == nullptr || !caps->NoWebUI()));
 
             // Whether to show "Open Proxy" only depends on whether a proxy is configured, not
             // whether it currently resolves/responds - checking reachability here would mean
@@ -1419,7 +1417,7 @@ void ControllerListPanel::UpdateControllerProperties() {
             bool showOpenProxy = (eth != nullptr && !eth->GetControllerFPPProxy().empty()) ||
                                   (om->GetGlobalFPPProxy() != "" && (eth == nullptr || eth->GetIP() != om->GetGlobalFPPProxy()));
             _btnOpenProxy->Show(showOpenProxy);
-            _btnOpenProxy->Enable(allowed && showOpenProxy);
+            _btnOpenProxy->Enable(showOpenProxy);
 
             if (!_adapter || _adapter->GetController() != controller) {
                 _propGrid->Clear();
