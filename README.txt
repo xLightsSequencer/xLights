@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (alex)                  SubModels: Import Custom Model Overlay ignored the chosen alignment column (always
                                  left) and placed the overlay upside down; all 9 positions now work
+    -bug (alex)                  SubModels: Import Custom Model Overlay filled the empty cells of the outline,
+                                 importing it as a solid block instead of its shape
     -bug (derwin12)              Print Layout printed a different, shifted part of the layout than
                                  the dialog's preview showed
     -bug (derwin12)              FPP Connect / Discover could show most FPP controllers as unavailable
