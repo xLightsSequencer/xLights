@@ -45,23 +45,13 @@ int main(int argc, char **argv)
 
     #ifdef __WXMSW__
     {
-        // Turn on coloured console handling
+        // Turn on coloured console handling. When the output is redirected (a
+        // script reading xlDo's output) there is no console mode to set: run
+        // without colours instead of failing.
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (hOut == INVALID_HANDLE_VALUE) {
-            fprintf(stderr, "Error setting console mode.\n");
-            return 1;
-        }
-
         DWORD dwMode = 0;
-        if (!GetConsoleMode(hOut, &dwMode)) {
-            fprintf(stderr, "Error setting console mode.\n");
-            return 1;
-        }
-
-        dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-        if (!SetConsoleMode(hOut, dwMode)) {
-            fprintf(stderr, "Error setting console mode.\n");
-            return 1;
+        if (hOut != INVALID_HANDLE_VALUE && GetConsoleMode(hOut, &dwMode)) {
+            SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
         }
     }
     #endif

@@ -19,7 +19,7 @@ class Model;
 
 namespace CONTROLLER_CONNECTION_DEFAULTS {
 
-constexpr int DEFAULT_PROTOCOL_SPEED = 25000;
+constexpr int DEFAULT_PROTOCOL_SPEED = 250000;
 constexpr int DEFAULT_PORT = 0;
 constexpr int DEFAULT_NULLS = 0;
 constexpr int DEFAULT_BRIGHTNESS = 100;

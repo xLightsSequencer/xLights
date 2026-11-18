@@ -10,7 +10,9 @@
 #include <atomic>
 #include <chrono>
 #include <cstdio>
+#include <cstring>
 #include <exception>
+#include <typeinfo>
 #include <iomanip>
 #include <thread>
 #include <inttypes.h>
@@ -29,6 +31,7 @@
 #ifdef __WXMSW__
 #include <wx/msw/crashrpt.h>
 #include <wx/msw/seh.h>
+#include <wx/msw/wrapwin.h>
 #else
 #include <execinfo.h>
 #endif
@@ -68,6 +71,9 @@ struct ActivityEntry {
     int eventType = 0;
     int id = 0;
     wxChar const* eventClass = nullptr; // static storage from wxClassInfo
+    // CallAfter's wxAsyncMethodCallEvent subclass, whose type names the lambda
+    // and so the function that queued it.  Null for every other event.
+    std::type_info const* asyncType = nullptr;
     char const* note = nullptr;         // static storage from the caller
     uint32_t repeat = 0;                // extra consecutive occurrences
     char detail[48] = { 0 };
@@ -91,6 +97,16 @@ ActivityEntry& NextActivitySlot(uint64_t& seqOut)
 }
 
 bool g_activityFilterAdded = false;
+
+// Main thread only: the most recent CallAfter dispatched.
+std::type_info const* g_lastAsyncType = nullptr;
+uint64_t g_lastAsyncSeq = 0;
+
+// Set by NoteEventHandlerException.  Keyed by the exception so a later,
+// unrelated exception can't pick up a stale handler.
+thread_local std::exception_ptr t_notedException;
+thread_local bool t_notedValid = false;
+thread_local std::string t_notedContext;
 
 class xlActivityTraceFilter : public wxEventFilter
 {
@@ -139,6 +155,14 @@ public:
         e.id = id;
         wxClassInfo const* ci = event.GetClassInfo();
         e.eventClass = (ci != nullptr) ? ci->GetClassName() : nullptr;
+        e.asyncType = nullptr;
+        if (type == wxEVT_ASYNC_METHOD_CALL) {
+            e.asyncType = &typeid(event);
+            if (wxIsMainThread()) {
+                g_lastAsyncType = e.asyncType;
+                g_lastAsyncSeq = seq;
+            }
+        }
         e.note = nullptr;
         e.repeat = 0;
         e.detail[0] = '\0';
@@ -177,6 +201,7 @@ void xlCrashHandler::TraceNote(char const* text, std::string const& detail)
     e.eventType = 0;
     e.id = 0;
     e.eventClass = nullptr;
+    e.asyncType = nullptr;
     e.note = text;
     e.repeat = 0;
     std::snprintf(e.detail, sizeof(e.detail), "%s", detail.c_str());
@@ -212,9 +237,13 @@ wxString xlCrashHandler::FormatActivityTrace()
             if (e.repeat > 0) {
                 rep = wxString::Format("  x%u", e.repeat + 1);
             }
-            out += wxString::Format("%8u ms  evt   %-22s type=%d id=%d%s\n", e.millis,
+            wxString async;
+            if (e.asyncType != nullptr) {
+                async = "  " + wxString(fmt::format("{}", *e.asyncType));
+            }
+            out += wxString::Format("%8u ms  evt   %-22s type=%d id=%d%s%s\n", e.millis,
                                     (e.eventClass != nullptr) ? wxString(e.eventClass) : wxString("?"),
-                                    e.eventType, e.id, rep);
+                                    e.eventType, e.id, rep, async);
         }
     }
     return out;
@@ -602,9 +631,101 @@ std::string xlCrashHandler::DescribeCurrentException()
     return ::DescribeCurrentException();
 }
 
+namespace {
+// Where the handler's code is, as image+offset, so the crash report can be
+// resolved against the dSYM / .map like any other frame.  Release builds are
+// stripped, so a symbol name is a bonus rather than something to rely on.
+// A virtual method has no address in its member pointer, only a vtable slot.
+std::string DescribeEventMethod(wxEventFunctor& functor)
+{
+#if defined(__APPLE__) || defined(__WXMSW__)
+    wxEventFunction const method = functor.GetEvtMethod();
+    if (method == nullptr) {
+        return {};
+    }
+    uintptr_t code = 0;
+    static_assert(sizeof(method) >= sizeof(code));
+    std::memcpy(&code, &method, sizeof(code));
+#if defined(__APPLE__)
+    // Itanium ABI member pointer is {ptr, adj}; the "virtual" flag sits in
+    // ptr's low bit on x86_64, and in adj's low bit on arm64.
+    ptrdiff_t adj = 0;
+    std::memcpy(&adj, reinterpret_cast<char const*>(&method) + sizeof(code), sizeof(adj));
+#if defined(__aarch64__)
+    bool const isVirtual = (adj & 1) != 0;
+#else
+    bool const isVirtual = (code & 1) != 0;
+#endif
+    if (isVirtual) {
+        return fmt::format(", virtual method at vtable offset {}", code & ~uintptr_t(1));
+    }
+    Dl_info info;
+    if (dladdr(reinterpret_cast<void const*>(code), &info) != 0 && info.dli_fbase != nullptr) {
+        std::string image = (info.dli_fname != nullptr) ? std::filesystem::path(info.dli_fname).filename().string() : "?";
+        std::string res = fmt::format(", method {}+0x{:x}", image, code - reinterpret_cast<uintptr_t>(info.dli_fbase));
+        if (info.dli_sname != nullptr) {
+            res += fmt::format(" ({})", info.dli_sname);
+        }
+        return res;
+    }
+#else
+    // MSVC: a virtual method's pointer is a vcall thunk, which the .map still names.
+    HMODULE mod = nullptr;
+    if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                           reinterpret_cast<LPCWSTR>(code), &mod) && mod != nullptr) {
+        wchar_t path[MAX_PATH] = { 0 };
+        GetModuleFileNameW(mod, path, MAX_PATH);
+        return fmt::format(", method {} RVA 0x{:x}", std::filesystem::path(path).filename().string(),
+                           code - reinterpret_cast<uintptr_t>(mod));
+    }
+#endif
+    return fmt::format(", method at 0x{:x}", code);
+#else
+    return {};
+#endif
+}
+} // namespace
+
+void xlCrashHandler::NoteEventHandlerException(wxEvtHandler* handler, wxEventFunctor& functor, wxEvent& event)
+{
+    // Nested dispatch rethrows through every enclosing handler; the innermost
+    // one, which got here first, is the one that threw.
+    std::exception_ptr const cur = std::current_exception();
+    if (t_notedValid && cur == t_notedException) {
+        return;
+    }
+    t_notedException = cur;
+    t_notedValid = true;
+    // Anything escaping from here would replace the exception being reported.
+    try {
+        // typeid of a polymorphic object reads its vtable; the handler can be
+        // mid-destruction here, which yields a base class name rather than a fault.
+        t_notedContext = fmt::format(" (while {} handled {} type={} id={}, functor {}{})",
+                                     handler != nullptr ? fmt::format("{}", typeid(*handler)) : std::string("null handler"),
+                                     fmt::format("{}", typeid(event)), (int)event.GetEventType(), event.GetId(),
+                                     fmt::format("{}", typeid(functor)), DescribeEventMethod(functor));
+    } catch (...) {
+        t_notedContext.clear();
+    }
+}
+
+std::string xlCrashHandler::DescribeExceptionContext()
+{
+    if (t_notedValid && std::current_exception() == t_notedException) {
+        return t_notedContext;
+    }
+    // No handler saw it, so it came from a CallAfter (or from wx itself).
+    if (wxIsMainThread() && g_lastAsyncType != nullptr) {
+        uint64_t const since = g_activitySeq.load(std::memory_order_relaxed) - g_lastAsyncSeq;
+        return fmt::format(" (no event handler saw it; most recent CallAfter: {}, {} trace entries ago)",
+                           *g_lastAsyncType, since);
+    }
+    return {};
+}
+
 void xlCrashHandler::HandleUnhandledException()
 {
-    HandleCrash(true, DescribeCurrentException(), SessionType::UnhandledException);
+    HandleCrash(true, DescribeCurrentException() + DescribeExceptionContext(), SessionType::UnhandledException);
     wxAbort();
 }
 

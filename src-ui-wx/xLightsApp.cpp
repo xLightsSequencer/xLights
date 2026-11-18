@@ -1178,6 +1178,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
         { wxCMD_LINE_SWITCH, "hl", "headless", "render sequence(s) to fseq with no window and exit" },
         { wxCMD_LINE_SWITCH, "fc", "fseqcmp", "compare two .fseq files channel-for-channel and exit (0=identical)" },
+        { wxCMD_LINE_SWITCH, "fh", "fseqhash", "print a stable content hash of each .fseq (per-model with -s) and exit; ignores the header's per-run uniqueId" },
         { wxCMD_LINE_SWITCH, "st", "shadertranslate", "assemble every .fs shader in the show dir to GLSL (spike) and exit" },
         { wxCMD_LINE_SWITCH, "cs", "checksequence", "run check sequence and exit" },
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
@@ -1366,7 +1367,7 @@ bool xLightsApp::OnInit()
             sequenceFiles.Clear();
         }
 
-        if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !parser.Found("hl") && !parser.Found("fc") && !parser.Found("st") && !info.empty() && readOnlyZipFile == "")
+        if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !parser.Found("hl") && !parser.Found("fc") && !parser.Found("fh") && !parser.Found("st") && !info.empty() && readOnlyZipFile == "")
         {
             if (parser.Found("q")) {
                 spdlog::info("Command line notices (dialog suppressed by -q):\n{}", (const char*)info.c_str());
@@ -1480,6 +1481,107 @@ bool xLightsApp::OnInit()
         printf("native VS+FS -> MTLRenderPipelineState: %d ok, %d fail (of %d assembled)\n",
                nativeOk, nativeFail, assembled);
         std::exit(0);
+    }
+
+    // ---- fseq content hash: a stable fingerprint of what a render produced,
+    // for golden manifests. Hashes the decoded full-width channel data (robust
+    // to sparse vs non-sparse layout) plus frame count / step time, and never
+    // the header's per-run uniqueId, so identical renders hash identically.
+    // With -s, also prints one hash per non-group model's channel range so a
+    // mismatch names the model. Exit 0 = every file hashed, 2 = bad args/open.
+    if (parser.Found("fh")) {
+#ifdef __APPLE__
+        SetHeadlessNoDock();
+#endif
+        if (sequenceFiles.IsEmpty()) {
+            printf("--fseqhash requires at least one .fseq file argument\n");
+            std::exit(2);
+        }
+        std::unique_ptr<HeadlessRenderContext> hashShow;
+        if (!showDir.IsEmpty()) {
+            ObtainAccessToURL(showDir.ToStdString(), false);
+            auto c = std::make_unique<HeadlessRenderContext>();
+            std::list<std::string> mf;
+            if (c->LoadShowFolder(showDir.ToStdString(), mf)) {
+                hashShow = std::move(c);
+            } else {
+                printf("--fseqhash: could not load show '%s'; per-model hashes skipped\n", showDir.ToStdString().c_str());
+            }
+        }
+        constexpr uint64_t FNV_OFFSET = 1469598103934665603ULL;
+        constexpr uint64_t FNV_PRIME = 1099511628211ULL;
+        // FNV-1a over 8-byte lanes (little-endian load) so a big show hashes in
+        // seconds; the tail falls back to bytes. Not cryptographic - it only
+        // has to notice change.
+        auto fnv = [&](uint64_t h, const uint8_t* d, size_t n) {
+            size_t i = 0;
+            for (; i + 8 <= n; i += 8) {
+                uint64_t w;
+                memcpy(&w, d + i, 8);
+                h = (h ^ w) * FNV_PRIME;
+                h ^= h >> 29;
+            }
+            for (; i < n; ++i) {
+                h = (h ^ d[i]) * FNV_PRIME;
+            }
+            return h;
+        };
+        auto fnvU64 = [&](uint64_t h, uint64_t v) {
+            uint8_t b[8];
+            for (int i = 0; i < 8; ++i) b[i] = (uint8_t)(v >> (8 * i));
+            return fnv(h, b, 8);
+        };
+        int rc = 0;
+        for (const auto& wxp : sequenceFiles) {
+            const std::string path = wxp.ToStdString();
+            ObtainAccessToURL(path, false);
+            std::unique_ptr<FSEQFile> f(FSEQFile::openFSEQFile(path));
+            if (!f) {
+                printf("--fseqhash: could not open %s\n", path.c_str());
+                rc = 2;
+                continue;
+            }
+            f->setReadPattern(FSEQFile::ReadPattern::Bulk);
+            const uint32_t maxCh = (uint32_t)f->getMaxChannel();
+            const uint64_t frames = f->getNumFrames();
+            std::vector<std::pair<uint32_t, uint32_t>> rng{ { 0, maxCh } };
+            f->prepareRead(rng);
+
+            struct MR { std::string name; uint32_t first; uint32_t last; uint64_t h; };
+            std::vector<MR> models;
+            if (hashShow) {
+                for (auto it = hashShow->AllModels.begin(); it != hashShow->AllModels.end(); ++it) {
+                    Model* m = it->second;
+                    if (m == nullptr || m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+                    const uint32_t first = m->GetFirstChannel();
+                    const uint32_t cc = m->GetChanCount();
+                    if (cc == 0 || first >= maxCh) continue;
+                    models.push_back({ it->first, first, (uint32_t)std::min<uint64_t>((uint64_t)first + cc, maxCh), FNV_OFFSET });
+                }
+            }
+            uint64_t h = fnvU64(fnvU64(fnvU64(FNV_OFFSET, frames), maxCh), (uint64_t)f->getStepTime());
+            std::vector<uint8_t> buf(maxCh, 0);
+            for (uint64_t fr = 0; fr < frames; ++fr) {
+                std::fill(buf.begin(), buf.end(), 0);
+                FSEQFile::FrameData* d = f->getFrame((uint32_t)fr);
+                if (d) { d->readFrame(buf.data(), maxCh); delete d; }
+                h = fnv(h, buf.data(), maxCh);
+                for (auto& m : models) {
+                    m.h = fnv(m.h, buf.data() + m.first, m.last - m.first);
+                }
+            }
+            std::string base = path;
+            const size_t slash = base.find_last_of("/\\");
+            if (slash != std::string::npos) base = base.substr(slash + 1);
+            printf("%s  frames=%llu channels=%u step=%d  %016llx\n", base.c_str(),
+                   (unsigned long long)frames, maxCh, f->getStepTime(), (unsigned long long)h);
+            std::sort(models.begin(), models.end(), [](const MR& a, const MR& b) { return a.name < b.name; });
+            for (const auto& m : models) {
+                printf("  model %s  %016llx\n", m.name.c_str(), (unsigned long long)m.h);
+            }
+        }
+        fflush(stdout);
+        std::exit(rc);
     }
 
     // ---- fseq comparison utility: decode two .fseq files to full-width

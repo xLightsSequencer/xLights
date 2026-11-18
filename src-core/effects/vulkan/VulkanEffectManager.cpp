@@ -34,6 +34,10 @@ public:
     virtual bool enabled() override {
         return isEnabled && VulkanComputeUtilities::INSTANCE.computeEnabled();
     }
+    virtual std::string backendStatus() override {
+        VulkanComputeUtilities::INSTANCE.computeEnabled(); // brings it up if nothing has yet
+        return VulkanComputeUtilities::INSTANCE.status + (isEnabled ? "" : " (GPU rendering preference is off)");
+    }
     virtual bool preferenceEnabled() override {
         return isEnabled;
     }

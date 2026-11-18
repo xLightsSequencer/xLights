@@ -302,7 +302,6 @@ private:
     void CreateSubmodel(const std::string& name, const std::list<std::string>& nodes);
     void FixNodes(pugi::xml_node n, const std::string& attribute, std::map<int, int>& nodeMap);
 
-    int CalculateAlignmentOffset(int alignment, int targetSize, int sourceSize);
     SubModelInfo* CreateSubModelFromCustomModelData(
         const struct XmlSerialize::CustomModelImportData& customModel,
         const wxString& name,

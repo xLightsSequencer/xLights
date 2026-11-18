@@ -42,6 +42,7 @@
 #include <appmodel.h> // GetCurrentPackageFullName
 #endif
 
+#include <algorithm>
 #include <filesystem>
 #include <mutex>
 #include <system_error>
@@ -421,10 +422,26 @@ void LoadWindowPosition(const std::string& tag, wxSize& size, wxPoint& position)
     wxArrayString ss = wxSplit(pos, '|');
 
     if (ss.size() == 4) {
-        position.x = wxAtoi(ss[0]);
-        position.y = wxAtoi(ss[1]);
-        size.SetWidth(wxAtoi(ss[2]));
-        size.SetHeight(wxAtoi(ss[3]));
+        wxPoint p(wxAtoi(ss[0]), wxAtoi(ss[1]));
+        wxSize s(wxAtoi(ss[2]), wxAtoi(ss[3]));
+
+        // A position saved on a monitor that is no longer attached would open
+        // the window where nobody can see it (and, for a modal dialog, make
+        // xLights look hung). Only restore it if enough of the title bar lands
+        // on a current display to grab and drag.
+        int headerHeight = std::max(wxSystemSettings::GetMetric(wxSYS_CAPTION_Y), 20);
+        // const so Intersect() returns a new rect instead of shrinking header in place.
+        const wxRect header(p.x, p.y, std::max(s.GetWidth(), 1), headerHeight);
+        int needed = std::min(100, header.GetWidth());
+        bool onScreen = false;
+        for (unsigned int i = 0; i < wxDisplay::GetCount() && !onScreen; ++i) {
+            wxRect visible = header.Intersect(wxDisplay(i).GetClientArea());
+            onScreen = visible.GetWidth() >= needed && visible.GetHeight() > 0;
+        }
+        if (onScreen) {
+            position = p;
+            size = s;
+        }
     }
 }
 

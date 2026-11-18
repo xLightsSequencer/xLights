@@ -326,6 +326,12 @@ void PinwheelEffect::adjustColor(PinwheelEffect::Pinwheel3DType pw3dType, xlColo
     }
 }
 
+namespace {
+inline float snapToGrid(float v) {
+    return std::nearbyint(v * 1024.f) / 1024.f;
+}
+}
+
 void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
     int base_degrees, int max_radius, int pinwheel_twist,
     int xc_adj, int yc_adj, int colorIdx, PinwheelEffect::Pinwheel3DType pw3dType, float round)
@@ -352,8 +358,10 @@ void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
             int degrees_twist = (r / max_radius) * pinwheel_twist;
             int degrees = base_degrees + degrees_twist;
             float phi = degrees * pi_180;
-            int x = r * buffer.cos(phi) + xc;
-            int y = r * buffer.sin(phi) + yc;
+            // r * cos(phi) is exactly an integer for many (r, angle) pairs (60 degrees gives r / 2), so
+            // the truncation flips on one ulp of cos() between libms and CPUs. Snap to a 1/1024 grid first.
+            int x = (int)snapToGrid(r * buffer.cos(phi) + xc);
+            int y = (int)snapToGrid(r * buffer.sin(phi) + yc);
 
             if (isSpatial) {
                 buffer.palette.GetSpatialColor(colorIdx, xc, yc, x, y, round, max_radius, color);

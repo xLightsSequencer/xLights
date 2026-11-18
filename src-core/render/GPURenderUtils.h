@@ -1,6 +1,8 @@
 #pragma once
 
+#include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -8,6 +10,14 @@
 
 class PixelBufferClass;
 class RenderBuffer;
+
+struct GPURenderStats {
+    std::atomic<uint64_t> effect{ 0 }; // effect dispatches (the backends call GPURenderUtils::NoteEffect)
+    std::atomic<uint64_t> blur{ 0 };
+    std::atomic<uint64_t> rotoZoom{ 0 };
+    std::atomic<uint64_t> transition{ 0 };
+    std::atomic<uint64_t> blend{ 0 };
+};
 
 class GPURenderUtils {
 public:
@@ -21,6 +31,11 @@ public:
     // device - see VulkanComputeUtilities::computeWorthwhile) can still serve
     // it, and IsEnabled() would wrongly send it to a solid-colour fill.
     static bool IsPreferenceEnabled() { return INSTANCE != nullptr && INSTANCE->preferenceEnabled(); }
+    // The backend and device, and why compute is off when it is - for a log,
+    // a report or a skipped test.
+    static std::string Status() {
+        return INSTANCE == nullptr ? std::string("no GPU backend in this build") : INSTANCE->backendStatus();
+    }
     static void SetEnabled(bool b) {
         if (INSTANCE) {
             INSTANCE->enable(b);
@@ -73,8 +88,9 @@ public:
         }
     };
     static bool Blur(RenderBuffer *buffer, int radius) {
-        if (INSTANCE) {
-            return INSTANCE->doBlur(buffer, radius);
+        if (INSTANCE && INSTANCE->doBlur(buffer, radius)) {
+            ++stats.blur;
+            return true;
         }
         return false;
     };
@@ -124,28 +140,49 @@ public:
         float zoomquality;
         int pivotpointx;
         int pivotpointy;
+
+        // Derived from the above for one buffer size by PixelBufferClass, so the
+        // CPU and GPU rotations work from identical bits (GPU sin/cos and float
+        // division are not the CPU's).
+        float xsine = 0;    // sin((xrotation + 90) deg)
+        float xpivotPx = 0; // xpivot * width / 100, integer division
+        float ysine = 0;
+        float ypivotPx = 0;
+        float zcos = 1;     // cos/sin of the z rotation angle
+        float zsin = 0;
+        float zxoff = 0;    // pivotpointx * width / 100.0
+        float zyoff = 0;
+        float zinc = 1;     // 1 / zoomquality
     };
     
     static bool RotoZoom(RenderBuffer *buffer, RotoZoomSettings &settings) {
-        if (INSTANCE) {
-            return INSTANCE->doRotoZoom(buffer, settings);
+        if (INSTANCE && INSTANCE->doRotoZoom(buffer, settings)) {
+            ++stats.rotoZoom;
+            return true;
         }
         return false;
     };
     
     static bool Transitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) {
-        if (INSTANCE) {
-            return INSTANCE->doTransitions(pixelBuffer, layer, prevRB);
+        if (INSTANCE && INSTANCE->doTransitions(pixelBuffer, layer, prevRB)) {
+            ++stats.transition;
+            return true;
         }
         return false;
     }
     
     static bool BlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
-        if (INSTANCE) {
-            return INSTANCE->doBlendLayers(pixelBuffer, effectPeriod, validLayers, saveLayer, saveToPixels);
+        if (INSTANCE && INSTANCE->doBlendLayers(pixelBuffer, effectPeriod, validLayers, saveLayer, saveToPixels)) {
+            ++stats.blend;
+            return true;
         }
         return false;
     }
+
+    // How much work the GPU backend took, whichever backend it is. Lets a test
+    // tell a GPU render from a quiet fallback to the CPU.
+    static inline GPURenderStats stats;
+    static void NoteEffect() { ++stats.effect; }
 protected:
     GPURenderUtils() { INSTANCE = this; }
     virtual ~GPURenderUtils() { INSTANCE = nullptr; };
@@ -153,6 +190,7 @@ protected:
     // Default: same answer as enabled().  A backend whose enabled() folds in
     // more than the preference overrides this (see VulkanRenderUtils).
     virtual bool preferenceEnabled() { return enabled(); }
+    virtual std::string backendStatus() { return "unknown"; }
     virtual void enable(bool b) = 0;
     virtual void doCleanUp(PixelBufferClass *c) = 0;
     virtual void doCleanUp(RenderBuffer *c) = 0;

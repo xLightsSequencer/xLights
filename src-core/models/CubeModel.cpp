@@ -499,8 +499,8 @@ void CubeModel::GetBufferSize(const std::string& tp, const std::string& camera, 
     }
     else if (type == "Unique X and Y X")
     {
-        BufferWi = height * width;
-        BufferHi = depth * width;
+        BufferWi = depth * width;
+        BufferHi = height * width;
     }
     else if (type == "Unique X and Y Y")
     {
@@ -642,7 +642,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
         for (size_t n = 0; n < Nodes.size(); n++)
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]);
-            Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + depth * std::get<2>(locations[n]);
+            Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + height * std::get<2>(locations[n]);
         }
     }
     else if (type == "Overlaid X")
@@ -690,7 +690,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& tp, const std::string& 
         for (size_t n = 0; n < Nodes.size(); n++)
         {
             Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + std::get<2>(locations[n]) * width;
-            Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + std::get<1>(locations[n]) * height;
+            Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + std::get<2>(locations[n]) * height;
         }
     }
     else if (type == "Left Side")

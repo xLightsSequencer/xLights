@@ -58,28 +58,18 @@ public:
                 return false;
             }
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"TwinkleEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                [computeEncoder setBytes:&td length:sizeof(td) atIndex:0];
+                [computeEncoder setBuffer:stateBuffer offset:0 atIndex:1];
+                [computeEncoder setBuffer:lutBuffer offset:0 atIndex:2];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:3];
+
+                NSInteger strobeCount = td.curNumStrobe;
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, fn, strobeCount);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"TwinkleEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            [computeEncoder setBytes:&td length:sizeof(td) atIndex:0];
-            [computeEncoder setBuffer:stateBuffer offset:0 atIndex:1];
-            [computeEncoder setBuffer:lutBuffer offset:0 atIndex:2];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:3];
-
-            NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
-            NSInteger strobeCount = td.curNumStrobe;
-            NSInteger threads = std::min(strobeCount, maxThreads);
-            MTLSize gridSize = MTLSizeMake(strobeCount, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
 
             rbcd->commit();
             rbcd->waitForCompletion();

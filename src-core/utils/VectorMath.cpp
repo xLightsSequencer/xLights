@@ -324,18 +324,18 @@ glm::quat VectorMath::rotationBetweenVectors(const glm::vec3 &start, const glm::
 
         // now normalize it and ask for a 
         rotAxis = glm::normalize(rotAxis);
-        return glm::quat(180.0f, rotAxis);
+        return glm::quat(0.0f, rotAxis.x, rotAxis.y, rotAxis.z);
     }
 
     // otherwise, the angle was fine (not close to pi rotation), so
     // find the rotation axis which is the cross product
-    rotAxis = glm::normalize(glm::cross(startn, destn));
+    rotAxis = glm::cross(startn, destn);
 
     float s = sqrt((1 + cosTheta) * 2);
     float invs = 1 / s;
 
     // otherwise return the rotation
-    return glm::quat(s *.5f, rotAxis.x * invs, rotAxis.y * invs, rotAxis.z*invs);
+    return glm::quat(s *.5f, rotAxis.x * invs, rotAxis.y * invs, rotAxis.z * invs);
 }
 
 glm::mat4 VectorMath::rotMatrixFromXAxisToVector(const glm::vec3 &vector)

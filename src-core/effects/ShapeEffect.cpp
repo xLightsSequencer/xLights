@@ -598,7 +598,12 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             for (int i = _shapes.size(); i < count; ++i) {
                 xlPoint pt;
                 if (randomLocation) {
-                    pt = xlPoint(buffer.rand01() * buffer.BufferWi, buffer.rand01() * buffer.BufferHt);
+                    {
+                        // Separate statements: argument evaluation order is unspecified and differs by compiler.
+                        double rx = buffer.rand01() * buffer.BufferWi;
+                        double ry = buffer.rand01() * buffer.BufferHt;
+                        pt = xlPoint(rx, ry);
+                    }
                 } else {
                     pt = xlPoint(xc, yc);
                 }
@@ -657,7 +662,12 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                         xlPoint pt;
                         if (randomLocation)
                         {
-                            pt = xlPoint(buffer.rand01() * buffer.BufferWi, buffer.rand01() * buffer.BufferHt);
+                            {
+                                // Separate statements: argument evaluation order is unspecified and differs by compiler.
+                                double rx = buffer.rand01() * buffer.BufferWi;
+                                double ry = buffer.rand01() * buffer.BufferHt;
+                                pt = xlPoint(rx, ry);
+                            }
                         }
                         else
                         {
@@ -689,7 +699,12 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                 xlPoint pt;
                 if (randomLocation)
                 {
-                    pt = xlPoint(buffer.rand01() * buffer.BufferWi, buffer.rand01() * buffer.BufferHt);
+                    {
+                        // Separate statements: argument evaluation order is unspecified and differs by compiler.
+                        double rx = buffer.rand01() * buffer.BufferWi;
+                        double ry = buffer.rand01() * buffer.BufferHt;
+                        pt = xlPoint(rx, ry);
+                    }
                 }
                 else
                 {
@@ -726,7 +741,12 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             xlPoint pt;
             if (randomLocation)
             {
-                pt = xlPoint(buffer.rand01() * buffer.BufferWi, buffer.rand01() * buffer.BufferHt);
+                {
+                    // Separate statements: argument evaluation order is unspecified and differs by compiler.
+                    double rx = buffer.rand01() * buffer.BufferWi;
+                    double ry = buffer.rand01() * buffer.BufferHt;
+                    pt = xlPoint(rx, ry);
+                }
             }
             else
             {

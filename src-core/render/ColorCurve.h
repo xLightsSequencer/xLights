@@ -33,9 +33,9 @@ public:
         return std::round(v * CC_X_POINTS) / CC_X_POINTS;
     }
 
-	float x; // 0-1 ... the start point of this point
+	float x = 0.0f; // 0-1 ... the start point of this point
 	xlColor color; // the colour of the mid point of this
-    bool donext;
+    bool donext = false;
 
     bool DoNext() const
     {
@@ -58,13 +58,9 @@ public:
 
     void Deserialise(const std::string &s)
     {
-        if (s.empty())
+        if (s.empty() || s.find('^') == std::string::npos)
         {
-            throw;
-        }
-        else if (s.find('^') == std::string::npos)
-        {
-            throw;
+            return;
         }
         else
         {

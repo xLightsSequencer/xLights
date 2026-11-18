@@ -105,8 +105,8 @@ trap cleanup EXIT
 
 ZIP="$TMP_DIR/$ASSET"
 URL="$BASE_URL/$ASSET"
-echo "fetch_klightmapper: downloading $URL"
-if ! curl -fL --retry 3 -o "$ZIP" "$URL"; then
+. "$SCRIPT_DIR/gh_release_fetch.sh"
+if ! gh_release_fetch KulpLights/KLightMapper "$VERSION" "$ASSET" "$ZIP"; then
     echo "fetch_klightmapper: download failed ($URL) — camera scan will be disabled." >&2
     exit 1
 fi

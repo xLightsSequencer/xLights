@@ -89,14 +89,29 @@ bool WriteMapHintsFile(const std::string& path, const std::vector<MapHintEntry>&
         std::fwrite(s.data(), 1, s.size(), f);
     };
 
+    auto writeEscaped = [&](const std::string& s) {
+        std::string out;
+        out.reserve(s.size());
+        for (char c : s) {
+            switch (c) {
+            case '&': out += "&amp;"; break;
+            case '<': out += "&lt;"; break;
+            case '>': out += "&gt;"; break;
+            case '"': out += "&quot;"; break;
+            default: out += c; break;
+            }
+        }
+        writeStr(out);
+    };
+
     writeStr("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<MapHints>\n");
     for (const auto& e : entries) {
         writeStr("    <Map ToRegex=\"");
-        writeStr(e.toRegex);
+        writeEscaped(e.toRegex);
         writeStr("\" FromModel=\"");
-        writeStr(e.fromModel);
+        writeEscaped(e.fromModel);
         writeStr("\" ApplyTo=\"");
-        writeStr(e.applyTo.empty() ? std::string("B") : e.applyTo);
+        writeEscaped(e.applyTo.empty() ? std::string("B") : e.applyTo);
         writeStr("\" />\n");
     }
     writeStr("<!-- Samples\n");

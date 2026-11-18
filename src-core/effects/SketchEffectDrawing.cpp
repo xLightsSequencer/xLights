@@ -769,7 +769,8 @@ void SketchEffectSketch::getProgressPosition( double progress, double& x, double
 
 void SketchLine::getProgressPosition( double partialLength, double& x, double& y )
 {
-    double percent = partialLength / Length();
+    double len = Length();
+    double percent = (len > 0.0) ? partialLength / len : 0.0; // a repeated point has no length
     x = m_fromPt.x + percent * (m_toPt.x - m_fromPt.x);
     y = m_fromPt.y + percent * (m_toPt.y - m_fromPt.y);
 }

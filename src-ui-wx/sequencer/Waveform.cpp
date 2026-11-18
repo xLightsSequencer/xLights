@@ -1000,14 +1000,14 @@ bool Waveform::PrepareStemData(bool sixStem)
         }
     }
 
-    _media->SetStemData(
-        stems.drumsL, stems.drumsR,
-        stems.bassL,  stems.bassR,
-        stems.otherL, stems.otherR,
-        stems.vocalsL, stems.vocalsR,
-        stems.guitarL, stems.guitarR,
-        stems.pianoL,  stems.pianoR);
     SaveStemTracksAsAltTracks(stems);
+    _media->SetStemData(
+        std::move(stems.drumsL), std::move(stems.drumsR),
+        std::move(stems.bassL),  std::move(stems.bassR),
+        std::move(stems.otherL), std::move(stems.otherR),
+        std::move(stems.vocalsL), std::move(stems.vocalsR),
+        std::move(stems.guitarL), std::move(stems.guitarR),
+        std::move(stems.pianoL),  std::move(stems.pianoR));
     return true;
 }
 #endif // HAVE_OPENVINO  || HAVE_ORT
@@ -1243,12 +1243,12 @@ bool Waveform::PrepareStemData(bool /*sixStem*/)
         }
     }
 
-    _media->SetStemData(
-        stems.drumsL, stems.drumsR,
-        stems.bassL,  stems.bassR,
-        stems.otherL, stems.otherR,
-        stems.vocalsL, stems.vocalsR);
     SaveStemTracksAsAltTracks(stems);
+    _media->SetStemData(
+        std::move(stems.drumsL), std::move(stems.drumsR),
+        std::move(stems.bassL),  std::move(stems.bassR),
+        std::move(stems.otherL), std::move(stems.otherR),
+        std::move(stems.vocalsL), std::move(stems.vocalsR));
     return true;
 }
 #endif

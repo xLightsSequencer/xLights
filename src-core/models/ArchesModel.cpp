@@ -274,7 +274,9 @@ void ArchesModel::SetLayerdArchCoord(int arches, int maxLen)
         size_t CoordCount = GetCoordCount(n);
         double adj = 1.0 - archgap * (arches - 1 - Nodes[n]->Coords[0].bufY);
         for (size_t c = 0; c < CoordCount; c++) {
-            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * _lightsPerNode + c)) / midpt / 2.0;
+            // An arch of a single light has no span to spread over (midpt is 0); it sits at the top.
+            double along = midpt > 0 ? ((double)(Nodes[n]->Coords[c].bufX * _lightsPerNode + c)) / midpt / 2.0 : 0.5;
+            double angle2 = -M_PI / 2.0 + start + total * along;
             x = midpt * sin(angle2) * 2.0 * adj + maxLen * _lightsPerNode;
             double y = (maxLen * _lightsPerNode) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;
@@ -318,7 +320,9 @@ void ArchesModel::SetArchCoord()
         double xoffset = Nodes[n]->StringNum * width;
         size_t CoordCount = GetCoordCount(n);
         for (size_t c = 0; c < CoordCount; c++) {
-            double angle2 = -M_PI / 2.0 + start + total * ((double)(Nodes[n]->Coords[c].bufX * _lightsPerNode + c)) / midpt / 2.0;
+            // An arch of a single light has no span to spread over (midpt is 0); it sits at the top.
+            double along = midpt > 0 ? ((double)(Nodes[n]->Coords[c].bufX * _lightsPerNode + c)) / midpt / 2.0 : 0.5;
+            double angle2 = -M_PI / 2.0 + start + total * along;
             x = xoffset + midpt * sin(angle2) * 2.0 + _nodesPerArch * _lightsPerNode + gaps * _gap;
             double y = (_nodesPerArch * _lightsPerNode) * cos(angle2);
             Nodes[n]->Coords[c].screenX = x;

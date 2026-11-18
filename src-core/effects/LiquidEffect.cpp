@@ -328,14 +328,17 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
         res.push_back(fmt::format("    WARN: Liquid effect cant change flow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
-    int frameInterval = 50;
-    if (media != nullptr)
-        frameInterval = media->GetFrameInterval();
-    int lifetimeFrames = (1.1 * GetValueCurveIntMax("LifeTime", sLifeTimeDefault, settings, sLifeTimeMin, sLifeTimeMax)) / 100 * frameInterval / 1000; // this is the lifetime in frames
-    if (lifetimeFrames == 0) {
-        lifetimeFrames = (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / frameInterval;
-    }
-    lifetimeFrames = std::min(lifetimeFrames, (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / frameInterval);
+    // CreateParticles() gives each particle LifeTime/100 seconds scaled by a
+    // random 0.99..1.19, about 1.1 on average, so the steady-state count is
+    // 1.1 * lifetime_seconds * total_per_sec regardless of frame rate. The
+    // effect can only get that far if it runs that long, and Warm Up Time
+    // runs the simulation before the effect starts.
+    const double lifeTimeSec = 1.1 * GetValueCurveIntMax("LifeTime", sLifeTimeDefault, settings, sLifeTimeMin, sLifeTimeMax) / 100.0;
+    const double runSec = (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / 1000.0 +
+                          settings.GetInt("E_TEXTCTRL_WarmUpTime", sWarmUpTimeDefault) / 100.0;
+    // LifeTime 0 disables age-based destruction (CreateParticleSystem() only
+    // enables it when lifetime > 0), so particles live for the whole run.
+    const double lifetimeSec = lifeTimeSec > 0.0 ? std::min(lifeTimeSec, runSec) : runSec;
     // Flow is now in particles-per-second (frame-rate independent),
     // mapped through linear/exponential curve. Estimated steady-state
     // particle count = lifetime_seconds * total_per_sec, which is
@@ -349,8 +352,7 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
     int flow3 = settings.GetBool("E_CHECKBOX_Enabled3", sEnabled3Default) ? GetValueCurveIntMax("Flow3", sFlow3Default, settings, sFlowMin, sFlowMax) : 0;
     int flow4 = settings.GetBool("E_CHECKBOX_Enabled4", sEnabled4Default) ? GetValueCurveIntMax("Flow4", sFlow4Default, settings, sFlowMin, sFlowMax) : 0;
     const float totalPerSec = flowToPerSec(flow1) + flowToPerSec(flow2) + flowToPerSec(flow3) + flowToPerSec(flow4);
-    const float lifetimeSec = (float)lifetimeFrames * (float)frameInterval / 1000.0f;
-    int count = (int)(lifetimeSec * totalPerSec);
+    const int count = (int)(lifetimeSec * totalPerSec);
 
     if (count > MAX_PARTICLES) {
         res.push_back(fmt::format("    WARN: Liquid effect lifetime * (flow 1 + flow 2 + flow 3 + flow 4) = {} exceeds {}. Particle count will be limited. Model '{}', Start {}", count, MAX_PARTICLES, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));

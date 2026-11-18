@@ -15,6 +15,7 @@
 
 #include "IPOutput.h"
 #include "SocketAbstraction.h"
+#include <algorithm>
 
 #pragma region E1.31 Constants
 #define E131_PACKET_HEADERLEN 126
@@ -66,7 +67,7 @@ public:
 
     #pragma region Getters and Setters
     virtual int GetPriority() const { return _priority; }
-    virtual void SetPriority(int priority) { if (_priority != priority) { _priority = priority; _dirty = true; } }
+    virtual void SetPriority(int priority) { priority = std::clamp(priority, 0, 200); if (_priority != priority) { _priority = (uint8_t)priority; _dirty = true; } }
 
     virtual std::string GetType() const override { return OUTPUT_E131; }
 

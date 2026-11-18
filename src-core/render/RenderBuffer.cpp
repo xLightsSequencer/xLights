@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <unordered_set>
 #ifdef _MSC_VER
 	// required so M_PI will be defined by MSC
 	#define _USE_MATH_DEFINES
@@ -209,14 +208,14 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     //wxASSERT(NumPixels < 500000);
 
     if (NumPixels != pixelVector.size()) {
-        bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
+        bool resetPtr = pixelVector.size() == 0 || pixels == pixelVector.data();
         pixelVector.resize(NumPixels);
         if (resetPtr) {
             // If the pixels ptr did not point to the first element
             // originally, then it is pointing into GPU memory and we need
             // to keep that pointer pointing there so the data can be retreived
             // from the GPU.
-            pixels = &pixelVector[0];
+            pixels = pixelVector.data();
         }
         // tempbufVector is lazily allocated (most effects never touch tempbuf -
         // see ensureTempBuf()); only keep it in step with the pixel count if
@@ -240,21 +239,6 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     }
     if (indexVector.size() < (size_t)indexCount) {
         indexVector.resize(indexCount);
-    }
-    // Groups can legitimately contain the same channels twice (e.g. a group
-    // listing both a nested group and that group's members).  GetColors'
-    // parallel path would let those nodes race for fdata[ActChan], so flag
-    // the buffer and let callers fall back to the serial last-node-wins loop.
-    dupActChans = false;
-    {
-        std::unordered_set<uint32_t> seen;
-        seen.reserve(Nodes.size());
-        for (auto &n : Nodes) {
-            if (!seen.insert(n->ActChan).second) {
-                dupActChans = true;
-                break;
-            }
-        }
     }
     allSimpleIndex = true;
     int idx = 0;
@@ -429,10 +413,10 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool 
         while (y < 0) {
             y += BufferHt;
         }
-        while (x > BufferWi) {
+        while (x >= BufferWi) {
             x -= BufferWi;
         }
-        while (y > BufferHt) {
+        while (y >= BufferHt) {
             y -= BufferHt;
         }
     }
@@ -506,10 +490,10 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
         while (y < 0) {
             y += BufferHt;
         }
-        while (x > BufferWi) {
+        while (x >= BufferWi) {
             x -= BufferWi;
         }
-        while (y > BufferHt) {
+        while (y >= BufferHt) {
             y -= BufferHt;
         }
     }
@@ -1348,7 +1332,7 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     rngLayerIndex = buffer.rngLayerIndex;
     rngSeededForPeriod = buffer.rngSeededForPeriod;
 
-    pixels = &pixelVector[0];
+    pixels = pixelVector.data();
     _textDrawingContext = buffer._textDrawingContext;
     gpuRenderData = nullptr;
 }

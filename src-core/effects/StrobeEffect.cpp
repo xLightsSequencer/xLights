@@ -213,8 +213,10 @@ std::unique_ptr<EffectFrameState> StrobeEffect::AdvanceState(Effect *effect, con
             ColorIdx = buffer.randInt(0, (int)colorcnt - 1);
             buffer.palette.GetHSV(ColorIdx, hsv); // take first checked color as color of flash
             buffer.palette.GetColor(ColorIdx, color); // take first checked color as color of flash
-            strobe.push_back(StrobeClass(buffer.randInt(0, buffer.BufferWi - 1),
-                buffer.randInt(0, buffer.BufferHt - 1), i % StrobeDuration, hsv, color));
+            // Separate statements: argument evaluation order is unspecified and differs by compiler.
+            int sx = buffer.randInt(0, buffer.BufferWi - 1);
+            int sy = buffer.randInt(0, buffer.BufferHt - 1);
+            strobe.push_back(StrobeClass(sx, sy, i % StrobeDuration, hsv, color));
         }
     }
 
@@ -225,8 +227,9 @@ std::unique_ptr<EffectFrameState> StrobeEffect::AdvanceState(Effect *effect, con
         ColorIdx = buffer.randInt(0, (int)colorcnt - 1);
         buffer.palette.GetHSV(ColorIdx, hsv); // take first checked color as color of flash
         buffer.palette.GetColor(ColorIdx, color); // take first checked color as color of flash
-        strobe.push_back(StrobeClass(buffer.randInt(0, buffer.BufferWi - 1),
-            buffer.randInt(0, buffer.BufferHt - 1), StrobeDuration, hsv, color));
+        int sx = buffer.randInt(0, buffer.BufferWi - 1);
+        int sy = buffer.randInt(0, buffer.BufferHt - 1);
+        strobe.push_back(StrobeClass(sx, sy, StrobeDuration, hsv, color));
     }
 
     // Advance: roll the type-2/4 orientation flip (was in the draw), snapshot the

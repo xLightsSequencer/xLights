@@ -15,6 +15,9 @@
 #include "../../include/servo-64.xpm"
 
 #include "ServoEffect.h"
+
+#include <algorithm>
+#include <cmath>
 #include "render/ValueCurve.h"
 #include "../utils/string_utils.h"
 
@@ -265,7 +268,10 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                 if (use_lyrics) {
                     position = GetPhonemeValue(buffer, effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(), SettingsMap["CHOICE_Servo_TimingTrack"]);
                 }
-                uint16_t value = min_limit + (max_limit - min_limit) * (position / 100.0f);
+                // truncated as always, but with a little slack: -ffast-math turns /100 into *0.01,
+                // which put 40% at 39.99999 and so wrote 39 on macOS/iPad but 40 elsewhere
+                double scaled = min_limit + (max_limit - min_limit) * (position / 100.0);
+                uint16_t value = (uint16_t)std::clamp((long)std::floor(scaled + 1e-6), 0L, 65535L);
                 uint8_t lsb = value & 0xFF;
                 uint8_t msb = value >> 8;
                 lsb_c.red = lsb;

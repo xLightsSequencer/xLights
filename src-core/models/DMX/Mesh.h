@@ -48,6 +48,7 @@ public:
     float GetWidth() const { return width; }
     float GetHeight() const { return height; }
     float GetDepth() const { return depth; }
+    float GetMinY() const { return min_y; }
     void SetHalfHeight() { half_height = 0.5f; }
 
     std::string GetName() const { return base_name; }
@@ -98,6 +99,7 @@ private:
     float width = 1.0f;
     float height = 1.0f;
     float depth = 1.0f;
+    float min_y = 0.0f;
     float render_width = 1.0f;
     float render_height = 1.0f;
     float render_depth = 1.0f;
@@ -111,6 +113,7 @@ private:
     std::string color_name;
     xlColor new_color = xlBLACK;
     xlColor last_color = xlBLACK;
+    bool color_applied = false;
     float offset_x = 0.0f;
     float offset_y = 0.0f;
     float offset_z = 0.0f;

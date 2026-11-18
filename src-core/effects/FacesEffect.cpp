@@ -288,7 +288,7 @@ int FacesEffect::GetMaxEyeDelay( std::string& eyeBlinkFreqString ) const {
 
 int FacesEffect::GetEyeBlinkDuration(std::string& eyeBlinkDurationString) const {
     int EyeBlinkDuration = 100; // Normal
-    if (eyeBlinkDurationString == "Slower")
+    if (eyeBlinkDurationString == "Short")
         EyeBlinkDuration = 50;
     else if (eyeBlinkDurationString == "Long")
         EyeBlinkDuration = 200;

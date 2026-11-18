@@ -1440,6 +1440,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
 
+    // Moving between monitors with different scaling: keep the frame's pixel size (see
+    // MSWWindowProc) instead of letting wx resize it, and just relayout the contents.
+    Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent& event) {
+        if (event.GetEventObject() != this) {
+            event.Skip();
+            return;
+        }
+        Layout();
+        MainAuiManager->Update();
+    });
+
     auto* config = GetXLightsConfig();
     if (config == nullptr) {
         spdlog::error("Null config ... this wont end well.");
@@ -2474,6 +2485,32 @@ void xLightsFrame::ReleaseAudio(AudioManager* audio)
     if (mainSequencer->PanelWaveForm->GetMedia() == audio) {
         mainSequencer->PanelWaveForm->CloseMedia();
     }
+}
+
+// Whenever the open sequence is about to delete an AudioManager, stop whatever
+// still uses it. The waveform is reopened on the replacement once the change that
+// deleted it has finished, and a render that had to be stopped is restarted.
+void xLightsFrame::WatchSequenceAudio(SequenceFile* sf)
+{
+    sf->SetAudioReleasingCallback([this, sf](AudioManager* audio) {
+        int numThreadsAborted = 0;
+        AbortRender(60000, &numThreadsAborted);
+        ReleaseAudio(audio);
+        CallAfter([this, sf, numThreadsAborted]() {
+            if (CurrentSeqXmlFile != sf || mainSequencer == nullptr) {
+                return;
+            }
+            if (mainSequencer->PanelWaveForm->GetMedia() == nullptr) {
+                if (AudioManager* playback = GetPlaybackAudio(); playback != nullptr) {
+                    wxString error;
+                    mainSequencer->PanelWaveForm->OpenfileMedia(playback, error);
+                }
+            }
+            if (numThreadsAborted > 0) {
+                RenderAll();
+            }
+        });
+    });
 }
 
 void xLightsFrame::ReleaseAltAudioTrack(int altIndex, bool removing)
@@ -3672,6 +3709,7 @@ void xLightsFrame::ShowSequenceSettings()
     dialog.Fit();
     dialog.Centre();
     int ret_code = dialog.ShowModal();
+    UpdateImportFromOriginalMenu();
 
     if (ret_code == NEEDS_RENDER || numThreadsAborted > 0) {
         RenderAll();
@@ -4633,6 +4671,29 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
 
 #ifdef __APPLE__
 static std::vector<std::filesystem::path> AddMetricKitPayloadsToReport(wxDebugReport& report);
+#endif
+
+#ifdef __WXMSW__
+#ifndef WM_GETDPISCALEDSIZE
+#define WM_GETDPISCALEDSIZE 0x02E4
+#endif
+WXLRESULT xLightsFrame::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lParam)
+{
+    // Dragging the frame onto a monitor with a different scale factor: Windows would
+    // grow or shrink it by the scale ratio, which can drop it back onto the previous
+    // monitor and flip the DPI again and again, so the window looks stuck. Keep the
+    // pixel size.
+    if (message == WM_GETDPISCALEDSIZE && lParam != 0 && !IsMaximized()) {
+        RECT rc;
+        if (::GetWindowRect(GetHwnd(), &rc)) {
+            SIZE* size = reinterpret_cast<SIZE*>(lParam);
+            size->cx = rc.right - rc.left;
+            size->cy = rc.bottom - rc.top;
+            return TRUE;
+        }
+    }
+    return xlFrame::MSWWindowProc(message, wParam, lParam);
+}
 #endif
 
 void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)

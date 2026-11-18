@@ -298,7 +298,7 @@ std::list<std::string> CustomModel::GetFileReferences()
 
 void CustomModel::SetNumStrings(int strings)
 {
-    _strings = strings;
+    _strings = std::max(1, strings);
 }
 
 void CustomModel::SetStringStartChannels(int NumberOfStrings, int StartChannel, int ChannelsPerString)
@@ -386,7 +386,9 @@ void CustomModel::GetBufferSize(const std::string& tp, const std::string& camera
     else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
         type == "Horizontal Per Strand" || type == "Vertical Per Strand" ||
         type == "Horizontal Per Model/Strand" || type == "Vertical Per Model/Strand") {
+        // Model::GetBufferSize applies the transform itself
         Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+        return;
     }
     else if (type == "Stacked X Horizontally") {
         BufferHi = height;
@@ -425,8 +427,8 @@ void CustomModel::GetBufferSize(const std::string& tp, const std::string& camera
         BufferHi = height;
     }
     else if (type == "Unique X and Y X") {
-        BufferWi = height * width;
-        BufferHi = depth * width;
+        BufferWi = width * depth;
+        BufferHi = height * width;
     }
     else if (type == "Unique X and Y Y") {
         BufferWi = width * height;
@@ -453,7 +455,16 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
     assert(width > 0 && height > 0 && depth > 0);
 
     int startNodeSize = Nodes.size();
-    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi, stagger);
+    const int firstNode = startNodeSize;
+    // The layouts below replace the base layout's coordinates, so they are
+    // built untransformed and the transform is applied to the result.
+    const bool baseLayout = (SingleChannel || SingleNode) ? !IsMultiCoordsPerNode()
+                                                          : (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
+                                                             StartsWith(type, "Horizontal Per ") || StartsWith(type, "Vertical Per "));
+    Model::InitRenderBufferNodes(type, camera, baseLayout ? transform : "None", Nodes, BufferWi, BufferHi, stagger);
+    if (baseLayout) {
+        return;
+    }
 
     if ((SingleChannel || SingleNode) && IsMultiCoordsPerNode()) {
         // I am not 100% about this change but it makes sense to me
@@ -471,18 +482,11 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
             x++;
             startNodeSize++;
         }
-        return;
-    }
-    else if (SingleChannel || SingleNode) {
-        return;
-    }
-
-    if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
-        StartsWith(type, "Horizontal Per ") || StartsWith(type, "Vertical Per ")) {
+        ApplyTransform(transform, Nodes, BufferWi, BufferHi, firstNode);
         return;
     }
 
-    GetBufferSize(type, camera, transform, BufferWi, BufferHi, stagger);
+    GetBufferSize(type, camera, "None", BufferWi, BufferHi, stagger);
     if (type == "Stacked X Horizontally") {
         for (auto n = 0; n < (int)Nodes.size(); n++) {
             auto loc = FindNode(n, _locations);
@@ -560,12 +564,13 @@ void CustomModel::InitRenderBufferNodes(const std::string& tp, const std::string
         for (size_t n = 0; n < Nodes.size(); n++) {
             auto loc = FindNode(n, _locations);
             Nodes[n]->Coords[0].bufX = std::get<2>(loc) + std::get<0>(loc) * width;
-            Nodes[n]->Coords[0].bufY = std::get<1>(loc) + (height - std::get<1>(loc) - 1) * height;
+            Nodes[n]->Coords[0].bufY = height - std::get<1>(loc) - 1 + std::get<0>(loc) * height;
         }
     }
     else {
         assert(false);
     }
+    ApplyTransform(transform, Nodes, BufferWi, BufferHi, firstNode);
 }
 
 int CustomModel::GetCustomMaxChannel() const

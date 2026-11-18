@@ -1038,12 +1038,22 @@ bool PolyPointScreenLocation::Scale(const glm::vec3& factor) {
     glm::mat4 translateToOrigin = glm::translate(Identity, -glm::vec3(cx, cy, cz));
     glm::mat4 translateBack = glm::translate(Identity, glm::vec3(cx, cy, cz));
     glm::mat4 scalingMatrix = glm::scale(Identity, factor);
-    glm::mat4 m = translateBack * scalingMatrix * translateToOrigin;
-    AdjustAllHandles(m);
+    // The vertices are local offsets from worldPos (in unscaled units), so
+    // scaling about the world centre moves worldPos and scales the offsets.
     world_pt = glm::vec3(translateBack * scalingMatrix * translateToOrigin * glm::vec4(world_pt, 1.0f));
     worldPos_x = world_pt.x;
     worldPos_y = world_pt.y;
     worldPos_z = world_pt.z;
+    for (int i = 0; i < num_points; ++i) {
+        mPos[i].x *= factor.x;
+        mPos[i].y *= factor.y;
+        mPos[i].z *= factor.z;
+        if (mPos[i].has_curve && mPos[i].curve != nullptr) {
+            mPos[i].curve->set_cp0(mPos[i].curve->get_cp0x() * factor.x, mPos[i].curve->get_cp0y() * factor.y, mPos[i].curve->get_cp0z() * factor.z);
+            mPos[i].curve->set_cp1(mPos[i].curve->get_cp1x() * factor.x, mPos[i].curve->get_cp1y() * factor.y, mPos[i].curve->get_cp1z() * factor.z);
+        }
+    }
+    FixCurveHandles();
 
     return true;
 }
@@ -1345,6 +1355,9 @@ void PolyPointScreenLocation::SetCurveDataFromString(const std::string& cpoint_d
     glm::vec3 world_pos(worldPos_x, worldPos_y, worldPos_z);
     for (int i = 0; i < num_curves; ++i) {
         int seg_num = (int)std::strtol(cpoint_array[i * 7].c_str(), nullptr, 10);
+        if (seg_num < 0 || seg_num + 1 >= (int)mPos.size()) {
+            continue;
+        }
         mPos[seg_num].has_curve = true;
         if (mPos[seg_num].curve == nullptr) {
             mPos[seg_num].curve = new BezierCurveCubic3D();
@@ -1848,10 +1861,15 @@ public:
             const float ly = (ray.origin.y - wy) / sy;
             _loc->SetPoint(_segOrVertex, lx, ly, 0.0f);
             _loc->FixCurveHandlesPublic();
-        } else if (_kind == PolyHandleKind::Cp0) {
-            _loc->SetCurveCp0(_segOrVertex, ray.origin);
         } else {
-            _loc->SetCurveCp1(_segOrVertex, ray.origin);
+            // Like the vertex drag, keep the point on the model plane rather
+            // than taking the ray's near-plane depth.
+            const glm::vec3 onPlane(ray.origin.x, ray.origin.y, _loc->GetWorldPosition().z);
+            if (_kind == PolyHandleKind::Cp0) {
+                _loc->SetCurveCp0(_segOrVertex, onPlane);
+            } else {
+                _loc->SetCurveCp1(_segOrVertex, onPlane);
+            }
         }
         _changed = true;
         return handles::UpdateResult::NeedsInit;

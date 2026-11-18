@@ -19,6 +19,16 @@ XLightsSettings& XLightsSettings::Get()
     return inst;
 }
 
+static nlohmann::json& WritableSection(nlohmann::json& data, const std::string& section)
+{
+    if (!data.is_object())
+        data = nlohmann::json::object();
+    auto& sec = data[section];
+    if (!sec.is_object())
+        sec = nlohmann::json::object();
+    return sec;
+}
+
 void XLightsSettings::EnsureSections()
 {
     if (!_data.is_object())
@@ -101,7 +111,7 @@ void XLightsSettings::DeleteAll(const std::string& section)
 void XLightsSettings::DeleteEntry(const std::string& key, const std::string& section)
 {
     std::unique_lock lock(_mutex);
-    if (_data.contains(section) && _data[section].contains(key)) {
+    if (_data.contains(section) && _data[section].is_object() && _data[section].contains(key)) {
         _data[section].erase(key);
         _dirty = true;
     }
@@ -186,7 +196,7 @@ void XLightsSettings::WriteString(const std::string& key, const std::string& val
                                    const std::string& section)
 {
     std::unique_lock lock(_mutex);
-    _data[section][key] = val;
+    WritableSection(_data, section)[key] = val;
     _dirty = true;
 }
 
@@ -194,7 +204,7 @@ void XLightsSettings::WriteBool(const std::string& key, bool val,
                                  const std::string& section)
 {
     std::unique_lock lock(_mutex);
-    _data[section][key] = val;
+    WritableSection(_data, section)[key] = val;
     _dirty = true;
 }
 
@@ -202,7 +212,7 @@ void XLightsSettings::WriteLong(const std::string& key, long val,
                                  const std::string& section)
 {
     std::unique_lock lock(_mutex);
-    _data[section][key] = static_cast<long long>(val);
+    WritableSection(_data, section)[key] = static_cast<long long>(val);
     _dirty = true;
 }
 
@@ -210,7 +220,7 @@ void XLightsSettings::WriteDouble(const std::string& key, double val,
                                    const std::string& section)
 {
     std::unique_lock lock(_mutex);
-    _data[section][key] = val;
+    WritableSection(_data, section)[key] = val;
     _dirty = true;
 }
 
@@ -252,6 +262,6 @@ bool XLightsSettings::WasMigrated() const
 void XLightsSettings::SetMigrated()
 {
     std::unique_lock lock(_mutex);
-    _data["_meta"]["migrated"] = true;
+    WritableSection(_data, "_meta")["migrated"] = true;
     _dirty = true;
 }

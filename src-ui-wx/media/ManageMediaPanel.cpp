@@ -1381,6 +1381,11 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
         menu.Bind(wxEVT_MENU, [this, path](wxCommandEvent&) {
             OnReloadMedia(path);
         }, reloadItem->GetId());
+    } else if (!_sequenceMedia->HasImage(path)) {
+        wxMenuItem* reembedItem = menu.Append(wxID_ANY, "Re-embed from Disk");
+        menu.Bind(wxEVT_MENU, [this, path](wxCommandEvent&) {
+            OnReembedMedia(path);
+        }, reembedItem->GetId());
     }
 
     // Image options
@@ -1519,6 +1524,29 @@ void ManageMediaPanel::OnReloadMedia(const std::string& path)
     if (_sequenceMedia->ReloadMedia(path)) {
         Populate(path);
     }
+}
+
+void ManageMediaPanel::OnReembedMedia(const std::string& path)
+{
+    if (_sequenceMedia == nullptr) return;
+
+    if (_sequenceMedia->ReembedMediaFromDisk(path)) {
+        Populate(path);
+    } else {
+        wxMessageBox("Could not read '" + wxString(path) + "' from disk.\nThe embedded copy was left unchanged.",
+                     "Re-embed from Disk", wxOK | wxICON_WARNING, this);
+    }
+}
+
+std::string ManageMediaPanel::ExtractDestination(const std::string& path) const
+{
+    wxFileName fn(path);
+    if (fn.IsAbsolute() || _showDirectory.empty()) return path;
+    wxString dest = _showDirectory;
+    if (dest.Last() != wxFileName::GetPathSeparator())
+        dest += wxFileName::GetPathSeparator();
+    dest += path;
+    return ToStdString(dest);
 }
 
 void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
@@ -2561,9 +2589,14 @@ void ManageMediaPanel::OnExtractButtonClick(wxCommandEvent& event)
                 if (!newPath.empty()) lastNewPath = newPath;
             }
         } else if (_sequenceMedia->HasMedia(path)) {
-            // Non-image: use generic ExtractMedia
-            _sequenceMedia->ExtractMedia(path);
-            lastNewPath = path;
+            if (!_sequenceMedia->GetMediaEmbedState(path).first) continue;
+            std::string dest = ExtractDestination(path);
+            if (_sequenceMedia->ExtractMediaToDisk(path, dest)) {
+                lastNewPath = path;
+            } else {
+                wxMessageBox("Could not write '" + wxString(dest) + "'.\nThe media was left embedded.",
+                             "Extract", wxOK | wxICON_WARNING, this);
+            }
         }
     }
     if (!lastNewPath.empty())

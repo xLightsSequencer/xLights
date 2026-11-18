@@ -41,6 +41,19 @@ static std::string FormatMS(int ms) {
     return buf;
 }
 
+static std::string CsvField(const std::string& v, bool always) {
+    if (!always && v.find_first_of(",\"\r\n") == std::string::npos) {
+        return v;
+    }
+    std::string out = "\"";
+    for (char c : v) {
+        if (c == '"') out += '"';
+        out += c;
+    }
+    out += '"';
+    return out;
+}
+
 static void WriteEffectRow(FILE* f, const std::string& effectName,
                            int startMS, int endMS,
                            const std::string& description,
@@ -60,15 +73,15 @@ static void WriteEffectRow(FILE* f, const std::string& effectName,
         totalTime[effectName] = duration;
     }
 
-    fprintf(f, "\"%s\",%s,%s,%s,\"%s\",\"%s\",%s,%s\n",
-            effectName.c_str(),
+    fprintf(f, "%s,%s,%s,%s,%s,%s,%s,%s\n",
+            CsvField(effectName, true).c_str(),
             FormatMS(startMS).c_str(),
             FormatMS(endMS).c_str(),
             FormatMS(duration).c_str(),
-            description.c_str(),
-            elementName.c_str(),
-            elementType.c_str(),
-            files.c_str());
+            CsvField(description, true).c_str(),
+            CsvField(elementName, true).c_str(),
+            CsvField(elementType, false).c_str(),
+            CsvField(files, false).c_str());
 }
 
 static int ExportElementLayers(FILE* f, Element* e,

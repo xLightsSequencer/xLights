@@ -80,6 +80,13 @@ public:
     Element* AddElement(const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);
     Element* AddElement(int index, const std::string &name, const std::string &type, bool visible, bool collapsed, bool active, bool selected, bool renderDisabled);
     Element* GetElement(const std::string &name) const;
+    // Same scope as GetElement(name): master-view elements plus the
+    // submodels/strands of model elements.
+    Element* GetElementFromUid(SeqObjectId uid) const;
+    // Checks that every element, layer and effect in the sequence has a
+    // non-zero id and that no id is held twice. On failure `problem` (if
+    // given) describes the first offender.
+    bool ValidateUids(std::string* problem = nullptr) const;
     int GetElementIndex(const std::string &name, int view = MASTER_VIEW);
     Element* GetElement(size_t index, int view = MASTER_VIEW) const;
     TimingElement* GetTimingElement(int n);

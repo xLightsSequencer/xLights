@@ -18,7 +18,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxListCtrl" name="ID_LISTCTRL_CONTROLLERS" variable="ListCtrl_Controllers" member="yes">
-					<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SINGLE_SEL|wxVSCROLL</style>
+					<style>wxLC_REPORT|wxLC_NO_HEADER|wxVSCROLL</style>
 					<handler function="OnListCtrl_ControllersItemChecked" entry="EVT_LIST_ITEM_CHECKED" />
 					<handler function="OnListCtrl_ControllersItemChecked" entry="EVT_LIST_ITEM_UNCHECKED" />
 				</object>

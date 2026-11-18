@@ -54,8 +54,19 @@ struct RotoZoomData {
     float zoomquality;
     int32_t pivotpointx;
     int32_t pivotpointy;
+
+    // From RotoZoomSettings (PixelBufferClass computes them for the CPU path too).
+    float xsine;
+    float xpivotPx;
+    float ysine;
+    float ypivotPx;
+    float zcos;
+    float zsin;
+    float zxoff;
+    float zyoff;
+    float zinc;
 };
-static_assert(sizeof(RotoZoomData) == 48, "RotoZoomData layout drifted from the GLSL push-constant block");
+static_assert(sizeof(RotoZoomData) == 84, "RotoZoomData layout drifted from the GLSL push-constant block");
 
 struct TentBlurData {
     uint32_t width;

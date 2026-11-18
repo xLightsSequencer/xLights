@@ -112,6 +112,9 @@ private:
     void OnTreeMouseMotion(wxMouseEvent& event);
     void OnTreeContextMenu(wxDataViewEvent& event);
     void OnReloadMedia(const std::string& path);
+    void OnReembedMedia(const std::string& path);
+    // Show-folder location for a non-image entry extracted to disk
+    std::string ExtractDestination(const std::string& path) const;
     void OnReSelectImage(const std::string& oldPath);
     void OnBulkFindImages();
     void OnReSelectShader(const std::string& oldPath);

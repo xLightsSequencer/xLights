@@ -15,6 +15,7 @@
 #include "pugixml.hpp"
 
 #include <array>
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
@@ -102,7 +103,7 @@ public:
 
     const std::string& GetVersion() const { return version_string; }
 
-    int GetSequenceDurationMS() const { return int(seq_duration * 1000); }
+    int GetSequenceDurationMS() const;
     double GetSequenceDurationDouble() const { return seq_duration; }
     std::string GetSequenceDurationString() const;
 
@@ -122,6 +123,11 @@ public:
     const std::string& GetMediaFile() const { return media_file; }
     void SetMediaFile(const std::string& ShowDir, const std::string& filename, bool overwrite_tags);
     void ClearMediaFile();
+    // Called with each AudioManager just before it is deleted while this file
+    // stays open (media, sequence type or alt-track change), so the host can drop
+    // raw pointers to it and stop renders and playback that use it. Not called
+    // from the destructor: the owner tears its views down before deleting the file.
+    void SetAudioReleasingCallback(std::function<void(AudioManager*)> cb) { _onAudioReleasing = std::move(cb); }
 
     // Alternate audio tracks (stems)
     int GetAltTrackCount() const { return (int)alt_tracks.size(); }
@@ -148,6 +154,8 @@ public:
     // Moves donorPath to the front of the imported-from list, dropping the
     // oldest entry once the list is full.
     void RecordImportedFrom(const std::string& donorPath);
+    // Replaces the whole list (deduplicated, capped at MAX_IMPORTED_FROM).
+    void SetImportedFrom(const std::vector<std::string>& donors);
     void SetHeaderInfo(HEADER_INFO_TYPES node_type, const std::string& node_value);
 
     std::string GetImageDir(UICallbacks* ui);
@@ -242,9 +250,11 @@ private:
     DataLayerSet mDataLayers;
     AudioManager* audio = nullptr;
     std::vector<AlternateAudioTrack> alt_tracks;
+    std::function<void(AudioManager*)> _onAudioReleasing;
     JukeboxButtonMap _jukeboxButtons;
 
     void CreateNew();
+    void DisposeAudio(AudioManager*& a);
     std::optional<pugi::xml_document> LoadSequence(const std::string& ShowDir, bool ignore_audio, const std::string& realFilePath);
     bool SaveCopy() const;
 

@@ -30,6 +30,7 @@ protected:
     std::string _ip;
     mutable std::string _resolvedIp;
     mutable std::shared_mutex _resolveMutex;
+    ip_utils::ResolveGuard _resolveGuard;
     std::string _type;
     std::string _forceLocalIP;
     bool _forceSizes = false;

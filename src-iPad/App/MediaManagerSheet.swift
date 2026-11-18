@@ -406,6 +406,7 @@ struct MediaManagerContent: View {
                         onRename: { beginRename(item) },
                         onReplace: { beginReplace(item) },
                         onReload: { reloadFromDisk(item) },
+                        onReembed: { reembedFromDisk(item) },
                         onRemove: { removeTarget = item })
                 }
                 bulkMediaActions(typeKey, group: group)
@@ -531,6 +532,12 @@ struct MediaManagerContent: View {
         }
     }
 
+    private func reembedFromDisk(_ item: MediaInventoryItem) {
+        if viewModel.document.reembedMedia(atPath: item.path) {
+            reload()
+        }
+    }
+
     private func reload() {
         let raw = viewModel.document.mediaInventoryInSequence()
         items = raw.compactMap { d in
@@ -616,6 +623,7 @@ struct MediaInventoryRow: View {
     let onRename: () -> Void
     let onReplace: () -> Void
     let onReload: () -> Void
+    let onReembed: () -> Void
     let onRemove: () -> Void
 
     var body: some View {
@@ -674,6 +682,14 @@ struct MediaInventoryRow: View {
                         Label("Extract", systemImage: "tray.and.arrow.up")
                     }
                     .tint(.blue)
+                    if item.type != "image" {
+                        Button {
+                            onReembed()
+                        } label: {
+                            Label("Re-embed from Disk", systemImage: "arrow.clockwise")
+                        }
+                        .tint(.teal)
+                    }
                 } else {
                     // MED-7 — external entries can be re-read from
                     // disk after an out-of-app edit. Embedded payloads

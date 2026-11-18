@@ -236,6 +236,18 @@ std::list<Chordx> __banjoChords = {
 
 std::list<Chordx> __violinChords = {};
 
+// type is the Guitar effect's instrument choice (Guitar.json): "Guitar", "Bass Guitar", "Banjo" or "Violin"
+static const std::list<Chordx>& GetChords(const std::string& type)
+{
+    if (type == "Bass Guitar")
+        return __bassChords;
+    if (type == "Banjo")
+        return __banjoChords;
+    if (type == "Violin")
+        return __violinChords;
+    return __guitarChords;
+}
+
 bool centresort(const GuitarTiming* first, const GuitarTiming* second)
 {
     return first->GetPositionCentre() < second->GetPositionCentre();
@@ -428,14 +440,7 @@ public:
 
     bool CheckChords(const std::string& type)
     {
-        auto chords = __guitarChords;
-
-        if (type == "Bass")
-            chords = __bassChords;
-        else if (type == "Banjo")
-            chords = __banjoChords;
-        else if (type == "Violin")
-            chords = __violinChords;
+        const auto& chords = GetChords(type);
 
         for (auto& it : chords) {
             if (it._notes.size() == _notes.size()) {
@@ -936,7 +941,8 @@ void GuitarEffect::DrawGuitarWave(RenderBuffer& buffer, uint8_t string, uint8_t 
         }
 
         #define WAVE_SPEED 2
-        uint32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x / (((double)(strings - string - 1) * stringWaveFactor) + baseWaveFactor + (maxFrets - fretPos) * diffPerFret)) / maxX + (timePos * WAVE_SPEED));
+        // signed: the wave swings below the string line as well as above it
+        int32_t y = (maxY / 2.0) * sin((PI * 2.0 * cycles * (double)x / (((double)(strings - string - 1) * stringWaveFactor) + baseWaveFactor + (maxFrets - fretPos) * diffPerFret)) / maxX + (timePos * WAVE_SPEED));
         y += (perString / 2.0) + (perString * string);
         buffer.SetPixel(x, FlipY(y, buffer.BufferHt), c);
     }
@@ -1188,14 +1194,7 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
         std::list<std::string> notelabels = ExtractNotes(label);
         for (const auto& s : notelabels) {
             bool chord = false;
-            auto chords = __guitarChords;
-
-            if (type == "Bass")
-                chords = __bassChords;
-            else if (type == "Banjo")
-                chords = __banjoChords;
-            else if (type == "Violin")
-                chords = __violinChords;
+            const auto& chords = GetChords(type);
 
             // If the label matches one of our chord names then use the chord notes
             std::string n = s;
@@ -1217,7 +1216,7 @@ std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, i
                     uint8_t string;
                     uint8_t pos;
                     ConvertStringPos(s, string, pos);
-                    if (string != 0xFF && string != 0 && pos != 0xFF && pos <= maxFrets) {
+                    if (string != 0xFF && string != 0 && string <= strings && pos != 0xFF && pos <= maxFrets) {
                         t.AddFingerPos(strings - (string - 1) - 1, pos);
                     }
                 }

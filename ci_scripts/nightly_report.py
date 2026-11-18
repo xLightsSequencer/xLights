@@ -1,0 +1,228 @@
+#!/usr/bin/env python3
+"""Aggregate the JUnit reports a nightly run produced into a markdown summary
+and a results.json (the dashboard's source of truth).
+
+Each report lives in a directory named after its artifact, e.g.
+  <results>/results-render-linux-x64/render-linux-x64.xml
+and the directory name gives the suite ("render") and platform ("linux-x64").
+
+  nightly_report.py --results <dir> [--expect results-unit-linux-x64,...]
+                    [--summary <file.md>] [--json <file.json>] [--fail-on-failures]
+                    [--coverage <dir>]
+
+A name in --expect with no report counts as a failure ("no report"): a suite
+that crashed before writing its XML must not look like a pass. Only the
+standard library is used so it runs on any CI runner. --coverage names the
+directory holding coverage_report.py's totals.json; its numbers go into the
+JSON as "coverage" (left out when the file is missing: the coverage build
+failed or did not run).
+"""
+import argparse
+import datetime
+import json
+import os
+import sys
+import xml.etree.ElementTree as ET
+
+MAX_LISTED = 20
+
+
+def skip_reason(case, skip):
+    """The reason a skipped testcase gives. Catch2's JUnit reporter writes "SKIPPED", the
+    SKIP() message and an "at file:line" as the element text; ctest's JUnit leaves the
+    Catch2 console output in system-out, where the message follows "explicitly with message:"."""
+    lines = [l.strip() for l in (skip.text or "").splitlines()]
+    lines = [l for l in lines if l and l != "SKIPPED" and not l.startswith("at ")]
+    if lines:
+        return lines[0][:200]
+    out = case.find("system-out")
+    if out is not None and out.text:
+        console = [l.strip() for l in out.text.splitlines()]
+        for i, l in enumerate(console):
+            if l == "explicitly with message:" and i + 1 < len(console):
+                return console[i + 1][:200]
+    return (skip.get("message") or "").strip()[:200]
+
+
+def failure_message(bad):
+    """The failed expression plus what Catch2 adds after it in its JUnit text: the
+    expanded values and any INFO/CAPTURE lines (e.g. '39 == 40', 'channel 7'), which
+    is what tells one failing variant or value from another."""
+    text = [l.strip() for l in (bad.text or "").splitlines() if l.strip()]
+    head = (bad.get("message") or "").strip() or (text[0] if text else "")
+    extra = []
+    for l in text:
+        if l == "FAILED:" or l in ("with expansion:", "with message:", "with messages:"):
+            continue
+        if l.startswith(("CHECK", "REQUIRE", "at ")) or l == head:
+            continue
+        extra.append(l)
+    if extra:
+        head += " [" + "; ".join(extra) + "]"
+    return head[:400]
+
+
+def parse_report(path):
+    """Return (tests, failed[(name, message)], skipped[(name, message)], seconds, properties)
+    for one XML file."""
+    root = ET.parse(path).getroot()
+    suites = [root] if root.tag == "testsuite" else list(root.iter("testsuite"))
+    tests = 0
+    seconds = 0.0
+    failed = []
+    skipped = []
+    props = {}
+    for suite in suites:
+        try:
+            seconds += float(suite.get("time", "0") or 0)
+        except ValueError:
+            pass
+        for p in suite.findall("properties/property"):
+            props[p.get("name")] = p.get("value")
+        for case in suite.findall("testcase"):
+            tests += 1
+            bad = case.find("failure")
+            if bad is None:
+                bad = case.find("error")
+            skip = case.find("skipped")
+            if bad is not None and skip is not None and "mayfail" in (skip.get("message") or ""):
+                # Catch2 [!mayfail]: a known failure, not counted against the run
+                skipped.append((case.get("name", "?"), "known failure ([!mayfail])"))
+            elif bad is not None:
+                failed.append((case.get("name", "?"), failure_message(bad)))
+            elif skip is not None:
+                skipped.append((case.get("name", "?"), skip_reason(case, skip)))
+    return tests, failed, skipped, seconds, props
+
+
+def split_id(dirname):
+    name = dirname[len("results-"):] if dirname.startswith("results-") else dirname
+    suite, _, platform = name.partition("-")
+    return suite or name, platform or "-"
+
+
+def collect(results_dir):
+    found = {}
+    for entry in sorted(os.listdir(results_dir)):
+        d = os.path.join(results_dir, entry)
+        if not os.path.isdir(d):
+            continue
+        xmls = []
+        for dp, _, files in os.walk(d):
+            xmls += [os.path.join(dp, f) for f in sorted(files) if f.endswith(".xml")]
+        if not xmls:
+            continue
+        suite, platform = split_id(entry)
+        agg = {"artifact": entry, "suite": suite, "platform": platform, "tests": 0, "skipped": [],
+               "time": 0.0, "failed": [], "properties": {}, "status": "ok"}
+        for x in xmls:
+            try:
+                tests, failed, skipped, seconds, props = parse_report(x)
+            except ET.ParseError as e:
+                agg["failed"].append((os.path.basename(x), "unreadable report: %s" % e))
+                continue
+            agg["tests"] += tests
+            agg["skipped"] += skipped
+            agg["time"] += seconds
+            agg["failed"] += failed
+            agg["properties"].update(props)
+        if agg["failed"]:
+            agg["status"] = "failed"
+        found[entry] = agg
+    return found
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--results", required=True)
+    ap.add_argument("--expect", default="")
+    ap.add_argument("--summary")
+    ap.add_argument("--json")
+    ap.add_argument("--fail-on-failures", action="store_true")
+    ap.add_argument("--coverage")
+    args = ap.parse_args()
+
+    found = collect(args.results) if os.path.isdir(args.results) else {}
+    for name in [n for n in args.expect.split(",") if n]:
+        if name not in found:
+            suite, platform = split_id(name)
+            found[name] = {"artifact": name, "suite": suite, "platform": platform, "tests": 0,
+                           "skipped": [], "time": 0.0, "failed": [("(whole suite)", "no report was produced")],
+                           "properties": {}, "status": "no-report"}
+    suites = sorted(found.values(), key=lambda s: (s["suite"], s["platform"]))
+
+    env = os.environ
+    meta = {
+        "date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "sha": env.get("GITHUB_SHA", ""),
+        "run_id": env.get("GITHUB_RUN_ID", ""),
+        "run_attempt": env.get("GITHUB_RUN_ATTEMPT", ""),
+        "event": env.get("GITHUB_EVENT_NAME", ""),
+        "repository": env.get("GITHUB_REPOSITORY", ""),
+    }
+    total_tests = sum(s["tests"] for s in suites)
+    total_failed = sum(len(s["failed"]) for s in suites)
+
+    lines = ["### Nightly tests - %s %s" % (meta["date"][:10], ("(" + meta["sha"][:10] + ")") if meta["sha"] else ""),
+             "", "| Suite | Platform | Tests | Failed | Skipped | Time (s) |", "|---|---|---:|---:|---:|---:|"]
+    for s in suites:
+        mark = "" if s["status"] == "ok" else (" **no report**" if s["status"] == "no-report" else "")
+        lines.append("| %s | %s | %d | %d%s | %d | %.0f |" % (
+            s["suite"], s["platform"], s["tests"], len(s["failed"]), mark, len(s["skipped"]), s["time"]))
+    lines.append("")
+    lines.append("**%d tests, %d failed.**" % (total_tests, total_failed))
+    for s in suites:
+        if not s["failed"]:
+            continue
+        lines += ["", "#### %s (%s)" % (s["suite"], s["platform"])]
+        for name, msg in s["failed"][:MAX_LISTED]:
+            lines.append("- `%s`%s" % (name, (": " + msg) if msg else ""))
+        if len(s["failed"]) > MAX_LISTED:
+            lines.append("- ...and %d more" % (len(s["failed"]) - MAX_LISTED))
+    for s in suites:
+        if not s["skipped"]:
+            continue
+        lines += ["", "#### Skipped: %s (%s)" % (s["suite"], s["platform"])]
+        for name, msg in s["skipped"][:MAX_LISTED]:
+            lines.append("- `%s`%s" % (name, (": " + msg) if msg else ""))
+        if len(s["skipped"]) > MAX_LISTED:
+            lines.append("- ...and %d more" % (len(s["skipped"]) - MAX_LISTED))
+    coverage = None
+    if args.coverage:
+        try:
+            with open(os.path.join(args.coverage, "totals.json")) as f:
+                coverage = json.load(f)
+        except (OSError, ValueError):
+            coverage = None
+        if coverage and coverage.get("lines"):
+            lines += ["", "**src-core coverage (unit tests): lines %.1f%%, functions %.1f%%.**" % (
+                100.0 * coverage["lines_hit"] / coverage["lines"],
+                100.0 * coverage["functions_hit"] / max(coverage["functions"], 1))]
+        else:
+            lines += ["", "**No coverage report.**"]
+    md = "\n".join(lines) + "\n"
+
+    out = dict(meta)
+    out["totals"] = {"tests": total_tests, "failed": total_failed, "suites": len(suites)}
+    out["suites"] = [{"suite": s["suite"], "platform": s["platform"], "artifact": s["artifact"],
+                      "status": s["status"], "tests": s["tests"], "failed_count": len(s["failed"]),
+                      "skipped": len(s["skipped"]), "time": round(s["time"], 2),
+                      "failed": [{"name": n, "message": m} for n, m in s["failed"]],
+                      "skipped_tests": [{"name": n, "message": m} for n, m in s["skipped"][:MAX_LISTED]],
+                      "properties": s["properties"]} for s in suites]
+    if coverage and coverage.get("lines"):
+        out["coverage"] = coverage
+
+    if args.summary:
+        with open(args.summary, "a") as f:
+            f.write(md)
+    if args.json:
+        with open(args.json, "w") as f:
+            json.dump(out, f, indent=2)
+            f.write("\n")
+    sys.stdout.write(md)
+    return 1 if (args.fail_on_failures and total_failed) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

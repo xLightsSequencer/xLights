@@ -1,6 +1,6 @@
 #version 450
-// Port of RotoZoomRotateX in RotoZoomFunctions.metal (write pass — see the
-// Claim kernel for the two-phase determinism scheme).
+// Write pass of the X rotation (port of RotoZoomRotateX in
+// RotoZoomFunctions.metal); see RotoZoomRotateXClaim.
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
@@ -15,23 +15,25 @@ void main() {
     uvec2 index = gl_GlobalInvocationID.xy;
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
-    uint sidx = index.y * data.width + index.x;
-
-    float x = float(index.x);
-    float sine = sin((data.xrotation + 90.0) * XL_PI / 180.0);
-    float pivot = float(data.xpivot) * float(data.width) / 100.0;
+    // PixelBufferClass::RotateX: x from the pivot up, then from the pivot - 1
+    // down, each SetPixel truncating its float column. The key is that order,
+    // so the claim keeps the source the CPU writes last.
+    int x = int(index.x);
+    int pivot = int(data.xpivotPx);
     float tox;
+    int key;
     if (x >= pivot) {
-        tox = sine * (x - pivot) + pivot;
+        tox = data.xsine * float(x - pivot) + data.xpivotPx;
+        key = x - pivot;
     } else {
-        tox = -1.0 * sine * (pivot - x) + pivot;
+        tox = -1.0 * data.xsine * float(pivot - x) + data.xpivotPx;
+        key = int(data.width) + (pivot - 1 - x);
     }
-    // Bounds-check the ROUNDED index (see RotoZoomRotateXClaim).
-    int toxi = int(xl_round(tox));
+    int toxi = int(tox);
     if (toxi >= 0 && toxi < int(data.width)) {
         uint didx = index.y * data.width + uint(toxi);
-        if (owner[didx] == int(sidx)) {
-            result[didx] = src[sidx];
+        if (owner[didx] == key) {
+            result[didx] = src[index.y * data.width + index.x];
         }
     }
 }

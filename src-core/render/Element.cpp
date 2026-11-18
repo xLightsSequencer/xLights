@@ -188,6 +188,19 @@ EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
     return nullptr;
 }
 
+EffectLayer* Element::GetEffectLayerFromUid(SeqObjectId uid) const
+{
+    if (uid == kNoSeqObjectId) {
+        return nullptr;
+    }
+    for (EffectLayer* l : mEffectLayers) {
+        if (l->GetUid() == uid) {
+            return l;
+        }
+    }
+    return nullptr;
+}
+
 EffectLayer* Element::GetEffectLayer(int index) const
 {
     if( index < 0 || static_cast<size_t>(index) >= mEffectLayers.size() ) return nullptr;
@@ -439,6 +452,19 @@ EffectLayer* StrandElement::GetEffectLayerFromExclusiveIndex(int index) {
     return nullptr;
 }
 
+EffectLayer* StrandElement::GetEffectLayerFromUid(SeqObjectId uid) const {
+    EffectLayer* l = SubModelElement::GetEffectLayerFromUid(uid);
+    if (l != nullptr || uid == kNoSeqObjectId) {
+        return l;
+    }
+    for (NodeLayer* nl : mNodeLayers) {
+        if (nl->GetUid() == uid) {
+            return nl;
+        }
+    }
+    return nullptr;
+}
+
 NodeLayer* StrandElement::GetNodeEffectLayer(int index) const
 {
     if ( index < GetNodeLayerCount())
@@ -642,6 +668,26 @@ EffectLayer* ModelElement::GetEffectLayerFromExclusiveIndex(int index) {
     }
     for( size_t j = 0; j < mStrands.size(); j++ ) {
         l = mStrands[j]->GetEffectLayerFromExclusiveIndex(index);
+        if (l != nullptr) {
+            return l;
+        }
+    }
+    return nullptr;
+}
+
+EffectLayer* ModelElement::GetEffectLayerFromUid(SeqObjectId uid) const {
+    EffectLayer* l = Element::GetEffectLayerFromUid(uid);
+    if (l != nullptr || uid == kNoSeqObjectId) {
+        return l;
+    }
+    for (SubModelElement* sm : mSubModels) {
+        l = sm->GetEffectLayerFromUid(uid);
+        if (l != nullptr) {
+            return l;
+        }
+    }
+    for (StrandElement* st : mStrands) {
+        l = st->GetEffectLayerFromUid(uid);
         if (l != nullptr) {
             return l;
         }

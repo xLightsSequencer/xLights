@@ -978,8 +978,8 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
         last_maxx = maxx;
         last_maxy = maxy;
         if (!mg->GetCentreDefined()) {
-            int offx = mg->GetXCentreOffset();
-            int offy = mg->GetYCentreOffset();
+            int offx = static_cast<int>(mg->GetXCentreOffset());
+            int offy = static_cast<int>(mg->GetYCentreOffset());
             float cx = (minx + maxx) / 2.0f + (offx * (maxx - minx)) / 2000.0f;
             float cy = (miny + maxy) / 2.0f + (offy * (maxy - miny)) / 2000.0f;
             DrawGroupCentre(cx, cy);

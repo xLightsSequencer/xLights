@@ -12,6 +12,8 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+#include <functional>
+#include <set>
 #include <vector>
 
 #include "ModelGroup.h"
@@ -82,20 +84,20 @@ Model* ModelGroup::GetFirstModel() const
 std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates, bool activeOnly) const
 {
     std::list<Model*> res;
+    std::set<const ModelGroup*> visited;
+    visited.insert(this);
 
-    for (const auto& it : modelNames) {
-        Model* m = modelManager[it];
-        if (m != nullptr) {
+    std::function<void(const ModelGroup*)> flatten = [&](const ModelGroup* group) {
+        for (const auto& it : group->modelNames) {
+            Model* m = modelManager[it];
+            if (m == nullptr) {
+                continue;
+            }
             if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
                 auto mg = dynamic_cast<ModelGroup*>(m);
-                if (mg != nullptr) {
-                    for (const auto& it : mg->GetFlatModels(removeDuplicates, activeOnly)) {
-                        if (!removeDuplicates || (std::find(begin(res), end(res), it) == end(res))) {
-                            if (!activeOnly || m->IsActive()) {
-                                res.push_back(it);
-                            }
-                        }
-                    }
+                if (mg != nullptr && visited.insert(mg).second) {
+                    flatten(mg);
+                    visited.erase(mg);
                 }
             } else if (!removeDuplicates || (std::find(begin(res), end(res), m) == end(res))) {
                 if (!activeOnly || m->IsActive()) {
@@ -103,7 +105,8 @@ std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates, bool activeOn
                 }
             }
         }
-    }
+    };
+    flatten(this);
     return res;
 }
 
@@ -187,6 +190,11 @@ bool ModelGroup::DirectlyContainsModel(std::string const& m) const
     return std::find(modelNames.begin(), modelNames.end(), m) != modelNames.end();
 }
 
+static bool IsModelOrSubmodelName(const std::string& fullName, const std::string& name)
+{
+    return fullName == name || (fullName.size() > name.size() && fullName[name.size()] == '/' && StartsWith(fullName, name));
+}
+
 bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
 {
     EnsureModelsCurrent();
@@ -204,7 +212,7 @@ bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
                 // already seen this group so dont follow
             }
         } else {
-            if (StartsWith((*it)->GetFullName(), m->GetName())) {
+            if (IsModelOrSubmodelName((*it)->GetFullName(), m->GetName())) {
                 found = true;
             }
         }
@@ -296,7 +304,7 @@ bool ModelGroup::ContainsModelOrSubmodel(const Model* m, std::list<const Model*>
                 // already seen this group so dont follow
             }
         } else {
-            if (StartsWith(it->GetFullName(), m->GetName())) {
+            if (IsModelOrSubmodelName(it->GetFullName(), m->GetName())) {
                 found = true;
                 break;
             }
@@ -312,7 +320,7 @@ bool ModelGroup::OnlyContainsModel(const std::string& name) const
     if (modelNames.size() == 0) return false;
 
     for (const auto& it : modelNames) {
-        if (!StartsWith(it, name)) return false;
+        if (!IsModelOrSubmodelName(it, name)) return false;
     }
     return true;
 }
@@ -479,7 +487,7 @@ namespace {
     };
 }
 
-void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string &camera, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, int stagger) {
+static void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string &camera, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, int stagger, std::set<const ModelGroup*>& visiting) {
 
     if (m == nullptr) return;
 
@@ -493,8 +501,11 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string 
     {
         ModelGroup *g = dynamic_cast<ModelGroup*>(m);
         if (g != nullptr) {
-            for (const auto& it : g->ActiveModels()) {
-                LoadRenderBufferNodes(it, type, camera, newNodes, bufferWi, bufferHi, stagger);
+            if (visiting.insert(g).second) {
+                for (const auto& it : g->ActiveModels()) {
+                    LoadRenderBufferNodes(it, type, camera, newNodes, bufferWi, bufferHi, stagger, visiting);
+                }
+                visiting.erase(g);
             }
         }
         else {
@@ -507,29 +518,34 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string 
     }
 }
 
+void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string &camera, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, int stagger) {
+    std::set<const ModelGroup*> visiting;
+    LoadRenderBufferNodes(m, type, camera, newNodes, bufferWi, bufferHi, stagger, visiting);
+}
+
 int ModelGroup::GetGridSize() const
 {
     return m_gridSize;
 }
 
-int ModelGroup::GetXCentreOffset() const
+float ModelGroup::GetXCentreOffset() const
 {
     return m_xCentreOffset;
 }
 
-int ModelGroup::GetYCentreOffset() const
+float ModelGroup::GetYCentreOffset() const
 {
     return m_yCentreOffset;
 }
 
 void ModelGroup::SetXCentreOffset( float cx )
 {
-    m_xCentreOffset = static_cast<int>(cx);
+    m_xCentreOffset = cx;
 }
 
 void ModelGroup::SetYCentreOffset( float cy )
 {
-    m_yCentreOffset = static_cast<int>(cy);
+    m_yCentreOffset = cy;
 }
 
 std::string ModelGroup::GetDefaultCamera() const
@@ -833,8 +849,8 @@ bool ModelGroup::RebuildBuffers() {
                 offsetY = ((cy - ((xminy + xmaxy) / 2.0)) * 2000.0) / (xmaxy - xminy);
             }
         } else {
-            offsetX = GetXCentreOffset();
-            offsetY = GetYCentreOffset();
+            offsetX = static_cast<int>(GetXCentreOffset());
+            offsetY = static_cast<int>(GetYCentreOffset());
         }
 
         int offx = (offsetX * BufferWi) / 1000;

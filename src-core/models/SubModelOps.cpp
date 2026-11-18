@@ -118,10 +118,12 @@ std::string BlanksToZeros(const std::string& strand)
 std::string ZerosToBlanks(const std::string& strand)
 {
     std::string out;
+    bool first = true;
     for (const auto& cell : Split(strand, ',')) {
-        if (!out.empty()) {
+        if (!first) {
             out += ",";
         }
+        first = false;
         if (cell != "0") {
             out += cell;
         }

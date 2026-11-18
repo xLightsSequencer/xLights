@@ -82,7 +82,8 @@ bool MatchAggressive(const std::string& target, const std::string& candidate,
                      const std::string&, const std::string&,
                      const std::list<std::string>& aliases) {
     std::string strippedCandidate = StripPunctuation(candidate);
-    if (StripPunctuation(Lower(Trim(target))) == strippedCandidate) {
+    std::string strippedTarget = StripPunctuation(Lower(Trim(target)));
+    if (!strippedTarget.empty() && strippedTarget == strippedCandidate) {
         return true;
     }
     // OldName alias prefix — the rename history form. Plain string compare
@@ -98,7 +99,7 @@ bool MatchAggressive(const std::string& target, const std::string& candidate,
     // free duplicate alias.
     for (const auto& it : aliases) {
         if (it == candidate) return true;
-        if (StripPunctuation(it) == strippedCandidate) return true;
+        if (!strippedCandidate.empty() && StripPunctuation(it) == strippedCandidate) return true;
     }
     return false;
 }
@@ -122,7 +123,7 @@ bool MatchRegex(const std::string& target, const std::string& candidate,
         valid = false;
         lastPattern = pattern;
     }
-    if (!valid) {
+    if (!valid || target.size() > 4096) {
         return false;
     }
     return std::regex_match(target, r);

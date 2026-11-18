@@ -41,7 +41,6 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData(Controller* c) {
 
     for (const auto& it : _modelData) {
         int ports = it->Configuration.ports;
-        assert(ports <= ZCPP_CONFIG_MAX_PORT_PER_PACKET);
         if (ports > ZCPP_CONFIG_MAX_PORT_PER_PACKET) {
             spdlog::warn("ZCPP file corrupt. Abandoning read.");
             _usedChannels = 1;
@@ -52,7 +51,7 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData(Controller* c) {
         for (int i = 0; i < ports; i++) {
             long start = htonl(port->startChannel);
             long len = htonl(port->channels);
-            if (start + len - 1 > _usedChannels) {
+            if (start + len > _usedChannels) {
                 _usedChannels = start + len;
             }
             port++;
@@ -95,7 +94,7 @@ std::string ZCPPOutput::SerialiseProtocols() {
 #pragma endregion
 
 #pragma region Constructors and Destructors
-ZCPPOutput::ZCPPOutput(Controller* c, pugi::xml_node node, std::string showdir) : IPOutput(node, c->IsActive()) {
+ZCPPOutput::ZCPPOutput(Controller* c, pugi::xml_node node, std::string showdir) : IPOutput(node, c && c->IsActive()) {
 
     
 
@@ -237,11 +236,11 @@ ZCPPOutput::ZCPPOutput(const ZCPPOutput& from) : IPOutput(from) {
 
 ZCPPOutput::~ZCPPOutput() {
     while (_modelData.size() > 0) {
-        delete _modelData.front();
+        free(_modelData.front());
         _modelData.pop_front();
     }
     while (_extraConfig.size() > 0) {
-        delete _extraConfig.front();
+        free(_extraConfig.front());
         _extraConfig.pop_front();
     }
     if (_datagram != nullptr) delete _datagram;
@@ -553,11 +552,11 @@ bool ZCPPOutput::SetModelData(Controller* c, std::list<ZCPP_packet_t*> modelData
 
     // erase any existing data
     while (_modelData.size() > 0) {
-        delete _modelData.front();
+        free(_modelData.front());
         _modelData.pop_front();
     }
     while (_extraConfig.size() > 0) {
-        delete _extraConfig.front();
+        free(_extraConfig.front());
         _extraConfig.pop_front();
     }
 

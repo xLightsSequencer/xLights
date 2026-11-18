@@ -1,6 +1,6 @@
 #version 450
-// Port of RotoZoomRotateYClaim in RotoZoomFunctions.metal (see
-// RotoZoomRotateXClaim for the two-phase determinism scheme).
+// Claim pass of the Y rotation (port of RotoZoomRotateYClaim in
+// RotoZoomFunctions.metal); see RotoZoomRotateXClaim.
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
@@ -13,25 +13,22 @@ void main() {
     uvec2 index = gl_GlobalInvocationID.xy;
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
-    uint sidx = index.y * data.width + index.x;
-
-    float y = float(index.y);
-    float sine = sin((data.yrotation + 90.0) * XL_PI / 180.0);
-    float pivot = (float(data.ypivot) * float(data.height)) / 100.0;
-
+    // PixelBufferClass::RotateY: y from the pivot up, then from the pivot - 1
+    // down, each SetPixel truncating its float row. The key is that order.
+    int y = int(index.y);
+    int pivot = int(data.ypivotPx);
     float toy;
+    int key;
     if (y >= pivot) {
-        toy = sine * (y - pivot) + pivot;
+        toy = data.ysine * float(y - pivot) + data.ypivotPx;
+        key = y - pivot;
     } else {
-        toy = -1.0 * sine * (pivot - y) + pivot;
+        toy = -1.0 * data.ysine * float(pivot - y) + data.ypivotPx;
+        key = int(data.height) + (pivot - 1 - y);
     }
-    // Bounds-check the ROUNDED index, not the float: on a height-1 buffer, toy
-    // in [0.5, 1.0) passes the float guard but rounds to 1, so didx = 1*width +
-    // x scatters a full row past the buffer end into the adjacent layer's
-    // allocation (a run-to-run determinism corruption).
-    int toyi = int(xl_round(toy));
+    int toyi = int(toy);
     if (toyi >= 0 && toyi < int(data.height)) {
         uint didx = uint(toyi) * data.width + index.x;
-        atomicMax(owner[didx], int(sidx));
+        atomicMax(owner[didx], key);
     }
 }

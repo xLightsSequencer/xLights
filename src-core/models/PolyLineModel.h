@@ -59,7 +59,7 @@ public:
     void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
     float GetModelHeight() const { return _height; }
-    void SetNumStrings(int strings) { _strings = strings; }
+    void SetNumStrings(int strings);
     void SetModelHeight(float height) { _height = height; }
     void SetAlternateNodes(bool val) { _alternateNodes = val; }
     void SetNumSegments(int val) { _polyLineSizes.resize(val); _polyLeadOffset.resize(val); _polyTrailOffset.resize(val); _polyLineSegDropSizes.resize(val); _polyCorner.resize(val+1); }

@@ -137,35 +137,64 @@ bool MorphEffect::PressButton(const std::string& id, SettingsMap& paletteMap, Se
     return false;
 }
 
+static int calcPosition(int value, int base)
+{
+    if( value == 100 ) return (base - 1);
+    double band = 100.0 / (double)base;
+    return (int)((double)value / band);
+}
+
 std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (settings.Get("E_VALUECURVE_Morph_Start_X1", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_Start_X2", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_Start_Y1", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_Start_Y2", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_End_X1", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_End_X2", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_End_Y1", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_Morph_End_Y2", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_MorphRepeat_Count", "").find("Active=TRUE") != std::string::npos ||
-        settings.Get("E_VALUECURVE_MorphRepeat_Skip", "").find("Active=TRUE") != std::string::npos) {
-        // we cant validate a value curve
+    auto hasVC = [&settings](const char* id) {
+        return settings.Get(std::string("E_VALUECURVE_") + id, "").find("Active=TRUE") != std::string::npos;
+    };
+    // Auto Repeat ignores the Repeat Count slider and picks a count that covers the model.
+    if (settings.GetBool("E_CHECKBOX_Morph_AutoRepeat", sAutoRepeatDefault) ||
+        hasVC("Morph_Start_X1") || hasVC("Morph_Start_X2") || hasVC("Morph_Start_Y1") || hasVC("Morph_Start_Y2") ||
+        hasVC("Morph_End_X1") || hasVC("Morph_End_X2") || hasVC("Morph_End_Y1") || hasVC("Morph_End_Y2") ||
+        hasVC("Morph_Repeat_Count") || hasVC("Morph_Repeat_Skip")) {
+        return res;
+    }
+
+    const int repeat_count = settings.GetInt("E_SLIDER_Morph_Repeat_Count", sRepeatCountDefault);
+    const int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", sRepeatSkipDefault);
+    if (repeat_count <= 0) {
+        return res;
+    }
+
+    // Same geometry as Render(): the copies are offset along X when the morph
+    // travels mostly vertically, otherwise along Y, so only the line's extent
+    // on that axis and that buffer dimension matter.
+    const int wi = model->GetDefaultBufferWi();
+    const int ht = model->GetDefaultBufferHt();
+    const int x1a = calcPosition(settings.GetInt("E_SLIDER_Morph_Start_X1", sStartX1Default), wi);
+    const int y1a = calcPosition(settings.GetInt("E_SLIDER_Morph_Start_Y1", sStartY1Default), ht);
+    const int x2a = calcPosition(settings.GetInt("E_SLIDER_Morph_End_X1", sEndX1Default), wi);
+    const int y2a = calcPosition(settings.GetInt("E_SLIDER_Morph_End_Y1", sEndY1Default), ht);
+    const bool start_linked = settings.GetBool("E_CHECKBOX_Morph_Start_Link", sStartLinkDefault);
+    const bool end_linked = settings.GetBool("E_CHECKBOX_Morph_End_Link", sEndLinkDefault);
+    const int x1b = start_linked ? x1a : calcPosition(settings.GetInt("E_SLIDER_Morph_Start_X2", sStartX2Default), wi);
+    const int y1b = start_linked ? y1a : calcPosition(settings.GetInt("E_SLIDER_Morph_Start_Y2", sStartY2Default), ht);
+    const int x2b = end_linked ? x2a : calcPosition(settings.GetInt("E_SLIDER_Morph_End_X2", sEndX2Default), wi);
+    const int y2b = end_linked ? y2a : calcPosition(settings.GetInt("E_SLIDER_Morph_End_Y2", sEndY2Default), ht);
+
+    int lineExtent;
+    int axisSize;
+    if (std::abs(x2a - x1a) + std::abs(x2b - x1b) < std::abs(y2a - y1a) + std::abs(y2b - y1b)) {
+        lineExtent = std::max(std::abs(x1a - x1b), std::abs(x2a - x2b)) + 1;
+        axisSize = wi;
     } else {
-        int startx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_X1", sStartX1Default) - settings.GetInt("E_SLIDER_Morph_Start_X2", sStartX2Default)) * model->GetDefaultBufferWi() / 80);
-        int endx = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_X1", sEndX1Default) - settings.GetInt("E_SLIDER_Morph_End_X2", sEndX2Default)) * model->GetDefaultBufferWi() / 80);
-        int starty = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_Start_Y1", sStartY1Default) - settings.GetInt("E_SLIDER_Morph_Start_Y2", sStartY2Default)) * model->GetDefaultBufferWi() / 80);
-        int endy = std::max(1, std::abs(settings.GetInt("E_SLIDER_Morph_End_Y1", sEndY1Default) - settings.GetInt("E_SLIDER_Morph_End_Y2", sEndY2Default)) * model->GetDefaultBufferWi() / 80);
+        lineExtent = std::max(std::abs(y1a - y1b), std::abs(y2a - y2b)) + 1;
+        axisSize = ht;
+    }
 
-        int minmorph = std::min(startx, std::min(starty, std::min(endx, endy)));
-        int repeat_count = settings.GetInt("E_SLIDER_Morph_Repeat_Count", sRepeatCountDefault);
-        int repeat_skip = settings.GetInt("E_SLIDER_Morph_Repeat_Skip", sRepeatSkipDefault);
-        int maxmodel = std::max(model->GetDefaultBufferWi(), model->GetDefaultBufferHt());
-
-        if ((minmorph + repeat_skip) * repeat_count > 2 * maxmodel) {
-            res.push_back(fmt::format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-        }
+    // Each copy is the same line shifted by repeat_skip, so the copies span
+    // lineExtent + repeat_count * repeat_skip on the repeat axis.
+    if (lineExtent + repeat_count * std::abs(repeat_skip) > 2 * axisSize) {
+        res.push_back(fmt::format("    WARN: Morph effect with repeat count and skip which are larger than necessary. This may lead to slow render times. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -248,13 +277,6 @@ static void StoreLine( const int x0_, const int y0_, const int x1_, const int y1
         if (e2 >-dx) { err -= dy; x0 += sx; }
         if (e2 < dy) { err += dx; y0 += sy; }
     }
-}
-
-static int calcPosition(int value, int base)
-{
-    if( value == 100 ) return (base - 1);
-    double band = 100.0 / (double)base;
-    return (int)((double)value / band);
 }
 
 void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -413,6 +435,26 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     double head_end_of_tail_pos = -1;
     double tail_end_of_tail_pos = -1;
 
+    // The loops below step 0.1 of a line index, so up to ten consecutive steps
+    // draw the identical line.  DrawThickLine only stores pixels (no blending),
+    // so in a run of identical lines only the last colour survives: hold each
+    // line until the next one differs and draw just that.
+    bool pendingLine = false;
+    int px0 = 0, py0 = 0, px1 = 0, py1 = 0;
+    xlColor pendingColor;
+    const bool lineDirection = direction >= 0;
+    auto queueLine = [&](int x0, int y0, int x1, int y1, const xlColor& c) {
+        if (pendingLine && (x0 != px0 || y0 != py0 || x1 != px1 || y1 != py1)) {
+            buffer.DrawThickLine(px0, py0, px1, py1, pendingColor, lineDirection);
+        }
+        pendingLine = true;
+        px0 = x0;
+        py0 = y0;
+        px1 = x1;
+        py1 = y1;
+        pendingColor = c;
+    };
+
     for( int repeat = 0; repeat <= repeat_count; repeat++ )
     {
         double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
@@ -495,7 +537,7 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             if( buffer.allowAlpha ) {
                 tail_color.alpha = 255 * alpha_pct;
             }
-            buffer.DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), tail_color, direction >= 0);
+            queueLine((*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), tail_color);
         }
 
         // draw the head
@@ -504,8 +546,11 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             double pct = ((total_length == 0) ? 0.0 : i / total_length);
             pos_a = i;
             pos_b = v_shtx->size() * pct;
-            buffer.DrawThickLine( (*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), head_color, direction >= 0);
+            queueLine((*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), head_color);
         }
+    }
+    if (pendingLine) {
+        buffer.DrawThickLine(px0, py0, px1, py1, pendingColor, lineDirection);
     }
 }
 

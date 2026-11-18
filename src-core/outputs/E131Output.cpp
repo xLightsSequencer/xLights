@@ -91,7 +91,7 @@ E131Output::E131Output(pugi::xml_node node, bool isActive) : IPOutput(node, isAc
     if (_channels > 512) SetChannels(512);
     if (_autoSize_CONVERT) _autoSize_CONVERT = false;
     _numUniverses_CONVERT = node.attribute("NumUniverses").as_int(1);
-    _priority = node.attribute("Priority").as_int(100);
+    _priority = (uint8_t)std::clamp(node.attribute("Priority").as_int(100), 0, 200);
     if (_numUniverses_CONVERT > 1) {
         CreateMultiUniverses_CONVERT(_numUniverses_CONVERT);
     }

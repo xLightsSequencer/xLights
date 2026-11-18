@@ -37,6 +37,9 @@ bool GenericSerialOutput::Open()
     _datalen = _channels + _prefix.size() + _postfix.size();
 
     if (_datalen > GENERICSERIAL_MAX_CHANNELS + MAX_PREFIX_POSTFIX) {
+        spdlog::error("GenericSerialOutput: {} channels with prefix and postfix is too large.", _datalen);
+        _datalen = 0;
+        _ok = false;
         return false;
     }
 

@@ -164,7 +164,8 @@ void LightningEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
 
     int xoffset = curState * botX / 10.0;
     for(int i = 0; i <= segment; i++) {
-        int j = buffer.randInt(0, RAND_MAX) + 1;
+        // Fixed range: RAND_MAX is 32767 on Windows and 2^31-1 elsewhere, which made output platform-specific.
+        int j = buffer.randInt(0, 0x7fffffff) + 1;
         int x2 = 0;
         int y2 = 0;
         if(DIRECTION==UP || DIRECTION==DOWN) {

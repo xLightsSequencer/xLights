@@ -49,6 +49,6 @@ public:
 
 protected:
     virtual void OnMetadataLoaded() override;
-    void GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer& buffer, bool gradient, const xlColor& highlightColor, bool highlight, bool show3d, int BarHt, int n, float pct, int color2Index);
+    void GetSpatialColor(xlColor& color, size_t colorIndex, float x, float y, RenderBuffer& buffer, bool gradient, const xlColor& highlightColor, bool highlight, bool useHighlightColour, bool show3d, int BarHt, int n, float pct, int color2Index);
     void RenderCustomAngle(RenderBuffer& buffer, double angle, double position, size_t colorcnt, int barCount, bool highlight, bool useFirstColorForHighlight, bool show3D, bool gradient);
 };

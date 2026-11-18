@@ -244,7 +244,7 @@ void xLightsFrame::LoadEffectsFile()
                     "Would you like to use the autosave file instead?",
                     xmlTimeStr, backupTimeStr
                 );
-                if (wxMessageBox(msg, "Newer Autosave File Found", wxYES_NO | wxICON_QUESTION) == wxYES) {
+                if (wxMessageBox(msg, "Newer Autosave File Found", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION) == wxYES) {
                     // run a backup ... equivalent of a F10
 
                     // we have not actually read the backup location yet so lets just use the show folder
@@ -1732,31 +1732,20 @@ void xLightsFrame::FinishBatchRenderDialog(bool stopped)
     }
 }
 
-void xLightsFrame::SaveSequence()
+bool xLightsFrame::SaveSequence()
 {
     LogMemoryUsage("SaveSequence start: " + xlightsFilename.ToStdString());
 
-    if (_seqData.NumFrames() == 0)
-    {
-        DisplayError("You must open a sequence first!", this);
-        return;
+    wxString currentPath;
+    if (!xlightsFilename.IsEmpty() && CurrentSeqXmlFile != nullptr) {
+        currentPath = CurrentSeqXmlFile->GetFullPath();
     }
-
-    if (readOnlyMode)
-    {
-        DisplayError("Sequences cannot be saved in read only mode!", this);
-        return;
-    }
-
-    if (!xlightsFilename.IsEmpty() && CurrentSeqXmlFile != nullptr && !CurrentSeqXmlFile->GetFullPath().empty()) {
-        if (!IsSequenceInShowDir(CurrentSeqXmlFile->GetFullPath())) {
-            wxFileName fnDir(CurrentDir, "");
-            fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
-            wxString showPath = fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
-            DisplayError("Sequence files must be saved within the current show directory:\n" + showPath +
-                         "\n\nPlease use Save As to save this sequence inside the show directory.", this);
-            return;
+    if (std::string refusal = SequenceSaveRefusal(currentPath); !refusal.empty()) {
+        if (!currentPath.IsEmpty() && !IsSequenceInShowDir(currentPath)) {
+            refusal += "\n\nPlease use Save As to save this sequence inside the show directory.";
         }
+        DisplayError(refusal, this);
+        return false;
     }
 
     wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
@@ -1782,7 +1771,7 @@ void xLightsFrame::SaveSequence()
         bool ok;
         do {
             if (fd.ShowModal() != wxID_OK) {
-                return;
+                return false;
             }
             // validate inputs
             NewFilename=fd.GetPath();
@@ -1847,7 +1836,8 @@ void xLightsFrame::SaveSequence()
     }
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
     spdlog::info("Saving XSQ file.");
-    if (!CurrentSeqXmlFile->Save(_sequenceElements)) {
+    const bool xsqSaved = CurrentSeqXmlFile->Save(_sequenceElements);
+    if (!xsqSaved) {
         wxMessageDialog msgDlg(this, "Error Saving Sequence to " + CurrentSeqXmlFile->GetFullPath(),
                                "Error Saving Sequence", wxOK | wxCENTRE);
         msgDlg.ShowModal();
@@ -1920,7 +1910,7 @@ void xLightsFrame::SaveSequence()
             mSavedChangeCount = _sequenceElements.GetChangeCount();
             mLastAutosaveCount = mSavedChangeCount;
         } );
-        return;
+        return xsqSaved;
     }
     wxString display_name;
     if (mSaveFseqOnSave) {
@@ -1940,6 +1930,7 @@ void xLightsFrame::SaveSequence()
     EnableSequenceControls(true);
     mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
+    return xsqSaved;
 }
 
 void xLightsFrame::SetSequenceTiming(int timingMS)
@@ -1998,6 +1989,23 @@ bool xLightsFrame::IsSequenceInShowDir(const wxString& filename) const
 #else
     return filePath.StartsWith(showPath);
 #endif
+}
+
+std::string xLightsFrame::SequenceSaveRefusal(const wxString& path) const
+{
+    if (_seqData.NumFrames() == 0) {
+        return "You must open a sequence first!";
+    }
+    if (readOnlyMode) {
+        return "Sequences cannot be saved in read only mode!";
+    }
+    if (!path.IsEmpty() && !IsSequenceInShowDir(path)) {
+        wxFileName fnDir(CurrentDir, "");
+        fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+        return "Sequence files must be saved within the current show directory:\n" +
+               fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR).utf8_string();
+    }
+    return "";
 }
 
 void xLightsFrame::SaveAsSequence()
@@ -2059,8 +2067,15 @@ void xLightsFrame::SaveAsSequence()
     SaveAsSequence(ToStdString(newFilename));
 }
 
-void xLightsFrame::SaveAsSequence(const std::string& filename)
+bool xLightsFrame::SaveAsSequence(const std::string& filename)
 {
+    // Refuse before the open sequence is switched to the new name: SaveSequence()
+    // refuses the same cases, but only after the rename below.
+    if (std::string refusal = SequenceSaveRefusal(wxString(filename)); !refusal.empty()) {
+        DisplayError(refusal, this);
+        return false;
+    }
+
     wxFileName oName(filename);
     oName.SetExt("fseq");
     DisplayXlightsFilename(oName.GetFullPath());
@@ -2070,10 +2085,11 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
     oName.SetExt("xsq");
     CurrentSeqXmlFile->SetFullPath(ToStdString(oName.GetFullPath()));
     _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
-    SaveSequence();
+    const bool saved = SaveSequence();
     SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
     AddToMRU(filename);
     UpdateRecentFilesList(false);
+    return saved;
 }
 
 void xLightsFrame::RenderAll()

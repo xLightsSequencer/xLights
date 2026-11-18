@@ -288,12 +288,28 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             if (!std::filesystem::path(seq).is_absolute()) {
                 seq = (std::filesystem::path(CurrentDir.ToStdString()) / seq).string();
             }
-            SaveAsSequence(seq);
+            // Ask first: SaveAsSequence() would answer a refusal with a modal
+            // dialog that blocks this request.
+            if (std::string refusal = SequenceSaveRefusal(wxString(seq)); !refusal.empty()) {
+                std::replace(refusal.begin(), refusal.end(), '\n', ' ');
+                spdlog::warn("Automation saveSequence '{}' refused: {}", seq, refusal);
+                return sendResponse(JSONSafe(refusal), "msg", 503, false);
+            }
+            if (!SaveAsSequence(seq)) {
+                return sendResponse("Sequence not saved, see the log.", "msg", 503, false);
+            }
         } else {
             if (xlightsFilename.IsEmpty()) {
                 return sendResponse("Saving unnamed sequence needs a name to be sent.", "msg", 503, false);
             }
-            SaveSequence();
+            if (std::string refusal = SequenceSaveRefusal(CurrentSeqXmlFile->GetFullPath()); !refusal.empty()) {
+                std::replace(refusal.begin(), refusal.end(), '\n', ' ');
+                spdlog::warn("Automation saveSequence refused: {}", refusal);
+                return sendResponse(JSONSafe(refusal), "msg", 503, false);
+            }
+            if (!SaveSequence()) {
+                return sendResponse("Sequence not saved, see the log.", "msg", 503, false);
+            }
         }
         return sendResponse("Sequence Saved.", "msg", 200, false);
     } else if (cmd == "renderAll") {
@@ -1853,10 +1869,24 @@ bool xLightsFrame::ProcessHttpRequest(HttpConnection& connection, HttpRequest& r
                     paramMap["_METHOD"] = "POST";
                 }
             }
-        } catch (const std::exception& /*ex*/) {
-            
+        } catch (const std::exception& ex) {
+            // Answer here: falling through with no command made this look like
+            // "No command". The usual parse failure is a Windows path written
+            // with single backslashes, which JSON does not allow.
+            spdlog::warn("xlDoAutomation: invalid request: {}", ex.what());
+            nlohmann::json err;
+            err["res"] = 503;
+            std::string msg = std::string("Invalid JSON request: ") + ex.what();
+            if (dynamic_cast<const nlohmann::json::parse_error*>(&ex) != nullptr) {
+                msg += ". Backslashes in strings must be doubled (\"C:\\\\show\\\\file.xsq\") or replaced by /.";
+            }
+            err["msg"] = msg;
+            HttpResponse resp(connection, request, (HttpStatus::HttpStatusCode)503);
+            resp.AddHeader("access-control-allow-origin", "*");
+            resp.MakeFromText(err.dump(), MIME_JSON);
+            connection.SendResponse(resp);
+            return true;
         }
-       
     } else {
         paramMap["_METHOD"] = request.Method();
         if (request.Method() == "POST" || request.Method() == "PUT") {

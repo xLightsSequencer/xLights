@@ -252,12 +252,14 @@ public:
     // `EnsureFilteredAudioData(STEM_X)` rebuilds from the new data.
     // Pass empty vectors (or all-zero-length) to clear. Guitar/piano
     // stay empty for 4-stem separations.
-    void SetStemData(const std::vector<float>& drumsL, const std::vector<float>& drumsR,
-                      const std::vector<float>& bassL, const std::vector<float>& bassR,
-                      const std::vector<float>& otherL, const std::vector<float>& otherR,
-                      const std::vector<float>& vocalsL, const std::vector<float>& vocalsR,
-                      const std::vector<float>& guitarL = {}, const std::vector<float>& guitarR = {},
-                      const std::vector<float>& pianoL = {}, const std::vector<float>& pianoR = {});
+    // Takes the vectors by value: a full song's stems are hundreds of MB, so
+    // callers std::move them in rather than holding a second copy.
+    void SetStemData(std::vector<float> drumsL, std::vector<float> drumsR,
+                      std::vector<float> bassL, std::vector<float> bassR,
+                      std::vector<float> otherL, std::vector<float> otherR,
+                      std::vector<float> vocalsL, std::vector<float> vocalsR,
+                      std::vector<float> guitarL = {}, std::vector<float> guitarR = {},
+                      std::vector<float> pianoL = {}, std::vector<float> pianoR = {});
     bool HasStemData() const { return !_stemDrumsL.empty(); }
     bool HasSixStemData() const { return !_stemGuitarL.empty(); }
 

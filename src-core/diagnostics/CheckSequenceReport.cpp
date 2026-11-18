@@ -1034,7 +1034,7 @@ std::string CheckSequenceReport::RenderNetworkIssues(const std::vector<ReportIss
     for (const auto& issue : issues) {
         if (issue.category == "network_info") {
             networkInfo += R"(
-                    <p class="filterable-item">)" + CleanMessage(issue.message) +
+                    <p class="filterable-item">)" + EscapeHTML(CleanMessage(issue.message)) +
                            R"(</p>)";
         }
     }
@@ -1053,7 +1053,7 @@ std::string CheckSequenceReport::RenderNetworkIssues(const std::vector<ReportIss
     std::vector<std::string> socketErrors;
     for (const auto& issue : issues) {
         if (issue.type == ReportIssue::CRITICAL && issue.category == "socket") {
-            socketErrors.push_back(CleanMessage(issue.message));
+            socketErrors.push_back(EscapeHTML(CleanMessage(issue.message)));
         }
     }
 
@@ -1093,7 +1093,7 @@ std::string CheckSequenceReport::RenderNetworkIssues(const std::vector<ReportIss
             hasIPs = true;
             html += R"(
                         <li class="filterable-item" data-default-display="list-item">)" +
-                    CleanMessage(issue.message) + R"(</li>)";
+                    EscapeHTML(CleanMessage(issue.message)) + R"(</li>)";
         }
     }
 
@@ -1215,7 +1215,7 @@ std::string CheckSequenceReport::RenderControllerIssues(const std::vector<Report
             std::string controllerName = "";
             for (const auto* issue : controller.second) {
                 if (issue->type == ReportIssue::INFO) {
-                    controllerName = CleanMessage(issue->message);
+                    controllerName = EscapeHTML(CleanMessage(issue->message));
                     break;
                 }
             }
@@ -2077,7 +2077,7 @@ std::string CheckSequenceReport::RenderModelIssues(const std::vector<ReportIssue
                                     <p class="font-medium">)" +
                         EscapeHTML(subModel.first) + R"(</p>
                                     <p class="pl-4">)" +
-                        CleanMessage(subModel.second) + R"(</p>
+                        EscapeHTML(CleanMessage(subModel.second)) + R"(</p>
                                 </div>)";
             }
 
@@ -2136,7 +2136,7 @@ for (const auto& issue : issues) {
                                 <div class="pl-4">)";
 
                 for (const auto& msg : subModel.second) {
-                    html += R"(<p>)" + CleanMessage(msg) + R"(</p>)";
+                    html += R"(<p>)" + EscapeHTML(CleanMessage(msg)) + R"(</p>)";
                 }
 
                 html += R"(</div>
@@ -2199,7 +2199,7 @@ for (const auto& issue : issues) {
                                     <p class="font-medium">)" +
                         EscapeHTML(subModel.first) + R"(</p>
                                     <p class="pl-4">)" +
-                        CleanMessage(subModel.second) + R"(</p>
+                        EscapeHTML(CleanMessage(subModel.second)) + R"(</p>
                                 </div>)";
             }
 
@@ -2981,7 +2981,7 @@ std::string CheckSequenceReport::RenderSequenceIssues(const std::vector<ReportIs
                     }
                     html += R"(
                             <li class="filterable-item" data-default-display="list-item">)" +
-                            CleanMessage(std::get<0>(issue)) + R"(</li>)";
+                            EscapeHTML(CleanMessage(std::get<0>(issue))) + R"(</li>)";
                 }
             }
             if (hasErrors) {
@@ -3002,7 +3002,7 @@ std::string CheckSequenceReport::RenderSequenceIssues(const std::vector<ReportIs
                     }
                     html += R"(
                             <li class="filterable-item" data-default-display="list-item">)" +
-                            CleanMessage(std::get<0>(issue)) + R"(</li>)";
+                            EscapeHTML(CleanMessage(std::get<0>(issue))) + R"(</li>)";
                 }
             }
             if (hasWarnings) {
@@ -3046,7 +3046,7 @@ std::string CheckSequenceReport::RenderSequenceIssues(const std::vector<ReportIs
             for (const auto& entry : model.second) {
                 html += R"(
                            <li class="filterable-item" data-default-display="list-item">)" +
-                        CleanMessage(std::get<1>(entry)) + R"(</li>)";
+                        EscapeHTML(CleanMessage(std::get<1>(entry))) + R"(</li>)";
             }
 
             html += R"(
@@ -3198,7 +3198,7 @@ std::string CheckSequenceReport::RenderSequenceIssues(const std::vector<ReportIs
             hasGeneralNotes = true;
             html += R"(
                     <p>)" +
-                    CleanMessage(issue.message) + R"(</p>)";
+                    EscapeHTML(CleanMessage(issue.message)) + R"(</p>)";
         }
     }
 
@@ -3240,7 +3240,7 @@ std::string CheckSequenceReport::RenderOSIssues(const std::vector<ReportIssue>& 
                             </div>
                             <div class="ml-3">
                                 <p>)" +
-                            CleanMessage(issue.message) + R"(</p>)";
+                            EscapeHTML(CleanMessage(issue.message)) + R"(</p>)";
 
                     // Check for associated info entries
                     bool hasFileInfo = false;
@@ -3253,7 +3253,7 @@ std::string CheckSequenceReport::RenderOSIssues(const std::vector<ReportIssue>& 
                             }
                             html += R"(
                                     <p>)" +
-                                    CleanMessage(infoIssue.message) + R"(</p>)";
+                                    EscapeHTML(CleanMessage(infoIssue.message)) + R"(</p>)";
                         }
                     }
                     if (hasFileInfo) {
@@ -3373,7 +3373,7 @@ std::string CheckSequenceReport::RenderIssueBox(const CheckSequenceReport::Repor
            icon + R"(</span>
                             </div>
                             <p class="ml-3">)" +
-           CleanMessage(issue.message) +
+           EscapeHTML(CleanMessage(issue.message)) +
            R"(</p>
                         </div>
                     </div>)";
@@ -3413,7 +3413,7 @@ std::string CheckSequenceReport::RenderDisabledChecks(const std::vector<ReportIs
         if (issue.category == "checkdisabled") {
             html += R"(
                 <div class="text-gray-500 italic text-sm">)" +
-                    CleanMessage(issue.message) + R"(</div>)";
+                    EscapeHTML(CleanMessage(issue.message)) + R"(</div>)";
         }
     }
 

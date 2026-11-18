@@ -20,10 +20,12 @@
 #include "render/SequenceMedia.h"
 #include "models/ModelManager.h"
 #include "models/Model.h"
+#include "models/SubModel.h"
 #include "models/ViewObjectManager.h"
 #include "models/ViewObject.h"
 #include "utils/ExternalHooks.h"
 #include "utils/FileUtils.h"
+#include "utils/string_utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -255,6 +257,30 @@ void SequencePackage::Extract()
         // it becomes a std::filesystem::path.
         std::string entryNameStr = FileUtils::ToValidUTF8(entryName, FileUtils::LegacyEncoding::CP437);
         bool isDir = (!entryNameStr.empty() && entryNameStr.back() == '/') || (fileInfo.external_fa & 0x10);
+
+        {
+            std::string chk = entryNameStr;
+            std::replace(chk.begin(), chk.end(), '\\', '/');
+            bool unsafe = chk.empty() || chk[0] == '/' || (chk.size() >= 2 && chk[1] == ':');
+            int depth = 0;
+            size_t cpos = 0;
+            while (!unsafe && cpos <= chk.size()) {
+                size_t nx = chk.find('/', cpos);
+                std::string comp = chk.substr(cpos, nx == std::string::npos ? std::string::npos : nx - cpos);
+                if (comp == "..") {
+                    if (--depth < 0) unsafe = true;
+                } else if (!comp.empty() && comp != ".") {
+                    ++depth;
+                }
+                if (nx == std::string::npos) break;
+                cpos = nx + 1;
+            }
+            if (unsafe) {
+                spdlog::warn("Skipping package entry with unsafe path '{}'.", entryNameStr);
+                ret = unzGoToNextFile(uf);
+                continue;
+            }
+        }
 
         std::filesystem::path fnEntry = _tempDir / entryNameStr;
 
@@ -543,7 +569,7 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
             // copy is done in MapXLightsEffects (covers plain .xsq too), so skip
             // the legacy model->layout import here. ImportFaceInfo is Matrix-only,
             // so node/Coro faces are unaffected either way.
-            if (!_importFacesToSequence && !faceName.empty()) {
+            if (!ImportsFacesToSequence(target) && !faceName.empty()) {
                 ImportFaceInfo(mappedEffect, target, faceName);
             }
         }
@@ -604,14 +630,43 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
     return settings.AsString();
 }
 
+bool SequencePackage::IsTargetFromBase(EffectLayer* target) const
+{
+    if (_modelManager == nullptr || target == nullptr) {
+        return false;
+    }
+    Model* m = (*_modelManager)[target->GetParentElement()->GetModelName()];
+    if (auto* sm = dynamic_cast<SubModel*>(m)) {
+        m = sm->GetParent();
+    }
+    return m != nullptr && m->IsFromBase();
+}
+
+bool SequencePackage::ImportsFacesToSequence(EffectLayer* target) const
+{
+    return _importFacesToSequence || IsTargetFromBase(target);
+}
+
 void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, const std::string& faceName)
 {
     if (_modelManager == nullptr)
         return;
 
+    // A base show folder model is replaced by the base copy on the next
+    // load, so a face added to it here would be silently lost.
+    if (IsTargetFromBase(target)) {
+        spdlog::info("SequencePackage::ImportFaceInfo: '{}' is from the base show folder, importing face '{}' into the sequence instead.",
+                     target->GetParentElement()->GetModelName(), faceName);
+        ImportModelFaceToSequence(mappedEffect, target, faceName);
+        return;
+    }
+
     auto targetModelName = target->GetParentElement()->GetModelName();
     auto srcModelName = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName();
     Model* targetModel = (*_modelManager)[targetModelName];
+    if (targetModel == nullptr) {
+        return;
+    }
 
     const auto& faceInfo = targetModel->GetFaceInfo().find(faceName);
     if (faceInfo != targetModel->GetFaceInfo().end()) {
@@ -653,7 +708,7 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
                                 std::string attrValue = attr.as_string();
 
                                 // import files
-                                if (attrName.substr(0, 5) == "Mouth" || attrName.substr(0, 4) == "Eyes") {
+                                if (SequenceFaces::IsImageKey(attrName)) {
                                     if (!attrValue.empty()) {
                                         // extract just the filename from the path
                                         std::string faceFileName = ExtractFilename(attrValue);
@@ -1629,9 +1684,16 @@ static std::string resolveFontFaceToFile(const std::string& faceName)
     FcPatternDestroy(pattern);
     if (match == nullptr) return {};
 
+    // FcFontMatch always returns the closest font, so a face that is not installed
+    // comes back as a substitute (e.g. DejaVu Sans); only accept a family match.
+    bool sameFamily = false;
+    FcChar8* family = nullptr;
+    for (int i = 0; !sameFamily && FcPatternGetString(match, FC_FAMILY, i, &family) == FcResultMatch; ++i) {
+        sameFamily = family != nullptr && Lower(reinterpret_cast<const char*>(family)) == Lower(faceName);
+    }
     std::string path;
     FcChar8* file = nullptr;
-    if (FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file != nullptr) {
+    if (sameFamily && FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file != nullptr) {
         path = reinterpret_cast<const char*>(file);
     }
     FcPatternDestroy(match);

@@ -19,7 +19,11 @@
 #include <wx/textctrl.h>
 //*)
 
+#include <wx/checkbox.h>
+#include <wx/srchctrl.h>
 #include <wx/timer.h>
+
+#include <vector>
 
 #include "layout/ControllerTreeUtils.h"
 
@@ -30,14 +34,27 @@ class MultiControllerUploadDialog : public wxDialog
 {
 	xLightsFrame* _frame = nullptr;
 	std::vector <Controller*> _controllers;
+	std::vector<wxString> _labels;
+	std::vector<bool> _checked;
+	std::vector<int> _resultIcons;
+	std::vector<int> _rows; // list row -> index into _controllers
+	wxSearchCtrl* _filterCtrl = nullptr;
+	wxCheckBox* _selectAllCB = nullptr;
+	wxTimer _filterTimer;
+	bool _rebuilding = false;
 	ControllerTree::ControllerLedIcons _pingIcons;
 	int _resultIconProcessing = -1;
 	int _resultIconSuccess = -1;
 	int _resultIconFailure = -1;
 	wxTimer _pingRefreshTimer;
 	void ValidateWindow();
-	wxArrayInt GetCheckedRows() const;
+	std::vector<int> GetCheckedControllers() const;
 	void RefreshPingIcons();
+	void RebuildList();
+	bool MatchesFilter(size_t idx, const wxArrayString& tokens) const;
+	void CheckRow(long row, bool checked);
+	long RowForController(int idx) const;
+	void UpdateSelectAll();
 
 public:
 
@@ -67,6 +84,9 @@ protected:
     static const long ID_MCU_SELECTACTIVE;
     static const long ID_MCU_DESELECTINACTIVE;
     static const long ID_MCU_SELECTAUTO;
+    static const long ID_MCU_CHECKSELECTED;
+    static const long ID_MCU_UNCHECKSELECTED;
+    static const long ID_MCU_INVERTSELECTION;
 
 private:
 

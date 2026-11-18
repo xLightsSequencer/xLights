@@ -93,6 +93,13 @@ OutputModelManager* ModelManager::GetOutputModelManager() const {
     return _renderContext ? _renderContext->GetOutputModelManager() : nullptr;
 }
 
+// A manager used without a render context (unit tests, tools) has nothing to queue work on.
+void ModelManager::AddASAPWorkIfAny(uint32_t work, const std::string& from) const {
+    if (auto* omm = GetOutputModelManager()) {
+        omm->AddASAPWork(work, from);
+    }
+}
+
 bool ModelManager::IsLowDefinitionRender() const {
     return _renderContext ? _renderContext->IsLowDefinitionRender() : false;
 }
@@ -439,7 +446,7 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     // RecalcStartChannels resolves chains in topological order now that all
     // models are loaded.
     RecalcStartChannels();
-    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ModelManager::LoadModels");
+    AddASAPWorkIfAny(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ModelManager::LoadModels");
 }
 
 uint32_t ModelManager::GetLastChannel() const
@@ -1177,7 +1184,7 @@ bool ModelManager::ReworkStartChannel() const
                         itm->SetControllerName(NO_CONTROLLER);
 
                         // because we have now moved a model off a controller we really need to do this all again
-                        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReworkStartChannel");
+                        AddASAPWorkIfAny(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ReworkStartChannel");
 
                         spdlog::warn("Attempt to place a second model {} on led panel port when only one is allowed. Only the first model has been retained. The others have been removed.", (const char*)itm->GetName().c_str());
 
@@ -1260,13 +1267,13 @@ bool ModelManager::ReworkStartChannel() const
                 if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString())) {
                     _outputManager->SomethingChanged();
 
-                    if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString() && _renderContext->IsSequencerInitialized())) {
-                        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
+                    if (it->GetChannels() != oldC || (eth != nullptr && eth->IsUniversePerString() && _renderContext != nullptr && _renderContext->IsSequencerInitialized())) {
+                        AddASAPWorkIfAny(OutputModelManager::WORK_NETWORK_CHANGE, "ReworkStartChannel");
                     }
-                    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
-                    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
-                    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");
-                    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ReworkStartChannel");
+                    AddASAPWorkIfAny(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ReworkStartChannel");
+                    AddASAPWorkIfAny(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ReworkStartChannel");
+                    AddASAPWorkIfAny(OutputModelManager::WORK_SAVE_NETWORKS, "ReworkStartChannel");
+                    AddASAPWorkIfAny(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "ReworkStartChannel");
                 }
             }
         }
@@ -1669,6 +1676,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         m->SetNodesPerString(50);
         m->SetStrandsPerString(1);
         m->SetStartSide("T");
+        m->SetIsBtoT(false);
         model = m;
     } else if (type == "Spinner") {
         auto* m = new SpinnerModel(*this);

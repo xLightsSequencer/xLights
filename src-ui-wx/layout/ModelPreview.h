@@ -165,6 +165,9 @@ public:
     float GetCameraRotationX() const override { return (is3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
     float GetCameraRotationY() const override { return (is3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
     void SetPan(float deltax, float deltay, float deltaz);
+    struct View2DOffset { float panX, panY, zoomCorrX, zoomCorrY; };
+    View2DOffset Get2DViewOffset() const { return { camera2d->GetPanX(), camera2d->GetPanY(), camera2d->GetZoomCorrX(), camera2d->GetZoomCorrY() }; }
+    void Set2DViewOffset(const View2DOffset& o) { camera2d->SetPanX(o.panX); camera2d->SetPanY(o.panY); camera2d->SetZoomCorrX(o.zoomCorrX); camera2d->SetZoomCorrY(o.zoomCorrY); }
     void Set3D(bool value) { is3d = value; }
     bool Is3D() const override { return is3d; }
     void SetControllerObjectContext(ControllerObjectContext c) { _controllerObjectContext = c; }

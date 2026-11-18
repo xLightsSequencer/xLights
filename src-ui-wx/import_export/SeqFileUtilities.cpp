@@ -143,6 +143,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
 
     // assign global xml file object
     CurrentSeqXmlFile = new SequenceFile(ToStdString(CurrentDir), frameMS);
+    WatchSequenceAudio(CurrentSeqXmlFile);
 
     if (_modelBlendDefaultOff) {
         CurrentSeqXmlFile->setSupportsModelBlending(false);
@@ -468,6 +469,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         // assign global xml file object
         CurrentSeqXmlFile = new SequenceFile(ToStdString(xml_file.GetFullPath()));
+        WatchSequenceAudio(CurrentSeqXmlFile);
 
         // open the xml file so we can see if it has media
         auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, ToStdString(realPath.GetFullPath()));
@@ -1154,6 +1156,7 @@ bool xLightsFrame::SeqLoadXlightsFile(const wxString& filename, bool ChooseModel
 {
     delete xLightsFrame::CurrentSeqXmlFile;
     xLightsFrame::CurrentSeqXmlFile = new SequenceFile(filename.ToStdString());
+    WatchSequenceAudio(xLightsFrame::CurrentSeqXmlFile);
     auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, filename.ToStdString());
     if (!loadDoc) return false;
     return SeqLoadXlightsFile(*xLightsFrame::CurrentSeqXmlFile, *loadDoc, ChooseModels);

@@ -86,14 +86,29 @@ std::string Item::GetTypeName() const {
     return "Unknown";
 }
 
+static std::string SafeFileName(std::string name) {
+    for (auto& c : name) {
+        if (c == '/' || c == '\\') c = '_';
+    }
+    for (auto pos = name.find(".."); pos != std::string::npos; pos = name.find("..", pos)) {
+        name.replace(pos, 2, "__");
+    }
+    return name;
+}
+
 std::string Item::GetExt() const {
     if (_type == ItemType::Lyric) return "xtiming";
     if (_type == ItemType::Sequence) return "zip";
-    // Derive from the URL tail.
-    auto dot = _download.find_last_of('.');
-    auto slash = _download.find_last_of('/');
+    std::string path = _download.substr(0, _download.find_first_of("?#"));
+    auto scheme = path.find("://");
+    const size_t pathStart = scheme == std::string::npos ? 0 : scheme + 3;
+    auto slash = path.find_last_of('/');
+    if (scheme != std::string::npos && (slash == std::string::npos || slash < pathStart)) {
+        return "";
+    }
+    auto dot = path.find_last_of('.');
     if (dot != std::string::npos && (slash == std::string::npos || dot > slash)) {
-        return _download.substr(dot + 1);
+        return path.substr(dot + 1);
     }
     return "";
 }
@@ -109,7 +124,7 @@ std::string Item::GetDownloadFileName() const {
         const std::string ext = GetExt();
         if (!ext.empty()) name += "." + ext;
     }
-    return name;
+    return SafeFileName(name);
 }
 
 std::string Item::GetDescription() const {
@@ -302,7 +317,7 @@ std::string Catalog::DownloadTo(const std::string& url,
     if (url.empty() || destFolder.empty() || fileName.empty()) return "";
     std::string dest = destFolder;
     if (dest.back() != '/' && dest.back() != '\\') dest += "/";
-    dest += fileName;
+    dest += SafeFileName(fileName);
     if (FileExists(dest)) return dest;
     if (!FileCacheItem::DownloadURL(url, dest)) return "";
     if (!FileExists(dest)) return "";

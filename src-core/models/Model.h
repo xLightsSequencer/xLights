@@ -131,8 +131,10 @@ public:
     void SetCustomColor(std::string const& color) { customColor = color; }
     [[nodiscard]] xlColor GetCustomColor() const { return customColor; }
     
-    void SetDirection( const std::string dir ) { _dir = dir; }
-    void SetStartSide( const std::string start_side ) { _startSide = start_side; }
+    // The strings are what gets saved; IsLtoR/isBotToTop are what renders and shows in the
+    // property grid. Keep them in step so a model never saves a different corner than it shows.
+    void SetDirection( const std::string dir ) { _dir = dir; IsLtoR = dir != "R"; }
+    void SetStartSide( const std::string start_side ) { _startSide = start_side; isBotToTop = start_side == "B"; }
 
     virtual bool SupportsChangingStringCount() const { return false; };
     virtual bool ChangeStringCount(long count,  std::string& message) { return false; };
@@ -485,7 +487,7 @@ public:
     virtual uint32_t GetFirstChannel() const;
     virtual uint32_t GetLastChannel() const;
     uint32_t GetNumChannels() const;
-    uint32_t GetNodeNumber(size_t nodenum) const;
+    [[nodiscard]] virtual uint32_t GetNodeNumber(size_t nodenum) const;
     uint32_t GetNodeNumber(int bufY, int bufX) const;
     int GetNumberFromChannelString(const std::string& sc) const;
     int GetNumberFromChannelString(const std::string& sc, bool& valid, std::string& dependsonmodel) const;
@@ -527,7 +529,8 @@ public:
 
     bool HitTest(IModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     const std::string& GetStringType() const { return StringType; }
-    void SetStringType(std::string const& st) { StringType = st; }
+    // Setup and the node-type helpers index up to StringType[3].
+    void SetStringType(std::string const& st) { StringType = st.size() < 3 ? std::string("RGB Nodes") : st; }
 
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const;

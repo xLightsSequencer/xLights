@@ -34,9 +34,21 @@ public:
         wxGLApp::OnAssertFailure(file, line, func, cond, msg);
     }
 
+#if wxUSE_EXCEPTIONS
+    virtual void CallEventHandler(wxEvtHandler* handler, wxEventFunctor& functor, wxEvent& event) const override
+    {
+        try {
+            wxGLApp::CallEventHandler(handler, functor, event);
+        } catch (...) {
+            xlCrashHandler::NoteEventHandlerException(handler, functor, event);
+            throw;
+        }
+    }
+#endif
+
     virtual bool OnExceptionInMainLoop() override
     {
-        HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException(),
+        HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException() + xlCrashHandler::DescribeExceptionContext(),
                     SessionType::MainLoopException);
         return false;
     }

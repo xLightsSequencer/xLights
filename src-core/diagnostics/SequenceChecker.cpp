@@ -39,6 +39,7 @@
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
 #include "render/Element.h"
+#include "render/RenderUtils.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceFile.h"
 #include "utils/ExternalHooks.h"
@@ -96,6 +97,14 @@ SequenceChecker::SequenceChecker(SequenceElements& elements,
     _sequenceFile(sequenceFile),
     _showFolder(std::move(showFolder)),
     _callbacks(callbacks) {
+}
+
+int SequenceChecker::GetSequenceEndMS(int sequenceDurationMS, int frequency) {
+    // Keep this identical to the renderer's own end-of-sequence calculation
+    // (SequenceElements and SequenceFile both round the stored duration to a
+    // frame boundary). RoundToMultipleOfPeriod returns the input unchanged
+    // when the frequency is not usable, which is the safe fallback here too.
+    return RoundToMultipleOfPeriod(sequenceDurationMS, frequency);
 }
 
 void SequenceChecker::RecordIssue(CheckSequenceReport& report,
@@ -1275,15 +1284,23 @@ void SequenceChecker::CheckEffect(Effect* ef, CheckSequenceReport& report,
         }
     }
 
-    if (_sequenceFile != nullptr && ef->GetEndTimeMS() > _sequenceFile->GetSequenceDurationMS()) {
-        std::string msg = fmt::format("    WARN: Effect {} ends at {} after the sequence end {}. Model: '{}' Start: {}",
-                                      ef->GetEffectName(), FORMATTIME(ef->GetEndTimeMS()),
-                                      FORMATTIME(_sequenceFile->GetSequenceDurationMS()), elementName,
-                                      FORMATTIME(ef->GetStartTimeMS()));
-        RecordIssue(report, "sequence",
-                    CheckSequenceReport::ReportIssue::ForEffect(
-                        CheckSequenceReport::ReportIssue::WARNING, msg, "timing",
-                        modelName, ef->GetEffectName(), ef->GetStartTimeMS(), layerIndex));
+    if (_sequenceFile != nullptr) {
+        // Compare against the frame-rounded sequence end the renderer uses.
+        // The raw duration is the media length and is usually not a multiple
+        // of the frame period, so a duration of e.g. 235.299s would otherwise
+        // flag every effect that ends on the final frame (235.300s).
+        const int sequenceEndMS = GetSequenceEndMS(_sequenceFile->GetSequenceDurationMS(),
+                                                   _sequenceFile->GetFrequency());
+        if (ef->GetEndTimeMS() > sequenceEndMS) {
+            std::string msg = fmt::format("    WARN: Effect {} ends at {} after the sequence end {}. Model: '{}' Start: {}",
+                                          ef->GetEffectName(), FORMATTIME(ef->GetEndTimeMS()),
+                                          FORMATTIME(sequenceEndMS), elementName,
+                                          FORMATTIME(ef->GetStartTimeMS()));
+            RecordIssue(report, "sequence",
+                        CheckSequenceReport::ReportIssue::ForEffect(
+                            CheckSequenceReport::ReportIssue::WARNING, msg, "timing",
+                            modelName, ef->GetEffectName(), ef->GetStartTimeMS(), layerIndex));
+        }
     }
 
     auto looksNumericEnough = [](const std::string& v) -> bool {

@@ -281,6 +281,13 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     SaveWindowPosition("xLightsNodeSelectDialogPosition", nullptr);
     SaveWindowPosition("ControllerModelDialogPosition", nullptr);
     SaveWindowPosition("xLightsTestDialogPosition", nullptr);
+    SaveWindowPosition("xLightsMultiControllerUploadPos", nullptr);
+    SaveWindowPosition("xLightsFPPConnectPos", nullptr);
+    SaveWindowPosition("RenderProgress", nullptr);
+    SaveWindowPosition("BatchRendererPos", nullptr);
+    SaveWindowPosition("ControllerFullColumnsDialogPosition", nullptr);
+    SaveWindowPosition("xLightsBufferSizeDialogPosition", nullptr);
+    SaveWindowPosition("xLightsWiringDialogPosition", nullptr);
 
     UpdateViewMenu();
 }
@@ -4788,7 +4795,7 @@ void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
             int const startTime = RoundToMultipleOfPeriod(start , CurrentSeqXmlFile->GetFrequency());
             int endTime = RoundToMultipleOfPeriod(end , CurrentSeqXmlFile->GetFrequency());
             if (startTime == endTime) {
-                endTime = RoundToMultipleOfPeriod(startTime + CurrentSeqXmlFile->GetFrequency(), CurrentSeqXmlFile->GetFrequency());
+                endTime = RoundToMultipleOfPeriod(startTime + CurrentSeqXmlFile->GetFrameMS(), CurrentSeqXmlFile->GetFrequency());
             }
             return std::make_pair(startTime, endTime);
         };

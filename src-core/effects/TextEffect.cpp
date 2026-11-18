@@ -150,8 +150,9 @@ bool TextEffect::CleanupFileLocations(RenderContext* ctx, SettingsMap &SettingsM
 
 bool TextEffect::SupportsRenderCache(const SettingsMap& settings) const
 {
-    // we dont want to use render cache if text is coming from a file as the file might have changed
-    if (settings["TEXTCTRL_Text"] == "" && FileExists(settings["FILEPICKERCTRL_Text_File"]))
+    // we dont want to use render cache if text is coming from a file as the file might have changed.
+    // The path is usually show-folder relative, so FileExists() here would test it against the cwd.
+    if (settings["TEXTCTRL_Text"] == "" && settings["FILEPICKERCTRL_Text_File"] != "")
         return false;
     // we dont want to use render cache if text is coming from lyric track, if you have text then it overrides the lyric track
     if (settings["TEXTCTRL_Text"] == ""  && settings["CHOICE_Text_LyricTrack"] != "")
@@ -1542,6 +1543,14 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     text = msg;
 
     auto lines = Split(text, '\n');
+    // flip before measuring so each line is placed by the width of the word it shows
+    TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
+    if (dir == TEXTDIR_WORDFLIP) {
+        for (size_t i = 0; i < lines.size(); i++) {
+            lines[i] = FlipWord(settings, lines[i], buffer);
+        }
+    }
+
     std::vector<int> line_lengths;
     int max_line_length = 0;
     for (const auto& line : lines) {
@@ -1564,13 +1573,6 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
         rotate_90 = true;
         if (text_effect == 4) {
             up = true;
-        }
-    }
-
-    TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
-    if (dir == TEXTDIR_WORDFLIP) {
-        for (size_t i = 0; i < lines.size(); i++) {
-            lines[i] = FlipWord(settings, lines[i], buffer);
         }
     }
 

@@ -1,5 +1,6 @@
 #version 450
-// Port of RotoZoomRotateZ in RotoZoomFunctions.metal (write pass).
+// Write pass of the Z rotation and zoom (port of RotoZoomRotateZ in
+// RotoZoomFunctions.metal); see RotoZoomRotateXClaim.
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
@@ -14,37 +15,24 @@ void main() {
     uvec2 index = gl_GlobalInvocationID.xy;
     if (index.x >= data.width) return;
     if (index.y >= data.height) return;
-    uint sidx = index.y * data.width + index.x;
-
-    float zoom = data.zoom;
-    float q = data.zoomquality;
-    int cx = data.pivotpointx;
-    int cy = data.pivotpointy;
-    float rotation = data.zrotation;
-
-    float inc = 1.0 / q;
-
-    float angle = XL_PI2 * -rotation;
-    float xoff = (float(cx) * float(data.width)) / 100.0;
-    float yoff = (float(cy) * float(data.height)) / 100.0;
-    float anglecos = cos(-angle);
-    float anglesin = sin(-angle);
-
-    float x = float(index.x);
-    float y = float(index.y);
-
-    uint c = src[sidx];
-
-    for (int i = 0; float(i) < q; i++) {
-        for (int j = 0; float(j) < q; j++) {
-            float xx = x + (float(i) * inc) - xoff;
-            float yy = y + (float(j) * inc) - yoff;
-            int u = int(xl_round(xoff + anglecos * xx * zoom + anglesin * yy * zoom));
-            if (u >= 0 && u < int(data.width)) {
-                int v = int(xl_round(yoff + -anglesin * xx * zoom + anglecos * yy * zoom));
-                if (v >= 0 && v < int(data.height)) {
+    // PixelBufferClass::RotateZAndZoom: loops x, i, y, j and SetPixel
+    // truncates the float destination after a float bounds check. The key is
+    // that loop order (the host keeps it within an int).
+    int q = int(data.zoomquality);
+    int x = int(index.x);
+    int y = int(index.y);
+    uint c = src[index.y * data.width + index.x];
+    for (int i = 0; i < q; i++) {
+        for (int j = 0; j < q; j++) {
+            float xx = float(x) + (float(i) * data.zinc) - data.zxoff;
+            float yy = float(y) + (float(j) * data.zinc) - data.zyoff;
+            float u = data.zxoff + data.zcos * xx * data.zoom + data.zsin * yy * data.zoom;
+            if (u >= 0.0 && u < float(data.width)) {
+                float v = data.zyoff + -data.zsin * xx * data.zoom + data.zcos * yy * data.zoom;
+                if (v >= 0.0 && v < float(data.height)) {
                     uint didx = uint(v) * data.width + uint(u);
-                    if (owner[didx] == int(sidx)) {
+                    int key = ((x * q + i) * int(data.height) + y) * q + j;
+                    if (owner[didx] == key) {
                         result[didx] = c;
                     }
                 }

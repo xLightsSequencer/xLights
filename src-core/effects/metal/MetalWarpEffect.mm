@@ -85,37 +85,25 @@ public:
                 [blitCommandEncoder endEncoding];
             }
             
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, functions[style], @"WarpEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                NSInteger dataSize = sizeof(data);
+                [computeEncoder setBytes:&data length:dataSize atIndex:0];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+
+                int curIdx = 2;
+                if (bufferCopy != nil) {
+                    [computeEncoder setBuffer:bufferCopy offset:0 atIndex:curIdx];
+                    ++curIdx;
+                }
+                if (requiresDissolvePattern(style)) {
+                    [computeEncoder setBuffer:MetalComputeUtilities::INSTANCE.dissolveBuffer offset:0 atIndex:curIdx];
+                    ++curIdx;
+                }
+                MetalRenderBufferComputeData::dispatch2D(computeEncoder, functions[style], data.width, data.height);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"WarpEffect"];
-            [computeEncoder setComputePipelineState:functions[style]];
-
-            NSInteger dataSize = sizeof(data);
-            [computeEncoder setBytes:&data length:dataSize atIndex:0];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
-            
-            int curIdx = 2;
-            if (bufferCopy != nil) {
-                [computeEncoder setBuffer:bufferCopy offset:0 atIndex:curIdx];
-                ++curIdx;
-            }
-            if (requiresDissolvePattern(style)) {
-                [computeEncoder setBuffer:MetalComputeUtilities::INSTANCE.dissolveBuffer offset:0 atIndex:curIdx];
-                ++curIdx;
-            }
-            
-            int w = functions[style].threadExecutionWidth;
-            int h = functions[style].maxTotalThreadsPerThreadgroup / w;
-            MTLSize threadsPerThreadgroup = MTLSizeMake(w, h, 1);
-            MTLSize threadsPerGrid = MTLSizeMake(data.width, data.height, 1);
-            
-            [computeEncoder dispatchThreads:threadsPerGrid
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-
-            [computeEncoder endEncoding];
         }
         return true;
     }

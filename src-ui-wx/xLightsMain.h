@@ -494,6 +494,7 @@ public:
     AudioManager* GetCurrentMediaManager() const override;
     AudioManager* GetPlaybackAudio() const; // Returns active alt track audio if selected, else main media
     void ReleaseAudio(AudioManager* audio); // Call before the sequence deletes audio the UI may still hold
+    void WatchSequenceAudio(SequenceFile* sf);
     void ReleaseAltAudioTrack(int altIndex, bool removing);
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
     static wxString GetFilename() { return xlightsFilename; }
@@ -509,6 +510,9 @@ public:
     void ClearSequenceData();
     void LoadAudioData(SequenceFile& xml_file);
     virtual void CreateDebugReport(xlCrashHandler* crashHandler) override;
+#ifdef __WXMSW__
+    virtual WXLRESULT MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lParam) override;
+#endif
     virtual std::string GetCurrentDir() const override { return CurrentDir.ToStdString(); }
     wxString GetThreadStatusReport();
     void PushTraceContext();
@@ -1797,7 +1801,7 @@ public:
     // Now" action. `offerSuppress` adds the don't-show-again-this-version box.
     // Returns the conversion outcome (empty when the user didn't convert).
     seqmedia::VideoConversionResult ShowMediaCompatibilityIssues(const std::vector<MediaCompatibilityIssue>& issues, bool offerSuppress);
-    void SaveSequence();
+    bool SaveSequence(); // false when the xsq was not written
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
 
@@ -1822,8 +1826,11 @@ public:
 
     void NewSequence(const std::string& media = "", uint32_t durationMS = 0, uint32_t frameMS = 0, const std::string& defView = "");
     void SaveAsSequence();
-    void SaveAsSequence(const std::string& filename);
+    bool SaveAsSequence(const std::string& filename);
     bool IsSequenceInShowDir(const wxString& filename) const;
+    // Why the open sequence can't be saved to `path` ("" = it can). An empty
+    // path skips the show-folder check.
+    std::string SequenceSaveRefusal(const wxString& path) const;
     wxString GetLastSequenceDialogDir() const;
     void SetLastSequenceDialogDir(const wxString& dir);
     void SetPasteByCell();

@@ -1886,6 +1886,14 @@ bool iPadRenderContext::OpenSequence(const std::string& path) {
     }
 
     _sequenceFile = std::make_unique<SequenceFile>(path);
+    // Render workers (audio-reactive effects) and playback can still be using an
+    // AudioManager the sequence is about to delete on a media/type/alt-track change.
+    _sequenceFile->SetAudioReleasingCallback([this](AudioManager* audio) {
+        if (!AbortRender(5000)) {
+            spdlog::warn("iPadRenderContext: render did not stop before the sequence audio was replaced");
+        }
+        audio->Stop();
+    });
     _sequenceDoc = _sequenceFile->Open(showDirectory, false, path);
 
     if (!_sequenceDoc) {
@@ -2519,13 +2527,10 @@ void iPadRenderContext::HandleMemoryCritical() {
         _presetModelManager.reset();
     }
 
-    // Drop media entries that aren't referenced by any current
-    // effect. `MarkAllUnused` + render path would normally flag
-    // what's in use, but by the time we're critical we can't
-    // afford another render pass — walk every effect's settings
-    // and palette maps to build the "in-use" set, then remove the
-    // rest. `RemoveUnusedMedia` does exactly this on the
-    // caller's behalf.
+    // Trim media the last render didn't touch. Embedded and
+    // metadata-referenced entries keep their entry and only drop
+    // decoded data, so the document is unchanged; the user-facing
+    // "Remove Unused" edit is SequenceElements::RemoveUnreferencedMedia.
     _sequenceElements.GetSequenceMedia().RemoveUnusedMedia();
 
     spdlog::error("iPadRenderContext: memory critical handled "

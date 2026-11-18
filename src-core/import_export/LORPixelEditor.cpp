@@ -71,6 +71,24 @@ std::string UriUnescape(const std::string& in)
     return out;
 }
 
+std::string DropAlpha(const std::string& c)
+{
+    return c.size() > 2 ? c.substr(2) : std::string();
+}
+
+// "R2R8" splits into {"", "2", "8"}; always returns at least three entries
+std::vector<std::string> RampParts(const std::string& r)
+{
+    std::vector<std::string> rr = ::Split(r, 'R');
+    if (rr.size() < 3) {
+        rr.resize(3);
+    }
+    if (rr[2].empty()) {
+        rr[2] = rr[1];
+    }
+    return rr;
+}
+
 float Rescale(float original, float sourceMin, float sourceMax, float targetMin, float targetMax)
 {
     if (original < sourceMin)
@@ -84,13 +102,13 @@ float Rescale(float original, float sourceMin, float sourceMax, float targetMin,
 std::string RescaleWithRangeI(std::string r, std::string vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax)
 {
     if (::Contains(r, "R")) {
-        auto rr = ::Split(r, 'R');
+        auto rr = RampParts(r);
         vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + fmt::format("{:.2f}", targetRealMin) +
              "|Max=" + fmt::format("{:.2f}", targetRealMax) +
-             "|P1=" + fmt::format("{:.2f}", Rescale(Atof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
-             "|P2=" + fmt::format("{:.2f}", Rescale(Atof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+             "|P1=" + fmt::format("{:.2f}", Rescale(Atof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+             "|P2=" + fmt::format("{:.2f}", Rescale(Atof(rr[2]), sourceMin, sourceMax, targetMin, targetMax)) +
              "|RV=TRUE|";
-        return fmt::format("{}", (int)Rescale(Atof(rr[0]), sourceMin, sourceMax, targetMin, targetMax));
+        return fmt::format("{}", (int)Rescale(Atof(rr[1]), sourceMin, sourceMax, targetMin, targetMax));
     } else {
         vc = "";
         return fmt::format("{}", (int)Rescale(Atof(r), sourceMin, sourceMax, targetMin, targetMax));
@@ -100,16 +118,16 @@ std::string RescaleWithRangeI(std::string r, std::string vcName, float sourceMin
 std::string RescaleWithRangeF(std::string r, std::string vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax)
 {
     if (::Contains(r, "R")) {
-        auto rr = ::Split(r, 'R');
+        auto rr = RampParts(r);
         vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + fmt::format("{:.2f}", targetRealMin) +
              "|Max=" + fmt::format("{:.2f}", targetRealMax) +
-             "|P1=" + fmt::format("{:.2f}", Rescale(Atof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
-             "|P2=" + fmt::format("{:.2f}", Rescale(Atof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+             "|P1=" + fmt::format("{:.2f}", Rescale(Atof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+             "|P2=" + fmt::format("{:.2f}", Rescale(Atof(rr[2]), sourceMin, sourceMax, targetMin, targetMax)) +
              "|RV=TRUE|";
     } else {
         vc = "";
     }
-    return fmt::format("{:.1f}", Rescale(Atof(r), sourceMin, sourceMax, targetMin, targetMax));
+    return fmt::format("{:.1f}", Rescale(Atof(::Contains(r, "R") ? RampParts(r)[1] : r), sourceMin, sourceMax, targetMin, targetMax));
 }
 
 std::string MapLPEEffectType(const std::string& effect)
@@ -118,6 +136,10 @@ std::string MapLPEEffectType(const std::string& effect)
         return "Color Wash";
     if (effect == "picture")
         return "Pictures";
+    if (effect == "garland")
+        return "Garlands";
+    if (effect == "movie")
+        return "Video";
     if (effect == "lineshorizontal")
         return "";
     if (effect == "linesvertical")
@@ -154,6 +176,9 @@ std::string MapLPEBlend(const std::string& blend, bool left)
 std::string ExtractLPEPallette(const std::vector<std::string>& ps)
 {
     std::string palette;
+    if (ps.size() < 2) {
+        return palette;
+    }
 
     int cnum = 0;
     auto c = ::Split(ps[1], ';');
@@ -162,7 +187,7 @@ std::string ExtractLPEPallette(const std::vector<std::string>& ps)
 
         auto cc = ::Split(c[i], ',');
         if (cc.size() == 2) {
-            std::string c1 = cc[0].substr(2); // drop transparency
+            std::string c1 = DropAlpha(cc[0]); // drop transparency
             std::string active = cc[1];
 
             palette += ",C_BUTTON_Palette" + n + "=#" + c1;
@@ -171,8 +196,8 @@ std::string ExtractLPEPallette(const std::vector<std::string>& ps)
             }
             cnum++;
         } else if (cc.size() == 3) {
-            std::string c1 = cc[0].substr(2); // drop transparency
-            std::string c2 = cc[1].substr(2); // drop transparency
+            std::string c1 = DropAlpha(cc[0]); // drop transparency
+            std::string c2 = DropAlpha(cc[1]); // drop transparency
             std::string active = cc[2];
 
             if (c1 == c2) {
@@ -181,7 +206,7 @@ std::string ExtractLPEPallette(const std::vector<std::string>& ps)
                     palette += ",C_CHECKBOX_Palette" + n + "=" + active;
                 }
             } else {
-                palette += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=x=0.000^c=#" + c1 + ";x=1.000^c=#" + c2 + "|";
+                palette += ",C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=x=0.000^c=#" + c1 + ";x=1.000^c=#" + c2 + "|";
                 if (active == "1") {
                     palette += ",C_CHECKBOX_Palette" + n + "=" + active;
                 }
@@ -245,8 +270,11 @@ std::string LPEParseEffectSettings(const std::string& effectType, const std::vec
 {
     std::string settings;
 
-    if (arrSettings.size() > 1) {
+    if (arrSettings.size() > 2) {
         auto parms = ::Split(arrSettings[2], ',');
+        if (parms.size() < 24) {
+            parms.resize(24);
+        }
         if (effectType == "butterfly") {
             std::string style = parms[0];
             std::string chunks = parms[1];
@@ -257,6 +285,7 @@ std::string LPEParseEffectSettings(const std::string& effectType, const std::vec
             skip = RescaleWithRangeI(skip, "E_VALUECURVE_Butterfly_Skip", 2, 10, 2, 10, vcSkip, ButterflyEffect::sSkipMin, ButterflyEffect::sSkipMax);
             std::string direction = parms[3];
             std::string hue = parms[4];
+            const bool noHue = hue.empty() || hue == "0";
             std::string vcHue;
             hue = RescaleWithRangeI(hue, "C_VALUECURVE_Color_HueAdjust", 0, 359, -100, 100, vcHue, -100, 100);
             std::string speed = parms[5];
@@ -282,7 +311,7 @@ std::string LPEParseEffectSettings(const std::string& effectType, const std::vec
             settings += ",E_SLIDER_Butterfly_Speed=" + speed;
             settings += vcSpeed;
 
-            if (hue != "0") {
+            if (!noHue) {
                 palette += ",C_SLIDER_Color_HueAdjust=" + hue;
                 palette += vcHue;
             }
@@ -371,7 +400,7 @@ std::string LPEParseEffectSettings(const std::string& effectType, const std::vec
             if (direction == "block_down")
                 direction = "Alternate Down";
             if (direction == "block_left")
-                direction = "Alternate Right";
+                direction = "Alternate Left";
             if (direction == "block_right")
                 direction = "Alternate Right";
             settings += ",E_CHOICE_Bars_Direction=" + direction;
@@ -381,7 +410,7 @@ std::string LPEParseEffectSettings(const std::string& effectType, const std::vec
             }
 
             if (highlight == "True") {
-                settings += "E_CHECKBOX_Bars_Highlight=1";
+                settings += ",E_CHECKBOX_Bars_Highlight=1";
             }
 
             settings += ",E_TEXTCTRL_Bars_Cycles=" + speed;
@@ -810,6 +839,9 @@ void LORPixelEditor::MapLPE(EffectLayer* layer, int lpeLayer, const std::string&
                                     int endIntensity = effect.attribute("endIntensity").as_int(100);
                                     std::string settings = effect.attribute("pixelEffect").as_string();
                                     auto settingsArray = ::Split(settings, '|');
+                                    if (settingsArray.size() < 5) {
+                                        continue;
+                                    }
                                     std::string sideSettings;
                                     if (left) {
                                         sideSettings = (settingsArray.size() == 7) ? settingsArray[5] : settingsArray[3];
@@ -893,29 +925,29 @@ void LORPixelEditor::MapPropEffects(Element* model, const std::string& mapping, 
     if (model == nullptr) {
         return;
     }
-    int layer = startLayer;
+    int layer = std::max(startLayer, 0);
     if (HasEffects(mapping, 0, true)) {
-        if ((int)model->GetEffectLayerCount() < layer + 1)
+        while ((int)model->GetEffectLayerCount() < layer + 1)
             model->AddEffectLayer();
         MapLPE(model->GetEffectLayer(layer), 0, mapping, true, eraseExisting);
     }
     if (HasEffects(mapping, 0, false)) {
         layer++;
-        if ((int)model->GetEffectLayerCount() < layer + 1) {
+        while ((int)model->GetEffectLayerCount() < layer + 1) {
             model->AddEffectLayer();
         }
         MapLPE(model->GetEffectLayer(layer), 0, mapping, false, eraseExisting);
     }
     if (HasEffects(mapping, 1, true)) {
         layer++;
-        if ((int)model->GetEffectLayerCount() < layer + 1) {
+        while ((int)model->GetEffectLayerCount() < layer + 1) {
             model->AddEffectLayer();
         }
         MapLPE(model->GetEffectLayer(layer), 1, mapping, true, eraseExisting);
     }
     if (HasEffects(mapping, 1, false)) {
         layer++;
-        if ((int)model->GetEffectLayerCount() < layer + 1) {
+        while ((int)model->GetEffectLayerCount() < layer + 1) {
             model->AddEffectLayer();
         }
         MapLPE(model->GetEffectLayer(layer), 1, mapping, false, eraseExisting);

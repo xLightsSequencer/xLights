@@ -258,39 +258,43 @@ void Model::DownloadImages() {
     }
 }
 
+static int ClampToInt(double v) {
+    return v >= 2147483647.0 ? 2147483647 : static_cast<int>(v);
+}
+
 int Model::InterpretSize(const std::string& size) {
     if (size.empty()) return -1;
     const std::string s = Trim(size);
 
     // Plain "<num>mm" or "<num.num>mm".
     if (std::regex_match(s, std::regex(R"(^\d+\.?\d*mm$)"))) {
-        return static_cast<int>(std::strtod(s.c_str(), nullptr));
+        return ClampToInt(std::strtod(s.c_str(), nullptr));
     }
     // "(xxmm)" embedded.
     {
         std::smatch m;
         if (std::regex_search(s, m, std::regex(R"(\((\d+\.?\d*)mm\))"))) {
             const double v = std::strtod(m[1].str().c_str(), nullptr);
-            if (v != 0) return static_cast<int>(v);
+            if (v != 0) return ClampToInt(v);
         }
     }
     // "<num>cm" or "<num.num>cm".
     if (std::regex_match(s, std::regex(R"(^\d+\.?\d*cm$)"))) {
         const double v = std::strtod(s.c_str(), nullptr);
-        if (v != 0) return static_cast<int>(v * 10);
+        if (v != 0) return ClampToInt(v * 10);
     }
     // "(xxcm)" embedded.
     {
         std::smatch m;
         if (std::regex_search(s, m, std::regex(R"(\((\d+\.?\d*)cm\))"))) {
             const double v = std::strtod(m[1].str().c_str(), nullptr);
-            if (v != 0) return static_cast<int>(v * 10);
+            if (v != 0) return ClampToInt(v * 10);
         }
     }
     // Bare number → assume inches.
     if (std::regex_match(s, std::regex(R"(^\d+\.?\d*$)"))) {
         const double v = std::strtod(s.c_str(), nullptr);
-        if (v != 0) return static_cast<int>(v * 25.4);
+        if (v != 0) return ClampToInt(v * 25.4);
     }
     // Feet+inches: 5'2"
     {
@@ -298,7 +302,7 @@ int Model::InterpretSize(const std::string& size) {
         if (std::regex_match(s, m, std::regex(R"(^(\d+\.?\d*)'(\d+\.?\d*)\"$)"))) {
             const double ft = std::strtod(m[1].str().c_str(), nullptr);
             const double in = std::strtod(m[2].str().c_str(), nullptr);
-            if (ft != 0 || in != 0) return static_cast<int>(((ft * 12.0) + in) * 25.4);
+            if (ft != 0 || in != 0) return ClampToInt(((ft * 12.0) + in) * 25.4);
         }
     }
     // Inches with optional parenthetical suffix: 19" or 19"(48cm) or 0"(0cm) or "(0cm).
@@ -306,7 +310,7 @@ int Model::InterpretSize(const std::string& size) {
         std::smatch m;
         if (std::regex_match(s, m, std::regex(R"(^(\d*\.?\d*)\".*$)"))) {
             const double v = std::strtod(m[1].str().c_str(), nullptr);
-            return static_cast<int>(v * 25.4);
+            return ClampToInt(v * 25.4);
         }
     }
     // Range in inches: 37/47" or 47/37" — take the larger value.
@@ -316,7 +320,7 @@ int Model::InterpretSize(const std::string& size) {
             const double a = std::strtod(m[1].str().c_str(), nullptr);
             const double b = std::strtod(m[2].str().c_str(), nullptr);
             const double v = std::max(a, b);
-            if (v != 0) return static_cast<int>(v * 25.4);
+            if (v != 0) return ClampToInt(v * 25.4);
         }
     }
     // "N Feet" or "N feet".
@@ -324,7 +328,7 @@ int Model::InterpretSize(const std::string& size) {
         std::smatch m;
         if (std::regex_match(s, m, std::regex(R"(^(\d+\.?\d*)[Ff]eet$)"))) {
             const double v = std::strtod(m[1].str().c_str(), nullptr);
-            if (v != 0) return static_cast<int>(v * 12.0 * 25.4);
+            if (v != 0) return ClampToInt(v * 12.0 * 25.4);
         }
     }
     spdlog::warn("VendorCatalog: unable to interpret size '{}'", size);

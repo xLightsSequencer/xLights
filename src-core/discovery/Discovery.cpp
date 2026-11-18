@@ -456,7 +456,7 @@ Discovery::~Discovery() {
 
 void Discovery::Close(bool wait) {
     if (wait) {
-        while (CurlManager::INSTANCE.processCurls()) {
+        while (CurlManager::INSTANCE.processCurls(CurlManager::PUMP_WAIT_MS)) {
             _delegate->YieldToUI();
         }
     }

@@ -192,7 +192,7 @@ std::vector<std::string> DmxFloodlight::GenerateNodeNames() const
 {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < (int)names.size()) {
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() <= (int)names.size()) {
         names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
     return names;

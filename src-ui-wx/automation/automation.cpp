@@ -117,11 +117,20 @@ int Automation(bool verbose, const std::string& ip, int ab, const std::string& t
         return 1;
     }
 
+    // In a JSON command the parameters land inside JSON strings, so escape them:
+    // a Windows path such as C:\show\new.xsq would otherwise make the request
+    // invalid (\s) or quietly change it (\n becomes a newline).
+    const bool jsonCommand = command.Strip(wxString::both).StartsWith("{");
     for (uint8_t i = 0; i < 9; i++) {
         if (i >= parameters.size()) {
             break;
         }
-        command.Replace(wxString::Format("%%P%d", i + 1), parameters[i], true);
+        wxString value = parameters[i];
+        if (jsonCommand) {
+            std::string quoted = nlohmann::json(value.utf8_string()).dump();
+            value = wxString::FromUTF8(quoted.substr(1, quoted.size() - 2));
+        }
+        command.Replace(wxString::Format("%%P%d", i + 1), value, true);
     }
 
     if (verbose) {

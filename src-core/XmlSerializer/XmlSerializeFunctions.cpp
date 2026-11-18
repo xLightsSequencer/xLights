@@ -154,6 +154,10 @@ std::vector<std::vector<std::vector<int>>> ParseCompressed(const std::string& co
         }
     }
 
+    nodes.erase(std::remove_if(nodes.begin(), nodes.end(), [](const std::tuple<int,int,int,int>& n) {
+        return std::get<1>(n) < 0 || std::get<2>(n) < 0 || std::get<3>(n) < 0;
+    }), nodes.end());
+
     // work out the required dimensions
     int layers = 0;
     int rows = 0;

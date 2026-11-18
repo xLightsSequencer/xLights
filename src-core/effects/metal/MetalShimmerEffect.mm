@@ -28,31 +28,21 @@ public:
                 return false;
             }
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"ShimmerEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                NSInteger dataSize = sizeof(sdata);
+                [computeEncoder setBytes:&sdata length:dataSize atIndex:0];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+                [computeEncoder setBytes:lut.data() length:(lut.size() * sizeof(xlColor)) atIndex:2];
+
+                // Bound by the actual pixel allocation, not the logical dimensions —
+                // a variable sub-buffer can leave GetPixelCount() < width * height and
+                // the kernel writes result[index] with no bounds check.
+                NSInteger pixelCount = std::min((NSInteger)(sdata.width * sdata.height), (NSInteger)buffer.GetPixelCount());
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, fn, pixelCount);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"ShimmerEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            NSInteger dataSize = sizeof(sdata);
-            [computeEncoder setBytes:&sdata length:dataSize atIndex:0];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
-            [computeEncoder setBytes:lut.data() length:(lut.size() * sizeof(xlColor)) atIndex:2];
-
-            NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
-            // Bound by the actual pixel allocation, not the logical dimensions —
-            // a variable sub-buffer can leave GetPixelCount() < width * height and
-            // the kernel writes result[index] with no bounds check.
-            NSInteger pixelCount = std::min((NSInteger)(sdata.width * sdata.height), (NSInteger)buffer.GetPixelCount());
-            NSInteger threads = std::min(pixelCount, maxThreads);
-            MTLSize gridSize = MTLSizeMake(pixelCount, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
         }
         return true;
     }

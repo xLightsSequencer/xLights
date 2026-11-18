@@ -297,13 +297,13 @@ DeviceData Mouse3DManager::detect_attached_device()
     // Initialize the hidapi library
     int res = hid_init();
     if (res != 0) {
-       std::cout << "Unable to initialize hidapi library";
+       std::cout << "Unable to initialize hidapi library" << std::endl;
     }
     else {
         // Enumerates devices
         hid_device_info* devices = hid_enumerate(0, 0);
         if (devices == nullptr) {
-            std::cout << "detect_attached_device() - no HID device enumerated.";
+            std::cout << "detect_attached_device() - no HID device enumerated." << std::endl;
         } else {
             // Searches for 1st connected 3Dconnexion device
             struct DeviceData {

@@ -1,0 +1,100 @@
+name: Unit Tests
+
+# Catch2 tests for src-core (tests/unit). Runs in the same build container as
+# Ubuntu CI, which already has the dev packages and the pinned ISPC.
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src-core/**'
+      - 'tests/unit/**'
+      - 'cmake/**'
+      - 'dependencies/**'
+      - '.github/workflows/Unit_Tests.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'src-core/**'
+      - 'tests/unit/**'
+      - 'cmake/**'
+      - 'dependencies/**'
+      - '.github/workflows/Unit_Tests.yml'
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-unit
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-24.04
+
+    container:
+      image: ghcr.io/xlightssequencer/xlights-build-docker:master
+
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    - name: Restore ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/.ccache
+        key: ccache-unit-tests-${{ github.sha }}
+        restore-keys: |
+          ccache-unit-tests-
+
+    - name: Configure ccache
+      run: |
+        ccache --max-size=2G
+        ccache --set-config=compression=true
+        ccache --zero-stats
+
+    - name: Tools
+      run: |
+        for t in cmake ninja; do
+          command -v $t >/dev/null || NEED="$NEED $t"
+        done
+        if [ -n "$NEED" ]; then
+          apt-get update -qq && apt-get install -y -qq $(echo $NEED | sed 's/ninja/ninja-build/')
+        fi
+        cmake --version | head -1
+        ninja --version
+        ispc --version
+        cat /etc/ispc_version || true
+        # lavapipe, the software Vulkan device the [gpu] tests render on
+        ls /usr/share/vulkan/icd.d/lvp_icd*.json >/dev/null 2>&1 || \
+          { apt-get update -qq && apt-get install -y -qq mesa-vulkan-drivers libvulkan1; }
+
+    - name: Configure
+      run: |
+        cmake -S tests/unit -B build-tests -G Ninja \
+          -DXL_TEST_FULL_CORE=ON \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_ISPC_COMPILER=$(command -v ispc) \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+    - name: Build
+      run: cmake --build build-tests -j $(nproc)
+
+    - name: Test
+      run: |
+        mkdir -p results
+        ctest --test-dir build-tests --output-on-failure -j $(nproc) --output-junit "$PWD/results/unit-linux-x64.xml"
+
+    - name: ccache stats
+      run: ccache --show-stats
+
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: results-unit-linux-x64
+        path: results
+        retention-days: 14

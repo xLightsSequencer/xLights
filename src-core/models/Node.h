@@ -38,7 +38,7 @@ protected:
 public:
     // buffer and screen coordinates for displayed nodes
     struct CoordStruct {
-        int bufX, bufY;
+        int bufX = 0, bufY = 0;
         float screenX = 0, screenY = 0, screenZ = 0;
     };
     

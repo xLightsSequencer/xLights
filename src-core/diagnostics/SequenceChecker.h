@@ -86,6 +86,15 @@ public:
     int RunSequenceChecks(CheckSequenceReport& report);
     int RunFileReferenceChecks(CheckSequenceReport& report);
 
+    // The end of the last renderable frame, in milliseconds. The stored
+    // sequence duration is the raw media length and is usually not a
+    // multiple of the frame period, while effect times are snapped to
+    // frame boundaries. The renderer rounds the duration to a frame
+    // boundary (see SequenceElements / SequenceFile), so the checks have
+    // to use the same value or effects that legitimately end on the last
+    // frame are reported as extending past the sequence.
+    static int GetSequenceEndMS(int sequenceDurationMS, int frequency);
+
 private:
     // Per-effect / per-element body. Mirrors the desktop
     // `CheckEffect` / `CheckElement` shape; faces / states / view

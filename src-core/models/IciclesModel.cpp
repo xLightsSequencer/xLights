@@ -129,8 +129,10 @@ void IciclesModel::ParseDropSizes()
             _maxH = std::max(_maxH, (size_t)d);
         }
     }
-    if (_dropSizes.size() == 0) {
+    if (_maxH == 0) {
+        _dropSizes.clear();
         _dropSizes.push_back(5);
+        _maxH = 5;
     }
 }
 

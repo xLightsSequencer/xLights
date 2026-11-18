@@ -32,8 +32,8 @@ void main() {
             int nidx = indexes[ii + nc];
             uvec4 c = unpackPx(src[nidx]);
 
-            uint x = uint(nidx) / data.bufferHi;
-            uint y = uint(nidx) % data.bufferHi;
+            uint x = uint(nidx) % data.bufferWi;
+            uint y = uint(nidx) / data.bufferWi;
             uint midx = x * data.bufferHi + y;
 
             if (c.a > 0u && (data.useMask == 0u || maskAt(midx) == 0u)) {

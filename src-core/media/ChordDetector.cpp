@@ -197,10 +197,9 @@ HarmonyAnalysis DetectChords(AudioManager* audio,
     }
 
     // Krumhansl–Schmuckler key estimation using the track-averaged
-    // chroma. Profiles are the standard major/minor key-finding
-    // profiles; we correlate via simple dot product which is
-    // equivalent to K-S up to a constant bias when the chroma is
-    // unit-normalised.
+    // chroma. The profiles are mean-centred and unit-normalised so the
+    // dot product with the chroma ranks keys exactly like Pearson
+    // correlation (the chroma's own mean and norm are common to every key).
     static const float kMajor[12] = {
         6.35f, 2.23f, 3.48f, 2.33f, 4.38f, 4.09f,
         2.52f, 5.19f, 2.39f, 3.66f, 2.29f, 2.88f
@@ -209,6 +208,21 @@ HarmonyAnalysis DetectChords(AudioManager* audio,
         6.33f, 2.68f, 3.52f, 5.38f, 2.60f, 3.53f,
         2.54f, 4.75f, 3.98f, 2.69f, 3.34f, 3.17f
     };
+    auto normalise = [](const float* in, float* out) {
+        float mean = 0;
+        for (int i = 0; i < 12; i++) mean += in[i];
+        mean /= 12.0f;
+        float norm = 0;
+        for (int i = 0; i < 12; i++) {
+            out[i] = in[i] - mean;
+            norm += out[i] * out[i];
+        }
+        norm = std::sqrt(norm);
+        for (int i = 0; i < 12; i++) out[i] /= norm;
+    };
+    float majorProfile[12], minorProfile[12];
+    normalise(kMajor, majorProfile);
+    normalise(kMinor, minorProfile);
     std::array<float, 12> avgChroma{};
     double sum = 0;
     for (double v : trackChroma) sum += v;
@@ -223,8 +237,8 @@ HarmonyAnalysis DetectChords(AudioManager* audio,
         float sMaj = 0, sMin = 0;
         for (int i = 0; i < 12; i++) {
             int idx = (i + 12 - root) % 12;
-            sMaj += avgChroma[i] * kMajor[idx];
-            sMin += avgChroma[i] * kMinor[idx];
+            sMaj += avgChroma[i] * majorProfile[idx];
+            sMin += avgChroma[i] * minorProfile[idx];
         }
         if (sMaj > bestKeyScore) {
             bestKeyScore = sMaj;

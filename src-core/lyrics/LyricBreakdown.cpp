@@ -52,6 +52,9 @@ void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time,
             word_end_time = end_time;
         }
         Effect* ef = word_layer->AddEffect(0, words[i], "", "", word_start_time, word_end_time, EFFECT_NOT_SELECTED, false);
+        if (ef == nullptr) {
+            return;
+        }
         undo_mgr.CaptureAddedEffect(word_layer->GetParentElement()->GetName(), word_layer->GetIndex(), ef->GetID());
         word_start_time = word_end_time;
     }
@@ -109,7 +112,9 @@ void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time,
         // adding a zero-length one.
         if (phoneme_end_time > phoneme_start_time) {
             Effect* ef = phoneme_layer->AddEffect(0, phoneme, "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
-            undo_mgr.CaptureAddedEffect(phoneme_layer->GetParentElement()->GetName(), phoneme_layer->GetIndex(), ef->GetID());
+            if (ef != nullptr) {
+                undo_mgr.CaptureAddedEffect(phoneme_layer->GetParentElement()->GetName(), phoneme_layer->GetIndex(), ef->GetID());
+            }
         }
         phoneme_start_time = phoneme_end_time;
     }

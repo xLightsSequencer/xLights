@@ -5,6 +5,8 @@
 #include "../../utils/Parallel.h"
 #include "../../utils/UtilFunctions.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <thread>
 
 #if !TARGET_OS_IPHONE
@@ -776,6 +778,31 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer(const std::s
     cbTag.note(postfix);
     return commandBuffer;
 }
+bool MetalRenderBufferComputeData::encodeEffect(id<MTLCommandBuffer> cb, id<MTLComputePipelineState> fn, NSString *label,
+                                                const std::function<void(id<MTLComputeCommandEncoder>)> &encode) {
+    id<MTLComputeCommandEncoder> encoder = [cb computeCommandEncoder];
+    if (encoder == nil) {
+        abortCommandBuffer();
+        return false;
+    }
+    [encoder setLabel:label];
+    [encoder setComputePipelineState:fn];
+    encode(encoder);
+    [encoder endEncoding];
+    GPURenderUtils::NoteEffect();
+    return true;
+}
+void MetalRenderBufferComputeData::dispatch1D(id<MTLComputeCommandEncoder> encoder, id<MTLComputePipelineState> fn, NSInteger count) {
+    NSInteger threads = std::min(count, (NSInteger)fn.maxTotalThreadsPerThreadgroup);
+    [encoder dispatchThreads:MTLSizeMake(count, 1, 1)
+       threadsPerThreadgroup:MTLSizeMake(threads, 1, 1)];
+}
+void MetalRenderBufferComputeData::dispatch2D(id<MTLComputeCommandEncoder> encoder, id<MTLComputePipelineState> fn, NSInteger width, NSInteger height) {
+    int w = fn.threadExecutionWidth;
+    int h = fn.maxTotalThreadsPerThreadgroup / w;
+    [encoder dispatchThreads:MTLSizeMake(width, height, 1)
+       threadsPerThreadgroup:MTLSizeMake(w, h, 1)];
+}
 void MetalRenderBufferComputeData::abortCommandBuffer() {
     @autoreleasepool {
         cbTag.reset();
@@ -1261,6 +1288,11 @@ bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &se
         // Smallish buffer, overhead of sending to GPU will be more than the gain
         return false;
     }
+    // The Z claim key orders every (pixel, sub-sample) write, so it must fit an int.
+    int q = std::max(1, (int)settings.zoomquality);
+    if ((int64_t)renderBuffer->BufferWi * renderBuffer->BufferHt * q * q > INT32_MAX) {
+        return false;
+    }
     
     RotoZoomData data;
     data.width = renderBuffer->BufferWi;
@@ -1276,6 +1308,15 @@ bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &se
     data.zoomquality = settings.zoomquality;
     data.pivotpointx = settings.pivotpointx;
     data.pivotpointy = settings.pivotpointy;
+    data.xsine = settings.xsine;
+    data.xpivotPx = settings.xpivotPx;
+    data.ysine = settings.ysine;
+    data.ypivotPx = settings.ypivotPx;
+    data.zcos = settings.zcos;
+    data.zsin = settings.zsin;
+    data.zxoff = settings.zxoff;
+    data.zyoff = settings.zyoff;
+    data.zinc = settings.zinc;
     
     id<MTLBuffer> bufferResult = getPixelBuffer();
     if (bufferResult == nil) {
@@ -1501,10 +1542,21 @@ MetalComputeUtilities::MetalComputeUtilities() {
     if (device == nil) {
         device = MTLCreateSystemDefaultDevice();
     }
+    if (device == nil) {
+        status = "Metal: no device";
+        return;
+    }
+    std::string name = device.name ? [device.name UTF8String] : "?";
+    // The kernels don't use argument buffers; tier 1 is a proxy for older Intel/AMD
+    // and A11/A12 GPUs. Every Apple-silicon Mac GPU is tier 2, so on arm64 macOS
+    // tier 1 only means a VM's paravirtual device (e.g. Xcode Cloud CI), so allow it there.
+#if TARGET_OS_IPHONE || !defined(__arm64__)
     if (device.argumentBuffersSupport == MTLArgumentBuffersTier1) {
+        status = "Metal: '" + name + "' only has tier 1 argument buffers; compute disabled";
         device = nil;
         return;
     }
+#endif
 
     if ([device supportsFamily:MTLGPUFamilyApple10]) {
         maxTextureSize = 32768; // A19/M5 and later (per Metal Feature Set Tables, Feb 2026)
@@ -1520,6 +1572,8 @@ MetalComputeUtilities::MetalComputeUtilities() {
     NSString *libraryFile = [[NSBundle mainBundle] pathForResource:@"EffectComputeFunctions" ofType:@"metallib"];
     if (!libraryFile) {
         NSLog(@"Library file error");
+        status = "Metal: '" + name + "', but EffectComputeFunctions.metallib is not in " +
+                 std::string([[[NSBundle mainBundle] bundlePath] UTF8String]) + "; compute disabled";
         return;
     }
     
@@ -1527,12 +1581,15 @@ MetalComputeUtilities::MetalComputeUtilities() {
     library = [device newLibraryWithURL:libraryURL error:&libraryError];
     if (!library) {
         NSLog(@"Library error: %@", libraryError);
+        status = "Metal: '" + name + "', but EffectComputeFunctions.metallib did not load (" +
+                 std::string(libraryError ? [[libraryError localizedDescription] UTF8String] : "?") + "); compute disabled";
         return;
     }
     [library setLabel:@"EffectComputeFunctionsLibrary"];
     
     commandQueue = [device newCommandQueueWithMaxCommandBufferCount:MAX_COMMANDBUFFER_COUNT];
     if (!commandQueue) {
+        status = "Metal: '" + name + "', but no command queue; compute disabled";
         return;
     }
     [commandQueue setLabel:@"MetalEffectCommandQueue"];
@@ -1540,6 +1597,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
     printf("CommandQueue: %p\n", (__bridge void*)commandQueue);
 #endif
     enabled = true;
+    status = "Metal: '" + name + "'";
 
     // Sweepable without a rebuild so the GPU/CPU break-even can be compared
     // against the other backends (see the Vulkan side).

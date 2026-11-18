@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
         }
     }
 	
-	if (program.is_used("-f")) {
+	if (program.is_used("-j")) {
         std::string info = fmt::format("{{\"Name\": \"{}\", \"Version\": \"{}.{}\", \"ID\": \"{}\", \"StepTime\": {}, \"NumFrames\": {}, \"MaxChannel\": {}, \"ChannelCount\": {}",
                    src->getFilename(),
                    src->getVersionMajor(), src->getVersionMinor(),

@@ -59,29 +59,19 @@ public:
                 return false;
             }
 
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, fn, @"LifeEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                NSInteger dataSize = sizeof(ld);
+                [computeEncoder setBytes:&ld length:dataSize atIndex:0];
+                [computeEncoder setBuffer:prevBuffer offset:0 atIndex:1];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:2];
+                [computeEncoder setBuffer:paletteBuffer offset:0 atIndex:3];
+
+                NSInteger pixelCount = npix;
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, fn, pixelCount);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"LifeEffect"];
-            [computeEncoder setComputePipelineState:fn];
-
-            NSInteger dataSize = sizeof(ld);
-            [computeEncoder setBytes:&ld length:dataSize atIndex:0];
-            [computeEncoder setBuffer:prevBuffer offset:0 atIndex:1];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:2];
-            [computeEncoder setBuffer:paletteBuffer offset:0 atIndex:3];
-
-            NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
-            NSInteger pixelCount = npix;
-            NSInteger threads = std::min(pixelCount, maxThreads);
-            MTLSize gridSize = MTLSizeMake(pixelCount, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-            [computeEncoder endEncoding];
 
             rbcd->commit();
             rbcd->waitForCompletion();

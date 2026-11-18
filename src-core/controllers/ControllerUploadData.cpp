@@ -1270,7 +1270,7 @@ std::string UDControllerPort::ExportAsJSON() const
         if(!first) json += ",";
         json += "{\"name\":\"" + JSONSafe(it->GetName()) + "\"";
         if (it->GetSmartRemote() > 0) {
-            json += ",\"smartremote\":\"" + std::to_string(it->GetSmartRemoteLetter()) + "\"";
+            json += ",\"smartremote\":\"" + std::string(1, it->GetSmartRemoteLetter()) + "\"";
         }
         json += ",\"description\":\"";
         auto desp = it->GetModel()->description;
@@ -2256,13 +2256,17 @@ std::string UDController::ExportAsJSON()
         json += GetControllerSerialPort(i)->ExportAsJSON();
     }
     json += "], \"virtualmatrixports\": [" ;
+    bool firstVirtualMatrix = true;
     for (auto &vm : _virtualMatrixPorts) {
-        if(vm.first != 1) json += ",";
+        if (!firstVirtualMatrix) json += ",";
+        firstVirtualMatrix = false;
         json += vm.second->ExportAsJSON();
     }
     json += "], \"ledpanelmatrixports\": [" ;
+    bool firstPanelMatrix = true;
     for (auto &vm : _ledPanelMatrixPorts) {
-        if(vm.first != 1) json += ",";
+        if (!firstPanelMatrix) json += ",";
+        firstPanelMatrix = false;
         json += vm.second->ExportAsJSON();
     }
     json += "]}" ;

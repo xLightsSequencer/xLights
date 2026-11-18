@@ -416,17 +416,13 @@ void TwoPointScreenLocation::ApplySpaceMouseStartHandle(float scale,
     y2 -= -mov.z * scale;
     z2 -= mov.y * scale;
 
-    glm::vec3 sp(worldPos_x, worldPos_y, worldPos_z);
-    glm::vec3 ep(x2, y2, z2);
-
-    glm::mat4 translateToOrigin = glm::translate(Identity, -sp);
-    glm::mat4 translateBack = glm::translate(Identity, sp);
-
     glm::mat4 R = glm::rotate(Identity, glm::radians(rot.x * 10.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     R = glm::rotate(R, glm::radians(-rot.z * 10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     R = glm::rotate(R, glm::radians(rot.y * 10.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    ep = glm::vec3(translateBack * R * translateToOrigin * glm::vec4(ep, 1.0f));
+    // x2/y2/z2 are relative to the start point, so rotating the end about the
+    // start just rotates the offset.
+    glm::vec3 ep = glm::vec3(R * glm::vec4(x2, y2, z2, 0.0f));
     x2 = ep.x;
     y2 = ep.y;
     z2 = ep.z;
@@ -440,7 +436,7 @@ void TwoPointScreenLocation::ApplySpaceMouseEndHandle(float scale,
     z2 += mov.y * scale;
 
     glm::vec3 sp(worldPos_x, worldPos_y, worldPos_z);
-    glm::vec3 ep(x2, y2, z2);
+    glm::vec3 ep = sp + glm::vec3(x2, y2, z2);
 
     glm::mat4 translateToOrigin = glm::translate(Identity, -ep);
     glm::mat4 translateBack = glm::translate(Identity, ep);

@@ -168,10 +168,78 @@ void UndoManager::CreateUndoStep()
     EnforceMaxSteps();
 }
 
+UndoTarget UndoManager::ResolveTarget(const std::string& element_name, int exclusive_layer_index) const
+{
+    UndoTarget t;
+    Element* element = mParentSequence->GetElement(element_name);
+    if (element != nullptr) {
+        EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(exclusive_layer_index);
+        if (el != nullptr) {
+            t.element = element->GetUid();
+            t.layer = el->GetUid();
+        }
+    }
+    return t;
+}
+
+Element* UndoManager::FindElement(const UndoTarget& t, const std::string& element_name) const
+{
+    if (t.element != kNoSeqObjectId) {
+        return mParentSequence->GetElementFromUid(t.element);
+    }
+    return mParentSequence->GetElement(element_name);
+}
+
+EffectLayer* UndoManager::FindLayer(const UndoTarget& t, const std::string& element_name, int exclusive_layer_index) const
+{
+    if (t.layer != kNoSeqObjectId) {
+        Element* element = mParentSequence->GetElementFromUid(t.element);
+        return element == nullptr ? nullptr : element->GetEffectLayerFromUid(t.layer);
+    }
+    Element* element = mParentSequence->GetElement(element_name);
+    return element == nullptr ? nullptr : element->GetEffectLayerFromExclusiveIndex(exclusive_layer_index);
+}
+
+Effect* UndoManager::FindEffect(EffectLayer* el, const UndoTarget& t, int legacy_id)
+{
+    if (t.effect != kNoSeqObjectId) {
+        return el->GetEffectFromUid(t.effect);
+    }
+    return el->GetEffectFromID(legacy_id);
+}
+
+UndoTarget UndoManager::TargetOf(EffectLayer* el, Effect* eff)
+{
+    UndoTarget t;
+    if (el != nullptr && el->GetParentElement() != nullptr) {
+        t.element = el->GetParentElement()->GetUid();
+        t.layer = el->GetUid();
+        if (eff != nullptr) {
+            t.effect = eff->GetUid();
+        }
+    }
+    return t;
+}
+
 void UndoManager::CaptureEffectToBeDeleted( const std::string &element_name, int layer_index, const std::string &name, const std::string &settings,
                                             const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected )
 {
     DeletedEffectInfo* effect_undo_action = new DeletedEffectInfo( element_name, layer_index, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected );
+    effect_undo_action->target = ResolveTarget(element_name, layer_index);
+    if (effect_undo_action->target.layer != kNoSeqObjectId) {
+        // Callers capture before removing the effect, so it is still in the
+        // layer; remember its identity so undo can restore it onto the
+        // re-created effect and earlier steps that name it still resolve.
+        EffectLayer* el = FindLayer(effect_undo_action->target, element_name, layer_index);
+        if (el != nullptr) {
+            for (Effect* e : el->GetEffects()) {
+                if (e->GetStartTimeMS() == startTimeMS && e->GetEndTimeMS() == endTimeMS && e->GetEffectName() == name) {
+                    effect_undo_action->target.effect = e->GetUid();
+                    break;
+                }
+            }
+        }
+    }
     UndoStep* action = new UndoStep(UNDO_EFFECT_DELETED, effect_undo_action);
     mUndoSteps.push_back(action);
     EnforceMaxSteps();
@@ -180,6 +248,13 @@ void UndoManager::CaptureEffectToBeDeleted( const std::string &element_name, int
 void UndoManager::CaptureAddedEffect( const std::string &element_name, int layer_index, int id )
 {
     AddedEffectInfo* effect_undo_action = new AddedEffectInfo( element_name, layer_index, id );
+    effect_undo_action->target = ResolveTarget(element_name, layer_index);
+    if (EffectLayer* el = FindLayer(effect_undo_action->target, element_name, layer_index);
+        el != nullptr && effect_undo_action->target.layer != kNoSeqObjectId) {
+        if (Effect* e = el->GetEffectFromID(id); e != nullptr) {
+            effect_undo_action->target.effect = e->GetUid();
+        }
+    }
     UndoStep* action = new UndoStep(UNDO_EFFECT_ADDED, effect_undo_action);
     mUndoSteps.push_back(action);
     EnforceMaxSteps();
@@ -188,6 +263,13 @@ void UndoManager::CaptureAddedEffect( const std::string &element_name, int layer
 void UndoManager::CaptureEffectToBeMoved( const std::string &element_name, int layer_index, int id, int startTimeMS, int endTimeMS )
 {
     MovedEffectInfo* effect_undo_action = new MovedEffectInfo( element_name, layer_index, id, startTimeMS, endTimeMS );
+    effect_undo_action->target = ResolveTarget(element_name, layer_index);
+    if (EffectLayer* el = FindLayer(effect_undo_action->target, element_name, layer_index);
+        el != nullptr && effect_undo_action->target.layer != kNoSeqObjectId) {
+        if (Effect* e = el->GetEffectFromID(id); e != nullptr) {
+            effect_undo_action->target.effect = e->GetUid();
+        }
+    }
     UndoStep* action = new UndoStep(UNDO_EFFECT_MOVED, effect_undo_action);
     mUndoSteps.push_back(action);
     EnforceMaxSteps();
@@ -196,6 +278,13 @@ void UndoManager::CaptureEffectToBeMoved( const std::string &element_name, int l
 void UndoManager::CaptureModifiedEffect( const std::string &element_name, int layer_index, int id, const std::string &settings, const std::string &palette )
 {
     ModifiedEffectInfo* effect_undo_action = new ModifiedEffectInfo( element_name, layer_index, id, settings, palette );
+    effect_undo_action->target = ResolveTarget(element_name, layer_index);
+    if (EffectLayer* el = FindLayer(effect_undo_action->target, element_name, layer_index);
+        el != nullptr && effect_undo_action->target.layer != kNoSeqObjectId) {
+        if (Effect* e = el->GetEffectFromID(id); e != nullptr) {
+            effect_undo_action->target.effect = e->GetUid();
+        }
+    }
     UndoStep* action = new UndoStep(UNDO_EFFECT_MODIFIED, effect_undo_action);
     mUndoSteps.push_back(action);
     EnforceMaxSteps();
@@ -204,6 +293,10 @@ void UndoManager::CaptureModifiedEffect( const std::string &element_name, int la
 void UndoManager::CaptureModifiedEffect( const std::string &element_name, int layer_index, Effect *ef )
 {
     ModifiedEffectInfo* effect_undo_action = new ModifiedEffectInfo( element_name, layer_index, ef );
+    effect_undo_action->target = ResolveTarget(element_name, layer_index);
+    if (effect_undo_action->target.layer != kNoSeqObjectId) {
+        effect_undo_action->target.effect = ef->GetUid();
+    }
     UndoStep* action = new UndoStep(UNDO_EFFECT_MODIFIED, effect_undo_action);
     mUndoSteps.push_back(action);
     EnforceMaxSteps();
@@ -220,6 +313,7 @@ void UndoManager::EnforceMaxSteps()
 void UndoManager::CaptureAddedLayer( const std::string &element_name, int exclusive_layer_index, int layer_number )
 {
     LayerInfo* li = new LayerInfo(element_name, exclusive_layer_index, layer_number);
+    li->target = ResolveTarget(element_name, exclusive_layer_index);
     UndoStep* action = new UndoStep(UNDO_LAYER_ADDED, li);
     mUndoSteps.push_back(action);
     EnforceMaxSteps();
@@ -228,6 +322,14 @@ void UndoManager::CaptureAddedLayer( const std::string &element_name, int exclus
 void UndoManager::CaptureRemovedLayer( const std::string &element_name, int layer_number )
 {
     LayerInfo* li = new LayerInfo(element_name, -1, layer_number);
+    // Captured before the layer is removed: remember its identity so undo
+    // re-creates the layer under the same id.
+    if (Element* element = mParentSequence->GetElement(element_name); element != nullptr) {
+        if (EffectLayer* el = element->GetEffectLayer(layer_number); el != nullptr) {
+            li->target.element = element->GetUid();
+            li->target.layer = el->GetUid();
+        }
+    }
     UndoStep* action = new UndoStep(UNDO_LAYER_REMOVED, li);
     mUndoSteps.push_back(action);
     EnforceMaxSteps();
@@ -271,32 +373,36 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
             if (next_action->deleted_effect_info.size() == 0) {
                 spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. XXX");
             }
-            Element* element = mParentSequence->GetElement(next_action->deleted_effect_info[0]->element_name);
-            if (element != nullptr)
+            DeletedEffectInfo* info = next_action->deleted_effect_info[0];
+            EffectLayer* el = FindLayer(info->target, info->element_name, info->layer_index);
+            if (el != nullptr)
             {
-                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->deleted_effect_info[0]->layer_index);
-                if (el != nullptr)
-                {
-                    Effect* eff = el->AddEffect(0,
-                        next_action->deleted_effect_info[0]->name,
-                        next_action->deleted_effect_info[0]->settings,
-                        next_action->deleted_effect_info[0]->palette,
-                        next_action->deleted_effect_info[0]->startTimeMS,
-                        next_action->deleted_effect_info[0]->endTimeMS,
-                        next_action->deleted_effect_info[0]->Selected,
-                        next_action->deleted_effect_info[0]->Protected);
+                Effect* eff = el->AddEffect(0,
+                    info->name,
+                    info->settings,
+                    info->palette,
+                    info->startTimeMS,
+                    info->endTimeMS,
+                    info->Selected,
+                    info->Protected);
 
-                    if (eff == nullptr)
-                    {
-                        spdlog::warn("UndoLastStep:UNDO_EFFECT_DELETED Effect could not be restored on layer {}.", next_action->deleted_effect_info[0]->layer_index);
+                if (eff == nullptr)
+                {
+                    spdlog::warn("UndoLastStep:UNDO_EFFECT_DELETED Effect could not be restored on layer {}.", info->layer_index);
+                }
+                else
+                {
+                    // Bring the effect back under its old identity so earlier
+                    // steps that name it still find it - unless something live
+                    // already holds that id.
+                    if (info->target.effect != kNoSeqObjectId && el->GetEffectFromUid(info->target.effect) == nullptr) {
+                        eff->SetUid(info->target.effect);
                     }
-                    else
-                    {
-                        // Move effect to other list
-                        AddedEffectInfo* effect_undo_action = new AddedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
-                        UndoStep* action = new UndoStep(UNDO_EFFECT_ADDED, effect_undo_action);
-                        toList.push_back(action);
-                    }
+                    // Move effect to other list
+                    AddedEffectInfo* effect_undo_action = new AddedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID());
+                    effect_undo_action->target = TargetOf(el, eff);
+                    UndoStep* action = new UndoStep(UNDO_EFFECT_ADDED, effect_undo_action);
+                    toList.push_back(action);
                 }
             }
         }
@@ -306,29 +412,27 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
             if (next_action->added_effect_info.size() == 0) {
                 spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. AAA");
             }
-            Element* element = mParentSequence->GetElement(next_action->added_effect_info[0]->element_name);
-            if (element != nullptr)
+            AddedEffectInfo* info = next_action->added_effect_info[0];
+            EffectLayer* el = FindLayer(info->target, info->element_name, info->layer_index);
+            if (el != nullptr)
             {
-                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->added_effect_info[0]->layer_index);
-                if (el != nullptr)
+                // Move effect to other list
+                Effect* eff = FindEffect(el, info->target, info->id);
+                if (eff == nullptr)
                 {
-                    // Move effect to other list
-                    Effect* eff = el->GetEffectFromID(next_action->added_effect_info[0]->id);
-                    if (eff == nullptr)
-                    {
-                        // The effect was already removed by something that did not
-                        // capture the deletion, so there is nothing left to undo.
-                        spdlog::warn("UndoLastStep:UNDO_EFFECT_ADDED Effect not found {}.", next_action->added_effect_info[0]->id);
-                    }
-                    else
-                    {
-                        DeletedEffectInfo* effect_undo_action = new DeletedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
-                        UndoStep* action = new UndoStep(UNDO_EFFECT_DELETED, effect_undo_action);
-                        toList.push_back(action);
+                    // The effect was already removed by something that did not
+                    // capture the deletion, so there is nothing left to undo.
+                    spdlog::warn("UndoLastStep:UNDO_EFFECT_ADDED Effect not found {}.", info->id);
+                }
+                else
+                {
+                    DeletedEffectInfo* effect_undo_action = new DeletedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(), eff->GetStartTimeMS(), eff->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
+                    effect_undo_action->target = TargetOf(el, eff);
+                    UndoStep* action = new UndoStep(UNDO_EFFECT_DELETED, effect_undo_action);
+                    toList.push_back(action);
 
-                        // Delete the effect
-                        el->DeleteEffect(next_action->added_effect_info[0]->id);
-                    }
+                    // Delete the effect
+                    el->DeleteEffectByUid(eff->GetUid());
                 }
             }
         }
@@ -338,27 +442,28 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
             if (next_action->moved_effect_info.size() == 0) {
                 spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. BBB");
             }
-            Element* element = mParentSequence->GetElement(next_action->moved_effect_info[0]->element_name);
-            if (element != nullptr)
+            MovedEffectInfo* info = next_action->moved_effect_info[0];
+            if (FindElement(info->target, info->element_name) != nullptr)
             {
-                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->moved_effect_info[0]->layer_index);
+                EffectLayer* el = FindLayer(info->target, info->element_name, info->layer_index);
                 if (el == nullptr)
                 {
-                    spdlog::warn("UndoLastStep:UNDO_EFFECT_MOVED Element not found {}.", next_action->moved_effect_info[0]->layer_index);
+                    spdlog::warn("UndoLastStep:UNDO_EFFECT_MOVED Element not found {}.", info->layer_index);
                 }
                 else
                 {
-                    Effect* eff = el->GetEffectFromID(next_action->moved_effect_info[0]->id);
+                    Effect* eff = FindEffect(el, info->target, info->id);
                     if (eff != nullptr)
                     {
                         // Capture for other list
                         MovedEffectInfo* effect_undo_action = new MovedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff->GetID(), eff->GetStartTimeMS(), eff->GetEndTimeMS());
+                        effect_undo_action->target = TargetOf(el, eff);
                         UndoStep* action = new UndoStep(UNDO_EFFECT_MOVED, effect_undo_action);
                         toList.push_back(action);
 
                         // Move the effect
-                        eff->SetStartTimeMS(next_action->moved_effect_info[0]->startTimeMS);
-                        eff->SetEndTimeMS(next_action->moved_effect_info[0]->endTimeMS);
+                        eff->SetStartTimeMS(info->startTimeMS);
+                        eff->SetEndTimeMS(info->endTimeMS);
                     }
                 }
             }
@@ -369,31 +474,32 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
             if (next_action->modified_effect_info.size() == 0) {
                 spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. CCC");
             }
-            Element* element = mParentSequence->GetElement(next_action->modified_effect_info[0]->element_name);
-            if (element != nullptr)
+            ModifiedEffectInfo* info = next_action->modified_effect_info[0];
+            if (FindElement(info->target, info->element_name) != nullptr)
             {
-                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->modified_effect_info[0]->layer_index);
+                EffectLayer* el = FindLayer(info->target, info->element_name, info->layer_index);
                 if (el == nullptr)
                 {
-                    spdlog::warn("UndoLastStep:UNDO_EFFECT_MODIFIED Element not found {}.", next_action->modified_effect_info[0]->layer_index);
+                    spdlog::warn("UndoLastStep:UNDO_EFFECT_MODIFIED Element not found {}.", info->layer_index);
                 }
                 else
                 {
-                    Effect* eff = el->GetEffectFromID(next_action->modified_effect_info[0]->id);
+                    Effect* eff = FindEffect(el, info->target, info->id);
                     if (eff != nullptr)
                     {
                         // Capture for other list
                         ModifiedEffectInfo* effect_undo_action = new ModifiedEffectInfo(el->GetParentElement()->GetModelName(), el->GetIndex(), eff);
+                        effect_undo_action->target = TargetOf(el, eff);
                         UndoStep* action = new UndoStep(UNDO_EFFECT_MODIFIED, effect_undo_action);
                         toList.push_back(action);
 
                         // Modify the effect
-                        if (next_action->modified_effect_info[0]->effectType >= 0) {
-                            eff->SetEffectName(next_action->modified_effect_info[0]->effectName);
-                            eff->SetEffectIndex(next_action->modified_effect_info[0]->effectType);
+                        if (info->effectType >= 0) {
+                            eff->SetEffectName(info->effectName);
+                            eff->SetEffectIndex(info->effectType);
                         }
-                        eff->SetSettings(next_action->modified_effect_info[0]->settings, false);
-                        eff->SetPalette(next_action->modified_effect_info[0]->palette);
+                        eff->SetSettings(info->settings, false);
+                        eff->SetPalette(info->palette);
                     }
                 }
             }
@@ -405,16 +511,19 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
                 spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. DDD");
                 break;
             }
-            Element* element = mParentSequence->GetElement(next_action->layer_info[0]->element_name);
-            if (element != nullptr) {
-                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->layer_info[0]->exclusive_layer_index);
-                if (el != nullptr && element->GetEffectLayerCount() > 1) {
-                    int pos = el->GetLayerNumber() - 1;
-                    LayerInfo* li = new LayerInfo(next_action->layer_info[0]->element_name,
-                                                  next_action->layer_info[0]->exclusive_layer_index, pos);
+            LayerInfo* info = next_action->layer_info[0];
+            EffectLayer* el = FindLayer(info->target, info->element_name, info->exclusive_layer_index);
+            // Remove from the element that owns the layer: a model-level lookup
+            // also finds submodel/strand layers.
+            Element* owner = (el != nullptr) ? el->GetParentElement() : nullptr;
+            if (owner != nullptr && owner->GetEffectLayerCount() > 1) {
+                int pos = el->GetLayerNumber() - 1;
+                if (pos >= 0 && pos < (int)owner->GetEffectLayerCount() && owner->GetEffectLayer(pos) == el) {
+                    LayerInfo* li = new LayerInfo(info->element_name, info->exclusive_layer_index, pos);
+                    li->target = TargetOf(el, nullptr);
                     UndoStep* action = new UndoStep(UNDO_LAYER_REMOVED, li);
                     toList.push_back(action);
-                    element->RemoveEffectLayer(pos);
+                    owner->RemoveEffectLayer(pos);
                 }
             }
             mParentSequence->PopulateRowInformation();
@@ -426,21 +535,28 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
                 spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. EEE");
                 break;
             }
-            Element* element = mParentSequence->GetElement(next_action->layer_info[0]->element_name);
+            LayerInfo* info = next_action->layer_info[0];
+            Element* element = FindElement(info->target, info->element_name);
             if (element != nullptr) {
-                int pos = next_action->layer_info[0]->layer_number;
+                int pos = info->layer_number;
                 EffectLayer* el;
                 if (pos >= (int)element->GetEffectLayerCount()) {
                     el = element->AddEffectLayer();
                 } else {
                     el = element->InsertEffectLayer(pos);
                 }
-                LayerInfo* li = new LayerInfo(next_action->layer_info[0]->element_name, el->GetIndex(), pos);
+                // Re-create the layer under its old identity so steps that
+                // name it (effects deleted from it, etc.) still resolve.
+                if (info->target.layer != kNoSeqObjectId && element->GetEffectLayerFromUid(info->target.layer) == nullptr) {
+                    el->SetUid(info->target.layer);
+                }
+                LayerInfo* li = new LayerInfo(info->element_name, el->GetIndex(), pos);
+                li->target = TargetOf(el, nullptr);
                 UndoStep* action = new UndoStep(UNDO_LAYER_ADDED, li);
                 toList.push_back(action);
                 mParentSequence->PopulateRowInformation();
                 // Make sure redo recreates the layers needed to support the smart copy/paste
-                int oldIdx = next_action->layer_info[0]->exclusive_layer_index;
+                int oldIdx = info->exclusive_layer_index;
                 if (oldIdx >= 0) {
                     int newIdx = el->GetIndex();
                     for (auto* step : fromList) {

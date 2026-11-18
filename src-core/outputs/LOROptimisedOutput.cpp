@@ -83,7 +83,7 @@ void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass
             }
         }
         else if (addr_mode == LorController::AddressMode::LOR_ADDR_MODE_SPLIT) {
-            channels_per_pass = channel_count / 2;
+            channels_per_pass = std::max(1, channel_count / 2);
             MarkUnitIdInUse(unit_id_in_use, unit_id);
             MarkUnitIdInUse(unit_id_in_use, unit_id + 1);
         }

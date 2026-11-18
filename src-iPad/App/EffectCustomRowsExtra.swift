@@ -65,8 +65,10 @@ struct StateStateSourceRowView: View {
         viewModel.settingValue(forKey: trackKey, defaultValue: "")
     }
 
+    @State private var pickedTrackMode = false
+
     private var mode: Mode {
-        currentTrack.isEmpty ? .state : .timingTrack
+        (pickedTrackMode || !currentTrack.isEmpty) ? .timingTrack : .state
     }
 
     var body: some View {
@@ -78,9 +80,11 @@ struct StateStateSourceRowView: View {
                 // side keeps whatever's there (empty → user picks).
                 switch newMode {
                 case .state:
+                    pickedTrackMode = false
                     viewModel.setSettingValue("", forKey: trackKey,
                                                suppressIfDefault: "")
                 case .timingTrack:
+                    pickedTrackMode = true
                     viewModel.setSettingValue("", forKey: stateKey,
                                                suppressIfDefault: "")
                 }
@@ -180,8 +184,10 @@ struct FacesMouthMovementsRowView: View {
     private var currentTrack: String {
         viewModel.settingValue(forKey: trackKey, defaultValue: "")
     }
+    @State private var pickedTrackMode = false
+
     private var mode: Mode {
-        currentTrack.isEmpty ? .phoneme : .timingTrack
+        (pickedTrackMode || !currentTrack.isEmpty) ? .timingTrack : .phoneme
     }
 
     var body: some View {
@@ -190,9 +196,11 @@ struct FacesMouthMovementsRowView: View {
             set: { newMode in
                 switch newMode {
                 case .phoneme:
+                    pickedTrackMode = false
                     viewModel.setSettingValue("", forKey: trackKey,
                                                suppressIfDefault: "")
                 case .timingTrack:
+                    pickedTrackMode = true
                     viewModel.setSettingValue("", forKey: phonemeKey,
                                                suppressIfDefault: "")
                 }

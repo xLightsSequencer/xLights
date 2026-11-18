@@ -25,7 +25,6 @@
 
 #include <regex>
 
-#include <cassert>
 #include <chrono>
 #include <spdlog/fmt/fmt.h>
 #include <thread>
@@ -182,7 +181,7 @@ bool SanDevices::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMana
         ui->UpdateProgress(progressTk, p, "Sending Output Data to Controller.");
         outputD->Dump();
         if (outputD->upload) {
-            const std::string url = GenerateOutputURLV4(outputD);
+            const std::string url = GenerateOutputURLV4(outputD.get());
             SDGetURL(url);
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         }
@@ -293,7 +292,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
     for (const auto& proro : _protocolData) {
         proro->Dump();
         if (proro->shouldUpload()) {
-            const std::string url = GenerateProtocolURLV5(proro);
+            const std::string url = GenerateProtocolURLV5(proro.get());
             SDGetURL(url);
             std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         }
@@ -349,7 +348,7 @@ bool SanDevices::SetOutputsV5(ModelManager* allmodels, OutputManager* outputMana
         ui->UpdateProgress(progressTk, p, "Sending Output Data to Controller.");
         outputD->Dump();
         if (outputD->upload) {
-            const std::string url = GenerateOutputURLV5(outputD);
+            const std::string url = GenerateOutputURLV5(outputD.get());
             SDGetURL(url);
             std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         }
@@ -375,12 +374,11 @@ bool SanDevices::ParseV4Webpage(const std::string& page) {
     for (int i = 1; i <= GetNumberOfOutputGroups(); i++) {
         SanDevicesOutputV4* group = ExtractOutputDataV4(page, i);
         group->Dump();
-        _outputDataV4.push_back(group);
+        _outputDataV4.emplace_back(group);
     }
-    if (_outputDataV4.size() == 4 && _universes.size() == 12) {
-        return true;
+    if (_outputDataV4.size() != 4 || _universes.size() != 12) {
+        spdlog::warn("SanDevices: V4 page parsed {} output groups and {} universes", _outputDataV4.size(), _universes.size());
     }
-    assert(false);
     return true;
 }
 
@@ -401,12 +399,11 @@ bool SanDevices::ParseV5MainWebpage(const std::string& page) {
     for (int i = 1; i <= GetNumberOfOutputGroups(); i++) {
         SanDevicesProtocol* group = ExtractProtocalDataV5(page, i);
         group->Dump();
-        _protocolData.push_back(group);
+        _protocolData.emplace_back(group);
     }
-    if (_protocolData.size() == 4 && _universes.size() == 12) {
-        return true;
+    if (_protocolData.size() != 4 || _universes.size() != 12) {
+        spdlog::warn("SanDevices: V5 main page parsed {} protocol groups and {} universes", _protocolData.size(), _universes.size());
     }
-    assert(false);
     return true;
 }
 
@@ -416,13 +413,12 @@ bool SanDevices::ParseV5OutputWebpage(const std::string& page) {
         for (int j = 1; j <= GetOutputsPerGroup(); j++) {
             SanDevicesOutput* group = ExtractOutputDataV5(page, i, j);
             group->Dump();
-            _outputData.push_back(group);
+            _outputData.emplace_back(group);
         }
     }
-    if ((int)_outputData.size() == GetMaxStringOutputs()) {
-        return true;
+    if ((int)_outputData.size() != GetMaxStringOutputs()) {
+        spdlog::warn("SanDevices: V5 output page parsed {} outputs, expected {}", _outputData.size(), GetMaxStringOutputs());
     }
-    assert(false);
     return true;
 }
 
@@ -448,13 +444,16 @@ void SanDevices::ResetStringOutputs() {
     SDGetURL("/7?A=0");
 }
 
-inline int SanDevices::GetOutputsPerGroup() const {
+int SanDevices::GetOutputsPerGroup() const {
     if (IsE682()) { return 4; }
     return 1;
 }
 
 std::string SanDevices::ExtractFromPage(const std::string& page, const std::string& parameter, const std::string& type, int start) {
 
+    if (start < 0 || start > (int)page.size()) {
+        return "";
+    }
     const std::string p = page.substr(start);
     if (type == "input") {
         std::regex inputregex("(\\<input name=\\'" + parameter + "\\'[^\\>]*value=\\')([0-9\\.]*?)\\'");
@@ -715,10 +714,9 @@ void SanDevices::UpdatePortDataV5(int group, int output, UDControllerPort* strin
 SanDevicesOutput* SanDevices::FindPortDataV5(int group, int output) {
     for (const auto& sd : _outputData) {
         if (sd->group == group && sd->output == output) {
-            return sd;
+            return sd.get();
         }
     }
-    assert(false);
     return nullptr;
 }
 
@@ -799,10 +797,9 @@ SanDevicesOutputV4* SanDevices::FindPortDataV4(int group) {
 
     for (const auto& sd : _outputDataV4) {
         if (sd->group == group) {
-            return sd;
+            return sd.get();
         }
     }
-    assert(false);
     return nullptr;
 }
 
@@ -937,7 +934,6 @@ char SanDevices::EncodeStringPortProtocolV4(const std::string& protocol) const {
     if (p == "gece")    { return 'C'; }
     if (p == "dmx")     { return 'K'; }
     if (p == "renard")  { return 'L'; }
-    assert(false);
     return 'D';
 }
 
@@ -953,7 +949,6 @@ char SanDevices::EncodeStringPortProtocolV5(const std::string& protocol) const {
     if (p == "gece")    { return 'O'; }
     if (p == "dmx")     { return 'J'; }
     if (p == "renard")  { return 'M'; }
-    assert(false);
     return 'A';
 }
 
@@ -963,7 +958,6 @@ char SanDevices::EncodeSerialPortProtocolV5(const std::string& protocol) const {
 
     if (p == "dmx")    { return 'J'; }
     if (p == "renard") { return 'M'; }
-    assert(false);
     return 'J';
 }
 
@@ -971,7 +965,6 @@ char SanDevices::EncodeUniverseSize(int universesize) const {
 
     if (universesize == 510) { return 'A'; }
     if (universesize == 512) { return 'B'; }
-    assert(false);
     
     spdlog::debug("SanDevices DecodeUniverseSize Upload: Invalid Universe Size {}", universesize);
     return 'A';
@@ -987,7 +980,6 @@ int SanDevices::EncodeColorOrderV4(const std::string& colorOrder) const {
     if (c == "gbr") { return 3; }
     if (c == "brg") { return 4; }
     if (c == "bgr") { return 5; }
-    assert(false);
     return 0;
 }
 
@@ -1001,7 +993,6 @@ char SanDevices::EncodeColorOrderV5(const std::string& colorOrder) const {
     if (c == "gbr") { return 'D'; }
     if (c == "brg") { return 'E'; }
     if (c == "bgr") { return 'F'; }
-    assert(false);
     return 'A';
 }
 
@@ -1026,7 +1017,7 @@ char SanDevices::EncoderRenardSpeed(int baud) const {
     return 'A';
 }
 
-inline bool SanDevices::EncodeDirection(const std::string& direction) const {
+bool SanDevices::EncodeDirection(const std::string& direction) const {
 
     return direction == "Reverse";
 }
@@ -1057,21 +1048,20 @@ SanDevices::SanDeviceModel SanDevices::DecodeControllerType(const std::string& m
     if (modelName == "E6804") {
         return SanDeviceModel::E6804;
     }
-    assert(false);
     return SanDeviceModel::Unknown;
 }
 
-inline std::pair<int, int > SanDevices::DecodeOutputPort(const int output) const {
+std::pair<int, int > SanDevices::DecodeOutputPort(const int output) const {
 
     return { ((output - 1) / 4) + 1, ((output - 1) % 4) + 1 };
 }
 
-inline int SanDevices::EncodeXlightsOutput(const int group, const int subport) const {
+int SanDevices::EncodeXlightsOutput(const int group, const int subport) const {
 
     return ((group - 1) * GetOutputsPerGroup()) + subport;
 }
 
-inline int SanDevices::EncodeControllerPortV5(const int group, const int subport) const {
+int SanDevices::EncodeControllerPortV5(const int group, const int subport) const {
 
     return ((group - 1) * 4) + subport;
 }
@@ -1131,22 +1121,7 @@ SanDevices::SanDevices(const std::string& ip, const std::string& proxy) : BaseCo
     }
 }
 
-SanDevices::~SanDevices() {
-    for (const auto& it : _outputData) {
-        delete it;
-    }
-    _outputData.clear();
-
-    for (const auto& it : _protocolData) {
-        delete it;
-    }
-    _protocolData.clear();
-
-    for (const auto& it : _outputDataV4) {
-        delete it;
-    }
-    _outputDataV4.clear();
-}
+SanDevices::~SanDevices() = default;
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -1317,7 +1292,7 @@ bool SanDevices::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
     if (IsFirmware4()) {
         return SetOutputsV4(allmodels, outputManager, controller, ui);
     }
-    assert(false);
+    spdlog::error("SanDevices Outputs Upload: unsupported firmware version {}", static_cast<int>(_firmware));
     return false;
 }
 #pragma endregion

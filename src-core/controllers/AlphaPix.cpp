@@ -14,6 +14,8 @@
 #include "../render/UICallbacks.h"
 
 #include <cassert>
+#include <climits>
+#include <algorithm>
 
 #include "AlphaPix.h"
 #include "../models/Model.h"
@@ -114,11 +116,11 @@ AlphaPix::AlphaPix(const std::string& ip, const std::string &proxy) : BaseContro
         static std::regex modelregex2("AlphaPix (\\d+) ");
         std::smatch modm;
         if (std::regex_search(_page, modm, modelregex)) {
-            _modelnum = (int)std::strtol(modm[1].str().c_str(), nullptr, 10);
+            _modelnum = (int)std::min<long>(std::strtol(modm[1].str().c_str(), nullptr, 10), INT_MAX);
             _connected = true;
         }
         else if (std::regex_search(_page, modm, modelregex2)) {
-            _modelnum = (int)std::strtol(modm[1].str().c_str(), nullptr, 10);
+            _modelnum = (int)std::min<long>(std::strtol(modm[1].str().c_str(), nullptr, 10), INT_MAX);
             _connected = true;
         } else if (Contains(_page, "AlphaPix Flex Lighting Controller") || Contains(_page, "AlphaPix Evolution Lighting Controller")) {
             _modelnum = 48;
@@ -381,7 +383,7 @@ std::string AlphaPix::ExtractFromPage(std::string const& page, const std::string
         //<input  style = " width: 80px ;TEXT-ALIGN: center" type="text" value="1" name="DMX512"/>
         //<input\s+style\s=\s\".*\"\stype="text"\s+value=\")([0-9\\.]*?)\"
         //<input\s+style\s=\s\".*\"\stype=\"text\"\s+value=\"(.*)\"\s+name=\"SU1\"
-        std::regex inputregex("<input\\s+style\\s?=\\s?\".*\"\\stype=\"text\"\\s+value=\"(.*)\"\\s+name=\"" + parameter + "\"");
+        std::regex inputregex("<input\\s+style\\s?=\\s?\"[^\"]*\"\\stype=\"text\"\\s+value=\"([^\"]*)\"\\s+name=\"" + parameter + "\"");
         std::smatch m;
         if (std::regex_search(p, m, inputregex)) {
             return m[1].str();
@@ -400,7 +402,7 @@ std::string AlphaPix::ExtractFromPage(std::string const& page, const std::string
     }
     else if (type == "checkbox") {
         //<input\s+(?:style\s=\s\".*\"\s+)?type=\"checkbox\"\s+name=\"(\w+)\"\s+(checked=\"checked\"\s+)?value=\"[0-9]\"
-        std::regex inputregex("<input\\s+(?:style\\s?=\\s?\".*\"\\s+)?type=\"checkbox\"\\s+name=\"" + parameter + "\"\\s+(checked=\"checked\"\\s+)?value=\"[0-9]\"");
+        std::regex inputregex("<input\\s+(?:style\\s?=\\s?\"[^\"]*\"\\s+)?type=\"checkbox\"\\s+name=\"" + parameter + "\"\\s+(checked=\"checked\"\\s+)?value=\"[0-9]\"");
         std::smatch m;
         if (std::regex_search(p, m, inputregex)) {
             const std::string res2 = m[1].str();
@@ -419,7 +421,6 @@ std::string AlphaPix::ExtractFromPage(std::string const& page, const std::string
     }
     else {
         spdlog::error("AlphaPix::ExtractFromPage   Invalid Regex Type:{}", type);
-        assert(false);
     }
 
     return "";
@@ -451,7 +452,6 @@ int AlphaPix::EncodeStringPortProtocol(const std::string& protocol) const {
     if (p == "tls3001" && _modelnum != 48) return 4;
     if (p == "tm18xx" && _modelnum != 48) return 6;
     if (p == "tm18xx" && _modelnum == 48) return 4;
-    assert(false);
     return 0;
 }
 
@@ -464,7 +464,6 @@ int AlphaPix::EncodeColorOrder(const std::string& colorOrder) const {
     if (c == "gbr") return 3;
     if (c == "brg") return 4;
     if (c == "bgr") return 5;
-    assert(false);
     return 0;
 }
 
@@ -480,7 +479,6 @@ AlphaPixOutput* AlphaPix::FindPortData(int port) {
             return sd;
         }
     }
-    assert(false);
     return nullptr;
 }
 
@@ -491,7 +489,6 @@ AlphaPixSerial* AlphaPix::FindSerialData(int port) {
             return sd;
         }
     }
-    assert(false);
     return nullptr;
 }
 

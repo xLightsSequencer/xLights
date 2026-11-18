@@ -169,7 +169,8 @@ bool ESPixelStick::SetHttpConfig(std::string const& filename, std::string const&
     
     spdlog::debug("SetHttpConfig: Setting ESPSv4 HTTP config file");
 
-    std::string const url = "http://" + _ip + "/conf/" + filename + ".json";
+    std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
+    std::string const url = "http://" + baseIP + _baseUrl + "/conf/" + filename + ".json";
 
     nlohmann::json newJson;
     newJson[key] = Data;
@@ -269,7 +270,10 @@ std::string ESPixelStick::GetFromJSON(std::string const& section, std::string co
                     return val.get<std::string>();
                 }
                 if (val.is_number_integer()) {
-                    return std::to_string(val.get<int>());
+                    if (val.is_number_unsigned()) {
+                        return std::to_string(val.get<uint64_t>());
+                    }
+                    return std::to_string(val.get<int64_t>());
                 }
                 if (val.is_number_float()) {
                     return std::to_string(val.get<float>());
@@ -287,7 +291,7 @@ bool EspsPort::WriteConfigToJson(nlohmann::json& JsonConfig) {
     uint32_t NumItemsChanged = 0;
     nlohmann::json& CurrentPort = JsonConfig["channels"][PortId];
 
-    if (std::to_string(CurrentPort["type"].get<int>()) != CurrentProtocolId)
+    if (!CurrentPort["type"].is_number_integer() || std::to_string(CurrentPort["type"].get<int>()) != CurrentProtocolId)
     {
         NumItemsChanged++;
         CurrentPort["type"] = (int)std::strtol(CurrentProtocolId.c_str(), nullptr, 10);
@@ -324,7 +328,7 @@ int EspsV4Protocol::WriteConfigToJson(nlohmann::json& JsonConfig)
         }
         else if (JsonConfig[ElementName].is_number_integer())
         {
-            JsonConfig[ElementName] = (int)strtol(ElementValue.c_str(), nullptr, 10);
+            JsonConfig[ElementName] = (int64_t)strtoll(ElementValue.c_str(), nullptr, 10);
         }
         else if (JsonConfig[ElementName].is_boolean())
         {
@@ -622,21 +626,21 @@ void EspsV4Protocol::ParseV4Settings(std::string const& Id, const nlohmann::json
 
         std::string FinalValue;
 
-        if (JsonConfig[ElementId].is_string())
+        if (Elementval.is_string())
         {
-            FinalValue = JsonConfig[ElementId].get<std::string>();
+            FinalValue = Elementval.get<std::string>();
 
-        } else if (JsonConfig[ElementId].is_number_float())
+        } else if (Elementval.is_number_float())
         {
-            FinalValue = std::to_string(JsonConfig[ElementId].get<float>());
+            FinalValue = std::to_string(Elementval.get<float>());
         }
-        else if (JsonConfig[ElementId].is_number_integer())
+        else if (Elementval.is_number_integer())
         {
-            FinalValue = std::to_string(JsonConfig[ElementId].get<int>());
+            FinalValue = std::to_string(Elementval.get<int64_t>());
         }
-        else if (JsonConfig[ElementId].is_boolean())
+        else if (Elementval.is_boolean())
         {
-            FinalValue = std::to_string(JsonConfig[ElementId].get<bool>());
+            FinalValue = std::to_string(Elementval.get<bool>());
         }
         else
         {
@@ -670,7 +674,7 @@ bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
             if (3 > ElementId.length()) {
                 // this is a protocol ID
                 EspsV4Protocol Protocol;
-                Protocol.ParseV4Settings(ElementId, JsonConfig[ElementId]);
+                Protocol.ParseV4Settings(ElementId, Elementval);
 
                 // add protocol to the list of protocols valid for this port
                 auto const ProtocolName = Lower(Protocol.Name());
@@ -679,6 +683,11 @@ bool EspsPort::ParseV4Settings(const nlohmann::json& JsonConfig)
                 ProtocolsByName[ProtocolName] = Protocol;
                 ProtocolIdToProtocolName[Protocol.Id()] = ProtocolName;
             } else if (ElementId == "type") {
+                if (!Elementval.is_number_integer()) {
+                    spdlog::error("EspsPort:ParseV4Config: Port type is not an integer");
+                    Response = false;
+                    break;
+                }
                 CurrentProtocolId = std::to_string(Elementval.get<int>());
             } else {
                 // error getting port information

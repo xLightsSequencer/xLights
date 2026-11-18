@@ -36,6 +36,7 @@
 #endif
 
 #include <cassert>
+#include <cstring>
 #include <chrono>
 #include <mutex>
 #include "FX.h"
@@ -319,12 +320,12 @@ void WS2812FX::handle_palette(void)
             targetPalette = CRGBPalette16(ter, sec, prim);
             break;
         case 1:
-            targetPalette = CRGBPalette16(ter, sec);
+            targetPalette = CRGBPalette16(sec, prim);
             break;
         case 0:
         case -1:
         default:
-            targetPalette = CRGBPalette16(ter);
+            targetPalette = CRGBPalette16(prim);
             break;
         }
         break;
@@ -4657,7 +4658,7 @@ uint16_t WS2812FX::mode_exploding_fireworks(void)
   int maxSparks = maxData / sizeof(spark); //ESP8266: max. 21/42/85 sparks/seg, ESP32: max. 53/106/213 sparks/seg
 
   uint16_t numSparks = min(2 + (SEGLEN >> 1), maxSparks);
-  uint16_t dataSize = sizeof(spark) * numSparks;
+  uint16_t dataSize = sizeof(spark) * numSparks + sizeof(float); // the float after the sparks is the dying gravity
   if (!SEGENV.allocateData(dataSize)) return mode_static(); //allocation failed
 
   if (dataSize != SEGENV.aux1) { //reset to flare if sparks were reallocated
@@ -4709,7 +4710,7 @@ uint16_t WS2812FX::mode_exploding_fireworks(void)
      */
     int nSparks = flare->pos;
     nSparks = constrain(nSparks, 0, (int)numSparks);
-    static float dying_gravity;
+    float& dying_gravity = *reinterpret_cast<float*>(sparks + numSparks);
   
     // initialize sparks
     if (SEGENV.aux0 == 2) {
@@ -5183,14 +5184,15 @@ uint16_t WS2812FX::mode_sunrise() {
 uint16_t WS2812FX::phased_base(uint8_t moder) {                  // We're making sine waves here. By Andrew Tuline.
 
   uint8_t allfreq = 16;                                          // Base frequency.
-  //float* phasePtr = reinterpret_cast<float*>(SEGENV.step);       // Phase change value gets calculated.
-  static float phase = 0;//phasePtr[0];
+  float phase;                                                   // Kept in the segment's step so each effect has its own.
+  static_assert(sizeof(phase) == sizeof(SEGENV.step));
+  memcpy(&phase, &SEGENV.step, sizeof(phase));
   uint8_t cutOff = (255-SEGMENT.intensity);                      // You can change the number of pixels.  AKA INTENSITY (was 192).
   uint8_t modVal = 5;//SEGMENT.fft1/8+1;                         // You can change the modulus. AKA FFT1 (was 5).
 
   uint8_t index = now/64;                                    // Set color rotation speed
   phase += SEGMENT.speed/32.0;                                   // You can change the speed of the wave. AKA SPEED (was .4)
-  //phasePtr[0] = phase; 
+  memcpy(&SEGENV.step, &phase, sizeof(phase));
 
   for (int i = 0; i < SEGLEN; i++) {
     if (moder == 1) modVal = (inoise8(i*10 + i*10) /16);         // Let's randomize our mod length with some Perlin noise.

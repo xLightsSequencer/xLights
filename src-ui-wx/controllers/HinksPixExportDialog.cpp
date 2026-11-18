@@ -1775,6 +1775,12 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
     
     spdlog::debug("HinksPix HSEQ Creation from {}", fseqFile);
 
+    if (hix->GetControllerCaps() == nullptr) {
+        errorMsg = fmt::format("HinksPix controller '{}' has no model/variant selected that xLights recognizes. Select the HinksPix model in the controller settings.", hix->GetName());
+        spdlog::error(errorMsg);
+        return false;
+    }
+
     std::unique_ptr<FSEQFile> xf(FSEQFile::openFSEQFile(fseqFile));
     if (!xf) {
         errorMsg = fmt::format("HinksPix Failed opening FSEQ {}", fseqFile);
@@ -2007,10 +2013,11 @@ std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(Controller
     UDController cud(hinks, m_outputManager, m_modelManager, false);
     int32_t hinkstartChan = 1;
 
-    wxASSERT(hinks->GetControllerCaps()->DMXAfterPixels());
+    ControllerCaps const* caps = hinks->GetControllerCaps();
+    wxASSERT(caps->DMXAfterPixels());
 
     //pixels first
-    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxPixelPort(); port++) {
+    for (int port = 1; port <= caps->GetMaxPixelPort(); port++) {
         if (cud.HasPixelPort(port)) {
             UDControllerPort* portData = cud.GetControllerPixelPort(port);
             for (auto const& m : portData->GetModels()) {
@@ -2024,7 +2031,7 @@ std::vector<HinksChannelMap> HinksPixExportDialog::getModelChannelMap(Controller
     }
 
     // serial second
-    for (int port = 1; port <= hinks->GetControllerCaps()->GetMaxSerialPort(); port++) {
+    for (int port = 1; port <= caps->GetMaxSerialPort(); port++) {
         if (cud.HasSerialPort(port)) {
             UDControllerPort* portData = cud.GetControllerSerialPort(port);
             for (auto const& m : portData->GetModels()) {

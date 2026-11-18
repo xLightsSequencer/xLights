@@ -1364,22 +1364,27 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
 {
     SuperStarImportDialog dlg(this);
 
+    // Append them in one call: on MSW each Append re-measures every item
+    // already in the choice, which took over a minute on a large layout.
+    wxArrayString targets;
     for (size_t i = 0; i < _sequenceElements.GetElementCount(); i++) {
         if (_sequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-            dlg.ChoiceSuperStarImportModel->Append(_sequenceElements.GetElement(i)->GetName());
+            targets.Add(_sequenceElements.GetElement(i)->GetName());
 
             ModelElement* model = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(i));
             for (int x = 0; x < model->GetSubModelAndStrandCount(); x++) {
                 std::string fname = model->GetSubModel(x)->GetFullName();
                 const std::string& name = model->GetSubModel(x)->GetName();
                 if (name != "") {
-                    dlg.ChoiceSuperStarImportModel->Append(fname);
+                    targets.Add(fname);
                 }
             }
         }
     }
+    dlg.ChoiceSuperStarImportModel->Append(targets);
 
-    if (dlg.ShowModal() == wxID_CANCEL) {
+    // Esc and the close box end the dialog with its escape id, not wxID_CANCEL.
+    if (dlg.ShowModal() != wxID_OK) {
         return;
     }
 

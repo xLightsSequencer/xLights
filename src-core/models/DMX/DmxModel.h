@@ -12,6 +12,7 @@
 
 #include "../Model.h"
 
+#include <algorithm>
 #include <memory>
 class DmxBeamAbility;
 class DmxColorAbility;
@@ -54,7 +55,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool IsDMXModel() const override { return true; }
 
         [[nodiscard]] int GetDmxChannelCount() const { return _dmxChannelCount; }
-        void SetDmxChannelCount(int val) { _dmxChannelCount = val; }
+        void SetDmxChannelCount(int val) { _dmxChannelCount = std::max(0, val); }
         virtual std::list<std::string> CheckModelSettings() override;
 
         [[nodiscard]] virtual std::vector<std::string> GenerateNodeNames() const;

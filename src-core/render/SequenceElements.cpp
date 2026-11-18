@@ -39,6 +39,15 @@ static const std::string STR_NODE("Node");
 static const std::string STR_STRAND("Strand");
 static const std::string STR_TIMING("timing");
 
+
+// A timing's view list is comma separated; an empty list (or one saved with a
+// stray comma) must not yield empty view names.
+static std::vector<std::string> SplitViews(const std::string& views) {
+    auto v = Split(views, ',');
+    std::erase_if(v, [](const std::string& s) { return s.empty(); });
+    return v;
+}
+
 SequenceElements::SequenceElements(RenderContext *ctx)
     : renderContext(ctx), mFrequency(20), mSequenceEndMS(0), undo_mgr(this)
 {
@@ -339,7 +348,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
 bool SequenceElements::TimingIsPartOfView(TimingElement* timing, int view) const
 {
     std::string view_name = GetViewName(view);
-    auto views = Split(timing->GetViews(), ',');
+    auto views = SplitViews(timing->GetViews());
     for (size_t v = 0; v < views.size(); v++)
     {
         if (views[v] == view_name)
@@ -433,6 +442,92 @@ Element* SequenceElements::GetElement(const std::string &name) const
     return nullptr;
 }
 
+Element* SequenceElements::GetElementFromUid(SeqObjectId uid) const
+{
+    if (uid == kNoSeqObjectId || mAllViews.empty()) {
+        return nullptr;
+    }
+    for (Element* el : mAllViews[MASTER_VIEW]) {
+        if (el->GetUid() == uid) {
+            return el;
+        }
+        if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* mel = dynamic_cast<ModelElement*>(el);
+            if (mel != nullptr) {
+                for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
+                    SubModelElement* sme = mel->GetSubModel(x);
+                    if (sme != nullptr && sme->GetUid() == uid) {
+                        return sme;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+bool SequenceElements::ValidateUids(std::string* problem) const
+{
+    std::unordered_set<SeqObjectId> seen;
+    auto check = [&](SeqObjectId uid, const std::string& what) {
+        if (uid == kNoSeqObjectId || !seen.insert(uid).second) {
+            if (problem != nullptr) {
+                *problem = (uid == kNoSeqObjectId ? "missing id on " : "duplicate id " + std::to_string(uid) + " on ") + what;
+            }
+            return false;
+        }
+        return true;
+    };
+    auto checkLayer = [&](const EffectLayer* l, const std::string& owner) {
+        if (!check(l->GetUid(), "layer of " + owner)) {
+            return false;
+        }
+        for (const Effect* e : l->GetEffects()) {
+            if (!check(e->GetUid(), "effect " + e->GetEffectName() + "@" + std::to_string(e->GetStartTimeMS()) + " on " + owner)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    auto checkElement = [&](const Element* el) {
+        if (!check(el->GetUid(), "element " + el->GetFullName())) {
+            return false;
+        }
+        for (const EffectLayer* l : el->GetEffectLayers()) {
+            if (!checkLayer(l, el->GetFullName())) {
+                return false;
+            }
+        }
+        if (el->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+            const StrandElement* st = dynamic_cast<const StrandElement*>(el);
+            for (int n = 0; st != nullptr && n < st->GetNodeLayerCount(); ++n) {
+                if (!checkLayer(st->GetNodeLayer(n), el->GetFullName() + " node " + std::to_string(n))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+    if (mAllViews.empty()) {
+        return true;
+    }
+    for (const Element* el : mAllViews[MASTER_VIEW]) {
+        if (!checkElement(el)) {
+            return false;
+        }
+        if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            const ModelElement* mel = dynamic_cast<const ModelElement*>(el);
+            for (int x = 0; mel != nullptr && x < mel->GetSubModelAndStrandCount(); ++x) {
+                const SubModelElement* sme = mel->GetSubModel(x);
+                if (sme != nullptr && !checkElement(sme)) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 Element* SequenceElements::GetElement(size_t index, int view) const
 {
     if (view >= 0 && static_cast<size_t>(view) < mAllViews.size() && index < mAllViews[view].size())
@@ -507,7 +602,7 @@ void SequenceElements::DeleteTimingFromView(const std::string &name, int view)
     if (elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING)
     {
         std::string views = elem->GetViews();
-        auto all_views = Split(views, ',');
+        auto all_views = SplitViews(views);
         int found = -1;
         for (size_t j = 0; j < all_views.size(); j++)
         {
@@ -536,7 +631,7 @@ void SequenceElements::DeleteTimingsFromView(int view)
         {
             TimingElement* te = dynamic_cast<TimingElement*>(el);
             std::string views = te->GetViews();
-            auto all_views = Split(views, ',');
+            auto all_views = SplitViews(views);
             int found = -1;
             for (size_t j = 0; j < all_views.size(); j++)
             {
@@ -917,12 +1012,16 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                                 while (!smName.empty() && (smName.front() == ' ' || smName.front() == '\t')) smName.erase(smName.begin());
                                 while (!smName.empty() && (smName.back() == ' ' || smName.back() == '\t')) smName.pop_back();
                                 int layer = effectLayerNode.attribute("layer").as_int(0);
-                                SubModelElement* se = dynamic_cast<ModelElement*>(element)->GetSubModel(smName, true);
-                                assert(se != nullptr);
-                                while (layer >= 0 && static_cast<size_t>(layer) >= se->GetEffectLayerCount()) {
-                                    se->AddEffectLayer();
+                                ModelElement* me = dynamic_cast<ModelElement*>(element);
+                                if (me != nullptr) {
+                                    SubModelElement* se = me->GetSubModel(smName, true);
+                                    while (layer >= 0 && static_cast<size_t>(layer) >= se->GetEffectLayerCount()) {
+                                        se->AddEffectLayer();
+                                    }
+                                    effectLayer = se->GetEffectLayer(layer);
+                                } else {
+                                    spdlog::error("Element {} was not a model element, skipping submodel layer {}.", element->GetName(), smName);
                                 }
-                                effectLayer = se->GetEffectLayer(layer);
                             } else {
                                 if (dynamic_cast<ModelElement*>(element) != nullptr) {
                                     StrandElement* se = dynamic_cast<ModelElement*>(element)->GetStrand(effectLayerNode.attribute("index").as_int(0), true);
@@ -1066,7 +1165,7 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
             else {
                 te->SetVisible(false);
                 if (te->GetMasterVisible()) {
-                    auto views = Split(te->GetViews(), ',');
+                    auto views = SplitViews(te->GetViews());
                     for (size_t v = 0; v < views.size(); v++) {
                         const std::string& viewName = views[v];
                         if (name == viewName) {
@@ -1116,7 +1215,7 @@ void SequenceElements::AddTimingToView(const std::string& timing, const std::str
     if( elem != nullptr && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING )
     {
         std::string views = te->GetViews();
-        auto all_views = Split(views,',');
+        auto all_views = SplitViews(views);
         bool found = false;
         for( size_t j = 0; j < all_views.size(); j++ )
         {

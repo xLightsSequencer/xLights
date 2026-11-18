@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "IPOutput.h"
+#include <algorithm>
 #include "SocketAbstraction.h"
 
 #include <nlohmann/json.hpp>
@@ -93,7 +94,7 @@ public:
     void SetId(int id) { _universe = id; _dirty = true; }
 
     int GetChannelsPerPacket() const { return _channelsPerPacket; }
-    void SetChannelsPerPacket(int cpp) { _channelsPerPacket = cpp; _dirty = true; }
+    void SetChannelsPerPacket(int cpp) { _channelsPerPacket = std::clamp(cpp, 1, 1440); _dirty = true; }
 
     virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
     virtual void SetKeepChannelNumber(bool b = true) { if (_keepChannelNumbers != b) { _keepChannelNumbers = b; _dirty = true; } }

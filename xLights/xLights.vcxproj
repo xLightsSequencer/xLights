@@ -655,6 +655,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerPropertyManager.cpp" />
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerSerialPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\controllerproperties\OutputPropertyAdapters.cpp" />
+    <ClCompile Include="..\src-ui-wx\modelproperties\BulkEditModelPropertiesDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\ModelPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\ModelPropertyManager.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\adapters\ArchesPropertyAdapter.cpp" />
@@ -1837,6 +1838,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerPropertyManager.h" />
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerSerialPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\controllerproperties\OutputPropertyAdapters.h" />
+    <ClInclude Include="..\src-ui-wx\modelproperties\BulkEditModelPropertiesDialog.h" />
     <ClInclude Include="..\src-ui-wx\modelproperties\ModelPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\modelproperties\ModelPropertyManager.h" />
     <ClInclude Include="..\src-ui-wx\modelproperties\adapters\ArchesPropertyAdapter.h" />
@@ -1929,10 +1931,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64 -o "$(IntDir)%(Filename).obj"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64 -o "$(IntDir)%(Filename).obj"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64 -o "$(IntDir)%(Filename).obj"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64 -o "$(IntDir)%(Filename).obj"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(FileName).obj;$(IntDir)%(FileName)_avx2.obj;$(IntDir)%(FileName)_avx.obj;$(IntDir)%(FileName)_sse4.obj;$(IntDir)%(FileName)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
     </CustomBuild>
@@ -1941,210 +1943,210 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <CustomBuild Include="..\src-core\effects\ispc\BarsFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\ColorWashFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\FanFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\KaleidoscopeFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\ShockwaveFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\SpiralsFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\GalaxyFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\MeteorsFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\GarlandsFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\FillFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\FireFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\TreeFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\TwinkleFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\ShimmerFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\CandleFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\LifeFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\WaveFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\CirclesFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\WarpFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
   </ItemGroup>
@@ -2152,12 +2154,12 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <CustomBuild Include="..\src-core\effects\ispc\ButterflyFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
   </ItemGroup>
@@ -2168,8 +2170,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
     </CustomBuild>
@@ -2178,11 +2180,11 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <CustomBuild Include="..\src-core\effects\ispc\PlasmaFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
     </CustomBuild>
@@ -2191,13 +2193,13 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <CustomBuild Include="..\src-core\effects\ispc\VideoFunctions.ispc">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64
-ispc.exe "%(FullPath)" -h "..\src-core\effects\ispc\%(Filename).ispc.h" --target=sse2-i32x8 --arch=x86_64
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64
+ispc.exe --math-lib=fast "%(FullPath)" -h "..\src-core\effects\ispc\%(Filename).ispc.h" --target=sse2-i32x8 --arch=x86_64
 findstr /v ".ispc.h" "..\src-core\effects\ispc\%(Filename).ispc.h" &gt; temp.txt &amp;&amp; move /y temp.txt "..\src-core\effects\ispc\%(Filename).ispc.h"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64
-ispc.exe "%(FullPath)" -h "..\src-core\effects\ispc\%(Filename).ispc.h" --target=sse2-i32x8 --arch=x86_64
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe --math-lib=fast "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x8,avx1-i32x8,sse4.2-i32x8,sse2-i32x8 --arch=x86_64
+ispc.exe --math-lib=fast "%(FullPath)" -h "..\src-core\effects\ispc\%(Filename).ispc.h" --target=sse2-i32x8 --arch=x86_64
 findstr /v ".ispc.h" "..\src-core\effects\ispc\%(Filename).ispc.h" &gt; temp.txt &amp;&amp; move /y temp.txt "..\src-core\effects\ispc\%(Filename).ispc.h"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj;$(IntDir)%(Filename)_avx2.obj;$(IntDir)%(Filename)_avx.obj;$(IntDir)%(Filename)_sse4.obj;$(IntDir)%(Filename)_sse2.obj</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>

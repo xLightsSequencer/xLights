@@ -129,7 +129,7 @@ std::string ColorCurve::Serialise()
         for (auto it = _values.begin(); it != _values.end(); ++it)
         {
             res += it->Serialise();
-            if (!(*it == _values.back()))
+            if (std::next(it) != _values.end())
             {
                 res += ";";
             }

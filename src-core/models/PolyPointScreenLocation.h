@@ -204,7 +204,7 @@ protected:
     mutable glm::mat4 main_matrix;
     mutable glm::vec3 saved_point;
     mutable glm::vec3 center;
-    mutable glm::vec3 rotate_pt;
+    mutable glm::vec3 rotate_pt = glm::vec3(0.0f);
     float saved_angle = 0.0f;
     void FixCurveHandles();
     void AdjustAllHandles(glm::mat4& mat);

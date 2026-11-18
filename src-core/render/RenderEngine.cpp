@@ -948,74 +948,97 @@ public:
         return false;
     }
 
-    void LogToLogger(int logLevel) {
+    static bool WillLog(int logLevel) {
         // these can only be set at start time
-        static bool debug = m_logger->level() == spdlog::level::debug;
-        static bool info = m_logger->level() == spdlog::level::info;
+        static bool debug = spdlog::get("render")->level() == spdlog::level::debug;
+        static bool info = spdlog::get("render")->level() == spdlog::level::info;
+        return (debug && logLevel == spdlog::level::debug) ||
+               (info && logLevel == spdlog::level::info);
+    }
 
-        if ((debug && logLevel == spdlog::level::debug) ||
-            (info && logLevel == spdlog::level::info))
-        {
+    void LogToLogger(int logLevel) {
+        if (WillLog(logLevel)) {
             m_logger->log((spdlog::level::level_enum)logLevel, GetStatusString());
         }
     }
 
     void SetGenericStatus(const std::string &msg, int frame, bool debugLog = false, bool includeStatusMap = false) {
-        statusType = includeStatusMap ? 8 : 4;
-        statusMsg = msg;
-        statusFrame = frame;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = includeStatusMap ? 8 : 4;
+            statusMsg = msg;
+            statusFrame = frame;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
     void SetGenericStatus(const std::string &msg, int frame, int layer, bool debugLog = false, bool includeStatusMap = false) {
-        statusType = includeStatusMap ? 9 : 5;
-        statusMsg = msg;
-        statusFrame = frame;
-        statusLayer = layer;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = includeStatusMap ? 9 : 5;
+            statusMsg = msg;
+            statusFrame = frame;
+            statusLayer = layer;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
+    // statusMapStr is rendered by the thread that owns the map; other windows
+    // render in parallel and must never walk a map they don't own.
     std::string PrintStatusMap() const {
-        if (statusMap == nullptr) return "";
-        return statusMap->AsString();
+        return statusMapStr;
     }
 
     void SetRenderingStatus(int frame, SettingsMap*map, int layer, int submodel, int strand, int node, bool debugLog = false) {
-        statusType = 2;
-        statusFrame = frame;
-        statusLayer = layer;
-        statusStrand = strand;
-        statusSubmodel = submodel;
-        statusNode = node;
-        statusMap = map;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = 2;
+            statusFrame = frame;
+            statusLayer = layer;
+            statusStrand = strand;
+            statusSubmodel = submodel;
+            statusNode = node;
+            statusMap = map;
+            statusMapStr = (map != nullptr && WillLog(debugLog ? spdlog::level::debug : spdlog::level::info)) ? map->AsString() : std::string();
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
     void SetCalOutputStatus(int frame, int submodel, int strand, int node, bool debugLog = true) {
-        statusType = 3;
-        statusFrame = frame;
-        statusStrand = strand;
-        statusSubmodel = submodel;
-        statusNode = node;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = 3;
+            statusFrame = frame;
+            statusStrand = strand;
+            statusSubmodel = submodel;
+            statusNode = node;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
     void SetInializingStatus(int frame, int layer, int submodel, int strand, int node, bool debugLog = false) {
-        statusType = 1;
-        statusFrame = frame;
-        statusLayer = layer;
-        statusStrand = strand;
-        statusSubmodel = submodel;
-        statusNode = node;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusType = 1;
+            statusFrame = frame;
+            statusLayer = layer;
+            statusStrand = strand;
+            statusSubmodel = submodel;
+            statusNode = node;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
     void SetWaitingStatus(int frame, bool debugLog = false) {
+        std::lock_guard<std::mutex> lk(statusMutex);
         statusType = 13;
         statusFrame = frame;
     }
     void SetStatus(const std::string &st, bool debugLog = false) {
-        statusMsg = st;
-        statusType = 0;
+        {
+            std::lock_guard<std::mutex> lk(statusMutex);
+            statusMsg = st;
+            statusType = 0;
+        }
         LogToLogger(debugLog ? spdlog::level::debug : spdlog::level::info);
     }
 
@@ -1135,6 +1158,7 @@ public:
     }
 
     std::string GetStatusString() const override {
+        std::lock_guard<std::mutex> lk(statusMutex);
         int frame = statusFrame;
         int layer = statusLayer;
         int strand = statusStrand;
@@ -1267,6 +1291,7 @@ public:
             partOfCanvas[x] = false;
         }
 
+        StageTimer layerLoopTimer(profRender ? &profile.layerLoopNs : nullptr);
         // To support canvas mix type we must render them bottom to top
         for (int layer = effectiveNumLayers - 1; layer >= 0; --layer) {
             // Layer restriction (tier-2 capture pre-pass): skip layers not opted in.
@@ -1359,11 +1384,13 @@ public:
                     info.currentEffects[layer] = ef;
                 }
                 SetInializingStatus(frame, layer, info.submodel, strand, -1);
+                StageTimer st(profRender ? &profile.initNs : nullptr);
                 initialize(layer, frame, ef, info.settingsMaps[layer], buffer);
                 info.effectStates[layer] = true;
             }
 
             if (buffer->IsVariableSubBuffer(layer)) {
+                StageTimer st(profRender ? &profile.subBufNs : nullptr);
                 buffer->PrepareVariableSubBuffer(frame, layer);
             }
 
@@ -1374,6 +1401,7 @@ public:
             }
 
             if ((!persist && !freeze) || info.currentEffects[layer] == nullptr || info.currentEffects[layer]->GetEffectIndex() == -1) {
+                StageTimer st(profRender ? &profile.clearNs : nullptr);
                 buffer->Clear(layer);
             }
 
@@ -1448,6 +1476,7 @@ public:
                     // We have to calc the output here to apply blend, rotozoom and transitions
                     { StageTimer st(profRender ? &profile.blendNs : nullptr);
                       buffer->CalcOutput(frame, vl, layer, true); }
+                    StageTimer fillTimer(profRender ? &profile.canvasFillNs : nullptr);
                     std::vector<uint8_t> done(rb.GetPixelCount());
                     parallel_for(0, rb.GetNodes().size(), [&](int n) {
                         for (auto &a : rb.GetNodes()[n]->Coords) {
@@ -3098,7 +3127,8 @@ public:
             if (profRender) {
                 ++profile.frames;
             }
-            ProduceAndOutputFrameAll(frame);
+            { StageTimer st(profRender ? &profile.frameNs : nullptr);
+              ProduceAndOutputFrameAll(frame); }
             //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
             if (HasNext()) {
                 SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
@@ -3116,7 +3146,8 @@ public:
             if (profRender) {
                 ++profile.frames;
             }
-            ProduceFrameAll(frame);
+            { StageTimer st(profRender ? &profile.frameNs : nullptr);
+              ProduceFrameAll(frame); }
             producedFrame = frame;
         }
 
@@ -3134,7 +3165,8 @@ public:
             SetGenericStatus("{}: Processing frame {} ", frame, true, true);
         }
 
-        OutputFrameAll(frame);
+        { StageTimer st(profRender ? &profile.frameNs : nullptr);
+          OutputFrameAll(frame); }
         //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
         if (HasNext()) {
             SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
@@ -3555,6 +3587,8 @@ private:
     std::string statusMsg;
     volatile int statusType;
     volatile int statusFrame;
+    mutable std::mutex statusMutex;
+    std::string statusMapStr;
     SettingsMap *statusMap;
     volatile int statusLayer;
     volatile int statusSubmodel = -1;
@@ -4360,10 +4394,18 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
         pi->progressSink->OnRenderSetupComplete();
     }
 
+    // Decide which rows depend on others before anything is pushed: once the
+    // independent jobs are on the pool they can all finish and the host's drain
+    // frees pi->aggregators, so it can't be read again after the first push.
+    std::vector<bool> hasUpstream(numRows, false);
+    for (row = 0; row < (size_t)numRows; ++row) {
+        hasUpstream[row] = jobs[row] && aggregators[row]->getNumAggregated() != 0;
+    }
+
     // First pass: push jobs that have no upstream dependencies so they can
     // start rendering while we finish setup on the rest.
     for (row = 0; row < (size_t)numRows; ++row) {
-        if (jobs[row] && aggregators[row]->getNumAggregated() == 0) {
+        if (jobs[row] && !hasUpstream[row]) {
             jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
             _jobPool.PushJob(jobs[row]);
         }
@@ -4373,7 +4415,7 @@ void RenderEngine::PerformRenderSetup(RenderSetupRequest& req) {
 
     // Second pass: push the dependent jobs.
     for (row = 0; row < (size_t)numRows; ++row) {
-        if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
+        if (jobs[row] && hasUpstream[row]) {
             _jobPool.PushJob(jobs[row]);
         }
     }
@@ -4701,7 +4743,10 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
 
     bool retval = true;
 
-    buffer.SetLayer(layer, period, resetEffectState);
+    {
+        StageTimer st((profRender && tlsRenderProfile != nullptr) ? &tlsRenderProfile->setLayerNs : nullptr);
+        buffer.SetLayer(layer, period, resetEffectState);
+    }
     resetEffectState = false;
     int eidx = -1;
 
@@ -5131,6 +5176,32 @@ static void DumpRenderProfile(RenderProgressInfo* rpi, long long elapsedMS) {
             ms(total.effectNs), ms(total.gpuBusyNs), ms(total.blurZoomNs), ms(total.transitionNs), ms(total.blendNs), ms(total.getColorsNs), ms(total.setColorsNs),
             ms(total.gpuWaitNs), ms(total.suspendedNs), ms(total.wallNs()),
             pct(total.gpuWaitNs, total.wallNs()), pct(total.suspendedNs, total.wallNs()), "");
+
+    // Overhead table for the slowest rows: where a row's frame time goes beyond
+    // the stage columns.  `unattr` = frame time not covered by any timer here
+    // (effect lookup, layer locks, status updates, sub-buffer prep, ...);
+    // `outside` = active slice time spent outside frames (scheduling, job setup).
+    // gpuWait can overlap the stage timers, so it is not subtracted.
+    fprintf(stderr, "--- per-row overhead (slowest rows) ---\n");
+    fprintf(stderr, "%-28s %9s %9s %9s %9s %9s %9s %9s %9s %9s %9s\n",
+            "model", "slice", "frame", "layers", "setLayer", "clear", "init", "cnvFill", "subBuf", "unattr", "outside");
+    for (size_t i = 0; i < rows.size() && i < 12; i++) {
+        const RenderJobProfile* p = rows[i].p;
+        const uint64_t known = p->stageSumNs() + p->setLayerNs + p->clearNs + p->initNs + p->canvasFillNs + p->subBufNs;
+        const double unattr = ms(p->frameNs) - ms(known);
+        const double outside = ms(p->sliceNs) - ms(p->frameNs);
+        fprintf(stderr, "%-28.28s %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f %9.1f\n",
+                rows[i].name.c_str(), ms(p->sliceNs), ms(p->frameNs), ms(p->layerLoopNs), ms(p->setLayerNs), ms(p->clearNs),
+                ms(p->initNs), ms(p->canvasFillNs), ms(p->subBufNs), unattr, outside);
+    }
+    for (size_t i = 0; i < rows.size() && i < 12; i++) {
+        const RenderJobProfile* p = rows[i].p;
+        if (p->subBufRebuilds > 0) {
+            fprintf(stderr, "  subBuf %-28.28s rebuilds %7llu  nodes %9.1f  initBuffer %9.1f  gpuSetup %9.1f  (%.3f ms/rebuild)\n",
+                    rows[i].name.c_str(), (unsigned long long)p->subBufRebuilds, ms(p->subBufNodesNs), ms(p->subBufInitNs),
+                    ms(p->subBufGpuNs), ms(p->subBufNs) / (double)p->subBufRebuilds);
+        }
+    }
 
     // Per-effect table, ranked by cpu+gpu.  Keys are the union of the CPU and GPU
     // maps: GPU-only rows appear for stage work no effect owns ("(gpu blend)" etc).

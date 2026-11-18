@@ -148,34 +148,30 @@ bool MetalFireEffectData::Render(RenderBuffer &buffer, FireEffect::FireFramePara
         fd.pad = 0;
         fd.frameSeed = params.frameSeed;
 
-        id<MTLComputeCommandEncoder> encoder = [commandBuffer computeCommandEncoder];
-        if (encoder == nil) {
-            rbcd->abortCommandBuffer();
+        // Advance: one thread per grid cell, reading last frame's grid.
+        bool encoded = rbcd->encodeEffect(commandBuffer, advanceFn, @"FireEffect", [&](id<MTLComputeCommandEncoder> encoder) {
+            [encoder setBytes:&fd length:sizeof(fd) atIndex:0];
+            [encoder setBuffer:gpu->prev offset:0 atIndex:1];
+            [encoder setBuffer:gpu->next offset:0 atIndex:2];
+            NSInteger aw = std::min<NSInteger>(advanceFn.threadExecutionWidth, params.maxMWi);
+            NSInteger ah = std::max<NSInteger>(1, std::min<NSInteger>(advanceFn.maxTotalThreadsPerThreadgroup / std::max<NSInteger>(aw, 1), params.maxMHt));
+            [encoder dispatchThreads:MTLSizeMake(params.maxMWi, params.maxMHt, 1)
+               threadsPerThreadgroup:MTLSizeMake(std::max<NSInteger>(aw, 1), ah, 1)];
+
+            // Draw: one thread per displayed pixel, from the grid just written.
+            [encoder setComputePipelineState:drawFn];
+            [encoder setBytes:&fd length:sizeof(fd) atIndex:0];
+            [encoder setBuffer:gpu->next offset:0 atIndex:1];
+            [encoder setBuffer:gpu->lut offset:0 atIndex:2];
+            [encoder setBuffer:bufferResult offset:0 atIndex:3];
+            NSInteger dw = std::min<NSInteger>(drawFn.threadExecutionWidth, params.curWi);
+            NSInteger dh = std::max<NSInteger>(1, std::min<NSInteger>(drawFn.maxTotalThreadsPerThreadgroup / std::max<NSInteger>(dw, 1), params.curHt));
+            [encoder dispatchThreads:MTLSizeMake(params.curWi, params.curHt, 1)
+               threadsPerThreadgroup:MTLSizeMake(std::max<NSInteger>(dw, 1), dh, 1)];
+        });
+        if (!encoded) {
             return bailToCpu();
         }
-        [encoder setLabel:@"FireEffect"];
-
-        // Advance: one thread per grid cell, reading last frame's grid.
-        [encoder setComputePipelineState:advanceFn];
-        [encoder setBytes:&fd length:sizeof(fd) atIndex:0];
-        [encoder setBuffer:gpu->prev offset:0 atIndex:1];
-        [encoder setBuffer:gpu->next offset:0 atIndex:2];
-        NSInteger aw = std::min<NSInteger>(advanceFn.threadExecutionWidth, params.maxMWi);
-        NSInteger ah = std::max<NSInteger>(1, std::min<NSInteger>(advanceFn.maxTotalThreadsPerThreadgroup / std::max<NSInteger>(aw, 1), params.maxMHt));
-        [encoder dispatchThreads:MTLSizeMake(params.maxMWi, params.maxMHt, 1)
-           threadsPerThreadgroup:MTLSizeMake(std::max<NSInteger>(aw, 1), ah, 1)];
-
-        // Draw: one thread per displayed pixel, from the grid just written.
-        [encoder setComputePipelineState:drawFn];
-        [encoder setBytes:&fd length:sizeof(fd) atIndex:0];
-        [encoder setBuffer:gpu->next offset:0 atIndex:1];
-        [encoder setBuffer:gpu->lut offset:0 atIndex:2];
-        [encoder setBuffer:bufferResult offset:0 atIndex:3];
-        NSInteger dw = std::min<NSInteger>(drawFn.threadExecutionWidth, params.curWi);
-        NSInteger dh = std::max<NSInteger>(1, std::min<NSInteger>(drawFn.maxTotalThreadsPerThreadgroup / std::max<NSInteger>(dw, 1), params.curHt));
-        [encoder dispatchThreads:MTLSizeMake(params.curWi, params.curHt, 1)
-           threadsPerThreadgroup:MTLSizeMake(std::max<NSInteger>(dw, 1), dh, 1)];
-        [encoder endEncoding];
 
         // Both dispatches share one encoder, so the draw already sees the
         // advance's writes; swap so next frame reads what was just produced.

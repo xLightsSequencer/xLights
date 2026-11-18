@@ -42,28 +42,18 @@ public:
                 rbcd->abortCommandBuffer();
                 return false;
             }
-            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
-            if (computeEncoder == nil) {
-                rbcd->abortCommandBuffer();
+            bool encoded = rbcd->encodeEffect(commandBuffer, functions[0], @"ShockwaveEffect", [&](id<MTLComputeCommandEncoder> computeEncoder) {
+                NSInteger dataSize = sizeof(data);
+                [computeEncoder setBytes:&data length:dataSize atIndex:0];
+                [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
+
+                dataSize = data.width * data.height;
+
+                MetalRenderBufferComputeData::dispatch1D(computeEncoder, functions[0], dataSize);
+            });
+            if (!encoded) {
                 return false;
             }
-            [computeEncoder setLabel:@"ShockwaveEffect"];
-            [computeEncoder setComputePipelineState:functions[0]];
-
-            NSInteger dataSize = sizeof(data);
-            [computeEncoder setBytes:&data length:dataSize atIndex:0];
-            [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
-
-            NSInteger maxThreads = functions[0].maxTotalThreadsPerThreadgroup;
-            dataSize = data.width * data.height;
-            NSInteger threads = std::min(dataSize, maxThreads);
-            MTLSize gridSize = MTLSizeMake(dataSize, 1, 1);
-            MTLSize threadsPerThreadgroup = MTLSizeMake(threads, 1, 1);
-
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadsPerThreadgroup];
-
-            [computeEncoder endEncoding];
         }
         return true;
     }
