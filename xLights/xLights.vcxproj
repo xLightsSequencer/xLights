@@ -1012,6 +1012,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\media\ResizeImageDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\RestoreBackupDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\SaveChangesDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\ShowFileMergeDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\ScriptsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\diagnostics\SearchPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectPanel.cpp" />
@@ -1086,6 +1087,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\utils\ShowAutosave.cpp" />
     <ClCompile Include="..\src-core\utils\ShowFileGuard.cpp" />
     <ClCompile Include="..\src-core\utils\ShowFileMerge.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowSaveMerge.cpp" />
+    <ClCompile Include="..\src-core\render\ShowMergeApply.cpp" />
     <ClCompile Include="..\src-core\utils\ShowPresence.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
@@ -1702,6 +1705,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\media\ResizeImageDialog.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\RestoreBackupDialog.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\SaveChangesDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\ShowFileMergeDialog.h" />
     <ClInclude Include="..\src-ui-wx\automation\ScriptsDialog.h" />
     <ClInclude Include="..\src-ui-wx\diagnostics\SearchPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectPanel.h" />
@@ -1775,6 +1779,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\utils\ShowAutosave.h" />
     <ClInclude Include="..\src-core\utils\ShowFileGuard.h" />
     <ClInclude Include="..\src-core\utils\ShowFileMerge.h" />
+    <ClInclude Include="..\src-core\utils\ShowSaveMerge.h" />
+    <ClInclude Include="..\src-core\render\ShowMergeApply.h" />
     <ClInclude Include="..\src-core\utils\ShowPresence.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />

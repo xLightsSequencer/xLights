@@ -580,6 +580,8 @@
 		<Unit filename="../src-ui-wx/app-shell/RestoreBackupDialog.h" />
 		<Unit filename="../src-ui-wx/app-shell/SaveChangesDialog.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/SaveChangesDialog.h" />
+		<Unit filename="../src-ui-wx/app-shell/ShowFileMergeDialog.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/ShowFileMergeDialog.h" />
 		<Unit filename="../src-ui-wx/automation/ScriptsDialog.cpp" />
 		<Unit filename="../src-ui-wx/automation/ScriptsDialog.h" />
 		<Unit filename="../src-ui-wx/diagnostics/SearchPanel.cpp" />
@@ -652,6 +654,8 @@
 		<Unit filename="../src-core/utils/ShowFileGuard.h" />
 		<Unit filename="../src-core/utils/ShowFileMerge.cpp" />
 		<Unit filename="../src-core/utils/ShowFileMerge.h" />
+		<Unit filename="../src-core/utils/ShowSaveMerge.cpp" />
+		<Unit filename="../src-core/utils/ShowSaveMerge.h" />
 		<Unit filename="../src-core/utils/ShowPresence.cpp" />
 		<Unit filename="../src-core/utils/ShowPresence.h" />
 		<Unit filename="../src-core/utils/ShowRedactor.cpp" />
@@ -1818,6 +1822,8 @@
 		<Unit filename="../src-ui-wx/wxsmith/xlColorPickerFields.wxs" />
 		<Unit filename="../src-core/render/HeadlessRenderContext.cpp" />
 		<Unit filename="../src-core/render/HeadlessRenderContext.h" />
+		<Unit filename="../src-core/render/ShowMergeApply.cpp" />
+		<Unit filename="../src-core/render/ShowMergeApply.h" />
 		<Unit filename="../src-ui-wx/xLightsApp.cpp" />
 		<Unit filename="../src-ui-wx/xLightsApp.h" />
 		<Unit filename="../src-ui-wx/import_export/xLightsImportChannelMapDialog.cpp" />

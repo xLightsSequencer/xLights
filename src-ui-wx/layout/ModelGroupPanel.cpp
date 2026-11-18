@@ -345,6 +345,14 @@ void ModelGroupPanel::AddPreviewChoice(const std::string& name)
     ChoicePreviews->Append(name);
 }
 
+void ModelGroupPanel::RemovePreviewChoice(const std::string& name)
+{
+    int i = ChoicePreviews->FindString(name, true);
+    if (i != wxNOT_FOUND) {
+        ChoicePreviews->Delete(i);
+    }
+}
+
 void ModelGroupPanel::RenamePreviewChoice(const std::string& oldName, const std::string& newName)
 {
     for (size_t i = 0; i < ChoicePreviews->GetCount(); i++) {

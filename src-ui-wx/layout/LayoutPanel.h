@@ -441,6 +441,8 @@ class LayoutPanel: public wxPanel
         void SelectAllModels();
         void SetupPropGrid(BaseObject *model);
         void AddPreviewChoice(const std::string &name);
+        // A layout group that is gone (someone else deleted it); shows Default when it was current.
+        void RemovePreviewChoice(const std::string& name);
         ModelPreview* GetMainPreview() const {return modelPreview;}
         bool GetBackgroundScaledForSelectedPreview();
         int GetBackgroundBrightnessForSelectedPreview();

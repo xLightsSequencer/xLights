@@ -17,6 +17,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 HLS import: strand names lost their last character, so Map CCR/Strand found no nodes
     -bug (derwin12)              Select Effects listed models with no effects matching the Effect Type,
                                  Render Style, time and colour filters together
+    -enh (dkulp)                 Layout, controller and effect preset changes saved by someone else to a shared
+                                 show folder are merged with yours when you save: you choose only where you both
+                                 changed the same thing, or where they deleted a model the open sequence has
+                                 effects on (keep it, delete it with its effects, or map the effects to
+                                 another model), and a report lists renames and broken references
+    -enh (dkulp)                 iPad - Layout, controller and effect preset changes saved by someone else to a
+                                 shared show folder are merged with yours when you save: you choose only where
+                                 you both changed the same item, or where they deleted a model the open
+                                 sequence has effects on (keep it, delete it with its effects, or map the effects)
+    -enh (dkulp)                 Restoring an autosave after someone else saved the file can merge the two
     -enh (dkulp)                 Warn instead of silently overwriting layout, controller, preset or sequence
                                  changes saved by someone else to a shared show folder
     -enh (dkulp)                 iPad - Warn instead of silently overwriting layout, controller, preset or

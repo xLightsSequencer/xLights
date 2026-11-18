@@ -147,6 +147,8 @@ struct LayoutEditorView: View {
     // A save found xlights_rgbeffects.xml / xlights_networks.xml changed
     // by someone else since the show was loaded.
     @State private var layoutSaveConflict: ShowFileSaveConflict? = nil
+    @State private var layoutMergeSheet = false
+    @State private var layoutMergeReport: String? = nil
     @State private var layoutSaveCopyNotice: String? = nil
     /// J-2 — mirrors `document.canUndoLayoutChange`. Updated after
     /// every edit + undo so the toolbar button can grey itself out.
@@ -996,7 +998,12 @@ struct LayoutEditorView: View {
         .showFileConflictAlert($layoutSaveConflict,
                                notice: $layoutSaveCopyNotice,
                                onOverwrite: { _ in overwriteLayoutAfterConflict() },
-                               onSaveCopy: { saveLayoutCopiesAfterConflict($0) })
+                               onSaveCopy: { saveLayoutCopiesAfterConflict($0) },
+                               onMerge: { _ in mergeLayoutAfterConflict() })
+        .modifier(ShowFileMergeFlow(document: viewModel.document,
+                                    showSheet: $layoutMergeSheet,
+                                    report: $layoutMergeReport,
+                                    onFinished: { afterLayoutMerge() }))
         // IE-15 — Models report (.xlsx) export wiring is bundled
         // into a ViewModifier so the outer body's chain stays within
         // Swift's type-checker budget (same approach as the other
@@ -4866,6 +4873,27 @@ struct LayoutEditorView: View {
         } else {
             saveErrorMessage = "Couldn't write xlights_rgbeffects.xml. Check the Tools → Package Logs output for details."
         }
+    }
+
+    private func mergeLayoutAfterConflict() {
+        switch ShowFileMergeStart.start(document: viewModel.document, presets: false) {
+        case .needsDecisions:
+            layoutMergeSheet = true
+        case .committed(let report):
+            afterLayoutMerge()
+            if !report.isEmpty { layoutMergeReport = report }
+        case .failed(let message):
+            saveErrorMessage = message
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        }
+    }
+
+    /// The merged files are saved and the open show was brought up to them.
+    private func afterLayoutMerge() {
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        canUndo = viewModel.document.canUndoLayoutChange()
+        summaryToken &+= 1
+        refreshModelList()
     }
 
     private func overwriteLayoutAfterConflict() {

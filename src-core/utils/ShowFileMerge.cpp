@@ -37,6 +37,7 @@ const char* ToString(ConflictKind kind) {
     case ConflictKind::BothAdded: return "added on both sides";
     case ConflictKind::BothRenamed: return "renamed on both sides";
     case ConflictKind::OrderChanged: return "reordered on both sides";
+    case ConflictKind::DeletedWithEffects: return "deleted there, has effects in the open sequence here";
     }
     return "";
 }
@@ -1374,7 +1375,7 @@ bool Merge::AllResolved() const {
 bool Merge::Resolve(const std::string& key, Resolution resolution) {
     for (const auto& c : Conflicts()) {
         if (c.key == key) {
-            if (resolution == Resolution::KeepBoth && !c.keepBothAllowed) {
+            if ((resolution == Resolution::KeepBoth && !c.keepBothAllowed) || resolution == Resolution::Map) {
                 return false;
             }
             _impl->resolutions[key] = resolution;
@@ -1395,7 +1396,7 @@ bool Merge::Resolve(size_t index, Resolution resolution) {
 }
 
 void Merge::ResolveAll(Resolution resolution) {
-    if (resolution == Resolution::KeepBoth) {
+    if (resolution == Resolution::KeepBoth || resolution == Resolution::Map) {
         return;
     }
     // A resolution can change what merges next (a rename), so repeat until
@@ -1466,6 +1467,10 @@ std::vector<ReferenceIssue> Merge::ReferenceIssues() const {
         issues.insert(issues.end(), more.begin(), more.end());
     }
     return issues;
+}
+
+bool RecordsEqual(FileKind kind, pugi::xml_node a, pugi::xml_node b) {
+    return NodesEqual(kind, a, b, false);
 }
 
 std::vector<ReferenceIssue> CheckReferences(const pugi::xml_document& rgbEffects, const pugi::xml_document* networks) {

@@ -426,12 +426,19 @@ bool EffectPresetManager::LoadJsonFile(const std::string& filepath)
     }
 }
 
+std::string EffectPresetManager::SaveToText() const
+{
+    try {
+        return SaveToJson().dump(2);
+    } catch (...) {
+        return std::string();
+    }
+}
+
 bool EffectPresetManager::SaveJsonFile(const std::string& filepath) const
 {
-    std::string text;
-    try {
-        text = SaveToJson().dump(2);
-    } catch (...) {
+    std::string text = SaveToText();
+    if (text.empty()) {
         return false;
     }
     return ShowFileGuard::Instance().SaveFile(filepath, text);

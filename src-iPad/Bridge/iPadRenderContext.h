@@ -25,6 +25,7 @@
 #include "render/ViewpointMgr.h"
 #include "utils/LayoutObjectId.h"
 #include "utils/ShowAutosave.h"
+#include "utils/ShowSaveMerge.h"
 #include "effects/EffectManager.h"
 #include "effects/EffectPresetManager.h"
 #include "outputs/OutputManager.h"
@@ -730,11 +731,33 @@ public:
     // Removes this install's layout autosave.
     void DiscardLayoutAutosave();
 
+    // Merging with what someone else saved (the files LayoutFilesChangedOnDisk()
+    // names, or the effect presets). This session's side of the layout is the
+    // version that was loaded with this session's edits applied, so an item
+    // both sides edited is a conflict rather than silently patched over.
+    enum class ShowFileSet { Layout, Presets };
+    // Builds the merge; it stays pending until committed or cancelled. False
+    // when a changed file cannot be merged (its loaded version is not known).
+    bool PrepareShowFileMerge(ShowFileSet which);
+    ShowSaveMerge::Plan* PendingShowFileMerge() { return _pendingMerge.get(); }
+    // Writes the merged files once every conflict is resolved, brings memory
+    // up to them and clears the edits it saved. On success *report holds the
+    // save report when it has something to say (else empty). When a file
+    // changed again meanwhile and the new merge needs decisions, returns false
+    // with *needsDecisions set and the new merge pending.
+    bool CommitShowFileMerge(std::string* report, std::string* error, bool* needsDecisions);
+    void CancelShowFileMerge() { _pendingMerge.reset(); }
+
 private:
+    std::vector<ShowSaveMerge::FileToSave> ShowFilesToMerge(ShowFileSet which);
+    void ClearLayoutDirt();
+    std::unique_ptr<ShowSaveMerge::Plan> _pendingMerge;
+    ShowFileSet _pendingMergeSet = ShowFileSet::Layout;
     std::string _checkedLayoutAutosavePath;
     // Shared body of SaveLayoutChanges / AutosaveLayoutChanges. Empty
     // targetPath means the real rgbeffects file.
     bool SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty, bool overwriteExternalChanges = false);
+    bool PatchLayoutDocument(pugi::xml_document& doc);
     bool HasLayoutDirt() const;
     // Writes every in-memory layout id into a patched rgbeffects document
     // before it goes to disk. Every rgbeffects write calls this.

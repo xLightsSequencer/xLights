@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <iterator>
 #include <random>
 #include <system_error>
 #include <vector>
@@ -188,6 +189,35 @@ std::optional<ShowFileFingerprint> ShowFileGuard::FingerprintFile(const std::str
         return std::nullopt;
     }
     return h.Finish();
+}
+
+std::optional<std::pair<std::string, ShowFileFingerprint>> ShowFileGuard::ReadFile(const std::string& path) {
+    if (path.empty() || !FileExists(path)) {
+        return std::make_pair(std::string(), ShowFileFingerprint{});
+    }
+    auto p = ToPath(path);
+    if (!p) {
+        return std::nullopt;
+    }
+    std::ifstream ifs(*p, std::ios::binary);
+    if (!ifs.is_open()) {
+        return std::nullopt;
+    }
+    std::string bytes((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    if (ifs.bad()) {
+        return std::nullopt;
+    }
+    ShowFileFingerprint fp = FingerprintOf(bytes);
+    return std::make_pair(std::move(bytes), fp);
+}
+
+bool ShowFileGuard::KeepsBaseText(const std::string& path) {
+    auto p = ToPath(path);
+    if (!p) {
+        return false;
+    }
+    const std::string name = p->filename().string();
+    return name == "xlights_rgbeffects.xml" || name == "xlights_networks.xml" || name == "xlights_effectpresets.json";
 }
 
 bool ShowFileGuard::WriteFileAtomically(const std::string& path, const std::string& bytes) {
@@ -518,6 +548,18 @@ void ShowFileGuard::RecordFromDisk(const std::string& path) {
     if (path.empty()) {
         return;
     }
+    if (KeepsBaseText(path)) {
+        auto read = ReadFile(path);
+        std::lock_guard<std::mutex> l(_lock);
+        if (read) {
+            _recorded[Key(path)] = read->second;
+            _text[Key(path)] = std::move(read->first);
+        } else {
+            _recorded.erase(Key(path));
+            _text.erase(Key(path));
+        }
+        return;
+    }
     auto fp = FingerprintFile(path);
     std::lock_guard<std::mutex> l(_lock);
     if (fp) {
@@ -533,18 +575,33 @@ void ShowFileGuard::Record(const std::string& path, const std::string& bytes) {
         return;
     }
     auto fp = FingerprintOf(bytes);
+    const bool keepText = KeepsBaseText(path);
     std::lock_guard<std::mutex> l(_lock);
     _recorded[Key(path)] = fp;
+    if (keepText) {
+        _text[Key(path)] = bytes;
+    }
 }
 
 void ShowFileGuard::Forget(const std::string& path) {
     std::lock_guard<std::mutex> l(_lock);
     _recorded.erase(Key(path));
+    _text.erase(Key(path));
 }
 
 void ShowFileGuard::Clear() {
     std::lock_guard<std::mutex> l(_lock);
     _recorded.clear();
+    _text.clear();
+}
+
+std::optional<std::string> ShowFileGuard::RecordedText(const std::string& path) const {
+    std::lock_guard<std::mutex> l(_lock);
+    auto it = _text.find(Key(path));
+    if (it == _text.end()) {
+        return std::nullopt;
+    }
+    return it->second;
 }
 
 bool ShowFileGuard::IsTracked(const std::string& path) const {

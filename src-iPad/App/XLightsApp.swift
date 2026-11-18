@@ -675,7 +675,14 @@ struct ContentView: View {
             notice: Binding(get: { viewModel.saveCopyNotice },
                             set: { viewModel.saveCopyNotice = $0 }),
             onOverwrite: { viewModel.overwriteAfterConflict($0) },
-            onSaveCopy: { viewModel.saveCopyAfterConflict($0) })
+            onSaveCopy: { viewModel.saveCopyAfterConflict($0) },
+            onMerge: { viewModel.mergeAfterConflict($0) })
+        .modifier(ShowFileMergeFlow(document: viewModel.document,
+                                    showSheet: Binding(get: { viewModel.showFileMergeSheet },
+                                                       set: { viewModel.showFileMergeSheet = $0 }),
+                                    report: Binding(get: { viewModel.showFileMergeReport },
+                                                    set: { viewModel.showFileMergeReport = $0 }),
+                                    onFinished: { viewModel.reloadPresets() }))
         .modifier(SequenceAutosaveRecoveryModifier(viewModel: viewModel,
                                                    offer: $autosaveRecovery))
         // F-1 scene title — propagates to the iPadOS 26 Window menu's

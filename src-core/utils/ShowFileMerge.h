@@ -73,6 +73,9 @@ enum class ConflictKind {
     BothAdded,        // both added a record with the same name and different content
     BothRenamed,      // both renamed one record, to different names
     OrderChanged,     // both reordered the controllers, differently
+    // Not found by the merge itself: the merged layout no longer has a model
+    // or group the open sequence has effects on (ShowSaveMerge::Plan).
+    DeletedWithEffects,
 };
 
 const char* ToString(ConflictKind kind);
@@ -82,6 +85,7 @@ enum class Resolution {
     Mine,
     Theirs,
     KeepBoth, // BothAdded only: keep theirs and add mine under a new name
+    Map,      // DeletedWithEffects only: move the effects to Conflict::mapTarget
 };
 
 struct Conflict {
@@ -105,6 +109,9 @@ struct Conflict {
     std::optional<std::string> mineValue;
     std::optional<std::string> theirsValue;
     bool keepBothAllowed = false;
+    bool mapAllowed = false;
+    // Resolution::Map: the model or group the effects move to.
+    std::string mapTarget;
     Resolution resolution = Resolution::Unresolved;
 };
 
@@ -203,6 +210,11 @@ private:
     explicit Merge(std::unique_ptr<Impl> impl);
     std::unique_ptr<Impl> _impl;
 };
+
+// Whether two versions of a record (or section) hold the same thing, by the
+// merge's rules: layout ids, attribute order, whitespace and number
+// formatting are not differences.
+bool RecordsEqual(FileKind kind, pugi::xml_node a, pugi::xml_node b);
 
 // Checks a merged layout (and, when given, the merged controllers) for
 // references that no longer resolve: chained start channels, shadow models,

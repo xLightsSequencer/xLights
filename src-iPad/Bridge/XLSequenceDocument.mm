@@ -5656,6 +5656,110 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
     return paths;
 }
 
+- (BOOL)prepareShowFileMergeForPresets:(BOOL)presets {
+    if (!_context) return NO;
+    return _context->PrepareShowFileMerge(presets ? iPadRenderContext::ShowFileSet::Presets
+                                                  : iPadRenderContext::ShowFileSet::Layout) ? YES : NO;
+}
+
+static NSString* XLMergeString(const std::string& s) {
+    NSString* r = [NSString stringWithUTF8String:s.c_str()];
+    return r ? r : @"";
+}
+
+- (NSArray<NSDictionary<NSString*, id>*>*)showFileMergeConflicts {
+    NSMutableArray* out = [NSMutableArray array];
+    if (!_context) return out;
+    auto* plan = _context->PendingShowFileMerge();
+    if (!plan) return out;
+    for (const auto& ref : plan->Conflicts()) {
+        const auto& c = plan->GetConflict(ref);
+        auto t = plan->Describe(ref);
+        NSInteger resolution = 0;
+        switch (c.resolution) {
+            case ShowFileMerge::Resolution::Mine: resolution = 1; break;
+            case ShowFileMerge::Resolution::Theirs: resolution = 2; break;
+            case ShowFileMerge::Resolution::KeepBoth: resolution = 3; break;
+            case ShowFileMerge::Resolution::Map: resolution = 4; break;
+            case ShowFileMerge::Resolution::Unresolved: resolution = 0; break;
+        }
+        [out addObject:@{ @"file": XLMergeString(t.fileName),
+                          @"record": XLMergeString(t.record),
+                          @"what": XLMergeString(t.what),
+                          @"base": XLMergeString(t.base),
+                          @"mine": XLMergeString(t.mine),
+                          @"theirs": XLMergeString(t.theirs),
+                          @"resolution": @(resolution),
+                          @"keepBothAllowed": @(c.keepBothAllowed),
+                          @"deletedWithEffects": @(c.kind == ShowFileMerge::ConflictKind::DeletedWithEffects),
+                          @"mapTarget": XLMergeString(c.mapTarget) }];
+    }
+    return out;
+}
+
+static ShowFileMerge::Resolution XLMergeResolution(NSInteger r) {
+    switch (r) {
+        case 1: return ShowFileMerge::Resolution::Mine;
+        case 2: return ShowFileMerge::Resolution::Theirs;
+        case 3: return ShowFileMerge::Resolution::KeepBoth;
+        case 4: return ShowFileMerge::Resolution::Map;
+        default: return ShowFileMerge::Resolution::Unresolved;
+    }
+}
+
+- (BOOL)resolveShowFileMergeConflict:(NSInteger)index resolution:(NSInteger)resolution {
+    if (!_context) return NO;
+    auto* plan = _context->PendingShowFileMerge();
+    if (!plan) return NO;
+    auto refs = plan->Conflicts();
+    if (index < 0 || (size_t)index >= refs.size()) return NO;
+    return plan->Resolve(refs[(size_t)index], XLMergeResolution(resolution)) ? YES : NO;
+}
+
+- (NSArray<NSString*>*)showFileMergeMapTargets {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    if (auto* plan = _context->PendingShowFileMerge()) {
+        for (const auto& n : plan->MapTargets()) [out addObject:XLMergeString(n)];
+    }
+    return out;
+}
+
+- (BOOL)resolveShowFileMergeConflict:(NSInteger)index mapTo:(NSString*)target {
+    if (!_context || !target) return NO;
+    auto* plan = _context->PendingShowFileMerge();
+    if (!plan) return NO;
+    auto refs = plan->Conflicts();
+    if (index < 0 || (size_t)index >= refs.size()) return NO;
+    return plan->Resolve(refs[(size_t)index], ShowFileMerge::Resolution::Map, target.UTF8String) ? YES : NO;
+}
+
+- (void)resolveAllShowFileMergeConflicts:(NSInteger)resolution {
+    if (!_context) return;
+    if (auto* plan = _context->PendingShowFileMerge()) {
+        plan->ResolveAll(XLMergeResolution(resolution));
+    }
+}
+
+- (NSDictionary<NSString*, id>*)commitShowFileMerge {
+    if (!_context) return @{ @"ok": @NO, @"error": @"No show is open." };
+    std::string report, error;
+    bool needsDecisions = false;
+    const bool ok = _context->CommitShowFileMerge(&report, &error, &needsDecisions);
+    if (ok && _context->IsSequenceLoaded()) {
+        // Rows may have been deleted or moved to another model.
+        [self postViewsChanged];
+    }
+    return @{ @"ok": @(ok),
+              @"report": XLMergeString(report),
+              @"error": XLMergeString(error),
+              @"needsDecisions": @(needsDecisions) };
+}
+
+- (void)cancelShowFileMerge {
+    if (_context) _context->CancelShowFileMerge();
+}
+
 - (NSString*)axisToolForModel:(NSString*)modelName {
     if (!_context || !modelName || modelName.length == 0) return @"none";
     Model* m = _context->GetModelManager()[modelName.UTF8String];

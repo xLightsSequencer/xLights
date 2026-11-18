@@ -73,7 +73,9 @@ class ModelManager : public ObjectManager
         std::list<std::string> GetModelsShadowing(const Model* m) const;
         void AddModel(Model* m);
         void ReplaceModel(const std::string &name, Model* nm);
-        bool Delete(const std::string &name);
+        // askAboutEffects false: the open sequence's effects on the model go
+        // with it without asking (the model is gone from the layout either way).
+        bool Delete(const std::string &name, bool askAboutEffects = true);
         std::string GenerateModelName(const std::string& candidateModelName) const;
         void ResetModelGroups() const;
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const;

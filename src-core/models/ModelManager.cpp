@@ -2356,7 +2356,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
     return true;
 }
 
-bool ModelManager::Delete(const std::string& name)
+bool ModelManager::Delete(const std::string& name, bool askAboutEffects)
 {
     DrainParkedModels();
 
@@ -2375,7 +2375,7 @@ bool ModelManager::Delete(const std::string& name)
                 }
             }
 
-            if (effects_exist) {
+            if (effects_exist && askAboutEffects) {
                 if (auto* ui = GetUICallbacks()) {
                     if (!ui->PromptYesNo("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?"))
                         return false;

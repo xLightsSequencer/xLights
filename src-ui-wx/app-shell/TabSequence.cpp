@@ -22,6 +22,9 @@
 #include <wx/filedlg.h>
 
 #include <pugixml.hpp>
+#include <nlohmann/json.hpp>
+
+#include <set>
 
 #include "xLightsMain.h"
 #include "media/JukeboxPanel.h"
@@ -42,6 +45,9 @@
 #include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "utils/ShowAutosave.h"
+#include "utils/ShowSaveMerge.h"
+#include "render/ShowMergeApply.h"
+#include "app-shell/ShowFileMergeDialog.h"
 #include "utils/ShowFileGuard.h"
 #include "utils/ShowPresence.h"
 #include "utils/string_utils.h"
@@ -913,48 +919,353 @@ bool xLightsFrame::ConfirmOpenSequenceOpenElsewhere(const wxString& sequencePath
     return dlg.ShowModal() == wxID_YES;
 }
 
-xLightsFrame::ShowFileConflict xLightsFrame::ResolveShowFileConflict(const std::string& path,
-                                                                     const std::function<bool(const std::string& copyPath)>& writeCopy,
-                                                                     wxWindow* parent)
+xLightsFrame::ShowFileConflict xLightsFrame::AskShowFileConflict(const std::vector<std::string>& paths, bool canMerge, wxWindow* parent)
 {
-    if (!ShowFileGuard::Instance().HasChangedOnDisk(path)) {
-        return ShowFileConflict::NoConflict;
-    }
-    const wxString name = wxFileName(path).GetFullName();
-    if (IsNonInteractiveSave()) {
-        spdlog::warn("{} was changed by someone else since it was opened here; a batch, command line or automation save does not overwrite it.", path);
-        return ShowFileConflict::Cancel;
-    }
     if (parent == nullptr) {
         parent = this;
     }
-
-    wxMessageDialog dlg(parent,
-                        name + " was changed by someone else (or another app) since you opened it.\n\n"
-                               "Saving now would overwrite their changes.",
-                        "File Changed by Someone Else",
-                        wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_WARNING);
-    dlg.SetYesNoCancelLabels("Overwrite", "Save Mine as a Copy", "Cancel");
-    switch (dlg.ShowModal()) {
-    case wxID_YES:
-        spdlog::info("Overwriting {}, which was changed by someone else, at the user's request.", path);
-        return ShowFileConflict::Overwrite;
-    case wxID_NO: {
-        const std::string copy = ShowFileGuard::MakeCopyPath(path);
-        if (writeCopy && writeCopy(copy)) {
-            spdlog::info("{} was changed by someone else; saved this session's version to {} instead.", path, copy);
-            wxMessageBox(wxString::Format("Your version was saved as:\n%s\n\n%s was left as the other person saved it. "
-                                          "Your changes are still open here and are still marked as unsaved.",
-                                          wxString(copy), name),
-                         "Saved a Copy", wxOK | wxICON_INFORMATION, parent);
-            return ShowFileConflict::SavedCopy;
+    wxString names;
+    for (const auto& p : paths) {
+        if (!names.empty()) {
+            names += " and ";
         }
-        DisplayError("Unable to save a copy to " + copy, parent);
-        return ShowFileConflict::Cancel;
+        names += wxFileName(wxString::FromUTF8(p)).GetFullName();
     }
-    default:
-        spdlog::info("Save of {} cancelled: the file was changed by someone else.", path);
-        return ShowFileConflict::Cancel;
+    const wxString verb = paths.size() == 1 ? "was" : "were";
+    if (!canMerge) {
+        wxMessageDialog dlg(parent,
+                            names + " " + verb + " changed by someone else (or another app) since you opened it, and the version you opened "
+                                                 "is not known, so the changes cannot be merged.\n\nSaving now would overwrite their changes.",
+                            "File Changed by Someone Else",
+                            wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_WARNING);
+        dlg.SetYesNoCancelLabels("Overwrite", "Save Mine as a Copy", "Cancel");
+        switch (dlg.ShowModal()) {
+        case wxID_YES: return ShowFileConflict::Overwrite;
+        case wxID_NO: return ShowFileConflict::SavedCopy;
+        default: return ShowFileConflict::Cancel;
+        }
+    }
+    wxMessageDialog dlg(parent,
+                        names + " " + verb + " changed by someone else (or another app) since you opened it.\n\n"
+                                             "Merge keeps their changes and yours; if you both changed the same thing you choose which to keep. "
+                                             "Overwrite replaces their changes with yours.",
+                        "File Changed by Someone Else",
+                        wxYES_NO | wxCANCEL | wxHELP | wxYES_DEFAULT | wxICON_WARNING);
+    dlg.SetYesNoCancelLabels("Merge", "Save Mine as a Copy", "Cancel");
+    dlg.SetHelpLabel("Overwrite");
+    switch (dlg.ShowModal()) {
+    case wxID_YES: return ShowFileConflict::Merge;
+    case wxID_HELP: return ShowFileConflict::Overwrite;
+    case wxID_NO: return ShowFileConflict::SavedCopy;
+    default: return ShowFileConflict::Cancel;
+    }
+}
+
+xLightsFrame::ShowSaveResult xLightsFrame::SaveShowFiles(const std::vector<ShowSaveMerge::FileToSave>& files,
+                                                         const std::function<bool(const ShowSaveMerge::FileToSave&, const std::string&)>& writeCopy,
+                                                         wxWindow* parent)
+{
+    using namespace ShowSaveMerge;
+    if (parent == nullptr) {
+        parent = this;
+    }
+    auto& guard = ShowFileGuard::Instance();
+    ShowFileMerge::Options options;
+    options.modelRenames = &AllModels.GetRenameLog();
+    options.viewObjectRenames = &AllObjects.GetRenameLog();
+    options.controllerRenames = &_outputManager.GetRenameLog();
+    Plan plan = Plan::Prepare(files, options, guard, ShowMergeApply::SequenceUseOf(*this));
+    const bool unattended = IsNonInteractiveSave();
+
+    if (plan.ExternalChanges()) {
+        if (unattended) {
+            if (!CanSaveUnattended(plan)) {
+                for (const auto& p : plan.ChangedPaths()) {
+                    spdlog::warn("{} was changed by someone else since it was opened here and does not merge without decisions; "
+                                 "a batch, command line or automation save does not overwrite it.", p);
+                }
+                for (const auto& ref : plan.Conflicts()) {
+                    auto t = plan.Describe(ref);
+                    spdlog::warn("    {} in {}: {}", t.record, t.fileName, t.what);
+                }
+                return ShowSaveResult::Cancelled;
+            }
+            spdlog::info("Merging the changes someone else saved without asking: nothing conflicts (unattended save).");
+        } else {
+            switch (AskShowFileConflict(plan.ChangedPaths(), plan.CanMerge(), parent)) {
+            case ShowFileConflict::Cancel:
+            case ShowFileConflict::NoConflict:
+                spdlog::info("Save cancelled: the file was changed by someone else.");
+                return ShowSaveResult::Cancelled;
+            case ShowFileConflict::SavedCopy: {
+                wxString saved;
+                wxString originals;
+                const auto changed = plan.ChangedPaths();
+                for (const auto& f : files) {
+                    if (!f.write || std::find(changed.begin(), changed.end(), f.path) == changed.end()) {
+                        continue;
+                    }
+                    const std::string copy = ShowFileGuard::MakeCopyPath(f.path);
+                    if (!(writeCopy ? writeCopy(f, copy) : ShowFileGuard::WriteFileAtomically(copy, f.mine))) {
+                        DisplayError("Unable to save a copy to " + copy, parent);
+                        return ShowSaveResult::Cancelled;
+                    }
+                    spdlog::info("{} was changed by someone else; saved this session's version to {} instead.", f.path, copy);
+                    saved += wxString::FromUTF8(copy) + "\n";
+                    if (!originals.empty()) originals += " and ";
+                    originals += wxFileName(wxString::FromUTF8(f.path)).GetFullName();
+                }
+                wxMessageBox(wxString::Format("Your version was saved as:\n%s\n%s was left as the other person saved it. "
+                                              "Your changes are still open here and are still marked as unsaved.",
+                                              saved, originals),
+                             "Saved a Copy", wxOK | wxICON_INFORMATION, parent);
+                return ShowSaveResult::SavedCopy;
+            }
+            case ShowFileConflict::Overwrite: {
+                std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
+                if (!lock.owns_lock()) {
+                    return ShowSaveResult::Cancelled;
+                }
+                for (const auto& f : files) {
+                    if (!f.write) continue;
+                    spdlog::info("Overwriting {} at the user's request (it was changed by someone else).", f.path);
+                    if (!guard.SaveFile(f.path, f.mine)) {
+                        DisplayError("Unable to save " + f.path, parent);
+                        return ShowSaveResult::Failed;
+                    }
+                }
+                ClearRenameLogs(plan, &AllModels.GetRenameLog(), &AllObjects.GetRenameLog(), &_outputManager.GetRenameLog());
+                return ShowSaveResult::Saved;
+            }
+            case ShowFileConflict::Merge:
+                if (plan.HasConflicts()) {
+                    ShowFileMergeDialog dlg(parent, plan);
+                    if (dlg.ShowModal() != wxID_OK || !plan.AllResolved()) {
+                        spdlog::info("Merge cancelled; nothing was saved.");
+                        return ShowSaveResult::Cancelled;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    // Anything merged in has to reach memory too, which frees models a render
+    // may hold: stop rendering before writing, or the next save would write
+    // the old state back over what was just merged.
+    std::vector<std::string> checksBefore;
+    bool checked = false;
+    for (int attempt = 0;; ++attempt) {
+        bool memoryChanges = false;
+        for (size_t i = 0; i < plan.FileCount(); ++i) {
+            memoryChanges |= plan.Writes(i) && plan.ResultDiffersFromMine(i);
+        }
+        if (memoryChanges) {
+            if (!AbortRender()) {
+                DisplayError("A render is still running. Nothing was saved; try saving again in a moment.", parent);
+                return ShowSaveResult::Cancelled;
+            }
+            if (!checked) {
+                checksBefore = ShowMergeApply::ModelCheckMessages(*this);
+                checked = true;
+            }
+        }
+        std::string error;
+        WriteResult wr;
+        {
+            std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
+            if (!lock.owns_lock()) {
+                return ShowSaveResult::Cancelled;
+            }
+            wr = plan.Write(guard, &error);
+        }
+        if (wr == WriteResult::Written) {
+            break;
+        }
+        if (wr == WriteResult::ChangedAgain && attempt < 3) {
+            Plan again = Plan::Prepare(files, options, guard, ShowMergeApply::SequenceUseOf(*this));
+            again.AdoptResolutions(plan);
+            plan = std::move(again);
+            if (!plan.CanMerge()) {
+                DisplayError("The file changed again while saving and can no longer be merged. Nothing was saved.", parent);
+                return ShowSaveResult::Cancelled;
+            }
+            if (!plan.AllResolved()) {
+                if (unattended) {
+                    spdlog::warn("The file changed again while saving and now needs decisions; nothing was saved.");
+                    return ShowSaveResult::Cancelled;
+                }
+                ShowFileMergeDialog dlg(parent, plan);
+                if (dlg.ShowModal() != wxID_OK || !plan.AllResolved()) {
+                    return ShowSaveResult::Cancelled;
+                }
+            }
+            continue;
+        }
+        if (wr == WriteResult::Failed) {
+            DisplayError("Unable to save: " + error, parent);
+            return ShowSaveResult::Failed;
+        }
+        DisplayError("Nothing was saved: " + error, parent);
+        return ShowSaveResult::Cancelled;
+    }
+
+    SaveReport report = plan.Report();
+    ApplyMergedShowFiles(plan, report);
+    if (checked) {
+        report.checks = ShowMergeApply::NewMessages(checksBefore, ShowMergeApply::ModelCheckMessages(*this));
+    }
+    ClearRenameLogs(plan, &AllModels.GetRenameLog(), &AllObjects.GetRenameLog(), &_outputManager.GetRenameLog());
+    if (!report.mergedFiles.empty()) {
+        spdlog::info("Save merged with someone else's changes:\n{}", report.Text());
+        if (report.HasSomethingToSay() && !unattended) {
+            ShowShowFileSaveReport(parent, report.Text());
+        }
+    }
+    return ShowSaveResult::Saved;
+}
+
+void xLightsFrame::ApplyMergedShowFiles(const ShowSaveMerge::Plan& plan, ShowSaveMerge::SaveReport& report)
+{
+    using ShowSaveMerge::FileKind;
+    // The sequence side of the deletions goes first, as one undo step, so the
+    // layout's own deletes find no rows left to take effects with.
+    if (auto changes = plan.SequenceChanges(); !changes.empty()) {
+        if (int dropped = ShowMergeApply::ApplySequenceChanges(*this, changes); dropped > 0) {
+            report.warnings.push_back(std::to_string(dropped) + " effects on submodel or strand rows the new model does not have were dropped.");
+        }
+        _sequenceElements.PopulateRowInformation();
+        if (mainSequencer != nullptr) {
+            mainSequencer->PanelEffectGrid->Refresh();
+            mainSequencer->PanelRowHeadings->Refresh();
+        }
+    }
+    for (size_t i = 0; i < plan.FileCount(); ++i) {
+        if (!plan.Writes(i) || !plan.ResultDiffersFromMine(i)) {
+            continue;
+        }
+        switch (plan.Kind(i)) {
+        case FileKind::RgbEffects: {
+            pugi::xml_document mine;
+            pugi::xml_document result;
+            const std::string resultText = plan.Result(i);
+            if (!mine.load_string(plan.Mine(i).c_str()) || !result.load_string(resultText.c_str())) {
+                spdlog::error("ApplyMergedShowFiles: the layout does not parse; not reloading it");
+                break;
+            }
+            if (layoutPanel != nullptr) {
+                layoutPanel->UnSelectAllModels();
+            }
+            auto changes = ShowMergeApply::ApplyLayout(*this, mine, result);
+            ReloadMergedLayoutSections(result.document_element(), changes.otherSections);
+            if (changes.viewsReloaded) {
+                displayElementsPanel->SetSequenceElementsModelsViews(&_seqData, &_sequenceElements, &_sequenceViewManager);
+            }
+            if (changes.viewsReloaded || !changes.modelsRenamed.empty() || !changes.modelsRemoved.empty()) {
+                displayElementsPanel->UpdateModelsForSelectedView();
+            }
+            auto describe = changes.Describe();
+            report.changes.insert(report.changes.end(), describe.begin(), describe.end());
+            auto warn = changes.Warnings();
+            report.warnings.insert(report.warnings.end(), warn.begin(), warn.end());
+            if (changes.Any()) {
+                for (uint32_t work : { OutputModelManager::WORK_RGBEFFECTS_CHANGE, OutputModelManager::WORK_RELOAD_MODELLIST,
+                                       OutputModelManager::WORK_RELOAD_OBJECTLIST, OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+                                       OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, OutputModelManager::WORK_CALCULATE_START_CHANNELS }) {
+                    _outputModelManager.AddASAPWork(work, "SaveShowFiles-merge");
+                }
+            }
+            break;
+        }
+        case FileKind::Networks:
+            ShowMergeApply::ReloadControllers(*this);
+            report.changes.push_back("Controllers reloaded");
+            for (uint32_t work : { OutputModelManager::WORK_UPDATE_NETWORK_LIST, OutputModelManager::WORK_CALCULATE_START_CHANNELS,
+                                   OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER }) {
+                _outputModelManager.AddASAPWork(work, "SaveShowFiles-merge");
+            }
+            break;
+        case FileKind::Presets: {
+            nlohmann::json j = nlohmann::json::parse(plan.Result(i), nullptr, false);
+            if (j.is_discarded()) {
+                spdlog::error("ApplyMergedShowFiles: the presets do not parse; not reloading them");
+                break;
+            }
+            if (EffectTreeDlg != nullptr) {
+                EffectTreeDlg->ClearItems();
+            }
+            _effectPresetsInitialized = false;
+            _effectPresetManager.LoadFromJson(j);
+            if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+                EffectTreeDlg->InitItems(_effectPresetManager);
+                _effectPresetsInitialized = true;
+            }
+            report.changes.push_back("Effect presets reloaded");
+            break;
+        }
+        }
+    }
+}
+
+void xLightsFrame::ReloadMergedLayoutSections(pugi::xml_node root, const std::set<std::string>& sections)
+{
+    if (sections.count("settings")) {
+        _xmlSettings.clear();
+        for (pugi::xml_node s = root.child("settings").first_child(); s; s = s.next_sibling()) {
+            _xmlSettings[s.name()] = s.attribute("value").as_string();
+        }
+    }
+    if (sections.count("colors") && root.child("colors")) {
+        color_mgr.Load(root.child("colors"));
+    }
+    if (sections.count("perspectives")) {
+        _perspectives.clear();
+        pugi::xml_node perspectivesNode = root.child("perspectives");
+        _currentPerspectiveName = perspectivesNode.attribute("current").as_string();
+        for (pugi::xml_node p = perspectivesNode.first_child(); p; p = p.next_sibling()) {
+            if (std::string_view(p.name()) == "perspective") {
+                Perspective pv;
+                pv.name = p.attribute("name").as_string();
+                pv.settings = p.attribute("settings").as_string();
+                pv.version = p.attribute("version").as_string("2.0");
+                pv.gridSpacing = p.attribute("gridSpacing").as_int(0);
+                pv.iconSize = p.attribute("iconSize").as_int(0);
+                pv.objectId = LayoutObjectId::Read(p);
+                _perspectives.push_back(pv);
+            }
+        }
+        perspectivePanel->SetPerspectives(this);
+        LoadPerspectivesMenu();
+    }
+    if (sections.count("layoutGroups")) {
+        std::set<std::string> seen;
+        for (pugi::xml_node e = root.child("layoutGroups").first_child(); e; e = e.next_sibling()) {
+            if (std::string_view(e.name()) != "layoutGroup") continue;
+            const std::string name = e.attribute("name").as_string();
+            if (name.empty()) continue;
+            seen.insert(name);
+            auto it = LayoutGroups.find(name);
+            if (it != LayoutGroups.end()) {
+                it->second->SetFromXml(e);
+                continue;
+            }
+            auto grp = std::make_unique<LayoutGroup>(name, this);
+            grp->SetFromXml(e);
+            AddPreviewOption(grp.get());
+            LayoutGroups.emplace(name, std::move(grp));
+            layoutPanel->AddPreviewChoice(name);
+        }
+        for (auto it = LayoutGroups.begin(); it != LayoutGroups.end();) {
+            if (seen.count(it->first)) {
+                ++it;
+                continue;
+            }
+            const std::string name = it->first;
+            RemovePreviewOption(it->second.get());
+            it = LayoutGroups.erase(it);
+            layoutPanel->RemovePreviewChoice(name);
+        }
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SaveShowFiles-merge");
     }
 }
 
@@ -1020,6 +1331,60 @@ bool xLightsFrame::OfferAutosaveRecovery(const std::string& realPath, const std:
     }
 
     if (check.offer == AutosaveOffer::OfferConflict) {
+        // The autosave keeps the version it was built on beside it, so it can
+        // be merged with what someone else saved since.
+        const auto kind = wxFileName(realPath).GetExt().Lower() == "json" ? ShowSaveMerge::FileKind::Presets : ShowSaveMerge::FileKind::RgbEffects;
+        auto merge = ShowSaveMerge::PrepareAutosaveMerge(kind, realPath, backupPath);
+        if (merge && merge->CanMerge()) {
+            wxMessageDialog dlg(this,
+                                wxString::Format("An autosave of %s from %s has changes that were never saved, but %s "
+                                                 "was changed by someone else (or another app) since then.\n\n"
+                                                 "Merge keeps their changes and the autosaved ones; Restore Anyway replaces theirs.",
+                                                 what, whenStr, name),
+                                "Autosave and Someone Else's Changes",
+                                wxYES_NO | wxCANCEL | wxHELP | wxYES_DEFAULT | wxICON_WARNING);
+            dlg.SetYesNoCancelLabels("Merge", "Save Autosave as a Copy", "Ignore");
+            dlg.SetHelpLabel("Restore Anyway");
+            switch (dlg.ShowModal()) {
+            case wxID_YES: {
+                if (merge->HasConflicts()) {
+                    ShowFileMergeDialog mdlg(this, *merge);
+                    if (mdlg.ShowModal() != wxID_OK || !merge->AllResolved()) {
+                        return false;
+                    }
+                }
+                runBackup();
+                std::string error;
+                if (merge->Write(ShowFileGuard::Instance(), &error) != ShowSaveMerge::WriteResult::Written) {
+                    DisplayError("Unable to merge the autosave " + backupPath + " into " + realPath + ": " + error, this);
+                    return false;
+                }
+                spdlog::info("Merged autosave {} into {}, which someone else changed.", backupPath, realPath);
+                ShowAutosave::Remove(backupPath);
+                auto report = merge->Report();
+                if (report.HasSomethingToSay()) {
+                    ShowShowFileSaveReport(this, report.Text());
+                }
+                return true;
+            }
+            case wxID_HELP:
+                spdlog::info("Restoring autosave {} over {}, which someone else changed, at the user's request.", backupPath, realPath);
+                return restore(true);
+            case wxID_NO: {
+                const std::string copy = ShowAutosave::SaveAsCopy(realPath, backupPath);
+                if (copy.empty()) {
+                    DisplayError("Unable to save the autosave " + backupPath + " as a copy", this);
+                } else {
+                    wxMessageBox(wxString::Format("Your autosaved changes were saved as:\n%s\n\n%s was left as it is.", wxString(copy), name),
+                                 "Saved a Copy", wxOK | wxICON_INFORMATION, this);
+                }
+                return false;
+            }
+            default:
+                ShowAutosave::Decline(backupPath);
+                return false;
+            }
+        }
         wxMessageDialog dlg(this,
                             wxString::Format("An autosave of %s from %s has changes that were never saved, but %s "
                                              "was changed by someone else (or another app) since then.\n\n"
@@ -1070,52 +1435,44 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     effectsFile.AssignDir(CurrentDir);
     effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
     const std::string realPath = effectsFile.GetFullPath().ToStdString();
-    const std::string path = backup ? ShowAutosave::PrepareLayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_RGBEFFECTS_FILE)
-                                    : realPath;
-    if (path.empty()) {
-        spdlog::warn("Unable to save backup of RGB effects file: no autosave folder");
-        return false;
-    }
-
-    // Asked before taking saveLock: the dialog runs an event loop, and
-    // SaveSequence() waits on that lock rather than trying it.
-    if (!backup) {
-        auto conflict = ResolveShowFileConflict(path, [this](const std::string& copy) {
-            return ShowFileGuard::WriteFileAtomically(copy, BuildEffectsXml());
-        });
-        if (conflict == ShowFileConflict::Cancel || conflict == ShowFileConflict::SavedCopy) {
-            return false;
-        }
-    }
-
-    // dont save if currently saving
-    std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
-    if (!lock.owns_lock())
-        return false;
-
-    auto saveXml = BuildEffectsXml();
-
-    const bool written = backup ? ShowFileGuard::WriteFileAtomically(path, saveXml)
-                                : ShowFileGuard::Instance().SaveFile(path, saveXml);
-    if (!written) {
-        if (backup) {
-            spdlog::warn("Unable to save backup of RGB effects file");
-        } else {
-            DisplayError("Unable to save RGB effects file", this);
-        }
-        return false;
-    }
 
     if (backup) {
-        ShowAutosave::WriteSidecar(path, ShowAutosave::BaseFor(realPath, ShowFileGuard::Instance()));
-    } else {
-        ShowAutosave::RemoveIfMine(ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_RGBEFFECTS_FILE));
-        SavePresetsFile();
-        UnsavedRgbEffectsChanges = false;
+        const std::string path = ShowAutosave::PrepareLayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_RGBEFFECTS_FILE);
+        if (path.empty()) {
+            spdlog::warn("Unable to save backup of RGB effects file: no autosave folder");
+            return false;
+        }
+        std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
+        if (!lock.owns_lock())
+            return false;
+        if (!ShowFileGuard::WriteFileAtomically(path, BuildEffectsXml())) {
+            spdlog::warn("Unable to save backup of RGB effects file");
+            return false;
+        }
+        ShowAutosave::WriteSidecarAndBase(path, realPath, ShowFileGuard::Instance());
+        UpdateLayoutSave();
+        return true;
     }
 
-    UpdateLayoutSave();
+    // When someone else changed the controllers file, it goes along unwritten
+    // so the layout merge follows the controller renames they saved. Only
+    // when there are no controller edits here: serializing the controllers
+    // marks them saved. Asked before taking saveLock: the dialogs run an
+    // event loop, and SaveSequence() waits on that lock rather than trying it.
+    std::vector<ShowSaveMerge::FileToSave> files;
+    files.push_back({ ShowSaveMerge::FileKind::RgbEffects, realPath, BuildEffectsXml(), true });
+    const std::string networksPath = _outputManager.GetNetworksFilePath();
+    if (!networksPath.empty() && !UnsavedNetworkChanges && !_outputManager.IsDirty() && ShowFileGuard::Instance().HasChangedOnDisk(networksPath)) {
+        files.push_back({ ShowSaveMerge::FileKind::Networks, networksPath, _outputManager.SaveToString(), false });
+    }
+    if (SaveShowFiles(files, nullptr) != ShowSaveResult::Saved) {
+        return false;
+    }
 
+    ShowAutosave::RemoveIfMine(ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_RGBEFFECTS_FILE));
+    SavePresetsFile();
+    UnsavedRgbEffectsChanges = false;
+    UpdateLayoutSave();
     return true;
 }
 
@@ -1125,44 +1482,38 @@ void xLightsFrame::SavePresetsFile(bool backup)
     presetsFile.AssignDir(CurrentDir);
     presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
     const std::string realPath = presetsFile.GetFullPath().ToStdString();
-    const std::string path = backup ? ShowAutosave::PrepareLayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_PRESETS_FILE)
-                                    : realPath;
-    if (path.empty()) {
-        spdlog::warn("Unable to save backup of effect presets file: no autosave folder");
-        return;
-    }
-
-    if (!backup) {
-        // Saving the layout always rewrites the presets too. With no preset
-        // edits here, rewriting a file someone else changed would only undo theirs.
-        if (!UnsavedPresetChanges && ShowFileGuard::Instance().HasChangedOnDisk(path)) {
-            spdlog::info("Not rewriting {}: it was changed by someone else and there are no preset changes here to save.", path);
-            return;
-        }
-        auto conflict = ResolveShowFileConflict(path, [this](const std::string& copy) {
-            return _effectPresetManager.SaveJsonFile(copy);
-        });
-        if (conflict == ShowFileConflict::Cancel || conflict == ShowFileConflict::SavedCopy) {
-            return;
-        }
-    }
-
-    if (!_effectPresetManager.SaveJsonFile(path)) {
-        if (backup) {
-            spdlog::warn("Unable to save backup of effect presets file");
-        } else {
-            DisplayError("Unable to save effect presets file", this);
-        }
-        return;
-    }
 
     if (backup) {
-        ShowAutosave::WriteSidecar(path, ShowAutosave::BaseFor(realPath, ShowFileGuard::Instance()));
-    } else {
-        ShowAutosave::RemoveIfMine(ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_PRESETS_FILE));
-        UnsavedPresetChanges = false;
-        UpdateLayoutSave();
+        const std::string path = ShowAutosave::PrepareLayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_PRESETS_FILE);
+        if (path.empty()) {
+            spdlog::warn("Unable to save backup of effect presets file: no autosave folder");
+            return;
+        }
+        if (!_effectPresetManager.SaveJsonFile(path)) {
+            spdlog::warn("Unable to save backup of effect presets file");
+            return;
+        }
+        ShowAutosave::WriteSidecarAndBase(path, realPath, ShowFileGuard::Instance());
+        return;
     }
+
+    // Saving the layout always rewrites the presets too. With no preset
+    // edits here, rewriting a file someone else changed would only undo theirs.
+    if (!UnsavedPresetChanges && ShowFileGuard::Instance().HasChangedOnDisk(realPath)) {
+        spdlog::info("Not rewriting {}: it was changed by someone else and there are no preset changes here to save.", realPath);
+        return;
+    }
+    const std::string text = _effectPresetManager.SaveToText();
+    if (text.empty()) {
+        DisplayError("Unable to save effect presets file", this);
+        return;
+    }
+    if (SaveShowFiles({ { ShowSaveMerge::FileKind::Presets, realPath, text, true } }, nullptr) != ShowSaveResult::Saved) {
+        return;
+    }
+    ShowAutosave::RemoveIfMine(ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_PRESETS_FILE));
+    UnsavedPresetChanges = false;
+    UpdateLayoutSave();
 }
 
 void xLightsFrame::CreateDefaultEffectsXml(pugi::xml_document& doc)

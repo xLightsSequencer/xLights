@@ -118,6 +118,7 @@
 
 class wxDebugReport;
 namespace seqmedia { struct VideoConversionResult; }
+namespace ShowSaveMerge { struct FileToSave; class Plan; struct SaveReport; }
 
 class aiBase;
 class BaseSerializingVisitor;
@@ -455,14 +456,24 @@ public:
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
     void SavePresetsFile(bool backup = false);
-    // Before overwriting a show file, asks what to do when someone else changed
-    // it on disk since it was loaded or last saved here. writeCopy saves this
-    // session's version to the path it is given. Batch, command line and
-    // automation saves never prompt: they log and answer Cancel.
-    enum class ShowFileConflict { NoConflict, Overwrite, SavedCopy, Cancel };
-    ShowFileConflict ResolveShowFileConflict(const std::string& path,
-                                             const std::function<bool(const std::string& copyPath)>& writeCopy,
-                                             wxWindow* parent = nullptr);
+    // Saves the shared show files (layout, controllers, presets). When someone
+    // else changed one on disk since it was loaded or last saved here, asks
+    // Merge / Overwrite / Save Mine as a Copy / Cancel; Merge lists the
+    // conflicts to decide, writes the merged files and brings memory up to
+    // them. writeCopy saves this session's version of a file to the path it
+    // is given (nullptr: the file's text as given). Batch, command line and
+    // automation saves never prompt: they merge when nothing conflicts and
+    // otherwise save nothing.
+    enum class ShowFileConflict { NoConflict, Merge, Overwrite, SavedCopy, Cancel };
+    enum class ShowSaveResult { Saved, SavedCopy, Cancelled, Failed };
+    ShowSaveResult SaveShowFiles(const std::vector<ShowSaveMerge::FileToSave>& files,
+                                 const std::function<bool(const ShowSaveMerge::FileToSave&, const std::string& copyPath)>& writeCopy,
+                                 wxWindow* parent = nullptr);
+    ShowFileConflict AskShowFileConflict(const std::vector<std::string>& paths, bool canMerge, wxWindow* parent);
+    void ApplyMergedShowFiles(const ShowSaveMerge::Plan& plan, ShowSaveMerge::SaveReport& report);
+    void ReloadMergedLayoutSections(pugi::xml_node root, const std::set<std::string>& sections);
+    // Writes the controllers file through SaveShowFiles.
+    bool WriteNetworksFile(wxWindow* parent = nullptr);
     bool IsNonInteractiveSave() const;
     // Shared show folders: publishes what this install is doing and shows who
     // else is editing the layout or controllers. Runs on a timer.

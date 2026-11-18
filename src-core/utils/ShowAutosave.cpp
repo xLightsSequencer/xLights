@@ -283,6 +283,54 @@ ShowFileFingerprint BaseFor(const std::string& realPath, const ShowFileGuard& gu
     return now ? *now : ShowFileFingerprint{};
 }
 
+std::string BaseCopyPath(const std::string& backupPath) {
+    return backupPath + ".base";
+}
+
+bool WriteBaseCopy(const std::string& backupPath, const std::string& baseText) {
+    const std::string path = BaseCopyPath(backupPath);
+    if (auto existing = ReadFile(path); existing && *existing == baseText) {
+        return true;
+    }
+    if (!ShowFileGuard::WriteFileAtomically(path, baseText)) {
+        spdlog::warn("ShowAutosave: could not write {}", path);
+        return false;
+    }
+    return true;
+}
+
+std::optional<std::string> ReadBaseCopy(const std::string& backupPath) {
+    auto info = ReadSidecar(backupPath);
+    if (!info) {
+        return std::nullopt;
+    }
+    auto text = ReadFile(BaseCopyPath(backupPath));
+    if (!text) {
+        return std::nullopt;
+    }
+    if (!info->base.exists) {
+        return text->empty() ? std::optional<std::string>(std::string()) : std::nullopt;
+    }
+    if (!(ShowFileGuard::FingerprintOf(*text) == info->base)) {
+        return std::nullopt;
+    }
+    return text;
+}
+
+bool WriteSidecarAndBase(const std::string& backupPath, const std::string& realPath, const ShowFileGuard& guard) {
+    const ShowFileFingerprint base = BaseFor(realPath, guard);
+    if (!WriteSidecar(backupPath, base)) {
+        return false;
+    }
+    auto text = guard.RecordedText(realPath);
+    if (text && ShowFileGuard::FingerprintOf(*text) == base) {
+        WriteBaseCopy(backupPath, *text);
+    } else if (text && !base.exists && text->empty()) {
+        WriteBaseCopy(backupPath, *text);
+    }
+    return true;
+}
+
 AutosaveCheck Check(const std::string& realPath, const std::string& backupPath) {
     return Check(realPath, backupPath, InstallId());
 }
@@ -436,7 +484,7 @@ void Remove(const std::string& backupPath) {
         return;
     }
     ObtainAccessToURL(backupPath, true);
-    for (const std::string& f : { backupPath, SidecarPath(backupPath) }) {
+    for (const std::string& f : { backupPath, SidecarPath(backupPath), BaseCopyPath(backupPath) }) {
         auto p = ToPath(f);
         if (!p) {
             continue;

@@ -219,6 +219,8 @@ public:
 
     void SomethingChanged() const;
     bool IsDirty() const;
+    // The file now holds what SaveToString() gave (it was written for a merged save).
+    void MarkSaved() { _dirty = false; }
 
     bool AtLeastOneOutputUsingProtocol(const std::string& protocol) const;
     std::list<std::string> GetForceIPs(const std::string& protocol) const;

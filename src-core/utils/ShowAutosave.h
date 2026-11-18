@@ -107,6 +107,19 @@ bool WriteSidecar(const std::string& backupPath, const ShowFileFingerprint& base
 // it, or the file as it is now when it is not tracked.
 ShowFileFingerprint BaseFor(const std::string& realPath, const ShowFileGuard& guard);
 
+// The text an autosave was built on, kept beside it ("<backup>.base") so that
+// restoring it after someone else saved the real file can merge the two
+// instead of replacing one with the other.
+std::string BaseCopyPath(const std::string& backupPath);
+bool WriteBaseCopy(const std::string& backupPath, const std::string& baseText);
+// The base copy, when it is the version the sidecar names as the base (empty
+// text: the real file did not exist). nullopt when there is none, or it is
+// stale.
+std::optional<std::string> ReadBaseCopy(const std::string& backupPath);
+// WriteSidecar with BaseFor(realPath, guard), plus the base copy when the
+// guard kept the text of that version.
+bool WriteSidecarAndBase(const std::string& backupPath, const std::string& realPath, const ShowFileGuard& guard);
+
 // Whether to offer backupPath back for realPath, from the point of view of
 // install myInstallId.
 AutosaveCheck Check(const std::string& realPath, const std::string& backupPath, const std::string& myInstallId);
@@ -125,7 +138,7 @@ std::string SaveAsCopy(const std::string& realPath, const std::string& backupPat
 // Marks the backup as declined so it is not offered again until a newer
 // autosave replaces it. A backup with no sidecar gets one (with no install id).
 bool Decline(const std::string& backupPath);
-// Removes the backup and its sidecar.
+// Removes the backup, its sidecar and its base copy.
 void Remove(const std::string& backupPath);
 // Removes the backup and its sidecar only when this install wrote them: for
 // cleaning up after a save, without deleting someone else's autosave of the

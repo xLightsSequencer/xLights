@@ -2931,13 +2931,9 @@ void PixelTestDialog::OnButton_SaveClick(wxCommandEvent& event)
     }
     
     spdlog::debug("Saving test preset: {}", (const char*)name.c_str());
-    auto conflict = ((xLightsFrame*)GetParent())->ResolveShowFileConflict(_outputManager->GetNetworksFilePath(), [this](const std::string& copy) {
-        return _outputManager->SaveCopyTo(copy);
-    }, this);
-    if (conflict == xLightsFrame::ShowFileConflict::Cancel || conflict == xLightsFrame::ShowFileConflict::SavedCopy) {
+    if (!((xLightsFrame*)GetParent())->WriteNetworksFile(this)) {
         return;
     }
-    _outputManager->Save();
     spdlog::debug("   Save done.");
 }
 #pragma endregion

@@ -4846,6 +4846,22 @@ class SequencerViewModel {
     var saveConflict: ShowFileSaveConflict?
     /// Where "Save a Copy" put this session's version.
     var saveCopyNotice: String?
+    /// The presets merge's conflict list, and its save report.
+    var showFileMergeSheet = false
+    var showFileMergeReport: String?
+
+    func mergeAfterConflict(_ conflict: ShowFileSaveConflict) {
+        guard conflict.kind == .presets else { return }
+        switch ShowFileMergeStart.start(document: document, presets: true) {
+        case .needsDecisions:
+            showFileMergeSheet = true
+        case .committed(let report):
+            reloadPresets()
+            if !report.isEmpty { showFileMergeReport = report }
+        case .failed(let message):
+            warningBannerMessage = message
+        }
+    }
 
     func overwriteAfterConflict(_ conflict: ShowFileSaveConflict) {
         switch conflict.kind {

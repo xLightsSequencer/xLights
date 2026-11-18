@@ -12291,6 +12291,23 @@ void LayoutPanel::PreviewPrintImage()
     dlg.ShowModal();
 }
 
+void LayoutPanel::RemovePreviewChoice(const std::string& name)
+{
+    for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
+        if (ChoiceLayoutGroups->GetString(i) == name) {
+            ChoiceLayoutGroups->Delete(i);
+            break;
+        }
+    }
+    model_grp_panel->RemovePreviewChoice(name);
+    if (currentLayoutGroup == name) {
+        SetCurrentLayoutGroup("Default");
+        ChoiceLayoutGroups->SetSelection(0);
+        xlights->SetStoredLayoutGroup(currentLayoutGroup);
+        UpdateModelList(true);
+    }
+}
+
 void LayoutPanel::AddPreviewChoice(const std::string& name)
 {
     ChoiceLayoutGroups->Insert(name, ChoiceLayoutGroups->GetCount() - 1);

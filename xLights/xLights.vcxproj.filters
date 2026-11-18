@@ -118,6 +118,7 @@
     <ClCompile Include="..\src-ui-wx\diagnostics\RenderProgressDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\media\ResizeImageDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\SaveChangesDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\ShowFileMergeDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectTimingsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectModelDialog.cpp" />
@@ -612,6 +613,8 @@
     <ClCompile Include="..\src-core\utils\ShowAutosave.cpp" />
     <ClCompile Include="..\src-core\utils\ShowFileGuard.cpp" />
     <ClCompile Include="..\src-core\utils\ShowFileMerge.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowSaveMerge.cpp" />
+    <ClCompile Include="..\src-core\render\ShowMergeApply.cpp" />
     <ClCompile Include="..\src-core\utils\ShowPresence.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
@@ -1713,6 +1716,7 @@
     <ClInclude Include="..\src-ui-wx\diagnostics\RenderProgressDialog.h" />
     <ClInclude Include="..\src-ui-wx\media\ResizeImageDialog.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\SaveChangesDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\ShowFileMergeDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectTimingsDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectModelDialog.h" />
@@ -2216,6 +2220,8 @@
     <ClInclude Include="..\src-core\utils\ShowAutosave.h" />
     <ClInclude Include="..\src-core\utils\ShowFileGuard.h" />
     <ClInclude Include="..\src-core\utils\ShowFileMerge.h" />
+    <ClInclude Include="..\src-core\utils\ShowSaveMerge.h" />
+    <ClInclude Include="..\src-core\render\ShowMergeApply.h" />
     <ClInclude Include="..\src-core\utils\ShowPresence.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />

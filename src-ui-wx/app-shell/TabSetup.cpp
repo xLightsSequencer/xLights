@@ -49,6 +49,7 @@
 #include "setup/ShowDirectoriesDialog.h"
 #include "utils/ExternalHooks.h"
 #include "utils/ShowFileGuard.h"
+#include "utils/ShowSaveMerge.h"
 #include "utils/ip_utils.h"
 
 #include "controllers/FPP.h"
@@ -878,21 +879,27 @@ bool xLightsFrame::SaveNetworksFile() {
         spdlog::info("Not rewriting {}: it was changed by someone else and there are no controller changes here to save.", networksPath);
         return true;
     }
-    auto conflict = ResolveShowFileConflict(networksPath, [this](const std::string& copy) {
-        return _outputManager.SaveCopyTo(copy);
-    });
-    if (conflict == ShowFileConflict::Cancel || conflict == ShowFileConflict::SavedCopy) {
+    if (!WriteNetworksFile(this)) {
         return false;
     }
+    UnsavedNetworkChanges = false;
+    UpdateLayoutSave();
+    return true;
+}
 
-    if (_outputManager.Save()) {
-        UnsavedNetworkChanges = false;
-        UpdateLayoutSave();
-        return true;
-    } else {
-        DisplayError(_("Unable to save network definition file"), this);
+bool xLightsFrame::WriteNetworksFile(wxWindow* parent)
+{
+    const std::string networksPath = _outputManager.GetNetworksFilePath();
+    auto result = SaveShowFiles({ { ShowSaveMerge::FileKind::Networks, networksPath, _outputManager.SaveToString(), true } },
+                                nullptr, parent);
+    if (result != ShowSaveResult::Saved) {
+        if (result == ShowSaveResult::Failed) {
+            DisplayError(_("Unable to save network definition file"), parent ? parent : this);
+        }
         return false;
     }
+    _outputManager.MarkSaved();
+    return true;
 }
 
 static const char* DescribeWorkSource(const std::string& from)

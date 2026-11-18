@@ -1529,6 +1529,30 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // copy beside it and save the rest normally. Returns the copies' paths.
 - (NSArray<NSString*>*)saveLayoutChangesAsCopies NS_SWIFT_NAME(saveLayoutChangesAsCopies());
 
+// Merge with what someone else saved (Merge in the "changed by someone
+// else" prompt). Prepare builds the merge of the layout files (presets: NO)
+// or the effect presets (YES); NO when a changed file cannot be merged.
+// The conflicts are dictionaries: file, record, what, base, mine, theirs
+// (readable text), resolution (0 undecided, 1 mine, 2 theirs, 3 keep both,
+// 4 map), keepBothAllowed, deletedWithEffects and mapTarget. Commit writes the merged files once every conflict
+// is decided and brings the open show up to them; its result holds "ok",
+// "report" (text worth showing, may be empty), "error", and
+// "needsDecisions" (the files changed again and the new conflicts need
+// choosing: show the list again).
+- (BOOL)prepareShowFileMergeForPresets:(BOOL)presets NS_SWIFT_NAME(prepareShowFileMerge(presets:));
+- (NSArray<NSDictionary<NSString*, id>*>*)showFileMergeConflicts NS_SWIFT_NAME(showFileMergeConflicts());
+- (BOOL)resolveShowFileMergeConflict:(NSInteger)index resolution:(NSInteger)resolution NS_SWIFT_NAME(resolveShowFileMergeConflict(_:resolution:));
+- (void)resolveAllShowFileMergeConflicts:(NSInteger)resolution NS_SWIFT_NAME(resolveAllShowFileMergeConflicts(_:));
+// A conflict with "deletedWithEffects": someone else deleted a model or
+// group the open sequence has effects on. Its choices are Keep (1),
+// Delete with its effects (2) or Map (4, resolution "mapTarget"): the row
+// goes to one of these models or groups, the same pool the missing-model
+// mapping offers. Delete and Map are one undo step in the sequence.
+- (NSArray<NSString*>*)showFileMergeMapTargets NS_SWIFT_NAME(showFileMergeMapTargets());
+- (BOOL)resolveShowFileMergeConflict:(NSInteger)index mapTo:(NSString*)target NS_SWIFT_NAME(resolveShowFileMergeConflict(_:mapTo:));
+- (NSDictionary<NSString*, id>*)commitShowFileMerge NS_SWIFT_NAME(commitShowFileMerge());
+- (void)cancelShowFileMerge NS_SWIFT_NAME(cancelShowFileMerge());
+
 // Layout autosave — write pending layout edits to this device's
 // autosave folder in the show folder without touching the real file or clearing
 // the pending set, so unsaved layout work survives a crash. Mirrors

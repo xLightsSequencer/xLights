@@ -17,6 +17,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <utility>
 
 // Content fingerprint of a file. Size plus a 64-bit content hash: mtime is
 // not used because sync clients (Dropbox, iCloud Drive, NAS shares) rewrite
@@ -44,6 +45,14 @@ public:
     static ShowFileFingerprint FingerprintOf(const std::string& bytes) { return FingerprintOf(bytes.data(), bytes.size()); }
     // nullopt when the file exists but cannot be read.
     static std::optional<ShowFileFingerprint> FingerprintFile(const std::string& path);
+    // The file's contents with their fingerprint; empty text and a "missing"
+    // fingerprint when it does not exist, nullopt when it cannot be read.
+    static std::optional<std::pair<std::string, ShowFileFingerprint>> ReadFile(const std::string& path);
+
+    // The show-wide files several people save into (layout, controllers,
+    // effect presets) are merged when someone else changed them, so the
+    // guard keeps the text it recorded for them: the base of that merge.
+    static bool KeepsBaseText(const std::string& path);
 
     // Writes the new contents to a temp file, then swaps it in for the target,
     // so a reader (or a sync client) never sees a half-written file. The swap
@@ -94,6 +103,9 @@ public:
     bool HasChangedOnDisk(const std::string& path) const;
     // What was last recorded for the file; nullopt when it is not tracked.
     std::optional<ShowFileFingerprint> RecordedFingerprint(const std::string& path) const;
+    // The text recorded with the fingerprint, for a KeepsBaseText() file.
+    // Empty text means the file did not exist. nullopt when not tracked.
+    std::optional<std::string> RecordedText(const std::string& path) const;
 
     // A full rewrite from in-memory state: afterwards the disk holds exactly what
     // this process has, so the new contents are recorded.
@@ -108,4 +120,5 @@ private:
 
     mutable std::mutex _lock;
     std::map<std::string, ShowFileFingerprint> _recorded;
+    std::map<std::string, std::string> _text;
 };
