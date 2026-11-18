@@ -182,8 +182,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
 
         for (int j = 0; j < (int)el->GetEffectLayerCount(); ++j) {
             EffectLayer* elay = el->GetEffectLayer(j);
-            bool typeMatch = (effectType.empty() && elay->HasEffects()) || elay->HasEffectsByType(effectType);
-            if (typeMatch && LayerHasMatchingBufferStyle(elay, styleFilter)) {
+            if (LayerHasMatchingEffect(elay, effectType, styleFilter)) {
                 models.push_back(el->GetFullName());
                 break;
             }
@@ -197,8 +196,7 @@ void SelectPanel::populateModelsList(const std::string& effectType)
                     if (sme != nullptr) {
                         for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                             EffectLayer* elay = sme->GetEffectLayer(j);
-                            bool typeMatch = (effectType.empty() && elay->HasEffects()) || elay->HasEffectsByType(effectType);
-                            if (typeMatch && LayerHasMatchingBufferStyle(elay, styleFilter)) {
+                            if (LayerHasMatchingEffect(elay, effectType, styleFilter)) {
                                 models.push_back(sme->GetFullName());
                                 break;
                             }
@@ -234,15 +232,23 @@ void SelectPanel::populateModelsList(const std::string& effectType)
     TextCtrl_Select_EndTime->SetValue(wxString::Format("%05.1f", (mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)));
 }
 
-bool SelectPanel::LayerHasMatchingBufferStyle(EffectLayer* elay, const wxString& styleFilter) const
+bool SelectPanel::LayerHasMatchingEffect(EffectLayer* elay, const std::string& effectType, const wxString& styleFilter) const
 {
-    if (styleFilter.empty()) return true;
     for (int k = 0; k < elay->GetEffectCount(); k++) {
         Effect* eff = elay->GetEffect(k);
-        auto const& style = eff->GetSetting("B_CHOICE_BufferStyle");
-        if ((style.empty() ? "Default" : style) == styleFilter.ToStdString()) {
-            return true;
+
+        if (!effectType.empty() && eff->GetEffectName() != effectType) {
+            continue;
         }
+
+        if (!styleFilter.empty()) {
+            auto const& style = eff->GetSetting("B_CHOICE_BufferStyle");
+            if ((style.empty() ? "Default" : style) != styleFilter.ToStdString()) {
+                continue;
+            }
+        }
+
+        return true;
     }
     return false;
 }

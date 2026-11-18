@@ -105,7 +105,7 @@ class SelectPanel: public wxPanel
 
 		bool ContainsColor(Effect* eff) const;
 		bool MatchesBufferStyle(Effect* eff) const;
-		bool LayerHasMatchingBufferStyle(EffectLayer* elay, const wxString& styleFilter) const;
+		bool LayerHasMatchingEffect(EffectLayer* elay, const std::string& effectType, const wxString& styleFilter) const;
 
         std::pair< int, int > GetStartAndEndTime();
 

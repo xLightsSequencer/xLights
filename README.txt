@@ -35,6 +35,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  on 50 ms sequences
     -bug (derwin12)              HinksPix DDP upload sent an absolute DMX start channel; now relative to the
                                  controller start so DMX works when the controller isn't at channel 1 (#7297)
+    -bug (MrPaulAR)              Select Effects: the Model list only lists models with an effect that
+                                 matches both the selected Effect Type and Render Style (#7385)
 
 2026.20  November 12, 2026
 
