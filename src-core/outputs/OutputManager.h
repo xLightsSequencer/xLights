@@ -70,6 +70,7 @@ class OutputManager
 
     #pragma region Private Functions
     bool ConvertStartChannel(const std::string sc, std::string& newsc) const;
+    bool LoadImpl(const std::string& showdir, bool syncEnabled, const std::string* text);
     void AsyncPingAll();
     #pragma endregion 
 
@@ -82,6 +83,9 @@ public:
 
     #pragma region Save and Load
     bool Load(const std::string& showdir, bool syncEnabled = false);
+    // Loads the controllers from `text` (the networks file's contents, e.g. a
+    // merge result) instead of reading the file; the guard is not touched.
+    bool LoadFromText(const std::string& showdir, const std::string& text);
     bool Save();
     // Writes the current controllers to another file without changing which
     // file this manager loads from or its dirty state.

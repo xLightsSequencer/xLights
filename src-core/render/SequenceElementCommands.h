@@ -437,6 +437,31 @@ bool RenameModel(SequenceElements& seq, const std::string& oldName, const std::s
 
 } // namespace ElementEdits
 
+// An interactive song-structure edit such as dragging a region boundary.
+// Apply() changes the song structure at once, unrecorded and outside the
+// mutation guard, so the UI can show it live; Commit() records the net
+// change since construction as one SetSongStructureCommand undo step named
+// `label` (none when nothing changed). Cancel(), or destroying it before
+// Commit(), puts the song structure back.
+class SongStructureLiveEdit {
+public:
+    explicit SongStructureLiveEdit(SequenceElements& seq);
+    ~SongStructureLiveEdit();
+    SongStructureLiveEdit(const SongStructureLiveEdit&) = delete;
+    SongStructureLiveEdit& operator=(const SongStructureLiveEdit&) = delete;
+
+    void Apply(const std::function<void(SongStructureManager&)>& edit);
+    // Returns true if the song structure changed.
+    bool Commit(const std::string& label, bool recordUndo = true);
+    void Cancel();
+    bool IsOpen() const { return _open; }
+
+private:
+    SequenceElements& _seq;
+    std::vector<SongStructureView> _before;
+    bool _open = true;
+};
+
 // Effect symbol edits, each one undo step (or part of the caller's batch).
 namespace SymbolEdits {
 

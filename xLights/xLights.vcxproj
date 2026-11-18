@@ -891,6 +891,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
     <ClCompile Include="..\src-core\utils\LayoutObjectId.cpp" />
     <ClCompile Include="..\src-core\utils\LayoutRecords.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutRenameHints.cpp" />
     <ClCompile Include="..\src-core\utils\LayoutRenameLog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
     <ClCompile Include="..\src-core\media\kiss_fft\kiss_fft.c" />
@@ -1077,6 +1078,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\app-shell\TabConvert.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabPreview.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabSequence.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\ShowFileWatch.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\DiscoveryHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabSetup.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BlendingPanel.cpp" />
@@ -1089,7 +1091,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\utils\ShowFileMerge.cpp" />
     <ClCompile Include="..\src-core\utils\ShowSaveMerge.cpp" />
     <ClCompile Include="..\src-core\render\ShowMergeApply.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowConflictedCopies.cpp" />
     <ClCompile Include="..\src-core\utils\ShowPresence.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowFileWatcher.cpp" />
+    <ClCompile Include="..\src-core\render\ShowFileLiveMerge.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
@@ -1588,6 +1593,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\utils\JobPool.h" />
     <ClInclude Include="..\src-core\utils\LayoutObjectId.h" />
     <ClInclude Include="..\src-core\utils\LayoutRecords.h" />
+    <ClInclude Include="..\src-core\utils\LayoutRenameHints.h" />
     <ClInclude Include="..\src-core\utils\LayoutRenameLog.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
@@ -1781,7 +1787,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\utils\ShowFileMerge.h" />
     <ClInclude Include="..\src-core\utils\ShowSaveMerge.h" />
     <ClInclude Include="..\src-core\render\ShowMergeApply.h" />
+    <ClInclude Include="..\src-core\utils\ShowConflictedCopies.h" />
     <ClInclude Include="..\src-core\utils\ShowPresence.h" />
+    <ClInclude Include="..\src-core\utils\ShowFileWatcher.h" />
+    <ClInclude Include="..\src-core\render\ShowFileLiveMerge.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />

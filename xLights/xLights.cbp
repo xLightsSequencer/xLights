@@ -421,6 +421,8 @@
 		<Unit filename="../src-core/utils/LayoutObjectId.h" />
 		<Unit filename="../src-core/utils/LayoutRecords.cpp" />
 		<Unit filename="../src-core/utils/LayoutRecords.h" />
+		<Unit filename="../src-core/utils/LayoutRenameHints.cpp" />
+		<Unit filename="../src-core/utils/LayoutRenameHints.h" />
 		<Unit filename="../src-core/utils/LayoutRenameLog.cpp" />
 		<Unit filename="../src-core/utils/LayoutRenameLog.h" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.cpp" />
@@ -636,6 +638,7 @@
 		<Unit filename="../src-ui-wx/app-shell/TabConvert.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/TabPreview.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/TabSequence.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/ShowFileWatch.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/DiscoveryHelpers.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/TabSetup.cpp" />
 		<Unit filename="../src-core/utils/TempFileManager.cpp" />
@@ -656,8 +659,12 @@
 		<Unit filename="../src-core/utils/ShowFileMerge.h" />
 		<Unit filename="../src-core/utils/ShowSaveMerge.cpp" />
 		<Unit filename="../src-core/utils/ShowSaveMerge.h" />
+		<Unit filename="../src-core/utils/ShowConflictedCopies.cpp" />
+		<Unit filename="../src-core/utils/ShowConflictedCopies.h" />
 		<Unit filename="../src-core/utils/ShowPresence.cpp" />
 		<Unit filename="../src-core/utils/ShowPresence.h" />
+		<Unit filename="../src-core/utils/ShowFileWatcher.cpp" />
+		<Unit filename="../src-core/utils/ShowFileWatcher.h" />
 		<Unit filename="../src-core/utils/ShowRedactor.cpp" />
 		<Unit filename="../src-core/utils/ShowRedactor.h" />
 		<Unit filename="../src-core/utils/TraceLog.cpp" />
@@ -1824,6 +1831,8 @@
 		<Unit filename="../src-core/render/HeadlessRenderContext.h" />
 		<Unit filename="../src-core/render/ShowMergeApply.cpp" />
 		<Unit filename="../src-core/render/ShowMergeApply.h" />
+		<Unit filename="../src-core/render/ShowFileLiveMerge.cpp" />
+		<Unit filename="../src-core/render/ShowFileLiveMerge.h" />
 		<Unit filename="../src-ui-wx/xLightsApp.cpp" />
 		<Unit filename="../src-ui-wx/xLightsApp.h" />
 		<Unit filename="../src-ui-wx/import_export/xLightsImportChannelMapDialog.cpp" />

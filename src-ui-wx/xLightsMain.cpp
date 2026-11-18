@@ -116,6 +116,8 @@
 #include "effects/ShaderDownloadDialog.h"
 #include "utils/ShowAutosave.h"
 #include "utils/ShowPresence.h"
+#include "utils/ShowFileWatcher.h"
+#include "render/ShowFileLiveMerge.h"
 #include "utils/ShowFileGuard.h"
 #include "utils/ShowGuid.h"
 #include "utils/SpecialOptions.h"
@@ -1610,6 +1612,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _presenceHint->SetForegroundColour(wxColour(0xD0, 0x70, 0x00));
     _presenceHint->Hide();
     StatusBarSizer->Add(_presenceHint, wxGBPosition(0, 4), wxDefaultSpan, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    CreateShowFileBanner();
     StatusBarSizer->AddGrowableCol(1, 2);
     StatusBarSizer->AddGrowableCol(3, 1);
     ProgressBar->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnProgressBarDoubleClick, nullptr, this);
@@ -1963,6 +1966,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         if (presence.IsEnabled()) {
             _presenceTimer.Bind(wxEVT_TIMER, [this](wxTimerEvent&) { UpdatePresence(); });
             _presenceTimer.Start(10000);
+            StartShowFileWatch();
         }
     }
 
@@ -2316,6 +2320,7 @@ xLightsFrame::~xLightsFrame()
     OutputTimer.Stop();
     RenderStatusTimer.Stop();
     _presenceTimer.Stop();
+    StopShowFileWatch();
     TextDrawingContext::CleanUp();
     EffectIconCache::Clear();
 
@@ -3373,6 +3378,7 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     CheckUnsavedChanges();
 
+    StopShowFileWatch();
     _presenceTimer.Stop();
     ShowPresencePublisher::Instance().Clear();
 

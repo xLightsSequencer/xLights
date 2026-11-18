@@ -23,6 +23,7 @@
 
 #include "LayoutObjectId.h"
 #include "LayoutRecords.h"
+#include "LayoutRenameHints.h"
 #include "LayoutRenameLog.h"
 
 namespace ShowFileMerge {
@@ -609,6 +610,8 @@ struct Ctx {
     std::set<std::string> usedNames;
     // Mine's last base show folder sync is newer than theirs.
     bool mineNewerBase = false;
+    // Options::twoWay: a record only one side has is a conflict.
+    bool twoWay = false;
 
     Resolution Lookup(const std::string& key) const {
         auto f = resolutions->find(key);
@@ -821,6 +824,13 @@ void MergeChildren(Ctx& ctx, pugi::xml_node out, pugi::xml_node b, pugi::xml_nod
                     case Resolution::KeepBoth: emit[i] = Emit::Both; break;
                     default: emit[i] = Emit::Theirs; break;
                     }
+                }
+            } else if (ctx.twoWay && !policy.absentIsUnchanged) {
+                // No base: the side without it may have deleted it or the other added it.
+                if (r.m) {
+                    emit[i] = conflict(ConflictKind::DeletedByTheirs) == Resolution::Mine ? Emit::Mine : Emit::Drop;
+                } else {
+                    emit[i] = conflict(ConflictKind::DeletedByMine) == Resolution::Mine ? Emit::Drop : Emit::Theirs;
                 }
             } else {
                 emit[i] = r.m ? Emit::Mine : Emit::Theirs;
@@ -1190,6 +1200,7 @@ struct Merge::Impl {
     LayoutRenameLog controllerLog;
     Logs logs;
     NameMaps controllerMaps; // from the options (rgbeffects)
+    bool twoWay = false;
     bool theirsUnchanged = false;
     bool mineUnchanged = false;
     std::map<std::string, Resolution> resolutions;
@@ -1211,6 +1222,7 @@ struct Merge::Impl {
         logs.viewObjects = copyLog(options.viewObjectRenames, viewObjectLog);
         logs.controllers = copyLog(options.controllerRenames, controllerLog);
         controllerMaps = options.controllerNameMaps;
+        twoWay = options.twoWay;
         theirsUnchanged = NodesEqual(kind, base.document_element(), theirs.document_element(), false);
         mineUnchanged = !theirsUnchanged && NodesEqual(kind, base.document_element(), mine.document_element(), false);
     }
@@ -1229,12 +1241,30 @@ struct Merge::Impl {
         ctx.logs = logs;
         ctx.resolutions = &resolutions;
         ctx.mineNewerBase = SyncStamp(kind, mine.document_element()) > SyncStamp(kind, theirs.document_element());
+        ctx.twoWay = twoWay;
 
         pugi::xml_document b, m, t;
         b.reset(base);
         m.reset(mine);
         t.reset(theirs);
         pugi::xml_node rb = b.document_element(), rm = m.document_element(), rt = t.document_element();
+
+        // The rename hints are a set, merged on their own: never a conflict.
+        std::vector<LayoutRenameHints::Entry> hints;
+        if (kind == FileKind::RgbEffects) {
+            // A side without the section (written by a version that drops
+            // it) did not change it.
+            auto read = [&rb](pugi::xml_node root) {
+                pugi::xml_node n = root.child(LayoutRenameHints::SECTION);
+                return LayoutRenameHints::Read(n ? n : rb.child(LayoutRenameHints::SECTION));
+            };
+            hints = LayoutRenameHints::Merge(read(rb), read(rm), read(rt));
+            for (pugi::xml_node root : { rb, rm, rt }) {
+                while (pugi::xml_node n = root.child(LayoutRenameHints::SECTION)) {
+                    root.remove_child(n);
+                }
+            }
+        }
 
         Scope root;
         root.depth = 0;
@@ -1300,6 +1330,13 @@ struct Merge::Impl {
         if (rm) { fill(im, rm); rootView.m = &im; }
         if (rt) { fill(it, rt); rootView.t = &it; }
         MergeFields(ctx, result, rootView, rootView.Any()->policy, root.parentTag, "", root);
+        if (!hints.empty()) {
+            LayoutRenameHints merged;
+            for (const auto& e : hints) {
+                merged.Add(e);
+            }
+            merged.WriteTo(result.document_element());
+        }
         conflicts = std::move(ctx.conflicts);
         notes = std::move(ctx.notes);
     }

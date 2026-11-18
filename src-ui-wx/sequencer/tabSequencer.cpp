@@ -548,6 +548,20 @@ void xLightsFrame::CheckForValidModels()
     mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
 
+    // Rows whose model was renamed since the sequence was saved follow the
+    // rename; only what that cannot place reaches the prompts below.
+    if (auto mapped = MapRenamedModels(); !mapped.empty() && !IsNonInteractiveSave()) {
+        wxString msg = "Some models in this sequence were renamed in the layout since it was saved. Their rows were renamed to match:\n\n";
+        for (size_t i = 0; i < mapped.size() && i < 20; ++i) {
+            msg += wxString::FromUTF8(mapped[i].first) + wxString::FromUTF8(" \u2192 ") + wxString::FromUTF8(mapped[i].second) + "\n";
+        }
+        if (mapped.size() > 20) {
+            msg += wxString::Format("... and %d more\n", (int)mapped.size() - 20);
+        }
+        msg += "\nSave the sequence to keep the new names.";
+        CallAfter([this, msg]() { wxMessageBox(msg, "Renamed Models", wxOK | wxICON_INFORMATION, this); });
+    }
+
     bool cancelled = false;
 
     spdlog::debug("CheckForValidModels: building model list.");

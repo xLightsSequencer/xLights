@@ -1,0 +1,230 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+// Bringing changes someone else saved to the shared show files into the open
+// show while it is open. Desktop: src-ui-wx/app-shell/ShowFileWatch.cpp.
+
+#include "iPadRenderContext.h"
+
+#include "render/ShowFileLiveMerge.h"
+#include "render/ShowMergeApply.h"
+#include "utils/ShowFileGuard.h"
+#include "utils/ShowFileWatcher.h"
+#include "utils/ShowPresence.h"
+
+#include <globals.h>
+#include <log.h>
+
+#include <filesystem>
+#include <sstream>
+
+namespace {
+
+ShowFileLiveMerge::Reader CoordinatedReader() {
+    return [](const std::string& p) { return ShowFileWatcher::CoordinatedRead(p); };
+}
+
+std::string FileNames(const std::vector<std::string>& paths) {
+    std::string out;
+    for (const auto& p : paths) {
+        if (!out.empty()) out += ", ";
+        out += std::filesystem::path(p).filename().string();
+    }
+    return out;
+}
+
+std::string Who(const std::string& showDir, const std::vector<ShowFileLiveMerge::FileKind>& kinds) {
+    auto& presence = ShowPresencePublisher::Instance();
+    if (!presence.IsEnabled()) return {};
+    return ShowFileLiveMerge::WhoChanged(ShowPresence::FreshOthers(showDir, presence.InstallId(), ShowPresence::Now()), kinds);
+}
+
+} // namespace
+
+std::vector<ShowFileLiveMerge::LocalFile> iPadRenderContext::LiveShowFiles() {
+    using ShowFileLiveMerge::FileKind;
+    std::vector<ShowFileLiveMerge::LocalFile> files;
+    if (showDirectory.empty()) return files;
+    auto& guard = ShowFileGuard::Instance();
+    const std::string rgbPath = showDirectory + "/" + XLIGHTS_RGBEFFECTS_FILE;
+    // This session's version of the layout is the loaded file with its edits
+    // patched in (as a save writes it), so only the records edited here are mine.
+    ShowFileLiveMerge::LocalFile rgb{ FileKind::RgbEffects, rgbPath, false, std::string() };
+    if (HasLayoutDirt()) {
+        if (auto base = guard.RecordedText(rgbPath); base && !base->empty()) {
+            pugi::xml_document doc;
+            if (doc.load_string(base->c_str()) && PatchLayoutDocument(doc)) {
+                std::ostringstream out;
+                doc.save(out, "  ");
+                rgb.edited = true;
+                rgb.mine = out.str();
+            }
+        }
+    }
+    files.push_back(std::move(rgb));
+    const std::string& networksPath = _outputManager.GetNetworksFilePath();
+    if (!networksPath.empty()) {
+        files.push_back({ FileKind::Networks, networksPath, _controllersDirty,
+                          _controllersDirty ? _outputManager.SaveToString() : std::string() });
+    }
+    // Preset edits are saved as they are made.
+    files.push_back({ FileKind::Presets, GetEffectPresetsPath(), false, std::string() });
+    return files;
+}
+
+void iPadRenderContext::StopWatchingShowFiles() {
+    if (_showFileWatcher) _showFileWatcher->Stop();
+    _pendingIncoming.reset();
+    _pendingMergeLive = false;
+}
+
+iPadRenderContext::IncomingShowChanges iPadRenderContext::CheckShowFilesOnDisk(std::string* banner) {
+    if (showDirectory.empty()) {
+        StopWatchingShowFiles();
+        return IncomingShowChanges::None;
+    }
+    if (!_showFileWatcher) {
+        _showFileWatcher = std::make_unique<ShowFileWatcher>(ShowFileGuard::Instance());
+    }
+    std::vector<std::string> paths{ showDirectory + "/" + XLIGHTS_RGBEFFECTS_FILE };
+    if (!_outputManager.GetNetworksFilePath().empty()) paths.push_back(_outputManager.GetNetworksFilePath());
+    paths.push_back(GetEffectPresetsPath());
+    _showFileWatcher->Watch(paths);
+
+    if (_pendingMergeLive) {
+        // The conflict sheet is open on them.
+        return IncomingShowChanges::None;
+    }
+    if (_pendingIncoming) {
+        // A save may have merged them meanwhile.
+        bool outstanding = false;
+        for (const auto& p : _pendingIncoming->ChangedPaths()) {
+            outstanding |= ShowFileGuard::Instance().HasChangedOnDisk(p);
+        }
+        if (!outstanding) {
+            _pendingIncoming.reset();
+            return IncomingShowChanges::Cleared;
+        }
+    }
+    if (_showFileWatcher->Poll().empty()) {
+        return IncomingShowChanges::None;
+    }
+    return HandleIncomingShowChanges(banner);
+}
+
+iPadRenderContext::IncomingShowChanges iPadRenderContext::HandleIncomingShowChanges(std::string* banner) {
+    using namespace ShowFileLiveMerge;
+    auto& guard = ShowFileGuard::Instance();
+    ShowFileMerge::Options options;
+    options.modelRenames = &AllModels.GetRenameLog();
+    options.viewObjectRenames = &AllObjects.GetRenameLog();
+    options.controllerRenames = &_outputManager.GetRenameLog();
+    auto in = std::make_unique<Incoming>(Incoming::Prepare(LiveShowFiles(), options, guard, ShowMergeApply::SequenceUseOf(*this), CoordinatedReader()));
+    if (_pendingIncoming) in->AdoptResolutions(*_pendingIncoming);
+    if (!in->HasChanges()) {
+        const bool had = _pendingIncoming != nullptr;
+        _pendingIncoming.reset();
+        return had ? IncomingShowChanges::Cleared : IncomingShowChanges::None;
+    }
+    const auto kinds = in->ChangedKinds();
+    const std::string who = Who(showDirectory, kinds);
+    const std::string names = FileNames(in->ChangedPaths());
+    if (!in->CanMerge()) {
+        spdlog::warn("iPadRenderContext: {} changed on disk but cannot be merged now; it is handled when saving", names);
+        _pendingIncoming.reset();
+        if (banner) *banner = BannerText(who, kinds, 0, 0) + ". It could not be merged; saving will ask what to do.";
+        return IncomingShowChanges::CannotMerge;
+    }
+    if (in->NeedsDecisions()) {
+        spdlog::info("iPadRenderContext: {} changed on disk; {} item(s) need a decision", names, in->Decisions());
+        if (banner) *banner = BannerText(who, kinds, in->ChangedItems(), in->Decisions());
+        _pendingIncoming = std::move(in);
+        return IncomingShowChanges::NeedsDecisions;
+    }
+    ModelMutationScope mutate(*this);
+    if (!mutate.ok()) {
+        spdlog::info("iPadRenderContext: {} changed on disk; the models are busy, trying again shortly", names);
+        _showFileWatcher->RearmAll();
+        return IncomingShowChanges::None;
+    }
+    const bool controllersEdited = _controllersDirty;
+    Applied applied = Apply(*this, *in, guard);
+    if (!controllersEdited) _outputManager.MarkSaved();
+    std::string lines;
+    for (const auto& l : applied.Describe()) lines += "\n    " + l;
+    spdlog::info("iPadRenderContext: brought in the changes someone else saved to {}:{}", names, lines);
+    if (banner) *banner = BannerText(who, kinds, in->ChangedItems(), 0);
+    _pendingIncoming.reset();
+    return IncomingShowChanges::Applied;
+}
+
+iPadRenderContext::IncomingShowChanges iPadRenderContext::ReviewIncomingShowChanges(std::string* banner) {
+    if (!_pendingIncoming) return IncomingShowChanges::Cleared;
+    // Merge again from what memory and the disk hold now, keeping any
+    // decisions made earlier.
+    auto status = HandleIncomingShowChanges(banner);
+    _pendingMergeLive = status == IncomingShowChanges::NeedsDecisions && _pendingIncoming != nullptr;
+    return status;
+}
+
+bool iPadRenderContext::CommitIncomingShowChanges(std::string* report, std::string* error, bool* needsDecisions) {
+    using namespace ShowFileLiveMerge;
+    auto fail = [&](const std::string& msg) {
+        if (error) *error = msg;
+        return false;
+    };
+    if (!_pendingIncoming) {
+        _pendingMergeLive = false;
+        return fail("Nothing to apply.");
+    }
+    if (!_pendingIncoming->CanApply()) {
+        if (needsDecisions) *needsDecisions = true;
+        return fail("Choose a version for every conflict first.");
+    }
+    if (!_pendingIncoming->StillOnDisk(CoordinatedReader())) {
+        ShowFileMerge::Options options;
+        options.modelRenames = &AllModels.GetRenameLog();
+        options.viewObjectRenames = &AllObjects.GetRenameLog();
+        options.controllerRenames = &_outputManager.GetRenameLog();
+        auto again = std::make_unique<Incoming>(Incoming::Prepare(LiveShowFiles(), options, ShowFileGuard::Instance(),
+                                                                  ShowMergeApply::SequenceUseOf(*this), CoordinatedReader()));
+        again->AdoptResolutions(*_pendingIncoming);
+        _pendingIncoming = std::move(again);
+        if (!_pendingIncoming->CanMerge()) {
+            _pendingMergeLive = false;
+            _pendingIncoming.reset();
+            return fail("The files changed again and can no longer be merged. Saving will ask what to do.");
+        }
+        if (!_pendingIncoming->CanApply()) {
+            if (needsDecisions) *needsDecisions = true;
+            return fail("The files changed again. Review the choices below.");
+        }
+    }
+    ModelMutationScope mutate(*this);
+    if (!mutate.ok()) {
+        return fail("A render is still running. Try again in a moment.");
+    }
+    const bool controllersEdited = _controllersDirty;
+    Applied applied = Apply(*this, *_pendingIncoming, ShowFileGuard::Instance());
+    if (!controllersEdited) _outputManager.MarkSaved();
+    std::string text;
+    for (const auto& l : applied.layout.Warnings()) {
+        text += (text.empty() ? "" : "\n") + l;
+    }
+    if (applied.droppedEffects > 0) {
+        text += (text.empty() ? "" : "\n") + std::to_string(applied.droppedEffects) +
+                " effects on submodel or strand rows the new model does not have were dropped.";
+    }
+    if (report) *report = text;
+    spdlog::info("iPadRenderContext: brought in the decided changes to {}", FileNames(_pendingIncoming->ChangedPaths()));
+    _pendingIncoming.reset();
+    _pendingMergeLive = false;
+    return true;
+}

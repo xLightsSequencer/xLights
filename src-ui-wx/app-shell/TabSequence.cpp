@@ -128,6 +128,8 @@ std::string xLightsFrame::BuildEffectsXml()
     _sequenceViewManager.Save(visitor);
     color_mgr.Save(visitor);
     viewpoint_mgr.Save(visitor);
+    CollectRenameHints();
+    _renameHints.Serialize(visitor);
     visitor.WriteCloseTag();
     
     return visitor.GetResult();
@@ -272,6 +274,7 @@ void xLightsFrame::LoadEffectsFile()
             _xmlSettings[s.name()] = s.attribute("value").as_string();
         }
     }
+    _renameHints.Load(root.child(LayoutRenameHints::SECTION));
 
     // If this file was last saved by an xLights version before 2026.04, make a versioned backup
     // before we potentially migrate anything. String comparison works because versions are "YYYY.MM.x".

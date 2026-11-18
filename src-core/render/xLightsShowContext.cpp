@@ -17,6 +17,7 @@
 #include "render/IRenderProgressSink.h"
 #include "render/SequenceFile.h"
 #include "render/SequenceMutationGuard.h"
+#include "render/SequenceElementCommands.h"
 #include "models/Model.h"
 #include "models/DisplayAsType.h"
 #include "models/ViewObject.h"
@@ -27,6 +28,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <ctime>
 #include <cstdlib>
 #include <thread>
 #include <vector>
@@ -86,9 +88,83 @@ xLightsShowContext::MissingModelScan xLightsShowContext::ScanForMissingModels() 
     return scan;
 }
 
+void xLightsShowContext::CollectRenameHints() {
+    _renameHints.Absorb(LayoutRenameHints::TYPE_MODEL, AllModels.GetRenameLog().TakeUnpersisted());
+    _renameHints.Absorb(LayoutRenameHints::TYPE_VIEW_OBJECT, AllObjects.GetRenameLog().TakeUnpersisted());
+    _renameHints.Absorb(LayoutRenameHints::TYPE_CONTROLLER, _outputManager.GetRenameLog().TakeUnpersisted());
+    if (size_t dropped = _renameHints.Prune(std::time(nullptr)); dropped > 0) {
+        spdlog::debug("Rename hints: dropped {} old entries", dropped);
+    }
+}
+
+std::vector<std::pair<std::string, std::string>> xLightsShowContext::MapRenamedModels() {
+    _autoMappedModels.clear();
+    if (_renameHints.Empty()) {
+        return {};
+    }
+    // Reconciling the sequence with the layout is part of opening it.
+    SeqMutationGuard::Scope opening;
+    auto exists = [this](const std::string& n) { return AllModels.GetModel(n) != nullptr; };
+    auto nameForId = [this](const std::string& id) {
+        Model* m = AllModels.GetModelByObjectId(id);
+        return m != nullptr ? m->GetName() : std::string();
+    };
+    std::vector<std::pair<std::string, std::string>> mapped;
+    for (int x = 0; x < (int)_sequenceElements.GetElementCount(); ++x) {
+        Element* el = _sequenceElements.GetElement(x);
+        if (el == nullptr || el->GetType() != ElementType::ELEMENT_TYPE_MODEL) {
+            continue;
+        }
+        const std::string name = el->GetName();
+        if (AllModels.GetModel(name) != nullptr) {
+            continue;
+        }
+        bool aliased = false;
+        for (const auto& it : AllModels) {
+            if (it.second != nullptr && it.second->IsAlias(name, true)) {
+                aliased = true; // an "oldname:" alias maps it already
+                break;
+            }
+        }
+        if (aliased) {
+            continue;
+        }
+        auto r = _renameHints.Resolve(LayoutRenameHints::TYPE_MODEL, name, exists, nameForId);
+        if (r.outcome == LayoutRenameHints::Outcome::Ambiguous) {
+            spdlog::info("Rename hints: '{}' was renamed to more than one model; asking instead", name);
+            continue;
+        }
+        if (r.outcome != LayoutRenameHints::Outcome::Mapped) {
+            continue;
+        }
+        Model* target = AllModels.GetModel(r.target);
+        if (target == nullptr || target->GetDisplayAs() == DisplayAsType::SubModel) {
+            continue;
+        }
+        if (_sequenceElements.GetElement(r.target) != nullptr) {
+            spdlog::info("Rename hints: '{}' became '{}', but the sequence already has a row for it; asking instead", name, r.target);
+            continue;
+        }
+        auto result = _sequenceElements.GetCommandExecutor().ExecuteInStep(std::make_unique<RenameModelElementCommand>(el->GetUid(), r.target), false);
+        if (!result.Ok() || el->GetName() != r.target) {
+            continue;
+        }
+        static_cast<ModelElement*>(el)->Init(*target);
+        spdlog::info("Rename hints: mapped '{}' to '{}'", name, r.target);
+        mapped.emplace_back(name, r.target);
+    }
+    if (!mapped.empty()) {
+        _sequenceElements.PopulateRowInformation();
+    }
+    _autoMappedModels = mapped;
+    return mapped;
+}
+
 void xLightsShowContext::CheckForValidModels() {
-    // Base (headless) behavior: no interactive remap — just report. The desktop
-    // frame overrides this with the SeqElementMismatchDialog flow.
+    // Base (headless, iPad) behavior: no interactive remap. Follow the rename
+    // hints, then report the rest. The desktop frame overrides this with the
+    // SeqElementMismatchDialog flow; the iPad asks after the open.
+    MapRenamedModels();
     const MissingModelScan scan = ScanForMissingModels();
     for (const auto& m : scan.missing) {
         spdlog::warn("Sequence references a model that is not in the layout: {}", m);
@@ -110,6 +186,7 @@ bool xLightsShowContext::LoadSequenceElements(SequenceFile& file, pugi::xml_docu
     // Opening builds the sequence (load, migrations, file resolution); none
     // of it is an edit.
     SeqMutationGuard::Scope loading;
+    _autoMappedModels.clear();
 
     // A fresh open must see fresh filesystem state: a file that was missing on
     // the previous load may have been put in place since, so forget cached

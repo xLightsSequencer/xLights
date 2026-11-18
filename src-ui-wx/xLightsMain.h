@@ -122,6 +122,8 @@ namespace ShowSaveMerge { struct FileToSave; class Plan; struct SaveReport; }
 
 class aiBase;
 class BaseSerializingVisitor;
+class ShowFileWatcher;
+namespace ShowFileLiveMerge { class Incoming; struct LocalFile; struct Applied; }
 class CopyFormat1;
 class Controller;
 class ControllerCaps;
@@ -478,6 +480,11 @@ public:
     // Shared show folders: publishes what this install is doing and shows who
     // else is editing the layout or controllers. Runs on a timer.
     void UpdatePresence();
+    // Shared show folders: brings changes someone else saved to the layout,
+    // controllers or presets into the open show as soon as they land
+    // (ShowFileWatch.cpp). Runs on a timer.
+    void CheckShowFilesOnDisk();
+    void ReviewIncomingShowChanges();
     // Before opening sequencePath: when someone else sharing the show folder
     // has it open, asks whether to open it anyway. True to go ahead.
     bool ConfirmOpenSequenceOpenElsewhere(const wxString& sequencePath);
@@ -487,6 +494,9 @@ public:
     // real file. True when the real file was replaced.
     bool OfferAutosaveRecovery(const std::string& realPath, const std::string& backupPath,
                                const wxString& what, bool backupFirst);
+    // At load, before the show files are read: offers to merge each conflicted
+    // copy a sync client left of them (ShowConflictedCopies) into the file.
+    void OfferConflictedCopies(const std::string& showDir);
     void SaveModelsFile();
     void MarkEffectsFileDirty(std::source_location loc = std::source_location::current());
     void MarkPresetsDirty(std::source_location loc = std::source_location::current());
@@ -1624,6 +1634,23 @@ public:
     xlUnsavedFlag UnsavedPresetChanges{ "Effect Presets" };
     wxTimer _presenceTimer;
     wxStaticText* _presenceHint = nullptr;
+    wxTimer _showFileWatchTimer;
+    std::unique_ptr<ShowFileWatcher> _showFileWatcher;
+    std::unique_ptr<ShowFileLiveMerge::Incoming> _pendingIncoming;
+    wxPanel* _showFileBanner = nullptr;
+    wxStaticText* _showFileBannerText = nullptr;
+    wxButton* _showFileBannerReview = nullptr;
+    long long _showFileBannerHideAt = 0;
+    bool _inShowFileCheck = false;
+    bool _autoReloadShowFiles = true;
+    void StartShowFileWatch();
+    void StopShowFileWatch();
+    void CreateShowFileBanner();
+    void ShowShowFileBanner(const wxString& text, bool review);
+    void HideShowFileBanner();
+    std::vector<ShowFileLiveMerge::LocalFile> LiveShowFiles();
+    void HandleIncomingShowChanges(bool review);
+    void RefreshAfterIncomingShowChanges(const ShowFileLiveMerge::Applied& applied);
     bool _renderMode = false;
     int _automationDepth = 0;
     std::vector<std::string> _sequenceBusy;

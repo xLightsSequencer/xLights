@@ -1004,6 +1004,8 @@ struct LayoutEditorView: View {
                                     showSheet: $layoutMergeSheet,
                                     report: $layoutMergeReport,
                                     onFinished: { afterLayoutMerge() }))
+        // Someone else's saved changes reached the open show.
+        .onChange(of: viewModel.showFilesReloadToken) { _, _ in afterLayoutMerge() }
         // IE-15 — Models report (.xlsx) export wiring is bundled
         // into a ViewModifier so the outer body's chain stays within
         // Swift's type-checker budget (same approach as the other
@@ -15008,6 +15010,8 @@ struct LayoutEditorWindowRoot: View {
     @Environment(\.dismissWindow) private var dismissWindow
     @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
+    @State private var incomingReviewSheet = false
+    @State private var incomingReviewReport: String?
 
     var body: some View {
         Group {
@@ -15020,12 +15024,27 @@ struct LayoutEditorWindowRoot: View {
                     if let hint = viewModel.presenceHint {
                         PresenceHintBanner(message: hint)
                     }
+                    // Someone else's saved changes, brought in or waiting
+                    // for a decision.
+                    if let update = viewModel.showFileUpdate {
+                        ShowFileUpdateBanner(update: update,
+                                             onReview: {
+                                                 if viewModel.reviewIncomingShowChanges() {
+                                                     incomingReviewSheet = true
+                                                 }
+                                             },
+                                             onDismiss: { viewModel.showFileUpdate = nil })
+                    }
                     LayoutEditorView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
         }
         .frame(minWidth: 480, minHeight: 360)
+        .modifier(ShowFileMergeFlow(document: viewModel.document,
+                                    showSheet: $incomingReviewSheet,
+                                    report: $incomingReviewReport,
+                                    onFinished: { viewModel.finishIncomingShowChangesReview() }))
         .navigationTitle("Edit Layout")
         .onAppear {
             if viewModel.pendingDetachTokens.remove("layout-editor") != nil {

@@ -264,6 +264,15 @@ struct ContentView: View {
             if viewModel.isSequenceLoaded && viewModel.isReadOnly {
                 ReadOnlyBanner { viewModel.saveAsRequestToken &+= 1 }
             }
+            if let update = viewModel.showFileUpdate {
+                ShowFileUpdateBanner(update: update,
+                                     onReview: {
+                                         if viewModel.reviewIncomingShowChanges() {
+                                             viewModel.showFileMergeSheet = true
+                                         }
+                                     },
+                                     onDismiss: { viewModel.showFileUpdate = nil })
+            }
             Group {
                 if !viewModel.isShowFolderLoaded {
                     ShowFolderSetupView(showFolderConfig: $showFolderConfig)
@@ -682,9 +691,13 @@ struct ContentView: View {
                                                        set: { viewModel.showFileMergeSheet = $0 }),
                                     report: Binding(get: { viewModel.showFileMergeReport },
                                                     set: { viewModel.showFileMergeReport = $0 }),
-                                    onFinished: { viewModel.reloadPresets() }))
+                                    onFinished: {
+                                        viewModel.reloadPresets()
+                                        viewModel.finishIncomingShowChangesReview()
+                                    }))
         .modifier(SequenceAutosaveRecoveryModifier(viewModel: viewModel,
                                                    offer: $autosaveRecovery))
+        .modifier(ShowFolderNoticesModifier(viewModel: viewModel))
         // F-1 scene title — propagates to the iPadOS 26 Window menu's
         // "Open Windows" listing. Without this, the nested
         // `SequencePickerView` NavigationStack title ("Sequences")

@@ -27,6 +27,7 @@
 #include "render/UndoManager.h"
 #include "utils/LayoutObjectId.h"
 #include "utils/LayoutRecords.h"
+#include "utils/LayoutRenameLog.h"
 #include "utils/ShowFileMerge.h"
 
 #include <algorithm>
@@ -254,7 +255,11 @@ LayoutChanges ApplyLayout(xLightsShowContext& ctx, const pugi::xml_document& min
         changes.viewsReloaded = true;
     }
 
-    static const std::set<std::string> handled = { "models", "modelGroups", "view_objects", "modelSets", "views" };
+    if (!SectionEqual(rm.child(LayoutRenameHints::SECTION), rr.child(LayoutRenameHints::SECTION))) {
+        ctx._renameHints.Load(rr.child(LayoutRenameHints::SECTION));
+    }
+
+    static const std::set<std::string> handled = { "models", "modelGroups", "view_objects", "modelSets", "views", LayoutRenameHints::SECTION };
     std::set<std::string> sections;
     for (pugi::xml_node n : rm.children()) {
         if (n.type() == pugi::node_element) sections.insert(n.name());
@@ -397,15 +402,35 @@ int ApplySequenceChanges(xLightsShowContext& ctx, const std::vector<ShowSaveMerg
     return dropped;
 }
 
-bool ReloadControllers(xLightsShowContext& ctx) {
+namespace {
+
+bool Reload(xLightsShowContext& ctx, const std::string* text, bool keepRenameLog) {
     OutputManager& om = ctx._outputManager;
     const bool wasOutputting = om.IsOutputting();
     if (wasOutputting) om.StopOutput();
-    const bool ok = om.Load(ctx.showDirectory);
+    // Loading drops the controller renames still waiting to reach the layout
+    // file's rename hints; keep them first.
+    ctx._renameHints.Absorb(LayoutRenameHints::TYPE_CONTROLLER, om.GetRenameLog().TakeUnpersisted());
+    std::vector<LayoutRenameLog::Entry> renames;
+    if (keepRenameLog) renames = om.GetRenameLog().Entries();
+    const bool ok = text ? om.LoadFromText(ctx.showDirectory, *text) : om.Load(ctx.showDirectory);
+    for (const auto& [from, to] : renames) om.GetRenameLog().Record(from, to);
+    // Re-recording queues them as unsaved hints again; they were kept above.
+    (void)om.GetRenameLog().TakeUnpersisted();
     ctx.AllModels.RecalcStartChannels();
     if (wasOutputting) om.StartOutput();
     if (!ok) spdlog::error("ShowMergeApply: reloading the controllers from {} failed", ctx.showDirectory);
     return ok;
+}
+
+} // namespace
+
+bool ReloadControllers(xLightsShowContext& ctx) {
+    return Reload(ctx, nullptr, false);
+}
+
+bool ReloadControllers(xLightsShowContext& ctx, const std::string& text, bool keepRenameLog) {
+    return Reload(ctx, &text, keepRenameLog);
 }
 
 std::vector<std::string> ModelCheckMessages(xLightsShowContext& ctx) {

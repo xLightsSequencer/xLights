@@ -306,6 +306,10 @@ static std::string SequenceAutosavePathFor(NSString* xsqPath) {
 
     // Open -beginEditCapture: capture, if any.
     std::unique_ptr<SequenceEditCapture> _editCapture;
+    // An in-progress song-structure boundary drag (live until it ends)
+    // and the index of the region whose start is being dragged.
+    std::unique_ptr<SongStructureLiveEdit> _songBoundaryDrag;
+    int _songBoundaryDragRegion;
 }
 
 // Block signature for the Swift-side password prompt. The bridge
@@ -717,6 +721,9 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
 }
 
 - (void)closeSequence {
+    // A drag still open belongs to the sequence being closed: drop it
+    // (putting the song structure back) before the sequence goes.
+    _songBoundaryDrag.reset();
     // A failed drain leaks the sequence storage rather than freeing it under the
     // live workers; nothing below writes to it, so closing is still safe.
     (void)_context->CloseSequence();
@@ -1702,7 +1709,10 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) return NO;
     TimingElement* te = dynamic_cast<TimingElement*>(row->element);
     if (!te || !te->IsFixedTiming()) return NO;
-    ElementEdits::SetTimingFixed(_context->GetSequenceElements(), te, 0, false);
+    {
+        ScopedCommandBatch step(_context->GetSequenceElements(), "Make Timing Track Variable");
+        ElementEdits::SetTimingFixed(_context->GetSequenceElements(), te, 0);
+    }
     _context->GetSequenceElements().PopulateRowInformation();
     return YES;
 }
@@ -1786,8 +1796,8 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     std::vector<std::string> filenames;
     filenames.push_back(std::string([path UTF8String]));
     {
-        // Undo for imports is the Swift side's; record no core step.
-        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing", false);
+        // One core undo step; the Swift side registers it.
+        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing");
         sf->ProcessXTiming(filenames, _context.get());
     }
     int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
@@ -1808,7 +1818,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (!sf) return 0;
     int countBefore = _context->GetSequenceElements().GetNumberOfTimingElements();
     {
-        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing", false);
+        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing");
         sf->ProcessLorTiming({ std::string([path UTF8String]) }, _context.get());
     }
     int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
@@ -1827,7 +1837,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (!sf) return 0;
     int countBefore = _context->GetSequenceElements().GetNumberOfTimingElements();
     {
-        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing", false);
+        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing");
         sf->ProcessPapagayo({ std::string([path UTF8String]) }, _context.get());
     }
     int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
@@ -1850,7 +1860,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (!sf) return 0;
     int countBefore = _context->GetSequenceElements().GetNumberOfTimingElements();
     {
-        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing", false);
+        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing");
         process(sf);
     }
     int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
@@ -2598,7 +2608,12 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     // immediately after self — which leaves order unchanged).
     if (destElemIdx == srcElemIdx || destElemIdx == srcElemIdx + 1) return NO;
 
-    ElementEdits::MoveElement(se, srcElemIdx, destElemIdx, view, false);
+    {
+        // A master-view move is one core undo step; other views are
+        // per-user and move without one.
+        ScopedCommandBatch step(se, "Move Row");
+        ElementEdits::MoveElement(se, srcElemIdx, destElemIdx, view);
+    }
     se.PopulateRowInformation();
     return YES;
 }
@@ -2826,7 +2841,10 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (se.ElementExists(newStr)) return NO;
     std::string oldStr = row->element->GetName();
     if (oldStr == newStr) return YES;
-    ElementEdits::RenameTimingTrack(se, oldStr, newStr, false);
+    {
+        ScopedCommandBatch step(se, "Rename Timing Track");
+        ElementEdits::RenameTimingTrack(se, oldStr, newStr);
+    }
     se.PopulateRowInformation();
     return YES;
 }
@@ -2839,13 +2857,14 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     // Some effect settings reference the timing track by name; abort
     // in-flight render before the element disappears.
     _context->AbortRender(5000);
-    ElementEdits::DeleteElement(_context->GetSequenceElements(), name, false);
-    return YES;
+    ScopedCommandBatch step(_context->GetSequenceElements(), "Delete Timing Track");
+    return ElementEdits::DeleteElement(_context->GetSequenceElements(), name) ? YES : NO;
 }
 
 - (BOOL)addTimingTrackNamed:(NSString*)name {
     if (!name || name.length == 0) return NO;
     std::string n([name UTF8String]);
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track");
     TimingElement* e = _context->AddTimingElement(n, "");
     return e != nullptr;
 }
@@ -2858,7 +2877,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     std::string n = name ? std::string([name UTF8String]) : std::string();
     if (n.empty()) n = "Timing";
 
-    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track", false);
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track");
     if (intervalMS > 0) {
         sf->AddFixedTimingSection(n, intervalMS, _context.get());
     } else {
@@ -2890,7 +2909,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
             tagVec.emplace_back([t UTF8String]);
         }
     }
-    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track", false);
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track");
     sf->AddMetronomeLabelTimingSection(n, intervalMS, tagVec, _context.get(),
                                         minIntervalMS, randomize ? true : false);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
@@ -2907,7 +2926,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     std::string st = subType ? std::string([subType UTF8String]) : std::string();
     if (st != "FPP Commands" && st != "FPP Effects") return @"";
 
-    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track", false);
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track");
     sf->AddNewTimingSection(n, _context.get(), st);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
     return [NSString stringWithUTF8String:n.c_str()];
@@ -2925,7 +2944,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     std::string trackName = (name && name.length > 0)
         ? std::string([name UTF8String])
         : std::string("AutoGen");
-    NewElementsRecorder recorder(_context->GetSequenceElements(), "Generate AI Lyrics", false);
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Generate AI Lyrics");
     TimingElement* element = _context->AddTimingElement(trackName, "");
     if (!element) return @"";
 
@@ -3017,7 +3036,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     std::string trackName = (name && name.length > 0)
         ? std::string([name UTF8String])
         : std::string("Notes");
-    NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Notes", false);
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Notes");
     TimingElement* element = _context->AddTimingElement(trackName, "");
     if (!element) return @"";
     EffectLayer* layer = element->GetEffectLayer(0);
@@ -3326,14 +3345,15 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
                    ? _context->GetSequenceFile()->GetSequenceDurationMS()
                    : 0;
     if (duration > 0 && position > duration) position = duration;
-    ElementEdits::SetTagPosition(_context->GetSequenceElements(), index, position, false);
+    ScopedCommandBatch step(_context->GetSequenceElements(), position < 0 ? "Clear Tag" : "Set Tag");
+    ElementEdits::SetTagPosition(_context->GetSequenceElements(), index, position);
 }
 
 - (void)clearAllTags {
     auto& se = _context->GetSequenceElements();
     ScopedCommandBatch batch(se, "Delete All Tags");
     for (int i = 0; i < SequenceElements::TagCount; ++i) {
-        ElementEdits::SetTagPosition(se, i, -1, false);
+        ElementEdits::SetTagPosition(se, i, -1);
     }
 }
 
@@ -4035,6 +4055,15 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         }
         if (autoMapped) continue;
         [out addObject:[NSString stringWithUTF8String:name.c_str()]];
+    }
+    return out;
+}
+
+- (NSArray<NSString*>*)autoMappedModelRenames {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded()) return out;
+    for (const auto& [from, to] : _context->_autoMappedModels) {
+        [out addObject:[NSString stringWithUTF8String:(from + " \u2192 " + to).c_str()]];
     }
     return out;
 }
@@ -5761,6 +5790,75 @@ static ShowFileMerge::Resolution XLMergeResolution(NSInteger r) {
     if (_context) _context->CancelShowFileMerge();
 }
 
+static NSDictionary<NSString*, id>* XLIncomingResult(iPadRenderContext::IncomingShowChanges state, const std::string& banner) {
+    NSInteger code = 0;
+    switch (state) {
+        case iPadRenderContext::IncomingShowChanges::None: code = 0; break;
+        case iPadRenderContext::IncomingShowChanges::Applied: code = 1; break;
+        case iPadRenderContext::IncomingShowChanges::NeedsDecisions: code = 2; break;
+        case iPadRenderContext::IncomingShowChanges::CannotMerge: code = 3; break;
+        case iPadRenderContext::IncomingShowChanges::Cleared: code = 4; break;
+    }
+    return @{ @"state": @(code), @"banner": XLMergeString(banner) };
+}
+
+- (NSDictionary<NSString*, id>*)checkShowFilesOnDisk {
+    if (!_context) return XLIncomingResult(iPadRenderContext::IncomingShowChanges::None, std::string());
+    std::string banner;
+    auto state = _context->CheckShowFilesOnDisk(&banner);
+    if (state == iPadRenderContext::IncomingShowChanges::Applied && _context->IsSequenceLoaded()) {
+        [self postViewsChanged];
+    }
+    return XLIncomingResult(state, banner);
+}
+
+- (NSDictionary<NSString*, id>*)reviewIncomingShowChanges {
+    if (!_context) return XLIncomingResult(iPadRenderContext::IncomingShowChanges::None, std::string());
+    std::string banner;
+    auto state = _context->ReviewIncomingShowChanges(&banner);
+    if (state == iPadRenderContext::IncomingShowChanges::Applied && _context->IsSequenceLoaded()) {
+        [self postViewsChanged];
+    }
+    return XLIncomingResult(state, banner);
+}
+
+- (BOOL)isShowFileMergeLive {
+    return _context && _context->IsShowFileMergeLive() ? YES : NO;
+}
+
+- (void)stopWatchingShowFiles {
+    if (_context) _context->StopWatchingShowFiles();
+}
+
+- (NSArray<NSDictionary<NSString*, id>*>*)conflictedCopies {
+    NSMutableArray* out = [NSMutableArray array];
+    if (!_context) return out;
+    for (const auto& f : _context->FindConflictedCopies()) {
+        [out addObject:@{ @"path": XLMergeString(f.copyPath),
+                          @"name": XLMergeString(std::filesystem::path(f.copyPath).filename().string()),
+                          @"file": XLMergeString(std::filesystem::path(f.realPath).filename().string()),
+                          @"client": XLMergeString(f.client),
+                          @"sameAsCurrent": @(f.sameAsCurrent) }];
+    }
+    return out;
+}
+
+- (BOOL)ignoreConflictedCopy:(NSString*)path {
+    if (!_context || !path) return NO;
+    return _context->IgnoreConflictedCopy(path.UTF8String) ? YES : NO;
+}
+
+- (NSString*)prepareConflictedCopyMerge:(NSString*)path {
+    if (!_context || !path) return @"No show is open.";
+    std::string error;
+    if (_context->PrepareConflictedCopyMerge(path.UTF8String, &error)) return nil;
+    return XLMergeString(error.empty() ? std::string("The conflicted copy cannot be merged.") : error);
+}
+
+- (BOOL)showFileMergeIsConflictedCopy {
+    return _context && _context->PendingMergeIsConflictedCopy() ? YES : NO;
+}
+
 - (NSString*)axisToolForModel:(NSString*)modelName {
     if (!_context || !modelName || modelName.length == 0) return @"none";
     Model* m = _context->GetModelManager()[modelName.UTF8String];
@@ -6232,7 +6330,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
             const std::string& en = eff->GetEffectName();
             if (en != "Faces" && en != "CoroFaces") continue;
             if (eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "") == oldName) {
-                se.GetCommandExecutor().SetEffectSetting(eff, "E_CHOICE_Faces_FaceDefinition", newName, false);
+                se.GetCommandExecutor().SetEffectSetting(eff, "E_CHOICE_Faces_FaceDefinition", newName);
             }
         }
     };
@@ -6261,7 +6359,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     if (faces.GetFace(n) != nullptr) return NO;
     std::map<std::string, std::string> def;
     def["ImagePlacement"] = "Scaled";
-    ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.SetFace(n, def); }, false);
+    ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.SetFace(n, def); });
     bumpSequenceDirty(_context.get());
     return YES;
 }
@@ -6270,7 +6368,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     if (!_context || !_context->IsSequenceLoaded() || name.length == 0) return NO;
     _context->AbortRender(5000);
     std::string n([name UTF8String]);
-    bool ok = ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.RemoveFace(n); }, false);
+    bool ok = ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.RemoveFace(n); });
     if (ok) bumpSequenceDirty(_context.get());
     return ok;
 }
@@ -6282,7 +6380,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     std::string newN([newName UTF8String]);
     auto& se = _context->GetSequenceElements();
     ScopedCommandBatch batch(se, "Rename Sequence Face");
-    if (!ElementEdits::EditSequenceFaces(se, [&](SequenceFaces& f) { f.RenameFace(oldN, newN); }, false)) return NO;
+    if (!ElementEdits::EditSequenceFaces(se, [&](SequenceFaces& f) { f.RenameFace(oldN, newN); })) return NO;
     repointSequenceFaceReferences(_context.get(), oldN, newN);
     bumpSequenceDirty(_context.get());
     return YES;
@@ -6298,7 +6396,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     std::string value = path != nil ? std::string([path UTF8String]) : std::string();
     def[std::string([key UTF8String])] = value;
     _context->AbortRender(5000);
-    ElementEdits::EditSequenceFaces(elements, [&](SequenceFaces& f) { f.SetFace(n, def); }, false);
+    ElementEdits::EditSequenceFaces(elements, [&](SequenceFaces& f) { f.SetFace(n, def); });
     if (!value.empty()) {
         auto& media = elements.GetSequenceMedia();
         // register (lazily) so the Media tab lists/embeds it and flag it
@@ -6320,7 +6418,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     const auto* cur = faces.GetFace(n);
     std::map<std::string, std::string> def = cur != nullptr ? *cur : std::map<std::string, std::string>();
     def["ImagePlacement"] = placement != nil ? std::string([placement UTF8String]) : std::string("Scaled");
-    ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.SetFace(n, def); }, false);
+    ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.SetFace(n, def); });
     bumpSequenceDirty(_context.get());
     return YES;
 }
@@ -6355,7 +6453,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     if (it == m->GetFaceInfo().end()) return NO;
     auto ti = it->second.find("Type");
     if (ti == it->second.end() || ti->second != "Matrix") return NO; // Matrix-only
-    ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.SetFace(fn, it->second); }, false);
+    ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.SetFace(fn, it->second); });
     auto& media = _context->GetSequenceElements().GetSequenceMedia();
     for (const auto& [key, value] : it->second) {
         if (SequenceFaces::IsImageKey(key) && !value.empty()) {
@@ -20942,6 +21040,16 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
 }
 } // namespace
 
+// One song-structure edit as one core undo step named `label` (none when it
+// changes nothing); the Swift side registers the step.
+static bool EditSongStructureStep(SequenceElements& se, const char* label,
+                                  const std::function<void(SongStructureManager&)>& edit) {
+    ScopedCommandBatch step(se, label);
+    bool changed = ElementEdits::EditSongStructure(se, edit);
+    if (changed) se.IncrementChangeCount(nullptr);
+    return changed;
+}
+
 @implementation XLSequenceDocument (EffectPresets)
 
 - (NSArray<NSDictionary*>*)presetTree {
@@ -21461,8 +21569,7 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
 - (NSInteger)addSongStructureView:(NSString*)name {
     int idx = -1;
     std::string n = name ? std::string([name UTF8String]) : std::string("View");
-    ElementEdits::EditSongStructure(_context->GetSequenceElements(), [&](SongStructureManager& m) { idx = m.AddView(n); }, false);
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    EditSongStructureStep(_context->GetSequenceElements(), "Add Song View", [&](SongStructureManager& m) { idx = m.AddView(n); });
     return idx;
 }
 
@@ -21470,44 +21577,78 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
                                        withName:(NSString*)name {
     int idx = -1;
     std::string n = name ? std::string([name UTF8String]) : std::string("Copy");
-    ElementEdits::EditSongStructure(_context->GetSequenceElements(), [&](SongStructureManager& m) { idx = m.DuplicateView((int)sourceIndex, n); }, false);
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    EditSongStructureStep(_context->GetSequenceElements(), "Duplicate Song View", [&](SongStructureManager& m) { idx = m.DuplicateView((int)sourceIndex, n); });
     return idx;
 }
 
 - (void)renameSongStructureViewAtIndex:(NSInteger)index toName:(NSString*)name {
     if (!name) return;
     std::string n([name UTF8String]);
-    ElementEdits::EditSongStructure(_context->GetSequenceElements(), [&](SongStructureManager& m) { m.RenameView((int)index, n); }, false);
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    EditSongStructureStep(_context->GetSequenceElements(), "Rename Song View", [&](SongStructureManager& m) { m.RenameView((int)index, n); });
 }
 
 - (void)deleteSongStructureViewAtIndex:(NSInteger)index {
-ElementEdits::EditSongStructure(_context->GetSequenceElements(), [&](SongStructureManager& m) { m.DeleteView((int)index); }, false);
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    EditSongStructureStep(_context->GetSequenceElements(), "Delete Song View", [&](SongStructureManager& m) { m.DeleteView((int)index); });
 }
 
 - (void)addSongStructureBoundaryAtMS:(int)timeMS {
     auto& se = _context->GetSequenceElements();
-    ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) {
+    EditSongStructureStep(se, "Add Song Boundary", [&](SongStructureManager& m) {
         if (m.GetViewCount() == 0) {
             m.SetActiveView(m.AddView("Default"));
         }
         m.AddBoundary(timeMS, se.GetSequenceEnd());
-    }, false);
-    se.IncrementChangeCount(nullptr);
+    });
 }
 
 - (void)deleteSongStructureBoundaryNearMS:(int)timeMS {
-    auto& se = _context->GetSequenceElements();
-ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.DeleteBoundary(timeMS); }, false);
-    se.IncrementChangeCount(nullptr);
+    EditSongStructureStep(_context->GetSequenceElements(), "Delete Song Boundary", [&](SongStructureManager& m) { m.DeleteBoundary(timeMS); });
 }
 
 - (void)moveSongStructureBoundaryFromMS:(int)oldTimeMS toMS:(int)newTimeMS {
+    EditSongStructureStep(_context->GetSequenceElements(), "Move Song Boundary", [&](SongStructureManager& m) { m.MoveBoundary(oldTimeMS, newTimeMS); });
+}
+
+- (int)beginSongStructureBoundaryDragNearMS:(int)timeMS toleranceMS:(int)toleranceMS {
+    if (!_context || !_context->IsSequenceLoaded()) return -1;
     auto& se = _context->GetSequenceElements();
-ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.MoveBoundary(oldTimeMS, newTimeMS); }, false);
-    se.IncrementChangeCount(nullptr);
+    _songBoundaryDrag.reset();
+    const auto& ssm = se.GetSongStructureManager();
+    int boundary = ssm.FindNearestBoundary(timeMS, toleranceMS);
+    if (boundary < 0) return -1;
+    _songBoundaryDragRegion = -1;
+    for (size_t i = 1; i < ssm.GetRegionCount(); ++i) {
+        if (ssm.GetRegion(i).startTimeMS == boundary) {
+            _songBoundaryDragRegion = (int)i;
+            break;
+        }
+    }
+    if (_songBoundaryDragRegion < 0) return -1;
+    _songBoundaryDrag = std::make_unique<SongStructureLiveEdit>(se);
+    return boundary;
+}
+
+- (int)updateSongStructureBoundaryDragToMS:(int)timeMS {
+    if (!_songBoundaryDrag) return -1;
+    auto& se = _context->GetSequenceElements();
+    const auto& ssm = se.GetSongStructureManager();
+    size_t i = (size_t)_songBoundaryDragRegion;
+    if (i >= ssm.GetRegionCount()) return -1;
+    int newMS = RoundToMultipleOfPeriod(timeMS, se.GetFrequency());
+    _songBoundaryDrag->Apply([&](SongStructureManager& m) { m.MoveBoundary(m.GetRegion(i).startTimeMS, newMS); });
+    return ssm.GetRegion(i).startTimeMS;
+}
+
+- (BOOL)endSongStructureBoundaryDrag {
+    if (!_songBoundaryDrag) return NO;
+    bool changed = _songBoundaryDrag->Commit("Move Song Boundary");
+    _songBoundaryDrag.reset();
+    if (changed) _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return changed ? YES : NO;
+}
+
+- (void)cancelSongStructureBoundaryDrag {
+    _songBoundaryDrag.reset();
 }
 
 - (int)nearestSongStructureBoundaryToMS:(int)timeMS toleranceMS:(int)toleranceMS {
@@ -21520,8 +21661,7 @@ ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.MoveBoundar
     for (size_t i = 0; i < ssm.GetRegionCount(); ++i) {
         if (ssm.GetRegion(i).id == regionID) {
             std::string n = name ? std::string([name UTF8String]) : std::string();
-            ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.SetRegionName(i, n); }, false);
-            se.IncrementChangeCount(nullptr);
+            EditSongStructureStep(se, "Rename Song Region", [&](SongStructureManager& m) { m.SetRegionName(i, n); });
             return;
         }
     }
@@ -21532,8 +21672,7 @@ ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.MoveBoundar
     auto& ssm = se.GetSongStructureManager();
     for (size_t i = 0; i < ssm.GetRegionCount(); ++i) {
         if (ssm.GetRegion(i).id == regionID) {
-ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.SetRegionColor(i, colorARGB); }, false);
-            se.IncrementChangeCount(nullptr);
+            EditSongStructureStep(se, "Recolor Song Region", [&](SongStructureManager& m) { m.SetRegionColor(i, colorARGB); });
             return;
         }
     }
@@ -21579,12 +21718,11 @@ ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.SetRegionCo
         regions.emplace_back(regionId++, lastEndMS, seqEndMS, "", 0x40808080);
     }
 
-    ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) {
+    EditSongStructureStep(se, "Create Song Regions", [&](SongStructureManager& m) {
         m.Clear();
         m.SetActiveView(m.AddView("Default"));
         m.SetRegions(regions);
-    }, false);
-    se.IncrementChangeCount(nullptr);
+    });
     return (NSInteger)regions.size();
 }
 

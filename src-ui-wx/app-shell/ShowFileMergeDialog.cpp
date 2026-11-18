@@ -27,10 +27,10 @@ bool IsDeletion(const ShowFileMerge::Conflict& c) {
     return c.kind == ShowFileMerge::ConflictKind::DeletedWithEffects;
 }
 
-wxString ChoiceText(const ShowFileMerge::Conflict& c) {
+wxString ChoiceText(const ShowFileMerge::Conflict& c, const ShowFileMergeDialog::Labels& labels) {
     switch (c.resolution) {
-    case Resolution::Mine: return IsDeletion(c) ? "Keep model" : "Mine";
-    case Resolution::Theirs: return IsDeletion(c) ? "Delete" : "Theirs";
+    case Resolution::Mine: return IsDeletion(c) ? wxString("Keep model") : wxString::FromUTF8(labels.mine);
+    case Resolution::Theirs: return IsDeletion(c) ? wxString("Delete") : wxString::FromUTF8(labels.theirs);
     case Resolution::KeepBoth: return "Keep both";
     case Resolution::Map: return wxString::FromUTF8("Map to " + c.mapTarget);
     case Resolution::Unresolved: break;
@@ -45,14 +45,12 @@ wxTextCtrl* ValueBox(wxWindow* parent) {
 
 } // namespace
 
-ShowFileMergeDialog::ShowFileMergeDialog(wxWindow* parent, ShowSaveMerge::Plan& plan) :
+ShowFileMergeDialog::ShowFileMergeDialog(wxWindow* parent, ShowSaveMerge::Plan& plan, const Labels& labels) :
     wxDialog(parent, wxID_ANY, "Merge Changes", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-    _plan(plan) {
+    _plan(plan),
+    _labels(labels) {
     auto* top = new wxBoxSizer(wxVERTICAL);
-    top->Add(new wxStaticText(this, wxID_ANY,
-                              "Someone else saved changes to the same things you changed. Choose which version to keep for each one.\n"
-                              "Everything else you and they changed is merged."),
-             0, wxALL | wxEXPAND, 8);
+    top->Add(new wxStaticText(this, wxID_ANY, wxString::FromUTF8(_labels.intro)), 0, wxALL | wxEXPAND, 8);
 
     _list = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(720, 220), wxLC_REPORT | wxLC_SINGLE_SEL);
     _list->AppendColumn("File", wxLIST_FORMAT_LEFT, 150);
@@ -67,8 +65,8 @@ ShowFileMergeDialog::ShowFileMergeDialog(wxWindow* parent, ShowSaveMerge::Plan& 
     values->AddGrowableCol(2);
     values->AddGrowableRow(1);
     values->Add(new wxStaticText(this, wxID_ANY, "Before either change"));
-    values->Add(new wxStaticText(this, wxID_ANY, "Yours"));
-    values->Add(new wxStaticText(this, wxID_ANY, "Theirs (saved on disk)"));
+    values->Add(new wxStaticText(this, wxID_ANY, wxString::FromUTF8(_labels.mineColumn)));
+    values->Add(new wxStaticText(this, wxID_ANY, wxString::FromUTF8(_labels.theirsColumn)));
     _base = ValueBox(this);
     _mine = ValueBox(this);
     _theirs = ValueBox(this);
@@ -78,11 +76,11 @@ ShowFileMergeDialog::ShowFileMergeDialog(wxWindow* parent, ShowSaveMerge::Plan& 
     top->Add(values, 0, wxALL | wxEXPAND, 8);
 
     auto* pick = new wxBoxSizer(wxHORIZONTAL);
-    _useMine = new wxButton(this, wxID_ANY, "Keep Mine");
-    _useTheirs = new wxButton(this, wxID_ANY, "Keep Theirs");
+    _useMine = new wxButton(this, wxID_ANY, wxString::FromUTF8("Keep " + _labels.mine));
+    _useTheirs = new wxButton(this, wxID_ANY, wxString::FromUTF8("Keep " + _labels.theirs));
     _keepBoth = new wxButton(this, wxID_ANY, "Keep Both");
-    auto* allMine = new wxButton(this, wxID_ANY, "All Mine");
-    auto* allTheirs = new wxButton(this, wxID_ANY, "All Theirs");
+    auto* allMine = new wxButton(this, wxID_ANY, wxString::FromUTF8("All " + _labels.mine));
+    auto* allTheirs = new wxButton(this, wxID_ANY, wxString::FromUTF8("All " + _labels.theirs));
     pick->Add(_useMine, 0, wxRIGHT, 4);
     pick->Add(_useTheirs, 0, wxRIGHT, 4);
     pick->Add(_keepBoth, 0, wxRIGHT, 16);
@@ -94,7 +92,7 @@ ShowFileMergeDialog::ShowFileMergeDialog(wxWindow* parent, ShowSaveMerge::Plan& 
     auto* bottom = new wxBoxSizer(wxHORIZONTAL);
     _status = new wxStaticText(this, wxID_ANY, wxEmptyString);
     bottom->Add(_status, 1, wxALIGN_CENTER_VERTICAL);
-    _save = new wxButton(this, wxID_OK, "Save");
+    _save = new wxButton(this, wxID_OK, wxString::FromUTF8(_labels.ok));
     bottom->Add(new wxButton(this, wxID_CANCEL, "Cancel"), 0, wxRIGHT, 4);
     bottom->Add(_save, 0);
     top->Add(bottom, 0, wxALL | wxEXPAND, 8);
@@ -141,7 +139,7 @@ void ShowFileMergeDialog::Populate() {
         _list->InsertItem(row, wxString::FromUTF8(t.fileName));
         _list->SetItem(row, 1, wxString::FromUTF8(t.record));
         _list->SetItem(row, 2, wxString::FromUTF8(t.what));
-        _list->SetItem(row, 3, ChoiceText(_plan.GetConflict(ref)));
+        _list->SetItem(row, 3, ChoiceText(_plan.GetConflict(ref), _labels));
         ++row;
     }
     _list->Thaw();
@@ -235,8 +233,8 @@ void ShowFileMergeDialog::UpdateButtons() {
     auto refs = _plan.Conflicts();
     const bool has = sel >= 0 && (size_t)sel < refs.size();
     const bool deletion = has && IsDeletion(_plan.GetConflict(refs[sel]));
-    _useMine->SetLabel(deletion ? "Keep Model" : "Keep Mine");
-    _useTheirs->SetLabel(deletion ? "Delete Model && Effects" : "Keep Theirs");
+    _useMine->SetLabel(deletion ? wxString("Keep Model") : wxString::FromUTF8("Keep " + _labels.mine));
+    _useTheirs->SetLabel(deletion ? wxString("Delete Model && Effects") : wxString::FromUTF8("Keep " + _labels.theirs));
     _keepBoth->SetLabel(deletion ? "Map Effects To..." : "Keep Both");
     Layout();
     _useMine->Enable(has);

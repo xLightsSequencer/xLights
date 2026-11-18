@@ -134,7 +134,7 @@ class SequencerViewModel {
     /// `LoadViewObjects`. We serialize at the VM layer: a second request
     /// while a load is in flight is coalesced into `pendingLoadRequest`
     /// (latest wins) and fired when the current load terminates.
-    @ObservationIgnored private var loadInFlight = false
+    @ObservationIgnored private(set) var loadInFlight = false
 
     /// Non-nil while a show folder is loaded *temporarily* — i.e. via
     /// "Switch Temporarily", which loads a folder without persisting it
@@ -154,7 +154,7 @@ class SequencerViewModel {
     /// task in flight. Blocks re-entrant opens (e.g. a stray double-tap or
     /// a URL-handler racing the row tap) until the current open finishes
     /// and `applyOpenResult` has applied state on the main actor.
-    @ObservationIgnored private var openInFlight = false
+    @ObservationIgnored private(set) var openInFlight = false
 
     /// Post-load "missing model" reconciliation prompt. Populated by
     /// `performOpenSequence` after a successful open whenever the
@@ -164,6 +164,10 @@ class SequencerViewModel {
     /// outstanding prompt; flip back to nil after the user commits or
     /// cancels so the sheet dismisses.
     var missingModelPrompt: MissingModelPrompt?
+    /// Rows the open renamed from the layout's rename hints when nothing
+    /// else needs asking ("Old → New" lines); nil when there is nothing
+    /// to tell.
+    var renamedModelsNotice: String?
 
     /// B97: Find / Replace state. Search is over timing-mark labels
     /// only (matches desktop's intentional restriction in
@@ -252,6 +256,9 @@ class SequencerViewModel {
     var songActiveViewIndex: Int = -1
     /// Bumped whenever the region set changes so the Metal ruler redraws.
     var songStructureRevision: Int = 0
+    /// Bumped when an undo/redo changes the sequence face definitions so
+    /// an open Faces editor reloads.
+    var sequenceFacesRevision: Int = 0
     // True while a selection-scoped preview loop is advancing
     // `playPositionMS`. Observed by the preview panes so they keep their
     // MTKView display link running during scrub (not just real playback).
@@ -1270,6 +1277,10 @@ class SequencerViewModel {
             // directory; accepting reloads with the recovered file.
             let layoutOffer = document.checkLayoutAutosave()
             pendingLayoutAutosave = layoutOffer.kind == .noOffer ? nil : layoutOffer
+            // Conflicted copies a sync client left of the show files. Not
+            // while the autosave question is up; the next load offers them.
+            conflictedCopyOffers = pendingLayoutAutosave == nil ? ConflictedCopyOffer.load(document) : []
+            showConflictedCopies = !conflictedCopyOffers.isEmpty
             // Layout edits can happen with no sequence open, so the
             // autosave timer starts with the show folder, not the .xsq.
             startAutosaveTimer()
@@ -1679,8 +1690,15 @@ class SequencerViewModel {
     /// "oldname:" alias are already filtered out by the bridge.
     private func checkMissingModelsAfterOpen() {
         let missing = document.missingModelNamesWithEffects() as [String]
-        if missing.isEmpty { return }
-        missingModelPrompt = MissingModelPrompt(originalNames: missing)
+        let autoMapped = document.autoMappedModelRenames() as [String]
+        if missing.isEmpty {
+            if !autoMapped.isEmpty {
+                renamedModelsNotice = "Some models in this sequence were renamed in the layout since it was saved. Their rows were renamed to match:\n\n"
+                    + autoMapped.joined(separator: "\n") + "\n\nSave the sequence to keep the new names."
+            }
+            return
+        }
+        missingModelPrompt = MissingModelPrompt(originalNames: missing, autoMapped: autoMapped)
     }
 
     /// Apply each user decision from `MissingModelAliasSheet`. Renames
@@ -2212,7 +2230,16 @@ class SequencerViewModel {
     var pendingPresenceOpen: PresenceOpenWarning? = nil
     @ObservationIgnored private var presenceTimer: Timer?
 
+    /// Changes someone else saved to the shared show files (ShowFileWatch.swift).
+    var showFileUpdate: ShowFileUpdate? = nil
+    /// Bumped when their changes were brought into the open show.
+    var showFilesReloadToken = 0
+    @ObservationIgnored var showFileUpdateHideAt: Date?
+    @ObservationIgnored var showFileWatchTimer: Timer?
+    @ObservationIgnored var reviewingIncomingShowChanges = false
+
     func startPresenceTimer() {
+        startShowFileWatch()
         if presenceTimer == nil {
             presenceTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
                 MainActor.assumeIsolated { self?.tickPresence() }
@@ -2266,6 +2293,10 @@ class SequencerViewModel {
     /// session that wrote it. The UI shell presents the recovery
     /// choice; every answer clears it.
     var pendingLayoutAutosave: XLAutosaveOffer? = nil
+    /// Conflicted copies of the show files found at load, and whether
+    /// their sheet is up.
+    var conflictedCopyOffers: [ConflictedCopyOffer] = []
+    var showConflictedCopies = false
 
     /// Adopt the recovered layout: the bridge writes the autosave over
     /// the show file (keeping the current one as a copy first when
@@ -3072,24 +3103,29 @@ class SequencerViewModel {
     /// B34 — set tag `idx` (0..9) to `atMS`. Passing -1 clears the
     /// tag (but callers should use `clearTag(_:)` for readability).
     /// Marks the sequence dirty via the bridge write.
+    /// Each tag edit is one undoable step.
     func setTag(_ idx: Int, atMS: Int) {
         guard idx >= 0 && idx < 10 else { return }
-        document.setTagPosition(at: Int32(idx), positionMS: Int32(atMS))
+        performCoreUndoableEdit(atMS < 0 ? "Clear Tag" : "Set Tag", refresh: Self.refreshTags) {
+            document.setTagPosition(at: Int32(idx), positionMS: Int32(atMS))
+        }
         reloadTagPositions()
     }
 
     /// B34 — clear tag `idx` (sets position to -1).
     func clearTag(_ idx: Int) {
-        guard idx >= 0 && idx < 10 else { return }
-        document.setTagPosition(at: Int32(idx), positionMS: -1)
-        reloadTagPositions()
+        setTag(idx, atMS: -1)
     }
 
     /// B35 — clear all tags at once (desktop "Delete All").
     func clearAllTags() {
-        document.clearAllTags()
+        performCoreUndoableEdit("Delete All Tags", refresh: Self.refreshTags) {
+            document.clearAllTags()
+        }
         reloadTagPositions()
     }
+
+    private static let refreshTags: (SequencerViewModel) -> Void = { $0.reloadTagPositions() }
 
     // MARK: - #6268 Song Structure Regions
 
@@ -3213,18 +3249,60 @@ class SequencerViewModel {
         }
     }
 
-    func addSongBoundary(atMS ms: Int) {
-        document.addSongStructureBoundary(atMS: Int32(ms))
+    /// Song-structure edits are one undoable step each; undo/redo
+    /// reload the regions and view list.
+    private static let refreshSongStructure: (SequencerViewModel) -> Void = { $0.reloadSongStructure() }
+
+    @discardableResult
+    private func editSongStructure<T>(_ actionName: String, _ edit: () -> T) -> T {
+        let result = performCoreUndoableEdit(actionName, refresh: Self.refreshSongStructure, edit)
         reloadSongStructure()
+        return result
+    }
+
+    func addSongBoundary(atMS ms: Int) {
+        editSongStructure("Add Song Boundary") {
+            document.addSongStructureBoundary(atMS: Int32(ms))
+        }
     }
 
     func deleteSongBoundary(nearMS ms: Int) {
-        document.deleteSongStructureBoundary(nearMS: Int32(ms))
-        reloadSongStructure()
+        editSongStructure("Delete Song Boundary") {
+            document.deleteSongStructureBoundary(nearMS: Int32(ms))
+        }
     }
 
     func moveSongBoundary(fromMS oldMS: Int, toMS newMS: Int) {
-        document.moveSongStructureBoundary(fromMS: Int32(oldMS), toMS: Int32(newMS))
+        editSongStructure("Move Song Boundary") {
+            document.moveSongStructureBoundary(fromMS: Int32(oldMS), toMS: Int32(newMS))
+        }
+    }
+
+    /// Boundary drag (desktop TimeLine): the boundary moves live while
+    /// the finger moves and the whole gesture is one undo step.
+    /// `begin` returns the grabbed boundary's time or nil when none is
+    /// within `toleranceMS`; `update` returns where it landed. The
+    /// regions published to the views are only reloaded at the end, so
+    /// the drag source keeps its own live copy meanwhile.
+    func beginSongBoundaryDrag(nearMS ms: Int, toleranceMS: Int) -> Int? {
+        let t = Int(document.beginSongStructureBoundaryDrag(nearMS: Int32(ms),
+                                                            toleranceMS: Int32(toleranceMS)))
+        return t >= 0 ? t : nil
+    }
+
+    func updateSongBoundaryDrag(toMS ms: Int) -> Int? {
+        let t = Int(document.updateSongStructureBoundaryDrag(toMS: Int32(ms)))
+        return t >= 0 ? t : nil
+    }
+
+    func endSongBoundaryDrag() {
+        editSongStructure("Move Song Boundary") {
+            document.endSongStructureBoundaryDrag()
+        }
+    }
+
+    func cancelSongBoundaryDrag() {
+        document.cancelSongStructureBoundaryDrag()
         reloadSongStructure()
     }
 
@@ -3233,13 +3311,25 @@ class SequencerViewModel {
     }
 
     func setSongRegionName(id: Int, name: String) {
-        document.setSongStructureRegionName(forID: Int32(id), name: name)
-        reloadSongStructure()
+        editSongStructure("Rename Song Region") {
+            document.setSongStructureRegionName(forID: Int32(id), name: name)
+        }
     }
 
     func setSongRegionColor(id: Int, colorARGB: UInt32) {
-        document.setSongStructureRegionColor(forID: Int32(id), colorARGB: colorARGB)
-        reloadSongStructure()
+        editSongStructure("Recolor Song Region") {
+            document.setSongStructureRegionColor(forID: Int32(id), colorARGB: colorARGB)
+        }
+    }
+
+    /// The region editor's Done: name and color as one undo step.
+    func editSongRegion(id: Int, name: String, colorARGB: UInt32) {
+        editSongStructure("Edit Song Region") {
+            document.beginCommandBatch("Edit Song Region")
+            document.setSongStructureRegionName(forID: Int32(id), name: name)
+            document.setSongStructureRegionColor(forID: Int32(id), colorARGB: colorARGB)
+            document.endCommandBatch()
+        }
     }
 
     func setActiveSongView(index: Int) {
@@ -3249,7 +3339,9 @@ class SequencerViewModel {
 
     @discardableResult
     func addSongView(name: String) -> Int {
-        let idx = Int(document.addSongStructureView(name: name))
+        let idx = editSongStructure("Add Song View") {
+            Int(document.addSongStructureView(name: name))
+        }
         document.setSongStructureActiveView(index: idx)
         reloadSongStructure()
         return idx
@@ -3257,29 +3349,44 @@ class SequencerViewModel {
 
     @discardableResult
     func duplicateSongView(at index: Int, name: String) -> Int {
-        let idx = Int(document.duplicateSongStructureView(at: index, name: name))
+        let idx = editSongStructure("Duplicate Song View") {
+            Int(document.duplicateSongStructureView(at: index, name: name))
+        }
         document.setSongStructureActiveView(index: idx)
         reloadSongStructure()
         return idx
     }
 
     func renameSongView(at index: Int, name: String) {
-        document.renameSongStructureView(at: index, name: name)
-        reloadSongStructure()
+        editSongStructure("Rename Song View") {
+            document.renameSongStructureView(at: index, name: name)
+        }
     }
 
     func deleteSongView(at index: Int) {
-        document.deleteSongStructureView(at: index)
-        reloadSongStructure()
+        editSongStructure("Delete Song View") {
+            document.deleteSongStructureView(at: index)
+        }
     }
 
     /// Build regions from the timing marks on `rowIndex` (desktop
     /// "Create Song Regions from Timing Track"). Returns regions created.
     @discardableResult
     func createSongRegionsFromTimingRow(_ rowIndex: Int) -> Int {
-        let n = Int(document.createSongRegionsFromTimingRow(Int32(rowIndex)))
-        reloadSongStructure()
-        return n
+        editSongStructure("Create Song Regions") {
+            Int(document.createSongRegionsFromTimingRow(Int32(rowIndex)))
+        }
+    }
+
+    /// Sequence-face edits (Sequence Settings > Faces): one undo step
+    /// each. Undo and redo re-render the Faces effects that use `names`
+    /// and bump `sequenceFacesRevision`.
+    @discardableResult
+    func editSequenceFaces<T>(_ actionName: String, touching names: [String], _ edit: () -> T) -> T {
+        performCoreUndoableEdit(actionName, refresh: { vm in
+            vm.sequenceFacesRevision &+= 1
+            vm.document.reRenderSequenceFaceEffects(names)
+        }, edit)
     }
 
     /// B34 — jump the play head to tag `idx` (no-op if unset).
@@ -4661,32 +4768,15 @@ class SequencerViewModel {
     /// timing track). `srcRowIndex` / `destBeforeRowIndex` are visible
     /// row indices; the source element lands immediately before the
     /// destination element (`destBeforeRowIndex == rows.count` drops at
-    /// the end). Undo is recorded by snapshotting the source element's
-    /// name + its original successor and restoring that exact order, so
-    /// the move survives row reloads.
+    /// the end). In the master view the move is one core undo step; in
+    /// other views the order is per-user, like desktop, and not undoable.
     func moveTopLevelRow(from srcRowIndex: Int, toBefore destBeforeRowIndex: Int) {
         guard srcRowIndex >= 0, srcRowIndex < rows.count else { return }
-        let srcName = document.rowModelName(at: Int32(srcRowIndex))
-        guard !srcName.isEmpty else { return }
-        let origSuccessor = document.topLevelElementName(after: srcName) ?? ""
-
-        guard document.moveTopLevelRow(from: Int32(srcRowIndex),
-                                       toBefore: Int32(destBeforeRowIndex)) else { return }
-        reloadRows()
-        undoManager.registerUndo(withTarget: self) { vm in
-            vm.restoreTopLevelOrder(moving: srcName, beforeName: origSuccessor)
+        let moved = performCoreUndoableEdit("Move Row") {
+            document.moveTopLevelRow(from: Int32(srcRowIndex),
+                                     toBefore: Int32(destBeforeRowIndex))
         }
-        undoManager.setActionName("Move Row")
-    }
-
-    private func restoreTopLevelOrder(moving name: String, beforeName: String) {
-        let curSuccessor = document.topLevelElementName(after: name) ?? ""
-        guard document.moveTopLevelElement(named: name, beforeNamed: beforeName) else { return }
-        reloadRows()
-        undoManager.registerUndo(withTarget: self) { vm in
-            vm.restoreTopLevelOrder(moving: name, beforeName: curSuccessor)
-        }
-        undoManager.setActionName("Move Row")
+        if moved { reloadRows() }
     }
 
     /// B55: convert effects on the row's element from "Per Preview" /
@@ -5436,29 +5526,19 @@ class SequencerViewModel {
                     return
                 }
 
-                let trackName = doc.addLyricTimingTrack(
-                    named: name,
-                    words: words,
-                    startMS: starts.map { NSNumber(value: $0) },
-                    endMS: ends.map { NSNumber(value: $0) })
+                let trackName = self.performCoreUndoableEdit("Generate AI Lyrics") {
+                    doc.addLyricTimingTrack(
+                        named: name,
+                        words: words,
+                        startMS: starts.map { NSNumber(value: $0) },
+                        endMS: ends.map { NSNumber(value: $0) })
+                }
                 if trackName.isEmpty {
                     completion("Couldn't create the lyric timing track.")
                     return
                 }
 
                 self.reloadRows()
-                self.undoManager.registerUndo(withTarget: self) { vm in
-                    // Find and delete the freshly-added track on undo.
-                    let tIdx = (vm.document.timingRowIndices() as [NSNumber]).map { $0.intValue }
-                    for i in tIdx {
-                        if i < vm.rows.count, vm.rows[i].timing?.elementName == trackName {
-                            _ = vm.document.deleteTimingTrack(at: Int32(i))
-                            vm.reloadRows()
-                            return
-                        }
-                    }
-                }
-                self.undoManager.setActionName("Generate AI Lyrics")
                 completion(nil)
             }
         }
@@ -5473,12 +5553,11 @@ class SequencerViewModel {
     func addFixedIntervalTimingTrack(name: String, intervalMS: Int) -> String? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        let actual = document.addFixedIntervalTimingTrack(named: trimmed,
-                                                            intervalMS: Int32(intervalMS))
+        let actual = performCoreUndoableEdit(intervalMS > 0 ? "Add Fixed Timing Track" : "Add Timing Track") {
+            document.addFixedIntervalTimingTrack(named: trimmed, intervalMS: Int32(intervalMS))
+        }
         guard !actual.isEmpty else { return nil }
         reloadRows()
-        registerUndoForAddedTimingTrack(name: actual,
-                                         actionName: intervalMS > 0 ? "Add Fixed Timing Track" : "Add Timing Track")
         return actual
     }
 
@@ -5495,14 +5574,15 @@ class SequencerViewModel {
                                   randomize: Bool = false) -> String? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, intervalMS > 0 else { return nil }
-        let actual = document.addMetronomeTimingTrack(named: trimmed,
-                                                        intervalMS: Int32(intervalMS),
-                                                        tags: tags,
-                                                        minIntervalMS: Int32(minIntervalMS),
-                                                        randomize: randomize)
+        let actual = performCoreUndoableEdit("Add Metronome") {
+            document.addMetronomeTimingTrack(named: trimmed,
+                                             intervalMS: Int32(intervalMS),
+                                             tags: tags,
+                                             minIntervalMS: Int32(minIntervalMS),
+                                             randomize: randomize)
+        }
         guard !actual.isEmpty else { return nil }
         reloadRows()
-        registerUndoForAddedTimingTrack(name: actual, actionName: "Add Metronome")
         return actual
     }
 
@@ -5513,30 +5593,12 @@ class SequencerViewModel {
     func addFPPTimingTrack(name: String, subType: String) -> String? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        let actual = document.addFPPTimingTrack(named: trimmed, subType: subType)
+        let actual = performCoreUndoableEdit("Add FPP Timing") {
+            document.addFPPTimingTrack(named: trimmed, subType: subType)
+        }
         guard !actual.isEmpty else { return nil }
         reloadRows()
-        registerUndoForAddedTimingTrack(name: actual, actionName: "Add FPP Timing")
         return actual
-    }
-
-    /// Shared undo registration for the "added a timing track named
-    /// X" pattern. The undo action looks the track up by name and
-    /// deletes it. Names are uniquified by the bridge on creation
-    /// so this reverses reliably even with multiple tracks of the
-    /// same base name.
-    private func registerUndoForAddedTimingTrack(name: String, actionName: String) {
-        undoManager.registerUndo(withTarget: self) { vm in
-            let tIdx = (vm.document.timingRowIndices() as [NSNumber]).map { $0.intValue }
-            for i in tIdx {
-                if i < vm.rows.count, vm.rows[i].timing?.elementName == name {
-                    _ = vm.document.deleteTimingTrack(at: Int32(i))
-                    vm.reloadRows()
-                    return
-                }
-            }
-        }
-        undoManager.setActionName(actionName)
     }
 
     /// Import Notes: build a note-labelled timing track from a MIDI /
@@ -5553,15 +5615,16 @@ class SequencerViewModel {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
         _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
-        let actual = document.importNotes(fromPath: path,
-                                          format: format,
-                                          name: trimmed,
-                                          track: track,
-                                          speedAdjustPct: Int32(speedAdjustPct),
-                                          startAdjustMS: Int32(startAdjustMS))
+        let actual = performCoreUndoableEdit("Import Notes") {
+            document.importNotes(fromPath: path,
+                                 format: format,
+                                 name: trimmed,
+                                 track: track,
+                                 speedAdjustPct: Int32(speedAdjustPct),
+                                 startAdjustMS: Int32(startAdjustMS))
+        }
         guard !actual.isEmpty else { return nil }
         reloadRows()
-        registerUndoForAddedTimingTrack(name: actual, actionName: "Import Notes")
         return actual
     }
 
@@ -5578,24 +5641,8 @@ class SequencerViewModel {
     func addTimingTrack(name: String) -> Bool {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
-        if !document.addTimingTrackNamed(trimmed) { return false }
+        if !performCoreUndoableEdit("Add Timing Track", { document.addTimingTrackNamed(trimmed) }) { return false }
         reloadRows()
-        undoManager.registerUndo(withTarget: self) { vm in
-            // On undo, find the most-recently-added timing track by
-            // its name and delete it. Names are uniquified by the
-            // bridge on creation, so this reverses reliably.
-            let idxSet: Set<Int> = Set(
-                (vm.document.timingRowIndices() as [NSNumber]).map { $0.intValue }
-            )
-            for i in idxSet {
-                if i < vm.rows.count, vm.rows[i].timing?.elementName == trimmed {
-                    _ = vm.document.deleteTimingTrack(at: Int32(i))
-                    vm.reloadRows()
-                    return
-                }
-            }
-        }
-        undoManager.setActionName("Add Timing Track")
         return true
     }
 
@@ -6066,8 +6113,9 @@ class SequencerViewModel {
             }
         }
         if plannedMarks.isEmpty { return false }
-        // Add the new timing track.
-        if !document.addTimingTrackNamed(newName) { return false }
+        // Add the new timing track: one undo step, which also takes
+        // the marks added to the new track below.
+        if !performCoreUndoableEdit("Subdivide Timing Track", { document.addTimingTrackNamed(newName) }) { return false }
         reloadRows()
         // Find the just-added row by name (bridge uniquifies on
         // collision but the addTimingTrack call would have failed
@@ -6076,9 +6124,10 @@ class SequencerViewModel {
             $0.timing?.elementName == newName
         }) else { return false }
         for (s, e) in plannedMarks {
-            _ = addTimingMark(rowIndex: newRowIdx,
-                               startMS: s, endMS: e, label: "")
+            _ = document.addTimingMark(atRow: Int32(newRowIdx),
+                                       startMS: Int32(s), endMS: Int32(e), label: "")
         }
+        reloadRows()
         return true
     }
 
@@ -6136,13 +6185,20 @@ class SequencerViewModel {
 
     // MARK: - xtiming I/O (B74 / B75)
 
+    /// Runs one bridge timing importer as one undoable step and reloads
+    /// the rows when it added anything. Returns the tracks added.
+    private func importTiming(_ run: () -> Int32) -> Int {
+        let added = Int(performCoreUndoableEdit("Import Timing", run))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
     /// B74: import an `.xtiming` file. Returns the number of tracks
     /// added (0 on parse failure). Caller must ensure security-scoped
     /// access to `path` before calling.
     @discardableResult
     func importXTiming(path: String) -> Int {
-        let added = Int(document.importXTiming(fromPath: path))
-        if added > 0 { reloadRows() }
+        let added = importTiming { document.importXTiming(fromPath: path) }
         return added
     }
 
@@ -6150,16 +6206,14 @@ class SequencerViewModel {
     /// semantics as `importXTiming(path:)`.
     @discardableResult
     func importLorTiming(path: String) -> Int {
-        let added = Int(document.importLorTiming(fromPath: path))
-        if added > 0 { reloadRows() }
+        let added = importTiming { document.importLorTiming(fromPath: path) }
         return added
     }
 
     /// Papagayo `.pgo` lyric-sync import — Phase E follow-up.
     @discardableResult
     func importPapagayoTiming(path: String) -> Int {
-        let added = Int(document.importPapagayoTiming(fromPath: path))
-        if added > 0 { reloadRows() }
+        let added = importTiming { document.importPapagayoTiming(fromPath: path) }
         return added
     }
 
@@ -6169,43 +6223,37 @@ class SequencerViewModel {
     /// Papagayo importers above.
     @discardableResult
     func importSRTTiming(path: String) -> Int {
-        let added = Int(document.importSRTTiming(fromPath: path))
-        if added > 0 { reloadRows() }
+        let added = importTiming { document.importSRTTiming(fromPath: path) }
         return added
     }
 
     @discardableResult
     func importAudacityTiming(path: String) -> Int {
-        let added = Int(document.importAudacityTiming(fromPath: path))
-        if added > 0 { reloadRows() }
+        let added = importTiming { document.importAudacityTiming(fromPath: path) }
         return added
     }
 
     @discardableResult
     func importElevenLabsTiming(path: String) -> Int {
-        let added = Int(document.importElevenLabsTiming(fromPath: path))
-        if added > 0 { reloadRows() }
+        let added = importTiming { document.importElevenLabsTiming(fromPath: path) }
         return added
     }
 
     @discardableResult
     func importVixen3Timing(path: String) -> Int {
-        let added = Int(document.importVixen3Timing(fromPath: path))
-        if added > 0 { reloadRows() }
+        let added = importTiming { document.importVixen3Timing(fromPath: path) }
         return added
     }
 
     @discardableResult
     func importLSPTiming(path: String) -> Int {
-        let added = Int(document.importLSPTiming(fromPath: path))
-        if added > 0 { reloadRows() }
+        let added = importTiming { document.importLSPTiming(fromPath: path) }
         return added
     }
 
     @discardableResult
     func importXLightsSequenceTiming(path: String) -> Int {
-        let added = Int(document.importXLightsSequenceTiming(fromPath: path))
-        if added > 0 { reloadRows() }
+        let added = importTiming { document.importXLightsSequenceTiming(fromPath: path) }
         return added
     }
 
@@ -6218,9 +6266,10 @@ class SequencerViewModel {
 
     @discardableResult
     func importVixen3Timing(path: String, selectedIndices: [Int]) -> Int {
-        let added = Int(document.importVixen3Timing(fromPath: path,
-                                                    selectedIndices: selectedIndices.map { NSNumber(value: $0) }))
-        if added > 0 { reloadRows() }
+        let added = importTiming {
+            document.importVixen3Timing(fromPath: path,
+                                        selectedIndices: selectedIndices.map { NSNumber(value: $0) })
+        }
         return added
     }
 
@@ -6232,9 +6281,10 @@ class SequencerViewModel {
 
     @discardableResult
     func importXLightsSequenceTiming(path: String, selectedIndices: [Int]) -> Int {
-        let added = Int(document.importXLightsSequenceTiming(fromPath: path,
-                                                             selectedIndices: selectedIndices.map { NSNumber(value: $0) }))
-        if added > 0 { reloadRows() }
+        let added = importTiming {
+            document.importXLightsSequenceTiming(fromPath: path,
+                                                 selectedIndices: selectedIndices.map { NSNumber(value: $0) })
+        }
         return added
     }
 
@@ -6342,11 +6392,36 @@ class SequencerViewModel {
     @discardableResult
     func makeTimingTrackVariable(rowIndex: Int) -> Bool {
         guard rowIndex >= 0, rowIndex < rows.count else { return false }
-        if !document.makeTimingTrackVariable(atRow: Int32(rowIndex)) {
+        if !performCoreUndoableEdit("Make Timing Track Variable", {
+            document.makeTimingTrackVariable(atRow: Int32(rowIndex))
+        }) {
             return false
         }
         reloadRows()
         return true
+    }
+
+    /// Rename a timing track (effects that name it follow). One undo
+    /// step. NO when the name is taken or the row isn't a timing track.
+    @discardableResult
+    func renameTimingTrack(rowIndex: Int, to name: String) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        let ok = performCoreUndoableEdit("Rename Timing Track") {
+            document.renameTimingTrack(at: Int32(rowIndex), newName: name)
+        }
+        if ok { reloadRows() }
+        return ok
+    }
+
+    /// Delete a timing track with its marks. One undo step.
+    @discardableResult
+    func deleteTimingTrack(rowIndex: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        let ok = performCoreUndoableEdit("Delete Timing Track") {
+            document.deleteTimingTrack(at: Int32(rowIndex))
+        }
+        if ok { reloadRows() }
+        return ok
     }
 
     func timingTrackIsFixed(rowIndex: Int) -> Bool {
@@ -7795,23 +7870,41 @@ class SequencerViewModel {
     /// step becomes one Foundation undo step named `actionName`; when it
     /// changed nothing, or applied without undo (recordUndo=false),
     /// nothing is registered, so an unrelated core step is never popped.
+    ///
+    /// Undo and redo both clear the selection and reload the rows, then
+    /// run `refresh` for any other state the step touched (tags, song
+    /// structure, faces...).
     @discardableResult
-    func performCoreUndoableEdit<T>(_ actionName: String, _ edit: () -> T) -> T {
+    func performCoreUndoableEdit<T>(_ actionName: String,
+                                    refresh: ((SequencerViewModel) -> Void)? = nil,
+                                    _ edit: () -> T) -> T {
         let before = document.coreUndoStepSerial()
         let result = edit()
         if document.coreUndoStepSerial() != before {
-            registerCoreUndo(actionName)
+            registerCoreUndo(actionName, refresh: refresh)
         }
         return result
     }
 
-    func registerCoreUndo(_ actionName: String) {
+    func registerCoreUndo(_ actionName: String,
+                          refresh: ((SequencerViewModel) -> Void)? = nil) {
         undoManager.registerUndo(withTarget: self) { vm in
             guard vm.document.undoLastCoreStep() else { return }
-            vm.clearSelection()
-            vm.reloadRows()
+            vm.refreshAfterCoreUndoRedo(refresh)
+            vm.undoManager.registerUndo(withTarget: vm) { vm in
+                guard vm.document.redoLastCoreStep() else { return }
+                vm.refreshAfterCoreUndoRedo(refresh)
+                vm.registerCoreUndo(actionName, refresh: refresh)
+            }
+            vm.undoManager.setActionName(actionName)
         }
         undoManager.setActionName(actionName)
+    }
+
+    private func refreshAfterCoreUndoRedo(_ refresh: ((SequencerViewModel) -> Void)?) {
+        clearSelection()
+        reloadRows()
+        refresh?(self)
     }
 
     /// Scoped effect deletes (desktop RowHeading.cpp:603-606). scope:
@@ -9118,7 +9211,8 @@ class SequencerViewModel {
         let name = result.key.isEmpty
             ? "Chords"
             : "Chords in \(result.key)"
-        guard document.addTimingTrackNamed(name) else { return nil }
+        // One undo step, which also takes the marks added below.
+        guard performCoreUndoableEdit("Add Chord Timing Track", { document.addTimingTrackNamed(name) }) else { return nil }
         reloadRows()
         guard let rowIdx = rows.lastIndex(where: {
             guard let t = $0.timing else { return false }
@@ -9305,7 +9399,8 @@ class SequencerViewModel {
         let result = detectTempo()
         if result.beats.isEmpty { return nil }
         let name = "Tempo (\(Int(result.bpm.rounded())) BPM)"
-        guard document.addTimingTrackNamed(name) else { return nil }
+        // One undo step, which also takes the marks added below.
+        guard performCoreUndoableEdit("Add Tempo Timing Track", { document.addTimingTrackNamed(name) }) else { return nil }
         reloadRows()
         guard let rowIdx = rows.lastIndex(where: {
             guard let t = $0.timing else { return false }
@@ -9346,7 +9441,8 @@ class SequencerViewModel {
             onsetsComputed = true
         }
         if onsetTimesMS.isEmpty { return nil }
-        guard document.addTimingTrackNamed(name) else { return nil }
+        // One undo step, which also takes the marks added below.
+        guard performCoreUndoableEdit("Add Onset Timing Track", { document.addTimingTrackNamed(name) }) else { return nil }
         reloadRows()
         // The bridge's addTimingTrackNamed auto-uniquifies the name
         // on collision. Look up by prefix match, preferring the last

@@ -190,10 +190,18 @@ OutputManager::~OutputManager()
 
 #pragma region Save and Load
 bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
+    return LoadImpl(showdir, syncEnabled, nullptr);
+}
+
+bool OutputManager::LoadFromText(const std::string& showdir, const std::string& text) {
+    return LoadImpl(showdir, false, &text);
+}
+
+bool OutputManager::LoadImpl(const std::string& showdir, bool syncEnabled, const std::string* text) {
 
     // Remove any existing outputs
     DeleteAllControllers();
-    _renameLog.Clear();
+    _renameLog.Reset();
 
     DeleteTestPreset();
 
@@ -217,12 +225,16 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     _showDir = showdir;
     _filename = (std::filesystem::path(showdir) / GetNetworksFileName()).string();
-    ObtainAccessToURL(_filename);
-    FileExists(_filename, true);
-    ShowFileGuard::Instance().RecordFromDisk(_filename);
-
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file(_filename.c_str());
+    pugi::xml_parse_result result;
+    if (text != nullptr) {
+        result = doc.load_string(text->c_str());
+    } else {
+        ObtainAccessToURL(_filename);
+        FileExists(_filename, true);
+        ShowFileGuard::Instance().RecordFromDisk(_filename);
+        result = doc.load_file(_filename.c_str());
+    }
 
     Controller* cu = nullptr;
     std::string lasttype = "";

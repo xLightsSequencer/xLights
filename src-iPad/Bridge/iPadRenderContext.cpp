@@ -64,6 +64,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <ctime>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -256,6 +257,7 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
     // render worker still holds a Model* before we free them.
     AllModels.clear();
     AllObjects.clear();
+    _renameHints.Clear();
     _sequenceViewManager.SetModelManager(&AllModels);
 
     // Load models from xlights_rgbeffects.xml
@@ -432,6 +434,7 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                 AllModels.GetSetManager().Load(xlightsNode.child("modelSets"));
                 spdlog::info("iPadRenderContext: Loaded {} model sets",
                              AllModels.GetSetManager().GetAllSets().size());
+                _renameHints.Load(xlightsNode.child(LayoutRenameHints::SECTION));
 
                 // Load view objects (house meshes, ground images, gridlines, terrain, rulers)
                 auto viewObjectsNode = xlightsNode.child("view_objects");
@@ -1439,6 +1442,14 @@ bool iPadRenderContext::PatchLayoutDocument(pugi::xml_document& doc) {
     }
 
     StampLayoutIds(root);
+    // The file keeps the rename hints of everyone who saved it: add this
+    // session's to the ones in the version being patched.
+    CollectRenameHints();
+    for (const auto& e : LayoutRenameHints::Read(root.child(LayoutRenameHints::SECTION))) {
+        _renameHints.Add(e);
+    }
+    _renameHints.Prune(std::time(nullptr));
+    _renameHints.WriteTo(root);
     return true;
 }
 
@@ -1586,6 +1597,7 @@ std::vector<ShowSaveMerge::FileToSave> iPadRenderContext::ShowFilesToMerge(ShowF
 
 bool iPadRenderContext::PrepareShowFileMerge(ShowFileSet which) {
     _pendingMerge.reset();
+    _pendingMergeLive = false;
     auto files = ShowFilesToMerge(which);
     if (files.empty()) return false;
     for (const auto& f : files) {
@@ -1605,9 +1617,126 @@ bool iPadRenderContext::PrepareShowFileMerge(ShowFileSet which) {
     return _pendingMerge->CanMerge();
 }
 
+std::vector<ShowConflictedCopies::Found> iPadRenderContext::FindConflictedCopies() const {
+    if (showDirectory.empty()) return {};
+    return ShowConflictedCopies::Find(showDirectory, ShowAutosave::InstallId());
+}
+
+bool iPadRenderContext::IgnoreConflictedCopy(const std::string& copyPath) {
+    for (const auto& f : FindConflictedCopies()) {
+        if (f.copyPath == copyPath) {
+            return ShowConflictedCopies::Ignore(showDirectory, ShowAutosave::InstallId(), f);
+        }
+    }
+    return false;
+}
+
+bool iPadRenderContext::PrepareConflictedCopyMerge(const std::string& copyPath, std::string* error) {
+    CancelShowFileMerge();
+    for (const auto& f : FindConflictedCopies()) {
+        if (f.copyPath != copyPath) continue;
+        // Memory has to hold the file as loaded for the merge to be brought
+        // in place; unsaved edits to it would be lost or saved over it.
+        if ((f.kind == ShowFileMerge::FileKind::RgbEffects && HasLayoutDirt()) ||
+            (f.kind == ShowFileMerge::FileKind::Networks && _controllersDirty)) {
+            if (error) *error = "Save or discard your layout changes first.";
+            return false;
+        }
+        ObtainAccessToURL(f.realPath, true);
+        ObtainAccessToURL(f.copyPath, true);
+        _pendingCopyBase = ShowConflictedCopies::ChooseBase(f, showDirectory, ShowAutosave::InstallId(),
+                                                             ShowConflictedCopies::BackupRootFor(showDirectory));
+        auto plan = ShowConflictedCopies::PrepareMerge(f, _pendingCopyBase, error);
+        if (!plan || !plan->CanMerge()) {
+            if (error && error->empty()) *error = "The conflicted copy cannot be merged.";
+            return false;
+        }
+        _pendingMerge = std::make_unique<ShowSaveMerge::Plan>(std::move(*plan));
+        _pendingCopy = f;
+        return true;
+    }
+    if (error) *error = "The conflicted copy is no longer there.";
+    return false;
+}
+
+bool iPadRenderContext::CommitConflictedCopyMerge(std::string* report, std::string* error, bool* needsDecisions) {
+    using namespace ShowSaveMerge;
+    auto fail = [&](const std::string& msg) {
+        if (error) *error = msg;
+        return false;
+    };
+    const ShowConflictedCopies::Found copy = *_pendingCopy;
+    const std::string backupRoot = ShowConflictedCopies::BackupRootFor(showDirectory);
+    // What memory holds: the file as this session loaded it.
+    const std::optional<std::string> loaded = ShowFileGuard::Instance().RecordedText(copy.realPath);
+    std::optional<ModelMutationScope> mutate;
+    if (copy.kind != FileKind::Presets) {
+        mutate.emplace(*this);
+        if (!mutate->ok()) return fail("A render is still running. Nothing was merged; try again in a moment.");
+    }
+    ShowConflictedCopies::FinishResult done;
+    for (int attempt = 0;; ++attempt) {
+        if (!_pendingMerge->AllResolved()) {
+            if (needsDecisions) *needsDecisions = true;
+            return fail(attempt == 0 ? "Choose a version for every conflict first."
+                                     : "The file changed again while merging. Review the conflicts again.");
+        }
+        done = ShowConflictedCopies::Finish(*_pendingMerge, copy, backupRoot, ShowFileGuard::Instance());
+        if (done.writeResult == WriteResult::ChangedAgain && attempt < 3) {
+            std::string err;
+            auto again = ShowConflictedCopies::PrepareMerge(copy, _pendingCopyBase, &err);
+            if (!again || !again->CanMerge()) return fail(err.empty() ? std::string("The file can no longer be merged.") : err);
+            again->AdoptResolutions(*_pendingMerge);
+            _pendingMerge = std::make_unique<Plan>(std::move(*again));
+            continue;
+        }
+        break;
+    }
+    if (!done.written) return fail(done.error.empty() ? std::string("Unable to write the merged file.") : done.error);
+
+    SaveReport rep;
+    const std::string result = _pendingMerge->Result(0);
+    switch (copy.kind) {
+    case FileKind::RgbEffects: {
+        pugi::xml_document mineDoc, resultDoc;
+        if (loaded && mineDoc.load_string(loaded->c_str()) && resultDoc.load_string(result.c_str())) {
+            auto changes = ShowMergeApply::ApplyLayout(*this, mineDoc, resultDoc);
+            auto d = changes.Describe();
+            rep.changes.insert(rep.changes.end(), d.begin(), d.end());
+            auto w = changes.Warnings();
+            rep.warnings.insert(rep.warnings.end(), w.begin(), w.end());
+        }
+        break;
+    }
+    case FileKind::Networks:
+        ShowMergeApply::ReloadControllers(*this);
+        _outputManager.MarkSaved();
+        break;
+    case FileKind::Presets: {
+        nlohmann::json j = nlohmann::json::parse(result, nullptr, false);
+        if (!j.is_discarded()) _effectPresetManager.LoadFromJson(j);
+        break;
+    }
+    }
+    std::string text = std::filesystem::path(copy.copyPath).filename().string() + " was merged into " +
+                       std::filesystem::path(copy.realPath).filename().string() + " and moved to the Backup folder.";
+    if (!done.error.empty()) text += "\n" + done.error;
+    auto more = _pendingMerge->Report().Text();
+    if (!rep.changes.empty() || !rep.warnings.empty()) more += (more.empty() ? "" : "\n") + rep.Text();
+    if (!more.empty()) text += "\n\n" + more;
+    if (report) *report = text;
+    _pendingMerge.reset();
+    _pendingCopy.reset();
+    return true;
+}
+
 bool iPadRenderContext::CommitShowFileMerge(std::string* report, std::string* error, bool* needsDecisions) {
     using namespace ShowSaveMerge;
+    if (_pendingMergeLive) {
+        return CommitIncomingShowChanges(report, error, needsDecisions);
+    }
     if (needsDecisions) *needsDecisions = false;
+    if (_pendingCopy && _pendingMerge) return CommitConflictedCopyMerge(report, error, needsDecisions);
     auto fail = [&](const std::string& msg) {
         if (error) *error = msg;
         return false;
@@ -2480,8 +2609,9 @@ TimingElement* iPadRenderContext::AddTimingElement(const std::string& name,
     while (_sequenceElements.GetElement(n) != nullptr) {
         n = name + "_" + std::to_string(nn++);
     }
-    // The iPad registers its own (Foundation) undo for added tracks, so the
-    // core undo step isn't recorded here.
+    // No undo step here: the bridge calls that create tracks wrap this in a
+    // NewElementsRecorder, which records the new track (with its marks) as
+    // the one undo step.
     TimingElement* e = ElementEdits::AddTimingTrack(_sequenceElements, -1, n, subType, false);
     if (!e) return nullptr;
     _sequenceElements.DeactivateAllTimingElements();

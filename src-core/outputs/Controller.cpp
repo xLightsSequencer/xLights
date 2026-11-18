@@ -522,7 +522,7 @@ void Controller::SetName(const std::string& name) {
         return;
     }
     if (_outputManager != nullptr && _outputManager->HoldsController(this)) {
-        _outputManager->GetRenameLog().Record(_name, name);
+        _outputManager->GetRenameLog().Record(_name, name, _objectId);
     }
     _name = name;
     _dirty = true;

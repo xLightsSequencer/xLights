@@ -12,6 +12,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -enh (dkulp)                 Opening a sequence saved before models were renamed in the layout (here or by
+                                 someone sharing the show folder) renames its rows to match and says so,
+                                 instead of asking about missing models
+    -enh (dkulp)                 Offer to merge the conflicted copies Dropbox, iCloud, OneDrive, Google Drive or
+                                 Syncthing leave of the layout, controller or preset files into the file; the
+                                 copy is then moved to the Backup folder
     -bug (dkulp)                 LOR S5 import: Marquee took its speed from the wrong field
     -bug (dkulp)                 LMS import: channels with the same name on different networks got identical names
     -bug (dkulp)                 HLS import: strand names lost their last character, so Map CCR/Strand found no nodes
@@ -42,6 +48,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 iPad - Shared show folders: warn when opening a sequence someone else has open
                                  (open anyway or read-only), and show who else is editing the layout or
                                  controllers in the layout editor
+    -enh (dkulp)                 Shared show folders: layout, controller and effect preset changes someone else
+                                 saves are brought into the open show right away (merged with your unsaved
+                                 edits); where you both changed the same thing, a status bar notice offers
+                                 Review instead
+    -enh (dkulp)                 iPad - Shared show folders: layout, controller and effect preset changes someone
+                                 else saves are brought into the open show right away (merged with your unsaved
+                                 edits); where you both changed the same thing, a banner offers Review. Can be
+                                 turned off in Settings
     -enh (dkulp)                 Show files are replaced in one step when saved, so a crash or a sync client
                                  never sees a half-written file; tags, permissions, creation date and hard
                                  links are kept
@@ -105,6 +119,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  To Effects, Promote Node Effects and the clearModelEffects / cloneModelEffects
                                  automation commands can be undone in one step
     -bug (dkulp)                 Promote Node Effects no longer adds an empty layer when nothing can be promoted
+    -enh (dkulp)                 iPad - Timing imports, new timing tracks (every type, including AI lyrics,
+                                 tempo, chords and onsets), renaming, deleting and making a timing track
+                                 variable, moving rows, tags, sequence faces and song structure edits can be
+                                 undone and redone
+    -enh (dkulp)                 iPad - Song-structure boundaries can be dragged in the waveform strip; each
+                                 drag is one undo step
+    -bug (dkulp)                 iPad - Redo did nothing after undoing Import Effects, Import Lyrics, Replace
+                                 Color, Promote Node Effects, symbol and media edits and other bulk edits
     -bug (dkulp)                 Shift Effects no longer moves locked effects (Shift Selected Effects could
                                  leave one before the start of the sequence)
     -bug (alex)                  SubModels: Import Custom Model Overlay ignored the chosen alignment column (always

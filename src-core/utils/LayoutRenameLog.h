@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <ctime>
 #include <mutex>
 #include <string>
 #include <utility>
@@ -24,12 +25,29 @@
 // when one of the two versions being compared has no layout id (a file written
 // by a version that drops ids). The log describes this process's version
 // only; whoever records the file's new base clears it.
+//
+// Separately, every rename stays queued (with when it happened and the
+// record's layout id) until the host takes it into the rename hints it keeps
+// in the layout file (LayoutRenameHints). Clear() leaves that queue alone, so a
+// controllers-only save does not lose a controller rename the next layout save
+// has to persist; Reset() (a fresh load) drops both.
 class LayoutRenameLog {
 public:
     using Entry = std::pair<std::string, std::string>; // old name, new name
 
-    void Record(const std::string& oldName, const std::string& newName);
+    struct TimedEntry {
+        std::string oldName;
+        std::string newName;
+        std::string id; // the record's layout id, when known
+        std::time_t time = 0;
+    };
+
+    void Record(const std::string& oldName, const std::string& newName, const std::string& id = {});
     void Clear();
+    void Reset();
+
+    // The renames not yet taken, oldest first; the queue is left empty.
+    std::vector<TimedEntry> TakeUnpersisted();
 
     bool Empty() const;
     std::vector<Entry> Entries() const;
@@ -43,4 +61,5 @@ public:
 private:
     mutable std::mutex _lock;
     std::vector<Entry> _entries;
+    std::vector<TimedEntry> _unpersisted;
 };

@@ -147,6 +147,15 @@ struct ShowFileMergeSheet: View {
     @State private var items: [ShowFileMergeItem] = []
     @State private var mapTargets: [String] = []
     @State private var errorMessage: String?
+    /// Deciding someone else's changes to bring into the open show (nothing
+    /// is saved), rather than a save.
+    @State private var live = false
+    /// Merging a sync client's conflicted copy: "mine" is the copy,
+    /// "theirs" the current file.
+    @State private var conflictedCopy = false
+
+    private var mineLabel: String { conflictedCopy ? "Copy" : "Mine" }
+    private var theirsLabel: String { conflictedCopy ? "Current" : "Theirs" }
 
     private var undecided: Int { items.filter { $0.resolution == 0 }.count }
 
@@ -154,7 +163,11 @@ struct ShowFileMergeSheet: View {
         NavigationStack {
             List {
                 Section {
-                    Text("Someone else saved changes to the same things you changed. Choose which version to keep for each one. Everything else you and they changed is merged.")
+                    Text(live
+                         ? "Someone else saved changes to the same things you changed. Choose which version to keep for each one; their other changes are brought in now, and your edits stay unsaved."
+                         : conflictedCopy
+                         ? "The conflicted copy and the current file both changed these. Choose which version to keep for each one. Everything else either of them changed is merged."
+                         : "Someone else saved changes to the same things you changed. Choose which version to keep for each one. Everything else you and they changed is merged.")
                         .font(.callout)
                     if let errorMessage {
                         Text(errorMessage).font(.callout).foregroundStyle(.red)
@@ -169,13 +182,13 @@ struct ShowFileMergeSheet: View {
                             if !item.base.isEmpty {
                                 valueRow("Before", item.base)
                             }
-                            valueRow("Yours", item.mine)
-                            valueRow("Theirs", item.theirs)
+                            valueRow(conflictedCopy ? "Copy" : "Yours", item.mine)
+                            valueRow(theirsLabel, item.theirs)
                             Picker("Keep", selection: Binding(
                                 get: { item.resolution },
                                 set: { resolve(item.id, $0) })) {
-                                Text("Mine").tag(1)
-                                Text("Theirs").tag(2)
+                                Text(mineLabel).tag(1)
+                                Text(theirsLabel).tag(2)
                                 if item.keepBothAllowed {
                                     Text("Keep Both").tag(3)
                                 }
@@ -194,21 +207,24 @@ struct ShowFileMergeSheet: View {
                     Button("Cancel") { onCancel() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }.disabled(undecided > 0 || items.isEmpty)
+                    Button(live ? "Apply" : "Save") { save() }.disabled(undecided > 0 || items.isEmpty)
                 }
                 ToolbarItemGroup(placement: .bottomBar) {
-                    Button("All Mine") { resolveAll(1) }
+                    Button("All \(mineLabel)") { resolveAll(1) }
                     Spacer()
                     Text(undecided == 0 ? "Every conflict has a choice" : "\(undecided) of \(items.count) still to choose")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("All Theirs") { resolveAll(2) }
+                    Button("All \(theirsLabel)") { resolveAll(2) }
                 }
             }
         }
         .interactiveDismissDisabled(true)
-        .onAppear { reload() }
+        .onAppear {
+            live = document.isShowFileMergeLive()
+            reload()
+        }
     }
 
     /// The choices opening a sequence offers for a model the layout lacks
@@ -247,6 +263,7 @@ struct ShowFileMergeSheet: View {
     }
 
     private func reload() {
+        conflictedCopy = document.showFileMergeIsConflictedCopy()
         items = ShowFileMergeItem.load(document)
         mapTargets = document.showFileMergeMapTargets()
     }

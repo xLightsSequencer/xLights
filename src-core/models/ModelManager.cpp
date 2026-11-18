@@ -200,7 +200,7 @@ void ModelManager::clear()
     }
     models.clear();
     _setManager.Clear();
-    _renameLog.Clear();
+    _renameLog.Reset();
     _modelGeneration++;
 }
 
@@ -394,7 +394,7 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
     model->Rename(nn);
     model->name = nn;
     if (dynamic_cast<SubModel*>(model) == nullptr) {
-        _renameLog.Record(on, nn);
+        _renameLog.Record(on, nn, model->GetObjectId());
         std::unique_lock<std::recursive_mutex> lock(_modelMutex);
         bool changed = false;
         std::vector<ModelGroup*> groups;

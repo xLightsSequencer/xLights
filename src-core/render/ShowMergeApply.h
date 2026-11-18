@@ -76,6 +76,9 @@ int ApplySequenceChanges(xLightsShowContext& ctx, const std::vector<ShowSaveMerg
 // Reloads the controllers from the controllers file just written. Output to
 // the lights is stopped around the reload and restarted when it was running.
 bool ReloadControllers(xLightsShowContext& ctx);
+// Same, from the merged text instead of the file. With keepRenameLog the
+// controller renames this process made (and has not saved) are kept.
+bool ReloadControllers(xLightsShowContext& ctx, const std::string& text, bool keepRenameLog);
 
 // The model check messages (SequenceChecker::RunModelChecks) for the show as
 // it is in memory, and those of `after` that `before` did not have.

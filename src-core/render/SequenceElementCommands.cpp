@@ -1594,6 +1594,50 @@ bool RenameModel(SequenceElements& seq, const std::string& oldName, const std::s
 } // namespace ElementEdits
 
 // ---------------------------------------------------------------------------
+// SongStructureLiveEdit
+// ---------------------------------------------------------------------------
+
+SongStructureLiveEdit::SongStructureLiveEdit(SequenceElements& seq) :
+    _seq(seq), _before(seq.GetSongStructureManager().GetViews()) {
+}
+
+SongStructureLiveEdit::~SongStructureLiveEdit() {
+    Cancel();
+}
+
+void SongStructureLiveEdit::Apply(const std::function<void(SongStructureManager&)>& edit) {
+    if (!_open) {
+        return;
+    }
+    SeqMutationGuard::Scope livePreview;
+    edit(_seq.GetSongStructureManager());
+}
+
+bool SongStructureLiveEdit::Commit(const std::string& label, bool recordUndo) {
+    if (!_open) {
+        return false;
+    }
+    _open = false;
+    SongStructureManager& ssm = _seq.GetSongStructureManager();
+    std::vector<SongStructureView> after = ssm.GetViews();
+    {
+        SeqMutationGuard::Scope livePreview;
+        ssm.ReplaceViews(std::move(_before));
+    }
+    ScopedCommandBatch step(_seq, label);
+    return ElementEdits::EditSongStructure(_seq, [&](SongStructureManager& m) { m.ReplaceViews(std::move(after)); }, recordUndo);
+}
+
+void SongStructureLiveEdit::Cancel() {
+    if (!_open) {
+        return;
+    }
+    _open = false;
+    SeqMutationGuard::Scope livePreview;
+    _seq.GetSongStructureManager().ReplaceViews(std::move(_before));
+}
+
+// ---------------------------------------------------------------------------
 // SymbolEdits
 // ---------------------------------------------------------------------------
 

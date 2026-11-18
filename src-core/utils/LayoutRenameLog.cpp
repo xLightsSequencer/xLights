@@ -10,17 +10,31 @@
 
 #include "LayoutRenameLog.h"
 
-void LayoutRenameLog::Record(const std::string& oldName, const std::string& newName) {
+void LayoutRenameLog::Record(const std::string& oldName, const std::string& newName, const std::string& id) {
     if (oldName.empty() || newName.empty() || oldName == newName) {
         return;
     }
     std::lock_guard<std::mutex> lock(_lock);
     _entries.emplace_back(oldName, newName);
+    _unpersisted.push_back({ oldName, newName, id, std::time(nullptr) });
 }
 
 void LayoutRenameLog::Clear() {
     std::lock_guard<std::mutex> lock(_lock);
     _entries.clear();
+}
+
+void LayoutRenameLog::Reset() {
+    std::lock_guard<std::mutex> lock(_lock);
+    _entries.clear();
+    _unpersisted.clear();
+}
+
+std::vector<LayoutRenameLog::TimedEntry> LayoutRenameLog::TakeUnpersisted() {
+    std::lock_guard<std::mutex> lock(_lock);
+    std::vector<TimedEntry> out;
+    out.swap(_unpersisted);
+    return out;
 }
 
 bool LayoutRenameLog::Empty() const {

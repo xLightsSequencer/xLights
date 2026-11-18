@@ -23,6 +23,7 @@
 #include "render/SequenceData.h"
 #include "render/SequenceFile.h"
 #include "render/ViewpointMgr.h"
+#include "utils/LayoutRenameHints.h"
 #include "effects/EffectManager.h"
 #include "effects/EffectPresetManager.h"
 
@@ -109,6 +110,14 @@ public:
     // "Per Preview" 3D effect rendering via GetNamedCamera3D.
     ViewpointMgr viewpoint_mgr;
 
+    // The rename hints kept in the layout file's <renames> section (see
+    // LayoutRenameHints). Loaded with the layout; every host writes them back.
+    LayoutRenameHints _renameHints;
+    // Moves the renames the model, view object and controller managers queued
+    // since the last call into _renameHints, then prunes it. Run when building
+    // the layout file to write.
+    void CollectRenameHints();
+
     OutputManager* GetOutputManager() { return &_outputManager; }
     PreviewCamera* GetNamedCamera3D(const std::string& name) override { return viewpoint_mgr.GetNamedCamera3D(name); }
     OutputModelManager* GetOutputModelManager() override { return &_outputModelManager; }
@@ -135,6 +144,16 @@ public:
     // report the mismatch. wx-free; hosts drive resolution off the result.
     MissingModelScan ScanForMissingModels() const;
 
+    // Renames the rows of models the sequence refers to by a name the layout
+    // no longer has, when the rename hints say (unambiguously) which model or
+    // group that name became and the sequence has no row for it yet. Part of
+    // opening the sequence: no undo step. Runs first in CheckForValidModels,
+    // so only what it could not map reaches the missing-model prompt. Returns
+    // (old name, new name) for each row it renamed; the last open's list
+    // stays in _autoMappedModels for the host's notice.
+    std::vector<std::pair<std::string, std::string>> MapRenamedModels();
+    std::vector<std::pair<std::string, std::string>> _autoMappedModels;
+
     // For a host that saves xlights_rgbeffects.xml by patching the file on disk
     // (the iPad) rather than rebuilding it from memory (the desktop): writes the
     // in-memory layout id of every model, submodel, group, view object and view
@@ -156,7 +175,7 @@ public:
     bool LoadSequenceElements(SequenceFile& file, pugi::xml_document& doc);
 
     // Resolve models the sequence references that aren't in the layout. The base
-    // (headless) just logs them; the desktop overrides with the interactive
+    // (headless, iPad) maps the ones the rename hints know, then logs the rest; the desktop overrides with the interactive
     // remap dialog, the iPad with its own mapping UI. Called from
     // LoadSequenceElements after migration, before PrepareViews.
     virtual void CheckForValidModels();

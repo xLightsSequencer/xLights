@@ -468,10 +468,13 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // element is moved so it lands immediately *before* the destination
 // element (pass `visibleRowCount` to drop at the very end). Returns NO
 // when either row isn't a top-level element or the move is a no-op.
-// Repopulates row info on success; the caller still owns undo.
+// Repopulates row info on success. A move in the master view is one
+// core undo step (register it with performCoreUndoableEdit); a move in
+// any other view is per-user and records none.
 - (BOOL)moveTopLevelRowFrom:(int)srcRowIndex toBefore:(int)destBeforeRowIndex
     NS_SWIFT_NAME(moveTopLevelRow(from:toBefore:));
-// Name-based variant used to build an exact undo: move the element
+// Name-based variant (Display Elements sheet; records no core undo
+// step): move the element
 // named `modelName` so it lands immediately before the element named
 // `beforeModelName` in the master view; pass an empty `beforeModelName`
 // to drop it at the very end. Returns NO on a no-op / missing element.
@@ -587,6 +590,11 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // `SetFixedTiming(0)` which unlocks user editing while leaving the
 // existing fixed-period marks in place. Returns NO if the row isn't
 // a timing element.
+//
+// Undo: every timing-track op below that adds, renames, deletes or
+// unfixes a track (the importers, add*TimingTrack*, importNotes,
+// rename/delete, makeTimingTrackVariable) records one core undo step;
+// the caller registers it (SequencerViewModel.performCoreUndoableEdit).
 - (BOOL)timingTrackIsFixedAtRow:(int)rowIndex
     NS_SWIFT_NAME(timingTrackIsFixed(atRow:));
 - (BOOL)makeTimingTrackVariableAtRow:(int)rowIndex
@@ -983,7 +991,8 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // B34 / B35 — 10 numbered tags (0..9) anchored to absolute sequence
 // times. -1 = unset. Desktop's `SequenceElements::_tagPositions`
 // already persists via the `<TimingTags>` node in the .xsq so
-// save/load round-trips automatically.
+// save/load round-trips automatically. Setting one tag, and clearing
+// all, are one core undo step each.
 - (int)tagPositionAtIndex:(int)index
     NS_SWIFT_NAME(tagPosition(at:));
 - (void)setTagPositionAtIndex:(int)index positionMS:(int)position
@@ -1112,6 +1121,11 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // that already match an "oldname:" alias on some existing model are
 // filtered out — they auto-remap and don't need user input.
 - (NSArray<NSString*>*)missingModelNamesWithEffects;
+
+// Rows the last sequence open renamed on its own because the layout's
+// rename hints say which model their old name became ("Old → New"), so
+// the open can say so instead of asking. Empty when none were.
+- (NSArray<NSString*>*)autoMappedModelRenames;
 
 // Rename a missing model-element to an existing model name. When
 // `addAlias` is YES, also call `Model::AddAlias("oldname:" +
@@ -1552,6 +1566,35 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 - (BOOL)resolveShowFileMergeConflict:(NSInteger)index mapTo:(NSString*)target NS_SWIFT_NAME(resolveShowFileMergeConflict(_:mapTo:));
 - (NSDictionary<NSString*, id>*)commitShowFileMerge NS_SWIFT_NAME(commitShowFileMerge());
 - (void)cancelShowFileMerge NS_SWIFT_NAME(cancelShowFileMerge());
+
+// Changes someone else saved to the shared show files (layout, controllers,
+// presets), brought into the open show as soon as they land. Call
+// checkShowFilesOnDisk on a timer. Results: "state" (0 nothing new,
+// 1 brought in, 2 some need a decision, 3 cannot be merged now - the save
+// asks, 4 the pending ones were settled by a save) and "banner" (text).
+// reviewIncomingShowChanges merges the pending ones again; state 2 means the
+// conflict sheet can open on them: showFileMergeConflicts and the resolve
+// calls work on them, and commitShowFileMerge brings them into memory
+// without saving (isShowFileMergeLive is YES until it is committed or
+// cancelled).
+- (NSDictionary<NSString*, id>*)checkShowFilesOnDisk NS_SWIFT_NAME(checkShowFilesOnDisk());
+- (NSDictionary<NSString*, id>*)reviewIncomingShowChanges NS_SWIFT_NAME(reviewIncomingShowChanges());
+- (BOOL)isShowFileMergeLive NS_SWIFT_NAME(isShowFileMergeLive());
+- (void)stopWatchingShowFiles NS_SWIFT_NAME(stopWatchingShowFiles());
+
+// Conflicted copies a sync client (iCloud, Dropbox, OneDrive, Google
+// Drive, Syncthing) left of the show-wide files in the show folder, checked
+// after the show loads. Each is a dictionary: path, name, file (the file it
+// is a copy of), client, sameAsCurrent. Preparing one makes its merge the
+// pending show-file merge (showFileMergeConflicts / resolve / commit /
+// cancel above), with "mine" the copy and "theirs" the current file; commit
+// writes the merged file, moves the copy to the show's Backup folder and
+// brings the open show up to it. Ignore remembers the copy (on this device)
+// so it is not offered again.
+- (NSArray<NSDictionary<NSString*, id>*>*)conflictedCopies NS_SWIFT_NAME(conflictedCopies());
+- (BOOL)ignoreConflictedCopy:(NSString*)path NS_SWIFT_NAME(ignoreConflictedCopy(_:));
+- (NSString* _Nullable)prepareConflictedCopyMerge:(NSString*)path NS_SWIFT_NAME(prepareConflictedCopyMerge(_:));
+- (BOOL)showFileMergeIsConflictedCopy NS_SWIFT_NAME(showFileMergeIsConflictedCopy());
 
 // Layout autosave — write pending layout edits to this device's
 // autosave folder in the show folder without touching the real file or clearing
@@ -2046,7 +2089,9 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // shape is name -> (attr -> value), same as model faceInfo. Image
 // keys are Mouth-<PHONEME>-EyesOpen/-EyesClosed; ImagePlacement
 // holds the scaling mode. Matrix-only (node/Coro faces stay
-// model-level). All mutators mark the sequence dirty so Save lights up.
+// model-level). All mutators mark the sequence dirty so Save lights up,
+// and each records one core undo step (a rename includes the effect
+// references it repoints).
 - (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)sequenceFaces;
 - (BOOL)addSequenceFace:(NSString*)name;
 - (BOOL)removeSequenceFace:(NSString*)name;
@@ -4311,7 +4356,9 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
     NS_SWIFT_NAME(deleteSongStructureView(at:));
 
 // Boundary + region editing (operate on the active view). The 8-color
-// palette is exposed for the swatch picker.
+// palette is exposed for the swatch picker. Every song-structure edit
+// (views, boundaries, regions) is one core undo step; the active view
+// is per-user and records none.
 - (void)addSongStructureBoundaryAtMS:(int)timeMS
     NS_SWIFT_NAME(addSongStructureBoundary(atMS:));
 - (void)deleteSongStructureBoundaryNearMS:(int)timeMS
@@ -4322,6 +4369,19 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 - (int)nearestSongStructureBoundaryToMS:(int)timeMS
                             toleranceMS:(int)toleranceMS
     NS_SWIFT_NAME(nearestSongStructureBoundary(toMS:toleranceMS:));
+// Interactive boundary drag, recorded as one undo step per gesture (desktop
+// TimeLine drag). Begin grabs the boundary within `toleranceMS` of `timeMS`
+// and returns its time, or -1 when there is none. Update moves it live
+// (snapped to the frame period, clamped between its neighbours; nothing
+// recorded) and returns where it landed. End records the net move as one
+// core undo step and returns YES if anything moved; Cancel puts it back.
+- (int)beginSongStructureBoundaryDragNearMS:(int)timeMS
+                                toleranceMS:(int)toleranceMS
+    NS_SWIFT_NAME(beginSongStructureBoundaryDrag(nearMS:toleranceMS:));
+- (int)updateSongStructureBoundaryDragToMS:(int)timeMS
+    NS_SWIFT_NAME(updateSongStructureBoundaryDrag(toMS:));
+- (BOOL)endSongStructureBoundaryDrag;
+- (void)cancelSongStructureBoundaryDrag;
 - (void)setSongStructureRegionNameForID:(int)regionID
                                   name:(NSString*)name
     NS_SWIFT_NAME(setSongStructureRegionName(forID:name:));

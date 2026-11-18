@@ -152,7 +152,7 @@ void ViewObjectManager::clear() {
         }
     }
     view_objects.clear();
-    _renameLog.Clear();
+    _renameLog.Reset();
 }
 
 void ViewObjectManager::LoadViewObjects(pugi::xml_node modelNode) {
@@ -410,7 +410,7 @@ bool ViewObjectManager::Rename(const std::string &oldName, const std::string &ne
         return false;
     }
     view_object->SetName(newName);
-    _renameLog.Record(oldName, newName);
+    _renameLog.Record(oldName, newName, view_object->GetObjectId());
 
     bool changed = false;
     //for (auto it2 = view_objects.begin(); it2 != view_objects.end(); ++it2) {

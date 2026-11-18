@@ -896,10 +896,12 @@ struct AddTimingTrackSheet: View {
         let words = phrases.map { $0.text }
         let starts = phrases.map { NSNumber(value: $0.start) }
         let ends = phrases.map { NSNumber(value: $0.end) }
-        let createdName = viewModel.document.addLyricTimingTrack(named: name,
-                                                                   words: words,
-                                                                   startMS: starts,
-                                                                   endMS: ends)
+        let createdName = viewModel.performCoreUndoableEdit("Import Lyrics") {
+            viewModel.document.addLyricTimingTrack(named: name,
+                                                   words: words,
+                                                   startMS: starts,
+                                                   endMS: ends)
+        }
         if createdName.isEmpty {
             errorMessage = "Couldn't create the lyric timing track."
             return

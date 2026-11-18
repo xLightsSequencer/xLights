@@ -12,6 +12,10 @@ struct TimingRowHeader: View {
     let height: CGFloat
     let document: XLSequenceDocument
     let onRowsChanged: () -> Void
+    /// Rename / delete the track as an undoable edit
+    /// (SequencerViewModel.renameTimingTrack / deleteTimingTrack).
+    let onRename: (String) -> Void
+    let onDelete: () -> Void
     /// B84: surfaced as "Breakdown Phrases" in the context menu. The
     /// outer view wires this to `SequencerViewModel.breakdownPhrases`;
     /// nil hides the menu entry. Guarded separately by
@@ -297,9 +301,7 @@ struct TimingRowHeader: View {
             Button("OK") {
                 let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmed.isEmpty else { return }
-                if document.renameTimingTrack(at: Int32(row.id), newName: trimmed) {
-                    onRowsChanged()
-                }
+                onRename(trimmed)
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -308,9 +310,7 @@ struct TimingRowHeader: View {
         .alert("Delete Timing Track",
                isPresented: $showDelete) {
             Button("Delete", role: .destructive) {
-                if document.deleteTimingTrack(at: Int32(row.id)) {
-                    onRowsChanged()
-                }
+                onDelete()
             }
             Button("Cancel", role: .cancel) {}
         } message: {

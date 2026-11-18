@@ -46,6 +46,8 @@ class LayoutRenameLog;
 //   - controller order (which drives start channels) merges as a list;
 //   - a section one version does not write at all (an older version, or one
 //     that does not know it) is kept, never deleted;
+//   - the rename hints (<renames>, LayoutRenameHints) merge as a set: the
+//     entries of both sides, less the ones a side pruned; never a conflict;
 //   - layout ids, attribute order, whitespace and number formatting
 //     ("6.0" vs "6.000000") are not changes.
 // References to a renamed model, group or controller (group members, views,
@@ -153,6 +155,12 @@ struct Options {
     // found (Merge::ControllerNameMaps()), so models and controller objects
     // that name a renamed controller follow it.
     NameMaps controllerNameMaps;
+    // The base is not known (pass an empty one): a record only one version
+    // has may have been added there or deleted from the other, so it is a
+    // conflict (DeletedByTheirs when only mine has it, DeletedByMine when
+    // only theirs has it) instead of being kept. For merging a copy a sync
+    // client made of a file with no common version to start from.
+    bool twoWay = false;
 };
 
 class Merge {

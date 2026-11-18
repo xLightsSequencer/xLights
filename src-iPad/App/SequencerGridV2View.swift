@@ -2225,6 +2225,10 @@ struct SequencerGridV2View: View {
             songRegionNames: viewModel.songRegions.map { $0.name },
             songRegionRevision: viewModel.songStructureRevision,
             onRegionMenu: { ms in songRegionMenuMS = ms },
+            onBoundaryDragBegin: { ms, tol in viewModel.beginSongBoundaryDrag(nearMS: ms, toleranceMS: tol) },
+            onBoundaryDragMove: { ms in viewModel.updateSongBoundaryDrag(toMS: ms) },
+            onBoundaryDragEnd: { viewModel.endSongBoundaryDrag() },
+            onBoundaryDragCancel: { viewModel.cancelSongBoundaryDrag() },
             alternateTimingFormat: alternateTimingFormat
         )
         .id(viewModel.songStructureRevision)
@@ -2419,6 +2423,8 @@ struct SequencerGridV2View: View {
                     height: metrics.timingRowHeight,
                     document: viewModel.document,
                     onRowsChanged: { viewModel.reloadRows() },
+                    onRename: { _ = viewModel.renameTimingTrack(rowIndex: row.id, to: $0) },
+                    onDelete: { _ = viewModel.deleteTimingTrack(rowIndex: row.id) },
                     canBreakdownPhrases: viewModel.canBreakdownPhrases(rowIndex: row.id),
                     onBreakdownPhrases: {
                         _ = viewModel.breakdownPhrases(rowIndex: row.id)
