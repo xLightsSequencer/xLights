@@ -304,6 +304,29 @@ TEST_CASE("HinksPix3 DDP mode sends the DDP range and skips universes", "[vendor
     CHECK(fh.Cmds("E131").empty());
 }
 
+TEST_CASE("HinksPix3 DDP DMX start is relative to the controller start", "[vendors3][hinkspix3]") {
+    FakeHinks fh;
+    fh.info = R"({"Type":"8","Controller":"H","BD1":"S","MaxU":"12","MCPU":"VER151"})";
+    auto h = Connect(fh);
+    VendorShow s("HinksPix", "PRO V3", "", 1, OUTPUT_DDP);
+    auto* before = new ControllerEthernet(&s.om);
+    before->SetName("Before");
+    before->SetProtocol(OUTPUT_DDP);
+    before->SetIP("127.0.0.2");
+    before->GetOutputs().front()->SetChannels(1000);
+    s.om.AddController(before, 0);
+    s.om.SomethingChanged();
+    REQUIRE(s.ctl->GetStartChannel() == 1001);
+    s.Pixels("A", 1, 10, 1001);
+    s.Serial("Flood", 1, 20, 1031);
+    REQUIRE_UPLOAD(s, h->SetOutputs(&s.mm, &s.om, s.ctl, &s.ui));
+    auto modeCmds = fh.Cmds("DATA_MODE");
+    REQUIRE(modeCmds.size() == 2);
+    CHECK(modeCmds[0]["DDP_START"] == 1001);
+    CHECK(modeCmds[1]["DDP_DMX_START"] == 31);
+    CHECK(modeCmds[1]["DDP_DMX_CHAN_CNT"] == 20);
+}
+
 TEST_CASE("HinksPix3 universe per string assigns universes in port order", "[vendors3][hinkspix3]") {
     FakeHinks fh;
     auto h = Connect(fh);
