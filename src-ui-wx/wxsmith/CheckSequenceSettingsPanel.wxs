@@ -98,6 +98,18 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX8" variable="CheckBox_MediaCompat" member="yes">
+					<label>Disable media compatibility checking.</label>
+					<help>Checks that video and audio files can be decoded by AVFoundation (macOS/iPad). If you only ever run on Windows or Linux this check can be safely disabled.</help>
+					<handler function="OnCheckBox_MediaCompatClick" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>8</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

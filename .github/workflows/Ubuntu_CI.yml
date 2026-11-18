@@ -57,6 +57,12 @@ jobs:
 
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
+      # Let the build degrade to "stem separation disabled" when the pinned
+      # github.com/microsoft/onnxruntime release cannot be downloaded (the
+      # upstream repo has gone fully 404 during GitHub outages). The fetch
+      # script then exits 0, onnxruntime.mak drops the HAVE_ORT wiring, and
+      # everything else builds and tests normally.
+      XLIGHTS_ONNXRUNTIME_OPTIONAL: 1
 
     steps:
     - uses: actions/checkout@v4

@@ -50,6 +50,13 @@ public:
     virtual std::string CheckVideoCompatibility(const std::string& /*path*/) {
         return "";
     }
+
+    // Per-platform audio codec compatibility probe, same contract as
+    // CheckVideoCompatibility. Apple platforms wire this to
+    // `MediaCompatibility::CheckAudioFile` (AudioToolbox).
+    virtual std::string CheckAudioCompatibility(const std::string& /*path*/) {
+        return "";
+    }
 };
 
 // Wx-free port of the bulk of `xLightsFrame::CheckSequence`. Both

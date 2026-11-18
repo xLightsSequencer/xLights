@@ -169,7 +169,6 @@
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
-			<Add option="-DHAVE_ORT" />
 			<Add option="-DHAVE_VULKAN" />
 				<Add option="-DHAVE_VULKAN_SHADER" />
 			<Add option="-DVK_NO_PROTOTYPES" />

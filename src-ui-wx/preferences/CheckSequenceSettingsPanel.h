@@ -30,6 +30,7 @@ class CheckSequenceSettingsPanel: public wxPanel
 		wxCheckBox* CheckBox_DisableSketch;
 		wxCheckBox* CheckBox_DupNodeMG;
 		wxCheckBox* CheckBox_DupUniv;
+		wxCheckBox* CheckBox_MediaCompat;
 		wxCheckBox* CheckBox_NonContigChOnPort;
 		wxCheckBox* CheckBox_PreviewGroup;
 		wxCheckBox* CheckBox_TransTime;
@@ -50,6 +51,7 @@ class CheckSequenceSettingsPanel: public wxPanel
 		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX6;
 		static const long ID_CHECKBOX7;
+		static const long ID_CHECKBOX8;
 		//*)
 
 	private:
@@ -57,6 +59,7 @@ class CheckSequenceSettingsPanel: public wxPanel
 
 		//(*Handlers(CheckSequenceSettingsPanel)
 		void OnCheckBox_DupUnivClick(wxCommandEvent& event);
+		void OnCheckBox_MediaCompatClick(wxCommandEvent& event);
 		void OnCheckBox_NonContigChOnPortClick(wxCommandEvent& event);
 		void OnCheckBox_PreviewGroupClick(wxCommandEvent& event);
 		void OnCheckBox_DupNodeMGClick(wxCommandEvent& event);

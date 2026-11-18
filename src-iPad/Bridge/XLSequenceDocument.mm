@@ -14767,6 +14767,14 @@ public:
         return MediaCompatibility::CheckVideoFile(resolved);
     }
 
+    std::string CheckAudioCompatibility(const std::string& path) override {
+        if (path.empty()) return "";
+        std::string resolved = FileUtils::FixFile("", path);
+        if (resolved.empty()) resolved = path;
+        ObtainAccessToURL(resolved, false);
+        return MediaCompatibility::CheckAudioFile(resolved);
+    }
+
     void OnProgress(int percent, const std::string& step) override {
         if (!_progress) return;
         _progress(percent,
