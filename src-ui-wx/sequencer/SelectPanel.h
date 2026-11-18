@@ -24,6 +24,10 @@
 #include <wx/textctrl.h>
 //*)
 
+#include <set>
+#include <string>
+#include <vector>
+
 class MainSequencer;
 class SequenceElements;
 class Effect;
@@ -96,16 +100,23 @@ class SelectPanel: public wxPanel
         SequenceElements * mSequenceElements;
         MainSequencer* mainSequencer;
 
-        void populateModelsList(const std::string& effectType);
+        // model names the user picked, kept while a filter hides them so they
+        // come back selected when the filter is relaxed again
+        std::set<wxString> mUserSelectedModels;
+
+        void populateModelsList();
         void populateEffectsList();
         void SelectEffects();
+        void ResetEndTime();
+        void RememberModelSelections();
 
 		void GetEffectTypes();
 		void GetBufferStyles();
 
 		bool ContainsColor(Effect* eff) const;
 		bool MatchesBufferStyle(Effect* eff) const;
-		bool LayerHasMatchingBufferStyle(EffectLayer* elay, const wxString& styleFilter) const;
+		std::string GetEffectTypeFilter() const;
+		std::vector<Effect*> GetMatchingEffects(EffectLayer* elay, const std::string& type, int startTime, int endTime) const;
 
         std::pair< int, int > GetStartAndEndTime();
 
