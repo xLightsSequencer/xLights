@@ -19,6 +19,7 @@
 #include "UtilClasses.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Color.h"
+#include "SequenceIds.h"
 
 class EffectLayer;
 class ValueCurve;
@@ -42,6 +43,7 @@ class Effect
 {
     static bool backgroundDisplayListsEnabled;
     int mID = 0;
+    SeqObjectId mUid = SeqIds::Next();
     short mEffectIndex = -1;
     std::string *mName = nullptr;
     int mStartTime = 0;
@@ -72,6 +74,12 @@ public:
 
     int GetID() const { return mID; }
     void SetID(int i) { mID = i; }
+
+    // Stable identity (see SequenceIds.h). GetID() is the position in the layer.
+    SeqObjectId GetUid() const { return mUid; }
+    // Only for restoring an identity onto a re-created effect (undo). The
+    // caller guarantees no live effect already holds `uid`.
+    void SetUid(SeqObjectId uid) { mUid = uid; }
 
     bool IsTimeToDelete() const;
     void SetTimeToDelete();

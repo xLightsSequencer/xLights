@@ -13,8 +13,12 @@
 #include <string>
 #include <vector>
 
+#include "SequenceIds.h"
+
 class SequenceElements;
 class Effect;
+class EffectLayer;
+class Element;
 
 enum UNDO_ACTIONS
 {
@@ -25,6 +29,17 @@ enum UNDO_ACTIONS
     UNDO_EFFECT_MOVED,
     UNDO_LAYER_ADDED,
     UNDO_LAYER_REMOVED,
+};
+
+// Stable identity of an undo target, resolved when the change is captured.
+// element/layer/effect are kNoSeqObjectId when the capture-time lookup by the
+// legacy (name, exclusive layer index, position) arguments found nothing; the
+// legacy fields are then used as before.
+struct UndoTarget
+{
+    SeqObjectId element = kNoSeqObjectId;
+    SeqObjectId layer = kNoSeqObjectId;
+    SeqObjectId effect = kNoSeqObjectId;
 };
 
 class DeletedEffectInfo
@@ -39,6 +54,7 @@ public:
     int endTimeMS;
     int Selected;
     bool Protected;
+    UndoTarget target;
     DeletedEffectInfo( const std::string &element_name_, int layer_index_, const std::string &name_, const std::string &settings_,
                        const std::string &palette_, int startTimeMS_, int endTimeMS_, int Selected_, bool Protected_ );
 };
@@ -49,6 +65,7 @@ public:
     std::string element_name;
     int layer_index;
     int id;
+    UndoTarget target;
     AddedEffectInfo( const std::string &element_name_, int layer_index_, int id_ );
 };
 
@@ -60,6 +77,7 @@ public:
     int id;
     int startTimeMS;
     int endTimeMS;
+    UndoTarget target;
     MovedEffectInfo( const std::string &element_name_, int layer_index_, int id_, int startTimeMS_, int endTimeMS_ );
 };
 
@@ -73,7 +91,8 @@ public:
     std::string palette;
     std::string effectName;
     int effectType;
-    
+    UndoTarget target;
+
     ModifiedEffectInfo( const std::string &element_name_, int layer_index_, int id_, const std::string &settings_, const std::string &palette_ );
     ModifiedEffectInfo( const std::string &element_name_, int layer_index_, Effect *ef);
 };
@@ -84,6 +103,7 @@ public:
     std::string element_name;
     int exclusive_layer_index;
     int layer_number;
+    UndoTarget target; // effect unused
     LayerInfo(const std::string& en, int eli, int ln) : element_name(en), exclusive_layer_index(eli), layer_number(ln) {}
 };
 
@@ -152,6 +172,15 @@ class UndoManager
         void SetMaxSteps(size_t maxSteps) { mMaxSteps = maxSteps; EnforceMaxSteps(); }
         size_t GetMaxSteps() const { return mMaxSteps; }
     protected:
+        // Capture-time resolution of the legacy arguments to stable ids.
+        UndoTarget ResolveTarget(const std::string& element_name, int exclusive_layer_index) const;
+        // Undo-time lookup: by stable id when the capture resolved one, else by
+        // the legacy name + exclusive index, exactly as before.
+        EffectLayer* FindLayer(const UndoTarget& t, const std::string& element_name, int exclusive_layer_index) const;
+        Element* FindElement(const UndoTarget& t, const std::string& element_name) const;
+        static Effect* FindEffect(EffectLayer* el, const UndoTarget& t, int legacy_id);
+        static UndoTarget TargetOf(EffectLayer* el, Effect* eff);
+
         void ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<UndoStep*> &toList);
         // Drop the oldest `mUndoSteps` entries while the vector
         // exceeds `mMaxSteps`. Called from the end of every push-

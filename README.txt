@@ -13,6 +13,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.21  November ??, 2026
 
     -change (scott)              Controller Open / Open Proxy buttons stay enabled while outputting to lights
+    -bug (dkulp)                 Undo could change or delete the wrong effect after effects were added
+                                 without undo, lose effects deleted from a layer that was later removed,
+                                 and do nothing after a timing track was renamed
     -bug (alex)                  SubModels: Import Custom Model Overlay ignored the chosen alignment column (always
                                  left) and placed the overlay upside down; all 9 positions now work
     -bug (alex)                  SubModels: Import Custom Model Overlay filled the empty cells of the outline,

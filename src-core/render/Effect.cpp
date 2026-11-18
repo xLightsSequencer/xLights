@@ -185,6 +185,7 @@ bool Effect::backgroundDisplayListsEnabled = true;
 Effect::Effect(const Effect& ef)
 {
     mID = ef.mID;
+    mUid = ef.mUid;
     mEffectIndex = ef.mEffectIndex;
     mName = ef.mName;
     mStartTime = ef.mStartTime;

@@ -53,6 +53,7 @@ public:
 
     const std::string &GetName() const;
     void SetName(const std::string &name);
+    SeqObjectId GetUid() const { return mUid; }
     virtual const std::string &GetModelName() const;
     virtual std::string GetFullName() const;
     
@@ -63,6 +64,9 @@ public:
     [[nodiscard]] virtual int GetEffectCount() const;
  
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
+    // Searches this element's layers and, for models and strands, the
+    // submodel/strand/node layers beneath it - same scope as the above.
+    virtual EffectLayer* GetEffectLayerFromUid(SeqObjectId uid) const;
     EffectLayer* GetEffectLayer(int index) const;
     const std::vector<EffectLayer*>& GetEffectLayers() const { return mEffectLayers; }
     int GetLayerNumberFromIndex(int index);
@@ -136,6 +140,7 @@ protected:
     SequenceElements *parent = nullptr;
 
     std::string mName;
+    SeqObjectId mUid = SeqIds::Next();
     int mIndex = 0;
     bool mVisible = true;
     bool mCollapsed = false;
@@ -219,6 +224,7 @@ public:
     void InitFromModel(Model &model);
     
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
+    virtual EffectLayer* GetEffectLayerFromUid(SeqObjectId uid) const override;
     virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_STRAND; }
     virtual NodeLayer* GetNodeEffectLayer(int index) const override;
     virtual bool IsEffectValid(Effect* e) const override;
@@ -262,6 +268,7 @@ class ModelElement : public Element
         void SetSelected(bool selected);
 
         virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
+        virtual EffectLayer* GetEffectLayerFromUid(SeqObjectId uid) const override;
 
         [[nodiscard]] virtual bool HasEffects() const override;
         [[nodiscard]] int GetEffectCount() const override;

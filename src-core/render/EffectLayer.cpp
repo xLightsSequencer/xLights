@@ -106,6 +106,19 @@ Effect* EffectLayer::GetEffectFromID(int id)
     return eff;
 }
 
+Effect* EffectLayer::GetEffectFromUid(SeqObjectId uid) const
+{
+    if (uid == kNoSeqObjectId) {
+        return nullptr;
+    }
+    for (Effect* e : mEffects) {
+        if (e->GetUid() == uid) {
+            return e;
+        }
+    }
+    return nullptr;
+}
+
 int EffectLayer::GetFirstSelectedEffectStartMS() const
 {
     for (int x = 0; x < (int)mEffects.size(); x++) {
@@ -1227,6 +1240,23 @@ void EffectLayer::DeleteAllEffects()
         }
     }
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(), ShouldDeleteNotLocked), mEffects.end());
+}
+
+bool EffectLayer::DeleteEffectByUid(SeqObjectId uid)
+{
+    std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
+    for (int i = 0; i < (int)mEffects.size(); i++) {
+        if (mEffects[i]->GetUid() == uid) {
+            IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+            mEffects[i]->SetTimeToDelete();
+            std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
+            mEffectsToDelete.push_back(mEffects[i]);
+            mEffects.erase(mEffects.begin() + i);
+            NumberEffects();
+            return true;
+        }
+    }
+    return false;
 }
 
 void EffectLayer::DeleteEffectByIndex(int idx) {

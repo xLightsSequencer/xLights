@@ -442,6 +442,92 @@ Element* SequenceElements::GetElement(const std::string &name) const
     return nullptr;
 }
 
+Element* SequenceElements::GetElementFromUid(SeqObjectId uid) const
+{
+    if (uid == kNoSeqObjectId || mAllViews.empty()) {
+        return nullptr;
+    }
+    for (Element* el : mAllViews[MASTER_VIEW]) {
+        if (el->GetUid() == uid) {
+            return el;
+        }
+        if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* mel = dynamic_cast<ModelElement*>(el);
+            if (mel != nullptr) {
+                for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
+                    SubModelElement* sme = mel->GetSubModel(x);
+                    if (sme != nullptr && sme->GetUid() == uid) {
+                        return sme;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+bool SequenceElements::ValidateUids(std::string* problem) const
+{
+    std::unordered_set<SeqObjectId> seen;
+    auto check = [&](SeqObjectId uid, const std::string& what) {
+        if (uid == kNoSeqObjectId || !seen.insert(uid).second) {
+            if (problem != nullptr) {
+                *problem = (uid == kNoSeqObjectId ? "missing id on " : "duplicate id " + std::to_string(uid) + " on ") + what;
+            }
+            return false;
+        }
+        return true;
+    };
+    auto checkLayer = [&](const EffectLayer* l, const std::string& owner) {
+        if (!check(l->GetUid(), "layer of " + owner)) {
+            return false;
+        }
+        for (const Effect* e : l->GetEffects()) {
+            if (!check(e->GetUid(), "effect " + e->GetEffectName() + "@" + std::to_string(e->GetStartTimeMS()) + " on " + owner)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    auto checkElement = [&](const Element* el) {
+        if (!check(el->GetUid(), "element " + el->GetFullName())) {
+            return false;
+        }
+        for (const EffectLayer* l : el->GetEffectLayers()) {
+            if (!checkLayer(l, el->GetFullName())) {
+                return false;
+            }
+        }
+        if (el->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+            const StrandElement* st = dynamic_cast<const StrandElement*>(el);
+            for (int n = 0; st != nullptr && n < st->GetNodeLayerCount(); ++n) {
+                if (!checkLayer(st->GetNodeLayer(n), el->GetFullName() + " node " + std::to_string(n))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+    if (mAllViews.empty()) {
+        return true;
+    }
+    for (const Element* el : mAllViews[MASTER_VIEW]) {
+        if (!checkElement(el)) {
+            return false;
+        }
+        if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            const ModelElement* mel = dynamic_cast<const ModelElement*>(el);
+            for (int x = 0; mel != nullptr && x < mel->GetSubModelAndStrandCount(); ++x) {
+                const SubModelElement* sme = mel->GetSubModel(x);
+                if (sme != nullptr && !checkElement(sme)) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 Element* SequenceElements::GetElement(size_t index, int view) const
 {
     if (view >= 0 && static_cast<size_t>(view) < mAllViews.size() && index < mAllViews[view].size())

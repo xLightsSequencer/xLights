@@ -43,6 +43,7 @@ public:
     }
     Effect* GetEffectByTime(int ms);
     Effect* GetEffectFromID(int id);
+    Effect* GetEffectFromUid(SeqObjectId uid) const;
     int GetFirstSelectedEffectStartMS() const;
     int GetLastSelectedEffectEndMS() const;
     void RemoveEffect(int index);
@@ -59,6 +60,10 @@ public:
 
     int GetLayerNumber() const;
     int GetIndex() const;
+    SeqObjectId GetUid() const { return mUid; }
+    // Only for restoring an identity onto a re-created layer (undo). The
+    // caller guarantees no live layer already holds `uid`.
+    void SetUid(SeqObjectId uid) { mUid = uid; }
     int GetEffectCount() const;
 
     bool IsStartTimeLinked(int index) const;
@@ -122,6 +127,8 @@ public:
     void DeleteSelectedEffects(UndoManager& undo_mgr);
     void DeleteAllEffects();
     void DeleteEffect(int id);
+    // Like DeleteEffect(id) but by stable identity; returns false if not found.
+    bool DeleteEffectByUid(SeqObjectId uid);
     void DeleteEffectByIndex(int idx);
     static bool ShouldDeleteSelected(Effect* eff);
     static bool ShouldDeleteNotLocked(Effect* eff);
@@ -172,6 +179,7 @@ private:
     std::vector<Effect*> mEffects;
     std::list<Effect*> mEffectsToDelete;
     int mIndex = 0;
+    SeqObjectId mUid = SeqIds::Next();
     Element* mParentElement = nullptr;
     std::recursive_mutex lock;
     std::mutex effectsToDeleteLock;
