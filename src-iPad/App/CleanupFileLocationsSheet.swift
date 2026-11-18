@@ -108,6 +108,8 @@ struct CleanupFileLocationsSheet: View {
     }
 
     private func performCleanup() {
-        resultCount = Int(viewModel.document.performCleanupFileLocations())
+        resultCount = Int(viewModel.performCoreUndoableEdit("Cleanup File Locations", {
+            viewModel.document.performCleanupFileLocations()
+        }))
     }
 }

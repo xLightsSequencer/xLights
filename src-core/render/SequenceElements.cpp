@@ -16,6 +16,8 @@
 
 #include "SequenceElements.h"
 #include "CommandExecutor.h"
+#include "SequenceMediaCommands.h"
+#include "SequenceElementCommands.h"
 #include "pugixml.hpp"
 #include "RenderUtils.h"
 #include "RenderContext.h"
@@ -112,7 +114,7 @@ void SequenceElements::Clear() {
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
     hasPapagayoTiming = false;
-    ClearTags();
+    _tagPositions.fill(-1);
 }
 
 void SequenceElements::SetSequenceEnd(int ms)
@@ -247,6 +249,7 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
 Element* SequenceElements::AddElement(const std::string &name, const std::string &type,
     bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
+    XL_SEQ_MUTATION("SequenceElements::AddElement");
     if (!ElementExists(name)) {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
 
@@ -263,6 +266,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     const std::string &type,
     bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
+    XL_SEQ_MUTATION("SequenceElements::AddElement");
     if (!ElementExists(name) && index >= 0 && static_cast<size_t>(index) <= mAllViews[MASTER_VIEW].size())
     {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
@@ -297,6 +301,7 @@ bool SequenceElements::ElementExists(const std::string& elementName, int view)
 
 void SequenceElements::RenameTimingTrack(std::string oldname, std::string newname)
 {
+    XL_SEQ_MUTATION("SequenceElements::RenameTimingTrack");
     // actual timing track name already updated ... we just need to update any effects that care about the timing track name
     // faces, state, piano, vumeter
 
@@ -542,9 +547,12 @@ Element* SequenceElements::GetElement(size_t index, int view) const
     }
 }
 
-void SequenceElements::DeleteElement(const std::string &name)
+void SequenceElements::DeleteElement(const std::string &name, bool removeFromViewDefinitions)
 {
-    _viewsManager->DeleteModel(name);
+    XL_SEQ_MUTATION("SequenceElements::DeleteElement");
+    if (removeFromViewDefinitions && _viewsManager != nullptr) {
+        _viewsManager->DeleteModel(name);
+    }
 
     // delete element pointer from all views
     for (size_t i = 1; i < mAllViews.size(); i++)
@@ -581,6 +589,9 @@ void SequenceElements::DeleteElement(const std::string &name)
 
 void SequenceElements::DeleteElementFromView(const std::string &name, int view)
 {
+    if (view == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::DeleteElementFromView");
+    }
     // delete element pointer from all views
     for (size_t j = 0; j < mAllViews[view].size(); j++)
     {
@@ -755,6 +766,9 @@ void SequenceElements::SortElements()
 
 void SequenceElements::MoveElement(int index,int destinationIndex)
 {
+    if (mCurrentView == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::MoveElement");
+    }
     IncrementChangeCount(nullptr);
     if(index<destinationIndex)
     {
@@ -1085,6 +1099,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
 
 void SequenceElements::PrepareViews(SequenceFile& xml_file)
 {
+    SeqMutationGuard::Scope loading;
     if (_viewsManager == nullptr) {
         spdlog::critical("SequenceElements::PrepareViews called when _viewsManager was null ... this will crash");
     }
@@ -1147,10 +1162,11 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
                 {
                     if (!ElementExists(model1->GetName()))
                     {
-                        Element* elem = AddElement(model1->GetName(), "model", visible, false, false, false, false);
-                        if (elem != nullptr)
-                        {
-                            elem->AddEffectLayer();
+                        // Not an undoable edit of its own: it follows a view
+                        // switch or comes ahead of the effects an import adds.
+                        Element* elem = ElementEdits::AddModel(*this, -1, model1->GetName(), false);
+                        if (elem != nullptr) {
+                            elem->SetVisible(visible);
                         }
                     }
                 }
@@ -1763,7 +1779,7 @@ std::vector<std::string> SequenceElements::GetUsedColours(bool selectedOnly) con
 
 int SequenceElements::ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to, bool selectedOnly)
 {
-    get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(GetCommandExecutor(), "Replace Colours");
     int replaced = 0;
     for (size_t i = 0; i < mRowInformation.size(); i++) {
         if (mRowInformation[i].element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
@@ -2243,6 +2259,9 @@ int SequenceElements::GetElementIndexOfTimingFromListIndex(int timingIndex)
 
 void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 {
+    if (view == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::MoveSequenceElement");
+    }
     IncrementChangeCount(nullptr);
 
     if(index >= 0 && static_cast<size_t>(index) < mAllViews[view].size() && dest >= 0 && static_cast<size_t>(dest) < mAllViews[view].size())
@@ -2272,6 +2291,9 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 
 void SequenceElements::MoveElementUp(const std::string &name, int view)
 {
+    if (view == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::MoveElementUp");
+    }
     IncrementChangeCount(nullptr);
 
     for(size_t i=0;i<mAllViews[view].size();i++)
@@ -2293,6 +2315,9 @@ void SequenceElements::MoveElementUp(const std::string &name, int view)
 
 void SequenceElements::MoveElementDown(const std::string &name, int view)
 {
+    if (view == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::MoveElementDown");
+    }
     IncrementChangeCount(nullptr);
 
     for(size_t i=0;i<mAllViews[view].size();i++)
@@ -2387,33 +2412,11 @@ std::unordered_set<std::string> SequenceElements::GetEffectSettingValues() const
 }
 
 int SequenceElements::RemoveUnreferencedMedia() {
-    std::unordered_set<std::string> used = GetEffectSettingValues();
-    for (const auto& p : mSequenceFaces.GetImagePaths()) {
-        used.insert(p);
-    }
-    int removed = 0;
-    for (const auto& p : mSequenceMedia.GetAllMediaPaths()) {
-        if (used.count(p.first) == 0 && !mSequenceMedia.IsUsedByMetadata(p.first)) {
-            mSequenceMedia.RemoveMedia(p.first);
-            ++removed;
-        }
-    }
-    return removed;
+    return SeqMediaEdits::RemoveUnreferenced(*this);
 }
 
 std::string SequenceElements::MakeMediaPathRelative(const std::string& path) {
-    if (path.empty()) return path;
-
-    if (renderContext == nullptr) return path;
-    const std::string key = renderContext->MakeRelativePath(path);
-    if (key.empty() || key == path) return path;
-
-    // RenameMedia refuses when the target key already exists in any cache, so
-    // two entries from different folders that share a filename keep their
-    // original paths rather than collapsing into one.
-    if (!mSequenceMedia.RenameMedia(path, key)) return path;
-    RewriteMediaReferences(path, key);
-    return key;
+    return SeqMediaEdits::MakeRelative(*this, path);
 }
 
 void SequenceElements::IncrementChangeCount(Element *el) {
@@ -2465,6 +2468,7 @@ int SequenceElements::RenameModelFaceReferences(const std::string& modelName, co
     }
 
     int count = 0;
+    ScopedCommandBatch batch(GetCommandExecutor(), "Rename Face");
     auto scanLayer = [&](EffectLayer* layer) {
         for (int k = 0; k < layer->GetEffectCount(); ++k) {
             Effect* eff = layer->GetEffect(k);
@@ -2473,7 +2477,8 @@ int SequenceElements::RenameModelFaceReferences(const std::string& modelName, co
                 continue;
             }
             if (eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "") == oldName) {
-                eff->SetSetting("E_CHOICE_Faces_FaceDefinition", newName);
+                // The rename itself isn't undoable, so neither is this.
+                GetCommandExecutor().SetEffectSetting(eff, "E_CHOICE_Faces_FaceDefinition", newName, false);
                 ++count;
             }
         }

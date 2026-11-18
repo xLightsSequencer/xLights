@@ -13,7 +13,9 @@
 
 #include "nlohmann/json.hpp"
 
+#include "render/SequenceEditCapture.h"
 #include "render/CommandExecutor.h"
+#include "render/SequenceMediaCommands.h"
 #include "render/FSEQFile.h"
 #include "render/SeqMediaMigration.h"
 #include "media/MediaCompatibility.h"
@@ -958,7 +960,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (!params["eraseModel"].empty()) {
             erase = ReadBool(params["eraseModel"]);
         }
-        auto const worked = CloneXLightsEffects(target, source, _sequenceElements, erase);
+        bool worked = false;
+        {
+            SequenceEditCapture capture(_sequenceElements, "Clone Model Effects");
+            worked = CloneXLightsEffects(target, source, _sequenceElements, erase);
+        }
         mainSequencer->PanelEffectGrid->Refresh();
         std::string response = wxString::Format("{\"msg\":\"Model Effects Cloned.\",\"worked\":\"%s\"}", JSONSafe(toStr(worked)));
         return sendResponse(response, "", 200, true);
@@ -1339,8 +1345,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         seqmedia::VideoConversionResult conv;
         ImportXLightsAutomation report;
         report.videos = &conv;
-        if (!ImportXLights(wxFileName(filename), mapname, autoMap, importMedia, &report)) {
-            return sendResponse(report.error.empty() ? "Import failed." : report.error, "msg", 503, false);
+        {
+            SequenceEditCapture capture(_sequenceElements, "Import Effects");
+            if (!ImportXLights(wxFileName(filename), mapname, autoMap, importMedia, &report)) {
+                return sendResponse(report.error.empty() ? "Import failed." : report.error, "msg", 503, false);
+            }
         }
         SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
 
@@ -1398,8 +1407,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (!doc.load_file(filename.c_str())) {
             return sendResponse("Could not read the LOR sequence.", "msg", 503, false);
         }
-        if (!ImportS5(doc, wxFileName(filename), mapname, autoMap, timeAdjust)) {
-            return sendResponse("Import failed.", "msg", 503, false);
+        {
+            SequenceEditCapture capture(_sequenceElements, "Import Effects");
+            if (!ImportS5(doc, wxFileName(filename), mapname, autoMap, timeAdjust)) {
+                return sendResponse("Import failed.", "msg", 503, false);
+            }
         }
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1462,14 +1474,17 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         int cleared = 0;
         int mediaRemoved = 0;
-        if (ReadBool(params["replace"])) {
-            cleared = ClearElementEffects(target, false);
-            mediaRemoved = _sequenceElements.RemoveUnreferencedMedia();
-        }
+        {
+            SequenceEditCapture capture(_sequenceElements, "Import Effects");
+            if (ReadBool(params["replace"])) {
+                cleared = ClearElementEffects(target, false);
+                mediaRemoved = _sequenceElements.RemoveUnreferencedMedia();
+            }
 
-        std::string err;
-        if (!ImportSuperStar(wxFileName(filename), modelName, opt, nullptr, err)) {
-            return sendResponse(err.empty() ? std::string("Import failed.") : JSONSafe(err), "msg", 503, false);
+            std::string err;
+            if (!ImportSuperStar(wxFileName(filename), modelName, opt, nullptr, err)) {
+                return sendResponse(err.empty() ? std::string("Import failed.") : JSONSafe(err), "msg", 503, false);
+            }
         }
         SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
         _sequenceElements.IncrementChangeCount(nullptr);
@@ -1742,6 +1757,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int changed = 0;
         int relativized = 0;
         std::vector<std::string> failures;
+        MediaEditBatch undoStep(_sequenceElements, embed ? "Embed Media" : "Extract Media");
         for (const auto& [path, type] : media.GetAllMediaPaths()) {
             if (!file.empty() && path != file) continue;
             if (onlyType && type != *onlyType) continue;
@@ -1771,7 +1787,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     if (key != path) ++relativized;
                     continue;
                 }
-                media.EmbedMedia(key);
+                if (!SeqMediaEdits::Embed(_sequenceElements, key)) {
+                    if (!file.empty()) failures.push_back(path);
+                    continue;
+                }
                 if (key != path) ++relativized;
                 ++changed;
             } else {
@@ -1784,23 +1803,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     if (dest.empty()) dest = entry->GetFilePath();
                 }
                 if (dest.empty()) { failures.push_back(path); continue; }
-                bool ok;
-                if (type == MediaType::Image) {
-                    ok = media.ExtractImageToFile(path, dest);
-                } else {
-                    ok = entry->SaveToFile(dest);
-                    if (ok) media.ExtractMedia(path);
-                }
-                if (!ok) { failures.push_back(path); continue; }
+                std::string finalPath;
                 if (dest != path) {
                     const std::string rel = MakeRelativePath(dest);
-                    const std::string finalPath = rel.empty() ? dest : rel;
-                    if (type == MediaType::Image) {
-                        media.RenameImage(dest, finalPath);
-                    } else {
-                        media.RenameMedia(path, finalPath);
-                    }
-                    _sequenceElements.RewriteMediaReferences(path, finalPath);
+                    finalPath = rel.empty() ? dest : rel;
+                }
+                if (!SeqMediaEdits::Extract(_sequenceElements, path, dest, finalPath)) {
+                    failures.push_back(path);
+                    continue;
                 }
                 ++changed;
             }

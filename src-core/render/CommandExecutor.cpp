@@ -15,6 +15,7 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 #include "Element.h"
+#include "SequenceEditCapture.h"
 #include "SequenceElements.h"
 #include "SequenceMutationGuard.h"
 #include "UndoManager.h"
@@ -30,9 +31,16 @@ CommandResult CommandExecutor::Execute(std::unique_ptr<SequenceCommand> cmd) {
     if (!cmd) {
         return CommandResult::Fail(CommandStatus::Invalid, "no command");
     }
+    if (_previewDepth > 0) {
+        PreviewTouch(*cmd);
+    }
     CommandResult result;
     std::unique_ptr<SequenceCommand> inverse = cmd->Apply(_seq, ApplyMode::Strict, &result);
-    if (!inverse) {
+    if (!inverse || FoldIntoCapture(*cmd)) {
+        return result;
+    }
+    if (_previewDepth > 0) {
+        RecordApplied(std::move(cmd), std::move(inverse), true);
         return result;
     }
     if (_batchDepth > 0) {
@@ -54,19 +62,19 @@ void CommandExecutor::BeginBatch(const std::string& label) {
     }
 }
 
-void CommandExecutor::EndBatch() {
+bool CommandExecutor::EndBatch() {
     if (_batchDepth == 0) {
-        return;
+        return false;
     }
     if (--_batchDepth > 0) {
-        return;
+        return false;
     }
     std::unique_ptr<BatchCommand> batch = std::move(_batch);
     std::unique_ptr<BatchCommand> inverses = std::move(_batchInverse);
     std::vector<std::unique_ptr<SequenceCommand>> undo = std::move(_batchUndo);
     _batchUndo.clear();
     if (batch->IsEmpty()) {
-        return;
+        return false;
     }
     // One undo step whose entries are the recorded members' inverses in the
     // order the members ran; undo walks them backwards.
@@ -83,6 +91,7 @@ void CommandExecutor::EndBatch() {
     }
     BatchCommand inverse(batch->GetLabel(), std::move(reversed));
     Notify(*batch, inverse);
+    return !undo.empty();
 }
 
 void CommandExecutor::AddObserver(ICommandObserver* observer) {
@@ -107,7 +116,54 @@ void CommandExecutor::Notify(const SequenceCommand& applied, const SequenceComma
 // Edit-site API
 // ---------------------------------------------------------------------------
 
+bool CommandExecutor::CapturedKind(const SequenceCommand& cmd) {
+    switch (cmd.Type()) {
+    case CommandType::AddEffect:
+    case CommandType::DeleteEffect:
+    case CommandType::MoveEffect:
+    case CommandType::ModifyEffect:
+    case CommandType::AddLayer:
+    case CommandType::RemoveLayer:
+    case CommandType::SetLayerName:
+    case CommandType::ReplaceLayerContents:
+        return true;
+    case CommandType::Batch: {
+        const BatchCommand& b = static_cast<const BatchCommand&>(cmd);
+        for (const auto& m : b.GetCommands()) {
+            if (!CapturedKind(*m)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    default:
+        return false;
+    }
+}
+
+bool CommandExecutor::FoldIntoCapture(const SequenceCommand& cmd) {
+    if (_capture == nullptr) {
+        return false;
+    }
+    if (CapturedKind(cmd)) {
+        return true;
+    }
+    // Recorded as usual; anything it created is compared from now on.
+    _capture->NoteNewElements();
+    return false;
+}
+
 void CommandExecutor::RecordApplied(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, bool recordUndo) {
+    if (FoldIntoCapture(*applied)) {
+        return;
+    }
+    if (_previewDepth > 0) {
+        // Moves and modifies are recorded as one net change at commit.
+        if (!PreviewAbsorbs(*applied)) {
+            _previewOther.push_back({ std::move(applied), std::move(inverse), recordUndo });
+        }
+        return;
+    }
     if (_batchDepth > 0) {
         // Everything in a batch reaches observers together, in order; only
         // the undo recording depends on recordUndo.
@@ -129,6 +185,9 @@ CommandResult CommandExecutor::ExecuteInStep(std::unique_ptr<SequenceCommand> cm
         return CommandResult::Fail(CommandStatus::Invalid, "no command");
     }
     CommandResult strict = cmd->Validate(_seq, ApplyMode::Strict);
+    if (_previewDepth > 0) {
+        PreviewTouch(*cmd);
+    }
     CommandResult result;
     std::unique_ptr<SequenceCommand> inverse = cmd->Apply(_seq, ApplyMode::Lenient, &result);
     if (!inverse) {
@@ -285,6 +344,9 @@ bool CommandExecutor::EditEffect(Effect* effect, const std::function<void(Effect
         mutate(*effect);
         return true;
     }
+    if (_previewDepth > 0) {
+        PreviewTouchEffect(effect);
+    }
     EffectLocator loc = LocatorOf(effect);
     std::string beforeName = effect->GetEffectName();
     int beforeStart = effect->GetStartTimeMS();
@@ -364,8 +426,183 @@ bool CommandExecutor::SetLayerName(EffectLayer* layer, const std::string& name, 
     return ExecuteInStep(std::make_unique<SetLayerNameCommand>(loc, name), recordUndo).Ok();
 }
 
+void CommandExecutor::RecordAppliedEdits(const std::string& label, std::vector<std::unique_ptr<SequenceCommand>> applied,
+                                         std::vector<std::unique_ptr<SequenceCommand>> inverses, bool recordUndo) {
+    if (applied.empty() || applied.size() != inverses.size()) {
+        return;
+    }
+    BeginBatch(label);
+    for (size_t i = 0; i < applied.size(); ++i) {
+        RecordApplied(std::move(applied[i]), std::move(inverses[i]), recordUndo);
+    }
+    EndBatch();
+}
+
 void CommandLogRecorder::OnCommandApplied(const SequenceCommand& applied, const SequenceCommand&) {
     nlohmann::json j;
     applied.Serialize(j);
     _log.push_back(std::move(j));
+}
+
+// ---------------------------------------------------------------------------
+// Live preview
+// ---------------------------------------------------------------------------
+
+void CommandExecutor::BeginPreview() {
+    ++_previewDepth;
+}
+
+bool CommandExecutor::PreviewAbsorbs(const SequenceCommand& cmd) const {
+    switch (cmd.Type()) {
+    case CommandType::MoveEffect:
+    case CommandType::ModifyEffect:
+        return true;
+    case CommandType::Batch: {
+        const auto& members = static_cast<const BatchCommand&>(cmd).GetCommands();
+        return std::all_of(members.begin(), members.end(), [this](const auto& m) { return PreviewAbsorbs(*m); });
+    }
+    default:
+        return false;
+    }
+}
+
+void CommandExecutor::PreviewTouch(const SequenceCommand& cmd) {
+    switch (cmd.Type()) {
+    case CommandType::MoveEffect:
+        PreviewTouchEffect(FindEffect(_seq, static_cast<const MoveEffectCommand&>(cmd).Target()));
+        break;
+    case CommandType::ModifyEffect:
+        PreviewTouchEffect(FindEffect(_seq, static_cast<const ModifyEffectCommand&>(cmd).Target()));
+        break;
+    case CommandType::Batch:
+        if (PreviewAbsorbs(cmd)) {
+            for (const auto& m : static_cast<const BatchCommand&>(cmd).GetCommands()) {
+                PreviewTouch(*m);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void CommandExecutor::PreviewTouchEffect(const Effect* effect) {
+    if (effect == nullptr || !InSequence(effect) || _previewIndex.count(effect->GetUid())) {
+        return;
+    }
+    PreviewSnapshot snap;
+    snap.loc = LocatorOf(effect);
+    snap.name = effect->GetEffectName();
+    snap.startTimeMS = effect->GetStartTimeMS();
+    snap.endTimeMS = effect->GetEndTimeMS();
+    snap.settings = effect->GetSettings();
+    snap.palette = effect->GetPaletteMap();
+    _previewIndex[effect->GetUid()] = _previewSnapshots.size();
+    _previewSnapshots.push_back(std::move(snap));
+}
+
+bool CommandExecutor::CommitPreview(const std::string& label) {
+    if (_previewDepth == 0 || --_previewDepth > 0) {
+        return false;
+    }
+    std::vector<PreviewSnapshot> snaps = std::move(_previewSnapshots);
+    std::vector<PreviewApplied> members = std::move(_previewOther);
+    _previewSnapshots.clear();
+    _previewIndex.clear();
+    _previewOther.clear();
+
+    for (const PreviewSnapshot& snap : snaps) {
+        const Effect* e = FindEffect(_seq, snap.loc);
+        if (e == nullptr) {
+            continue; // deleted during the preview; the delete is in `members`
+        }
+        if (e->GetStartTimeMS() != snap.startTimeMS || e->GetEndTimeMS() != snap.endTimeMS) {
+            members.push_back({ std::make_unique<MoveEffectCommand>(snap.loc, e->GetStartTimeMS(), e->GetEndTimeMS()),
+                                std::make_unique<MoveEffectCommand>(snap.loc, snap.startTimeMS, snap.endTimeMS), true });
+        }
+        KeyChanges settings = Diff(snap.settings, e->GetSettings());
+        KeyChanges palette = Diff(snap.palette, e->GetPaletteMap());
+        std::optional<std::string> name, priorName;
+        if (e->GetEffectName() != snap.name) {
+            name = e->GetEffectName();
+            priorName = snap.name;
+        }
+        if (name.has_value() || !settings.empty() || !palette.empty()) {
+            KeyChanges priorSettings = Diff(e->GetSettings(), snap.settings);
+            KeyChanges priorPalette = Diff(e->GetPaletteMap(), snap.palette);
+            members.push_back({ std::make_unique<ModifyEffectCommand>(snap.loc, std::move(name), SettingsChange{ false, std::move(settings) },
+                                                                      SettingsChange{ false, std::move(palette) }),
+                                std::make_unique<ModifyEffectCommand>(snap.loc, std::move(priorName), SettingsChange{ false, std::move(priorSettings) },
+                                                                      SettingsChange{ false, std::move(priorPalette) }),
+                                true });
+        }
+    }
+    if (members.empty()) {
+        return false;
+    }
+    std::string stepLabel = label;
+    if (stepLabel.empty()) {
+        bool allMoves = std::all_of(members.begin(), members.end(), [](const PreviewApplied& m) { return m.applied->Type() == CommandType::MoveEffect; });
+        stepLabel = allMoves ? "Effect(s) Moved" : "Effect(s) Modified";
+    }
+    if (_batchDepth > 0) {
+        for (auto& m : members) {
+            RecordApplied(std::move(m.applied), std::move(m.inverse), m.recordUndo);
+        }
+        return true;
+    }
+    bool anyUndo = std::any_of(members.begin(), members.end(), [](const PreviewApplied& m) { return m.recordUndo; });
+    if (anyUndo) {
+        _undo.CreateUndoStep();
+        for (const auto& m : members) {
+            if (m.recordUndo) {
+                _undo.RecordInverse(CommandType::Batch, stepLabel, m.inverse->Clone());
+            }
+        }
+    }
+    BatchCommand batch(stepLabel);
+    std::vector<std::unique_ptr<SequenceCommand>> reversed;
+    for (auto it = members.rbegin(); it != members.rend(); ++it) {
+        reversed.push_back(std::move(it->inverse));
+    }
+    for (auto& m : members) {
+        batch.Add(std::move(m.applied));
+    }
+    Notify(batch, BatchCommand(stepLabel, std::move(reversed)));
+    return true;
+}
+
+void CommandExecutor::CancelPreview() {
+    if (_previewDepth == 0 || --_previewDepth > 0) {
+        return;
+    }
+    std::vector<PreviewSnapshot> snaps = std::move(_previewSnapshots);
+    std::vector<PreviewApplied> others = std::move(_previewOther);
+    _previewSnapshots.clear();
+    _previewIndex.clear();
+    _previewOther.clear();
+    // Undo the other commands, newest first, then put the touched effects
+    // back as they were.
+    for (auto it = others.rbegin(); it != others.rend(); ++it) {
+        it->inverse->Apply(_seq, ApplyMode::Lenient);
+    }
+    for (const PreviewSnapshot& snap : snaps) {
+        const Effect* e = FindEffect(_seq, snap.loc);
+        if (e == nullptr) {
+            continue;
+        }
+        if (e->GetStartTimeMS() != snap.startTimeMS || e->GetEndTimeMS() != snap.endTimeMS) {
+            MoveEffectCommand(snap.loc, snap.startTimeMS, snap.endTimeMS).Apply(_seq, ApplyMode::Lenient);
+        }
+        KeyChanges settings = Diff(e->GetSettings(), snap.settings);
+        KeyChanges palette = Diff(e->GetPaletteMap(), snap.palette);
+        std::optional<std::string> name;
+        if (e->GetEffectName() != snap.name) {
+            name = snap.name;
+        }
+        if (name.has_value() || !settings.empty() || !palette.empty()) {
+            ModifyEffectCommand(snap.loc, std::move(name), SettingsChange{ false, std::move(settings) }, SettingsChange{ false, std::move(palette) })
+                .Apply(_seq, ApplyMode::Lenient);
+        }
+    }
 }

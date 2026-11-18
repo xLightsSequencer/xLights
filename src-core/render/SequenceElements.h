@@ -154,13 +154,18 @@ public:
     static constexpr int TagCount = 10;
     int GetTagPosition(int tag) const { return (tag >= 0 && tag < TagCount) ? _tagPositions[tag] : -1; }
     void SetTagPosition(int tag, int position) {
+        XL_SEQ_MUTATION("SequenceElements::SetTagPosition");
         if (tag >= 0 && tag < TagCount) {
             _tagPositions[tag] = position;
         }
     }
-    void ClearTags() { _tagPositions.fill(-1); }
+    void ClearTags() {
+        XL_SEQ_MUTATION("SequenceElements::ClearTags");
+        _tagPositions.fill(-1);
+    }
 
-    void DeleteElement(const std::string &name);
+    // Also drops the model from every view definition unless told not to.
+    void DeleteElement(const std::string &name, bool removeFromViewDefinitions = true);
     void DeleteElementFromView(const std::string &name, int view);
     void DeleteTimingFromView(const std::string &name, int view);
     void DeleteTimingsFromView(int view);
@@ -264,9 +269,13 @@ public:
     // that entry alive, which is the safe direction for cleanup.
     std::unordered_set<std::string> GetEffectSettingValues() const;
 
-    // Forget every media entry that no effect or face definition references.
-    // Embedded payloads are dropped; files on disk are untouched. Returns the
-    // number of entries removed.
+    // Visits every effect layer of every model element, including submodel,
+    // strand and node layers, with the owning model's name.
+    void ForEachModelEffectLayer(const std::function<void(EffectLayer*, const std::string&)>& fn) const;
+
+    // Forget every media entry that no effect or face definition references,
+    // as one undoable step. Embedded payloads are dropped; files on disk are
+    // untouched. Returns the number of entries removed.
     int RemoveUnreferencedMedia();
 
     // Strip the show/media folder prefix off a media entry's stored path and
@@ -274,6 +283,7 @@ public:
     // the document, so an absolute path just pins the sequence to one machine.
     // No-op (returns `path`) when the file is outside the show and media
     // folders, or when the relative key is already taken by another entry.
+    // Runs as commands, so it is undoable.
     std::string MakeMediaPathRelative(const std::string& path);
 
     // Sequence-level face definitions (Matrix/image style only)
@@ -323,9 +333,6 @@ private:
     bool mHideUnusedSubmodels = false;
     std::function<bool(const std::string&)> _modelRowFilter;
 
-    // Visits every effect layer of every model element, including submodel,
-    // strand and node layers, with the owning model's name.
-    void ForEachModelEffectLayer(const std::function<void(EffectLayer*, const std::string&)>& fn) const;
     int mSequenceEndMS;
     bool supportsModelBlending;
 

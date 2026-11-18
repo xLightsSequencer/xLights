@@ -54,6 +54,8 @@ public:
     const std::string &GetName() const;
     void SetName(const std::string &name);
     SeqObjectId GetUid() const { return mUid; }
+    // For re-creating an element under its previous id (undo, commands).
+    void SetUid(SeqObjectId uid) { mUid = uid; }
     virtual const std::string &GetModelName() const;
     virtual std::string GetFullName() const;
     
@@ -165,10 +167,16 @@ public:
     virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_TIMING; }
     
     const std::string &GetSubType() const { return subType; }
-    void SetSubType(const std::string &st) { subType = st; }
+    void SetSubType(const std::string &st) {
+        XL_SEQ_MUTATION("TimingElement::SetSubType");
+        subType = st;
+    }
 
     int GetFixedTiming() const { return mFixed; }
-    void SetFixedTiming(int fixed) { mFixed = fixed; }
+    void SetFixedTiming(int fixed) {
+        XL_SEQ_MUTATION("TimingElement::SetFixedTiming");
+        mFixed = fixed;
+    }
     bool IsFixedTiming() const { return mFixed != 0; }
     void Unfix();
 

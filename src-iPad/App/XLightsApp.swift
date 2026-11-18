@@ -1514,7 +1514,10 @@ private struct LayoutAutosaveRecoveryModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let offer = viewModel.pendingLayoutAutosave
-        content.alert(offer.map { AutosaveRecoveryText.title($0) } ?? "",
+        // Carried here rather than on the app shell's chain, which is at
+        // the type-checker's limit.
+        content.modifier(PresenceOpenWarningModifier(viewModel: viewModel))
+               .alert(offer.map { AutosaveRecoveryText.title($0) } ?? "",
                       isPresented: Binding(
                         get: { viewModel.pendingLayoutAutosave != nil },
                         set: { if !$0 { viewModel.pendingLayoutAutosave = nil } }),

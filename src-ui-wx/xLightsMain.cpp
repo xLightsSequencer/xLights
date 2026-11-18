@@ -71,8 +71,11 @@
 #include "shared/utils/BitmapCache.h"
 #include "shared/utils/ExternalHooksUI.h"
 #include "diagnostics/FindDataPanel.h"
+#include "render/SequenceBulkEdits.h"
+#include "render/SequenceEditCapture.h"
 #include "render/GPURenderUtils.h"
 #include "render/SequenceMedia.h"
+#include "render/SequenceElementCommands.h"
 #include "render/SequencePackage.h"
 #include "render/EffectSymbol.h"
 #include "render/EffectSymbolManager.h"
@@ -111,6 +114,7 @@
 #include "sequencer/SeqSettingsDialog.h"
 #include "effects/ShaderDownloadDialog.h"
 #include "utils/ShowAutosave.h"
+#include "utils/ShowPresence.h"
 #include "utils/ShowFileGuard.h"
 #include "utils/ShowGuid.h"
 #include "utils/SpecialOptions.h"
@@ -1600,6 +1604,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ChoiceParm1->SetStringSelection("100");
     ChoiceParm2->SetStringSelection("100");
 
+    // Who else is editing the layout or controllers in a shared show folder.
+    _presenceHint = new wxStaticText(AUIStatusBar, wxID_ANY, wxEmptyString);
+    _presenceHint->SetForegroundColour(wxColour(0xD0, 0x70, 0x00));
+    _presenceHint->Hide();
+    StatusBarSizer->Add(_presenceHint, wxGBPosition(0, 4), wxDefaultSpan, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     StatusBarSizer->AddGrowableCol(1, 2);
     StatusBarSizer->AddGrowableCol(3, 1);
     ProgressBar->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnProgressBarDoubleClick, nullptr, this);
@@ -1941,6 +1950,19 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             device = wxGetUserId();
         }
         ShowAutosave::SetIdentity(installId, device.ToStdString(), xlights_version_string);
+
+        wxString user = wxGetUserName();
+        if (user.empty()) {
+            user = wxGetUserId();
+        }
+        auto& presence = ShowPresencePublisher::Instance();
+        presence.SetIdentity(installId, user.ToStdString(), device.ToStdString(), ShowPresence::ThisPlatform(), xlights_version_string);
+        // A render-and-exit run is not someone working in the show folder.
+        presence.Enable(!_renderMode);
+        if (presence.IsEnabled()) {
+            _presenceTimer.Bind(wxEVT_TIMER, [this](wxTimerEvent&) { UpdatePresence(); });
+            _presenceTimer.Start(10000);
+        }
     }
 
     config->Read("xFadePort", &_xFadePort, 0);
@@ -2292,6 +2314,7 @@ xLightsFrame::~xLightsFrame()
     EffectSettingsTimer.Stop();
     OutputTimer.Stop();
     RenderStatusTimer.Stop();
+    _presenceTimer.Stop();
     TextDrawingContext::CleanUp();
     EffectIconCache::Clear();
 
@@ -3348,6 +3371,9 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     selectedEffect = nullptr;
 
     CheckUnsavedChanges();
+
+    _presenceTimer.Stop();
+    ShowPresencePublisher::Instance().Clear();
 
     // Release GL resources from all models while contexts are still alive.
     // Must happen before ShowHideAllSequencerWindows: hiding canvases causes
@@ -6161,7 +6187,6 @@ void xLightsFrame::OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event
         return;
     wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift all effects and timing marks:\n\n"
         "Note: Will be rounded to the nearest timing interval.\n"
-        "      This operation cannot be reversed with Undo.\n"
         "      Effects shifted left may be truncated or deleted.",
         "Shift Effects And Timings", "", wxOK | wxCANCEL | wxCENTER);
     if (ted.ShowModal() == wxID_OK) {
@@ -6172,33 +6197,10 @@ void xLightsFrame::OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event
             milliseconds /= ms;
             milliseconds *= ms;
         }
-        for (int elem = 0; elem < (int)_sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
-            Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
-            for (int layer = 0; layer < (int)ele->GetEffectLayerCount(); layer++) {
-                EffectLayer* el = ele->GetEffectLayer(layer);
-                ShiftEffectsOnLayer(el, milliseconds);
-            }
-            if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                ModelElement* me = dynamic_cast<ModelElement*>(ele);
-                for (int i = 0; i < me->GetStrandCount(); ++i) {
-                    Element* se = me->GetStrand(i);
-                    StrandElement* ste = dynamic_cast<StrandElement*>(se);
-                    for (int k = 0; k < ste->GetNodeLayerCount(); ++k) {
-                        NodeLayer* nl = ste->GetNodeLayer(k, false);
-                        if (nl != nullptr) {
-                            ShiftEffectsOnLayer(nl, milliseconds);
-                        }
-                    }
-                }
-                for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
-                    Element* se = me->GetSubModel(i);
-                    for (int layer = 0; layer < (int)se->GetEffectLayerCount(); layer++) {
-                        EffectLayer* sel = se->GetEffectLayer(layer);
-                        ShiftEffectsOnLayer(sel, milliseconds);
-                    }
-                }
-            }
+        if (selectedEffect != nullptr && selectedEffect->GetEndTimeMS() + milliseconds < 0) {
+            UnselectEffect();
         }
+        ShiftEffects(_sequenceElements, milliseconds, true, false, "Shift Effects And Timing");
         mainSequencer->PanelEffectGrid->Refresh();
     }
 }
@@ -6207,7 +6209,6 @@ void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
 {
     wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift the selected effects:\n\n"
                                 "Note: Will be rounded to the nearest timing interval.\n"
-                                "      This operation cannot be reversed with Undo.\n"
                                 "      Effects shifted left may be truncated or deleted.\n"
                                 "      Effects that would overlap unselected effects wont be moved.",
                           "Shift Selected Effects", "", wxOK | wxCANCEL | wxCENTER);
@@ -6219,33 +6220,10 @@ void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
             milliseconds /= ms;
             milliseconds *= ms;
         }
-        for (int elem = 0; elem < (int)_sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
-            Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
-            for (int layer = 0; layer < (int)ele->GetEffectLayerCount(); layer++) {
-                EffectLayer* el = ele->GetEffectLayer(layer);
-                ShiftSelectedEffectsOnLayer(el, milliseconds);
-            }
-            if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                ModelElement* me = dynamic_cast<ModelElement*>(ele);
-                for (int i = 0; i < me->GetStrandCount(); ++i) {
-                    Element* se = me->GetStrand(i);
-                    StrandElement* ste = dynamic_cast<StrandElement*>(se);
-                    for (int k = 0; k < ste->GetNodeLayerCount(); ++k) {
-                        NodeLayer* nl = ste->GetNodeLayer(k, false);
-                        if (nl != nullptr) {
-                            ShiftSelectedEffectsOnLayer(nl, milliseconds);
-                        }
-                    }
-                }
-                for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
-                    Element* se = me->GetSubModel(i);
-                    for (int layer = 0; layer < (int)se->GetEffectLayerCount(); layer++) {
-                        EffectLayer* sel = se->GetEffectLayer(layer);
-                        ShiftSelectedEffectsOnLayer(sel, milliseconds);
-                    }
-                }
-            }
+        if (selectedEffect != nullptr && selectedEffect->GetEndTimeMS() + milliseconds < 0) {
+            UnselectEffect();
         }
+        ShiftEffects(_sequenceElements, milliseconds, true, true, "Shift Selected Effects");
         mainSequencer->PanelEffectGrid->Refresh();
     }
 }
@@ -6256,7 +6234,6 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
         return;
     wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift all effects:\n\n"
                                 "Note: Will be rounded to the nearest timing interval.\n"
-                                "      This operation cannot be reversed with Undo.\n"
                                 "      Effects shifted left may be truncated or deleted.",
                           "Shift Effects", "", wxOK | wxCANCEL | wxCENTER);
     if (ted.ShowModal() == wxID_OK) {
@@ -6267,139 +6244,11 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
             milliseconds /= ms;
             milliseconds *= ms;
         }
-        for (int elem = 0; elem < (int)_sequenceElements.GetElementCount(MASTER_VIEW); elem++) {
-            Element* ele = _sequenceElements.GetElement(elem, MASTER_VIEW);
-            if (ele->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-                for (int layer = 0; layer < (int)ele->GetEffectLayerCount(); layer++) {
-                    EffectLayer* el = ele->GetEffectLayer(layer);
-                    ShiftEffectsOnLayer(el, milliseconds);
-                }
-            }
-            if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                ModelElement* me = dynamic_cast<ModelElement*>(ele);
-                for (int i = 0; i < me->GetStrandCount(); ++i) {
-                    Element* se = me->GetStrand(i);
-                    StrandElement* ste = dynamic_cast<StrandElement*>(se);
-                    for (int k = 0; k < ste->GetNodeLayerCount(); ++k) {
-                        NodeLayer* nl = ste->GetNodeLayer(k, false);
-                        if (nl != nullptr) {
-                            ShiftEffectsOnLayer(nl, milliseconds);
-                        }
-                    }
-                }
-                for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i) {
-                    Element* se = me->GetSubModel(i);
-                    for (int layer = 0; layer < (int)se->GetEffectLayerCount(); layer++) {
-                        EffectLayer* sel = se->GetEffectLayer(layer);
-                        ShiftEffectsOnLayer(sel, milliseconds);
-                    }
-                }
-            }
+        if (selectedEffect != nullptr && selectedEffect->GetEndTimeMS() + milliseconds < 0) {
+            UnselectEffect();
         }
+        ShiftEffects(_sequenceElements, milliseconds, false, false, "Shift Effects");
         mainSequencer->PanelEffectGrid->Refresh();
-    }
-}
-
-void xLightsFrame::ShiftEffectsOnLayer(EffectLayer* el, int milliseconds)
-{
-    for (int ef = el->GetEffectCount() - 1; ef >= 0; ef--) { // count backwards so we can delete if needed
-        Effect* eff = el->GetEffect(ef);
-        int start_ms = eff->GetStartTimeMS();
-        int end_ms = eff->GetEndTimeMS();
-        if (start_ms + milliseconds < 0) {
-            if (end_ms + milliseconds < 0) {
-                // effect shifted off screen - delete
-
-                el->RemoveEffect(ef);
-                if (eff == selectedEffect) {
-                    UnselectEffect();
-                }
-                continue;
-            } else {
-                // truncate start of effect
-                eff->SetStartTimeMS(0);
-            }
-        } else {
-            eff->SetStartTimeMS(start_ms + milliseconds);
-        }
-        eff->SetEndTimeMS(end_ms + milliseconds);
-    }
-}
-
-void xLightsFrame::ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds)
-{
-    if (milliseconds < 0) {
-        std::list<int> toRemove;
-        for (int ef = 0; ef < el->GetEffectCount(); ef++) {
-            // move left
-            Effect* eff = el->GetEffect(ef);
-            if (eff->GetSelected()) {
-                bool moved = false;
-                int start_ms = eff->GetStartTimeMS();
-                int end_ms = eff->GetEndTimeMS();
-                if (start_ms + milliseconds < 0) {
-                    if (end_ms + milliseconds < 0) {
-                        // effect shifted off screen - delete
-                        if (eff == selectedEffect) {
-                            UnselectEffect();
-                        }
-                        // move it out of the way so it doesnt cause clashes
-                        eff->SetStartTimeMS(-100);
-                        eff->SetEndTimeMS(-90);
-                        toRemove.push_front(ef); // we need to delete them in reverse order
-                        continue;
-                    } else {
-                        // truncate start of effect
-                        eff->SetStartTimeMS(0);
-                        moved = true;
-                    }
-                } else {
-                    auto effectsInTime = el->GetAllEffectsByTime(start_ms + milliseconds, end_ms + milliseconds);
-                    bool clash = false;
-                    for (const auto& it : effectsInTime) {
-                        if (it->GetID() != eff->GetID()) {
-                            clash = true;
-                            break;
-                        }
-                    }
-                    if (!clash) {
-                        eff->SetStartTimeMS(start_ms + milliseconds);
-                        moved = true;
-                    }
-                }
-                if (moved) {
-                    eff->SetEndTimeMS(end_ms + milliseconds);
-                }
-            }
-        }
-        for (auto it = toRemove.begin(); it != toRemove.end(); ++it) {
-            el->RemoveEffect(*it);
-        }
-    } else {
-        // Move right
-        for (int ef = el->GetEffectCount() - 1; ef >= 0; ef--) { // count backwards so we can delete if needed
-            Effect* eff = el->GetEffect(ef);
-            if (eff->GetSelected()) {
-                bool moved = false;
-                int start_ms = eff->GetStartTimeMS();
-                int end_ms = eff->GetEndTimeMS();
-                auto effectsInTime = el->GetAllEffectsByTime(start_ms + milliseconds, end_ms + milliseconds);
-                bool clash = false;
-                for (const auto& it : effectsInTime) {
-                    if (it->GetID() != eff->GetID()) {
-                        clash = true;
-                        break;
-                    }
-                }
-                if (!clash) {
-                    eff->SetStartTimeMS(start_ms + milliseconds);
-                    moved = true;
-                }
-                if (moved) {
-                    eff->SetEndTimeMS(end_ms + milliseconds);
-                }
-            }
-        }
     }
 }
 
@@ -7832,12 +7681,11 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
         }
 
         // now create the phenome timing track
+        NewElementsRecorder recorder(_sequenceElements, "Generate Lyrics");
         std::string name = _sequenceElements.UniqueElementName(dlg.GetLyricName());
-        int timingCount = _sequenceElements.GetNumberOfTimingElements();
-        Element* e = _sequenceElements.AddElement(timingCount, name, "timing", true, false, true, false, false);
+        TimingElement* timing = ElementEdits::AddTimingTrack(_sequenceElements, -1, name, "");
+        timing->SetActive(true);
         _sequenceElements.AddTimingToCurrentView(name);
-        TimingElement* timing = dynamic_cast<TimingElement*>(e);
-        timing->AddEffectLayer();
         timing->AddEffectLayer();
         EffectLayer* tl = timing->AddEffectLayer();
 

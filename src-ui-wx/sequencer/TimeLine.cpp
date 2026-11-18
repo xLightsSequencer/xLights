@@ -28,6 +28,7 @@
 #include "render/Element.h"
 #include "render/UndoManager.h"
 #include "render/CommandExecutor.h"
+#include "render/SequenceElementCommands.h"
 #include "xLightsMain.h"
 #include "shared/utils/wxUtilities.h"
 #include <log.h>
@@ -201,8 +202,47 @@ static const int marker_size = 8;
 void TimeLine::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
 {
     m_dragging = false;
+    FinishBoundaryDrag();
+}
+
+void TimeLine::FinishBoundaryDrag()
+{
+    if (!mDraggingBoundary) {
+        return;
+    }
     mDraggingBoundary = false;
     mDragBoundaryTimeMS = -1;
+    if (_sequenceElements == nullptr) {
+        return;
+    }
+    // The drag moved the boundary live; record it as one edit.
+    SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+    std::vector<SongStructureView> after = ssm.GetViews();
+    {
+        SeqMutationGuard::Scope livePreview;
+        ssm.ReplaceViews(mDragSongViews);
+    }
+    EditSongStructure([&](SongStructureManager& m) { m.ReplaceViews(after); });
+    mDragSongViews.clear();
+}
+
+void TimeLine::EditSongStructure(const std::function<void(SongStructureManager&)>& edit)
+{
+    if (_sequenceElements == nullptr) {
+        return;
+    }
+    _sequenceElements->get_undo_mgr().CreateUndoStep();
+    ElementEdits::EditSongStructure(*_sequenceElements, edit);
+}
+
+void TimeLine::PullTags()
+{
+    if (_sequenceElements == nullptr) {
+        return;
+    }
+    for (int i = 0; i < 10; ++i) {
+        _tagPositions[i] = _sequenceElements->GetTagPosition(i);
+    }
 }
 
 void TimeLine::mouseRightDown(wxMouseEvent& event)
@@ -386,10 +426,16 @@ void TimeLine::SetTagPosition(int tag, int position , bool flag)
         position = GetTimeLength();
     }
 
+    PullTags();
     if (_tagPositions[tag] != position) {
         _tagPositions[tag] = position;
         if (_sequenceElements) {
-            _sequenceElements->SetTagPosition(tag, position);
+            // Pulling a tag back inside a shortened sequence isn't an edit
+            // of its own.
+            if (flag) {
+                _sequenceElements->get_undo_mgr().CreateUndoStep();
+            }
+            ElementEdits::SetTagPosition(*_sequenceElements, tag, position, flag);
         }
         if (flag) {
             Refresh(false);
@@ -400,12 +446,15 @@ void TimeLine::SetTagPosition(int tag, int position , bool flag)
 
 void TimeLine::ClearTags()
 {
+    if (_sequenceElements) {
+        ScopedEditBatch batch(*_sequenceElements, "Delete All Tags");
+        for (int i = 0; i < 10; ++i) {
+            ElementEdits::SetTagPosition(*_sequenceElements, i, -1);
+        }
+    }
     for (int i = 0; i < 10; ++i)
     {
         _tagPositions[i] = -1;
-    }
-    if (_sequenceElements) {
-        _sequenceElements->ClearTags();
     }
     Refresh(false);
 }
@@ -421,12 +470,13 @@ void TimeLine::SyncTagsFrom(const SequenceElements& elements)
 void TimeLine::SyncTagsTo(SequenceElements& elements) const
 {
     for (int i = 0; i < 10; ++i) {
-        elements.SetTagPosition(i, _tagPositions[i]);
+        ElementEdits::SetTagPosition(elements, i, _tagPositions[i], false);
     }
 }
 
 int TimeLine::GetTagCount()
 {
+    PullTags();
     int count = 0;
     for (int i = 0; i < 10; ++i)
     {
@@ -440,6 +490,7 @@ int TimeLine::GetTagCount()
 
 void TimeLine::GoToNextTag()
 {
+    PullTags();
     int pos = GetStartTimeMS();
     int end = GetTimeLength();
 
@@ -459,6 +510,7 @@ void TimeLine::GoToNextTag()
 
 void TimeLine::GoToPriorTag()
 {
+    PullTags();
     int pos = GetStartTimeMS();
     int prior = 0;
 
@@ -485,6 +537,7 @@ void TimeLine::GoToTag(int tag)
 }
 
 int TimeLine::GetNextTag(int pos) {
+    PullTags();
     int end = GetTimeLength();
     int next = end;
 
@@ -500,6 +553,7 @@ int TimeLine::GetNextTag(int pos) {
 }
 
 int TimeLine::GetPriorTag(int pos) {
+    PullTags();
     int prior = 0;
 
     for (const auto& it : _tagPositions) {
@@ -516,7 +570,10 @@ int TimeLine::GetPriorTag(int pos) {
 int TimeLine::GetTagPosition(int tag)
 {
     // update it if it is outside the sequence
-    SetTagPosition(tag, _tagPositions[tag]);
+    PullTags();
+    if (GetTimeLength() != -1 && _tagPositions[tag] > GetTimeLength()) {
+        SetTagPosition(tag, _tagPositions[tag]);
+    }
 
     return _tagPositions[tag];
 }
@@ -530,7 +587,7 @@ void TimeLine::mouseLeftDown( wxMouseEvent& event)
         // Option+click adds a boundary
         if (event.AltDown()) {
             int clickTimeMS = GetAbsoluteTimeMSfromPosition(event.GetX());
-            ssm.AddBoundary(clickTimeMS, mSequenceEndMarkerMS);
+            EditSongStructure([&](SongStructureManager& m) { m.AddBoundary(clickTimeMS, mSequenceEndMarkerMS); });
             RaiseSequenceChange();
             Refresh(false);
             return;
@@ -541,6 +598,7 @@ void TimeLine::mouseLeftDown( wxMouseEvent& event)
         if (boundaryTime >= 0) {
             mDraggingBoundary = true;
             mDragBoundaryTimeMS = boundaryTime;
+            mDragSongViews = ssm.GetViews();
             if (!m_dragging) {
                 CaptureMouse();
                 m_dragging = true;
@@ -569,7 +627,11 @@ void TimeLine::mouseMoved( wxMouseEvent& event)
         int newTimeMS = GetAbsoluteTimeMSfromPosition(event.GetX());
         newTimeMS = RoundToMultipleOfPeriod(newTimeMS, mFrequency);
         SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
-        ssm.MoveBoundary(mDragBoundaryTimeMS, newTimeMS);
+        {
+            // Recorded as one edit when the drag ends.
+            SeqMutationGuard::Scope livePreview;
+            ssm.MoveBoundary(mDragBoundaryTimeMS, newTimeMS);
+        }
         // Update the drag reference to the new boundary position
         int nearBoundary = ssm.FindNearestBoundary(newTimeMS, 1000);
         if (nearBoundary >= 0) {
@@ -607,8 +669,7 @@ void TimeLine::mouseMoved( wxMouseEvent& event)
 void TimeLine::mouseLeftUp( wxMouseEvent& event)
 {
     if (mDraggingBoundary) {
-        mDraggingBoundary = false;
-        mDragBoundaryTimeMS = -1;
+        FinishBoundaryDrag();
         if (m_dragging) {
             ReleaseMouse();
             m_dragging = false;
@@ -1382,6 +1443,7 @@ void TimeLine::OnResize(wxSizeEvent& event)
 }
 
 void TimeLine::render( wxDC& dc ) {
+    PullTags();
     wxCoord w,h;
     wxPen pen(wxColor(128,128,128));
     const wxPen* pen_black = wxBLACK_PEN;
@@ -1786,7 +1848,7 @@ void TimeLine::OnSongStructurePopup(wxCommandEvent& event)
     MainSequencer* ms = dynamic_cast<MainSequencer*>(GetParent());
 
     if (id == ID_SONG_ADD_BOUNDARY) {
-        ssm.AddBoundary(_rightClickPosition, mSequenceEndMarkerMS);
+        EditSongStructure([&](SongStructureManager& m) { m.AddBoundary(_rightClickPosition, mSequenceEndMarkerMS); });
         RaiseSequenceChange();
         Refresh(false);
         if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
@@ -1798,7 +1860,7 @@ void TimeLine::OnSongStructurePopup(wxCommandEvent& event)
         int toleranceMS = (int)(6.0f * msPerPixel);
         int boundary = ssm.FindNearestBoundary(_rightClickPosition, toleranceMS);
         if (boundary >= 0) {
-            ssm.DeleteBoundary(boundary);
+            EditSongStructure([&](SongStructureManager& m) { m.DeleteBoundary(boundary); });
             RaiseSequenceChange();
             Refresh(false);
             if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
@@ -1806,19 +1868,21 @@ void TimeLine::OnSongStructurePopup(wxCommandEvent& event)
     } else if (id == ID_SONG_EDIT_REGION) {
         int regionIdx = ssm.GetRegionIndexAtTime(_rightClickPosition);
         if (regionIdx >= 0) {
-            SongStructureRegion& region = ssm.GetRegion(regionIdx);
+            const SongStructureRegion& region = ssm.GetRegion(regionIdx);
 
             SongRegionEditDialog dlg(this, region.name, region.colorARGB);
             if (dlg.ShowModal() == wxID_OK) {
                 wxString newName = dlg.GetRegionName();
-                if (!newName.empty()) {
-                    ssm.SetRegionName(regionIdx, newName.ToStdString());
-                }
                 uint32_t newColor = dlg.GetSelectedColorARGB();
                 // Preserve original alpha, use RGB from selection
                 uint8_t a = (region.colorARGB >> 24) & 0xFF;
                 newColor = ((uint32_t)a << 24) | (newColor & 0x00FFFFFF);
-                ssm.SetRegionColor(regionIdx, newColor);
+                EditSongStructure([&](SongStructureManager& m) {
+                    if (!newName.empty()) {
+                        m.SetRegionName(regionIdx, newName.ToStdString());
+                    }
+                    m.SetRegionColor(regionIdx, newColor);
+                });
             }
 
             RaiseSequenceChange();
@@ -1828,7 +1892,7 @@ void TimeLine::OnSongStructurePopup(wxCommandEvent& event)
     } else if (id == ID_SONG_CLEAR_STRUCTURE) {
         if (wxMessageBox("Are you sure you want to clear all song structure regions?",
                           "Clear Song Structure", wxYES_NO | wxICON_QUESTION, this) == wxYES) {
-            ssm.Clear();
+            EditSongStructure([](SongStructureManager& m) { m.Clear(); });
             RaiseSequenceChange();
             Refresh(false);
             if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
@@ -1863,8 +1927,7 @@ void TimeLine::OnSongStructurePopup(wxCommandEvent& event)
     } else if (id == ID_SONG_VIEW_NEW) {
         wxString name = wxGetTextFromUser("Enter name for new view:", "New Song Structure View", "", this);
         if (!name.empty()) {
-            int idx = ssm.AddView(name.ToStdString());
-            ssm.SetActiveView(idx);
+            EditSongStructure([&](SongStructureManager& m) { m.SetActiveView(m.AddView(name.ToStdString())); });
             RaiseSequenceChange();
             Refresh(false);
             if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
@@ -1874,8 +1937,7 @@ void TimeLine::OnSongStructurePopup(wxCommandEvent& event)
         wxString name = wxGetTextFromUser("Enter name for duplicated view:",
             "Duplicate Song Structure View", defaultName, this);
         if (!name.empty()) {
-            int idx = ssm.DuplicateView(ssm.GetActiveViewIndex(), name.ToStdString());
-            ssm.SetActiveView(idx);
+            EditSongStructure([&](SongStructureManager& m) { m.SetActiveView(m.DuplicateView(m.GetActiveViewIndex(), name.ToStdString())); });
             RaiseSequenceChange();
             Refresh(false);
             if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
@@ -1884,13 +1946,13 @@ void TimeLine::OnSongStructurePopup(wxCommandEvent& event)
         wxString name = wxGetTextFromUser("Enter new name for current view:",
             "Rename Song Structure View", ssm.GetActiveViewName(), this);
         if (!name.empty()) {
-            ssm.RenameView(ssm.GetActiveViewIndex(), name.ToStdString());
+            EditSongStructure([&](SongStructureManager& m) { m.RenameView(m.GetActiveViewIndex(), name.ToStdString()); });
             RaiseSequenceChange();
         }
     } else if (id == ID_SONG_VIEW_DELETE) {
         if (wxMessageBox(wxString::Format("Delete view \"%s\"?", wxString::FromUTF8(ssm.GetActiveViewName())),
                           "Delete Song Structure View", wxYES_NO | wxICON_QUESTION, this) == wxYES) {
-            ssm.DeleteView(ssm.GetActiveViewIndex());
+            EditSongStructure([&](SongStructureManager& m) { m.DeleteView(m.GetActiveViewIndex()); });
             RaiseSequenceChange();
             Refresh(false);
             if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);

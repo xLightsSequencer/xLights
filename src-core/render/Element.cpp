@@ -88,6 +88,7 @@ const std::string &Element::GetName() const
 
 void Element::SetName(const std::string &name)
 {
+    XL_SEQ_MUTATION("Element::SetName");
     mName = name;
     changeCount++;
     listener->IncrementChangeCount(this);
@@ -353,6 +354,7 @@ TimingElement::~TimingElement() {
 
 void TimingElement::Unfix()
 {
+    XL_SEQ_MUTATION("TimingElement::Unfix");
     mFixed = 0;
 }
 

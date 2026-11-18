@@ -84,6 +84,11 @@ public:
     void DeleteView(int index);
     bool AnyViewHasRegions() const;
 
+    // Every view, in order. ReplaceViews keeps the active view (per-user
+    // state), clamped to the new view count.
+    const std::vector<SongStructureView>& GetViews() const { return _views; }
+    void ReplaceViews(std::vector<SongStructureView> views);
+
     // XML persistence (pugixml — wx-free)
     void LoadFromXml(const pugi::xml_node& node);
     void SaveToXml(pugi::xml_node parent) const;

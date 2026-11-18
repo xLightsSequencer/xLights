@@ -44,6 +44,7 @@
 #include "import_export/VsaImportDialog.h"
 #include "import_export/xLightsImportChannelMapDialog.h"
 #include "render/SequenceMedia.h"
+#include "render/SequenceElementCommands.h"
 #include "render/SeqMediaMigration.h"
 #include "media/MediaCompatibility.h"
 #include "media/VideoTranscoder.h"
@@ -204,12 +205,17 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
 
     LoadSequencer(*CurrentSeqXmlFile, emptyDoc);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
-    CurrentSeqXmlFile->ApplyPendingTimings(this);
-    if (_sequenceElements.GetNumberOfTimingElements() == 0) {
-        std::string new_timing = "New Timing";
-        CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-        _sequenceElements.AddTimingToAllViews(new_timing);
-    } else {
+    {
+        // Part of creating the document, not an edit to undo.
+        NewElementsRecorder recorder(_sequenceElements, "New Sequence", false);
+        CurrentSeqXmlFile->ApplyPendingTimings(this);
+        if (_sequenceElements.GetNumberOfTimingElements() == 0) {
+            std::string new_timing = "New Timing";
+            CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+            _sequenceElements.AddTimingToAllViews(new_timing);
+        }
+    }
+    if (_sequenceElements.GetNumberOfTimingElements() > 0) {
         _sequenceElements.GetTimingElement(0)->SetActive(true);
     }
     MenuItem_File_Save->Enable(true);
@@ -315,6 +321,10 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
     if (!filename.empty()) {
         if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains(XLIGHTS_KEYBINDING_FILE)) {
             wxMessageBox("the 'xlights_rgbeffects.xml', 'xlights_networks.xml' or 'xlights_keybindings.xml' files are not valid sequence files", "Error");
+            return;
+        }
+
+        if (!ConfirmOpenSequenceOpenElsewhere(rp.IsEmpty() ? filename : rp)) {
             return;
         }
 
@@ -634,6 +644,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         if (!CurrentSeqXmlFile->IsOpen()) {
             // SeqLoadXlightsFile/LoadSequencer was never called, so _viewsManager may not be set
             _sequenceElements.SetViewsManager(GetViewsManager());
+            NewElementsRecorder recorder(_sequenceElements, "New Sequence", false);
             std::string new_timing = "New Timing";
             CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
             _sequenceElements.AddTimingToAllViews(new_timing);
@@ -673,6 +684,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         AddToMRU(filename);
         UpdateRecentFilesList(false);
+        UpdatePresence();
 
         if (!_renderMode && !_checkSequenceMode && CurrentSeqXmlFile != nullptr) {
             if (!IsSequenceInShowDir(CurrentSeqXmlFile->GetFullPath())) {
@@ -1113,6 +1125,7 @@ bool xLightsFrame::CloseSequence()
         _housePreviewPanel->Refresh();
 
     SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date);
+    UpdatePresence();
     return true;
 }
 

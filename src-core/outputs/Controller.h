@@ -125,7 +125,7 @@ public:
     }
 
     const std::string& GetName() const { return _name; }
-    void SetName(const std::string& name) { if (_name != name) { _name = name; _dirty = true; } }
+    void SetName(const std::string& name);
 
     virtual int GetId() const { return _id; }
     // Setting it is not a configuration change: nothing is marked dirty.

@@ -15,6 +15,7 @@
 #include "render/Element.h"
 #include "render/EffectLayer.h"
 #include "render/SequenceMutationGuard.h"
+#include "render/SequenceElementCommands.h"
 #include "render/Effect.h"
 #include "render/FSEQFile.h"
 #include "render/FSEQFileIO.h"
@@ -2284,18 +2285,12 @@ TimingElement* iPadRenderContext::AddTimingElement(const std::string& name,
     while (_sequenceElements.GetElement(n) != nullptr) {
         n = name + "_" + std::to_string(nn++);
     }
-    _sequenceElements.DeactivateAllTimingElements();
-    int timingCount = _sequenceElements.GetNumberOfTimingElements();
-    Element* raw = _sequenceElements.AddElement(timingCount, n, "timing",
-                                                 /*visible*/ true,
-                                                 /*collapsed*/ false,
-                                                 /*active*/ true,
-                                                 /*selected*/ false,
-                                                 /*renderDisabled*/ false);
-    TimingElement* e = dynamic_cast<TimingElement*>(raw);
+    // The iPad registers its own (Foundation) undo for added tracks, so the
+    // core undo step isn't recorded here.
+    TimingElement* e = ElementEdits::AddTimingTrack(_sequenceElements, -1, n, subType, false);
     if (!e) return nullptr;
-    e->SetSubType(subType);
-    e->AddEffectLayer();
+    _sequenceElements.DeactivateAllTimingElements();
+    e->SetActive(true);
     _sequenceElements.AddTimingToCurrentView(n);
     _sequenceElements.PopulateRowInformation();
     return e;
@@ -2645,7 +2640,10 @@ void iPadRenderContext::HandleMemoryCritical() {
     // metadata-referenced entries keep their entry and only drop
     // decoded data, so the document is unchanged; the user-facing
     // "Remove Unused" edit is SequenceElements::RemoveUnreferencedMedia.
-    _sequenceElements.GetSequenceMedia().RemoveUnusedMedia();
+    {
+        SeqMutationGuard::Scope cacheOnly;
+        _sequenceElements.GetSequenceMedia().RemoveUnusedMedia();
+    }
 
     spdlog::error("iPadRenderContext: memory critical handled "
                   "(render aborted, preset data freed, unused media removed)");

@@ -43,6 +43,7 @@
 #include "utils/ExternalHooks.h"
 #include "utils/ShowAutosave.h"
 #include "utils/ShowFileGuard.h"
+#include "utils/ShowPresence.h"
 #include "utils/string_utils.h"
 #include "utils/LayoutObjectId.h"
 #include "sequencer/BufferPanel.h"
@@ -856,6 +857,60 @@ void xLightsFrame::SaveModelsFile()
 bool xLightsFrame::IsNonInteractiveSave() const
 {
     return _renderMode || _checkSequenceMode || _automationDepth > 0;
+}
+
+void xLightsFrame::UpdatePresence()
+{
+    auto& presence = ShowPresencePublisher::Instance();
+    if (!presence.IsEnabled() || IsExiting()) {
+        return;
+    }
+    // A packaged sequence opens in a temporary show folder nobody shares.
+    const std::string showDir = readOnlyMode ? std::string() : showDirectory;
+    ShowPresenceState state;
+    if (CurrentSeqXmlFile != nullptr) {
+        state.sequencePath = CurrentSeqXmlFile->GetFullPath();
+    }
+    state.editingLayout = UnsavedRgbEffectsChanges;
+    state.editingControllers = UnsavedNetworkChanges;
+    presence.Update(showDir, state);
+
+    if (_presenceHint == nullptr) {
+        return;
+    }
+    std::string hint;
+    if (!showDir.empty()) {
+        hint = ShowPresence::EditingHint(ShowPresence::FreshOthers(showDir, presence.InstallId(), ShowPresence::Now()));
+    }
+    const wxString label(hint);
+    if (label != _presenceHint->GetLabel() || _presenceHint->IsShown() == label.empty()) {
+        _presenceHint->SetLabel(label);
+        _presenceHint->SetToolTip(label.empty() ? wxString() : label + ".\nSaving changes to the same files at the same time can lose one of them.");
+        _presenceHint->Show(!label.empty());
+        AUIStatusBar->Layout();
+    }
+}
+
+bool xLightsFrame::ConfirmOpenSequenceOpenElsewhere(const wxString& sequencePath)
+{
+    auto& presence = ShowPresencePublisher::Instance();
+    if (IsNonInteractiveSave() || readOnlyMode || !presence.IsEnabled() || sequencePath.empty()) {
+        return true;
+    }
+    wxFileName fn(sequencePath);
+    if (fn.GetExt().Lower() == "fseq") {
+        fn.SetExt("xsq");
+    }
+    const int64_t now = ShowPresence::Now();
+    auto holders = ShowPresence::WhoHasSequenceOpen(showDirectory, fn.GetFullPath().ToStdString(), presence.InstallId(), now);
+    if (holders.empty()) {
+        return true;
+    }
+    spdlog::info("Opening {}: also open on {} other install(s) sharing the show folder.", fn.GetFullPath().ToStdString(), holders.size());
+    wxMessageDialog dlg(this, wxString(ShowPresence::SequenceOpenWarning(holders, now)),
+                        "Sequence Open Elsewhere", wxYES_NO | wxNO_DEFAULT | wxICON_WARNING);
+    dlg.SetYesNoLabels("Open Anyway", "Cancel");
+    return dlg.ShowModal() == wxID_YES;
 }
 
 xLightsFrame::ShowFileConflict xLightsFrame::ResolveShowFileConflict(const std::string& path,

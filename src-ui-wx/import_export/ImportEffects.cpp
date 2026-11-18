@@ -39,6 +39,8 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "xLightsVersion.h"
+#include "render/CommandExecutor.h"
+#include "render/SequenceEditCapture.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceFile.h"
 #include "utils/ExternalHooks.h"
@@ -143,6 +145,9 @@ void xLightsFrame::ImportEffectsFromFile(const wxFileName& fn)
     }
     // Every importer below shows modal dialogs over the open sequence.
     SequenceBusyScope busy(this, "Import Effects");
+    // The importers change the sequence directly; this records the result
+    // as one undo step.
+    SequenceEditCapture capture(_sequenceElements, "Import Effects");
     wxString ext = fn.GetExt().Lower();
     if (ext == "lms" || ext == "las") {
         ImportLMS(fn);
@@ -165,6 +170,7 @@ void xLightsFrame::ImportEffectsFromFile(const wxFileName& fn)
     } else if (ext == "vsa") {
         ImportVsa(fn);
     }
+    capture.Commit();
 
     // Imported effects are added via EffectLayer::AddEffect, which never
     // calls loadFiles() - that only happens in the sequence-open path
@@ -1497,15 +1503,24 @@ bool xLightsFrame::ImportSuperStar(const wxFileName& filename, const std::string
 
 int xLightsFrame::ClearElementEffects(Element* element, bool includeSubModels)
 {
+    CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, "Clear Effects");
     int removed = 0;
-    auto clear = [&removed](Element* el) {
+    // Locked effects stay, as with EffectLayer::DeleteAllEffects.
+    auto clearLayer = [&](EffectLayer* layer) {
+        std::vector<Effect*> effects = layer->GetEffects();
+        for (Effect* e : effects) {
+            if (!e->IsLocked() && exec.DeleteEffect(e)) {
+                ++removed;
+            }
+        }
+    };
+    auto clear = [&](Element* el) {
         for (int i = (int)el->GetEffectLayerCount() - 1; i >= 0; --i) {
             EffectLayer* layer = el->GetEffectLayer(i);
-            int before = layer->GetEffectCount();
-            layer->DeleteAllEffects();
-            removed += before - layer->GetEffectCount();
+            clearLayer(layer);
             if (layer->GetEffectCount() == 0 && el->GetEffectLayerCount() > 1) {
-                el->RemoveEffectLayer(i);
+                exec.RemoveLayer(el, i);
             }
         }
     };
@@ -1517,10 +1532,7 @@ int xLightsFrame::ClearElementEffects(Element* element, bool includeSubModels)
             clear(sub);
             if (StrandElement* strand = dynamic_cast<StrandElement*>(sub); strand != nullptr) {
                 for (int n = 0; n < strand->GetNodeLayerCount(); n++) {
-                    NodeLayer* nl = strand->GetNodeLayer(n);
-                    int before = nl->GetEffectCount();
-                    nl->DeleteAllEffects();
-                    removed += before - nl->GetEffectCount();
+                    clearLayer(strand->GetNodeLayer(n));
                 }
             }
         }
@@ -3932,7 +3944,6 @@ bool xLightsFrame::CloneXLightsEffects(const std::string& target,
         // printf("Source element %s doesn't exist\n", name.c_str());
         return false;
     }
-    _sequenceElements.get_undo_mgr().CreateUndoStep();
     while (to->GetEffectLayerCount() < from->GetEffectLayerCount()) {
         to->AddEffectLayer();
     }

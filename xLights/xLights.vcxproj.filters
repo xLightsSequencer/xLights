@@ -73,6 +73,8 @@
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
     <ClCompile Include="..\src-core\utils\LayoutObjectId.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutRecords.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutRenameLog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutGroup.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutPanel.cpp" />
@@ -609,6 +611,8 @@
     <ClCompile Include="..\src-core\utils\ShowGuid.cpp" />
     <ClCompile Include="..\src-core\utils\ShowAutosave.cpp" />
     <ClCompile Include="..\src-core\utils\ShowFileGuard.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowFileMerge.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowPresence.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
@@ -763,6 +767,9 @@
     <ClCompile Include="..\src-core\render\Effect.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\render\EffectEditCoalescer.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\EffectSymbol.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -797,7 +804,16 @@
     <ClCompile Include="..\src-core\render\SequenceCommands.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceElementCommands.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\CommandExecutor.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceEditCapture.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceBulkEdits.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SongStructureManager.cpp">
@@ -807,6 +823,9 @@
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceMediaCommands.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceFaces.cpp">
@@ -1652,6 +1671,8 @@
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
     <ClInclude Include="..\src-core\utils\LayoutObjectId.h" />
+    <ClInclude Include="..\src-core\utils\LayoutRecords.h" />
+    <ClInclude Include="..\src-core\utils\LayoutRenameLog.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
@@ -2194,6 +2215,8 @@
     <ClInclude Include="..\src-core\utils\ShowGuid.h" />
     <ClInclude Include="..\src-core\utils\ShowAutosave.h" />
     <ClInclude Include="..\src-core\utils\ShowFileGuard.h" />
+    <ClInclude Include="..\src-core\utils\ShowFileMerge.h" />
+    <ClInclude Include="..\src-core\utils\ShowPresence.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />
@@ -2343,6 +2366,9 @@
     <ClInclude Include="..\src-core\render\Effect.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\render\EffectEditCoalescer.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\EffectSymbol.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -2380,6 +2406,9 @@
     <ClInclude Include="..\src-core\render\SequenceCommands.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceElementCommands.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceIds.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -2389,6 +2418,12 @@
     <ClInclude Include="..\src-core\render\CommandExecutor.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceEditCapture.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceBulkEdits.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\SongStructureManager.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -2396,6 +2431,9 @@
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceMedia.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceMediaCommands.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceFaces.h">

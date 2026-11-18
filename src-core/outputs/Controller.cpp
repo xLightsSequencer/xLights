@@ -517,6 +517,17 @@ void Controller::ClearDirty() {
     }
 }
 
+void Controller::SetName(const std::string& name) {
+    if (_name == name) {
+        return;
+    }
+    if (_outputManager != nullptr && _outputManager->HoldsController(this)) {
+        _outputManager->GetRenameLog().Record(_name, name);
+    }
+    _name = name;
+    _dirty = true;
+}
+
 void Controller::EnsureUniqueId() {
     if (_outputManager != nullptr) SetId(_outputManager->UniqueId());
 }

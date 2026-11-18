@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "SequenceCommands.h"
+#include "SequenceElementCommands.h"
 #include "SequenceMutationGuard.h"
 
 #include <algorithm>
@@ -32,6 +33,7 @@
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceElements.h"
+#include "SequenceMediaCommands.h"
 #include "../effects/EffectManager.h"
 #include "../utils/UtilClasses.h"
 
@@ -70,13 +72,26 @@ std::atomic<Mode>& CurrentMode() {
 Scope::Scope() { ++t_depth; }
 Scope::~Scope() { --t_depth; }
 
+namespace {
+thread_local int t_effectEditDepth = 0;
+
+bool IsEffectOrLayerEdit(const char* what) {
+    return std::strncmp(what, "Effect::", 8) == 0 || std::strncmp(what, "EffectLayer::", 13) == 0 ||
+           std::strcmp(what, "Element::AddEffectLayer") == 0 || std::strcmp(what, "Element::InsertEffectLayer") == 0 ||
+           std::strcmp(what, "Element::RemoveEffectLayer") == 0;
+}
+} // namespace
+
+EffectEditScope::EffectEditScope() { ++t_effectEditDepth; }
+EffectEditScope::~EffectEditScope() { --t_effectEditDepth; }
+
 void SetMode(Mode m) { CurrentMode().store(m); }
 Mode GetMode() { return CurrentMode().load(); }
 size_t ViolationCount() { return s_violations.load(); }
 void ResetViolationCount() { s_violations.store(0); }
 
 void Check(const char* what, const void* caller) {
-    if (t_depth > 0) {
+    if (t_depth > 0 || (t_effectEditDepth > 0 && IsEffectOrLayerEdit(what))) {
         return;
     }
     Mode mode = CurrentMode().load(std::memory_order_relaxed);
@@ -128,6 +143,17 @@ const char* CommandTypeName(CommandType t) {
     case CommandType::SetLayerName: return "SetLayerName";
     case CommandType::ReplaceLayerContents: return "ReplaceLayerContents";
     case CommandType::Batch: return "Batch";
+    case CommandType::PutMedia: return "PutMedia";
+    case CommandType::RemoveMedia: return "RemoveMedia";
+    case CommandType::RenameMedia: return "RenameMedia";
+    case CommandType::AddElement:
+    case CommandType::DeleteElement:
+    case CommandType::MoveElement:
+    case CommandType::RenameTimingTrack:
+    case CommandType::SetTimingFixed:
+    case CommandType::SetTag:
+    case CommandType::SetSequenceFace:
+    case CommandType::SetSongStructure: return ElementCommandTypeName(t);
     }
     return "";
 }
@@ -1074,7 +1100,10 @@ std::unique_ptr<SequenceCommand> Deserialize(const json& in, int depth) {
         }
         return std::make_unique<BatchCommand>(std::move(label), std::move(members));
     }
-    return nullptr;
+    if (auto media = DeserializeMediaCommand(type, in)) {
+        return media;
+    }
+    return DeserializeElementCommand(in);
 }
 
 } // namespace

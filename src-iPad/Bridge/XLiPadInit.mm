@@ -28,6 +28,7 @@
 #include "utils/CachedFileDownloader.h"
 #include "utils/FileUtils.h"
 #include "utils/ShowAutosave.h"
+#include "utils/ShowPresence.h"
 #include "utils/UtilFunctions.h"
 #include "utils/xlImage.h"
 #include "xLightsVersion.h"
@@ -310,6 +311,10 @@ static void LogMachineConfig() {
         }
         NSString* device = [UIDevice currentDevice].name ?: @"iPad";
         ShowAutosave::SetIdentity(installId, std::string(device.UTF8String), xlights_version_string);
+        // The iPad has no user name; the device name identifies it to others.
+        ShowPresencePublisher::Instance().SetIdentity(installId, std::string(), std::string(device.UTF8String),
+                                                      ShowPresence::ThisPlatform(), xlights_version_string);
+        ShowPresencePublisher::Instance().Enable(true);
     }
 
     [XLLaunchTiming mark:@"core-logging+metrickit"];

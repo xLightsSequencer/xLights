@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "SongStructureManager.h"
+#include "SequenceMutationGuard.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -98,6 +99,7 @@ const SongStructureRegion* SongStructureManager::GetRegionAtTime(int timeMS) con
 
 void SongStructureManager::AddBoundary(int timeMS, int sequenceEndMS)
 {
+    XL_SEQ_MUTATION("SongStructureManager::AddBoundary");
     // Auto-create default view if none exist
     if (_views.empty()) {
         _views.push_back(SongStructureView("Default"));
@@ -138,6 +140,7 @@ void SongStructureManager::AddBoundary(int timeMS, int sequenceEndMS)
 
 void SongStructureManager::DeleteBoundary(int timeMS)
 {
+    XL_SEQ_MUTATION("SongStructureManager::DeleteBoundary");
     auto& regions = ActiveRegions();
     if (regions.size() < 2) {
         return;
@@ -158,6 +161,7 @@ void SongStructureManager::DeleteBoundary(int timeMS)
 
 void SongStructureManager::MoveBoundary(int oldTimeMS, int newTimeMS)
 {
+    XL_SEQ_MUTATION("SongStructureManager::MoveBoundary");
     auto& regions = ActiveRegions();
     if (regions.size() < 2) {
         return;
@@ -199,6 +203,7 @@ int SongStructureManager::FindNearestBoundary(int timeMS, int toleranceMS) const
 
 void SongStructureManager::SetRegionName(size_t index, const std::string& name)
 {
+    XL_SEQ_MUTATION("SongStructureManager::SetRegionName");
     auto& regions = ActiveRegions();
     if (index < regions.size()) {
         regions[index].name = name;
@@ -207,6 +212,7 @@ void SongStructureManager::SetRegionName(size_t index, const std::string& name)
 
 void SongStructureManager::SetRegionColor(size_t index, uint32_t colorARGB)
 {
+    XL_SEQ_MUTATION("SongStructureManager::SetRegionColor");
     auto& regions = ActiveRegions();
     if (index < regions.size()) {
         regions[index].colorARGB = colorARGB;
@@ -215,6 +221,7 @@ void SongStructureManager::SetRegionColor(size_t index, uint32_t colorARGB)
 
 void SongStructureManager::SetRegions(const std::vector<SongStructureRegion>& regions)
 {
+    XL_SEQ_MUTATION("SongStructureManager::SetRegions");
     if (_activeViewIndex < 0 || _activeViewIndex >= (int)_views.size()) {
         return;
     }
@@ -265,12 +272,14 @@ void SongStructureManager::SetActiveView(int index)
 
 int SongStructureManager::AddView(const std::string& name)
 {
+    XL_SEQ_MUTATION("SongStructureManager::AddView");
     _views.push_back(SongStructureView(name));
     return (int)_views.size() - 1;
 }
 
 int SongStructureManager::DuplicateView(int sourceIndex, const std::string& newName)
 {
+    XL_SEQ_MUTATION("SongStructureManager::DuplicateView");
     if (sourceIndex < 0 || sourceIndex >= (int)_views.size()) {
         return AddView(newName);
     }
@@ -284,6 +293,7 @@ int SongStructureManager::DuplicateView(int sourceIndex, const std::string& newN
 
 void SongStructureManager::RenameView(int index, const std::string& name)
 {
+    XL_SEQ_MUTATION("SongStructureManager::RenameView");
     if (index >= 0 && index < (int)_views.size()) {
         _views[index].name = name;
     }
@@ -291,6 +301,7 @@ void SongStructureManager::RenameView(int index, const std::string& name)
 
 void SongStructureManager::DeleteView(int index)
 {
+    XL_SEQ_MUTATION("SongStructureManager::DeleteView");
     if (index < 0 || index >= (int)_views.size()) return;
 
     _views.erase(_views.begin() + index);
@@ -305,6 +316,17 @@ void SongStructureManager::DeleteView(int index)
         if (_activeViewIndex >= (int)_views.size()) {
             _activeViewIndex = (int)_views.size() - 1;
         }
+    }
+}
+
+void SongStructureManager::ReplaceViews(std::vector<SongStructureView> views)
+{
+    XL_SEQ_MUTATION("SongStructureManager::ReplaceViews");
+    _views = std::move(views);
+    if (_views.empty()) {
+        _activeViewIndex = -1;
+    } else {
+        _activeViewIndex = std::clamp(_activeViewIndex, 0, (int)_views.size() - 1);
     }
 }
 

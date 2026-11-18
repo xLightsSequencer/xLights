@@ -298,3 +298,49 @@ TEST_CASE("MergeFromBase with a base that has no models section is a successful 
     bool accept = false, reject = false, changed = true;
     CHECK(f.mm.MergeFromBase(b.Path(), false, accept, reject, &changed));
 }
+
+// --- what counts as a base change (pinned before the comparison moved to utils/LayoutRecords) ---
+
+TEST_CASE("Base merge compares attributes other than positions exactly", "[models][basemerge]") {
+    Base b;
+    b.Write(ModelXml("Arch", "PixelSize=\"2.0\""));
+    Local l(ModelXml("Arch", "FromBase=\"1\" PixelSize=\"2\""));
+    CHECK(Merge(b, l));
+    CHECK(std::string(l.M("Arch").attribute("PixelSize").value()) == "2.0");
+}
+
+TEST_CASE("Base merge ignores an attribute only the show has", "[models][basemerge]") {
+    Base b;
+    b.Write(ModelXml("Arch"));
+    Local l(ModelXml("Arch", "FromBase=\"1\" Description=\"local only\""));
+    CHECK_FALSE(Merge(b, l));
+}
+
+TEST_CASE("Base merge sees a change inside a submodel", "[models][basemerge]") {
+    Base b;
+    b.Write(ModelXml("Arch", "", "<subModel name=\"Half\" layout=\"horizontal\" type=\"ranges\" line0=\"1-6\"/>"));
+    Local l(ModelXml("Arch", "FromBase=\"1\"", "<subModel name=\"Half\" layout=\"horizontal\" type=\"ranges\" line0=\"1-5\" xlId=\"11111111-1111-4111-8111-111111111111\"/>"));
+    CHECK(Merge(b, l));
+    pugi::xml_node sm = l.M("Arch").child("subModel");
+    CHECK(std::string(sm.attribute("line0").value()) == "1-6");
+    // the submodel keeps the show's id
+    CHECK(std::string(sm.attribute("xlId").value()) == "11111111-1111-4111-8111-111111111111");
+}
+
+TEST_CASE("Base merge drops a group's selection and merges members without repeats", "[models][basemerge]") {
+    Base b;
+    b.Write(ModelXml("A") + ModelXml("B") + ModelXml("C"), GroupXml("All", "A,B,A,C"));
+    Local l(ModelXml("Mine"), GroupXml("All", "B,Mine,B", "FromBase=\"1\" selected=\"1\""));
+    CHECK(Merge(b, l));
+    pugi::xml_node g = l.G("All");
+    CHECK(std::string(g.attribute("models").value()) == "A,B,C,Mine");
+    CHECK(std::string(g.attribute("BaseModels").value()) == "A,B,A,C");
+    CHECK_FALSE(g.attribute("selected"));
+}
+
+TEST_CASE("Base merge does not count a group's selection or recorded base list as a difference", "[models][basemerge]") {
+    Base b;
+    b.Write(ModelXml("A"), GroupXml("All", "A"));
+    Local l(ModelXml("A", "FromBase=\"1\""), GroupXml("All", "A", "FromBase=\"1\" BaseModels=\"A\" selected=\"1\""));
+    CHECK_FALSE(Merge(b, l));
+}

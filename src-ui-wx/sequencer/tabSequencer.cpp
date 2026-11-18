@@ -31,6 +31,11 @@
 #include "shared/utils/wxUtilities.h"
 #include "render/SequenceElements.h"
 #include "render/CommandExecutor.h"
+#include "render/SequenceMediaCommands.h"
+#include "render/SequenceElementCommands.h"
+#include "import_export/ImportDataRow.h"
+#include "render/SequenceBulkEdits.h"
+#include "render/SequenceEditCapture.h"
 #include "render/SequenceMedia.h"
 #include "media/ManageMediaPanel.h"
 #include "sequencer/TopEffectsPanel.h"
@@ -532,7 +537,9 @@ static bool HasEffects(ModelElement *el) {
 
 void xLightsFrame::CheckForValidModels()
 {
-    
+    // Reconciling the sequence with the layout is part of opening it, not
+    // an edit.
+    SeqMutationGuard::Scope opening;
 
     // Baseline the "saved" change count here — after AdjustEffectSettingsForVersion
     // (so migrations don't read as unsaved) but before the remap below (so a remap
@@ -1239,6 +1246,7 @@ void xLightsFrame::UnselectEffect(){
     }
     sEffectAssist->SetPanel(nullptr);
     selectedEffect = nullptr;
+    _panelEditCoalescer.EndBurst();
     selectedEffectName = "";
     selectedEffectString = "";
     selectedEffectPalette = "";
@@ -1279,6 +1287,10 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         return;
     }
     reentry = true;
+
+    if (event.effect != nullptr) {
+        _panelEditCoalescer.EndBurst();
+    }
 
     
 
@@ -1558,6 +1570,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
 
     // Check if the file is outside the show/media directories
     wxFileName fn(filename);
+    std::optional<MediaEntryState> embedState;
     bool isVideo = (effectName == "Video");
     bool isGlediator = (effectName == "Glediator");
     bool canEmbed = !isVideo && !isGlediator;
@@ -1597,12 +1610,12 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
         const wxString& chosen = choices[choice];
 
         if (chosen == "Embed in sequence") {
-            // Load and embed via SequenceMedia
+            // Read the file now; it is embedded in the same undo step as the
+            // effects it is dropped onto.
             SequenceMedia& media = _sequenceElements.GetSequenceMedia();
             std::string filePath = fn.GetFullPath().ToStdString();
 
             if (effectName == "Pictures") {
-                media.GetImage(filePath);
                 std::string embeddedName = "Images/" + fn.GetFullName().ToStdString();
                 int suffix = 1;
                 std::string candidate = embeddedName;
@@ -1611,12 +1624,10 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
                                 "_" + std::to_string(suffix++) + "." + fn.GetExt().Lower().ToStdString();
                 }
                 embeddedName = candidate;
-                media.RenameImage(filePath, embeddedName);
-                media.EmbedImage(embeddedName);
+                embedState = MediaEntryState::EmbeddedFromFile(embeddedName, MediaType::Image, filePath);
                 filename = embeddedName;
             } else if (effectName == "Shader") {
-                auto entry = media.GetShader(filePath);
-                entry->Embed();
+                embedState = MediaEntryState::EmbeddedFromFile(filePath, MediaType::Shader, filePath);
                 filename = filePath;
             }
         } else {
@@ -1677,6 +1688,9 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     Effect* last_effect_created = nullptr;
 
     _sequenceElements.get_undo_mgr().CreateUndoStep();
+    if (embedState) {
+        _sequenceElements.GetCommandExecutor().ExecuteInStep(std::make_unique<PutMediaCommand>(std::move(*embedState)));
+    }
     for (size_t i = 0; i < _sequenceElements.GetSelectedRangeCount(); i++) {
         EffectLayer* el = _sequenceElements.GetSelectedRange(i)->Layer;
         if (el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
@@ -2455,6 +2469,7 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
     bool keepCheckboxes = event.GetInt() == 1;
 
     _sequenceElements.get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(_sequenceElements.GetCommandExecutor(), "Effect(s) Modified");
     for (int i = 0; i < (int)_sequenceElements.GetRowInformationSize(); i++) {
         Element* element = _sequenceElements.GetRowInformation(i)->element;
         EffectLayer* el = _sequenceElements.GetEffectLayer(i);
@@ -2492,6 +2507,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
     std::string effectName = EffectsPanel1->EffectChoicebook->GetPageText(EffectsPanel1->EffectChoicebook->GetSelection()).ToStdString();
 
     _sequenceElements.get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(_sequenceElements.GetCommandExecutor(), "Effect(s) Modified");
 
     for(size_t i=0;i<_sequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = _sequenceElements.GetVisibleRowInformation(i)->element;
@@ -2529,6 +2545,7 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
 void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
 {
     _sequenceElements.get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(_sequenceElements.GetCommandExecutor(), "Effect(s) Modified");
 
     for(size_t i=0;i<_sequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = _sequenceElements.GetVisibleRowInformation(i)->element;
@@ -2638,15 +2655,10 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             AddTraceMessage("  Something changed");
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
-            // No undo per change: the first change after selecting the effect
-            // captures a full snapshot below, which undoes the whole session.
-            CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
-            if (name !=  eff->GetEffectName()) {
+            std::optional<std::string> newName;
+            if (name != eff->GetEffectName()) {
                 AddTraceMessage("  Effect name changed");
-                exec.EditEffect(eff, [&](Effect& e) {
-                    e.SetEffectName(name.ToStdString());
-                    e.SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
-                }, false);
+                newName = name.ToStdString();
             }
             AddTraceMessage("  Effect name " + name);
 
@@ -2668,25 +2680,20 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
                 wxASSERT(false);
             }
 
-            //check for undo capture
-            if( selectedEffectName != eff->GetEffectName() )
-            {
-                _sequenceElements.get_undo_mgr().CreateUndoStep();
-                _sequenceElements.get_undo_mgr().CaptureModifiedEffect( elem->GetModelName(), el->GetIndex(), eff->GetID(), selectedEffectString, selectedEffectPalette );
-                AddTraceMessage("  Undo step created\n");
-            }
-
+            // A burst of panel edits to one effect is one undo step that
+            // restores the effect's whole type, settings and palette.
             if (el->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-                exec.EditEffect(eff, [&](Effect& e) {
-                    e.SetSettings(effectText, true);
-                    e.SetPalette(palette);
-                }, false);
+                _panelEditCoalescer.Apply(_sequenceElements, eff, std::move(newName),
+                                          EffectEditCoalescer::ReplaceSettingsKeepingX(*eff, effectText),
+                                          SettingsChange::ReplaceWith(palette));
                 AddTraceMessage("  Effect settings updated");
 
                 selectedEffectName = eff->GetEffectName();
                 selectedEffectString = effectText;
                 selectedEffectPalette = palette;
                 AddTraceMessage("  SEN: " + selectedEffectName);
+            } else if (newName.has_value()) {
+                _panelEditCoalescer.Apply(_sequenceElements, eff, std::move(newName), SettingsChange{}, SettingsChange{});
             }
 
             playStartTime = eff->GetStartTimeMS();
@@ -3790,13 +3797,17 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name, const std
         n = wxString::Format("%s_%d", name.c_str(), nn++).ToStdString();
     }
 
+    // Its own undo step unless it is part of a larger recorded edit.
+    if (NewElementsRecorder::Active(_sequenceElements) == nullptr && !_sequenceElements.GetCommandExecutor().InBatch()) {
+        _sequenceElements.get_undo_mgr().CreateUndoStep();
+    }
+    TimingElement* e = ElementEdits::AddTimingTrack(_sequenceElements, -1, n, subType);
+    if (e == nullptr) {
+        return nullptr;
+    }
     // Deactivate active timing mark so new one is selected;
     _sequenceElements.DeactivateAllTimingElements(true);
-    int timingCount = _sequenceElements.GetNumberOfTimingElements();
-    std::string type = "timing";
-    TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false, false));
-    e->SetSubType(subType);
-    e->AddEffectLayer();
+    e->SetActive(true);
     _sequenceElements.AddTimingToCurrentView(n);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
@@ -3806,16 +3817,16 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name, const std
 void xLightsFrame::DeleteTimingElement(const std::string& name)
 {
     displayElementsPanel->RemoveModelFromLists(name);
-    _sequenceElements.DeleteElement(name);
+    _sequenceElements.get_undo_mgr().CreateUndoStep();
+    ElementEdits::DeleteElement(_sequenceElements, name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
 }
 
 void xLightsFrame::RenameTimingElement(const std::string& old_name, const std::string& new_name)
 {
-    Element* element = _sequenceElements.GetElement(old_name);
-    if( element ) element->SetName(new_name);
-    _sequenceElements.RenameTimingTrack(old_name, new_name);
+    _sequenceElements.get_undo_mgr().CreateUndoStep();
+    ElementEdits::RenameTimingTrack(_sequenceElements, old_name, new_name);
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
     CurrentSeqXmlFile->SetTimingSectionName(old_name, new_name);
@@ -4170,6 +4181,7 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
 
     if (dlgNoteImport.ShowModal() == wxID_OK) {
         wxString name = dlgNoteImport.TextCtrl_TimingName->GetValue();
+        NewElementsRecorder recorder(_sequenceElements, "Import Notes");
         _sequenceElements.DeactivateAllTimingElements(true);
         Element* element = AddTimingElement(std::string(name.ToStdString()));
         EffectLayer* effectLayer = element->GetEffectLayer(0);
@@ -4248,6 +4260,7 @@ void xLightsFrame::ImportTimingElement()
         std::vector<std::string> filenames;
         for (size_t i = 0; i < wxFilenames.size(); ++i) filenames.push_back(wxFilenames[i].ToStdString());
         if (filenames.size() > 0) {
+            SequenceEditCapture capture(_sequenceElements, "Import Timing");
             wxFileName file1(filenames[0]);
             if (file1.GetExt().Lower() == "lms" || file1.GetExt().Lower() == "las") {
                 CurrentSeqXmlFile->ProcessLorTiming( filenames, this);
@@ -4315,107 +4328,15 @@ void xLightsFrame::OnMenuItemLoadEditPerspectiveSelected(wxCommandEvent& event)
     m_mgr->Update();
 }
 
-bool isOnLine(int x1, int y1, int x2, int y2, int x3, int y3)
-{
-    double diffx = x2 - x1;
-    double diffy = y2 - y1;
-    double b = y1 - diffy / diffx * x1;
-    double ye1 = diffy / diffx * x3 + b;
-
-    return (y3 + 1) >= ye1 && (y3 - 1) <= ye1;
-}
-
-bool isOnLineColor(const xlColor& v1, const xlColor& v2, const xlColor& v3,
-                   int x, int x2, int x3)
-{
-    return isOnLine(x, v1.Red(), x2, v2.Red(), x3, v3.Red()) && isOnLine(x, v1.Green(), x2, v2.Green(), x3, v3.Green()) && isOnLine(x, v1.Blue(), x2, v2.Blue(), x3, v3.Blue());
-}
-
-int RampLenColor(int start, std::vector<xlColor>& colors)
-{
-    int s = start + 2;
-    for (; s < (int)colors.size(); s++) {
-        if (!isOnLineColor(colors[start], colors[s - 1], colors[s],
-                           start, s - 1, s)) {
-            return s - start;
-        }
-    }
-    if (s == (int)colors.size()) {
-        return s - start;
-    }
-    return 0;
-}
-
 void xLightsFrame::DoConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting)
 {
-    if (eraseExisting)
-        layer->DeleteAllEffects();
-
-    colors.push_back(xlBLACK);
-    int startTime = 0;
-    xlColor lastColor(xlBLACK);
-
-    for (size_t x = 0; x < colors.size() - 3; ++x) {
-        if (colors[x] != colors[x + 1]) {
-            int len = RampLenColor(x, colors);
-            if (len >= 3) {
-                HSVValue v1 = colors[x].asHSV();
-                HSVValue v2 = colors[x + len - 1].asHSV();
-
-                int stime = x * frameTime;
-                int etime = (x + len) * frameTime;
-                if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK || (v1.hue == v2.hue)) {
-                    HSVValue c = colors[x].asHSV();
-                    if (colors[x] == xlBLACK) {
-                        c = colors[x + len - 1].asHSV();
-                    }
-                    c.value = 1.0;
-                    xlColor c2(c);
-
-                    int i = v1.value * 100.0;
-                    int i2 = v2.value * 100.0;
-                    std::string settings = wxString::Format("E_TEXTCTRL_Eff_On_Start=%d,E_TEXTCTRL_Eff_On_End=%d", i, i2).ToStdString();
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
-                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
-                    }
-                } else {
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
-                                                                                          "C_BUTTON_Palette2=" +
-                                          (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
-                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
-                    }
-                }
-                for (int z = 0; z < len; ++z) {
-                    // clear it
-                    colors[x + z] = xlBLACK;
-                }
-            }
-        }
-    }
-
-    for (size_t x = 0; x < colors.size(); ++x) {
-        if (lastColor != colors[x]) {
-            int time = x * frameTime;
-            if (lastColor != xlBLACK) {
-                std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1";
-
-                if (time != startTime) {
-                    if (!layer->HasEffectsInTimeRange(startTime, time)) {
-                        layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
-                    }
-                }
-            }
-            startTime = time;
-            lastColor = colors[x];
-        }
-    }
+    ::ConvertDataRowToEffects(layer, colors, frameTime, eraseExisting);
 }
 
 void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent& event)
 {
     Element* e = (Element*)event.GetClientData();
+    ScopedCommandBatch batch(_sequenceElements.GetCommandExecutor(), "Convert Data To Effects");
     if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         ModelElement* el = dynamic_cast<ModelElement*>(e);
         Model* model = GetModel(el->GetModelName());
@@ -4539,123 +4460,9 @@ void xLightsFrame::PromoteEffects(wxCommandEvent& command)
     DoPromoteEffects(el);
 }
 
-bool equals(Effect* e, Effect* e2, const wxString& pal, const wxString& set)
-{
-    if (e->GetEffectIndex() != e2->GetEffectIndex() || e->GetStartTimeMS() != e2->GetStartTimeMS() || e->GetEndTimeMS() != e2->GetEndTimeMS()) {
-        return false;
-    }
-    if (pal != e2->GetPaletteAsString() || set != e2->GetSettingsAsString()) {
-        return false;
-    }
-    return true;
-}
-
 void xLightsFrame::DoPromoteEffects(ModelElement* element)
 {
-    CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
-    // first promote from nodes to strands
-    for (int x = 0; x < element->GetStrandCount(); x++) {
-        StrandElement* se = element->GetStrand(x);
-        EffectLayer* target = se->GetEffectLayer(0);
-        if (element->GetStrandCount() <= 1) {
-            if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
-                exec.InsertLayer(element, 0, false);
-            }
-            target = element->GetEffectLayer(0);
-        }
-        if (se->GetNodeLayerCount() > 0) {
-            NodeLayer* base = se->GetNodeLayer(0);
-            for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
-                Effect* eff = base->GetEffect(e);
-                const std::string& name = eff->GetEffectName();
-
-                if (target->HasEffectsInTimeRange(eff->GetStartTimeMS(), eff->GetEndTimeMS())) {
-                    // cannot promote, already an effect there
-                    continue;
-                }
-                if (name == "On" || name == "Color Wash") {
-                    const std::string pal = eff->GetPaletteAsString();
-                    const std::string set = eff->GetSettingsAsString();
-                    int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
-                    bool collapse = true;
-
-                    for (int n = 1; n < se->GetNodeLayerCount() && collapse; n++) {
-                        NodeLayer* node = se->GetNodeLayer(n);
-                        int nodeIndex = 0;
-                        if (node->HitTestEffectByTime(mp, nodeIndex)) {
-                            Effect* nf = node->GetEffect(nodeIndex);
-                            if (!equals(eff, nf, pal, set)) {
-                                collapse = false;
-                            }
-                        } else {
-                            collapse = false;
-                        }
-                    }
-                    if (collapse) {
-                        exec.AddEffect(target, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false, false);
-                        for (int n = 0; n < se->GetNodeLayerCount() && collapse; n++) {
-                            NodeLayer* node = se->GetNodeLayer(n);
-                            int nodeIndex = 0;
-                            if (node->HitTestEffectByTime(mp, nodeIndex) && !node->GetEffect(nodeIndex)->IsLocked()) {
-                                exec.DeleteEffect(node->GetEffect(nodeIndex), false);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    if (element->GetStrandCount() <= 1)
-        return;
-    // OK, we're now promoted to strand level effects, try and promote to Model level
-    EffectLayer* base = element->GetStrand(0)->GetEffectLayer(0);
-    if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
-        exec.InsertLayer(element, 0, false);
-    }
-    EffectLayer* target = element->GetEffectLayer(0);
-    for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
-        Effect* eff = base->GetEffect(e);
-        const std::string& name = eff->GetEffectName();
-
-        if (name == "On" || name == "Color Wash") {
-            const std::string pal = eff->GetPaletteAsString();
-            const std::string set = eff->GetSettingsAsString();
-            int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
-            bool collapse = true;
-
-            for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
-                StrandElement* se = element->GetStrand(n);
-                for (int l = 0; l < (int)se->GetEffectLayerCount(); l++) {
-                    EffectLayer* node = se->GetEffectLayer(l);
-                    if (node == base) {
-                        continue;
-                    }
-                    int nodeIndex = 0;
-                    if (node->HitTestEffectByTime(mp, nodeIndex)) {
-                        Effect* nf = node->GetEffect(nodeIndex);
-                        if (!equals(eff, nf, pal, set)) {
-                            collapse = false;
-                        }
-                    } else {
-                        collapse = false;
-                    }
-                }
-            }
-            if (collapse) {
-                exec.AddEffect(target, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false, false);
-                for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
-                    StrandElement* se = element->GetStrand(n);
-                    for (int l = 0; l < (int)se->GetEffectLayerCount(); l++) {
-                        EffectLayer* node = se->GetEffectLayer(l);
-                        int nodeIndex = 0;
-                        if (node->HitTestEffectByTime(mp, nodeIndex) && !node->GetEffect(nodeIndex)->IsLocked()) {
-                            exec.DeleteEffect(node->GetEffect(nodeIndex), false);
-                        }
-                    }
-                }
-            }
-        }
-    }
+    PromoteNodeEffects(_sequenceElements, element);
 }
 
 void xLightsFrame::OnAuiToolBarItemShowHideEffects(wxCommandEvent& event)
@@ -4805,6 +4612,7 @@ void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
 
         std::string track_name = GetUniqueTimingName("AutoGen");
 
+        NewElementsRecorder recorder(_sequenceElements, "Generate AI Lyrics");
         Element* element = AddTimingElement(track_name);
         EffectLayer* effectLayer = element->GetEffectLayer(0);
 

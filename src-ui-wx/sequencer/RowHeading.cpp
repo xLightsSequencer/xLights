@@ -25,6 +25,7 @@
 #include "color/ColorManager.h"
 #include "render/SequenceElements.h"
 #include "render/CommandExecutor.h"
+#include "render/SequenceElementCommands.h"
 #include "render/SongStructureManager.h"
 #include "media/AudioManager.h"
 #include "media/OnsetDetector.h"
@@ -441,7 +442,7 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
             int view = mSequenceElements->GetCurrentView();
             int dest = _rowDragTargetBefore;
             mSequenceElements->get_undo_mgr().CreateUndoStep();
-            mSequenceElements->MoveSequenceElement(_rowDragSourceIdx, dest, view);
+            ElementEdits::MoveElement(*mSequenceElements, _rowDragSourceIdx, dest, view);
             wxCommandEvent evt(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), evt);
         }
@@ -887,15 +888,15 @@ static void ImportLyrics(SequenceElements* seqElements, TimingElement* element, 
             return;
         }
 
-        element->SetFixedTiming(0);
+        ElementEdits::SetTimingFixed(*seqElements, element, 0);
         // remove all existing layers from timing track, adding the new one
         // first because the last layer of an element can't be removed
         CommandExecutor& exec = seqElements->GetCommandExecutor();
         int num_layers = element->GetEffectLayerCount();
-        EffectLayer* phrase_layer = exec.InsertLayer(element, num_layers, false);
+        EffectLayer* phrase_layer = exec.InsertLayer(element, num_layers);
         for( int k = num_layers-1; k >= 0; k-- )
         {
-            exec.RemoveLayer(element, k, false);
+            exec.RemoveLayer(element, k);
         }
 
         int start_time = std::strtod(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue().ToStdString().c_str(), nullptr) * 1000;
@@ -955,13 +956,13 @@ static void ImportSyncedLyrics(SequenceElements* seqElements, TimingElement* ele
 
     seqElements->get_undo_mgr().CreateUndoStep();
 
-    element->SetFixedTiming(0);
+    ElementEdits::SetTimingFixed(*seqElements, element, 0);
     // Add the new layer first: the last layer of an element can't be removed.
     CommandExecutor& exec = seqElements->GetCommandExecutor();
     int num_layers = element->GetEffectLayerCount();
-    EffectLayer* phrase_layer = exec.InsertLayer(element, num_layers, false);
+    EffectLayer* phrase_layer = exec.InsertLayer(element, num_layers);
     for (int k = num_layers - 1; k >= 0; k--) {
-        exec.RemoveLayer(element, k, false);
+        exec.RemoveLayer(element, k);
     }
 
     if (dlg.HasSyncedLyrics()) {
@@ -1528,7 +1529,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             return;
         }
 
-        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        ScopedEditBatch batch(*mSequenceElements, "Generate Subdivided Timing Tracks");
 
         for (size_t i = 0; i < divisors.size(); i++) {
             int divisor = divisors[i];
@@ -1769,13 +1770,14 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         int answer = wxMessageBox(prompt, caption, wxYES_NO);
         if (answer == wxYES) {
             xLightsApp::GetFrame()->AbortRender(); // stop rendering in case there is an effect referring to the timing track we are about to delete
-            mSequenceElements->DeleteElement(element->GetModelName());
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            ElementEdits::DeleteElement(*mSequenceElements, element->GetModelName());
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
     } else if (id == ID_ROW_MNU_UNFIX_TIMING_TRACK) {
-        TimingElement* te = dynamic_cast<TimingElement*>(element);
-        te->Unfix();
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        ElementEdits::SetTimingFixed(*mSequenceElements, dynamic_cast<TimingElement*>(element), 0);
     } else if (id == ID_ROW_MNU_EXPORT_TIMING_TRACK) {
         wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
         wxString filetypes;
@@ -1877,12 +1879,14 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_WORDS) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {
-            exec.RemoveLayer(te, 1, false);
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            exec.RemoveLayer(te, 1);
         }
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_PHONEMES) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {
-            exec.RemoveLayer(te, 2, false);
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            exec.RemoveLayer(te, 2);
         }
     } else if (id == ID_ROW_MNU_HIDEALLTIMING) {
         mSequenceElements->HideAllTimingTracks(true);
@@ -1905,8 +1909,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {
-            exec.RemoveLayer(te, 2, false);
-            exec.RemoveLayer(te, 1, false);
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            exec.RemoveLayer(te, 2);
+            exec.RemoveLayer(te, 1);
         }
     } else if (id == ID_ROW_MNU_CREATE_SONG_REGIONS) {
         TimingElement* te = dynamic_cast<TimingElement*>(element);
@@ -1922,11 +1927,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     if (result != wxYES) {
                         return;
                     }
-                    ssm.Clear();
                 }
-
-                int viewIdx = ssm.AddView("Default");
-                ssm.SetActiveView(viewIdx);
 
                 int seqEndMS = mSequenceElements->GetSequenceEnd();
                 int regionId = 1;
@@ -1960,7 +1961,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     regions.emplace_back(regionId++, lastEndMS, seqEndMS, "", 0x40808080);
                 }
 
-                ssm.SetRegions(regions);
+                mSequenceElements->get_undo_mgr().CreateUndoStep();
+                ElementEdits::EditSongStructure(*mSequenceElements, [&](SongStructureManager& m) {
+                    m.Clear();
+                    m.SetActiveView(m.AddView("Default"));
+                    m.SetRegions(regions);
+                });
 
                 wxCommandEvent eventSequenceChanged(EVT_SEQUENCE_CHANGED);
                 wxPostEvent(GetParent(), eventSequenceChanged);
@@ -2319,13 +2325,13 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         while (xml_file->TimingAlreadyExists(selectedTiming, xLightsApp::GetFrame())) {
             selectedTiming = wxString::Format("%s_%d", base, suffix++);
         }
+        ScopedEditBatch batch(*mSequenceElements, "Create Timing From Effects");
         xml_file->AddFixedTimingSection(selectedTiming, xLightsApp::GetFrame());
         auto te = mSequenceElements->GetTimingElement(selectedTiming);
         if (te != nullptr) {
             auto tl = te->GetEffectLayer(0);
 
             if (tl != nullptr) {
-                mSequenceElements->get_undo_mgr().CreateUndoStep();
                 if (layer_index < (int)element->GetEffectLayerCount()) {
                     EffectLayer* el = nullptr;
                     if (ri->nodeIndex == -1) {
@@ -2472,7 +2478,6 @@ void RowHeading::RefreshSelectedEffectPanelIfOnElement(Element* element) const
 
 void RowHeading::BreakdownTimingPhrases(TimingElement* element)
 {
-    element->SetFixedTiming(0);
     EffectLayer* layer = element->GetEffectLayer(0);
     if (element->GetEffectLayerCount() > 1) {
         for (int k = (int)element->GetEffectLayerCount() - 1; k > 0; --k) {
@@ -2492,14 +2497,15 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
     }
 
     // No locked elements in the way now
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    ElementEdits::SetTimingFixed(*mSequenceElements, element, 0);
     CommandExecutor& exec = mSequenceElements->GetCommandExecutor();
     if (element->GetEffectLayerCount() > 1) {
         for (int k = (int)element->GetEffectLayerCount() - 1; k > 0; --k) {
-            exec.RemoveLayer(element, k, false);
+            exec.RemoveLayer(element, k);
         }
     }
-    mSequenceElements->get_undo_mgr().CreateUndoStep();
-    EffectLayer* word_layer = exec.InsertLayer(element, (int)element->GetEffectLayerCount(), false);
+    EffectLayer* word_layer = exec.InsertLayer(element, (int)element->GetEffectLayerCount());
     for (int i = 0; i < layer->GetEffectCount(); ++i) {
         Effect* effect = layer->GetEffect(i);
         std::string phrase = effect->GetEffectName();
@@ -2524,12 +2530,13 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
             wxMessageBox("Locked phonemes in the way - Can not break down words", "Error", wxOK);
             return;
         }
-
-        mSequenceElements->GetCommandExecutor().RemoveLayer(element, 2, false);
     }
     mSequenceElements->get_undo_mgr().CreateUndoStep();
+    if (element->GetEffectLayerCount() > 2) {
+        mSequenceElements->GetCommandExecutor().RemoveLayer(element, 2);
+    }
     EffectLayer* word_layer = element->GetEffectLayer(1);
-    EffectLayer* phoneme_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, (int)element->GetEffectLayerCount(), false);
+    EffectLayer* phoneme_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, (int)element->GetEffectLayerCount());
     xLightsFrame* xframe = xLightsApp::GetFrame();
     xframe->LoadPhonemeDictionaries();
     for (int i = 0; i < word_layer->GetEffectCount(); i++) {

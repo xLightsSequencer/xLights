@@ -21,7 +21,11 @@
 #include "render/Effect.h"
 #include "render/SequenceElements.h"
 #include "render/CommandExecutor.h"
+#include "render/SequenceElementCommands.h"
+#include "render/SequenceBulkEdits.h"
+#include "render/SequenceEditCapture.h"
 #include "render/SequenceMedia.h"
+#include "render/SequenceMediaCommands.h"
 #include "render/SequenceFaces.h"
 #include "render/EffectSymbol.h"
 #include "render/EffectSymbolManager.h"
@@ -34,6 +38,7 @@
 #import "XLHousePreviewVideoExporter.h"
 #include "models/BaseShowPromotion.h"
 #include "utils/ShowAutosave.h"
+#include "utils/ShowPresence.h"
 #include "utils/ShowFileGuard.h"
 #include "utils/ShowGuid.h"
 #include "utils/UtilFunctions.h"
@@ -68,6 +73,7 @@
 #include "render/ValueCurve.h"
 #include "render/ColorCurve.h"
 #include "import_export/ExportModels.h"
+#include "import_export/ImportDataRow.h"
 #include "import_export/ExportEffectsReport.h"
 #include "models/Model.h"
 #include "models/Node.h"
@@ -197,31 +203,6 @@
 
 #import <os/proc.h>
 
-// Shift-Effects undo snapshot. Bulk shift is destructive at the 0
-// boundary (truncation / deletion), so reversing it by re-shifting is
-// lossy. Instead we capture the full re-creatable state of every effect
-// on every layer we touch, keyed by the live EffectLayer* (valid for
-// the session — undo runs against the same loaded sequence), and
-// restore by clearing + re-adding. `selectedOnly` snapshots only the
-// in-scope layers, but stores every effect on them so a restore re-adds
-// any that the shift deleted.
-namespace {
-struct ShiftEffectSnap {
-    int id;
-    std::string name;
-    std::string settings;
-    std::string palette;
-    int startMS;
-    int endMS;
-    int selected;
-    bool protectd;
-};
-struct ShiftLayerSnap {
-    EffectLayer* layer;
-    std::vector<ShiftEffectSnap> effects;
-};
-}
-
 // Private helpers. extrasFor: takes a C++ Model* so it lives here
 // (not in the ObjC++-free header). Declared up front so it can be
 // called from any method below without ordering concerns.
@@ -323,11 +304,8 @@ static std::string SequenceAutosavePathFor(NSString* xsqPath) {
     // confirms via resolvePendingDiscoveredControllers:.
     std::vector<std::unique_ptr<ControllerEthernet>> _pendingDiscoveredControllers;
 
-    // Shift-Effects undo snapshots, keyed by token. The token is a
-    // monotonically increasing id handed to Swift; `restoreShiftSnapshot:`
-    // consumes the entry.
-    std::map<NSInteger, std::vector<ShiftLayerSnap>> _shiftSnapshots;
-    NSInteger _nextShiftToken;
+    // Open -beginEditCapture: capture, if any.
+    std::unique_ptr<SequenceEditCapture> _editCapture;
 }
 
 // Block signature for the Swift-side password prompt. The bridge
@@ -948,6 +926,16 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
     _context->GetSequenceElements().get_undo_mgr().Clear();
 }
 
+- (void)beginCommandBatch:(NSString*)label {
+    if (!_context) return;
+    _context->GetSequenceElements().GetCommandExecutor().BeginBatch(label ? std::string([label UTF8String]) : std::string());
+}
+
+- (void)endCommandBatch {
+    if (!_context) return;
+    _context->GetSequenceElements().GetCommandExecutor().EndBatch();
+}
+
 - (void)purgeRenderCache {
     if (!_context) return;
     _context->PurgeRenderCache();
@@ -1253,6 +1241,40 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     // A `.xbkp` opened and saved in place is the file itself, not an autosave of it.
     if (backup.empty() || backup == std::string(xsqPath.UTF8String)) return;
     ShowAutosave::RemoveIfMine(backup);
+}
+
++ (void)updatePresenceForShowFolder:(NSString*)showFolder
+                       sequencePath:(NSString*)sequencePath
+                      editingLayout:(BOOL)editingLayout
+                 editingControllers:(BOOL)editingControllers {
+    ShowPresenceState state;
+    state.sequencePath = sequencePath ? std::string(sequencePath.UTF8String) : std::string();
+    state.editingLayout = editingLayout;
+    state.editingControllers = editingControllers;
+    ShowPresencePublisher::Instance().Update(showFolder ? std::string(showFolder.UTF8String) : std::string(), state);
+}
+
++ (void)clearPresence {
+    ShowPresencePublisher::Instance().Clear();
+}
+
++ (nullable NSString*)presenceSequenceOpenWarningForShowFolder:(NSString*)showFolder
+                                                  sequencePath:(NSString*)sequencePath {
+    auto& presence = ShowPresencePublisher::Instance();
+    if (!presence.IsEnabled() || showFolder.length == 0 || sequencePath.length == 0) return nil;
+    const int64_t now = ShowPresence::Now();
+    auto holders = ShowPresence::WhoHasSequenceOpen(std::string(showFolder.UTF8String), std::string(sequencePath.UTF8String),
+                                                    presence.InstallId(), now);
+    if (holders.empty()) return nil;
+    return [NSString stringWithUTF8String:ShowPresence::SequenceOpenWarning(holders, now).c_str()];
+}
+
++ (nullable NSString*)presenceEditingHintForShowFolder:(NSString*)showFolder {
+    auto& presence = ShowPresencePublisher::Instance();
+    if (!presence.IsEnabled() || showFolder.length == 0) return nil;
+    const std::string hint = ShowPresence::EditingHint(
+        ShowPresence::FreshOthers(std::string(showFolder.UTF8String), presence.InstallId(), ShowPresence::Now()));
+    return hint.empty() ? nil : [NSString stringWithUTF8String:hint.c_str()];
 }
 
 - (BOOL)isSequenceDirty {
@@ -1576,14 +1598,21 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     }
     if (!me) return 0;
 
-    se.get_undo_mgr().CreateUndoStep();
     _context->AbortRender(5000);
+    CommandExecutor& exec = se.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, "Delete Effects");
     int cleared = 0;
+    // Locked effects stay, as on the desktop.
     auto clearLayer = [&](EffectLayer* l) {
-        if (l && l->GetEffectCount() > 0) {
-            l->RemoveAllEffects(&se.get_undo_mgr());
-            ++cleared;
+        if (!l) return;
+        std::vector<Effect*> effects = l->GetEffects();
+        bool any = false;
+        for (Effect* e : effects) {
+            if (!e->IsLocked()) {
+                any |= exec.DeleteEffect(e);
+            }
         }
+        if (any) ++cleared;
     };
 
     if (scope == 0) { // submodels
@@ -1672,7 +1701,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) return NO;
     TimingElement* te = dynamic_cast<TimingElement*>(row->element);
     if (!te || !te->IsFixedTiming()) return NO;
-    te->SetFixedTiming(0);
+    ElementEdits::SetTimingFixed(_context->GetSequenceElements(), te, 0, false);
     _context->GetSequenceElements().PopulateRowInformation();
     return YES;
 }
@@ -1717,13 +1746,16 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (endMS <= startMS) { startMS = 0; endMS = seqEnd; }
     if (endMS <= startMS) return 0;
 
-    // Replace all layers with a single fresh phrase layer.
-    te->SetFixedTiming(0);
-    while (te->GetEffectLayerCount() > 0) {
-        te->RemoveEffectLayer((int)te->GetEffectLayerCount() - 1);
-    }
-    EffectLayer* phraseLayer = te->AddEffectLayer();
+    // Replace all layers with a single fresh phrase layer (added first:
+    // an element's last layer can't be removed).
+    auto& exec = se.GetCommandExecutor();
+    ElementEdits::SetTimingFixed(se, te, 0, false);
+    int oldLayers = (int)te->GetEffectLayerCount();
+    EffectLayer* phraseLayer = exec.InsertLayer(te, oldLayers, false);
     if (!phraseLayer) return 0;
+    for (int k = oldLayers - 1; k >= 0; --k) {
+        exec.RemoveLayer(te, k, false);
+    }
 
     double freq = se.GetFrequency();
     int intervalMS = (endMS - startMS) / (int)cleaned.count;
@@ -1734,9 +1766,9 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         if (i == cleaned.count - 1 || curEnd > endMS) curEnd = endMS;
         if (curEnd <= curStart) break;
         std::string lbl = [cleaned[i] UTF8String];
-        if (phraseLayer->AddEffect(0, lbl, "", "",
-                                    curStart, curEnd,
-                                    /*EFFECT_NOT_SELECTED*/ 0, false)) {
+        if (exec.AddEffect(phraseLayer, lbl, "", "",
+                           curStart, curEnd,
+                           /*EFFECT_NOT_SELECTED*/ 0, false, false)) {
             added++;
         }
         curStart = curEnd;
@@ -1752,7 +1784,11 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     int countBefore = _context->GetSequenceElements().GetNumberOfTimingElements();
     std::vector<std::string> filenames;
     filenames.push_back(std::string([path UTF8String]));
-    sf->ProcessXTiming(filenames, _context.get());
+    {
+        // Undo for imports is the Swift side's; record no core step.
+        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing", false);
+        sf->ProcessXTiming(filenames, _context.get());
+    }
     int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
     if (countAfter > countBefore) {
         // Mirror desktop's post-import behavior: make the newest
@@ -1770,7 +1806,10 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     SequenceFile* sf = _context->GetSequenceFile();
     if (!sf) return 0;
     int countBefore = _context->GetSequenceElements().GetNumberOfTimingElements();
-    sf->ProcessLorTiming({ std::string([path UTF8String]) }, _context.get());
+    {
+        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing", false);
+        sf->ProcessLorTiming({ std::string([path UTF8String]) }, _context.get());
+    }
     int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
     if (countAfter > countBefore) {
         _context->GetSequenceElements().DeactivateAllTimingElements();
@@ -1786,7 +1825,10 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     SequenceFile* sf = _context->GetSequenceFile();
     if (!sf) return 0;
     int countBefore = _context->GetSequenceElements().GetNumberOfTimingElements();
-    sf->ProcessPapagayo({ std::string([path UTF8String]) }, _context.get());
+    {
+        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing", false);
+        sf->ProcessPapagayo({ std::string([path UTF8String]) }, _context.get());
+    }
     int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
     if (countAfter > countBefore) {
         _context->GetSequenceElements().DeactivateAllTimingElements();
@@ -1806,7 +1848,10 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     SequenceFile* sf = _context->GetSequenceFile();
     if (!sf) return 0;
     int countBefore = _context->GetSequenceElements().GetNumberOfTimingElements();
-    process(sf);
+    {
+        NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Timing", false);
+        process(sf);
+    }
     int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
     if (countAfter > countBefore) {
         _context->GetSequenceElements().DeactivateAllTimingElements();
@@ -2552,7 +2597,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     // immediately after self — which leaves order unchanged).
     if (destElemIdx == srcElemIdx || destElemIdx == srcElemIdx + 1) return NO;
 
-    se.MoveSequenceElement(srcElemIdx, destElemIdx, view);
+    ElementEdits::MoveElement(se, srcElemIdx, destElemIdx, view, false);
     se.PopulateRowInformation();
     return YES;
 }
@@ -2571,7 +2616,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     }
     if (destElemIdx == srcElemIdx || destElemIdx == srcElemIdx + 1) return NO;
 
-    se.MoveSequenceElement(srcElemIdx, destElemIdx, view);
+    ElementEdits::MoveElement(se, srcElemIdx, destElemIdx, view, false);
     se.PopulateRowInformation();
     return YES;
 }
@@ -2586,13 +2631,9 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return [NSString stringWithUTF8String:next->GetFullName().c_str()];
 }
 
-// B56: walk every strand of a model and promote node-level effects
-// up to strand level when every node carries an identical "On" or
-// "Color Wash" effect at the same time range. After the per-strand
-// pass, run the same coalescing one level higher (strands → model).
-// Mirrors `xLightsFrame::DoPromoteEffects` (tabSequencer.cpp:4238).
-// Pure structural walk — no SequenceData or rendering — so the
-// algorithm can live in the bridge without core changes.
+// B56: promote node effects to strand level, then strand effects to the
+// model, where every node (strand) carries the same On / Color Wash effect
+// (desktop DoPromoteEffects). One core undo step.
 - (int)promoteNodeEffectsOnRow:(int)rowIndex {
     auto& se = _context->GetSequenceElements();
     auto* row = se.GetRowInformation(rowIndex);
@@ -2601,232 +2642,13 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     ModelElement* element = dynamic_cast<ModelElement*>(row->element);
     if (!element) return 0;
 
-    auto effectMatches = [](Effect* a, Effect* b) {
-        if (!a || !b) return false;
-        if (a->GetEffectIndex() != b->GetEffectIndex()) return false;
-        if (a->GetStartTimeMS() != b->GetStartTimeMS()) return false;
-        if (a->GetEndTimeMS() != b->GetEndTimeMS()) return false;
-        return a->GetSettingsAsString() == b->GetSettingsAsString()
-            && a->GetPaletteAsString() == b->GetPaletteAsString();
-    };
-
-    se.get_undo_mgr().CreateUndoStep();
     _context->AbortRender(5000);
-    auto& exec = se.GetCommandExecutor();
-    int promoted = 0;
-
-    // Step 1: nodes → strands. For each strand, look at node 0's effects
-    // and try to collapse identical coverage across every other node
-    // layer up to the strand layer.
-    for (int x = 0; x < element->GetStrandCount(); ++x) {
-        StrandElement* strand = element->GetStrand(x);
-        if (!strand) continue;
-        EffectLayer* target = strand->GetEffectLayer(0);
-        // Single-strand models promote straight to model level.
-        if (element->GetStrandCount() <= 1) {
-            if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
-                exec.InsertLayer(element, 0);
-            }
-            target = element->GetEffectLayer(0);
-        }
-        if (strand->GetNodeLayerCount() == 0) continue;
-        NodeLayer* base = strand->GetNodeLayer(0);
-        for (int e = base->GetEffectCount() - 1; e >= 0; --e) {
-            Effect* eff = base->GetEffect(e);
-            if (!eff) continue;
-            if (target->HasEffectsInTimeRange(eff->GetStartTimeMS(),
-                                                eff->GetEndTimeMS())) continue;
-            const std::string& name = eff->GetEffectName();
-            if (name != "On" && name != "Color Wash") continue;
-            int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
-            bool collapse = true;
-            for (int n = 1; n < strand->GetNodeLayerCount() && collapse; ++n) {
-                NodeLayer* node = strand->GetNodeLayer(n);
-                int nodeIndex = 0;
-                if (!node || !node->HitTestEffectByTime(mp, nodeIndex)
-                    || !effectMatches(eff, node->GetEffect(nodeIndex))) {
-                    collapse = false;
-                }
-            }
-            if (collapse) {
-                exec.AddEffect(target, eff->GetEffectName(),
-                               eff->GetSettingsAsString(),
-                               eff->GetPaletteAsString(),
-                               eff->GetStartTimeMS(),
-                               eff->GetEndTimeMS(), false, false);
-                ++promoted;
-                for (int n = 0; n < strand->GetNodeLayerCount(); ++n) {
-                    NodeLayer* node = strand->GetNodeLayer(n);
-                    int nodeIndex = 0;
-                    if (node && node->HitTestEffectByTime(mp, nodeIndex)) {
-                        Effect* hit = node->GetEffect(nodeIndex);
-                        if (hit && !hit->IsLocked()) exec.DeleteEffect(hit);
-                    }
-                }
-            }
-        }
-    }
-
-    // Step 2: strands → model (only meaningful when there's > 1 strand).
-    if (element->GetStrandCount() > 1) {
-        EffectLayer* base = element->GetStrand(0)->GetEffectLayer(0);
-        if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
-            exec.InsertLayer(element, 0);
-        }
-        EffectLayer* target = element->GetEffectLayer(0);
-        for (int e = base->GetEffectCount() - 1; e >= 0; --e) {
-            Effect* eff = base->GetEffect(e);
-            if (!eff) continue;
-            const std::string& name = eff->GetEffectName();
-            if (name != "On" && name != "Color Wash") continue;
-            int mp = (eff->GetStartTimeMS() + eff->GetEndTimeMS()) / 2;
-            bool collapse = true;
-            for (int n = 0; n < element->GetStrandCount() && collapse; ++n) {
-                StrandElement* strand = element->GetStrand(n);
-                if (!strand) { collapse = false; break; }
-                for (int l = 0; l < (int)strand->GetEffectLayerCount() && collapse; ++l) {
-                    EffectLayer* layer = strand->GetEffectLayer(l);
-                    if (layer == base) continue;
-                    int nodeIndex = 0;
-                    if (!layer || !layer->HitTestEffectByTime(mp, nodeIndex)
-                        || !effectMatches(eff, layer->GetEffect(nodeIndex))) {
-                        collapse = false;
-                    }
-                }
-            }
-            if (collapse) {
-                exec.AddEffect(target, eff->GetEffectName(),
-                               eff->GetSettingsAsString(),
-                               eff->GetPaletteAsString(),
-                               eff->GetStartTimeMS(),
-                               eff->GetEndTimeMS(), false, false);
-                ++promoted;
-                for (int n = 0; n < element->GetStrandCount(); ++n) {
-                    StrandElement* strand = element->GetStrand(n);
-                    if (!strand) continue;
-                    for (int l = 0; l < (int)strand->GetEffectLayerCount(); ++l) {
-                        EffectLayer* layer = strand->GetEffectLayer(l);
-                        int nodeIndex = 0;
-                        if (layer && layer->HitTestEffectByTime(mp, nodeIndex)) {
-                            Effect* hit = layer->GetEffect(nodeIndex);
-                            if (hit && !hit->IsLocked()) exec.DeleteEffect(hit);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+    int promoted = PromoteNodeEffects(se, element);
     if (promoted > 0) {
         se.PopulateRowInformation();
         _context->RenderEffectForModel(element->GetModelName(), 0, 99999999, true);
     }
     return promoted;
-}
-
-// Line-fit helpers for ramp detection — direct ports of the desktop
-// tabSequencer.cpp isOnLine / isOnLineColor / RampLenColor.
-static bool ConvertIsOnLine(int x1, int y1, int x2, int y2, int x3, int y3) {
-    double diffx = x2 - x1;
-    double diffy = y2 - y1;
-    double b = y1 - diffy / diffx * x1;
-    double ye1 = diffy / diffx * x3 + b;
-    return (y3 + 1) >= ye1 && (y3 - 1) <= ye1;
-}
-
-static bool ConvertIsOnLineColor(const xlColor& v1, const xlColor& v2, const xlColor& v3,
-                                 int x, int x2, int x3) {
-    return ConvertIsOnLine(x, v1.Red(), x2, v2.Red(), x3, v3.Red())
-        && ConvertIsOnLine(x, v1.Green(), x2, v2.Green(), x3, v3.Green())
-        && ConvertIsOnLine(x, v1.Blue(), x2, v2.Blue(), x3, v3.Blue());
-}
-
-static int ConvertRampLenColor(int start, std::vector<xlColor>& colors) {
-    int s = start + 2;
-    for (; s < (int)colors.size(); s++) {
-        if (!ConvertIsOnLineColor(colors[start], colors[s - 1], colors[s], start, s - 1, s)) {
-            return s - start;
-        }
-    }
-    if (s == (int)colors.size()) {
-        return s - start;
-    }
-    return 0;
-}
-
-// Direct port of xLightsFrame::DoConvertDataRowToEffects. Returns the
-// number of effects added so the caller can total them across layers.
-static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting) {
-    if (eraseExisting) {
-        // EffectLayer::DeleteAllEffects equivalent: locked effects stay.
-        std::vector<Effect*> existing = layer->GetEffects();
-        for (Effect* old : existing) {
-            if (!old->IsLocked()) exec.DeleteEffect(old);
-        }
-    }
-
-    colors.push_back(xlBLACK);
-    int startTime = 0;
-    xlColor lastColor(xlBLACK);
-    int added = 0;
-
-    for (size_t x = 0; x + 3 < colors.size(); ++x) {
-        if (colors[x] != colors[x + 1]) {
-            int len = ConvertRampLenColor((int)x, colors);
-            if (len >= 3) {
-                HSVValue v1 = colors[x].asHSV();
-                HSVValue v2 = colors[x + len - 1].asHSV();
-
-                int stime = (int)x * frameTime;
-                int etime = (int)(x + len) * frameTime;
-                if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK || (v1.hue == v2.hue)) {
-                    HSVValue c = colors[x].asHSV();
-                    if (colors[x] == xlBLACK) {
-                        c = colors[x + len - 1].asHSV();
-                    }
-                    c.value = 1.0;
-                    xlColor c2(c);
-
-                    int i = v1.value * 100.0;
-                    int i2 = v2.value * 100.0;
-                    std::string settings = "E_TEXTCTRL_Eff_On_Start=" + std::to_string(i) + ",E_TEXTCTRL_Eff_On_End=" + std::to_string(i2);
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
-                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        exec.AddEffect(layer, "On", settings, palette, stime, etime, false, false);
-                        ++added;
-                    }
-                } else {
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
-                                          "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
-                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        exec.AddEffect(layer, "Color Wash", "", palette, stime, etime, false, false);
-                        ++added;
-                    }
-                }
-                for (int z = 0; z < len; ++z) {
-                    colors[x + z] = xlBLACK;
-                }
-            }
-        }
-    }
-
-    for (size_t x = 0; x < colors.size(); ++x) {
-        if (lastColor != colors[x]) {
-            int time = (int)x * frameTime;
-            if (lastColor != xlBLACK) {
-                std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1";
-                if (time != startTime) {
-                    if (!layer->HasEffectsInTimeRange(startTime, time)) {
-                        exec.AddEffect(layer, "On", "", palette, startTime, time, false, false);
-                        ++added;
-                    }
-                }
-            }
-            startTime = time;
-            lastColor = colors[x];
-        }
-    }
-    return added;
 }
 
 - (int)convertDataToEffectsOnRow:(int)rowIndex {
@@ -2854,9 +2676,9 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     const int frameTime = seqData.FrameTime();
     const size_t numFrames = seqData.NumFrames();
 
-    se.get_undo_mgr().CreateUndoStep();
     _context->AbortRender(5000);
 
+    ScopedCommandBatch batch(se.GetCommandExecutor(), "Convert Data To Effects");
     int total = 0;
     auto convertLayer = [&](EffectLayer* layer, int strand, int node) {
         if (!layer) return;
@@ -2870,7 +2692,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
             ssModel.SetNodeChannelValues(0, &seqData[f][startChan]);
             colors.push_back(ssModel.GetNodeColor(0));
         }
-        total += ConvertDataRowToEffects(se.GetCommandExecutor(), layer, colors, frameTime, false);
+        total += ConvertDataRowToEffects(layer, colors, frameTime, false);
     };
 
     if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
@@ -3003,8 +2825,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     if (se.ElementExists(newStr)) return NO;
     std::string oldStr = row->element->GetName();
     if (oldStr == newStr) return YES;
-    se.RenameTimingTrack(oldStr, newStr);
-    row->element->SetName(newStr);
+    ElementEdits::RenameTimingTrack(se, oldStr, newStr, false);
     se.PopulateRowInformation();
     return YES;
 }
@@ -3017,7 +2838,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     // Some effect settings reference the timing track by name; abort
     // in-flight render before the element disappears.
     _context->AbortRender(5000);
-    _context->GetSequenceElements().DeleteElement(name);
+    ElementEdits::DeleteElement(_context->GetSequenceElements(), name, false);
     return YES;
 }
 
@@ -3036,6 +2857,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     std::string n = name ? std::string([name UTF8String]) : std::string();
     if (n.empty()) n = "Timing";
 
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track", false);
     if (intervalMS > 0) {
         sf->AddFixedTimingSection(n, intervalMS, _context.get());
     } else {
@@ -3067,6 +2889,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
             tagVec.emplace_back([t UTF8String]);
         }
     }
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track", false);
     sf->AddMetronomeLabelTimingSection(n, intervalMS, tagVec, _context.get(),
                                         minIntervalMS, randomize ? true : false);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
@@ -3083,6 +2906,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     std::string st = subType ? std::string([subType UTF8String]) : std::string();
     if (st != "FPP Commands" && st != "FPP Effects") return @"";
 
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Add Timing Track", false);
     sf->AddNewTimingSection(n, _context.get(), st);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
     return [NSString stringWithUTF8String:n.c_str()];
@@ -3100,6 +2924,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     std::string trackName = (name && name.length > 0)
         ? std::string([name UTF8String])
         : std::string("AutoGen");
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Generate AI Lyrics", false);
     TimingElement* element = _context->AddTimingElement(trackName, "");
     if (!element) return @"";
 
@@ -3191,6 +3016,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     std::string trackName = (name && name.length > 0)
         ? std::string([name UTF8String])
         : std::string("Notes");
+    NewElementsRecorder recorder(_context->GetSequenceElements(), "Import Notes", false);
     TimingElement* element = _context->AddTimingElement(trackName, "");
     if (!element) return @"";
     EffectLayer* layer = element->GetEffectLayer(0);
@@ -3333,7 +3159,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
 
     // Discard any existing word+phoneme layers, then add a fresh
     // word layer. Mirrors `RowHeading::BreakdownTimingPhrases`.
-    te->SetFixedTiming(0);
+    ElementEdits::SetTimingFixed(se, te, 0, false);
     auto& exec = se.GetCommandExecutor();
     while (te->GetEffectLayerCount() > 1) {
         if (!exec.RemoveLayer(te, (int)te->GetEffectLayerCount() - 1, false)) break;
@@ -3444,14 +3270,15 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     // Ensure there's a words layer to write into. The row-level path
     // wipes everything down to the phrase layer; the per-mark path
     // is more surgical — preserve other phrases' words/phonemes.
-    te->SetFixedTiming(0);
-    auto& exec = se.GetCommandExecutor();
-    EffectLayer* wordLayer = te->GetEffectLayer(1);
-    if (!wordLayer) wordLayer = exec.InsertLayer(te, (int)te->GetEffectLayerCount(), false);
-    if (!wordLayer) return NO;
-
+    // The fixed-timing change and the new layer are part of the step,
+    // so undo leaves the track as it was.
     auto& undoMgr = se.get_undo_mgr();
     if (createUndoStep) undoMgr.CreateUndoStep();
+    ElementEdits::SetTimingFixed(se, te, 0);
+    auto& exec = se.GetCommandExecutor();
+    EffectLayer* wordLayer = te->GetEffectLayer(1);
+    if (!wordLayer) wordLayer = exec.InsertLayer(te, (int)te->GetEffectLayerCount());
+    if (!wordLayer) return NO;
 
     // Wipe existing word effects that fall inside this phrase's window
     // (and phonemes, if a layer 2 exists). DeleteEffect handles the
@@ -3498,11 +3325,15 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
                    ? _context->GetSequenceFile()->GetSequenceDurationMS()
                    : 0;
     if (duration > 0 && position > duration) position = duration;
-    _context->GetSequenceElements().SetTagPosition(index, position);
+    ElementEdits::SetTagPosition(_context->GetSequenceElements(), index, position, false);
 }
 
 - (void)clearAllTags {
-    _context->GetSequenceElements().ClearTags();
+    auto& se = _context->GetSequenceElements();
+    ScopedEditBatch batch(se, "Delete All Tags");
+    for (int i = 0; i < SequenceElements::TagCount; ++i) {
+        ElementEdits::SetTagPosition(se, i, -1, false);
+    }
 }
 
 // Break a single word mark on the words layer into phonemes
@@ -3532,17 +3363,20 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     const int endMS = we->GetEndTimeMS();
 
     auto& exec = se.GetCommandExecutor();
-    EffectLayer* phonemeLayer = (te->GetEffectLayerCount() < 3)
-        ? exec.InsertLayer(te, (int)te->GetEffectLayerCount(), false) : te->GetEffectLayer(2);
-    if (!phonemeLayer) return NO;
+    EffectLayer* phonemeLayer = (te->GetEffectLayerCount() < 3) ? nullptr : te->GetEffectLayer(2);
 
     // Refuse when a locked phoneme sits in the target window —
     // desktop reports this rather than silently overwriting.
-    for (auto&& eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
-        if (eff && eff->IsLocked()) return NO;
+    if (phonemeLayer) {
+        for (auto&& eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
+            if (eff && eff->IsLocked()) return NO;
+        }
     }
     auto& undoMgr = se.get_undo_mgr();
     if (createUndoStep) undoMgr.CreateUndoStep();
+    // A new phoneme layer is part of the step, so undo removes it too.
+    if (!phonemeLayer) phonemeLayer = exec.InsertLayer(te, (int)te->GetEffectLayerCount());
+    if (!phonemeLayer) return NO;
 
     for (auto* eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
         exec.DeleteEffect(eff);
@@ -3609,19 +3443,19 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
                 if (eff && eff->IsLocked()) return NO;
             }
         }
-        se.GetCommandExecutor().RemoveLayer(te, 2, false);
     }
     EffectLayer* wordLayer = te->GetEffectLayer(1);
     if (!wordLayer) return NO;
 
-    // Marker goes after the layer swap, as on the desktop: the layer
-    // structure change isn't undoable, but everything BreakdownWord
-    // adds below is, and without a marker the next undo would walk
-    // back into unrelated steps.
+    // The layer swap is part of the step, so undo puts the old phoneme
+    // layer back rather than leaving an empty one.
     auto& undoMgr = se.get_undo_mgr();
     undoMgr.CreateUndoStep();
+    if (te->GetEffectLayerCount() > 2) {
+        se.GetCommandExecutor().RemoveLayer(te, 2);
+    }
 
-    EffectLayer* phonemeLayer = se.GetCommandExecutor().InsertLayer(te, (int)te->GetEffectLayerCount(), false);
+    EffectLayer* phonemeLayer = se.GetCommandExecutor().InsertLayer(te, (int)te->GetEffectLayerCount());
     if (!phonemeLayer) return NO;
 
     PhonemeDictionary& dict = _context->GetPhonemeDictionary();
@@ -3993,7 +3827,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
         if (elem->HasEffects()) {
             [kept addObject:[NSString stringWithUTF8String:name.c_str()]];
         } else {
-            se.DeleteElement(name);
+            ElementEdits::DeleteElement(se, name, false);
             --i;
         }
     }
@@ -4009,10 +3843,9 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
         int existing = se.GetElementIndex(models[i], MASTER_VIEW);
         int dest = (int)i + timingCount;
         if (existing < 0) {
-            Element* e = se.AddElement(dest, models[i], "model", true, false, false, false, false);
-            if (e) e->AddEffectLayer();
+            ElementEdits::AddModel(se, dest, models[i], false);
         } else {
-            se.MoveSequenceElement(existing, dest, MASTER_VIEW);
+            ElementEdits::MoveElement(se, existing, dest, MASTER_VIEW, false);
         }
     }
 
@@ -4142,12 +3975,8 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     if (m == nullptr) return NO;
     // Mirror the desktop MASTER_VIEW branch of AddSelectedModels:
     // create the Element visible and bootstrap one empty effect layer.
-    Element* e = se.AddElement(n, "model",
-                                /*visible=*/true, /*collapsed=*/false,
-                                /*active=*/false, /*selected=*/false,
-                                /*renderDisabled=*/false);
+    Element* e = ElementEdits::AddModel(se, -1, n, false);
     if (!e) return NO;
-    e->AddEffectLayer();
     se.PopulateRowInformation();
     se.IncrementChangeCount(nullptr);
     [self postViewsChanged];
@@ -4172,7 +4001,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     // render first (issue #4134) to keep render workers from
     // dereferencing the about-to-be-deleted Element pointers.
     _context->AbortRender(5000);
-    se.DeleteElement(n);
+    ElementEdits::DeleteElement(se, n, false);
     // `DeleteElement` already repopulates row info internally; still
     // bump the change count + broadcast so the view picker and the
     // Display Elements sheet refresh.
@@ -4225,8 +4054,13 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     if (!el || el->GetType() != ElementType::ELEMENT_TYPE_MODEL) return NO;
 
     _context->AbortRender(5000);
-    el->SetName(newStd);
-    static_cast<ModelElement*>(el)->Init(*target);
+    {
+        // Reconciling the sequence with the layout after opening it, as
+        // the desktop's CheckForValidModels does; not an edit.
+        SeqMutationGuard::Scope reconcile;
+        el->SetName(newStd);
+        static_cast<ModelElement*>(el)->Init(*target);
+    }
     if (addAlias) {
         target->AddAlias("oldname:" + oldStd);
         _context->MarkLayoutModelDirty(newStd);
@@ -4247,7 +4081,7 @@ static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xl
     Element* el = se.GetElement(oldStd);
     if (!el || el->GetType() != ElementType::ELEMENT_TYPE_MODEL) return NO;
     _context->AbortRender(5000);
-    se.DeleteElement(oldStd);
+    ElementEdits::DeleteElement(se, oldStd, false);
     se.IncrementChangeCount(nullptr);
     [self postViewsChanged];
     return YES;
@@ -4348,8 +4182,9 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
     }
     if (toRemove.empty()) return 0;
     _context->AbortRender(5000);
+    ScopedEditBatch batch(se, "Remove Unused Rows");
     for (const std::string& n : toRemove) {
-        se.DeleteElement(n);
+        ElementEdits::DeleteElement(se, n, false);
     }
     se.IncrementChangeCount(nullptr);
     [self postViewsChanged];
@@ -5729,6 +5564,29 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
     return changed;
 }
 
+- (BOOL)redoLastCoreStep {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    auto& mgr = _context->GetSequenceElements().get_undo_mgr();
+    if (!mgr.CanRedo()) return NO;
+    mgr.RedoLastStep();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (void)beginEditCapture:(NSString*)label {
+    if (!_context || !_context->IsSequenceLoaded() || _editCapture) return;
+    _editCapture = std::make_unique<SequenceEditCapture>(_context->GetSequenceElements(),
+                                                         std::string(label ? [label UTF8String] : ""));
+}
+
+- (BOOL)endEditCapture {
+    if (!_editCapture) return NO;
+    _editCapture->Commit();
+    BOOL made = _editCapture->MadeUndoStep() ? YES : NO;
+    _editCapture.reset();
+    return made;
+}
+
 - (BOOL)undoLastCoreStep {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
     auto& mgr = _context->GetSequenceElements().get_undo_mgr();
@@ -5736,6 +5594,11 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
     mgr.UndoLastStep();
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
     return YES;
+}
+
+- (NSInteger)coreUndoStepSerial {
+    if (!_context || !_context->IsSequenceLoaded()) return 0;
+    return (NSInteger)_context->GetSequenceElements().get_undo_mgr().GetStepSerial();
 }
 
 - (BOOL)autosaveLayoutChanges {
@@ -6293,7 +6156,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     if (faces.GetFace(n) != nullptr) return NO;
     std::map<std::string, std::string> def;
     def["ImagePlacement"] = "Scaled";
-    faces.SetFace(n, def);
+    ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.SetFace(n, def); }, false);
     bumpSequenceDirty(_context.get());
     return YES;
 }
@@ -6301,7 +6164,8 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
 - (BOOL)removeSequenceFace:(NSString*)name {
     if (!_context || !_context->IsSequenceLoaded() || name.length == 0) return NO;
     _context->AbortRender(5000);
-    bool ok = _context->GetSequenceElements().GetSequenceFaces().RemoveFace(std::string([name UTF8String]));
+    std::string n([name UTF8String]);
+    bool ok = ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.RemoveFace(n); }, false);
     if (ok) bumpSequenceDirty(_context.get());
     return ok;
 }
@@ -6311,7 +6175,9 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     _context->AbortRender(5000);
     std::string oldN([oldName UTF8String]);
     std::string newN([newName UTF8String]);
-    if (!_context->GetSequenceElements().GetSequenceFaces().RenameFace(oldN, newN)) return NO;
+    auto& se = _context->GetSequenceElements();
+    ScopedEditBatch batch(se, "Rename Sequence Face");
+    if (!ElementEdits::EditSequenceFaces(se, [&](SequenceFaces& f) { f.RenameFace(oldN, newN); }, false)) return NO;
     repointSequenceFaceReferences(_context.get(), oldN, newN);
     bumpSequenceDirty(_context.get());
     return YES;
@@ -6327,7 +6193,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     std::string value = path != nil ? std::string([path UTF8String]) : std::string();
     def[std::string([key UTF8String])] = value;
     _context->AbortRender(5000);
-    faces.SetFace(n, def);
+    ElementEdits::EditSequenceFaces(elements, [&](SequenceFaces& f) { f.SetFace(n, def); }, false);
     if (!value.empty()) {
         auto& media = elements.GetSequenceMedia();
         // register (lazily) so the Media tab lists/embeds it and flag it
@@ -6349,7 +6215,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     const auto* cur = faces.GetFace(n);
     std::map<std::string, std::string> def = cur != nullptr ? *cur : std::map<std::string, std::string>();
     def["ImagePlacement"] = placement != nil ? std::string([placement UTF8String]) : std::string("Scaled");
-    faces.SetFace(n, def);
+    ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.SetFace(n, def); }, false);
     bumpSequenceDirty(_context.get());
     return YES;
 }
@@ -6384,7 +6250,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     if (it == m->GetFaceInfo().end()) return NO;
     auto ti = it->second.find("Type");
     if (ti == it->second.end() || ti->second != "Matrix") return NO; // Matrix-only
-    faces.SetFace(fn, it->second);
+    ElementEdits::EditSequenceFaces(_context->GetSequenceElements(), [&](SequenceFaces& f) { f.SetFace(fn, it->second); }, false);
     auto& media = _context->GetSequenceElements().GetSequenceMedia();
     for (const auto& [key, value] : it->second) {
         if (SequenceFaces::IsImageKey(key) && !value.empty()) {
@@ -11205,6 +11071,11 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
     return _context->HasDirtyLayoutModels() ? YES : NO;
 }
 
+- (BOOL)hasUnsavedControllerChanges {
+    if (!_context) return NO;
+    return _context->AreControllersDirty() ? YES : NO;
+}
+
 - (void)clearDirtyLayoutChanges {
     if (_context) _context->ClearDirtyLayoutModels();
 }
@@ -11658,77 +11529,8 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
 
 // Shift Effects ----------------------------------------------------------
 
-// Collect every EffectLayer reachable from the master-view elements,
-// mirroring desktop's `OnMenuItemShiftEffects*` walk (top layers +
-// strand node layers + submodel layers). When `includeTiming==NO`,
-// timing-track elements are skipped (their layers carry the marks).
-- (std::vector<EffectLayer*>)allShiftLayersIncludingTiming:(BOOL)includeTiming {
-    std::vector<EffectLayer*> out;
-    auto& se = _context->GetSequenceElements();
-    for (int elem = 0; elem < (int)se.GetElementCount(MASTER_VIEW); ++elem) {
-        Element* ele = se.GetElement(elem, MASTER_VIEW);
-        if (!ele) continue;
-        bool isTiming = ele->GetType() == ElementType::ELEMENT_TYPE_TIMING;
-        if (isTiming && !includeTiming) continue;
-        for (int layer = 0; layer < (int)ele->GetEffectLayerCount(); ++layer) {
-            if (EffectLayer* el = ele->GetEffectLayer(layer)) out.push_back(el);
-        }
-        if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-            ModelElement* me = dynamic_cast<ModelElement*>(ele);
-            for (int i = 0; me && i < me->GetStrandCount(); ++i) {
-                StrandElement* ste = dynamic_cast<StrandElement*>(me->GetStrand(i));
-                for (int k = 0; ste && k < ste->GetNodeLayerCount(); ++k) {
-                    if (NodeLayer* nl = ste->GetNodeLayer(k, false)) out.push_back(nl);
-                }
-            }
-            for (int i = 0; me && i < me->GetSubModelAndStrandCount(); ++i) {
-                Element* sub = me->GetSubModel(i);
-                for (int layer = 0; sub && layer < (int)sub->GetEffectLayerCount(); ++layer) {
-                    if (EffectLayer* sel = sub->GetEffectLayer(layer)) out.push_back(sel);
-                }
-            }
-        }
-    }
-    return out;
-}
-
-- (ShiftLayerSnap)snapshotLayer:(EffectLayer*)el {
-    ShiftLayerSnap snap;
-    snap.layer = el;
-    for (int ef = 0; ef < (int)el->GetEffectCount(); ++ef) {
-        Effect* e = el->GetEffect(ef);
-        if (!e) continue;
-        snap.effects.push_back({ e->GetID(), e->GetEffectName(),
-                                 e->GetSettingsAsString(), e->GetPaletteAsString(),
-                                 e->GetStartTimeMS(), e->GetEndTimeMS(),
-                                 e->GetSelected(), e->GetProtected() });
-    }
-    return snap;
-}
-
-// Apply the desktop `ShiftEffectsOnLayer` clamp: iterate backwards so
-// deletions are safe; truncate effects whose start crosses 0, delete
-// those pushed entirely below 0.
-- (void)shiftAllOnLayer:(EffectLayer*)el byMS:(int)ms {
-    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
-    for (int ef = (int)el->GetEffectCount() - 1; ef >= 0; --ef) {
-        Effect* e = el->GetEffect(ef);
-        if (!e) continue;
-        int start = e->GetStartTimeMS();
-        int end = e->GetEndTimeMS();
-        if (start + ms < 0) {
-            if (end + ms < 0) {
-                // EffectLayer::RemoveEffect semantics: a locked effect stays.
-                if (!e->IsLocked()) exec.DeleteEffect(e, false);
-                continue;
-            }
-            exec.MoveEffect(e, 0, end + ms, false);
-        } else {
-            exec.MoveEffect(e, start + ms, end + ms, false);
-        }
-    }
-}
-
+// Shift Effects / Shift Effects And Timing / Shift Selected Effects run the
+// shared core tool (desktop OnMenuItemShift*), recorded as one core undo step.
 - (int)roundToFrame:(int)ms {
     int frame = [self frameIntervalMS];
     if (frame <= 0) return ms;
@@ -11738,80 +11540,10 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
 - (NSInteger)shiftAllEffectsByMS:(int)ms includeTiming:(BOOL)includeTiming {
     if (!_context) return 0;
     ms = [self roundToFrame:ms];
-    std::vector<EffectLayer*> layers = [self allShiftLayersIncludingTiming:includeTiming];
-    if (layers.empty()) return 0;
-
-    std::vector<ShiftLayerSnap> snaps;
-    snaps.reserve(layers.size());
-    for (EffectLayer* el : layers) snaps.push_back([self snapshotLayer:el]);
-
-    if (ms != 0) {
-        for (EffectLayer* el : layers) [self shiftAllOnLayer:el byMS:ms];
-        _context->GetSequenceElements().IncrementChangeCount(nullptr);
-    }
-
-    NSInteger token = ++_nextShiftToken;
-    _shiftSnapshots[token] = std::move(snaps);
-    return token;
-}
-
-// Selected-scope shift mirroring desktop `ShiftSelectedEffectsOnLayer`:
-// negative shifts move left (truncate / delete at 0), positive shifts
-// move right; either way a move is rejected when the shifted range
-// would clash with an unselected effect on the same layer.
-- (void)shiftSelectedOnLayer:(EffectLayer*)el byMS:(int)ms {
-    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
-    if (ms < 0) {
-        std::vector<int> toRemove;
-        for (int ef = 0; ef < (int)el->GetEffectCount(); ++ef) {
-            Effect* e = el->GetEffect(ef);
-            if (!e || !e->GetSelected()) continue;
-            bool moved = false;
-            int start = e->GetStartTimeMS();
-            int end = e->GetEndTimeMS();
-            int newStart = start;
-            if (start + ms < 0) {
-                if (end + ms < 0) {
-                    exec.MoveEffect(e, -100, -90, false);
-                    toRemove.insert(toRemove.begin(), ef);
-                    continue;
-                }
-                newStart = 0;
-                moved = true;
-            } else {
-                auto clashers = el->GetAllEffectsByTime(start + ms, end + ms);
-                bool clash = false;
-                for (const auto& it : clashers) {
-                    if (it->GetID() != e->GetID()) { clash = true; break; }
-                }
-                if (!clash) {
-                    newStart = start + ms;
-                    moved = true;
-                }
-            }
-            if (moved) exec.MoveEffect(e, newStart, end + ms, false);
-        }
-        // EffectLayer::RemoveEffect semantics: a locked effect stays.
-        for (int idx : toRemove) {
-            Effect* gone = el->GetEffect(idx);
-            if (gone && !gone->IsLocked()) exec.DeleteEffect(gone, false);
-        }
-    } else {
-        for (int ef = (int)el->GetEffectCount() - 1; ef >= 0; --ef) {
-            Effect* e = el->GetEffect(ef);
-            if (!e || !e->GetSelected()) continue;
-            int start = e->GetStartTimeMS();
-            int end = e->GetEndTimeMS();
-            auto clashers = el->GetAllEffectsByTime(start + ms, end + ms);
-            bool clash = false;
-            for (const auto& it : clashers) {
-                if (it->GetID() != e->GetID()) { clash = true; break; }
-            }
-            if (!clash) {
-                exec.MoveEffect(e, start + ms, end + ms, false);
-            }
-        }
-    }
+    auto& se = _context->GetSequenceElements();
+    bool changed = ShiftEffects(se, ms, includeTiming, false, includeTiming ? "Shift Effects And Timing" : "Shift Effects");
+    if (changed) se.IncrementChangeCount(nullptr);
+    return changed ? 1 : 0;
 }
 
 - (NSInteger)shiftSelectedEffectsByMS:(int)ms
@@ -11821,8 +11553,6 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
     ms = [self roundToFrame:ms];
     [self pushCoreSelectionAtRows:rows effectIndices:indices];
 
-    // Snapshot every layer that owns a selected effect (whole layer, so
-    // a delete near 0 can be restored). Dedupe by layer pointer.
     std::vector<EffectLayer*> layers;
     NSUInteger n = MIN(rows.count, indices.count);
     for (NSUInteger i = 0; i < n; ++i) {
@@ -11831,51 +11561,11 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
             layers.push_back(el);
         }
     }
-    if (layers.empty()) {
-        _context->GetSequenceElements().UnSelectAllEffects();
-        return 0;
-    }
-
-    std::vector<ShiftLayerSnap> snaps;
-    snaps.reserve(layers.size());
-    for (EffectLayer* el : layers) snaps.push_back([self snapshotLayer:el]);
-
-    if (ms != 0) {
-        for (EffectLayer* el : layers) [self shiftSelectedOnLayer:el byMS:ms];
-        _context->GetSequenceElements().IncrementChangeCount(nullptr);
-    }
-
-    _context->GetSequenceElements().UnSelectAllEffects();
-    NSInteger token = ++_nextShiftToken;
-    _shiftSnapshots[token] = std::move(snaps);
-    return token;
-}
-
-- (BOOL)restoreShiftSnapshot:(NSInteger)token {
-    if (!_context) return NO;
-    auto it = _shiftSnapshots.find(token);
-    if (it == _shiftSnapshots.end()) return NO;
-    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
-    for (const ShiftLayerSnap& ls : it->second) {
-        EffectLayer* el = ls.layer;
-        el->RemoveAllEffects(nullptr);
-        for (const ShiftEffectSnap& es : ls.effects) {
-            // Locked effects survive RemoveAllEffects (and the shift's
-            // RemoveEffect) keeping their ID; restore their times in
-            // place rather than re-adding a duplicate.
-            if (Effect* existing = el->GetEffectFromID(es.id)) {
-                exec.MoveEffect(existing, es.startMS, es.endMS, false);
-                continue;
-            }
-            // AddEffect re-sorts and renumbers every id, so passing es.id
-            // to EffectLayer::AddEffect never kept it either.
-            exec.AddEffect(el, es.name, es.settings, es.palette,
-                           es.startMS, es.endMS, es.selected, es.protectd, false);
-        }
-    }
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
-    _shiftSnapshots.erase(it);
-    return YES;
+    auto& se = _context->GetSequenceElements();
+    bool changed = ShiftEffects(se, layers, ms, true, "Shift Selected Effects");
+    if (changed) se.IncrementChangeCount(nullptr);
+    se.UnSelectAllEffects();
+    return changed ? 1 : 0;
 }
 
 - (BOOL)applyPaletteString:(NSString*)paletteString
@@ -14527,14 +14217,9 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     auto entry = lookupMediaEntry(media, spath, *type);
     if (!entry || !entry->IsEmbeddable() || entry->IsEmbedded()) return NO;
 
-    // Load before embed so the base64 payload is populated from
-    // disk. `MediaCacheEntry::Embed` just flips the flag — callers
-    // rely on the embeddedData vector being non-empty when Save
-    // writes.
-    if (!entry->isLoaded()) entry->Load();
-    media.EmbedMedia(spath);
-    bumpSequenceDirty(_context.get());
-    return YES;
+    // Embeds the bytes the entry holds (loading them from disk first)
+    // as one undoable step.
+    return SeqMediaEdits::Embed(_context->GetSequenceElements(), spath) ? YES : NO;
 }
 
 // Which effect a dropped media file should become — desktop's
@@ -14561,13 +14246,13 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     if (!FileExists(src)) return NO;
 
     auto& media = _context->GetSequenceElements().GetSequenceMedia();
-    media.AddEmbeddedImageFromFile(key, src);
-    // AddEmbeddedImageFromFile is a no-op when the key is already
-    // cached or the bytes couldn't be read, so confirm before
-    // reporting success — the caller falls back to a loose file.
-    if (!media.HasImage(key)) return NO;
-    bumpSequenceDirty(_context.get());
-    return YES;
+    // An image already embedded under `key` is kept as it is. Otherwise
+    // confirm the bytes could be read before reporting success — the
+    // caller falls back to a loose file.
+    if (!media.HasImage(key)) {
+        SeqMediaEdits::EmbedFile(_context->GetSequenceElements(), key, MediaType::Image, src);
+    }
+    return media.HasImage(key) ? YES : NO;
 }
 
 - (BOOL)extractMediaAtPath:(NSString*)path {
@@ -14600,17 +14285,13 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     if (*type != MediaType::Image) {
         // Keeps a file already on disk and re-reads the entry from it,
         // so later edits to the file are picked up.
-        if (!media.ExtractMediaToDisk(spath, dest)) return NO;
-        bumpSequenceDirty(_context.get());
-        return YES;
+        return SeqMediaEdits::ExtractToDisk(_context->GetSequenceElements(), spath, dest) ? YES : NO;
     }
 
     // Desktop's ExtractImageToFile pattern: write the payload out,
-    // flip _isEmbedded off, keep the stored path.
-    if (!entry->SaveToFile(dest)) return NO;
-    media.ExtractMedia(spath);
-    bumpSequenceDirty(_context.get());
-    return YES;
+    // make the entry a file reference, keep the stored path. Undo
+    // embeds it again and leaves the written file in place.
+    return SeqMediaEdits::Extract(_context->GetSequenceElements(), spath, dest) ? YES : NO;
 }
 
 - (int)embedAllMediaOfType:(NSString*)typeFilter {
@@ -14623,98 +14304,15 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     }
     auto paths = media.GetAllMediaPaths();
     int changed = 0;
+    MediaEditBatch undoStep(_context->GetSequenceElements(), "Embed All Media");
     for (const auto& p : paths) {
         if (onlyType && p.second != *onlyType) continue;
         auto entry = lookupMediaEntry(media, p.first, p.second);
         if (!entry || !entry->IsEmbeddable() || entry->IsEmbedded()) continue;
-        if (!entry->isLoaded()) entry->Load();
-        media.EmbedMedia(p.first);
-        changed++;
-    }
-    if (changed > 0) bumpSequenceDirty(_context.get());
-    return changed;
-}
-
-namespace {
-
-// Rewrite every effect's settings + palette-map VALUES equal to
-// `oldValue` to `newValue`. Used by the rename path so effects
-// tracking the old filename don't end up broken. Returns the
-// count of settings touched.
-//
-// SettingsMap's public `begin()`/`end()` are const-only (they
-// return `std::map::const_iterator`), so we can't mutate through a
-// range-for. Collect keys in a first pass, then reassign via
-// `operator[]` in a second pass.
-//
-// Per-effect change hooks: settings mutations call
-// `Effect::IncrementChangeCount()` (walks up through `EffectLayer`
-// to `SequenceElements` and drops the effect's render cache);
-// palette mutations go through `PaletteMapUpdated()` which also
-// re-derives `mColors`/`mCC` and then calls `IncrementChangeCount`.
-// The caller therefore doesn't need a separate sequence-level
-// bump when this returns > 0 — the upward propagation handles it.
-int rewriteEffectValues(iPadRenderContext& ctx,
-                         const std::string& oldValue,
-                         const std::string& newValue) {
-    if (oldValue == newValue) return 0;
-    int changed = 0;
-    auto& se = ctx.GetSequenceElements();
-    std::vector<std::string> keys;
-    std::vector<std::string> paletteKeys;
-    for (size_t i = 0; i < se.GetElementCount(); ++i) {
-        Element* el = se.GetElement(i);
-        if (!el) continue;
-        int nLayers = (int)el->GetEffectLayerCount();
-        for (int li = 0; li < nLayers; ++li) {
-            EffectLayer* layer = el->GetEffectLayer(li);
-            if (!layer) continue;
-            int nEffects = (int)layer->GetEffectCount();
-            for (int ei = 0; ei < nEffects; ++ei) {
-                Effect* eff = layer->GetEffect(ei);
-                if (!eff) continue;
-
-                keys.clear();
-                for (auto it = eff->GetSettings().begin();
-                     it != eff->GetSettings().end(); ++it) {
-                    if (it->second == oldValue) keys.push_back(it->first);
-                }
-                paletteKeys.clear();
-                for (auto it = eff->GetPaletteMap().begin();
-                     it != eff->GetPaletteMap().end(); ++it) {
-                    if (it->second == oldValue) paletteKeys.push_back(it->first);
-                }
-                if (keys.empty() && paletteKeys.empty()) continue;
-
-                se.GetCommandExecutor().EditEffect(eff, [&](Effect& ef) {
-                    for (const auto& k : keys) {
-                        ef.GetSettings()[k] = newValue;
-                        changed++;
-                    }
-                    if (!keys.empty()) {
-                        // Propagate up the tree (EffectLayer → Element
-                        // → SequenceElements) and drop the render
-                        // cache so the next frame picks up the new
-                        // path.
-                        ef.IncrementChangeCount();
-                    }
-                    for (const auto& k : paletteKeys) {
-                        ef.GetPaletteMap()[k] = newValue;
-                        changed++;
-                    }
-                    if (!paletteKeys.empty()) {
-                        // `PaletteMapUpdated` re-derives `mColors` /
-                        // `mCC` and itself calls `IncrementChangeCount`.
-                        ef.PaletteMapUpdated();
-                    }
-                }, false);
-            }
-        }
+        if (SeqMediaEdits::Embed(_context->GetSequenceElements(), p.first)) changed++;
     }
     return changed;
 }
-
-} // namespace
 
 - (BOOL)renameMediaFromPath:(NSString*)oldPath
                       toPath:(NSString*)newPath {
@@ -14792,8 +14390,12 @@ int rewriteEffectValues(iPadRenderContext& ctx,
         }
     }
 
-    // Cache re-key works for every type via the generic helper.
-    if (!media.RenameMedia(oldStr, newStr)) {
+    // Re-keys the entry and repoints every effect setting and face
+    // definition in one step. A rename that moved the file on disk gets
+    // no undo step: undo could re-key the entry but not move the file
+    // back, leaving every reference broken.
+    if (!SeqMediaEdits::Rename(_context->GetSequenceElements(), oldStr, newStr, false, "Rename Media",
+                               /*recordUndo=*/!external)) {
         // On failure we've already moved the file on disk for
         // externals. Try to roll back to preserve the original
         // state.
@@ -14809,13 +14411,6 @@ int rewriteEffectValues(iPadRenderContext& ctx,
         return NO;
     }
 
-    // Rewrite every effect whose settings reference oldPath.
-    // `rewriteEffectValues` propagates the dirty + cache-drop
-    // hooks per effect; a final explicit bump covers the
-    // no-referencing-effect edge case.
-    (void)rewriteEffectValues(*_context, oldStr, newStr);
-    (void)_context->GetSequenceElements().GetSequenceFaces().RewriteImagePath(oldStr, newStr);
-    bumpSequenceDirty(_context.get());
     return YES;
 }
 
@@ -14909,7 +14504,7 @@ const char* canonicalSubdirForType(MediaType t) {
         // walk every effect's settings + palette maps to rewrite
         // references. The entry's _resolvedPath cache is stale
         // now, so reload the new key from disk as well.
-        if (!media.RenameMedia(storedStr, newStr)) {
+        if (!SeqMediaEdits::Rename(_context->GetSequenceElements(), storedStr, newStr, false, "Replace Missing Media")) {
             // Rare: either the old path vanished between checks or
             // the new path already exists in another cache. Fall
             // back to leaving the copy in place — the user can
@@ -14917,9 +14512,6 @@ const char* canonicalSubdirForType(MediaType t) {
             return [NSString stringWithUTF8String:absDest.c_str()];
         }
         (void)media.ReloadMedia(newStr);
-        (void)rewriteEffectValues(*_context, storedStr, newStr);
-        (void)_context->GetSequenceElements().GetSequenceFaces().RewriteImagePath(storedStr, newStr);
-        bumpSequenceDirty(_context.get());
     }
 
     return [NSString stringWithUTF8String:newStr.c_str()];
@@ -15277,9 +14869,7 @@ void appendLayerMatches(EffectLayer* layer,
     // (the same key GetAllMediaPaths / effect settings use), even if still
     // referenced — the user re-sources it or re-imports. Mirrors removeUnusedMedia.
     if (!_context || path.length == 0) return NO;
-    auto& media = _context->GetSequenceElements().GetSequenceMedia();
-    media.RemoveMedia(std::string([path UTF8String]));
-    bumpSequenceDirty(_context.get());
+    SeqMediaEdits::Remove(_context->GetSequenceElements(), std::string([path UTF8String]));
     return YES;
 }
 
@@ -15305,15 +14895,12 @@ MediaType mediaTypeFromExtension(const std::string& path) {
     return MediaType::Image;
 }
 
-// Register `path` in the media cache by forcing a fresh type-scoped
-// entry. Returns true when an entry didn't already exist.
-bool registerMediaPath(SequenceMedia& media, const std::string& path,
+// Add `path` to the sequence's media as a file reference (one undo
+// step). Returns true when an entry didn't already exist.
+bool registerMediaPath(SequenceElements& seq, const std::string& path,
                        MediaType type) {
-    if (media.HasMedia(path)) return false;
-    std::string resolved = FileUtils::FixFile("", path);
-    if (resolved.empty()) resolved = path;
-    media.ForceRefreshEntry(path, resolved, type);
-    return true;
+    if (seq.GetSequenceMedia().HasMedia(path)) return false;
+    return SeqMediaEdits::AddFileReference(seq, path, type);
 }
 
 } // namespace
@@ -15322,10 +14909,8 @@ bool registerMediaPath(SequenceMedia& media, const std::string& path,
     if (!_context || !_context->IsSequenceLoaded() || storedPath.length == 0) {
         return NO;
     }
-    auto& media = _context->GetSequenceElements().GetSequenceMedia();
     std::string p([storedPath UTF8String]);
-    if (!registerMediaPath(media, p, mediaTypeFromExtension(p))) return NO;
-    bumpSequenceDirty(_context.get());
+    if (!registerMediaPath(_context->GetSequenceElements(), p, mediaTypeFromExtension(p))) return NO;
     return YES;
 }
 
@@ -15337,11 +14922,8 @@ bool registerMediaPath(SequenceMedia& media, const std::string& path,
 
 - (BOOL)reembedMediaAtPath:(NSString*)path {
     if (!_context || path.length == 0) return NO;
-    auto& media = _context->GetSequenceElements().GetSequenceMedia();
     std::string spath([path UTF8String]);
-    if (!media.ReembedMediaFromDisk(spath)) return NO;
-    bumpSequenceDirty(_context.get());
-    return YES;
+    return SeqMediaEdits::ReembedFromDisk(_context->GetSequenceElements(), spath) ? YES : NO;
 }
 
 - (int)reloadAllMedia {
@@ -15402,9 +14984,9 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
         std::string newStr = ctx.MakeRelativePath(absDest);
         if (newStr.empty()) newStr = absDest;
         if (newStr == stored) { moved++; continue; }
-        if (!media.RenameMedia(stored, newStr)) continue;
+        // The file was copied, not moved, so undo can point back at it.
+        if (!SeqMediaEdits::Rename(ctx.GetSequenceElements(), stored, newStr)) continue;
         (void)media.ReloadMedia(newStr);
-        (void)rewriteEffectValues(ctx, stored, newStr);
         moved++;
     }
     return moved;
@@ -15422,7 +15004,11 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
 
 - (int)performCleanupFileLocations {
     if (!_context || !_context->IsSequenceLoaded()) return 0;
-    int moved = cleanupExternalMedia(*_context, /*execute*/ true, nil);
+    int moved = 0;
+    {
+        MediaEditBatch undoStep(_context->GetSequenceElements(), "Cleanup File Locations");
+        moved = cleanupExternalMedia(*_context, /*execute*/ true, nil);
+    }
     if (moved > 0) bumpSequenceDirty(_context.get());
     moved += [self cleanupRGBEffectsFileLocations];
     return moved;
@@ -15488,6 +15074,7 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
     }
     auto paths = media.GetAllMediaPaths();
     int changed = 0;
+    MediaEditBatch undoStep(_context->GetSequenceElements(), "Extract All Media");
     for (const auto& p : paths) {
         if (onlyType && p.second != *onlyType) continue;
         auto entry = lookupMediaEntry(media, p.first, p.second);
@@ -15495,11 +15082,8 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
         std::string dest = FileUtils::FixFile("", p.first);
         if (dest.empty()) dest = entry->GetFilePath();
         if (dest.empty()) continue;
-        if (!entry->SaveToFile(dest)) continue;
-        media.ExtractMedia(p.first);
-        changed++;
+        if (SeqMediaEdits::Extract(_context->GetSequenceElements(), p.first, dest)) changed++;
     }
-    if (changed > 0) bumpSequenceDirty(_context.get());
     return changed;
 }
 
@@ -21796,51 +21380,54 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
 }
 
 - (NSInteger)addSongStructureView:(NSString*)name {
-    auto& ssm = _context->GetSequenceElements().GetSongStructureManager();
-    int idx = ssm.AddView(name ? std::string([name UTF8String]) : std::string("View"));
+    int idx = -1;
+    std::string n = name ? std::string([name UTF8String]) : std::string("View");
+    ElementEdits::EditSongStructure(_context->GetSequenceElements(), [&](SongStructureManager& m) { idx = m.AddView(n); }, false);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
     return idx;
 }
 
 - (NSInteger)duplicateSongStructureViewAtIndex:(NSInteger)sourceIndex
                                        withName:(NSString*)name {
-    auto& ssm = _context->GetSequenceElements().GetSongStructureManager();
-    int idx = ssm.DuplicateView((int)sourceIndex,
-                                name ? std::string([name UTF8String]) : std::string("Copy"));
+    int idx = -1;
+    std::string n = name ? std::string([name UTF8String]) : std::string("Copy");
+    ElementEdits::EditSongStructure(_context->GetSequenceElements(), [&](SongStructureManager& m) { idx = m.DuplicateView((int)sourceIndex, n); }, false);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
     return idx;
 }
 
 - (void)renameSongStructureViewAtIndex:(NSInteger)index toName:(NSString*)name {
     if (!name) return;
-    _context->GetSequenceElements().GetSongStructureManager().RenameView((int)index, std::string([name UTF8String]));
+    std::string n([name UTF8String]);
+    ElementEdits::EditSongStructure(_context->GetSequenceElements(), [&](SongStructureManager& m) { m.RenameView((int)index, n); }, false);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
 }
 
 - (void)deleteSongStructureViewAtIndex:(NSInteger)index {
-    _context->GetSequenceElements().GetSongStructureManager().DeleteView((int)index);
+ElementEdits::EditSongStructure(_context->GetSequenceElements(), [&](SongStructureManager& m) { m.DeleteView((int)index); }, false);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
 }
 
 - (void)addSongStructureBoundaryAtMS:(int)timeMS {
     auto& se = _context->GetSequenceElements();
-    auto& ssm = se.GetSongStructureManager();
-    if (ssm.GetViewCount() == 0) {
-        ssm.SetActiveView(ssm.AddView("Default"));
-    }
-    ssm.AddBoundary(timeMS, se.GetSequenceEnd());
+    ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) {
+        if (m.GetViewCount() == 0) {
+            m.SetActiveView(m.AddView("Default"));
+        }
+        m.AddBoundary(timeMS, se.GetSequenceEnd());
+    }, false);
     se.IncrementChangeCount(nullptr);
 }
 
 - (void)deleteSongStructureBoundaryNearMS:(int)timeMS {
     auto& se = _context->GetSequenceElements();
-    se.GetSongStructureManager().DeleteBoundary(timeMS);
+ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.DeleteBoundary(timeMS); }, false);
     se.IncrementChangeCount(nullptr);
 }
 
 - (void)moveSongStructureBoundaryFromMS:(int)oldTimeMS toMS:(int)newTimeMS {
     auto& se = _context->GetSequenceElements();
-    se.GetSongStructureManager().MoveBoundary(oldTimeMS, newTimeMS);
+ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.MoveBoundary(oldTimeMS, newTimeMS); }, false);
     se.IncrementChangeCount(nullptr);
 }
 
@@ -21853,7 +21440,8 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     auto& ssm = se.GetSongStructureManager();
     for (size_t i = 0; i < ssm.GetRegionCount(); ++i) {
         if (ssm.GetRegion(i).id == regionID) {
-            ssm.SetRegionName(i, name ? std::string([name UTF8String]) : std::string());
+            std::string n = name ? std::string([name UTF8String]) : std::string();
+            ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.SetRegionName(i, n); }, false);
             se.IncrementChangeCount(nullptr);
             return;
         }
@@ -21865,7 +21453,7 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     auto& ssm = se.GetSongStructureManager();
     for (size_t i = 0; i < ssm.GetRegionCount(); ++i) {
         if (ssm.GetRegion(i).id == regionID) {
-            ssm.SetRegionColor(i, colorARGB);
+ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) { m.SetRegionColor(i, colorARGB); }, false);
             se.IncrementChangeCount(nullptr);
             return;
         }
@@ -21885,13 +21473,6 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     if (!te) return 0;
     EffectLayer* el = te->GetEffectLayer(0);
     if (!el || el->GetEffectCount() == 0) return 0;
-
-    auto& ssm = se.GetSongStructureManager();
-    if (ssm.GetViewCount() > 0 || ssm.AnyViewHasRegions()) {
-        ssm.Clear();
-    }
-    int viewIdx = ssm.AddView("Default");
-    ssm.SetActiveView(viewIdx);
 
     int seqEndMS = se.GetSequenceEnd();
     int regionId = 1;
@@ -21919,7 +21500,11 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
         regions.emplace_back(regionId++, lastEndMS, seqEndMS, "", 0x40808080);
     }
 
-    ssm.SetRegions(regions);
+    ElementEdits::EditSongStructure(se, [&](SongStructureManager& m) {
+        m.Clear();
+        m.SetActiveView(m.AddView("Default"));
+        m.SetRegions(regions);
+    }, false);
     se.IncrementChangeCount(nullptr);
     return (NSInteger)regions.size();
 }

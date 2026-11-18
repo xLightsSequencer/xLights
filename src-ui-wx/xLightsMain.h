@@ -98,6 +98,7 @@
 #include "render/SequenceFile.h"
 #include "sequencer/EffectsGrid.h"
 #include "render/RenderCache.h"
+#include "render/EffectEditCoalescer.h"
 #include "outputs/ZCPP.h"
 #include "models/OutputModelManager.h"
 #include "render/RenderContext.h"
@@ -463,6 +464,12 @@ public:
                                              const std::function<bool(const std::string& copyPath)>& writeCopy,
                                              wxWindow* parent = nullptr);
     bool IsNonInteractiveSave() const;
+    // Shared show folders: publishes what this install is doing and shows who
+    // else is editing the layout or controllers. Runs on a timer.
+    void UpdatePresence();
+    // Before opening sequencePath: when someone else sharing the show folder
+    // has it open, asks whether to open it anyway. True to go ahead.
+    bool ConfirmOpenSequenceOpenElsewhere(const wxString& sequencePath);
     // At load: offers an autosave of realPath back when this install wrote it
     // (or an older version did) and it holds changes the real file lacks.
     // backupFirst runs a forced backup of the show folder before replacing the
@@ -1604,6 +1611,8 @@ public:
 public:
     xlUnsavedFlag UnsavedRgbEffectsChanges{ "Models, Views and Perspectives" };
     xlUnsavedFlag UnsavedPresetChanges{ "Effect Presets" };
+    wxTimer _presenceTimer;
+    wxStaticText* _presenceHint = nullptr;
     bool _renderMode = false;
     int _automationDepth = 0;
     std::vector<std::string> _sequenceBusy;
@@ -1924,6 +1933,8 @@ private:
     std::string selectedEffectName;
     std::string selectedEffectString;
     std::string selectedEffectPalette;
+    // Groups settings-panel edits of the selected effect into undo steps.
+    EffectEditCoalescer _panelEditCoalescer;
     Effect *selectedEffect = nullptr;
 
     std::string lastPlayEffect;
@@ -2000,6 +2011,8 @@ public:
     void ResetAllPanelDefaultSettings();
 
     void UnselectEffect();
+    // The next settings-panel change to the selected effect starts a new undo step.
+    void EndPanelEditBurst() { _panelEditCoalescer.EndBurst(); }
     FindDataPanel* GetFindDataPanel() const
     {
         return _findDataPanel;
@@ -2152,8 +2165,6 @@ private:
     void CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes);
     void RequestReleaseList(int retriesLeft, bool canSkipUpdates, bool showMessageBoxes);
     void HandleReleaseList(const std::string& resp, bool canSkipUpdates, bool showMessageBoxes);
-    void ShiftEffectsOnLayer(EffectLayer* el, int milliseconds);
-    void ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds);
     void InitSequencer();
     void CreateSequencer();
     void DoStopSequence();

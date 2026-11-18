@@ -9,6 +9,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
+
 #include <pugixml.hpp>
 
 #include "IPOutput.h"
@@ -191,6 +193,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     // Remove any existing outputs
     DeleteAllControllers();
+    _renameLog.Clear();
 
     DeleteTestPreset();
 
@@ -730,6 +733,10 @@ Controller* OutputManager::GetControllerByObjectId(const std::string& id) const 
         if (it->GetObjectId() == id) return it;
     }
     return nullptr;
+}
+
+bool OutputManager::HoldsController(const Controller* controller) const {
+    return std::find(_controllers.begin(), _controllers.end(), controller) != _controllers.end();
 }
 
 void OutputManager::DeleteController(const std::string& controllerName) {

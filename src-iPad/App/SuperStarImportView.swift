@@ -136,7 +136,7 @@ struct SuperStarImportView: View {
                 }
             }
         }
-        .navigationTitle("Import SuperStar")
+        .navigationTitle("Import Effects")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") { onCancel() }
@@ -183,6 +183,12 @@ struct SuperStarImportView: View {
         let started = sourceURL.startAccessingSecurityScopedResource()
         defer { if started { sourceURL.stopAccessingSecurityScopedResource() } }
 
+        // The whole import is one undo step.
+        let document = viewModel.document
+        document.beginEditCapture("Import Effects")
+        defer {
+            if document.endEditCapture() { viewModel.registerCoreUndo("Import Effects") }
+        }
         do {
             try XLSuperStarImport.applyImport(fromPath: sourceURL.path,
                                               targetModelName: selectedModel,

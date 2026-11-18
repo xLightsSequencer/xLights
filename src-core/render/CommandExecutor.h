@@ -14,15 +14,19 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "SequenceCommands.h"
+#include "../utils/UtilClasses.h"
 
 class SequenceElements;
 class UndoManager;
 class Effect;
 class EffectLayer;
 class Element;
+class SequenceEditCapture;
 
 class ICommandObserver {
 public:
@@ -55,8 +59,32 @@ public:
     CommandResult Execute(std::unique_ptr<SequenceCommand> cmd);
 
     void BeginBatch(const std::string& label);
-    void EndBatch();
+    // True if closing the outermost batch recorded an undo step.
+    bool EndBatch();
     bool InBatch() const { return _batchDepth > 0; }
+
+    // ---- Live preview ----------------------------------------------------
+    // For interactive edits (dragging an effect's edges, nudging a
+    // selection) that change effects many times before the user lets go.
+    // Between BeginPreview and CommitPreview every edit still applies at
+    // once, so the grid shows it live, but nothing is recorded or sent to
+    // observers. Instead the executor remembers each effect's state the
+    // first time a move or modify touches it. CommitPreview then records
+    // the net change of every touched effect (MoveEffect / ModifyEffect
+    // against that remembered state) as one labelled step: one undo step
+    // and one BatchCommand to observers. Other commands applied during a
+    // preview (adds, deletes, layers) are kept in order and go first in
+    // that batch. CancelPreview puts everything back, silently.
+    //
+    // Previews nest; only the outermost Commit/Cancel acts. Inside a batch,
+    // the committed changes join the batch instead of making a step. An
+    // empty label is "Effect(s) Moved" when every change is a move, else
+    // "Effect(s) Modified".
+    void BeginPreview();
+    // Returns true if anything was recorded.
+    bool CommitPreview(const std::string& label);
+    void CancelPreview();
+    bool InPreview() const { return _previewDepth > 0; }
 
     void AddObserver(ICommandObserver* observer);
     void RemoveObserver(ICommandObserver* observer);
@@ -74,6 +102,12 @@ public:
     // before, with no undo or notification.
 
     CommandResult ExecuteInStep(std::unique_ptr<SequenceCommand> cmd, bool recordUndo = true);
+
+    // Records a change the caller already made directly (`applied`, undone
+    // by `inverse`) exactly as ExecuteInStep would have recorded it.
+    void RecordExternal(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, bool recordUndo = true) {
+        RecordApplied(std::move(applied), std::move(inverse), recordUndo);
+    }
 
     Effect* AddEffect(EffectLayer* layer, const std::string& name, const std::string& settings, const std::string& palette,
                       int startTimeMS, int endTimeMS, int selected, bool isProtected, bool recordUndo = true);
@@ -101,21 +135,80 @@ public:
     bool RemoveLayer(Element* element, int index, bool recordUndo = true);
     bool SetLayerName(EffectLayer* layer, const std::string& name, bool recordUndo = true);
 
+    // Records edits that were already made to the document (see
+    // SequenceEditCapture): applied[i] has been applied and inverses[i]
+    // undoes it. They form one undo step named `label` (or join the open
+    // batch) and reach observers as one batch.
+    void RecordAppliedEdits(const std::string& label, std::vector<std::unique_ptr<SequenceCommand>> applied,
+                            std::vector<std::unique_ptr<SequenceCommand>> inverses, bool recordUndo = true);
+
+    // True while a SequenceEditCapture is open. Effect and layer commands
+    // applied meanwhile are neither recorded nor reported; the capture
+    // records the net change. Other commands (elements, media, ...) are
+    // recorded as usual, into the capture's batch.
+    bool IsCapturing() const { return _capture != nullptr; }
+
 private:
+    friend class SequenceEditCapture;
+    // An effect or layer command (or a batch of only those): the kind a
+    // capture records itself.
+    static bool CapturedKind(const SequenceCommand& cmd);
+    // While capturing: true if `cmd` is left to the capture.
+    bool FoldIntoCapture(const SequenceCommand& cmd);
+
     void Notify(const SequenceCommand& applied, const SequenceCommand& inverse);
     // Records an already-applied command: inverse into the current undo step
     // (or the open batch), then observers.
     void RecordApplied(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, bool recordUndo);
     bool InSequence(const Effect* effect) const;
+    // Live preview bookkeeping.
+    void PreviewTouch(const SequenceCommand& cmd);
+    void PreviewTouchEffect(const Effect* effect);
+    bool PreviewAbsorbs(const SequenceCommand& cmd) const;
 
     SequenceElements& _seq;
     UndoManager& _undo;
     std::vector<ICommandObserver*> _observers;
 
     int _batchDepth = 0;
+    SequenceEditCapture* _capture = nullptr; // the outermost open capture
     std::unique_ptr<BatchCommand> _batch;        // applied members, in order
     std::unique_ptr<BatchCommand> _batchInverse; // their inverses, in order
     std::vector<std::unique_ptr<SequenceCommand>> _batchUndo; // inverses to record for undo, in order
+
+    struct PreviewSnapshot {
+        EffectLocator loc;
+        std::string name;
+        int startTimeMS = 0;
+        int endTimeMS = 0;
+        SettingsMap settings;
+        SettingsMap palette;
+    };
+    struct PreviewApplied {
+        std::unique_ptr<SequenceCommand> applied;
+        std::unique_ptr<SequenceCommand> inverse;
+        bool recordUndo = true;
+    };
+    int _previewDepth = 0;
+    std::vector<PreviewSnapshot> _previewSnapshots; // first-touch order
+    std::unordered_map<SeqObjectId, size_t> _previewIndex; // effect uid -> snapshot
+    std::vector<PreviewApplied> _previewOther;
+};
+
+// Groups the edits made during its lifetime into one CommandExecutor batch
+// (one undo step, one notification).
+class ScopedCommandBatch {
+public:
+    ScopedCommandBatch(CommandExecutor& exec, const std::string& label) :
+        _exec(exec) {
+        _exec.BeginBatch(label);
+    }
+    ~ScopedCommandBatch() { _exec.EndBatch(); }
+    ScopedCommandBatch(const ScopedCommandBatch&) = delete;
+    ScopedCommandBatch& operator=(const ScopedCommandBatch&) = delete;
+
+private:
+    CommandExecutor& _exec;
 };
 
 // Records every applied command as JSON, e.g. to replay an edit session.

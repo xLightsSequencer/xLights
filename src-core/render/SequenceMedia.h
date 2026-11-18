@@ -20,11 +20,13 @@
 #include <string>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <vector>
 
 
 class AnimatedImage;
 class ImageLoadJob;
+class MediaCacheEntry;
 class JobPool;
 namespace pugi { class xml_node; }
 
@@ -48,6 +50,45 @@ struct ResolvedMediaPath {
     // show/media folders.
     std::string settingsPath;
     std::string loadPath;
+};
+
+// The document content of one media entry: what the sequence file stores for
+// it, independent of anything loaded or derived from it. Embedded entries
+// carry their bytes (base64, exactly as the .xsq stores them) or, for a frame
+// series, one base64 PNG per frame. Others are a reference to a file, named
+// by the key itself (the path as stored in effect settings); the bytes stay on
+// disk and each machine resolves the key against its own show folders.
+struct MediaEntryState {
+    struct Frame {
+        int timeMS = 0;
+        std::shared_ptr<const std::string> data;
+    };
+
+    std::string key;
+    MediaType type = MediaType::Image;
+    std::string subtype; // binary files only (e.g. "glediator")
+    bool embedded = false;
+    // Shared so copies (undo history, serialized logs) don't duplicate a
+    // multi-megabyte payload. Embedded entries only.
+    std::shared_ptr<const std::string> data;
+    std::vector<Frame> frames;
+
+    bool HasPayload() const { return (data && !data->empty()) || !frames.empty(); }
+    // Same bytes (or frames) and the same type/flag; the key is not compared.
+    bool SameContent(const MediaEntryState& o) const;
+    bool operator==(const MediaEntryState& o) const { return key == o.key && SameContent(o); }
+
+    static bool IsEmbeddableType(MediaType t);
+    static const char* TypeName(MediaType t);
+    static bool TypeFromName(const std::string& name, MediaType& out);
+
+    // Embedded-state builders. Return an empty optional when there is nothing
+    // to embed (unreadable file, image that won't encode, no frames).
+    static std::optional<MediaEntryState> EmbeddedBytes(const std::string& key, MediaType type, const std::vector<uint8_t>& bytes);
+    static std::optional<MediaEntryState> EmbeddedFromFile(const std::string& key, MediaType type, const std::string& sourcePath);
+    static std::optional<MediaEntryState> EmbeddedImage(const std::string& key, const xlImage& image);
+    static std::optional<MediaEntryState> EmbeddedFrames(const std::string& key, const std::vector<xlImage>& frames, int frameTimeMs);
+    static MediaEntryState FileReference(const std::string& key, MediaType type, const std::string& subtype = "");
 };
 
 /**
@@ -210,6 +251,8 @@ public:
 
     // Pre-cache a base64 PNG string for frame i to avoid re-encoding on save.
     void SetFrameData(std::vector<std::string> data) { _frameData = std::move(data); }
+    // The frames an embedded frame series saves as <Frame> nodes: {ms, base64 PNG}.
+    std::vector<std::pair<int, std::string>> GetFrameSeries() const;
 
     // Set animation loaders (called once during app init)
     static void SetWebPLoader(AnimationLoaderFunc loader) { _webpLoader = std::move(loader); }
@@ -513,6 +556,29 @@ public:
     // resolved path. Empty when there is none.
     std::string FindEmbeddedKey(const std::string& filepath) const;
 
+    // === Document-level entry access (used by the media commands) ===
+    // The stored content of the entry at exactly `key`; empty when none.
+    std::optional<MediaEntryState> GetEntryState(const std::string& key) const;
+    // The entry at `key` as it would be once embedded: its current bytes
+    // (loading them from disk if not yet loaded), embedded=true. Empty when
+    // there is no such entry, its type can't be embedded or it has no bytes.
+    std::optional<MediaEntryState> GetEmbeddableState(const std::string& key);
+    // The entry at `key` re-read from its file on disk, embedded=true.
+    std::optional<MediaEntryState> ReadEmbeddableStateFromDisk(const std::string& key) const;
+    // True when `key` resolves to a file on disk.
+    static bool ExistsOnDisk(const std::string& key);
+    // Write the embedded bytes of `key` to `path`. Not a document change.
+    bool WriteEmbeddedToFile(const std::string& key, const std::string& path) const;
+    // Make the entry at state.key hold `state`: creates it, replaces its
+    // content or type, embeds or extracts it. Usage marks are kept. A file
+    // reference is (re)loaded from disk; when the file isn't there and the
+    // entry already holds the same media embedded, the bytes stay in memory
+    // (marked not embedded) so nothing goes blank. `contentChanged` reports
+    // whether what renders from the entry may have changed (false for a pure
+    // embed/extract flag flip). Returns false, changing nothing, for an
+    // embedded state of a type that can't be embedded.
+    bool PutEntry(const MediaEntryState& state, bool* contentChanged = nullptr);
+
     // === Generalized embed/extract ===
     void EmbedMedia(const std::string& filepath);
     void EmbedAllMedia();
@@ -556,6 +622,10 @@ private:
     // ResolvePath, retried after dropping FixFile's memo of missing files
     static std::string ResolveOnDisk(const std::string& filepath);
     void RegisterImage(const std::string& filepath, const std::string& loadPath);
+    // Exact-key lookup across every cache. Caller holds _cacheMutex.
+    std::shared_ptr<MediaCacheEntry> FindEntryLocked(const std::string& key) const;
+    // Erase `key` from every cache. Caller holds _cacheMutex.
+    void EraseEntryLocked(const std::string& key);
 
     std::vector<std::pair<std::string, std::string>> _pendingRelocations;
 

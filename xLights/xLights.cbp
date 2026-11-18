@@ -419,6 +419,10 @@
 		<Unit filename="../src-core/utils/JobPool.h" />
 		<Unit filename="../src-core/utils/LayoutObjectId.cpp" />
 		<Unit filename="../src-core/utils/LayoutObjectId.h" />
+		<Unit filename="../src-core/utils/LayoutRecords.cpp" />
+		<Unit filename="../src-core/utils/LayoutRecords.h" />
+		<Unit filename="../src-core/utils/LayoutRenameLog.cpp" />
+		<Unit filename="../src-core/utils/LayoutRenameLog.h" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.cpp" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.h" />
 		<Unit filename="../src-ui-wx/app-shell/KeyBindingEditDialog.cpp" />
@@ -646,6 +650,10 @@
 		<Unit filename="../src-core/utils/ShowAutosave.h" />
 		<Unit filename="../src-core/utils/ShowFileGuard.cpp" />
 		<Unit filename="../src-core/utils/ShowFileGuard.h" />
+		<Unit filename="../src-core/utils/ShowFileMerge.cpp" />
+		<Unit filename="../src-core/utils/ShowFileMerge.h" />
+		<Unit filename="../src-core/utils/ShowPresence.cpp" />
+		<Unit filename="../src-core/utils/ShowPresence.h" />
 		<Unit filename="../src-core/utils/ShowRedactor.cpp" />
 		<Unit filename="../src-core/utils/ShowRedactor.h" />
 		<Unit filename="../src-core/utils/TraceLog.cpp" />
@@ -1449,6 +1457,8 @@
 		<Unit filename="../src-ui-wx/sequencer/DragEffectBitmapButton.h" />
 		<Unit filename="../src-core/render/Effect.cpp" />
 		<Unit filename="../src-core/render/Effect.h" />
+		<Unit filename="../src-core/render/EffectEditCoalescer.cpp" />
+		<Unit filename="../src-core/render/EffectEditCoalescer.h" />
 		<Unit filename="../src-core/render/EffectSymbol.cpp" />
 		<Unit filename="../src-core/render/EffectSymbol.h" />
 		<Unit filename="../src-core/render/EffectSymbolManager.cpp" />
@@ -1474,6 +1484,8 @@
 		<Unit filename="../src-core/render/SequenceElements.h" />
 		<Unit filename="../src-core/render/SequenceCommands.cpp" />
 		<Unit filename="../src-core/render/SequenceCommands.h" />
+		<Unit filename="../src-core/render/SequenceElementCommands.cpp" />
+		<Unit filename="../src-core/render/SequenceElementCommands.h" />
 		<Unit filename="../src-core/render/SequenceIds.h" />
 		<Unit filename="../src-core/render/SequenceMutationGuard.h" />
 		<Unit filename="../src-core/render/SongStructureManager.cpp" />
@@ -1482,6 +1494,8 @@
 		<Unit filename="../src-core/render/SeqMediaMigration.h" />
 		<Unit filename="../src-core/render/SequenceMedia.cpp" />
 		<Unit filename="../src-core/render/SequenceMedia.h" />
+		<Unit filename="../src-core/render/SequenceMediaCommands.cpp" />
+		<Unit filename="../src-core/render/SequenceMediaCommands.h" />
 		<Unit filename="../src-core/render/SequenceFaces.cpp" />
 		<Unit filename="../src-core/render/SequenceFaces.h" />
 		<Unit filename="../src-core/render/TextDrawingContext.cpp" />
@@ -1495,6 +1509,10 @@
 		<Unit filename="../src-core/render/UndoManager.h" />
 		<Unit filename="../src-core/render/CommandExecutor.cpp" />
 		<Unit filename="../src-core/render/CommandExecutor.h" />
+		<Unit filename="../src-core/render/SequenceEditCapture.cpp" />
+		<Unit filename="../src-core/render/SequenceEditCapture.h" />
+		<Unit filename="../src-core/render/SequenceBulkEdits.cpp" />
+		<Unit filename="../src-core/render/SequenceBulkEdits.h" />
 		<Unit filename="../src-ui-wx/sequencer/Waveform.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/Waveform.h" />
 		<Unit filename="../src-ui-wx/sequencer/tabSequencer.cpp" />

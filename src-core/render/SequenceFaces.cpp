@@ -11,6 +11,7 @@
 #include "SequenceFaces.h"
 
 #include "SequenceMedia.h"
+#include "SequenceMutationGuard.h"
 #include "../utils/ExternalHooks.h"
 #include "../utils/FileUtils.h"
 #include "pugixml.hpp"
@@ -33,6 +34,7 @@ const SequenceFaces::FaceDefinition* SequenceFaces::GetFace(const std::string& n
 
 void SequenceFaces::SetFace(const std::string& name, const FaceDefinition& def)
 {
+    XL_SEQ_MUTATION("SequenceFaces::SetFace");
     if (name.empty()) {
         return;
     }
@@ -42,11 +44,13 @@ void SequenceFaces::SetFace(const std::string& name, const FaceDefinition& def)
 
 bool SequenceFaces::RemoveFace(const std::string& name)
 {
+    XL_SEQ_MUTATION("SequenceFaces::RemoveFace");
     return _faces.erase(name) != 0;
 }
 
 bool SequenceFaces::RenameFace(const std::string& oldName, const std::string& newName)
 {
+    XL_SEQ_MUTATION("SequenceFaces::RenameFace");
     if (newName.empty() || oldName == newName) {
         return false;
     }
@@ -88,6 +92,7 @@ int SequenceFaces::CountImageReferences(const std::string& path) const
 
 int SequenceFaces::RewriteImagePath(const std::string& from, const std::string& to)
 {
+    XL_SEQ_MUTATION("SequenceFaces::RewriteImagePath");
     int count = 0;
     for (auto& [name, def] : _faces) {
         for (auto& [key, value] : def) {

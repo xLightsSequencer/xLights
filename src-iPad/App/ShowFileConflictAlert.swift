@@ -63,3 +63,51 @@ extension View {
             }
     }
 }
+
+/// Someone else sharing the show folder has the sequence being opened
+/// open too (from their presence file). Desktop asks the same question
+/// (`xLightsFrame::ConfirmOpenSequenceOpenElsewhere`).
+struct PresenceOpenWarning: Identifiable {
+    let id = UUID()
+    let path: String
+    let message: String
+}
+
+/// Open Anyway / Open Read-Only / Cancel for a `PresenceOpenWarning`.
+struct PresenceOpenWarningModifier: ViewModifier {
+    let viewModel: SequencerViewModel
+
+    func body(content: Content) -> some View {
+        content.alert("Sequence Open Elsewhere",
+                      isPresented: Binding(
+                        get: { viewModel.pendingPresenceOpen != nil },
+                        set: { if !$0 { viewModel.pendingPresenceOpen = nil } }),
+                      presenting: viewModel.pendingPresenceOpen) { w in
+            Button("Open Anyway") { viewModel.openDespitePresence(w, readOnly: false) }
+            Button("Open Read-Only") { viewModel.openDespitePresence(w, readOnly: true) }
+            Button("Cancel", role: .cancel) { viewModel.pendingPresenceOpen = nil }
+        } message: { w in
+            Text(w.message)
+        }
+    }
+}
+
+/// A one-line notice that someone else is editing the layout or
+/// controllers in the shared show folder.
+struct PresenceHintBanner: View {
+    let message: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "person.2.fill")
+            Text(message + ". Saving changes to the same files at the same time can lose one of them.")
+                .font(.caption)
+                .lineLimit(2)
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .foregroundStyle(.white)
+        .background(Color.orange)
+    }
+}

@@ -13,6 +13,7 @@
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
 #include "../render/SequenceCommands.h"
+#include "../render/SequenceElementCommands.h"
 #include "../render/SequenceElements.h"
 #include <log.h>
 
@@ -28,7 +29,18 @@ UNDO_ACTIONS KindFor(CommandType appliedType) {
     case CommandType::ReplaceLayerContents: return UNDO_EFFECT_MODIFIED;
     case CommandType::AddLayer: return UNDO_LAYER_ADDED;
     case CommandType::RemoveLayer: return UNDO_LAYER_REMOVED;
-    case CommandType::Batch: return UNDO_BATCH;
+    case CommandType::PutMedia:
+    case CommandType::RemoveMedia:
+    case CommandType::RenameMedia: return UNDO_EFFECT_MODIFIED;
+    case CommandType::Batch:
+    case CommandType::AddElement:
+    case CommandType::DeleteElement:
+    case CommandType::MoveElement:
+    case CommandType::RenameTimingTrack:
+    case CommandType::SetTimingFixed:
+    case CommandType::SetTag:
+    case CommandType::SetSequenceFace:
+    case CommandType::SetSongStructure: return UNDO_BATCH;
     }
     return UNDO_EFFECT_MODIFIED;
 }
@@ -77,6 +89,7 @@ void UndoManager::RemoveUnusedMarkers()
     // delete any marker stragglers
     if (!mUndoSteps.empty() && mUndoSteps.back().kind == UNDO_MARKER) {
         mUndoSteps.pop_back();
+        ++mHistorySerial;
     }
 }
 
@@ -86,6 +99,7 @@ bool UndoManager::ChangeCaptured()
 }
 
 void UndoManager::Clear() {
+    ++mHistorySerial;
     mUndoSteps.clear();
     ClearRedo();
 }
@@ -112,11 +126,13 @@ void UndoManager::Push(UNDO_ACTIONS kind, std::unique_ptr<SequenceCommand> inver
     e.label = label;
     e.inverse = std::move(inverse);
     mUndoSteps.push_back(std::move(e));
+    ++mHistorySerial;
     EnforceMaxSteps();
 }
 
 void UndoManager::CreateUndoStep()
 {
+    ++mStepSerial;
     ClearRedo();
     RemoveUnusedMarkers();
     Push(UNDO_MARKER, nullptr);
@@ -124,7 +140,7 @@ void UndoManager::CreateUndoStep()
 
 void UndoManager::RecordInverse(CommandType appliedType, const std::string& label, std::unique_ptr<SequenceCommand> inverse)
 {
-    Push(KindFor(appliedType), std::move(inverse), label);
+    Push(KindFor(appliedType), std::move(inverse), label.empty() ? std::string(ElementCommandUndoLabel(appliedType)) : label);
 }
 
 EffectLayer* UndoManager::ResolveLayer(const std::string& element_name, int exclusive_layer_index, LayerLocator& loc) const
@@ -270,17 +286,20 @@ void UndoManager::CaptureRemovedLayer( const std::string &element_name, int laye
 void UndoManager::CancelLastStep() {
     if (!mUndoSteps.empty()) {
         mUndoSteps.pop_back();
+        ++mHistorySerial;
     }
 }
 
 void UndoManager::UndoLastStep()
 {
+    ++mHistorySerial;
     mRedoSteps.push_back(Entry{});
     ProcessUndoStep(mUndoSteps, mRedoSteps);
 }
 
 void UndoManager::RedoLastStep()
 {
+    ++mHistorySerial;
     mUndoSteps.push_back(Entry{});
     ProcessUndoStep(mRedoSteps, mUndoSteps);
 }

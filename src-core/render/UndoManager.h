@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -59,6 +60,9 @@ class UndoManager
         void CreateUndoStep();
         bool CanUndo();
         bool CanRedo();
+        // Changes whenever a new undo step is started, so a caller can tell
+        // whether an operation recorded one.
+        unsigned int GetStepSerial() const { return mStepSerial; }
         void SetCaptureUndo( bool value );
         bool GetCaptureUndo() { return mCaptureUndo; }
         void CancelLastStep();
@@ -90,6 +94,12 @@ class UndoManager
         // feeds it.
         void SetMaxSteps(size_t maxSteps) { mMaxSteps = maxSteps; EnforceMaxSteps(); }
         size_t GetMaxSteps() const { return mMaxSteps; }
+
+        // Changes whenever the undo history changes (a step or entry is
+        // added or removed, undo, redo, clear). Code that keeps adding to
+        // the step it recorded last can compare this to know nothing else
+        // has been recorded or undone since.
+        uint64_t GetHistorySerial() const { return mHistorySerial; }
     protected:
         struct Entry {
             UNDO_ACTIONS kind = UNDO_MARKER;
@@ -115,5 +125,7 @@ class UndoManager
         SequenceElements* mParentSequence;
         bool mCaptureUndo;
         size_t mMaxSteps = 0;
+        uint64_t mHistorySerial = 0;
+        unsigned int mStepSerial = 0;
 
 };

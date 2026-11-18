@@ -39,6 +39,7 @@
 #include "RowHeading.h"
 #include "render/SequenceElements.h"
 #include "render/SongStructureManager.h"
+#include "render/SequenceElementCommands.h"
 #include "TimeLine.h"
 #include "sequencer/AutoLabelDialog.h"
 #include "shared/utils/BitmapCache.h"
@@ -311,7 +312,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
                 if (selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer()) {
                     if (wxMessageBox("Cannot Add Labels to a Fixed Timing Track.\nWould You Like to convert it to a Variable Timing Track First?", "Convert Fixed Timing Track First", wxYES_NO) == wxYES) {
                         TimingElement* te = dynamic_cast<TimingElement*>(selectedEffect->GetParentEffectLayer()->GetParentElement());
-                        te->SetFixedTiming(0);
+                        ElementEdits::SetTimingFixed(*mSequenceElements, te, 0, false);
                     } else {
                         if (update_time > -1) {
                             UpdateTimePosition(update_time);
@@ -335,7 +336,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
                     // If we have a fixed timing track and we add a label then we can no longer store it as a fixed timing track
                     TimingElement* te = dynamic_cast<TimingElement*>(selectedEffect->GetParentEffectLayer()->GetParentElement());
                     if (dlg.GetValue().ToStdString() != "" && te->GetFixedTiming() != 0) {
-                        te->SetFixedTiming(0);
+                        ElementEdits::SetTimingFixed(*mSequenceElements, te, 0, false);
                     }
                 }
                 Draw();
@@ -1179,6 +1180,8 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         mSequenceElements->UnSelectAllEffects();
         mSequenceElements->get_undo_mgr().UndoLastStep();
         sendRenderDirtyEvent();
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(mParent, eventRowHeaderChanged);
     } else if (id == ID_GRID_MNU_REDO) {
         spdlog::debug("OnGridPopup - REDO");
         mSelectedEffect = nullptr; // lets clear it as the redo may delete that effect ... and i cant be sure
@@ -1186,6 +1189,8 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         mSequenceElements->UnSelectAllEffects();
         mSequenceElements->get_undo_mgr().RedoLastStep();
         sendRenderDirtyEvent();
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(mParent, eventRowHeaderChanged);
     } else if (id == ID_GRID_MNU_ALIGN_START_TIMES) {
         spdlog::debug("OnGridPopup - ALIGN_START");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES);
@@ -1310,7 +1315,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         EffectLayer* word_layer;
         TimingElement* element = dynamic_cast<TimingElement*>(phrase_effect->GetParentEffectLayer()->GetParentElement());
         bool found_locked = false;
-        element->SetFixedTiming(0);
+        ElementEdits::SetTimingFixed(*mSequenceElements, element, 0, false);
         if (element->GetEffectLayerCount() == 1) {
             word_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount(), false);
         } else {
@@ -1342,7 +1347,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         EffectLayer* word_layer;
         TimingElement* element = dynamic_cast<TimingElement*>(phrase_effect->GetParentEffectLayer()->GetParentElement());
         bool found_locked = false;
-        element->SetFixedTiming(0);
+        ElementEdits::SetTimingFixed(*mSequenceElements, element, 0, false);
         if (element->GetEffectLayerCount() == 1) {
             word_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount(), false);
         } else {
@@ -2160,6 +2165,7 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
 }
 
 void EffectsGrid::ClearSelection() {
+    EndLivePreview();
     mDragging = false;
     mResizing = false;
     mEffectLayer = nullptr;
@@ -2344,6 +2350,9 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             Draw();
         } else if (mResizingMode != EFFECT_RESIZE_NO) {
             if (selectedEffect != nullptr) {
+                BeginLivePreview();
+                mStartFadeInSec = selectedEffect->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+                mStartFadeOutSec = selectedEffect->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
                 mResizing = true;
                 mDragThresholdExceeded = false;
                 mResizeEffectIndex = effectIndex;
@@ -2452,7 +2461,7 @@ void EffectsGrid::ApplyEffectSettingToSelected(const std::string& effectName, co
     Element* lastModel = nullptr;
     RangeAccumulator rangeAccumulator;
 
-    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(mSequenceElements->GetCommandExecutor(), "Bulk Edit");
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
 
@@ -2503,7 +2512,7 @@ void EffectsGrid::ApplyCallbackToSelected(const std::string& effectName, const s
     Element* lastModel = nullptr;
     RangeAccumulator rangeAccumulator;
 
-    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(mSequenceElements->GetCommandExecutor(), "Bulk Edit");
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
 
@@ -2534,7 +2543,7 @@ void EffectsGrid::ApplyButtonPressToSelected(const std::string& effectName, cons
     Element* lastModel = nullptr;
     RangeAccumulator rangeAccumulator;
 
-    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(mSequenceElements->GetCommandExecutor(), "Bulk Edit");
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
 
@@ -2585,7 +2594,7 @@ void EffectsGrid::RemapSelectedDMXEffectValues(const std::vector<std::tuple<int,
     Element* lastModel = nullptr;
     RangeAccumulator rangeAccumulator;
 
-    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(mSequenceElements->GetCommandExecutor(), "Remap DMX Values");
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
 
@@ -2651,7 +2660,7 @@ void EffectsGrid::ConvertSelectedEffectsTo(const std::string& effectName) {
         }
     }
 
-    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(mSequenceElements->GetCommandExecutor(), "Convert Effects");
     for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
         Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
 
@@ -4077,6 +4086,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
             ((MainSequencer*)mParent)->PanelWaveForm->ClearEffectDragOverride();
             ResetEffectMoveDragState();
         } else if (mResizing) {
+            EndLivePreview();
             if (mEffectLayer != nullptr && mEffectLayer->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (MultipleEffectsSelected()) {
                     std::string lastModel;
@@ -4224,6 +4234,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
             }
         }
 
+        EndLivePreview();
         mResizing = false;
         mDragThresholdExceeded = false;
         mDragDropping = false;
@@ -4792,6 +4803,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt) {
 
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         mSequenceElements->get_undo_mgr().SetCaptureUndo(true);
+        BeginLivePreview();
         if (control && shift) {
             if (buttup) {
                 ButtUpStretchMultipleEffects(true);
@@ -4807,6 +4819,7 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt) {
         } else {
             ResizeMoveMultipleEffectsByTime(by, force);
         }
+        EndLivePreview();
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
 
         // None of the resize/stretch helpers above notify the effect panel (they only
@@ -4922,6 +4935,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt) {
 
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         mSequenceElements->get_undo_mgr().SetCaptureUndo(true);
+        BeginLivePreview();
         if (control && shift) {
             if (buttup) {
                 ButtUpStretchMultipleEffects(false);
@@ -4937,6 +4951,7 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt) {
         } else {
             ResizeMoveMultipleEffectsByTime(by, force);
         }
+        EndLivePreview();
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
 
         // See the matching comment in MoveSelectedEffectRight: a Moving Head effect
@@ -5164,10 +5179,9 @@ void EffectsGrid::ResetEffect() {
     if (mSelectedEffect == nullptr)
         return;
 
-    mSequenceElements->get_undo_mgr().CreateUndoStep();
-
-    mSequenceElements->get_undo_mgr().CaptureModifiedEffect(mSelectedEffect->GetParentEffectLayer()->GetParentElement()->GetName(), mSelectedEffect->GetParentEffectLayer()->GetIndex(), mSelectedEffect);
-
+    // The reset reaches the effect through the settings panel, whose next
+    // change records the effect's complete previous state as its own step.
+    xLightsApp::GetFrame()->EndPanelEditBurst();
     xLightsApp::GetFrame()->ResetPanelDefaultSettings(mSelectedEffect->GetEffectName(), nullptr, false);
 }
 
@@ -6096,6 +6110,16 @@ namespace {
 }
 
 Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersion, bool row_paste, bool layerMode) {
+    if (mSequenceElements != nullptr) {
+        // Everything one paste does (layer clean-up, new layers, effects) is
+        // one undo step and reaches observers as one batch.
+        ScopedCommandBatch batch(mSequenceElements->GetCommandExecutor(), "Effect(s) Added");
+        return PasteImpl(data, pasteDataVersion, row_paste, layerMode);
+    }
+    return nullptr;
+}
+
+Effect* EffectsGrid::PasteImpl(const wxString& data, const wxString& pasteDataVersion, bool row_paste, bool layerMode) {
 
 
     Effect* res = nullptr;
@@ -6985,21 +7009,20 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
 
     int time = mTimeline->RoundToMultipleOfPeriod(timems, mSequenceElements->GetFrequency());
 
+    // These run inside the grid's live preview (BeginLivePreview), which
+    // records the net change as one step when the drag ends.
+    CommandExecutor& exec = mSequenceElements->GetCommandExecutor();
+
     if (wxGetKeyState(WXK_SHIFT) || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
-        if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
-            mSequenceElements->get_undo_mgr().CaptureModifiedEffect(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), effect);
-            mStartFadeInSec = effect->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
-            mStartFadeOutSec = effect->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
-        }
         int durationMS = effect->GetEndTimeMS() - effect->GetStartTimeMS();
         if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE || mResizingMode == EFFECT_RESIZE_FADE_IN) {
             double deltaSec = (double)(time - mStartResizeTimeMS) / 1000.0;
             double newFadeInSec = std::max(0.0, std::min((double)durationMS / 1000.0, mStartFadeInSec + deltaSec));
-            effect->SetSetting("T_TEXTCTRL_Fadein", wxString::Format("%.2f", newFadeInSec).ToStdString());
+            exec.SetEffectSetting(effect, "T_TEXTCTRL_Fadein", wxString::Format("%.2f", newFadeInSec).ToStdString());
         } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
             double deltaSec = (double)(mStartResizeTimeMS - time) / 1000.0;
             double newFadeOutSec = std::max(0.0, std::min((double)durationMS / 1000.0, mStartFadeOutSec + deltaSec));
-            effect->SetSetting("T_TEXTCTRL_Fadeout", wxString::Format("%.2f", newFadeOutSec).ToStdString());
+            exec.SetEffectSetting(effect, "T_TEXTCTRL_Fadeout", wxString::Format("%.2f", newFadeOutSec).ToStdString());
         }
         SetEffectStatusText(effect);
         Draw();
@@ -7019,27 +7042,14 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
                 time = 0;
             }
             if (mEffectLayer->IsStartTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_LEFT && !prevLocked) {
-                Effect* eff = priorEffect;
-                if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
-                                                                             eff->GetStartTimeMS(), eff->GetEndTimeMS());
-                }
-                eff->SetEndTimeMS(time);
+                exec.MoveEffect(priorEffect, priorEffect->GetStartTimeMS(), time);
             }
             Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
-            if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
-                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
-                                                                         eff->GetStartTimeMS(), eff->GetEndTimeMS());
-            }
-            eff->SetStartTimeMS(time);
+            exec.MoveEffect(eff, time, eff->GetEndTimeMS());
         } else {
             if (priorEffect != nullptr) {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
-                if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
-                                                                             eff->GetStartTimeMS(), eff->GetEndTimeMS());
-                }
-                eff->SetStartTimeMS(priorEffect->GetEndTimeMS());
+                exec.MoveEffect(eff, priorEffect->GetEndTimeMS(), eff->GetEndTimeMS());
             }
         }
     } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE) {
@@ -7051,27 +7061,14 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
             return;
         } else if (time <= maximumTime || maximumTime == NO_MIN_MAX_TIME) {
             if (mEffectLayer->IsEndTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_RIGHT && !nextLocked) {
-                Effect* eff = nextEffect;
-                if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
-                                                                             eff->GetStartTimeMS(), eff->GetEndTimeMS());
-                }
-                eff->SetStartTimeMS(time);
+                exec.MoveEffect(nextEffect, time, nextEffect->GetEndTimeMS());
             }
             Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
-            if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
-                mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
-                                                                         eff->GetStartTimeMS(), eff->GetEndTimeMS());
-            }
-            eff->SetEndTimeMS(time);
+            exec.MoveEffect(eff, eff->GetStartTimeMS(), time);
         } else {
             if (nextEffect != nullptr) {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
-                if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
-                                                                             eff->GetStartTimeMS(), eff->GetEndTimeMS());
-                }
-                eff->SetEndTimeMS(nextEffect->GetStartTimeMS());
+                exec.MoveEffect(eff, eff->GetStartTimeMS(), nextEffect->GetStartTimeMS());
             }
         }
     }
@@ -7306,6 +7303,7 @@ void EffectsGrid::CancelMouseOperations() {
     if (HasCapture()) {
         ReleaseMouse();
     }
+    EndLivePreview();
     mDragging = false;
     mResizing = false;
     mDragDropping = false;
@@ -8504,6 +8502,19 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const {
     }
 }
 
+void EffectsGrid::BeginLivePreview() {
+    EndLivePreview();
+    mSequenceElements->GetCommandExecutor().BeginPreview();
+    mLivePreview = true;
+}
+
+void EffectsGrid::EndLivePreview() {
+    if (mLivePreview && mSequenceElements != nullptr) {
+        mLivePreview = false;
+        mSequenceElements->GetCommandExecutor().CommitPreview("");
+    }
+}
+
 void EffectsGrid::ResetEffectMoveDragState() {
     mScrollTimer.Stop();
     mScrollDir = 0;
@@ -8768,6 +8779,9 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
 
 void EffectsGrid::ApplyEffectMoveDrag() {
     if (!xlights->AbortRender()) return;
+    // The adds, deletes and moves of one drop are one undo step and reach
+    // observers as one batch.
+    ScopedCommandBatch batch(mSequenceElements->GetCommandExecutor(), mEffectMoveCopyMode ? "Effect(s) Added" : "Effect(s) Moved");
 
     int rowDelta = mEffectMoveTargetRow - mEffectMoveAnchorRow;
     int deltaMS = mEffectMoveTargetDeltaMS;

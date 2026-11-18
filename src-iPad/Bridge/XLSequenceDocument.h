@@ -172,6 +172,13 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // checkpoint. Safe to call with no sequence open — no-op.
 - (void)clearUndoHistory;
 
+/// Groups the edits made until the matching `endCommandBatch` into one
+/// labelled change for command observers (one paste, one drag commit).
+/// Calls nest; only the outermost end delivers the batch. Undo stays with
+/// the caller's own undo registration.
+- (void)beginCommandBatch:(NSString*)label NS_SWIFT_NAME(beginCommandBatch(_:));
+- (void)endCommandBatch NS_SWIFT_NAME(endCommandBatch());
+
 // TOOLS-1b — Purge Render Cache (Tools menu): drop all on-disk
 // render-cache items for the current sequence. Frees disk/iCloud
 // quota; the next render repopulates. No-op if no sequence is open.
@@ -262,6 +269,27 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // Removes the autosave when this device wrote it (after a save, or
 // when the changes are discarded). Someone else's is left alone.
 + (void)removeSequenceAutosaveIfMineForPath:(NSString*)xsqPath NS_SWIFT_NAME(removeSequenceAutosaveIfMine(forPath:));
+
+// Presence in a shared show folder: `.xlights/presence/<install-id>.json`
+// says which sequence this device has open and whether it is editing the
+// layout or controllers. Safe to call off the main thread (touches only the
+// presence files). Writes only when something changed or the heartbeat is due.
++ (void)updatePresenceForShowFolder:(NSString*)showFolder
+                       sequencePath:(NSString*)sequencePath
+                      editingLayout:(BOOL)editingLayout
+                 editingControllers:(BOOL)editingControllers
+    NS_SWIFT_NAME(updatePresence(showFolder:sequencePath:editingLayout:editingControllers:));
+// Removes this device's presence file.
++ (void)clearPresence;
+// The warning to show before opening sequencePath when someone else
+// sharing the show folder has it open; nil when nobody does.
++ (nullable NSString*)presenceSequenceOpenWarningForShowFolder:(NSString*)showFolder
+                                                  sequencePath:(NSString*)sequencePath
+    NS_SWIFT_NAME(presenceSequenceOpenWarning(showFolder:sequencePath:));
+// "Sam on Office-PC is editing the layout", or nil when nobody else is
+// editing the layout or controllers.
++ (nullable NSString*)presenceEditingHintForShowFolder:(NSString*)showFolder
+    NS_SWIFT_NAME(presenceEditingHint(showFolder:));
 
 // E-3 — Sequence Settings. Info tab (read-only) + Metadata tab
 // (header text fields) + Media file swap + Render Mode /
@@ -1255,38 +1283,30 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
            effectIndices:(NSArray<NSNumber*>*)indices
     NS_SWIFT_NAME(replaceColour(from:to:atRows:effectIndices:));
 
-// Shift Effects (time-offset bulk move). Mirrors desktop's
-// `OnMenuItemShiftEffects(AndTiming)Selected` / `ShiftEffectsOnLayer`
-// (`xLightsMain.cpp:5808,5902,5970`): every effect on every layer of
-// every master-view element is offset by `ms` (signed). Effects whose
-// shifted start would go below 0 are truncated to start at 0; effects
-// pushed entirely below 0 are deleted — exactly the desktop clamp.
+// Shift Effects (time-offset bulk move), running the core tool the desktop
+// `OnMenuItemShiftEffects(AndTiming)Selected` uses: every effect on every
+// layer of every master-view element is offset by `ms` (signed). Effects
+// whose shifted start would go below 0 are truncated to start at 0;
+// effects pushed entirely below 0 are deleted. Locked effects never move.
 // `includeTiming==NO` skips timing-track elements (the desktop "Shift
 // Effects" item); `YES` shifts their marks too ("Shift Effects And
 // Timing"). `ms` is rounded to the sequence frame interval, like
-// desktop. Returns an opaque snapshot token (>0) the caller passes to
-// `restoreShiftSnapshot:` to undo, or 0 if nothing was shiftable.
+// desktop. The change is one core undo step (-undoLastCoreStep /
+// -redoLastCoreStep). Returns 1 if anything changed, else 0.
 - (NSInteger)shiftAllEffectsByMS:(int)ms
                     includeTiming:(BOOL)includeTiming
     NS_SWIFT_NAME(shiftAllEffects(byMS:includeTiming:));
 
-// Selected-scope shift, mirroring desktop's `MenuItemShiftSelectedEffects`
-// / `ShiftSelectedEffectsOnLayer` (`xLightsMain.cpp:5902,6035`): only
-// the effects at the given (row, effectIndex) pairs move, and a move is
-// rejected when the shifted range would clash with an unselected effect
-// on the same layer (per desktop). Because the iPad keeps selection in
-// Swift, the pairs are mirrored into the core Selected flags just for
-// the op, then cleared. Returns a snapshot token for undo (>0), or 0.
+// Selected-scope shift (desktop Shift Selected Effects): only the effects
+// at the given (row, effectIndex) pairs move, and a move is rejected when
+// the shifted range would clash with another effect on the same layer.
+// Because the iPad keeps selection in Swift, the pairs are mirrored into
+// the core Selected flags just for the op, then cleared. One core undo
+// step; returns 1 if anything changed, else 0.
 - (NSInteger)shiftSelectedEffectsByMS:(int)ms
                                atRows:(NSArray<NSNumber*>*)rows
                         effectIndices:(NSArray<NSNumber*>*)indices
     NS_SWIFT_NAME(shiftSelectedEffects(byMS:atRows:effectIndices:));
-
-// Restore the layer state captured by `shiftAllEffects`/
-// `shiftSelectedEffects` (undo). Consumes the token. Returns YES if
-// the token was found and applied.
-- (BOOL)restoreShiftSnapshot:(NSInteger)token
-    NS_SWIFT_NAME(restoreShiftSnapshot(_:));
 
 // Value-curve preset load / save (G36 — C6). `.xvc` files are the
 // same XML format desktop reads/writes
@@ -1521,6 +1541,21 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // registers a Foundation undo that calls this, keeping Foundation's
 // stack the single ordering authority. NO when the core stack is empty.
 - (BOOL)undoLastCoreStep;
+// Changes whenever a core undo step is recorded. Compare before and
+// after a bridge op to know whether it left a step to unwind (see
+// SequencerViewModel.performCoreUndoableEdit).
+- (NSInteger)coreUndoStepSerial NS_SWIFT_NAME(coreUndoStepSerial());
+
+// Re-applies the core step the last -undoLastCoreStep undid.
+- (BOOL)redoLastCoreStep;
+
+// Records the sequence edits made until -endEditCapture (e.g. by an
+// XLImportSession or XLSuperStarImport apply) as one core undo step named
+// `label`. Captures don't nest; a second begin is ignored. -endEditCapture
+// returns YES if an undo step was recorded, for the caller to register a
+// Foundation undo that calls -undoLastCoreStep.
+- (void)beginEditCapture:(NSString*)label;
+- (BOOL)endEditCapture;
 
 - (BOOL)autosaveLayoutChanges;
 // Recovery: a layout autosave from an earlier session to offer back
@@ -2211,6 +2246,8 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // and not yet persisted. The Layout Editor uses this to gate a
 // "Save" button + warn-on-close.
 - (BOOL)hasUnsavedLayoutChanges;
+// YES while controller (networks) edits are waiting to be saved.
+- (BOOL)hasUnsavedControllerChanges;
 
 // Drop the dirty-layout set without writing to disk. Used after
 // Discard Changes — every undo restore re-marked the model dirty

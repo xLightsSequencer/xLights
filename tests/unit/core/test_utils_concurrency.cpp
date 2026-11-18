@@ -18,6 +18,11 @@
 #include "utils/TempFileManager.h"
 #include "utils/TraceLog.h"
 #include "globals.h"
+#include "utils/ExternalHooks.h"
+
+#ifdef __APPLE__
+#include <pthread/qos.h>
+#endif
 
 namespace {
 
@@ -123,6 +128,24 @@ TEST_CASE("JobPool high priority jobs also run", "[utils]") {
     CHECK(counter == 6);
     pool.Stop();
 }
+
+#ifdef __APPLE__
+TEST_CASE("Idle pool threads drop to utility QoS not background", "[utils]") {
+    // Background QoS threads can starve under load, and JobPool::Stop() waits
+    // for idle workers to wake.
+    qos_class_t idle = QOS_CLASS_UNSPECIFIED;
+    qos_class_t busy = QOS_CLASS_UNSPECIFIED;
+    std::thread t([&] {
+        SetThreadQOS(0);
+        idle = qos_class_self();
+        SetThreadQOS(10);
+        busy = qos_class_self();
+    });
+    t.join();
+    CHECK(idle == QOS_CLASS_UTILITY);
+    CHECK(busy == QOS_CLASS_USER_INITIATED);
+}
+#endif
 
 TEST_CASE("Job defaults", "[utils]") {
     std::atomic<int> c{ 0 };

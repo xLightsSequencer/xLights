@@ -1168,6 +1168,9 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                         PanelEffectGrid->ClearSelection();
                         PanelEffectGrid->Draw();
                         PanelEffectGrid->sendRenderDirtyEvent();
+                        // Undo can add, remove or reorder rows.
+                        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+                        wxPostEvent(GetParent(), eventRowHeaderChanged);
                     }
                     event.StopPropagation();
                 }

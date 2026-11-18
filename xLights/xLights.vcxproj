@@ -890,6 +890,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
     <ClCompile Include="..\src-core\utils\LayoutObjectId.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutRecords.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutRenameLog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
     <ClCompile Include="..\src-core\media\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\src-core\media\kiss_fft\tools\kiss_fftr.c" />
@@ -1024,6 +1026,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\render\SequencePackage.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.cpp" />
     <ClCompile Include="..\src-core\render\Effect.cpp" />
+    <ClCompile Include="..\src-core\render\EffectEditCoalescer.cpp" />
     <ClCompile Include="..\src-core\render\EffectSymbol.cpp" />
     <ClCompile Include="..\src-core\render\EffectSymbolManager.cpp" />
     <ClCompile Include="..\src-ui-wx\EffectSymbolDialog.cpp" />
@@ -1036,12 +1039,16 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
     <ClCompile Include="..\src-core\render\SequenceCommands.cpp" />
+    <ClCompile Include="..\src-core\render\SequenceElementCommands.cpp" />
     <ClCompile Include="..\src-core\render\CommandExecutor.cpp" />
+    <ClCompile Include="..\src-core\render\SequenceEditCapture.cpp" />
+    <ClCompile Include="..\src-core\render\SequenceBulkEdits.cpp" />
     <ClCompile Include="..\src-core\render\SongStructureManager.cpp" />
     <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp" />
     <ClCompile Include="..\src-core\render\D2DTextDrawingContext.cpp" />
     <ClCompile Include="..\src-core\render\FreeTypeTextDrawingContext.cpp" />
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp" />
+    <ClCompile Include="..\src-core\render\SequenceMediaCommands.cpp" />
     <ClCompile Include="..\src-core\render\SequenceFaces.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\tabSequencer.cpp" />
@@ -1078,6 +1085,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\utils\ShowGuid.cpp" />
     <ClCompile Include="..\src-core\utils\ShowAutosave.cpp" />
     <ClCompile Include="..\src-core\utils\ShowFileGuard.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowFileMerge.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowPresence.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
@@ -1575,6 +1584,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
     <ClInclude Include="..\src-core\utils\LayoutObjectId.h" />
+    <ClInclude Include="..\src-core\utils\LayoutRecords.h" />
+    <ClInclude Include="..\src-core\utils\LayoutRenameLog.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
@@ -1704,6 +1715,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\render\SequencePackage.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.h" />
     <ClInclude Include="..\src-core\render\Effect.h" />
+    <ClInclude Include="..\src-core\render\EffectEditCoalescer.h" />
     <ClInclude Include="..\src-core\render\EffectSymbol.h" />
     <ClInclude Include="..\src-core\render\EffectSymbolManager.h" />
     <ClInclude Include="..\src-ui-wx\EffectSymbolDialog.h" />
@@ -1717,12 +1729,16 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
     <ClInclude Include="..\src-core\render\SequenceCommands.h" />
+    <ClInclude Include="..\src-core\render\SequenceElementCommands.h" />
     <ClInclude Include="..\src-core\render\SequenceIds.h" />
     <ClInclude Include="..\src-core\render\SequenceMutationGuard.h" />
     <ClInclude Include="..\src-core\render\CommandExecutor.h" />
+    <ClInclude Include="..\src-core\render\SequenceEditCapture.h" />
+    <ClInclude Include="..\src-core\render\SequenceBulkEdits.h" />
     <ClInclude Include="..\src-core\render\SongStructureManager.h" />
     <ClInclude Include="..\src-core\render\SeqMediaMigration.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />
+    <ClInclude Include="..\src-core\render\SequenceMediaCommands.h" />
     <ClInclude Include="..\src-core\render\SequenceFaces.h" />
     <ClInclude Include="..\src-core\render\D2DTextDrawingContext.h" />
     <ClInclude Include="..\src-core\render\FreeTypeTextDrawingContext.h" />
@@ -1758,6 +1774,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\utils\ShowGuid.h" />
     <ClInclude Include="..\src-core\utils\ShowAutosave.h" />
     <ClInclude Include="..\src-core\utils\ShowFileGuard.h" />
+    <ClInclude Include="..\src-core\utils\ShowFileMerge.h" />
+    <ClInclude Include="..\src-core\utils\ShowPresence.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />

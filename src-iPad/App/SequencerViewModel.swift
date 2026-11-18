@@ -15,7 +15,23 @@ extension XLSequenceDocument: @retroactive @unchecked Sendable {}
 @Observable @MainActor
 class SequencerViewModel {
     var document = XLSequenceDocument()
-    @ObservationIgnored let undoManager = UndoManager()
+    @ObservationIgnored let undoActivity = UndoActivity()
+    var undoManager: UndoManager { undoActivity.manager }
+    /// Inspector edits of one setting on one effect that follow each
+    /// other closely (a slider drag, typing a value) share one undo
+    /// step: the first edit registers an undo that restores the value
+    /// from before the burst; later edits register nothing. A burst ends
+    /// after `settingEditBurstWindow` without an edit, on any other undo
+    /// activity, or when a different effect or key is edited.
+    private struct SettingEditBurst {
+        let rowIndex: Int
+        let effectIndex: Int
+        let key: String
+        var lastEdit: Date
+        let undoSerial: Int
+    }
+    @ObservationIgnored private var settingEditBurst: SettingEditBurst?
+    static let settingEditBurstWindow: TimeInterval = 1.0
     var showFolderPath: String?
     var mediaFolderPaths: [String] = []
     var sequenceName: String?
@@ -1257,6 +1273,7 @@ class SequencerViewModel {
             // Layout edits can happen with no sequence open, so the
             // autosave timer starts with the show folder, not the .xsq.
             startAutosaveTimer()
+            startPresenceTimer()
             // Desktop's backup-on-launch (TabSetup.cpp DoBackup(false, true)),
             // opt-in here. Fire-and-forget off the main actor; the _OnStart
             // suffix marks the run just as desktop does.
@@ -1479,7 +1496,9 @@ class SequencerViewModel {
         return ok
     }
 
-    func openSequence(path: String, forceRender: Bool = false) {
+    /// `checkPresence: false` for reopening the sequence that was just
+    /// open here (revert, restore), which should not ask again.
+    func openSequence(path: String, forceRender: Bool = false, checkPresence: Bool = true) {
         // Phase A re-prompt UX: pre-check the sequence file's
         // security-scoped bookmark from Swift. Stale bookmark =>
         // queue a re-pick of the parent folder (iOS grants child
@@ -1514,11 +1533,28 @@ class SequencerViewModel {
                 self.runNextAccessReprompt()
                 return
             }
+            // Someone else sharing the show folder has it open: ask first.
+            // Batch render (forceRender) never prompts.
+            if checkPresence && !forceRender, let show = self.showFolderPath, !show.isEmpty {
+                let warning = await Task.detached {
+                    XLSequenceDocument.presenceSequenceOpenWarning(showFolder: show, sequencePath: path)
+                }.value
+                if let warning {
+                    self.pendingPresenceOpen = PresenceOpenWarning(path: path, message: warning)
+                    return
+                }
+            }
             self.performOpenSequence(path: path, forceRender: forceRender)
         }
     }
 
-    private func performOpenSequence(path: String, forceRender: Bool) {
+    /// The user chose to open a sequence someone else has open.
+    func openDespitePresence(_ warning: PresenceOpenWarning, readOnly: Bool) {
+        pendingPresenceOpen = nil
+        performOpenSequence(path: warning.path, forceRender: false, forceReadOnly: readOnly)
+    }
+
+    private func performOpenSequence(path: String, forceRender: Bool, forceReadOnly: Bool = false) {
         if openInFlight {
             print("performOpenSequence: ignoring concurrent open of \(path)")
             return
@@ -1555,7 +1591,7 @@ class SequencerViewModel {
             // on bookmark resolution (and can wait on an iCloud materialisation),
             // which tripped the 0x8BADF00D watchdog once applyOpenResult had
             // hopped back to the main actor.
-            let readOnly = opened ? SequencerViewModel.detectReadOnly(path: path) : false
+            let readOnly = opened ? (forceReadOnly || SequencerViewModel.detectReadOnly(path: path)) : false
             // FSEQ short-circuit: if the user has the feature on and a
             // matching .fseq exists, skip the render and load frame data
             // straight from disk. On any mismatch (stale, wrong shape,
@@ -2167,6 +2203,46 @@ class SequencerViewModel {
         }
     }
 
+    // MARK: - Presence (shared show folders)
+
+    /// "Sam on Office-PC is editing the layout" while someone else
+    /// sharing the show folder has unsaved layout or controller edits.
+    var presenceHint: String? = nil
+    /// Set when the sequence being opened is open somewhere else.
+    var pendingPresenceOpen: PresenceOpenWarning? = nil
+    @ObservationIgnored private var presenceTimer: Timer?
+
+    func startPresenceTimer() {
+        if presenceTimer == nil {
+            presenceTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.tickPresence() }
+            }
+        }
+        tickPresence()
+    }
+
+    /// Publishes what this device is doing (the core only rewrites the
+    /// file when that changed or the heartbeat is due) and refreshes
+    /// the hint. File I/O runs off the main actor: the show folder may
+    /// be in iCloud.
+    func tickPresence() {
+        // Mid-load or mid-open the document is being rebuilt on another thread.
+        guard isShowFolderLoaded, let show = showFolderPath, !show.isEmpty, !loadInFlight, !openInFlight else { return }
+        let sequence = isSequenceLoaded ? document.currentSequencePath() : ""
+        let layout = layoutEditorOpen || document.hasUnsavedLayoutChanges()
+        let controllers = document.hasUnsavedControllerChanges()
+        Task.detached { [weak self] in
+            XLSequenceDocument.updatePresence(showFolder: show, sequencePath: sequence,
+                                              editingLayout: layout, editingControllers: controllers)
+            let hint = XLSequenceDocument.presenceEditingHint(showFolder: show)
+            await self?.applyPresenceHint(hint)
+        }
+    }
+
+    private func applyPresenceHint(_ hint: String?) {
+        if presenceHint != hint { presenceHint = hint }
+    }
+
     func stopAutosaveTimer() {
         autosaveTimer?.invalidate()
         autosaveTimer = nil
@@ -2268,7 +2344,7 @@ class SequencerViewModel {
             saveCopyNotice = "The autosave was restored. The version it replaced was kept as a copy beside \((xsqPath as NSString).lastPathComponent)."
         }
         // Re-open so in-memory state matches the file on disk.
-        openSequence(path: xsqPath)
+        openSequence(path: xsqPath, checkPresence: false)
         return ok
     }
 
@@ -2371,10 +2447,10 @@ class SequencerViewModel {
         } catch {
             print("restoreBackup: copy \(snapshot.path) -> \(target) failed: \(error)")
             // Reopen whatever survived so the user isn't left empty-handed.
-            openSequence(path: target)
+            openSequence(path: target, checkPresence: false)
             return false
         }
-        openSequence(path: target)
+        openSequence(path: target, checkPresence: false)
         return true
     }
 
@@ -2455,7 +2531,7 @@ class SequencerViewModel {
         guard !path.isEmpty else { return }
         suppressAutosaveBackup()
         await closeSequence()
-        openSequence(path: path)
+        openSequence(path: path, checkPresence: false)
     }
 
     /// Called when the app scene moves to `.background` — iOS may kill
@@ -4039,13 +4115,29 @@ class SequencerViewModel {
             inspectorRevision &+= 1
             let rowIndex = sel.rowIndex
             let effectIndex = sel.effectIndex
-            undoManager.registerUndo(withTarget: self) { vm in
-                vm.setSettingValueAt(rowIndex: rowIndex,
-                                     effectIndex: effectIndex,
-                                     key: key,
-                                     value: prev)
+            let now = Date()
+            if let burst = settingEditBurst,
+               burst.rowIndex == rowIndex, burst.effectIndex == effectIndex,
+               burst.key == key, burst.undoSerial == undoActivity.serial,
+               undoManager.canUndo,
+               now.timeIntervalSince(burst.lastEdit) < Self.settingEditBurstWindow {
+                // The undo registered at the start of the burst already
+                // puts back the value from before it.
+                settingEditBurst?.lastEdit = now
+            } else {
+                undoManager.registerUndo(withTarget: self) { vm in
+                    vm.setSettingValueAt(rowIndex: rowIndex,
+                                         effectIndex: effectIndex,
+                                         key: key,
+                                         value: prev)
+                }
+                undoManager.setActionName("Edit \(key)")
+                settingEditBurst = SettingEditBurst(rowIndex: rowIndex,
+                                                    effectIndex: effectIndex,
+                                                    key: key,
+                                                    lastEdit: now,
+                                                    undoSerial: undoActivity.serial)
             }
-            undoManager.setActionName("Edit \(key)")
         }
     }
 
@@ -6016,10 +6108,12 @@ class SequencerViewModel {
     func importLyrics(rowIndex: Int, lyrics: String,
                        startMS: Int = 0, endMS: Int = 0) -> Int {
         let lines = lyrics.components(separatedBy: .newlines)
+        document.beginEditCapture("Import Lyrics")
         let added = Int(document.importLyrics(atRow: Int32(rowIndex),
                                                 phrases: lines,
                                                 startMS: Int32(startMS),
                                                 endMS: Int32(endMS)))
+        if document.endEditCapture() { registerCoreUndo("Import Lyrics") }
         if added > 0 { reloadRows() }
         return added
     }
@@ -6315,6 +6409,7 @@ class SequencerViewModel {
         if !document.breakdownPhrase(atRow: Int32(rowIndex),
                                        atIndex: Int32(markIndex)) { return false }
         reloadRows()
+        registerCoreUndo("Breakdown Phrase")
         return true
     }
 
@@ -6910,9 +7005,9 @@ class SequencerViewModel {
     /// only the selection) by `ms`, mirroring desktop's Shift Effects /
     /// Shift Effects And Timing / Shift Selected Effects. The bridge
     /// rounds `ms` to the frame interval and applies the same 0-boundary
-    /// clamp as desktop (truncate / delete). Undo is driven by a
-    /// bridge-side snapshot token restored on `Cmd+Z`. Triggers a full
-    /// re-render since the whole sequence can move.
+    /// clamp as desktop (truncate / delete). The shift is one core undo
+    /// step, unwound on `Cmd+Z`. Triggers a full re-render since the
+    /// whole sequence can move.
     func shiftEffects(byMS ms: Int, scope: ShiftScope) {
         guard isSequenceLoaded else { return }
         let token: Int
@@ -6933,7 +7028,7 @@ class SequencerViewModel {
         selectedEffects.removeAll()
         selectedEffect = nil
         reloadRows()
-        registerShiftUndo(token: token, actionName: shiftActionName(scope))
+        registerShiftUndo(actionName: shiftActionName(scope))
         startBackgroundRender()
     }
 
@@ -6945,22 +7040,24 @@ class SequencerViewModel {
         }
     }
 
-    /// Register undo for a shift. The bridge snapshot is one-shot
-    /// (consumed on restore), so on undo we re-snapshot the current
-    /// state into a fresh token before restoring, letting redo
-    /// re-apply — a symmetric pair, like `registerPaletteRestoreUndo`.
-    private func registerShiftUndo(token: Int, actionName: String) {
+    /// Register undo for a shift. The bridge records the shift as one
+    /// core undo step; undo unwinds it and redo re-applies it.
+    private func registerShiftUndo(actionName: String) {
         undoManager.registerUndo(withTarget: self) { vm in
-            // Capture current state for redo, then restore the snapshot.
-            let redoToken = vm.document.shiftAllEffects(byMS: 0, includeTiming: true)
-            _ = vm.document.restoreShiftSnapshot(token)
+            guard vm.document.undoLastCoreStep() else { return }
             vm.selectedEffects.removeAll()
             vm.selectedEffect = nil
             vm.reloadRows()
             vm.startBackgroundRender()
-            if redoToken > 0 {
-                vm.registerShiftUndo(token: redoToken, actionName: actionName)
+            vm.undoManager.registerUndo(withTarget: vm) { vm in
+                guard vm.document.redoLastCoreStep() else { return }
+                vm.selectedEffects.removeAll()
+                vm.selectedEffect = nil
+                vm.reloadRows()
+                vm.startBackgroundRender()
+                vm.registerShiftUndo(actionName: actionName)
             }
+            vm.undoManager.setActionName(actionName)
         }
         undoManager.setActionName(actionName)
     }
@@ -7720,7 +7817,22 @@ class SequencerViewModel {
     /// that can't be ordered against each other, Foundation's stays the
     /// single authority and the core step becomes an implementation
     /// detail of the op it belongs to.
-    private func registerCoreUndo(_ actionName: String) {
+    /// Run a bridge op that may record a step on the core UndoManager
+    /// (a CommandExecutor batch, CreateUndoStep, …). When it did, that
+    /// step becomes one Foundation undo step named `actionName`; when it
+    /// changed nothing, or applied without undo (recordUndo=false),
+    /// nothing is registered, so an unrelated core step is never popped.
+    @discardableResult
+    func performCoreUndoableEdit<T>(_ actionName: String, _ edit: () -> T) -> T {
+        let before = document.coreUndoStepSerial()
+        let result = edit()
+        if document.coreUndoStepSerial() != before {
+            registerCoreUndo(actionName)
+        }
+        return result
+    }
+
+    func registerCoreUndo(_ actionName: String) {
         undoManager.registerUndo(withTarget: self) { vm in
             guard vm.document.undoLastCoreStep() else { return }
             vm.clearSelection()
@@ -8184,6 +8296,8 @@ class SequencerViewModel {
     func resizeSharedEdge(rowIndex: Int,
                           leftIndex: Int, leftStartMS: Int, leftEndMS: Int,
                           rightIndex: Int, rightStartMS: Int, rightEndMS: Int) {
+        document.beginCommandBatch("Resize Shared Edge")
+        defer { document.endCommandBatch() }
         guard rowIndex >= 0, rowIndex < rows.count else { return }
         let row = rows[rowIndex]
         guard leftIndex < row.effects.count,
@@ -8262,6 +8376,8 @@ class SequencerViewModel {
     /// undo step that reverses both ends.
     func moveEffectToRow(srcRowIndex: Int, effectIndex: Int,
                           dstRowIndex: Int, newStartMS: Int, newEndMS: Int) {
+        document.beginCommandBatch("Move Effect")
+        defer { document.endCommandBatch() }
         guard srcRowIndex != dstRowIndex else {
             moveEffect(rowIndex: srcRowIndex, effectIndex: effectIndex,
                        newStartMS: newStartMS, newEndMS: newEndMS)
@@ -8334,6 +8450,8 @@ class SequencerViewModel {
     /// undo step covering both edges. Triggers a targeted re-render.
     func adjustFade(rowIndex: Int, effectIndex: Int,
                     fadeInSec: Float, fadeOutSec: Float) {
+        document.beginCommandBatch("Adjust Fade")
+        defer { document.endCommandBatch() }
         guard rowIndex < rows.count, effectIndex < rows[rowIndex].effects.count else { return }
         let oldIn  = document.effectFadeInSeconds(forRow: Int32(rowIndex),
                                                     at: Int32(effectIndex))
@@ -8665,6 +8783,8 @@ class SequencerViewModel {
     /// deletes and the paste so ⌘Z brings everything back. Caller
     /// should have already confirmed the overwrite with the user.
     func pasteEffectReplacingOverlaps(rowIndex: Int, startMS: Int) {
+        document.beginCommandBatch("Paste")
+        defer { document.endCommandBatch() }
         guard !clipboardEntries.isEmpty,
               rowIndex >= 0, rowIndex < rows.count else { return }
         undoManager.beginUndoGrouping()
@@ -8694,6 +8814,8 @@ class SequencerViewModel {
     }
 
     func pasteEffect(rowIndex: Int, startMS: Int) {
+        document.beginCommandBatch("Paste")
+        defer { document.endCommandBatch() }
         // B99: pick up clipboard data written by a previous session
         // (or another device via Universal Clipboard) just before a
         // paste, so the user doesn't have to copy again post-launch.
@@ -8789,6 +8911,8 @@ class SequencerViewModel {
     /// silently skips a target whose range isn't clear (desktop only
     /// pastes into a clear range too). Single undo group.
     func pasteAtOriginalTime() {
+        document.beginCommandBatch("Paste")
+        defer { document.endCommandBatch() }
         if clipboardEntries.isEmpty { syncClipboardFromPasteboard() }
         guard !clipboardEntries.isEmpty,
               let baseRow = clipboardEntries.first?.anchorAbsRow,
@@ -8829,6 +8953,8 @@ class SequencerViewModel {
     /// and the destination grows to fit. Uses `playPositionMS` as
     /// the time anchor — same convention as ⌘V.
     func pasteAtRow(rowIndex: Int) {
+        document.beginCommandBatch("Paste")
+        defer { document.endCommandBatch() }
         if clipboardEntries.isEmpty { syncClipboardFromPasteboard() }
         guard !clipboardEntries.isEmpty,
               rowIndex >= 0, rowIndex < rows.count else { return }

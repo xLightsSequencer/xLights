@@ -11,10 +11,18 @@
 #include "ImportDataRow.h"
 
 #include <cctype>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include <spdlog/fmt/fmt.h>
 
+#include "render/CommandExecutor.h"
+#include "render/Effect.h"
 #include "render/EffectLayer.h"
+#include "render/Element.h"
+#include "render/SequenceElements.h"
+#include "render/SequenceMutationGuard.h"
 
 namespace {
 
@@ -54,10 +62,34 @@ bool is_base64(unsigned char c)
 
 } // namespace
 
-void ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting)
+int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting)
 {
+    Element* element = layer->GetParentElement();
+    SequenceElements* seq = element != nullptr ? element->GetSequenceElements() : nullptr;
+    CommandExecutor* exec = seq != nullptr ? &seq->GetCommandExecutor() : nullptr;
+    // A layer outside any sequence is a scratch buffer, not the document.
+    std::unique_ptr<SeqMutationGuard::Scope> scratch;
+    if (exec == nullptr) {
+        scratch = std::make_unique<SeqMutationGuard::Scope>();
+    }
+    int added = 0;
+    auto add = [&](const std::string& name, const std::string& settings, const std::string& palette, int start, int end) {
+        Effect* e = exec != nullptr ? exec->AddEffect(layer, name, settings, palette, start, end, false, false)
+                                    : layer->AddEffect(0, name, settings, palette, start, end, false, false);
+        added += e != nullptr ? 1 : 0;
+    };
+
     if (eraseExisting) {
-        layer->DeleteAllEffects();
+        if (exec != nullptr) {
+            std::vector<Effect*> existing = layer->GetEffects();
+            for (Effect* e : existing) {
+                if (!e->IsLocked()) {
+                    exec->DeleteEffect(e);
+                }
+            }
+        } else {
+            layer->DeleteAllEffects();
+        }
     }
 
     colors.push_back(xlBLACK);
@@ -86,14 +118,14 @@ void ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int fram
                     std::string settings = fmt::format("E_TEXTCTRL_Eff_On_Start={},E_TEXTCTRL_Eff_On_End={}", i, i2);
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
                     if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
+                        add("On", settings, palette, stime, etime);
                     }
                 } else {
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
                                                                                           "C_BUTTON_Palette2=" +
                                           (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
                     if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
+                        add("Color Wash", "", palette, stime, etime);
                     }
                 }
                 for (int z = 0; z < len; ++z) {
@@ -111,7 +143,7 @@ void ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int fram
 
                 if (time != startTime) {
                     if (!layer->HasEffectsInTimeRange(startTime, time)) {
-                        layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
+                        add("On", "", palette, startTime, time);
                     }
                 }
             }
@@ -119,6 +151,7 @@ void ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int fram
             lastColor = colors[x];
         }
     }
+    return added;
 }
 
 int Base64Decode(const std::string& encoded, std::vector<unsigned char>& data)

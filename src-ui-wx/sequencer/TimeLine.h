@@ -13,6 +13,11 @@
 #include "wx/wx.h"
 #include "wx/window.h"
 
+#include <functional>
+#include <vector>
+
+#include "render/SongStructureManager.h"
+
 class SequenceElements;
 struct SongStructureRegion;
 
@@ -225,6 +230,13 @@ private:
     // Song structure interaction state
     bool mDraggingBoundary = false;
     int mDragBoundaryTimeMS = -1;
+    std::vector<SongStructureView> mDragSongViews; // before the drag started
+    void FinishBoundaryDrag();
+    // One undoable song structure edit.
+    void EditSongStructure(const std::function<void(SongStructureManager&)>& edit);
+    // The tag marks drawn here mirror the sequence's tags, which commands
+    // (undo, other peers) change too.
+    void PullTags();
 
     static const long ID_SONG_ADD_BOUNDARY;
     static const long ID_SONG_DELETE_BOUNDARY;

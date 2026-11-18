@@ -23,9 +23,11 @@
 #include "TerrainObject.h"
 #include "../render/RenderContext.h"
 #include "../render/SequenceElements.h"
+#include "../render/SequenceElementCommands.h"
 #include "ModelGroup.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "../utils/LayoutObjectId.h"
+#include "../utils/LayoutRecords.h"
 
 #include <log.h>
 
@@ -150,6 +152,7 @@ void ViewObjectManager::clear() {
         }
     }
     view_objects.clear();
+    _renameLog.Clear();
 }
 
 void ViewObjectManager::LoadViewObjects(pugi::xml_node modelNode) {
@@ -175,8 +178,9 @@ void ViewObjectManager::Delete(const std::string &name) {
     if (_renderContext != nullptr) {
         Element* elem_to_delete = _renderContext->GetSequenceElements().GetElement(name);
         if (elem_to_delete != nullptr) {
-            // Delete the object from the sequencer grid and views
-            _renderContext->GetSequenceElements().DeleteElement(name);
+            // Delete the object from the sequencer grid and views. Follows
+            // the layout change, so it isn't a sequence undo step.
+            ElementEdits::DeleteElement(_renderContext->GetSequenceElements(), name, false);
         }
     }
 
@@ -200,67 +204,6 @@ void ViewObjectManager::Delete(const std::string &name) {
     }
 }
 
-// Helper: find a child XML node by tag name and "name" attribute
-static pugi::xml_node FindVOChildByNameAttr(pugi::xml_node parent, std::string_view childTag, std::string_view name)
-{
-    for (pugi::xml_node n = parent.first_child(); n; n = n.next_sibling()) {
-        if (std::string_view(n.name()) == childTag && std::string_view(n.attribute("name").as_string()) == name) {
-            return n;
-        }
-    }
-    return {};
-}
-
-// Helper: set attribute (add or update)
-static void SetVOXmlAttribute(pugi::xml_node node, const char* attr, const char* value)
-{
-    auto a = node.attribute(attr);
-    if (!a) {
-        a = node.append_attribute(attr);
-    }
-    a.set_value(value);
-}
-
-// Helper: compare name attributes on child nodes
-static bool CheckVONameAttrs(pugi::xml_node nn, pugi::xml_node cc)
-{
-    if (!nn.attribute("name").empty()) {
-        return std::string_view(cc.attribute("name").as_string()) == std::string_view(nn.attribute("name").as_string());
-    } else if (!nn.attribute("Name").empty()) {
-        return std::string_view(cc.attribute("Name").as_string()) == std::string_view(nn.attribute("Name").as_string());
-    }
-    return true;
-}
-
-// Helper: compare two XML nodes for changes
-static bool IsVOXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
-{
-    for (auto a : base.attributes()) {
-        // Each show holds its own id for a base record.
-        if (LayoutObjectId::IsIdAttribute(a.name())) continue;
-        auto localAttr = local.attribute(a.name());
-        if (localAttr.empty() || std::string_view(localAttr.as_string()) != std::string_view(a.as_string())) {
-            return true;
-        }
-    }
-    for (pugi::xml_node nn = base.first_child(); nn; nn = nn.next_sibling()) {
-        bool found = false;
-        for (pugi::xml_node cc = local.first_child(); cc; cc = cc.next_sibling()) {
-            if (std::string_view(cc.name()) == std::string_view(nn.name()) && CheckVONameAttrs(nn, cc)) {
-                found = true;
-                for (auto a : nn.attributes()) {
-                    auto ccAttr = cc.attribute(a.name());
-                    if (ccAttr.empty() || std::string_view(ccAttr.as_string()) != std::string_view(a.as_string())) {
-                        return true;
-                    }
-                }
-            }
-        }
-        if (!found) return true;
-    }
-    return false;
-}
-
 // Shared method: merge base view objects XML into current XML, updating currentObjectsNode in-place.
 // Populates changedObjects with names of objects that were added or updated.
 static bool MergeBaseIntoCurrentObjectsXml(pugi::xml_node currentObjectsNode, pugi::xml_node baseObjectsNode,
@@ -276,21 +219,21 @@ static bool MergeBaseIntoCurrentObjectsXml(pugi::xml_node currentObjectsNode, pu
         std::string name = bo.attribute("name").as_string();
         if (name.empty()) continue;
 
-        pugi::xml_node local = FindVOChildByNameAttr(currentObjectsNode, "view_object", name);
+        pugi::xml_node local = LayoutRecords::FindByName(currentObjectsNode, "view_object", name);
 
         if (!local) {
             // Object does not exist locally -- add it
             pugi::xml_node copy = currentObjectsNode.append_copy(bo);
-            SetVOXmlAttribute(copy, "FromBase", "1");
+            LayoutRecords::SetAttribute(copy, "FromBase", "1");
             LayoutObjectId::StripFromXml(copy);
             changedObjects.push_back(name);
             changed = true;
             spdlog::debug("MergeBase: Adding view object from base: '{}'.", name.c_str());
         } else if (std::string_view(local.attribute("FromBase").as_string()) == "1") {
             // Object exists and came from base -- update if changed
-            if (IsVOXmlNodeChanged(local, bo)) {
+            if (LayoutRecords::BaseRecordChanged(local, bo, LayoutRecords::BaseCompare::ViewObject)) {
                 pugi::xml_node copy = currentObjectsNode.insert_copy_after(bo, local);
-                SetVOXmlAttribute(copy, "FromBase", "1");
+                LayoutRecords::SetAttribute(copy, "FromBase", "1");
                 LayoutObjectId::CopyLocalIds(local, copy, "");
 
                 currentObjectsNode.remove_child(local);
@@ -380,7 +323,7 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
 
     // Apply changes: replace changed objects with new ones created from the updated XML
     for (const auto& name : changedObjects) {
-        pugi::xml_node updatedNode = FindVOChildByNameAttr(currentObjectsNode, "view_object", name);
+        pugi::xml_node updatedNode = LayoutRecords::FindByName(currentObjectsNode, "view_object", name);
         if (updatedNode) {
             // Copy the node into a persistent document so it outlives the loop
             pugi::xml_document copyDoc;
@@ -434,6 +377,7 @@ bool ViewObjectManager::RenameController(const std::string& oldName, const std::
     // The object's key and name are both derived from the controller, so both
     // have to move with it or the base-show merge stops matching.
     const std::string newObjectName = ControllerObject::ObjectNameFor(newName);
+    _renameLog.Record(co->GetName(), newObjectName);
     view_objects.erase(co->GetName());
     co->SetName(newObjectName);
     view_objects[newObjectName] = co;
@@ -466,6 +410,7 @@ bool ViewObjectManager::Rename(const std::string &oldName, const std::string &ne
         return false;
     }
     view_object->SetName(newName);
+    _renameLog.Record(oldName, newName);
 
     bool changed = false;
     //for (auto it2 = view_objects.begin(); it2 != view_objects.end(); ++it2) {

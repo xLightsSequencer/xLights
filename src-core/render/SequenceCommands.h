@@ -45,7 +45,20 @@ enum class CommandType : int {
     RemoveLayer,
     SetLayerName,
     ReplaceLayerContents,
-    Batch
+    Batch,
+    // Sequence media (SequenceMediaCommands.h)
+    PutMedia,
+    RemoveMedia,
+    RenameMedia,
+    // Elements, timing tracks, tags, faces, song structure (SequenceElementCommands.h)
+    AddElement,
+    DeleteElement,
+    MoveElement,
+    RenameTimingTrack,
+    SetTimingFixed,
+    SetTag,
+    SetSequenceFace,
+    SetSongStructure
 };
 
 const char* CommandTypeName(CommandType t);

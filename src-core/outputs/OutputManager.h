@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+#include "../utils/LayoutRenameLog.h"
+
 class Output;
 class Controller;
 class TestPreset;
@@ -51,6 +53,7 @@ class OutputManager
     // form of `_baseShowDir` so the base-folder link survives
     // moving the show between machines (e.g. desktop ↔ iPad).
     std::string _showDir = "";
+    LayoutRenameLog _renameLog;
     #pragma endregion
 
     #pragma region Static Variables
@@ -157,6 +160,11 @@ public:
     int GetControllerCount() const { return _controllers.size(); }
     int GetControllerCount(const std::string& type, const std::string& ip) const;
     std::list<std::string> GetControllerNames() const;
+    // Controller renames since the controllers were last loaded or saved.
+    // Controller::SetName records them for controllers this manager holds.
+    LayoutRenameLog& GetRenameLog() { return _renameLog; }
+    const LayoutRenameLog& GetRenameLog() const { return _renameLog; }
+    bool HoldsController(const Controller* controller) const;
     std::list<std::string> GetAutoLayoutControllerNames() const;
     bool IsControllerNameUnique(const std::string& name) const;
     #pragma endregion 

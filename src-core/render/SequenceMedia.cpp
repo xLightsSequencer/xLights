@@ -2609,3 +2609,363 @@ void SequenceMedia::RemoveUnusedMedia() {
     removeUnused(_binaryCache, "binary file");
     removeUnused(_videoCache, "video");
 }
+
+// =====================================================================
+// MediaEntryState and document-level entry access
+// =====================================================================
+
+namespace {
+bool SameBytes(const std::shared_ptr<const std::string>& a, const std::shared_ptr<const std::string>& b) {
+    if (a == b) return true;
+    std::string_view av = a ? std::string_view(*a) : std::string_view();
+    std::string_view bv = b ? std::string_view(*b) : std::string_view();
+    return av == bv;
+}
+
+std::optional<std::vector<uint8_t>> ReadFileBytes(const std::string& path) {
+    ObtainAccessToURL(path);
+    std::ifstream stream(path, std::ios::binary | std::ios::ate);
+    if (!stream.is_open()) return std::nullopt;
+    auto size = stream.tellg();
+    if (size <= 0) return std::nullopt;
+    stream.seekg(0);
+    std::vector<uint8_t> buffer(static_cast<size_t>(size));
+    stream.read(reinterpret_cast<char*>(buffer.data()), size);
+    if (!stream) return std::nullopt;
+    return buffer;
+}
+
+// The stored content of `e` under `key`; with asEmbedded the bytes it holds
+// are included even when it is currently a file reference.
+MediaEntryState StateOfEntry(const std::string& key, const MediaCacheEntry& e, bool asEmbedded) {
+    MediaEntryState s;
+    s.key = key;
+    s.type = e.GetType();
+    if (s.type == MediaType::BinaryFile) {
+        s.subtype = static_cast<const BinaryMediaCacheEntry&>(e).GetSubtype();
+    }
+    s.embedded = asEmbedded;
+    if (!asEmbedded) return s;
+    if (!e.GetEmbeddedData().empty()) {
+        s.data = std::make_shared<const std::string>(e.GetEmbeddedData());
+    } else if (s.type == MediaType::Image) {
+        for (auto& [ms, b64] : static_cast<const ImageCacheEntry&>(e).GetFrameSeries()) {
+            s.frames.push_back({ ms, std::make_shared<const std::string>(std::move(b64)) });
+        }
+    }
+    return s;
+}
+
+// Builds an embedded entry the way a sequence load does, from the XML the
+// .xsq would hold for it.
+template<typename T>
+std::shared_ptr<T> EmbeddedEntryFromState(const char* tag, const MediaEntryState& s) {
+    pugi::xml_document doc;
+    auto node = doc.append_child(tag);
+    node.append_attribute("path") = s.key.c_str();
+    if (!s.subtype.empty()) node.append_attribute("subtype") = s.subtype.c_str();
+    if (s.data && !s.data->empty()) {
+        node.append_child("Data").text().set(s.data->c_str());
+    } else {
+        for (const auto& f : s.frames) {
+            auto fn = node.append_child("Frame");
+            fn.append_attribute("time") = f.timeMS;
+            fn.text().set(f.data ? f.data->c_str() : "");
+        }
+    }
+    auto e = std::make_shared<T>();
+    e->LoadFromXml(node);
+    return e;
+}
+} // namespace
+
+bool MediaEntryState::SameContent(const MediaEntryState& o) const {
+    if (type != o.type || subtype != o.subtype || embedded != o.embedded) return false;
+    if (!SameBytes(data, o.data) || frames.size() != o.frames.size()) return false;
+    for (size_t i = 0; i < frames.size(); ++i) {
+        if (frames[i].timeMS != o.frames[i].timeMS || !SameBytes(frames[i].data, o.frames[i].data)) return false;
+    }
+    return true;
+}
+
+bool MediaEntryState::IsEmbeddableType(MediaType t) {
+    return t == MediaType::Image || t == MediaType::SVG || t == MediaType::Shader || t == MediaType::TextFile;
+}
+
+const char* MediaEntryState::TypeName(MediaType t) {
+    switch (t) {
+    case MediaType::Image: return "Image";
+    case MediaType::SVG: return "SVG";
+    case MediaType::Shader: return "Shader";
+    case MediaType::TextFile: return "TextFile";
+    case MediaType::BinaryFile: return "BinaryFile";
+    case MediaType::Video: return "Video";
+    case MediaType::Audio: return "Audio";
+    }
+    return "";
+}
+
+bool MediaEntryState::TypeFromName(const std::string& name, MediaType& out) {
+    for (MediaType t : { MediaType::Image, MediaType::SVG, MediaType::Shader, MediaType::TextFile,
+                         MediaType::BinaryFile, MediaType::Video, MediaType::Audio }) {
+        if (name == TypeName(t)) {
+            out = t;
+            return true;
+        }
+    }
+    return false;
+}
+
+std::optional<MediaEntryState> MediaEntryState::EmbeddedBytes(const std::string& key, MediaType type, const std::vector<uint8_t>& bytes) {
+    if (key.empty() || bytes.empty() || !IsEmbeddableType(type)) return std::nullopt;
+    MediaEntryState s;
+    s.key = key;
+    s.type = type;
+    s.embedded = true;
+    s.data = std::make_shared<const std::string>(Base64::Encode(bytes.data(), bytes.size()));
+    return s;
+}
+
+std::optional<MediaEntryState> MediaEntryState::EmbeddedFromFile(const std::string& key, MediaType type, const std::string& sourcePath) {
+    if (sourcePath.empty()) return std::nullopt;
+    auto bytes = ReadFileBytes(sourcePath);
+    if (!bytes) {
+        spdlog::warn("MediaEntryState::EmbeddedFromFile: could not read '{}'", sourcePath);
+        return std::nullopt;
+    }
+    return EmbeddedBytes(key, type, *bytes);
+}
+
+std::optional<MediaEntryState> MediaEntryState::EmbeddedImage(const std::string& key, const xlImage& image) {
+    std::vector<uint8_t> png;
+    if (!image.SaveAsPNG(png)) return std::nullopt;
+    return EmbeddedBytes(key, MediaType::Image, png);
+}
+
+std::optional<MediaEntryState> MediaEntryState::EmbeddedFrames(const std::string& key, const std::vector<xlImage>& frames, int frameTimeMs) {
+    if (key.empty() || frames.empty()) return std::nullopt;
+    MediaEntryState s;
+    s.key = key;
+    s.type = MediaType::Image;
+    s.embedded = true;
+    for (const auto& f : frames) {
+        s.frames.push_back({ frameTimeMs, std::make_shared<const std::string>(PngToBase64(f)) });
+    }
+    return s;
+}
+
+MediaEntryState MediaEntryState::FileReference(const std::string& key, MediaType type, const std::string& subtype) {
+    MediaEntryState s;
+    s.key = key;
+    s.type = type;
+    s.subtype = subtype;
+    return s;
+}
+
+std::vector<std::pair<int, std::string>> ImageCacheEntry::GetFrameSeries() const {
+    std::scoped_lock lock(_cacheMutex);
+    std::vector<std::pair<int, std::string>> out;
+    if (!_embeddedData.empty()) return out;
+    // Same frames, in the same order, as SaveToXml writes.
+    if (_deferredFrames) {
+        for (size_t i = 0; i < _frameData.size(); i++) {
+            out.emplace_back((int)(i < _frameTimes.size() ? _frameTimes[i] : 0), _frameData[i]);
+        }
+    } else {
+        for (int i = 0; i < _imageCount && i < (int)_frameImages.size(); i++) {
+            std::string b64;
+            if (i < (int)_frameData.size()) {
+                b64 = _frameData[i];
+            } else if (_frameImages[i] && _frameImages[i]->IsOk()) {
+                b64 = PngToBase64(*_frameImages[i]);
+            }
+            if (!b64.empty()) {
+                out.emplace_back((int)(i < (int)_frameTimes.size() ? _frameTimes[i] : 0), std::move(b64));
+            }
+        }
+    }
+    return out;
+}
+
+std::shared_ptr<MediaCacheEntry> SequenceMedia::FindEntryLocked(const std::string& key) const {
+    if (auto it = _imageCache.find(key); it != _imageCache.end()) return it->second;
+    if (auto it = _textCache.find(key); it != _textCache.end()) return it->second;
+    if (auto it = _svgCache.find(key); it != _svgCache.end()) return it->second;
+    if (auto it = _shaderCache.find(key); it != _shaderCache.end()) return it->second;
+    if (auto it = _binaryCache.find(key); it != _binaryCache.end()) return it->second;
+    if (auto it = _videoCache.find(key); it != _videoCache.end()) return it->second;
+    if (auto it = _audioCache.find(key); it != _audioCache.end()) return it->second;
+    return nullptr;
+}
+
+void SequenceMedia::EraseEntryLocked(const std::string& key) {
+    EraseImageLocked(key);
+    _textCache.erase(key);
+    _svgCache.erase(key);
+    _shaderCache.erase(key);
+    _binaryCache.erase(key);
+    _videoCache.erase(key);
+    _audioCache.erase(key);
+}
+
+std::optional<MediaEntryState> SequenceMedia::GetEntryState(const std::string& key) const {
+    std::scoped_lock lock(_cacheMutex);
+    auto e = FindEntryLocked(key);
+    if (!e) return std::nullopt;
+    return StateOfEntry(key, *e, e->IsEmbedded());
+}
+
+std::optional<MediaEntryState> SequenceMedia::GetEmbeddableState(const std::string& key) {
+    std::shared_ptr<MediaCacheEntry> e;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        e = FindEntryLocked(key);
+    }
+    if (!e || !MediaEntryState::IsEmbeddableType(e->GetType())) return std::nullopt;
+    if (!e->IsEmbedded() && !e->isLoaded()) e->Load();
+    MediaEntryState s = StateOfEntry(key, *e, true);
+    if (!s.HasPayload()) return std::nullopt;
+    return s;
+}
+
+std::optional<MediaEntryState> SequenceMedia::ReadEmbeddableStateFromDisk(const std::string& key) const {
+    MediaType type;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        auto e = FindEntryLocked(key);
+        if (!e) return std::nullopt;
+        type = e->GetType();
+    }
+    if (!MediaEntryState::IsEmbeddableType(type)) return std::nullopt;
+    std::string loadPath = ResolveOnDisk(key);
+    if (!FileExists(loadPath)) return std::nullopt;
+    return MediaEntryState::EmbeddedFromFile(key, type, loadPath);
+}
+
+bool SequenceMedia::ExistsOnDisk(const std::string& key) {
+    return !key.empty() && FileExists(ResolveOnDisk(key));
+}
+
+bool SequenceMedia::WriteEmbeddedToFile(const std::string& key, const std::string& path) const {
+    if (path.empty()) return false;
+    std::shared_ptr<MediaCacheEntry> e;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        e = FindEntryLocked(key);
+    }
+    if (!e) return false;
+    std::error_code ec;
+    auto parent = std::filesystem::path(path).parent_path();
+    if (!parent.empty()) std::filesystem::create_directories(parent, ec);
+    return e->SaveToFile(path);
+}
+
+bool SequenceMedia::PutEntry(const MediaEntryState& state, bool* contentChanged) {
+    XL_SEQ_MUTATION("SequenceMedia::PutEntry");
+    if (contentChanged) *contentChanged = false;
+    if (state.key.empty()) return false;
+    if (state.embedded && !MediaEntryState::IsEmbeddableType(state.type)) return false;
+    const std::string& key = state.key;
+
+    std::shared_ptr<MediaCacheEntry> fresh;
+    std::optional<MediaEntryState> before;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        auto existing = FindEntryLocked(key);
+        bool sameKind = existing && existing->GetType() == state.type &&
+                        (state.type != MediaType::BinaryFile ||
+                         static_cast<BinaryMediaCacheEntry&>(*existing).GetSubtype() == state.subtype);
+
+        // Embedding bytes the entry already holds is only a flag change.
+        if (sameKind && state.embedded && StateOfEntry(key, *existing, true).SameContent(state)) {
+            existing->Embed();
+            existing->SetFilePath(key);
+            return true;
+        }
+
+        std::string loadPath;
+        if (!state.embedded) {
+            loadPath = ResolveOnDisk(key);
+            if (sameKind && existing->IsEmbedded() && !FileExists(loadPath)) {
+                existing->Extract();
+                return true;
+            }
+        }
+
+        switch (state.type) {
+        case MediaType::Image: {
+            auto e = state.embedded ? EmbeddedEntryFromState<ImageCacheEntry>("Image", state)
+                                    : std::make_shared<ImageCacheEntry>(loadPath);
+            fresh = e;
+            EraseEntryLocked(key);
+            _imageCache[key] = e;
+            if (!state.embedded) _imageResolvedCache.emplace(loadPath, e);
+            break;
+        }
+        case MediaType::TextFile: {
+            auto e = state.embedded ? EmbeddedEntryFromState<TextMediaCacheEntry>("TextFile", state)
+                                    : std::make_shared<TextMediaCacheEntry>(loadPath);
+            fresh = e;
+            EraseEntryLocked(key);
+            _textCache[key] = e;
+            break;
+        }
+        case MediaType::SVG: {
+            auto e = state.embedded ? EmbeddedEntryFromState<SVGMediaCacheEntry>("SVG", state)
+                                    : std::make_shared<SVGMediaCacheEntry>(loadPath);
+            fresh = e;
+            EraseEntryLocked(key);
+            _svgCache[key] = e;
+            break;
+        }
+        case MediaType::Shader: {
+            auto e = state.embedded ? EmbeddedEntryFromState<ShaderMediaCacheEntry>("Shader", state)
+                                    : std::make_shared<ShaderMediaCacheEntry>(loadPath);
+            fresh = e;
+            EraseEntryLocked(key);
+            _shaderCache[key] = e;
+            break;
+        }
+        case MediaType::BinaryFile: {
+            auto e = std::make_shared<BinaryMediaCacheEntry>(loadPath, state.subtype);
+            fresh = e;
+            EraseEntryLocked(key);
+            _binaryCache[key] = e;
+            break;
+        }
+        case MediaType::Video: {
+            auto e = std::make_shared<VideoMediaCacheEntry>(key);
+            fresh = e;
+            EraseEntryLocked(key);
+            _videoCache[key] = e;
+            break;
+        }
+        case MediaType::Audio: {
+            auto e = std::make_shared<AudioMediaCacheEntry>(key);
+            fresh = e;
+            EraseEntryLocked(key);
+            _audioCache[key] = e;
+            break;
+        }
+        }
+        if (!fresh) return false;
+        if (existing) {
+            before = StateOfEntry(key, *existing, true);
+            fresh->MarkIsUsed(existing->IsUsed());
+            fresh->SetUsedByMetadata(existing->IsUsedByMetadata());
+        }
+        _missingImages.erase(key);
+    }
+    fresh->Load();
+    if (contentChanged) {
+        // Re-reading a file that holds the bytes the entry already had (an
+        // extract, a reload of an unchanged file) changes nothing that renders.
+        bool same = false;
+        if (before && before->HasPayload()) {
+            MediaEntryState after = StateOfEntry(key, *fresh, true);
+            same = after.SameContent(*before);
+        }
+        *contentChanged = !same;
+    }
+    return true;
+}

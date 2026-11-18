@@ -28,6 +28,7 @@
 #include "utils/ExternalHooks.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceElements.h"
+#include "render/SequenceMediaCommands.h"
 
 #include <filesystem>
 
@@ -224,30 +225,24 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
                             auto& elements = xl->GetSequenceElements();
                             auto& media = elements.GetSequenceMedia();
 
-                            // Load the file into the cache, then embed it.
                             // Use a clean embedded name so the cache key matches
                             // what gets stored in effect settings.
                             std::string fname = std::filesystem::path(filepath).filename().string();
                             if (ext == ".fs") {
-                                media.GetShader(filepath);
-                                media.EmbedMedia(filepath);
+                                SeqMediaEdits::EmbedFile(elements, filepath, MediaType::Shader, filepath);
                                 SetFileName(wxFileName(filepath));
                             } else if (ext == ".svg") {
-                                media.GetSVG(filepath);
-                                media.EmbedMedia(filepath);
+                                SeqMediaEdits::EmbedFile(elements, filepath, MediaType::SVG, filepath);
                                 SetFileName(wxFileName(filepath));
                             } else if (ext == ".txt") {
-                                media.GetTextFile(filepath);
-                                media.EmbedMedia(filepath);
+                                SeqMediaEdits::EmbedFile(elements, filepath, MediaType::TextFile, filepath);
                                 SetFileName(wxFileName(filepath));
                             } else {
-                                // Image: use the existing rename+embed pattern
-                                media.GetImage(filepath);
                                 std::string embeddedName = "Images/" + fname;
-                                if (!media.RenameImage(filepath, embeddedName)) {
+                                if (media.HasMedia(embeddedName)) {
                                     embeddedName = filepath;
                                 }
-                                media.EmbedImage(embeddedName);
+                                SeqMediaEdits::EmbedFile(elements, embeddedName, MediaType::Image, filepath);
                                 SetFileName(wxFileName(embeddedName));
                             }
                         }

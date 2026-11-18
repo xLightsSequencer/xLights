@@ -18,6 +18,7 @@
 #include <pugixml.hpp>
 
 #include "ObjectManager.h"
+#include "utils/LayoutRenameLog.h"
 
 class ControllerObject;
 class OutputModelManager;
@@ -46,6 +47,9 @@ public:
     void AddViewObject(ViewObject *view_object);
     void Delete(const std::string &name);
     bool Rename(const std::string &oldName, const std::string &newName);
+    // View object renames since the layout was last loaded or saved.
+    LayoutRenameLog& GetRenameLog() { return _renameLog; }
+    const LayoutRenameLog& GetRenameLog() const { return _renameLog; }
 
     // Controller object lifecycle. These keep the objects in step with the
     // controller list, which lives in a different file (xlights_networks.xml).
@@ -78,5 +82,6 @@ private:
     void AssignObjectId(ViewObject* view_object, const ViewObject* replaced) const;
     std::map<std::string, ViewObject *> view_objects;
     RenderContext* _renderContext;
+    LayoutRenameLog _renameLog;
 
 };

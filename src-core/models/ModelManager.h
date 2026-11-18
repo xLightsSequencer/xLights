@@ -20,6 +20,7 @@
 
 #include "ObjectManager.h"
 #include "ModelSetManager.h"
+#include "utils/LayoutRenameLog.h"
 #include <pugixml.hpp>
 
 class Model;
@@ -85,6 +86,12 @@ class ModelManager : public ObjectManager
 
         bool RenameController(const std::string& oldName, const std::string& newName);
         bool DeleteController(const std::string& name);
+
+        // Model and group renames since the layout was last loaded or saved
+        // (Rename records them; clear() and the save that records a new base
+        // clear them).
+        LayoutRenameLog& GetRenameLog() { return _renameLog; }
+        const LayoutRenameLog& GetRenameLog() const { return _renameLog; }
 
         std::vector<std::string> GetLayoutGroupNames() const;
 
@@ -204,5 +211,6 @@ class ModelManager : public ObjectManager
     // so stop consulting it and just free.
     bool _destroying = false;
     ModelSetManager _setManager;
+    LayoutRenameLog _renameLog;
 };
 

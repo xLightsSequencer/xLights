@@ -14986,8 +14986,15 @@ struct LayoutEditorWindowRoot: View {
             if suppressed {
                 Color.black
             } else {
-                LayoutEditorView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: 0) {
+                    // Someone else sharing the show folder is editing the
+                    // layout or controllers (their presence file).
+                    if let hint = viewModel.presenceHint {
+                        PresenceHintBanner(message: hint)
+                    }
+                    LayoutEditorView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
         }
         .frame(minWidth: 480, minHeight: 360)

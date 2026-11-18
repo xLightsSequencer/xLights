@@ -22,6 +22,8 @@
 //
 // Command application holds a Scope. Code that legitimately builds document
 // state directly (loading a sequence, render-time temporaries) holds one too.
+// A SequenceEditCapture holds an EffectEditScope, which allows only effect
+// and layer mutations (the ones the capture records).
 // Release builds compile all of this away.
 
 #include <cstddef>
@@ -40,6 +42,14 @@ public:
     Scope& operator=(const Scope&) = delete;
 };
 
+class EffectEditScope {
+public:
+    EffectEditScope();
+    ~EffectEditScope();
+    EffectEditScope(const EffectEditScope&) = delete;
+    EffectEditScope& operator=(const EffectEditScope&) = delete;
+};
+
 void Check(const char* what, const void* caller);
 void SetMode(Mode m);
 Mode GetMode();
@@ -51,6 +61,11 @@ void ResetViolationCount();
 class Scope {
 public:
     Scope() {}
+};
+
+class EffectEditScope {
+public:
+    EffectEditScope() {}
 };
 
 inline void Check(const char*, const void*) {}
