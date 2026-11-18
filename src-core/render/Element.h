@@ -85,6 +85,8 @@ public:
     int GetFirstSelectedEffectStartMS() const;
     int GetLastSelectedEffectEndMS() const;
     void SetRenderDisabled(bool rd);
+    // This row's own flag (a submodel's IsRenderDisabled also reports its model's).
+    bool IsRenderDisabledFlag() const { return _renderDisabled; }
     virtual bool IsRenderDisabled() const {
         return _renderDisabled;
     }

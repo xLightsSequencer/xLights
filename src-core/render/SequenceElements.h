@@ -23,6 +23,7 @@ namespace pugi { class xml_node; class xml_document; }
 #include <map>
 #include <memory>
 #include <set>
+#include <unordered_map>
 #include <unordered_set>
 #include <string>
 #include <mutex>
@@ -257,12 +258,6 @@ public:
     SequenceMedia& GetSequenceMedia() { return mSequenceMedia; }
     const SequenceMedia& GetSequenceMedia() const { return mSequenceMedia; }
 
-    // Repoint every reference to a media file - effect settings (exact-value
-    // match on any key), and the sequence-level face definitions - from one
-    // path to another. Returns model name -> [startMS, endMS] covering the
-    // effects that changed, so a caller can re-render just those.
-    std::map<std::string, std::pair<int, int>> RewriteMediaReferences(const std::string& from, const std::string& to);
-
     // Every value held in any model/submodel/strand/node effect's settings or
     // palette - the set a media entry's stored path must appear in to count
     // as referenced. A text value that happens to equal a media path keeps
@@ -342,6 +337,21 @@ private:
     unsigned int mMasterViewChangeCount;
     UndoManager undo_mgr;
     std::unique_ptr<CommandExecutor> _commandExecutor;
+
+    // GetElementFromUid index: uid -> {element, its top-level element}.
+    // Rebuilt lazily after the master view's membership changes; a hit is
+    // checked against the live elements and a miss falls back to a scan, so
+    // ids or submodel rows that change behind its back can't make it lie.
+    struct UidIndexEntry {
+        Element* element = nullptr;
+        Element* top = nullptr;
+    };
+    void InvalidateUidIndex() { _uidIndexValid = false; }
+    void RebuildUidIndexLocked() const;
+    Element* ScanForUid(SeqObjectId uid) const;
+    mutable std::mutex _uidIndexLock;
+    mutable std::unordered_map<SeqObjectId, UidIndexEntry> _uidIndex;
+    mutable bool _uidIndexValid = false;
 
     std::map<std::string, std::set<std::string>> renderDependency;
     std::set<std::string> modelsToRender;

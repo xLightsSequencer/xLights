@@ -236,7 +236,7 @@ void xlGridCanvasPictures::SaveAsImage()
         {
             // The new image and the effect pointing at it are one undo step
             SequenceElements& seq = *mEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
-            MediaEditBatch undoStep(seq, "Save Image");
+            ScopedCommandBatch undoStep(seq, "Save Image");
             SeqMediaEdits::EmbedImage(seq, nameStr, wxImageToXlImage(image), "Save Image");
             PictureName = newName;
             UpdateRenderedImage();
@@ -393,7 +393,7 @@ void xlGridCanvasPictures::SaveImageToMedia()
     // Overwrite the existing embedded entry with the current image data
     if (mSequenceMedia == nullptr || mEffect == nullptr) return;
     SequenceElements& seq = *mEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
-    MediaEditBatch undoStep(seq, "Edit Image");
+    ScopedCommandBatch undoStep(seq, "Edit Image");
     SeqMediaEdits::EmbedImage(seq, PictureName.ToStdString(), wxImageToXlImage(image), "Edit Image");
     UpdateRenderedImage();
 }
@@ -406,7 +406,7 @@ void xlGridCanvasPictures::UpdateRenderedImage()
     const std::string name = PictureName.ToStdString();
     if (mEffect->GetSettings().Contains(kFilename) && mEffect->GetSetting(kFilename) != name) {
         SequenceElements& seq = *mEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
-        MediaEditBatch undoStep(seq, "Change Picture");
+        ScopedCommandBatch undoStep(seq, "Change Picture");
         seq.GetCommandExecutor().SetEffectSetting(mEffect, kFilename, name);
     }
 

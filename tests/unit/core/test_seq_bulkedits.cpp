@@ -28,6 +28,7 @@ struct SeqFixture {
     EffectLayer* layer = nullptr;
     SeqFixture() : se(ctx.GetSequenceElements()) {
         se.SetViewsManager(&ctx._sequenceViewManager);
+        SeqMutationGuard::Scope setup;
         model = dynamic_cast<ModelElement*>(se.AddElement("Tree", "model", true, false, true, false, false));
         layer = model->GetEffectLayerCount() > 0 ? model->GetEffectLayer(0) : model->AddEffectLayer();
     }
@@ -78,6 +79,7 @@ TEST_CASE("Shift Effects moves, truncates and deletes in one undo step", "[seq][
     f.Add(f.layer, "On", 400, 500);
     Effect* locked = f.Add(f.layer, "On", 600, 700);
     f.Exec().SetEffectLocked(locked, true, false);
+    SeqMutationGuard::Scope setup;
     TimingElement* timing = dynamic_cast<TimingElement*>(f.se.AddElement("Beats", "timing", true, false, true, false, false));
     EffectLayer* marks = timing->GetEffectLayerCount() > 0 ? timing->GetEffectLayer(0) : timing->AddEffectLayer();
     f.Add(marks, "", 1000, 1100);

@@ -61,6 +61,12 @@ SettingsChange EffectEditCoalescer::ReplaceSettingsKeepingX(const Effect& effect
     return change;
 }
 
+void EffectEditCoalescer::JoinNextToCurrentStep(SequenceElements& seq) {
+    _open = false;
+    _joinSeq = &seq;
+    _joinSerial = seq.get_undo_mgr().GetHistorySerial();
+}
+
 bool EffectEditCoalescer::Apply(SequenceElements& seq, Effect* effect, std::optional<std::string> effectName, SettingsChange settings,
                                 SettingsChange palette) {
     return Apply(seq, effect, std::move(effectName), std::move(settings), std::move(palette), NowMS());
@@ -78,6 +84,8 @@ bool EffectEditCoalescer::Apply(SequenceElements& seq, Effect* effect, std::opti
     UndoManager& undo = seq.get_undo_mgr();
     const bool continues = _open && _seq == &seq && _effect == effect->GetUid() && undo.GetHistorySerial() == _historySerial &&
                            nowMS >= _lastMS && nowMS - _lastMS <= _idleMS;
+    const bool join = !continues && _joinSeq == &seq && undo.GetHistorySerial() == _joinSerial && undo.CanUndo();
+    _joinSeq = nullptr;
 
     const std::string beforeName = effect->GetEffectName();
     const std::string beforeSettings = effect->GetSettingsAsString();
@@ -100,7 +108,9 @@ bool EffectEditCoalescer::Apply(SequenceElements& seq, Effect* effect, std::opti
         return false;
     }
     if (!continues) {
-        undo.CreateUndoStep();
+        if (!join) {
+            undo.CreateUndoStep();
+        }
         undo.RecordInverse(CommandType::ModifyEffect, "", std::move(restore));
         _open = true;
         _seq = &seq;

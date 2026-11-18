@@ -1315,9 +1315,11 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         EffectLayer* word_layer;
         TimingElement* element = dynamic_cast<TimingElement*>(phrase_effect->GetParentEffectLayer()->GetParentElement());
         bool found_locked = false;
-        ElementEdits::SetTimingFixed(*mSequenceElements, element, 0, false);
+        // One undo step, including the layer (and unfixing) it may add.
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        ElementEdits::SetTimingFixed(*mSequenceElements, element, 0);
         if (element->GetEffectLayerCount() == 1) {
-            word_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount(), false);
+            word_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount());
         } else {
             word_layer = element->GetEffectLayer(1);
         }
@@ -1332,7 +1334,6 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         if (found_locked) {
             wxMessageBox("Locked words in the way - Can not break down phrase", "Error", wxOK);
         } else {
-            mSequenceElements->get_undo_mgr().CreateUndoStep();
             word_layer->UnSelectAllEffects();
             word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
             word_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
@@ -1347,14 +1348,15 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         EffectLayer* word_layer;
         TimingElement* element = dynamic_cast<TimingElement*>(phrase_effect->GetParentEffectLayer()->GetParentElement());
         bool found_locked = false;
-        ElementEdits::SetTimingFixed(*mSequenceElements, element, 0, false);
+        // One undo step, including the layer (and unfixing) it may add.
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+        ElementEdits::SetTimingFixed(*mSequenceElements, element, 0);
         if (element->GetEffectLayerCount() == 1) {
-            word_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount(), false);
+            word_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount());
         } else {
             word_layer = element->GetEffectLayer(1);
         }
 
-        mSequenceElements->get_undo_mgr().CreateUndoStep();
         word_layer->UnSelectAllEffects();
         word_layer->SelectEffectsInTimeRange(phrase_effect->GetStartTimeMS(), phrase_effect->GetEndTimeMS());
         EffectLayer* layer = phrase_effect->GetParentEffectLayer();
@@ -1433,9 +1435,11 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         EffectLayer* phoneme_layer;
         Element* element = word_effect->GetParentEffectLayer()->GetParentElement();
         bool found_locked = false;
+        // One undo step, including the layer (and unfixing) it may add.
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
 
         if (element->GetEffectLayerCount() < 3) {
-            phoneme_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount(), false);
+            phoneme_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount());
         } else {
             phoneme_layer = element->GetEffectLayer(2);
         }
@@ -1450,7 +1454,6 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         if (found_locked) {
             wxMessageBox("Locked phonemes in the way - Can not break down word", "Error", wxOK);
         } else {
-            mSequenceElements->get_undo_mgr().CreateUndoStep();
             phoneme_layer->UnSelectAllEffects();
             phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
             phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
@@ -1467,13 +1470,14 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         EffectLayer* phoneme_layer;
         Element* element = word_effect->GetParentEffectLayer()->GetParentElement();
         bool found_locked = false;
+        // One undo step, including the layer (and unfixing) it may add.
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
 
         if (element->GetEffectLayerCount() < 3) {
-            phoneme_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount(), false);
+            phoneme_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, element->GetEffectLayerCount());
         } else {
             phoneme_layer = element->GetEffectLayer(2);
         }
-        mSequenceElements->get_undo_mgr().CreateUndoStep();
         phoneme_layer->UnSelectAllEffects();
         phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
         EffectLayer* layer = word_effect->GetParentEffectLayer();
@@ -5084,7 +5088,7 @@ bool EffectsGrid::EnDisableSelectedModel(int iOverrideState) {
                 for (int row = row1; row <= row2; row++) {
                     if ((el = mSequenceElements->GetEffectLayer(row)) != nullptr)
                         if ((element = el->GetParentElement()) != nullptr) {
-                            element->SetRenderDisabled(bAmIDisabledNow);
+                            ElementEdits::SetRenderDisabled(*mSequenceElements, element, bAmIDisabledNow, false);
                             bNeedRefresh = true;
                         }
                 }
@@ -9832,11 +9836,7 @@ void EffectsGrid::CreateSymbolFromEffect()
         return;
     }
 
-    EffectSymbol* symbol = symbolMgr.CreateSymbol(symbolName, targetEffect);
-    if (symbol != nullptr) {
-        targetEffect->LinkToSymbol(symbol->GetId());
-        symbolMgr.RegisterLinkedEffect(targetEffect, symbol->GetId());
-
+    if (!SymbolEdits::Create(*mSequenceElements, symbolName, targetEffect).empty()) {
         wxMessageBox(wxString::Format("Symbol '%s' created successfully.\nThe effect is now linked to this symbol.",
             symbolName.c_str()), "Symbol Created", wxOK | wxICON_INFORMATION, this);
     }
@@ -9844,8 +9844,6 @@ void EffectsGrid::CreateSymbolFromEffect()
 
 void EffectsGrid::UnlinkEffectFromSymbol()
 {
-    EffectSymbolManager& symbolMgr = mSequenceElements->GetEffectSymbolManager();
-
     auto selectedEffects = GetSelectedEffects();
 
     auto includeIfMissing = [&selectedEffects](Effect* candidate) {
@@ -9858,12 +9856,7 @@ void EffectsGrid::UnlinkEffectFromSymbol()
     includeIfMissing(mSelectedEffect);
     includeIfMissing(_rightClickEffect);
 
-    for (Effect* effect : selectedEffects) {
-        if (effect != nullptr && effect->IsLinkedToSymbol()) {
-            symbolMgr.UnregisterLinkedEffect(effect);
-            effect->UnlinkFromSymbol();
-        }
-    }
+    SymbolEdits::Unlink(*mSequenceElements, std::vector<Effect*>(selectedEffects.begin(), selectedEffects.end()));
 
     sendRenderDirtyEvent();
 }
@@ -9907,17 +9900,7 @@ void EffectsGrid::LinkEffectToSymbol(int symbolIndex)
         return;
     }
 
-    for (Effect* effect : effectsToLink) {
-        if (effect->IsLinkedToSymbol()) {
-            symbolMgr.UnregisterLinkedEffect(effect);
-            effect->UnlinkFromSymbol();
-        }
-
-        effect->ApplySymbolSettings(symbol);
-
-        effect->LinkToSymbol(symbol->GetId());
-        symbolMgr.RegisterLinkedEffect(effect, symbol->GetId());
-    }
+    SymbolEdits::Link(*mSequenceElements, effectsToLink, symbol->GetId());
 
     sendRenderDirtyEvent();
 }

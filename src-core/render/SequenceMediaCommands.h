@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include "CommandExecutor.h"
 #include "SequenceCommands.h"
 #include "SequenceMedia.h"
 
@@ -128,21 +129,9 @@ std::unique_ptr<BatchCommand> BuildRenameMedia(const SequenceElements& seq, cons
 // Edit-site helpers. Each runs its commands through the sequence's
 // CommandExecutor inside a labelled batch, so a call is one undo step - or
 // part of the caller's step when the caller already holds a
-// MediaEditBatch. The changes apply leniently, like the direct edits they
+// ScopedCommandBatch. The changes apply leniently, like the direct edits they
 // replace (a locked effect's media reference still follows a rename).
 // ---------------------------------------------------------------------------
-
-// Groups everything executed while it lives into one labelled undo step.
-class MediaEditBatch {
-public:
-    MediaEditBatch(SequenceElements& seq, const std::string& label);
-    ~MediaEditBatch();
-    MediaEditBatch(const MediaEditBatch&) = delete;
-    MediaEditBatch& operator=(const MediaEditBatch&) = delete;
-
-private:
-    CommandExecutor& _exec;
-};
 
 namespace SeqMediaEdits {
 

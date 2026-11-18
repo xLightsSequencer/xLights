@@ -148,18 +148,30 @@ public:
     // recorded as usual, into the capture's batch.
     bool IsCapturing() const { return _capture != nullptr; }
 
+    // SequenceElements calls this before deleting an element directly (not
+    // while applying a command), so an open capture can record it.
+    void DirectElementDelete(Element* element, bool keepInViews);
+
 private:
     friend class SequenceEditCapture;
-    // An effect or layer command (or a batch of only those): the kind a
-    // capture records itself.
+    // A command (or a batch of only those) for state a capture compares and
+    // records itself.
     static bool CapturedKind(const SequenceCommand& cmd);
-    // While capturing: true if `cmd` is left to the capture.
-    bool FoldIntoCapture(const SequenceCommand& cmd);
 
     void Notify(const SequenceCommand& applied, const SequenceCommand& inverse);
     // Records an already-applied command: inverse into the current undo step
-    // (or the open batch), then observers.
+    // (or the open batch), then observers. While capturing, commands the
+    // capture records itself are dropped, and anything added directly is
+    // recorded ahead of the others.
     void RecordApplied(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, bool recordUndo);
+    void RecordNow(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, bool recordUndo);
+
+    struct ApplyingScope {
+        explicit ApplyingScope(CommandExecutor& e) : exec(e) { ++exec._applyDepth; }
+        ~ApplyingScope() { --exec._applyDepth; }
+        CommandExecutor& exec;
+    };
+    int _applyDepth = 0;
     bool InSequence(const Effect* effect) const;
     // Live preview bookkeeping.
     void PreviewTouch(const SequenceCommand& cmd);
@@ -196,13 +208,15 @@ private:
 };
 
 // Groups the edits made during its lifetime into one CommandExecutor batch
-// (one undo step, one notification).
+// (one undo step, one notification; inside an open batch it joins that one).
 class ScopedCommandBatch {
 public:
     ScopedCommandBatch(CommandExecutor& exec, const std::string& label) :
         _exec(exec) {
         _exec.BeginBatch(label);
     }
+    // The sequence's executor.
+    ScopedCommandBatch(SequenceElements& seq, const std::string& label);
     ~ScopedCommandBatch() { _exec.EndBatch(); }
     ScopedCommandBatch(const ScopedCommandBatch&) = delete;
     ScopedCommandBatch& operator=(const ScopedCommandBatch&) = delete;

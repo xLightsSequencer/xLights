@@ -2815,6 +2815,30 @@ std::optional<MediaEntryState> SequenceMedia::GetEntryState(const std::string& k
     return StateOfEntry(key, *e, e->IsEmbedded());
 }
 
+std::map<std::string, std::shared_ptr<const MediaCacheEntry>> SequenceMedia::GetEmbeddedEntries() const {
+    std::scoped_lock lock(_cacheMutex);
+    std::map<std::string, std::shared_ptr<const MediaCacheEntry>> out;
+    auto add = [&](const auto& cache) {
+        for (const auto& [key, entry] : cache) {
+            if (entry && entry->IsEmbedded()) {
+                out.emplace(key, entry);
+            }
+        }
+    };
+    add(_imageCache);
+    add(_textCache);
+    add(_svgCache);
+    add(_shaderCache);
+    add(_binaryCache);
+    add(_videoCache);
+    add(_audioCache);
+    return out;
+}
+
+MediaEntryState SequenceMedia::StateOf(const std::string& key, const MediaCacheEntry& entry) {
+    return StateOfEntry(key, entry, entry.IsEmbedded());
+}
+
 std::optional<MediaEntryState> SequenceMedia::GetEmbeddableState(const std::string& key) {
     std::shared_ptr<MediaCacheEntry> e;
     {

@@ -27,6 +27,10 @@ CommandExecutor::CommandExecutor(SequenceElements& seq, UndoManager& undo) :
     _seq(seq), _undo(undo) {
 }
 
+ScopedCommandBatch::ScopedCommandBatch(SequenceElements& seq, const std::string& label) :
+    ScopedCommandBatch(seq.GetCommandExecutor(), label) {
+}
+
 CommandResult CommandExecutor::Execute(std::unique_ptr<SequenceCommand> cmd) {
     if (!cmd) {
         return CommandResult::Fail(CommandStatus::Invalid, "no command");
@@ -34,12 +38,22 @@ CommandResult CommandExecutor::Execute(std::unique_ptr<SequenceCommand> cmd) {
     if (_previewDepth > 0) {
         PreviewTouch(*cmd);
     }
+    if (_capture != nullptr) {
+        _capture->BeforeRecording(nullptr);
+    }
     CommandResult result;
-    std::unique_ptr<SequenceCommand> inverse = cmd->Apply(_seq, ApplyMode::Strict, &result);
-    if (!inverse || FoldIntoCapture(*cmd)) {
+    std::unique_ptr<SequenceCommand> inverse;
+    {
+        ApplyingScope applying(*this);
+        inverse = cmd->Apply(_seq, ApplyMode::Strict, &result);
+    }
+    if (_capture != nullptr) {
+        _capture->NoteCommandAdds();
+    }
+    if (!inverse) {
         return result;
     }
-    if (_previewDepth > 0) {
+    if (_previewDepth > 0 || _capture != nullptr) {
         RecordApplied(std::move(cmd), std::move(inverse), true);
         return result;
     }
@@ -126,6 +140,10 @@ bool CommandExecutor::CapturedKind(const SequenceCommand& cmd) {
     case CommandType::RemoveLayer:
     case CommandType::SetLayerName:
     case CommandType::ReplaceLayerContents:
+    case CommandType::SetEffectSymbolLink:
+    case CommandType::SetElementRenderDisabled:
+    case CommandType::SetTimingFixed:
+    case CommandType::SetSequenceFace:
         return true;
     case CommandType::Batch: {
         const BatchCommand& b = static_cast<const BatchCommand&>(cmd);
@@ -141,22 +159,28 @@ bool CommandExecutor::CapturedKind(const SequenceCommand& cmd) {
     }
 }
 
-bool CommandExecutor::FoldIntoCapture(const SequenceCommand& cmd) {
-    if (_capture == nullptr) {
-        return false;
+void CommandExecutor::DirectElementDelete(Element* element, bool keepInViews) {
+    if (_capture != nullptr && _applyDepth == 0 && element != nullptr) {
+        _capture->ElementDeleting(element, keepInViews);
     }
-    if (CapturedKind(cmd)) {
-        return true;
-    }
-    // Recorded as usual; anything it created is compared from now on.
-    _capture->NoteNewElements();
-    return false;
 }
 
 void CommandExecutor::RecordApplied(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, bool recordUndo) {
-    if (FoldIntoCapture(*applied)) {
+    if (_capture != nullptr) {
+        if (CapturedKind(*applied)) {
+            return;
+        }
+        SequenceEditCapture* capture = _capture;
+        capture->BeforeRecording(applied.get());
+        std::unique_ptr<SequenceCommand> recorded = applied->Clone();
+        RecordNow(std::move(applied), std::move(inverse), recordUndo);
+        capture->AfterRecording(*recorded);
         return;
     }
+    RecordNow(std::move(applied), std::move(inverse), recordUndo);
+}
+
+void CommandExecutor::RecordNow(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, bool recordUndo) {
     if (_previewDepth > 0) {
         // Moves and modifies are recorded as one net change at commit.
         if (!PreviewAbsorbs(*applied)) {
@@ -188,8 +212,18 @@ CommandResult CommandExecutor::ExecuteInStep(std::unique_ptr<SequenceCommand> cm
     if (_previewDepth > 0) {
         PreviewTouch(*cmd);
     }
+    if (_capture != nullptr) {
+        _capture->BeforeRecording(nullptr);
+    }
     CommandResult result;
-    std::unique_ptr<SequenceCommand> inverse = cmd->Apply(_seq, ApplyMode::Lenient, &result);
+    std::unique_ptr<SequenceCommand> inverse;
+    {
+        ApplyingScope applying(*this);
+        inverse = cmd->Apply(_seq, ApplyMode::Lenient, &result);
+    }
+    if (_capture != nullptr) {
+        _capture->NoteCommandAdds();
+    }
     if (!inverse) {
         return result;
     }

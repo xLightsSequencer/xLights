@@ -599,32 +599,6 @@ TEST_CASE("SequenceElements used effect types include submodels and strands", "[
     CHECK(types == std::list<std::string>{ "On", "Twinkle", "Bars" });
 }
 
-TEST_CASE("SequenceElements media reference rewriting", "[seq2][elements]") {
-    SeqFixture f;
-    auto* a = f.Model("A");
-    auto* b = f.Model("B");
-    Add(a->GetEffectLayer(0), "Pictures", 100, 400, "E_TEXTCTRL_Pictures_Filename=/abs/pic.png");
-    Add(a->GetEffectLayer(0), "Pictures", 1000, 1200, "E_TEXTCTRL_Pictures_Filename=/abs/pic.png");
-    Add(b->GetEffectLayer(0), "Pictures", 0, 50, "E_TEXTCTRL_Pictures_Filename=/abs/other.png");
-    auto* sub = a->GetSubModel("Sub", true);
-    Add(sub->GetEffectLayer(0), "Pictures", 2000, 2500, "E_TEXTCTRL_Pictures_Filename=/abs/pic.png");
-
-    CHECK(f.se.RewriteMediaReferences("same", "same").empty());
-
-    auto values = f.se.GetEffectSettingValues();
-    CHECK(values.count("/abs/pic.png") == 1);
-    CHECK(values.count("/abs/other.png") == 1);
-
-    auto dirty = f.se.RewriteMediaReferences("/abs/pic.png", "pic.png");
-    REQUIRE(dirty.size() == 1);
-    REQUIRE(dirty.count("A") == 1);
-    CHECK(dirty["A"].first == 100);
-    CHECK(dirty["A"].second == 2500);
-    CHECK(a->GetEffectLayer(0)->GetEffect(0)->GetSetting("E_TEXTCTRL_Pictures_Filename") == "pic.png");
-    CHECK(sub->GetEffectLayer(0)->GetEffect(0)->GetSetting("E_TEXTCTRL_Pictures_Filename") == "pic.png");
-    CHECK(b->GetEffectLayer(0)->GetEffect(0)->GetSetting("E_TEXTCTRL_Pictures_Filename") == "/abs/other.png");
-}
-
 TEST_CASE("SequenceElements RemoveUnreferencedMedia keeps referenced and metadata media", "[seq2][elements]") {
     SeqFixture f;
     auto* a = f.Model("A");

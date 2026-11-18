@@ -32,6 +32,19 @@ TEST_CASE("SongStructure starts empty", "[sequence][songstructure]") {
     CHECK_FALSE(m.AnyViewHasRegions());
 }
 
+TEST_CASE("SongStructure AddBoundary with views but none active changes nothing", "[sequence][songstructure]") {
+    SongStructureManager m;
+    m.AddView("V");
+    m.AddBoundary(1000, 4000);
+    CHECK(m.GetRegionCount() == 0);
+    SongStructureManager other;
+    CHECK(other.GetRegionCount() == 0);
+    m.SetActiveView(0);
+    CHECK(m.GetRegionCount() == 0);
+    m.AddBoundary(1000, 4000);
+    CHECK(m.GetRegionCount() == 2);
+}
+
 TEST_CASE("SongStructure first boundary splits the sequence in two", "[sequence][songstructure]") {
     SongStructureManager m;
     m.AddBoundary(10000, 60000);

@@ -1678,7 +1678,8 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 - (void)setElementRenderDisabled:(BOOL)disabled atRow:(int)rowIndex {
     auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
     if (!row || !row->element) return;
-    row->element->SetRenderDisabled(disabled ? true : false);
+    // Like an effect's render-disable, not an undo step.
+    ElementEdits::SetRenderDisabled(_context->GetSequenceElements(), row->element, disabled ? true : false, false);
 }
 
 - (int)effectCountOnRow:(int)rowIndex {
@@ -3330,7 +3331,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 
 - (void)clearAllTags {
     auto& se = _context->GetSequenceElements();
-    ScopedEditBatch batch(se, "Delete All Tags");
+    ScopedCommandBatch batch(se, "Delete All Tags");
     for (int i = 0; i < SequenceElements::TagCount; ++i) {
         ElementEdits::SetTagPosition(se, i, -1, false);
     }
@@ -4182,7 +4183,7 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
     }
     if (toRemove.empty()) return 0;
     _context->AbortRender(5000);
-    ScopedEditBatch batch(se, "Remove Unused Rows");
+    ScopedCommandBatch batch(se, "Remove Unused Rows");
     for (const std::string& n : toRemove) {
         ElementEdits::DeleteElement(se, n, false);
     }
@@ -6280,7 +6281,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     std::string oldN([oldName UTF8String]);
     std::string newN([newName UTF8String]);
     auto& se = _context->GetSequenceElements();
-    ScopedEditBatch batch(se, "Rename Sequence Face");
+    ScopedCommandBatch batch(se, "Rename Sequence Face");
     if (!ElementEdits::EditSequenceFaces(se, [&](SequenceFaces& f) { f.RenameFace(oldN, newN); }, false)) return NO;
     repointSequenceFaceReferences(_context.get(), oldN, newN);
     bumpSequenceDirty(_context.get());
@@ -12442,15 +12443,11 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     std::string n = name ? std::string([name UTF8String]) : std::string();
     if (n.empty()) return nil;
 
-    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
-    if (mgr.GetSymbolByName(n) != nullptr) return nil;   // desktop rejects duplicates
-
-    EffectSymbol* sym = mgr.CreateSymbol(n, e);
-    if (sym == nullptr) return nil;
-    // LinkToSymbol registers the effect with the manager itself.
-    e->LinkToSymbol(sym->GetId());
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
-    return [NSString stringWithUTF8String:sym->GetId().c_str()];
+    // One core undo step; empty when the name is taken (desktop rejects
+    // duplicates).
+    std::string sid = SymbolEdits::Create(_context->GetSequenceElements(), n, e);
+    if (sid.empty()) return nil;
+    return [NSString stringWithUTF8String:sid.c_str()];
 }
 
 - (BOOL)linkEffectInRow:(int)rowIndex atIndex:(int)effectIndex toSymbolId:(NSString*)symbolId {
@@ -12461,12 +12458,9 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
     auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
     if (sid.empty() || !mgr.SymbolExists(sid)) return NO;
-    // LinkToSymbol unlinks any previous symbol, registers, and copies the
-    // symbol's type/settings/palette onto the effect.
-    e->LinkToSymbol(sid);
-    e->IncrementChangeCount();
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
-    return YES;
+    // Copies the symbol's type/settings/palette onto the effect and links
+    // it, as one core undo step.
+    return SymbolEdits::Link(_context->GetSequenceElements(), { e }, sid) > 0 ? YES : NO;
 }
 
 - (BOOL)unlinkEffectFromSymbolInRow:(int)rowIndex atIndex:(int)effectIndex {
@@ -12474,9 +12468,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
     Effect* e = layer->GetEffect(effectIndex);
     if (!e || !e->IsLinkedToSymbol()) return NO;
-    e->UnlinkFromSymbol();   // unregisters from the manager
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
-    return YES;
+    return SymbolEdits::Unlink(_context->GetSequenceElements(), { e }) > 0 ? YES : NO;
 }
 
 - (BOOL)restoreEffectInRow:(int)rowIndex
@@ -12492,10 +12484,14 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
     // Unlink first: SetSettings below calls IncrementChangeCount, which would
     // otherwise push the restored settings into the symbol and out to every
-    // other effect linked to it.
-    e->UnlinkFromSymbol();
+    // other effect linked to it. The caller registers its own undo, so none
+    // of these changes make a core undo step.
+    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
+    if (e->IsLinkedToSymbol()) {
+        exec.ExecuteInStep(std::make_unique<SetEffectSymbolLinkCommand>(LocatorOf(e), ""), false);
+    }
 
-    _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) {
+    exec.EditEffect(e, [&](Effect& ef) {
         if (effectType && [effectType length] > 0) {
             ef.SetEffectName(std::string([effectType UTF8String]));
         }
@@ -12507,7 +12503,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     if (!sid.empty()) {
         auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
         if (mgr.SymbolExists(sid)) {
-            e->LinkToSymbol(sid);
+            exec.ExecuteInStep(std::make_unique<SetEffectSymbolLinkCommand>(LocatorOf(e), sid), false);
         }
     }
     e->IncrementChangeCount();
@@ -12522,9 +12518,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     if (sid.empty() || n.empty()) return NO;
     auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
     if (mgr.GetSymbolByName(n) != nullptr) return NO;
-    if (!mgr.RenameSymbol(sid, n)) return NO;
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
-    return YES;
+    return SymbolEdits::Rename(_context->GetSequenceElements(), sid, n) ? YES : NO;
 }
 
 - (BOOL)deleteSymbolId:(NSString*)symbolId {
@@ -12533,35 +12527,14 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     if (sid.empty()) return NO;
     auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
     if (!mgr.SymbolExists(sid)) return NO;
-    // Unlink first so no effect is left pointing at a symbol that no longer
-    // exists — a stale id would be dropped at load anyway (LoadSequencerFile
-    // only links when SymbolExists), but this keeps the in-memory state honest.
-    for (Effect* e : mgr.GetLinkedEffects(sid)) {
-        if (e != nullptr) e->UnlinkFromSymbol();
-    }
-    if (!mgr.DeleteSymbol(sid)) return NO;
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
-    return YES;
+    // Linked effects are unlinked and keep their current settings.
+    return SymbolEdits::Delete(_context->GetSequenceElements(), sid) ? YES : NO;
 }
 
 - (NSDictionary*)convertAllSymbolsToEffects {
     if (!_context || !_context->IsSequenceLoaded()) return @{ @"converted": @0, @"symbols": @0 };
-    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
-    auto symbols = mgr.GetAllSymbols();
-    NSInteger converted = 0;
-    for (EffectSymbol* s : symbols) {
-        if (s == nullptr) continue;
-        for (Effect* e : mgr.GetLinkedEffects(s->GetId())) {
-            if (e != nullptr) {
-                e->UnlinkFromSymbol();
-                converted++;
-            }
-        }
-    }
-    NSInteger symbolCount = (NSInteger)symbols.size();
-    mgr.Clear();
-    _context->GetSequenceElements().IncrementChangeCount(nullptr);
-    return @{ @"converted": @(converted), @"symbols": @(symbolCount) };
+    auto [converted, symbols] = SymbolEdits::ConvertAllToEffects(_context->GetSequenceElements());
+    return @{ @"converted": @((NSInteger)converted), @"symbols": @((NSInteger)symbols) };
 }
 
 - (void)setEffectLocked:(BOOL)locked inRow:(int)rowIndex atIndex:(int)effectIndex {
@@ -14408,7 +14381,7 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     }
     auto paths = media.GetAllMediaPaths();
     int changed = 0;
-    MediaEditBatch undoStep(_context->GetSequenceElements(), "Embed All Media");
+    ScopedCommandBatch undoStep(_context->GetSequenceElements(), "Embed All Media");
     for (const auto& p : paths) {
         if (onlyType && p.second != *onlyType) continue;
         auto entry = lookupMediaEntry(media, p.first, p.second);
@@ -15088,8 +15061,10 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
         std::string newStr = ctx.MakeRelativePath(absDest);
         if (newStr.empty()) newStr = absDest;
         if (newStr == stored) { moved++; continue; }
-        // The file was copied, not moved, so undo can point back at it.
-        if (!SeqMediaEdits::Rename(ctx.GetSequenceElements(), stored, newStr)) continue;
+        // Cleanup also rewrites the show file, which sequence undo can't
+        // take back, so none of it is offered as an undo step (the sheet
+        // says so); the renames still reach observers.
+        if (!SeqMediaEdits::Rename(ctx.GetSequenceElements(), stored, newStr, false, "Cleanup File Locations", false)) continue;
         (void)media.ReloadMedia(newStr);
         moved++;
     }
@@ -15110,7 +15085,7 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
     if (!_context || !_context->IsSequenceLoaded()) return 0;
     int moved = 0;
     {
-        MediaEditBatch undoStep(_context->GetSequenceElements(), "Cleanup File Locations");
+        ScopedCommandBatch batch(_context->GetSequenceElements(), "Cleanup File Locations");
         moved = cleanupExternalMedia(*_context, /*execute*/ true, nil);
     }
     if (moved > 0) bumpSequenceDirty(_context.get());
@@ -15178,7 +15153,7 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
     }
     auto paths = media.GetAllMediaPaths();
     int changed = 0;
-    MediaEditBatch undoStep(_context->GetSequenceElements(), "Extract All Media");
+    ScopedCommandBatch undoStep(_context->GetSequenceElements(), "Extract All Media");
     for (const auto& p : paths) {
         if (onlyType && p.second != *onlyType) continue;
         auto entry = lookupMediaEntry(media, p.first, p.second);

@@ -20,6 +20,8 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 #include "Element.h"
+#include "EffectSymbol.h"
+#include "EffectSymbolManager.h"
 #include "SequenceElements.h"
 #include "SequenceFaces.h"
 #include "SongStructureManager.h"
@@ -136,6 +138,9 @@ Effect* CreateEffect(EffectLayer* layer, const EffectState& s) {
     Effect* e = layer->AddEffect(0, s.name, s.settings, s.palette, s.startTimeMS, s.endTimeMS, s.selected, s.isProtected);
     if (e != nullptr && s.uid != kNoSeqObjectId && layer->GetEffectFromUid(s.uid) == nullptr) {
         e->SetUid(s.uid);
+    }
+    if (e != nullptr) {
+        e->HandlePastedSymbolLink();
     }
     return e;
 }
@@ -955,6 +960,213 @@ std::unique_ptr<SequenceCommand> SetSongStructureCommand::Clone() const {
 }
 
 // ---------------------------------------------------------------------------
+// SetElementRenderDisabled
+// ---------------------------------------------------------------------------
+
+SetElementRenderDisabledCommand::SetElementRenderDisabledCommand(SeqObjectId element, bool disabled) :
+    _element(element), _disabled(disabled) {
+}
+
+CommandResult SetElementRenderDisabledCommand::Validate(const SequenceElements& seq, ApplyMode) const {
+    if (seq.GetElementFromUid(_element) == nullptr) {
+        return CommandResult::Fail(CommandStatus::TargetMissing, "element not found");
+    }
+    return CommandResult::Success();
+}
+
+std::unique_ptr<SequenceCommand> SetElementRenderDisabledCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+    CommandResult r = Validate(seq, mode);
+    if (!r.Ok()) {
+        return Failed(result, r);
+    }
+    Element* el = seq.GetElementFromUid(_element);
+    // IsRenderDisabled on a submodel also reports its model's flag; the
+    // inverse restores this row's own flag.
+    bool prior = el->IsRenderDisabledFlag();
+    if (prior != _disabled) {
+        el->SetRenderDisabled(_disabled);
+        seq.IncrementChangeCount(el);
+    }
+    return Succeeded(result, std::make_unique<SetElementRenderDisabledCommand>(_element, prior));
+}
+
+void SetElementRenderDisabledCommand::Serialize(json& out) const {
+    out = json{ { "type", CommandTypeName(Type()) }, { "element", _element }, { "disabled", _disabled } };
+}
+
+std::unique_ptr<SequenceCommand> SetElementRenderDisabledCommand::Clone() const {
+    return std::make_unique<SetElementRenderDisabledCommand>(*this);
+}
+
+// ---------------------------------------------------------------------------
+// RenameModelElement
+// ---------------------------------------------------------------------------
+
+RenameModelElementCommand::RenameModelElementCommand(SeqObjectId element, std::string name) :
+    _element(element), _name(std::move(name)) {
+}
+
+CommandResult RenameModelElementCommand::Validate(const SequenceElements& seq, ApplyMode mode) const {
+    Element* el = TopLevelElement(seq, _element);
+    if (el == nullptr) {
+        return CommandResult::Fail(CommandStatus::TargetMissing, "model not found");
+    }
+    if (el->GetType() != ElementType::ELEMENT_TYPE_MODEL) {
+        return CommandResult::Fail(CommandStatus::Invalid, "not a model");
+    }
+    if (_name.empty()) {
+        return CommandResult::Fail(CommandStatus::Invalid, "empty name");
+    }
+    if (mode == ApplyMode::Strict && _name != el->GetName() && NameInUse(seq, _name)) {
+        return CommandResult::Fail(CommandStatus::Invalid, "an element named " + _name + " is already in the sequence");
+    }
+    return CommandResult::Success();
+}
+
+std::unique_ptr<SequenceCommand> RenameModelElementCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+    CommandResult r = Validate(seq, mode);
+    if (!r.Ok()) {
+        return Failed(result, r);
+    }
+    Element* el = TopLevelElement(seq, _element);
+    std::string prior = el->GetName();
+    if (prior != _name) {
+        // Views hold the same Element objects as the master view.
+        el->SetName(_name);
+        seq.IncrementChangeCount(el);
+        seq.PopulateRowInformation();
+    }
+    return Succeeded(result, std::make_unique<RenameModelElementCommand>(_element, prior));
+}
+
+void RenameModelElementCommand::Serialize(json& out) const {
+    out = json{ { "type", CommandTypeName(Type()) }, { "element", _element }, { "name", _name } };
+}
+
+std::unique_ptr<SequenceCommand> RenameModelElementCommand::Clone() const {
+    return std::make_unique<RenameModelElementCommand>(*this);
+}
+
+// ---------------------------------------------------------------------------
+// Effect symbols
+// ---------------------------------------------------------------------------
+
+EffectSymbolDef EffectSymbolDef::Of(const EffectSymbol& s) {
+    return { s.GetName(), s.GetEffectType(), s.GetSettingsAsString(), s.GetPalette() };
+}
+
+SetEffectSymbolCommand::SetEffectSymbolCommand(std::string id, std::optional<EffectSymbolDef> definition) :
+    _id(std::move(id)), _definition(std::move(definition)) {
+}
+
+CommandResult SetEffectSymbolCommand::Validate(const SequenceElements& seq, ApplyMode mode) const {
+    if (_id.empty()) {
+        return CommandResult::Fail(CommandStatus::Invalid, "empty symbol id");
+    }
+    if (_definition.has_value()) {
+        if (_definition->name.empty()) {
+            return CommandResult::Fail(CommandStatus::Invalid, "empty symbol name");
+        }
+        const EffectSymbol* named = seq.GetEffectSymbolManager().GetSymbolByName(_definition->name);
+        if (mode == ApplyMode::Strict && named != nullptr && named->GetId() != _id) {
+            return CommandResult::Fail(CommandStatus::Invalid, "a symbol named " + _definition->name + " already exists");
+        }
+    } else if (mode == ApplyMode::Strict && !seq.GetEffectSymbolManager().SymbolExists(_id)) {
+        return CommandResult::Fail(CommandStatus::TargetMissing, "symbol not found");
+    }
+    return CommandResult::Success();
+}
+
+std::unique_ptr<SequenceCommand> SetEffectSymbolCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+    CommandResult r = Validate(seq, mode);
+    if (!r.Ok()) {
+        return Failed(result, r);
+    }
+    EffectSymbolManager& mgr = seq.GetEffectSymbolManager();
+    std::optional<EffectSymbolDef> prior;
+    if (const EffectSymbol* cur = mgr.GetSymbol(_id)) {
+        prior = EffectSymbolDef::Of(*cur);
+    }
+    if (_definition.has_value()) {
+        mgr.PutSymbol(_id, _definition->name, _definition->effectType, seq.GetEffectManager().GetEffectIndex(_definition->effectType),
+                      _definition->settings, _definition->palette);
+        seq.IncrementChangeCount(nullptr);
+        return Succeeded(result, std::make_unique<SetEffectSymbolCommand>(_id, std::move(prior)));
+    }
+    if (!prior.has_value()) {
+        return Succeeded(result, std::make_unique<SetEffectSymbolCommand>(_id, std::nullopt));
+    }
+    std::vector<std::unique_ptr<SequenceCommand>> inverses;
+    inverses.push_back(std::make_unique<SetEffectSymbolCommand>(_id, prior));
+    for (Effect* e : mgr.GetLinkedEffects(_id)) {
+        EffectLocator loc = LocatorOf(e);
+        if (loc.effect != kNoSeqObjectId) {
+            inverses.push_back(std::make_unique<SetEffectSymbolLinkCommand>(loc, _id));
+        }
+    }
+    mgr.DeleteSymbol(_id); // unlinks the effects
+    seq.IncrementChangeCount(nullptr);
+    if (inverses.size() == 1) {
+        return Succeeded(result, std::move(inverses.front()));
+    }
+    return Succeeded(result, std::make_unique<BatchCommand>("Remove Symbol", std::move(inverses)));
+}
+
+void SetEffectSymbolCommand::Serialize(json& out) const {
+    out = json{ { "type", CommandTypeName(Type()) }, { "id", _id } };
+    if (_definition.has_value()) {
+        out["definition"] = json{ { "name", _definition->name },
+                                  { "effectType", _definition->effectType },
+                                  { "settings", _definition->settings },
+                                  { "palette", _definition->palette } };
+    } else {
+        out["definition"] = nullptr;
+    }
+}
+
+std::unique_ptr<SequenceCommand> SetEffectSymbolCommand::Clone() const {
+    return std::make_unique<SetEffectSymbolCommand>(*this);
+}
+
+SetEffectSymbolLinkCommand::SetEffectSymbolLinkCommand(EffectLocator target, std::string symbolId) :
+    _target(target), _symbolId(std::move(symbolId)) {
+}
+
+CommandResult SetEffectSymbolLinkCommand::Validate(const SequenceElements& seq, ApplyMode mode) const {
+    if (FindEffect(seq, _target) == nullptr) {
+        return CommandResult::Fail(CommandStatus::TargetMissing, "effect not found");
+    }
+    if (!_symbolId.empty() && !seq.GetEffectSymbolManager().SymbolExists(_symbolId)) {
+        return CommandResult::Fail(CommandStatus::TargetMissing, "symbol not found");
+    }
+    return CommandResult::Success();
+}
+
+std::unique_ptr<SequenceCommand> SetEffectSymbolLinkCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+    CommandResult r = Validate(seq, mode);
+    if (!r.Ok()) {
+        return Failed(result, r);
+    }
+    Effect* e = FindEffect(seq, _target);
+    std::string prior = e->GetLinkedSymbolId();
+    if (prior != _symbolId) {
+        e->SetLinkedSymbolId(_symbolId);
+        seq.IncrementChangeCount(e->GetParentEffectLayer()->GetParentElement());
+    }
+    return Succeeded(result, std::make_unique<SetEffectSymbolLinkCommand>(_target, prior));
+}
+
+void SetEffectSymbolLinkCommand::Serialize(json& out) const {
+    out = json{ { "type", CommandTypeName(Type()) },
+                { "target", json{ { "element", _target.element }, { "layer", _target.layer }, { "effect", _target.effect } } },
+                { "symbol", _symbolId } };
+}
+
+std::unique_ptr<SequenceCommand> SetEffectSymbolLinkCommand::Clone() const {
+    return std::make_unique<SetEffectSymbolLinkCommand>(*this);
+}
+
+// ---------------------------------------------------------------------------
 // Names and deserialization
 // ---------------------------------------------------------------------------
 
@@ -968,6 +1180,10 @@ const char* ElementCommandTypeName(CommandType t) {
     case CommandType::SetTag: return "SetTag";
     case CommandType::SetSequenceFace: return "SetSequenceFace";
     case CommandType::SetSongStructure: return "SetSongStructure";
+    case CommandType::SetElementRenderDisabled: return "SetElementRenderDisabled";
+    case CommandType::RenameModelElement: return "RenameModelElement";
+    case CommandType::SetEffectSymbol: return "SetEffectSymbol";
+    case CommandType::SetEffectSymbolLink: return "SetEffectSymbolLink";
     default: return "";
     }
 }
@@ -982,6 +1198,10 @@ const char* ElementCommandUndoLabel(CommandType t) {
     case CommandType::SetTag: return "Tag Changed";
     case CommandType::SetSequenceFace: return "Sequence Faces Changed";
     case CommandType::SetSongStructure: return "Song Structure Changed";
+    case CommandType::SetElementRenderDisabled: return "Render Disabled Changed";
+    case CommandType::RenameModelElement: return "Model Renamed";
+    case CommandType::SetEffectSymbol: return "Symbol Changed";
+    case CommandType::SetEffectSymbolLink: return "Symbol Link Changed";
     default: return "";
     }
 }
@@ -1062,6 +1282,51 @@ std::unique_ptr<SequenceCommand> DeserializeElementCommand(const json& in) {
         }
         return std::make_unique<SetSequenceFaceCommand>(std::move(name), std::move(def));
     }
+    if (type == "SetElementRenderDisabled") {
+        uint64_t element = 0;
+        bool disabled = false;
+        if (!ReadU64(in, "element", element) || !ReadBool(in, "disabled", disabled)) {
+            return nullptr;
+        }
+        return std::make_unique<SetElementRenderDisabledCommand>(element, disabled);
+    }
+    if (type == "RenameModelElement") {
+        uint64_t element = 0;
+        std::string name;
+        if (!ReadU64(in, "element", element) || !ReadString(in, "name", name)) {
+            return nullptr;
+        }
+        return std::make_unique<RenameModelElementCommand>(element, std::move(name));
+    }
+    if (type == "SetEffectSymbol") {
+        std::string id;
+        auto it = in.find("definition");
+        if (!ReadString(in, "id", id) || it == in.end()) {
+            return nullptr;
+        }
+        std::optional<EffectSymbolDef> def;
+        if (it->is_object()) {
+            EffectSymbolDef d;
+            if (!ReadString(*it, "name", d.name) || !ReadString(*it, "effectType", d.effectType) || !ReadString(*it, "settings", d.settings) ||
+                !ReadString(*it, "palette", d.palette)) {
+                return nullptr;
+            }
+            def = std::move(d);
+        } else if (!it->is_null()) {
+            return nullptr;
+        }
+        return std::make_unique<SetEffectSymbolCommand>(std::move(id), std::move(def));
+    }
+    if (type == "SetEffectSymbolLink") {
+        auto it = in.find("target");
+        EffectLocator t;
+        std::string symbol;
+        if (it == in.end() || !it->is_object() || !ReadU64(*it, "element", t.element) || !ReadU64(*it, "layer", t.layer) ||
+            !ReadU64(*it, "effect", t.effect) || !ReadString(in, "symbol", symbol)) {
+            return nullptr;
+        }
+        return std::make_unique<SetEffectSymbolLinkCommand>(t, std::move(symbol));
+    }
     if (type == "SetSongStructure") {
         std::vector<SongStructureView> views;
         if (!ReadViews(ReadArray(in, "views"), views)) {
@@ -1092,7 +1357,9 @@ void ForEachElementAndRow(const SequenceElements& seq, const std::function<void(
 } // namespace
 
 NewElementsRecorder::NewElementsRecorder(SequenceElements& seq, std::string label, bool recordUndo) :
-    _seq(seq), _label(std::move(label)), _recordUndo(recordUndo), _passive(Active(seq) != nullptr), _outer(t_recorder) {
+    _seq(seq), _label(std::move(label)), _recordUndo(recordUndo),
+    // An open SequenceEditCapture records new elements itself.
+    _passive(Active(seq) != nullptr || seq.GetCommandExecutor().IsCapturing()), _outer(t_recorder) {
     if (_passive) {
         return;
     }
@@ -1136,15 +1403,6 @@ NewElementsRecorder* NewElementsRecorder::Active(const SequenceElements& seq) {
         }
     }
     return nullptr;
-}
-
-ScopedEditBatch::ScopedEditBatch(SequenceElements& seq, const std::string& label) :
-    _seq(seq) {
-    _seq.GetCommandExecutor().BeginBatch(label);
-}
-
-ScopedEditBatch::~ScopedEditBatch() {
-    _seq.GetCommandExecutor().EndBatch();
 }
 
 // ---------------------------------------------------------------------------
@@ -1306,4 +1564,171 @@ bool EditSongStructure(SequenceElements& seq, const std::function<void(SongStruc
     return true;
 }
 
+bool SetRenderDisabled(SequenceElements& seq, Element* element, bool disabled, bool recordUndo) {
+    if (element == nullptr) {
+        return false;
+    }
+    if (seq.GetElementFromUid(element->GetUid()) != element) {
+        SeqMutationGuard::Scope notInSequence;
+        element->SetRenderDisabled(disabled);
+        return true;
+    }
+    if (element->IsRenderDisabledFlag() == disabled) {
+        return false;
+    }
+    return seq.GetCommandExecutor().ExecuteInStep(std::make_unique<SetElementRenderDisabledCommand>(element->GetUid(), disabled), recordUndo).Ok();
+}
+
+bool RenameModel(SequenceElements& seq, const std::string& oldName, const std::string& newName, bool recordUndo) {
+    if (oldName == newName) {
+        return false;
+    }
+    for (Element* el : MasterElements(seq)) {
+        if (el->GetName() == oldName && el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            return seq.GetCommandExecutor().ExecuteInStep(std::make_unique<RenameModelElementCommand>(el->GetUid(), newName), recordUndo).Ok();
+        }
+    }
+    return false;
+}
+
 } // namespace ElementEdits
+
+// ---------------------------------------------------------------------------
+// SymbolEdits
+// ---------------------------------------------------------------------------
+
+namespace SymbolEdits {
+
+namespace {
+bool InSeq(const SequenceElements& seq, const Effect* e) {
+    return e != nullptr && FindEffect(seq, LocatorOf(e)) == e;
+}
+
+// Gives `e` the symbol's type, settings and palette, recorded as a
+// ModifyEffect. Unlinked first so the change stays on this effect.
+void TakeSymbolSettings(SequenceElements& seq, Effect* e, const EffectSymbol& sym, bool recordUndo) {
+    CommandExecutor& exec = seq.GetCommandExecutor();
+    exec.EditEffect(e, [&](Effect& ef) {
+        Effect::ScopedSymbolPropagationSuppressor noFanOut;
+        ef.SetEffectName(sym.GetEffectType());
+        ef.SetSettings(sym.GetSettingsAsString(), true);
+        ef.SetPalette(sym.GetPalette());
+    }, recordUndo);
+}
+} // namespace
+
+std::string Create(SequenceElements& seq, const std::string& name, const Effect* source, bool link, const std::string& label) {
+    EffectSymbolManager& mgr = seq.GetEffectSymbolManager();
+    if (name.empty() || source == nullptr || mgr.SymbolNameExists(name)) {
+        return "";
+    }
+    EffectSymbol probe("", name);
+    probe.CopyFromEffect(source);
+    std::string id = mgr.NewSymbolId();
+    CommandExecutor& exec = seq.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, label);
+    if (!exec.ExecuteInStep(std::make_unique<SetEffectSymbolCommand>(id, EffectSymbolDef::Of(probe))).Ok()) {
+        return "";
+    }
+    if (link && InSeq(seq, source)) {
+        exec.ExecuteInStep(std::make_unique<SetEffectSymbolLinkCommand>(LocatorOf(source), id));
+    }
+    return id;
+}
+
+int Link(SequenceElements& seq, const std::vector<Effect*>& effects, const std::string& symbolId, bool recordUndo, const std::string& label) {
+    const EffectSymbol* sym = seq.GetEffectSymbolManager().GetSymbol(symbolId);
+    if (sym == nullptr) {
+        return 0;
+    }
+    CommandExecutor& exec = seq.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, label);
+    int n = 0;
+    for (Effect* e : effects) {
+        if (!InSeq(seq, e)) {
+            continue;
+        }
+        EffectLocator loc = LocatorOf(e);
+        if (e->IsLinkedToSymbol()) {
+            exec.ExecuteInStep(std::make_unique<SetEffectSymbolLinkCommand>(loc, ""), recordUndo);
+        }
+        TakeSymbolSettings(seq, e, *sym, recordUndo);
+        if (exec.ExecuteInStep(std::make_unique<SetEffectSymbolLinkCommand>(loc, symbolId), recordUndo).Ok()) {
+            ++n;
+        }
+    }
+    return n;
+}
+
+int Unlink(SequenceElements& seq, const std::vector<Effect*>& effects, bool recordUndo, const std::string& label) {
+    CommandExecutor& exec = seq.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, label);
+    int n = 0;
+    for (Effect* e : effects) {
+        if (InSeq(seq, e) && e->IsLinkedToSymbol() &&
+            exec.ExecuteInStep(std::make_unique<SetEffectSymbolLinkCommand>(LocatorOf(e), ""), recordUndo).Ok()) {
+            ++n;
+        }
+    }
+    return n;
+}
+
+bool Rename(SequenceElements& seq, const std::string& symbolId, const std::string& name) {
+    const EffectSymbol* sym = seq.GetEffectSymbolManager().GetSymbol(symbolId);
+    if (sym == nullptr || name.empty() || name == sym->GetName()) {
+        return false;
+    }
+    EffectSymbolDef def = EffectSymbolDef::Of(*sym);
+    def.name = name;
+    CommandExecutor& exec = seq.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, "Rename Symbol");
+    return exec.Execute(std::make_unique<SetEffectSymbolCommand>(symbolId, std::move(def))).Ok();
+}
+
+bool Delete(SequenceElements& seq, const std::string& symbolId) {
+    if (!seq.GetEffectSymbolManager().SymbolExists(symbolId)) {
+        return false;
+    }
+    CommandExecutor& exec = seq.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, "Delete Symbol");
+    return exec.ExecuteInStep(std::make_unique<SetEffectSymbolCommand>(symbolId, std::nullopt)).Ok();
+}
+
+std::pair<int, int> ConvertAllToEffects(SequenceElements& seq) {
+    EffectSymbolManager& mgr = seq.GetEffectSymbolManager();
+    CommandExecutor& exec = seq.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, "Convert Symbols to Effects");
+    int effects = 0, symbols = 0;
+    for (EffectSymbol* sym : mgr.GetAllSymbols()) {
+        std::string id = sym->GetId();
+        effects += (int)mgr.GetLinkedEffectCount(id);
+        if (exec.ExecuteInStep(std::make_unique<SetEffectSymbolCommand>(id, std::nullopt)).Ok()) {
+            ++symbols;
+        }
+    }
+    return { effects, symbols };
+}
+
+bool UpdateFromEffect(SequenceElements& seq, const std::string& symbolId, const Effect* source, const std::string& label) {
+    EffectSymbolManager& mgr = seq.GetEffectSymbolManager();
+    const EffectSymbol* sym = mgr.GetSymbol(symbolId);
+    if (sym == nullptr || source == nullptr) {
+        return false;
+    }
+    EffectSymbol probe(symbolId, sym->GetName());
+    probe.CopyFromEffect(source);
+    CommandExecutor& exec = seq.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, label);
+    if (!exec.ExecuteInStep(std::make_unique<SetEffectSymbolCommand>(symbolId, EffectSymbolDef::Of(probe))).Ok()) {
+        return false;
+    }
+    for (Effect* e : mgr.GetLinkedEffects(symbolId)) {
+        if (e != source && InSeq(seq, e)) {
+            TakeSymbolSettings(seq, e, probe, true);
+        }
+    }
+    return true;
+}
+
+} // namespace SymbolEdits
+

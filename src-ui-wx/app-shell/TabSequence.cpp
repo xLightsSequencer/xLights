@@ -1599,11 +1599,6 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
 
     spdlog::debug("Renaming model '{}' to '{}'.", (const char*)OldName.c_str(), (const char*)NewName.c_str());
 
-    Element* elem_to_rename = _sequenceElements.GetElement(OldName);
-    if (elem_to_rename != nullptr) {
-        elem_to_rename->SetName(NewName);
-    }
-
     if (std::find(OldName.begin(), OldName.end(), '/') != OldName.end()) {
         internalsChanged = AllModels.RenameSubModel(OldName, NewName);
     } else {

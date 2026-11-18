@@ -26,6 +26,7 @@ struct SeqFixture {
     EffectLayer* layer = nullptr;
     SeqFixture() : se(ctx.GetSequenceElements()) {
         se.SetViewsManager(&ctx._sequenceViewManager);
+        SeqMutationGuard::Scope setup;
         model = dynamic_cast<ModelElement*>(se.AddElement("Tree", "model", true, false, true, false, false));
         layer = model->GetEffectLayerCount() > 0 ? model->GetEffectLayer(0) : model->AddEffectLayer();
     }
@@ -351,8 +352,10 @@ TEST_CASE("A capture still reports non-effect mutations made outside commands", 
     SequenceEditCapture capture(f.se, "Import");
     f.layer->AddEffect(0, "On", "", "", 0, 100, 0, false);
     CHECK(SeqMutationGuard::ViolationCount() == 0);
-    SeqMutationGuard::Check("SequenceMedia::AddEmbeddedImage", nullptr);
+    SeqMutationGuard::Check("SequenceElements::MoveSequenceElement", nullptr);
     CHECK(SeqMutationGuard::ViolationCount() == 1);
+    SeqMutationGuard::Check("SequenceMedia::RenameMedia", nullptr);
+    CHECK(SeqMutationGuard::ViolationCount() == 2);
 }
 #endif
 

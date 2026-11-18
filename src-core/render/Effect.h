@@ -123,6 +123,13 @@ public:
     const std::string& GetLinkedSymbolId() const { return _linkedSymbolId; }
     void LinkToSymbol(const std::string& symbolId);
     void UnlinkFromSymbol();
+    // Changes only the link (empty unlinks); the effect's type, settings and
+    // palette are left alone. An id the sequence has no symbol for unlinks.
+    void SetLinkedSymbolId(const std::string& symbolId);
+    // Called when the effect is removed from its layer: it stops receiving
+    // symbol changes but keeps its link id (an undo re-adds it from its
+    // settings, link included).
+    void DetachFromSymbolManager();
     void ApplySymbolSettings(const EffectSymbol* symbol);
     void HandlePastedSymbolLink();
 

@@ -58,7 +58,11 @@ enum class CommandType : int {
     SetTimingFixed,
     SetTag,
     SetSequenceFace,
-    SetSongStructure
+    SetSongStructure,
+    SetElementRenderDisabled,
+    RenameModelElement,
+    SetEffectSymbol,
+    SetEffectSymbolLink
 };
 
 const char* CommandTypeName(CommandType t);

@@ -45,7 +45,7 @@ namespace {
 // One undoable change to the sequence faces (joins an enclosing batch).
 void EditFaces(SequenceElements& se, const std::string& label, const std::function<void(SequenceFaces&)>& edit)
 {
-    ScopedEditBatch batch(se, label);
+    ScopedCommandBatch batch(se, label);
     ElementEdits::EditSequenceFaces(se, edit);
 }
 } // namespace
@@ -312,7 +312,7 @@ void SequenceFacesPanel::OnButtonRenameClick(wxCommandEvent& event)
         return;
     }
     {
-        ScopedEditBatch batch(*_seqElements, "Rename Sequence Face");
+        ScopedCommandBatch batch(*_seqElements, "Rename Sequence Face");
         EditFaces(*_seqElements, "Rename Sequence Face", [&](SequenceFaces& f) { f.RenameFace(name, newName); });
         RenameFaceReferences(name, newName);
     }
@@ -413,7 +413,7 @@ void SequenceFacesPanel::OnButtonImportFromModelClick(wxCommandEvent& event)
 
     std::string lastAdded;
     wxString skipped;
-    ScopedEditBatch batch(*_seqElements, "Import Sequence Faces");
+    ScopedCommandBatch batch(*_seqElements, "Import Sequence Faces");
     for (auto const& idx : dlg.GetSelections()) {
         const auto& [modelName, faceName] = sources[idx];
         Model* model = _xlFrame->AllModels.GetModel(modelName);
@@ -459,7 +459,7 @@ void SequenceFacesPanel::OnButtonDownloadImagesClick(wxCommandEvent& event)
     }
     // sequence faces have no single model to size against - the download
     // dialog only uses the size to sort candidates, so use a large matrix
-    ScopedEditBatch batch(*_seqElements, "Download Face Images");
+    ScopedCommandBatch batch(*_seqElements, "Download Face Images");
     FaceMatrixHelpers::DownloadFaceImages(
         this, _showDirectory, 100, 100,
         [this, &name](const std::string& key, int r, int c, const std::string& value) {
@@ -499,7 +499,7 @@ void SequenceFacesPanel::SelectMatrixImage(int r, int c)
     std::string new_filename = dlg.GetPath().ToStdString();
     ObtainAccessToURL(new_filename);
     key.Replace(" ", "");
-    ScopedEditBatch batch(*_seqElements, "Edit Sequence Face");
+    ScopedCommandBatch batch(*_seqElements, "Edit Sequence Face");
     SetFaceImage(name, key.ToStdString(), r, c, new_filename);
 
     FaceMatrixHelpers::AutoFillMatrixPhonemes(

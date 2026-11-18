@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "render/SequenceMutationGuard.h"
 #include "render/CommandExecutor.h"
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
@@ -26,6 +27,9 @@ using nlohmann::json;
 namespace {
 
 struct SeqFixture {
+    // Command unit tests set up and inspect state directly throughout; the
+    // commands under test hold their own scope anyway.
+    SeqMutationGuard::Scope direct;
     HeadlessRenderContext ctx;
     SequenceElements& se;
     SeqFixture() : se(ctx.GetSequenceElements()) {

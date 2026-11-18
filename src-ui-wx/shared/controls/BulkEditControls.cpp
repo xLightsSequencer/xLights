@@ -228,21 +228,28 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
                             // Use a clean embedded name so the cache key matches
                             // what gets stored in effect settings.
                             std::string fname = std::filesystem::path(filepath).filename().string();
+                            // Pointing the effect at the embedded file is part
+                            // of the same undo step as embedding it.
+                            auto embed = [&](const std::string& key, MediaType type) {
+                                if (SeqMediaEdits::EmbedFile(elements, key, type, filepath)) {
+                                    xl->JoinNextPanelEditToLastStep();
+                                }
+                            };
                             if (ext == ".fs") {
-                                SeqMediaEdits::EmbedFile(elements, filepath, MediaType::Shader, filepath);
+                                embed(filepath, MediaType::Shader);
                                 SetFileName(wxFileName(filepath));
                             } else if (ext == ".svg") {
-                                SeqMediaEdits::EmbedFile(elements, filepath, MediaType::SVG, filepath);
+                                embed(filepath, MediaType::SVG);
                                 SetFileName(wxFileName(filepath));
                             } else if (ext == ".txt") {
-                                SeqMediaEdits::EmbedFile(elements, filepath, MediaType::TextFile, filepath);
+                                embed(filepath, MediaType::TextFile);
                                 SetFileName(wxFileName(filepath));
                             } else {
                                 std::string embeddedName = "Images/" + fname;
                                 if (media.HasMedia(embeddedName)) {
                                     embeddedName = filepath;
                                 }
-                                SeqMediaEdits::EmbedFile(elements, embeddedName, MediaType::Image, filepath);
+                                embed(embeddedName, MediaType::Image);
                                 SetFileName(wxFileName(embeddedName));
                             }
                         }

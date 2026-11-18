@@ -576,7 +576,7 @@ pugi::xml_document Parse(const std::string& text) {
 
 } // namespace
 
-TEST_CASE("Save merge: memory matches the merged file after the save", "[showsavemerge][apply]") {
+TEST_CASE("Save merge: memory matches the merged file after the save", "[seq][showsavemerge][apply]") {
     const std::string seed = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xrgb><models>" + LineModel("A", "1") + LineModel("B", ">A:1") +
                              LineModel("D", ">B:1") + LineModel("E", ">D:1") +
                              "</models><modelGroups><modelGroup name=\"G\" models=\"A,B,E\" layout=\"minimalGrid\" GridSize=\"400\"/></modelGroups>"
@@ -646,7 +646,7 @@ TEST_CASE("Save merge: memory matches the merged file after the save", "[showsav
     CHECK_FALSE(none.ModelsChanged());
 }
 
-TEST_CASE("Save merge: model checks report only what is new", "[showsavemerge][apply]") {
+TEST_CASE("Save merge: model checks report only what is new", "[seq][showsavemerge][apply]") {
     CHECK(ShowMergeApply::NewMessages({ "a", "b" }, { "b", "c", "c" }) == std::vector<std::string>{ "c" });
     Show s;
     s.Load("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xrgb><models>" + LineModel("A", "1") + LineModel("B", "1") + "</models></xrgb>");
@@ -859,9 +859,18 @@ std::string WithoutGrid(const std::string& loaded) {
     return theirs.Rgb();
 }
 
+// Someone else's save of the same layout with Grid renamed (same layout id).
+std::string WithGridRenamed(const std::string& loaded, const std::string& newName) {
+    Show theirs;
+    theirs.Load(loaded);
+    theirs.ctx.AllModels.Rename("Grid", newName);
+    REQUIRE(theirs.ctx.AllModels.GetModel(newName) != nullptr);
+    return theirs.Rgb();
+}
+
 } // namespace
 
-TEST_CASE("Save merge: the open sequence's use counts submodel and group rows", "[showsavemerge][seqdelete]") {
+TEST_CASE("Save merge: the open sequence's use counts submodel and group rows", "[seq][showsavemerge][seqdelete]") {
     SeqShow s;
     auto use = ShowMergeApply::SequenceUseOf(s.ctx);
     CHECK(use("Grid").present);
@@ -872,7 +881,7 @@ TEST_CASE("Save merge: the open sequence's use counts submodel and group rows", 
     CHECK_FALSE(use("Spare").present);
 }
 
-TEST_CASE("Save merge: each choice for a deleted model with effects, in memory and undone", "[showsavemerge][seqdelete][apply]") {
+TEST_CASE("Save merge: each choice for a deleted model with effects, in memory and undone", "[seq][showsavemerge][seqdelete][apply]") {
     auto run = [&](SeqShow& s, Resolution r, const std::string& target) {
         const std::string mine = s.Rgb();
         const std::string theirs = WithoutGrid(mine);
@@ -925,4 +934,24 @@ TEST_CASE("Save merge: each choice for a deleted model with effects, in memory a
         CHECK(s.se.GetElement("Spare") == nullptr);
         CHECK_FALSE(s.se.get_undo_mgr().CanUndo());
     }
+}
+
+TEST_CASE("Save merge: a model they renamed keeps its row and effects in the open sequence", "[seq][showsavemerge][apply]") {
+    // Runs under the mutation guard: the row must follow the rename through
+    // commands, not by renaming the element directly.
+    SeqShow s;
+    const std::string mine = s.Rgb();
+    const std::string theirs = WithGridRenamed(mine, "Grid Renamed");
+    Plan plan = WithUse(mine, mine, theirs, ShowMergeApply::SequenceUseOf(s.ctx));
+    REQUIRE(plan.AllResolved());
+    CHECK(SequenceConflicts(plan).empty());
+    pugi::xml_document mineDoc = Parse(mine);
+    pugi::xml_document resultDoc = Parse(plan.Result(0));
+    REQUIRE(s.ctx.AbortRender());
+    CHECK(ShowMergeApply::ApplySequenceChanges(s.ctx, plan.SequenceChanges()) == 0);
+    auto changes = ShowMergeApply::ApplyLayout(s.ctx, mineDoc, resultDoc);
+    CHECK(changes.removedWithEffects.empty());
+    CHECK(s.M("Grid Renamed") != nullptr);
+    CHECK(s.se.GetElement("Grid") == nullptr);
+    CHECK(s.Effects("Grid Renamed") == 2);
 }

@@ -16,6 +16,7 @@
 #include "render/RenderProgressInfo.h"
 #include "render/IRenderProgressSink.h"
 #include "render/SequenceFile.h"
+#include "render/SequenceMutationGuard.h"
 #include "models/Model.h"
 #include "models/DisplayAsType.h"
 #include "models/ViewObject.h"
@@ -105,6 +106,10 @@ bool xLightsShowContext::LoadSequenceElements(SequenceFile& file, pugi::xml_docu
         phaseStart = now;
     };
     if (profileLoad) phaseStart = std::chrono::steady_clock::now();
+
+    // Opening builds the sequence (load, migrations, file resolution); none
+    // of it is an edit.
+    SeqMutationGuard::Scope loading;
 
     // A fresh open must see fresh filesystem state: a file that was missing on
     // the previous load may have been put in place since, so forget cached

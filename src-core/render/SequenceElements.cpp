@@ -86,6 +86,7 @@ void SequenceElements::ClearAllViews()
     }
     mAllViews.clear();
     mMasterViewChangeCount++;
+    InvalidateUidIndex();
 }
 
 void SequenceElements::Clear() {
@@ -242,7 +243,10 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
         el->SetVisible(visible);
     }
     el->SetCollapsed(collapsed);
-    el->SetRenderDisabled(renderDisabled);
+    {
+        SeqMutationGuard::Scope newElement; // not in the sequence yet
+        el->SetRenderDisabled(renderDisabled);
+    }
     return el;
 }
 
@@ -255,6 +259,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
 
         mAllViews[MASTER_VIEW].push_back(el);
         mMasterViewChangeCount++;
+        InvalidateUidIndex();
         IncrementChangeCount(el);
         return el;
     }
@@ -272,6 +277,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin() + index, el);
         mMasterViewChangeCount++;
+        InvalidateUidIndex();
         IncrementChangeCount(el);
         return el;
     }
@@ -449,11 +455,8 @@ Element* SequenceElements::GetElement(const std::string &name) const
     return nullptr;
 }
 
-Element* SequenceElements::GetElementFromUid(SeqObjectId uid) const
+Element* SequenceElements::ScanForUid(SeqObjectId uid) const
 {
-    if (uid == kNoSeqObjectId || mAllViews.empty()) {
-        return nullptr;
-    }
     for (Element* el : mAllViews[MASTER_VIEW]) {
         if (el->GetUid() == uid) {
             return el;
@@ -471,6 +474,56 @@ Element* SequenceElements::GetElementFromUid(SeqObjectId uid) const
         }
     }
     return nullptr;
+}
+
+void SequenceElements::RebuildUidIndexLocked() const
+{
+    _uidIndex.clear();
+    _uidIndex.reserve(mAllViews[MASTER_VIEW].size() * 2);
+    for (Element* el : mAllViews[MASTER_VIEW]) {
+        _uidIndex[el->GetUid()] = { el, el };
+        if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* mel = dynamic_cast<ModelElement*>(el);
+            for (int x = 0; mel != nullptr && x < mel->GetSubModelAndStrandCount(); ++x) {
+                if (SubModelElement* sme = mel->GetSubModel(x)) {
+                    _uidIndex.emplace(sme->GetUid(), UidIndexEntry{ sme, el });
+                }
+            }
+        }
+    }
+    _uidIndexValid = true;
+}
+
+Element* SequenceElements::GetElementFromUid(SeqObjectId uid) const
+{
+    if (uid == kNoSeqObjectId || mAllViews.empty()) {
+        return nullptr;
+    }
+    std::lock_guard<std::mutex> lock(_uidIndexLock);
+    if (!_uidIndexValid) {
+        RebuildUidIndexLocked();
+    }
+    auto it = _uidIndex.find(uid);
+    if (it != _uidIndex.end()) {
+        // Top-level elements stay alive while the index is valid; a row is
+        // only trusted while its model still lists it.
+        const UidIndexEntry& hit = it->second;
+        bool live = hit.element == hit.top;
+        if (!live) {
+            const ModelElement* mel = dynamic_cast<const ModelElement*>(hit.top);
+            for (int x = 0; mel != nullptr && x < mel->GetSubModelAndStrandCount() && !live; ++x) {
+                live = mel->GetSubModel(x) == hit.element;
+            }
+        }
+        if (live && hit.element->GetUid() == uid) {
+            return hit.element;
+        }
+    }
+    Element* found = ScanForUid(uid);
+    if (found != nullptr) {
+        RebuildUidIndexLocked();
+    }
+    return found;
 }
 
 bool SequenceElements::ValidateUids(std::string* problem) const
@@ -550,6 +603,14 @@ Element* SequenceElements::GetElement(size_t index, int view) const
 void SequenceElements::DeleteElement(const std::string &name, bool removeFromViewDefinitions)
 {
     XL_SEQ_MUTATION("SequenceElements::DeleteElement");
+    if (_commandExecutor != nullptr && !mAllViews.empty()) {
+        for (Element* e : mAllViews[MASTER_VIEW]) {
+            if (e->GetName() == name) {
+                _commandExecutor->DirectElementDelete(e, !removeFromViewDefinitions);
+                break;
+            }
+        }
+    }
     if (removeFromViewDefinitions && _viewsManager != nullptr) {
         _viewsManager->DeleteModel(name);
     }
@@ -575,6 +636,7 @@ void SequenceElements::DeleteElement(const std::string &name, bool removeFromVie
         {
             Element *e = mAllViews[MASTER_VIEW][j];
             mAllViews[MASTER_VIEW].erase(mAllViews[MASTER_VIEW].begin() + j);
+            InvalidateUidIndex();
             // Drop the borrowed Element* out of the rows before freeing it;
             // PopulateRowInformation below rebuilds them.
             mVisibleRowInformation.clear();
@@ -603,6 +665,7 @@ void SequenceElements::DeleteElementFromView(const std::string &name, int view)
     }
     if (view == MASTER_VIEW) {
         mMasterViewChangeCount++;
+        InvalidateUidIndex();
     }
 
     PopulateRowInformation();
@@ -666,17 +729,10 @@ void SequenceElements::DeleteTimingsFromView(int view)
 
 void SequenceElements::RenameModelInViews(const std::string& old_name, const std::string& new_name)
 {
-    // renames models in any views that have been loaded for a sequence
-    for (size_t view = 0; view < mAllViews.size(); view++)
-    {
-        for (size_t i = 0; i < mAllViews[view].size(); i++)
-        {
-            if (mAllViews[view][i]->GetName() == old_name)
-            {
-                mAllViews[view][i]->SetName(new_name);
-            }
-        }
-    }
+    // Follows a layout rename, which sequence undo can't take back, so the
+    // command is reported to observers but records no undo step. Every view
+    // holds the master view's Element objects.
+    ElementEdits::RenameModel(*this, old_name, new_name, false);
     mMasterViewChangeCount++;
 }
 
@@ -1276,6 +1332,7 @@ void SequenceElements::PopulateView(const std::string &models, int view)
     }
     if (view == MASTER_VIEW) {
         mMasterViewChangeCount++;
+        InvalidateUidIndex();
     }
 }
 
@@ -2338,33 +2395,6 @@ void SequenceElements::MoveElementDown(const std::string &name, int view)
 }
 
 
-
-std::map<std::string, std::pair<int, int>> SequenceElements::RewriteMediaReferences(const std::string& from, const std::string& to) {
-    std::map<std::string, std::pair<int, int>> dirtyModels;
-    if (from == to) return dirtyModels;
-
-    mSequenceFaces.RewriteImagePath(from, to);
-
-    const auto initRange = std::make_pair(std::numeric_limits<int>::max(), 0);
-    ForEachModelEffectLayer([&](EffectLayer* layer, const std::string& modelName) {
-        for (int k = 0; k < layer->GetEffectCount(); ++k) {
-            Effect* eff = layer->GetEffect(k);
-            const SettingsMap& settings = eff->GetSettings();
-            std::vector<std::string> keysToUpdate;
-            for (auto it = settings.begin(); it != settings.end(); ++it) {
-                if (it->second == from) keysToUpdate.push_back(it->first);
-            }
-            if (keysToUpdate.empty()) continue;
-            for (const auto& key : keysToUpdate) {
-                eff->SetSetting(key, to);
-            }
-            auto& range = dirtyModels.emplace(modelName, initRange).first->second;
-            range.first = std::min(range.first, eff->GetStartTimeMS());
-            range.second = std::max(range.second, eff->GetEndTimeMS());
-        }
-    });
-    return dirtyModels;
-}
 
 void SequenceElements::ForEachModelEffectLayer(const std::function<void(EffectLayer*, const std::string&)>& fn) const {
     for (size_t i = 0; i < GetElementCount(); ++i) {

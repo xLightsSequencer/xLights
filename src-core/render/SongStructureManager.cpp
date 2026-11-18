@@ -105,6 +105,11 @@ void SongStructureManager::AddBoundary(int timeMS, int sequenceEndMS)
         _views.push_back(SongStructureView("Default"));
         _activeViewIndex = 0;
     }
+    // With views but none active there is nowhere to add it; ActiveRegions()
+    // would hand back the shared empty list, which every manager reads.
+    if (_activeViewIndex < 0 || _activeViewIndex >= (int)_views.size()) {
+        return;
+    }
 
     auto& regions = ActiveRegions();
     auto& nextId = ActiveNextId();

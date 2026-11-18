@@ -2024,6 +2024,9 @@ public:
     void UnselectEffect();
     // The next settings-panel change to the selected effect starts a new undo step.
     void EndPanelEditBurst() { _panelEditCoalescer.EndBurst(); }
+    // The next effect panel change joins the undo step just recorded (a
+    // panel that embedded the media it is about to point the effect at).
+    void JoinNextPanelEditToLastStep() { _panelEditCoalescer.JoinNextToCurrentStep(_sequenceElements); }
     FindDataPanel* GetFindDataPanel() const
     {
         return _findDataPanel;

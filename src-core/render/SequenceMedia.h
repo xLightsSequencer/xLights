@@ -559,6 +559,11 @@ public:
     // === Document-level entry access (used by the media commands) ===
     // The stored content of the entry at exactly `key`; empty when none.
     std::optional<MediaEntryState> GetEntryState(const std::string& key) const;
+    // Every embedded entry by key, held so a later look can tell which
+    // embedded entries were added, replaced or removed meanwhile.
+    std::map<std::string, std::shared_ptr<const MediaCacheEntry>> GetEmbeddedEntries() const;
+    // The stored content of `entry`, held under `key`.
+    static MediaEntryState StateOf(const std::string& key, const MediaCacheEntry& entry);
     // The entry at `key` as it would be once embedded: its current bytes
     // (loading them from disk if not yet loaded), embedded=true. Empty when
     // there is no such entry, its type can't be embedded or it has no bytes.

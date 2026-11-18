@@ -1350,8 +1350,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             if (!ImportXLights(wxFileName(filename), mapname, autoMap, importMedia, &report)) {
                 return sendResponse(report.error.empty() ? "Import failed." : report.error, "msg", 503, false);
             }
+            SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
         }
-        SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
@@ -1485,8 +1485,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             if (!ImportSuperStar(wxFileName(filename), modelName, opt, nullptr, err)) {
                 return sendResponse(err.empty() ? std::string("Import failed.") : JSONSafe(err), "msg", 503, false);
             }
+            SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
         }
-        SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
         _sequenceElements.IncrementChangeCount(nullptr);
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1757,7 +1757,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int changed = 0;
         int relativized = 0;
         std::vector<std::string> failures;
-        MediaEditBatch undoStep(_sequenceElements, embed ? "Embed Media" : "Extract Media");
+        ScopedCommandBatch undoStep(_sequenceElements, embed ? "Embed Media" : "Extract Media");
         for (const auto& [path, type] : media.GetAllMediaPaths()) {
             if (!file.empty() && path != file) continue;
             if (onlyType && type != *onlyType) continue;

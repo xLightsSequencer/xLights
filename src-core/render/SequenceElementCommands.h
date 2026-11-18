@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include "CommandExecutor.h"
 #include "SequenceCommands.h"
 #include "SequenceMutationGuard.h"
 #include "SongStructureManager.h"
@@ -37,6 +38,9 @@ class SequenceElements;
 class SequenceFaces;
 class SongStructureManager;
 class TimingElement;
+class Effect;
+class EffectSymbol;
+class Element;
 
 struct LayerSnapshot {
     SeqObjectId uid = kNoSeqObjectId;
@@ -262,6 +266,104 @@ private:
     std::vector<SongStructureView> _views;
 };
 
+// Sets whether a model, submodel, strand or timing row is left out of
+// rendering. The flag is saved in the .xsq.
+class SetElementRenderDisabledCommand : public SequenceCommand {
+public:
+    SetElementRenderDisabledCommand(SeqObjectId element, bool disabled);
+    CommandType Type() const override { return CommandType::SetElementRenderDisabled; }
+    CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
+    void Serialize(nlohmann::json& out) const override;
+    std::unique_ptr<SequenceCommand> Clone() const override;
+
+    SeqObjectId GetElement() const { return _element; }
+    bool GetDisabled() const { return _disabled; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
+
+private:
+    SeqObjectId _element;
+    bool _disabled;
+};
+
+// Renames a model element to follow its model being renamed in the layout.
+// Effect settings are not touched. Strict mode requires a non-empty name no
+// other element uses.
+class RenameModelElementCommand : public SequenceCommand {
+public:
+    RenameModelElementCommand(SeqObjectId element, std::string name);
+    CommandType Type() const override { return CommandType::RenameModelElement; }
+    CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
+    void Serialize(nlohmann::json& out) const override;
+    std::unique_ptr<SequenceCommand> Clone() const override;
+
+    SeqObjectId GetElement() const { return _element; }
+    const std::string& GetName() const { return _name; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
+
+private:
+    SeqObjectId _element;
+    std::string _name;
+};
+
+// What an effect symbol defines: an effect type with its settings and
+// palette, shared by every effect linked to it.
+struct EffectSymbolDef {
+    std::string name;
+    std::string effectType;
+    std::string settings; // SettingsMap::AsString() form
+    std::string palette;
+    bool operator==(const EffectSymbolDef&) const = default;
+    static EffectSymbolDef Of(const EffectSymbol& s);
+};
+
+// Creates or replaces (definition) or removes (std::nullopt) the effect
+// symbol with id `id`. Linked effects keep their settings either way:
+// replacing a definition does not push it to them, and removing a symbol
+// unlinks them (its inverse links them again).
+class SetEffectSymbolCommand : public SequenceCommand {
+public:
+    SetEffectSymbolCommand(std::string id, std::optional<EffectSymbolDef> definition);
+    CommandType Type() const override { return CommandType::SetEffectSymbol; }
+    CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
+    void Serialize(nlohmann::json& out) const override;
+    std::unique_ptr<SequenceCommand> Clone() const override;
+
+    const std::string& GetId() const { return _id; }
+    const std::optional<EffectSymbolDef>& GetDefinition() const { return _definition; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
+
+private:
+    std::string _id;
+    std::optional<EffectSymbolDef> _definition;
+};
+
+// Links an effect to symbol `symbolId`, or unlinks it (empty id). Only the
+// link changes; the effect's type, settings and palette are left alone.
+class SetEffectSymbolLinkCommand : public SequenceCommand {
+public:
+    SetEffectSymbolLinkCommand(EffectLocator target, std::string symbolId);
+    CommandType Type() const override { return CommandType::SetEffectSymbolLink; }
+    CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
+    void Serialize(nlohmann::json& out) const override;
+    std::unique_ptr<SequenceCommand> Clone() const override;
+
+    const EffectLocator& GetTarget() const { return _target; }
+    const std::string& GetSymbolId() const { return _symbolId; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
+
+private:
+    EffectLocator _target;
+    std::string _symbolId;
+};
+
 // Deserializes the command types declared here; nullptr for anything else
 // or anything malformed. Called by DeserializeCommand.
 std::unique_ptr<SequenceCommand> DeserializeElementCommand(const nlohmann::json& in);
@@ -298,20 +400,6 @@ private:
     std::optional<SeqMutationGuard::Scope> _scope;
 };
 
-// CommandExecutor::BeginBatch / EndBatch for a scope: everything executed
-// or recorded while it lives is one undo step and reaches observers as one
-// batch.
-class ScopedEditBatch {
-public:
-    ScopedEditBatch(SequenceElements& seq, const std::string& label);
-    ~ScopedEditBatch();
-    ScopedEditBatch(const ScopedEditBatch&) = delete;
-    ScopedEditBatch& operator=(const ScopedEditBatch&) = delete;
-
-private:
-    SequenceElements& _seq;
-};
-
 // Edit-site helpers for the UI. Like the CommandExecutor edit-site API they
 // apply in lenient mode, record the inverse into the caller's current undo
 // step (unless recordUndo is false) and notify observers.
@@ -341,5 +429,38 @@ bool EditSequenceFaces(SequenceElements& seq, const std::function<void(SequenceF
 // Runs `edit` on the song structure, then records the change as a
 // SetSongStructureCommand. Returns true if anything changed.
 bool EditSongStructure(SequenceElements& seq, const std::function<void(SongStructureManager&)>& edit, bool recordUndo = true);
+bool SetRenderDisabled(SequenceElements& seq, Element* element, bool disabled, bool recordUndo = true);
+// Follows a model renamed in the layout: renames its element, if the
+// sequence has one. The layout rename itself is not undoable from the
+// sequence, so callers pass recordUndo=false.
+bool RenameModel(SequenceElements& seq, const std::string& oldName, const std::string& newName, bool recordUndo = true);
 
 } // namespace ElementEdits
+
+// Effect symbol edits, each one undo step (or part of the caller's batch).
+namespace SymbolEdits {
+
+// Creates a symbol from `source` (its type, settings and palette) and, with
+// link, links `source` to it. Returns the new symbol's id, or "" when the
+// name is empty or taken.
+std::string Create(SequenceElements& seq, const std::string& name, const Effect* source, bool link = true,
+                   const std::string& label = "Create Symbol");
+// Gives each effect the symbol's type, settings and palette and links it.
+// Returns how many effects were linked.
+int Link(SequenceElements& seq, const std::vector<Effect*>& effects, const std::string& symbolId, bool recordUndo = true,
+         const std::string& label = "Link to Symbol");
+// Unlinks each effect, leaving it with the settings it has now.
+int Unlink(SequenceElements& seq, const std::vector<Effect*>& effects, bool recordUndo = true,
+           const std::string& label = "Unlink from Symbol");
+bool Rename(SequenceElements& seq, const std::string& symbolId, const std::string& name);
+// Removes the symbol; effects linked to it keep their current settings.
+bool Delete(SequenceElements& seq, const std::string& symbolId);
+// Unlinks every effect and removes every symbol. Returns {effects
+// unlinked, symbols removed}.
+std::pair<int, int> ConvertAllToEffects(SequenceElements& seq);
+// Sets the definition from `source` and gives every other linked effect the
+// new settings.
+bool UpdateFromEffect(SequenceElements& seq, const std::string& symbolId, const Effect* source,
+                      const std::string& label = "Update Symbol");
+
+} // namespace SymbolEdits

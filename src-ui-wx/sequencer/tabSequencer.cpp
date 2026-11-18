@@ -4485,10 +4485,12 @@ void xLightsFrame::CallOnEffectBeforeSelected(std::function<bool(Effect *)> &&cb
         Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetStartTimeMS() - 1);
         if (ef != nullptr) {
             // Only what the callback actually changed is recorded, so a callback
-            // that changes nothing leaves no undo entry.
-            _sequenceElements.GetCommandExecutor().EditEffect(ef, [&](Effect& e) {
-                cb(&e);
-            });
+            // that changes nothing leaves no undo entry. The neighbour's change
+            // and the panel change that follows it are one undo step.
+            _sequenceElements.get_undo_mgr().CreateUndoStep();
+            if (_sequenceElements.GetCommandExecutor().EditEffect(ef, [&](Effect& e) { cb(&e); })) {
+                JoinNextPanelEditToLastStep();
+            }
         }
     }
 }
@@ -4497,10 +4499,12 @@ void xLightsFrame::CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb)
         Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetEndTimeMS() + 1);
         if (ef != nullptr) {
             // Only what the callback actually changed is recorded, so a callback
-            // that changes nothing leaves no undo entry.
-            _sequenceElements.GetCommandExecutor().EditEffect(ef, [&](Effect& e) {
-                cb(&e);
-            });
+            // that changes nothing leaves no undo entry. The neighbour's change
+            // and the panel change that follows it are one undo step.
+            _sequenceElements.get_undo_mgr().CreateUndoStep();
+            if (_sequenceElements.GetCommandExecutor().EditEffect(ef, [&](Effect& e) { cb(&e); })) {
+                JoinNextPanelEditToLastStep();
+            }
         }
     }
 }

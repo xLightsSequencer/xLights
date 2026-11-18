@@ -850,7 +850,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
     if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     SaveUndo();
-    std::optional<ScopedEditBatch> batch;
+    std::optional<ScopedCommandBatch> batch;
     if (_sequenceElements != nullptr) {
         batch.emplace(*_sequenceElements, "Remove Models From Sequence");
     }
@@ -919,7 +919,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     SaveUndo();
-    std::optional<ScopedEditBatch> batch;
+    std::optional<ScopedCommandBatch> batch;
     if (_sequenceElements != nullptr) {
         batch.emplace(*_sequenceElements, "Add Models To Sequence");
     }
@@ -2027,7 +2027,7 @@ wxArrayString ViewsModelsPanel::MergeStringArrays(const wxArrayString& arr1, con
 
 void ViewsModelsPanel::SetMasterViewModels(const wxArrayString& models)
 {
-    ScopedEditBatch batch(*_sequenceElements, "Reorder Master View");
+    ScopedCommandBatch batch(*_sequenceElements, "Reorder Master View");
     for (size_t i = 0; i < models.size(); ++i) {
         int index = _sequenceElements->GetElementIndex(models[i].ToStdString(), MASTER_VIEW);
         if (index < 0) {
@@ -2710,7 +2710,7 @@ size_t ViewsModelsPanel::GetSelectedModelCount() const
 void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
 {
     if (GetSelectionIsMixed()) return;
-    std::optional<ScopedEditBatch> batch;
+    std::optional<ScopedCommandBatch> batch;
     if (_sequenceElements != nullptr) {
         batch.emplace(*_sequenceElements, "Move Models");
     }
@@ -2821,7 +2821,7 @@ void ViewsModelsPanel::OnButtonView_UpClick(wxCommandEvent& event) {
 void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
-    std::optional<ScopedEditBatch> batch;
+    std::optional<ScopedCommandBatch> batch;
     if (_sequenceElements != nullptr) {
         batch.emplace(*_sequenceElements, "Move Models");
     }
@@ -2899,7 +2899,7 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 void ViewsModelsPanel::OnButton_TopClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
-    std::optional<ScopedEditBatch> batch;
+    std::optional<ScopedCommandBatch> batch;
     if (_sequenceElements != nullptr) {
         batch.emplace(*_sequenceElements, "Move Models");
     }
@@ -2990,7 +2990,7 @@ void ViewsModelsPanel::DoMakeMaster()
 {
     // this should never happen
     if (_sequenceElements == nullptr || _sequenceViewManager == nullptr) return;
-    ScopedEditBatch batch(*_sequenceElements, "Make Master View");
+    ScopedCommandBatch batch(*_sequenceElements, "Make Master View");
 
     //swapping out the master will completely change the rendering, abort it
     xLightsApp::GetFrame()->AbortRender();
@@ -3309,7 +3309,7 @@ wxString ViewsModelsPanel::CreateUniqueName(wxString const& prefix)
 void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
-    std::optional<ScopedEditBatch> batch;
+    std::optional<ScopedCommandBatch> batch;
     if (_sequenceElements != nullptr) {
         batch.emplace(*_sequenceElements, "Move Models");
     }
@@ -3385,7 +3385,7 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 void ViewsModelsPanel::OnButton_BottomClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
-    std::optional<ScopedEditBatch> batch;
+    std::optional<ScopedCommandBatch> batch;
     if (_sequenceElements != nullptr) {
         batch.emplace(*_sequenceElements, "Move Models");
     }

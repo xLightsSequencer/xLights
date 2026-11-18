@@ -170,8 +170,6 @@ void xLightsFrame::ImportEffectsFromFile(const wxFileName& fn)
     } else if (ext == "vsa") {
         ImportVsa(fn);
     }
-    capture.Commit();
-
     // Imported effects are added via EffectLayer::AddEffect, which never
     // calls loadFiles() - that only happens in the sequence-open path
     // (SequenceFile::LoadEffectFiles). Without this, any media an
@@ -180,7 +178,9 @@ void xLightsFrame::ImportEffectsFromFile(const wxFileName& fn)
     // show it - broken or not - until the sequence is closed and
     // reopened. Re-run the same registration pass now so newly imported
     // effects show up immediately.
+    // Inside the capture: any setting it resolves is part of the import.
     SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
+    capture.Commit();
 
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);

@@ -15,15 +15,17 @@
 // XL_SEQ_MUTATION("Effect::SetSetting"); outside a SeqMutationGuard::Scope
 // that is reported according to the XL_COMMAND_GUARD environment variable:
 //
-//   log    (default) log the first mutation seen from each call site
+//   assert (default in Debug builds) assert
+//   log    log the first mutation seen from each call site
 //   count  only count them (tests read ViolationCount())
-//   assert assert
 //   off    nothing
 //
 // Command application holds a Scope. Code that legitimately builds document
 // state directly (loading a sequence, render-time temporaries) holds one too.
-// A SequenceEditCapture holds an EffectEditScope, which allows only effect
-// and layer mutations (the ones the capture records).
+// A SequenceEditCapture holds a CaptureScope, which allows only the
+// mutations the capture records: effects and layers, elements added or
+// removed, element render-disable and fixed timing, sequence faces, and
+// media entries added or removed.
 // Release builds compile all of this away.
 
 #include <cstddef>
@@ -42,12 +44,12 @@ public:
     Scope& operator=(const Scope&) = delete;
 };
 
-class EffectEditScope {
+class CaptureScope {
 public:
-    EffectEditScope();
-    ~EffectEditScope();
-    EffectEditScope(const EffectEditScope&) = delete;
-    EffectEditScope& operator=(const EffectEditScope&) = delete;
+    CaptureScope();
+    ~CaptureScope();
+    CaptureScope(const CaptureScope&) = delete;
+    CaptureScope& operator=(const CaptureScope&) = delete;
 };
 
 void Check(const char* what, const void* caller);
@@ -63,9 +65,9 @@ public:
     Scope() {}
 };
 
-class EffectEditScope {
+class CaptureScope {
 public:
-    EffectEditScope() {}
+    CaptureScope() {}
 };
 
 inline void Check(const char*, const void*) {}

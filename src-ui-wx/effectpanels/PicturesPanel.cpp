@@ -289,7 +289,10 @@ void PicturesPanel::OnAIGenerateClick(wxCommandEvent& /*event*/) {
     // with the .xsq file rather than living as a loose file on disk.
     wxString name = wxString::Format("AIImages/ai_generated_%lld.png",
                                      (long long)wxDateTime::Now().GetTicks());
-    SeqMediaEdits::EmbedImage(xl->GetSequenceElements(), name.ToStdString(), wxImageToXlImage(img), "Add AI Image");
+    if (SeqMediaEdits::EmbedImage(xl->GetSequenceElements(), name.ToStdString(), wxImageToXlImage(img), "Add AI Image")) {
+        // Pointing the effect at the image is part of the same undo step.
+        xl->JoinNextPanelEditToLastStep();
+    }
 
     _filenameCtrl->SetValue(name);
     UpdatePreviewBitmap(name);

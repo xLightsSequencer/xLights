@@ -57,7 +57,7 @@ Mode InitialMode() {
         if (std::strcmp(env, "log") == 0) return Mode::Log;
     }
 #if defined(DEBUG) || defined(_DEBUG)
-    return Mode::Log;
+    return Mode::Assert;
 #else
     return Mode::Off;
 #endif
@@ -73,17 +73,30 @@ Scope::Scope() { ++t_depth; }
 Scope::~Scope() { --t_depth; }
 
 namespace {
-thread_local int t_effectEditDepth = 0;
+thread_local int t_captureDepth = 0;
 
-bool IsEffectOrLayerEdit(const char* what) {
-    return std::strncmp(what, "Effect::", 8) == 0 || std::strncmp(what, "EffectLayer::", 13) == 0 ||
-           std::strcmp(what, "Element::AddEffectLayer") == 0 || std::strcmp(what, "Element::InsertEffectLayer") == 0 ||
-           std::strcmp(what, "Element::RemoveEffectLayer") == 0;
+bool Is(const char* what, const char* name) {
+    return std::strcmp(what, name) == 0;
+}
+
+bool StartsWith(const char* what, const char* prefix) {
+    return std::strncmp(what, prefix, std::strlen(prefix)) == 0;
+}
+
+// The mutations a SequenceEditCapture compares and records.
+bool CaptureRecords(const char* what) {
+    return StartsWith(what, "Effect::") || StartsWith(what, "EffectLayer::") || Is(what, "Element::AddEffectLayer") ||
+           Is(what, "Element::InsertEffectLayer") || Is(what, "Element::RemoveEffectLayer") ||
+           Is(what, "Element::SetRenderDisabled") || Is(what, "TimingElement::SetFixedTiming") ||
+           Is(what, "SequenceElements::AddElement") || Is(what, "SequenceElements::DeleteElement") ||
+           StartsWith(what, "SequenceFaces::") || Is(what, "SequenceMedia::AddEmbeddedImage") ||
+           Is(what, "SequenceMedia::AddEmbeddedImageFromFile") || Is(what, "SequenceMedia::CopyEmbeddedMedia") ||
+           Is(what, "SequenceMedia::RemoveMedia") || Is(what, "SequenceMedia::RemoveImage");
 }
 } // namespace
 
-EffectEditScope::EffectEditScope() { ++t_effectEditDepth; }
-EffectEditScope::~EffectEditScope() { --t_effectEditDepth; }
+CaptureScope::CaptureScope() { ++t_captureDepth; }
+CaptureScope::~CaptureScope() { --t_captureDepth; }
 
 void SetMode(Mode m) { CurrentMode().store(m); }
 Mode GetMode() { return CurrentMode().load(); }
@@ -91,7 +104,7 @@ size_t ViolationCount() { return s_violations.load(); }
 void ResetViolationCount() { s_violations.store(0); }
 
 void Check(const char* what, const void* caller) {
-    if (t_depth > 0 || (t_effectEditDepth > 0 && IsEffectOrLayerEdit(what))) {
+    if (t_depth > 0 || (t_captureDepth > 0 && CaptureRecords(what))) {
         return;
     }
     Mode mode = CurrentMode().load(std::memory_order_relaxed);
@@ -153,7 +166,11 @@ const char* CommandTypeName(CommandType t) {
     case CommandType::SetTimingFixed:
     case CommandType::SetTag:
     case CommandType::SetSequenceFace:
-    case CommandType::SetSongStructure: return ElementCommandTypeName(t);
+    case CommandType::SetSongStructure:
+    case CommandType::SetElementRenderDisabled:
+    case CommandType::RenameModelElement:
+    case CommandType::SetEffectSymbol:
+    case CommandType::SetEffectSymbolLink: return ElementCommandTypeName(t);
     }
     return "";
 }
@@ -270,6 +287,11 @@ Effect* CreateEffect(EffectLayer* layer, const EffectState& s) {
     Effect* e = layer->AddEffect(0, s.name, s.settings, s.palette, s.startTimeMS, s.endTimeMS, s.selected, s.isProtected);
     if (e != nullptr && layer->GetEffectFromUid(s.uid) == nullptr) {
         e->SetUid(s.uid);
+    }
+    if (e != nullptr) {
+        // EffectState carries the symbol link as the X_LinkedSymbolId
+        // pseudo-setting (Effect::GetSettingsAsString).
+        e->HandlePastedSymbolLink();
     }
     return e;
 }

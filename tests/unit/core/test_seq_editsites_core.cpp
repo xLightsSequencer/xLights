@@ -31,6 +31,7 @@ struct SeqFixture {
     EffectLayer* layer = nullptr;
     SeqFixture() : se(ctx.GetSequenceElements()) {
         se.SetViewsManager(&ctx._sequenceViewManager);
+        SeqMutationGuard::Scope setup;
         model = dynamic_cast<ModelElement*>(se.AddElement("Tree", "model", true, false, true, false, false));
         layer = model->GetEffectLayerCount() > 0 ? model->GetEffectLayer(0) : model->AddEffectLayer();
         // The move helpers only record undo while capture is on, as in the app.
@@ -170,7 +171,7 @@ TEST_CASE("DeleteSelectedEffects deletes through commands", "[seq][editsites]") 
     a->SetSelected(EFFECT_SELECTED);
     c->SetSelected(EFFECT_SELECTED);
     d->SetSelected(EFFECT_SELECTED);
-    d->SetLocked(true);
+    f.Exec().SetEffectLocked(d, true, false);
     Recorder rec(f.Exec());
     f.Undo().CreateUndoStep();
 #ifndef NDEBUG
@@ -196,7 +197,7 @@ TEST_CASE("RemoveAllEffects deletes through commands", "[seq][editsites]") {
     f.Add("On", 0, 100);
     Effect* b = f.Add("On", 200, 300);
     f.Add("On", 400, 500);
-    b->SetLocked(true);
+    f.Exec().SetEffectLocked(b, true, false);
 
     SECTION("with undo") {
         Recorder rec(f.Exec());
@@ -297,9 +298,15 @@ TEST_CASE("BreakdownPhrase and BreakdownWord add through commands", "[seq][edits
     HeadlessRenderContext ctx;
     auto& se = ctx.GetSequenceElements();
     se.SetViewsManager(&ctx._sequenceViewManager);
-    auto* t = se.AddElement("Lyrics", "timing", true, false, true, false, false);
-    EffectLayer* words = t->AddEffectLayer();
-    EffectLayer* phonemes = t->AddEffectLayer();
+    Element* t = nullptr;
+    EffectLayer* words = nullptr;
+    EffectLayer* phonemes = nullptr;
+    {
+        SeqMutationGuard::Scope setup;
+        t = se.AddElement("Lyrics", "timing", true, false, true, false, false);
+        words = t->AddEffectLayer();
+        phonemes = t->AddEffectLayer();
+    }
 
     TempDir dir;
     dir.Write("standard_dictionary", "HELLO HH AH0 L OW1\nWORLD W ER1 L D\n");

@@ -1091,6 +1091,7 @@ void Effect::PurgeCache(bool deleteCache) {
 
 void Effect::LinkToSymbol(const std::string& symbolId)
 {
+    XL_SEQ_MUTATION("Effect::LinkToSymbol");
     if (_linkedSymbolId == symbolId) return;
 
     if (!_linkedSymbolId.empty()) {
@@ -1129,6 +1130,7 @@ void Effect::LinkToSymbol(const std::string& symbolId)
 
 void Effect::UnlinkFromSymbol()
 {
+    XL_SEQ_MUTATION("Effect::UnlinkFromSymbol");
     if (_linkedSymbolId.empty()) return;
 
     if (mParentLayer != nullptr) {
@@ -1143,6 +1145,30 @@ void Effect::UnlinkFromSymbol()
     }
 
     _linkedSymbolId.clear();
+}
+
+void Effect::DetachFromSymbolManager()
+{
+    if (_linkedSymbolId.empty() || mParentLayer == nullptr || mParentLayer->GetParentElement() == nullptr) return;
+    if (SequenceElements* seqElements = mParentLayer->GetParentElement()->GetSequenceElements()) {
+        seqElements->GetEffectSymbolManager().UnregisterLinkedEffect(this);
+    }
+}
+
+void Effect::SetLinkedSymbolId(const std::string& symbolId)
+{
+    XL_SEQ_MUTATION("Effect::SetLinkedSymbolId");
+    if (_linkedSymbolId == symbolId) return;
+    UnlinkFromSymbol();
+    if (symbolId.empty() || mParentLayer == nullptr || mParentLayer->GetParentElement() == nullptr) return;
+    SequenceElements* seqElements = mParentLayer->GetParentElement()->GetSequenceElements();
+    if (seqElements == nullptr || !seqElements->GetEffectSymbolManager().SymbolExists(symbolId)) return;
+    _linkedSymbolId = symbolId;
+    seqElements->GetEffectSymbolManager().RegisterLinkedEffect(this, symbolId);
+    {
+        std::unique_lock<std::recursive_mutex> lock(settingsLock);
+        mSettings.erase("X_LinkedSymbolId");
+    }
 }
 
 void Effect::ApplySymbolSettings(const EffectSymbol* symbol)

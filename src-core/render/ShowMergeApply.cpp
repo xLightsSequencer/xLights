@@ -153,9 +153,6 @@ void ApplyModels(xLightsShowContext& ctx, const std::vector<Rec>& mine, const st
                     continue;
                 }
                 if (renamed) {
-                    if (Element* e = ctx.GetSequenceElements().GetElement(m.name); e != nullptr) {
-                        e->SetName(r.name);
-                    }
                     ctx.GetSequenceElements().RenameModelInViews(m.name, r.name);
                     changes.modelsRenamed.emplace_back(m.name, r.name);
                 }
@@ -349,7 +346,7 @@ int ApplySequenceChanges(xLightsShowContext& ctx, const std::vector<ShowSaveMerg
     SequenceElements& seq = ctx.GetSequenceElements();
     int dropped = 0;
     seq.get_undo_mgr().CreateUndoStep();
-    ScopedEditBatch batch(seq, "Layout Merge");
+    ScopedCommandBatch batch(seq, "Layout Merge");
     for (const auto& ch : changes) {
         int idx = -1;
         Element* el = nullptr;

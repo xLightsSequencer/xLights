@@ -19,7 +19,6 @@
 
 class SequenceElements;
 class SequenceCommand;
-struct LayerLocator;
 enum class CommandType : int;
 class Effect;
 class EffectLayer;
@@ -40,11 +39,7 @@ enum UNDO_ACTIONS
 // Undo history of a sequence. Each recorded change is stored as the command
 // that reverses it; undoing applies those commands (in lenient mode) and
 // keeps their inverses for redo. Changes are grouped into steps by markers.
-//
-// The Capture* calls record a change the caller is about to make (or just
-// made, for adds) by naming its target the legacy way: element name, the
-// layer's exclusive index and the effect's position. They are resolved to
-// stable ids immediately, while those arguments are still valid.
+// CommandExecutor records into it.
 class UndoManager
 {
     public:
@@ -69,18 +64,6 @@ class UndoManager
         std::string GetUndoString();
         std::string GetRedoString();
 
-        void CaptureEffectToBeDeleted( const std::string &element_name, int layer_index, const std::string &name, const std::string &settings,
-                                       const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected );
-
-        void CaptureAddedEffect( const std::string &element_name, int layer_index, int id );
-
-        void CaptureEffectToBeMoved( const std::string &element_name, int layer_index, int id, int startTimeMS, int endTimeMS );
-        void CaptureModifiedEffect( const std::string &element_name, int layer_index, int id, const std::string &settings, const std::string &palette );
-        void CaptureModifiedEffect( const std::string &element_name, int layer_index, Effect *ef);
-
-        void CaptureAddedLayer( const std::string &element_name, int exclusive_layer_index, int layer_number );
-        void CaptureRemovedLayer( const std::string &element_name, int layer_number );
-
         // Adds a change to the current step: `inverse` undoes a command of type
         // `appliedType` that has just been applied. CommandExecutor uses this;
         // `label` names a batch (appliedType == Batch).
@@ -104,7 +87,7 @@ class UndoManager
         struct Entry {
             UNDO_ACTIONS kind = UNDO_MARKER;
             std::string label;                      // UNDO_BATCH only
-            std::unique_ptr<SequenceCommand> inverse; // null for markers and unresolvable captures
+            std::unique_ptr<SequenceCommand> inverse; // null for markers
         };
 
         void Push(UNDO_ACTIONS kind, std::unique_ptr<SequenceCommand> inverse, const std::string& label = "");
@@ -113,11 +96,6 @@ class UndoManager
         // exceeds `mMaxSteps`. Called from the end of every push-
         // back path. No-op when `mMaxSteps == 0`.
         void EnforceMaxSteps();
-
-        // Capture-time resolution of the legacy arguments. Returns the layer
-        // (or nullptr) and fills in the locator of the element that was named
-        // and the layer found beneath it.
-        EffectLayer* ResolveLayer(const std::string& element_name, int exclusive_layer_index, LayerLocator& loc) const;
 
     private:
         std::vector<Entry> mUndoSteps;

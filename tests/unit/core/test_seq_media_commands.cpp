@@ -33,6 +33,7 @@ struct MediaFixture {
     EffectLayer* layer = nullptr;
     MediaFixture() : se(ctx.GetSequenceElements()) {
         se.SetViewsManager(&ctx._sequenceViewManager);
+        SeqMutationGuard::Scope setup;
         model = dynamic_cast<ModelElement*>(se.AddElement("Tree", "model", true, false, true, false, false));
         layer = model->GetEffectLayerCount() > 0 ? model->GetEffectLayer(0) : model->AddEffectLayer();
     }
@@ -243,7 +244,10 @@ TEST_CASE("Renaming media repoints effects and faces in one undoable step", "[se
     Effect* e2 = f.Picture("img/a.png", 200, 300, /*locked=*/true);
     Effect* other = f.Picture("img/other.png", 400, 500);
     REQUIRE(SeqMediaEdits::Put(f.se, Embedded("img/a.png", Png(2, 2, 5))));
-    f.se.GetSequenceFaces().SetFace("Face1", { { "Type", "Matrix" }, { "Mouth-AI", "img/a.png" } });
+    {
+        SeqMutationGuard::Scope setup;
+        f.se.GetSequenceFaces().SetFace("Face1", { { "Type", "Matrix" }, { "Mouth-AI", "img/a.png" } });
+    }
     f.Undo().Clear();
 
     REQUIRE(SeqMediaEdits::Rename(f.se, "img/a.png", "img/b.png"));
@@ -438,7 +442,7 @@ TEST_CASE("Media edit batches reach observers as one labelled batch", "[seq][med
     CommandLogRecorder log;
     f.se.GetCommandExecutor().AddObserver(&log);
     {
-        MediaEditBatch batch(f.se, "Bulk Thing");
+        ScopedCommandBatch batch(f.se, "Bulk Thing");
         REQUIRE(SeqMediaEdits::EmbedImage(f.se, "a.png", xlImage(1, 1)));
         REQUIRE(SeqMediaEdits::EmbedImage(f.se, "b.png", xlImage(1, 1)));
     }

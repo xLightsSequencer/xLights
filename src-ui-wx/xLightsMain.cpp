@@ -72,6 +72,7 @@
 #include "shared/utils/ExternalHooksUI.h"
 #include "diagnostics/FindDataPanel.h"
 #include "render/SequenceBulkEdits.h"
+#include "render/CommandExecutor.h"
 #include "render/SequenceEditCapture.h"
 #include "render/GPURenderUtils.h"
 #include "render/SequenceMedia.h"
@@ -6385,18 +6386,7 @@ void xLightsFrame::OnMenuItem_ConvertSymbolsSelected(wxCommandEvent& event)
         return;
     }
 
-    for (const auto& symbol : symbols) {
-        std::vector<Effect*> linkedEffects = symbolMgr.GetLinkedEffects(symbol->GetId());
-        for (Effect* effect : linkedEffects) {
-            if (effect != nullptr) {
-                effect->UnlinkFromSymbol();
-            }
-        }
-    }
-
-    symbolMgr.Clear();
-
-    _sequenceElements.IncrementChangeCount(nullptr);
+    SymbolEdits::ConvertAllToEffects(_sequenceElements);
 
     mainSequencer->PanelEffectGrid->Refresh();
 
@@ -6743,6 +6733,9 @@ bool xLightsFrame::CleanupSequenceFileLocations()
     }
 
     bool changed = false;
+    // One batch for observers; it records no undo step (files are moved on
+    // disk and the show file is rewritten too).
+    ScopedCommandBatch batch(_sequenceElements.GetCommandExecutor(), "Cleanup File Locations");
     for (size_t j = 0; j < _sequenceElements.GetElementCount(0); j++) {
         Element* e = _sequenceElements.GetElement(j);
         changed = e->CleanupFileLocations(this, effectManager) || changed;

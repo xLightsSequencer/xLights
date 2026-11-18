@@ -26,6 +26,7 @@ struct SeqFixture {
     EffectLayer* layer = nullptr;
     SeqFixture() : se(ctx.GetSequenceElements()) {
         se.SetViewsManager(&ctx._sequenceViewManager);
+        SeqMutationGuard::Scope setup;
         model = dynamic_cast<ModelElement*>(se.AddElement("Tree", "model", true, false, true, false, false));
         layer = model->GetEffectLayerCount() > 0 ? model->GetEffectLayer(0) : model->AddEffectLayer();
     }

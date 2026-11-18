@@ -50,6 +50,12 @@ public:
     bool SymbolNameExists(const std::string& name) const;
     std::string GetUniqueSymbolName(const std::string& baseName) const;
 
+    // For the symbol commands: a fresh id, and creating or replacing the
+    // definition held under one (linked effects are not touched).
+    std::string NewSymbolId() { return GenerateUniqueId(); }
+    void PutSymbol(const std::string& id, const std::string& name, const std::string& effectType, int effectIndex,
+                   const std::string& settings, const std::string& palette);
+
     void RegisterLinkedEffect(Effect* effect, const std::string& symbolId);
     void UnregisterLinkedEffect(Effect* effect);
     std::vector<Effect*> GetLinkedEffects(const std::string& symbolId) const;

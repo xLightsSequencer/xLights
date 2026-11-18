@@ -40,7 +40,11 @@ UNDO_ACTIONS KindFor(CommandType appliedType) {
     case CommandType::SetTimingFixed:
     case CommandType::SetTag:
     case CommandType::SetSequenceFace:
-    case CommandType::SetSongStructure: return UNDO_BATCH;
+    case CommandType::SetSongStructure:
+    case CommandType::SetElementRenderDisabled:
+    case CommandType::RenameModelElement:
+    case CommandType::SetEffectSymbol:
+    case CommandType::SetEffectSymbolLink: return UNDO_BATCH;
     }
     return UNDO_EFFECT_MODIFIED;
 }
@@ -143,144 +147,12 @@ void UndoManager::RecordInverse(CommandType appliedType, const std::string& labe
     Push(KindFor(appliedType), std::move(inverse), label.empty() ? std::string(ElementCommandUndoLabel(appliedType)) : label);
 }
 
-EffectLayer* UndoManager::ResolveLayer(const std::string& element_name, int exclusive_layer_index, LayerLocator& loc) const
-{
-    Element* element = mParentSequence->GetElement(element_name);
-    if (element == nullptr) {
-        return nullptr;
-    }
-    EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(exclusive_layer_index);
-    if (el != nullptr) {
-        loc.element = element->GetUid();
-        loc.layer = el->GetUid();
-    }
-    return el;
-}
-
-// Each capture is stored as the command that undoes it. When the target
-// can't be found at capture time, an empty entry keeps the step's shape (so
-// CancelLastStep and ChangeCaptured behave as before) and undoes nothing.
-
-void UndoManager::CaptureEffectToBeDeleted( const std::string &element_name, int layer_index, const std::string &name, const std::string &settings,
-                                            const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected )
-{
-    LayerLocator loc;
-    EffectLayer* el = ResolveLayer(element_name, layer_index, loc);
-    if (el == nullptr) {
-        Push(UNDO_EFFECT_DELETED, nullptr);
-        return;
-    }
-    EffectState state;
-    // Callers capture before removing the effect, so it is still in the layer;
-    // keep its identity so undo restores it and earlier steps naming it still
-    // resolve.
-    for (Effect* e : el->GetEffects()) {
-        if (e->GetStartTimeMS() == startTimeMS && e->GetEndTimeMS() == endTimeMS && e->GetEffectName() == name) {
-            state.uid = e->GetUid();
-            break;
-        }
-    }
-    state.name = name;
-    state.settings = settings;
-    state.palette = palette;
-    state.startTimeMS = startTimeMS;
-    state.endTimeMS = endTimeMS;
-    state.isProtected = Protected;
-    state.selected = Selected;
-    Push(UNDO_EFFECT_DELETED, std::make_unique<AddEffectCommand>(loc, std::move(state)));
-}
-
-void UndoManager::CaptureAddedEffect( const std::string &element_name, int layer_index, int id )
-{
-    LayerLocator loc;
-    EffectLayer* el = ResolveLayer(element_name, layer_index, loc);
-    Effect* e = el == nullptr ? nullptr : el->GetEffectFromID(id);
-    if (e == nullptr) {
-        Push(UNDO_EFFECT_ADDED, nullptr);
-        return;
-    }
-    Push(UNDO_EFFECT_ADDED, std::make_unique<DeleteEffectCommand>(EffectLocator{ loc.element, loc.layer, e->GetUid() }));
-}
-
-void UndoManager::CaptureEffectToBeMoved( const std::string &element_name, int layer_index, int id, int startTimeMS, int endTimeMS )
-{
-    LayerLocator loc;
-    EffectLayer* el = ResolveLayer(element_name, layer_index, loc);
-    Effect* e = el == nullptr ? nullptr : el->GetEffectFromID(id);
-    if (e == nullptr) {
-        Push(UNDO_EFFECT_MOVED, nullptr);
-        return;
-    }
-    Push(UNDO_EFFECT_MOVED, std::make_unique<MoveEffectCommand>(EffectLocator{ loc.element, loc.layer, e->GetUid() }, startTimeMS, endTimeMS));
-}
-
-void UndoManager::CaptureModifiedEffect( const std::string &element_name, int layer_index, int id, const std::string &settings, const std::string &palette )
-{
-    LayerLocator loc;
-    EffectLayer* el = ResolveLayer(element_name, layer_index, loc);
-    Effect* e = el == nullptr ? nullptr : el->GetEffectFromID(id);
-    if (e == nullptr) {
-        Push(UNDO_EFFECT_MODIFIED, nullptr);
-        return;
-    }
-    Push(UNDO_EFFECT_MODIFIED, std::make_unique<ModifyEffectCommand>(EffectLocator{ loc.element, loc.layer, e->GetUid() }, std::nullopt,
-                                                                     SettingsChange::ReplaceWith(settings), SettingsChange::ReplaceWith(palette)));
-}
-
-void UndoManager::CaptureModifiedEffect( const std::string &element_name, int layer_index, Effect *ef )
-{
-    LayerLocator loc;
-    EffectLayer* el = ResolveLayer(element_name, layer_index, loc);
-    if (el == nullptr || ef == nullptr) {
-        Push(UNDO_EFFECT_MODIFIED, nullptr);
-        return;
-    }
-    std::optional<std::string> name;
-    if (ef->GetEffectIndex() >= 0) {
-        name = ef->GetEffectName();
-    }
-    Push(UNDO_EFFECT_MODIFIED, std::make_unique<ModifyEffectCommand>(EffectLocator{ loc.element, loc.layer, ef->GetUid() }, std::move(name),
-                                                                     SettingsChange::ReplaceWith(ef->GetSettingsAsString()),
-                                                                     SettingsChange::ReplaceWith(ef->GetPaletteAsString())));
-}
-
 void UndoManager::EnforceMaxSteps()
 {
     if (mMaxSteps == 0) return;  // cap disabled
     while (mUndoSteps.size() > mMaxSteps) {
         mUndoSteps.erase(mUndoSteps.begin());
     }
-}
-
-void UndoManager::CaptureAddedLayer( const std::string &element_name, int exclusive_layer_index, int layer_number )
-{
-    LayerLocator loc;
-    EffectLayer* el = ResolveLayer(element_name, exclusive_layer_index, loc);
-    if (el == nullptr || el->GetParentElement() == nullptr) {
-        Push(UNDO_LAYER_ADDED, nullptr);
-        return;
-    }
-    // Remove it from the element that owns it: a model-level name also finds
-    // submodel and strand layers.
-    Push(UNDO_LAYER_ADDED, std::make_unique<RemoveLayerCommand>(el->GetParentElement()->GetUid(), el->GetUid()));
-}
-
-void UndoManager::CaptureRemovedLayer( const std::string &element_name, int layer_number )
-{
-    // Captured before the layer is removed: record enough to re-create it
-    // under the same id, in the same place, with its name and contents.
-    Element* element = mParentSequence->GetElement(element_name);
-    EffectLayer* el = element == nullptr ? nullptr : element->GetEffectLayer(layer_number);
-    if (el == nullptr) {
-        Push(UNDO_LAYER_REMOVED, nullptr);
-        return;
-    }
-    SeqObjectId after = layer_number > 0 ? element->GetEffectLayer(layer_number - 1)->GetUid() : kNoSeqObjectId;
-    std::vector<EffectState> effects;
-    for (const Effect* e : el->GetEffects()) {
-        effects.push_back(EffectState::Of(*e));
-    }
-    Push(UNDO_LAYER_REMOVED, std::make_unique<AddLayerCommand>(element->GetUid(), el->GetUid(), after, layer_number, el->GetLayerName(), std::move(effects)));
 }
 
 void UndoManager::CancelLastStep() {

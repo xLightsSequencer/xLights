@@ -47,6 +47,10 @@ public:
                SettingsChange palette);
 
     void EndBurst() { _open = false; }
+    // The next change that would start a new undo step adds to the step
+    // recorded last instead, if nothing else has touched the undo history
+    // since: one undo step for "embed this image, then use it".
+    void JoinNextToCurrentStep(SequenceElements& seq);
     bool InBurst() const { return _open; }
 
     // The change Effect::SetSettings(settings, keepxsettings = true) makes:
@@ -63,4 +67,6 @@ private:
     SeqObjectId _effect = kNoSeqObjectId;
     uint64_t _historySerial = 0;
     int64_t _lastMS = 0;
+    const SequenceElements* _joinSeq = nullptr;
+    uint64_t _joinSerial = 0;
 };

@@ -176,6 +176,7 @@ int Element::GetLastSelectedEffectEndMS() const
 
 void Element::SetRenderDisabled(bool rd)
 {
+    XL_SEQ_MUTATION("Element::SetRenderDisabled");
     _renderDisabled = rd;
 }
 

@@ -14,6 +14,8 @@
 #include <vector>
 
 #include "EffectLayer.h"
+
+#include <unordered_map>
 #include "Effect.h"
 #include "../models/Model.h"
 #include "../effects/EffectManager.h"
@@ -72,8 +74,23 @@ EffectLayer::EffectLayer(Element* parent)
     name = nullptr;
 }
 
+struct EffectLayer::UidIndex {
+    std::mutex lock;
+    std::unordered_map<SeqObjectId, Effect*> map;
+    bool valid = false;
+};
+
+void EffectLayer::InvalidateUidIndex()
+{
+    if (UidIndex* ix = mUidIndex.load(std::memory_order_acquire)) {
+        std::lock_guard<std::mutex> l(ix->lock);
+        ix->valid = false;
+    }
+}
+
 EffectLayer::~EffectLayer()
 {
+    delete mUidIndex.load();
     std::unique_lock<std::recursive_mutex> locker(acquireLockWaitForRender());
     for (int x = 0; x < (int)mEffects.size(); x++) {
         delete mEffects[x];
@@ -147,12 +164,48 @@ Effect* EffectLayer::GetEffectFromUid(SeqObjectId uid) const
     if (uid == kNoSeqObjectId) {
         return nullptr;
     }
-    for (Effect* e : mEffects) {
-        if (e->GetUid() == uid) {
-            return e;
+    auto scan = [&]() -> Effect* {
+        for (Effect* e : mEffects) {
+            if (e->GetUid() == uid) {
+                return e;
+            }
+        }
+        return nullptr;
+    };
+    constexpr size_t kIndexAbove = 32;
+    if (mEffects.size() <= kIndexAbove) {
+        return scan();
+    }
+    UidIndex* ix = mUidIndex.load(std::memory_order_acquire);
+    if (ix == nullptr) {
+        auto* fresh = new UidIndex();
+        if (mUidIndex.compare_exchange_strong(ix, fresh, std::memory_order_acq_rel)) {
+            ix = fresh;
+        } else {
+            delete fresh;
         }
     }
-    return nullptr;
+    std::lock_guard<std::mutex> l(ix->lock);
+    auto rebuild = [&]() {
+        ix->map.clear();
+        ix->map.reserve(mEffects.size());
+        for (Effect* e : mEffects) {
+            ix->map.emplace(e->GetUid(), e);
+        }
+        ix->valid = true;
+    };
+    if (!ix->valid) {
+        rebuild();
+    }
+    auto it = ix->map.find(uid);
+    if (it != ix->map.end() && it->second->GetUid() == uid) {
+        return it->second;
+    }
+    Effect* found = scan();
+    if (found != nullptr) {
+        rebuild();
+    }
+    return found;
 }
 
 int EffectLayer::GetFirstSelectedEffectStartMS() const
@@ -183,8 +236,10 @@ void EffectLayer::RemoveEffect(int index)
         Effect *e = mEffects[index];
         if (!e->IsLocked()) {
             mEffects.erase(mEffects.begin() + index);
+            InvalidateUidIndex();
             IncrementChangeCount(e->GetStartTimeMS(), e->GetEndTimeMS());
             e->SetTimeToDelete();
+            e->DetachFromSymbolManager();
             std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(e);
             NumberEffects();
@@ -200,9 +255,11 @@ void EffectLayer::DeleteEffect(int id)
         if (mEffects[i]->GetID() == id) {
             IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
             mEffects[i]->SetTimeToDelete();
+            mEffects[i]->DetachFromSymbolManager();
             std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(mEffects[i]);
             mEffects.erase(mEffects.begin() + i);
+            InvalidateUidIndex();
             NumberEffects();
             return;
         }
@@ -266,6 +323,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     Effect* e = new Effect(em, this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected, importing);
     assert(e != nullptr);
     mEffects.push_back(e);
+    InvalidateUidIndex();
     if (!suppress_sort) {
         SortEffects();
     }
@@ -1180,11 +1238,13 @@ void EffectLayer::DeleteAllEffects()
         if (!it->IsLocked()) {
             IncrementChangeCount(it->GetStartTimeMS(), it->GetEndTimeMS());
             it->SetTimeToDelete();
+            it->DetachFromSymbolManager();
             std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(it);
         }
     }
     mEffects.erase(std::remove_if(mEffects.begin(), mEffects.end(), ShouldDeleteNotLocked), mEffects.end());
+    InvalidateUidIndex();
 }
 
 bool EffectLayer::DeleteEffectByUid(SeqObjectId uid)
@@ -1195,9 +1255,11 @@ bool EffectLayer::DeleteEffectByUid(SeqObjectId uid)
         if (mEffects[i]->GetUid() == uid) {
             IncrementChangeCount(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
             mEffects[i]->SetTimeToDelete();
+            mEffects[i]->DetachFromSymbolManager();
             std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(mEffects[i]);
             mEffects.erase(mEffects.begin() + i);
+            InvalidateUidIndex();
             NumberEffects();
             return true;
         }
@@ -1212,9 +1274,11 @@ void EffectLayer::DeleteEffectByIndex(int idx) {
     {
         IncrementChangeCount(mEffects[idx]->GetStartTimeMS(), mEffects[idx]->GetEndTimeMS());
         mEffects[idx]->SetTimeToDelete();
+        mEffects[idx]->DetachFromSymbolManager();
         std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
         mEffectsToDelete.push_back(mEffects[idx]);
         mEffects.erase(mEffects.begin() + idx);
+        InvalidateUidIndex();
     }
 }
 
@@ -1287,7 +1351,9 @@ bool EffectLayer::CleanupFileLocations(RenderContext* ctx, EffectManager& em)
         if (ef->GetEffectIndex() >= 0)
         {
             RenderableEffect *eff = em[ef->GetEffectIndex()];
-            rc = eff->CleanupFileLocations(ctx, ef->GetSettings()) || rc;
+            // The files are moved on disk, which undo can't reverse, so the
+            // rewritten references are reported but make no undo step.
+            EditEffectCmd(this, ef, [&](Effect& e) { rc = eff->CleanupFileLocations(ctx, e.GetSettings()) || rc; }, false);
         }
     }
 

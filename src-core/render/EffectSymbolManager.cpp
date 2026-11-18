@@ -11,6 +11,7 @@
 #include "EffectSymbolManager.h"
 #include "EffectSymbol.h"
 #include "Effect.h"
+#include "SequenceMutationGuard.h"
 
 #include <pugixml.hpp>
 #include <algorithm>
@@ -47,6 +48,7 @@ std::string EffectSymbolManager::GenerateUniqueId()
 
 EffectSymbol* EffectSymbolManager::CreateSymbol(const std::string& name, const Effect* sourceEffect)
 {
+    XL_SEQ_MUTATION("EffectSymbolManager::CreateSymbol");
     std::lock_guard<std::recursive_mutex> lock(_lock);
     if (sourceEffect == nullptr) return nullptr;
 
@@ -71,6 +73,7 @@ EffectSymbol* EffectSymbolManager::CreateSymbol(const std::string& name, const E
 
 EffectSymbol* EffectSymbolManager::CreateEmptySymbol(const std::string& name, const std::string& effectType, int effectIndex)
 {
+    XL_SEQ_MUTATION("EffectSymbolManager::CreateEmptySymbol");
     std::lock_guard<std::recursive_mutex> lock(_lock);
     std::string uniqueName = name;
     if (SymbolNameExists(name)) {
@@ -126,6 +129,7 @@ std::vector<EffectSymbol*> EffectSymbolManager::GetAllSymbols() const
 
 bool EffectSymbolManager::DeleteSymbol(const std::string& id)
 {
+    XL_SEQ_MUTATION("EffectSymbolManager::DeleteSymbol");
     std::lock_guard<std::recursive_mutex> lock(_lock);
     auto it = _symbols.find(id);
     if (it == _symbols.end()) {
@@ -151,8 +155,38 @@ bool EffectSymbolManager::DeleteSymbol(const std::string& id)
     return true;
 }
 
+void EffectSymbolManager::PutSymbol(const std::string& id, const std::string& name, const std::string& effectType, int effectIndex,
+                                    const std::string& settings, const std::string& palette)
+{
+    XL_SEQ_MUTATION("EffectSymbolManager::PutSymbol");
+    std::lock_guard<std::recursive_mutex> lock(_lock);
+    auto it = _symbols.find(id);
+    bool created = it == _symbols.end();
+    if (created) {
+        it = _symbols.emplace(id, std::make_unique<EffectSymbol>(id, name)).first;
+    }
+    EffectSymbol* sym = it->second.get();
+    std::string oldName = sym->GetName();
+    sym->SetName(name);
+    sym->SetEffectType(effectType);
+    sym->SetEffectIndex(effectIndex);
+    sym->SetSettingsFromString(settings);
+    sym->SetPalette(palette);
+    for (auto* listener : _listeners) {
+        if (created) {
+            listener->OnSymbolCreated(id);
+        } else {
+            if (oldName != name) {
+                listener->OnSymbolRenamed(id, oldName, name);
+            }
+            listener->OnSymbolChanged(id);
+        }
+    }
+}
+
 bool EffectSymbolManager::RenameSymbol(const std::string& id, const std::string& newName)
 {
+    XL_SEQ_MUTATION("EffectSymbolManager::RenameSymbol");
     std::lock_guard<std::recursive_mutex> lock(_lock);
     auto it = _symbols.find(id);
     if (it == _symbols.end()) {
@@ -244,6 +278,7 @@ size_t EffectSymbolManager::GetLinkedEffectCount(const std::string& symbolId) co
 
 void EffectSymbolManager::UpdateSymbolSettings(const std::string& id, const std::string& settings)
 {
+    XL_SEQ_MUTATION("EffectSymbolManager::UpdateSymbolSettings");
     std::lock_guard<std::recursive_mutex> lock(_lock);
     EffectSymbol* symbol = GetSymbol(id);
     if (symbol == nullptr) return;
@@ -254,6 +289,7 @@ void EffectSymbolManager::UpdateSymbolSettings(const std::string& id, const std:
 
 void EffectSymbolManager::UpdateSymbolPalette(const std::string& id, const std::string& palette)
 {
+    XL_SEQ_MUTATION("EffectSymbolManager::UpdateSymbolPalette");
     std::lock_guard<std::recursive_mutex> lock(_lock);
     EffectSymbol* symbol = GetSymbol(id);
     if (symbol == nullptr) return;

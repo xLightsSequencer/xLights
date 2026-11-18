@@ -179,6 +179,13 @@ private:
     void GetMaximumRangeWithRightMovement(int index, int& toLeft, int& toRight);
     std::vector<Effect*> mEffects;
     std::list<Effect*> mEffectsToDelete;
+    // GetEffectFromUid index for layers with many effects, created on first
+    // use. Dropped whenever mEffects gains or loses an effect; a hit is
+    // checked against the effect's current id and a miss falls back to a
+    // scan, so an id changed behind its back can't make it lie.
+    struct UidIndex;
+    mutable std::atomic<UidIndex*> mUidIndex{ nullptr };
+    void InvalidateUidIndex();
     int mIndex = 0;
     SeqObjectId mUid = SeqIds::Next();
     Element* mParentElement = nullptr;

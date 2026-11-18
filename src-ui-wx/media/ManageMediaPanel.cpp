@@ -1208,7 +1208,7 @@ std::string ManageMediaPanel::EmbedWithRename(const std::string& fullPath)
     // every effect + face reference, and is a no-op when the file sits outside
     // the show and media folders or the relative key is already taken.
     if (_sequenceElements == nullptr) return fullPath;
-    MediaEditBatch undoStep(*_sequenceElements, "Embed Media");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Embed Media");
     std::string newPath = _sequenceElements->MakeMediaPathRelative(fullPath);
     SeqMediaEdits::Embed(*_sequenceElements, newPath);
     return newPath;
@@ -1531,7 +1531,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
         GetXLightsConfig()->Write(LastDirConfigKey(MediaType::Image), wxFileName(pickedPath).GetPath());
     }
 
-    MediaEditBatch undoStep(*_sequenceElements, "Re-select Image");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Re-select Image");
 
     // --- Step 2: if same path, just reload and done ---
     if (pickedPath == oldPath) {
@@ -1745,7 +1745,7 @@ void ManageMediaPanel::OnBulkFindImages()
     // so a cancelled dialog doesn't pay for a recursive scan that goes unused.
     BasenameIndex folderIndex = BuildBasenameIndex(searchDir);
 
-    MediaEditBatch undoStep(*_sequenceElements, "Bulk Find Images");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Bulk Find Images");
     // Scan every image and look it up in the pre-built folder index
     int found = 0;
     int stillMissing = 0;
@@ -1983,7 +1983,7 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
     int found = 0;
     int stillMissing = 0;
     std::string lastFixedPath;
-    MediaEditBatch undoStep(*_sequenceElements, "Bulk Find Media");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Bulk Find Media");
     for (const auto& oldPath : mediaPaths) {
         wxString nameToFind = BaseFileName(oldPath);
         const std::string* foundPath = nameToFind.IsEmpty() ? nullptr
@@ -2085,7 +2085,7 @@ void ManageMediaPanel::BulkCopyExternalMediaByType(MediaType type)
     int copied = 0;
     int failed = 0;
     std::string lastPath;
-    MediaEditBatch undoStep(*_sequenceElements, "Copy Media to Show Folder");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Copy Media to Show Folder");
     for (const auto& oldPath : mediaPaths) {
         std::string newPath = toImportedMedia ? CopyToDir(oldPath, importedMediaDir)
                                                : _xlFrame->MoveToShowFolder(oldPath, sep + subDirName);
@@ -2136,7 +2136,7 @@ void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
         GetXLightsConfig()->Write(LastDirConfigKey(std::nullopt), wxFileName(paths[0]).GetPath());
     std::string lastPath;
     const std::string sep(1, wxFileName::GetPathSeparator());
-    MediaEditBatch undoStep(*_sequenceElements, "Add Media");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Add Media");
     for (const auto& p : paths) {
         std::string path = ToStdString(p);
         MediaType type = MediaTypeFromPath(path);
@@ -2414,7 +2414,7 @@ void ManageMediaPanel::OnEmbedButtonClick(wxCommandEvent& event)
     std::vector<std::string> paths = GetSelectedPaths();
     if (paths.empty()) return;
     std::string lastNewPath;
-    MediaEditBatch undoStep(*_sequenceElements, "Embed Media");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Embed Media");
     for (const auto& path : paths) {
         // Check if media exists and is embeddable (works for all types)
         if (_sequenceMedia->HasMedia(path)) {
@@ -2442,7 +2442,7 @@ void ManageMediaPanel::OnExtractButtonClick(wxCommandEvent& event)
     std::vector<std::string> paths = GetSelectedPaths();
     if (paths.empty()) return;
     std::string lastNewPath;
-    MediaEditBatch undoStep(*_sequenceElements, "Extract Media");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Extract Media");
     for (const auto& path : paths) {
         if (_sequenceMedia->HasImage(path)) {
             auto entry = _sequenceMedia->GetImage(path);
@@ -2469,7 +2469,7 @@ void ManageMediaPanel::OnExtractButtonClick(wxCommandEvent& event)
 void ManageMediaPanel::OnEmbedAllButtonClick(wxCommandEvent& event)
 {
     if (_sequenceMedia == nullptr || _sequenceElements == nullptr) return;
-    MediaEditBatch undoStep(*_sequenceElements, "Embed All Media");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Embed All Media");
     // Snapshot paths first since EmbedWithRename may rename keys mid-iteration
     auto allPaths = _sequenceMedia->GetAllMediaPaths();
     for (const auto& [path, type] : allPaths) {
@@ -2518,7 +2518,7 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
         destDir += wxFileName::GetPathSeparator();
     }
 
-    MediaEditBatch undoStep(*_sequenceElements, "Extract All Media");
+    ScopedCommandBatch undoStep(*_sequenceElements, "Extract All Media");
     auto allPaths = _sequenceMedia->GetAllMediaPaths();
     int failed = 0;
     for (const auto& [path, type] : allPaths) {
@@ -2654,7 +2654,7 @@ void ManageMediaPanel::OnRemoveButtonClick(wxCommandEvent& event)
     }
 
     if (_sequenceElements != nullptr) {
-        MediaEditBatch undoStep(*_sequenceElements, "Remove Media");
+        ScopedCommandBatch undoStep(*_sequenceElements, "Remove Media");
         for (const auto& path : toRemove)
             SeqMediaEdits::Remove(*_sequenceElements, path);
     }

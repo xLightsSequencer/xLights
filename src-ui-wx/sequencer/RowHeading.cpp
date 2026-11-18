@@ -1529,7 +1529,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             return;
         }
 
-        ScopedEditBatch batch(*mSequenceElements, "Generate Subdivided Timing Tracks");
+        ScopedCommandBatch batch(*mSequenceElements, "Generate Subdivided Timing Tracks");
 
         for (size_t i = 0; i < divisors.size(); i++) {
             int divisor = divisors[i];
@@ -1988,18 +1988,19 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         playEvent.SetString(element->GetModelName());
         wxPostEvent(GetParent(), playEvent);
     } else if (id == ID_ROW_MNU_RENDERDISABLE_MODEL) {
-        element->SetRenderDisabled(true);
+        // Like an effect's render-disable, not an undo step.
+        ElementEdits::SetRenderDisabled(*mSequenceElements, element, true, false);
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
     } else if (id == ID_ROW_MNU_RENDERENABLE_MODEL) {
-        element->SetRenderDisabled(false);
+        ElementEdits::SetRenderDisabled(*mSequenceElements, element, false, false);
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(GetParent(), eventForceRefresh);
     } else if (id == ID_ROW_MNU_RENDERENABLE_ALL) {
         for (int i = 0; i < (int)mSequenceElements->GetElementCount(); ++i) {
             auto e = mSequenceElements->GetElement(i);
             if (e->IsRenderDisabled()) {
-                e->SetRenderDisabled(false);
+                ElementEdits::SetRenderDisabled(*mSequenceElements, e, false, false);
             }
         }
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
@@ -2325,7 +2326,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         while (xml_file->TimingAlreadyExists(selectedTiming, xLightsApp::GetFrame())) {
             selectedTiming = wxString::Format("%s_%d", base, suffix++);
         }
-        ScopedEditBatch batch(*mSequenceElements, "Create Timing From Effects");
+        ScopedCommandBatch batch(*mSequenceElements, "Create Timing From Effects");
         xml_file->AddFixedTimingSection(selectedTiming, xLightsApp::GetFrame());
         auto te = mSequenceElements->GetTimingElement(selectedTiming);
         if (te != nullptr) {

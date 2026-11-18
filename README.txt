@@ -51,8 +51,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  re-embed, re-select, bulk find/copy, embed/extract all, remove unused media
                                  and AI images, each as one step
     -enh (dkulp)                 iPad - Media manager edits can be undone: add, embed, extract, rename,
-                                 remove, re-embed, replace, embed/extract all, remove unused, AI images and
-                                 Cleanup File Locations
+                                 remove, re-embed, replace, embed/extract all, remove unused and AI images
     -change (scott)              Controller Open / Open Proxy buttons stay enabled while outputting to lights
     -bug (dkulp)                 Undo could change or delete the wrong effect after effects were added
                                  without undo, lose effects deleted from a layer that was later removed,
@@ -85,9 +84,23 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 iPad - Undo after Promote Node Effects or Convert Data to Effects undid the
                                  previous edit instead
     -enh (dkulp)                 Import Effects (every format, and the automation import commands) can be
-                                 undone in one step; timing tracks and models it added are kept
-    -enh (dkulp)                 iPad - Import Effects, SuperStar import and Import Lyrics can be undone;
-                                 timing tracks and models an import added are kept
+                                 undone in one step, including the timing tracks, models, images and faces
+                                 it added
+    -enh (dkulp)                 iPad - Import Effects, SuperStar import and Import Lyrics can be undone in
+                                 one step, including the timing tracks, models, images and faces they added
+    -enh (dkulp)                 Creating, linking, unlinking, renaming and deleting effect symbols and Convert
+                                 Symbols to Effects can be undone
+    -enh (dkulp)                 iPad - Renaming and deleting effect symbols and Convert All Symbols to Effects
+                                 can be undone
+    -bug (dkulp)                 Undo of deleting an effect linked to a symbol keeps it linked
+    -bug (dkulp)                 iPad - Undo after Replace Color could undo a different edit
+    -bug (dkulp)                 Undo of Breakdown Phrase(s)/Word(s) no longer leaves an empty layer behind
+    -bug (dkulp)                 Embedding a chosen file or AI image from an effect panel and using it is one
+                                 undo step instead of two
+    -bug (dkulp)                 iPad - Cleanup File Locations no longer offers an undo that only reverted part
+                                 of it
+    -bug (dkulp)                 Servo linked start/end values: undo takes back the neighbouring effect's
+                                 change together with the edited effect's
     -enh (dkulp)                 Shift Effects, Shift Effects And Timing, Shift Selected Effects, Convert Data
                                  To Effects, Promote Node Effects and the clearModelEffects / cloneModelEffects
                                  automation commands can be undone in one step

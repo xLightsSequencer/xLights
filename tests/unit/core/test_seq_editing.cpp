@@ -24,6 +24,7 @@ struct SeqFixture {
     EffectLayer* layer = nullptr;
     SeqFixture() : se(ctx.GetSequenceElements()) {
         se.SetViewsManager(&ctx._sequenceViewManager);
+        SeqMutationGuard::Scope setup;
         model = dynamic_cast<ModelElement*>(se.AddElement("Tree", "model", true, false, true, false, false));
         layer = model->GetEffectLayerCount() > 0 ? model->GetEffectLayer(0) : model->AddEffectLayer();
     }
@@ -65,12 +66,11 @@ TEST_CASE("Edit-site calls join the caller's current undo step", "[seq][editing]
     CHECK(f.layer->GetEffectCount() == 2);
 }
 
-TEST_CASE("Edit-site calls mix with legacy captures in one step", "[seq][editing][undo]") {
+TEST_CASE("Edit-site calls in one step undo together", "[seq][editing][undo]") {
     SeqFixture f;
     Effect* e = f.Exec().AddEffect(f.layer, "On", "", "", 0, 100, 0, false, false);
     f.Undo().CreateUndoStep();
-    f.Undo().CaptureEffectToBeMoved("Tree", f.layer->GetIndex(), e->GetID(), 0, 100);
-    e->SetStartTimeMS(50);
+    f.Exec().MoveEffect(e, 50, 100);
     f.Exec().SetEffectSetting(e, "E_SLIDER_X", std::string("7"));
     f.Undo().UndoLastStep();
     CHECK(e->GetStartTimeMS() == 0);

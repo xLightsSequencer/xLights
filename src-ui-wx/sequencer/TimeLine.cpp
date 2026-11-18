@@ -447,7 +447,7 @@ void TimeLine::SetTagPosition(int tag, int position , bool flag)
 void TimeLine::ClearTags()
 {
     if (_sequenceElements) {
-        ScopedEditBatch batch(*_sequenceElements, "Delete All Tags");
+        ScopedCommandBatch batch(*_sequenceElements, "Delete All Tags");
         for (int i = 0; i < 10; ++i) {
             ElementEdits::SetTagPosition(*_sequenceElements, i, -1);
         }

@@ -6910,9 +6910,6 @@ class SequencerViewModel {
 
     // MARK: - Color Replace (SEQ-2)
 
-    /// One captured (row, effectIndex, palette-string) for undo.
-    private struct PaletteSnapshot { let row: Int; let idx: Int; let pal: String }
-
     /// The current effect selection as (row, effectIndex) pairs — the
     /// multi-select set, or the single selected effect when no multi
     /// selection is active. Empty when nothing is selected.
@@ -6942,65 +6939,25 @@ class SequencerViewModel {
     /// SEQ-2: replace `from` colour with `to`. `selectedOnly` scopes to
     /// the current selection via the bridge's sync-on-demand path (the
     /// iPad keeps selection in Swift, mirrored into the core flags only
-    /// for the op, then cleared). The core `ReplaceColours` records into
-    /// the core undo manager, which the iPad's Foundation Cmd-Z does not
-    /// drive, so we register a palette-snapshot undo here. Returns the
-    /// number of effects changed.
+    /// for the op, then cleared). The core `ReplaceColours` records one
+    /// core undo step, which Cmd-Z undoes. Returns the number of effects
+    /// changed.
     @discardableResult
     func replaceColour(from: String, to: String, selectedOnly: Bool = false) -> Int {
         guard !from.isEmpty, !to.isEmpty else { return 0 }
         let pairs = currentSelectionPairs()
         if selectedOnly && pairs.isEmpty { return 0 }
-        // Snapshot the in-scope effects' palettes so undo restores exactly
-        // the ones the replace changes.
-        var before: [PaletteSnapshot] = []
-        if selectedOnly {
-            for p in pairs {
-                before.append(PaletteSnapshot(row: p.row, idx: p.idx,
-                    pal: document.currentPaletteString(forRow: Int32(p.row), at: Int32(p.idx))))
+        let count = performCoreUndoableEdit("Replace Color") { () -> Int in
+            if selectedOnly {
+                return Int(document.replaceColour(from: from, to: to,
+                                                  atRows: pairs.map { NSNumber(value: $0.row) },
+                                                  effectIndices: pairs.map { NSNumber(value: $0.idx) }))
             }
-        } else {
-            for (r, row) in rows.enumerated() where row.timing == nil {
-                for i in row.effects.indices {
-                    before.append(PaletteSnapshot(row: r, idx: i,
-                        pal: document.currentPaletteString(forRow: Int32(r), at: Int32(i))))
-                }
-            }
-        }
-        let count: Int
-        if selectedOnly {
-            count = Int(document.replaceColour(from: from, to: to,
-                                               atRows: pairs.map { NSNumber(value: $0.row) },
-                                               effectIndices: pairs.map { NSNumber(value: $0.idx) }))
-        } else {
-            count = Int(document.replaceColour(from: from, to: to, selectedOnly: false))
+            return Int(document.replaceColour(from: from, to: to, selectedOnly: false))
         }
         guard count > 0 else { return 0 }
         reloadRows()
-        let changed = before.filter {
-            document.currentPaletteString(forRow: Int32($0.row), at: Int32($0.idx)) != $0.pal
-        }
-        registerPaletteRestoreUndo(changed, actionName: "Replace Color")
         return count
-    }
-
-    /// Register a Foundation undo that restores the given palette
-    /// snapshot; the undo captures the current palettes first and
-    /// re-registers itself so redo re-applies — a symmetric pair.
-    private func registerPaletteRestoreUndo(_ snap: [PaletteSnapshot], actionName: String) {
-        guard !snap.isEmpty else { return }
-        undoManager.registerUndo(withTarget: self) { vm in
-            let inverse = snap.map {
-                PaletteSnapshot(row: $0.row, idx: $0.idx,
-                                pal: vm.document.currentPaletteString(forRow: Int32($0.row), at: Int32($0.idx)))
-            }
-            for s in snap {
-                _ = vm.document.applyPaletteString(s.pal, toRow: Int32(s.row), at: Int32(s.idx))
-            }
-            vm.reloadRows()
-            vm.registerPaletteRestoreUndo(inverse, actionName: actionName)
-        }
-        undoManager.setActionName(actionName)
     }
 
     // MARK: - Shift Effects (time-offset bulk move)
@@ -9607,14 +9564,13 @@ class SequencerViewModel {
         guard let sel = selectedEffect else { return "Select a single effect first." }
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty { return "Symbol name cannot be empty." }
-        let before = captureForSymbolUndo(sel)
-        guard document.createSymbolNamed(trimmed,
-                                          fromEffectInRow: Int32(sel.rowIndex),
-                                          at: Int32(sel.effectIndex)) != nil else {
+        guard performCoreUndoableEdit("Create Symbol", {
+            document.createSymbolNamed(trimmed,
+                                       fromEffectInRow: Int32(sel.rowIndex),
+                                       at: Int32(sel.effectIndex)) != nil
+        }) else {
             return "A symbol named “\(trimmed)” already exists."
         }
-        registerSymbolUndo(before)
-        undoManager.setActionName("Create Symbol")
         reloadRows()
         return nil
     }
@@ -9625,19 +9581,19 @@ class SequencerViewModel {
     func linkSelectedEffectsToSymbol(id symbolId: String) -> Int {
         let targets = symbolOpTargets
         guard !targets.isEmpty else { return 0 }
+        let actionName = targets.count > 1 ? "Link \(targets.count) Effects to Symbol" : "Link Effect to Symbol"
         undoManager.beginUndoGrouping()
         var n = 0
         for sel in targets {
-            let before = captureForSymbolUndo(sel)
-            if document.linkEffect(inRow: Int32(sel.rowIndex),
+            if performCoreUndoableEdit(actionName, {
+                document.linkEffect(inRow: Int32(sel.rowIndex),
                                     at: Int32(sel.effectIndex),
-                                    toSymbolId: symbolId) {
-                registerSymbolUndo(before)
+                                    toSymbolId: symbolId)
+            }) {
                 n += 1
             }
         }
         undoManager.endUndoGrouping()
-        undoManager.setActionName(n > 1 ? "Link \(n) Effects to Symbol" : "Link Effect to Symbol")
         if n > 0 { reloadRows(); refreshSelectedEffectSettings() }
         return n
     }
@@ -9647,18 +9603,18 @@ class SequencerViewModel {
     func unlinkSelectedEffectsFromSymbol() -> Int {
         let targets = symbolOpTargets
         guard !targets.isEmpty else { return 0 }
+        let actionName = targets.count > 1 ? "Unlink \(targets.count) Effects" : "Unlink Effect"
         undoManager.beginUndoGrouping()
         var n = 0
         for sel in targets {
-            let before = captureForSymbolUndo(sel)
-            if document.unlinkEffectFromSymbol(inRow: Int32(sel.rowIndex),
-                                                at: Int32(sel.effectIndex)) {
-                registerSymbolUndo(before)
+            if performCoreUndoableEdit(actionName, {
+                document.unlinkEffectFromSymbol(inRow: Int32(sel.rowIndex),
+                                                at: Int32(sel.effectIndex))
+            }) {
                 n += 1
             }
         }
         undoManager.endUndoGrouping()
-        undoManager.setActionName(n > 1 ? "Unlink \(n) Effects" : "Unlink Effect")
         if n > 0 { reloadRows() }
         return n
     }
@@ -9666,7 +9622,8 @@ class SequencerViewModel {
     @discardableResult
     func renameEffectSymbol(id: String, to newName: String) -> Bool {
         let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, document.renameSymbolId(id, toName: trimmed) else { return false }
+        guard !trimmed.isEmpty,
+              performCoreUndoableEdit("Rename Symbol", { document.renameSymbolId(id, toName: trimmed) }) else { return false }
         reloadRows()
         return true
     }
@@ -9674,7 +9631,7 @@ class SequencerViewModel {
     /// Delete a symbol; effects linked to it keep the settings they have.
     @discardableResult
     func deleteEffectSymbol(id: String) -> Bool {
-        guard document.deleteSymbolId(id) else { return false }
+        guard performCoreUndoableEdit("Delete Symbol", { document.deleteSymbolId(id) }) else { return false }
         reloadRows()
         return true
     }
@@ -9682,7 +9639,7 @@ class SequencerViewModel {
     /// Desktop Tools ▸ "Convert All Symbols to Effects" — unlink everything and
     /// drop the symbol table so the sequence opens cleanly in older xLights.
     func convertAllSymbolsToEffects() -> (converted: Int, symbols: Int) {
-        let d = document.convertAllSymbolsToEffects() as NSDictionary
+        let d = performCoreUndoableEdit("Convert Symbols to Effects", { document.convertAllSymbolsToEffects() }) as NSDictionary
         reloadRows()
         return ((d["converted"] as? NSNumber)?.intValue ?? 0,
                 (d["symbols"] as? NSNumber)?.intValue ?? 0)

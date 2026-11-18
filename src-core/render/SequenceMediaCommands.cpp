@@ -343,15 +343,6 @@ std::unique_ptr<BatchCommand> BuildRenameMedia(const SequenceElements& seq, cons
 // Edit-site helpers
 // ---------------------------------------------------------------------------
 
-MediaEditBatch::MediaEditBatch(SequenceElements& seq, const std::string& label) :
-    _exec(seq.GetCommandExecutor()) {
-    _exec.BeginBatch(label);
-}
-
-MediaEditBatch::~MediaEditBatch() {
-    _exec.EndBatch();
-}
-
 namespace SeqMediaEdits {
 
 namespace {
@@ -361,7 +352,7 @@ bool Run(SequenceElements& seq, std::unique_ptr<SequenceCommand> cmd, bool recor
 } // namespace
 
 bool Put(SequenceElements& seq, MediaEntryState state, const std::string& label) {
-    MediaEditBatch batch(seq, label);
+    ScopedCommandBatch batch(seq, label);
     return Run(seq, std::make_unique<PutMediaCommand>(std::move(state)));
 }
 
@@ -369,7 +360,7 @@ bool Remove(SequenceElements& seq, const std::string& key, const std::string& la
     if (!seq.GetSequenceMedia().HasMedia(key)) {
         return false;
     }
-    MediaEditBatch batch(seq, label);
+    ScopedCommandBatch batch(seq, label);
     return Run(seq, std::make_unique<RemoveMediaCommand>(key));
 }
 
@@ -382,7 +373,7 @@ bool Rename(SequenceElements& seq, const std::string& from, const std::string& t
     if (cmds->IsEmpty()) {
         return false;
     }
-    MediaEditBatch batch(seq, label);
+    ScopedCommandBatch batch(seq, label);
     return Run(seq, std::move(cmds), recordUndo);
 }
 
@@ -442,7 +433,7 @@ bool Extract(SequenceElements& seq, const std::string& key, const std::string& d
         return false;
     }
     const std::string& target = newKey.empty() ? key : newKey;
-    MediaEditBatch batch(seq, "Extract Media");
+    ScopedCommandBatch batch(seq, "Extract Media");
     if (target != key && !Rename(seq, key, target, true)) {
         return false;
     }
@@ -475,7 +466,7 @@ std::string MakeRelative(SequenceElements& seq, const std::string& path) {
 
 int EmbedAll(SequenceElements& seq) {
     SequenceMedia& media = seq.GetSequenceMedia();
-    MediaEditBatch batch(seq, "Embed All Media");
+    ScopedCommandBatch batch(seq, "Embed All Media");
     int count = 0;
     for (const auto& [key, type] : media.GetAllMediaPaths()) {
         if (!MediaEntryState::IsEmbeddableType(type)) {
@@ -495,7 +486,7 @@ int EmbedAll(SequenceElements& seq) {
 
 int ExtractAll(SequenceElements& seq) {
     SequenceMedia& media = seq.GetSequenceMedia();
-    MediaEditBatch batch(seq, "Extract All Media");
+    ScopedCommandBatch batch(seq, "Extract All Media");
     int count = 0;
     for (const auto& [key, type] : media.GetAllMediaPaths()) {
         auto cur = media.GetEntryState(key);
@@ -515,7 +506,7 @@ int RemoveUnreferenced(SequenceElements& seq) {
     for (const auto& p : seq.GetSequenceFaces().GetImagePaths()) {
         used.insert(p);
     }
-    MediaEditBatch batch(seq, "Remove Unused Media");
+    ScopedCommandBatch batch(seq, "Remove Unused Media");
     int removed = 0;
     for (const auto& p : media.GetAllMediaPaths()) {
         if (used.count(p.first) == 0 && !media.IsUsedByMetadata(p.first) &&
