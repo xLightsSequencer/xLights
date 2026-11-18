@@ -31,6 +31,7 @@ const long CheckSequenceSettingsPanel::ID_CHECKBOX4 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX5 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX6 = wxNewId();
 const long CheckSequenceSettingsPanel::ID_CHECKBOX7 = wxNewId();
+const long CheckSequenceSettingsPanel::ID_CHECKBOX8 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(CheckSequenceSettingsPanel,wxPanel)
@@ -75,6 +76,10 @@ CheckSequenceSettingsPanel::CheckSequenceSettingsPanel(wxWindow* parent, xLights
 	CheckBox_DisableSketch->SetValue(false);
 	CheckBox_DisableSketch->SetHelpText(_("Sketch effect image files are not essential to rendering."));
 	GridBagSizer1->Add(CheckBox_DisableSketch, wxGBPosition(7, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
+	CheckBox_MediaCompat = new wxCheckBox(this, ID_CHECKBOX8, _("Disable media compatibility checking."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
+	CheckBox_MediaCompat->SetValue(false);
+	CheckBox_MediaCompat->SetHelpText(_("Checks that video and audio files can be decoded by AVFoundation (macOS/iPad). If you only ever run on Windows or Linux this check can be safely disabled."));
+	GridBagSizer1->Add(CheckBox_MediaCompat, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
 	SetSizer(GridBagSizer1);
 	GridBagSizer1->Fit(this);
 	GridBagSizer1->SetSizeHints(this);
@@ -86,6 +91,7 @@ CheckSequenceSettingsPanel::CheckSequenceSettingsPanel(wxWindow* parent, xLights
 	Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_TransTimeClick);
 	Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_CustomSizeCheckClick);
 	Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_DisableSketchClick);
+	Connect(ID_CHECKBOX8,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CheckSequenceSettingsPanel::OnCheckBox_MediaCompatClick);
 	//*)
 
 	CheckBox_DupUniv->SetToolTip(CheckBox_DupUniv->GetHelpText());
@@ -95,6 +101,7 @@ CheckSequenceSettingsPanel::CheckSequenceSettingsPanel(wxWindow* parent, xLights
     CheckBox_TransTime->SetToolTip(CheckBox_TransTime->GetHelpText());
     CheckBox_CustomSizeCheck->SetToolTip(CheckBox_CustomSizeCheck->GetHelpText());
     CheckBox_DisableSketch->SetToolTip(CheckBox_DisableSketch->GetHelpText());
+    CheckBox_MediaCompat->SetToolTip(CheckBox_MediaCompat->GetHelpText());
 }
 
 CheckSequenceSettingsPanel::~CheckSequenceSettingsPanel()
@@ -111,6 +118,7 @@ bool CheckSequenceSettingsPanel::TransferDataToWindow() {
     CheckBox_TransTime->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("TransTime"));
     CheckBox_CustomSizeCheck->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("CustomSizeCheck"));
     CheckBox_DisableSketch->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("SketchImage"));
+    CheckBox_MediaCompat->SetValue(xLightsFrame::IsCheckSequenceOptionDisabledS("MediaCompat"));
     return true;
 }
 bool CheckSequenceSettingsPanel::TransferDataFromWindow() {
@@ -121,6 +129,7 @@ bool CheckSequenceSettingsPanel::TransferDataFromWindow() {
     xLightsFrame::SetCheckSequenceOptionDisable("TransTime", CheckBox_TransTime->IsChecked());
     xLightsFrame::SetCheckSequenceOptionDisable("CustomSizeCheck", CheckBox_CustomSizeCheck->IsChecked());
     xLightsFrame::SetCheckSequenceOptionDisable("SketchImage", CheckBox_DisableSketch->IsChecked());
+    xLightsFrame::SetCheckSequenceOptionDisable("MediaCompat", CheckBox_MediaCompat->IsChecked());
     return true;
 }
 
@@ -167,6 +176,13 @@ void CheckSequenceSettingsPanel::OnCheckBox_CustomSizeCheckClick(wxCommandEvent&
 }
 
 void CheckSequenceSettingsPanel::OnCheckBox_DisableSketchClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void CheckSequenceSettingsPanel::OnCheckBox_MediaCompatClick(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

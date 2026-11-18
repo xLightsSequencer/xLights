@@ -115,6 +115,7 @@
 #include "app-shell/SplashDialog.h"
 #include "diagnostics/SequenceChecker.h"
 #include "diagnostics/ShowFolderSearchDialog.h"
+#include "media/MediaCompatibility.h"
 #include "sequencer/TopEffectsPanel.h"
 #include "utils/TraceLog.h"
 #include "app-shell/UpdaterDialog.h"
@@ -5435,8 +5436,13 @@ void LogAndTrackInfo(CheckSequenceReport& report,
 //  - Reads per-check disable toggles from xLightsFrame's static accessor.
 //  - Returns the desktop's render-cache preference string.
 //  - Drives the wxProgressDialog the wx wrapper opened.
-//  - FFmpeg desktop builds decode every video format, so the codec
-//    compatibility probe always reports OK.
+//  - On Apple builds runs the real AVFoundation/AudioToolbox media
+//    compatibility probe — the same probe behind the "Media compatibility
+//    warning" shown at sequence-open time. macOS uses AVFoundation as its
+//    primary decoder, so MKV/VP9/rawvideo-AVI etc. that the old always-OK
+//    stub ignored are now surfaced in the Check Sequence report. Windows
+//    and Linux render media through FFmpeg with no AVFoundation
+//    constraint, so those builds keep reporting OK.
 class DesktopCheckCallbacks : public SequenceCheckerCallbacks {
 public:
     DesktopCheckCallbacks(xLightsFrame* frame, wxProgressDialog* prog) : _frame(frame), _prog(prog) {}
@@ -5449,8 +5455,22 @@ public:
         return _frame->EnableRenderCache().ToStdString();
     }
 
-    std::string CheckVideoCompatibility(const std::string& /*path*/) override {
+    std::string CheckVideoCompatibility(const std::string& path) override {
+#ifdef __APPLE__
+        return MediaCompatibility::CheckVideoFile(path);
+#else
+        (void)path;
         return "";
+#endif
+    }
+
+    std::string CheckAudioCompatibility(const std::string& path) override {
+#ifdef __APPLE__
+        return MediaCompatibility::CheckAudioFile(path);
+#else
+        (void)path;
+        return "";
+#endif
     }
 
     void OnProgress(int percent, const std::string& step) override {

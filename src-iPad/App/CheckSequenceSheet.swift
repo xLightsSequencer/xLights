@@ -33,6 +33,7 @@ struct CheckSequenceSheet: View {
     @AppStorage("csDisableTransTime") private var disableTransTime = false
     @AppStorage("csDisableCustomSizeCheck") private var disableCustomSize = false
     @AppStorage("csDisableSketchImage") private var disableSketchImage = false
+    @AppStorage("csDisableMediaCompat") private var disableMediaCompat = false
 
     private var disabledCheckOptions: [String] {
         var out: [String] = []
@@ -43,6 +44,7 @@ struct CheckSequenceSheet: View {
         if disableTransTime { out.append("TransTime") }
         if disableCustomSize { out.append("CustomSizeCheck") }
         if disableSketchImage { out.append("SketchImage") }
+        if disableMediaCompat { out.append("MediaCompat") }
         return out
     }
 
@@ -90,6 +92,7 @@ struct CheckSequenceSheet: View {
                 Toggle("Transition Time", isOn: $disableTransTime)
                 Toggle("Custom Model Size", isOn: $disableCustomSize)
                 Toggle("Sketch Effect Image", isOn: $disableSketchImage)
+                Toggle("Media Compatibility", isOn: $disableMediaCompat)
             }
         } label: {
             Image(systemName: "slider.horizontal.3")

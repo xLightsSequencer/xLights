@@ -5,6 +5,7 @@
 #include "diagnostics/SequenceChecker.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -1616,6 +1617,22 @@ int SequenceChecker::RunSequenceChecks(CheckSequenceReport& report) {
                 RecordIssue(report, "sequence",
                             CheckSequenceReport::ReportIssue(
                                 CheckSequenceReport::ReportIssue::CRITICAL, msg, "general"));
+            } else if (_callbacks && !_callbacks->IsCheckOptionDisabled("MediaCompat")) {
+                // Audio side of the media compatibility probe: the same
+                // AVFoundation/AudioToolbox constraint that flags video
+                // files also applies to the sequence's audio on Apple
+                // platforms. Resolve against the show folder the same way
+                // the path checks do, so a relative media path probes the
+                // real file.
+                std::string mediaFile = FileUtils::FixFile(_showFolder, _sequenceFile->GetMediaFile());
+                std::string reason = _callbacks->CheckAudioCompatibility(mediaFile);
+                if (!reason.empty()) {
+                    std::string msg = fmt::format("    WARN: Audio file '{}' may not be compatible: {}. It will not play on upcoming versions of xLights or on iPad. Convert it to a compatible format to fix.",
+                                                  std::filesystem::path(mediaFile).filename().string(), reason);
+                    RecordIssue(report, "sequence",
+                                CheckSequenceReport::ReportIssue(
+                                    CheckSequenceReport::ReportIssue::WARNING, msg, "mediacompat"));
+                }
             }
         }
 
@@ -1843,6 +1860,79 @@ int SequenceChecker::RunFileReferenceChecks(CheckSequenceReport& report) {
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    // Media compatibility probe: every referenced video file is checked
+    // against the platform's media framework (AVFoundation on Apple
+    // builds). This mirrors the "Media compatibility warning" that the
+    // desktop shows when a sequence is opened normally — which is skipped
+    // in check-sequence mode, so Check Sequence is the only place a
+    // batch/automation run ever surfaces these findings. Without it a
+    // sequence full of MKV/VP9/rawvideo-AVI files checks clean even
+    // though AVFoundation cannot decode a single one of them.
+    if (_callbacks) {
+        static const std::set<std::string> kVideoExtensions = {
+            ".mp4", ".m4v", ".mov", ".avi", ".mkv", ".webm", ".wmv",
+            ".mpg", ".mpeg", ".m2v", ".ts", ".m2ts", ".flv", ".gif"
+        };
+        auto IsVideoFile = [](const std::string& file) {
+            std::string ext;
+            try {
+                ext = std::filesystem::path(file).extension().string();
+            } catch (const std::exception&) {
+                return false;
+            }
+            for (auto& c : ext) c = (char)std::tolower((unsigned char)c);
+            return kVideoExtensions.find(ext) != kVideoExtensions.end();
+        };
+        auto IsEmbedded = [this](const std::string& file) {
+            // Embedded media lives inside the .xsq, not on disk; there is
+            // no file to probe (same skip the path checks below use).
+            return _elements.GetSequenceMedia().GetMediaEmbedState(file).first;
+        };
+
+        bool anyVideo = false;
+        for (const auto& it : allfiles) {
+            if (!IsEmbedded(it) && !IsEmbedded(FileUtils::FixFile(_showFolder, it)) && IsVideoFile(it)) {
+                anyVideo = true;
+                break;
+            }
+        }
+
+        if (anyVideo) {
+            if (_callbacks->IsCheckOptionDisabled("MediaCompat")) {
+                RecordIssue(report, "sequence",
+                            CheckSequenceReport::ReportIssue(
+                                CheckSequenceReport::ReportIssue::INFO,
+                                "    Media compatibility - CHECK DISABLED.",
+                                "checkdisabled"));
+            } else {
+                std::set<std::string> probed;
+                for (const auto& it : allfiles) {
+                    std::string ff = FileUtils::FixFile(_showFolder, it);
+                    if (IsEmbedded(it) || IsEmbedded(ff) || !IsVideoFile(ff)) {
+                        continue;
+                    }
+                    // Only warn about files that actually exist — missing
+                    // files are already reported by the path checks below.
+                    if (!FileExists(ff)) {
+                        continue;
+                    }
+                    // A video referenced by many effects is probed once.
+                    if (!probed.insert(ff).second) {
+                        continue;
+                    }
+                    std::string reason = _callbacks->CheckVideoCompatibility(ff);
+                    if (!reason.empty()) {
+                        std::string msg = fmt::format("    WARN: Video file '{}' may not be compatible: {}. It will not render on upcoming versions of xLights or on iPad. Convert it to a compatible format (e.g. H.264/HEVC in MP4/MOV) to fix.",
+                                                      std::filesystem::path(ff).filename().string(), reason);
+                        RecordIssue(report, "sequence",
+                                    CheckSequenceReport::ReportIssue(
+                                        CheckSequenceReport::ReportIssue::WARNING, msg, "mediacompat"));
                     }
                 }
             }
