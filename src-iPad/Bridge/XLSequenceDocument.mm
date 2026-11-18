@@ -68,6 +68,7 @@
 #include "models/Model.h"
 #include "models/Node.h"
 #include "models/ModelManager.h"
+#include "models/ControllerConnectionHistory.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
@@ -244,6 +245,7 @@ static int IndexOfString(NSArray<NSString*>* options, const std::string& v);
 
 @implementation XLSequenceDocument {
     std::unique_ptr<iPadRenderContext> _context;
+    std::unique_ptr<ControllerConnectionHistory> _visualiserHistory;
     // Lazily built by -lightTest; holds the test channel selection so it
     // survives the sheet being dismissed and reopened.
     XLLightTest* _lightTest;
@@ -18822,6 +18824,54 @@ static NSDictionary* BuildEmptyPortEntry(NSString* kind,
         @"pixels":            @0,
         @"models":            @[],
     };
+}
+
+- (void)beginVisualiserHistory {
+    _visualiserHistory.reset();
+    if (!_context || !_context->HasModelManager()) return;
+    _visualiserHistory = std::make_unique<ControllerConnectionHistory>(_context->GetModelManager());
+    _visualiserHistory->Begin();
+}
+
+- (void)recordVisualiserHistory {
+    if (_visualiserHistory) _visualiserHistory->Record();
+}
+
+- (BOOL)canUndoVisualiserChange {
+    return _visualiserHistory && _visualiserHistory->CanUndo();
+}
+
+- (BOOL)visualiserHasChanges {
+    return _visualiserHistory && _visualiserHistory->HasChanges();
+}
+
+- (void)markVisualiserSaved {
+    if (_visualiserHistory) _visualiserHistory->MarkSaved();
+}
+
+- (void)applyRestoredVisualiserModels:(const std::vector<std::string>&)changed {
+    if (changed.empty() || !_context) return;
+    for (const auto& name : changed) {
+        _context->MarkLayoutModelDirty(name);
+    }
+    [self reworkAndRecalcStartChannels];
+    _context->MarkControllersDirty();
+}
+
+- (void)undoVisualiserChange {
+    if (!_visualiserHistory || !_context) return;
+    _context->AbortRender(5000);
+    [self applyRestoredVisualiserModels:_visualiserHistory->Undo()];
+}
+
+- (void)revertVisualiserChanges {
+    if (!_visualiserHistory || !_context) return;
+    _context->AbortRender(5000);
+    [self applyRestoredVisualiserModels:_visualiserHistory->Revert()];
+}
+
+- (void)endVisualiserHistory {
+    _visualiserHistory.reset();
 }
 
 - (nullable NSDictionary*)wiringForController:(NSString*)name {

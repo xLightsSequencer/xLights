@@ -25,10 +25,15 @@
 #include <wx/colour.h>
 #include <wx/prntbase.h>
 
+#include <wx/button.h>
+
 #include <algorithm>
 #include <set>
+#include <string>
+#include <vector>
 
 #include "controllers/ControllerUploadData.h"
+#include "models/ControllerConnectionHistory.h"
 
 class ControllerModelDialog;
 class Output;
@@ -121,7 +126,19 @@ class ControllerModelDialog: public wxDialog
 	wxPaperSize _printPaperId = wxPAPER_LETTER;
 	wxPrintOrientation _printOrientation = wxPORTRAIT;
 	Model* _lastDropped = nullptr;
+
+	ControllerConnectionHistory _history;
+	bool _closeDecided = false;
+	wxButton* _undoButton = nullptr;
+	wxButton* _cancelButton = nullptr;
+	wxButton* _saveButton = nullptr;
 	#pragma endregion
+
+	void ApplyRestoredConnections(const std::vector<std::string>& changed);
+	void UndoLastChange();
+	void UpdateHistoryButtons();
+	void SaveLayout();
+	void OnVisualiserClose(wxCloseEvent& event);
 
 	void DropModelFromModelsPaneOnModel(ModelCMObject* dropped, Model* on, bool rhs);
 	BaseCMObject* GetControllerCMObjectAt(wxPoint mouse, wxPoint adjustedMouse);

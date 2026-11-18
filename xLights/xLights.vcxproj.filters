@@ -1303,6 +1303,7 @@
       <Filter>XmlSerializer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\ControllerConnection.cpp" />
+    <ClCompile Include="..\src-core\models\ControllerConnectionHistory.cpp" />
     <ClCompile Include="..\src-core\models\handles\HitTest.cpp">
       <Filter>Models\handles</Filter>
     </ClCompile>
@@ -2828,6 +2829,7 @@
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\ControllerConnection.h" />
+    <ClInclude Include="..\src-core\models\ControllerConnectionHistory.h" />
     <ClInclude Include="..\src-core\models\handles\DragSession.h">
       <Filter>Models\handles</Filter>
     </ClInclude>

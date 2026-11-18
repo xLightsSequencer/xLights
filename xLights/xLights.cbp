@@ -312,6 +312,8 @@
 		<Unit filename="../src-ui-wx/color/ColoursPanel.h" />
 		<Unit filename="../src-core/models/ControllerConnection.cpp" />
 		<Unit filename="../src-core/models/ControllerConnection.h" />
+		<Unit filename="../src-core/models/ControllerConnectionHistory.cpp" />
+		<Unit filename="../src-core/models/ControllerConnectionHistory.h" />
 		<Unit filename="../src-core/models/handles/DragSession.h" />
 		<Unit filename="../src-core/models/handles/Handles.h" />
 		<Unit filename="../src-core/models/handles/HitTest.cpp" />

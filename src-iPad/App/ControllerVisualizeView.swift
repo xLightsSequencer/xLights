@@ -44,6 +44,8 @@ struct ControllerVisualizeView: View {
     let onDismiss: () -> Void
 
     @State private var wiring: [String: Any] = [:]
+    @State private var canUndo: Bool = false
+    @State private var hasChanges: Bool = false
     @State private var loadToken: Int = 0
     @State private var protocolPickerTarget: PortProtocolTarget? = nil
     @State private var portEditError: String? = nil
@@ -104,7 +106,34 @@ struct ControllerVisualizeView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Done") { onDismiss() }
+                        Button(hasChanges ? "Cancel" : "Close") {
+                            if hasChanges {
+                                viewModel.document.revertVisualiserChanges()
+                            }
+                            viewModel.document.endVisualiserHistory()
+                            onDismiss()
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            if viewModel.document.saveLayoutChanges() {
+                                viewModel.document.markVisualiserSaved()
+                                hasChanges = viewModel.document.visualiserHasChanges()
+                            } else {
+                                portEditError = "Couldn't write xlights_rgbeffects.xml. Check the Tools → Package Logs output for details."
+                            }
+                        }
+                        .tint(hasChanges ? .red : nil)
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            viewModel.document.undoVisualiserChange()
+                            reload()
+                        } label: {
+                            Label("Undo", systemImage: "arrow.uturn.backward")
+                        }
+                        .disabled(!canUndo)
+                        .keyboardShortcut("z", modifiers: .command)
                     }
                     ToolbarItem(placement: .principal) {
                         Text(controllerName).font(.headline)
@@ -115,9 +144,15 @@ struct ControllerVisualizeView: View {
                 }
         }
         .task(id: loadToken) {
+            // Every edit ends with reload(), so each change in state is one undo step.
+            viewModel.document.recordVisualiserHistory()
+            canUndo = viewModel.document.canUndoVisualiserChange()
+            hasChanges = viewModel.document.visualiserHasChanges()
             wiring = (viewModel.document.wiring(forController: controllerName)
                       as? [String: Any]) ?? [:]
         }
+        .onAppear { viewModel.document.beginVisualiserHistory() }
+        .interactiveDismissDisabled(hasChanges)
         .modifier(PortBulkActionsModifier(
             srTypeTarget: $srTypeTarget,
             srIdTarget: $srIdTarget,
