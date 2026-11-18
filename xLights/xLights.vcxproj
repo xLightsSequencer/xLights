@@ -889,6 +889,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\klightmapper\KLightMapperBridge_win.cpp" />
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutObjectId.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
     <ClCompile Include="..\src-core\media\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\src-core\media\kiss_fft\tools\kiss_fftr.c" />
@@ -1075,6 +1076,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\shared\utils\tmGridCell.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\TopEffectsPanel.cpp" />
     <ClCompile Include="..\src-core\utils\ShowGuid.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowFileGuard.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
@@ -1571,6 +1573,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\shared\utils\Images_png.h" />
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
+    <ClInclude Include="..\src-core\utils\LayoutObjectId.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
@@ -1714,6 +1717,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
     <ClInclude Include="..\src-core\render\SequenceCommands.h" />
     <ClInclude Include="..\src-core\render\SequenceIds.h" />
+    <ClInclude Include="..\src-core\render\SequenceMutationGuard.h" />
     <ClInclude Include="..\src-core\render\CommandExecutor.h" />
     <ClInclude Include="..\src-core\render\SongStructureManager.h" />
     <ClInclude Include="..\src-core\render\SeqMediaMigration.h" />
@@ -1751,6 +1755,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\shared\utils\tmGridCell.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TopEffectsPanel.h" />
     <ClInclude Include="..\src-core\utils\ShowGuid.h" />
+    <ClInclude Include="..\src-core\utils\ShowFileGuard.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />

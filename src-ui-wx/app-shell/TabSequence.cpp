@@ -41,7 +41,9 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
+#include "utils/ShowFileGuard.h"
 #include "utils/string_utils.h"
+#include "utils/LayoutObjectId.h"
 #include "sequencer/BufferPanel.h"
 #include "sequencer/EffectIconPanel.h"
 #include "media/JukeboxPanel.h"
@@ -108,7 +110,8 @@ std::string xLightsFrame::BuildEffectsXml()
                           lg->GetBackgroundBrightness(), lg->GetBackgroundAlpha(),
                           lg->GetBackgroundScaled(),
                           lg->GetPosX(), lg->GetPosY(),
-                          lg->GetPaneWidth(), lg->GetPaneHeight()});
+                          lg->GetPaneWidth(), lg->GetPaneHeight(),
+                          lg->GetObjectId()});
     }
     serializer.SerializeAllLayoutGroups(lgData, visitor);
     SerializePerspectives(visitor);
@@ -148,6 +151,9 @@ void xLightsFrame::SerializePerspectives(BaseSerializingVisitor &visitor)
         }
         if (p.iconSize > 0) {
             attr.Add("iconSize", std::to_string(p.iconSize));
+        }
+        if (!p.objectId.empty()) {
+            attr.Add(LayoutObjectId::ATTRIBUTE, p.objectId);
         }
         visitor.WriteOpenTag("perspective", attr, true);
     }
@@ -216,6 +222,7 @@ void xLightsFrame::LoadEffectsFile()
 
     if (!FileExists(effectsFile)) {
         // file does not exist, so create an empty xml doc
+        ShowFileGuard::Instance().RecordFromDisk(effectsFile.GetFullPath().ToStdString());
         CreateDefaultEffectsXml(effectsXml);
     }
     else {
@@ -267,6 +274,7 @@ void xLightsFrame::LoadEffectsFile()
                 }
             }
         }
+        ShowFileGuard::Instance().RecordFromDisk(effectsFile.GetFullPath().ToStdString());
         pugi::xml_parse_result result = effectsXml.load_file(effectsFile.GetFullPath().ToStdString().c_str());
         if (!result) {
             DisplayError(wxString::Format("Unable to load RGB effects File ... Creating a Default One.\nError at offset: %td Error '%s'", result.offset, result.description()), this);
@@ -573,8 +581,18 @@ void xLightsFrame::LoadEffectsFile()
                 pv.version = p.attribute("version").as_string("2.0");
                 pv.gridSpacing = p.attribute("gridSpacing").as_int(0);
                 pv.iconSize = p.attribute("iconSize").as_int(0);
+                pv.objectId = LayoutObjectId::Read(p);
                 _perspectives.push_back(pv);
             }
+        }
+    }
+    // Layout ids: a missing one is assigned and the later of two repeats is
+    // replaced. Neither marks the layout as changed; they are written on the
+    // next real save.
+    {
+        std::unordered_set<std::string> usedIds;
+        for (auto& pv : _perspectives) {
+            LayoutObjectId::Claim(pv.objectId, usedIds);
         }
     }
 
@@ -662,6 +680,7 @@ void xLightsFrame::LoadEffectsFile()
     LayoutGroups.clear();
     layoutPanel->Reset();
     if (layoutGroupsNode) {
+        std::unordered_set<std::string> usedLayoutGroupIds;
         for (pugi::xml_node e = layoutGroupsNode.first_child(); e; e = e.next_sibling()) {
             if (std::string_view(e.name()) == "layoutGroup") {
                 std::string grp_name = e.attribute("name").as_string();
@@ -671,6 +690,10 @@ void xLightsFrame::LoadEffectsFile()
                     }
                     auto grp = std::make_unique<LayoutGroup>(grp_name, this);
                     grp->SetFromXml(e);
+                    std::string lgId = grp->GetObjectId();
+                    if (LayoutObjectId::Claim(lgId, usedLayoutGroupIds)) {
+                        grp->SetObjectId(lgId);
+                    }
                     AddPreviewOption(grp.get());
                     LayoutGroups.emplace(grp_name, std::move(grp));
                     layoutPanel->AddPreviewChoice(grp_name);
@@ -891,10 +914,78 @@ void xLightsFrame::SaveModelsFile()
     spdlog::debug("     models JSON file done.");
 }
 
+bool xLightsFrame::IsNonInteractiveSave() const
+{
+    return _renderMode || _checkSequenceMode || _automationDepth > 0;
+}
+
+xLightsFrame::ShowFileConflict xLightsFrame::ResolveShowFileConflict(const std::string& path,
+                                                                     const std::function<bool(const std::string& copyPath)>& writeCopy,
+                                                                     wxWindow* parent)
+{
+    if (!ShowFileGuard::Instance().HasChangedOnDisk(path)) {
+        return ShowFileConflict::NoConflict;
+    }
+    const wxString name = wxFileName(path).GetFullName();
+    if (IsNonInteractiveSave()) {
+        spdlog::warn("{} was changed by someone else since it was opened here; a batch, command line or automation save does not overwrite it.", path);
+        return ShowFileConflict::Cancel;
+    }
+    if (parent == nullptr) {
+        parent = this;
+    }
+
+    wxMessageDialog dlg(parent,
+                        name + " was changed by someone else (or another app) since you opened it.\n\n"
+                               "Saving now would overwrite their changes.",
+                        "File Changed by Someone Else",
+                        wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_WARNING);
+    dlg.SetYesNoCancelLabels("Overwrite", "Save Mine as a Copy", "Cancel");
+    switch (dlg.ShowModal()) {
+    case wxID_YES:
+        spdlog::info("Overwriting {}, which was changed by someone else, at the user's request.", path);
+        return ShowFileConflict::Overwrite;
+    case wxID_NO: {
+        const std::string copy = ShowFileGuard::MakeCopyPath(path);
+        if (writeCopy && writeCopy(copy)) {
+            spdlog::info("{} was changed by someone else; saved this session's version to {} instead.", path, copy);
+            wxMessageBox(wxString::Format("Your version was saved as:\n%s\n\n%s was left as the other person saved it. "
+                                          "Your changes are still open here and are still marked as unsaved.",
+                                          wxString(copy), name),
+                         "Saved a Copy", wxOK | wxICON_INFORMATION, parent);
+            return ShowFileConflict::SavedCopy;
+        }
+        DisplayError("Unable to save a copy to " + copy, parent);
+        return ShowFileConflict::Cancel;
+    }
+    default:
+        spdlog::info("Save of {} cancelled: the file was changed by someone else.", path);
+        return ShowFileConflict::Cancel;
+    }
+}
+
 // returns true on success
 bool xLightsFrame::SaveEffectsFile(bool backup)
 {
+    wxFileName effectsFile;
+    effectsFile.AssignDir(CurrentDir);
+    if (backup) {
+        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE_BACKUP));
+    } else {
+        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+    }
+    const std::string path = effectsFile.GetFullPath().ToStdString();
 
+    // Asked before taking saveLock: the dialog runs an event loop, and
+    // SaveSequence() waits on that lock rather than trying it.
+    if (!backup) {
+        auto conflict = ResolveShowFileConflict(path, [this](const std::string& copy) {
+            return ShowFileGuard::WriteFileAtomically(copy, BuildEffectsXml());
+        });
+        if (conflict == ShowFileConflict::Cancel || conflict == ShowFileConflict::SavedCopy) {
+            return false;
+        }
+    }
 
     // dont save if currently saving
     std::unique_lock<std::mutex> lock(saveLock, std::try_to_lock);
@@ -903,31 +994,9 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
 
     auto saveXml = BuildEffectsXml();
 
-    wxFileName effectsFile;
-    effectsFile.AssignDir(CurrentDir);
-    if (backup) {
-        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE_BACKUP));
-    } else {
-        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
-    }
-
-    ObtainAccessToURL(effectsFile.GetFullPath());
-    wxFileOutputStream fout(effectsFile.GetFullPath());
-    wxBufferedOutputStream *bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
-    size_t len = saveXml.length();
-    bout->Write(saveXml.c_str(), len);
-    if (bout->LastWrite() != len) {
-        if (backup) {
-            spdlog::warn("Unable to save backup of RGB effects file");
-        } else {
-            DisplayError("Unable to save RGB effects file", this);
-        }
-        delete bout;
-        return false;
-    }
-    delete bout;
-
-    if (!fout.Close()) {
+    const bool written = backup ? ShowFileGuard::WriteFileAtomically(path, saveXml)
+                                : ShowFileGuard::Instance().SaveFile(path, saveXml);
+    if (!written) {
         if (backup) {
             spdlog::warn("Unable to save backup of RGB effects file");
         } else {
@@ -955,8 +1024,24 @@ void xLightsFrame::SavePresetsFile(bool backup)
     } else {
         presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
     }
+    const std::string path = presetsFile.GetFullPath().ToStdString();
 
-    if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
+    if (!backup) {
+        // Saving the layout always rewrites the presets too. With no preset
+        // edits here, rewriting a file someone else changed would only undo theirs.
+        if (!UnsavedPresetChanges && ShowFileGuard::Instance().HasChangedOnDisk(path)) {
+            spdlog::info("Not rewriting {}: it was changed by someone else and there are no preset changes here to save.", path);
+            return;
+        }
+        auto conflict = ResolveShowFileConflict(path, [this](const std::string& copy) {
+            return _effectPresetManager.SaveJsonFile(copy);
+        });
+        if (conflict == ShowFileConflict::Cancel || conflict == ShowFileConflict::SavedCopy) {
+            return;
+        }
+    }
+
+    if (!_effectPresetManager.SaveJsonFile(path)) {
         if (backup) {
             spdlog::warn("Unable to save backup of effect presets file");
         } else {
@@ -1748,6 +1833,31 @@ bool xLightsFrame::SaveSequence()
         return false;
     }
 
+    if (!xlightsFilename.IsEmpty() && CurrentSeqXmlFile != nullptr) {
+        const std::string seqPath = CurrentSeqXmlFile->GetFullPath();
+        if (ShowFileGuard::Instance().HasChangedOnDisk(seqPath)) {
+            if (IsNonInteractiveSave()) {
+                spdlog::warn("{} was changed by someone else since it was opened here; a batch, command line or automation save does not overwrite it.", seqPath);
+                return false;
+            }
+            wxMessageDialog dlg(this,
+                                wxFileName(seqPath).GetFullName() + " was changed by someone else (or another app) since you opened it.\n\n"
+                                                                    "Saving now would overwrite their changes.",
+                                "Sequence Changed by Someone Else",
+                                wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_WARNING);
+            dlg.SetYesNoCancelLabels("Overwrite", "Save As...", "Cancel");
+            const int choice = dlg.ShowModal();
+            if (choice == wxID_NO) {
+                return SaveAsSequence();
+            }
+            if (choice != wxID_YES) {
+                spdlog::info("Save of {} cancelled: the file was changed by someone else.", seqPath);
+                return false;
+            }
+            spdlog::info("Overwriting {}, which was changed by someone else, at the user's request.", seqPath);
+        }
+    }
+
     wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
     wxPostEvent(this, playEvent);
 
@@ -2008,16 +2118,16 @@ std::string xLightsFrame::SequenceSaveRefusal(const wxString& path) const
     return "";
 }
 
-void xLightsFrame::SaveAsSequence()
+bool xLightsFrame::SaveAsSequence()
 {
     if (readOnlyMode) {
 		DisplayError("Sequences cannot be saved in read only mode!", this);
-		return;
+		return false;
 	}
 
     if (_seqData.NumFrames() == 0) {
         DisplayError("You must open a sequence first!", this);
-        return;
+        return false;
     }
     wxString initialDir = GetLastSequenceDialogDir();
     {
@@ -2040,7 +2150,7 @@ void xLightsFrame::SaveAsSequence()
     bool ok;
     do {
         if (fd.ShowModal() != wxID_OK) {
-            return;
+            return false;
         }
         // validate inputs
         newFilename = fd.GetPath();
@@ -2064,7 +2174,7 @@ void xLightsFrame::SaveAsSequence()
     } while (!ok);
 
     SetLastSequenceDialogDir(wxFileName(newFilename).GetPath());
-    SaveAsSequence(ToStdString(newFilename));
+    return SaveAsSequence(ToStdString(newFilename));
 }
 
 bool xLightsFrame::SaveAsSequence(const std::string& filename)

@@ -23,6 +23,7 @@
 #include "render/RenderCache.h"
 #include "render/IRenderProgressSink.h"
 #include "render/ViewpointMgr.h"
+#include "utils/LayoutObjectId.h"
 #include "effects/EffectManager.h"
 #include "effects/EffectPresetManager.h"
 #include "outputs/OutputManager.h"
@@ -150,8 +151,10 @@ public:
     EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
     // Persist the preset library to disk. Writes the backup copy first
     // (best-effort), then the main JSON file. Returns false on write
-    // failure of the main file.
-    bool SaveEffectPresets();
+    // failure of the main file, or -- unless overwriteExternalChanges --
+    // when someone else changed the main file since it was loaded.
+    bool SaveEffectPresets(bool overwriteExternalChanges = false);
+    std::string GetEffectPresetsPath() const;
 
     // #6450 — read-only preset library loaded from the base show
     // folder's `xlights_effectpresets.json`, surfaced as the desktop's
@@ -412,6 +415,9 @@ public:
         int backgroundBrightness = 100;
         int backgroundAlpha = 100;
         bool scaleBackgroundImage = false;
+        // Permanent layout record id (utils/LayoutObjectId.h). A new group gets
+        // one here; a loaded one takes the file's. Kept through a rename.
+        std::string objectId = LayoutObjectId::Generate();
     };
     const std::vector<NamedLayoutGroup>& GetNamedLayoutGroups() const { return _namedLayoutGroups; }
 
@@ -687,7 +693,17 @@ public:
     // `OutputManager::Save()` rewrites the entire networks file).
     void MarkControllersDirty() { _controllersDirty = true; }
     bool AreControllersDirty() const { return _controllersDirty; }
-    bool SaveLayoutChanges();
+    // Refuses (returns false, edits stay pending) to overwrite
+    // xlights_rgbeffects.xml or xlights_networks.xml when someone else
+    // changed it since it was loaded, unless overwriteExternalChanges.
+    bool SaveLayoutChanges(bool overwriteExternalChanges = false);
+    // Paths of the files the next SaveLayoutChanges() has edits for that
+    // were changed on disk by someone else.
+    std::vector<std::string> LayoutFilesChangedOnDisk() const;
+    // Writes this session's version of each file in LayoutFilesChangedOnDisk()
+    // to a timestamped copy beside it, leaving the changed files alone, and
+    // saves the rest as usual. Returns the copies written.
+    std::vector<std::string> SaveLayoutChangesAsCopies();
     // Layout autosave: write the pending edits to
     // `xlights_rgbeffects.xbkp` without touching the real file or
     // clearing the dirty sets, so unsaved layout work survives a crash
@@ -711,7 +727,11 @@ public:
 private:
     // Shared body of SaveLayoutChanges / AutosaveLayoutChanges. Empty
     // targetPath means the real rgbeffects file.
-    bool SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty);
+    bool SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty, bool overwriteExternalChanges = false);
+    bool HasLayoutDirt() const;
+    // Writes every in-memory layout id into a patched rgbeffects document
+    // before it goes to disk. Every rgbeffects write calls this.
+    void StampLayoutIds(pugi::xml_node root) const;
 
 public:
     // Clear the dirty set without writing to disk — used after a

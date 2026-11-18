@@ -17,6 +17,7 @@
 #include "XmlSerializeFunctions.h"
 #include "DimmingCurve.h"
 #include "UtilFunctions.h"
+#include "../utils/LayoutObjectId.h"
 #include "../models/ArchesModel.h"
 #include "../models/CandyCaneModel.h"
 #include "../models/ChannelBlockModel.h"
@@ -346,6 +347,8 @@ void XmlDeserializingModelFactory::DeserializeBaseObjectAttributes(Model* model,
     model->SetName(name);
     model->SetActive(node.attribute(XmlNodeKeys::ActiveAttribute).as_int(1));
     model->SetFromBase(node.attribute(XmlNodeKeys::FromBaseAttribute).as_int(0));
+    // An imported model is a new record; ModelManager gives it an id when it is added.
+    model->SetObjectId(importing ? std::string() : LayoutObjectId::Read(node));
 }
 
 void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing) {
@@ -473,7 +476,7 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
         } else if (XmlNodeKeys::DimmingCurveName == fname) {
             DeserializeDimmingCurve(model, f);
         } else if ("subModel" == fname) {
-            DeserializeSubModel(model, f);
+            DeserializeSubModel(model, f, importing);
         } else if ("modelGroup" == fname && importing) {
             std::string gname = f.attribute("name").as_string();
             if (selectedGroups.count(gname)) {
@@ -522,7 +525,7 @@ void XmlDeserializingModelFactory::DeserializeDimmingCurve(Model* model, pugi::x
     model->SetDimmingInfo(dimmingInfo);
 }
 
-void XmlDeserializingModelFactory::DeserializeSubModel(Model* model, pugi::xml_node node)
+void XmlDeserializingModelFactory::DeserializeSubModel(Model* model, pugi::xml_node node, bool importing)
 {
     // Use the shared parsing function from XmlSerializeFunctions
     auto smData = XmlSerialize::ParseSubModelNode(node);
@@ -538,6 +541,10 @@ void XmlDeserializingModelFactory::DeserializeSubModel(Model* model, pugi::xml_n
         smData->isRanges,
         smData->bufferStyle
     );
+    // Read before AddSubmodel, which assigns one when it is missing or repeated.
+    if (!importing) {
+        sm->SetObjectId(LayoutObjectId::Read(node));
+    }
 
     model->AddSubmodel(sm);
 

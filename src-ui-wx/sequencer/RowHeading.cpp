@@ -24,6 +24,7 @@
 #include "EffectsGrid.h"
 #include "color/ColorManager.h"
 #include "render/SequenceElements.h"
+#include "render/CommandExecutor.h"
 #include "render/SongStructureManager.h"
 #include "media/AudioManager.h"
 #include "media/OnsetDetector.h"
@@ -887,13 +888,15 @@ static void ImportLyrics(SequenceElements* seqElements, TimingElement* element, 
         }
 
         element->SetFixedTiming(0);
-        // remove all existing layers from timing track
+        // remove all existing layers from timing track, adding the new one
+        // first because the last layer of an element can't be removed
+        CommandExecutor& exec = seqElements->GetCommandExecutor();
         int num_layers = element->GetEffectLayerCount();
+        EffectLayer* phrase_layer = exec.InsertLayer(element, num_layers, false);
         for( int k = num_layers-1; k >= 0; k-- )
         {
-            element->RemoveEffectLayer(k);
+            exec.RemoveLayer(element, k, false);
         }
-        EffectLayer* phrase_layer = element->AddEffectLayer();
 
         int start_time = std::strtod(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue().ToStdString().c_str(), nullptr) * 1000;
         int end_time = std::strtod(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue().ToStdString().c_str(), nullptr) * 1000;
@@ -927,8 +930,7 @@ static void ImportLyrics(SequenceElements* seqElements, TimingElement* element, 
             if (!line.empty()) {
                 PhonemeDictionary::InsertSpacesAfterPunctuation(line);
                 end_time = TimeLine::RoundToMultipleOfPeriod(start_time+interval_ms, seqElements->GetFrequency());
-                Effect* ef = phrase_layer->AddEffect(0,line,"","",start_time,end_time,EFFECT_NOT_SELECTED,false);
-                seqElements->get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
+                exec.AddEffect(phrase_layer, line, "", "", start_time, end_time, EFFECT_NOT_SELECTED, false);
                 start_time = end_time;
             }
         }
@@ -954,11 +956,13 @@ static void ImportSyncedLyrics(SequenceElements* seqElements, TimingElement* ele
     seqElements->get_undo_mgr().CreateUndoStep();
 
     element->SetFixedTiming(0);
+    // Add the new layer first: the last layer of an element can't be removed.
+    CommandExecutor& exec = seqElements->GetCommandExecutor();
     int num_layers = element->GetEffectLayerCount();
+    EffectLayer* phrase_layer = exec.InsertLayer(element, num_layers, false);
     for (int k = num_layers - 1; k >= 0; k--) {
-        element->RemoveEffectLayer(k);
+        exec.RemoveLayer(element, k, false);
     }
-    EffectLayer* phrase_layer = element->AddEffectLayer();
 
     if (dlg.HasSyncedLyrics()) {
         auto lines = ParseLRC(dlg.GetSelectedSyncedLyrics());
@@ -1004,9 +1008,7 @@ static void ImportSyncedLyrics(SequenceElements* seqElements, TimingElement* ele
             if (!text.Trim().IsEmpty()) {
                 std::string s = text.ToStdString();
                 PhonemeDictionary::InsertSpacesAfterPunctuation(s);
-                Effect* ef = phrase_layer->AddEffect(0, s, "", "",
-                    startMS, endMS, EFFECT_NOT_SELECTED, false);
-                seqElements->get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
+                exec.AddEffect(phrase_layer, s, "", "", startMS, endMS, EFFECT_NOT_SELECTED, false);
             }
         }
     } else {
@@ -1043,9 +1045,7 @@ static void ImportSyncedLyrics(SequenceElements* seqElements, TimingElement* ele
 
             std::string s = phrases[i];
             PhonemeDictionary::InsertSpacesAfterPunctuation(s);
-            Effect* ef = phrase_layer->AddEffect(0, s, "", "",
-                start_time, end_time, EFFECT_NOT_SELECTED, false);
-            seqElements->get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
+            exec.AddEffect(phrase_layer, s, "", "", start_time, end_time, EFFECT_NOT_SELECTED, false);
             start_time = end_time;
         }
     }
@@ -1075,16 +1075,13 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         return;
 
     int layer_index = ri->layerIndex;
+    CommandExecutor& exec = mSequenceElements->GetCommandExecutor();
     if (id == ID_ROW_MNU_INSERT_LAYER_ABOVE) {
-        element->InsertEffectLayer(layer_index);
+        exec.InsertLayer(element, layer_index, false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_INSERT_LAYER_BELOW) {
-        if (layer_index < (int)element->GetEffectLayerCount() - 1) {
-            element->InsertEffectLayer(layer_index + 1);
-        } else {
-            element->AddEffectLayer();
-        }
+        exec.InsertLayer(element, layer_index + 1, false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_INSERT_LAYERS_BELOW) {
@@ -1093,11 +1090,11 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (numtoinsert > 0) {
             if (layer_index < (int)element->GetEffectLayerCount() - 1) {
                 for (int i = 0; i < numtoinsert; i++) {
-                    element->InsertEffectLayer(layer_index + 1);
+                    exec.InsertLayer(element, layer_index + 1, false);
                 }
             } else {
                 for (int i = 0; i < numtoinsert; i++) {
-                    element->AddEffectLayer();
+                    exec.InsertLayer(element, (int)element->GetEffectLayerCount(), false);
                 }
             }
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1121,7 +1118,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
             if (answer == wxYES) {
                 xLightsApp::GetFrame()->AbortRender();
-                element->RemoveEffectLayer(layerIndex);
+                exec.RemoveLayer(element, layerIndex, false);
                 wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
                 wxPostEvent(GetParent(), eventRowHeaderChanged);
             }
@@ -1158,13 +1155,15 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 }
                 if (deleteLayers == true) {
                     xLightsApp::GetFrame()->AbortRender();
-                    for (int deleteLayer = startDeleteLayer; deleteLayer >= layerIndex; deleteLayer--) {
-                        element->RemoveEffectLayer(deleteLayer);
-                    }
-
-                    // Add a new layer if the topmost layer was removed
+                    // Add a new layer if the topmost layer is removed. It goes
+                    // in first because the last layer of an element can't be
+                    // removed; appending leaves the indices below unchanged.
                     if (layerIndex == 0)
-                        element->AddEffectLayer();
+                        exec.InsertLayer(element, (int)element->GetEffectLayerCount(), false);
+
+                    for (int deleteLayer = startDeleteLayer; deleteLayer >= layerIndex; deleteLayer--) {
+                        exec.RemoveLayer(element, deleteLayer, false);
+                    }
 
                     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
                     wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -1178,7 +1177,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             for (int i = 0; i < (int)elem->GetEffectLayerCount(); ++i) {
                 if (elem->GetEffectLayer(i)->GetEffectCount() == 0 && elem->GetEffectLayerCount() > 1) {
                     xLightsApp::GetFrame()->AbortRender();
-                    elem->RemoveEffectLayer(i);
+                    exec.RemoveLayer(elem, i, false);
                     --i;
                     deleted = true;
                 }
@@ -1201,7 +1200,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             std::string name = wxGetTextFromUser("What is the new name of the layer?", "Layer Name", layerName).ToStdString();
             name = RemoveUnsafeXmlChars(name);
             if (name != layerName) {
-                element->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex)->SetLayerName(name);
+                exec.SetLayerName(element->GetEffectLayer(mSequenceElements->GetVisibleRowInformation(mSelectedRow)->layerIndex), name, false);
                 wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
                 wxPostEvent(GetParent(), eventRowHeaderChanged);
             }
@@ -1572,7 +1571,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                         long newEnd = (k == divisor - 1) ? endTime : startTime + (long)(subdivisionDuration * (k + 1));
 
                         if (newStart < newEnd) {
-                            newLayer->AddEffect(0, "", "", "", newStart, newEnd, EFFECT_NOT_SELECTED, false);
+                            exec.AddEffect(newLayer, "", "", "", newStart, newEnd, EFFECT_NOT_SELECTED, false, false);
                         }
                     }
                 } else {
@@ -1587,7 +1586,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                             nextEndTime = sourceLayer->GetEffect(j + m)->GetEndTimeMS();
                         }
 
-                        newLayer->AddEffect(0, "", "", "", startTime, nextEndTime, EFFECT_NOT_SELECTED, false);
+                        exec.AddEffect(newLayer, "", "", "", startTime, nextEndTime, EFFECT_NOT_SELECTED, false, false);
                     }
                 }
             }
@@ -1638,7 +1637,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             long start = onsets[i];
             long end = (i + 1 < onsets.size()) ? onsets[i + 1] : lengthMS;
             if (end <= start) continue;
-            layer->AddEffect(0, "", "", "", start, end, EFFECT_NOT_SELECTED, false);
+            exec.AddEffect(layer, "", "", "", start, end, EFFECT_NOT_SELECTED, false, false);
         }
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1702,7 +1701,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             long s = std::max(long(seg.startMS), prevEnd);
             long e = std::min(long(seg.endMS), lengthMS);
             if (e <= s) continue;
-            layer->AddEffect(0, seg.name, "", "", s, e, EFFECT_NOT_SELECTED, false);
+            exec.AddEffect(layer, seg.name, "", "", s, e, EFFECT_NOT_SELECTED, false, false);
             prevEnd = e;
         }
 
@@ -1758,7 +1757,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 ? tempo.beatMS[i + 1]
                 : lengthMS;
             if (end <= start) continue;
-            layer->AddEffect(0, "", "", "", start, end, EFFECT_NOT_SELECTED, false);
+            exec.AddEffect(layer, "", "", "", start, end, EFFECT_NOT_SELECTED, false, false);
         }
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1878,12 +1877,12 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_WORDS) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {
-            te->RemoveEffectLayer(1);
+            exec.RemoveLayer(te, 1, false);
         }
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_PHONEMES) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {
-            te->RemoveEffectLayer(2);
+            exec.RemoveLayer(te, 2, false);
         }
     } else if (id == ID_ROW_MNU_HIDEALLTIMING) {
         mSequenceElements->HideAllTimingTracks(true);
@@ -1906,8 +1905,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {
-            te->RemoveEffectLayer(2);
-            te->RemoveEffectLayer(1);
+            exec.RemoveLayer(te, 2, false);
+            exec.RemoveLayer(te, 1, false);
         }
     } else if (id == ID_ROW_MNU_CREATE_SONG_REGIONS) {
         TimingElement* te = dynamic_cast<TimingElement*>(element);
@@ -2340,8 +2339,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
                     if (el != nullptr) {
                         for (const auto& ef : el->GetAllEffects()) {
-                            Effect* e = tl->AddEffect(0, "", "", "", ef->GetStartTimeMS(), ef->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(te->GetName(), tl->GetIndex(), e->GetID());
+                            exec.AddEffect(tl, "", "", "", ef->GetStartTimeMS(), ef->GetEndTimeMS(), EFFECT_NOT_SELECTED, false);
                         }
                     }
 
@@ -2494,13 +2492,14 @@ void RowHeading::BreakdownTimingPhrases(TimingElement* element)
     }
 
     // No locked elements in the way now
+    CommandExecutor& exec = mSequenceElements->GetCommandExecutor();
     if (element->GetEffectLayerCount() > 1) {
         for (int k = (int)element->GetEffectLayerCount() - 1; k > 0; --k) {
-            element->RemoveEffectLayer(k);
+            exec.RemoveLayer(element, k, false);
         }
     }
     mSequenceElements->get_undo_mgr().CreateUndoStep();
-    EffectLayer* word_layer = element->AddEffectLayer();
+    EffectLayer* word_layer = exec.InsertLayer(element, (int)element->GetEffectLayerCount(), false);
     for (int i = 0; i < layer->GetEffectCount(); ++i) {
         Effect* effect = layer->GetEffect(i);
         std::string phrase = effect->GetEffectName();
@@ -2526,11 +2525,11 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
             return;
         }
 
-        element->RemoveEffectLayer(2);
+        mSequenceElements->GetCommandExecutor().RemoveLayer(element, 2, false);
     }
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     EffectLayer* word_layer = element->GetEffectLayer(1);
-    EffectLayer* phoneme_layer = element->AddEffectLayer();
+    EffectLayer* phoneme_layer = mSequenceElements->GetCommandExecutor().InsertLayer(element, (int)element->GetEffectLayerCount(), false);
     xLightsFrame* xframe = xLightsApp::GetFrame();
     xframe->LoadPhonemeDictionaries();
     for (int i = 0; i < word_layer->GetEffectCount(); i++) {

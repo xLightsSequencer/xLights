@@ -395,7 +395,10 @@ struct SequencerView: View {
             return
         }
         if viewModel.isDirty {
-            _ = viewModel.saveSequence()
+            // Not interactive: Save As is about to write the edits
+            // elsewhere, so a sequence someone else changed is left
+            // alone rather than asked about here.
+            _ = viewModel.saveSequence(interactive: false)
         }
         let path = viewModel.document.currentSequencePath()
         if path.isEmpty {

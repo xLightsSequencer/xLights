@@ -25,6 +25,7 @@
 #include "../render/SequenceElements.h"
 #include "ModelGroup.h"
 #include "XmlSerializer/XmlSerializer.h"
+#include "../utils/LayoutObjectId.h"
 
 #include <log.h>
 
@@ -103,12 +104,42 @@ ViewObject* ViewObjectManager::CreateObject(pugi::xml_node node) const {
 void ViewObjectManager::AddViewObject(ViewObject *view_object) {
     if (view_object != nullptr) {
         auto it = view_objects.find(view_object->name);
+        ViewObject* replaced = it != view_objects.end() ? it->second : nullptr;
+        AssignObjectId(view_object, replaced);
         if (it != view_objects.end()) {
             delete it->second;
             it->second = nullptr;
         }
         view_objects[view_object->name] = view_object;
     }
+}
+
+// The layout-id chokepoint for view objects. Objects load one at a time in
+// file order, so this also gives the later of two records sharing an id the new
+// one. A replacement for a same-named object is the same record and keeps its
+// id when it brings none.
+void ViewObjectManager::AssignObjectId(ViewObject* view_object, const ViewObject* replaced) const {
+    if (replaced != nullptr && replaced != view_object && view_object->GetObjectId().empty()) {
+        view_object->SetObjectId(replaced->GetObjectId());
+    }
+    std::unordered_set<std::string> used;
+    for (const auto& [name, other] : view_objects) {
+        if (other != nullptr && other != view_object && other != replaced) {
+            used.insert(other->GetObjectId());
+        }
+    }
+    std::string id = view_object->GetObjectId();
+    if (LayoutObjectId::Claim(id, used)) {
+        view_object->SetObjectId(id);
+    }
+}
+
+ViewObject* ViewObjectManager::GetViewObjectByObjectId(const std::string& id) const {
+    if (id.empty()) return nullptr;
+    for (const auto& [name, obj] : view_objects) {
+        if (obj != nullptr && obj->GetObjectId() == id) return obj;
+    }
+    return nullptr;
 }
 
 void ViewObjectManager::clear() {
@@ -205,6 +236,8 @@ static bool CheckVONameAttrs(pugi::xml_node nn, pugi::xml_node cc)
 static bool IsVOXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
 {
     for (auto a : base.attributes()) {
+        // Each show holds its own id for a base record.
+        if (LayoutObjectId::IsIdAttribute(a.name())) continue;
         auto localAttr = local.attribute(a.name());
         if (localAttr.empty() || std::string_view(localAttr.as_string()) != std::string_view(a.as_string())) {
             return true;
@@ -249,6 +282,7 @@ static bool MergeBaseIntoCurrentObjectsXml(pugi::xml_node currentObjectsNode, pu
             // Object does not exist locally -- add it
             pugi::xml_node copy = currentObjectsNode.append_copy(bo);
             SetVOXmlAttribute(copy, "FromBase", "1");
+            LayoutObjectId::StripFromXml(copy);
             changedObjects.push_back(name);
             changed = true;
             spdlog::debug("MergeBase: Adding view object from base: '{}'.", name.c_str());
@@ -257,6 +291,7 @@ static bool MergeBaseIntoCurrentObjectsXml(pugi::xml_node currentObjectsNode, pu
             if (IsVOXmlNodeChanged(local, bo)) {
                 pugi::xml_node copy = currentObjectsNode.insert_copy_after(bo, local);
                 SetVOXmlAttribute(copy, "FromBase", "1");
+                LayoutObjectId::CopyLocalIds(local, copy, "");
 
                 currentObjectsNode.remove_child(local);
                 changedObjects.push_back(name);

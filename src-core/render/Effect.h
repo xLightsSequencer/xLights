@@ -22,6 +22,7 @@
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Color.h"
 #include "SequenceIds.h"
+#include "SequenceMutationGuard.h"
 
 class EffectLayer;
 class ValueCurve;
@@ -112,7 +113,10 @@ public:
     void SetTagged(bool tagged) { mTagged = tagged; }
 
     bool GetProtected() const { return mProtected; }
-    void SetProtected(bool Protected) { mProtected = Protected; }
+    void SetProtected(bool Protected) {
+        XL_SEQ_MUTATION("Effect::SetProtected");
+        mProtected = Protected;
+    }
 
     // Symbol linking - allows effects to be linked to reusable EffectSymbol definitions.
     bool IsLinkedToSymbol() const { return !_linkedSymbolId.empty(); }

@@ -24,6 +24,7 @@ class SequenceView
 {
 	ModelManager* _modelManager;
 	std::string _name;
+	std::string _objectId;
 	std::list<std::string> _modelNames;
 
 public:
@@ -35,6 +36,9 @@ public:
 	std::list<std::string> GetModels() const { return _modelNames; }
 	std::string GetName() const { return _name; }
 	void SetName(const std::string& name) { _name = name; }
+	// Permanent layout record id (see utils/LayoutObjectId.h).
+	const std::string& GetObjectId() const { return _objectId; }
+	void SetObjectId(const std::string& id) { _objectId = id; }
 	void AddModel(const std::string& model, int pos = -1);
 	void AddModel(const Model* model, int pos = -1);
 	void RemoveModel(const std::string& model);
@@ -84,6 +88,7 @@ public:
 	SequenceView* GetView(const std::string& name) const;
 	int GetViewIndex(const std::string& name) const;
 	SequenceView* GetView(int index) const;
+	SequenceView* GetViewByObjectId(const std::string& id) const;
 	void RenameModel(const std::string& oldname, const std::string& newname);
 	void DeleteModel(const std::string& model);
 	void Reset();

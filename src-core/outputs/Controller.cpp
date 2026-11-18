@@ -20,6 +20,7 @@
 #include "ControllerSerial.h"
 #include "DDPOutput.h"
 #include "../models/Model.h"
+#include "../utils/LayoutObjectId.h"
 
 #include <numeric>
 
@@ -109,6 +110,7 @@ Controller::Controller(OutputManager* om, pugi::xml_node node, const std::string
     }
 
     _id = node.attribute("Id").as_int(64001);
+    _objectId = LayoutObjectId::Read(node);
     std::string defaultName = om->UniqueName(std::string(node.name()) + "_");
     _name = Trim(node.attribute("Name").as_string(defaultName.c_str()));
     _description = Trim(node.attribute("Description").as_string(""));
@@ -141,6 +143,8 @@ Controller::Controller(OutputManager* om, const Controller& from) :
 {
     _dirty = true;
     _id = from._id;
+    // _objectId is deliberately not copied: a copy is a new record, and
+    // OutputManager::AddController gives it an id.
     _name = from._name;
     _description = from._description;
     SetVendor(from.GetVendor());
@@ -171,6 +175,9 @@ pugi::xml_node Controller::Save(pugi::xml_node parent) {
 
     pugi::xml_node node = parent.append_child("Controller");
     node.append_attribute("Id") = _id;
+    if (!_objectId.empty()) {
+        node.append_attribute(LayoutObjectId::ATTRIBUTE) = _objectId;
+    }
     node.append_attribute("Name") = _name;
     node.append_attribute("Description") = _description;
     node.append_attribute("Type") = GetType();

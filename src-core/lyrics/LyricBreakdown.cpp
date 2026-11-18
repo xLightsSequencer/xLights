@@ -14,8 +14,10 @@
 #include <vector>
 
 #include "PhonemeDictionary.h"
+#include "../render/CommandExecutor.h"
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
+#include "../render/SequenceElements.h"
 #include "../render/RenderUtils.h"
 
 void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time,
@@ -44,6 +46,7 @@ void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time,
     if (num_words == 0) {
         return;
     }
+    CommandExecutor& exec = word_layer->GetParentElement()->GetSequenceElements()->GetCommandExecutor();
     double interval_ms = (end_time - start_time) / num_words;
     int word_start_time = start_time;
     for (int i = 0; i < num_words; ++i) {
@@ -51,11 +54,10 @@ void BreakdownPhrase(EffectLayer* word_layer, int start_time, int end_time,
         if (i == num_words - 1 || word_end_time > end_time) {
             word_end_time = end_time;
         }
-        Effect* ef = word_layer->AddEffect(0, words[i], "", "", word_start_time, word_end_time, EFFECT_NOT_SELECTED, false);
+        Effect* ef = exec.AddEffect(word_layer, words[i], "", "", word_start_time, word_end_time, EFFECT_NOT_SELECTED, false);
         if (ef == nullptr) {
             return;
         }
-        undo_mgr.CaptureAddedEffect(word_layer->GetParentElement()->GetName(), word_layer->GetIndex(), ef->GetID());
         word_start_time = word_end_time;
     }
 }
@@ -91,6 +93,7 @@ void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time,
         short_interval = default_interval_ms;
     }
 
+    CommandExecutor& exec = phoneme_layer->GetParentElement()->GetSequenceElements()->GetCommandExecutor();
     int phoneme_start_time = start_time;
     int shorts = 0;
     int longs = 0;
@@ -111,10 +114,7 @@ void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time,
         // same 20 ms frame boundary. Skip the effect in that case rather than
         // adding a zero-length one.
         if (phoneme_end_time > phoneme_start_time) {
-            Effect* ef = phoneme_layer->AddEffect(0, phoneme, "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
-            if (ef != nullptr) {
-                undo_mgr.CaptureAddedEffect(phoneme_layer->GetParentElement()->GetName(), phoneme_layer->GetIndex(), ef->GetID());
-            }
+            exec.AddEffect(phoneme_layer, phoneme, "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
         }
         phoneme_start_time = phoneme_end_time;
     }

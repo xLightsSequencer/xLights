@@ -15,6 +15,7 @@
 #include "render/SequenceElements.h"
 #include "render/Element.h"
 #include "render/EffectLayer.h"
+#include "render/SequenceMutationGuard.h"
 #include "effects/ShaderEffect.h"
 
 #include <atomic>
@@ -95,6 +96,8 @@ void GenerateShaderPreview(ShaderMediaCacheEntry* entry, xLightsFrame* xl) {
 
     Element* elem = presetElements.GetElement(presetModel->GetName());
     if (!elem) return;
+    // The preset scratch sequence is never edited by the user.
+    SeqMutationGuard::Scope scratchSequence;
 
     for (const auto& it : elem->GetEffectLayers()) {
         it->DeleteAllEffects();

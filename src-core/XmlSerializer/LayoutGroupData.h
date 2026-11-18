@@ -24,4 +24,5 @@ struct LayoutGroupData {
     int posY = 0;
     int paneWidth = 0;
     int paneHeight = 0;
+    std::string objectId; // permanent layout record id (utils/LayoutObjectId.h)
 };

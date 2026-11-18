@@ -10,6 +10,7 @@
 
 #include "effects/EffectPresetManager.h"
 #include "utils/ExternalHooks.h"
+#include "utils/ShowFileGuard.h"
 #include "XmlSerializer/BaseSerializingVisitor.h"
 
 #include <spdlog/fmt/fmt.h>
@@ -407,10 +408,11 @@ nlohmann::json EffectPresetManager::SaveToJson() const
 
 bool EffectPresetManager::LoadJsonFile(const std::string& filepath)
 {
+    ObtainAccessToURL(filepath);
+    ShowFileGuard::Instance().RecordFromDisk(filepath);
     if (!FileExists(filepath))
         return false;
 
-    ObtainAccessToURL(filepath);
     std::ifstream ifs(filepath);
     if (!ifs.is_open())
         return false;
@@ -426,18 +428,13 @@ bool EffectPresetManager::LoadJsonFile(const std::string& filepath)
 
 bool EffectPresetManager::SaveJsonFile(const std::string& filepath) const
 {
-    ObtainAccessToURL(filepath, true);
-    std::ofstream ofs(filepath);
-    if (!ofs.is_open())
-        return false;
-
+    std::string text;
     try {
-        nlohmann::json j = SaveToJson();
-        ofs << j.dump(2);
-        return ofs.good();
+        text = SaveToJson().dump(2);
     } catch (...) {
         return false;
     }
+    return ShowFileGuard::Instance().SaveFile(filepath, text);
 }
 
 void EffectPresetManager::Reset()

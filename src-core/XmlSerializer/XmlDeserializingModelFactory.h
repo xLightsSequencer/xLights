@@ -40,7 +40,7 @@ private:
     void DeserializeBaseObjectAttributes(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing);
     void DeserializeCommonModelAttributes(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing);
     void DeserializeCommonModelChildElements(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing);
-    void DeserializeSubModel(Model* model, pugi::xml_node node);
+    void DeserializeSubModel(Model* model, pugi::xml_node node, bool importing);
     void DeserializeAliases(Model* model, pugi::xml_node node);
     void DeserializeSuperStrings(Model* model, pugi::xml_node node);
     void DeserializeDimmingCurve(Model* model, pugi::xml_node node);

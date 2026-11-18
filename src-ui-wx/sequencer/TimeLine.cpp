@@ -27,6 +27,7 @@
 #include "render/EffectLayer.h"
 #include "render/Element.h"
 #include "render/UndoManager.h"
+#include "render/CommandExecutor.h"
 #include "xLightsMain.h"
 #include "shared/utils/wxUtilities.h"
 #include <log.h>
@@ -1909,6 +1910,7 @@ void TimeLine::CopyEffectsToRegion(int sourceRegionIdx, int targetRegionIdx)
 
     UndoManager& undoMgr = _sequenceElements->get_undo_mgr();
     undoMgr.CreateUndoStep();
+    CommandExecutor& exec = _sequenceElements->GetCommandExecutor();
 
     int effectsCopied = 0;
 
@@ -1934,7 +1936,7 @@ void TimeLine::CopyEffectsToRegion(int sourceRegionIdx, int targetRegionIdx)
                 if (newStartMS < 0 || newStartMS >= newEndMS) continue;
 
                 if (el->GetRangeIsClearMS(newStartMS, newEndMS)) {
-                    Effect* newEff = el->AddEffect(0,
+                    Effect* newEff = exec.AddEffect(el,
                         eff->GetEffectName(),
                         eff->GetSettingsAsString(),
                         eff->GetPaletteAsString(),
@@ -1944,10 +1946,6 @@ void TimeLine::CopyEffectsToRegion(int sourceRegionIdx, int targetRegionIdx)
                         false);
 
                     if (newEff != nullptr) {
-                        undoMgr.CaptureAddedEffect(
-                            elem->GetName(),
-                            el->GetIndex(),
-                            newEff->GetID());
                         effectsCopied++;
                     }
                 }
@@ -1985,6 +1983,7 @@ void TimeLine::ApplyPaletteToRegion(int regionIdx)
 
     UndoManager& undoMgr = _sequenceElements->get_undo_mgr();
     undoMgr.CreateUndoStep();
+    CommandExecutor& exec = _sequenceElements->GetCommandExecutor();
 
     int effectsModified = 0;
 
@@ -2001,12 +2000,7 @@ void TimeLine::ApplyPaletteToRegion(int regionIdx)
                 region.startTimeMS, region.endTimeMS);
 
             for (Effect* eff : regionEffects) {
-                undoMgr.CaptureModifiedEffect(
-                    elem->GetName(),
-                    el->GetIndex(),
-                    eff);
-
-                eff->SetPalette(paletteString);
+                exec.SetEffectPalette(eff, paletteString);
                 effectsModified++;
             }
         }

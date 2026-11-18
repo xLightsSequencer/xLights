@@ -45,6 +45,7 @@ protected:
     OutputManager* _outputManager = nullptr;   // we need this from time to time
     bool _dirty = false;                       // dirty means it needs saving
     int _id = 64001;                           // the controller id ... a unique number
+    std::string _objectId;                     // permanent layout record id (utils/LayoutObjectId.h)
     std::string _name;                         // a unique name for the controller
     std::string _description;                  // a description for the controller
     bool _ok = false;                          // controller initiated ok
@@ -127,6 +128,9 @@ public:
     void SetName(const std::string& name) { if (_name != name) { _name = name; _dirty = true; } }
 
     virtual int GetId() const { return _id; }
+    // Setting it is not a configuration change: nothing is marked dirty.
+    const std::string& GetObjectId() const { return _objectId; }
+    void SetObjectId(const std::string& id) { _objectId = id; }
     void EnsureUniqueId();
     void EnsureUniqueName();
 

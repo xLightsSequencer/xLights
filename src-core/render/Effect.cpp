@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "Effect.h"
+#include <set>
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceElements.h"
@@ -301,6 +302,7 @@ bool Effect::IsTimeToDelete() const
 
 void Effect::SetEffectIndex(int effectIndex)
 {
+    XL_SEQ_MUTATION("Effect::SetEffectIndex");
     if (mEffectIndex != effectIndex) {
         mEffectIndex = effectIndex;
         IncrementChangeCount();
@@ -341,6 +343,7 @@ const std::string& Effect::GetEffectName(int index) const
 
 void Effect::SetEffectName(const std::string & name)
 {
+    XL_SEQ_MUTATION("Effect::SetEffectName");
     int idx = GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     if (mEffectIndex != idx || mEffectIndex == -1) {
         mEffectIndex = idx;
@@ -367,6 +370,7 @@ std::string Effect::GetSetting(const std::string& id) const
 
 bool Effect::SetSetting(const std::string& id, const std::string &v)
 {
+    XL_SEQ_MUTATION("Effect::SetSetting");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     if (!mSettings.Contains(id) || mSettings[id] != v) {
         mSettings[id] = v;
@@ -390,6 +394,7 @@ std::string Effect::GetDescription() const
 // effect re-renders normally.
 void Effect::SetStartTimeMS(int startTimeMS)
 {
+    XL_SEQ_MUTATION("Effect::SetStartTimeMS");
     assert(!IsLocked());
 
     ScopedSymbolPropagationSuppressor noFanOut;
@@ -404,6 +409,7 @@ void Effect::SetStartTimeMS(int startTimeMS)
 
 void Effect::SetEndTimeMS(int endTimeMS)
 {
+    XL_SEQ_MUTATION("Effect::SetEndTimeMS");
     assert(!IsLocked());
 
     ScopedSymbolPropagationSuppressor noFanOut;
@@ -478,6 +484,7 @@ bool Effect::IsRenderDisabled() const
 
 void Effect::SetEffectRenderDisabled(bool disabled)
 {
+    XL_SEQ_MUTATION("Effect::SetEffectRenderDisabled");
     std::unique_lock<std::recursive_mutex> getlock(settingsLock);
     if (disabled) {
         mSettings["X_Effect_RenderDisabled"] = "True";
@@ -495,6 +502,7 @@ bool Effect::IsLocked() const
 
 void Effect::SetLocked(bool lock)
 {
+    XL_SEQ_MUTATION("Effect::SetLocked");
     std::unique_lock<std::recursive_mutex> getlock(settingsLock);
     if (lock)
     {
@@ -620,6 +628,7 @@ std::string Effect::GetSettingsAsJSON() const
 }
 
 void Effect::SetSettings(const std::string& settings, bool keepxsettings, bool json) {
+    XL_SEQ_MUTATION("Effect::SetSettings");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     auto old = GetSettingsAsString();
@@ -663,6 +672,7 @@ bool Effect::SettingsChanged(const std::string& settings)
 
 void Effect::PressButton(RenderableEffect* re, const std::string& id)
 {
+    XL_SEQ_MUTATION("Effect::PressButton");
     bool changed = false;
     if (StartsWith(id, "E_"))
     {
@@ -678,6 +688,7 @@ void Effect::PressButton(RenderableEffect* re, const std::string& id)
 
 void Effect::ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid)
 {
+    XL_SEQ_MUTATION("Effect::ApplySetting");
     
     if (StartsWith(id, "C_"))
     {
@@ -783,6 +794,7 @@ bool Effect::UsesColour(const std::string& from)
 
 int Effect::ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to)
 {
+    XL_SEQ_MUTATION("Effect::ReplaceColours");
     int res = 0;
     for (auto it : mPaletteMap) {
         if (StartsWith(it.first, "C_BUTTON")) {
@@ -861,6 +873,7 @@ std::string Effect::GetPaletteAsJSON() const
 
 void Effect::SetPalette(const std::string& i)
 {
+    XL_SEQ_MUTATION("Effect::SetPalette");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     auto old = GetPaletteAsString();
@@ -879,6 +892,7 @@ void Effect::SetPalette(const std::string& i)
 // This only updates the colour palette ... preserving all the other colour settings
 void Effect::SetColourOnlyPalette(const std::string& i, bool json, bool keepCheckboxes)
 {
+    XL_SEQ_MUTATION("Effect::SetColourOnlyPalette");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     // save the old palette
@@ -945,16 +959,26 @@ static bool ApplyKeyChanges(SettingsMap& map, const std::map<std::string, std::o
 
 bool Effect::ApplySettingChanges(const std::map<std::string, std::optional<std::string>>& changes)
 {
+    XL_SEQ_MUTATION("Effect::ApplySettingChanges");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     if (!ApplyKeyChanges(mSettings, changes)) {
         return false;
     }
-    IncrementChangeCount();
+    // Lock, description and render-disable don't change rendered output;
+    // the direct setters never marked the effect dirty for them either.
+    static const std::set<std::string> nonRenderKeys = { "X_Effect_Locked", "X_Effect_Description", "X_Effect_RenderDisabled" };
+    for (const auto& [key, value] : changes) {
+        if (nonRenderKeys.find(key) == nonRenderKeys.end()) {
+            IncrementChangeCount();
+            break;
+        }
+    }
     return true;
 }
 
 bool Effect::ApplyPaletteChanges(const std::map<std::string, std::optional<std::string>>& changes)
 {
+    XL_SEQ_MUTATION("Effect::ApplyPaletteChanges");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     if (!ApplyKeyChanges(mPaletteMap, changes)) {
         return false;
@@ -970,6 +994,7 @@ bool Effect::ApplyPaletteChanges(const std::map<std::string, std::optional<std::
 
 void Effect::EraseSettingsStartingWith(const std::string& s)
 {
+    XL_SEQ_MUTATION("Effect::EraseSettingsStartingWith");
     auto it = GetSettings().begin();
     while (it != GetSettings().end()) {
         if (StartsWith(it->first, s)) {
@@ -985,6 +1010,7 @@ void Effect::EraseSettingsStartingWith(const std::string& s)
 
 void Effect::ErasePalette()
 {
+    XL_SEQ_MUTATION("Effect::ErasePalette");
     auto it = GetPaletteMap().begin();
     while (it != GetPaletteMap().end()) {
         if (StartsWith(it->first, "C_BUTTON_Palette") || StartsWith(it->first, "C_CHECKBOX_Palette")) {
@@ -1000,6 +1026,7 @@ void Effect::ErasePalette()
 
 void Effect::EraseColourSettings()
 {
+    XL_SEQ_MUTATION("Effect::EraseColourSettings");
     auto it = GetPaletteMap().begin();
     while (it != GetPaletteMap().end()) {
         if (!StartsWith(it->first, "C_BUTTON_Palette") && !StartsWith(it->first, "C_CHECKBOX_Palette")) {
@@ -1014,6 +1041,7 @@ void Effect::EraseColourSettings()
 }
 
 void Effect::PaletteMapUpdated() {
+    XL_SEQ_MUTATION("Effect::PaletteMapUpdated");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     mColors.clear();
     mCC.clear();

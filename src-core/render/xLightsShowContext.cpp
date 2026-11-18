@@ -18,7 +18,9 @@
 #include "render/SequenceFile.h"
 #include "models/Model.h"
 #include "models/DisplayAsType.h"
+#include "models/ViewObject.h"
 #include "utils/FileUtils.h"
+#include "utils/LayoutObjectId.h"
 
 #include <spdlog/spdlog.h>
 
@@ -294,4 +296,65 @@ bool xLightsShowContext::CloseSequence() {
     _sequenceDoc.reset();
     _sequenceFile.reset();
     return true;
+}
+
+void xLightsShowContext::StampLayoutObjectIds(pugi::xml_node root,
+                                              std::function<std::string(const std::string&)> const& layoutGroupIdForName) const
+{
+    if (!root) {
+        return;
+    }
+
+    // Models, their submodels and groups share one id space, as they do in ModelManager.
+    std::unordered_set<std::string> modelIds;
+    for (pugi::xml_node mn = root.child("models").child("model"); mn; mn = mn.next_sibling("model")) {
+        Model* m = AllModels.GetModel(mn.attribute("name").as_string(""));
+        if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            m = nullptr;
+        }
+        std::string id = m != nullptr ? m->GetObjectId() : std::string();
+        if (id.empty()) {
+            id = LayoutObjectId::Read(mn);
+        }
+        LayoutObjectId::Claim(id, modelIds);
+        LayoutObjectId::Write(mn, id);
+        LayoutObjectId::StampChildren(
+            mn, "subModel",
+            [m](const std::string& name) {
+                Model* sm = m != nullptr ? m->GetSubModel(name) : nullptr;
+                return sm != nullptr ? sm->GetObjectId() : std::string();
+            },
+            modelIds);
+    }
+    LayoutObjectId::StampChildren(
+        root.child("modelGroups"), "modelGroup",
+        [this](const std::string& name) {
+            Model* g = AllModels.GetModel(name);
+            return g != nullptr && g->GetDisplayAs() == DisplayAsType::ModelGroup ? g->GetObjectId() : std::string();
+        },
+        modelIds);
+
+    std::unordered_set<std::string> objectIds;
+    LayoutObjectId::StampChildren(
+        root.child("view_objects"), "view_object",
+        [this](const std::string& name) {
+            ViewObject* vo = AllObjects.GetViewObject(name);
+            return vo != nullptr ? vo->GetObjectId() : std::string();
+        },
+        objectIds);
+
+    std::unordered_set<std::string> viewIds;
+    LayoutObjectId::StampChildren(
+        root.child("views"), "view",
+        [this](const std::string& name) {
+            SequenceView* v = _sequenceViewManager.GetView(name);
+            return v != nullptr ? v->GetObjectId() : std::string();
+        },
+        viewIds);
+
+    std::unordered_set<std::string> layoutGroupIds;
+    LayoutObjectId::StampChildren(root.child("layoutGroups"), "layoutGroup", layoutGroupIdForName, layoutGroupIds);
+
+    std::unordered_set<std::string> perspectiveIds;
+    LayoutObjectId::StampChildren(root.child("perspectives"), "perspective", {}, perspectiveIds);
 }

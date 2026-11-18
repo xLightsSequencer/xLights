@@ -79,6 +79,7 @@
 
 #include "../common/xlBaseApp.h"
 #include "outputs/OutputManager.h"
+#include "utils/LayoutObjectId.h"
 #include "render/PixelBuffer.h"
 #include "render/SequenceData.h"
 #include "import_export/SuperStarImporter.h"
@@ -435,6 +436,9 @@ public:
         std::string version;
         int gridSpacing = 0;
         int iconSize = 0;
+        // Permanent layout record id (utils/LayoutObjectId.h). A new
+        // perspective gets one here; a loaded one takes the file's.
+        std::string objectId = LayoutObjectId::Generate();
     };
 
     void CapturePerspectiveViewSettings(Perspective& p) const;
@@ -450,6 +454,15 @@ public:
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
     void SavePresetsFile(bool backup = false);
+    // Before overwriting a show file, asks what to do when someone else changed
+    // it on disk since it was loaded or last saved here. writeCopy saves this
+    // session's version to the path it is given. Batch, command line and
+    // automation saves never prompt: they log and answer Cancel.
+    enum class ShowFileConflict { NoConflict, Overwrite, SavedCopy, Cancel };
+    ShowFileConflict ResolveShowFileConflict(const std::string& path,
+                                             const std::function<bool(const std::string& copyPath)>& writeCopy,
+                                             wxWindow* parent = nullptr);
+    bool IsNonInteractiveSave() const;
     void SaveModelsFile();
     void MarkEffectsFileDirty(std::source_location loc = std::source_location::current());
     void MarkPresetsDirty(std::source_location loc = std::source_location::current());
@@ -1586,6 +1599,7 @@ public:
     xlUnsavedFlag UnsavedRgbEffectsChanges{ "Models, Views and Perspectives" };
     xlUnsavedFlag UnsavedPresetChanges{ "Effect Presets" };
     bool _renderMode = false;
+    int _automationDepth = 0;
     std::vector<std::string> _sequenceBusy;
     std::vector<std::function<void()>> _runWhenSequenceNotBusy;
     bool _checkSequenceMode = false;
@@ -1825,7 +1839,7 @@ public:
     void RunWhenSequenceNotBusy(std::function<void()> fn);
 
     void NewSequence(const std::string& media = "", uint32_t durationMS = 0, uint32_t frameMS = 0, const std::string& defView = "");
-    void SaveAsSequence();
+    bool SaveAsSequence();
     bool SaveAsSequence(const std::string& filename);
     bool IsSequenceInShowDir(const wxString& filename) const;
     // Why the open sequence can't be saved to `path` ("" = it can). An empty

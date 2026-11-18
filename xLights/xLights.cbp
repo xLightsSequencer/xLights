@@ -417,6 +417,8 @@
 		<Unit filename="../src-core/utils/AppCallbacks.h" />
 		<Unit filename="../src-core/utils/JobPool.cpp" />
 		<Unit filename="../src-core/utils/JobPool.h" />
+		<Unit filename="../src-core/utils/LayoutObjectId.cpp" />
+		<Unit filename="../src-core/utils/LayoutObjectId.h" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.cpp" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.h" />
 		<Unit filename="../src-ui-wx/app-shell/KeyBindingEditDialog.cpp" />
@@ -640,6 +642,8 @@
 		<Unit filename="../src-ui-wx/sequencer/TopEffectsPanel.h" />
 		<Unit filename="../src-core/utils/ShowGuid.cpp" />
 		<Unit filename="../src-core/utils/ShowGuid.h" />
+		<Unit filename="../src-core/utils/ShowFileGuard.cpp" />
+		<Unit filename="../src-core/utils/ShowFileGuard.h" />
 		<Unit filename="../src-core/utils/ShowRedactor.cpp" />
 		<Unit filename="../src-core/utils/ShowRedactor.h" />
 		<Unit filename="../src-core/utils/TraceLog.cpp" />
@@ -1469,6 +1473,7 @@
 		<Unit filename="../src-core/render/SequenceCommands.cpp" />
 		<Unit filename="../src-core/render/SequenceCommands.h" />
 		<Unit filename="../src-core/render/SequenceIds.h" />
+		<Unit filename="../src-core/render/SequenceMutationGuard.h" />
 		<Unit filename="../src-core/render/SongStructureManager.cpp" />
 		<Unit filename="../src-core/render/SongStructureManager.h" />
 		<Unit filename="../src-core/render/SeqMediaMigration.cpp" />

@@ -4648,7 +4648,9 @@ bool LayoutPanel::SaveEffects()
     if (xlights->IsReadOnlyMode()) {
         return false;
     }
-    xlights->SaveEffectsFile();
+    if (!xlights->SaveEffectsFile()) {
+        return false;
+    }
     xlights->SetStatusText(_("Preview layout saved"));
     SetDirtyHiLight(false);
 
@@ -11933,6 +11935,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         if (node) {
             node.remove_attribute("name");
             node.append_attribute("name") = name;
+            LayoutObjectId::StripFromXml(node);
         }
 
         if (node) {
@@ -12127,6 +12130,7 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
             it2->GetModelNode().remove_attribute("LayoutGroup");
             it2->GetModelNode().append_attribute("name") = newName;
             it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
+            LayoutObjectId::StripFromXml(it2->GetModelNode());
             scaleModelNode(it2->GetModelNode());
             try {
                 xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
@@ -12172,6 +12176,7 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
                 it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
                 it2->GetModelNode().remove_attribute("models");
                 it2->GetModelNode().append_attribute("models") = memberList;
+                LayoutObjectId::StripFromXml(it2->GetModelNode());
                 model = xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
                 spdlog::debug("Imported model group '{}'.", (const char*)name.c_str());
             }

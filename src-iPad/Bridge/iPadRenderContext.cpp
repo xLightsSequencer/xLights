@@ -14,6 +14,7 @@
 
 #include "render/Element.h"
 #include "render/EffectLayer.h"
+#include "render/SequenceMutationGuard.h"
 #include "render/Effect.h"
 #include "render/FSEQFile.h"
 #include "render/FSEQFileIO.h"
@@ -25,6 +26,7 @@
 #include "media/MediaCompatibility.h"
 #include "xLightsVersion.h"
 #include <map>
+#include <sstream>
 #include "effects/ShaderEffect.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
@@ -50,6 +52,7 @@
 
 #include <pugixml.hpp>
 #include "utils/FileUtils.h"
+#include "utils/ShowFileGuard.h"
 #include "utils/CachedFileDownloader.h"
 #include <globals.h>
 #include <log.h>
@@ -145,6 +148,23 @@ iPadRenderContext::ModelMutationScope::ModelMutationScope(iPadRenderContext& ctx
         spdlog::error("iPadRenderContext: could not abort in-flight render; leaving the models alone rather than freeing them under a live render job");
     }
 }
+
+namespace {
+// The section-only saves (show id, viewpoints, views, model states) patch the
+// file as it is on disk now, so they keep other people's changes; they must
+// not mark an outstanding external change as seen either.
+bool SavePatchedXml(const pugi::xml_document& doc, const std::string& path, const char* indent) {
+    std::ostringstream out;
+    doc.save(out, indent);
+    return ShowFileGuard::Instance().SavePatchedFile(path, out.str());
+}
+
+std::string XmlToString(const pugi::xml_document& doc, const char* indent) {
+    std::ostringstream out;
+    doc.save(out, indent);
+    return out.str();
+}
+} // namespace
 
 bool iPadRenderContext::LoadShowFolder(const std::string& showDir) {
     return LoadShowFolder(showDir, {});
@@ -242,6 +262,7 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
         spdlog::error("iPadRenderContext: File NOT found: {}", rgbPath);
     }
 
+    ShowFileGuard::Instance().RecordFromDisk(rgbPath);
     pugi::xml_document doc;
     auto result = doc.load_file(rgbPath.c_str());
     if (result) {
@@ -311,7 +332,7 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                         settingsNode = xlightsNode.append_child("settings");
                     }
                     settingsNode.append_child("ShowGUID").append_attribute("value") = guid.c_str();
-                    if (doc.save_file(rgbPath.c_str())) {
+                    if (SavePatchedXml(doc, rgbPath, "\t")) {
                         _showGuid = guid;
                     } else {
                         spdlog::warn("iPadRenderContext: unable to write ShowGUID to {}", rgbPath);
@@ -357,6 +378,7 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                     g.backgroundBrightness = lg.attribute("backgroundBrightness").as_int(100);
                     g.backgroundAlpha = lg.attribute("backgroundAlpha").as_int(100);
                     g.scaleBackgroundImage = lg.attribute("scaleImage").as_int(0) > 0;
+                    g.objectId = LayoutObjectId::Read(lg);
                     if (!g.backgroundImage.empty()) {
                         g.backgroundImage = FileUtils::FixFile(showDirectory, g.backgroundImage);
                         ObtainAccessToURL(g.backgroundImage, false);
@@ -367,6 +389,12 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                         }
                     }
                     _namedLayoutGroups.push_back(std::move(g));
+                }
+                // A missing id is assigned, the later of two repeats is
+                // replaced. Written on the next save, never marked dirty.
+                std::unordered_set<std::string> usedIds;
+                for (auto& g : _namedLayoutGroups) {
+                    LayoutObjectId::Claim(g.objectId, usedIds);
                 }
                 spdlog::info("iPadRenderContext: Loaded {} named layout groups",
                              _namedLayoutGroups.size());
@@ -513,7 +541,11 @@ bool iPadRenderContext::LoadBasePresets() {
     return false;
 }
 
-bool iPadRenderContext::SaveEffectPresets() {
+std::string iPadRenderContext::GetEffectPresetsPath() const {
+    return showDirectory.empty() ? std::string() : showDirectory + "/" + XLIGHTS_PRESETS_FILE;
+}
+
+bool iPadRenderContext::SaveEffectPresets(bool overwriteExternalChanges) {
     if (showDirectory.empty())
         return false;
     if (_effectPresetManager.GetVersion().empty()) {
@@ -523,8 +555,12 @@ bool iPadRenderContext::SaveEffectPresets() {
     ObtainAccessToURL(backupPath, true);
     _effectPresetManager.SaveJsonFile(backupPath); // best-effort
 
-    std::string presetsPath = showDirectory + "/" + XLIGHTS_PRESETS_FILE;
+    std::string presetsPath = GetEffectPresetsPath();
     ObtainAccessToURL(presetsPath, true);
+    if (!overwriteExternalChanges && ShowFileGuard::Instance().HasChangedOnDisk(presetsPath)) {
+        spdlog::warn("iPadRenderContext: {} was changed by someone else; not overwriting it (the backup copy has these presets)", presetsPath);
+        return false;
+    }
     if (!_effectPresetManager.SaveJsonFile(presetsPath)) {
         spdlog::warn("iPadRenderContext: failed to save effect presets to {}", presetsPath);
         return false;
@@ -596,7 +632,7 @@ bool iPadRenderContext::RegenerateShowGuid() {
     } else {
         guidNode.append_attribute("value") = guid.c_str();
     }
-    if (!doc.save_file(rgbPath.c_str())) {
+    if (!SavePatchedXml(doc, rgbPath, "\t")) {
         spdlog::warn("iPadRenderContext: unable to write the re-minted show id to '{}'", rgbPath);
         return false;
     }
@@ -634,8 +670,9 @@ bool iPadRenderContext::SaveViewpoints() {
     }
     XmlSerializingVisitor visitor(root);
     viewpoint_mgr.Save(visitor);
+    StampLayoutIds(root);
 
-    if (!doc.save_file(rgbPath.c_str(), "  ")) {
+    if (!SavePatchedXml(doc, rgbPath, "  ")) {
         spdlog::error("iPadRenderContext::SaveViewpoints: write failed for {}",
                       rgbPath);
         return false;
@@ -669,8 +706,9 @@ bool iPadRenderContext::SaveViews() {
     }
     XmlSerializingVisitor visitor(root);
     _sequenceViewManager.Save(visitor);
+    StampLayoutIds(root);
 
-    if (!doc.save_file(rgbPath.c_str(), "  ")) {
+    if (!SavePatchedXml(doc, rgbPath, "  ")) {
         spdlog::error("iPadRenderContext::SaveViews: write failed for {}",
                       rgbPath);
         return false;
@@ -736,8 +774,9 @@ bool iPadRenderContext::SaveModelStates() {
         }
         Model::WriteStateInfo(modelNode, m->GetStateInfo());
     }
+    StampLayoutIds(root);
 
-    if (!doc.save_file(rgbPath.c_str(), "  ")) {
+    if (!SavePatchedXml(doc, rgbPath, "  ")) {
         spdlog::error("iPadRenderContext::SaveModelStates: write failed for {}",
                       rgbPath);
         return false;
@@ -746,8 +785,69 @@ bool iPadRenderContext::SaveModelStates() {
     return true;
 }
 
-bool iPadRenderContext::SaveLayoutChanges() {
-    return SaveLayoutChangesTo("", /*clearDirty*/ true);
+void iPadRenderContext::StampLayoutIds(pugi::xml_node root) const {
+    StampLayoutObjectIds(root, [this](const std::string& name) {
+        for (const auto& g : _namedLayoutGroups) {
+            if (g.name == name) return g.objectId;
+        }
+        return std::string();
+    });
+}
+
+bool iPadRenderContext::SaveLayoutChanges(bool overwriteExternalChanges) {
+    return SaveLayoutChangesTo("", /*clearDirty*/ true, overwriteExternalChanges);
+}
+
+bool iPadRenderContext::HasLayoutDirt() const {
+    return !_deletedLayoutGroups.empty() ||
+           !_dirtyLayoutModels.empty() ||
+           !_dirtyLayoutViewObjects.empty() ||
+           !_createdGroups.empty() ||
+           !_deletedGroups.empty() ||
+           !_createdViewObjects.empty() ||
+           !_deletedViewObjects.empty() ||
+           !_dirtyBackgroundGroups.empty() ||
+           !_renamedGroups.empty() ||
+           !_renamedViewObjects.empty() ||
+           !_renamedModels.empty();
+}
+
+std::vector<std::string> iPadRenderContext::LayoutFilesChangedOnDisk() const {
+    std::vector<std::string> changed;
+    if (showDirectory.empty()) return changed;
+    const std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";
+    if (HasLayoutDirt() && ShowFileGuard::Instance().HasChangedOnDisk(rgbPath)) {
+        changed.push_back(rgbPath);
+    }
+    const std::string& networksPath = _outputManager.GetNetworksFilePath();
+    if (_controllersDirty && ShowFileGuard::Instance().HasChangedOnDisk(networksPath)) {
+        changed.push_back(networksPath);
+    }
+    return changed;
+}
+
+std::vector<std::string> iPadRenderContext::SaveLayoutChangesAsCopies() {
+    std::vector<std::string> copies;
+    if (showDirectory.empty()) return copies;
+    const std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";
+    for (const auto& path : LayoutFilesChangedOnDisk()) {
+        const std::string copy = ShowFileGuard::MakeCopyPath(path);
+        ObtainAccessToURL(copy, true);
+        // The rgbeffects copy is the on-disk file with these edits applied,
+        // the same document a save would have written.
+        const bool ok = (path == rgbPath) ? SaveLayoutChangesTo(copy, /*clearDirty*/ false)
+                                          : _outputManager.SaveCopyTo(copy);
+        if (ok) {
+            spdlog::info("iPadRenderContext: {} was changed by someone else; saved this session's version to {}", path, copy);
+            copies.push_back(copy);
+        } else {
+            spdlog::error("iPadRenderContext: could not write a copy of {} to {}", path, copy);
+        }
+    }
+    // Whatever did not conflict is saved as usual; the conflicting files are
+    // skipped again and their edits stay pending.
+    SaveLayoutChangesTo("", /*clearDirty*/ true, /*overwriteExternalChanges*/ false);
+    return copies;
 }
 
 namespace {
@@ -814,28 +914,26 @@ bool iPadRenderContext::AutosaveLayoutChanges() {
                                /*clearDirty*/ false);
 }
 
-bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty) {
-    const bool hasLayoutDirt =
-        !_deletedLayoutGroups.empty() ||
-        !_dirtyLayoutModels.empty() ||
-        !_dirtyLayoutViewObjects.empty() ||
-        !_createdGroups.empty() ||
-        !_deletedGroups.empty() ||
-        !_createdViewObjects.empty() ||
-        !_deletedViewObjects.empty() ||
-        !_dirtyBackgroundGroups.empty() ||
-        !_renamedGroups.empty() ||
-        !_renamedViewObjects.empty() ||
-        !_renamedModels.empty();
+bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty, bool overwriteExternalChanges) {
+    const bool hasLayoutDirt = HasLayoutDirt();
     if (!hasLayoutDirt && !_controllersDirty) {
         return true;
     }
     if (showDirectory.empty()) return false;
 
+    // A real save never overwrites a file someone else changed unless the
+    // user chose to; the edits stay pending and the next explicit save asks.
+    bool skippedConflict = false;
+
     // J-31 — Controllers tab edits live in xlights_networks.xml.
     // Save them first; if the layout side has no other changes,
     // we're done.
-    if (_controllersDirty && clearDirty) {
+    if (_controllersDirty && clearDirty && !overwriteExternalChanges &&
+        ShowFileGuard::Instance().HasChangedOnDisk(_outputManager.GetNetworksFilePath())) {
+        spdlog::warn("iPadRenderContext::SaveLayoutChanges: {} was changed by someone else; not overwriting it",
+                     _outputManager.GetNetworksFilePath());
+        skippedConflict = true;
+    } else if (_controllersDirty && clearDirty) {
         if (!_outputManager.Save()) {
             spdlog::warn("iPadRenderContext::SaveLayoutChanges: OutputManager::Save() failed");
             // Continue to layout save — partial saves are still
@@ -845,12 +943,16 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
         }
         if (!hasLayoutDirt) return true;
     }
-    if (!hasLayoutDirt) return true;
+    if (!hasLayoutDirt) return !skippedConflict;
 
     // Read the live file, patch it, then write wherever the caller
     // asked — the real file for a save, the .xbkp copy for an autosave.
     std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";
     const std::string writePath = targetPath.empty() ? rgbPath : targetPath;
+    if (targetPath.empty() && !overwriteExternalChanges && ShowFileGuard::Instance().HasChangedOnDisk(rgbPath)) {
+        spdlog::warn("iPadRenderContext::SaveLayoutChanges: {} was changed by someone else; not overwriting it", rgbPath);
+        return false;
+    }
     if (!ObtainAccessToURL(rgbPath, true)) {
         spdlog::warn("iPadRenderContext::SaveLayoutChanges: ObtainAccessToURL failed for '{}' — write will likely fail", rgbPath);
     }
@@ -1387,13 +1489,17 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
         }
     }
 
+    StampLayoutIds(root);
     if (writePath != rgbPath) ObtainAccessToURL(writePath, true);
-    if (!doc.save_file(writePath.c_str(), "  ")) {
+    const std::string xml = XmlToString(doc, "  ");
+    const bool written = (writePath == rgbPath) ? ShowFileGuard::Instance().SaveFile(writePath, xml)
+                                                : ShowFileGuard::WriteFileAtomically(writePath, xml);
+    if (!written) {
         spdlog::error("iPadRenderContext::SaveLayoutChanges: write failed for {}",
                       writePath);
         return false;
     }
-    if (!clearDirty) return true;
+    if (!clearDirty) return !skippedConflict;
     _dirtyLayoutModels.clear();
     _dirtyLayoutViewObjects.clear();
     _createdGroups.clear();
@@ -1405,7 +1511,7 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
     _renamedViewObjects.clear();
     _renamedModels.clear();
     _deletedLayoutGroups.clear();
-    return true;
+    return !skippedConflict;
 }
 
 bool iPadRenderContext::CaptureModelUndoEntry(const std::string& modelName, LayoutUndoEntry& e) const {
@@ -2957,6 +3063,8 @@ void iPadRenderContext::GenerateShaderPreview(ShaderMediaCacheEntry* entry) {
 
     Element* elem = _presetSequenceElements.GetElement(_presetModel->GetName());
     if (!elem) return;
+    // The preset scratch sequence is never edited by the user.
+    SeqMutationGuard::Scope scratchSequence;
 
     for (const auto& it : elem->GetEffectLayers()) {
         it->DeleteAllEffects();

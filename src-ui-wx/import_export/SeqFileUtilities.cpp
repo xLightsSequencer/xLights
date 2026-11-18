@@ -1046,7 +1046,12 @@ bool xLightsFrame::CloseSequence()
             return false;
         }
         if (dlg->GetSaveChanges()) {
-            SaveSequence();
+            // A refused or cancelled save (the file changed on disk, no name
+            // chosen, a write error) keeps the sequence open rather than
+            // dropping the changes.
+            if (!SaveSequence()) {
+                return false;
+            }
             // must wait for the rendering to complete
             while (!_renderEngine->IsRenderDone()) {
                 wxMilliSleep(10);

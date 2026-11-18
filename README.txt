@@ -17,11 +17,22 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 HLS import: strand names lost their last character, so Map CCR/Strand found no nodes
     -bug (derwin12)              Select Effects listed models with no effects matching the Effect Type,
                                  Render Style, time and colour filters together
+    -enh (dkulp)                 Warn instead of silently overwriting layout, controller, preset or sequence
+                                 changes saved by someone else to a shared show folder
+    -enh (dkulp)                 iPad - Warn instead of silently overwriting layout, controller, preset or
+                                 sequence changes saved by someone else to a shared show folder
     -change (scott)              Controller Open / Open Proxy buttons stay enabled while outputting to lights
     -bug (dkulp)                 Undo could change or delete the wrong effect after effects were added
                                  without undo, lose effects deleted from a layer that was later removed,
                                  and do nothing after a timing track was renamed
     -bug (dkulp)                 Undo of removing a layer brings back the layer's name and effects
+    -bug (dkulp)                 AC mode: turning lights off over a range that fully covered a locked effect
+                                 could hang xLights
+    -bug (dkulp)                 Split Effect is undone in one step; the first Undo after a split did nothing
+    -bug (dkulp)                 Undo of Auto Label and Convert Effects To restores the previous label or effect type
+    -bug (dkulp)                 Automation deleteEffect could not be undone
+    -bug (dkulp)                 iPad - Undo after Promote Node Effects or Convert Data to Effects undid the
+                                 previous edit instead
     -bug (alex)                  SubModels: Import Custom Model Overlay ignored the chosen alignment column (always
                                  left) and placed the overlay upside down; all 9 positions now work
     -bug (alex)                  SubModels: Import Custom Model Overlay filled the empty cells of the outline,

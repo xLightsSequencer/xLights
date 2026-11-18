@@ -28,6 +28,7 @@
 #include "render/EffectLayer.h"
 #include "render/Element.h"
 #include "render/SequenceElements.h"
+#include "render/CommandExecutor.h"
 #include "MainSequencer.h"
 #include "RenderCommandEvent.h"
 #include "settings/XLightsConfigAdapter.h"
@@ -496,6 +497,7 @@ void xLightsFrame::OnMenuItem_GenerateMovingHeadSongSelected(wxCommandEvent& /*e
 
     auto& undo = _sequenceElements.get_undo_mgr();
     undo.CreateUndoStep();
+    CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
 
     for (const auto& name : usable) {
         Element* el = _sequenceElements.GetElement(name);
@@ -508,9 +510,7 @@ void xLightsFrame::OnMenuItem_GenerateMovingHeadSongSelected(wxCommandEvent& /*e
                 if (ef->IsLocked()) {
                     continue;
                 }
-                undo.CaptureEffectToBeDeleted(el->GetName(), (int)l, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
-                                              ef->GetStartTimeMS(), ef->GetEndTimeMS(), ef->GetSelected(), ef->GetProtected());
-                layer->DeleteEffect(ef->GetID());
+                exec.DeleteEffect(ef);
             }
         }
     }
@@ -538,12 +538,11 @@ void xLightsFrame::OnMenuItem_GenerateMovingHeadSongSelected(wxCommandEvent& /*e
             ++failed;
             continue;
         }
-        Effect* ef = layer->AddEffect(0, "Moving Head", MovingHeadSong::BuildSettings(g, mh->GetFixtureVal()), palette, (int)s, (int)e, EFFECT_NOT_SELECTED, false);
+        Effect* ef = exec.AddEffect(layer, "Moving Head", MovingHeadSong::BuildSettings(g, mh->GetFixtureVal()), palette, (int)s, (int)e, EFFECT_NOT_SELECTED, false);
         if (ef == nullptr) {
             ++failed;
             continue;
         }
-        undo.CaptureAddedEffect(el->GetName(), 0, ef->GetID());
         endMS = std::max(endMS, e);
         ++added;
     }

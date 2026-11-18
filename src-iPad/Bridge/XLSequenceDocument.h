@@ -129,9 +129,21 @@ NS_ASSUME_NONNULL_BEGIN
                     frameMS:(int)frameMS;
 
 // Save the currently-open sequence back to its on-disk path. Returns
-// NO if there's no sequence loaded, the path is empty, or the XML
-// write fails. Marks the sequence clean on success.
+// NO if there's no sequence loaded, the path is empty, the XML
+// write fails, or someone else changed the file on disk since it was
+// opened (see `changedSequenceFileName`). Marks the sequence clean on
+// success.
 - (BOOL)saveSequence;
+// The same save, made after the user chose to overwrite a file someone
+// else changed.
+- (BOOL)saveSequenceOverwritingExternalChanges NS_SWIFT_NAME(saveSequenceOverwritingExternalChanges());
+// File name of the open sequence when someone else (or another app)
+// rewrote it since it was opened or last saved here; nil otherwise.
+- (nullable NSString*)changedSequenceFileName NS_SWIFT_NAME(changedSequenceFileName());
+// Write this session's sequence to a timestamped copy beside the
+// original (`<name>_mine_<stamp>.xsq`), leaving the original and the
+// dirty state alone. Returns the copy's path, nil on failure.
+- (nullable NSString*)saveSequenceCopy NS_SWIFT_NAME(saveSequenceCopy());
 
 // Tier 1 memory mitigation — drop the undo / redo history.
 // Per-step snapshots (settings + palette strings for every
@@ -1451,6 +1463,18 @@ NS_ASSUME_NONNULL_BEGIN
 // SwiftUI callers should batch by editing in-memory and saving on
 // commit / lose-focus / scene-close, not per-keystroke.
 - (BOOL)saveLayoutChanges;
+// `saveLayoutChanges` will not overwrite xlights_rgbeffects.xml or
+// xlights_networks.xml when someone else changed it since it was
+// loaded: it returns NO and the edits stay pending. These are the
+// names of the files that would be skipped (empty when none).
+- (NSArray<NSString*>*)layoutFilesChangedOnDisk NS_SWIFT_NAME(layoutFilesChangedOnDisk());
+// Save after the user chose to overwrite. rgbeffects is still a
+// load-modify-write, so other people's edits to items not changed here
+// survive; the networks file is rewritten whole.
+- (BOOL)saveLayoutChangesOverwritingExternalChanges NS_SWIFT_NAME(saveLayoutChangesOverwritingExternalChanges());
+// Write this session's version of each changed file to a timestamped
+// copy beside it and save the rest normally. Returns the copies' paths.
+- (NSArray<NSString*>*)saveLayoutChangesAsCopies NS_SWIFT_NAME(saveLayoutChangesAsCopies());
 
 // Layout autosave — write pending layout edits to
 // `xlights_rgbeffects.xbkp` without touching the real file or clearing
@@ -4151,8 +4175,16 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 
 // Persist the in-memory preset tree to
 // `<showFolder>/xlights_effectpresets.json` (+ .jbkp backup). Returns
-// NO on write failure of the main file.
+// NO on write failure of the main file, or when someone else changed
+// it since it was loaded (see `changedPresetsFileName`).
 - (BOOL)savePresets;
+- (BOOL)savePresetsOverwritingExternalChanges NS_SWIFT_NAME(savePresetsOverwritingExternalChanges());
+// File name of the presets file when someone else changed it since it
+// was loaded or last saved here; nil otherwise.
+- (nullable NSString*)changedPresetsFileName NS_SWIFT_NAME(changedPresetsFileName());
+// Write the in-memory presets to a timestamped copy beside the presets
+// file. Returns the copy's path, nil on failure.
+- (nullable NSString*)savePresetsCopy NS_SWIFT_NAME(savePresetsCopy());
 
 #pragma mark - Song Structure Regions (#6268)
 

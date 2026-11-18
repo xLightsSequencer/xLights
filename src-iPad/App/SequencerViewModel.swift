@@ -1863,19 +1863,39 @@ class SequencerViewModel {
         return dest
     }
 
-    func saveSequence() -> Bool {
+    /// `interactive: false` is for saves nobody asked for (the scene
+    /// closing). Those never overwrite a sequence someone else changed:
+    /// the edits go to the autosave backup and the next explicit save
+    /// asks. An interactive save raises `saveConflict` instead.
+    func saveSequence(interactive: Bool = true) -> Bool {
         guard isSequenceLoaded else { return false }
         // Read-only sequences can't be written back; the user must
         // Save As to a writable location. Mirrors desktop's
         // readOnlyMode gate on the Save path.
         if isReadOnly { return false }
+        if let changed = document.changedSequenceFileName() {
+            if interactive {
+                saveConflict = ShowFileSaveConflict(kind: .sequence, fileNames: [changed])
+            } else {
+                print("saveSequence: \(changed) was changed by someone else; automatic save wrote the autosave backup instead")
+                _ = document.writeAutosaveBackup()
+            }
+            return false
+        }
+        return writeSequence(overwritingExternalChanges: false)
+    }
+
+    private func writeSequence(overwritingExternalChanges: Bool) -> Bool {
+        guard isSequenceLoaded else { return false }
         // Playback + scrub mutate state the writer reads; pause
         // before writing so the XML snapshot is stable.
         if isPlaying { pause() }
         if isScrubbing { stopScrub() }
         let path = document.currentSequencePath()
         let ok = coordinatedWrite(at: path) {
-            document.saveSequence()
+            overwritingExternalChanges
+                ? document.saveSequenceOverwritingExternalChanges()
+                : document.saveSequence()
         }
         if ok {
             // For Files-provider `.xsqz` opens: the bridge just
@@ -4747,8 +4767,50 @@ class SequencerViewModel {
     /// Persist the in-memory preset tree to disk, then refresh the
     /// snapshot. Called by every mutating preset op.
     private func commitPresets() {
-        _ = document.savePresets()
+        if let changed = document.changedPresetsFileName() {
+            saveConflict = ShowFileSaveConflict(kind: .presets, fileNames: [changed])
+        } else {
+            _ = document.savePresets()
+        }
         reloadPresets()
+    }
+
+    // MARK: - Files changed by someone else
+
+    /// Set when a save found its file rewritten by someone else since
+    /// it was opened; ContentView asks Overwrite / Save a Copy / Cancel.
+    /// Layout saves are asked about in the layout editor's own window.
+    var saveConflict: ShowFileSaveConflict?
+    /// Where "Save a Copy" put this session's version.
+    var saveCopyNotice: String?
+
+    func overwriteAfterConflict(_ conflict: ShowFileSaveConflict) {
+        switch conflict.kind {
+        case .sequence:
+            _ = writeSequence(overwritingExternalChanges: true)
+        case .presets:
+            _ = document.savePresetsOverwritingExternalChanges()
+            reloadPresets()
+        case .layout:
+            break
+        }
+    }
+
+    func saveCopyAfterConflict(_ conflict: ShowFileSaveConflict) {
+        var copy: String?
+        switch conflict.kind {
+        case .sequence:
+            copy = document.saveSequenceCopy()
+        case .presets:
+            copy = document.savePresetsCopy()
+        case .layout:
+            return
+        }
+        if let copy {
+            saveCopyNotice = ShowFileSaveConflict.copyNotice(copies: [copy], originals: conflict.fileNames)
+        } else {
+            warningBannerMessage = "Couldn't save a copy of \(conflict.fileNames.joined(separator: " and ")). Check the Tools → Package Logs output for details."
+        }
     }
 
     /// Capture the current selection (single or multi) as a named

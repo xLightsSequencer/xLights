@@ -782,6 +782,8 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
     const std::vector<std::string>& colorPalettes,
     bool importing)
 {
+    // Loading builds the document directly; it is not an edit.
+    SeqMutationGuard::Scope loading;
 
     int loaded = 0;
     for (auto effect : effectLayerNode.children()) {
@@ -877,6 +879,8 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
 
 bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_document& doc, const std::string& ShowDir, bool importing)
 {
+    // Loading builds the document directly; it is not an edit.
+    SeqMutationGuard::Scope loading;
 
     renderDependency.clear();
 

@@ -48,6 +48,7 @@
 #include "setup/ControllerModelDialog.h"
 #include "setup/ShowDirectoriesDialog.h"
 #include "utils/ExternalHooks.h"
+#include "utils/ShowFileGuard.h"
 #include "utils/ip_utils.h"
 
 #include "controllers/FPP.h"
@@ -865,6 +866,21 @@ bool xLightsFrame::SaveNetworksFile() {
             // dont get into a redraw loop from here
             GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
         }
+    }
+
+    const std::string networksPath = _outputManager.GetNetworksFilePath();
+    // Saving the layout always rewrites the controllers too. With no
+    // controller edits here, rewriting a file someone else changed would only
+    // undo theirs.
+    if (!UnsavedNetworkChanges && !_outputManager.IsDirty() && ShowFileGuard::Instance().HasChangedOnDisk(networksPath)) {
+        spdlog::info("Not rewriting {}: it was changed by someone else and there are no controller changes here to save.", networksPath);
+        return true;
+    }
+    auto conflict = ResolveShowFileConflict(networksPath, [this](const std::string& copy) {
+        return _outputManager.SaveCopyTo(copy);
+    });
+    if (conflict == ShowFileConflict::Cancel || conflict == ShowFileConflict::SavedCopy) {
+        return false;
     }
 
     if (_outputManager.Save()) {

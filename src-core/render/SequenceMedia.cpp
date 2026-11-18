@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "SequenceMedia.h"
+#include "SequenceMutationGuard.h"
 #include "utils/JobPool.h"
 #include "pugixml.hpp"
 #include "../utils/Base64.h"
@@ -1045,6 +1046,7 @@ void SequenceMedia::EraseImageLocked(const std::string& filepath)
 
 void SequenceMedia::RemoveImage(const std::string& filepath)
 {
+    XL_SEQ_MUTATION("SequenceMedia::RemoveImage");
     std::scoped_lock lock(_cacheMutex);
     EraseImageLocked(filepath);
     _missingImages.erase(filepath);
@@ -1132,6 +1134,7 @@ void SequenceMedia::PurgePreviewCaches()
 
 void SequenceMedia::EmbedImage(const std::string& filepath)
 {
+    XL_SEQ_MUTATION("SequenceMedia::EmbedImage");
     std::scoped_lock lock(_cacheMutex);
     auto it = _imageCache.find(filepath);
     if (it != _imageCache.end()) {
@@ -1142,6 +1145,7 @@ void SequenceMedia::EmbedImage(const std::string& filepath)
 
 void SequenceMedia::EmbedAllImages()
 {
+    XL_SEQ_MUTATION("SequenceMedia::EmbedAllImages");
     std::scoped_lock lock(_cacheMutex);
     for (auto& pair : _imageCache) {
         pair.second->EmbedImage();
@@ -1149,6 +1153,7 @@ void SequenceMedia::EmbedAllImages()
     }
 }
 void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::string& imageData) {
+    XL_SEQ_MUTATION("SequenceMedia::AddEmbeddedImage");
     std::shared_ptr<ImageCacheEntry> entry;
     {
         std::scoped_lock lock(_cacheMutex);
@@ -1161,6 +1166,7 @@ void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::string&
 
 void SequenceMedia::AddEmbeddedImage(const std::string& name, const xlImage& image)
 {
+    XL_SEQ_MUTATION("SequenceMedia::AddEmbeddedImage");
     // Encode the xlImage as PNG, then base64-encode it
     std::vector<uint8_t> pngData;
     if (!image.SaveAsPNG(pngData)) {
@@ -1180,6 +1186,7 @@ void SequenceMedia::AddEmbeddedImage(const std::string& name, const xlImage& ima
 
 void SequenceMedia::AddEmbeddedImageFromFile(const std::string& name, const std::string& sourceFilePath)
 {
+    XL_SEQ_MUTATION("SequenceMedia::AddEmbeddedImageFromFile");
     if (name.empty() || sourceFilePath.empty()) {
         return;
     }
@@ -1212,6 +1219,7 @@ void SequenceMedia::AddEmbeddedImageFromFile(const std::string& name, const std:
 
 void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::vector<xlImage>& frames, int frameTimeMs)
 {
+    XL_SEQ_MUTATION("SequenceMedia::AddEmbeddedImage");
     if (frames.empty()) return;
     std::scoped_lock lock(_cacheMutex);
     if (_imageCache.find(name) != _imageCache.end()) return;
@@ -1229,6 +1237,7 @@ void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::vector<
 
 void SequenceMedia::ExtractImage(const std::string& filepath)
 {
+    XL_SEQ_MUTATION("SequenceMedia::ExtractImage");
     std::scoped_lock lock(_cacheMutex);
     auto it = _imageCache.find(filepath);
     if (it != _imageCache.end()) {
@@ -1238,6 +1247,7 @@ void SequenceMedia::ExtractImage(const std::string& filepath)
 
 void SequenceMedia::ExtractAllImages()
 {
+    XL_SEQ_MUTATION("SequenceMedia::ExtractAllImages");
     std::scoped_lock lock(_cacheMutex);
     for (auto& pair : _imageCache) {
         pair.second->ExtractImage();
@@ -1246,6 +1256,7 @@ void SequenceMedia::ExtractAllImages()
 
 bool SequenceMedia::ExtractImageToFile(const std::string& oldPath, const std::string& newPath)
 {
+    XL_SEQ_MUTATION("SequenceMedia::ExtractImageToFile");
     std::shared_ptr<ImageCacheEntry> entry;
     {
         std::scoped_lock lock(_cacheMutex);
@@ -1262,6 +1273,7 @@ bool SequenceMedia::ExtractImageToFile(const std::string& oldPath, const std::st
 
 bool SequenceMedia::RenameImage(const std::string& oldPath, const std::string& newPath)
 {
+    XL_SEQ_MUTATION("SequenceMedia::RenameImage");
     if (oldPath == newPath) return true;
     std::scoped_lock lock(_cacheMutex);
     auto it = _imageCache.find(oldPath);
@@ -1276,6 +1288,7 @@ bool SequenceMedia::RenameImage(const std::string& oldPath, const std::string& n
 
 bool SequenceMedia::RenameMedia(const std::string& oldPath, const std::string& newPath)
 {
+    XL_SEQ_MUTATION("SequenceMedia::RenameMedia");
     if (oldPath == newPath) return true;
     std::scoped_lock lock(_cacheMutex);
 
@@ -2219,6 +2232,7 @@ std::string SequenceMedia::FindEmbeddedKey(const std::string& filepath) const {
 }
 
 bool SequenceMedia::CopyEmbeddedMedia(const SequenceMedia& src, const std::string& filepath) {
+    XL_SEQ_MUTATION("SequenceMedia::CopyEmbeddedMedia");
     if (filepath.empty() || &src == this) return false;
 
     MediaType type = MediaType::Image;
@@ -2264,6 +2278,7 @@ bool SequenceMedia::CopyEmbeddedMedia(const SequenceMedia& src, const std::strin
 }
 
 void SequenceMedia::RemoveMedia(const std::string& filepath) {
+    XL_SEQ_MUTATION("SequenceMedia::RemoveMedia");
     std::scoped_lock lock(_cacheMutex);
     EraseImageLocked(filepath);
     _textCache.erase(filepath);
@@ -2433,6 +2448,7 @@ std::vector<std::string> SequenceMedia::GetVideoFilePaths() const {
 // =====================================================================
 
 void SequenceMedia::EmbedMedia(const std::string& filepath) {
+    XL_SEQ_MUTATION("SequenceMedia::EmbedMedia");
     std::scoped_lock lock(_cacheMutex);
     auto ii = _imageCache.find(filepath);
     if (ii != _imageCache.end()) { ii->second->Embed(); ii->second->SetFilePath(filepath); return; }
@@ -2448,6 +2464,7 @@ void SequenceMedia::EmbedMedia(const std::string& filepath) {
 }
 
 void SequenceMedia::EmbedAllMedia() {
+    XL_SEQ_MUTATION("SequenceMedia::EmbedAllMedia");
     std::scoped_lock lock(_cacheMutex);
     for (auto& p : _imageCache) { p.second->Embed(); p.second->SetFilePath(p.first); }
     for (auto& p : _textCache) { p.second->Embed(); p.second->SetFilePath(p.first); }
@@ -2458,6 +2475,7 @@ void SequenceMedia::EmbedAllMedia() {
 }
 
 void SequenceMedia::ExtractMedia(const std::string& filepath) {
+    XL_SEQ_MUTATION("SequenceMedia::ExtractMedia");
     std::scoped_lock lock(_cacheMutex);
     auto ii = _imageCache.find(filepath);
     if (ii != _imageCache.end()) { ii->second->Extract(); return; }
@@ -2502,6 +2520,7 @@ std::string SequenceMedia::ResolveOnDisk(const std::string& filepath) {
 }
 
 bool SequenceMedia::ReembedMediaFromDisk(const std::string& filepath) {
+    XL_SEQ_MUTATION("SequenceMedia::ReembedMediaFromDisk");
     std::scoped_lock lock(_cacheMutex);
     return WithFileEntry(filepath, _textCache, _svgCache, _shaderCache, _binaryCache, [&](auto& cache, auto makeEntry) {
         auto& slot = cache[filepath];
@@ -2521,6 +2540,7 @@ bool SequenceMedia::ReembedMediaFromDisk(const std::string& filepath) {
 }
 
 bool SequenceMedia::ExtractMediaToDisk(const std::string& filepath, const std::string& destPath) {
+    XL_SEQ_MUTATION("SequenceMedia::ExtractMediaToDisk");
     std::scoped_lock lock(_cacheMutex);
     return WithFileEntry(filepath, _textCache, _svgCache, _shaderCache, _binaryCache, [&](auto& cache, auto makeEntry) {
         auto& slot = cache[filepath];
@@ -2548,6 +2568,7 @@ bool SequenceMedia::ExtractMediaToDisk(const std::string& filepath, const std::s
 }
 
 void SequenceMedia::ExtractAllMedia() {
+    XL_SEQ_MUTATION("SequenceMedia::ExtractAllMedia");
     std::scoped_lock lock(_cacheMutex);
     for (auto& p : _imageCache) p.second->Extract();
     for (auto& p : _textCache) p.second->Extract();
@@ -2557,6 +2578,7 @@ void SequenceMedia::ExtractAllMedia() {
 }
 
 void SequenceMedia::RemoveUnusedMedia() {
+    XL_SEQ_MUTATION("SequenceMedia::RemoveUnusedMedia");
     std::scoped_lock lock(_cacheMutex);
     auto removeUnused = [](auto& cache, const char* typeName) {
         std::vector<std::string> toRemove;

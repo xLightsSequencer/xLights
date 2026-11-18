@@ -1822,7 +1822,8 @@ void CustomModelDialog::ReverseSubmodels() {
             
             newSm->CheckDuplicates();
             
-            // Replace the old submodel with the new one
+            // Replace the old submodel with the new one - the same record, so it keeps its id
+            newSm->SetObjectId(sm->GetObjectId());
             _model->RemoveSubModel(sm->GetName());
             _model->AddSubmodel(newSm);
             replaced = true;

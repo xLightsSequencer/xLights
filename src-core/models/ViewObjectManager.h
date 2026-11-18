@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <map>
+#include <unordered_set>
 #include <string>
 #include <vector>
 #include <pugixml.hpp>
@@ -36,6 +37,7 @@ public:
 
     virtual BaseObject *GetObject(const std::string &name) const override;
     ViewObject *GetViewObject(const std::string &name) const;
+    ViewObject *GetViewObjectByObjectId(const std::string &id) const;
 
     UICallbacks* GetUICallbacks() const override;
     OutputModelManager* GetOutputModelManager() const override;
@@ -73,6 +75,7 @@ protected:
     ViewObject *createAndAddObject(pugi::xml_node node);
 
 private:
+    void AssignObjectId(ViewObject* view_object, const ViewObject* replaced) const;
     std::map<std::string, ViewObject *> view_objects;
     RenderContext* _renderContext;
 

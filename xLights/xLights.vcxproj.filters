@@ -72,6 +72,7 @@
     <ClCompile Include="..\src-ui-wx\klightmapper\KLightMapperBridge_win.cpp" />
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutObjectId.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutGroup.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutPanel.cpp" />
@@ -606,6 +607,7 @@
     <ClCompile Include="..\src-ui-wx\color\ColoursPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.cpp" />
     <ClCompile Include="..\src-core\utils\ShowGuid.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowFileGuard.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
@@ -1648,6 +1650,7 @@
     <ClInclude Include="..\src-ui-wx\shared\utils\Images_png.h" />
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
+    <ClInclude Include="..\src-core\utils\LayoutObjectId.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
@@ -2188,6 +2191,7 @@
     <ClInclude Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.h" />
     <ClInclude Include="..\src-core\utils\SpecialOptions.h" />
     <ClInclude Include="..\src-core\utils\ShowGuid.h" />
+    <ClInclude Include="..\src-core\utils\ShowFileGuard.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />
@@ -2375,6 +2379,9 @@
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceIds.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceMutationGuard.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\CommandExecutor.h">

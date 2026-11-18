@@ -30,6 +30,7 @@
 #include "../../common/xlBaseApp.h"
 #include "shared/utils/wxUtilities.h"
 #include "render/SequenceElements.h"
+#include "render/CommandExecutor.h"
 #include "render/SequenceMedia.h"
 #include "media/ManageMediaPanel.h"
 #include "sequencer/TopEffectsPanel.h"
@@ -1379,10 +1380,12 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 if ("Random" == effect->GetEffectName()) {
                     std::string settings, palette;
                     std::string effectName = CreateEffectStringRandom(settings, palette);
-                    effect->SetPalette(palette);
-                    effect->SetSettings(settings, false);
-                    effect->SetEffectName(effectName);
-                    effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
+                    _sequenceElements.GetCommandExecutor().EditEffect(effect, [&](Effect& e) {
+                        e.SetPalette(palette);
+                        e.SetSettings(settings, false);
+                        e.SetEffectName(effectName);
+                        e.SetEffectIndex(effectManager.GetEffectIndex(effectName));
+                    }, false);
                     resetStrings = true;
                 }
                 SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
@@ -1392,8 +1395,10 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 selectedEffect = effect;
 
                 if (effect->GetPaletteMap().empty() || resetStrings || effect->SettingsChanged(selectedEffectString)) { // the settings changed is necessary because there are some situations where a new effect wont render because somehow the selectedEffectString changes without triggering a render. I think it relates to effects that auto-set certain values based on the model such as faces and states
-                    effect->SetPalette(selectedEffectPalette);
-                    effect->SetSettings(selectedEffectString, true);
+                    _sequenceElements.GetCommandExecutor().EditEffect(effect, [&](Effect& e) {
+                        e.SetPalette(selectedEffectPalette);
+                        e.SetSettings(selectedEffectString, true);
+                    }, false);
                     if (!_suspendRender) {
                         RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
                             effect->GetStartTimeMS(),
@@ -1467,10 +1472,10 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                                      _sequenceElements.GetSelectedRange(i)->EndTime);
         el->DeleteSelectedEffects(_sequenceElements.get_undo_mgr());
         // Add dropped effect
-        Effect* effect = el->AddEffect(0,name,settings,palette,
-                                       _sequenceElements.GetSelectedRange(i)->StartTime,
-                                       _sequenceElements.GetSelectedRange(i)->EndTime,
-                                       EFFECT_SELECTED,false);
+        Effect* effect = _sequenceElements.GetCommandExecutor().AddEffect(el, name, settings, palette,
+                                                                         _sequenceElements.GetSelectedRange(i)->StartTime,
+                                                                         _sequenceElements.GetSelectedRange(i)->EndTime,
+                                                                         EFFECT_SELECTED, false);
 
         // Change render buffer to Per Model for models that need it
         Model* m = AllModels[el->GetParentElement()->GetModelName()];
@@ -1486,14 +1491,13 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
                     }
                 }
                 if( all_good ) {
-                    effect->GetSettings()["B_CHOICE_BufferStyle"] = "Per Model Default";
+                    // Part of the add: undoing the add removes the effect.
+                    _sequenceElements.GetCommandExecutor().SetEffectSetting(effect, "B_CHOICE_BufferStyle", std::string("Per Model Default"), false);
                 }
             }
         }
 
         last_effect_created = effect;
-
-        _sequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetFullName(), el->GetIndex(), effect->GetID() );
 
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
@@ -1683,31 +1687,31 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
             _sequenceElements.GetSelectedRange(i)->EndTime);
         el->DeleteSelectedEffects(_sequenceElements.get_undo_mgr());
         // Add dropped effect
-        Effect* effect = el->AddEffect(0, effectName, settings, palette,
+        CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
+        Effect* effect = exec.AddEffect(el, effectName, settings, palette,
             _sequenceElements.GetSelectedRange(i)->StartTime,
             _sequenceElements.GetSelectedRange(i)->EndTime,
             EFFECT_SELECTED, false);
 
         // Now set the filename and register with SequenceMedia
-        // (adjustSettings is not called for drag-and-drop created effects)
+        // (adjustSettings is not called for drag-and-drop created effects).
+        // Part of the add, so no undo of its own.
         SequenceMedia& media = _sequenceElements.GetSequenceMedia();
         if (effectName == "Video") {
-            effect->GetSettings()["E_FILEPICKERCTRL_Video_Filename"] = filename;
+            exec.SetEffectSetting(effect, "E_FILEPICKERCTRL_Video_Filename", filename, false);
             media.GetVideo(filename);
         } else if (effectName == "Pictures") {
-            effect->GetSettings()["E_TEXTCTRL_Pictures_Filename"] = filename;
+            exec.SetEffectSetting(effect, "E_TEXTCTRL_Pictures_Filename", filename, false);
             media.GetImage(filename);
         } else if (effectName == "Glediator") {
-            effect->GetSettings()["E_FILEPICKERCTRL_Glediator_Filename"] = filename;
+            exec.SetEffectSetting(effect, "E_FILEPICKERCTRL_Glediator_Filename", filename, false);
             media.GetBinaryFile(filename, "glediator");
         } else if (effectName == "Shader") {
-            effect->GetSettings()["E_0FILEPICKERCTRL_IFS"] = filename;
+            exec.SetEffectSetting(effect, "E_0FILEPICKERCTRL_IFS", filename, false);
             media.GetShader(filename);
         }
 
         last_effect_created = effect;
-
-        _sequenceElements.get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID());
 
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
 
@@ -2460,11 +2464,10 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
         for (int j = 0; j < el->GetEffectCount(); j++) {
             if (el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED) {
                 Effect* ef = el->GetEffect(j);
-                _sequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
-                    el->GetIndex(),
-                    ef);
                 // only set the colours ... not other settings like sparkles
-                ef->SetColourOnlyPalette(palette, false, keepCheckboxes);
+                _sequenceElements.GetCommandExecutor().EditEffect(ef, [&](Effect& e) {
+                    e.SetColourOnlyPalette(palette, false, keepCheckboxes);
+                });
                 startms = std::min(startms, ef->GetStartTimeMS());
                 endms = std::max(endms, ef->GetEndTimeMS());
             }
@@ -2500,14 +2503,12 @@ void xLightsFrame::UpdateEffect(wxCommandEvent& event)
         for(int j=0;j< el->GetEffectCount();j++) {
             if(el->GetEffect(j)->GetSelected() != EFFECT_NOT_SELECTED) {
                 Effect *ef = el->GetEffect(j);
-                _sequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
-                                                                       el->GetIndex(),
-                                                                       ef);
-
-                el->GetEffect(j)->SetSettings(effectText, true);
-                el->GetEffect(j)->SetEffectIndex(effectIndex);
-                el->GetEffect(j)->SetEffectName(effectName);
-                el->GetEffect(j)->SetPalette(palette);
+                _sequenceElements.GetCommandExecutor().EditEffect(ef, [&](Effect& e) {
+                    e.SetSettings(effectText, true);
+                    e.SetEffectIndex(effectIndex);
+                    e.SetEffectName(effectName);
+                    e.SetPalette(palette);
+                });
 
                 startms = std::min(startms, el->GetEffect(j)->GetStartTimeMS());
                 endms = std::max(endms, el->GetEffect(j)->GetEndTimeMS());
@@ -2546,10 +2547,6 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                 std::string settings = EffectsPanel1->GetRandomEffectString(effectIndex).ToStdString();
                 std::string palette = colorPanel->GetRandomColorString().ToStdString();
 
-                _sequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
-                                                                       el->GetIndex(),
-                                                                       el->GetEffect(j));
-
                 // Preserve layer blending (B_) and transition/layer (T_) settings
                 // so randomizing only changes the effect parameters, not the layer settings
                 for (const auto& it : oldSettings)
@@ -2560,10 +2557,12 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                     }
                 }
 
-                el->GetEffect(j)->SetSettings(settings, true);
-                el->GetEffect(j)->SetEffectIndex(effectIndex);
-                el->GetEffect(j)->SetEffectName(effectName);
-                el->GetEffect(j)->SetPalette(palette);
+                _sequenceElements.GetCommandExecutor().EditEffect(el->GetEffect(j), [&](Effect& e) {
+                    e.SetSettings(settings, true);
+                    e.SetEffectIndex(effectIndex);
+                    e.SetEffectName(effectName);
+                    e.SetPalette(palette);
+                });
 
                 SetEffectControls(el->GetEffect(j)->GetParentEffectLayer()->GetParentElement()->GetFullName(),
                                   el->GetEffect(j)->GetEffectName(),
@@ -2639,10 +2638,15 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             AddTraceMessage("  Something changed");
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
+            // No undo per change: the first change after selecting the effect
+            // captures a full snapshot below, which undoes the whole session.
+            CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
             if (name !=  eff->GetEffectName()) {
                 AddTraceMessage("  Effect name changed");
-                eff->SetEffectName(name.ToStdString());
-                eff->SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
+                exec.EditEffect(eff, [&](Effect& e) {
+                    e.SetEffectName(name.ToStdString());
+                    e.SetEffectIndex(EffectsPanel1->EffectChoicebook->GetSelection());
+                }, false);
             }
             AddTraceMessage("  Effect name " + name);
 
@@ -2673,8 +2677,10 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             }
 
             if (el->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-                eff->SetSettings(effectText, true);
-                eff->SetPalette(palette);
+                exec.EditEffect(eff, [&](Effect& e) {
+                    e.SetSettings(effectText, true);
+                    e.SetPalette(palette);
+                }, false);
                 AddTraceMessage("  Effect settings updated");
 
                 selectedEffectName = eff->GetEffectName();
@@ -4546,13 +4552,14 @@ bool equals(Effect* e, Effect* e2, const wxString& pal, const wxString& set)
 
 void xLightsFrame::DoPromoteEffects(ModelElement* element)
 {
+    CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
     // first promote from nodes to strands
     for (int x = 0; x < element->GetStrandCount(); x++) {
         StrandElement* se = element->GetStrand(x);
         EffectLayer* target = se->GetEffectLayer(0);
         if (element->GetStrandCount() <= 1) {
             if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
-                element->InsertEffectLayer(0);
+                exec.InsertLayer(element, 0, false);
             }
             target = element->GetEffectLayer(0);
         }
@@ -4585,12 +4592,12 @@ void xLightsFrame::DoPromoteEffects(ModelElement* element)
                         }
                     }
                     if (collapse) {
-                        target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
+                        exec.AddEffect(target, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false, false);
                         for (int n = 0; n < se->GetNodeLayerCount() && collapse; n++) {
                             NodeLayer* node = se->GetNodeLayer(n);
                             int nodeIndex = 0;
-                            if (node->HitTestEffectByTime(mp, nodeIndex)) {
-                                node->DeleteEffectByIndex(nodeIndex);
+                            if (node->HitTestEffectByTime(mp, nodeIndex) && !node->GetEffect(nodeIndex)->IsLocked()) {
+                                exec.DeleteEffect(node->GetEffect(nodeIndex), false);
                             }
                         }
                     }
@@ -4603,7 +4610,7 @@ void xLightsFrame::DoPromoteEffects(ModelElement* element)
     // OK, we're now promoted to strand level effects, try and promote to Model level
     EffectLayer* base = element->GetStrand(0)->GetEffectLayer(0);
     if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
-        element->InsertEffectLayer(0);
+        exec.InsertLayer(element, 0, false);
     }
     EffectLayer* target = element->GetEffectLayer(0);
     for (int e = base->GetEffectCount() - 1; e >= 0; e--) {
@@ -4635,14 +4642,14 @@ void xLightsFrame::DoPromoteEffects(ModelElement* element)
                 }
             }
             if (collapse) {
-                target->AddEffect(0, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false);
+                exec.AddEffect(target, eff->GetEffectName(), set, pal, eff->GetStartTimeMS(), eff->GetEndTimeMS(), false, false, false);
                 for (int n = 0; n < element->GetStrandCount() && collapse; n++) {
                     StrandElement* se = element->GetStrand(n);
                     for (int l = 0; l < (int)se->GetEffectLayerCount(); l++) {
                         EffectLayer* node = se->GetEffectLayer(l);
                         int nodeIndex = 0;
-                        if (node->HitTestEffectByTime(mp, nodeIndex)) {
-                            node->DeleteEffectByIndex(nodeIndex);
+                        if (node->HitTestEffectByTime(mp, nodeIndex) && !node->GetEffect(nodeIndex)->IsLocked()) {
+                            exec.DeleteEffect(node->GetEffect(nodeIndex), false);
                         }
                     }
                 }
@@ -4670,13 +4677,11 @@ void xLightsFrame::CallOnEffectBeforeSelected(std::function<bool(Effect *)> &&cb
     if (selectedEffect != nullptr) {
         Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetStartTimeMS() - 1);
         if (ef != nullptr) {
-            _sequenceElements.get_undo_mgr().CaptureModifiedEffect(ef->GetParentEffectLayer()->GetParentElement()->GetFullName(),
-                                                                   ef->GetParentEffectLayer()->GetIndex(), ef);
-            bool changed = cb(ef);
-            if (!changed) {
-                //didn't change, cancel the undo step
-                _sequenceElements.get_undo_mgr().CancelLastStep();
-            }
+            // Only what the callback actually changed is recorded, so a callback
+            // that changes nothing leaves no undo entry.
+            _sequenceElements.GetCommandExecutor().EditEffect(ef, [&](Effect& e) {
+                cb(&e);
+            });
         }
     }
 }
@@ -4684,13 +4689,11 @@ void xLightsFrame::CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb)
     if (selectedEffect != nullptr) {
         Effect *ef = selectedEffect->GetParentEffectLayer()->GetEffectAtTime(selectedEffect->GetEndTimeMS() + 1);
         if (ef != nullptr) {
-            _sequenceElements.get_undo_mgr().CaptureModifiedEffect(ef->GetParentEffectLayer()->GetParentElement()->GetFullName(),
-                                                                   ef->GetParentEffectLayer()->GetIndex(), ef);
-            bool changed = cb(ef);
-            if (!changed) {
-                //didn't change, cancel the undo step
-                _sequenceElements.get_undo_mgr().CancelLastStep();
-            }
+            // Only what the callback actually changed is recorded, so a callback
+            // that changes nothing leaves no undo entry.
+            _sequenceElements.GetCommandExecutor().EditEffect(ef, [&](Effect& e) {
+                cb(&e);
+            });
         }
     }
 }

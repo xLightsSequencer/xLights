@@ -31,6 +31,10 @@ class LayoutGroup : public wxObject
         const std::string &GetName() const {return mName;}
         void SetName(const std::string & name) {mName = name;}
 
+        // Permanent layout record id (see utils/LayoutObjectId.h).
+        const std::string& GetObjectId() const { return mObjectId; }
+        void SetObjectId(const std::string& id) { mObjectId = id; }
+
         void SetBackgroundImage(const std::string &filename);
         const std::string &GetBackgroundImage() const { return mBackgroundImage;}
 
@@ -86,4 +90,5 @@ class LayoutGroup : public wxObject
         int mPaneWidth;
         int mPaneHeight;
         bool ignore_size_and_pos;
+        std::string mObjectId;
 };

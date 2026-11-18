@@ -36,6 +36,7 @@ class wxStaticText;
 #include <pugixml.hpp>
 
 #include "models/handles/Handles.h"
+#include "utils/LayoutObjectId.h"
 #include "models/handles/DragSession.h"
 #include "models/handles/SpaceMouseSession.h"
 
@@ -104,9 +105,11 @@ public:
     OwnedXmlNode GetBaseObjectXml() const {
         if (!_xmlDoc)
             return {};
-        // Return a deep copy so callers can modify without affecting the stored XML
+        // Return a deep copy so callers can modify without affecting the stored XML.
+        // Whatever is built from it is a new record, so it must not carry the
+        // source's layout id.
         auto copy = std::make_shared<pugi::xml_document>();
-        copy->append_copy(_xmlDoc->document_element());
+        LayoutObjectId::StripFromXml(copy->append_copy(_xmlDoc->document_element()));
         return {copy};
     }
     void SetBaseObject(BaseObject* model);

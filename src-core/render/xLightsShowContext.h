@@ -135,6 +135,17 @@ public:
     // report the mismatch. wx-free; hosts drive resolution off the result.
     MissingModelScan ScanForMissingModels() const;
 
+    // For a host that saves xlights_rgbeffects.xml by patching the file on disk
+    // (the iPad) rather than rebuilding it from memory (the desktop): writes the
+    // in-memory layout id of every model, submodel, group, view object and view
+    // onto its record in `root` (matched by name), and of every layout group
+    // `layoutGroupIdForName` knows. Then any record still without an id - or
+    // repeating one - gets a fresh one, which covers records the host does not
+    // hold in memory at all. Run on every write so ids assigned at load reach
+    // the file even for records the save did not otherwise touch.
+    void StampLayoutObjectIds(pugi::xml_node root,
+                              std::function<std::string(const std::string&)> const& layoutGroupIdForName = {}) const;
+
     // The shared "load the sequence's elements from an open SequenceFile" steps,
     // in the one correct order. Every host (desktop frame, iPad, headless) ran
     // these open-coded and each ordering/migration bug (frequency rounding,

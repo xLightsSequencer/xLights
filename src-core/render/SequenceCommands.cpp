@@ -9,10 +9,24 @@
  **************************************************************/
 
 #include "SequenceCommands.h"
+#include "SequenceMutationGuard.h"
 
 #include <algorithm>
+#include <atomic>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <mutex>
 #include <set>
 #include <sstream>
+#include <utility>
+
+#if !defined(NDEBUG) && (defined(__APPLE__) || defined(__linux__))
+#include <execinfo.h>
+#define XL_HAVE_EXECINFO 1
+#endif
+
+#include <log.h>
 
 #include "Effect.h"
 #include "EffectLayer.h"
@@ -22,6 +36,86 @@
 #include "../utils/UtilClasses.h"
 
 using nlohmann::json;
+
+// ---------------------------------------------------------------------------
+// Mutation guard
+// ---------------------------------------------------------------------------
+
+#ifndef NDEBUG
+namespace SeqMutationGuard {
+namespace {
+thread_local int t_depth = 0;
+std::atomic<size_t> s_violations{ 0 };
+
+Mode InitialMode() {
+    if (const char* env = std::getenv("XL_COMMAND_GUARD")) {
+        if (std::strcmp(env, "off") == 0) return Mode::Off;
+        if (std::strcmp(env, "count") == 0) return Mode::Count;
+        if (std::strcmp(env, "assert") == 0) return Mode::Assert;
+        if (std::strcmp(env, "log") == 0) return Mode::Log;
+    }
+#if defined(DEBUG) || defined(_DEBUG)
+    return Mode::Log;
+#else
+    return Mode::Off;
+#endif
+}
+
+std::atomic<Mode>& CurrentMode() {
+    static std::atomic<Mode> mode{ InitialMode() };
+    return mode;
+}
+} // namespace
+
+Scope::Scope() { ++t_depth; }
+Scope::~Scope() { --t_depth; }
+
+void SetMode(Mode m) { CurrentMode().store(m); }
+Mode GetMode() { return CurrentMode().load(); }
+size_t ViolationCount() { return s_violations.load(); }
+void ResetViolationCount() { s_violations.store(0); }
+
+void Check(const char* what, const void* caller) {
+    if (t_depth > 0) {
+        return;
+    }
+    Mode mode = CurrentMode().load(std::memory_order_relaxed);
+    if (mode == Mode::Off) {
+        return;
+    }
+    ++s_violations;
+    if (mode == Mode::Assert) {
+        spdlog::critical("Sequence mutated outside a command: {}", what);
+        assert(false && "sequence mutated outside a SequenceCommand");
+        return;
+    }
+    if (mode != Mode::Log) {
+        return;
+    }
+    static std::mutex lock;
+    static std::set<std::pair<std::string, const void*>> seen;
+    {
+        std::lock_guard<std::mutex> l(lock);
+        if (!seen.emplace(what, caller).second) {
+            return;
+        }
+    }
+    std::string where;
+#ifdef XL_HAVE_EXECINFO
+    void* frames[8];
+    int n = backtrace(frames, 8);
+    if (char** syms = backtrace_symbols(frames, n)) {
+        for (int i = 1; i < n; ++i) {
+            where += "\n    ";
+            where += syms[i];
+        }
+        free(syms);
+    }
+#endif
+    spdlog::debug("Sequence mutated outside a command: {}{}", what, where);
+}
+} // namespace SeqMutationGuard
+#endif
 
 const char* CommandTypeName(CommandType t) {
     switch (t) {
@@ -378,6 +472,11 @@ SettingsChange SettingsChange::ReplaceWith(const std::string& serialized) {
     return c;
 }
 
+std::unique_ptr<SequenceCommand> SequenceCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+    SeqMutationGuard::Scope scope;
+    return ApplyImpl(seq, mode, result);
+}
+
 std::string SequenceCommand::ToJson() const {
     json j;
     Serialize(j);
@@ -413,7 +512,7 @@ CommandResult AddEffectCommand::Validate(const SequenceElements& seq, ApplyMode 
     return CommandResult::Success();
 }
 
-std::unique_ptr<SequenceCommand> AddEffectCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+std::unique_ptr<SequenceCommand> AddEffectCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
     CommandResult r = Validate(seq, mode);
     if (!r.Ok()) {
         return Failed(result, r);
@@ -452,7 +551,7 @@ CommandResult DeleteEffectCommand::Validate(const SequenceElements& seq, ApplyMo
     return CommandResult::Success();
 }
 
-std::unique_ptr<SequenceCommand> DeleteEffectCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+std::unique_ptr<SequenceCommand> DeleteEffectCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
     CommandResult r = Validate(seq, mode);
     if (!r.Ok()) {
         return Failed(result, r);
@@ -498,7 +597,7 @@ CommandResult MoveEffectCommand::Validate(const SequenceElements& seq, ApplyMode
     return CommandResult::Success();
 }
 
-std::unique_ptr<SequenceCommand> MoveEffectCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+std::unique_ptr<SequenceCommand> MoveEffectCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
     CommandResult r = Validate(seq, mode);
     if (!r.Ok()) {
         return Failed(result, r);
@@ -557,7 +656,7 @@ CommandResult ModifyEffectCommand::Validate(const SequenceElements& seq, ApplyMo
     return CommandResult::Success();
 }
 
-std::unique_ptr<SequenceCommand> ModifyEffectCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+std::unique_ptr<SequenceCommand> ModifyEffectCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
     CommandResult r = Validate(seq, mode);
     if (!r.Ok()) {
         return Failed(result, r);
@@ -628,7 +727,7 @@ CommandResult AddLayerCommand::Validate(const SequenceElements& seq, ApplyMode m
     return CommandResult::Success();
 }
 
-std::unique_ptr<SequenceCommand> AddLayerCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+std::unique_ptr<SequenceCommand> AddLayerCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
     CommandResult r = Validate(seq, mode);
     if (!r.Ok()) {
         return Failed(result, r);
@@ -689,7 +788,7 @@ CommandResult RemoveLayerCommand::Validate(const SequenceElements& seq, ApplyMod
     return CommandResult::Success();
 }
 
-std::unique_ptr<SequenceCommand> RemoveLayerCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+std::unique_ptr<SequenceCommand> RemoveLayerCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
     CommandResult r = Validate(seq, mode);
     if (!r.Ok()) {
         return Failed(result, r);
@@ -731,7 +830,7 @@ CommandResult SetLayerNameCommand::Validate(const SequenceElements& seq, ApplyMo
     return CommandResult::Success();
 }
 
-std::unique_ptr<SequenceCommand> SetLayerNameCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+std::unique_ptr<SequenceCommand> SetLayerNameCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
     CommandResult r = Validate(seq, mode);
     if (!r.Ok()) {
         return Failed(result, r);
@@ -774,7 +873,7 @@ CommandResult ReplaceLayerContentsCommand::Validate(const SequenceElements& seq,
     return CheckNewEffects(seq, layer, _effects, mode);
 }
 
-std::unique_ptr<SequenceCommand> ReplaceLayerContentsCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+std::unique_ptr<SequenceCommand> ReplaceLayerContentsCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
     CommandResult r = Validate(seq, mode);
     if (!r.Ok()) {
         return Failed(result, r);
@@ -821,7 +920,7 @@ CommandResult BatchCommand::Validate(const SequenceElements& seq, ApplyMode mode
     return CommandResult::Success();
 }
 
-std::unique_ptr<SequenceCommand> BatchCommand::Apply(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
+std::unique_ptr<SequenceCommand> BatchCommand::ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) {
     std::vector<std::unique_ptr<SequenceCommand>> inverses;
     for (auto& c : _commands) {
         CommandResult r;

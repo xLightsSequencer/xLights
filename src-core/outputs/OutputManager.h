@@ -80,7 +80,12 @@ public:
     #pragma region Save and Load
     bool Load(const std::string& showdir, bool syncEnabled = false);
     bool Save();
+    // Writes the current controllers to another file without changing which
+    // file this manager loads from or its dirty state.
+    bool SaveCopyTo(const std::string& path);
+    std::string SaveToString();
     void SaveToXML(pugi::xml_document& doc);
+    const std::string& GetNetworksFilePath() const { return _filename; }
     bool DidConvert() const { return _didConvert; }
     bool ConvertModelStartChannels(pugi::xml_node modelsNode) const;
     #pragma endregion 
@@ -143,6 +148,7 @@ public:
     void DeleteAllControllers();
     void MoveController(Controller* controller, int toControllerNumber);
     Controller* GetController(const std::string& name) const;
+    Controller* GetControllerByObjectId(const std::string& id) const;
     Controller* GetController(int32_t absoluteChannel, int32_t& startChannel) const; // returns the controller - equivalent to the old level 1
     std::vector<Controller*> GetControllersInRange(int32_t startChannel, int32_t endChannel) const;
     Controller* GetControllerWithIP(const std::string& ip);

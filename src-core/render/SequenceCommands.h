@@ -135,13 +135,16 @@ public:
 
     // Validates, then applies. Returns the inverse, or nullptr (with
     // `result`, if given, saying why) when nothing was applied.
-    virtual std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict,
-                                                   CommandResult* result = nullptr) = 0;
+    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict,
+                                           CommandResult* result = nullptr);
 
     virtual void Serialize(nlohmann::json& out) const = 0;
     virtual std::unique_ptr<SequenceCommand> Clone() const = 0;
 
     std::string ToJson() const;
+
+protected:
+    virtual std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) = 0;
 };
 
 // Returns nullptr for anything malformed; never throws.
@@ -159,13 +162,15 @@ public:
     AddEffectCommand(LayerLocator layer, EffectState state);
     CommandType Type() const override { return CommandType::AddEffect; }
     CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
-    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict, CommandResult* result = nullptr) override;
     void Serialize(nlohmann::json& out) const override;
     std::unique_ptr<SequenceCommand> Clone() const override;
 
     const LayerLocator& GetLayer() const { return _layer; }
     const EffectState& GetState() const { return _state; }
     EffectLocator Target() const { return { _layer.element, _layer.layer, _state.uid }; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
 
 private:
     LayerLocator _layer;
@@ -177,11 +182,13 @@ public:
     explicit DeleteEffectCommand(EffectLocator target);
     CommandType Type() const override { return CommandType::DeleteEffect; }
     CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
-    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict, CommandResult* result = nullptr) override;
     void Serialize(nlohmann::json& out) const override;
     std::unique_ptr<SequenceCommand> Clone() const override;
 
     const EffectLocator& Target() const { return _target; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
 
 private:
     EffectLocator _target;
@@ -195,13 +202,15 @@ public:
     MoveEffectCommand(EffectLocator target, int startTimeMS, int endTimeMS);
     CommandType Type() const override { return CommandType::MoveEffect; }
     CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
-    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict, CommandResult* result = nullptr) override;
     void Serialize(nlohmann::json& out) const override;
     std::unique_ptr<SequenceCommand> Clone() const override;
 
     const EffectLocator& Target() const { return _target; }
     int GetStartTimeMS() const { return _start; }
     int GetEndTimeMS() const { return _end; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
 
 private:
     EffectLocator _target;
@@ -218,7 +227,6 @@ public:
     ModifyEffectCommand(EffectLocator target, std::optional<std::string> effectName, SettingsChange settings, SettingsChange palette);
     CommandType Type() const override { return CommandType::ModifyEffect; }
     CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
-    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict, CommandResult* result = nullptr) override;
     void Serialize(nlohmann::json& out) const override;
     std::unique_ptr<SequenceCommand> Clone() const override;
 
@@ -226,6 +234,9 @@ public:
     const std::optional<std::string>& GetEffectName() const { return _name; }
     const SettingsChange& GetSettings() const { return _settings; }
     const SettingsChange& GetPalette() const { return _palette; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
 
 private:
     EffectLocator _target;
@@ -245,7 +256,6 @@ public:
                     std::string name = "", std::vector<EffectState> effects = {});
     CommandType Type() const override { return CommandType::AddLayer; }
     CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
-    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict, CommandResult* result = nullptr) override;
     void Serialize(nlohmann::json& out) const override;
     std::unique_ptr<SequenceCommand> Clone() const override;
 
@@ -255,6 +265,9 @@ public:
     int GetIndexHint() const { return _indexHint; }
     const std::string& GetName() const { return _name; }
     const std::vector<EffectState>& GetEffects() const { return _effects; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
 
 private:
     SeqObjectId _element;
@@ -273,12 +286,14 @@ public:
     RemoveLayerCommand(SeqObjectId element, SeqObjectId layer);
     CommandType Type() const override { return CommandType::RemoveLayer; }
     CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
-    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict, CommandResult* result = nullptr) override;
     void Serialize(nlohmann::json& out) const override;
     std::unique_ptr<SequenceCommand> Clone() const override;
 
     SeqObjectId GetElement() const { return _element; }
     SeqObjectId GetLayer() const { return _layer; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
 
 private:
     SeqObjectId _element;
@@ -290,12 +305,14 @@ public:
     SetLayerNameCommand(LayerLocator layer, std::string name);
     CommandType Type() const override { return CommandType::SetLayerName; }
     CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
-    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict, CommandResult* result = nullptr) override;
     void Serialize(nlohmann::json& out) const override;
     std::unique_ptr<SequenceCommand> Clone() const override;
 
     const LayerLocator& GetLayer() const { return _layer; }
     const std::string& GetName() const { return _name; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
 
 private:
     LayerLocator _layer;
@@ -310,12 +327,14 @@ public:
     ReplaceLayerContentsCommand(LayerLocator layer, std::vector<EffectState> effects);
     CommandType Type() const override { return CommandType::ReplaceLayerContents; }
     CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
-    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict, CommandResult* result = nullptr) override;
     void Serialize(nlohmann::json& out) const override;
     std::unique_ptr<SequenceCommand> Clone() const override;
 
     const LayerLocator& GetLayer() const { return _layer; }
     const std::vector<EffectState>& GetEffects() const { return _effects; }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
 
 private:
     LayerLocator _layer;
@@ -335,7 +354,6 @@ public:
     // on earlier members of the same batch may report a missing target here
     // and still apply.
     CommandResult Validate(const SequenceElements& seq, ApplyMode mode = ApplyMode::Strict) const override;
-    std::unique_ptr<SequenceCommand> Apply(SequenceElements& seq, ApplyMode mode = ApplyMode::Strict, CommandResult* result = nullptr) override;
     void Serialize(nlohmann::json& out) const override;
     std::unique_ptr<SequenceCommand> Clone() const override;
 
@@ -343,6 +361,9 @@ public:
     const std::string& GetLabel() const { return _label; }
     const std::vector<std::unique_ptr<SequenceCommand>>& GetCommands() const { return _commands; }
     bool IsEmpty() const { return _commands.empty(); }
+
+protected:
+    std::unique_ptr<SequenceCommand> ApplyImpl(SequenceElements& seq, ApplyMode mode, CommandResult* result) override;
 
 private:
     std::string _label;

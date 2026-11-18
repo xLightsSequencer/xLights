@@ -125,6 +125,11 @@ public:
     [[nodiscard]] bool IsFromBase() const { return _fromBase; }
     void SetFromBase(bool fromBase) { _fromBase = fromBase; }
 
+    // Permanent layout record id (see utils/LayoutObjectId.h). Setting it is
+    // not a layout change: nothing is marked dirty.
+    [[nodiscard]] const std::string& GetObjectId() const { return _objectId; }
+    void SetObjectId(const std::string& id) { _objectId = id; }
+
     std::string name;
     
     bool Selected() const { return _selected; }
@@ -146,6 +151,7 @@ protected:
     unsigned long changeCount = 0;
     bool _active = true;
     bool _fromBase = false;
+    std::string _objectId;
     
     bool uiObjectsInvalid = true;
 

@@ -13,6 +13,7 @@
 
 #include "nlohmann/json.hpp"
 
+#include "render/CommandExecutor.h"
 #include "render/FSEQFile.h"
 #include "render/SeqMediaMigration.h"
 #include "media/MediaCompatibility.h"
@@ -147,6 +148,12 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     if (paths.size() == 0) {
         return sendResponse("No command", "msg", 503, false);
     }
+    // Saves made for a script must not stop on a modal prompt; see IsNonInteractiveSave.
+    ++_automationDepth;
+    struct AutomationDepth {
+        int& depth;
+        ~AutomationDepth() { --depth; }
+    } automationDepth{ _automationDepth };
 
     std::string cmd = paths[0];
     // Requests are serviced by whatever event loop is running, including a modal
@@ -982,8 +989,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("target element doesn't exists.", "msg", 503, false);
         }
         _sequenceElements.get_undo_mgr().CreateUndoStep();
+        CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
         while ((int)to->GetEffectLayerCount() < layer + 1) {
-            to->AddEffectLayer();
+            exec.InsertLayer(to, (int)to->GetEffectLayerCount(), false);
         }
         // addEffect has always taken settings/palette in xLights' native
         // settings-map string format ("key=value,key2=value2"), passed straight
@@ -1000,17 +1008,19 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         };
         bool settingsIsJson = isJsonObject(settings);
         bool paletteIsJson = isJsonObject(palette);
-        auto valid = to->GetEffectLayer(layer)->AddEffect(0, effect,
-                                                          settingsIsJson ? "" : settings,
-                                                          paletteIsJson ? "" : palette,
-                                                          startTime, endTime, 0, false);
-        if (valid != nullptr) {
-            if (!settings.empty() && settingsIsJson) {
-                valid->SetSettings(settings, true, true);
-            }
-            if (!palette.empty() && paletteIsJson) {
-                valid->SetColourOnlyPalette(palette, true);
-            }
+        auto valid = exec.AddEffect(to->GetEffectLayer(layer), effect,
+                                    settingsIsJson ? "" : settings,
+                                    paletteIsJson ? "" : palette,
+                                    startTime, endTime, 0, false, false);
+        if (valid != nullptr && ((!settings.empty() && settingsIsJson) || (!palette.empty() && paletteIsJson))) {
+            exec.EditEffect(valid, [&](Effect& e) {
+                if (!settings.empty() && settingsIsJson) {
+                    e.SetSettings(settings, true, true);
+                }
+                if (!palette.empty() && paletteIsJson) {
+                    e.SetColourOnlyPalette(palette, true);
+                }
+            }, false);
         }
         mainSequencer->PanelEffectGrid->Refresh();
         std::string response = wxString::Format("{\"msg\":\"Added Effects.\",\"worked\":\"%s\"}", JSONSafe(toStr(valid != nullptr)));
@@ -1237,21 +1247,23 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             int origStart = eff->GetStartTimeMS();
             int origEnd = eff->GetEndTimeMS();
 
-            if (!params["name"].empty()) {
-                eff->SetEffectName(params["name"]);
-            }
-            if (!params["startTime"].empty()) {
-                eff->SetStartTimeMS((int)std::strtol(params["startTime"].c_str(), nullptr, 10));
-            }
-            if (!params["endTime"].empty()) {
-                eff->SetEndTimeMS((int)std::strtol(params["endTime"].c_str(), nullptr, 10));
-            }
-            if (!params["settings"].empty()) {
-                eff->SetSettings(params["settings"], true , true);
-            }
-            if (!params["palette"].empty()) {
-                eff->SetColourOnlyPalette(params["palette"], true);
-            }
+            _sequenceElements.GetCommandExecutor().EditEffect(eff, [&](Effect& e) {
+                if (!params["name"].empty()) {
+                    e.SetEffectName(params["name"]);
+                }
+                if (!params["startTime"].empty()) {
+                    e.SetStartTimeMS((int)std::strtol(params["startTime"].c_str(), nullptr, 10));
+                }
+                if (!params["endTime"].empty()) {
+                    e.SetEndTimeMS((int)std::strtol(params["endTime"].c_str(), nullptr, 10));
+                }
+                if (!params["settings"].empty()) {
+                    e.SetSettings(params["settings"], true , true);
+                }
+                if (!params["palette"].empty()) {
+                    e.SetColourOnlyPalette(params["palette"], true);
+                }
+            }, false);
             RenderCommandEvent event(ele->GetModelName(), std::min(origStart, eff->GetStartTimeMS()),
                                       std::max(origEnd, eff->GetEndTimeMS()), true, true);
             wxPostEvent(this, event);
@@ -1262,11 +1274,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         return sendResponse("target effect doesn't exists.", "msg", 503, false);
     } else if (cmd == "deleteEffect") {
-        // Mirrors setEffectSettings' lookup pattern (model/layer/id), then
-        // the same capture-then-delete sequence EffectsGrid's own delete
-        // path uses (CaptureEffectToBeDeleted for undo, then
-        // EffectLayer::DeleteEffect -- both existing, already-used core
-        // calls, not new deletion logic).
+        // Mirrors setEffectSettings' lookup pattern (model/layer/id).
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);
         }
@@ -1298,11 +1306,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         std::string modelName = ele->GetModelName();
         int start = eff->GetStartTimeMS();
         int end = eff->GetEndTimeMS();
-        _sequenceElements.get_undo_mgr().CaptureEffectToBeDeleted(model, layer, eff->GetEffectName(),
-                                                                   eff->GetSettingsAsString(), eff->GetPaletteAsString(),
-                                                                   eff->GetStartTimeMS(), eff->GetEndTimeMS(),
-                                                                   eff->GetSelected(), eff->GetProtected());
-        lay->DeleteEffect(id);
+        _sequenceElements.GetCommandExecutor().DeleteEffect(eff);
         if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
             mainSequencer->PanelEffectGrid->UnselectEffect();
         }

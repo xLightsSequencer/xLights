@@ -1327,6 +1327,8 @@ public:
                     } else {
                         tempEffect = new Effect(*ef);
                         ef = tempEffect;
+                        // Edits below go to a render-only copy, not the document.
+                        SeqMutationGuard::Scope renderTemporary;
                         
                         // disable the background display lists as the "duplicate" effect doesn't support this
                         tempEffect->EnableBackgroundDisplayLists(false);

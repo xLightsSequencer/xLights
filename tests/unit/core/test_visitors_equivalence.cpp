@@ -17,6 +17,7 @@
 #include "models/Model.h"
 #include "models/ModelManager.h"
 #include "outputs/OutputManager.h"
+#include "utils/LayoutObjectId.h"
 
 namespace {
 
@@ -83,6 +84,13 @@ std::string Canon(const pugi::xml_node& n) {
     std::ostringstream os;
     n.print(os, "", pugi::format_raw);
     return os.str();
+}
+
+std::string WithoutIds(const std::string& xml) {
+    pugi::xml_document doc;
+    REQUIRE(doc.load_string(xml.c_str()));
+    LayoutObjectId::StripFromXml(doc.first_child());
+    return Canon(doc.first_child());
 }
 
 std::string ViaXml(const Model* m, bool exporting = false) {
@@ -218,13 +226,17 @@ TEST_CASE("File visitor with a pretty flag matches the string visitor pretty set
     CHECK(ReadFile(path) == sv.GetResult());
 }
 
+// Apart from the layout ids, which an export never carries.
 TEST_CASE("Exporting flag leaves models without file references unchanged", "[models2][visitors]") {
     for (const auto& s : Corpus()) {
         INFO(s.label);
         ShowFixture f;
         Model* m = f.Add(s.xml);
-        CHECK(ViaXml(m, false) == ViaXml(m, true));
-        CHECK(ViaString(m, false) == ViaString(m, true));
+        CHECK(ViaXml(m, true).find(LayoutObjectId::ATTRIBUTE) == std::string::npos);
+        CHECK(ViaString(m, true).find(LayoutObjectId::ATTRIBUTE) == std::string::npos);
+        CHECK(ViaXml(m, false).find(LayoutObjectId::ATTRIBUTE) != std::string::npos);
+        CHECK(WithoutIds(ViaXml(m, false)) == ViaXml(m, true));
+        CHECK(WithoutIds(ViaString(m, false)) == ViaString(m, true));
     }
 }
 

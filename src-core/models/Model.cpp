@@ -58,6 +58,7 @@
 #include "../render/UICallbacks.h"
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
+#include "../utils/LayoutObjectId.h"
 
 #define MOST_STRINGS_WE_EXPECT 480
 #define MOST_CONTROLLER_PORTS_WE_EXPECT 128
@@ -514,6 +515,17 @@ void Model::WriteFaceInfo(pugi::xml_node rootXml, const FaceStateData& faceInfo)
 
 void Model::AddSubmodel(SubModel* sm)
 {
+    // Every submodel has an id that no sibling (or the parent) shares. A copy of
+    // another submodel arrives without one; ModelManager keeps ids unique across
+    // the rest of the file.
+    bool clash = sm->GetObjectId().empty() || sm->GetObjectId() == GetObjectId();
+    for (const auto* s : subModels) {
+        if (clash) break;
+        clash = s->GetObjectId() == sm->GetObjectId();
+    }
+    if (clash) {
+        sm->SetObjectId(LayoutObjectId::Generate());
+    }
     subModels.push_back(sm);
     sortedSubModels[sm->GetName()] = sm;
     // Also notified on add, not just on delete: a group that names this

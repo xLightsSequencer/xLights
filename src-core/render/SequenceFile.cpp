@@ -38,6 +38,7 @@
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
 #include "../utils/FileUtils.h"
+#include "../utils/ShowFileGuard.h"
 #include "RenderUtils.h"
 #include "utils/ExternalHooks.h"
 
@@ -416,6 +417,11 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
     } else {
         spdlog::info("LoadSequence: Loading sequence {}", mFilePath);
     }
+
+    // Taken before parsing so a write that lands mid-load reads as a conflict
+    // at the next save. When the contents come from an autosave backup, this
+    // is still the file the next save would replace.
+    ShowFileGuard::Instance().RecordFromDisk(mFilePath);
 
     // Load with pugixml
     pugi::xml_document loadDoc;
@@ -1612,7 +1618,8 @@ bool SequenceFile::Save(SequenceElements& seq_elements)
         return false;
     }
 
-    if (!doc.save_file(mFilePath.c_str(), "  ")) {
+    auto writer = [&doc](const std::string& writePath) { return doc.save_file(writePath.c_str(), "  "); };
+    if (!ShowFileGuard::Instance().SaveFile(mFilePath, ShowFileGuard::Writer(writer))) {
         return false;
     }
 

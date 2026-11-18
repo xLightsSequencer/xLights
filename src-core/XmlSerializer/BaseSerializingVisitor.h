@@ -154,6 +154,7 @@ protected:
     // Attribute-collecting helpers
     // ---------------------------------------------------------------------------
     void AddBaseObjectAttributes(const BaseObject& base, AttrCollector& attrs);
+    void AddObjectId(const std::string& id, AttrCollector& attrs) const;
     void AddCommonModelAttributes(const Model& model, AttrCollector& attrs);
 
     void AddModelScreenLocationAttributes(const BaseObject& base, AttrCollector& attrs);

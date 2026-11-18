@@ -17,8 +17,10 @@
 #include "render/Element.h"
 #include "render/RenderUtils.h"
 #include "render/EffectLayer.h"
+#include "render/SequenceMutationGuard.h"
 #include "render/Effect.h"
 #include "render/SequenceElements.h"
+#include "render/CommandExecutor.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceFaces.h"
 #include "render/EffectSymbol.h"
@@ -31,6 +33,7 @@
 #include "render/ModelGifExporter.h"
 #import "XLHousePreviewVideoExporter.h"
 #include "models/BaseShowPromotion.h"
+#include "utils/ShowFileGuard.h"
 #include "utils/ShowGuid.h"
 #include "utils/UtilFunctions.h"
 #include "utils/string_utils.h"
@@ -68,6 +71,7 @@
 #include "models/Model.h"
 #include "models/Node.h"
 #include "models/ModelManager.h"
+#include "utils/LayoutObjectId.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
@@ -731,11 +735,49 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
 }
 
 - (BOOL)saveSequence {
+    return [self saveSequenceAllowingOverwrite:NO];
+}
+
+- (BOOL)saveSequenceOverwritingExternalChanges {
+    return [self saveSequenceAllowingOverwrite:YES];
+}
+
+- (nullable NSString*)changedSequenceFileName {
+    if (!_context || !_context->IsSequenceLoaded()) return nil;
+    auto* sf = _context->GetSequenceFile();
+    if (!sf || sf->GetFullPath().empty()) return nil;
+    if (!ShowFileGuard::Instance().HasChangedOnDisk(sf->GetFullPath())) return nil;
+    return [NSString stringWithUTF8String:sf->GetFullName().c_str()];
+}
+
+- (nullable NSString*)saveSequenceCopy {
+    if (!_context || !_context->IsSequenceLoaded()) return nil;
+    auto* sf = _context->GetSequenceFile();
+    if (!sf) return nil;
+    const std::string origPath = sf->GetFullPath();
+    if (origPath.empty()) return nil;
+    const std::string copy = ShowFileGuard::MakeCopyPath(origPath);
+    ObtainAccessToURL(copy, /*enforceWritable=*/true);
+    // Same path swap as writeAutosaveBackup: Save only uses the path for the
+    // final write.
+    sf->SetFullPath(copy);
+    const bool ok = sf->Save(_context->GetSequenceElements());
+    sf->SetFullPath(origPath);
+    if (!ok) return nil;
+    spdlog::info("XLSequenceDocument: {} was changed by someone else; saved this session's version to {}", origPath, copy);
+    return [NSString stringWithUTF8String:copy.c_str()];
+}
+
+- (BOOL)saveSequenceAllowingOverwrite:(BOOL)overwrite {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
     auto* sf = _context->GetSequenceFile();
     if (!sf) return NO;
     const std::string path = sf->GetFullPath();
     if (path.empty()) return NO;
+    if (!overwrite && ShowFileGuard::Instance().HasChangedOnDisk(path)) {
+        spdlog::warn("XLSequenceDocument: {} was changed by someone else; not overwriting it", path);
+        return NO;
+    }
 
     // Security-scoped access covers files under the show folder
     // (which is the common case — sequences live in the show dir).
@@ -1521,7 +1563,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     auto* layer = [self effectLayerForRow:rowIndex];
     if (!layer) return NO;
     std::string n = newName ? std::string([newName UTF8String]) : std::string();
-    layer->SetLayerName(n);
+    _context->GetSequenceElements().GetCommandExecutor().SetLayerName(layer, n, false);
     _context->GetSequenceElements().PopulateRowInformation();
     return YES;
 }
@@ -2261,8 +2303,9 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
             if (eff && eff->IsLocked()) return NO;
         }
     }
+    auto& exec = se.GetCommandExecutor();
     while (te->GetEffectLayerCount() > 1) {
-        te->RemoveEffectLayer((int)te->GetEffectLayerCount() - 1);
+        if (!exec.RemoveLayer(te, (int)te->GetEffectLayerCount() - 1, false)) break;
     }
     se.PopulateRowInformation();
     return YES;
@@ -2285,8 +2328,9 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
             if (eff && eff->IsLocked()) return NO;
         }
     }
+    auto& exec = se.GetCommandExecutor();
     while (te->GetEffectLayerCount() > 2) {
-        te->RemoveEffectLayer((int)te->GetEffectLayerCount() - 1);
+        if (!exec.RemoveLayer(te, (int)te->GetEffectLayerCount() - 1, false)) break;
     }
     se.PopulateRowInformation();
     return YES;
@@ -2363,19 +2407,15 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 - (BOOL)insertEffectLayerAboveAtIndex:(int)rowIndex {
     auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
     if (!row || !row->element) return NO;
-    row->element->InsertEffectLayer(row->layerIndex);
+    _context->GetSequenceElements().GetCommandExecutor().InsertLayer(row->element, row->layerIndex, false);
     _context->GetSequenceElements().PopulateRowInformation();
     return YES;
 }
 - (BOOL)insertEffectLayerBelowAtIndex:(int)rowIndex {
     auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
     if (!row || !row->element) return NO;
-    int insertAt = row->layerIndex + 1;
-    if (insertAt >= (int)row->element->GetEffectLayerCount()) {
-        row->element->AddEffectLayer();
-    } else {
-        row->element->InsertEffectLayer(insertAt);
-    }
+    // An index past the last layer appends.
+    _context->GetSequenceElements().GetCommandExecutor().InsertLayer(row->element, row->layerIndex + 1, false);
     _context->GetSequenceElements().PopulateRowInformation();
     return YES;
 }
@@ -2388,8 +2428,11 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
     if (!row || !row->element) return 0;
     Element* elem = row->element;
+    // InsertLayer rebuilds the row information, so `row` is stale after the first insert.
+    const int layerIndex = row->layerIndex;
+    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
     for (int i = 0; i < count; ++i) {
-        elem->InsertEffectLayer(row->layerIndex + 1 + i);
+        exec.InsertLayer(elem, layerIndex + 1 + i, false);
     }
     _context->GetSequenceElements().PopulateRowInformation();
     return count;
@@ -2403,7 +2446,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     // renderer is walking; matches desktop's `AbortRender()` guard
     // before `RemoveEffectLayer` in `RowHeading.cpp`.
     _context->AbortRender(5000);
-    row->element->RemoveEffectLayer(row->layerIndex);
+    _context->GetSequenceElements().GetCommandExecutor().RemoveLayer(row->element, row->layerIndex, false);
     _context->GetSequenceElements().PopulateRowInformation();
     return YES;
 }
@@ -2497,6 +2540,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 
     se.get_undo_mgr().CreateUndoStep();
     _context->AbortRender(5000);
+    auto& exec = se.GetCommandExecutor();
     int promoted = 0;
 
     // Step 1: nodes → strands. For each strand, look at node 0's effects
@@ -2509,7 +2553,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         // Single-strand models promote straight to model level.
         if (element->GetStrandCount() <= 1) {
             if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
-                element->InsertEffectLayer(0);
+                exec.InsertLayer(element, 0);
             }
             target = element->GetEffectLayer(0);
         }
@@ -2533,17 +2577,18 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
                 }
             }
             if (collapse) {
-                target->AddEffect(0, eff->GetEffectName(),
-                                   eff->GetSettingsAsString(),
-                                   eff->GetPaletteAsString(),
-                                   eff->GetStartTimeMS(),
-                                   eff->GetEndTimeMS(), false, false);
+                exec.AddEffect(target, eff->GetEffectName(),
+                               eff->GetSettingsAsString(),
+                               eff->GetPaletteAsString(),
+                               eff->GetStartTimeMS(),
+                               eff->GetEndTimeMS(), false, false);
                 ++promoted;
                 for (int n = 0; n < strand->GetNodeLayerCount(); ++n) {
                     NodeLayer* node = strand->GetNodeLayer(n);
                     int nodeIndex = 0;
                     if (node && node->HitTestEffectByTime(mp, nodeIndex)) {
-                        node->DeleteEffectByIndex(nodeIndex);
+                        Effect* hit = node->GetEffect(nodeIndex);
+                        if (hit && !hit->IsLocked()) exec.DeleteEffect(hit);
                     }
                 }
             }
@@ -2554,7 +2599,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (element->GetStrandCount() > 1) {
         EffectLayer* base = element->GetStrand(0)->GetEffectLayer(0);
         if (element->GetEffectLayer(0)->GetEffectCount() != 0) {
-            element->InsertEffectLayer(0);
+            exec.InsertLayer(element, 0);
         }
         EffectLayer* target = element->GetEffectLayer(0);
         for (int e = base->GetEffectCount() - 1; e >= 0; --e) {
@@ -2578,11 +2623,11 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
                 }
             }
             if (collapse) {
-                target->AddEffect(0, eff->GetEffectName(),
-                                   eff->GetSettingsAsString(),
-                                   eff->GetPaletteAsString(),
-                                   eff->GetStartTimeMS(),
-                                   eff->GetEndTimeMS(), false, false);
+                exec.AddEffect(target, eff->GetEffectName(),
+                               eff->GetSettingsAsString(),
+                               eff->GetPaletteAsString(),
+                               eff->GetStartTimeMS(),
+                               eff->GetEndTimeMS(), false, false);
                 ++promoted;
                 for (int n = 0; n < element->GetStrandCount(); ++n) {
                     StrandElement* strand = element->GetStrand(n);
@@ -2591,7 +2636,8 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
                         EffectLayer* layer = strand->GetEffectLayer(l);
                         int nodeIndex = 0;
                         if (layer && layer->HitTestEffectByTime(mp, nodeIndex)) {
-                            layer->DeleteEffectByIndex(nodeIndex);
+                            Effect* hit = layer->GetEffect(nodeIndex);
+                            if (hit && !hit->IsLocked()) exec.DeleteEffect(hit);
                         }
                     }
                 }
@@ -2638,9 +2684,14 @@ static int ConvertRampLenColor(int start, std::vector<xlColor>& colors) {
 
 // Direct port of xLightsFrame::DoConvertDataRowToEffects. Returns the
 // number of effects added so the caller can total them across layers.
-static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting) {
-    if (eraseExisting)
-        layer->DeleteAllEffects();
+static int ConvertDataRowToEffects(CommandExecutor& exec, EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting) {
+    if (eraseExisting) {
+        // EffectLayer::DeleteAllEffects equivalent: locked effects stay.
+        std::vector<Effect*> existing = layer->GetEffects();
+        for (Effect* old : existing) {
+            if (!old->IsLocked()) exec.DeleteEffect(old);
+        }
+    }
 
     colors.push_back(xlBLACK);
     int startTime = 0;
@@ -2669,14 +2720,14 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
                     std::string settings = "E_TEXTCTRL_Eff_On_Start=" + std::to_string(i) + ",E_TEXTCTRL_Eff_On_End=" + std::to_string(i2);
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
                     if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
+                        exec.AddEffect(layer, "On", settings, palette, stime, etime, false, false);
                         ++added;
                     }
                 } else {
                     std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
                                           "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
                     if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
+                        exec.AddEffect(layer, "Color Wash", "", palette, stime, etime, false, false);
                         ++added;
                     }
                 }
@@ -2694,7 +2745,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
                 std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1";
                 if (time != startTime) {
                     if (!layer->HasEffectsInTimeRange(startTime, time)) {
-                        layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
+                        exec.AddEffect(layer, "On", "", palette, startTime, time, false, false);
                         ++added;
                     }
                 }
@@ -2747,7 +2798,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
             ssModel.SetNodeChannelValues(0, &seqData[f][startChan]);
             colors.push_back(ssModel.GetNodeColor(0));
         }
-        total += ConvertDataRowToEffects(layer, colors, frameTime, false);
+        total += ConvertDataRowToEffects(se.GetCommandExecutor(), layer, colors, frameTime, false);
     };
 
     if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
@@ -2856,12 +2907,12 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     int total = (int)elem->GetEffectLayerCount();
     if (total <= 1) return 0;
     _context->AbortRender(5000);
+    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
     int removed = 0;
     for (int i = total - 1; i >= 0 && elem->GetEffectLayerCount() > 1; --i) {
         EffectLayer* layer = elem->GetEffectLayer(i);
         if (layer && layer->GetEffectCount() == 0) {
-            elem->RemoveEffectLayer(i);
-            ++removed;
+            if (exec.RemoveLayer(elem, i, false)) ++removed;
         }
     }
     if (removed > 0) {
@@ -3147,7 +3198,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         if (startMS < oe && endMS > os) return -1;
     }
     std::string lbl = label ? std::string([label UTF8String]) : std::string();
-    Effect* e = layer->AddEffect(0, lbl, "", "", startMS, endMS, 0, false);
+    Effect* e = _context->GetSequenceElements().GetCommandExecutor().AddEffect(layer, lbl, "", "", startMS, endMS, 0, false, false);
     if (!e) return -1;
     for (int i = 0; i < layer->GetEffectCount(); i++) {
         if (layer->GetEffect(i) == e) return i;
@@ -3161,7 +3212,11 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     if (row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) return NO;
     auto* layer = [self effectLayerForRow:rowIndex];
     if (!layer || markIndex < 0 || markIndex >= layer->GetEffectCount()) return NO;
-    layer->DeleteEffectByIndex(markIndex);
+    // DeleteEffectByIndex semantics: a locked mark stays.
+    Effect* e = layer->GetEffect(markIndex);
+    if (e && !e->IsLocked()) {
+        _context->GetSequenceElements().GetCommandExecutor().DeleteEffect(e, false);
+    }
     return YES;
 }
 
@@ -3176,7 +3231,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     Effect* e = layer->GetEffect(markIndex);
     if (!e) return NO;
     std::string lbl = label ? std::string([label UTF8String]) : std::string();
-    e->SetEffectName(lbl);
+    _context->GetSequenceElements().GetCommandExecutor().ModifyEffect(e, lbl, SettingsChange{}, SettingsChange{}, false);
     return YES;
 }
 
@@ -3207,10 +3262,11 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     // Discard any existing word+phoneme layers, then add a fresh
     // word layer. Mirrors `RowHeading::BreakdownTimingPhrases`.
     te->SetFixedTiming(0);
+    auto& exec = se.GetCommandExecutor();
     while (te->GetEffectLayerCount() > 1) {
-        te->RemoveEffectLayer((int)te->GetEffectLayerCount() - 1);
+        if (!exec.RemoveLayer(te, (int)te->GetEffectLayerCount() - 1, false)) break;
     }
-    EffectLayer* wordLayer = te->AddEffectLayer();
+    EffectLayer* wordLayer = exec.InsertLayer(te, (int)te->GetEffectLayerCount(), false);
     if (!wordLayer) return NO;
 
     double freq = se.GetFrequency();
@@ -3243,9 +3299,9 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
                 curEnd = phraseEnd;
             }
             if (curEnd > curStart) {
-                wordLayer->AddEffect(0, words[w], "", "",
-                                      curStart, curEnd,
-                                      /*EFFECT_NOT_SELECTED*/ 0, false);
+                exec.AddEffect(wordLayer, words[w], "", "",
+                               curStart, curEnd,
+                               /*EFFECT_NOT_SELECTED*/ 0, false, false);
             }
             curStart = curEnd;
         }
@@ -3317,8 +3373,9 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     // wipes everything down to the phrase layer; the per-mark path
     // is more surgical — preserve other phrases' words/phonemes.
     te->SetFixedTiming(0);
+    auto& exec = se.GetCommandExecutor();
     EffectLayer* wordLayer = te->GetEffectLayer(1);
-    if (!wordLayer) wordLayer = te->AddEffectLayer();
+    if (!wordLayer) wordLayer = exec.InsertLayer(te, (int)te->GetEffectLayerCount(), false);
     if (!wordLayer) return NO;
 
     auto& undoMgr = se.get_undo_mgr();
@@ -3331,11 +3388,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         if (!layer) return;
         auto effs = layer->GetAllEffectsByTime(phraseStart, phraseEnd);
         for (auto* eff : effs) {
-            undoMgr.CaptureEffectToBeDeleted(layer->GetParentElement()->GetModelName(), layer->GetIndex(),
-                                             eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(),
-                                             eff->GetStartTimeMS(), eff->GetEndTimeMS(),
-                                             eff->GetSelected(), eff->GetProtected());
-            layer->DeleteEffect(eff->GetID());
+            exec.DeleteEffect(eff);
         }
     };
     wipeOverlapping(wordLayer);
@@ -3351,12 +3404,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
             curEnd = phraseEnd;
         }
         if (curEnd > curStart) {
-            Effect* ef = wordLayer->AddEffect(0, words[w], "", "",
-                                               curStart, curEnd, 0, false);
-            if (ef) {
-                undoMgr.CaptureAddedEffect(wordLayer->GetParentElement()->GetModelName(),
-                                           wordLayer->GetIndex(), ef->GetID());
-            }
+            exec.AddEffect(wordLayer, words[w], "", "", curStart, curEnd, 0, false);
         }
         curStart = curEnd;
     }
@@ -3411,8 +3459,9 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     const int startMS = we->GetStartTimeMS();
     const int endMS = we->GetEndTimeMS();
 
+    auto& exec = se.GetCommandExecutor();
     EffectLayer* phonemeLayer = (te->GetEffectLayerCount() < 3)
-        ? te->AddEffectLayer() : te->GetEffectLayer(2);
+        ? exec.InsertLayer(te, (int)te->GetEffectLayerCount(), false) : te->GetEffectLayer(2);
     if (!phonemeLayer) return NO;
 
     // Refuse when a locked phoneme sits in the target window —
@@ -3424,11 +3473,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     if (createUndoStep) undoMgr.CreateUndoStep();
 
     for (auto* eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
-        undoMgr.CaptureEffectToBeDeleted(phonemeLayer->GetParentElement()->GetModelName(), phonemeLayer->GetIndex(),
-                                         eff->GetEffectName(), eff->GetSettingsAsString(), eff->GetPaletteAsString(),
-                                         eff->GetStartTimeMS(), eff->GetEndTimeMS(),
-                                         eff->GetSelected(), eff->GetProtected());
-        phonemeLayer->DeleteEffect(eff->GetID());
+        exec.DeleteEffect(eff);
     }
 
     BreakdownWord(phonemeLayer, startMS, endMS, word,
@@ -3492,7 +3537,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
                 if (eff && eff->IsLocked()) return NO;
             }
         }
-        te->RemoveEffectLayer(2);
+        se.GetCommandExecutor().RemoveLayer(te, 2, false);
     }
     EffectLayer* wordLayer = te->GetEffectLayer(1);
     if (!wordLayer) return NO;
@@ -3504,7 +3549,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     auto& undoMgr = se.get_undo_mgr();
     undoMgr.CreateUndoStep();
 
-    EffectLayer* phonemeLayer = te->AddEffectLayer();
+    EffectLayer* phonemeLayer = se.GetCommandExecutor().InsertLayer(te, (int)te->GetEffectLayerCount(), false);
     if (!phonemeLayer) return NO;
 
     PhonemeDictionary& dict = _context->GetPhonemeDictionary();
@@ -5643,6 +5688,29 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
     return _context->SaveLayoutChanges() ? YES : NO;
 }
 
+- (NSArray<NSString*>*)layoutFilesChangedOnDisk {
+    NSMutableArray<NSString*>* names = [NSMutableArray array];
+    if (!_context) return names;
+    for (const auto& path : _context->LayoutFilesChangedOnDisk()) {
+        [names addObject:[NSString stringWithUTF8String:std::filesystem::path(path).filename().string().c_str()]];
+    }
+    return names;
+}
+
+- (BOOL)saveLayoutChangesOverwritingExternalChanges {
+    if (!_context) return NO;
+    return _context->SaveLayoutChanges(/*overwriteExternalChanges*/ true) ? YES : NO;
+}
+
+- (NSArray<NSString*>*)saveLayoutChangesAsCopies {
+    NSMutableArray<NSString*>* paths = [NSMutableArray array];
+    if (!_context) return paths;
+    for (const auto& path : _context->SaveLayoutChangesAsCopies()) {
+        [paths addObject:[NSString stringWithUTF8String:path.c_str()]];
+    }
+    return paths;
+}
+
 - (NSString*)axisToolForModel:(NSString*)modelName {
     if (!_context || !modelName || modelName.length == 0) return @"none";
     Model* m = _context->GetModelManager()[modelName.UTF8String];
@@ -6114,7 +6182,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
             const std::string& en = eff->GetEffectName();
             if (en != "Faces" && en != "CoroFaces") continue;
             if (eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "") == oldName) {
-                eff->SetSetting("E_CHOICE_Faces_FaceDefinition", newName);
+                se.GetCommandExecutor().SetEffectSetting(eff, "E_CHOICE_Faces_FaceDefinition", newName, false);
             }
         }
     };
@@ -6446,6 +6514,12 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
     Model* parent = _context->GetModelManager()[std::string(parentName.UTF8String)];
     if (!parent) return NO;
     _context->AbortRender(5000);
+    // An entry with the name of an existing submodel is that record, so it
+    // keeps its layout id; any other entry gets a fresh one from AddSubmodel.
+    std::map<std::string, std::string> submodelIds;
+    for (Model* existing : parent->GetSubModels()) {
+        submodelIds[existing->GetName()] = existing->GetObjectId();
+    }
     parent->RemoveAllSubModels();
     for (NSDictionary* d in entries) {
         NSString* nm = d[@"name"];
@@ -6458,6 +6532,10 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
         std::string bs   = [bsObj isKindOfClass:[NSString class]]
                             ? std::string(bsObj.UTF8String) : "Default";
         auto* sm = new SubModel(parent, name, isVertical, isRanges, bs);
+        if (auto idIt = submodelIds.find(name); idIt != submodelIds.end()) {
+            sm->SetObjectId(idIt->second);
+            submodelIds.erase(idIt);
+        }
         parent->AddSubmodel(sm);
         if (isRanges) {
             NSArray<NSString*>* strands = d[@"strands"];
@@ -6708,6 +6786,8 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
             m.remove_attribute("LayoutGroup");
             m.append_attribute("name") = newName.c_str();
             m.append_attribute("LayoutGroup") = lg.c_str();
+            // A record of another show: imported here as a new one.
+            LayoutObjectId::StripFromXml(m);
             if (mm.createAndAddModel(m, pw, ph) != nullptr) {
                 ++modelCount;
                 // There is no created-model set: SaveLayoutChanges
@@ -6756,6 +6836,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
                 g.append_attribute("LayoutGroup") = lg.c_str();
                 g.remove_attribute("models");
                 g.append_attribute("models") = memberList.c_str();
+                LayoutObjectId::StripFromXml(g);
                 existing = mm.createAndAddModel(g, pw, ph);
                 if (existing != nullptr) {
                     ++groupCount;
@@ -11126,7 +11207,7 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
     if (!layer) return NO;
 
     std::string name = [effectName UTF8String];
-    Effect* e = layer->AddEffect(0, name, "", "", startMS, endMS, 0, false);
+    Effect* e = _context->GetSequenceElements().GetCommandExecutor().AddEffect(layer, name, "", "", startMS, endMS, 0, false, false);
     return e != nullptr;
 }
 
@@ -11134,7 +11215,11 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
     auto* layer = [self effectLayerForRow:rowIndex];
     if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
 
-    layer->DeleteEffectByIndex(effectIndex);
+    // DeleteEffectByIndex semantics: a locked effect stays.
+    Effect* e = layer->GetEffect(effectIndex);
+    if (e && !e->IsLocked()) {
+        _context->GetSequenceElements().GetCommandExecutor().DeleteEffect(e, false);
+    }
     return YES;
 }
 
@@ -11167,8 +11252,7 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
         }
     }
 
-    e->SetStartTimeMS(newStartMS);
-    e->SetEndTimeMS(newEndMS);
+    _context->GetSequenceElements().GetCommandExecutor().MoveEffect(e, newStartMS, newEndMS, false);
     return YES;
 }
 
@@ -11544,6 +11628,7 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
 // deletions are safe; truncate effects whose start crosses 0, delete
 // those pushed entirely below 0.
 - (void)shiftAllOnLayer:(EffectLayer*)el byMS:(int)ms {
+    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
     for (int ef = (int)el->GetEffectCount() - 1; ef >= 0; --ef) {
         Effect* e = el->GetEffect(ef);
         if (!e) continue;
@@ -11551,14 +11636,14 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
         int end = e->GetEndTimeMS();
         if (start + ms < 0) {
             if (end + ms < 0) {
-                el->RemoveEffect(ef);
+                // EffectLayer::RemoveEffect semantics: a locked effect stays.
+                if (!e->IsLocked()) exec.DeleteEffect(e, false);
                 continue;
             }
-            e->SetStartTimeMS(0);
+            exec.MoveEffect(e, 0, end + ms, false);
         } else {
-            e->SetStartTimeMS(start + ms);
+            exec.MoveEffect(e, start + ms, end + ms, false);
         }
-        e->SetEndTimeMS(end + ms);
     }
 }
 
@@ -11593,6 +11678,7 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
 // move right; either way a move is rejected when the shifted range
 // would clash with an unselected effect on the same layer.
 - (void)shiftSelectedOnLayer:(EffectLayer*)el byMS:(int)ms {
+    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
     if (ms < 0) {
         std::vector<int> toRemove;
         for (int ef = 0; ef < (int)el->GetEffectCount(); ++ef) {
@@ -11601,14 +11687,14 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
             bool moved = false;
             int start = e->GetStartTimeMS();
             int end = e->GetEndTimeMS();
+            int newStart = start;
             if (start + ms < 0) {
                 if (end + ms < 0) {
-                    e->SetStartTimeMS(-100);
-                    e->SetEndTimeMS(-90);
+                    exec.MoveEffect(e, -100, -90, false);
                     toRemove.insert(toRemove.begin(), ef);
                     continue;
                 }
-                e->SetStartTimeMS(0);
+                newStart = 0;
                 moved = true;
             } else {
                 auto clashers = el->GetAllEffectsByTime(start + ms, end + ms);
@@ -11617,13 +11703,17 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
                     if (it->GetID() != e->GetID()) { clash = true; break; }
                 }
                 if (!clash) {
-                    e->SetStartTimeMS(start + ms);
+                    newStart = start + ms;
                     moved = true;
                 }
             }
-            if (moved) e->SetEndTimeMS(end + ms);
+            if (moved) exec.MoveEffect(e, newStart, end + ms, false);
         }
-        for (int idx : toRemove) el->RemoveEffect(idx);
+        // EffectLayer::RemoveEffect semantics: a locked effect stays.
+        for (int idx : toRemove) {
+            Effect* gone = el->GetEffect(idx);
+            if (gone && !gone->IsLocked()) exec.DeleteEffect(gone, false);
+        }
     } else {
         for (int ef = (int)el->GetEffectCount() - 1; ef >= 0; --ef) {
             Effect* e = el->GetEffect(ef);
@@ -11636,8 +11726,7 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
                 if (it->GetID() != e->GetID()) { clash = true; break; }
             }
             if (!clash) {
-                e->SetStartTimeMS(start + ms);
-                e->SetEndTimeMS(end + ms);
+                exec.MoveEffect(e, start + ms, end + ms, false);
             }
         }
     }
@@ -11684,6 +11773,7 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
     if (!_context) return NO;
     auto it = _shiftSnapshots.find(token);
     if (it == _shiftSnapshots.end()) return NO;
+    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
     for (const ShiftLayerSnap& ls : it->second) {
         EffectLayer* el = ls.layer;
         el->RemoveAllEffects(nullptr);
@@ -11692,12 +11782,13 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
             // RemoveEffect) keeping their ID; restore their times in
             // place rather than re-adding a duplicate.
             if (Effect* existing = el->GetEffectFromID(es.id)) {
-                existing->SetStartTimeMS(es.startMS);
-                existing->SetEndTimeMS(es.endMS);
+                exec.MoveEffect(existing, es.startMS, es.endMS, false);
                 continue;
             }
-            el->AddEffect(es.id, es.name, es.settings, es.palette,
-                          es.startMS, es.endMS, es.selected, es.protectd);
+            // AddEffect re-sorts and renumbers every id, so passing es.id
+            // to EffectLayer::AddEffect never kept it either.
+            exec.AddEffect(el, es.name, es.settings, es.palette,
+                           es.startMS, es.endMS, es.selected, es.protectd, false);
         }
     }
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
@@ -11748,17 +11839,19 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
     }
 
     int applied = 0;
-    for (size_t i = 0; i < slots.size() && applied < 8; ++i) {
-        std::string v = slots[i];
-        if (v.empty()) continue;
-        // Drop the trailer "PAL001.xpalette" if it slipped in.
-        if (v.find(".xpalette") != std::string::npos) continue;
+    _context->GetSequenceElements().GetCommandExecutor().EditEffect(effect, [&](Effect& ef) {
+        for (size_t i = 0; i < slots.size() && applied < 8; ++i) {
+            std::string v = slots[i];
+            if (v.empty()) continue;
+            // Drop the trailer "PAL001.xpalette" if it slipped in.
+            if (v.find(".xpalette") != std::string::npos) continue;
 
-        std::string key = "C_BUTTON_Palette" + std::to_string(applied + 1);
-        effect->GetPaletteMap()[key] = v;
-        applied++;
-    }
-    effect->PaletteMapUpdated();
+            std::string key = "C_BUTTON_Palette" + std::to_string(applied + 1);
+            ef.GetPaletteMap()[key] = v;
+            applied++;
+        }
+        ef.PaletteMapUpdated();
+    }, false);
     return applied > 0;
 }
 
@@ -12258,21 +12351,26 @@ static bool isPaletteKey(const std::string& key) {
     std::string k = [key UTF8String];
     std::string v = [value UTF8String];
 
+    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
     if (isPaletteKey(k)) {
-        SettingsMap& map = e->GetPaletteMap();
+        const SettingsMap& map = e->GetPaletteMap();
         if (map.Contains(k) && map[k] == v) return NO;
-        map[k] = v;
-        // Rebuild the derived `mColors` / `mCC` vectors — the render
-        // engine reads from those (via `CopyPalette`), not from
-        // `mPaletteMap`. Skipping this step leaves the rendered
-        // effect stale: the user's enable/disable toggle flips the
-        // map entry but the cached colour vector doesn't change, so
-        // nothing visibly updates.
-        e->PaletteMapUpdated();
+        exec.EditEffect(e, [&](Effect& ef) {
+            ef.GetPaletteMap()[k] = v;
+            // Rebuild the derived `mColors` / `mCC` vectors — the render
+            // engine reads from those (via `CopyPalette`), not from
+            // `mPaletteMap`. Skipping this step leaves the rendered
+            // effect stale: the user's enable/disable toggle flips the
+            // map entry but the cached colour vector doesn't change, so
+            // nothing visibly updates.
+            ef.PaletteMapUpdated();
+        }, false);
         return YES;
     } else {
         // SetSetting returns true if the value actually changed.
-        return e->SetSetting(k, v);
+        bool changed = false;
+        exec.EditEffect(e, [&](Effect& ef) { changed = ef.SetSetting(k, v); }, false);
+        return changed;
     }
 }
 
@@ -12287,14 +12385,16 @@ static bool isPaletteKey(const std::string& key) {
 
     std::string k = [key UTF8String];
     bool palette = isPaletteKey(k);
-    SettingsMap& map = palette ? e->GetPaletteMap() : e->GetSettings();
-    if (!map.Contains(k)) return NO;
-    map.erase(k);
-    if (palette) {
-        e->PaletteMapUpdated();   // refresh mColors / mCC + IncrementChangeCount
-    } else {
-        e->IncrementChangeCount();
-    }
+    if (!(palette ? e->GetPaletteMap() : e->GetSettings()).Contains(k)) return NO;
+    _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) {
+        SettingsMap& map = palette ? ef.GetPaletteMap() : ef.GetSettings();
+        map.erase(k);
+        if (palette) {
+            ef.PaletteMapUpdated();   // refresh mColors / mCC + IncrementChangeCount
+        } else {
+            ef.IncrementChangeCount();
+        }
+    }, false);
     return YES;
 }
 
@@ -12332,7 +12432,9 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     if (!e) return NO;
     char buf[32];
     std::snprintf(buf, sizeof(buf), "%.2f", seconds);
-    return e->SetSetting(kFadeInKey, buf);
+    bool changed = false;
+    _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) { changed = ef.SetSetting(kFadeInKey, buf); }, false);
+    return changed;
 }
 
 - (BOOL)setEffectFadeOutSeconds:(float)seconds
@@ -12344,7 +12446,9 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     if (!e) return NO;
     char buf[32];
     std::snprintf(buf, sizeof(buf), "%.2f", seconds);
-    return e->SetSetting(kFadeOutKey, buf);
+    bool changed = false;
+    _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) { changed = ef.SetSetting(kFadeOutKey, buf); }, false);
+    return changed;
 }
 
 // MARK: - Edge Resize
@@ -12366,7 +12470,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
         }
         if (newMS < 0) newMS = 0;
         if (newMS > maxStart) return NO;
-        e->SetStartTimeMS(newMS);
+        _context->GetSequenceElements().GetCommandExecutor().MoveEffect(e, newMS, e->GetEndTimeMS(), false);
     } else { // right / end
         int minEnd = e->GetStartTimeMS() + 1;
         if (effectIndex + 1 < layer->GetEffectCount()) {
@@ -12374,7 +12478,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
             if (newMS > nextStart) newMS = nextStart;
         }
         if (newMS < minEnd) return NO;
-        e->SetEndTimeMS(newMS);
+        _context->GetSequenceElements().GetCommandExecutor().MoveEffect(e, e->GetStartTimeMS(), newMS, false);
     }
     return YES;
 }
@@ -12515,11 +12619,13 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     // other effect linked to it.
     e->UnlinkFromSymbol();
 
-    if (effectType && [effectType length] > 0) {
-        e->SetEffectName(std::string([effectType UTF8String]));
-    }
-    e->SetSettings(settings ? std::string([settings UTF8String]) : std::string(), true);
-    e->SetPalette(palette ? std::string([palette UTF8String]) : std::string());
+    _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) {
+        if (effectType && [effectType length] > 0) {
+            ef.SetEffectName(std::string([effectType UTF8String]));
+        }
+        ef.SetSettings(settings ? std::string([settings UTF8String]) : std::string(), true);
+        ef.SetPalette(palette ? std::string([palette UTF8String]) : std::string());
+    }, false);
 
     std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
     if (!sid.empty()) {
@@ -12586,7 +12692,9 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     auto* layer = [self effectLayerForRow:rowIndex];
     if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return;
     Effect* e = layer->GetEffect(effectIndex);
-    if (e) e->SetLocked(locked ? true : false);
+    if (e) {
+        _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) { ef.SetLocked(locked ? true : false); }, false);
+    }
 }
 
 - (BOOL)effectIsRenderDisabledInRow:(int)rowIndex atIndex:(int)effectIndex {
@@ -12600,7 +12708,9 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     auto* layer = [self effectLayerForRow:rowIndex];
     if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return;
     Effect* e = layer->GetEffect(effectIndex);
-    if (e) e->SetEffectRenderDisabled(disabled ? true : false);
+    if (e) {
+        _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) { ef.SetEffectRenderDisabled(disabled ? true : false); }, false);
+    }
 }
 
 // MARK: - Copy / Paste helpers
@@ -12793,13 +12903,15 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     Effect* e = layer->GetEffect(effectIndex);
     if (!e) return NO;
     std::string v = description ? std::string([description UTF8String]) : std::string();
-    SettingsMap& s = e->GetSettings();
-    if (v.empty()) {
-        s.erase("X_Effect_Description");
-    } else {
-        s["X_Effect_Description"] = v;
-    }
-    e->IncrementChangeCount();
+    _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) {
+        SettingsMap& s = ef.GetSettings();
+        if (v.empty()) {
+            s.erase("X_Effect_Description");
+        } else {
+            s["X_Effect_Description"] = v;
+        }
+        ef.IncrementChangeCount();
+    }, false);
     return YES;
 }
 
@@ -12961,7 +13073,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
         }
     }
     std::string before = e->GetPaletteAsString();
-    e->SetColourOnlyPalette(colours, false, keepCheckboxes);
+    _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) { ef.SetColourOnlyPalette(colours, false, keepCheckboxes); }, false);
     return before != e->GetPaletteAsString();
 }
 
@@ -12972,7 +13084,8 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
     Effect* e = layer->GetEffect(effectIndex);
     if (!e) return NO;
-    e->SetPalette(palette ? std::string([palette UTF8String]) : std::string());
+    std::string pal = palette ? std::string([palette UTF8String]) : std::string();
+    _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) { ef.SetPalette(pal); }, false);
     return YES;
 }
 
@@ -12993,11 +13106,13 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     if (!e) return NO;
     std::string st = settings ? std::string([settings UTF8String]) : std::string();
     std::string pal = palette ? std::string([palette UTF8String]) : std::string();
-    e->SetSettings(st, true);
-    if (!pal.empty()) {
-        e->SetPalette(pal);
-    }
-    e->IncrementChangeCount();
+    _context->GetSequenceElements().GetCommandExecutor().EditEffect(e, [&](Effect& ef) {
+        ef.SetSettings(st, true);
+        if (!pal.empty()) {
+            ef.SetPalette(pal);
+        }
+        ef.IncrementChangeCount();
+    }, false);
     return YES;
 }
 
@@ -13014,28 +13129,31 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     std::string st   = settings ? std::string([settings UTF8String]) : std::string();
     std::string pal  = palette  ? std::string([palette  UTF8String]) : std::string();
 
-    Effect* e = layer->AddEffect(0, name, st, pal, startMS, endMS, 0, false);
+    auto& exec = _context->GetSequenceElements().GetCommandExecutor();
+    Effect* e = exec.AddEffect(layer, name, st, pal, startMS, endMS, 0, false, false);
     if (!e) return -1;
-    if (name == "Moving Head") {
-        // This bridge is the common landing point for both paste and drag-move
-        // of an existing effect onto a (possibly different) row/model, neither
-        // of which runs RenderableEffect::adjustSettings(). A Moving Head
-        // effect's E_TEXTCTRL_MHn_Settings slots are keyed to the fixture
-        // number of the model it was authored on, so without this it can land
-        // on a different single-fixture model and render nothing (desktop
-        // parity fix: xLightsSequencer/xLights#7080,
-        // MovingHeadEffect::adjustSettings / RemapSingleFixtureSettings).
-        Model* m = _context->GetModelManager()[layer->GetParentElement()->GetModelName()];
-        MovingHeadEffect::RemapSingleFixtureSettings(e->GetSettings(), m);
-    }
-    // The settings string handed to us came from Effect::GetSettingsAsString(),
-    // which appends X_LinkedSymbolId for a symbol-linked effect. Consume it so
-    // the copy re-joins the symbol instead of silently becoming an unlinked
-    // effect carrying a stray key that would then be written to the .xsq.
-    // Desktop does exactly this at every AddEffect-from-a-settings-string site
-    // (EffectsGrid.cpp paste / duplicate / move-a-layer). No-op when the key
-    // is absent, so new-effect creation is unaffected.
-    e->HandlePastedSymbolLink();
+    exec.EditEffect(e, [&](Effect& ef) {
+        if (name == "Moving Head") {
+            // This bridge is the common landing point for both paste and drag-move
+            // of an existing effect onto a (possibly different) row/model, neither
+            // of which runs RenderableEffect::adjustSettings(). A Moving Head
+            // effect's E_TEXTCTRL_MHn_Settings slots are keyed to the fixture
+            // number of the model it was authored on, so without this it can land
+            // on a different single-fixture model and render nothing (desktop
+            // parity fix: xLightsSequencer/xLights#7080,
+            // MovingHeadEffect::adjustSettings / RemapSingleFixtureSettings).
+            Model* m = _context->GetModelManager()[layer->GetParentElement()->GetModelName()];
+            MovingHeadEffect::RemapSingleFixtureSettings(ef.GetSettings(), m);
+        }
+        // The settings string handed to us came from Effect::GetSettingsAsString(),
+        // which appends X_LinkedSymbolId for a symbol-linked effect. Consume it so
+        // the copy re-joins the symbol instead of silently becoming an unlinked
+        // effect carrying a stray key that would then be written to the .xsq.
+        // Desktop does exactly this at every AddEffect-from-a-settings-string site
+        // (EffectsGrid.cpp paste / duplicate / move-a-layer). No-op when the key
+        // is absent, so new-effect creation is unaffected.
+        ef.HandlePastedSymbolLink();
+    }, false);
     // AddEffect re-sorts; find the new effect's index by identity.
     for (int i = 0; i < layer->GetEffectCount(); i++) {
         if (layer->GetEffect(i) == e) return i;
@@ -14461,6 +14579,7 @@ int rewriteEffectValues(iPadRenderContext& ctx,
     int changed = 0;
     auto& se = ctx.GetSequenceElements();
     std::vector<std::string> keys;
+    std::vector<std::string> paletteKeys;
     for (size_t i = 0; i < se.GetElementCount(); ++i) {
         Element* el = se.GetElement(i);
         if (!el) continue;
@@ -14478,34 +14597,35 @@ int rewriteEffectValues(iPadRenderContext& ctx,
                      it != eff->GetSettings().end(); ++it) {
                     if (it->second == oldValue) keys.push_back(it->first);
                 }
-                bool settingsChanged = !keys.empty();
-                for (const auto& k : keys) {
-                    eff->GetSettings()[k] = newValue;
-                    changed++;
-                }
-                if (settingsChanged) {
-                    // Propagate up the tree (EffectLayer → Element
-                    // → SequenceElements) and drop the render
-                    // cache so the next frame picks up the new
-                    // path.
-                    eff->IncrementChangeCount();
-                }
-
-                keys.clear();
+                paletteKeys.clear();
                 for (auto it = eff->GetPaletteMap().begin();
                      it != eff->GetPaletteMap().end(); ++it) {
-                    if (it->second == oldValue) keys.push_back(it->first);
+                    if (it->second == oldValue) paletteKeys.push_back(it->first);
                 }
-                bool paletteChanged = !keys.empty();
-                for (const auto& k : keys) {
-                    eff->GetPaletteMap()[k] = newValue;
-                    changed++;
-                }
-                if (paletteChanged) {
-                    // `PaletteMapUpdated` re-derives `mColors` /
-                    // `mCC` and itself calls `IncrementChangeCount`.
-                    eff->PaletteMapUpdated();
-                }
+                if (keys.empty() && paletteKeys.empty()) continue;
+
+                se.GetCommandExecutor().EditEffect(eff, [&](Effect& ef) {
+                    for (const auto& k : keys) {
+                        ef.GetSettings()[k] = newValue;
+                        changed++;
+                    }
+                    if (!keys.empty()) {
+                        // Propagate up the tree (EffectLayer → Element
+                        // → SequenceElements) and drop the render
+                        // cache so the next frame picks up the new
+                        // path.
+                        ef.IncrementChangeCount();
+                    }
+                    for (const auto& k : paletteKeys) {
+                        ef.GetPaletteMap()[k] = newValue;
+                        changed++;
+                    }
+                    if (!paletteKeys.empty()) {
+                        // `PaletteMapUpdated` re-derives `mColors` /
+                        // `mCC` and itself calls `IncrementChangeCount`.
+                        ef.PaletteMapUpdated();
+                    }
+                }, false);
             }
         }
     }
@@ -20882,13 +21002,12 @@ NSString* fppTypeString(FPP_TYPE t) {
                 if (newStartMS < 0 || newStartMS >= newEndMS) continue;
 
                 if (el->GetRangeIsClearMS(newStartMS, newEndMS)) {
-                    Effect* newEff = el->AddEffect(0,
+                    Effect* newEff = se.GetCommandExecutor().AddEffect(el,
                         eff->GetEffectName(),
                         eff->GetSettingsAsString(),
                         eff->GetPaletteAsString(),
                         newStartMS, newEndMS, EFFECT_NOT_SELECTED, false);
                     if (newEff != nullptr) {
-                        undoMgr.CaptureAddedEffect(elem->GetName(), el->GetIndex(), newEff->GetID());
                         effectsCopied++;
                     }
                 }
@@ -20929,8 +21048,7 @@ NSString* fppTypeString(FPP_TYPE t) {
             std::vector<Effect*> regionEffects = el->GetAllEffectsByTime(
                 region.startTimeMS, region.endTimeMS);
             for (Effect* eff : regionEffects) {
-                undoMgr.CaptureModifiedEffect(elem->GetName(), el->GetIndex(), eff);
-                eff->SetPalette(palette);
+                se.GetCommandExecutor().SetEffectPalette(eff, palette);
                 effectsModified++;
             }
         }
@@ -21002,11 +21120,9 @@ NSString* fppTypeString(FPP_TYPE t) {
         if (newEnd <= newStart) continue;
         if (el->HasEffectsInTimeRange((int)newStart, (int)newEnd)) continue;
 
-        Effect* newEffect = el->AddEffect(0, effectName, settings, palette,
+        Effect* newEffect = se.GetCommandExecutor().AddEffect(el, effectName, settings, palette,
             (int)newStart, (int)newEnd, EFFECT_NOT_SELECTED, false);
         if (newEffect != nullptr) {
-            undoMgr.CaptureAddedEffect(el->GetParentElement()->GetName(),
-                el->GetIndex(), newEffect->GetID());
             effectsCreated++;
         }
     }
@@ -21129,6 +21245,8 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     // mutex to avoid two renders fighting over the one effect layer.
     static std::mutex s_presetThumbMutex;
     std::scoped_lock lock(s_presetThumbMutex);
+    // The preset scratch sequence is never edited by the user.
+    SeqMutationGuard::Scope scratchSequence;
 
     Model* model = _context->GetPresetModel();
     if (!model) return nil;
@@ -21295,17 +21413,18 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
         auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
         if (!row || !row->element) return NO;
         Element* element = row->element;
+        auto& exec = _context->GetSequenceElements().GetCommandExecutor();
         for (const Rec& r : recs) {
             while ((int)element->GetEffectLayerCount() <= r.layer) {
-                element->AddEffectLayer();
+                if (!exec.InsertLayer(element, (int)element->GetEffectLayerCount(), false)) break;
             }
             EffectLayer* layer = element->GetEffectLayer(r.layer);
             if (!layer) continue;
             int targetStart = startMS + (r.start - minStart);
             int targetEnd = targetStart + (r.end - r.start);
             if (targetEnd <= targetStart) continue;
-            Effect* e = layer->AddEffect(0, r.name, r.settings, r.palette,
-                                         targetStart, targetEnd, EFFECT_NOT_SELECTED, false);
+            Effect* e = exec.AddEffect(layer, r.name, r.settings, r.palette,
+                                       targetStart, targetEnd, EFFECT_NOT_SELECTED, false, false);
             if (e) {
                 _context->RenderEffectForModel(element->GetModelName(),
                                                targetStart, targetEnd, false);
@@ -21325,8 +21444,8 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
         int targetStart = startMS + (r.start - minStart);
         int targetEnd = targetStart + (r.end - r.start);
         if (targetEnd <= targetStart) continue;
-        Effect* e = layer->AddEffect(0, r.name, r.settings, r.palette,
-                                     targetStart, targetEnd, EFFECT_NOT_SELECTED, false);
+        Effect* e = _context->GetSequenceElements().GetCommandExecutor().AddEffect(layer, r.name, r.settings, r.palette,
+                                                                                  targetStart, targetEnd, EFFECT_NOT_SELECTED, false, false);
         if (e) {
             Element* element = layer->GetParentElement();
             if (element) {
@@ -21537,6 +21656,25 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
 
 - (BOOL)savePresets {
     return _context->SaveEffectPresets() ? YES : NO;
+}
+
+- (BOOL)savePresetsOverwritingExternalChanges {
+    return _context->SaveEffectPresets(/*overwriteExternalChanges*/ true) ? YES : NO;
+}
+
+- (nullable NSString*)changedPresetsFileName {
+    const std::string path = _context->GetEffectPresetsPath();
+    if (path.empty() || !ShowFileGuard::Instance().HasChangedOnDisk(path)) return nil;
+    return [NSString stringWithUTF8String:std::filesystem::path(path).filename().string().c_str()];
+}
+
+- (nullable NSString*)savePresetsCopy {
+    const std::string path = _context->GetEffectPresetsPath();
+    if (path.empty()) return nil;
+    const std::string copy = ShowFileGuard::MakeCopyPath(path);
+    ObtainAccessToURL(copy, true);
+    if (!_context->GetEffectPresetManager().SaveJsonFile(copy)) return nil;
+    return [NSString stringWithUTF8String:copy.c_str()];
 }
 
 #pragma mark - Song Structure Regions (#6268)

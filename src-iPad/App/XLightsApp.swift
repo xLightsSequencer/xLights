@@ -604,7 +604,7 @@ struct ContentView: View {
             guard siblingsActive else { return }
 
             if viewModel.isDirty {
-                _ = viewModel.saveSequence()
+                _ = viewModel.saveSequence(interactive: false)
             }
             // F-5: snapshot detach state before auto-dismiss so
             // next launch restores the user's exit layout. Must
@@ -669,6 +669,13 @@ struct ContentView: View {
         } message: {
             Text("\(backupOpenNoticeName ?? "This file") is an xLights autosave backup (.xbkp), not a normal sequence. Use Save As to write your changes to a regular .xsq file.")
         }
+        .showFileConflictAlert(
+            Binding(get: { viewModel.saveConflict },
+                    set: { viewModel.saveConflict = $0 }),
+            notice: Binding(get: { viewModel.saveCopyNotice },
+                            set: { viewModel.saveCopyNotice = $0 }),
+            onOverwrite: { viewModel.overwriteAfterConflict($0) },
+            onSaveCopy: { viewModel.saveCopyAfterConflict($0) })
         .alert("Recover Autosave Backup?",
                isPresented: Binding(
                 get: { autosaveRecoveryDate != nil },

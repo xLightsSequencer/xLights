@@ -154,6 +154,7 @@ public:
         return *name;
     }
     void SetLayerName(const std::string& n) {
+        XL_SEQ_MUTATION("EffectLayer::SetLayerName");
         if (name != nullptr) {
             delete name;
             name = nullptr;

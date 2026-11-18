@@ -16,13 +16,15 @@
 #include "layout/PreviewPane.h"
 #include "layout/ModelPreview.h"
 #include "utils/FileUtils.h"
+#include "utils/LayoutObjectId.h"
 
 #include <log.h>
 
 LayoutGroup::LayoutGroup(const std::string& name, xLightsFrame* xl)
     : mName(name), mScaleBackgroundImage(false), mBackgroundBrightness(100), mBackgroundAlpha(100), mPreviewHidden(true), mPreviewCreated(false),
     mModelPreview(nullptr), xlights(xl), mMenuItemPreview(nullptr), mPreviewPane(nullptr), id_menu_item(wxNewId()),
-    mPosX(-1), mPosY(-1), mPaneWidth(-1), mPaneHeight(-1), ignore_size_and_pos(false)
+    mPosX(-1), mPosY(-1), mPaneWidth(-1), mPaneHeight(-1), ignore_size_and_pos(false),
+    mObjectId(LayoutObjectId::Generate())
 {
 }
 
@@ -90,6 +92,8 @@ void LayoutGroup::SetPreviewSize(wxSize size_)
 void LayoutGroup::SetFromXml(pugi::xml_node LayoutGroupNode)
 {
     mName = LayoutGroupNode.attribute("name").as_string("");
+    // Missing or repeated ids are settled by the caller, which sees the whole list.
+    mObjectId = LayoutObjectId::Read(LayoutGroupNode);
     mBackgroundImage = FileUtils::FixFile(xlights->GetShowDirectory(), LayoutGroupNode.attribute("backgroundImage").as_string(""));
     mBackgroundBrightness = LayoutGroupNode.attribute("backgroundBrightness").as_int(100);
     mBackgroundAlpha = LayoutGroupNode.attribute("backgroundAlpha").as_int(100);

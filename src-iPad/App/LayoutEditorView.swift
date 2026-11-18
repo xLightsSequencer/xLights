@@ -144,6 +144,10 @@ struct LayoutEditorView: View {
     /// after every set + save.
     @State private var hasUnsavedChanges: Bool = false
     @State private var saveErrorMessage: String? = nil
+    // A save found xlights_rgbeffects.xml / xlights_networks.xml changed
+    // by someone else since the show was loaded.
+    @State private var layoutSaveConflict: ShowFileSaveConflict? = nil
+    @State private var layoutSaveCopyNotice: String? = nil
     /// J-2 — mirrors `document.canUndoLayoutChange`. Updated after
     /// every edit + undo so the toolbar button can grey itself out.
     @State private var canUndo: Bool = false
@@ -989,6 +993,10 @@ struct LayoutEditorView: View {
         } message: {
             Text(saveErrorMessage ?? "")
         }
+        .showFileConflictAlert($layoutSaveConflict,
+                               notice: $layoutSaveCopyNotice,
+                               onOverwrite: { _ in overwriteLayoutAfterConflict() },
+                               onSaveCopy: { saveLayoutCopiesAfterConflict($0) })
         // IE-15 — Models report (.xlsx) export wiring is bundled
         // into a ViewModifier so the outer body's chain stays within
         // Swift's type-checker budget (same approach as the other
@@ -4847,12 +4855,34 @@ struct LayoutEditorView: View {
     }
 
     private func saveLayoutChanges() {
+        let changed = viewModel.document.layoutFilesChangedOnDisk()
+        if !changed.isEmpty {
+            layoutSaveConflict = ShowFileSaveConflict(kind: .layout, fileNames: changed)
+            return
+        }
         let ok = viewModel.document.saveLayoutChanges()
         if ok {
             hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
         } else {
             saveErrorMessage = "Couldn't write xlights_rgbeffects.xml. Check the Tools → Package Logs output for details."
         }
+    }
+
+    private func overwriteLayoutAfterConflict() {
+        if !viewModel.document.saveLayoutChangesOverwritingExternalChanges() {
+            saveErrorMessage = "Couldn't write the layout files. Check the Tools → Package Logs output for details."
+        }
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+    }
+
+    private func saveLayoutCopiesAfterConflict(_ conflict: ShowFileSaveConflict) {
+        let copies = viewModel.document.saveLayoutChangesAsCopies()
+        if copies.isEmpty {
+            saveErrorMessage = "Couldn't save a copy of \(conflict.fileNames.joined(separator: " and ")). Check the Tools → Package Logs output for details."
+        } else {
+            layoutSaveCopyNotice = ShowFileSaveConflict.copyNotice(copies: copies, originals: conflict.fileNames)
+        }
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
     }
 
     /// J-2 — roll back every staged in-memory layout edit by

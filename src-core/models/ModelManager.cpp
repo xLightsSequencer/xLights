@@ -47,6 +47,7 @@
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
+#include "../utils/LayoutObjectId.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
 #include "XmlSerializer/XmlSerializer.h"
@@ -281,6 +282,104 @@ Model* ModelManager::operator[](const std::string& name) const
     return GetModel(name);
 }
 
+Model* ModelManager::GetModelByObjectId(const std::string& id) const
+{
+    if (id.empty()) {
+        return nullptr;
+    }
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+    for (const auto& it : models) {
+        if (it.second->GetObjectId() == id) {
+            return it.second;
+        }
+        for (Model* sm : it.second->GetSubModels()) {
+            if (sm->GetObjectId() == id) {
+                return sm;
+            }
+        }
+    }
+    return nullptr;
+}
+
+void ModelManager::AssignObjectIds(Model* model, const Model* replaced)
+{
+    if (model == nullptr) {
+        return;
+    }
+    if (replaced != nullptr && replaced != model && model->GetObjectId().empty()) {
+        model->SetObjectId(replaced->GetObjectId());
+    }
+
+    // Unique within the model first: the parent and its submodels.
+    std::unordered_set<std::string> mine;
+    std::string id = model->GetObjectId();
+    LayoutObjectId::Claim(id, mine);
+    model->SetObjectId(id);
+    for (Model* sm : model->GetSubModels()) {
+        std::string sid = sm->GetObjectId();
+        if (LayoutObjectId::Claim(sid, mine)) {
+            sm->SetObjectId(sid);
+        }
+    }
+
+    // Then against every other record in the file.
+    std::unordered_set<std::string> taken;
+    for (const auto& it : models) {
+        const Model* other = it.second;
+        if (other == model || other == replaced || other == nullptr) {
+            continue;
+        }
+        if (mine.count(other->GetObjectId()) != 0) {
+            taken.insert(other->GetObjectId());
+        }
+        for (const Model* sm : other->GetSubModels()) {
+            if (mine.count(sm->GetObjectId()) != 0) {
+                taken.insert(sm->GetObjectId());
+            }
+        }
+    }
+    if (taken.empty()) {
+        return;
+    }
+    std::unordered_set<std::string> used = mine;
+    used.insert(taken.begin(), taken.end());
+    if (taken.count(model->GetObjectId()) != 0) {
+        std::string fresh;
+        LayoutObjectId::Claim(fresh, used);
+        model->SetObjectId(fresh);
+    }
+    for (Model* sm : model->GetSubModels()) {
+        if (taken.count(sm->GetObjectId()) != 0) {
+            std::string fresh;
+            LayoutObjectId::Claim(fresh, used);
+            sm->SetObjectId(fresh);
+        }
+    }
+}
+
+void ModelManager::ClaimObjectIdsInFileOrder(pugi::xml_node parent, const char* childName, std::unordered_set<std::string>& used)
+{
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+    std::set<Model*> visited;
+    for (pugi::xml_node e = parent.child(childName); e; e = e.next_sibling(childName)) {
+        auto it = models.find(Trim(e.attribute("name").as_string()));
+        if (it == models.end() || !visited.insert(it->second).second) {
+            continue;
+        }
+        Model* m = it->second;
+        std::string id = m->GetObjectId();
+        if (LayoutObjectId::Claim(id, used)) {
+            m->SetObjectId(id);
+        }
+        for (Model* sm : m->GetSubModels()) {
+            std::string sid = sm->GetObjectId();
+            if (LayoutObjectId::Claim(sid, used)) {
+                sm->SetObjectId(sid);
+            }
+        }
+    }
+}
+
 bool ModelManager::Rename(const std::string& oldName, const std::string& newName)
 {
     auto on = Trim(oldName);
@@ -423,6 +522,12 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
         if (omm != nullptr) {
             omm->DisableASAPWork(asapWasDisabled);
         }
+    }
+    // Models load in parallel, so ids are settled afterwards, in file order:
+    // the later of two records sharing an id is the one that gets a new one.
+    {
+        std::unordered_set<std::string> usedIds;
+        ClaimObjectIdsInFileOrder(modelNode, "model", usedIds);
     }
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     auto timerElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerStart).count();
@@ -749,6 +854,8 @@ void ModelManager::AddModelGroups(pugi::xml_node n, const std::string& mname, bo
     tempDoc.append_copy(n);
     pugi::xml_node tempNode = tempDoc.first_child();
     tempNode.attribute("name").set_value(nn);
+    // An imported group is a new record of this show.
+    LayoutObjectId::StripFromXml(tempNode);
 
     // Fix model names by replacing EXPORTEDMODEL with the actual model name
     auto modelsList = Split(std::string(tempNode.attribute("models").as_string()), ',');
@@ -1485,6 +1592,25 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
         }
     }
 
+    // Groups share the id space of the models and submodels already loaded.
+    {
+        std::unordered_set<std::string> usedIds;
+        {
+            std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+            for (const auto& it : models) {
+                if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                    continue;
+                }
+                usedIds.insert(it.second->GetObjectId());
+                for (const Model* sm : it.second->GetSubModels()) {
+                    usedIds.insert(sm->GetObjectId());
+                }
+            }
+        }
+        usedIds.erase(std::string());
+        ClaimObjectIdsInFileOrder(groupNode, "modelGroup", usedIds);
+    }
+
     return changed;
 }
 
@@ -1738,6 +1864,10 @@ void ModelManager::AddModel(Model* model)
             if (it != models.end()) {
                 oldm = it->second;
             }
+            // A parallel show load settles ids afterwards, in file order.
+            if (!_modelsLoading) {
+                AssignObjectIds(model, oldm);
+            }
             // Publish the replacement before resetting the groups, then free the old
             // model. Resetting while the map still held the old (or a null) entry
             // left every group that names this model pointing at the model we are
@@ -1770,6 +1900,9 @@ void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
             auto it = models.find(name);
             if (it != models.end()) {
                 oldm = it->second;
+            }
+            AssignObjectIds(nm, oldm);
+            if (it != models.end()) {
                 if (nm->name != name) {
                     // Renamed. The old key has to go or it keeps handing out the
                     // model freed below - to the groups reset here and to every
@@ -2074,6 +2207,8 @@ static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
         if (localAttr.empty() || std::string_view(localAttr.as_string()) != aValue) {
             // SourceVersion is just the xLights version that last saved the model — not a real change
             if (aName == "SourceVersion") continue;
+            // Each show holds its own id for a base record.
+            if (LayoutObjectId::IsIdAttribute(aName)) continue;
             // Controller is locally managed in the show folder.
             if (aName == "Controller") {
                 auto isNoCtrl = [](std::string_view v) { return v.empty() || v == NO_CONTROLLER; };
@@ -2213,9 +2348,10 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
             pugi::xml_node local = FindChildByNameAttr(currentModelsNode, "model", name);
 
             if (!local) {
-                // Model does not exist locally -- add it
+                // Model does not exist locally -- add it, as a new record of this show
                 pugi::xml_node copy = currentModelsNode.append_copy(bm);
                 SetXmlAttribute(copy, "FromBase", "1");
+                LayoutObjectId::StripFromXml(copy);
                 changedModels.push_back(name);
                 changed = true;
                 spdlog::debug("MergeBase: Adding model from base: '{}'.", name.c_str());
@@ -2226,6 +2362,7 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
                     SetXmlAttribute(copy, "FromBase", "1");
                     PreserveLocalControllerAttrs(local, copy);
                     PreserveLocalControllerPort(local, copy);
+                    LayoutObjectId::CopyLocalIds(local, copy, "subModel");
 
                     currentModelsNode.remove_child(local);
                     changedModels.push_back(name);
@@ -2246,9 +2383,10 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
             pugi::xml_node local = FindChildByNameAttr(currentGroupsNode, "modelGroup", name);
 
             if (!local) {
-                // Group does not exist locally -- add it
+                // Group does not exist locally -- add it, as a new record of this show
                 pugi::xml_node copy = currentGroupsNode.append_copy(bg);
                 SetXmlAttribute(copy, "FromBase", "1");
+                LayoutObjectId::StripFromXml(copy);
                 changedGroups.push_back(name);
                 changed = true;
                 spdlog::debug("MergeBase: Adding model group from base: '{}'.", name.c_str());
@@ -2280,6 +2418,7 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
                     std::string yOffset = local.attribute("GridCentreY").as_string();
                     if (!xOffset.empty()) SetXmlAttribute(copy, "GridCentreX", xOffset);
                     if (!yOffset.empty()) SetXmlAttribute(copy, "GridCentreY", yOffset);
+                    LayoutObjectId::CopyLocalIds(local, copy, "subModel");
 
                     currentGroupsNode.insert_copy_after(copy, local);
                     currentGroupsNode.remove_child(local);
