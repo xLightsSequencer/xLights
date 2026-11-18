@@ -108,7 +108,10 @@ klightmapper: FORCE
 
 # Called unconditionally: the script itself compares the staged copy's version
 # stamp against ci_scripts/onnxruntime_version.txt and exits immediately when
-# they match.
+# they match. On download failure it exits non-zero (stopping the build) —
+# unless XLIGHTS_ONNXRUNTIME_OPTIONAL=1, in which case it exits 0 and
+# build_scripts/linux/onnxruntime.mak drops the HAVE_ORT wiring because the
+# staged library is absent, building with stem separation disabled.
 onnxruntime: FORCE
 	@printf "Checking ONNX Runtime (stem separation)\n"
 	@bash ci_scripts/fetch_onnxruntime_linux.sh

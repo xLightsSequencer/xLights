@@ -16,6 +16,17 @@
 # dependency for the Linux build, so the Makefile stops rather than silently
 # dropping stem separation.
 #
+# XLIGHTS_ONNXRUNTIME_OPTIONAL=1 (set by the Ubuntu CI workflow) softens that:
+# a failed fetch still stages nothing, but exits 0 so the build proceeds
+# without ONNX Runtime — build_scripts/linux/onnxruntime.mak then drops the
+# HAVE_ORT define/include/link flags because the staged library is absent,
+# StemSeparator.cpp compiles to its no-backend fallback, and the stem menu
+# entries are simply not offered. Local builds keep the strict behavior so a
+# silently degraded developer tree can't go unnoticed. Useful when the
+# upstream github.com/microsoft/onnxruntime release is unavailable (it has
+# gone 404 for entire GitHub outages before) and CI should still build
+# everything else.
+#
 # Usage:
 #   ci_scripts/fetch_onnxruntime_linux.sh [platform] [--force]
 #     platform : linux-x64 | linux-aarch64 (default: auto-detect)
@@ -25,6 +36,19 @@ set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Shared exit path for "we could not stage ONNX Runtime". Default behavior is
+# strict (exit 1, the Makefile stops). With XLIGHTS_ONNXRUNTIME_OPTIONAL=1 the
+# failure is reported and the script exits 0 so the build continues without
+# the library (see the header comment).
+fail() {
+    if [ "${XLIGHTS_ONNXRUNTIME_OPTIONAL:-}" = "1" ]; then
+        echo "fetch_onnxruntime_linux: XLIGHTS_ONNXRUNTIME_OPTIONAL=1 — continuing without ONNX Runtime; HTDemucs stem separation will be DISABLED." >&2
+        exit 0
+    fi
+    echo "$1" >&2
+    exit 1
+}
 
 VERSION="$(tr -d ' \t\r\n' < "$SCRIPT_DIR/onnxruntime_version.txt")"
 BASE_URL="https://github.com/microsoft/onnxruntime/releases/download/v${VERSION}"
@@ -76,13 +100,11 @@ trap cleanup EXIT
 TARBALL="$TMP_DIR/$ASSET"
 . "$SCRIPT_DIR/gh_release_fetch.sh"
 if ! gh_release_fetch microsoft/onnxruntime "v$VERSION" "$ASSET" "$TARBALL"; then
-    echo "fetch_onnxruntime_linux: download failed ($URL) — stem separation will be disabled." >&2
-    exit 1
+    fail "fetch_onnxruntime_linux: download failed ($URL) — stem separation will be disabled."
 fi
 
 if ! tar -xzf "$TARBALL" -C "$TMP_DIR"; then
-    echo "fetch_onnxruntime_linux: could not extract $ASSET." >&2
-    exit 1
+    fail "fetch_onnxruntime_linux: could not extract $ASSET."
 fi
 
 # The tarball expands to a single top-level onnxruntime-<platform>-<version>/ dir
@@ -92,8 +114,7 @@ if [ ! -d "$EXTRACTED_DIR" ]; then
     EXTRACTED_DIR="$(find "$TMP_DIR" -maxdepth 1 -type d -name 'onnxruntime-*' | head -n1)"
 fi
 if [ -z "$EXTRACTED_DIR" ] || [ ! -d "$EXTRACTED_DIR/include" ] || [ ! -d "$EXTRACTED_DIR/lib" ]; then
-    echo "fetch_onnxruntime_linux: unexpected archive layout in $ASSET." >&2
-    exit 1
+    fail "fetch_onnxruntime_linux: unexpected archive layout in $ASSET."
 fi
 
 mkdir -p "$ROOT_DIR/$INC_DIR"

@@ -69,11 +69,11 @@ struct CheckerFixture {
     }
 
     Effect* VideoEffect(const std::string& filename) {
-        std::string settings;
-        if (!filename.empty()) {
-            settings = "E_FILEPICKERCTRL_Video_Filename=" + filename;
+        Effect* e = layer->AddEffect(0, "Video", "", "", 0, 1000, 0, false);
+        if (e && !filename.empty()) {
+            e->GetSettings()["E_FILEPICKERCTRL_Video_Filename"] = filename;
         }
-        return layer->AddEffect(0, "Video", settings, "", 0, 1000, 0, false);
+        return e;
     }
 
     // Runs the file-reference checks with all report sections installed
@@ -151,12 +151,13 @@ TEST_CASE("File reference checks probe video files for media compatibility", "[d
 
     SECTION("An AVFoundation-incompatible file is reported once") {
         std::string mkv = d.Write("matrix.mkv", "not really a matroska file");
-        Effect* a = f.VideoEffect(mkv);
+        f.VideoEffect(mkv);
         // Same file referenced again by a second effect: the probe must
         // still fire only once for it.
-        f.layer->AddEffect(0, "Video",
-                           "E_FILEPICKERCTRL_Video_Filename=" + mkv, "", 1000, 2000, 0, false);
-        (void)a;
+        Effect* b = f.layer->AddEffect(0, "Video", "", "", 1000, 2000, 0, false);
+        if (b) {
+            b->GetSettings()["E_FILEPICKERCTRL_Video_Filename"] = mkv;
+        }
 
         MediaCompatCallbacks cb;
         CheckSequenceReport report = f.Run(&cb);
