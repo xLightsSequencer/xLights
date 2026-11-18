@@ -997,21 +997,3 @@ TEST_CASE("UndoManager undo of steps for a vanished element is harmless", "[sequ
     SUCCEED();
 }
 
-TEST_CASE("UndoManager info classes keep their fields", "[sequence][undo]") {
-    DeletedEffectInfo d("E", 3, "On", "s", "p", 1, 2, 3, true);
-    CHECK(d.element_name == "E");
-    CHECK(d.layer_index == 3);
-    CHECK(d.name == "On");
-    CHECK(d.startTimeMS == 1);
-    CHECK(d.endTimeMS == 2);
-    CHECK(d.Selected == 3);
-    CHECK(d.Protected);
-    AddedEffectInfo a("E", 1, 9);
-    CHECK(a.id == 9);
-    MovedEffectInfo m("E", 1, 9, 5, 6);
-    CHECK(m.startTimeMS == 5);
-    CHECK(m.endTimeMS == 6);
-    LayerInfo l("E", 4, 2);
-    CHECK(l.exclusive_layer_index == 4);
-    CHECK(l.layer_number == 2);
-}

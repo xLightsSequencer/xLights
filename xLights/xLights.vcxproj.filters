@@ -791,6 +791,12 @@
     <ClCompile Include="..\src-core\render\SequenceElements.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceCommands.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\CommandExecutor.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\SongStructureManager.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -2363,6 +2369,15 @@
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceElements.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceCommands.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceIds.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\CommandExecutor.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SongStructureManager.h">

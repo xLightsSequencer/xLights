@@ -1034,6 +1034,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\lyrics\LyricBreakdown.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
+    <ClCompile Include="..\src-core\render\SequenceCommands.cpp" />
+    <ClCompile Include="..\src-core\render\CommandExecutor.cpp" />
     <ClCompile Include="..\src-core\render\SongStructureManager.cpp" />
     <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp" />
     <ClCompile Include="..\src-core\render\D2DTextDrawingContext.cpp" />
@@ -1710,6 +1712,9 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\lyrics\LyricBreakdown.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
+    <ClInclude Include="..\src-core\render\SequenceCommands.h" />
+    <ClInclude Include="..\src-core\render\SequenceIds.h" />
+    <ClInclude Include="..\src-core\render\CommandExecutor.h" />
     <ClInclude Include="..\src-core\render\SongStructureManager.h" />
     <ClInclude Include="..\src-core\render\SeqMediaMigration.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />

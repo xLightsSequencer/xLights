@@ -21,6 +21,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Undo could change or delete the wrong effect after effects were added
                                  without undo, lose effects deleted from a layer that was later removed,
                                  and do nothing after a timing track was renamed
+    -bug (dkulp)                 Undo of removing a layer brings back the layer's name and effects
     -bug (alex)                  SubModels: Import Custom Model Overlay ignored the chosen alignment column (always
                                  left) and placed the overlay upside down; all 9 positions now work
     -bug (alex)                  SubModels: Import Custom Model Overlay filled the empty cells of the outline,

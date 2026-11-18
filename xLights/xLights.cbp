@@ -1466,6 +1466,9 @@
 		<Unit filename="../src-ui-wx/sequencer/RowHeading.h" />
 		<Unit filename="../src-core/render/SequenceElements.cpp" />
 		<Unit filename="../src-core/render/SequenceElements.h" />
+		<Unit filename="../src-core/render/SequenceCommands.cpp" />
+		<Unit filename="../src-core/render/SequenceCommands.h" />
+		<Unit filename="../src-core/render/SequenceIds.h" />
 		<Unit filename="../src-core/render/SongStructureManager.cpp" />
 		<Unit filename="../src-core/render/SongStructureManager.h" />
 		<Unit filename="../src-core/render/SeqMediaMigration.cpp" />
@@ -1483,6 +1486,8 @@
 		<Unit filename="../src-core/render/UICallbacks.h" />
 		<Unit filename="../src-core/render/UndoManager.cpp" />
 		<Unit filename="../src-core/render/UndoManager.h" />
+		<Unit filename="../src-core/render/CommandExecutor.cpp" />
+		<Unit filename="../src-core/render/CommandExecutor.h" />
 		<Unit filename="../src-ui-wx/sequencer/Waveform.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/Waveform.h" />
 		<Unit filename="../src-ui-wx/sequencer/tabSequencer.cpp" />

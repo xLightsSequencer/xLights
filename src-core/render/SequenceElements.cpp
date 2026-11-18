@@ -15,6 +15,7 @@
 #include <spdlog/fmt/fmt.h>
 
 #include "SequenceElements.h"
+#include "CommandExecutor.h"
 #include "pugixml.hpp"
 #include "RenderUtils.h"
 #include "RenderContext.h"
@@ -49,7 +50,8 @@ static std::vector<std::string> SplitViews(const std::string& views) {
 }
 
 SequenceElements::SequenceElements(RenderContext *ctx)
-    : renderContext(ctx), mFrequency(20), mSequenceEndMS(0), undo_mgr(this)
+    : renderContext(ctx), mFrequency(20), mSequenceEndMS(0), undo_mgr(this),
+      _commandExecutor(std::make_unique<CommandExecutor>(*this, undo_mgr))
 {
     _viewsManager = nullptr;
     mSelectedTimingRow = -1;

@@ -11,6 +11,8 @@
  **************************************************************/
 
 #include <cstdint>
+#include <map>
+#include <optional>
 #include <vector>
 #include <string>
 #include <mutex>
@@ -173,6 +175,10 @@ public:
     void SetPalette(const std::string& i);
     void SetColourOnlyPalette(const std::string& i, bool json = false, bool keepCheckboxes = false);
     void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
+    // Key-level edits: a value sets the key, std::nullopt removes it. Returns
+    // true (and marks the effect changed) if anything actually changed.
+    bool ApplySettingChanges(const std::map<std::string, std::optional<std::string>>& changes);
+    bool ApplyPaletteChanges(const std::map<std::string, std::optional<std::string>>& changes);
     void EraseSettingsStartingWith(const std::string& s);
     void ErasePalette();
     void EraseColourSettings();

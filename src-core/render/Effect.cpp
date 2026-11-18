@@ -925,6 +925,49 @@ void Effect::CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const
     newcc = mCC;
 }
 
+static bool ApplyKeyChanges(SettingsMap& map, const std::map<std::string, std::optional<std::string>>& changes)
+{
+    bool changed = false;
+    for (const auto& [key, value] : changes) {
+        const SettingValue* cur = map.FindValue(key);
+        if (value.has_value()) {
+            if (cur == nullptr || *cur != *value) {
+                map[key] = *value;
+                changed = true;
+            }
+        } else if (cur != nullptr) {
+            map.erase(key);
+            changed = true;
+        }
+    }
+    return changed;
+}
+
+bool Effect::ApplySettingChanges(const std::map<std::string, std::optional<std::string>>& changes)
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    if (!ApplyKeyChanges(mSettings, changes)) {
+        return false;
+    }
+    IncrementChangeCount();
+    return true;
+}
+
+bool Effect::ApplyPaletteChanges(const std::map<std::string, std::optional<std::string>>& changes)
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    if (!ApplyKeyChanges(mPaletteMap, changes)) {
+        return false;
+    }
+    mColors.clear();
+    mCC.clear();
+    if (!mPaletteMap.empty()) {
+        ParseColorMap(mPaletteMap, mColors, mCC);
+    }
+    IncrementChangeCount();
+    return true;
+}
+
 void Effect::EraseSettingsStartingWith(const std::string& s)
 {
     auto it = GetSettings().begin();

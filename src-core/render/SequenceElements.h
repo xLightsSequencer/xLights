@@ -21,6 +21,7 @@ namespace pugi { class xml_node; class xml_document; }
 #include <functional>
 #include <vector>
 #include <map>
+#include <memory>
 #include <set>
 #include <unordered_set>
 #include <string>
@@ -29,6 +30,7 @@ namespace pugi { class xml_node; class xml_document; }
 
 class SequenceFile;
 class SequenceViewManager;
+class CommandExecutor;
 
 #define CURRENT_VIEW -1
 #define MASTER_VIEW 0
@@ -223,6 +225,8 @@ public:
     bool HasPapagayoTiming() const { return hasPapagayoTiming; }
 
     UndoManager& get_undo_mgr() { return undo_mgr; }
+    // Applies SequenceCommands with validation, undo recording and observers.
+    CommandExecutor& GetCommandExecutor() { return *_commandExecutor; }
 
     EffectSymbolManager& GetEffectSymbolManager() { return _effectSymbolManager; }
     const EffectSymbolManager& GetEffectSymbolManager() const { return _effectSymbolManager; }
@@ -330,6 +334,7 @@ private:
     unsigned int mChangeCount;
     unsigned int mMasterViewChangeCount;
     UndoManager undo_mgr;
+    std::unique_ptr<CommandExecutor> _commandExecutor;
 
     std::map<std::string, std::set<std::string>> renderDependency;
     std::set<std::string> modelsToRender;
