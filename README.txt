@@ -33,6 +33,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (NotAFlightRisk)        AI Lyrics from Audio could add a very short word as a zero-length mark
                                  on 50 ms sequences
+    -bug (derwin12)              HinksPix DDP upload sent an absolute DMX start channel; now relative to the
+                                 controller start so DMX works when the controller isn't at channel 1 (#7297)
 
 2026.20  November 12, 2026
 

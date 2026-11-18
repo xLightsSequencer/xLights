@@ -181,7 +181,7 @@ class HinksPix : public BaseController
     [[nodiscard]] std::map<std::string, std::string> StringToMap(std::string const& text) const;
 
     void UpdatePortData(HinksPixOutput& pd, UDControllerPort* stringData, int32_t hinkstartChan) const;
-    void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const;
+    void UpdateSerialData(HinksPixSerial& pd, UDControllerPort* serialData, int const mode, int32_t const ddpStart, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse) const;
     void UploadPixelOutputs(bool& worked) const;
     void UpdateUniverseControllerChannels(UDControllerPort* stringData, std::vector<HinksPixInputUniverse>& inputUniverses, int32_t& hinkstartChan, int& index, bool individualUniverse);
     void UploadExpansionBoardData(int expansion, int startport, int length, bool& worked) const;
