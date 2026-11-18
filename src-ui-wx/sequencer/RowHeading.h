@@ -19,7 +19,7 @@
 #define HORIZONTAL_PADDING          10
 #define PIXELS_PER_MAJOR_HASH       100
 #define DEFAULT_ROW_HEADING_HEIGHT  RowHeading::rowHeadingSize
-#define DEFAULT_ROW_HEADING_MARGIN  16
+#define DEFAULT_ROW_HEADING_MARGIN  FromDIP(16)
 
 wxDECLARE_EVENT(EVT_ROW_HEADINGS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_DISPLAY_ELEMENTS, wxCommandEvent);
@@ -45,6 +45,8 @@ public:
     void SetShowGroupEffectIndicator(bool b) { groupEffectIndicator = b; }
 
     static int rowHeadingSize;
+    // Reapplies the saved width, clamped to the minimum for the current row height.
+    void ApplySavedWidth() { SetWidth(_savedWidth); }
     
 protected:
 private:
@@ -71,6 +73,7 @@ private:
     bool ExpandElementIfEffects(Element* e);
     bool ModelInView(const std::string& model, int view) const;
     void SetWidth(int w);
+    int MinRowHeadingWidth() const;
     void RefreshSelectedEffectPanelIfOnElement(Element* element) const;
     
     wxBitmapBundle papagayo_icon;
@@ -82,7 +85,7 @@ private:
     int mSelectedRow = -1;
     SequenceElements* mSequenceElements = nullptr;
     bool mCanPaste = false;
-    const int _minRowHeadingWidth = 158;
+    int _savedWidth = 0;
     bool _dragging = false;
     bool _rowDragging = false;
     int _rowDragSourceIdx = -1;

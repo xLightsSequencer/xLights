@@ -259,8 +259,8 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     mCanPaste = false;
 
     auto* config = GetXLightsConfig();
-    int w = config->ReadLong("xLightsRowHeaderWidth", _minRowHeadingWidth);
-    CallAfter(&RowHeading::SetWidth, w);
+    _savedWidth = config->ReadLong("xLightsRowHeaderWidth", 0);
+    CallAfter(&RowHeading::SetWidth, _savedWidth);
     _scrollTimer.Bind(wxEVT_TIMER, &RowHeading::OnScrollTimer, this);
 }
 
@@ -369,10 +369,16 @@ void RowHeading::ComputeRowDragTarget(int cursorY)
     }
 }
 
+// The names grow with the row height, so the minimum width does too.
+int RowHeading::MinRowHeadingWidth() const
+{
+    return FromDIP(158) * std::max(FromDIP(22), DEFAULT_ROW_HEADING_HEIGHT) / FromDIP(22);
+}
+
 void RowHeading::SetWidth(int w)
 {
     auto minSize = GetMinSize();
-    if (w < _minRowHeadingWidth) w = _minRowHeadingWidth;
+    w = std::max(w, MinRowHeadingWidth());
     if (minSize.GetWidth() != w) {
         SetMinSize(wxSize(w, -1));
         GetParent()->Layout();
@@ -460,6 +466,7 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
         auto size = GetSize();
         auto* config = GetXLightsConfig();
         config->Write("xLightsRowHeaderWidth", size.GetWidth());
+        _savedWidth = size.GetWidth();
         ReleaseMouse();
         _dragging = false;
     }

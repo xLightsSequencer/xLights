@@ -150,6 +150,8 @@ static constexpr int kListPaneMinHeight    = kPaneMinHeight + 50;
 static constexpr int kFloatingFrameMinHeight = 200; // minimum height for floating panel windows
 static constexpr int kListHeightFallback   = 200; // fallback half-height used when container is hidden
 static constexpr int kMinPaneWidth         = 150; // absolute floor for left-panel sash drag (px)
+// Kept in device-independent pixels: Windows lays windows out in physical pixels.
+static int Dip(int v) { return wxWindow::FromDIP(v, nullptr); }
 // Vertical sash minimum is enforced dynamically in LayoutAuiManager::OnMotion as 10% of
 // container height (floor kPaneMinHeight), so it scales with screen resolution.
 
@@ -215,7 +217,7 @@ public:
             wxFRAME_NO_TASKBAR | wxFRAME_FLOAT_ON_PARENT |
             wxCLIP_CHILDREN | wxCLOSE_BOX);
         // Prevent floating panels from being resized smaller than a usable area.
-        frame->SetMinClientSize(wxSize(300, kFloatingFrameMinHeight));
+        frame->SetMinClientSize(wxSize(Dip(300), Dip(kFloatingFrameMinHeight)));
         return frame;
     }
 
@@ -331,8 +333,8 @@ public:
                     // new_size = (event.m_y - m_horizResizeActionOffsetY) - m_horizResizeDockY
                     // Enforce new_size >= 10% of containerH and (containerH - new_size) >= 10%.
                     int containerH = GetManagedWindow()->GetClientSize().GetHeight();
-                    int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
-                    int minY = paneMin + (kListPaneMinHeight - kPaneMinHeight) + m_horizResizeActionOffsetY + m_horizResizeDockY;
+                    int paneMin = std::max(containerH * 10 / 100, Dip(kPaneMinHeight));
+                    int minY = paneMin + (Dip(kListPaneMinHeight) - Dip(kPaneMinHeight)) + m_horizResizeActionOffsetY + m_horizResizeDockY;
                     int maxY = (containerH - paneMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
                     if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
                     event.m_y = std::clamp(event.m_y, minY, maxY);
@@ -357,8 +359,8 @@ public:
         // per-drag state, before it gets reset below.
         if (m_action == actionResize && m_horizResizeDockY >= 0 && m_horizResizeBothVisible) {
             int containerH = GetManagedWindow()->GetClientSize().GetHeight();
-            int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
-            int minY = paneMin + (kListPaneMinHeight - kPaneMinHeight) + m_horizResizeActionOffsetY + m_horizResizeDockY;
+            int paneMin = std::max(containerH * 10 / 100, Dip(kPaneMinHeight));
+            int minY = paneMin + (Dip(kListPaneMinHeight) - Dip(kPaneMinHeight)) + m_horizResizeActionOffsetY + m_horizResizeDockY;
             int maxY = (containerH - paneMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
             if (maxY < minY) maxY = minY;
             event.m_y = std::clamp(event.m_y, minY, maxY);
@@ -1022,8 +1024,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     layout_mgr = new_layout_mgr;
     new_layout_mgr->Bind(wxEVT_AUI_PANE_CLOSE, &LayoutPanel::OnLayoutPaneClose, this);
 
-    FirstPanel->SetMinSize(wxSize(0, kListPaneMinHeight));
-    int listHeight = (msp > 0) ? msp : kListHeightFallback;
+    FirstPanel->SetMinSize(wxSize(0, Dip(kListPaneMinHeight)));
+    int listHeight = (msp > 0) ? msp : Dip(kListHeightFallback);
     layout_mgr->AddPane(FirstPanel, wxAuiPaneInfo()
         .Name("ModelList")
         .Caption("")
@@ -1038,10 +1040,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         .RightDockable(false)
         .Top().Layer(0).Row(0)
         .BestSize(-1, listHeight)
-        .FloatingSize(600, 1000)
-        .MinSize(300, kListPaneMinHeight));
+        .FloatingSize(Dip(600), Dip(1000))
+        .MinSize(Dip(300), Dip(kListPaneMinHeight)));
 
-    SettingsPaneContainer->SetMinSize(wxSize(0, kPaneMinHeight));
+    SettingsPaneContainer->SetMinSize(wxSize(0, Dip(kPaneMinHeight)));
     layout_mgr->AddPane(SettingsPaneContainer, wxAuiPaneInfo()
         .Name("ModelSettings")
         .Caption("Background Properties")
@@ -1053,8 +1055,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         .LeftDockable(false)
         .RightDockable(false)
         .Center()
-        .FloatingSize(600, 1000)
-        .MinSize(0, kPaneMinHeight));
+        .FloatingSize(Dip(600), Dip(1000))
+        .MinSize(0, Dip(kPaneMinHeight)));
 
     wxString auiPerspective;
     config->Read("LayoutAUIPerspective2", &auiPerspective, wxEmptyString);
@@ -1062,9 +1064,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         layout_mgr->LoadPerspective(auiPerspective);
     }
     // Always reapply settings that LoadPerspective overwrites via SafeSet()
-    layout_mgr->GetPane("ModelList").MinSize(300, kListPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
+    layout_mgr->GetPane("ModelList").MinSize(Dip(300), Dip(kListPaneMinHeight)).CaptionVisible(true).Caption("").GripperTop(true)
         .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
-    layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Background Properties")
+    layout_mgr->GetPane("ModelSettings").MinSize(0, Dip(kPaneMinHeight)).CaptionVisible(true).Caption("Background Properties")
         .Floatable(true).CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
     // Always start with the two main panels docked and visible regardless of
     // what was saved.  If the saved perspective had them floating or hidden
@@ -12494,7 +12496,7 @@ void LayoutPanel::DockAndRefresh(bool setModelListHeight) {
     UpdateLayoutSplitter();
     if (setModelListHeight) {
         int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
-        if (halfHeight < kListHeightFallback) halfHeight = kListHeightFallback;
+        if (halfHeight < Dip(kListHeightFallback)) halfHeight = Dip(kListHeightFallback);
         layout_mgr->GetPane("ModelList").BestSize(-1, halfHeight);
     }
     layout_mgr->Update();
@@ -12503,9 +12505,9 @@ void LayoutPanel::DockAndRefresh(bool setModelListHeight) {
     // force the sash to the target width — that would leave no room to drag left.
     CallAfter([this]() {
         if (SplitterWindow2->IsSplit()) {
-            if (SplitterWindow2->GetSashPosition() < kMinPaneWidth)
-                SplitterWindow2->SetSashPosition(kMinPaneWidth);
-            SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
+            if (SplitterWindow2->GetSashPosition() < Dip(kMinPaneWidth))
+                SplitterWindow2->SetSashPosition(Dip(kMinPaneWidth));
+            SplitterWindow2->SetMinimumPaneSize(Dip(kMinPaneWidth));
         }
     });
 }
@@ -12555,7 +12557,7 @@ void LayoutPanel::ResetToDefaults() {
     // stay collapsed even after this "reset". Re-adding them from scratch mirrors
     // the initial construction in the constructor and guarantees a fresh layout.
     int halfHeight = ModelPanelContainer->GetSize().GetHeight() / 2;
-    if (halfHeight < kListHeightFallback) halfHeight = kListHeightFallback;
+    if (halfHeight < Dip(kListHeightFallback)) halfHeight = Dip(kListHeightFallback);
 
     // wxAuiManager keys its dock geometry (dock_size) by (direction, layer, row),
     // not by pane identity — re-adding a pane to the SAME dock cell it was just
@@ -12581,8 +12583,8 @@ void LayoutPanel::ResetToDefaults() {
         .RightDockable(false)
         .Top().Layer(0).Row(0)
         .BestSize(-1, halfHeight)
-        .FloatingSize(600, 1000)
-        .MinSize(300, kListPaneMinHeight));
+        .FloatingSize(Dip(600), Dip(1000))
+        .MinSize(Dip(300), Dip(kListPaneMinHeight)));
 
     layout_mgr->AddPane(SettingsPaneContainer, wxAuiPaneInfo()
         .Name("ModelSettings")
@@ -12595,8 +12597,8 @@ void LayoutPanel::ResetToDefaults() {
         .LeftDockable(false)
         .RightDockable(false)
         .Center()
-        .FloatingSize(600, 1000)
-        .MinSize(0, kPaneMinHeight));
+        .FloatingSize(Dip(600), Dip(1000))
+        .MinSize(0, Dip(kPaneMinHeight)));
 
     // Ensure the left panel is visible in the splitter, then commit the AUI layout.
     // Also discard any saved sash position so the default 18% width is used on the
@@ -12610,7 +12612,7 @@ void LayoutPanel::ResetToDefaults() {
     int targetW = LeftPanelMinWidth();
     SplitterWindow2->SetSashGravity(0.5);
     SplitterWindow2->SetSashPosition(targetW);
-    SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
+    SplitterWindow2->SetMinimumPaneSize(Dip(kMinPaneWidth));
 
     // Clear saved state so the defaults persist across restarts.
     auto* config = GetXLightsConfig();
@@ -12687,7 +12689,7 @@ void LayoutPanel::RestoreFloatingPanes() {
 void LayoutPanel::ReapplyPaneAttributes() {
     wxAuiPaneInfo& modelListPane = layout_mgr->GetPane("ModelList");
     if (modelListPane.IsOk()) {
-        modelListPane.MinSize(300, kListPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
+        modelListPane.MinSize(Dip(300), Dip(kListPaneMinHeight)).CaptionVisible(true).Caption("").GripperTop(true)
             .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
     }
     wxAuiPaneInfo& modelSettingsPane = layout_mgr->GetPane("ModelSettings");
@@ -12696,7 +12698,7 @@ void LayoutPanel::ReapplyPaneAttributes() {
         if (modelSettingsCaption.IsEmpty()) {
             modelSettingsCaption = "Model Settings";
         }
-        modelSettingsPane.MinSize(0, kPaneMinHeight).CaptionVisible(true)
+        modelSettingsPane.MinSize(0, Dip(kPaneMinHeight)).CaptionVisible(true)
             .Caption(modelSettingsCaption)
             .Floatable(true).CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
     }
@@ -12780,7 +12782,7 @@ void LayoutPanel::DockPanesOnMissingDisplays() {
 int LayoutPanel::LeftPanelMinWidth() const
 {
     int totalW = SplitterWindow2->GetClientSize().GetWidth();
-    return std::max(totalW * 18 / 100, kMinPaneWidth);
+    return std::max(totalW * 18 / 100, Dip(kMinPaneWidth));
 }
 
 void LayoutPanel::UpdateLayoutSplitter() {
@@ -12813,17 +12815,17 @@ void LayoutPanel::UpdateLayoutSplitter() {
         // left panel is placed when (re-)docking.  The hard minimum below is
         // intentionally smaller so the user can drag the sash further left.
         // If the user had previously adjusted the sash, restore their position.
-        int targetW = (_savedSashPos >= kMinPaneWidth) ? _savedSashPos : LeftPanelMinWidth();
+        int targetW = (_savedSashPos >= Dip(kMinPaneWidth)) ? _savedSashPos : LeftPanelMinWidth();
 
         if (!SplitterWindow2->IsSplit()) {
             SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel, targetW);
         } else {
             int sash = SplitterWindow2->GetSashPosition();
-            if (sash < kMinPaneWidth) {
-                SplitterWindow2->SetSashPosition(kMinPaneWidth);
+            if (sash < Dip(kMinPaneWidth)) {
+                SplitterWindow2->SetSashPosition(Dip(kMinPaneWidth));
             }
         }
-        SplitterWindow2->SetMinimumPaneSize(kMinPaneWidth);
+        SplitterWindow2->SetMinimumPaneSize(Dip(kMinPaneWidth));
     }
 }
 

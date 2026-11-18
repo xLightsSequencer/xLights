@@ -197,7 +197,7 @@ END_EVENT_TABLE()
 const int TimeLine::ZoomLevelValues[] = {1,2,4,10,20,40,100,200,400,600,1200,2400,4800,8000,12000,16000,20000,30000,40000};
 #define MAX_ZOOM_OUT_INDEX      18
 
-static const int marker_size = 8;
+#define marker_size FromDIP(8)
 
 void TimeLine::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
 {
@@ -1489,13 +1489,16 @@ void TimeLine::render( wxDC& dc ) {
         // Draw hash marks
         if ((x+mStartPixelOffset)%(PIXELS_PER_MAJOR_HASH/2)==0)
         {
-            dc.DrawLine(x,h - 10,x,h-1);
+            dc.DrawLine(x,h - FromDIP(10),x,h-1);
         }
         // Draw time label
         if((x+mStartPixelOffset)%PIXELS_PER_MAJOR_HASH==0)
         {
             float t = GetTimeMSfromPosition(x+mStartPixelOffset);
-            wxRect r(x-25,h/2-10,50,12);
+            wxRect r(x-FromDIP(25),h/2-FromDIP(10),FromDIP(50),FromDIP(12));
+            if (r.x < 0) {
+                r.x = 0;
+            }
             minutes = t/60000;
             seconds = (t-(minutes*60000))/1000;
             subsecs = t - (minutes*60000 + seconds*1000);

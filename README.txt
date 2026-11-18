@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (frenchmakers)          Windows: at 150 %/200 % display scaling the sequencer rows, waveform and
+                                 Layout model list were too small; the row name column also widens with
+                                 the effect grid spacing
     -bug (dkulp)                 LOR S5 import: Marquee took its speed from the wrong field
     -bug (dkulp)                 LMS import: channels with the same name on different networks got identical names
     -bug (dkulp)                 HLS import: strand names lost their last character, so Map CCR/Strand found no nodes

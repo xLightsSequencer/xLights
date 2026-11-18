@@ -164,6 +164,8 @@ public:
         if (!drawingUsingLogicalSize()) {
             h /= GetContentScaleFactor();
         }
+        // On Windows the canvas is in physical pixels: size the text in DIPs.
+        h = ToDIP(h);
         if (h > 50) {
             newFontSize = 14;
         } else if (h > 27) {
@@ -179,14 +181,14 @@ public:
         }
         ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
         
-        float fs = translateToBacking(fontSize);
+        float fs = translateToBacking(FromDIP(fontSize));
         if (newFontSize != fontSize || backedFontSize != fs) {
             if (fontTexture) {
                 delete fontTexture;
                 fontTexture = nullptr;
             }
             fontSize = newFontSize;
-            fs = translateToBacking(fontSize);
+            fs = translateToBacking(FromDIP(fontSize));
             backedFontSize = fs;
             const xlFontInfo &fi = xlFontInfo::FindFont((int)fs);
             fontTexture = ctx->createTextureForFont(fi);
@@ -194,7 +196,7 @@ public:
         const xlFontInfo &fi = xlFontInfo::FindFont(fs);
 #define LINEGAP 1.2
         xlVertexTextureAccumulator *vta = ctx->createVertexTextureAccumulator();
-        float x = mapLogicalToAbsolute(5);
+        float x = mapLogicalToAbsolute(FromDIP(5));
         float perLine = fi.getSize() * LINEGAP;
         float y = perLine;
         if (mWindowHeight > (perLine * 3)) {
@@ -1394,7 +1396,7 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
 
 void MainSequencer::SetLargeWaveform()
 {
-    PanelWaveForm->SetWaveFormSize(Waveform::GetLargeSize());
+    PanelWaveForm->SetWaveFormSize(FromDIP(Waveform::GetLargeSize()));
     Layout();
     PanelWaveForm->Refresh();
     timeDisplay->Refresh();
@@ -1402,7 +1404,7 @@ void MainSequencer::SetLargeWaveform()
 
 void MainSequencer::SetSmallWaveform()
 {
-    PanelWaveForm->SetWaveFormSize(Waveform::GetSmallSize());
+    PanelWaveForm->SetWaveFormSize(FromDIP(Waveform::GetSmallSize()));
     Layout();
     PanelWaveForm->Refresh();
     timeDisplay->Refresh();
