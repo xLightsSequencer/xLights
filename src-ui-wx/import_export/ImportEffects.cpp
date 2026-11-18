@@ -23,6 +23,7 @@
 
 #include "../import_export/LMSImportChannelMapDialog.h"
 #include "import_export/LOREdit.h"
+#include "import_export/LORMusic.h"
 #include "../import_export/SuperStarImportDialog.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
@@ -739,10 +740,10 @@ void MapToStrandName(const std::string& name, std::vector<std::string>& strands)
         std::string strandName;
         if (spos == -1 && ppos == -1) {
             // simple "strand" names of _#####
-            strandName = name.substr(0, name.find("_") - 1);
+            strandName = name.substr(0, name.find("_"));
         } else if (spos >= 0 && ppos > spos) {
             // more complex of _S###P###
-            strandName = name.substr(0, ppos - 1);
+            strandName = name.substr(0, ppos);
         }
         if ("" != strandName && std::find(strands.begin(), strands.end(), strandName) == strands.end()) {
             strands.push_back(strandName);
@@ -1861,11 +1862,8 @@ bool MapChannelInformation(EffectManager& effectManager, EffectLayer* layer, pug
     for (pugi::xml_node e = input_xml.document_element().first_child(); !channel && e; e = e.next_sibling()) {
         if (std::string_view(e.name()) == "channels") {
             for (pugi::xml_node chan = e.first_child(); !channel && chan; chan = chan.next_sibling()) {
-                std::string unit = chan.attribute("unit").as_string();
-                std::string circuit = chan.attribute("circuit").as_string();
-                std::string dedupname = std::string(chan.attribute("name").as_string()) + "_Unit_" + unit + "_Circuit_" + circuit;
                 std::string chanName = chan.name();
-                if ((chanName == "channel" || chanName == "rgbChannel") && (nm == chan.attribute("name").as_string() || nm == dedupname)) {
+                if ((chanName == "channel" || chanName == "rgbChannel") && LORMusic::MatchesChannelName(chan, nm)) {
                     channel = chan;
                     if (chanName == "rgbChannel" && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
                         return false;
@@ -1976,10 +1974,8 @@ bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& fi
                         dlg.channelColors[name] = xlBLACK;
                     } else {
                         std::string color = chan.attribute("color").as_string();
-                        std::string unit = chan.attribute("unit").as_string();
-                        std::string circuit = chan.attribute("circuit").as_string();
                         if (dlg.GetImportChannel(name)) {
-                            name += "_Unit_" + unit + "_Circuit_" + circuit;
+                            name = LORMusic::LongChannelName(chan);
                         }
                         dlg.channelColors[name] = GetColor(color);
                     }

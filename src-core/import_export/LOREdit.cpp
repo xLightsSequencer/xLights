@@ -1050,12 +1050,12 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         }
     }
     else if (et == "marquee") {
-        //4,1,1,12
-        //spacing,filled space,size,speed
+        //4,1,1,12,TTTT,False
+        //spacing,filled space,size,speed,...
         std::string spacing = parms[0];
         std::string filledspace = parms[1];
         std::string size = parms[2];
-        std::string speed = parms[4];
+        std::string speed = parms[3];
         std::string vcSpacing;
         spacing = RescaleWithRangeI(spacing, "E_SLIDER_Marquee_Skip_Size", 1, 20, 1, 20, vcSpacing, MarqueeEffect::sSkipSizeMin, MarqueeEffect::sSkipSizeMax);
         settings += ",E_SLIDER_Marquee_Skip_Size=" + spacing;

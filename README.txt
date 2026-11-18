@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (dkulp)                 LOR S5 import: Marquee took its speed from the wrong field
+    -bug (dkulp)                 LMS import: channels with the same name on different networks got identical names
+    -bug (dkulp)                 HLS import: strand names lost their last character, so Map CCR/Strand found no nodes
     -bug (derwin12)              Select Effects listed models with no effects matching the Effect Type,
                                  Render Style, time and colour filters together
     -change (scott)              Controller Open / Open Proxy buttons stay enabled while outputting to lights

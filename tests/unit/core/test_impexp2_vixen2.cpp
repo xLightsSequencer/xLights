@@ -475,32 +475,27 @@ TEST_CASE("HLS CCR strand names", "[impexp2][hls]") {
     struct C { const char* name; std::vector<std::string> ccr; };
     auto c = GENERATE(values<C>({
         { "Plain", {} },
-        { "Tree _0001", { "Tree" } },
-        { "Tree_0001", { "Tre" } },
-        { "Tree _0002", { "Tree" } },
-        { "Tree _abc", {} },
-        { "Tree _", { "Tree" } },
-        { "_0001", { "" } },
-        { "Roof _S001P001", { "Roof _S00" } },
-        { "Roof _P001", {} },
-        { "Roof _S001", {} },
+        { "Tree_0001", { "Tree" } },
+        { "Tree_0002", { "Tree" } },
+        { "Tree _0001", { "Tree " } },
+        { "Tree_abc", {} },
+        { "Tree_", { "Tree" } },
+        { "_0001", {} },
+        { "Roof_S001P001", { "Roof_S001" } },
+        { "Roof_P001", {} },
+        { "Roof_S001", {} },
         { "A_1_2", {} },
     }));
     auto doc = Parse(HlsDoc("4", "50", HlsChan(std::string(c.name) + ", Normal", "")));
     HLSFile h(doc);
     CAPTURE(c.name);
     auto got = h.GetCCRNames();
-    if (std::string(c.name) == "_0001") {
-        // name.find("_") - 1 underflows: the whole name is used
-        CHECK(got.size() <= 1);
-    } else {
-        CHECK(got == c.ccr);
-    }
+    CHECK(got == c.ccr);
     for (auto& g : got) CHECK(h.IsCCRName(g));
 }
 
 TEST_CASE("HLS CCR names are deduplicated and sorted", "[impexp2][hls]") {
-    auto doc = Parse(HlsDoc("4", "50", HlsChan("Zed _0001, Normal", "") + HlsChan("Zed _0002, Normal", "") + HlsChan("Alpha _0001, Normal", "") + HlsChan("Tree 10 _0001, Normal", "") + HlsChan("Tree 2 _0001, Normal", "")));
+    auto doc = Parse(HlsDoc("4", "50", HlsChan("Zed_0001, Normal", "") + HlsChan("Zed_0002, Normal", "") + HlsChan("Alpha_0001, Normal", "") + HlsChan("Tree 10_0001, Normal", "") + HlsChan("Tree 2_0001, Normal", "")));
     HLSFile h(doc);
     CHECK(h.GetCCRNames() == std::vector<std::string>{ "Alpha", "Tree 2", "Tree 10", "Zed" });
     CHECK_FALSE(h.IsCCRName("Beta"));
@@ -524,15 +519,16 @@ TEST_CASE("HLS FindStrandName with large and negative node numbers", "[impexp2][
     CHECK(h.FindStrandName("S", -4).find("-") != std::string::npos);
 }
 
-TEST_CASE("HLS strand lookup finds the channels that MapToStrandName derived it from", "[impexp2][hls][!mayfail]") {
-    // for names shaped "Name _0001" the derived strand ("Name") plus "_0001" is never an existing channel ("Name _0001"),
-    // so FindStrandName cannot resolve the node channels. The same logic exists on desktop; real HLS names are unverified.
-    auto doc = Parse(HlsDoc("4", "50", HlsChan("Mega _0001, Normal", "") + HlsChan("Mega _0002, Normal", "")));
+TEST_CASE("HLS strand lookup finds the channels that MapToStrandName derived it from", "[impexp2][hls]") {
+    auto names = GENERATE(std::vector<std::string>{ "Mega_0001", "Mega_0002" }, std::vector<std::string>{ "Mega _0001", "Mega _0002" },
+                          std::vector<std::string>{ "Mega_001", "Mega_002" }, std::vector<std::string>{ "Roof_S001P001", "Roof_S001P002" },
+                          std::vector<std::string>{ "Roof_S01P0001", "Roof_S01P0002" });
+    CAPTURE(names);
+    auto doc = Parse(HlsDoc("4", "50", HlsChan(names[0] + ", Normal", "") + HlsChan(names[1] + ", Normal", "")));
     HLSFile h(doc);
     REQUIRE(h.GetCCRNames().size() == 1);
-    auto n = h.GetChannelNames();
-    auto r = h.FindStrandName(h.GetCCRNames()[0], 1);
-    CHECK(std::find(n.begin(), n.end(), r) != n.end());
+    CHECK(h.FindStrandName(h.GetCCRNames()[0], 1) == names[0]);
+    CHECK(h.FindStrandName(h.GetCCRNames()[0], 2) == names[1]);
 }
 
 // ---------------------------------------------------------------- ConvertDataRowToEffects
