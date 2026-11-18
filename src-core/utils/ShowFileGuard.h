@@ -45,17 +45,33 @@ public:
     // nullopt when the file exists but cannot be read.
     static std::optional<ShowFileFingerprint> FingerprintFile(const std::string& path);
 
-    // Writes a temp file beside the target and renames it over the target, so a
-    // reader (or a sync client) never sees a half-written file. Falls back to
-    // writing in place when the temp file cannot be created (sandbox or folder
-    // permissions). A failed write never truncates the existing file unless it
-    // came from that in-place fallback.
+    // Writes the new contents to a temp file, then swaps it in for the target,
+    // so a reader (or a sync client) never sees a half-written file. The swap
+    // keeps the target's identity as far as each platform allows: on Apple it
+    // is a coordinated NSFileManager replace from a same-volume replacement
+    // directory outside the show folder (keeps extended attributes, tags,
+    // creation date and file versions); on Windows ReplaceFileW (keeps ACLs,
+    // attributes, creation time and alternate streams); elsewhere a rename that
+    // keeps the mode and, where permitted, the owner. A symlinked target is
+    // written through the link, and a hard-linked target is written in place so
+    // the link survives. Falls back to writing in place when no temp file can
+    // be created (sandbox or folder permissions). A failed write never
+    // truncates the existing file unless it came from that in-place fallback.
     static bool WriteFileAtomically(const std::string& path, const std::string& bytes);
     // Same, for large files written by a serializer that streams to a path
     // (e.g. pugi::xml_document::save_file). The writer must create or truncate
     // the path it is given and return false on failure.
     using Writer = std::function<bool(const std::string& writePath)>;
     static bool WriteFileAtomically(const std::string& path, const Writer& writer);
+
+    // Name of a temp file created beside `target` when it has to be. Named so
+    // common sync clients skip it (leading ".~", ".tmp" / ".nosync" suffix).
+    static std::string TempPathFor(const std::string& target);
+    static bool IsTempFileName(const std::string& fileName);
+    // Deletes temp files a crashed save left in `dir` (not its subfolders).
+    // Only ones older than `minAgeSeconds`, so a save still in progress on
+    // another machine sharing the folder is left alone. Returns the count.
+    static int RemoveStaleTempFiles(const std::string& dir, int minAgeSeconds = 3600);
 
     // "<dir>/<stem>_mine_<YYYYMMDD_HHMMSS><ext>", made unique against what is
     // already on disk.
@@ -76,6 +92,8 @@ public:
     // recorded: rewritten, deleted, or created after it was recorded missing.
     // Untracked or unreadable files report false.
     bool HasChangedOnDisk(const std::string& path) const;
+    // What was last recorded for the file; nullopt when it is not tracked.
+    std::optional<ShowFileFingerprint> RecordedFingerprint(const std::string& path) const;
 
     // A full rewrite from in-memory state: afterwards the disk holds exactly what
     // this process has, so the new contents are recorded.

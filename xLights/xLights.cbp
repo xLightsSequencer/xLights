@@ -642,6 +642,8 @@
 		<Unit filename="../src-ui-wx/sequencer/TopEffectsPanel.h" />
 		<Unit filename="../src-core/utils/ShowGuid.cpp" />
 		<Unit filename="../src-core/utils/ShowGuid.h" />
+		<Unit filename="../src-core/utils/ShowAutosave.cpp" />
+		<Unit filename="../src-core/utils/ShowAutosave.h" />
 		<Unit filename="../src-core/utils/ShowFileGuard.cpp" />
 		<Unit filename="../src-core/utils/ShowFileGuard.h" />
 		<Unit filename="../src-core/utils/ShowRedactor.cpp" />

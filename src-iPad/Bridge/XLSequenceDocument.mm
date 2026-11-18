@@ -33,6 +33,7 @@
 #include "render/ModelGifExporter.h"
 #import "XLHousePreviewVideoExporter.h"
 #include "models/BaseShowPromotion.h"
+#include "utils/ShowAutosave.h"
 #include "utils/ShowFileGuard.h"
 #include "utils/ShowGuid.h"
 #include "utils/UtilFunctions.h"
@@ -245,6 +246,36 @@ static NSMutableDictionary* CtrlBoolProp(NSString* key, NSString* label, BOOL va
 static NSMutableDictionary* CtrlEnumProp(NSString* key, NSString* label, int index, NSArray<NSString*>* options);
 static NSMutableDictionary* CtrlStringProp(NSString* key, NSString* label, NSString* _Nullable value, BOOL editable);
 static int IndexOfString(NSArray<NSString*>* options, const std::string& v);
+
+@interface XLAutosaveOffer ()
+@property (nonatomic, readwrite) XLAutosaveOfferKind kind;
+@property (nonatomic, readwrite, nullable) NSDate* savedAt;
+@property (nonatomic, readwrite) NSString* device;
+@end
+
+@implementation XLAutosaveOffer
+@end
+
+static XLAutosaveOffer* MakeAutosaveOffer(const AutosaveCheck& check) {
+    XLAutosaveOffer* o = [[XLAutosaveOffer alloc] init];
+    switch (check.offer) {
+        case AutosaveOffer::Offer: o.kind = XLAutosaveOfferKindMine; break;
+        case AutosaveOffer::OfferConflict: o.kind = XLAutosaveOfferKindConflict; break;
+        case AutosaveOffer::OfferLegacy: o.kind = XLAutosaveOfferKindLegacy; break;
+        default: o.kind = XLAutosaveOfferKindNoOffer; break;
+    }
+    const int64_t when = (check.hasInfo && check.info.savedAt > 0) ? check.info.savedAt : check.backupTime;
+    o.savedAt = when > 0 ? [NSDate dateWithTimeIntervalSince1970:(NSTimeInterval)when] : nil;
+    o.device = check.hasInfo ? [NSString stringWithUTF8String:check.info.deviceName.c_str()] : @"";
+    return o;
+}
+
+static std::string SequenceAutosavePathFor(NSString* xsqPath) {
+    std::filesystem::path p(std::string(xsqPath.UTF8String ?: ""));
+    if (p.empty()) return std::string();
+    p.replace_extension("xbkp");
+    return p.string();
+}
 
 @implementation XLSequenceDocument {
     std::unique_ptr<iPadRenderContext> _context;
@@ -1177,10 +1208,51 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     sf->SetFullPath(backupPath);
     const bool ok = sf->Save(_context->GetSequenceElements());
     sf->SetFullPath(origPath);
+    if (ok) {
+        ShowAutosave::WriteSidecar(backupPath, ShowAutosave::BaseFor(origPath, ShowFileGuard::Instance()));
+    }
 
     // Writing the .xbkp doesn't count as a user save — leave
     // _lastSavedChangeCount untouched so the dirty dot stays lit.
     return ok ? YES : NO;
+}
+
++ (XLAutosaveOffer*)checkSequenceAutosaveForPath:(NSString*)xsqPath {
+    const std::string backup = SequenceAutosavePathFor(xsqPath);
+    if (backup.empty()) return MakeAutosaveOffer(AutosaveCheck{});
+    const std::string real = std::string(xsqPath.UTF8String);
+    ObtainAccessToURL(real, false);
+    AutosaveCheck check = ShowAutosave::Check(real, backup);
+    if (check.offer == AutosaveOffer::Stale) {
+        ShowAutosave::Remove(backup);
+        check = AutosaveCheck{};
+    }
+    return MakeAutosaveOffer(check);
+}
+
++ (BOOL)restoreSequenceAutosaveForPath:(NSString*)xsqPath keepingCurrent:(BOOL)keep {
+    const std::string backup = SequenceAutosavePathFor(xsqPath);
+    if (backup.empty()) return NO;
+    return ShowAutosave::Restore(std::string(xsqPath.UTF8String), backup, keep, ShowFileGuard::Instance()) ? YES : NO;
+}
+
++ (nullable NSString*)saveSequenceAutosaveAsCopyForPath:(NSString*)xsqPath {
+    const std::string backup = SequenceAutosavePathFor(xsqPath);
+    if (backup.empty()) return nil;
+    const std::string copy = ShowAutosave::SaveAsCopy(std::string(xsqPath.UTF8String), backup);
+    return copy.empty() ? nil : [NSString stringWithUTF8String:copy.c_str()];
+}
+
++ (void)declineSequenceAutosaveForPath:(NSString*)xsqPath {
+    const std::string backup = SequenceAutosavePathFor(xsqPath);
+    if (!backup.empty()) ShowAutosave::Decline(backup);
+}
+
++ (void)removeSequenceAutosaveIfMineForPath:(NSString*)xsqPath {
+    const std::string backup = SequenceAutosavePathFor(xsqPath);
+    // A `.xbkp` opened and saved in place is the file itself, not an autosave of it.
+    if (backup.empty() || backup == std::string(xsqPath.UTF8String)) return;
+    ShowAutosave::RemoveIfMine(backup);
 }
 
 - (BOOL)isSequenceDirty {
@@ -5671,12 +5743,22 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
     return _context->AutosaveLayoutChanges() ? YES : NO;
 }
 
-- (BOOL)hasNewerLayoutAutosave {
-    return (_context && _context->HasNewerLayoutAutosave()) ? YES : NO;
+- (XLAutosaveOffer*)checkLayoutAutosave {
+    return MakeAutosaveOffer(_context ? _context->CheckLayoutAutosave() : AutosaveCheck{});
 }
 
-- (BOOL)restoreLayoutAutosave {
-    return (_context && _context->RestoreLayoutAutosave()) ? YES : NO;
+- (BOOL)restoreLayoutAutosaveKeepingCurrent:(BOOL)keep {
+    return (_context && _context->RestoreLayoutAutosave(keep)) ? YES : NO;
+}
+
+- (nullable NSString*)saveLayoutAutosaveAsCopy {
+    if (!_context) return nil;
+    const std::string copy = _context->SaveLayoutAutosaveAsCopy();
+    return copy.empty() ? nil : [NSString stringWithUTF8String:copy.c_str()];
+}
+
+- (void)declineLayoutAutosave {
+    if (_context) _context->DeclineLayoutAutosave();
 }
 
 - (void)discardLayoutAutosave {

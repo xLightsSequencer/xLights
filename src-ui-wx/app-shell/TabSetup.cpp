@@ -475,6 +475,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     EnableNetworkChanges();
     DisplayXlightsFilename(wxEmptyString);
 
+    ShowFileGuard::RemoveStaleTempFiles(ToStdString(CurrentDir));
+
     // load network
     networkFile.AssignDir(CurrentDir);
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));

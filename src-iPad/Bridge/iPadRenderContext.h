@@ -24,6 +24,7 @@
 #include "render/IRenderProgressSink.h"
 #include "render/ViewpointMgr.h"
 #include "utils/LayoutObjectId.h"
+#include "utils/ShowAutosave.h"
 #include "effects/EffectManager.h"
 #include "effects/EffectPresetManager.h"
 #include "outputs/OutputManager.h"
@@ -704,27 +705,33 @@ public:
     // to a timestamped copy beside it, leaving the changed files alone, and
     // saves the rest as usual. Returns the copies written.
     std::vector<std::string> SaveLayoutChangesAsCopies();
-    // Layout autosave: write the pending edits to
-    // `xlights_rgbeffects.xbkp` without touching the real file or
-    // clearing the dirty sets, so unsaved layout work survives a crash
-    // or a force-quit. Desktop's equivalent is
+    // Layout autosave: write the pending edits to this install's
+    // autosave folder (ShowAutosave::LayoutAutosavePath) without touching
+    // the real file or clearing the dirty sets, so unsaved layout work
+    // survives a crash or a force-quit. Desktop's equivalent is
     // `SaveWorkingLayout()` → `SaveEffectsFile(true)`; it can rebuild
     // the whole file from memory, whereas this patches a copy of the
-    // live file, which is why the two share only the file name.
+    // live file, which is why the two share only the location.
     // Returns false when there is nothing pending or the write fails.
     bool AutosaveLayoutChanges();
-    // True when a `.xbkp` sits alongside the show's rgbeffects file and
-    // is newer than it — an autosave that outlived the session that
-    // wrote it. Desktop offers the same file back at load
-    // (TabSequence.cpp:204-251).
-    bool HasNewerLayoutAutosave() const;
-    // Adopt the autosave: back up the current rgbeffects file, then
-    // copy the `.xbkp` over it. Call before the show loads.
-    bool RestoreLayoutAutosave();
-    // Drop a stale/declined autosave so it stops being offered.
+    // Whether a layout autosave from an earlier session should be offered
+    // back: this install's (checked first), else one an older version left
+    // in the show folder. A stale one of ours is removed. The checked
+    // autosave is what the calls below act on.
+    AutosaveCheck CheckLayoutAutosave();
+    // Writes the checked autosave over the rgbeffects file (keeping the
+    // current file as a copy first when keepCurrentAsCopy). Reload the show
+    // afterwards.
+    bool RestoreLayoutAutosave(bool keepCurrentAsCopy, std::string* keptCopyPath = nullptr);
+    // Writes the checked autosave beside the rgbeffects file as a copy.
+    std::string SaveLayoutAutosaveAsCopy();
+    // Keeps the checked autosave but stops offering it.
+    void DeclineLayoutAutosave();
+    // Removes this install's layout autosave.
     void DiscardLayoutAutosave();
 
 private:
+    std::string _checkedLayoutAutosavePath;
     // Shared body of SaveLayoutChanges / AutosaveLayoutChanges. Empty
     // targetPath means the real rgbeffects file.
     bool SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty, bool overwriteExternalChanges = false);

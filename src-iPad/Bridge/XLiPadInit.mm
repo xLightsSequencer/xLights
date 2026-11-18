@@ -27,6 +27,7 @@
 #include "render/SequenceMedia.h"
 #include "utils/CachedFileDownloader.h"
 #include "utils/FileUtils.h"
+#include "utils/ShowAutosave.h"
 #include "utils/UtilFunctions.h"
 #include "utils/xlImage.h"
 #include "xLightsVersion.h"
@@ -298,6 +299,18 @@ static void LogMachineConfig() {
     NSString* resourcesPath = [[NSBundle mainBundle] resourcePath];
     FileUtils::SetResourcesDir(std::string([resourcesPath UTF8String]));
     spdlog::info("Resources dir: {}", FileUtils::GetResourcesDir());
+
+    // Identifies this install's autosaves in a show folder others share.
+    {
+        NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+        NSString* stored = [defaults stringForKey:@"xlInstallId"];
+        const std::string installId = ShowAutosave::ValidInstallIdOr(stored ? std::string(stored.UTF8String) : std::string());
+        if (!stored || installId != std::string(stored.UTF8String)) {
+            [defaults setObject:[NSString stringWithUTF8String:installId.c_str()] forKey:@"xlInstallId"];
+        }
+        NSString* device = [UIDevice currentDevice].name ?: @"iPad";
+        ShowAutosave::SetIdentity(installId, std::string(device.UTF8String), xlights_version_string);
+    }
 
     [XLLaunchTiming mark:@"core-logging+metrickit"];
 

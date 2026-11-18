@@ -110,6 +110,8 @@
 #include "app-shell/RestoreBackupDialog.h"
 #include "sequencer/SeqSettingsDialog.h"
 #include "effects/ShaderDownloadDialog.h"
+#include "utils/ShowAutosave.h"
+#include "utils/ShowFileGuard.h"
 #include "utils/ShowGuid.h"
 #include "utils/SpecialOptions.h"
 #include "app-shell/SplashDialog.h"
@@ -1926,6 +1928,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     SetAutoSaveInterval(mAutoSaveInterval);
     spdlog::debug("Autosave interval: {}.", mAutoSaveInterval);
 
+    // Identifies this install's autosaves in a show folder others share.
+    {
+        wxString storedId;
+        config->Read("InstallId", &storedId, "");
+        const std::string installId = ShowAutosave::ValidInstallIdOr(storedId.ToStdString());
+        if (installId != storedId.ToStdString()) {
+            config->Write("InstallId", wxString(installId));
+        }
+        wxString device = wxGetHostName();
+        if (device.empty()) {
+            device = wxGetUserId();
+        }
+        ShowAutosave::SetIdentity(installId, device.ToStdString(), xlights_version_string);
+    }
+
     config->Read("xFadePort", &_xFadePort, 0);
 
     // overide ab setting from command line
@@ -3572,7 +3589,7 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
         // I dont think backup should follow symbolic links
         bool cont = srcDir.GetFirst(&dir, "", wxDIR_DIRS | wxDIR_NO_FOLLOW);
         while (cont) {
-            if (dir.Lower() != "backup") {
+            if (dir.Lower() != "backup" && !ShowAutosave::IsShowStateDirName(dir.ToStdString())) {
                 wxDir subdir(srcDir.GetNameWithSep() + dir);
                 BackupDirectory(subdir.GetNameWithSep(), targetDirName + wxFileName::GetPathSeparator() + dir, lastCreatedDirectory, forceallfiles, backupSubfolders, errors);
             }
@@ -4259,19 +4276,9 @@ void xLightsFrame::CheckUnsavedChanges()
                                   "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT, this)) {
             SaveEffectsFile();
         } else {
-            // Changes were explicitly discarded ... backdate the autosave backup (if
-            // any) below the real file's mtime so LoadEffectsFile() doesn't re-offer
-            // the same discarded changes as a "newer autosave found" prompt next open.
-            wxFileName fn(CurrentDir, XLIGHTS_RGBEFFECTS_FILE);
-            wxFileName bkp(CurrentDir, XLIGHTS_RGBEFFECTS_FILE_BACKUP);
-            if (FileExists(fn) && FileExists(bkp)) {
-                wxDateTime xmltime = fn.GetModificationTime();
-                wxDateTime xbkptime = bkp.GetModificationTime();
-                if (xmltime.IsValid() && xbkptime.IsValid() && xbkptime > xmltime) {
-                    xmltime -= wxTimeSpan(0, 0, 3, 0); // FAT time resolution is 2 seconds
-                    bkp.SetTimes(&xmltime, &xmltime, &xmltime);
-                }
-            }
+            // Changes were explicitly discarded, so their autosave is not
+            // offered back at the next load.
+            ShowAutosave::RemoveIfMine(ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_RGBEFFECTS_FILE));
         }
     }
 
@@ -4291,6 +4298,8 @@ void xLightsFrame::CheckUnsavedChanges()
                                   "Effect Presets Changes Confirmation",
                                   wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT, this)) {
             SavePresetsFile();
+        } else {
+            ShowAutosave::RemoveIfMine(ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_PRESETS_FILE));
         }
     }
 }
@@ -4715,8 +4724,11 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
     if (FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xml"))) {
         report->AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
-    if (UnsavedRgbEffectsChanges && FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp"))) {
-        report->AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
+    if (UnsavedRgbEffectsChanges) {
+        const std::string layoutAutosave = ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_RGBEFFECTS_FILE);
+        if (FileExists(layoutAutosave)) {
+            report->AddFile(layoutAutosave, XLIGHTS_RGBEFFECTS_FILE_BACKUP);
+        }
     }
 
     if (GetSeqXmlFileName() != "") {
@@ -4938,8 +4950,11 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
     if (FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xml"))) {
         report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xml").GetFullPath(), "xlights_rgbeffects.xml");
     }
-    if (UnsavedRgbEffectsChanges && FileExists(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp"))) {
-        report.AddFile(wxFileName(CurrentDir, "xlights_rgbeffects.xbkp").GetFullPath(), "xlights_rgbeffects.xbkp");
+    if (UnsavedRgbEffectsChanges) {
+        const std::string layoutAutosave = ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_RGBEFFECTS_FILE);
+        if (FileExists(layoutAutosave)) {
+            report.AddFile(layoutAutosave, XLIGHTS_RGBEFFECTS_FILE_BACKUP);
+        }
     }
     AddLogFile(CurrentDir, "xLights_spdlog.log", report);
     // if the rolled log exists, add it to just in case it has the information we need
@@ -5027,6 +5042,9 @@ bool xLightsFrame::SaveWorking()
     }
 
     CurrentSeqXmlFile->SetFullPath(origPath);
+    if (b) {
+        ShowAutosave::WriteSidecar(tmp.ToStdString(), ShowAutosave::BaseFor(origPath, ShowFileGuard::Instance()));
+    }
     return b;
 }
 

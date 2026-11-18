@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <chrono>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
@@ -14,6 +15,15 @@
 #include "render/SequenceFile.h"
 #include "support/TempDir.h"
 #include "utils/ShowFileGuard.h"
+
+#ifndef _WIN32
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+#ifdef __APPLE__
+#include <fcntl.h>
+#include <sys/xattr.h>
+#endif
 
 namespace {
 std::string ReadAll(const std::string& path) {
@@ -152,6 +162,148 @@ TEST_CASE("ShowFileGuard failed write leaves the existing file and no temp file"
 
     CHECK_FALSE(ShowFileGuard::WriteFileAtomically(dir.File("no/such/dir/x.xml"), "x"));
 }
+
+TEST_CASE("ShowFileGuard stages the new copy outside the show folder or under a sync-ignored name", "[utils][showfileguard]") {
+    TempDir dir;
+    const std::string path = dir.Write("xlights_networks.xml", "old");
+    std::string staged;
+    REQUIRE(ShowFileGuard::WriteFileAtomically(path, ShowFileGuard::Writer([&](const std::string& p) {
+        staged = p;
+        std::ofstream(p, std::ios::binary) << "new";
+        return true;
+    })));
+    CHECK(ReadAll(path) == "new");
+    CHECK(CountEntries(dir.path) == 1);
+    const std::filesystem::path sp(staged);
+#ifdef __APPLE__
+    // Apple: a replacement directory on the same volume, removed afterwards.
+    CHECK(sp.parent_path() != dir.path);
+    CHECK_FALSE(std::filesystem::exists(sp.parent_path()));
+#else
+    CHECK(sp.parent_path() == dir.path);
+    CHECK(ShowFileGuard::IsTempFileName(sp.filename().string()));
+#endif
+}
+
+TEST_CASE("ShowFileGuard temp names are recognised and sync-ignored", "[utils][showfileguard]") {
+    TempDir dir;
+    const std::filesystem::path tmp(ShowFileGuard::TempPathFor(dir.File("xlights_rgbeffects.xml")));
+    CHECK(tmp.parent_path() == dir.path);
+    const std::string name = tmp.filename().string();
+    CHECK(name.rfind(".~xlights_rgbeffects.xml.xl", 0) == 0);
+    CHECK(ShowFileGuard::IsTempFileName(name));
+    CHECK(ShowFileGuard::TempPathFor(dir.File("a.xsq")) != ShowFileGuard::TempPathFor(dir.File("a.xsq")));
+
+    CHECK(ShowFileGuard::IsTempFileName(".~song.xsq.xl0123456789abcdef.tmp"));
+    CHECK(ShowFileGuard::IsTempFileName(".~song.xsq.xl0123456789abcdef.nosync"));
+    CHECK_FALSE(ShowFileGuard::IsTempFileName("song.xsq"));
+    CHECK_FALSE(ShowFileGuard::IsTempFileName(".~lock.song.xsq#"));
+    CHECK_FALSE(ShowFileGuard::IsTempFileName(".~song.xsq.tmp"));
+    CHECK_FALSE(ShowFileGuard::IsTempFileName(".~song.xsq.xl0123456789abcdeg.tmp"));
+    CHECK_FALSE(ShowFileGuard::IsTempFileName("~song.xsq.xl0123456789abcdef.tmp"));
+}
+
+TEST_CASE("ShowFileGuard sweeps stale temp files and nothing else", "[utils][showfileguard]") {
+    TempDir dir;
+    const auto old = std::filesystem::file_time_type::clock::now() - std::chrono::hours(3);
+    const std::string stale1 = ShowFileGuard::TempPathFor(dir.File("xlights_rgbeffects.xml"));
+    const std::string stale2 = dir.File(".~song.xsq.xl0123456789abcdef.nosync");
+    const std::string fresh = ShowFileGuard::TempPathFor(dir.File("xlights_networks.xml"));
+    const std::string unrelatedOld = dir.Write("song.xsq.tmp", "keep");
+    const std::string lookalike = dir.Write(".~lock.song.xsq#", "keep");
+    std::ofstream(stale1) << "x";
+    std::ofstream(stale2) << "x";
+    std::ofstream(fresh) << "x";
+    std::filesystem::create_directories(dir.path / "sub");
+    const std::string nested = ShowFileGuard::TempPathFor((dir.path / "sub" / "a.xsq").string());
+    std::ofstream(nested) << "x";
+    for (const auto& p : { stale1, stale2, unrelatedOld, lookalike, nested }) {
+        std::filesystem::last_write_time(p, old);
+    }
+
+    CHECK(ShowFileGuard::RemoveStaleTempFiles(dir.path.string()) == 2);
+    CHECK_FALSE(std::filesystem::exists(stale1));
+    CHECK_FALSE(std::filesystem::exists(stale2));
+    CHECK(std::filesystem::exists(fresh));
+    CHECK(std::filesystem::exists(unrelatedOld));
+    CHECK(std::filesystem::exists(lookalike));
+    CHECK(std::filesystem::exists(nested));
+    CHECK(ShowFileGuard::RemoveStaleTempFiles(dir.File("missing")) == 0);
+}
+
+TEST_CASE("ShowFileGuard opening a sequence sweeps stale temps beside it", "[utils][showfileguard]") {
+    TempDir dir;
+    std::filesystem::create_directories(dir.path / "sub");
+    const std::string path = (dir.path / "sub" / "song.xsq").string();
+    std::ofstream(path, std::ios::binary) << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xsequence BaseChannel=\"0\" ChanCtrlBasic=\"0\" ChanCtrlColor=\"0\" FixedPointTiming=\"1\" ModelBlending=\"true\"><head><version>2024.01</version><sequenceTiming>50 ms</sequenceTiming><sequenceType>Animation</sequenceType><sequenceDuration>10.000</sequenceDuration></head></xsequence>";
+    const std::string stale = ShowFileGuard::TempPathFor(path);
+    std::ofstream(stale) << "x";
+    std::filesystem::last_write_time(stale, std::filesystem::file_time_type::clock::now() - std::chrono::hours(2));
+    SequenceFile file(path);
+    REQUIRE(file.Open(dir.path.string(), true, path).has_value());
+    CHECK_FALSE(std::filesystem::exists(stale));
+}
+
+TEST_CASE("ShowFileGuard keeps a hard-linked file linked", "[utils][showfileguard]") {
+    TempDir dir;
+    const std::string path = dir.Write("xlights_rgbeffects.xml", "old");
+    const std::string other = dir.File("linked.xml");
+    std::filesystem::create_hard_link(path, other);
+    REQUIRE(ShowFileGuard::WriteFileAtomically(path, "new"));
+    CHECK(ReadAll(path) == "new");
+    CHECK(ReadAll(other) == "new");
+    CHECK(std::filesystem::hard_link_count(path) == 2);
+    CHECK(CountEntries(dir.path) == 2);
+}
+
+#ifndef _WIN32
+TEST_CASE("ShowFileGuard keeps the file's permissions", "[utils][showfileguard]") {
+    TempDir dir;
+    const std::string path = dir.Write("xlights_rgbeffects.xml", "old");
+    REQUIRE(::chmod(path.c_str(), 0640) == 0);
+    struct stat before;
+    REQUIRE(::stat(path.c_str(), &before) == 0);
+    REQUIRE(ShowFileGuard::WriteFileAtomically(path, "new"));
+    struct stat after;
+    REQUIRE(::stat(path.c_str(), &after) == 0);
+    CHECK((after.st_mode & 07777) == 0640);
+    CHECK(after.st_uid == before.st_uid);
+    CHECK(after.st_gid == before.st_gid);
+    CHECK(ReadAll(path) == "new");
+}
+#endif
+
+#ifdef __APPLE__
+TEST_CASE("ShowFileGuard keeps extended attributes, tags and creation date on Apple", "[utils][showfileguard]") {
+    TempDir dir;
+    const std::string path = dir.Write("song.xsq", "old");
+    REQUIRE(::setxattr(path.c_str(), "org.xlights.unit-test", "kept", 4, 0, 0) == 0);
+    // A Finder "Red" tag, as Finder writes it.
+    static const unsigned char tagPlist[] = { 0x62, 0x70, 0x6c, 0x69, 0x73, 0x74, 0x30, 0x30, 0xa1, 0x01, 0x55, 0x52, 0x65, 0x64, 0x0a, 0x36,
+                                              0x08, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                              0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 };
+    REQUIRE(::setxattr(path.c_str(), "com.apple.metadata:_kMDItemUserTags", tagPlist, sizeof(tagPlist), 0, 0) == 0);
+    struct timespec times[2] = {};
+    times[0].tv_nsec = UTIME_OMIT;
+    times[1].tv_sec = 1000000000;
+    REQUIRE(::utimensat(AT_FDCWD, path.c_str(), times, 0) == 0); // moves the birth time back too
+    struct stat before;
+    REQUIRE(::stat(path.c_str(), &before) == 0);
+    REQUIRE(before.st_birthtimespec.tv_sec == 1000000000);
+
+    REQUIRE(ShowFileGuard::WriteFileAtomically(path, std::string("new contents")));
+    CHECK(ReadAll(path) == "new contents");
+
+    char buf[16] = {};
+    CHECK(::getxattr(path.c_str(), "org.xlights.unit-test", buf, sizeof(buf), 0, 0) == 4);
+    CHECK(std::string(buf) == "kept");
+    CHECK(::getxattr(path.c_str(), "com.apple.metadata:_kMDItemUserTags", nullptr, 0, 0, 0) == (ssize_t)sizeof(tagPlist));
+    struct stat after;
+    REQUIRE(::stat(path.c_str(), &after) == 0);
+    CHECK(after.st_birthtimespec.tv_sec == 1000000000);
+    CHECK(CountEntries(dir.path) == 1);
+}
+#endif
 
 #ifndef _WIN32
 TEST_CASE("ShowFileGuard atomic write goes through a symlink", "[utils][showfileguard]") {

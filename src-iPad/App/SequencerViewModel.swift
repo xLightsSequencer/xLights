@@ -1247,12 +1247,13 @@ class SequencerViewModel {
                 temporaryShowFolderActive = false
             }
             await maybeAutoUpdateFromBaseShowFolder()
-            // A layout autosave newer than the show file means a
-            // previous session ended with unsaved layout edits. Offer
-            // it back, as desktop does at load (TabSequence.cpp:204-251).
+            // A layout autosave this device wrote that differs from the
+            // show file means a previous session ended with unsaved
+            // layout edits. Offer it back, as desktop does at load.
             // Checked after the load because the check needs the show
             // directory; accepting reloads with the recovered file.
-            pendingLayoutAutosaveRecovery = document.hasNewerLayoutAutosave()
+            let layoutOffer = document.checkLayoutAutosave()
+            pendingLayoutAutosave = layoutOffer.kind == .noOffer ? nil : layoutOffer
             // Layout edits can happen with no sequence open, so the
             // autosave timer starts with the show folder, not the .xsq.
             startAutosaveTimer()
@@ -1892,11 +1893,12 @@ class SequencerViewModel {
         if isPlaying { pause() }
         if isScrubbing { stopScrub() }
         let path = document.currentSequencePath()
-        let ok = coordinatedWrite(at: path) {
-            overwritingExternalChanges
-                ? document.saveSequenceOverwritingExternalChanges()
-                : document.saveSequence()
-        }
+        // The core does the write as one NSFileCoordinator-coordinated
+        // replace (ShowFileGuard). Don't wrap it in another coordination of
+        // the same file: a nested coordinated write on one thread hangs.
+        let ok = overwritingExternalChanges
+            ? document.saveSequenceOverwritingExternalChanges()
+            : document.saveSequence()
         if ok {
             // For Files-provider `.xsqz` opens: the bridge just
             // repacked the sandbox copy. Copy it back to the
@@ -1919,6 +1921,7 @@ class SequencerViewModel {
                 }
             }
             isDirty = false
+            XLSequenceDocument.removeSequenceAutosaveIfMine(forPath: path)
             // Lightweight Backup-On-Save: snapshot the just-saved .xsq
             // into an in-show Backup/ dir. Default OFF (absent key).
             if UserDefaults.standard.bool(forKey: "backupOnSave") {
@@ -2077,9 +2080,7 @@ class SequencerViewModel {
         if isPlaying { pause() }
         if isScrubbing { stopScrub() }
         XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: true)
-        let ok = coordinatedWrite(at: path) {
-            document.saveSequence(as: path)
-        }
+        let ok = document.saveSequence(as: path)
         if ok {
             isDirty = false
             // Save-As writes to a freshly-picked, writable location —
@@ -2095,35 +2096,6 @@ class SequencerViewModel {
             sequenceName = document.sequenceName()
         }
         return ok
-    }
-
-    /// G-1: wrap the bridge's actual file-write call in
-    /// `NSFileCoordinator.coordinate(writingItemAt:options:error:byAccessor:)`
-    /// so concurrent Files-app / iCloud-daemon activity can't
-    /// corrupt the `.xsq`. Coordinator blocks other file presenters
-    /// (Files.app, `UIDocumentBrowserViewController`, iCloud sync)
-    /// for the duration of the write. If `path` is empty (new
-    /// unsaved sequence) we skip the coordinator — there's nothing
-    /// to coordinate against.
-    private func coordinatedWrite(at path: String,
-                                   _ body: () -> Bool) -> Bool {
-        guard !path.isEmpty else {
-            return body()
-        }
-        let url = URL(fileURLWithPath: path)
-        let coordinator = NSFileCoordinator(filePresenter: nil)
-        var coordinatorError: NSError?
-        var writeResult = false
-        coordinator.coordinate(writingItemAt: url,
-                                options: .forReplacing,
-                                error: &coordinatorError) { _ in
-            writeResult = body()
-        }
-        if let err = coordinatorError {
-            print("NSFileCoordinator write failed: \(err)")
-            return false
-        }
-        return writeResult
     }
 
     /// Present-time dirty-state check from SwiftUI views that
@@ -2210,32 +2182,42 @@ class SequencerViewModel {
         // matches desktop's "skip autosave when no changes since
         // last save" branch.
         if !document.isSequenceDirty() { return }
-        // G-1: coordinate the .xbkp write too; same concurrency
-        // risk as the main sequence path.
-        _ = coordinatedWrite(at: autosaveBackupPath) {
-            document.writeAutosaveBackup()
-        }
+        // Coordinated inside the core, like the main sequence save.
+        _ = document.writeAutosaveBackup()
     }
 
     /// Set at show-folder load when a layout autosave outlived the
     /// session that wrote it. The UI shell presents the recovery
-    /// choice; both answers clear it.
-    var pendingLayoutAutosaveRecovery = false
+    /// choice; every answer clears it.
+    var pendingLayoutAutosave: XLAutosaveOffer? = nil
 
-    /// Adopt the recovered layout: the bridge backs up the current show
-    /// file, copies the autosave over it, then we reload so the
-    /// in-memory managers come from the recovered file rather than the
-    /// one we just replaced.
-    func acceptLayoutAutosave() {
-        pendingLayoutAutosaveRecovery = false
-        guard document.restoreLayoutAutosave() else { return }
+    /// Adopt the recovered layout: the bridge writes the autosave over
+    /// the show file (keeping the current one as a copy first when
+    /// someone else changed it), then we reload so the in-memory
+    /// managers come from the recovered file rather than the one we
+    /// just replaced.
+    func acceptLayoutAutosave(keepingCurrent: Bool) {
+        pendingLayoutAutosave = nil
+        guard document.restoreLayoutAutosave(keepingCurrent: keepingCurrent) else { return }
+        if keepingCurrent {
+            saveCopyNotice = "The autosaved layout was restored. The version it replaced was kept as a copy beside xlights_rgbeffects.xml."
+        }
         guard let path = showFolderPath, !path.isEmpty else { return }
         loadShowFolder(path: path, mediaFolders: mediaFolderPaths)
     }
 
+    /// Keep the other person's show file and write the autosave
+    /// beside it as a copy.
+    func saveLayoutAutosaveAsCopy() {
+        pendingLayoutAutosave = nil
+        if let copy = document.saveLayoutAutosaveAsCopy() {
+            saveCopyNotice = "Your autosaved layout was saved as \((copy as NSString).lastPathComponent). xlights_rgbeffects.xml was left as it is."
+        }
+    }
+
     func declineLayoutAutosave() {
-        pendingLayoutAutosaveRecovery = false
-        document.discardLayoutAutosave()
+        pendingLayoutAutosave = nil
+        document.declineLayoutAutosave()
     }
 
     /// Layout autosave. Separate from the sequence autosave above
@@ -2255,77 +2237,66 @@ class SequencerViewModel {
         return (p as NSString).deletingPathExtension + ".xbkp"
     }
 
-    /// True when an autosave backup sits next to the current
-    /// sequence AND is newer than the `.xsq` by more than a few
-    /// seconds. Used by the open-time recovery sheet to decide
-    /// whether the user needs to be offered the backup.
-    func hasRecoverableBackup() -> (has: Bool, when: Date?) {
+    /// The autosave beside the current sequence that should be
+    /// offered back: this device's when it differs from the `.xsq`,
+    /// or an older version's that is newer than it. Nil otherwise.
+    func recoverableBackup() -> XLAutosaveOffer? {
         let xsqPath = document.currentSequencePath()
-        if xsqPath.isEmpty { return (false, nil) }
-        let bkpPath = (xsqPath as NSString).deletingPathExtension + ".xbkp"
-        let fm = FileManager.default
-        guard fm.fileExists(atPath: bkpPath) else { return (false, nil) }
-        guard let bkpAttrs = try? fm.attributesOfItem(atPath: bkpPath),
-              let bkpDate = bkpAttrs[.modificationDate] as? Date
-        else { return (false, nil) }
-        if fm.fileExists(atPath: xsqPath) {
-            if let xsqAttrs = try? fm.attributesOfItem(atPath: xsqPath),
-               let xsqDate = xsqAttrs[.modificationDate] as? Date,
-               bkpDate <= xsqDate.addingTimeInterval(2) {
-                return (false, nil)
-            }
-        }
-        return (true, bkpDate)
+        if xsqPath.isEmpty { return nil }
+        let offer = XLSequenceDocument.checkSequenceAutosave(forPath: xsqPath)
+        return offer.kind == .noOffer ? nil : offer
     }
 
-    /// Replace the canonical `.xsq` with the `.xbkp` contents by
-    /// swapping filenames on disk, then reloading. Desktop's
-    /// recovery flow renames `foo.xbkp` → `foo.xsq` to claim the
-    /// backup; we do the same through FileManager.
-    func applyAutosaveBackup() async -> Bool {
+    /// Write the autosave over the `.xsq` (atomically, recorded so the
+    /// next save's conflict check is right), then reopen. Desktop
+    /// takes a forced show-folder backup first; so do we. With
+    /// `keepingCurrent` the `.xsq` it replaces is also kept as a copy
+    /// beside it -- used when someone else saved it since.
+    func applyAutosaveBackup(keepingCurrent: Bool) async -> Bool {
         let xsqPath = document.currentSequencePath()
         if xsqPath.isEmpty { return false }
-        let bkpPath = (xsqPath as NSString).deletingPathExtension + ".xbkp"
-        let fm = FileManager.default
-        guard fm.fileExists(atPath: bkpPath) else { return false }
-        // Desktop takes a full forced show-folder backup before promoting
-        // the autosave (SeqFileUtilities.cpp `DoBackup(false, false, true)`)
-        // so recovery can never destroy the only good copy.
         if let show = showFolderPath, !show.isEmpty {
             _ = XLSequenceDocument.obtainAccess(toPath: show, enforceWritable: true)
             _ = await Task.detached {
                 try? ShowFolderBackup.createBackup(showFolder: show, forceAllFiles: true)
             }.value
         }
-        // Move xsq aside (just in case) and promote the backup.
-        let archived = xsqPath + ".pre-xbkp-recovery"
-        _ = try? fm.removeItem(atPath: archived)
-        try? fm.moveItem(atPath: xsqPath, toPath: archived)
-        do {
-            try fm.moveItem(atPath: bkpPath, toPath: xsqPath)
-        } catch {
-            // Rollback: put the original back.
-            try? fm.moveItem(atPath: archived, toPath: xsqPath)
-            return false
-        }
-        try? fm.removeItem(atPath: archived)
-        // Re-open so in-memory state matches the promoted file.
         await closeSequence()
+        _ = XLSequenceDocument.obtainAccess(toPath: xsqPath, enforceWritable: true)
+        let ok = XLSequenceDocument.restoreSequenceAutosave(forPath: xsqPath, keepingCurrent: keepingCurrent)
+        if ok && keepingCurrent {
+            saveCopyNotice = "The autosave was restored. The version it replaced was kept as a copy beside \((xsqPath as NSString).lastPathComponent)."
+        }
+        // Re-open so in-memory state matches the file on disk.
         openSequence(path: xsqPath)
-        return true
+        return ok
     }
 
-    /// Touch the `.xbkp`'s mtime so it's older than the `.xsq`
-    /// (or nearly equal), suppressing the recovery offer next
-    /// time the sequence opens. Called from the "Discard
-    /// Recovery" button and from the close-with-save path.
+    /// Keep the `.xsq` someone else saved and write the autosave
+    /// beside it as a copy.
+    func saveAutosaveBackupAsCopy() {
+        let xsqPath = document.currentSequencePath()
+        if xsqPath.isEmpty { return }
+        if let copy = XLSequenceDocument.saveSequenceAutosaveAsCopy(forPath: xsqPath) {
+            saveCopyNotice = "Your autosaved changes were saved as \((copy as NSString).lastPathComponent). \((xsqPath as NSString).lastPathComponent) was left as it is."
+        }
+    }
+
+    /// Keep the autosave on disk but stop offering it.
+    func declineAutosaveBackup() {
+        let xsqPath = document.currentSequencePath()
+        if xsqPath.isEmpty { return }
+        XLSequenceDocument.declineSequenceAutosave(forPath: xsqPath)
+    }
+
+    /// Drop this device's autosave of the current sequence so it is
+    /// not offered on the next open. Someone else's autosave of the
+    /// same sequence is left alone. Called when edits are discarded
+    /// or the sequence is restored from a backup.
     func suppressAutosaveBackup() {
         let xsqPath = document.currentSequencePath()
         if xsqPath.isEmpty { return }
-        let bkpPath = (xsqPath as NSString).deletingPathExtension + ".xbkp"
-        let fm = FileManager.default
-        guard fm.fileExists(atPath: bkpPath) else { return }
-        try? fm.removeItem(atPath: bkpPath)
+        XLSequenceDocument.removeSequenceAutosaveIfMine(forPath: xsqPath)
     }
 
     /// A single timestamped snapshot in `<show>/Backup/` for the
@@ -2437,7 +2408,7 @@ class SequencerViewModel {
             if isDirty { _ = saveSequence() }
             await closeSequence()
         }
-        // The layout autosave timer writes `xlights_rgbeffects.xbkp`
+        // The layout autosave timer writes this device's layout autosave
         // from in-memory state; letting it fire across the restore
         // would leave a "recover unsaved changes" offer holding the
         // pre-restore layout. Stop it, and drop any existing autosave.
@@ -2466,7 +2437,7 @@ class SequencerViewModel {
         // The restored show file is now the newest state on disk; any
         // layout autosave predates it and must not be offered.
         document.discardLayoutAutosave()
-        pendingLayoutAutosaveRecovery = false
+        pendingLayoutAutosave = nil
         startAutosaveTimer()
         // Reload so OutputManager/ModelManager/presets pick up the
         // restored files (desktop's SetDir(showDirectory, true)).

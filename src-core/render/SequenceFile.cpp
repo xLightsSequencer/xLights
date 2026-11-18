@@ -422,6 +422,10 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
     // at the next save. When the contents come from an autosave backup, this
     // is still the file the next save would replace.
     ShowFileGuard::Instance().RecordFromDisk(mFilePath);
+    // Sequences can live in subfolders the show-folder sweep doesn't reach.
+    if (auto slash = mFilePath.find_last_of("/\\"); slash != std::string::npos && slash > 0) {
+        ShowFileGuard::RemoveStaleTempFiles(mFilePath.substr(0, slash));
+    }
 
     // Load with pugixml
     pugi::xml_document loadDoc;

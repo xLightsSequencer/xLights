@@ -29,6 +29,25 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isCancelled;
 @end
 
+// An autosave left by an earlier session that could be offered back
+// (core ShowAutosave). mine: this device wrote it and the real file is
+// as it was based on. conflict: this device wrote it, but the real
+// file was changed since (someone else saved). legacy: written by an
+// older version, so it may be someone else's.
+typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
+    XLAutosaveOfferKindNoOffer = 0,
+    XLAutosaveOfferKindMine = 1,
+    XLAutosaveOfferKindConflict = 2,
+    XLAutosaveOfferKindLegacy = 3,
+};
+
+@interface XLAutosaveOffer : NSObject
+@property (nonatomic, readonly) XLAutosaveOfferKind kind;
+@property (nonatomic, readonly, nullable) NSDate* savedAt;
+// Device that wrote it; empty for a legacy autosave.
+@property (nonatomic, readonly) NSString* device;
+@end
+
 @interface XLSequenceDocument : NSObject
 
 // Show folder
@@ -222,13 +241,27 @@ NS_ASSUME_NONNULL_BEGIN
 
 // E-6 — autosave / `.xbkp` recovery. Write the current in-memory
 // sequence to `<basename>.xbkp` alongside the `.xsq` without
-// touching the canonical file or the dirty flag. Temporarily
-// swaps the SequenceFile's `mFilePath` (matching desktop's
-// `SaveWorking` pattern in `xLightsMain.cpp:4588-4632`), writes,
+// touching the canonical file or the dirty flag, plus the sidecar
+// saying this device wrote it. Temporarily swaps the SequenceFile's
+// `mFilePath` (matching desktop's `SaveWorking` pattern), writes,
 // then restores. Returns NO if no sequence is open or the
 // current path is empty (new-unsaved sequences have nowhere to
 // put the backup yet).
 - (BOOL)writeAutosaveBackup;
+// Recovery of `<basename>.xbkp` beside the sequence at xsqPath. Only
+// this device's autosave (or an older version's) that differs from
+// the sequence is offered; a stale one of ours is removed.
++ (XLAutosaveOffer*)checkSequenceAutosaveForPath:(NSString*)xsqPath NS_SWIFT_NAME(checkSequenceAutosave(forPath:));
+// Writes the autosave over the sequence (keeping the current file as
+// a copy first when keepingCurrent). Reopen the sequence afterwards.
++ (BOOL)restoreSequenceAutosaveForPath:(NSString*)xsqPath keepingCurrent:(BOOL)keep NS_SWIFT_NAME(restoreSequenceAutosave(forPath:keepingCurrent:));
+// Writes the autosave beside the sequence as a copy; nil on failure.
++ (nullable NSString*)saveSequenceAutosaveAsCopyForPath:(NSString*)xsqPath NS_SWIFT_NAME(saveSequenceAutosaveAsCopy(forPath:));
+// Keeps the autosave but stops offering it.
++ (void)declineSequenceAutosaveForPath:(NSString*)xsqPath NS_SWIFT_NAME(declineSequenceAutosave(forPath:));
+// Removes the autosave when this device wrote it (after a save, or
+// when the changes are discarded). Someone else's is left alone.
++ (void)removeSequenceAutosaveIfMineForPath:(NSString*)xsqPath NS_SWIFT_NAME(removeSequenceAutosaveIfMine(forPath:));
 
 // E-3 — Sequence Settings. Info tab (read-only) + Metadata tab
 // (header text fields) + Media file swap + Render Mode /
@@ -1476,8 +1509,8 @@ NS_ASSUME_NONNULL_BEGIN
 // copy beside it and save the rest normally. Returns the copies' paths.
 - (NSArray<NSString*>*)saveLayoutChangesAsCopies NS_SWIFT_NAME(saveLayoutChangesAsCopies());
 
-// Layout autosave — write pending layout edits to
-// `xlights_rgbeffects.xbkp` without touching the real file or clearing
+// Layout autosave — write pending layout edits to this device's
+// autosave folder in the show folder without touching the real file or clearing
 // the pending set, so unsaved layout work survives a crash. Mirrors
 // desktop's `SaveWorkingLayout()`. NO when nothing is pending.
 // Unwind one step of the shared core UndoManager — the stack a
@@ -1490,11 +1523,18 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)undoLastCoreStep;
 
 - (BOOL)autosaveLayoutChanges;
-// Recovery: is there a `.xbkp` newer than the show's rgbeffects file?
-- (BOOL)hasNewerLayoutAutosave;
-// Adopt it (backing up the file it replaces) / drop it. Call before
-// the show folder loads — both act on files, not in-memory state.
-- (BOOL)restoreLayoutAutosave;
+// Recovery: a layout autosave from an earlier session to offer back
+// (this device's, else an older version's in the show folder). Call
+// after the show folder loads; the calls below act on what it found.
+- (XLAutosaveOffer*)checkLayoutAutosave;
+// Adopt it (keeping the current file as a copy first when
+// keepingCurrent); reload the show folder afterwards.
+- (BOOL)restoreLayoutAutosaveKeepingCurrent:(BOOL)keep NS_SWIFT_NAME(restoreLayoutAutosave(keepingCurrent:));
+// Write it beside the show file as a copy; nil on failure.
+- (nullable NSString*)saveLayoutAutosaveAsCopy;
+// Keep it but stop offering it.
+- (void)declineLayoutAutosave;
+// Remove this device's layout autosave.
 - (void)discardLayoutAutosave;
 
 // Phase J-2 (touch UX) — read / write the `axis_tool` member on

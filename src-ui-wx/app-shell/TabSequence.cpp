@@ -41,6 +41,7 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
+#include "utils/ShowAutosave.h"
 #include "utils/ShowFileGuard.h"
 #include "utils/string_utils.h"
 #include "utils/LayoutObjectId.h"
@@ -226,52 +227,11 @@ void xLightsFrame::LoadEffectsFile()
         CreateDefaultEffectsXml(effectsXml);
     }
     else {
-        // check if there is a autosave backup file which is newer than the file we have been asked to open
-        wxFileName fn(effectsFile.GetFullPath());
-        wxFileName xx = fn;
-        xx.SetExt("xbkp");
-        wxString asfile = xx.GetLongPath();
-
-        if (!_renderMode && !_checkSequenceMode && FileExists(asfile)) {
-            // the autosave file exists
-            wxDateTime xmltime = fn.GetModificationTime();
-            wxFileName asfn(asfile);
-            wxDateTime xbkptime = asfn.GetModificationTime();
-
-            if (xbkptime > xmltime) {
-                // autosave file is newer
-                wxString xmlTimeStr = xmltime.Format("%Y-%m-%d %H:%M:%S");
-                wxString backupTimeStr = xbkptime.Format("%Y-%m-%d %H:%M:%S");
-
-                // Build the message with both timestamps
-                wxString msg = wxString::Format(
-                    "An autosaved rgbeffects file was found that is newer than your current file.\n\n"
-                    "Current file:  %s\n"
-                    "Autosave file: %s\n\n"
-                    "Would you like to use the autosave file instead?",
-                    xmlTimeStr, backupTimeStr
-                );
-                if (wxMessageBox(msg, "Newer Autosave File Found", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION) == wxYES) {
-                    // run a backup ... equivalent of a F10
-
-                    // we have not actually read the backup location yet so lets just use the show folder
-                    _backupDirectory = showDirectory;
-                    DoBackup(false, false, true);
-                    _backupDirectory = "";
-
-                    // delete the old xml file
-                    wxRemoveFile(effectsFile.GetFullPath());
-
-                    // rename the autosave file
-                    wxRenameFile(asfile, effectsFile.GetFullPath());
-                }
-                else {
-                    if (FileExists(fn.GetFullPath())) {
-                        //set the backup to be older than the XML files to avoid re-promting
-                        xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resolution is 2 seconds
-                        asfn.SetTimes(&xmltime, &xmltime, &xmltime);
-                    }
-                }
+        if (!_renderMode && !_checkSequenceMode) {
+            const std::string realPath = effectsFile.GetFullPath().ToStdString();
+            const std::string showDir = CurrentDir.ToStdString();
+            if (!OfferAutosaveRecovery(realPath, ShowAutosave::LayoutAutosavePath(showDir, XLIGHTS_RGBEFFECTS_FILE), "the layout", true)) {
+                OfferAutosaveRecovery(realPath, ShowAutosave::LegacyLayoutAutosavePath(showDir, XLIGHTS_RGBEFFECTS_FILE), "the layout", true);
             }
         }
         ShowFileGuard::Instance().RecordFromDisk(effectsFile.GetFullPath().ToStdString());
@@ -364,32 +324,11 @@ void xLightsFrame::LoadEffectsFile()
         presetsFile.AssignDir(CurrentDir);
         presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
 
-        // Check for autosave backup of presets file
-        wxFileName presetsBkp(presetsFile);
-        presetsBkp.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
-        if (!_renderMode && !_checkSequenceMode && FileExists(presetsBkp.GetFullPath())) {
-            if (FileExists(presetsFile.GetFullPath())) {
-                wxDateTime jsonTime = presetsFile.GetModificationTime();
-                wxDateTime bkpTime = presetsBkp.GetModificationTime();
-                if (bkpTime > jsonTime) {
-                    wxString msg = wxString::Format(
-                        "An autosaved effect presets file was found that is newer than your current file.\n\n"
-                        "Current file:  %s\n"
-                        "Autosave file: %s\n\n"
-                        "Would you like to use the autosave file instead?",
-                        jsonTime.Format("%Y-%m-%d %H:%M:%S"), bkpTime.Format("%Y-%m-%d %H:%M:%S"));
-                    if (wxMessageBox(msg, "Newer Autosave Presets File Found", wxYES_NO | wxICON_QUESTION) == wxYES) {
-                        wxRemoveFile(presetsFile.GetFullPath());
-                        wxRenameFile(presetsBkp.GetFullPath(), presetsFile.GetFullPath());
-                    } else {
-                        wxDateTime older = jsonTime;
-                        older -= wxTimeSpan(0, 0, 3, 0);
-                        presetsBkp.SetTimes(&older, &older, &older);
-                    }
-                }
-            } else {
-                // No main file but backup exists — use the backup
-                wxRenameFile(presetsBkp.GetFullPath(), presetsFile.GetFullPath());
+        if (!_renderMode && !_checkSequenceMode) {
+            const std::string realPath = presetsFile.GetFullPath().ToStdString();
+            const std::string showDir = CurrentDir.ToStdString();
+            if (!OfferAutosaveRecovery(realPath, ShowAutosave::LayoutAutosavePath(showDir, XLIGHTS_PRESETS_FILE), "the effect presets", false)) {
+                OfferAutosaveRecovery(realPath, ShowAutosave::LegacyLayoutAutosavePath(showDir, XLIGHTS_PRESETS_FILE), "the effect presets", false);
             }
         }
 
@@ -964,17 +903,124 @@ xLightsFrame::ShowFileConflict xLightsFrame::ResolveShowFileConflict(const std::
     }
 }
 
+bool xLightsFrame::OfferAutosaveRecovery(const std::string& realPath, const std::string& backupPath,
+                                         const wxString& what, bool backupFirst)
+{
+    const AutosaveCheck check = ShowAutosave::Check(realPath, backupPath);
+    if (check.offer == AutosaveOffer::None) {
+        return false;
+    }
+    if (check.offer == AutosaveOffer::Stale) {
+        spdlog::info("Removing autosave {}: {} already holds the same contents.", backupPath, realPath);
+        ShowAutosave::Remove(backupPath);
+        return false;
+    }
+
+    const wxString name = wxFileName(realPath).GetFullName();
+    const int64_t when = (check.hasInfo && check.info.savedAt > 0) ? check.info.savedAt : check.backupTime;
+    const wxString whenStr = when > 0 ? wxDateTime((time_t)when).Format("%Y-%m-%d %H:%M:%S") : wxString("an unknown time");
+    wxDateTime realTime = wxFileName(realPath).GetModificationTime();
+    const wxString realStr = realTime.IsValid() ? realTime.Format("%Y-%m-%d %H:%M:%S") : wxString("missing");
+
+    auto runBackup = [this, backupFirst]() {
+        if (!backupFirst) {
+            return;
+        }
+        // Equivalent of F10. The backup folder setting may not have been read yet.
+        const bool noBackupDir = _backupDirectory.empty();
+        if (noBackupDir) {
+            _backupDirectory = showDirectory;
+        }
+        DoBackup(false, false, true);
+        if (noBackupDir) {
+            _backupDirectory = "";
+        }
+    };
+    auto restore = [&](bool keepCurrentAsCopy) {
+        runBackup();
+        std::string kept;
+        if (!ShowAutosave::Restore(realPath, backupPath, keepCurrentAsCopy, ShowFileGuard::Instance(), &kept)) {
+            DisplayError("Unable to restore the autosave " + backupPath + " to " + realPath, this);
+            return false;
+        }
+        if (!kept.empty()) {
+            wxMessageBox(wxString::Format("The autosave was restored to %s.\n\nThe version it replaced was kept as:\n%s",
+                                          name, wxString(kept)),
+                         "Autosave Restored", wxOK | wxICON_INFORMATION, this);
+        }
+        return true;
+    };
+
+    if (check.offer == AutosaveOffer::Offer) {
+        wxString msg = wxString::Format("An autosave of %s from %s has changes that were never saved.\n\n"
+                                        "Current file:  %s\n"
+                                        "Autosave:      %s\n\n"
+                                        "Would you like to use the autosave instead?",
+                                        what, whenStr, realStr, whenStr);
+        if (wxMessageBox(msg, "Unsaved Changes Found", wxYES_NO | wxICON_QUESTION, this) == wxYES) {
+            return restore(false);
+        }
+        ShowAutosave::Decline(backupPath);
+        return false;
+    }
+
+    if (check.offer == AutosaveOffer::OfferConflict) {
+        wxMessageDialog dlg(this,
+                            wxString::Format("An autosave of %s from %s has changes that were never saved, but %s "
+                                             "was changed by someone else (or another app) since then.\n\n"
+                                             "Restoring the autosave would replace their changes.",
+                                             what, whenStr, name),
+                            "Autosave and Someone Else's Changes",
+                            wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxICON_WARNING);
+        dlg.SetYesNoCancelLabels("Save Autosave as a Copy", "Restore Anyway", "Ignore");
+        switch (dlg.ShowModal()) {
+        case wxID_YES: {
+            const std::string copy = ShowAutosave::SaveAsCopy(realPath, backupPath);
+            if (copy.empty()) {
+                DisplayError("Unable to save the autosave " + backupPath + " as a copy", this);
+            } else {
+                wxMessageBox(wxString::Format("Your autosaved changes were saved as:\n%s\n\n%s was left as it is.", wxString(copy), name),
+                             "Saved a Copy", wxOK | wxICON_INFORMATION, this);
+            }
+            return false;
+        }
+        case wxID_NO:
+            spdlog::info("Restoring autosave {} over {}, which someone else changed, at the user's request.", backupPath, realPath);
+            return restore(true);
+        default:
+            ShowAutosave::Decline(backupPath);
+            return false;
+        }
+    }
+
+    // OfferLegacy
+    wxString msg = wxString::Format("An autosave of %s was found that is newer than the file.\n\n"
+                                    "Current file:  %s\n"
+                                    "Autosave:      %s\n\n"
+                                    "It was written by an older version of xLights, so if this show folder is shared "
+                                    "it may be someone else's.\n\n"
+                                    "Would you like to use the autosave instead? The current file is kept as a copy.",
+                                    what, realStr, whenStr);
+    if (wxMessageBox(msg, "Older Autosave Found", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) == wxYES) {
+        return restore(true);
+    }
+    ShowAutosave::Decline(backupPath);
+    return false;
+}
+
 // returns true on success
 bool xLightsFrame::SaveEffectsFile(bool backup)
 {
     wxFileName effectsFile;
     effectsFile.AssignDir(CurrentDir);
-    if (backup) {
-        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE_BACKUP));
-    } else {
-        effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+    effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+    const std::string realPath = effectsFile.GetFullPath().ToStdString();
+    const std::string path = backup ? ShowAutosave::PrepareLayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_RGBEFFECTS_FILE)
+                                    : realPath;
+    if (path.empty()) {
+        spdlog::warn("Unable to save backup of RGB effects file: no autosave folder");
+        return false;
     }
-    const std::string path = effectsFile.GetFullPath().ToStdString();
 
     // Asked before taking saveLock: the dialog runs an event loop, and
     // SaveSequence() waits on that lock rather than trying it.
@@ -1005,7 +1051,10 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         return false;
     }
 
-    if (!backup) {
+    if (backup) {
+        ShowAutosave::WriteSidecar(path, ShowAutosave::BaseFor(realPath, ShowFileGuard::Instance()));
+    } else {
+        ShowAutosave::RemoveIfMine(ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_RGBEFFECTS_FILE));
         SavePresetsFile();
         UnsavedRgbEffectsChanges = false;
     }
@@ -1019,12 +1068,14 @@ void xLightsFrame::SavePresetsFile(bool backup)
 {
     wxFileName presetsFile;
     presetsFile.AssignDir(CurrentDir);
-    if (backup) {
-        presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
-    } else {
-        presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+    presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+    const std::string realPath = presetsFile.GetFullPath().ToStdString();
+    const std::string path = backup ? ShowAutosave::PrepareLayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_PRESETS_FILE)
+                                    : realPath;
+    if (path.empty()) {
+        spdlog::warn("Unable to save backup of effect presets file: no autosave folder");
+        return;
     }
-    const std::string path = presetsFile.GetFullPath().ToStdString();
 
     if (!backup) {
         // Saving the layout always rewrites the presets too. With no preset
@@ -1050,7 +1101,10 @@ void xLightsFrame::SavePresetsFile(bool backup)
         return;
     }
 
-    if (!backup) {
+    if (backup) {
+        ShowAutosave::WriteSidecar(path, ShowAutosave::BaseFor(realPath, ShowFileGuard::Instance()));
+    } else {
+        ShowAutosave::RemoveIfMine(ShowAutosave::LayoutAutosavePath(CurrentDir.ToStdString(), XLIGHTS_PRESETS_FILE));
         UnsavedPresetChanges = false;
         UpdateLayoutSave();
     }
@@ -1951,6 +2005,10 @@ bool xLightsFrame::SaveSequence()
         wxMessageDialog msgDlg(this, "Error Saving Sequence to " + CurrentSeqXmlFile->GetFullPath(),
                                "Error Saving Sequence", wxOK | wxCENTRE);
         msgDlg.ShowModal();
+    } else {
+        wxFileName autosave(CurrentSeqXmlFile->GetFullPath());
+        autosave.SetExt("xbkp");
+        ShowAutosave::RemoveIfMine(autosave.GetFullPath().ToStdString());
     }
     spdlog::info("XSQ file done.");
 

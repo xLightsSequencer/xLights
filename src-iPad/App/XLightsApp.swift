@@ -201,13 +201,13 @@ struct ContentView: View {
 
     @State private var showMediaManager = false
 
-    /// Autosave recovery state. When a sequence opens with a
-    /// newer `.xbkp` alongside its `.xsq`, we sheet the user:
-    /// Recover (promote .xbkp → .xsq + reopen) or Discard
-    /// (delete .xbkp). Checked once per open; the
+    /// Autosave recovery state. When a sequence opens with an
+    /// autosave `.xbkp` alongside its `.xsq` that this device wrote
+    /// (or an older version did) holding changes the `.xsq` lacks, we
+    /// ask the user to recover or keep it. Checked once per open; the
     /// `lastCheckedSequencePath` guard prevents re-offering on
     /// every re-render of the shell.
-    @State private var autosaveRecoveryDate: Date? = nil
+    @State private var autosaveRecovery: XLAutosaveOffer? = nil
     @State private var lastCheckedSequencePath: String = ""
 
     // F-5 detach-state persistence. iPadOS's native scene restoration
@@ -554,7 +554,7 @@ struct ContentView: View {
                     showFolderConfig = false
                 }
             } else {
-                autosaveRecoveryDate = nil
+                autosaveRecovery = nil
                 lastCheckedSequencePath = ""
             }
         }
@@ -676,29 +676,8 @@ struct ContentView: View {
                             set: { viewModel.saveCopyNotice = $0 }),
             onOverwrite: { viewModel.overwriteAfterConflict($0) },
             onSaveCopy: { viewModel.saveCopyAfterConflict($0) })
-        .alert("Recover Autosave Backup?",
-               isPresented: Binding(
-                get: { autosaveRecoveryDate != nil },
-                set: { if !$0 { autosaveRecoveryDate = nil } }
-               )) {
-            Button("Recover") {
-                Task { _ = await viewModel.applyAutosaveBackup() }
-                autosaveRecoveryDate = nil
-            }
-            Button("Discard Backup", role: .destructive) {
-                viewModel.suppressAutosaveBackup()
-                autosaveRecoveryDate = nil
-            }
-            Button("Keep for Later", role: .cancel) {
-                autosaveRecoveryDate = nil
-            }
-        } message: {
-            if let date = autosaveRecoveryDate {
-                Text("An autosave backup newer than the sequence file was found (saved \(date.formatted(date: .abbreviated, time: .shortened))). Recover changes from the backup, or discard it?")
-            } else {
-                Text("")
-            }
-        }
+        .modifier(SequenceAutosaveRecoveryModifier(viewModel: viewModel,
+                                                   offer: $autosaveRecovery))
         // F-1 scene title — propagates to the iPadOS 26 Window menu's
         // "Open Windows" listing. Without this, the nested
         // `SequencePickerView` NavigationStack title ("Sequences")
@@ -858,14 +837,13 @@ struct ContentView: View {
         return ext == "xsqz" || ext == "zip" || ext == "piz"
     }
 
-    /// Run once per open: compare `.xbkp` mtime vs. `.xsq` and
-    /// surface the recovery alert when the backup is newer.
+    /// Run once per open: surface the recovery alert when the
+    /// `.xbkp` beside the `.xsq` should be offered back.
     private func checkAutosaveRecovery() {
         let path = viewModel.document.currentSequencePath()
         guard !path.isEmpty, path != lastCheckedSequencePath else { return }
         lastCheckedSequencePath = path
-        let (has, when) = viewModel.hasRecoverableBackup()
-        if has { autosaveRecoveryDate = when }
+        autosaveRecovery = viewModel.recoverableBackup()
     }
 
     /// F-5 — re-opens any detached scenes that the user had open
@@ -1454,10 +1432,6 @@ struct SequencePickerView: View {
 }
 
 
-/// Layout autosave recovery prompt — a `xlights_rgbeffects.xbkp` newer
-/// than the show file means a previous session ended with unsaved
-/// layout edits. Its own modifier so the app shell's modifier chain
-/// stays inside the Swift type-checker's complexity budget.
 /// File → Back Up Show Folder alerts: the pre-flight confirmation
 /// (desktop's DoBackup prompt) and the completion/result alert. A
 /// modifier rather than inline chain so the root view body stays
@@ -1504,18 +1478,112 @@ private struct ShowFolderBackupAlertsModifier: ViewModifier {
     }
 }
 
+/// Wording shared by the layout and sequence autosave recovery prompts.
+private enum AutosaveRecoveryText {
+    static func when(_ offer: XLAutosaveOffer) -> String {
+        guard let d = offer.savedAt else { return "" }
+        return " from \(d.formatted(date: .abbreviated, time: .shortened))"
+    }
+
+    static func title(_ offer: XLAutosaveOffer) -> String {
+        switch offer.kind {
+        case .conflict: return "Autosave and Someone Else's Changes"
+        case .legacy: return "Older Autosave Found"
+        default: return "Unsaved Changes Found"
+        }
+    }
+
+    static func message(_ offer: XLAutosaveOffer, what: String, file: String) -> String {
+        switch offer.kind {
+        case .conflict:
+            return "An autosave of \(what)\(when(offer)) has changes that were never saved, but \(file) was changed by someone else (or another app) since then. Restoring the autosave would replace their changes."
+        case .legacy:
+            return "An autosave of \(what)\(when(offer)) is newer than \(file). It was written by an older version of xLights, so if this show folder is shared it may be someone else's. Use it instead? The current file is kept as a copy."
+        default:
+            return "An autosave of \(what)\(when(offer)) has changes that were never saved. Use the autosave instead?"
+        }
+    }
+}
+
+/// Layout autosave recovery prompt — this device's autosave (or an
+/// older version's) holding layout edits a previous session never
+/// saved. Its own modifier so the app shell's modifier chain stays
+/// inside the Swift type-checker's complexity budget.
 private struct LayoutAutosaveRecoveryModifier: ViewModifier {
     let viewModel: SequencerViewModel
 
     func body(content: Content) -> some View {
-        content.alert("Newer Layout Autosave Found", isPresented: Binding(
-            get: { viewModel.pendingLayoutAutosaveRecovery },
-            set: { if !$0 { viewModel.pendingLayoutAutosaveRecovery = false } }
-        )) {
-            Button("Use Autosave") { viewModel.acceptLayoutAutosave() }
-            Button("Discard", role: .destructive) { viewModel.declineLayoutAutosave() }
-        } message: {
-            Text("Layout changes from a previous session were autosaved but never saved to the show file. Use the autosave, or discard it and keep the show file as it is?")
+        let offer = viewModel.pendingLayoutAutosave
+        content.alert(offer.map { AutosaveRecoveryText.title($0) } ?? "",
+                      isPresented: Binding(
+                        get: { viewModel.pendingLayoutAutosave != nil },
+                        set: { if !$0 { viewModel.pendingLayoutAutosave = nil } }),
+                      presenting: offer) { o in
+            switch o.kind {
+            case .conflict:
+                Button("Save Autosave as a Copy") { viewModel.saveLayoutAutosaveAsCopy() }
+                Button("Restore Anyway", role: .destructive) { viewModel.acceptLayoutAutosave(keepingCurrent: true) }
+                Button("Ignore", role: .cancel) { viewModel.declineLayoutAutosave() }
+            case .legacy:
+                Button("Use Autosave") { viewModel.acceptLayoutAutosave(keepingCurrent: true) }
+                Button("Ignore", role: .cancel) { viewModel.declineLayoutAutosave() }
+            default:
+                Button("Use Autosave") { viewModel.acceptLayoutAutosave(keepingCurrent: false) }
+                Button("Ignore", role: .cancel) { viewModel.declineLayoutAutosave() }
+            }
+        } message: { o in
+            Text(AutosaveRecoveryText.message(o, what: "the layout", file: "the show's layout file"))
+        }
+    }
+}
+
+/// Sequence autosave recovery prompt, shown once per open when the
+/// `.xbkp` beside the `.xsq` should be offered back.
+private struct SequenceAutosaveRecoveryModifier: ViewModifier {
+    let viewModel: SequencerViewModel
+    @Binding var offer: XLAutosaveOffer?
+
+    func body(content: Content) -> some View {
+        content.alert(offer.map { AutosaveRecoveryText.title($0) } ?? "",
+                      isPresented: Binding(
+                        get: { offer != nil },
+                        set: { if !$0 { offer = nil } }),
+                      presenting: offer) { o in
+            switch o.kind {
+            case .conflict:
+                Button("Save Autosave as a Copy") {
+                    viewModel.saveAutosaveBackupAsCopy()
+                    offer = nil
+                }
+                Button("Restore Anyway", role: .destructive) {
+                    Task { _ = await viewModel.applyAutosaveBackup(keepingCurrent: true) }
+                    offer = nil
+                }
+                Button("Ignore", role: .cancel) {
+                    viewModel.declineAutosaveBackup()
+                    offer = nil
+                }
+            case .legacy:
+                Button("Recover") {
+                    Task { _ = await viewModel.applyAutosaveBackup(keepingCurrent: true) }
+                    offer = nil
+                }
+                Button("Ignore", role: .cancel) {
+                    viewModel.declineAutosaveBackup()
+                    offer = nil
+                }
+            default:
+                Button("Recover") {
+                    Task { _ = await viewModel.applyAutosaveBackup(keepingCurrent: false) }
+                    offer = nil
+                }
+                Button("Ignore", role: .cancel) {
+                    viewModel.declineAutosaveBackup()
+                    offer = nil
+                }
+            }
+        } message: { o in
+            Text(AutosaveRecoveryText.message(o, what: "this sequence", file: "the sequence file"))
         }
     }
 }

@@ -463,6 +463,12 @@ public:
                                              const std::function<bool(const std::string& copyPath)>& writeCopy,
                                              wxWindow* parent = nullptr);
     bool IsNonInteractiveSave() const;
+    // At load: offers an autosave of realPath back when this install wrote it
+    // (or an older version did) and it holds changes the real file lacks.
+    // backupFirst runs a forced backup of the show folder before replacing the
+    // real file. True when the real file was replaced.
+    bool OfferAutosaveRecovery(const std::string& realPath, const std::string& backupPath,
+                               const wxString& what, bool backupFirst);
     void SaveModelsFile();
     void MarkEffectsFileDirty(std::source_location loc = std::source_location::current());
     void MarkPresetsDirty(std::source_location loc = std::source_location::current());

@@ -21,6 +21,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  changes saved by someone else to a shared show folder
     -enh (dkulp)                 iPad - Warn instead of silently overwriting layout, controller, preset or
                                  sequence changes saved by someone else to a shared show folder
+    -enh (dkulp)                 Autosaves in a shared show folder are kept per computer and only offered back
+                                 on the computer that wrote them; restoring one no longer discards changes
+                                 someone else saved since (save it as a copy or restore anyway, keeping theirs)
+    -enh (dkulp)                 iPad - Autosaves in a shared show folder are kept per device and only offered
+                                 back on the iPad that wrote them; restoring one no longer discards changes
+                                 someone else saved since (save it as a copy or restore anyway, keeping theirs)
+    -enh (dkulp)                 Show files are replaced in one step when saved, so a crash or a sync client
+                                 never sees a half-written file; tags, permissions, creation date and hard
+                                 links are kept
     -change (scott)              Controller Open / Open Proxy buttons stay enabled while outputting to lights
     -bug (dkulp)                 Undo could change or delete the wrong effect after effects were added
                                  without undo, lose effects deleted from a layer that was later removed,

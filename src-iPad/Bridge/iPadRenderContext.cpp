@@ -230,6 +230,8 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
     FileUtils::SetFixFileDirectories(mediaDirectories);
     FileUtils::ClearNonExistentFiles();
 
+    ShowFileGuard::RemoveStaleTempFiles(showDir);
+
     // Load network/controller configuration
     if (!_outputManager.Load(showDir)) {
         spdlog::warn("iPadRenderContext: Failed to load xlights_networks.xml from {}", showDir);
@@ -551,20 +553,24 @@ bool iPadRenderContext::SaveEffectPresets(bool overwriteExternalChanges) {
     if (_effectPresetManager.GetVersion().empty()) {
         _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
     }
-    std::string backupPath = showDirectory + "/" + XLIGHTS_PRESETS_FILE_BACKUP;
-    ObtainAccessToURL(backupPath, true);
-    _effectPresetManager.SaveJsonFile(backupPath); // best-effort
-
     std::string presetsPath = GetEffectPresetsPath();
     ObtainAccessToURL(presetsPath, true);
+    // Best effort: this install's autosave of the presets, kept when the
+    // real save below does not happen.
+    const std::string backupPath = ShowAutosave::PrepareLayoutAutosavePath(showDirectory, XLIGHTS_PRESETS_FILE);
+    if (!backupPath.empty() && _effectPresetManager.SaveJsonFile(backupPath)) {
+        ShowAutosave::WriteSidecar(backupPath, ShowAutosave::BaseFor(presetsPath, ShowFileGuard::Instance()));
+    }
+
     if (!overwriteExternalChanges && ShowFileGuard::Instance().HasChangedOnDisk(presetsPath)) {
-        spdlog::warn("iPadRenderContext: {} was changed by someone else; not overwriting it (the backup copy has these presets)", presetsPath);
+        spdlog::warn("iPadRenderContext: {} was changed by someone else; not overwriting it (the autosave copy has these presets)", presetsPath);
         return false;
     }
     if (!_effectPresetManager.SaveJsonFile(presetsPath)) {
         spdlog::warn("iPadRenderContext: failed to save effect presets to {}", presetsPath);
         return false;
     }
+    ShowAutosave::RemoveIfMine(backupPath);
     return true;
 }
 
@@ -850,68 +856,67 @@ std::vector<std::string> iPadRenderContext::SaveLayoutChangesAsCopies() {
     return copies;
 }
 
-namespace {
-std::string LayoutAutosavePathFor(const std::string& showDir) {
-    return showDir + "/xlights_rgbeffects.xbkp";
-}
-}  // namespace
-
-bool iPadRenderContext::HasNewerLayoutAutosave() const {
-    if (showDirectory.empty()) return false;
-    const std::string autosave = LayoutAutosavePathFor(showDirectory);
-    const std::string live = showDirectory + "/xlights_rgbeffects.xml";
-    if (!FileExists(autosave)) return false;
-    auto autoTicks = FileUtils::GetFileModTimeTicks(autosave);
-    if (!autoTicks) return false;
-    auto liveTicks = FileUtils::GetFileModTimeTicks(live);
-    // No live file at all: anything we autosaved is worth offering.
-    if (!liveTicks) return true;
-    return *autoTicks > *liveTicks;
-}
-
-bool iPadRenderContext::RestoreLayoutAutosave() {
-    if (showDirectory.empty()) return false;
-    const std::string autosave = LayoutAutosavePathFor(showDirectory);
-    const std::string live = showDirectory + "/xlights_rgbeffects.xml";
-    if (!FileExists(autosave)) return false;
-    ObtainAccessToURL(live, true);
-
-    // Keep the file we're about to replace — the same one-step
-    // recovery the ordinary save path leaves behind.
-    std::error_code ec;
-    if (FileExists(live)) {
-        std::filesystem::copy_file(live, live + ".iPad-bkp",
-                                    std::filesystem::copy_options::overwrite_existing, ec);
-        if (ec) {
-            spdlog::warn("iPadRenderContext::RestoreLayoutAutosave: backup of {} failed: {}",
-                         live, ec.message());
-            ec.clear();
+AutosaveCheck iPadRenderContext::CheckLayoutAutosave() {
+    _checkedLayoutAutosavePath.clear();
+    if (showDirectory.empty()) return AutosaveCheck{};
+    const std::string live = showDirectory + "/" + XLIGHTS_RGBEFFECTS_FILE;
+    for (const std::string& backup : { ShowAutosave::LayoutAutosavePath(showDirectory, XLIGHTS_RGBEFFECTS_FILE),
+                                       ShowAutosave::LegacyLayoutAutosavePath(showDirectory, XLIGHTS_RGBEFFECTS_FILE) }) {
+        AutosaveCheck check = ShowAutosave::Check(live, backup);
+        if (check.offer == AutosaveOffer::Stale) {
+            ShowAutosave::Remove(backup);
+            continue;
+        }
+        if (check.offer != AutosaveOffer::None) {
+            _checkedLayoutAutosavePath = backup;
+            return check;
         }
     }
-    std::filesystem::copy_file(autosave, live,
-                                std::filesystem::copy_options::overwrite_existing, ec);
-    if (ec) {
-        spdlog::error("iPadRenderContext::RestoreLayoutAutosave: copy failed: {}", ec.message());
-        return false;
-    }
-    DiscardLayoutAutosave();
-    return true;
+    return AutosaveCheck{};
+}
+
+bool iPadRenderContext::RestoreLayoutAutosave(bool keepCurrentAsCopy, std::string* keptCopyPath) {
+    if (showDirectory.empty() || _checkedLayoutAutosavePath.empty()) return false;
+    const std::string live = showDirectory + "/" + XLIGHTS_RGBEFFECTS_FILE;
+    const bool ok = ShowAutosave::Restore(live, _checkedLayoutAutosavePath, keepCurrentAsCopy,
+                                          ShowFileGuard::Instance(), keptCopyPath);
+    if (ok) _checkedLayoutAutosavePath.clear();
+    return ok;
+}
+
+std::string iPadRenderContext::SaveLayoutAutosaveAsCopy() {
+    if (showDirectory.empty() || _checkedLayoutAutosavePath.empty()) return std::string();
+    const std::string copy = ShowAutosave::SaveAsCopy(showDirectory + "/" + XLIGHTS_RGBEFFECTS_FILE,
+                                                      _checkedLayoutAutosavePath);
+    if (!copy.empty()) _checkedLayoutAutosavePath.clear();
+    return copy;
+}
+
+void iPadRenderContext::DeclineLayoutAutosave() {
+    if (_checkedLayoutAutosavePath.empty()) return;
+    ShowAutosave::Decline(_checkedLayoutAutosavePath);
+    _checkedLayoutAutosavePath.clear();
 }
 
 void iPadRenderContext::DiscardLayoutAutosave() {
+    _checkedLayoutAutosavePath.clear();
     if (showDirectory.empty()) return;
-    std::error_code ec;
-    std::filesystem::remove(LayoutAutosavePathFor(showDirectory), ec);
+    ShowAutosave::Remove(ShowAutosave::LayoutAutosavePath(showDirectory, XLIGHTS_RGBEFFECTS_FILE));
 }
 
-// Autosave target: the patched document goes to
-// `xlights_rgbeffects.xbkp` (desktop's name, so either platform
-// recognises the file) and the dirty sets are left alone, so the
-// pending edits still land in the real file on the next explicit save.
+// The patched document goes to this install's autosave folder and the
+// dirty sets are left alone, so the pending edits still land in the real
+// file on the next explicit save. The patch is applied to the live file
+// as it is now, so that -- not what was loaded -- is the autosave's base.
 bool iPadRenderContext::AutosaveLayoutChanges() {
-    if (showDirectory.empty()) return false;
-    return SaveLayoutChangesTo(LayoutAutosavePathFor(showDirectory),
-                               /*clearDirty*/ false);
+    if (showDirectory.empty() || !HasLayoutDirt()) return false;
+    const std::string target = ShowAutosave::PrepareLayoutAutosavePath(showDirectory, XLIGHTS_RGBEFFECTS_FILE);
+    if (target.empty()) return false;
+    const std::string live = showDirectory + "/" + XLIGHTS_RGBEFFECTS_FILE;
+    auto base = ShowFileGuard::FingerprintFile(live);
+    if (!SaveLayoutChangesTo(target, /*clearDirty*/ false)) return false;
+    ShowAutosave::WriteSidecar(target, base ? *base : ShowFileFingerprint{});
+    return true;
 }
 
 bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty, bool overwriteExternalChanges) {
@@ -1500,6 +1505,9 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
         return false;
     }
     if (!clearDirty) return !skippedConflict;
+    if (writePath == rgbPath) {
+        ShowAutosave::RemoveIfMine(ShowAutosave::LayoutAutosavePath(showDirectory, XLIGHTS_RGBEFFECTS_FILE));
+    }
     _dirtyLayoutModels.clear();
     _dirtyLayoutViewObjects.clear();
     _createdGroups.clear();
