@@ -4052,7 +4052,9 @@ void AUIToolbarButtonWrapper::Enable(bool b)
 void xLightsFrame::SetGridSpacing(int size)
 {
     mGridSpacing = size;
-    DEFAULT_ROW_HEADING_HEIGHT = size + 6;
+    // The row heading and the effect grid draw in physical pixels on Windows.
+    DEFAULT_ROW_HEADING_HEIGHT = FromDIP(size + 6);
+    mainSequencer->PanelRowHeadings->ApplySavedWidth();
     mainSequencer->PanelRowHeadings->Refresh();
     mainSequencer->PanelEffectGrid->Refresh();
 }
