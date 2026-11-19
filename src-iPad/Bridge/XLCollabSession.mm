@@ -8,10 +8,15 @@
 #include "render/Element.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceFile.h"
+#include "models/Model.h"
+#include "models/ModelManager.h"
+#include "models/ViewObject.h"
+#include "models/ViewObjectManager.h"
 #include "xLightsVersion.h"
 
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -63,6 +68,12 @@ std::string Initials(const std::string& name) {
 }
 
 constexpr uint64_t kFlashMs = 1000;
+// A layout change is sent once edits have paused this long (drags send a
+// stream of small moves).
+constexpr int kLayoutQuietMs = 300;
+
+// Layout text fields with focus (uncommitted typing).
+int g_layoutFieldsFocused = 0;
 // Keeps ticking this long after the end so the goodbye gets out.
 constexpr uint64_t kTickAfterEndMs = 5000;
 
@@ -168,6 +179,26 @@ constexpr uint64_t kTickAfterEndMs = 5000;
 @implementation XLCollabOverlay
 @end
 
+@interface XLCollabLayoutChange ()
+@property (nonatomic, readwrite) BOOL layoutChanged;
+@property (nonatomic, readwrite) BOOL controllersChanged;
+@property (nonatomic, readwrite) NSArray<NSString*>* modelsChanged;
+@property (nonatomic, readwrite) NSArray<NSString*>* modelsRemoved;
+@property (nonatomic, readwrite) NSArray<NSArray<NSString*>*>* modelsRenamed;
+@end
+@implementation XLCollabLayoutChange
+@end
+
+@interface XLCollabLayoutMark ()
+@property (nonatomic, readwrite) NSString* name;
+@property (nonatomic, readwrite) NSArray<NSNumber*>* outlineColors;
+@property (nonatomic, readwrite) NSString* lockHolder;
+@property (nonatomic, readwrite) uint32_t lockColorRGB;
+@property (nonatomic, readwrite) NSString* lockText;
+@end
+@implementation XLCollabLayoutMark
+@end
+
 @implementation XLCollabEffectRef
 - (instancetype)initWithRow:(NSInteger)row effect:(NSInteger)effect {
     self = [super init];
@@ -184,6 +215,8 @@ constexpr uint64_t kTickAfterEndMs = 5000;
 - (void)updateTickTimer;
 - (void)handleSequenceChange:(const Collab::SequenceChange&)change;
 - (XLCollabJoinReport*)wrapJoinReport:(const Collab::JoinReport&)r;
+- (void)syncSessionFlags;
+- (BOOL)holdsLayoutLock;
 @end
 
 // ---------------------------------------------------------------------------
@@ -268,7 +301,14 @@ public:
         [_doc setCollaborationLock:locked ? YES : NO reason:NS(reason)];
     }
 
+    void SetSequenceSettingsLock(bool locked, const std::string& reason) override {
+        if (auto* ctx = Ctx()) {
+            ctx->SetSequenceSettingsLock(locked, reason);
+        }
+    }
+
     void OnSessionStateChanged() override {
+        [_owner syncSessionFlags];
         [_owner updateTickTimer];
         [_owner deliver:XLCollabEventStateChanged payload:nil];
     }
@@ -296,6 +336,51 @@ public:
     }
     void OnLog(const std::string& line) override { spdlog::info("Collaboration: {}", line); }
 
+    // ---- Layout ----
+    bool SupportsLiveLayout() override { return true; }
+
+    uint64_t LayoutGeneration() override { return Ctx()->LayoutGeneration(); }
+
+    bool LayoutEditInProgress() override {
+        return g_layoutFieldsFocused > 0 || [_owner holdsLayoutLock] || Ctx()->LayoutEditRecentlyActive(kLayoutQuietMs);
+    }
+
+    bool SerializeLayout(Collab::LayoutFiles& out) override {
+        return Ctx()->SerializeLayoutFiles(out.rgbEffects, out.networks);
+    }
+
+    bool ApplyLayout(const Collab::LayoutFiles& current, const Collab::LayoutFiles& target, Collab::LayoutApplied& out) override {
+        const bool rgbDiffers = current.rgbEffects != target.rgbEffects;
+        const bool networksDiffer = current.networks != target.networks;
+        ShowMergeApply::LayoutChanges changes;
+        if (!Ctx()->ApplyLiveLayout(current.rgbEffects, target.rgbEffects, rgbDiffers, target.networks, networksDiffer, changes)) {
+            return false;
+        }
+        out.layoutChanged = rgbDiffers;
+        out.controllersChanged = networksDiffer;
+        out.modelsChanged = changes.modelsAdded;
+        out.modelsChanged.insert(out.modelsChanged.end(), changes.modelsChanged.begin(), changes.modelsChanged.end());
+        out.modelsRemoved = changes.modelsRemoved;
+        out.modelsRenamed = changes.modelsRenamed;
+
+        XLCollabLayoutChange* c = [XLCollabLayoutChange new];
+        c.layoutChanged = out.layoutChanged;
+        c.controllersChanged = out.controllersChanged;
+        c.modelsChanged = NSStrings(out.modelsChanged);
+        c.modelsRemoved = NSStrings(out.modelsRemoved);
+        NSMutableArray* renamed = [NSMutableArray array];
+        for (const auto& [from, to] : out.modelsRenamed) [renamed addObject:@[ NS(from), NS(to) ]];
+        c.modelsRenamed = renamed;
+        [_owner deliver:XLCollabEventLayoutApplied payload:c];
+        return true;
+    }
+
+    void OnLayoutPresenceChanged() override { [_owner deliver:XLCollabEventLayoutPresenceChanged payload:nil]; }
+    void OnLayoutRejected(const std::string& text) override {
+        spdlog::info("Collaboration: layout change not taken: {}", text);
+        [_owner deliver:XLCollabEventLayoutRejected payload:NS(text)];
+    }
+
 private:
     __unsafe_unretained XLCollabSession* _owner;
     __unsafe_unretained XLSequenceDocument* _doc;
@@ -317,6 +402,7 @@ private:
     // Effects someone else just changed, until when to highlight them.
     std::unordered_map<SeqObjectId, uint64_t> _flashUntil;
     Collab::PresenceInfo _localPresence;
+    bool _holdsLayoutLock;
 }
 
 - (instancetype)initWithDocument:(XLSequenceDocument*)document {
@@ -352,6 +438,16 @@ private:
     if (_eventHandler) _eventHandler(event, payload);
 }
 
+- (void)syncSessionFlags {
+    using C = Collab::CollabController;
+    const auto state = _controller->GetState();
+    const bool inSession = _controller->GetRole() != C::Role::None && state != C::State::Idle && state != C::State::Ended;
+    if (!inSession) _holdsLayoutLock = false;
+    _app->Ctx()->SetCollabSession(inSession, inSession && _controller->LiveLayout(), _controller->GetRole() == C::Role::Host);
+}
+
+- (BOOL)holdsLayoutLock { return _holdsLayoutLock ? YES : NO; }
+
 - (void)updateTickTimer {
     const bool ended = _controller->GetState() == Collab::CollabController::State::Ended;
     if (ended && _endedAtMs == 0) _endedAtMs = NowMs();
@@ -365,6 +461,7 @@ private:
         dispatch_source_set_event_handler(_tickTimer, ^{
             XLCollabSession* s = weakSelf;
             s->_controller->Tick(NowMs());
+            [s syncSessionFlags];
             [s updateTickTimer];
         });
         dispatch_resume(_tickTimer);
@@ -469,6 +566,7 @@ private:
         return nil;
     }
     _pairingCode = code;
+    [self syncSessionFlags];
     [self updateTickTimer];
     return NS(code);
 }
@@ -502,11 +600,13 @@ private:
 
 - (void)leave {
     _controller->Leave();
+    [self syncSessionFlags];
     [self updateTickTimer];
 }
 
 - (void)end {
     _controller->End();
+    [self syncSessionFlags];
     [self updateTickTimer];
 }
 
@@ -784,6 +884,104 @@ private:
         e = ctx->GetSequenceElements().GetSequenceEnd();
     }
     ctx->RenderEffectForModel(Std(modelName), s, e, true);
+}
+
+// MARK: - Layout
+
+- (BOOL)liveLayout { return _controller->LiveLayout() ? YES : NO; }
+
+// The layout id the session knows the object by (else its name).
+- (std::string)layoutObjectIdFor:(const std::string&)name {
+    auto* ctx = _app->Ctx();
+    if (ctx->HasModelManager()) {
+        if (Model* m = ctx->GetModelManager().GetModel(name)) {
+            return m->GetObjectId().empty() ? name : m->GetObjectId();
+        }
+    }
+    if (ViewObject* v = ctx->GetAllObjects().GetViewObject(name)) {
+        return v->GetObjectId().empty() ? name : v->GetObjectId();
+    }
+    return name;
+}
+
+- (void)setLayoutSelectionModels:(NSArray<NSString*>*)models objects:(NSArray<NSString*>*)objects {
+    std::vector<std::string> ids;
+    for (NSString* n in models) ids.push_back([self layoutObjectIdFor:Std(n)]);
+    for (NSString* n in objects) ids.push_back([self layoutObjectIdFor:Std(n)]);
+    _controller->SetLayoutSelection(ids);
+}
+
+- (nullable NSString*)beginLayoutLockOn:(NSString*)name what:(NSString*)what {
+    if (!_controller->LiveLayout()) return nil;
+    Collab::LayoutLockInfo lock;
+    lock.object = [self layoutObjectIdFor:Std(name)];
+    lock.name = Std(name);
+    lock.what = Std(what);
+    std::string heldBy;
+    if (!_controller->BeginLayoutLock(lock, heldBy)) {
+        if (heldBy.empty()) heldBy = "Someone else";
+        return NS(heldBy + " is editing " + lock.name + "'s " + lock.what);
+    }
+    _holdsLayoutLock = true;
+    return nil;
+}
+
+- (void)endLayoutLock {
+    if (!_holdsLayoutLock) return;
+    _holdsLayoutLock = false;
+    _controller->EndLayoutLock();
+}
+
+- (nullable NSString*)layoutReadOnlyReason:(NSString*)name {
+    if (!_controller->LiveLayout()) return nil;
+    std::string why;
+    if (!_controller->LayoutObjectReadOnly([self layoutObjectIdFor:Std(name)], why)) return nil;
+    return NS(why);
+}
+
+- (NSArray<XLCollabLayoutMark*>*)layoutMarks {
+    NSMutableArray* out = [NSMutableArray array];
+    if (!_controller->LiveLayout() || !_controller->InSession()) return out;
+    auto* ctx = _app->Ctx();
+    auto mark = [&](const std::string& name, const std::string& objectId) {
+        const std::string key = objectId.empty() ? name : objectId;
+        NSMutableArray* cols = [NSMutableArray array];
+        for (Collab::ParticipantId who : _controller->LayoutSelectedBy(key)) {
+            if (auto part = _controller->FindParticipant(who); part && !part->isLocal) [cols addObject:@(PackRGB(part->colour))];
+        }
+        std::string holderName;
+        uint32_t holderColour = 0;
+        const Collab::ParticipantId holder = _controller->LayoutLockHolder(key);
+        if (holder != Collab::kNoParticipant) {
+            if (auto part = _controller->FindParticipant(holder); part && !part->isLocal) {
+                holderName = part->name;
+                holderColour = PackRGB(part->colour);
+            }
+        }
+        if (cols.count == 0 && holderName.empty()) return;
+        XLCollabLayoutMark* m = [XLCollabLayoutMark new];
+        m.name = NS(name);
+        m.outlineColors = cols;
+        m.lockHolder = NS(holderName);
+        m.lockColorRGB = holderColour;
+        std::string why;
+        if (!holderName.empty()) _controller->LayoutObjectReadOnly(key, why);
+        m.lockText = NS(why);
+        [out addObject:m];
+    };
+    if (ctx->HasModelManager()) {
+        for (const auto& [name, model] : ctx->GetModelManager().GetModels()) {
+            if (model) mark(name, model->GetObjectId());
+        }
+    }
+    for (const auto& [name, vo] : ctx->GetAllObjects()) {
+        if (vo) mark(name, vo->GetObjectId());
+    }
+    return out;
+}
+
++ (void)noteLayoutFieldFocused:(BOOL)focused {
+    g_layoutFieldsFocused = std::max(0, g_layoutFieldsFocused + (focused ? 1 : -1));
 }
 
 @end

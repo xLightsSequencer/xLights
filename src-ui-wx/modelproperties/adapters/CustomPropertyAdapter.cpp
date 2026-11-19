@@ -12,6 +12,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/stopwatch.h>
 
+#include "app-shell/Collaboration.h"
 #include "CustomPropertyAdapter.h"
 #include "models/CustomModel.h"
 #include "models/ModelManager.h"
@@ -35,6 +36,10 @@ public:
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
         wxPGProperty* WXUNUSED(property)) override
     {
+        CollabLayoutEditLock collabLock(m_model, "custom model", propGrid);
+        if (!collabLock.Granted()) {
+            return false;
+        }
         m_model->SaveDisplayDimensions();
         auto oldAutoSave = xLightsApp::GetFrame()->_suspendAutoSave;
         xLightsApp::GetFrame()->_suspendAutoSave = true;

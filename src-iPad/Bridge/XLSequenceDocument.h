@@ -2325,6 +2325,20 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 // `reason` nil or empty: the default "Locked during collaboration session".
 - (void)setCollaborationLock:(BOOL)locked reason:(nullable NSString*)reason
     NS_SWIFT_NAME(setCollaborationLock(_:reason:));
+// The gate every layout / controller mutator passes first: YES when the
+// layout is locked (refuse). Otherwise notes that the layout is about to
+// change, so a live collaboration session compares it again.
+- (BOOL)refusesLayoutEdit;
+// Same, for an edit of one model / group / view object, which is also
+// refused while someone else in the session has it open in a modal editor.
+- (BOOL)refusesLayoutEditOf:(nullable NSString*)name;
+- (void)setCollabReadOnlyObjects:(NSArray<NSString*>*)names NS_SWIFT_NAME(setCollabReadOnlyObjects(_:));
+// A touch gesture is moving, resizing or rotating layout objects.
+- (void)setLayoutGestureActive:(BOOL)active NS_SWIFT_NAME(setLayoutGestureActive(_:));
+// Live layout collaboration: a client never writes the layout files, and the
+// sequence settings stay frozen for every participant. Empty when allowed.
+- (NSString*)layoutSaveRefusal;
+- (NSString*)sequenceSettingsRefusal;
 
 // YES iff at least one layout-property edit is staged in memory
 // and not yet persisted. The Layout Editor uses this to gate a

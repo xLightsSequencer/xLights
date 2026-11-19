@@ -16,6 +16,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  network and edit one sequence together (File > Collaborate)
     -enh (dkulp)                 iPad - Live collaboration (beta, off by default): host a sequence or join one from
                                  the sequence list and edit it together with Macs and iPads on the same network
+    -enh (dkulp)                 Live collaboration: the layout and controllers can be edited during a session too;
+                                 single-model editors (submodels, faces, states, custom model...) lock for others
+    -enh (dkulp)                 iPad - Live collaboration: edit the layout and controllers during a session too
 
 2026.21  November 24, 2026
 

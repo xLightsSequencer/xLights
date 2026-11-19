@@ -114,6 +114,13 @@ final class CollabState {
     var endedAsClient = false
     var rejectToast: CollabRejectToast?
     var overlay = CollabOverlay()
+    /// The session edits the layout live.
+    var liveLayout = false
+    /// Layout objects others have selected or open in a modal editor, by name.
+    var layoutMarks: [String: CollabLayoutMark] = [:]
+    /// A layout change of this user that wasn't taken, or an editor that
+    /// couldn't open; shown non-modally.
+    var layoutNotice: CollabLayoutNotice?
     /// Whoever else has the effect open in this user's inspector.
     var softLockHolder: String?
     var showingSheet = false
@@ -188,6 +195,15 @@ extension SequencerViewModel {
         collab.state = s.state
         collab.statusText = s.statusText
         collab.pairingCode = s.pairingCode
+        let live = s.liveLayout && collab.inSession
+        if collab.liveLayout != live {
+            collab.liveLayout = live
+            if !live {
+                collab.layoutMarks = [:]
+                document.setCollabReadOnlyObjects([])
+            }
+        }
+        refreshLayoutLock()
         collab.participants = s.participants.map {
             CollabParticipantInfo(id: $0.participantId, name: $0.name, deviceKind: $0.deviceKind,
                                   color: $0.colorRGB, isHost: $0.isHost, isLocal: $0.isLocal)
@@ -203,6 +219,8 @@ extension SequencerViewModel {
             let before = collab.state
             refreshCollabState()
             if collab.state == .active && before != .active {
+                sendCollabLayoutSelection()
+                refreshCollabLayoutMarks()
                 // The controller cleared its history; keep the undo
                 // stack the buttons read in step.
                 undoManager.removeAllActions()
@@ -217,13 +235,16 @@ extension SequencerViewModel {
                 collab.endNotice = text.isEmpty ? "The collaboration session ended." : text
                 collab.overlay = CollabOverlay()
                 collab.softLockHolder = nil
+                collab.layoutMarks = [:]
             }
         case .participantsChanged:
             refreshCollabState()
             refreshCollabOverlay()
+            refreshCollabLayoutMarks()
         case .presenceChanged:
             refreshCollabOverlay()
             refreshCollabSoftLock()
+            refreshCollabLayoutMarks()
         case .sequenceChanged:
             if let change = payload as? XLCollabChange {
                 applyCollabChange(change)
@@ -266,6 +287,14 @@ extension SequencerViewModel {
             }
         case .willReplaceSequence:
             quiesceForCollabSequenceReplace()
+        case .layoutApplied:
+            if let c = payload as? XLCollabLayoutChange {
+                applyCollabLayoutChange(c)
+            }
+        case .layoutPresenceChanged:
+            refreshCollabLayoutMarks()
+        case .layoutRejected:
+            showCollabLayoutNotice((payload as? String) ?? "")
         @unknown default:
             break
         }

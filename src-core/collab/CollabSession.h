@@ -129,15 +129,26 @@ struct SessionOptions {
 
     // Where the session may write: the copy of the host's show a joiner opens
     // against, files sent during the session, snapshots and blobs on their
-    // way. Inside the app's own container, never a show folder. Empty: a
-    // private temporary folder. What the session wrote there is deleted when
-    // the session object goes, unless KeepSessionFiles was called.
+    // way. Inside the app's own container, never a show folder. Each session
+    // makes its own folder inside this one (empty: the temporary folder).
+    // That folder is deleted when the session object goes; after
+    // KeepSessionFiles, only its show copy (SessionShowFolder) stays.
     std::string sessionFolder;
     // Client: fetch the files that don't match the host's and open the
     // session against a copy of the host's show (see the top of this file).
     bool fetchFiles = false;
     uint64_t fileRetryMs = 10000;       // ask again for files that haven't come
+    // A transfer from the host that has reported no progress this long has
+    // stalled; until then nothing it may be carrying is asked for again.
+    uint64_t blobStallMs = 5000;
     uint64_t maxFileBytes = 4ull << 30; // largest file accepted from another participant
+    // Show files are hashed on the session thread when no more than this is
+    // to be read (unchanged files are cached); more goes to a worker thread,
+    // so the session keeps answering meanwhile.
+    uint64_t syncHashBytes = 64ull << 20;
+    // This app edits the layout live (see CollabLayout.h). The session does
+    // when the host and the client both do.
+    bool liveLayout = false;
 };
 
 // What a client found when it compared its show folder with the host's.
@@ -163,6 +174,20 @@ struct SessionFaults {
     bool clientSkipsRebase = false;       // client: don't restore host values around commits
     bool clientSharesHostIdPrefix = false; // client: allocate ids with the host's prefix
     bool clientIgnoresDrift = false;      // client: never compare hashes, skip commits that don't apply
+    bool clientSkipsLayoutUpdate = false; // client: bring memory along but keep the old session layout
+};
+
+// A layout change the session asks the app to bring memory to.
+struct LayoutCommitInfo {
+    Rev rev = 0;
+    ParticipantId author = kNoParticipant;
+    uint64_t clientSeq = 0;
+    // For the author: what of its proposal was dropped (text), else empty.
+    std::string notice;
+    // The layout of a snapshot, not a commit; `firstSnapshot` when joining
+    // (there is no earlier session layout: memory is whatever was loaded).
+    bool snapshot = false;
+    bool firstSnapshot = false;
 };
 
 struct CommitInfo {
@@ -194,7 +219,9 @@ struct SessionEvents {
     std::function<void(const std::string& reason)> onEnded;
     // The document was replaced by a fresh snapshot (client).
     std::function<void()> onResync;
-    std::function<void(ParticipantId who, const PresenceInfo&)> onPresence;
+    // `lockOrder`: when the host saw this participant take its layout lock
+    // (the earliest holder of an object holds it); 0 = none.
+    std::function<void(ParticipantId who, const PresenceInfo&, uint64_t lockOrder)> onPresence;
     std::function<void(ParticipantId who, const std::string& name, bool joined)> onParticipant;
     std::function<void(const std::string& line)> onLog;
     // Client: the show folder check is done (refused or going ahead).
@@ -202,6 +229,21 @@ struct SessionEvents {
     // A file another participant added by reference arrived and is now in
     // `local` (effects using it should re-render).
     std::function<void(const std::string& reference, const std::string& local)> onFileArrived;
+
+    // Live layout. Brings memory from the session layout `before` to `after`
+    // (a layout commit, or a snapshot's layout before its sequence loads).
+    // False: not now (the render did not stop); the session tries again.
+    std::function<bool(const LayoutCommitInfo&, const LayoutFiles& before, const LayoutFiles& after)> onLayout;
+    // Client: a snapshot's sequence was loaded after onLayout brought memory
+    // to its layout (an app may have reloaded the layout with it).
+    std::function<void()> onSnapshotLoaded;
+    // Host: a client's layout proposal is about to be merged; the host's own
+    // pending layout change goes first.
+    std::function<void()> onBeforeLayoutProposal;
+    // One of this participant's layout proposals was not committed.
+    std::function<void(uint64_t clientSeq, const std::string& reason, const std::string& text)> onLayoutRejected;
+    // Something for the user from the host (Reason::LockTaken, ...).
+    std::function<void(const std::string& reason, const std::string& text)> onNotice;
 };
 
 struct SubmitResult {
@@ -250,6 +292,12 @@ public:
     virtual void Tick(uint64_t nowMs) = 0;
 
     SessionFaults faults;
+    // Tick leaves what it would apply from held work (layout changes memory
+    // could not take yet) to the caller, who runs ApplyHeld when the
+    // document may change.
+    bool deferHeldApply = false;
+    virtual bool HeldApplyDue() const { return false; }
+    virtual void ApplyHeld() {}
     const std::string& EndReason() const { return _endReason; }
     // A readable account of why, when there is one (a refused join).
     const std::string& EndText() const { return _endText; }
@@ -271,6 +319,12 @@ public:
     // Files other participants sent during the session: reference -> the
     // copy in the session folder.
     const std::map<std::string, std::string>& ReceivedFiles() const { return _received; }
+
+    // ---- Live layout ----
+    bool LiveLayout() const { return _liveLayout; }
+    // The session layout: the files as of the last layout commit applied.
+    const LayoutFiles& Layout() const { return _layout; }
+    uint64_t LayoutHash() const { return _layoutHash; }
 
 protected:
     struct UndoEntry {
@@ -336,6 +390,11 @@ protected:
     OwnMeta _submitMeta; // for the proposal SubmitKind is about to number
     std::map<uint64_t, OwnMeta> _ownMeta;
 
+    void SetLayout(const LayoutFiles& files);
+    bool _liveLayout = false;
+    LayoutFiles _layout;
+    uint64_t _layoutHash = 0;
+
 private:
     std::string _sessionFolder;
     bool _ownsSessionFolder = false;
@@ -368,11 +427,20 @@ public:
     SubmitResult CommitLocal(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, uint64_t joinUndoTo = 0);
     void SetPresence(const PresenceInfo& p) override;
     void Tick(uint64_t nowMs) override;
+    bool HeldApplyDue() const override;
+    void ApplyHeld() override;
 
     Rev HeadRev() const { return _applied; }
     size_t ClientCount() const;
     // Participant ids of the joined clients.
     std::vector<ParticipantId> Clients() const;
+    // Live layout from now on, starting from `files` (what memory holds).
+    void EnableLiveLayout(const LayoutFiles& files);
+    // The host's own layout edit (Diff from Layout() to memory), already in
+    // memory: committed as it is.
+    SubmitResult CommitLayout(const nlohmann::json& delta);
+    // Layout versions kept for merging proposals made against older revs.
+    size_t LayoutVersionsKept() const { return _layoutAt.size(); }
     // Every reject the host has sent: reason -> count.
     const std::map<std::string, size_t>& RejectCounts() const { return _rejectCounts; }
     // The first 10000 rejects: (reason, detail).
@@ -393,6 +461,7 @@ private:
         uint64_t lastHeard = 0;
         uint64_t lastPing = 0;
         std::set<uint64_t> faultSeen; // SessionFaults::hostIgnoresClientOrder only
+        bool liveLayout = false;
     };
     struct CommitRecord {
         Message msg;
@@ -407,6 +476,12 @@ private:
         std::string reason;
         std::string text;
         ParticipantId by = kNoParticipant;
+        bool held = false; // a layout proposal memory could not take yet
+    };
+    struct LayoutLogEntry {
+        Rev rev = 0;
+        ParticipantId author = kNoParticipant;
+        std::vector<std::string> touched; // LayoutDelta::Describe
     };
 
     SubmitResult SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) override;
@@ -414,7 +489,15 @@ private:
     void OnPeer(PeerId peer, PeerEvent e);
     void OnHello(PeerId from, const Message& m);
     void OnPropose(Client& c, const Message& m);
-    void ProcessProposal(Client& c, const Message& m);
+    void DrainProposals(PeerId peer);
+    // False when the proposal is held (try again later).
+    bool ProcessProposal(Client& c, const Message& m);
+    Outcome ProcessLayout(Client& c, const Message& m);
+    Rev CommitLayoutApplied(ParticipantId author, uint64_t clientSeq, const nlohmann::json& delta, const LayoutFiles& next, const std::string& notice);
+    void PruneLayouts();
+    std::string WhoDeleted(const std::string& record, Rev after) const;
+    uint64_t StampLock(ParticipantId who, const LayoutLockInfo& lock);
+    std::string NameOfParticipant(ParticipantId id) const;
     Outcome Process(ParticipantId author, uint64_t clientSeq, Rev baseRev, EditKind kind, Rev undoOf, const nlohmann::json& cmd);
     // Records and broadcasts a command already applied to the document.
     Rev CommitApplied(ParticipantId author, uint64_t clientSeq, EditKind kind, Rev undoOf, const SequenceCommand& cmd, const SequenceCommand& inverse,
@@ -441,6 +524,10 @@ private:
     std::map<std::string, size_t> _rejectCounts;
     std::vector<std::pair<std::string, std::string>> _rejectLog;
     UidRegistry _uids;
+    std::map<Rev, LayoutFiles> _layoutAt; // the session layout as of each layout commit (and the start)
+    std::deque<LayoutLogEntry> _layoutLog;
+    std::map<ParticipantId, std::pair<std::string, uint64_t>> _locks; // layout lock object, order taken
+    uint64_t _lockCounter = 0;
 };
 
 class CollabClient : public CollabParticipant {
@@ -461,7 +548,17 @@ public:
     SubmitResult Submit(std::unique_ptr<SequenceCommand> cmd) override;
     void SetPresence(const PresenceInfo& p) override;
     void Tick(uint64_t nowMs) override;
+    bool HeldApplyDue() const override { return _state == State::Active && _layoutHeld; }
+    void ApplyHeld() override;
 
+    // A layout edit (LayoutDelta from Layout() to memory), proposed like any
+    // edit; the commit comes back through SessionEvents::onLayout.
+    SubmitResult ProposeLayout(const nlohmann::json& delta);
+    // The proposal is still waiting for the host.
+    bool IsPending(uint64_t clientSeq) const { return _pending.count(clientSeq) != 0; }
+    // Joining: this device's layout differs from the session's, so the
+    // session opens against a copy (see JoinReport::sessionCopy).
+    bool LayoutCopy() const { return _layoutCopy; }
     size_t PendingCount() const { return _pending.size(); }
     // This client's proposals still waiting for the host, oldest first.
     // Optimistic ones are already applied locally; the others will be
@@ -523,6 +620,8 @@ private:
     void OnReject(const Message& m);
     void DrainCommits();
     bool ApplyCommit(const Message& m);
+    bool ApplyLayoutCommit(const Message& m);
+    bool WriteSessionLayout(const LayoutFiles& files, std::string& error);
     void HandleReject(const Message& m);
     void DrainRejects();
     void LiftOverlay();
@@ -560,6 +659,9 @@ private:
     std::vector<std::string> _unavailable;        // paths the host couldn't send intact
     bool _compareOnly = false;                    // fetching layout files only to describe the difference
     bool _usingCopy = false;                      // opened against the session show copy
+    bool _layoutCopy = false;                     // live layout: this device's layout differs from the session's
+    bool _haveSnapshotLayout = false;             // live layout: _layout came with a snapshot
+    bool _layoutHeld = false;                     // a layout commit waits until memory can take it
     uint64_t _lastFileRequest = 0;
     JoinReport _report;
 };

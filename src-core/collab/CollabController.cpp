@@ -512,6 +512,7 @@ SessionOptions CollabController::MakeOptions(const std::string& displayName, boo
     so.deviceKind = _opts.deviceKind;
     so.sessionFolder = _opts.sessionFolder;
     so.fetchFiles = fetchFiles;
+    so.liveLayout = _app.SupportsLiveLayout();
     return so;
 }
 
@@ -531,9 +532,16 @@ SessionEvents CollabController::MakeEvents() {
         Post([this, c] { _app.OnSequenceChanged(c); });
         Post([this] { _app.OnUndoStateChanged(); });
     };
-    ev.onPresence = [this](ParticipantId who, const PresenceInfo& p) {
+    ev.onPresence = [this](ParticipantId who, const PresenceInfo& p, uint64_t lockOrder) {
+        auto old = _presence.find(who);
+        bool layoutChanged = old == _presence.end() ? (!p.layoutSelected.empty() || !p.layoutLock.object.empty())
+                                                    : (old->second.layoutSelected != p.layoutSelected || !(old->second.layoutLock == p.layoutLock));
         _presence[who] = p;
+        _lockOrder[who] = lockOrder;
         Post([this, who] { _app.OnPresenceChanged(who); });
+        if (layoutChanged) {
+            Post([this] { _app.OnLayoutPresenceChanged(); });
+        }
     };
     ev.onRoster = [this](const std::vector<RosterEntry>& roster) {
         _roster = roster;
@@ -543,8 +551,13 @@ SessionEvents CollabController::MakeEvents() {
                 ++it;
             } else {
                 ParticipantId gone = it->first;
+                bool hadLayout = !it->second.layoutSelected.empty() || !it->second.layoutLock.object.empty();
                 it = _presence.erase(it);
+                _lockOrder.erase(gone);
                 Post([this, gone] { _app.OnPresenceChanged(gone); });
+                if (hadLayout) {
+                    Post([this] { _app.OnLayoutPresenceChanged(); });
+                }
             }
         }
         Post([this] { _app.OnParticipantsChanged(); });
@@ -561,10 +574,27 @@ SessionEvents CollabController::MakeEvents() {
         c.label = reference;
         Post([this, c] { _app.OnSequenceChanged(c); });
     };
+    ev.onLayout = [this](const LayoutCommitInfo& info, const LayoutFiles& before, const LayoutFiles& after) {
+        return ApplySessionLayout(info, before, after);
+    };
+    ev.onSnapshotLoaded = [this] { AfterSnapshotLoaded(); };
+    ev.onBeforeLayoutProposal = [this] { CheckLayout(true); };
+    ev.onLayoutRejected = [this](uint64_t seq, const std::string& reason, const std::string& text) { OnLayoutRejectedBySession(seq, reason, text); };
+    ev.onNotice = [this](const std::string& reason, const std::string& text) {
+        if (reason == Reason::LockTaken) {
+            _lockLost = true;
+            Post([this] { _app.OnLayoutPresenceChanged(); });
+        }
+        Post([this, text] { _app.OnLayoutRejected(text); });
+    };
     return ev;
 }
 
 void CollabController::WrapTransport() {
+    // Held work the session's tick would apply goes through Deliver too (Tick).
+    if (_session) {
+        _session->deferHeldApply = true;
+    }
     // The session installed its handlers when it was made; wrap them.
     auto onMessage = _transport->onMessage;
     auto onPeer = _transport->onPeer;
@@ -765,9 +795,14 @@ void CollabController::Teardown() {
     _joinReport.reset();
     _endPending = false;
     _everActive = false;
+    ResetLayoutState();
     if (_locked) {
         _locked = false;
         _app.SetCollaborationLock(false, "");
+    }
+    if (_seqSettingsLocked) {
+        _seqSettingsLocked = false;
+        _app.SetSequenceSettingsLock(false, "");
     }
 }
 
@@ -830,11 +865,24 @@ bool CollabController::Host(const std::string& displayName, const std::string& s
         return false;
     }
     Attach();
-    _locked = true;
-    {
-        HookCall h(*this);
-        _app.SetCollaborationLock(true, LayoutLock::DEFAULT_REASON);
+    ResetLayoutState();
+    if (_app.SupportsLiveLayout()) {
+        LayoutFiles files;
+        bool ok;
+        {
+            HookCall h(*this);
+            ok = _app.SerializeLayout(files);
+            _layoutGen = _app.LayoutGeneration();
+        }
+        if (ok) {
+            _host->EnableLiveLayout(files);
+            _liveLayout = true;
+            _layoutGenKnown = true;
+        } else {
+            spdlog::warn("Collab: the layout could not be serialized; it stays locked for the session");
+        }
     }
+    SetLocks();
     SetState(State::Active);
     return true;
 }
@@ -964,6 +1012,15 @@ void CollabController::FinishEnd() {
         _locked = false;
         Post([this] { _app.SetCollaborationLock(false, ""); });
     }
+    if (_seqSettingsLocked) {
+        _seqSettingsLocked = false;
+        Post([this] { _app.SetSequenceSettingsLock(false, ""); });
+    }
+    bool hadLayoutPresence = _liveLayout;
+    ResetLayoutState();
+    if (hadLayoutPresence) {
+        Post([this] { _app.OnLayoutPresenceChanged(); });
+    }
     Post([this] { _app.OnParticipantsChanged(); });
 }
 
@@ -991,6 +1048,10 @@ void CollabController::SyncState() {
         break;
     case CollabClient::State::Active:
         Attach();
+        if (!_liveLayout && _client->LiveLayout()) {
+            _liveLayout = true;
+            SetLocks();
+        }
         if (!_everActive) {
             _everActive = true;
             SequenceChange c;
@@ -1037,6 +1098,7 @@ void CollabController::Tick(uint64_t nowMs) {
         Flush();
         DrainHeld();
         _session->Tick(_now);
+        CheckLayout(false);
         TrySendPresence();
         SyncState();
     } else if (_state == State::Ended && _transport && !_closed && _now - _endedAt >= _opts.closeDelayMs) {
@@ -1508,8 +1570,12 @@ std::string CollabController::NameOf(ParticipantId id) const {
     return {};
 }
 
-void CollabController::SetLocalPresence(const PresenceInfo& p) {
+void CollabController::SetLocalPresence(const PresenceInfo& in) {
     Entry en(*this);
+    // The layout parts are set through SetLayoutSelection / BeginLayoutLock.
+    PresenceInfo p = in;
+    p.layoutSelected = _localPresence.layoutSelected;
+    p.layoutLock = _localPresence.layoutLock;
     if (!(p == _localPresence)) {
         _lastActivity = _now;
     }
@@ -1646,6 +1712,320 @@ bool CollabController::KeepSessionCopy(std::string& folder) {
     }
     _session->KeepSessionFiles(true);
     folder = _session->SessionShowFolder();
+    return true;
+}
+
+} // namespace Collab
+
+
+// ---------------------------------------------------------------------------
+// Live layout
+// ---------------------------------------------------------------------------
+
+namespace Collab {
+
+namespace {
+const char* const kSequenceSettingsReason = "Sequence settings are locked during a collaboration session";
+}
+
+void CollabController::ResetLayoutState() {
+    _liveLayout = false;
+    _layoutGenKnown = false;
+    _layoutGen = 0;
+    _layoutChangedAt = 0;
+    _layoutDirty = false;
+    _layoutInFlight = 0;
+    _snapshotTarget.reset();
+    _layoutRestore.reset();
+    _lockLost = false;
+    _lockOrder.clear();
+}
+
+// In a session the layout is locked unless it is edited live; then only the
+// sequence settings are.
+void CollabController::SetLocks() {
+    bool layout = !_liveLayout;
+    bool settings = _liveLayout;
+    HookCall h(*this);
+    if (_locked != layout) {
+        _locked = layout;
+        _app.SetCollaborationLock(layout, layout ? std::string(LayoutLock::DEFAULT_REASON) : std::string());
+    }
+    if (_seqSettingsLocked != settings) {
+        _seqSettingsLocked = settings;
+        _app.SetSequenceSettingsLock(settings, settings ? std::string(kSequenceSettingsReason) : std::string());
+    }
+}
+
+bool CollabController::LiveLayout() const {
+    return _liveLayout && _session && _state == State::Active;
+}
+
+bool CollabController::CanDriveControllers() const {
+    return _role != Role::Client || _state == State::Idle || _state == State::Ended;
+}
+
+void CollabController::FlushLayout() {
+    if (Busy()) {
+        return;
+    }
+    Entry en(*this);
+    CheckLayout(true);
+}
+
+// Proposes memory's layout change once it has rested. `force`: now, without
+// waiting for the quiet time (an edit in progress still waits).
+void CollabController::CheckLayout(bool force) {
+    if (!_liveLayout || !_session || !_session->IsActive() || _state != State::Active) {
+        return;
+    }
+    if (_layoutRestore && !TryRestoreLayout()) {
+        return;
+    }
+    if (_client != nullptr && _layoutInFlight != 0 && !_client->IsPending(_layoutInFlight)) {
+        _layoutInFlight = 0; // dealt with by a snapshot
+    }
+    uint64_t gen;
+    {
+        HookCall h(*this);
+        gen = _app.LayoutGeneration();
+    }
+    if (!_layoutGenKnown || gen != _layoutGen) {
+        _layoutGen = gen;
+        _layoutGenKnown = true;
+        _layoutChangedAt = _now;
+        _layoutDirty = true;
+    }
+    if (!_layoutDirty || _layoutInFlight != 0) {
+        return;
+    }
+    if (!force && _now - _layoutChangedAt < _opts.layoutQuietMs) {
+        return;
+    }
+    LayoutFiles mem;
+    {
+        HookCall h(*this);
+        if (_app.LayoutEditInProgress() || !_app.SerializeLayout(mem)) {
+            return;
+        }
+    }
+    nlohmann::json delta = LayoutDelta::Diff(_session->Layout(), mem);
+    if (delta.is_null()) {
+        _layoutDirty = false;
+        return;
+    }
+    if (_host != nullptr) {
+        SubmitResult r = _host->CommitLayout(delta);
+        if (r.ok) {
+            _layoutDirty = false;
+        } else {
+            spdlog::warn("Collab: the host's layout change could not be committed ({})", r.reason);
+        }
+        return;
+    }
+    SubmitResult r = _client->ProposeLayout(delta);
+    if (r.ok) {
+        _layoutInFlight = r.clientSeq;
+    }
+}
+
+// Brings memory from what it holds now to `target`. False when the app could
+// not (the render did not stop) or memory could not be read.
+bool CollabController::BringMemoryTo(const LayoutFiles& target, const LayoutFiles& session, ParticipantId author) {
+    LayoutFiles mem;
+    LayoutApplied applied;
+    {
+        SessionApply a(*this, false);
+        HookCall h(*this);
+        if (!_app.SerializeLayout(mem)) {
+            return false;
+        }
+        if (!LayoutDelta::Diff(mem, target).is_null() && !_app.ApplyLayout(mem, target, applied)) {
+            return false;
+        }
+        _layoutGen = _app.LayoutGeneration();
+        _layoutGenKnown = true;
+    }
+    _layoutDirty = !LayoutDelta::Diff(session, target).is_null();
+    if (applied.layoutChanged || applied.controllersChanged) {
+        SequenceChange c;
+        c.cause = SequenceChange::Cause::RemoteEdit;
+        c.author = author;
+        c.label = "Layout";
+        c.rowNames = applied.modelsChanged;
+        for (const auto& [from, to] : applied.modelsRenamed) {
+            c.rowNames.push_back(to);
+        }
+        c.rowsRemoved = !applied.modelsRemoved.empty();
+        c.rowsRenamed = !applied.modelsRenamed.empty();
+        Post([this, c] { _app.OnSequenceChanged(c); });
+        if (_role == Role::Host) {
+            Post([this] { _app.MarkSequenceModified(); });
+        }
+    }
+    return true;
+}
+
+bool CollabController::ApplySessionLayout(const LayoutCommitInfo& info, const LayoutFiles& before, const LayoutFiles& after) {
+    if (!_app.SupportsLiveLayout()) {
+        return true;
+    }
+    LayoutFiles target = after;
+    if (!info.firstSnapshot) {
+        LayoutFiles mem;
+        {
+            HookCall h(*this);
+            if (!_app.SerializeLayout(mem)) {
+                return false;
+            }
+        }
+        if (!LayoutDelta::Diff(before, mem).is_null()) {
+            // This user's uncommitted edits stay on top; where they clash
+            // with the commit, the commit wins.
+            LayoutMerge::Outcome o = LayoutMerge::Merge(before, mem, after, LayoutMerge::Policy::Theirs);
+            if (o.ok) {
+                target = o.result;
+            } else {
+                spdlog::warn("Collab: local layout edits could not be kept over a commit: {}", o.text);
+            }
+        }
+    }
+    if (!BringMemoryTo(target, after, info.author)) {
+        return false;
+    }
+    if (info.snapshot) {
+        _snapshotTarget = target;
+    }
+    if (info.author == LocalParticipant() && !info.notice.empty()) {
+        std::string notice = info.notice;
+        Post([this, notice] { _app.OnLayoutRejected(notice); });
+    }
+    return true;
+}
+
+void CollabController::AfterSnapshotLoaded() {
+    if (_snapshotTarget) {
+        _layoutRestore = std::move(_snapshotTarget);
+        _snapshotTarget.reset();
+        TryRestoreLayout();
+    }
+}
+
+// Memory has to reach `_layoutRestore` (after a snapshot loaded, or a
+// refused proposal). True once it has.
+bool CollabController::TryRestoreLayout() {
+    if (!_layoutRestore || !_session) {
+        return true;
+    }
+    LayoutFiles target = *_layoutRestore;
+    if (!BringMemoryTo(target, _session->Layout(), kNoParticipant)) {
+        return false;
+    }
+    _layoutRestore.reset();
+    return true;
+}
+
+void CollabController::OnLayoutRejectedBySession(uint64_t seq, const std::string& reason, const std::string& text) {
+    if (seq == _layoutInFlight) {
+        _layoutInFlight = 0;
+    }
+    spdlog::info("Collab: layout proposal {} not committed: {} {}", seq, reason, text);
+    // Memory goes back to the session's layout, so the refused edit isn't
+    // proposed again and again.
+    if (_session) {
+        _layoutRestore = _session->Layout();
+    }
+    std::string t = text.empty() ? std::string("Your layout change couldn't be made (") + reason + ")" : text;
+    Post([this, t] { _app.OnLayoutRejected(t); });
+}
+
+void CollabController::SetLayoutSelection(const std::vector<std::string>& objects) {
+    Entry en(*this);
+    if (_localPresence.layoutSelected == objects) {
+        return;
+    }
+    _localPresence.layoutSelected = objects;
+    _presenceSet = true;
+    _lastActivity = _now;
+    TrySendPresence();
+}
+
+std::vector<ParticipantId> CollabController::LayoutSelectedBy(const std::string& object) const {
+    std::vector<ParticipantId> out;
+    ParticipantId me = LocalParticipant();
+    for (const auto& [id, p] : _presence) {
+        if (id != me && std::find(p.layoutSelected.begin(), p.layoutSelected.end(), object) != p.layoutSelected.end()) {
+            out.push_back(id);
+        }
+    }
+    return out;
+}
+
+ParticipantId CollabController::LayoutLockHolder(const std::string& object) const {
+    if (object.empty()) {
+        return kNoParticipant;
+    }
+    if (_localPresence.layoutLock.object == object && !_lockLost) {
+        return kNoParticipant;
+    }
+    ParticipantId me = LocalParticipant();
+    ParticipantId holder = kNoParticipant;
+    uint64_t first = UINT64_MAX;
+    for (const auto& [id, p] : _presence) {
+        if (id == me || p.layoutLock.object != object) {
+            continue;
+        }
+        auto o = _lockOrder.find(id);
+        uint64_t order = (o == _lockOrder.end() || o->second == 0) ? UINT64_MAX - 1 : o->second;
+        if (holder == kNoParticipant || order < first) {
+            holder = id;
+            first = order;
+        }
+    }
+    return holder;
+}
+
+bool CollabController::BeginLayoutLock(const LayoutLockInfo& lock, std::string& heldBy) {
+    Entry en(*this);
+    ParticipantId holder = LayoutLockHolder(lock.object);
+    if (holder != kNoParticipant && !(_localPresence.layoutLock.object == lock.object && !_lockLost)) {
+        heldBy = NameOf(holder);
+        return false;
+    }
+    if (!(_localPresence.layoutLock == lock)) {
+        _localPresence.layoutLock = lock;
+        _lockLost = false;
+        _presenceSet = true;
+        _lastActivity = _now;
+        TrySendPresence();
+    }
+    return true;
+}
+
+void CollabController::EndLayoutLock() {
+    Entry en(*this);
+    if (_localPresence.layoutLock.object.empty()) {
+        return;
+    }
+    _localPresence.layoutLock = {};
+    _lockLost = false;
+    _presenceSet = true;
+    TrySendPresence();
+}
+
+bool CollabController::LayoutObjectReadOnly(const std::string& object, std::string& why) const {
+    ParticipantId holder = LayoutLockHolder(object);
+    if (holder == kNoParticipant) {
+        return false;
+    }
+    const PresenceInfo* p = PresenceOf(holder);
+    std::string name = NameOf(holder);
+    if (name.empty()) {
+        name = "Someone else";
+    }
+    std::string objectName = p != nullptr && !p->layoutLock.name.empty() ? p->layoutLock.name : object;
+    std::string what = p != nullptr ? p->layoutLock.what : std::string();
+    why = name + " is editing " + objectName + (what.empty() ? std::string() : "'s " + what);
     return true;
 }
 

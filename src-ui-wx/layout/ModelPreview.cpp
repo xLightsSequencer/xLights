@@ -34,6 +34,7 @@
 #include "models/ViewObject.h"
 #include "models/ControllerObject.h"
 #include "layout/PreviewPane.h"
+#include "layout/CollabLayoutOverlay.h"
 #include "color/ColorManager.h"
 #include "layout/LayoutGroup.h"
 #include "xLightsMain.h"
@@ -849,6 +850,10 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             }
             else if (m->Selected() || m->GroupSelected()) {
                 color = selColor;
+            }
+            else if (const xlColor* other = layoutEditorPreview && CollabLayoutOverlay::Current() != nullptr ? CollabLayoutOverlay::Current()->SelectedColour(m) : nullptr) {
+                // Someone else in a collaboration session has it selected.
+                color = other;
             }
             else if (m->Overlapping && isModelSelected) {
                 color = overlapColor;

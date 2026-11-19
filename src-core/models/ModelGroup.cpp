@@ -983,17 +983,25 @@ void ModelGroup::AddModel(const std::string &name) {
     ResetModels();
 }
 
-void ModelGroup::ModelRemoved(const std::string &oldName) {
-    std::string trimmedOldName = Trim(oldName);
+bool ModelGroup::MemberGoesWithModel(const std::string& member, const std::string& name) {
+    // Submodel references are stored as "BaseName/SubModel" (see ModelRenamed
+    // for the same base-name extraction).
+    std::string trimmedName = Trim(name);
+    std::string trimmed = Trim(member);
+    std::string base = trimmed.substr(0, trimmed.find('/'));
+    return trimmed == trimmedName || base == trimmedName;
+}
 
-    // Remove all instances of the model from modelNames, including submodel
-    // references stored as "BaseName/SubModel" (see ModelRenamed for the
-    // same base-name extraction).
+bool ModelGroup::ListsModelOrSubmodelOf(const std::string& name) const {
+    return std::any_of(modelNames.begin(), modelNames.end(), [&](const std::string& m) { return MemberGoesWithModel(m, name); });
+}
+
+void ModelGroup::ModelRemoved(const std::string &oldName) {
+    // Remove all instances of the model from modelNames, including its
+    // submodel references.
     auto it = modelNames.begin();
     while (it != modelNames.end()) {
-        std::string trimmed = Trim(*it);
-        std::string base = trimmed.substr(0, trimmed.find('/'));
-        if (trimmed == trimmedOldName || base == trimmedOldName) {
+        if (MemberGoesWithModel(*it, oldName)) {
             it = modelNames.erase(it);
         } else {
             ++it;

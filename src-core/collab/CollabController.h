@@ -123,6 +123,7 @@
 #include <string>
 #include <vector>
 
+#include "CollabLayout.h"
 #include "CollabNet.h"
 #include "CollabSession.h"
 #include "render/CommandExecutor.h"
@@ -227,7 +228,7 @@ struct PendingGhost {
 // sequence the way opening a file does, stopping the render first. The rest
 // are notifications, always called outside session applies, on the main
 // thread.
-class ICollabApp : public ICollabDocument {
+class ICollabApp : public ICollabDocument, public ICollabLayout {
 public:
     // Sequence() can be called (false, e.g., on an iPad with no sequence
     // open yet: the controller then leaves it alone until LoadXsq).
@@ -277,6 +278,7 @@ struct ControllerOptions {
     uint64_t presenceIntervalMs = 200; // ~5 Hz
     uint64_t softLockIdleMs = 60000;
     uint64_t closeDelayMs = 2000; // keep the transport after the end so the goodbye gets out
+    uint64_t layoutQuietMs = 250; // a layout change is proposed once memory has rested this long
     // Session timing and limits; displayName / appVersion / deviceKind /
     // sessionFolder / fetchFiles are filled in by the controller.
     SessionOptions session;
@@ -341,6 +343,32 @@ public:
     ParticipantId SoftLockHolder(SeqObjectId effect) const;
     // Others who have `effect` selected.
     std::vector<ParticipantId> SelectedBy(SeqObjectId effect) const;
+
+    // ---- Layout (see CollabLayout.h) ----
+    // The session edits the layout live (host and this app both support it).
+    // False: the layout stays locked for the session as before.
+    bool LiveLayout() const;
+    // The layout objects (layout id, else name) this user has selected in
+    // the layout editor.
+    void SetLayoutSelection(const std::vector<std::string>& objects);
+    // Others who have `object` selected in their layout editor.
+    std::vector<ParticipantId> LayoutSelectedBy(const std::string& object) const;
+    // Before opening a modal editor on an object: false (with the holder's
+    // name in `heldBy`) when someone else holds it. Otherwise this user
+    // holds it, and others see it read-only, until EndLayoutLock.
+    bool BeginLayoutLock(const LayoutLockInfo& lock, std::string& heldBy);
+    void EndLayoutLock();
+    // Who else holds a modal-editor lock on `object` (kNoParticipant: nobody).
+    ParticipantId LayoutLockHolder(const std::string& object) const;
+    // `object` may not be edited here because someone else holds its lock;
+    // `why` reads "Sam is editing Arch 1's submodels".
+    bool LayoutObjectReadOnly(const std::string& object, std::string& why) const;
+    // Sends a pending local layout change now if no edit is in progress (the
+    // controller also checks on every tick).
+    void FlushLayout();
+    // Uploading to controllers and sending output to the lights: only the
+    // host may while a session runs (true when not in one).
+    bool CanDriveControllers() const;
 
     // ---- Undo (also reached through the UndoManager redirect) ----
     bool Undo();
@@ -469,6 +497,15 @@ private:
     void TrySendPresence();
     std::string NameOf(ParticipantId id) const;
     void ScheduleFlush();
+    // Live layout
+    void SetLocks();
+    void CheckLayout(bool force);
+    bool ApplySessionLayout(const LayoutCommitInfo& info, const LayoutFiles& before, const LayoutFiles& after);
+    bool BringMemoryTo(const LayoutFiles& target, const LayoutFiles& session, ParticipantId author);
+    void AfterSnapshotLoaded();
+    void OnLayoutRejectedBySession(uint64_t seq, const std::string& reason, const std::string& text);
+    bool TryRestoreLayout();
+    void ResetLayoutState();
 
     ICollabApp& _app;
     CollabNetFactory _net;
@@ -545,6 +582,19 @@ private:
     bool _presenceSent = false;
     uint64_t _lastPresenceSent = 0;
     uint64_t _lastActivity = 0;
+    std::map<ParticipantId, uint64_t> _lockOrder; // when the host saw each participant's layout lock taken
+
+    // Live layout
+    bool _liveLayout = false;
+    bool _seqSettingsLocked = false; // SetSequenceSettingsLock(true) is in force
+    bool _layoutGenKnown = false;
+    uint64_t _layoutGen = 0;      // LayoutGeneration() as last seen
+    uint64_t _layoutChangedAt = 0;
+    bool _layoutDirty = false;    // memory may hold layout edits the session lacks
+    uint64_t _layoutInFlight = 0; // client: the layout proposal waiting for the host
+    std::optional<LayoutFiles> _snapshotTarget; // what memory was brought to before a snapshot loaded
+    std::optional<LayoutFiles> _layoutRestore;  // memory still has to be brought here
+    bool _lockLost = false;       // the host saw someone else take this user's layout lock first
 };
 
 } // namespace Collab

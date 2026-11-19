@@ -23,6 +23,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "CollabLayout.h"
 #include "render/SequenceIds.h"
 
 namespace Collab {
@@ -64,7 +65,8 @@ enum class MsgType {
     Ping,         // host -> client: liveness, carries the head rev
     Pong,         // client -> host: liveness, carries the applied rev
     Bye,          // either way: leaving / session over
-    Roster        // host -> clients: everyone in the session
+    Roster,       // host -> clients: everyone in the session
+    Notice        // host -> client: something the user should read (reason, text)
 };
 
 const char* MsgTypeName(MsgType t);
@@ -96,6 +98,10 @@ struct PresenceInfo {
     std::vector<SeqObjectId> focusedElements;
     std::vector<SeqObjectId> selectedEffects;
     SeqObjectId softLock = kNoSeqObjectId; // effect being edited in a panel
+    // Layout editor: the selected layout objects (layout id, else name), and
+    // the object open in a modal editor (empty object: none).
+    std::vector<std::string> layoutSelected;
+    LayoutLockInfo layoutLock;
     bool operator==(const PresenceInfo&) const = default;
 };
 
@@ -113,6 +119,9 @@ inline constexpr size_t kMaxRoster = 0x10000;
 struct Message {
     MsgType type = MsgType::Ping;
     int protocol = kProtocolVersion;
+
+    // Hello: this app can edit the layout live. Welcome: the session does.
+    bool liveLayout = false;
 
     // Hello
     std::string appVersion;
@@ -134,6 +143,14 @@ struct Message {
     EditKind kind = EditKind::Edit;
     Rev undoOf = 0;  // Undo / Redo: the rev being undone / redone
     nlohmann::json command; // a serialized SequenceCommand
+    // Propose / Commit: a layout edit (LayoutDelta) instead of a command
+    nlohmann::json layout;
+    // Commit (layout) / Ping / Snapshot / Welcome: LayoutDelta::Hash of the
+    // session layout at that rev (0 = no live layout)
+    uint64_t layoutHash = 0;
+    // Welcome / Snapshot (live layout): the session layout at that rev. Not
+    // part of the message: it travels in the blob the message names.
+    LayoutFiles layoutFiles;
 
     // Commit / Snapshot: the document hash after that rev
     uint64_t docHash = 0;
@@ -159,6 +176,9 @@ struct Message {
 
     // Presence
     PresenceInfo presence;
+    // Presence relayed by the host: the order in which the host saw the
+    // layout lock taken (earlier holds it); 0 = none
+    uint64_t lockOrder = 0;
 
     // Ping / Pong
     uint64_t time = 0;
@@ -187,6 +207,12 @@ inline constexpr const char* TargetGone = "target_gone";  // effect / layer / ro
 inline constexpr const char* Locked = "locked";           // the target effect is locked
 inline constexpr const char* StaleType = "stale_type";    // effect type changed since the edit was made
 inline constexpr const char* ChangedSince = "changed_since"; // undo / redo: someone changed it since
+// Layout proposal: a record it adds was added by someone else meanwhile.
+inline constexpr const char* NameTaken = "name_taken";
+// Layout proposal: nothing of it was left to commit (text says why).
+inline constexpr const char* NoChange = "no_change";
+// Notice: someone else took the layout lock on that object first.
+inline constexpr const char* LockTaken = "lock_taken";
 // Malformed or refused by validation. Concurrent edits can cause it too:
 // two people adding the same model or giving two tracks one name, removing
 // an element's last two layers at once, renaming media onto a taken key.

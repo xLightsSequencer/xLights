@@ -608,6 +608,9 @@ std::string ChannelColoursFor(Model* model)
 - (BOOL)savePreset:(NSString*)name
 {
     if (_om == nullptr || name == nil || name.length == 0 || name.length > 240) return NO;
+    // Presets live in the controllers file, which a collaboration session
+    // locks; refused before the preset is made in memory.
+    if (_om->IsLayoutLocked()) return NO;
 
     TestPreset* preset = _om->CreateTestPreset(name.UTF8String);
     if (preset == nullptr) return NO;
@@ -620,8 +623,7 @@ std::string ChannelColoursFor(Model* model)
         _tracker.GetNextRange(start, end);
     }
 
-    _om->Save();
-    return YES;
+    return _om->Save() ? YES : NO;
 }
 
 @end

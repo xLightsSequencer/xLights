@@ -565,6 +565,8 @@ struct LightTestSheet: View {
                 guard !trimmed.isEmpty, let test else { return }
                 if test.savePreset(trimmed) {
                     presetNames = test.presetNames()
+                } else if viewModel.document.isLayoutLocked() {
+                    errorMessage = "Could not save that test selection: \(viewModel.document.layoutLockReason())."
                 } else {
                     errorMessage = "Could not save that test selection."
                 }
@@ -645,6 +647,10 @@ struct LightTestSheet: View {
         guard let test else { return }
         guard selectedCount > 0 else {
             errorMessage = "Select at least one model, submodel, node or controller port first."
+            return
+        }
+        if let refusal = viewModel.collabOutputRefusal {
+            errorMessage = refusal
             return
         }
         syncParameters()

@@ -40,6 +40,11 @@
 #include <pugixml.hpp>
 
 #include "xLightsMain.h"
+#include "xLightsApp.h"
+#include "layout/LayoutPanel.h"
+#include "models/BaseObject.h"
+#include "models/Model.h"
+#include "models/SubModel.h"
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
 #include "render/Element.h"
@@ -321,8 +326,8 @@ DesktopCollab::~DesktopCollab() {
         delete _menuItem; // never handed to the menu (owns the submenu)
     }
     CollabOverlay::Current() = nullptr;
+    CollabLayoutOverlay::Current() = nullptr;
     _ctl.reset();
-    *_alive = false;
 }
 
 bool DesktopCollab::PreferenceEnabled() {
@@ -535,6 +540,7 @@ std::string DesktopCollab::Initials(const std::string& name) {
 }
 
 void DesktopCollab::GatherPresence() {
+    GatherLayoutSelection();
     if (_frame->CurrentSeqXmlFile == nullptr || _frame->mainSequencer == nullptr) {
         return;
     }
@@ -769,6 +775,10 @@ void DesktopCollab::SetCollaborationLock(bool locked, const std::string& reason)
     _frame->SetCollaborationLock(locked, reason);
 }
 
+void DesktopCollab::SetSequenceSettingsLock(bool locked, const std::string& reason) {
+    _frame->SetSequenceSettingsLock(locked, reason);
+}
+
 void DesktopCollab::OnSessionStateChanged() {
     using State = Collab::CollabController::State;
     State st = _ctl->GetState();
@@ -800,6 +810,9 @@ void DesktopCollab::OnSessionStateChanged() {
     }
     UpdateVisibility();
     RebuildOverlay();
+    RebuildLayoutOverlay();
+    // Host-only actions (saving the show files, uploads, output) follow the role.
+    _frame->UpdateLayoutLockState();
     if (_window != nullptr) {
         _window->ShowState(_codeShown);
     }
@@ -815,6 +828,7 @@ void DesktopCollab::OnParticipantsChanged() {
 
 void DesktopCollab::OnPresenceChanged(Collab::ParticipantId) {
     RebuildOverlay();
+    RebuildLayoutOverlay();
 }
 
 void DesktopCollab::OnSequenceChanged(const Collab::SequenceChange& c) {
@@ -1105,4 +1119,201 @@ void DesktopCollab::Shutdown() {
         _closing = false;
     }
     CollabOverlay::Current() = nullptr;
+    CollabLayoutOverlay::Current() = nullptr;
+}
+
+// ---------------------------------------------------------------------------
+// Live layout
+// ---------------------------------------------------------------------------
+
+bool DesktopCollab::SessionLive() const {
+    using State = Collab::CollabController::State;
+    State st = _ctl->GetState();
+    return st != State::Idle && st != State::Ended;
+}
+
+bool DesktopCollab::IsSessionClient() const {
+    return SessionLive() && _ctl->GetRole() == Collab::CollabController::Role::Client;
+}
+
+uint64_t DesktopCollab::LayoutGeneration() {
+    return _frame->LayoutGeneration();
+}
+
+bool DesktopCollab::LayoutEditInProgress() {
+    return _editorLockDepth > 0 || _frame->LayoutEditInProgress();
+}
+
+bool DesktopCollab::SerializeLayout(Collab::LayoutFiles& out) {
+    if (_loading || _frame->CurrentDir.empty() || _frame->IsExiting() || LayoutPanel::IsFinalizingModel()) {
+        return false;
+    }
+    _frame->SerializeLayoutFiles(&out.rgbEffects, &out.networks);
+    return !out.rgbEffects.empty();
+}
+
+bool DesktopCollab::ApplyLayout(const Collab::LayoutFiles& current, const Collab::LayoutFiles& target, Collab::LayoutApplied& out) {
+    if (_loading || _frame->IsExiting() || LayoutPanel::IsFinalizingModel()) {
+        return false;
+    }
+    if (!_frame->ApplySessionLayout(current, target, out)) {
+        return false;
+    }
+    if (out.layoutChanged || out.controllersChanged) {
+        RebuildLayoutOverlay();
+    }
+    return true;
+}
+
+void DesktopCollab::OnLayoutPresenceChanged() {
+    RebuildLayoutOverlay();
+}
+
+void DesktopCollab::OnLayoutRejected(const std::string& text) {
+    ShowNotice(wxString::FromUTF8(text), wxString(), nullptr, 15);
+}
+
+void DesktopCollab::GatherLayoutSelection() {
+    if (!_ctl->InSession() || !_ctl->LiveLayout() || _frame->layoutPanel == nullptr || LayoutPanel::IsFinalizingModel()) {
+        return;
+    }
+    std::vector<std::string> keys;
+    for (const BaseObject* o : _frame->layoutPanel->GetSelectedLayoutObjects()) {
+        keys.push_back(CollabLayoutOverlay::KeyOf(o));
+    }
+    if (keys != _lastLayoutSelection) {
+        _lastLayoutSelection = keys;
+        _ctl->SetLayoutSelection(keys);
+    }
+}
+
+void DesktopCollab::RebuildLayoutOverlay() {
+    CollabLayoutOverlay next;
+    const bool live = _ctl->InSession() && _ctl->LiveLayout();
+    if (live) {
+        for (const auto& who : _ctl->Participants()) {
+            if (who.isLocal) {
+                continue;
+            }
+            const Collab::PresenceInfo* p = _ctl->PresenceOf(who.id);
+            if (p == nullptr) {
+                continue;
+            }
+            for (const auto& key : p->layoutSelected) {
+                next.selected.emplace(key, who.colour); // the first participant's colour wins
+            }
+            const auto& lock = p->layoutLock;
+            if (!lock.object.empty() && _ctl->LayoutLockHolder(lock.object) == who.id) {
+                std::string why;
+                if (!_ctl->LayoutObjectReadOnly(lock.object, why) || why.empty()) {
+                    why = who.name + " is editing " + lock.name + "'s " + lock.what;
+                }
+                next.locks[lock.object] = { why, who.colour };
+            }
+        }
+    }
+    if (!live) {
+        _lastLayoutSelection.clear();
+    }
+    const bool changed = !(next == _layoutOverlay);
+    _layoutOverlay = std::move(next);
+    CollabLayoutOverlay::Current() = live ? &_layoutOverlay : nullptr;
+    if (changed && _frame->layoutPanel != nullptr && !_frame->IsExiting()) {
+        _frame->layoutPanel->UpdateCollabPresence();
+    }
+}
+
+bool DesktopCollab::BeginEditorLock(const std::vector<const BaseObject*>& objects, const std::string& what, wxWindow* parent) {
+    if (!_ctl->InSession() || !_ctl->LiveLayout()) {
+        return true;
+    }
+    // Someone else's editor already holds one of them.
+    for (const BaseObject* o : objects) {
+        std::string why;
+        if (o != nullptr && _ctl->LayoutObjectReadOnly(CollabLayoutOverlay::KeyOf(o), why)) {
+            wxMessageBox(wxString::FromUTF8(why.empty() ? std::string("Someone else is editing ") + o->GetName() : why), "Live Collaboration",
+                         wxOK | wxICON_INFORMATION, parent != nullptr ? parent : _frame);
+            return false;
+        }
+    }
+    if (_editorLockDepth == 0 && objects.size() == 1 && objects.front() != nullptr) {
+        const BaseObject* o = objects.front();
+        Collab::LayoutLockInfo info;
+        info.object = CollabLayoutOverlay::KeyOf(o);
+        info.name = o->GetName();
+        info.what = what;
+        std::string heldBy;
+        if (!_ctl->BeginLayoutLock(info, heldBy)) {
+            std::string text = (heldBy.empty() ? std::string("Someone else") : heldBy) + " is editing " + o->GetName() + "'s " + what + ".";
+            wxMessageBox(wxString::FromUTF8(text), "Live Collaboration", wxOK | wxICON_INFORMATION, parent != nullptr ? parent : _frame);
+            return false;
+        }
+        _editorLockTaken = true;
+    }
+    ++_editorLockDepth;
+    return true;
+}
+
+void DesktopCollab::EndEditorLock() {
+    if (_editorLockDepth <= 0) {
+        return;
+    }
+    if (--_editorLockDepth == 0) {
+        if (_editorLockTaken) {
+            _editorLockTaken = false;
+            _ctl->EndLayoutLock();
+        }
+        // What the editor changed can go out now.
+        _ctl->FlushLayout();
+    }
+}
+
+CollabLayoutEditLock::CollabLayoutEditLock(const BaseObject* object, const std::string& what, wxWindow* parent) :
+    CollabLayoutEditLock(std::vector<const BaseObject*>{ object }, what, parent) {
+}
+
+CollabLayoutEditLock::CollabLayoutEditLock(const std::vector<const BaseObject*>& objects, const std::string& what, wxWindow* parent) {
+    xLightsFrame* frame = xLightsApp::GetFrame();
+    DesktopCollab* collab = frame != nullptr ? frame->GetCollab() : nullptr;
+    if (collab == nullptr) {
+        return;
+    }
+    _granted = collab->BeginEditorLock(objects, what, parent);
+    if (_granted) {
+        _collab = collab;
+    }
+}
+
+CollabLayoutEditLock::~CollabLayoutEditLock() {
+    if (_collab != nullptr) {
+        _collab->EndEditorLock();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// What a session refuses on this device
+// ---------------------------------------------------------------------------
+
+std::string xLightsFrame::SequenceSettingsFreezeReason() const {
+    return IsSequenceSettingsLocked() ? GetSequenceSettingsLockReason() : std::string();
+}
+
+std::string xLightsFrame::CollabHostOnlyReason(const std::string& action) const {
+    if (_collab == nullptr || _collab->Controller().CanDriveControllers()) {
+        return {};
+    }
+    return "Only the session host can " + action + ".";
+}
+
+bool xLightsFrame::RefuseIfCollabHostOnly(const std::string& action, wxWindow* parent) {
+    std::string why = CollabHostOnlyReason(action);
+    if (why.empty()) {
+        return false;
+    }
+    if (!IsNonInteractiveSave()) {
+        DisplayInfo(why, parent != nullptr ? parent : this);
+    } else {
+        spdlog::warn("{}", why);
+    }
+    return true;
 }

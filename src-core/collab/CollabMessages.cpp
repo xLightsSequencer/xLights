@@ -21,7 +21,7 @@ namespace Collab {
 
 namespace {
 
-constexpr std::array<std::pair<MsgType, const char*>, 17> kTypeNames{ {
+constexpr std::array<std::pair<MsgType, const char*>, 18> kTypeNames{ {
     { MsgType::Hello, "Hello" },
     { MsgType::Welcome, "Welcome" },
     { MsgType::Refuse, "Refuse" },
@@ -39,6 +39,7 @@ constexpr std::array<std::pair<MsgType, const char*>, 17> kTypeNames{ {
     { MsgType::Pong, "Pong" },
     { MsgType::Bye, "Bye" },
     { MsgType::Roster, "Roster" },
+    { MsgType::Notice, "Notice" },
 } };
 
 bool TypeFromName(const std::string& s, MsgType& out) {
@@ -240,15 +241,68 @@ bool ReadPaths(const json& j, std::vector<std::string>& out) {
 }
 
 json WritePresence(const PresenceInfo& p) {
-    return json{ { "start", p.startMS }, { "end", p.endMS }, { "focus", p.focusedElements }, { "sel", p.selectedEffects }, { "lock", p.softLock } };
+    json j{ { "start", p.startMS }, { "end", p.endMS }, { "focus", p.focusedElements }, { "sel", p.selectedEffects }, { "lock", p.softLock } };
+    if (!p.layoutSelected.empty()) {
+        j["lsel"] = p.layoutSelected;
+    }
+    if (!p.layoutLock.object.empty()) {
+        j["llock"] = json{ { "o", p.layoutLock.object }, { "n", p.layoutLock.name }, { "w", p.layoutLock.what } };
+    }
+    return j;
+}
+
+bool GetStrings(const json& j, const char* key, std::vector<std::string>& out) {
+    auto it = j.find(key);
+    if (it == j.end()) {
+        return true;
+    }
+    if (!it->is_array() || it->size() > kMaxManifestFiles) {
+        return false;
+    }
+    out.clear();
+    for (const auto& v : *it) {
+        if (!v.is_string() || v.get_ref<const std::string&>().size() > kMaxPathBytes) {
+            return false;
+        }
+        out.push_back(v.get<std::string>());
+    }
+    return true;
 }
 
 bool ReadPresence(const json& j, PresenceInfo& p) {
     if (!j.is_object()) {
         return false;
     }
-    return Get(j, "start", p.startMS) && Get(j, "end", p.endMS) && GetIds(j, "focus", p.focusedElements) &&
-           GetIds(j, "sel", p.selectedEffects) && Get(j, "lock", p.softLock);
+    bool ok = Get(j, "start", p.startMS) && Get(j, "end", p.endMS) && GetIds(j, "focus", p.focusedElements) &&
+              GetIds(j, "sel", p.selectedEffects) && Get(j, "lock", p.softLock) && GetStrings(j, "lsel", p.layoutSelected);
+    if (auto it = j.find("llock"); ok && it != j.end()) {
+        ok = it->is_object() && Get(*it, "o", p.layoutLock.object) && Get(*it, "n", p.layoutLock.name) && Get(*it, "w", p.layoutLock.what);
+    }
+    return ok;
+}
+
+void WriteLayoutFiles(json& j, const Message& m) {
+    if (m.layoutHash != 0) {
+        j["lhash"] = m.layoutHash;
+        j["lrgb"] = m.layoutFiles.rgbEffects;
+        j["lnet"] = m.layoutFiles.networks;
+    }
+}
+
+bool ReadLayoutFiles(const json& j, Message& m) {
+    return Get(j, "lhash", m.layoutHash) && Get(j, "lrgb", m.layoutFiles.rgbEffects) && Get(j, "lnet", m.layoutFiles.networks);
+}
+
+bool GetBool(const json& j, const char* key, bool& out) {
+    auto it = j.find(key);
+    if (it == j.end()) {
+        return true;
+    }
+    if (!it->is_boolean()) {
+        return false;
+    }
+    out = it->get<bool>();
+    return true;
 }
 
 json WriteRoster(const std::vector<RosterEntry>& roster) {
@@ -304,15 +358,23 @@ std::string EncodeMessage(const Message& m) {
         j["app"] = m.appVersion;
         j["name"] = m.name;
         j["device"] = m.deviceKind;
+        if (m.liveLayout) {
+            j["live"] = true;
+        }
         break;
     case MsgType::Welcome:
         j["participant"] = m.participant;
         j["rev"] = m.rev;
         j["name"] = m.name;
+        if (m.liveLayout) {
+            j["live"] = true;
+        }
+        WriteLayoutFiles(j, m);
         break;
     case MsgType::Refuse:
     case MsgType::Bye:
     case MsgType::NeedSnapshot:
+    case MsgType::Notice:
         j["reason"] = m.reason;
         j["text"] = m.text;
         break;
@@ -333,13 +395,18 @@ std::string EncodeMessage(const Message& m) {
         j["seq"] = m.clientSeq;
         j["blob"] = m.blob;
         j["uids"] = m.uids;
+        WriteLayoutFiles(j, m);
         break;
     case MsgType::Propose:
         j["seq"] = m.clientSeq;
         j["base"] = m.baseRev;
         j["kind"] = KindName(m.kind);
         j["undoOf"] = m.undoOf;
-        j["cmd"] = m.command;
+        if (!m.layout.is_null()) {
+            j["layout"] = m.layout;
+        } else {
+            j["cmd"] = m.command;
+        }
         break;
     case MsgType::Commit:
         j["rev"] = m.rev;
@@ -347,7 +414,15 @@ std::string EncodeMessage(const Message& m) {
         j["seq"] = m.clientSeq;
         j["kind"] = KindName(m.kind);
         j["undoOf"] = m.undoOf;
-        j["cmd"] = m.command;
+        if (!m.layout.is_null()) {
+            j["layout"] = m.layout;
+            j["lhash"] = m.layoutHash;
+            if (!m.text.empty()) {
+                j["text"] = m.text;
+            }
+        } else {
+            j["cmd"] = m.command;
+        }
         j["hash"] = m.docHash;
         if (m.lenient) {
             j["lenient"] = true;
@@ -367,11 +442,17 @@ std::string EncodeMessage(const Message& m) {
     case MsgType::Presence:
         j["participant"] = m.participant;
         j["presence"] = WritePresence(m.presence);
+        if (m.lockOrder != 0) {
+            j["lorder"] = m.lockOrder;
+        }
         break;
     case MsgType::Ping:
     case MsgType::Pong:
         j["rev"] = m.rev;
         j["time"] = m.time;
+        if (m.layoutHash != 0) {
+            j["lhash"] = m.layoutHash;
+        }
         break;
     case MsgType::Roster:
         j["people"] = WriteRoster(m.roster);
@@ -427,14 +508,16 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
     bool ok = true;
     switch (m.type) {
     case MsgType::Hello:
-        ok = Get(j, "app", m.appVersion) && Get(j, "name", m.name) && Get(j, "device", m.deviceKind);
+        ok = Get(j, "app", m.appVersion) && Get(j, "name", m.name) && Get(j, "device", m.deviceKind) && GetBool(j, "live", m.liveLayout);
         break;
     case MsgType::Welcome:
-        ok = Get(j, "participant", m.participant) && Get(j, "rev", m.rev) && Get(j, "name", m.name) && m.participant != kNoParticipant;
+        ok = Get(j, "participant", m.participant) && Get(j, "rev", m.rev) && Get(j, "name", m.name) && m.participant != kNoParticipant &&
+             GetBool(j, "live", m.liveLayout) && ReadLayoutFiles(j, m);
         break;
     case MsgType::Refuse:
     case MsgType::Bye:
     case MsgType::NeedSnapshot:
+    case MsgType::Notice:
         ok = Get(j, "reason", m.reason) && Get(j, "text", m.text);
         break;
     case MsgType::Manifest: {
@@ -452,7 +535,7 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
     case MsgType::Snapshot: {
         ok = Get(j, "rev", m.rev) && Get(j, "hash", m.docHash) && Get(j, "seq", m.clientSeq) && Get(j, "blob", m.blob) && m.blob != 0;
         auto it = j.find("uids");
-        ok = ok && it != j.end() && it->is_array();
+        ok = ok && it != j.end() && it->is_array() && ReadLayoutFiles(j, m);
         if (ok) {
             m.uids = std::move(*it);
         }
@@ -470,10 +553,19 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
                 m.lenient = ok && l->get<bool>();
             }
         }
+        // Exactly one of a command and a layout edit.
         auto it = j.find("cmd");
-        ok = ok && it != j.end() && it->is_object();
-        if (ok) {
-            m.command = std::move(*it);
+        auto lay = j.find("layout");
+        if (lay != j.end()) {
+            ok = ok && it == j.end() && lay->is_object() && !lay->empty() && Get(j, "lhash", m.layoutHash) && Get(j, "text", m.text);
+            if (ok) {
+                m.layout = std::move(*lay);
+            }
+        } else {
+            ok = ok && it != j.end() && it->is_object();
+            if (ok) {
+                m.command = std::move(*it);
+            }
         }
         break;
     }
@@ -487,12 +579,12 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
     case MsgType::Presence: {
         ok = Get(j, "participant", m.participant);
         auto it = j.find("presence");
-        ok = ok && it != j.end() && ReadPresence(*it, m.presence);
+        ok = ok && it != j.end() && ReadPresence(*it, m.presence) && Get(j, "lorder", m.lockOrder);
         break;
     }
     case MsgType::Ping:
     case MsgType::Pong:
-        ok = Get(j, "rev", m.rev) && Get(j, "time", m.time);
+        ok = Get(j, "rev", m.rev) && Get(j, "time", m.time) && Get(j, "lhash", m.layoutHash);
         break;
     case MsgType::Roster:
         ok = ReadRoster(j, m.roster);

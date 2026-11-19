@@ -344,6 +344,8 @@
 		<Unit filename="../src-core/collab/CollabController.h" />
 		<Unit filename="../src-core/collab/CollabDocHash.cpp" />
 		<Unit filename="../src-core/collab/CollabDocHash.h" />
+		<Unit filename="../src-core/collab/CollabLayout.cpp" />
+		<Unit filename="../src-core/collab/CollabLayout.h" />
 		<Unit filename="../src-core/collab/CollabManifest.cpp" />
 		<Unit filename="../src-core/collab/CollabManifest.h" />
 		<Unit filename="../src-core/collab/CollabMessages.cpp" />
@@ -445,6 +447,7 @@
 		<Unit filename="../src-core/utils/LayoutRenameLog.cpp" />
 		<Unit filename="../src-core/utils/LayoutLock.cpp" />
 		<Unit filename="../src-core/utils/LayoutRenameLog.h" />
+		<Unit filename="../src-core/utils/LayoutDirt.h" />
 		<Unit filename="../src-core/utils/LayoutLock.h" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.cpp" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.h" />
@@ -1665,6 +1668,7 @@
 		<Unit filename="../src-ui-wx/shared/controls/MediaPickerCtrl.h" />
 		<Unit filename="../src-ui-wx/graphics/wxTextDrawingContext.cpp" />
 		<Unit filename="../src-ui-wx/graphics/wxTextDrawingContext.h" />
+		<Unit filename="../src-ui-wx/layout/CollabLayoutOverlay.h" />
 		<Unit filename="../src-ui-wx/layout/ControllerListPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ControllerListPanel.h" />
 		<Unit filename="../src-ui-wx/layout/ControllerTreeUtils.cpp" />

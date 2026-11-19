@@ -11,6 +11,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
+#include "app-shell/Collaboration.h"
 #include "DmxMovingHeadAdvPropertyAdapter.h"
 #include "../helpers/DmxAbilityPropertyHelpers.h"
 #include "../helpers/DmxComponentPropertyHelpers.h"
@@ -37,6 +38,10 @@ public:
     }
 
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
+        CollabLayoutEditLock collabLock(&m_model, "position zones", propGrid);
+        if (!collabLock.Granted()) {
+            return false;
+        }
         auto zones = m_model.GetPositionZones();
         PositionZoneDialog dlg(m_model, zones, propGrid);
         if (dlg.ShowModal() == wxID_OK) {

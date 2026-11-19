@@ -820,6 +820,9 @@
     <ClCompile Include="..\src-core\collab\CollabDocHash.cpp">
       <Filter>collab</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabLayout.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabManifest.cpp">
       <Filter>collab</Filter>
     </ClCompile>
@@ -1761,6 +1764,7 @@
     <ClInclude Include="..\src-core\utils\LayoutRecords.h" />
     <ClInclude Include="..\src-core\utils\LayoutRenameHints.h" />
     <ClInclude Include="..\src-core\utils\LayoutRenameLog.h" />
+    <ClInclude Include="..\src-core\utils\LayoutDirt.h" />
     <ClInclude Include="..\src-core\utils\LayoutLock.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
@@ -2479,6 +2483,7 @@
     <ClInclude Include="..\src-ui-wx\sequencer\CollabOverlay.h">
       <Filter>sequencer</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-ui-wx\layout\CollabLayoutOverlay.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\Collaboration.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectsGrid.h">
       <Filter>sequencer</Filter>
@@ -2506,6 +2511,9 @@
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabDocHash.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabLayout.h">
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabManifest.h">

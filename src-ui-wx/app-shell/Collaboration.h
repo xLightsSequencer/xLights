@@ -18,14 +18,17 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <wx/event.h>
 #include <wx/string.h>
 #include <wx/timer.h>
 
 #include "collab/CollabController.h"
+#include "layout/CollabLayoutOverlay.h"
 #include "sequencer/CollabOverlay.h"
 
+class BaseObject;
 class xLightsFrame;
 class wxMenu;
 class wxMenuItem;
@@ -73,6 +76,7 @@ public:
     bool UseShowFolder(const std::string& folder) override;
     void AddMediaFolder(const std::string& folder) override;
     void SetCollaborationLock(bool locked, const std::string& reason) override;
+    void SetSequenceSettingsLock(bool locked, const std::string& reason) override;
     void OnSessionStateChanged() override;
     void OnParticipantsChanged() override;
     void OnPresenceChanged(Collab::ParticipantId who) override;
@@ -84,6 +88,25 @@ public:
     void OnSessionsFound(const std::vector<Collab::SessionAdvert>& sessions) override;
     void OnBrowseError(const std::string& reason) override;
     void OnLog(const std::string& line) override;
+
+    // ICollabLayout
+    bool SupportsLiveLayout() override { return true; }
+    uint64_t LayoutGeneration() override;
+    bool LayoutEditInProgress() override;
+    bool SerializeLayout(Collab::LayoutFiles& out) override;
+    bool ApplyLayout(const Collab::LayoutFiles& current, const Collab::LayoutFiles& target, Collab::LayoutApplied& out) override;
+    void OnLayoutPresenceChanged() override;
+    void OnLayoutRejected(const std::string& text) override;
+
+    // A session is starting, running or ending (not idle, not over).
+    bool SessionLive() const;
+    bool IsSessionClient() const;
+    // The session runs on a temporary copy of the host's show folder.
+    bool OnSessionCopy() const { return !_originalShowDir.empty(); }
+    // Modal layout editors (CollabLayoutEditLock). False (after telling the
+    // user who holds it) when someone else has the object open.
+    bool BeginEditorLock(const std::vector<const BaseObject*>& objects, const std::string& what, wxWindow* parent);
+    void EndEditorLock();
 
     // Used by the windows.
     void HostSession();
@@ -100,6 +123,8 @@ private:
     void OnTimer(wxTimerEvent& event);
     void GatherPresence();
     void RebuildOverlay();
+    void RebuildLayoutOverlay();
+    void GatherLayoutSelection();
     void RefreshSequencer();
     void ShowNotice(const wxString& text, const wxString& action = wxString(), std::function<void()> onAction = nullptr, int seconds = 10);
     void HideNotice();
@@ -139,10 +164,31 @@ private:
     bool _closing = false;     // ending / leaving because the sequence closes
     CollabOverlay _overlay;
     bool _overlayActive = false;
+    CollabLayoutOverlay _layoutOverlay;
+    std::vector<std::string> _lastLayoutSelection;
+    int _editorLockDepth = 0;
+    bool _editorLockTaken = false;  // BeginLayoutLock was called for the outermost editor
     std::string _lastBanner;
     std::string _codeShown; // host: the pairing code
     std::string _originalShowDir;              // client: show folder before UseShowFolder
     std::vector<std::string> _addedMediaFolders; // client: AddMediaFolder, removed at the end
     void RestoreShowFolder();
     void RemoveDocFolder();
+};
+
+// Holds the session's lock on the layout objects a modal editor works on
+// while it is open (others see them read-only). Outside a live layout session
+// it is always granted and does nothing.
+class CollabLayoutEditLock {
+public:
+    CollabLayoutEditLock(const BaseObject* object, const std::string& what, wxWindow* parent);
+    CollabLayoutEditLock(const std::vector<const BaseObject*>& objects, const std::string& what, wxWindow* parent);
+    ~CollabLayoutEditLock();
+    CollabLayoutEditLock(const CollabLayoutEditLock&) = delete;
+    CollabLayoutEditLock& operator=(const CollabLayoutEditLock&) = delete;
+    bool Granted() const { return _granted; }
+
+private:
+    DesktopCollab* _collab = nullptr;
+    bool _granted = true;
 };

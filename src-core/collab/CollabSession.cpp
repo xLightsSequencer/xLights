@@ -439,6 +439,11 @@ void CollabParticipant::Log(const std::string& s) {
     }
 }
 
+void CollabParticipant::SetLayout(const LayoutFiles& files) {
+    _layout = files;
+    _layoutHash = LayoutDelta::Hash(_layout);
+}
+
 void CollabParticipant::NoteRecent(const CommitInfo& c, const json& cmd) {
     _recent.push_back("rev " + std::to_string(c.rev) + " by " + std::to_string(c.author) + ": " + CommandSummary(cmd));
     while (_recent.size() > _opts.driftLogCommands) {
@@ -684,6 +689,199 @@ SubmitResult CollabHost::CommitLocal(std::unique_ptr<SequenceCommand> applied, s
     return { true, seq, "" };
 }
 
+void CollabHost::EnableLiveLayout(const LayoutFiles& files) {
+    _liveLayout = true;
+    SetLayout(files);
+    _layoutAt.clear();
+    _layoutAt[_applied] = _layout;
+}
+
+SubmitResult CollabHost::CommitLayout(const json& delta) {
+    if (!IsActive() || !_liveLayout || delta.is_null()) {
+        return { false, 0, "not_active" };
+    }
+    auto next = LayoutDelta::Apply(_layout, delta);
+    if (!next) {
+        return { false, 0, Reason::Invalid };
+    }
+    uint64_t seq = _nextOwnSeq++;
+    CommitLayoutApplied(kHostParticipant, seq, delta, *next, "");
+    return { true, seq, "" };
+}
+
+Rev CollabHost::CommitLayoutApplied(ParticipantId author, uint64_t clientSeq, const json& delta, const LayoutFiles& next, const std::string& notice) {
+    Rev rev = ++_applied;
+    SetLayout(next);
+    _layoutAt[rev] = _layout;
+    // Memory's layout change may have renamed or removed rows.
+    SequenceElements& seq = _doc.Sequence();
+    _hasher.InvalidateAll();
+    _uids.Reset(seq);
+    Message m;
+    m.type = MsgType::Commit;
+    m.rev = rev;
+    m.participant = author;
+    m.clientSeq = clientSeq;
+    m.layout = delta;
+    m.layoutHash = _layoutHash;
+    m.text = notice;
+    m.docHash = _hasher.Hash(seq);
+    for (auto& [peer, c] : _clients) {
+        _transport.Send(peer, m);
+    }
+    CommitInfo info{ rev, author, clientSeq, EditKind::Edit, 0 };
+    NoteRecent(info, json{ { "type", "Layout" } });
+    _log.push_back({ std::move(m) });
+    _layoutLog.push_back({ rev, author, LayoutDelta::Describe(delta) });
+    while (_layoutLog.size() > 1000) {
+        _layoutLog.pop_front();
+    }
+    TrimLog();
+    PruneLayouts();
+    return rev;
+}
+
+void CollabHost::PruneLayouts() {
+    Rev minApplied = _applied;
+    for (const auto& [peer, c] : _clients) {
+        minApplied = std::min(minApplied, c.applied);
+    }
+    // Keep the version every client may still propose against.
+    auto keep = _layoutAt.upper_bound(minApplied);
+    if (keep == _layoutAt.begin()) {
+        return;
+    }
+    --keep;
+    _layoutAt.erase(_layoutAt.begin(), keep);
+}
+
+std::string CollabHost::NameOfParticipant(ParticipantId id) const {
+    for (const auto& r : _roster) {
+        if (r.participant == id) {
+            return r.name;
+        }
+    }
+    return {};
+}
+
+std::string CollabHost::WhoDeleted(const std::string& record, Rev after) const {
+    for (auto it = _layoutLog.rbegin(); it != _layoutLog.rend() && it->rev > after; ++it) {
+        for (const auto& t : it->touched) {
+            if (t.size() > record.size() + 2 && t.compare(t.size() - record.size() - 1, record.size() + 1, record + "'") == 0 &&
+                t[t.size() - record.size() - 2] == '\'') {
+                return NameOfParticipant(it->author);
+            }
+        }
+    }
+    return {};
+}
+
+CollabHost::Outcome CollabHost::ProcessLayout(Client& c, const Message& m) {
+    Outcome o;
+    auto reject = [&](const char* reason, std::string text) {
+        o.reason = reason;
+        o.text = std::move(text);
+        ++_rejectCounts[reason];
+        if (_rejectLog.size() < 10000) {
+            _rejectLog.push_back({ reason, o.text });
+        }
+        return o;
+    };
+    if (!_liveLayout || !c.liveLayout) {
+        return reject(Reason::Invalid, "this session doesn't edit the layout live");
+    }
+    if (_events.onBeforeLayoutProposal) {
+        _events.onBeforeLayoutProposal();
+    }
+    Rev baseRev = std::min(m.baseRev, _applied);
+    auto bit = _layoutAt.upper_bound(baseRev);
+    if (bit == _layoutAt.begin()) {
+        return reject(Reason::Invalid, "the layout this change was made against is no longer known");
+    }
+    --bit;
+    const LayoutFiles base = bit->second;
+    auto mine = LayoutDelta::Apply(base, m.layout);
+    if (!mine) {
+        return reject(Reason::Invalid, "unreadable layout change");
+    }
+    LayoutMerge::Outcome merged = LayoutMerge::Merge(base, *mine, _layout, LayoutMerge::Policy::Proposal);
+    if (!merged.ok) {
+        return reject(merged.reason.empty() ? Reason::Invalid : merged.reason.c_str(), merged.text);
+    }
+    std::string notice;
+    for (const auto& d : merged.dropped) {
+        std::string who = WhoDeleted(d, baseRev);
+        notice += std::string(notice.empty() ? "" : "\n") + "'" + d + "' was deleted by " + (who.empty() ? std::string("someone else") : who) +
+                  ", so your change to it was dropped";
+    }
+    json delta = LayoutDelta::Diff(_layout, merged.result);
+    if (delta.is_null()) {
+        std::string text = notice.empty() ? std::string("Someone else already made that layout change") : notice;
+        o = reject(Reason::NoChange, text);
+        return o;
+    }
+    // What every client will compute from the delta.
+    auto next = LayoutDelta::Apply(_layout, delta);
+    if (!next) {
+        return reject(Reason::Invalid, "the merged layout could not be applied");
+    }
+    if (_events.onLayout) {
+        LayoutCommitInfo info;
+        info.rev = _applied + 1;
+        info.author = c.id;
+        info.clientSeq = m.clientSeq;
+        if (!_events.onLayout(info, _layout, *next)) {
+            o.held = true;
+            return o;
+        }
+    }
+    o.rev = CommitLayoutApplied(c.id, m.clientSeq, delta, *next, notice);
+    o.committed = true;
+    return o;
+}
+
+uint64_t CollabHost::StampLock(ParticipantId who, const LayoutLockInfo& lock) {
+    if (lock.object.empty()) {
+        _locks.erase(who);
+        return 0;
+    }
+    auto it = _locks.find(who);
+    if (it != _locks.end() && it->second.first == lock.object) {
+        return it->second.second;
+    }
+    ParticipantId holder = kNoParticipant;
+    uint64_t first = 0;
+    for (const auto& [p, l] : _locks) {
+        if (p != who && l.first == lock.object && (holder == kNoParticipant || l.second < first)) {
+            holder = p;
+            first = l.second;
+        }
+    }
+    uint64_t order = ++_lockCounter;
+    _locks[who] = { lock.object, order };
+    if (holder != kNoParticipant) {
+        std::string what = lock.name.empty() ? lock.object : lock.name;
+        std::string text = NameOfParticipant(holder) + " started editing " + what + " first; changes you make to it may be overwritten";
+        Log("participant " + std::to_string(who) + " took the layout lock on '" + lock.object + "' after " + std::to_string(holder));
+        if (who == kHostParticipant) {
+            if (_events.onNotice) {
+                _events.onNotice(Reason::LockTaken, text);
+            }
+        } else {
+            for (const auto& [peer, c] : _clients) {
+                if (c.id == who) {
+                    Message n;
+                    n.type = MsgType::Notice;
+                    n.reason = Reason::LockTaken;
+                    n.text = text;
+                    _transport.Send(peer, n);
+                }
+            }
+        }
+    }
+    return order;
+}
+
 void CollabHost::TrimLog() {
     Rev minApplied = _applied;
     for (const auto& [peer, c] : _clients) {
@@ -709,6 +907,7 @@ void CollabHost::DropClient(PeerId peer, const std::string& why) {
     ParticipantId id = it->second.id;
     std::string name = it->second.name;
     _clients.erase(it);
+    _locks.erase(id);
     Log("participant " + std::to_string(id) + " " + why);
     if (_events.onParticipant) {
         _events.onParticipant(id, name, false);
@@ -755,17 +954,19 @@ void CollabHost::OnMessage(PeerId from, const Message& m) {
         break;
     case MsgType::Pong:
         c->applied = std::max(c->applied, std::min(m.rev, _applied));
+        PruneLayouts();
         break;
     case MsgType::Presence: {
         Message relay = m;
         relay.participant = c->id;
+        relay.lockOrder = StampLock(c->id, m.presence.layoutLock);
         for (const auto& [peer, other] : _clients) {
             if (peer != from) {
                 _transport.Send(peer, relay);
             }
         }
         if (_events.onPresence) {
-            _events.onPresence(c->id, relay.presence);
+            _events.onPresence(relay.participant, relay.presence, relay.lockOrder);
         }
         break;
     }
@@ -795,6 +996,11 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
         w.participant = existing->id;
         w.rev = _applied;
         w.name = _opts.displayName;
+        if (existing->liveLayout) {
+            w.liveLayout = true;
+            w.layoutFiles = _layout;
+            w.layoutHash = _layoutHash;
+        }
         _transport.Send(from, w);
         SendManifest(*existing, false);
         Message r;
@@ -817,11 +1023,17 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
     c.lastHeard = _now;
     c.lastPing = _now;
     c.applied = _applied;
+    c.liveLayout = _liveLayout && m.liveLayout;
     Message w;
     w.type = MsgType::Welcome;
     w.participant = c.id;
     w.rev = _applied;
     w.name = _opts.displayName;
+    if (c.liveLayout) {
+        w.liveLayout = true;
+        w.layoutFiles = _layout;
+        w.layoutHash = _layoutHash;
+    }
     _transport.Send(from, w);
     SendManifest(c, true);
     Log("participant " + std::to_string(c.id) + " joined at rev " + std::to_string(_applied));
@@ -854,6 +1066,10 @@ void CollabHost::SendSnapshot(Client& c) {
     s.docHash = _hasher.Hash(seq);
     s.uids = CaptureUids(seq);
     s.clientSeq = c.nextSeq - 1;
+    if (c.liveLayout) {
+        s.layoutFiles = _layout;
+        s.layoutHash = _layoutHash;
+    }
     s.blob = NextBlob();
     c.applied = std::max(c.applied, _applied);
     _transport.SendBlob(c.peer, s.blob, file);
@@ -955,32 +1171,48 @@ void CollabHost::OnPropose(Client& c, const Message& m) {
         }
         return;
     }
-    if (m.clientSeq > c.nextSeq) {
-        if (c.early.size() < 100000) {
-            c.early.emplace(m.clientSeq, m);
-        }
-        return;
+    if (m.clientSeq == c.nextSeq || c.early.size() < 100000) {
+        c.early.emplace(m.clientSeq, m);
     }
-    ProcessProposal(c, m);
-    ++c.nextSeq;
-    for (auto it = c.early.begin(); it != c.early.end() && it->first <= c.nextSeq;) {
-        if (it->first == c.nextSeq) {
-            Message next = std::move(it->second);
-            it = c.early.erase(it);
-            ProcessProposal(c, next);
-            ++c.nextSeq;
-        } else {
-            it = c.early.erase(it);
+    DrainProposals(c.peer);
+}
+
+void CollabHost::DrainProposals(PeerId peer) {
+    while (true) {
+        Client* c = FindClient(peer);
+        if (c == nullptr) {
+            return;
         }
+        auto it = c->early.find(c->nextSeq);
+        if (it == c->early.end()) {
+            break;
+        }
+        Message next = it->second;
+        if (!ProcessProposal(*c, next)) {
+            return; // held: the next tick (or the client's resend) tries again
+        }
+        c = FindClient(peer);
+        if (c == nullptr) {
+            return;
+        }
+        c->early.erase(next.clientSeq);
+        ++c->nextSeq;
+    }
+    Client* c = FindClient(peer);
+    if (c != nullptr) {
+        c->early.erase(c->early.begin(), c->early.lower_bound(c->nextSeq));
     }
 }
 
-void CollabHost::ProcessProposal(Client& c, const Message& m) {
+bool CollabHost::ProcessProposal(Client& c, const Message& m) {
     // A proposal can't be based on a rev the host hasn't made yet.
     Rev base = std::min(m.baseRev, _applied);
-    Outcome o = Process(c.id, m.clientSeq, base, m.kind, m.undoOf, m.command);
+    Outcome o = !m.layout.is_null() ? ProcessLayout(c, m) : Process(c.id, m.clientSeq, base, m.kind, m.undoOf, m.command);
+    if (o.held) {
+        return false;
+    }
     if (o.committed) {
-        return;
+        return true;
     }
     Message r;
     r.type = MsgType::Reject;
@@ -995,6 +1227,7 @@ void CollabHost::ProcessProposal(Client& c, const Message& m) {
         c.rejects.erase(c.rejects.begin());
     }
     _transport.Send(c.peer, r);
+    return true;
 }
 
 void CollabHost::SetPresence(const PresenceInfo& p) {
@@ -1002,6 +1235,7 @@ void CollabHost::SetPresence(const PresenceInfo& p) {
     m.type = MsgType::Presence;
     m.participant = kHostParticipant;
     m.presence = p;
+    m.lockOrder = StampLock(kHostParticipant, p.layoutLock);
     for (const auto& [peer, c] : _clients) {
         _transport.Send(peer, m);
     }
@@ -1024,11 +1258,41 @@ void CollabHost::Tick(uint64_t nowMs) {
             p.type = MsgType::Ping;
             p.rev = _applied;
             p.time = _now;
+            if (c.liveLayout) {
+                p.layoutHash = _layoutHash;
+            }
             _transport.Send(peer, p);
         }
     }
     for (PeerId p : gone) {
         DropClient(p, "timed out");
+    }
+    if (!deferHeldApply) {
+        ApplyHeld();
+    }
+}
+
+bool CollabHost::HeldApplyDue() const {
+    return std::any_of(_clients.begin(), _clients.end(), [](const auto& kv) { return kv.second.early.count(kv.second.nextSeq) != 0; });
+}
+
+// Proposals held because memory could not take a layout change yet.
+void CollabHost::ApplyHeld() {
+    std::vector<PeerId> waiting;
+    for (const auto& [peer, c] : _clients) {
+        if (c.early.count(c.nextSeq)) {
+            waiting.push_back(peer);
+        }
+    }
+    for (PeerId p : waiting) {
+        DrainProposals(p);
+    }
+}
+
+void CollabClient::ApplyHeld() {
+    if (_state == State::Active && _layoutHeld) {
+        _layoutHeld = false;
+        DrainCommits();
     }
 }
 
@@ -1070,6 +1334,7 @@ void CollabClient::Join(PeerId host) {
     h.appVersion = _opts.appVersion;
     h.name = _opts.displayName;
     h.deviceKind = _opts.deviceKind;
+    h.liveLayout = _opts.liveLayout;
     Send(h);
 }
 
@@ -1112,6 +1377,10 @@ void CollabClient::OnMessage(PeerId from, const Message& m) {
         if (_state == State::Joining) {
             _participant = m.participant;
             SeqIds::SetPeer(faults.clientSharesHostIdPrefix ? kHostParticipant : m.participant);
+            _liveLayout = _opts.liveLayout && m.liveLayout && m.layoutHash != 0;
+            if (_liveLayout) {
+                SetLayout(m.layoutFiles);
+            }
             _state = State::Checking;
             _lastHello = _now;
             _hostHead = std::max(_hostHead, m.rev);
@@ -1154,11 +1423,21 @@ void CollabClient::OnMessage(PeerId from, const Message& m) {
         if (_state == State::Active && _hostHead > _applied) {
             RequestResend();
         }
+        if (_state == State::Active && _liveLayout && !_layoutHeld && m.layoutHash != 0 && m.rev == _applied && m.layoutHash != _layoutHash) {
+            RequestResync("layout hash " + std::to_string(_layoutHash) + " differs from the host's " + std::to_string(m.layoutHash) + " at rev " +
+                          std::to_string(m.rev));
+        }
         break;
     }
     case MsgType::Presence:
         if (_events.onPresence) {
-            _events.onPresence(m.participant, m.presence);
+            _events.onPresence(m.participant, m.presence, m.lockOrder);
+        }
+        break;
+    case MsgType::Notice:
+        Log("notice: " + m.text);
+        if (_events.onNotice) {
+            _events.onNotice(m.reason, m.text);
         }
         break;
     case MsgType::Bye:
@@ -1223,9 +1502,31 @@ void CollabClient::OnManifest(const Message& m) {
         return;
     }
     _checks = CompareManifest(_doc.ShowFolder(), m.files, &_hashes);
+    if (_liveLayout) {
+        // The layout is compared with the session's (which may hold edits
+        // the host has not saved), not with the host's files.
+        LayoutFiles own;
+        ReadWhole((fs::path(_doc.ShowFolder()) / kLayoutFile).string(), own.rgbEffects);
+        ReadWhole((fs::path(_doc.ShowFolder()) / kNetworksFile).string(), own.networks);
+        _layoutCopy = !LayoutDelta::Equivalent(own, _layout);
+        for (const char* f : { kLayoutFile, kNetworksFile }) {
+            std::string session = f == kLayoutFile ? _layout.rgbEffects : _layout.networks;
+            std::string mine = f == kLayoutFile ? own.rgbEffects : own.networks;
+            if (mine == session) {
+                continue;
+            }
+            LayoutDifference d = DescribeLayoutDifference(f, mine, session);
+            if (d.changes != 0) {
+                _report.layoutDifference += (_report.layoutDifference.empty() ? "" : "\n") + std::string(f) + ": " + d.text;
+            }
+        }
+        if (_layoutCopy && _report.layoutDifference.empty()) {
+            _report.layoutDifference = "the layout ids differ from the session's";
+        }
+    }
     bool layout = false;
     for (const auto& c : _checks) {
-        if (c.state == FileState::Match) {
+        if (c.state == FileState::Match || (_liveLayout && c.entry.role == FileRole::Layout)) {
             continue;
         }
         layout = layout || c.entry.role == FileRole::Layout;
@@ -1281,6 +1582,7 @@ void CollabClient::OnJoinFile(const Message& info, const std::string& path) {
 }
 
 void CollabClient::FinishCheck() {
+    std::string liveDifference = _report.layoutDifference;
     _report = {};
     _report.showFolder = _doc.ShowFolder();
     std::set<std::string> unavailable(_unavailable.begin(), _unavailable.end());
@@ -1289,7 +1591,7 @@ void CollabClient::FinishCheck() {
     std::string audioText;
     std::string lostText;
     for (const auto& c : _checks) {
-        if (c.state == FileState::Match) {
+        if (c.state == FileState::Match || (_liveLayout && c.entry.role == FileRole::Layout)) {
             continue;
         }
         const std::string& p = c.entry.path;
@@ -1330,7 +1632,7 @@ void CollabClient::FinishCheck() {
             lostText += (lostText.empty() ? "" : ", ") + p;
         }
     }
-    _report.layoutDifference = layoutText;
+    _report.layoutDifference = _liveLayout ? liveDifference : layoutText;
     if (!_opts.fetchFiles) {
         if (layoutChanges != 0) {
             RefuseJoin(Reason::LayoutDiffers, "This device's layout differs from the host's:\n" + layoutText);
@@ -1340,14 +1642,15 @@ void CollabClient::FinishCheck() {
             RefuseJoin(Reason::AudioDiffers, "This device's audio differs from the host's: " + audioText);
             return;
         }
-        AskForSnapshot();
-        return;
-    }
-    if (!lostText.empty()) {
+        if (!_layoutCopy) {
+            AskForSnapshot();
+            return;
+        }
+    } else if (!lostText.empty()) {
         RefuseJoin(Reason::FilesUnavailable, "These files could not be copied from the host: " + lostText);
         return;
     }
-    if (_fetched.empty()) {
+    if (_fetched.empty() && !_layoutCopy) {
         // Everything matched, or only media the host couldn't send.
         AskForSnapshot();
         return;
@@ -1357,7 +1660,12 @@ void CollabClient::FinishCheck() {
     std::string root = SessionShowFolder();
     std::vector<std::string> copyFailed;
     for (const auto& c : _checks) {
-        if (c.state != FileState::Match) {
+        if (_layoutCopy && c.entry.role == FileRole::Layout) {
+            continue; // written from the session layout below
+        }
+        // Without fetching, media that differs is used as this device has it.
+        bool ownDifferent = !_opts.fetchFiles && c.state == FileState::Different && c.entry.role == FileRole::Media;
+        if (c.state != FileState::Match && !ownDifferent) {
             continue;
         }
         std::string cachePath = CachePathFor(c.entry.path);
@@ -1367,6 +1675,13 @@ void CollabClient::FinishCheck() {
                 return;
             }
             copyFailed.push_back(c.entry.path);
+        }
+    }
+    if (_layoutCopy) {
+        std::string error;
+        if (!WriteSessionLayout(_layout, error)) {
+            RefuseJoin(Reason::FilesUnavailable, error);
+            return;
         }
     }
     if (!_doc.UseShowFolder(root)) {
@@ -1385,11 +1700,32 @@ void CollabClient::FinishCheck() {
     _report.missingMedia.clear();
     for (const auto& c : _checks) {
         if (c.entry.role == FileRole::Media && c.state != FileState::Match && !_fetched.count(c.entry.path)) {
-            _report.missingMedia.push_back(c.entry.path);
+            bool ownDifferent = !_opts.fetchFiles && c.state == FileState::Different;
+            (ownDifferent ? _report.differentMedia : _report.missingMedia).push_back(c.entry.path);
         }
     }
     _report.missingMedia.insert(_report.missingMedia.end(), copyFailed.begin(), copyFailed.end());
     AskForSnapshot();
+}
+
+bool CollabClient::WriteSessionLayout(const LayoutFiles& files, std::string& error) {
+    for (const char* f : { kLayoutFile, kNetworksFile }) {
+        const std::string& text = f == kLayoutFile ? files.rgbEffects : files.networks;
+        fs::path dest = fs::path(SessionShowFolder()) / f;
+        std::error_code ec;
+        if (text.empty()) {
+            fs::remove(dest, ec);
+            continue;
+        }
+        fs::create_directories(dest.parent_path(), ec);
+        std::ofstream out(dest, std::ios::binary | std::ios::trunc);
+        out << text;
+        if (!out) {
+            error = std::string("Could not write the session's copy of ") + f + ".";
+            return false;
+        }
+    }
+    return true;
 }
 
 void CollabClient::RefuseJoin(const std::string& reason, const std::string& text) {
@@ -1426,6 +1762,29 @@ void CollabClient::OnSnapshot(const Message& m, const std::string& xsq) {
     if (_state != State::AwaitingSnapshot) {
         return;
     }
+    bool live = _liveLayout && m.layoutHash != 0;
+    if (live) {
+        if (_usingCopy) {
+            // An app that reads the layout from its show folder as it opens
+            // the sequence finds the session's.
+            std::string error;
+            if (!WriteSessionLayout(m.layoutFiles, error)) {
+                Log(error);
+            }
+        }
+        if (_events.onLayout) {
+            LayoutCommitInfo info;
+            info.rev = m.rev;
+            info.snapshot = true;
+            info.firstSnapshot = !_haveSnapshotLayout;
+            if (!_events.onLayout(info, _haveSnapshotLayout ? _layout : LayoutFiles{}, m.layoutFiles)) {
+                Log("the snapshot's layout could not be applied yet; asking again");
+                return; // the snapshot retry asks for another
+            }
+        }
+        SetLayout(m.layoutFiles);
+        _haveSnapshotLayout = true;
+    }
     if (!_doc.LoadXsq(xsq)) {
         EndSession(Reason::SnapshotFailed);
         return;
@@ -1450,7 +1809,12 @@ void CollabClient::OnSnapshot(const Message& m, const std::string& xsq) {
     // Proposals the host had dealt with are in the snapshot (or rejected).
     for (auto it = _queuedRejects.begin(); it != _queuedRejects.end();) {
         if (it->clientSeq <= m.clientSeq) {
-            if (_pending.count(it->clientSeq) && _events.onReject) {
+            auto p = _pending.find(it->clientSeq);
+            if (p != _pending.end() && !p->second.msg.layout.is_null()) {
+                if (_events.onLayoutRejected) {
+                    _events.onLayoutRejected(it->clientSeq, it->reason, it->text);
+                }
+            } else if (p != _pending.end() && _events.onReject) {
                 _events.onReject(it->clientSeq, it->kind, it->reason, it->participant);
             }
             it = _queuedRejects.erase(it);
@@ -1472,7 +1836,11 @@ void CollabClient::OnSnapshot(const Message& m, const std::string& xsq) {
         it = _buffered.erase(it);
     }
     _state = State::Active;
+    _layoutHeld = false;
     LowerOverlay();
+    if (live && _events.onSnapshotLoaded) {
+        _events.onSnapshotLoaded();
+    }
     if (resync && _events.onResync) {
         _events.onResync();
     }
@@ -1531,13 +1899,16 @@ void CollabClient::DrainCommits() {
         Message m = std::move(it->second);
         _buffered.erase(it);
         if (!ApplyCommit(m)) {
+            if (_layoutHeld) {
+                _buffered.emplace(m.rev, std::move(m));
+            }
             break;
         }
     }
     for (auto it = _buffered.begin(); it != _buffered.end() && it->first <= _applied;) {
         it = _buffered.erase(it);
     }
-    if (_state == State::Active && !_buffered.empty()) {
+    if (_state == State::Active && !_buffered.empty() && !_layoutHeld) {
         RequestResend();
     }
     DrainRejects();
@@ -1613,7 +1984,70 @@ void CollabClient::LowerOverlay() {
     }
 }
 
+bool CollabClient::ApplyLayoutCommit(const Message& m) {
+    bool own = m.participant == _participant;
+    if (!_liveLayout) {
+        // This device doesn't edit the layout live; there is nothing of it
+        // in memory to bring along.
+        _applied = std::max(_applied, m.rev);
+        if (own) {
+            _pending.erase(m.clientSeq);
+        }
+        return true;
+    }
+    auto next = LayoutDelta::Apply(_layout, m.layout);
+    if (!next) {
+        RequestResync("layout commit at rev " + std::to_string(m.rev) + " did not apply");
+        return false;
+    }
+    if (LayoutDelta::Hash(*next) != m.layoutHash && !faults.clientIgnoresDrift) {
+        RequestResync("layout hash differs from the host's after rev " + std::to_string(m.rev));
+        return false;
+    }
+    if (!faults.clientSkipsRebase) {
+        LiftOverlay();
+    }
+    if (_events.onLayout) {
+        LayoutCommitInfo info;
+        info.rev = m.rev;
+        info.author = m.participant;
+        info.clientSeq = m.clientSeq;
+        info.notice = own ? m.text : std::string();
+        if (!_events.onLayout(info, _layout, *next)) {
+            if (!faults.clientSkipsRebase) {
+                LowerOverlay();
+            }
+            _layoutHeld = true;
+            return false;
+        }
+    }
+    if (!faults.clientSkipsLayoutUpdate) {
+        SetLayout(*next);
+    }
+    _applied = std::max(_applied, m.rev);
+    SequenceElements& seq = _doc.Sequence();
+    _hasher.InvalidateAll();
+    uint64_t hash = _hasher.Hash(seq);
+    if (own) {
+        _pending.erase(m.clientSeq);
+    }
+    if (!faults.clientSkipsRebase) {
+        LowerOverlay();
+    }
+    NoteRecent({ m.rev, m.participant, m.clientSeq, EditKind::Edit, 0 }, json{ { "type", "Layout" } });
+    if (!faults.clientIgnoresDrift && hash != m.docHash) {
+        Log("document parts after layout rev " + std::to_string(m.rev) + ":\n" + DocHasher::Components(seq));
+        RequestResync("document hash " + std::to_string(hash) + " differs from the host's " + std::to_string(m.docHash) + " after layout rev " +
+                      std::to_string(m.rev));
+        return false;
+    }
+    return true;
+}
+
 bool CollabClient::ApplyCommit(const Message& m) {
+    if (!m.layout.is_null()) {
+        return ApplyLayoutCommit(m);
+    }
     SequenceElements& seq = _doc.Sequence();
     std::unique_ptr<SequenceCommand> cmd = DeserializeCommand(m.command);
     if (cmd == nullptr) {
@@ -1704,16 +2138,37 @@ void CollabClient::HandleReject(const Message& m) {
     if (p == _pending.end()) {
         return;
     }
+    if (p->second.withdrawn) {
+        _pending.erase(p);
+        return;
+    }
+    bool layout = !p->second.msg.layout.is_null();
     _pending.erase(p);
     _ownMeta.erase(m.clientSeq);
+    if (layout) {
+        Log("layout proposal " + std::to_string(m.clientSeq) + " not committed: " + m.reason);
+        if (_events.onLayoutRejected) {
+            _events.onLayoutRejected(m.clientSeq, m.reason, m.text);
+        }
+        return;
+    }
     SequenceElements& seq = _doc.Sequence();
+    // What the rollback does, for the app to re-render like any change.
+    auto applied = std::make_unique<BatchCommand>("Rejected");
+    std::vector<std::unique_ptr<SequenceCommand>> inverses;
+    auto note = [&](Applied a) {
+        if (a.first != nullptr) {
+            applied->Add(std::move(a.first));
+            inverses.push_back(std::move(a.second));
+        }
+    };
     for (auto it = _overlay.begin(); it != _overlay.end();) {
         if (it->second.seq != m.clientSeq) {
             ++it;
             continue;
         }
         if (FindEffect(seq, it->second.loc) != nullptr) {
-            SetKey(it->second.loc, std::get<1>(it->first), std::get<2>(it->first), it->second.host);
+            note(SetKey(it->second.loc, std::get<1>(it->first), std::get<2>(it->first), it->second.host));
         }
         it = _overlay.erase(it);
     }
@@ -1723,9 +2178,14 @@ void CollabClient::HandleReject(const Message& m) {
             continue;
         }
         if (FindEffect(seq, it->second.loc) != nullptr) {
-            SetTimes(it->second.loc, it->second.host);
+            note(SetTimes(it->second.loc, it->second.host));
         }
         it = _times.erase(it);
+    }
+    if (!inverses.empty() && _events.onRolledBack) {
+        std::reverse(inverses.begin(), inverses.end());
+        BatchCommand inverse("Rejected", std::move(inverses));
+        _events.onRolledBack(*applied, inverse);
     }
     Log("proposal " + std::to_string(m.clientSeq) + " rejected: " + m.reason);
     if (_events.onReject) {
@@ -1868,9 +2328,27 @@ SubmitResult CollabClient::SubmitKind(std::unique_ptr<SequenceCommand> cmd, Edit
     return { true, s, "", optimistic };
 }
 
+SubmitResult CollabClient::ProposeLayout(const json& delta) {
+    if (_state != State::Active || !_liveLayout || delta.is_null()) {
+        return { false, 0, "not_active" };
+    }
+    uint64_t s = _nextSeq++;
+    Message m;
+    m.type = MsgType::Propose;
+    m.clientSeq = s;
+    m.baseRev = _applied;
+    m.layout = delta;
+    _pending[s] = { m, _now, false };
+    Send(m);
+    return { true, s, "" };
+}
+
 std::vector<CollabClient::PendingProposal> CollabClient::PendingProposals() const {
     std::vector<PendingProposal> out;
     for (const auto& [s, p] : _pending) {
+        if (!p.msg.layout.is_null() || p.withdrawn) {
+            continue;
+        }
         out.push_back({ s, p.msg.kind, p.optimistic, p.msg.command });
     }
     return out;
@@ -1898,6 +2376,7 @@ void CollabClient::Tick(uint64_t nowMs) {
             h.appVersion = _opts.appVersion;
             h.name = _opts.displayName;
             h.deviceKind = _opts.deviceKind;
+            h.liveLayout = _opts.liveLayout;
             Send(h);
         }
         break;
@@ -1910,6 +2389,7 @@ void CollabClient::Tick(uint64_t nowMs) {
             h.appVersion = _opts.appVersion;
             h.name = _opts.displayName;
             h.deviceKind = _opts.deviceKind;
+            h.liveLayout = _opts.liveLayout;
             Send(h);
         } else if (!_wanted.empty() && _now - _lastFileRequest >= _opts.fileRetryMs) {
             RequestFiles();
@@ -1931,7 +2411,10 @@ void CollabClient::Tick(uint64_t nowMs) {
                 Send(p.msg);
             }
         }
-        if (!_buffered.empty() || _hostHead > _applied) {
+        if (!deferHeldApply) {
+            ApplyHeld();
+        }
+        if (_state == State::Active && !_layoutHeld && (!_buffered.empty() || _hostHead > _applied)) {
             RequestResend();
         }
         break;

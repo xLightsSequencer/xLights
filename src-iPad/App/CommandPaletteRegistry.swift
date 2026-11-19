@@ -183,7 +183,11 @@ enum CommandPaletteRegistry {
         }
         add("FPP Connect…", "Tools", "antenna.radiowaves.left.and.right", "",
             vm.isShowFolderLoaded) {
-            vm.showingFPPConnect = true
+            if let refusal = vm.collabUploadRefusal {
+                vm.showCollabLayoutNotice(refusal)
+            } else {
+                vm.showingFPPConnect = true
+            }
         }
         add("View Log…", "Tools", "text.alignleft", "", true) {
             vm.showingLogViewer = true

@@ -14,6 +14,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/wx.h>
 
+#include "app-shell/Collaboration.h"
 #include "ModelPropertyAdapter.h"
 #include "PropertyGridHelpers.h"
 #include "ScreenLocationPropertyHelper.h"
@@ -60,6 +61,10 @@ class StrandNodeNamesDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     StrandNodeNamesDialogAdapter(Model* model) : wxPGEditorDialogAdapter(), m_model(model) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
+        CollabLayoutEditLock collabLock(m_model, "node names", propGrid);
+        if (!collabLock.Granted()) {
+            return false;
+        }
         StrandNodeNamesDialog dlg(propGrid);
         dlg.Setup(m_model, m_model->GetNodeNames(), m_model->GetStrandNames());
         if (dlg.ShowModal() == wxID_OK) {
@@ -79,6 +84,10 @@ class FacesDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     FacesDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
+        CollabLayoutEditLock collabLock(m_model, "faces", propGrid);
+        if (!collabLock.Granted()) {
+            return false;
+        }
         ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_FACES);
         if (dlg.ShowModal() == wxID_OK && dlg.HasContentChanged()) {
             if (xLightsApp::GetFrame() != nullptr) {
@@ -101,6 +110,10 @@ class AliasDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     AliasDialogAdapter(Model* model) : wxPGEditorDialogAdapter(), m_model(model) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
+        CollabLayoutEditLock collabLock(m_model, "aliases", propGrid);
+        if (!collabLock.Granted()) {
+            return false;
+        }
         EditAliasesDialog dlg(propGrid, m_model);
         if (dlg.ShowModal() == wxID_OK) {
             wxVariant v(CLICK_TO_EDIT);
@@ -117,6 +130,10 @@ class StatesDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     StatesDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
+        CollabLayoutEditLock collabLock(m_model, "states", propGrid);
+        if (!collabLock.Granted()) {
+            return false;
+        }
         ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_STATES);
         if (dlg.ShowModal() == wxID_OK && dlg.HasContentChanged()) {
             wxVariant v(CLICK_TO_EDIT);
@@ -134,6 +151,10 @@ class DimmingCurveDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     DimmingCurveDialogAdapter(Model* model) : wxPGEditorDialogAdapter(), m_model(model) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
+        CollabLayoutEditLock collabLock(m_model, "dimming curve", propGrid);
+        if (!collabLock.Granted()) {
+            return false;
+        }
         ModelDimmingCurveDialog dlg(propGrid);
         auto di = m_model->GetDimmingInfo();
         if (di.empty()) {
@@ -159,6 +180,10 @@ class SubModelsDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     SubModelsDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
+        CollabLayoutEditLock collabLock(m_model, "submodels", propGrid);
+        if (!collabLock.Granted()) {
+            return false;
+        }
         ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_SUBMODELS);
         bool const ok = dlg.ShowModal() == wxID_OK;
         // Export SubModels To Other Models mutates other models immediately, so this

@@ -19,6 +19,7 @@ class SequencerViewModel {
     var collab = CollabState()
     @ObservationIgnored var collabVisibleRange: (Int, Int) = (-1, -1)
     @ObservationIgnored var collabPresencePending = false
+    @ObservationIgnored var collabLayoutSelectionPending = false
     @ObservationIgnored let undoActivity = UndoActivity()
     var undoManager: UndoManager { undoActivity.manager }
     /// Inspector edits of one setting on one effect that follow each
@@ -398,6 +399,13 @@ class SequencerViewModel {
     /// are read-only and show `layoutLockReason`.
     var isLayoutLocked = false
     var layoutLockReason = ""
+    /// Sequence settings stay frozen for a whole collaboration session
+    /// (live layout or not); the reason, empty when they can be edited.
+    var sequenceSettingsFrozenReason = ""
+    var isSequenceSettingsFrozen: Bool { isLayoutLocked || !sequenceSettingsFrozenReason.isEmpty }
+    /// Why this device can't write the layout files (a client in a live
+    /// layout session), empty when it can.
+    var layoutSaveRefusal = ""
     @ObservationIgnored private var layoutLockObserver: NSObjectProtocol?
 
     // Rendering (background)
@@ -481,13 +489,17 @@ class SequencerViewModel {
     // property panel, drag origin). The full selection set lives in
     // `layoutEditorSelection`; the primary is conventionally
     // `selection.first` of insertion order (the last model added).
-    var layoutEditorSelectedModel: String? = nil
+    var layoutEditorSelectedModel: String? = nil {
+        didSet { if oldValue != layoutEditorSelectedModel { scheduleCollabLayoutSelection() } }
+    }
     /// Phase J-4 (multi-select) — full selection set. Empty when
     /// nothing's selected. Contains exactly `layoutEditorSelectedModel`
     /// for single-select; multiple entries when the user has
     /// activated edit mode and tapped / marqueed multiple models.
     /// Align / distribute / multi-delete operate on this set.
-    var layoutEditorSelection: Set<String> = []
+    var layoutEditorSelection: Set<String> = [] {
+        didSet { if oldValue != layoutEditorSelection { scheduleCollabLayoutSelection() } }
+    }
     /// Phase J-4 (multi-select) — when true, taps on the canvas
     /// toggle a model's membership in the selection set instead of
     /// replacing the selection. Driven by a "Select" toggle in the
@@ -500,8 +512,12 @@ class SequencerViewModel {
     /// so flipping tabs doesn't lose the model pick. The canvas
     /// reads these via PreviewPaneView and tints / draws handles
     /// accordingly.
-    var layoutEditorSelectedGroup: String? = nil
-    var layoutEditorSelectedObject: String? = nil
+    var layoutEditorSelectedGroup: String? = nil {
+        didSet { if oldValue != layoutEditorSelectedGroup { scheduleCollabLayoutSelection() } }
+    }
+    var layoutEditorSelectedObject: String? = nil {
+        didSet { if oldValue != layoutEditorSelectedObject { scheduleCollabLayoutSelection() } }
+    }
     /// J-31 — Controllers tab selection. Drives the canvas tint
     /// (via `XLMetalBridge.setSelectedController:`) so every
     /// model assigned to this controller renders in the group-
@@ -1319,9 +1335,12 @@ class SequencerViewModel {
     }
 
     private func maybeAutoUpdateFromBaseShowFolder() async {
+        // In a collaboration session the layout is the session's, not the
+        // base folder's.
         guard document.autoUpdateFromBaseShowDirectory(),
               document.baseShowDirectory() != nil,
-              !document.isLayoutLocked() else { return }
+              !document.isLayoutLocked(),
+              !collab.inSession else { return }
         // updateFromBaseShowDirectory does heavy synchronous C++ work —
         // OutputManager/ModelManager/ViewObjectManager::MergeFromBase plus
         // security-scoped access on the base folder and every referenced mesh
@@ -2827,7 +2846,18 @@ class SequencerViewModel {
 
     func refreshLayoutLock() {
         isLayoutLocked = document.isLayoutLocked()
+        if isLayoutLocked {
+            // Disarm model placement: every tap would be refused. A
+            // polyline being extended is already in the layout and stays.
+            layoutPendingNewModelType = nil
+            layoutPolylineInProgress = nil
+            layoutPendingImportPath = nil
+            layoutPendingImportTargetGroup = nil
+            layoutPendingImportGdtfMode = nil
+        }
         layoutLockReason = document.layoutLockReason()
+        sequenceSettingsFrozenReason = document.sequenceSettingsRefusal()
+        layoutSaveRefusal = document.layoutSaveRefusal()
     }
 
     func stopMemoryMonitoring() {
@@ -3954,6 +3984,9 @@ class SequencerViewModel {
             document.stopOutput()
             isOutputting = false
             return nil
+        }
+        if let refusal = collabOutputRefusal {
+            return refusal
         }
         if document.outputCount() == 0 {
             return "No controllers are configured for this show. Set up controllers in desktop xLights and copy the show folder to the iPad."

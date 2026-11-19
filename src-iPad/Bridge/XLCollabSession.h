@@ -40,6 +40,13 @@ typedef NS_ENUM(NSInteger, XLCollabEvent) {
     // Sent synchronously just before a joined sequence replaces the open
     // one: stop playback and anything else reading the old sequence.
     XLCollabEventWillReplaceSequence = 11,
+    // The session's layout reached memory: models, groups, view objects or
+    // controllers changed. payload: XLCollabLayoutChange.
+    XLCollabEventLayoutApplied = 12,
+    // Someone's layout selection or modal-editor lock changed.
+    XLCollabEventLayoutPresenceChanged = 13,
+    // A layout change of this user was not (fully) taken. payload: NSString.
+    XLCollabEventLayoutRejected = 14,
 };
 
 typedef NS_ENUM(NSInteger, XLCollabChangeCause) {
@@ -158,6 +165,29 @@ typedef NS_ENUM(NSInteger, XLCollabGhostKind) {
 @property (nonatomic, readonly) double flashSecondsLeft;
 @end
 
+@interface XLCollabLayoutChange : NSObject
+@property (nonatomic, readonly) BOOL layoutChanged;
+@property (nonatomic, readonly) BOOL controllersChanged;
+// Names after the change.
+@property (nonatomic, readonly) NSArray<NSString*>* modelsChanged;
+@property (nonatomic, readonly) NSArray<NSString*>* modelsRemoved;
+// Pairs of old name, new name.
+@property (nonatomic, readonly) NSArray<NSArray<NSString*>*>* modelsRenamed;
+@end
+
+// What the layout editor shows for one model, group or view object others
+// are working on.
+@interface XLCollabLayoutMark : NSObject
+@property (nonatomic, readonly) NSString* name;
+// Colours of the others who have it selected.
+@property (nonatomic, readonly) NSArray<NSNumber*>* outlineColors;
+// Who has it open in a modal editor (empty: nobody), and in which.
+@property (nonatomic, readonly) NSString* lockHolder;
+@property (nonatomic, readonly) uint32_t lockColorRGB;
+// "Sam is editing Arch 1's submodels".
+@property (nonatomic, readonly) NSString* lockText;
+@end
+
 // (row, effect) pair for presence input.
 @interface XLCollabEffectRef : NSObject
 - (instancetype)initWithRow:(NSInteger)row effect:(NSInteger)effect;
@@ -232,6 +262,28 @@ typedef void (^XLCollabEventHandler)(XLCollabEvent event, id _Nullable payload);
 // sequence), through the same render entry point a local edit uses.
 - (void)renderModelNamed:(NSString*)modelName startMS:(NSInteger)startMS endMS:(NSInteger)endMS
     NS_SWIFT_NAME(renderModel(named:startMS:endMS:));
+
+// ---- Layout ----
+// The session edits the layout live (the layout editor is open to everyone).
+@property (nonatomic, readonly) BOOL liveLayout;
+// The models / groups and view objects selected in this user's layout editor.
+- (void)setLayoutSelectionModels:(NSArray<NSString*>*)models objects:(NSArray<NSString*>*)objects
+    NS_SWIFT_NAME(setLayoutSelection(models:objects:));
+// Before opening a modal editor on one model, group or view object
+// (`what`: "submodels", "faces", ...): nil when this user now holds it,
+// else the readable reason ("Sam is editing Arch 1's submodels"). Call
+// endLayoutLock when the editor closes, whichever way.
+- (nullable NSString*)beginLayoutLockOn:(NSString*)name what:(NSString*)what
+    NS_SWIFT_NAME(beginLayoutLock(on:what:));
+- (void)endLayoutLock NS_SWIFT_NAME(endLayoutLock());
+// Why `name` is read-only here (someone else has it open in a modal
+// editor), or nil.
+- (nullable NSString*)layoutReadOnlyReason:(NSString*)name NS_SWIFT_NAME(layoutReadOnlyReason(_:));
+// Every layout object others have selected or locked.
+- (NSArray<XLCollabLayoutMark*>*)layoutMarks NS_SWIFT_NAME(layoutMarks());
+// A layout text field gained or lost focus: proposals wait while one holds
+// uncommitted typing.
++ (void)noteLayoutFieldFocused:(BOOL)focused NS_SWIFT_NAME(noteLayoutFieldFocused(_:));
 
 @end
 

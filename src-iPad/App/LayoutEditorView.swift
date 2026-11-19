@@ -893,7 +893,7 @@ struct LayoutEditorView: View {
         // cover on iPad so the canvas gets the whole window (the
         // detent-clamped sheet was way too small for placing
         // pixels on dense grids).
-        .fullScreenCover(item: $customModelEditorPayload) { payload in
+        .fullScreenCover(item: $customModelEditorPayload, onDismiss: { viewModel.endCollabLayoutLock() }) { payload in
             CustomModelEditorSheet(payload: payload,
                                    commit: { w, h, d, locs in
                                        commitCustomModelGrid(
@@ -1611,6 +1611,10 @@ struct LayoutEditorView: View {
     /// the wait.
     private func startControllerUpload(name: String) {
         guard !uploadRunning else { return }
+        if let refusal = viewModel.collabUploadRefusal {
+            uploadResult = refusal
+            return
+        }
         // Theme-07 — pre-upload FPP-proxy validation. Desktop calls
         // FPP::ValidateProxy before every upload and warns on failure;
         // the user may still continue. We do the (potentially slow)
@@ -1634,6 +1638,10 @@ struct LayoutEditorView: View {
 
     private func runControllerUpload(name: String) {
         guard !uploadRunning else { return }
+        if let refusal = viewModel.collabUploadRefusal {
+            uploadResult = refusal
+            return
+        }
         uploadRunning = true
         let doc = viewModel.document
         // Read the caps once on the main thread; the detached task
@@ -1712,6 +1720,10 @@ struct LayoutEditorView: View {
     /// callback. Closed-firmware controllers are skipped by the bridge.
     private func startBulkUpload() {
         guard bulkUploadState == nil else { return }
+        if let refusal = viewModel.collabUploadRefusal {
+            uploadResult = refusal
+            return
+        }
         let names = openSourceUploadableControllerNames()
         guard !names.isEmpty else {
             uploadResult = "No open-source-firmware controllers support upload. Closed-firmware vendor uploads are not available on iPad."
@@ -2483,6 +2495,17 @@ struct LayoutEditorView: View {
                         .foregroundStyle(.blue)
                         .help("Linked to base show folder — most edits are disabled until Unlink from Base Show Folder.")
                 }
+                // Others in a live collaboration session who have it
+                // selected, or open in a modal editor.
+                if let mark = viewModel.collab.layoutMarks[name] {
+                    Spacer(minLength: 4)
+                    if !mark.outlines.isEmpty {
+                        CollabLayoutSelectionDots(colors: mark.outlines)
+                    }
+                    if mark.isLocked {
+                        CollabLayoutLockBadge(mark: mark)
+                    }
+                }
             }
             if let s = secondary, !s.isEmpty {
                 Text(s)
@@ -2705,16 +2728,30 @@ struct LayoutEditorView: View {
     /// current tab's selection. Empty-state hint when nothing is
     /// picked. Each tab's selection is independent — switching tabs
     /// shows the *other* tab's selection's properties.
+    /// The object whose properties the pane shows, when someone else in a
+    /// live collaboration session has it open in a modal editor.
+    private var propertyPaneReadOnlyReason: String? {
+        switch sidebarTab {
+        case .models: return viewModel.collabLayoutReadOnlyReason(viewModel.layoutEditorSelectedModel)
+        case .groups: return viewModel.collabLayoutReadOnlyReason(viewModel.layoutEditorSelectedGroup)
+        case .objects: return viewModel.collabLayoutReadOnlyReason(viewModel.layoutEditorSelectedObject)
+        case .controllers: return nil
+        }
+    }
+
     @ViewBuilder
     private var propertyPane: some View {
         VStack(alignment: .leading, spacing: 0) {
             propertyPaneHeader
             Divider()
+            if let why = propertyPaneReadOnlyReason {
+                CollabLayoutReadOnlyBanner(text: why)
+            }
             ScrollView {
                 // The controllers pane handles the lock through
                 // networkChangesAllowed so ping / open-web-UI still work.
                 propertyPaneBody
-                    .disabled(viewModel.isLayoutLocked && sidebarTab != .controllers)
+                    .disabled((viewModel.isLayoutLocked && sidebarTab != .controllers) || propertyPaneReadOnlyReason != nil)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
@@ -3373,7 +3410,7 @@ struct LayoutEditorView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .disabled(!hasUnsavedChanges || viewModel.isLayoutLocked)
+                    .disabled(!hasUnsavedChanges || viewModel.isLayoutLocked || !viewModel.layoutSaveRefusal.isEmpty)
 
                     if viewModel.isLayoutLocked {
                         Label(viewModel.layoutLockReason, systemImage: "lock.fill")
@@ -3381,6 +3418,13 @@ struct LayoutEditorView: View {
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(.regularMaterial, in: Capsule())
+                    } else if !viewModel.layoutSaveRefusal.isEmpty {
+                        Label("The session host saves the layout", systemImage: "person.2")
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(.regularMaterial, in: Capsule())
+                            .help(viewModel.layoutSaveRefusal)
                     }
 
                     Spacer()
@@ -4120,6 +4164,7 @@ struct LayoutEditorView: View {
     /// the current 3D grid + dims + bg-image fields from the
     /// bridge into a payload, then surfaces the sheet.
     private func openCustomModelEditor(modelName: String) {
+        guard viewModel.beginCollabLayoutLock(on: modelName, what: "custom model") else { return }
         let raw = viewModel.document.customModelData(forModel: modelName) as NSDictionary
         let width  = (raw["width"]  as? NSNumber)?.intValue ?? 1
         let height = (raw["height"] as? NSNumber)?.intValue ?? 1
@@ -4886,6 +4931,10 @@ struct LayoutEditorView: View {
     }
 
     private func saveLayoutChanges() {
+        if !viewModel.layoutSaveRefusal.isEmpty {
+            saveErrorMessage = viewModel.layoutSaveRefusal
+            return
+        }
         let changed = viewModel.document.layoutFilesChangedOnDisk()
         if !changed.isEmpty {
             layoutSaveConflict = ShowFileSaveConflict(kind: .layout, fileNames: changed)
@@ -5025,6 +5074,13 @@ private struct LayoutEditorPropertiesView: View {
     let onLoadDimming: () -> [String: [String: String]]
     let onCommitDimming: (_ entries: [String: [String: String]]) -> Void
     let onOpenCustomModelEditor: () -> Void
+    @Environment(SequencerViewModel.self) private var viewModel
+
+    /// A modal editor of this model opens only once a live collaboration
+    /// session grants it; the sheet's dismissal releases it.
+    private func openLocked(_ what: String, _ open: () -> Void) {
+        if viewModel.beginCollabLayoutLock(on: modelName, what: what) { open() }
+    }
 
     @State private var expandedTypeProps: Bool = true
     @State private var expandedController: Bool = false
@@ -5225,7 +5281,7 @@ private struct LayoutEditorPropertiesView: View {
                             // its own attribute map (type / gamma
                             // / offset / etc.).
                             Button {
-                                dimmingEditorVisible = true
+                                openLocked("dimming curve") { dimmingEditorVisible = true }
                             } label: {
                                 Image(systemName: "pencil")
                                     .font(.caption2)
@@ -5249,7 +5305,7 @@ private struct LayoutEditorPropertiesView: View {
                 }
                 .opacity(isDisabled("dimmingCurve") ? 0.45 : 1.0)
             }
-            .sheet(isPresented: $dimmingEditorVisible) {
+            .sheet(isPresented: $dimmingEditorVisible, onDismiss: { viewModel.endCollabLayoutLock() }) {
                 FaceStateEditorSheet(
                     payload: FaceStatePayload(
                         kind: .dimming,
@@ -5367,28 +5423,28 @@ private struct LayoutEditorPropertiesView: View {
             }
         }
         .font(.caption.monospacedDigit())
-        .sheet(item: $layerSizesEditorPayload) { payload in
+        .sheet(item: $layerSizesEditorPayload, onDismiss: { viewModel.endCollabLayoutLock() }) { payload in
             LayerSizesEditorSheet(initial: payload.sizes,
                                   commit: { sizes in
                                       typeCommit("LayerSizes",
                                                   sizes.map { NSNumber(value: $0) } as NSArray)
                                   })
         }
-        .sheet(item: $dmxPresetEditorPayload) { payload in
+        .sheet(item: $dmxPresetEditorPayload, onDismiss: { viewModel.endCollabLayoutLock() }) { payload in
             DmxPresetListEditorSheet(initial: payload.entries,
                                       commit: { newEntries in
                                           typeCommit("DmxPresetList",
                                                       newEntries as NSArray)
                                       })
         }
-        .sheet(item: $dmxWheelColorEditorPayload) { payload in
+        .sheet(item: $dmxWheelColorEditorPayload, onDismiss: { viewModel.endCollabLayoutLock() }) { payload in
             DmxWheelColorListEditorSheet(initial: payload.entries,
                                           commit: { newEntries in
                                               typeCommit("DmxWheelColorList",
                                                           newEntries as NSArray)
                                           })
         }
-        .sheet(item: $dmxPositionZoneEditorPayload) { payload in
+        .sheet(item: $dmxPositionZoneEditorPayload, onDismiss: { viewModel.endCollabLayoutLock() }) { payload in
             DmxPositionZoneListEditorSheet(initial: payload.entries,
                                             commit: { newEntries in
                                                 typeCommit("DmxPositionZoneList",
@@ -5406,7 +5462,7 @@ private struct LayoutEditorPropertiesView: View {
                     commit(pendingStartChannelKey, newValue as NSString)
                 })
         }
-        .sheet(item: $modelDataViewer) { kind in
+        .sheet(item: $modelDataViewer, onDismiss: { viewModel.endCollabLayoutLock() }) { kind in
             if kind == .aliases {
                 AliasEditorSheet(modelName: modelName,
                                  initial: entries(for: kind),
@@ -6426,7 +6482,11 @@ private struct LayoutEditorPropertiesView: View {
                     .foregroundStyle(.secondary)
                 if !disabled && (editable || !list.isEmpty) {
                     Button {
-                        modelDataViewer = kind
+                        if editable {
+                            openLocked(kind.lockDescription) { modelDataViewer = kind }
+                        } else {
+                            modelDataViewer = kind
+                        }
                     } label: {
                         Image(systemName: editable ? "pencil" : "list.bullet")
                             .font(.caption2)
@@ -6701,8 +6761,9 @@ private struct LayoutEditorPropertiesView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 130, alignment: .trailing)
                 Button {
-                    dmxPresetEditorPayload = DmxPresetListPayload(
-                        entries: entries)
+                    openLocked("DMX presets") {
+                        dmxPresetEditorPayload = DmxPresetListPayload(entries: entries)
+                    }
                 } label: {
                     Image(systemName: "pencil")
                         .font(.caption2)
@@ -6719,8 +6780,9 @@ private struct LayoutEditorPropertiesView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 130, alignment: .trailing)
                 Button {
-                    dmxWheelColorEditorPayload = DmxWheelColorListPayload(
-                        entries: entries)
+                    openLocked("DMX wheel colours") {
+                        dmxWheelColorEditorPayload = DmxWheelColorListPayload(entries: entries)
+                    }
                 } label: {
                     Image(systemName: "pencil")
                         .font(.caption2)
@@ -6737,8 +6799,9 @@ private struct LayoutEditorPropertiesView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 130, alignment: .trailing)
                 Button {
-                    dmxPositionZoneEditorPayload = DmxPositionZoneListPayload(
-                        entries: entries)
+                    openLocked("DMX position zones") {
+                        dmxPositionZoneEditorPayload = DmxPositionZoneListPayload(entries: entries)
+                    }
                 } label: {
                     Image(systemName: "pencil")
                         .font(.caption2)
@@ -6761,7 +6824,7 @@ private struct LayoutEditorPropertiesView: View {
                     .truncationMode(.middle)
                     .frame(maxWidth: 130, alignment: .trailing)
                 Button {
-                    layerSizesEditorPayload = LayerSizesPayload(sizes: sizes)
+                    openLocked("layer sizes") { layerSizesEditorPayload = LayerSizesPayload(sizes: sizes) }
                 } label: {
                     Image(systemName: "pencil")
                         .font(.caption2)
@@ -6840,6 +6903,19 @@ private enum ModelDataKind: String, Identifiable {
             return true
         default:
             return false
+        }
+    }
+
+    /// For "Sam is editing Arch 1's submodels".
+    var lockDescription: String {
+        switch self {
+        case .submodels: return "submodels"
+        case .faces:     return "faces"
+        case .states:    return "states"
+        case .aliases:   return "aliases"
+        case .strands:   return "strand names"
+        case .nodes:     return "node names"
+        case .groups:    return "groups"
         }
     }
 }
@@ -13473,6 +13549,7 @@ private struct LayoutEditorDoubleField: View {
             .keyboardType(.numbersAndPunctuation)
             .textFieldStyle(.roundedBorder)
             .focused($focused)
+            .modifier(CollabLayoutFieldFocus(focused: focused))
             .id(id)
             .onAppear { draft = format(initial) }
             .onChange(of: id) { _, _ in
@@ -13534,6 +13611,7 @@ private struct LayoutEditorIntSpin: View {
                 // without being clipped.
                 .frame(maxWidth: 95)
                 .focused($focused)
+                .modifier(CollabLayoutFieldFocus(focused: focused))
                 .id(id)
                 .onAppear { draft = "\(initial)" }
                 .onChange(of: id) { _, _ in
@@ -13601,6 +13679,7 @@ private struct LayoutEditorDoubleSpin: View {
                 .textFieldStyle(.roundedBorder)
                 .frame(maxWidth: 80)
                 .focused($focused)
+                .modifier(CollabLayoutFieldFocus(focused: focused))
                 .id(id)
                 .onAppear { draft = format(initial) }
                 .onChange(of: id) { _, _ in
@@ -13667,6 +13746,7 @@ private struct LayoutEditorStringField: View {
             .multilineTextAlignment(.trailing)
             .textFieldStyle(.roundedBorder)
             .focused($focused)
+            .modifier(CollabLayoutFieldFocus(focused: focused))
             .id(id)
             .onAppear { draft = initial }
             .onChange(of: id) { _, _ in
@@ -15056,6 +15136,10 @@ struct LayoutEditorWindowRoot: View {
                                                  }
                                              },
                                              onDismiss: { viewModel.showFileUpdate = nil })
+                    }
+                    if let notice = viewModel.collab.layoutNotice {
+                        CollabLayoutNoticeBanner(notice: notice,
+                                                 onDismiss: { viewModel.collab.layoutNotice = nil })
                     }
                     LayoutEditorView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

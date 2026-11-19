@@ -260,6 +260,21 @@ struct PreviewPaneView: UIViewRepresentable {
                     context.coordinator.lastPushedExtras = extrasKey
                     uiView.setNeedsDisplay()
                 }
+                // Others in a live collaboration session: tint what they
+                // have selected (or open in an editor) in their colour.
+                var remote: [String: NSNumber] = [:]
+                for (name, mark) in viewModel.collab.layoutMarks {
+                    if mark.isLocked {
+                        remote[name] = NSNumber(value: mark.lockColor)
+                    } else if let first = mark.outlines.first {
+                        remote[name] = NSNumber(value: first)
+                    }
+                }
+                if context.coordinator.lastPushedRemoteSelection != remote {
+                    bridge.setRemoteLayoutSelection(remote)
+                    context.coordinator.lastPushedRemoteSelection = remote
+                    uiView.setNeedsDisplay()
+                }
                 // J-6 — Group + ViewObject sidebar selection.
                 // Cyan tint on group members; handles on the
                 // picked view object. Bridge holds the
@@ -384,6 +399,7 @@ struct PreviewPaneView: UIViewRepresentable {
         /// J-2 — true while a one-finger pan started on the
         /// LayoutEditor's selected model and is dragging the model
         /// rather than the camera. Set in .began, cleared in .ended.
+        var lastPushedRemoteSelection: [String: NSNumber] = [:]
         var draggingLayoutModel: Bool = false
         var layoutDragModelName: String? = nil
         /// J-13 — drag-to-move a selected view object. Mirrors
@@ -699,8 +715,17 @@ struct PreviewPaneView: UIViewRepresentable {
         // while pinch/rotate are active, even with simultaneous-recognition
         // enabled. Pinch fires the moment two fingers touch, so the centroid
         // delta gives us reliable two-finger pan for free.
+        /// A live collaboration session waits for a drag, pinch or twist of
+        /// layout objects to end before it sends the change.
+        private func syncLayoutGesture() {
+            let active = draggingLayoutModel || draggingLayoutHandle >= 0 || draggingLayoutViewObject
+                || pinchingLayoutModel || twistingLayoutModel
+            viewModel?.document.setLayoutGestureActive(active)
+        }
+
         @objc func handlePinch(_ recognizer: UIPinchGestureRecognizer) {
             guard let bridge else { return }
+            defer { syncLayoutGesture() }
             switch recognizer.state {
             case .began:
                 // J-2 UX — pinch on the LayoutEditor's selected model body
@@ -784,6 +809,7 @@ struct PreviewPaneView: UIViewRepresentable {
 
         @objc func handleOneFingerPan(_ recognizer: UIPanGestureRecognizer) {
             guard let bridge else { return }
+            defer { syncLayoutGesture() }
             switch recognizer.state {
             case .began:
                 // J-3 (touch UX) — Add Model drag-to-size. If the
@@ -1098,6 +1124,7 @@ struct PreviewPaneView: UIViewRepresentable {
 
         @objc func handleRotate(_ recognizer: UIRotationGestureRecognizer) {
             guard let bridge else { return }
+            defer { syncLayoutGesture() }
             // UIRotationGestureRecognizer's sign is opposite of what feels right
             // for a "grab the house and turn it" gesture — rotating fingers
             // clockwise returns a positive rotation, but the camera yaw needs

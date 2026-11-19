@@ -1091,7 +1091,11 @@ struct FPPConnectMenuItem: View {
             if viewModel.layoutEditorOpen {
                 openWindow(id: "sequencer")
             }
-            viewModel.showingFPPConnect = true
+            if let refusal = viewModel.collabUploadRefusal {
+                viewModel.showCollabLayoutNotice(refusal)
+            } else {
+                viewModel.showingFPPConnect = true
+            }
         }
         .disabled(!viewModel.isShowFolderLoaded)
     }

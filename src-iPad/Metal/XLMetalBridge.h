@@ -108,6 +108,11 @@ NS_ASSUME_NONNULL_BEGIN
 // nil clears.
 - (void)setSelectedController:(nullable NSString*)name;
 
+// Live collaboration: models others in the session have selected or open
+// in a modal editor, drawn in that participant's colour (name -> 0xRRGGBB)
+// unless this user has them selected. Empty / nil clears.
+- (void)setRemoteLayoutSelection:(nullable NSDictionary<NSString*, NSNumber*>*)colors;
+
 // Phase J-6 (sidebar canvas sync) — ViewObject selection. View
 // objects (Mesh / Image / Gridlines / Terrain / Ruler) aren't
 // Models, so they need their own selection slot. When set, the

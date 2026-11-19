@@ -76,6 +76,7 @@ public:
 private:
     // Before the managers: they hold a pointer to it until they are destroyed.
     LayoutLock _layoutLock;
+    LayoutLock _sequenceSettingsLock;
 
 public:
     OutputManager _outputManager;
@@ -146,9 +147,24 @@ public:
     // For a host's layout-file save: true (and logged) while locked. Autosave
     // copies and backups are not the layout file and need not ask.
     bool RefusesLayoutWrite(const char* what) const { return LayoutLock::Refuses(&_layoutLock, what); }
+    // The sequence settings (timing, media, frame rate, ...) alone: a session
+    // that edits the layout live keeps them frozen while the layout is open.
+    // The layout lock freezes them too.
+    void SetSequenceSettingsLock(bool locked, const std::string& reason = std::string());
+    bool IsSequenceSettingsLocked() const { return _layoutLock.IsLocked() || _sequenceSettingsLock.IsLocked(); }
+    // Empty when not locked.
+    std::string GetSequenceSettingsLockReason() const {
+        return _layoutLock.IsLocked() ? _layoutLock.GetReason() : _sequenceSettingsLock.GetReason();
+    }
+    // For the sequence settings editors and setters: true (and logged) while
+    // either lock is on.
+    bool RefusesSequenceSettingsWrite(const char* what) const {
+        return LayoutLock::Refuses(&_layoutLock, what) || LayoutLock::Refuses(&_sequenceSettingsLock, what);
+    }
     // Runs on the thread that called SetCollaborationLock, after the change,
     // so the host can refresh its editors. Not called for the environment
-    // switch (a host reads IsLayoutLocked() when it builds its UI).
+    // switch (a host reads IsLayoutLocked() when it builds its UI). Also runs
+    // after SetSequenceSettingsLock changes it.
     virtual void OnLayoutLockChanged() {}
 
     OutputManager* GetOutputManager() { return &_outputManager; }

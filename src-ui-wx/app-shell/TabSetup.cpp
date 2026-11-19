@@ -1890,6 +1890,11 @@ void xLightsFrame::UploadControllerOutput(Controller* controller) {
 bool xLightsFrame::UploadInputToController(Controller* controller, wxString &message) {
     message.clear();
     bool res = false;
+    if (std::string why = CollabHostOnlyReason("upload to controllers"); !why.empty()) {
+        message = wxString::FromUTF8(why);
+        SetStatusText(message);
+        return res;
+    }
 
     SetStatusText(message);
 
@@ -1975,6 +1980,11 @@ xLightsFrame::ControllerUploadScope::~ControllerUploadScope() {
 bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& message) {
     message.clear();
     bool res = false;
+    if (std::string why = CollabHostOnlyReason("upload to controllers"); !why.empty()) {
+        message = wxString::FromUTF8(why);
+        SetStatusText(message);
+        return res;
+    }
 
     SetStatusText(message);
 

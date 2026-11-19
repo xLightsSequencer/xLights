@@ -45,6 +45,7 @@ class wxStaticText;
 #include <wx/aui/aui.h>
 
 #include <algorithm>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -423,6 +424,21 @@ class LayoutPanel: public wxPanel
         bool SaveEffects();
         // Enables/disables the editors for the collaboration-session layout lock.
         void UpdateLayoutLockState();
+        // Live collaboration: a drag, handle move or model creation is under way.
+        bool IsLayoutEditInProgress() const;
+        // The models, submodels and view objects selected here.
+        std::vector<BaseObject*> GetSelectedLayoutObjects() const;
+        // The object the property grid shows; null when none (or it was freed).
+        BaseObject* GetSelectedBaseObject() const { return IsSelectedBaseObjectValid() ? selectedBaseObject : nullptr; }
+        // Others' selections and modal-editor locks changed: redraw outlines,
+        // badges and the property grid's read-only state.
+        void UpdateCollabPresence();
+        // Before layout records are rebuilt from a collaboration commit: when
+        // the selection (or the hovered object) is one `touched` says will be
+        // replaced, drops it and returns the key of the object to select again
+        // afterwards (empty for none). nullopt when the selection is unaffected.
+        std::optional<std::string> ReleaseSelectionFor(const std::function<bool(const std::string&)>& touched);
+        void ReselectLayoutObject(const std::string& key);
         void UpdatePreview();
         void SelectBaseObject(const std::string & name, bool highlight_tree = true);
         void SelectBaseObject(BaseObject *base_object, bool highlight_tree = true);
@@ -669,7 +685,8 @@ class LayoutPanel: public wxPanel
         bool dimensionsVisible = false;
         bool colSizesSet = false;
         bool layersVisible = false;
-        void DisablePropertyGridForLock();
+        // Empty `reason`: the layout lock's.
+        void DisablePropertyGridForLock(const std::string& reason = std::string());
         // Popup entries that only show or export the layout; allowed while it is locked.
         static bool IsViewOnlyMenuId(int id);
         std::vector<NewModelBitmapButton*> buttons;
@@ -678,6 +695,14 @@ class LayoutPanel: public wxPanel
         std::string _lastXlightsModel = "";
         std::string selectedDmxModelType;
         Model *_newModel = nullptr;
+        int _collabLockIcon = -1;
+        std::set<std::string> _collabBadged;
+        std::string _collabReadOnlyShown;
+        void UpdateCollabBadges(wxTreeListCtrl* tree);
+        void RefreshCollabBadges();
+        // Why the selected object can't be edited here (someone else holds
+        // it in a modal editor); empty when it can.
+        std::string CollabReadOnlyReason(const BaseObject* obj) const;
         ModelGroupPanel *model_grp_panel = nullptr;
         ViewObjectPanel *objects_panel = nullptr;
         ControllerListPanel* controllers_panel = nullptr;

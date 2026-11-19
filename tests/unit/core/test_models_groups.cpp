@@ -163,6 +163,41 @@ TEST_CASE("Removing a member removes its submodel entries too", "[models][group]
     CHECK(g->ModelNames() == std::vector<std::string>{ "A" });
 }
 
+TEST_CASE("Which members go when a model is removed", "[models][group]") {
+    CHECK(ModelGroup::MemberGoesWithModel("Arch", "Arch"));
+    CHECK(ModelGroup::MemberGoesWithModel("Arch/Left", "Arch"));
+    CHECK(ModelGroup::MemberGoesWithModel(" Arch ", "Arch"));
+    CHECK(ModelGroup::MemberGoesWithModel(" Arch/Left", "Arch"));
+    CHECK(ModelGroup::MemberGoesWithModel("Arch", " Arch "));
+    CHECK_FALSE(ModelGroup::MemberGoesWithModel("ArchX", "Arch"));
+    CHECK_FALSE(ModelGroup::MemberGoesWithModel("ArchX/Left", "Arch"));
+    CHECK_FALSE(ModelGroup::MemberGoesWithModel("Arc", "Arch"));
+    CHECK_FALSE(ModelGroup::MemberGoesWithModel("Other/Arch", "Arch"));
+}
+
+TEST_CASE("A group lists a model exactly when removing it changes the group", "[models][group]") {
+    ShowFixture f;
+    f.Line("T", 5);
+    f.Line("TX", 5);
+    f.Line("U", 5);
+    ModelGroup* exact = f.Group("Exact", "T,U");
+    ModelGroup* sub = f.Group("Sub", "T/Left,U");
+    ModelGroup* longer = f.Group("Longer", "TX,U");
+    ModelGroup* padded = f.Group("Padded", "U");
+    padded->AddModel(" T ");
+    for (ModelGroup* g : { exact, sub, longer, padded }) {
+        INFO(g->GetName());
+        const bool lists = g->ListsModelOrSubmodelOf("T");
+        const auto before = g->ModelNames();
+        g->ModelRemoved("T");
+        CHECK(lists == (g->ModelNames() != before));
+    }
+    CHECK(exact->ModelNames() == std::vector<std::string>{ "U" });
+    CHECK(sub->ModelNames() == std::vector<std::string>{ "U" });
+    CHECK(longer->ModelNames() == std::vector<std::string>{ "TX", "U" });
+    CHECK(padded->ModelNames() == std::vector<std::string>{ "U" });
+}
+
 TEST_CASE("RemoveDuplicates keeps the first occurrence", "[models][group]") {
     ShowFixture f;
     f.Line("A", 5);

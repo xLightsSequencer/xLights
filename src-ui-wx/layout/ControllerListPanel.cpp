@@ -957,15 +957,11 @@ void ControllerListPanel::OnPopup(wxCommandEvent& event) {
                 if (targetIp.empty()) {
                     targetIp = c->GetIP();
                 }
-                if (!targetIp.empty() && targetIp != "MULTICAST") {
+                if (!targetIp.empty() && targetIp != "MULTICAST" && !_frame->RefuseIfCollabHostOnly("upload to controllers", this)) {
                     _layoutPanel->UnSelectAllModels();
                     _frame->RecalcModels();
 
-                    if (_frame->mSavedChangeCount != _frame->_sequenceElements.GetChangeCount()) {
-                        if (wxMessageBox("Open sequence has not been saved. If you plan on uploading it to FPP then it needs to be saved. Do you want to save it now?", "Save Sequence", wxYES_NO | wxCENTRE, _frame) == wxYES) {
-                            _frame->SaveSequence();
-                        }
-                    }
+                    _frame->OfferSaveBeforeUpload(_frame);
 
                     FPPConnectDialog dlg(_frame, _frame->GetOutputManager(), targetIp);
                     dlg.ShowModal();

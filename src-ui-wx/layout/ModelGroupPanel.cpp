@@ -21,6 +21,7 @@
 #include <regex>
 
 #include "layout/ModelGroupPanel.h"
+#include "app-shell/Collaboration.h"
 #include "models/ModelManager.h"
 #include "models/ModelGroup.h"
 #include "layout/LayoutPanel.h"
@@ -1527,6 +1528,10 @@ void ModelGroupPanel::OnButtonAliasesClick(wxCommandEvent& event)
     ModelGroup* g = (ModelGroup*)mModels[mGroup];
     if (g == nullptr)
         return;
+    CollabLayoutEditLock collabLock(g, "aliases", this);
+    if (!collabLock.Granted()) {
+        return;
+    }
     auto oldAliases = g->GetAliases();
     EditAliasesDialog dlg(this, g);
 

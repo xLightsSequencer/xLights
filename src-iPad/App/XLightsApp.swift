@@ -279,6 +279,10 @@ struct ContentView: View {
                                    onNewLayer: { viewModel.putRejectedOnNewLayer(toast) },
                                    onDismiss: { viewModel.collab.rejectToast = nil })
             }
+            if viewModel.collab.isVisible, let notice = viewModel.collab.layoutNotice {
+                CollabLayoutNoticeBanner(notice: notice,
+                                         onDismiss: { viewModel.collab.layoutNotice = nil })
+            }
             if viewModel.collab.isVisible, let ended = viewModel.collab.endNotice {
                 CollabEndedBanner(message: ended,
                                   showSaveCopy: viewModel.collab.endedAsClient && viewModel.isSequenceLoaded

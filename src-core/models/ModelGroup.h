@@ -36,6 +36,12 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         // void TestNodeInit() const; // This function should be uncommented for testing issues where model group buffer styles create different numbers of nodes
         virtual unsigned int GetFirstChannel() const override;
         virtual unsigned int GetLastChannel() const override;
+        // Whether the member entry `member` goes when the model `name` is
+        // removed: the model itself or one of its submodels ("name/sub"),
+        // ignoring surrounding whitespace. ModelRemoved's rule.
+        static bool MemberGoesWithModel(const std::string& member, const std::string& name);
+        // True when removing `name` changes this group's members.
+        bool ListsModelOrSubmodelOf(const std::string& name) const;
         void ModelRemoved(const std::string &name);
         virtual bool ModelRenamed(const std::string &oldName, const std::string &newName) override;
         bool SubModelRenamed(const std::string &oldName, const std::string &newName);

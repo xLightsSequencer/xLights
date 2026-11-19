@@ -17,20 +17,30 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/time.h>
+#include <wx/propgrid/propgrid.h>
 
 #include <filesystem>
+#include <map>
+#include <optional>
+#include <set>
 
 #include <pugixml.hpp>
 
 #include "xLightsMain.h"
+#include "app-shell/Collaboration.h"
 #include "app-shell/ShowFileMergeDialog.h"
+#include "collab/CollabLayout.h"
+#include "layout/CollabLayoutOverlay.h"
 #include "sequencer/EffectTreeDialog.h"
 #include "layout/LayoutPanel.h"
 #include "layout/ViewsModelsPanel.h"
 #include "render/ShowFileLiveMerge.h"
 #include "render/ShowMergeApply.h"
 #include "sequencer/MainSequencer.h"
+#include "utils/LayoutObjectId.h"
+#include "utils/LayoutRecords.h"
 #include "utils/ShowFileGuard.h"
+#include "utils/ShowFileMerge.h"
 #include "utils/ShowFileWatcher.h"
 #include "utils/ShowPresence.h"
 #include "globals.h"
@@ -46,6 +56,55 @@ bool ModalDialogOpen() {
         auto* d = dynamic_cast<wxDialog*>(node->GetData());
         if (d != nullptr && d->IsModal()) {
             return true;
+        }
+    }
+    return false;
+}
+
+// The keys (layout id, and name) of the model, group and view object records
+// of `from` that `to` changes or removes: the in-memory objects that applying
+// `to` replaces or frees.
+std::set<std::string> ReplacedRecords(const pugi::xml_document& from, const pugi::xml_document& to) {
+    std::set<std::string> out;
+    pugi::xml_node rf = from.document_element();
+    pugi::xml_node rt = to.document_element();
+    for (const auto& [section, tag] : { std::pair{ "models", "model" }, std::pair{ "modelGroups", "modelGroup" }, std::pair{ "view_objects", "view_object" } }) {
+        std::map<std::string, pugi::xml_node> byId;
+        std::map<std::string, pugi::xml_node> byName;
+        for (pugi::xml_node n : rt.child(section).children(tag)) {
+            std::string id = LayoutObjectId::Read(n);
+            if (!id.empty()) {
+                byId.emplace(id, n);
+            }
+            byName.emplace(LayoutRecords::NameOf(n), n);
+        }
+        for (pugi::xml_node n : rf.child(section).children(tag)) {
+            std::string id = LayoutObjectId::Read(n);
+            std::string name = LayoutRecords::NameOf(n);
+            pugi::xml_node match;
+            if (auto it = byId.find(id); !id.empty() && it != byId.end()) {
+                match = it->second;
+            } else if (auto it2 = byName.find(name); it2 != byName.end() && (id.empty() || LayoutObjectId::Read(it2->second).empty())) {
+                match = it2->second;
+            }
+            if (!match || !ShowFileMerge::RecordsEqual(ShowFileMerge::FileKind::RgbEffects, n, match)) {
+                if (!id.empty()) {
+                    out.insert(id);
+                }
+                out.insert(name);
+            }
+        }
+    }
+    return out;
+}
+
+bool LayoutGridTypingInProgress() {
+    for (wxWindow* w = wxWindow::FindFocus(); w != nullptr; w = w->GetParent()) {
+        if (auto* grid = dynamic_cast<wxPropertyGrid*>(w)) {
+            return grid->IsEditorsValueModified();
+        }
+        if (w->IsTopLevel()) {
+            break;
         }
     }
     return false;
@@ -140,14 +199,27 @@ std::vector<ShowFileLiveMerge::LocalFile> xLightsFrame::LiveShowFiles()
     // Serializing is only worth it for a file with unsaved edits; otherwise
     // memory is the recorded base.
     const bool rgbEdited = UnsavedRgbEffectsChanges;
-    files.push_back({ FileKind::RgbEffects, rgb, rgbEdited, rgbEdited ? BuildEffectsXml() : std::string() });
+    const bool netsEdited = !nets.empty() && (UnsavedNetworkChanges || _outputManager.IsDirty());
+    std::string rgbText;
+    std::string netsText;
+    SerializeLayoutFiles(rgbEdited ? &rgbText : nullptr, netsEdited ? &netsText : nullptr);
+    files.push_back({ FileKind::RgbEffects, rgb, rgbEdited, std::move(rgbText) });
     if (!nets.empty()) {
-        const bool netsEdited = UnsavedNetworkChanges || _outputManager.IsDirty();
-        files.push_back({ FileKind::Networks, nets, netsEdited, netsEdited ? _outputManager.SaveToString() : std::string() });
+        files.push_back({ FileKind::Networks, nets, netsEdited, std::move(netsText) });
     }
     const bool presetsEdited = UnsavedPresetChanges;
     files.push_back({ FileKind::Presets, presets, presetsEdited, presetsEdited ? _effectPresetManager.SaveToText() : std::string() });
     return files;
+}
+
+void xLightsFrame::SerializeLayoutFiles(std::string* rgbEffects, std::string* networks)
+{
+    if (rgbEffects != nullptr) {
+        *rgbEffects = BuildEffectsXml();
+    }
+    if (networks != nullptr) {
+        *networks = _outputManager.SaveToString();
+    }
 }
 
 void xLightsFrame::CheckShowFilesOnDisk()
@@ -162,6 +234,11 @@ void xLightsFrame::CheckShowFilesOnDisk()
     // packaged sequence opened in a temporary folder nobody shares.
     if (!_autoReloadShowFiles || IsNonInteractiveSave() || readOnlyMode || CurrentDir.empty()) {
         _showFileWatcher->Stop();
+        return;
+    }
+    // A collaboration session's layout comes from its host; the host brings
+    // disk changes in and they reach everyone as the host's edits.
+    if (!CollabHostOnlyReason("bring show file changes in").empty()) {
         return;
     }
     const std::string dir = CurrentDir.ToStdString();
@@ -360,6 +437,9 @@ void xLightsFrame::HandleIncomingShowChanges(bool review)
 
 void xLightsFrame::RefreshAfterIncomingShowChanges(const ShowFileLiveMerge::Applied& applied)
 {
+    if (applied.layoutApplied || applied.controllersReloaded || applied.droppedEffects > 0) {
+        ++_layoutChanges;
+    }
     if (applied.droppedEffects > 0 || applied.layout.ModelsChanged()) {
         _sequenceElements.PopulateRowInformation();
         if (mainSequencer != nullptr) {
@@ -397,4 +477,131 @@ void xLightsFrame::RefreshAfterIncomingShowChanges(const ShowFileLiveMerge::Appl
         EffectTreeDlg->InitItems(_effectPresetManager);
         _effectPresetsInitialized = true;
     }
+}
+
+uint64_t xLightsFrame::LayoutGeneration() const
+{
+    return UnsavedRgbEffectsChanges.Generation() + UnsavedNetworkChanges.Generation() + _layoutChanges + AllModels.GetModelGeneration();
+}
+
+bool xLightsFrame::LayoutEditInProgress()
+{
+    return wxWindow::GetCapture() != nullptr || ModalDialogOpen() || LayoutGridTypingInProgress() ||
+           (layoutPanel != nullptr && layoutPanel->IsLayoutEditInProgress()) || _inShowFileCheck;
+}
+
+bool xLightsFrame::ApplySessionLayout(const Collab::LayoutFiles& current, const Collab::LayoutFiles& target, Collab::LayoutApplied& out)
+{
+    out = Collab::LayoutApplied();
+    const bool rgbDiffers = current.rgbEffects != target.rgbEffects;
+    const bool netsDiffer = current.networks != target.networks;
+    if (!rgbDiffers && !netsDiffer) {
+        return true;
+    }
+    if (IsLayoutLocked()) {
+        return false;
+    }
+    // A drag, a model being created and an open dialog (the modal layout
+    // editors, the bulk edits) hold pointers to the models they work on, and
+    // the models being rebuilt may be among them: wait until they are done.
+    if (wxWindow::GetCapture() != nullptr || ModalDialogOpen() || (layoutPanel != nullptr && layoutPanel->IsLayoutEditInProgress()) ||
+        _inShowFileCheck) {
+        return false;
+    }
+    pugi::xml_document mineDoc;
+    pugi::xml_document resultDoc;
+    std::set<std::string> replaced;
+    if (rgbDiffers) {
+        if (!mineDoc.load_string(current.rgbEffects.c_str()) || !resultDoc.load_string(target.rgbEffects.c_str())) {
+            spdlog::error("Collab: a session layout does not parse; not applying it");
+            return false;
+        }
+        replaced = ReplacedRecords(mineDoc, resultDoc);
+    }
+    auto touched = [&](const std::string& key) { return replaced.count(key) > 0; };
+    // Typing not yet committed in the property grid of an object about to be
+    // rebuilt would be lost (or land on a freed object).
+    if (layoutPanel != nullptr && LayoutGridTypingInProgress() && touched(CollabLayoutOverlay::KeyOf(layoutPanel->GetSelectedBaseObject()))) {
+        return false;
+    }
+
+    // Stopping a render may run other events while it waits; edits made then
+    // would be in neither side.
+    const uint64_t generation = LayoutGeneration();
+    if (!AbortRender()) {
+        return false;
+    }
+    if (LayoutGeneration() != generation) {
+        return false;
+    }
+
+    std::optional<std::string> reselect;
+    if (layoutPanel != nullptr && !replaced.empty()) {
+        reselect = layoutPanel->ReleaseSelectionFor(touched);
+    }
+    bool removesModels = false;
+    if (rgbDiffers) {
+        std::set<std::string> after;
+        for (const char* section : { "models", "modelGroups" }) {
+            for (pugi::xml_node n : resultDoc.document_element().child(section).children()) {
+                after.insert(LayoutRecords::NameOf(n));
+            }
+        }
+        for (const char* section : { "models", "modelGroups" }) {
+            for (pugi::xml_node n : mineDoc.document_element().child(section).children()) {
+                removesModels |= after.count(LayoutRecords::NameOf(n)) == 0;
+            }
+        }
+    }
+    if (removesModels) {
+        // Rows or effects the selection points at may go with their model.
+        ClearEffectSelectionForDocumentChange();
+        _sequenceElements.UnSelectAllEffects();
+        if (mainSequencer != nullptr) {
+            mainSequencer->PanelEffectGrid->ClearSelection();
+        }
+    }
+
+    ShowFileLiveMerge::Applied applied;
+    if (rgbDiffers) {
+        applied.layout = ShowMergeApply::ApplyLayout(*this, mineDoc, resultDoc);
+        applied.layoutApplied = true;
+        applied.layoutResult = target.rgbEffects;
+    }
+    if (netsDiffer) {
+        applied.controllersReloaded = ShowMergeApply::ReloadControllers(*this, target.networks, true);
+    }
+    RefreshAfterIncomingShowChanges(applied);
+    if (applied.controllersReloaded && layoutPanel != nullptr) {
+        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CollabLayout");
+    }
+
+    // The host saves the session's layout, and a client on its own show folder
+    // may save it there after the session. A session copy is thrown away, so
+    // it is never marked (restoring the show folder would offer to save it).
+    if (_collab != nullptr && (_collab->Controller().GetRole() == Collab::CollabController::Role::Host || !_collab->OnSessionCopy())) {
+        if (rgbDiffers) {
+            UnsavedRgbEffectsChanges = { true, "collaboration session layout change" };
+        }
+        if (netsDiffer) {
+            UnsavedNetworkChanges = { true, "collaboration session controller change" };
+        }
+        UpdateLayoutSave();
+    }
+
+    if (reselect && !reselect->empty() && layoutPanel != nullptr) {
+        layoutPanel->ReselectLayoutObject(*reselect);
+    }
+
+    const auto& c = applied.layout;
+    out.layoutChanged = applied.layoutApplied && c.Any();
+    out.controllersChanged = applied.controllersReloaded;
+    out.modelsChanged = c.modelsAdded;
+    out.modelsChanged.insert(out.modelsChanged.end(), c.modelsChanged.begin(), c.modelsChanged.end());
+    out.modelsRemoved = c.modelsRemoved;
+    out.modelsRenamed = c.modelsRenamed;
+    for (const auto& l : c.Warnings()) {
+        spdlog::info("Collab: layout commit: {}", l);
+    }
+    return true;
 }

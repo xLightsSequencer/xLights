@@ -86,11 +86,12 @@ struct SequenceSettingsSheet: View {
                     }
                 }
                 // Desktop opens its settings dialog read-only the same way.
-                .disabled(viewModel.isLayoutLocked)
+                .disabled(viewModel.isSequenceSettingsFrozen)
             }
             .safeAreaInset(edge: .top) {
-                if viewModel.isLayoutLocked {
-                    Label(viewModel.layoutLockReason, systemImage: "lock.fill")
+                if viewModel.isSequenceSettingsFrozen {
+                    Label(viewModel.isLayoutLocked ? viewModel.layoutLockReason : viewModel.sequenceSettingsFrozenReason,
+                          systemImage: "lock.fill")
                         .font(.caption)
                         .frame(maxWidth: .infinity)
                         .padding(6)

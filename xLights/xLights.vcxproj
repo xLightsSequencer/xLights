@@ -1045,6 +1045,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\collab\CollabCommandInfo.cpp" />
     <ClCompile Include="..\src-core\collab\CollabController.cpp" />
     <ClCompile Include="..\src-core\collab\CollabDocHash.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabLayout.cpp" />
     <ClCompile Include="..\src-core\collab\CollabManifest.cpp" />
     <ClCompile Include="..\src-core\collab\CollabMessages.cpp" />
     <ClCompile Include="..\src-core\collab\CollabNet.cpp" />
@@ -1608,6 +1609,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\utils\LayoutRecords.h" />
     <ClInclude Include="..\src-core\utils\LayoutRenameHints.h" />
     <ClInclude Include="..\src-core\utils\LayoutRenameLog.h" />
+    <ClInclude Include="..\src-core\utils\LayoutDirt.h" />
     <ClInclude Include="..\src-core\utils\LayoutLock.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
@@ -1757,6 +1759,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\collab\CollabCommandInfo.h" />
     <ClInclude Include="..\src-core\collab\CollabController.h" />
     <ClInclude Include="..\src-core\collab\CollabDocHash.h" />
+    <ClInclude Include="..\src-core\collab\CollabLayout.h" />
     <ClInclude Include="..\src-core\collab\CollabManifest.h" />
     <ClInclude Include="..\src-core\collab\CollabMessages.h" />
     <ClInclude Include="..\src-core\collab\CollabNet.h" />
@@ -1896,6 +1899,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\shared\utils\xlSlider.h" />
     <ClInclude Include="..\src-ui-wx\shared\controls\MediaPickerCtrl.h" />
     <ClInclude Include="..\src-ui-wx\graphics\wxTextDrawingContext.h" />
+    <ClInclude Include="..\src-ui-wx\layout\CollabLayoutOverlay.h" />
     <ClInclude Include="..\src-ui-wx\layout\ControllerListPanel.h" />
     <ClInclude Include="..\src-ui-wx\layout\ControllerTreeUtils.h" />
     <ClInclude Include="..\src-ui-wx\layout\ControllerFullColumnsDialog.h" />

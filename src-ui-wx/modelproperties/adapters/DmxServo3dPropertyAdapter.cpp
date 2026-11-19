@@ -13,6 +13,7 @@
 #include <wx/propgrid/editors.h>
 #include <wx/msgdlg.h>
 
+#include "app-shell/Collaboration.h"
 #include "DmxServo3dPropertyAdapter.h"
 #include "../helpers/DmxAbilityPropertyHelpers.h"
 #include "../helpers/DmxComponentPropertyHelpers.h"
@@ -35,6 +36,10 @@ public:
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* WXUNUSED(property)) override
     {
+        CollabLayoutEditLock collabLock(m_model, "DMX setup", propGrid);
+        if (!collabLock.Granted()) {
+            return false;
+        }
         ServoConfigDialog dlg(propGrid);
 
         dlg.CheckBox_16bits->SetValue(m_model->Is16Bit());

@@ -43,6 +43,15 @@ void xLightsShowContext::SetCollaborationLock(bool locked, const std::string& re
     OnLayoutLockChanged();
 }
 
+void xLightsShowContext::SetSequenceSettingsLock(bool locked, const std::string& reason) {
+    if (locked == _sequenceSettingsLock.IsLocked() && (!locked || reason.empty() || reason == _sequenceSettingsLock.GetReason())) {
+        return;
+    }
+    _sequenceSettingsLock.Set(locked, reason);
+    spdlog::info("Sequence settings lock {}{}", locked ? "on: " : "off", locked ? _sequenceSettingsLock.GetReason() : std::string());
+    OnLayoutLockChanged();
+}
+
 void xLightsShowContext::ApplyLayoutLockFromEnvironment() {
     const char* e = std::getenv("XL_COLLAB_LAYOUT_LOCK");
     if (e != nullptr && *e != '\0' && std::string_view(e) != "0") {

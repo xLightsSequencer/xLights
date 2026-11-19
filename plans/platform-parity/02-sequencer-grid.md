@@ -222,7 +222,7 @@ _Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ miss
 ## Live collaboration
 
 Shared sequence editing between Macs and iPads on a local network (`src-core/collab/CollabController.h`). The core
-(transport, session, controller, edit routing, undo redirect, layout lock) is shared; each platform wires the
+(transport, session, controller, edit routing, undo redirect, live layout merge, layout and sequence-settings locks) is shared; each platform wires the
 `ICollabApp` hooks and draws presence. Hidden unless the "Live collaboration (beta)" preference is on and a LAN
 transport exists (Apple only; Windows/Linux have none, see `15-desktop-platform-matrix.md`).
 
@@ -245,6 +245,11 @@ transport exists (Apple only; Windows/Linux have none, see `15-desktop-platform-
 | LC13 | Pending edits drawn as dashed translucent ghosts; remote edits flash ~1 s | `src-ui-wx/sequencer/EffectsGrid.cpp:9695` `DrawCollabOverlay` (ghosts, `flashUntil`); overlay built `src-ui-wx/app-shell/Collaboration.cpp:576` `RebuildOverlay` |
 | LC14 | Remote edits rebuild rows / redraw and re-render the changed rows, visible range first (`xLightsShowContext::MarkRemoteChange`); a whole new document or media change re-renders everything | `src-ui-wx/app-shell/Collaboration.cpp:815` `OnSequenceChanged` (`EVT_ROW_HEADINGS_CHANGED`, `MarkRemoteChange`, full range via `EffectsGrid::sendRenderEvent`) |
 | LC15 | Joining loads the host's sequence like opening a file | `src-ui-wx/app-shell/Collaboration.cpp:652` `LoadXsq` (writes the snapshot to a temporary folder, `OpenSequence`) |
+| LC16 | Live layout editing in a session: layout and controller edits from any editor go out per record when the edit comes to rest (`Collab::ICollabLayout`, shared `LayoutDelta` / host merge in `src-core/collab/CollabLayout.cpp`) and others' commits are applied in place | Hooks `src-ui-wx/app-shell/Collaboration.cpp` (ICollabLayout section); generation `src-ui-wx/xLightsMain.h` `xlUnsavedFlag::Generation`, `src-ui-wx/app-shell/ShowFileWatch.cpp` `LayoutGeneration` / `SerializeLayoutFiles` / `ApplySessionLayout`; edit-in-progress `src-ui-wx/layout/LayoutPanel.cpp` `IsLayoutEditInProgress` |
+| LC17 | Modal single-model editors (custom model, submodels, faces, states, aliases, node names, dimming curve, DMX setup, position zones) take a session lock; others can't open them and see the model read-only | `src-ui-wx/app-shell/Collaboration.cpp` `CollabLayoutEditLock`; `src-ui-wx/layout/LayoutPanel.cpp` EditSubmodels/EditFaces/EditStates/EditModelData; `src-ui-wx/modelproperties/ModelPropertyAdapter.cpp`; read-only grid `src-ui-wx/layout/LayoutPanel.cpp` `SetupPropGrid` |
+| LC18 | Layout presence: others' selected models drawn in their colour in the layout preview; padlock and "<name> is editing …" on locked models in the model list | `src-ui-wx/layout/CollabLayoutOverlay.h`; `src-ui-wx/layout/ModelPreview.cpp` (selection tint); model list badges `src-ui-wx/layout/LayoutPanel.cpp` |
+| LC19 | In a session only the host saves the layout and controllers, uploads to controllers and outputs to lights; sequence settings stay frozen (`xLightsShowContext::SetSequenceSettingsLock`) | `src-ui-wx/app-shell/Collaboration.cpp` `CollabHostOnlyReason` (`CanDriveControllers`), `SequenceSettingsFreezeReason`; `src-ui-wx/app-shell/TabSequence.cpp` `SaveShowFiles`; `src-ui-wx/app-shell/TabSetup.cpp` uploads; `src-ui-wx/xLightsMain.cpp` `ForceEnableOutputs` |
+| LC20 | A joiner whose layout differs works on a session copy of the host's show instead of being refused; a client on its own show folder keeps the session's layout changes as unsaved edits afterwards | Core `src-core/collab/CollabSession.cpp` (join against the session layout); `src-ui-wx/app-shell/ShowFileWatch.cpp` `ApplySessionLayout` (dirty marking) |
 
 ### iPad rows
 
@@ -264,6 +269,11 @@ transport exists (Apple only; Windows/Linux have none, see `15-desktop-platform-
 | C-i12 | Reject toast with "Put on New Layer" | ✅ | `src-iPad/App/Collaboration.swift:233`; `src-iPad/App/CollaborationViews.swift:437` `CollabRejectBanner`, hosted `src-iPad/App/XLightsApp.swift:278` |
 | C-i13 | Pending-edit ghosts (dashed, translucent) and ~1 s remote-edit highlight within the visible range | ✅ | Ghosts and flash `src-iPad/App/EffectsMetalGridView.swift:950`, dashes `:1015`; flash expiry `src-iPad/Bridge/XLCollabSession.mm:731` (1 s, visible range only) |
 | C-i14 | Preference "Live collaboration (beta)" (default off) and display name | ✅ | `src-iPad/App/FolderConfigView.swift:348` |
+| C-i15 | Live layout editing in a session (LC16): layout edits go out when they come to rest; others' commits applied in place; remote edits on an iPad host reach disk through the load-modify-write save (`LayoutDirt::AdoptBase`) | ✅ | `src-iPad/Bridge/XLCollabSession.mm` `iPadCollabApp` (ICollabLayout); `src-iPad/Bridge/iPadCollabLayout.cpp` `LayoutGeneration` / `SerializeLayoutFiles` / `ApplyLiveLayout`; `src-core/utils/LayoutDirt.h` (tests `tests/unit/core/test_layout_dirt.cpp`); bridge gate `src-iPad/Bridge/XLSequenceDocument.mm` `refusesLayoutEdit` |
+| C-i16 | Modal-editor locks (LC17): custom model, dimming curve, submodels/faces/states/aliases/strand and node names, DMX presets/wheel/zones, controller properties; locked objects read-only with banner | ✅ | `src-iPad/App/CollaborationLayout.swift`; `src-iPad/App/LayoutEditorView.swift` (read-only pane, sheet locks); `src-iPad/App/ControllerVisualizeView.swift` |
+| C-i17 | Layout presence (LC18): others' selections tinted in their colour on the layout canvas; lock badge and selection dots in the model/group/object lists | 🟡 | `src-iPad/App/PreviewPaneView.swift`, `src-iPad/Metal/XLMetalBridge.mm` (tint, no outline primitive); lists `src-iPad/App/LayoutEditorView.swift` `rosterRow`. Groups a peer selects show only in the list |
+| C-i18 | Host-only save / upload / output / Light Test / FPP Connect, frozen sequence settings (LC19) | ✅ | `src-iPad/Bridge/iPadCollabLayout.cpp` `RefusesLayoutFileWrite` / `RefusesSequenceSettingsWrite`; `src-iPad/App/LayoutEditorView.swift` (Save, uploads); `src-iPad/App/LightTestSheet.swift`; `src-iPad/App/SequencerViewModel.swift` `toggleOutput` |
+| C-i19 | Joining with a different layout uses a session copy (LC20); clients keep the session layout as unsaved after the session | ✅ | Core join; `src-iPad/Bridge/iPadCollabLayout.cpp` `ApplyLiveLayout` (`AdoptBase`) |
 
 ## Desktop platform differences (macOS vs Windows vs Linux)
 

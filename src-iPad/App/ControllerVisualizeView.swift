@@ -175,7 +175,7 @@ struct ControllerVisualizeView: View {
         } message: {
             Text(portEditError ?? "")
         }
-        .sheet(item: $modelPropertiesTarget) { target in
+        .sheet(item: $modelPropertiesTarget, onDismiss: { viewModel.endCollabLayoutLock() }) { target in
             ModelControllerPropertiesSheet(
                 modelName: target.modelName,
                 portKind: target.portKind,
@@ -495,9 +495,11 @@ struct ControllerVisualizeView: View {
                                   systemImage: "scope")
                         }
                         Button {
-                            modelPropertiesTarget = ModelPropertiesTarget(
-                                modelName: entry.name,
-                                portKind: section.kind)
+                            if viewModel.beginCollabLayoutLock(on: entry.name, what: "controller connection") {
+                                modelPropertiesTarget = ModelPropertiesTarget(
+                                    modelName: entry.name,
+                                    portKind: section.kind)
+                            }
                         } label: {
                             Label("Edit Controller Properties…",
                                   systemImage: "slider.horizontal.3")

@@ -22,6 +22,7 @@
 #include <wx/dirdlg.h>
 #include <wx/filename.h>
 #include <wx/filedlg.h>
+#include <wx/stdpaths.h>
 
 #include <pugixml.hpp>
 #include <nlohmann/json.hpp>
@@ -1005,11 +1006,33 @@ xLightsFrame::ShowSaveResult xLightsFrame::SaveShowFiles(const std::vector<ShowS
         parent = this;
     }
     // The layout and controller files are not written while a collaboration
-    // session holds the layout lock; their unsaved changes stay pending.
-    if (IsLayoutLocked() && std::any_of(files.begin(), files.end(), [](const FileToSave& f) { return f.write && f.kind != FileKind::Presets; })) {
-        RefusesLayoutWrite("saving the layout or controller files");
-        RefuseIfLayoutLocked(parent);
-        return ShowSaveResult::Cancelled;
+    // session holds the layout lock, nor by anyone but the session's host
+    // (whose layout it is); their unsaved changes stay pending. The rest of
+    // the save still goes ahead.
+    const bool writesLayout = std::any_of(files.begin(), files.end(), [](const FileToSave& f) { return f.write && HeldWithLayout(f.kind); });
+    if (writesLayout) {
+        bool held = false;
+        if (IsLayoutLocked()) {
+            RefusesLayoutWrite("saving the layout or controller files");
+            RefuseIfLayoutLocked(parent);
+            held = true;
+        } else if (RefuseIfCollabHostOnly("save the layout and controllers", parent)) {
+            held = true;
+        }
+        if (held) {
+            HeldSplit split = SplitHeldWithLayout(files);
+            for (const auto& p : split.held) {
+                spdlog::info("Not saving {} during the collaboration session; its changes stay pending.", p);
+            }
+            const bool writesRest = std::any_of(split.writable.begin(), split.writable.end(), [](const FileToSave& f) { return f.write; });
+            if (writesRest) {
+                ShowSaveResult rest = SaveShowFiles(split.writable, writeCopy, parent);
+                if (rest != ShowSaveResult::Saved) {
+                    return rest;
+                }
+            }
+            return ShowSaveResult::LayoutHeld;
+        }
     }
     auto& guard = ShowFileGuard::Instance();
     ShowFileMerge::Options options;
@@ -1507,7 +1530,13 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     if (!networksPath.empty() && !UnsavedNetworkChanges && !_outputManager.IsDirty() && ShowFileGuard::Instance().HasChangedOnDisk(networksPath)) {
         files.push_back({ ShowSaveMerge::FileKind::Networks, networksPath, _outputManager.SaveToString(), false });
     }
-    if (SaveShowFiles(files, nullptr) != ShowSaveResult::Saved) {
+    const ShowSaveResult result = SaveShowFiles(files, nullptr);
+    if (result == ShowSaveResult::LayoutHeld) {
+        // The presets are a file of their own that the session doesn't hold.
+        SavePresetsFile();
+        return false;
+    }
+    if (result != ShowSaveResult::Saved) {
         return false;
     }
 

@@ -54,31 +54,33 @@ std::vector<ShowFileLiveMerge::LocalFile> iPadRenderContext::LiveShowFiles() {
     using ShowFileLiveMerge::FileKind;
     std::vector<ShowFileLiveMerge::LocalFile> files;
     if (showDirectory.empty()) return files;
-    auto& guard = ShowFileGuard::Instance();
     const std::string rgbPath = showDirectory + "/" + XLIGHTS_RGBEFFECTS_FILE;
     // This session's version of the layout is the loaded file with its edits
     // patched in (as a save writes it), so only the records edited here are mine.
     ShowFileLiveMerge::LocalFile rgb{ FileKind::RgbEffects, rgbPath, false, std::string() };
     if (HasLayoutDirt()) {
-        if (auto base = guard.RecordedText(rgbPath); base && !base->empty()) {
-            pugi::xml_document doc;
-            if (doc.load_string(base->c_str()) && PatchLayoutDocument(doc)) {
-                std::ostringstream out;
-                doc.save(out, "  ");
-                rgb.edited = true;
-                rgb.mine = out.str();
-            }
+        if (auto mine = MemoryLayoutText()) {
+            rgb.edited = true;
+            rgb.mine = std::move(*mine);
         }
     }
     files.push_back(std::move(rgb));
     const std::string& networksPath = _outputManager.GetNetworksFilePath();
     if (!networksPath.empty()) {
-        files.push_back({ FileKind::Networks, networksPath, _controllersDirty,
-                          _controllersDirty ? _outputManager.SaveToString() : std::string() });
+        files.push_back({ FileKind::Networks, networksPath, _layoutDirt.Controllers(),
+                          _layoutDirt.Controllers() ? _outputManager.SaveToString() : std::string() });
     }
     // Preset edits are saved as they are made.
     files.push_back({ FileKind::Presets, GetEffectPresetsPath(), false, std::string() });
     return files;
+}
+
+void iPadRenderContext::KeepLiveSessionBase(const ShowFileLiveMerge::Applied& applied) {
+    // Memory was patched from a layout a live session brought in; it is now
+    // the merged result, which the disk does not have either.
+    if (applied.layoutApplied && _layoutDirt.Base() && !applied.layoutResult.empty()) {
+        _layoutDirt.AdoptBase(applied.layoutResult);
+    }
 }
 
 void iPadRenderContext::StopWatchingShowFiles() {
@@ -139,6 +141,10 @@ iPadRenderContext::IncomingShowChanges iPadRenderContext::HandleIncomingShowChan
     if (GetSequenceElements().IsEditInProgress()) {
         return IncomingShowChanges::None;
     }
+    if (HoldsIncomingShowChanges()) {
+        // The host brings them in, and they reach this device as its edit.
+        return IncomingShowChanges::None;
+    }
     using namespace ShowFileLiveMerge;
     auto& guard = ShowFileGuard::Instance();
     ShowFileMerge::Options options;
@@ -186,9 +192,10 @@ iPadRenderContext::IncomingShowChanges iPadRenderContext::HandleIncomingShowChan
     }
     _incomingRetries = 0;
     _incomingRetryAt = {};
-    const bool controllersEdited = _controllersDirty;
+    const bool controllersEdited = _layoutDirt.Controllers();
     Applied applied = Apply(*this, *in, guard);
     if (!controllersEdited) _outputManager.MarkSaved();
+    KeepLiveSessionBase(applied);
     std::string lines;
     for (const auto& l : applied.Describe()) lines += "\n    " + l;
     spdlog::info("iPadRenderContext: brought in the changes someone else saved to {}:{}", names, lines);
@@ -243,9 +250,10 @@ bool iPadRenderContext::CommitIncomingShowChanges(std::string* report, std::stri
     if (!mutate.ok()) {
         return fail("A render is still running. Try again in a moment.");
     }
-    const bool controllersEdited = _controllersDirty;
+    const bool controllersEdited = _layoutDirt.Controllers();
     Applied applied = Apply(*this, *_pendingIncoming, ShowFileGuard::Instance());
     if (!controllersEdited) _outputManager.MarkSaved();
+    KeepLiveSessionBase(applied);
     std::string text;
     for (const auto& l : applied.layout.Warnings()) {
         text += (text.empty() ? "" : "\n") + l;
