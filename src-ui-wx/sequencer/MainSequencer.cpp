@@ -1346,7 +1346,18 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
 void MainSequencer::UndoOrRedo(bool redo) {
     if (PanelEffectGrid == nullptr || mSequenceElements == nullptr) return;
     UndoManager& undo = mSequenceElements->get_undo_mgr();
-    if (undo.IsReplaying() || !(redo ? undo.CanRedo() : undo.CanUndo())) return;
+    // Re-entered from the event loop while the render stop below waits.
+    static bool inUndoOrRedo = false;
+    if (inUndoOrRedo || undo.IsReplaying() || !(redo ? undo.CanRedo() : undo.CanUndo())) return;
+    inUndoOrRedo = true;
+    struct Reset {
+        ~Reset() { inUndoOrRedo = false; }
+    } reset;
+
+    // Stop the render here, before the replay, where waiting may run the
+    // event loop; inside the replay it can only block.
+    if (undo.NextStepNeedsRenderStopped(redo) && !xLightsApp::GetFrame()->AbortRender()) return;
+    if (!(redo ? undo.CanRedo() : undo.CanUndo())) return;
 
     // The step may delete rows or effects the frame, the effect panel or the
     // grid still point at.

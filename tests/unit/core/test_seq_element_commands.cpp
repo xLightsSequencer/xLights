@@ -1030,19 +1030,33 @@ TEST_CASE("Undoing or redoing a row add or delete stops the render and keeps the
     CHECK(ctx.aborts >= 1);
     CHECK(se.GetElementsAwaitingDelete() == 0); // no grace period: freed once the render stopped
 
-    // A render that won't stop keeps the row alive instead of freeing it under the render.
+    // A render that won't stop: undo of a row step isn't replayed at all...
     ctx.abortSucceeds = false;
     ctx.aborts = 0;
-    undo.UndoLastStep();
-    CHECK(se.GetElement("Lyrics") == nullptr);
+    CHECK_FALSE(undo.UndoLastStep());
+    CHECK(se.GetElement("Lyrics") != nullptr);
     CHECK(ctx.aborts >= 1);
+    CHECK(undo.CanUndo());
+    // ...and a direct delete keeps the row alive instead of freeing it under the render.
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::DeleteElement(se, "Lyrics"));
+    CHECK(se.GetElement("Lyrics") == nullptr);
     CHECK(se.GetElementsAwaitingDelete() == 1);
+    // Adding a row is refused outright while the render runs in an open sequence.
+    ctx.sequenceOpen = true;
+    {
+        SeqMutationGuard::Scope direct;
+        CHECK(se.AddElement("Late", "timing", true, false, false, false, false) == nullptr);
+    }
+    CHECK(se.GetElement("Late") == nullptr);
+    ctx.sequenceOpen = false;
 
-    // Redo re-adds both; deleting one once the render stops frees the waiting row too.
+    // Undo brings it back; deleting a row once the render stops frees the waiting one too.
     ctx.abortSucceeds = true;
-    undo.RedoLastStep();
-    undo.RedoLastStep();
-    REQUIRE(se.GetElement("Beats") != nullptr);
+    REQUIRE(undo.UndoLastStep());
+    REQUIRE(se.GetElement("Lyrics") != nullptr);
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::AddTimingTrack(se, -1, "Beats", "") != nullptr);
     undo.CreateUndoStep();
     REQUIRE(ElementEdits::DeleteElement(se, "Beats"));
     CHECK(se.GetElementsAwaitingDelete() == 0);
@@ -1205,4 +1219,43 @@ TEST_CASE("Undo stops the render once before replaying a row step and refuses a 
     ctx.aborts = 0;
     REQUIRE(undo.UndoLastStep());
     CHECK(ctx.aborts == 0);
+}
+
+TEST_CASE("Edits in progress are visible to hosts, and an undo can't start a new step mid-replay", "[seq][elements][undo]") {
+    AbortWatchContext ctx;
+    SequenceElements& se = ctx.GetSequenceElements();
+    UndoManager& undo = se.get_undo_mgr();
+    CHECK_FALSE(se.IsEditInProgress());
+    {
+        ScopedCommandBatch batch(se, "Batch");
+        CHECK(se.IsEditInProgress());
+    }
+    CHECK_FALSE(se.IsEditInProgress());
+
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::AddTimingTrack(se, -1, "Lyrics", "Lyrics") != nullptr);
+    undo.CreateUndoStep();
+    REQUIRE(se.GetCommandExecutor().AddEffect(se.GetElement("Lyrics")->GetEffectLayer(0), "word", "", "", 0, 100, 0, false) != nullptr);
+    CHECK_FALSE(undo.NextStepNeedsRenderStopped(false)); // only an effect
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::AddTimingTrack(se, -1, "Beats", "") != nullptr);
+    CHECK(undo.NextStepNeedsRenderStopped(false)); // a row
+
+    // Something that runs while the replay waits tries to start its own step.
+    bool sawEdit = false;
+    ctx.whileAborting = [&]() {
+        sawEdit = se.IsEditInProgress();
+        undo.CreateUndoStep();
+        undo.CreateUndoStep();
+    };
+    REQUIRE(undo.UndoLastStep());
+    CHECK(sawEdit);
+    CHECK(se.GetElement("Beats") == nullptr);
+    // The effect step is still next, whole, and redo still has the row step.
+    CHECK(undo.CanRedo());
+    REQUIRE(undo.UndoLastStep());
+    CHECK(se.GetElement("Lyrics")->GetEffectLayer(0)->GetEffectCount() == 0);
+    REQUIRE(undo.UndoLastStep());
+    CHECK(se.GetElement("Lyrics") == nullptr);
+    CHECK_FALSE(undo.CanUndo());
 }

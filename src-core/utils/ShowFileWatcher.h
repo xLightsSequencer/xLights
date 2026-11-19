@@ -104,6 +104,12 @@ public:
     // time a poll read them; nullopt when no poll has read it since Watch.
     // Lets a host check an outstanding change without reading the file itself.
     std::optional<bool> MatchedRecordedAtLastRead(const std::string& path) const;
+    // The contents (and fingerprint) the last poll read, read the same way as
+    // CoordinatedRead; nullopt when no poll has read the file since Watch, or
+    // when tests replaced the fingerprint function. A merge prepared from
+    // these needs no file I/O on the calling thread; if the file changed
+    // since, the next poll reports it again.
+    std::optional<std::pair<std::string, ShowFileFingerprint>> LastReadContents(const std::string& path) const;
 
     // Report the file again the next time it is found changed (the host
     // could not act on the report).
@@ -127,6 +133,7 @@ private:
         int64_t candidateSince = 0;
         std::optional<ShowFileFingerprint> reported;
         std::optional<bool> matchedRecorded;
+        std::optional<std::pair<std::string, ShowFileFingerprint>> contents;
     };
 
     // One file's I/O for a poll, gathered without touching _files.
@@ -142,6 +149,7 @@ private:
         Stamp stamp;
         bool read = false;
         std::optional<ShowFileFingerprint> fingerprint;
+        std::optional<std::string> text;
     };
     struct PollJob {
         int64_t nowMs = 0;

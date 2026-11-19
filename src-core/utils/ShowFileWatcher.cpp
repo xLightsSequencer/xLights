@@ -131,6 +131,14 @@ std::optional<bool> ShowFileWatcher::MatchedRecordedAtLastRead(const std::string
     return it->second.matchedRecorded;
 }
 
+std::optional<std::pair<std::string, ShowFileFingerprint>> ShowFileWatcher::LastReadContents(const std::string& path) const {
+    auto it = _files.find(path);
+    if (it == _files.end()) {
+        return std::nullopt;
+    }
+    return it->second.contents;
+}
+
 std::shared_ptr<ShowFileWatcher::PollJob> ShowFileWatcher::BeginPoll(int64_t nowMs) {
     auto job = std::make_shared<PollJob>();
     job->nowMs = nowMs;
@@ -153,16 +161,23 @@ std::shared_ptr<ShowFileWatcher::PollJob> ShowFileWatcher::BeginPoll(int64_t now
 void ShowFileWatcher::Gather(PollJob& job, const StampFunction& stamp, const FingerprintFunction& fingerprint) {
     for (Probe& p : job.probes) {
         p.stamp = stamp ? stamp(p.path) : StampOf(p.path);
-        if (!p.tracked || !p.stamp.exists) {
+        if (!p.stamp.exists) {
             continue;
         }
         const bool stampChanged = !p.stampKnown || !(p.stamp == p.priorStamp);
-        const bool look = stampChanged || job.poked || p.hasCandidate || job.nowMs - p.lastRead >= kFullCheckMs;
+        // Untracked files are never reported, but their contents are kept for
+        // a merge prepared from what the polls read.
+        const bool look = p.tracked ? (stampChanged || job.poked || p.hasCandidate || job.nowMs - p.lastRead >= kFullCheckMs) : stampChanged;
         if (!look) {
             continue;
         }
         p.read = true;
-        p.fingerprint = fingerprint ? fingerprint(p.path) : CoordinatedFingerprint(p.path);
+        if (fingerprint) {
+            p.fingerprint = fingerprint(p.path);
+        } else if (auto r = CoordinatedRead(p.path)) {
+            p.fingerprint = r->second;
+            p.text = std::move(r->first);
+        }
     }
 }
 
@@ -172,6 +187,11 @@ std::vector<std::string> ShowFileWatcher::FinishPoll(const PollJob& job) {
         FileState& st = _files[p.path];
         st.stamp = p.stamp;
         st.stampKnown = true;
+        if (!p.stamp.exists) {
+            st.contents.reset();
+        } else if (p.read && p.text && p.fingerprint && p.fingerprint->exists) {
+            st.contents = std::make_pair(*p.text, *p.fingerprint);
+        }
         if (!p.tracked) {
             st.candidate.reset();
             continue;

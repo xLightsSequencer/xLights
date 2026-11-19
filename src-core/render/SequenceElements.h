@@ -250,6 +250,11 @@ public:
 
     EffectManager &GetEffectManager();
     RenderContext *GetRenderContext() const { return renderContext; };
+    // An edit of the document is under way: a command applying, an undo/redo
+    // replay, a command batch, an edit capture (import) or a live preview.
+    // Hosts must not start another edit, a merge or anything that yields to
+    // the event loop while this is true.
+    bool IsEditInProgress();
     // Deleted rows not freed yet (see FreeElementSafely).
     size_t GetElementsAwaitingDelete() const { return mElementsAwaitingDelete.size(); }
     // How long a deleted row is kept before it may be freed. Tests shorten it.
@@ -332,7 +337,7 @@ private:
     int64_t mDeletedRowGraceMs = 60000;
     void FreeExpiredRows();
     bool StopRenderForRowChange();
-    void StopRenderBeforeAddingRow();
+    bool StopRenderBeforeAddingRow();
     void FreeElementSafely(Element* e, bool renderStopped);
     double mFrequency;
     int mTimingRowCount = 0;

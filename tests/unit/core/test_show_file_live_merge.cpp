@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <memory>
@@ -166,6 +167,25 @@ TEST_CASE("Show file watch: a background poll reads off the calling thread and r
     auto reported = takeWhenDone();
     REQUIRE(reported.has_value());
     CHECK(*reported == std::vector<std::string>{ w.rgb });
+}
+
+TEST_CASE("Show file watch: polls keep the contents they read for a merge prepared without file I/O", "[showfilewatch]") {
+    Watched w;
+    CHECK_FALSE(w.watcher.LastReadContents(w.rgb).has_value());
+    const std::string theirs = "<xrgb><models><model name=\"B\"/></models></xrgb>";
+    w.dir.Write("xlights_rgbeffects.xml", theirs);
+    CHECK(w.watcher.Poll(0).empty());
+    auto rgb = w.watcher.LastReadContents(w.rgb);
+    REQUIRE(rgb.has_value());
+    CHECK(rgb->first == theirs);
+    CHECK(rgb->second == ShowFileGuard::FingerprintOf(theirs));
+    auto nets = w.watcher.LastReadContents(w.nets);
+    REQUIRE(nets.has_value());
+    CHECK(nets->first == "<Networks/>");
+    // A deleted file has nothing cached.
+    std::filesystem::remove(w.nets);
+    CHECK(w.watcher.Poll(1000).empty());
+    CHECK_FALSE(w.watcher.LastReadContents(w.nets).has_value());
 }
 
 TEST_CASE("Show file watch: a burst of writes restarts the wait and is reported together", "[showfilewatch]") {

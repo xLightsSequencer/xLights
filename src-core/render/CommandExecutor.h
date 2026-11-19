@@ -62,6 +62,8 @@ public:
     // True if closing the outermost batch recorded an undo step.
     bool EndBatch();
     bool InBatch() const { return _batchDepth > 0; }
+    // A command is being applied right now.
+    bool IsApplying() const { return _applyDepth > 0; }
 
     // ---- Live preview ----------------------------------------------------
     // For interactive edits (dragging an effect's edges, nudging a

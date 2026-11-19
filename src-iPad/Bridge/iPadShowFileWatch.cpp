@@ -136,13 +136,22 @@ iPadRenderContext::IncomingShowChanges iPadRenderContext::CheckShowFilesOnDisk(s
 }
 
 iPadRenderContext::IncomingShowChanges iPadRenderContext::HandleIncomingShowChanges(std::string* banner, bool userInitiated) {
+    if (GetSequenceElements().IsEditInProgress()) {
+        return IncomingShowChanges::None;
+    }
     using namespace ShowFileLiveMerge;
     auto& guard = ShowFileGuard::Instance();
     ShowFileMerge::Options options;
     options.modelRenames = &AllModels.GetRenameLog();
     options.viewObjectRenames = &AllObjects.GetRenameLog();
     options.controllerRenames = &_outputManager.GetRenameLog();
-    auto in = std::make_unique<Incoming>(Incoming::Prepare(LiveShowFiles(), options, guard, ShowMergeApply::SequenceUseOf(*this), CoordinatedReader()));
+    // Prepared from what the background poll read: no coordinated read (which
+    // waits for any other writer) on the main actor. A file changed since is
+    // reported again by the next poll.
+    Reader polled = [this](const std::string& p) -> std::optional<std::pair<std::string, ShowFileFingerprint>> {
+        return _showFileWatcher ? _showFileWatcher->LastReadContents(p) : std::nullopt;
+    };
+    auto in = std::make_unique<Incoming>(Incoming::Prepare(LiveShowFiles(), options, guard, ShowMergeApply::SequenceUseOf(*this), polled));
     if (_pendingIncoming) in->AdoptResolutions(*_pendingIncoming);
     if (!in->HasChanges()) {
         const bool had = _pendingIncoming != nullptr;

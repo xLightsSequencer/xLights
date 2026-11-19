@@ -175,7 +175,10 @@ void xLightsFrame::CheckShowFilesOnDisk()
     // Not while a dialog is up, a mouse drag is in progress, playback runs (a
     // controller change restarts output mid-show) or a save runs: the next
     // tick looks again (the watcher keeps a change until it reports it).
-    if (ModalDialogOpen() || wxWindow::GetCapture() != nullptr || playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_EFFECT) {
+    // Nor in the middle of an edit (an import, undo or batch reached from the
+    // event loop while it waited for something).
+    if (ModalDialogOpen() || wxWindow::GetCapture() != nullptr || playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_EFFECT ||
+        _sequenceElements.IsEditInProgress()) {
         return;
     }
     {
@@ -213,7 +216,7 @@ void xLightsFrame::CheckShowFilesOnDisk()
 
 void xLightsFrame::ReviewIncomingShowChanges()
 {
-    if (_inShowFileCheck) {
+    if (_inShowFileCheck || _sequenceElements.IsEditInProgress()) {
         return;
     }
     HandleIncomingShowChanges(true);
@@ -234,9 +237,15 @@ void xLightsFrame::HandleIncomingShowChanges(bool review)
     options.viewObjectRenames = &AllObjects.GetRenameLog();
     options.controllerRenames = &_outputManager.GetRenameLog();
     const Reader reader = [](const std::string& p) { return ShowFileWatcher::CoordinatedRead(p); };
+    // The merge is prepared from what the background poll read, so this
+    // doesn't wait on the share or a coordinated writer on the UI thread.
+    // A file changed since is reported again by the next poll.
+    const Reader polled = [this](const std::string& p) -> std::optional<std::pair<std::string, ShowFileFingerprint>> {
+        return _showFileWatcher != nullptr ? _showFileWatcher->LastReadContents(p) : std::nullopt;
+    };
 
     for (int attempt = 0; attempt < 3; ++attempt) {
-        auto in = std::make_unique<Incoming>(Incoming::Prepare(LiveShowFiles(), options, guard, ShowMergeApply::SequenceUseOf(*this), reader));
+        auto in = std::make_unique<Incoming>(Incoming::Prepare(LiveShowFiles(), options, guard, ShowMergeApply::SequenceUseOf(*this), polled));
         if (_pendingIncoming != nullptr) {
             in->AdoptResolutions(*_pendingIncoming);
         }

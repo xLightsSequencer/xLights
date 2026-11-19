@@ -262,8 +262,11 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
 {
     XL_SEQ_MUTATION("SequenceElements::AddElement");
     if (!ElementExists(name)) {
+        if (!StopRenderBeforeAddingRow()) {
+            spdlog::error("SequenceElements::AddElement {}: the render did not stop, not adding the row.", name);
+            return nullptr;
+        }
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
-        StopRenderBeforeAddingRow();
         mAllViews[MASTER_VIEW].push_back(el);
         mMasterViewChangeCount++;
         InvalidateUidIndex();
@@ -281,8 +284,11 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     XL_SEQ_MUTATION("SequenceElements::AddElement");
     if (!ElementExists(name) && index >= 0 && static_cast<size_t>(index) <= mAllViews[MASTER_VIEW].size())
     {
+        if (!StopRenderBeforeAddingRow()) {
+            spdlog::error("SequenceElements::AddElement {}: the render did not stop, not adding the row.", name);
+            return nullptr;
+        }
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
-        StopRenderBeforeAddingRow();
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin() + index, el);
         mMasterViewChangeCount++;
         InvalidateUidIndex();
@@ -660,20 +666,28 @@ void SequenceElements::DeleteElement(const std::string &name, bool removeFromVie
     PopulateRowInformation();
 }
 
+bool SequenceElements::IsEditInProgress()
+{
+    CommandExecutor& exec = GetCommandExecutor();
+    return undo_mgr.IsReplaying() || exec.IsApplying() || exec.InBatch() || exec.IsCapturing() || exec.InPreview();
+}
+
 bool SequenceElements::StopRenderForRowChange()
 {
     return renderContext == nullptr || renderContext->AbortRender();
 }
 
-// Render threads walk the master view to find rows by name, and adding a row
-// shifts or reallocates it. Loading a sequence adds every row before any
-// render can start (and may do it off the main thread), so only an open
-// sequence needs this.
-void SequenceElements::StopRenderBeforeAddingRow()
+// Render threads walk the master view to find rows by name without a lock,
+// and adding a row shifts or reallocates it, so a row is only added once the
+// render has stopped. Loading a sequence adds every row before any render can
+// start (and may do it off the main thread), so only an open sequence needs
+// this.
+bool SequenceElements::StopRenderBeforeAddingRow()
 {
     if (renderContext != nullptr && renderContext->IsSequenceLoaded()) {
-        renderContext->AbortRender();
+        return renderContext->AbortRender();
     }
+    return true;
 }
 
 // A deleted row is never freed on the spot. Render jobs hold Element and

@@ -89,6 +89,10 @@ class UndoManager
         // the redo history, which no longer applies to it.
         void DocumentEdited();
         bool IsReplaying() const { return mReplayDepth > 0; }
+        // Whether undoing (or redoing) the next step needs the render stopped
+        // first, so a host can stop it before the replay, where waiting may
+        // still run the event loop.
+        bool NextStepNeedsRenderStopped(bool redo);
     protected:
         struct Entry {
             UNDO_ACTIONS kind = UNDO_MARKER;
@@ -99,7 +103,8 @@ class UndoManager
         void Push(UNDO_ACTIONS kind, std::unique_ptr<SequenceCommand> inverse, const std::string& label = "");
         void ProcessUndoStep(std::vector<Entry> &fromList, std::vector<Entry> &toList);
         bool Replay(std::vector<Entry>& fromList, std::vector<Entry>& toList);
-        void StopRenderIfStepNeeds(const std::vector<Entry>& list);
+        bool StopRenderIfStepNeeds(const std::vector<Entry>& list);
+        static bool StepNeedsRenderStopped(const std::vector<Entry>& list);
         // Drop the oldest whole steps while there are more than
         // `mMaxSteps`. No-op when `mMaxSteps == 0`.
         void EnforceMaxSteps();

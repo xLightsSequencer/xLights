@@ -152,6 +152,12 @@ void UndoManager::Push(UNDO_ACTIONS kind, std::unique_ptr<SequenceCommand> inver
 
 void UndoManager::CreateUndoStep()
 {
+    if (mReplayDepth > 0) {
+        // Starting a step now would put it where the replay is taking entries
+        // from (and drop redo), mixing an unrelated edit into the step undone.
+        spdlog::warn("UndoManager: ignoring a new undo step started during an undo/redo");
+        return;
+    }
     ++mStepSerial;
     ClearRedo();
     RemoveUnusedMarkers();
@@ -220,16 +226,31 @@ bool NeedsRenderStopped(const SequenceCommand& cmd) {
 }
 } // namespace
 
-void UndoManager::StopRenderIfStepNeeds(const std::vector<Entry>& list)
+bool UndoManager::StepNeedsRenderStopped(const std::vector<Entry>& list)
 {
     for (auto it = list.rbegin(); it != list.rend() && it->kind != UNDO_MARKER; ++it) {
         if (it->inverse && NeedsRenderStopped(*it->inverse)) {
-            if (RenderContext* rc = mParentSequence->GetRenderContext()) {
-                rc->AbortRender();
-            }
-            return;
+            return true;
         }
     }
+    return false;
+}
+
+bool UndoManager::NextStepNeedsRenderStopped(bool redo)
+{
+    if (!redo) {
+        RemoveUnusedMarkers();
+    }
+    return StepNeedsRenderStopped(redo ? mRedoSteps : mUndoSteps);
+}
+
+bool UndoManager::StopRenderIfStepNeeds(const std::vector<Entry>& list)
+{
+    if (!StepNeedsRenderStopped(list)) {
+        return true;
+    }
+    RenderContext* rc = mParentSequence->GetRenderContext();
+    return rc == nullptr || rc->AbortRender();
 }
 
 bool UndoManager::UndoLastStep()
@@ -256,7 +277,13 @@ bool UndoManager::Replay(std::vector<Entry>& fromList, std::vector<Entry>& toLis
         int& depth;
         ~EndReplay() { --depth; }
     } endReplay{ mReplayDepth };
-    StopRenderIfStepNeeds(fromList);
+    // A row added while a render still runs could move the views under it, so
+    // a step that needs the render stopped waits for it here rather than in
+    // the middle of the step, and isn't replayed at all if it won't stop.
+    if (!StopRenderIfStepNeeds(fromList)) {
+        spdlog::warn("UndoManager: the render did not stop; not replaying the step");
+        return false;
+    }
     ++mHistorySerial;
     toList.push_back(Entry{});
     ProcessUndoStep(fromList, toList);

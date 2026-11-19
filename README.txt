@@ -25,6 +25,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  the row holding the selected effect
     -bug (dkulp)                 Pressing Undo again while an undo waited for a render to stop could mix up the
                                  undo history
+    -bug (dkulp)                 Someone else's show file changes could be brought in, or another edit start, in
+                                 the middle of an import or undo while it waited for a render to stop
     -change (dkulp)              Show file changes saved by someone else are brought in after playback stops
                                  rather than during it
     -bug (dkulp)                 iPad - Bringing in someone else's show file changes while a render ran could
