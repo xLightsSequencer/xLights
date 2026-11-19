@@ -63,6 +63,7 @@ private:
     std::unordered_map<std::string, size_t> _byName;
 };
 
+// `who`'s role in `roster` (the host, listed first, is always an editor).
 ParticipantRole RoleIn(const std::vector<RosterEntry>& roster, ParticipantId who);
 
 // Why `author` may not make `cmd`: reason Reason::Viewer or

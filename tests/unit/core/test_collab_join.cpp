@@ -191,7 +191,9 @@ TEST_CASE("With fetchFiles a joiner copies what differs and opens against a sess
     CHECK(r.sessionCopy);
     CHECK(r.showFolder == copy);
     CHECK(a.doc->ShowFolder() == copy);
-    CHECK(fs::path(copy).parent_path() == fs::path(folder));
+    // Inside a folder of this session's own, inside the one it was given.
+    CHECK(fs::path(copy).parent_path().parent_path() == fs::path(folder));
+    CHECK(fs::path(copy).parent_path() == fs::path(a.session->SessionFolder()));
     CHECK(r.fetched == std::vector<std::string>{ "Images/a.png", "song.wav", kLayoutFile });
     CHECK(r.missingMedia.empty());
     CHECK(r.differentMedia.empty());
@@ -478,4 +480,127 @@ TEST_CASE("Damaged uploads are dropped and uploads stay inside the session folde
     CHECK(b.session->ReceivedFiles().size() == 1);
     CHECK(b.session->ReceivedFiles().count(climbing) == 1);
     RequireSameDocument(sim);
+}
+
+TEST_CASE("The host takes files only from editors, with media they added", "[collab][collab_join][collab_roles]") {
+    MediaShow ms;
+    Device da(ms);
+    Device db(ms);
+    WriteFile(da.dir.path / "Images" / "new.png", "new picture");
+    WriteFile(da.dir.path / "Images" / "other.png", "not added");
+    WriteFile(db.dir.path / "Images" / "new.png", "someone else's");
+    Sim sim(ms.show, Lan(), Opts());
+    Node& h = sim.AddHost("", std::nullopt, ms.xsq);
+    Node& a = sim.AddClientOn(da.path);
+    Node& b = sim.AddClientOn(db.path);
+    REQUIRE(sim.Quiesce());
+    auto logged = [&](const std::string& text) {
+        return std::any_of(h.log.begin(), h.log.end(), [&](const std::string& l) { return l.find(text) != std::string::npos; });
+    };
+    // a adds a media entry: its file goes everywhere (the normal flow).
+    REQUIRE(sim.As(a, [&] { return a.session->Submit(std::make_unique<PutMediaCommand>(MediaEntryState::FileReference("Images/new.png", MediaType::Image))); }).ok);
+    RequireSameDocument(sim);
+    REQUIRE(h.session->ReceivedFiles().count("Images/new.png") == 1);
+    CHECK(ReadFile(h.session->ReceivedFiles().at("Images/new.png")) == "new picture");
+
+    // A file with no media entry of its sender behind it is refused...
+    REQUIRE(sim.As(a, [&] { return a.session->ShareFile("Images/other.png"); }));
+    // ...and so is one for media someone else added.
+    REQUIRE(sim.As(b, [&] { return b.session->ShareFile("Images/new.png"); }));
+    sim.RunFor(500);
+    CHECK(h.session->ReceivedFiles().count("Images/other.png") == 0);
+    CHECK(b.session->ReceivedFiles().count("Images/other.png") == 0);
+    CHECK(ReadFile(h.session->ReceivedFiles().at("Images/new.png")) == "new picture");
+    CHECK(logged("refused 'Images/other.png' from participant " + std::to_string(a.session->Participant()) + ": not media it added"));
+    CHECK(logged("refused 'Images/new.png' from participant " + std::to_string(b.session->Participant()) + ": not media it added"));
+
+    // A viewer's file is refused, even for media it added as an editor.
+    REQUIRE(sim.As(h, [&] { return h.Host().SetRole(a.session->Participant(), ParticipantRole::Viewer); }));
+    REQUIRE(sim.Quiesce());
+    WriteFile(da.dir.path / "Images" / "new.png", "changed by a viewer");
+    REQUIRE(sim.As(a, [&] { return a.session->ShareFile("Images/new.png"); }));
+    sim.RunFor(500);
+    CHECK(ReadFile(h.session->ReceivedFiles().at("Images/new.png")) == "new picture");
+    CHECK(logged("refused 'Images/new.png' from participant " + std::to_string(a.session->Participant()) + ": a viewer"));
+}
+
+namespace {
+// Makes every file read for hashing slow, as hashing a large video is.
+struct SlowHashing {
+    std::atomic<int> reads{ 0 };
+    explicit SlowHashing(int ms) {
+        SetHashFileHook([this, ms](const std::string&) {
+            ++reads;
+            std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+        });
+    }
+    ~SlowHashing() { SetHashFileHook(nullptr); }
+};
+
+double MsSince(std::chrono::steady_clock::time_point t) {
+    return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t).count();
+}
+// Hashing happens on worker threads in real time: runs the session in small
+// steps with real pauses until everyone has caught up.
+bool QuiesceReal(Sim& sim, double* longest = nullptr) {
+    auto end = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+    while (std::chrono::steady_clock::now() < end) {
+        auto t = std::chrono::steady_clock::now();
+        sim.RunFor(5);
+        if (longest != nullptr) {
+            *longest = std::max(*longest, MsSince(t));
+        }
+        if (sim.Quiet()) {
+            return true;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+    return false;
+}
+} // namespace
+
+TEST_CASE("Hashing show files doesn't hold up the host or the joiner", "[collab][collab_join]") {
+    MediaShow ms;
+    Device da(ms);
+    SessionOptions async = Opts();
+    async.syncHashBytes = 0; // every file counts as large
+    Sim sim(ms.show, Lan(), async);
+    Node& h = sim.AddHost("", std::nullopt, ms.xsq);
+    SlowHashing slow(300);
+    Node& a = sim.AddClientOn(da.path, async);
+    // The Hello reaches the host, which lists its files; the manifest
+    // reaches the joiner, which checks its own. Neither may wait 300 ms a file.
+    double longest = 0;
+    REQUIRE(QuiesceReal(sim, &longest));
+    REQUIRE(a.Client().IsActive());
+    CHECK(slow.reads > 0);
+    INFO("longest step " << longest << " ms");
+    CHECK(longest < 150);
+    CHECK(h.session->HashedFiles() > 0);
+    CHECK(a.session->HashedFiles() > 0);
+}
+
+TEST_CASE("Unchanged show files are hashed once; a changed one again", "[collab][collab_join]") {
+    MediaShow ms;
+    Device da(ms);
+    Device db(ms);
+    Device dc(ms);
+    SessionOptions async = Opts();
+    async.syncHashBytes = 0;
+    Sim sim(ms.show, Lan(), async);
+    Node& h = sim.AddHost("", std::nullopt, ms.xsq);
+    sim.AddClientOn(da.path, async);
+    REQUIRE(QuiesceReal(sim));
+    size_t first = h.session->HashedFiles();
+    REQUIRE(first > 0);
+    // A second joiner: the same files, nothing read again.
+    sim.AddClientOn(db.path, async);
+    REQUIRE(QuiesceReal(sim));
+    CHECK(h.session->HashedFiles() == first);
+    // One file changes (size and time): only it is read again.
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    WriteFile(ms.show.dir.path / "Images" / "a.png", "picture-a, edited");
+    sim.AddClientOn(dc.path, async);
+    REQUIRE(QuiesceReal(sim));
+    CHECK(h.session->HashedFiles() == first + 1);
 }

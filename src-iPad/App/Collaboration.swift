@@ -150,8 +150,11 @@ final class CollabState {
     var browseError: String?
     /// Why the session ended, shown non-modally until dismissed.
     var endNotice: String?
-    /// The last session this device took part in was a client one.
+    /// The last session this device took part in was a client one (or one
+    /// it took over hosting, still on the session's copy of the sequence).
     var endedAsClient = false
+    /// Who hosts now, after the host was lost; shown non-modally.
+    var hostNotice: CollabLayoutNotice?
     var rejectToast: CollabRejectToast?
     var overlay = CollabOverlay()
     /// Not a viewer: this user may change the sequence.
@@ -304,7 +307,7 @@ extension SequencerViewModel {
             }
             if collab.state == .ended && before != .ended {
                 undoManager.removeAllActions()
-                collab.endedAsClient = collab.role == .client
+                collab.endedAsClient = collab.role == .client || collab.clientDocument
                 let text = s.endText
                 collab.endNotice = text.isEmpty ? "The collaboration session ended." : text
                 collab.overlay = CollabOverlay()
@@ -345,6 +348,16 @@ extension SequencerViewModel {
             refreshCollabGroup()
         case .groupChanged:
             refreshCollabGroup()
+        case .hostChanged:
+            // Taking over doesn't replace the sequence: it stays the
+            // session's copy (clientDocument), so Save stays Save As.
+            refreshCollabState()
+            refreshCollabPresence()
+            refreshCollabOverlay()
+            refreshCollabLayoutMarks()
+            if let c = payload as? XLCollabHostChange {
+                showCollabHostNotice(c.text)
+            }
         case .browseError:
             let reason = (payload as? String) ?? ""
             collab.browseError = Self.collabBrowseErrorText(reason)
@@ -530,6 +543,17 @@ extension SequencerViewModel {
         }
         refreshCollabState()
         return ok ? nil : ((err as String?) ?? "Couldn't join the session.")
+    }
+
+    func showCollabHostNotice(_ text: String) {
+        guard !text.isEmpty else { return }
+        let notice = CollabLayoutNotice(text: text)
+        collab.hostNotice = notice
+        DispatchQueue.main.asyncAfter(deadline: .now() + 12) { [weak self] in
+            MainActor.assumeIsolated {
+                if self?.collab.hostNotice?.id == notice.id { self?.collab.hostNotice = nil }
+            }
+        }
     }
 
     func leaveCollabSession() {

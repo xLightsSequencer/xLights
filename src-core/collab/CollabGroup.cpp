@@ -179,6 +179,7 @@ public:
             return false;
         }
         _isHost = true;
+        _hostEpoch = 0;
         _localPeer = kLanHostPeer;
         SetState(NetState::Connecting, "");
         _inStart = true;
@@ -228,6 +229,52 @@ public:
 
     NetState State() const { return _state; }
     PeerId LocalPeer() const { return _localPeer; }
+
+    // ---- host migration: on the same channel ----
+
+    bool ListenAsSuccessor(const Succession& s, std::string& error) {
+        if (!_ch || _left || _closed) {
+            error = "The SharePlay session is over.";
+            return false;
+        }
+        Revive();
+        _isHost = true;
+        _hostEpoch = s.epoch;
+        _localPeer = kLanHostPeer;
+        _nextPeer = kLanHostPeer + 1;
+        // Everyone here hears the takeover; members who join later get a
+        // plain claim.
+        _claimed = _members;
+        _claimed.erase(_local);
+        SetState(NetState::Listening, "");
+        std::string p;
+        GroupWire::PutU32(p, (uint32_t)kProtocolVersion);
+        GroupWire::PutU64(p, s.epoch);
+        GroupWire::PutU32(p, s.successor);
+        GroupWire::PutU64(p, s.applied);
+        SendFrame("", Type::Succeed, p);
+        return true;
+    }
+
+    void ConnectToSuccessor(const Succession& s) {
+        if (!_ch || _left || _closed) {
+            SetState(NetState::Failed, "The SharePlay session is over.");
+            return;
+        }
+        Revive();
+        _isHost = false;
+        _localPeer = kNoPeer;
+        _wanting = true;
+        _wantEpoch = s.epoch;
+        _wantParticipant = s.successor;
+        SetState(NetState::Connecting, "");
+        for (const auto& [member, claim] : _succeeds) {
+            if (claim.first == _wantEpoch && claim.second == _wantParticipant && _members.count(member)) {
+                _candidates.insert(member);
+            }
+        }
+        ChooseHost();
+    }
 
     void Send(PeerId to, const Message& m) {
         Remote* r = RemoteById(to);
@@ -320,7 +367,20 @@ private:
         QueueChunks(*r, id, copy, size);
     }
 
-private:
+    // Back to a usable channel with no session on it.
+    void Revive() {
+        for (auto& [member, r] : _remotes) {
+            AbandonBlobs(r);
+            r.DropFiles();
+        }
+        _remotes.clear();
+        _dead = false;
+        _hostGone = false;
+        _wanting = false;
+        _candidates.clear();
+        _chosen.clear();
+    }
+
     struct Attached {
         std::string member;
         BlobId id = 0;
@@ -771,13 +831,17 @@ private:
     }
 
     void OnMembers(const std::vector<GroupMember>& members) {
-        if (_dead) {
+        if (_left) {
             return;
         }
         std::set<std::string> now;
         for (const auto& m : members) {
             now.insert(m.id);
             _seenMembers.insert(m.id);
+        }
+        _members = now;
+        if (_dead) {
+            return;
         }
         if (_isHost) {
             for (const auto& id : now) {
@@ -834,12 +898,47 @@ private:
         if (_candidates.empty() || *_candidates.begin() == _chosen) {
             return;
         }
+        if (_wanting && _candidates.size() > 1) {
+            spdlog::warn("collab group: more than one member takes over as participant {}", _wantParticipant);
+        }
         _chosen = *_candidates.begin();
         SendFrame(_chosen, Type::Hello);
     }
 
+    // A successor says it takes over. The others go to the one they expect.
+    void OnSucceed(const std::string& from, std::string_view p) {
+        uint32_t protocol = 0, participant = 0;
+        uint64_t epoch = 0, applied = 0;
+        if (p.size() != 24 || !Wire::ReadU32(p, 0, protocol) || !Wire::ReadU64(p, 4, epoch) || !Wire::ReadU32(p, 12, participant) ||
+            !Wire::ReadU64(p, 16, applied) || participant == 0 || participant > 0xFFFF) {
+            Malformed(from, "a malformed takeover");
+            return;
+        }
+        if (protocol != (uint32_t)kProtocolVersion) {
+            return;
+        }
+        _succeeds[from] = { epoch, (ParticipantId)participant };
+        if (_isHost) {
+            if (!_dead && epoch > _hostEpoch) {
+                // Took over from this host (or a later one): its clients gave
+                // up on this device while it wasn't responding.
+                StandDown();
+            } else if (!_dead) {
+                spdlog::info("collab group: member {} also takes over (as participant {})", Hex(from), participant);
+            }
+            return;
+        }
+        if (_wanting && _remotes.empty() && epoch == _wantEpoch && participant == _wantParticipant) {
+            _candidates.insert(from);
+            ChooseHost();
+        }
+    }
+
     // Two devices claim the session: the lower member id hosts.
     void OnClaim(const std::string& from) {
+        if (_wanting) {
+            return; // reconnecting to a successor, not joining anew
+        }
         if (_isHost) {
             if (from < _local) {
                 LoseClaim();
@@ -925,11 +1024,15 @@ private:
             Malformed(from, "a welcome while in a session");
             return;
         }
+        if (_wanting && !_candidates.count(from)) {
+            return; // not the successor this device is reaching
+        }
         _candidates.insert(from);
         ChooseHost();
         if (from != _chosen) {
             return; // a lower claimant will welcome us
         }
+        _wanting = false;
         Remote r;
         r.member = from;
         r.id = kLanHostPeer;
@@ -941,18 +1044,31 @@ private:
     }
 
     void OnMessage(const std::string& from, const std::string& bytes) {
-        if (_dead || from == _local) {
+        if (from == _local || (_dead && _left)) {
             return;
         }
         if (bytes.size() < GroupWire::kHeaderBytes || (uint8_t)bytes[0] != GroupWire::kVersion) {
-            Malformed(from, "a frame of an unknown version");
+            if (!_dead) {
+                Malformed(from, "a frame of an unknown version");
+            }
             return;
         }
         Type type = (Type)(uint8_t)bytes[1];
         std::string_view p(bytes.data() + GroupWire::kHeaderBytes, bytes.size() - GroupWire::kHeaderBytes);
+        if (_dead) {
+            // A successor announces itself once, possibly before this device
+            // starts reconnecting: keep it for ConnectToSuccessor.
+            if (type == Type::Succeed) {
+                OnSucceed(from, p);
+            }
+            return;
+        }
         switch (type) {
         case Type::Claim:
             OnClaim(from);
+            return;
+        case Type::Succeed:
+            OnSucceed(from, p);
             return;
         case Type::Hello:
             OnHello(from);
@@ -1224,6 +1340,7 @@ private:
 
     void OnEnded(const std::string& reason) {
         if (_dead) {
+            _left = true; // nothing can take over on this channel any more
             return;
         }
         _dead = true;
@@ -1269,6 +1386,13 @@ private:
     std::string _local;
     std::map<std::string, Remote> _remotes; // by member id
     std::set<std::string> _seenMembers;     // every member any member list named
+    std::set<std::string> _members;         // the members now
+    // Host migration
+    std::map<std::string, std::pair<uint64_t, ParticipantId>> _succeeds; // member -> (epoch, participant) it took over as
+    uint64_t _hostEpoch = 0; // the host change this device hosts as (0: the session's first host)
+    bool _wanting = false; // client: reconnecting to a successor
+    uint64_t _wantEpoch = 0;
+    ParticipantId _wantParticipant = kNoParticipant;
     std::set<std::string> _claimed;         // host: members sent a claim
     std::set<std::string> _candidates;      // client: members that claimed
     std::string _chosen;                    // client: the claimant asked for a welcome
@@ -1285,6 +1409,9 @@ private:
 
 public:
     size_t _malformed = 0;
+    // GroupTest
+    void SetClock(std::function<uint64_t()> clock) { _clock = std::move(clock); }
+    std::string TestFolder() { return Folder(); }
 };
 
 class GroupTransport : public INetTransport {
@@ -1300,6 +1427,10 @@ public:
     void Connect(const std::string& sessionId, const std::string& /*pairingCode*/) override { _impl->Connect(sessionId); }
     void Close() override { _impl->Close(); }
     NetState State() const override { return _impl->State(); }
+    bool SupportsMigration() const override { return true; }
+    bool ListenAsSuccessor(const Succession& s, const SessionAdvert& /*advert*/, std::string& error) override { return _impl->ListenAsSuccessor(s, error); }
+    void ConnectToSuccessor(const Succession& s) override { _impl->ConnectToSuccessor(s); }
+    std::string SuccessorSessionId(const Succession& /*s*/) const override { return {}; }
 
     GroupImpl& Impl() { return *_impl; }
 
@@ -1394,6 +1525,15 @@ namespace GroupTest {
 size_t MalformedFrames(INetTransport& t) {
     auto* g = dynamic_cast<GroupTransport*>(&t);
     return g != nullptr ? g->Impl()._malformed : 0;
+}
+void SetClock(INetTransport& t, std::function<uint64_t()> clock) {
+    if (auto* g = dynamic_cast<GroupTransport*>(&t)) {
+        g->Impl().SetClock(std::move(clock));
+    }
+}
+std::string Folder(INetTransport& t) {
+    auto* g = dynamic_cast<GroupTransport*>(&t);
+    return g != nullptr ? g->Impl().TestFolder() : std::string();
 }
 } // namespace GroupTest
 

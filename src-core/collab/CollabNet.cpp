@@ -261,6 +261,35 @@ bool SaltFromServiceName(std::string_view name, std::string& salt) {
     return SaltFromHex(rest.substr(0, kSaltBytes * 2), salt);
 }
 
+bool SuccessorSalt(std::string_view sessionId, uint16_t who, std::string& salt) {
+    std::string base;
+    if (!SaltFromServiceName(sessionId, base)) {
+        return false;
+    }
+    // FNV-1a, then a splitmix finish so nearby ids give unrelated salts.
+    uint64_t h = 1469598103934665603ull;
+    auto mix = [&](unsigned char c) {
+        h ^= c;
+        h *= 1099511628211ull;
+    };
+    for (char c : std::string_view("xlights-collab-successor:")) {
+        mix((unsigned char)c);
+    }
+    for (char c : base) {
+        mix((unsigned char)c);
+    }
+    mix((unsigned char)(who >> 8));
+    mix((unsigned char)(who & 0xFF));
+    h ^= h >> 30;
+    h *= 0xbf58476d1ce4e5b9ull;
+    h ^= h >> 27;
+    h *= 0x94d049bb133111ebull;
+    h ^= h >> 31;
+    salt.clear();
+    PutU64(salt, h);
+    return true;
+}
+
 } // namespace Wire
 
 } // namespace Collab

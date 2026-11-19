@@ -25,8 +25,12 @@
 //   BlobStart  either way      u64 blob id, u64 size
 //   BlobData   either way      u64 blob id, bytes
 //   BlobEnd    either way      u64 blob id
-//   BlobAck    either way      u64 blob bytes received since the last ack
+//   BlobAck    either way      u64 blob id, u64 bytes of it received so far
+//                              (kAckDropped: the recipient dropped it)
 //   AttachAck  either way      the attachment key, received
+//   Succeed    successor -> all u32 protocol, u64 epoch, u32 participant,
+//                              u64 applied rev. "I take over this session"
+//                              (host migration); the others reconnect to it.
 //
 // A file goes through the channel's attachment store under the key
 // "xlb1:<blob id>:<sequence>:<recipient member id>" when it fits, otherwise
@@ -55,6 +59,7 @@ enum class Type : uint8_t {
     BlobEnd = 9,
     BlobAck = 10,
     AttachAck = 11,
+    Succeed = 12,
 };
 
 inline constexpr size_t kHeaderBytes = 2;

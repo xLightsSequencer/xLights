@@ -1873,3 +1873,615 @@ TEST_CASE("Group sessions: ending while the activity starts never starts it", "[
         CHECK(w.g.sentByType[GroupWire::Type::Welcome] == 0);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Host migration over a group
+// ---------------------------------------------------------------------------
+
+namespace {
+
+GPeer* GroupHostNow(GroupWorld& w) {
+    for (auto& p : w.peers) {
+        if (p->ctl && p->ctl->GetRole() == CollabController::Role::Host && p->ctl->GetState() == CollabController::State::Active) {
+            return p.get();
+        }
+    }
+    return nullptr;
+}
+
+// Every peer still in the group and the session caught up with `host`.
+bool GroupQuietWith(GroupWorld& w, GPeer& host) {
+    w.Pump();
+    if (w.g.InFlight() != 0 || GroupHostNow(w) != &host) {
+        return false;
+    }
+    Rev head = host.Host().HeadRev();
+    for (auto& pp : w.peers) {
+        GPeer& p = *pp;
+        if (&p == &host || !p.ctl || p.ctl->GetState() == CollabController::State::Ended) {
+            continue;
+        }
+        if (p.ctl->GetState() != CollabController::State::Active || p.Client().PendingCount() != 0 || p.Client().AppliedRev() != head) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool GroupQuiesceWith(GroupWorld& w, GPeer& host, uint64_t limitMs = 30000) {
+    uint64_t end = w.g.Now() + limitMs;
+    while (w.g.Now() < end) {
+        if (GroupQuietWith(w, host)) {
+            return true;
+        }
+        w.g.RunUntil(w.g.Now() + 5);
+        w.Pump();
+        w.Tick();
+    }
+    return GroupQuietWith(w, host);
+}
+
+void RequireSameAs(GroupWorld& w, GPeer& h) {
+    REQUIRE(GroupQuiesceWith(w, h));
+    uint64_t layout = h.ctl->Session()->LayoutHash();
+    uint64_t memory = w.As(h, [&] { return LayoutDelta::Hash(h.app->Memory()); });
+    uint64_t doc = DocHasher::FullHash(h.Seq());
+    CHECK(layout == memory);
+    for (auto& pp : w.peers) {
+        GPeer& c = *pp;
+        if (&c == &h || !c.ctl) {
+            continue;
+        }
+        INFO("peer " << c.name);
+        REQUIRE(c.ctl->InSession());
+        CHECK(c.ctl->Session()->LayoutHash() == layout);
+        CHECK(w.As(c, [&] { return LayoutDelta::Hash(c.app->Memory()); }) == memory);
+        CHECK(DocHasher::FullHash(c.Seq()) == doc);
+        CHECK(c.Client().HashVerifyFailures() == 0);
+    }
+    CHECK(h.Host().HashVerifyFailures() == 0);
+}
+
+} // namespace
+
+TEST_CASE("Group sessions: a lost host's session carries on with the live layout on the same channel", "[collab][group][controller][migrate]") {
+    GroupShow show;
+    GroupWorld w(show);
+    GPeer& h = w.Add("Hana", "m-1");
+    w.HostOn(h);
+    w.RunFor(100);
+    REQUIRE(h.ctl->LiveLayout());
+    GPeer& ari = w.Add("Ari", "m-2");
+    w.JoinTo(ari);
+    GPeer& bea = w.Add("Bea", "m-3");
+    w.JoinTo(bea);
+    REQUIRE(w.Quiesce());
+    REQUIRE(AddEffectOn(w, ari, "Grid", 4000, 4200) != nullptr);
+    SetDesc(w, bea, "Star", "from bea");
+    w.Settle();
+    // Hana has the Arch open in a modal editor; everyone sees it locked.
+    std::string heldBy;
+    REQUIRE(w.As(h, [&] { return h.ctl->BeginLayoutLock({ "m-arch", "Arch", "submodels" }, heldBy); }));
+    w.RunFor(1500);
+    REQUIRE(w.Quiesce());
+    CHECK(bea.ctl->LayoutLockHolder("m-arch") == 1);
+    CHECK(ari.Client().Succession() == std::vector<ParticipantId>{ 2, 3 });
+    // A layout change of Ari's is on its way when Hana goes.
+    SetDesc(w, ari, "Pole", "from ari");
+    w.As(ari, [&] { ari.ctl->FlushLayout(); });
+    w.Pump();
+    // Gone without a word; what is left of its app can't reach anyone.
+    w.g.Drop("m-1");
+    w.As(h, [&] { h.ctl.reset(); });
+    REQUIRE(GroupQuiesceWith(w, ari));
+    CHECK(w.g.sentByType[GroupWire::Type::Succeed] == 1);
+    CHECK(ari.ctl->GetRole() == CollabController::Role::Host);
+    CHECK(ari.ctl->SessionNetwork() == CollabController::Network::Group);
+    CHECK(bea.ctl->HostParticipant() == 2);
+    // The live layout carried over: the session layout, memory and what is
+    // read-only (Hana's lock went with her).
+    for (GPeer* p : { &ari, &bea }) {
+        INFO(p->name);
+        CHECK(p->ctl->LiveLayout());
+        CHECK(p->ctl->LayoutLockHolder("m-arch") == kNoParticipant);
+        CHECK(Desc(*p, "Star") == "from bea");
+    }
+    CHECK(ari.Host().LayoutVersionsKept() >= 1);
+    w.RunFor(1000);
+    RequireSameAs(w, ari);
+    CHECK(Desc(bea, "Pole") == "from ari");
+    // Layout and sequence edits after the change, from both.
+    SetDesc(w, bea, "Arch", "bea after");
+    SetDesc(w, ari, "Line", "ari after");
+    REQUIRE(AddEffectOn(w, bea, "Grid", 5000, 5200) != nullptr);
+    w.RunFor(1500);
+    RequireSameAs(w, ari);
+    CHECK(Desc(ari, "Arch") == "bea after");
+    CHECK(Desc(bea, "Line") == "ari after");
+    CHECK(bea.Client().ResyncCount() == 0);
+    for (auto& p : w.peers) {
+        CHECK(p->app->rejects.empty());
+    }
+    CHECK(ari.app->locked == false);
+    // A new member joining now gets the session from Ari.
+    GPeer& cy = w.Add("Cy", "m-4");
+    w.RunFor(100);
+    std::string err;
+    REQUIRE(w.As(cy, [&] { return cy.ctl->JoinGroup("Cy", cy.ctl->OfferedGroupSession().id, false, err); }));
+    w.RunFor(1500);
+    RequireSameAs(w, ari);
+    CHECK(cy.ctl->LocalParticipant() == 4);
+    CHECK(cy.ctl->HostName() == "Ari");
+}
+
+TEST_CASE("Group sessions: a client reaches only the successor it expects", "[collab][group][migrate]") {
+    Rig r;
+    Dev& h = r.Add("m-1");
+    Dev& a = r.Add("m-2");
+    Dev& b = r.Add("m-3");
+    r.Host(h);
+    r.Settle();
+    r.Join(a);
+    r.Join(b);
+    r.Settle();
+    r.g.Drop("m-1");
+    r.Settle();
+    REQUIRE(a.Has(kLanHostPeer, PeerEvent::Lost));
+    REQUIRE(b.t->State() == NetState::Failed);
+    CHECK(a.t->SupportsMigration());
+    // b looks for participant 3 first; a takes over as participant 2.
+    Succession s;
+    s.epoch = 1;
+    s.successor = 3;
+    b.t->ConnectToSuccessor(s);
+    r.Settle();
+    s.successor = 2;
+    s.applied = 9;
+    std::string error;
+    REQUIRE(a.t->ListenAsSuccessor(s, SessionAdvert{}, error));
+    r.Settle();
+    CHECK(a.t->LocalPeer() == kLanHostPeer);
+    CHECK(a.t->State() == NetState::Listening);
+    // Not the one b expects: it keeps waiting.
+    CHECK(b.t->State() == NetState::Connecting);
+    b.t->ConnectToSuccessor(s);
+    r.Settle();
+    REQUIRE(b.t->State() == NetState::Connected);
+    CHECK(b.Has(kLanHostPeer, PeerEvent::Joined));
+    CHECK(a.Has(2, PeerEvent::Joined));
+    a.t->Send(2, Ping(5));
+    b.t->Send(kLanHostPeer, Ping(6));
+    r.Settle();
+    REQUIRE_FALSE(b.messages.empty());
+    REQUIRE_FALSE(a.messages.empty());
+    CHECK(b.messages.back().second.time == 5);
+    CHECK(a.messages.back().second.time == 6);
+    // A member that joins the call later gets an ordinary claim from it.
+    Dev& c = r.Add("m-4");
+    r.Join(c);
+    r.Settle();
+    CHECK(c.t->State() == NetState::Connected);
+    CHECK(a.Has(3, PeerEvent::Joined));
+    CHECK(GroupTest::MalformedFrames(*b.t) == 0);
+}
+
+TEST_CASE("Group sessions: a client that starts reconnecting after the new host took over still reaches it", "[collab][group][migrate]") {
+    Rig r;
+    Dev& h = r.Add("m-1");
+    Dev& a = r.Add("m-2");
+    Dev& b = r.Add("m-3");
+    r.Host(h);
+    r.Settle();
+    r.Join(a);
+    r.Join(b);
+    r.Settle();
+    r.g.Drop("m-1");
+    r.Settle();
+    REQUIRE(b.t->State() == NetState::Failed);
+    // a announces its takeover while b's channel still counts as finished.
+    Succession s;
+    s.epoch = 1;
+    s.successor = 2;
+    std::string error;
+    REQUIRE(a.t->ListenAsSuccessor(s, SessionAdvert{}, error));
+    r.Settle();
+    b.t->ConnectToSuccessor(s);
+    r.Settle();
+    REQUIRE(b.t->State() == NetState::Connected);
+    CHECK(b.Has(kLanHostPeer, PeerEvent::Joined));
+    CHECK(a.Has(2, PeerEvent::Joined));
+}
+
+TEST_CASE("Group sessions: a snapshot on a slow group is asked for and sent once", "[collab][group][controller][collab_transfer]") {
+    // Before the world: its teardown still sends frames.
+    std::map<MsgType, int> fromAri;
+    size_t blobsToAri = 0;
+    GroupShow show;
+    GroupWorld w(show);
+    // A slow call: about one blob window (128 KB) per second.
+    w.g.maxMessage = 16384;
+    w.g.latency = 500;
+    GPeer& h = w.Add("Hana", "m-1");
+    // Settings are stored once per distinct text: each is different.
+    for (int i = 0; i < 300; ++i) {
+        std::string text = "E_TEXTCTRL_Text=" + std::to_string(i) + std::string(4000, 'x');
+        REQUIRE(AddEffectOn(w, h, "Grid", 3000 + 20 * i, 3010 + 20 * i, "Text", text) != nullptr);
+    }
+    std::string xsq;
+    REQUIRE(w.As(h, [&] { return h.app->SaveXsq(xsq); }));
+    REQUIRE(xsq.size() > 1000000); // many seconds over this call
+    w.HostOn(h);
+    for (int i = 0; i < 50 && h.ctl->GetState() != CollabController::State::Active; ++i) {
+        w.RunFor(100);
+    }
+    REQUIRE(h.ctl->GetState() == CollabController::State::Active);
+    w.g.onSend = [&](const std::string& from, const std::string& to, const std::string& bytes) {
+        if (bytes.size() < GroupWire::kHeaderBytes) {
+            return;
+        }
+        auto type = (GroupWire::Type)(uint8_t)bytes[1];
+        if (from == "m-2" && type == GroupWire::Type::Msg) {
+            if (auto m = DecodeMessage(std::string_view(bytes).substr(GroupWire::kHeaderBytes))) {
+                ++fromAri[m->type];
+            }
+        }
+        if (from == "m-1" && to == "m-2" && type == GroupWire::Type::BlobStart) {
+            ++blobsToAri;
+        }
+    };
+    GPeer& ari = w.Add("Ari", "m-2");
+    w.JoinTo(ari);
+    // On this link something is nearly always on its way: wait for Ari to
+    // have the document instead of for silence.
+    for (int i = 0; i < 600 && !(ari.ctl->InSession() && ari.Client().IsActive()); ++i) {
+        w.RunFor(100);
+    }
+    w.RunFor(3000);
+    REQUIRE(ari.ctl->InSession());
+    CHECK(DocHasher::FullHash(ari.Seq()) == DocHasher::FullHash(h.Seq()));
+    // Asked for once, and sent once (with the session layout before it).
+    CHECK(fromAri[MsgType::NeedSnapshot] == 1);
+    CHECK(blobsToAri == 2);
+}
+
+namespace {
+// Host `h` and client `c` on a fresh group, joined; done reports collected.
+struct DoneRig {
+    Rig r;
+    Dev* h = nullptr;
+    Dev* c = nullptr;
+    std::vector<std::pair<BlobId, bool>> done;
+    TempDir dir;
+    DoneRig() {
+        r.g.maxMessage = 4096;
+        h = &r.Add("m-1");
+        c = &r.Add("m-2");
+        r.Host(*h);
+        r.Settle();
+        r.Join(*c);
+        r.Settle();
+        REQUIRE(c->t->State() == NetState::Connected);
+        h->t->onBlobDone = [this](PeerId to, BlobId id, bool sent) {
+            CHECK(to == c->t->LocalPeer());
+            done.emplace_back(id, sent);
+        };
+    }
+    PeerId C() const { return c->t->LocalPeer(); }
+    // The transport's own copy of the file it is sending.
+    std::string OutCopy() {
+        std::string found;
+        for (auto& e : fs::directory_iterator(GroupTest::Folder(*h->t))) {
+            if (e.path().filename().string().rfind("out-", 0) == 0) {
+                found = e.path().string();
+            }
+        }
+        return found;
+    }
+};
+} // namespace
+
+TEST_CASE("Group sessions: a blob is done only once the recipient has acknowledged all of it", "[collab][group]") {
+    DoneRig d;
+    std::string body = RandomBytes(300000, 9);
+    d.h->t->SendBlob(d.C(), 41, d.dir.Write("b", body));
+    // Most of it is still waiting for acknowledgements.
+    d.r.Pump();
+    CHECK(d.done.empty());
+    d.r.Settle();
+    REQUIRE(d.c->blobs.size() == 1);
+    CHECK(d.c->blobs[0].content == body);
+    REQUIRE(d.done.size() == 1);
+    CHECK(d.done[0] == std::make_pair(BlobId(41), true));
+}
+
+TEST_CASE("Group sessions: a transfer cut short is reported as failed", "[collab][group]") {
+    DoneRig d;
+    d.h->t->SendBlob(d.C(), 42, d.dir.Write("b", RandomBytes(400000, 10)));
+    // Our own copy (made off this thread) shrinks after the first window
+    // went out.
+    d.r.Pump();
+    std::string copy = d.OutCopy();
+    REQUIRE_FALSE(copy.empty());
+    fs::resize_file(copy, 200000);
+    d.r.Settle();
+    // The recipient drops the short blob; the sender says it didn't go, so
+    // the session sends it again at once instead of waiting.
+    CHECK(d.c->blobs.empty());
+    REQUIRE(d.done.size() == 1);
+    CHECK(d.done[0] == std::make_pair(BlobId(42), false));
+}
+
+TEST_CASE("Group sessions: blobs to a member that leaves are reported as failed", "[collab][group]") {
+    DoneRig d;
+    d.r.g.maxAttachment = 1u << 20;
+    d.r.g.attachmentsLost = true;
+    d.h->t->SendBlob(d.C(), 43, d.dir.Write("big", RandomBytes(3u << 20, 11))); // in chunks
+    d.h->t->SendBlob(d.C(), 44, d.dir.Write("small", RandomBytes(1000, 12)));   // through the store
+    d.r.Pump();
+    d.r.g.Drop("m-2");
+    d.r.Settle();
+    std::map<BlobId, bool> got(d.done.begin(), d.done.end());
+    REQUIRE(d.done.size() == 2);
+    CHECK(got.at(43) == false);
+    CHECK(got.at(44) == false);
+}
+
+TEST_CASE("Group sessions: an attachment that is never acknowledged goes again in chunks", "[collab][group]") {
+    DoneRig d;
+    uint64_t now = 1000;
+    GroupTest::SetClock(*d.h->t, [&] { return now; });
+    d.r.g.maxAttachment = 1u << 20;
+    d.r.g.attachmentsLost = true;
+    std::string body = RandomBytes(1000, 13);
+    d.h->t->SendBlob(d.C(), 45, d.dir.Write("small", body));
+    d.r.Settle();
+    CHECK(d.c->blobs.empty());
+    CHECK(d.done.empty());
+    // Frames from the client after a long silence about it.
+    now += 61000;
+    d.c->t->Send(kLanHostPeer, Ping(1));
+    d.r.Settle();
+    REQUIRE(d.c->blobs.size() == 1);
+    CHECK(d.c->blobs[0].content == body);
+    REQUIRE(d.done.size() == 1);
+    CHECK(d.done[0] == std::make_pair(BlobId(45), true));
+}
+
+TEST_CASE("Group sessions: bytes lost from one blob don't hold up the blobs after it", "[collab][group]") {
+    DoneRig d;
+    int data = 0;
+    // The second chunk of the first blob never arrives.
+    d.r.g.lose = [&](const std::string& from, const std::string&, const std::string& bytes) {
+        return from == "m-1" && bytes.size() > 10 && (GroupWire::Type)(uint8_t)bytes[1] == GroupWire::Type::BlobData &&
+               bytes.compare(GroupWire::kHeaderBytes, 8, U64(51)) == 0 && ++data == 2;
+    };
+    std::string first = RandomBytes(300000, 21);
+    std::string second = RandomBytes(300000, 22);
+    d.h->t->SendBlob(d.C(), 51, d.dir.Write("a", first));
+    d.h->t->SendBlob(d.C(), 52, d.dir.Write("b", second));
+    d.r.Settle();
+    // The damaged one is dropped and said not to have gone (the session
+    // sends it again); the next one arrives whole.
+    std::map<BlobId, bool> got(d.done.begin(), d.done.end());
+    REQUIRE(d.done.size() == 2);
+    CHECK(got.at(51) == false);
+    CHECK(got.at(52) == true);
+    REQUIRE(d.c->blobs.size() == 1);
+    CHECK(d.c->blobs[0].id == 52);
+    CHECK(d.c->blobs[0].content == second);
+    // Sent again, it goes through.
+    d.r.g.lose = nullptr;
+    d.h->t->SendBlob(d.C(), 53, d.dir.Write("a2", first));
+    d.r.Settle();
+    REQUIRE(d.c->blobs.size() == 2);
+    CHECK(d.c->blobs[1].content == first);
+    CHECK(d.done.back() == std::make_pair(BlobId(53), true));
+}
+
+TEST_CASE("Group sessions: a blob whose acknowledgements stop is given up, and the next one flows", "[collab][group]") {
+    DoneRig d;
+    uint64_t now = 1000;
+    GroupTest::SetClock(*d.h->t, [&] { return now; });
+    // Every acknowledgement of blob 61 is lost.
+    d.r.g.lose = [&](const std::string& from, const std::string&, const std::string& bytes) {
+        return from == "m-2" && bytes.size() >= GroupWire::kHeaderBytes + 8 && (GroupWire::Type)(uint8_t)bytes[1] == GroupWire::Type::BlobAck &&
+               bytes.compare(GroupWire::kHeaderBytes, 8, U64(61)) == 0;
+    };
+    d.h->t->SendBlob(d.C(), 61, d.dir.Write("a", RandomBytes(400000, 23)));
+    std::string next = RandomBytes(200000, 24);
+    d.h->t->SendBlob(d.C(), 62, d.dir.Write("b", next));
+    d.r.Settle();
+    CHECK(d.done.empty()); // stuck on its window
+    now += 31000;
+    d.c->t->Send(kLanHostPeer, Ping(1)); // anything from the recipient
+    d.r.Settle();
+    std::map<BlobId, bool> got(d.done.begin(), d.done.end());
+    REQUIRE(got.count(61) == 1);
+    CHECK(got.at(61) == false);
+    REQUIRE(got.count(62) == 1);
+    CHECK(got.at(62) == true);
+    REQUIRE(!d.c->blobs.empty());
+    CHECK(d.c->blobs.back().id == 62);
+    CHECK(d.c->blobs.back().content == next);
+}
+
+TEST_CASE("Group sessions: a large attachment gets time for its size before it is resent", "[collab][group]") {
+    DoneRig d;
+    uint64_t now = 1000;
+    GroupTest::SetClock(*d.h->t, [&] { return now; });
+    d.r.g.maxAttachment = 8u << 20;
+    d.r.g.attachmentsLost = true;
+    std::string body = RandomBytes(4u << 20, 25); // 4 MB: about 64 s more at a slow rate
+    d.h->t->SendBlob(d.C(), 71, d.dir.Write("big", body));
+    d.r.Settle();
+    // 61 s on: a small one would have been resent by now, this one not yet.
+    now += 61000;
+    d.c->t->Send(kLanHostPeer, Ping(1));
+    d.r.Settle();
+    CHECK(d.c->blobs.empty());
+    CHECK(d.done.empty());
+    // An acknowledgement from it (it is getting data) restarts the wait.
+    now += 60000;
+    d.h->t->SendBlob(d.C(), 72, d.dir.Write("small", RandomBytes(100, 26))); // through the store too: lost
+    d.r.g.maxAttachment = 0;
+    d.h->t->SendBlob(d.C(), 73, d.dir.Write("chunked", RandomBytes(100000, 27)));
+    d.r.Settle();
+    std::map<BlobId, bool> got(d.done.begin(), d.done.end());
+    CHECK(got.count(73) == 1);
+    CHECK(got.count(71) == 0);
+    // Past its allowance with nothing more: it goes in chunks.
+    now += 130000;
+    d.c->t->Send(kLanHostPeer, Ping(2));
+    d.r.Settle();
+    got = std::map<BlobId, bool>(d.done.begin(), d.done.end());
+    REQUIRE(got.count(71) == 1);
+    CHECK(got.at(71) == true);
+}
+
+TEST_CASE("Group sessions: a host that hears its successor stands down", "[collab][group][migrate]") {
+    Rig r;
+    Dev& h = r.Add("m-1");
+    Dev& a = r.Add("m-2");
+    Dev& b = r.Add("m-3");
+    r.Host(h);
+    r.Settle();
+    r.Join(a);
+    r.Join(b);
+    r.Settle();
+    // a takes over while h is still in the group (it was only silent).
+    Succession s;
+    s.epoch = 1;
+    s.successor = 2;
+    std::string error;
+    REQUIRE(a.t->ListenAsSuccessor(s, SessionAdvert{}, error));
+    r.Settle();
+    REQUIRE_FALSE(h.states.empty());
+    CHECK(h.states.back().first == NetState::Failed);
+    CHECK(h.states.back().second == "Another device took over this session while this one was not responding.");
+    CHECK(h.Has(2, PeerEvent::Lost));
+    // A later joiner reaches the successor, not the old host.
+    size_t hEvents = h.events.size();
+    Dev& c = r.Add("m-4");
+    r.Join(c);
+    r.Settle();
+    CHECK(c.t->State() == NetState::Connected);
+    CHECK(c.Has(kLanHostPeer, PeerEvent::Joined));
+    CHECK(h.events.size() == hEvents);
+    CHECK(std::any_of(a.events.begin(), a.events.end(), [](const auto& e) { return e.second == PeerEvent::Joined; }));
+    // Having stood down, it leaves without ending the successor's activity.
+    h.Close();
+    REQUIRE(r.g.leaves.size() == 1);
+    CHECK(r.g.leaves[0] == std::make_pair(std::string("m-1"), false));
+}
+
+TEST_CASE("Group sessions: an attachment key names the member it is for", "[collab][group]") {
+    CHECK(GroupAttachmentIsFor("xlb1:12:3:member-a", "member-a"));
+    CHECK_FALSE(GroupAttachmentIsFor("xlb1:12:3:member-a", "member-b"));
+    CHECK_FALSE(GroupAttachmentIsFor("xlb1:12:3:member-a", ""));
+    CHECK_FALSE(GroupAttachmentIsFor("xlb1:12:3:", ""));
+    CHECK_FALSE(GroupAttachmentIsFor("other:12:3:member-a", "member-a"));
+    CHECK_FALSE(GroupAttachmentIsFor("xlb1:x2:3:member-a", "member-a"));
+    CHECK_FALSE(GroupAttachmentIsFor("xlb1:12:member-a", "member-a"));
+}
+
+TEST_CASE("Group sessions: members download only the attachments addressed to them", "[collab][group]") {
+    Rig r;
+    r.g.maxAttachment = 8u << 20;
+    TempDir dir;
+    Dev& h = r.Add("m-1");
+    Dev& a = r.Add("m-2");
+    Dev& b = r.Add("m-3");
+    r.Host(h);
+    r.Settle();
+    r.Join(a);
+    r.Join(b);
+    r.Settle();
+    std::string body = RandomBytes(100000, 61);
+    h.t->SendBlob(2, 71, dir.Write("for-a", body));
+    r.Settle();
+    REQUIRE(a.blobs.size() == 1);
+    CHECK(a.blobs[0].content == body);
+    CHECK(b.blobs.empty());
+    CHECK(r.g.downloads["m-2"] == 1);
+    // b sees the attachment in the store but never fetches it.
+    CHECK(r.g.downloads["m-3"] == 0);
+    CHECK(r.g.skippedDownloads["m-3"] == 1);
+}
+
+TEST_CASE("Group sessions: only the current host ends the activity when it leaves", "[collab][group][migrate]") {
+    Rig r;
+    Dev& h = r.Add("m-1");
+    Dev& a = r.Add("m-2");
+    Dev& b = r.Add("m-3");
+    r.Host(h);
+    r.Settle();
+    r.Join(a);
+    r.Join(b);
+    r.Settle();
+    // The device that started the activity stops hosting: a takes over and
+    // h comes back as one of its clients.
+    Succession s;
+    s.epoch = 1;
+    s.successor = 2;
+    std::string error;
+    REQUIRE(a.t->ListenAsSuccessor(s, SessionAdvert{}, error));
+    h.t->ConnectToSuccessor(s);
+    r.Settle();
+    REQUIRE(h.t->State() == NetState::Connected);
+    REQUIRE(a.t->LocalPeer() == kLanHostPeer);
+    auto leftWith = [&](const std::string& member) -> std::optional<bool> {
+        for (auto& [m, end] : r.g.leaves) {
+            if (m == member) {
+                return end;
+            }
+        }
+        return std::nullopt;
+    };
+    // The former host leaving must not end the new host's session.
+    h.Close();
+    REQUIRE(leftWith("m-1").has_value());
+    CHECK_FALSE(*leftWith("m-1"));
+    // A client only leaves.
+    b.Close();
+    REQUIRE(leftWith("m-3").has_value());
+    CHECK_FALSE(*leftWith("m-3"));
+    // The current host ends it for everyone, though it didn't start it.
+    a.Close();
+    REQUIRE(leftWith("m-2").has_value());
+    CHECK(*leftWith("m-2"));
+}
+
+TEST_CASE("Group sessions: a file is copied off the caller's thread", "[collab][group]") {
+    Rig r;
+    TempDir dir;
+    Dev& h = r.Add("m-1");
+    Dev& a = r.Add("m-2");
+    r.Host(h);
+    r.Settle();
+    r.Join(a);
+    r.Settle();
+    std::string body = RandomBytes(50000, 62);
+    std::string path = dir.Write("f", body);
+    std::atomic<bool> copied{ false };
+    std::thread::id copier;
+    Files::Test::noClone = true;
+    Files::Test::beforeCopy = [&] {
+        copier = std::this_thread::get_id();
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        copied = true;
+    };
+    auto t0 = std::chrono::steady_clock::now();
+    h.t->SendBlob(2, 81, path);
+    double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+    // The caller may delete it at once.
+    fs::remove(path);
+    r.Settle();
+    Files::Test::beforeCopy = nullptr;
+    Files::Test::noClone = false;
+    INFO("SendBlob " << ms << " ms");
+    CHECK(copied.load());
+    CHECK(copier != std::this_thread::get_id());
+    CHECK(ms < 250);
+    REQUIRE(a.blobs.size() == 1);
+    CHECK(a.blobs[0].content == body);
+}

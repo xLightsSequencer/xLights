@@ -138,6 +138,10 @@ bool GroupAttachmentIsFor(const std::string& key, const std::string& member);
 namespace GroupTest {
 // Frames a group transport dropped as malformed or out of place.
 size_t MalformedFrames(INetTransport& t);
+// The clock (ms) the transport times attachment acknowledgements with.
+void SetClock(INetTransport& t, std::function<uint64_t()> clock);
+// Where the transport keeps its own copies of files on their way.
+std::string Folder(INetTransport& t);
 } // namespace GroupTest
 
 } // namespace Collab

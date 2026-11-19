@@ -141,6 +141,16 @@ constexpr uint64_t kGroupPollMs = 1000;
 @implementation XLCollabReject
 @end
 
+@interface XLCollabHostChange ()
+@property (nonatomic, readwrite) NSString* previousHostName;
+@property (nonatomic, readwrite) NSString* hostName;
+@property (nonatomic, readwrite) BOOL becameHost;
+@property (nonatomic, readwrite) BOOL saveAsOnly;
+@property (nonatomic, readwrite) NSString* text;
+@end
+@implementation XLCollabHostChange
+@end
+
 @interface XLCollabChange ()
 @property (nonatomic, readwrite) XLCollabChangeCause cause;
 @property (nonatomic, readwrite) NSString* authorName;
@@ -345,6 +355,16 @@ public:
         [_owner deliver:XLCollabEventRejected payload:r];
     }
     void OnUndoStateChanged() override { [_owner deliver:XLCollabEventUndoStateChanged payload:nil]; }
+    void OnHostChanged(const Collab::HostChange& c) override {
+        XLCollabHostChange* h = [XLCollabHostChange new];
+        h.previousHostName = NS(c.oldHostName);
+        h.hostName = NS(c.newHostName);
+        h.becameHost = c.becameHost ? YES : NO;
+        h.saveAsOnly = c.saveAsOnly ? YES : NO;
+        h.text = NS(c.text);
+        [_owner syncSessionFlags];
+        [_owner deliver:XLCollabEventHostChanged payload:h];
+    }
     void OnJoinReport(const Collab::JoinReport& report) override {
         [_owner deliver:XLCollabEventJoinReport payload:[_owner wrapJoinReport:report]];
     }
@@ -543,6 +563,7 @@ private:
     case Collab::CollabController::State::Joining: return XLCollabStateJoining;
     case Collab::CollabController::State::Syncing: return XLCollabStateSyncing;
     case Collab::CollabController::State::Active: return XLCollabStateActive;
+    case Collab::CollabController::State::Migrating: return XLCollabStateMigrating;
     case Collab::CollabController::State::Ended: return XLCollabStateEnded;
     }
     return XLCollabStateIdle;
@@ -554,7 +575,8 @@ private:
 
 - (NSString*)pairingCode {
     if (_controller->GetRole() != Collab::CollabController::Role::Host) return @"";
-    return NS(_pairingCode);
+    // A session this iPad took over keeps the code everyone joined with.
+    return NS(_controller->PairingCode().empty() ? _pairingCode : _controller->PairingCode());
 }
 
 - (NSArray<XLCollabParticipant*>*)participants {
@@ -1064,7 +1086,14 @@ static XLCollabAdvert* WrapAdvert(const Collab::SessionAdvert& s) {
             if (!name.empty() && seen.insert(name).second) [models addObject:NS(name)];
         }
     }
-    o.modelNames = models;
+    const Collab::RenderPlan plan = Collab::PlanRender(c);
+    switch (plan.kind) {
+    case Collab::RenderPlan::Kind::Nothing: o.renderKind = XLCollabRenderKindNothing; break;
+    case Collab::RenderPlan::Kind::Rows: o.renderKind = XLCollabRenderKindRows; break;
+    case Collab::RenderPlan::Kind::Models: o.renderKind = XLCollabRenderKindModels; break;
+    case Collab::RenderPlan::Kind::Everything: o.renderKind = XLCollabRenderKindEverything; break;
+    }
+    o.modelNames = plan.kind == Collab::RenderPlan::Kind::Models ? NSStrings(plan.models) : models;
 
     if (c.cause == Cause::RemoteEdit && !c.effects.empty()) {
         const uint64_t until = NowMs() + kFlashMs;

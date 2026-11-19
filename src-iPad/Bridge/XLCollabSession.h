@@ -23,6 +23,8 @@ typedef NS_ENUM(NSInteger, XLCollabState) {
     XLCollabStateSyncing = 3,
     XLCollabStateActive = 4,
     XLCollabStateEnded = 5,
+    // The host was lost; someone is taking over (edits keep working).
+    XLCollabStateMigrating = 6,
 };
 
 typedef NS_ENUM(NSInteger, XLCollabEvent) {
@@ -53,6 +55,9 @@ typedef NS_ENUM(NSInteger, XLCollabEvent) {
     // Something from the host to read: this user's role changed, or a row
     // assignment it asked for was refused. payload: NSString.
     XLCollabEventNotice = 16,
+    // The host was lost and someone else took over; `role` may have
+    // changed. payload: XLCollabHostChange.
+    XLCollabEventHostChanged = 17,
 };
 
 // Which network a session runs on: the local network (pairing code) or a
@@ -135,6 +140,17 @@ typedef NS_ENUM(NSInteger, XLCollabGhostKind) {
 @property (nonatomic, readonly) uint64_t rejectId;
 @property (nonatomic, readonly) NSString* text;
 @property (nonatomic, readonly) BOOL offersNewLayer;
+@end
+
+@interface XLCollabHostChange : NSObject
+@property (nonatomic, readonly) NSString* previousHostName;
+@property (nonatomic, readonly) NSString* hostName;
+// This iPad took over: it saves from now on (Save As, since the sequence is
+// the session's copy).
+@property (nonatomic, readonly) BOOL becameHost;
+@property (nonatomic, readonly) BOOL saveAsOnly;
+// "Sam left; Alex is now hosting"
+@property (nonatomic, readonly) NSString* text;
 @end
 
 @interface XLCollabChange : NSObject
@@ -245,7 +261,7 @@ typedef void (^XLCollabEventHandler)(XLCollabEvent event, id _Nullable payload);
 @property (nonatomic, readonly) NSArray<XLCollabParticipant*>* participants;
 @property (nonatomic, readonly) NSArray<XLCollabAdvert*>* sessions;
 @property (nonatomic, readonly, nullable) XLCollabJoinReport* joinReport;
-// The pairing code while hosting; empty otherwise.
+// The pairing code while hosting (also after taking over); empty otherwise.
 @property (nonatomic, readonly) NSString* pairingCode;
 
 // ---- SharePlay ----

@@ -1059,6 +1059,10 @@ bool xLightsFrame::CloseSequence()
         }
     }
 
+    if (_collab) {
+        _collab->EndForClose();
+    }
+
     // just in case there is still rendering going on
     AbortRender();
 

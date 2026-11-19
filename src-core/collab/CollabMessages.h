@@ -142,6 +142,15 @@ struct Message {
 
     // Hello: this app can edit the layout live. Welcome: the session does.
     bool liveLayout = false;
+    // Hello / Welcome: a participant coming back to a session whose host
+    // changed (host migration). Hello: `participant` is the id it had, `rev`
+    // its applied rev, `clientSeq` the first proposal it still waits on.
+    // Welcome: `clientSeq` is its last proposal the session had dealt with.
+    bool rejoin = false;
+
+    // Welcome (not a rejoin): this participant's rejoin secret, sent to it
+    // alone. Hello (rejoin): the secret it was given.
+    std::string secret;
 
     // Hello
     std::string appVersion;
@@ -202,11 +211,21 @@ struct Message {
 
     // Ping / Pong
     uint64_t time = 0;
+    // Pong: the client has the document (it is past joining)
+    bool active = false;
 
     // Roster: the host first, then the clients in joining order
     std::vector<RosterEntry> roster;
     // Roster: every assignment in force; Claim: the rows to assign / release
     std::vector<Assignment> assignments;
+    // Roster: how many times the host has changed, and the next participant
+    // id the host would give out (a successor never reuses one)
+    uint64_t epoch = 0;
+    ParticipantId nextParticipant = kNoParticipant;
+    // Roster / Ping: who takes over if the host goes, best first
+    std::vector<ParticipantId> succession;
+    // Roster: the role the host gives people who join (so a successor keeps it)
+    ParticipantRole joinRole = ParticipantRole::Editor;
 };
 
 std::string EncodeMessage(const Message& m);
@@ -251,6 +270,9 @@ inline constexpr const char* Protocol = "protocol";
 inline constexpr const char* Full = "full";
 inline constexpr const char* Ended = "ended";
 inline constexpr const char* HostLost = "host_lost";
+// Reject: the host that decided this proposal was lost before its answer
+// arrived (host migration); it may or may not have been committed then.
+inline constexpr const char* HostChanged = "host_changed";
 inline constexpr const char* Left = "left";
 inline constexpr const char* SnapshotFailed = "snapshot_failed";
 // Joining: this device's show files don't match the host's (text says how).

@@ -341,6 +341,16 @@ public:
         return Quiet();
     }
 
+    // Host migration: client `n` (Migrating, after BeginSuccession) takes
+    // over as host and opens the session again.
+    void TakeOver(Node& n) {
+        Scope a(n);
+        std::unique_ptr<Collab::CollabParticipant> old = std::move(n.session);
+        n.session = std::make_unique<Collab::CollabHost>(*n.transport, *n.doc, _opts, Events(n), static_cast<Collab::CollabClient&>(*old));
+        old.reset();
+        n.Host().ResumeAsSuccessor();
+    }
+
     // Does `fn` as participant `n` (its id allocator and folders installed).
     template<class F>
     auto As(Node& n, F&& fn) {
@@ -383,6 +393,7 @@ private:
             np->rolledBack.emplace_back(a, i);
         };
         ev.onNotice = [np](const std::string& reason, const std::string& text) { np->notices.emplace_back(reason, text); };
+        ev.onHostLost = [np] { return np->migrates; };
         return ev;
     }
 

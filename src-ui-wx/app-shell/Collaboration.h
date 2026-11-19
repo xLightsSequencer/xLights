@@ -54,10 +54,14 @@ public:
     void SetPreferenceEnabled(bool enabled);
     bool Available() const;
 
-    // The frame asks before closing the sequence: in a session that ends it
-    // (host) or leaves it (client), after asking. False keeps it open.
+    // Closing the sequence in a session ends it (host) or leaves it (client).
+    // The frame asks first (false keeps the sequence open; a script or batch
+    // run is always refused), then deals with unsaved changes, and only once
+    // the close can no longer be cancelled calls EndForClose.
     bool AllowCloseSequence();
-    // The open sequence is a client's session copy: plain Save becomes Save As.
+    void EndForClose();
+    // The open sequence is this device's copy of a session it joined (also
+    // once it has taken over hosting): plain Save becomes Save As.
     bool IsClientDocument() const;
     // App shutting down.
     void Shutdown();
@@ -89,6 +93,7 @@ public:
     void OnUndoStateChanged() override;
     void OnJoinReport(const Collab::JoinReport& report) override;
     void OnSessionsFound(const std::vector<Collab::SessionAdvert>& sessions) override;
+    void OnHostChanged(const Collab::HostChange& change) override;
     void OnBrowseError(const std::string& reason) override;
     void OnLog(const std::string& line) override;
     void OnSessionNotice(const std::string& text) override;
@@ -107,6 +112,12 @@ public:
     bool IsSessionClient() const;
     // The session runs on a temporary copy of the host's show folder.
     bool OnSessionCopy() const { return !_originalShowDir.empty(); }
+    // The user's own show folder while on a session copy (else empty).
+    const std::string& OriginalShowFolder() const { return _originalShowDir; }
+    // The session's folders, deleted when it ends: the copy of the session
+    // sequence and, on a session copy, the copy of the host's show. Never a
+    // place to save the sequence.
+    std::vector<std::string> TemporaryFolders() const;
     // Modal layout editors (CollabLayoutEditLock). False (after telling the
     // user who holds it) when someone else has the object open.
     bool BeginEditorLock(const std::vector<const BaseObject*>& objects, const std::string& what, wxWindow* parent);
@@ -200,7 +211,7 @@ private:
     std::string _lastBanner;
     std::map<int, std::function<void()>> _rowMenuActions;
     std::vector<int> _rowMenuIds; // reused across menus
-    std::string _codeShown; // host: the pairing code
+    std::string _codeShown; // host (also after taking over): the pairing code
     std::string _originalShowDir;              // client: show folder before UseShowFolder
     std::vector<std::string> _addedMediaFolders; // client: AddMediaFolder, removed at the end
     void RestoreShowFolder();

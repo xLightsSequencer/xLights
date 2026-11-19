@@ -584,6 +584,20 @@ void StartSession(World& w, int clients) {
 
 } // namespace
 
+namespace {
+// How many changes told the app that one of its edits was taken back out,
+// touching `row`.
+int RejectedChanges(Peer& p, SeqObjectId row) {
+    int n = 0;
+    for (const auto& c : p.app->changes) {
+        if (c.cause == SequenceChange::Cause::OwnEditRejected && std::find(c.rows.begin(), c.rows.end(), row) != c.rows.end()) {
+            ++n;
+        }
+    }
+    return n;
+}
+} // namespace
+
 TEST_CASE("Hosting and joining lock the layout, list everyone and end cleanly", "[collab][controller]") {
     Show show;
     World w(show);
@@ -1157,6 +1171,9 @@ TEST_CASE("Rejects come with readable text and put-on-new-layer works", "[collab
     CHECK(n.action == RejectAction::PutOnNewLayer);
     CHECK(b.ctl->PendingGhosts().empty());
     CHECK(EffectAt(b, "Line", 3200) == nullptr);
+    // It was taken out while it waited and isn't coming back: its row renders.
+    SeqObjectId line = b.Seq().GetElement("Line")->GetUid();
+    CHECK(RejectedChanges(b, line) == 1);
     REQUIRE(w.As(b, [&] { return b.ctl->PutOnNewLayer(n.id); }));
     RequireConverged(w);
     REQUIRE(h.Seq().GetElement("Line")->GetEffectLayerCount() == 2);
@@ -1307,6 +1324,102 @@ TEST_CASE("A client that joined against a session copy can keep it after the ses
     CHECK_FALSE(a.app->locked);
 }
 
+TEST_CASE("A kept session copy survives a later session in the same parent folder", "[collab][controller]") {
+    Show show;
+    TempDir dev;
+    TempDir sessions;
+    CopyShowFiles(show.path, dev.path, { "xlights_networks.xml", "xlights_rgbeffects.xml" });
+    WriteFile(dev.path / "xlights_rgbeffects.xml", ChangedLayout(ReadFile(show.dir.File("xlights_rgbeffects.xml"))));
+    const std::string parent = (sessions.path / "app").string();
+    World w(show);
+    Peer& h = w.Add("Hana", "mac");
+    w.HostOn(h);
+    // Both joiners stand for one app's sessions, one after the other: the
+    // app hands every session the same parent folder.
+    Peer& a = w.Add("Ari", "ipad", false, dev.path.string(), parent);
+    Peer& b = w.Add("Bo", "ipad", false, dev.path.string(), parent);
+    w.JoinTo(a, true);
+    w.JoinTo(b, true);
+    RequireConverged(w);
+    REQUIRE(a.app->report.has_value());
+    REQUIRE(b.app->report.has_value());
+    REQUIRE(a.app->report->sessionCopy);
+    REQUIRE(b.app->report->sessionCopy);
+    std::string kept;
+    std::string other;
+    w.As(a, [&] { a.ctl->Leave(); });
+    REQUIRE(a.ctl->KeepSessionCopy(kept));
+    w.As(a, [&] { a.ctl.reset(); });
+    w.As(b, [&] {
+        REQUIRE(b.ctl->Session() != nullptr);
+        other = b.ctl->Session()->SessionFolder();
+        b.ctl->Leave();
+    });
+    w.As(b, [&] { b.ctl.reset(); });
+    CHECK(std::filesystem::path(kept).parent_path().parent_path() == std::filesystem::path(parent));
+    CHECK(std::filesystem::exists(std::filesystem::path(kept) / "xlights_rgbeffects.xml"));
+    CHECK(std::filesystem::exists(std::filesystem::path(kept) / "xlights_networks.xml"));
+    // The kept folder holds only the show copy.
+    CHECK_FALSE(std::filesystem::exists(std::filesystem::path(kept).parent_path() / "incoming"));
+    CHECK(std::filesystem::path(other).parent_path() == std::filesystem::path(parent));
+    CHECK_FALSE(std::filesystem::exists(other));
+}
+
+TEST_CASE("A change renders only what it touched", "[collab][controller]") {
+    using Cause = SequenceChange::Cause;
+    using Kind = RenderPlan::Kind;
+    SequenceChange edit;
+    edit.cause = Cause::RemoteEdit;
+    edit.rows = { 7, 9 };
+    edit.rowNames = { "Arch", "Tree" };
+    edit.startMS = 1000;
+    edit.endMS = 2000;
+    RenderPlan p = PlanRender(edit);
+    CHECK(p.kind == Kind::Rows);
+    CHECK(p.rows == std::vector<SeqObjectId>{ 7, 9 });
+    CHECK(p.startMS == 1000);
+    CHECK(p.endMS == 2000);
+    for (Cause c : { Cause::OwnEdit, Cause::OwnUndo, Cause::OwnEditRejected }) {
+        edit.cause = c;
+        CHECK(PlanRender(edit).kind == Kind::Rows);
+    }
+    edit.cause = Cause::OwnEditPending;
+    CHECK(PlanRender(edit).kind == Kind::Nothing);
+
+    // A layout change: model names, no rows.
+    SequenceChange layout;
+    layout.label = "Layout";
+    layout.rowNames = { "Arch", "Tree", "Arch", "" };
+    p = PlanRender(layout);
+    CHECK(p.kind == Kind::Models);
+    CHECK(p.models == std::vector<std::string>{ "Arch", "Tree" });
+
+    // Tags, song structure, a controllers-only or removal-only layout change.
+    SequenceChange none;
+    CHECK(PlanRender(none).kind == Kind::Nothing);
+    none.rowsRemoved = true;
+    CHECK(PlanRender(none).kind == Kind::Nothing);
+
+    // What needs every row.
+    SequenceChange media = edit;
+    media.cause = Cause::RemoteEdit;
+    media.mediaChanged = true;
+    CHECK(PlanRender(media).kind == Kind::Everything);
+    SequenceChange all;
+    all.everything = true;
+    CHECK(PlanRender(all).kind == Kind::Everything);
+    SequenceChange resync;
+    resync.cause = Cause::Resync;
+    resync.everything = true;
+    p = PlanRender(resync);
+    CHECK(p.kind == Kind::Everything);
+    CHECK(p.startMS == -1);
+    SequenceChange file;
+    file.cause = Cause::FileArrived;
+    file.mediaChanged = true;
+    CHECK(PlanRender(file).kind == Kind::Everything);
+}
+
 TEST_CASE("Moves on a client stay applied and a rejected one falls back", "[collab][controller]") {
     Show show;
     World w(show);
@@ -1353,6 +1466,8 @@ TEST_CASE("Moves on a client stay applied and a rejected one falls back", "[coll
     CHECK(a.app->rejects[0].reason == Reason::Overlap);
     CHECK(EffectAt(a, "Line", 0) != nullptr);
     CHECK(EffectAt(a, "Line", 3100) == nullptr);
+    // The snap back is a change to render like any other.
+    CHECK(RejectedChanges(a, a.Seq().GetElement("Line")->GetUid()) == 1);
 
     // A remote move of the same effect lands first in host order; a's later
     // pending move still wins and never flickers.
@@ -1726,4 +1841,95 @@ TEST_CASE("Rows assigned to someone else refuse local edits and show who holds t
     });
     RequireConverged(w);
     CHECK(EffectAt(h, "Line", 100) != nullptr);
+}
+
+TEST_CASE("Undo on a client right after an edit undoes that edit", "[collab][controller]") {
+    Show show;
+    World w(show);
+    StartSession(w, 1);
+    Peer& h = *w.peers[0];
+    Peer& a = *w.peers[1];
+    REQUIRE(w.As(a, [&] { return AddOn(a, "Line", 3000, 3500); }) != nullptr);
+    RequireConverged(w);
+    // B, then undo before its commit is back (or it was even sent).
+    REQUIRE(w.As(a, [&] { return AddOn(a, "Line", 5000, 5500); }) != nullptr);
+    CHECK(w.As(a, [&] { return a.ctl->CanUndo(); }));
+    REQUIRE(w.As(a, [&] { return a.Undo().UndoLastStep(); }));
+    RequireConverged(w);
+    for (Peer* p : { &h, &a }) {
+        INFO((p == &h ? "host" : "client"));
+        CHECK(EffectAt(*p, "Line", 3000) != nullptr);
+        CHECK(EffectAt(*p, "Line", 5000) == nullptr);
+    }
+    // Redo brings B back; another undo and redo still pair up.
+    REQUIRE(w.As(a, [&] { return a.ctl->CanRedo(); }));
+    REQUIRE(w.As(a, [&] { return a.Undo().RedoLastStep(); }));
+    RequireConverged(w);
+    CHECK(EffectAt(h, "Line", 5000) != nullptr);
+    CHECK(EffectAt(h, "Line", 3000) != nullptr);
+    // An undo and a redo made while the redo is still undecided cancel out.
+    REQUIRE(w.As(a, [&] { return a.ctl->Undo(); }));
+    REQUIRE(w.As(a, [&] { return a.ctl->Redo(); }));
+    RequireConverged(w);
+    CHECK(EffectAt(h, "Line", 5000) != nullptr);
+    CHECK(EffectAt(a, "Line", 5000) != nullptr);
+    CHECK(a.app->rejects.empty());
+}
+
+TEST_CASE("Rejoin welcomes and resend requests wait for an open local edit", "[collab][controller]") {
+    Show show;
+    World w(show);
+    StartSession(w, 1);
+    Peer& h = *w.peers[0];
+    Peer& a = *w.peers[1];
+    PeerId hp = h.lt->LocalPeer();
+    PeerId ap = a.lt->LocalPeer();
+    SECTION("a Welcome on the client") {
+        w.As(a, [&] { a.Exec().BeginPreview(); });
+        Message wm;
+        wm.type = MsgType::Welcome;
+        wm.participant = a.ctl->LocalParticipant();
+        wm.rejoin = true;
+        h.lt->Send(ap, wm);
+        w.RunFor(50);
+        CHECK(a.ctl->HeldDeliveries() == 1);
+        w.As(a, [&] { a.Exec().CancelPreview(); });
+        w.RunFor(50);
+        CHECK(a.ctl->HeldDeliveries() == 0);
+    }
+    SECTION("a Resend on the host") {
+        w.As(h, [&] { h.Exec().BeginPreview(); });
+        Message r;
+        r.type = MsgType::Resend;
+        r.rev = 1;
+        a.lt->Send(hp, r);
+        w.RunFor(50);
+        CHECK(h.ctl->HeldDeliveries() == 1);
+        w.As(h, [&] { h.Exec().CancelPreview(); });
+        w.RunFor(50);
+        CHECK(h.ctl->HeldDeliveries() == 0);
+    }
+    RequireConverged(w);
+}
+
+TEST_CASE("An edit refused on the client renders its rows again", "[collab][controller]") {
+    Show show;
+    World w(show);
+    StartSession(w, 1);
+    Peer& a = *w.peers[1];
+    Effect* first = EffectAt(a, "Line", 0);
+    REQUIRE(first != nullptr);
+    int end = first->GetEndTimeMS();
+    size_t before = a.app->changes.size();
+    // On top of an existing effect: the app's edit site allows it, the
+    // session's strict check refuses it once it is taken out to propose.
+    Effect* e = w.As(a, [&] { return AddOn(a, "Line", 0, end); });
+    REQUIRE(e != nullptr);
+    w.RunFor(50);
+    REQUIRE(!a.app->rejects.empty());
+    CHECK(a.app->rejects.back().reason == Reason::Overlap);
+    REQUIRE(a.app->changes.size() > before);
+    CHECK(a.app->changes.back().cause == SequenceChange::Cause::OwnEditRejected);
+    CHECK(RejectedChanges(a, a.Seq().GetElement("Line")->GetUid()) == 1);
+    RequireConverged(w);
 }

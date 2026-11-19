@@ -82,6 +82,11 @@ bool SaltFromHex(std::string_view hex, std::string& salt);
 std::string ServiceNameFor(const std::string& salt); // "xlc-<hex>"
 // The salt in a service name, tolerating a Bonjour rename suffix (" (2)").
 bool SaltFromServiceName(std::string_view name, std::string& salt);
+// Host migration: the salt the successor `who` of the session `sessionId`
+// (a service name) listens under. It changes the service name and the
+// pairing key; the code stays the same. False when `sessionId` carries no
+// salt (a direct "tcp:" id).
+bool SuccessorSalt(std::string_view sessionId, uint16_t who, std::string& salt);
 
 } // namespace Collab::Wire
 

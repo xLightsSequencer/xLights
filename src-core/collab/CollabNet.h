@@ -51,6 +51,20 @@ enum class NetState { Idle, Listening, Connecting, Connected, Failed, Closed };
 // LocalPeer() is the id the host gave its connection.
 inline constexpr PeerId kLanHostPeer = 1;
 
+// Host migration: everything a participant needs to take over a session
+// whose host was lost, or to reach the one that does. Every participant
+// derives the same successor address from what the session already shares
+// (its id, the pairing code, the successor's participant id), so nobody has
+// to ask.
+struct Succession {
+    std::string sessionId;   // the session being taken over (what was joined, or the last successor's id)
+    std::string pairingCode; // the session's code; the successor keeps it
+    ParticipantId successor = kNoParticipant;
+    uint64_t epoch = 0;      // this migration's number (1 for the session's first)
+    // The successor's applied rev and participant id, for a group claim.
+    Rev applied = 0;
+};
+
 class INetTransport : public ICollabTransport {
 public:
     // Host: accept participants that know `pairingCode`, and advertise
@@ -66,6 +80,27 @@ public:
     // returns.
     virtual void Close() = 0;
     virtual NetState State() const = 0;
+
+    // ---- Host migration (CollabController) ----
+    // Both drop what is left of the connection to the lost host and replace
+    // it; the transport is then a host (Listening) or a client (Connecting)
+    // of the successor, with the callbacks it had.
+    virtual bool SupportsMigration() const { return false; }
+    // This device takes over the session `s`: listen where the others will
+    // look (SuccessorSessionId), with the same pairing code. False with
+    // `error` set when it can't.
+    virtual bool ListenAsSuccessor(const Succession& /*s*/, const SessionAdvert& /*advert*/, std::string& error) {
+        error = "This network can't move a session to another host.";
+        return false;
+    }
+    // Reach the successor: onPeer(its PeerId, Joined), or onState(Failed).
+    virtual void ConnectToSuccessor(const Succession& /*s*/) {
+        if (onState) {
+            onState(NetState::Failed, "This network can't move a session to another host.");
+        }
+    }
+    // The session id the successor in `s` is found under (empty: none).
+    virtual std::string SuccessorSessionId(const Succession& /*s*/) const { return {}; }
 
     // Called through the dispatcher, like onMessage / onPeer / onBlob.
     std::function<void(NetState state, const std::string& reason)> onState;

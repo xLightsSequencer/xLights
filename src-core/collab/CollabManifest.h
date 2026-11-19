@@ -109,6 +109,27 @@ std::string CachePathFor(const std::string& path);
 // drive letters, control characters, device names Windows reserves).
 std::string SessionSequenceFileName(const std::string& advertised);
 
+// Saving the copy of a session's sequence a joiner works on. The session's
+// folders (where that copy and any copy of the host's show live) are
+// temporary: they go when the session ends.
+//
+// True when `path` is `folder` or inside it. Both are made absolute and
+// resolved (symbolic links, "..") as far as they exist; Windows compares
+// without case.
+bool PathIsInside(const std::string& path, const std::string& folder);
+// Empty when the sequence may be saved as `target`; else why not.
+std::string SessionSaveRefusal(const std::string& target, const std::vector<std::string>& temporaryFolders);
+// The folder a Save As starts in: the first of `candidates` that exists and
+// is not inside a temporary folder. Empty when there is none.
+std::string SessionSaveStartFolder(const std::vector<std::string>& candidates, const std::vector<std::string>& temporaryFolders);
+// Keeping a copy of the host's show after a session that ran on one: empty
+// when `folder` may receive it (outside the temporary folders, and either
+// missing or empty, so nothing of the user's is overwritten); else why not.
+std::string ShowCopyFolderRefusal(const std::string& folder, const std::vector<std::string>& temporaryFolders);
+// Copies everything in `from` into `to` (made if missing), never replacing a
+// file already there. False, with `error` set, on the first failure.
+bool CopyFolderContents(const std::string& from, const std::string& to, std::string& error);
+
 // The file `path` names on this machine, resolved against `showDir`; empty
 // when there is none.
 std::string ResolvePath(const std::string& showDir, const std::string& path);

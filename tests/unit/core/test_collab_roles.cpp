@@ -514,3 +514,272 @@ TEST_CASE("Roles and assignments survive a re-sync, even one whose roster was lo
     CHECK(OwnerOf(c, "Line") == aid);
     CHECK(c.session->RoleOf(bid) == ParticipantRole::Editor);
 }
+
+TEST_CASE("A local edit the host rejects is rolled back through the render path", "[collab][collab_roles]") {
+    Show show;
+    Sim sim(show, Lan(), Opts());
+    Node& h = Host(sim);
+    Node& a = Client(sim);
+    REQUIRE(sim.Quiesce());
+    ParticipantId aid = a.session->Participant();
+    REQUIRE(sim.As(h, [&] { return h.Host().SetRole(aid, ParticipantRole::Viewer); }));
+    REQUIRE(sim.Quiesce());
+    SeqObjectId uid = EffectAt(a, "Grid", 1000)->GetUid();
+    // Applied at once on the client, then rejected (a viewer's edit).
+    SubmitResult r = sim.As(a, [&] { return a.session->Submit(SetKey(a, "Grid", 1000, "E_TEXTCTRL_Eff_On_Start", "55")); });
+    REQUIRE(r.ok);
+    REQUIRE(r.optimistic);
+    CHECK(EffectAt(a, "Grid", 1000)->GetSettings().Get("E_TEXTCTRL_Eff_On_Start", "") == "55");
+    RequireConverged(sim);
+    CHECK(a.rejects[Reason::Viewer] == 1);
+    CHECK(EffectAt(a, "Grid", 1000)->GetSettings().Get("E_TEXTCTRL_Eff_On_Start", "") == "10");
+    // The app was told what the rollback changed, as for a commit, so the
+    // row renders again.
+    REQUIRE(a.rolledBack.size() == 1);
+    const auto& [applied, inverse] = a.rolledBack[0];
+    std::unique_ptr<SequenceCommand> cmd = DeserializeCommand(applied);
+    std::unique_ptr<SequenceCommand> inv = DeserializeCommand(inverse);
+    REQUIRE(cmd != nullptr);
+    REQUIRE(inv != nullptr);
+    std::vector<const SequenceCommand*> members;
+    for (const auto& m : static_cast<const BatchCommand&>(*cmd).GetCommands()) {
+        members.push_back(m.get());
+    }
+    REQUIRE(members.size() == 1);
+    REQUIRE(members[0]->Type() == CommandType::ModifyEffect);
+    CHECK(static_cast<const ModifyEffectCommand&>(*members[0]).Target().effect == uid);
+    CHECK(h.rolledBack.empty());
+    // A structural edit was never applied locally: nothing to roll back.
+    CHECK(Submit(sim, a, AddOn(a, "Grid", 4000, 4100)));
+    RequireConverged(sim);
+    CHECK(a.rolledBack.size() == 1);
+}
+
+TEST_CASE("A rejoin for someone still connected is refused and leaves them alone", "[collab][collab_roles]") {
+    Show show;
+    Sim sim(show, Lan(), Opts());
+    Node& h = Host(sim);
+    Node& a = Client(sim);
+    Node& b = Client(sim);
+    Node& x = sim.AddClient(false); // connected, never joins: sends forged hellos
+    REQUIRE(sim.Quiesce());
+    ParticipantId aid = a.session->Participant();
+    ParticipantId bid = b.session->Participant();
+    REQUIRE(sim.As(h, [&] { return h.Host().SetRole(bid, ParticipantRole::Viewer); }));
+    REQUIRE(sim.Quiesce());
+    auto roster = h.session->Roster();
+    for (ParticipantId who : { aid, bid }) {
+        Message hello;
+        hello.type = MsgType::Hello;
+        hello.rejoin = true;
+        hello.name = "Mallory";
+        hello.participant = who;
+        hello.rev = h.Host().HeadRev();
+        hello.clientSeq = 1;
+        x.transport->Send(h.transport->LocalPeer(), hello);
+    }
+    sim.RunFor(2000);
+    CHECK(LogHas(h, "refused a rejoin as participant " + std::to_string(aid)));
+    CHECK(LogHas(h, "refused a rejoin as participant " + std::to_string(bid)));
+    // Nobody took their places: same roster, roles and connections.
+    CHECK(h.session->Roster() == roster);
+    CHECK(h.session->RoleOf(bid) == ParticipantRole::Viewer);
+    CHECK(h.Host().ClientCount() == 2);
+    REQUIRE(a.Client().IsActive());
+    REQUIRE(b.Client().IsActive());
+    CHECK(Submit(sim, a, AddOn(a, "Grid", 4000, 4100)));
+    RequireConverged(sim);
+    CHECK(EffectAt(h, "Grid", 4000) != nullptr);
+    CHECK(b.session->LocalRole() == ParticipantRole::Viewer);
+}
+
+TEST_CASE("A viewer can't come back as an editor by rejoining outside a host change", "[collab][collab_roles]") {
+    Show show;
+    Sim sim(show, Lan(), Opts());
+    Node& h = Host(sim);
+    Node& a = Client(sim);
+    Node& x = sim.AddClient(false);
+    REQUIRE(sim.Quiesce());
+    ParticipantId aid = a.session->Participant();
+    REQUIRE(sim.As(h, [&] { return h.Host().SetRole(aid, ParticipantRole::Viewer); }));
+    REQUIRE(sim.Quiesce());
+    Rev head = h.Host().HeadRev();
+    sim.As(a, [&] { a.Client().Leave(); });
+    sim.RunFor(200);
+    REQUIRE(h.Host().ClientCount() == 0);
+    Message hello;
+    hello.type = MsgType::Hello;
+    hello.rejoin = true;
+    hello.name = "Ari";
+    hello.participant = aid;
+    hello.rev = head;
+    hello.clientSeq = 1;
+    x.transport->Send(h.transport->LocalPeer(), hello);
+    sim.RunFor(2000);
+    CHECK(h.Host().ClientCount() == 0);
+    CHECK(h.Host().Clients().empty());
+    const auto& roster = h.session->Roster();
+    CHECK(std::none_of(roster.begin(), roster.end(), [&](const RosterEntry& r) { return r.participant == aid; }));
+    CHECK(LogHas(h, "refused a rejoin as participant " + std::to_string(aid)));
+}
+
+TEST_CASE("A rejoiner whose first connection went silent reconnects and keeps its role", "[collab][collab_roles][migrate]") {
+    Show show;
+    Sim sim(show, Lan(), Opts());
+    Node& h = Host(sim);
+    Node& a = Client(sim);
+    Node& b = Client(sim);
+    Node& x = sim.AddClient(false); // b's first rejoin connection, which then goes silent
+    REQUIRE(sim.Quiesce());
+    ParticipantId bid = b.session->Participant();
+    REQUIRE(sim.As(h, [&] { return h.Host().SetRole(bid, ParticipantRole::Viewer); }));
+    REQUIRE(Submit(sim, a, AddOn(a, "Grid", 3000, 3100)));
+    REQUIRE(sim.Quiesce());
+    sim.RunFor(1500); // a ping round: everyone knows a takes over
+    a.migrates = b.migrates = true;
+    sim.net.Disconnect(h.transport->LocalPeer());
+    sim.RunFor(50);
+    REQUIRE(a.Client().GetState() == CollabClient::State::Migrating);
+    REQUIRE(b.Client().GetState() == CollabClient::State::Migrating);
+    sim.As(a, [&] { a.Client().BeginSuccession(); });
+    sim.TakeOver(a);
+    PeerId ap = a.transport->LocalPeer();
+    // b's first connection rejoins, then nothing more comes over it, and
+    // the new host hasn't noticed by the time b reconnects.
+    Message hello;
+    hello.type = MsgType::Hello;
+    hello.rejoin = true;
+    hello.name = "Bea";
+    hello.participant = bid;
+    hello.rev = b.Client().AppliedRev();
+    hello.clientSeq = 1;
+    hello.secret = b.Client().RejoinSecret();
+    x.transport->Send(ap, hello);
+    sim.RunFor(100);
+    REQUIRE(a.Host().ClientCount() == 1);
+    sim.As(b, [&] { b.Client().Rejoin(ap); });
+    sim.RunFor(2000);
+    // The new connection replaced the silent one: b carries on, still a viewer.
+    REQUIRE(b.Client().GetState() == CollabClient::State::Active);
+    CHECK(a.Host().ClientCount() == 1);
+    CHECK(a.session->RoleOf(bid) == ParticipantRole::Viewer);
+    CHECK(b.session->LocalRole() == ParticipantRole::Viewer);
+    CHECK(LogHas(a, "reconnected; its old connection is dropped"));
+    // Edits flow to it through the new connection.
+    REQUIRE(Submit(sim, a, AddOn(a, "Grid", 5000, 5100)));
+    sim.RunFor(1000);
+    CHECK(b.Client().AppliedRev() == a.Host().HeadRev());
+    CHECK(DescribeSequence(b.Seq()) == DescribeSequence(a.Seq()));
+    CHECK(DocHasher::FullHash(b.Seq()) == DocHasher::FullHash(a.Seq()));
+    // Outside the takeover window the same is still refused.
+    sim.RunFor(16000);
+    x.transport->Send(ap, hello);
+    sim.RunFor(200);
+    CHECK(LogHas(a, "refused a rejoin as participant " + std::to_string(bid)));
+    CHECK(b.Client().GetState() == CollabClient::State::Active);
+}
+
+namespace {
+// A host, Ari and Bea (a viewer); the host is lost and Ari takes over.
+struct TakenOver {
+    Show show;
+    Sim sim{ show, Lan(), Opts() };
+    Node& h = Host(sim);
+    Node& a = Client(sim);
+    Node& b = Client(sim);
+    Node& x = sim.AddClient(false); // a connection that never joined
+    ParticipantId bid = kNoParticipant;
+    PeerId ap = kNoPeer;
+    TakenOver() {
+        REQUIRE(sim.Quiesce());
+        bid = b.session->Participant();
+        REQUIRE(sim.As(h, [&] { return h.Host().SetRole(bid, ParticipantRole::Viewer); }));
+        REQUIRE(sim.Quiesce());
+        sim.RunFor(1500);
+        a.migrates = b.migrates = true;
+        sim.net.Disconnect(h.transport->LocalPeer());
+        sim.RunFor(50);
+        REQUIRE(b.Client().GetState() == CollabClient::State::Migrating);
+        sim.As(a, [&] { a.Client().BeginSuccession(); });
+        sim.TakeOver(a);
+        ap = a.transport->LocalPeer();
+    }
+    Message Hello(const std::string& secret) {
+        Message m;
+        m.type = MsgType::Hello;
+        m.rejoin = true;
+        m.name = "Mallory";
+        m.participant = bid;
+        m.rev = a.Host().HeadRev();
+        m.clientSeq = 1;
+        m.secret = secret;
+        return m;
+    }
+};
+} // namespace
+
+TEST_CASE("The roster carries a digest of each rejoin secret, never the secret", "[collab][collab_roles][migrate]") {
+    Show show;
+    Sim sim(show, Lan(), Opts());
+    Node& h = Host(sim);
+    Node& a = Client(sim);
+    REQUIRE(sim.Quiesce());
+    const std::string& secret = a.Client().RejoinSecret();
+    REQUIRE(secret.size() == 64);
+    ParticipantId aid = a.session->Participant();
+    for (Node* n : { &h, &a }) {
+        auto& roster = n->session->Roster();
+        auto it = std::find_if(roster.begin(), roster.end(), [&](const RosterEntry& r) { return r.participant == aid; });
+        REQUIRE(it != roster.end());
+        CHECK(it->secretHash == SecretDigest(secret));
+        CHECK(it->secretHash != secret);
+    }
+    Message r;
+    r.type = MsgType::Roster;
+    r.roster = h.session->Roster();
+    std::string wire = EncodeMessage(r);
+    CHECK(wire.find(secret) == std::string::npos);
+    CHECK(DecodeMessage(wire)->roster == r.roster);
+    // Known digest (SHA-256 of "abc").
+    CHECK(SecretDigest("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+}
+
+TEST_CASE("A rejoin without the participant's secret is refused, even during a host change", "[collab][collab_roles][migrate]") {
+    TakenOver t;
+    // Missing and wrong secrets, inside the takeover window.
+    t.x.transport->Send(t.ap, t.Hello(""));
+    t.x.transport->Send(t.ap, t.Hello(std::string(32, '0')));
+    t.sim.RunFor(200);
+    CHECK(t.a.Host().ClientCount() == 0);
+    CHECK(LogHas(t.a, "refused a rejoin as participant " + std::to_string(t.bid) + ": wrong rejoin secret"));
+    // Bea's own rejoin carries her secret.
+    t.sim.As(t.b, [&] { t.b.Client().Rejoin(t.ap); });
+    t.sim.RunFor(1000);
+    REQUIRE(t.b.Client().GetState() == CollabClient::State::Active);
+    CHECK(t.a.session->RoleOf(t.bid) == ParticipantRole::Viewer);
+    // A forger can't evict her now either.
+    t.x.transport->Send(t.ap, t.Hello(std::string(32, 'f')));
+    t.sim.RunFor(1000);
+    CHECK(t.a.Host().ClientCount() == 1);
+    CHECK(t.b.Client().GetState() == CollabClient::State::Active);
+    CHECK_FALSE(LogHas(t.a, "reconnected; its old connection is dropped"));
+}
+
+TEST_CASE("A rejoin with the secret replaces a stale connection and keeps the role", "[collab][collab_roles][migrate]") {
+    TakenOver t;
+    t.sim.As(t.b, [&] { t.b.Client().Rejoin(t.ap); });
+    t.sim.RunFor(1000);
+    REQUIRE(t.b.Client().GetState() == CollabClient::State::Active);
+    // The same participant, from another connection, with the secret: the
+    // old connection goes, the new one is Bea with her role.
+    t.x.transport->Send(t.ap, t.Hello(t.b.Client().RejoinSecret()));
+    t.sim.RunFor(500);
+    CHECK(LogHas(t.a, "reconnected; its old connection is dropped"));
+    CHECK(t.a.Host().ClientCount() == 1);
+    CHECK(t.a.session->RoleOf(t.bid) == ParticipantRole::Viewer);
+    // And the digest the new host lists is still hers.
+    auto& roster = t.a.session->Roster();
+    auto it = std::find_if(roster.begin(), roster.end(), [&](const RosterEntry& r) { return r.participant == t.bid; });
+    REQUIRE(it != roster.end());
+    CHECK(it->secretHash == SecretDigest(t.b.Client().RejoinSecret()));
+}

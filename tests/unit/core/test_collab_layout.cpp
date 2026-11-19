@@ -531,10 +531,14 @@ TEST_CASE("Layout messages: live layout fields survive the wire and bad ones are
     welcome.liveLayout = true;
     welcome.layoutFiles = Base();
     welcome.layoutHash = LayoutDelta::Hash(Base());
+    welcome.blob = 9;
     Message w = round(welcome);
     CHECK(w.liveLayout);
-    CHECK(w.layoutFiles == Base());
+    CHECK(w.blob == 9);
     CHECK(w.layoutHash == welcome.layoutHash);
+    // The layout itself travels in the blob, never in the message.
+    CHECK(w.layoutFiles.rgbEffects.empty());
+    CHECK(w.layoutFiles.networks.empty());
 
     Message commit;
     commit.type = MsgType::Commit;
@@ -574,14 +578,14 @@ TEST_CASE("Layout messages: live layout fields survive the wire and bad ones are
 
     // A proposal is a command or a layout edit, never both or an empty one.
     for (const char* bad : {
-             R"({"v":1,"t":"Propose","seq":1,"base":0,"kind":"edit","undoOf":0,"cmd":{"type":"Batch"},"layout":{"rgb":{}}})",
-             R"({"v":1,"t":"Propose","seq":1,"base":0,"kind":"edit","undoOf":0,"layout":{}})",
-             R"({"v":1,"t":"Propose","seq":1,"base":0,"kind":"edit","undoOf":0,"layout":[1]})",
-             R"({"v":1,"t":"Commit","rev":1,"seq":1,"author":1,"hash":0,"kind":"edit","undoOf":0,"layout":{"rgb":{}},"lhash":"x"})",
-             R"({"v":1,"t":"Presence","participant":2,"presence":{"lsel":[1]}})",
-             R"({"v":1,"t":"Presence","participant":2,"presence":{"llock":"Arch"}})",
-             R"({"v":1,"t":"Hello","live":"yes"})",
-             R"({"v":1,"t":"Welcome","participant":2,"rev":0,"lrgb":5})",
+             R"({"v":3,"t":"Propose","seq":1,"base":0,"kind":"edit","undoOf":0,"cmd":{"type":"Batch"},"layout":{"rgb":{}}})",
+             R"({"v":3,"t":"Propose","seq":1,"base":0,"kind":"edit","undoOf":0,"layout":{}})",
+             R"({"v":3,"t":"Propose","seq":1,"base":0,"kind":"edit","undoOf":0,"layout":[1]})",
+             R"({"v":3,"t":"Commit","rev":1,"seq":1,"author":1,"hash":0,"kind":"edit","undoOf":0,"layout":{"rgb":{}},"lhash":"x"})",
+             R"({"v":3,"t":"Presence","participant":2,"presence":{"lsel":[1]}})",
+             R"({"v":3,"t":"Presence","participant":2,"presence":{"llock":"Arch"}})",
+             R"({"v":3,"t":"Hello","live":"yes"})",
+             R"({"v":3,"t":"Welcome","participant":2,"rev":0,"blob":"x"})",
          }) {
         INFO(bad);
         CHECK_FALSE(DecodeMessage(bad).has_value());

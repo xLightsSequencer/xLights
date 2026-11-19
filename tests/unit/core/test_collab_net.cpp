@@ -868,4 +868,76 @@ TEST_CASE("Collab LAN host and two clients converge over real sockets", "[collab
     }
 }
 
+TEST_CASE("Collab LAN a successor takes over with the same pairing code under a derived name", "[collab][net][migrate]") {
+    TestLoop loop;
+    Peer h(loop, 0), a(loop, 1), b(loop, 2);
+    Host(h, "424242");
+    PeerId pa = Join(loop, h, a, "424242");
+    Join(loop, h, b, "424242");
+    // The session id everyone joined: the host's service name.
+    std::string direct = LanTest::DirectSessionId(*h.t);
+    std::string sessionId = std::string(Wire::kServicePrefix) + direct.substr(direct.rfind(':') + 1);
+    std::string hostSalt;
+    REQUIRE(Wire::SaltFromServiceName(sessionId, hostSalt));
+    h.Close();
+    REQUIRE(loop.Until([&] { return a.t->State() != NetState::Connected && b.t->State() != NetState::Connected; }));
+    CHECK((a.Has(kLanHostPeer, PeerEvent::Left) || a.Has(kLanHostPeer, PeerEvent::Lost)));
+    CHECK(pa != kLanHostPeer);
+
+    REQUIRE(a.t->SupportsMigration());
+    Succession s;
+    s.sessionId = sessionId;
+    s.pairingCode = "424242";
+    s.successor = 2;
+    s.epoch = 1;
+    std::string expected = a.t->SuccessorSessionId(s);
+    CHECK(expected == b.t->SuccessorSessionId(s));
+    CHECK(expected != sessionId);
+    std::string salt;
+    REQUIRE(Wire::SaltFromServiceName(expected, salt));
+    CHECK(salt != hostSalt);
+    SessionAdvert ad;
+    ad.sequenceName = "test.xsq";
+    ad.hostName = "Successor";
+    std::string error;
+    size_t aStates = a.states.size();
+    REQUIRE(a.t->ListenAsSuccessor(s, ad, error));
+    CHECK(error.empty());
+    CHECK(a.t->LocalPeer() == kLanHostPeer);
+    REQUIRE(loop.Until([&] { return a.t->State() == NetState::Listening; }));
+    // It listens under the derived salt (what Bonjour would advertise).
+    std::string succDirect = LanTest::DirectSessionId(*a.t);
+    CHECK(succDirect.substr(succDirect.rfind(':') + 1) == Wire::HexOf(salt));
+    // The old connection made no callbacks once replaced.
+    loop.For_ms(100);
+    for (size_t i = aStates; i < a.states.size(); ++i) {
+        CHECK(a.states[i].first != NetState::Failed);
+    }
+
+    // b reaches it with the session's code; a wrong one is refused.
+    Peer wrong(loop, 3);
+    wrong.t->Connect(succDirect, "000000");
+    REQUIRE(loop.Until([&] { return wrong.t->State() == NetState::Failed; }));
+    size_t before = a.events.size();
+    b.t->Close();
+    Peer b2(loop, 4);
+    b2.t->Connect(succDirect, "424242");
+    REQUIRE(loop.Until([&] { return b2.Joined() && a.events.size() > before; }));
+    PeerId pb = a.events[before].first;
+    a.t->Send(pb, Ping(11));
+    b2.t->Send(kLanHostPeer, Ping(12));
+    REQUIRE(loop.Until([&] { return !b2.messages.empty() && !a.messages.empty(); }));
+    CHECK(b2.messages.back().second.time == 11);
+    CHECK(a.messages.back().second.time == 12);
+
+    // A session id with no salt in it can't be moved.
+    Succession bad = s;
+    bad.sessionId = direct;
+    CHECK(a.t->SuccessorSessionId(bad).empty());
+    Peer c(loop, 5);
+    std::string err2;
+    CHECK_FALSE(c.t->ListenAsSuccessor(bad, ad, err2));
+    CHECK_FALSE(err2.empty());
+}
+
 #endif // __APPLE__

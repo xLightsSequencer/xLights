@@ -2656,6 +2656,18 @@ std::string xLightsFrame::SequenceSaveRefusal(const wxString& path) const
     if (readOnlyMode) {
         return "Sequences cannot be saved in read only mode!";
     }
+    if (_collab != nullptr) {
+        if (!path.IsEmpty()) {
+            if (std::string r = Collab::SessionSaveRefusal(path.utf8_string(), _collab->TemporaryFolders()); !r.empty()) {
+                return r;
+            }
+        }
+        // The show folder is a temporary copy of the host's: the sequence
+        // is kept anywhere else the user picks.
+        if (_collab->OnSessionCopy()) {
+            return "";
+        }
+    }
     if (!path.IsEmpty() && !IsSequenceInShowDir(path)) {
         wxFileName fnDir(CurrentDir, "");
         fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
@@ -2677,7 +2689,14 @@ bool xLightsFrame::SaveAsSequence()
         return false;
     }
     wxString initialDir = GetLastSequenceDialogDir();
-    {
+    std::vector<std::string> temporary = _collab != nullptr ? _collab->TemporaryFolders() : std::vector<std::string>();
+    if (_collab != nullptr && _collab->OnSessionCopy()) {
+        // Never start in the session's folders, which go when it ends.
+        std::string start = Collab::SessionSaveStartFolder({ initialDir.utf8_string(), _collab->OriginalShowFolder(),
+                                                             wxStandardPaths::Get().GetDocumentsDir().utf8_string() },
+                                                           temporary);
+        initialDir = wxString::FromUTF8(start);
+    } else {
         wxFileName fnInit(initialDir, "");
         fnInit.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
         wxFileName fnShow(CurrentDir, "");
@@ -2707,7 +2726,14 @@ bool xLightsFrame::SaveAsSequence()
             ok = false;
             DisplayError("File name cannot be empty", this);
         }
-        if (ok) {
+        if (ok && !temporary.empty()) {
+            if (std::string r = Collab::SessionSaveRefusal(newFilename.utf8_string(), temporary); !r.empty()) {
+                ok = false;
+                DisplayWarning(r, this);
+                fd.SetDirectory(initialDir);
+            }
+        }
+        if (ok && !(_collab != nullptr && _collab->OnSessionCopy())) {
             if (!IsSequenceInShowDir(newFilename)) {
                 ok = false;
                 wxFileName fnDir(CurrentDir, "");

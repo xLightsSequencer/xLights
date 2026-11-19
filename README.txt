@@ -25,6 +25,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Live collaboration: the host can make people view-only, and rows can be assigned
                                  to one person so only they can edit them (right-click a row heading)
     -enh (dkulp)                 iPad - Live collaboration: view-only participants and rows assigned to one person
+    -enh (dkulp)                 Live collaboration: if the host drops out, another participant takes over and the
+                                 session carries on (local network and SharePlay)
+    -enh (dkulp)                 iPad - Live collaboration: if the host drops out, another participant takes over
 
 2026.21  November 24, 2026
 

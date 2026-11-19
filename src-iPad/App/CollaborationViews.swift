@@ -427,7 +427,7 @@ private struct CollabJoinProgressSection: View {
         if c.role == .client && c.state != .idle {
             Section("Progress") {
                 HStack(spacing: 8) {
-                    if c.state == .connecting || c.state == .joining || c.state == .syncing {
+                    if c.state == .connecting || c.state == .joining || c.state == .syncing || c.state == .migrating {
                         ProgressView()
                     }
                     Text(c.statusText)
@@ -498,7 +498,7 @@ private struct CollabClientSessionView: View {
         Form {
             Section {
                 HStack(spacing: 8) {
-                    if c.state == .connecting || c.state == .joining || c.state == .syncing {
+                    if c.state == .connecting || c.state == .joining || c.state == .syncing || c.state == .migrating {
                         ProgressView()
                     }
                     Text(c.statusText)

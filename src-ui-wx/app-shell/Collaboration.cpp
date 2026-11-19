@@ -309,7 +309,7 @@ public:
         _code->SetLabel(group ? wxString("SharePlay") : wxString::FromUTF8(code));
         _end->SetLabel(host ? "End Session" : "Leave Session");
         _end->Show(live);
-        _saveCopy->Show(!host && !live && ctl.GetJoinReport().has_value() && ctl.GetJoinReport()->sessionCopy);
+        _saveCopy->Show((!host || ctl.SaveAsOnly()) && !live && ctl.GetJoinReport().has_value() && ctl.GetJoinReport()->sessionCopy);
         std::string report = _collab.JoinReportText();
         _report->ChangeValue(wxString::FromUTF8(report));
         _report->Show(!host && !report.empty());
@@ -957,7 +957,7 @@ void DesktopCollab::OnSessionStateChanged() {
         HideNotice();
         std::string text = _ctl->StatusText();
         auto report = _ctl->GetJoinReport();
-        if (_ctl->GetRole() == Collab::CollabController::Role::Client && report && report->sessionCopy) {
+        if ((_ctl->GetRole() == Collab::CollabController::Role::Client || _ctl->SaveAsOnly()) && report && report->sessionCopy) {
             ShowNotice(wxString::FromUTF8(text), "Save a Copy...", [this] { SaveCopy(); }, 60);
         } else {
             ShowNotice(wxString::FromUTF8(text), wxString(), nullptr, 30);
@@ -1010,22 +1010,26 @@ void DesktopCollab::OnSequenceChanged(const Collab::SequenceChange& c) {
         wxCommandEvent rows(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(_frame, rows);
     }
-    if (c.cause != Cause::OwnEditPending) {
-        bool edit = c.cause == Cause::RemoteEdit || c.cause == Cause::OwnEdit || c.cause == Cause::OwnUndo || c.cause == Cause::OwnEditRejected;
-        if (edit && !c.everything && !c.mediaChanged && !c.rows.empty()) {
-            // Rows touching what is on screen (or being played) render now,
-            // the rest when they scroll into view, playback starts or the
-            // app is idle.
-            _frame->MarkRemoteChange(c.rows, c.startMS, c.endMS);
-        } else {
-            // A whole new document, sequence-wide definitions, media used who
-            // knows where (including a file another participant added): render
-            // the range across every row now.
-            int end = _frame->CurrentSeqXmlFile->GetSequenceDurationMS();
-            int s = c.startMS < 0 ? 0 : c.startMS;
-            int e = c.endMS < 0 ? end : c.endMS;
-            _frame->mainSequencer->PanelEffectGrid->sendRenderEvent("", s, e);
+    const Collab::RenderPlan plan = Collab::PlanRender(c);
+    const int duration = _frame->CurrentSeqXmlFile->GetSequenceDurationMS();
+    const int s = plan.startMS < 0 ? 0 : plan.startMS;
+    const int e = plan.endMS < 0 ? duration : plan.endMS;
+    switch (plan.kind) {
+    case Collab::RenderPlan::Kind::Nothing:
+        break;
+    case Collab::RenderPlan::Kind::Rows:
+        // Rows touching what is on screen (or being played) render now, the
+        // rest when they scroll into view, playback starts or the app is idle.
+        _frame->MarkRemoteChange(plan.rows, plan.startMS, plan.endMS);
+        break;
+    case Collab::RenderPlan::Kind::Models:
+        for (const auto& m : plan.models) {
+            _frame->RequestRenderForModel(m, 0, duration);
         }
+        break;
+    case Collab::RenderPlan::Kind::Everything:
+        _frame->mainSequencer->PanelEffectGrid->sendRenderEvent("", s, e);
+        break;
     }
     if (c.cause == Cause::RemoteEdit) {
         int64_t until = NowMs() + 1000;
@@ -1035,6 +1039,22 @@ void DesktopCollab::OnSequenceChanged(const Collab::SequenceChange& c) {
         StartTimer();
     }
     RebuildOverlay();
+}
+
+void DesktopCollab::OnHostChanged(const Collab::HostChange& change) {
+    if (change.becameHost) {
+        // Saving, uploads and output are this device's now; the sequence
+        // still lives in the session's temporary folder, so Save is Save As.
+        _codeShown = _ctl->PairingCode();
+    }
+    ShowNotice(wxString::FromUTF8(change.text), wxString(), nullptr, change.becameHost ? 30 : 15);
+    UpdateStatus();
+    RebuildOverlay();
+    RebuildLayoutOverlay();
+    _frame->UpdateLayoutLockState();
+    if (_window != nullptr) {
+        _window->ShowState(_codeShown);
+    }
 }
 
 void DesktopCollab::MarkSequenceModified() {
@@ -1341,23 +1361,50 @@ bool DesktopCollab::AllowCloseSequence() {
         return true;
     }
     bool host = _ctl->GetRole() == Role::Host;
-    wxString msg = host ? "Closing the sequence ends the collaboration session for everyone. Close it?"
-                        : "Closing the sequence leaves the collaboration session. Close it?";
-    if (wxMessageBox(msg, "Live Collaboration", wxYES_NO | wxICON_QUESTION, _frame) != wxYES) {
+    if (_frame->IsNonInteractiveSave()) {
+        // Nobody to ask: a script never ends (or leaves) a session other
+        // people are working in.
+        spdlog::warn("Collab: not closing the sequence: that would {} the collaboration session; end it in the app first.", host ? "end" : "leave");
         return false;
     }
+    wxString msg = host ? "Closing the sequence ends the collaboration session for everyone. Close it?"
+                        : "Closing the sequence leaves the collaboration session. Close it?";
+    return wxMessageBox(msg, "Live Collaboration", wxYES_NO | wxICON_QUESTION, _frame) == wxYES;
+}
+
+void DesktopCollab::EndForClose() {
+    using Role = Collab::CollabController::Role;
+    using State = Collab::CollabController::State;
+    State st = _ctl->GetState();
+    if (_loading || _closing || st == State::Idle || st == State::Ended) {
+        return;
+    }
     _closing = true;
-    if (host) {
+    if (_ctl->GetRole() == Role::Host) {
         _ctl->End();
     } else {
         _ctl->Leave();
     }
     _closing = false;
-    return true;
+}
+
+std::vector<std::string> DesktopCollab::TemporaryFolders() const {
+    std::vector<std::string> out;
+    if (!_docFolder.empty()) {
+        out.push_back(_docFolder);
+    }
+    if (OnSessionCopy() && !_frame->showDirectory.empty()) {
+        // The copy sits in the session's own folder (SessionShowFolder).
+        out.push_back(std::filesystem::path(_frame->showDirectory).parent_path().string());
+    }
+    if (Collab::CollabParticipant* s = _ctl->Session()) {
+        out.push_back(s->SessionFolder());
+    }
+    return out;
 }
 
 bool DesktopCollab::IsClientDocument() const {
-    if (_ctl->GetRole() != Collab::CollabController::Role::Client || _docFolder.empty() || _frame->CurrentSeqXmlFile == nullptr) {
+    if (_docFolder.empty() || _frame->CurrentSeqXmlFile == nullptr) {
         return false;
     }
     std::error_code ec;

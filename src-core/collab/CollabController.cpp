@@ -209,6 +209,42 @@ private:
     int _hi = INT_MIN;
 };
 
+} // namespace
+
+RenderPlan PlanRender(const SequenceChange& c) {
+    using Cause = SequenceChange::Cause;
+    RenderPlan p;
+    p.startMS = c.startMS;
+    p.endMS = c.endMS;
+    if (c.cause == Cause::OwnEditPending) {
+        return p;
+    }
+    const bool edit = c.cause == Cause::RemoteEdit || c.cause == Cause::OwnEdit || c.cause == Cause::OwnUndo || c.cause == Cause::OwnEditRejected;
+    if (!edit || c.everything || c.mediaChanged) {
+        p.kind = RenderPlan::Kind::Everything;
+        return p;
+    }
+    if (!c.rows.empty()) {
+        p.kind = RenderPlan::Kind::Rows;
+        p.rows = c.rows;
+    } else if (!c.rowNames.empty()) {
+        // A layout change names the models it changed; it has no rows.
+        p.kind = RenderPlan::Kind::Models;
+        std::set<std::string> seen;
+        for (const auto& n : c.rowNames) {
+            if (!n.empty() && seen.insert(n).second) {
+                p.models.push_back(n);
+            }
+        }
+        if (p.models.empty()) {
+            p.kind = RenderPlan::Kind::Nothing;
+        }
+    }
+    return p;
+}
+
+namespace {
+
 SequenceChange Summarize(const SequenceElements& seq, const SequenceCommand& applied, const SequenceCommand& inverse) {
     SequenceChange c;
     ChangeBuilder b(seq, c);
@@ -640,7 +676,15 @@ SessionEvents CollabController::MakeEvents() {
         OnCommitApplied(info, applied, inverse);
     };
     ev.onReject = [this](uint64_t seq, EditKind kind, const std::string& reason, ParticipantId by) { OnReject(seq, kind, reason, by); };
+    ev.onRolledBack = [this](const SequenceCommand& applied, const SequenceCommand& inverse) {
+        _indexDirty = true;
+        SequenceChange c = Summarize(_app.Sequence(), applied, inverse);
+        c.cause = SequenceChange::Cause::OwnEditRejected;
+        c.author = LocalParticipant();
+        Post([this, c] { _app.OnSequenceChanged(c); });
+    };
     ev.onEnded = [this](const std::string& reason) { SessionEnded(reason); };
+    ev.onHostLost = [this] { return HostLostBySession(); };
     ev.onResync = [this] {
         _indexDirty = true;
         _submitted.clear();
@@ -755,6 +799,16 @@ void CollabController::WrapTransport() {
         if (_role == Role::Client && e == PeerEvent::Joined && _state == State::Connecting && _client != nullptr) {
             _client->Tick(_now);
             _client->Join(peer);
+            SyncState();
+            return;
+        }
+        if (_role == Role::Client && e == PeerEvent::Joined && _migration && _migration->connecting && _client != nullptr &&
+            _client->GetState() == CollabClient::State::Migrating) {
+            _migration->connecting = false;
+            _migration->rejoining = true;
+            _migration->deadline = _now + _opts.migrateTimeoutMs;
+            _client->Tick(_now);
+            _client->Rejoin(peer);
             SyncState();
             return;
         }
@@ -925,6 +979,7 @@ void CollabController::Teardown() {
     _localRole = ParticipantRole::Editor;
     _indexDirty = true;
     _lastRefusal.clear();
+    _migration.reset();
     ResetLayoutState();
     if (_locked) {
         _locked = false;
@@ -970,32 +1025,12 @@ bool CollabController::StartHosting(CollabNetFactory& net, Network network, cons
     _host = host.get();
     _session = std::move(host);
     _role = Role::Host;
+    _displayName = displayName;
+    _sequenceName = sequenceName;
+    _sessionId.clear();
+    _saveAsOnly = false;
     WrapTransport();
-    _transport->onState = [this](NetState s, const std::string& why) {
-        if (Busy()) {
-            Defer([this, s, why] {
-                if (_transport) {
-                    _transport->onState(s, why);
-                }
-            });
-            return;
-        }
-        Entry e(*this);
-        if (_role != Role::Host || _host == nullptr) {
-            return;
-        }
-        if (s == NetState::Listening && _state == State::Connecting) {
-            _host->Start();
-            ActivateHost();
-            return;
-        }
-        if ((s == NetState::Failed || s == NetState::Closed) && (_state == State::Active || _state == State::Connecting)) {
-            bool starting = _state == State::Connecting;
-            _host->End();
-            _endText = why.empty() ? (starting ? "The session could not be started." : "The network connection failed.") : why;
-            SessionEnded(starting ? "start_failed" : "network");
-        }
-    };
+    InstallStateHandler();
     // A group session starts once the platform has the activity going.
     if (network == Network::Lan) {
         _host->Start();
@@ -1006,6 +1041,7 @@ bool CollabController::StartHosting(CollabNetFactory& net, Network network, cons
     ad.deviceKind = _opts.deviceKind;
     ad.group = network == Network::Group;
     pairingCode = net.pairingCode ? net.pairingCode() : RandomCode();
+    _pairingCode = pairingCode;
     if (!_transport->Listen(pairingCode, ad, error)) {
         if (error.empty()) {
             error = "Couldn't start the session on the network.";
@@ -1081,30 +1117,19 @@ bool CollabController::StartJoining(CollabNetFactory& net, Network network, cons
     _session = std::move(client);
     _role = Role::Client;
     _hostPeerName.clear();
+    _sequenceName.clear();
     for (const auto& s : _sessions) {
         if (s.id == advertId && s.group == (network == Network::Group)) {
             _hostPeerName = s.hostName;
+            _sequenceName = s.sequenceName;
         }
     }
+    _displayName = displayName;
+    _pairingCode = pairingCode;
+    _sessionId = advertId;
+    _saveAsOnly = false;
     WrapTransport();
-    _transport->onState = [this](NetState s, const std::string& why) {
-        if (Busy()) {
-            Defer([this, s, why] {
-                if (_transport) {
-                    _transport->onState(s, why);
-                }
-            });
-            return;
-        }
-        Entry e(*this);
-        if ((s == NetState::Failed || s == NetState::Closed) && _role == Role::Client && _state != State::Ended) {
-            _endText = why.empty() ? (s == NetState::Failed ? "Couldn't connect to the session." : "The connection was closed.") : why;
-            if (_client->GetState() != CollabClient::State::Idle && _client->GetState() != CollabClient::State::Ended) {
-                _client->Leave();
-            }
-            SessionEnded(s == NetState::Failed ? "connect_failed" : Reason::HostLost);
-        }
-    };
+    InstallStateHandler();
     _locked = true;
     _lockReason = LayoutLock::DEFAULT_REASON;
     {
@@ -1160,6 +1185,7 @@ void CollabController::SessionEnded(const std::string& reason) {
     if (_state == State::Ended) {
         return;
     }
+    _migration.reset();
     _endReason = reason;
     if (_session && !_session->EndText().empty()) {
         _endText = _session->EndText();
@@ -1225,9 +1251,17 @@ void CollabController::SyncState() {
         SetState(State::Joining);
         break;
     case CollabClient::State::AwaitingSnapshot:
-        SetState(State::Syncing);
+        SetState(_migration ? State::Migrating : State::Syncing);
+        break;
+    case CollabClient::State::Migrating:
+    case CollabClient::State::Rejoining:
+    case CollabClient::State::Succeeding:
+        SetState(State::Migrating);
         break;
     case CollabClient::State::Active:
+        if (_migration && _migration->rejoining) {
+            FinishRejoin();
+        }
         Attach();
         if (!_liveLayout && _client->LiveLayout()) {
             _liveLayout = true;
@@ -1279,6 +1313,20 @@ void CollabController::Tick(uint64_t nowMs) {
         Flush();
         DrainHeld();
         _session->Tick(_now);
+        if (_session && _session->HeldApplyDue() && !_heldApplyQueued) {
+            // Applies commits or proposals: like a message that touches the
+            // document, only with no local edit open, inside the apply scope.
+            _heldApplyQueued = true;
+            Deliver(true, true, [this] {
+                _heldApplyQueued = false;
+                if (_session) {
+                    _session->ApplyHeld();
+                }
+            });
+        }
+        if (_migration) {
+            TickMigration();
+        }
         CheckLayout(false);
         TrySendPresence();
         SyncState();
@@ -1743,9 +1791,9 @@ std::vector<Participant> CollabController::Participants() const {
         p.name = r.name;
         p.deviceKind = r.deviceKind;
         p.colour = ParticipantColour(r.participant);
-        p.isHost = r.participant == kHostParticipant;
+        p.isHost = r.participant == _roster.front().participant;
         p.isLocal = r.participant == me;
-        p.role = r.participant == kHostParticipant ? ParticipantRole::Editor : r.role;
+        p.role = r.participant == _roster.front().participant ? ParticipantRole::Editor : r.role;
         for (const auto& a : Assignments()) {
             if (a.owner == r.participant) {
                 const Element* el = _app.HasSequence() ? _app.Sequence().GetElementFromUid(a.element) : nullptr;
@@ -1895,7 +1943,7 @@ std::string CollabController::StatusText() const {
             }
             return "Hosting with " + std::to_string(others) + (others == 1 ? " other" : " others");
         }
-        std::string host = NameOf(kHostParticipant);
+        std::string host = HostName();
         if (host.empty()) {
             host = _hostPeerName;
         }
@@ -1905,14 +1953,33 @@ std::string CollabController::StatusText() const {
         }
         return s;
     }
+    case State::Migrating: {
+        std::string who = _migration && !_migration->oldHostName.empty() ? _migration->oldHostName : std::string("The host");
+        if (_migration && _migration->successor) {
+            return who + " left - taking over as host...";
+        }
+        return who + " left - reconnecting...";
+    }
     case State::Ended:
         return "Session ended: " + EndText();
     }
     return {};
 }
 
+ParticipantId CollabController::HostParticipant() const {
+    if (_state == State::Ended || _state == State::Idle || _roster.empty()) {
+        return kNoParticipant;
+    }
+    return _roster.front().participant;
+}
+
+std::string CollabController::HostName() const {
+    ParticipantId h = HostParticipant();
+    return h == kNoParticipant ? std::string() : NameOf(h);
+}
+
 bool CollabController::KeepSessionCopy(std::string& folder) {
-    if (_client == nullptr || !_session || !_joinReport || !_joinReport->sessionCopy) {
+    if (!_session || !_joinReport || !_joinReport->sessionCopy) {
         return false;
     }
     _session->KeepSessionFiles(true);
@@ -2033,7 +2100,7 @@ void CollabController::CheckLayout(bool force) {
     }
     if (_host != nullptr) {
         ParticipantId owner = kNoParticipant;
-        std::string row = LayoutTakesAssignedRow(_app.Sequence(), _host->Assignments(), kHostParticipant, _session->Layout().rgbEffects, mem.rgbEffects, &owner);
+        std::string row = LayoutTakesAssignedRow(_app.Sequence(), _host->Assignments(), _host->Participant(), _session->Layout().rgbEffects, mem.rgbEffects, &owner);
         if (!row.empty()) {
             // Taken back here, as the host refuses anyone else's.
             _layoutDirty = false;
@@ -2304,7 +2371,7 @@ bool CollabController::SetRole(ParticipantId who, ParticipantRole role, std::str
         error = "Only the host can change someone's role.";
         return false;
     }
-    if (who == kHostParticipant) {
+    if (who == _host->Participant()) {
         error = "The host is always an editor.";
         return false;
     }
@@ -2480,6 +2547,381 @@ void CollabController::OnRosterChanged() {
     });
     Post([this] { _app.OnUndoStateChanged(); });
     Post([this] { _app.OnSessionStateChanged(); });
+}
+
+} // namespace Collab
+
+// ---------------------------------------------------------------------------
+// Host migration
+// ---------------------------------------------------------------------------
+
+namespace Collab {
+
+void CollabController::InstallStateHandler() {
+    _transport->onState = [this](NetState s, const std::string& why) {
+        if (Busy()) {
+            Defer([this, s, why] {
+                if (_transport) {
+                    _transport->onState(s, why);
+                }
+            });
+            return;
+        }
+        Entry e(*this);
+        OnNetState(s, why);
+    };
+}
+
+void CollabController::OnNetState(NetState s, const std::string& why) {
+    bool down = s == NetState::Failed || s == NetState::Closed;
+    if (_migration) {
+        if (!down || _role != Role::Client) {
+            return;
+        }
+        // Posted before the transport was pointed at a successor (the old
+        // host's loss): not about this attempt.
+        NetState now = _transport->State();
+        if (now != NetState::Failed && now != NetState::Closed) {
+            return;
+        }
+        if (_migration->successor) {
+            NextCandidate(why.empty() ? "could not take over" : why);
+            return;
+        }
+        // Not there (yet): the successor may still be starting to listen.
+        // TickMigration tries again until the deadline.
+        if (_client != nullptr && _client->GetState() == CollabClient::State::Rejoining) {
+            _client->HostGone();
+        } else {
+            _migration->connecting = false;
+            _migration->rejoining = false;
+            _migration->retryAt = _now + _opts.migrateRetryMs;
+        }
+        return;
+    }
+    if (_role == Role::Host) {
+        if (_host == nullptr) {
+            return;
+        }
+        if (s == NetState::Listening && _state == State::Connecting) {
+            _host->Start();
+            ActivateHost();
+            return;
+        }
+        if (down && (_state == State::Active || _state == State::Connecting)) {
+            bool starting = _state == State::Connecting;
+            _host->End();
+            _endText = why.empty() ? (starting ? "The session could not be started." : "The network connection failed.") : why;
+            SessionEnded(starting ? "start_failed" : "network");
+        }
+        return;
+    }
+    if (!down || _role != Role::Client || _state == State::Ended || _client == nullptr) {
+        return;
+    }
+    if (_state == State::Migrating) {
+        return; // the host's loss, already being dealt with
+    }
+    std::string text = why.empty() ? (s == NetState::Failed ? "Couldn't connect to the session." : "The connection was closed.") : why;
+    if (_state == State::Active || _state == State::Syncing) {
+        // The connection to the host dropped: someone may take over.
+        _client->HostGone();
+        if (_client->GetState() == CollabClient::State::Migrating) {
+            SyncState();
+            return;
+        }
+        _endText = text;
+        SyncState();
+        return;
+    }
+    _endText = text;
+    if (_client->GetState() != CollabClient::State::Idle && _client->GetState() != CollabClient::State::Ended) {
+        _client->Leave();
+    }
+    SessionEnded(s == NetState::Failed ? "connect_failed" : Reason::HostLost);
+}
+
+// The session lost its host. True when this device will try to carry on.
+bool CollabController::HostLostBySession() {
+    if (_role != Role::Client || _client == nullptr || !_transport || !_transport->SupportsMigration() || !_everActive) {
+        return false;
+    }
+    if (_migration) {
+        // The new host this device was reaching went away: TickMigration
+        // tries it again until the deadline, then the next one.
+        _migration->connecting = false;
+        _migration->rejoining = false;
+        _migration->retryAt = _now + _opts.migrateRetryMs;
+        return true;
+    }
+    if (_client->Succession().empty() || _roster.empty()) {
+        return false;
+    }
+    Defer([this] { StartMigration(); });
+    return true;
+}
+
+Succession CollabController::MakeSuccession(ParticipantId who) const {
+    Succession s;
+    s.sessionId = _sessionId;
+    s.pairingCode = _pairingCode;
+    s.successor = who;
+    s.epoch = (_client != nullptr ? _client->Epoch() : 0) + 1;
+    s.applied = _client != nullptr ? _client->AppliedRev() : 0;
+    return s;
+}
+
+void CollabController::StartMigration() {
+    if (_client == nullptr || _client->GetState() != CollabClient::State::Migrating || _migration) {
+        return;
+    }
+    Migration mg;
+    mg.oldHost = _roster.front().participant;
+    mg.oldHostName = _roster.front().name.empty() ? _hostPeerName : _roster.front().name;
+    for (ParticipantId id : _client->Succession()) {
+        bool present = std::any_of(_roster.begin(), _roster.end(), [&](const RosterEntry& r) { return r.participant == id; });
+        if (id != mg.oldHost && present) {
+            mg.candidates.push_back(id);
+        }
+    }
+    spdlog::info("Collab: the host ({}) was lost; {} possible new host(s)", mg.oldHostName, mg.candidates.size());
+    mg.startedAt = _now;
+    _migration = std::move(mg);
+    // What the old host held goes with it.
+    auto old = _presence.find(_migration->oldHost);
+    if (old != _presence.end()) {
+        bool hadLayout = !old->second.layoutSelected.empty() || !old->second.layoutLock.object.empty();
+        ParticipantId gone = old->first;
+        _presence.erase(old);
+        Post([this, gone] { _app.OnPresenceChanged(gone); });
+        if (hadLayout) {
+            Post([this] { _app.OnLayoutPresenceChanged(); });
+        }
+    }
+    _lockOrder.erase(_migration->oldHost);
+    _layoutInFlight = 0;
+    _layoutDirty = true;
+    SetState(State::Migrating);
+    TryCandidate();
+}
+
+void CollabController::TryCandidate() {
+    if (!_migration) {
+        return;
+    }
+    Migration& mg = *_migration;
+    if (mg.index >= mg.candidates.size()) {
+        MigrationFailed();
+        return;
+    }
+    ParticipantId who = mg.candidates[mg.index];
+    mg.succession = MakeSuccession(who);
+    // Candidate n takes over only once everyone ahead of it has had their
+    // turn, so it is given until the end of its own turn to appear.
+    mg.deadline = std::max(_now, mg.startedAt + (mg.index + 1) * _opts.migrateTimeoutMs);
+    mg.retryAt = 0;
+    mg.connecting = false;
+    mg.rejoining = false;
+    mg.successor = false;
+    if (who == LocalParticipant()) {
+        BecomeSuccessor();
+        return;
+    }
+    spdlog::info("Collab: reconnecting to participant {} as the new host", who);
+    mg.connecting = true;
+    _transport->ConnectToSuccessor(mg.succession);
+}
+
+void CollabController::NextCandidate(const std::string& why) {
+    if (!_migration) {
+        return;
+    }
+    spdlog::info("Collab: participant {} did not take over: {}", _migration->succession.successor, why);
+    if (_client != nullptr) {
+        if (_migration->successor) {
+            _client->AbandonSuccession();
+        } else if (_client->GetState() == CollabClient::State::Rejoining) {
+            _client->HostGone();
+        }
+    }
+    ++_migration->index;
+    TryCandidate();
+}
+
+void CollabController::BecomeSuccessor() {
+    Migration& mg = *_migration;
+    SessionAdvert ad;
+    ad.sequenceName = _sequenceName;
+    ad.hostName = _displayName;
+    ad.deviceKind = _opts.deviceKind;
+    ad.group = _network == Network::Group;
+    std::string error;
+    if (!_transport->ListenAsSuccessor(mg.succession, ad, error)) {
+        NextCandidate(error);
+        return;
+    }
+    spdlog::info("Collab: taking over as host");
+    mg.successor = true;
+    _client->BeginSuccession();
+    mg.expected.clear();
+    for (const auto& r : _roster) {
+        if (r.participant != mg.oldHost && r.participant != LocalParticipant()) {
+            mg.expected.push_back(r.participant);
+        }
+    }
+    mg.gatherUntil = _now + _opts.migrateGatherMs;
+    SetState(State::Migrating);
+    Post([this] { _app.OnSessionStateChanged(); });
+}
+
+void CollabController::TickMigration() {
+    if (!_migration || _client == nullptr) {
+        return;
+    }
+    Migration& mg = *_migration;
+    if (mg.successor) {
+        std::vector<CollabClient::Rejoiner> back = _client->Rejoiners();
+        bool all = std::all_of(mg.expected.begin(), mg.expected.end(), [&](ParticipantId id) {
+            return std::any_of(back.begin(), back.end(), [&](const CollabClient::Rejoiner& r) { return r.id == id; });
+        });
+        if (!all && _now < mg.gatherUntil) {
+            return;
+        }
+        if (back.empty() && !mg.expected.empty()) {
+            // Nobody has come. Wait out this turn (they may be slow to find
+            // this device); then this device is the one cut off, not the
+            // host, and must not carry on alone.
+            if (_now < mg.startedAt + (mg.index + 1) * _opts.migrateTimeoutMs) {
+                return;
+            }
+            NextCandidate("no one else reconnected");
+            return;
+        }
+        if (!mg.catchUpTried) {
+            mg.catchUpTried = true;
+            const CollabClient::Rejoiner* best = nullptr;
+            for (const auto& r : back) {
+                if (r.applied > _client->AppliedRev() && (best == nullptr || r.applied > best->applied)) {
+                    best = &r;
+                }
+            }
+            if (best != nullptr) {
+                // Someone has commits this device never received: take them
+                // first, so nothing anyone saw committed is lost.
+                spdlog::info("Collab: fetching revs {}..{} from participant {} before taking over", _client->AppliedRev() + 1, best->applied, best->id);
+                mg.catchUpTarget = best->applied;
+                mg.catchUpUntil = _now + _opts.migrateGatherMs;
+                _client->CatchUpFrom(best->peer);
+                return;
+            }
+        }
+        if (_client->CatchingUp() && _client->AppliedRev() < mg.catchUpTarget && _now < mg.catchUpUntil) {
+            return;
+        }
+        TakeOver();
+        return;
+    }
+    if (mg.connecting || mg.rejoining) {
+        if (_now >= mg.deadline) {
+            NextCandidate(mg.rejoining ? "it did not answer" : "it could not be reached");
+        }
+        return;
+    }
+    if (mg.retryAt != 0 && _now >= mg.retryAt) {
+        if (_now >= mg.deadline) {
+            NextCandidate("it could not be reached");
+            return;
+        }
+        mg.retryAt = 0;
+        mg.connecting = true;
+        _transport->ConnectToSuccessor(mg.succession);
+    }
+}
+
+HostChange CollabController::MakeHostChange(ParticipantId newHost, bool becameHost) const {
+    HostChange c;
+    if (_migration) {
+        c.oldHost = _migration->oldHost;
+        c.oldHostName = _migration->oldHostName;
+    }
+    c.newHost = newHost;
+    c.newHostName = becameHost ? _displayName : NameOf(newHost);
+    c.becameHost = becameHost;
+    c.saveAsOnly = becameHost && _saveAsOnly;
+    std::string oldName = c.oldHostName.empty() ? std::string("The host") : c.oldHostName;
+    if (becameHost) {
+        c.text = oldName + " left; you are now hosting.";
+        if (c.saveAsOnly) {
+            c.text += " This sequence was opened against a copy of " + (c.oldHostName.empty() ? std::string("the host") : c.oldHostName) +
+                      "'s show, so save it with Save As.";
+        }
+    } else {
+        c.text = oldName + " left; " + (c.newHostName.empty() ? std::string("someone else") : c.newHostName) + " is now hosting.";
+    }
+    return c;
+}
+
+void CollabController::TakeOver() {
+    if (LocalEditOpen()) {
+        return; // the next tick
+    }
+    DrainHeld();
+    Flush();
+    if (!_held.empty() || !_local.empty() || !_migration) {
+        return;
+    }
+    Succession s = _migration->succession;
+    {
+        SessionApply a(*this, true);
+        auto host = std::make_unique<CollabHost>(*_transport, _doc, MakeOptions(_displayName, false), MakeEvents(), *_client);
+        CollabHost* h = host.get();
+        _client = nullptr;
+        _session = std::move(host);
+        _host = h;
+        _role = Role::Host;
+        WrapTransport();
+        _saveAsOnly = _joinReport && _joinReport->sessionCopy;
+        HostChange change = MakeHostChange(_host->Participant(), true);
+        _sessionId = _transport->SuccessorSessionId(s);
+        _hostPeerName.clear();
+        _migration.reset();
+        _host->ResumeAsSuccessor();
+        Post([this, change] { _app.OnHostChanged(change); });
+    }
+    spdlog::info("Collab: now hosting at rev {}", _host->HeadRev());
+    _presenceSent = false;
+    _layoutInFlight = 0;
+    _layoutDirty = true;
+    SetState(State::Active);
+    Post([this] { _app.MarkSequenceModified(); });
+    Post([this] { _app.OnParticipantsChanged(); });
+    Post([this] { _app.OnUndoStateChanged(); });
+}
+
+void CollabController::FinishRejoin() {
+    if (!_migration) {
+        return;
+    }
+    ParticipantId newHost = _migration->succession.successor;
+    HostChange change = MakeHostChange(newHost, false);
+    _sessionId = _transport->SuccessorSessionId(_migration->succession);
+    _hostPeerName = change.newHostName;
+    _migration.reset();
+    _presenceSent = false;
+    _layoutDirty = true;
+    spdlog::info("Collab: rejoined; participant {} is the host now", newHost);
+    Post([this, change] { _app.OnHostChanged(change); });
+    Post([this] { _app.OnParticipantsChanged(); });
+}
+
+void CollabController::MigrationFailed() {
+    spdlog::info("Collab: no one could take over the session");
+    _migration.reset();
+    _endText = "The host left and no one could take over the session.";
+    if (_client != nullptr) {
+        _client->GiveUp();
+    }
+    SessionEnded(Reason::HostLost);
 }
 
 } // namespace Collab

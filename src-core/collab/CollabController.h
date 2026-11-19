@@ -97,6 +97,15 @@
 // with the rows, time range and effects to redraw / re-render; the host also
 // gets MarkSequenceModified. Hooks are never called from inside an apply.
 //
+// Host migration: when the host is lost (not when it ends the session), a
+// participant takes over and the session carries on (CollabSession.h says
+// who and how). Meanwhile GetState() is Migrating; edits and undo keep
+// working and reach the new host. Then OnHostChanged says who hosts now. On
+// the device that took over GetRole() becomes Host: it saves from then on
+// (MarkSequenceModified is called), unless SaveAsOnly() (its document is a
+// session copy of the old host's show): then it offers Save As instead. A
+// host that comes back joins as a client like anyone else.
+//
 // Saving: only the host saves the sequence, through its normal save path,
 // whenever it likes during the session and after End() (End() doesn't save;
 // the document then holds every committed edit). A client never marks its
@@ -250,7 +259,38 @@ struct SequenceChange {
     std::vector<SeqObjectId> effects;
 };
 
+// What an app re-renders for a SequenceChange.
+//   Nothing   the change touches no row and no media: tags, the song
+//             structure, a controllers-only layout change (its channel
+//             changes reach the render through the layout refresh), an own
+//             edit taken out until it commits.
+//   Rows      `rows`, through the visible-range-first scheduler.
+//   Models    the models named in `models` (a layout change), whole sequence.
+//   Everything every row over [startMS, endMS] (-1: the whole sequence): a
+//             new document, sequence-wide definitions, media that effects
+//             anywhere may use.
+struct RenderPlan {
+    enum class Kind { Nothing, Rows, Models, Everything };
+    Kind kind = Kind::Nothing;
+    std::vector<SeqObjectId> rows;
+    std::vector<std::string> models;
+    int startMS = -1;
+    int endMS = -1;
+};
+RenderPlan PlanRender(const SequenceChange& c);
+
 // One of this client's structural edits waiting for the host's commit.
+// Host migration: who hosted, who hosts now.
+struct HostChange {
+    ParticipantId oldHost = kNoParticipant;
+    std::string oldHostName;
+    ParticipantId newHost = kNoParticipant;
+    std::string newHostName;
+    bool becameHost = false; // this device took over
+    bool saveAsOnly = false; // CollabController::SaveAsOnly()
+    std::string text;        // "Sam left; Alex is now hosting"
+};
+
 struct PendingGhost {
     enum class Kind { Add, Move, Delete };
     Kind kind = Kind::Add;
@@ -286,6 +326,9 @@ public:
     virtual void OnUndoStateChanged() {}
     virtual void OnJoinReport(const JoinReport& /*report*/) {}
     virtual void OnSessionsFound(const std::vector<SessionAdvert>& /*sessions*/) {}
+    // The host was lost and someone else took over (GetRole() may have
+    // changed with it).
+    virtual void OnHostChanged(const HostChange& /*change*/) {}
     virtual void OnBrowseError(const std::string& /*reason*/) {}
     virtual void OnLog(const std::string& /*line*/) {}
     // Something from the host for this user to read: their role changed, or
@@ -332,6 +375,11 @@ struct ControllerOptions {
     uint64_t softLockIdleMs = 60000;
     uint64_t closeDelayMs = 2000; // keep the transport after the end so the goodbye gets out
     uint64_t layoutQuietMs = 250; // a layout change is proposed once memory has rested this long
+    // Host migration: how long to try reaching each possible new host, and
+    // how long the new host waits for the others before carrying on.
+    uint64_t migrateTimeoutMs = 8000;
+    uint64_t migrateGatherMs = 2000;
+    uint64_t migrateRetryMs = 500;
     // Session timing and limits; displayName / appVersion / deviceKind /
     // sessionFolder / fetchFiles are filled in by the controller.
     SessionOptions session;
@@ -342,8 +390,9 @@ public:
     enum class Role { None, Host, Client };
     // Connecting: reaching the host. Joining: joined, comparing (and
     // fetching) show files. Syncing: receiving the sequence. Ended: over;
-    // EndReason / EndText say why.
-    enum class State { Idle, Connecting, Joining, Syncing, Active, Ended };
+    // EndReason / EndText say why. Migrating: the host was lost and someone
+    // is taking over (see the top of this file).
+    enum class State { Idle, Connecting, Joining, Syncing, Active, Migrating, Ended };
 
     CollabController(ICollabApp& app, CollabNetFactory net, Dispatcher dispatch, ControllerOptions opts = {});
     ~CollabController() override;
@@ -397,6 +446,16 @@ public:
 
     Role GetRole() const { return _role; }
     State GetState() const { return _state; }
+    // The host now (kNoParticipant when not in a session) and its name.
+    ParticipantId HostParticipant() const;
+    std::string HostName() const;
+    // This device took over hosting a session it had joined against a copy
+    // of the old host's show: its sequence must be saved under a new name
+    // (Save As), never over the copy.
+    bool SaveAsOnly() const { return _role == Role::Host && _saveAsOnly; }
+    // The session's pairing code (empty over a group); a device that took
+    // over hosting shows the same one.
+    const std::string& PairingCode() const { return _pairingCode; }
     bool InSession() const { return _state == State::Active; }
     // One line for a status bar / toolbar chip.
     std::string StatusText() const;
@@ -490,8 +549,9 @@ public:
     std::vector<PendingGhost> PendingGhosts() const;
 
     // ---- After the session ----
-    // Client: keep the session copy of the host's show (when the join used
-    // one) after the session object goes, and say where it is.
+    // Keep the session copy of the host's show (when the join used one, also
+    // after this device took over hosting) after the session object goes,
+    // and say where it is.
     bool KeepSessionCopy(std::string& folder);
 
     // ---- Driving ----
@@ -627,6 +687,20 @@ private:
     void OnLayoutRejectedBySession(uint64_t seq, const std::string& reason, const std::string& text);
     bool TryRestoreLayout();
     void ResetLayoutState();
+    // Host migration
+    void InstallStateHandler();
+    void OnNetState(NetState s, const std::string& why);
+    bool HostLostBySession();
+    void StartMigration();
+    void TryCandidate();
+    void NextCandidate(const std::string& why);
+    void BecomeSuccessor();
+    void TickMigration();
+    void TakeOver();
+    void FinishRejoin();
+    void MigrationFailed();
+    Succession MakeSuccession(ParticipantId who) const;
+    HostChange MakeHostChange(ParticipantId newHost, bool becameHost) const;
 
     ICollabApp& _app;
     CollabNetFactory _net;
@@ -730,6 +804,32 @@ private:
     std::optional<LayoutFiles> _snapshotTarget; // what memory was brought to before a snapshot loaded
     std::optional<LayoutFiles> _layoutRestore;  // memory still has to be brought here
     bool _lockLost = false;       // the host saw someone else take this user's layout lock first
+
+    // Host migration
+    std::string _displayName;
+    std::string _sequenceName;
+    std::string _pairingCode;
+    std::string _sessionId; // what this device joined (or the successor's id since)
+    bool _saveAsOnly = false;
+    struct Migration {
+        ParticipantId oldHost = kNoParticipant;
+        std::string oldHostName;
+        std::vector<ParticipantId> candidates; // best first
+        size_t index = 0;
+        uint64_t startedAt = 0;
+        Succession succession; // the current attempt
+        uint64_t deadline = 0;
+        uint64_t retryAt = 0;
+        bool connecting = false;
+        bool rejoining = false;
+        bool successor = false;
+        uint64_t gatherUntil = 0;
+        std::vector<ParticipantId> expected;
+        bool catchUpTried = false;
+        Rev catchUpTarget = 0;
+        uint64_t catchUpUntil = 0;
+    };
+    std::optional<Migration> _migration;
 };
 
 } // namespace Collab

@@ -198,7 +198,8 @@ const Assignment* AssignmentIndex::Find(const SequenceElements& seq, SeqObjectId
 ParticipantRole RoleIn(const std::vector<RosterEntry>& roster, ParticipantId who) {
     for (const auto& r : roster) {
         if (r.participant == who) {
-            return who == kHostParticipant ? ParticipantRole::Editor : r.role;
+            // The host (listed first) is always an editor.
+            return who == roster.front().participant ? ParticipantRole::Editor : r.role;
         }
     }
     return ParticipantRole::Editor;
@@ -236,7 +237,7 @@ std::vector<Assignment> ApplyClaim(const SequenceElements& seq, const std::vecto
         text = std::move(t);
         return assignments;
     };
-    const bool isHost = requester == kHostParticipant;
+    const bool isHost = !roster.empty() && roster.front().participant == requester;
     if (!InRoster(roster, requester)) {
         return refuse(Reason::Invalid, "Only people in the session can assign rows");
     }

@@ -137,35 +137,39 @@ CollabParticipant::CollabParticipant(ICollabTransport& transport, ICollabDocumen
 }
 
 CollabParticipant::~CollabParticipant() {
-    _transport.onMessage = nullptr;
-    _transport.onPeer = nullptr;
-    _transport.onBlob = nullptr;
+    if (_ownsHandlers) {
+        _transport.onMessage = nullptr;
+        _transport.onPeer = nullptr;
+        _transport.onBlob = nullptr;
+        _transport.onBlobProgress = nullptr;
+        _transport.onBlobDone = nullptr;
+        _transport.onSendFailed = nullptr;
+    }
     if (_sessionFolder.empty()) {
         return;
     }
     std::error_code ec;
-    if (_ownsSessionFolder && !_keepFiles) {
+    if (!_keepFiles) {
         fs::remove_all(_sessionFolder, ec);
         return;
     }
-    for (const char* sub : { "incoming", "outgoing", "compare" }) {
+    for (const char* sub : { "incoming", "outgoing", "compare", "held" }) {
         fs::remove_all(fs::path(_sessionFolder) / sub, ec);
-    }
-    if (!_keepFiles) {
-        fs::remove_all(fs::path(_sessionFolder) / "show", ec);
     }
 }
 
 const std::string& CollabParticipant::SessionFolder() {
     if (_sessionFolder.empty()) {
         std::error_code ec;
-        if (!_opts.sessionFolder.empty()) {
-            _sessionFolder = _opts.sessionFolder;
-        } else {
-            std::random_device rd;
-            _sessionFolder = (fs::temp_directory_path(ec) / ("xl_collab_" + std::to_string(rd()) + "_" + std::to_string(rd()))).string();
-            _ownsSessionFolder = true;
-        }
+        // A folder of its own even under a given parent: one session's
+        // cleanup must never reach another's files, a kept copy included.
+        fs::path parent = _opts.sessionFolder.empty() ? fs::temp_directory_path(ec) : fs::path(_opts.sessionFolder);
+        std::random_device rd;
+        fs::path dir;
+        do {
+            dir = parent / ("xl_collab_" + std::to_string(rd()) + "_" + std::to_string(rd()));
+        } while (fs::exists(dir, ec));
+        _sessionFolder = dir.string();
         fs::create_directories(_sessionFolder, ec);
     }
     return _sessionFolder;
@@ -180,6 +184,54 @@ std::string CollabParticipant::NewSessionFile(const std::string& sub, const std:
     std::error_code ec;
     fs::create_directories(dir, ec);
     return (dir / ("f" + std::to_string(++_sessionFiles) + ext)).string();
+}
+
+void CollabParticipant::InstallHandlers() {
+    _transport.onMessage = [this](PeerId from, const Message& m) { OnTransportMessage(from, m); };
+    _transport.onPeer = [this](PeerId peer, PeerEvent e) { OnTransportPeer(peer, e); };
+    _transport.onBlob = [this](PeerId from, BlobId id, const std::string& path) { OnTransportBlob(from, id, path); };
+    _transport.onBlobProgress = [this](PeerId from, BlobId id, uint64_t received, uint64_t size) { OnBlobProgress(from, id, received, size); };
+    _transport.onBlobDone = [this](PeerId to, BlobId id, bool sent) { OnBlobDone(to, id, sent); };
+    _transport.onSendFailed = [this](PeerId to, const Message& m, const std::string& reason) { OnSendFailed(to, m, reason); };
+}
+
+bool CollabParticipant::WriteParts(const std::string& path, const std::vector<const std::string*>& parts) {
+    std::ofstream f(path, std::ios::binary | std::ios::trunc);
+    for (const std::string* p : parts) {
+        uint64_t n = p->size();
+        unsigned char len[8];
+        for (int i = 0; i < 8; ++i) {
+            len[i] = (unsigned char)(n >> (8 * i));
+        }
+        f.write((const char*)len, 8);
+        f.write(p->data(), (std::streamsize)p->size());
+    }
+    f.close();
+    return !f.fail();
+}
+
+bool CollabParticipant::ReadParts(const std::string& path, std::vector<std::string>& parts) {
+    std::string all;
+    if (!ReadWhole(path, all)) {
+        return false;
+    }
+    size_t at = 0;
+    for (auto& p : parts) {
+        if (all.size() - at < 8) {
+            return false;
+        }
+        uint64_t n = 0;
+        for (int i = 0; i < 8; ++i) {
+            n |= (uint64_t)(unsigned char)all[at + i] << (8 * i);
+        }
+        at += 8;
+        if (n > all.size() - at) {
+            return false;
+        }
+        p.assign(all, at, (size_t)n);
+        at += (size_t)n;
+    }
+    return at == all.size();
 }
 
 void CollabParticipant::OnBlobArrived(PeerId from, BlobId id, const std::string& path) {
@@ -350,23 +402,56 @@ CollabParticipant::Stored CollabParticipant::StoreReceivedFile(const FileEntry& 
 }
 
 SubmitResult CollabParticipant::Undo() {
-    if (_undo.empty() || !IsActive()) {
+    if (!IsActive() || !CanUndo()) {
         return { false, 0, "nothing_to_undo" };
     }
-    UndoEntry e = std::move(_undo.back());
-    _undo.pop_back();
-    _submitMeta = { e.label, 0 };
-    return SubmitKind(std::move(e.cmd), EditKind::Undo, e.rev);
+    if (UndoWaits() || !_queuedUndo.empty()) {
+        SubmitResult r{ true, 0, "" };
+        r.deferred = true;
+        if (!_queuedUndo.empty() && _queuedUndo.back() == EditKind::Redo) {
+            _queuedUndo.pop_back();
+        } else {
+            _queuedUndo.push_back(EditKind::Undo);
+        }
+        return r;
+    }
+    return DoUndo(false);
 }
 
 SubmitResult CollabParticipant::Redo() {
-    if (_redo.empty() || !IsActive()) {
+    if (!IsActive()) {
         return { false, 0, "nothing_to_redo" };
     }
-    UndoEntry e = std::move(_redo.back());
-    _redo.pop_back();
+    if (UndoWaits() || !_queuedUndo.empty()) {
+        SubmitResult r{ true, 0, "" };
+        r.deferred = true;
+        if (!_queuedUndo.empty() && _queuedUndo.back() == EditKind::Undo) {
+            _queuedUndo.pop_back();
+        } else {
+            _queuedUndo.push_back(EditKind::Redo);
+        }
+        return r;
+    }
+    return DoUndo(true);
+}
+
+SubmitResult CollabParticipant::DoUndo(bool redo) {
+    auto& stack = redo ? _redo : _undo;
+    if (stack.empty()) {
+        return { false, 0, redo ? "nothing_to_redo" : "nothing_to_undo" };
+    }
+    UndoEntry e = std::move(stack.back());
+    stack.pop_back();
     _submitMeta = { e.label, 0 };
-    return SubmitKind(std::move(e.cmd), EditKind::Redo, e.rev);
+    return SubmitKind(std::move(e.cmd), redo ? EditKind::Redo : EditKind::Undo, e.rev);
+}
+
+void CollabParticipant::RunQueuedUndo() {
+    while (!_queuedUndo.empty() && IsActive() && !UndoWaits()) {
+        EditKind k = _queuedUndo.front();
+        _queuedUndo.pop_front();
+        DoUndo(k == EditKind::Redo);
+    }
 }
 
 SubmitResult CollabParticipant::SubmitJoined(std::unique_ptr<SequenceCommand> cmd, uint64_t joinUndoTo) {
@@ -450,6 +535,47 @@ void CollabParticipant::Log(const std::string& s) {
     }
 }
 
+void CollabParticipant::NoteCommitted(ParticipantId author, uint64_t clientSeq) {
+    uint64_t& last = _lastSeq[author];
+    last = std::max(last, clientSeq);
+}
+
+void CollabParticipant::TakeStateFrom(CollabParticipant& from) {
+    _participant = from._participant;
+    _applied = from._applied;
+    _now = from._now;
+    _undo = std::move(from._undo);
+    _redo = std::move(from._redo);
+    _hasher = std::move(from._hasher);
+    _hasher.InvalidateAll();
+    _recent = std::move(from._recent);
+    _hashes = std::move(from._hashes);
+    _received = std::move(from._received);
+    _mediaFolderAdded = from._mediaFolderAdded;
+    _roster = std::move(from._roster);
+    _assignments = std::move(from._assignments);
+    _joinRole = from._joinRole;
+    _ownMeta = std::move(from._ownMeta);
+    _queuedUndo = std::move(from._queuedUndo);
+    _liveLayout = from._liveLayout;
+    _layout = std::move(from._layout);
+    _layoutHash = from._layoutHash;
+    _touch = std::move(from._touch);
+    _revs = std::move(from._revs);
+    _lastSeq = std::move(from._lastSeq);
+    _log = std::move(from._log);
+    _logBase = from._logBase;
+    _succession = std::move(from._succession);
+    _epoch = from._epoch;
+    _nextParticipant = from._nextParticipant;
+    _sessionFolder = std::move(from._sessionFolder);
+    _keepFiles = from._keepFiles;
+    _nextBlob = from._nextBlob;
+    _sessionFiles = from._sessionFiles;
+    from._sessionFolder.clear();
+    from._ownsHandlers = false;
+}
+
 void CollabParticipant::SetLayout(const LayoutFiles& files) {
     _layout = files;
     _layoutHash = LayoutDelta::Hash(_layout);
@@ -484,13 +610,146 @@ std::string CollabParticipant::RecentCommands() const {
 
 CollabHost::CollabHost(ICollabTransport& transport, ICollabDocument& doc, SessionOptions opts, SessionEvents events) :
     CollabParticipant(transport, doc, std::move(opts), std::move(events)) {
-    _transport.onMessage = [this](PeerId from, const Message& m) { OnMessage(from, m); };
-    _transport.onPeer = [this](PeerId peer, PeerEvent e) { OnPeer(peer, e); };
-    _transport.onBlob = [this](PeerId from, BlobId id, const std::string& path) {
-        if (FindClient(from) != nullptr) {
-            OnBlobArrived(from, id, path);
+    InstallHandlers();
+}
+
+void CollabHost::OnTransportBlob(PeerId from, BlobId id, const std::string& path) {
+    if (FindClient(from) != nullptr) {
+        OnBlobArrived(from, id, path);
+    }
+}
+
+// Whether a blob sent at `at` that has not been reported done should no
+// longer stop another copy. Not every transport learns about every lost
+// transfer, and this host can't see the receiver's progress. The client asks
+// again only after nothing has moved for blobStallMs, so a request that late
+// means the transfer is stuck; an earlier one is a duplicate.
+bool CollabHost::Stale(uint64_t at) const {
+    return _now - at >= _opts.blobStallMs;
+}
+
+void CollabHost::OnBlobDone(PeerId to, BlobId id, bool sent) {
+    Client* c = FindClient(to);
+    if (c == nullptr) {
+        return;
+    }
+    if (c->snapshotBlob == id) {
+        c->snapshotBlob = 0;
+    }
+    if (c->welcomeBlob == id && !sent) {
+        c->welcomeBlob = 0;
+    }
+    for (auto it = c->filesSending.begin(); it != c->filesSending.end();) {
+        it = it->second.first == id ? c->filesSending.erase(it) : std::next(it);
+    }
+    if (!sent) {
+        Log("a transfer to participant " + std::to_string(c->id) + " failed");
+    }
+}
+
+void CollabHost::OnSendFailed(PeerId to, const Message& m, const std::string& reason) {
+    std::vector<PeerId> targets;
+    if (to == kNoPeer) {
+        for (const auto& [peer, c] : _clients) {
+            targets.push_back(peer);
         }
-    };
+    } else if (FindClient(to) != nullptr) {
+        targets.push_back(to);
+    }
+    Log("could not send message type " + std::to_string((int)m.type) + ": " + reason);
+    for (PeerId peer : targets) {
+        Client* c = FindClient(peer);
+        if (c == nullptr) {
+            continue;
+        }
+        bool joined = c->active || c->sentDocument;
+        if (m.type == MsgType::Commit) {
+            // It can't get this commit as a message: the document comes as a
+            // snapshot instead, which travels as a blob. One sent lately
+            // that has it serves resend requests made before it arrived. A
+            // joiner asks for the commits after its snapshot once it has it.
+            bool covered = c->snapshotRev >= m.rev && _now - c->snapshotAt < _opts.blobStallMs;
+            if (joined && !covered) {
+                SendSnapshot(*c);
+            }
+            continue;
+        }
+        if (!joined) {
+            Message r;
+            r.type = MsgType::Refuse;
+            r.reason = Reason::TooLarge;
+            r.text = "This session is too large to send to this device.";
+            _transport.Send(peer, r);
+            DropClient(peer, "the session is too large to send to it");
+            continue;
+        }
+        if (_events.onNotice) {
+            _events.onNotice(Reason::TooLarge, "Something could not be sent to " + c->name + ": it is too large.");
+        }
+    }
+}
+
+void CollabHost::SendWelcome(Client& c, bool rejoin) {
+    Message w;
+    w.type = MsgType::Welcome;
+    w.participant = c.id;
+    w.rev = _applied;
+    w.name = _opts.displayName;
+    if (rejoin) {
+        w.rejoin = true;
+        w.clientSeq = LastSeqOf(c.id);
+        w.liveLayout = c.liveLayout;
+        _transport.Send(c.peer, w);
+        return;
+    }
+    w.secret = c.secret;
+    if (c.liveLayout) {
+        // The layout can be far larger than a message may be: it goes as a
+        // blob that the Welcome names.
+        w.liveLayout = true;
+        w.layoutHash = _layoutHash;
+        // A Hello repeated before the Welcome got there (a slow link) is
+        // answered with the blob already sent, not another copy of it.
+        if (c.welcomeBlob != 0 && Stale(c.welcomeAt)) {
+            c.welcomeBlob = 0;
+        }
+        if (c.welcomeBlob == 0) {
+            std::string file = NewSessionFile("outgoing", ".layout");
+            if (!WriteParts(file, { &_layout.rgbEffects, &_layout.networks })) {
+                Log("could not write the session layout to send it");
+                RemoveFile(file);
+                return;
+            }
+            c.welcomeBlob = NextBlob();
+            c.welcomeAt = _now;
+            _transport.SendBlob(c.peer, c.welcomeBlob, file);
+            RemoveFile(file);
+        }
+        w.blob = c.welcomeBlob;
+    }
+    _transport.Send(c.peer, w);
+}
+
+CollabHost::CollabHost(ICollabTransport& transport, ICollabDocument& doc, SessionOptions opts, SessionEvents events, CollabClient& from) :
+    CollabHost(transport, doc, std::move(opts), std::move(events)) {
+    // The document must be exactly the commits in rev order: take this
+    // participant's own pending writes back out; they are proposed again.
+    from.LiftOverlay();
+    from._overlay.clear();
+    from._times.clear();
+    for (const auto& [seq, p] : from._pending) {
+        if (p.msg.layout.is_null()) {
+            _ownPending.push_back(p.msg);
+        }
+    }
+    for (const auto& [peer, hello] : from._rejoinHellos) {
+        _rejoinHellos.emplace_back(peer, hello);
+    }
+    _nextOwnSeq = from._nextSeq;
+    _formerRoster = from._roster;
+    TakeStateFrom(from);
+    from._state = CollabClient::State::Ended;
+    from._endReason = Reason::HostChanged;
 }
 
 CollabHost::~CollabHost() = default;
@@ -498,22 +757,117 @@ CollabHost::~CollabHost() = default;
 void CollabHost::Start() {
     _started = true;
     _endReason.clear();
-    _participant = kHostParticipant;
-    SeqIds::SetPeer(kHostParticipant);
+    if (_participant == kNoParticipant) {
+        _participant = kHostParticipant;
+    }
+    SeqIds::SetPeer(_participant);
     _hasher.InvalidateAll();
     _uids.Reset(_doc.Sequence());
     SendRoster();
 }
 
+void CollabHost::ResumeAsSuccessor() {
+    ++_epoch;
+    for (const auto& r : _roster) {
+        _nextParticipant = std::max<ParticipantId>(_nextParticipant, r.participant + 1);
+    }
+    _roster.clear();
+    _rankHead = _applied;
+    // The old host's claims go with it; everyone else's wait for them to
+    // come back (until _rejoinUntil). The host is never a viewer, even if
+    // this participant was one.
+    if (!_formerRoster.empty()) {
+        _assignments = WithoutAssignments(_doc.Sequence(), _assignments, _formerRoster.front().participant);
+    }
+    _awaitingRejoin.clear();
+    for (size_t i = 1; i < _formerRoster.size(); ++i) {
+        if (_formerRoster[i].participant != _participant) {
+            _awaitingRejoin.insert(_formerRoster[i].participant);
+        }
+    }
+    _rejoinUntil = _now + _opts.peerTimeoutMs;
+    if (_liveLayout) {
+        _layoutAt.clear();
+        _layoutAt[_applied] = _layout;
+    }
+    Log("taking over as host at rev " + std::to_string(_applied) + " (change " + std::to_string(_epoch) + ")");
+    Start();
+    // This participant's own proposals the old host never answered. One it
+    // had decided (a later one of its commits is in) lost its answer.
+    for (const Message& p : _ownPending) {
+        if (p.clientSeq <= LastSeqOf(_participant)) {
+            _ownMeta.erase(p.clientSeq);
+            if (_events.onReject) {
+                _events.onReject(p.clientSeq, p.kind, Reason::HostChanged, kNoParticipant);
+            }
+            continue;
+        }
+        Outcome o = Process(_participant, p.clientSeq, std::min(p.baseRev, _applied), p.kind, p.undoOf, p.command);
+        _ownMeta.erase(p.clientSeq);
+        if (!o.committed && _events.onReject) {
+            _events.onReject(p.clientSeq, p.kind, o.reason, o.by);
+        }
+    }
+    _ownPending.clear();
+    RunQueuedUndo();
+    auto hellos = std::move(_rejoinHellos);
+    _rejoinHellos.clear();
+    for (const auto& [peer, h] : hellos) {
+        AddRejoiner(peer, h);
+    }
+    SendRoster();
+}
+
+std::vector<ParticipantId> CollabHost::RankSuccessors() const {
+    struct Rank {
+        bool editor;
+        bool ready;
+        bool layoutOk;
+        Rev applied;
+        ParticipantId id;
+    };
+    std::vector<Rank> ranks;
+    for (const auto& [peer, c] : _clients) {
+        // Kept up: had applied what the host had at the previous ping round
+        // (so the order doesn't change with every commit on its way).
+        bool ready = c.active && c.applied >= _rankHead;
+        ranks.push_back({ c.role != ParticipantRole::Viewer, ready, c.liveLayout == _liveLayout, c.active ? c.applied : 0, c.id });
+    }
+    std::sort(ranks.begin(), ranks.end(), [](const Rank& a, const Rank& b) {
+        // Viewers only after every editor: one that takes over becomes an
+        // editor (the host always is).
+        if (a.editor != b.editor) {
+            return a.editor;
+        }
+        if (a.ready != b.ready) {
+            return a.ready;
+        }
+        if (a.layoutOk != b.layoutOk) {
+            return a.layoutOk;
+        }
+        if (!a.ready && a.applied != b.applied) {
+            return a.applied > b.applied;
+        }
+        return a.id < b.id;
+    });
+    std::vector<ParticipantId> out;
+    for (const auto& r : ranks) {
+        out.push_back(r.id);
+    }
+    return out;
+}
+
 void CollabHost::SendRoster() {
     _roster.clear();
-    _roster.push_back({ kHostParticipant, _opts.displayName, _opts.deviceKind, ParticipantRole::Editor });
+    _roster.push_back({ _participant, _opts.displayName, _opts.deviceKind, ParticipantRole::Editor });
     std::vector<RosterEntry> clients;
     for (const auto& [peer, c] : _clients) {
-        clients.push_back({ c.id, c.name, c.deviceKind, c.role });
+        clients.push_back({ c.id, c.name, c.deviceKind, c.role, c.secretHash });
     }
     std::sort(clients.begin(), clients.end(), [](const RosterEntry& a, const RosterEntry& b) { return a.participant < b.participant; });
     _roster.insert(_roster.end(), clients.begin(), clients.end());
+    _ranked = RankSuccessors();
+    _succession = _ranked;
     for (const auto& [peer, c] : _clients) {
         SendRosterTo(peer);
     }
@@ -527,11 +881,15 @@ void CollabHost::SendRosterTo(PeerId peer) {
     m.type = MsgType::Roster;
     m.roster = _roster;
     m.assignments = _assignments;
+    m.epoch = _epoch;
+    m.nextParticipant = _nextParticipant;
+    m.succession = _ranked;
+    m.joinRole = _joinRole;
     _transport.Send(peer, m);
 }
 
 bool CollabHost::SetRole(ParticipantId who, ParticipantRole role) {
-    if (!IsActive() || who == kHostParticipant) {
+    if (!IsActive() || who == _participant) {
         return false;
     }
     for (auto& [peer, c] : _clients) {
@@ -558,12 +916,22 @@ bool CollabHost::SetRole(ParticipantId who, ParticipantRole role) {
     return false;
 }
 
+void CollabHost::SetJoinRole(ParticipantRole role) {
+    if (_joinRole == role) {
+        return;
+    }
+    _joinRole = role;
+    if (IsActive()) {
+        SendRoster(); // the others keep it in case one of them takes over
+    }
+}
+
 bool CollabHost::Claim(SeqObjectId element, ParticipantId owner, std::string& reason, std::string& text) {
     if (!IsActive()) {
         reason = "not_active";
         return false;
     }
-    if (!ClaimAs(kHostParticipant, element, owner, reason, text)) {
+    if (!ClaimAs(_participant, element, owner, reason, text)) {
         return false;
     }
     SendRoster();
@@ -662,7 +1030,7 @@ SubmitResult CollabHost::SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKi
     cmd->Serialize(j);
     uint64_t seq = _nextOwnSeq++;
     NoteOwnProposal(seq);
-    Outcome o = Process(kHostParticipant, seq, _applied, kind, undoOf, j);
+    Outcome o = Process(_participant, seq, _applied, kind, undoOf, j);
     if (!o.committed) {
         _ownMeta.erase(seq);
         if (_events.onReject) {
@@ -763,6 +1131,7 @@ Rev CollabHost::CommitApplied(ParticipantId author, uint64_t clientSeq, EditKind
         _touch[item] = { rev, author };
     }
     _revs[rev] = { author, kind };
+    NoteCommitted(author, clientSeq);
 
     Message m;
     m.type = MsgType::Commit;
@@ -785,7 +1154,7 @@ Rev CollabHost::CommitApplied(ParticipantId author, uint64_t clientSeq, EditKind
     CommitInfo info{ rev, author, clientSeq, kind, undoOf };
     NoteRecent(info, m.command);
     _log.push_back({ std::move(m) });
-    if (author == kHostParticipant) {
+    if (author == _participant) {
         RecordOwnCommit(kind, rev, clientSeq, cmd, inverse);
     }
     NotifyCommit(info, cmd, inverse);
@@ -809,7 +1178,7 @@ SubmitResult CollabHost::CommitLocal(std::unique_ptr<SequenceCommand> applied, s
         Log("local edit reused object id " + std::to_string(duplicate));
         _uids.Reset(_doc.Sequence());
     }
-    CommitApplied(kHostParticipant, seq, EditKind::Edit, 0, *applied, *inverse, true);
+    CommitApplied(_participant, seq, EditKind::Edit, 0, *applied, *inverse, true);
     ShareCommandFiles(*applied);
     return { true, seq, "" };
 }
@@ -830,7 +1199,7 @@ SubmitResult CollabHost::CommitLayout(const json& delta) {
         return { false, 0, Reason::Invalid };
     }
     uint64_t seq = _nextOwnSeq++;
-    CommitLayoutApplied(kHostParticipant, seq, delta, *next, "");
+    CommitLayoutApplied(_participant, seq, delta, *next, "");
     return { true, seq, "" };
 }
 
@@ -838,6 +1207,7 @@ Rev CollabHost::CommitLayoutApplied(ParticipantId author, uint64_t clientSeq, co
     Rev rev = ++_applied;
     SetLayout(next);
     _layoutAt[rev] = _layout;
+    NoteCommitted(author, clientSeq);
     // Memory's layout change may have renamed or removed rows.
     SequenceElements& seq = _doc.Sequence();
     _hasher.InvalidateAll();
@@ -1001,7 +1371,7 @@ uint64_t CollabHost::StampLock(ParticipantId who, const LayoutLockInfo& lock) {
         std::string what = lock.name.empty() ? lock.object : lock.name;
         std::string text = NameOfParticipant(holder) + " started editing " + what + " first; changes you make to it may be overwritten";
         Log("participant " + std::to_string(who) + " took the layout lock on '" + lock.object + "' after " + std::to_string(holder));
-        if (who == kHostParticipant) {
+        if (who == _participant) {
             if (_events.onNotice) {
                 _events.onNotice(Reason::LockTaken, text);
             }
@@ -1037,10 +1407,20 @@ void CollabHost::OnPeer(PeerId peer, PeerEvent e) {
     }
 }
 
-void CollabHost::DropClient(PeerId peer, const std::string& why) {
+void CollabHost::DropClient(PeerId peer, const std::string& why, const std::string& tell) {
     auto it = _clients.find(peer);
     if (it == _clients.end()) {
         return;
+    }
+    if (!tell.empty()) {
+        // It may still be there (a stall, a one-way link): without this it
+        // would carry on unheard.
+        Message bye;
+        bye.type = MsgType::Bye;
+        bye.reason = tell;
+        bye.text = tell == Reason::TimedOut ? "The host stopped hearing from this device." : std::string();
+        _transport.Send(peer, bye);
+        _strangersTold[peer] = _now;
     }
     ParticipantId id = it->second.id;
     std::string name = it->second.name;
@@ -1052,6 +1432,39 @@ void CollabHost::DropClient(PeerId peer, const std::string& why) {
         _events.onParticipant(id, name, false);
     }
     SendRoster();
+}
+
+// A message from a connection that isn't (or is no longer) in the session:
+// it is told, now and then, rather than ignored.
+void CollabHost::NotAClient(PeerId from) {
+    auto told = _strangersTold.find(from);
+    if (told != _strangersTold.end() && _now - told->second < _opts.peerTimeoutMs / 3) {
+        return;
+    }
+    _strangersTold[from] = _now;
+    Message bye;
+    bye.type = MsgType::Bye;
+    bye.reason = Reason::NotInSession;
+    bye.text = "This device is no longer in the session.";
+    _transport.Send(from, bye);
+}
+
+void CollabHost::StandDown(const std::string& why) {
+    Log("standing down: " + why);
+    Message bye;
+    bye.type = MsgType::Bye;
+    bye.reason = Reason::HostChanged;
+    bye.text = why;
+    for (const auto& [peer, c] : _clients) {
+        _transport.Send(peer, bye);
+    }
+    _clients.clear();
+    _endReason = Reason::HostChanged;
+    _endText = why;
+    _started = false;
+    if (_events.onEnded) {
+        _events.onEnded(_endReason);
+    }
 }
 
 void CollabHost::OnMessage(PeerId from, const Message& m) {
@@ -1071,6 +1484,9 @@ void CollabHost::OnMessage(PeerId from, const Message& m) {
     }
     Client* c = FindClient(from);
     if (c == nullptr) {
+        if (m.type != MsgType::Bye) {
+            NotAClient(from);
+        }
         return;
     }
     c->lastHeard = _now;
@@ -1093,6 +1509,7 @@ void CollabHost::OnMessage(PeerId from, const Message& m) {
         break;
     case MsgType::Pong:
         c->applied = std::max(c->applied, std::min(m.rev, _applied));
+        c->active = m.active;
         PruneLayouts();
         break;
     case MsgType::Presence: {
@@ -1113,6 +1530,16 @@ void CollabHost::OnMessage(PeerId from, const Message& m) {
         OnClaim(*c, m);
         break;
     case MsgType::Bye:
+        if (m.reason == Reason::HostChanged) {
+            if (_now < _replacedWindowUntil) {
+                // It moved on to a new host while this one was blocked.
+                StandDown("Another device took over this session while this one was not responding.");
+                break;
+            }
+            // Handled before this host's next tick: that tick tells whether
+            // it was blocked long enough to have been replaced.
+            _hostChangedSaid = true;
+        }
         // A refused joiner says why (its show files don't match).
         DropClient(from, m.reason.empty() || m.reason == Reason::Left ? std::string("left") : "left: " + m.reason);
         break;
@@ -1130,20 +1557,14 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
         _transport.Send(from, refuse);
         return;
     }
+    if (m.rejoin) {
+        AddRejoiner(from, m);
+        return;
+    }
     if (Client* existing = FindClient(from)) {
         // A repeated Hello: our Welcome or the snapshot got lost.
         existing->lastHeard = _now;
-        Message w;
-        w.type = MsgType::Welcome;
-        w.participant = existing->id;
-        w.rev = _applied;
-        w.name = _opts.displayName;
-        if (existing->liveLayout) {
-            w.liveLayout = true;
-            w.layoutFiles = _layout;
-            w.layoutHash = _layoutHash;
-        }
-        _transport.Send(from, w);
+        SendWelcome(*existing, false);
         SendManifest(*existing, false);
         SendRosterTo(from);
         return;
@@ -1164,17 +1585,9 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
     c.applied = _applied;
     c.liveLayout = _liveLayout && m.liveLayout;
     c.role = _joinRole;
-    Message w;
-    w.type = MsgType::Welcome;
-    w.participant = c.id;
-    w.rev = _applied;
-    w.name = _opts.displayName;
-    if (c.liveLayout) {
-        w.liveLayout = true;
-        w.layoutFiles = _layout;
-        w.layoutHash = _layoutHash;
-    }
-    _transport.Send(from, w);
+    c.secret = NewRejoinSecret();
+    c.secretHash = SecretDigest(c.secret);
+    SendWelcome(c, false);
     SendManifest(c, true);
     Log("participant " + std::to_string(c.id) + " joined at rev " + std::to_string(_applied));
     if (_events.onParticipant) {
@@ -1183,34 +1596,118 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
     SendRoster();
 }
 
+// A participant coming back after the host changed: it keeps its id, its
+// document, its role and its undo stack. It catches up from the log (or a
+// snapshot) and proposes again whatever the old host never answered.
+// Accepted only for someone the old host listed, during the window after
+// this host took over, and only with that participant's rejoin secret (its
+// digest is in the old host's roster). With the secret it is the same
+// participant, so a connection it still seems to hold (one that dropped
+// unnoticed) is replaced. Anything else is refused, so nobody can take
+// another participant's place or shed a viewer's role.
+void CollabHost::AddRejoiner(PeerId from, const Message& m) {
+    Message refuse;
+    refuse.type = MsgType::Refuse;
+    refuse.reason = Reason::Invalid;
+    Client* c = FindClient(from);
+    if (c != nullptr) {
+        if (c->id != m.participant) {
+            refuse.text = "This connection already belongs to someone else in the session.";
+            _transport.Send(from, refuse);
+            return;
+        }
+        // A repeated Hello: the Welcome got lost.
+        c->lastHeard = _now;
+        SendWelcome(*c, true);
+        return;
+    }
+    auto entry = std::find_if(_formerRoster.begin(), _formerRoster.end(), [&](const RosterEntry& r) { return r.participant == m.participant; });
+    bool listed = m.participant != kNoParticipant && m.participant != _participant && entry != _formerRoster.end();
+    bool secretOk = listed && !entry->secretHash.empty() && SecretDigest(m.secret) == entry->secretHash;
+    auto old = std::find_if(_clients.begin(), _clients.end(), [&](const auto& kv) { return kv.second.id == m.participant; });
+    bool connected = old != _clients.end();
+    if (!listed || !secretOk || _now >= _rejoinUntil) {
+        refuse.text = connected ? "Someone in this session is already connected as this participant."
+                                : "This device can't rejoin this session. Join it again.";
+        Log("refused a rejoin as participant " + std::to_string(m.participant) +
+            (!listed ? ": not expected back" : !secretOk ? ": wrong rejoin secret" : ": too late"));
+        _transport.Send(from, refuse);
+        return;
+    }
+    if (connected) {
+        // While the host changes, a rejoin connection can drop and come back
+        // before the drop is noticed: the new connection takes over from the
+        // old one, keeping the role, claims and layout lock.
+        PeerId stale = old->first;
+        _clients.erase(old);
+        Message bye;
+        bye.type = MsgType::Bye;
+        bye.reason = Reason::HostChanged;
+        bye.text = "This participant reconnected from another connection.";
+        _transport.Send(stale, bye);
+        Log("participant " + std::to_string(m.participant) + " reconnected; its old connection is dropped");
+    }
+    if (_clients.size() + 1 >= _opts.maxParticipants) {
+        refuse.reason = Reason::Full;
+        refuse.text = "This session is full.";
+        _transport.Send(from, refuse);
+        return;
+    }
+    c = &_clients[from];
+    c->peer = from;
+    c->id = m.participant;
+    c->name = m.name;
+    c->deviceKind = m.deviceKind;
+    c->lastPing = _now;
+    c->lastHeard = _now;
+    c->liveLayout = _liveLayout && m.liveLayout;
+    c->active = true;
+    c->role = RoleIn(_formerRoster, m.participant);
+    c->secretHash = entry->secretHash;
+    _awaitingRejoin.erase(m.participant);
+    // Proposals up to the last one committed were dealt with by the old
+    // host; the first one it still waits on comes next.
+    c->nextSeq = std::max(LastSeqOf(m.participant) + 1, m.clientSeq);
+    c->applied = std::min(m.rev, _applied);
+    Log("participant " + std::to_string(c->id) + " rejoined at rev " + std::to_string(m.rev));
+    SendWelcome(*c, true);
+    SendRoster();
+}
+
 void CollabHost::SendSnapshot(Client& c) {
+    if (c.snapshotBlob != 0 && !Stale(c.snapshotAt)) {
+        // One is on its way: it brings the client to a rev the log reaches.
+        return;
+    }
     std::string xsq;
     if (!_doc.SaveXsq(xsq)) {
         Log("could not save a snapshot");
         return;
     }
     std::string file = NewSessionFile("outgoing", ".xsq");
-    {
-        std::ofstream f(file, std::ios::binary);
-        f << xsq;
-        if (!f) {
-            Log("could not write a snapshot");
-            RemoveFile(file);
-            return;
-        }
+    std::string none;
+    SequenceElements& seq = _doc.Sequence();
+    std::string uids = CaptureUids(seq).dump();
+    // The id table and the layout ride in the blob with the sequence: any
+    // of them can be far larger than a message may be.
+    if (!WriteParts(file, { &xsq, &uids, c.liveLayout ? &_layout.rgbEffects : &none, c.liveLayout ? &_layout.networks : &none })) {
+        Log("could not write a snapshot");
+        RemoveFile(file);
+        return;
     }
     Message s;
     s.type = MsgType::Snapshot;
-    SequenceElements& seq = _doc.Sequence();
     s.rev = _applied;
     s.docHash = _hasher.Hash(seq);
-    s.uids = CaptureUids(seq);
     s.clientSeq = c.nextSeq - 1;
     if (c.liveLayout) {
-        s.layoutFiles = _layout;
         s.layoutHash = _layoutHash;
     }
     s.blob = NextBlob();
+    c.snapshotBlob = s.blob;
+    c.snapshotRev = _applied;
+    c.snapshotAt = _now;
+    c.sentDocument = true;
     c.applied = std::max(c.applied, _applied);
     _transport.SendBlob(c.peer, s.blob, file);
     RemoveFile(file);
@@ -1222,9 +1719,34 @@ void CollabHost::SendSnapshot(Client& c) {
 void CollabHost::SendManifest(Client& c, bool rebuild) {
     if (rebuild) {
         c.files.clear();
+        c.manifest.clear();
+        c.manifestJob.reset();
         std::string show = _doc.ShowFolder();
-        c.manifest = show.empty() ? std::vector<FileEntry>()
-                                  : BuildManifest(CollectSessionFiles(show, _doc.Sequence(), _doc.AudioFiles()), &_hashes, &c.files);
+        if (!show.empty()) {
+            std::vector<SessionFile> files = CollectSessionFiles(show, _doc.Sequence(), _doc.AudioFiles());
+            uint64_t bytes = 0;
+            for (const auto& f : files) {
+                bytes += _hashes.BytesToRead(f.local);
+            }
+            if (bytes <= _opts.syncHashBytes) {
+                c.manifest = BuildManifest(files, &_hashes, &c.files);
+            } else {
+                // Large media: hashed off the session thread, so pings and
+                // edits keep flowing; Tick sends the manifest when it's done.
+                Log("hashing " + std::to_string(bytes >> 20) + " MB of show files for participant " + std::to_string(c.id));
+                auto job = std::make_shared<HashJob>();
+                job->cache = _hashes.Fork();
+                job->files = std::move(files);
+                c.manifestJob = job;
+                std::thread([job] {
+                    job->manifest = BuildManifest(job->files, &job->cache, &job->local);
+                    job->done = true;
+                }).detach();
+            }
+        }
+    }
+    if (c.manifestJob) {
+        return;
     }
     Message m;
     m.type = MsgType::Manifest;
@@ -1239,7 +1761,8 @@ void CollabHost::OnNeedFiles(Client& c, const Message& m) {
     }
     std::set<std::string> done;
     for (const auto& path : m.paths) {
-        if (!done.insert(path).second) {
+        auto sending = c.filesSending.find(path);
+        if (!done.insert(path).second || (sending != c.filesSending.end() && !Stale(sending->second.second))) {
             continue;
         }
         auto e = entries.find(path);
@@ -1254,7 +1777,7 @@ void CollabHost::OnNeedFiles(Client& c, const Message& m) {
             SendFileUnavailable(c.peer, path, Reason::Unreadable);
             continue;
         }
-        SendFile(c.peer, now, local->second);
+        c.filesSending[path] = { SendFile(c.peer, now, local->second), _now };
     }
 }
 
@@ -1265,6 +1788,14 @@ void CollabHost::OnBlobReady(PeerId from, const Message& info, const std::string
         return;
     }
     const FileEntry& e = info.files[0];
+    std::string why = c->role == ParticipantRole::Viewer ? "a viewer" : !SentMediaFor(*c, e.path) ? "not media it added" : "";
+    if (!why.empty()) {
+        // Files only travel with a media entry their sender added: anything
+        // else would overwrite what others shared.
+        Log("refused '" + e.path + "' from participant " + std::to_string(c->id) + ": " + why);
+        RemoveFile(path);
+        return;
+    }
     std::string local;
     Stored r = StoreReceivedFile(e, path, true, true, local);
     if (r != Stored::Stored && r != Stored::AlreadyHad) {
@@ -1276,6 +1807,42 @@ void CollabHost::OnBlobReady(PeerId from, const Message& info, const std::string
             SendFile(peer, e, local);
         }
     }
+}
+
+namespace {
+// The file references a command adds to the sequence's media (PutMedia,
+// alone or in a batch).
+void PutMediaKeys(const SequenceCommand& cmd, std::set<std::string>& out) {
+    if (cmd.Type() == CommandType::PutMedia) {
+        const auto& state = static_cast<const PutMediaCommand&>(cmd).GetState();
+        if (!state.embedded) {
+            out.insert(state.key);
+        }
+    } else if (cmd.Type() == CommandType::Batch) {
+        for (const auto& c : static_cast<const BatchCommand&>(cmd).GetCommands()) {
+            PutMediaKeys(*c, out);
+        }
+    }
+}
+} // namespace
+
+// Whether `c` added the media entry `path`: its last commit touching that
+// entry is the client's, or one of its proposals still waiting here adds it.
+bool CollabHost::SentMediaFor(const Client& c, const std::string& path) const {
+    auto t = _touch.find("m." + path);
+    if (t != _touch.end() && t->second.author == c.id) {
+        return true;
+    }
+    for (const auto& [seq, m] : c.early) {
+        if (auto cmd = DeserializeCommand(m.command)) {
+            std::set<std::string> keys;
+            PutMediaKeys(*cmd, keys);
+            if (keys.count(path)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void CollabHost::SendShared(const FileEntry& e, const std::string& local) {
@@ -1375,39 +1942,99 @@ bool CollabHost::ProcessProposal(Client& c, const Message& m) {
 void CollabHost::SetPresence(const PresenceInfo& p) {
     Message m;
     m.type = MsgType::Presence;
-    m.participant = kHostParticipant;
+    m.participant = _participant;
     m.presence = p;
-    m.lockOrder = StampLock(kHostParticipant, p.layoutLock);
+    m.lockOrder = StampLock(_participant, p.layoutLock);
     for (const auto& [peer, c] : _clients) {
         _transport.Send(peer, m);
     }
 }
 
 void CollabHost::Tick(uint64_t nowMs) {
+    uint64_t prev = _lastTick != 0 ? _lastTick : _now;
     _now = std::max(_now, nowMs);
+    _lastTick = _now;
     if (!IsActive()) {
         return;
     }
+    uint64_t gap = _now - prev;
+    if (gap > _opts.stallGapMs) {
+        // This host was blocked: what queued meanwhile was handled with the
+        // time from before, and nobody could be heard. Don't count it.
+        Log("ticks resumed after " + std::to_string(gap) + " ms; not counting it against the clients");
+        for (auto& [peer, c] : _clients) {
+            c.lastHeard = std::min(_now, c.lastHeard + gap);
+        }
+        if (gap > _opts.peerTimeoutMs) {
+            // Long enough for the clients to have given up on this host.
+            _replacedWindowUntil = _now + 2 * _opts.peerTimeoutMs;
+            if (_hostChangedSaid) {
+                StandDown("Another device took over this session while this one was not responding.");
+                return;
+            }
+        }
+    }
+    _hostChangedSaid = false;
     std::vector<PeerId> gone;
+    bool due = false;
     for (auto& [peer, c] : _clients) {
-        if (_now - c.lastHeard > _opts.peerTimeoutMs) {
+        due = due || (_now - c.lastHeard <= _opts.peerTimeoutMs && _now - c.lastPing >= _opts.pingIntervalMs);
+    }
+    if (due) {
+        // Everyone gets the same succession at the same moment, so they
+        // agree on it when the host goes.
+        _ranked = RankSuccessors();
+        _succession = _ranked;
+    }
+    for (auto& [peer, c] : _clients) {
+        uint64_t limit = _opts.peerTimeoutMs;
+        if (c.snapshotAt != 0 && c.lastHeard <= c.snapshotAt) {
+            // Nothing since its snapshot went: it may still be loading it.
+            limit += _opts.snapshotLoadGraceMs;
+        }
+        if (_now - c.lastHeard > limit) {
             gone.push_back(peer);
             continue;
         }
-        if (_now - c.lastPing >= _opts.pingIntervalMs) {
+        if (due) {
             c.lastPing = _now;
             Message p;
             p.type = MsgType::Ping;
             p.rev = _applied;
             p.time = _now;
+            p.succession = _ranked;
             if (c.liveLayout) {
                 p.layoutHash = _layoutHash;
             }
             _transport.Send(peer, p);
         }
     }
+    if (due) {
+        _rankHead = _applied;
+    }
+    if (!_awaitingRejoin.empty() && _now >= _rejoinUntil) {
+        std::vector<Assignment> next = _assignments;
+        for (ParticipantId gone : _awaitingRejoin) {
+            next = WithoutAssignments(_doc.Sequence(), next, gone);
+        }
+        _awaitingRejoin.clear();
+        if (next != _assignments) {
+            Log("released the claims of participants who didn't come back after the host changed");
+            _assignments = std::move(next);
+            SendRoster();
+        }
+    }
     for (PeerId p : gone) {
-        DropClient(p, "timed out");
+        DropClient(p, "timed out", Reason::TimedOut);
+    }
+    for (auto& [peer, c] : _clients) {
+        if (c.manifestJob && c.manifestJob->done) {
+            auto job = std::move(c.manifestJob);
+            c.manifest = std::move(job->manifest);
+            c.files = std::move(job->local);
+            _hashes.Merge(job->cache);
+            SendManifest(c, false);
+        }
     }
     if (!deferHeldApply) {
         ApplyHeld();
@@ -1444,18 +2071,63 @@ void CollabClient::ApplyHeld() {
 
 CollabClient::CollabClient(ICollabTransport& transport, ICollabDocument& doc, SessionOptions opts, SessionEvents events) :
     CollabParticipant(transport, doc, std::move(opts), std::move(events)) {
-    _transport.onMessage = [this](PeerId from, const Message& m) { OnMessage(from, m); };
-    _transport.onPeer = [this](PeerId peer, PeerEvent e) { OnPeer(peer, e); };
-    _transport.onBlob = [this](PeerId from, BlobId id, const std::string& path) {
-        if (from == _host && _state != State::Ended && _state != State::Idle) {
-            OnBlobArrived(from, id, path);
-        }
-    };
+    InstallHandlers();
+}
+
+void CollabClient::OnTransportBlob(PeerId from, BlobId id, const std::string& path) {
+    if (from == _host && _state != State::Ended && _state != State::Idle) {
+        _lastBlobProgress = _now == 0 ? 1 : _now;
+        OnBlobArrived(from, id, path);
+    }
+}
+
+void CollabClient::OnBlobProgress(PeerId from, BlobId /*id*/, uint64_t /*received*/, uint64_t /*size*/) {
+    if (from == _host) {
+        _lastBlobProgress = _now == 0 ? 1 : _now;
+    }
+}
+
+void CollabClient::OnSendFailed(PeerId /*to*/, const Message& m, const std::string& reason) {
+    Log("could not send message type " + std::to_string((int)m.type) + ": " + reason);
+    auto p = _pending.find(m.clientSeq);
+    if (m.type == MsgType::Propose && p != _pending.end() && !p->second.withdrawn) {
+        // Resending can't help: the host never gets it.
+        Message stub = p->second.msg;
+        Message r;
+        r.type = MsgType::Reject;
+        r.clientSeq = m.clientSeq;
+        r.rev = _applied;
+        r.kind = stub.kind;
+        r.reason = Reason::TooLarge;
+        r.text = "This change is too large to send to the host.";
+        HandleReject(r);
+        // Something must take its number, or the host waits for it before
+        // any later proposal: an empty batch, which changes nothing. It is
+        // resent like any proposal until the host answers.
+        stub.layout = json();
+        BatchCommand("Withdrawn").Serialize(stub.command);
+        stub.kind = EditKind::Edit;
+        stub.undoOf = 0;
+        _pending[m.clientSeq] = { stub, _now, false, true };
+        Send(stub);
+        return;
+    }
+    if (_events.onNotice) {
+        _events.onNotice(Reason::TooLarge, "Something could not be sent to the host: it is too large.");
+    }
 }
 
 CollabClient::~CollabClient() = default;
 
 void CollabClient::Send(const Message& m) {
+    // While the host changes nothing goes out but the rejoin handshake;
+    // proposals made meanwhile wait in _pending for the new host.
+    if (_state == State::Migrating || _state == State::Succeeding || _host == kNoPeer) {
+        return;
+    }
+    if (_state == State::Rejoining && m.type != MsgType::Hello && m.type != MsgType::Commit && m.type != MsgType::Bye) {
+        return;
+    }
     _transport.Send(_host, m);
 }
 
@@ -1504,28 +2176,214 @@ void CollabClient::EndSession(const std::string& reason) {
 }
 
 void CollabClient::OnPeer(PeerId peer, PeerEvent e) {
-    if (peer == _host && (e == PeerEvent::Lost || e == PeerEvent::Left)) {
-        EndSession(Reason::HostLost);
+    if (e != PeerEvent::Lost && e != PeerEvent::Left) {
+        return;
+    }
+    if (_state == State::Succeeding) {
+        _rejoinHellos.erase(peer);
+        if (peer == _catchUpFrom) {
+            _catchUpFailed = true;
+        }
+        return;
+    }
+    if (peer == _host) {
+        HostGone();
+    }
+}
+
+void CollabClient::HostGone() {
+    if (_state == State::Ended || _state == State::Idle || _state == State::Migrating || _state == State::Succeeding) {
+        return;
+    }
+    // Only a participant that has the document can carry on.
+    bool hasDocument = _state == State::Active || _state == State::Rejoining || (_state == State::AwaitingSnapshot && _resyncs != 0);
+    if (hasDocument && _events.onHostLost && _events.onHostLost()) {
+        Log("lost the host at rev " + std::to_string(_applied) + "; waiting for the new one");
+        if (_host != kNoPeer) {
+            // A host that was only blocked learns, when it resumes, that its
+            // clients moved on, and stands down instead of carrying on alone.
+            Message bye;
+            bye.type = MsgType::Bye;
+            bye.reason = Reason::HostChanged;
+            _transport.Send(_host, bye);
+        }
+        _state = State::Migrating;
+        _host = kNoPeer;
+        _buffered.clear();
+        _queuedRejects.clear();
+        return;
+    }
+    EndSession(Reason::HostLost);
+}
+
+void CollabClient::SendRejoinHello() {
+    _lastHello = _now;
+    Message h;
+    h.type = MsgType::Hello;
+    h.rejoin = true;
+    h.secret = _rejoinSecret;
+    h.appVersion = _opts.appVersion;
+    h.name = _opts.displayName;
+    h.deviceKind = _opts.deviceKind;
+    h.liveLayout = _opts.liveLayout;
+    h.participant = _participant;
+    h.rev = _applied;
+    h.clientSeq = _pending.empty() ? _nextSeq : _pending.begin()->first;
+    Send(h);
+}
+
+void CollabClient::Rejoin(PeerId host) {
+    if (_state != State::Migrating) {
+        return;
+    }
+    _host = host;
+    _state = State::Rejoining;
+    _lastHeard = _now;
+    _buffered.clear();
+    _queuedRejects.clear();
+    // A layout proposal is made again from memory against the session
+    // layout once rejoined (the controller re-proposes it).
+    for (auto it = _pending.begin(); it != _pending.end();) {
+        it = it->second.msg.layout.is_null() ? std::next(it) : _pending.erase(it);
+    }
+    SendRejoinHello();
+}
+
+void CollabClient::BeginSuccession() {
+    if (_state != State::Migrating) {
+        return;
+    }
+    _state = State::Succeeding;
+    _host = kNoPeer;
+    _rejoinHellos.clear();
+    _catchUpFrom = kNoPeer;
+    _catchUpFailed = false;
+}
+
+void CollabClient::AbandonSuccession() {
+    if (_state == State::Succeeding) {
+        _state = State::Migrating;
+        _rejoinHellos.clear();
+        _catchUpFrom = kNoPeer;
+        _buffered.clear();
+    }
+}
+
+std::vector<CollabClient::Rejoiner> CollabClient::Rejoiners() const {
+    std::vector<Rejoiner> out;
+    for (const auto& [peer, h] : _rejoinHellos) {
+        out.push_back({ peer, h.participant, h.rev });
+    }
+    return out;
+}
+
+void CollabClient::CatchUpFrom(PeerId peer) {
+    if (_state != State::Succeeding) {
+        return;
+    }
+    _catchUpFrom = peer;
+    _catchUpFailed = false;
+    _lastResendRequest = 0;
+    RequestResend();
+}
+
+void CollabClient::OnRejoined(const Message& m) {
+    _state = State::Active;
+    _lastHeard = _now;
+    _hostHead = m.rev;
+    _layoutHeld = false;
+    _rejoinPending = true;
+    _rejoinRev = m.rev;
+    _rejoinSeq = m.clientSeq;
+    _liveLayout = _liveLayout && m.liveLayout;
+    Log("rejoined at rev " + std::to_string(_applied) + "; the new host is at " + std::to_string(m.rev));
+    // Proposals still waiting go to the new host at the next tick.
+    for (auto& [seq, p] : _pending) {
+        p.lastSent = 0;
+    }
+    if (_applied > m.rev) {
+        // This participant had commits the new host could not get: its
+        // document is replaced by the new host's.
+        _rejoinPending = false;
+        RequestResync("ahead of the new host (rev " + std::to_string(_applied) + " > " + std::to_string(m.rev) + ")");
+        return;
+    }
+    if (_applied == m.rev) {
+        DropDecided();
+    } else {
+        _lastResendRequest = 0;
+        RequestResend();
+    }
+}
+
+// The old host had dealt with these (a later proposal of this participant
+// was committed), so one not committed was rejected with the answer lost.
+void CollabClient::DropDecided() {
+    _rejoinPending = false;
+    std::vector<Message> lost;
+    for (const auto& [seq, p] : _pending) {
+        if (seq > _rejoinSeq) {
+            break;
+        }
+        Message r;
+        r.type = MsgType::Reject;
+        r.clientSeq = seq;
+        r.rev = _applied;
+        r.kind = p.msg.kind;
+        r.reason = Reason::HostChanged;
+        r.text = "The host left before this change was confirmed.";
+        lost.push_back(std::move(r));
+    }
+    for (const auto& r : lost) {
+        HandleReject(r);
+    }
+}
+
+void CollabClient::LogCommit(const Message& m) {
+    _log.push_back({ m });
+    while (_log.size() > _opts.clientLogLimit) {
+        _log.pop_front();
+        ++_logBase;
     }
 }
 
 void CollabClient::OnMessage(PeerId from, const Message& m) {
-    if (from != _host || _state == State::Ended || _state == State::Idle) {
+    if (_state == State::Succeeding) {
+        if (m.type == MsgType::Hello && m.rejoin && m.protocol == kProtocolVersion && m.participant != kNoParticipant && m.participant != _participant) {
+            _rejoinHellos[from] = m;
+        } else if (m.type == MsgType::Commit && from == _catchUpFrom) {
+            OnCommit(m);
+        }
+        return;
+    }
+    if (from != _host || _state == State::Ended || _state == State::Idle || _state == State::Migrating) {
         return;
     }
     _lastHeard = _now;
+    if (_state == State::Rejoining) {
+        if (m.type == MsgType::Welcome && m.rejoin && m.participant == _participant) {
+            OnRejoined(m);
+        } else if (m.type == MsgType::Resend) {
+            // The new host lacks commits this participant has.
+            for (const auto& r : _log) {
+                if (r.msg.rev >= m.rev) {
+                    _transport.Send(_host, r.msg);
+                }
+            }
+        } else if (m.type == MsgType::Refuse || m.type == MsgType::Bye) {
+            _endText = m.text;
+            EndSession(m.reason.empty() ? std::string(Reason::Ended) : m.reason);
+        }
+        return;
+    }
     switch (m.type) {
     case MsgType::Welcome:
         if (_state == State::Joining) {
-            _participant = m.participant;
-            SeqIds::SetPeer(faults.clientSharesHostIdPrefix ? kHostParticipant : m.participant);
-            _liveLayout = _opts.liveLayout && m.liveLayout && m.layoutHash != 0;
-            if (_liveLayout) {
-                SetLayout(m.layoutFiles);
+            if (m.blob != 0) {
+                OnBlobInfo(from, m); // the session layout comes as a blob
+            } else {
+                OnWelcome(m);
             }
-            _state = State::Checking;
-            _lastHello = _now;
-            _hostHead = std::max(_hostHead, m.rev);
         }
         break;
     case MsgType::Refuse:
@@ -1557,10 +2415,12 @@ void CollabClient::OnMessage(PeerId from, const Message& m) {
         break;
     case MsgType::Ping: {
         _hostHead = std::max(_hostHead, m.rev);
+        _succession = m.succession;
         Message p;
         p.type = MsgType::Pong;
         p.rev = _applied;
         p.time = m.time;
+        p.active = _state == State::Active;
         Send(p);
         if (_state == State::Active && _hostHead > _applied) {
             RequestResend();
@@ -1583,9 +2443,22 @@ void CollabClient::OnMessage(PeerId from, const Message& m) {
         }
         break;
     case MsgType::Bye:
+        if (m.reason == Reason::HostChanged) {
+            // The host stood down for one that took over: follow it there.
+            Log("the host stood down: " + m.text);
+            HostGone();
+            break;
+        }
+        _endText = m.text;
         EndSession(m.reason.empty() ? std::string(Reason::Ended) : m.reason);
         break;
     case MsgType::Roster:
+        _succession = m.succession;
+        _epoch = m.epoch;
+        _joinRole = m.joinRole;
+        if (m.nextParticipant != kNoParticipant) {
+            _nextParticipant = m.nextParticipant;
+        }
         if (m.roster != _roster || m.assignments != _assignments) {
             _roster = m.roster;
             _assignments = m.assignments;
@@ -1603,14 +2476,48 @@ std::string CollabClient::CurrentShowFolder() {
     return _usingCopy ? SessionShowFolder() : _doc.ShowFolder();
 }
 
+void CollabClient::OnWelcome(const Message& m) {
+    if (_state != State::Joining) {
+        return;
+    }
+    _participant = m.participant;
+    _rejoinSecret = m.secret;
+    SeqIds::SetPeer(faults.clientSharesHostIdPrefix ? kHostParticipant : m.participant);
+    _liveLayout = _opts.liveLayout && m.liveLayout && m.layoutHash != 0;
+    if (_liveLayout) {
+        SetLayout(m.layoutFiles);
+    }
+    _state = State::Checking;
+    _lastHello = _now;
+    _hostHead = std::max(_hostHead, m.rev);
+}
+
 void CollabClient::OnBlobReady(PeerId /*from*/, const Message& info, const std::string& path) {
-    if (info.type == MsgType::Snapshot) {
-        std::string xsq;
-        bool ok = !path.empty() && ReadWhole(path, xsq);
+    if (info.type == MsgType::Snapshot || info.type == MsgType::Welcome) {
+        bool snapshot = info.type == MsgType::Snapshot;
+        // Snapshot: the .xsq, the id table, the layout; Welcome: the layout.
+        std::vector<std::string> parts(snapshot ? 4 : 2);
+        bool ok = !path.empty() && ReadParts(path, parts);
         RemoveFile(path);
-        // A failed transfer is asked for again by the snapshot retry.
-        if (ok) {
-            OnSnapshot(info, xsq);
+        Message m = info;
+        if (ok && snapshot) {
+            auto uids = ParseBoundedJson(parts[1]);
+            ok = uids.has_value();
+            if (ok) {
+                m.uids = std::move(*uids);
+            }
+        }
+        // A failed transfer is asked for again by the snapshot / hello retry.
+        if (!ok) {
+            Log(std::string("a ") + (snapshot ? "snapshot" : "welcome") + " from the host arrived damaged");
+            return;
+        }
+        m.layoutFiles.rgbEffects = std::move(parts[snapshot ? 2 : 0]);
+        m.layoutFiles.networks = std::move(parts[snapshot ? 3 : 1]);
+        if (snapshot) {
+            OnSnapshot(m, parts[0]);
+        } else {
+            OnWelcome(m);
         }
         return;
     }
@@ -1631,6 +2538,10 @@ void CollabClient::OnBlobReady(PeerId /*from*/, const Message& info, const std::
 }
 
 void CollabClient::SendShared(const FileEntry& e, const std::string& local) {
+    if (_state != State::Active) {
+        Log("not sharing '" + e.path + "' while the host is changing");
+        return;
+    }
     SendFile(_host, e, local);
 }
 
@@ -1644,7 +2555,31 @@ void CollabClient::OnManifest(const Message& m) {
         FinishCheck();
         return;
     }
-    _checks = CompareManifest(_doc.ShowFolder(), m.files, &_hashes);
+    _checks = ResolveManifest(_doc.ShowFolder(), m.files);
+    uint64_t bytes = 0;
+    for (const auto& c : _checks) {
+        bytes += c.local.empty() ? 0 : _hashes.BytesToRead(c.local);
+    }
+    if (bytes > _opts.syncHashBytes) {
+        // Large media: hashed off the session thread, so the host keeps
+        // hearing from this device; Tick carries on when it's done.
+        Log("hashing " + std::to_string(bytes >> 20) + " MB of this device's show files");
+        auto job = std::make_shared<HashJob>();
+        job->cache = _hashes.Fork();
+        job->checks = std::move(_checks);
+        _checks.clear();
+        _checkJob = job;
+        std::thread([job] {
+            HashChecks(job->checks, &job->cache);
+            job->done = true;
+        }).detach();
+        return;
+    }
+    HashChecks(_checks, &_hashes);
+    ContinueManifest();
+}
+
+void CollabClient::ContinueManifest() {
     if (_liveLayout) {
         // The layout is compared with the session's (which may hold edits
         // the host has not saved), not with the host's files.
@@ -1949,6 +2884,10 @@ void CollabClient::OnSnapshot(const Message& m, const std::string& xsq) {
     bool resync = _applied != 0 || _resyncs != 0;
     _applied = m.rev;
     _hostHead = std::max(_hostHead, m.rev);
+    _log.clear();
+    _logBase = m.rev;
+    NoteCommitted(_participant, m.clientSeq);
+    _rejoinPending = false;
     // Proposals the host had dealt with are in the snapshot (or rejected).
     for (auto it = _queuedRejects.begin(); it != _queuedRejects.end();) {
         if (it->clientSeq <= m.clientSeq) {
@@ -1991,6 +2930,14 @@ void CollabClient::OnSnapshot(const Message& m, const std::string& xsq) {
 }
 
 void CollabClient::RequestResync(const std::string& why) {
+    if (_state == State::Succeeding) {
+        // Taking over: the commits being fetched don't fit; carry on from
+        // what this participant has.
+        Log("catching up failed: " + why);
+        _catchUpFailed = true;
+        _buffered.clear();
+        return;
+    }
     if (_state != State::Active) {
         return;
     }
@@ -2012,11 +2959,17 @@ void CollabClient::RequestResend() {
     Message r;
     r.type = MsgType::Resend;
     r.rev = _applied + 1;
+    if (_state == State::Succeeding) {
+        if (_catchUpFrom != kNoPeer) {
+            _transport.Send(_catchUpFrom, r);
+        }
+        return;
+    }
     Send(r);
 }
 
 void CollabClient::OnCommit(const Message& m) {
-    if (_state != State::Active && _state != State::AwaitingSnapshot) {
+    if (_state != State::Active && _state != State::AwaitingSnapshot && _state != State::Succeeding) {
         return;
     }
     if (m.rev <= _applied) {
@@ -2028,13 +2981,13 @@ void CollabClient::OnCommit(const Message& m) {
         return;
     }
     _buffered.emplace(m.rev, m);
-    if (_state == State::Active) {
+    if (_state == State::Active || _state == State::Succeeding) {
         DrainCommits();
     }
 }
 
 void CollabClient::DrainCommits() {
-    while (_state == State::Active) {
+    while (_state == State::Active || (_state == State::Succeeding && !_catchUpFailed)) {
         auto it = _buffered.find(_applied + 1);
         if (it == _buffered.end()) {
             break;
@@ -2051,10 +3004,34 @@ void CollabClient::DrainCommits() {
     for (auto it = _buffered.begin(); it != _buffered.end() && it->first <= _applied;) {
         it = _buffered.erase(it);
     }
-    if (_state == State::Active && !_buffered.empty() && !_layoutHeld) {
+    if ((_state == State::Active || _state == State::Succeeding) && !_buffered.empty() && !_layoutHeld) {
         RequestResend();
     }
+    if (_state == State::Active && _rejoinPending && _applied >= _rejoinRev) {
+        DropDecided();
+    }
     DrainRejects();
+    RunQueuedUndo();
+}
+
+bool CollabClient::UndoWaits() const {
+    return std::any_of(_pending.begin(), _pending.end(), [](const auto& kv) { return kv.second.msg.layout.is_null() && !kv.second.withdrawn; });
+}
+
+std::string CollabClient::PendingEditLabel() const {
+    for (auto it = _pending.rbegin(); it != _pending.rend(); ++it) {
+        const Pending& p = it->second;
+        if (!p.msg.layout.is_null() || p.withdrawn || p.msg.kind != EditKind::Edit) {
+            continue;
+        }
+        auto meta = _ownMeta.find(it->first);
+        if (meta != _ownMeta.end() && !meta->second.label.empty()) {
+            return meta->second.label;
+        }
+        auto cmd = DeserializeCommand(p.msg.command);
+        return cmd ? CommandLabel(*cmd) : std::string("Changes");
+    }
+    return {};
 }
 
 CollabClient::Applied CollabClient::SetKey(const EffectLocator& loc, bool palette, const std::string& key, const std::optional<std::string>& value) {
@@ -2136,6 +3113,8 @@ bool CollabClient::ApplyLayoutCommit(const Message& m) {
         if (own) {
             _pending.erase(m.clientSeq);
         }
+        NoteCommitted(m.participant, m.clientSeq);
+        LogCommit(m);
         return true;
     }
     auto next = LayoutDelta::Apply(_layout, m.layout);
@@ -2178,6 +3157,8 @@ bool CollabClient::ApplyLayoutCommit(const Message& m) {
         LowerOverlay();
     }
     NoteRecent({ m.rev, m.participant, m.clientSeq, EditKind::Edit, 0 }, json{ { "type", "Layout" } });
+    NoteCommitted(m.participant, m.clientSeq);
+    LogCommit(m);
     if (!faults.clientIgnoresDrift && hash != m.docHash) {
         Log("document parts after layout rev " + std::to_string(m.rev) + ":\n" + DocHasher::Components(seq));
         RequestResync("document hash " + std::to_string(hash) + " differs from the host's " + std::to_string(m.docHash) + " after layout rev " +
@@ -2216,6 +3197,13 @@ bool CollabClient::ApplyCommit(const Message& m) {
     }
     _applied = std::max(_applied, m.rev);
     uint64_t hash = HashAfter(*cmd);
+    std::set<std::string> touched = TouchedItems(seq, *cmd, *inverse);
+    for (const auto& item : touched) {
+        _touch[item] = { m.rev, m.participant };
+    }
+    _revs[m.rev] = { m.participant, m.kind };
+    NoteCommitted(m.participant, m.clientSeq);
+    LogCommit(m);
     if (m.participant == _participant) {
         _pending.erase(m.clientSeq);
         for (auto it = _overlay.begin(); it != _overlay.end();) {
@@ -2228,7 +3216,6 @@ bool CollabClient::ApplyCommit(const Message& m) {
     } else {
         // A pending key write made before someone else changed the effect's
         // type will be rejected (stale_type); the host's value stands.
-        std::set<std::string> touched = TouchedItems(seq, *cmd, *inverse);
         for (auto it = _overlay.begin(); it != _overlay.end();) {
             it = touched.count(TypeItem(std::get<0>(it->first))) ? _overlay.erase(it) : std::next(it);
         }
@@ -2283,6 +3270,7 @@ void CollabClient::HandleReject(const Message& m) {
     }
     if (p->second.withdrawn) {
         _pending.erase(p);
+        RunQueuedUndo();
         return;
     }
     bool layout = !p->second.msg.layout.is_null();
@@ -2293,6 +3281,7 @@ void CollabClient::HandleReject(const Message& m) {
         if (_events.onLayoutRejected) {
             _events.onLayoutRejected(m.clientSeq, m.reason, m.text);
         }
+        RunQueuedUndo();
         return;
     }
     SequenceElements& seq = _doc.Sequence();
@@ -2334,6 +3323,7 @@ void CollabClient::HandleReject(const Message& m) {
     if (_events.onReject) {
         _events.onReject(m.clientSeq, m.kind, m.reason, m.participant);
     }
+    RunQueuedUndo();
 }
 
 SubmitResult CollabClient::Submit(std::unique_ptr<SequenceCommand> cmd) {
@@ -2343,7 +3333,7 @@ SubmitResult CollabClient::Submit(std::unique_ptr<SequenceCommand> cmd) {
 SubmitResult CollabClient::SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) {
     OwnMeta meta = std::move(_submitMeta);
     _submitMeta = {};
-    if (_state != State::Active || cmd == nullptr) {
+    if (!IsActive() || cmd == nullptr) {
         return { false, 0, "not_active" };
     }
     SequenceElements& seq = _doc.Sequence();
@@ -2527,10 +3517,18 @@ void CollabClient::SetPresence(const PresenceInfo& p) {
 }
 
 void CollabClient::Tick(uint64_t nowMs) {
+    uint64_t prev = _lastTick != 0 ? _lastTick : _now;
     _now = std::max(_now, nowMs);
+    _lastTick = _now;
+    if (_now - prev > _opts.stallGapMs) {
+        // This device was blocked (a slow load, a long save): the host
+        // couldn't be heard meanwhile; don't count that against it.
+        Log("ticks resumed after " + std::to_string(_now - prev) + " ms; not counting it against the host");
+        _lastHeard = std::min(_now, _lastHeard + (_now - prev));
+    }
     switch (_state) {
     case State::Joining:
-        if (_now - _lastHello >= _opts.retryMs) {
+        if (!TransferMoving() && _now - _lastHello >= _opts.retryMs) {
             _lastHello = _now;
             Message h;
             h.type = MsgType::Hello;
@@ -2542,7 +3540,14 @@ void CollabClient::Tick(uint64_t nowMs) {
         }
         break;
     case State::Checking:
-        if (!_haveManifest && _now - _lastHello >= 4 * _opts.retryMs) {
+        if (_checkJob && _checkJob->done) {
+            auto job = std::move(_checkJob);
+            _checks = std::move(job->checks);
+            _hashes.Merge(job->cache);
+            ContinueManifest();
+            break;
+        }
+        if (!_haveManifest && !TransferMoving() && _now - _lastHello >= 4 * _opts.retryMs) {
             // The Welcome came but the manifest didn't: ask again.
             _lastHello = _now;
             Message h;
@@ -2552,12 +3557,14 @@ void CollabClient::Tick(uint64_t nowMs) {
             h.deviceKind = _opts.deviceKind;
             h.liveLayout = _opts.liveLayout;
             Send(h);
-        } else if (!_wanted.empty() && _now - _lastFileRequest >= _opts.fileRetryMs) {
+        } else if (!_wanted.empty() && !TransferMoving() && _now - _lastFileRequest >= _opts.fileRetryMs) {
+            // Only once nothing has come from the host for a while: files on
+            // their way are not asked for (and sent) again.
             RequestFiles();
         }
         break;
     case State::AwaitingSnapshot:
-        if (_now - _lastSnapshotRequest >= 4 * _opts.retryMs) {
+        if (!TransferMoving() && _now - _lastSnapshotRequest >= 4 * _opts.retryMs) {
             _lastSnapshotRequest = _now;
             Message n;
             n.type = MsgType::NeedSnapshot;
@@ -2565,6 +3572,14 @@ void CollabClient::Tick(uint64_t nowMs) {
             Send(n);
         }
         break;
+    case State::Rejoining:
+        if (_now - _lastHello >= _opts.retryMs) {
+            SendRejoinHello();
+        }
+        return;
+    case State::Migrating:
+    case State::Succeeding:
+        return;
     case State::Active:
         for (auto& [s, p] : _pending) {
             if (_now - p.lastSent >= _opts.retryMs) {
@@ -2583,7 +3598,7 @@ void CollabClient::Tick(uint64_t nowMs) {
         return;
     }
     if (_now - _lastHeard > _opts.peerTimeoutMs) {
-        EndSession(Reason::HostLost);
+        HostGone();
     }
 }
 

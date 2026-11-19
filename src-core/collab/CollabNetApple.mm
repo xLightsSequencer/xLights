@@ -182,12 +182,13 @@ public:
 
     // ---- called on the session thread ----
 
-    bool Listen(const std::string& code, const SessionAdvert& advert, std::string& error) {
+    // `salt`: a successor's (host migration), else a fresh one.
+    bool Listen(const std::string& code, const SessionAdvert& advert, std::string& error, const std::string* salt = nullptr) {
         if (_state.load() != NetState::Idle) {
             error = "The transport is already in use.";
             return false;
         }
-        _salt = Wire::NewSalt();
+        _salt = salt != nullptr ? *salt : Wire::NewSalt();
         std::string key = LanTest::DeriveKey(code, _salt);
         _serviceName = Wire::ServiceNameFor(_salt);
         nw_listener_t listener = nw_listener_create(MakeParams(key));
@@ -934,8 +935,30 @@ private:
 
 class LanTransport : public INetTransport {
 public:
-    explicit LanTransport(Dispatcher d) : _impl(std::make_shared<TransportImpl>(std::move(d), this)) {}
+    explicit LanTransport(Dispatcher d) : _dispatch(d), _impl(std::make_shared<TransportImpl>(std::move(d), this)) {}
     ~LanTransport() override { _impl->Close(); }
+
+    // Host migration: a fresh connection (listener or client) replaces
+    // whatever is left of the old one; the old one makes no more callbacks.
+    bool SupportsMigration() const override { return true; }
+    bool ListenAsSuccessor(const Succession& s, const SessionAdvert& advert, std::string& error) override {
+        std::string salt;
+        if (!Wire::SuccessorSalt(s.sessionId, s.successor, salt)) {
+            error = "This session can't move to another host.";
+            return false;
+        }
+        Replace();
+        return _impl->Listen(s.pairingCode, advert, error, &salt);
+    }
+    void ConnectToSuccessor(const Succession& s) override {
+        std::string id = SuccessorSessionId(s);
+        Replace();
+        _impl->Connect(id.empty() ? std::string("-") : id, s.pairingCode);
+    }
+    std::string SuccessorSessionId(const Succession& s) const override {
+        std::string salt;
+        return Wire::SuccessorSalt(s.sessionId, s.successor, salt) ? Wire::ServiceNameFor(salt) : std::string();
+    }
 
     PeerId LocalPeer() const override { return _impl->LocalPeer(); }
     void Send(PeerId to, const Message& m) override { _impl->Send(to, m); }
@@ -949,6 +972,12 @@ public:
     TransportImpl& Impl() { return *_impl; }
 
 private:
+    void Replace() {
+        _impl->Close();
+        _impl = std::make_shared<TransportImpl>(_dispatch, this);
+    }
+
+    Dispatcher _dispatch;
     std::shared_ptr<TransportImpl> _impl;
 };
 

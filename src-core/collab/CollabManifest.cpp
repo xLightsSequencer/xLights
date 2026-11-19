@@ -387,6 +387,127 @@ std::string SessionSequenceFileName(const std::string& advertised) {
     return name;
 }
 
+namespace {
+fs::path Comparable(const std::string& p) {
+    std::error_code ec;
+    fs::path abs = fs::absolute(fs::path(p), ec);
+    if (ec) {
+        abs = fs::path(p);
+    }
+    fs::path c = fs::weakly_canonical(abs, ec);
+    if (ec) {
+        c = abs.lexically_normal();
+    }
+    // "dir/" and "dir" name the same folder.
+    std::string s = c.generic_string();
+    while (s.size() > 1 && s.back() == '/') {
+        s.pop_back();
+    }
+#ifdef _WIN32
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char ch) { return (char)std::tolower(ch); });
+#endif
+    return fs::path(s);
+}
+} // namespace
+
+bool PathIsInside(const std::string& path, const std::string& folder) {
+    if (path.empty() || folder.empty()) {
+        return false;
+    }
+    fs::path p = Comparable(path);
+    fs::path f = Comparable(folder);
+    auto pi = p.begin();
+    for (auto fi = f.begin(); fi != f.end(); ++fi, ++pi) {
+        if (pi == p.end() || *pi != *fi) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string SessionSaveRefusal(const std::string& target, const std::vector<std::string>& temporaryFolders) {
+    if (target.empty()) {
+        return "Choose where to save the sequence.";
+    }
+    for (const auto& t : temporaryFolders) {
+        if (PathIsInside(target, t)) {
+            return "This folder belongs to the collaboration session and is deleted when the session ends:\n" + t +
+                   "\n\nChoose a folder outside it to keep your copy of the sequence.";
+        }
+    }
+    return "";
+}
+
+std::string SessionSaveStartFolder(const std::vector<std::string>& candidates, const std::vector<std::string>& temporaryFolders) {
+    for (const auto& c : candidates) {
+        std::error_code ec;
+        if (c.empty() || !fs::is_directory(fs::path(c), ec)) {
+            continue;
+        }
+        bool temporary = std::any_of(temporaryFolders.begin(), temporaryFolders.end(), [&](const std::string& t) { return PathIsInside(c, t); });
+        if (!temporary) {
+            return c;
+        }
+    }
+    return "";
+}
+
+std::string ShowCopyFolderRefusal(const std::string& folder, const std::vector<std::string>& temporaryFolders) {
+    if (folder.empty()) {
+        return "Choose a folder for the copy of the show.";
+    }
+    if (std::string r = SessionSaveRefusal((fs::path(folder) / "x").string(), temporaryFolders); !r.empty()) {
+        return r;
+    }
+    std::error_code ec;
+    fs::path p(folder);
+    if (!fs::exists(p, ec)) {
+        return "";
+    }
+    if (!fs::is_directory(p, ec)) {
+        return folder + " is not a folder.";
+    }
+    if (!fs::is_empty(p, ec) || ec) {
+        return "Choose an empty folder for the copy of the show: " + folder +
+               " already has files in it, which the copy could overwrite.";
+    }
+    return "";
+}
+
+bool CopyFolderContents(const std::string& from, const std::string& to, std::string& error) {
+    std::error_code ec;
+    fs::create_directories(fs::path(to), ec);
+    if (ec) {
+        error = "Could not create " + to + ": " + ec.message();
+        return false;
+    }
+    fs::recursive_directory_iterator it(fs::path(from), fs::directory_options::skip_permission_denied, ec);
+    if (ec) {
+        error = "Could not read " + from + ": " + ec.message();
+        return false;
+    }
+    for (const fs::recursive_directory_iterator end; it != end; it.increment(ec)) {
+        if (ec) {
+            error = "Could not read " + from + ": " + ec.message();
+            return false;
+        }
+        fs::path rel = it->path().lexically_relative(fs::path(from));
+        fs::path dest = fs::path(to) / rel;
+        if (it->is_directory(ec)) {
+            fs::create_directories(dest, ec);
+        } else if (it->is_regular_file(ec)) {
+            fs::copy_file(it->path(), dest, fs::copy_options::none, ec);
+        } else {
+            continue; // links and special files are not part of a show copy
+        }
+        if (ec) {
+            error = "Could not copy " + it->path().string() + " to " + dest.string() + ": " + ec.message();
+            return false;
+        }
+    }
+    return true;
+}
+
 std::string ResolvePath(const std::string& showDir, const std::string& path) {
     if (path.empty()) {
         return "";

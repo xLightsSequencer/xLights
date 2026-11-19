@@ -578,8 +578,9 @@ bool xLightsFrame::ApplySessionLayout(const Collab::LayoutFiles& current, const 
 
     // The host saves the session's layout, and a client on its own show folder
     // may save it there after the session. A session copy is thrown away, so
-    // it is never marked (restoring the show folder would offer to save it).
-    if (_collab != nullptr && (_collab->Controller().GetRole() == Collab::CollabController::Role::Host || !_collab->OnSessionCopy())) {
+    // it is never marked (restoring the show folder would offer to save it),
+    // not even on a client that took over hosting.
+    if (_collab != nullptr && !_collab->OnSessionCopy()) {
         if (rgbDiffers) {
             UnsavedRgbEffectsChanges = { true, "collaboration session layout change" };
         }

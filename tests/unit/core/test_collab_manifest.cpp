@@ -146,6 +146,102 @@ TEST_CASE("An advertised sequence name becomes a plain file name", "[collab][col
     }
 }
 
+TEST_CASE("A path is inside a folder only by whole components", "[collab][collab_manifest]") {
+    TempDir d;
+    fs::create_directories(d.path / "session" / "show");
+    fs::create_directories(d.path / "session2");
+    const std::string session = (d.path / "session").string();
+    CHECK(PathIsInside(session, session));
+    CHECK(PathIsInside(session + "/", session));
+    CHECK(PathIsInside((d.path / "session" / "show" / "Song.xsq").string(), session));
+    CHECK(PathIsInside((d.path / "session" / "new" / "Song.xsq").string(), session)); // not created yet
+    CHECK(PathIsInside((d.path / "other" / ".." / "session" / "Song.xsq").string(), session));
+    CHECK_FALSE(PathIsInside((d.path / "session2" / "Song.xsq").string(), session));
+    CHECK_FALSE(PathIsInside((d.path / "session" / ".." / "Song.xsq").string(), session));
+    CHECK_FALSE(PathIsInside(d.path.string(), session));
+    CHECK_FALSE(PathIsInside("", session));
+    CHECK_FALSE(PathIsInside(session, ""));
+#ifndef _WIN32
+    // A link to the folder (macOS's /var is /private/var) is the folder.
+    std::error_code ec;
+    fs::create_directory_symlink(d.path / "session", d.path / "link", ec);
+    REQUIRE_FALSE(ec);
+    CHECK(PathIsInside((d.path / "link" / "Song.xsq").string(), session));
+    CHECK(PathIsInside((d.path / "session" / "Song.xsq").string(), (d.path / "link").string()));
+#endif
+}
+
+TEST_CASE("A session's sequence is never saved into the session's folders", "[collab][collab_manifest]") {
+    TempDir d;
+    fs::create_directories(d.path / "tmp" / "doc");
+    fs::create_directories(d.path / "tmp" / "s1" / "show");
+    fs::create_directories(d.path / "mine" / "Show");
+    const std::vector<std::string> temporary{ (d.path / "tmp" / "doc").string(), (d.path / "tmp" / "s1").string() };
+    CHECK(SessionSaveRefusal((d.path / "mine" / "Show" / "Song.xsq").string(), temporary).empty());
+    // Anywhere outside them is fine, not only a show folder.
+    CHECK(SessionSaveRefusal((d.path / "mine" / "Song.xsq").string(), temporary).empty());
+    CHECK(SessionSaveRefusal((d.path / "tmp" / "Song.xsq").string(), temporary).empty());
+    std::string r = SessionSaveRefusal((d.path / "tmp" / "s1" / "show" / "Song.xsq").string(), temporary);
+    CHECK(r.find("deleted when the session ends") != std::string::npos);
+    CHECK_FALSE(SessionSaveRefusal((d.path / "tmp" / "doc" / "Song.xsq").string(), temporary).empty());
+    CHECK_FALSE(SessionSaveRefusal("", temporary).empty());
+    CHECK(SessionSaveRefusal((d.path / "tmp" / "doc" / "Song.xsq").string(), {}).empty());
+}
+
+TEST_CASE("Save As for a session's sequence starts outside the session's folders", "[collab][collab_manifest]") {
+    TempDir d;
+    fs::create_directories(d.path / "tmp" / "s1" / "show");
+    fs::create_directories(d.path / "mine" / "Show");
+    fs::create_directories(d.path / "Documents");
+    const std::vector<std::string> temporary{ (d.path / "tmp" / "s1").string() };
+    const std::string copy = (d.path / "tmp" / "s1" / "show").string();
+    const std::string own = (d.path / "mine" / "Show").string();
+    const std::string docs = (d.path / "Documents").string();
+    // The last folder used was the session's copy: skipped.
+    CHECK(SessionSaveStartFolder({ copy, own, docs }, temporary) == own);
+    CHECK(SessionSaveStartFolder({ docs, own }, temporary) == docs);
+    // Missing or empty candidates are skipped too.
+    CHECK(SessionSaveStartFolder({ "", (d.path / "gone").string(), docs }, temporary) == docs);
+    CHECK(SessionSaveStartFolder({ copy }, temporary).empty());
+}
+
+TEST_CASE("A copy of the host's show goes only into an empty folder outside the session", "[collab][collab_manifest]") {
+    TempDir d;
+    fs::create_directories(d.path / "tmp" / "s1" / "show");
+    fs::create_directories(d.path / "empty");
+    fs::create_directories(d.path / "mine");
+    WriteFile(d.path / "mine" / "xlights_rgbeffects.xml", "<xrgb/>");
+    const std::vector<std::string> temporary{ (d.path / "tmp" / "s1").string() };
+    CHECK(ShowCopyFolderRefusal((d.path / "empty").string(), temporary).empty());
+    CHECK(ShowCopyFolderRefusal((d.path / "new" / "Copy").string(), temporary).empty()); // made when copying
+    CHECK(ShowCopyFolderRefusal((d.path / "mine").string(), temporary).find("already has files") != std::string::npos);
+    CHECK(ShowCopyFolderRefusal((d.path / "tmp" / "s1" / "show").string(), temporary).find("deleted when the session ends") != std::string::npos);
+    CHECK(ShowCopyFolderRefusal((d.path / "tmp" / "s1").string(), temporary).find("deleted when the session ends") != std::string::npos);
+    CHECK_FALSE(ShowCopyFolderRefusal((d.path / "mine" / "xlights_rgbeffects.xml").string(), temporary).empty());
+    CHECK_FALSE(ShowCopyFolderRefusal("", temporary).empty());
+}
+
+TEST_CASE("Copying a folder's contents never replaces a file", "[collab][collab_manifest]") {
+    TempDir d;
+    const fs::path from = d.path / "show";
+    WriteFile(from / "xlights_rgbeffects.xml", "layout");
+    WriteFile(from / "Images" / "a.png", "png");
+    fs::create_directories(from / "Empty");
+    const fs::path to = d.path / "copy" / "Show";
+    std::string error;
+    REQUIRE(CopyFolderContents(from.string(), to.string(), error));
+    CHECK(error.empty());
+    CHECK(ReadFile((to / "xlights_rgbeffects.xml").string()) == "layout");
+    CHECK(ReadFile((to / "Images" / "a.png").string()) == "png");
+    CHECK(fs::is_directory(to / "Empty"));
+    // A second copy over it stops at the first file already there.
+    WriteFile(from / "xlights_rgbeffects.xml", "changed");
+    CHECK_FALSE(CopyFolderContents(from.string(), to.string(), error));
+    CHECK_FALSE(error.empty());
+    CHECK(ReadFile((to / "xlights_rgbeffects.xml").string()) == "layout");
+    CHECK_FALSE(CopyFolderContents((d.path / "nowhere").string(), (d.path / "x").string(), error));
+}
+
 TEST_CASE("Manifest paths are show-relative when the file is in the show", "[collab][collab_manifest]") {
     TempDir show;
     TempDir other;

@@ -158,6 +158,24 @@ bool Get(const json& j, const char* key, ParticipantId& out) {
     return true;
 }
 
+bool GetParticipants(const json& j, const char* key, std::vector<ParticipantId>& out) {
+    auto it = j.find(key);
+    if (it == j.end()) {
+        return true;
+    }
+    if (!it->is_array() || it->size() > kMaxRoster) {
+        return false;
+    }
+    out.clear();
+    for (const auto& v : *it) {
+        if (!v.is_number_unsigned() || v.get<uint64_t>() == 0 || v.get<uint64_t>() > 0xFFFF) {
+            return false;
+        }
+        out.push_back((ParticipantId)v.get<uint64_t>());
+    }
+    return true;
+}
+
 bool GetIds(const json& j, const char* key, std::vector<SeqObjectId>& out) {
     auto it = j.find(key);
     if (it == j.end()) {
@@ -282,16 +300,16 @@ bool ReadPresence(const json& j, PresenceInfo& p) {
     return ok;
 }
 
-void WriteLayoutFiles(json& j, const Message& m) {
+// The layout files themselves travel in the blob the message names: they
+// can be far larger than a message may be.
+void WriteLayoutHash(json& j, const Message& m) {
     if (m.layoutHash != 0) {
         j["lhash"] = m.layoutHash;
-        j["lrgb"] = m.layoutFiles.rgbEffects;
-        j["lnet"] = m.layoutFiles.networks;
     }
 }
 
-bool ReadLayoutFiles(const json& j, Message& m) {
-    return Get(j, "lhash", m.layoutHash) && Get(j, "lrgb", m.layoutFiles.rgbEffects) && Get(j, "lnet", m.layoutFiles.networks);
+bool ReadLayoutHash(const json& j, Message& m) {
+    return Get(j, "lhash", m.layoutHash);
 }
 
 bool GetBool(const json& j, const char* key, bool& out) {
@@ -406,6 +424,13 @@ std::string EncodeMessage(const Message& m) {
         if (m.liveLayout) {
             j["live"] = true;
         }
+        if (m.rejoin) {
+            j["rejoin"] = true;
+            j["participant"] = m.participant;
+            j["rev"] = m.rev;
+            j["seq"] = m.clientSeq;
+            j["secret"] = m.secret;
+        }
         break;
     case MsgType::Welcome:
         j["participant"] = m.participant;
@@ -414,7 +439,17 @@ std::string EncodeMessage(const Message& m) {
         if (m.liveLayout) {
             j["live"] = true;
         }
-        WriteLayoutFiles(j, m);
+        if (m.rejoin) {
+            j["rejoin"] = true;
+            j["seq"] = m.clientSeq;
+        }
+        if (m.blob != 0) {
+            j["blob"] = m.blob;
+        }
+        if (!m.secret.empty()) {
+            j["secret"] = m.secret;
+        }
+        WriteLayoutHash(j, m);
         break;
     case MsgType::Refuse:
     case MsgType::Bye:
@@ -439,8 +474,7 @@ std::string EncodeMessage(const Message& m) {
         j["hash"] = m.docHash;
         j["seq"] = m.clientSeq;
         j["blob"] = m.blob;
-        j["uids"] = m.uids;
-        WriteLayoutFiles(j, m);
+        WriteLayoutHash(j, m);
         break;
     case MsgType::Propose:
         j["seq"] = m.clientSeq;
@@ -498,10 +532,28 @@ std::string EncodeMessage(const Message& m) {
         if (m.layoutHash != 0) {
             j["lhash"] = m.layoutHash;
         }
+        if (m.active) {
+            j["act"] = true;
+        }
+        if (!m.succession.empty()) {
+            j["succ"] = m.succession;
+        }
         break;
     case MsgType::Roster:
         j["people"] = WriteRoster(m.roster);
         j["assign"] = WriteAssignments(m.assignments);
+        if (m.epoch != 0) {
+            j["epoch"] = m.epoch;
+        }
+        if (m.nextParticipant != kNoParticipant) {
+            j["nextId"] = m.nextParticipant;
+        }
+        if (!m.succession.empty()) {
+            j["succ"] = m.succession;
+        }
+        if (m.joinRole == ParticipantRole::Viewer) {
+            j["join"] = "viewer";
+        }
         break;
     case MsgType::Claim:
         j["assign"] = WriteAssignments(m.assignments);
@@ -554,14 +606,20 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
         return std::nullopt;
     }
     std::string kind = "edit";
+    std::string joinRole;
     bool ok = true;
     switch (m.type) {
     case MsgType::Hello:
-        ok = Get(j, "app", m.appVersion) && Get(j, "name", m.name) && Get(j, "device", m.deviceKind) && GetBool(j, "live", m.liveLayout);
+        ok = Get(j, "app", m.appVersion) && Get(j, "name", m.name) && Get(j, "device", m.deviceKind) && GetBool(j, "live", m.liveLayout) &&
+             GetBool(j, "rejoin", m.rejoin);
+        if (ok && m.rejoin) {
+            ok = Get(j, "participant", m.participant) && Get(j, "rev", m.rev) && Get(j, "seq", m.clientSeq) && Get(j, "secret", m.secret) &&
+                 m.participant != kNoParticipant;
+        }
         break;
     case MsgType::Welcome:
         ok = Get(j, "participant", m.participant) && Get(j, "rev", m.rev) && Get(j, "name", m.name) && m.participant != kNoParticipant &&
-             GetBool(j, "live", m.liveLayout) && ReadLayoutFiles(j, m);
+             GetBool(j, "live", m.liveLayout) && GetBool(j, "rejoin", m.rejoin) && Get(j, "seq", m.clientSeq) && Get(j, "blob", m.blob) && Get(j, "secret", m.secret) && ReadLayoutHash(j, m);
         break;
     case MsgType::Refuse:
     case MsgType::Bye:
@@ -582,12 +640,8 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
              ((m.blob != 0) != !m.reason.empty());
         break;
     case MsgType::Snapshot: {
-        ok = Get(j, "rev", m.rev) && Get(j, "hash", m.docHash) && Get(j, "seq", m.clientSeq) && Get(j, "blob", m.blob) && m.blob != 0;
-        auto it = j.find("uids");
-        ok = ok && it != j.end() && it->is_array() && ReadLayoutFiles(j, m);
-        if (ok) {
-            m.uids = std::move(*it);
-        }
+        ok = Get(j, "rev", m.rev) && Get(j, "hash", m.docHash) && Get(j, "seq", m.clientSeq) && Get(j, "blob", m.blob) && m.blob != 0 &&
+             ReadLayoutHash(j, m);
         break;
     }
     case MsgType::Propose:
@@ -633,10 +687,13 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
     }
     case MsgType::Ping:
     case MsgType::Pong:
-        ok = Get(j, "rev", m.rev) && Get(j, "time", m.time) && Get(j, "lhash", m.layoutHash);
+        ok = Get(j, "rev", m.rev) && Get(j, "time", m.time) && Get(j, "lhash", m.layoutHash) && GetBool(j, "act", m.active) &&
+             GetParticipants(j, "succ", m.succession);
         break;
     case MsgType::Roster:
-        ok = ReadRoster(j, m.roster) && ReadAssignments(j, m.assignments);
+        ok = ReadRoster(j, m.roster) && ReadAssignments(j, m.assignments) && Get(j, "epoch", m.epoch) && Get(j, "nextId", m.nextParticipant) &&
+             GetParticipants(j, "succ", m.succession) && Get(j, "join", joinRole) && (joinRole.empty() || joinRole == "viewer" || joinRole == "editor");
+        m.joinRole = joinRole == "viewer" ? ParticipantRole::Viewer : ParticipantRole::Editor;
         break;
     case MsgType::Claim:
         ok = j.contains("assign") && ReadAssignments(j, m.assignments) && !m.assignments.empty();

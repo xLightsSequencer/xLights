@@ -288,6 +288,10 @@ struct ContentView: View {
                 CollabLayoutNoticeBanner(notice: notice,
                                          onDismiss: { viewModel.collab.layoutNotice = nil })
             }
+            if viewModel.collab.isVisible, let notice = viewModel.collab.hostNotice {
+                CollabLayoutNoticeBanner(notice: notice,
+                                         onDismiss: { viewModel.collab.hostNotice = nil })
+            }
             if viewModel.collab.isVisible, let ended = viewModel.collab.endNotice {
                 CollabEndedBanner(message: ended,
                                   showSaveCopy: viewModel.collab.endedAsClient && viewModel.isSequenceLoaded

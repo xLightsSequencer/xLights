@@ -44,7 +44,18 @@
 //   and the host rejects proposals that break them (viewer / assigned), see
 //   CollabRoles.h. A participant's claims go when it leaves or becomes a
 //   viewer, a row's when the row is deleted.
-// - If the host goes away the session ends; clients keep their copy.
+// - If the host goes away, another participant takes over (host
+//   migration). The host keeps ranking who would (clients that have kept
+//   up first, then the lowest participant id) and sends that order with
+//   every ping; when it is lost, every client takes the first one still in
+//   the session without asking anyone. That one listens where the others
+//   will look; the others reconnect and say what they had applied. The
+//   new host first fetches any commits a rejoiner had that it lacks (so no
+//   commit anyone received is lost), then becomes host at that rev, keeping
+//   the rev numbers, every undo stack and the commit log. Proposals the old
+//   host never answered are proposed again; ones it decided whose answer
+//   was lost are rejected (host_changed). A client that finds no new host
+//   ends with host_lost and keeps its copy. CollabController drives this.
 // - Joining: the host sends a manifest of the show files the session needs
 //   (CollabManifest.h). A joiner whose files all match opens the session
 //   against its own show folder. Otherwise, with SessionOptions::fetchFiles,
@@ -85,6 +96,9 @@
 class SequenceElements;
 
 namespace Collab {
+
+class CollabClient;
+struct HashJob;
 
 // The document a participant edits. The session applies commands to
 // Sequence() directly (not through CommandExecutor, so they don't enter the
@@ -156,6 +170,9 @@ struct SessionOptions {
     // This app edits the layout live (see CollabLayout.h). The session does
     // when the host and the client both do.
     bool liveLayout = false;
+    // Client: commits kept to hand to a new host that lacks them (host
+    // migration).
+    size_t clientLogLimit = 2000;
 };
 
 // What a client found when it compared its show folder with the host's.
@@ -253,6 +270,10 @@ struct SessionEvents {
     std::function<void(uint64_t clientSeq, const std::string& reason, const std::string& text)> onLayoutRejected;
     // Something for the user from the host (Reason::LockTaken, ...).
     std::function<void(const std::string& reason, const std::string& text)> onNotice;
+    // Client: the host is gone. True: someone takes over (host migration);
+    // the client waits in Migrating for Rejoin / BeginSuccession instead of
+    // ending. Never called while joining.
+    std::function<bool()> onHostLost;
 };
 
 struct SubmitResult {
@@ -282,13 +303,23 @@ public:
     // commits undoes as one step). The host checks such an undo against
     // everything after the first of them.
     SubmitResult SubmitJoined(std::unique_ptr<SequenceCommand> cmd, uint64_t joinUndoTo);
-    bool CanUndo() const { return !_undo.empty(); }
-    bool CanRedo() const { return !_redo.empty(); }
+    // Undo / redo go to this participant's newest edit. While one of its
+    // proposals is still undecided (a client's edits enter the undo stack
+    // only when their commits come back), they wait for it (SubmitResult
+    // deferred) and run once it is decided; an undo and a redo still
+    // waiting cancel out.
+    bool CanUndo() const { return !_undo.empty() || !PendingEditLabel().empty(); }
+    bool CanRedo() const {
+        return (!_queuedUndo.empty() && _queuedUndo.back() == EditKind::Undo) || (_queuedUndo.empty() && !UndoWaits() && !_redo.empty());
+    }
     SubmitResult Undo();
     SubmitResult Redo();
     // The label of what Undo / Redo would revert (CommandLabel of the edit);
     // empty when there is nothing.
-    std::string UndoLabel() const { return _undo.empty() ? std::string() : _undo.back().label; }
+    std::string UndoLabel() const {
+        std::string pending = _queuedUndo.empty() ? PendingEditLabel() : std::string();
+        return !pending.empty() ? pending : _undo.empty() ? std::string() : _undo.back().label;
+    }
     std::string RedoLabel() const { return _redo.empty() ? std::string() : _redo.back().label; }
     // The command Undo / Redo would propose, or nullptr.
     const SequenceCommand* NextUndoCommand(bool redo) const {
@@ -311,6 +342,21 @@ public:
     // Why the host would refuse this participant's `cmd` now (viewer /
     // assigned), as far as this participant knows.
     EditRefusal CheckOwnEdit(const SequenceCommand& cmd);
+    // Host migration: who takes over if the host goes, best first, as the
+    // host last said (empty: a host that doesn't migrate).
+    const std::vector<ParticipantId>& Succession() const { return _succession; }
+    // How many times this session's host has changed.
+    uint64_t Epoch() const { return _epoch; }
+    // The highest proposal number of `who` seen committed (or, for this
+    // participant, dealt with when a snapshot was taken).
+    uint64_t LastSeqOf(ParticipantId who) const {
+        auto it = _lastSeq.find(who);
+        return it == _lastSeq.end() ? 0 : it->second;
+    }
+    // Commits kept for resending (the host's log, or a client's recent ones).
+    size_t LoggedCommits() const { return _log.size(); }
+    // Files this participant has read to hash them (show-file checks).
+    size_t HashedFiles() const { return _hashes.FilesRead(); }
     virtual void SetPresence(const PresenceInfo& p) = 0;
     virtual void Tick(uint64_t nowMs) = 0;
 
@@ -353,6 +399,13 @@ public:
     uint64_t LayoutHash() const { return _layoutHash; }
 
 protected:
+    struct CommitRecord {
+        Message msg;
+    };
+    struct Touch {
+        Rev rev = 0;
+        ParticipantId author = kNoParticipant;
+    };
     struct UndoEntry {
         Rev rev = 0;
         std::unique_ptr<SequenceCommand> cmd;
@@ -365,6 +418,15 @@ protected:
         uint64_t joinTo = 0; // SubmitJoined
     };
     virtual SubmitResult SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) = 0;
+    // A proposal of this participant's that will change its undo or redo
+    // stack hasn't been decided yet.
+    virtual bool UndoWaits() const { return false; }
+    // The label of its newest undecided edit, empty when there is none.
+    virtual std::string PendingEditLabel() const { return {}; }
+    // Runs undo / redo that waited, as far as nothing is undecided.
+    void RunQueuedUndo();
+    SubmitResult DoUndo(bool redo);
+    std::deque<EditKind> _queuedUndo;
     // Undo bookkeeping for one of this participant's own commits.
     void RecordOwnCommit(EditKind kind, Rev rev, uint64_t seq, const SequenceCommand& applied, const SequenceCommand& inverse);
     // SubmitKind calls this once it has numbered a proposal.
@@ -394,6 +456,17 @@ protected:
     Stored StoreReceivedFile(const FileEntry& e, const std::string& path, bool docLoaded, bool addMediaFolder, std::string& local);
     void EnsureMediaFolder();
     std::string NewSessionFile(const std::string& sub, const std::string& ext = "");
+    // Hooks every transport callback up to this object's handlers.
+    void InstallHandlers();
+    virtual void OnTransportMessage(PeerId from, const Message& m) = 0;
+    virtual void OnTransportPeer(PeerId peer, PeerEvent e) = 0;
+    virtual void OnTransportBlob(PeerId from, BlobId id, const std::string& path) = 0;
+    virtual void OnBlobProgress(PeerId /*from*/, BlobId /*id*/, uint64_t /*received*/, uint64_t /*size*/) {}
+    virtual void OnBlobDone(PeerId /*to*/, BlobId /*id*/, bool /*sent*/) {}
+    virtual void OnSendFailed(PeerId to, const Message& m, const std::string& reason) = 0;
+    // A snapshot or welcome blob: the parts, each a length and the bytes.
+    static bool WriteParts(const std::string& path, const std::vector<const std::string*>& parts);
+    static bool ReadParts(const std::string& path, std::vector<std::string>& parts);
 
     ICollabTransport& _transport;
     ICollabDocument& _doc;
@@ -414,6 +487,7 @@ protected:
     bool _mediaFolderAdded = false;
     std::vector<RosterEntry> _roster;
     std::vector<Assignment> _assignments;
+    ParticipantRole _joinRole = ParticipantRole::Editor; // the host's, as it last said
     OwnMeta _submitMeta; // for the proposal SubmitKind is about to number
     std::map<uint64_t, OwnMeta> _ownMeta;
 
@@ -422,9 +496,24 @@ protected:
     LayoutFiles _layout;
     uint64_t _layoutHash = 0;
 
+    // What a successor needs to carry on, kept by every participant.
+    std::unordered_map<std::string, Touch> _touch;               // conflict item -> last commit touching it
+    std::map<Rev, std::pair<ParticipantId, EditKind>> _revs;     // rev -> author, kind
+    std::map<ParticipantId, uint64_t> _lastSeq;                  // author -> highest clientSeq committed
+    std::deque<CommitRecord> _log;                               // commits after _logBase
+    Rev _logBase = 0;
+    std::vector<ParticipantId> _succession;
+    uint64_t _epoch = 0;
+    ParticipantId _nextParticipant = kHostParticipant + 1;
+    void NoteCommitted(ParticipantId author, uint64_t clientSeq);
+    // Host migration: moves everything a participant carries across a role
+    // change from `from` (which then owns nothing: no session folder, no
+    // transport handlers).
+    void TakeStateFrom(CollabParticipant& from);
+
 private:
+    bool _ownsHandlers = true;
     std::string _sessionFolder;
-    bool _ownsSessionFolder = false;
     bool _keepFiles = false;
     BlobId _nextBlob = 0;
     uint64_t _sessionFiles = 0;
@@ -439,8 +528,18 @@ public:
     CollabHost(ICollabTransport& transport, ICollabDocument& doc, SessionOptions opts = {}, SessionEvents events = {});
     ~CollabHost() override;
 
+    // Host migration: the participant `from` takes over as host, keeping its
+    // participant id, document, undo stacks and commit log. `from` (in
+    // Succeeding) is left with nothing and should be destroyed; then call
+    // ResumeAsSuccessor. Transport handlers are this object's from here on.
+    CollabHost(ICollabTransport& transport, ICollabDocument& doc, SessionOptions opts, SessionEvents events, CollabClient& from);
+
     // Opens the session: from now on clients may join.
     void Start();
+    // Host migration: opens the session as the successor. Proposes this
+    // participant's own unanswered proposals again, then welcomes everyone
+    // who reconnected while it was taking over.
+    void ResumeAsSuccessor();
     // Tells every client the session is over.
     void End();
     bool IsActive() const override { return _started && _endReason.empty(); }
@@ -472,7 +571,7 @@ public:
     // assignments are released. False for the host or an unknown id.
     bool SetRole(ParticipantId who, ParticipantRole role);
     // The role new joiners get (editor by default).
-    void SetJoinRole(ParticipantRole role) { _joinRole = role; }
+    void SetJoinRole(ParticipantRole role);
     ParticipantRole JoinRole() const { return _joinRole; }
     bool Claim(SeqObjectId element, ParticipantId owner, std::string& reason, std::string& text) override;
 
@@ -480,6 +579,8 @@ public:
     const std::map<std::string, size_t>& RejectCounts() const { return _rejectCounts; }
     // The first 10000 rejects: (reason, detail).
     const std::vector<std::pair<std::string, std::string>>& RejectLog() const { return _rejectLog; }
+    // Host migration: who would take over now (also sent with every ping).
+    std::vector<ParticipantId> RankSuccessors() const;
 
 private:
     struct Client {
@@ -498,13 +599,21 @@ private:
         std::set<uint64_t> faultSeen; // SessionFaults::hostIgnoresClientOrder only
         bool liveLayout = false;
         ParticipantRole role = ParticipantRole::Editor;
-    };
-    struct CommitRecord {
-        Message msg;
-    };
-    struct Touch {
-        Rev rev = 0;
-        ParticipantId author = kNoParticipant;
+        bool active = false; // has the document (its pongs say so)
+        // Blobs on their way to it, so a repeated request doesn't start
+        // another copy of the same thing.
+        BlobId snapshotBlob = 0;
+        Rev snapshotRev = 0;     // the last snapshot sent, and when
+        uint64_t snapshotAt = 0;
+        bool sentDocument = false; // past joining: a snapshot went to it (or it rejoined)
+        BlobId welcomeBlob = 0;
+        uint64_t welcomeAt = 0;
+        std::map<std::string, std::pair<BlobId, uint64_t>> filesSending; // manifest path -> blob, when sent
+        // Rejoin secret (only for those who joined this host; it goes in
+        // their Welcome) and its digest (listed in the roster).
+        std::string secret;
+        std::string secretHash;
+        std::shared_ptr<HashJob> manifestJob; // hashing its manifest on a worker thread
     };
     struct Outcome {
         bool committed = false;
@@ -523,7 +632,16 @@ private:
     SubmitResult SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) override;
     void OnMessage(PeerId from, const Message& m);
     void OnPeer(PeerId peer, PeerEvent e);
+    void OnTransportMessage(PeerId from, const Message& m) override { OnMessage(from, m); }
+    void OnTransportPeer(PeerId peer, PeerEvent e) override { OnPeer(peer, e); }
+    void OnTransportBlob(PeerId from, BlobId id, const std::string& path) override;
+    void OnBlobDone(PeerId to, BlobId id, bool sent) override;
+    void OnSendFailed(PeerId to, const Message& m, const std::string& reason) override;
+    void SendWelcome(Client& c, bool rejoin);
+    bool SentMediaFor(const Client& c, const std::string& path) const;
+    bool Stale(uint64_t at) const;
     void OnHello(PeerId from, const Message& m);
+    void AddRejoiner(PeerId from, const Message& hello);
     void OnPropose(Client& c, const Message& m);
     void DrainProposals(PeerId peer);
     // False when the proposal is held (try again later).
@@ -550,18 +668,19 @@ private:
     void OnBlobReady(PeerId from, const Message& info, const std::string& path) override;
     void SendShared(const FileEntry& e, const std::string& local) override;
     void SendCommitsFrom(Client& c, Rev from);
-    void DropClient(PeerId peer, const std::string& why);
+    // `tell`: say so to the client (a Bye with `reason`), for a drop it can't
+    // know about (a timeout).
+    void DropClient(PeerId peer, const std::string& why, const std::string& tell = "");
+    // Another host has taken over from this one (its clients moved on while
+    // it was blocked): the session ends here and the clients follow.
+    void StandDown(const std::string& why);
+    void NotAClient(PeerId from);
     void TrimLog();
     Client* FindClient(PeerId peer);
 
     bool _started = false;
-    ParticipantId _nextParticipant = kHostParticipant + 1;
     uint64_t _nextOwnSeq = 1;
     std::map<PeerId, Client> _clients;
-    std::deque<CommitRecord> _log; // commits after _logBase
-    Rev _logBase = 0;
-    std::unordered_map<std::string, Touch> _touch;
-    std::map<Rev, std::pair<ParticipantId, EditKind>> _revs;
     std::map<std::string, size_t> _rejectCounts;
     std::vector<std::pair<std::string, std::string>> _rejectLog;
     UidRegistry _uids;
@@ -569,13 +688,29 @@ private:
     std::deque<LayoutLogEntry> _layoutLog;
     std::map<ParticipantId, std::pair<std::string, uint64_t>> _locks; // layout lock object, order taken
     uint64_t _lockCounter = 0;
-    ParticipantRole _joinRole = ParticipantRole::Editor;
+    // Host migration
+    Rev _rankHead = 0;                  // the head at the last ping round
+    std::vector<ParticipantId> _ranked; // the order last sent
+    std::vector<Message> _ownPending;   // a successor's unanswered proposals, to process on resuming
+    std::vector<std::pair<PeerId, Message>> _rejoinHellos; // who reconnected while it was taking over
+    std::vector<RosterEntry> _formerRoster;   // the session as the old host last listed it (roles)
+    uint64_t _lastTick = 0;
+    // After this host was blocked for longer than its clients wait: until
+    // then a client leaving because the host changed means it was replaced.
+    uint64_t _replacedWindowUntil = 0;
+    bool _hostChangedSaid = false; // since the last tick, a client left saying the host changed
+    std::map<PeerId, uint64_t> _strangersTold; // peer -> when told it isn't in the session
+    std::set<ParticipantId> _awaitingRejoin;  // listed then, not back yet: their claims go at _rejoinUntil
+    uint64_t _rejoinUntil = 0;
 };
 
 class CollabClient : public CollabParticipant {
 public:
     // Checking: comparing show files with the host's (and fetching them).
-    enum class State { Idle, Joining, Checking, AwaitingSnapshot, Active, Ended };
+    // Host migration: Migrating (the host is gone; waiting to be told whom
+    // to reach), Rejoining (reconnected, waiting for the new host's
+    // welcome), Succeeding (taking over: collecting who reconnects).
+    enum class State { Idle, Joining, Checking, AwaitingSnapshot, Active, Migrating, Rejoining, Succeeding, Ended };
 
     CollabClient(ICollabTransport& transport, ICollabDocument& doc, SessionOptions opts = {}, SessionEvents events = {});
     ~CollabClient() override;
@@ -583,7 +718,37 @@ public:
     void Join(PeerId host);
     void Leave();
     State GetState() const { return _state; }
-    bool IsActive() const override { return _state == State::Active; }
+    // Has the document and takes edits (proposals made while the host is
+    // changing wait and go to the new one).
+    bool IsActive() const override {
+        return _state == State::Active || _state == State::Migrating || _state == State::Rejoining || _state == State::Succeeding;
+    }
+
+    // ---- Host migration ----
+    // The connection to the host is gone (the transport says so, or nothing
+    // was heard for too long): Migrating if SessionEvents::onHostLost says
+    // someone takes over, else ended (host_lost).
+    void HostGone();
+    // Reconnected to the new host at `host`: say who this is and what it had.
+    void Rejoin(PeerId host);
+    // This participant takes over: collect who reconnects (Rejoiners).
+    void BeginSuccession();
+    // Back to Migrating (taking over failed; try someone else).
+    void AbandonSuccession();
+    struct Rejoiner {
+        PeerId peer = kNoPeer;
+        ParticipantId id = kNoParticipant;
+        Rev applied = 0;
+    };
+    std::vector<Rejoiner> Rejoiners() const;
+    // Fetch the commits after this participant's applied rev from the
+    // rejoiner at `peer`. CatchingUp() until they are in or it failed.
+    void CatchUpFrom(PeerId peer);
+    bool CatchingUp() const { return _catchUpFrom != kNoPeer && !_catchUpFailed; }
+    bool CatchUpFailed() const { return _catchUpFailed; }
+    void StopCatchUp() { _catchUpFrom = kNoPeer; }
+    // No new host could be reached: ended (host_lost).
+    void GiveUp() { EndSession(Reason::HostLost); }
 
     // Optimistic edits apply locally at once; anything else is sent and
     // applies when its commit comes back.
@@ -622,8 +787,12 @@ public:
     // The manifest check: every file the host listed and how this device's
     // show folder compares.
     const std::vector<FileCheck>& FileChecks() const { return _checks; }
+    // What proves this is the participant it says when it rejoins after a
+    // host change (from the host's Welcome).
+    const std::string& RejoinSecret() const { return _rejoinSecret; }
 
 private:
+    friend class CollabHost;
     struct Pending {
         Message msg;
         uint64_t lastSent = 0;
@@ -647,10 +816,22 @@ private:
     };
 
     SubmitResult SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) override;
+    bool UndoWaits() const override;
+    std::string PendingEditLabel() const override;
     void OnMessage(PeerId from, const Message& m);
     void OnPeer(PeerId peer, PeerEvent e);
+    void OnTransportMessage(PeerId from, const Message& m) override { OnMessage(from, m); }
+    void OnTransportPeer(PeerId peer, PeerEvent e) override { OnPeer(peer, e); }
+    void OnTransportBlob(PeerId from, BlobId id, const std::string& path) override;
+    void OnBlobProgress(PeerId from, BlobId id, uint64_t received, uint64_t size) override;
+    void OnSendFailed(PeerId to, const Message& m, const std::string& reason) override;
+    void OnWelcome(const Message& m);
+    // A transfer from the host moved recently: what it may carry is not
+    // asked for again yet.
+    bool TransferMoving() const { return _lastBlobProgress != 0 && _now - _lastBlobProgress < _opts.blobStallMs; }
     void OnSnapshot(const Message& m, const std::string& xsq);
     void OnManifest(const Message& m);
+    void ContinueManifest();
     void RequestFiles();
     void OnJoinFile(const Message& info, const std::string& path);
     void FinishCheck();
@@ -676,6 +857,10 @@ private:
     void Send(const Message& m);
     void EndSession(const std::string& reason);
     void RequestResend();
+    void SendRejoinHello();
+    void OnRejoined(const Message& m);
+    void DropDecided();
+    void LogCommit(const Message& m);
 
     State _state = State::Idle;
     PeerId _host = kNoPeer;
@@ -707,6 +892,16 @@ private:
     bool _layoutHeld = false;                     // a layout commit waits until memory can take it
     uint64_t _lastFileRequest = 0;
     JoinReport _report;
+    std::shared_ptr<HashJob> _checkJob; // hashing this device's files on a worker thread
+
+    // Host migration
+    std::map<PeerId, Message> _rejoinHellos; // Succeeding: who reconnected
+    PeerId _catchUpFrom = kNoPeer;
+    bool _catchUpFailed = false;
+    bool _rejoinPending = false; // rejoined: drop proposals the old host decided once caught up
+    std::string _rejoinSecret;
+    Rev _rejoinRev = 0;
+    uint64_t _rejoinSeq = 0;
 };
 
 } // namespace Collab
