@@ -13,9 +13,13 @@
 #include "model/FaceMatrixHelpers.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "render/CommandExecutor.h"
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
+#include "render/CommandExecutor.h"
 #include "render/Element.h"
+#include "render/CommandExecutor.h"
+#include "render/SequenceElementCommands.h"
 #include "render/SequenceElements.h"
 #include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
@@ -34,7 +38,17 @@
 #include <wx/stattext.h>
 #include <wx/textdlg.h>
 
+#include <functional>
 #include <limits>
+
+namespace {
+// One undoable change to the sequence faces (joins an enclosing batch).
+void EditFaces(SequenceElements& se, const std::string& label, const std::function<void(SequenceFaces&)>& edit)
+{
+    ScopedCommandBatch batch(se, label);
+    ElementEdits::EditSequenceFaces(se, edit);
+}
+} // namespace
 
 SequenceFacesPanel::SequenceFacesPanel(wxWindow* parent, SequenceElements* seqElements,
                                        const std::string& showDirectory, xLightsFrame* xlFrame) :
@@ -216,7 +230,7 @@ void SequenceFacesPanel::SetFaceImage(const std::string& name, const std::string
     const auto* def = faces.GetFace(name);
     SequenceFaces::FaceDefinition d = def != nullptr ? *def : SequenceFaces::FaceDefinition();
     d[key] = value;
-    faces.SetFace(name, d);
+    EditFaces(*_seqElements, "Edit Sequence Face", [&](SequenceFaces& f) { f.SetFace(name, d); });
     if (!value.empty()) {
         auto& media = _seqElements->GetSequenceMedia();
         // register with the media cache (lazily - no decode until first use)
@@ -259,7 +273,7 @@ void SequenceFacesPanel::OnButtonAddClick(wxCommandEvent& event)
     }
     SequenceFaces::FaceDefinition def;
     def["ImagePlacement"] = "Scaled";
-    _seqElements->GetSequenceFaces().SetFace(name, def);
+    EditFaces(*_seqElements, "Add Sequence Face", [&](SequenceFaces& f) { f.SetFace(name, def); });
     TouchFace(name);
     RefreshFaceList(name);
 }
@@ -273,7 +287,7 @@ void SequenceFacesPanel::OnButtonDeleteClick(wxCommandEvent& event)
     int i = wxMessageBox("Are you sure you want to delete " + name + "?", "Delete Face Definition",
                          wxICON_WARNING | wxOK | wxCANCEL, this);
     if (i == wxID_OK || i == wxOK) {
-        _seqElements->GetSequenceFaces().RemoveFace(name);
+        EditFaces(*_seqElements, "Delete Sequence Face", [&](SequenceFaces& f) { f.RemoveFace(name); });
         TouchFace(name);
         RefreshFaceList();
     }
@@ -293,11 +307,15 @@ void SequenceFacesPanel::OnButtonRenameClick(wxCommandEvent& event)
     if (newName.empty() || newName == name) {
         return;
     }
-    if (!_seqElements->GetSequenceFaces().RenameFace(name, newName)) {
+    if (_seqElements->GetSequenceFaces().GetFace(newName) != nullptr) {
         wxMessageBox("A sequence face with that name already exists.", "Duplicate name", wxICON_WARNING | wxOK, this);
         return;
     }
-    RenameFaceReferences(name, newName);
+    {
+        ScopedCommandBatch batch(*_seqElements, "Rename Sequence Face");
+        EditFaces(*_seqElements, "Rename Sequence Face", [&](SequenceFaces& f) { f.RenameFace(name, newName); });
+        RenameFaceReferences(name, newName);
+    }
     TouchFace(name);
     TouchFace(newName);
     RefreshFaceList(newName);
@@ -324,6 +342,8 @@ void SequenceFacesPanel::RenameFaceReferences(const std::string& oldName, const 
         return m != nullptr && m->GetFaceInfo().find(oldName) != m->GetFaceInfo().end();
     };
 
+    CommandExecutor& exec = _seqElements->GetCommandExecutor();
+    ScopedCommandBatch batch(exec, "Rename Face");
     auto scanLayer = [&](EffectLayer* layer) {
         for (int k = 0; k < layer->GetEffectCount(); ++k) {
             Effect* eff = layer->GetEffect(k);
@@ -332,7 +352,7 @@ void SequenceFacesPanel::RenameFaceReferences(const std::string& oldName, const 
                 continue;
             }
             if (eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "") == oldName) {
-                eff->SetSetting("E_CHOICE_Faces_FaceDefinition", newName);
+                _seqElements->GetCommandExecutor().SetEffectSetting(eff, "E_CHOICE_Faces_FaceDefinition", newName);
             }
         }
     };
@@ -393,6 +413,7 @@ void SequenceFacesPanel::OnButtonImportFromModelClick(wxCommandEvent& event)
 
     std::string lastAdded;
     wxString skipped;
+    ScopedCommandBatch batch(*_seqElements, "Import Sequence Faces");
     for (auto const& idx : dlg.GetSelections()) {
         const auto& [modelName, faceName] = sources[idx];
         Model* model = _xlFrame->AllModels.GetModel(modelName);
@@ -407,7 +428,7 @@ void SequenceFacesPanel::OnButtonImportFromModelClick(wxCommandEvent& event)
         if (it == model->GetFaceInfo().end()) {
             continue;
         }
-        _seqElements->GetSequenceFaces().SetFace(faceName, it->second);
+        EditFaces(*_seqElements, "Import Sequence Faces", [&](SequenceFaces& f) { f.SetFace(faceName, it->second); });
         for (const auto& [key, value] : it->second) {
             if (SequenceFaces::IsImageKey(key) && !value.empty()) {
                 auto& media = _seqElements->GetSequenceMedia();
@@ -433,11 +454,12 @@ void SequenceFacesPanel::OnButtonImportFromModelClick(wxCommandEvent& event)
 void SequenceFacesPanel::OnButtonDownloadImagesClick(wxCommandEvent& event)
 {
     std::string name = GetSelectedFace();
-    if (name.empty()) {
+    if (name.empty() || _seqElements == nullptr) {
         return;
     }
     // sequence faces have no single model to size against - the download
     // dialog only uses the size to sort candidates, so use a large matrix
+    ScopedCommandBatch batch(*_seqElements, "Download Face Images");
     FaceMatrixHelpers::DownloadFaceImages(
         this, _showDirectory, 100, 100,
         [this, &name](const std::string& key, int r, int c, const std::string& value) {
@@ -455,14 +477,14 @@ void SequenceFacesPanel::OnImagePlacementSelect(wxCommandEvent& event)
     const auto* def = faces.GetFace(name);
     SequenceFaces::FaceDefinition d = def != nullptr ? *def : SequenceFaces::FaceDefinition();
     d["ImagePlacement"] = ImagePlacementChoice->GetStringSelection().ToStdString();
-    faces.SetFace(name, d);
+    EditFaces(*_seqElements, "Edit Sequence Face", [&](SequenceFaces& f) { f.SetFace(name, d); });
     TouchFace(name);
 }
 
 void SequenceFacesPanel::SelectMatrixImage(int r, int c)
 {
     std::string name = GetSelectedFace();
-    if (name.empty()) {
+    if (name.empty() || _seqElements == nullptr) {
         return;
     }
     wxString key = FacesGrid->GetRowLabelValue(r) + "-" + FacesGrid->GetColLabelValue(c);
@@ -477,6 +499,7 @@ void SequenceFacesPanel::SelectMatrixImage(int r, int c)
     std::string new_filename = dlg.GetPath().ToStdString();
     ObtainAccessToURL(new_filename);
     key.Replace(" ", "");
+    ScopedCommandBatch batch(*_seqElements, "Edit Sequence Face");
     SetFaceImage(name, key.ToStdString(), r, c, new_filename);
 
     FaceMatrixHelpers::AutoFillMatrixPhonemes(

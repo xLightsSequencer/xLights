@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "Element.h"
+#include "CommandExecutor.h"
 #include "../models/Model.h"
 #include <algorithm>
 #include <list>
@@ -69,7 +70,7 @@ void Element::CleanupAfterRender() {
     for (auto &a : mEffectLayers) {
         a->CleanupAfterRender();
     }
-    std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
+    std::unique_lock<std::recursive_timed_mutex> lock(GetLayerChangeLock());
     while (!mLayersToDelete.empty()) {
         delete *mLayersToDelete.begin();
         mLayersToDelete.pop_front();
@@ -87,6 +88,7 @@ const std::string &Element::GetName() const
 
 void Element::SetName(const std::string &name)
 {
+    XL_SEQ_MUTATION("Element::SetName");
     mName = name;
     changeCount++;
     listener->IncrementChangeCount(this);
@@ -174,6 +176,7 @@ int Element::GetLastSelectedEffectEndMS() const
 
 void Element::SetRenderDisabled(bool rd)
 {
+    XL_SEQ_MUTATION("Element::SetRenderDisabled");
     _renderDisabled = rd;
 }
 
@@ -224,6 +227,7 @@ int Element::GetLayerNumberFromIndex(int index)
 
 EffectLayer* Element::AddEffectLayer()
 {
+    XL_SEQ_MUTATION("Element::AddEffectLayer");
     EffectLayer* new_layer = AddEffectLayerInternal();
     IncrementChangeCount(-1, -1);
     return new_layer;
@@ -237,13 +241,16 @@ EffectLayer* Element::FindOpenLayer(int startTimeMS, int endTimeMS)
             return layer;
         }
     }
+    if (SequenceElements* se = GetSequenceElements(); se != nullptr) {
+        return se->GetCommandExecutor().InsertLayer(this, (int)GetEffectLayerCount());
+    }
     return AddEffectLayer();
 }
 
 EffectLayer* Element::AddEffectLayerInternal()
 {
     // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
-    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    std::unique_lock<std::recursive_timed_mutex> lock(GetLayerChangeLock(), std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
     {
         GetSequenceElements()->GetRenderContext()->AbortRender();
@@ -257,8 +264,9 @@ EffectLayer* Element::AddEffectLayerInternal()
 
 EffectLayer* Element::InsertEffectLayer(int index)
 {
+    XL_SEQ_MUTATION("Element::InsertEffectLayer");
     // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
-    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    std::unique_lock<std::recursive_timed_mutex> lock(GetLayerChangeLock(), std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
     {
         GetSequenceElements()->GetRenderContext()->AbortRender();
@@ -295,8 +303,9 @@ bool Element::operator<(const Element& e) const
 
 void Element::RemoveEffectLayer(int index)
 {
+    XL_SEQ_MUTATION("Element::RemoveEffectLayer");
     // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
-    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    std::unique_lock<std::recursive_timed_mutex> lock(GetLayerChangeLock(), std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
     {
         GetSequenceElements()->GetRenderContext()->AbortRender();
@@ -320,6 +329,10 @@ void Element::IncrementChangeCount(int sms, int ems)
     changeCount++;
     
     listener->IncrementChangeCount(this);
+}
+
+std::recursive_timed_mutex& SubModelElement::GetLayerChangeLock() {
+    return mParentModel != nullptr ? ((Element*)mParentModel)->GetChangeLock() : changeLock;
 }
 
 void SubModelElement::IncrementChangeCount(int startMs, int endMS) {
@@ -346,6 +359,7 @@ TimingElement::~TimingElement() {
 
 void TimingElement::Unfix()
 {
+    XL_SEQ_MUTATION("TimingElement::Unfix");
     mFixed = 0;
 }
 

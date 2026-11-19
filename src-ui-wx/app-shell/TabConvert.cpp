@@ -31,6 +31,7 @@
 #include "render/SequenceElements.h"
 #include "outputs/OutputManager.h"
 #include "render/EffectLayer.h"
+#include "render/SequenceMutationGuard.h"
 #include "xLightsMain.h"
 #include "render/FSEQFile.h"
 #include "render/FSEQFileIO.h"
@@ -822,6 +823,8 @@ void xLightsFrame::LoadPresetEffects(const CopyFormat1& pd)
 {
     Element* elem = _presetSequenceElements.GetElement(_presetModel->GetName());
     wxASSERT(elem != nullptr);
+    // The preset scratch sequence is never edited by the user.
+    SeqMutationGuard::Scope scratchSequence;
 
     for (const auto& it : elem->GetEffectLayers()) {
         it->DeleteAllEffects();

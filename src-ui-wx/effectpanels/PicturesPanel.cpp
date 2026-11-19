@@ -30,6 +30,7 @@
 #include "sequencer/MainSequencer.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceElements.h"
+#include "render/SequenceMediaCommands.h"
 #include "utils/xlImage.h"
 #include "ai/AIImageDialog.h"
 #include "ai/aiType.h"
@@ -286,10 +287,12 @@ void PicturesPanel::OnAIGenerateClick(wxCommandEvent& /*event*/) {
 
     // Embed the AI-generated image in the sequence's media so it travels
     // with the .xsq file rather than living as a loose file on disk.
-    SequenceMedia& media = xl->GetSequenceElements().GetSequenceMedia();
     wxString name = wxString::Format("AIImages/ai_generated_%lld.png",
                                      (long long)wxDateTime::Now().GetTicks());
-    media.AddEmbeddedImage(name.ToStdString(), wxImageToXlImage(img));
+    if (SeqMediaEdits::EmbedImage(xl->GetSequenceElements(), name.ToStdString(), wxImageToXlImage(img), "Add AI Image")) {
+        // Pointing the effect at the image is part of the same undo step.
+        xl->JoinNextPanelEditToLastStep();
+    }
 
     _filenameCtrl->SetValue(name);
     UpdatePreviewBitmap(name);

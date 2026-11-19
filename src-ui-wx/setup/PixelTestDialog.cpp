@@ -2931,7 +2931,9 @@ void PixelTestDialog::OnButton_SaveClick(wxCommandEvent& event)
     }
     
     spdlog::debug("Saving test preset: {}", (const char*)name.c_str());
-    _outputManager->Save();
+    if (!((xLightsFrame*)GetParent())->WriteNetworksFile(this)) {
+        return;
+    }
     spdlog::debug("   Save done.");
 }
 #pragma endregion

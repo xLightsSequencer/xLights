@@ -193,13 +193,18 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted) {
     spdlog::info("Aborting rendering ...");
     _renderEngine->SignalAbort();
 
+    // Yielding runs timers and input while we wait. Inside an edit of the
+    // document (a command, an undo replay, an import) that lets a show-file
+    // merge or another edit run in the middle of it, so then just wait: render
+    // jobs never wait on the main thread, so they finish without it.
+    const bool mayYield = !_sequenceElements.IsEditInProgress();
     int maxLoops = maxTimeMS / 10;
     int loops = 0;
     while (!_renderEngine->IsRenderDone() && loops < maxLoops) {
         loops++;
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         UpdateRenderStatus();
-        if (!_renderEngine->IsRenderDone() && loops > 25) {
+        if (mayYield && !_renderEngine->IsRenderDone() && loops > 25) {
             wxYield();
         }
         if (loops % 200 == 0) {

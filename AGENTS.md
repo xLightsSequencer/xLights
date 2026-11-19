@@ -778,6 +778,18 @@ Write the entry for the user of that platform, not for the diff: describe what
 changed for someone using the app, not which files moved. A pure refactor with
 no user-visible effect on either platform still gets no entry at all.
 
+### Don't log fixes to unreleased work
+
+Users only see released versions. A bug in a feature or code path that first
+appears in the current, unreleased section never reached them, so its fix gets
+**no** `-bug` entry. Fix it, and if needed reword that feature's existing entry
+so it describes the finished behavior. Before adding a `-bug` entry, check that
+the bug exists in the last release tag (`git show <tag>:<file>`, or
+`git log <tag>..HEAD` to see whether the code is new). The same goes for a
+`-change` that only adjusts something new this release. Fold it into that
+feature's entry instead. A fix that is partly to old behavior and partly to
+new work gets an entry covering only the old part.
+
 This does **not** replace the parity plans (§3) — a change still updates the
 matching scorecard row. `README.txt` says what shipped; the scorecards say where
 the two platforms stand relative to each other.

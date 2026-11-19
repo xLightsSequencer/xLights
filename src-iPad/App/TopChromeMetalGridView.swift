@@ -66,6 +66,16 @@ struct TopChromeMetalGridView: UIViewRepresentable {
     var songRegionNames: [String] = []
     var songRegionRevision: Int = 0
     var onRegionMenu: ((_ atMS: Int) -> Void)?
+    /// Song-structure boundary drag: a one-finger drag that starts on a
+    /// boundary line in the waveform strip moves the boundary instead of
+    /// scrolling. `onBoundaryDragBegin(ms, toleranceMS)` returns the
+    /// grabbed boundary's time (nil = none there, scroll instead);
+    /// `onBoundaryDragMove(ms)` returns where it landed. The whole drag
+    /// is one undo step, recorded by `onBoundaryDragEnd`.
+    var onBoundaryDragBegin: ((_ atMS: Int, _ toleranceMS: Int) -> Int?)?
+    var onBoundaryDragMove: ((_ toMS: Int) -> Int?)?
+    var onBoundaryDragEnd: (() -> Void)?
+    var onBoundaryDragCancel: (() -> Void)?
     /// Desktop "Effects Grid ▸ Show Alternate Timing Format" — ruler
     /// labels render absolute seconds.ms instead of min:sec.frac.
     var alternateTimingFormat: Bool = false
@@ -103,9 +113,17 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         c.showSpectrogram = showSpectrogram
         c.spectrogramFetcher = spectrogramFetcher
         c.tagPositions = tagPositions
-        c.songRegionBounds = songRegionBounds
+        // A boundary drag keeps its own live copy of the bands until it
+        // ends; the published regions are only reloaded then.
+        if c.boundaryDragIndex == nil {
+            c.songRegionBounds = songRegionBounds
+        }
         c.songRegionNames = songRegionNames
         c.onRegionMenu = onRegionMenu
+        c.onBoundaryDragBegin = onBoundaryDragBegin
+        c.onBoundaryDragMove = onBoundaryDragMove
+        c.onBoundaryDragEnd = onBoundaryDragEnd
+        c.onBoundaryDragCancel = onBoundaryDragCancel
         c.alternateTimingFormat = alternateTimingFormat
         view.setNeedsDisplay()
     }
@@ -157,6 +175,13 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         var songRegionBounds: [(Int, Int, UInt32)] = []
         var songRegionNames: [String] = []
         var onRegionMenu: ((Int) -> Void)?
+        var onBoundaryDragBegin: ((Int, Int) -> Int?)?
+        var onBoundaryDragMove: ((Int) -> Int?)?
+        var onBoundaryDragEnd: (() -> Void)?
+        var onBoundaryDragCancel: (() -> Void)?
+        // Index into `songRegionBounds` of the region whose start is
+        // being dragged; nil when no boundary drag is in progress.
+        var boundaryDragIndex: Int?
         var alternateTimingFormat: Bool = false
     }
 }
@@ -742,6 +767,11 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
         switch g.state {
         case .began:
             let p = g.location(in: self)
+            // Trackpad / wheel scrolls (no touches) always scroll.
+            if g.numberOfTouches > 0, beginBoundaryDrag(at: p, coordinator: c) {
+                c.onUserInteraction?()
+                return
+            }
             // B39: drag starting in the ruler strip continuously
             // updates the play head; drag in the waveform area keeps
             // its existing scroll behavior.
@@ -756,6 +786,16 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
             c.onUserInteraction?()
         case .changed:
             let p = g.location(in: self)
+            if let i = c.boundaryDragIndex {
+                let ms = Int((p.x + c.scrollOffsetX) / max(c.pixelsPerMS, 0.0001))
+                if let t = c.onBoundaryDragMove?(max(0, min(c.durationMS, ms))),
+                   i > 0, i < c.songRegionBounds.count {
+                    c.songRegionBounds[i - 1].1 = t
+                    c.songRegionBounds[i].0 = t
+                    setNeedsDisplay()
+                }
+                return
+            }
             if c.scrubbingFromRuler, c.pixelsPerMS > 0 {
                 let ms = max(0, min(c.durationMS,
                                      Int((p.x + c.scrollOffsetX) / c.pixelsPerMS)))
@@ -767,8 +807,32 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
             c.onUserInteraction?()
         case .ended, .cancelled, .failed:
             c.scrubbingFromRuler = false
+            if c.boundaryDragIndex != nil {
+                c.boundaryDragIndex = nil
+                if g.state == .ended {
+                    c.onBoundaryDragEnd?()
+                } else {
+                    c.onBoundaryDragCancel?()
+                }
+            }
         default: break
         }
+    }
+
+    /// Starts a song-structure boundary drag when the pan begins in the
+    /// waveform strip within a finger's width of a boundary line.
+    private func beginBoundaryDrag(at p: CGPoint, coordinator c: TopChromeMetalGridView.Coordinator) -> Bool {
+        guard p.y >= c.rulerHeight, c.pixelsPerMS > 0, c.songRegionBounds.count > 1,
+              let begin = c.onBoundaryDragBegin else { return false }
+        let ms = max(0, min(c.durationMS, Int((p.x + c.scrollOffsetX) / c.pixelsPerMS)))
+        let toleranceMS = max(1, Int(12 / c.pixelsPerMS))
+        guard let t = begin(ms, toleranceMS) else { return false }
+        guard let i = c.songRegionBounds.indices.first(where: { $0 > 0 && c.songRegionBounds[$0].0 == t }) else {
+            c.onBoundaryDragCancel?()
+            return false
+        }
+        c.boundaryDragIndex = i
+        return true
     }
 
     @objc func onPinch(_ g: UIPinchGestureRecognizer) {

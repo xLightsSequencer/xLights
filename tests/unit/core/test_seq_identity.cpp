@@ -1,11 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "render/CommandExecutor.h"
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
 #include "render/Element.h"
 #include "render/HeadlessRenderContext.h"
+#include "render/SequenceElementCommands.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceIds.h"
+#include "render/SequenceMutationGuard.h"
 #include "render/UndoManager.h"
 
 #include <memory>
@@ -24,9 +27,11 @@ struct SeqFixture {
         se.SetViewsManager(&ctx._sequenceViewManager);
     }
     ModelElement* Model(const std::string& name = "Tree") {
+        SeqMutationGuard::Scope setup;
         return dynamic_cast<ModelElement*>(se.AddElement(name, "model", true, false, true, false, false));
     }
     TimingElement* Timing(const std::string& name = "Beats") {
+        SeqMutationGuard::Scope setup;
         return dynamic_cast<TimingElement*>(se.AddElement(name, "timing", true, false, true, false, false));
     }
     UndoManager& Undo() { return se.get_undo_mgr(); }
@@ -38,12 +43,20 @@ struct SeqFixture {
     }
 };
 
+// Direct (unrecorded) setup edits, as an import or a script makes them.
 Effect* Add(EffectLayer* l, const std::string& name, int start, int end) {
+    SeqMutationGuard::Scope setup;
     return l->AddEffect(0, name, "", "", start, end, 0, false);
 }
 
 EffectLayer* Layer0(Element* e) {
+    SeqMutationGuard::Scope setup;
     return e->GetEffectLayerCount() > 0 ? e->GetEffectLayer(0) : e->AddEffectLayer();
+}
+
+EffectLayer* AddLayer(Element* e) {
+    SeqMutationGuard::Scope setup;
+    return e->AddEffectLayer();
 }
 } // namespace
 
@@ -76,10 +89,13 @@ TEST_CASE("Effect ids survive sorting while positions renumber", "[seq][identity
     CHECK(l->GetEffectFromUid(early->GetUid()) == early);
     CHECK(l->GetEffectFromUid(kNoSeqObjectId) == nullptr);
 
-    REQUIRE(l->DeleteEffectByUid(early->GetUid()));
+    {
+        SeqMutationGuard::Scope direct;
+        REQUIRE(l->DeleteEffectByUid(early->GetUid()));
+        CHECK_FALSE(l->DeleteEffectByUid(12345678));
+    }
     CHECK(late->GetID() == 0);
     CHECK(l->GetEffectFromUid(lateUid) == late);
-    CHECK_FALSE(l->DeleteEffectByUid(12345678));
     f.RequireValid();
 }
 
@@ -120,15 +136,17 @@ TEST_CASE("Undo of a modify finds its effect after an uncaptured insert shifts p
     EffectLayer* l = Layer0(m);
     Effect* a = Add(l, "On", 0, 100);
     Effect* b = Add(l, "On", 200, 300);
-    a->SetSetting("E_SLIDER_X", "1");
-    b->SetSetting("E_SLIDER_X", "2");
+    {
+        SeqMutationGuard::Scope setup;
+        a->SetSetting("E_SLIDER_X", "1");
+        b->SetSetting("E_SLIDER_X", "2");
+    }
 
     f.Undo().CreateUndoStep();
-    f.Undo().CaptureModifiedEffect(m->GetName(), l->GetIndex(), b->GetID(), b->GetSettingsAsString(), b->GetPaletteAsString());
-    b->SetSetting("E_SLIDER_X", "99");
+    f.se.GetCommandExecutor().SetEffectSetting(b, "E_SLIDER_X", std::string("99"));
 
-    // Something that doesn't capture undo (an import, a script) inserts an
-    // effect ahead of b, so b's captured position now names a.
+    // Something that records no undo inserts an effect ahead of b, so b's
+    // old position now names a.
     Add(l, "Off", 120, 150);
     REQUIRE(l->GetEffect(1) != b);
 
@@ -171,7 +189,7 @@ TEST_CASE("Undo across a removed layer restores the layer and the effects delete
     SeqFixture f;
     ModelElement* m = f.Model();
     Layer0(m);
-    EffectLayer* second = m->AddEffectLayer();
+    EffectLayer* second = AddLayer(m);
     SeqObjectId layerUid = second->GetUid();
     Effect* e = Add(second, "Bars", 0, 100);
     e->SetSelected(EFFECT_SELECTED);
@@ -181,8 +199,7 @@ TEST_CASE("Undo across a removed layer restores the layer and the effects delete
     second->DeleteSelectedEffects(f.Undo());
     // Step 2: remove the now-empty layer.
     f.Undo().CreateUndoStep();
-    f.Undo().CaptureRemovedLayer(m->GetFullName(), 1);
-    m->RemoveEffectLayer(1);
+    REQUIRE(f.se.GetCommandExecutor().RemoveLayer(m, 1));
     REQUIRE(m->GetEffectLayerCount() == 1);
 
     f.Undo().UndoLastStep(); // layer comes back under the same id
@@ -199,10 +216,9 @@ TEST_CASE("Undo still finds a timing track after it is renamed", "[seq][identity
     TimingElement* t = f.Timing("Beats");
     EffectLayer* l = Layer0(t);
     f.Undo().CreateUndoStep();
-    Effect* mark = Add(l, "", 0, 100);
-    f.Undo().CaptureAddedEffect(t->GetName(), l->GetIndex(), mark->GetID());
+    REQUIRE(f.se.GetCommandExecutor().AddEffect(l, "", "", "", 0, 100, 0, false) != nullptr);
 
-    t->SetName("Downbeats");
+    REQUIRE(ElementEdits::RenameTimingTrack(f.se, "Beats", "Downbeats", false));
 
     f.Undo().UndoLastStep();
     CHECK(l->GetEffectCount() == 0);
@@ -212,16 +228,14 @@ TEST_CASE("Undo of a submodel layer add removes it from the submodel", "[seq][id
     SeqFixture f;
     ModelElement* m = f.Model();
     Layer0(m);
-    m->AddEffectLayer();
+    AddLayer(m);
     SubModelElement* sub = m->GetSubModel("Sub", true);
     Layer0(sub);
     REQUIRE(m->GetEffectLayerCount() == 2);
     size_t subLayers = sub->GetEffectLayerCount();
 
     f.Undo().CreateUndoStep();
-    EffectLayer* added = sub->AddEffectLayer();
-    // Callers name the parent model, as EffectsGrid does for row layer adds.
-    f.Undo().CaptureAddedLayer(m->GetModelName(), added->GetIndex(), (int)sub->GetEffectLayerCount() - 1);
+    REQUIRE(f.se.GetCommandExecutor().InsertLayer(sub, (int)sub->GetEffectLayerCount()) != nullptr);
 
     f.Undo().UndoLastStep();
     CHECK(sub->GetEffectLayerCount() == subLayers);
@@ -231,7 +245,7 @@ TEST_CASE("Undo of a submodel layer add removes it from the submodel", "[seq][id
 TEST_CASE("Ids stay unique through random edits with undo and redo", "[seq][identity][undo]") {
     SeqFixture f;
     ModelElement* m = f.Model();
-    std::vector<EffectLayer*> layers{ Layer0(m), m->AddEffectLayer(), Layer0(m->GetSubModel("Sub", true)) };
+    std::vector<EffectLayer*> layers{ Layer0(m), AddLayer(m), Layer0(m->GetSubModel("Sub", true)) };
     std::mt19937 rng(1234);
     auto pick = [&](int n) { return (int)(rng() % (unsigned)n); };
 
@@ -243,10 +257,7 @@ TEST_CASE("Ids stay unique through random edits with undo and redo", "[seq][iden
         case 1: {
             int start = pick(100) * 50;
             if (l->GetRangeIsClearMS(start, start + 40)) {
-                Effect* e = Add(l, "On", start, start + 40);
-                if (e != nullptr) {
-                    f.Undo().CaptureAddedEffect(l->GetParentElement()->GetModelName(), l->GetIndex(), e->GetID());
-                }
+                f.se.GetCommandExecutor().AddEffect(l, "On", "", "", start, start + 40, 0, false);
             }
             break;
         }
@@ -272,4 +283,111 @@ TEST_CASE("Ids stay unique through random edits with undo and redo", "[seq][iden
         INFO("step " << i << ": " << problem);
         REQUIRE(ok);
     }
+}
+
+TEST_CASE("Deleting and restoring many effects keeps the layer's id index instead of rebuilding it per effect", "[seq][identity][undo]") {
+    SeqFixture f;
+    ModelElement* m = f.Model();
+    EffectLayer* l = Layer0(m);
+    constexpr int kCount = 400;
+    std::vector<SeqObjectId> uids;
+    for (int i = 0; i < kCount; ++i) {
+        uids.push_back(Add(l, "On", i * 10, i * 10 + 5)->GetUid());
+    }
+    REQUIRE(l->GetEffectFromUid(uids[kCount - 1]) != nullptr); // builds the index once
+    const size_t builds = l->GetUidIndexBuildCount();
+    CHECK(builds == 1);
+
+    for (int i = 0; i < kCount; i += 2) {
+        l->GetEffectFromUid(uids[i])->SetSelected(EFFECT_SELECTED);
+    }
+    f.Undo().CreateUndoStep();
+    l->DeleteSelectedEffects(f.Undo());
+    REQUIRE(l->GetEffectCount() == kCount / 2);
+    f.Undo().UndoLastStep(); // re-adds them one at a time, each with its old id
+    REQUIRE(l->GetEffectCount() == kCount);
+    f.Undo().RedoLastStep();
+    f.Undo().UndoLastStep();
+
+    // The index stays correct: every live id resolves, deleted ones don't.
+    for (SeqObjectId uid : uids) {
+        Effect* e = l->GetEffectFromUid(uid);
+        REQUIRE(e != nullptr);
+        CHECK(e->GetUid() == uid);
+    }
+    {
+        SeqMutationGuard::Scope direct;
+        REQUIRE(l->DeleteEffectByUid(uids[7]));
+    }
+    CHECK(l->GetEffectFromUid(uids[7]) == nullptr);
+    CHECK(l->GetUidIndexBuildCount() <= builds + 2);
+    f.RequireValid();
+}
+
+TEST_CASE("The undo step cap keeps whole steps so a step bigger than the cap undoes completely", "[seq][undo]") {
+    SeqFixture f;
+    EffectLayer* l = Layer0(f.Model());
+    constexpr int kCount = 60;
+    for (int i = 0; i < kCount; ++i) {
+        Add(l, "On", i * 10, i * 10 + 5)->SetSelected(EFFECT_SELECTED);
+    }
+    f.Undo().SetMaxSteps(3);
+    f.Undo().CreateUndoStep();
+    l->DeleteSelectedEffects(f.Undo()); // one step, 60 entries
+    REQUIRE(l->GetEffectCount() == 0);
+    f.Undo().UndoLastStep();
+    CHECK(l->GetEffectCount() == kCount);
+    CHECK_FALSE(f.Undo().CanUndo());
+
+    // More steps than the cap: the oldest whole steps go, the newest stay intact.
+    f.Undo().RedoLastStep();
+    REQUIRE(l->GetEffectCount() == 0);
+    for (int i = 0; i < 5; ++i) {
+        f.Undo().CreateUndoStep();
+        Effect* e = nullptr;
+        {
+            ScopedCommandBatch batch(f.se, "Add");
+            for (int j = 0; j < 4; ++j) {
+                e = f.se.GetCommandExecutor().AddEffect(l, "On", "", "", 1000 + i * 100 + j * 10, 1005 + i * 100 + j * 10, 0, false);
+                REQUIRE(e != nullptr);
+            }
+        }
+    }
+    REQUIRE(l->GetEffectCount() == 20);
+    int undone = 0;
+    while (f.Undo().CanUndo()) {
+        f.Undo().UndoLastStep();
+        ++undone;
+        CHECK(l->GetEffectCount() % 4 == 0);
+    }
+    CHECK(undone == 3);
+    CHECK(l->GetEffectCount() == 8);
+}
+
+TEST_CASE("Any edit after an undo drops redo whether recorded or not", "[seq][undo]") {
+    SeqFixture f;
+    EffectLayer* l = Layer0(f.Model());
+    auto& exec = f.se.GetCommandExecutor();
+
+    f.Undo().CreateUndoStep();
+    REQUIRE(exec.AddEffect(l, "On", "", "", 0, 100, 0, false) != nullptr);
+    f.Undo().UndoLastStep();
+    REQUIRE(f.Undo().CanRedo());
+    // Redo survives undo/redo themselves.
+    f.Undo().RedoLastStep();
+    f.Undo().UndoLastStep();
+    REQUIRE(f.Undo().CanRedo());
+
+    // An edit that records into no new step still changes what redo would replay onto.
+    REQUIRE(exec.AddEffect(l, "On", "", "", 50, 150, 0, false, false) != nullptr);
+    CHECK_FALSE(f.Undo().CanRedo());
+    CHECK(l->GetEffectCount() == 1);
+
+    // Same for an edit added to the current step.
+    f.Undo().CreateUndoStep();
+    REQUIRE(exec.AddEffect(l, "On", "", "", 200, 300, 0, false) != nullptr);
+    f.Undo().UndoLastStep();
+    REQUIRE(f.Undo().CanRedo());
+    REQUIRE(exec.AddEffect(l, "On", "", "", 400, 500, 0, false) != nullptr);
+    CHECK_FALSE(f.Undo().CanRedo());
 }

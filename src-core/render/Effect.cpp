@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "Effect.h"
+#include <set>
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceElements.h"
@@ -187,15 +188,20 @@ Effect::Effect(const Effect& ef)
     mID = ef.mID;
     mUid = ef.mUid;
     mEffectIndex = ef.mEffectIndex;
-    mName = ef.mName;
+    // Owned: the copy deletes its own name, so it can't share the source's.
+    mName = ef.mName != nullptr ? new std::string(*ef.mName) : nullptr;
     mStartTime = ef.mStartTime;
     mEndTime = ef.mEndTime;
     mParentLayer = ef.mParentLayer;
     mColorMask = ef.mColorMask;
-    mSettings = ef.mSettings;
-    mPaletteMap = ef.mPaletteMap;
-    mColors = ef.mColors;
-    mCC = ef.mCC;
+    {
+        // Made on a render thread while the source can be edited.
+        std::unique_lock<std::recursive_mutex> lock(ef.settingsLock);
+        mSettings = ef.mSettings;
+        mPaletteMap = ef.mPaletteMap;
+        mColors = ef.mColors;
+        mCC = ef.mCC;
+    }
 
     // Deliberately NOT copying _linkedSymbolId. This copy is a short-lived
     // render temporary (RenderEngine's `new Effect(*ef)`) that is never passed
@@ -286,6 +292,18 @@ Effect::~Effect()
 
 #pragma endregion
 
+void Effect::SetUid(SeqObjectId uid)
+{
+    if (uid == mUid) {
+        return;
+    }
+    SeqObjectId old = mUid;
+    mUid = uid;
+    if (mParentLayer != nullptr) {
+        mParentLayer->EffectUidChanged(this, old);
+    }
+}
+
 void Effect::SetTimeToDelete()
 {
     // we can delete the effect 1 minute later ... this tries to guarantee all dangling pointers are gone at the expense of some memory use
@@ -301,6 +319,7 @@ bool Effect::IsTimeToDelete() const
 
 void Effect::SetEffectIndex(int effectIndex)
 {
+    XL_SEQ_MUTATION("Effect::SetEffectIndex");
     if (mEffectIndex != effectIndex) {
         mEffectIndex = effectIndex;
         IncrementChangeCount();
@@ -341,6 +360,7 @@ const std::string& Effect::GetEffectName(int index) const
 
 void Effect::SetEffectName(const std::string & name)
 {
+    XL_SEQ_MUTATION("Effect::SetEffectName");
     int idx = GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     if (mEffectIndex != idx || mEffectIndex == -1) {
         mEffectIndex = idx;
@@ -367,6 +387,7 @@ std::string Effect::GetSetting(const std::string& id) const
 
 bool Effect::SetSetting(const std::string& id, const std::string &v)
 {
+    XL_SEQ_MUTATION("Effect::SetSetting");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     if (!mSettings.Contains(id) || mSettings[id] != v) {
         mSettings[id] = v;
@@ -390,6 +411,7 @@ std::string Effect::GetDescription() const
 // effect re-renders normally.
 void Effect::SetStartTimeMS(int startTimeMS)
 {
+    XL_SEQ_MUTATION("Effect::SetStartTimeMS");
     assert(!IsLocked());
 
     ScopedSymbolPropagationSuppressor noFanOut;
@@ -404,6 +426,7 @@ void Effect::SetStartTimeMS(int startTimeMS)
 
 void Effect::SetEndTimeMS(int endTimeMS)
 {
+    XL_SEQ_MUTATION("Effect::SetEndTimeMS");
     assert(!IsLocked());
 
     ScopedSymbolPropagationSuppressor noFanOut;
@@ -478,6 +501,7 @@ bool Effect::IsRenderDisabled() const
 
 void Effect::SetEffectRenderDisabled(bool disabled)
 {
+    XL_SEQ_MUTATION("Effect::SetEffectRenderDisabled");
     std::unique_lock<std::recursive_mutex> getlock(settingsLock);
     if (disabled) {
         mSettings["X_Effect_RenderDisabled"] = "True";
@@ -495,6 +519,7 @@ bool Effect::IsLocked() const
 
 void Effect::SetLocked(bool lock)
 {
+    XL_SEQ_MUTATION("Effect::SetLocked");
     std::unique_lock<std::recursive_mutex> getlock(settingsLock);
     if (lock)
     {
@@ -620,6 +645,7 @@ std::string Effect::GetSettingsAsJSON() const
 }
 
 void Effect::SetSettings(const std::string& settings, bool keepxsettings, bool json) {
+    XL_SEQ_MUTATION("Effect::SetSettings");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     auto old = GetSettingsAsString();
@@ -663,6 +689,7 @@ bool Effect::SettingsChanged(const std::string& settings)
 
 void Effect::PressButton(RenderableEffect* re, const std::string& id)
 {
+    XL_SEQ_MUTATION("Effect::PressButton");
     bool changed = false;
     if (StartsWith(id, "E_"))
     {
@@ -678,6 +705,7 @@ void Effect::PressButton(RenderableEffect* re, const std::string& id)
 
 void Effect::ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid)
 {
+    XL_SEQ_MUTATION("Effect::ApplySetting");
     
     if (StartsWith(id, "C_"))
     {
@@ -783,6 +811,7 @@ bool Effect::UsesColour(const std::string& from)
 
 int Effect::ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to)
 {
+    XL_SEQ_MUTATION("Effect::ReplaceColours");
     int res = 0;
     for (auto it : mPaletteMap) {
         if (StartsWith(it.first, "C_BUTTON")) {
@@ -831,6 +860,13 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
     }
 }
 
+void Effect::SnapshotMaps(SettingsMap& settings, SettingsMap& palette) const
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    settings = mSettings;
+    palette = mPaletteMap;
+}
+
 // When an effect is copied between model types the buffer may not be supported so make it valid
 void Effect::FixBuffer(const Model* m)
 {
@@ -861,6 +897,7 @@ std::string Effect::GetPaletteAsJSON() const
 
 void Effect::SetPalette(const std::string& i)
 {
+    XL_SEQ_MUTATION("Effect::SetPalette");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     auto old = GetPaletteAsString();
@@ -879,6 +916,7 @@ void Effect::SetPalette(const std::string& i)
 // This only updates the colour palette ... preserving all the other colour settings
 void Effect::SetColourOnlyPalette(const std::string& i, bool json, bool keepCheckboxes)
 {
+    XL_SEQ_MUTATION("Effect::SetColourOnlyPalette");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     // save the old palette
@@ -925,8 +963,62 @@ void Effect::CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const
     newcc = mCC;
 }
 
+static bool ApplyKeyChanges(SettingsMap& map, const std::map<std::string, std::optional<std::string>>& changes)
+{
+    bool changed = false;
+    for (const auto& [key, value] : changes) {
+        const SettingValue* cur = map.FindValue(key);
+        if (value.has_value()) {
+            if (cur == nullptr || *cur != *value) {
+                map[key] = *value;
+                changed = true;
+            }
+        } else if (cur != nullptr) {
+            map.erase(key);
+            changed = true;
+        }
+    }
+    return changed;
+}
+
+bool Effect::ApplySettingChanges(const std::map<std::string, std::optional<std::string>>& changes)
+{
+    XL_SEQ_MUTATION("Effect::ApplySettingChanges");
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    if (!ApplyKeyChanges(mSettings, changes)) {
+        return false;
+    }
+    // Lock, description and render-disable don't change rendered output;
+    // the direct setters never marked the effect dirty for them either.
+    static const std::set<std::string> nonRenderKeys = { "X_Effect_Locked", "X_Effect_Description", "X_Effect_RenderDisabled" };
+    for (const auto& [key, value] : changes) {
+        if (nonRenderKeys.find(key) == nonRenderKeys.end()) {
+            IncrementChangeCount();
+            break;
+        }
+    }
+    return true;
+}
+
+bool Effect::ApplyPaletteChanges(const std::map<std::string, std::optional<std::string>>& changes)
+{
+    XL_SEQ_MUTATION("Effect::ApplyPaletteChanges");
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    if (!ApplyKeyChanges(mPaletteMap, changes)) {
+        return false;
+    }
+    mColors.clear();
+    mCC.clear();
+    if (!mPaletteMap.empty()) {
+        ParseColorMap(mPaletteMap, mColors, mCC);
+    }
+    IncrementChangeCount();
+    return true;
+}
+
 void Effect::EraseSettingsStartingWith(const std::string& s)
 {
+    XL_SEQ_MUTATION("Effect::EraseSettingsStartingWith");
     auto it = GetSettings().begin();
     while (it != GetSettings().end()) {
         if (StartsWith(it->first, s)) {
@@ -942,6 +1034,7 @@ void Effect::EraseSettingsStartingWith(const std::string& s)
 
 void Effect::ErasePalette()
 {
+    XL_SEQ_MUTATION("Effect::ErasePalette");
     auto it = GetPaletteMap().begin();
     while (it != GetPaletteMap().end()) {
         if (StartsWith(it->first, "C_BUTTON_Palette") || StartsWith(it->first, "C_CHECKBOX_Palette")) {
@@ -957,6 +1050,7 @@ void Effect::ErasePalette()
 
 void Effect::EraseColourSettings()
 {
+    XL_SEQ_MUTATION("Effect::EraseColourSettings");
     auto it = GetPaletteMap().begin();
     while (it != GetPaletteMap().end()) {
         if (!StartsWith(it->first, "C_BUTTON_Palette") && !StartsWith(it->first, "C_CHECKBOX_Palette")) {
@@ -971,6 +1065,7 @@ void Effect::EraseColourSettings()
 }
 
 void Effect::PaletteMapUpdated() {
+    XL_SEQ_MUTATION("Effect::PaletteMapUpdated");
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     mColors.clear();
     mCC.clear();
@@ -1020,6 +1115,7 @@ void Effect::PurgeCache(bool deleteCache) {
 
 void Effect::LinkToSymbol(const std::string& symbolId)
 {
+    XL_SEQ_MUTATION("Effect::LinkToSymbol");
     if (_linkedSymbolId == symbolId) return;
 
     if (!_linkedSymbolId.empty()) {
@@ -1058,6 +1154,7 @@ void Effect::LinkToSymbol(const std::string& symbolId)
 
 void Effect::UnlinkFromSymbol()
 {
+    XL_SEQ_MUTATION("Effect::UnlinkFromSymbol");
     if (_linkedSymbolId.empty()) return;
 
     if (mParentLayer != nullptr) {
@@ -1072,6 +1169,30 @@ void Effect::UnlinkFromSymbol()
     }
 
     _linkedSymbolId.clear();
+}
+
+void Effect::DetachFromSymbolManager()
+{
+    if (_linkedSymbolId.empty() || mParentLayer == nullptr || mParentLayer->GetParentElement() == nullptr) return;
+    if (SequenceElements* seqElements = mParentLayer->GetParentElement()->GetSequenceElements()) {
+        seqElements->GetEffectSymbolManager().UnregisterLinkedEffect(this);
+    }
+}
+
+void Effect::SetLinkedSymbolId(const std::string& symbolId)
+{
+    XL_SEQ_MUTATION("Effect::SetLinkedSymbolId");
+    if (_linkedSymbolId == symbolId) return;
+    UnlinkFromSymbol();
+    if (symbolId.empty() || mParentLayer == nullptr || mParentLayer->GetParentElement() == nullptr) return;
+    SequenceElements* seqElements = mParentLayer->GetParentElement()->GetSequenceElements();
+    if (seqElements == nullptr || !seqElements->GetEffectSymbolManager().SymbolExists(symbolId)) return;
+    _linkedSymbolId = symbolId;
+    seqElements->GetEffectSymbolManager().RegisterLinkedEffect(this, symbolId);
+    {
+        std::unique_lock<std::recursive_mutex> lock(settingsLock);
+        mSettings.erase("X_LinkedSymbolId");
+    }
 }
 
 void Effect::ApplySymbolSettings(const EffectSymbol* symbol)

@@ -108,6 +108,7 @@ struct CleanupFileLocationsSheet: View {
     }
 
     private func performCleanup() {
+        // Not undoable (the sheet says so): it also rewrites the show file.
         resultCount = Int(viewModel.document.performCleanupFileLocations())
     }
 }

@@ -312,14 +312,12 @@ LOR_CASE("garland no fill", "garland", "9,500,repeat_at_speed,12,", HAS(c, "Garl
 LOR_CASE("garland spacing ramp", "garland", "3,R10R90,repeat_at_speed,12,bottom_to_top", HAS(c, "E_VALUECURVE_Garlands_Spacing=Active=TRUE");)
 LOR_CASE("garland speed ramp", "garland", "3,34,repeat_at_speed,R0R50,bottom_to_top", HAS(c, "E_VALUECURVE_Garlands_Cycles=Active=TRUE");)
 
-LOR_CASE("marquee", "marquee", "4,1,1,0,12",
+LOR_CASE("marquee", "marquee", "4,1,1,12,TTTT,False",
          CHECK(c.name == "Marquee"); HAS(c, "E_SLIDER_Marquee_Skip_Size=4"); HAS(c, "E_SLIDER_Marquee_Band_Size=1"); HAS(c, "E_SLIDER_Marquee_Thickness=1");
          HAS(c, "E_SLIDER_Marquee_Speed=12");)
 LOR_CASE("marquee four params", "marquee", "4,1,1,12", CHECK(c.name == "Marquee"); HAS(c, "E_SLIDER_Marquee_Skip_Size=4");)
 
-TEST_CASE("LOR marquee four parameter form takes its speed from the fourth field", "[impexp2][lor][effects][!mayfail]") {
-    // SUSPECT: the source comment documents "spacing,filled space,size,speed" but the code reads parms[4] for speed, so the
-    // fourth field is ignored. Needs a real marquee sample to confirm which is right.
+TEST_CASE("LOR marquee four parameter form takes its speed from the fourth field", "[impexp2][lor][effects]") {
     auto c = Convert(Settings(Layer("marquee", "4,1,1,12")));
     REQUIRE(c.ok);
     HAS(c, "E_SLIDER_Marquee_Speed=12");

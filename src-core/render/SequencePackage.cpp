@@ -15,6 +15,7 @@
 #include <set>
 
 #include "render/SequencePackage.h"
+#include "render/SequenceEditCapture.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceFile.h"
 #include "render/SequenceMedia.h"
@@ -2053,6 +2054,9 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
     // walk below would silently leave their files out. Register every
     // effect's media first, the same pass a sequence open runs.
     if (RenderContext* ctx = seqElements.GetRenderContext(); ctx != nullptr) {
+        // A setting it resolves is a document change; packaging is not an
+        // undoable edit, so it is reported without an undo step.
+        SequenceEditCapture capture(seqElements, "Resolve Media", false);
         SequenceFile::LoadEffectFiles(seqElements, ctx);
     }
 

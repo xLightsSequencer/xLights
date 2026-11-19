@@ -65,6 +65,11 @@ public:
     std::string ResolveCCRNodeName(const std::string& ccrName, int node) const;
     bool IsCCRName(const std::string& name) const;
 
+    // Long name given to a channel whose plain name is already taken: name + network (when present) + unit + circuit.
+    // MatchesChannelName also accepts the plain name and the pre-network long form so saved mappings still resolve.
+    static std::string LongChannelName(const pugi::xml_node& chan);
+    static bool MatchesChannelName(const pugi::xml_node& chan, const std::string& name);
+
 private:
     pugi::xml_document& _input_xml;
     int _frequency = 20;

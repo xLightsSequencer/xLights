@@ -21,7 +21,9 @@ namespace pugi { class xml_node; class xml_document; }
 #include <functional>
 #include <vector>
 #include <map>
+#include <memory>
 #include <set>
+#include <unordered_map>
 #include <unordered_set>
 #include <string>
 #include <mutex>
@@ -29,6 +31,7 @@ namespace pugi { class xml_node; class xml_document; }
 
 class SequenceFile;
 class SequenceViewManager;
+class CommandExecutor;
 
 #define CURRENT_VIEW -1
 #define MASTER_VIEW 0
@@ -152,13 +155,18 @@ public:
     static constexpr int TagCount = 10;
     int GetTagPosition(int tag) const { return (tag >= 0 && tag < TagCount) ? _tagPositions[tag] : -1; }
     void SetTagPosition(int tag, int position) {
+        XL_SEQ_MUTATION("SequenceElements::SetTagPosition");
         if (tag >= 0 && tag < TagCount) {
             _tagPositions[tag] = position;
         }
     }
-    void ClearTags() { _tagPositions.fill(-1); }
+    void ClearTags() {
+        XL_SEQ_MUTATION("SequenceElements::ClearTags");
+        _tagPositions.fill(-1);
+    }
 
-    void DeleteElement(const std::string &name);
+    // Also drops the model from every view definition unless told not to.
+    void DeleteElement(const std::string &name, bool removeFromViewDefinitions = true);
     void DeleteElementFromView(const std::string &name, int view);
     void DeleteTimingFromView(const std::string &name, int view);
     void DeleteTimingsFromView(int view);
@@ -223,6 +231,8 @@ public:
     bool HasPapagayoTiming() const { return hasPapagayoTiming; }
 
     UndoManager& get_undo_mgr() { return undo_mgr; }
+    // Applies SequenceCommands with validation, undo recording and observers.
+    CommandExecutor& GetCommandExecutor() { return *_commandExecutor; }
 
     EffectSymbolManager& GetEffectSymbolManager() { return _effectSymbolManager; }
     const EffectSymbolManager& GetEffectSymbolManager() const { return _effectSymbolManager; }
@@ -240,6 +250,15 @@ public:
 
     EffectManager &GetEffectManager();
     RenderContext *GetRenderContext() const { return renderContext; };
+    // An edit of the document is under way: a command applying, an undo/redo
+    // replay, a command batch, an edit capture (import) or a live preview.
+    // Hosts must not start another edit, a merge or anything that yields to
+    // the event loop while this is true.
+    bool IsEditInProgress();
+    // Deleted rows not freed yet (see FreeElementSafely).
+    size_t GetElementsAwaitingDelete() const { return mElementsAwaitingDelete.size(); }
+    // How long a deleted row is kept before it may be freed. Tests shorten it.
+    void SetDeletedRowGraceMs(int64_t ms) { mDeletedRowGraceMs = ms; }
 
     // Color palettes from the loaded sequence
     const std::vector<std::string>& GetColorPalettes() const { return mColorPalettes; }
@@ -248,21 +267,19 @@ public:
     SequenceMedia& GetSequenceMedia() { return mSequenceMedia; }
     const SequenceMedia& GetSequenceMedia() const { return mSequenceMedia; }
 
-    // Repoint every reference to a media file - effect settings (exact-value
-    // match on any key), and the sequence-level face definitions - from one
-    // path to another. Returns model name -> [startMS, endMS] covering the
-    // effects that changed, so a caller can re-render just those.
-    std::map<std::string, std::pair<int, int>> RewriteMediaReferences(const std::string& from, const std::string& to);
-
     // Every value held in any model/submodel/strand/node effect's settings or
     // palette - the set a media entry's stored path must appear in to count
     // as referenced. A text value that happens to equal a media path keeps
     // that entry alive, which is the safe direction for cleanup.
     std::unordered_set<std::string> GetEffectSettingValues() const;
 
-    // Forget every media entry that no effect or face definition references.
-    // Embedded payloads are dropped; files on disk are untouched. Returns the
-    // number of entries removed.
+    // Visits every effect layer of every model element, including submodel,
+    // strand and node layers, with the owning model's name.
+    void ForEachModelEffectLayer(const std::function<void(EffectLayer*, const std::string&)>& fn) const;
+
+    // Forget every media entry that no effect or face definition references,
+    // as one undoable step. Embedded payloads are dropped; files on disk are
+    // untouched. Returns the number of entries removed.
     int RemoveUnreferencedMedia();
 
     // Strip the show/media folder prefix off a media entry's stored path and
@@ -270,6 +287,7 @@ public:
     // the document, so an absolute path just pins the sequence to one machine.
     // No-op (returns `path`) when the file is outside the show and media
     // folders, or when the relative key is already taken by another entry.
+    // Runs as commands, so it is undoable.
     std::string MakeMediaPathRelative(const std::string& path);
 
     // Sequence-level face definitions (Matrix/image style only)
@@ -311,6 +329,16 @@ private:
     SequenceViewManager* _viewsManager = nullptr;
     std::array<int, TagCount> _tagPositions{};
     RenderContext *renderContext = nullptr;
+    struct DeletedRow {
+        Element* element;
+        int64_t freeAfterMs;
+    };
+    std::vector<DeletedRow> mElementsAwaitingDelete;
+    int64_t mDeletedRowGraceMs = 60000;
+    void FreeExpiredRows();
+    bool StopRenderForRowChange();
+    bool StopRenderBeforeAddingRow();
+    void FreeElementSafely(Element* e, bool renderStopped);
     double mFrequency;
     int mTimingRowCount = 0;
     int mMaxRowsDisplayed = 0;
@@ -319,9 +347,6 @@ private:
     bool mHideUnusedSubmodels = false;
     std::function<bool(const std::string&)> _modelRowFilter;
 
-    // Visits every effect layer of every model element, including submodel,
-    // strand and node layers, with the owning model's name.
-    void ForEachModelEffectLayer(const std::function<void(EffectLayer*, const std::string&)>& fn) const;
     int mSequenceEndMS;
     bool supportsModelBlending;
 
@@ -330,6 +355,22 @@ private:
     unsigned int mChangeCount;
     unsigned int mMasterViewChangeCount;
     UndoManager undo_mgr;
+    std::unique_ptr<CommandExecutor> _commandExecutor;
+
+    // GetElementFromUid index: uid -> {element, its top-level element}.
+    // Rebuilt lazily after the master view's membership changes; a hit is
+    // checked against the live elements and a miss falls back to a scan, so
+    // ids or submodel rows that change behind its back can't make it lie.
+    struct UidIndexEntry {
+        Element* element = nullptr;
+        Element* top = nullptr;
+    };
+    void InvalidateUidIndex() { _uidIndexValid = false; }
+    void RebuildUidIndexLocked() const;
+    Element* ScanForUid(SeqObjectId uid) const;
+    mutable std::mutex _uidIndexLock;
+    mutable std::unordered_map<SeqObjectId, UidIndexEntry> _uidIndex;
+    mutable bool _uidIndexValid = false;
 
     std::map<std::string, std::set<std::string>> renderDependency;
     std::set<std::string> modelsToRender;

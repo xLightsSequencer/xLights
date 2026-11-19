@@ -26,6 +26,7 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 #include "Element.h"
+#include "SequenceEditCapture.h"
 #include "SequenceElements.h"
 #include "SequenceMedia.h"
 
@@ -75,6 +76,8 @@ int ConvertGifVideoEffectsToPictures(SequenceElements& elements,
     // parameters across.
     if (gifIssues.empty()) return 0;
 
+    // One undo step; the capture records the rewritten effects.
+    SequenceEditCapture capture(elements, "Convert GIF Videos");
     std::set<std::string> gifResolved;
     for (const auto& issue : gifIssues) {
         gifResolved.insert(issue.filePath);
@@ -178,6 +181,8 @@ VideoConversionResult ConvertIncompatibleVideos(SequenceElements& elements,
                                                 const FrameProgressCallback& onFrame)
 {
     VideoConversionResult result;
+    // One undo step; the capture records the rewritten effects.
+    SequenceEditCapture capture(elements, "Convert Videos");
 
     // Audio issues are skipped - they need re-encoding outside xLights.
     // Animated GIFs are split out: transcoding one to mp4/mov mangles the

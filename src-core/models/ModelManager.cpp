@@ -47,6 +47,8 @@
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
+#include "../utils/LayoutObjectId.h"
+#include "../utils/LayoutRecords.h"
 #include "WindowFrameModel.h"
 #include "WreathModel.h"
 #include "XmlSerializer/XmlSerializer.h"
@@ -57,6 +59,7 @@
 #include "../render/Element.h"
 #include "../render/RenderContext.h"
 #include "../render/SequenceElements.h"
+#include "../render/SequenceElementCommands.h"
 #include "../outputs/OutputManager.h"
 #include "DMX/DmxFloodArea.h"
 #include "DMX/DmxFloodlight.h"
@@ -197,6 +200,7 @@ void ModelManager::clear()
     }
     models.clear();
     _setManager.Clear();
+    _renameLog.Reset();
     _modelGeneration++;
 }
 
@@ -281,6 +285,104 @@ Model* ModelManager::operator[](const std::string& name) const
     return GetModel(name);
 }
 
+Model* ModelManager::GetModelByObjectId(const std::string& id) const
+{
+    if (id.empty()) {
+        return nullptr;
+    }
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+    for (const auto& it : models) {
+        if (it.second->GetObjectId() == id) {
+            return it.second;
+        }
+        for (Model* sm : it.second->GetSubModels()) {
+            if (sm->GetObjectId() == id) {
+                return sm;
+            }
+        }
+    }
+    return nullptr;
+}
+
+void ModelManager::AssignObjectIds(Model* model, const Model* replaced)
+{
+    if (model == nullptr) {
+        return;
+    }
+    if (replaced != nullptr && replaced != model && model->GetObjectId().empty()) {
+        model->SetObjectId(replaced->GetObjectId());
+    }
+
+    // Unique within the model first: the parent and its submodels.
+    std::unordered_set<std::string> mine;
+    std::string id = model->GetObjectId();
+    LayoutObjectId::Claim(id, mine);
+    model->SetObjectId(id);
+    for (Model* sm : model->GetSubModels()) {
+        std::string sid = sm->GetObjectId();
+        if (LayoutObjectId::Claim(sid, mine)) {
+            sm->SetObjectId(sid);
+        }
+    }
+
+    // Then against every other record in the file.
+    std::unordered_set<std::string> taken;
+    for (const auto& it : models) {
+        const Model* other = it.second;
+        if (other == model || other == replaced || other == nullptr) {
+            continue;
+        }
+        if (mine.count(other->GetObjectId()) != 0) {
+            taken.insert(other->GetObjectId());
+        }
+        for (const Model* sm : other->GetSubModels()) {
+            if (mine.count(sm->GetObjectId()) != 0) {
+                taken.insert(sm->GetObjectId());
+            }
+        }
+    }
+    if (taken.empty()) {
+        return;
+    }
+    std::unordered_set<std::string> used = mine;
+    used.insert(taken.begin(), taken.end());
+    if (taken.count(model->GetObjectId()) != 0) {
+        std::string fresh;
+        LayoutObjectId::Claim(fresh, used);
+        model->SetObjectId(fresh);
+    }
+    for (Model* sm : model->GetSubModels()) {
+        if (taken.count(sm->GetObjectId()) != 0) {
+            std::string fresh;
+            LayoutObjectId::Claim(fresh, used);
+            sm->SetObjectId(fresh);
+        }
+    }
+}
+
+void ModelManager::ClaimObjectIdsInFileOrder(pugi::xml_node parent, const char* childName, std::unordered_set<std::string>& used)
+{
+    std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+    std::set<Model*> visited;
+    for (pugi::xml_node e = parent.child(childName); e; e = e.next_sibling(childName)) {
+        auto it = models.find(Trim(e.attribute("name").as_string()));
+        if (it == models.end() || !visited.insert(it->second).second) {
+            continue;
+        }
+        Model* m = it->second;
+        std::string id = m->GetObjectId();
+        if (LayoutObjectId::Claim(id, used)) {
+            m->SetObjectId(id);
+        }
+        for (Model* sm : m->GetSubModels()) {
+            std::string sid = sm->GetObjectId();
+            if (LayoutObjectId::Claim(sid, used)) {
+                sm->SetObjectId(sid);
+            }
+        }
+    }
+}
+
 bool ModelManager::Rename(const std::string& oldName, const std::string& newName)
 {
     auto on = Trim(oldName);
@@ -292,6 +394,7 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
     model->Rename(nn);
     model->name = nn;
     if (dynamic_cast<SubModel*>(model) == nullptr) {
+        _renameLog.Record(on, nn, model->GetObjectId());
         std::unique_lock<std::recursive_mutex> lock(_modelMutex);
         bool changed = false;
         std::vector<ModelGroup*> groups;
@@ -423,6 +526,12 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
         if (omm != nullptr) {
             omm->DisableASAPWork(asapWasDisabled);
         }
+    }
+    // Models load in parallel, so ids are settled afterwards, in file order:
+    // the later of two records sharing an id is the one that gets a new one.
+    {
+        std::unordered_set<std::string> usedIds;
+        ClaimObjectIdsInFileOrder(modelNode, "model", usedIds);
     }
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     auto timerElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerStart).count();
@@ -749,6 +858,8 @@ void ModelManager::AddModelGroups(pugi::xml_node n, const std::string& mname, bo
     tempDoc.append_copy(n);
     pugi::xml_node tempNode = tempDoc.first_child();
     tempNode.attribute("name").set_value(nn);
+    // An imported group is a new record of this show.
+    LayoutObjectId::StripFromXml(tempNode);
 
     // Fix model names by replacing EXPORTEDMODEL with the actual model name
     auto modelsList = Split(std::string(tempNode.attribute("models").as_string()), ',');
@@ -1485,6 +1596,25 @@ bool ModelManager::LoadGroups(pugi::xml_node groupNode, int previewW, int previe
         }
     }
 
+    // Groups share the id space of the models and submodels already loaded.
+    {
+        std::unordered_set<std::string> usedIds;
+        {
+            std::lock_guard<std::recursive_mutex> lock(_modelMutex);
+            for (const auto& it : models) {
+                if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                    continue;
+                }
+                usedIds.insert(it.second->GetObjectId());
+                for (const Model* sm : it.second->GetSubModels()) {
+                    usedIds.insert(sm->GetObjectId());
+                }
+            }
+        }
+        usedIds.erase(std::string());
+        ClaimObjectIdsInFileOrder(groupNode, "modelGroup", usedIds);
+    }
+
     return changed;
 }
 
@@ -1738,6 +1868,10 @@ void ModelManager::AddModel(Model* model)
             if (it != models.end()) {
                 oldm = it->second;
             }
+            // A parallel show load settles ids afterwards, in file order.
+            if (!_modelsLoading) {
+                AssignObjectIds(model, oldm);
+            }
             // Publish the replacement before resetting the groups, then free the old
             // model. Resetting while the map still held the old (or a null) entry
             // left every group that names this model pointing at the model we are
@@ -1770,6 +1904,9 @@ void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
             auto it = models.find(name);
             if (it != models.end()) {
                 oldm = it->second;
+            }
+            AssignObjectIds(nm, oldm);
+            if (it != models.end()) {
                 if (nm->name != name) {
                     // Renamed. The old key has to go or it keeps handing out the
                     // model freed below - to the groups reset here and to every
@@ -1969,230 +2106,6 @@ std::string ModelManager::GenerateNewStartChannel(const std::string& lastModel) 
     return startChannel;
 }
 
-std::string MergeModels(const std::string& ml1, const std::string& ml2)
-{
-    std::string res = "";
-
-    std::list<std::string> models;
-
-    std::istringstream lineStream(ml1);
-    std::string cell;
-    while (std::getline(lineStream, cell, ',')) {
-        if (std::find(begin(models), end(models), cell) == end(models))
-            models.push_back(cell);
-    }
-
-    lineStream = std::istringstream(ml2);
-    while (std::getline(lineStream, cell, ',')) {
-        if (std::find(begin(models), end(models), cell) == end(models))
-            models.push_back(cell);
-    }
-
-    for (const auto& it : models) {
-        if (res != "")
-            res += ",";
-        res += it;
-    }
-
-    return res;
-}
-
-// Helper: find a child XML node with a given tag name and "name" attribute value
-static pugi::xml_node FindChildByNameAttr(pugi::xml_node parent, const std::string& childTag, const std::string& name)
-{
-    for (pugi::xml_node n = parent.first_child(); n; n = n.next_sibling()) {
-        if (std::string_view(n.name()) == childTag && std::string_view(n.attribute("name").as_string()) == name) {
-            return n;
-        }
-    }
-    return pugi::xml_node();
-}
-
-// Helper: set an attribute on a node (update or add)
-static void SetXmlAttribute(pugi::xml_node node, const std::string& attr, const std::string& value)
-{
-    pugi::xml_attribute a = node.attribute(attr);
-    if (a) {
-        a.set_value(value);
-    } else {
-        node.append_attribute(attr) = value;
-    }
-}
-
-// Helper: compare name attributes on child nodes for XML comparison
-static bool CheckNameAttrs(pugi::xml_node nn, pugi::xml_node cc)
-{
-    if (!nn.attribute("name").empty()) {
-        return std::string_view(cc.attribute("name").as_string()) == std::string_view(nn.attribute("name").as_string());
-    } else if (!nn.attribute("Name").empty()) {
-        return std::string_view(cc.attribute("Name").as_string()) == std::string_view(nn.attribute("Name").as_string());
-    }
-    return true;
-}
-
-
-static std::set<std::string> FLOAT_ATTRIBUTES = {
-    XmlNodeKeys::WorldPosXAttribute,
-    XmlNodeKeys::WorldPosYAttribute,
-    XmlNodeKeys::WorldPosZAttribute,
-    XmlNodeKeys::RotateXAttribute,
-    XmlNodeKeys::RotateYAttribute,
-    XmlNodeKeys::RotateZAttribute,
-    XmlNodeKeys::ScaleXAttribute,
-    XmlNodeKeys::ScaleYAttribute,
-    XmlNodeKeys::ScaleZAttribute,
-    XmlNodeKeys::LengthAttribute,
-    XmlNodeKeys::X2Attribute,
-    XmlNodeKeys::Y2Attribute,
-    XmlNodeKeys::Z2Attribute,
-};
-
-#ifdef DEBUG_MERGEFROMBASE
-static std::set<std::string> IGNORE_ATTRIBUTES = {
-    "ModelBrightness",
-    "RotateX",
-    "CustomModel"
-};
-#endif
-static std::set<std::string> BASE_EMPTY = {
-    "StrandNames",
-    "NodeNames",
-    "PixelSpacing",
-    "PixelCount",
-    "PixelType"
-};
-
-// Helper: compare two XML nodes to detect changes (standalone version operating on raw nodes)
-static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
-{
-    // Check if base has attributes that differ from local
-    bool changed = false;
-    for (pugi::xml_attribute a : base.attributes()) {
-        std::string_view aName = a.name();
-        std::string_view aValue = a.value();
-        pugi::xml_attribute localAttr = local.attribute(a.name());
-        if (localAttr.empty() || std::string_view(localAttr.as_string()) != aValue) {
-            // SourceVersion is just the xLights version that last saved the model — not a real change
-            if (aName == "SourceVersion") continue;
-            // Controller is locally managed in the show folder.
-            if (aName == "Controller") {
-                auto isNoCtrl = [](std::string_view v) { return v.empty() || v == NO_CONTROLLER; };
-                if (isNoCtrl(aValue) && !isNoCtrl(localAttr.as_string(""))) continue;
-            }
-            if (aName != "StartChannel" || local.attribute("Controller").empty()) {
-                // For float attributes, compare rounded to 4 decimal places as older versions of xLights only output to 4 decimals
-                if (FLOAT_ATTRIBUTES.count(std::string(aName)) > 0 && !localAttr.empty()) {
-                    double baseVal = a.as_double(0.0);
-                    double localVal = localAttr.as_double(0.0);
-                    if (std::round(baseVal * 10000.0) == std::round(localVal * 10000.0)) {
-                        continue;
-                    }
-                }
-                // In some cases, old versions of xLights would put an empty attribute but the new version will not put the attribute at all.
-                if (!(BASE_EMPTY.contains(std::string(aName)) && aValue.empty() && localAttr.empty())) {
-#ifdef DEBUG_MERGEFROMBASE
-                    if (!changed) {
-                        printf("%s\n", local.attribute("name").as_string());
-                    }
-                    printf("  %s:  %s\n", a.name(), a.value());
-                    printf("          %s\n", localAttr.as_string());
-                    changed = true;
-#else
-                    return true;
-#endif
-                }
-            }
-        }
-    }
-    if (changed) {
-        return true;
-    }
-
-    // Check child nodes (base → local): all base children must exist in local with same content
-    for (pugi::xml_node nn = base.first_child(); nn; nn = nn.next_sibling()) {
-        bool found = false;
-        for (pugi::xml_node cc = local.first_child(); cc; cc = cc.next_sibling()) {
-            if (std::string_view(cc.name()) == std::string_view(nn.name()) && CheckNameAttrs(nn, cc)) {
-                found = true;
-                if (IsXmlNodeChanged(cc, nn)) {
-                    return true;
-                }
-                break;
-            }
-        }
-        if (!found) {
-            return true;
-        }
-    }
-    // Check child nodes (local → base): detect children removed from base (e.g. dimmingCurve reset to default)
-    for (pugi::xml_node cc = local.first_child(); cc; cc = cc.next_sibling()) {
-        if (std::string_view(cc.name()) == "ControllerConnection") continue;
-        bool found = false;
-        for (pugi::xml_node nn = base.first_child(); nn; nn = nn.next_sibling()) {
-            if (std::string_view(cc.name()) == std::string_view(nn.name()) && CheckNameAttrs(nn, cc)) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// Helper: copy preserved local controller attributes onto a new node replacing a FromBase model
-static void PreserveLocalControllerAttrs(pugi::xml_node localNode, pugi::xml_node newNode)
-{
-    // Find the local port from ControllerConnection child
-    std::string port;
-    for (pugi::xml_node p = localNode.first_child(); p; p = p.next_sibling()) {
-        if (std::string_view(p.name()) == "ControllerConnection") {
-            port = p.attribute("Port").as_string();
-        }
-    }
-
-    if (!port.empty()) {
-        // Preserve ModelChain if local has one
-        std::string modelChain = localNode.attribute("ModelChain").as_string();
-        if (!modelChain.empty()) {
-            SetXmlAttribute(newNode, "ModelChain", modelChain);
-        }
-        SetXmlAttribute(newNode, "StartChannel", localNode.attribute("StartChannel").as_string());
-        SetXmlAttribute(newNode, "Controller", localNode.attribute("Controller").as_string());
-    }
-}
-
-// Helper: preserve the local ControllerConnection onto the new node.
-static void PreserveLocalControllerPort(pugi::xml_node localNode, pugi::xml_node newNode)
-{
-    pugi::xml_node localCC;
-    std::string port;
-    for (pugi::xml_node p = localNode.first_child(); p; p = p.next_sibling()) {
-        if (std::string_view(p.name()) == "ControllerConnection") {
-            localCC = p;
-            port = p.attribute("Port").as_string();
-        }
-    }
-    if (port.empty() || !localCC) return;
-
-    for (pugi::xml_node bp = newNode.first_child(); bp; bp = bp.next_sibling()) {
-        if (std::string_view(bp.name()) == "ControllerConnection") {
-            if (bp.attribute("Port").empty()) {
-                bp.append_attribute("Port") = port.c_str();
-            }
-            return;
-        }
-    }
-    newNode.append_copy(localCC);
-}
-static void RemoveControllerConnection(pugi::xml_node node) {
-    pugi::xml_node cc = node.child("ControllerConnection");
-    if (cc) {
-        node.remove_child(cc);
-    }
-}
-
 // Shared method: merge base XML into current XML, updating currentModelsNode and currentGroupsNode in-place.
 // Populates changedModels and changedGroups with names of models/groups that were added or updated.
 // Only updates models/groups that are new or have FromBase="1" on the current side.
@@ -2210,22 +2123,23 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
             std::string name = bm.attribute("name").as_string();
             if (name.empty()) continue;
 
-            pugi::xml_node local = FindChildByNameAttr(currentModelsNode, "model", name);
+            pugi::xml_node local = LayoutRecords::FindByName(currentModelsNode, "model", name);
 
             if (!local) {
-                // Model does not exist locally -- add it
+                // Model does not exist locally -- add it, as a new record of this show
                 pugi::xml_node copy = currentModelsNode.append_copy(bm);
-                SetXmlAttribute(copy, "FromBase", "1");
+                LayoutRecords::SetAttribute(copy, "FromBase", "1");
+                LayoutObjectId::StripFromXml(copy);
                 changedModels.push_back(name);
                 changed = true;
                 spdlog::debug("MergeBase: Adding model from base: '{}'.", name.c_str());
             } else if (std::string_view(local.attribute("FromBase").as_string()) == "1") {
                 // Model exists and came from base -- update if changed
-                if (IsXmlNodeChanged(local, bm)) {
+                if (LayoutRecords::BaseRecordChanged(local, bm, LayoutRecords::BaseCompare::Model)) {
                     pugi::xml_node copy = currentModelsNode.insert_copy_after(bm, local);
-                    SetXmlAttribute(copy, "FromBase", "1");
-                    PreserveLocalControllerAttrs(local, copy);
-                    PreserveLocalControllerPort(local, copy);
+                    LayoutRecords::SetAttribute(copy, "FromBase", "1");
+                    LayoutRecords::KeepLocalControllerWiring(local, copy);
+                    LayoutObjectId::CopyLocalIds(local, copy, "subModel");
 
                     currentModelsNode.remove_child(local);
                     changedModels.push_back(name);
@@ -2243,12 +2157,13 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
             std::string name = bg.attribute("name").as_string();
             if (name.empty()) continue;
 
-            pugi::xml_node local = FindChildByNameAttr(currentGroupsNode, "modelGroup", name);
+            pugi::xml_node local = LayoutRecords::FindByName(currentGroupsNode, "modelGroup", name);
 
             if (!local) {
-                // Group does not exist locally -- add it
+                // Group does not exist locally -- add it, as a new record of this show
                 pugi::xml_node copy = currentGroupsNode.append_copy(bg);
-                SetXmlAttribute(copy, "FromBase", "1");
+                LayoutRecords::SetAttribute(copy, "FromBase", "1");
+                LayoutObjectId::StripFromXml(copy);
                 changedGroups.push_back(name);
                 changed = true;
                 spdlog::debug("MergeBase: Adding model group from base: '{}'.", name.c_str());
@@ -2256,30 +2171,27 @@ static bool MergeBaseIntoCurrentXml(pugi::xml_node currentModelsNode, pugi::xml_
                 // Group exists and came from base -- merge model lists and update if changed
                 std::string baseModelList = bg.attribute("models").as_string();
                 std::string localModelList = local.attribute("models").as_string();
-                std::string mergedList = MergeModels(baseModelList, localModelList);
+                std::string mergedList = LayoutRecords::UnionMembers(baseModelList, localModelList);
 
                 // Create a temp doc with copy of bg to modify for comparison
                 pugi::xml_document tempDoc;
                 pugi::xml_node copy = tempDoc.append_copy(bg);
-                SetXmlAttribute(copy, "models", mergedList);
-                SetXmlAttribute(copy, "FromBase", "1");
+                LayoutRecords::SetAttribute(copy, "models", mergedList);
+                LayoutRecords::SetAttribute(copy, "FromBase", "1");
                 copy.remove_attribute("selected");
                 copy.remove_attribute("BaseModels");
 
-                RemoveControllerConnection(copy);
+                LayoutRecords::RemoveControllerConnection(copy);
 
                 // Make a local copy for comparison purposes (without ControllerConnection)
                 pugi::xml_document localCopyDoc;
                 pugi::xml_node localCopy = localCopyDoc.append_copy(local);
-                RemoveControllerConnection(localCopy);
+                LayoutRecords::RemoveControllerConnection(localCopy);
 
-                if (IsXmlNodeChanged(localCopy, copy)) {
-                    SetXmlAttribute(copy, "BaseModels", baseModelList);
-                    // Preserve local X/Y centre offsets
-                    std::string xOffset = local.attribute("GridCentreX").as_string();
-                    std::string yOffset = local.attribute("GridCentreY").as_string();
-                    if (!xOffset.empty()) SetXmlAttribute(copy, "GridCentreX", xOffset);
-                    if (!yOffset.empty()) SetXmlAttribute(copy, "GridCentreY", yOffset);
+                if (LayoutRecords::BaseRecordChanged(localCopy, copy, LayoutRecords::BaseCompare::Model)) {
+                    LayoutRecords::SetAttribute(copy, "BaseModels", baseModelList);
+                    LayoutRecords::KeepLocalGroupSettings(local, copy);
+                    LayoutObjectId::CopyLocalIds(local, copy, "subModel");
 
                     currentGroupsNode.insert_copy_after(copy, local);
                     currentGroupsNode.remove_child(local);
@@ -2412,7 +2324,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
 
     // Apply changes: replace changed models with new ones created from the updated XML
     for (const auto& name : changedModels) {
-        pugi::xml_node updatedNode = FindChildByNameAttr(currentModelsNode, "model", name);
+        pugi::xml_node updatedNode = LayoutRecords::FindByName(currentModelsNode, "model", name);
         if (updatedNode) {
             auto curr = GetModel(name);
             if (curr != nullptr) {
@@ -2424,7 +2336,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
         }
     }
     for (const auto& name : changedGroups) {
-        pugi::xml_node updatedNode = FindChildByNameAttr(currentGroupsNode, "modelGroup", name);
+        pugi::xml_node updatedNode = LayoutRecords::FindByName(currentGroupsNode, "modelGroup", name);
         if (updatedNode) {
             auto curr = GetModel(name);
             if (curr != nullptr) {
@@ -2444,7 +2356,7 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
     return true;
 }
 
-bool ModelManager::Delete(const std::string& name)
+bool ModelManager::Delete(const std::string& name, bool askAboutEffects)
 {
     DrainParkedModels();
 
@@ -2463,15 +2375,16 @@ bool ModelManager::Delete(const std::string& name)
                 }
             }
 
-            if (effects_exist) {
+            if (effects_exist && askAboutEffects) {
                 if (auto* ui = GetUICallbacks()) {
                     if (!ui->PromptYesNo("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?"))
                         return false;
                 }
             }
 
-            // Delete the model from the sequencer grid and views
-            _renderContext->GetSequenceElements().DeleteElement(mn);
+            // Delete the model from the sequencer grid and views. Follows
+            // the layout change, so it isn't a sequence undo step.
+            ElementEdits::DeleteElement(_renderContext->GetSequenceElements(), mn, false);
         }
     }
 

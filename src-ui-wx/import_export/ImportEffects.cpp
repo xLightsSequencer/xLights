@@ -23,6 +23,7 @@
 
 #include "../import_export/LMSImportChannelMapDialog.h"
 #include "import_export/LOREdit.h"
+#include "import_export/LORMusic.h"
 #include "../import_export/SuperStarImportDialog.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
@@ -38,6 +39,8 @@
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "xLightsVersion.h"
+#include "render/CommandExecutor.h"
+#include "render/SequenceEditCapture.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceFile.h"
 #include "utils/ExternalHooks.h"
@@ -142,6 +145,9 @@ void xLightsFrame::ImportEffectsFromFile(const wxFileName& fn)
     }
     // Every importer below shows modal dialogs over the open sequence.
     SequenceBusyScope busy(this, "Import Effects");
+    // The importers change the sequence directly; this records the result
+    // as one undo step.
+    SequenceEditCapture capture(_sequenceElements, "Import Effects");
     wxString ext = fn.GetExt().Lower();
     if (ext == "lms" || ext == "las") {
         ImportLMS(fn);
@@ -164,7 +170,6 @@ void xLightsFrame::ImportEffectsFromFile(const wxFileName& fn)
     } else if (ext == "vsa") {
         ImportVsa(fn);
     }
-
     // Imported effects are added via EffectLayer::AddEffect, which never
     // calls loadFiles() - that only happens in the sequence-open path
     // (SequenceFile::LoadEffectFiles). Without this, any media an
@@ -173,7 +178,9 @@ void xLightsFrame::ImportEffectsFromFile(const wxFileName& fn)
     // show it - broken or not - until the sequence is closed and
     // reopened. Re-run the same registration pass now so newly imported
     // effects show up immediately.
+    // Inside the capture: any setting it resolves is part of the import.
     SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
+    capture.Commit();
 
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
@@ -739,10 +746,10 @@ void MapToStrandName(const std::string& name, std::vector<std::string>& strands)
         std::string strandName;
         if (spos == -1 && ppos == -1) {
             // simple "strand" names of _#####
-            strandName = name.substr(0, name.find("_") - 1);
+            strandName = name.substr(0, name.find("_"));
         } else if (spos >= 0 && ppos > spos) {
             // more complex of _S###P###
-            strandName = name.substr(0, ppos - 1);
+            strandName = name.substr(0, ppos);
         }
         if ("" != strandName && std::find(strands.begin(), strands.end(), strandName) == strands.end()) {
             strands.push_back(strandName);
@@ -1496,15 +1503,24 @@ bool xLightsFrame::ImportSuperStar(const wxFileName& filename, const std::string
 
 int xLightsFrame::ClearElementEffects(Element* element, bool includeSubModels)
 {
+    CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
+    ScopedCommandBatch batch(exec, "Clear Effects");
     int removed = 0;
-    auto clear = [&removed](Element* el) {
+    // Locked effects stay, as with EffectLayer::DeleteAllEffects.
+    auto clearLayer = [&](EffectLayer* layer) {
+        std::vector<Effect*> effects = layer->GetEffects();
+        for (Effect* e : effects) {
+            if (!e->IsLocked() && exec.DeleteEffect(e)) {
+                ++removed;
+            }
+        }
+    };
+    auto clear = [&](Element* el) {
         for (int i = (int)el->GetEffectLayerCount() - 1; i >= 0; --i) {
             EffectLayer* layer = el->GetEffectLayer(i);
-            int before = layer->GetEffectCount();
-            layer->DeleteAllEffects();
-            removed += before - layer->GetEffectCount();
+            clearLayer(layer);
             if (layer->GetEffectCount() == 0 && el->GetEffectLayerCount() > 1) {
-                el->RemoveEffectLayer(i);
+                exec.RemoveLayer(el, i);
             }
         }
     };
@@ -1516,10 +1532,7 @@ int xLightsFrame::ClearElementEffects(Element* element, bool includeSubModels)
             clear(sub);
             if (StrandElement* strand = dynamic_cast<StrandElement*>(sub); strand != nullptr) {
                 for (int n = 0; n < strand->GetNodeLayerCount(); n++) {
-                    NodeLayer* nl = strand->GetNodeLayer(n);
-                    int before = nl->GetEffectCount();
-                    nl->DeleteAllEffects();
-                    removed += before - nl->GetEffectCount();
+                    clearLayer(strand->GetNodeLayer(n));
                 }
             }
         }
@@ -1861,11 +1874,8 @@ bool MapChannelInformation(EffectManager& effectManager, EffectLayer* layer, pug
     for (pugi::xml_node e = input_xml.document_element().first_child(); !channel && e; e = e.next_sibling()) {
         if (std::string_view(e.name()) == "channels") {
             for (pugi::xml_node chan = e.first_child(); !channel && chan; chan = chan.next_sibling()) {
-                std::string unit = chan.attribute("unit").as_string();
-                std::string circuit = chan.attribute("circuit").as_string();
-                std::string dedupname = std::string(chan.attribute("name").as_string()) + "_Unit_" + unit + "_Circuit_" + circuit;
                 std::string chanName = chan.name();
-                if ((chanName == "channel" || chanName == "rgbChannel") && (nm == chan.attribute("name").as_string() || nm == dedupname)) {
+                if ((chanName == "channel" || chanName == "rgbChannel") && LORMusic::MatchesChannelName(chan, nm)) {
                     channel = chan;
                     if (chanName == "rgbChannel" && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
                         return false;
@@ -1976,10 +1986,8 @@ bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& fi
                         dlg.channelColors[name] = xlBLACK;
                     } else {
                         std::string color = chan.attribute("color").as_string();
-                        std::string unit = chan.attribute("unit").as_string();
-                        std::string circuit = chan.attribute("circuit").as_string();
                         if (dlg.GetImportChannel(name)) {
-                            name += "_Unit_" + unit + "_Circuit_" + circuit;
+                            name = LORMusic::LongChannelName(chan);
                         }
                         dlg.channelColors[name] = GetColor(color);
                     }
@@ -3936,7 +3944,6 @@ bool xLightsFrame::CloneXLightsEffects(const std::string& target,
         // printf("Source element %s doesn't exist\n", name.c_str());
         return false;
     }
-    _sequenceElements.get_undo_mgr().CreateUndoStep();
     while (to->GetEffectLayerCount() < from->GetEffectLayerCount()) {
         to->AddEffectLayer();
     }

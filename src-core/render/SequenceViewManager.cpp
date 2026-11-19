@@ -18,6 +18,7 @@
 #include "UtilFunctions.h"
 #include "utils/string_utils.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
+#include "utils/LayoutObjectId.h"
 
 #include <log.h>
 
@@ -29,6 +30,7 @@ SequenceView::SequenceView(const std::string& name, ModelManager* modelManager)
 {
 	_modelManager = modelManager;
 	_name = name;
+	_objectId = LayoutObjectId::Generate();
 }
 
 SequenceView::SequenceView(pugi::xml_node node, ModelManager* modelManager)
@@ -40,6 +42,7 @@ SequenceView::SequenceView(pugi::xml_node node, ModelManager* modelManager)
 void SequenceView::Load(pugi::xml_node node)
 {
 	_name = node.attribute("name").as_string("");
+	_objectId = LayoutObjectId::Read(node);
 	SetModels(node.attribute("models").as_string(""));
 }
 
@@ -163,6 +166,9 @@ void SequenceView::Save(BaseSerializingVisitor& visitor) const
     BaseSerializingVisitor::AttrCollector attrs;
     attrs.Add("name", _name);
     attrs.Add("models", GetModelsString());
+    if (!_objectId.empty()) {
+        attrs.Add(LayoutObjectId::ATTRIBUTE, _objectId);
+    }
     visitor.WriteOpenTag("view", attrs, /*selfClose=*/true);
 }
 
@@ -222,6 +228,15 @@ void SequenceViewManager::Load(pugi::xml_node node, int selectedView)
 	}
 
 	SanitizeViewNames();
+
+	// In file order: a missing id is assigned, the later of two repeats is replaced.
+	std::unordered_set<std::string> usedIds;
+	for (auto* v : _views) {
+		std::string id = v->GetObjectId();
+		if (LayoutObjectId::Claim(id, usedIds)) {
+			v->SetObjectId(id);
+		}
+	}
 
 	if (GetView(_selectedView) == nullptr)
 	{
@@ -393,6 +408,15 @@ int SequenceViewManager::GetViewIndex(const std::string& name) const
 	}
 
 	return -1;
+}
+
+SequenceView* SequenceViewManager::GetViewByObjectId(const std::string& id) const
+{
+	if (id.empty()) return nullptr;
+	for (auto* v : _views) {
+		if (v->GetObjectId() == id) return v;
+	}
+	return nullptr;
 }
 
 SequenceView* SequenceViewManager::GetView(int index) const

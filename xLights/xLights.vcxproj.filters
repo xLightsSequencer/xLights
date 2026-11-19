@@ -72,6 +72,10 @@
     <ClCompile Include="..\src-ui-wx\klightmapper\KLightMapperBridge_win.cpp" />
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutObjectId.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutRecords.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutRenameHints.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutRenameLog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutGroup.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutPanel.cpp" />
@@ -115,6 +119,7 @@
     <ClCompile Include="..\src-ui-wx\diagnostics\RenderProgressDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\media\ResizeImageDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\SaveChangesDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\ShowFileMergeDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectTimingsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectModelDialog.cpp" />
@@ -134,6 +139,7 @@
     <ClCompile Include="..\src-ui-wx\app-shell\TabConvert.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabPreview.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabSequence.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\ShowFileWatch.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\DiscoveryHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabSetup.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BlendingPanel.cpp" />
@@ -606,6 +612,15 @@
     <ClCompile Include="..\src-ui-wx\color\ColoursPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.cpp" />
     <ClCompile Include="..\src-core\utils\ShowGuid.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowAutosave.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowFileGuard.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowFileMerge.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowSaveMerge.cpp" />
+    <ClCompile Include="..\src-core\render\ShowMergeApply.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowConflictedCopies.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowPresence.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowFileWatcher.cpp" />
+    <ClCompile Include="..\src-core\render\ShowFileLiveMerge.cpp" />
     <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
@@ -760,6 +775,9 @@
     <ClCompile Include="..\src-core\render\Effect.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\render\EffectEditCoalescer.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\EffectSymbol.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -791,6 +809,21 @@
     <ClCompile Include="..\src-core\render\SequenceElements.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceCommands.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceElementCommands.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\CommandExecutor.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceEditCapture.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceBulkEdits.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\SongStructureManager.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -798,6 +831,9 @@
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceMediaCommands.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceFaces.cpp">
@@ -1642,6 +1678,10 @@
     <ClInclude Include="..\src-ui-wx\shared\utils\Images_png.h" />
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
+    <ClInclude Include="..\src-core\utils\LayoutObjectId.h" />
+    <ClInclude Include="..\src-core\utils\LayoutRecords.h" />
+    <ClInclude Include="..\src-core\utils\LayoutRenameHints.h" />
+    <ClInclude Include="..\src-core\utils\LayoutRenameLog.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
@@ -1682,6 +1722,7 @@
     <ClInclude Include="..\src-ui-wx\diagnostics\RenderProgressDialog.h" />
     <ClInclude Include="..\src-ui-wx\media\ResizeImageDialog.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\SaveChangesDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\ShowFileMergeDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectTimingsDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectModelDialog.h" />
@@ -2182,6 +2223,15 @@
     <ClInclude Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.h" />
     <ClInclude Include="..\src-core\utils\SpecialOptions.h" />
     <ClInclude Include="..\src-core\utils\ShowGuid.h" />
+    <ClInclude Include="..\src-core\utils\ShowAutosave.h" />
+    <ClInclude Include="..\src-core\utils\ShowFileGuard.h" />
+    <ClInclude Include="..\src-core\utils\ShowFileMerge.h" />
+    <ClInclude Include="..\src-core\utils\ShowSaveMerge.h" />
+    <ClInclude Include="..\src-core\render\ShowMergeApply.h" />
+    <ClInclude Include="..\src-core\utils\ShowConflictedCopies.h" />
+    <ClInclude Include="..\src-core\utils\ShowPresence.h" />
+    <ClInclude Include="..\src-core\utils\ShowFileWatcher.h" />
+    <ClInclude Include="..\src-core\render\ShowFileLiveMerge.h" />
     <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />
@@ -2331,6 +2381,9 @@
     <ClInclude Include="..\src-core\render\Effect.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\render\EffectEditCoalescer.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\EffectSymbol.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -2365,6 +2418,27 @@
     <ClInclude Include="..\src-core\render\SequenceElements.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceCommands.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceElementCommands.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceIds.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceMutationGuard.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\CommandExecutor.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceEditCapture.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceBulkEdits.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\SongStructureManager.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -2372,6 +2446,9 @@
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceMedia.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceMediaCommands.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceFaces.h">

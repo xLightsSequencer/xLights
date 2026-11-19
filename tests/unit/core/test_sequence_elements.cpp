@@ -1,13 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "render/CommandExecutor.h"
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
 #include "render/Element.h"
 #include "render/HeadlessRenderContext.h"
+#include "render/SequenceCommands.h"
 #include "render/SequenceElements.h"
 #include "render/UndoManager.h"
 
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -796,8 +799,8 @@ TEST_CASE("UndoManager undo and redo of an added effect", "[sequence][undo]") {
     Add(l, "On", 0, 100);
     auto& um = f.se.get_undo_mgr();
     um.CreateUndoStep();
-    Effect* e = l->AddEffect(0, "Off", "X_A=1", "", 200, 300, 0, false);
-    um.CaptureAddedEffect("Tree", l->GetIndex(), e->GetID());
+    Effect* e = f.se.GetCommandExecutor().AddEffect(l, "Off", "X_A=1", "", 200, 300, 0, false);
+    REQUIRE(e != nullptr);
     CHECK(um.ChangeCaptured());
     CHECK(um.CanUndo());
     CHECK(um.GetUndoString() == "Undo: Effect(s) Added");
@@ -874,9 +877,10 @@ TEST_CASE("UndoManager undo of a modification restores settings and palette", "[
     Effect* e = l->AddEffect(0, "On", "X_A=1", "C_BUTTON_Palette1=#ff0000,C_CHECKBOX_Palette1=1", 0, 100, 0, false);
     auto& um = f.se.get_undo_mgr();
     um.CreateUndoStep();
-    um.CaptureModifiedEffect("Tree", l->GetIndex(), e);
-    e->SetSettings("X_A=2", false);
-    e->SetPalette("C_BUTTON_Palette1=#00ff00,C_CHECKBOX_Palette1=1");
+    f.se.GetCommandExecutor().EditEffect(e, [](Effect& ef) {
+        ef.SetSettings("X_A=2", false);
+        ef.SetPalette("C_BUTTON_Palette1=#00ff00,C_CHECKBOX_Palette1=1");
+    });
     CHECK(um.GetUndoString() == "Undo: Effect(s) Modified");
     um.UndoLastStep();
     CHECK(l->GetEffect(0)->GetSetting("X_A") == "1");
@@ -891,8 +895,7 @@ TEST_CASE("UndoManager undo of an added layer removes it", "[sequence][undo]") {
     m->AddEffectLayer();
     auto& um = f.se.get_undo_mgr();
     um.CreateUndoStep();
-    auto* l2 = m->AddEffectLayer();
-    um.CaptureAddedLayer("Tree", l2->GetIndex(), 1);
+    REQUIRE(f.se.GetCommandExecutor().InsertLayer(m, 1) != nullptr);
     CHECK(um.GetUndoString() == "Undo: Layer(s) Added");
     um.UndoLastStep();
     CHECK(m->GetEffectLayerCount() == 1);
@@ -907,7 +910,7 @@ TEST_CASE("UndoManager undo never removes the last layer", "[sequence][undo]") {
     auto* l = m->AddEffectLayer();
     auto& um = f.se.get_undo_mgr();
     um.CreateUndoStep();
-    um.CaptureAddedLayer("Tree", l->GetIndex(), 0);
+    um.RecordInverse(CommandType::AddLayer, "", std::make_unique<RemoveLayerCommand>(m->GetUid(), l->GetUid()));
     um.UndoLastStep();
     CHECK(m->GetEffectLayerCount() == 1);
 }
@@ -917,8 +920,7 @@ TEST_CASE("UndoManager new work after an undo clears the redo list", "[sequence]
     auto* l = f.Model("Tree")->AddEffectLayer();
     auto& um = f.se.get_undo_mgr();
     um.CreateUndoStep();
-    Effect* e = Add(l, "On", 0, 100);
-    um.CaptureAddedEffect("Tree", l->GetIndex(), e->GetID());
+    REQUIRE(f.se.GetCommandExecutor().AddEffect(l, "On", "", "", 0, 100, 0, false) != nullptr);
     um.UndoLastStep();
     REQUIRE(um.CanRedo());
     um.CreateUndoStep();
@@ -929,14 +931,12 @@ TEST_CASE("UndoManager undoes whole groups between markers", "[sequence][undo]")
     SeqFixture f;
     auto* l = f.Model("Tree")->AddEffectLayer();
     auto& um = f.se.get_undo_mgr();
+    auto& exec = f.se.GetCommandExecutor();
     um.CreateUndoStep();
-    Effect* a = Add(l, "On", 0, 100);
-    um.CaptureAddedEffect("Tree", l->GetIndex(), a->GetID());
+    exec.AddEffect(l, "On", "", "", 0, 100, 0, false);
     um.CreateUndoStep();
-    Effect* b = Add(l, "Off", 100, 200);
-    um.CaptureAddedEffect("Tree", l->GetIndex(), b->GetID());
-    Effect* c = Add(l, "Bars", 200, 300);
-    um.CaptureAddedEffect("Tree", l->GetIndex(), c->GetID());
+    exec.AddEffect(l, "Off", "", "", 100, 200, 0, false);
+    exec.AddEffect(l, "Bars", "", "", 200, 300, 0, false);
     REQUIRE(l->GetEffectCount() == 3);
     um.UndoLastStep();
     CHECK(l->GetEffectCount() == 1);
@@ -948,13 +948,14 @@ TEST_CASE("UndoManager undoes whole groups between markers", "[sequence][undo]")
 TEST_CASE("UndoManager Clear and CancelLastStep", "[sequence][undo]") {
     SeqFixture f;
     auto& um = f.se.get_undo_mgr();
+    auto missing = [] { return std::make_unique<DeleteEffectCommand>(EffectLocator{ 1, 2, 3 }); };
     um.CreateUndoStep();
-    um.CaptureAddedEffect("x", 0, 0);
+    um.RecordInverse(CommandType::AddEffect, "", missing());
     CHECK(um.CanUndo());
     um.CancelLastStep();
     um.RemoveUnusedMarkers();
     CHECK_FALSE(um.CanUndo());
-    um.CaptureAddedEffect("x", 0, 0);
+    um.RecordInverse(CommandType::AddEffect, "", missing());
     CHECK(um.CanUndo());
     um.Clear();
     CHECK_FALSE(um.CanUndo());
@@ -966,13 +967,16 @@ TEST_CASE("UndoManager step cap drops the oldest steps", "[sequence][undo]") {
     SeqFixture f;
     auto& um = f.se.get_undo_mgr();
     CHECK(um.GetMaxSteps() == 0);
+    auto move = [&](int i) {
+        um.RecordInverse(CommandType::MoveEffect, "", std::make_unique<MoveEffectCommand>(EffectLocator{ 1, 2, (SeqObjectId)i + 1 }, 0, 1));
+    };
     for (int i = 0; i < 20; ++i) {
-        um.CaptureEffectToBeMoved("x", 0, i, 0, 1);
+        move(i);
     }
     um.SetMaxSteps(5);
     CHECK(um.GetMaxSteps() == 5);
     for (int i = 0; i < 20; ++i) {
-        um.CaptureEffectToBeMoved("x", 0, i, 0, 1);
+        move(i);
     }
     int undone = 0;
     while (um.CanUndo() && undone < 100) {
@@ -985,33 +989,17 @@ TEST_CASE("UndoManager step cap drops the oldest steps", "[sequence][undo]") {
 TEST_CASE("UndoManager undo of steps for a vanished element is harmless", "[sequence][undo]") {
     SeqFixture f;
     auto& um = f.se.get_undo_mgr();
+    // Every kind of entry, naming an element that isn't there.
+    const EffectLocator gone{ 98, 99, 100 };
     um.CreateUndoStep();
-    um.CaptureAddedEffect("Gone", 0, 0);
-    um.CaptureEffectToBeMoved("Gone", 0, 0, 0, 10);
-    um.CaptureModifiedEffect("Gone", 0, 0, "", "");
-    um.CaptureEffectToBeDeleted("Gone", 0, "On", "", "", 0, 10, 0, false);
-    um.CaptureAddedLayer("Gone", 0, 0);
-    um.CaptureRemovedLayer("Gone", 0);
+    um.RecordInverse(CommandType::AddEffect, "", std::make_unique<DeleteEffectCommand>(gone));
+    um.RecordInverse(CommandType::MoveEffect, "", std::make_unique<MoveEffectCommand>(gone, 0, 10));
+    um.RecordInverse(CommandType::ModifyEffect, "", std::make_unique<ModifyEffectCommand>(gone, std::nullopt, SettingsChange{}, SettingsChange{}));
+    um.RecordInverse(CommandType::DeleteEffect, "", std::make_unique<AddEffectCommand>(gone.Layer(), EffectState{}));
+    um.RecordInverse(CommandType::AddLayer, "", std::make_unique<RemoveLayerCommand>(98, 99));
+    um.RecordInverse(CommandType::RemoveLayer, "", std::make_unique<AddLayerCommand>(98, 99, kNoSeqObjectId, 0, "", std::vector<EffectState>{}));
     um.UndoLastStep();
     um.RedoLastStep();
     SUCCEED();
 }
 
-TEST_CASE("UndoManager info classes keep their fields", "[sequence][undo]") {
-    DeletedEffectInfo d("E", 3, "On", "s", "p", 1, 2, 3, true);
-    CHECK(d.element_name == "E");
-    CHECK(d.layer_index == 3);
-    CHECK(d.name == "On");
-    CHECK(d.startTimeMS == 1);
-    CHECK(d.endTimeMS == 2);
-    CHECK(d.Selected == 3);
-    CHECK(d.Protected);
-    AddedEffectInfo a("E", 1, 9);
-    CHECK(a.id == 9);
-    MovedEffectInfo m("E", 1, 9, 5, 6);
-    CHECK(m.startTimeMS == 5);
-    CHECK(m.endTimeMS == 6);
-    LayerInfo l("E", 4, 2);
-    CHECK(l.exclusive_layer_index == 4);
-    CHECK(l.layer_number == 2);
-}

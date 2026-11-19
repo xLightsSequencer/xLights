@@ -16,6 +16,7 @@
 
 #include "render/SequenceFile.h"
 #include "render/SequenceElements.h"
+#include "render/SequenceElementCommands.h"
 #include "render/RenderContext.h"
 #include "render/Element.h"
 #include "render/EffectLayer.h"
@@ -58,6 +59,7 @@ static std::string DecodeLSPTTColour(int att)
 
 void SequenceFile::ProcessLSPTiming(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     for (size_t i = 0; i < filenames.size(); ++i)
     {
         const std::string& filepath = filenames[i];
@@ -184,6 +186,7 @@ std::vector<std::string> SequenceFile::GetXLightsTimingTrackNames(const std::str
 
 void SequenceFile::ProcessXLightsTiming(const std::string& filename, const std::vector<int>& selectedIndices, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     std::filesystem::path next_file(filename);
     spdlog::info("Loading sequence file {}", next_file.string());
     SequenceFile file(next_file.string());
@@ -290,6 +293,7 @@ std::vector<std::string> SequenceFile::GetVixen3TimingTrackNames(const std::stri
 
 void SequenceFile::ProcessVixen3Timing(const std::string& filename, const std::vector<int>& selectedIndices, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     spdlog::info("Loading Vixen 3 file {}", filename);
     Vixen3 vixenFile(filename);
 
@@ -339,6 +343,7 @@ void SequenceFile::ProcessVixen3Timing(const std::string& filename, const std::v
 }
 
 void SequenceFile::ProcessElevenLabsTimingFiles(const std::vector<std::string>& filenames, RenderContext* xLightsParent) {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     for (const std::string &nf : filenames) {
         try {
             const std::filesystem::path next_file(nf);

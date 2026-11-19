@@ -9,6 +9,9 @@ import SwiftUI
 struct MissingModelPrompt: Identifiable {
     let id = UUID()
     let originalNames: [String]
+    /// Rows the open already renamed from the layout's rename hints
+    /// ("Old → New"), listed for information.
+    var autoMapped: [String] = []
 }
 
 /// Per-row decision for `MissingModelAliasSheet`. `rename` carries
@@ -49,6 +52,11 @@ struct MissingModelAliasSheet: View {
                             Text("Some effects in this sequence reference models that aren't in your show layout. Pick what to do with each.")
                                 .font(.callout)
                                 .foregroundStyle(.secondary)
+                        }
+                        if !prompt.autoMapped.isEmpty {
+                            Section("Renamed to match the layout") {
+                                ForEach(prompt.autoMapped, id: \.self) { Text($0).font(.callout) }
+                            }
                         }
                         ForEach($rows) { $row in
                             rowView(for: $row)

@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+#include "../utils/LayoutRenameLog.h"
+
 class Output;
 class Controller;
 class TestPreset;
@@ -51,6 +53,7 @@ class OutputManager
     // form of `_baseShowDir` so the base-folder link survives
     // moving the show between machines (e.g. desktop ↔ iPad).
     std::string _showDir = "";
+    LayoutRenameLog _renameLog;
     #pragma endregion
 
     #pragma region Static Variables
@@ -67,6 +70,7 @@ class OutputManager
 
     #pragma region Private Functions
     bool ConvertStartChannel(const std::string sc, std::string& newsc) const;
+    bool LoadImpl(const std::string& showdir, bool syncEnabled, const std::string* text);
     void AsyncPingAll();
     #pragma endregion 
 
@@ -79,8 +83,16 @@ public:
 
     #pragma region Save and Load
     bool Load(const std::string& showdir, bool syncEnabled = false);
+    // Loads the controllers from `text` (the networks file's contents, e.g. a
+    // merge result) instead of reading the file; the guard is not touched.
+    bool LoadFromText(const std::string& showdir, const std::string& text);
     bool Save();
+    // Writes the current controllers to another file without changing which
+    // file this manager loads from or its dirty state.
+    bool SaveCopyTo(const std::string& path);
+    std::string SaveToString();
     void SaveToXML(pugi::xml_document& doc);
+    const std::string& GetNetworksFilePath() const { return _filename; }
     bool DidConvert() const { return _didConvert; }
     bool ConvertModelStartChannels(pugi::xml_node modelsNode) const;
     #pragma endregion 
@@ -143,6 +155,7 @@ public:
     void DeleteAllControllers();
     void MoveController(Controller* controller, int toControllerNumber);
     Controller* GetController(const std::string& name) const;
+    Controller* GetControllerByObjectId(const std::string& id) const;
     Controller* GetController(int32_t absoluteChannel, int32_t& startChannel) const; // returns the controller - equivalent to the old level 1
     std::vector<Controller*> GetControllersInRange(int32_t startChannel, int32_t endChannel) const;
     Controller* GetControllerWithIP(const std::string& ip);
@@ -151,6 +164,11 @@ public:
     int GetControllerCount() const { return _controllers.size(); }
     int GetControllerCount(const std::string& type, const std::string& ip) const;
     std::list<std::string> GetControllerNames() const;
+    // Controller renames since the controllers were last loaded or saved.
+    // Controller::SetName records them for controllers this manager holds.
+    LayoutRenameLog& GetRenameLog() { return _renameLog; }
+    const LayoutRenameLog& GetRenameLog() const { return _renameLog; }
+    bool HoldsController(const Controller* controller) const;
     std::list<std::string> GetAutoLayoutControllerNames() const;
     bool IsControllerNameUnique(const std::string& name) const;
     #pragma endregion 
@@ -205,6 +223,8 @@ public:
 
     void SomethingChanged() const;
     bool IsDirty() const;
+    // The file now holds what SaveToString() gave (it was written for a merged save).
+    void MarkSaved() { _dirty = false; }
 
     bool AtLeastOneOutputUsingProtocol(const std::string& protocol) const;
     std::list<std::string> GetForceIPs(const std::string& protocol) const;

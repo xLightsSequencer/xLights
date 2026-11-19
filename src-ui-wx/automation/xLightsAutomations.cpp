@@ -13,6 +13,9 @@
 
 #include "nlohmann/json.hpp"
 
+#include "render/SequenceEditCapture.h"
+#include "render/CommandExecutor.h"
+#include "render/SequenceMediaCommands.h"
 #include "render/FSEQFile.h"
 #include "render/SeqMediaMigration.h"
 #include "media/MediaCompatibility.h"
@@ -147,6 +150,12 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
     if (paths.size() == 0) {
         return sendResponse("No command", "msg", 503, false);
     }
+    // Saves made for a script must not stop on a modal prompt; see IsNonInteractiveSave.
+    ++_automationDepth;
+    struct AutomationDepth {
+        int& depth;
+        ~AutomationDepth() { --depth; }
+    } automationDepth{ _automationDepth };
 
     std::string cmd = paths[0];
     // Requests are serviced by whatever event loop is running, including a modal
@@ -951,7 +960,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (!params["eraseModel"].empty()) {
             erase = ReadBool(params["eraseModel"]);
         }
-        auto const worked = CloneXLightsEffects(target, source, _sequenceElements, erase);
+        bool worked = false;
+        {
+            SequenceEditCapture capture(_sequenceElements, "Clone Model Effects");
+            worked = CloneXLightsEffects(target, source, _sequenceElements, erase);
+        }
         mainSequencer->PanelEffectGrid->Refresh();
         std::string response = wxString::Format("{\"msg\":\"Model Effects Cloned.\",\"worked\":\"%s\"}", JSONSafe(toStr(worked)));
         return sendResponse(response, "", 200, true);
@@ -982,8 +995,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             return sendResponse("target element doesn't exists.", "msg", 503, false);
         }
         _sequenceElements.get_undo_mgr().CreateUndoStep();
+        CommandExecutor& exec = _sequenceElements.GetCommandExecutor();
         while ((int)to->GetEffectLayerCount() < layer + 1) {
-            to->AddEffectLayer();
+            exec.InsertLayer(to, (int)to->GetEffectLayerCount(), false);
         }
         // addEffect has always taken settings/palette in xLights' native
         // settings-map string format ("key=value,key2=value2"), passed straight
@@ -1000,17 +1014,19 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         };
         bool settingsIsJson = isJsonObject(settings);
         bool paletteIsJson = isJsonObject(palette);
-        auto valid = to->GetEffectLayer(layer)->AddEffect(0, effect,
-                                                          settingsIsJson ? "" : settings,
-                                                          paletteIsJson ? "" : palette,
-                                                          startTime, endTime, 0, false);
-        if (valid != nullptr) {
-            if (!settings.empty() && settingsIsJson) {
-                valid->SetSettings(settings, true, true);
-            }
-            if (!palette.empty() && paletteIsJson) {
-                valid->SetColourOnlyPalette(palette, true);
-            }
+        auto valid = exec.AddEffect(to->GetEffectLayer(layer), effect,
+                                    settingsIsJson ? "" : settings,
+                                    paletteIsJson ? "" : palette,
+                                    startTime, endTime, 0, false, false);
+        if (valid != nullptr && ((!settings.empty() && settingsIsJson) || (!palette.empty() && paletteIsJson))) {
+            exec.EditEffect(valid, [&](Effect& e) {
+                if (!settings.empty() && settingsIsJson) {
+                    e.SetSettings(settings, true, true);
+                }
+                if (!palette.empty() && paletteIsJson) {
+                    e.SetColourOnlyPalette(palette, true);
+                }
+            }, false);
         }
         mainSequencer->PanelEffectGrid->Refresh();
         std::string response = wxString::Format("{\"msg\":\"Added Effects.\",\"worked\":\"%s\"}", JSONSafe(toStr(valid != nullptr)));
@@ -1237,21 +1253,23 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             int origStart = eff->GetStartTimeMS();
             int origEnd = eff->GetEndTimeMS();
 
-            if (!params["name"].empty()) {
-                eff->SetEffectName(params["name"]);
-            }
-            if (!params["startTime"].empty()) {
-                eff->SetStartTimeMS((int)std::strtol(params["startTime"].c_str(), nullptr, 10));
-            }
-            if (!params["endTime"].empty()) {
-                eff->SetEndTimeMS((int)std::strtol(params["endTime"].c_str(), nullptr, 10));
-            }
-            if (!params["settings"].empty()) {
-                eff->SetSettings(params["settings"], true , true);
-            }
-            if (!params["palette"].empty()) {
-                eff->SetColourOnlyPalette(params["palette"], true);
-            }
+            _sequenceElements.GetCommandExecutor().EditEffect(eff, [&](Effect& e) {
+                if (!params["name"].empty()) {
+                    e.SetEffectName(params["name"]);
+                }
+                if (!params["startTime"].empty()) {
+                    e.SetStartTimeMS((int)std::strtol(params["startTime"].c_str(), nullptr, 10));
+                }
+                if (!params["endTime"].empty()) {
+                    e.SetEndTimeMS((int)std::strtol(params["endTime"].c_str(), nullptr, 10));
+                }
+                if (!params["settings"].empty()) {
+                    e.SetSettings(params["settings"], true , true);
+                }
+                if (!params["palette"].empty()) {
+                    e.SetColourOnlyPalette(params["palette"], true);
+                }
+            }, false);
             RenderCommandEvent event(ele->GetModelName(), std::min(origStart, eff->GetStartTimeMS()),
                                       std::max(origEnd, eff->GetEndTimeMS()), true, true);
             wxPostEvent(this, event);
@@ -1262,11 +1280,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         return sendResponse("target effect doesn't exists.", "msg", 503, false);
     } else if (cmd == "deleteEffect") {
-        // Mirrors setEffectSettings' lookup pattern (model/layer/id), then
-        // the same capture-then-delete sequence EffectsGrid's own delete
-        // path uses (CaptureEffectToBeDeleted for undo, then
-        // EffectLayer::DeleteEffect -- both existing, already-used core
-        // calls, not new deletion logic).
+        // Mirrors setEffectSettings' lookup pattern (model/layer/id).
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);
         }
@@ -1298,11 +1312,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         std::string modelName = ele->GetModelName();
         int start = eff->GetStartTimeMS();
         int end = eff->GetEndTimeMS();
-        _sequenceElements.get_undo_mgr().CaptureEffectToBeDeleted(model, layer, eff->GetEffectName(),
-                                                                   eff->GetSettingsAsString(), eff->GetPaletteAsString(),
-                                                                   eff->GetStartTimeMS(), eff->GetEndTimeMS(),
-                                                                   eff->GetSelected(), eff->GetProtected());
-        lay->DeleteEffect(id);
+        _sequenceElements.GetCommandExecutor().DeleteEffect(eff);
         if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
             mainSequencer->PanelEffectGrid->UnselectEffect();
         }
@@ -1335,10 +1345,13 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         seqmedia::VideoConversionResult conv;
         ImportXLightsAutomation report;
         report.videos = &conv;
-        if (!ImportXLights(wxFileName(filename), mapname, autoMap, importMedia, &report)) {
-            return sendResponse(report.error.empty() ? "Import failed." : report.error, "msg", 503, false);
+        {
+            SequenceEditCapture capture(_sequenceElements, "Import Effects");
+            if (!ImportXLights(wxFileName(filename), mapname, autoMap, importMedia, &report)) {
+                return sendResponse(report.error.empty() ? "Import failed." : report.error, "msg", 503, false);
+            }
+            SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
         }
-        SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
@@ -1394,8 +1407,11 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (!doc.load_file(filename.c_str())) {
             return sendResponse("Could not read the LOR sequence.", "msg", 503, false);
         }
-        if (!ImportS5(doc, wxFileName(filename), mapname, autoMap, timeAdjust)) {
-            return sendResponse("Import failed.", "msg", 503, false);
+        {
+            SequenceEditCapture capture(_sequenceElements, "Import Effects");
+            if (!ImportS5(doc, wxFileName(filename), mapname, autoMap, timeAdjust)) {
+                return sendResponse("Import failed.", "msg", 503, false);
+            }
         }
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1458,16 +1474,19 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
 
         int cleared = 0;
         int mediaRemoved = 0;
-        if (ReadBool(params["replace"])) {
-            cleared = ClearElementEffects(target, false);
-            mediaRemoved = _sequenceElements.RemoveUnreferencedMedia();
-        }
+        {
+            SequenceEditCapture capture(_sequenceElements, "Import Effects");
+            if (ReadBool(params["replace"])) {
+                cleared = ClearElementEffects(target, false);
+                mediaRemoved = _sequenceElements.RemoveUnreferencedMedia();
+            }
 
-        std::string err;
-        if (!ImportSuperStar(wxFileName(filename), modelName, opt, nullptr, err)) {
-            return sendResponse(err.empty() ? std::string("Import failed.") : JSONSafe(err), "msg", 503, false);
+            std::string err;
+            if (!ImportSuperStar(wxFileName(filename), modelName, opt, nullptr, err)) {
+                return sendResponse(err.empty() ? std::string("Import failed.") : JSONSafe(err), "msg", 503, false);
+            }
+            SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
         }
-        SequenceFile::LoadEffectFiles(GetSequenceElements(), this);
         _sequenceElements.IncrementChangeCount(nullptr);
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -1738,6 +1757,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         int changed = 0;
         int relativized = 0;
         std::vector<std::string> failures;
+        ScopedCommandBatch undoStep(_sequenceElements, embed ? "Embed Media" : "Extract Media");
         for (const auto& [path, type] : media.GetAllMediaPaths()) {
             if (!file.empty() && path != file) continue;
             if (onlyType && type != *onlyType) continue;
@@ -1767,7 +1787,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     if (key != path) ++relativized;
                     continue;
                 }
-                media.EmbedMedia(key);
+                if (!SeqMediaEdits::Embed(_sequenceElements, key)) {
+                    if (!file.empty()) failures.push_back(path);
+                    continue;
+                }
                 if (key != path) ++relativized;
                 ++changed;
             } else {
@@ -1780,23 +1803,14 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
                     if (dest.empty()) dest = entry->GetFilePath();
                 }
                 if (dest.empty()) { failures.push_back(path); continue; }
-                bool ok;
-                if (type == MediaType::Image) {
-                    ok = media.ExtractImageToFile(path, dest);
-                } else {
-                    ok = entry->SaveToFile(dest);
-                    if (ok) media.ExtractMedia(path);
-                }
-                if (!ok) { failures.push_back(path); continue; }
+                std::string finalPath;
                 if (dest != path) {
                     const std::string rel = MakeRelativePath(dest);
-                    const std::string finalPath = rel.empty() ? dest : rel;
-                    if (type == MediaType::Image) {
-                        media.RenameImage(dest, finalPath);
-                    } else {
-                        media.RenameMedia(path, finalPath);
-                    }
-                    _sequenceElements.RewriteMediaReferences(path, finalPath);
+                    finalPath = rel.empty() ? dest : rel;
+                }
+                if (!SeqMediaEdits::Extract(_sequenceElements, path, dest, finalPath)) {
+                    failures.push_back(path);
+                    continue;
                 }
                 ++changed;
             }

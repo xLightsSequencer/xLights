@@ -23,6 +23,7 @@
 #include "../models/ViewObject.h"
 #include "../models/ViewObjectManager.h"
 #include "../utils/FileUtils.h"
+#include "../utils/LayoutObjectId.h"
 
 using namespace XmlSerialize;
 
@@ -71,6 +72,8 @@ void XmlDeserializingObjectFactory::DeserializeBaseObjectAttributes(ViewObject* 
     object->SetName(name);
     object->SetActive(node.attribute(XmlNodeKeys::ActiveAttribute).as_int(1));
     object->SetFromBase(node.attribute(XmlNodeKeys::FromBaseAttribute).as_int(0));
+    // An imported object is a new record; ViewObjectManager gives it an id when it is added.
+    object->SetObjectId(importing ? std::string() : LayoutObjectId::Read(node));
 }
 
 void XmlDeserializingObjectFactory::DeserializeTerrainScreenLocationAttributes(ViewObject* object, pugi::xml_node node) {

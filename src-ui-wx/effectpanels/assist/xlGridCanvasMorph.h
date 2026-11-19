@@ -13,8 +13,10 @@
 #include <wx/wx.h>
 #include "../../shared/utils/xlGridCanvas.h"
 #include "render/Effect.h"
+#include "render/EffectEditCoalescer.h"
 
 #include <array>
+#include <limits>
 
 wxDECLARE_EVENT(EVT_EFFECT_CHANGED, wxCommandEvent);
 
@@ -29,7 +31,8 @@ class xlGridCanvasMorph : public xlGridCanvas
         virtual void SetEffect(Effect* effect_);
 
     protected:
-        void SetUndoPoint() const;
+        // The next corner change starts a new undo step.
+        void SetUndoPoint();
 
     private:
 
@@ -67,6 +70,9 @@ class xlGridCanvasMorph : public xlGridCanvas
         wxPoint _starta2;
         wxPoint _startb1;
         wxPoint _startb2;
+        // One undo step per drag (or double-click); each drag ends its burst
+        // explicitly, so there is no idle cut-off.
+        EffectEditCoalescer _edits{ std::numeric_limits<int>::max() };
 
         DECLARE_EVENT_TABLE()
 };

@@ -54,6 +54,8 @@ public:
     const std::string &GetName() const;
     void SetName(const std::string &name);
     SeqObjectId GetUid() const { return mUid; }
+    // For re-creating an element under its previous id (undo, commands).
+    void SetUid(SeqObjectId uid) { mUid = uid; }
     virtual const std::string &GetModelName() const;
     virtual std::string GetFullName() const;
     
@@ -83,6 +85,8 @@ public:
     int GetFirstSelectedEffectStartMS() const;
     int GetLastSelectedEffectEndMS() const;
     void SetRenderDisabled(bool rd);
+    // This row's own flag (a submodel's IsRenderDisabled also reports its model's).
+    bool IsRenderDisabledFlag() const { return _renderDisabled; }
     virtual bool IsRenderDisabled() const {
         return _renderDisabled;
     }
@@ -103,6 +107,10 @@ public:
     int Index() const { return mIndex;}
     
     std::recursive_timed_mutex &GetChangeLock() { return changeLock; }
+    // The lock a render job holds while it reads this row's layers: the row's
+    // own, or for a submodel or strand row its model's, which is the one the
+    // model's render job takes.
+    virtual std::recursive_timed_mutex &GetLayerChangeLock() { return changeLock; }
     virtual void IncrementChangeCount(int startMs, int endMS);
     int getChangeCount() const { return changeCount; }
     
@@ -165,10 +173,16 @@ public:
     virtual ElementType GetType() const override { return ElementType::ELEMENT_TYPE_TIMING; }
     
     const std::string &GetSubType() const { return subType; }
-    void SetSubType(const std::string &st) { subType = st; }
+    void SetSubType(const std::string &st) {
+        XL_SEQ_MUTATION("TimingElement::SetSubType");
+        subType = st;
+    }
 
     int GetFixedTiming() const { return mFixed; }
-    void SetFixedTiming(int fixed) { mFixed = fixed; }
+    void SetFixedTiming(int fixed) {
+        XL_SEQ_MUTATION("TimingElement::SetFixedTiming");
+        mFixed = fixed;
+    }
     bool IsFixedTiming() const { return mFixed != 0; }
     void Unfix();
 
@@ -206,6 +220,7 @@ public:
     virtual std::string GetFullName() const override;
     virtual void IncrementChangeCount(int startMs, int endMS) override;
     virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
+    std::recursive_timed_mutex &GetLayerChangeLock() override;
 
     [[nodiscard]] virtual bool HasEffects() const override;
 

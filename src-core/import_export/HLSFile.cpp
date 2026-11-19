@@ -43,9 +43,9 @@ void MapToStrandName(const std::string& name, std::vector<std::string>& strands)
         }
         std::string strandName;
         if (spos == -1 && ppos == -1) {
-            strandName = name.substr(0, name.find("_") - 1);
+            strandName = name.substr(0, name.find("_"));
         } else if (spos >= 0 && ppos > spos) {
-            strandName = name.substr(0, ppos - 1);
+            strandName = name.substr(0, ppos);
         }
         if (strandName != "" && std::find(strands.begin(), strands.end(), strandName) == strands.end()) {
             strands.push_back(strandName);

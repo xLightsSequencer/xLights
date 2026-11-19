@@ -163,13 +163,9 @@ void xlGridCanvasMorph::mouseRightDown(wxMouseEvent& event)
     }
 }
 
-void xlGridCanvasMorph::SetUndoPoint() const
+void xlGridCanvasMorph::SetUndoPoint()
 {
-    if (mEffect == nullptr) return;
-    auto& undoManager = xLightsApp::GetFrame()->GetSequenceElements().get_undo_mgr();
-    undoManager.CreateUndoStep();
-    undoManager.CaptureModifiedEffect(mEffect->GetParentEffectLayer()->GetParentElement()->GetName(),
-        mEffect->GetParentEffectLayer()->GetIndex(), mEffect->GetID(), mEffect->GetSettingsAsString(), mEffect->GetPaletteAsString());
+    _edits.EndBurst();
 }
 
 void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
@@ -331,6 +327,7 @@ void xlGridCanvasMorph::mouseLeftDClick(wxMouseEvent& event)
     ProcessNearest(mColumns * mCellSize, 0, done);
     ProcessNearest(mColumns * mCellSize, mRows * mCellSize, done);
     mSelectedCorner = CORNER_ALL_SELECTED;
+    SetUndoPoint();
     StoreUpdatedMorphPositions();
     mSelectedCorner = CORNER_NOT_SELECTED;
     render();
@@ -506,42 +503,45 @@ void xlGridCanvasMorph::SetTooltip(int x, int y)
     SetToolTip(tt);
 }
 
-void DeactivateValueCurve(SettingsMap& settings, const std::string& setting)
-{
-    if (settings.Contains(setting)) {
-        wxString s = wxString(settings[setting]);
-        s.Replace("Active=TRUE", "Active=FALSE");
-        settings[setting] = s;
-    }
-}
-
 void xlGridCanvasMorph::StoreUpdatedMorphPositions()
 {
-    SettingsMap& settings = mEffect->GetSettings();
+    const SettingsMap& current = mEffect->GetSettings();
+    KeyChanges changes;
+    auto set = [&](const std::string& key, int value) {
+        changes[key] = std::to_string(value);
+    };
+    auto deactivateValueCurve = [&](const std::string& key) {
+        if (current.Contains(key)) {
+            wxString s = wxString(current[key]);
+            s.Replace("Active=TRUE", "Active=FALSE");
+            changes[key] = s.ToStdString();
+        }
+    };
     if (mSelectedCorner == CORNER_1A_SELECTED || mSelectedCorner == CORNER_ALL_SELECTED) {
-        settings["E_SLIDER_Morph_Start_X1"] = wxString::Format("%d", SetColumnCenter(x1a));
-        settings["E_SLIDER_Morph_Start_Y1"] = wxString::Format("%d", SetRowCenter(y1a));
-        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_X1");
-        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_Y1");
+        set("E_SLIDER_Morph_Start_X1", SetColumnCenter(x1a));
+        set("E_SLIDER_Morph_Start_Y1", SetRowCenter(y1a));
+        deactivateValueCurve("E_VALUECURVE_Morph_Start_X1");
+        deactivateValueCurve("E_VALUECURVE_Morph_Start_Y1");
     }
     if ((mSelectedCorner == CORNER_1B_SELECTED || mSelectedCorner == CORNER_ALL_SELECTED) && !mMorphStartLinked) {
-        settings["E_SLIDER_Morph_Start_X2"] = wxString::Format("%d", SetColumnCenter(x1b));
-        settings["E_SLIDER_Morph_Start_Y2"] = wxString::Format("%d", SetRowCenter(y1b));
-        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_X2");
-        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_Y2");
+        set("E_SLIDER_Morph_Start_X2", SetColumnCenter(x1b));
+        set("E_SLIDER_Morph_Start_Y2", SetRowCenter(y1b));
+        deactivateValueCurve("E_VALUECURVE_Morph_Start_X2");
+        deactivateValueCurve("E_VALUECURVE_Morph_Start_Y2");
     }
     if (mSelectedCorner == CORNER_2A_SELECTED || mSelectedCorner == CORNER_ALL_SELECTED) {
-        settings["E_SLIDER_Morph_End_X1"] = wxString::Format("%d", SetColumnCenter(x2a));
-        settings["E_SLIDER_Morph_End_Y1"] = wxString::Format("%d", SetRowCenter(y2a));
-        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_X1");
-        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_Y1");
+        set("E_SLIDER_Morph_End_X1", SetColumnCenter(x2a));
+        set("E_SLIDER_Morph_End_Y1", SetRowCenter(y2a));
+        deactivateValueCurve("E_VALUECURVE_Morph_End_X1");
+        deactivateValueCurve("E_VALUECURVE_Morph_End_Y1");
     }
     if ((mSelectedCorner == CORNER_2B_SELECTED || mSelectedCorner == CORNER_ALL_SELECTED) && !mMorphEndLinked) {
-        settings["E_SLIDER_Morph_End_X2"] = wxString::Format("%d", SetColumnCenter(x2b));
-        settings["E_SLIDER_Morph_End_Y2"] = wxString::Format("%d", SetRowCenter(y2b));
-        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_X2");
-        DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_Y2");
+        set("E_SLIDER_Morph_End_X2", SetColumnCenter(x2b));
+        set("E_SLIDER_Morph_End_Y2", SetRowCenter(y2b));
+        deactivateValueCurve("E_VALUECURVE_Morph_End_X2");
+        deactivateValueCurve("E_VALUECURVE_Morph_End_Y2");
     }
+    _edits.Apply(xLightsApp::GetFrame()->GetSequenceElements(), mEffect, std::nullopt, SettingsChange{ false, std::move(changes) }, SettingsChange{});
 
     wxCommandEvent eventVCChange(EVT_VC_CHANGED);
     eventVCChange.SetEventObject(this);

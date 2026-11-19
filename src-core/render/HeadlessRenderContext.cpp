@@ -101,6 +101,8 @@ bool HeadlessRenderContext::LoadShowFolder(const std::string& showDir,
         }
     }
 
+    _renameHints.Load(root.child(LayoutRenameHints::SECTION));
+
     auto modelsNode = root.child("models");
     if (!modelsNode) {
         spdlog::error("HeadlessRenderContext: no <models> element in {}", rgbPath);

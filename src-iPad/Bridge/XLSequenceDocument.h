@@ -29,6 +29,25 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isCancelled;
 @end
 
+// An autosave left by an earlier session that could be offered back
+// (core ShowAutosave). mine: this device wrote it and the real file is
+// as it was based on. conflict: this device wrote it, but the real
+// file was changed since (someone else saved). legacy: written by an
+// older version, so it may be someone else's.
+typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
+    XLAutosaveOfferKindNoOffer = 0,
+    XLAutosaveOfferKindMine = 1,
+    XLAutosaveOfferKindConflict = 2,
+    XLAutosaveOfferKindLegacy = 3,
+};
+
+@interface XLAutosaveOffer : NSObject
+@property (nonatomic, readonly) XLAutosaveOfferKind kind;
+@property (nonatomic, readonly, nullable) NSDate* savedAt;
+// Device that wrote it; empty for a legacy autosave.
+@property (nonatomic, readonly) NSString* device;
+@end
+
 @interface XLSequenceDocument : NSObject
 
 // Show folder
@@ -129,9 +148,21 @@ NS_ASSUME_NONNULL_BEGIN
                     frameMS:(int)frameMS;
 
 // Save the currently-open sequence back to its on-disk path. Returns
-// NO if there's no sequence loaded, the path is empty, or the XML
-// write fails. Marks the sequence clean on success.
+// NO if there's no sequence loaded, the path is empty, the XML
+// write fails, or someone else changed the file on disk since it was
+// opened (see `changedSequenceFileName`). Marks the sequence clean on
+// success.
 - (BOOL)saveSequence;
+// The same save, made after the user chose to overwrite a file someone
+// else changed.
+- (BOOL)saveSequenceOverwritingExternalChanges NS_SWIFT_NAME(saveSequenceOverwritingExternalChanges());
+// File name of the open sequence when someone else (or another app)
+// rewrote it since it was opened or last saved here; nil otherwise.
+- (nullable NSString*)changedSequenceFileName NS_SWIFT_NAME(changedSequenceFileName());
+// Write this session's sequence to a timestamped copy beside the
+// original (`<name>_mine_<stamp>.xsq`), leaving the original and the
+// dirty state alone. Returns the copy's path, nil on failure.
+- (nullable NSString*)saveSequenceCopy NS_SWIFT_NAME(saveSequenceCopy());
 
 // Tier 1 memory mitigation — drop the undo / redo history.
 // Per-step snapshots (settings + palette strings for every
@@ -140,6 +171,13 @@ NS_ASSUME_NONNULL_BEGIN
 // reclaims memory at the natural "I'm done with those edits"
 // checkpoint. Safe to call with no sequence open — no-op.
 - (void)clearUndoHistory;
+
+/// Groups the edits made until the matching `endCommandBatch` into one
+/// labelled change for command observers (one paste, one drag commit).
+/// Calls nest; only the outermost end delivers the batch. Undo stays with
+/// the caller's own undo registration.
+- (void)beginCommandBatch:(NSString*)label NS_SWIFT_NAME(beginCommandBatch(_:));
+- (void)endCommandBatch NS_SWIFT_NAME(endCommandBatch());
 
 // TOOLS-1b — Purge Render Cache (Tools menu): drop all on-disk
 // render-cache items for the current sequence. Frees disk/iCloud
@@ -210,13 +248,48 @@ NS_ASSUME_NONNULL_BEGIN
 
 // E-6 — autosave / `.xbkp` recovery. Write the current in-memory
 // sequence to `<basename>.xbkp` alongside the `.xsq` without
-// touching the canonical file or the dirty flag. Temporarily
-// swaps the SequenceFile's `mFilePath` (matching desktop's
-// `SaveWorking` pattern in `xLightsMain.cpp:4588-4632`), writes,
+// touching the canonical file or the dirty flag, plus the sidecar
+// saying this device wrote it. Temporarily swaps the SequenceFile's
+// `mFilePath` (matching desktop's `SaveWorking` pattern), writes,
 // then restores. Returns NO if no sequence is open or the
 // current path is empty (new-unsaved sequences have nowhere to
 // put the backup yet).
 - (BOOL)writeAutosaveBackup;
+// Recovery of `<basename>.xbkp` beside the sequence at xsqPath. Only
+// this device's autosave (or an older version's) that differs from
+// the sequence is offered; a stale one of ours is removed.
++ (XLAutosaveOffer*)checkSequenceAutosaveForPath:(NSString*)xsqPath NS_SWIFT_NAME(checkSequenceAutosave(forPath:));
+// Writes the autosave over the sequence (keeping the current file as
+// a copy first when keepingCurrent). Reopen the sequence afterwards.
++ (BOOL)restoreSequenceAutosaveForPath:(NSString*)xsqPath keepingCurrent:(BOOL)keep NS_SWIFT_NAME(restoreSequenceAutosave(forPath:keepingCurrent:));
+// Writes the autosave beside the sequence as a copy; nil on failure.
++ (nullable NSString*)saveSequenceAutosaveAsCopyForPath:(NSString*)xsqPath NS_SWIFT_NAME(saveSequenceAutosaveAsCopy(forPath:));
+// Keeps the autosave but stops offering it.
++ (void)declineSequenceAutosaveForPath:(NSString*)xsqPath NS_SWIFT_NAME(declineSequenceAutosave(forPath:));
+// Removes the autosave when this device wrote it (after a save, or
+// when the changes are discarded). Someone else's is left alone.
++ (void)removeSequenceAutosaveIfMineForPath:(NSString*)xsqPath NS_SWIFT_NAME(removeSequenceAutosaveIfMine(forPath:));
+
+// Presence in a shared show folder: `.xlights/presence/<install-id>.json`
+// says which sequence this device has open and whether it is editing the
+// layout or controllers. Safe to call off the main thread (touches only the
+// presence files). Writes only when something changed or the heartbeat is due.
++ (void)updatePresenceForShowFolder:(NSString*)showFolder
+                       sequencePath:(NSString*)sequencePath
+                      editingLayout:(BOOL)editingLayout
+                 editingControllers:(BOOL)editingControllers
+    NS_SWIFT_NAME(updatePresence(showFolder:sequencePath:editingLayout:editingControllers:));
+// Removes this device's presence file.
++ (void)clearPresence;
+// The warning to show before opening sequencePath when someone else
+// sharing the show folder has it open; nil when nobody does.
++ (nullable NSString*)presenceSequenceOpenWarningForShowFolder:(NSString*)showFolder
+                                                  sequencePath:(NSString*)sequencePath
+    NS_SWIFT_NAME(presenceSequenceOpenWarning(showFolder:sequencePath:));
+// "Sam on Office-PC is editing the layout", or nil when nobody else is
+// editing the layout or controllers.
++ (nullable NSString*)presenceEditingHintForShowFolder:(NSString*)showFolder
+    NS_SWIFT_NAME(presenceEditingHint(showFolder:));
 
 // E-3 — Sequence Settings. Info tab (read-only) + Metadata tab
 // (header text fields) + Media file swap + Render Mode /
@@ -395,10 +468,13 @@ NS_ASSUME_NONNULL_BEGIN
 // element is moved so it lands immediately *before* the destination
 // element (pass `visibleRowCount` to drop at the very end). Returns NO
 // when either row isn't a top-level element or the move is a no-op.
-// Repopulates row info on success; the caller still owns undo.
+// Repopulates row info on success. A move in the master view is one
+// core undo step (register it with performCoreUndoableEdit); a move in
+// any other view is per-user and records none.
 - (BOOL)moveTopLevelRowFrom:(int)srcRowIndex toBefore:(int)destBeforeRowIndex
     NS_SWIFT_NAME(moveTopLevelRow(from:toBefore:));
-// Name-based variant used to build an exact undo: move the element
+// Name-based variant (Display Elements sheet; records no core undo
+// step): move the element
 // named `modelName` so it lands immediately before the element named
 // `beforeModelName` in the master view; pass an empty `beforeModelName`
 // to drop it at the very end. Returns NO on a no-op / missing element.
@@ -514,6 +590,11 @@ NS_ASSUME_NONNULL_BEGIN
 // `SetFixedTiming(0)` which unlocks user editing while leaving the
 // existing fixed-period marks in place. Returns NO if the row isn't
 // a timing element.
+//
+// Undo: every timing-track op below that adds, renames, deletes or
+// unfixes a track (the importers, add*TimingTrack*, importNotes,
+// rename/delete, makeTimingTrackVariable) records one core undo step;
+// the caller registers it (SequencerViewModel.performCoreUndoableEdit).
 - (BOOL)timingTrackIsFixedAtRow:(int)rowIndex
     NS_SWIFT_NAME(timingTrackIsFixed(atRow:));
 - (BOOL)makeTimingTrackVariableAtRow:(int)rowIndex
@@ -910,7 +991,8 @@ NS_ASSUME_NONNULL_BEGIN
 // B34 / B35 — 10 numbered tags (0..9) anchored to absolute sequence
 // times. -1 = unset. Desktop's `SequenceElements::_tagPositions`
 // already persists via the `<TimingTags>` node in the .xsq so
-// save/load round-trips automatically.
+// save/load round-trips automatically. Setting one tag, and clearing
+// all, are one core undo step each.
 - (int)tagPositionAtIndex:(int)index
     NS_SWIFT_NAME(tagPosition(at:));
 - (void)setTagPositionAtIndex:(int)index positionMS:(int)position
@@ -1039,6 +1121,11 @@ NS_ASSUME_NONNULL_BEGIN
 // that already match an "oldname:" alias on some existing model are
 // filtered out — they auto-remap and don't need user input.
 - (NSArray<NSString*>*)missingModelNamesWithEffects;
+
+// Rows the last sequence open renamed on its own because the layout's
+// rename hints say which model their old name became ("Old → New"), so
+// the open can say so instead of asking. Empty when none were.
+- (NSArray<NSString*>*)autoMappedModelRenames;
 
 // Rename a missing model-element to an existing model name. When
 // `addAlias` is YES, also call `Model::AddAlias("oldname:" +
@@ -1210,38 +1297,30 @@ NS_ASSUME_NONNULL_BEGIN
            effectIndices:(NSArray<NSNumber*>*)indices
     NS_SWIFT_NAME(replaceColour(from:to:atRows:effectIndices:));
 
-// Shift Effects (time-offset bulk move). Mirrors desktop's
-// `OnMenuItemShiftEffects(AndTiming)Selected` / `ShiftEffectsOnLayer`
-// (`xLightsMain.cpp:5808,5902,5970`): every effect on every layer of
-// every master-view element is offset by `ms` (signed). Effects whose
-// shifted start would go below 0 are truncated to start at 0; effects
-// pushed entirely below 0 are deleted — exactly the desktop clamp.
+// Shift Effects (time-offset bulk move), running the core tool the desktop
+// `OnMenuItemShiftEffects(AndTiming)Selected` uses: every effect on every
+// layer of every master-view element is offset by `ms` (signed). Effects
+// whose shifted start would go below 0 are truncated to start at 0;
+// effects pushed entirely below 0 are deleted. Locked effects never move.
 // `includeTiming==NO` skips timing-track elements (the desktop "Shift
 // Effects" item); `YES` shifts their marks too ("Shift Effects And
 // Timing"). `ms` is rounded to the sequence frame interval, like
-// desktop. Returns an opaque snapshot token (>0) the caller passes to
-// `restoreShiftSnapshot:` to undo, or 0 if nothing was shiftable.
+// desktop. The change is one core undo step (-undoLastCoreStep /
+// -redoLastCoreStep). Returns 1 if anything changed, else 0.
 - (NSInteger)shiftAllEffectsByMS:(int)ms
                     includeTiming:(BOOL)includeTiming
     NS_SWIFT_NAME(shiftAllEffects(byMS:includeTiming:));
 
-// Selected-scope shift, mirroring desktop's `MenuItemShiftSelectedEffects`
-// / `ShiftSelectedEffectsOnLayer` (`xLightsMain.cpp:5902,6035`): only
-// the effects at the given (row, effectIndex) pairs move, and a move is
-// rejected when the shifted range would clash with an unselected effect
-// on the same layer (per desktop). Because the iPad keeps selection in
-// Swift, the pairs are mirrored into the core Selected flags just for
-// the op, then cleared. Returns a snapshot token for undo (>0), or 0.
+// Selected-scope shift (desktop Shift Selected Effects): only the effects
+// at the given (row, effectIndex) pairs move, and a move is rejected when
+// the shifted range would clash with another effect on the same layer.
+// Because the iPad keeps selection in Swift, the pairs are mirrored into
+// the core Selected flags just for the op, then cleared. One core undo
+// step; returns 1 if anything changed, else 0.
 - (NSInteger)shiftSelectedEffectsByMS:(int)ms
                                atRows:(NSArray<NSNumber*>*)rows
                         effectIndices:(NSArray<NSNumber*>*)indices
     NS_SWIFT_NAME(shiftSelectedEffects(byMS:atRows:effectIndices:));
-
-// Restore the layer state captured by `shiftAllEffects`/
-// `shiftSelectedEffects` (undo). Consumes the token. Returns YES if
-// the token was found and applied.
-- (BOOL)restoreShiftSnapshot:(NSInteger)token
-    NS_SWIFT_NAME(restoreShiftSnapshot(_:));
 
 // Value-curve preset load / save (G36 — C6). `.xvc` files are the
 // same XML format desktop reads/writes
@@ -1451,9 +1530,74 @@ NS_ASSUME_NONNULL_BEGIN
 // SwiftUI callers should batch by editing in-memory and saving on
 // commit / lose-focus / scene-close, not per-keystroke.
 - (BOOL)saveLayoutChanges;
+// `saveLayoutChanges` will not overwrite xlights_rgbeffects.xml or
+// xlights_networks.xml when someone else changed it since it was
+// loaded: it returns NO and the edits stay pending. These are the
+// names of the files that would be skipped (empty when none).
+- (NSArray<NSString*>*)layoutFilesChangedOnDisk NS_SWIFT_NAME(layoutFilesChangedOnDisk());
+// Save after the user chose to overwrite. rgbeffects is still a
+// load-modify-write, so other people's edits to items not changed here
+// survive; the networks file is rewritten whole.
+- (BOOL)saveLayoutChangesOverwritingExternalChanges NS_SWIFT_NAME(saveLayoutChangesOverwritingExternalChanges());
+// Write this session's version of each changed file to a timestamped
+// copy beside it and save the rest normally. Returns the copies' paths.
+- (NSArray<NSString*>*)saveLayoutChangesAsCopies NS_SWIFT_NAME(saveLayoutChangesAsCopies());
 
-// Layout autosave — write pending layout edits to
-// `xlights_rgbeffects.xbkp` without touching the real file or clearing
+// Merge with what someone else saved (Merge in the "changed by someone
+// else" prompt). Prepare builds the merge of the layout files (presets: NO)
+// or the effect presets (YES); NO when a changed file cannot be merged.
+// The conflicts are dictionaries: file, record, what, base, mine, theirs
+// (readable text), resolution (0 undecided, 1 mine, 2 theirs, 3 keep both,
+// 4 map), keepBothAllowed, deletedWithEffects and mapTarget. Commit writes the merged files once every conflict
+// is decided and brings the open show up to them; its result holds "ok",
+// "report" (text worth showing, may be empty), "error", and
+// "needsDecisions" (the files changed again and the new conflicts need
+// choosing: show the list again).
+- (BOOL)prepareShowFileMergeForPresets:(BOOL)presets NS_SWIFT_NAME(prepareShowFileMerge(presets:));
+- (NSArray<NSDictionary<NSString*, id>*>*)showFileMergeConflicts NS_SWIFT_NAME(showFileMergeConflicts());
+- (BOOL)resolveShowFileMergeConflict:(NSInteger)index resolution:(NSInteger)resolution NS_SWIFT_NAME(resolveShowFileMergeConflict(_:resolution:));
+- (void)resolveAllShowFileMergeConflicts:(NSInteger)resolution NS_SWIFT_NAME(resolveAllShowFileMergeConflicts(_:));
+// A conflict with "deletedWithEffects": someone else deleted a model or
+// group the open sequence has effects on. Its choices are Keep (1),
+// Delete with its effects (2) or Map (4, resolution "mapTarget"): the row
+// goes to one of these models or groups, the same pool the missing-model
+// mapping offers. Delete and Map are one undo step in the sequence.
+- (NSArray<NSString*>*)showFileMergeMapTargets NS_SWIFT_NAME(showFileMergeMapTargets());
+- (BOOL)resolveShowFileMergeConflict:(NSInteger)index mapTo:(NSString*)target NS_SWIFT_NAME(resolveShowFileMergeConflict(_:mapTo:));
+- (NSDictionary<NSString*, id>*)commitShowFileMerge NS_SWIFT_NAME(commitShowFileMerge());
+- (void)cancelShowFileMerge NS_SWIFT_NAME(cancelShowFileMerge());
+
+// Changes someone else saved to the shared show files (layout, controllers,
+// presets), brought into the open show as soon as they land. Call
+// checkShowFilesOnDisk on a timer. Results: "state" (0 nothing new,
+// 1 brought in, 2 some need a decision, 3 cannot be merged now - the save
+// asks, 4 the pending ones were settled by a save) and "banner" (text).
+// reviewIncomingShowChanges merges the pending ones again; state 2 means the
+// conflict sheet can open on them: showFileMergeConflicts and the resolve
+// calls work on them, and commitShowFileMerge brings them into memory
+// without saving (isShowFileMergeLive is YES until it is committed or
+// cancelled).
+- (NSDictionary<NSString*, id>*)checkShowFilesOnDisk NS_SWIFT_NAME(checkShowFilesOnDisk());
+- (NSDictionary<NSString*, id>*)reviewIncomingShowChanges NS_SWIFT_NAME(reviewIncomingShowChanges());
+- (BOOL)isShowFileMergeLive NS_SWIFT_NAME(isShowFileMergeLive());
+- (void)stopWatchingShowFiles NS_SWIFT_NAME(stopWatchingShowFiles());
+
+// Conflicted copies a sync client (iCloud, Dropbox, OneDrive, Google
+// Drive, Syncthing) left of the show-wide files in the show folder, checked
+// after the show loads. Each is a dictionary: path, name, file (the file it
+// is a copy of), client, sameAsCurrent. Preparing one makes its merge the
+// pending show-file merge (showFileMergeConflicts / resolve / commit /
+// cancel above), with "mine" the copy and "theirs" the current file; commit
+// writes the merged file, moves the copy to the show's Backup folder and
+// brings the open show up to it. Ignore remembers the copy (on this device)
+// so it is not offered again.
+- (NSArray<NSDictionary<NSString*, id>*>*)conflictedCopies NS_SWIFT_NAME(conflictedCopies());
+- (BOOL)ignoreConflictedCopy:(NSString*)path NS_SWIFT_NAME(ignoreConflictedCopy(_:));
+- (NSString* _Nullable)prepareConflictedCopyMerge:(NSString*)path NS_SWIFT_NAME(prepareConflictedCopyMerge(_:));
+- (BOOL)showFileMergeIsConflictedCopy NS_SWIFT_NAME(showFileMergeIsConflictedCopy());
+
+// Layout autosave — write pending layout edits to this device's
+// autosave folder in the show folder without touching the real file or clearing
 // the pending set, so unsaved layout work survives a crash. Mirrors
 // desktop's `SaveWorkingLayout()`. NO when nothing is pending.
 // Unwind one step of the shared core UndoManager — the stack a
@@ -1464,13 +1608,35 @@ NS_ASSUME_NONNULL_BEGIN
 // registers a Foundation undo that calls this, keeping Foundation's
 // stack the single ordering authority. NO when the core stack is empty.
 - (BOOL)undoLastCoreStep;
+// Changes whenever a core undo step is recorded. Compare before and
+// after a bridge op to know whether it left a step to unwind (see
+// SequencerViewModel.performCoreUndoableEdit).
+- (NSInteger)coreUndoStepSerial NS_SWIFT_NAME(coreUndoStepSerial());
+
+// Re-applies the core step the last -undoLastCoreStep undid.
+- (BOOL)redoLastCoreStep;
+
+// Records the sequence edits made until -endEditCapture (e.g. by an
+// XLImportSession or XLSuperStarImport apply) as one core undo step named
+// `label`. Captures don't nest; a second begin is ignored. -endEditCapture
+// returns YES if an undo step was recorded, for the caller to register a
+// Foundation undo that calls -undoLastCoreStep.
+- (void)beginEditCapture:(NSString*)label;
+- (BOOL)endEditCapture;
 
 - (BOOL)autosaveLayoutChanges;
-// Recovery: is there a `.xbkp` newer than the show's rgbeffects file?
-- (BOOL)hasNewerLayoutAutosave;
-// Adopt it (backing up the file it replaces) / drop it. Call before
-// the show folder loads — both act on files, not in-memory state.
-- (BOOL)restoreLayoutAutosave;
+// Recovery: a layout autosave from an earlier session to offer back
+// (this device's, else an older version's in the show folder). Call
+// after the show folder loads; the calls below act on what it found.
+- (XLAutosaveOffer*)checkLayoutAutosave;
+// Adopt it (keeping the current file as a copy first when
+// keepingCurrent); reload the show folder afterwards.
+- (BOOL)restoreLayoutAutosaveKeepingCurrent:(BOOL)keep NS_SWIFT_NAME(restoreLayoutAutosave(keepingCurrent:));
+// Write it beside the show file as a copy; nil on failure.
+- (nullable NSString*)saveLayoutAutosaveAsCopy;
+// Keep it but stop offering it.
+- (void)declineLayoutAutosave;
+// Remove this device's layout autosave.
 - (void)discardLayoutAutosave;
 
 // Phase J-2 (touch UX) — read / write the `axis_tool` member on
@@ -1923,7 +2089,9 @@ NS_ASSUME_NONNULL_BEGIN
 // shape is name -> (attr -> value), same as model faceInfo. Image
 // keys are Mouth-<PHONEME>-EyesOpen/-EyesClosed; ImagePlacement
 // holds the scaling mode. Matrix-only (node/Coro faces stay
-// model-level). All mutators mark the sequence dirty so Save lights up.
+// model-level). All mutators mark the sequence dirty so Save lights up,
+// and each records one core undo step (a rename includes the effect
+// references it repoints).
 - (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)sequenceFaces;
 - (BOOL)addSequenceFace:(NSString*)name;
 - (BOOL)removeSequenceFace:(NSString*)name;
@@ -2147,6 +2315,8 @@ NS_ASSUME_NONNULL_BEGIN
 // and not yet persisted. The Layout Editor uses this to gate a
 // "Save" button + warn-on-close.
 - (BOOL)hasUnsavedLayoutChanges;
+// YES while controller (networks) edits are waiting to be saved.
+- (BOOL)hasUnsavedControllerChanges;
 
 // Drop the dirty-layout set without writing to disk. Used after
 // Discard Changes — every undo restore re-marked the model dirty
@@ -4151,8 +4321,16 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 
 // Persist the in-memory preset tree to
 // `<showFolder>/xlights_effectpresets.json` (+ .jbkp backup). Returns
-// NO on write failure of the main file.
+// NO on write failure of the main file, or when someone else changed
+// it since it was loaded (see `changedPresetsFileName`).
 - (BOOL)savePresets;
+- (BOOL)savePresetsOverwritingExternalChanges NS_SWIFT_NAME(savePresetsOverwritingExternalChanges());
+// File name of the presets file when someone else changed it since it
+// was loaded or last saved here; nil otherwise.
+- (nullable NSString*)changedPresetsFileName NS_SWIFT_NAME(changedPresetsFileName());
+// Write the in-memory presets to a timestamped copy beside the presets
+// file. Returns the copy's path, nil on failure.
+- (nullable NSString*)savePresetsCopy NS_SWIFT_NAME(savePresetsCopy());
 
 #pragma mark - Song Structure Regions (#6268)
 
@@ -4178,7 +4356,9 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
     NS_SWIFT_NAME(deleteSongStructureView(at:));
 
 // Boundary + region editing (operate on the active view). The 8-color
-// palette is exposed for the swatch picker.
+// palette is exposed for the swatch picker. Every song-structure edit
+// (views, boundaries, regions) is one core undo step; the active view
+// is per-user and records none.
 - (void)addSongStructureBoundaryAtMS:(int)timeMS
     NS_SWIFT_NAME(addSongStructureBoundary(atMS:));
 - (void)deleteSongStructureBoundaryNearMS:(int)timeMS
@@ -4189,6 +4369,19 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 - (int)nearestSongStructureBoundaryToMS:(int)timeMS
                             toleranceMS:(int)toleranceMS
     NS_SWIFT_NAME(nearestSongStructureBoundary(toMS:toleranceMS:));
+// Interactive boundary drag, recorded as one undo step per gesture (desktop
+// TimeLine drag). Begin grabs the boundary within `toleranceMS` of `timeMS`
+// and returns its time, or -1 when there is none. Update moves it live
+// (snapped to the frame period, clamped between its neighbours; nothing
+// recorded) and returns where it landed. End records the net move as one
+// core undo step and returns YES if anything moved; Cancel puts it back.
+- (int)beginSongStructureBoundaryDragNearMS:(int)timeMS
+                                toleranceMS:(int)toleranceMS
+    NS_SWIFT_NAME(beginSongStructureBoundaryDrag(nearMS:toleranceMS:));
+- (int)updateSongStructureBoundaryDragToMS:(int)timeMS
+    NS_SWIFT_NAME(updateSongStructureBoundaryDrag(toMS:));
+- (BOOL)endSongStructureBoundaryDrag;
+- (void)cancelSongStructureBoundaryDrag;
 - (void)setSongStructureRegionNameForID:(int)regionID
                                   name:(NSString*)name
     NS_SWIFT_NAME(setSongStructureRegionName(forID:name:));

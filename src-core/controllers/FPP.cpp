@@ -1313,6 +1313,10 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     }
 
     updateProgress(0, true);
+    lastUploadFSEQVersion = FSEQ_Version;
+    lastUploadCompressionType = ctype;
+    lastUploadSparse = sparse;
+    lastUploadChannelCount = 0;
     std::filesystem::path fn(seq);
     std::string baseName = fn.filename().string();
     std::string mediaBaseName = "";
@@ -1429,6 +1433,12 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         if (v2source != nullptr) {
             sourceRanges = v2source->m_sparseRanges;
         }
+        for (auto& a : sourceRanges) {
+            channelCount += a.second;
+        }
+        if (channelCount == 0) {
+            channelCount = file->getMaxChannel();
+        }
         if (rangesOnRemote(sourceRanges) != currentRanges) doSeqUpload = true;
     } else if (!sparse) {
         //full file, non sparse
@@ -1472,7 +1482,9 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         if (rangesOnRemote(newRanges) != currentRanges) doSeqUpload = true;
     } else if (!currentRanges.empty()) {
         doSeqUpload = true;
+        channelCount = file->getMaxChannel();
     }
+    lastUploadChannelCount = channelCount;
     if (!doSeqUpload) {
         //nothing will change... we can bail
         return false;

@@ -57,6 +57,7 @@
 #include <wx/appprogress.h>
 
 #include <atomic>
+#include <mutex>
 #include <memory>
 #include <unordered_map>
 #include <map>
@@ -79,6 +80,7 @@
 
 #include "../common/xlBaseApp.h"
 #include "outputs/OutputManager.h"
+#include "utils/LayoutObjectId.h"
 #include "render/PixelBuffer.h"
 #include "render/SequenceData.h"
 #include "import_export/SuperStarImporter.h"
@@ -97,6 +99,7 @@
 #include "render/SequenceFile.h"
 #include "sequencer/EffectsGrid.h"
 #include "render/RenderCache.h"
+#include "render/EffectEditCoalescer.h"
 #include "outputs/ZCPP.h"
 #include "models/OutputModelManager.h"
 #include "render/RenderContext.h"
@@ -116,9 +119,12 @@
 
 class wxDebugReport;
 namespace seqmedia { struct VideoConversionResult; }
+namespace ShowSaveMerge { struct FileToSave; class Plan; struct SaveReport; }
 
 class aiBase;
 class BaseSerializingVisitor;
+class ShowFileWatcher;
+namespace ShowFileLiveMerge { class Incoming; struct LocalFile; struct Applied; }
 class CopyFormat1;
 class Controller;
 class ControllerCaps;
@@ -435,6 +441,9 @@ public:
         std::string version;
         int gridSpacing = 0;
         int iconSize = 0;
+        // Permanent layout record id (utils/LayoutObjectId.h). A new
+        // perspective gets one here; a loaded one takes the file's.
+        std::string objectId = LayoutObjectId::Generate();
     };
 
     void CapturePerspectiveViewSettings(Perspective& p) const;
@@ -450,6 +459,46 @@ public:
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
     void SavePresetsFile(bool backup = false);
+    // Saves the shared show files (layout, controllers, presets). When someone
+    // else changed one on disk since it was loaded or last saved here, asks
+    // Merge / Overwrite / Save Mine as a Copy / Cancel; Merge lists the
+    // conflicts to decide, writes the merged files and brings memory up to
+    // them. writeCopy saves this session's version of a file to the path it
+    // is given (nullptr: the file's text as given). Batch, command line and
+    // automation saves never prompt: they merge when nothing conflicts and
+    // otherwise save nothing.
+    enum class ShowFileConflict { NoConflict, Merge, Overwrite, SavedCopy, Cancel };
+    enum class ShowSaveResult { Saved, SavedCopy, Cancelled, Failed };
+    ShowSaveResult SaveShowFiles(const std::vector<ShowSaveMerge::FileToSave>& files,
+                                 const std::function<bool(const ShowSaveMerge::FileToSave&, const std::string& copyPath)>& writeCopy,
+                                 wxWindow* parent = nullptr);
+    ShowFileConflict AskShowFileConflict(const std::vector<std::string>& paths, bool canMerge, wxWindow* parent);
+    void ApplyMergedShowFiles(const ShowSaveMerge::Plan& plan, ShowSaveMerge::SaveReport& report);
+    void ReloadMergedLayoutSections(pugi::xml_node root, const std::set<std::string>& sections);
+    // Writes the controllers file through SaveShowFiles.
+    bool WriteNetworksFile(wxWindow* parent = nullptr);
+    bool IsNonInteractiveSave() const;
+    // Shared show folders: publishes what this install is doing and shows who
+    // else is editing the layout or controllers. Runs on a timer.
+    void UpdatePresence();
+    void ShowPresenceHint(const std::string& hint);
+    // Shared show folders: brings changes someone else saved to the layout,
+    // controllers or presets into the open show as soon as they land
+    // (ShowFileWatch.cpp). Runs on a timer.
+    void CheckShowFilesOnDisk();
+    void ReviewIncomingShowChanges();
+    // Before opening sequencePath: when someone else sharing the show folder
+    // has it open, asks whether to open it anyway. True to go ahead.
+    bool ConfirmOpenSequenceOpenElsewhere(const wxString& sequencePath);
+    // At load: offers an autosave of realPath back when this install wrote it
+    // (or an older version did) and it holds changes the real file lacks.
+    // backupFirst runs a forced backup of the show folder before replacing the
+    // real file. True when the real file was replaced.
+    bool OfferAutosaveRecovery(const std::string& realPath, const std::string& backupPath,
+                               const wxString& what, bool backupFirst);
+    // At load, before the show files are read: offers to merge each conflicted
+    // copy a sync client left of them (ShowConflictedCopies) into the file.
+    void OfferConflictedCopies(const std::string& showDir);
     void SaveModelsFile();
     void MarkEffectsFileDirty(std::source_location loc = std::source_location::current());
     void MarkPresetsDirty(std::source_location loc = std::source_location::current());
@@ -1585,7 +1634,36 @@ public:
 public:
     xlUnsavedFlag UnsavedRgbEffectsChanges{ "Models, Views and Perspectives" };
     xlUnsavedFlag UnsavedPresetChanges{ "Effect Presets" };
+    wxTimer _presenceTimer;
+    wxStaticText* _presenceHint = nullptr;
+    // Presence file I/O runs on a worker thread (the show folder can be a
+    // stalled network share). The worker posts its result back only while
+    // `alive`, which closing the frame clears under `lock`.
+    struct PresenceWorkerLink {
+        std::mutex lock;
+        bool alive = true;
+        std::atomic<bool> busy{ false };
+    };
+    std::shared_ptr<PresenceWorkerLink> _presenceLink = std::make_shared<PresenceWorkerLink>();
+    wxTimer _showFileWatchTimer;
+    std::unique_ptr<ShowFileWatcher> _showFileWatcher;
+    std::unique_ptr<ShowFileLiveMerge::Incoming> _pendingIncoming;
+    wxPanel* _showFileBanner = nullptr;
+    wxStaticText* _showFileBannerText = nullptr;
+    wxButton* _showFileBannerReview = nullptr;
+    long long _showFileBannerHideAt = 0;
+    bool _inShowFileCheck = false;
+    bool _autoReloadShowFiles = true;
+    void StartShowFileWatch();
+    void StopShowFileWatch();
+    void CreateShowFileBanner();
+    void ShowShowFileBanner(const wxString& text, bool review);
+    void HideShowFileBanner();
+    std::vector<ShowFileLiveMerge::LocalFile> LiveShowFiles();
+    void HandleIncomingShowChanges(bool review);
+    void RefreshAfterIncomingShowChanges(const ShowFileLiveMerge::Applied& applied);
     bool _renderMode = false;
+    int _automationDepth = 0;
     std::vector<std::string> _sequenceBusy;
     std::vector<std::function<void()>> _runWhenSequenceNotBusy;
     bool _checkSequenceMode = false;
@@ -1825,7 +1903,7 @@ public:
     void RunWhenSequenceNotBusy(std::function<void()> fn);
 
     void NewSequence(const std::string& media = "", uint32_t durationMS = 0, uint32_t frameMS = 0, const std::string& defView = "");
-    void SaveAsSequence();
+    bool SaveAsSequence();
     bool SaveAsSequence(const std::string& filename);
     bool IsSequenceInShowDir(const wxString& filename) const;
     // Why the open sequence can't be saved to `path` ("" = it can). An empty
@@ -1904,6 +1982,8 @@ private:
     std::string selectedEffectName;
     std::string selectedEffectString;
     std::string selectedEffectPalette;
+    // Groups settings-panel edits of the selected effect into undo steps.
+    EffectEditCoalescer _panelEditCoalescer;
     Effect *selectedEffect = nullptr;
 
     std::string lastPlayEffect;
@@ -1980,6 +2060,14 @@ public:
     void ResetAllPanelDefaultSettings();
 
     void UnselectEffect();
+    // Drops the selected effect and the effect panel's hold on it without
+    // touching playback; for changes (undo/redo, merges) that can delete it.
+    void ClearEffectSelectionForDocumentChange();
+    // The next settings-panel change to the selected effect starts a new undo step.
+    void EndPanelEditBurst() { _panelEditCoalescer.EndBurst(); }
+    // The next effect panel change joins the undo step just recorded (a
+    // panel that embedded the media it is about to point the effect at).
+    void JoinNextPanelEditToLastStep() { _panelEditCoalescer.JoinNextToCurrentStep(_sequenceElements); }
     FindDataPanel* GetFindDataPanel() const
     {
         return _findDataPanel;
@@ -2132,8 +2220,6 @@ private:
     void CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes);
     void RequestReleaseList(int retriesLeft, bool canSkipUpdates, bool showMessageBoxes);
     void HandleReleaseList(const std::string& resp, bool canSkipUpdates, bool showMessageBoxes);
-    void ShiftEffectsOnLayer(EffectLayer* el, int milliseconds);
-    void ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds);
     void InitSequencer();
     void CreateSequencer();
     void DoStopSequence();

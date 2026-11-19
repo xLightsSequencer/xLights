@@ -23,6 +23,12 @@
 #include "render/RenderCache.h"
 #include "render/IRenderProgressSink.h"
 #include "render/ViewpointMgr.h"
+#include "utils/LayoutObjectId.h"
+#include "utils/ShowAutosave.h"
+#include "utils/ShowConflictedCopies.h"
+#include "utils/ShowSaveMerge.h"
+#include "utils/ShowFileWatcher.h"
+#include "render/ShowFileLiveMerge.h"
 #include "effects/EffectManager.h"
 #include "effects/EffectPresetManager.h"
 #include "outputs/OutputManager.h"
@@ -36,6 +42,7 @@
 #include <atomic>
 #include <list>
 #include <map>
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -150,8 +157,10 @@ public:
     EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
     // Persist the preset library to disk. Writes the backup copy first
     // (best-effort), then the main JSON file. Returns false on write
-    // failure of the main file.
-    bool SaveEffectPresets();
+    // failure of the main file, or -- unless overwriteExternalChanges --
+    // when someone else changed the main file since it was loaded.
+    bool SaveEffectPresets(bool overwriteExternalChanges = false);
+    std::string GetEffectPresetsPath() const;
 
     // #6450 — read-only preset library loaded from the base show
     // folder's `xlights_effectpresets.json`, surfaced as the desktop's
@@ -412,6 +421,9 @@ public:
         int backgroundBrightness = 100;
         int backgroundAlpha = 100;
         bool scaleBackgroundImage = false;
+        // Permanent layout record id (utils/LayoutObjectId.h). A new group gets
+        // one here; a loaded one takes the file's. Kept through a rename.
+        std::string objectId = LayoutObjectId::Generate();
     };
     const std::vector<NamedLayoutGroup>& GetNamedLayoutGroups() const { return _namedLayoutGroups; }
 
@@ -687,31 +699,128 @@ public:
     // `OutputManager::Save()` rewrites the entire networks file).
     void MarkControllersDirty() { _controllersDirty = true; }
     bool AreControllersDirty() const { return _controllersDirty; }
-    bool SaveLayoutChanges();
-    // Layout autosave: write the pending edits to
-    // `xlights_rgbeffects.xbkp` without touching the real file or
-    // clearing the dirty sets, so unsaved layout work survives a crash
-    // or a force-quit. Desktop's equivalent is
+    // Refuses (returns false, edits stay pending) to overwrite
+    // xlights_rgbeffects.xml or xlights_networks.xml when someone else
+    // changed it since it was loaded, unless overwriteExternalChanges.
+    bool SaveLayoutChanges(bool overwriteExternalChanges = false);
+    // Paths of the files the next SaveLayoutChanges() has edits for that
+    // were changed on disk by someone else.
+    std::vector<std::string> LayoutFilesChangedOnDisk() const;
+    // Writes this session's version of each file in LayoutFilesChangedOnDisk()
+    // to a timestamped copy beside it, leaving the changed files alone, and
+    // saves the rest as usual. Returns the copies written.
+    std::vector<std::string> SaveLayoutChangesAsCopies();
+    // Layout autosave: write the pending edits to this install's
+    // autosave folder (ShowAutosave::LayoutAutosavePath) without touching
+    // the real file or clearing the dirty sets, so unsaved layout work
+    // survives a crash or a force-quit. Desktop's equivalent is
     // `SaveWorkingLayout()` → `SaveEffectsFile(true)`; it can rebuild
     // the whole file from memory, whereas this patches a copy of the
-    // live file, which is why the two share only the file name.
+    // live file, which is why the two share only the location.
     // Returns false when there is nothing pending or the write fails.
     bool AutosaveLayoutChanges();
-    // True when a `.xbkp` sits alongside the show's rgbeffects file and
-    // is newer than it — an autosave that outlived the session that
-    // wrote it. Desktop offers the same file back at load
-    // (TabSequence.cpp:204-251).
-    bool HasNewerLayoutAutosave() const;
-    // Adopt the autosave: back up the current rgbeffects file, then
-    // copy the `.xbkp` over it. Call before the show loads.
-    bool RestoreLayoutAutosave();
-    // Drop a stale/declined autosave so it stops being offered.
+    // Whether a layout autosave from an earlier session should be offered
+    // back: this install's (checked first), else one an older version left
+    // in the show folder. A stale one of ours is removed. The checked
+    // autosave is what the calls below act on.
+    AutosaveCheck CheckLayoutAutosave();
+    // Writes the checked autosave over the rgbeffects file (keeping the
+    // current file as a copy first when keepCurrentAsCopy). Reload the show
+    // afterwards.
+    bool RestoreLayoutAutosave(bool keepCurrentAsCopy, std::string* keptCopyPath = nullptr);
+    // Writes the checked autosave beside the rgbeffects file as a copy.
+    std::string SaveLayoutAutosaveAsCopy();
+    // Keeps the checked autosave but stops offering it.
+    void DeclineLayoutAutosave();
+    // Removes this install's layout autosave.
     void DiscardLayoutAutosave();
 
+    // Merging with what someone else saved (the files LayoutFilesChangedOnDisk()
+    // names, or the effect presets). This session's side of the layout is the
+    // version that was loaded with this session's edits applied, so an item
+    // both sides edited is a conflict rather than silently patched over.
+    enum class ShowFileSet { Layout, Presets };
+    // Builds the merge; it stays pending until committed or cancelled. False
+    // when a changed file cannot be merged (its loaded version is not known).
+    bool PrepareShowFileMerge(ShowFileSet which);
+    ShowSaveMerge::Plan* PendingShowFileMerge() {
+        return _pendingMergeLive && _pendingIncoming ? &_pendingIncoming->Plan() : _pendingMerge.get();
+    }
+    // Writes the merged files once every conflict is resolved, brings memory
+    // up to them and clears the edits it saved. On success *report holds the
+    // save report when it has something to say (else empty). When a file
+    // changed again meanwhile and the new merge needs decisions, returns false
+    // with *needsDecisions set and the new merge pending.
+    bool CommitShowFileMerge(std::string* report, std::string* error, bool* needsDecisions);
+    void CancelShowFileMerge() {
+        if (_pendingMergeLive) {
+            _pendingMergeLive = false;
+            return;
+        }
+        _pendingMerge.reset();
+        _pendingCopy.reset();
+    }
+
+    // Someone else's changes to the shared show files, brought into the open
+    // show as soon as they land (iPadShowFileWatch.cpp). Main thread, on a
+    // timer. No edits here to a changed file: it is reloaded in place. Edits
+    // here: merged in memory (the edits stay unsaved on top of their file).
+    // Conflicts: nothing changes until ReviewIncomingShowChanges and the
+    // conflict sheet decide them; until then a save merges as usual.
+    enum class IncomingShowChanges {
+        None,           // nothing new
+        Applied,        // brought in; *banner says what
+        NeedsDecisions, // *banner says how many; offer Review
+        CannotMerge,    // *banner says so; the save asks what to do
+        Cleared,        // pending changes were settled by a save
+    };
+    IncomingShowChanges CheckShowFilesOnDisk(std::string* banner);
+    // Merges the pending incoming changes again (memory may have changed) and,
+    // when they still need decisions, makes them the merge the conflict sheet
+    // shows (PendingShowFileMerge, IsShowFileMergeLive); CommitShowFileMerge
+    // then brings them into memory without writing anything. They may also
+    // have been applied (nothing to decide any more) or cleared.
+    IncomingShowChanges ReviewIncomingShowChanges(std::string* banner);
+    bool IsShowFileMergeLive() const { return _pendingMergeLive; }
+    void StopWatchingShowFiles();
+
+    // Conflicted copies a sync client left of the show files
+    // (ShowConflictedCopies), offered after the show loads. Preparing one
+    // makes its merge the pending merge: the same conflict list, then
+    // CommitShowFileMerge writes it, moves the copy to the backup folder and
+    // brings memory up to the merged file.
+    std::vector<ShowConflictedCopies::Found> FindConflictedCopies() const;
+    bool IgnoreConflictedCopy(const std::string& copyPath);
+    bool PrepareConflictedCopyMerge(const std::string& copyPath, std::string* error);
+    bool PendingMergeIsConflictedCopy() const { return _pendingCopy.has_value(); }
+
 private:
+    std::vector<ShowFileLiveMerge::LocalFile> LiveShowFiles();
+    // userInitiated (Review) may wait for the render to stop; the timer only
+    // tries briefly and backs off, since it runs on the main actor.
+    IncomingShowChanges HandleIncomingShowChanges(std::string* banner, bool userInitiated = false);
+    bool CommitIncomingShowChanges(std::string* report, std::string* error, bool* needsDecisions);
+    std::unique_ptr<ShowFileWatcher> _showFileWatcher;
+    std::chrono::steady_clock::time_point _incomingRetryAt{};
+    int _incomingRetries = 0;
+    std::unique_ptr<ShowFileLiveMerge::Incoming> _pendingIncoming;
+    bool _pendingMergeLive = false;
+    std::vector<ShowSaveMerge::FileToSave> ShowFilesToMerge(ShowFileSet which);
+    void ClearLayoutDirt();
+    std::unique_ptr<ShowSaveMerge::Plan> _pendingMerge;
+    ShowFileSet _pendingMergeSet = ShowFileSet::Layout;
+    std::optional<ShowConflictedCopies::Found> _pendingCopy;
+    ShowConflictedCopies::BaseChoice _pendingCopyBase;
+    bool CommitConflictedCopyMerge(std::string* report, std::string* error, bool* needsDecisions);
+    std::string _checkedLayoutAutosavePath;
     // Shared body of SaveLayoutChanges / AutosaveLayoutChanges. Empty
     // targetPath means the real rgbeffects file.
-    bool SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty);
+    bool SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty, bool overwriteExternalChanges = false);
+    bool PatchLayoutDocument(pugi::xml_document& doc);
+    bool HasLayoutDirt() const;
+    // Writes every in-memory layout id into a patched rgbeffects document
+    // before it goes to disk. Every rgbeffects write calls this.
+    void StampLayoutIds(pugi::xml_node root) const;
 
 public:
     // Clear the dirty set without writing to disk — used after a

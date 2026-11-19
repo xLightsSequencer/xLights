@@ -18,6 +18,7 @@
 
 #include "../models/ArchesModel.h"
 #include "../models/BaseObject.h"
+#include "../utils/LayoutObjectId.h"
 #include "../models/BaseObjectVisitor.h"
 #include "../models/CandyCaneModel.h"
 #include "../models/ChannelBlockModel.h"
@@ -146,6 +147,15 @@ void BaseSerializingVisitor::AddBaseObjectAttributes(const BaseObject& base, Att
     }
     if (base.IsFromBase()) {
         attrs.Add(XmlNodeKeys::FromBaseAttribute, "1");
+    }
+    AddObjectId(base.GetObjectId(), attrs);
+}
+
+// An exported document becomes a new record wherever it is imported, so it
+// carries no identity of its own.
+void BaseSerializingVisitor::AddObjectId(const std::string& id, AttrCollector& attrs) const {
+    if (!forExport && !id.empty()) {
+        attrs.Add(LayoutObjectId::ATTRIBUTE, id);
     }
 }
 
@@ -525,6 +535,7 @@ void BaseSerializingVisitor::WriteSubmodels(const Model* m) {
         attrs.Add(XmlNodeKeys::LayoutAttribute,      submodel->GetSubModelLayout());
         attrs.Add(XmlNodeKeys::SMTypeAttribute,      submodel->GetSubModelType());
         attrs.Add(XmlNodeKeys::BufferStyleAttribute, submodel->GetSubModelBufferStyle());
+        AddObjectId(s->GetObjectId(), attrs);
         if (submodel->IsRanges()) {
             for (int x = 0; x < submodel->GetNumRanges(); ++x) {
                 attrs.Add("line" + std::to_string(x), std::string(submodel->GetRange(x)));

@@ -685,12 +685,24 @@ void SubModelsPanel::SaveSubModelInfoIntoThisModel(Model *m)
         }
     }
 
+    // Layout ids of the target's current submodels: an entry standing in for one
+    // of them (matched by the name it had when the dialog opened) is the same
+    // record and keeps its id. Anything else gets a fresh one from AddSubmodel.
+    std::map<std::string, std::string> submodelIds;
+    for (auto& sub : subs) {
+        submodelIds[sub->GetName()] = sub->GetObjectId();
+    }
+
     // Delete all current submodels from the target model
     m->RemoveAllSubModels();
 
     // Now create new submodels in the target model from the SubModelInfo
     for (auto a = _subModels.begin(); a != _subModels.end(); ++a) {
         SubModel *sm = new SubModel(m, (*a)->name, (*a)->vertical, (*a)->isRanges, (*a)->bufferStyle);
+        if (auto idIt = submodelIds.find((*a)->oldName.ToStdString()); idIt != submodelIds.end()) {
+            sm->SetObjectId(idIt->second);
+            submodelIds.erase(idIt);
+        }
         m->AddSubmodel(sm);
 
         if ((*a)->isRanges) {

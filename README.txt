@@ -14,12 +14,124 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -bug (derwin12)              FPP Connect with "Keep window open" added sequences from earlier uploads
                                  to the playlist, not just the ones selected (#7395)
+    -bug (dkulp)                 Bulk editing a setting could crash when a submodel or strand row held effects of
+                                 an unknown type; those effects are now dropped on load as they are on model rows
+    -bug (dkulp)                 Reading a sparse FSEQ into a buffer sized by its channel count (HinksPix export)
+                                 could crash
+    -bug (dkulp)                 Generate Custom Model could crash when the video returned too few frames
+    -bug (dkulp)                 Adding or removing layers on a submodel or strand row while it rendered could crash
+    -bug (dkulp)                 iPad - Undo of a step bigger than the undo limit (such as pasting 60 effects)
+                                 only partly reverted it
+    -enh (dkulp)                 Opening a sequence saved before models were renamed in the layout (here or by
+                                 someone sharing the show folder) renames its rows to match and says so,
+                                 instead of asking about missing models
+    -enh (dkulp)                 Offer to merge the conflicted copies Dropbox, iCloud, OneDrive, Google Drive or
+                                 Syncthing leave of the layout, controller or preset files into the file; the
+                                 copy is then moved to the Backup folder
+    -bug (dkulp)                 LOR S5 import: Marquee took its speed from the wrong field
+    -bug (dkulp)                 LMS import: channels with the same name on different networks got identical names
+    -bug (dkulp)                 HLS import: strand names lost their last character, so Map CCR/Strand found no nodes
     -bug (derwin12)              Select Effects listed models with no effects matching the Effect Type,
                                  Render Style, time and colour filters together
+    -enh (dkulp)                 Layout, controller and effect preset changes saved by someone else to a shared
+                                 show folder are merged with yours when you save: you choose only where you both
+                                 changed the same thing, or where they deleted a model the open sequence has
+                                 effects on (keep it, delete it with its effects, or map the effects to
+                                 another model), and a report lists renames and broken references
+    -enh (dkulp)                 iPad - Layout, controller and effect preset changes saved by someone else to a
+                                 shared show folder are merged with yours when you save: you choose only where
+                                 you both changed the same item, or where they deleted a model the open
+                                 sequence has effects on (keep it, delete it with its effects, or map the effects)
+    -enh (dkulp)                 Restoring an autosave after someone else saved the file can merge the two
+    -enh (dkulp)                 Warn instead of silently overwriting layout, controller, preset or sequence
+                                 changes saved by someone else to a shared show folder
+    -enh (dkulp)                 iPad - Warn instead of silently overwriting layout, controller, preset or
+                                 sequence changes saved by someone else to a shared show folder
+    -enh (dkulp)                 Autosaves in a shared show folder are kept per computer and only offered back
+                                 on the computer that wrote them; restoring one no longer discards changes
+                                 someone else saved since (save it as a copy or restore anyway, keeping theirs)
+    -enh (dkulp)                 iPad - Autosaves in a shared show folder are kept per device and only offered
+                                 back on the iPad that wrote them; restoring one no longer discards changes
+                                 someone else saved since (save it as a copy or restore anyway, keeping theirs)
+    -enh (dkulp)                 Shared show folders: warn when opening a sequence someone else has open, and
+                                 show who else is editing the layout or controllers in the status bar
+    -enh (dkulp)                 iPad - Shared show folders: warn when opening a sequence someone else has open
+                                 (open anyway or read-only), and show who else is editing the layout or
+                                 controllers in the layout editor
+    -enh (dkulp)                 Shared show folders: layout, controller and effect preset changes someone else
+                                 saves are brought into the open show right away (merged with your unsaved
+                                 edits) once playback stops; where you both changed the same thing, a status
+                                 bar notice offers Review instead
+    -enh (dkulp)                 iPad - Shared show folders: layout, controller and effect preset changes someone
+                                 else saves are brought into the open show right away (merged with your unsaved
+                                 edits) once playback or a drag ends; where you both changed the same thing, a
+                                 banner offers Review. Can be turned off in Settings
+    -enh (dkulp)                 Show files are replaced in one step when saved, so a crash or a sync client
+                                 never sees a half-written file; tags, permissions, creation date and hard
+                                 links are kept
+    -bug (dkulp)                 macOS/iPad - Idle render threads dropped to background priority, so on a busy
+                                 computer closing could hang and new render work could start slowly
+    -enh (dkulp)                 Sequence media edits can be undone: add, embed, extract, rename, remove,
+                                 re-embed, re-select, bulk find/copy, embed/extract all, remove unused media
+                                 and AI images, each as one step
+    -enh (dkulp)                 iPad - Media manager edits can be undone: add, embed, extract, rename,
+                                 remove, re-embed, replace, embed/extract all, remove unused and AI images
     -change (scott)              Controller Open / Open Proxy buttons stay enabled while outputting to lights
     -bug (dkulp)                 Undo could change or delete the wrong effect after effects were added
                                  without undo, lose effects deleted from a layer that was later removed,
                                  and do nothing after a timing track was renamed
+    -bug (dkulp)                 Undo of removing a layer brings back the layer's name and effects
+    -bug (dkulp)                 Saving pixel edits to an embedded image from the Pictures assist window
+                                 was silently discarded
+    -bug (dkulp)                 Extract All left SVG, shader and text media under their old name while
+                                 effects were pointed at the extracted file
+    -enh (dkulp)                 Adding, deleting, renaming and reordering timing tracks, adding, removing and
+                                 reordering models in the sequence, timing imports, tags, song structure and
+                                 sequence face edits can be undone
+    -bug (dkulp)                 Undo of Import Lyrics and Breakdown Phrases/Words restores the timing track's
+                                 previous layers instead of leaving them empty; Remove Words/Phonemes can be undone
+    -bug (dkulp)                 iPad - Breakdown Phrase on a single mark can be undone (a later undo could
+                                 revert the wrong edit); undo of Breakdown Word(s) no longer leaves an empty
+                                 phoneme layer
+    -bug (dkulp)                 AC mode: turning lights off over a range that fully covered a locked effect
+                                 could hang xLights
+    -bug (dkulp)                 Split Effect is undone in one step; the first Undo after a split did nothing
+    -bug (dkulp)                 Undo of Auto Label and Convert Effects To restores the previous label or effect type
+    -bug (dkulp)                 Automation deleteEffect could not be undone
+    -bug (dkulp)                 Undo of effect settings panel changes restores the effect exactly, including its
+                                 type and any settings added or removed; changes to a second effect of the same
+                                 type could not be undone; changes after a pause of over a second are their own
+                                 undo step
+    -bug (dkulp)                 Paste as layers is undone in one step; a Morph assist double-click can be undone
+    -bug (dkulp)                 iPad - Dragging an effect setting slider or typing a value is one undo step
+                                 instead of one per change
+    -bug (dkulp)                 iPad - Undo after Promote Node Effects or Convert Data to Effects undid the
+                                 previous edit instead
+    -enh (dkulp)                 Import Effects (every format, and the automation import commands) can be
+                                 undone in one step, including the timing tracks, models, images and faces
+                                 it added
+    -enh (dkulp)                 iPad - Import Effects, SuperStar import and Import Lyrics can be undone in
+                                 one step, including the timing tracks, models, images and faces they added
+    -enh (dkulp)                 Creating, linking, unlinking, renaming and deleting effect symbols and Convert
+                                 Symbols to Effects can be undone
+    -enh (dkulp)                 iPad - Renaming and deleting effect symbols and Convert All Symbols to Effects
+                                 can be undone
+    -bug (dkulp)                 Undo of deleting an effect linked to a symbol keeps it linked
+    -bug (dkulp)                 Servo linked start/end values: undo takes back the neighbouring effect's
+                                 change together with the edited effect's
+    -enh (dkulp)                 Shift Effects, Shift Effects And Timing, Shift Selected Effects, Convert Data
+                                 To Effects, Promote Node Effects and the clearModelEffects / cloneModelEffects
+                                 automation commands can be undone in one step
+    -bug (dkulp)                 Promote Node Effects no longer adds an empty layer when nothing can be promoted
+    -enh (dkulp)                 iPad - Timing imports, new timing tracks (every type, including AI lyrics,
+                                 tempo, chords and onsets), renaming, deleting and making a timing track
+                                 variable, moving rows, tags, sequence faces and song structure edits can be
+                                 undone and redone
+    -enh (dkulp)                 iPad - Song-structure boundaries can be dragged in the waveform strip; each
+                                 drag is one undo step
+    -bug (dkulp)                 iPad - Redo did nothing after undoing Promote Node Effects and other bulk edits
+    -bug (dkulp)                 Shift Effects no longer moves locked effects (Shift Selected Effects could
+                                 leave one before the start of the sequence)
     -bug (alex)                  SubModels: Import Custom Model Overlay ignored the chosen alignment column (always
                                  left) and placed the overlay upside down; all 9 positions now work
     -bug (alex)                  SubModels: Import Custom Model Overlay filled the empty cells of the outline,

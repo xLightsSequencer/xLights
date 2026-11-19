@@ -144,6 +144,12 @@ struct LayoutEditorView: View {
     /// after every set + save.
     @State private var hasUnsavedChanges: Bool = false
     @State private var saveErrorMessage: String? = nil
+    // A save found xlights_rgbeffects.xml / xlights_networks.xml changed
+    // by someone else since the show was loaded.
+    @State private var layoutSaveConflict: ShowFileSaveConflict? = nil
+    @State private var layoutMergeSheet = false
+    @State private var layoutMergeReport: String? = nil
+    @State private var layoutSaveCopyNotice: String? = nil
     /// J-2 — mirrors `document.canUndoLayoutChange`. Updated after
     /// every edit + undo so the toolbar button can grey itself out.
     @State private var canUndo: Bool = false
@@ -989,6 +995,17 @@ struct LayoutEditorView: View {
         } message: {
             Text(saveErrorMessage ?? "")
         }
+        .showFileConflictAlert($layoutSaveConflict,
+                               notice: $layoutSaveCopyNotice,
+                               onOverwrite: { _ in overwriteLayoutAfterConflict() },
+                               onSaveCopy: { saveLayoutCopiesAfterConflict($0) },
+                               onMerge: { _ in mergeLayoutAfterConflict() })
+        .modifier(ShowFileMergeFlow(document: viewModel.document,
+                                    showSheet: $layoutMergeSheet,
+                                    report: $layoutMergeReport,
+                                    onFinished: { afterLayoutMerge() }))
+        // Someone else's saved changes reached the open show.
+        .onChange(of: viewModel.showFilesReloadToken) { _, _ in afterLayoutMerge() }
         // IE-15 — Models report (.xlsx) export wiring is bundled
         // into a ViewModifier so the outer body's chain stays within
         // Swift's type-checker budget (same approach as the other
@@ -4847,12 +4864,55 @@ struct LayoutEditorView: View {
     }
 
     private func saveLayoutChanges() {
+        let changed = viewModel.document.layoutFilesChangedOnDisk()
+        if !changed.isEmpty {
+            layoutSaveConflict = ShowFileSaveConflict(kind: .layout, fileNames: changed)
+            return
+        }
         let ok = viewModel.document.saveLayoutChanges()
         if ok {
             hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
         } else {
             saveErrorMessage = "Couldn't write xlights_rgbeffects.xml. Check the Tools → Package Logs output for details."
         }
+    }
+
+    private func mergeLayoutAfterConflict() {
+        switch ShowFileMergeStart.start(document: viewModel.document, presets: false) {
+        case .needsDecisions:
+            layoutMergeSheet = true
+        case .committed(let report):
+            afterLayoutMerge()
+            if !report.isEmpty { layoutMergeReport = report }
+        case .failed(let message):
+            saveErrorMessage = message
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        }
+    }
+
+    /// The merged files are saved and the open show was brought up to them.
+    private func afterLayoutMerge() {
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        canUndo = viewModel.document.canUndoLayoutChange()
+        summaryToken &+= 1
+        refreshModelList()
+    }
+
+    private func overwriteLayoutAfterConflict() {
+        if !viewModel.document.saveLayoutChangesOverwritingExternalChanges() {
+            saveErrorMessage = "Couldn't write the layout files. Check the Tools → Package Logs output for details."
+        }
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+    }
+
+    private func saveLayoutCopiesAfterConflict(_ conflict: ShowFileSaveConflict) {
+        let copies = viewModel.document.saveLayoutChangesAsCopies()
+        if copies.isEmpty {
+            saveErrorMessage = "Couldn't save a copy of \(conflict.fileNames.joined(separator: " and ")). Check the Tools → Package Logs output for details."
+        } else {
+            layoutSaveCopyNotice = ShowFileSaveConflict.copyNotice(copies: copies, originals: conflict.fileNames)
+        }
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
     }
 
     /// J-2 — roll back every staged in-memory layout edit by
@@ -14950,17 +15010,41 @@ struct LayoutEditorWindowRoot: View {
     @Environment(\.dismissWindow) private var dismissWindow
     @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
+    @State private var incomingReviewSheet = false
+    @State private var incomingReviewReport: String?
 
     var body: some View {
         Group {
             if suppressed {
                 Color.black
             } else {
-                LayoutEditorView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: 0) {
+                    // Someone else sharing the show folder is editing the
+                    // layout or controllers (their presence file).
+                    if let hint = viewModel.presenceHint {
+                        PresenceHintBanner(message: hint)
+                    }
+                    // Someone else's saved changes, brought in or waiting
+                    // for a decision.
+                    if let update = viewModel.showFileUpdate {
+                        ShowFileUpdateBanner(update: update,
+                                             onReview: {
+                                                 if viewModel.reviewIncomingShowChanges() {
+                                                     incomingReviewSheet = true
+                                                 }
+                                             },
+                                             onDismiss: { viewModel.showFileUpdate = nil })
+                    }
+                    LayoutEditorView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
         }
         .frame(minWidth: 480, minHeight: 360)
+        .modifier(ShowFileMergeFlow(document: viewModel.document,
+                                    showSheet: $incomingReviewSheet,
+                                    report: $incomingReviewReport,
+                                    onFinished: { viewModel.finishIncomingShowChangesReview() }))
         .navigationTitle("Edit Layout")
         .onAppear {
             if viewModel.pendingDetachTokens.remove("layout-editor") != nil {

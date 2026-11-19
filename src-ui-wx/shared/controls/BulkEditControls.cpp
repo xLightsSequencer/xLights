@@ -28,6 +28,7 @@
 #include "utils/ExternalHooks.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceElements.h"
+#include "render/SequenceMediaCommands.h"
 
 #include <filesystem>
 
@@ -224,30 +225,31 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrl_FileChanged(wxFileDirPickerEvent& 
                             auto& elements = xl->GetSequenceElements();
                             auto& media = elements.GetSequenceMedia();
 
-                            // Load the file into the cache, then embed it.
                             // Use a clean embedded name so the cache key matches
                             // what gets stored in effect settings.
                             std::string fname = std::filesystem::path(filepath).filename().string();
+                            // Pointing the effect at the embedded file is part
+                            // of the same undo step as embedding it.
+                            auto embed = [&](const std::string& key, MediaType type) {
+                                if (SeqMediaEdits::EmbedFile(elements, key, type, filepath)) {
+                                    xl->JoinNextPanelEditToLastStep();
+                                }
+                            };
                             if (ext == ".fs") {
-                                media.GetShader(filepath);
-                                media.EmbedMedia(filepath);
+                                embed(filepath, MediaType::Shader);
                                 SetFileName(wxFileName(filepath));
                             } else if (ext == ".svg") {
-                                media.GetSVG(filepath);
-                                media.EmbedMedia(filepath);
+                                embed(filepath, MediaType::SVG);
                                 SetFileName(wxFileName(filepath));
                             } else if (ext == ".txt") {
-                                media.GetTextFile(filepath);
-                                media.EmbedMedia(filepath);
+                                embed(filepath, MediaType::TextFile);
                                 SetFileName(wxFileName(filepath));
                             } else {
-                                // Image: use the existing rename+embed pattern
-                                media.GetImage(filepath);
                                 std::string embeddedName = "Images/" + fname;
-                                if (!media.RenameImage(filepath, embeddedName)) {
+                                if (media.HasMedia(embeddedName)) {
                                     embeddedName = filepath;
                                 }
-                                media.EmbedImage(embeddedName);
+                                embed(embeddedName, MediaType::Image);
                                 SetFileName(wxFileName(embeddedName));
                             }
                         }

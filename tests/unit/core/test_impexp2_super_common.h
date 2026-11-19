@@ -1,5 +1,6 @@
 #pragma once
 #include "import_export/SuperStarImporter.h"
+#include "render/SequenceMutationGuard.h"
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
 #include "render/Element.h"
@@ -49,6 +50,7 @@ struct Fixture {
     Fixture() {
         auto& se = ctx.GetSequenceElements();
         se.SetViewsManager(&ctx._sequenceViewManager);
+        SeqMutationGuard::Scope setup;
         el = se.AddElement("Model", "model", true, false, true, false, false);
         opt.layerBlend = "Normal";
         opt.imageGroupPrefix = "P";

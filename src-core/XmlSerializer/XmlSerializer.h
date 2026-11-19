@@ -22,6 +22,7 @@
 #include "models/ModelSetManager.h"
 #include "utils/ExternalHooks.h"
 #include "utils/FileUtils.h"
+#include "utils/LayoutObjectId.h"
 
 struct XmlSerializer {
     XmlSerializer() {}
@@ -79,6 +80,9 @@ struct XmlSerializer {
             attr.Add("PosY", std::to_string(lg.posY));
             attr.Add("PaneWidth", std::to_string(lg.paneWidth));
             attr.Add("PaneHeight", std::to_string(lg.paneHeight));
+            if (!lg.objectId.empty()) {
+                attr.Add(LayoutObjectId::ATTRIBUTE, lg.objectId);
+            }
             visitor.WriteOpenTag("layoutGroup", attr, true);
         }
         visitor.WriteCloseTag();

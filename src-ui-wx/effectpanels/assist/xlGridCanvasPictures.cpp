@@ -25,6 +25,8 @@
 #include "render/EffectLayer.h"
 #include "render/Element.h"
 #include "render/SequenceElements.h"
+#include "render/SequenceMediaCommands.h"
+#include "render/CommandExecutor.h"
 #include "shared/utils/wxUtilities.h"
 
 static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
@@ -207,7 +209,7 @@ void xlGridCanvasPictures::LoadImage()
 void xlGridCanvasPictures::SaveAsImage()
 {
     // If SequenceMedia is available, save as a new embedded image with a user-chosen name
-    if (mSequenceMedia != nullptr) {
+    if (mSequenceMedia != nullptr && mEffect != nullptr) {
         // Build a default name suggestion from the current path
         wxString defaultName = PictureName;
         // Strip any path separators to suggest just group/name
@@ -231,9 +233,14 @@ void xlGridCanvasPictures::SaveAsImage()
             newName += ".png";
 
         std::string nameStr = newName.ToStdString();
-        mSequenceMedia->AddEmbeddedImage(nameStr, wxImageToXlImage(image));
-        PictureName = newName;
-        UpdateRenderedImage();
+        {
+            // The new image and the effect pointing at it are one undo step
+            SequenceElements& seq = *mEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+            ScopedCommandBatch undoStep(seq, "Save Image");
+            SeqMediaEdits::EmbedImage(seq, nameStr, wxImageToXlImage(image), "Save Image");
+            PictureName = newName;
+            UpdateRenderedImage();
+        }
         mModified = true;
         NewPictureName = PictureName;
         LoadAndProcessImage();
@@ -384,24 +391,24 @@ void xlGridCanvasPictures::SaveImageToFile()
 void xlGridCanvasPictures::SaveImageToMedia()
 {
     // Overwrite the existing embedded entry with the current image data
-    if (mSequenceMedia == nullptr) return;
-    mSequenceMedia->AddEmbeddedImage(PictureName.ToStdString(), wxImageToXlImage(image));
+    if (mSequenceMedia == nullptr || mEffect == nullptr) return;
+    SequenceElements& seq = *mEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+    ScopedCommandBatch undoStep(seq, "Edit Image");
+    SeqMediaEdits::EmbedImage(seq, PictureName.ToStdString(), wxImageToXlImage(image), "Edit Image");
     UpdateRenderedImage();
 }
 
 void xlGridCanvasPictures::UpdateRenderedImage()
 {
-    wxString settings = mEffect->GetSettingsAsString();
-    wxArrayString all_settings = wxSplit(settings, ',');
-    for (int s = 0; s < (int)all_settings.size(); s++) {
-        wxArrayString parts = wxSplit(all_settings[s], '=');
-        if (parts[0] == "E_TEXTCTRL_Pictures_Filename") {
-            parts[1] = PictureName;
-        }
-        all_settings[s] = wxJoin(parts, '=');
+    // Only an existing filename setting is repointed. Joins the caller's
+    // undo step when it holds one (saving an embedded image).
+    static const std::string kFilename = "E_TEXTCTRL_Pictures_Filename";
+    const std::string name = PictureName.ToStdString();
+    if (mEffect->GetSettings().Contains(kFilename) && mEffect->GetSetting(kFilename) != name) {
+        SequenceElements& seq = *mEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+        ScopedCommandBatch undoStep(seq, "Change Picture");
+        seq.GetCommandExecutor().SetEffectSetting(mEffect, kFilename, name);
     }
-    settings = wxJoin(all_settings, ',');
-    mEffect->SetSettings(settings.ToStdString(), false);
 
     wxCommandEvent eventEffectChanged(EVT_EFFECT_CHANGED);
     eventEffectChanged.SetClientData(mEffect);

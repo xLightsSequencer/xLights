@@ -27,6 +27,7 @@
 #ifndef __XL_EXTERNAL_HOOKS__
 
 #include <filesystem>
+#include <functional>
 #include <string>
 #include <list>
 
@@ -50,5 +51,7 @@ inline bool FileExists(const std::string &s, bool waitForDownload = true) {
 inline void MarkNewFileRevision(const std::string &path, int retainMax = 15) {}
 inline std::list<std::string> GetFileRevisions(const std::string &path) { return std::list<std::string>(); }
 inline std::string GetURLForRevision(const std::string &path, const std::string &rev) { return path; }
+inline bool CoordinatedFileReplace(const std::string& path, const std::function<bool(const std::string& target, const std::string& tempDir)>& body) { return body(path, std::string()); }
+inline bool ReplaceFileKeepingAttributes(const std::string&, const std::string&, std::string& error) { error = "not supported"; return false; }
 
 #endif

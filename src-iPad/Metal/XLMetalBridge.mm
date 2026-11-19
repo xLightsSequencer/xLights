@@ -42,6 +42,7 @@
 #include "models/handles/DragSession.h"
 #include "models/handles/HitTest.h"
 #include "utils/xlImage.h"
+#include "utils/LayoutObjectId.h"
 #include "graphics/metal/xlMetalGraphicsContext.h"
 
 #import <CoreGraphics/CoreGraphics.h>
@@ -1720,6 +1721,8 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         if (modelNode.attribute("Controller")) modelNode.remove_attribute("Controller");
         if (modelNode.attribute("StartChannel")) modelNode.remove_attribute("StartChannel");
         if (auto cc = modelNode.child("ControllerConnection")) modelNode.remove_child(cc);
+        // A new record: it must not carry the source's layout ids.
+        LayoutObjectId::StripFromXml(modelNode);
 
         Model* dup = mgr.CreateModel(modelNode);
         if (!dup) continue;
@@ -1795,6 +1798,8 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         if (modelNode.attribute("Controller")) modelNode.remove_attribute("Controller");
         if (modelNode.attribute("StartChannel")) modelNode.remove_attribute("StartChannel");
         if (auto cc = modelNode.child("ControllerConnection")) modelNode.remove_child(cc);
+        // A new record: it must not carry the source's layout ids.
+        LayoutObjectId::StripFromXml(modelNode);
 
         Model* paste = mgr.CreateModel(modelNode);
         if (!paste) continue;

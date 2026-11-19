@@ -44,6 +44,7 @@
 #include "import_export/VsaImportDialog.h"
 #include "import_export/xLightsImportChannelMapDialog.h"
 #include "render/SequenceMedia.h"
+#include "render/SequenceElementCommands.h"
 #include "render/SeqMediaMigration.h"
 #include "media/MediaCompatibility.h"
 #include "media/VideoTranscoder.h"
@@ -56,6 +57,7 @@
 #include <wx/progdlg.h>
 #include <wx/filename.h>
 #include "xLightsVersion.h"
+#include "utils/ShowAutosave.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
 #include "sequencer/MainSequencer.h"
@@ -203,12 +205,17 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
 
     LoadSequencer(*CurrentSeqXmlFile, emptyDoc);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
-    CurrentSeqXmlFile->ApplyPendingTimings(this);
-    if (_sequenceElements.GetNumberOfTimingElements() == 0) {
-        std::string new_timing = "New Timing";
-        CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-        _sequenceElements.AddTimingToAllViews(new_timing);
-    } else {
+    {
+        // Part of creating the document, not an edit to undo.
+        NewElementsRecorder recorder(_sequenceElements, "New Sequence", false);
+        CurrentSeqXmlFile->ApplyPendingTimings(this);
+        if (_sequenceElements.GetNumberOfTimingElements() == 0) {
+            std::string new_timing = "New Timing";
+            CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+            _sequenceElements.AddTimingToAllViews(new_timing);
+        }
+    }
+    if (_sequenceElements.GetNumberOfTimingElements() > 0) {
         _sequenceElements.GetTimingElement(0)->SetActive(true);
     }
     MenuItem_File_Save->Enable(true);
@@ -317,6 +324,10 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             return;
         }
 
+        if (!ConfirmOpenSequenceOpenElsewhere(rp.IsEmpty() ? filename : rp)) {
+            return;
+        }
+
         // close any open sequences
         if (!CloseSequence()) {
             return;
@@ -329,37 +340,9 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         if (rp.IsEmpty()) {
             // check if there is a autosave backup file which is newer than the file we have been asked to open
             if (!_renderMode && !_checkSequenceMode && wxFileName(filename).GetExt().Lower() != "xbkp" && wxFileName(filename).GetExt().Lower() != "fseq") {
-                wxFileName fn(filename);
-                wxFileName xx = fn;
+                wxFileName xx(filename);
                 xx.SetExt("xbkp");
-                wxString asfile = xx.GetLongPath();
-                
-                if (FileExists(asfile)) {
-                    // the autosave file exists
-                    wxDateTime xmltime = fn.GetModificationTime();
-                    wxFileName asfn(asfile);
-                    wxDateTime xbkptime = asfn.GetModificationTime();
-                    
-                    if (xbkptime.IsValid() && xmltime.IsValid() && (xbkptime > xmltime)) {
-                        // autosave file is newer
-                        if (wxMessageBox("Autosaved file found which seems to be newer than your sequence file ... would you like to open that instead and replace your xsq file?", "Newer file found", wxYES_NO) == wxYES) {
-                            // run a backup ... equivalent of a F10
-                            DoBackup(false, false, true);
-                            
-                            // delete the old xml file
-                            wxRemoveFile(filename);
-                            
-                            // rename the autosave file
-                            wxRenameFile(asfile, filename);
-                        } else {
-                            if (FileExists(fn)) {
-                                // set the backup to be older than the XML files to avoid re-promting
-                                xmltime -= wxTimeSpan(0, 0, 3, 0); // subtract 2 seconds as FAT time resulution is 2 seconds
-                                asfn.SetTimes(&xmltime, &xmltime, &xmltime);
-                            }
-                        }
-                    }
-                }
+                OfferAutosaveRecovery(filename.ToStdString(), xx.GetLongPath().ToStdString(), "this sequence", true);
             }
         }
         wxStopWatch sw; // start a stopwatch timer
@@ -661,6 +644,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         if (!CurrentSeqXmlFile->IsOpen()) {
             // SeqLoadXlightsFile/LoadSequencer was never called, so _viewsManager may not be set
             _sequenceElements.SetViewsManager(GetViewsManager());
+            NewElementsRecorder recorder(_sequenceElements, "New Sequence", false);
             std::string new_timing = "New Timing";
             CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
             _sequenceElements.AddTimingToAllViews(new_timing);
@@ -700,6 +684,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         AddToMRU(filename);
         UpdateRecentFilesList(false);
+        UpdatePresence();
 
         if (!_renderMode && !_checkSequenceMode && CurrentSeqXmlFile != nullptr) {
             if (!IsSequenceInShowDir(CurrentSeqXmlFile->GetFullPath())) {
@@ -1046,7 +1031,12 @@ bool xLightsFrame::CloseSequence()
             return false;
         }
         if (dlg->GetSaveChanges()) {
-            SaveSequence();
+            // A refused or cancelled save (the file changed on disk, no name
+            // chosen, a write error) keeps the sequence open rather than
+            // dropping the changes.
+            if (!SaveSequence()) {
+                return false;
+            }
             // must wait for the rendering to complete
             while (!_renderEngine->IsRenderDone()) {
                 wxMilliSleep(10);
@@ -1054,24 +1044,10 @@ bool xLightsFrame::CloseSequence()
             }
         } else {
             if (CurrentSeqXmlFile != nullptr) {
-                // We discarded the sequence so make sure the sequence file is newer than the backup
-                wxFileName fn(CurrentSeqXmlFile->GetFullPath());
-                wxFileName xx = fn;
+                // The changes were discarded, so their autosave is not offered back.
+                wxFileName xx(CurrentSeqXmlFile->GetFullPath());
                 xx.SetExt("xbkp");
-                wxString asfile = xx.GetLongPath();
-
-                if (FileExists(asfile)) {
-                    // the autosave file exists
-                    wxDateTime xmltime = fn.GetModificationTime();
-                    wxFileName asfn(asfile);
-                    wxDateTime xbkptime = asfn.GetModificationTime();
-
-                    if (xmltime.IsValid() && xbkptime.IsValid() && xbkptime > xmltime) {
-                        // set the backup to be older than the XML files to avoid re-promting
-                        xmltime -= wxTimeSpan(0, 0, 0, 2); // subtract 2 seconds as FAT time resulution is 2 seconds
-                        asfn.SetTimes(&xmltime, &xmltime, &xmltime);
-                    }
-                }
+                ShowAutosave::RemoveIfMine(xx.GetLongPath().ToStdString());
             }
         }
     }
@@ -1149,6 +1125,7 @@ bool xLightsFrame::CloseSequence()
         _housePreviewPanel->Refresh();
 
     SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date);
+    UpdatePresence();
     return true;
 }
 

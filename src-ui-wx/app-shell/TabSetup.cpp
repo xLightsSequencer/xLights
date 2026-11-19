@@ -15,6 +15,8 @@
 
 #include <wx/time.h>
 #include <wx/stopwatch.h>
+#include <wx/filename.h>
+#include <wx/msgdlg.h>
 #include <wx/settings.h>
 #include <wx/stdpaths.h>
 #include "settings/XLightsConfigAdapter.h"
@@ -48,6 +50,11 @@
 #include "setup/ControllerModelDialog.h"
 #include "setup/ShowDirectoriesDialog.h"
 #include "utils/ExternalHooks.h"
+#include "utils/ShowAutosave.h"
+#include "utils/ShowConflictedCopies.h"
+#include "utils/ShowFileGuard.h"
+#include "app-shell/ShowFileMergeDialog.h"
+#include "utils/ShowSaveMerge.h"
 #include "utils/ip_utils.h"
 
 #include "controllers/FPP.h"
@@ -265,6 +272,92 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->Enable(cnt != 0);
 }
 
+void xLightsFrame::OfferConflictedCopies(const std::string& showDir)
+{
+    namespace CC = ShowConflictedCopies;
+    if (IsNonInteractiveSave() || readOnlyMode) {
+        return;
+    }
+    const std::string installId = ShowAutosave::InstallId();
+    const auto found = CC::Find(showDir, installId);
+    if (found.empty()) {
+        return;
+    }
+    const std::string backupRoot = CC::BackupRootFor(showDir);
+    for (const auto& copy : found) {
+        const wxString realName = wxFileName(wxString::FromUTF8(copy.realPath)).GetFullName();
+        const wxString copyName = wxFileName(wxString::FromUTF8(copy.copyPath)).GetFullName();
+        wxString msg = wxString::Format("%s left a conflicted copy of %s:\n\n%s\n\n"
+                                        "It holds the changes of a save that happened at the same time as another one, which the sync "
+                                        "could not combine. Merge them into %s?\n\n"
+                                        "After merging, the copy is moved to the backup folder.",
+                                        wxString::FromUTF8(copy.client), realName, copyName, realName);
+        if (copy.sameAsCurrent) {
+            msg += "\n\nIt holds the same as the current file, so merging only moves it out of the way.";
+        }
+        wxMessageDialog ask(this, msg, "Conflicted Copy Found", wxYES_NO | wxCANCEL | wxICON_QUESTION);
+        ask.SetYesNoCancelLabels("Merge", "Ignore", "Not Now");
+        const int answer = ask.ShowModal();
+        if (answer == wxID_NO) {
+            if (!CC::Ignore(showDir, installId, copy)) {
+                spdlog::warn("Could not remember to ignore {}", copy.copyPath);
+            }
+            continue;
+        }
+        if (answer != wxID_YES) {
+            continue;
+        }
+        const CC::BaseChoice base = CC::ChooseBase(copy, showDir, installId, backupRoot);
+        spdlog::info("Merging conflicted copy {} into {} ({})", copy.copyPath, copy.realPath,
+                     base.source == CC::BaseSource::None ? std::string("no common version found: two-way") : "from " + base.path);
+        std::string error;
+        auto plan = CC::PrepareMerge(copy, base, &error);
+        if (!plan || !plan->CanMerge()) {
+            DisplayError("Unable to merge " + copy.copyPath + (error.empty() ? std::string() : ": " + error), this);
+            continue;
+        }
+        ShowFileMergeDialog::Labels labels;
+        labels.intro = "The conflicted copy and the current file both changed these. Choose which version to keep for each one.\n";
+        labels.intro += base.source == CC::BaseSource::None
+                            ? "No earlier version of the file was found to compare them with, so every difference is listed."
+                            : "Everything else either of them changed is merged.";
+        labels.mine = "Copy";
+        labels.theirs = "Current";
+        labels.mineColumn = "The conflicted copy";
+        labels.theirsColumn = "The current file";
+        for (int attempt = 0;; ++attempt) {
+            if (!plan->AllResolved()) {
+                ShowFileMergeDialog dlg(this, *plan, labels);
+                if (dlg.ShowModal() != wxID_OK || !plan->AllResolved()) {
+                    spdlog::info("Merging {} cancelled; nothing was changed.", copy.copyPath);
+                    break;
+                }
+            }
+            auto done = CC::Finish(*plan, copy, backupRoot, ShowFileGuard::Instance());
+            if (done.writeResult == ShowSaveMerge::WriteResult::ChangedAgain && attempt < 3) {
+                auto again = CC::PrepareMerge(copy, base, &error);
+                if (!again || !again->CanMerge()) {
+                    DisplayError("Unable to merge " + copy.copyPath + (error.empty() ? std::string() : ": " + error), this);
+                    break;
+                }
+                again->AdoptResolutions(*plan);
+                plan = std::move(again);
+                continue;
+            }
+            if (!done.written) {
+                DisplayError("Unable to merge " + copy.copyPath + ": " + done.error, this);
+            } else if (!done.error.empty()) {
+                DisplayWarning(done.error, this);
+            } else {
+                wxMessageBox(wxString::Format("%s was merged into %s.\n\nThe copy was moved to:\n%s\n\nThe file as it was before the merge was kept as:\n%s",
+                                              copyName, realName, wxString::FromUTF8(done.movedCopy), wxString::FromUTF8(done.keptCurrent)),
+                             "Conflicted Copy Merged", wxOK | wxICON_INFORMATION, this);
+            }
+            break;
+        }
+    }
+}
+
 bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 {
     if (readOnlyMode) {
@@ -473,6 +566,9 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 
     EnableNetworkChanges();
     DisplayXlightsFilename(wxEmptyString);
+
+    ShowFileGuard::RemoveStaleTempFiles(ToStdString(CurrentDir));
+    OfferConflictedCopies(ToStdString(CurrentDir));
 
     // load network
     networkFile.AssignDir(CurrentDir);
@@ -867,14 +963,35 @@ bool xLightsFrame::SaveNetworksFile() {
         }
     }
 
-    if (_outputManager.Save()) {
-        UnsavedNetworkChanges = false;
-        UpdateLayoutSave();
+    const std::string networksPath = _outputManager.GetNetworksFilePath();
+    // Saving the layout always rewrites the controllers too. With no
+    // controller edits here, rewriting a file someone else changed would only
+    // undo theirs.
+    if (!UnsavedNetworkChanges && !_outputManager.IsDirty() && ShowFileGuard::Instance().HasChangedOnDisk(networksPath)) {
+        spdlog::info("Not rewriting {}: it was changed by someone else and there are no controller changes here to save.", networksPath);
         return true;
-    } else {
-        DisplayError(_("Unable to save network definition file"), this);
+    }
+    if (!WriteNetworksFile(this)) {
         return false;
     }
+    UnsavedNetworkChanges = false;
+    UpdateLayoutSave();
+    return true;
+}
+
+bool xLightsFrame::WriteNetworksFile(wxWindow* parent)
+{
+    const std::string networksPath = _outputManager.GetNetworksFilePath();
+    auto result = SaveShowFiles({ { ShowSaveMerge::FileKind::Networks, networksPath, _outputManager.SaveToString(), true } },
+                                nullptr, parent);
+    if (result != ShowSaveResult::Saved) {
+        if (result == ShowSaveResult::Failed) {
+            DisplayError(_("Unable to save network definition file"), parent ? parent : this);
+        }
+        return false;
+    }
+    _outputManager.MarkSaved();
+    return true;
 }
 
 static const char* DescribeWorkSource(const std::string& from)

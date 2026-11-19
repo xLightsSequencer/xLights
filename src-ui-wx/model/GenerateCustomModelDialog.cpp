@@ -1902,9 +1902,7 @@ public:
             // work out all the frame deltas ... we want the biggest with the right gap
             spdlog::debug("Working out frame deltas");
             auto it1 = startScan.begin();
-            auto it2 = it1;
-            ++it2;
-            ++it2;
+            auto it2 = std::next(it1, std::min<size_t>(2, startScan.size()));
             uint32_t cnt = 0;
             while (it2 != startScan.end()) {
                 (*it2)->SetFrameDelta(*it1);
@@ -1924,11 +1922,11 @@ public:
             spdlog::debug("Looking through the largest deltas");
             std::vector<GCMVideoFrame*> candidates;
             it1 = startScan.begin();
-            for (uint32_t j = 0; j < 20 && !abort && (*it1)->GetFrameDelta() != 0; ++j) {
+            for (uint32_t j = 0; j < 20 && !abort && it1 != startScan.end() && (*it1)->GetFrameDelta() != 0; ++j) {
                 // spdlog::debug("Frame {} delta {}", (*it1)->GetTimestamp(), (*it1)->GetFrameDelta());
                 it2 = it1;
                 ++it2;
-                for (uint32_t i = 0; i < 20 && !abort && (*it2)->GetFrameDelta() != 0; ++i) {
+                for (uint32_t i = 0; i < 20 && !abort && it2 != startScan.end() && (*it2)->GetFrameDelta() != 0; ++i) {
                     // two signs must be different and separation must be right
                     auto diff = std::abs(std::abs((long)(*it1)->GetTimestamp() - (long)(*it2)->GetTimestamp()) - FLAGON);
                     auto sign = ((*it1)->GetFrameDelta() / std::abs((*it1)->GetFrameDelta())) *

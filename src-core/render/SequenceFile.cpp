@@ -27,6 +27,7 @@
 
 #include "SequenceFile.h"
 #include "SequenceElements.h"
+#include "SequenceElementCommands.h"
 #include "RenderContext.h"
 #include "UICallbacks.h"
 #include "media/AudioManager.h"
@@ -38,6 +39,7 @@
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
 #include "../utils/FileUtils.h"
+#include "../utils/ShowFileGuard.h"
 #include "RenderUtils.h"
 #include "utils/ExternalHooks.h"
 
@@ -417,6 +419,15 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
         spdlog::info("LoadSequence: Loading sequence {}", mFilePath);
     }
 
+    // Taken before parsing so a write that lands mid-load reads as a conflict
+    // at the next save. When the contents come from an autosave backup, this
+    // is still the file the next save would replace.
+    ShowFileGuard::Instance().RecordFromDisk(mFilePath);
+    // Sequences can live in subfolders the show-folder sweep doesn't reach.
+    if (auto slash = mFilePath.find_last_of("/\\"); slash != std::string::npos && slash > 0) {
+        ShowFileGuard::RemoveStaleTempFiles(mFilePath.substr(0, slash));
+    }
+
     // Load with pugixml
     pugi::xml_document loadDoc;
     auto result = loadDoc.load_file(realFilePath.c_str());
@@ -695,6 +706,7 @@ void SequenceFile::UpdateVersion(const std::string& version)
 
 void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     for (size_t i = 0; i < filenames.size(); ++i) {
         std::filesystem::path next_file(filenames[i]);
 
@@ -787,6 +799,7 @@ void SequenceFile::ProcessAudacityTimingFiles(const std::vector<std::string>& fi
 
 void SequenceFile::ProcessLorTiming(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     for (size_t i = 0; i < filenames.size(); ++i )
     {
         std::filesystem::path next_file(filenames[i]);
@@ -915,6 +928,7 @@ std::string SequenceFile::UniqueTimingName(RenderContext* xLightsParent, std::st
 
 void SequenceFile::ProcessXTiming(const pugi::xml_node& node, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     std::string name = node.attribute("name").as_string("");
     //std::string v = node.attribute("SourceVersion").as_string("");
     std::string st = node.attribute("subType").as_string("");
@@ -966,6 +980,7 @@ void SequenceFile::ProcessXTiming(const pugi::xml_node& node, RenderContext* xLi
 
 void SequenceFile::ProcessXTiming(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     for (size_t i = 0; i < filenames.size(); ++i)
     {
         const std::string& filepath = filenames[i];
@@ -1024,6 +1039,7 @@ static bool IsAllDigits(const std::string& s) {
 
 void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     for (size_t i = 0; i < filenames.size(); ++i)
     {
         int linenum = 1;
@@ -1283,6 +1299,7 @@ static std::string ReadSRTLine(const std::vector<std::string>& lines, size_t& id
 
 void SequenceFile::ProcessSRT(const std::vector<std::string>& filenames, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Import Timing");
     for (size_t i = 0; i < filenames.size(); ++i)
     {
         const std::string& filepath = filenames[i];
@@ -1612,7 +1629,8 @@ bool SequenceFile::Save(SequenceElements& seq_elements)
         return false;
     }
 
-    if (!doc.save_file(mFilePath.c_str(), "  ")) {
+    auto writer = [&doc](const std::string& writePath) { return doc.save_file(writePath.c_str(), "  "); };
+    if (!ShowFileGuard::Instance().SaveFile(mFilePath, ShowFileGuard::Writer(writer))) {
         return false;
     }
 
@@ -1654,6 +1672,7 @@ bool SequenceFile::TimingMatchesModelName(const std::string& section, RenderCont
 void SequenceFile::AddNewTimingSection(const std::string& filename, RenderContext* xLightsParent,
                                          std::vector<int>& starts, std::vector<int>& ends, std::vector<std::string>& labels)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Add Timing Track");
     if (!sequence_loaded) {
         PendingTiming pt;
         pt.name = filename;
@@ -1757,6 +1776,7 @@ void SequenceFile::AddNewTimingSection(const std::string& filename, RenderContex
 
 void SequenceFile::AddNewTimingSection(const std::string & interval_name, RenderContext* xLightsParent, const std::string& subType)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Add Timing Track");
     if (sequence_loaded) {
         xLightsParent->AddTimingElement(interval_name, subType);
     } else {
@@ -1770,6 +1790,7 @@ void SequenceFile::AddNewTimingSection(const std::string & interval_name, Render
 
 void SequenceFile::AddFixedTimingSection(const std::string& interval_name, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Add Timing Track");
     if (sequence_loaded) {
         if (interval_name == "Empty" || (interval_name != "25ms" && interval_name != "50ms" && interval_name != "100ms" && !EndsWith(interval_name, "ms Metronome"))) {
             xLightsParent->AddTimingElement(interval_name);
@@ -1802,6 +1823,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, Rende
 
 void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int interval, RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Add Timing Track");
     if (sequence_loaded) {
         TimingElement* element = xLightsParent->AddTimingElement(interval_name);
         element->SetFixedTiming(interval);
@@ -1826,6 +1848,7 @@ void SequenceFile::AddFixedTimingSection(const std::string& interval_name, int i
 }
 
 void SequenceFile::AddMetronomeLabelTimingSection(const std::string& interval_name, int _interval, const std::vector<std::string>& tags, RenderContext* xLightsParent, int minForRandomRange, bool randomLabels) {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Add Timing Track");
     if (!sequence_loaded) {
         PendingTiming pt;
         pt.name = interval_name;
@@ -1878,6 +1901,7 @@ void SequenceFile::AddMetronomeLabelTimingSection(const std::string& interval_na
 
 void SequenceFile::ApplyPendingTimings(RenderContext* xLightsParent)
 {
+    NewElementsRecorder recorder(xLightsParent->GetSequenceElements(), "Add Timing Track");
     if (mPendingTimings.empty()) return;
 
     for (auto& pt : mPendingTimings) {

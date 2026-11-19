@@ -223,7 +223,9 @@ struct MediaManagerContent: View {
             presenting: removeTarget
         ) { target in
             Button("Remove", role: .destructive) {
-                if viewModel.document.removeMedia(atPath: target.path) { reload() }
+                if viewModel.performCoreUndoableEdit("Remove Media", {
+                    viewModel.document.removeMedia(atPath: target.path)
+                }) { reload() }
                 removeTarget = nil
             }
             Button("Cancel", role: .cancel) { removeTarget = nil }
@@ -312,7 +314,9 @@ struct MediaManagerContent: View {
                     subdirectory: subdirectory(for: url))
                     .flatMap { viewModel.document.makeRelativePath($0) }
             }
-            if let stored, viewModel.document.addMedia(atPath: stored) {
+            if let stored, viewModel.performCoreUndoableEdit("Add Media", {
+                viewModel.document.addMedia(atPath: stored)
+            }) {
                 added += 1
             } else {
                 failed += 1
@@ -357,8 +361,10 @@ struct MediaManagerContent: View {
         for item in missing {
             let base = item.filename.lowercased()
             guard let match = byName[base] else { continue }
-            if viewModel.document.replaceMissingMedia(
-                atPath: item.path, fromSourcePath: match.path) != nil {
+            if viewModel.performCoreUndoableEdit("Relink Media", {
+                viewModel.document.replaceMissingMedia(
+                    atPath: item.path, fromSourcePath: match.path)
+            }) != nil {
                 relinked += 1
             }
         }
@@ -435,25 +441,25 @@ struct MediaManagerContent: View {
     }
 
     private func embedOne(_ item: MediaInventoryItem) {
-        if viewModel.document.embedMedia(atPath: item.path) {
+        if viewModel.performCoreUndoableEdit("Embed Media", { viewModel.document.embedMedia(atPath: item.path) }) {
             reload()
         }
     }
 
     private func extractOne(_ item: MediaInventoryItem) {
-        if viewModel.document.extractMedia(atPath: item.path) {
+        if viewModel.performCoreUndoableEdit("Extract Media", { viewModel.document.extractMedia(atPath: item.path) }) {
             reload()
         }
     }
 
     private func bulkEmbed(_ typeKey: String) {
-        if viewModel.document.embedAllMedia(ofType: typeKey) > 0 {
+        if viewModel.performCoreUndoableEdit("Embed All Media", { viewModel.document.embedAllMedia(ofType: typeKey) }) > 0 {
             reload()
         }
     }
 
     private func bulkExtract(_ typeKey: String) {
-        if viewModel.document.extractAllMedia(ofType: typeKey) > 0 {
+        if viewModel.performCoreUndoableEdit("Extract All Media", { viewModel.document.extractAllMedia(ofType: typeKey) }) > 0 {
             reload()
         }
     }
@@ -470,9 +476,9 @@ struct MediaManagerContent: View {
             if scoped { url.stopAccessingSecurityScopedResource() }
         }
         let stored = target.path
-        if let result = viewModel.document.replaceMissingMedia(
-            atPath: stored, fromSourcePath: url.path) as String?
-        {
+        if let result = viewModel.performCoreUndoableEdit("Replace Media", {
+            viewModel.document.replaceMissingMedia(atPath: stored, fromSourcePath: url.path) as String?
+        }) {
             // `result` is the new show-relative path the file now
             // lives at. The bridge has already rewritten every
             // referencing effect; reloading the inventory picks up
@@ -493,8 +499,9 @@ struct MediaManagerContent: View {
     private func renameItem(_ item: MediaInventoryItem, newName: String) {
         let sanitised = sanitiseRename(newName, fromOldPath: item.path)
         guard !sanitised.isEmpty, sanitised != item.path else { return }
-        if viewModel.document.renameMedia(
-            fromPath: item.path, toPath: sanitised) {
+        if viewModel.performCoreUndoableEdit("Rename Media", {
+            viewModel.document.renameMedia(fromPath: item.path, toPath: sanitised)
+        }) {
             reload()
         }
     }
@@ -519,7 +526,7 @@ struct MediaManagerContent: View {
     }
 
     private func removeUnused() {
-        let n = Int(viewModel.document.removeUnusedMedia())
+        let n = Int(viewModel.performCoreUndoableEdit("Remove Unused Media", { viewModel.document.removeUnusedMedia() }))
         removedCount = n
         if n > 0 { reload() }
     }
@@ -533,7 +540,7 @@ struct MediaManagerContent: View {
     }
 
     private func reembedFromDisk(_ item: MediaInventoryItem) {
-        if viewModel.document.reembedMedia(atPath: item.path) {
+        if viewModel.performCoreUndoableEdit("Re-embed Media", { viewModel.document.reembedMedia(atPath: item.path) }) {
             reload()
         }
     }

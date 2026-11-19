@@ -21,6 +21,7 @@
 
 #include "MainSequencer.h"
 #include "render/SequenceElements.h"
+#include "render/CommandExecutor.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
 #include "media/JukeboxPanel.h"
@@ -1160,28 +1161,12 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case WXK_CONTROL_Z:
             if(!event.ShiftDown()) {
                 if ((event.CmdDown() || event.ControlDown())) {
-                    if( mSequenceElements != nullptr &&
-                        mSequenceElements->get_undo_mgr().CanUndo() ) {
-                        mSequenceElements->get_undo_mgr().UndoLastStep();
-                        mSequenceElements->UnSelectAllEffects();
-                        PanelEffectGrid->ClearSelection();
-                        PanelEffectGrid->Draw();
-                        PanelEffectGrid->sendRenderDirtyEvent();
-                    }
+                    UndoOrRedo(false);
                     event.StopPropagation();
                 }
             } else {
                 if ((event.CmdDown() || event.ControlDown())) {
-                    if( mSequenceElements != nullptr &&
-                        mSequenceElements->get_undo_mgr().CanRedo() ) {
-                        mSequenceElements->get_undo_mgr().RedoLastStep();
-                        mSequenceElements->UnSelectAllEffects();
-                        PanelEffectGrid->ClearSelection();
-                        PanelEffectGrid->Draw();
-                        PanelEffectGrid->sendRenderDirtyEvent();
-                        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-                        wxPostEvent(GetParent(), eventRowHeaderChanged);
-                    }
+                    UndoOrRedo(true);
                     event.StopPropagation();
                 }
             }
@@ -1190,16 +1175,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case 'Y':
         case WXK_CONTROL_Y:
             if (event.CmdDown() || event.ControlDown()) {
-                if( mSequenceElements != nullptr &&
-                   mSequenceElements->get_undo_mgr().CanRedo() ) {
-                    mSequenceElements->get_undo_mgr().RedoLastStep();
-                    mSequenceElements->UnSelectAllEffects();
-                    PanelEffectGrid->ClearSelection();
-                    PanelEffectGrid->Draw();
-                    PanelEffectGrid->sendRenderDirtyEvent();
-                    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-                    wxPostEvent(GetParent(), eventRowHeaderChanged);
-                }
+                UndoOrRedo(true);
                 event.StopPropagation();
             }
             break;
@@ -1360,32 +1336,41 @@ void MainSequencer::DoPaste(wxCommandEvent& event) {
 }
 
 void MainSequencer::DoUndo(wxCommandEvent& event) {
-
-    if (PanelEffectGrid == nullptr) return;
-
-    if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanUndo() ) {
-        mSequenceElements->UnSelectAllEffects();
-        mSequenceElements->get_undo_mgr().UndoLastStep();
-        PanelEffectGrid->ClearSelection();
-        PanelEffectGrid->Draw();
-        PanelEffectGrid->sendRenderDirtyEvent();
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(GetParent(), eventRowHeaderChanged);
-    }
+    UndoOrRedo(false);
 }
 
 void MainSequencer::DoRedo(wxCommandEvent& event) {
-    if (PanelEffectGrid == nullptr) return;
+    UndoOrRedo(true);
+}
 
-    if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanRedo() ) {
-        mSequenceElements->UnSelectAllEffects();
-        mSequenceElements->get_undo_mgr().RedoLastStep();
-        PanelEffectGrid->ClearSelection();
-        PanelEffectGrid->Draw();
-        PanelEffectGrid->sendRenderDirtyEvent();
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(GetParent(), eventRowHeaderChanged);
-    }
+void MainSequencer::UndoOrRedo(bool redo) {
+    if (PanelEffectGrid == nullptr || mSequenceElements == nullptr) return;
+    UndoManager& undo = mSequenceElements->get_undo_mgr();
+    // Re-entered from the event loop while the render stop below waits.
+    static bool inUndoOrRedo = false;
+    if (inUndoOrRedo || undo.IsReplaying() || !(redo ? undo.CanRedo() : undo.CanUndo())) return;
+    inUndoOrRedo = true;
+    struct Reset {
+        ~Reset() { inUndoOrRedo = false; }
+    } reset;
+
+    // Stop the render here, before the replay, where waiting may run the
+    // event loop; inside the replay it can only block.
+    if (undo.NextStepNeedsRenderStopped(redo) && !xLightsApp::GetFrame()->AbortRender()) return;
+    if (!(redo ? undo.CanRedo() : undo.CanUndo())) return;
+
+    // The step may delete rows or effects the frame, the effect panel or the
+    // grid still point at.
+    xLightsApp::GetFrame()->ClearEffectSelectionForDocumentChange();
+    mSequenceElements->UnSelectAllEffects();
+    PanelEffectGrid->ClearSelection();
+    const bool replayed = redo ? undo.RedoLastStep() : undo.UndoLastStep();
+    if (!replayed) return;
+    PanelEffectGrid->Draw();
+    PanelEffectGrid->sendRenderDirtyEvent();
+    // Undo can add, remove or reorder rows.
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
 }
 
 void MainSequencer::SetLargeWaveform()
@@ -1904,7 +1889,7 @@ void MainSequencer::InsertTimingMarkFromRange()
                     if ((!el->HitTestEffectByTime(t1, i1) && !el->HitTestEffectByTime(t2, i2) && !el->HitTestEffectBetweenTime(t1, t2)) ||
                         (!el->HitTestEffectBetweenTime(t1, t2) && i1 != i2)) {
                         std::string name, settings;
-                        el->AddEffect(0, name, settings, "", t1, t2, false, false);
+                        mSequenceElements->GetCommandExecutor().AddEffect(el, name, settings, "", t1, t2, false, false, false);
                         PanelEffectGrid->ForceRefresh();
                     }
                     else
@@ -1939,19 +1924,20 @@ void MainSequencer::InsertTimingMarkFromRange()
 
                         std::string name;
                         std::string settings;
+                        CommandExecutor& exec = mSequenceElements->GetCommandExecutor();
                         if (lefteffect != nullptr && righteffect != nullptr) {
                             // fill to left and right
-                            el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
-                            el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
+                            exec.AddEffect(el, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false, false);
+                            exec.AddEffect(el, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false, false);
                         }
                         else if (lefteffect != nullptr) {
-                            el->AddEffect(0, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false);
+                            exec.AddEffect(el, name, settings, "", lefteffect->GetEndTimeMS(), t2, false, false, false);
                         }
                         else if (righteffect != nullptr) {
-                            el->AddEffect(0, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false);
+                            exec.AddEffect(el, name, settings, "", t2, righteffect->GetStartTimeMS(), false, false, false);
                         }
                         else {
-                            el->AddEffect(0, name, settings, "", 0, t2, false, false);
+                            exec.AddEffect(el, name, settings, "", 0, t2, false, false, false);
                         }
 
                         PanelEffectGrid->ForceRefresh();
@@ -2011,9 +1997,10 @@ void MainSequencer::SplitTimingMark()
                 int old_end_time = eff1->GetEndTimeMS();
                 if (t1 != t2 || ((t1 == t2) && t1 != eff1->GetStartTimeMS() && t1 != eff1->GetEndTimeMS()))
                 {
-                    eff1->SetEndTimeMS(t1);
+                    CommandExecutor& exec = mSequenceElements->GetCommandExecutor();
+                    exec.MoveEffect(eff1, eff1->GetStartTimeMS(), t1, false);
                     std::string name, settings;
-                    el->AddEffect(0, name, settings, "", t2, old_end_time, false, false);
+                    exec.AddEffect(el, name, settings, "", t2, old_end_time, false, false, false);
                     PanelEffectGrid->ForceRefresh();
                 }
             }
@@ -2048,6 +2035,7 @@ void MainSequencer::DivideTimingTrack(int divisor)
         }
 
         mSequenceElements->get_undo_mgr().CreateUndoStep();
+        CommandExecutor& exec = mSequenceElements->GetCommandExecutor();
         auto frequency = PanelTimeLine->GetTimeFrequency();
         int base_timing = 1000.0 / frequency;
 
@@ -2058,10 +2046,8 @@ void MainSequencer::DivideTimingTrack(int divisor)
                 long e_time = ef->GetEndTimeMS();
                 if (e_time - s > base_timing) {
                     float splitf = (float)(e_time - s) / (float)divisor;
-                    mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetSettingsAsString(), ef->GetPaletteAsString());
-                    mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(), ef->GetStartTimeMS(), ef->GetEndTimeMS());
                     long newend = TimeLine::RoundToMultipleOfPeriod((float)s + splitf, frequency);
-                    ef->SetEndTimeMS(newend);
+                    exec.MoveEffect(ef, ef->GetStartTimeMS(), newend);
 
                     for (int j = 1; j < divisor; j++) {
                         long newstart = newend;
@@ -2072,9 +2058,9 @@ void MainSequencer::DivideTimingTrack(int divisor)
                         }
 
                         if (newstart != newend) {
-                            Effect* newef = el->AddEffect(0, "", "", "", newstart, newend, EFFECT_SELECTED, false);
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
-                            ++i; // jump over the one we just inserted
+                            if (exec.AddEffect(el, "", "", "", newstart, newend, EFFECT_SELECTED, false) != nullptr) {
+                                ++i; // jump over the one we just inserted
+                            }
                         }
                     }
                     ef->SetSelected(EFFECT_SELECTED);
@@ -2233,7 +2219,7 @@ void MainSequencer::SetEffectDuration(const std::string& effectType, const uint3
                 }
                 // set the effect duration to the minimum of (video length, space up until next effect, space up until sequence end)
                 uint32_t duration = TimeLine::RoundToMultipleOfPeriod(std::min(durationMS, std::min(nextEffectTime, seqLeft)), PanelTimeLine->GetFrameMS());
-                eff->SetEndTimeMS(start + duration);
+                mSequenceElements->GetCommandExecutor().MoveEffect(eff, start, start + duration, false);
                 PanelEffectGrid->ForceRefresh(); // update the display of effects
             }
         }

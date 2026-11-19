@@ -2,8 +2,8 @@ import SwiftUI
 
 /// #6268 Song Structure region editor. Mirrors the desktop
 /// SongRegionEditDialog (TimeLine.cpp): a name field plus the 8-swatch
-/// palette picker. Edits write straight through the view model (not
-/// undoable, matching desktop).
+/// palette picker. Done applies the name and color as one undoable
+/// edit, like the desktop dialog.
 struct SongRegionEditSheet: View {
     let regionID: Int
     @Binding var name: String
@@ -69,8 +69,7 @@ struct SongRegionEditSheet: View {
 
     private func apply() {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        viewModel.setSongRegionName(id: regionID, name: trimmed)
-        viewModel.setSongRegionColor(id: regionID, colorARGB: selectedColor)
+        viewModel.editSongRegion(id: regionID, name: trimmed, colorARGB: selectedColor)
         onDone()
     }
 

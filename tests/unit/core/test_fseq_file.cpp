@@ -327,6 +327,39 @@ TEST_CASE("FSEQ v2 sparse ranges round trip", "[fseq]") {
     }
 }
 
+TEST_CASE("FSEQ v2 sparse frame read into a channel-count sized buffer", "[fseq]") {
+    // getChannelCount() is the sparse total (37) but the last range starts at channel 40;
+    // readFrame must skip it rather than wrap maxChannels - start into a huge copy
+    TempDir td;
+    Ranges ranges = { { 4, 8 }, { 20, 5 }, { 40, 24 } };
+    for (auto ct : { FSEQFile::CompressionType::none, FSEQFile::CompressionType::zstd }) {
+        WriteSpec s;
+        s.ct = ct;
+        s.sparse = ranges;
+        auto p = td.File("spbuf" + std::to_string((int)ct) + ".fseq");
+        REQUIRE(WriteFile(p, s));
+        std::unique_ptr<FSEQFile> f(FSEQFile::openFSEQFile(p));
+        REQUIRE(f != nullptr);
+        uint32_t const count = f->getChannelCount();
+        REQUIRE(count == 37u);
+        f->setReadPattern(FSEQFile::ReadPattern::Bulk);
+        f->prepareRead({ { 0, count } });
+        std::unique_ptr<FSEQFile::FrameData> fd(f->getFrame(3));
+        REQUIRE(fd != nullptr);
+        std::vector<uint8_t> buf(count + 16, 0xEE);
+        CHECK(fd->readFrame(buf.data(), count));
+        for (uint32_t c = 4; c < 12; ++c) {
+            CHECK(buf[c] == Pattern(3, c));
+        }
+        for (uint32_t c = 20; c < 25; ++c) {
+            CHECK(buf[c] == Pattern(3, c));
+        }
+        for (uint32_t c = count; c < buf.size(); ++c) {
+            CHECK(buf[c] == 0xEE);
+        }
+    }
+}
+
 TEST_CASE("FSEQ v2 sparse ranges beyond the channel count are trimmed", "[fseq]") {
     TempDir td;
     WriteSpec s;

@@ -352,7 +352,7 @@ struct AIImageGenerationSheet: View {
         // off the iPad keeps its generated images. Falling back to a
         // loose file in the show folder keeps the old behaviour if the
         // embed can't be made (no sequence open, unreadable bytes).
-        if doc.embedImage(fromFile: tmpURL.path, asName: embedName) {
+        if viewModel.performCoreUndoableEdit("Add AI Image", { doc.embedImage(fromFile: tmpURL.path, asName: embedName) }) {
             onCommitPath(embedName)
             dismiss()
             return

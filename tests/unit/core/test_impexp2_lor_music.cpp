@@ -237,14 +237,14 @@ TEST_CASE("LMS mapping names", "[impexp2][lor][lms]") {
     auto d = P(Doc(Ch("Dup", 0, Eff("intensity", 0, 10, I(50)), "255", 1, 1) + Ch("Dup", 1, Eff("intensity", 20, 30, I(50)), "255", 2, 3) + Ch("", 2, Eff("intensity", 0, 5, I(50)))));
     LORMusic l(d, 20);
     Fix f;
-    CHECK(l.GetChannelNames() == std::vector<std::string>{ "Dup", "Dup_Unit_2_Circuit_3" });
+    CHECK(l.GetChannelNames() == std::vector<std::string>{ "Dup", "Dup_Network_1_Unit_2_Circuit_3" });
     REQUIRE(l.MapChannelEffects(f.layer, "Dup", xlWHITE, 1, true));
     CHECK(f.At(0)->GetStartTimeMS() == 0);
-    REQUIRE(l.MapChannelEffects(f.layer, "Dup_Unit_2_Circuit_3", xlWHITE, 1, true));
+    REQUIRE(l.MapChannelEffects(f.layer, "Dup_Network_1_Unit_2_Circuit_3", xlWHITE, 1, true));
     REQUIRE(f.Count() == 1);
     CHECK(f.At(0)->GetStartTimeMS() == 200);
     // the first channel also answers to its own long form
-    REQUIRE(l.MapChannelEffects(f.layer, "Dup_Unit_1_Circuit_1", xlWHITE, 1, true));
+    REQUIRE(l.MapChannelEffects(f.layer, "Dup_Network_1_Unit_1_Circuit_1", xlWHITE, 1, true));
     CHECK(f.At(0)->GetStartTimeMS() == 0);
     CHECK_FALSE(l.MapChannelEffects(f.layer, "", xlWHITE, 1, true));
 }
@@ -255,19 +255,32 @@ TEST_CASE("LMS three channels of the same name give two identical long names", "
     auto n = l.GetChannelNames();
     REQUIRE(n.size() == 3);
     CHECK(n[0] == "Dup");
-    CHECK(n[1] == "Dup_Unit_1_Circuit_1");
-    CHECK(n[2] == "Dup_Unit_1_Circuit_1");
+    CHECK(n[1] == "Dup_Network_1_Unit_1_Circuit_1");
+    CHECK(n[2] == "Dup_Network_1_Unit_1_Circuit_1");
 }
 
-TEST_CASE("LMS same named channels on different networks get distinct names", "[impexp2][lor][lms][!mayfail]") {
-    // SUSPECT: the disambiguated name is built from unit and circuit only; real files carry `network` too and often have no
-    // `unit`, so the same channel name and circuit on two networks yields two identical "<name>_Unit__Circuit_<n>" entries
+TEST_CASE("LMS same named channels on different networks get distinct names", "[impexp2][lor][lms]") {
     auto d = P(Doc("<channel name=\"Dup\" circuit=\"5\" network=\"1\" savedIndex=\"0\"/><channel name=\"Dup\" circuit=\"5\" network=\"2\" savedIndex=\"1\"/>"
                    "<channel name=\"Dup\" circuit=\"5\" network=\"3\" savedIndex=\"2\"/>"));
     LORMusic l(d, 20);
     auto n = l.GetChannelNames();
     REQUIRE(n.size() == 3);
     CHECK(std::set<std::string>(n.begin(), n.end()).size() == 3);
+}
+
+TEST_CASE("LMS network long names map, and the pre-network long name still resolves", "[impexp2][lor][lms]") {
+    auto d = P(Doc("<channel name=\"Dup\" unit=\"1\" circuit=\"5\" network=\"1\" savedIndex=\"0\">" + Eff("intensity", 0, 10, I(50)) +
+                   "</channel><channel name=\"Dup\" unit=\"2\" circuit=\"5\" network=\"1\" savedIndex=\"1\">" + Eff("intensity", 20, 30, I(50)) + "</channel>"));
+    LORMusic l(d, 20);
+    CHECK(l.GetChannelNames() == std::vector<std::string>{ "Dup", "Dup_Network_1_Unit_2_Circuit_5" });
+    Fix f;
+    REQUIRE(l.MapChannelEffects(f.layer, "Dup_Network_1_Unit_2_Circuit_5", xlWHITE, 1, true));
+    REQUIRE(f.Count() == 1);
+    CHECK(f.At(0)->GetStartTimeMS() == 200);
+    // mappings saved before the network was added to the name
+    REQUIRE(l.MapChannelEffects(f.layer, "Dup_Unit_2_Circuit_5", xlWHITE, 1, true));
+    REQUIRE(f.Count() == 1);
+    CHECK(f.At(0)->GetStartTimeMS() == 200);
 }
 
 TEST_CASE("LMS channel names are sorted number aware", "[impexp2][lor][lms]") {

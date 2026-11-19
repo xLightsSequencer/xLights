@@ -641,6 +641,12 @@ struct ImportEffectsView: View {
 
     private func applyImport() {
         guard let session else { return }
+        // The whole import is one undo step.
+        let document = viewModel.document
+        document.beginEditCapture("Import Effects")
+        defer {
+            if document.endEditCapture() { viewModel.registerCoreUndo("Import Effects") }
+        }
         do {
             try session.applyImport(withEraseExisting: eraseExisting,
                                      lock: lockEffects,

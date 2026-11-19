@@ -137,6 +137,8 @@ public:
     nlohmann::json SaveToJson() const;
     bool LoadJsonFile(const std::string& filepath);
     bool SaveJsonFile(const std::string& filepath) const;
+    // The presets file's contents (empty when they cannot be serialized).
+    std::string SaveToText() const;
     void Reset();
 
     // Version of the effects block

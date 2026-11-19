@@ -166,6 +166,7 @@ public:
     int GetEffectRow(Effect* ef);
     Effect* OldPaste(const wxString &data, const wxString &pasteDataVer);
     Effect* Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false, bool layerMode = false);
+    Effect* PasteImpl(const wxString &data, const wxString &pasteDataVer, bool row_paste, bool layerMode);
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
     int GetStartRow() { return mRangeStartRow < mRangeEndRow ? mRangeStartRow : mRangeEndRow; }
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
@@ -288,6 +289,10 @@ private:
     void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight) const;
     void MoveAllSelectedEffects(int deltaMS, bool offset) const;
     void ResetEffectMoveDragState();
+    // Edge drags and nudges change effects live; the executor records the
+    // net result as one step when the gesture ends.
+    void BeginLivePreview();
+    void EndLivePreview();
     int SnapCursorToTimingMark(int timeMS, int x) const;
     void UpdateEffectMoveDragState(int x, int y, bool snapToTiming, bool altDown, bool shiftDown);
     void OnScrollTimer(wxTimerEvent& event);
@@ -367,6 +372,7 @@ private:
     double mStartFadeInSec;
     double mStartFadeOutSec;
     bool mResizing;
+    bool mLivePreview = false;
     bool mDragging;
     bool mDragThresholdExceeded;
     bool mMouseOperationsCancelled;

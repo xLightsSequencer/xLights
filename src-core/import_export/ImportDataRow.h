@@ -21,8 +21,11 @@ class EffectLayer;
 
 // Convert a per-frame colour stream into On / Color Wash effects on `layer`.
 // `colors` is consumed/mutated. `frameTime` is the ms-per-frame of the source.
-// When `eraseExisting` is true the layer's existing effects are cleared first.
-void ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting);
+// When `eraseExisting` is true the layer's existing (unlocked) effects are
+// cleared first. A layer in a sequence is changed through its
+// CommandExecutor, so the caller decides the undo step. Returns the number of
+// effects added.
+int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting);
 
 // Decode a base64-encoded string into raw bytes (wx-free analogue of the
 // wxUtilities base64_decode the desktop importers call). Returns the number of

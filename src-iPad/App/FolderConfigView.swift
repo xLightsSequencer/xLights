@@ -56,6 +56,7 @@ struct FolderConfigView: View {
     @AppStorage("bellOnRenderComplete") private var bellOnRenderComplete: Bool = false
     @AppStorage("backupOnSave") private var backupOnSave: Bool = false
     @AppStorage("backupOnLaunch") private var backupOnLaunch: Bool = false
+    @AppStorage("autoReloadShowFiles") private var autoReloadShowFiles: Bool = true
     @AppStorage("purgeDownloadCacheAtStartup") private var purgeDownloadCacheAtStartup: Bool = false
     @AppStorage("hidePresetPreviews") private var hidePresetPreviews: Bool = false
     @AppStorage("modelRenameAliasMode") private var modelRenameAliasMode: String = "Always Prompt"
@@ -299,6 +300,14 @@ struct FolderConfigView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Back Up Show Folder on Open")
                             Text("Copies the show's sequence and configuration files (under 30 MB) into a timestamped folder under Backup when the show folder is first opened.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Toggle(isOn: $autoReloadShowFiles) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Bring In Others' Show Changes")
+                            Text("When someone else sharing the show folder saves the layout, controllers or presets, load their changes right away. Off: they are merged when you save.")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }

@@ -13,6 +13,7 @@
 #include "render/EffectSymbol.h"
 #include "render/EffectSymbolManager.h"
 #include "render/Effect.h"
+#include "render/SequenceElementCommands.h"
 
 #include <wx/sizer.h>
 #include <wx/button.h>
@@ -140,17 +141,8 @@ void EffectSymbolDialog::OnDeleteClick(wxCommandEvent& event)
         return;
     }
 
-    // Get all linked effects and unlink them before deleting the symbol
-    std::vector<Effect*> linkedEffects = symbolMgr.GetLinkedEffects(symbolId);
-    for (Effect* effect : linkedEffects) {
-        if (effect != nullptr) {
-            // Unlink the effect (it keeps its current settings)
-            effect->UnlinkFromSymbol();
-        }
-    }
-
-    // Now delete the symbol
-    symbolMgr.DeleteSymbol(symbolId);
+    // Linked effects keep their current settings.
+    SymbolEdits::Delete(*m_sequenceElements, symbolId);
 
     // Refresh the list
     PopulateSymbolList();
@@ -192,7 +184,7 @@ void EffectSymbolDialog::OnRenameClick(wxCommandEvent& event)
     }
 
     // Rename the symbol
-    symbolMgr.RenameSymbol(symbol->GetId(), newName);
+    SymbolEdits::Rename(*m_sequenceElements, symbol->GetId(), newName);
 
     // Refresh the list
     PopulateSymbolList();

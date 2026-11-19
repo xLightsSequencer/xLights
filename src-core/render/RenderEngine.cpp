@@ -1327,35 +1327,41 @@ public:
                     } else {
                         tempEffect = new Effect(*ef);
                         ef = tempEffect;
+                        // Edits below go to a render-only copy, not the document.
+                        SeqMutationGuard::Scope renderTemporary;
                         
                         // disable the background display lists as the "duplicate" effect doesn't support this
                         tempEffect->EnableBackgroundDisplayLists(false);
 
-                        if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Buffer") == "1") {
+                        // The duplicate effect itself can be edited while this renders.
+                        SettingsMap origSettings;
+                        SettingsMap origPalette;
+                        orig->SnapshotMaps(origSettings, origPalette);
+                        if (origSettings.Get("E_CHECKBOX_Duplicate_Override_Buffer", "") == "1") {
                             ef->EraseSettingsStartingWith("B_");
-                            for (const auto& it : orig->GetSettings()) {
+                            for (const auto& it : origSettings) {
                                 if (StartsWith(it.first, "B_"))
                                     ef->GetSettings()[it.first] = it.second;
                             }
                         }
-                        if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Timing") == "1") {
+                        if (origSettings.Get("E_CHECKBOX_Duplicate_Override_Timing", "") == "1") {
                             ef->EraseSettingsStartingWith("T_");
-                            for (const auto& it : orig->GetSettings()) {
+                            for (const auto& it : origSettings) {
                                 if (StartsWith(it.first, "T_"))
                                     ef->GetSettings()[it.first] = it.second;
                             }
                         }
-                        if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Palette") == "1") {
+                        if (origSettings.Get("E_CHECKBOX_Duplicate_Override_Palette", "") == "1") {
                             ef->ErasePalette();
-                            for (const auto& it : orig->GetPaletteMap()) {
+                            for (const auto& it : origPalette) {
                                 if (StartsWith(it.first, "C_BUTTON_Palette") || StartsWith(it.first, "C_CHECKBOX_Palette"))
                                     ef->GetPaletteMap()[it.first] = it.second;
                             }
                             ef->SetPalette(ef->GetPaletteAsString()); // this forces the colour parsing
                         }
-                        if (orig->GetSetting("E_CHECKBOX_Duplicate_Override_Color") == "1") {
+                        if (origSettings.Get("E_CHECKBOX_Duplicate_Override_Color", "") == "1") {
                             ef->EraseColourSettings();
-                            for (const auto& it : orig->GetPaletteMap()) {
+                            for (const auto& it : origPalette) {
                                 if (!StartsWith(it.first, "C_BUTTON_Palette") && !StartsWith(it.first, "C_CHECKBOX_Palette"))
                                     ef->GetPaletteMap()[it.first] = it.second;
                             }

@@ -236,8 +236,7 @@ function Fetch-Dependency($dep) {
     $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("dep_" + [System.Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $tmp -Force | Out-Null
     try {
-        # Expand-Archive insists on a .zip extension, so only name it that when
-        # the download actually is one.
+        # Name the download .zip only when it actually is one.
         $dl = if ($dep.Archive -eq $false) { Join-Path $tmp 'dep.bin' } else { Join-Path $tmp 'dep.zip' }
         try {
             Get-Download $dep.Url $dl
@@ -255,7 +254,11 @@ function Fetch-Dependency($dep) {
         }
         else {
             $x = Join-Path $tmp 'x'
-            Expand-Archive -Path $dl -DestinationPath $x -Force
+            # Not Expand-Archive: on some runner images its module calls the
+            # 3-argument ExtractToDirectory overload, which the .NET Framework
+            # behind Windows PowerShell 5.1 lacks. $x is fresh, so no overwrite.
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($dl, $x)
             foreach ($item in $dep.Stage) {
                 $destDir = Join-Path $rootDir $item.To
                 New-Item -ItemType Directory -Path $destDir -Force | Out-Null

@@ -616,6 +616,43 @@ TEST_CASE("Base show view objects merge into the manager", "[modelcore][viewobje
     CHECK(vom.MergeFromBase(noObjects.path.string(), false, acceptAll, rejectAll, nullptr));
 }
 
+TEST_CASE("Base show view object comparison rules", "[modelcore][viewobjects][basemerge]") {
+    // pinned before the comparison moved to utils/LayoutRecords
+    TempDir base;
+    base.Write("xlights_rgbeffects.xml", R"(<xrgb><view_objects>
+        <view_object name="Ver" DisplayAs="Gridlines" SourceVersion="2026.01"/>
+        <view_object name="Kid" DisplayAs="Mesh"><child name="a" v="1"/></view_object>
+        <view_object name="Extra" DisplayAs="Mesh"/>
+        <view_object name="Deep" DisplayAs="Mesh"><child name="a"><inner v="1"/></child></view_object>
+    </view_objects></xrgb>)");
+    ViewObjectManager vom(nullptr);
+    auto changed = [&](const std::string& local) {
+        pugi::xml_document d;
+        REQUIRE(d.load_string(("<view_objects>" + local + "</view_objects>").c_str()));
+        bool c = false;
+        REQUIRE(vom.MergeBaseXml(base.path.string(), d.first_child(), &c));
+        return c;
+    };
+    const std::string others = R"(<view_object name="Kid" DisplayAs="Mesh" FromBase="1"><child name="a" v="1"/></view_object>
+        <view_object name="Extra" DisplayAs="Mesh" FromBase="1"/>
+        <view_object name="Deep" DisplayAs="Mesh" FromBase="1"><child name="a"><inner v="1"/></child></view_object>)";
+    // unlike models, the saving version counts as a change for a view object
+    CHECK(changed(R"(<view_object name="Ver" DisplayAs="Gridlines" SourceVersion="2026.10" FromBase="1"/>)" + others));
+    CHECK_FALSE(changed(R"(<view_object name="Ver" DisplayAs="Gridlines" SourceVersion="2026.01" FromBase="1"/>)" + others));
+    // a child's attributes are compared, one level down only
+    const std::string ver = R"(<view_object name="Ver" DisplayAs="Gridlines" SourceVersion="2026.01" FromBase="1"/>)";
+    CHECK(changed(ver + R"(<view_object name="Kid" DisplayAs="Mesh" FromBase="1"><child name="a" v="2"/></view_object>
+        <view_object name="Extra" DisplayAs="Mesh" FromBase="1"/>
+        <view_object name="Deep" DisplayAs="Mesh" FromBase="1"><child name="a"><inner v="1"/></child></view_object>)"));
+    CHECK_FALSE(changed(ver + R"(<view_object name="Kid" DisplayAs="Mesh" FromBase="1"><child name="a" v="1"/></view_object>
+        <view_object name="Extra" DisplayAs="Mesh" FromBase="1"/>
+        <view_object name="Deep" DisplayAs="Mesh" FromBase="1"><child name="a"><inner v="2"/></child></view_object>)"));
+    // a child only the show has is not a change
+    CHECK_FALSE(changed(ver + R"(<view_object name="Kid" DisplayAs="Mesh" FromBase="1"><child name="a" v="1"/></view_object>
+        <view_object name="Extra" DisplayAs="Mesh" FromBase="1"><child name="mine"/></view_object>
+        <view_object name="Deep" DisplayAs="Mesh" FromBase="1"><child name="a"><inner v="1"/></child></view_object>)"));
+}
+
 // ---------------------------------------------------------------------------
 // MeshObject
 // ---------------------------------------------------------------------------

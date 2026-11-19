@@ -324,6 +324,23 @@ TEST_CASE("Element type descriptions for sub elements", "[seq2][elements]") {
     CHECK(m->GetTypeDescription() == "Model/Model Group");
 }
 
+TEST_CASE("Unknown effect names are rejected on every non-timing layer", "[seq2][elements]") {
+    SeqFixture f;
+    auto* m = f.Model();
+    CHECK(Add(m->AddEffectLayer(), "Twinkle_Slow", 0, 100) == nullptr);
+    CHECK(Add(m->GetSubModel("Arm", true)->GetEffectLayer(0), "Twinkle_Slow", 0, 100) == nullptr);
+    auto* s = m->GetStrand(0, true);
+    CHECK(Add(s->GetEffectLayer(0), "Twinkle_Slow", 0, 100) == nullptr);
+    CHECK(Add(s->GetNodeLayer(0, true), "Twinkle_Slow", 0, 100) == nullptr);
+
+    CHECK(Add(m->GetSubModel("Arm", true)->GetEffectLayer(0), "Twinkle", 0, 100) != nullptr);
+    CHECK(Add(s->GetNodeLayer(0, true), "On", 0, 100) != nullptr);
+
+    // timing marks carry free-text labels, not effect names
+    auto* t = f.Timing();
+    CHECK(Add(t->AddEffectLayer(), "Twinkle_Slow", 0, 100) != nullptr);
+}
+
 TEST_CASE("Element HasEffects looks at every layer", "[seq2][elements]") {
     SeqFixture f;
     auto* t = f.Timing();

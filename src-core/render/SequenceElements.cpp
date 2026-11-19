@@ -15,6 +15,12 @@
 #include <spdlog/fmt/fmt.h>
 
 #include "SequenceElements.h"
+#include "Effect.h"
+#include "EffectLayer.h"
+#include "Element.h"
+#include "CommandExecutor.h"
+#include "SequenceMediaCommands.h"
+#include "SequenceElementCommands.h"
 #include "pugixml.hpp"
 #include "RenderUtils.h"
 #include "RenderContext.h"
@@ -49,7 +55,8 @@ static std::vector<std::string> SplitViews(const std::string& views) {
 }
 
 SequenceElements::SequenceElements(RenderContext *ctx)
-    : renderContext(ctx), mFrequency(20), mSequenceEndMS(0), undo_mgr(this)
+    : renderContext(ctx), mFrequency(20), mSequenceEndMS(0), undo_mgr(this),
+      _commandExecutor(std::make_unique<CommandExecutor>(*this, undo_mgr))
 {
     _viewsManager = nullptr;
     mSelectedTimingRow = -1;
@@ -73,6 +80,10 @@ SequenceElements::~SequenceElements()
 
 void SequenceElements::ClearAllViews()
 {
+    for (const DeletedRow& row : mElementsAwaitingDelete) {
+        delete row.element;
+    }
+    mElementsAwaitingDelete.clear();
     for (size_t y = 0; y < mAllViews[MASTER_VIEW].size(); y++) {
         delete mAllViews[MASTER_VIEW][y];
     }
@@ -82,6 +93,7 @@ void SequenceElements::ClearAllViews()
     }
     mAllViews.clear();
     mMasterViewChangeCount++;
+    InvalidateUidIndex();
 }
 
 void SequenceElements::Clear() {
@@ -110,7 +122,7 @@ void SequenceElements::Clear() {
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
     hasPapagayoTiming = false;
-    ClearTags();
+    _tagPositions.fill(-1);
 }
 
 void SequenceElements::SetSequenceEnd(int ms)
@@ -238,18 +250,26 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
         el->SetVisible(visible);
     }
     el->SetCollapsed(collapsed);
-    el->SetRenderDisabled(renderDisabled);
+    {
+        SeqMutationGuard::Scope newElement; // not in the sequence yet
+        el->SetRenderDisabled(renderDisabled);
+    }
     return el;
 }
 
 Element* SequenceElements::AddElement(const std::string &name, const std::string &type,
     bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
+    XL_SEQ_MUTATION("SequenceElements::AddElement");
     if (!ElementExists(name)) {
+        if (!StopRenderBeforeAddingRow()) {
+            spdlog::error("SequenceElements::AddElement {}: the render did not stop, not adding the row.", name);
+            return nullptr;
+        }
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
-
         mAllViews[MASTER_VIEW].push_back(el);
         mMasterViewChangeCount++;
+        InvalidateUidIndex();
         IncrementChangeCount(el);
         return el;
     }
@@ -261,11 +281,17 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     const std::string &type,
     bool visible, bool collapsed, bool active, bool selected, bool renderDisabled)
 {
+    XL_SEQ_MUTATION("SequenceElements::AddElement");
     if (!ElementExists(name) && index >= 0 && static_cast<size_t>(index) <= mAllViews[MASTER_VIEW].size())
     {
+        if (!StopRenderBeforeAddingRow()) {
+            spdlog::error("SequenceElements::AddElement {}: the render did not stop, not adding the row.", name);
+            return nullptr;
+        }
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin() + index, el);
         mMasterViewChangeCount++;
+        InvalidateUidIndex();
         IncrementChangeCount(el);
         return el;
     }
@@ -295,6 +321,7 @@ bool SequenceElements::ElementExists(const std::string& elementName, int view)
 
 void SequenceElements::RenameTimingTrack(std::string oldname, std::string newname)
 {
+    XL_SEQ_MUTATION("SequenceElements::RenameTimingTrack");
     // actual timing track name already updated ... we just need to update any effects that care about the timing track name
     // faces, state, piano, vumeter
 
@@ -442,11 +469,8 @@ Element* SequenceElements::GetElement(const std::string &name) const
     return nullptr;
 }
 
-Element* SequenceElements::GetElementFromUid(SeqObjectId uid) const
+Element* SequenceElements::ScanForUid(SeqObjectId uid) const
 {
-    if (uid == kNoSeqObjectId || mAllViews.empty()) {
-        return nullptr;
-    }
     for (Element* el : mAllViews[MASTER_VIEW]) {
         if (el->GetUid() == uid) {
             return el;
@@ -464,6 +488,56 @@ Element* SequenceElements::GetElementFromUid(SeqObjectId uid) const
         }
     }
     return nullptr;
+}
+
+void SequenceElements::RebuildUidIndexLocked() const
+{
+    _uidIndex.clear();
+    _uidIndex.reserve(mAllViews[MASTER_VIEW].size() * 2);
+    for (Element* el : mAllViews[MASTER_VIEW]) {
+        _uidIndex[el->GetUid()] = { el, el };
+        if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* mel = dynamic_cast<ModelElement*>(el);
+            for (int x = 0; mel != nullptr && x < mel->GetSubModelAndStrandCount(); ++x) {
+                if (SubModelElement* sme = mel->GetSubModel(x)) {
+                    _uidIndex.emplace(sme->GetUid(), UidIndexEntry{ sme, el });
+                }
+            }
+        }
+    }
+    _uidIndexValid = true;
+}
+
+Element* SequenceElements::GetElementFromUid(SeqObjectId uid) const
+{
+    if (uid == kNoSeqObjectId || mAllViews.empty()) {
+        return nullptr;
+    }
+    std::lock_guard<std::mutex> lock(_uidIndexLock);
+    if (!_uidIndexValid) {
+        RebuildUidIndexLocked();
+    }
+    auto it = _uidIndex.find(uid);
+    if (it != _uidIndex.end()) {
+        // Top-level elements stay alive while the index is valid; a row is
+        // only trusted while its model still lists it.
+        const UidIndexEntry& hit = it->second;
+        bool live = hit.element == hit.top;
+        if (!live) {
+            const ModelElement* mel = dynamic_cast<const ModelElement*>(hit.top);
+            for (int x = 0; mel != nullptr && x < mel->GetSubModelAndStrandCount() && !live; ++x) {
+                live = mel->GetSubModel(x) == hit.element;
+            }
+        }
+        if (live && hit.element->GetUid() == uid) {
+            return hit.element;
+        }
+    }
+    Element* found = ScanForUid(uid);
+    if (found != nullptr) {
+        RebuildUidIndexLocked();
+    }
+    return found;
 }
 
 bool SequenceElements::ValidateUids(std::string* problem) const
@@ -540,9 +614,23 @@ Element* SequenceElements::GetElement(size_t index, int view) const
     }
 }
 
-void SequenceElements::DeleteElement(const std::string &name)
+void SequenceElements::DeleteElement(const std::string &name, bool removeFromViewDefinitions)
 {
-    _viewsManager->DeleteModel(name);
+    XL_SEQ_MUTATION("SequenceElements::DeleteElement");
+    // Stop the render before the views change: render threads walk them to
+    // find rows by name as well as holding the row being freed.
+    const bool renderStopped = StopRenderForRowChange();
+    if (_commandExecutor != nullptr && !mAllViews.empty()) {
+        for (Element* e : mAllViews[MASTER_VIEW]) {
+            if (e->GetName() == name) {
+                _commandExecutor->DirectElementDelete(e, !removeFromViewDefinitions);
+                break;
+            }
+        }
+    }
+    if (removeFromViewDefinitions && _viewsManager != nullptr) {
+        _viewsManager->DeleteModel(name);
+    }
 
     // delete element pointer from all views
     for (size_t i = 1; i < mAllViews.size(); i++)
@@ -565,11 +653,12 @@ void SequenceElements::DeleteElement(const std::string &name)
         {
             Element *e = mAllViews[MASTER_VIEW][j];
             mAllViews[MASTER_VIEW].erase(mAllViews[MASTER_VIEW].begin() + j);
+            InvalidateUidIndex();
             // Drop the borrowed Element* out of the rows before freeing it;
             // PopulateRowInformation below rebuilds them.
             mVisibleRowInformation.clear();
             mRowInformation.clear();
-            delete e;
+            FreeElementSafely(e, renderStopped);
             mMasterViewChangeCount++;
             break;
         }
@@ -577,8 +666,97 @@ void SequenceElements::DeleteElement(const std::string &name)
     PopulateRowInformation();
 }
 
+bool SequenceElements::IsEditInProgress()
+{
+    CommandExecutor& exec = GetCommandExecutor();
+    return undo_mgr.IsReplaying() || exec.IsApplying() || exec.InBatch() || exec.IsCapturing() || exec.InPreview();
+}
+
+bool SequenceElements::StopRenderForRowChange()
+{
+    return renderContext == nullptr || renderContext->AbortRender();
+}
+
+// Render threads walk the master view to find rows by name without a lock,
+// and adding a row shifts or reallocates it, so a row is only added once the
+// render has stopped. Loading a sequence adds every row before any render can
+// start (and may do it off the main thread), so only an open sequence needs
+// this.
+bool SequenceElements::StopRenderBeforeAddingRow()
+{
+    if (renderContext != nullptr && renderContext->IsSequenceLoaded()) {
+        return renderContext->AbortRender();
+    }
+    return true;
+}
+
+// A deleted row is never freed on the spot. Render jobs hold Element and
+// EffectLayer pointers, and the UI can still hold one of its effects (the
+// selected effect, the effect panel). So, like deleted effects
+// (Effect::SetTimeToDelete), a row is kept for a grace period and freed only
+// when it has passed and a render stop has just succeeded. Every row delete
+// (the UI, undo/redo, merges) comes through DeleteElement.
+//
+// A render stop that times out leaves the row parked. That includes a delete
+// nested inside another abort's wait: the desktop's AbortRender yields to the
+// event loop and returns false when re-entered, which is what keeps a row an
+// outer command still points at alive.
+namespace {
+// A parked row's effects stay alive until it is freed; take them out of the
+// symbol manager now, as deleting a single effect does.
+void DetachRowFromSymbols(Element* e) {
+    auto detach = [](EffectLayer* l) {
+        for (Effect* eff : l->GetEffects()) {
+            eff->DetachFromSymbolManager();
+        }
+    };
+    for (EffectLayer* l : e->GetEffectLayers()) {
+        detach(l);
+    }
+    if (auto* me = dynamic_cast<ModelElement*>(e)) {
+        for (int x = 0; x < me->GetSubModelAndStrandCount(); ++x) {
+            SubModelElement* sme = me->GetSubModel(x);
+            if (sme == nullptr) {
+                continue;
+            }
+            for (EffectLayer* l : sme->GetEffectLayers()) {
+                detach(l);
+            }
+            if (auto* st = dynamic_cast<StrandElement*>(sme)) {
+                for (int n = 0; n < st->GetNodeLayerCount(); ++n) {
+                    detach(st->GetNodeLayer(n));
+                }
+            }
+        }
+    }
+}
+} // namespace
+
+void SequenceElements::FreeElementSafely(Element* e, bool renderStopped)
+{
+    DetachRowFromSymbols(e);
+    mElementsAwaitingDelete.push_back({ e, GetCurrentTimeMillis() + mDeletedRowGraceMs });
+    if (renderStopped) {
+        FreeExpiredRows();
+    }
+}
+
+void SequenceElements::FreeExpiredRows()
+{
+    const int64_t now = GetCurrentTimeMillis();
+    auto expired = std::stable_partition(mElementsAwaitingDelete.begin(), mElementsAwaitingDelete.end(),
+                                         [now](const DeletedRow& r) { return r.freeAfterMs > now; });
+    for (auto it = expired; it != mElementsAwaitingDelete.end(); ++it) {
+        delete it->element;
+    }
+    mElementsAwaitingDelete.erase(expired, mElementsAwaitingDelete.end());
+}
+
 void SequenceElements::DeleteElementFromView(const std::string &name, int view)
 {
+    if (view == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::DeleteElementFromView");
+    }
     // delete element pointer from all views
     for (size_t j = 0; j < mAllViews[view].size(); j++)
     {
@@ -590,6 +768,7 @@ void SequenceElements::DeleteElementFromView(const std::string &name, int view)
     }
     if (view == MASTER_VIEW) {
         mMasterViewChangeCount++;
+        InvalidateUidIndex();
     }
 
     PopulateRowInformation();
@@ -653,17 +832,10 @@ void SequenceElements::DeleteTimingsFromView(int view)
 
 void SequenceElements::RenameModelInViews(const std::string& old_name, const std::string& new_name)
 {
-    // renames models in any views that have been loaded for a sequence
-    for (size_t view = 0; view < mAllViews.size(); view++)
-    {
-        for (size_t i = 0; i < mAllViews[view].size(); i++)
-        {
-            if (mAllViews[view][i]->GetName() == old_name)
-            {
-                mAllViews[view][i]->SetName(new_name);
-            }
-        }
-    }
+    // Follows a layout rename, which sequence undo can't take back, so the
+    // command is reported to observers but records no undo step. Every view
+    // holds the master view's Element objects.
+    ElementEdits::RenameModel(*this, old_name, new_name, false);
     mMasterViewChangeCount++;
 }
 
@@ -753,6 +925,9 @@ void SequenceElements::SortElements()
 
 void SequenceElements::MoveElement(int index,int destinationIndex)
 {
+    if (mCurrentView == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::MoveElement");
+    }
     IncrementChangeCount(nullptr);
     if(index<destinationIndex)
     {
@@ -780,6 +955,8 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
     const std::vector<std::string>& colorPalettes,
     bool importing)
 {
+    // Loading builds the document directly; it is not an edit.
+    SeqMutationGuard::Scope loading;
 
     int loaded = 0;
     for (auto effect : effectLayerNode.children()) {
@@ -875,6 +1052,8 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
 
 bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_document& doc, const std::string& ShowDir, bool importing)
 {
+    // Loading builds the document directly; it is not an edit.
+    SeqMutationGuard::Scope loading;
 
     renderDependency.clear();
 
@@ -1079,6 +1258,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
 
 void SequenceElements::PrepareViews(SequenceFile& xml_file)
 {
+    SeqMutationGuard::Scope loading;
     if (_viewsManager == nullptr) {
         spdlog::critical("SequenceElements::PrepareViews called when _viewsManager was null ... this will crash");
     }
@@ -1141,10 +1321,11 @@ void SequenceElements::AddMissingModelsToSequence(const std::string &models, boo
                 {
                     if (!ElementExists(model1->GetName()))
                     {
-                        Element* elem = AddElement(model1->GetName(), "model", visible, false, false, false, false);
-                        if (elem != nullptr)
-                        {
-                            elem->AddEffectLayer();
+                        // Not an undoable edit of its own: it follows a view
+                        // switch or comes ahead of the effects an import adds.
+                        Element* elem = ElementEdits::AddModel(*this, -1, model1->GetName(), false);
+                        if (elem != nullptr) {
+                            elem->SetVisible(visible);
                         }
                     }
                 }
@@ -1254,6 +1435,7 @@ void SequenceElements::PopulateView(const std::string &models, int view)
     }
     if (view == MASTER_VIEW) {
         mMasterViewChangeCount++;
+        InvalidateUidIndex();
     }
 }
 
@@ -1757,7 +1939,7 @@ std::vector<std::string> SequenceElements::GetUsedColours(bool selectedOnly) con
 
 int SequenceElements::ReplaceColours(RenderContext* ctx, const std::string& from, const std::string& to, bool selectedOnly)
 {
-    get_undo_mgr().CreateUndoStep();
+    ScopedCommandBatch batch(GetCommandExecutor(), "Replace Colours");
     int replaced = 0;
     for (size_t i = 0; i < mRowInformation.size(); i++) {
         if (mRowInformation[i].element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
@@ -2237,6 +2419,13 @@ int SequenceElements::GetElementIndexOfTimingFromListIndex(int timingIndex)
 
 void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 {
+    if (view == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::MoveSequenceElement");
+    }
+    // Unlike AddElement/DeleteElement this doesn't stop the render: the view
+    // keeps its size, so it is never reallocated and no row is freed. A render
+    // thread looking a row up by name at that instant can see a row twice or
+    // miss one for that one lookup (a timing track an effect reads, say).
     IncrementChangeCount(nullptr);
 
     if(index >= 0 && static_cast<size_t>(index) < mAllViews[view].size() && dest >= 0 && static_cast<size_t>(dest) < mAllViews[view].size())
@@ -2266,6 +2455,9 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
 
 void SequenceElements::MoveElementUp(const std::string &name, int view)
 {
+    if (view == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::MoveElementUp");
+    }
     IncrementChangeCount(nullptr);
 
     for(size_t i=0;i<mAllViews[view].size();i++)
@@ -2287,6 +2479,9 @@ void SequenceElements::MoveElementUp(const std::string &name, int view)
 
 void SequenceElements::MoveElementDown(const std::string &name, int view)
 {
+    if (view == MASTER_VIEW) {
+        XL_SEQ_MUTATION("SequenceElements::MoveElementDown");
+    }
     IncrementChangeCount(nullptr);
 
     for(size_t i=0;i<mAllViews[view].size();i++)
@@ -2307,33 +2502,6 @@ void SequenceElements::MoveElementDown(const std::string &name, int view)
 }
 
 
-
-std::map<std::string, std::pair<int, int>> SequenceElements::RewriteMediaReferences(const std::string& from, const std::string& to) {
-    std::map<std::string, std::pair<int, int>> dirtyModels;
-    if (from == to) return dirtyModels;
-
-    mSequenceFaces.RewriteImagePath(from, to);
-
-    const auto initRange = std::make_pair(std::numeric_limits<int>::max(), 0);
-    ForEachModelEffectLayer([&](EffectLayer* layer, const std::string& modelName) {
-        for (int k = 0; k < layer->GetEffectCount(); ++k) {
-            Effect* eff = layer->GetEffect(k);
-            const SettingsMap& settings = eff->GetSettings();
-            std::vector<std::string> keysToUpdate;
-            for (auto it = settings.begin(); it != settings.end(); ++it) {
-                if (it->second == from) keysToUpdate.push_back(it->first);
-            }
-            if (keysToUpdate.empty()) continue;
-            for (const auto& key : keysToUpdate) {
-                eff->SetSetting(key, to);
-            }
-            auto& range = dirtyModels.emplace(modelName, initRange).first->second;
-            range.first = std::min(range.first, eff->GetStartTimeMS());
-            range.second = std::max(range.second, eff->GetEndTimeMS());
-        }
-    });
-    return dirtyModels;
-}
 
 void SequenceElements::ForEachModelEffectLayer(const std::function<void(EffectLayer*, const std::string&)>& fn) const {
     for (size_t i = 0; i < GetElementCount(); ++i) {
@@ -2381,33 +2549,11 @@ std::unordered_set<std::string> SequenceElements::GetEffectSettingValues() const
 }
 
 int SequenceElements::RemoveUnreferencedMedia() {
-    std::unordered_set<std::string> used = GetEffectSettingValues();
-    for (const auto& p : mSequenceFaces.GetImagePaths()) {
-        used.insert(p);
-    }
-    int removed = 0;
-    for (const auto& p : mSequenceMedia.GetAllMediaPaths()) {
-        if (used.count(p.first) == 0 && !mSequenceMedia.IsUsedByMetadata(p.first)) {
-            mSequenceMedia.RemoveMedia(p.first);
-            ++removed;
-        }
-    }
-    return removed;
+    return SeqMediaEdits::RemoveUnreferenced(*this);
 }
 
 std::string SequenceElements::MakeMediaPathRelative(const std::string& path) {
-    if (path.empty()) return path;
-
-    if (renderContext == nullptr) return path;
-    const std::string key = renderContext->MakeRelativePath(path);
-    if (key.empty() || key == path) return path;
-
-    // RenameMedia refuses when the target key already exists in any cache, so
-    // two entries from different folders that share a filename keep their
-    // original paths rather than collapsing into one.
-    if (!mSequenceMedia.RenameMedia(path, key)) return path;
-    RewriteMediaReferences(path, key);
-    return key;
+    return SeqMediaEdits::MakeRelative(*this, path);
 }
 
 void SequenceElements::IncrementChangeCount(Element *el) {
@@ -2459,6 +2605,7 @@ int SequenceElements::RenameModelFaceReferences(const std::string& modelName, co
     }
 
     int count = 0;
+    ScopedCommandBatch batch(GetCommandExecutor(), "Rename Face");
     auto scanLayer = [&](EffectLayer* layer) {
         for (int k = 0; k < layer->GetEffectCount(); ++k) {
             Effect* eff = layer->GetEffect(k);
@@ -2467,7 +2614,8 @@ int SequenceElements::RenameModelFaceReferences(const std::string& modelName, co
                 continue;
             }
             if (eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "") == oldName) {
-                eff->SetSetting("E_CHOICE_Faces_FaceDefinition", newName);
+                // The rename itself isn't undoable, so neither is this.
+                GetCommandExecutor().SetEffectSetting(eff, "E_CHOICE_Faces_FaceDefinition", newName, false);
                 ++count;
             }
         }

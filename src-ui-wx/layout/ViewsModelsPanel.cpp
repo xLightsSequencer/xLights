@@ -15,6 +15,7 @@
 #include <wx/string.h>
 //*)
 
+#include <optional>
 #include <pugixml.hpp>
 #include <wx/artprov.h>
 #include <wx/dnd.h>
@@ -30,6 +31,7 @@
 #include "models/DisplayAsType.h"
 #include "layout/ViewsModelsPanel.h"
 #include "render/SequenceElements.h"
+#include "render/SequenceElementCommands.h"
 #include "xLightsMain.h"
 #include "sequencer/MainSequencer.h"
 #include "xLightsApp.h"
@@ -848,6 +850,10 @@ void ViewsModelsPanel::RemoveSelectedModels()
     if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     SaveUndo();
+    std::optional<ScopedCommandBatch> batch;
+    if (_sequenceElements != nullptr) {
+        batch.emplace(*_sequenceElements, "Remove Models From Sequence");
+    }
 
     // #4134: Abort any render in progress to avoid hanging
     xLightsApp::GetFrame()->AbortRender();
@@ -880,8 +886,7 @@ void ViewsModelsPanel::RemoveSelectedModels()
                 if (IsItemSelected(ListCtrlModels, i)) {
                     // Got a selected item so handle it
                     Element* e = (Element*)ListCtrlModels->GetItemData(i);
-                    //_sequenceElements->DeleteElementFromView(e->GetName(), MASTER_VIEW);
-                    _sequenceElements->DeleteElement(e->GetName());
+                    ElementEdits::DeleteElement(*_sequenceElements, e->GetName());
                 }
             }
         }
@@ -914,6 +919,10 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
     SaveUndo();
+    std::optional<ScopedCommandBatch> batch;
+    if (_sequenceElements != nullptr) {
+        batch.emplace(*_sequenceElements, "Add Models To Sequence");
+    }
 
     int p = pos;
 
@@ -951,10 +960,7 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
                         p + selcnt, (const char*)(_sequenceElements->GetElement(p + selcnt) == nullptr) ? "N/A" : _sequenceElements->GetElement(p + selcnt)->GetName().c_str());
 #endif
 
-                    Element* e = _sequenceElements->AddElement(p + selcnt, ListCtrlNonModels->GetItemText(i, 1).ToStdString(), type, true, false, false, false, false);
-                    if (e != nullptr) {
-                        e->AddEffectLayer();
-                    }
+                    ElementEdits::AddModel(*_sequenceElements, p + selcnt, ListCtrlNonModels->GetItemText(i, 1).ToStdString());
                     selcnt++;
                 }
             }
@@ -2021,13 +2027,14 @@ wxArrayString ViewsModelsPanel::MergeStringArrays(const wxArrayString& arr1, con
 
 void ViewsModelsPanel::SetMasterViewModels(const wxArrayString& models)
 {
+    ScopedCommandBatch batch(*_sequenceElements, "Reorder Master View");
     for (size_t i = 0; i < models.size(); ++i) {
         int index = _sequenceElements->GetElementIndex(models[i].ToStdString(), MASTER_VIEW);
         if (index < 0) {
-            _sequenceElements->AddElement(i + GetTimingCount(), models[i].ToStdString(), "model", true, false, false, false, false);
+            ElementEdits::AddModel(*_sequenceElements, i + GetTimingCount(), models[i].ToStdString());
         }
         else {
-            _sequenceElements->MoveSequenceElement(index, i + GetTimingCount(), MASTER_VIEW);
+            ElementEdits::MoveElement(*_sequenceElements, index, i + GetTimingCount(), MASTER_VIEW);
         }
     }
 }
@@ -2703,6 +2710,10 @@ size_t ViewsModelsPanel::GetSelectedModelCount() const
 void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
 {
     if (GetSelectionIsMixed()) return;
+    std::optional<ScopedCommandBatch> batch;
+    if (_sequenceElements != nullptr) {
+        batch.emplace(*_sequenceElements, "Move Models");
+    }
 
     SaveUndo();
     bool itemsMoved = false;
@@ -2761,7 +2772,7 @@ void ViewsModelsPanel::MoveSelectedModelsTo(int indexTo)
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
-            _sequenceElements->MoveSequenceElement(from, to, currentView);
+            ElementEdits::MoveElement(*_sequenceElements, from, to, currentView);
             SelectItem(ListCtrlModels, i, false);
 
             selcnt++;
@@ -2810,6 +2821,10 @@ void ViewsModelsPanel::OnButtonView_UpClick(wxCommandEvent& event) {
 void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
+    std::optional<ScopedCommandBatch> batch;
+    if (_sequenceElements != nullptr) {
+        batch.emplace(*_sequenceElements, "Move Models");
+    }
 
     SaveUndo();
     bool itemsMoved = false;
@@ -2865,7 +2880,7 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
-            _sequenceElements->MoveSequenceElement(from, to, currentView);
+            ElementEdits::MoveElement(*_sequenceElements, from, to, currentView);
             SelectItem(ListCtrlModels, i, false);
 
             selcnt++;
@@ -2884,6 +2899,10 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 void ViewsModelsPanel::OnButton_TopClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
+    std::optional<ScopedCommandBatch> batch;
+    if (_sequenceElements != nullptr) {
+        batch.emplace(*_sequenceElements, "Move Models");
+    }
 
     SaveUndo();
     bool itemsMoved = false;
@@ -2935,7 +2954,7 @@ void ViewsModelsPanel::OnButton_TopClick(wxCommandEvent& event)
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
-            _sequenceElements->MoveSequenceElement(from, to, currentView);
+            ElementEdits::MoveElement(*_sequenceElements, from, to, currentView);
             SelectItem(ListCtrlModels, i, false);
 
             selcnt++;
@@ -2971,6 +2990,7 @@ void ViewsModelsPanel::DoMakeMaster()
 {
     // this should never happen
     if (_sequenceElements == nullptr || _sequenceViewManager == nullptr) return;
+    ScopedCommandBatch batch(*_sequenceElements, "Make Master View");
 
     //swapping out the master will completely change the rendering, abort it
     xLightsApp::GetFrame()->AbortRender();
@@ -2991,8 +3011,8 @@ void ViewsModelsPanel::DoMakeMaster()
                     if (!element->HasEffects()) {
                         //remove all not found elements(models) from the current master view without Effects
                         //They will be added back or move into the correct order with the "SetMasterViewModels" call below if needed
-                        _sequenceElements->DeleteElementFromView(name, MASTER_VIEW);
-                        //_sequenceElements->DeleteElement(name); //this removes models not found in the "new" master view from ALL Views, not just the master view, causing models to disappear from random Views
+                        // Keep it in the view definitions: dropping it from every view would make it vanish from views it belongs to.
+                        ElementEdits::DeleteElement(*_sequenceElements, name, true, true);
                         RemoveModelFromLists(name);
                         --i;
                     }
@@ -3289,6 +3309,10 @@ wxString ViewsModelsPanel::CreateUniqueName(wxString const& prefix)
 void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
+    std::optional<ScopedCommandBatch> batch;
+    if (_sequenceElements != nullptr) {
+        batch.emplace(*_sequenceElements, "Move Models");
+    }
 
     SaveUndo();
     bool itemsMoved = false;
@@ -3341,7 +3365,7 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
                 lastsel = to;
             }
 
-            _sequenceElements->MoveSequenceElement(from, to, currentView);
+            ElementEdits::MoveElement(*_sequenceElements, from, to, currentView);
             SelectItem(ListCtrlModels, i, false);
 
             selcnt++;
@@ -3361,6 +3385,10 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 void ViewsModelsPanel::OnButton_BottomClick(wxCommandEvent& event)
 {
     if (GetSelectionIsMixed()) return;
+    std::optional<ScopedCommandBatch> batch;
+    if (_sequenceElements != nullptr) {
+        batch.emplace(*_sequenceElements, "Move Models");
+    }
 
     SaveUndo();
     bool itemsMoved = false;
@@ -3408,7 +3436,7 @@ void ViewsModelsPanel::OnButton_BottomClick(wxCommandEvent& event)
                 to, (const char*)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
 
-            _sequenceElements->MoveSequenceElement(from, to, currentView);
+            ElementEdits::MoveElement(*_sequenceElements, from, to, currentView);
             SelectItem(ListCtrlModels, i, false);
 
             selcnt++;

@@ -13,12 +13,14 @@
 #include <list>
 #include <map>
 #include <string>
+#include <unordered_set>
 #include <vector>
 #include <mutex>
 #include <atomic>
 
 #include "ObjectManager.h"
 #include "ModelSetManager.h"
+#include "utils/LayoutRenameLog.h"
 #include <pugixml.hpp>
 
 class Model;
@@ -53,6 +55,9 @@ class ModelManager : public ObjectManager
         Model *operator[](const std::string &name) const;
         Model *GetModel(const std::string &name) const;
         bool IsModelValid(const Model* m) const;
+        // The model, group or submodel holding layout id `id` (see
+        // utils/LayoutObjectId.h), or nullptr.
+        Model* GetModelByObjectId(const std::string& id) const;
         virtual BaseObject *GetObject(const std::string &name) const override;
 
         bool RecalcStartChannels() const;
@@ -68,7 +73,9 @@ class ModelManager : public ObjectManager
         std::list<std::string> GetModelsShadowing(const Model* m) const;
         void AddModel(Model* m);
         void ReplaceModel(const std::string &name, Model* nm);
-        bool Delete(const std::string &name);
+        // askAboutEffects false: the open sequence's effects on the model go
+        // with it without asking (the model is gone from the layout either way).
+        bool Delete(const std::string &name, bool askAboutEffects = true);
         std::string GenerateModelName(const std::string& candidateModelName) const;
         void ResetModelGroups() const;
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const;
@@ -81,6 +88,12 @@ class ModelManager : public ObjectManager
 
         bool RenameController(const std::string& oldName, const std::string& newName);
         bool DeleteController(const std::string& name);
+
+        // Model and group renames since the layout was last loaded or saved
+        // (Rename records them; clear() and the save that records a new base
+        // clear them).
+        LayoutRenameLog& GetRenameLog() { return _renameLog; }
+        const LayoutRenameLog& GetRenameLog() const { return _renameLog; }
 
         std::vector<std::string> GetLayoutGroupNames() const;
 
@@ -171,6 +184,16 @@ class ModelManager : public ObjectManager
     // renderer idle, and unconditionally at destruction.
     void FreeModel(Model* m);
     void DrainParkedModels();
+
+    // The layout-id chokepoint for a model entering the map (caller holds
+    // _modelMutex). A model standing in for `replaced` (the same record) takes
+    // its id when it has none of its own. Then any missing id, or one already held by another record, is
+    // replaced by a fresh one, so the newcomer (a copy) is the one that changes.
+    void AssignObjectIds(Model* model, const Model* replaced);
+    // Load-time pass in file order: fills missing ids and gives the later
+    // occurrence of a repeated id a fresh one. Ids already in `used` count as
+    // taken; `used` is updated.
+    void ClaimObjectIdsInFileOrder(pugi::xml_node parent, const char* childName, std::unordered_set<std::string>& used);
     void AddASAPWorkIfAny(uint32_t work, const std::string& from) const;
 
     OutputManager* _outputManager = nullptr;
@@ -190,5 +213,6 @@ class ModelManager : public ObjectManager
     // so stop consulting it and just free.
     bool _destroying = false;
     ModelSetManager _setManager;
+    LayoutRenameLog _renameLog;
 };
 

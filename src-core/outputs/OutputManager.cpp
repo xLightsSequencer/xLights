@@ -9,6 +9,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
+
 #include <pugixml.hpp>
 
 #include "IPOutput.h"
@@ -28,12 +30,15 @@
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "utils/FileUtils.h"
+#include "utils/ShowFileGuard.h"
+#include "utils/LayoutObjectId.h"
 #include "utils/ip_utils.h"
 #include "render/UICallbacks.h"
 #include <cassert>
 #include <cstdlib>
 #include <spdlog/fmt/fmt.h>
 #include <numeric>
+#include <sstream>
 #include <chrono>
 
 #ifdef _WIN32
@@ -185,9 +190,18 @@ OutputManager::~OutputManager()
 
 #pragma region Save and Load
 bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
+    return LoadImpl(showdir, syncEnabled, nullptr);
+}
+
+bool OutputManager::LoadFromText(const std::string& showdir, const std::string& text) {
+    return LoadImpl(showdir, false, &text);
+}
+
+bool OutputManager::LoadImpl(const std::string& showdir, bool syncEnabled, const std::string* text) {
 
     // Remove any existing outputs
     DeleteAllControllers();
+    _renameLog.Reset();
 
     DeleteTestPreset();
 
@@ -211,11 +225,16 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     _showDir = showdir;
     _filename = (std::filesystem::path(showdir) / GetNetworksFileName()).string();
-    ObtainAccessToURL(_filename);
-    FileExists(_filename, true);
-
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file(_filename.c_str());
+    pugi::xml_parse_result result;
+    if (text != nullptr) {
+        result = doc.load_string(text->c_str());
+    } else {
+        ObtainAccessToURL(_filename);
+        FileExists(_filename, true);
+        ShowFileGuard::Instance().RecordFromDisk(_filename);
+        result = doc.load_file(_filename.c_str());
+    }
 
     Controller* cu = nullptr;
     std::string lasttype = "";
@@ -390,6 +409,17 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
         return false;
     }
 
+    // In file order: a missing id is assigned, the later of two repeats is replaced.
+    {
+        std::unordered_set<std::string> usedIds;
+        for (const auto& it : _controllers) {
+            std::string id = it->GetObjectId();
+            if (LayoutObjectId::Claim(id, usedIds)) {
+                it->SetObjectId(id);
+            }
+        }
+    }
+
     for (const auto& it : _controllers) {
         it->SetGlobalFPPProxy(_globalFPPProxy);
         if (dynamic_cast<ControllerEthernet*>(it) != nullptr)
@@ -551,15 +581,24 @@ void OutputManager::SaveToXML(pugi::xml_document& doc) {
     }
 }
 
-bool OutputManager::Save() {
+std::string OutputManager::SaveToString() {
     pugi::xml_document doc;
     SaveToXML(doc);
+    std::ostringstream out;
+    doc.save(out);
+    return out.str();
+}
 
-    if (doc.save_file(_filename.c_str())) {
+bool OutputManager::Save() {
+    if (ShowFileGuard::Instance().SaveFile(_filename, SaveToString())) {
         _dirty = false;
     }
 
     return (_dirty == false);
+}
+
+bool OutputManager::SaveCopyTo(const std::string& path) {
+    return ShowFileGuard::WriteFileAtomically(path, SaveToString());
 }
 
 // This function is used purely to locate and fix any outputnumber:startchannel model start channels when the networks file is first converted
@@ -672,6 +711,20 @@ std::list<ControllerEthernet*> OutputManager::GetControllers(const std::string& 
 
 void OutputManager::AddController(Controller* controller, int pos)
 {
+    // The layout-id chokepoint for controllers added after load (the load
+    // itself is settled in file order in Load): a missing id, or one another
+    // controller already holds, is replaced.
+    {
+        std::unordered_set<std::string> usedIds;
+        for (const auto& it : _controllers) {
+            if (it != controller) usedIds.insert(it->GetObjectId());
+        }
+        std::string id = controller->GetObjectId();
+        if (LayoutObjectId::Claim(id, usedIds)) {
+            controller->SetObjectId(id);
+        }
+    }
+
     // Make sure global FPP proxy has been set
     controller->SetGlobalFPPProxy(_globalFPPProxy);
 
@@ -684,6 +737,18 @@ void OutputManager::AddController(Controller* controller, int pos)
         _controllers.insert(it, controller);
     }
     UpdateUnmanaged();
+}
+
+Controller* OutputManager::GetControllerByObjectId(const std::string& id) const {
+    if (id.empty()) return nullptr;
+    for (const auto& it : _controllers) {
+        if (it->GetObjectId() == id) return it;
+    }
+    return nullptr;
+}
+
+bool OutputManager::HoldsController(const Controller* controller) const {
+    return std::find(_controllers.begin(), _controllers.end(), controller) != _controllers.end();
 }
 
 void OutputManager::DeleteController(const std::string& controllerName) {

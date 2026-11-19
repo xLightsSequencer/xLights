@@ -3,6 +3,7 @@
 #include <catch2/catch_approx.hpp>
 
 #include "test_roundtrip_common.h"
+#include "utils/LayoutObjectId.h"
 
 using namespace rt;
 
@@ -160,9 +161,16 @@ void CheckAttrs(size_t i) {
     CHECK(am1 == am2);
 }
 
+// Also drops the layout ids: a default model has none until a ModelManager
+// takes it, and the reload is the first to assign one.
 std::string NoEmptyTag(std::string s) {
     const std::string t = " TagColour=\"\"";
     for (auto p = s.find(t); p != std::string::npos; p = s.find(t)) s.erase(p, t.size());
+    const std::string id = std::string(" ") + LayoutObjectId::ATTRIBUTE + "=\"";
+    for (auto p = s.find(id); p != std::string::npos; p = s.find(id)) {
+        auto end = s.find('"', p + id.size());
+        s.erase(p, end - p + 1);
+    }
     return s;
 }
 
@@ -302,6 +310,8 @@ TEST_CASE("Roundtrip default model TagColour is written consistently", "[roundtr
     ShowFixture a;
     Model* m = a.mm.CreateDefaultModel("Star", "1");
     REQUIRE(m != nullptr);
+    // A default model has no layout id until a manager takes it; the reload assigns one.
+    m->SetObjectId(LayoutObjectId::Generate());
     std::string s1 = Ser(m);
     ShowFixture b;
     CHECK(Ser(Reload(b, s1)) == s1);

@@ -90,6 +90,9 @@ class MainSequencer: public wxPanel
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
         void DoRedo(wxCommandEvent& event);
+        // Every undo/redo entry point: clears selections that may point at
+        // what the step removes, replays it and refreshes the grid and rows.
+        void UndoOrRedo(bool redo);
 
         void SetLargeWaveform();
         void SetSmallWaveform();

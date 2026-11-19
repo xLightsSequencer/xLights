@@ -727,9 +727,7 @@ private struct RenameAlertModifier: ViewModifier {
             TextField("Name", text: $text)
             Button("OK") {
                 if let tgt = target, !text.isEmpty, text != tgt.name {
-                    _ = viewModel.document.renameTimingTrack(
-                        at: Int32(tgt.id), newName: text)
-                    viewModel.reloadRows()
+                    viewModel.renameTimingTrack(rowIndex: tgt.id, to: text)
                 }
                 target = nil
             }
@@ -752,8 +750,7 @@ private struct DeleteAlertModifier: ViewModifier {
                       presenting: target) { _ in
             Button("Delete", role: .destructive) {
                 if let tgt = target {
-                    _ = viewModel.document.deleteTimingTrack(at: Int32(tgt.id))
-                    viewModel.reloadRows()
+                    viewModel.deleteTimingTrack(rowIndex: tgt.id)
                 }
                 target = nil
             }
@@ -1236,6 +1233,7 @@ private struct SequenceFacesTab: View {
         }
         .onAppear(perform: reload)
         .onDisappear(perform: applyRenders)
+        .onChange(of: viewModel.sequenceFacesRevision) { _, _ in reload() }
         .alert("New Face", isPresented: $showAdd) {
             TextField("Name", text: $nameField)
             Button("Cancel", role: .cancel) {}
@@ -1351,7 +1349,9 @@ private struct SequenceFacesTab: View {
         NavigationStack {
             List(importSources) { src in
                 Button {
-                    if viewModel.document.importSequenceFace(fromModel: src.model, face: src.face) {
+                    if viewModel.editSequenceFaces("Import Face", touching: [src.face], {
+                        viewModel.document.importSequenceFace(fromModel: src.model, face: src.face)
+                    }) {
                         reloadFaces()
                         selected = src.face
                     }
@@ -1391,7 +1391,7 @@ private struct SequenceFacesTab: View {
     private func addFace() {
         let name = nameField.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return }
-        if viewModel.document.addSequenceFace(name) {
+        if viewModel.editSequenceFaces("Add Face", touching: [name], { viewModel.document.addSequenceFace(name) }) {
             reloadFaces()
             selected = name
         } else {
@@ -1403,7 +1403,9 @@ private struct SequenceFacesTab: View {
         let newName = nameField.trimmingCharacters(in: .whitespacesAndNewlines)
         let old = selected
         guard !newName.isEmpty, newName != old, !old.isEmpty else { return }
-        if viewModel.document.renameSequenceFace(old, to: newName) {
+        if viewModel.editSequenceFaces("Rename Face", touching: [old, newName], {
+            viewModel.document.renameSequenceFace(old, to: newName)
+        }) {
             touched.insert(old)
             touched.insert(newName)
             reloadFaces()
@@ -1416,7 +1418,7 @@ private struct SequenceFacesTab: View {
     private func deleteFace() {
         guard !selected.isEmpty else { return }
         let name = selected
-        viewModel.document.removeSequenceFace(name)
+        viewModel.editSequenceFaces("Delete Face", touching: [name]) { viewModel.document.removeSequenceFace(name) }
         touched.insert(name)
         reloadFaces()
         selected = faceNames.first ?? ""
@@ -1424,14 +1426,20 @@ private struct SequenceFacesTab: View {
 
     private func setPlacement(_ placement: String) {
         guard !selected.isEmpty else { return }
-        viewModel.document.setSequenceFacePlacement(selected, placement: placement)
+        let name = selected
+        viewModel.editSequenceFaces("Set Face Placement", touching: [name]) {
+            viewModel.document.setSequenceFacePlacement(name, placement: placement)
+        }
         touched.insert(selected)
         reloadFaces()
     }
 
     private func commitImage(_ path: String) {
         guard let key = activeKey, !selected.isEmpty else { return }
-        viewModel.document.setSequenceFaceImage(selected, key: key, path: path)
+        let name = selected
+        viewModel.editSequenceFaces("Set Face Image", touching: [name]) {
+            viewModel.document.setSequenceFaceImage(name, key: key, path: path)
+        }
         touched.insert(selected)
         reloadFaces()
         activeKey = nil

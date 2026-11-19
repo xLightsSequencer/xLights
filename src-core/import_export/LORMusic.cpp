@@ -20,6 +20,11 @@
 
 namespace {
 
+std::string LegacyLongName(const pugi::xml_node& chan)
+{
+    return std::string(chan.attribute("name").as_string()) + "_Unit_" + chan.attribute("unit").as_string() + "_Circuit_" + chan.attribute("circuit").as_string();
+}
+
 xlColor LMSGetColor(const std::string& rgb)
 {
     int i = (int)std::strtoll(rgb.c_str(), nullptr, 10);
@@ -363,6 +368,20 @@ void MapOnEffects(EffectLayer* layer, pugi::xml_node channel, int chancountperno
 
 } // namespace
 
+std::string LORMusic::LongChannelName(const pugi::xml_node& chan)
+{
+    std::string network = chan.attribute("network").as_string();
+    if (network.empty()) {
+        return LegacyLongName(chan);
+    }
+    return std::string(chan.attribute("name").as_string()) + "_Network_" + network + "_Unit_" + chan.attribute("unit").as_string() + "_Circuit_" + chan.attribute("circuit").as_string();
+}
+
+bool LORMusic::MatchesChannelName(const pugi::xml_node& chan, const std::string& name)
+{
+    return name == chan.attribute("name").as_string() || name == LongChannelName(chan) || name == LegacyLongName(chan);
+}
+
 LORMusic::LORMusic(pugi::xml_document& input_xml, int frequency) :
     _input_xml(input_xml), _frequency(frequency)
 {
@@ -381,10 +400,8 @@ void LORMusic::Index()
                         _channelColors[name] = xlBLACK;
                     } else {
                         std::string color = chan.attribute("color").as_string();
-                        std::string unit = chan.attribute("unit").as_string();
-                        std::string circuit = chan.attribute("circuit").as_string();
                         if (std::find(_channelNames.begin(), _channelNames.end(), name) != _channelNames.end()) {
-                            name += "_Unit_" + unit + "_Circuit_" + circuit;
+                            name = LongChannelName(chan);
                         }
                         _channelColors[name] = LMSGetColor(color);
                     }
@@ -535,11 +552,8 @@ bool LORMusic::MapChannelEffects(EffectLayer* layer, const std::string& name, co
     for (pugi::xml_node e = _input_xml.document_element().first_child(); !channel && e; e = e.next_sibling()) {
         if (std::string_view(e.name()) == "channels") {
             for (pugi::xml_node chan = e.first_child(); !channel && chan; chan = chan.next_sibling()) {
-                std::string unit = chan.attribute("unit").as_string();
-                std::string circuit = chan.attribute("circuit").as_string();
-                std::string dedupname = std::string(chan.attribute("name").as_string()) + "_Unit_" + unit + "_Circuit_" + circuit;
                 std::string chanName = chan.name();
-                if ((chanName == "channel" || chanName == "rgbChannel") && (name == chan.attribute("name").as_string() || name == dedupname)) {
+                if ((chanName == "channel" || chanName == "rgbChannel") && MatchesChannelName(chan, name)) {
                     channel = chan;
                     if (chanName == "rgbChannel" && !findRGB(e, chan, rchannel, gchannel, bchannel)) {
                         return false;
