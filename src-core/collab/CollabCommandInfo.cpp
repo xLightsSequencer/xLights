@@ -18,6 +18,8 @@
 #include "render/SequenceMediaCommands.h"
 #include "render/SequenceMutationGuard.h"
 
+#include <algorithm>
+#include <map>
 #include <unordered_map>
 
 namespace Collab {
@@ -524,6 +526,91 @@ bool IsOptimistic(const SequenceCommand& cmd) {
     const auto& c = static_cast<const ModifyEffectCommand&>(cmd);
     return !c.GetEffectName().has_value() && !c.GetSettings().replaceAll && !c.GetPalette().replaceAll &&
            !(c.GetSettings().IsEmpty() && c.GetPalette().IsEmpty());
+}
+
+bool IsOptimisticEdit(const SequenceCommand& cmd) {
+    if (cmd.Type() == CommandType::MoveEffect || IsOptimistic(cmd)) {
+        return true;
+    }
+    if (cmd.Type() != CommandType::Batch) {
+        return false;
+    }
+    const auto& members = static_cast<const BatchCommand&>(cmd).GetCommands();
+    return !members.empty() && std::all_of(members.begin(), members.end(), [](const auto& m) {
+        return m->Type() == CommandType::MoveEffect || IsOptimistic(*m);
+    });
+}
+
+std::unique_ptr<SequenceCommand> OrderMovesToStayClear(const SequenceElements& seq, const SequenceCommand& cmd) {
+    if (cmd.Type() != CommandType::Batch || !IsOptimisticEdit(cmd)) {
+        return nullptr;
+    }
+    const auto& b = static_cast<const BatchCommand&>(cmd);
+    std::vector<const MoveEffectCommand*> moves;
+    for (const auto& m : b.GetCommands()) {
+        if (m->Type() == CommandType::MoveEffect) {
+            moves.push_back(static_cast<const MoveEffectCommand*>(m.get()));
+        }
+    }
+    if (moves.size() < 2) {
+        return nullptr;
+    }
+    // Where every effect on the touched layers is as the moves go in.
+    std::map<const EffectLayer*, std::unordered_map<SeqObjectId, std::pair<int, int>>> at;
+    std::vector<const EffectLayer*> layerOf;
+    for (const MoveEffectCommand* mv : moves) {
+        const ::Effect* e = FindEffect(seq, mv->Target());
+        if (e == nullptr) {
+            return nullptr;
+        }
+        const EffectLayer* l = e->GetParentEffectLayer();
+        auto& m = at[l];
+        if (m.empty()) {
+            for (const ::Effect* o : l->GetEffects()) {
+                m[o->GetUid()] = { o->GetStartTimeMS(), o->GetEndTimeMS() };
+            }
+        }
+        layerOf.push_back(l);
+    }
+    auto clear = [&](size_t i) {
+        const MoveEffectCommand* mv = moves[i];
+        for (const auto& [uid, t] : at[layerOf[i]]) {
+            if (uid != mv->Target().effect && mv->GetStartTimeMS() < t.second && mv->GetEndTimeMS() > t.first) {
+                return false;
+            }
+        }
+        return true;
+    };
+    std::vector<size_t> pending;
+    for (size_t i = 0; i < moves.size(); ++i) {
+        pending.push_back(i);
+    }
+    std::vector<size_t> placed;
+    while (!pending.empty()) {
+        auto it = std::find_if(pending.begin(), pending.end(), clear);
+        if (it == pending.end()) {
+            // No order works (a real overlap): keep the rest as they were.
+            placed.insert(placed.end(), pending.begin(), pending.end());
+            break;
+        }
+        at[layerOf[*it]][moves[*it]->Target().effect] = { moves[*it]->GetStartTimeMS(), moves[*it]->GetEndTimeMS() };
+        placed.push_back(*it);
+        pending.erase(it);
+    }
+    bool same = true;
+    for (size_t i = 0; i < placed.size(); ++i) {
+        same = same && placed[i] == i;
+    }
+    if (same) {
+        return nullptr;
+    }
+    // Other members keep their places; the moves fill the move slots.
+    auto out = std::make_unique<BatchCommand>(b.GetLabel());
+    size_t next = 0;
+    for (const auto& m : b.GetCommands()) {
+        out->Add(m->Type() == CommandType::MoveEffect ? moves[placed[next++]]->Clone() : m->Clone());
+    }
+    return out;
 }
 
 std::unique_ptr<SequenceCommand> AsKeyChanges(const SequenceElements& seq, const SequenceCommand& cmd) {

@@ -22,6 +22,7 @@
 #include "CollabCommandInfo.h"
 #include "CollabUidTable.h"
 #include "render/Effect.h"
+#include "render/SequenceElementCommands.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceIds.h"
 #include "render/SequenceMedia.h"
@@ -86,6 +87,35 @@ std::string CommandSummary(const json& j) {
 }
 
 } // namespace
+
+std::string CommandLabel(const SequenceCommand& cmd) {
+    if (cmd.Type() == CommandType::Batch) {
+        const auto& b = static_cast<const BatchCommand&>(cmd);
+        if (!b.GetLabel().empty()) {
+            return b.GetLabel();
+        }
+        if (b.GetCommands().size() == 1) {
+            return CommandLabel(*b.GetCommands().front());
+        }
+        return "Changes";
+    }
+    switch (cmd.Type()) {
+    case CommandType::AddEffect: return "Effect(s) Added";
+    case CommandType::DeleteEffect: return "Effect(s) Deleted";
+    case CommandType::MoveEffect: return "Effect(s) Moved";
+    case CommandType::ModifyEffect:
+    case CommandType::ReplaceLayerContents: return "Effect(s) Modified";
+    case CommandType::AddLayer: return "Layer(s) Added";
+    case CommandType::RemoveLayer: return "Layer(s) Removed";
+    case CommandType::SetLayerName: return "Layer Renamed";
+    case CommandType::PutMedia:
+    case CommandType::RemoveMedia:
+    case CommandType::RenameMedia: return "Media Changed";
+    default: break;
+    }
+    const char* l = ElementCommandUndoLabel(cmd.Type());
+    return (l != nullptr && *l != 0) ? std::string(l) : std::string("Changes");
+}
 
 // ---------------------------------------------------------------------------
 // CollabParticipant
@@ -314,6 +344,7 @@ SubmitResult CollabParticipant::Undo() {
     }
     UndoEntry e = std::move(_undo.back());
     _undo.pop_back();
+    _submitMeta = { e.label, 0 };
     return SubmitKind(std::move(e.cmd), EditKind::Undo, e.rev);
 }
 
@@ -323,21 +354,64 @@ SubmitResult CollabParticipant::Redo() {
     }
     UndoEntry e = std::move(_redo.back());
     _redo.pop_back();
+    _submitMeta = { e.label, 0 };
     return SubmitKind(std::move(e.cmd), EditKind::Redo, e.rev);
 }
 
-void CollabParticipant::RecordOwnCommit(EditKind kind, Rev rev, const SequenceCommand& inverse) {
+SubmitResult CollabParticipant::SubmitJoined(std::unique_ptr<SequenceCommand> cmd, uint64_t joinUndoTo) {
+    _submitMeta = { "", joinUndoTo };
+    return Submit(std::move(cmd));
+}
+
+void CollabParticipant::NoteOwnProposal(uint64_t seq) {
+    if (!_submitMeta.label.empty() || _submitMeta.joinTo != 0) {
+        _ownMeta[seq] = std::move(_submitMeta);
+    }
+    _submitMeta = {};
+    while (_ownMeta.size() > 10000) {
+        _ownMeta.erase(_ownMeta.begin());
+    }
+}
+
+void CollabParticipant::RecordOwnCommit(EditKind kind, Rev rev, uint64_t seq, const SequenceCommand& applied, const SequenceCommand& inverse) {
+    OwnMeta meta;
+    auto m = _ownMeta.find(seq);
+    if (m != _ownMeta.end()) {
+        meta = std::move(m->second);
+        _ownMeta.erase(m);
+    }
     if (kind == EditKind::Edit) {
         _redo.clear();
+        if (meta.label.empty()) {
+            meta.label = CommandLabel(applied);
+        }
     }
     if (IsNoOp(inverse)) {
         return;
     }
-    UndoEntry e{ rev, inverse.Clone() };
+    if (kind == EditKind::Edit && meta.joinTo != 0 && !_undo.empty() && _undo.back().seq == meta.joinTo) {
+        UndoEntry& top = _undo.back();
+        std::vector<std::unique_ptr<SequenceCommand>> both;
+        both.push_back(inverse.Clone());
+        both.push_back(std::move(top.cmd));
+        top.cmd = std::make_unique<BatchCommand>(top.label, std::move(both));
+        top.seq = seq;
+        return;
+    }
+    UndoEntry e{ rev, inverse.Clone(), seq, std::move(meta.label) };
     if (kind == EditKind::Undo) {
         _redo.push_back(std::move(e));
     } else {
         _undo.push_back(std::move(e));
+    }
+}
+
+void CollabParticipant::NotifyCommit(const CommitInfo& info, const SequenceCommand& applied, const SequenceCommand& inverse) {
+    if (_events.onCommit) {
+        _events.onCommit(info, applied);
+    }
+    if (_events.onCommitApplied) {
+        _events.onCommitApplied(info, applied, inverse);
     }
 }
 
@@ -404,6 +478,27 @@ void CollabHost::Start() {
     SeqIds::SetPeer(kHostParticipant);
     _hasher.InvalidateAll();
     _uids.Reset(_doc.Sequence());
+    SendRoster();
+}
+
+void CollabHost::SendRoster() {
+    _roster.clear();
+    _roster.push_back({ kHostParticipant, _opts.displayName, _opts.deviceKind });
+    std::vector<RosterEntry> clients;
+    for (const auto& [peer, c] : _clients) {
+        clients.push_back({ c.id, c.name, c.deviceKind });
+    }
+    std::sort(clients.begin(), clients.end(), [](const RosterEntry& a, const RosterEntry& b) { return a.participant < b.participant; });
+    _roster.insert(_roster.end(), clients.begin(), clients.end());
+    Message m;
+    m.type = MsgType::Roster;
+    m.roster = _roster;
+    for (const auto& [peer, c] : _clients) {
+        _transport.Send(peer, m);
+    }
+    if (_events.onRoster) {
+        _events.onRoster(_roster);
+    }
 }
 
 void CollabHost::End() {
@@ -444,13 +539,16 @@ SubmitResult CollabHost::Submit(std::unique_ptr<SequenceCommand> cmd) {
 
 SubmitResult CollabHost::SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) {
     if (!IsActive() || cmd == nullptr) {
+        _submitMeta = {};
         return { false, 0, "not_active" };
     }
     json j;
     cmd->Serialize(j);
     uint64_t seq = _nextOwnSeq++;
+    NoteOwnProposal(seq);
     Outcome o = Process(kHostParticipant, seq, _applied, kind, undoOf, j);
     if (!o.committed) {
+        _ownMeta.erase(seq);
         if (_events.onReject) {
             _events.onReject(seq, kind, o.reason, o.by);
         }
@@ -521,12 +619,20 @@ CollabHost::Outcome CollabHost::Process(ParticipantId author, uint64_t clientSeq
         return reject(Reason::Invalid, "object id " + std::to_string(duplicate) + " is already in use");
     }
 
+    o.rev = CommitApplied(author, clientSeq, kind, undoOf, *cmd, *inverse, false);
+    o.committed = true;
+    return o;
+}
+
+Rev CollabHost::CommitApplied(ParticipantId author, uint64_t clientSeq, EditKind kind, Rev undoOf, const SequenceCommand& cmd, const SequenceCommand& inverse,
+                              bool lenient) {
+    SequenceElements& seq = _doc.Sequence();
     Rev rev = ++_applied;
     // Serialized after applying: commands that create rows record the ids
     // they gave them, so every peer creates the same ids.
     json applied;
-    cmd->Serialize(applied);
-    for (const auto& item : TouchedItems(seq, *cmd, *inverse)) {
+    cmd.Serialize(applied);
+    for (const auto& item : TouchedItems(seq, cmd, inverse)) {
         _touch[item] = { rev, author };
     }
     _revs[rev] = { author, kind };
@@ -539,10 +645,11 @@ CollabHost::Outcome CollabHost::Process(ParticipantId author, uint64_t clientSeq
     m.kind = kind;
     m.undoOf = undoOf;
     m.command = std::move(applied);
-    m.docHash = HashAfter(*cmd);
+    m.lenient = lenient;
+    m.docHash = HashAfter(cmd);
     if (_opts.verifyHashes && !(_uids == UidRegistry::AllUids(seq))) {
         ++_hashVerifyFailures;
-        Log("id registry is stale after " + std::string(CommandTypeName(cmd->Type())));
+        Log("id registry is stale after " + std::string(CommandTypeName(cmd.Type())));
         _uids.Reset(seq);
     }
     for (auto& [peer, c] : _clients) {
@@ -552,15 +659,29 @@ CollabHost::Outcome CollabHost::Process(ParticipantId author, uint64_t clientSeq
     NoteRecent(info, m.command);
     _log.push_back({ std::move(m) });
     if (author == kHostParticipant) {
-        RecordOwnCommit(kind, rev, *inverse);
+        RecordOwnCommit(kind, rev, clientSeq, cmd, inverse);
     }
-    if (_events.onCommit) {
-        _events.onCommit(info, *cmd);
-    }
+    NotifyCommit(info, cmd, inverse);
     TrimLog();
-    o.committed = true;
-    o.rev = rev;
-    return o;
+    return rev;
+}
+
+SubmitResult CollabHost::CommitLocal(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, uint64_t joinUndoTo) {
+    if (!IsActive() || applied == nullptr || inverse == nullptr) {
+        return { false, 0, "not_active" };
+    }
+    uint64_t seq = _nextOwnSeq++;
+    _submitMeta = { "", joinUndoTo };
+    NoteOwnProposal(seq);
+    SeqObjectId duplicate = kNoSeqObjectId;
+    if (!_uids.Commit(*applied, *inverse, &duplicate)) {
+        // The edit is in the document already; keep the registry true to it.
+        Log("local edit reused object id " + std::to_string(duplicate));
+        _uids.Reset(_doc.Sequence());
+    }
+    CommitApplied(kHostParticipant, seq, EditKind::Edit, 0, *applied, *inverse, true);
+    ShareCommandFiles(*applied);
+    return { true, seq, "" };
 }
 
 void CollabHost::TrimLog() {
@@ -592,6 +713,7 @@ void CollabHost::DropClient(PeerId peer, const std::string& why) {
     if (_events.onParticipant) {
         _events.onParticipant(id, name, false);
     }
+    SendRoster();
 }
 
 void CollabHost::OnMessage(PeerId from, const Message& m) {
@@ -675,6 +797,10 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
         w.name = _opts.displayName;
         _transport.Send(from, w);
         SendManifest(*existing, false);
+        Message r;
+        r.type = MsgType::Roster;
+        r.roster = _roster;
+        _transport.Send(from, r);
         return;
     }
     if (_clients.size() + 1 >= _opts.maxParticipants || _nextParticipant == 0xFFFF) {
@@ -687,6 +813,7 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
     c.peer = from;
     c.id = _nextParticipant++;
     c.name = m.name;
+    c.deviceKind = m.deviceKind;
     c.lastHeard = _now;
     c.lastPing = _now;
     c.applied = _applied;
@@ -701,6 +828,7 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
     if (_events.onParticipant) {
         _events.onParticipant(c.id, c.name, true);
     }
+    SendRoster();
 }
 
 void CollabHost::SendSnapshot(Client& c) {
@@ -1036,6 +1164,14 @@ void CollabClient::OnMessage(PeerId from, const Message& m) {
     case MsgType::Bye:
         EndSession(m.reason.empty() ? std::string(Reason::Ended) : m.reason);
         break;
+    case MsgType::Roster:
+        if (m.roster != _roster) {
+            _roster = m.roster;
+            if (_events.onRoster) {
+                _events.onRoster(_roster);
+            }
+        }
+        break;
     default:
         break;
     }
@@ -1323,10 +1459,14 @@ void CollabClient::OnSnapshot(const Message& m, const std::string& xsq) {
         }
     }
     for (auto it = _pending.begin(); it != _pending.end() && it->first <= m.clientSeq;) {
+        _ownMeta.erase(it->first);
         it = _pending.erase(it);
     }
     for (auto it = _overlay.begin(); it != _overlay.end();) {
         it = it->second.seq <= m.clientSeq ? _overlay.erase(it) : std::next(it);
+    }
+    for (auto it = _times.begin(); it != _times.end();) {
+        it = it->second.seq <= m.clientSeq ? _times.erase(it) : std::next(it);
     }
     for (auto it = _buffered.begin(); it != _buffered.end() && it->first <= m.rev;) {
         it = _buffered.erase(it);
@@ -1403,13 +1543,27 @@ void CollabClient::DrainCommits() {
     DrainRejects();
 }
 
-void CollabClient::SetKey(const EffectLocator& loc, bool palette, const std::string& key, const std::optional<std::string>& value) {
+CollabClient::Applied CollabClient::SetKey(const EffectLocator& loc, bool palette, const std::string& key, const std::optional<std::string>& value) {
     SettingsChange change{ false, { { key, value } } };
-    ModifyEffectCommand cmd(loc, std::nullopt, palette ? SettingsChange{} : change, palette ? change : SettingsChange{});
+    auto cmd = std::make_unique<ModifyEffectCommand>(loc, std::nullopt, palette ? SettingsChange{} : change, palette ? change : SettingsChange{});
     SequenceElements& seq = _doc.Sequence();
-    if (cmd.Apply(seq, ApplyMode::Lenient) != nullptr) {
-        _hasher.Invalidate(seq, cmd);
+    std::unique_ptr<SequenceCommand> inverse = cmd->Apply(seq, ApplyMode::Lenient);
+    if (inverse == nullptr) {
+        return {};
     }
+    _hasher.Invalidate(seq, *cmd);
+    return { std::move(cmd), std::move(inverse) };
+}
+
+CollabClient::Applied CollabClient::SetTimes(const EffectLocator& loc, std::pair<int, int> times) {
+    auto cmd = std::make_unique<MoveEffectCommand>(loc, times.first, times.second);
+    SequenceElements& seq = _doc.Sequence();
+    std::unique_ptr<SequenceCommand> inverse = cmd->Apply(seq, ApplyMode::Lenient);
+    if (inverse == nullptr) {
+        return {};
+    }
+    _hasher.Invalidate(seq, *cmd);
+    return { std::move(cmd), std::move(inverse) };
 }
 
 void CollabClient::LiftOverlay() {
@@ -1417,6 +1571,12 @@ void CollabClient::LiftOverlay() {
     for (const auto& [k, e] : _overlay) {
         if (FindEffect(seq, e.loc) != nullptr) {
             SetKey(e.loc, std::get<1>(k), std::get<2>(k), e.host);
+        }
+    }
+    for (const auto& [uid, t] : _times) {
+        const Effect* e = FindEffect(seq, t.loc);
+        if (e != nullptr && std::make_pair(e->GetStartTimeMS(), e->GetEndTimeMS()) != t.host) {
+            SetTimes(t.loc, t.host);
         }
     }
 }
@@ -1437,6 +1597,20 @@ void CollabClient::LowerOverlay() {
         }
         ++it;
     }
+    // Leniently: a pending move that now overlaps someone else's committed
+    // edit shows until its reject arrives (right after that commit).
+    for (auto it = _times.begin(); it != _times.end();) {
+        Effect* e = FindEffect(seq, it->second.loc);
+        if (e == nullptr) {
+            it = _times.erase(it);
+            continue;
+        }
+        it->second.host = { e->GetStartTimeMS(), e->GetEndTimeMS() };
+        if (it->second.host != it->second.local) {
+            SetTimes(it->second.loc, it->second.local);
+        }
+        ++it;
+    }
 }
 
 bool CollabClient::ApplyCommit(const Message& m) {
@@ -1450,7 +1624,7 @@ bool CollabClient::ApplyCommit(const Message& m) {
         LiftOverlay();
     }
     CommandResult result;
-    std::unique_ptr<SequenceCommand> inverse = cmd->Apply(seq, ApplyMode::Strict, &result);
+    std::unique_ptr<SequenceCommand> inverse = cmd->Apply(seq, m.lenient ? ApplyMode::Lenient : ApplyMode::Strict, &result);
     if (inverse == nullptr && faults.clientIgnoresDrift) {
         _applied = std::max(_applied, m.rev);
         _pending.erase(m.clientSeq);
@@ -1470,7 +1644,10 @@ bool CollabClient::ApplyCommit(const Message& m) {
         for (auto it = _overlay.begin(); it != _overlay.end();) {
             it = it->second.seq == m.clientSeq ? _overlay.erase(it) : std::next(it);
         }
-        RecordOwnCommit(m.kind, m.rev, *inverse);
+        for (auto it = _times.begin(); it != _times.end();) {
+            it = it->second.seq == m.clientSeq ? _times.erase(it) : std::next(it);
+        }
+        RecordOwnCommit(m.kind, m.rev, m.clientSeq, *cmd, *inverse);
     } else {
         // A pending key write made before someone else changed the effect's
         // type will be rejected (stale_type); the host's value stands.
@@ -1484,9 +1661,7 @@ bool CollabClient::ApplyCommit(const Message& m) {
     }
     CommitInfo info{ m.rev, m.participant, m.clientSeq, m.kind, m.undoOf };
     NoteRecent(info, m.command);
-    if (_events.onCommit) {
-        _events.onCommit(info, *cmd);
-    }
+    NotifyCommit(info, *cmd, *inverse);
     if (!faults.clientIgnoresDrift && hash != m.docHash) {
         Log("document parts after rev " + std::to_string(m.rev) + ":\n" + DocHasher::Components(seq));
         RequestResync("document hash " + std::to_string(hash) + " differs from the host's " + std::to_string(m.docHash) + " after rev " +
@@ -1530,6 +1705,7 @@ void CollabClient::HandleReject(const Message& m) {
         return;
     }
     _pending.erase(p);
+    _ownMeta.erase(m.clientSeq);
     SequenceElements& seq = _doc.Sequence();
     for (auto it = _overlay.begin(); it != _overlay.end();) {
         if (it->second.seq != m.clientSeq) {
@@ -1540,6 +1716,16 @@ void CollabClient::HandleReject(const Message& m) {
             SetKey(it->second.loc, std::get<1>(it->first), std::get<2>(it->first), it->second.host);
         }
         it = _overlay.erase(it);
+    }
+    for (auto it = _times.begin(); it != _times.end();) {
+        if (it->second.seq != m.clientSeq) {
+            ++it;
+            continue;
+        }
+        if (FindEffect(seq, it->second.loc) != nullptr) {
+            SetTimes(it->second.loc, it->second.host);
+        }
+        it = _times.erase(it);
     }
     Log("proposal " + std::to_string(m.clientSeq) + " rejected: " + m.reason);
     if (_events.onReject) {
@@ -1552,6 +1738,8 @@ SubmitResult CollabClient::Submit(std::unique_ptr<SequenceCommand> cmd) {
 }
 
 SubmitResult CollabClient::SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) {
+    OwnMeta meta = std::move(_submitMeta);
+    _submitMeta = {};
     if (_state != State::Active || cmd == nullptr) {
         return { false, 0, "not_active" };
     }
@@ -1559,6 +1747,26 @@ SubmitResult CollabClient::SubmitKind(std::unique_ptr<SequenceCommand> cmd, Edit
     if (kind == EditKind::Edit) {
         if (auto keys = AsKeyChanges(seq, *cmd)) {
             cmd = std::move(keys);
+        } else if (cmd->Type() == CommandType::Batch) {
+            // Whole-map setting changes inside a batch become key changes too,
+            // so a batch of them (and moves) can apply at once.
+            const auto& b = static_cast<const BatchCommand&>(*cmd);
+            bool changed = false;
+            auto rebuilt = std::make_unique<BatchCommand>(b.GetLabel());
+            for (const auto& m : b.GetCommands()) {
+                if (auto k = AsKeyChanges(seq, *m)) {
+                    rebuilt->Add(std::move(k));
+                    changed = true;
+                } else {
+                    rebuilt->Add(m->Clone());
+                }
+            }
+            if (changed) {
+                cmd = std::move(rebuilt);
+            }
+        }
+        if (auto ordered = OrderMovesToStayClear(seq, *cmd)) {
+            cmd = std::move(ordered);
         }
         if (cmd->Type() != CommandType::Batch) {
             CommandResult r = cmd->Validate(seq, ApplyMode::Strict);
@@ -1567,43 +1775,84 @@ SubmitResult CollabClient::SubmitKind(std::unique_ptr<SequenceCommand> cmd, Edit
             }
         }
     }
-    uint64_t s = _nextSeq++;
-    bool optimistic = kind == EditKind::Edit && IsOptimistic(*cmd);
+    bool optimistic = kind == EditKind::Edit && IsOptimisticEdit(*cmd);
     if (optimistic) {
-        const auto& mc = static_cast<const ModifyEffectCommand&>(*cmd);
-        Effect* e = FindEffect(seq, mc.Target());
-        if (e == nullptr) {
-            return { false, 0, Reason::TargetGone };
+        // What each key / time was in host order, read before applying.
+        struct KeyPlan {
+            OverlayKey key;
+            EffectLocator loc;
+            std::optional<std::string> host;
+            std::optional<std::string> local;
+        };
+        struct TimesPlan {
+            EffectLocator loc;
+            std::pair<int, int> host;
+            std::pair<int, int> local;
+        };
+        std::vector<KeyPlan> keyPlans;
+        std::map<SeqObjectId, TimesPlan> timesPlans;
+        std::vector<const SequenceCommand*> members;
+        if (cmd->Type() == CommandType::Batch) {
+            for (const auto& mem : static_cast<const BatchCommand&>(*cmd).GetCommands()) {
+                members.push_back(mem.get());
+            }
+        } else {
+            members.push_back(cmd.get());
         }
-        std::vector<OverlayKey> keys;
-        for (int pal = 0; pal < 2; ++pal) {
-            const SettingsChange& ch = pal ? mc.GetPalette() : mc.GetSettings();
-            const SettingsMap& map = pal ? e->GetPaletteMap() : e->GetSettings();
-            for (const auto& [k, v] : ch.keys) {
-                OverlayKey key{ e->GetUid(), pal != 0, k };
-                auto [it, inserted] = _overlay.try_emplace(key);
+        for (const SequenceCommand* mem : members) {
+            if (mem->Type() == CommandType::MoveEffect) {
+                const auto& mv = static_cast<const MoveEffectCommand&>(*mem);
+                const Effect* e = FindEffect(seq, mv.Target());
+                if (e == nullptr) {
+                    return { false, 0, Reason::TargetGone };
+                }
+                auto [it, inserted] = timesPlans.try_emplace(e->GetUid());
                 if (inserted) {
-                    it->second.loc = mc.Target();
-                    it->second.host = ValueOf(map, k);
+                    it->second.loc = mv.Target();
+                    it->second.host = { e->GetStartTimeMS(), e->GetEndTimeMS() };
                 }
-                it->second.local = v;
-                it->second.seq = s;
+                it->second.local = { mv.GetStartTimeMS(), mv.GetEndTimeMS() };
+                continue;
+            }
+            const auto& mc = static_cast<const ModifyEffectCommand&>(*mem);
+            const Effect* e = FindEffect(seq, mc.Target());
+            if (e == nullptr) {
+                return { false, 0, Reason::TargetGone };
+            }
+            for (int pal = 0; pal < 2; ++pal) {
+                const SettingsChange& ch = pal ? mc.GetPalette() : mc.GetSettings();
+                const SettingsMap& map = pal ? e->GetPaletteMap() : e->GetSettings();
+                for (const auto& [k, v] : ch.keys) {
+                    keyPlans.push_back({ OverlayKey{ e->GetUid(), pal != 0, k }, mc.Target(), ValueOf(map, k), v });
+                }
             }
         }
-        if (cmd->Apply(seq, ApplyMode::Strict) == nullptr) {
-            // Validated above; can't happen. Fall back to the host's values.
-            for (auto it = _overlay.begin(); it != _overlay.end();) {
-                if (it->second.seq == s) {
-                    SetKey(it->second.loc, std::get<1>(it->first), std::get<2>(it->first), it->second.host);
-                    it = _overlay.erase(it);
-                } else {
-                    ++it;
-                }
-            }
-            return { false, 0, Reason::Invalid };
+        CommandResult applied;
+        if (cmd->Apply(seq, ApplyMode::Strict, &applied) == nullptr) {
+            return { false, 0, ReasonFor(applied.status) };
         }
         _hasher.Invalidate(seq, *cmd);
+        uint64_t next = _nextSeq;
+        for (const auto& kp : keyPlans) {
+            auto [it, inserted] = _overlay.try_emplace(kp.key);
+            if (inserted) {
+                it->second.loc = kp.loc;
+                it->second.host = kp.host;
+            }
+            it->second.local = kp.local;
+            it->second.seq = next;
+        }
+        for (const auto& [uid, tp] : timesPlans) {
+            auto [it, inserted] = _times.try_emplace(uid);
+            if (inserted) {
+                it->second.loc = tp.loc;
+                it->second.host = tp.host;
+            }
+            it->second.local = tp.local;
+            it->second.seq = next;
+        }
     }
+    uint64_t s = _nextSeq++;
     Message m;
     m.type = MsgType::Propose;
     m.clientSeq = s;
@@ -1611,10 +1860,20 @@ SubmitResult CollabClient::SubmitKind(std::unique_ptr<SequenceCommand> cmd, Edit
     m.kind = kind;
     m.undoOf = undoOf;
     cmd->Serialize(m.command);
-    _pending[s] = { m, _now };
+    _pending[s] = { m, _now, optimistic };
+    _submitMeta = std::move(meta);
+    NoteOwnProposal(s);
     Send(m);
     ShareCommandFiles(*cmd);
     return { true, s, "", optimistic };
+}
+
+std::vector<CollabClient::PendingProposal> CollabClient::PendingProposals() const {
+    std::vector<PendingProposal> out;
+    for (const auto& [s, p] : _pending) {
+        out.push_back({ s, p.msg.kind, p.optimistic, p.msg.command });
+    }
+    return out;
 }
 
 void CollabClient::SetPresence(const PresenceInfo& p) {

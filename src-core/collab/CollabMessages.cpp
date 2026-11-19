@@ -21,7 +21,7 @@ namespace Collab {
 
 namespace {
 
-constexpr std::array<std::pair<MsgType, const char*>, 16> kTypeNames{ {
+constexpr std::array<std::pair<MsgType, const char*>, 17> kTypeNames{ {
     { MsgType::Hello, "Hello" },
     { MsgType::Welcome, "Welcome" },
     { MsgType::Refuse, "Refuse" },
@@ -38,6 +38,7 @@ constexpr std::array<std::pair<MsgType, const char*>, 16> kTypeNames{ {
     { MsgType::Ping, "Ping" },
     { MsgType::Pong, "Pong" },
     { MsgType::Bye, "Bye" },
+    { MsgType::Roster, "Roster" },
 } };
 
 bool TypeFromName(const std::string& s, MsgType& out) {
@@ -250,6 +251,33 @@ bool ReadPresence(const json& j, PresenceInfo& p) {
            GetIds(j, "sel", p.selectedEffects) && Get(j, "lock", p.softLock);
 }
 
+json WriteRoster(const std::vector<RosterEntry>& roster) {
+    json a = json::array();
+    for (const auto& r : roster) {
+        a.push_back(json{ { "id", r.participant }, { "name", r.name }, { "device", r.deviceKind } });
+    }
+    return a;
+}
+
+bool ReadRoster(const json& j, std::vector<RosterEntry>& out) {
+    auto it = j.find("people");
+    if (it == j.end() || !it->is_array() || it->size() > kMaxRoster) {
+        return false;
+    }
+    out.clear();
+    for (const auto& p : *it) {
+        if (!p.is_object()) {
+            return false;
+        }
+        RosterEntry r;
+        if (!Get(p, "id", r.participant) || !Get(p, "name", r.name) || !Get(p, "device", r.deviceKind) || r.participant == kNoParticipant) {
+            return false;
+        }
+        out.push_back(std::move(r));
+    }
+    return true;
+}
+
 } // namespace
 
 const char* FileRoleName(FileRole r) {
@@ -321,6 +349,9 @@ std::string EncodeMessage(const Message& m) {
         j["undoOf"] = m.undoOf;
         j["cmd"] = m.command;
         j["hash"] = m.docHash;
+        if (m.lenient) {
+            j["lenient"] = true;
+        }
         break;
     case MsgType::Reject:
         j["seq"] = m.clientSeq;
@@ -341,6 +372,9 @@ std::string EncodeMessage(const Message& m) {
     case MsgType::Pong:
         j["rev"] = m.rev;
         j["time"] = m.time;
+        break;
+    case MsgType::Roster:
+        j["people"] = WriteRoster(m.roster);
         break;
     }
     // Strings that aren't valid UTF-8 are replaced rather than throwing; the
@@ -431,6 +465,10 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
             ok = ok && Get(j, "base", m.baseRev);
         } else {
             ok = ok && Get(j, "rev", m.rev) && Get(j, "author", m.participant) && Get(j, "hash", m.docHash) && m.rev != 0;
+            if (auto l = j.find("lenient"); l != j.end()) {
+                ok = ok && l->is_boolean();
+                m.lenient = ok && l->get<bool>();
+            }
         }
         auto it = j.find("cmd");
         ok = ok && it != j.end() && it->is_object();
@@ -455,6 +493,9 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
     case MsgType::Ping:
     case MsgType::Pong:
         ok = Get(j, "rev", m.rev) && Get(j, "time", m.time);
+        break;
+    case MsgType::Roster:
+        ok = ReadRoster(j, m.roster);
         break;
     }
     if (!ok) {

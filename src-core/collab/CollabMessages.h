@@ -27,7 +27,7 @@
 
 namespace Collab {
 
-inline constexpr int kProtocolVersion = 1;
+inline constexpr int kProtocolVersion = 3;
 // Frames larger than this are dropped unread. Snapshots and embedded media
 // are the large ones.
 inline constexpr size_t kMaxFrameBytes = 256u * 1024u * 1024u;
@@ -63,7 +63,8 @@ enum class MsgType {
     Presence,     // any -> host -> all: what a participant is looking at
     Ping,         // host -> client: liveness, carries the head rev
     Pong,         // client -> host: liveness, carries the applied rev
-    Bye           // either way: leaving / session over
+    Bye,          // either way: leaving / session over
+    Roster        // host -> clients: everyone in the session
 };
 
 const char* MsgTypeName(MsgType t);
@@ -98,6 +99,15 @@ struct PresenceInfo {
     bool operator==(const PresenceInfo&) const = default;
 };
 
+// One participant, as the host lists them.
+struct RosterEntry {
+    ParticipantId participant = kNoParticipant;
+    std::string name;
+    std::string deviceKind;
+    bool operator==(const RosterEntry&) const = default;
+};
+inline constexpr size_t kMaxRoster = 0x10000;
+
 // One message. Only the fields of its type are written and read; the rest
 // keep their defaults.
 struct Message {
@@ -127,6 +137,10 @@ struct Message {
 
     // Commit / Snapshot: the document hash after that rev
     uint64_t docHash = 0;
+    // Commit: apply in lenient mode. The host's own edits are committed as
+    // its app made them, and the app's edit sites apply leniently; the
+    // client's document is the host's, so lenient gives the host's result.
+    bool lenient = false;
 
     // Refuse / Reject / Bye / NeedSnapshot; File: why it is not coming
     std::string reason;
@@ -148,6 +162,9 @@ struct Message {
 
     // Ping / Pong
     uint64_t time = 0;
+
+    // Roster: the host first, then the clients in joining order
+    std::vector<RosterEntry> roster;
 };
 
 std::string EncodeMessage(const Message& m);

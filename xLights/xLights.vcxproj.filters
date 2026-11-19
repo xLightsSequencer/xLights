@@ -810,6 +810,9 @@
     <ClCompile Include="..\src-core\collab\CollabCommandInfo.cpp">
       <Filter>collab</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabController.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabDocHash.cpp">
       <Filter>collab</Filter>
     </ClCompile>
@@ -817,6 +820,9 @@
       <Filter>collab</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabMessages.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabNet.cpp">
       <Filter>collab</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabSession.cpp">
@@ -2488,6 +2494,9 @@
     <ClInclude Include="..\src-core\collab\CollabCommandInfo.h">
       <Filter>collab</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabController.h">
+      <Filter>collab</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabDocHash.h">
       <Filter>collab</Filter>
     </ClInclude>
@@ -2495,6 +2504,12 @@
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabMessages.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabNet.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabNetWire.h">
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabSession.h">

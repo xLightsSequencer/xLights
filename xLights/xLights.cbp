@@ -340,12 +340,17 @@
 		<Unit filename="../src-ui-wx/color/DimmingCurvePanel.h" />
 		<Unit filename="../src-core/collab/CollabCommandInfo.cpp" />
 		<Unit filename="../src-core/collab/CollabCommandInfo.h" />
+		<Unit filename="../src-core/collab/CollabController.cpp" />
+		<Unit filename="../src-core/collab/CollabController.h" />
 		<Unit filename="../src-core/collab/CollabDocHash.cpp" />
 		<Unit filename="../src-core/collab/CollabDocHash.h" />
 		<Unit filename="../src-core/collab/CollabManifest.cpp" />
 		<Unit filename="../src-core/collab/CollabManifest.h" />
 		<Unit filename="../src-core/collab/CollabMessages.cpp" />
 		<Unit filename="../src-core/collab/CollabMessages.h" />
+		<Unit filename="../src-core/collab/CollabNet.cpp" />
+		<Unit filename="../src-core/collab/CollabNet.h" />
+		<Unit filename="../src-core/collab/CollabNetWire.h" />
 		<Unit filename="../src-core/collab/CollabSession.cpp" />
 		<Unit filename="../src-core/collab/CollabSession.h" />
 		<Unit filename="../src-core/collab/CollabTransport.cpp" />

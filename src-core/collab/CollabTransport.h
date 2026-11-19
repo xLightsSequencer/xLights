@@ -54,12 +54,34 @@ public:
     // may arrive in either order.
     virtual void SendBlob(PeerId to, BlobId id, const std::string& path) = 0;
 
-    // All three are called on the main thread. The file onBlob hands over
-    // is only valid during the call: move it away to keep it.
+    // All of these are called on the main thread, never from inside Send,
+    // Broadcast or SendBlob. The file onBlob hands over is only valid during
+    // the call: move it away to keep it.
     std::function<void(PeerId from, const Message& m)> onMessage;
     std::function<void(PeerId peer, PeerEvent e)> onPeer;
     std::function<void(PeerId from, BlobId id, const std::string& path)> onBlob;
+    // Receiving: a blob from `from` has started or moved on (`received` of
+    // `size` bytes so far), at least every kBlobProgressBytes. A transfer
+    // that has stopped reporting has stalled; one that reports is not to be
+    // asked for again.
+    std::function<void(PeerId from, BlobId id, uint64_t received, uint64_t size)> onBlobProgress;
+    // Sending: the transport is done with a blob given to SendBlob: all of
+    // it went out (`sent`), or none or only part of it ever will. Every
+    // SendBlob gets exactly one, unless the peer goes away first.
+    std::function<void(PeerId to, BlobId id, bool sent)> onBlobDone;
+    // A message that could not be sent at all (larger than a frame may be).
+    // `m` holds its type, rev, clientSeq and blob; `to` is kNoPeer for a
+    // Broadcast.
+    std::function<void(PeerId to, const Message& m, const std::string& reason)> onSendFailed;
 };
+
+inline constexpr uint64_t kBlobProgressBytes = 1u << 20;
+// The largest encoded message a transport sends; larger ones fail
+// (onSendFailed). Snapshots, layouts and files travel as blobs instead.
+inline constexpr size_t kMaxMessageBytes = 64u << 20;
+
+// What onSendFailed carries of a message that could not go.
+Message SendFailedSummary(const Message& m);
 
 struct LoopbackOptions {
     uint32_t seed = 1;
@@ -70,6 +92,11 @@ struct LoopbackOptions {
     bool fifoPerLink = true;
     double dropRate = 0.0;      // chance a frame is lost
     double duplicateRate = 0.0; // chance a frame is delivered twice
+    // Blob throughput per link, bytes per ms; 0 = a blob arrives whole after
+    // the usual delay. With a rate, blobs on one link go one after another
+    // and onBlobProgress reports along the way.
+    uint64_t blobBytesPerMs = 0;
+    size_t maxMessageBytes = kMaxMessageBytes;
 };
 
 class LoopbackNetwork;
@@ -146,10 +173,19 @@ private:
         BlobId blobId = 0;
         bool event = false;
         PeerEvent peerEvent = PeerEvent::Joined;
+        // Notifications. Progress: to the receiver about `from`'s blob.
+        // Done / SendFailed: to the sender (`from`) about what it sent `to`.
+        enum class Note { None, Progress, Done, SendFailed };
+        Note note = Note::None;
+        uint64_t received = 0;
+        uint64_t size = 0;
+        bool ok = false;
+        Message failed;
     };
     void Enqueue(PeerId from, PeerId to, std::string bytes);
     void EnqueueEvent(PeerId to, PeerId about, PeerEvent e);
     void Push(Frame f, uint64_t at);
+    void NotifySendFailed(PeerId from, PeerId to, const Message& m, size_t bytes);
     void Deliver(const Frame& f);
     uint64_t RandomDelay();
 

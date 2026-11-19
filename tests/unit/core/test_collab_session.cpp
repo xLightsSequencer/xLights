@@ -188,11 +188,14 @@ TEST_CASE("Edits to an effect someone deleted are rejected; a second delete is a
     Effect* ma = EffectAt(a, "Grid", 1000);
     REQUIRE(sim.As(a, [&] { return a.session->Submit(std::make_unique<DeleteEffectCommand>(LocatorOf(ma))); }).ok);
     REQUIRE(sim.As(b, [&] { return b.session->Submit(std::make_unique<MoveEffectCommand>(LocatorOf(EffectAt(b, "Grid", 1000)), 3000, 3200)); }).ok);
-    REQUIRE(sim.As(b, [&] { return b.session->Submit(SetKey(b, "Grid", 1000, "E_SLIDER_X", "1")); }).ok);
-    CHECK(Setting(b, "Grid", 1000, "E_SLIDER_X") == "1");
+    // Moves apply at once on the client too.
+    REQUIRE(EffectAt(b, "Grid", 3000) != nullptr);
+    REQUIRE(sim.As(b, [&] { return b.session->Submit(SetKey(b, "Grid", 3000, "E_SLIDER_X", "1")); }).ok);
+    CHECK(Setting(b, "Grid", 3000, "E_SLIDER_X") == "1");
     RequireConverged(sim);
     CHECK(b.rejects[Reason::TargetGone] == 2);
     CHECK(EffectAt(b, "Grid", 1000) == nullptr);
+    CHECK(EffectAt(b, "Grid", 3000) == nullptr);
     CHECK(b.Client().OverlayCount() == 0);
 }
 

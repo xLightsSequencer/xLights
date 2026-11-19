@@ -36,6 +36,20 @@ enum UNDO_ACTIONS
     UNDO_BATCH,    // part of a labelled CommandExecutor batch
 };
 
+// Takes over undo and redo while it is installed (UndoManager::SetRedirect):
+// a live collaboration session undoes each participant's own committed edits
+// instead of the local history. Labels are the full menu text ("Undo: ...").
+class IUndoRedirect {
+public:
+    virtual ~IUndoRedirect() = default;
+    virtual bool RedirectUndo() = 0;
+    virtual bool RedirectRedo() = 0;
+    virtual bool RedirectCanUndo() = 0;
+    virtual bool RedirectCanRedo() = 0;
+    virtual std::string RedirectUndoString() = 0;
+    virtual std::string RedirectRedoString() = 0;
+};
+
 // Undo history of a sequence. Each recorded change is stored as the command
 // that reverses it; undoing applies those commands (in lenient mode) and
 // keeps their inverses for redo. Changes are grouped into steps by markers.
@@ -93,6 +107,19 @@ class UndoManager
         // first, so a host can stop it before the replay, where waiting may
         // still run the event loop.
         bool NextStepNeedsRenderStopped(bool redo);
+
+        // While a redirect is installed, UndoLastStep / RedoLastStep / CanUndo /
+        // CanRedo / GetUndoString / GetRedoString go to it, so every undo entry
+        // point of the app follows it without knowing. Edits are still
+        // recorded here (edit code inspects the current step), but only the
+        // last two steps are kept, since they are never replayed. Installing
+        // or removing a redirect clears the history.
+        void SetRedirect(IUndoRedirect* redirect);
+        IUndoRedirect* GetRedirect() const { return mRedirect; }
+
+        // Commands whose Apply changes something render threads read without
+        // a lock; anything applying them should stop the render first.
+        static bool CommandNeedsRenderStopped(const SequenceCommand& cmd);
     protected:
         struct Entry {
             UNDO_ACTIONS kind = UNDO_MARKER;
@@ -115,6 +142,7 @@ class UndoManager
         SequenceElements* mParentSequence;
         bool mCaptureUndo;
         size_t mMaxSteps = 0;
+        IUndoRedirect* mRedirect = nullptr;
         int mReplayDepth = 0;
         uint64_t mHistorySerial = 0;
         unsigned int mStepSerial = 0;

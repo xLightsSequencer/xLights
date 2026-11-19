@@ -65,6 +65,23 @@ public:
     // A command is being applied right now.
     bool IsApplying() const { return _applyDepth > 0; }
 
+    // For code that applies commands to the sequence itself, bypassing the
+    // executor (a live session applying other participants' edits): while
+    // one is alive the executor counts as applying, so the sequence reports
+    // an edit in progress (hosts don't yield to the event loop or start
+    // another edit) and a row deleted meanwhile isn't taken for a direct
+    // delete.
+    class ExternalApplyScope {
+    public:
+        explicit ExternalApplyScope(CommandExecutor& e) : _exec(e) { ++_exec._applyDepth; }
+        ~ExternalApplyScope() { --_exec._applyDepth; }
+        ExternalApplyScope(const ExternalApplyScope&) = delete;
+        ExternalApplyScope& operator=(const ExternalApplyScope&) = delete;
+
+    private:
+        CommandExecutor& _exec;
+    };
+
     // ---- Live preview ----------------------------------------------------
     // For interactive edits (dragging an effect's edges, nudging a
     // selection) that change effects many times before the user lets go.

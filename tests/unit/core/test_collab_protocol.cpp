@@ -123,6 +123,17 @@ std::vector<Message> SampleMessages() {
     m.type = MsgType::Bye;
     m.reason = Reason::Ended;
     out.push_back(m);
+    m = {};
+    m.type = MsgType::Commit;
+    m.rev = 9;
+    m.participant = 1;
+    m.command = nlohmann::json{ { "type", "MoveEffect" } };
+    m.lenient = true;
+    out.push_back(m);
+    m = {};
+    m.type = MsgType::Roster;
+    m.roster = { { 1, "Host", "mac" }, { 3, "Guest", "ipad" } };
+    out.push_back(m);
     return out;
 }
 
@@ -140,6 +151,8 @@ TEST_CASE("Every collab message round-trips through its frame", "[collab][collab
         CHECK(back->files == m.files);
         CHECK(back->paths == m.paths);
         CHECK(back->blob == m.blob);
+        CHECK(back->roster == m.roster);
+        CHECK(back->lenient == m.lenient);
     }
 }
 
@@ -147,53 +160,58 @@ TEST_CASE("Malformed collab frames decode to nothing", "[collab][collab_proto]")
     CHECK_FALSE(DecodeMessage(""));
     CHECK_FALSE(DecodeMessage("not json"));
     CHECK_FALSE(DecodeMessage("[]"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Nope\"}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Commit\",\"rev\":\"x\",\"cmd\":{}}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Commit\",\"rev\":0,\"cmd\":{}}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Propose\",\"seq\":-1,\"cmd\":{}}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Propose\",\"seq\":1}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Welcome\",\"participant\":70000}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Presence\",\"participant\":1,\"presence\":{\"sel\":[\"a\"]}}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Nope\"}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Commit\",\"rev\":\"x\",\"cmd\":{}}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Commit\",\"rev\":0,\"cmd\":{}}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Propose\",\"seq\":-1,\"cmd\":{}}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Propose\",\"seq\":1}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Welcome\",\"participant\":70000}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Presence\",\"participant\":1,\"presence\":{\"sel\":[\"a\"]}}"));
+    CHECK(DecodeMessage("{\"v\":3,\"t\":\"Roster\",\"people\":[]}").has_value());
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Commit\",\"rev\":1,\"cmd\":{},\"lenient\":1}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Roster\"}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Roster\",\"people\":[{\"id\":0,\"name\":\"x\"}]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Roster\",\"people\":[{\"id\":2,\"name\":3}]}"));
     // Too deeply nested, even inside an otherwise fine frame.
-    std::string deep = "{\"v\":1,\"t\":\"Propose\",\"seq\":1,\"cmd\":{\"x\":" + std::string(200, '[') + std::string(200, ']') + "}}";
+    std::string deep = "{\"v\":3,\"t\":\"Propose\",\"seq\":1,\"cmd\":{\"x\":" + std::string(200, '[') + std::string(200, ']') + "}}";
     CHECK_FALSE(DecodeMessage(deep));
     // Brackets inside strings don't count as nesting.
-    std::string brackets = "{\"v\":1,\"t\":\"Bye\",\"reason\":\"" + std::string(200, '[') + "\"}";
+    std::string brackets = "{\"v\":3,\"t\":\"Bye\",\"reason\":\"" + std::string(200, '[') + "\"}";
     CHECK(DecodeMessage(brackets).has_value());
     // A different protocol version only gets through as a Hello / Refuse / Bye.
-    CHECK(DecodeMessage("{\"v\":2,\"t\":\"Hello\",\"name\":\"x\"}").has_value());
-    CHECK(DecodeMessage("{\"v\":2,\"t\":\"Hello\"}")->protocol == 2);
-    CHECK_FALSE(DecodeMessage("{\"v\":2,\"t\":\"Commit\",\"rev\":1,\"cmd\":{}}"));
+    CHECK(DecodeMessage("{\"v\":4,\"t\":\"Hello\",\"name\":\"x\"}").has_value());
+    CHECK(DecodeMessage("{\"v\":4,\"t\":\"Hello\"}")->protocol == 4);
+    CHECK_FALSE(DecodeMessage("{\"v\":4,\"t\":\"Commit\",\"rev\":1,\"cmd\":{}}"));
     // Snapshots come as blobs; one without a blob, or with the old inline
     // document, is malformed.
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Snapshot\",\"rev\":1,\"uids\":[]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Snapshot\",\"rev\":1,\"xsq\":\"<x/>\",\"uids\":[]}"));
-    CHECK(DecodeMessage("{\"v\":1,\"t\":\"Snapshot\",\"rev\":1,\"blob\":3,\"uids\":[]}").has_value());
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Snapshot\",\"rev\":1,\"uids\":[]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Snapshot\",\"rev\":1,\"xsq\":\"<x/>\",\"uids\":[]}"));
+    CHECK(DecodeMessage("{\"v\":3,\"t\":\"Snapshot\",\"rev\":1,\"blob\":3,\"uids\":[]}").has_value());
     // Manifest / NeedFiles / File.
     const std::string file = "{\"path\":\"a.png\",\"role\":\"media\",\"size\":1,\"hash\":2}";
-    CHECK(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[" + file + "]}").has_value());
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\"}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":{}}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[1]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"a\",\"role\":\"video\",\"size\":1,\"hash\":2}]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"\",\"role\":\"media\",\"size\":1,\"hash\":2}]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"a\",\"role\":\"media\",\"size\":-1,\"hash\":2}]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"" + std::string(kMaxPathBytes + 1, 'a') + "\",\"role\":\"media\",\"size\":1,\"hash\":2}]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"a\\u0000b\",\"role\":\"media\",\"size\":1,\"hash\":2}]}"));
-    CHECK(DecodeMessage("{\"v\":1,\"t\":\"NeedFiles\",\"paths\":[\"a\"]}").has_value());
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"NeedFiles\"}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"NeedFiles\",\"paths\":[3]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"NeedFiles\",\"paths\":[\"\"]}"));
-    CHECK(DecodeMessage("{\"v\":1,\"t\":\"File\",\"blob\":4,\"files\":[" + file + "]}").has_value());
-    CHECK(DecodeMessage("{\"v\":1,\"t\":\"File\",\"reason\":\"unreadable\",\"files\":[" + file + "]}").has_value());
+    CHECK(DecodeMessage("{\"v\":3,\"t\":\"Manifest\",\"files\":[" + file + "]}").has_value());
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Manifest\"}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Manifest\",\"files\":{}}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Manifest\",\"files\":[1]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Manifest\",\"files\":[{\"path\":\"a\",\"role\":\"video\",\"size\":1,\"hash\":2}]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Manifest\",\"files\":[{\"path\":\"\",\"role\":\"media\",\"size\":1,\"hash\":2}]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Manifest\",\"files\":[{\"path\":\"a\",\"role\":\"media\",\"size\":-1,\"hash\":2}]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Manifest\",\"files\":[{\"path\":\"" + std::string(kMaxPathBytes + 1, 'a') + "\",\"role\":\"media\",\"size\":1,\"hash\":2}]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"Manifest\",\"files\":[{\"path\":\"a\\u0000b\",\"role\":\"media\",\"size\":1,\"hash\":2}]}"));
+    CHECK(DecodeMessage("{\"v\":3,\"t\":\"NeedFiles\",\"paths\":[\"a\"]}").has_value());
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"NeedFiles\"}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"NeedFiles\",\"paths\":[3]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"NeedFiles\",\"paths\":[\"\"]}"));
+    CHECK(DecodeMessage("{\"v\":3,\"t\":\"File\",\"blob\":4,\"files\":[" + file + "]}").has_value());
+    CHECK(DecodeMessage("{\"v\":3,\"t\":\"File\",\"reason\":\"unreadable\",\"files\":[" + file + "]}").has_value());
     // A File names exactly one file, and has a blob or a reason, not both / neither.
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"File\",\"blob\":4,\"files\":[]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"File\",\"blob\":4,\"files\":[" + file + "," + file + "]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"File\",\"files\":[" + file + "]}"));
-    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"File\",\"blob\":4,\"reason\":\"x\",\"files\":[" + file + "]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"File\",\"blob\":4,\"files\":[]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"File\",\"blob\":4,\"files\":[" + file + "," + file + "]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"File\",\"files\":[" + file + "]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":3,\"t\":\"File\",\"blob\":4,\"reason\":\"x\",\"files\":[" + file + "]}"));
     // Oversized lists.
-    std::string many = "{\"v\":1,\"t\":\"NeedFiles\",\"paths\":[";
+    std::string many = "{\"v\":3,\"t\":\"NeedFiles\",\"paths\":[";
     for (size_t i = 0; i <= kMaxManifestFiles; ++i) {
         many += (i ? ",\"a\"" : "\"a\"");
     }

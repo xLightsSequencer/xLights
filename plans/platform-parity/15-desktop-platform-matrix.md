@@ -2,7 +2,7 @@
 
 _Generated from code on 2026-07-31; rows 42, 55, 60, 71, 86, 87, 93, 97, 114 and the
 practical-impact summary spot-updated 2026-10-24 to reflect Linux fixes landed
-since; row 115 added 2026-11-09 — the rest of the doc has not been regenerated and may have drifted
+since; row 115 added 2026-11-09, rows 116–117 added 2026-11-19 — the rest of the doc has not been regenerated and may have drifted
 further._
 
 Scope: user-visible differences between the macOS, Windows and Linux builds of the
@@ -169,8 +169,9 @@ Build configurations referenced throughout:
 | 113 | About | About box shows an "- App Store" version suffix and a EULA hyperlink | App Store build only | no | no | `src-ui-wx/xLightsApp.cpp:380-384`; `xLightsMain.cpp:2700-2704` |
 | 114 | Layout | Generate Custom Model ▸ "Webcam node identification" — lights an existing model one node at a time and reads each node's position off a live camera | yes, added 2026-08-23 — AVFoundation, and the picker also offers the built-in camera and a paired iPhone (Continuity, macOS 14+); dark mode can only *lock* exposure/white balance, since `setExposureModeCustomWithDuration:ISO:` is `API_UNAVAILABLE(macos)`, so ambient rejection is weaker than Windows | yes — Media Foundation; dark mode pins a short manual exposure, floors `VideoProcAmp_Gain` and disables backlight compensation | ✅ **fixed 2026-10-24** — raw V4L2 ioctl backend (no new dependency); dark mode pins `V4L2_CID_EXPOSURE_ABSOLUTE`, floors `V4L2_CID_GAIN`, disables `V4L2_CID_BACKLIGHT_COMPENSATION`, mirroring Windows. `CustomModelBuilderDialog.cpp` wasn't even compiled into the Linux build before this fix (absent from `xLights.cbp` and gated `WIN32`-only in `CMakeLists.txt`) | `src-core/media/LiveCameraCapture.{h,cpp}` Linux branch (`#elif defined(__linux__)`), `src-ui-wx/custommodelbuilder/CustomModelBuilderDialog.cpp`, picker `src-ui-wx/klightmapper/CustomModelMethodPickerDialog.cpp:115-152`; Linux build wiring `xLights.cbp` new `<Unit>` entries, `CMakeLists.txt` `custommodelbuilder` glob condition and `else()` branch |
 | 115 | DPI | Dragging the main window onto a monitor with a different scale factor (e.g. 100% and 125%) | not affected — window size is in points, only the backing scale changes | ✅ **fixed 2026-11-09** — Windows resized the frame by the scale ratio; the resized frame could fall back onto the previous monitor and flip the DPI back and forth, so the window looked stuck mid-drag. The frame now keeps its pixel size. A ~1.5 s pause per scale change remains: Windows rescales every child HWND (~3,000, mostly the hidden effect-panel controls) | not affected — one scale for the whole X session | `src-ui-wx/xLightsMain.cpp:1443-1452` (`wxEVT_DPI_CHANGED`), `:4650-4671` (`MSWWindowProc`, `WM_GETDPISCALEDSIZE`) |
+| 116 | Collaboration | LAN transport for shared sequence sessions (Bonjour `_xlights-collab._tcp` discovery, TLS 1.2 PSK from the pairing code, framed messages + chunked blobs on one connection). The feature is still hidden on every platform | Network.framework (`src-core/collab/CollabNetApple.mm`); same code on iPad | **none** — `CreateLanTransport` / `CreateLanBrowser` return `nullptr`, `LanTransportAvailable()` is false, so the feature stays hidden | **none** — same stubs as Windows | stubs `src-core/collab/CollabNet.cpp:34-44` (`#ifndef __APPLE__`); Apple `CollabNetApple.mm:1017-1027`; interface `src-core/collab/CollabNet.h`. Added 2026-11-19. A portable transport would need TLS-PSK + mDNS (e.g. OpenSSL + dns_sd/avahi) |
 
-**Row counts:** practical-impact summary 19 rows; detailed differences 115 rows.
+**Row counts:** practical-impact summary 19 rows; detailed differences 116 rows.
 
 ---
 

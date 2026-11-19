@@ -20,9 +20,10 @@
 //
 // - Structural edits (adds, deletes, moves, layers, rows, media, batches)
 //   wait for the host's commit before the client applies them.
-// - Settings / palette key changes (IsOptimistic) apply on the client at
-//   once. The client remembers, per (effect, key), the host's value and its
-//   own newest pending write. Before applying any commit it puts the host's
+// - Settings / palette key changes and effect moves (IsOptimisticEdit,
+//   alone or as a batch of only those) apply on the client at
+//   once. The client remembers, per (effect, key) and per moved effect, the
+//   host's value and its own newest pending write. Before applying any commit it puts the host's
 //   values back, so every commit applies to exactly the host's state (and
 //   yields the host's inverse and hash); afterwards it re-applies its
 //   pending writes. A rejected write falls back to the host's value. The
@@ -172,9 +173,17 @@ struct CommitInfo {
     Rev undoOf = 0;
 };
 
+// The undo menu text for an edit: a batch's label, else what the command
+// does ("Effect(s) Added", "Row(s) Deleted", ...).
+std::string CommandLabel(const SequenceCommand& cmd);
+
 struct SessionEvents {
     // After a commit was applied to the local document.
     std::function<void(const CommitInfo&, const SequenceCommand& applied)> onCommit;
+    // The same, with the inverse Apply returned (what the commit replaced).
+    std::function<void(const CommitInfo&, const SequenceCommand& applied, const SequenceCommand& inverse)> onCommitApplied;
+    // Everyone in the session changed (host first). Both roles.
+    std::function<void(const std::vector<RosterEntry>& roster)> onRoster;
     // One of this participant's proposals (or undo / redo) was not committed.
     // `by` is who changed the target, when known.
     std::function<void(uint64_t clientSeq, EditKind kind, const std::string& reason, ParticipantId by)> onReject;
@@ -216,10 +225,27 @@ public:
     virtual bool IsActive() const = 0;
 
     virtual SubmitResult Submit(std::unique_ptr<SequenceCommand> cmd) = 0;
+    // Submit, and when it commits fold it into this participant's newest
+    // undo entry if that entry is still the commit of its own proposal
+    // `joinUndoTo` (one undo then reverts both; a slider drag sent as many
+    // commits undoes as one step). The host checks such an undo against
+    // everything after the first of them.
+    SubmitResult SubmitJoined(std::unique_ptr<SequenceCommand> cmd, uint64_t joinUndoTo);
     bool CanUndo() const { return !_undo.empty(); }
     bool CanRedo() const { return !_redo.empty(); }
     SubmitResult Undo();
     SubmitResult Redo();
+    // The label of what Undo / Redo would revert (CommandLabel of the edit);
+    // empty when there is nothing.
+    std::string UndoLabel() const { return _undo.empty() ? std::string() : _undo.back().label; }
+    std::string RedoLabel() const { return _redo.empty() ? std::string() : _redo.back().label; }
+    // The command Undo / Redo would propose, or nullptr.
+    const SequenceCommand* NextUndoCommand(bool redo) const {
+        const auto& l = redo ? _redo : _undo;
+        return l.empty() ? nullptr : l.back().cmd.get();
+    }
+    // Everyone in the session as the host last listed them (host first).
+    const std::vector<RosterEntry>& Roster() const { return _roster; }
     virtual void SetPresence(const PresenceInfo& p) = 0;
     virtual void Tick(uint64_t nowMs) = 0;
 
@@ -250,10 +276,20 @@ protected:
     struct UndoEntry {
         Rev rev = 0;
         std::unique_ptr<SequenceCommand> cmd;
+        uint64_t seq = 0; // the proposal whose commit this is (the newest, when joined)
+        std::string label;
+    };
+    // What a proposal carries for undo bookkeeping until it commits.
+    struct OwnMeta {
+        std::string label;   // undo / redo: the label of the entry reverted
+        uint64_t joinTo = 0; // SubmitJoined
     };
     virtual SubmitResult SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) = 0;
     // Undo bookkeeping for one of this participant's own commits.
-    void RecordOwnCommit(EditKind kind, Rev rev, const SequenceCommand& inverse);
+    void RecordOwnCommit(EditKind kind, Rev rev, uint64_t seq, const SequenceCommand& applied, const SequenceCommand& inverse);
+    // SubmitKind calls this once it has numbered a proposal.
+    void NoteOwnProposal(uint64_t seq);
+    void NotifyCommit(const CommitInfo& info, const SequenceCommand& applied, const SequenceCommand& inverse);
     uint64_t HashAfter(const SequenceCommand& cmd);
     void Log(const std::string& s);
     void NoteRecent(const CommitInfo& c, const nlohmann::json& cmd);
@@ -296,6 +332,9 @@ protected:
     HashCache _hashes;
     std::map<std::string, std::string> _received;
     bool _mediaFolderAdded = false;
+    std::vector<RosterEntry> _roster;
+    OwnMeta _submitMeta; // for the proposal SubmitKind is about to number
+    std::map<uint64_t, OwnMeta> _ownMeta;
 
 private:
     std::string _sessionFolder;
@@ -322,6 +361,11 @@ public:
 
     // The host's own edit: validated and committed at once.
     SubmitResult Submit(std::unique_ptr<SequenceCommand> cmd) override;
+    // The host's own edit that is already in its document (`applied`, undone
+    // by `inverse`; ids filled in): committed as it is, without validating
+    // or applying it again. For edits the app made through its
+    // CommandExecutor.
+    SubmitResult CommitLocal(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, uint64_t joinUndoTo = 0);
     void SetPresence(const PresenceInfo& p) override;
     void Tick(uint64_t nowMs) override;
 
@@ -339,6 +383,7 @@ private:
         PeerId peer = kNoPeer;
         ParticipantId id = kNoParticipant;
         std::string name;
+        std::string deviceKind;
         std::vector<FileEntry> manifest;
         std::map<std::string, std::string> files; // manifest path -> host's file
         uint64_t nextSeq = 1;
@@ -371,6 +416,10 @@ private:
     void OnPropose(Client& c, const Message& m);
     void ProcessProposal(Client& c, const Message& m);
     Outcome Process(ParticipantId author, uint64_t clientSeq, Rev baseRev, EditKind kind, Rev undoOf, const nlohmann::json& cmd);
+    // Records and broadcasts a command already applied to the document.
+    Rev CommitApplied(ParticipantId author, uint64_t clientSeq, EditKind kind, Rev undoOf, const SequenceCommand& cmd, const SequenceCommand& inverse,
+                      bool lenient);
+    void SendRoster();
     void SendSnapshot(Client& c);
     void SendManifest(Client& c, bool rebuild);
     void OnNeedFiles(Client& c, const Message& m);
@@ -414,7 +463,18 @@ public:
     void Tick(uint64_t nowMs) override;
 
     size_t PendingCount() const { return _pending.size(); }
-    size_t OverlayCount() const { return _overlay.size(); }
+    // This client's proposals still waiting for the host, oldest first.
+    // Optimistic ones are already applied locally; the others will be
+    // applied when they commit.
+    struct PendingProposal {
+        uint64_t clientSeq = 0;
+        EditKind kind = EditKind::Edit;
+        bool optimistic = false;
+        nlohmann::json command;
+    };
+    std::vector<PendingProposal> PendingProposals() const;
+    // Pending optimistic keys and moves.
+    size_t OverlayCount() const { return _overlay.size() + _times.size(); }
     size_t ResyncCount() const { return _resyncs; }
     // Asks the host for a fresh snapshot (as on drift).
     void RequestResync(const std::string& why);
@@ -427,6 +487,8 @@ private:
     struct Pending {
         Message msg;
         uint64_t lastSent = 0;
+        bool optimistic = false;
+        bool withdrawn = false; // stands in for one too large to send (already rejected)
     };
     // (effect, palette?, key)
     using OverlayKey = std::tuple<SeqObjectId, bool, std::string>;
@@ -435,6 +497,13 @@ private:
         std::optional<std::string> host;  // the value in host order
         std::optional<std::string> local; // this client's newest pending value
         uint64_t seq = 0;                 // the proposal that wrote `local`
+    };
+    // An effect this client moved before the host committed it.
+    struct TimesEntry {
+        EffectLocator loc;
+        std::pair<int, int> host;  // its times in host order
+        std::pair<int, int> local; // this client's newest pending times
+        uint64_t seq = 0;
     };
 
     SubmitResult SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) override;
@@ -458,7 +527,10 @@ private:
     void DrainRejects();
     void LiftOverlay();
     void LowerOverlay();
-    void SetKey(const EffectLocator& loc, bool palette, const std::string& key, const std::optional<std::string>& value);
+    // Both return what they did and its inverse (nullptr when nothing applied).
+    using Applied = std::pair<std::unique_ptr<SequenceCommand>, std::unique_ptr<SequenceCommand>>;
+    Applied SetKey(const EffectLocator& loc, bool palette, const std::string& key, const std::optional<std::string>& value);
+    Applied SetTimes(const EffectLocator& loc, std::pair<int, int> times);
     void Send(const Message& m);
     void EndSession(const std::string& reason);
     void RequestResend();
@@ -470,6 +542,7 @@ private:
     std::map<Rev, Message> _buffered;
     std::vector<Message> _queuedRejects;
     std::map<OverlayKey, OverlayEntry> _overlay;
+    std::map<SeqObjectId, TimesEntry> _times;
     Rev _hostHead = 0;
     uint64_t _lastHeard = 0;
     uint64_t _lastHello = 0;

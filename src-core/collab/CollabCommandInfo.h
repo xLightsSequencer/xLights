@@ -54,6 +54,18 @@ std::string TypeItem(SeqObjectId effect);
 // effect type.
 bool IsOptimistic(const SequenceCommand& cmd);
 
+// True for what a client applies before the host commits it: an
+// IsOptimistic key change, a MoveEffect, or a Batch made only of those
+// (applied and rejected as a whole).
+bool IsOptimisticEdit(const SequenceCommand& cmd);
+
+// A Batch of moves (and key changes) put in an order in which every move
+// lands on a clear range, so strict validation, which checks each member
+// against the document as the earlier members left it, doesn't refuse a
+// drag of neighbouring effects that the net result allows. nullptr when
+// `cmd` isn't such a batch or its order is already fine.
+std::unique_ptr<SequenceCommand> OrderMovesToStayClear(const SequenceElements& seq, const SequenceCommand& cmd);
+
 // A ModifyEffect that replaces whole maps but not the type, rewritten as the
 // key changes it amounts to against the effect's current state. nullptr when
 // `cmd` isn't such a command, or when it would change nothing.

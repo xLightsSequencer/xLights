@@ -125,14 +125,26 @@ void UndoManager::DocumentEdited() {
     }
 }
 
+void UndoManager::SetRedirect(IUndoRedirect* redirect)
+{
+    mRedirect = redirect;
+    Clear();
+}
+
 bool UndoManager::CanUndo()
 {
+    if (mRedirect != nullptr) {
+        return mRedirect->RedirectCanUndo();
+    }
     RemoveUnusedMarkers();
     return !mUndoSteps.empty();
 }
 
 bool UndoManager::CanRedo()
 {
+    if (mRedirect != nullptr) {
+        return mRedirect->RedirectCanRedo();
+    }
     return !mRedoSteps.empty();
 }
 
@@ -171,7 +183,11 @@ void UndoManager::RecordInverse(CommandType appliedType, const std::string& labe
 
 void UndoManager::EnforceMaxSteps()
 {
-    if (mMaxSteps == 0) return;  // cap disabled
+    size_t maxSteps = mMaxSteps;
+    if (mRedirect != nullptr && (maxSteps == 0 || maxSteps > 2)) {
+        maxSteps = 2;
+    }
+    if (maxSteps == 0) return;  // cap disabled
     // Count and drop whole steps: dropping single entries could cut a step's
     // marker and first entries, and undoing what's left would only revert
     // part of it.
@@ -181,7 +197,7 @@ void UndoManager::EnforceMaxSteps()
             ++steps;
         }
     }
-    while (steps > mMaxSteps) {
+    while (steps > maxSteps) {
         auto next = std::find_if(mUndoSteps.begin() + 1, mUndoSteps.end(),
                                  [](const Entry& e) { return e.kind == UNDO_MARKER; });
         if (next == mUndoSteps.end()) {
@@ -199,12 +215,11 @@ void UndoManager::CancelLastStep() {
     }
 }
 
-namespace {
 // Commands whose Apply changes something render threads read without a lock
 // (rows they look up by name, names, face definitions). They stop the render
 // themselves, but stopping it inside a replay can yield to the event loop
 // mid-step (desktop), so the replay stops it once up front instead.
-bool NeedsRenderStopped(const SequenceCommand& cmd) {
+bool UndoManager::CommandNeedsRenderStopped(const SequenceCommand& cmd) {
     switch (cmd.Type()) {
     case CommandType::AddElement:
     case CommandType::DeleteElement:
@@ -215,7 +230,7 @@ bool NeedsRenderStopped(const SequenceCommand& cmd) {
         return true;
     case CommandType::Batch:
         for (const auto& member : static_cast<const BatchCommand&>(cmd).GetCommands()) {
-            if (NeedsRenderStopped(*member)) {
+            if (CommandNeedsRenderStopped(*member)) {
                 return true;
             }
         }
@@ -224,12 +239,11 @@ bool NeedsRenderStopped(const SequenceCommand& cmd) {
         return false;
     }
 }
-} // namespace
 
 bool UndoManager::StepNeedsRenderStopped(const std::vector<Entry>& list)
 {
     for (auto it = list.rbegin(); it != list.rend() && it->kind != UNDO_MARKER; ++it) {
-        if (it->inverse && NeedsRenderStopped(*it->inverse)) {
+        if (it->inverse && CommandNeedsRenderStopped(*it->inverse)) {
             return true;
         }
     }
@@ -238,6 +252,10 @@ bool UndoManager::StepNeedsRenderStopped(const std::vector<Entry>& list)
 
 bool UndoManager::NextStepNeedsRenderStopped(bool redo)
 {
+    if (mRedirect != nullptr) {
+        // The redirect stops the render itself, without yielding.
+        return false;
+    }
     if (!redo) {
         RemoveUnusedMarkers();
     }
@@ -255,11 +273,17 @@ bool UndoManager::StopRenderIfStepNeeds(const std::vector<Entry>& list)
 
 bool UndoManager::UndoLastStep()
 {
+    if (mRedirect != nullptr) {
+        return mRedirect->RedirectUndo();
+    }
     return Replay(mUndoSteps, mRedoSteps);
 }
 
 bool UndoManager::RedoLastStep()
 {
+    if (mRedirect != nullptr) {
+        return mRedirect->RedirectRedo();
+    }
     return Replay(mRedoSteps, mUndoSteps);
 }
 
@@ -318,6 +342,9 @@ void UndoManager::ProcessUndoStep(std::vector<Entry> &fromList, std::vector<Entr
 
 std::string UndoManager::GetUndoString()
 {
+    if (mRedirect != nullptr) {
+        return mRedirect->RedirectUndoString();
+    }
     if (mUndoSteps.empty()) {
         return "Undo";
     }
@@ -326,6 +353,9 @@ std::string UndoManager::GetUndoString()
 
 std::string UndoManager::GetRedoString()
 {
+    if (mRedirect != nullptr) {
+        return mRedirect->RedirectRedoString();
+    }
     if (mRedoSteps.empty()) {
         return "Redo";
     }

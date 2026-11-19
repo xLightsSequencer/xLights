@@ -1042,9 +1042,11 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
     <ClCompile Include="..\src-core\collab\CollabCommandInfo.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabController.cpp" />
     <ClCompile Include="..\src-core\collab\CollabDocHash.cpp" />
     <ClCompile Include="..\src-core\collab\CollabManifest.cpp" />
     <ClCompile Include="..\src-core\collab\CollabMessages.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabNet.cpp" />
     <ClCompile Include="..\src-core\collab\CollabSession.cpp" />
     <ClCompile Include="..\src-core\collab\CollabTransport.cpp" />
     <ClCompile Include="..\src-core\collab\CollabUidTable.cpp" />
@@ -1749,9 +1751,12 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
     <ClInclude Include="..\src-core\collab\CollabCommandInfo.h" />
+    <ClInclude Include="..\src-core\collab\CollabController.h" />
     <ClInclude Include="..\src-core\collab\CollabDocHash.h" />
     <ClInclude Include="..\src-core\collab\CollabManifest.h" />
     <ClInclude Include="..\src-core\collab\CollabMessages.h" />
+    <ClInclude Include="..\src-core\collab\CollabNet.h" />
+    <ClInclude Include="..\src-core\collab\CollabNetWire.h" />
     <ClInclude Include="..\src-core\collab\CollabSession.h" />
     <ClInclude Include="..\src-core\collab\CollabTransport.h" />
     <ClInclude Include="..\src-core\collab\CollabUidTable.h" />
