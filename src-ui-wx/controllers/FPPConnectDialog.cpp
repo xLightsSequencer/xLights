@@ -1855,6 +1855,13 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                             // skipped because another controller failed or the upload was cancelled
                             r.status = ToUTF8(_("Not uploaded"));
                         }
+                        if (willUpload[i]) {
+                            r.details.push_back(ToUTF8(wxString::Format(_("FSEQ v%d, %s, %s, %u channels"),
+                                inst->GetUploadFSEQVersion(),
+                                FSEQFile::CompressionTypeStrings[(int)inst->GetUploadCompressionType()],
+                                inst->GetUploadSparse() ? _("sparse") : _("full"),
+                                inst->GetUploadChannelCount())));
+                        }
                         results.push_back(r);
                     }
                     ++i;

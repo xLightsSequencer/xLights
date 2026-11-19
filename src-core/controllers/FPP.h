@@ -130,6 +130,12 @@ class FPP : public BaseController
     bool FinalizeUploadSequence();
     std::string GetTempFile() const { return tempFileName; }
     void ClearTempFile() { tempFileName = ""; }
+    // Describes the sequence prepared by the most recent PrepareUploadSequence() call,
+    // valid until FinalizeUploadSequence(). For UI/logging only.
+    uint32_t GetUploadChannelCount() const { return lastUploadChannelCount; }
+    FSEQFile::CompressionType GetUploadCompressionType() const { return lastUploadCompressionType; }
+    bool GetUploadSparse() const { return lastUploadSparse; }
+    int GetUploadFSEQVersion() const { return lastUploadFSEQVersion; }
 #endif
     bool supportedForFPPConnect() const;
 
@@ -268,6 +274,10 @@ private:
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;
     bool outputFileIsOriginal = false;
+    uint32_t lastUploadChannelCount = 0;
+    FSEQFile::CompressionType lastUploadCompressionType = FSEQFile::CompressionType::none;
+    bool lastUploadSparse = false;
+    int lastUploadFSEQVersion = 0;
 
     CURL *setupCurl(const std::string &url, bool isGet = true, int timeout = 30000);
     std::string curlInputBuffer;
