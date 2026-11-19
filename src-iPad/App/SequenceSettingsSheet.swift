@@ -85,6 +85,17 @@ struct SequenceSettingsSheet: View {
                         ScrollView { RenderTab().padding() }
                     }
                 }
+                // Desktop opens its settings dialog read-only the same way.
+                .disabled(viewModel.isLayoutLocked)
+            }
+            .safeAreaInset(edge: .top) {
+                if viewModel.isLayoutLocked {
+                    Label(viewModel.layoutLockReason, systemImage: "lock.fill")
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                        .padding(6)
+                        .background(.regularMaterial)
+                }
             }
             .navigationTitle("Sequence Settings")
             .navigationBarTitleDisplayMode(.inline)

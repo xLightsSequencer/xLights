@@ -11,6 +11,9 @@
 #include "CollabTransport.h"
 
 #include <algorithm>
+#include <filesystem>
+#include <random>
+#include <system_error>
 
 namespace Collab {
 
@@ -28,10 +31,18 @@ void LoopbackTransport::Broadcast(const Message& m) {
 }
 
 void LoopbackTransport::SendBlob(PeerId to, BlobId id, const std::string& path) {
+    if (!_net.IsConnected(_id) || !_net.IsConnected(to) || to == _id) {
+        return;
+    }
+    // An unreadable file arrives as a missing one, as a real transport's
+    // failed transfer would.
+    std::string copy = (std::filesystem::path(_net.BlobFolder()) / ("blob" + std::to_string(++_net._blobCopies))).string();
+    std::error_code ec;
+    std::filesystem::copy_file(path, copy, std::filesystem::copy_options::overwrite_existing, ec);
     LoopbackNetwork::Frame f;
     f.from = _id;
     f.to = to;
-    f.bytes = path;
+    f.bytes = ec ? std::string() : copy;
     f.blob = true;
     f.blobId = id;
     _net.Push(std::move(f), _net._now + _net.RandomDelay());
@@ -41,7 +52,23 @@ LoopbackNetwork::LoopbackNetwork(LoopbackOptions opts) :
     _opts(opts), _rng(opts.seed) {
 }
 
-LoopbackNetwork::~LoopbackNetwork() = default;
+LoopbackNetwork::~LoopbackNetwork() {
+    if (!_blobFolder.empty()) {
+        std::error_code ec;
+        std::filesystem::remove_all(_blobFolder, ec);
+    }
+}
+
+const std::string& LoopbackNetwork::BlobFolder() {
+    if (_blobFolder.empty()) {
+        std::random_device rd;
+        auto dir = std::filesystem::temp_directory_path() / ("xl_collab_blobs_" + std::to_string(rd()) + "_" + std::to_string(rd()));
+        std::error_code ec;
+        std::filesystem::create_directories(dir, ec);
+        _blobFolder = dir.string();
+    }
+    return _blobFolder;
+}
 
 LoopbackTransport& LoopbackNetwork::AddPeer() {
     PeerId id = (PeerId)_peers.size() + 1;
@@ -63,6 +90,10 @@ void LoopbackNetwork::Disconnect(PeerId peer) {
     _connected[peer] = false;
     for (auto it = _queue.begin(); it != _queue.end();) {
         if (it->second.from == peer || it->second.to == peer) {
+            if (it->second.blob && !it->second.bytes.empty()) {
+                std::error_code ec;
+                std::filesystem::remove(it->second.bytes, ec);
+            }
             it = _queue.erase(it);
         } else {
             ++it;
@@ -145,6 +176,15 @@ uint64_t LoopbackNetwork::NextDeliveryTime() const {
 }
 
 void LoopbackNetwork::Deliver(const Frame& f) {
+    struct RemoveBlob {
+        const Frame& f;
+        ~RemoveBlob() {
+            if (f.blob && !f.bytes.empty()) {
+                std::error_code ec;
+                std::filesystem::remove(f.bytes, ec);
+            }
+        }
+    } removeBlob{ f };
     if (!IsConnected(f.to)) {
         return;
     }
@@ -158,6 +198,7 @@ void LoopbackNetwork::Deliver(const Frame& f) {
                 dest->onPeer(f.from, f.peerEvent);
             }
         } else if (f.blob) {
+            ++_blobsDelivered;
             if (dest->onBlob) {
                 dest->onBlob(f.from, f.blobId, f.bytes);
             }

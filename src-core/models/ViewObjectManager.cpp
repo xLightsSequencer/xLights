@@ -174,6 +174,9 @@ ViewObject *ViewObjectManager::createAndAddObject(pugi::xml_node node) {
 }
 
 void ViewObjectManager::Delete(const std::string &name) {
+    if (LayoutLock::Refuses(_layoutLock, "deleting a view object")) {
+        return;
+    }
 
     if (_renderContext != nullptr) {
         Element* elem_to_delete = _renderContext->GetSequenceElements().GetElement(name);
@@ -405,6 +408,9 @@ std::vector<std::string> ViewObjectManager::GetOrphanedControllerObjects(const s
 }
 
 bool ViewObjectManager::Rename(const std::string &oldName, const std::string &newName) {
+    if (LayoutLock::Refuses(_layoutLock, "renaming a view object")) {
+        return false;
+    }
     ViewObject *view_object = GetViewObject(oldName);
     if (view_object == nullptr) {
         return false;

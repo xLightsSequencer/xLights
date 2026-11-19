@@ -1227,6 +1227,8 @@ void xLightsImportChannelMapDialog::AddEmptyGroup()
 
 xLightsImportModelNode* xLightsImportChannelMapDialog::CreateEmptyGroup(const wxString& groupName)
 {
+    // A new group is a layout change.
+    if (xlights->RefuseIfLayoutLocked(this)) return nullptr;
     // Drained before the group is built, not after: a timed-out abort means
     // render jobs still hold Model* and AddModel is not safe to call.
     if (!xlights->AbortRender()) return nullptr;

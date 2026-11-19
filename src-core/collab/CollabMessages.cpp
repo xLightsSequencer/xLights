@@ -21,10 +21,13 @@ namespace Collab {
 
 namespace {
 
-constexpr std::array<std::pair<MsgType, const char*>, 13> kTypeNames{ {
+constexpr std::array<std::pair<MsgType, const char*>, 16> kTypeNames{ {
     { MsgType::Hello, "Hello" },
     { MsgType::Welcome, "Welcome" },
     { MsgType::Refuse, "Refuse" },
+    { MsgType::Manifest, "Manifest" },
+    { MsgType::NeedFiles, "NeedFiles" },
+    { MsgType::File, "File" },
     { MsgType::Snapshot, "Snapshot" },
     { MsgType::NeedSnapshot, "NeedSnapshot" },
     { MsgType::Propose, "Propose" },
@@ -170,6 +173,71 @@ bool GetIds(const json& j, const char* key, std::vector<SeqObjectId>& out) {
     return true;
 }
 
+bool RoleFromName(const std::string& s, FileRole& out) {
+    for (FileRole r : { FileRole::Layout, FileRole::Audio, FileRole::Media }) {
+        if (s == FileRoleName(r)) {
+            out = r;
+            return true;
+        }
+    }
+    return false;
+}
+
+json WriteFiles(const std::vector<FileEntry>& files) {
+    json a = json::array();
+    for (const auto& f : files) {
+        a.push_back(json{ { "path", f.path }, { "role", FileRoleName(f.role) }, { "size", f.size }, { "hash", f.hash } });
+    }
+    return a;
+}
+
+bool PathOk(const std::string& p) {
+    return !p.empty() && p.size() <= kMaxPathBytes && p.find('\0') == std::string::npos;
+}
+
+bool ReadFiles(const json& j, std::vector<FileEntry>& out) {
+    auto it = j.find("files");
+    if (it == j.end()) {
+        return true;
+    }
+    if (!it->is_array() || it->size() > kMaxManifestFiles) {
+        return false;
+    }
+    out.clear();
+    out.reserve(it->size());
+    for (const auto& f : *it) {
+        if (!f.is_object()) {
+            return false;
+        }
+        FileEntry e;
+        std::string role;
+        if (!Get(f, "path", e.path) || !Get(f, "role", role) || !RoleFromName(role, e.role) || !Get(f, "size", e.size) ||
+            !Get(f, "hash", e.hash) || !PathOk(e.path)) {
+            return false;
+        }
+        out.push_back(std::move(e));
+    }
+    return true;
+}
+
+bool ReadPaths(const json& j, std::vector<std::string>& out) {
+    auto it = j.find("paths");
+    if (it == j.end()) {
+        return true;
+    }
+    if (!it->is_array() || it->size() > kMaxManifestFiles) {
+        return false;
+    }
+    out.clear();
+    for (const auto& p : *it) {
+        if (!p.is_string() || !PathOk(p.get_ref<const std::string&>())) {
+            return false;
+        }
+        out.push_back(p.get<std::string>());
+    }
+    return true;
+}
+
 json WritePresence(const PresenceInfo& p) {
     return json{ { "start", p.startMS }, { "end", p.endMS }, { "focus", p.focusedElements }, { "sel", p.selectedEffects }, { "lock", p.softLock } };
 }
@@ -183,6 +251,14 @@ bool ReadPresence(const json& j, PresenceInfo& p) {
 }
 
 } // namespace
+
+const char* FileRoleName(FileRole r) {
+    switch (r) {
+    case FileRole::Layout: return "layout";
+    case FileRole::Audio: return "audio";
+    default: return "media";
+    }
+}
 
 const char* MsgTypeName(MsgType t) {
     for (const auto& [type, n] : kTypeNames) {
@@ -212,11 +288,22 @@ std::string EncodeMessage(const Message& m) {
         j["reason"] = m.reason;
         j["text"] = m.text;
         break;
+    case MsgType::Manifest:
+        j["files"] = WriteFiles(m.files);
+        break;
+    case MsgType::NeedFiles:
+        j["paths"] = m.paths;
+        break;
+    case MsgType::File:
+        j["blob"] = m.blob;
+        j["files"] = WriteFiles(m.files);
+        j["reason"] = m.reason;
+        break;
     case MsgType::Snapshot:
         j["rev"] = m.rev;
         j["hash"] = m.docHash;
         j["seq"] = m.clientSeq;
-        j["xsq"] = m.xsq;
+        j["blob"] = m.blob;
         j["uids"] = m.uids;
         break;
     case MsgType::Propose:
@@ -261,6 +348,31 @@ std::string EncodeMessage(const Message& m) {
     return j.dump(-1, ' ', false, json::error_handler_t::replace);
 }
 
+std::string NewRejoinSecret() {
+    std::random_device rd;
+    static const char* kHex = "0123456789abcdef";
+    std::string s;
+    for (int i = 0; i < 8; ++i) {
+        uint32_t v = rd();
+        for (int b = 0; b < 4; ++b) {
+            s.push_back(kHex[(v >> (8 * b + 4)) & 0xF]);
+            s.push_back(kHex[(v >> (8 * b)) & 0xF]);
+        }
+    }
+    return s;
+}
+
+std::optional<nlohmann::json> ParseBoundedJson(std::string_view text) {
+    if (!NestingOk(text)) {
+        return std::nullopt;
+    }
+    json j = json::parse(text.begin(), text.end(), nullptr, false);
+    if (j.is_discarded()) {
+        return std::nullopt;
+    }
+    return j;
+}
+
 std::optional<Message> DecodeMessage(std::string_view frame) {
     if (frame.empty() || frame.size() > kMaxFrameBytes || !NestingOk(frame)) {
         return std::nullopt;
@@ -291,8 +403,20 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
     case MsgType::NeedSnapshot:
         ok = Get(j, "reason", m.reason) && Get(j, "text", m.text);
         break;
+    case MsgType::Manifest: {
+        ok = j.contains("files") && ReadFiles(j, m.files);
+        break;
+    }
+    case MsgType::NeedFiles:
+        ok = j.contains("paths") && ReadPaths(j, m.paths);
+        break;
+    case MsgType::File:
+        // One file; a blob unless it says why there is none.
+        ok = Get(j, "blob", m.blob) && ReadFiles(j, m.files) && Get(j, "reason", m.reason) && m.files.size() == 1 &&
+             ((m.blob != 0) != !m.reason.empty());
+        break;
     case MsgType::Snapshot: {
-        ok = Get(j, "rev", m.rev) && Get(j, "hash", m.docHash) && Get(j, "seq", m.clientSeq) && Get(j, "xsq", m.xsq);
+        ok = Get(j, "rev", m.rev) && Get(j, "hash", m.docHash) && Get(j, "seq", m.clientSeq) && Get(j, "blob", m.blob) && m.blob != 0;
         auto it = j.find("uids");
         ok = ok && it != j.end() && it->is_array();
         if (ok) {

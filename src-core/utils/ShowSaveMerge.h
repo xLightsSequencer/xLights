@@ -52,6 +52,20 @@ struct FileToSave {
     bool write = true;
 };
 
+// While a collaboration session holds the layout (the layout lock, or a
+// participant that isn't the host), the layout and controllers files stay
+// unwritten with their changes pending. Anything else in the save (the effect
+// presets, a separate file) is still written.
+bool HeldWithLayout(FileKind kind);
+struct HeldSplit {
+    // What may still be saved. Layout or controllers files that are only
+    // consulted go too: with nothing of theirs written they inform nothing.
+    std::vector<FileToSave> writable;
+    // Paths of the held files that would have been written.
+    std::vector<std::string> held;
+};
+HeldSplit SplitHeldWithLayout(const std::vector<FileToSave>& files);
+
 // The versions of one file, for Plan::FromVersions.
 struct FileVersions {
     FileKind kind = FileKind::RgbEffects;

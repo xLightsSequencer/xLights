@@ -656,6 +656,7 @@ bool iPadRenderContext::RegenerateShowGuid() {
 }
 
 bool iPadRenderContext::SaveViewpoints() {
+    if (RefusesLayoutWrite("saving viewpoints")) return false;
     if (showDirectory.empty()) return false;
     std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";
     if (!ObtainAccessToURL(rgbPath, true)) {
@@ -695,6 +696,7 @@ bool iPadRenderContext::SaveViewpoints() {
 }
 
 bool iPadRenderContext::SaveViews() {
+    if (RefusesLayoutWrite("saving views")) return false;
     if (showDirectory.empty()) return false;
     std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";
     if (!ObtainAccessToURL(rgbPath, true)) {
@@ -732,6 +734,7 @@ bool iPadRenderContext::SaveViews() {
 
 bool iPadRenderContext::SaveModelStates() {
     if (_dirtyStateModels.empty()) return true;
+    if (RefusesLayoutWrite("saving model states")) return false;
     if (showDirectory.empty()) return false;
 
     std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";
@@ -885,6 +888,7 @@ AutosaveCheck iPadRenderContext::CheckLayoutAutosave() {
 }
 
 bool iPadRenderContext::RestoreLayoutAutosave(bool keepCurrentAsCopy, std::string* keptCopyPath) {
+    if (RefusesLayoutWrite("restoring the layout autosave")) return false;
     if (showDirectory.empty() || _checkedLayoutAutosavePath.empty()) return false;
     const std::string live = showDirectory + "/" + XLIGHTS_RGBEFFECTS_FILE;
     const bool ok = ShowAutosave::Restore(live, _checkedLayoutAutosavePath, keepCurrentAsCopy,
@@ -1465,6 +1469,9 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
         return true;
     }
     if (showDirectory.empty()) return false;
+    // A copy (autosave, conflict copy) is not the layout file; the real
+    // files wait until the collaboration session ends.
+    if (targetPath.empty() && RefusesLayoutWrite("saving the layout and controllers")) return false;
 
     // A real save never overwrites a file someone else changed unless the
     // user chose to; the edits stay pending and the next explicit save asks.

@@ -48,9 +48,14 @@ public:
     // To every connected peer but this one.
     virtual void Broadcast(const Message& m) = 0;
     // A file (snapshot, media) sent out of band; arrives through onBlob.
+    // The transport is done with `path` when this returns (it has sent or
+    // copied / cloned it), so the caller may delete or change it at once.
+    // Blob ids are the sender's own; a blob and the message that names it
+    // may arrive in either order.
     virtual void SendBlob(PeerId to, BlobId id, const std::string& path) = 0;
 
-    // All three are called on the main thread.
+    // All three are called on the main thread. The file onBlob hands over
+    // is only valid during the call: move it away to keep it.
     std::function<void(PeerId from, const Message& m)> onMessage;
     std::function<void(PeerId peer, PeerEvent e)> onPeer;
     std::function<void(PeerId from, BlobId id, const std::string& path)> onBlob;
@@ -119,6 +124,15 @@ public:
     std::function<void(PeerId from, PeerId to, std::string& frame)> tamper;
 
     LoopbackOptions& Options() { return _opts; }
+    // Blobs in flight are copies kept here (made when sent, deleted after
+    // delivery), as a real transport would hand over its own copy.
+    const std::string& BlobFolder();
+    size_t BlobsDelivered() const { return _blobsDelivered; }
+    // Blobs given to SendBlob by `from` (delivered or not).
+    size_t BlobsSent(PeerId from) const {
+        auto it = _blobsSent.find(from);
+        return it == _blobsSent.end() ? 0 : it->second;
+    }
     size_t Delivered() const { return _delivered; }
     size_t Dropped() const { return _dropped; }
 
@@ -150,6 +164,11 @@ private:
     std::map<PeerId, bool> _connected;
     size_t _delivered = 0;
     size_t _dropped = 0;
+    size_t _blobsDelivered = 0;
+    std::map<PeerId, size_t> _blobsSent;
+    std::map<std::pair<PeerId, PeerId>, uint64_t> _blobLinkFree; // when the link's last blob is through
+    std::string _blobFolder;
+    uint64_t _blobCopies = 0;
 };
 
 } // namespace Collab

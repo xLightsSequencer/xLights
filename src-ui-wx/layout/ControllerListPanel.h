@@ -86,6 +86,7 @@ private:
     void ActivateSelectedControllers(const std::string& active);
     void UnlinkSelectedControllers();
     bool NetworkChangesAllowed() const;
+    wxString NetworkChangesBlockedReason() const;
     void OnControllerFilterTextChanged(wxCommandEvent& event);
     void OnControllerFilterCancelBtn(wxCommandEvent& event);
     bool ControllerMatchesFilter(const Controller* controller) const;

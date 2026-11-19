@@ -1271,6 +1271,7 @@ struct LayoutEditorView: View {
                                     Label("Delete", systemImage: "trash")
                                 }
                                 .tint(.red)
+                                .disabled(viewModel.isLayoutLocked)
                             }
                     }
                 } header: {
@@ -1283,6 +1284,7 @@ struct LayoutEditorView: View {
                             Image(systemName: "plus.circle.fill")
                         }
                         .buttonStyle(.plain)
+                        .disabled(viewModel.isLayoutLocked)
                         .accessibilityLabel("New group")
                     }
                 }
@@ -1299,6 +1301,7 @@ struct LayoutEditorView: View {
                             newGroupSheetVisible = true
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(viewModel.isLayoutLocked)
                     }
                 } else if filteredGroupNames.isEmpty {
                     ContentUnavailableView.search(text: groupFilter)
@@ -1392,13 +1395,13 @@ struct LayoutEditorView: View {
 
     /// Desktop's `LayoutPanel::UpdateAddObjectButton()`: view objects
     /// live only in the Default preview, which is the 3D one.
-    private var canAddViewObject: Bool { settings.is3D && activeLayoutGroup == "Default" }
+    private var canAddViewObject: Bool { settings.is3D && activeLayoutGroup == "Default" && !viewModel.isLayoutLocked }
 
     /// Desktop's `ControllerListPanel::NetworkChangesAllowed()` — no
     /// controller add/delete/reorder/edit/upload while the show is
     /// driving lights. The show-folder half of desktop's predicate is
     /// implied here: the Layout Editor can't open without one.
-    private var networkChangesAllowed: Bool { !viewModel.isOutputting }
+    private var networkChangesAllowed: Bool { !viewModel.isOutputting && !viewModel.isLayoutLocked }
 
     @ViewBuilder
     private var controllersList: some View {
@@ -2708,7 +2711,10 @@ struct LayoutEditorView: View {
             propertyPaneHeader
             Divider()
             ScrollView {
+                // The controllers pane handles the lock through
+                // networkChangesAllowed so ping / open-web-UI still work.
                 propertyPaneBody
+                    .disabled(viewModel.isLayoutLocked && sidebarTab != .controllers)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
@@ -2728,6 +2734,13 @@ struct LayoutEditorView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
             Spacer()
+            if viewModel.isLayoutLocked {
+                Label(viewModel.layoutLockReason, systemImage: "lock.fill")
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+                    .help(viewModel.layoutLockReason)
+            }
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
@@ -3342,7 +3355,7 @@ struct LayoutEditorView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .disabled(!canUndo)
+                    .disabled(!canUndo || viewModel.isLayoutLocked)
 
                     Button {
                         showingSaveConfirm = true
@@ -3360,7 +3373,15 @@ struct LayoutEditorView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .disabled(!hasUnsavedChanges)
+                    .disabled(!hasUnsavedChanges || viewModel.isLayoutLocked)
+
+                    if viewModel.isLayoutLocked {
+                        Label(viewModel.layoutLockReason, systemImage: "lock.fill")
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(.regularMaterial, in: Capsule())
+                    }
 
                     Spacer()
                 }
@@ -3378,7 +3399,7 @@ struct LayoutEditorView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .disabled(!viewModel.isShowFolderLoaded || availableModelTypes.isEmpty)
+                .disabled(!viewModel.isShowFolderLoaded || availableModelTypes.isEmpty || viewModel.isLayoutLocked)
 
                 // J-4 (import) — Import .xmodel. Opens the iPadOS
                 // file picker (iCloud Drive, Files, AirDrop receive
@@ -3393,7 +3414,7 @@ struct LayoutEditorView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .disabled(!viewModel.isShowFolderLoaded)
+                .disabled(!viewModel.isShowFolderLoaded || viewModel.isLayoutLocked)
 
                 // Cross-show import — pull models, groups and
                 // viewpoints out of another show's rgbeffects file
@@ -3406,7 +3427,7 @@ struct LayoutEditorView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .disabled(!viewModel.isShowFolderLoaded)
+                .disabled(!viewModel.isShowFolderLoaded || viewModel.isLayoutLocked)
 
                 // J-4 (download) — Download from vendor catalog.
                 // Sheet fetches xlights.org's vendor list +
@@ -3587,6 +3608,7 @@ struct LayoutEditorView: View {
             // since the inline bar's per-model actions don't make
             // sense across a set).
             if viewModel.layoutEditorSelection.count < 2,
+               !viewModel.isLayoutLocked,
                let selected = viewModel.layoutEditorSelectedModel,
                !selected.isEmpty {
                 InlineModelActionBar(modelName: selected,
@@ -3616,7 +3638,7 @@ struct LayoutEditorView: View {
             // Distribute ▾, Match Size ▾, and a Clear action.
             // Top-centered like the creation banner so it doesn't
             // fight the bottom tool toolbar.
-            if viewModel.layoutEditorSelection.count >= 2 {
+            if viewModel.layoutEditorSelection.count >= 2, !viewModel.isLayoutLocked {
                 VStack {
                     MultiSelectActionBar(
                         selection: viewModel.layoutEditorSelection,

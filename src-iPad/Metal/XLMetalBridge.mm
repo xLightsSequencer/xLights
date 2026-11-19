@@ -641,6 +641,7 @@ void TranslateModelSetPeers(iPadRenderContext* rctx,
 
 - (BOOL)saveCurrentViewAs:(NSString*)name
               forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !_preview || !name || name.length == 0) return NO;
     // "Default" is a reserved virtual entry — don't let a user save
@@ -657,6 +658,7 @@ void TranslateModelSetPeers(iPadRenderContext* rctx,
 
 - (BOOL)deleteViewpointNamed:(NSString*)name
                  forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !_preview || !name) return NO;
     if ([name isEqualToString:@"Default"]) return NO;  // can't delete virtual
@@ -1074,6 +1076,7 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
 - (NSInteger)pickHandleAtScreenPoint:(CGPoint)point
                             viewSize:(CGSize)viewSize
                          forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return -1;
     if (!_preview || !doc) return -1;
     if (_selectedModelName.empty()) return -1;
     iPadRenderContext* rctx = ContextFromDoc(doc);
@@ -1185,6 +1188,7 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
 - (BOOL)handleCenterHandleTapAtScreenPoint:(CGPoint)point
                                   viewSize:(CGSize)viewSize
                                forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_preview || !doc) return NO;
     if (!_preview->Is3D()) return NO;
     if (_selectedModelName.empty()) return NO;
@@ -1304,6 +1308,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
             toLeader:(NSString*)leader
                   by:(NSString*)edge
          forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || names.count == 0 || edge.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -1366,6 +1371,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 - (BOOL)distributeModels:(NSArray<NSString*>*)names
                      axis:(NSString*)axis
               forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || names.count < 3 || axis.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -1446,6 +1452,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
                   toLeader:(NSString*)leader
                  dimension:(NSString*)dim
                forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || names.count == 0 || leader.length == 0 || dim.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -1486,6 +1493,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 - (BOOL)flipModels:(NSArray<NSString*>*)names
               axis:(NSString*)axis
        forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || names.count == 0 || axis.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !rctx->HasModelManager()) return NO;
@@ -1514,6 +1522,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 
 - (BOOL)swapStartEndForModels:(NSArray<NSString*>*)names
                   forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || names.count == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !rctx->HasModelManager()) return NO;
@@ -1537,6 +1546,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
                 axis:(NSString*)axis
              degrees:(double)degrees
          forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || names.count == 0 || axis.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !rctx->HasModelManager()) return NO;
@@ -1575,6 +1585,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
           keepSizePosition:(BOOL)keepSizePosition
                  groupMode:(NSInteger)groupMode
                forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return 0;
     if (!doc || targets.count == 0 || source.length == 0) return 0;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !rctx->HasModelManager()) return 0;
@@ -1688,6 +1699,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 
 - (NSArray<NSString*>*)duplicateModels:(NSArray<NSString*>*)names
                            forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return @[];
     NSMutableArray<NSString*>* out = [NSMutableArray array];
     if (!doc || names.count == 0) return out;
     iPadRenderContext* rctx = ContextFromDoc(doc);
@@ -1763,6 +1775,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 
 - (NSArray<NSString*>*)pasteModelsFromString:(NSString*)xml
                                  forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return @[];
     NSMutableArray<NSString*>* out = [NSMutableArray array];
     if (!doc || xml.length == 0) return out;
     iPadRenderContext* rctx = ContextFromDoc(doc);
@@ -1887,6 +1900,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
    toScreenPoint:(CGPoint)point
         viewSize:(CGSize)viewSize
      forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_preview || !doc) return NO;
     if (iPadRenderContext* abortCtx = ContextFromDoc(doc)) abortCtx->AbortRender(5000);
 
@@ -2031,6 +2045,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 - (NSInteger)pickViewObjectHandleAtScreenPoint:(CGPoint)point
                                        viewSize:(CGSize)viewSize
                                     forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return -1;
     if (!_preview || !doc) return -1;
     if (_selectedViewObjectName.empty()) return -1;
     if (_selectedViewObjectName == "2D Background") return -1;
@@ -2097,6 +2112,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
                      dY:(CGFloat)dy
                viewSize:(CGSize)viewSize
             forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_preview || !doc || !name || name.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !rctx->HasViewObjectManager()) return NO;
@@ -2158,6 +2174,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
                      delta:(float)delta
         brushRadiusPoints:(CGFloat)brushRadiusPoints
                forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_preview || !doc || !terrainName || terrainName.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !rctx->HasViewObjectManager()) return NO;
@@ -2297,6 +2314,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
               dY:(CGFloat)dy
         viewSize:(CGSize)viewSize
      forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_preview || !doc || !name || name.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -2372,6 +2390,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
                    atScreenPoint:(CGPoint)point
                         viewSize:(CGSize)viewSize
                      forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_preview || !doc || !name || name.length == 0) return NO;
     if (!_preview->Is3D()) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
@@ -2442,6 +2461,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 - (BOOL)dragBody3DToScreenPoint:(CGPoint)point
                         viewSize:(CGSize)viewSize
                      forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_bodyDrag3DActive || !_preview || !doc) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -2643,6 +2663,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
                            atScreenPoint:(CGPoint)point
                                 viewSize:(CGSize)viewSize
                              forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return nil;
     if (!_preview || !doc || !type || type.length == 0) return nil;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return nil;
@@ -2812,6 +2833,7 @@ public:
                                           viewSize:(CGSize)viewSize
                                  targetLayoutGroup:(nullable NSString*)targetLayoutGroup
                                        forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return nil;
     _forcedGdtfMode = gdtfMode ? std::string(gdtfMode.UTF8String) : std::string();
     NSArray<NSString*>* result = [self importXmodelFromPath:path
                                               atScreenPoint:point
@@ -2827,6 +2849,7 @@ public:
                                              viewSize:(CGSize)viewSize
                                     targetLayoutGroup:(nullable NSString*)targetLayoutGroup
                                           forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return nil;
     if (!_preview || !doc || !path || path.length == 0) return nil;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return nil;
@@ -3033,6 +3056,7 @@ public:
                   atScreenPoint:(CGPoint)point
                        viewSize:(CGSize)viewSize
                     forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_preview || !doc || !name || name.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -3225,6 +3249,7 @@ public:
 
 
 - (BOOL)beginPinchScaleForModel:(NSString*)name forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || !name || name.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -3239,6 +3264,7 @@ public:
 }
 
 - (BOOL)applyPinchScaleFactor:(CGFloat)factor forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_pinchScaleActive || !doc || _pinchScaleModelName.empty()) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -3273,6 +3299,7 @@ public:
 }
 
 - (BOOL)beginTwistRotateForModel:(NSString*)name forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || !name || name.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -3287,6 +3314,7 @@ public:
 }
 
 - (BOOL)applyTwistRotationRadians:(CGFloat)radians forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_twistRotateActive || !doc || _twistRotateModelName.empty()) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return NO;
@@ -3334,6 +3362,7 @@ public:
                         atScreenPoint:(CGPoint)point
                              viewSize:(CGSize)viewSize
                           forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!_preview || !doc || !name || name.length == 0) return NO;
     if (!_preview->Is3D()) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
@@ -3384,6 +3413,7 @@ public:
 
 - (BOOL)beginPinchScaleForViewObject:(NSString*)name
                            forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || !name || name.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !rctx->HasViewObjectManager()) return NO;
@@ -3400,6 +3430,7 @@ public:
 
 - (BOOL)beginTwistRotateForViewObject:(NSString*)name
                            forDocument:(XLSequenceDocument*)doc {
+    if ([doc isLayoutLocked]) return NO;
     if (!doc || !name || name.length == 0) return NO;
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !rctx->HasViewObjectManager()) return NO;

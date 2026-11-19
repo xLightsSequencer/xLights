@@ -513,6 +513,13 @@ struct FolderConfigView: View {
     }
 
     private func performUpdateFromBase() {
+        if viewModel.isLayoutLocked {
+            updateResult = BaseDirUpdateResult(
+                success: false,
+                title: "Update Failed",
+                message: viewModel.layoutLockReason)
+            return
+        }
         // Flush pending edits before the merge so Update Now operates against the current path, not the previously-saved one.
         commitBaseShowDirectoryEdits()
 

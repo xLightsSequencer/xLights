@@ -590,6 +590,9 @@ std::string OutputManager::SaveToString() {
 }
 
 bool OutputManager::Save() {
+    if (LayoutLock::Refuses(_layoutLock, "saving the controllers")) {
+        return false;
+    }
     if (ShowFileGuard::Instance().SaveFile(_filename, SaveToString())) {
         _dirty = false;
     }
@@ -752,6 +755,9 @@ bool OutputManager::HoldsController(const Controller* controller) const {
 }
 
 void OutputManager::DeleteController(const std::string& controllerName) {
+    if (LayoutLock::Refuses(_layoutLock, "deleting a controller")) {
+        return;
+    }
     ip_utils::waitForAllToResolve();
     for (auto it = begin(_controllers); it != end(_controllers); ++it) {
         if ((*it)->GetName() == controllerName) {
@@ -777,6 +783,9 @@ void OutputManager::DeleteAllControllers() {
 }
 
 void OutputManager::MoveController(Controller* controller, int toControllerNumber) {
+    if (LayoutLock::Refuses(_layoutLock, "moving a controller")) {
+        return;
+    }
 
     std::list<Controller*> res;
     int i = 1;

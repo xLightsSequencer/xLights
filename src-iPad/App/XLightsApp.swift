@@ -68,6 +68,7 @@ struct XLightsApp: App {
             vm.purgeDownloadCache()
         }
         vm.startMemoryMonitoring()
+        vm.startLayoutLockMonitoring()
         _viewModel = State(initialValue: vm)
         LaunchTiming.mark("app-init-done")
         // restorePersistedShowFolder is deliberately NOT called here.

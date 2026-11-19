@@ -385,6 +385,9 @@ void ModelManager::ClaimObjectIdsInFileOrder(pugi::xml_node parent, const char* 
 
 bool ModelManager::Rename(const std::string& oldName, const std::string& newName)
 {
+    if (LayoutLock::Refuses(_layoutLock, "renaming a model")) {
+        return false;
+    }
     auto on = Trim(oldName);
     auto nn = Trim(newName);
     Model* model = GetModel(on);
@@ -429,6 +432,9 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
 
 bool ModelManager::RenameSubModel(const std::string& oldName, const std::string& newName)
 {
+    if (LayoutLock::Refuses(_layoutLock, "renaming a submodel")) {
+        return false;
+    }
     bool changed = false;
 
     auto on = Trim(oldName);
@@ -2358,6 +2364,9 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
 
 bool ModelManager::Delete(const std::string& name, bool askAboutEffects)
 {
+    if (LayoutLock::Refuses(_layoutLock, "deleting a model")) {
+        return false;
+    }
     DrainParkedModels();
 
     // some layouts end up with illegal names

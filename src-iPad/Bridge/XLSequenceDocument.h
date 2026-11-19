@@ -12,6 +12,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+// Posted (main queue) when the layout lock turns on or off or changes its reason.
+extern NSString* const XLLayoutLockChangedNotification;
+
 // FPP Connect upload progress callback. Single protocol used by both
 // the per-FPP config / finalize phases (where there's only one
 // target) and the parallel multi-target sequence upload (where
@@ -2310,6 +2313,18 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
 - (BOOL)setPerTypeProperty:(NSString*)key
                    onModel:(NSString*)modelName
                      value:(id)value;
+
+// Collaboration-session layout lock (xLightsShowContext::SetCollaborationLock).
+// While it is on, the layout, controllers and sequence settings are
+// read-only: the layout/controller mutators here and in XLMetalBridge return
+// NO / nil, and the layout and controller files are not written. Every change
+// posts XLLayoutLockChangedNotification on the main queue.
+- (BOOL)isLayoutLocked;
+// Empty when not locked.
+- (NSString*)layoutLockReason;
+// `reason` nil or empty: the default "Locked during collaboration session".
+- (void)setCollaborationLock:(BOOL)locked reason:(nullable NSString*)reason
+    NS_SWIFT_NAME(setCollaborationLock(_:reason:));
 
 // YES iff at least one layout-property edit is staged in memory
 // and not yet persisted. The Layout Editor uses this to gate a

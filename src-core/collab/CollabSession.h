@@ -38,6 +38,17 @@
 // - Every commit carries a hash of the host's document; a client whose
 //   document hashes differently asks for a fresh snapshot.
 // - If the host goes away the session ends; clients keep their copy.
+// - Joining: the host sends a manifest of the show files the session needs
+//   (CollabManifest.h). A joiner whose files all match opens the session
+//   against its own show folder. Otherwise, with SessionOptions::fetchFiles,
+//   it fetches what differs and opens against a copy of the host's show in
+//   its session folder; without it, a layout or audio difference refuses the
+//   join (with a readable account of the difference) and media differences
+//   are only reported. Then the host sends the document as a blob.
+// - Media a participant adds by file reference during the session reaches
+//   everyone: the author sends the file to the host, which keeps a copy in
+//   its session folder and passes it on. No participant ever writes into a
+//   show folder.
 //
 // Nothing here touches per-user state (selection, collapsed / hidden rows,
 // views): commands don't carry it, and presence travels separately.
@@ -58,6 +69,7 @@
 
 #include "CollabCommandInfo.h"
 #include "CollabDocHash.h"
+#include "CollabManifest.h"
 #include "CollabMessages.h"
 #include "CollabTransport.h"
 #include "render/SequenceCommands.h"
@@ -78,6 +90,19 @@ public:
     // Client: replace the open sequence with this .xsq text. Sequence()
     // returns the new one afterwards.
     virtual bool LoadXsq(const std::string& xsq) = 0;
+
+    // The show folder the document's file references resolve against. Empty
+    // when the document can't say: the session then checks no files.
+    virtual std::string ShowFolder() { return {}; }
+    // Host: the sequence's audio file and alternate tracks.
+    virtual std::vector<std::string> AudioFiles() { return {}; }
+    // Client: open later snapshots (LoadXsq) against `folder`, a copy of the
+    // host's show the session made in its session folder, instead of the
+    // user's own show folder. False when the document can't.
+    virtual bool UseShowFolder(const std::string& /*folder*/) { return false; }
+    // Also look for media in `folder` (files sent during the session), from
+    // now on and across LoadXsq.
+    virtual void AddMediaFolder(const std::string& /*folder*/) {}
 };
 
 struct SessionOptions {
@@ -100,6 +125,33 @@ struct SessionOptions {
     bool verifyHashes = false;
     // How many recent commits a drift report lists.
     size_t driftLogCommands = 8;
+
+    // Where the session may write: the copy of the host's show a joiner opens
+    // against, files sent during the session, snapshots and blobs on their
+    // way. Inside the app's own container, never a show folder. Empty: a
+    // private temporary folder. What the session wrote there is deleted when
+    // the session object goes, unless KeepSessionFiles was called.
+    std::string sessionFolder;
+    // Client: fetch the files that don't match the host's and open the
+    // session against a copy of the host's show (see the top of this file).
+    bool fetchFiles = false;
+    uint64_t fileRetryMs = 10000;       // ask again for files that haven't come
+    uint64_t maxFileBytes = 4ull << 30; // largest file accepted from another participant
+};
+
+// What a client found when it compared its show folder with the host's.
+struct JoinReport {
+    // The folder the session's sequence opens against: the client's own show
+    // folder, or the copy of the host's show in the session folder.
+    std::string showFolder;
+    bool sessionCopy = false;
+    std::vector<std::string> fetched;        // files copied from the host
+    std::vector<std::string> missingMedia;   // media this device lacks: those effects render blank
+    std::vector<std::string> differentMedia; // media that differs: those effects render differently
+    // How this device's layout differs from the host's, when it does.
+    std::string layoutDifference;
+    // Why the join was refused; empty when it went ahead.
+    std::string refusal;
 };
 
 // Deliberate faults, for tests that prove the checks catch them. Never set
@@ -126,12 +178,21 @@ struct SessionEvents {
     // One of this participant's proposals (or undo / redo) was not committed.
     // `by` is who changed the target, when known.
     std::function<void(uint64_t clientSeq, EditKind kind, const std::string& reason, ParticipantId by)> onReject;
+    // Client: an edit already applied locally was taken back out (the host
+    // rejected it): `applied` is what the document just had done to it and
+    // `inverse` undoes that, as for onCommitApplied. Comes before onReject.
+    std::function<void(const SequenceCommand& applied, const SequenceCommand& inverse)> onRolledBack;
     std::function<void(const std::string& reason)> onEnded;
     // The document was replaced by a fresh snapshot (client).
     std::function<void()> onResync;
     std::function<void(ParticipantId who, const PresenceInfo&)> onPresence;
     std::function<void(ParticipantId who, const std::string& name, bool joined)> onParticipant;
     std::function<void(const std::string& line)> onLog;
+    // Client: the show folder check is done (refused or going ahead).
+    std::function<void(const JoinReport&)> onJoinChecked;
+    // A file another participant added by reference arrived and is now in
+    // `local` (effects using it should re-render).
+    std::function<void(const std::string& reference, const std::string& local)> onFileArrived;
 };
 
 struct SubmitResult {
@@ -164,7 +225,26 @@ public:
 
     SessionFaults faults;
     const std::string& EndReason() const { return _endReason; }
+    // A readable account of why, when there is one (a refused join).
+    const std::string& EndText() const { return _endText; }
     size_t HashVerifyFailures() const { return _hashVerifyFailures; }
+
+    // Sends the file `reference` names (as the document stores it, resolved
+    // against this participant's show folder) to the other participants:
+    // a client sends it to the host, which keeps a copy and passes it on.
+    // For media added by file reference; Submit does it for PutMedia file
+    // references. False when the file can't be found or read.
+    bool ShareFile(const std::string& reference);
+    // The session folder (created on first use).
+    const std::string& SessionFolder();
+    // Where session copies of show files live: SessionFolder()/show.
+    std::string SessionShowFolder();
+    // Keep what the session put in the session folder's show copy when this
+    // object goes ("Save a copy of this show"); by default it is deleted.
+    void KeepSessionFiles(bool keep) { _keepFiles = keep; }
+    // Files other participants sent during the session: reference -> the
+    // copy in the session folder.
+    const std::map<std::string, std::string>& ReceivedFiles() const { return _received; }
 
 protected:
     struct UndoEntry {
@@ -179,6 +259,26 @@ protected:
     void NoteRecent(const CommitInfo& c, const nlohmann::json& cmd);
     std::string RecentCommands() const;
 
+    // Blobs and the messages naming them (File, Snapshot) come in either
+    // order; OnBlobReady runs once both are here (path empty: the transfer
+    // failed, or a File that says why nothing is coming). It owns the file.
+    void OnBlobArrived(PeerId from, BlobId id, const std::string& path);
+    void OnBlobInfo(PeerId from, const Message& m);
+    virtual void OnBlobReady(PeerId from, const Message& info, const std::string& path) = 0;
+    BlobId NextBlob() { return ++_nextBlob; }
+    BlobId SendFile(PeerId to, const FileEntry& e, const std::string& local);
+    void SendFileUnavailable(PeerId to, const std::string& path, const std::string& reason);
+    // The folder this participant's document resolves files against now.
+    virtual std::string CurrentShowFolder() { return _doc.ShowFolder(); }
+    virtual void SendShared(const FileEntry& e, const std::string& local) = 0;
+    void ShareCommandFiles(const SequenceCommand& cmd);
+    enum class Stored { Stored, AlreadyHad, Shadowed, Bad };
+    // A file sent during the session: check it, put it in the session show
+    // copy unless this participant already has it, make the document see it.
+    Stored StoreReceivedFile(const FileEntry& e, const std::string& path, bool docLoaded, bool addMediaFolder, std::string& local);
+    void EnsureMediaFolder();
+    std::string NewSessionFile(const std::string& sub, const std::string& ext = "");
+
     ICollabTransport& _transport;
     ICollabDocument& _doc;
     SessionOptions _opts;
@@ -190,8 +290,23 @@ protected:
     std::vector<UndoEntry> _redo;
     DocHasher _hasher;
     std::string _endReason;
+    std::string _endText;
     size_t _hashVerifyFailures = 0;
     std::deque<std::string> _recent;
+    HashCache _hashes;
+    std::map<std::string, std::string> _received;
+    bool _mediaFolderAdded = false;
+
+private:
+    std::string _sessionFolder;
+    bool _ownsSessionFolder = false;
+    bool _keepFiles = false;
+    BlobId _nextBlob = 0;
+    uint64_t _sessionFiles = 0;
+    std::map<std::pair<PeerId, BlobId>, std::string> _blobFiles;
+    std::map<std::pair<PeerId, BlobId>, Message> _blobInfos;
+    std::deque<std::pair<PeerId, BlobId>> _blobFileOrder;
+    std::deque<std::pair<PeerId, BlobId>> _blobInfoOrder;
 };
 
 class CollabHost : public CollabParticipant {
@@ -224,6 +339,8 @@ private:
         PeerId peer = kNoPeer;
         ParticipantId id = kNoParticipant;
         std::string name;
+        std::vector<FileEntry> manifest;
+        std::map<std::string, std::string> files; // manifest path -> host's file
         uint64_t nextSeq = 1;
         std::map<uint64_t, Message> early; // proposals ahead of nextSeq
         std::map<uint64_t, Message> rejects; // recent rejects, by clientSeq, for resending
@@ -255,6 +372,10 @@ private:
     void ProcessProposal(Client& c, const Message& m);
     Outcome Process(ParticipantId author, uint64_t clientSeq, Rev baseRev, EditKind kind, Rev undoOf, const nlohmann::json& cmd);
     void SendSnapshot(Client& c);
+    void SendManifest(Client& c, bool rebuild);
+    void OnNeedFiles(Client& c, const Message& m);
+    void OnBlobReady(PeerId from, const Message& info, const std::string& path) override;
+    void SendShared(const FileEntry& e, const std::string& local) override;
     void SendCommitsFrom(Client& c, Rev from);
     void DropClient(PeerId peer, const std::string& why);
     void TrimLog();
@@ -275,7 +396,8 @@ private:
 
 class CollabClient : public CollabParticipant {
 public:
-    enum class State { Idle, Joining, AwaitingSnapshot, Active, Ended };
+    // Checking: comparing show files with the host's (and fetching them).
+    enum class State { Idle, Joining, Checking, AwaitingSnapshot, Active, Ended };
 
     CollabClient(ICollabTransport& transport, ICollabDocument& doc, SessionOptions opts = {}, SessionEvents events = {});
     ~CollabClient() override;
@@ -296,6 +418,10 @@ public:
     size_t ResyncCount() const { return _resyncs; }
     // Asks the host for a fresh snapshot (as on drift).
     void RequestResync(const std::string& why);
+    const JoinReport& GetJoinReport() const { return _report; }
+    // The manifest check: every file the host listed and how this device's
+    // show folder compares.
+    const std::vector<FileCheck>& FileChecks() const { return _checks; }
 
 private:
     struct Pending {
@@ -314,7 +440,16 @@ private:
     SubmitResult SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKind kind, Rev undoOf) override;
     void OnMessage(PeerId from, const Message& m);
     void OnPeer(PeerId peer, PeerEvent e);
-    void OnSnapshot(const Message& m);
+    void OnSnapshot(const Message& m, const std::string& xsq);
+    void OnManifest(const Message& m);
+    void RequestFiles();
+    void OnJoinFile(const Message& info, const std::string& path);
+    void FinishCheck();
+    void RefuseJoin(const std::string& reason, const std::string& text);
+    void AskForSnapshot();
+    void OnBlobReady(PeerId from, const Message& info, const std::string& path) override;
+    void SendShared(const FileEntry& e, const std::string& local) override;
+    std::string CurrentShowFolder() override;
     void OnCommit(const Message& m);
     void OnReject(const Message& m);
     void DrainCommits();
@@ -340,7 +475,20 @@ private:
     uint64_t _lastHello = 0;
     uint64_t _lastSnapshotRequest = 0;
     uint64_t _lastResendRequest = 0;
+    uint64_t _lastBlobProgress = 0;
+    uint64_t _lastTick = 0;
     size_t _resyncs = 0;
+
+    // Joining
+    bool _haveManifest = false;
+    std::vector<FileCheck> _checks;
+    std::map<std::string, FileEntry> _wanted;     // path -> still to come from the host
+    std::map<std::string, std::string> _fetched;  // path -> where it was put
+    std::vector<std::string> _unavailable;        // paths the host couldn't send intact
+    bool _compareOnly = false;                    // fetching layout files only to describe the difference
+    bool _usingCopy = false;                      // opened against the session show copy
+    uint64_t _lastFileRequest = 0;
+    JoinReport _report;
 };
 
 } // namespace Collab

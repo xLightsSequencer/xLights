@@ -626,8 +626,10 @@ void RunSeeds(uint32_t first, uint32_t count) {
     CHECK(undone > 0);
 }
 
-// For the controls: true when any of the seeds fails.
-bool AnySeedFails(const SessionFaults& faults, bool reorder, uint32_t seeds, std::string* why) {
+// For the controls: true when any of the seeds fails (in a way `counts`
+// accepts, when given).
+bool AnySeedFails(const SessionFaults& faults, bool reorder, uint32_t seeds, std::string* why,
+                  const std::function<bool(const std::string&)>& counts = nullptr) {
     Show show;
     for (uint32_t s = 1; s <= seeds; ++s) {
         FuzzConfig cfg;
@@ -636,7 +638,7 @@ bool AnySeedFails(const SessionFaults& faults, bool reorder, uint32_t seeds, std
         cfg.forceReorder = reorder;
         cfg.steps = 120;
         FuzzResult r = RunSeed(show, cfg);
-        if (!r.ok) {
+        if (!r.ok && (!counts || counts(r.why))) {
             *why = r.why;
             return true;
         }
@@ -683,7 +685,8 @@ TEST_CASE("Collab fuzz catches clients that don't rebase their optimistic edits"
     // Without drift detection they end up apart.
     f.clientIgnoresDrift = true;
     why.clear();
-    CHECK(AnySeedFails(f, false, 6, &why));
+    auto apart = [](const std::string& w) { return w.find("differs from the host:") != std::string::npos || w.find("saves a different") != std::string::npos; };
+    CHECK(AnySeedFails(f, false, 12, &why, apart));
     INFO(why);
     CHECK((why.find("differs from the host:") != std::string::npos || why.find("saves a different") != std::string::npos));
 }

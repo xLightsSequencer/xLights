@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include "../utils/LayoutLock.h"
 #include "../utils/LayoutRenameLog.h"
 
 class Output;
@@ -54,6 +55,7 @@ class OutputManager
     // moving the show between machines (e.g. desktop ↔ iPad).
     std::string _showDir = "";
     LayoutRenameLog _renameLog;
+    const LayoutLock* _layoutLock = nullptr;
     #pragma endregion
 
     #pragma region Static Variables
@@ -150,6 +152,10 @@ public:
     std::list<Controller*> GetControllers() const { return _controllers; }
     std::list<ControllerEthernet*> GetControllers(const std::string& ip);
     std::list<ControllerEthernet*> GetControllers(const std::string& ip, const std::string hostname);
+    // While the layout lock is set, Save, DeleteController and MoveController
+    // refuse (AddController does not: its callers keep using the pointer).
+    void SetLayoutLock(const LayoutLock* lock) { _layoutLock = lock; }
+    bool IsLayoutLocked() const { return _layoutLock != nullptr && _layoutLock->IsLocked(); }
     void AddController(Controller* controller, int pos = -1);
     void DeleteController(const std::string& controllerName);
     void DeleteAllControllers();

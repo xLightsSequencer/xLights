@@ -40,8 +40,31 @@ std::vector<Message> SampleMessages() {
     m.rev = 3;
     m.docHash = 0xFEDCBA9876543210ull;
     m.clientSeq = 4;
-    m.xsq = "<xsequence/>";
+    m.blob = 77;
     m.uids = nlohmann::json::array({ 1, 2 });
+    out.push_back(m);
+    m = {};
+    m.type = MsgType::Manifest;
+    m.files = { { "xlights_rgbeffects.xml", FileRole::Layout, 1234, 0xFEDCBA9876543210ull },
+                { "Audio/song \xE2\x80\x94 mix.mp3", FileRole::Audio, 99, 1 },
+                { "/Users/someone/Pictures/a.png", FileRole::Media, 0, 0xFFFFFFFFFFFFFFFFull } };
+    out.push_back(m);
+    m = {};
+    m.type = MsgType::Manifest; // an empty show
+    out.push_back(m);
+    m = {};
+    m.type = MsgType::NeedFiles;
+    m.paths = { "Images/a.png", "xlights_networks.xml" };
+    out.push_back(m);
+    m = {};
+    m.type = MsgType::File;
+    m.blob = 5;
+    m.files = { { "Images/a.png", FileRole::Media, 10, 20 } };
+    out.push_back(m);
+    m = {};
+    m.type = MsgType::File;
+    m.files = { { "Images/b.png", FileRole::Media, 0, 0 } };
+    m.reason = Reason::NotInManifest;
     out.push_back(m);
     m = {};
     m.type = MsgType::NeedSnapshot;
@@ -114,6 +137,9 @@ TEST_CASE("Every collab message round-trips through its frame", "[collab][collab
         CHECK(EncodeMessage(*back) == frame);
         CHECK(back->type == m.type);
         CHECK(back->protocol == kProtocolVersion);
+        CHECK(back->files == m.files);
+        CHECK(back->paths == m.paths);
+        CHECK(back->blob == m.blob);
     }
 }
 
@@ -139,6 +165,39 @@ TEST_CASE("Malformed collab frames decode to nothing", "[collab][collab_proto]")
     CHECK(DecodeMessage("{\"v\":2,\"t\":\"Hello\",\"name\":\"x\"}").has_value());
     CHECK(DecodeMessage("{\"v\":2,\"t\":\"Hello\"}")->protocol == 2);
     CHECK_FALSE(DecodeMessage("{\"v\":2,\"t\":\"Commit\",\"rev\":1,\"cmd\":{}}"));
+    // Snapshots come as blobs; one without a blob, or with the old inline
+    // document, is malformed.
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Snapshot\",\"rev\":1,\"uids\":[]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Snapshot\",\"rev\":1,\"xsq\":\"<x/>\",\"uids\":[]}"));
+    CHECK(DecodeMessage("{\"v\":1,\"t\":\"Snapshot\",\"rev\":1,\"blob\":3,\"uids\":[]}").has_value());
+    // Manifest / NeedFiles / File.
+    const std::string file = "{\"path\":\"a.png\",\"role\":\"media\",\"size\":1,\"hash\":2}";
+    CHECK(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[" + file + "]}").has_value());
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\"}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":{}}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[1]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"a\",\"role\":\"video\",\"size\":1,\"hash\":2}]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"\",\"role\":\"media\",\"size\":1,\"hash\":2}]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"a\",\"role\":\"media\",\"size\":-1,\"hash\":2}]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"" + std::string(kMaxPathBytes + 1, 'a') + "\",\"role\":\"media\",\"size\":1,\"hash\":2}]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"Manifest\",\"files\":[{\"path\":\"a\\u0000b\",\"role\":\"media\",\"size\":1,\"hash\":2}]}"));
+    CHECK(DecodeMessage("{\"v\":1,\"t\":\"NeedFiles\",\"paths\":[\"a\"]}").has_value());
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"NeedFiles\"}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"NeedFiles\",\"paths\":[3]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"NeedFiles\",\"paths\":[\"\"]}"));
+    CHECK(DecodeMessage("{\"v\":1,\"t\":\"File\",\"blob\":4,\"files\":[" + file + "]}").has_value());
+    CHECK(DecodeMessage("{\"v\":1,\"t\":\"File\",\"reason\":\"unreadable\",\"files\":[" + file + "]}").has_value());
+    // A File names exactly one file, and has a blob or a reason, not both / neither.
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"File\",\"blob\":4,\"files\":[]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"File\",\"blob\":4,\"files\":[" + file + "," + file + "]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"File\",\"files\":[" + file + "]}"));
+    CHECK_FALSE(DecodeMessage("{\"v\":1,\"t\":\"File\",\"blob\":4,\"reason\":\"x\",\"files\":[" + file + "]}"));
+    // Oversized lists.
+    std::string many = "{\"v\":1,\"t\":\"NeedFiles\",\"paths\":[";
+    for (size_t i = 0; i <= kMaxManifestFiles; ++i) {
+        many += (i ? ",\"a\"" : "\"a\"");
+    }
+    CHECK_FALSE(DecodeMessage(many + "]}"));
 }
 
 TEST_CASE("Invalid UTF-8 in a message is replaced, not thrown", "[collab][collab_proto]") {

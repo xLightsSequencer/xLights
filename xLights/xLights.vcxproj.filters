@@ -76,6 +76,7 @@
     <ClCompile Include="..\src-core\utils\LayoutRecords.cpp" />
     <ClCompile Include="..\src-core\utils\LayoutRenameHints.cpp" />
     <ClCompile Include="..\src-core\utils\LayoutRenameLog.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutLock.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutGroup.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutPanel.cpp" />
@@ -810,6 +811,9 @@
       <Filter>collab</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabDocHash.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabManifest.cpp">
       <Filter>collab</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabMessages.cpp">
@@ -1747,6 +1751,7 @@
     <ClInclude Include="..\src-core\utils\LayoutRecords.h" />
     <ClInclude Include="..\src-core\utils\LayoutRenameHints.h" />
     <ClInclude Include="..\src-core\utils\LayoutRenameLog.h" />
+    <ClInclude Include="..\src-core\utils\LayoutLock.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
@@ -2484,6 +2489,9 @@
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabDocHash.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabManifest.h">
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabMessages.h">

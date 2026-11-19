@@ -664,6 +664,48 @@ TEST_CASE("Live merge: their controllers are reloaded, keeping controller edits 
     }
 }
 
+TEST_CASE("Live merge: while the layout is locked, layout and controller changes wait and presets come in", "[seq][showlivemerge][layoutlock]") {
+    OpenShow s;
+    const std::string theirs = TheirEdit(Read(s.rgb), [](HeadlessRenderContext& c) {
+        c.AllModels.GetModel("Line")->SetDescription("theirs");
+    });
+    s.dir.Write("xlights_rgbeffects.xml", theirs);
+    s.dir.Write("xlights_networks.xml", NetworksWith(NullController("Theirs", 64002)));
+    EffectPresetManager theirPresets;
+    theirPresets.LoadFromJson(nlohmann::json::parse(Read(s.presets)));
+    theirPresets.AddPreset(&theirPresets.GetRoot(), "Theirs", "E_X=1\tE_Y=2", "1", "x");
+    s.dir.Write("xlights_effectpresets.json", theirPresets.SaveToText());
+
+    s.ctx.SetCollaborationLock(true);
+    Incoming in = s.Prepare(false);
+    REQUIRE(in.CanApply());
+    REQUIRE(in.ChangedPaths().size() == 3);
+    auto applied = s.Apply(in);
+    CHECK_FALSE(applied.layoutApplied);
+    CHECK_FALSE(applied.controllersReloaded);
+    CHECK(applied.presetsReloaded);
+    CHECK(s.M("Line")->GetDescription() != "theirs");
+    CHECK(s.ctx._outputManager.GetController("Theirs") == nullptr);
+    CHECK(s.ctx._effectPresetManager.FindPresetByPath("Theirs") != nullptr);
+    // the held files keep their old base, so they are still pending
+    CHECK(s.guard.HasChangedOnDisk(s.rgb));
+    CHECK(s.guard.HasChangedOnDisk(s.nets));
+    CHECK_FALSE(s.guard.HasChangedOnDisk(s.presets));
+
+    // once the session is over they come in
+    s.ctx.SetCollaborationLock(false);
+    Incoming after = s.Prepare(false);
+    REQUIRE(after.CanApply());
+    CHECK(after.ChangedPaths().size() == 2);
+    auto later = s.Apply(after);
+    CHECK(later.layoutApplied);
+    CHECK(later.controllersReloaded);
+    CHECK(s.M("Line")->GetDescription() == "theirs");
+    CHECK(s.ctx._outputManager.GetController("Theirs") != nullptr);
+    CHECK_FALSE(s.guard.HasChangedOnDisk(s.rgb));
+    CHECK_FALSE(s.guard.HasChangedOnDisk(s.nets));
+}
+
 TEST_CASE("Live merge: their presets are reloaded", "[showlivemerge]") {
     OpenShow s("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xrgb><models/></xrgb>", false);
     EffectPresetManager theirs;

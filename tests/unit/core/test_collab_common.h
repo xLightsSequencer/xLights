@@ -26,7 +26,9 @@
 #include <map>
 #include <functional>
 #include <iterator>
+#include <list>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -100,7 +102,7 @@ public:
     // Opens `xsq` (the host's starting point).
     void Open(const std::string& xsq) {
         _ctx = std::make_unique<HeadlessRenderContext>();
-        REQUIRE(_ctx->LoadShowFolder(_show));
+        REQUIRE(_ctx->LoadShowFolder(_show, _mediaFolders));
         _seqFile = std::make_unique<SequenceFile>(xsq);
         auto doc = _seqFile->Open(_show, false, xsq);
         REQUIRE(doc);
@@ -121,7 +123,7 @@ public:
         _seqFile.reset();
         _ctx.reset();
         _ctx = std::make_unique<HeadlessRenderContext>();
-        if (!_ctx->LoadShowFolder(_show)) {
+        if (!_ctx->LoadShowFolder(_show, _mediaFolders)) {
             return false;
         }
         _seqFile = std::make_unique<SequenceFile>(p);
@@ -137,12 +139,51 @@ public:
     }
     std::string Save() { return SaveAs(_file + ".final.xsq"); }
 
+    std::string ShowFolder() override { return _show; }
+    std::vector<std::string> AudioFiles() override {
+        std::vector<std::string> out;
+        if (_seqFile) {
+            if (!_seqFile->GetMediaFile().empty()) {
+                out.push_back(_seqFile->GetMediaFile());
+            }
+            for (int i = 0; i < _seqFile->GetAltTrackCount(); ++i) {
+                out.push_back(_seqFile->GetAltTrack(i).path);
+            }
+        }
+        return out;
+    }
+    bool UseShowFolder(const std::string& folder) override {
+        if (!allowShowFolderChange) {
+            return false;
+        }
+        _show = folder;
+        InstallDirs();
+        return true;
+    }
+    void AddMediaFolder(const std::string& folder) override {
+        _mediaFolders.push_back(folder);
+        if (_ctx) {
+            _ctx->mediaDirectories = _mediaFolders;
+        }
+        InstallDirs();
+    }
+    // Each simulated device resolves files against its own folders; the
+    // FixFile state is process-wide, so it is switched with the device.
+    void InstallDirs() const {
+        FileUtils::SetFixFileShowDir(_show);
+        FileUtils::SetFixFileDirectories(_mediaFolders);
+    }
+    const std::list<std::string>& MediaFolders() const { return _mediaFolders; }
+    SequenceFile* File() { return _seqFile.get(); }
+
+    bool allowShowFolderChange = true;
     int loads = 0;
     std::string lastSnapshotParts; // DocHasher::Components when the last snapshot was taken
 
 private:
     std::string _show;
     std::string _file;
+    std::list<std::string> _mediaFolders;
     std::unique_ptr<HeadlessRenderContext> _ctx;
     std::unique_ptr<SequenceFile> _seqFile;
 };
@@ -195,31 +236,45 @@ public:
         net(netOpts), _show(show), _opts(opts) {
         _baseCounter = SeqIds::Counter().load() + 1000;
         net.deliveryWrapper = [this](Collab::PeerId to, const std::function<void()>& deliver) {
-            ActAs a(nodes[to - 1]->ids);
+            Scope a(*nodes[to - 1]);
             deliver();
         };
     }
     ~Sim() {
         // Sessions unhook from their transports before the network goes.
         for (auto& n : nodes) {
-            ActAs a(n->ids);
+            Scope a(*n);
             n->session.reset();
             n->doc.reset();
         }
     }
 
-    Node& AddHost() {
-        Node& n = NewNode();
-        n.doc->Open(_show.start);
-        n.session = std::make_unique<Collab::CollabHost>(*n.transport, *n.doc, _opts, Events(n));
-        ActAs a(n.ids);
+    // Acting as one device: its id allocator and its file folders.
+    struct Scope {
+        ActAs ids;
+        explicit Scope(Node& n) : ids(n.ids) {
+            if (n.doc) {
+                n.doc->InstallDirs();
+            }
+        }
+    };
+
+    // A host on `show` (the Sim's show when empty).
+    Node& AddHost(const std::string& show = "", std::optional<Collab::SessionOptions> opts = std::nullopt, const std::string& xsq = "") {
+        Node& n = NewNode(show);
+        Scope a(n);
+        n.doc->Open(xsq.empty() ? _show.start : xsq);
+        n.session = std::make_unique<Collab::CollabHost>(*n.transport, *n.doc, opts ? *opts : _opts, Events(n));
         n.Host().Start();
         return n;
     }
 
-    Node& AddClient(bool join = true) {
-        Node& n = NewNode();
-        n.session = std::make_unique<Collab::CollabClient>(*n.transport, *n.doc, _opts, Events(n));
+    Node& AddClient(bool join = true) { return AddClientOn("", std::nullopt, join); }
+
+    // A client whose own show folder is `show` (the Sim's show when empty).
+    Node& AddClientOn(const std::string& show, std::optional<Collab::SessionOptions> opts = std::nullopt, bool join = true) {
+        Node& n = NewNode(show);
+        n.session = std::make_unique<Collab::CollabClient>(*n.transport, *n.doc, opts ? *opts : _opts, Events(n));
         if (join) {
             Join(n);
         }
@@ -227,7 +282,7 @@ public:
     }
 
     void Join(Node& n) {
-        ActAs a(n.ids);
+        Scope a(n);
         n.session->Tick(net.Now());
         n.Client().Join(nodes[0]->transport->LocalPeer());
     }
@@ -236,7 +291,7 @@ public:
 
     void Tick() {
         for (auto& n : nodes) {
-            ActAs a(n->ids);
+            Scope a(*n);
             n->session->Tick(net.Now());
         }
     }
@@ -282,10 +337,10 @@ public:
         return Quiet();
     }
 
-    // Does `fn` as participant `n` (its id allocator installed).
+    // Does `fn` as participant `n` (its id allocator and folders installed).
     template<class F>
     auto As(Node& n, F&& fn) {
-        ActAs a(n.ids);
+        Scope a(n);
         return fn();
     }
 
@@ -294,10 +349,10 @@ public:
     std::function<void(Node&, const std::string&)> onLog;
 
 private:
-    Node& NewNode() {
+    Node& NewNode(const std::string& show) {
         auto n = std::make_unique<Node>();
         n->transport = &net.AddPeer();
-        n->doc = std::make_unique<Doc>(_show.path, _show.dir.File("peer" + std::to_string(nodes.size())));
+        n->doc = std::make_unique<Doc>(show.empty() ? _show.path : show, _show.dir.File("peer" + std::to_string(nodes.size())));
         // Every device starts counting from the same value, so ids only
         // stay apart through their prefixes.
         n->ids.counter = _baseCounter;

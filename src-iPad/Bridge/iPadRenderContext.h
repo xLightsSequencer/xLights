@@ -13,6 +13,7 @@
 // iPadRenderContext — RenderContext for loading, rendering, and displaying
 // sequences on iPad.  Includes RenderEngine for effect rendering.
 
+#include <functional>
 #include "render/RenderContext.h"
 #include "render/xLightsShowContext.h"
 #include "render/SequenceData.h"
@@ -192,6 +193,12 @@ public:
     TimingElement* AddTimingElement(const std::string& name,
                                     const std::string& subType = "") override;
     void SuspendAutoSave(bool) override {}
+    // Set by XLSequenceDocument to tell the SwiftUI layer the layout lock
+    // changed; runs on the thread that changed it.
+    std::function<void()> _layoutLockChanged;
+    void OnLayoutLockChanged() override {
+        if (_layoutLockChanged) _layoutLockChanged();
+    }
     // Opt-in app preference (default OFF = full-definition render). See the
     // .cpp — reads the `render.lowDefinition` UserDefaults key the SwiftUI
     // toggle writes. Defaulting off matches desktop and keeps final FSEQ output

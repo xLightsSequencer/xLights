@@ -25,8 +25,13 @@
 #include <wx/dir.h>
 #include <wx/listctrl.h>
 #include <wx/textdlg.h>
+#include <wx/grid.h>
+#include <wx/bookctrl.h>
+#include <wx/statbox.h>
+#include <wx/statbmp.h>
 
 #include <algorithm>
+#include <functional>
 #include <list>
 #include <sstream>
 
@@ -1697,8 +1702,39 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& even
     UpdateDataLayer();
 }
 
+void SeqSettingsDialog::SetReadOnly(const wxString& reason)
+{
+    _readOnly = true;
+    std::function<void(wxWindow*)> walk = [&](wxWindow* w) {
+        for (wxWindow* child : w->GetChildren()) {
+            if (child == Button_Close || child->IsTopLevel()) {
+                continue;
+            }
+            if (wxDynamicCast(child, wxBookCtrlBase) != nullptr || wxDynamicCast(child, wxStaticText) != nullptr ||
+                wxDynamicCast(child, wxStaticBox) != nullptr || wxDynamicCast(child, wxStaticBitmap) != nullptr) {
+                walk(child);
+                continue;
+            }
+            if (wxDynamicCast(child, wxControl) != nullptr || wxDynamicCast(child, wxGrid) != nullptr) {
+                child->Enable(false);
+                child->SetToolTip(reason);
+                continue;
+            }
+            walk(child);
+        }
+    };
+    walk(this);
+    Button_Close->SetLabel(_("Close"));
+    Button_Close->SetToolTip(reason);
+    SetTitle(GetTitle() + " - " + reason);
+}
+
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
+    if (_readOnly) {
+        EndModal(wxID_CANCEL);
+        return;
+    }
     if (UpdateSequenceTiming()) {
         if (Panel_SequenceFaces != nullptr) {
             Panel_SequenceFaces->ApplyPendingRenders();

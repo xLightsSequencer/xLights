@@ -12,6 +12,8 @@
 
 #include <string>
 
+#include "../utils/LayoutLock.h"
+
 class BaseObject;
 class OutputModelManager;
 class UICallbacks;
@@ -31,4 +33,12 @@ public:
     virtual BaseObject *GetObject(const std::string &name) const = 0;
     virtual UICallbacks* GetUICallbacks() const { return nullptr; }
     virtual OutputModelManager* GetOutputModelManager() const { return nullptr; }
+
+    // While the layout lock is set, the derived managers' Delete and Rename
+    // refuse. Adds are not refused here: their callers keep using the object.
+    void SetLayoutLock(const LayoutLock* lock) { _layoutLock = lock; }
+    bool IsLayoutLocked() const { return _layoutLock != nullptr && _layoutLock->IsLocked(); }
+
+protected:
+    const LayoutLock* _layoutLock = nullptr;
 };

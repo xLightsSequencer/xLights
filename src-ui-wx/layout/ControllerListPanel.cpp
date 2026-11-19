@@ -513,7 +513,14 @@ void ControllerListPanel::SelectController(const std::string& name, bool dropMod
 }
 
 bool ControllerListPanel::NetworkChangesAllowed() const {
-    return !_frame->GetOutputManager()->IsOutputting() && !_frame->GetCurrentDir().empty();
+    return !_frame->GetOutputManager()->IsOutputting() && !_frame->GetCurrentDir().empty() && !_frame->IsLayoutLocked();
+}
+
+wxString ControllerListPanel::NetworkChangesBlockedReason() const {
+    if (_frame->IsLayoutLocked()) {
+        return _frame->GetLayoutLockReason();
+    }
+    return "Properties cannot be edited when outputting to lights.";
 }
 
 void ControllerListPanel::OnControllerFilterCancelBtn(wxCommandEvent& event) {
@@ -1375,7 +1382,7 @@ void ControllerListPanel::UpdateControllerProperties() {
         _propGrid->Append(new wxStringProperty("Global FPP Proxy", "GlobalFPPProxy", om->GetGlobalFPPProxy()));
 
         if (!NetworkChangesAllowed()) {
-            _propGrid->SetToolTip("Properties cannot be edited when outputting to lights.");
+            _propGrid->SetToolTip(NetworkChangesBlockedReason());
             auto it = _propGrid->GetIterator(wxPG_ITERATE_ALL, nullptr);
             while (!it.AtEnd()) {
                 auto* prop = it.GetProperty();
@@ -1482,7 +1489,7 @@ void ControllerListPanel::UpdateControllerProperties() {
                 if (controller->IsFromBase()) {
                     _propGrid->SetToolTip("This controller comes from the base folder and its properties cannot be edited.");
                 } else {
-                    _propGrid->SetToolTip("Properties cannot be edited when outputting to lights.");
+                    _propGrid->SetToolTip(NetworkChangesBlockedReason());
                 }
                 auto it = _propGrid->GetIterator(wxPG_ITERATE_ALL, nullptr);
                 while (!it.AtEnd()) {

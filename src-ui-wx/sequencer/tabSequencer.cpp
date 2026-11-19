@@ -3674,6 +3674,10 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 {
+    // Perspectives are kept in the layout file, which is not written during a session.
+    if (RefuseIfLayoutLocked()) {
+        return;
+    }
     SyncFloatingPanePositions();
 
     if (mCurrentPerpective != nullptr)
@@ -3694,6 +3698,9 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event)
 {
+    if (RefuseIfLayoutLocked()) {
+        return;
+    }
     wxString name = wxGetTextFromUser("Enter name of perspective", "Perspective Name");
     if (name.size() > 0) {
         for (const auto& p : _perspectives)

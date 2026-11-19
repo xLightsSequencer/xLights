@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
+
 #include <wx/stopwatch.h>
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
@@ -1000,6 +1002,13 @@ xLightsFrame::ShowSaveResult xLightsFrame::SaveShowFiles(const std::vector<ShowS
     if (parent == nullptr) {
         parent = this;
     }
+    // The layout and controller files are not written while a collaboration
+    // session holds the layout lock; their unsaved changes stay pending.
+    if (IsLayoutLocked() && std::any_of(files.begin(), files.end(), [](const FileToSave& f) { return f.write && f.kind != FileKind::Presets; })) {
+        RefusesLayoutWrite("saving the layout or controller files");
+        RefuseIfLayoutLocked(parent);
+        return ShowSaveResult::Cancelled;
+    }
     auto& guard = ShowFileGuard::Instance();
     ShowFileMerge::Options options;
     options.modelRenames = &AllModels.GetRenameLog();
@@ -1623,7 +1632,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
     
     bool internalsChanged = false;
 
-    if (OldName == NewName) {
+    if (OldName == NewName || RefuseIfLayoutLocked()) {
         return false;
     }
     AbortRender();

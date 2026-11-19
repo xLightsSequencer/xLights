@@ -389,6 +389,13 @@ class SequencerViewModel {
     // Controller output
     var isOutputting = false
 
+    /// Collaboration-session layout lock (mirrors `document.isLayoutLocked()`).
+    /// While set, the layout editor, controller setup and sequence settings
+    /// are read-only and show `layoutLockReason`.
+    var isLayoutLocked = false
+    var layoutLockReason = ""
+    @ObservationIgnored private var layoutLockObserver: NSObjectProtocol?
+
     // Rendering (background)
     var isRendering = false
     var isRenderDone = false
@@ -1252,6 +1259,7 @@ class SequencerViewModel {
     /// actor boundary.
     private func applyLoadResult(loaded: Bool, sequenceFiles: [SequenceEntry], path: String) async {
         self.isShowFolderLoaded = loaded
+        refreshLayoutLock()
         self.sequenceFiles = sequenceFiles
         if loaded {
             // The show load runs detached so it is off the first-frame path,
@@ -1302,7 +1310,8 @@ class SequencerViewModel {
 
     private func maybeAutoUpdateFromBaseShowFolder() async {
         guard document.autoUpdateFromBaseShowDirectory(),
-              document.baseShowDirectory() != nil else { return }
+              document.baseShowDirectory() != nil,
+              !document.isLayoutLocked() else { return }
         // updateFromBaseShowDirectory does heavy synchronous C++ work —
         // OutputManager/ModelManager/ViewObjectManager::MergeFromBase plus
         // security-scoped access on the base folder and every referenced mesh
@@ -2764,6 +2773,26 @@ class SequencerViewModel {
                 }
             }
         }
+    }
+
+    /// Keeps `isLayoutLocked` in step with the document. Call once at app startup.
+    func startLayoutLockMonitoring() {
+        refreshLayoutLock()
+        guard layoutLockObserver == nil else { return }
+        layoutLockObserver = NotificationCenter.default.addObserver(
+            forName: .XLLayoutLockChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.refreshLayoutLock()
+            }
+        }
+    }
+
+    func refreshLayoutLock() {
+        isLayoutLocked = document.isLayoutLocked()
+        layoutLockReason = document.layoutLockReason()
     }
 
     func stopMemoryMonitoring() {

@@ -23,6 +23,7 @@
 #include "render/SequenceData.h"
 #include "render/SequenceFile.h"
 #include "render/ViewpointMgr.h"
+#include "utils/LayoutLock.h"
 #include "utils/LayoutRenameHints.h"
 #include "effects/EffectManager.h"
 #include "effects/EffectPresetManager.h"
@@ -53,7 +54,12 @@ public:
         AllModels(&_outputManager, static_cast<RenderContext*>(this)),
         AllObjects(static_cast<RenderContext*>(this)),
         jobPool("RenderPool"),
-        _sequenceElements(static_cast<RenderContext*>(this)) {}
+        _sequenceElements(static_cast<RenderContext*>(this)) {
+        _outputManager.SetLayoutLock(&_layoutLock);
+        AllModels.SetLayoutLock(&_layoutLock);
+        AllObjects.SetLayoutLock(&_layoutLock);
+        ApplyLayoutLockFromEnvironment();
+    }
     ~xLightsShowContext() override;
 
     // The render engine (and other managers) hold a back-reference to this
@@ -66,6 +72,11 @@ public:
     // ---- managers (pulled up out of xLightsFrame / iPadRenderContext) ----
     // Declaration order matters: AllModels/AllObjects take &_outputManager and
     // the RenderContext* (this) in their constructors.
+private:
+    // Before the managers: they hold a pointer to it until they are destroyed.
+    LayoutLock _layoutLock;
+
+public:
     OutputManager _outputManager;
     OutputModelManager _outputModelManager;
     ModelManager AllModels;
@@ -117,6 +128,27 @@ public:
     // since the last call into _renameHints, then prunes it. Run when building
     // the layout file to write.
     void CollectRenameHints();
+
+    // ---- Layout lock (collaboration session) ----
+    // While set, every peer treats the layout (models, groups, submodels,
+    // faces, states, view objects, views), controller setup and sequence
+    // settings as read-only; sequence editing is untouched. The model, view
+    // object and output managers refuse their deletes, renames and the
+    // controller save themselves; hosts disable their editors, show
+    // GetLayoutLockReason() and check RefusesLayoutWrite() before writing
+    // xlights_rgbeffects.xml. Session start/end turns it on/off; for testing,
+    // XL_COLLAB_LAYOUT_LOCK=1 in the environment sets it at construction.
+    void SetCollaborationLock(bool locked, const std::string& reason = std::string());
+    bool IsLayoutLocked() const override { return _layoutLock.IsLocked(); }
+    // Empty when not locked.
+    std::string GetLayoutLockReason() const { return _layoutLock.GetReason(); }
+    // For a host's layout-file save: true (and logged) while locked. Autosave
+    // copies and backups are not the layout file and need not ask.
+    bool RefusesLayoutWrite(const char* what) const { return LayoutLock::Refuses(&_layoutLock, what); }
+    // Runs on the thread that called SetCollaborationLock, after the change,
+    // so the host can refresh its editors. Not called for the environment
+    // switch (a host reads IsLayoutLocked() when it builds its UI).
+    virtual void OnLayoutLockChanged() {}
 
     OutputManager* GetOutputManager() { return &_outputManager; }
     PreviewCamera* GetNamedCamera3D(const std::string& name) override { return viewpoint_mgr.GetNamedCamera3D(name); }
@@ -244,6 +276,8 @@ public:
     void ForEachRenderProgress(const std::function<void(RenderProgressInfo*)>& fn) const;
 
 private:
+    void ApplyLayoutLockFromEnvironment();
+
     // Serializes the drain in IsRenderDone(). Two threads reach it: the host's
     // completion poll and AbortRender() on whichever thread asked for the
     // abort. Unsynchronized, both could pull the same RenderProgressInfo off

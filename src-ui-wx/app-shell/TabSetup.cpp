@@ -727,6 +727,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     AllModels.RecalcStartChannels();
     _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS);
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODELLIST, "SetDir-post-rework");
+    UpdateLayoutLockState();
 
     return true;
 }
@@ -1470,6 +1471,9 @@ void xLightsFrame::EnableNetworkChanges() {
 // "Add Controller" button menu (LayoutPanel::OnAddControllerButtonClicked) and
 // from ControllerListPanel's own "Discover" action.
 void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
+    if (RefuseIfLayoutLocked()) {
+        return;
+    }
 
 
     spdlog::debug("[Discovery] Running controller discovery.");
@@ -1697,6 +1701,9 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 }
 
 void xLightsFrame::OnButtonAddControllerSerialClick(wxCommandEvent& event) {
+    if (RefuseIfLayoutLocked()) {
+        return;
+    }
 
     auto c = new ControllerSerial(&_outputManager);
     _outputManager.AddController(c, -1);
@@ -1707,6 +1714,9 @@ void xLightsFrame::OnButtonAddControllerSerialClick(wxCommandEvent& event) {
 }
 
 void xLightsFrame::OnButtonAddControllerEthernetClick(wxCommandEvent& event) {
+    if (RefuseIfLayoutLocked()) {
+        return;
+    }
 
     auto c = new ControllerEthernet(&_outputManager);
     _outputManager.AddController(c, -1);
@@ -1717,6 +1727,9 @@ void xLightsFrame::OnButtonAddControllerEthernetClick(wxCommandEvent& event) {
 }
 
 void xLightsFrame::OnButtonAddControllerNullClick(wxCommandEvent& event) {
+    if (RefuseIfLayoutLocked()) {
+        return;
+    }
 
     auto c = new ControllerNull(&_outputManager);
     _outputManager.AddController(c, -1);

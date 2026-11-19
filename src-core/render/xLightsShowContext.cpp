@@ -29,9 +29,27 @@
 #include <algorithm>
 #include <chrono>
 #include <ctime>
+#include <string_view>
 #include <cstdlib>
 #include <thread>
 #include <vector>
+
+void xLightsShowContext::SetCollaborationLock(bool locked, const std::string& reason) {
+    if (locked == _layoutLock.IsLocked() && (!locked || reason.empty() || reason == _layoutLock.GetReason())) {
+        return;
+    }
+    _layoutLock.Set(locked, reason);
+    spdlog::info("Layout lock {}{}", locked ? "on: " : "off", locked ? _layoutLock.GetReason() : std::string());
+    OnLayoutLockChanged();
+}
+
+void xLightsShowContext::ApplyLayoutLockFromEnvironment() {
+    const char* e = std::getenv("XL_COLLAB_LAYOUT_LOCK");
+    if (e != nullptr && *e != '\0' && std::string_view(e) != "0") {
+        _layoutLock.Set(true);
+        spdlog::info("Layout lock on from XL_COLLAB_LAYOUT_LOCK: {}", _layoutLock.GetReason());
+    }
+}
 
 xLightsShowContext::~xLightsShowContext() {
     // jobPool is declared (and so, by plain member-destruction order, would be

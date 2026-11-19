@@ -893,6 +893,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\utils\LayoutRecords.cpp" />
     <ClCompile Include="..\src-core\utils\LayoutRenameHints.cpp" />
     <ClCompile Include="..\src-core\utils\LayoutRenameLog.cpp" />
+    <ClCompile Include="..\src-core\utils\LayoutLock.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
     <ClCompile Include="..\src-core\media\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\src-core\media\kiss_fft\tools\kiss_fftr.c" />
@@ -1042,6 +1043,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
     <ClCompile Include="..\src-core\collab\CollabCommandInfo.cpp" />
     <ClCompile Include="..\src-core\collab\CollabDocHash.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabManifest.cpp" />
     <ClCompile Include="..\src-core\collab\CollabMessages.cpp" />
     <ClCompile Include="..\src-core\collab\CollabSession.cpp" />
     <ClCompile Include="..\src-core\collab\CollabTransport.cpp" />
@@ -1602,6 +1604,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\utils\LayoutRecords.h" />
     <ClInclude Include="..\src-core\utils\LayoutRenameHints.h" />
     <ClInclude Include="..\src-core\utils\LayoutRenameLog.h" />
+    <ClInclude Include="..\src-core\utils\LayoutLock.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
@@ -1747,6 +1750,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
     <ClInclude Include="..\src-core\collab\CollabCommandInfo.h" />
     <ClInclude Include="..\src-core\collab\CollabDocHash.h" />
+    <ClInclude Include="..\src-core\collab\CollabManifest.h" />
     <ClInclude Include="..\src-core\collab\CollabMessages.h" />
     <ClInclude Include="..\src-core\collab\CollabSession.h" />
     <ClInclude Include="..\src-core\collab\CollabTransport.h" />

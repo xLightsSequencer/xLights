@@ -1418,6 +1418,9 @@ LayoutPanel::~LayoutPanel()
 }
 
 void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
+    if (xlights->IsLayoutLocked()) {
+        return;
+    }
     wxString name = event.GetPropertyName();
     updatingProperty = true;
     if (name == "BkgBrightness") {
@@ -1619,6 +1622,10 @@ void LayoutPanel::SetNamePropertyInvalid(wxPGProperty* prop, bool invalid) {
 }
 
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
+    if (xlights->IsLayoutLocked()) {
+        event.Veto();
+        return;
+    }
     std::string name = event.GetPropertyName().ToStdString();
     xlights->AddTraceMessage("LayoutPanel::OnPropertyGridChanging  Property: " + name);
     // event.GetProperty() can be null when wxPropertyGrid fires CHANGING
@@ -1749,6 +1756,9 @@ void LayoutPanel::OnPropertyGridRightClick(wxPropertyGridEvent& event)
 
 void LayoutPanel::OnPropertyGridContextMenu(wxCommandEvent& event)
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     if (selectedBaseObject != nullptr) {
         if (_propertyAdapter) {
             _propertyAdapter->HandlePropertyGridContextMenu(event);
@@ -2644,6 +2654,9 @@ void LayoutPanel::BulkEditPixelSize() {
 // direction, ...). Menu entry is gated by IsAllSelectedModelsSameDisplayType
 // so the dialog is never shown for a mixed-type selection.
 void LayoutPanel::BulkEditModelProperties() {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
     if (modelsToEdit.size() < 2) {
         return;
@@ -3090,6 +3103,9 @@ void LayoutPanel::CreateSetUndoPointOnce(bool& taken, const std::string& modelNa
 
 void LayoutPanel::DoLinkAsSet()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     auto selected = GetSelectedModelsForSetActions();
     if (selected.size() < 2) return;
     auto& setMgr = xlights->AllModels.GetSetManager();
@@ -3131,6 +3147,9 @@ void LayoutPanel::DoLinkAsSet()
 
 void LayoutPanel::DoAddSelectedToSet(const std::string& setName)
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     auto selected = GetSelectedModelsForSetActions();
     if (selected.empty()) return;
     auto& setMgr = xlights->AllModels.GetSetManager();
@@ -3170,6 +3189,9 @@ void LayoutPanel::DoAddSelectedToSet(const std::string& setName)
 
 void LayoutPanel::DoRemoveSelectedFromSet()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     auto selected = GetSelectedModelsForSetActions();
     if (selected.empty()) return;
     auto& setMgr = xlights->AllModels.GetSetManager();
@@ -3189,6 +3211,9 @@ void LayoutPanel::DoRemoveSelectedFromSet()
 
 void LayoutPanel::DoDeleteSet()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     auto selected = GetSelectedModelsForSetActions();
     if (selected.empty()) return;
     auto& setMgr = xlights->AllModels.GetSetManager();
@@ -3211,6 +3236,9 @@ void LayoutPanel::DoDeleteSet()
 
 void LayoutPanel::DoRenameSet()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     auto selected = GetSelectedModelsForSetActions();
     if (selected.empty()) return;
     auto& setMgr = xlights->AllModels.GetSetManager();
@@ -3346,6 +3374,9 @@ private:
 
 void LayoutPanel::DoManageSet()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     auto selected = GetSelectedModelsForSetActions();
     if (selected.empty()) return;
     auto& setMgr = xlights->AllModels.GetSetManager();
@@ -3796,6 +3827,9 @@ void LayoutPanel::CreateModelGroupFromSelected()
 }
 
 void LayoutPanel::AddSelectedToExistingGroups() {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
 
     wxArrayString selectedModels;
 
@@ -4263,6 +4297,11 @@ void LayoutPanel::showBackgroundProperties()
     prop = propertyEditor->Append(new wxBoolProperty("X0 Is Center", "2DXZeroIsCenter", xlights->GetDisplay2DCenter0()));
     prop->SetAttribute("UseCheckbox", true);
 
+    if (xlights->IsLayoutLocked()) {
+        DisablePropertyGridForLock();
+    } else {
+        propertyEditor->UnsetToolTip();
+    }
     propertyEditor->Thaw();
 }
 
@@ -4425,9 +4464,61 @@ void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
             it.Next(true);
         }
 
+    } else if (xlights->IsLayoutLocked()) {
+        DisablePropertyGridForLock();
     } else {
         propertyEditor->UnsetToolTip();
     }
+}
+
+void LayoutPanel::DisablePropertyGridForLock()
+{
+    // Disabled properties cannot be selected, so the dialog-launching editors
+    // (submodels, faces, states, node names...) cannot open either.
+    propertyEditor->SetToolTip(xlights->GetLayoutLockReason());
+    auto it = propertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
+    while (!it.AtEnd()) {
+        it.GetProperty()->Enable(false);
+        it.Next(true);
+    }
+}
+
+bool LayoutPanel::IsViewOnlyMenuId(int id)
+{
+    return id == ID_PREVIEW_RESET || id == ID_PREVIEW_MODELS_NOT_ON_CONTROLLER || id == ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE ||
+           id == ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS || id == ID_PREVIEW_LAYOUT_DXF_EXPORT || id == ID_PREVIEW_MODEL_CAD_EXPORT ||
+           id == ID_PREVIEW_MODEL_EXPORTASCUSTOM || id == ID_PREVIEW_MODEL_EXPORTASCUSTOM3D || id == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL ||
+           id == ID_PREVIEW_MODEL_NODELAYOUT || id == ID_PREVIEW_MODEL_WIRINGVIEW || id == ID_PREVIEW_PRINT_LAYOUT_IMAGE ||
+           id == ID_PREVIEW_SAVE_LAYOUT_IMAGE;
+}
+
+void LayoutPanel::UpdateLayoutLockState()
+{
+    const bool locked = xlights->IsLayoutLocked();
+    const wxString reason = locked ? wxString(xlights->GetLayoutLockReason()) : wxString();
+    if (locked) {
+        // Drop a half-made model or an armed "add model" button: adding it
+        // would be an edit the lock refuses.
+        CancelNewModel();
+        if (selectedButton != nullptr) {
+            selectedButton->SetState(0);
+            selectedButton = nullptr;
+        }
+        selectedDmxModelType = "";
+    }
+    for (auto* b : buttons) {
+        b->Enable(!locked);
+        if (locked) {
+            b->SetToolTip(reason);
+        } else {
+            b->SetToolTip("Create new " + b->GetModelType());
+        }
+    }
+    UpdateAddObjectButton();
+    if (ModelGroupWindow != nullptr) {
+        ModelGroupWindow->Enable(!locked);
+    }
+    resetPropertyGrid();
 }
 
 void LayoutPanel::SelectBaseObject3D()
@@ -4616,7 +4707,7 @@ void LayoutPanel::UpdateAddObjectButton()
     if (obj_button == nullptr) {
         return;
     }
-    obj_button->Enable(is_3d && currentLayoutGroup == "Default");
+    obj_button->Enable(is_3d && currentLayoutGroup == "Default" && !xlights->IsLayoutLocked());
 }
 
 std::string LayoutPanel::GetSelectedModelName() const
@@ -4659,6 +4750,9 @@ bool LayoutPanel::SaveEffects()
 
 void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     // if we have auto layout make sure everything is up to date ... and update zcpp files
     if (xlights->GetOutputManager()->GetAutoLayoutControllerNames().size() > 0) {
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnButtonSavePreviewClick");
@@ -5096,7 +5190,7 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
             if (m_lastClickWasCentreCycle) {
                 return;
             }
-            if (xlights->GetLayoutDoubleClickAction() == "Faces/States/Submodels") {
+            if (xlights->GetLayoutDoubleClickAction() == "Faces/States/Submodels" && !xlights->IsLayoutLocked()) {
                 EditSubmodels();
             }
             return;
@@ -5566,6 +5660,23 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     if (clearedHighlight) {
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
             "LayoutPanel::OnPreviewLeftDown::ClearHighlights");
+    }
+
+    if (xlights->IsLayoutLocked()) {
+        // Select only: no handle drags, moves, marquee or new models. The
+        // drag flags stay clear, so mouse-move and mouse-up change nothing.
+        ShowPropGrid(true);
+        modelPreview->SetFocus();
+        if (!event.ControlDown()) {
+            UnSelectAllModelsInTree();
+        }
+        ViewObject* singleObject = editing_models ? nullptr : SelectSingleViewObject(event.GetX(), event.GetY());
+        if (singleObject != nullptr) {
+            SelectBaseObject(singleObject, true);
+        } else if (Model* singleModel = editing_models ? SelectSingleModel(event.GetX(), event.GetY()) : nullptr; singleModel != nullptr) {
+            SelectModelInTree(singleModel);
+        }
+        return;
     }
 
     if (m_polyline_active)
@@ -6255,6 +6366,41 @@ static bool inFinalize = false;
 bool LayoutPanel::IsFinalizingModel()
 {
     return inFinalize;
+}
+
+void LayoutPanel::CancelNewModel()
+{
+    // Inside FinalizeModel's pumps the outer call owns _newModel until it
+    // returns.
+    if (inFinalize) {
+        return;
+    }
+    m_dragSession.reset();
+    m_moving_handle = false;
+    m_dragging = false;
+    m_creating_bound_rect = false;
+    m_polyline_active = false;
+    m_over_handle.reset();
+    m_polyline_create_handle = NO_HANDLE;
+    if (_newModel == nullptr) {
+        return;
+    }
+    Model* m = _newModel;
+    _newModel = nullptr;
+    if (modelPreview->GetAdditionalModel() == m) {
+        modelPreview->SetAdditionalModel(nullptr);
+    }
+    if (highlightedBaseObject == m) {
+        highlightedBaseObject = nullptr;
+    }
+    if (selectedBaseObject == m) {
+        selectedBaseObject = nullptr;
+        _propertyAdapter.reset();
+    }
+    // Never added to AllModels, so no render job can hold it.
+    delete m;
+    modelPreview->SetCursor(wxCURSOR_DEFAULT);
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CancelNewModel");
 }
 
 void LayoutPanel::FinalizeModel()
@@ -8019,6 +8165,9 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
 {
+    if (!IsViewOnlyMenuId(event.GetId()) && xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     if (event.GetId() == ID_PREVIEW_RESET) {
         modelPreview->Reset();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_RESET");
@@ -9813,6 +9962,9 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
 }
 
 void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     for (const auto& it : buttons) {
         if (event.GetId() == it->GetId()) {
             if (it->GetModelType() == "Add Object") {
@@ -9909,6 +10061,9 @@ void LayoutPanel::DisplayAddObjectPopup() {
 
 void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     
     int id = event.GetId();
     ViewObject* vobj = nullptr;
@@ -9989,6 +10144,9 @@ void LayoutPanel::DisplayAddDmxPopup() {
 
 void LayoutPanel::OnAddDmxPopup(wxCommandEvent& event)
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     
     int id = event.GetId();
     bool object_created = false;
@@ -10082,6 +10240,9 @@ std::list<BaseObject*> LayoutPanel::GetSelectedBaseObjects() const
 
 void LayoutPanel::Nudge(int key)
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     std::list<BaseObject*> selectedBaseObjects = GetSelectedBaseObjects();
     if (selectedBaseObjects.size() > 0)
     {
@@ -10479,6 +10640,9 @@ void LayoutPanel::RemoveSelectedModelsFromGroup() {
 }
 void LayoutPanel::DeleteSelectedModels()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     // I deliberately allow objects that come from base to be deleted.
     if (selectedBaseObject != nullptr) {
         xlights->AddTraceMessage("LayoutPanel::Delete Selected Model");
@@ -10549,11 +10713,17 @@ void LayoutPanel::DeleteSelectedModels()
 
 void LayoutPanel::DeleteSelectedObject()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     objects_panel->DeleteSelectedObject();
 }
 
 void LayoutPanel::DeleteSelectedGroups()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
 	wxArrayString groupsToDelete;
 	wxString groupsToConfirm = "";
 	for (const auto& item : selectedTreeGroups) {
@@ -10925,6 +11095,9 @@ void LayoutPanel::PromoteSelectedModelsToBase()
 
 void LayoutPanel::LockSelectedModels(bool lock)
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     std::vector<Model*> modelsToLock = GetSelectedModelsForEdit();
 
     for (const auto& model : modelsToLock) {
@@ -10954,6 +11127,8 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
 void LayoutPanel::DoCut(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !ActiveModelTree()->HasFocus() && !ActiveModelTree()->GetView()->HasFocus() && !objects_panel->ObjectListHasFocus()) {
         event.Skip();
+    } else if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
     } else if (selectedBaseObject != nullptr) {
         DoCopy(event);
 		if (editing_models)
@@ -10966,6 +11141,8 @@ void LayoutPanel::DoCut(wxCommandEvent& event) {
 void LayoutPanel::DoPaste(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !ActiveModelTree()->HasFocus() && !ActiveModelTree()->GetView()->HasFocus() && !objects_panel->ObjectListHasFocus()) {
         event.Skip();
+    } else if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
     } else {
         if (wxTheClipboard->Open()) {
             if (!xlights->AbortRender()) {
@@ -11121,6 +11298,9 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 }
 
 void LayoutPanel::DoUndo(wxCommandEvent& event) {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     
     spdlog::debug("LayoutPanel::DoUndo");
     int sz = undoBuffer.size() - 1;
@@ -11453,6 +11633,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
     
 
     int id = event.GetId();
+    if (!IsViewOnlyMenuId(id) && xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     if (id == ID_MNU_DELETE_MODEL) {
         spdlog::debug("LayoutPanel::OnModelsPopup DELETE_MODEL");
         DeleteSelectedModels();
@@ -12013,6 +12196,10 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     //}
 
     std::string choice_layout = std::string(ChoiceLayoutGroups->GetStringSelection().c_str());
+    if (choice_layout == "<Create New Preview>" && xlights->RefuseIfLayoutLocked(this)) {
+        SwitchChoiceToCurrentLayoutGroup();
+        return;
+    }
     if( choice_layout == "<Create New Preview>" ) {
         wxTextEntryDialog dlg(this, "Enter name for new preview", "Create New Preview");
         OptimiseDialogPosition(&dlg);
@@ -12213,6 +12400,9 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
 
 void LayoutPanel::ImportModelsFromRGBEffects()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     // ImportModelsFromPreview below reaches ModelManager::createAndAddModel,
     // which silently replaces - and frees - a model of the same name.
     if (!xlights->AbortRender()) return;
@@ -12289,6 +12479,9 @@ void LayoutPanel::ImportModelsFromRGBEffects()
 
 void LayoutPanel::ImportModelsFromLORS5()
 {
+    if (xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     wxString lg = ChoiceLayoutGroups->GetStringSelection();
     if (lg == "All Models") lg = "Default";
     LORPreview lorPreview(xlights, lg);
@@ -13619,6 +13812,11 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
     auto binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE::Layout);
     if (binding != nullptr) {
         std::string type = binding->GetType();
+        const bool viewOnly = type == "WIRING_VIEW" || type == "EXPORT_MODEL_CAD" || type == "EXPORT_LAYOUT_DXF" ||
+                              type == "NODE_LAYOUT" || type == "SELECT_ALL_MODELS";
+        if (!viewOnly && xlights->RefuseIfLayoutLocked(this)) {
+            return true;
+        }
         if (type == "LOCK_MODEL") {
             LockSelectedModels(true);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW |

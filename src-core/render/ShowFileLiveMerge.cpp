@@ -238,13 +238,25 @@ Applied Apply(xLightsShowContext& ctx, const Incoming& incoming, ShowFileGuard& 
         spdlog::warn("ShowFileLiveMerge: not applying a merge that has undecided conflicts or does not merge");
         return applied;
     }
+    // During a collaboration session the layout and controllers stay as they
+    // are: their changes wait (their base is not moved) and come in once the
+    // lock is off. Presets are not layout and still come in.
+    const bool layoutLocked = ctx.IsLayoutLocked();
+    auto held = [&](size_t i) { return layoutLocked && ShowSaveMerge::HeldWithLayout(plan.Kind(i)); };
+    bool anyHeld = false;
+    for (size_t i = 0; i < plan.FileCount(); ++i) {
+        if (incoming.Changed(i) && held(i)) {
+            anyHeld = true;
+            spdlog::info("ShowFileLiveMerge: layout is locked; holding the changes to {}", plan.Path(i));
+        }
+    }
     // The sequence side of decided deletions goes first, as one undo step, so
     // the layout's own deletes find no rows left to take effects with.
-    if (auto changes = plan.SequenceChanges(); !changes.empty()) {
+    if (auto changes = plan.SequenceChanges(); !changes.empty() && !anyHeld) {
         applied.droppedEffects = ShowMergeApply::ApplySequenceChanges(ctx, changes);
     }
     for (size_t i = 0; i < plan.FileCount(); ++i) {
-        if (!plan.ResultDiffersFromMine(i)) continue;
+        if (!plan.ResultDiffersFromMine(i) || held(i)) continue;
         const std::string result = plan.Result(i);
         switch (plan.Kind(i)) {
         case FileKind::RgbEffects: {
@@ -277,7 +289,7 @@ Applied Apply(xLightsShowContext& ctx, const Incoming& incoming, ShowFileGuard& 
     // Memory is now their file plus this process's unsaved edits: their file
     // is what the next save merges against.
     for (size_t i = 0; i < plan.FileCount(); ++i) {
-        if (incoming.Changed(i)) {
+        if (incoming.Changed(i) && !held(i)) {
             guard.Record(plan.Path(i), incoming.Theirs(i));
         }
     }

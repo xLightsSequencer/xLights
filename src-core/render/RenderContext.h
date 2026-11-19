@@ -53,6 +53,8 @@ public:
     virtual bool IsSequenceLoaded() const { return false; }
     virtual bool IsSequencerInitialized() const { return false; }
     virtual void MarkRgbEffectsChanged() {}
+    // The layout, controllers and sequence settings are frozen (see LayoutLock).
+    virtual bool IsLayoutLocked() const { return false; }
     virtual AudioManager* GetCurrentMediaManager() const = 0;
     virtual const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const = 0;
 

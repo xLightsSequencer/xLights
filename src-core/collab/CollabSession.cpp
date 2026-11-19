@@ -11,6 +11,13 @@
 #include "CollabSession.h"
 
 #include <algorithm>
+#include <atomic>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <random>
+#include <system_error>
+#include <thread>
 
 #include "CollabCommandInfo.h"
 #include "CollabUidTable.h"
@@ -20,6 +27,7 @@
 #include "render/SequenceMedia.h"
 #include "render/SequenceMediaCommands.h"
 #include "render/SequenceMutationGuard.h"
+#include "utils/FileUtils.h"
 
 #include <log.h>
 
@@ -45,6 +53,30 @@ std::optional<std::string> ValueOf(const SettingsMap& m, const std::string& key)
     return m.Get(key, std::string());
 }
 
+namespace fs = std::filesystem;
+
+bool ReadWhole(const std::string& path, std::string& out) {
+    std::ifstream f(path, std::ios::binary);
+    if (!f) {
+        return false;
+    }
+    out.assign(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
+    return !f.bad();
+}
+
+fs::path Canonical(const std::string& p) {
+    std::error_code ec;
+    fs::path c = fs::weakly_canonical(fs::path(p), ec);
+    return ec ? fs::path(p) : c;
+}
+
+void RemoveFile(const std::string& path) {
+    if (!path.empty()) {
+        std::error_code ec;
+        fs::remove(path, ec);
+    }
+}
+
 std::string CommandSummary(const json& j) {
     std::string type = j.is_object() && j.contains("type") && j["type"].is_string() ? j["type"].get<std::string>() : "?";
     if (type == "Batch" && j.contains("commands") && j["commands"].is_array()) {
@@ -67,6 +99,213 @@ CollabParticipant::~CollabParticipant() {
     _transport.onMessage = nullptr;
     _transport.onPeer = nullptr;
     _transport.onBlob = nullptr;
+    if (_sessionFolder.empty()) {
+        return;
+    }
+    std::error_code ec;
+    if (_ownsSessionFolder && !_keepFiles) {
+        fs::remove_all(_sessionFolder, ec);
+        return;
+    }
+    for (const char* sub : { "incoming", "outgoing", "compare" }) {
+        fs::remove_all(fs::path(_sessionFolder) / sub, ec);
+    }
+    if (!_keepFiles) {
+        fs::remove_all(fs::path(_sessionFolder) / "show", ec);
+    }
+}
+
+const std::string& CollabParticipant::SessionFolder() {
+    if (_sessionFolder.empty()) {
+        std::error_code ec;
+        if (!_opts.sessionFolder.empty()) {
+            _sessionFolder = _opts.sessionFolder;
+        } else {
+            std::random_device rd;
+            _sessionFolder = (fs::temp_directory_path(ec) / ("xl_collab_" + std::to_string(rd()) + "_" + std::to_string(rd()))).string();
+            _ownsSessionFolder = true;
+        }
+        fs::create_directories(_sessionFolder, ec);
+    }
+    return _sessionFolder;
+}
+
+std::string CollabParticipant::SessionShowFolder() {
+    return (fs::path(SessionFolder()) / "show").string();
+}
+
+std::string CollabParticipant::NewSessionFile(const std::string& sub, const std::string& ext) {
+    fs::path dir = fs::path(SessionFolder()) / sub;
+    std::error_code ec;
+    fs::create_directories(dir, ec);
+    return (dir / ("f" + std::to_string(++_sessionFiles) + ext)).string();
+}
+
+void CollabParticipant::OnBlobArrived(PeerId from, BlobId id, const std::string& path) {
+    std::string owned;
+    if (!path.empty()) {
+        owned = NewSessionFile("incoming");
+        if (!MoveFileTo(path, owned)) {
+            owned.clear();
+        }
+    }
+    auto key = std::make_pair(from, id);
+    auto info = _blobInfos.find(key);
+    if (info != _blobInfos.end()) {
+        Message m = std::move(info->second);
+        _blobInfos.erase(info);
+        OnBlobReady(from, m, owned);
+        return;
+    }
+    if (_blobFiles.count(key)) {
+        RemoveFile(owned);
+        return;
+    }
+    _blobFiles[key] = owned;
+    _blobFileOrder.push_back(key);
+    // Blobs nobody names (a lost or hostile message) don't pile up.
+    while (_blobFileOrder.size() > 64) {
+        auto old = _blobFileOrder.front();
+        _blobFileOrder.pop_front();
+        auto it = _blobFiles.find(old);
+        if (it != _blobFiles.end()) {
+            RemoveFile(it->second);
+            _blobFiles.erase(it);
+        }
+    }
+}
+
+void CollabParticipant::OnBlobInfo(PeerId from, const Message& m) {
+    if (m.blob == 0) {
+        OnBlobReady(from, m, "");
+        return;
+    }
+    auto key = std::make_pair(from, (BlobId)m.blob);
+    auto file = _blobFiles.find(key);
+    if (file != _blobFiles.end()) {
+        std::string path = std::move(file->second);
+        _blobFiles.erase(file);
+        OnBlobReady(from, m, path);
+        return;
+    }
+    if (_blobInfos.count(key)) {
+        return;
+    }
+    _blobInfos[key] = m;
+    _blobInfoOrder.push_back(key);
+    while (_blobInfoOrder.size() > 4096) {
+        _blobInfos.erase(_blobInfoOrder.front());
+        _blobInfoOrder.pop_front();
+    }
+}
+
+BlobId CollabParticipant::SendFile(PeerId to, const FileEntry& e, const std::string& local) {
+    Message m;
+    m.type = MsgType::File;
+    m.blob = NextBlob();
+    m.files = { e };
+    _transport.SendBlob(to, m.blob, local);
+    _transport.Send(to, m);
+    return m.blob;
+}
+
+void CollabParticipant::SendFileUnavailable(PeerId to, const std::string& path, const std::string& reason) {
+    Message m;
+    m.type = MsgType::File;
+    FileEntry e;
+    e.path = path;
+    m.files = { e };
+    m.reason = reason;
+    _transport.Send(to, m);
+}
+
+bool CollabParticipant::ShareFile(const std::string& reference) {
+    if (!IsActive()) {
+        return false;
+    }
+    std::string local = ResolvePath(CurrentShowFolder(), reference);
+    FileEntry e;
+    e.path = reference;
+    e.role = FileRole::Media;
+    if (local.empty() || CachePathFor(reference).empty() || !_hashes.Hash(local, e.size, e.hash)) {
+        Log("can't share '" + reference + "': not found on this device");
+        return false;
+    }
+    SendShared(e, local);
+    return true;
+}
+
+void CollabParticipant::ShareCommandFiles(const SequenceCommand& cmd) {
+    if (cmd.Type() == CommandType::PutMedia) {
+        const auto& state = static_cast<const PutMediaCommand&>(cmd).GetState();
+        if (!state.embedded) {
+            ShareFile(state.key);
+        }
+    } else if (cmd.Type() == CommandType::Batch) {
+        for (const auto& c : static_cast<const BatchCommand&>(cmd).GetCommands()) {
+            ShareCommandFiles(*c);
+        }
+    }
+}
+
+void CollabParticipant::EnsureMediaFolder() {
+    if (!_mediaFolderAdded) {
+        _mediaFolderAdded = true;
+        _doc.AddMediaFolder(SessionShowFolder());
+    }
+}
+
+CollabParticipant::Stored CollabParticipant::StoreReceivedFile(const FileEntry& e, const std::string& path, bool docLoaded, bool addMediaFolder,
+                                                               std::string& local) {
+    local.clear();
+    uint64_t size = 0;
+    uint64_t hash = 0;
+    std::string cachePath = CachePathFor(e.path);
+    if (path.empty() || e.role != FileRole::Media || cachePath.empty() || !HashFile(path, size, hash) || size != e.size || hash != e.hash ||
+        size > _opts.maxFileBytes) {
+        Log("dropped a file sent for '" + e.path + "': missing, damaged or not acceptable");
+        RemoveFile(path);
+        return Stored::Bad;
+    }
+    std::string mine = ResolvePath(CurrentShowFolder(), e.path);
+    uint64_t mineSize = 0;
+    uint64_t mineHash = 0;
+    if (!mine.empty() && _hashes.Hash(mine, mineSize, mineHash) && mineSize == size && mineHash == hash) {
+        RemoveFile(path);
+        local = mine;
+        return Stored::AlreadyHad;
+    }
+    std::string dest = (fs::path(SessionShowFolder()) / cachePath).string();
+    if (!mine.empty() && Canonical(mine) != Canonical(dest)) {
+        // The show folder is searched before any media folder, so this
+        // device's own (different) file is what renders.
+        Log("'" + e.path + "' differs from this device's own copy, which stays in use");
+        RemoveFile(path);
+        local = mine;
+        return Stored::Shadowed;
+    }
+    if (!MoveFileTo(path, dest)) {
+        Log("could not store the file sent for '" + e.path + "'");
+        RemoveFile(path);
+        return Stored::Bad;
+    }
+    local = dest;
+    _received[e.path] = dest;
+    if (addMediaFolder) {
+        EnsureMediaFolder();
+    }
+    FileUtils::ClearNonExistentFiles();
+    if (docLoaded) {
+        SequenceMedia& media = _doc.Sequence().GetSequenceMedia();
+        media.ClearMissingImages();
+        if (media.HasMedia(e.path)) {
+            media.ReloadMedia(e.path);
+        }
+    }
+    if (_events.onFileArrived) {
+        _events.onFileArrived(e.path, dest);
+    }
+    return Stored::Stored;
 }
 
 SubmitResult CollabParticipant::Undo() {
@@ -149,6 +388,11 @@ CollabHost::CollabHost(ICollabTransport& transport, ICollabDocument& doc, Sessio
     CollabParticipant(transport, doc, std::move(opts), std::move(events)) {
     _transport.onMessage = [this](PeerId from, const Message& m) { OnMessage(from, m); };
     _transport.onPeer = [this](PeerId peer, PeerEvent e) { OnPeer(peer, e); };
+    _transport.onBlob = [this](PeerId from, BlobId id, const std::string& path) {
+        if (FindClient(from) != nullptr) {
+            OnBlobArrived(from, id, path);
+        }
+    };
 }
 
 CollabHost::~CollabHost() = default;
@@ -212,6 +456,7 @@ SubmitResult CollabHost::SubmitKind(std::unique_ptr<SequenceCommand> cmd, EditKi
         }
         return { false, seq, o.reason };
     }
+    ShareCommandFiles(*cmd);
     return { true, seq, "" };
 }
 
@@ -377,6 +622,12 @@ void CollabHost::OnMessage(PeerId from, const Message& m) {
         Log("participant " + std::to_string(c->id) + " asked for a snapshot: " + m.reason);
         SendSnapshot(*c);
         break;
+    case MsgType::NeedFiles:
+        OnNeedFiles(*c, m);
+        break;
+    case MsgType::File:
+        OnBlobInfo(from, m);
+        break;
     case MsgType::Resend:
         SendCommitsFrom(*c, m.rev);
         break;
@@ -397,7 +648,8 @@ void CollabHost::OnMessage(PeerId from, const Message& m) {
         break;
     }
     case MsgType::Bye:
-        DropClient(from, "left");
+        // A refused joiner says why (its show files don't match).
+        DropClient(from, m.reason.empty() || m.reason == Reason::Left ? std::string("left") : "left: " + m.reason);
         break;
     default:
         break;
@@ -422,7 +674,7 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
         w.rev = _applied;
         w.name = _opts.displayName;
         _transport.Send(from, w);
-        SendSnapshot(*existing);
+        SendManifest(*existing, false);
         return;
     }
     if (_clients.size() + 1 >= _opts.maxParticipants || _nextParticipant == 0xFFFF) {
@@ -444,7 +696,7 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
     w.rev = _applied;
     w.name = _opts.displayName;
     _transport.Send(from, w);
-    SendSnapshot(c);
+    SendManifest(c, true);
     Log("participant " + std::to_string(c.id) + " joined at rev " + std::to_string(_applied));
     if (_events.onParticipant) {
         _events.onParticipant(c.id, c.name, true);
@@ -452,19 +704,98 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
 }
 
 void CollabHost::SendSnapshot(Client& c) {
-    Message s;
-    s.type = MsgType::Snapshot;
-    if (!_doc.SaveXsq(s.xsq)) {
+    std::string xsq;
+    if (!_doc.SaveXsq(xsq)) {
         Log("could not save a snapshot");
         return;
     }
+    std::string file = NewSessionFile("outgoing", ".xsq");
+    {
+        std::ofstream f(file, std::ios::binary);
+        f << xsq;
+        if (!f) {
+            Log("could not write a snapshot");
+            RemoveFile(file);
+            return;
+        }
+    }
+    Message s;
+    s.type = MsgType::Snapshot;
     SequenceElements& seq = _doc.Sequence();
     s.rev = _applied;
     s.docHash = _hasher.Hash(seq);
     s.uids = CaptureUids(seq);
     s.clientSeq = c.nextSeq - 1;
+    s.blob = NextBlob();
     c.applied = std::max(c.applied, _applied);
+    _transport.SendBlob(c.peer, s.blob, file);
+    RemoveFile(file);
     _transport.Send(c.peer, s);
+}
+
+void CollabHost::SendManifest(Client& c, bool rebuild) {
+    if (rebuild) {
+        c.files.clear();
+        std::string show = _doc.ShowFolder();
+        c.manifest = show.empty() ? std::vector<FileEntry>()
+                                  : BuildManifest(CollectSessionFiles(show, _doc.Sequence(), _doc.AudioFiles()), &_hashes, &c.files);
+    }
+    Message m;
+    m.type = MsgType::Manifest;
+    m.files = c.manifest;
+    _transport.Send(c.peer, m);
+}
+
+void CollabHost::OnNeedFiles(Client& c, const Message& m) {
+    std::map<std::string, const FileEntry*> entries;
+    for (const auto& e : c.manifest) {
+        entries[e.path] = &e;
+    }
+    std::set<std::string> done;
+    for (const auto& path : m.paths) {
+        if (!done.insert(path).second) {
+            continue;
+        }
+        auto e = entries.find(path);
+        auto local = c.files.find(path);
+        // Only files this client's manifest lists are ever sent.
+        if (e == entries.end() || local == c.files.end()) {
+            SendFileUnavailable(c.peer, path, Reason::NotInManifest);
+            continue;
+        }
+        FileEntry now = *e->second;
+        if (!_hashes.Hash(local->second, now.size, now.hash)) {
+            SendFileUnavailable(c.peer, path, Reason::Unreadable);
+            continue;
+        }
+        SendFile(c.peer, now, local->second);
+    }
+}
+
+void CollabHost::OnBlobReady(PeerId from, const Message& info, const std::string& path) {
+    Client* c = FindClient(from);
+    if (c == nullptr || info.type != MsgType::File || info.files.size() != 1) {
+        RemoveFile(path);
+        return;
+    }
+    const FileEntry& e = info.files[0];
+    std::string local;
+    Stored r = StoreReceivedFile(e, path, true, true, local);
+    if (r != Stored::Stored && r != Stored::AlreadyHad) {
+        return;
+    }
+    Log("participant " + std::to_string(c->id) + " sent '" + e.path + "'");
+    for (const auto& [peer, other] : _clients) {
+        if (peer != from) {
+            SendFile(peer, e, local);
+        }
+    }
+}
+
+void CollabHost::SendShared(const FileEntry& e, const std::string& local) {
+    for (const auto& [peer, c] : _clients) {
+        SendFile(peer, e, local);
+    }
 }
 
 void CollabHost::SendCommitsFrom(Client& c, Rev from) {
@@ -581,6 +912,11 @@ CollabClient::CollabClient(ICollabTransport& transport, ICollabDocument& doc, Se
     CollabParticipant(transport, doc, std::move(opts), std::move(events)) {
     _transport.onMessage = [this](PeerId from, const Message& m) { OnMessage(from, m); };
     _transport.onPeer = [this](PeerId peer, PeerEvent e) { OnPeer(peer, e); };
+    _transport.onBlob = [this](PeerId from, BlobId id, const std::string& path) {
+        if (from == _host && _state != State::Ended && _state != State::Idle) {
+            OnBlobArrived(from, id, path);
+        }
+    };
 }
 
 CollabClient::~CollabClient() = default;
@@ -592,6 +928,13 @@ void CollabClient::Send(const Message& m) {
 void CollabClient::Join(PeerId host) {
     _host = host;
     _state = State::Joining;
+    _haveManifest = false;
+    _checks.clear();
+    _wanted.clear();
+    _fetched.clear();
+    _unavailable.clear();
+    _compareOnly = false;
+    _report = {};
     _lastHeard = _now;
     _lastHello = _now;
     Message h;
@@ -641,16 +984,31 @@ void CollabClient::OnMessage(PeerId from, const Message& m) {
         if (_state == State::Joining) {
             _participant = m.participant;
             SeqIds::SetPeer(faults.clientSharesHostIdPrefix ? kHostParticipant : m.participant);
-            _state = State::AwaitingSnapshot;
-            _lastSnapshotRequest = _now;
+            _state = State::Checking;
+            _lastHello = _now;
             _hostHead = std::max(_hostHead, m.rev);
         }
         break;
     case MsgType::Refuse:
+        _endText = m.text;
         EndSession(m.reason.empty() ? std::string(Reason::Ended) : m.reason);
         break;
+    case MsgType::Manifest:
+        OnManifest(m);
+        break;
     case MsgType::Snapshot:
-        OnSnapshot(m);
+        if (_state == State::Active && m.rev > _applied) {
+            // The host answered a resend with a snapshot: it no longer keeps
+            // the commits this client lacks (a new host's log starts late).
+            Log("the host sent a snapshot at rev " + std::to_string(m.rev) + " for commits it no longer has");
+            _state = State::AwaitingSnapshot;
+            ++_resyncs;
+            _lastSnapshotRequest = _now;
+        }
+        OnBlobInfo(from, m);
+        break;
+    case MsgType::File:
+        OnBlobInfo(from, m);
         break;
     case MsgType::Commit:
         OnCommit(m);
@@ -683,11 +1041,256 @@ void CollabClient::OnMessage(PeerId from, const Message& m) {
     }
 }
 
-void CollabClient::OnSnapshot(const Message& m) {
+std::string CollabClient::CurrentShowFolder() {
+    return _usingCopy ? SessionShowFolder() : _doc.ShowFolder();
+}
+
+void CollabClient::OnBlobReady(PeerId /*from*/, const Message& info, const std::string& path) {
+    if (info.type == MsgType::Snapshot) {
+        std::string xsq;
+        bool ok = !path.empty() && ReadWhole(path, xsq);
+        RemoveFile(path);
+        // A failed transfer is asked for again by the snapshot retry.
+        if (ok) {
+            OnSnapshot(info, xsq);
+        }
+        return;
+    }
+    if (info.type != MsgType::File || info.files.size() != 1) {
+        RemoveFile(path);
+        return;
+    }
+    const FileEntry& e = info.files[0];
+    if (_state == State::Checking && _wanted.count(e.path)) {
+        OnJoinFile(info, path);
+        return;
+    }
+    // While still checking, whether a media folder is needed isn't known
+    // yet (AskForSnapshot adds it then).
+    bool decided = _state == State::Active || _state == State::AwaitingSnapshot;
+    std::string local;
+    StoreReceivedFile(e, path, _state == State::Active, decided && !_usingCopy, local);
+}
+
+void CollabClient::SendShared(const FileEntry& e, const std::string& local) {
+    SendFile(_host, e, local);
+}
+
+void CollabClient::OnManifest(const Message& m) {
+    if (_state != State::Checking || _haveManifest) {
+        return;
+    }
+    _haveManifest = true;
+    if (_doc.ShowFolder().empty()) {
+        Log("this document has no show folder to compare; files not checked");
+        FinishCheck();
+        return;
+    }
+    _checks = CompareManifest(_doc.ShowFolder(), m.files, &_hashes);
+    bool layout = false;
+    for (const auto& c : _checks) {
+        if (c.state == FileState::Match) {
+            continue;
+        }
+        layout = layout || c.entry.role == FileRole::Layout;
+        if (_opts.fetchFiles || c.entry.role == FileRole::Layout) {
+            _wanted[c.entry.path] = c.entry;
+        }
+    }
+    _compareOnly = !_opts.fetchFiles && layout;
+    std::string summary = std::to_string(_checks.size()) + " show files listed";
+    Log(summary + ", " + std::to_string(_wanted.size()) + " to fetch" + (_compareOnly ? " (to compare the layout)" : ""));
+    if (!_wanted.empty()) {
+        RequestFiles();
+        return;
+    }
+    FinishCheck();
+}
+
+void CollabClient::RequestFiles() {
+    _lastFileRequest = _now == 0 ? 1 : _now;
+    Message n;
+    n.type = MsgType::NeedFiles;
+    for (const auto& [path, e] : _wanted) {
+        n.paths.push_back(path);
+    }
+    Send(n);
+}
+
+void CollabClient::OnJoinFile(const Message& info, const std::string& path) {
+    const FileEntry want = _wanted[info.files[0].path];
+    uint64_t size = 0;
+    uint64_t hash = 0;
+    std::string cachePath = CachePathFor(want.path);
+    bool ok = info.reason.empty() && !path.empty() && !cachePath.empty() && HashFile(path, size, hash) && size == want.size && hash == want.hash;
+    if (!ok) {
+        // Not sent, damaged, or changed on the host since its manifest.
+        Log("could not fetch '" + want.path + "'" + (info.reason.empty() ? std::string() : ": " + info.reason));
+        _unavailable.push_back(want.path);
+        RemoveFile(path);
+    } else {
+        fs::path root = _compareOnly ? fs::path(SessionFolder()) / "compare" : fs::path(SessionShowFolder());
+        std::string dest = (root / cachePath).string();
+        if (MoveFileTo(path, dest)) {
+            _fetched[want.path] = dest;
+        } else {
+            _unavailable.push_back(want.path);
+            RemoveFile(path);
+        }
+    }
+    _wanted.erase(want.path);
+    if (_wanted.empty()) {
+        FinishCheck();
+    }
+}
+
+void CollabClient::FinishCheck() {
+    _report = {};
+    _report.showFolder = _doc.ShowFolder();
+    std::set<std::string> unavailable(_unavailable.begin(), _unavailable.end());
+    std::string layoutText;
+    size_t layoutChanges = 0;
+    std::string audioText;
+    std::string lostText;
+    for (const auto& c : _checks) {
+        if (c.state == FileState::Match) {
+            continue;
+        }
+        const std::string& p = c.entry.path;
+        switch (c.entry.role) {
+        case FileRole::Layout: {
+            auto f = _fetched.find(p);
+            std::string line;
+            if (c.state == FileState::Missing) {
+                line = p + " is missing on this device";
+                ++layoutChanges;
+            } else if (f == _fetched.end()) {
+                line = p + " differs from the host's (the host's copy could not be fetched to compare)";
+                ++layoutChanges;
+            } else {
+                std::string mine;
+                std::string host;
+                ReadWhole(c.local, mine);
+                ReadWhole(f->second, host);
+                LayoutDifference d = DescribeLayoutDifference(p, mine, host);
+                layoutChanges += d.changes;
+                if (d.changes != 0) {
+                    line = p + ": " + d.text;
+                }
+            }
+            if (!line.empty()) {
+                layoutText += (layoutText.empty() ? "" : "\n") + line;
+            }
+            break;
+        }
+        case FileRole::Audio:
+            audioText += (audioText.empty() ? "" : ", ") + p + (c.state == FileState::Missing ? " (missing)" : " (different)");
+            break;
+        case FileRole::Media:
+            (c.state == FileState::Missing ? _report.missingMedia : _report.differentMedia).push_back(p);
+            break;
+        }
+        if (unavailable.count(p) && c.entry.role != FileRole::Media) {
+            lostText += (lostText.empty() ? "" : ", ") + p;
+        }
+    }
+    _report.layoutDifference = layoutText;
+    if (!_opts.fetchFiles) {
+        if (layoutChanges != 0) {
+            RefuseJoin(Reason::LayoutDiffers, "This device's layout differs from the host's:\n" + layoutText);
+            return;
+        }
+        if (!audioText.empty()) {
+            RefuseJoin(Reason::AudioDiffers, "This device's audio differs from the host's: " + audioText);
+            return;
+        }
+        AskForSnapshot();
+        return;
+    }
+    if (!lostText.empty()) {
+        RefuseJoin(Reason::FilesUnavailable, "These files could not be copied from the host: " + lostText);
+        return;
+    }
+    if (_fetched.empty()) {
+        // Everything matched, or only media the host couldn't send.
+        AskForSnapshot();
+        return;
+    }
+    // Open against a copy of the host's show: what matched comes from this
+    // device's show folder, the rest is what was fetched.
+    std::string root = SessionShowFolder();
+    std::vector<std::string> copyFailed;
+    for (const auto& c : _checks) {
+        if (c.state != FileState::Match) {
+            continue;
+        }
+        std::string cachePath = CachePathFor(c.entry.path);
+        if (cachePath.empty() || !CopyFileTo(c.local, (fs::path(root) / cachePath).string())) {
+            if (c.entry.role != FileRole::Media) {
+                RefuseJoin(Reason::FilesUnavailable, "Could not make a copy of " + c.entry.path + " for the session.");
+                return;
+            }
+            copyFailed.push_back(c.entry.path);
+        }
+    }
+    if (!_doc.UseShowFolder(root)) {
+        RefuseJoin(Reason::FilesUnavailable, "This device can't open the session against a copy of the host's show.");
+        return;
+    }
+    _usingCopy = true;
+    _report.showFolder = root;
+    _report.sessionCopy = true;
+    for (const auto& [p, dest] : _fetched) {
+        _report.fetched.push_back(p);
+    }
+    // The copy holds what matched and what was fetched; media that could be
+    // neither is missing from it.
+    _report.differentMedia.clear();
+    _report.missingMedia.clear();
+    for (const auto& c : _checks) {
+        if (c.entry.role == FileRole::Media && c.state != FileState::Match && !_fetched.count(c.entry.path)) {
+            _report.missingMedia.push_back(c.entry.path);
+        }
+    }
+    _report.missingMedia.insert(_report.missingMedia.end(), copyFailed.begin(), copyFailed.end());
+    AskForSnapshot();
+}
+
+void CollabClient::RefuseJoin(const std::string& reason, const std::string& text) {
+    Log("not joining: " + text);
+    _report.refusal = text;
+    _endText = text;
+    Message b;
+    b.type = MsgType::Bye;
+    b.reason = reason;
+    b.text = text;
+    Send(b);
+    if (_events.onJoinChecked) {
+        _events.onJoinChecked(_report);
+    }
+    EndSession(reason);
+}
+
+void CollabClient::AskForSnapshot() {
+    if (!_usingCopy && !_received.empty()) {
+        EnsureMediaFolder();
+    }
+    _state = State::AwaitingSnapshot;
+    _lastSnapshotRequest = _now;
+    Message n;
+    n.type = MsgType::NeedSnapshot;
+    n.reason = "join";
+    Send(n);
+    if (_events.onJoinChecked) {
+        _events.onJoinChecked(_report);
+    }
+}
+
+void CollabClient::OnSnapshot(const Message& m, const std::string& xsq) {
     if (_state != State::AwaitingSnapshot) {
         return;
     }
-    if (!_doc.LoadXsq(m.xsq)) {
+    if (!_doc.LoadXsq(xsq)) {
         EndSession(Reason::SnapshotFailed);
         return;
     }
@@ -1010,6 +1613,7 @@ SubmitResult CollabClient::SubmitKind(std::unique_ptr<SequenceCommand> cmd, Edit
     cmd->Serialize(m.command);
     _pending[s] = { m, _now };
     Send(m);
+    ShareCommandFiles(*cmd);
     return { true, s, "", optimistic };
 }
 
@@ -1036,6 +1640,20 @@ void CollabClient::Tick(uint64_t nowMs) {
             h.name = _opts.displayName;
             h.deviceKind = _opts.deviceKind;
             Send(h);
+        }
+        break;
+    case State::Checking:
+        if (!_haveManifest && _now - _lastHello >= 4 * _opts.retryMs) {
+            // The Welcome came but the manifest didn't: ask again.
+            _lastHello = _now;
+            Message h;
+            h.type = MsgType::Hello;
+            h.appVersion = _opts.appVersion;
+            h.name = _opts.displayName;
+            h.deviceKind = _opts.deviceKind;
+            Send(h);
+        } else if (!_wanted.empty() && _now - _lastFileRequest >= _opts.fileRetryMs) {
+            RequestFiles();
         }
         break;
     case State::AwaitingSnapshot:

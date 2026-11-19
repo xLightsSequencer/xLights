@@ -505,6 +505,9 @@ bool ViewObjectPanel::OnSelectionChanged(wxTreeListEvent& event, ViewObject** vi
 }
 
 void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPropertyGridEvent& event) {
+    if (layoutPanel->xlights->IsLayoutLocked()) {
+        return;
+    }
     wxString name = event.GetPropertyName();
     if (mSelectedObject != nullptr) {
         if ("ObjectName" == name) {
@@ -583,6 +586,9 @@ void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
 void ViewObjectPanel::OnObjectsPopup(wxCommandEvent& event)
 {
     int id = event.GetId();
+    if (layoutPanel->xlights->RefuseIfLayoutLocked(this)) {
+        return;
+    }
     if(id == ID_MNU_DELETE_OBJECT)
     {
         spdlog::debug("ViewObjectPanel::OnObjectsPopup DELETE_OBJECT");

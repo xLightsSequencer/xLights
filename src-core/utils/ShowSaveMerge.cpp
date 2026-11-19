@@ -109,6 +109,22 @@ std::optional<pugi::xml_document> ParseXml(const std::string& text) {
 
 } // namespace
 
+bool HeldWithLayout(FileKind kind) {
+    return kind != FileKind::Presets;
+}
+
+HeldSplit SplitHeldWithLayout(const std::vector<FileToSave>& files) {
+    HeldSplit out;
+    for (const auto& f : files) {
+        if (!HeldWithLayout(f.kind)) {
+            out.writable.push_back(f);
+        } else if (f.write) {
+            out.held.push_back(f.path);
+        }
+    }
+    return out;
+}
+
 struct Plan::Impl {
     std::vector<File> files;
     ShowFileMerge::Options options;

@@ -342,6 +342,8 @@
 		<Unit filename="../src-core/collab/CollabCommandInfo.h" />
 		<Unit filename="../src-core/collab/CollabDocHash.cpp" />
 		<Unit filename="../src-core/collab/CollabDocHash.h" />
+		<Unit filename="../src-core/collab/CollabManifest.cpp" />
+		<Unit filename="../src-core/collab/CollabManifest.h" />
 		<Unit filename="../src-core/collab/CollabMessages.cpp" />
 		<Unit filename="../src-core/collab/CollabMessages.h" />
 		<Unit filename="../src-core/collab/CollabSession.cpp" />
@@ -436,7 +438,9 @@
 		<Unit filename="../src-core/utils/LayoutRenameHints.cpp" />
 		<Unit filename="../src-core/utils/LayoutRenameHints.h" />
 		<Unit filename="../src-core/utils/LayoutRenameLog.cpp" />
+		<Unit filename="../src-core/utils/LayoutLock.cpp" />
 		<Unit filename="../src-core/utils/LayoutRenameLog.h" />
+		<Unit filename="../src-core/utils/LayoutLock.h" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.cpp" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.h" />
 		<Unit filename="../src-ui-wx/app-shell/KeyBindingEditDialog.cpp" />

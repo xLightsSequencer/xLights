@@ -123,6 +123,28 @@ struct SharedFolder {
 
 // --- the guard keeps the base ---------------------------------------------------------------
 
+TEST_CASE("Save merge: a held layout leaves the presets to save", "[showsavemerge]") {
+    using ShowSaveMerge::FileKind;
+    using ShowSaveMerge::FileToSave;
+    CHECK(ShowSaveMerge::HeldWithLayout(FileKind::RgbEffects));
+    CHECK(ShowSaveMerge::HeldWithLayout(FileKind::Networks));
+    CHECK_FALSE(ShowSaveMerge::HeldWithLayout(FileKind::Presets));
+    std::vector<FileToSave> files{ { FileKind::RgbEffects, "rgb", "r", true },
+                                   { FileKind::Networks, "nets", "n", false },
+                                   { FileKind::Presets, "presets", "p", true } };
+    auto split = ShowSaveMerge::SplitHeldWithLayout(files);
+    REQUIRE(split.writable.size() == 1);
+    CHECK(split.writable[0].kind == FileKind::Presets);
+    CHECK(split.writable[0].path == "presets");
+    CHECK(split.writable[0].mine == "p");
+    CHECK(split.writable[0].write);
+    // Only what would have been written counts as held.
+    CHECK(split.held == std::vector<std::string>{ "rgb" });
+    auto layoutOnly = ShowSaveMerge::SplitHeldWithLayout({ { FileKind::RgbEffects, "rgb", "r", true } });
+    CHECK(layoutOnly.writable.empty());
+    CHECK(layoutOnly.held == std::vector<std::string>{ "rgb" });
+}
+
 TEST_CASE("Save merge: the guard keeps the loaded text of the shared show files only", "[showsavemerge]") {
     TempDir dir;
     ShowFileGuard guard;

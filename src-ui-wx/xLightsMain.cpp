@@ -3761,6 +3761,9 @@ void xLightsFrame::ShowSequenceSettings()
 
     // populate dialog
     SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, &_sequenceElements, mediaDirectories, wxEmptyString, wxEmptyString);
+    if (IsLayoutLocked()) {
+        dialog.SetReadOnly(GetLayoutLockReason());
+    }
     // Constrain before Fit() so Fit() → SetSize() → DoSetSize() clips to the max.
     // Setting max size here is the reliable cross-platform approach: DoSetSize()
     // checks GetMaxSize() and won't exceed it, even on Wayland where post-Fit
@@ -6812,6 +6815,9 @@ void xLightsFrame::OpenShowDirectoriesDialog() {
 
 void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event)
 {
+    if (RefuseIfLayoutLocked()) {
+        return;
+    }
     
     spdlog::debug("Cleaning up file locations.");
     CleanupRGBEffectsFileLocations();
@@ -9505,6 +9511,9 @@ void xLightsFrame::OnMenuItem_RemapCustomSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemRestoreBackupSelected(wxCommandEvent& event)
 {
+    if (RefuseIfLayoutLocked()) {
+        return;
+    }
     if (CurrentSeqXmlFile != nullptr) {
         wxMessageBox("Please Close the Open Sequence Before Using the Restore Backup Dialog");
         return;
@@ -9625,6 +9634,14 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 {
     
     spdlog::debug("Updating from base show folder.");
+    if (IsLayoutLocked()) {
+        if (prompt) {
+            RefuseIfLayoutLocked();
+        } else {
+            spdlog::info("Not updating from the base show folder: {}", GetLayoutLockReason());
+        }
+        return;
+    }
 
     // ModelManager/ViewObjectManager::MergeFromBase replace models in place,
     // freeing the ones they replace. The iPad path holds a ModelMutationScope
@@ -9733,6 +9750,9 @@ bool xLightsFrame::CanPromoteToBaseShowFolder() const
 
 void xLightsFrame::PromoteToBaseShowFolder(const std::vector<std::string>& controllers, const std::vector<std::string>& models, const std::vector<std::string>& objects)
 {
+    if (RefuseIfLayoutLocked()) {
+        return;
+    }
     if (!CanPromoteToBaseShowFolder()) return;
     std::string const baseDir = _outputManager.GetBaseShowDir();
     if (!ObtainAccessToURL(baseDir, true)) {
@@ -9770,7 +9790,53 @@ void xLightsFrame::PromoteToBaseShowFolder(const std::vector<std::string>& contr
 void xLightsFrame::UpdateReadOnlyState()
 {
     // disable a bunch of things
-    layoutPanel->ButtonSavePreview->Enable(!readOnlyMode);
+    layoutPanel->ButtonSavePreview->Enable(!readOnlyMode && !IsLayoutLocked());
+}
+
+void xLightsFrame::OnLayoutLockChanged()
+{
+    if (wxThread::IsMain()) {
+        UpdateLayoutLockState();
+    } else {
+        CallAfter([this]() { UpdateLayoutLockState(); });
+    }
+}
+
+void xLightsFrame::UpdateLayoutLockState()
+{
+    const bool locked = IsLayoutLocked();
+    const wxString reason = locked ? wxString(GetLayoutLockReason()) : wxString();
+    auto lockItem = [&](wxMenuItem* item) {
+        if (item != nullptr) {
+            item->Enable(!locked);
+            item->SetHelp(reason);
+        }
+    };
+    lockItem(MenuItemRestoreBackup);
+    lockItem(MenuItem_CleanupFileLocations);
+    lockItem(MenuItemViewSavePerspective);
+    lockItem(MenuItemViewSaveAsPerspective);
+    if (layoutPanel != nullptr) {
+        layoutPanel->UpdateLayoutLockState();
+    }
+    UpdateReadOnlyState();
+    EnableNetworkChanges();
+    if (locked) {
+        SetStatusText(reason);
+    }
+}
+
+bool xLightsFrame::RefuseIfLayoutLocked(wxWindow* parent)
+{
+    if (!IsLayoutLocked()) {
+        return false;
+    }
+    if (!IsNonInteractiveSave()) {
+        DisplayInfo(GetLayoutLockReason() + ": the layout, controllers and sequence settings cannot be changed.", parent != nullptr ? parent : this);
+    } else {
+        spdlog::warn("{}: not changing the layout", GetLayoutLockReason());
+    }
+    return true;
 }
 
 void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)

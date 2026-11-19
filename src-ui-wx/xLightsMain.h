@@ -631,6 +631,12 @@ public:
 	}
     void UpdateReadOnlyState();
 
+    // Collaboration-session layout lock (xLightsShowContext::SetCollaborationLock).
+    void OnLayoutLockChanged() override;
+    void UpdateLayoutLockState();
+    // Shows the lock reason and returns true while the layout is locked.
+    bool RefuseIfLayoutLocked(wxWindow* parent = nullptr);
+
 
     bool ImportLMS(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportLPE(pugi::xml_document &doc, const wxFileName &filename);

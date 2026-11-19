@@ -46,7 +46,11 @@ class SeqSettingsDialog: public wxDialog
 	public:
 
 		SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_handle_, SequenceElements *seqElements, const std::list<std::string>& media_dirs, const wxString& warning, const wxString& defaultView, bool wizard_active_ = false, const std::string& media = "", uint32_t durationMS = 0);
+
 		virtual ~SeqSettingsDialog();
+
+		// Every control shows the settings but changes nothing; Done closes without applying.
+		void SetReadOnly(const wxString& reason);
 
         const std::string GetView() const {return selected_view;}
 
@@ -383,6 +387,7 @@ class SeqSettingsDialog: public wxDialog
         wxTimer m_defaultSavedTimer;
         wxButton* m_activeDefaultBtn = nullptr;
 
+        bool _readOnly = false;
         void ProcessSequenceType();
         void PopulateTimingGrid();
 		std::vector<std::string> ParseTags(const wxString& tagString);

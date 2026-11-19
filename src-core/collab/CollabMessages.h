@@ -32,6 +32,9 @@ inline constexpr int kProtocolVersion = 1;
 // are the large ones.
 inline constexpr size_t kMaxFrameBytes = 256u * 1024u * 1024u;
 inline constexpr int kMaxNesting = 64;
+// Manifest / NeedFiles size limits; a frame over them is malformed.
+inline constexpr size_t kMaxManifestFiles = 200000;
+inline constexpr size_t kMaxPathBytes = 4096;
 
 // Position in the host's commit order. Rev 0 is the document the session
 // started from; the first commit is rev 1.
@@ -48,6 +51,9 @@ enum class MsgType {
     Hello,        // client -> host: wants to join
     Welcome,      // host -> client: joined, here is your participant id
     Refuse,       // host -> client: not joined (reason)
+    Manifest,     // host -> client: the show files the session needs
+    NeedFiles,    // client -> host: send me these manifest files
+    File,         // either way: a blob carrying one file (or why it can't come)
     Snapshot,     // host -> client: the document at a rev, with object ids
     NeedSnapshot, // client -> host: please send a Snapshot (joining, drift)
     Propose,      // client -> host: an edit
@@ -64,6 +70,23 @@ const char* MsgTypeName(MsgType t);
 
 // What a proposal / commit is, for per-user undo.
 enum class EditKind { Edit, Undo, Redo };
+
+// What a show file is for. A joiner whose layout or audio differs from the
+// host's can't take part with its own show folder; missing or different
+// media only render blank / differently.
+enum class FileRole { Layout, Audio, Media };
+const char* FileRoleName(FileRole r);
+
+// One show file: `path` is how the host's document refers to it (relative
+// to the show folder where possible; see CollabManifest.h), with its size
+// and 64-bit content hash.
+struct FileEntry {
+    std::string path;
+    FileRole role = FileRole::Media;
+    uint64_t size = 0;
+    uint64_t hash = 0;
+    bool operator==(const FileEntry&) const = default;
+};
 
 // Presence is advisory and per participant; it never changes the document.
 struct PresenceInfo {
@@ -105,13 +128,20 @@ struct Message {
     // Commit / Snapshot: the document hash after that rev
     uint64_t docHash = 0;
 
-    // Refuse / Reject / Bye / NeedSnapshot
+    // Refuse / Reject / Bye / NeedSnapshot; File: why it is not coming
     std::string reason;
     std::string text;
 
-    // Snapshot
-    std::string xsq;
+    // Snapshot: the object id table. Not part of the message: it travels in
+    // the blob with the .xsq.
     nlohmann::json uids;
+    // Snapshot / File: the blob with the content (0 = none: File with a reason).
+    // Welcome (live layout): the blob with the session layout.
+    uint64_t blob = 0;
+    // Manifest: every file; File: exactly one, the file the blob carries
+    std::vector<FileEntry> files;
+    // NeedFiles: the manifest paths wanted
+    std::vector<std::string> paths;
 
     // Presence
     PresenceInfo presence;
@@ -125,6 +155,13 @@ std::string EncodeMessage(const Message& m);
 // protocol version differs decodes only if it is a Hello (so the host can
 // refuse it with a reason) or a Refuse / Bye.
 std::optional<Message> DecodeMessage(std::string_view frame);
+// JSON from another participant that isn't a message (a snapshot's id
+// table): nullopt when malformed or nested deeper than kMaxNesting.
+std::optional<nlohmann::json> ParseBoundedJson(std::string_view text);
+// A fresh rejoin secret (random, hex), and the digest of one (SHA-256, hex)
+// that the roster carries in its place.
+std::string NewRejoinSecret();
+std::string SecretDigest(const std::string& secret);
 
 // Reject reasons. These are the only ones the host sends.
 namespace Reason {
@@ -144,6 +181,20 @@ inline constexpr const char* Ended = "ended";
 inline constexpr const char* HostLost = "host_lost";
 inline constexpr const char* Left = "left";
 inline constexpr const char* SnapshotFailed = "snapshot_failed";
+// Joining: this device's show files don't match the host's (text says how).
+inline constexpr const char* LayoutDiffers = "layout_differs";
+inline constexpr const char* AudioDiffers = "audio_differs";
+// Joining: a file the session can't do without could not be fetched.
+inline constexpr const char* FilesUnavailable = "files_unavailable";
+// File: the host can't send it
+inline constexpr const char* NotInManifest = "not_in_manifest";
+inline constexpr const char* Unreadable = "unreadable";
+// Reject / Refuse / Notice: a message larger than a transport may send.
+inline constexpr const char* TooLarge = "too_large";
+// Bye: the host stopped hearing from this device and dropped it.
+inline constexpr const char* TimedOut = "timed_out";
+// Bye: a message from a connection that isn't in the session.
+inline constexpr const char* NotInSession = "not_in_session";
 } // namespace Reason
 
 } // namespace Collab

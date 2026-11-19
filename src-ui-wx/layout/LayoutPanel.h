@@ -421,6 +421,8 @@ class LayoutPanel: public wxPanel
         bool IsNewModel(Model* m) const;
         void ClearUndo() { undoBuffer.clear(); }
         bool SaveEffects();
+        // Enables/disables the editors for the collaboration-session layout lock.
+        void UpdateLayoutLockState();
         void UpdatePreview();
         void SelectBaseObject(const std::string & name, bool highlight_tree = true);
         void SelectBaseObject(BaseObject *base_object, bool highlight_tree = true);
@@ -667,6 +669,9 @@ class LayoutPanel: public wxPanel
         bool dimensionsVisible = false;
         bool colSizesSet = false;
         bool layersVisible = false;
+        void DisablePropertyGridForLock();
+        // Popup entries that only show or export the layout; allowed while it is locked.
+        static bool IsViewOnlyMenuId(int id);
         std::vector<NewModelBitmapButton*> buttons;
         NewModelBitmapButton *selectedButton = nullptr;
         NewModelBitmapButton *obj_button = nullptr;
@@ -776,6 +781,7 @@ class LayoutPanel: public wxPanel
         void UpdateAddObjectButton();
         void FinalizeModel();
         void ExitModelDrawMode();
+        void CancelNewModel();
         void SelectBaseObject3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel, long id, const wxString& windowName, const std::string& colOrderKey, const wxString& nameColTitle, TreeChanColumns& cols);

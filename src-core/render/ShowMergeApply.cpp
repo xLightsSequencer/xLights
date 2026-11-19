@@ -230,6 +230,9 @@ bool SectionEqual(pugi::xml_node a, pugi::xml_node b) {
 
 LayoutChanges ApplyLayout(xLightsShowContext& ctx, const pugi::xml_document& mine, const pugi::xml_document& result) {
     LayoutChanges changes;
+    if (ctx.RefusesLayoutWrite("bringing layout changes into memory")) {
+        return changes;
+    }
     pugi::xml_node rm = mine.document_element();
     pugi::xml_node rr = result.document_element();
     if (!rr) return changes;
@@ -405,6 +408,9 @@ int ApplySequenceChanges(xLightsShowContext& ctx, const std::vector<ShowSaveMerg
 namespace {
 
 bool Reload(xLightsShowContext& ctx, const std::string* text, bool keepRenameLog) {
+    if (ctx.RefusesLayoutWrite("reloading the controllers")) {
+        return false;
+    }
     OutputManager& om = ctx._outputManager;
     const bool wasOutputting = om.IsOutputting();
     if (wasOutputting) om.StopOutput();
