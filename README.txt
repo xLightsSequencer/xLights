@@ -12,28 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
-    -bug (dkulp)                 Undo or redo of adding or deleting a row, renaming a timing track or model, or
-                                 editing sequence faces while a render was running could crash
     -bug (dkulp)                 Adding or removing layers on a submodel or strand row while it rendered could crash
-    -bug (dkulp)                 Deleting or undoing a large selection of effects on one layer could freeze for seconds
-    -bug (dkulp)                 Undo or redo could put back effects over edits made after the undo
     -bug (dkulp)                 iPad - Undo of a step bigger than the undo limit (such as pasting 60 effects)
                                  only partly reverted it
-    -bug (dkulp)                 A shared show folder on a slow or disconnected network drive could freeze the
-                                 app every few seconds
-    -bug (dkulp)                 Undo, redo or bringing in someone else's layout change could crash when it removed
-                                 the row holding the selected effect
-    -bug (dkulp)                 Pressing Undo again while an undo waited for a render to stop could mix up the
-                                 undo history
-    -bug (dkulp)                 Someone else's show file changes could be brought in, or another edit start, in
-                                 the middle of an import or undo while it waited for a render to stop
-    -change (dkulp)              Show file changes saved by someone else are brought in after playback stops
-                                 rather than during it
-    -bug (dkulp)                 iPad - Bringing in someone else's show file changes while a render ran could
-                                 freeze the app for seconds, repeatedly; it is now also held during a drag
-    -bug (dkulp)                 iPad - Others sharing the show folder kept seeing a closed sequence as open here
-    -bug (dkulp)                 A layout or controller save landing at the same moment as someone else's could
-                                 overwrite theirs without a warning
     -enh (dkulp)                 Opening a sequence saved before models were renamed in the layout (here or by
                                  someone sharing the show folder) renames its rows to match and says so,
                                  instead of asking about missing models
@@ -72,12 +53,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  controllers in the layout editor
     -enh (dkulp)                 Shared show folders: layout, controller and effect preset changes someone else
                                  saves are brought into the open show right away (merged with your unsaved
-                                 edits); where you both changed the same thing, a status bar notice offers
-                                 Review instead
+                                 edits) once playback stops; where you both changed the same thing, a status
+                                 bar notice offers Review instead
     -enh (dkulp)                 iPad - Shared show folders: layout, controller and effect preset changes someone
                                  else saves are brought into the open show right away (merged with your unsaved
-                                 edits); where you both changed the same thing, a banner offers Review. Can be
-                                 turned off in Settings
+                                 edits) once playback or a drag ends; where you both changed the same thing, a
+                                 banner offers Review. Can be turned off in Settings
     -enh (dkulp)                 Show files are replaced in one step when saved, so a crash or a sync client
                                  never sees a half-written file; tags, permissions, creation date and hard
                                  links are kept
@@ -129,12 +110,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 iPad - Renaming and deleting effect symbols and Convert All Symbols to Effects
                                  can be undone
     -bug (dkulp)                 Undo of deleting an effect linked to a symbol keeps it linked
-    -bug (dkulp)                 iPad - Undo after Replace Color could undo a different edit
-    -bug (dkulp)                 Undo of Breakdown Phrase(s)/Word(s) no longer leaves an empty layer behind
-    -bug (dkulp)                 Embedding a chosen file or AI image from an effect panel and using it is one
-                                 undo step instead of two
-    -bug (dkulp)                 iPad - Cleanup File Locations no longer offers an undo that only reverted part
-                                 of it
     -bug (dkulp)                 Servo linked start/end values: undo takes back the neighbouring effect's
                                  change together with the edited effect's
     -enh (dkulp)                 Shift Effects, Shift Effects And Timing, Shift Selected Effects, Convert Data
@@ -147,8 +122,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  undone and redone
     -enh (dkulp)                 iPad - Song-structure boundaries can be dragged in the waveform strip; each
                                  drag is one undo step
-    -bug (dkulp)                 iPad - Redo did nothing after undoing Import Effects, Import Lyrics, Replace
-                                 Color, Promote Node Effects, symbol and media edits and other bulk edits
+    -bug (dkulp)                 iPad - Redo did nothing after undoing Promote Node Effects and other bulk edits
     -bug (dkulp)                 Shift Effects no longer moves locked effects (Shift Selected Effects could
                                  leave one before the start of the sequence)
     -bug (alex)                  SubModels: Import Custom Model Overlay ignored the chosen alignment column (always
