@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (derwin12)              FPP Connect with "Keep window open" added sequences from earlier uploads
+                                 to the playlist, not just the ones selected (#7395)
     -bug (derwin12)              Select Effects listed models with no effects matching the Effect Type,
                                  Render Style, time and colour filters together
     -change (scott)              Controller Open / Open Proxy buttons stay enabled while outputting to lights

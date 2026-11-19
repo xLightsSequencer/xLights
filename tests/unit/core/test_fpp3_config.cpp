@@ -618,4 +618,17 @@ TEST_CASE("FPP UploadPlaylist creates a new playlist", "[fpp3][config][playlist]
     CHECK(pl["mainPlaylist"][0]["sequenceName"] == "b.fseq");
 }
 
+TEST_CASE("FPP UploadPlaylist after ClearUploadedSequences adds only the next upload", "[fpp3][config][playlist]") {
+    FppServer srv;
+    auto f = MakeFpp(srv, 9);
+    f->sequences["old1.fseq"] = { "old1.fseq", "", 4.0f };
+    f->sequences["old2.fseq"] = { "old2.fseq", "", 4.0f };
+    f->ClearUploadedSequences();
+    f->sequences["new.fseq"] = { "new.fseq", "", 3.0f };
+    f->UploadPlaylist("Show");
+    auto pl = srv.LastJson("POST", "/api/playlist/Show");
+    REQUIRE(pl["mainPlaylist"].size() == 1);
+    CHECK(pl["mainPlaylist"][0]["sequenceName"] == "new.fseq");
+}
+
 #endif
