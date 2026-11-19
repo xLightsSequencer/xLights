@@ -820,6 +820,12 @@
     <ClCompile Include="..\src-core\collab\CollabDocHash.cpp">
       <Filter>collab</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabFiles.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabGroup.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabLayout.cpp">
       <Filter>collab</Filter>
     </ClCompile>
@@ -2511,6 +2517,15 @@
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabDocHash.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabFiles.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabGroup.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabGroupWire.h">
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabLayout.h">

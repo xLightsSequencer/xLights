@@ -10,6 +10,7 @@
 
 #ifdef __APPLE__
 
+#include "CollabFiles.h"
 #include "CollabNet.h"
 #include "CollabNetWire.h"
 
@@ -21,7 +22,6 @@
 #include <Security/CipherSuite.h>
 #include <Security/SecProtocolOptions.h>
 #include <dns_sd.h>
-#include <sys/clonefile.h>
 
 #include <algorithm>
 #include <atomic>
@@ -151,12 +151,7 @@ struct Conn {
     std::deque<OutBlob> blobs;
     size_t inflight = 0;
 
-    bool inBlob = false;
-    BlobId inId = 0;
-    uint64_t inSize = 0;
-    uint64_t inGot = 0;
-    FILE* inFile = nullptr;
-    std::string inPath;
+    Files::IncomingBlob in;
 
     void DropFiles() {
         std::error_code ec;
@@ -167,12 +162,7 @@ struct Conn {
             fs::remove(b.path, ec);
         }
         blobs.clear();
-        if (inFile != nullptr) {
-            fclose(inFile);
-            inFile = nullptr;
-            fs::remove(inPath, ec);
-        }
-        inBlob = false;
+        in.Abort();
     }
 };
 
@@ -401,44 +391,52 @@ public:
         if (_state.load() == NetState::Closed) {
             return;
         }
-        std::string copy = (fs::path(_folder) / ("out-" + std::to_string(++_outCopies))).string();
-        std::error_code ec;
-        if (clonefile(path.c_str(), copy.c_str(), 0) != 0) {
-            fs::copy_file(path, copy, fs::copy_options::overwrite_existing, ec);
-            if (ec) {
-                spdlog::warn("collab: could not copy {} to send it: {}", path, ec.message());
-                fs::remove(copy, ec);
-                PostBlobDone(to, id, false);
-                return;
-            }
-        }
-        uint64_t size = fs::file_size(copy, ec);
-        if (ec || size > Wire::kMaxBlobBytes) {
-            fs::remove(copy, ec);
+        FILE* src = Files::OpenForCopy(path);
+        if (src == nullptr) {
+            spdlog::warn("collab: could not open {} to send it", path);
             PostBlobDone(to, id, false);
             return;
         }
+        std::string copy = (fs::path(_folder) / ("out-" + std::to_string(++_outCopies))).string();
         std::weak_ptr<TransportImpl> w = weak_from_this();
-        dispatch_async(_q, ^{
-          auto self = w.lock();
-          std::error_code e2;
-          if (!self) {
-              fs::remove(copy, e2);
-              return;
-          }
-          auto it = self->_conns.find(to);
-          if (it == self->_conns.end() || !it->second->joined || it->second->gone || self->_closed) {
-              fs::remove(copy, e2);
-              self->PostBlobDone(to, id, false);
-              return;
-          }
-          OutBlob b;
-          b.id = id;
-          b.path = copy;
-          b.size = size;
-          it->second->blobs.push_back(b);
-          self->Pump(it->second);
-        });
+        Files::FileCopier::Job job;
+        job.src = src;
+        job.dest = copy;
+        job.done = [w, to, id, copy](bool ok, uint64_t size) {
+            auto self = w.lock();
+            std::error_code ec;
+            if (!self) {
+                fs::remove(copy, ec);
+                return;
+            }
+            if (!ok || size > Wire::kMaxBlobBytes) {
+                spdlog::warn("collab: could not copy a file to send it");
+                fs::remove(copy, ec);
+                self->PostBlobDone(to, id, false);
+                return;
+            }
+            dispatch_async(self->_q, ^{
+              auto self2 = w.lock();
+              std::error_code e2;
+              if (!self2) {
+                  fs::remove(copy, e2);
+                  return;
+              }
+              auto it = self2->_conns.find(to);
+              if (it == self2->_conns.end() || !it->second->joined || it->second->gone || self2->_closed) {
+                  fs::remove(copy, e2);
+                  self2->PostBlobDone(to, id, false);
+                  return;
+              }
+              OutBlob b;
+              b.id = id;
+              b.path = copy;
+              b.size = size;
+              it->second->blobs.push_back(b);
+              self2->Pump(it->second);
+            });
+        };
+        _copier->Add(std::move(job));
     }
 
     std::string DirectSessionId(const std::string& address) {
@@ -693,49 +691,38 @@ private:
             uint64_t id = 0, size = 0;
             Wire::ReadU64(f.payload, 0, id);
             Wire::ReadU64(f.payload, 8, size);
-            if (cn->inBlob || size > Wire::kMaxBlobBytes) {
+            std::string path = (fs::path(_folder) / ("in-" + std::to_string(++_inFiles))).string();
+            if (cn->in.Start(path, id, size, Wire::kMaxBlobBytes) != Files::IncomingBlob::Result::Ok) {
                 return false;
             }
-            cn->inPath = (fs::path(_folder) / ("in-" + std::to_string(++_inFiles))).string();
-            cn->inFile = fopen(cn->inPath.c_str(), "wb");
-            if (cn->inFile == nullptr) {
-                return false;
-            }
-            cn->inBlob = true;
-            cn->inId = id;
-            cn->inSize = size;
-            cn->inGot = 0;
             PostBlobProgress(from, id, 0, size);
             return true;
         }
         case Wire::FrameType::BlobData: {
             uint64_t id = 0;
             Wire::ReadU64(f.payload, 0, id);
-            size_t n = f.payload.size() - 8;
-            if (!cn->inBlob || id != cn->inId || cn->inGot + n > cn->inSize) {
+            uint64_t before = cn->in.Received();
+            if (cn->in.Data(id, std::string_view(f.payload).substr(8)) != Files::IncomingBlob::Result::Ok) {
                 return false;
             }
-            if (fwrite(f.payload.data() + 8, 1, n, cn->inFile) != n) {
-                return false;
-            }
-            uint64_t before = cn->inGot;
-            cn->inGot += n;
-            if (before / kBlobProgressBytes != cn->inGot / kBlobProgressBytes) {
-                PostBlobProgress(from, id, cn->inGot, cn->inSize);
+            if (before / kBlobProgressBytes != cn->in.Received() / kBlobProgressBytes) {
+                PostBlobProgress(from, id, cn->in.Received(), cn->in.Size());
             }
             return true;
         }
         case Wire::FrameType::BlobEnd: {
             uint64_t id = 0;
             Wire::ReadU64(f.payload, 0, id);
-            if (!cn->inBlob || id != cn->inId || cn->inGot != cn->inSize) {
-                return false;
-            }
-            bool ok = fclose(cn->inFile) == 0;
-            cn->inFile = nullptr;
-            cn->inBlob = false;
-            std::string path = cn->inPath;
-            if (!ok) {
+            std::string path, why;
+            switch (cn->in.End(id, path, why)) {
+            case Files::IncomingBlob::Result::Received:
+                break;
+            case Files::IncomingBlob::Result::Failed:
+                // Not the peer's fault: the connection stays, and the session
+                // asks for the file again once it sees the transfer stall.
+                spdlog::warn("collab: dropped a file from peer {}: {}", from, why);
+                return true;
+            default:
                 return false;
             }
             Post([from, id, path](INetTransport& t) {
@@ -935,6 +922,7 @@ private:
     PeerId _nextId = kLanHostPeer + 1;
     std::string _folder;
     std::atomic<uint64_t> _outCopies{ 0 };
+    std::shared_ptr<Files::FileCopier> _copier = std::make_shared<Files::FileCopier>();
     LanTest::PairingBackoff _backoff{ kPairingFailuresAllowed, kPairingBackoffFirstMs, kPairingBackoffMaxMs };
     int _failuresThisRound = 0;
     int _failedHandshakes = 0;

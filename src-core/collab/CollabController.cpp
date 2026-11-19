@@ -463,6 +463,10 @@ CollabController::~CollabController() {
         _browser->Stop();
         _browser.reset();
     }
+    if (_groupBrowser) {
+        _groupBrowser->Stop();
+        _groupBrowser.reset();
+    }
 }
 
 bool CollabController::Available() const {
@@ -482,8 +486,11 @@ void CollabController::StartBrowsing() {
                 return;
             }
             Entry e(*this);
-            _sessions = list;
-            Post([this, list] { _app.OnSessionsFound(list); });
+            _lanSessions = list;
+            for (auto& a : _lanSessions) {
+                a.group = false;
+            }
+            PublishSessions();
         };
         _browser->onError = [this](const std::string& why) {
             if (Busy()) {
@@ -497,6 +504,104 @@ void CollabController::StartBrowsing() {
     if (_browser) {
         _browser->Start();
     }
+    StartGroupBrowser();
+}
+
+void CollabController::PublishSessions() {
+    _sessions = _lanSessions;
+    if (!_groupOffer.id.empty()) {
+        _sessions.push_back(_groupOffer);
+    }
+    auto list = _sessions;
+    Post([this, list] { _app.OnSessionsFound(list); });
+}
+
+// ---------------------------------------------------------------------------
+// Remote sessions
+// ---------------------------------------------------------------------------
+
+void CollabController::SetGroupNetwork(CollabNetFactory group) {
+    Entry en(*this);
+    if (_groupBrowser) {
+        _groupBrowser->Stop();
+        _groupBrowser.reset();
+    }
+    bool hadOffer = !_groupOffer.id.empty();
+    _groupNet = std::move(group);
+    _groupOffer = {};
+    if (hadOffer) {
+        PublishSessions();
+    }
+    StartGroupBrowser();
+}
+
+// Unlike the LAN browser this one stays on: an offer from someone in the
+// call is worth showing without the user asking to look for sessions.
+void CollabController::StartGroupBrowser() {
+    if (!_groupBrowser && _groupNet.browser && GroupAvailable()) {
+        _groupBrowser = _groupNet.browser();
+        if (!_groupBrowser) {
+            return;
+        }
+        _groupBrowser->onChanged = [this](const std::vector<SessionAdvert>& list) {
+            if (Busy()) {
+                Defer([this, list] {
+                    if (_groupBrowser) {
+                        _groupBrowser->onChanged(list);
+                    }
+                });
+                return;
+            }
+            Entry e(*this);
+            SessionAdvert offer = list.empty() ? SessionAdvert{} : list.front();
+            offer.group = true;
+            if (offer.id == _groupOffer.id && offer.sequenceName == _groupOffer.sequenceName && offer.hostName == _groupOffer.hostName) {
+                return;
+            }
+            _groupOffer = offer;
+            PublishSessions();
+        };
+        _groupBrowser->onError = [this](const std::string& why) {
+            if (Busy()) {
+                Defer([this, why] {
+                    if (_groupBrowser) {
+                        _groupBrowser->onError(why);
+                    }
+                });
+                return;
+            }
+            Entry e(*this);
+            Post([this, why] { _app.OnBrowseError(why); });
+        };
+    }
+    if (_groupBrowser) {
+        _groupBrowser->Start();
+    }
+}
+
+bool CollabController::GroupAvailable() const {
+    return _groupNet.transport && (!_groupNet.available || _groupNet.available());
+}
+
+bool CollabController::GroupInCall() const {
+    return GroupAvailable() && _groupNet.inGroup && _groupNet.inGroup();
+}
+
+SessionAdvert CollabController::OfferedGroupSession() const {
+    return _groupOffer;
+}
+
+CollabController::Network CollabController::SessionNetwork() const {
+    return _network;
+}
+
+bool CollabController::HostGroup(const std::string& displayName, const std::string& sequenceName, std::string& error) {
+    std::string code;
+    return StartHosting(_groupNet, Network::Group, displayName, sequenceName, code, error);
+}
+
+bool CollabController::JoinGroup(const std::string& displayName, const std::string& advertId, bool fetchFiles, std::string& error) {
+    return StartJoining(_groupNet, Network::Group, displayName, advertId, "", fetchFiles, error);
 }
 
 void CollabController::StopBrowsing() {
@@ -807,6 +912,11 @@ void CollabController::Teardown() {
 }
 
 bool CollabController::Host(const std::string& displayName, const std::string& sequenceName, std::string& pairingCode, std::string& error) {
+    return StartHosting(_net, Network::Lan, displayName, sequenceName, pairingCode, error);
+}
+
+bool CollabController::StartHosting(CollabNetFactory& net, Network network, const std::string& displayName, const std::string& sequenceName,
+                                    std::string& pairingCode, std::string& error) {
     if (Busy()) {
         error = "Live collaboration is busy; try again in a moment.";
         return false;
@@ -816,16 +926,18 @@ bool CollabController::Host(const std::string& displayName, const std::string& s
         error = "Already in a collaboration session.";
         return false;
     }
-    if (!Available()) {
-        error = "Live collaboration isn't available on this device.";
+    const char* unavailable = network == Network::Group ? "SharePlay sessions aren't available on this device." : "Live collaboration isn't available on this device.";
+    if (!net.transport || (net.available && !net.available())) {
+        error = unavailable;
         return false;
     }
     Teardown();
-    _transport = _net.transport();
+    _transport = net.transport();
     if (!_transport) {
-        error = "Live collaboration isn't available on this device.";
+        error = unavailable;
         return false;
     }
+    _network = network;
     _endReason.clear();
     _endText.clear();
     auto host = std::make_unique<CollabHost>(*_transport, _doc, MakeOptions(displayName, false), MakeEvents());
@@ -843,18 +955,31 @@ bool CollabController::Host(const std::string& displayName, const std::string& s
             return;
         }
         Entry e(*this);
-        if (s == NetState::Failed && _role == Role::Host && _state == State::Active) {
+        if (_role != Role::Host || _host == nullptr) {
+            return;
+        }
+        if (s == NetState::Listening && _state == State::Connecting) {
+            _host->Start();
+            ActivateHost();
+            return;
+        }
+        if ((s == NetState::Failed || s == NetState::Closed) && (_state == State::Active || _state == State::Connecting)) {
+            bool starting = _state == State::Connecting;
             _host->End();
-            _endText = why.empty() ? "The network connection failed." : why;
-            SessionEnded("network");
+            _endText = why.empty() ? (starting ? "The session could not be started." : "The network connection failed.") : why;
+            SessionEnded(starting ? "start_failed" : "network");
         }
     };
-    _host->Start();
+    // A group session starts once the platform has the activity going.
+    if (network == Network::Lan) {
+        _host->Start();
+    }
     SessionAdvert ad;
     ad.sequenceName = sequenceName;
     ad.hostName = displayName;
     ad.deviceKind = _opts.deviceKind;
-    pairingCode = _net.pairingCode ? _net.pairingCode() : RandomCode();
+    ad.group = network == Network::Group;
+    pairingCode = net.pairingCode ? net.pairingCode() : RandomCode();
     if (!_transport->Listen(pairingCode, ad, error)) {
         if (error.empty()) {
             error = "Couldn't start the session on the network.";
@@ -864,6 +989,15 @@ bool CollabController::Host(const std::string& displayName, const std::string& s
         SetState(State::Idle);
         return false;
     }
+    if (network == Network::Group) {
+        SetState(State::Connecting);
+        return true;
+    }
+    ActivateHost();
+    return true;
+}
+
+void CollabController::ActivateHost() {
     Attach();
     ResetLayoutState();
     if (_app.SupportsLiveLayout()) {
@@ -884,11 +1018,15 @@ bool CollabController::Host(const std::string& displayName, const std::string& s
     }
     SetLocks();
     SetState(State::Active);
-    return true;
 }
 
 bool CollabController::Join(const std::string& displayName, const std::string& advertId, const std::string& pairingCode, bool fetchFiles,
                             std::string& error) {
+    return StartJoining(_net, Network::Lan, displayName, advertId, pairingCode, fetchFiles, error);
+}
+
+bool CollabController::StartJoining(CollabNetFactory& net, Network network, const std::string& displayName, const std::string& advertId,
+                                    const std::string& pairingCode, bool fetchFiles, std::string& error) {
     if (Busy()) {
         error = "Live collaboration is busy; try again in a moment.";
         return false;
@@ -898,16 +1036,18 @@ bool CollabController::Join(const std::string& displayName, const std::string& a
         error = "Already in a collaboration session.";
         return false;
     }
-    if (!Available()) {
-        error = "Live collaboration isn't available on this device.";
+    const char* unavailable = network == Network::Group ? "SharePlay sessions aren't available on this device." : "Live collaboration isn't available on this device.";
+    if (!net.transport || (net.available && !net.available())) {
+        error = unavailable;
         return false;
     }
     Teardown();
-    _transport = _net.transport();
+    _transport = net.transport();
     if (!_transport) {
-        error = "Live collaboration isn't available on this device.";
+        error = unavailable;
         return false;
     }
+    _network = network;
     _endReason.clear();
     _endText.clear();
     auto client = std::make_unique<CollabClient>(*_transport, _doc, MakeOptions(displayName, fetchFiles), MakeEvents());
@@ -916,7 +1056,7 @@ bool CollabController::Join(const std::string& displayName, const std::string& a
     _role = Role::Client;
     _hostPeerName.clear();
     for (const auto& s : _sessions) {
-        if (s.id == advertId) {
+        if (s.id == advertId && s.group == (network == Network::Group)) {
             _hostPeerName = s.hostName;
         }
     }
@@ -969,7 +1109,19 @@ void CollabController::End() {
         return;
     }
     Entry en(*this);
-    if (_role != Role::Host || _host == nullptr || _state != State::Active) {
+    if (_role != Role::Host || _host == nullptr) {
+        return;
+    }
+    if (_state == State::Connecting) {
+        // Not started yet: make sure it never starts.
+        if (_transport && !_closed) {
+            _transport->Close();
+            _closed = true;
+        }
+        SessionEnded(Reason::Ended);
+        return;
+    }
+    if (_state != State::Active) {
         return;
     }
     Flush();
@@ -1677,7 +1829,7 @@ std::string CollabController::StatusText() const {
     case State::Idle:
         return "Not in a session";
     case State::Connecting:
-        return "Connecting...";
+        return _role == Role::Host ? "Starting the session..." : "Connecting...";
     case State::Joining:
         return (_client != nullptr && _client->GetState() == CollabClient::State::Checking) ? "Checking show files..." : "Joining...";
     case State::Syncing:
@@ -2030,3 +2182,4 @@ bool CollabController::LayoutObjectReadOnly(const std::string& object, std::stri
 }
 
 } // namespace Collab
+

@@ -39,6 +39,9 @@ struct SessionAdvert {
     std::string hostName;     // the host's display name
     std::string deviceKind;   // "mac", "ipad", ...
     int protocol = kProtocolVersion;
+    // Offered by a group network (CollabController::JoinGroup), not found on
+    // the local network (Join).
+    bool group = false;
 };
 
 enum class NetState { Idle, Listening, Connecting, Connected, Failed, Closed };

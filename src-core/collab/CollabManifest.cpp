@@ -344,6 +344,49 @@ std::string CachePathFor(const std::string& path) {
     return file;
 }
 
+std::string SessionSequenceFileName(const std::string& advertised) {
+    static const std::string kDefault = "Session.xsq";
+    std::vector<std::string> comps = Components(advertised);
+    if (comps.empty()) {
+        return kDefault;
+    }
+    std::string name = comps.back();
+    if (!SafeComponent(name)) {
+        return kDefault;
+    }
+    for (unsigned char c : name) {
+        if (c < 0x20 || c == 0x7f || std::strchr("<>\"|?*", c) != nullptr) {
+            return kDefault;
+        }
+    }
+    // Windows drops trailing dots and spaces, so "..." would name the folder.
+    while (!name.empty() && (name.back() == '.' || name.back() == ' ')) {
+        name.pop_back();
+    }
+    if (name.empty()) {
+        return kDefault;
+    }
+    auto lower = [](std::string s) {
+        std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+        return s;
+    };
+    std::string stem = lower(name.substr(0, name.find('.')));
+    while (!stem.empty() && stem.back() == ' ') {
+        stem.pop_back();
+    }
+    static const std::set<std::string> kReserved = { "con", "prn", "aux", "nul",
+                                                     "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
+                                                     "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9" };
+    if (kReserved.count(stem) != 0) {
+        return kDefault;
+    }
+    std::string l = lower(name);
+    if (l.size() < 4 || l.compare(l.size() - 4, 4, ".xsq") != 0) {
+        name += ".xsq";
+    }
+    return name;
+}
+
 std::string ResolvePath(const std::string& showDir, const std::string& path) {
     if (path.empty()) {
         return "";

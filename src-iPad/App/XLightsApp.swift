@@ -274,6 +274,11 @@ struct ContentView: View {
                                      },
                                      onDismiss: { viewModel.showFileUpdate = nil })
             }
+            if let offer = viewModel.collab.groupOfferToAnnounce {
+                CollabGroupOfferBanner(offer: offer,
+                                       onJoin: { viewModel.showJoinForGroupOffer() },
+                                       onDismiss: { viewModel.collab.dismissedOfferId = offer.id })
+            }
             if viewModel.collab.isVisible, let toast = viewModel.collab.rejectToast {
                 CollabRejectBanner(toast: toast,
                                    onNewLayer: { viewModel.putRejectedOnNewLayer(toast) },

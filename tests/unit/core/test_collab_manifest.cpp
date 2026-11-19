@@ -105,6 +105,47 @@ TEST_CASE("Session-copy paths never leave the copy", "[collab][collab_manifest]"
     CHECK(CachePathFor("") == "");
 }
 
+TEST_CASE("An advertised sequence name becomes a plain file name", "[collab][collab_manifest]") {
+    CHECK(SessionSequenceFileName("Song.xsq") == "Song.xsq");
+    CHECK(SessionSequenceFileName("Song.XSQ") == "Song.XSQ");
+    CHECK(SessionSequenceFileName("Song") == "Song.xsq");
+    CHECK(SessionSequenceFileName("My Song.v2") == "My Song.v2.xsq");
+    // Folders, climbing and absolute paths keep only the last component.
+    CHECK(SessionSequenceFileName("../../Show/Song.xsq") == "Song.xsq");
+    CHECK(SessionSequenceFileName("..\\..\\Show\\Song.xsq") == "Song.xsq");
+    CHECK(SessionSequenceFileName("/Users/someone/Show/Song.xsq") == "Song.xsq");
+    CHECK(SessionSequenceFileName("C:\\Show\\Song.xsq") == "Song.xsq");
+    CHECK(SessionSequenceFileName("\\\\server\\share\\Song.xsq") == "Song.xsq");
+    CHECK(SessionSequenceFileName("Show/./Song.xsq") == "Song.xsq");
+    // Nothing usable left: the default.
+    CHECK(SessionSequenceFileName("") == "Session.xsq");
+    CHECK(SessionSequenceFileName(".") == "Session.xsq");
+    CHECK(SessionSequenceFileName("..") == "Session.xsq");
+    CHECK(SessionSequenceFileName("...") == "Session.xsq");
+    CHECK(SessionSequenceFileName("Show/..") == "Session.xsq");
+    CHECK(SessionSequenceFileName("/") == "Session.xsq");
+    CHECK(SessionSequenceFileName("\\") == "Session.xsq");
+    CHECK(SessionSequenceFileName("C:Song.xsq") == "Session.xsq");
+    CHECK(SessionSequenceFileName("C:") == "Session.xsq");
+    CHECK(SessionSequenceFileName("Song\nName.xsq") == "Session.xsq");
+    CHECK(SessionSequenceFileName("Song?.xsq") == "Session.xsq");
+    CHECK(SessionSequenceFileName("CON") == "Session.xsq");
+    CHECK(SessionSequenceFileName("nul.xsq") == "Session.xsq");
+    CHECK(SessionSequenceFileName("Com1.tar.xsq") == "Session.xsq");
+    CHECK(SessionSequenceFileName("Console.xsq") == "Console.xsq");
+    // Trailing dots and spaces would be dropped by Windows.
+    CHECK(SessionSequenceFileName("Song.xsq. ") == "Song.xsq");
+    for (const char* bad : { "../x.xsq", "/abs/x.xsq", "C:\\x.xsq", "a/b\\c.xsq", "..", "" }) {
+        std::string n = SessionSequenceFileName(bad);
+        INFO(bad);
+        CHECK(n.find('/') == std::string::npos);
+        CHECK(n.find('\\') == std::string::npos);
+        CHECK(n.find(':') == std::string::npos);
+        CHECK(n != "..");
+        CHECK(n.size() > 4);
+    }
+}
+
 TEST_CASE("Manifest paths are show-relative when the file is in the show", "[collab][collab_manifest]") {
     TempDir show;
     TempDir other;

@@ -19,6 +19,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Live collaboration: the layout and controllers can be edited during a session too;
                                  single-model editors (submodels, faces, states, custom model...) lock for others
     -enh (dkulp)                 iPad - Live collaboration: edit the layout and controllers during a session too
+    -enh (dkulp)                 Live collaboration: host or join a session over SharePlay (FaceTime or Messages)
+                                 to work with people who aren't on the same network
+    -enh (dkulp)                 iPad - Live collaboration: host or join a session over SharePlay (FaceTime or Messages)
 
 2026.21  November 24, 2026
 

@@ -76,6 +76,9 @@ constexpr int kLayoutQuietMs = 300;
 int g_layoutFieldsFocused = 0;
 // Keeps ticking this long after the end so the goodbye gets out.
 constexpr uint64_t kTickAfterEndMs = 5000;
+// How often the SharePlay offer and the FaceTime call state are checked:
+// an offer can arrive while nobody is browsing.
+constexpr uint64_t kGroupPollMs = 1000;
 
 } // namespace
 
@@ -217,6 +220,7 @@ constexpr uint64_t kTickAfterEndMs = 5000;
 - (XLCollabJoinReport*)wrapJoinReport:(const Collab::JoinReport&)r;
 - (void)syncSessionFlags;
 - (BOOL)holdsLayoutLock;
+- (void)checkGroup;
 @end
 
 // ---------------------------------------------------------------------------
@@ -328,6 +332,7 @@ public:
         [_owner deliver:XLCollabEventJoinReport payload:[_owner wrapJoinReport:report]];
     }
     void OnSessionsFound(const std::vector<Collab::SessionAdvert>&) override {
+        [_owner checkGroup];
         [_owner deliver:XLCollabEventSessionsFound payload:nil];
     }
     void OnBrowseError(const std::string& reason) override {
@@ -403,6 +408,9 @@ private:
     std::unordered_map<SeqObjectId, uint64_t> _flashUntil;
     Collab::PresenceInfo _localPresence;
     bool _holdsLayoutLock;
+    dispatch_source_t _groupTimer;
+    std::string _groupOfferId;
+    bool _groupInCall;
 }
 
 - (instancetype)initWithDocument:(XLSequenceDocument*)document {
@@ -420,6 +428,19 @@ private:
         opts.deviceKind = "ipad";
         opts.sessionFolder = (std::filesystem::path(Std(NSTemporaryDirectory())) / "xLightsCollab" / "session").string();
         _controller = std::make_unique<Collab::CollabController>(*_app, Collab::CollabNetFactory::Lan(dispatch), dispatch, opts);
+        _controller->SetGroupNetwork(Collab::CollabNetFactory::Group(dispatch));
+        if (_controller->GroupAvailable()) {
+            _groupInCall = _controller->GroupInCall();
+            _groupOfferId = _controller->OfferedGroupSession().id;
+            _groupTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
+            dispatch_source_set_timer(_groupTimer, dispatch_time(DISPATCH_TIME_NOW, kGroupPollMs * NSEC_PER_MSEC),
+                                      kGroupPollMs * NSEC_PER_MSEC, 200 * NSEC_PER_MSEC);
+            __unsafe_unretained XLCollabSession* weakSelf = self;
+            dispatch_source_set_event_handler(_groupTimer, ^{
+                [weakSelf checkGroup];
+            });
+            dispatch_resume(_groupTimer);
+        }
     }
     return self;
 }
@@ -429,6 +450,10 @@ private:
         dispatch_source_cancel(_tickTimer);
         _tickTimer = nil;
     }
+    if (_groupTimer) {
+        dispatch_source_cancel(_groupTimer);
+        _groupTimer = nil;
+    }
     // The controller calls back into the app while it goes.
     _controller.reset();
     _app.reset();
@@ -436,6 +461,16 @@ private:
 
 - (void)deliver:(XLCollabEvent)event payload:(nullable id)payload {
     if (_eventHandler) _eventHandler(event, payload);
+}
+
+- (void)checkGroup {
+    if (!_controller->GroupAvailable()) return;
+    const bool inCall = _controller->GroupInCall();
+    const std::string offer = _controller->OfferedGroupSession().id;
+    if (inCall == _groupInCall && offer == _groupOfferId) return;
+    _groupInCall = inCall;
+    _groupOfferId = offer;
+    [self deliver:XLCollabEventGroupChanged payload:nil];
 }
 
 - (void)syncSessionFlags {
@@ -519,17 +554,33 @@ private:
     return out;
 }
 
+static XLCollabAdvert* WrapAdvert(const Collab::SessionAdvert& s) {
+    XLCollabAdvert* a = [XLCollabAdvert new];
+    a.advertId = NS(s.id);
+    a.sequenceName = NS(s.sequenceName);
+    a.hostName = NS(s.hostName);
+    a.deviceKind = NS(s.deviceKind);
+    return a;
+}
+
 - (NSArray<XLCollabAdvert*>*)sessions {
     NSMutableArray* out = [NSMutableArray array];
-    for (const auto& s : _controller->Sessions()) {
-        XLCollabAdvert* a = [XLCollabAdvert new];
-        a.advertId = NS(s.id);
-        a.sequenceName = NS(s.sequenceName);
-        a.hostName = NS(s.hostName);
-        a.deviceKind = NS(s.deviceKind);
-        [out addObject:a];
-    }
+    for (const auto& s : _controller->Sessions()) [out addObject:WrapAdvert(s)];
     return out;
+}
+
+- (BOOL)groupAvailable { return _controller->GroupAvailable() ? YES : NO; }
+- (BOOL)groupInCall { return _controller->GroupInCall() ? YES : NO; }
+
+- (nullable XLCollabAdvert*)offeredGroupSession {
+    if (!_controller->GroupAvailable()) return nil;
+    const Collab::SessionAdvert a = _controller->OfferedGroupSession();
+    return a.id.empty() ? nil : WrapAdvert(a);
+}
+
+- (XLCollabNetwork)sessionNetwork {
+    return _controller->SessionNetwork() == Collab::CollabController::Network::Group ? XLCollabNetworkSharePlay
+                                                                                     : XLCollabNetworkLan;
 }
 
 - (XLCollabJoinReport*)wrapJoinReport:(const Collab::JoinReport&)r {
@@ -571,6 +622,23 @@ private:
     return NS(code);
 }
 
+- (BOOL)hostGroupWithName:(NSString*)displayName error:(NSString* _Nullable* _Nullable)error {
+    auto* sf = _app->Ctx()->GetSequenceFile();
+    if (!_app->Ctx()->IsSequenceLoaded() || !sf) {
+        if (error) *error = @"Open a sequence first.";
+        return NO;
+    }
+    std::string err;
+    _flashUntil.clear();
+    _localPresence = {};
+    _pairingCode.clear();
+    const bool ok = _controller->HostGroup(Std(displayName), sf->GetFullName(), err);
+    if (!ok && error) *error = NS(err);
+    [self syncSessionFlags];
+    [self updateTickTimer];
+    return ok ? YES : NO;
+}
+
 - (void)startBrowsing { _controller->StartBrowsing(); }
 - (void)stopBrowsing { _controller->StopBrowsing(); }
 
@@ -583,19 +651,39 @@ private:
     for (const auto& s : _controller->Sessions()) {
         if (s.id == Std(advertId)) seqName = s.sequenceName;
     }
-    seqName = std::filesystem::path(seqName).filename().string();
-    if (seqName.empty()) seqName = "Session.xsq";
+    [self prepareJoinOf:seqName];
+    std::string err;
+    const bool ok = _controller->Join(Std(displayName), Std(advertId), Std(code), fetchFiles ? true : false, err);
+    if (!ok && error) *error = NS(err);
+    [self updateTickTimer];
+    return ok ? YES : NO;
+}
+
+- (BOOL)joinGroupWithName:(NSString*)displayName
+                 advertId:(NSString*)advertId
+               fetchFiles:(BOOL)fetchFiles
+                    error:(NSString* _Nullable* _Nullable)error {
+    const Collab::SessionAdvert offered = _controller->OfferedGroupSession();
+    if (offered.id.empty() || offered.id != Std(advertId)) {
+        if (error) *error = @"That SharePlay session has ended.";
+        return NO;
+    }
+    [self prepareJoinOf:offered.sequenceName];
+    std::string err;
+    const bool ok = _controller->JoinGroup(Std(displayName), offered.id, fetchFiles ? true : false, err);
+    if (!ok && error) *error = NS(err);
+    [self updateTickTimer];
+    return ok ? YES : NO;
+}
+
+- (void)prepareJoinOf:(const std::string&)sequenceName {
+    const std::string seqName = Collab::SessionSequenceFileName(sequenceName);
     // A fresh folder per join so a later session never opens a stale file.
     _app->sessionSequenceFile = (std::filesystem::path(Std(NSTemporaryDirectory())) / "xLightsCollab" /
                                  ("join-" + std::to_string(NowMs())) / seqName).string();
     _flashUntil.clear();
     _localPresence = {};
     _pairingCode.clear();
-    std::string err;
-    const bool ok = _controller->Join(Std(displayName), Std(advertId), Std(code), fetchFiles ? true : false, err);
-    if (!ok && error) *error = NS(err);
-    [self updateTickTimer];
-    return ok ? YES : NO;
 }
 
 - (void)leave {

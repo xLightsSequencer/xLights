@@ -109,8 +109,10 @@ public:
     void EndEditorLock();
 
     // Used by the windows.
-    void HostSession();
-    void JoinSession();
+    // group: over SharePlay rather than this network.
+    void HostSession(bool group = false);
+    // preferred: the session to select in the list (the offered SharePlay one).
+    void JoinSession(const std::string& preferred = std::string());
     void EndOrLeave();
     void ShowSessionWindow();
     void SaveCopy();
@@ -128,12 +130,19 @@ private:
     void RefreshSequencer();
     void ShowNotice(const wxString& text, const wxString& action = wxString(), std::function<void()> onAction = nullptr, int seconds = 10);
     void HideNotice();
+    void EnableGroupNetwork();
+    wxString GroupHostLabel() const;
+    std::vector<Collab::SessionAdvert> WithGroupOffer(std::vector<Collab::SessionAdvert> sessions) const;
+    void CheckGroupOffer();
     std::string DocFolder();
     static std::string Initials(const std::string& name);
 
     xLightsFrame* _frame;
     std::unique_ptr<Collab::CollabController> _ctl;
     std::shared_ptr<bool> _alive = std::make_shared<bool>(true);
+    Collab::Dispatcher _dispatch;
+    bool _groupNetworkSet = false;
+    std::string _offerNoticed; // the SharePlay offer the notice was shown for
     wxTimer _timer;
     int64_t _lastPresence = 0;
     int64_t _endedAt = 0;
@@ -142,6 +151,7 @@ private:
     wxMenu* _menu = nullptr;
     wxMenuItem* _menuItem = nullptr; // File > Collaborate
     wxMenuItem* _hostItem = nullptr;
+    wxMenuItem* _hostGroupItem = nullptr;
     wxMenuItem* _joinItem = nullptr;
     wxMenuItem* _endItem = nullptr;
     wxMenuItem* _windowItem = nullptr;

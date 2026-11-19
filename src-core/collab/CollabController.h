@@ -44,6 +44,12 @@
 //     Syncing -> Active; OnJoinReport says what differed / was fetched.
 //     collab.Leave();
 //
+//   Remote (SharePlay), where GroupAvailable() after
+//   collab.SetGroupNetwork(Collab::CollabNetFactory::Group(dispatch)):
+//     collab.HostGroup(myName, sequenceFileName, error);  // Connecting -> Active
+//     collab.JoinGroup(myName, collab.OfferedGroupSession().id, fetchFiles, error);
+//     End / Leave and everything below work as on the LAN.
+//
 //   Presence: call SetLocalPresence whenever the visible time range, the
 //   focused rows, the selection or the effect open in the settings panel /
 //   inspector changes (cheap; the controller sends at most ~5 Hz, only
@@ -123,6 +129,7 @@
 #include <string>
 #include <vector>
 
+#include "CollabGroup.h"
 #include "CollabLayout.h"
 #include "CollabNet.h"
 #include "CollabSession.h"
@@ -258,6 +265,8 @@ struct CollabNetFactory {
     std::function<std::unique_ptr<ISessionBrowser>()> browser;
     std::function<bool()> available;
     std::function<std::string()> pairingCode;
+    // Group networks only: a call / conversation is active now.
+    std::function<bool()> inGroup;
 
     static CollabNetFactory Lan(Dispatcher dispatch) {
         CollabNetFactory f;
@@ -265,6 +274,15 @@ struct CollabNetFactory {
         f.browser = [dispatch] { return CreateLanBrowser(dispatch); };
         f.available = [] { return LanTransportAvailable(); };
         f.pairingCode = [] { return NewPairingCode(); };
+        return f;
+    }
+    static CollabNetFactory Group(Dispatcher dispatch, IGroupSessionSource& source = PlatformGroupSessions()) {
+        CollabNetFactory f;
+        f.transport = [dispatch, &source] { return CreateGroupTransport(source, dispatch); };
+        f.browser = [dispatch, &source] { return CreateGroupBrowser(source, dispatch); };
+        f.available = [&source] { return source.Available(); };
+        f.pairingCode = [] { return std::string(); };
+        f.inGroup = [&source] { return source.InGroup(); };
         return f;
     }
 };
@@ -304,6 +322,31 @@ public:
     void StartBrowsing();
     void StopBrowsing();
     const std::vector<SessionAdvert>& Sessions() const { return _sessions; }
+
+    // ---- Remote sessions (SharePlay; see CollabGroup.h) ----
+    // Which network a session runs on. Lan: the Host / Join below (Bonjour
+    // and a pairing code). Group: a FaceTime call or Messages conversation,
+    // no pairing code.
+    enum class Network { Lan, Group };
+    // Gives the controller the group network (CollabNetFactory::Group). Until
+    // then GroupAvailable() is false. Call before hosting or joining.
+    void SetGroupNetwork(CollabNetFactory group);
+    bool GroupAvailable() const;
+    // In a call / conversation now, so hosting reaches people at once
+    // (otherwise the platform asks whom to invite).
+    bool GroupInCall() const;
+    // A session someone in the call started, waiting to be joined (id empty:
+    // none). Reported through OnSessionsFound as well (SessionAdvert::group
+    // set), from SetGroupNetwork on, whether or not StartBrowsing was called.
+    SessionAdvert OfferedGroupSession() const;
+    // Starts hosting the open sequence over the group. Asynchronous like
+    // Join: watch GetState(); it is Active once the platform has started
+    // the activity.
+    bool HostGroup(const std::string& displayName, const std::string& sequenceName, std::string& error);
+    // Joins the offered group session. Asynchronous: watch GetState().
+    bool JoinGroup(const std::string& displayName, const std::string& advertId, bool fetchFiles, std::string& error);
+    // The network the current (or last) session used.
+    Network SessionNetwork() const;
 
     // ---- Lifecycle ----
     // Starts hosting the open sequence. On success `pairingCode` is the code
@@ -469,6 +512,13 @@ private:
     std::string RedirectUndoString() override { return UndoLabel(); }
     std::string RedirectRedoString() override { return RedoLabel(); }
 
+    bool StartHosting(CollabNetFactory& net, Network network, const std::string& displayName, const std::string& sequenceName,
+                      std::string& pairingCode, std::string& error);
+    void ActivateHost();
+    bool StartJoining(CollabNetFactory& net, Network network, const std::string& displayName, const std::string& advertId,
+                      const std::string& pairingCode, bool fetchFiles, std::string& error);
+    void StartGroupBrowser();
+    void PublishSessions();
     SessionOptions MakeOptions(const std::string& displayName, bool fetchFiles) const;
     SessionEvents MakeEvents();
     void WrapTransport();
@@ -509,6 +559,11 @@ private:
 
     ICollabApp& _app;
     CollabNetFactory _net;
+    CollabNetFactory _groupNet;
+    std::unique_ptr<ISessionBrowser> _groupBrowser;
+    std::vector<SessionAdvert> _lanSessions;
+    SessionAdvert _groupOffer;
+    Network _network = Network::Lan;
     Dispatcher _dispatch;
     ControllerOptions _opts;
     DocBridge _doc;

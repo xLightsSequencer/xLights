@@ -3851,42 +3851,49 @@ class SequencerViewModel {
         trackRenderCompletion()
     }
 
-    /// Re-render what a collaboration change touched. The one place remote
-    /// changes reach the renderer. Content edits go through the core's
-    /// visible-range-first scheduler (rendered now when on screen or while
-    /// playing, otherwise when scrolled to, at playback, when idle, or
-    /// before an fseq write); media changes and arriving files render the
-    /// changed models directly. Both defer while background render is
+    /// Re-render what a collaboration change touched: the one place remote
+    /// changes reach the renderer, following the core's plan
+    /// (Collab::PlanRender, the desktop's rule too). Rows go through the
+    /// core's visible-range-first scheduler (rendered now when on screen or
+    /// while playing, otherwise when scrolled to, at playback, when idle, or
+    /// before an fseq write); a layout change renders the models it changed;
+    /// media changes and arriving files render everything, since effects on
+    /// any row may use them. All defer while background render is
     /// suspended, like a local edit.
     func markCollabChangeForRender(_ change: XLCollabChange) {
         guard isSequenceLoaded else { return }
         let start = change.startMS < 0 ? 0 : change.startMS
         let end = change.endMS < 0 ? sequenceDurationMS : change.endMS
-        if renderSuspended {
-            if !change.rows.isEmpty || !change.modelNames.isEmpty {
-                noteSuspendedDirty(rowIndex: -1, startMS: start, endMS: end)
-            }
+        switch change.renderKind {
+        case .nothing:
             return
-        }
-        switch change.cause {
-        case .remoteEdit, .ownEdit, .ownUndo, .ownEditPending, .ownEditRejected:
-            if !change.mediaChanged {
-                if !change.rows.isEmpty {
-                    document.markRemoteChange(rows: change.rows,
-                                              fromMS: Int32(change.startMS),
-                                              toMS: Int32(change.endMS))
-                    trackRenderCompletion()
-                }
+        case .rows:
+            if renderSuspended {
+                noteSuspendedDirty(rowIndex: -1, startMS: start, endMS: end)
                 return
             }
-        default:
-            break
+            document.markRemoteChange(rows: change.rows,
+                                      fromMS: Int32(change.startMS),
+                                      toMS: Int32(change.endMS))
+            trackRenderCompletion()
+        case .models:
+            if renderSuspended {
+                noteSuspendedDirty(rowIndex: -1, startMS: 0, endMS: sequenceDurationMS)
+                return
+            }
+            for name in change.modelNames {
+                collab.session?.renderModel(named: name, startMS: -1, endMS: -1)
+            }
+            trackRenderCompletion()
+        case .everything:
+            if renderSuspended {
+                noteSuspendedDirty(rowIndex: -1, startMS: 0, endMS: sequenceDurationMS)
+                return
+            }
+            startBackgroundRender()
+        @unknown default:
+            return
         }
-        if change.modelNames.isEmpty { return }
-        for name in change.modelNames {
-            collab.session?.renderModel(named: name, startMS: change.startMS, endMS: change.endMS)
-        }
-        trackRenderCompletion()
     }
 
     /// A joined sequence is about to replace the open one (called

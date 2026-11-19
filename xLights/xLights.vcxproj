@@ -1045,6 +1045,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\collab\CollabCommandInfo.cpp" />
     <ClCompile Include="..\src-core\collab\CollabController.cpp" />
     <ClCompile Include="..\src-core\collab\CollabDocHash.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabFiles.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabGroup.cpp" />
     <ClCompile Include="..\src-core\collab\CollabLayout.cpp" />
     <ClCompile Include="..\src-core\collab\CollabManifest.cpp" />
     <ClCompile Include="..\src-core\collab\CollabMessages.cpp" />
@@ -1759,6 +1761,9 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\collab\CollabCommandInfo.h" />
     <ClInclude Include="..\src-core\collab\CollabController.h" />
     <ClInclude Include="..\src-core\collab\CollabDocHash.h" />
+    <ClInclude Include="..\src-core\collab\CollabFiles.h" />
+    <ClInclude Include="..\src-core\collab\CollabGroup.h" />
+    <ClInclude Include="..\src-core\collab\CollabGroupWire.h" />
     <ClInclude Include="..\src-core\collab\CollabLayout.h" />
     <ClInclude Include="..\src-core\collab\CollabManifest.h" />
     <ClInclude Include="..\src-core\collab\CollabMessages.h" />

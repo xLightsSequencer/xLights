@@ -344,6 +344,11 @@
 		<Unit filename="../src-core/collab/CollabController.h" />
 		<Unit filename="../src-core/collab/CollabDocHash.cpp" />
 		<Unit filename="../src-core/collab/CollabDocHash.h" />
+		<Unit filename="../src-core/collab/CollabFiles.cpp" />
+		<Unit filename="../src-core/collab/CollabFiles.h" />
+		<Unit filename="../src-core/collab/CollabGroup.cpp" />
+		<Unit filename="../src-core/collab/CollabGroup.h" />
+		<Unit filename="../src-core/collab/CollabGroupWire.h" />
 		<Unit filename="../src-core/collab/CollabLayout.cpp" />
 		<Unit filename="../src-core/collab/CollabLayout.h" />
 		<Unit filename="../src-core/collab/CollabManifest.cpp" />

@@ -36,6 +36,16 @@ using nlohmann::json;
 
 namespace Collab {
 
+// Show files hashed on a worker thread; the session thread polls `done`.
+struct HashJob {
+    std::atomic<bool> done{ false };
+    HashCache cache;
+    std::vector<SessionFile> files;          // host: what to list
+    std::vector<FileEntry> manifest;         // host: the result
+    std::map<std::string, std::string> local; // host: manifest path -> file
+    std::vector<FileCheck> checks;           // client: resolved, to hash
+};
+
 namespace {
 
 const char* ReasonFor(CommandStatus s) {

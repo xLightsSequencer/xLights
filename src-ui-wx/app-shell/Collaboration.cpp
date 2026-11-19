@@ -128,14 +128,15 @@ class CollabJoinDialog : public wxDialog {
 public:
     explicit CollabJoinDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "Join Collaboration Session", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {
         auto* sizer = new wxBoxSizer(wxVERTICAL);
-        sizer->Add(new wxStaticText(this, wxID_ANY, "Sessions on this network:"), 0, wxALL, 8);
+        sizer->Add(new wxStaticText(this, wxID_ANY, "Sessions on this network or in your SharePlay call:"), 0, wxALL, 8);
         _list = new wxListBox(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(420, 160)));
         sizer->Add(_list, 1, wxLEFT | wxRIGHT | wxEXPAND, 8);
         _error = new wxStaticText(this, wxID_ANY, wxEmptyString);
         _error->SetForegroundColour(wxColour(0xC0, 0x30, 0x30));
         sizer->Add(_error, 0, wxLEFT | wxRIGHT | wxTOP, 8);
         auto* row = new wxBoxSizer(wxHORIZONTAL);
-        row->Add(new wxStaticText(this, wxID_ANY, "Pairing code:"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+        _codeLabel = new wxStaticText(this, wxID_ANY, "Pairing code:");
+        row->Add(_codeLabel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
         _code = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(100, -1)));
         _code->SetMaxLength(6);
         row->Add(_code, 0, wxALIGN_CENTER_VERTICAL);
@@ -150,17 +151,32 @@ public:
         sizer->Add(buttons, 0, wxALL | wxEXPAND, 8);
         SetSizerAndFit(sizer);
         Bind(wxEVT_BUTTON, &CollabJoinDialog::OnOK, this, wxID_OK);
-        _list->Bind(wxEVT_LISTBOX_DCLICK, [this](wxCommandEvent&) { _code->SetFocus(); });
+        _list->Bind(wxEVT_LISTBOX, [this](wxCommandEvent&) { UpdateCode(); });
+        _list->Bind(wxEVT_LISTBOX_DCLICK, [this](wxCommandEvent&) {
+            if (SelectedIsGroup()) {
+                wxCommandEvent ok(wxEVT_BUTTON, wxID_OK);
+                ok.SetEventObject(this);
+                ProcessWindowEvent(ok);
+            } else {
+                _code->SetFocus();
+            }
+        });
     }
 
-    void SetSessions(const std::vector<Collab::SessionAdvert>& sessions) {
-        std::string selected = Selected() ? Selected()->id : std::string();
+    // `groupId`: the offered SharePlay session among `sessions` (empty: none).
+    void SetSessions(const std::vector<Collab::SessionAdvert>& sessions, const std::string& groupId = std::string()) {
+        std::string selected = Selected() ? Selected()->id : _preferred;
         _sessions = sessions;
+        _groupId = groupId;
         _list->Clear();
         int sel = -1;
         for (size_t i = 0; i < _sessions.size(); ++i) {
             const auto& s = _sessions[i];
-            _list->Append(wxString::FromUTF8(s.sequenceName + "  \xE2\x80\x94  " + s.hostName));
+            std::string label = s.sequenceName + "  \xE2\x80\x94  " + s.hostName;
+            if (!_groupId.empty() && s.id == _groupId) {
+                label += "  (SharePlay)";
+            }
+            _list->Append(wxString::FromUTF8(label));
             if (s.id == selected || (selected.empty() && i == 0)) {
                 sel = (int)i;
             }
@@ -169,8 +185,12 @@ public:
             _list->SetSelection(sel);
         }
         _error->SetLabel(_sessions.empty() ? "Looking for sessions..." : "");
+        UpdateCode();
         Layout();
     }
+    // Select this session once it is listed.
+    void Prefer(const std::string& id) { _preferred = id; }
+    bool SelectedIsGroup() const { return Selected() != nullptr && !_groupId.empty() && Selected()->id == _groupId; }
     void SetError(const wxString& e) {
         _error->SetLabel(e);
         Layout();
@@ -188,18 +208,28 @@ private:
             SetError("Choose a session.");
             return;
         }
-        if (Code().size() != 6) {
+        if (!SelectedIsGroup() && Code().size() != 6) {
             SetError("Enter the 6-digit code the host shows.");
             return;
         }
         e.Skip();
     }
 
+    // A SharePlay session is limited to the people in the call: no code.
+    void UpdateCode() {
+        bool group = SelectedIsGroup();
+        _codeLabel->Enable(!group);
+        _code->Enable(!group);
+    }
+
     wxListBox* _list = nullptr;
     wxStaticText* _error = nullptr;
+    wxStaticText* _codeLabel = nullptr;
     wxTextCtrl* _code = nullptr;
     wxCheckBox* _fetch = nullptr;
     std::vector<Collab::SessionAdvert> _sessions;
+    std::string _groupId;
+    std::string _preferred;
 };
 
 // ---------------------------------------------------------------------------
@@ -255,9 +285,11 @@ public:
         _status->SetLabel(wxString::FromUTF8(ctl.StatusText()));
         bool host = ctl.GetRole() == Role::Host;
         bool live = ctl.GetState() != State::Ended && ctl.GetState() != State::Idle;
+        bool group = ctl.SessionNetwork() == Collab::CollabController::Network::Group;
+        _codeLabel->SetLabel(group ? "Shared over SharePlay - everyone in the call can join:" : "Pairing code - give it to the people joining:");
         _codeLabel->Show(host && live);
         _code->Show(host && live);
-        _code->SetLabel(wxString::FromUTF8(code));
+        _code->SetLabel(group ? wxString("SharePlay") : wxString::FromUTF8(code));
         _end->SetLabel(host ? "End Session" : "Leave Session");
         _end->Show(live);
         _saveCopy->Show(!host && !live && ctl.GetJoinReport().has_value() && ctl.GetJoinReport()->sessionCopy);
@@ -315,6 +347,10 @@ DesktopCollab::DesktopCollab(xLightsFrame* frame) :
     opts.appVersion = xlights_version_string;
     opts.deviceKind = DeviceKind();
     _ctl = std::make_unique<Collab::CollabController>(*this, Collab::CollabNetFactory::Lan(dispatch), dispatch, opts);
+    _dispatch = dispatch;
+    if (PreferenceEnabled()) {
+        EnableGroupNetwork();
+    }
     _timer.SetOwner(this);
     Bind(wxEVT_TIMER, &DesktopCollab::OnTimer, this);
 }
@@ -345,22 +381,42 @@ void DesktopCollab::SetPreferenceEnabled(bool enabled) {
         config->Write(Collab::kCollaborationEnabledPref, enabled);
         config->Flush();
     }
+    if (enabled) {
+        EnableGroupNetwork();
+    }
     UpdateVisibility();
 }
 
+// Only once the beta is on: it starts watching for SharePlay activities.
+void DesktopCollab::EnableGroupNetwork() {
+    if (!_groupNetworkSet) {
+        _groupNetworkSet = true;
+        _ctl->SetGroupNetwork(Collab::CollabNetFactory::Group(_dispatch));
+    }
+}
+
 bool DesktopCollab::Available() const {
-    return _ctl->Available();
+    return _ctl->Available() || _ctl->GroupAvailable();
 }
 
 void DesktopCollab::CreateUI(wxMenu* fileMenu, wxMenuItem* insertAfter) {
     _fileMenu = fileMenu;
     _menu = new wxMenu();
     _hostItem = _menu->Append(wxID_ANY, "Host Session...", "Let others on this network edit the open sequence with you");
-    _joinItem = _menu->Append(wxID_ANY, "Join Session...", "Edit a sequence someone on this network is hosting");
+    _hostGroupItem = _menu->Append(wxID_ANY, GroupHostLabel(), "Edit the open sequence with the people in a FaceTime call or Messages conversation");
+    _joinItem = _menu->Append(wxID_ANY, "Join Session...", "Edit a sequence someone on this network or in your SharePlay call is hosting");
     _menu->AppendSeparator();
     _windowItem = _menu->Append(wxID_ANY, "Session Window...");
     _endItem = _menu->Append(wxID_ANY, "End Session");
     _frame->Bind(wxEVT_MENU, [this](wxCommandEvent&) { HostSession(); }, _hostItem->GetId());
+    _frame->Bind(wxEVT_MENU, [this](wxCommandEvent&) { HostSession(true); }, _hostGroupItem->GetId());
+    // Whether a FaceTime call is active changes without telling us.
+    _frame->Bind(wxEVT_MENU_OPEN, [this](wxMenuEvent& e) {
+        e.Skip();
+        if (e.GetMenu() == _menu || e.GetMenu() == _fileMenu) {
+            UpdateStatus();
+        }
+    });
     _frame->Bind(wxEVT_MENU, [this](wxCommandEvent&) { JoinSession(); }, _joinItem->GetId());
     _frame->Bind(wxEVT_MENU, [this](wxCommandEvent&) { ShowSessionWindow(); }, _windowItem->GetId());
     _frame->Bind(wxEVT_MENU, [this](wxCommandEvent&) { EndOrLeave(); }, _endItem->GetId());
@@ -426,7 +482,10 @@ void DesktopCollab::UpdateStatus() {
     using Role = Collab::CollabController::Role;
     State st = _ctl->GetState();
     bool live = st != State::Idle && st != State::Ended;
-    _hostItem->Enable(!live);
+    _hostItem->Enable(!live && _ctl->Available());
+    bool group = _ctl->GroupAvailable();
+    _hostGroupItem->Enable(!live && group);
+    _hostGroupItem->SetItemLabel(group ? GroupHostLabel() : wxString("Host via SharePlay (not available)"));
     _joinItem->Enable(!live);
     _endItem->Enable(live);
     _endItem->SetItemLabel(_ctl->GetRole() == Role::Client ? "Leave Session" : "End Session");
@@ -661,11 +720,7 @@ bool DesktopCollab::SaveXsq(std::string& out) {
 }
 
 bool DesktopCollab::LoadXsq(const std::string& xsq) {
-    std::string name = _sequenceName.empty() ? std::string("Session.xsq") : _sequenceName;
-    if (wxFileName(wxString::FromUTF8(name)).GetExt().Lower() != "xsq") {
-        name += ".xsq";
-    }
-    std::string path = (std::filesystem::path(DocFolder()) / name).string();
+    std::string path = (std::filesystem::path(DocFolder()) / Collab::SessionSequenceFileName(_sequenceName)).string();
     {
         std::ofstream f(path, std::ios::binary | std::ios::trunc);
         f << xsq;
@@ -903,8 +958,35 @@ void DesktopCollab::OnJoinReport(const Collab::JoinReport& r) {
 
 void DesktopCollab::OnSessionsFound(const std::vector<Collab::SessionAdvert>& sessions) {
     if (_joinDialog != nullptr) {
-        _joinDialog->SetSessions(sessions);
+        _joinDialog->SetSessions(WithGroupOffer(sessions), _ctl->OfferedGroupSession().id);
     }
+    CheckGroupOffer();
+}
+
+std::vector<Collab::SessionAdvert> DesktopCollab::WithGroupOffer(std::vector<Collab::SessionAdvert> sessions) const {
+    Collab::SessionAdvert offer = _ctl->OfferedGroupSession();
+    if (!offer.id.empty() && std::none_of(sessions.begin(), sessions.end(), [&](const auto& s) { return s.id == offer.id; })) {
+        sessions.insert(sessions.begin(), offer);
+    }
+    return sessions;
+}
+
+// "Sam started a SharePlay session" once per offer, while nothing else is going on.
+void DesktopCollab::CheckGroupOffer() {
+    Collab::SessionAdvert offer = _ctl->OfferedGroupSession();
+    if (offer.id == _offerNoticed) {
+        return;
+    }
+    _offerNoticed = offer.id;
+    using State = Collab::CollabController::State;
+    State st = _ctl->GetState();
+    if (offer.id.empty() || !PreferenceEnabled() || _joinDialog != nullptr || (st != State::Idle && st != State::Ended)) {
+        return;
+    }
+    std::string who = offer.hostName.empty() ? std::string("Someone") : offer.hostName;
+    std::string text = who + " started a SharePlay session for '" + offer.sequenceName + "'";
+    std::string id = offer.id;
+    ShowNotice(wxString::FromUTF8(text), "Join...", [this, id] { JoinSession(id); }, 120);
 }
 
 void DesktopCollab::OnBrowseError(const std::string& reason) {
@@ -951,8 +1033,12 @@ std::string DesktopCollab::JoinReportText() const {
 // Actions
 // ---------------------------------------------------------------------------
 
-void DesktopCollab::HostSession() {
-    if (!Available()) {
+wxString DesktopCollab::GroupHostLabel() const {
+    return _ctl->GroupInCall() ? "Host via SharePlay - Start in FaceTime Call" : "Host via SharePlay - Invite with Messages...";
+}
+
+void DesktopCollab::HostSession(bool group) {
+    if (group ? !_ctl->GroupAvailable() : !_ctl->Available()) {
         return;
     }
     if (_frame->CurrentSeqXmlFile == nullptr) {
@@ -978,8 +1064,9 @@ void DesktopCollab::HostSession() {
     }
     std::string code;
     std::string error;
-    std::string seq = wxFileName(wxString::FromUTF8(_frame->CurrentSeqXmlFile->GetFullPath())).GetFullName().ToStdString();
-    if (!_ctl->Host(name.ToStdString(), seq, code, error)) {
+    std::string seq = wxFileName(wxString::FromUTF8(_frame->CurrentSeqXmlFile->GetFullPath())).GetFullName().utf8_string();
+    bool ok = group ? _ctl->HostGroup(name.utf8_string(), seq, error) : _ctl->Host(name.utf8_string(), seq, code, error);
+    if (!ok) {
         wxMessageBox(wxString::FromUTF8(error), "Host Session", wxOK | wxICON_ERROR, _frame);
         return;
     }
@@ -988,14 +1075,15 @@ void DesktopCollab::HostSession() {
     ShowSessionWindow();
 }
 
-void DesktopCollab::JoinSession() {
-    if (!Available()) {
+void DesktopCollab::JoinSession(const std::string& preferred) {
+    if (!Available() || _joinDialog != nullptr) {
         return;
     }
     CollabJoinDialog dlg(_frame);
+    dlg.Prefer(preferred);
     _joinDialog = &dlg;
     _ctl->StartBrowsing();
-    dlg.SetSessions(_ctl->Sessions());
+    dlg.SetSessions(WithGroupOffer(_ctl->Sessions()), _ctl->OfferedGroupSession().id);
     int rc = dlg.ShowModal();
     _ctl->StopBrowsing();
     _joinDialog = nullptr;
@@ -1003,6 +1091,7 @@ void DesktopCollab::JoinSession() {
         return;
     }
     Collab::SessionAdvert advert = *dlg.Selected();
+    bool group = dlg.SelectedIsGroup();
     std::string code = dlg.Code();
     bool fetch = dlg.Fetch();
     wxString name = DisplayName(_frame);
@@ -1018,7 +1107,9 @@ void DesktopCollab::JoinSession() {
     _sequenceName = advert.sequenceName;
     _codeShown.clear();
     std::string error;
-    if (!_ctl->Join(name.ToStdString(), advert.id, code, fetch, error)) {
+    bool ok = group ? _ctl->JoinGroup(name.ToStdString(), advert.id, fetch, error)
+                    : _ctl->Join(name.ToStdString(), advert.id, code, fetch, error);
+    if (!ok) {
         wxMessageBox(wxString::FromUTF8(error), "Join Session", wxOK | wxICON_ERROR, _frame);
         return;
     }

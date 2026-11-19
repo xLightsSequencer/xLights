@@ -71,6 +71,21 @@ struct CollabAdvertInfo: Identifiable, Equatable {
     let sequenceName: String
     let hostName: String
     let deviceKind: String
+    /// Offered over SharePlay: joined without a pairing code.
+    let isSharePlay: Bool
+
+    init(id: String, sequenceName: String, hostName: String, deviceKind: String, isSharePlay: Bool = false) {
+        self.id = id
+        self.sequenceName = sequenceName
+        self.hostName = hostName
+        self.deviceKind = deviceKind
+        self.isSharePlay = isSharePlay
+    }
+
+    init(_ a: XLCollabAdvert, isSharePlay: Bool = false) {
+        self.init(id: a.advertId, sequenceName: a.sequenceName, hostName: a.hostName,
+                  deviceKind: a.deviceKind, isSharePlay: isSharePlay)
+    }
 }
 
 struct CollabRejectToast: Identifiable, Equatable {
@@ -106,6 +121,18 @@ final class CollabState {
     var participants: [CollabParticipantInfo] = []
     var sessions: [CollabAdvertInfo] = []
     var pairingCode: String = ""
+    /// SharePlay can be used on this iPad.
+    var groupAvailable = false
+    /// A FaceTime call is active: hosting starts in it rather than inviting.
+    var groupInCall = false
+    /// The SharePlay session someone in the call started.
+    var offeredGroup: CollabAdvertInfo?
+    /// The offer banner was dismissed for this session id.
+    var dismissedOfferId: String?
+    /// Join sheet: select this session when it opens.
+    var joinPreselectId: String?
+    /// The current (or last) session runs over SharePlay.
+    var sessionIsSharePlay = false
     var joinReport: CollabJoinReportInfo?
     var browseError: String?
     /// Why the session ended, shown non-modally until dismissed.
@@ -136,13 +163,28 @@ final class CollabState {
     var restoreShowFolderOnClose = false
 
     /// Collaboration UI is shown at all.
-    var isVisible: Bool { enabled && available }
+    var isVisible: Bool { enabled && (available || groupAvailable) }
     /// In a session that hasn't ended.
     var inSession: Bool { role != .none && state != .ended && state != .idle }
     /// A client in a live session can't save over the sequence.
     var blocksPlainSave: Bool { clientDocument }
 
     var otherCount: Int { participants.filter { !$0.isLocal }.count }
+
+    /// Sessions on the local network, without the SharePlay one (which the
+    /// controller may list as well).
+    var lanSessions: [CollabAdvertInfo] {
+        guard let offered = offeredGroup else { return sessions }
+        return sessions.filter { $0.id != offered.id }
+    }
+
+    /// The SharePlay offer to announce outside the join sheet.
+    var groupOfferToAnnounce: CollabAdvertInfo? {
+        guard isVisible, let offer = offeredGroup, offer.id != dismissedOfferId,
+              role == .none || state == .ended || state == .idle,
+              !(showingSheet && sheetMode == .join) else { return nil }
+        return offer
+    }
 
     static var displayName: String {
         let stored = UserDefaults.standard.string(forKey: displayNameKey) ?? ""
@@ -195,6 +237,7 @@ extension SequencerViewModel {
         collab.state = s.state
         collab.statusText = s.statusText
         collab.pairingCode = s.pairingCode
+        refreshCollabGroup()
         let live = s.liveLayout && collab.inSession
         if collab.liveLayout != live {
             collab.liveLayout = live
@@ -208,6 +251,15 @@ extension SequencerViewModel {
             CollabParticipantInfo(id: $0.participantId, name: $0.name, deviceKind: $0.deviceKind,
                                   color: $0.colorRGB, isHost: $0.isHost, isLocal: $0.isLocal)
         }
+    }
+
+    func refreshCollabGroup() {
+        guard let s = collab.session else { return }
+        collab.groupAvailable = s.groupAvailable
+        collab.groupInCall = s.groupInCall
+        collab.sessionIsSharePlay = s.sessionNetwork == .sharePlay
+        let offer = s.offeredGroupSession.map { CollabAdvertInfo($0, isSharePlay: true) }
+        if collab.offeredGroup != offer { collab.offeredGroup = offer }
     }
 
     // MARK: - Events
@@ -272,11 +324,11 @@ extension SequencerViewModel {
                     layoutDifference: r.layoutDifference, refusal: r.refusal)
             }
         case .sessionsFound:
-            collab.sessions = s.sessions.map {
-                CollabAdvertInfo(id: $0.advertId, sequenceName: $0.sequenceName,
-                                 hostName: $0.hostName, deviceKind: $0.deviceKind)
-            }
+            collab.sessions = s.sessions.map { CollabAdvertInfo($0) }
             collab.browseError = nil
+            refreshCollabGroup()
+        case .groupChanged:
+            refreshCollabGroup()
         case .browseError:
             let reason = (payload as? String) ?? ""
             collab.browseError = Self.collabBrowseErrorText(reason)
@@ -331,14 +383,39 @@ extension SequencerViewModel {
         return nil
     }
 
+    /// Host the open sequence over SharePlay: in the FaceTime call when
+    /// there is one, otherwise the system asks whom to invite. Returns an
+    /// error message, or nil.
+    func hostCollabSharePlay() -> String? {
+        guard let s = ensureCollabSession() else { return "Live collaboration is turned off." }
+        guard isSequenceLoaded else { return "Open a sequence first." }
+        var err: NSString?
+        guard s.hostGroup(name: CollabState.displayName, error: &err) else {
+            refreshCollabState()
+            return (err as String?) ?? "Couldn't start the SharePlay session."
+        }
+        collab.endNotice = nil
+        collab.clientDocument = false
+        refreshCollabState()
+        refreshCollabPresence()
+        return nil
+    }
+
+    /// The offer banner's Join: the join sheet with the SharePlay session
+    /// selected, so the user still picks whether to fetch show files.
+    func showJoinForGroupOffer() {
+        guard let offer = collab.offeredGroup else { return }
+        collab.joinPreselectId = offer.id
+        collab.sheetMode = .join
+        collab.showingSheet = true
+    }
+
     func startCollabBrowsing() {
         guard let s = ensureCollabSession() else { return }
         collab.browseError = nil
         s.startBrowsing()
-        collab.sessions = s.sessions.map {
-            CollabAdvertInfo(id: $0.advertId, sequenceName: $0.sequenceName,
-                             hostName: $0.hostName, deviceKind: $0.deviceKind)
-        }
+        collab.sessions = s.sessions.map { CollabAdvertInfo($0) }
+        refreshCollabGroup()
     }
 
     func stopCollabBrowsing() {
@@ -354,9 +431,15 @@ extension SequencerViewModel {
         collab.joinReport = nil
         collab.endNotice = nil
         var err: NSString?
-        let ok = s.join(name: CollabState.displayName, advertId: advert.id,
+        let ok: Bool
+        if advert.isSharePlay {
+            ok = s.joinGroup(name: CollabState.displayName, advertId: advert.id,
+                             fetchFiles: fetchFiles, error: &err)
+        } else {
+            ok = s.join(name: CollabState.displayName, advertId: advert.id,
                         code: code.trimmingCharacters(in: .whitespaces),
                         fetchFiles: fetchFiles, error: &err)
+        }
         refreshCollabState()
         return ok ? nil : ((err as String?) ?? "Couldn't join the session.")
     }

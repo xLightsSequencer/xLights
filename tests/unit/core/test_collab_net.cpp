@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "collab/CollabFiles.h"
 #include "collab/CollabNet.h"
 #include "collab/CollabNetWire.h"
 

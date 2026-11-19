@@ -93,7 +93,24 @@ private struct CollabHostStartView: View {
                     Text(error).foregroundStyle(.red).font(.callout)
                 }
             } footer: {
-                Text("Others on the same network can join from their sequence list with the code shown next. The layout is locked while the session runs.")
+                Text("Others on the same network can join from their sequence list with the code shown next. Editors can change the layout during the session too; you save it, like the sequence.")
+            }
+            if viewModel.collab.groupAvailable {
+                Section {
+                    Button {
+                        error = viewModel.hostCollabSharePlay()
+                    } label: {
+                        Label(viewModel.collab.groupInCall ? "Start in FaceTime call" : "Invite with Messages…",
+                              systemImage: "shareplay")
+                    }
+                    .disabled(!viewModel.isSequenceLoaded || viewModel.isDirty)
+                } header: {
+                    Text("Host via SharePlay")
+                } footer: {
+                    Text(viewModel.collab.groupInCall
+                         ? "Everyone in the FaceTime call can join, wherever they are. No code is needed."
+                         : "Invite people through Messages or FaceTime, wherever they are. No code is needed.")
+                }
             }
             if let ended = viewModel.collab.endNotice {
                 Section("Last Session") {
@@ -112,17 +129,29 @@ private struct CollabHostSessionView: View {
 
     var body: some View {
         Form {
-            Section {
-                Text(viewModel.collab.pairingCode)
-                    .font(.system(size: 54, weight: .semibold, design: .monospaced))
-                    .tracking(6)
-                    .frame(maxWidth: .infinity)
-                    .textSelection(.enabled)
-                    .accessibilityLabel("Pairing code \(viewModel.collab.pairingCode.map { String($0) }.joined(separator: " "))")
-            } header: {
-                Text("Pairing Code")
-            } footer: {
-                Text(viewModel.collab.statusText)
+            if viewModel.collab.sessionIsSharePlay {
+                Section {
+                    Label("SharePlay", systemImage: "shareplay")
+                        .font(.system(size: 34, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                } header: {
+                    Text("Session")
+                } footer: {
+                    Text(viewModel.collab.statusText)
+                }
+            } else {
+                Section {
+                    Text(viewModel.collab.pairingCode)
+                        .font(.system(size: 54, weight: .semibold, design: .monospaced))
+                        .tracking(6)
+                        .frame(maxWidth: .infinity)
+                        .textSelection(.enabled)
+                        .accessibilityLabel("Pairing code \(viewModel.collab.pairingCode.map { String($0) }.joined(separator: " "))")
+                } header: {
+                    Text("Pairing Code")
+                } footer: {
+                    Text(viewModel.collab.statusText)
+                }
             }
             Section("Participants") {
                 ForEach(viewModel.collab.participants) { p in
@@ -174,54 +203,53 @@ private struct CollabJoinView: View {
             Section("Your Name") {
                 CollabNameField()
             }
+            if let offer = viewModel.collab.offeredGroup {
+                Section {
+                    sessionRow(offer)
+                } header: {
+                    Text("SharePlay")
+                }
+            }
             Section {
                 if let err = viewModel.collab.browseError {
                     Label(err, systemImage: "wifi.exclamationmark")
                         .foregroundStyle(.orange)
                         .font(.callout)
                 }
-                if viewModel.collab.sessions.isEmpty {
+                if viewModel.collab.lanSessions.isEmpty {
                     HStack(spacing: 8) {
                         ProgressView()
                         Text("Looking for sessions on this network…")
                             .foregroundStyle(.secondary)
                     }
                 }
-                ForEach(viewModel.collab.sessions) { s in
-                    Button {
-                        selected = s
-                        error = nil
-                    } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(s.sequenceName).foregroundStyle(.primary)
-                                Text("Hosted by \(s.hostName)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            if selected?.id == s.id {
-                                Image(systemName: "checkmark").foregroundStyle(.tint)
-                            }
-                        }
-                    }
+                ForEach(viewModel.collab.lanSessions) { s in
+                    sessionRow(s)
                 }
             } header: {
-                Text("Sessions")
+                Text(viewModel.collab.offeredGroup == nil ? "Sessions" : "On This Network")
             }
-            if let s = selected {
+            if let s = selected, s.isSharePlay {
+                Section {
+                    fetchFilesToggle
+                    Button("Join \(s.sequenceName)") {
+                        error = viewModel.joinCollabSession(s, code: "", fetchFiles: fetchFiles)
+                    }
+                    .disabled(viewModel.collab.inSession)
+                    if let error {
+                        Text(error).foregroundStyle(.red).font(.callout)
+                    }
+                } header: {
+                    Text("SharePlay")
+                } footer: {
+                    Text("\(s.hostName) started this session in your FaceTime call or Messages conversation. No code is needed.")
+                }
+            } else if let s = selected {
                 Section {
                     TextField("6-digit code", text: $code)
                         .keyboardType(.numberPad)
                         .font(.system(.title2, design: .monospaced))
-                    Toggle(isOn: $fetchFiles) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Fetch show files that differ")
-                            Text("Copies the host's layout and media into a separate session folder when yours differ. Off: a different layout or audio file refuses the join.")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    fetchFilesToggle
                     Button("Join \(s.sequenceName)") {
                         error = viewModel.joinCollabSession(s, code: code, fetchFiles: fetchFiles)
                     }
@@ -239,8 +267,54 @@ private struct CollabJoinView: View {
         }
         .navigationTitle("Join Session")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { viewModel.startCollabBrowsing() }
+        .onAppear {
+            viewModel.startCollabBrowsing()
+            if let want = viewModel.collab.joinPreselectId, let offer = viewModel.collab.offeredGroup,
+               offer.id == want {
+                selected = offer
+            }
+            viewModel.collab.joinPreselectId = nil
+        }
         .onDisappear { viewModel.stopCollabBrowsing() }
+        // The selected session went away (a SharePlay offer withdrawn, or
+        // a host that stopped advertising).
+        .onChange(of: viewModel.collab.offeredGroup) { _, offer in
+            if let sel = selected, sel.isSharePlay, sel.id != offer?.id { selected = nil }
+        }
+    }
+
+    private func sessionRow(_ s: CollabAdvertInfo) -> some View {
+        Button {
+            selected = s
+            error = nil
+        } label: {
+            HStack {
+                if s.isSharePlay {
+                    Image(systemName: "shareplay").foregroundStyle(.tint)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(s.sequenceName).foregroundStyle(.primary)
+                    Text("Hosted by \(s.hostName)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if selected?.id == s.id {
+                    Image(systemName: "checkmark").foregroundStyle(.tint)
+                }
+            }
+        }
+    }
+
+    private var fetchFilesToggle: some View {
+        Toggle(isOn: $fetchFiles) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Fetch show files that differ")
+                Text("Copies the host's audio and media into a separate session folder when yours differ. Off: a different audio file refuses the join. A different layout is replaced by the session's in a separate copy either way; your show folder is never changed.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 
@@ -430,6 +504,36 @@ struct CollabEndedBanner: View {
         .padding(.vertical, 6)
         .foregroundStyle(.white)
         .background(Color.indigo)
+    }
+}
+
+/// Someone in the FaceTime call started a SharePlay session.
+struct CollabGroupOfferBanner: View {
+    let offer: CollabAdvertInfo
+    let onJoin: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "shareplay")
+            Text("\(offer.hostName) started a SharePlay session for '\(offer.sequenceName)'")
+                .font(.caption)
+                .lineLimit(2)
+            Spacer()
+            Button("Join", action: onJoin)
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(.white)
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Dismiss")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .foregroundStyle(.white)
+        .background(Color.green.opacity(0.85))
     }
 }
 

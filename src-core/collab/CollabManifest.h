@@ -103,6 +103,12 @@ std::string ManifestPathFor(const std::string& showDir, const std::string& refer
 // Never absolute and never climbs out (no ".."). Empty when unusable.
 std::string CachePathFor(const std::string& path);
 
+// The file name a joiner saves the host's sequence under, from the name the
+// host advertised (unauthenticated): only its last component, ending in
+// ".xsq". "Session.xsq" when nothing usable is left (empty, "." / "..",
+// drive letters, control characters, device names Windows reserves).
+std::string SessionSequenceFileName(const std::string& advertised);
+
 // The file `path` names on this machine, resolved against `showDir`; empty
 // when there is none.
 std::string ResolvePath(const std::string& showDir, const std::string& path);

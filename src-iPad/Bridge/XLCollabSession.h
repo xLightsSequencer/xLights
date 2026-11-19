@@ -47,6 +47,16 @@ typedef NS_ENUM(NSInteger, XLCollabEvent) {
     XLCollabEventLayoutPresenceChanged = 13,
     // A layout change of this user was not (fully) taken. payload: NSString.
     XLCollabEventLayoutRejected = 14,
+    // The SharePlay session on offer, or whether a FaceTime call is
+    // active, changed (offeredGroupSession / groupInCall).
+    XLCollabEventGroupChanged = 15,
+};
+
+// Which network a session runs on: the local network (pairing code) or a
+// SharePlay group (FaceTime call or Messages conversation, no code).
+typedef NS_ENUM(NSInteger, XLCollabNetwork) {
+    XLCollabNetworkLan = 0,
+    XLCollabNetworkSharePlay = 1,
 };
 
 typedef NS_ENUM(NSInteger, XLCollabChangeCause) {
@@ -216,10 +226,32 @@ typedef void (^XLCollabEventHandler)(XLCollabEvent event, id _Nullable payload);
 // The pairing code while hosting; empty otherwise.
 @property (nonatomic, readonly) NSString* pairingCode;
 
+// ---- SharePlay ----
+// SharePlay sessions can be hosted and joined on this iPad.
+@property (nonatomic, readonly) BOOL groupAvailable;
+// A FaceTime call is active, so hosting reaches its members at once
+// (otherwise the system asks whom to invite).
+@property (nonatomic, readonly) BOOL groupInCall;
+// The SharePlay session someone in the call started, or nil. `sessions`
+// may list it too; tell it apart by advertId.
+@property (nonatomic, readonly, nullable) XLCollabAdvert* offeredGroupSession;
+// The network the current (or last) session used.
+@property (nonatomic, readonly) XLCollabNetwork sessionNetwork;
+
 // Starts hosting the open sequence. Returns the pairing code, or nil with
 // `error` set.
 - (nullable NSString*)hostWithName:(NSString*)displayName error:(NSString* _Nullable* _Nullable)error
     NS_SWIFT_NAME(host(name:error:));
+// Starts hosting the open sequence over SharePlay. Asynchronous: watch
+// `state`; it is Active once the system has started the activity.
+- (BOOL)hostGroupWithName:(NSString*)displayName error:(NSString* _Nullable* _Nullable)error
+    NS_SWIFT_NAME(hostGroup(name:error:));
+// Joins `offeredGroupSession`. Asynchronous: watch `state`.
+- (BOOL)joinGroupWithName:(NSString*)displayName
+                 advertId:(NSString*)advertId
+               fetchFiles:(BOOL)fetchFiles
+                    error:(NSString* _Nullable* _Nullable)error
+    NS_SWIFT_NAME(joinGroup(name:advertId:fetchFiles:error:));
 - (void)startBrowsing NS_SWIFT_NAME(startBrowsing());
 - (void)stopBrowsing NS_SWIFT_NAME(stopBrowsing());
 // Asynchronous: watch `state`.
