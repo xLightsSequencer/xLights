@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <set>
 #include <utility>
 
 #include <log.h>
@@ -1384,6 +1385,61 @@ NewElementsRecorder::NewElementsRecorder(SequenceElements& seq, std::string labe
     _scope.emplace();
 }
 
+#ifndef NDEBUG
+namespace {
+// The top-level rows the commands of one batch changed, so the recorder can
+// tell an existing row changed by a command (recorded) from one changed
+// directly (not recorded).
+class TouchedRows : public ICommandObserver {
+public:
+    explicit TouchedRows(const SequenceElements& seq) : _seq(seq) {}
+    void OnCommandApplied(const SequenceCommand& applied, const SequenceCommand& inverse) override {
+        Note(applied);
+        Note(inverse);
+    }
+    std::set<SeqObjectId> rows;
+
+private:
+    void Row(SeqObjectId uid) {
+        Element* e = _seq.GetElementFromUid(uid);
+        if (auto* sub = dynamic_cast<SubModelElement*>(e)) {
+            e = sub->GetModelElement();
+        }
+        if (e != nullptr) {
+            rows.insert(e->GetUid());
+        }
+    }
+    void Note(const SequenceCommand& cmd) {
+        switch (cmd.Type()) {
+        case CommandType::Batch:
+            for (const auto& m : static_cast<const BatchCommand&>(cmd).GetCommands()) {
+                Note(*m);
+            }
+            break;
+        case CommandType::AddEffect: Row(static_cast<const AddEffectCommand&>(cmd).GetLayer().element); break;
+        case CommandType::DeleteEffect: Row(static_cast<const DeleteEffectCommand&>(cmd).Target().element); break;
+        case CommandType::MoveEffect: Row(static_cast<const MoveEffectCommand&>(cmd).Target().element); break;
+        case CommandType::ModifyEffect: Row(static_cast<const ModifyEffectCommand&>(cmd).Target().element); break;
+        case CommandType::AddLayer: Row(static_cast<const AddLayerCommand&>(cmd).GetElement()); break;
+        case CommandType::RemoveLayer: Row(static_cast<const RemoveLayerCommand&>(cmd).GetElement()); break;
+        case CommandType::SetLayerName: Row(static_cast<const SetLayerNameCommand&>(cmd).GetLayer().element); break;
+        case CommandType::ReplaceLayerContents: Row(static_cast<const ReplaceLayerContentsCommand&>(cmd).GetLayer().element); break;
+        case CommandType::SetEffectSymbolLink: Row(static_cast<const SetEffectSymbolLinkCommand&>(cmd).GetTarget().element); break;
+        case CommandType::AddElement: Row(static_cast<const AddElementCommand&>(cmd).GetUid()); break;
+        case CommandType::DeleteElement: Row(static_cast<const DeleteElementCommand&>(cmd).GetElement()); break;
+        case CommandType::MoveElement: Row(static_cast<const MoveElementCommand&>(cmd).GetElement()); break;
+        case CommandType::RenameTimingTrack: Row(static_cast<const RenameTimingTrackCommand&>(cmd).GetElement()); break;
+        case CommandType::SetTimingFixed: Row(static_cast<const SetTimingFixedCommand&>(cmd).GetElement()); break;
+        case CommandType::SetElementRenderDisabled: Row(static_cast<const SetElementRenderDisabledCommand&>(cmd).GetElement()); break;
+        case CommandType::RenameModelElement: Row(static_cast<const RenameModelElementCommand&>(cmd).GetElement()); break;
+        default: break;
+        }
+    }
+    const SequenceElements& _seq;
+};
+} // namespace
+#endif
+
 NewElementsRecorder::~NewElementsRecorder() {
     if (_passive) {
         return;
@@ -1399,14 +1455,23 @@ NewElementsRecorder::~NewElementsRecorder() {
         exec.RecordExternal(std::make_unique<AddElementCommand>(ElementSnapshot::Of(*el), PrecedingUid(_seq, idx), idx),
                             std::make_unique<DeleteElementCommand>(el->GetUid()), _recordUndo);
     }
+#ifndef NDEBUG
+    TouchedRows touched(_seq);
+    exec.AddObserver(&touched);
+#endif
     exec.EndBatch();
 #ifndef NDEBUG
-    ForEachElementAndRow(_seq, [this](Element* el) {
+    exec.RemoveObserver(&touched);
+    // The scope above exempts everything, so a direct change to a row that
+    // already existed (rather than one this recorder creates) would go
+    // unrecorded and unnoticed: report it like any other stray mutation.
+    for (Element* el : MasterElements(_seq)) {
         auto it = _before.find(el->GetUid());
-        if (it != _before.end() && it->second != el->getChangeCount()) {
-            spdlog::warn("{}: existing row {} changed while recording new elements; that change is not recorded", _label, el->GetFullName());
+        if (it != _before.end() && it->second != el->getChangeCount() && !touched.rows.count(el->GetUid())) {
+            spdlog::warn("{}: existing row {} changed directly while recording new elements; that change is not recorded", _label, el->GetFullName());
+            SeqMutationGuard::Check("NewElementsRecorder: existing row changed directly", nullptr);
         }
-    });
+    }
 #endif
 }
 

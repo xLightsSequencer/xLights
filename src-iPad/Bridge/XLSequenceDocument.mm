@@ -1056,6 +1056,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 
 - (BOOL)setHeaderInfo:(NSString*)value forKey:(NSString*)key {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (_context->RefusesLayoutWrite("changing sequence header info")) return NO;
     auto* sf = _context->GetSequenceFile();
     if (!sf) return NO;
     auto t = headerTypeFromString(key);
@@ -1106,6 +1107,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 
 - (BOOL)setMediaFilePath:(NSString*)path {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (_context->RefusesLayoutWrite("changing the sequence media file")) return NO;
     auto* sf = _context->GetSequenceFile();
     if (!sf) return NO;
     std::string p = path ? std::string([path UTF8String]) : std::string();
@@ -1126,6 +1128,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 
 - (BOOL)setSequenceType:(NSString*)type {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (_context->RefusesLayoutWrite("changing the sequence type")) return NO;
     auto* sf = _context->GetSequenceFile();
     if (!sf || type.length == 0) return NO;
     std::string t([type UTF8String]);
@@ -1138,6 +1141,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 
 - (BOOL)setFrameIntervalMS:(int)frameMS {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (_context->RefusesLayoutWrite("changing the sequence timing")) return NO;
     auto* sf = _context->GetSequenceFile();
     if (!sf || frameMS <= 0) return NO;
     if (sf->GetFrameMS() == frameMS) return NO;
@@ -1153,6 +1157,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 
 - (BOOL)setSequenceSupportsModelBlending:(BOOL)enabled {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (_context->RefusesLayoutWrite("changing model blending")) return NO;
     auto& elements = _context->GetSequenceElements();
     if (elements.SupportsModelBlending() == (bool)enabled) return NO;
     elements.SetSupportsModelBlending(enabled ? true : false);
@@ -1175,6 +1180,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 
 - (BOOL)setRenderMode:(NSString*)mode {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (_context->RefusesLayoutWrite("changing the render mode")) return NO;
     auto* sf = _context->GetSequenceFile();
     if (!sf || mode.length == 0) return NO;
     std::string m([mode UTF8String]);
@@ -1326,6 +1332,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 
 - (BOOL)setSequenceDurationMS:(int)ms {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (_context->RefusesLayoutWrite("changing the sequence duration")) return NO;
     auto* sf = _context->GetSequenceFile();
     if (!sf || ms <= 0) return NO;
     if (sf->GetSequenceDurationMS() == ms) return NO;
@@ -13463,6 +13470,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 - (BOOL)addAltTrackAtPath:(NSString*)path shortname:(NSString*)shortname {
     if (!_context || !path || path.length == 0) return NO;
+    if (_context->RefusesLayoutWrite("adding an alternate audio track")) return NO;
     SequenceFile* sf = _context->GetSequenceFile();
     if (!sf) return NO;
     sf->AddAltTrack(_context->GetShowDirectory(),
@@ -13474,6 +13482,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 - (BOOL)removeAltTrackAtIndex:(NSInteger)index {
     if (!_context) return NO;
+    if (_context->RefusesLayoutWrite("removing an alternate audio track")) return NO;
     SequenceFile* sf = _context->GetSequenceFile();
     if (!sf) return NO;
     if (index < 0 || index >= sf->GetAltTrackCount()) return NO;
@@ -13490,6 +13499,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 - (BOOL)setAltTrackPathAtIndex:(NSInteger)index path:(NSString*)path {
     if (!_context || !path) return NO;
+    if (_context->RefusesLayoutWrite("changing an alternate audio track")) return NO;
     SequenceFile* sf = _context->GetSequenceFile();
     if (!sf) return NO;
     if (index < 0 || index >= sf->GetAltTrackCount()) return NO;
@@ -13501,6 +13511,7 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 - (BOOL)setAltTrackShortnameAtIndex:(NSInteger)index shortname:(NSString*)shortname {
     if (!_context) return NO;
+    if (_context->RefusesLayoutWrite("renaming an alternate audio track")) return NO;
     SequenceFile* sf = _context->GetSequenceFile();
     if (!sf) return NO;
     if (index < 0 || index >= sf->GetAltTrackCount()) return NO;
@@ -14068,6 +14079,9 @@ static std::string iPadLiftNestedStemModel(const std::string& rootDir) {
 
 - (void)registerStemTracks:(const std::vector<std::pair<std::string, std::string>>&)encoded {
     if (!_context) return;
+    // The stems stay usable in the waveform (the AudioManager holds them);
+    // only adding them as alternate tracks, a sequence setting, waits.
+    if (_context->RefusesLayoutWrite("adding stems as alternate audio tracks")) return;
     SequenceFile* sf = _context->GetSequenceFile();
     if (!sf) return;
     std::string showDir = _context->GetShowDirectory();

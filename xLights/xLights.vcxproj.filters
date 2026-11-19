@@ -131,6 +131,9 @@
     <ClCompile Include="..\src-ui-wx\sequencer\SequenceFacesPanel.cpp" />
     <ClCompile Include="..\src-core\render\SequenceData.cpp" />
     <ClCompile Include="..\src-core\render\SequenceViewManager.cpp" />
+    <ClCompile Include="..\src-core\render\RemoteRenderScheduler.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\SevenSegmentDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\SplashDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\StartChannelDialog.cpp" />
@@ -140,6 +143,7 @@
     <ClCompile Include="..\src-ui-wx\app-shell\TabConvert.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabPreview.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabSequence.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\Collaboration.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\ShowFileWatch.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\DiscoveryHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabSetup.cpp" />
@@ -2472,6 +2476,10 @@
     <ClInclude Include="..\src-core\render\EffectLayer.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-ui-wx\sequencer\CollabOverlay.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\app-shell\Collaboration.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectsGrid.h">
       <Filter>sequencer</Filter>
     </ClInclude>
@@ -3292,6 +3300,9 @@
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\RenderProgressInfo.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\RemoteRenderScheduler.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\UICallbacks.h">

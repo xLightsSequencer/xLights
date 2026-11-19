@@ -130,6 +130,9 @@ public:
     std::string CopyToMediaFolder(const std::string& file,
                                    const std::string& mediaFolderPath,
                                    const std::string& subdirectory);
+    // Also resolve media against `folder` (files a collaboration session
+    // received) until the next show-folder load.
+    void AddSessionMediaFolder(const std::string& folder);
     SequenceViewManager& GetSequenceViewManager() { return _sequenceViewManager; }
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
 

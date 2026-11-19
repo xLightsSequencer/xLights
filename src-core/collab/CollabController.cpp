@@ -314,18 +314,23 @@ SequenceElements& CollabController::DocBridge::Sequence() {
     return _c._app.Sequence();
 }
 bool CollabController::DocBridge::SaveXsq(std::string& out) {
+    HookCall h(_c);
     return _c._app.SaveXsq(out);
 }
 std::string CollabController::DocBridge::ShowFolder() {
+    HookCall h(_c);
     return _c._app.ShowFolder();
 }
 std::vector<std::string> CollabController::DocBridge::AudioFiles() {
+    HookCall h(_c);
     return _c._app.AudioFiles();
 }
 bool CollabController::DocBridge::UseShowFolder(const std::string& folder) {
+    HookCall h(_c);
     return _c._app.UseShowFolder(folder);
 }
 void CollabController::DocBridge::AddMediaFolder(const std::string& folder) {
+    HookCall h(_c);
     _c._app.AddMediaFolder(folder);
 }
 
@@ -334,7 +339,12 @@ bool CollabController::DocBridge::LoadXsq(const std::string& xsq) {
     bool scoped = _c._applyScope.has_value();
     _c.Detach();
     _c.ReleaseApplyScope();
-    bool ok = _c._app.LoadXsq(xsq);
+    bool ok;
+    {
+        HookCall h(_c);
+        LoadScope l(_c);
+        ok = _c._app.LoadXsq(xsq);
+    }
     if (scoped) {
         _c.AcquireApplyScope();
     }
@@ -366,8 +376,57 @@ CollabController::SessionApply::~SessionApply() {
 
 CollabController::Entry::~Entry() {
     if (--_c._entryDepth == 0) {
-        _c.DrainAppEvents();
+        _c.Settle();
     }
+}
+
+void CollabController::Defer(std::function<void()> fn) {
+    _deferred.push_back(std::move(fn));
+}
+
+// Runs what arrived while the controller was busy, then app notifications,
+// then local edits recorded meanwhile, until nothing is left.
+void CollabController::Settle() {
+    if (_settling || _entryDepth > 0 || Busy()) {
+        return;
+    }
+    _settling = true;
+    bool flushTried = false;
+    while (true) {
+        if (!_deferred.empty()) {
+            auto fn = std::move(_deferred.front());
+            _deferred.pop_front();
+            fn();
+            continue;
+        }
+        if (!_appEvents.empty()) {
+            DrainAppEvents();
+            continue;
+        }
+        if (!_local.empty() && !flushTried) {
+            flushTried = true;
+            Entry en(*this);
+            Flush();
+            DrainHeld();
+            continue;
+        }
+        break;
+    }
+    _settling = false;
+}
+
+std::string CollabController::MoveAside(const std::string& path) {
+    namespace fs = std::filesystem;
+    std::error_code ec;
+    fs::path dir = fs::path(_session ? _session->SessionFolder() : fs::temp_directory_path(ec).string()) / "held";
+    fs::create_directories(dir, ec);
+    fs::path aside = dir / ("b" + std::to_string(++_heldFiles));
+    fs::rename(path, aside, ec);
+    if (ec) {
+        ec.clear();
+        fs::copy_file(path, aside, fs::copy_options::overwrite_existing, ec);
+    }
+    return aside.string();
 }
 
 void CollabController::AcquireApplyScope() {
@@ -418,11 +477,19 @@ void CollabController::StartBrowsing() {
             return;
         }
         _browser->onChanged = [this](const std::vector<SessionAdvert>& list) {
+            if (Busy()) {
+                Defer([this, list] { _browser->onChanged(list); });
+                return;
+            }
             Entry e(*this);
             _sessions = list;
             Post([this, list] { _app.OnSessionsFound(list); });
         };
         _browser->onError = [this](const std::string& why) {
+            if (Busy()) {
+                Defer([this, why] { _browser->onError(why); });
+                return;
+            }
             Entry e(*this);
             Post([this, why] { _app.OnBrowseError(why); });
         };
@@ -507,6 +574,14 @@ void CollabController::WrapTransport() {
         if (!onMessage) {
             return;
         }
+        if (Busy()) {
+            Defer([this, from, m] {
+                if (_transport) {
+                    _transport->onMessage(from, m);
+                }
+            });
+            return;
+        }
         bool touches = TouchesDocument(m.type);
         bool stop = false;
         if (m.type == MsgType::Commit || m.type == MsgType::Propose) {
@@ -516,6 +591,14 @@ void CollabController::WrapTransport() {
         Deliver(touches, stop, [onMessage, from, m] { onMessage(from, m); });
     };
     _transport->onPeer = [this, onPeer](PeerId peer, PeerEvent e) {
+        if (Busy()) {
+            Defer([this, peer, e] {
+                if (_transport) {
+                    _transport->onPeer(peer, e);
+                }
+            });
+            return;
+        }
         Entry en(*this);
         if (_role == Role::Client && e == PeerEvent::Joined && _state == State::Connecting && _client != nullptr) {
             _client->Tick(_now);
@@ -532,6 +615,18 @@ void CollabController::WrapTransport() {
         if (!onBlob) {
             return;
         }
+        if (Busy()) {
+            // The file is only ours during this call.
+            std::string aside = MoveAside(path);
+            Defer([this, from, id, aside] {
+                if (_transport) {
+                    _transport->onBlob(from, id, aside);
+                }
+                std::error_code ec;
+                std::filesystem::remove(aside, ec);
+            });
+            return;
+        }
         Entry en(*this);
         DrainHeld();
         if (!LocalEditOpen() && _held.empty()) {
@@ -545,18 +640,24 @@ void CollabController::WrapTransport() {
         }
         // The file is only ours during this call: move it aside until the
         // local edit closes.
-        namespace fs = std::filesystem;
-        std::error_code ec;
-        fs::path dir = fs::path(_session ? _session->SessionFolder() : fs::temp_directory_path(ec).string()) / "held";
-        fs::create_directories(dir, ec);
-        fs::path aside = dir / ("b" + std::to_string(++_heldFiles));
-        fs::rename(path, aside, ec);
-        if (ec) {
-            ec.clear();
-            fs::copy_file(path, aside, fs::copy_options::overwrite_existing, ec);
-        }
-        std::string asideStr = aside.string();
+        std::string asideStr = MoveAside(path);
         _held.push_back({ [onBlob, from, id, asideStr] { onBlob(from, id, asideStr); }, false, asideStr });
+    };
+    // A failed send can take an edit back out (client) or save a snapshot
+    // (host): it touches the document like a message.
+    _transport->onSendFailed = [this, onSendFailed](PeerId to, const Message& m, const std::string& reason) {
+        if (!onSendFailed) {
+            return;
+        }
+        if (Busy()) {
+            Defer([this, to, m, reason] {
+                if (_transport) {
+                    _transport->onSendFailed(to, m, reason);
+                }
+            });
+            return;
+        }
+        Deliver(true, false, [onSendFailed, to, m, reason] { onSendFailed(to, m, reason); });
     };
 }
 
@@ -606,7 +707,9 @@ bool CollabController::LocalEditOpen() {
 }
 
 void CollabController::Attach() {
-    if (_attached != nullptr) {
+    // While the app is inside LoadXsq the sequence it has now is about to be
+    // replaced; the outermost DocBridge::LoadXsq attaches once it returns.
+    if (_attached != nullptr || _loadDepth > 0) {
         return;
     }
     _attached = &_app.Sequence();
@@ -648,6 +751,8 @@ void CollabController::Teardown() {
         }
     }
     _held.clear();
+    _heldApplyQueued = false;
+    _deferred.clear();
     _submitted.clear();
     _rejected.clear();
     _reselect.clear();
@@ -667,6 +772,10 @@ void CollabController::Teardown() {
 }
 
 bool CollabController::Host(const std::string& displayName, const std::string& sequenceName, std::string& pairingCode, std::string& error) {
+    if (Busy()) {
+        error = "Live collaboration is busy; try again in a moment.";
+        return false;
+    }
     Entry en(*this);
     if (_role != Role::None && _state != State::Ended && _state != State::Idle) {
         error = "Already in a collaboration session.";
@@ -690,6 +799,14 @@ bool CollabController::Host(const std::string& displayName, const std::string& s
     _role = Role::Host;
     WrapTransport();
     _transport->onState = [this](NetState s, const std::string& why) {
+        if (Busy()) {
+            Defer([this, s, why] {
+                if (_transport) {
+                    _transport->onState(s, why);
+                }
+            });
+            return;
+        }
         Entry e(*this);
         if (s == NetState::Failed && _role == Role::Host && _state == State::Active) {
             _host->End();
@@ -714,13 +831,20 @@ bool CollabController::Host(const std::string& displayName, const std::string& s
     }
     Attach();
     _locked = true;
-    _app.SetCollaborationLock(true, LayoutLock::DEFAULT_REASON);
+    {
+        HookCall h(*this);
+        _app.SetCollaborationLock(true, LayoutLock::DEFAULT_REASON);
+    }
     SetState(State::Active);
     return true;
 }
 
 bool CollabController::Join(const std::string& displayName, const std::string& advertId, const std::string& pairingCode, bool fetchFiles,
                             std::string& error) {
+    if (Busy()) {
+        error = "Live collaboration is busy; try again in a moment.";
+        return false;
+    }
     Entry en(*this);
     if (_role != Role::None && _state != State::Ended && _state != State::Idle) {
         error = "Already in a collaboration session.";
@@ -750,6 +874,14 @@ bool CollabController::Join(const std::string& displayName, const std::string& a
     }
     WrapTransport();
     _transport->onState = [this](NetState s, const std::string& why) {
+        if (Busy()) {
+            Defer([this, s, why] {
+                if (_transport) {
+                    _transport->onState(s, why);
+                }
+            });
+            return;
+        }
         Entry e(*this);
         if ((s == NetState::Failed || s == NetState::Closed) && _role == Role::Client && _state != State::Ended) {
             _endText = why.empty() ? (s == NetState::Failed ? "Couldn't connect to the session." : "The connection was closed.") : why;
@@ -760,13 +892,20 @@ bool CollabController::Join(const std::string& displayName, const std::string& a
         }
     };
     _locked = true;
-    _app.SetCollaborationLock(true, LayoutLock::DEFAULT_REASON);
+    {
+        HookCall h(*this);
+        _app.SetCollaborationLock(true, LayoutLock::DEFAULT_REASON);
+    }
     SetState(State::Connecting);
     _transport->Connect(advertId, pairingCode);
     return true;
 }
 
 void CollabController::Leave() {
+    if (Busy()) {
+        Defer([this] { Leave(); });
+        return;
+    }
     Entry en(*this);
     if (_role != Role::Client || _client == nullptr || _state == State::Ended || _state == State::Idle) {
         return;
@@ -777,6 +916,10 @@ void CollabController::Leave() {
 }
 
 void CollabController::End() {
+    if (Busy()) {
+        Defer([this] { End(); });
+        return;
+    }
     Entry en(*this);
     if (_role != Role::Host || _host == nullptr || _state != State::Active) {
         return;
@@ -866,7 +1009,7 @@ void CollabController::SyncState() {
 void CollabController::Post(std::function<void()> fn) {
     _appEvents.push_back(std::move(fn));
     if (_entryDepth == 0) {
-        DrainAppEvents();
+        Settle();
     }
 }
 
@@ -885,6 +1028,9 @@ void CollabController::DrainAppEvents() {
 
 void CollabController::Tick(uint64_t nowMs) {
     _now = std::max(_now, nowMs);
+    if (Busy()) {
+        return; // the next tick does the work
+    }
     Entry en(*this);
     FinishEnd();
     if (_session && _state != State::Ended) {
@@ -923,6 +1069,9 @@ void CollabController::ScheduleFlush() {
             return;
         }
         _flushPosted = false;
+        if (Busy()) {
+            return; // Settle flushes when the outer call unwinds
+        }
         Entry en(*this);
         Flush();
         DrainHeld();
@@ -930,7 +1079,7 @@ void CollabController::ScheduleFlush() {
 }
 
 void CollabController::Flush() {
-    if (_local.empty() || !_session || !_session->IsActive() || _applyDepth > 0 || LocalEditOpen()) {
+    if (_local.empty() || !_session || !_session->IsActive() || Busy() || _applyDepth > 0 || LocalEditOpen()) {
         return;
     }
     Entry en(*this);
@@ -1139,6 +1288,9 @@ void CollabController::OnReject(uint64_t seq, EditKind kind, const std::string& 
 }
 
 bool CollabController::PutOnNewLayer(uint64_t rejectId) {
+    if (Busy()) {
+        return false;
+    }
     Entry en(*this);
     auto it = _rejected.find(rejectId);
     if (it == _rejected.end() || !_session || !_session->IsActive()) {
@@ -1247,6 +1399,9 @@ std::vector<PendingGhost> CollabController::PendingGhosts() const {
 // ---------------------------------------------------------------------------
 
 bool CollabController::Undo() {
+    if (Busy()) {
+        return false;
+    }
     Entry en(*this);
     Flush();
     if (!_session || !_session->IsActive()) {
@@ -1265,6 +1420,9 @@ bool CollabController::Undo() {
 }
 
 bool CollabController::Redo() {
+    if (Busy()) {
+        return false;
+    }
     Entry en(*this);
     Flush();
     if (!_session || !_session->IsActive()) {
@@ -1361,7 +1519,7 @@ void CollabController::SetLocalPresence(const PresenceInfo& p) {
 }
 
 void CollabController::TrySendPresence() {
-    if (!_presenceSet || !_session || !_session->IsActive()) {
+    if (!_presenceSet || !_session || !_session->IsActive() || Busy()) {
         return;
     }
     PresenceInfo eff = _localPresence;

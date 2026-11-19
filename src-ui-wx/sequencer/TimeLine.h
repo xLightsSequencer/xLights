@@ -217,6 +217,7 @@ private:
 
     // Song structure drawing and interaction
     wxColour GetSongStructureBandColor(const SongStructureRegion& region) const;
+    void DrawCollabBands(wxDC& dc, int w);
     void DrawSongStructureBands(wxDC& dc, int w, int h);
     void DrawSongStructureRegions(wxDC& dc, int w, int h);
     void DrawSongStructureBoundaries(wxDC& dc, int w, int h);

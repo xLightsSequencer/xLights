@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <chrono>
 #include <atomic>
 #include <filesystem>
 #include <map>
@@ -2781,8 +2782,11 @@ int xLightsFrame::GetCurrentPlayTime()
 void xLightsFrame::SetPlayStatus(int status) {
     playType = status;
     if (playType != PLAY_TYPE_STOPPED) {
+        RemoteRendersPlaybackStarted();
         StartOutputTimer();
         //printf("Timer started - SetPlayStatus %d\n", status);
+    } else {
+        RemoteRendersPlaybackStopped();
     }
 }
 void xLightsFrame::StartOutputTimer() {
@@ -2846,9 +2850,14 @@ bool xLightsFrame::TimerRgbSeq(long msec)
         }
     }
 
-    // return if play is stopped
+    // return if play is stopped; other participants' edits that are waiting
+    // for a quiet moment keep the timer going until they have been rendered
     if (playType == PLAY_TYPE_STOPPED || CurrentSeqXmlFile == nullptr) {
-        return false;
+        // msec is the playback position, which Stop resets; the quiet
+        // period needs a clock that only goes forward.
+        return RemoteRendersIdle((uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>(
+                                     std::chrono::steady_clock::now().time_since_epoch())
+                                     .count());
     }
 
     // return if paused

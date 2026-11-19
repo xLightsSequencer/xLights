@@ -52,11 +52,18 @@ public:
     bool HasSequence() override { return _ctx != nullptr; }
     bool SaveXsq(std::string& out) override {
         out = SaveAs(_file + ".snap.xsq");
+        if (duringSave) {
+            duringSave();
+        }
         return !out.empty();
     }
     bool LoadXsq(const std::string& xsq) override {
+        int call = ++loadCalls;
+        if (duringLoad) {
+            duringLoad();
+        }
         std::string p = _file + ".load.xsq";
-        std::ofstream(p, std::ios::binary) << xsq;
+        std::ofstream(p, std::ios::binary) << (failLoadCall == call ? std::string("not a sequence") : xsq);
         ++loads;
         return Load(p);
     }
@@ -100,6 +107,9 @@ public:
             CHECK_FALSE(Sequence().IsEditInProgress());
         }
         changes.push_back(c);
+        if (duringChange) {
+            duringChange();
+        }
     }
     void MarkSequenceModified() override { ++modified; }
     void OnRejected(const RejectNotice& n) override { rejects.push_back(n); }
@@ -107,6 +117,10 @@ public:
     void OnJoinReport(const JoinReport& r) override { report = r; }
     void OnSessionsFound(const std::vector<SessionAdvert>& s) override { found = s; }
 
+    // Run inside the hooks, e.g. a nested event loop.
+    std::function<void()> duringSave;
+    std::function<void()> duringLoad;
+    std::function<void()> duringChange;
     bool locked = false;
     std::vector<bool> lockCalls;
     std::string lockReason;
@@ -207,19 +221,23 @@ public:
     PeerId LocalPeer() const override { return _t.LocalPeer(); }
     void Send(PeerId to, const Message& m) override {
         if (!_closed) {
+            ++sent;
             _t.Send(to, m);
         }
     }
     void Broadcast(const Message& m) override {
         if (!_closed) {
+            ++sent;
             _t.Broadcast(m);
         }
     }
     void SendBlob(PeerId to, BlobId id, const std::string& path) override {
         if (!_closed) {
+            ++sent;
             _t.SendBlob(to, id, path);
         }
     }
+    size_t sent = 0;
     bool Listen(const std::string& code, const SessionAdvert& advert, std::string& /*error*/) override {
         _id = "session-" + std::to_string(_t.LocalPeer());
         Directory::Entry e{ _t.LocalPeer(), code, advert };
@@ -280,6 +298,7 @@ struct Peer {
     IdState ids;
     std::unique_ptr<TestApp> app;
     LoopbackTransport* lt = nullptr;
+    LoopNet* net = nullptr; // the current session's transport
     std::deque<std::function<void()>> posted; // the Dispatcher's queue
     std::unique_ptr<CollabController> ctl;
 
@@ -340,7 +359,11 @@ public:
             pp->app->Open(_show.start);
         }
         CollabNetFactory f;
-        f.transport = [this, pp] { return std::make_unique<LoopNet>(*pp->lt, dir); };
+        f.transport = [this, pp] {
+            auto t = std::make_unique<LoopNet>(*pp->lt, dir);
+            pp->net = t.get();
+            return t;
+        };
         f.browser = [this] { return std::make_unique<LoopBrowser>(dir); };
         f.available = [] { return true; };
         f.pairingCode = [] { return std::string("424242"); };
@@ -404,6 +427,17 @@ public:
             Tick();
         }
         Pump();
+    }
+
+    // An event loop run from inside a hook: the network delivers, the
+    // Dispatchers run and the timers fire for `ms` of virtual time.
+    void NestedLoop(uint64_t ms) {
+        uint64_t end = net.Now() + ms;
+        while (net.Now() < end) {
+            net.RunUntil(std::min(end, net.Now() + 5));
+            Pump();
+            Tick();
+        }
     }
 
     bool Quiet() {
@@ -1352,4 +1386,114 @@ TEST_CASE("A host edit only lenient mode allows doesn't make clients re-sync", "
     REQUIRE(w.As(h, [&] { return h.Undo().UndoLastStep(); }));
     RequireConverged(w);
     CHECK(EffectAt(a, "Grid", 1200) == nullptr);
+}
+
+namespace {
+
+// Hosts, joins and edits while the host's SaveXsq and the joiner's LoadXsq
+// run a nested event loop; returns what each sent from inside its loop.
+std::pair<size_t, size_t> RunNestedHooks(Show& show, bool guard) {
+    World w(show);
+    Peer& h = w.Add("Hana", "mac");
+    w.HostOn(h);
+    Peer& b = w.Add("Bea", "mac");
+    w.JoinTo(b);
+    REQUIRE(w.Quiesce());
+    Peer& a = w.Add("Ari", "ipad");
+    h.ctl->reentryGuard = guard;
+    a.ctl->reentryGuard = guard;
+    size_t hostSent = 0;
+    size_t joinerSent = 0;
+    int saves = 0;
+    h.app->duringSave = [&] {
+        if (saves++ != 0) {
+            return;
+        }
+        size_t before = h.net->sent;
+        // Someone else edits while the host is busy saving.
+        w.As(b, [&] { AddOn(b, "Line", 6000, 6100); });
+        w.NestedLoop(1500);
+        hostSent += h.net->sent - before;
+    };
+    int loads = 0;
+    a.app->duringLoad = [&] {
+        if (loads++ != 0) {
+            return;
+        }
+        size_t before = a.net->sent;
+        w.NestedLoop(1500);
+        joinerSent += a.net->sent - before;
+    };
+    w.JoinTo(a);
+    if (guard) {
+        RequireConverged(w);
+        CHECK(EffectAt(a, "Line", 6000) != nullptr);
+        CHECK(a.app->loads == 1);
+        CHECK(h.ctl->DeferredCalls() == 0);
+        CHECK(a.ctl->DeferredCalls() == 0);
+    } else {
+        w.Quiesce(5000);
+    }
+    return { hostSent, joinerSent };
+}
+
+} // namespace
+
+TEST_CASE("Hooks that run a nested event loop never let the session re-enter", "[collab][controller]") {
+    Show show;
+    auto sent = RunNestedHooks(show, true);
+    // Everything that arrived meanwhile waited for the hook to return.
+    CHECK(sent.first == 0);
+    CHECK(sent.second == 0);
+}
+
+TEST_CASE("Without the re-entry guard a nested event loop re-enters the session", "[collab][controller]") {
+    // The control for the test above: the same run re-enters (answers pings,
+    // asks again for the snapshot, commits the other edit) from inside the hooks.
+    Show show;
+    auto sent = RunNestedHooks(show, false);
+    CHECK(sent.first > 0);
+    CHECK(sent.second > 0);
+}
+
+TEST_CASE("Edits and undo from inside a notification are recorded and sent later", "[collab][controller]") {
+    for (bool guard : { true, false }) {
+        INFO("guard " << guard);
+        Show show;
+        World w(show);
+        StartSession(w, 1);
+        Peer& h = *w.peers[0];
+        Peer& a = *w.peers[1];
+        a.ctl->reentryGuard = guard;
+        bool fired = false;
+        bool undone = true;
+        size_t sentInside = 0;
+        a.app->duringChange = [&] {
+            if (fired) {
+                return;
+            }
+            fired = true;
+            size_t before = a.net->sent;
+            REQUIRE(AddOn(a, "Line", 5000, 5100) != nullptr);
+            undone = a.Undo().UndoLastStep();
+            w.NestedLoop(20);
+            sentInside = a.net->sent - before;
+        };
+        REQUIRE(w.As(h, [&] { return AddOn(h, "Grid", 3000, 3100); }) != nullptr);
+        if (guard) {
+            RequireConverged(w);
+        } else {
+            w.Quiesce(5000);
+        }
+        REQUIRE(fired);
+        if (guard) {
+            CHECK_FALSE(undone);
+            CHECK(sentInside == 0);
+            CHECK(EffectAt(h, "Line", 5000) != nullptr);
+            CHECK(EffectAt(a, "Line", 5000) != nullptr);
+        } else {
+            // Without the guard the edit goes out (and is undone) from inside the notification.
+            CHECK(sentInside > 0);
+        }
+    }
 }

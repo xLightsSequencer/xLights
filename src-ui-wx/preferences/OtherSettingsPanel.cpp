@@ -275,6 +275,15 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     }
 #endif
 
+    // Hand-added outside the wxSmith guards, and only where a collaboration
+    // transport exists.
+    if (frame->CollaborationAvailable()) {
+        CollaborationCheckBox = new wxCheckBox(this, wxID_ANY, _("Live collaboration (beta)"));
+        CollaborationCheckBox->SetToolTip(_("Host or join sessions where several people edit one sequence at once (File > Collaborate)."));
+        GridBagSizer1->Add(CollaborationCheckBox, wxGBPosition(13, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+        CollaborationCheckBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) { OnControlChanged(e); });
+    }
+
 #ifdef __LINUX__
     // The renderer choice list is Windows-vendor-specific (CUDA/QSV/AMF/
     // DirectX11); Linux's decode path always auto-tries vaapi then vdpau
@@ -332,6 +341,9 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetEnablePositionZones(CheckBox_EnablePositionZones->GetValue());
     frame->SetShowZoneIndicator(CheckBox_ShowZoneIndicator->GetValue());
     xlColourData::INSTANCE.SetUseCustomPicker(CheckBox_UseCustomColorPicker->IsChecked());
+    if (CollaborationCheckBox != nullptr) {
+        frame->SetCollaborationEnabled(CollaborationCheckBox->IsChecked());
+    }
 #ifdef HAVE_VULKAN
     if (GraphicsBackendChoice != nullptr) {
         auto* config = GetXLightsConfig();
@@ -368,6 +380,9 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     CheckBox_EnablePositionZones->SetValue(frame->GetEnablePositionZones());
     CheckBox_ShowZoneIndicator->SetValue(frame->GetShowZoneIndicator());
     CheckBox_UseCustomColorPicker->SetValue(xlColourData::INSTANCE.UseCustomPicker());
+    if (CollaborationCheckBox != nullptr) {
+        CollaborationCheckBox->SetValue(frame->GetCollaborationEnabled());
+    }
 #ifdef HAVE_VULKAN
     if (GraphicsBackendChoice != nullptr) {
         wxString backend = GetXLightsConfig()->Read("xLightsGraphicsBackend", "Auto");

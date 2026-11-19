@@ -15,6 +15,10 @@ extension XLSequenceDocument: @retroactive @unchecked Sendable {}
 @Observable @MainActor
 class SequencerViewModel {
     var document = XLSequenceDocument()
+    /// Live collaboration (Collaboration.swift).
+    var collab = CollabState()
+    @ObservationIgnored var collabVisibleRange: (Int, Int) = (-1, -1)
+    @ObservationIgnored var collabPresencePending = false
     @ObservationIgnored let undoActivity = UndoActivity()
     var undoManager: UndoManager { undoActivity.manager }
     /// Inspector edits of one setting on one effect that follow each
@@ -435,7 +439,9 @@ class SequencerViewModel {
     var previewModelName: String? = nil
 
     // Selection & editing
-    var selectedEffect: EffectSelection?
+    var selectedEffect: EffectSelection? {
+        didSet { scheduleCollabPresence() }
+    }
     /// Full set of selected effects. Always mirrors `selectedEffect`:
     /// single-select sets it to `[primary]`, multi-select via marquee
     /// fills it with N, clear empties it. When multi-selected, the
@@ -443,11 +449,15 @@ class SequencerViewModel {
     /// the grid highlights every member. Bulk ops (delete, lock,
     /// disable) iterate this set; single-effect ops fall back to
     /// selectedEffect.
-    var selectedEffects: Set<EffectSelection> = []
+    var selectedEffects: Set<EffectSelection> = [] {
+        didSet { scheduleCollabPresence() }
+    }
     var selectedEffectSettings: [String: String] = [:]     // legacy: raw key/value map
     var availableEffects: [String] = []
     var selectedPaletteEffect: String?
-    var showInspector = false
+    var showInspector = false {
+        didSet { scheduleCollabPresence() }
+    }
 
     // Command palette (⌘⇧K) — fuzzy command/effect launcher. The
     // sheet is presented by `SequencerView`; flipping this flag from
@@ -1937,6 +1947,12 @@ class SequencerViewModel {
         // Save As to a writable location. Mirrors desktop's
         // readOnlyMode gate on the Save path.
         if isReadOnly { return false }
+        // A collaboration client's copy came from the host, who saves the
+        // sequence; the client can only save a copy.
+        if collab.blocksPlainSave {
+            if interactive { saveAsRequestToken &+= 1 }
+            return false
+        }
         if let changed = document.changedSequenceFileName() {
             if interactive {
                 saveConflict = ShowFileSaveConflict(kind: .sequence, fileNames: [changed])
@@ -2157,6 +2173,9 @@ class SequencerViewModel {
             // path; refresh the display name so the toolbar picks
             // up the new sequence name.
             sequenceName = document.sequenceName()
+            // A collaboration client's copy now lives where the user put
+            // it; once the session is over it saves like any sequence.
+            if !collab.inSession { collab.clientDocument = false }
         }
         return ok
     }
@@ -2289,6 +2308,7 @@ class SequencerViewModel {
         // Read-only source folder — the sibling .xbkp write would just
         // fail; skip it. The user recovers via Save As.
         if isReadOnly { return }
+        if collab.clientDocument { return }
         if isPlaying || isScrubbing { return }
         // Only write when there's something dirty to protect —
         // matches desktop's "skip autosave when no changes since
@@ -2622,6 +2642,11 @@ class SequencerViewModel {
         openInFlight = true
         defer { openInFlight = false }
 
+        // The document a session edits is going away.
+        if collab.inSession {
+            if collab.role == .host { endCollabSession() } else { leaveCollabSession() }
+        }
+
         if isOutputting { toggleOutput() }
         stopPlayback()
         stopDirtyPolling()
@@ -2698,6 +2723,16 @@ class SequencerViewModel {
                 try? FileManager.default.removeItem(at: sandbox)
             }
         }.value
+
+        collab.clientDocument = false
+        collab.overlay = CollabOverlay()
+        if collab.restoreShowFolderOnClose {
+            // The join switched to a copy of the host's show.
+            collab.restoreShowFolderOnClose = false
+            if let own = FolderConfig.showFolder {
+                loadShowFolder(path: own, mediaFolders: FolderConfig.mediaFolders)
+            }
+        }
 
         // Others sharing the show folder shouldn't see the sequence as open
         // here until the next heartbeat (or for 5 minutes once the show is gone).
@@ -2811,6 +2846,9 @@ class SequencerViewModel {
     func play() {
         stopScrub()
         playbackStopAtMS = nil
+        // Remote edits still waiting to render start before the first frame
+        // plays (every play path comes through here).
+        document.remoteRendersPlaybackStarted(fromMS: -1, toMS: -1)
         if hasAudio {
             // Apply current rate before starting — AVAudioEngine
             // reads the time-pitch unit's rate at Play time and
@@ -3496,7 +3534,10 @@ class SequencerViewModel {
     // MARK: - Playback Timer
 
     private func startPlaybackTimer() {
-        stopPlaybackTimer()
+        // Not stopPlaybackTimer(): that would tell the remote-render
+        // scheduler playback stopped just after play() said it started.
+        playbackTimer?.invalidate()
+        playbackTimer = nil
         let interval = Double(frameIntervalMS) / 1000.0
         playbackTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
@@ -3587,6 +3628,7 @@ class SequencerViewModel {
     private func stopPlaybackTimer() {
         playbackTimer?.invalidate()
         playbackTimer = nil
+        document.remoteRendersPlaybackStopped()
     }
 
     // MARK: - Selection-scoped Preview Scrub
@@ -3777,6 +3819,63 @@ class SequencerViewModel {
                               endMS: Int32(endMS),
                               clear: clear)
         trackRenderCompletion()
+    }
+
+    /// Re-render what a collaboration change touched. The one place remote
+    /// changes reach the renderer. Content edits go through the core's
+    /// visible-range-first scheduler (rendered now when on screen or while
+    /// playing, otherwise when scrolled to, at playback, when idle, or
+    /// before an fseq write); media changes and arriving files render the
+    /// changed models directly. Both defer while background render is
+    /// suspended, like a local edit.
+    func markCollabChangeForRender(_ change: XLCollabChange) {
+        guard isSequenceLoaded else { return }
+        let start = change.startMS < 0 ? 0 : change.startMS
+        let end = change.endMS < 0 ? sequenceDurationMS : change.endMS
+        if renderSuspended {
+            if !change.rows.isEmpty || !change.modelNames.isEmpty {
+                noteSuspendedDirty(rowIndex: -1, startMS: start, endMS: end)
+            }
+            return
+        }
+        switch change.cause {
+        case .remoteEdit, .ownEdit, .ownUndo, .ownEditPending, .ownEditRejected:
+            if !change.mediaChanged {
+                if !change.rows.isEmpty {
+                    document.markRemoteChange(rows: change.rows,
+                                              fromMS: Int32(change.startMS),
+                                              toMS: Int32(change.endMS))
+                    trackRenderCompletion()
+                }
+                return
+            }
+        default:
+            break
+        }
+        if change.modelNames.isEmpty { return }
+        for name in change.modelNames {
+            collab.session?.renderModel(named: name, startMS: change.startMS, endMS: change.endMS)
+        }
+        trackRenderCompletion()
+    }
+
+    /// A joined sequence is about to replace the open one (called
+    /// synchronously by the bridge): stop everything that reads it, as
+    /// opening a sequence does.
+    func quiesceForCollabSequenceReplace() {
+        if isOutputting { _ = toggleOutput() }
+        stopPlayback()
+        stopDirtyPolling()
+        stopAutosaveTimer()
+        cancelBackgroundRender()
+        clearSelection()
+        isSequenceLoaded = false
+        setRows([])
+    }
+
+    func startCollabDirtyPolling() {
+        startDirtyPolling()
+        scheduleBrokenMediaScan()
     }
 
     /// Accumulate a deferred re-render while `renderSuspended`. Multiple
@@ -9907,6 +10006,8 @@ class SequencerViewModel {
         }
 
         setRows(newRows)
+        // Overlay positions are display-row indices.
+        if collab.role != .none { refreshCollabOverlay() }
     }
 }
 

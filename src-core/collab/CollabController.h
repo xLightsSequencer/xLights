@@ -103,6 +103,15 @@
 // hosting starts or a join begins, and (false) when the session ends, is
 // left, fails or the controller goes away.
 //
+// Re-entry: hooks such as LoadXsq may run a nested event loop (progress
+// dialogs, render aborts, modal prompts). Anything the dispatcher, timer or
+// transport delivers meanwhile (messages, peer events, blobs, browse results,
+// Tick) is queued and runs once the outer call unwinds; it never re-enters
+// the session. Calls the app makes from inside such a loop: local edits are
+// recorded as usual and sent at the next safe point; Undo / Redo /
+// PutOnNewLayer return false; Host / Join fail with an error; End / Leave are
+// queued; SetLocalPresence is kept and sent later.
+//
 // All calls on the main thread.
 
 #include <cstdint>
@@ -361,6 +370,9 @@ public:
     // For tests.
     CollabParticipant* Session() { return _session.get(); }
     size_t HeldDeliveries() const { return _held.size(); }
+    size_t DeferredCalls() const { return _deferred.size(); }
+    // Off only in tests that prove the re-entry guard is needed.
+    bool reentryGuard = true;
 
 private:
     class DocBridge : public ICollabDocument {
@@ -389,7 +401,27 @@ private:
     private:
         CollabController& _c;
     };
-    // Outermost entry point: delivers queued app notifications on the way out.
+    // While the controller is out in code that may run a nested event loop
+    // (a session apply, an ICollabApp hook, app notifications), deliveries,
+    // timer ticks and other dispatcher work must not re-enter the session.
+    class HookCall {
+    public:
+        explicit HookCall(CollabController& c) : _c(c) { ++_c._hookDepth; }
+        ~HookCall() { --_c._hookDepth; }
+
+    private:
+        CollabController& _c;
+    };
+    class LoadScope {
+    public:
+        explicit LoadScope(CollabController& c) : _c(c) { ++_c._loadDepth; }
+        ~LoadScope() { --_c._loadDepth; }
+
+    private:
+        CollabController& _c;
+    };
+    // Outermost entry point: on the way out, runs deferred calls and
+    // delivers queued app notifications.
     class Entry {
     public:
         explicit Entry(CollabController& c) : _c(c) { ++_c._entryDepth; }
@@ -426,6 +458,10 @@ private:
     void SetState(State s);
     void Post(std::function<void()> fn);
     void DrainAppEvents();
+    bool Busy() const { return reentryGuard && (_applyDepth > 0 || _hookDepth > 0 || _draining); }
+    void Defer(std::function<void()> fn);
+    void Settle();
+    std::string MoveAside(const std::string& path);
     void FlushHost(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, uint64_t join);
     void FlushClient(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, uint64_t join);
     void OnCommitApplied(const CommitInfo& info, const SequenceCommand& applied, const SequenceCommand& inverse);
@@ -485,6 +521,16 @@ private:
     };
     std::deque<Held> _held;
     uint64_t _heldFiles = 0;
+
+    // Re-entry
+    int _hookDepth = 0;
+    // LoadXsq calls into the app still on the stack. Nothing attaches to the
+    // app's sequence meanwhile: the app replaces it when the call returns, so
+    // an attach from inside it (a nested event loop delivering a second
+    // snapshot) left _attached pointing at a freed SequenceElements.
+    int _loadDepth = 0;
+    bool _settling = false;
+    std::deque<std::function<void()>> _deferred; // dispatcher work that arrived while Busy()
 
     // App notifications
     int _entryDepth = 0;

@@ -259,6 +259,7 @@ private:
     void DrawTimingEffects(int row);
     void DrawEffects(xlGraphicsContext *ctx);
     void DrawSongStructureOverlays(xlGraphicsContext *ctx);
+    void DrawCollabOverlay(xlGraphicsContext *ctx);
     void DrawPlayMarker(xlGraphicsContext *ctx) const;
     bool AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position, bool offset, bool control);

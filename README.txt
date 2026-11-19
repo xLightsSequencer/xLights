@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.22  November ??, 2026
     -bug (derwin12)              Link controller upload preference changes are saved again
+    -enh (dkulp)                 Live collaboration (beta, off by default): host or join a session on the local
+                                 network and edit one sequence together (File > Collaborate)
+    -enh (dkulp)                 iPad - Live collaboration (beta, off by default): host a sequence or join one from
+                                 the sequence list and edit it together with Macs and iPads on the same network
 
 2026.21  November 24, 2026
 

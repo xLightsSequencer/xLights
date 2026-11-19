@@ -576,6 +576,8 @@
 		<Unit filename="../src-ui-wx/sequencer/RenameTextDialog.h" />
 		<Unit filename="../src-core/render/RenderEngine.cpp" />
 		<Unit filename="../src-core/render/RenderEngine.h" />
+		<Unit filename="../src-core/render/RemoteRenderScheduler.cpp" />
+		<Unit filename="../src-core/render/RemoteRenderScheduler.h" />
 		<Unit filename="../src-core/render/xLightsShowContext.cpp" />
 		<Unit filename="../src-core/render/xLightsShowContext.h" />
 		<Unit filename="../src-core/render/ViewpointMgr.cpp" />
@@ -659,6 +661,8 @@
 		<Unit filename="../src-ui-wx/app-shell/TabConvert.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/TabPreview.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/TabSequence.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/Collaboration.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/Collaboration.h" />
 		<Unit filename="../src-ui-wx/app-shell/ShowFileWatch.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/DiscoveryHelpers.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/TabSetup.cpp" />
@@ -1505,6 +1509,7 @@
 		<Unit filename="../src-core/render/EffectLayer.h" />
 		<Unit filename="../src-ui-wx/sequencer/ElementLayers.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsGrid.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/CollabOverlay.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsGrid.h" />
 		<Unit filename="../src-core/render/Element.cpp" />
 		<Unit filename="../src-core/render/Element.h" />

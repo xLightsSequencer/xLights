@@ -29,6 +29,9 @@ struct TimingEffectsMetalGridView: UIViewRepresentable {
     /// Carries the global row id + mark index so the outer view can
     /// set the loop region to the mark range and start playback.
     var onDoubleTapMark: ((_ rowIndex: Int, _ markIndex: Int) -> Void)?
+    /// Live collaboration: others' selections and remote-edit flashes on
+    /// timing marks.
+    var collabOverlay = CollabOverlay()
 
     func makeUIView(context: Context) -> TimingEffectsMetalMTKView {
         let v = TimingEffectsMetalMTKView()
@@ -52,6 +55,7 @@ struct TimingEffectsMetalGridView: UIViewRepresentable {
         c.onLongPressMark = onLongPressMark
         c.onMarkDragEnd = onMarkDragEnd
         c.onDoubleTapMark = onDoubleTapMark
+        c.collabOverlay = collabOverlay
         view.setNeedsDisplay()
     }
 
@@ -61,6 +65,7 @@ struct TimingEffectsMetalGridView: UIViewRepresentable {
         let bridge = XLGridMetalBridge(name: "TimingEffectsGrid")
         var rows: [SequencerViewModel.RowInfo] = []
         var rowHeight: CGFloat = 24
+        var collabOverlay = CollabOverlay()
         var pixelsPerMS: CGFloat = 0.1
         var scrollOffsetX: CGFloat = 0
         var scrollOffsetY: CGFloat = 0
@@ -159,6 +164,48 @@ final class TimingEffectsMetalMTKView: MTKView, MTKViewDelegate {
 
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         coordinator?.bridge.setDrawableSize(size, scale: view.contentScaleFactor)
+    }
+
+    /// Others' selection outlines and the brief remote-edit highlight.
+    private func drawCollabMarks(bridge: XLGridMetalBridge, viewport: CGSize,
+                                 c: TimingEffectsMetalGridView.Coordinator) {
+        var y = -c.scrollOffsetY
+        bridge.beginFilledRectBatch()
+        var outlines: [(CGFloat, CGFloat, CGFloat, CGFloat, [UInt32])] = []
+        for row in c.rows {
+            if y + c.rowHeight < 0 { y += c.rowHeight; continue }
+            if y > viewport.height { break }
+            for (eIdx, effect) in row.effects.enumerated() {
+                guard let m = c.collabOverlay.marks[CollabOverlay.Key(row: row.id, effect: eIdx)] else { continue }
+                let x1 = CGFloat(effect.startTimeMS) * c.pixelsPerMS - c.scrollOffsetX
+                let x2 = CGFloat(effect.endTimeMS) * c.pixelsPerMS - c.scrollOffsetX
+                if x2 < 0 || x1 > viewport.width { continue }
+                if m.flash {
+                    bridge.appendFilledRectX(x1, y: y + 1, w: max(1, x2 - x1), h: c.rowHeight - 2,
+                                              r: 1, g: 1, b: 1, a: 0.28)
+                }
+                if !m.outlines.isEmpty {
+                    outlines.append((x1, x2, y + 1, y + c.rowHeight - 1, m.outlines))
+                }
+            }
+            y += c.rowHeight
+        }
+        bridge.flushFilledRectBatch()
+        if outlines.isEmpty { return }
+        bridge.beginLineBatch()
+        for (x1, x2, top, bottom, cols) in outlines {
+            for (n, col) in cols.enumerated() {
+                let (r, g, b) = CollabOverlay.rgb(col)
+                let inset = CGFloat(n) + 0.5
+                let l = x1 + inset, rr = max(l + 1, x2 - inset)
+                let t = top + inset, bt = max(t + 1, bottom - inset)
+                bridge.appendLineX1(l, y1: t, x2: rr, y2: t, r: r, g: g, b: b, a: 1)
+                bridge.appendLineX1(rr, y1: t, x2: rr, y2: bt, r: r, g: g, b: b, a: 1)
+                bridge.appendLineX1(rr, y1: bt, x2: l, y2: bt, r: r, g: g, b: b, a: 1)
+                bridge.appendLineX1(l, y1: bt, x2: l, y2: t, r: r, g: g, b: b, a: 1)
+            }
+        }
+        bridge.flushLineBatch()
     }
 
     func draw(in view: MTKView) {
@@ -297,6 +344,10 @@ final class TimingEffectsMetalMTKView: MTKView, MTKViewDelegate {
             y += c.rowHeight
         }
         bridge.flushLineBatch()
+
+        if !c.collabOverlay.marks.isEmpty {
+            drawCollabMarks(bridge: bridge, viewport: viewport, c: c)
+        }
 
         // Label background rects first (so text renders on top).
         let anyBg = labels.contains { $0.bg != nil }

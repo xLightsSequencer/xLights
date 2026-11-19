@@ -2174,6 +2174,11 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
     PanelEffectGrid->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
     PanelEffectGrid->Draw();
 
+    int visibleStart = 0;
+    int visibleEnd = 0;
+    PanelTimeLine->GetViewableTimeRange(visibleStart, visibleEnd);
+    xLightsApp::GetFrame()->SetVisibleTimeRange(visibleStart, visibleEnd);
+
     int zoomLevel = PanelTimeLine->GetZoomLevel();
     int maxZoomLevel = PanelTimeLine->GetMaxZoomLevel(); 
     if (zoomLevel >= maxZoomLevel) {

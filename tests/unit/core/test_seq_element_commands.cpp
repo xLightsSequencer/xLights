@@ -892,6 +892,104 @@ TEST_CASE("NewElementsRecorder records a populated new track as one step", "[seq
     f.Exec().RemoveObserver(&rec);
 }
 
+TEST_CASE("NewElementsRecorder reports a direct change to an existing row", "[seq][elements][undo]") {
+    SeqFixture f;
+    TimingElement* beats = f.Timing("Beats");
+    ModelElement* tree = f.Model("Tree");
+    GuardMode mode(SeqMutationGuard::Mode::Count);
+    // Changing existing rows through commands inside the recorder is fine:
+    // they join its step.
+    SeqMutationGuard::ResetViolationCount();
+    {
+        NewElementsRecorder recorder(f.se, "Import Timing");
+        TimingElement* t = ElementEdits::AddTimingTrack(f.se, -1, "Imported", "");
+        t->GetEffectLayer(0)->AddEffect(0, "a", "", "", 0, 100, 0, false);
+        REQUIRE(f.Exec().AddEffect(tree->GetEffectLayer(0), "On", "", "", 0, 100, 0, false) != nullptr);
+    }
+    CHECK(SeqMutationGuard::ViolationCount() == 0);
+    // A direct change to a row that existed before goes unrecorded (and so
+    // never reaches undo or a live session): the guard reports it.
+    {
+        NewElementsRecorder recorder(f.se, "Import Timing");
+        ElementEdits::AddTimingTrack(f.se, -1, "Second", "");
+        beats->GetEffectLayer(0)->AddEffect(0, "x", "", "", 0, 100, 0, false);
+    }
+    CHECK(SeqMutationGuard::ViolationCount() == 1);
+}
+
+TEST_CASE("NewElementsRecorder inside an open batch or preview takes command edits for recorded ones", "[seq][elements][undo]") {
+    // The outer batch or preview holds back the notification, so the
+    // recorder must learn what its commands touched as they are recorded.
+    SeqFixture f;
+    f.Timing("Beats");
+    ModelElement* tree = f.Model("Tree");
+    GuardMode mode(SeqMutationGuard::Mode::Count);
+    Recorder rec;
+    f.Exec().AddObserver(&rec);
+    {
+        ScopedCommandBatch batch(f.Exec(), "Caller");
+        NewElementsRecorder recorder(f.se, "Add Timing Track");
+        ElementEdits::AddTimingTrack(f.se, -1, "Imported", "");
+        REQUIRE(f.Exec().AddEffect(tree->GetEffectLayer(0), "On", "", "", 0, 100, 0, false) != nullptr);
+    }
+    CHECK(SeqMutationGuard::ViolationCount() == 0);
+    REQUIRE(rec.applied.size() == 1);
+    CHECK(rec.applied[0]["commands"].size() == 2);
+    SeqMutationGuard::ResetViolationCount();
+    f.Exec().BeginPreview();
+    {
+        NewElementsRecorder recorder(f.se, "Add Timing Track");
+        ElementEdits::AddTimingTrack(f.se, -1, "Second", "");
+        REQUIRE(f.Exec().AddEffect(tree->GetEffectLayer(0), "On", "", "", 200, 300, 0, false) != nullptr);
+    }
+    f.Exec().CommitPreview("");
+    CHECK(SeqMutationGuard::ViolationCount() == 0);
+    // A direct change inside the same nesting is still reported.
+    SeqMutationGuard::ResetViolationCount();
+    {
+        ScopedCommandBatch batch(f.Exec(), "Caller");
+        NewElementsRecorder recorder(f.se, "Add Timing Track");
+        ElementEdits::AddTimingTrack(f.se, -1, "Third", "");
+        REQUIRE(f.Exec().AddEffect(tree->GetEffectLayer(0), "On", "", "", 400, 500, 0, false) != nullptr);
+        f.se.GetTimingElement("Beats")->GetEffectLayer(0)->AddEffect(0, "x", "", "", 0, 100, 0, false);
+    }
+    CHECK(SeqMutationGuard::ViolationCount() == 1);
+    f.Exec().RemoveObserver(&rec);
+}
+
+TEST_CASE("NewElementsRecorder reports a direct change to a submodel or strand row", "[seq][elements][undo]") {
+    Show show;
+    SeqFixture f(&show);
+    ModelElement* grid = f.Model("Grid");
+    ModelElement* line = f.Model("Line");
+    Populate(f, grid);
+    GuardMode mode(SeqMutationGuard::Mode::Count);
+    // A change only the submodel row's own count shows.
+    {
+        NewElementsRecorder recorder(f.se, "Import Timing");
+        ElementEdits::AddTimingTrack(f.se, -1, "One", "");
+        grid->GetSubModel(0)->SetName("Renamed");
+    }
+    CHECK(SeqMutationGuard::ViolationCount() == 1);
+    // A strand edit, while a command edits another model.
+    SeqMutationGuard::ResetViolationCount();
+    {
+        NewElementsRecorder recorder(f.se, "Import Timing");
+        ElementEdits::AddTimingTrack(f.se, -1, "Two", "");
+        REQUIRE(f.Exec().AddEffect(line->GetEffectLayer(0), "On", "", "", 0, 100, 0, false) != nullptr);
+        grid->GetStrand(1)->GetEffectLayer(0)->AddEffect(0, "On", "", "", 500, 600, 0, false);
+    }
+    CHECK(SeqMutationGuard::ViolationCount() == 1);
+    // The same strand edit made as a command is fine.
+    SeqMutationGuard::ResetViolationCount();
+    {
+        NewElementsRecorder recorder(f.se, "Import Timing");
+        ElementEdits::AddTimingTrack(f.se, -1, "Three", "");
+        REQUIRE(f.Exec().AddEffect(grid->GetStrand(1)->GetEffectLayer(0), "On", "", "", 700, 800, 0, false) != nullptr);
+    }
+    CHECK(SeqMutationGuard::ViolationCount() == 0);
+}
+
 TEST_CASE("Nested NewElementsRecorders record once, in the outer step", "[seq][elements][undo]") {
     SeqFixture f;
     Recorder rec;

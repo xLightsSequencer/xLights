@@ -124,6 +124,7 @@ namespace ShowSaveMerge { struct FileToSave; class Plan; struct SaveReport; }
 class aiBase;
 class BaseSerializingVisitor;
 class ShowFileWatcher;
+class DesktopCollab;
 namespace ShowFileLiveMerge { class Incoming; struct LocalFile; struct Applied; }
 class CopyFormat1;
 class Controller;
@@ -1454,6 +1455,10 @@ public:
     void SetEnablePositionZones(bool b) { _enablePositionZones = b; }
     bool GetShowZoneIndicator() const override { return _showZoneIndicator; }
     void SetShowZoneIndicator(bool b) { _showZoneIndicator = b; }
+    // "Live collaboration (beta)": shown only where a transport exists.
+    bool CollaborationAvailable() const;
+    bool GetCollaborationEnabled() const;
+    void SetCollaborationEnabled(bool b);
 
     bool GetRecycleTips() const;
     void SetRecycleTips(bool b);
@@ -1655,6 +1660,11 @@ public:
     std::shared_ptr<PresenceWorkerLink> _presenceLink = std::make_shared<PresenceWorkerLink>();
     wxTimer _showFileWatchTimer;
     std::unique_ptr<ShowFileWatcher> _showFileWatcher;
+    // Live collaboration (app-shell/Collaboration.cpp).
+    std::unique_ptr<DesktopCollab> _collab;
+    // Menu help texts as built, put back once a session no longer refuses
+    // the item (UpdateLayoutLockState shows the refusal in their place).
+    std::map<wxMenuItem*, wxString> _unlockedMenuHelp;
     std::unique_ptr<ShowFileLiveMerge::Incoming> _pendingIncoming;
     wxPanel* _showFileBanner = nullptr;
     wxStaticText* _showFileBannerText = nullptr;
@@ -2241,6 +2251,7 @@ private:
 
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
+    friend class DesktopCollab;
 
 public:
     FILE* _logfile = nullptr;

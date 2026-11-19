@@ -14,6 +14,7 @@
 #include <wx/confbase.h>
 
 #include "RowHeading.h"
+#include "CollabOverlay.h"
 #include "xLightsVersion.h"
 #include "shared/utils/BitmapCache.h"
 #include "settings/XLightsConfigAdapter.h"
@@ -2689,6 +2690,19 @@ void RowHeading::render( wxPaintEvent& event )
             dc.SetBrush(tagBrush);
             dc.SetPen(tagPen);
             dc.DrawRectangle(2, startY + 2, DEFAULT_ROW_HEADING_MARGIN - 4, DEFAULT_ROW_HEADING_HEIGHT - 4);
+        }
+        // Live collaboration: a stripe per participant focused on this row.
+        if (CollabOverlay* o = CollabOverlay::Current()) {
+            auto it = o->rowStripes.find(rowInfo->element->GetUid());
+            if (it != o->rowStripes.end()) {
+                const int sw = FromDIP(4);
+                for (size_t k = 0; k < it->second.size(); ++k) {
+                    wxColour c = xlColorToWxColour(it->second[k]);
+                    dc.SetBrush(wxBrush(c));
+                    dc.SetPen(wxPen(c));
+                    dc.DrawRectangle(w - (int)(k + 1) * sw - 1, startY + 1, sw, DEFAULT_ROW_HEADING_HEIGHT - 2);
+                }
+            }
         }
 
         dc.SetBrush(brush2);

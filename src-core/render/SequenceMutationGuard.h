@@ -15,8 +15,9 @@
 // XL_SEQ_MUTATION("Effect::SetSetting"); outside a SeqMutationGuard::Scope
 // that is reported according to the XL_COMMAND_GUARD environment variable:
 //
-//   assert (default in Debug builds) assert
-//   log    log the first mutation seen from each call site
+//   assert (default in builds that define DEBUG or _DEBUG) assert
+//   log    log the first mutation seen from each call site (default in
+//          other builds with assertions compiled in)
 //   count  only count them (tests read ViolationCount())
 //   off    nothing
 //

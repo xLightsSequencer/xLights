@@ -118,6 +118,7 @@
 #include "utils/ShowAutosave.h"
 #include "utils/ShowPresence.h"
 #include "utils/ShowFileWatcher.h"
+#include "app-shell/Collaboration.h"
 #include "render/ShowFileLiveMerge.h"
 #include "utils/ShowFileGuard.h"
 #include "utils/ShowGuid.h"
@@ -1614,6 +1615,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _presenceHint->Hide();
     StatusBarSizer->Add(_presenceHint, wxGBPosition(0, 4), wxDefaultSpan, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     CreateShowFileBanner();
+    _collab = std::make_unique<DesktopCollab>(this);
+    _collab->CreateUI(MenuFile, MenuItem_File_Close_Sequence);
     StatusBarSizer->AddGrowableCol(1, 2);
     StatusBarSizer->AddGrowableCol(3, 1);
     ProgressBar->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnProgressBarDoubleClick, nullptr, this);
@@ -2311,6 +2314,8 @@ xLightsFrame::~xLightsFrame()
     // render thread is completely stuck
     AbortRender(2000);
 
+    _collab.reset();
+
     delete _presetModel;
     _presetModel = nullptr;
     delete _presetModelManager;
@@ -2905,6 +2910,11 @@ void xLightsFrame::OnOutputTimerTrigger(wxTimerEvent& event)
                 _outputManager.StartFrame(curtime);
                 _outputManager.EndFrame();
             }
+            // Other participants' edits waiting for a quiet moment render on
+            // every tab, not only once the sequencer is shown again.
+            needTimer |= RemoteRendersIdle((uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>(
+                                               std::chrono::steady_clock::now().time_since_epoch())
+                                               .count());
             break;
         }
     }
@@ -3376,6 +3386,9 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
         event.Veto();
         inClose = false;
         return;
+    }
+    if (_collab) {
+        _collab->Shutdown();
     }
 
     selectedEffect = nullptr;
@@ -9806,10 +9819,17 @@ void xLightsFrame::UpdateLayoutLockState()
 {
     const bool locked = IsLayoutLocked();
     const wxString reason = locked ? wxString(GetLayoutLockReason()) : wxString();
+    auto setHelp = [&](wxMenuItem* item, const wxString& refusal) {
+        auto it = _unlockedMenuHelp.find(item);
+        if (it == _unlockedMenuHelp.end()) {
+            it = _unlockedMenuHelp.emplace(item, item->GetHelp()).first;
+        }
+        item->SetHelp(refusal.empty() ? it->second : refusal);
+    };
     auto lockItem = [&](wxMenuItem* item) {
         if (item != nullptr) {
             item->Enable(!locked);
-            item->SetHelp(reason);
+            setHelp(item, reason);
         }
     };
     lockItem(MenuItemRestoreBackup);
@@ -9890,5 +9910,22 @@ void xLightsFrame::SetPaletteSizeString(const wxString& size) {
         if (colorPanel) {
             colorPanel->RefreshPaletteSize();
         }
+    }
+}
+
+bool xLightsFrame::CollaborationAvailable() const
+{
+    return _collab != nullptr && _collab->Available();
+}
+
+bool xLightsFrame::GetCollaborationEnabled() const
+{
+    return DesktopCollab::PreferenceEnabled();
+}
+
+void xLightsFrame::SetCollaborationEnabled(bool b)
+{
+    if (_collab != nullptr) {
+        _collab->SetPreferenceEnabled(b);
     }
 }

@@ -394,7 +394,11 @@ struct SequencerView: View {
             saveAsError = "No sequence is open."
             return
         }
-        if viewModel.isDirty {
+        if viewModel.collab.blocksPlainSave {
+            // A collaboration client's sequence lives in a private session
+            // file; bring it up to date, then export that.
+            _ = viewModel.document.saveSequence()
+        } else if viewModel.isDirty {
             // Not interactive: Save As is about to write the edits
             // elsewhere, so a sequence someone else changed is left
             // alone rather than asked about here.
@@ -469,12 +473,21 @@ struct SequencerView: View {
             // Save button — enabled when the sequence is dirty.
             // Long-press or the sibling arrow exposes Save As.
             Menu {
-                Button {
-                    _ = viewModel.saveSequence()
-                } label: {
-                    Label("Save", systemImage: "square.and.arrow.down")
+                if viewModel.collab.blocksPlainSave {
+                    // A collaboration client's copy belongs to the host.
+                    Button {
+                        startSaveAs()
+                    } label: {
+                        Label("Save a Copy…", systemImage: "square.and.arrow.down.on.square")
+                    }
+                } else {
+                    Button {
+                        _ = viewModel.saveSequence()
+                    } label: {
+                        Label("Save", systemImage: "square.and.arrow.down")
+                    }
+                    .disabled(!viewModel.isDirty || viewModel.isReadOnly)
                 }
-                .disabled(!viewModel.isDirty || viewModel.isReadOnly)
 
                 Button {
                     startSaveAs()
@@ -496,7 +509,9 @@ struct SequencerView: View {
             } primaryAction: {
                 // Read-only opens the menu (Save As) rather than a
                 // no-op Save.
-                if !viewModel.isReadOnly {
+                if viewModel.collab.blocksPlainSave {
+                    startSaveAs()
+                } else if !viewModel.isReadOnly {
                     _ = viewModel.saveSequence()
                 }
             }
@@ -649,6 +664,22 @@ struct SequencerView: View {
             // equivalent on the control that carries the same gauge.
             .onLongPressGesture {
                 viewModel.showingRenderProgress = true
+            }
+
+            if viewModel.collab.isVisible {
+                Divider().frame(height: 24)
+                Button {
+                    viewModel.collab.sheetMode = viewModel.collab.role == .client ? .join : .host
+                    viewModel.collab.showingSheet = true
+                } label: {
+                    Image(systemName: viewModel.collab.inSession ? "person.2.fill" : "person.2")
+                }
+                .disabled(!viewModel.isSequenceLoaded)
+                .help("Collaborate")
+                .accessibilityLabel("Collaborate")
+                if viewModel.collab.role != .none && viewModel.collab.state != .idle {
+                    CollabStatusChip()
+                }
             }
 
             Spacer()

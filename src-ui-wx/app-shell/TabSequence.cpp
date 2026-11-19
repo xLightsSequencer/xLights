@@ -30,6 +30,8 @@
 #include <thread>
 
 #include "xLightsMain.h"
+#include "app-shell/Collaboration.h"
+#include "collab/CollabManifest.h"
 #include "media/JukeboxPanel.h"
 #include "sequencer/SeqSettingsDialog.h"
 #include "sequencer/BatchRenderProgressDialog.h"
@@ -2314,6 +2316,16 @@ void xLightsFrame::FinishBatchRenderDialog(bool stopped)
 
 bool xLightsFrame::SaveSequence()
 {
+    // A collaboration client's copy of the session sequence lives in a
+    // temporary folder; saving it means saving a copy somewhere chosen.
+    if (_collab && _collab->IsClientDocument()) {
+        if (IsNonInteractiveSave()) {
+            // Save As is a dialog; a script or batch save must not wait on one.
+            spdlog::error("Not saving: {}", SequenceSaveRefusal(CurrentSeqXmlFile != nullptr ? wxString::FromUTF8(CurrentSeqXmlFile->GetFullPath()) : wxString()));
+            return false;
+        }
+        return SaveAsSequence();
+    }
     LogMemoryUsage("SaveSequence start: " + xlightsFilename.ToStdString());
 
     wxString currentPath;
@@ -2438,6 +2450,13 @@ bool xLightsFrame::SaveSequence()
     // Sync jukebox UI state to sequence data before saving
     if (GetJukeboxPanel()) {
         GetJukeboxPanel()->SyncToData(CurrentSeqXmlFile->GetJukeboxButtons());
+    }
+    if (!mRenderOnSave) {
+        // Without Render on Save the fseq is written from whatever has been
+        // rendered so far; start other participants' waiting renders now so
+        // they at least get the xsq save's head start. Render on Save renders
+        // every row itself.
+        FlushRemoteRenders();
     }
     SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xsq."));
     spdlog::info("Saving XSQ file.");

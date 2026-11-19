@@ -79,6 +79,9 @@ struct TopChromeMetalGridView: UIViewRepresentable {
     /// Desktop "Effects Grid ▸ Show Alternate Timing Format" — ruler
     /// labels render absolute seconds.ms instead of min:sec.frac.
     var alternateTimingFormat: Bool = false
+    /// Live collaboration: the time range each other participant is
+    /// looking at, drawn as a tinted band on the ruler.
+    var collabBands: [CollabOverlay.Band] = []
 
     func makeUIView(context: Context) -> TopChromeMetalMTKView {
         let v = TopChromeMetalMTKView()
@@ -125,6 +128,7 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         c.onBoundaryDragEnd = onBoundaryDragEnd
         c.onBoundaryDragCancel = onBoundaryDragCancel
         c.alternateTimingFormat = alternateTimingFormat
+        c.collabBands = collabBands
         view.setNeedsDisplay()
     }
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -183,6 +187,7 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         // being dragged; nil when no boundary drag is in progress.
         var boundaryDragIndex: Int?
         var alternateTimingFormat: Bool = false
+        var collabBands: [CollabOverlay.Band] = []
     }
 }
 
@@ -317,6 +322,35 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
                 let lx = max(2, x1 + 3)
                 bridge.drawText(name, atX: lx, y: c.rulerHeight + 2,
                                  fontSize: 10, r: 1.0, g: 1.0, b: 1.0, a: 0.95)
+            }
+        }
+
+        // Live collaboration: where each other participant is working.
+        // Stacked thin bars at the ruler's bottom so overlapping ranges
+        // stay readable, over a light tint of the whole ruler.
+        if c.pixelsPerMS > 0 && !c.collabBands.isEmpty {
+            let barH: CGFloat = 3
+            bridge.beginFilledRectBatch()
+            for (i, band) in c.collabBands.enumerated() {
+                let x1 = CGFloat(band.startMS) * c.pixelsPerMS - c.scrollOffsetX
+                let x2 = CGFloat(band.endMS) * c.pixelsPerMS - c.scrollOffsetX
+                if x2 < -1 || x1 > size.width + 1 { continue }
+                let (r, g, b) = CollabOverlay.rgb(band.color)
+                let l = max(-1, x1), rr = min(size.width + 1, x2)
+                bridge.appendFilledRectX(l, y: 0, w: max(1, rr - l), h: c.rulerHeight,
+                                          r: r, g: g, b: b, a: 0.16)
+                let y = c.rulerHeight - barH * CGFloat(i + 1)
+                bridge.appendFilledRectX(l, y: max(0, y), w: max(1, rr - l), h: barH,
+                                          r: r, g: g, b: b, a: 0.9)
+            }
+            bridge.flushFilledRectBatch()
+            for band in c.collabBands {
+                let x1 = CGFloat(band.startMS) * c.pixelsPerMS - c.scrollOffsetX
+                let x2 = CGFloat(band.endMS) * c.pixelsPerMS - c.scrollOffsetX
+                if x2 < 40 || x1 > size.width { continue }
+                let (r, g, b) = CollabOverlay.rgb(band.color)
+                bridge.drawText(band.name, atX: max(2, x1 + 3), y: 1,
+                                 fontSize: 9, r: r, g: g, b: b, a: 1.0)
             }
         }
 

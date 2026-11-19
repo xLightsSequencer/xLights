@@ -190,6 +190,7 @@ void xLightsShowContext::CheckForValidModels() {
 }
 
 bool xLightsShowContext::LoadSequenceElements(SequenceFile& file, pugi::xml_document& doc) {
+    _remoteRenders.Reset();
     const bool profileLoad = std::getenv("XL_LOAD_PROFILE") != nullptr;
     auto phaseStart = std::chrono::steady_clock::time_point{};
     auto profilePhase = [&](const char* phase) {
@@ -391,6 +392,7 @@ bool xLightsShowContext::CloseSequence() {
         spdlog::error("xLightsShowContext: could not abort in-flight render; leaving the sequence data allocated rather than freeing it under a live render job");
         return false;
     }
+    _remoteRenders.Reset();
     _sequenceElements.Clear();
     _seqData.Cleanup();
     _sequenceDoc.reset();
@@ -457,4 +459,52 @@ void xLightsShowContext::StampLayoutObjectIds(pugi::xml_node root,
 
     std::unordered_set<std::string> perspectiveIds;
     LayoutObjectId::StampChildren(root.child("perspectives"), "perspective", {}, perspectiveIds);
+}
+
+void xLightsShowContext::RenderRemoteRow(SeqObjectId row, int startMS, int endMS, RemoteRenderScheduler::Reason why) {
+    Element* el = _sequenceElements.GetElementFromUid(row);
+    if (auto* sub = dynamic_cast<SubModelElement*>(el)) {
+        el = sub->GetModelElement();
+    }
+    // A deleted row has nothing left to render; a timing track's dependent
+    // models are queued by SequenceElements when the track changes.
+    if (el == nullptr || el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+        return;
+    }
+    if (why == RemoteRenderScheduler::Reason::Playback || why == RemoteRenderScheduler::Reason::Flush) {
+        // Started before playback shows a frame / before the caller goes on.
+        RenderEffectForModel(el->GetModelName(), startMS, endMS);
+    } else {
+        RequestRenderForModel(el->GetModelName(), startMS, endMS);
+    }
+}
+
+void xLightsShowContext::MarkRemoteChange(const std::vector<SeqObjectId>& rows, int startMS, int endMS) {
+    if (_remoteRenders.Mark(rows, startMS, endMS)) {
+        // Desktop: keeps its output timer, which drives RemoteRendersIdle, running.
+        StartOutputTimer();
+    }
+}
+
+void xLightsShowContext::SetVisibleTimeRange(int startMS, int endMS) {
+    _remoteRenders.SetVisible(startMS, endMS);
+}
+
+void xLightsShowContext::RemoteRendersPlaybackStarted(int startMS, int endMS) {
+    _remoteRenders.PlaybackStarted(startMS, endMS);
+}
+
+void xLightsShowContext::RemoteRendersPlaybackStopped() {
+    _remoteRenders.PlaybackStopped();
+}
+
+bool xLightsShowContext::RemoteRendersIdle(uint64_t nowMs) {
+    if (!_remoteRenders.HasDeferred()) {
+        return false;
+    }
+    return _remoteRenders.Idle(nowMs, IsRenderDone());
+}
+
+void xLightsShowContext::FlushRemoteRenders() {
+    _remoteRenders.Flush();
 }

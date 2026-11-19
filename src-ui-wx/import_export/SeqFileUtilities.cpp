@@ -76,6 +76,7 @@
 
 #include "xLightsApp.h"
 #include "xLightsMain.h"
+#include "app-shell/Collaboration.h"
 #include "shared/utils/wxUtilities.h"
 
 #include <log.h>
@@ -1016,6 +1017,12 @@ bool xLightsFrame::CloseSequence()
         return false;
     }
 
+    // In a live session closing ends it (host) or leaves it (client): ask now,
+    // end it once nothing below can keep the sequence open.
+    if (_collab && !_collab->AllowCloseSequence()) {
+        return false;
+    }
+
     if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr && m_mgr != nullptr) {
         // save perspective on this machine so we can restore it next time
         auto* config = GetXLightsConfig();
@@ -1126,6 +1133,9 @@ bool xLightsFrame::CloseSequence()
 
     SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date);
     UpdatePresence();
+    if (_collab) {
+        _collab->AfterSequenceClosed();
+    }
     return true;
 }
 

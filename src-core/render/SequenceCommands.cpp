@@ -59,7 +59,10 @@ Mode InitialMode() {
 #if defined(DEBUG) || defined(_DEBUG)
     return Mode::Assert;
 #else
-    return Mode::Off;
+    // Assertions are compiled in (no NDEBUG) but the build doesn't say it is a
+    // debug build (the Linux Code::Blocks debug target only defines its wx
+    // flag): still log stray mutations rather than staying silent.
+    return Mode::Log;
 #endif
 }
 

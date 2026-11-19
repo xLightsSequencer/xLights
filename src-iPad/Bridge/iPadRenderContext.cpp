@@ -2325,6 +2325,15 @@ std::vector<Model*> iPadRenderContext::GetModelsForActivePreview() const {
     return out;
 }
 
+void iPadRenderContext::AddSessionMediaFolder(const std::string& folder) {
+    if (folder.empty()) return;
+    if (std::find(mediaDirectories.begin(), mediaDirectories.end(), folder) == mediaDirectories.end()) {
+        mediaDirectories.push_back(folder);
+    }
+    FileUtils::SetFixFileDirectories(mediaDirectories);
+    FileUtils::ClearNonExistentFiles();
+}
+
 bool iPadRenderContext::OpenSequence(const std::string& path) {
     // A close that could not drain the render released nothing. Loading over the
     // top would clear and repopulate _sequenceElements (destroying the Elements
@@ -2777,6 +2786,11 @@ void iPadRenderContext::DeferEditRender(const std::string& model,
 }
 
 int iPadRenderContext::RenderDependentModels() {
+    // Other participants' edits waiting for a quiet moment. Before the gate:
+    // the renders they start take it themselves.
+    RemoteRendersIdle((uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>(
+                          std::chrono::steady_clock::now().time_since_epoch())
+                          .count());
     // Driven by a 0.5s main-run-loop timer, so it keeps firing right through a
     // detached show-folder load. Without this gate that tick was the writer in
     // the LoadShowFolder-vs-render use-after-free: it started jobs after the
@@ -3443,6 +3457,9 @@ void iPadRenderContext::GenerateShaderPreview(ShaderMediaCacheEntry* entry) {
 
 bool iPadRenderContext::WriteFseq(const std::string& path) {
     if (!IsSequenceLoaded()) return false;
+    // The fseq is written from what has been rendered so far (there is no
+    // render wait on this path); at least start what is waiting.
+    FlushRemoteRenders();
 
     // FSEQ-1 — honor the Folder Config → Rendering compression preference.
     FSEQFileIO::WriteOptions opts;

@@ -47,6 +47,9 @@ struct EffectsMetalGridView: UIViewRepresentable {
     /// the fade bars + fade-handle diamonds are not drawn; the drag
     /// hit-testing still works whenever a handle would be visible.
     var showTransitionMarks: Bool = true
+    /// Live collaboration: others' selections, soft locks, remote-edit
+    /// flashes and this device's pending edits.
+    var collabOverlay = CollabOverlay()
 
     // Shared scroll state (pan writes, other canvases read)
     @Binding var scrollOffsetX: CGFloat
@@ -100,6 +103,7 @@ struct EffectsMetalGridView: UIViewRepresentable {
         ctx.timingMarkTimesMS = timingMarkTimesMS
         ctx.showEffectBackgrounds = showEffectBackgrounds
         ctx.showTransitionMarks = showTransitionMarks
+        ctx.collabOverlay = collabOverlay
         ctx.scrollOffsetX = scrollOffsetX
         ctx.scrollOffsetY = scrollOffsetY
         ctx.actions = actions
@@ -154,6 +158,7 @@ struct EffectsMetalGridView: UIViewRepresentable {
         var timingMarkTimesMS: [Int] = []
         var showEffectBackgrounds: Bool = true
         var showTransitionMarks: Bool = true
+        var collabOverlay = CollabOverlay()
         var scrollOffsetX: CGFloat = 0
         var scrollOffsetY: CGFloat = 0
         var actions = EffectCanvasActions()
@@ -859,6 +864,10 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                              fill: (0.95, 0.30, 0.25))
         }
 
+        drawCollabOverlay(bridge: bridge, viewport: viewport, c: c,
+                          visible: vis.map { ($0.rowId, $0.effectIndex, $0.x1, $0.x2, $0.top, $0.bottom) },
+                          rowTops: rowTopsById)
+
         // B30 hover highlight — only painted when a
         // `UIHoverGestureRecognizer` is tracking a Magic Keyboard /
         // trackpad pointer. Touch-only users never see this. For
@@ -933,6 +942,105 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                 bridge.flushLineBatch()
             }
         }
+    }
+
+    /// Others' selection outlines and soft-lock initials, the brief
+    /// highlight on effects someone else just changed, and dashed ghosts
+    /// for this device's edits the host hasn't committed yet.
+    private func drawCollabOverlay(bridge: XLGridMetalBridge, viewport: CGSize,
+                                   c: EffectsMetalGridView.Coordinator,
+                                   visible: [(Int, Int, CGFloat, CGFloat, CGFloat, CGFloat)],
+                                   rowTops: [Int: (CGFloat, CGFloat)]) {
+        let o = c.collabOverlay
+        if o.isEmpty { return }
+        if !o.marks.isEmpty {
+            bridge.beginFilledRectBatch()
+            for (row, idx, x1, x2, top, bottom) in visible {
+                guard let m = o.marks[CollabOverlay.Key(row: row, effect: idx)], m.flash else { continue }
+                bridge.appendFilledRectX(x1, y: top, w: max(1, x2 - x1), h: bottom - top,
+                                          r: 1, g: 1, b: 1, a: 0.28)
+            }
+            bridge.flushFilledRectBatch()
+            bridge.beginLineBatch()
+            for (row, idx, x1, x2, top, bottom) in visible {
+                guard let m = o.marks[CollabOverlay.Key(row: row, effect: idx)] else { continue }
+                for (n, col) in m.outlines.enumerated() {
+                    let (r, g, b) = CollabOverlay.rgb(col)
+                    let inset = CGFloat(n) + 0.5
+                    let l = x1 + inset, rr = max(l + 1, x2 - inset)
+                    let t = top + inset, bt = max(t + 1, bottom - inset)
+                    bridge.appendLineX1(l, y1: t, x2: rr, y2: t, r: r, g: g, b: b, a: 1)
+                    bridge.appendLineX1(rr, y1: t, x2: rr, y2: bt, r: r, g: g, b: b, a: 1)
+                    bridge.appendLineX1(rr, y1: bt, x2: l, y2: bt, r: r, g: g, b: b, a: 1)
+                    bridge.appendLineX1(l, y1: bt, x2: l, y2: t, r: r, g: g, b: b, a: 1)
+                }
+            }
+            bridge.flushLineBatch()
+            for (row, idx, x1, x2, top, _) in visible {
+                guard let m = o.marks[CollabOverlay.Key(row: row, effect: idx)], !m.initials.isEmpty else { continue }
+                let fs: CGFloat = 9
+                let sz = bridge.size(ofText: m.initials, fontSize: fs)
+                let w = sz.width + 6
+                if x2 - x1 < w + 2 { continue }
+                let (r, g, b) = CollabOverlay.rgb(m.lockColor)
+                bridge.fillRectX(x1 + 2, y: top + 2, w: w, h: sz.height + 2, r: r, g: g, b: b, a: 0.95)
+                bridge.drawText(m.initials, atX: x1 + 5, y: top + 3, fontSize: fs, r: 1, g: 1, b: 1, a: 1)
+            }
+        }
+        if !o.ghosts.isEmpty {
+            let sel = c.bracketSelected
+            for g in o.ghosts {
+                guard let rt = rowTops[g.row] else { continue }
+                let x1 = CGFloat(g.startMS) * c.pixelsPerMS - c.scrollOffsetX
+                let x2 = CGFloat(g.endMS) * c.pixelsPerMS - c.scrollOffsetX
+                if x2 < 0 || x1 > viewport.width { continue }
+                let top = rt.0 + 2, bottom = rt.0 + rt.1 - 2
+                let col: (CGFloat, CGFloat, CGFloat) = g.kind == .delete ? (1.0, 0.35, 0.35) : sel
+                bridge.beginFilledRectBatch()
+                bridge.appendFilledRectX(x1, y: top, w: max(1, x2 - x1), h: bottom - top,
+                                          r: col.0, g: col.1, b: col.2, a: 0.12)
+                bridge.flushFilledRectBatch()
+                bridge.beginLineBatch()
+                appendDashedRect(bridge: bridge, x1: x1, y1: top, x2: x2, y2: bottom,
+                                 viewportWidth: viewport.width, color: col)
+                bridge.flushLineBatch()
+                if !g.name.isEmpty, x2 - x1 > 30 {
+                    bridge.drawText(g.name, atX: x1 + 4, y: top + 2, fontSize: 9,
+                                    r: col.0, g: col.1, b: col.2, a: 0.8)
+                }
+            }
+        }
+    }
+
+    private func appendDashedRect(bridge: XLGridMetalBridge, x1: CGFloat, y1: CGFloat,
+                                  x2: CGFloat, y2: CGFloat, viewportWidth: CGFloat,
+                                  color: (CGFloat, CGFloat, CGFloat)) {
+        let dash: CGFloat = 4, gap: CGFloat = 3
+        // Long effects at deep zoom: only dash what is on screen, keeping
+        // the dash phase anchored to the effect's start.
+        let period = dash + gap
+        let visStart = max(x1, x1 + floor((-8 - x1) / period) * period)
+        let visEnd = min(x2, viewportWidth + 8)
+        func hline(_ y: CGFloat) {
+            var x = visStart
+            while x < visEnd {
+                bridge.appendLineX1(x, y1: y, x2: min(x + dash, visEnd), y2: y,
+                                     r: color.0, g: color.1, b: color.2, a: 0.85)
+                x += dash + gap
+            }
+        }
+        func vline(_ x: CGFloat) {
+            var y = y1
+            while y < y2 {
+                bridge.appendLineX1(x, y1: y, x2: x, y2: min(y + dash, y2),
+                                     r: color.0, g: color.1, b: color.2, a: 0.85)
+                y += dash + gap
+            }
+        }
+        hline(y1 + 0.5)
+        hline(y2 - 0.5)
+        vline(x1 + 0.5)
+        vline(x2 - 0.5)
     }
 
     private func drawFadeDiamond(bridge: XLGridMetalBridge,

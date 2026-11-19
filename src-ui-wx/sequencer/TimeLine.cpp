@@ -17,6 +17,7 @@
 #include <wx/dcbuffer.h>
 
 #include "TimeLine.h"
+#include "CollabOverlay.h"
 #include "Waveform.h"
 #include "MainSequencer.h"
 #include "EffectsGrid.h"
@@ -1463,6 +1464,7 @@ void TimeLine::render( wxDC& dc ) {
     // Region color bands are drawn first, as a background tint, so the ruler
     // hash marks and time labels painted below remain visible on top of them.
     DrawSongStructureBands(dc, w, h);
+    DrawCollabBands(dc, w);
 
     wxFont f = dc.GetFont();
     f.SetPointSize(7.0);
@@ -1722,6 +1724,27 @@ wxColour TimeLine::GetSongStructureBandColor(const SongStructureRegion& region) 
     return wxColour((uint8_t)(r * bandAlpha + bg.Red() * (1.0 - bandAlpha)),
                     (uint8_t)(g * bandAlpha + bg.Green() * (1.0 - bandAlpha)),
                     (uint8_t)(b * bandAlpha + bg.Blue() * (1.0 - bandAlpha)));
+}
+
+void TimeLine::DrawCollabBands(wxDC& dc, int w)
+{
+    // Where each other participant of a live session is looking: one strip
+    // per participant along the top edge, in their colour.
+    CollabOverlay* o = CollabOverlay::Current();
+    if (o == nullptr) return;
+    const int strip = FromDIP(3);
+    int k = 0;
+    for (const auto& b : o->bands) {
+        int x1 = std::max(0, GetPositionFromTimeMS(b.startMS));
+        int x2 = std::min(w, GetPositionFromTimeMS(b.endMS));
+        if (x2 > x1) {
+            wxColour c = xlColorToWxColour(b.colour);
+            dc.SetPen(wxPen(c));
+            dc.SetBrush(wxBrush(c));
+            dc.DrawRectangle(x1, k * strip, x2 - x1, strip);
+        }
+        ++k;
+    }
 }
 
 void TimeLine::DrawSongStructureBands(wxDC& dc, int w, int h)

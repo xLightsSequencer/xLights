@@ -855,7 +855,8 @@ struct SequencerGridV2View: View {
                                 onDoubleTapMark: { rowId, markIdx in
                                     viewModel.playLoopForTimingMark(rowIndex: rowId,
                                                                       markIndex: markIdx)
-                                }
+                                },
+                                collabOverlay: viewModel.collab.overlay
                             )
                             .frame(height: timingBandH)
                         }
@@ -917,6 +918,13 @@ struct SequencerGridV2View: View {
                     timeline: timeline,
                     availableContentWidth: max(0, geo.size.width - metrics.rowHeaderWidth)
                 )
+
+                if viewModel.collab.isVisible {
+                    CollabVisibleRangeReporter(
+                        timeline: timeline,
+                        availableContentWidth: max(0, geo.size.width - metrics.rowHeaderWidth)
+                    )
+                }
             }
             .onAppear {
                 fitIfNeeded(durationMS: durationMS, availableWidth: geo.size.width)
@@ -2229,7 +2237,8 @@ struct SequencerGridV2View: View {
             onBoundaryDragMove: { ms in viewModel.updateSongBoundaryDrag(toMS: ms) },
             onBoundaryDragEnd: { viewModel.endSongBoundaryDrag() },
             onBoundaryDragCancel: { viewModel.cancelSongBoundaryDrag() },
-            alternateTimingFormat: alternateTimingFormat
+            alternateTimingFormat: alternateTimingFormat,
+            collabBands: viewModel.collab.overlay.bands
         )
         .id(viewModel.songStructureRevision)
     }
@@ -2495,6 +2504,9 @@ struct SequencerGridV2View: View {
                         viewModel.createSongRegionsFromTimingRow(row.id)
                     } : nil
                 )
+                .overlay(alignment: .leading) {
+                    CollabRowStripe(colors: viewModel.collab.overlay.stripes[row.id] ?? [])
+                }
             }
         }
     }
@@ -2567,6 +2579,7 @@ struct SequencerGridV2View: View {
         let hasClipboard = viewModel.hasClipboard
         let hasLoopRegion = viewModel.hasLoopRegion
         let modelsWithSelection = viewModel.modelsWithSelectedEffects()
+        let collabStripes = viewModel.collab.overlay.stripes
         return VStack(spacing: 0) {
             ForEach(rows) { row in
                 let h: CGFloat = (row.id == selectedRowId)
@@ -2675,6 +2688,9 @@ struct SequencerGridV2View: View {
                     },
                     isSelected: row.id == selectedRowId
                 )
+                .overlay(alignment: .leading) {
+                    CollabRowStripe(colors: collabStripes[row.id] ?? [])
+                }
                 .overlay(alignment: .top) {
                     if isTopLevelRow(row), rowDropTargetId == row.id,
                        rowDragSourceId != nil, rowDragSourceId != row.id {
@@ -2799,6 +2815,7 @@ struct SequencerGridV2View: View {
             inspectorRevision: viewModel.inspectorRevision,
             showEffectBackgrounds: showEffectBackgrounds,
             showTransitionMarks: showTransitionMarks,
+            collabOverlay: viewModel.collab.overlay,
             scrollOffsetX: Binding(
                 get: { timeline.hScrollOffsetPx },
                 set: { timeline.hScrollOffsetPx = $0 }),
@@ -2929,6 +2946,50 @@ private struct TimeDisplayLabel: View {
 /// before the playhead yanks the viewport back. Suppressed outright
 /// during effect-scrub (`isScrubbing`) so the scrub loop doesn't
 /// reel the viewport around its narrow range.
+/// Tells the collaboration session which time range this grid shows.
+/// Its own zero-sized view so scroll ticks only invalidate it.
+private struct CollabVisibleRangeReporter: View {
+    @Environment(SequencerViewModel.self) var viewModel
+    let timeline: TimelineState
+    let availableContentWidth: CGFloat
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .allowsHitTesting(false)
+            .onAppear { report() }
+            .onChange(of: timeline.hScrollOffsetPx) { _, _ in report() }
+            .onChange(of: timeline.pixelsPerMS) { _, _ in report() }
+            .onChange(of: availableContentWidth) { _, _ in report() }
+            .onChange(of: viewModel.collab.state) { _, _ in report() }
+    }
+
+    private func report() {
+        guard timeline.pixelsPerMS > 0 else { return }
+        let start = Int(max(0, timeline.hScrollOffsetPx) / timeline.pixelsPerMS)
+        let end = Int((max(0, timeline.hScrollOffsetPx) + availableContentWidth) / timeline.pixelsPerMS)
+        viewModel.collabVisibleRangeChanged(startMS: start, endMS: end)
+    }
+}
+
+/// Coloured stripes on a row header for the others focused on that row.
+private struct CollabRowStripe: View {
+    let colors: [UInt32]
+
+    var body: some View {
+        if !colors.isEmpty {
+            HStack(spacing: 1) {
+                ForEach(Array(colors.prefix(4).enumerated()), id: \.offset) { _, c in
+                    Rectangle()
+                        .fill(CollabOverlay.color(c))
+                        .frame(width: 3)
+                }
+            }
+            .allowsHitTesting(false)
+        }
+    }
+}
+
 private struct AutoFollowPlayhead: View {
     @Environment(SequencerViewModel.self) var viewModel
     let timeline: TimelineState

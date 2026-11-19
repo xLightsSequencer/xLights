@@ -219,6 +219,52 @@ _Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ miss
 | 197 | Row-heading timeline-tag color chip | `src-ui-wx/sequencer/RowHeading.cpp:2638-2640` | ✅ | `src-iPad/App/RowHeaderViews.swift:598`. (Added in cross-check.) |
 | 198 | Row-heading single-color node-mask swatch (single-channel/node rows show their fixed color) | `src-ui-wx/sequencer/RowHeading.cpp:2766-2771` | ✅ | `src-iPad/App/RowHeaderViews.swift:585`. (Added in cross-check.) |
 
+## Live collaboration
+
+Shared sequence editing between Macs and iPads on a local network (`src-core/collab/CollabController.h`). The core
+(transport, session, controller, edit routing, undo redirect, layout lock) is shared; each platform wires the
+`ICollabApp` hooks and draws presence. Hidden unless the "Live collaboration (beta)" preference is on and a LAN
+transport exists (Apple only; Windows/Linux have none, see `15-desktop-platform-matrix.md`).
+
+### Desktop rows
+
+| # | Feature | Desktop evidence |
+|---|---|---|
+| LC1 | "Live collaboration (beta)" preference, default off; every entry point hidden when off or no transport | `src-ui-wx/preferences/OtherSettingsPanel.cpp:281` checkbox → `xLightsFrame::SetCollaborationEnabled`; visibility `src-ui-wx/app-shell/Collaboration.cpp:393` `UpdateVisibility` (`Collab::kCollaborationEnabledPref`, `Available()`) |
+| LC2 | Host a session on the open, saved sequence; pairing code in large type, participant list (colour swatch, name, device), End Session | File ▸ Collaborate ▸ Host Session… `src-ui-wx/app-shell/Collaboration.cpp:935` `HostSession`; window `:199` `CollabSessionWindow` |
+| LC3 | Join: discovered sessions, pairing code, fetch-differing-files option, progress, join report (refusal / layout difference, missing & different media, fetched files) | File ▸ Collaborate ▸ Join Session… `src-ui-wx/app-shell/Collaboration.cpp:972` `JoinSession`, dialog `:117` `CollabJoinDialog`; report `:901` `JoinReportText` |
+| LC4 | End (host, asks to save first) / Leave (client, keeps the document); closing the sequence or the app ends/leaves after asking | `src-ui-wx/app-shell/Collaboration.cpp:1010` `EndOrLeave`, `:1052` `AllowCloseSequence` (called from `src-ui-wx/import_export/SeqFileUtilities.cpp` `CloseSequence`) |
+| LC5 | Client can't save over the sequence file: Save becomes Save As; "Save a copy…" keeps a session copy of the host's show | `src-ui-wx/app-shell/TabSequence.cpp:2320` (`IsClientDocument` → `SaveAsSequence`); `src-ui-wx/app-shell/Collaboration.cpp:1042` `SaveCopy` (`KeepSessionCopy`) |
+| LC6 | Status indicator (`StatusText()` + participant count), session-ended notice (`EndText`) | Status bar button `src-ui-wx/app-shell/Collaboration.cpp:411` `UpdateStatus`; ended notice `:767` `OnSessionStateChanged` |
+| LC7 | Presence sent: visible time range, rows with selected effects, selected effects, soft lock on the effect open in Effect Settings | `src-ui-wx/app-shell/Collaboration.cpp:532` `GatherPresence` |
+| LC8 | Others' working areas as bands on the time ruler | `src-ui-wx/sequencer/TimeLine.cpp:1729` `DrawCollabBands` |
+| LC9 | Stripe on the row headers of others' focused rows | `src-ui-wx/sequencer/RowHeading.cpp:2694` |
+| LC10 | Outline in each participant's colour on effects they selected; their initials on an effect they soft-lock | `src-ui-wx/sequencer/EffectsGrid.cpp:9695` `DrawCollabOverlay` |
+| LC11 | "<name> is editing this effect" banner in the effect settings panel | `src-ui-wx/sequencer/EffectsPanel.cpp:414` `SetCollabNotice`, driven from `src-ui-wx/app-shell/Collaboration.cpp:532` |
+| LC12 | Reject notices (non-modal) with "Put on New Layer" when offered | Status-bar notice `src-ui-wx/app-shell/Collaboration.cpp:863` `OnRejected`, `:443` `ShowNotice` |
+| LC13 | Pending edits drawn as dashed translucent ghosts; remote edits flash ~1 s | `src-ui-wx/sequencer/EffectsGrid.cpp:9695` `DrawCollabOverlay` (ghosts, `flashUntil`); overlay built `src-ui-wx/app-shell/Collaboration.cpp:576` `RebuildOverlay` |
+| LC14 | Remote edits rebuild rows / redraw and re-render the changed rows, visible range first (`xLightsShowContext::MarkRemoteChange`); a whole new document or media change re-renders everything | `src-ui-wx/app-shell/Collaboration.cpp:815` `OnSequenceChanged` (`EVT_ROW_HEADINGS_CHANGED`, `MarkRemoteChange`, full range via `EffectsGrid::sendRenderEvent`) |
+| LC15 | Joining loads the host's sequence like opening a file | `src-ui-wx/app-shell/Collaboration.cpp:652` `LoadXsq` (writes the snapshot to a temporary folder, `OpenSequence`) |
+
+### iPad rows
+
+| # | Feature | iPad status | iPad evidence / gap |
+|---|---|---|---|
+| C-i1 | `ICollabApp` wiring: main-queue dispatcher, Tick timer only while in a session, `LoadXsq` (stop render, replace the open sequence like opening a file), `SaveXsq`, show/media folder hooks, layout lock | ✅ | `src-iPad/Bridge/XLCollabSession.mm:193` `iPadCollabApp`, dispatcher `src-iPad/Bridge/XLCollabSession.mm:326`, Tick timer `src-iPad/Bridge/XLCollabSession.mm:360`, `LoadXsq` `src-iPad/Bridge/XLCollabSession.mm:230` (opens a private session copy, never the user's own file), `SaveXsq` `src-iPad/Bridge/XLCollabSession.mm:206`, `UseShowFolder` `src-iPad/Bridge/XLCollabSession.mm:256`, `AddMediaFolder` `src-iPad/Bridge/XLCollabSession.mm:263` → `src-iPad/Bridge/iPadRenderContext.cpp:2321`, lock `src-iPad/Bridge/XLCollabSession.mm:265` |
+| C-i2 | `OnSequenceChanged`: rebuild rows, redraw, re-render the changed range, follow the selection by id, whole reload on Resync | ✅ | `src-iPad/Bridge/XLCollabSession.mm:731` resolves rows to model names; `src-iPad/App/Collaboration.swift:441` `applyCollabChange`, `src-iPad/App/Collaboration.swift:493` `applyCollabResync`; render goes through one function, `src-iPad/App/SequencerViewModel.swift` `markCollabChangeForRender`: content edits → `XLSequenceDocument+RemoteRender` `markRemoteChange` (visible-range-first scheduler, shared core); visible range reported from `SequencerGridV2View.swift` `CollabVisibleRangeReporter`; playback start/stop in `SequencerViewModel.play()` / `stopPlaybackTimer()` |
+| C-i3 | Host a session (toolbar Collaborate → sheet with large pairing code, participants with colour/device, End Session asking to save first) | ✅ | Toolbar `src-iPad/App/SequencerView.swift:681`; `src-iPad/App/CollaborationViews.swift:109` `CollabHostSessionView` ("Save and End" `src-iPad/App/CollaborationViews.swift:148`); `src-iPad/App/Collaboration.swift:290` `hostCollabSession`; needs a saved sequence (start view asks to save) |
+| C-i4 | Join from the sequence list: discovered sessions, code entry, fetch-files option, progress, join report (refusal, layout difference, missing/different media, fetched files) | ✅ | Picker button `src-iPad/App/XLightsApp.swift:1243`; `src-iPad/App/CollaborationViews.swift:165` `CollabJoinView`, `src-iPad/App/CollaborationViews.swift:272` `CollabJoinReportSection`; `src-iPad/App/Collaboration.swift:320` `joinCollabSession` |
+| C-i5 | Local Network permission refused while browsing → readable message pointing at Settings | ✅ | `src-iPad/App/Collaboration.swift:276` `collabBrowseErrorText` |
+| C-i6 | Leave / End, session-ended notice (non-modal), client "Save a Copy…" with `KeepSessionCopy` | ✅ | `src-iPad/App/Collaboration.swift:335`/`:342`; banner `src-iPad/App/CollaborationViews.swift:404` hosted at `src-iPad/App/XLightsApp.swift:283`; `src-iPad/App/Collaboration.swift:353` `saveCollabCopy` |
+| C-i7 | Clients can't save over the sequence: Save becomes Save a Copy; no autosave of the session copy | ✅ | `src-iPad/App/SequencerViewModel.swift:1952`, `:2311`; menu `src-iPad/App/SequencerView.swift:481` |
+| C-i8 | Toolbar status chip (`StatusText()` + peer count) | ✅ | `src-iPad/App/CollaborationViews.swift:370` `CollabStatusChip` |
+| C-i9 | Presence sent: visible range, focused rows (rows with selected effects), selection, soft lock (effect in the inspector) | 🟡 | `src-iPad/App/Collaboration.swift:387` `refreshCollabPresence` → `src-iPad/Bridge/XLCollabSession.mm:527`; visible range `src-iPad/App/SequencerGridV2View.swift:2951`. No "row under the pointer" focus (touch has no hover; trackpad hover not sent) |
+| C-i10 | Presence drawn: ruler bands, row-header stripes, outlines on others' selected effects, initials on soft-locked effects | ✅ | Overlay built `src-iPad/Bridge/XLCollabSession.mm:580`; ruler `src-iPad/App/TopChromeMetalGridView.swift:328`; stripes `src-iPad/App/SequencerGridV2View.swift:2976`; grid `src-iPad/App/EffectsMetalGridView.swift:950`; timing marks `src-iPad/App/TimingEffectsMetalGridView.swift:170` (outlines and flash only) |
+| C-i11 | Inspector banner "<name> is editing this effect" | ✅ | `src-iPad/App/EffectSettingsView.swift:66` → `src-iPad/App/CollaborationViews.swift:469`; holder `src-iPad/Bridge/XLCollabSession.mm:709` |
+| C-i12 | Reject toast with "Put on New Layer" | ✅ | `src-iPad/App/Collaboration.swift:233`; `src-iPad/App/CollaborationViews.swift:437` `CollabRejectBanner`, hosted `src-iPad/App/XLightsApp.swift:278` |
+| C-i13 | Pending-edit ghosts (dashed, translucent) and ~1 s remote-edit highlight within the visible range | ✅ | Ghosts and flash `src-iPad/App/EffectsMetalGridView.swift:950`, dashes `:1015`; flash expiry `src-iPad/Bridge/XLCollabSession.mm:731` (1 s, visible range only) |
+| C-i14 | Preference "Live collaboration (beta)" (default off) and display name | ✅ | `src-iPad/App/FolderConfigView.swift:348` |
+
 ## Desktop platform differences (macOS vs Windows vs Linux)
 
 | Behavior | macOS | Windows | Linux | Evidence |

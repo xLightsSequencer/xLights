@@ -26,6 +26,8 @@ class EffectPanelManager;
 class xlLockButton;
 class wxTimer;
 
+class wxStaticText;
+
 class EffectsPanel: public wxPanel
 {
 public:
@@ -47,6 +49,9 @@ public:
     bool isRandom_() const;
     bool WantOverlayBkg() const; //selectable clear canvas before render -DJ
     wxWindow* GetSelectedPanel() const;
+    // Live collaboration: "<name> is editing this effect" above the
+    // settings; empty hides it.
+    void SetCollabNotice(const wxString& text);
 
     //(*Declarations(EffectsPanel)
     wxChoicebook* EffectChoicebook;
@@ -62,6 +67,7 @@ protected:
 
 private:
     wxTimer *effectChangeTimer;
+    wxStaticText* _collabNotice = nullptr;
     
     //(*Handlers(EffectsPanel)
     void EffectSelected(wxChoicebookEvent& event);

@@ -15,6 +15,7 @@
 #include <wx/scrolwin.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
+#include <wx/stattext.h>
 #include <wx/spinctrl.h>
 
 //(*InternalHeaders(EffectsPanel)
@@ -408,4 +409,32 @@ bool EffectsPanel::isRandom_(void) const
 void EffectsPanel::OnLockButtonClick(wxCommandEvent& event) {
     wxButton * button = (wxButton*)event.GetEventObject();
     setlock(button);
+}
+
+void EffectsPanel::SetCollabNotice(const wxString& text)
+{
+    if (_collabNotice == nullptr) {
+        if (text.empty()) {
+            return;
+        }
+        // Hand-added outside the wxSmith guards: a row above the choicebook,
+        // which stays the sizer's only growable row.
+        _collabNotice = new wxStaticText(this, wxID_ANY, wxEmptyString);
+        _collabNotice->SetForegroundColour(wxColour(0xD0, 0x70, 0x00));
+        wxFont f = _collabNotice->GetFont();
+        f.MakeBold();
+        _collabNotice->SetFont(f);
+        auto* sizer = dynamic_cast<wxFlexGridSizer*>(GetSizer());
+        if (sizer == nullptr) {
+            return;
+        }
+        sizer->RemoveGrowableRow(0);
+        // Built as 1x1; a fixed row count asserts on a second item.
+        sizer->SetRows(0);
+        sizer->Insert(0, _collabNotice, 0, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, 4);
+        sizer->AddGrowableRow(1);
+    }
+    _collabNotice->SetLabel(text);
+    _collabNotice->Show(!text.empty());
+    Layout();
 }

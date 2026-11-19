@@ -31,6 +31,7 @@
 #include "render/EffectLayer.h"
 #include "sequencer/EffectTimingDialog.h"
 #include "EffectsGrid.h"
+#include "CollabOverlay.h"
 #include "EffectWheelDialog.h"
 #include "BufferPanel.h"
 #include "lyrics/LyricBreakdown.h"
@@ -8279,6 +8280,7 @@ void EffectsGrid::Draw() {
         DrawLines(ctx);
         DrawEffects(ctx);
         DrawSongStructureOverlays(ctx);
+        DrawCollabOverlay(ctx);
         DrawEffectMoveDragOverlay(ctx);
         DrawPlayMarker(ctx);
 
@@ -9753,6 +9755,75 @@ void EffectsGrid::DrawSongStructureOverlays(xlGraphicsContext* ctx) {
     }
 
     ctx->disableBlending();
+}
+
+void EffectsGrid::DrawCollabOverlay(xlGraphicsContext* ctx) {
+    // Live collaboration: other participants' selections (an outline in
+    // their colour each) and soft locks (their initials), this user's edits
+    // still waiting for the host (dashed), and remote edits (a brief flash).
+    CollabOverlay* o = CollabOverlay::Current();
+    if (o == nullptr || mSequenceElements == nullptr || mTimeline == nullptr) return;
+    int width = getWidth();
+    float factor = translateToBacking(1.0);
+    const xlFontInfo& font = xlFontInfo::FindFont(curFontSize);
+    xlVertexColorAccumulator* fills = ctx->createVertexColorAccumulator();
+    xlVertexColorAccumulator* outlineLines = ctx->createVertexColorAccumulator();
+    xlVertexColorAccumulator* ghostLines = ctx->createVertexColorAccumulator();
+    xlVertexTextureAccumulator* labels = ctx->createVertexTextureAccumulator();
+    for (int row = 0; row < (int)mSequenceElements->GetVisibleRowInformationSize(); row++) {
+        Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
+        EffectLayer* layer = mSequenceElements->GetEffectLayer(ri);
+        if (layer == nullptr) continue;
+        float y1 = row * DEFAULT_ROW_HEADING_HEIGHT + 1;
+        float y2 = (row + 1) * DEFAULT_ROW_HEADING_HEIGHT - 1;
+        for (int i = 0; i < layer->GetEffectCount(); i++) {
+            Effect* e = layer->GetEffect(i);
+            float x1 = mTimeline->GetPositionFromTimeMS(e->GetStartTimeMS());
+            float x2 = mTimeline->GetPositionFromTimeMS(e->GetEndTimeMS());
+            if (x2 < 0) continue;
+            if (x1 > width) break;
+            SeqObjectId uid = e->GetUid();
+            auto f = o->flashUntil.find(uid);
+            if (f != o->flashUntil.end() && f->second > o->now) {
+                fills->AddRectAsTriangles(x1, y1, x2, y2, xlColor(255, 220, 0, 90));
+            }
+            auto out = o->outlines.find(uid);
+            if (out != o->outlines.end()) {
+                for (size_t k = 0; k < out->second.size(); ++k) {
+                    float in = 1.0f + 2.0f * k;
+                    outlineLines->AddRectAsLines(x1 + in, y1 + in, x2 - in, y2 - in, out->second[k]);
+                }
+            }
+            auto lock = o->locks.find(uid);
+            if (lock != o->locks.end()) {
+                float tw = font.widthOf(lock->second.initials, factor);
+                float bh = (y2 - y1) * 0.6f;
+                fills->AddRectAsTriangles(x1 + 2, y1 + 1, x1 + 6 + tw, y1 + 1 + bh, lock->second.colour);
+                font.populate(*labels, x1 + 4, y1 + bh - 1, lock->second.initials, factor);
+            }
+        }
+        for (const auto& g : o->ghosts) {
+            if (g.effect.layer != layer->GetUid()) continue;
+            float gx1 = mTimeline->GetPositionFromTimeMS(g.startMS);
+            float gx2 = mTimeline->GetPositionFromTimeMS(g.endMS);
+            if (gx2 < 0 || gx1 > width) continue;
+            xlColor tint = g.deleting ? xlColor(200, 40, 40, 60) : xlColor(o->ghostColour.red, o->ghostColour.green, o->ghostColour.blue, 50);
+            fills->AddRectAsTriangles(gx1, y1 + 1, gx2, y2 - 1, tint);
+            ghostLines->AddRectAsDashedLines(gx1 + 1, y1 + 2, gx2 - 1, y2 - 2, translateToBacking(5), o->ghostColour);
+        }
+    }
+    ctx->enableBlending();
+    ctx->drawTriangles(fills->Flush());
+    ctx->drawLines(outlineLines->Flush());
+    ctx->drawLines(ghostLines->Flush());
+    if (fontTexture != nullptr) {
+        ctx->drawTexture(labels->Flush(), fontTexture);
+    }
+    ctx->disableBlending();
+    delete fills;
+    delete outlineLines;
+    delete ghostLines;
+    delete labels;
 }
 
 void EffectsGrid::FillRegionFromTimingMarks() {

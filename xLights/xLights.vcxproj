@@ -1002,6 +1002,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\setup\DiscoveryAuthDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RenameTextDialog.cpp" />
     <ClCompile Include="..\src-core\render\RenderEngine.cpp" />
+    <ClCompile Include="..\src-core\render\RemoteRenderScheduler.cpp" />
     <ClCompile Include="..\src-core\render\xLightsShowContext.cpp" />
     <ClCompile Include="..\src-core\render\ViewpointMgr.cpp" />
     <ClCompile Include="..\src-ui-wx\render\RenderUI.cpp" />
@@ -1088,6 +1089,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\app-shell\TabConvert.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabPreview.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabSequence.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\Collaboration.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\ShowFileWatch.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\DiscoveryHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\TabSetup.cpp" />
@@ -1743,6 +1745,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\EffectSymbolDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectDropTarget.h" />
     <ClInclude Include="..\src-core\render\EffectLayer.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\Collaboration.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\CollabOverlay.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectsGrid.h" />
     <ClInclude Include="..\src-core\render\Element.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\ElementLayers.h" />
@@ -1978,6 +1982,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\render\RenderProfile.h" />
     <ClInclude Include="..\src-core\render\RenderProgressInfo.h" />
     <ClInclude Include="..\src-core\render\RenderContext.h" />
+    <ClInclude Include="..\src-core\render\RemoteRenderScheduler.h" />
     <ClInclude Include="..\src-core\render\JukeboxButtonData.h" />
     <ClInclude Include="..\src-core\render\IRenderProgressSink.h" />
     <ClInclude Include="..\src-core\render\IRenderJobStatus.h" />

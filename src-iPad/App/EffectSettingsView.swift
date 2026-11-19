@@ -62,6 +62,9 @@ struct EffectSettingsView: View {
             if viewModel.selectedEffect != nil {
                 VStack(spacing: 0) {
                     header
+                    if viewModel.collab.isVisible, let holder = viewModel.collab.softLockHolder {
+                        CollabSoftLockBanner(name: holder)
+                    }
                     if viewModel.isMultiEffectSelection {
                         multiSelectChrome
                     }

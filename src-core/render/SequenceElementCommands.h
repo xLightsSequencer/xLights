@@ -397,6 +397,7 @@ private:
     bool _passive;
     NewElementsRecorder* _outer;
     std::map<SeqObjectId, int> _before; // element uid -> change count
+    std::unique_ptr<ICommandObserver> _touched; // Debug: rows commands changed in the scope
     std::optional<SeqMutationGuard::Scope> _scope;
 };
 

@@ -18,6 +18,7 @@
 #include "utils/JobPool.h"
 #include "render/RenderCache.h"
 #include "render/RenderEngine.h"
+#include "render/RemoteRenderScheduler.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceViewManager.h"
 #include "render/SequenceData.h"
@@ -275,7 +276,33 @@ public:
     // the lock held: it must not call back into IsRenderDone()/AbortRender().
     void ForEachRenderProgress(const std::function<void(RenderProgressInfo*)>& fn) const;
 
+    // ---- Edits from other participants in a shared session ----
+    // Re-render rows another participant changed (SequenceChange::rows /
+    // startMS / endMS; -1 / -1 for the whole sequence). Rows in or near the
+    // visible range, or in the range being played, render now; the rest wait
+    // for one of the calls below (see RemoteRenderScheduler). Main thread.
+    void MarkRemoteChange(const std::vector<SeqObjectId>& rows, int startMS, int endMS);
+    // The sequencer's visible time range changed. Until a host calls this,
+    // nothing waits.
+    void SetVisibleTimeRange(int startMS, int endMS);
+    // Before the first frame of playback (startMS / endMS < 0: everything),
+    // and when it stops.
+    void RemoteRendersPlaybackStarted(int startMS = -1, int endMS = -1);
+    void RemoteRendersPlaybackStopped();
+    // Call periodically (any interval up to a second or so) with a monotonic
+    // time; renders waiting rows a few at a time once the app has been quiet
+    // and the renderer is idle. True while rows are still waiting.
+    bool RemoteRendersIdle(uint64_t nowMs);
+    // Start rendering everything still waiting (before writing the fseq).
+    void FlushRemoteRenders();
+    RemoteRenderScheduler& GetRemoteRenderScheduler() { return _remoteRenders; }
+
 private:
+    void RenderRemoteRow(SeqObjectId row, int startMS, int endMS, RemoteRenderScheduler::Reason why);
+    RemoteRenderScheduler _remoteRenders{ [this](RemoteRenderScheduler::Row row, int s, int e, RemoteRenderScheduler::Reason why) {
+        RenderRemoteRow(row, s, e, why);
+    } };
+
     void ApplyLayoutLockFromEnvironment();
 
     // Serializes the drain in IsRenderDone(). Two threads reach it: the host's
