@@ -34,6 +34,12 @@ std::string Slurp(const std::string& path) {
     return ss.str();
 }
 
+// The code under test joins with '/', the tests' paths come from std::filesystem (which joins with '\\' on
+// Windows): compare as paths, not strings.
+bool SamePath(const std::string& a, const std::string& b) {
+    return std::filesystem::path(a).lexically_normal() == std::filesystem::path(b).lexically_normal();
+}
+
 bool Exists(const std::string& path) {
     std::error_code ec;
     return std::filesystem::exists(path, ec);
@@ -142,7 +148,7 @@ TEST_CASE("Conflicted copies are found by name and contents", "[conflictedcopies
     REQUIRE(Copies(found) == std::vector<std::string>{ "xlights_networks (Sam's conflicted copy 2026-11-18).xml", "xlights_rgbeffects 2.xml" });
     CHECK(found[0].kind == FileKind::Networks);
     CHECK(found[0].client == "Dropbox");
-    CHECK(found[1].realPath == dir.File("xlights_rgbeffects.xml"));
+    CHECK(SamePath(found[1].realPath, dir.File("xlights_rgbeffects.xml")));
     CHECK_FALSE(found[1].sameAsCurrent);
     CHECK(Describe(found[1]) == "xlights_rgbeffects 2.xml (iCloud)");
 
@@ -198,7 +204,7 @@ TEST_CASE("The base for merging a conflicted copy", "[conflictedcopies]") {
         SetAge(dir.Write("Backup/ConflictedCopies/xlights_rgbeffects.xml", Layout({ { "A", 4 } })), 800);
         auto choice = ChooseBase(found[0], show, kInstall, show);
         CHECK(choice.source == BaseSource::Backup);
-        CHECK(choice.path == want);
+        CHECK(SamePath(choice.path, want));
         CHECK(choice.text == Layout({ { "A", 2 } }));
     }
     SECTION("this install's autosave base copy comes first") {
@@ -250,7 +256,7 @@ TEST_CASE("Merging a conflicted copy", "[conflictedcopies]") {
         CHECK(ModelIn(d, "C"));
         // Moved, never deleted; the file before the merge is kept too.
         CHECK_FALSE(Exists(copyPath));
-        CHECK(r.movedCopy == (dir.path / "Backup" / "ConflictedCopies" / "xlights_rgbeffects (Sam's conflicted copy 2026-11-18).xml").string());
+        CHECK(SamePath(r.movedCopy, (dir.path / "Backup" / "ConflictedCopies" / "xlights_rgbeffects (Sam's conflicted copy 2026-11-18).xml").string()));
         CHECK(Slurp(r.movedCopy) == Layout({ { "A", 10 }, { "B", 10 }, { "C", 5 } }));
         CHECK(Slurp(r.keptCurrent) == Layout({ { "A", 10 }, { "B", 20 } }));
         CHECK(guard.RecordedFingerprint(real) == ShowFileGuard::FingerprintFile(real));

@@ -69,24 +69,27 @@
 #include "outputs/xxxSerialOutput.h"
 
 
-namespace protocols_test {
-template <class Tag>
-struct Stolen {
-    static inline typename Tag::type value{};
-};
+// The explicit instantiation defines a friend Get(Tag) returning the member pointer, found by ADL on the tag.
+// Don't store the pointer in a static set by a dynamic initializer instead: MSVC 19.52 drops the initializer of
+// an unreferenced static in an explicitly instantiated template, leaving a null member pointer.
+// Steal lives in the tags' namespace so its friend defines the same Get the tag declares.
+namespace protocols_test::steal {
 template <class Tag, typename Tag::type P>
 struct Steal {
-    static inline const bool done = (Stolen<Tag>::value = P, true);
+    friend typename Tag::type Get(Tag) { return P; }
 };
-} // namespace protocols_test
+} // namespace protocols_test::steal
 
 #define PT_STEAL(Name, Class, Type, member)                       \
     namespace protocols_test::steal {                             \
-    struct Name { using type = Type; };                           \
+    struct Name {                                                 \
+        using type = Type;                                        \
+        friend type Get(Name);                                    \
+    };                                                            \
     }                                                             \
-    template struct protocols_test::Steal<protocols_test::steal::Name, &Class::member>;
-#define PT(obj, Name) ((obj).*::protocols_test::Stolen<::protocols_test::steal::Name>::value)
-#define PT_FN(Name) (::protocols_test::Stolen<::protocols_test::steal::Name>::value)
+    template struct protocols_test::steal::Steal<protocols_test::steal::Name, &Class::member>;
+#define PT(obj, Name) ((obj).*Get(::protocols_test::steal::Name{}))
+#define PT_FN(Name) (Get(::protocols_test::steal::Name{}))
 
 #ifndef _WIN32
 PT_STEAL(serial_fd, SerialPort, int SerialPort::*, _fd)

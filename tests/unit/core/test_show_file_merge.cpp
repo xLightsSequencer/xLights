@@ -879,13 +879,29 @@ nlohmann::json Preset(const std::string& name, const std::string& settings) {
     return { { "type", "effect" }, { "name", name }, { "settings", settings }, { "version", "0007" }, { "xLightsVersion", "2026.1" } };
 }
 
-nlohmann::json PresetGroup(const std::string& name, nlohmann::json children) {
+// Children go through an initializer_list: a braced `{ x }` passed straight to a nlohmann::json parameter is
+// the array [x] on clang but a copy of x on MSVC.
+nlohmann::json Children(std::initializer_list<nlohmann::json> items) {
+    nlohmann::json a = nlohmann::json::array();
+    for (const auto& i : items) a.push_back(i);
+    return a;
+}
+
+nlohmann::json PresetGroup(const std::string& name, const nlohmann::json& children) {
     return { { "type", "group" }, { "name", name }, { "children", children } };
 }
 
-std::string Presets(nlohmann::json children) {
+nlohmann::json PresetGroup(const std::string& name, std::initializer_list<nlohmann::json> children) {
+    return PresetGroup(name, Children(children));
+}
+
+std::string Presets(const nlohmann::json& children) {
     nlohmann::json j = { { "version", "0007" }, { "children", children } };
     return j.dump(2);
+}
+
+std::string Presets(std::initializer_list<nlohmann::json> children) {
+    return Presets(Children(children));
 }
 
 const nlohmann::json* Find(const nlohmann::json& j, const std::vector<std::string>& path) {
