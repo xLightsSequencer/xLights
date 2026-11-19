@@ -1249,6 +1249,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     config->Flush();
     for (const auto& inst : instances) {
 		inst->faileduploads.clear();
+		inst->ClearUploadedSequences();
 	}
 
     std::vector<bool> doUpload(instances.size());

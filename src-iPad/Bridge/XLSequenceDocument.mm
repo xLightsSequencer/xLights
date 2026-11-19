@@ -20085,6 +20085,8 @@ NSString* fppTypeString(FPP_TYPE t) {
     });
     target->defaultConnectTimeout = 5000;
     target->messages.clear();
+    // A run with a playlist always starts here, so the playlist only gets this run's sequences.
+    target->ClearUploadedSequences();
 
     auto& om = _context->GetOutputManager();
     auto& mm = _context->GetModelManager();

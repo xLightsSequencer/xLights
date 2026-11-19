@@ -142,6 +142,9 @@ class FPP : public BaseController
     bool UploadUDPOutputsForProxy(OutputManager* outputManager);
     
     bool UploadPlaylist(const std::string &playlist);
+    // The playlist gets every sequence prepared since the last clear, so call this
+    // at the start of each upload when the instance is reused (FPP Connect kept open).
+    void ClearUploadedSequences() { sequences.clear(); }
     bool UploadModels(const nlohmann::json& models);
     bool UploadSubModelsAndGroups(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
     bool UploadDisplayMap(std::map<std::string, std::string> &virtualDisplayData);

@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (derwin12)              FPP Connect with "Keep window open" added sequences from earlier uploads
+                                 to the playlist, not just the ones selected (#7395)
     -bug (dkulp)                 Bulk editing a setting could crash when a submodel or strand row held effects of
                                  an unknown type; those effects are now dropped on load as they are on model rows
     -bug (dkulp)                 Reading a sparse FSEQ into a buffer sized by its channel count (HinksPix export)
