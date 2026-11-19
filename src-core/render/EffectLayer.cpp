@@ -345,7 +345,10 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     // really dont want to add effects which look invalid - some imports result in this
     if (startTimeMS > endTimeMS) return nullptr;
 
-    if (GetParentElement() != nullptr && GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+    // Every non-timing layer, not just the model's own: code walking selected effects assumes
+    // EffectManager::GetEffect(name) resolves, and an unknown name on a submodel/strand/node
+    // layer crashed it.
+    if (GetParentElement() != nullptr && GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
         if (name == "") {
             name = "Off";
         }

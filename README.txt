@@ -12,6 +12,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (dkulp)                 Bulk editing a setting could crash when a submodel or strand row held effects of
+                                 an unknown type; those effects are now dropped on load as they are on model rows
+    -bug (dkulp)                 Reading a sparse FSEQ into a buffer sized by its channel count (HinksPix export)
+                                 could crash
+    -bug (dkulp)                 Generate Custom Model could crash when the video returned too few frames
     -bug (dkulp)                 Adding or removing layers on a submodel or strand row while it rendered could crash
     -bug (dkulp)                 iPad - Undo of a step bigger than the undo limit (such as pasting 60 effects)
                                  only partly reverted it

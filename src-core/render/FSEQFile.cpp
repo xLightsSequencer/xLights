@@ -786,8 +786,12 @@ public:
         for (auto& rng : m_ranges) {
             uint32_t toRead = rng.second;
             if (offset + toRead <= m_size) {
-                uint32_t toCopy = std::min(toRead, maxChannels - rng.first);
-                memcpy(&data[rng.first], &m_data[offset], toCopy);
+                // sparse ranges are absolute channel numbers and can start past a buffer
+                // sized by getChannelCount(); the unsigned subtraction would wrap
+                if (rng.first < maxChannels) {
+                    uint32_t toCopy = std::min(toRead, maxChannels - rng.first);
+                    memcpy(&data[rng.first], &m_data[offset], toCopy);
+                }
                 offset += toRead;
             } else {
                 return false;

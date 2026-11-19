@@ -1841,7 +1841,8 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
 
     // The layout's channel ranges can extend past the end of an FSEQ rendered against
     // an older layout; size the read buffer to cover them so those channels export as off.
-    int64_t readBufSize = ogNumChannels;
+    // getMaxChannel(), not getChannelCount(): a sparse FSEQ's ranges are absolute channel numbers.
+    int64_t readBufSize = std::max<int64_t>(ogNumChannels, xf->getMaxChannel());
     for (auto const& modelChan : modelStarts) {
         readBufSize = std::max<int64_t>(readBufSize, (int64_t)modelChan.OrgStartChannel - 1 + modelChan.ChannelCount);
     }
@@ -1878,7 +1879,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
             }
             std::fill(tmpBuf.begin(), tmpBuf.end(), 0);
         } else {
-            data->readFrame(tmpBuf.data(), ogNumChannels); // we have a read frame
+            data->readFrame(tmpBuf.data(), (uint32_t)tmpBuf.size()); // we have a read frame
         }
 
         int64_t dest = 0;
