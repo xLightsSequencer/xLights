@@ -838,6 +838,9 @@
     <ClCompile Include="..\src-core\collab\CollabNet.cpp">
       <Filter>collab</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabRoles.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabSession.cpp">
       <Filter>collab</Filter>
     </ClCompile>
@@ -2541,6 +2544,9 @@
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabNetWire.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabRoles.h">
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabSession.h">

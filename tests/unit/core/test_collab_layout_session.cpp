@@ -1125,6 +1125,128 @@ TEST_CASE("Live layout: without live layout support the layout stays locked", "[
 // Fuzz: several peers edit a layout held as text, and the sequence, at once.
 // ---------------------------------------------------------------------------
 
+TEST_CASE("Live layout: a viewer's layout is locked but follows the session, and its proposals are rejected", "[collab][layout][controller][collab_roles]") {
+    LayoutShow show;
+    World w(show);
+    StartSession(w, 2);
+    Peer& h = w.host();
+    Peer& ari = *w.peers[1];
+    ParticipantId aid = ari.ctl->LocalParticipant();
+    const std::string arch = Desc(h, "Arch");
+    std::string err;
+    REQUIRE(w.As(h, [&] { return h.ctl->SetRole(aid, ParticipantRole::Viewer, err); }));
+    w.Settle();
+    CHECK(ari.app->locked);
+    CHECK(ari.app->lockReason == "You're a viewer in this session, so the layout is read-only");
+    CHECK(ari.app->Ctx().IsLayoutLocked());
+    std::string why;
+    CHECK(ari.ctl->LayoutObjectReadOnly("Arch", why));
+    CHECK(why == "You're a viewer in this session, so the layout is read-only");
+    CHECK_FALSE(h.ctl->LayoutObjectReadOnly("Arch", why));
+
+    // Others' layout edits still reach it, and it stays locked.
+    SetDesc(w, h, "Star", "from hana");
+    w.Settle();
+    CHECK(Desc(ari, "Star") == "from hana");
+    CHECK(ari.app->Ctx().IsLayoutLocked());
+    RequireConverged(w);
+
+    // A change that got into its memory anyway goes back; one that reaches
+    // the host is rejected.
+    Rev head = h.Host().HeadRev();
+    w.As(ari, [&] {
+        ari.app->M("Arch")->SetDescription("ari");
+        ari.app->Touch();
+        LayoutFiles mem = ari.app->Memory();
+        REQUIRE(ari.Client().ProposeLayout(LayoutDelta::Diff(ari.ctl->Session()->Layout(), mem)).ok);
+    });
+    w.Settle();
+    CHECK(h.Host().HeadRev() == head);
+    CHECK(h.Host().RejectCounts().at(Reason::Viewer) == 1);
+    CHECK(Desc(h, "Arch") == arch);
+    CHECK(Desc(ari, "Arch") == arch);
+    CHECK((HasNotice(ari, "Viewers can't change the layout") || HasNotice(ari, "the layout is read-only")));
+    RequireConverged(w);
+    // Without a proposal: put back here, nothing sent.
+    ari.app->layoutNotices.clear();
+    w.As(ari, [&] {
+        ari.app->M("Arch")->SetDescription("ari again");
+        ari.app->Touch();
+    });
+    w.Settle();
+    CHECK(Desc(ari, "Arch") == arch);
+    CHECK(HasNotice(ari, "the layout is read-only"));
+    CHECK(h.Host().RejectCounts().at(Reason::Viewer) == 1);
+    RequireConverged(w);
+
+    // An editor again: the layout opens and its edits travel.
+    REQUIRE(w.As(h, [&] { return h.ctl->SetRole(aid, ParticipantRole::Editor, err); }));
+    w.Settle();
+    CHECK_FALSE(ari.app->locked);
+    CHECK_FALSE(ari.app->Ctx().IsLayoutLocked());
+    SetDesc(w, ari, "Arch", "from ari");
+    w.Settle();
+    CHECK(Desc(h, "Arch") == "from ari");
+    RequireConverged(w);
+}
+
+TEST_CASE("Live layout: deleting or renaming a model whose row someone else holds is refused", "[collab][layout][controller][collab_roles]") {
+    LayoutShow show;
+    World w(show);
+    StartSession(w, 2);
+    Peer& h = w.host();
+    Peer& ari = *w.peers[1];
+    Peer& bea = *w.peers[2];
+    std::string err;
+    SeqObjectId line = h.Seq().GetElement("Line")->GetUid();
+    REQUIRE(w.As(h, [&] { return h.ctl->Assign(line, ari.ctl->LocalParticipant(), err); }));
+    w.Settle();
+    Rev head = h.Host().HeadRev();
+    // Another client deletes the model.
+    w.As(bea, [&] {
+        bea.app->Ctx().AllModels.Delete("Line", false);
+        bea.app->Touch();
+    });
+    FlushLayout(w, bea);
+    w.Settle();
+    CHECK(h.Host().HeadRev() == head);
+    CHECK(h.Host().RejectCounts().at(Reason::Assigned) >= 1);
+    CHECK(HasNotice(bea, "Line is assigned to Ari, so it can't be deleted or renamed"));
+    for (auto& p : w.peers) {
+        INFO(p->name);
+        CHECK(p->app->M("Line") != nullptr);
+        CHECK(p->Seq().GetElement("Line") != nullptr);
+    }
+    RequireConverged(w);
+    // The host's own delete goes back the same way.
+    w.As(h, [&] {
+        h.app->Ctx().AllModels.Delete("Line", false);
+        h.app->Touch();
+    });
+    w.Settle();
+    CHECK(h.Host().HeadRev() == head);
+    CHECK(HasNotice(h, "Line is assigned to Ari, so it can't be deleted or renamed"));
+    for (auto& p : w.peers) {
+        INFO(p->name);
+        CHECK(p->app->M("Line") != nullptr);
+        CHECK(p->Seq().GetElement("Line") != nullptr);
+    }
+    RequireConverged(w);
+    // The owner may.
+    w.As(ari, [&] {
+        ari.app->Ctx().AllModels.Delete("Line", false);
+        ari.app->Touch();
+    });
+    w.Settle();
+    for (auto& p : w.peers) {
+        INFO(p->name);
+        CHECK(p->app->M("Line") == nullptr);
+        CHECK(p->Seq().GetElement("Line") == nullptr);
+    }
+    CHECK(h.ctl->Assignments().empty());
+    RequireConverged(w);
+}
+
 namespace {
 
 // The show's layout plus models, a group and controllers only the fuzz edits.

@@ -65,8 +65,9 @@ enum class MsgType {
     Ping,         // host -> client: liveness, carries the head rev
     Pong,         // client -> host: liveness, carries the applied rev
     Bye,          // either way: leaving / session over
-    Roster,       // host -> clients: everyone in the session
-    Notice        // host -> client: something the user should read (reason, text)
+    Roster,       // host -> clients: everyone in the session, their roles and the row assignments
+    Notice,       // host -> client: something the user should read (reason, text)
+    Claim         // client -> host: assign rows to a participant, or release them
 };
 
 const char* MsgTypeName(MsgType t);
@@ -105,13 +106,32 @@ struct PresenceInfo {
     bool operator==(const PresenceInfo&) const = default;
 };
 
+// What a participant may do. A viewer sees everything live but changes
+// nothing (the host rejects its proposals); the host is always an editor.
+enum class ParticipantRole { Editor, Viewer };
+
 // One participant, as the host lists them.
 struct RosterEntry {
     ParticipantId participant = kNoParticipant;
     std::string name;
     std::string deviceKind;
+    ParticipantRole role = ParticipantRole::Editor;
+    // SecretDigest of the participant's rejoin secret: a successor checks a
+    // rejoin against it (host migration). Never the secret itself.
+    std::string secretHash;
     bool operator==(const RosterEntry&) const = default;
 };
+
+// A row (model, group, timing track) only `owner` may edit. A claim on a
+// group also covers its members' rows; a claim on a model covers its
+// submodels and strands. Claim: owner kNoParticipant releases the row.
+struct Assignment {
+    SeqObjectId element = kNoSeqObjectId;
+    ParticipantId owner = kNoParticipant;
+    std::string name; // the row's name when it was claimed, for display
+    bool operator==(const Assignment&) const = default;
+};
+inline constexpr size_t kMaxAssignments = 0x10000;
 inline constexpr size_t kMaxRoster = 0x10000;
 
 // One message. Only the fields of its type are written and read; the rest
@@ -185,6 +205,8 @@ struct Message {
 
     // Roster: the host first, then the clients in joining order
     std::vector<RosterEntry> roster;
+    // Roster: every assignment in force; Claim: the rows to assign / release
+    std::vector<Assignment> assignments;
 };
 
 std::string EncodeMessage(const Message& m);
@@ -213,6 +235,13 @@ inline constexpr const char* NameTaken = "name_taken";
 inline constexpr const char* NoChange = "no_change";
 // Notice: someone else took the layout lock on that object first.
 inline constexpr const char* LockTaken = "lock_taken";
+// The author is a viewer: it may not change the sequence or the layout.
+inline constexpr const char* Viewer = "viewer";
+// The edit touches a row assigned to someone else (`participant` / by: the
+// owner). Also a Claim on a row someone else holds.
+inline constexpr const char* Assigned = "assigned";
+// Notice: the host changed this participant's role (text says to what).
+inline constexpr const char* RoleChanged = "role_changed";
 // Malformed or refused by validation. Concurrent edits can cause it too:
 // two people adding the same model or giving two tracks one name, removing
 // an element's last two layers at once, renaming media onto a taken key.

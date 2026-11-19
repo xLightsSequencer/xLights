@@ -105,6 +105,20 @@
 // when it joined against a session copy of the host's show, call
 // KeepSessionCopy() first so the copied show files outlive the session.
 //
+// Roles and row assignments (CollabRoles.h): the host can make a participant
+// a viewer (SetRole) and assign rows to editors (Assign); an editor can claim
+// rows for itself. While this user is a viewer, or a row is assigned to
+// someone else, the controller refuses the edit at the sequence's
+// CommandExecutor before it applies (its gate), so it never reaches the
+// document; edits the executor can't refuse in advance (adds, captured or
+// already-made edits) are taken back out when the controller sends them,
+// like a client's structural edit. Either way the app gets OnRejected with
+// the reason (Reason::Viewer / Reason::Assigned) and the text to show. The
+// host rejects such proposals too. Undo / redo are refused for a viewer, and
+// a viewer's layout is locked (SetCollaborationLock) even in a live layout
+// session. Apps draw assignments from AssignmentOf / Participants() and can
+// ask CanEdit before offering an edit.
+//
 // Layout lock: ICollabApp::SetCollaborationLock(true, reason) is called when
 // hosting starts or a join begins, and (false) when the session ends, is
 // left, fails or the controller goes away.
@@ -157,7 +171,25 @@ struct Participant {
     xlColor colour;
     bool isHost = false;
     bool isLocal = false; // this device
+    ParticipantRole role = ParticipantRole::Editor;
+    std::vector<std::string> assignedRows; // names of the rows assigned to them
 };
+
+// Labels both UIs use for roles and row assignments, so they read the same.
+namespace Labels {
+inline constexpr const char* Editor = "Editor";
+inline constexpr const char* Viewer = "Viewer";
+inline constexpr const char* ViewOnly = "View only";
+inline constexpr const char* MakeViewer = "Make Viewer";
+inline constexpr const char* MakeEditor = "Make Editor";
+inline constexpr const char* JoinAsViewers = "New people join as viewers";
+inline constexpr const char* AssignTo = "Assign to";
+inline constexpr const char* AssignToMe = "Assign to Me";
+inline constexpr const char* Release = "Release";
+inline constexpr const char* AssignedRows = "Rows";
+} // namespace Labels
+// "Assigned to Sam" / "Assigned to you".
+std::string AssignedToText(const std::string& ownerName, bool mine);
 
 // What a UI can offer next to a reject message.
 enum class RejectAction {
@@ -256,6 +288,9 @@ public:
     virtual void OnSessionsFound(const std::vector<SessionAdvert>& /*sessions*/) {}
     virtual void OnBrowseError(const std::string& /*reason*/) {}
     virtual void OnLog(const std::string& /*line*/) {}
+    // Something from the host for this user to read: their role changed, or
+    // a row assignment they asked for was refused.
+    virtual void OnSessionNotice(const std::string& /*text*/) {}
 };
 
 // How the controller reaches the network. Apps use Lan(); tests supply
@@ -302,7 +337,7 @@ struct ControllerOptions {
     SessionOptions session;
 };
 
-class CollabController : private ICommandObserver, private IUndoRedirect {
+class CollabController : private ICommandObserver, private IUndoRedirect, private ICommandGate {
 public:
     enum class Role { None, Host, Client };
     // Connecting: reaching the host. Joining: joined, comparing (and
@@ -386,6 +421,34 @@ public:
     ParticipantId SoftLockHolder(SeqObjectId effect) const;
     // Others who have `effect` selected.
     std::vector<ParticipantId> SelectedBy(SeqObjectId effect) const;
+
+    // ---- Roles and row assignments (see CollabRoles.h) ----
+    ParticipantRole LocalRole() const;
+    ParticipantRole RoleOf(ParticipantId who) const;
+    // Host: makes a participant a viewer, or an editor again. Becoming a
+    // viewer releases their rows.
+    bool SetRole(ParticipantId who, ParticipantRole role, std::string& error);
+    // Host: the role people who join from now on get (editor by default).
+    void SetJoinRole(ParticipantRole role);
+    ParticipantRole JoinRole() const;
+    // Assigns the row `element` (a model, group or timing track; a submodel
+    // or strand row assigns its model) to `owner`. The host may assign rows
+    // to any editor and release any; an editor may claim rows for itself and
+    // release its own. A client's request goes to the host:
+    // OnParticipantsChanged brings the result, OnSessionNotice a refusal.
+    // False with readable `error` when it is refused here.
+    bool Assign(SeqObjectId element, ParticipantId owner, std::string& error);
+    // Releases the claim on `element` (or the claim covering it).
+    bool Release(SeqObjectId element, std::string& error);
+    // The claim covering `element`'s row: on the row itself, its model, or a
+    // group it is in. nullopt when nobody holds it.
+    std::optional<Assignment> AssignmentOf(SeqObjectId element) const;
+    const std::vector<Assignment>& Assignments() const;
+    // This user may change `element`'s row now. False, with `why` ("You're a
+    // viewer in this session", "Assigned to Sam"), otherwise.
+    bool CanEdit(SeqObjectId element, std::string& why) const;
+    // Not a viewer (true when not in a session).
+    bool CanEditSequence() const;
 
     // ---- Layout (see CollabLayout.h) ----
     // The session edits the layout live (host and this app both support it).
@@ -511,6 +574,8 @@ private:
     bool RedirectCanRedo() override { return CanRedo(); }
     std::string RedirectUndoString() override { return UndoLabel(); }
     std::string RedirectRedoString() override { return RedoLabel(); }
+    // ICommandGate
+    bool AllowCommand(const SequenceCommand& cmd, std::string& why) override;
 
     bool StartHosting(CollabNetFactory& net, Network network, const std::string& displayName, const std::string& sequenceName,
                       std::string& pairingCode, std::string& error);
@@ -544,6 +609,12 @@ private:
     void FlushClient(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, uint64_t join);
     void OnCommitApplied(const CommitInfo& info, const SequenceCommand& applied, const SequenceCommand& inverse);
     void OnReject(uint64_t seq, EditKind kind, const std::string& reason, ParticipantId by);
+    // Roles and assignments
+    EditRefusal LocalRefusal(const SequenceCommand& cmd) const;
+    const AssignmentIndex& Index() const;
+    void TakeBack(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, const EditRefusal& refusal);
+    void TellRefused(const std::string& reason, ParticipantId owner, EditKind kind);
+    void OnRosterChanged();
     void TrySendPresence();
     std::string NameOf(ParticipantId id) const;
     void ScheduleFlush();
@@ -638,6 +709,15 @@ private:
     uint64_t _lastPresenceSent = 0;
     uint64_t _lastActivity = 0;
     std::map<ParticipantId, uint64_t> _lockOrder; // when the host saw each participant's layout lock taken
+
+    // Roles and assignments
+    ParticipantRole _localRole = ParticipantRole::Editor;
+    mutable AssignmentIndex _index;
+    mutable bool _indexDirty = true;
+    mutable const SequenceElements* _indexSeq = nullptr;
+    std::string _lastRefusal;      // the last refusal told to the app, and when
+    uint64_t _lastRefusalAt = 0;
+    std::string _lockReason;      // what SetCollaborationLock was last given
 
     // Live layout
     bool _liveLayout = false;

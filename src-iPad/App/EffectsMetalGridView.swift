@@ -953,6 +953,18 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                                    rowTops: [Int: (CGFloat, CGFloat)]) {
         let o = c.collabOverlay
         if o.isEmpty { return }
+        if !o.assigned.isEmpty {
+            // Rows only one participant may edit: tinted in their colour,
+            // lighter when it is this user's.
+            bridge.beginFilledRectBatch()
+            for (row, rt) in rowTops {
+                guard let a = o.assigned[row] else { continue }
+                let (r, g, b) = CollabOverlay.rgb(a.color)
+                bridge.appendFilledRectX(0, y: rt.0, w: viewport.width, h: rt.1, r: r, g: g, b: b, a: a.mine ? 0.06 : 0.13)
+                bridge.appendFilledRectX(0, y: rt.0 + rt.1 - 2, w: viewport.width, h: 2, r: r, g: g, b: b, a: 0.7)
+            }
+            bridge.flushFilledRectBatch()
+        }
         if !o.marks.isEmpty {
             bridge.beginFilledRectBatch()
             for (row, idx, x1, x2, top, bottom) in visible {

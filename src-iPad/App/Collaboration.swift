@@ -31,12 +31,23 @@ struct CollabOverlay: Equatable {
         let endMS: Int
         let name: String
     }
+    /// A row only one participant may edit.
+    struct Assigned: Equatable {
+        let color: UInt32
+        let name: String
+        let mine: Bool
+        /// "Assigned to Sam" / "Assigned to you".
+        let text: String
+        let canRelease: Bool
+    }
     var bands: [Band] = []
     var stripes: [Int: [UInt32]] = [:]
     var marks: [Key: Mark] = [:]
     var ghosts: [Ghost] = []
+    /// Display row -> who holds it.
+    var assigned: [Int: Assigned] = [:]
 
-    var isEmpty: Bool { bands.isEmpty && stripes.isEmpty && marks.isEmpty && ghosts.isEmpty }
+    var isEmpty: Bool { bands.isEmpty && stripes.isEmpty && marks.isEmpty && ghosts.isEmpty && assigned.isEmpty }
 
     static func rgb(_ v: UInt32) -> (CGFloat, CGFloat, CGFloat) {
         (CGFloat((v >> 16) & 0xFF) / 255.0,
@@ -56,6 +67,8 @@ struct CollabParticipantInfo: Identifiable, Equatable {
     let color: UInt32
     let isHost: Bool
     let isLocal: Bool
+    var isViewer: Bool = false
+    var assignedRows: [String] = []
 
     var deviceLabel: String {
         switch deviceKind {
@@ -141,6 +154,10 @@ final class CollabState {
     var endedAsClient = false
     var rejectToast: CollabRejectToast?
     var overlay = CollabOverlay()
+    /// Not a viewer: this user may change the sequence.
+    var canEdit = true
+    /// Host: people who join from now on are viewers.
+    var joinAsViewers = false
     /// The session edits the layout live.
     var liveLayout = false
     /// Layout objects others have selected or open in a modal editor, by name.
@@ -249,8 +266,13 @@ extension SequencerViewModel {
         refreshLayoutLock()
         collab.participants = s.participants.map {
             CollabParticipantInfo(id: $0.participantId, name: $0.name, deviceKind: $0.deviceKind,
-                                  color: $0.colorRGB, isHost: $0.isHost, isLocal: $0.isLocal)
+                                  color: $0.colorRGB, isHost: $0.isHost, isLocal: $0.isLocal,
+                                  isViewer: $0.isViewer, assignedRows: $0.assignedRows)
         }
+        let canEdit = s.canEditSequence
+        if collab.canEdit != canEdit { collab.canEdit = canEdit }
+        let joinViewers = collab.role == .host && s.joinAsViewers
+        if collab.joinAsViewers != joinViewers { collab.joinAsViewers = joinViewers }
     }
 
     func refreshCollabGroup() {
@@ -305,13 +327,7 @@ extension SequencerViewModel {
             isDirty = true
         case .rejected:
             if let r = payload as? XLCollabReject {
-                let toast = CollabRejectToast(rejectId: r.rejectId, text: r.text, offersNewLayer: r.offersNewLayer)
-                collab.rejectToast = toast
-                DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self] in
-                    MainActor.assumeIsolated {
-                        if self?.collab.rejectToast?.id == toast.id { self?.collab.rejectToast = nil }
-                    }
-                }
+                showCollabToast(CollabRejectToast(rejectId: r.rejectId, text: r.text, offersNewLayer: r.offersNewLayer))
             }
             refreshCollabOverlay()
         case .undoStateChanged:
@@ -347,9 +363,81 @@ extension SequencerViewModel {
             refreshCollabLayoutMarks()
         case .layoutRejected:
             showCollabLayoutNotice((payload as? String) ?? "")
+        case .notice:
+            refreshCollabState()
+            showCollabToast((payload as? String) ?? "")
         @unknown default:
             break
         }
+    }
+
+    private func showCollabToast(_ text: String) {
+        guard !text.isEmpty else { return }
+        showCollabToast(CollabRejectToast(rejectId: 0, text: text, offersNewLayer: false))
+    }
+
+    private func showCollabToast(_ toast: CollabRejectToast) {
+        collab.rejectToast = toast
+        DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self] in
+            MainActor.assumeIsolated {
+                if self?.collab.rejectToast?.id == toast.id { self?.collab.rejectToast = nil }
+            }
+        }
+    }
+
+    // MARK: - Roles and row assignments
+
+    /// Host: make a participant a viewer, or an editor again.
+    func setCollabViewer(_ viewer: Bool, participant: Int) {
+        guard let s = collab.session else { return }
+        if let err = s.setViewer(viewer, participant: participant) {
+            showCollabToast(err)
+        }
+        refreshCollabState()
+    }
+
+    /// Host: whether people who join from now on are viewers.
+    func setCollabJoinAsViewers(_ on: Bool) {
+        collab.session?.joinAsViewers = on
+        refreshCollabState()
+    }
+
+    /// The row header menu's "Assign to" / "Release" items for a display
+    /// row, or nil when there is nothing to offer.
+    func collabRowMenu(rowIndex: Int) -> CollabRowMenu? {
+        guard collab.inSession, collab.state == .active, collab.canEdit else { return nil }
+        if let a = collab.overlay.assigned[rowIndex] {
+            return CollabRowMenu(assignedText: a.text, canRelease: a.canRelease, assignees: [],
+                                 onAssign: { _ in },
+                                 onRelease: { [weak self] in self?.releaseCollabRow(rowIndex) })
+        }
+        var assignees: [CollabRowMenu.Assignee] = []
+        if collab.role == .host {
+            for p in collab.participants where !p.isViewer {
+                assignees.append(.init(id: p.id, label: p.isLocal ? "\(p.name) (you)" : p.name))
+            }
+        } else if let me = collab.participants.first(where: { $0.isLocal }) {
+            assignees.append(.init(id: me.id, label: XLCollabSession.labelAssignToMe))
+        }
+        return CollabRowMenu(assignedText: nil, canRelease: false, assignees: assignees,
+                             onAssign: { [weak self] who in self?.assignCollabRow(rowIndex, to: who) },
+                             onRelease: {})
+    }
+
+    func assignCollabRow(_ rowIndex: Int, to participant: Int) {
+        guard let s = collab.session else { return }
+        if let err = s.assignRow(rowIndex, to: participant) {
+            showCollabToast(err)
+        }
+        refreshCollabOverlay()
+    }
+
+    func releaseCollabRow(_ rowIndex: Int) {
+        guard let s = collab.session else { return }
+        if let err = s.releaseRow(rowIndex) {
+            showCollabToast(err)
+        }
+        refreshCollabOverlay()
     }
 
     /// Browsing fails when iPadOS refuses Local Network access; say where
@@ -543,6 +631,10 @@ extension SequencerViewModel {
         }
         out.ghosts = o.ghosts.map {
             CollabOverlay.Ghost(kind: $0.kind, row: $0.rowIndex, startMS: $0.startMS, endMS: $0.endMS, name: $0.effectName)
+        }
+        for (k, a) in o.rowAssignments {
+            out.assigned[k.intValue] = CollabOverlay.Assigned(color: a.colorRGB, name: a.ownerName, mine: a.mine,
+                                                              text: a.text, canRelease: a.canRelease)
         }
         if out != collab.overlay { collab.overlay = out }
         if o.flashSecondsLeft > 0 {

@@ -47,20 +47,115 @@ private struct CollabNameField: View {
 
 private struct CollabParticipantRow: View {
     let p: CollabParticipantInfo
+    /// Host: switches this participant between viewer and editor.
+    var onToggleRole: (() -> Void)?
 
     var body: some View {
         HStack(spacing: 10) {
             Circle()
                 .fill(CollabOverlay.color(p.color))
                 .frame(width: 14, height: 14)
-            Text(p.name)
-            if p.isLocal {
-                Text("(you)").foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(p.name)
+                    if p.isLocal {
+                        Text("(you)").foregroundStyle(.secondary)
+                    }
+                    if p.isViewer {
+                        Text(XLCollabSession.labelViewer)
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(Color.secondary.opacity(0.2)))
+                    }
+                }
+                if !p.assignedRows.isEmpty {
+                    Text("\(XLCollabSession.labelRows): \(p.assignedRows.joined(separator: ", "))")
+                        .font(.caption)
+                        .foregroundStyle(CollabOverlay.color(p.color))
+                        .lineLimit(2)
+                }
             }
             Spacer()
             Text(p.isHost ? "\(p.deviceLabel) · host" : p.deviceLabel)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            if let toggle = onToggleRole {
+                Button(p.isViewer ? XLCollabSession.labelMakeEditor : XLCollabSession.labelMakeViewer) { toggle() }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+            }
+        }
+    }
+}
+
+/// What a row header's menu offers for live collaboration.
+struct CollabRowMenu {
+    struct Assignee: Identifiable {
+        let id: Int
+        let label: String
+    }
+    /// "Assigned to Sam" when someone holds the row.
+    let assignedText: String?
+    let canRelease: Bool
+    /// Host: everyone who edits; anyone else: themselves ("Assign to Me").
+    let assignees: [Assignee]
+    let onAssign: (Int) -> Void
+    let onRelease: () -> Void
+}
+
+struct CollabRowMenuItems: View {
+    let menu: CollabRowMenu
+
+    var body: some View {
+        Divider()
+        if let text = menu.assignedText {
+            Text(text)
+            if menu.canRelease {
+                Button { menu.onRelease() } label: {
+                    Label(XLCollabSession.labelRelease, systemImage: "lock.open")
+                }
+            }
+        } else if menu.assignees.count == 1, menu.assignees[0].label == XLCollabSession.labelAssignToMe {
+            Button { menu.onAssign(menu.assignees[0].id) } label: {
+                Label(XLCollabSession.labelAssignToMe, systemImage: "person.crop.circle.badge.checkmark")
+            }
+        } else if !menu.assignees.isEmpty {
+            Menu {
+                ForEach(menu.assignees) { a in
+                    Button(a.label) { menu.onAssign(a.id) }
+                }
+            } label: {
+                Label(XLCollabSession.labelAssignTo, systemImage: "person.crop.circle.badge.checkmark")
+            }
+        }
+    }
+}
+
+/// A row header's band and owner name for a row only one participant may edit.
+struct CollabAssignedMark: View {
+    let assigned: CollabOverlay.Assigned?
+    var showName: Bool = true
+
+    var body: some View {
+        if let a = assigned {
+            let color = CollabOverlay.color(a.color)
+            ZStack(alignment: .bottomTrailing) {
+                Rectangle()
+                    .fill(color)
+                    .frame(height: 3)
+                    .frame(maxWidth: .infinity, alignment: .bottom)
+                if showName {
+                    Text(a.mine ? "you" : a.name)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(color)
+                        .lineLimit(1)
+                        .padding(.trailing, 26)
+                        .padding(.bottom, 4)
+                }
+            }
+            .allowsHitTesting(false)
+            .accessibilityLabel(a.text)
         }
     }
 }
@@ -155,8 +250,13 @@ private struct CollabHostSessionView: View {
             }
             Section("Participants") {
                 ForEach(viewModel.collab.participants) { p in
-                    CollabParticipantRow(p: p)
+                    CollabParticipantRow(p: p, onToggleRole: p.isHost ? nil : {
+                        viewModel.setCollabViewer(!p.isViewer, participant: p.id)
+                    })
                 }
+                Toggle(XLCollabSession.labelJoinAsViewers, isOn: Binding(
+                    get: { viewModel.collab.joinAsViewers },
+                    set: { viewModel.setCollabJoinAsViewers($0) }))
             }
             Section {
                 Button("End Session", role: .destructive) {
@@ -403,6 +503,10 @@ private struct CollabClientSessionView: View {
                     }
                     Text(c.statusText)
                 }
+                if c.state == .active && !c.canEdit {
+                    Label(XLCollabSession.labelViewOnly, systemImage: "eye")
+                        .foregroundStyle(.secondary)
+                }
             } header: {
                 Text("Status")
             }
@@ -454,6 +558,11 @@ struct CollabStatusChip: View {
                 Circle()
                     .fill(c.state == .active ? Color.green : (c.state == .ended ? Color.red : Color.orange))
                     .frame(width: 8, height: 8)
+                if c.state == .active && !c.canEdit {
+                    Label(XLCollabSession.labelViewOnly, systemImage: "eye")
+                        .font(.caption.weight(.semibold))
+                        .labelStyle(.titleAndIcon)
+                }
                 Text(c.statusText)
                     .font(.caption)
                     .lineLimit(1)

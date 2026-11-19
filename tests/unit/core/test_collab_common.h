@@ -223,6 +223,10 @@ struct Node {
     IdState ids;
     std::vector<std::string> log;
     std::map<std::string, int> rejects; // reason -> count (this participant's)
+    // onRolledBack: (what the rollback applied, its inverse), serialized
+    std::vector<std::pair<nlohmann::json, nlohmann::json>> rolledBack;
+    std::vector<std::pair<std::string, std::string>> notices; // (reason, text)
+    bool migrates = false; // onHostLost: someone takes over
 
     Collab::CollabHost& Host() { return static_cast<Collab::CollabHost&>(*session); }
     Collab::CollabClient& Client() { return static_cast<Collab::CollabClient&>(*session); }
@@ -371,6 +375,14 @@ private:
             }
         };
         ev.onReject = [np](uint64_t, Collab::EditKind, const std::string& reason, Collab::ParticipantId) { ++np->rejects[reason]; };
+        ev.onRolledBack = [np](const SequenceCommand& applied, const SequenceCommand& inverse) {
+            nlohmann::json a;
+            nlohmann::json i;
+            applied.Serialize(a);
+            inverse.Serialize(i);
+            np->rolledBack.emplace_back(a, i);
+        };
+        ev.onNotice = [np](const std::string& reason, const std::string& text) { np->notices.emplace_back(reason, text); };
         return ev;
     }
 

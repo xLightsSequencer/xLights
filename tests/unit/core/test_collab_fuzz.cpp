@@ -4,6 +4,7 @@
 
 #include "collab/CollabCommandInfo.h"
 #include "collab/CollabDocHash.h"
+#include "collab/CollabRoles.h"
 #include "render/SequenceElementCommands.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceMediaCommands.h"
@@ -21,7 +22,10 @@
 // document exactly (same .xsq bytes, same ids), every id must be unique, no
 // layer may hold overlapping effects, every reject must be one a concurrent
 // edit can cause, and nobody may have needed a re-sync. Then every
-// participant undoes everything it can, and they must still agree.
+// participant undoes everything it can, and they must still agree. With
+// roles on, the host also makes clients viewers and editors again and
+// everyone claims and releases rows at random; no commit may come from a
+// viewer or touch a row assigned to someone else.
 //
 // Reproduce one seed:  XL_COLLAB_FUZZ_SEED=<seed> xLights-unit-tests "[collab_fuzz]"
 // Print each seed as it starts (to find one that crashes): XL_COLLAB_FUZZ_TRACE=1
@@ -38,6 +42,7 @@ struct FuzzConfig {
     int steps = 160;
     SessionFaults faults;      // applied to every client (and the host's half)
     bool forceReorder = false; // reordering network for every seed
+    bool roles = false;        // random viewer / editor switches and row claims
 };
 
 struct FuzzResult {
@@ -47,6 +52,8 @@ struct FuzzResult {
     size_t rejects = 0;
     size_t clients = 0;
     size_t undone = 0;
+    size_t roleRejects = 0; // viewer / assigned
+    size_t claims = 0;
 };
 
 const std::vector<std::string> kModelEffects{ "On", "Bars", "Twinkle", "Color Wash", "Butterfly" };
@@ -83,7 +90,11 @@ public:
             }
             Node& n = *_sim.nodes[_rng() % _sim.nodes.size()];
             if (n.session->IsActive()) {
-                _sim.As(n, [&] { Edit(n); });
+                if (_cfg.roles && Chance(12)) {
+                    _sim.As(n, [&] { RoleStep(n); });
+                } else {
+                    _sim.As(n, [&] { Edit(n); });
+                }
             }
             _sim.RunFor(_rng() % 12, 1 + _rng() % 4);
         }
@@ -123,6 +134,11 @@ public:
         }
         r.clients = _sim.nodes.size() - 1;
         r.undone = undone;
+        for (const char* reason : { Reason::Viewer, Reason::Assigned }) {
+            auto it = _sim.host().Host().RejectCounts().find(reason);
+            r.roleRejects += it == _sim.host().Host().RejectCounts().end() ? 0 : it->second;
+        }
+        r.claims = _claims;
         return r;
     }
 
@@ -191,7 +207,37 @@ private:
                 _orderOk = false;
             }
             last = m->clientSeq;
+            if (_cfg.roles && m->layout.is_null()) {
+                CheckRoles(*m);
+            }
         };
+    }
+
+    // Sent as the host commits, before anything else changes: the author
+    // may edit every row the command names.
+    void CheckRoles(const Message& m) {
+        Node& h = _sim.host();
+        if (!_rolesWhy.empty()) {
+            return;
+        }
+        if (h.session->RoleOf(m.participant) == ParticipantRole::Viewer) {
+            _rolesWhy = "the host committed rev " + std::to_string(m.rev) + " from a viewer";
+            return;
+        }
+        auto cmd = DeserializeCommand(m.command);
+        if (!cmd) {
+            return;
+        }
+        AssignmentIndex index;
+        index.Build(h.Seq(), h.session->Assignments());
+        for (SeqObjectId row : CommandRows(*cmd)) {
+            ParticipantId owner = index.OwnerOf(h.Seq(), row);
+            if (owner != kNoParticipant && owner != m.participant) {
+                _rolesWhy = "the host committed rev " + std::to_string(m.rev) + " by " + std::to_string(m.participant) + " on a row assigned to " +
+                            std::to_string(owner);
+                return;
+            }
+        }
     }
 
     std::string Check(const char* when) {
@@ -210,6 +256,9 @@ private:
         }
         if (!_orderOk) {
             s << when << ": the host committed an author's proposals out of order\n";
+        }
+        if (!_rolesWhy.empty()) {
+            s << when << ": " << _rolesWhy << "\n";
         }
         for (const auto& [reason, text] : h.Host().RejectLog()) {
             if (!AllowedReject(reason, text)) {
@@ -278,7 +327,7 @@ private:
     // What a concurrent edit can legitimately make the host refuse.
     static bool AllowedReject(const std::string& reason, const std::string& text) {
         if (reason == Reason::Overlap || reason == Reason::TargetGone || reason == Reason::Locked || reason == Reason::StaleType ||
-            reason == Reason::ChangedSince) {
+            reason == Reason::ChangedSince || reason == Reason::Viewer || reason == Reason::Assigned) {
             return true;
         }
         if (reason == Reason::Invalid) {
@@ -389,6 +438,39 @@ private:
             }
         }
         return std::make_unique<ModifyEffectCommand>(LocatorOf(e), std::nullopt, std::move(st), std::move(pal));
+    }
+
+    // The host switches a client between viewer and editor; anyone claims a
+    // random row (the host sometimes for someone else) or releases one.
+    void RoleStep(Node& n) {
+        Node& h = _sim.host();
+        std::string reason;
+        std::string text;
+        int op = (int)(_rng() % 100);
+        if (&n == &h && op < 35) {
+            auto clients = h.Host().Clients();
+            if (!clients.empty()) {
+                ParticipantId who = Pick(clients);
+                h.Host().SetRole(who, h.session->RoleOf(who) == ParticipantRole::Viewer ? ParticipantRole::Editor : ParticipantRole::Viewer);
+            }
+            return;
+        }
+        auto rows = Rows(n.Seq(), Chance(20));
+        if (rows.empty()) {
+            return;
+        }
+        Element* row = Pick(rows);
+        if (op < 75) {
+            ParticipantId owner = n.session->Participant();
+            if (&n == &h && Chance(50) && !h.session->Roster().empty()) {
+                owner = Pick(h.session->Roster()).participant;
+            }
+            if (n.session->Claim(row->GetUid(), owner, reason, text)) {
+                ++_claims;
+            }
+        } else {
+            n.session->Claim(row->GetUid(), kNoParticipant, reason, text);
+        }
     }
 
     void Edit(Node& n) {
@@ -584,6 +666,8 @@ private:
     std::map<ParticipantId, uint64_t> _lastSeq;
     Rev _lastRev = 0;
     bool _orderOk = true;
+    std::string _rolesWhy;
+    size_t _claims = 0;
 };
 
 uint32_t EnvInt(const char* name, uint32_t def) {
@@ -599,13 +683,14 @@ FuzzResult RunSeed(Show& show, FuzzConfig cfg) {
     return f.Run();
 }
 
-void RunSeeds(uint32_t first, uint32_t count) {
+void RunSeeds(uint32_t first, uint32_t count, bool roles = false) {
     Show show;
     uint32_t only = EnvInt("XL_COLLAB_FUZZ_SEED", 0);
-    size_t commits = 0, rejects = 0, undone = 0;
+    size_t commits = 0, rejects = 0, undone = 0, roleRejects = 0, claims = 0;
     for (uint32_t i = 0; i < count; ++i) {
         FuzzConfig cfg;
         cfg.seed = only != 0 ? only : first + i;
+        cfg.roles = roles;
         if (std::getenv("XL_COLLAB_FUZZ_TRACE") != nullptr) {
             std::fprintf(stderr, "collab fuzz seed %u\n", cfg.seed);
         }
@@ -616,9 +701,15 @@ void RunSeeds(uint32_t first, uint32_t count) {
         commits += r.commits;
         rejects += r.rejects;
         undone += r.undone;
+        roleRejects += r.roleRejects;
+        claims += r.claims;
         if (only != 0) {
             break;
         }
+    }
+    if (roles) {
+        CHECK(roleRejects > 0);
+        CHECK(claims > 0);
     }
     // The fuzz must actually exercise concurrency.
     CHECK(commits > 100);
@@ -629,13 +720,14 @@ void RunSeeds(uint32_t first, uint32_t count) {
 // For the controls: true when any of the seeds fails (in a way `counts`
 // accepts, when given).
 bool AnySeedFails(const SessionFaults& faults, bool reorder, uint32_t seeds, std::string* why,
-                  const std::function<bool(const std::string&)>& counts = nullptr) {
+                  const std::function<bool(const std::string&)>& counts = nullptr, bool roles = false) {
     Show show;
     for (uint32_t s = 1; s <= seeds; ++s) {
         FuzzConfig cfg;
         cfg.seed = 1000 + s;
         cfg.faults = faults;
         cfg.forceReorder = reorder;
+        cfg.roles = roles;
         cfg.steps = 120;
         FuzzResult r = RunSeed(show, cfg);
         if (!r.ok && (!counts || counts(r.why))) {
@@ -650,6 +742,19 @@ bool AnySeedFails(const SessionFaults& faults, bool reorder, uint32_t seeds, std
 
 TEST_CASE("Collab convergence fuzz", "[collab][collab_fuzz]") {
     RunSeeds(1, EnvInt("XL_COLLAB_FUZZ_SEEDS", 12));
+}
+
+TEST_CASE("Collab convergence fuzz with viewers and row assignments", "[collab][collab_fuzz]") {
+    RunSeeds(5000, EnvInt("XL_COLLAB_FUZZ_SEEDS", 10), true);
+}
+
+TEST_CASE("Collab fuzz catches a host that ignores roles and assignments", "[collab][collab_fuzz_control]") {
+    SessionFaults f;
+    f.hostIgnoresRoles = true;
+    std::string why;
+    CHECK(AnySeedFails(f, false, 6, &why, nullptr, true));
+    INFO(why);
+    CHECK(why.find("the host committed rev") != std::string::npos);
 }
 
 TEST_CASE("Collab convergence fuzz soak", "[.collab_fuzz_soak]") {

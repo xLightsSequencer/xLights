@@ -166,7 +166,8 @@ final class TimingEffectsMetalMTKView: MTKView, MTKViewDelegate {
         coordinator?.bridge.setDrawableSize(size, scale: view.contentScaleFactor)
     }
 
-    /// Others' selection outlines and the brief remote-edit highlight.
+    /// Rows assigned to someone, others' selection outlines and the brief
+    /// remote-edit highlight.
     private func drawCollabMarks(bridge: XLGridMetalBridge, viewport: CGSize,
                                  c: TimingEffectsMetalGridView.Coordinator) {
         var y = -c.scrollOffsetY
@@ -175,6 +176,11 @@ final class TimingEffectsMetalMTKView: MTKView, MTKViewDelegate {
         for row in c.rows {
             if y + c.rowHeight < 0 { y += c.rowHeight; continue }
             if y > viewport.height { break }
+            if let a = c.collabOverlay.assigned[row.id] {
+                let (r, g, b) = CollabOverlay.rgb(a.color)
+                bridge.appendFilledRectX(0, y: y, w: viewport.width, h: c.rowHeight, r: r, g: g, b: b, a: a.mine ? 0.06 : 0.13)
+                bridge.appendFilledRectX(0, y: y + c.rowHeight - 2, w: viewport.width, h: 2, r: r, g: g, b: b, a: 0.7)
+            }
             for (eIdx, effect) in row.effects.enumerated() {
                 guard let m = c.collabOverlay.marks[CollabOverlay.Key(row: row.id, effect: eIdx)] else { continue }
                 let x1 = CGFloat(effect.startTimeMS) * c.pixelsPerMS - c.scrollOffsetX
@@ -345,7 +351,7 @@ final class TimingEffectsMetalMTKView: MTKView, MTKViewDelegate {
         }
         bridge.flushLineBatch()
 
-        if !c.collabOverlay.marks.isEmpty {
+        if !c.collabOverlay.marks.isEmpty || !c.collabOverlay.assigned.isEmpty {
             drawCollabMarks(bridge: bridge, viewport: viewport, c: c)
         }
 

@@ -15,6 +15,7 @@
 
 #include "RowHeading.h"
 #include "CollabOverlay.h"
+#include "app-shell/Collaboration.h"
 #include "xLightsVersion.h"
 #include "shared/utils/BitmapCache.h"
 #include "settings/XLightsConfigAdapter.h"
@@ -842,6 +843,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
             }
         }
 
+        if (DesktopCollab* collab = xLightsApp::GetFrame()->GetCollab(); collab != nullptr && element != nullptr && ri->nodeIndex < 0) {
+            if (wxMenu* sub = collab->AppendRowMenu(mnuLayer, element)) {
+                sub->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
+            }
+        }
         mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS, "Edit Display Elements");
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
@@ -1059,6 +1065,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     if (id == ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS) {
         wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
         wxPostEvent(GetParent(), displayElementEvent);
+        return;
+    }
+    if (DesktopCollab* collab = xLightsApp::GetFrame()->GetCollab(); collab != nullptr && collab->HandleRowMenu(id)) {
+        Refresh(false);
         return;
     }
 
@@ -2797,6 +2807,31 @@ void RowHeading::render( wxPaintEvent& event )
                 lay += rowInfo->layerName;
             }
             dc.DrawLabel(lay, r, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+        }
+
+        // Live collaboration: a row only one participant may edit, in their
+        // colour, with their name.
+        if (CollabOverlay* o = CollabOverlay::Current()) {
+            auto as = o->assigned.find(rowInfo->element->GetUid());
+            if (as != o->assigned.end()) {
+                wxColour c = xlColorToWxColour(as->second.colour);
+                dc.SetBrush(wxBrush(c));
+                dc.SetPen(wxPen(c));
+                dc.DrawRectangle(0, startY + DEFAULT_ROW_HEADING_HEIGHT - FromDIP(3), w, FromDIP(3));
+                if (rowInfo->layerIndex == 0 && rowInfo->nodeIndex < 0) {
+                    wxFont font = dc.GetFont();
+                    wxFont small = font;
+                    small.SetPointSize(std::max(6, font.GetPointSize() - 2));
+                    dc.SetFont(small);
+                    wxString who = wxString::FromUTF8(as->second.mine ? std::string("you") : as->second.name);
+                    wxSize ts = dc.GetTextExtent(who);
+                    dc.SetTextForeground(c);
+                    dc.DrawText(who, w - ICON_SPACE - FromDIP(6) - ts.x, startY + 1);
+                    dc.SetFont(font);
+                }
+                dc.SetPen(penOutline);
+                dc.SetBrush(brush2);
+            }
         }
 
         if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {

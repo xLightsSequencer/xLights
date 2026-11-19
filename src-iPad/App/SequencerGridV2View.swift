@@ -2502,10 +2502,14 @@ struct SequencerGridV2View: View {
                     },
                     onCreateSongRegions: row.layerIndex == 0 && !row.effects.isEmpty ? {
                         viewModel.createSongRegionsFromTimingRow(row.id)
-                    } : nil
+                    } : nil,
+                    collabMenu: viewModel.collabRowMenu(rowIndex: row.id)
                 )
                 .overlay(alignment: .leading) {
                     CollabRowStripe(colors: viewModel.collab.overlay.stripes[row.id] ?? [])
+                }
+                .overlay(alignment: .bottom) {
+                    CollabAssignedMark(assigned: viewModel.collab.overlay.assigned[row.id], showName: row.layerIndex == 0)
                 }
             }
         }
@@ -2580,6 +2584,7 @@ struct SequencerGridV2View: View {
         let hasLoopRegion = viewModel.hasLoopRegion
         let modelsWithSelection = viewModel.modelsWithSelectedEffects()
         let collabStripes = viewModel.collab.overlay.stripes
+        let collabAssigned = viewModel.collab.overlay.assigned
         return VStack(spacing: 0) {
             ForEach(rows) { row in
                 let h: CGFloat = (row.id == selectedRowId)
@@ -2686,10 +2691,14 @@ struct SequencerGridV2View: View {
                         deleteLayersCountText = "2"
                         deleteLayersTargetRow = row.id
                     },
-                    isSelected: row.id == selectedRowId
+                    isSelected: row.id == selectedRowId,
+                    collabMenu: viewModel.collabRowMenu(rowIndex: row.id)
                 )
                 .overlay(alignment: .leading) {
                     CollabRowStripe(colors: collabStripes[row.id] ?? [])
+                }
+                .overlay(alignment: .bottom) {
+                    CollabAssignedMark(assigned: collabAssigned[row.id], showName: row.layerIndex == 0 && row.nodeIndex < 0)
                 }
                 .overlay(alignment: .top) {
                     if isTopLevelRow(row), rowDropTargetId == row.id,

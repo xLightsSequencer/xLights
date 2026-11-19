@@ -21,7 +21,7 @@ namespace Collab {
 
 namespace {
 
-constexpr std::array<std::pair<MsgType, const char*>, 18> kTypeNames{ {
+constexpr std::array<std::pair<MsgType, const char*>, 19> kTypeNames{ {
     { MsgType::Hello, "Hello" },
     { MsgType::Welcome, "Welcome" },
     { MsgType::Refuse, "Refuse" },
@@ -40,6 +40,7 @@ constexpr std::array<std::pair<MsgType, const char*>, 18> kTypeNames{ {
     { MsgType::Bye, "Bye" },
     { MsgType::Roster, "Roster" },
     { MsgType::Notice, "Notice" },
+    { MsgType::Claim, "Claim" },
 } };
 
 bool TypeFromName(const std::string& s, MsgType& out) {
@@ -308,9 +309,46 @@ bool GetBool(const json& j, const char* key, bool& out) {
 json WriteRoster(const std::vector<RosterEntry>& roster) {
     json a = json::array();
     for (const auto& r : roster) {
-        a.push_back(json{ { "id", r.participant }, { "name", r.name }, { "device", r.deviceKind } });
+        json p{ { "id", r.participant }, { "name", r.name }, { "device", r.deviceKind } };
+        if (r.role == ParticipantRole::Viewer) {
+            p["role"] = "viewer";
+        }
+        if (!r.secretHash.empty()) {
+            p["sh"] = r.secretHash;
+        }
+        a.push_back(std::move(p));
     }
     return a;
+}
+
+json WriteAssignments(const std::vector<Assignment>& as) {
+    json a = json::array();
+    for (const auto& x : as) {
+        a.push_back(json{ { "e", x.element }, { "o", x.owner }, { "n", x.name } });
+    }
+    return a;
+}
+
+bool ReadAssignments(const json& j, std::vector<Assignment>& out) {
+    auto it = j.find("assign");
+    if (it == j.end()) {
+        return true;
+    }
+    if (!it->is_array() || it->size() > kMaxAssignments) {
+        return false;
+    }
+    out.clear();
+    for (const auto& a : *it) {
+        if (!a.is_object()) {
+            return false;
+        }
+        Assignment x;
+        if (!Get(a, "e", x.element) || !Get(a, "o", x.owner) || !Get(a, "n", x.name) || x.element == kNoSeqObjectId || x.name.size() > kMaxPathBytes) {
+            return false;
+        }
+        out.push_back(std::move(x));
+    }
+    return true;
 }
 
 bool ReadRoster(const json& j, std::vector<RosterEntry>& out) {
@@ -324,7 +362,14 @@ bool ReadRoster(const json& j, std::vector<RosterEntry>& out) {
             return false;
         }
         RosterEntry r;
-        if (!Get(p, "id", r.participant) || !Get(p, "name", r.name) || !Get(p, "device", r.deviceKind) || r.participant == kNoParticipant) {
+        std::string role;
+        if (!Get(p, "id", r.participant) || !Get(p, "name", r.name) || !Get(p, "device", r.deviceKind) || !Get(p, "role", role) ||
+            !Get(p, "sh", r.secretHash) || r.participant == kNoParticipant) {
+            return false;
+        }
+        if (role == "viewer") {
+            r.role = ParticipantRole::Viewer;
+        } else if (!role.empty() && role != "editor") {
             return false;
         }
         out.push_back(std::move(r));
@@ -456,6 +501,10 @@ std::string EncodeMessage(const Message& m) {
         break;
     case MsgType::Roster:
         j["people"] = WriteRoster(m.roster);
+        j["assign"] = WriteAssignments(m.assignments);
+        break;
+    case MsgType::Claim:
+        j["assign"] = WriteAssignments(m.assignments);
         break;
     }
     // Strings that aren't valid UTF-8 are replaced rather than throwing; the
@@ -587,7 +636,10 @@ std::optional<Message> DecodeMessage(std::string_view frame) {
         ok = Get(j, "rev", m.rev) && Get(j, "time", m.time) && Get(j, "lhash", m.layoutHash);
         break;
     case MsgType::Roster:
-        ok = ReadRoster(j, m.roster);
+        ok = ReadRoster(j, m.roster) && ReadAssignments(j, m.assignments);
+        break;
+    case MsgType::Claim:
+        ok = j.contains("assign") && ReadAssignments(j, m.assignments) && !m.assignments.empty();
         break;
     }
     if (!ok) {

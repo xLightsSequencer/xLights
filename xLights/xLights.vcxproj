@@ -1051,6 +1051,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\collab\CollabManifest.cpp" />
     <ClCompile Include="..\src-core\collab\CollabMessages.cpp" />
     <ClCompile Include="..\src-core\collab\CollabNet.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabRoles.cpp" />
     <ClCompile Include="..\src-core\collab\CollabSession.cpp" />
     <ClCompile Include="..\src-core\collab\CollabTransport.cpp" />
     <ClCompile Include="..\src-core\collab\CollabUidTable.cpp" />
@@ -1769,6 +1770,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\collab\CollabMessages.h" />
     <ClInclude Include="..\src-core\collab\CollabNet.h" />
     <ClInclude Include="..\src-core\collab\CollabNetWire.h" />
+    <ClInclude Include="..\src-core\collab\CollabRoles.h" />
     <ClInclude Include="..\src-core\collab\CollabSession.h" />
     <ClInclude Include="..\src-core\collab\CollabTransport.h" />
     <ClInclude Include="..\src-core\collab\CollabUidTable.h" />

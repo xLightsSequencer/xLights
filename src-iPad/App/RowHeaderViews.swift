@@ -75,6 +75,8 @@ struct TimingRowHeader: View {
     /// Timing Track" — replaces the active song-structure view's
     /// regions with one per timing mark (plus gap fillers).
     var onCreateSongRegions: (() -> Void)?
+    /// Live collaboration: "Assign to" / "Release" for this row.
+    var collabMenu: CollabRowMenu?
 
     // Active state is carried on `row.timing?.isActive` so a toggle
     // here flips the struct equality and re-runs the grid body —
@@ -295,6 +297,9 @@ struct TimingRowHeader: View {
                     showDelete = true
                 } label: { Label("Delete Timing Track", systemImage: "trash") }
             }
+            if let m = collabMenu {
+                CollabRowMenuItems(menu: m)
+            }
         }
         .alert("Rename Timing Track", isPresented: $showRename) {
             TextField("Name", text: $renameText)
@@ -469,6 +474,8 @@ struct ModelRowHeader: View {
     /// is recognisable at a glance — pairs with the height bump
     /// already applied by `SequencerGridV2View.modelHeaders`.
     var isSelected: Bool = false
+    /// Live collaboration: "Assign to" / "Release" for this row.
+    var collabMenu: CollabRowMenu?
 
     var body: some View {
         let isSubLayer = row.layerIndex > 0
@@ -884,6 +891,9 @@ struct ModelRowHeader: View {
                     Label("Find Possible Source Effects",
                           systemImage: "scope")
                 }
+            }
+            if !isNodeRow, let m = collabMenu {
+                CollabRowMenuItems(menu: m)
             }
         }
     }

@@ -16,7 +16,9 @@
 // presence for the sequencer to draw (CollabOverlay).
 
 #include <functional>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -29,6 +31,7 @@
 #include "sequencer/CollabOverlay.h"
 
 class BaseObject;
+class Element;
 class xLightsFrame;
 class wxMenu;
 class wxMenuItem;
@@ -88,6 +91,7 @@ public:
     void OnSessionsFound(const std::vector<Collab::SessionAdvert>& sessions) override;
     void OnBrowseError(const std::string& reason) override;
     void OnLog(const std::string& line) override;
+    void OnSessionNotice(const std::string& text) override;
 
     // ICollabLayout
     bool SupportsLiveLayout() override { return true; }
@@ -107,6 +111,13 @@ public:
     // user who holds it) when someone else has the object open.
     bool BeginEditorLock(const std::vector<const BaseObject*>& objects, const std::string& what, wxWindow* parent);
     void EndEditorLock();
+
+    // Row heading context menu: "Assign to" / "Release" for `element`'s row
+    // while a session runs. Returns the submenu it added (its events must
+    // reach the caller's handler too), if any. HandleRowMenu runs the item
+    // with that id (false: not one of these).
+    wxMenu* AppendRowMenu(wxMenu& menu, Element* element);
+    bool HandleRowMenu(int id);
 
     // Used by the windows.
     // group: over SharePlay rather than this network.
@@ -139,7 +150,15 @@ private:
 
     xLightsFrame* _frame;
     std::unique_ptr<Collab::CollabController> _ctl;
-    std::shared_ptr<bool> _alive = std::make_shared<bool>(true);
+    // Transports call the dispatcher from their own threads, some (Network
+    // framework handlers) after the transport is gone. They only post while
+    // this is open; the check and the post happen under its lock, and the
+    // destructor closes it under the same lock before anything is torn down.
+    struct DispatchGate {
+        std::mutex lock;
+        bool open = true;
+    };
+    std::shared_ptr<DispatchGate> _gate = std::make_shared<DispatchGate>();
     Collab::Dispatcher _dispatch;
     bool _groupNetworkSet = false;
     std::string _offerNoticed; // the SharePlay offer the notice was shown for
@@ -179,6 +198,8 @@ private:
     int _editorLockDepth = 0;
     bool _editorLockTaken = false;  // BeginLayoutLock was called for the outermost editor
     std::string _lastBanner;
+    std::map<int, std::function<void()>> _rowMenuActions;
+    std::vector<int> _rowMenuIds; // reused across menus
     std::string _codeShown; // host: the pairing code
     std::string _originalShowDir;              // client: show folder before UseShowFolder
     std::vector<std::string> _addedMediaFolders; // client: AddMediaFolder, removed at the end

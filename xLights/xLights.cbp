@@ -358,6 +358,8 @@
 		<Unit filename="../src-core/collab/CollabNet.cpp" />
 		<Unit filename="../src-core/collab/CollabNet.h" />
 		<Unit filename="../src-core/collab/CollabNetWire.h" />
+		<Unit filename="../src-core/collab/CollabRoles.cpp" />
+		<Unit filename="../src-core/collab/CollabRoles.h" />
 		<Unit filename="../src-core/collab/CollabSession.cpp" />
 		<Unit filename="../src-core/collab/CollabSession.h" />
 		<Unit filename="../src-core/collab/CollabTransport.cpp" />

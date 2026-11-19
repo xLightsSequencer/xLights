@@ -38,6 +38,12 @@
 //   else has touched the same thing since.
 // - Every commit carries a hash of the host's document; a client whose
 //   document hashes differently asks for a fresh snapshot.
+// - The host can make a participant a viewer (sees everything, changes
+//   nothing) and can assign rows to participants (only the owner may change
+//   them); editors can claim rows for themselves. Both travel in the Roster
+//   and the host rejects proposals that break them (viewer / assigned), see
+//   CollabRoles.h. A participant's claims go when it leaves or becomes a
+//   viewer, a row's when the row is deleted.
 // - If the host goes away the session ends; clients keep their copy.
 // - Joining: the host sends a manifest of the show files the session needs
 //   (CollabManifest.h). A joiner whose files all match opens the session
@@ -72,6 +78,7 @@
 #include "CollabDocHash.h"
 #include "CollabManifest.h"
 #include "CollabMessages.h"
+#include "CollabRoles.h"
 #include "CollabTransport.h"
 #include "render/SequenceCommands.h"
 
@@ -175,6 +182,7 @@ struct SessionFaults {
     bool clientSharesHostIdPrefix = false; // client: allocate ids with the host's prefix
     bool clientIgnoresDrift = false;      // client: never compare hashes, skip commits that don't apply
     bool clientSkipsLayoutUpdate = false; // client: bring memory along but keep the old session layout
+    bool hostIgnoresRoles = false;        // host: commit viewers' edits and edits to rows assigned to others
 };
 
 // A layout change the session asks the app to bring memory to.
@@ -207,7 +215,8 @@ struct SessionEvents {
     std::function<void(const CommitInfo&, const SequenceCommand& applied)> onCommit;
     // The same, with the inverse Apply returned (what the commit replaced).
     std::function<void(const CommitInfo&, const SequenceCommand& applied, const SequenceCommand& inverse)> onCommitApplied;
-    // Everyone in the session changed (host first). Both roles.
+    // Everyone in the session, their roles or the row assignments changed
+    // (host first; Assignments() has the assignments). Host and clients.
     std::function<void(const std::vector<RosterEntry>& roster)> onRoster;
     // One of this participant's proposals (or undo / redo) was not committed.
     // `by` is who changed the target, when known.
@@ -288,6 +297,20 @@ public:
     }
     // Everyone in the session as the host last listed them (host first).
     const std::vector<RosterEntry>& Roster() const { return _roster; }
+
+    // ---- Roles and assignments (CollabRoles.h) ----
+    ParticipantRole RoleOf(ParticipantId who) const { return RoleIn(_roster, who); }
+    ParticipantRole LocalRole() const { return RoleOf(_participant); }
+    // Every row assignment in force, as the host last listed them.
+    const std::vector<Assignment>& Assignments() const { return _assignments; }
+    // Assigns `element` to `owner` (kNoParticipant: releases it). The host
+    // decides at once (false: `reason` / `text` say why). A client checks it
+    // against what it knows and sends it: the host's Roster brings the
+    // result, or a Notice why not.
+    virtual bool Claim(SeqObjectId element, ParticipantId owner, std::string& reason, std::string& text) = 0;
+    // Why the host would refuse this participant's `cmd` now (viewer /
+    // assigned), as far as this participant knows.
+    EditRefusal CheckOwnEdit(const SequenceCommand& cmd);
     virtual void SetPresence(const PresenceInfo& p) = 0;
     virtual void Tick(uint64_t nowMs) = 0;
 
@@ -302,6 +325,9 @@ public:
     // A readable account of why, when there is one (a refused join).
     const std::string& EndText() const { return _endText; }
     size_t HashVerifyFailures() const { return _hashVerifyFailures; }
+    // The document changed outside the session and was put back (a local
+    // edit taken back out): hash it afresh at the next commit.
+    void ForgetHashes() { _hasher.InvalidateAll(); }
 
     // Sends the file `reference` names (as the document stores it, resolved
     // against this participant's show folder) to the other participants:
@@ -387,6 +413,7 @@ protected:
     std::map<std::string, std::string> _received;
     bool _mediaFolderAdded = false;
     std::vector<RosterEntry> _roster;
+    std::vector<Assignment> _assignments;
     OwnMeta _submitMeta; // for the proposal SubmitKind is about to number
     std::map<uint64_t, OwnMeta> _ownMeta;
 
@@ -441,6 +468,14 @@ public:
     SubmitResult CommitLayout(const nlohmann::json& delta);
     // Layout versions kept for merging proposals made against older revs.
     size_t LayoutVersionsKept() const { return _layoutAt.size(); }
+    // Makes a client a viewer or an editor again. A new viewer's row
+    // assignments are released. False for the host or an unknown id.
+    bool SetRole(ParticipantId who, ParticipantRole role);
+    // The role new joiners get (editor by default).
+    void SetJoinRole(ParticipantRole role) { _joinRole = role; }
+    ParticipantRole JoinRole() const { return _joinRole; }
+    bool Claim(SeqObjectId element, ParticipantId owner, std::string& reason, std::string& text) override;
+
     // Every reject the host has sent: reason -> count.
     const std::map<std::string, size_t>& RejectCounts() const { return _rejectCounts; }
     // The first 10000 rejects: (reason, detail).
@@ -462,6 +497,7 @@ private:
         uint64_t lastPing = 0;
         std::set<uint64_t> faultSeen; // SessionFaults::hostIgnoresClientOrder only
         bool liveLayout = false;
+        ParticipantRole role = ParticipantRole::Editor;
     };
     struct CommitRecord {
         Message msg;
@@ -503,6 +539,11 @@ private:
     Rev CommitApplied(ParticipantId author, uint64_t clientSeq, EditKind kind, Rev undoOf, const SequenceCommand& cmd, const SequenceCommand& inverse,
                       bool lenient);
     void SendRoster();
+    void SendRosterTo(PeerId peer);
+    bool ClaimAs(ParticipantId requester, SeqObjectId element, ParticipantId owner, std::string& reason, std::string& text);
+    void OnClaim(Client& c, const Message& m);
+    // Drops claims on rows that are gone (and every claim of `owner`).
+    bool PruneAssignments(ParticipantId owner = kNoParticipant);
     void SendSnapshot(Client& c);
     void SendManifest(Client& c, bool rebuild);
     void OnNeedFiles(Client& c, const Message& m);
@@ -528,6 +569,7 @@ private:
     std::deque<LayoutLogEntry> _layoutLog;
     std::map<ParticipantId, std::pair<std::string, uint64_t>> _locks; // layout lock object, order taken
     uint64_t _lockCounter = 0;
+    ParticipantRole _joinRole = ParticipantRole::Editor;
 };
 
 class CollabClient : public CollabParticipant {
@@ -554,6 +596,7 @@ public:
     // A layout edit (LayoutDelta from Layout() to memory), proposed like any
     // edit; the commit comes back through SessionEvents::onLayout.
     SubmitResult ProposeLayout(const nlohmann::json& delta);
+    bool Claim(SeqObjectId element, ParticipantId owner, std::string& reason, std::string& text) override;
     // The proposal is still waiting for the host.
     bool IsPending(uint64_t clientSeq) const { return _pending.count(clientSeq) != 0; }
     // Joining: this device's layout differs from the session's, so the

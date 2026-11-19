@@ -9758,7 +9758,8 @@ void EffectsGrid::DrawSongStructureOverlays(xlGraphicsContext* ctx) {
 }
 
 void EffectsGrid::DrawCollabOverlay(xlGraphicsContext* ctx) {
-    // Live collaboration: other participants' selections (an outline in
+    // Live collaboration: rows assigned to someone (a tint and a band in
+    // their colour), other participants' selections (an outline in
     // their colour each) and soft locks (their initials), this user's edits
     // still waiting for the host (dashed), and remote edits (a brief flash).
     CollabOverlay* o = CollabOverlay::Current();
@@ -9776,6 +9777,14 @@ void EffectsGrid::DrawCollabOverlay(xlGraphicsContext* ctx) {
         if (layer == nullptr) continue;
         float y1 = row * DEFAULT_ROW_HEADING_HEIGHT + 1;
         float y2 = (row + 1) * DEFAULT_ROW_HEADING_HEIGHT - 1;
+        auto as = o->assigned.find(ri->element->GetUid());
+        if (as != o->assigned.end()) {
+            // A row only one participant may edit: tinted in their colour,
+            // lighter when it is this user's.
+            const xlColor& c = as->second.colour;
+            fills->AddRectAsTriangles(0, y1, width, y2, xlColor(c.red, c.green, c.blue, as->second.mine ? 14 : 34));
+            fills->AddRectAsTriangles(0, y2 - 2, width, y2, xlColor(c.red, c.green, c.blue, 170));
+        }
         for (int i = 0; i < layer->GetEffectCount(); i++) {
             Effect* e = layer->GetEffect(i);
             float x1 = mTimeline->GetPositionFromTimeMS(e->GetStartTimeMS());

@@ -50,6 +50,9 @@ typedef NS_ENUM(NSInteger, XLCollabEvent) {
     // The SharePlay session on offer, or whether a FaceTime call is
     // active, changed (offeredGroupSession / groupInCall).
     XLCollabEventGroupChanged = 15,
+    // Something from the host to read: this user's role changed, or a row
+    // assignment it asked for was refused. payload: NSString.
+    XLCollabEventNotice = 16,
 };
 
 // Which network a session runs on: the local network (pairing code) or a
@@ -91,6 +94,23 @@ typedef NS_ENUM(NSInteger, XLCollabGhostKind) {
 @property (nonatomic, readonly) uint32_t colorRGB;
 @property (nonatomic, readonly) BOOL isHost;
 @property (nonatomic, readonly) BOOL isLocal;
+// Sees everything but can't change the sequence or the layout.
+@property (nonatomic, readonly) BOOL isViewer;
+// Names of the rows assigned to them.
+@property (nonatomic, readonly) NSArray<NSString*>* assignedRows;
+@end
+
+// A row only one participant may edit.
+@interface XLCollabRowAssignment : NSObject
+@property (nonatomic, readonly) NSInteger ownerId;
+@property (nonatomic, readonly) NSString* ownerName;
+@property (nonatomic, readonly) uint32_t colorRGB;
+// Assigned to this user.
+@property (nonatomic, readonly) BOOL mine;
+// "Assigned to Sam" / "Assigned to you".
+@property (nonatomic, readonly) NSString* text;
+// This user may release it (the owner or the host).
+@property (nonatomic, readonly) BOOL canRelease;
 @end
 
 @interface XLCollabAdvert : NSObject
@@ -171,6 +191,8 @@ typedef NS_ENUM(NSInteger, XLCollabGhostKind) {
 @property (nonatomic, readonly) NSDictionary<NSNumber*, NSArray<NSNumber*>*>* rowStripes;
 @property (nonatomic, readonly) NSArray<XLCollabEffectMark*>* effectMarks;
 @property (nonatomic, readonly) NSArray<XLCollabGhost*>* ghosts;
+// Display row index -> who holds that row.
+@property (nonatomic, readonly) NSDictionary<NSNumber*, XLCollabRowAssignment*>* rowAssignments;
 // Seconds until the earliest flash ends; 0 when nothing flashes.
 @property (nonatomic, readonly) double flashSecondsLeft;
 @end
@@ -285,6 +307,38 @@ typedef void (^XLCollabEventHandler)(XLCollabEvent event, id _Nullable payload);
     NS_SWIFT_NAME(softLockHolder(row:effect:));
 
 - (BOOL)putOnNewLayer:(uint64_t)rejectId NS_SWIFT_NAME(putOnNewLayer(_:));
+
+// ---- Roles and row assignments ----
+// Not a viewer (YES when not in a session).
+@property (nonatomic, readonly) BOOL canEditSequence;
+// Host: people who join from now on are viewers.
+@property (nonatomic) BOOL joinAsViewers;
+// Host: makes a participant a viewer, or an editor again. Nil on success,
+// else why not.
+- (nullable NSString*)setViewer:(BOOL)viewer forParticipant:(NSInteger)participantId
+    NS_SWIFT_NAME(setViewer(_:participant:));
+// Assigns the display row's row (its model for a submodel or strand row) to
+// a participant; the host may pick anyone who edits, others only
+// themselves. Nil when done (or sent to the host), else why not.
+- (nullable NSString*)assignRow:(NSInteger)row toParticipant:(NSInteger)participantId
+    NS_SWIFT_NAME(assignRow(_:to:));
+// Releases the claim covering the display row. Nil when done, else why not.
+- (nullable NSString*)releaseRow:(NSInteger)row NS_SWIFT_NAME(releaseRow(_:));
+- (nullable XLCollabRowAssignment*)assignmentForRow:(NSInteger)row NS_SWIFT_NAME(assignment(forRow:));
+// Why this user can't edit the display row now ("Assigned to Sam"), or nil.
+- (nullable NSString*)editRefusalForRow:(NSInteger)row NS_SWIFT_NAME(editRefusal(forRow:));
+
+// Wording both apps use (Collab::Labels).
+@property (class, nonatomic, readonly) NSString* labelEditor;
+@property (class, nonatomic, readonly) NSString* labelViewer;
+@property (class, nonatomic, readonly) NSString* labelViewOnly;
+@property (class, nonatomic, readonly) NSString* labelMakeViewer;
+@property (class, nonatomic, readonly) NSString* labelMakeEditor;
+@property (class, nonatomic, readonly) NSString* labelJoinAsViewers;
+@property (class, nonatomic, readonly) NSString* labelAssignTo;
+@property (class, nonatomic, readonly) NSString* labelAssignToMe;
+@property (class, nonatomic, readonly) NSString* labelRelease;
+@property (class, nonatomic, readonly) NSString* labelRows;
 
 // Client, after the session: keep the session copy of the host's show and
 // return its folder (nil when the join didn't use one).

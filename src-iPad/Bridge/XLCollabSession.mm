@@ -2,7 +2,9 @@
 #import "XLSequenceDocument.h"
 
 #include "iPadRenderContext.h"
+#include "collab/CollabCommandInfo.h"
 #include "collab/CollabController.h"
+#include "collab/CollabManifest.h"
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
 #include "render/Element.h"
@@ -93,8 +95,21 @@ constexpr uint64_t kGroupPollMs = 1000;
 @property (nonatomic, readwrite) uint32_t colorRGB;
 @property (nonatomic, readwrite) BOOL isHost;
 @property (nonatomic, readwrite) BOOL isLocal;
+@property (nonatomic, readwrite) BOOL isViewer;
+@property (nonatomic, readwrite) NSArray<NSString*>* assignedRows;
 @end
 @implementation XLCollabParticipant
+@end
+
+@interface XLCollabRowAssignment ()
+@property (nonatomic, readwrite) NSInteger ownerId;
+@property (nonatomic, readwrite) NSString* ownerName;
+@property (nonatomic, readwrite) uint32_t colorRGB;
+@property (nonatomic, readwrite) BOOL mine;
+@property (nonatomic, readwrite) NSString* text;
+@property (nonatomic, readwrite) BOOL canRelease;
+@end
+@implementation XLCollabRowAssignment
 @end
 
 @interface XLCollabAdvert ()
@@ -177,6 +192,7 @@ constexpr uint64_t kGroupPollMs = 1000;
 @property (nonatomic, readwrite) NSDictionary<NSNumber*, NSArray<NSNumber*>*>* rowStripes;
 @property (nonatomic, readwrite) NSArray<XLCollabEffectMark*>* effectMarks;
 @property (nonatomic, readwrite) NSArray<XLCollabGhost*>* ghosts;
+@property (nonatomic, readwrite) NSDictionary<NSNumber*, XLCollabRowAssignment*>* rowAssignments;
 @property (nonatomic, readwrite) double flashSecondsLeft;
 @end
 @implementation XLCollabOverlay
@@ -221,6 +237,7 @@ constexpr uint64_t kGroupPollMs = 1000;
 - (void)syncSessionFlags;
 - (BOOL)holdsLayoutLock;
 - (void)checkGroup;
+- (nullable XLCollabRowAssignment*)wrapAssignmentOf:(SeqObjectId)element;
 @end
 
 // ---------------------------------------------------------------------------
@@ -340,6 +357,7 @@ public:
         [_owner deliver:XLCollabEventBrowseError payload:NS(reason)];
     }
     void OnLog(const std::string& line) override { spdlog::info("Collaboration: {}", line); }
+    void OnSessionNotice(const std::string& text) override { [_owner deliver:XLCollabEventNotice payload:NS(text)]; }
 
     // ---- Layout ----
     bool SupportsLiveLayout() override { return true; }
@@ -549,6 +567,8 @@ private:
         o.colorRGB = PackRGB(p.colour);
         o.isHost = p.isHost;
         o.isLocal = p.isLocal;
+        o.isViewer = p.role == Collab::ParticipantRole::Viewer;
+        o.assignedRows = NSStrings(p.assignedRows);
         [out addObject:o];
     }
     return out;
@@ -773,10 +793,12 @@ static XLCollabAdvert* WrapAdvert(const Collab::SessionAdvert& s) {
     NSMutableDictionary* stripes = [NSMutableDictionary dictionary];
     NSMutableArray* marks = [NSMutableArray array];
     NSMutableArray* ghosts = [NSMutableArray array];
+    NSMutableDictionary* assigned = [NSMutableDictionary dictionary];
     o.bands = bands;
     o.rowStripes = stripes;
     o.effectMarks = marks;
     o.ghosts = ghosts;
+    o.rowAssignments = assigned;
     o.flashSecondsLeft = 0;
     if (!_app->Ctx()->IsSequenceLoaded()) return o;
 
@@ -819,9 +841,13 @@ static XLCollabAdvert* WrapAdvert(const Collab::SessionAdvert& s) {
     const int rows = se.GetRowInformationSize();
     double flashLeft = 0;
     const bool anyEffects = !selected.empty() || !softLocked.empty() || !_flashUntil.empty();
+    const bool anyAssigned = inSession && !_controller->Assignments().empty();
     for (int r = 0; r < rows; ++r) {
         auto* info = se.GetRowInformation((size_t)r);
         if (!info || !info->element) continue;
+        if (anyAssigned) {
+            if (XLCollabRowAssignment* a = [self wrapAssignmentOf:info->element->GetUid()]) assigned[@(r)] = a;
+        }
         auto f = focused.find(info->element->GetUid());
         if (f != focused.end()) {
             NSMutableArray* cols = [NSMutableArray array];
@@ -909,6 +935,91 @@ static XLCollabAdvert* WrapAdvert(const Collab::SessionAdvert& s) {
 - (BOOL)putOnNewLayer:(uint64_t)rejectId {
     return _controller->PutOnNewLayer(rejectId) ? YES : NO;
 }
+
+// MARK: - Roles and row assignments
+
+- (BOOL)canEditSequence { return _controller->CanEditSequence() ? YES : NO; }
+
+- (BOOL)joinAsViewers { return _controller->JoinRole() == Collab::ParticipantRole::Viewer ? YES : NO; }
+
+- (void)setJoinAsViewers:(BOOL)viewers {
+    _controller->SetJoinRole(viewers ? Collab::ParticipantRole::Viewer : Collab::ParticipantRole::Editor);
+}
+
+- (nullable NSString*)setViewer:(BOOL)viewer forParticipant:(NSInteger)participantId {
+    std::string error;
+    if (!_controller->SetRole((Collab::ParticipantId)participantId, viewer ? Collab::ParticipantRole::Viewer : Collab::ParticipantRole::Editor, error)) {
+        return NS(error);
+    }
+    return nil;
+}
+
+- (Element*)elementForRow:(NSInteger)row {
+    if (!_app->Ctx()->IsSequenceLoaded()) return nullptr;
+    auto& se = _app->Ctx()->GetSequenceElements();
+    if (row < 0 || row >= se.GetRowInformationSize()) return nullptr;
+    auto* info = se.GetRowInformation((size_t)row);
+    return info ? info->element : nullptr;
+}
+
+- (nullable NSString*)assignRow:(NSInteger)row toParticipant:(NSInteger)participantId {
+    Element* el = [self elementForRow:row];
+    if (!el) return @"That row is no longer in the sequence";
+    const SeqObjectId top = Collab::TopLevelOf(_app->Ctx()->GetSequenceElements(), el->GetUid());
+    std::string error;
+    if (!_controller->Assign(top, (Collab::ParticipantId)participantId, error)) return NS(error);
+    return nil;
+}
+
+- (nullable NSString*)releaseRow:(NSInteger)row {
+    Element* el = [self elementForRow:row];
+    if (!el) return @"That row is no longer in the sequence";
+    auto a = _controller->AssignmentOf(el->GetUid());
+    if (!a) return nil;
+    std::string error;
+    if (!_controller->Release(a->element, error)) return NS(error);
+    return nil;
+}
+
+- (nullable XLCollabRowAssignment*)wrapAssignmentOf:(SeqObjectId)element {
+    auto a = _controller->AssignmentOf(element);
+    if (!a) return nil;
+    const Collab::ParticipantId me = _controller->LocalParticipant();
+    auto who = _controller->FindParticipant(a->owner);
+    XLCollabRowAssignment* o = [XLCollabRowAssignment new];
+    o.ownerId = a->owner;
+    o.ownerName = NS(who ? who->name : a->name);
+    o.colorRGB = PackRGB(Collab::ParticipantColour(a->owner));
+    o.mine = a->owner == me;
+    o.text = NS(Collab::AssignedToText(who ? who->name : a->name, a->owner == me));
+    o.canRelease = (a->owner == me || _controller->GetRole() == Collab::CollabController::Role::Host) && _controller->CanEditSequence();
+    return o;
+}
+
+- (nullable XLCollabRowAssignment*)assignmentForRow:(NSInteger)row {
+    Element* el = [self elementForRow:row];
+    if (!el || !_controller->InSession()) return nil;
+    return [self wrapAssignmentOf:el->GetUid()];
+}
+
+- (nullable NSString*)editRefusalForRow:(NSInteger)row {
+    Element* el = [self elementForRow:row];
+    if (!el) return nil;
+    std::string why;
+    if (_controller->CanEdit(el->GetUid(), why)) return nil;
+    return NS(why);
+}
+
++ (NSString*)labelEditor { return NS(Collab::Labels::Editor); }
++ (NSString*)labelViewer { return NS(Collab::Labels::Viewer); }
++ (NSString*)labelViewOnly { return NS(Collab::Labels::ViewOnly); }
++ (NSString*)labelMakeViewer { return NS(Collab::Labels::MakeViewer); }
++ (NSString*)labelMakeEditor { return NS(Collab::Labels::MakeEditor); }
++ (NSString*)labelJoinAsViewers { return NS(Collab::Labels::JoinAsViewers); }
++ (NSString*)labelAssignTo { return NS(Collab::Labels::AssignTo); }
++ (NSString*)labelAssignToMe { return NS(Collab::Labels::AssignToMe); }
++ (NSString*)labelRelease { return NS(Collab::Labels::Release); }
++ (NSString*)labelRows { return NS(Collab::Labels::AssignedRows); }
 
 - (nullable NSString*)keepSessionCopy {
     std::string folder;

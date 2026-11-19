@@ -36,6 +36,15 @@ public:
     virtual void OnCommandApplied(const SequenceCommand& applied, const SequenceCommand& inverse) = 0;
 };
 
+// Decides whether an edit may be made at all (a live session refuses a
+// viewer's edits and edits to rows assigned to someone else).
+class ICommandGate {
+public:
+    virtual ~ICommandGate() = default;
+    // False, with readable text in `why`, to refuse `cmd` before it applies.
+    virtual bool AllowCommand(const SequenceCommand& cmd, std::string& why) = 0;
+};
+
 // The single entry point for edits to a sequence's effects and layers:
 // validates (strict), applies, records the inverse for undo and tells the
 // observers.
@@ -50,6 +59,15 @@ public:
 //
 // Undo and redo (UndoManager) apply recorded inverses directly and do not
 // notify observers.
+//
+// With a gate set, Execute, ExecuteInStep and the edit-site helpers that
+// return bool ask it first and change nothing when it refuses
+// (CommandStatus::Refused). AddEffect and InsertLayer don't ask: their
+// callers expect the object they make, so a refused add applies and an
+// observer that enforces the gate takes it back out (the live session does,
+// when it sends the edit). Nor can edits that are already made (EditEffect's
+// mutation runs after the check; RecordExternal, RecordAppliedEdits and
+// captures report changes already in the document).
 class CommandExecutor {
 public:
     CommandExecutor(SequenceElements& seq, UndoManager& undo);
@@ -107,6 +125,15 @@ public:
 
     void AddObserver(ICommandObserver* observer);
     void RemoveObserver(ICommandObserver* observer);
+    // Told of each command as it is recorded, at once, even inside a batch
+    // or preview (where observers hear of it later, or only of the net
+    // change). A command may be reported more than once.
+    void AddRecordListener(ICommandObserver* listener);
+    void RemoveRecordListener(ICommandObserver* listener);
+    void SetGate(ICommandGate* gate) { _gate = gate; }
+    ICommandGate* GetGate() const { return _gate; }
+    // True when there is no gate or it lets `cmd` apply.
+    bool GateAllows(const SequenceCommand& cmd, std::string* why = nullptr);
 
     // ---- Edit-site API ---------------------------------------------------
     // For existing edit code that groups its own undo steps
@@ -120,7 +147,9 @@ public:
     // Objects that aren't part of this sequence are changed directly, as
     // before, with no undo or notification.
 
-    CommandResult ExecuteInStep(std::unique_ptr<SequenceCommand> cmd, bool recordUndo = true);
+    CommandResult ExecuteInStep(std::unique_ptr<SequenceCommand> cmd, bool recordUndo = true) {
+        return ExecuteInStep(std::move(cmd), recordUndo, true);
+    }
 
     // Records a change the caller already made directly (`applied`, undone
     // by `inverse`) exactly as ExecuteInStep would have recorded it.
@@ -178,6 +207,8 @@ private:
     static bool CapturedKind(const SequenceCommand& cmd);
 
     void Notify(const SequenceCommand& applied, const SequenceCommand& inverse);
+    void NotifyRecorded(const SequenceCommand& applied, const SequenceCommand& inverse);
+    CommandResult ExecuteInStep(std::unique_ptr<SequenceCommand> cmd, bool recordUndo, bool gated);
     // Records an already-applied command: inverse into the current undo step
     // (or the open batch), then observers. While capturing, commands the
     // capture records itself are dropped, and anything added directly is
@@ -200,6 +231,8 @@ private:
     SequenceElements& _seq;
     UndoManager& _undo;
     std::vector<ICommandObserver*> _observers;
+    std::vector<ICommandObserver*> _recordListeners;
+    ICommandGate* _gate = nullptr;
 
     int _batchDepth = 0;
     SequenceEditCapture* _capture = nullptr; // the outermost open capture

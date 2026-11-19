@@ -268,6 +268,13 @@ xlColor ParticipantColour(ParticipantId id) {
     return kPalette[(id - 1) % kPalette.size()];
 }
 
+std::string AssignedToText(const std::string& ownerName, bool mine) {
+    if (mine) {
+        return "Assigned to you";
+    }
+    return "Assigned to " + (ownerName.empty() ? std::string("someone else") : ownerName);
+}
+
 RejectText DescribeReject(const std::string& reason, EditKind kind, const std::string& byName) {
     const std::string who = byName.empty() ? std::string("someone else") : byName;
     std::string prefix;
@@ -292,8 +299,14 @@ RejectText DescribeReject(const std::string& reason, EditKind kind, const std::s
         t.text = who + " changed that effect's type first, so the change wasn't made";
     } else if (reason == Reason::Locked) {
         t.text = prefix + (prefix.empty() ? "That effect is locked" : "that effect is locked");
+    } else if (reason == Reason::Viewer) {
+        t.text = prefix + (prefix.empty() ? "You're a viewer in this session, so you can't make changes" : "you're a viewer in this session");
+    } else if (reason == Reason::Assigned) {
+        t.text = prefix + (prefix.empty() ? "That row is assigned to " : "that row is assigned to ") + who;
     } else if (reason == Reason::Invalid) {
         t.text = prefix + (prefix.empty() ? "That change conflicts with someone else's edit" : "it conflicts with someone else's edit");
+    } else if (reason == Reason::TooLarge) {
+        t.text = prefix + (prefix.empty() ? "That change is too large to send to the host" : "it is too large to send to the host");
     } else if (reason == "not_active") {
         t.text = "You're not connected to the session";
     } else if (reason == "nothing_to_undo") {
@@ -629,6 +642,7 @@ SessionEvents CollabController::MakeEvents() {
     ev.onReject = [this](uint64_t seq, EditKind kind, const std::string& reason, ParticipantId by) { OnReject(seq, kind, reason, by); };
     ev.onEnded = [this](const std::string& reason) { SessionEnded(reason); };
     ev.onResync = [this] {
+        _indexDirty = true;
         _submitted.clear();
         _reselect.clear();
         SequenceChange c;
@@ -650,6 +664,7 @@ SessionEvents CollabController::MakeEvents() {
     };
     ev.onRoster = [this](const std::vector<RosterEntry>& roster) {
         _roster = roster;
+        OnRosterChanged();
         for (auto it = _presence.begin(); it != _presence.end();) {
             bool present = std::any_of(roster.begin(), roster.end(), [&](const RosterEntry& r) { return r.participant == it->first; });
             if (present) {
@@ -689,8 +704,10 @@ SessionEvents CollabController::MakeEvents() {
         if (reason == Reason::LockTaken) {
             _lockLost = true;
             Post([this] { _app.OnLayoutPresenceChanged(); });
+            Post([this, text] { _app.OnLayoutRejected(text); });
+            return;
         }
-        Post([this, text] { _app.OnLayoutRejected(text); });
+        Post([this, text] { _app.OnSessionNotice(text); });
     };
     return ev;
 }
@@ -849,7 +866,9 @@ void CollabController::Attach() {
     }
     _attached = &_app.Sequence();
     _attached->GetCommandExecutor().AddObserver(this);
+    _attached->GetCommandExecutor().SetGate(this);
     _attached->get_undo_mgr().SetRedirect(this);
+    _indexDirty = true;
     _haveLastFlush = false;
     Post([this] { _app.OnUndoStateChanged(); });
 }
@@ -860,6 +879,9 @@ void CollabController::Detach() {
         return;
     }
     _attached->GetCommandExecutor().RemoveObserver(this);
+    if (_attached->GetCommandExecutor().GetGate() == this) {
+        _attached->GetCommandExecutor().SetGate(nullptr);
+    }
     _attached->get_undo_mgr().SetRedirect(nullptr);
     _attached = nullptr;
     _haveLastFlush = false;
@@ -900,9 +922,13 @@ void CollabController::Teardown() {
     _joinReport.reset();
     _endPending = false;
     _everActive = false;
+    _localRole = ParticipantRole::Editor;
+    _indexDirty = true;
+    _lastRefusal.clear();
     ResetLayoutState();
     if (_locked) {
         _locked = false;
+        _lockReason.clear();
         _app.SetCollaborationLock(false, "");
     }
     if (_seqSettingsLocked) {
@@ -1080,6 +1106,7 @@ bool CollabController::StartJoining(CollabNetFactory& net, Network network, cons
         }
     };
     _locked = true;
+    _lockReason = LayoutLock::DEFAULT_REASON;
     {
         HookCall h(*this);
         _app.SetCollaborationLock(true, LayoutLock::DEFAULT_REASON);
@@ -1160,8 +1187,10 @@ void CollabController::FinishEnd() {
     _submitted.clear();
     _reselect.clear();
     _presence.clear();
+    _localRole = ParticipantRole::Editor;
     if (_locked) {
         _locked = false;
+        _lockReason.clear();
         Post([this] { _app.SetCollaborationLock(false, ""); });
     }
     if (_seqSettingsLocked) {
@@ -1344,6 +1373,14 @@ void CollabController::Flush() {
     unsigned int step = _attached ? _attached->get_undo_mgr().GetStepSerial() : 0;
     uint64_t join = (_haveLastFlush && step == _lastFlushStep) ? _lastFlushSeq : 0;
     _lastFlushStep = step;
+    // What the executor could not refuse before it applied (adds, captured
+    // edits) comes back out here.
+    if (EditRefusal refusal = LocalRefusal(*applied); refusal.Refused()) {
+        _haveLastFlush = false;
+        TakeBack(std::move(applied), std::move(inverse), refusal);
+        Post([this] { _app.OnUndoStateChanged(); });
+        return;
+    }
     if (_host != nullptr) {
         FlushHost(std::move(applied), std::move(inverse), join);
     } else {
@@ -1427,6 +1464,7 @@ void CollabController::FlushClient(std::unique_ptr<SequenceCommand> applied, std
 }
 
 void CollabController::OnCommitApplied(const CommitInfo& info, const SequenceCommand& applied, const SequenceCommand& inverse) {
+    _indexDirty = true;
     if (_inCommitLocal) {
         return; // the host's own edit: already in the document and on screen
     }
@@ -1507,7 +1545,7 @@ bool CollabController::PutOnNewLayer(uint64_t rejectId) {
     }
     Entry en(*this);
     auto it = _rejected.find(rejectId);
-    if (it == _rejected.end() || !_session || !_session->IsActive()) {
+    if (it == _rejected.end() || !_session || !_session->IsActive() || LocalRole() == ParticipantRole::Viewer) {
         return false;
     }
     Flush();
@@ -1621,6 +1659,10 @@ bool CollabController::Undo() {
     if (!_session || !_session->IsActive()) {
         return false;
     }
+    if (LocalRole() == ParticipantRole::Viewer) {
+        TellRefused(Reason::Viewer, kNoParticipant, EditKind::Undo);
+        return false;
+    }
     _haveLastFlush = false;
     const SequenceCommand* next = _session->NextUndoCommand(false);
     bool stop = _host != nullptr && next != nullptr && UndoManager::CommandNeedsRenderStopped(*next);
@@ -1642,6 +1684,10 @@ bool CollabController::Redo() {
     if (!_session || !_session->IsActive()) {
         return false;
     }
+    if (LocalRole() == ParticipantRole::Viewer) {
+        TellRefused(Reason::Viewer, kNoParticipant, EditKind::Redo);
+        return false;
+    }
     _haveLastFlush = false;
     const SequenceCommand* next = _session->NextUndoCommand(true);
     bool stop = _host != nullptr && next != nullptr && UndoManager::CommandNeedsRenderStopped(*next);
@@ -1655,11 +1701,11 @@ bool CollabController::Redo() {
 }
 
 bool CollabController::CanUndo() const {
-    return _session && _session->IsActive() && (_session->CanUndo() || !_local.empty());
+    return _session && _session->IsActive() && LocalRole() != ParticipantRole::Viewer && (_session->CanUndo() || !_local.empty());
 }
 
 bool CollabController::CanRedo() const {
-    return _session && _session->IsActive() && _local.empty() && _session->CanRedo();
+    return _session && _session->IsActive() && LocalRole() != ParticipantRole::Viewer && _local.empty() && _session->CanRedo();
 }
 
 std::string CollabController::UndoLabel() const {
@@ -1699,6 +1745,13 @@ std::vector<Participant> CollabController::Participants() const {
         p.colour = ParticipantColour(r.participant);
         p.isHost = r.participant == kHostParticipant;
         p.isLocal = r.participant == me;
+        p.role = r.participant == kHostParticipant ? ParticipantRole::Editor : r.role;
+        for (const auto& a : Assignments()) {
+            if (a.owner == r.participant) {
+                const Element* el = _app.HasSequence() ? _app.Sequence().GetElementFromUid(a.element) : nullptr;
+                p.assignedRows.push_back(el != nullptr ? el->GetFullName() : a.name);
+            }
+        }
         out.push_back(std::move(p));
     }
     return out;
@@ -1878,6 +1931,7 @@ namespace Collab {
 
 namespace {
 const char* const kSequenceSettingsReason = "Sequence settings are locked during a collaboration session";
+const char* const kViewerLayoutReason = "You're a viewer in this session, so the layout is read-only";
 }
 
 void CollabController::ResetLayoutState() {
@@ -1896,12 +1950,15 @@ void CollabController::ResetLayoutState() {
 // In a session the layout is locked unless it is edited live; then only the
 // sequence settings are.
 void CollabController::SetLocks() {
-    bool layout = !_liveLayout;
+    bool viewer = _session && _state != State::Ended && LocalRole() == ParticipantRole::Viewer;
+    bool layout = !_liveLayout || viewer;
     bool settings = _liveLayout;
+    std::string reason = !layout ? std::string() : viewer ? std::string(kViewerLayoutReason) : std::string(LayoutLock::DEFAULT_REASON);
     HookCall h(*this);
-    if (_locked != layout) {
+    if (_locked != layout || _lockReason != reason) {
         _locked = layout;
-        _app.SetCollaborationLock(layout, layout ? std::string(LayoutLock::DEFAULT_REASON) : std::string());
+        _lockReason = reason;
+        _app.SetCollaborationLock(layout, reason);
     }
     if (_seqSettingsLocked != settings) {
         _seqSettingsLocked = settings;
@@ -1966,7 +2023,26 @@ void CollabController::CheckLayout(bool force) {
         _layoutDirty = false;
         return;
     }
+    if (_client != nullptr && LocalRole() == ParticipantRole::Viewer) {
+        // A viewer's layout is locked; whatever changed it anyway goes back.
+        _layoutDirty = false;
+        _layoutRestore = _session->Layout();
+        TryRestoreLayout();
+        Post([this] { _app.OnLayoutRejected(kViewerLayoutReason); });
+        return;
+    }
     if (_host != nullptr) {
+        ParticipantId owner = kNoParticipant;
+        std::string row = LayoutTakesAssignedRow(_app.Sequence(), _host->Assignments(), kHostParticipant, _session->Layout().rgbEffects, mem.rgbEffects, &owner);
+        if (!row.empty()) {
+            // Taken back here, as the host refuses anyone else's.
+            _layoutDirty = false;
+            _layoutRestore = _session->Layout();
+            TryRestoreLayout();
+            std::string text = row + " is assigned to " + NameOf(owner) + ", so it can't be deleted or renamed";
+            Post([this, text] { _app.OnLayoutRejected(text); });
+            return;
+        }
         SubmitResult r = _host->CommitLayout(delta);
         if (r.ok) {
             _layoutDirty = false;
@@ -1992,9 +2068,21 @@ bool CollabController::BringMemoryTo(const LayoutFiles& target, const LayoutFile
         if (!_app.SerializeLayout(mem)) {
             return false;
         }
-        if (!LayoutDelta::Diff(mem, target).is_null() && !_app.ApplyLayout(mem, target, applied)) {
-            return false;
+        if (!LayoutDelta::Diff(mem, target).is_null()) {
+            // A viewer's layout is locked against its own edits, not the session's.
+            bool relock = _locked && _liveLayout;
+            if (relock) {
+                _app.SetCollaborationLock(false, "");
+            }
+            bool ok = _app.ApplyLayout(mem, target, applied);
+            if (relock) {
+                _app.SetCollaborationLock(true, _lockReason);
+            }
+            if (!ok) {
+                return false;
+            }
         }
+        _indexDirty = true;
         _layoutGen = _app.LayoutGeneration();
         _layoutGenKnown = true;
     }
@@ -2166,6 +2254,10 @@ void CollabController::EndLayoutLock() {
 }
 
 bool CollabController::LayoutObjectReadOnly(const std::string& object, std::string& why) const {
+    if (_liveLayout && _session && _state == State::Active && LocalRole() == ParticipantRole::Viewer) {
+        why = kViewerLayoutReason;
+        return true;
+    }
     ParticipantId holder = LayoutLockHolder(object);
     if (holder == kNoParticipant) {
         return false;
@@ -2183,3 +2275,211 @@ bool CollabController::LayoutObjectReadOnly(const std::string& object, std::stri
 
 } // namespace Collab
 
+
+
+// ---------------------------------------------------------------------------
+// Roles and row assignments
+// ---------------------------------------------------------------------------
+
+namespace Collab {
+
+ParticipantRole CollabController::LocalRole() const {
+    if (!_session || _state == State::Ended || _state == State::Idle) {
+        return ParticipantRole::Editor;
+    }
+    return _session->LocalRole();
+}
+
+ParticipantRole CollabController::RoleOf(ParticipantId who) const {
+    return RoleIn(_roster, who);
+}
+
+bool CollabController::CanEditSequence() const {
+    return LocalRole() != ParticipantRole::Viewer;
+}
+
+bool CollabController::SetRole(ParticipantId who, ParticipantRole role, std::string& error) {
+    Entry en(*this);
+    if (_host == nullptr || _state != State::Active) {
+        error = "Only the host can change someone's role.";
+        return false;
+    }
+    if (who == kHostParticipant) {
+        error = "The host is always an editor.";
+        return false;
+    }
+    if (!_host->SetRole(who, role)) {
+        error = "That person is no longer in the session.";
+        return false;
+    }
+    return true;
+}
+
+void CollabController::SetJoinRole(ParticipantRole role) {
+    if (_host != nullptr) {
+        _host->SetJoinRole(role);
+    }
+}
+
+ParticipantRole CollabController::JoinRole() const {
+    return _host != nullptr ? _host->JoinRole() : ParticipantRole::Editor;
+}
+
+bool CollabController::Assign(SeqObjectId element, ParticipantId owner, std::string& error) {
+    if (Busy()) {
+        error = "Live collaboration is busy; try again in a moment.";
+        return false;
+    }
+    Entry en(*this);
+    if (!_session || !_session->IsActive() || _state != State::Active) {
+        error = DescribeReject("not_active", EditKind::Edit, "").text;
+        return false;
+    }
+    std::string reason;
+    std::string text;
+    if (!_session->Claim(element, owner, reason, text)) {
+        error = text.empty() ? DescribeReject(reason, EditKind::Edit, "").text : text;
+        return false;
+    }
+    return true;
+}
+
+bool CollabController::Release(SeqObjectId element, std::string& error) {
+    return Assign(element, kNoParticipant, error);
+}
+
+const std::vector<Assignment>& CollabController::Assignments() const {
+    static const std::vector<Assignment> none;
+    if (!_session || _state == State::Ended || _state == State::Idle) {
+        return none;
+    }
+    return _session->Assignments();
+}
+
+const AssignmentIndex& CollabController::Index() const {
+    const SequenceElements* seq = _app.HasSequence() ? &_app.Sequence() : nullptr;
+    if (_indexDirty || seq != _indexSeq) {
+        _indexDirty = false;
+        _indexSeq = seq;
+        if (seq != nullptr) {
+            _index.Build(*seq, Assignments());
+        } else {
+            _index = AssignmentIndex();
+        }
+    }
+    return _index;
+}
+
+std::optional<Assignment> CollabController::AssignmentOf(SeqObjectId element) const {
+    if (Assignments().empty() || !_app.HasSequence()) {
+        return std::nullopt;
+    }
+    const Assignment* a = Index().Find(_app.Sequence(), element);
+    if (a == nullptr) {
+        return std::nullopt;
+    }
+    return *a;
+}
+
+bool CollabController::CanEdit(SeqObjectId element, std::string& why) const {
+    if (!_session || _state != State::Active) {
+        return true;
+    }
+    if (LocalRole() == ParticipantRole::Viewer) {
+        why = "You're a viewer in this session";
+        return false;
+    }
+    auto a = AssignmentOf(element);
+    if (a && a->owner != LocalParticipant()) {
+        why = AssignedToText(NameOf(a->owner), false);
+        return false;
+    }
+    return true;
+}
+
+EditRefusal CollabController::LocalRefusal(const SequenceCommand& cmd) const {
+    if (!_session || !_session->IsActive() || !_app.HasSequence()) {
+        return {};
+    }
+    return CheckEdit(_app.Sequence(), _session->Roster(), Index(), LocalParticipant(), cmd);
+}
+
+bool CollabController::AllowCommand(const SequenceCommand& cmd, std::string& why) {
+    if (_applyDepth > 0 || _state != State::Active) {
+        return true;
+    }
+    EditRefusal r = LocalRefusal(cmd);
+    if (!r.Refused()) {
+        return true;
+    }
+    why = DescribeReject(r.reason, EditKind::Edit, r.owner != kNoParticipant ? NameOf(r.owner) : "").text;
+    TellRefused(r.reason, r.owner, EditKind::Edit);
+    return false;
+}
+
+// Called from inside the app's edit code (the executor's gate): the notice
+// goes out on a later dispatcher turn, and a drag refused at every step
+// says so once.
+void CollabController::TellRefused(const std::string& reason, ParticipantId owner, EditKind kind) {
+    RejectNotice n;
+    n.kind = kind;
+    n.reason = reason;
+    n.by = owner;
+    n.text = DescribeReject(reason, kind, owner != kNoParticipant ? NameOf(owner) : "").text;
+    if (n.text == _lastRefusal && _now - _lastRefusalAt < 2000) {
+        return;
+    }
+    _lastRefusal = n.text;
+    _lastRefusalAt = _now;
+    if (!_dispatch) {
+        Post([this, n] { _app.OnRejected(n); });
+        return;
+    }
+    std::weak_ptr<bool> alive = _alive;
+    _dispatch([this, alive, n] {
+        if (alive.expired()) {
+            return;
+        }
+        Entry en(*this);
+        Post([this, n] { _app.OnRejected(n); });
+    });
+}
+
+void CollabController::TakeBack(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, const EditRefusal& refusal) {
+    SequenceElements& seq = _app.Sequence();
+    SequenceChange change = Summarize(seq, *applied, *inverse);
+    {
+        SessionApply a(*this, UndoManager::CommandNeedsRenderStopped(*inverse));
+        CommandResult rr;
+        if (!inverse->Apply(seq, ApplyMode::Lenient, &rr)) {
+            spdlog::warn("Collab: a refused local edit could not be taken back ({})", rr.message);
+            if (_client != nullptr) {
+                _client->RequestResync("refused local edit could not be taken back");
+            }
+        }
+    }
+    _session->ForgetHashes();
+    _indexDirty = true;
+    change.cause = SequenceChange::Cause::OwnEditRejected;
+    change.author = LocalParticipant();
+    Post([this, change] { _app.OnSequenceChanged(change); });
+    TellRefused(refusal.reason, refusal.owner, EditKind::Edit);
+}
+
+void CollabController::OnRosterChanged() {
+    _indexDirty = true;
+    ParticipantRole r = LocalRole();
+    if (r == _localRole) {
+        return;
+    }
+    _localRole = r;
+    Post([this] {
+        if (_session && _state != State::Ended && _state != State::Idle) {
+            SetLocks();
+        }
+    });
+    Post([this] { _app.OnUndoStateChanged(); });
+    Post([this] { _app.OnSessionStateChanged(); });
+}
+
+} // namespace Collab

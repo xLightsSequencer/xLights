@@ -1371,25 +1371,12 @@ void ForEachElementAndRow(const SequenceElements& seq, const std::function<void(
 }
 } // namespace
 
-NewElementsRecorder::NewElementsRecorder(SequenceElements& seq, std::string label, bool recordUndo) :
-    _seq(seq), _label(std::move(label)), _recordUndo(recordUndo),
-    // An open SequenceEditCapture records new elements itself.
-    _passive(Active(seq) != nullptr || seq.GetCommandExecutor().IsCapturing()), _outer(t_recorder) {
-    if (_passive) {
-        return;
-    }
-    ForEachElementAndRow(_seq, [this](Element* el) { _before[el->GetUid()] = el->getChangeCount(); });
-    t_recorder = this;
-    // Anything executed as a command inside the scope joins the same step.
-    _seq.GetCommandExecutor().BeginBatch(_label);
-    _scope.emplace();
-}
-
 #ifndef NDEBUG
 namespace {
-// The top-level rows the commands of one batch changed, so the recorder can
-// tell an existing row changed by a command (recorded) from one changed
-// directly (not recorded).
+// The rows the commands recorded in a NewElementsRecorder's scope changed,
+// so it can tell an existing row changed by a command (recorded) from one
+// changed directly (not recorded). It listens as commands are recorded, not
+// for the batch notification, which an enclosing batch or preview holds back.
 class TouchedRows : public ICommandObserver {
 public:
     explicit TouchedRows(const SequenceElements& seq) : _seq(seq) {}
@@ -1401,12 +1388,10 @@ public:
 
 private:
     void Row(SeqObjectId uid) {
-        Element* e = _seq.GetElementFromUid(uid);
-        if (auto* sub = dynamic_cast<SubModelElement*>(e)) {
-            e = sub->GetModelElement();
-        }
-        if (e != nullptr) {
-            rows.insert(e->GetUid());
+        rows.insert(uid);
+        // A submodel or strand row's edits move its model row's change count.
+        if (auto* sub = dynamic_cast<SubModelElement*>(_seq.GetElementFromUid(uid))) {
+            rows.insert(sub->GetModelElement()->GetUid());
         }
     }
     void Note(const SequenceCommand& cmd) {
@@ -1440,6 +1425,24 @@ private:
 } // namespace
 #endif
 
+NewElementsRecorder::NewElementsRecorder(SequenceElements& seq, std::string label, bool recordUndo) :
+    _seq(seq), _label(std::move(label)), _recordUndo(recordUndo),
+    // An open SequenceEditCapture records new elements itself.
+    _passive(Active(seq) != nullptr || seq.GetCommandExecutor().IsCapturing()), _outer(t_recorder) {
+    if (_passive) {
+        return;
+    }
+    ForEachElementAndRow(_seq, [this](Element* el) { _before[el->GetUid()] = el->getChangeCount(); });
+#ifndef NDEBUG
+    _touched = std::make_unique<TouchedRows>(_seq);
+    _seq.GetCommandExecutor().AddRecordListener(_touched.get());
+#endif
+    t_recorder = this;
+    // Anything executed as a command inside the scope joins the same step.
+    _seq.GetCommandExecutor().BeginBatch(_label);
+    _scope.emplace();
+}
+
 NewElementsRecorder::~NewElementsRecorder() {
     if (_passive) {
         return;
@@ -1455,23 +1458,20 @@ NewElementsRecorder::~NewElementsRecorder() {
         exec.RecordExternal(std::make_unique<AddElementCommand>(ElementSnapshot::Of(*el), PrecedingUid(_seq, idx), idx),
                             std::make_unique<DeleteElementCommand>(el->GetUid()), _recordUndo);
     }
-#ifndef NDEBUG
-    TouchedRows touched(_seq);
-    exec.AddObserver(&touched);
-#endif
     exec.EndBatch();
 #ifndef NDEBUG
-    exec.RemoveObserver(&touched);
+    exec.RemoveRecordListener(_touched.get());
+    const std::set<SeqObjectId>& touched = static_cast<TouchedRows&>(*_touched).rows;
     // The scope above exempts everything, so a direct change to a row that
     // already existed (rather than one this recorder creates) would go
     // unrecorded and unnoticed: report it like any other stray mutation.
-    for (Element* el : MasterElements(_seq)) {
+    ForEachElementAndRow(_seq, [&](Element* el) {
         auto it = _before.find(el->GetUid());
-        if (it != _before.end() && it->second != el->getChangeCount() && !touched.rows.count(el->GetUid())) {
+        if (it != _before.end() && it->second != el->getChangeCount() && !touched.count(el->GetUid())) {
             spdlog::warn("{}: existing row {} changed directly while recording new elements; that change is not recorded", _label, el->GetFullName());
             SeqMutationGuard::Check("NewElementsRecorder: existing row changed directly", nullptr);
         }
-    }
+    });
 #endif
 }
 

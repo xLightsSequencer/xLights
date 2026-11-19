@@ -47,6 +47,8 @@
 #include "models/SubModel.h"
 #include "render/Effect.h"
 #include "render/EffectLayer.h"
+#include "collab/CollabCommandInfo.h"
+#include "collab/CollabManifest.h"
 #include "render/Element.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceFile.h"
@@ -254,12 +256,27 @@ public:
         big.MakeBold();
         _code->SetFont(big);
         sizer->Add(_code, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 8);
-        _people = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(380, 140)), wxLC_REPORT | wxLC_SINGLE_SEL);
-        _people->AppendColumn("Name", wxLIST_FORMAT_LEFT, FromDIP(240));
-        _people->AppendColumn("Device", wxLIST_FORMAT_LEFT, FromDIP(110));
+        _people = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(520, 140)), wxLC_REPORT | wxLC_SINGLE_SEL);
+        _people->AppendColumn("Name", wxLIST_FORMAT_LEFT, FromDIP(200));
+        _people->AppendColumn("Device", wxLIST_FORMAT_LEFT, FromDIP(70));
+        _people->AppendColumn("Role", wxLIST_FORMAT_LEFT, FromDIP(70));
+        _people->AppendColumn(Collab::Labels::AssignedRows, wxLIST_FORMAT_LEFT, FromDIP(170));
         _images = new wxImageList(FromDIP(12), FromDIP(12), false);
         _people->SetImageList(_images, wxIMAGE_LIST_SMALL);
+        _people->Bind(wxEVT_LIST_ITEM_SELECTED, [this](wxListEvent&) { UpdateRoleButton(); });
+        _people->Bind(wxEVT_LIST_ITEM_DESELECTED, [this](wxListEvent&) { UpdateRoleButton(); });
         sizer->Add(_people, 1, wxLEFT | wxRIGHT | wxEXPAND, 8);
+        // The host's role controls.
+        auto* roles = new wxBoxSizer(wxHORIZONTAL);
+        _roleButton = new wxButton(this, wxID_ANY, Collab::Labels::MakeViewer);
+        _roleButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { ToggleRole(); });
+        roles->Add(_roleButton, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 8);
+        _joinViewers = new wxCheckBox(this, wxID_ANY, Collab::Labels::JoinAsViewers);
+        _joinViewers->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {
+            _collab.Controller().SetJoinRole(e.IsChecked() ? Collab::ParticipantRole::Viewer : Collab::ParticipantRole::Editor);
+        });
+        roles->Add(_joinViewers, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(roles, 0, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, 8);
         _report = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(380, 90)), wxTE_MULTILINE | wxTE_READONLY);
         sizer->Add(_report, 0, wxALL | wxEXPAND, 8);
         auto* buttons = new wxBoxSizer(wxHORIZONTAL);
@@ -297,8 +314,10 @@ public:
         _report->ChangeValue(wxString::FromUTF8(report));
         _report->Show(!host && !report.empty());
 
+        Collab::ParticipantId selected = SelectedParticipant();
         _people->DeleteAllItems();
         _images->RemoveAll();
+        _ids.clear();
         int row = 0;
         for (const auto& p : ctl.Participants()) {
             wxBitmap swatch(_images->GetSize().x, _images->GetSize().y);
@@ -311,10 +330,51 @@ public:
             std::string name = p.name + (p.isLocal ? " (you)" : "") + (p.isHost ? " - host" : "");
             long item = _people->InsertItem(row++, wxString::FromUTF8(name), img);
             _people->SetItem(item, 1, wxString::FromUTF8(p.deviceKind));
+            _people->SetItem(item, 2, p.role == Collab::ParticipantRole::Viewer ? Collab::Labels::Viewer : Collab::Labels::Editor);
+            std::string rows;
+            for (const auto& r : p.assignedRows) {
+                rows += (rows.empty() ? "" : ", ") + r;
+            }
+            _people->SetItem(item, 3, wxString::FromUTF8(rows));
+            _ids.push_back(p.id);
+            if (p.id == selected) {
+                _people->SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+            }
         }
+        bool active = ctl.GetState() == State::Active;
+        _roleButton->Show(host && active);
+        _joinViewers->Show(host && active);
+        _joinViewers->SetValue(ctl.JoinRole() == Collab::ParticipantRole::Viewer);
+        UpdateRoleButton();
         Layout();
         Fit();
     }
+
+private:
+    Collab::ParticipantId SelectedParticipant() const {
+        long item = _people->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        return item >= 0 && item < (long)_ids.size() ? _ids[item] : Collab::kNoParticipant;
+    }
+    void UpdateRoleButton() {
+        Collab::ParticipantId who = SelectedParticipant();
+        bool viewer = who != Collab::kNoParticipant && _collab.Controller().RoleOf(who) == Collab::ParticipantRole::Viewer;
+        _roleButton->SetLabel(viewer ? Collab::Labels::MakeEditor : Collab::Labels::MakeViewer);
+        _roleButton->Enable(who != Collab::kNoParticipant && who != Collab::kHostParticipant);
+    }
+    void ToggleRole() {
+        Collab::ParticipantId who = SelectedParticipant();
+        if (who == Collab::kNoParticipant) {
+            return;
+        }
+        auto& ctl = _collab.Controller();
+        auto role = ctl.RoleOf(who) == Collab::ParticipantRole::Viewer ? Collab::ParticipantRole::Editor : Collab::ParticipantRole::Viewer;
+        std::string error;
+        if (!ctl.SetRole(who, role, error)) {
+            wxMessageBox(wxString::FromUTF8(error), "Live Collaboration", wxOK | wxICON_INFORMATION, this);
+        }
+    }
+
+public:
 
 private:
     DesktopCollab& _collab;
@@ -323,6 +383,9 @@ private:
     wxStaticText* _code = nullptr;
     wxListCtrl* _people = nullptr;
     wxImageList* _images = nullptr;
+    std::vector<Collab::ParticipantId> _ids; // per list row
+    wxButton* _roleButton = nullptr;
+    wxCheckBox* _joinViewers = nullptr;
     wxTextCtrl* _report = nullptr;
     wxButton* _end = nullptr;
     wxButton* _saveCopy = nullptr;
@@ -334,11 +397,21 @@ private:
 
 DesktopCollab::DesktopCollab(xLightsFrame* frame) :
     _frame(frame) {
-    std::weak_ptr<bool> alive = _alive;
-    Collab::Dispatcher dispatch = [frame, alive](std::function<void()> fn) {
-        // Transports call this from their own threads; CallAfter queues safely.
-        frame->CallAfter([alive, fn = std::move(fn)]() {
-            if (!alive.expired()) {
+    std::shared_ptr<DispatchGate> gate = _gate;
+    Collab::Dispatcher dispatch = [gate](std::function<void()> fn) {
+        // Posted to the app, which outlives the frame and this object;
+        // QueueEvent is safe from any thread.
+        std::lock_guard<std::mutex> lock(gate->lock);
+        if (!gate->open || wxTheApp == nullptr) {
+            return;
+        }
+        wxTheApp->CallAfter([gate, fn = std::move(fn)]() {
+            bool open;
+            {
+                std::lock_guard<std::mutex> l(gate->lock);
+                open = gate->open;
+            }
+            if (open) {
                 fn();
             }
         });
@@ -356,6 +429,10 @@ DesktopCollab::DesktopCollab(xLightsFrame* frame) :
 }
 
 DesktopCollab::~DesktopCollab() {
+    {
+        std::lock_guard<std::mutex> lock(_gate->lock);
+        _gate->open = false;
+    }
     _timer.Stop();
     RemoveDocFolder();
     if (!_menuShown && _menuItem != nullptr) {
@@ -495,11 +572,17 @@ void DesktopCollab::UpdateStatus() {
         std::string label = _ctl->StatusText();
         if (st == State::Active) {
             label += " (" + std::to_string(_ctl->Participants().size()) + ")";
+            if (!_ctl->CanEditSequence()) {
+                label = std::string(Collab::Labels::ViewOnly) + " - " + label;
+            }
         }
         _statusButton->SetLabel(wxString::FromUTF8(label));
         std::string tip;
         for (const auto& p : _ctl->Participants()) {
             tip += (tip.empty() ? "" : "\n") + p.name + " (" + p.deviceKind + ")";
+            if (p.role == Collab::ParticipantRole::Viewer) {
+                tip += std::string(" - ") + Collab::Labels::Viewer;
+            }
         }
         _statusButton->SetToolTip(wxString::FromUTF8(tip));
     }
@@ -673,6 +756,30 @@ void DesktopCollab::RebuildOverlay() {
         }
         if (p->softLock != kNoSeqObjectId && _ctl->SoftLockHolder(p->softLock) == who.id) {
             _overlay.locks[p->softLock] = { Initials(who.name), who.colour };
+        }
+    }
+    if (!_ctl->Assignments().empty()) {
+        Collab::ParticipantId me = _ctl->LocalParticipant();
+        auto mark = [&](Element* el) {
+            if (auto a = _ctl->AssignmentOf(el->GetUid())) {
+                auto who = _ctl->FindParticipant(a->owner);
+                _overlay.assigned[el->GetUid()] = { Collab::ParticipantColour(a->owner), who ? who->name : a->name, a->owner == me };
+            }
+        };
+        SequenceElements& seq = _frame->_sequenceElements;
+        for (size_t i = 0; i < seq.GetElementCount(MASTER_VIEW); ++i) {
+            Element* el = seq.GetElement(i, MASTER_VIEW);
+            if (el == nullptr) {
+                continue;
+            }
+            mark(el);
+            if (auto* me2 = dynamic_cast<ModelElement*>(el)) {
+                for (int s = 0; s < me2->GetSubModelAndStrandCount(); ++s) {
+                    if (Element* sub = me2->GetSubModel(s)) {
+                        mark(sub);
+                    }
+                }
+            }
         }
     }
     _overlay.ghostColour = Collab::ParticipantColour(_ctl->LocalParticipant());
@@ -993,6 +1100,73 @@ void DesktopCollab::OnBrowseError(const std::string& reason) {
     if (_joinDialog != nullptr) {
         _joinDialog->SetError(wxString::FromUTF8(reason));
     }
+}
+
+void DesktopCollab::OnSessionNotice(const std::string& text) {
+    ShowNotice(wxString::FromUTF8(text), wxString(), nullptr, 15);
+    UpdateStatus();
+}
+
+wxMenu* DesktopCollab::AppendRowMenu(wxMenu& menu, Element* element) {
+    _rowMenuActions.clear();
+    if (element == nullptr || !_ctl->InSession() || !_ctl->CanEditSequence()) {
+        return nullptr;
+    }
+    SeqObjectId row = Collab::TopLevelOf(_frame->_sequenceElements, element->GetUid());
+    Collab::ParticipantId me = _ctl->LocalParticipant();
+    bool host = _ctl->GetRole() == Collab::CollabController::Role::Host;
+    size_t next = 0;
+    auto add = [&](wxMenu& m, const wxString& label, std::function<void()> fn) {
+        if (next == _rowMenuIds.size()) {
+            _rowMenuIds.push_back(wxNewId());
+        }
+        int id = _rowMenuIds[next++];
+        m.Append(id, label);
+        _rowMenuActions[id] = std::move(fn);
+    };
+    auto run = [this](std::function<bool(std::string&)> fn) {
+        std::string error;
+        if (!fn(error) && !error.empty()) {
+            ShowNotice(wxString::FromUTF8(error));
+        }
+    };
+    menu.AppendSeparator();
+    if (auto a = _ctl->AssignmentOf(row)) {
+        auto who = _ctl->FindParticipant(a->owner);
+        menu.Append(wxID_ANY, wxString::FromUTF8(Collab::AssignedToText(who ? who->name : a->name, a->owner == me)))->Enable(false);
+        if (host || a->owner == me) {
+            SeqObjectId held = a->element;
+            add(menu, Collab::Labels::Release, [this, held, run] { run([this, held](std::string& e) { return _ctl->Release(held, e); }); });
+        }
+        return nullptr;
+    }
+    if (!host) {
+        add(menu, Collab::Labels::AssignToMe, [this, row, me, run] { run([this, row, me](std::string& e) { return _ctl->Assign(row, me, e); }); });
+        return nullptr;
+    }
+    auto* sub = new wxMenu();
+    for (const auto& p : _ctl->Participants()) {
+        if (p.role == Collab::ParticipantRole::Viewer) {
+            continue;
+        }
+        Collab::ParticipantId id = p.id;
+        add(*sub, wxString::FromUTF8(p.isLocal ? p.name + " (you)" : p.name),
+            [this, row, id, run] { run([this, row, id](std::string& e) { return _ctl->Assign(row, id, e); }); });
+    }
+    menu.AppendSubMenu(sub, Collab::Labels::AssignTo);
+    return sub;
+}
+
+bool DesktopCollab::HandleRowMenu(int id) {
+    auto it = _rowMenuActions.find(id);
+    if (it == _rowMenuActions.end()) {
+        return false;
+    }
+    auto fn = it->second;
+    _rowMenuActions.clear();
+    fn();
+    RebuildOverlay();
+    return true;
 }
 
 void DesktopCollab::OnLog(const std::string& line) {

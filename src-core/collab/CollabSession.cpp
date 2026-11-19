@@ -22,6 +22,7 @@
 #include "CollabCommandInfo.h"
 #include "CollabUidTable.h"
 #include "render/Effect.h"
+#include "render/Element.h"
 #include "render/SequenceElementCommands.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceIds.h"
@@ -454,6 +455,14 @@ void CollabParticipant::SetLayout(const LayoutFiles& files) {
     _layoutHash = LayoutDelta::Hash(_layout);
 }
 
+EditRefusal CollabParticipant::CheckOwnEdit(const SequenceCommand& cmd) {
+    AssignmentIndex index;
+    if (!_assignments.empty()) {
+        index.Build(_doc.Sequence(), _assignments);
+    }
+    return CheckEdit(_doc.Sequence(), _roster, index, _participant, cmd);
+}
+
 void CollabParticipant::NoteRecent(const CommitInfo& c, const json& cmd) {
     _recent.push_back("rev " + std::to_string(c.rev) + " by " + std::to_string(c.author) + ": " + CommandSummary(cmd));
     while (_recent.size() > _opts.driftLogCommands) {
@@ -498,22 +507,114 @@ void CollabHost::Start() {
 
 void CollabHost::SendRoster() {
     _roster.clear();
-    _roster.push_back({ kHostParticipant, _opts.displayName, _opts.deviceKind });
+    _roster.push_back({ kHostParticipant, _opts.displayName, _opts.deviceKind, ParticipantRole::Editor });
     std::vector<RosterEntry> clients;
     for (const auto& [peer, c] : _clients) {
-        clients.push_back({ c.id, c.name, c.deviceKind });
+        clients.push_back({ c.id, c.name, c.deviceKind, c.role });
     }
     std::sort(clients.begin(), clients.end(), [](const RosterEntry& a, const RosterEntry& b) { return a.participant < b.participant; });
     _roster.insert(_roster.end(), clients.begin(), clients.end());
-    Message m;
-    m.type = MsgType::Roster;
-    m.roster = _roster;
     for (const auto& [peer, c] : _clients) {
-        _transport.Send(peer, m);
+        SendRosterTo(peer);
     }
     if (_events.onRoster) {
         _events.onRoster(_roster);
     }
+}
+
+void CollabHost::SendRosterTo(PeerId peer) {
+    Message m;
+    m.type = MsgType::Roster;
+    m.roster = _roster;
+    m.assignments = _assignments;
+    _transport.Send(peer, m);
+}
+
+bool CollabHost::SetRole(ParticipantId who, ParticipantRole role) {
+    if (!IsActive() || who == kHostParticipant) {
+        return false;
+    }
+    for (auto& [peer, c] : _clients) {
+        if (c.id != who) {
+            continue;
+        }
+        if (c.role == role) {
+            return true;
+        }
+        c.role = role;
+        if (role == ParticipantRole::Viewer) {
+            PruneAssignments(who);
+        }
+        Log("participant " + std::to_string(who) + " is now " + (role == ParticipantRole::Viewer ? "a viewer" : "an editor"));
+        Message n;
+        n.type = MsgType::Notice;
+        n.reason = Reason::RoleChanged;
+        n.text = role == ParticipantRole::Viewer ? "The host made you a viewer: you can watch but not change the sequence"
+                                                 : "The host made you an editor: you can change the sequence again";
+        _transport.Send(peer, n);
+        SendRoster();
+        return true;
+    }
+    return false;
+}
+
+bool CollabHost::Claim(SeqObjectId element, ParticipantId owner, std::string& reason, std::string& text) {
+    if (!IsActive()) {
+        reason = "not_active";
+        return false;
+    }
+    if (!ClaimAs(kHostParticipant, element, owner, reason, text)) {
+        return false;
+    }
+    SendRoster();
+    return true;
+}
+
+bool CollabHost::ClaimAs(ParticipantId requester, SeqObjectId element, ParticipantId owner, std::string& reason, std::string& text) {
+    reason.clear();
+    text.clear();
+    std::vector<Assignment> next = ApplyClaim(_doc.Sequence(), _roster, _assignments, requester, element, owner, reason, text);
+    if (!reason.empty()) {
+        Log("claim by participant " + std::to_string(requester) + " refused: " + text);
+        return false;
+    }
+    _assignments = std::move(next);
+    return true;
+}
+
+void CollabHost::OnClaim(Client& c, const Message& m) {
+    bool changed = false;
+    for (const auto& a : m.assignments) {
+        std::string reason;
+        std::string text;
+        if (ClaimAs(c.id, a.element, a.owner, reason, text)) {
+            changed = true;
+            continue;
+        }
+        Message n;
+        n.type = MsgType::Notice;
+        n.reason = reason;
+        n.text = text;
+        _transport.Send(c.peer, n);
+    }
+    // Answered with the roster even when refused, so the claimant's view is the host's.
+    if (changed) {
+        SendRoster();
+    } else {
+        SendRosterTo(c.peer);
+    }
+}
+
+bool CollabHost::PruneAssignments(ParticipantId owner) {
+    if (_assignments.empty()) {
+        return false;
+    }
+    std::vector<Assignment> next = WithoutAssignments(_doc.Sequence(), _assignments, owner);
+    if (next == _assignments) {
+        return false;
+    }
+    _assignments = std::move(next);
+    return true;
 }
 
 void CollabHost::End() {
@@ -586,6 +687,9 @@ CollabHost::Outcome CollabHost::Process(ParticipantId author, uint64_t clientSeq
         return o;
     };
     SequenceElements& seq = _doc.Sequence();
+    if (!faults.hostIgnoresRoles && RoleOf(author) == ParticipantRole::Viewer) {
+        return reject(Reason::Viewer, "viewers can't change the sequence");
+    }
     // Everyone applies the decoded command, the host included.
     std::unique_ptr<SequenceCommand> cmd = DeserializeCommand(cmdJson);
     if (cmd == nullptr) {
@@ -593,6 +697,14 @@ CollabHost::Outcome CollabHost::Process(ParticipantId author, uint64_t clientSeq
     }
     if (auto pruned = WithoutRedundantDeletes(seq, *cmd)) {
         cmd = std::move(pruned);
+    }
+    if (!faults.hostIgnoresRoles && !_assignments.empty()) {
+        AssignmentIndex index;
+        index.Build(seq, _assignments);
+        EditRefusal r = CheckEdit(seq, _roster, index, author, *cmd);
+        if (r.Refused()) {
+            return reject(Reason::Assigned, r.row + " is assigned to " + NameOfParticipant(r.owner), r.owner);
+        }
     }
     if (kind == EditKind::Edit) {
         for (SeqObjectId uid : KeyWriteTargets(*cmd)) {
@@ -678,6 +790,9 @@ Rev CollabHost::CommitApplied(ParticipantId author, uint64_t clientSeq, EditKind
     }
     NotifyCommit(info, cmd, inverse);
     TrimLog();
+    if (PruneAssignments()) {
+        SendRoster();
+    }
     return rev;
 }
 
@@ -748,6 +863,9 @@ Rev CollabHost::CommitLayoutApplied(ParticipantId author, uint64_t clientSeq, co
     }
     TrimLog();
     PruneLayouts();
+    if (PruneAssignments()) {
+        SendRoster();
+    }
     return rev;
 }
 
@@ -800,6 +918,9 @@ CollabHost::Outcome CollabHost::ProcessLayout(Client& c, const Message& m) {
     if (!_liveLayout || !c.liveLayout) {
         return reject(Reason::Invalid, "this session doesn't edit the layout live");
     }
+    if (!faults.hostIgnoresRoles && c.role == ParticipantRole::Viewer) {
+        return reject(Reason::Viewer, "Viewers can't change the layout, so your layout change was undone");
+    }
     if (_events.onBeforeLayoutProposal) {
         _events.onBeforeLayoutProposal();
     }
@@ -834,6 +955,13 @@ CollabHost::Outcome CollabHost::ProcessLayout(Client& c, const Message& m) {
     auto next = LayoutDelta::Apply(_layout, delta);
     if (!next) {
         return reject(Reason::Invalid, "the merged layout could not be applied");
+    }
+    if (!faults.hostIgnoresRoles) {
+        ParticipantId owner = kNoParticipant;
+        std::string row = LayoutTakesAssignedRow(_doc.Sequence(), _assignments, c.id, _layout.rgbEffects, next->rgbEffects, &owner);
+        if (!row.empty()) {
+            return reject(Reason::Assigned, row + " is assigned to " + NameOfParticipant(owner) + ", so it can't be deleted or renamed");
+        }
     }
     if (_events.onLayout) {
         LayoutCommitInfo info;
@@ -918,6 +1046,7 @@ void CollabHost::DropClient(PeerId peer, const std::string& why) {
     std::string name = it->second.name;
     _clients.erase(it);
     _locks.erase(id);
+    PruneAssignments(id);
     Log("participant " + std::to_string(id) + " " + why);
     if (_events.onParticipant) {
         _events.onParticipant(id, name, false);
@@ -980,6 +1109,9 @@ void CollabHost::OnMessage(PeerId from, const Message& m) {
         }
         break;
     }
+    case MsgType::Claim:
+        OnClaim(*c, m);
+        break;
     case MsgType::Bye:
         // A refused joiner says why (its show files don't match).
         DropClient(from, m.reason.empty() || m.reason == Reason::Left ? std::string("left") : "left: " + m.reason);
@@ -1013,10 +1145,7 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
         }
         _transport.Send(from, w);
         SendManifest(*existing, false);
-        Message r;
-        r.type = MsgType::Roster;
-        r.roster = _roster;
-        _transport.Send(from, r);
+        SendRosterTo(from);
         return;
     }
     if (_clients.size() + 1 >= _opts.maxParticipants || _nextParticipant == 0xFFFF) {
@@ -1034,6 +1163,7 @@ void CollabHost::OnHello(PeerId from, const Message& m) {
     c.lastPing = _now;
     c.applied = _applied;
     c.liveLayout = _liveLayout && m.liveLayout;
+    c.role = _joinRole;
     Message w;
     w.type = MsgType::Welcome;
     w.participant = c.id;
@@ -1085,6 +1215,8 @@ void CollabHost::SendSnapshot(Client& c) {
     _transport.SendBlob(c.peer, s.blob, file);
     RemoveFile(file);
     _transport.Send(c.peer, s);
+    // A re-syncing client may have missed roster changes too.
+    SendRosterTo(c.peer);
 }
 
 void CollabHost::SendManifest(Client& c, bool rebuild) {
@@ -1454,8 +1586,9 @@ void CollabClient::OnMessage(PeerId from, const Message& m) {
         EndSession(m.reason.empty() ? std::string(Reason::Ended) : m.reason);
         break;
     case MsgType::Roster:
-        if (m.roster != _roster) {
+        if (m.roster != _roster || m.assignments != _assignments) {
             _roster = m.roster;
+            _assignments = m.assignments;
             if (_events.onRoster) {
                 _events.onRoster(_roster);
             }
@@ -2351,6 +2484,24 @@ SubmitResult CollabClient::ProposeLayout(const json& delta) {
     _pending[s] = { m, _now, false };
     Send(m);
     return { true, s, "" };
+}
+
+bool CollabClient::Claim(SeqObjectId element, ParticipantId owner, std::string& reason, std::string& text) {
+    if (_state != State::Active) {
+        reason = "not_active";
+        return false;
+    }
+    reason.clear();
+    ApplyClaim(_doc.Sequence(), _roster, _assignments, _participant, element, owner, reason, text);
+    if (!reason.empty()) {
+        return false;
+    }
+    Message m;
+    m.type = MsgType::Claim;
+    const Element* el = _doc.Sequence().GetElementFromUid(element);
+    m.assignments.push_back({ element, owner, el != nullptr ? el->GetFullName() : std::string() });
+    Send(m);
+    return true;
 }
 
 std::vector<CollabClient::PendingProposal> CollabClient::PendingProposals() const {

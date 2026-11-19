@@ -22,6 +22,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Live collaboration: host or join a session over SharePlay (FaceTime or Messages)
                                  to work with people who aren't on the same network
     -enh (dkulp)                 iPad - Live collaboration: host or join a session over SharePlay (FaceTime or Messages)
+    -enh (dkulp)                 Live collaboration: the host can make people view-only, and rows can be assigned
+                                 to one person so only they can edit them (right-click a row heading)
+    -enh (dkulp)                 iPad - Live collaboration: view-only participants and rows assigned to one person
 
 2026.21  November 24, 2026
 

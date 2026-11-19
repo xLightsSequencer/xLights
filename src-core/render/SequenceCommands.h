@@ -121,8 +121,10 @@ enum class CommandStatus {
     TargetMissing, // an element, layer or effect named by the command is gone
     Overlap,       // would make effects on one layer overlap
     Locked,        // would move, change or delete a locked effect
-    Invalid        // malformed (bad times, duplicate id, unknown effect,
+    Invalid,       // malformed (bad times, duplicate id, unknown effect,
                    // removing an element's last layer, ...)
+    Refused        // not applied: the executor's gate refused it (a live
+                   // session's viewer role or row assignments)
 };
 
 struct CommandResult {

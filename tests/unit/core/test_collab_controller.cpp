@@ -116,6 +116,7 @@ public:
     void OnUndoStateChanged() override { ++undoChanges; }
     void OnJoinReport(const JoinReport& r) override { report = r; }
     void OnSessionsFound(const std::vector<SessionAdvert>& s) override { found = s; }
+    void OnSessionNotice(const std::string& text) override { notices.push_back(text); }
 
     // Run inside the hooks, e.g. a nested event loop.
     std::function<void()> duringSave;
@@ -130,6 +131,7 @@ public:
     std::vector<SequenceChange> changes;
     int modified = 0;
     std::vector<RejectNotice> rejects;
+    std::vector<std::string> notices;
     int undoChanges = 0;
     std::optional<JoinReport> report;
     std::vector<SessionAdvert> found;
@@ -1456,6 +1458,37 @@ TEST_CASE("Without the re-entry guard a nested event loop re-enters the session"
     CHECK(sent.second > 0);
 }
 
+TEST_CASE("A snapshot load that fails after a nested one succeeded ends the session", "[collab][controller]") {
+    // Without the re-entry guard a second snapshot is loaded from inside the
+    // first load and makes the session active; then the outer load fails.
+    // The session must not carry on with nothing gating or sending edits.
+    // The nested loop outlasts the snapshot stall time, after which the
+    // client asks for the snapshot again.
+    Show show;
+    World w(show);
+    Peer& h = w.Add("Hana", "mac");
+    w.HostOn(h);
+    Peer& a = w.Add("Ari", "ipad");
+    a.ctl->reentryGuard = false;
+    a.app->failLoadCall = 1;
+    bool nestedActive = false;
+    a.app->duringLoad = [&] {
+        if (a.app->loadCalls != 1) {
+            return;
+        }
+        w.NestedLoop(8000);
+        nestedActive = a.ctl->InSession();
+    };
+    w.JoinTo(a);
+    w.Quiesce(5000);
+    REQUIRE(a.app->loadCalls == 2);
+    REQUIRE(nestedActive);
+    CHECK(a.ctl->GetState() == CollabController::State::Ended);
+    CHECK(a.ctl->EndReason() == Reason::SnapshotFailed);
+    CHECK(a.Exec().GetGate() == nullptr);
+    CHECK(a.Undo().GetRedirect() == nullptr);
+}
+
 TEST_CASE("Edits and undo from inside a notification are recorded and sent later", "[collab][controller]") {
     for (bool guard : { true, false }) {
         INFO("guard " << guard);
@@ -1496,4 +1529,201 @@ TEST_CASE("Edits and undo from inside a notification are recorded and sent later
             CHECK(sentInside > 0);
         }
     }
+}
+
+TEST_CASE("A viewer's edits are refused before they apply, its undo is blocked and its layout locked", "[collab][controller][collab_roles]") {
+    Show show;
+    World w(show);
+    StartSession(w, 2);
+    Peer& h = *w.peers[0];
+    Peer& a = *w.peers[1];
+    Peer& b = *w.peers[2];
+    ParticipantId aid = a.ctl->LocalParticipant();
+    REQUIRE(w.As(a, [&] { return AddOn(a, "Line", 3000, 3100); }) != nullptr);
+    RequireConverged(w);
+    REQUIRE(a.ctl->CanUndo());
+    CHECK(a.app->lockReason == LayoutLock::DEFAULT_REASON);
+
+    std::string err;
+    CHECK_FALSE(w.As(a, [&] { return a.ctl->SetRole(aid, ParticipantRole::Viewer, err); }));
+    CHECK(err == "Only the host can change someone's role.");
+    REQUIRE(w.As(h, [&] { return h.ctl->SetRole(aid, ParticipantRole::Viewer, err); }));
+    REQUIRE(w.Quiesce());
+    CHECK(a.ctl->LocalRole() == ParticipantRole::Viewer);
+    CHECK_FALSE(a.ctl->CanEditSequence());
+    CHECK(h.ctl->CanEditSequence());
+    for (Peer* p : { &h, &a, &b }) {
+        CHECK(p->ctl->RoleOf(aid) == ParticipantRole::Viewer);
+        CHECK(p->ctl->Participants()[1].role == ParticipantRole::Viewer);
+        CHECK(p->ctl->Participants()[2].role == ParticipantRole::Editor);
+    }
+    REQUIRE(!a.app->notices.empty());
+    CHECK(a.app->notices.back() == "The host made you a viewer: you can watch but not change the sequence");
+    CHECK(a.app->lockReason == "You're a viewer in this session, so the layout is read-only");
+    std::string why;
+    CHECK_FALSE(a.ctl->CanEdit(a.Seq().GetElement("Grid")->GetUid(), why));
+    CHECK(why == "You're a viewer in this session");
+
+    // Refused before anything applies, even for a moment.
+    std::string before = DescribeSequence(a.Seq());
+    size_t changes = a.app->changes.size();
+    Effect* e = EffectAt(a, "Grid", 1000);
+    REQUIRE(e != nullptr);
+    w.As(a, [&] {
+        Step(a);
+        CHECK_FALSE(a.Exec().MoveEffect(e, 1100, 1600));
+        CHECK_FALSE(a.Exec().SetEffectSetting(e, "E_TEXTCTRL_Eff_On_Start", "99"));
+        CHECK_FALSE(a.Exec().EditEffect(e, [](Effect& x) { x.SetStartTimeMS(1200); }));
+        CHECK_FALSE(a.Exec().DeleteEffect(e));
+        CHECK_FALSE(a.Exec().SetLayerName(LayerOf(a, "Grid"), "Mine"));
+        CommandResult r = a.Exec().Execute(std::make_unique<DeleteEffectCommand>(LocatorOf(e)));
+        CHECK(r.status == CommandStatus::Refused);
+        CHECK(r.message == "You're a viewer in this session, so you can't make changes");
+        CHECK(DescribeSequence(a.Seq()) == before);
+    });
+    w.RunFor(50);
+    CHECK(a.app->changes.size() == changes);
+    REQUIRE(!a.app->rejects.empty());
+    CHECK(a.app->rejects.back().reason == Reason::Viewer);
+    CHECK(a.app->rejects.back().text == "You're a viewer in this session, so you can't make changes");
+    size_t told = a.app->rejects.size();
+    // An add applies (its caller gets the effect) and comes back out when
+    // it would be sent.
+    REQUIRE(w.As(a, [&] { return AddOn(a, "Grid", 4000, 4100); }) != nullptr);
+    w.RunFor(50);
+    CHECK(EffectAt(a, "Grid", 4000) == nullptr);
+    CHECK(DescribeSequence(a.Seq()) == before);
+    REQUIRE(a.app->changes.size() > changes);
+    // Taken back out: what it touched renders again.
+    CHECK(a.app->changes.back().cause == SequenceChange::Cause::OwnEditRejected);
+    // One refusal is told once, not at every step of a drag.
+    CHECK(a.app->rejects.size() == told);
+
+    // Undo and redo are refused too.
+    CHECK_FALSE(a.ctl->CanUndo());
+    CHECK_FALSE(a.Undo().CanUndo());
+    CHECK_FALSE(w.As(a, [&] { return a.Undo().UndoLastStep(); }));
+    RequireConverged(w);
+    CHECK(EffectAt(h, "Line", 3000) != nullptr);
+    CHECK(EffectAt(h, "Grid", 4000) == nullptr);
+    CHECK(h.Host().RejectCounts().count(Reason::Viewer) == 0); // none of it reached the host
+
+    // An editor again.
+    REQUIRE(w.As(h, [&] { return h.ctl->SetRole(aid, ParticipantRole::Editor, err); }));
+    REQUIRE(w.Quiesce());
+    CHECK(a.ctl->LocalRole() == ParticipantRole::Editor);
+    CHECK(a.app->lockReason == LayoutLock::DEFAULT_REASON);
+    CHECK(a.ctl->CanUndo());
+    w.As(a, [&] {
+        Step(a);
+        CHECK(a.Exec().MoveEffect(EffectAt(a, "Grid", 1000), 1100, 1600));
+    });
+    RequireConverged(w);
+    CHECK(EffectAt(h, "Grid", 1100) != nullptr);
+}
+
+TEST_CASE("The host can admit joiners as viewers through the controller", "[collab][controller][collab_roles]") {
+    Show show;
+    World w(show);
+    StartSession(w, 1);
+    Peer& h = *w.peers[0];
+    CHECK(h.ctl->JoinRole() == ParticipantRole::Editor);
+    w.As(h, [&] { h.ctl->SetJoinRole(ParticipantRole::Viewer); });
+    CHECK(h.ctl->JoinRole() == ParticipantRole::Viewer);
+    Peer& b = w.Add("Bea", "mac");
+    w.JoinTo(b);
+    REQUIRE(w.Quiesce());
+    CHECK(b.ctl->LocalRole() == ParticipantRole::Viewer);
+    CHECK(w.peers[1]->ctl->LocalRole() == ParticipantRole::Editor);
+    CHECK(b.app->lockReason == "You're a viewer in this session, so the layout is read-only");
+    w.As(b, [&] {
+        Step(b);
+        CHECK_FALSE(b.Exec().MoveEffect(EffectAt(b, "Grid", 1000), 1100, 1600));
+    });
+}
+
+TEST_CASE("Rows assigned to someone else refuse local edits and show who holds them", "[collab][controller][collab_roles]") {
+    Show show;
+    World w(show);
+    StartSession(w, 2);
+    Peer& h = *w.peers[0];
+    Peer& a = *w.peers[1];
+    Peer& b = *w.peers[2];
+    ParticipantId aid = a.ctl->LocalParticipant();
+    ParticipantId bid = b.ctl->LocalParticipant();
+    SeqObjectId line = h.Seq().GetElement("Line")->GetUid();
+    SeqObjectId grid = h.Seq().GetElement("Grid")->GetUid();
+    std::string err;
+    REQUIRE(w.As(h, [&] { return h.ctl->Assign(line, aid, err); }));
+    REQUIRE(w.Quiesce());
+    for (Peer* p : { &h, &a, &b }) {
+        auto as = p->ctl->AssignmentOf(line);
+        REQUIRE(as.has_value());
+        CHECK(as->owner == aid);
+        CHECK(as->name == "Line");
+        CHECK_FALSE(p->ctl->AssignmentOf(grid).has_value());
+        auto ps = p->ctl->Participants();
+        CHECK(ps[1].assignedRows == std::vector<std::string>{ "Line" });
+        CHECK(ps[2].assignedRows.empty());
+    }
+    std::string why;
+    CHECK_FALSE(b.ctl->CanEdit(line, why));
+    CHECK(why == "Assigned to Ari");
+    CHECK_FALSE(h.ctl->CanEdit(line, why));
+    CHECK(a.ctl->CanEdit(line, why));
+    CHECK(b.ctl->CanEdit(grid, why));
+
+    // Others' edits there are refused before they apply; the host's too.
+    std::string before = DescribeSequence(h.Seq());
+    w.As(b, [&] {
+        Step(b);
+        CHECK_FALSE(b.Exec().MoveEffect(EffectAt(b, "Line", 0), 100, 300));
+    });
+    w.As(h, [&] {
+        Step(h);
+        CHECK_FALSE(h.Exec().SetEffectSetting(EffectAt(h, "Line", 0), "E_TEXTCTRL_X", "1"));
+    });
+    // An add (which the executor can't refuse in advance) is taken back out.
+    REQUIRE(w.As(h, [&] { return AddOn(h, "Line", 4000, 4100); }) != nullptr);
+    w.RunFor(50);
+    CHECK(EffectAt(h, "Line", 4000) == nullptr);
+    RequireConverged(w);
+    CHECK(DescribeSequence(h.Seq()) == before);
+    REQUIRE(!b.app->rejects.empty());
+    CHECK(b.app->rejects.back().reason == Reason::Assigned);
+    CHECK(b.app->rejects.back().by == aid);
+    CHECK(b.app->rejects.back().text == "That row is assigned to Ari");
+    REQUIRE(!h.app->rejects.empty());
+    CHECK(h.app->rejects.back().text == "That row is assigned to Ari");
+    // The owner edits freely, and everyone else elsewhere.
+    REQUIRE(w.As(a, [&] { return AddOn(a, "Line", 4000, 4100); }) != nullptr);
+    REQUIRE(w.As(b, [&] { return AddOn(b, "Grid", 4000, 4100); }) != nullptr);
+    RequireConverged(w);
+    CHECK(EffectAt(h, "Line", 4000) != nullptr);
+    CHECK(EffectAt(h, "Grid", 4000) != nullptr);
+
+    // Claims checked here first: someone else's row, someone else's release.
+    CHECK_FALSE(w.As(b, [&] { return b.ctl->Assign(line, bid, err); }));
+    CHECK(err == "Line is already assigned to Ari");
+    CHECK_FALSE(w.As(b, [&] { return b.ctl->Release(line, err); }));
+    CHECK(err == "Line is assigned to Ari; only they or the host can release it");
+    // Two claims on one row at once: the host takes the first and tells the other.
+    w.As(a, [&] { CHECK(a.ctl->Assign(grid, aid, err)); });
+    w.As(b, [&] { CHECK(b.ctl->Assign(grid, bid, err)); });
+    REQUIRE(w.Quiesce());
+    w.RunFor(50);
+    CHECK(h.ctl->AssignmentOf(grid)->owner == aid);
+    REQUIRE(!b.app->notices.empty());
+    CHECK(b.app->notices.back() == "Grid is already assigned to Ari");
+    // The owner releases: b may edit again.
+    REQUIRE(w.As(a, [&] { return a.ctl->Release(line, err); }));
+    REQUIRE(w.Quiesce());
+    w.RunFor(50);
+    CHECK(b.ctl->CanEdit(line, why));
+    w.As(b, [&] {
+        Step(b);
+        CHECK(b.Exec().MoveEffect(EffectAt(b, "Line", 0), 100, 300));
+    });
+    RequireConverged(w);
+    CHECK(EffectAt(h, "Line", 100) != nullptr);
 }

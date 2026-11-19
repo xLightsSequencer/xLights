@@ -11,8 +11,9 @@
  **************************************************************/
 
 // What the sequencer draws for a live collaboration session: other people's
-// working areas, focused rows, selections and soft locks, this user's edits
-// still waiting for the host, and remote edits to flash. Built by
+// working areas, focused rows, selections and soft locks, rows assigned to
+// someone, this user's edits still waiting for the host, and remote edits to
+// flash. Built by
 // DesktopCollab; read by TimeLine, RowHeading and EffectsGrid while painting.
 // Null when no session is running.
 
@@ -47,7 +48,14 @@ struct CollabOverlay {
     std::unordered_map<SeqObjectId, Lock> locks;                      // effect uid
     std::vector<Ghost> ghosts;
     xlColor ghostColour;
-    std::unordered_map<SeqObjectId, int64_t> flashUntil; // effect uid -> wxGetLocalTimeMillis
+    std::unordered_map<SeqObjectId, int64_t> flashUntil; // effect uid -> steady-clock ms (as `now`)
+    // Rows only one participant may edit: row element uid -> who.
+    struct Owner {
+        xlColor colour;
+        std::string name;
+        bool mine = false;
+    };
+    std::unordered_map<SeqObjectId, Owner> assigned;
     int64_t now = 0;
 
     static CollabOverlay*& Current() {

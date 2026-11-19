@@ -31,9 +31,24 @@ ScopedCommandBatch::ScopedCommandBatch(SequenceElements& seq, const std::string&
     ScopedCommandBatch(seq.GetCommandExecutor(), label) {
 }
 
+bool CommandExecutor::GateAllows(const SequenceCommand& cmd, std::string* why) {
+    if (_gate == nullptr) {
+        return true;
+    }
+    std::string w;
+    bool ok = _gate->AllowCommand(cmd, w);
+    if (why != nullptr) {
+        *why = std::move(w);
+    }
+    return ok;
+}
+
 CommandResult CommandExecutor::Execute(std::unique_ptr<SequenceCommand> cmd) {
     if (!cmd) {
         return CommandResult::Fail(CommandStatus::Invalid, "no command");
+    }
+    if (std::string why; !GateAllows(*cmd, &why)) {
+        return CommandResult::Fail(CommandStatus::Refused, why);
     }
     if (_previewDepth > 0) {
         PreviewTouch(*cmd);
@@ -57,6 +72,7 @@ CommandResult CommandExecutor::Execute(std::unique_ptr<SequenceCommand> cmd) {
         RecordApplied(std::move(cmd), std::move(inverse), true);
         return result;
     }
+    NotifyRecorded(*cmd, *inverse);
     if (_batchDepth > 0) {
         _batchUndo.push_back(inverse->Clone());
         _batch->Add(std::move(cmd));
@@ -118,6 +134,23 @@ void CommandExecutor::RemoveObserver(ICommandObserver* observer) {
     _observers.erase(std::remove(_observers.begin(), _observers.end(), observer), _observers.end());
 }
 
+void CommandExecutor::AddRecordListener(ICommandObserver* listener) {
+    if (listener != nullptr && std::find(_recordListeners.begin(), _recordListeners.end(), listener) == _recordListeners.end()) {
+        _recordListeners.push_back(listener);
+    }
+}
+
+void CommandExecutor::RemoveRecordListener(ICommandObserver* listener) {
+    _recordListeners.erase(std::remove(_recordListeners.begin(), _recordListeners.end(), listener), _recordListeners.end());
+}
+
+void CommandExecutor::NotifyRecorded(const SequenceCommand& applied, const SequenceCommand& inverse) {
+    std::vector<ICommandObserver*> listeners = _recordListeners;
+    for (ICommandObserver* l : listeners) {
+        l->OnCommandApplied(applied, inverse);
+    }
+}
+
 void CommandExecutor::Notify(const SequenceCommand& applied, const SequenceCommand& inverse) {
     // Copy: an observer may remove itself while being notified.
     std::vector<ICommandObserver*> observers = _observers;
@@ -167,6 +200,7 @@ void CommandExecutor::DirectElementDelete(Element* element, bool keepInViews) {
 
 void CommandExecutor::RecordApplied(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, bool recordUndo) {
     _undo.DocumentEdited();
+    NotifyRecorded(*applied, *inverse);
     if (_capture != nullptr) {
         if (CapturedKind(*applied)) {
             return;
@@ -205,9 +239,12 @@ void CommandExecutor::RecordNow(std::unique_ptr<SequenceCommand> applied, std::u
     Notify(*applied, *inverse);
 }
 
-CommandResult CommandExecutor::ExecuteInStep(std::unique_ptr<SequenceCommand> cmd, bool recordUndo) {
+CommandResult CommandExecutor::ExecuteInStep(std::unique_ptr<SequenceCommand> cmd, bool recordUndo, bool gated) {
     if (!cmd) {
         return CommandResult::Fail(CommandStatus::Invalid, "no command");
+    }
+    if (std::string why; gated && !GateAllows(*cmd, &why)) {
+        return CommandResult::Fail(CommandStatus::Refused, why);
     }
     CommandResult strict = cmd->Validate(_seq, ApplyMode::Strict);
     if (_previewDepth > 0) {
@@ -258,7 +295,7 @@ Effect* CommandExecutor::AddEffect(EffectLayer* layer, const std::string& name, 
     state.selected = selected;
     auto cmd = std::make_unique<AddEffectCommand>(loc, std::move(state));
     EffectLocator target = cmd->Target();
-    if (!ExecuteInStep(std::move(cmd), recordUndo).Ok()) {
+    if (!ExecuteInStep(std::move(cmd), recordUndo, false).Ok()) {
         return nullptr;
     }
     return FindEffect(_seq, target);
@@ -379,10 +416,13 @@ bool CommandExecutor::EditEffect(Effect* effect, const std::function<void(Effect
         mutate(*effect);
         return true;
     }
+    EffectLocator loc = LocatorOf(effect);
+    if (!GateAllows(ModifyEffectCommand(loc, std::nullopt, SettingsChange{}, SettingsChange{}))) {
+        return false;
+    }
     if (_previewDepth > 0) {
         PreviewTouchEffect(effect);
     }
-    EffectLocator loc = LocatorOf(effect);
     std::string beforeName = effect->GetEffectName();
     int beforeStart = effect->GetStartTimeMS();
     int beforeEnd = effect->GetEndTimeMS();
@@ -432,7 +472,7 @@ EffectLayer* CommandExecutor::InsertLayer(Element* element, int index, bool reco
     }
     auto cmd = std::make_unique<AddLayerCommand>(element->GetUid(), kNoSeqObjectId, after, index);
     SeqObjectId uid = cmd->GetLayer();
-    if (!ExecuteInStep(std::move(cmd), recordUndo).Ok()) {
+    if (!ExecuteInStep(std::move(cmd), recordUndo, false).Ok()) {
         return nullptr;
     }
     return element->GetEffectLayerFromUid(uid);
