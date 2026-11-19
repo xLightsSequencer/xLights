@@ -11,6 +11,7 @@ file(GLOB_RECURSE SRC_CORE
     ${XL_SRC_ROOT}/src-core/XmlSerializer/*.cpp
     ${XL_SRC_ROOT}/src-core/ai/*.cpp
     ${XL_SRC_ROOT}/src-core/cad/*.cpp
+    ${XL_SRC_ROOT}/src-core/collab/*.cpp
     ${XL_SRC_ROOT}/src-core/controllers/*.cpp
 	${XL_SRC_ROOT}/src-core/diagnostics/*.cpp
     ${XL_SRC_ROOT}/src-core/discovery/*.cpp

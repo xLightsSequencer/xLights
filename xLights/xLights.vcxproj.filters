@@ -806,6 +806,24 @@
     <ClCompile Include="..\src-core\render\SequenceElements.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabCommandInfo.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabDocHash.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabMessages.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabSession.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabTransport.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabUidTable.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceCommands.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -2462,6 +2480,24 @@
     <ClInclude Include="..\src-core\render\SequenceElements.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabCommandInfo.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabDocHash.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabMessages.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabSession.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabTransport.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabUidTable.h">
+      <Filter>collab</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceCommands.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -3377,6 +3413,9 @@
     </Filter>
     <Filter Include="sequencer">
       <UniqueIdentifier>{3f511f30-f755-4c36-bc33-eaba751cc83e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="collab">
+      <UniqueIdentifier>{c0ab5e55-1d2e-4f3a-9b7c-5e2d1a6f4c80}</UniqueIdentifier>
     </Filter>
     <Filter Include="render">
       <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</UniqueIdentifier>

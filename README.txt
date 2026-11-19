@@ -11,7 +11,6 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.22  November ??, 2026
-
     -bug (derwin12)              Link controller upload preference changes are saved again
 
 2026.21  November 24, 2026

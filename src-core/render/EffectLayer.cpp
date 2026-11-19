@@ -389,6 +389,18 @@ void EffectLayer::NumberEffects()
     }
 }
 
+bool EffectLayer::ReorderEffects(const std::vector<Effect*>& order)
+{
+    XL_SEQ_MUTATION("EffectLayer::ReorderEffects");
+    std::unique_lock<std::recursive_mutex> locker(lock);
+    if (order.size() != mEffects.size() || !std::is_permutation(order.begin(), order.end(), mEffects.begin())) {
+        return false;
+    }
+    mEffects = order;
+    InvalidateUidIndex();
+    return true;
+}
+
 void EffectLayer::SortEffects()
 {
     std::sort(mEffects.begin(), mEffects.end(), SortEffectByStartTime);

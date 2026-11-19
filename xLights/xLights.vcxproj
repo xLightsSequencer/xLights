@@ -1040,6 +1040,12 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\lyrics\LyricBreakdown.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabCommandInfo.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabDocHash.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabMessages.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabSession.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabTransport.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabUidTable.cpp" />
     <ClCompile Include="..\src-core\render\SequenceCommands.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElementCommands.cpp" />
     <ClCompile Include="..\src-core\render\CommandExecutor.cpp" />
@@ -1739,6 +1745,12 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\lyrics\LyricBreakdown.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
+    <ClInclude Include="..\src-core\collab\CollabCommandInfo.h" />
+    <ClInclude Include="..\src-core\collab\CollabDocHash.h" />
+    <ClInclude Include="..\src-core\collab\CollabMessages.h" />
+    <ClInclude Include="..\src-core\collab\CollabSession.h" />
+    <ClInclude Include="..\src-core\collab\CollabTransport.h" />
+    <ClInclude Include="..\src-core\collab\CollabUidTable.h" />
     <ClInclude Include="..\src-core\render\SequenceCommands.h" />
     <ClInclude Include="..\src-core\render\SequenceElementCommands.h" />
     <ClInclude Include="..\src-core\render\SequenceIds.h" />

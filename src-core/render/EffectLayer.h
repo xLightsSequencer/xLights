@@ -149,6 +149,11 @@ public:
 
     void CleanupAfterRender();
     void NumberEffects();
+    // Puts the layer's effects in `order` (the same effects, any order) and
+    // keeps their position ids. False, changing nothing, if `order` isn't
+    // exactly this layer's effects. The order isn't document state, but the
+    // .xsq is written in it; session snapshots use this to match the host.
+    bool ReorderEffects(const std::vector<Effect*>& order);
 
     const std::string& GetLayerName() const {
         if (name == nullptr) {
