@@ -57,6 +57,7 @@
 #include <wx/appprogress.h>
 
 #include <atomic>
+#include <mutex>
 #include <memory>
 #include <unordered_map>
 #include <map>
@@ -480,6 +481,7 @@ public:
     // Shared show folders: publishes what this install is doing and shows who
     // else is editing the layout or controllers. Runs on a timer.
     void UpdatePresence();
+    void ShowPresenceHint(const std::string& hint);
     // Shared show folders: brings changes someone else saved to the layout,
     // controllers or presets into the open show as soon as they land
     // (ShowFileWatch.cpp). Runs on a timer.
@@ -1634,6 +1636,15 @@ public:
     xlUnsavedFlag UnsavedPresetChanges{ "Effect Presets" };
     wxTimer _presenceTimer;
     wxStaticText* _presenceHint = nullptr;
+    // Presence file I/O runs on a worker thread (the show folder can be a
+    // stalled network share). The worker posts its result back only while
+    // `alive`, which closing the frame clears under `lock`.
+    struct PresenceWorkerLink {
+        std::mutex lock;
+        bool alive = true;
+        std::atomic<bool> busy{ false };
+    };
+    std::shared_ptr<PresenceWorkerLink> _presenceLink = std::make_shared<PresenceWorkerLink>();
     wxTimer _showFileWatchTimer;
     std::unique_ptr<ShowFileWatcher> _showFileWatcher;
     std::unique_ptr<ShowFileLiveMerge::Incoming> _pendingIncoming;
@@ -2049,6 +2060,9 @@ public:
     void ResetAllPanelDefaultSettings();
 
     void UnselectEffect();
+    // Drops the selected effect and the effect panel's hold on it without
+    // touching playback; for changes (undo/redo, merges) that can delete it.
+    void ClearEffectSelectionForDocumentChange();
     // The next settings-panel change to the selected effect starts a new undo step.
     void EndPanelEditBurst() { _panelEditCoalescer.EndBurst(); }
     // The next effect panel change joins the undo step just recorded (a

@@ -42,6 +42,7 @@
 #include <atomic>
 #include <list>
 #include <map>
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -795,9 +796,13 @@ public:
 
 private:
     std::vector<ShowFileLiveMerge::LocalFile> LiveShowFiles();
-    IncomingShowChanges HandleIncomingShowChanges(std::string* banner);
+    // userInitiated (Review) may wait for the render to stop; the timer only
+    // tries briefly and backs off, since it runs on the main actor.
+    IncomingShowChanges HandleIncomingShowChanges(std::string* banner, bool userInitiated = false);
     bool CommitIncomingShowChanges(std::string* report, std::string* error, bool* needsDecisions);
     std::unique_ptr<ShowFileWatcher> _showFileWatcher;
+    std::chrono::steady_clock::time_point _incomingRetryAt{};
+    int _incomingRetries = 0;
     std::unique_ptr<ShowFileLiveMerge::Incoming> _pendingIncoming;
     bool _pendingMergeLive = false;
     std::vector<ShowSaveMerge::FileToSave> ShowFilesToMerge(ShowFileSet which);

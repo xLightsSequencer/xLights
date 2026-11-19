@@ -384,22 +384,46 @@ std::string EditingHint(const std::vector<ShowPresenceEntry>& others) {
 } // namespace ShowPresence
 
 ShowPresencePublisher& ShowPresencePublisher::Instance() {
-    static ShowPresencePublisher instance;
-    return instance;
+    // Never destroyed: an Update stuck on a stalled share on a worker thread
+    // can still be running when the process exits.
+    static ShowPresencePublisher* instance = new ShowPresencePublisher();
+    return *instance;
 }
+
+namespace {
+void RemovePresenceFile(const std::string& path) {
+    if (path.empty()) {
+        return;
+    }
+    if (auto p = ToPath(path)) {
+        std::error_code ec;
+        std::filesystem::remove(*p, ec);
+    }
+}
+} // namespace
+
+// File I/O never runs under _lock: a show folder on a network share or in
+// iCloud can stall for a long time, and the main thread asks this object
+// things (InstallId, Clear, Enable) that must not wait behind a stuck write.
+// _ioLock keeps one Update's I/O at a time; a second Update arriving while
+// one is stuck returns at once instead of queueing behind it.
 
 void ShowPresencePublisher::SetIdentity(const std::string& installId, const std::string& userName, const std::string& deviceName,
                                         const std::string& platform, const std::string& appVersion) {
-    std::lock_guard<std::mutex> l(_lock);
-    if (installId != _installId) {
-        RemoveOwnFileLocked();
+    std::string remove;
+    {
+        std::lock_guard<std::mutex> l(_lock);
+        if (installId != _installId) {
+            remove = TakeOwnFileLocked();
+        }
+        _installId = installId;
+        _userName = userName;
+        _deviceName = deviceName;
+        _platform = platform;
+        _appVersion = appVersion;
+        _written = false;
     }
-    _installId = installId;
-    _userName = userName;
-    _deviceName = deviceName;
-    _platform = platform;
-    _appVersion = appVersion;
-    _written = false;
+    RemovePresenceFile(remove);
 }
 
 std::string ShowPresencePublisher::InstallId() const {
@@ -408,12 +432,16 @@ std::string ShowPresencePublisher::InstallId() const {
 }
 
 void ShowPresencePublisher::Enable(bool enable) {
-    std::lock_guard<std::mutex> l(_lock);
-    if (!enable) {
-        RemoveOwnFileLocked();
-        _showDir.clear();
+    std::string remove;
+    {
+        std::lock_guard<std::mutex> l(_lock);
+        if (!enable) {
+            remove = TakeOwnFileLocked();
+            _showDir.clear();
+        }
+        _enabled = enable;
     }
-    _enabled = enable;
+    RemovePresenceFile(remove);
 }
 
 bool ShowPresencePublisher::IsEnabled() const {
@@ -426,60 +454,77 @@ int ShowPresencePublisher::WriteCount() const {
     return _writeCount;
 }
 
-void ShowPresencePublisher::RemoveOwnFileLocked() {
+std::string ShowPresencePublisher::TakeOwnFileLocked() {
+    std::string path;
     if (!_showDir.empty() && ShowAutosave::IsValidInstallId(_installId)) {
-        const std::string path = ShowPresence::PresencePath(_showDir, _installId);
-        if (auto p = ToPath(path)) {
-            std::error_code ec;
-            std::filesystem::remove(*p, ec);
-        }
+        path = ShowPresence::PresencePath(_showDir, _installId);
     }
     _written = false;
+    // An Update whose write is still in flight must not leave its file behind.
+    ++_generation;
+    return path;
 }
 
 void ShowPresencePublisher::Clear() {
-    std::lock_guard<std::mutex> l(_lock);
-    RemoveOwnFileLocked();
-    _showDir.clear();
+    std::string remove;
+    {
+        std::lock_guard<std::mutex> l(_lock);
+        remove = TakeOwnFileLocked();
+        _showDir.clear();
+    }
+    RemovePresenceFile(remove);
 }
 
 bool ShowPresencePublisher::Update(const std::string& showDir, const ShowPresenceState& state, int64_t now) {
-    std::lock_guard<std::mutex> l(_lock);
-    if (!_enabled || !ShowAutosave::IsValidInstallId(_installId)) {
+    std::unique_lock<std::mutex> io(_ioLock, std::try_to_lock);
+    if (!io.owns_lock()) {
         return false;
     }
-    if (showDir != _showDir) {
-        RemoveOwnFileLocked();
-        _showDir = showDir;
-        if (!showDir.empty()) {
-            int removed = ShowPresence::RemoveVeryStale(showDir, _installId, now);
-            if (removed > 0) {
-                spdlog::info("ShowPresence: removed {} presence files not updated in a long time.", removed);
-            }
+    std::string removeOld;
+    bool sweep = false;
+    ShowPresenceEntry e;
+    uint64_t generation = 0;
+    {
+        std::lock_guard<std::mutex> l(_lock);
+        if (!_enabled || !ShowAutosave::IsValidInstallId(_installId)) {
+            return false;
         }
+        if (showDir != _showDir) {
+            removeOld = TakeOwnFileLocked();
+            _showDir = showDir;
+            sweep = !showDir.empty();
+        }
+        if (!showDir.empty()) {
+            const std::string sequence = ShowPresence::RelativeSequencePath(showDir, state.sequencePath);
+            const bool unchanged = _written && sequence == _lastSequence && state.editingLayout == _lastLayout &&
+                                   state.editingControllers == _lastControllers;
+            // A clock that went backwards rewrites rather than waiting it out.
+            if (unchanged && now >= _lastWrite && now - _lastWrite < ShowPresence::kHeartbeatSeconds) {
+                return false;
+            }
+            e.installId = _installId;
+            e.userName = _userName;
+            e.deviceName = _deviceName;
+            e.platform = _platform;
+            e.appVersion = _appVersion;
+            e.sequence = sequence;
+            e.editingLayout = state.editingLayout;
+            e.editingControllers = state.editingControllers;
+            e.heartbeat = now;
+        }
+        generation = _generation;
     }
+
+    RemovePresenceFile(removeOld);
     if (showDir.empty()) {
         return false;
     }
-    const std::string sequence = ShowPresence::RelativeSequencePath(showDir, state.sequencePath);
-    const bool unchanged = _written && sequence == _lastSequence && state.editingLayout == _lastLayout &&
-                           state.editingControllers == _lastControllers;
-    // A clock that went backwards rewrites rather than waiting it out.
-    if (unchanged && now >= _lastWrite && now - _lastWrite < ShowPresence::kHeartbeatSeconds) {
-        return false;
+    if (sweep) {
+        int removed = ShowPresence::RemoveVeryStale(showDir, e.installId, now);
+        if (removed > 0) {
+            spdlog::info("ShowPresence: removed {} presence files not updated in a long time.", removed);
+        }
     }
-
-    ShowPresenceEntry e;
-    e.installId = _installId;
-    e.userName = _userName;
-    e.deviceName = _deviceName;
-    e.platform = _platform;
-    e.appVersion = _appVersion;
-    e.sequence = sequence;
-    e.editingLayout = state.editingLayout;
-    e.editingControllers = state.editingControllers;
-    e.heartbeat = now;
-
     const std::string dir = ShowPresence::PresenceDir(showDir);
     auto dirPath = ToPath(dir);
     if (!dirPath) {
@@ -487,17 +532,38 @@ bool ShowPresencePublisher::Update(const std::string& showDir, const ShowPresenc
     }
     std::error_code ec;
     std::filesystem::create_directories(*dirPath, ec);
-    if (!ShowFileGuard::WriteFileAtomically(ShowPresence::PresencePath(showDir, _installId), ShowPresence::ToJson(e))) {
-        spdlog::debug("ShowPresence: could not write the presence file in {}", dir);
-        // Try again on the next update rather than after a full heartbeat.
-        _written = false;
+    const std::string path = ShowPresence::PresencePath(showDir, e.installId);
+    if (_beforeWrite) {
+        _beforeWrite();
+    }
+    const bool wrote = ShowFileGuard::WriteFileAtomically(path, ShowPresence::ToJson(e));
+
+    bool superseded = false;
+    {
+        std::lock_guard<std::mutex> l(_lock);
+        if (generation != _generation) {
+            // Cleared, disabled, re-identified or moved to another show while writing.
+            superseded = true;
+        } else if (!wrote) {
+            // Try again on the next update rather than after a full heartbeat.
+            _written = false;
+        } else {
+            _written = true;
+            _lastWrite = now;
+            _lastSequence = e.sequence;
+            _lastLayout = e.editingLayout;
+            _lastControllers = e.editingControllers;
+            ++_writeCount;
+        }
+    }
+    if (superseded) {
+        if (wrote) {
+            RemovePresenceFile(path);
+        }
         return false;
     }
-    _written = true;
-    _lastWrite = now;
-    _lastSequence = sequence;
-    _lastLayout = state.editingLayout;
-    _lastControllers = state.editingControllers;
-    ++_writeCount;
-    return true;
+    if (!wrote) {
+        spdlog::debug("ShowPresence: could not write the presence file in {}", dir);
+    }
+    return wrote;
 }

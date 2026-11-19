@@ -70,7 +70,7 @@ void Element::CleanupAfterRender() {
     for (auto &a : mEffectLayers) {
         a->CleanupAfterRender();
     }
-    std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
+    std::unique_lock<std::recursive_timed_mutex> lock(GetLayerChangeLock());
     while (!mLayersToDelete.empty()) {
         delete *mLayersToDelete.begin();
         mLayersToDelete.pop_front();
@@ -250,7 +250,7 @@ EffectLayer* Element::FindOpenLayer(int startTimeMS, int endTimeMS)
 EffectLayer* Element::AddEffectLayerInternal()
 {
     // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
-    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    std::unique_lock<std::recursive_timed_mutex> lock(GetLayerChangeLock(), std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
     {
         GetSequenceElements()->GetRenderContext()->AbortRender();
@@ -266,7 +266,7 @@ EffectLayer* Element::InsertEffectLayer(int index)
 {
     XL_SEQ_MUTATION("Element::InsertEffectLayer");
     // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
-    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    std::unique_lock<std::recursive_timed_mutex> lock(GetLayerChangeLock(), std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
     {
         GetSequenceElements()->GetRenderContext()->AbortRender();
@@ -305,7 +305,7 @@ void Element::RemoveEffectLayer(int index)
 {
     XL_SEQ_MUTATION("Element::RemoveEffectLayer");
     // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
-    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    std::unique_lock<std::recursive_timed_mutex> lock(GetLayerChangeLock(), std::defer_lock_t());
     if (!lock.try_lock_for(std::chrono::milliseconds(500)))
     {
         GetSequenceElements()->GetRenderContext()->AbortRender();
@@ -329,6 +329,10 @@ void Element::IncrementChangeCount(int sms, int ems)
     changeCount++;
     
     listener->IncrementChangeCount(this);
+}
+
+std::recursive_timed_mutex& SubModelElement::GetLayerChangeLock() {
+    return mParentModel != nullptr ? ((Element*)mParentModel)->GetChangeLock() : changeLock;
 }
 
 void SubModelElement::IncrementChangeCount(int startMs, int endMS) {

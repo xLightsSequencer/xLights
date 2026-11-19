@@ -166,6 +166,7 @@ void CommandExecutor::DirectElementDelete(Element* element, bool keepInViews) {
 }
 
 void CommandExecutor::RecordApplied(std::unique_ptr<SequenceCommand> applied, std::unique_ptr<SequenceCommand> inverse, bool recordUndo) {
+    _undo.DocumentEdited();
     if (_capture != nullptr) {
         if (CapturedKind(*applied)) {
             return;

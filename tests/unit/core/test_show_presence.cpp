@@ -3,6 +3,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <string>
 
 #include "support/TempDir.h"
@@ -315,4 +316,55 @@ TEST_CASE("ShowPresence: messages", "[presence]") {
     CHECK(ShowPresence::EditingHint({ sam, ipad }) == "Sam on Office PC is editing the layout; Studio iPad is editing the controllers");
     sam.editingControllers = true;
     CHECK(ShowPresence::EditingHint({ sam }) == "Sam on Office PC is editing the layout and controllers");
+}
+
+TEST_CASE("ShowPresence: a slow write blocks neither other calls nor a Clear", "[presence]") {
+    TempDir dir;
+    ShowPresencePublisher pub;
+    Setup(pub);
+    const std::string file = ShowPresence::PresencePath(dir.path.string(), kMine);
+    bool hookRan = false;
+    bool otherCallsWaited = false;
+    bool secondUpdateWrote = true;
+    // Outlives the hook so a control that holds the lock can't deadlock on its destructor.
+    std::future<void> other;
+    pub.SetBeforeWriteHook([&]() {
+        hookRan = true;
+        // Stands in for a write stuck on a slow share: the main thread's calls
+        // must not wait for it, and a second heartbeat must not queue behind it.
+        other = std::async(std::launch::async, [&]() {
+            (void)pub.InstallId();
+            secondUpdateWrote = pub.Update(dir.path.string(), ShowPresenceState{}, kNow + 100);
+            pub.Clear(); // the show closes while the write is still going
+        });
+        otherCallsWaited = other.wait_for(std::chrono::seconds(5)) != std::future_status::ready;
+    });
+    ShowPresenceState s;
+    s.sequencePath = (dir.path / "Song.xsq").string();
+    const bool wrote = pub.Update(dir.path.string(), s, kNow);
+    other.wait();
+    pub.SetBeforeWriteHook(nullptr);
+    REQUIRE(hookRan);
+    CHECK_FALSE(otherCallsWaited);
+    CHECK_FALSE(secondUpdateWrote);
+    // The Clear won: the in-flight write doesn't leave a file claiming the sequence is open.
+    CHECK_FALSE(wrote);
+    CHECK_FALSE(Exists(file));
+
+    // Afterwards it publishes normally again.
+    CHECK(pub.Update(dir.path.string(), s, kNow + 200));
+    CHECK(Exists(file));
+}
+
+TEST_CASE("ShowPresence: disabling while a write is in flight leaves no file and stops later writes", "[presence]") {
+    TempDir dir;
+    ShowPresencePublisher pub;
+    Setup(pub);
+    const std::string file = ShowPresence::PresencePath(dir.path.string(), kMine);
+    pub.SetBeforeWriteHook([&]() { pub.Enable(false); }); // the app closing on the main thread
+    CHECK_FALSE(pub.Update(dir.path.string(), ShowPresenceState{}, kNow));
+    pub.SetBeforeWriteHook(nullptr);
+    CHECK_FALSE(Exists(file));
+    CHECK_FALSE(pub.Update(dir.path.string(), ShowPresenceState{}, kNow + 100));
+    CHECK_FALSE(Exists(file));
 }

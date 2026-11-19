@@ -1161,31 +1161,12 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case WXK_CONTROL_Z:
             if(!event.ShiftDown()) {
                 if ((event.CmdDown() || event.ControlDown())) {
-                    if( mSequenceElements != nullptr &&
-                        mSequenceElements->get_undo_mgr().CanUndo() ) {
-                        mSequenceElements->get_undo_mgr().UndoLastStep();
-                        mSequenceElements->UnSelectAllEffects();
-                        PanelEffectGrid->ClearSelection();
-                        PanelEffectGrid->Draw();
-                        PanelEffectGrid->sendRenderDirtyEvent();
-                        // Undo can add, remove or reorder rows.
-                        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-                        wxPostEvent(GetParent(), eventRowHeaderChanged);
-                    }
+                    UndoOrRedo(false);
                     event.StopPropagation();
                 }
             } else {
                 if ((event.CmdDown() || event.ControlDown())) {
-                    if( mSequenceElements != nullptr &&
-                        mSequenceElements->get_undo_mgr().CanRedo() ) {
-                        mSequenceElements->get_undo_mgr().RedoLastStep();
-                        mSequenceElements->UnSelectAllEffects();
-                        PanelEffectGrid->ClearSelection();
-                        PanelEffectGrid->Draw();
-                        PanelEffectGrid->sendRenderDirtyEvent();
-                        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-                        wxPostEvent(GetParent(), eventRowHeaderChanged);
-                    }
+                    UndoOrRedo(true);
                     event.StopPropagation();
                 }
             }
@@ -1194,16 +1175,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         case 'Y':
         case WXK_CONTROL_Y:
             if (event.CmdDown() || event.ControlDown()) {
-                if( mSequenceElements != nullptr &&
-                   mSequenceElements->get_undo_mgr().CanRedo() ) {
-                    mSequenceElements->get_undo_mgr().RedoLastStep();
-                    mSequenceElements->UnSelectAllEffects();
-                    PanelEffectGrid->ClearSelection();
-                    PanelEffectGrid->Draw();
-                    PanelEffectGrid->sendRenderDirtyEvent();
-                    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-                    wxPostEvent(GetParent(), eventRowHeaderChanged);
-                }
+                UndoOrRedo(true);
                 event.StopPropagation();
             }
             break;
@@ -1364,32 +1336,30 @@ void MainSequencer::DoPaste(wxCommandEvent& event) {
 }
 
 void MainSequencer::DoUndo(wxCommandEvent& event) {
-
-    if (PanelEffectGrid == nullptr) return;
-
-    if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanUndo() ) {
-        mSequenceElements->UnSelectAllEffects();
-        mSequenceElements->get_undo_mgr().UndoLastStep();
-        PanelEffectGrid->ClearSelection();
-        PanelEffectGrid->Draw();
-        PanelEffectGrid->sendRenderDirtyEvent();
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(GetParent(), eventRowHeaderChanged);
-    }
+    UndoOrRedo(false);
 }
 
 void MainSequencer::DoRedo(wxCommandEvent& event) {
-    if (PanelEffectGrid == nullptr) return;
+    UndoOrRedo(true);
+}
 
-    if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanRedo() ) {
-        mSequenceElements->UnSelectAllEffects();
-        mSequenceElements->get_undo_mgr().RedoLastStep();
-        PanelEffectGrid->ClearSelection();
-        PanelEffectGrid->Draw();
-        PanelEffectGrid->sendRenderDirtyEvent();
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(GetParent(), eventRowHeaderChanged);
-    }
+void MainSequencer::UndoOrRedo(bool redo) {
+    if (PanelEffectGrid == nullptr || mSequenceElements == nullptr) return;
+    UndoManager& undo = mSequenceElements->get_undo_mgr();
+    if (undo.IsReplaying() || !(redo ? undo.CanRedo() : undo.CanUndo())) return;
+
+    // The step may delete rows or effects the frame, the effect panel or the
+    // grid still point at.
+    xLightsApp::GetFrame()->ClearEffectSelectionForDocumentChange();
+    mSequenceElements->UnSelectAllEffects();
+    PanelEffectGrid->ClearSelection();
+    const bool replayed = redo ? undo.RedoLastStep() : undo.UndoLastStep();
+    if (!replayed) return;
+    PanelEffectGrid->Draw();
+    PanelEffectGrid->sendRenderDirtyEvent();
+    // Undo can add, remove or reorder rows.
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
 }
 
 void MainSequencer::SetLargeWaveform()

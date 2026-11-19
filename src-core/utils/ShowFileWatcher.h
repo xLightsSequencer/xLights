@@ -88,6 +88,23 @@ public:
     std::vector<std::string> Poll();
     std::vector<std::string> Poll(int64_t nowMs);
 
+    // Poll with the file I/O (stamps, coordinated reads) on a worker thread,
+    // for hosts that poll from the UI thread: a show folder on a stalled
+    // network share or behind an iCloud writer can block for a long time.
+    // StartBackgroundPoll returns false while the previous one is still
+    // running. TakeBackgroundPoll, called later on the same thread as every
+    // other method, returns nullopt until the worker is done, then the
+    // changed files exactly as Poll would have. A Watch/Stop in between
+    // discards that result.
+    bool StartBackgroundPoll();
+    bool StartBackgroundPoll(int64_t nowMs);
+    std::optional<std::vector<std::string>> TakeBackgroundPoll();
+    bool BackgroundPollRunning() const { return _job != nullptr; }
+    // Whether the file's contents matched what the guard recorded the last
+    // time a poll read them; nullopt when no poll has read it since Watch.
+    // Lets a host check an outstanding change without reading the file itself.
+    std::optional<bool> MatchedRecordedAtLastRead(const std::string& path) const;
+
     // Report the file again the next time it is found changed (the host
     // could not act on the report).
     void Rearm(const std::string& path);
@@ -109,7 +126,33 @@ private:
         std::optional<ShowFileFingerprint> candidate;
         int64_t candidateSince = 0;
         std::optional<ShowFileFingerprint> reported;
+        std::optional<bool> matchedRecorded;
     };
+
+    // One file's I/O for a poll, gathered without touching _files.
+    struct Probe {
+        std::string path;
+        // From _files and the guard when the poll started.
+        bool tracked = false;
+        bool stampKnown = false;
+        Stamp priorStamp;
+        bool hasCandidate = false;
+        int64_t lastRead = 0;
+        // Gathered.
+        Stamp stamp;
+        bool read = false;
+        std::optional<ShowFileFingerprint> fingerprint;
+    };
+    struct PollJob {
+        int64_t nowMs = 0;
+        bool poked = false;
+        uint64_t generation = 0;
+        std::vector<Probe> probes;
+        std::atomic<bool> done{ false };
+    };
+    std::shared_ptr<PollJob> BeginPoll(int64_t nowMs);
+    static void Gather(PollJob& job, const StampFunction& stamp, const FingerprintFunction& fingerprint);
+    std::vector<std::string> FinishPoll(const PollJob& job);
 
     int64_t Now() const;
     void StartPlatform(const std::string& folder);
@@ -123,6 +166,8 @@ private:
     bool _usePlatform = true;
     std::vector<std::string> _paths;
     std::map<std::string, FileState> _files;
+    uint64_t _generation = 0;
+    std::shared_ptr<PollJob> _job;
     // Shared with the platform callback, which may outlive a Stop() briefly.
     std::shared_ptr<std::atomic<bool>> _poked = std::make_shared<std::atomic<bool>>(false);
     void* _platform = nullptr;

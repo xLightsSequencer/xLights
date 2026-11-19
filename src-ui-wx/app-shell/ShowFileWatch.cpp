@@ -172,21 +172,10 @@ void xLightsFrame::CheckShowFilesOnDisk()
     paths.push_back((std::filesystem::path(dir) / XLIGHTS_PRESETS_FILE).string());
     _showFileWatcher->Watch(paths);
 
-    auto& guard = ShowFileGuard::Instance();
-    if (_pendingIncoming != nullptr) {
-        // A save may have merged them meanwhile.
-        bool outstanding = false;
-        for (const auto& p : _pendingIncoming->ChangedPaths()) {
-            outstanding |= guard.HasChangedOnDisk(p);
-        }
-        if (!outstanding) {
-            _pendingIncoming.reset();
-            HideShowFileBanner();
-        }
-    }
-    // Not while a dialog is up, a mouse drag is in progress or a save runs:
-    // the next tick looks again (Poll keeps a change until it reports it).
-    if (ModalDialogOpen() || wxWindow::GetCapture() != nullptr) {
+    // Not while a dialog is up, a mouse drag is in progress, playback runs (a
+    // controller change restarts output mid-show) or a save runs: the next
+    // tick looks again (the watcher keeps a change until it reports it).
+    if (ModalDialogOpen() || wxWindow::GetCapture() != nullptr || playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_EFFECT) {
         return;
     }
     {
@@ -195,7 +184,28 @@ void xLightsFrame::CheckShowFilesOnDisk()
             return;
         }
     }
-    if (_showFileWatcher->Poll().empty()) {
+    // The file I/O runs on a worker: a show folder on a stalled network share
+    // or behind an iCloud writer can block for a long time. Each tick collects
+    // the last poll's result and starts the next one.
+    auto changed = _showFileWatcher->TakeBackgroundPoll();
+    if (!_showFileWatcher->BackgroundPollRunning()) {
+        _showFileWatcher->StartBackgroundPoll();
+    }
+    if (!changed) {
+        return;
+    }
+    if (_pendingIncoming != nullptr) {
+        // A save may have merged them meanwhile (judged from the poll's reads).
+        bool outstanding = false;
+        for (const auto& p : _pendingIncoming->ChangedPaths()) {
+            outstanding |= !_showFileWatcher->MatchedRecordedAtLastRead(p).value_or(false);
+        }
+        if (!outstanding) {
+            _pendingIncoming.reset();
+            HideShowFileBanner();
+        }
+    }
+    if (changed->empty()) {
         return;
     }
     HandleIncomingShowChanges(false);
@@ -270,6 +280,9 @@ void xLightsFrame::HandleIncomingShowChanges(bool review)
             }
         }
 
+        // Stopping a render can run other events while it waits (it yields),
+        // and edits made then are in neither side of the merge prepared above.
+        const bool wasRendering = !IsRenderDone();
         if (!AbortRender()) {
             spdlog::info("{} changed on disk; a render is still running, trying again shortly.", names);
             _showFileWatcher->RearmAll();
@@ -277,6 +290,12 @@ void xLightsFrame::HandleIncomingShowChanges(bool review)
                 _pendingIncoming = std::move(in);
             }
             return;
+        }
+
+        if (wasRendering && attempt < 2) {
+            // Render is stopped now, so the next pass doesn't wait or yield.
+            _pendingIncoming = std::move(in);
+            continue;
         }
 
         const bool rgbEdited = UnsavedRgbEffectsChanges;
@@ -293,6 +312,12 @@ void xLightsFrame::HandleIncomingShowChanges(bool review)
             // The tree points into the presets that are about to be replaced.
             EffectTreeDlg->ClearItems();
             _effectPresetsInitialized = false;
+        }
+        // Rows or effects the selection points at may be removed.
+        ClearEffectSelectionForDocumentChange();
+        _sequenceElements.UnSelectAllEffects();
+        if (mainSequencer != nullptr) {
+            mainSequencer->PanelEffectGrid->ClearSelection();
         }
         Applied applied = Apply(*this, *in, guard);
         RefreshAfterIncomingShowChanges(applied);

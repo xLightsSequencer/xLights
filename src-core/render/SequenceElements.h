@@ -250,6 +250,10 @@ public:
 
     EffectManager &GetEffectManager();
     RenderContext *GetRenderContext() const { return renderContext; };
+    // Deleted rows not freed yet (see FreeElementSafely).
+    size_t GetElementsAwaitingDelete() const { return mElementsAwaitingDelete.size(); }
+    // How long a deleted row is kept before it may be freed. Tests shorten it.
+    void SetDeletedRowGraceMs(int64_t ms) { mDeletedRowGraceMs = ms; }
 
     // Color palettes from the loaded sequence
     const std::vector<std::string>& GetColorPalettes() const { return mColorPalettes; }
@@ -320,6 +324,16 @@ private:
     SequenceViewManager* _viewsManager = nullptr;
     std::array<int, TagCount> _tagPositions{};
     RenderContext *renderContext = nullptr;
+    struct DeletedRow {
+        Element* element;
+        int64_t freeAfterMs;
+    };
+    std::vector<DeletedRow> mElementsAwaitingDelete;
+    int64_t mDeletedRowGraceMs = 60000;
+    void FreeExpiredRows();
+    bool StopRenderForRowChange();
+    void StopRenderBeforeAddingRow();
+    void FreeElementSafely(Element* e, bool renderStopped);
     double mFrequency;
     int mTimingRowCount = 0;
     int mMaxRowsDisplayed = 0;

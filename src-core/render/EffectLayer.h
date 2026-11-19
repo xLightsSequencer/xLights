@@ -44,6 +44,9 @@ public:
     Effect* GetEffectByTime(int ms);
     Effect* GetEffectFromID(int id);
     Effect* GetEffectFromUid(SeqObjectId uid) const;
+    size_t GetUidIndexBuildCount() const { return mUidIndexBuilds; }
+    // Called by Effect::SetUid so the id index follows the new id.
+    void EffectUidChanged(Effect* e, SeqObjectId oldUid);
     int GetFirstSelectedEffectStartMS() const;
     int GetLastSelectedEffectEndMS() const;
     void RemoveEffect(int index);
@@ -180,12 +183,16 @@ private:
     std::vector<Effect*> mEffects;
     std::list<Effect*> mEffectsToDelete;
     // GetEffectFromUid index for layers with many effects, created on first
-    // use. Dropped whenever mEffects gains or loses an effect; a hit is
-    // checked against the effect's current id and a miss falls back to a
-    // scan, so an id changed behind its back can't make it lie.
+    // use. Single adds and removes update it in place (bulk edits one effect
+    // at a time would otherwise rebuild it per effect); bulk changes drop it.
+    // A hit is checked against the effect's current id and a miss falls back
+    // to a scan, so an id changed behind its back can't make it lie.
     struct UidIndex;
     mutable std::atomic<UidIndex*> mUidIndex{ nullptr };
+    mutable size_t mUidIndexBuilds = 0;
     void InvalidateUidIndex();
+    void IndexAdded(Effect* e);
+    void IndexRemoved(Effect* e);
     int mIndex = 0;
     SeqObjectId mUid = SeqIds::Next();
     Element* mParentElement = nullptr;

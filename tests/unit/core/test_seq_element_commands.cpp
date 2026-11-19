@@ -19,7 +19,11 @@
 
 #include <nlohmann/json.hpp>
 
+#include <functional>
 #include <memory>
+#include <chrono>
+#include <thread>
+#include <future>
 #include <string>
 #include <vector>
 
@@ -987,3 +991,218 @@ TEST_CASE("Element edits through ElementEdits trip nothing", "[seq][elements][gu
     CHECK(SeqMutationGuard::ViolationCount() == 0);
 }
 #endif
+
+namespace {
+// Counts render aborts and can pretend one timed out.
+struct AbortWatchContext : HeadlessRenderContext {
+    int aborts = 0;
+    bool abortSucceeds = true;
+    bool sequenceOpen = false;
+    // Runs inside the abort, like events the desktop handles while it yields.
+    std::function<void()> whileAborting;
+    bool IsSequenceLoaded() const override { return sequenceOpen; }
+    bool AbortRender(int maxTimeMs = 60000) override {
+        (void)maxTimeMs;
+        ++aborts;
+        if (whileAborting) {
+            auto run = std::move(whileAborting);
+            run();
+        }
+        return abortSucceeds;
+    }
+};
+} // namespace
+
+TEST_CASE("Undoing or redoing a row add or delete stops the render and keeps the row for a while", "[seq][elements][undo]") {
+    AbortWatchContext ctx;
+    SequenceElements& se = ctx.GetSequenceElements();
+    UndoManager& undo = se.get_undo_mgr();
+    se.SetDeletedRowGraceMs(0);
+
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::AddTimingTrack(se, -1, "Lyrics", "Lyrics") != nullptr);
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::AddTimingTrack(se, -1, "Beats", "") != nullptr);
+
+    ctx.aborts = 0;
+    undo.UndoLastStep();
+    CHECK(se.GetElement("Beats") == nullptr);
+    CHECK(ctx.aborts >= 1);
+    CHECK(se.GetElementsAwaitingDelete() == 0); // no grace period: freed once the render stopped
+
+    // A render that won't stop keeps the row alive instead of freeing it under the render.
+    ctx.abortSucceeds = false;
+    ctx.aborts = 0;
+    undo.UndoLastStep();
+    CHECK(se.GetElement("Lyrics") == nullptr);
+    CHECK(ctx.aborts >= 1);
+    CHECK(se.GetElementsAwaitingDelete() == 1);
+
+    // Redo re-adds both; deleting one once the render stops frees the waiting row too.
+    ctx.abortSucceeds = true;
+    undo.RedoLastStep();
+    undo.RedoLastStep();
+    REQUIRE(se.GetElement("Beats") != nullptr);
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::DeleteElement(se, "Beats"));
+    CHECK(se.GetElementsAwaitingDelete() == 0);
+
+    // Undoing a timing track rename stops the render before effects are rewritten.
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::RenameTimingTrack(se, "Lyrics", "Words"));
+    ctx.aborts = 0;
+    undo.UndoLastStep();
+    CHECK(se.GetElement("Lyrics") != nullptr);
+    CHECK(ctx.aborts >= 1);
+}
+
+TEST_CASE("A deleted row and its effects stay valid for the grace period, like deleted effects", "[seq][elements][undo]") {
+    AbortWatchContext ctx;
+    SequenceElements& se = ctx.GetSequenceElements();
+    UndoManager& undo = se.get_undo_mgr();
+    undo.CreateUndoStep();
+    TimingElement* t = ElementEdits::AddTimingTrack(se, -1, "Lyrics", "Lyrics");
+    REQUIRE(t != nullptr);
+    Effect* selected = nullptr;
+    {
+        SeqMutationGuard::Scope setup;
+        selected = t->GetEffectLayer(0)->AddEffect(0, "hello", "", "", 0, 500, EFFECT_SELECTED, false);
+    }
+    REQUIRE(selected != nullptr);
+
+    // The UI still holds `selected` when undo removes its row.
+    undo.UndoLastStep();
+    REQUIRE(se.GetElement("Lyrics") == nullptr);
+    CHECK(se.GetElementsAwaitingDelete() == 1);
+    CHECK(selected->GetEffectName() == "hello");
+    CHECK(selected->GetParentEffectLayer()->GetParentElement() == t);
+
+    // Later deletes (render stopped) don't free it before its time.
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::AddTimingTrack(se, -1, "Beats", "") != nullptr);
+    undo.UndoLastStep();
+    CHECK(se.GetElementsAwaitingDelete() == 2);
+
+    se.Clear(); // closing the sequence frees them
+    CHECK(se.GetElementsAwaitingDelete() == 0);
+}
+
+TEST_CASE("Edits render threads read by name or reference stop the render first", "[seq][elements]") {
+    AbortWatchContext ctx;
+    SequenceElements& se = ctx.GetSequenceElements();
+    Element* tree = nullptr;
+    {
+        SeqMutationGuard::Scope setup;
+        tree = se.AddElement("Tree", "model", true, false, false, false, false);
+    }
+    REQUIRE(tree != nullptr);
+    CHECK(ctx.aborts == 0); // loading rows into a sequence that isn't open yet doesn't
+
+    ctx.sequenceOpen = true;
+    ctx.aborts = 0;
+    {
+        SeqMutationGuard::Scope setup;
+        REQUIRE(se.AddElement(0, "Beats", "timing", true, false, false, false, false) != nullptr);
+    }
+    CHECK(ctx.aborts == 1);
+
+    ctx.aborts = 0;
+    RenameModelElementCommand rename(tree->GetUid(), "Big Tree");
+    REQUIRE(rename.Apply(se, ApplyMode::Strict) != nullptr);
+    CHECK(ctx.aborts == 1);
+
+    ctx.aborts = 0;
+    SetSequenceFaceCommand face("Singer", SetSequenceFaceCommand::FaceDefinition{ { "Mouth-AI", "a.png" } });
+    REQUIRE(face.Apply(se, ApplyMode::Strict) != nullptr);
+    CHECK(ctx.aborts == 1);
+}
+
+TEST_CASE("Layer edits on a submodel row wait for the lock its model's render holds", "[seq][elements]") {
+    Show show;
+    AbortWatchContext ctx;
+    REQUIRE(ctx.LoadShowFolder(show.dir.path.string()));
+    SequenceElements& se = ctx.GetSequenceElements();
+    ModelElement* grid = nullptr;
+    {
+        SeqMutationGuard::Scope setup;
+        grid = dynamic_cast<ModelElement*>(se.AddElement("Grid", "model", true, false, false, false, false));
+    }
+    REQUIRE(grid != nullptr);
+    REQUIRE(grid->GetSubModelCount() > 0);
+    SubModelElement* top = grid->GetSubModel(0);
+    REQUIRE(top != nullptr);
+    {
+        SeqMutationGuard::Scope setup;
+        if (top->GetEffectLayerCount() == 0) {
+            top->AddEffectLayer();
+        }
+    }
+    const size_t layers = top->GetEffectLayerCount();
+
+    // A render job for Grid holds Grid's lock for a whole slice.
+    std::promise<void> held;
+    std::promise<void> release;
+    std::thread render([&]() {
+        std::unique_lock<std::recursive_timed_mutex> lock(grid->GetRenderLock());
+        held.set_value();
+        release.get_future().wait();
+    });
+    held.get_future().wait();
+    ctx.aborts = 0;
+    std::thread releaser([&]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(800));
+        release.set_value();
+    });
+    {
+        SeqMutationGuard::Scope direct;
+        REQUIRE(top->InsertEffectLayer(0) != nullptr);
+    }
+    // Contended for 500ms, so it asked the render to stop and then waited for the slice to end.
+    CHECK(ctx.aborts == 1);
+    CHECK(top->GetEffectLayerCount() == layers + 1);
+    releaser.join();
+    render.join();
+}
+
+TEST_CASE("Undo stops the render once before replaying a row step and refuses a nested undo", "[seq][elements][undo]") {
+    AbortWatchContext ctx;
+    SequenceElements& se = ctx.GetSequenceElements();
+    UndoManager& undo = se.get_undo_mgr();
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::AddTimingTrack(se, -1, "Lyrics", "Lyrics") != nullptr);
+    // One step: a new track, then an effect on the first one. Undo replays
+    // the effect removal first, then the row delete.
+    undo.CreateUndoStep();
+    REQUIRE(ElementEdits::AddTimingTrack(se, -1, "Beats", "") != nullptr);
+    REQUIRE(se.GetCommandExecutor().AddEffect(se.GetElement("Lyrics")->GetEffectLayer(0), "word", "", "", 0, 100, 0, false) != nullptr);
+
+    // A Cmd-Z handled while the replay waits for the render to stop.
+    bool nestedRan = false;
+    bool nestedReplayed = true;
+    bool nothingReplayedYet = false;
+    ctx.whileAborting = [&]() {
+        nestedRan = true;
+        // The stop comes before any of the step is replayed.
+        nothingReplayedYet = se.GetElement("Beats") != nullptr && se.GetElement("Lyrics")->GetEffectLayer(0)->GetEffectCount() == 1;
+        nestedReplayed = undo.UndoLastStep();
+    };
+    REQUIRE(undo.UndoLastStep());
+    CHECK(nestedRan);
+    CHECK(nothingReplayedYet);
+    CHECK_FALSE(nestedReplayed);
+    CHECK(se.GetElement("Lyrics")->GetEffectLayer(0)->GetEffectCount() == 0);
+    // Exactly one step undone; the earlier one is intact and redo has one step.
+    CHECK(se.GetElement("Beats") == nullptr);
+    CHECK(se.GetElement("Lyrics") != nullptr);
+    REQUIRE(undo.RedoLastStep());
+    CHECK(se.GetElement("Beats") != nullptr);
+    CHECK_FALSE(undo.CanRedo());
+
+    // A step with only effect edits doesn't stop a render that is running.
+    Element* lyrics = se.GetElement("Lyrics");
+    undo.CreateUndoStep();
+    REQUIRE(se.GetCommandExecutor().AddEffect(lyrics->GetEffectLayer(0), "hello", "", "", 0, 100, 0, false) != nullptr);
+    ctx.aborts = 0;
+    REQUIRE(undo.UndoLastStep());
+    CHECK(ctx.aborts == 0);
+}

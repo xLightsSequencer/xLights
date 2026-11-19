@@ -188,15 +188,20 @@ Effect::Effect(const Effect& ef)
     mID = ef.mID;
     mUid = ef.mUid;
     mEffectIndex = ef.mEffectIndex;
-    mName = ef.mName;
+    // Owned: the copy deletes its own name, so it can't share the source's.
+    mName = ef.mName != nullptr ? new std::string(*ef.mName) : nullptr;
     mStartTime = ef.mStartTime;
     mEndTime = ef.mEndTime;
     mParentLayer = ef.mParentLayer;
     mColorMask = ef.mColorMask;
-    mSettings = ef.mSettings;
-    mPaletteMap = ef.mPaletteMap;
-    mColors = ef.mColors;
-    mCC = ef.mCC;
+    {
+        // Made on a render thread while the source can be edited.
+        std::unique_lock<std::recursive_mutex> lock(ef.settingsLock);
+        mSettings = ef.mSettings;
+        mPaletteMap = ef.mPaletteMap;
+        mColors = ef.mColors;
+        mCC = ef.mCC;
+    }
 
     // Deliberately NOT copying _linkedSymbolId. This copy is a short-lived
     // render temporary (RenderEngine's `new Effect(*ef)`) that is never passed
@@ -286,6 +291,18 @@ Effect::~Effect()
 }
 
 #pragma endregion
+
+void Effect::SetUid(SeqObjectId uid)
+{
+    if (uid == mUid) {
+        return;
+    }
+    SeqObjectId old = mUid;
+    mUid = uid;
+    if (mParentLayer != nullptr) {
+        mParentLayer->EffectUidChanged(this, old);
+    }
+}
 
 void Effect::SetTimeToDelete()
 {
@@ -841,6 +858,13 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
             target[name] = it.second;
         }
     }
+}
+
+void Effect::SnapshotMaps(SettingsMap& settings, SettingsMap& palette) const
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    settings = mSettings;
+    palette = mPaletteMap;
 }
 
 // When an effect is copied between model types the buffer may not be supported so make it valid

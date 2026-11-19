@@ -10,6 +10,7 @@
 
 #include "SequenceMediaCommands.h"
 
+#include <algorithm>
 #include <unordered_set>
 
 #include "CommandExecutor.h"
@@ -243,7 +244,14 @@ std::unique_ptr<SequenceCommand> RenameMediaCommand::ApplyImpl(SequenceElements&
     if (_moveEntry && !seq.GetSequenceMedia().RenameMedia(_from, _to)) {
         return Fail(result, CommandResult::Fail(CommandStatus::Invalid, "media entry not renamed"));
     }
-    seq.GetSequenceFaces().RewriteImagePath(_from, _to);
+    const auto facePaths = seq.GetSequenceFaces().GetImagePaths();
+    if (std::find(facePaths.begin(), facePaths.end(), _from) != facePaths.end()) {
+        // Faces effects hold references into the face definitions while rendering.
+        if (RenderContext* rc = seq.GetRenderContext()) {
+            rc->AbortRender();
+        }
+        seq.GetSequenceFaces().RewriteImagePath(_from, _to);
+    }
     // Effects follow through the ModifyEffects batched with this command,
     // which re-render them.
     seq.IncrementChangeCount(nullptr);

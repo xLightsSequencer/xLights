@@ -1269,6 +1269,23 @@ void xLightsFrame::UnselectEffect(){
     mainSequencer->PanelEffectGrid->UnselectEffect(false);
 }
 
+void xLightsFrame::ClearEffectSelectionForDocumentChange() {
+    if (selectedEffect == nullptr) {
+        return;
+    }
+    _panelEditCoalescer.EndBurst();
+    sEffectAssist->SetPanel(nullptr);
+    selectedEffect = nullptr;
+    selectedEffectName = "";
+    selectedEffectString = "";
+    selectedEffectPalette = "";
+    // ClearSelection, not UnselectEffect: that one's event would land in
+    // UnselectEffect above and stop playback.
+    if (mainSequencer != nullptr) {
+        mainSequencer->PanelEffectGrid->ClearSelection();
+    }
+}
+
 void xLightsFrame::EffectChanged(wxCommandEvent& event)
 {
     Effect* effect = (Effect*)event.GetClientData();

@@ -82,7 +82,7 @@ public:
     SeqObjectId GetUid() const { return mUid; }
     // Only for restoring an identity onto a re-created effect (undo). The
     // caller guarantees no live effect already holds `uid`.
-    void SetUid(SeqObjectId uid) { mUid = uid; }
+    void SetUid(SeqObjectId uid);
 
     bool IsTimeToDelete() const;
     void SetTimeToDelete();
@@ -175,6 +175,8 @@ public:
     void PressButton(RenderableEffect* re, const std::string& id);
     const SettingsMap &GetSettings() const { return mSettings; }
     void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
+    // Both maps as they are now, read under the settings lock.
+    void SnapshotMaps(SettingsMap& settings, SettingsMap& palette) const;
     void FixBuffer(const Model* m);
     bool IsPersistent() const;
 

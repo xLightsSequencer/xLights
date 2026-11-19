@@ -107,6 +107,10 @@ public:
     int Index() const { return mIndex;}
     
     std::recursive_timed_mutex &GetChangeLock() { return changeLock; }
+    // The lock a render job holds while it reads this row's layers: the row's
+    // own, or for a submodel or strand row its model's, which is the one the
+    // model's render job takes.
+    virtual std::recursive_timed_mutex &GetLayerChangeLock() { return changeLock; }
     virtual void IncrementChangeCount(int startMs, int endMS);
     int getChangeCount() const { return changeCount; }
     
@@ -216,6 +220,7 @@ public:
     virtual std::string GetFullName() const override;
     virtual void IncrementChangeCount(int startMs, int endMS) override;
     virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
+    std::recursive_timed_mutex &GetLayerChangeLock() override;
 
     [[nodiscard]] virtual bool HasEffects() const override;
 

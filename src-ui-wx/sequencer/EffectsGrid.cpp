@@ -1175,22 +1175,12 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         SelectEffect(ef);
     } else if (id == ID_GRID_MNU_UNDO) {
         spdlog::debug("OnGridPopup - UNDO");
-        mSelectedEffect = nullptr; // lets clear it as the undo may delete that effect ... and i cant be sure
         _rightClickEffect = nullptr;
-        mSequenceElements->UnSelectAllEffects();
-        mSequenceElements->get_undo_mgr().UndoLastStep();
-        sendRenderDirtyEvent();
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(mParent, eventRowHeaderChanged);
+        ((MainSequencer*)mParent)->UndoOrRedo(false);
     } else if (id == ID_GRID_MNU_REDO) {
         spdlog::debug("OnGridPopup - REDO");
-        mSelectedEffect = nullptr; // lets clear it as the redo may delete that effect ... and i cant be sure
         _rightClickEffect = nullptr;
-        mSequenceElements->UnSelectAllEffects();
-        mSequenceElements->get_undo_mgr().RedoLastStep();
-        sendRenderDirtyEvent();
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        wxPostEvent(mParent, eventRowHeaderChanged);
+        ((MainSequencer*)mParent)->UndoOrRedo(true);
     } else if (id == ID_GRID_MNU_ALIGN_START_TIMES) {
         spdlog::debug("OnGridPopup - ALIGN_START");
         AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES);

@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <cstdint>
+#include <functional>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -122,15 +123,22 @@ public:
     // changed since the last write, or when the last write is older than the
     // heartbeat interval. Switching show folders removes the file from the old
     // one. An empty showDir is the same as Clear(). Returns true when it wrote.
+    // Returns false at once while another Update is still writing. Safe to
+    // call from a background thread.
     bool Update(const std::string& showDir, const ShowPresenceState& state, int64_t now);
     bool Update(const std::string& showDir, const ShowPresenceState& state) { return Update(showDir, state, ShowPresence::Now()); }
     // Removes this install's presence file (show closed, app quitting).
     void Clear();
 
     int WriteCount() const;
+    // Tests only: runs in Update just before the presence file is written.
+    void SetBeforeWriteHook(std::function<void()> hook) { _beforeWrite = std::move(hook); }
 
 private:
     mutable std::mutex _lock;
+    std::mutex _ioLock;
+    std::function<void()> _beforeWrite;
+    uint64_t _generation = 0;
     std::string _installId;
     std::string _userName;
     std::string _deviceName;
@@ -146,5 +154,7 @@ private:
     bool _lastControllers = false;
     int _writeCount = 0;
 
-    void RemoveOwnFileLocked();
+    // Forgets this install's file and returns its path for the caller to
+    // remove once _lock is released.
+    std::string TakeOwnFileLocked();
 };

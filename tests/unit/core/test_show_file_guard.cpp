@@ -122,6 +122,25 @@ TEST_CASE("ShowFileGuard SaveFile records our own write", "[utils][showfileguard
     CHECK_FALSE(guard.HasChangedOnDisk(path));
 }
 
+TEST_CASE("ShowFileGuard streamed save records what it wrote and not a file that replaced it right after", "[utils][showfileguard]") {
+    TempDir dir;
+    ShowFileGuard guard;
+    const std::string path = dir.Write("xlights_networks.xml", "<Networks/>");
+    guard.RecordFromDisk(path);
+    // Another machine's save lands between ours and the guard recording it.
+    guard.SetAfterSaveHook([&](const std::string&) { dir.Write("xlights_networks.xml", "<Networks theirs=\"1\"/>"); });
+    REQUIRE(guard.SaveFile(path, ShowFileGuard::Writer([](const std::string& p) {
+        std::ofstream(p, std::ios::binary) << "<Networks mine=\"1\"/>";
+        return true;
+    })));
+    guard.SetAfterSaveHook(nullptr);
+    auto base = guard.RecordedText(path);
+    REQUIRE(base.has_value());
+    CHECK(*base == "<Networks mine=\"1\"/>");
+    // Their write is seen as a change, so the next save merges or asks instead of overwriting it.
+    CHECK(guard.HasChangedOnDisk(path));
+}
+
 TEST_CASE("ShowFileGuard SavePatchedFile keeps an outstanding external change flagged", "[utils][showfileguard]") {
     TempDir dir;
     ShowFileGuard guard;

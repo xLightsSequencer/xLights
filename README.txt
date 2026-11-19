@@ -12,6 +12,26 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (dkulp)                 Undo or redo of adding or deleting a row, renaming a timing track or model, or
+                                 editing sequence faces while a render was running could crash
+    -bug (dkulp)                 Adding or removing layers on a submodel or strand row while it rendered could crash
+    -bug (dkulp)                 Deleting or undoing a large selection of effects on one layer could freeze for seconds
+    -bug (dkulp)                 Undo or redo could put back effects over edits made after the undo
+    -bug (dkulp)                 iPad - Undo of a step bigger than the undo limit (such as pasting 60 effects)
+                                 only partly reverted it
+    -bug (dkulp)                 A shared show folder on a slow or disconnected network drive could freeze the
+                                 app every few seconds
+    -bug (dkulp)                 Undo, redo or bringing in someone else's layout change could crash when it removed
+                                 the row holding the selected effect
+    -bug (dkulp)                 Pressing Undo again while an undo waited for a render to stop could mix up the
+                                 undo history
+    -change (dkulp)              Show file changes saved by someone else are brought in after playback stops
+                                 rather than during it
+    -bug (dkulp)                 iPad - Bringing in someone else's show file changes while a render ran could
+                                 freeze the app for seconds, repeatedly; it is now also held during a drag
+    -bug (dkulp)                 iPad - Others sharing the show folder kept seeing a closed sequence as open here
+    -bug (dkulp)                 A layout or controller save landing at the same moment as someone else's could
+                                 overwrite theirs without a warning
     -enh (dkulp)                 Opening a sequence saved before models were renamed in the layout (here or by
                                  someone sharing the show folder) renames its rows to match and says so,
                                  instead of asking about missing models

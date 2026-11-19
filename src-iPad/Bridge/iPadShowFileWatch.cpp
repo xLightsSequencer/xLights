@@ -13,6 +13,8 @@
 
 #include "iPadRenderContext.h"
 
+#include <algorithm>
+
 #include "render/ShowFileLiveMerge.h"
 #include "render/ShowMergeApply.h"
 #include "utils/ShowFileGuard.h"
@@ -102,24 +104,38 @@ iPadRenderContext::IncomingShowChanges iPadRenderContext::CheckShowFilesOnDisk(s
         // The conflict sheet is open on them.
         return IncomingShowChanges::None;
     }
+    if (std::chrono::steady_clock::now() < _incomingRetryAt) {
+        // Backing off after the models or the render were busy.
+        return IncomingShowChanges::None;
+    }
+    // Called from a main-actor timer: the file I/O runs on a worker (the show
+    // folder may be in iCloud or on a slow share). Each call collects the last
+    // poll's result and starts the next one.
+    auto changed = _showFileWatcher->TakeBackgroundPoll();
+    if (!_showFileWatcher->BackgroundPollRunning()) {
+        _showFileWatcher->StartBackgroundPoll();
+    }
+    if (!changed) {
+        return IncomingShowChanges::None;
+    }
     if (_pendingIncoming) {
-        // A save may have merged them meanwhile.
+        // A save may have merged them meanwhile (judged from the poll's reads).
         bool outstanding = false;
         for (const auto& p : _pendingIncoming->ChangedPaths()) {
-            outstanding |= ShowFileGuard::Instance().HasChangedOnDisk(p);
+            outstanding |= !_showFileWatcher->MatchedRecordedAtLastRead(p).value_or(false);
         }
         if (!outstanding) {
             _pendingIncoming.reset();
             return IncomingShowChanges::Cleared;
         }
     }
-    if (_showFileWatcher->Poll().empty()) {
+    if (changed->empty()) {
         return IncomingShowChanges::None;
     }
     return HandleIncomingShowChanges(banner);
 }
 
-iPadRenderContext::IncomingShowChanges iPadRenderContext::HandleIncomingShowChanges(std::string* banner) {
+iPadRenderContext::IncomingShowChanges iPadRenderContext::HandleIncomingShowChanges(std::string* banner, bool userInitiated) {
     using namespace ShowFileLiveMerge;
     auto& guard = ShowFileGuard::Instance();
     ShowFileMerge::Options options;
@@ -148,12 +164,19 @@ iPadRenderContext::IncomingShowChanges iPadRenderContext::HandleIncomingShowChan
         _pendingIncoming = std::move(in);
         return IncomingShowChanges::NeedsDecisions;
     }
-    ModelMutationScope mutate(*this);
+    // On the main actor: the timer must not sit waiting for a busy gate or a
+    // render for seconds, again on every tick.
+    ModelMutationScope mutate(*this, userInitiated ? 5000 : 50);
     if (!mutate.ok()) {
-        spdlog::info("iPadRenderContext: {} changed on disk; the models are busy, trying again shortly", names);
+        const int delaySec = std::min(60, 2 << std::min(_incomingRetries, 5));
+        ++_incomingRetries;
+        spdlog::info("iPadRenderContext: {} changed on disk; the models or the render are busy, trying again in {}s", names, delaySec);
+        _incomingRetryAt = std::chrono::steady_clock::now() + std::chrono::seconds(delaySec);
         _showFileWatcher->RearmAll();
         return IncomingShowChanges::None;
     }
+    _incomingRetries = 0;
+    _incomingRetryAt = {};
     const bool controllersEdited = _controllersDirty;
     Applied applied = Apply(*this, *in, guard);
     if (!controllersEdited) _outputManager.MarkSaved();
@@ -169,7 +192,7 @@ iPadRenderContext::IncomingShowChanges iPadRenderContext::ReviewIncomingShowChan
     if (!_pendingIncoming) return IncomingShowChanges::Cleared;
     // Merge again from what memory and the disk hold now, keeping any
     // decisions made earlier.
-    auto status = HandleIncomingShowChanges(banner);
+    auto status = HandleIncomingShowChanges(banner, true);
     _pendingMergeLive = status == IncomingShowChanges::NeedsDecisions && _pendingIncoming != nullptr;
     return status;
 }

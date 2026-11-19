@@ -25,6 +25,7 @@
 #include <nlohmann/json.hpp>
 
 #include <set>
+#include <thread>
 
 #include "xLightsMain.h"
 #include "media/JukeboxPanel.h"
@@ -882,14 +883,41 @@ void xLightsFrame::UpdatePresence()
     }
     state.editingLayout = UnsavedRgbEffectsChanges;
     state.editingControllers = UnsavedNetworkChanges;
-    presence.Update(showDir, state);
+    const bool wantHint = _presenceHint != nullptr;
 
-    if (_presenceHint == nullptr) {
+    // The previous update is still stuck on the show folder: skip this tick.
+    std::shared_ptr<PresenceWorkerLink> link = _presenceLink;
+    if (link->busy.exchange(true)) {
         return;
     }
-    std::string hint;
-    if (!showDir.empty()) {
-        hint = ShowPresence::EditingHint(ShowPresence::FreshOthers(showDir, presence.InstallId(), ShowPresence::Now()));
+    std::thread worker([this, link, showDir, state, wantHint]() {
+        try {
+            xlCrashHandler::SetupCrashHandlerForNonWxThread();
+            auto& pub = ShowPresencePublisher::Instance();
+            pub.Update(showDir, state);
+            std::string hint;
+            if (wantHint && !showDir.empty()) {
+                hint = ShowPresence::EditingHint(ShowPresence::FreshOthers(showDir, pub.InstallId(), ShowPresence::Now()));
+            }
+            link->busy = false;
+            std::lock_guard<std::mutex> l(link->lock);
+            if (link->alive && wantHint) {
+                CallAfter([this, hint]() { ShowPresenceHint(hint); });
+            }
+        } catch (...) {
+            link->busy = false;
+            if (wxTheApp != nullptr) {
+                wxTheApp->OnUnhandledException();
+            }
+        }
+    });
+    worker.detach();
+}
+
+void xLightsFrame::ShowPresenceHint(const std::string& hint)
+{
+    if (_presenceHint == nullptr || IsExiting()) {
+        return;
     }
     const wxString label(hint);
     if (label != _presenceHint->GetLabel() || _presenceHint->IsShown() == label.empty()) {

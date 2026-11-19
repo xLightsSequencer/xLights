@@ -2689,6 +2689,20 @@ class SequencerViewModel {
                 try? FileManager.default.removeItem(at: sandbox)
             }
         }.value
+
+        // Others sharing the show folder shouldn't see the sequence as open
+        // here until the next heartbeat (or for 5 minutes once the show is gone).
+        let show = isShowFolderLoaded ? (showFolderPath ?? "") : ""
+        let layout = !show.isEmpty && (layoutEditorOpen || document.hasUnsavedLayoutChanges())
+        let controllers = !show.isEmpty && document.hasUnsavedControllerChanges()
+        Task.detached {
+            if show.isEmpty {
+                XLSequenceDocument.clearPresence()
+            } else {
+                XLSequenceDocument.updatePresence(showFolder: show, sequencePath: "",
+                                                  editingLayout: layout, editingControllers: controllers)
+            }
+        }
     }
 
     // MARK: - Memory Pressure

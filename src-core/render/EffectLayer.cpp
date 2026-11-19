@@ -88,6 +88,53 @@ void EffectLayer::InvalidateUidIndex()
     }
 }
 
+void EffectLayer::IndexAdded(Effect* e)
+{
+    if (UidIndex* ix = mUidIndex.load(std::memory_order_acquire)) {
+        std::lock_guard<std::mutex> l(ix->lock);
+        if (ix->valid) {
+            ix->map[e->GetUid()] = e;
+        }
+    }
+}
+
+void EffectLayer::IndexRemoved(Effect* e)
+{
+    if (UidIndex* ix = mUidIndex.load(std::memory_order_acquire)) {
+        std::lock_guard<std::mutex> l(ix->lock);
+        if (!ix->valid) {
+            return;
+        }
+        // The removed effect is freed later, so no entry may keep pointing at it.
+        auto it = ix->map.find(e->GetUid());
+        if (it != ix->map.end() && it->second == e) {
+            ix->map.erase(it);
+        } else {
+            for (auto i = ix->map.begin(); i != ix->map.end(); ++i) {
+                if (i->second == e) {
+                    ix->map.erase(i);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void EffectLayer::EffectUidChanged(Effect* e, SeqObjectId oldUid)
+{
+    if (UidIndex* ix = mUidIndex.load(std::memory_order_acquire)) {
+        std::lock_guard<std::mutex> l(ix->lock);
+        if (!ix->valid) {
+            return;
+        }
+        auto it = ix->map.find(oldUid);
+        if (it != ix->map.end() && it->second == e) {
+            ix->map.erase(it);
+        }
+        ix->map[e->GetUid()] = e;
+    }
+}
+
 EffectLayer::~EffectLayer()
 {
     delete mUidIndex.load();
@@ -193,6 +240,7 @@ Effect* EffectLayer::GetEffectFromUid(SeqObjectId uid) const
             ix->map.emplace(e->GetUid(), e);
         }
         ix->valid = true;
+        ++mUidIndexBuilds;
     };
     if (!ix->valid) {
         rebuild();
@@ -236,7 +284,7 @@ void EffectLayer::RemoveEffect(int index)
         Effect *e = mEffects[index];
         if (!e->IsLocked()) {
             mEffects.erase(mEffects.begin() + index);
-            InvalidateUidIndex();
+            IndexRemoved(e);
             IncrementChangeCount(e->GetStartTimeMS(), e->GetEndTimeMS());
             e->SetTimeToDelete();
             e->DetachFromSymbolManager();
@@ -258,8 +306,8 @@ void EffectLayer::DeleteEffect(int id)
             mEffects[i]->DetachFromSymbolManager();
             std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(mEffects[i]);
+            IndexRemoved(mEffects[i]);
             mEffects.erase(mEffects.begin() + i);
-            InvalidateUidIndex();
             NumberEffects();
             return;
         }
@@ -323,7 +371,7 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     Effect* e = new Effect(em, this, id, name, settings, palette, startTimeMS, endTimeMS, Selected, Protected, importing);
     assert(e != nullptr);
     mEffects.push_back(e);
-    InvalidateUidIndex();
+    IndexAdded(e);
     if (!suppress_sort) {
         SortEffects();
     }
@@ -1258,8 +1306,8 @@ bool EffectLayer::DeleteEffectByUid(SeqObjectId uid)
             mEffects[i]->DetachFromSymbolManager();
             std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
             mEffectsToDelete.push_back(mEffects[i]);
+            IndexRemoved(mEffects[i]);
             mEffects.erase(mEffects.begin() + i);
-            InvalidateUidIndex();
             NumberEffects();
             return true;
         }
@@ -1277,8 +1325,8 @@ void EffectLayer::DeleteEffectByIndex(int idx) {
         mEffects[idx]->DetachFromSymbolManager();
         std::unique_lock<std::mutex> e2dLocker(effectsToDeleteLock);
         mEffectsToDelete.push_back(mEffects[idx]);
+        IndexRemoved(mEffects[idx]);
         mEffects.erase(mEffects.begin() + idx);
-        InvalidateUidIndex();
     }
 }
 

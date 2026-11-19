@@ -46,6 +46,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
+#include <chrono>
 #include <thread>
 #include <string>
 
@@ -3380,7 +3381,17 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     StopShowFileWatch();
     _presenceTimer.Stop();
-    ShowPresencePublisher::Instance().Clear();
+    {
+        std::lock_guard<std::mutex> l(_presenceLink->lock);
+        _presenceLink->alive = false;
+    }
+    // Disable, not just Clear: an update still running on its worker then
+    // can't write the file again, and removes it if it already had.
+    ShowPresencePublisher::Instance().Enable(false);
+    for (int i = 0; i < 100 && _presenceLink->busy; ++i) {
+        // Give a worker a moment to finish; one stuck on a dead share is left.
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
 
     // Release GL resources from all models while contexts are still alive.
     // Must happen before ShowHideAllSequencerWindows: hiding canvases causes

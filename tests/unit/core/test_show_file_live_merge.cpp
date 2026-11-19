@@ -1,6 +1,11 @@
 #include <fstream>
 #include <map>
+#include <memory>
 #include <sstream>
+#include <chrono>
+#include <thread>
+#include <future>
+#include <atomic>
 #include <string>
 #include <vector>
 
@@ -92,6 +97,75 @@ TEST_CASE("Show file watch: a change is reported once it has settled, once", "[s
     w.watcher.Rearm(w.rgb);
     CHECK(w.watcher.Poll(41000).empty());
     CHECK(w.watcher.Poll(43000) == std::vector<std::string>{ w.rgb });
+}
+
+TEST_CASE("Show file watch: a background poll reads off the calling thread and reports like Poll", "[showfilewatch]") {
+    Watched w;
+    const auto caller = std::this_thread::get_id();
+    // Shared with the workers, one of which (a dropped poll) may outlive the test.
+    struct State {
+        std::atomic<bool> readOnCaller{ false };
+        std::atomic<bool> stall{ true };
+        std::promise<void> release;
+        std::shared_future<void> gate;
+    };
+    auto state = std::make_shared<State>();
+    state->gate = state->release.get_future().share();
+    w.watcher.SetFingerprintFunction([state, caller](const std::string& p) {
+        if (std::this_thread::get_id() == caller) {
+            state->readOnCaller = true;
+        }
+        if (state->stall) {
+            // A coordinated read stuck behind a slow share.
+            state->gate.wait_for(std::chrono::seconds(3));
+        }
+        return ShowFileGuard::FingerprintFile(p);
+    });
+    w.dir.Write("xlights_rgbeffects.xml", "<xrgb><models><model name=\"A\"/></models></xrgb>");
+
+    REQUIRE(w.watcher.StartBackgroundPoll(1000));
+    CHECK_FALSE(w.watcher.StartBackgroundPoll(1100)); // still running: skipped, not queued
+    CHECK_FALSE(w.watcher.TakeBackgroundPoll().has_value());
+    state->stall = false;
+    state->release.set_value();
+    auto takeWhenDone = [&]() {
+        for (int i = 0; i < 500; ++i) {
+            if (auto r = w.watcher.TakeBackgroundPoll()) {
+                return r;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        return std::optional<std::vector<std::string>>{};
+    };
+    auto first = takeWhenDone();
+    REQUIRE(first.has_value());
+    CHECK(first->empty()); // seen, waiting out the debounce
+    CHECK_FALSE(state->readOnCaller);
+
+    REQUIRE(w.watcher.StartBackgroundPoll(3500));
+    auto second = takeWhenDone();
+    REQUIRE(second.has_value());
+    CHECK(*second == std::vector<std::string>{ w.rgb });
+
+    // A poll overtaken by a rearm is discarded, not applied.
+    REQUIRE(w.watcher.StartBackgroundPoll(4000));
+    w.watcher.Rearm(w.rgb);
+    auto stale = takeWhenDone();
+    REQUIRE(stale.has_value());
+    CHECK(stale->empty());
+    // A new watch set drops the running poll outright.
+    REQUIRE(w.watcher.StartBackgroundPoll(5000));
+    w.watcher.Watch({ w.rgb });
+    CHECK_FALSE(w.watcher.BackgroundPollRunning());
+    CHECK_FALSE(w.watcher.TakeBackgroundPoll().has_value());
+    // After the rearm it is reported again by the next poll.
+    REQUIRE(w.watcher.StartBackgroundPoll(6000));
+    auto again = takeWhenDone();
+    REQUIRE(again.has_value());
+    REQUIRE(w.watcher.StartBackgroundPoll(9000));
+    auto reported = takeWhenDone();
+    REQUIRE(reported.has_value());
+    CHECK(*reported == std::vector<std::string>{ w.rgb });
 }
 
 TEST_CASE("Show file watch: a burst of writes restarts the wait and is reported together", "[showfilewatch]") {

@@ -284,3 +284,110 @@ TEST_CASE("Ids stay unique through random edits with undo and redo", "[seq][iden
         REQUIRE(ok);
     }
 }
+
+TEST_CASE("Deleting and restoring many effects keeps the layer's id index instead of rebuilding it per effect", "[seq][identity][undo]") {
+    SeqFixture f;
+    ModelElement* m = f.Model();
+    EffectLayer* l = Layer0(m);
+    constexpr int kCount = 400;
+    std::vector<SeqObjectId> uids;
+    for (int i = 0; i < kCount; ++i) {
+        uids.push_back(Add(l, "On", i * 10, i * 10 + 5)->GetUid());
+    }
+    REQUIRE(l->GetEffectFromUid(uids[kCount - 1]) != nullptr); // builds the index once
+    const size_t builds = l->GetUidIndexBuildCount();
+    CHECK(builds == 1);
+
+    for (int i = 0; i < kCount; i += 2) {
+        l->GetEffectFromUid(uids[i])->SetSelected(EFFECT_SELECTED);
+    }
+    f.Undo().CreateUndoStep();
+    l->DeleteSelectedEffects(f.Undo());
+    REQUIRE(l->GetEffectCount() == kCount / 2);
+    f.Undo().UndoLastStep(); // re-adds them one at a time, each with its old id
+    REQUIRE(l->GetEffectCount() == kCount);
+    f.Undo().RedoLastStep();
+    f.Undo().UndoLastStep();
+
+    // The index stays correct: every live id resolves, deleted ones don't.
+    for (SeqObjectId uid : uids) {
+        Effect* e = l->GetEffectFromUid(uid);
+        REQUIRE(e != nullptr);
+        CHECK(e->GetUid() == uid);
+    }
+    {
+        SeqMutationGuard::Scope direct;
+        REQUIRE(l->DeleteEffectByUid(uids[7]));
+    }
+    CHECK(l->GetEffectFromUid(uids[7]) == nullptr);
+    CHECK(l->GetUidIndexBuildCount() <= builds + 2);
+    f.RequireValid();
+}
+
+TEST_CASE("The undo step cap keeps whole steps so a step bigger than the cap undoes completely", "[seq][undo]") {
+    SeqFixture f;
+    EffectLayer* l = Layer0(f.Model());
+    constexpr int kCount = 60;
+    for (int i = 0; i < kCount; ++i) {
+        Add(l, "On", i * 10, i * 10 + 5)->SetSelected(EFFECT_SELECTED);
+    }
+    f.Undo().SetMaxSteps(3);
+    f.Undo().CreateUndoStep();
+    l->DeleteSelectedEffects(f.Undo()); // one step, 60 entries
+    REQUIRE(l->GetEffectCount() == 0);
+    f.Undo().UndoLastStep();
+    CHECK(l->GetEffectCount() == kCount);
+    CHECK_FALSE(f.Undo().CanUndo());
+
+    // More steps than the cap: the oldest whole steps go, the newest stay intact.
+    f.Undo().RedoLastStep();
+    REQUIRE(l->GetEffectCount() == 0);
+    for (int i = 0; i < 5; ++i) {
+        f.Undo().CreateUndoStep();
+        Effect* e = nullptr;
+        {
+            ScopedCommandBatch batch(f.se, "Add");
+            for (int j = 0; j < 4; ++j) {
+                e = f.se.GetCommandExecutor().AddEffect(l, "On", "", "", 1000 + i * 100 + j * 10, 1005 + i * 100 + j * 10, 0, false);
+                REQUIRE(e != nullptr);
+            }
+        }
+    }
+    REQUIRE(l->GetEffectCount() == 20);
+    int undone = 0;
+    while (f.Undo().CanUndo()) {
+        f.Undo().UndoLastStep();
+        ++undone;
+        CHECK(l->GetEffectCount() % 4 == 0);
+    }
+    CHECK(undone == 3);
+    CHECK(l->GetEffectCount() == 8);
+}
+
+TEST_CASE("Any edit after an undo drops redo whether recorded or not", "[seq][undo]") {
+    SeqFixture f;
+    EffectLayer* l = Layer0(f.Model());
+    auto& exec = f.se.GetCommandExecutor();
+
+    f.Undo().CreateUndoStep();
+    REQUIRE(exec.AddEffect(l, "On", "", "", 0, 100, 0, false) != nullptr);
+    f.Undo().UndoLastStep();
+    REQUIRE(f.Undo().CanRedo());
+    // Redo survives undo/redo themselves.
+    f.Undo().RedoLastStep();
+    f.Undo().UndoLastStep();
+    REQUIRE(f.Undo().CanRedo());
+
+    // An edit that records into no new step still changes what redo would replay onto.
+    REQUIRE(exec.AddEffect(l, "On", "", "", 50, 150, 0, false, false) != nullptr);
+    CHECK_FALSE(f.Undo().CanRedo());
+    CHECK(l->GetEffectCount() == 1);
+
+    // Same for an edit added to the current step.
+    f.Undo().CreateUndoStep();
+    REQUIRE(exec.AddEffect(l, "On", "", "", 200, 300, 0, false) != nullptr);
+    f.Undo().UndoLastStep();
+    REQUIRE(f.Undo().CanRedo());
+    REQUIRE(exec.AddEffect(l, "On", "", "", 400, 500, 0, false) != nullptr);
+    CHECK_FALSE(f.Undo().CanRedo());
+}

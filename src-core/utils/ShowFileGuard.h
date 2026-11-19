@@ -111,6 +111,9 @@ public:
     // this process has, so the new contents are recorded.
     bool SaveFile(const std::string& path, const std::string& bytes);
     bool SaveFile(const std::string& path, const Writer& writer);
+    // Tests only: runs in SaveFile(Writer) after the file is in place and
+    // before it is recorded, where another machine's write could land.
+    void SetAfterSaveHook(std::function<void(const std::string&)> hook) { _afterSave = std::move(hook); }
     // A load-modify-write of part of the file (the rest came from disk just now).
     // An outstanding external change stays flagged so a later full save still asks.
     bool SavePatchedFile(const std::string& path, const std::string& bytes);
@@ -119,6 +122,7 @@ private:
     static std::string Key(const std::string& path);
 
     mutable std::mutex _lock;
+    std::function<void(const std::string&)> _afterSave;
     std::map<std::string, ShowFileFingerprint> _recorded;
     std::map<std::string, std::string> _text;
 };

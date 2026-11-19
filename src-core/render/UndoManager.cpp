@@ -9,12 +9,15 @@
  **************************************************************/
 
 #include "UndoManager.h"
+
+#include <algorithm>
 #include "../render/Effect.h"
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
 #include "../render/SequenceCommands.h"
 #include "../render/SequenceElementCommands.h"
 #include "../render/SequenceElements.h"
+#include "../render/RenderContext.h"
 #include <log.h>
 
 namespace {
@@ -112,6 +115,16 @@ void UndoManager::ClearRedo() {
     mRedoSteps.clear();
 }
 
+void UndoManager::DocumentEdited() {
+    // Redo entries replay leniently against whatever the document is now, so
+    // once it has changed underneath them they could put back effects that
+    // overlap the new edit. Edits that undo/redo itself make don't count.
+    if (mReplayDepth == 0 && !mRedoSteps.empty()) {
+        mRedoSteps.clear();
+        ++mHistorySerial;
+    }
+}
+
 bool UndoManager::CanUndo()
 {
     RemoveUnusedMarkers();
@@ -131,7 +144,10 @@ void UndoManager::Push(UNDO_ACTIONS kind, std::unique_ptr<SequenceCommand> inver
     e.inverse = std::move(inverse);
     mUndoSteps.push_back(std::move(e));
     ++mHistorySerial;
-    EnforceMaxSteps();
+    // Only a marker (or the first entry) starts a new step.
+    if (kind == UNDO_MARKER || mUndoSteps.size() == 1) {
+        EnforceMaxSteps();
+    }
 }
 
 void UndoManager::CreateUndoStep()
@@ -150,8 +166,23 @@ void UndoManager::RecordInverse(CommandType appliedType, const std::string& labe
 void UndoManager::EnforceMaxSteps()
 {
     if (mMaxSteps == 0) return;  // cap disabled
-    while (mUndoSteps.size() > mMaxSteps) {
-        mUndoSteps.erase(mUndoSteps.begin());
+    // Count and drop whole steps: dropping single entries could cut a step's
+    // marker and first entries, and undoing what's left would only revert
+    // part of it.
+    size_t steps = 0;
+    for (size_t i = 0; i < mUndoSteps.size(); ++i) {
+        if (i == 0 || mUndoSteps[i].kind == UNDO_MARKER) {
+            ++steps;
+        }
+    }
+    while (steps > mMaxSteps) {
+        auto next = std::find_if(mUndoSteps.begin() + 1, mUndoSteps.end(),
+                                 [](const Entry& e) { return e.kind == UNDO_MARKER; });
+        if (next == mUndoSteps.end()) {
+            break;
+        }
+        mUndoSteps.erase(mUndoSteps.begin(), next);
+        --steps;
     }
 }
 
@@ -162,18 +193,74 @@ void UndoManager::CancelLastStep() {
     }
 }
 
-void UndoManager::UndoLastStep()
+namespace {
+// Commands whose Apply changes something render threads read without a lock
+// (rows they look up by name, names, face definitions). They stop the render
+// themselves, but stopping it inside a replay can yield to the event loop
+// mid-step (desktop), so the replay stops it once up front instead.
+bool NeedsRenderStopped(const SequenceCommand& cmd) {
+    switch (cmd.Type()) {
+    case CommandType::AddElement:
+    case CommandType::DeleteElement:
+    case CommandType::RenameTimingTrack:
+    case CommandType::RenameModelElement:
+    case CommandType::SetSequenceFace:
+    case CommandType::RenameMedia:
+        return true;
+    case CommandType::Batch:
+        for (const auto& member : static_cast<const BatchCommand&>(cmd).GetCommands()) {
+            if (NeedsRenderStopped(*member)) {
+                return true;
+            }
+        }
+        return false;
+    default:
+        return false;
+    }
+}
+} // namespace
+
+void UndoManager::StopRenderIfStepNeeds(const std::vector<Entry>& list)
 {
-    ++mHistorySerial;
-    mRedoSteps.push_back(Entry{});
-    ProcessUndoStep(mUndoSteps, mRedoSteps);
+    for (auto it = list.rbegin(); it != list.rend() && it->kind != UNDO_MARKER; ++it) {
+        if (it->inverse && NeedsRenderStopped(*it->inverse)) {
+            if (RenderContext* rc = mParentSequence->GetRenderContext()) {
+                rc->AbortRender();
+            }
+            return;
+        }
+    }
 }
 
-void UndoManager::RedoLastStep()
+bool UndoManager::UndoLastStep()
 {
+    return Replay(mUndoSteps, mRedoSteps);
+}
+
+bool UndoManager::RedoLastStep()
+{
+    return Replay(mRedoSteps, mUndoSteps);
+}
+
+bool UndoManager::Replay(std::vector<Entry>& fromList, std::vector<Entry>& toList)
+{
+    // An undo or redo started while one is running (from an event handled
+    // while it waits for the render to stop) would take the rest of the
+    // running step and interleave the two histories.
+    if (mReplayDepth > 0) {
+        spdlog::warn("UndoManager: ignoring an undo/redo requested while one is in progress");
+        return false;
+    }
+    ++mReplayDepth;
+    struct EndReplay {
+        int& depth;
+        ~EndReplay() { --depth; }
+    } endReplay{ mReplayDepth };
+    StopRenderIfStepNeeds(fromList);
     ++mHistorySerial;
-    mUndoSteps.push_back(Entry{});
-    ProcessUndoStep(mRedoSteps, mUndoSteps);
+    toList.push_back(Entry{});
+    ProcessUndoStep(fromList, toList);
+    return true;
 }
 
 void UndoManager::ProcessUndoStep(std::vector<Entry> &fromList, std::vector<Entry> &toList)

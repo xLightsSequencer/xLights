@@ -38,6 +38,10 @@ extension SequencerViewModel {
         }
         // A merge sheet (save or review) is open on the same files.
         if showFileMergeSheet || document.isShowFileMergeLive() { return }
+        // Not while playing (a controller change restarts output) or while a
+        // drag or scrub holds row indices the merge could shift. The watcher
+        // keeps the change until it is reported.
+        if isPlaying || isScrubbing || activeDrag != nil { return }
         reviewingIncomingShowChanges = false
         handleIncomingShowChanges(document.checkShowFilesOnDisk())
     }

@@ -650,10 +650,28 @@ bool ShowFileGuard::SaveFile(const std::string& path, const std::string& bytes) 
 }
 
 bool ShowFileGuard::SaveFile(const std::string& path, const Writer& writer) {
-    if (!WriteFileAtomically(path, writer)) {
+    // Record what we wrote, read back before it replaces the file, not what
+    // is at the path afterwards: another machine's save landing in between
+    // would otherwise become our base and be overwritten without a warning.
+    std::optional<std::pair<std::string, ShowFileFingerprint>> written;
+    auto capture = [&](const std::string& writePath) {
+        if (!writer(writePath)) {
+            return false;
+        }
+        written = ReadFile(writePath);
+        return true;
+    };
+    if (!WriteFileAtomically(path, capture)) {
         return false;
     }
-    RecordFromDisk(path);
+    if (_afterSave) {
+        _afterSave(path);
+    }
+    if (written) {
+        Record(path, written->first);
+    } else {
+        RecordFromDisk(path);
+    }
     return true;
 }
 

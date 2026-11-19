@@ -50,8 +50,9 @@ class UndoManager
         void ClearRedo();
         void RemoveUnusedMarkers();
         bool ChangeCaptured();
-        void UndoLastStep();
-        void RedoLastStep();
+        // False when refused because an undo/redo is already running.
+        bool UndoLastStep();
+        bool RedoLastStep();
         void CreateUndoStep();
         bool CanUndo();
         bool CanRedo();
@@ -70,8 +71,8 @@ class UndoManager
         void RecordInverse(CommandType appliedType, const std::string& label, std::unique_ptr<SequenceCommand> inverse);
 
         // Memory-cap support (iPad memory-pressure mitigation).
-        // When `maxSteps > 0`, every push onto `mUndoSteps` triggers a
-        // trim that drops the oldest steps until the vector fits. 0
+        // When `maxSteps > 0`, starting a step drops the oldest whole
+        // steps until at most `maxSteps` remain. 0
         // disables the cap (the default). The redo list isn't capped
         // separately — it's bounded by the undo history that
         // feeds it.
@@ -83,6 +84,11 @@ class UndoManager
         // the step it recorded last can compare this to know nothing else
         // has been recorded or undone since.
         uint64_t GetHistorySerial() const { return mHistorySerial; }
+
+        // The document changed outside undo/redo (recorded or not): drops
+        // the redo history, which no longer applies to it.
+        void DocumentEdited();
+        bool IsReplaying() const { return mReplayDepth > 0; }
     protected:
         struct Entry {
             UNDO_ACTIONS kind = UNDO_MARKER;
@@ -92,9 +98,10 @@ class UndoManager
 
         void Push(UNDO_ACTIONS kind, std::unique_ptr<SequenceCommand> inverse, const std::string& label = "");
         void ProcessUndoStep(std::vector<Entry> &fromList, std::vector<Entry> &toList);
-        // Drop the oldest `mUndoSteps` entries while the vector
-        // exceeds `mMaxSteps`. Called from the end of every push-
-        // back path. No-op when `mMaxSteps == 0`.
+        bool Replay(std::vector<Entry>& fromList, std::vector<Entry>& toList);
+        void StopRenderIfStepNeeds(const std::vector<Entry>& list);
+        // Drop the oldest whole steps while there are more than
+        // `mMaxSteps`. No-op when `mMaxSteps == 0`.
         void EnforceMaxSteps();
 
     private:
@@ -103,6 +110,7 @@ class UndoManager
         SequenceElements* mParentSequence;
         bool mCaptureUndo;
         size_t mMaxSteps = 0;
+        int mReplayDepth = 0;
         uint64_t mHistorySerial = 0;
         unsigned int mStepSerial = 0;
 

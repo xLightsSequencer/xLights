@@ -15,6 +15,9 @@
 #include <spdlog/fmt/fmt.h>
 
 #include "SequenceElements.h"
+#include "Effect.h"
+#include "EffectLayer.h"
+#include "Element.h"
 #include "CommandExecutor.h"
 #include "SequenceMediaCommands.h"
 #include "SequenceElementCommands.h"
@@ -77,6 +80,10 @@ SequenceElements::~SequenceElements()
 
 void SequenceElements::ClearAllViews()
 {
+    for (const DeletedRow& row : mElementsAwaitingDelete) {
+        delete row.element;
+    }
+    mElementsAwaitingDelete.clear();
     for (size_t y = 0; y < mAllViews[MASTER_VIEW].size(); y++) {
         delete mAllViews[MASTER_VIEW][y];
     }
@@ -256,7 +263,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
     XL_SEQ_MUTATION("SequenceElements::AddElement");
     if (!ElementExists(name)) {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
-
+        StopRenderBeforeAddingRow();
         mAllViews[MASTER_VIEW].push_back(el);
         mMasterViewChangeCount++;
         InvalidateUidIndex();
@@ -275,6 +282,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     if (!ElementExists(name) && index >= 0 && static_cast<size_t>(index) <= mAllViews[MASTER_VIEW].size())
     {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, renderContext, renderDisabled);
+        StopRenderBeforeAddingRow();
         mAllViews[MASTER_VIEW].insert(mAllViews[MASTER_VIEW].begin() + index, el);
         mMasterViewChangeCount++;
         InvalidateUidIndex();
@@ -603,6 +611,9 @@ Element* SequenceElements::GetElement(size_t index, int view) const
 void SequenceElements::DeleteElement(const std::string &name, bool removeFromViewDefinitions)
 {
     XL_SEQ_MUTATION("SequenceElements::DeleteElement");
+    // Stop the render before the views change: render threads walk them to
+    // find rows by name as well as holding the row being freed.
+    const bool renderStopped = StopRenderForRowChange();
     if (_commandExecutor != nullptr && !mAllViews.empty()) {
         for (Element* e : mAllViews[MASTER_VIEW]) {
             if (e->GetName() == name) {
@@ -641,12 +652,90 @@ void SequenceElements::DeleteElement(const std::string &name, bool removeFromVie
             // PopulateRowInformation below rebuilds them.
             mVisibleRowInformation.clear();
             mRowInformation.clear();
-            delete e;
+            FreeElementSafely(e, renderStopped);
             mMasterViewChangeCount++;
             break;
         }
     }
     PopulateRowInformation();
+}
+
+bool SequenceElements::StopRenderForRowChange()
+{
+    return renderContext == nullptr || renderContext->AbortRender();
+}
+
+// Render threads walk the master view to find rows by name, and adding a row
+// shifts or reallocates it. Loading a sequence adds every row before any
+// render can start (and may do it off the main thread), so only an open
+// sequence needs this.
+void SequenceElements::StopRenderBeforeAddingRow()
+{
+    if (renderContext != nullptr && renderContext->IsSequenceLoaded()) {
+        renderContext->AbortRender();
+    }
+}
+
+// A deleted row is never freed on the spot. Render jobs hold Element and
+// EffectLayer pointers, and the UI can still hold one of its effects (the
+// selected effect, the effect panel). So, like deleted effects
+// (Effect::SetTimeToDelete), a row is kept for a grace period and freed only
+// when it has passed and a render stop has just succeeded. Every row delete
+// (the UI, undo/redo, merges) comes through DeleteElement.
+//
+// A render stop that times out leaves the row parked. That includes a delete
+// nested inside another abort's wait: the desktop's AbortRender yields to the
+// event loop and returns false when re-entered, which is what keeps a row an
+// outer command still points at alive.
+namespace {
+// A parked row's effects stay alive until it is freed; take them out of the
+// symbol manager now, as deleting a single effect does.
+void DetachRowFromSymbols(Element* e) {
+    auto detach = [](EffectLayer* l) {
+        for (Effect* eff : l->GetEffects()) {
+            eff->DetachFromSymbolManager();
+        }
+    };
+    for (EffectLayer* l : e->GetEffectLayers()) {
+        detach(l);
+    }
+    if (auto* me = dynamic_cast<ModelElement*>(e)) {
+        for (int x = 0; x < me->GetSubModelAndStrandCount(); ++x) {
+            SubModelElement* sme = me->GetSubModel(x);
+            if (sme == nullptr) {
+                continue;
+            }
+            for (EffectLayer* l : sme->GetEffectLayers()) {
+                detach(l);
+            }
+            if (auto* st = dynamic_cast<StrandElement*>(sme)) {
+                for (int n = 0; n < st->GetNodeLayerCount(); ++n) {
+                    detach(st->GetNodeLayer(n));
+                }
+            }
+        }
+    }
+}
+} // namespace
+
+void SequenceElements::FreeElementSafely(Element* e, bool renderStopped)
+{
+    DetachRowFromSymbols(e);
+    mElementsAwaitingDelete.push_back({ e, GetCurrentTimeMillis() + mDeletedRowGraceMs });
+    if (renderStopped) {
+        FreeExpiredRows();
+    }
+}
+
+void SequenceElements::FreeExpiredRows()
+{
+    const int64_t now = GetCurrentTimeMillis();
+    auto expired = std::stable_partition(mElementsAwaitingDelete.begin(), mElementsAwaitingDelete.end(),
+                                         [now](const DeletedRow& r) { return r.freeAfterMs > now; });
+    for (auto it = expired; it != mElementsAwaitingDelete.end(); ++it) {
+        delete it->element;
+    }
+    mElementsAwaitingDelete.erase(expired, mElementsAwaitingDelete.end());
 }
 
 void SequenceElements::DeleteElementFromView(const std::string &name, int view)
@@ -2319,6 +2408,10 @@ void SequenceElements::MoveSequenceElement(int index, int dest, int view)
     if (view == MASTER_VIEW) {
         XL_SEQ_MUTATION("SequenceElements::MoveSequenceElement");
     }
+    // Unlike AddElement/DeleteElement this doesn't stop the render: the view
+    // keeps its size, so it is never reallocated and no row is freed. A render
+    // thread looking a row up by name at that instant can see a row twice or
+    // miss one for that one lookup (a timing track an effect reads, say).
     IncrementChangeCount(nullptr);
 
     if(index >= 0 && static_cast<size_t>(index) < mAllViews[view].size() && dest >= 0 && static_cast<size_t>(dest) < mAllViews[view].size())

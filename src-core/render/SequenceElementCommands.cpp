@@ -20,6 +20,7 @@
 #include "Effect.h"
 #include "EffectLayer.h"
 #include "Element.h"
+#include "RenderContext.h"
 #include "EffectSymbol.h"
 #include "EffectSymbolManager.h"
 #include "SequenceElements.h"
@@ -745,6 +746,11 @@ std::unique_ptr<SequenceCommand> RenameTimingTrackCommand::ApplyImpl(SequenceEle
     if (oldName == _name) {
         return Succeeded(result, std::make_unique<RenameTimingTrackCommand>(_element, oldName, false));
     }
+    // Effects look the track up by name while rendering, so stop the render
+    // before the name and the references to it change.
+    if (RenderContext* rc = seq.GetRenderContext()) {
+        rc->AbortRender();
+    }
     el->SetName(_name);
 
     // Inverse: put the name back without touching references, then restore
@@ -896,6 +902,10 @@ std::unique_ptr<SequenceCommand> SetSequenceFaceCommand::ApplyImpl(SequenceEleme
     if (const FaceDefinition* cur = faces.GetFace(_name)) {
         prior = *cur;
     }
+    // Faces effects hold references into the face definitions while rendering.
+    if (RenderContext* rc = seq.GetRenderContext()) {
+        rc->AbortRender();
+    }
     if (_definition.has_value()) {
         faces.SetFace(_name, *_definition);
     } else {
@@ -1031,6 +1041,10 @@ std::unique_ptr<SequenceCommand> RenameModelElementCommand::ApplyImpl(SequenceEl
     Element* el = TopLevelElement(seq, _element);
     std::string prior = el->GetName();
     if (prior != _name) {
+        // Render threads look rows up by name.
+        if (RenderContext* rc = seq.GetRenderContext()) {
+            rc->AbortRender();
+        }
         // Views hold the same Element objects as the master view.
         el->SetName(_name);
         seq.IncrementChangeCount(el);

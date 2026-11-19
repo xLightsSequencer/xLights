@@ -14,6 +14,7 @@
 #include <chrono>
 #include <filesystem>
 #include <system_error>
+#include <thread>
 
 namespace {
 
@@ -64,9 +65,12 @@ void ShowFileWatcher::Stop() {
     _paths.clear();
     _files.clear();
     _poked->store(false);
+    ++_generation;
+    _job.reset(); // a running worker keeps its own copy and is ignored
 }
 
 void ShowFileWatcher::Rearm(const std::string& path) {
+    ++_generation; // a poll already running read with the old state
     auto it = _files.find(path);
     if (it != _files.end()) {
         it->second.reported.reset();
@@ -75,6 +79,7 @@ void ShowFileWatcher::Rearm(const std::string& path) {
 }
 
 void ShowFileWatcher::RearmAll() {
+    ++_generation;
     for (auto& [path, st] : _files) {
         st.reported.reset();
         st.stampKnown = false;
@@ -86,32 +91,103 @@ std::vector<std::string> ShowFileWatcher::Poll() {
 }
 
 std::vector<std::string> ShowFileWatcher::Poll(int64_t nowMs) {
-    const bool poked = _poked->exchange(false);
+    auto job = BeginPoll(nowMs);
+    Gather(*job, _stamp, _fingerprint);
+    return FinishPoll(*job);
+}
+
+bool ShowFileWatcher::StartBackgroundPoll() {
+    return StartBackgroundPoll(Now());
+}
+
+bool ShowFileWatcher::StartBackgroundPoll(int64_t nowMs) {
+    if (_job != nullptr) {
+        return false;
+    }
+    _job = BeginPoll(nowMs);
+    std::thread([job = _job, stamp = _stamp, fingerprint = _fingerprint]() {
+        Gather(*job, stamp, fingerprint);
+        job->done.store(true, std::memory_order_release);
+    }).detach();
+    return true;
+}
+
+std::optional<std::vector<std::string>> ShowFileWatcher::TakeBackgroundPoll() {
+    if (_job == nullptr || !_job->done.load(std::memory_order_acquire)) {
+        return std::nullopt;
+    }
+    auto job = std::move(_job);
+    if (job->generation != _generation) {
+        return std::vector<std::string>{};
+    }
+    return FinishPoll(*job);
+}
+
+std::optional<bool> ShowFileWatcher::MatchedRecordedAtLastRead(const std::string& path) const {
+    auto it = _files.find(path);
+    if (it == _files.end()) {
+        return std::nullopt;
+    }
+    return it->second.matchedRecorded;
+}
+
+std::shared_ptr<ShowFileWatcher::PollJob> ShowFileWatcher::BeginPoll(int64_t nowMs) {
+    auto job = std::make_shared<PollJob>();
+    job->nowMs = nowMs;
+    job->poked = _poked->exchange(false);
+    job->generation = _generation;
     for (const auto& path : _paths) {
-        FileState& st = _files[path];
-        const Stamp stamp = _stamp ? _stamp(path) : StampOf(path);
-        const bool stampChanged = !st.stampKnown || !(stamp == st.stamp);
-        st.stamp = stamp;
-        st.stampKnown = true;
-        if (!_guard.IsTracked(path)) {
-            st.candidate.reset();
+        const FileState& st = _files[path];
+        Probe p;
+        p.path = path;
+        p.tracked = _guard.IsTracked(path);
+        p.stampKnown = st.stampKnown;
+        p.priorStamp = st.stamp;
+        p.hasCandidate = st.candidate.has_value();
+        p.lastRead = st.lastRead;
+        job->probes.push_back(std::move(p));
+    }
+    return job;
+}
+
+void ShowFileWatcher::Gather(PollJob& job, const StampFunction& stamp, const FingerprintFunction& fingerprint) {
+    for (Probe& p : job.probes) {
+        p.stamp = stamp ? stamp(p.path) : StampOf(p.path);
+        if (!p.tracked || !p.stamp.exists) {
             continue;
         }
-        if (!stamp.exists) {
-            continue;
-        }
-        const bool look = stampChanged || poked || st.candidate.has_value() || nowMs - st.lastRead >= kFullCheckMs;
+        const bool stampChanged = !p.stampKnown || !(p.stamp == p.priorStamp);
+        const bool look = stampChanged || job.poked || p.hasCandidate || job.nowMs - p.lastRead >= kFullCheckMs;
         if (!look) {
             continue;
         }
-        auto fp = _fingerprint ? _fingerprint(path) : CoordinatedFingerprint(path);
+        p.read = true;
+        p.fingerprint = fingerprint ? fingerprint(p.path) : CoordinatedFingerprint(p.path);
+    }
+}
+
+std::vector<std::string> ShowFileWatcher::FinishPoll(const PollJob& job) {
+    const int64_t nowMs = job.nowMs;
+    for (const Probe& p : job.probes) {
+        FileState& st = _files[p.path];
+        st.stamp = p.stamp;
+        st.stampKnown = true;
+        if (!p.tracked) {
+            st.candidate.reset();
+            continue;
+        }
+        if (!p.stamp.exists || !p.read) {
+            continue;
+        }
+        const auto& fp = p.fingerprint;
         if (!fp || !fp->exists) {
             // Not readable yet: try again on the next poll.
             continue;
         }
         st.lastRead = nowMs;
-        auto recorded = _guard.RecordedFingerprint(path);
-        if (recorded && *recorded == *fp) {
+        auto recorded = _guard.RecordedFingerprint(p.path);
+        st.matchedRecorded = recorded && *recorded == *fp;
+        if (*st.matchedRecorded) {
             // What this process last loaded or wrote (or it changed back).
             st.candidate.reset();
             st.reported.reset();
