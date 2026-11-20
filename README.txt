@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (dkulp)                 iPad - A deleted model no longer comes back after saving the layout
     -bug (dkulp)                 SingleStrand FX with exactly 6 colours on the Default or "* Color Gradient"
                                  palette could crash, and drew its gradient without colour 5
     -bug (dkulp)                 Renaming embedded media to a path effects already use (but that isn't embedded)

@@ -1319,6 +1319,9 @@
     <ClCompile Include="..\src-core\XmlSerializer\XmlDeserializingObjectFactory.cpp">
       <Filter>XmlSerializer</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\XmlSerializer\LayoutRecordPatch.cpp">
+      <Filter>XmlSerializer</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\XmlSerializer\XmlSerializeFunctions.cpp">
       <Filter>XmlSerializer</Filter>
     </ClCompile>
@@ -2929,6 +2932,9 @@
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\XmlSerializer\XmlNodeKeys.h">
+      <Filter>XmlSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\XmlSerializer\LayoutRecordPatch.h">
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\XmlSerializer\XmlSerializeFunctions.h">
