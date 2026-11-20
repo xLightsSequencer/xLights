@@ -2367,7 +2367,7 @@ void fill_gradient_RGB(CRGB* leds,
         uint16_t onefifth = (numLeds / 5);
         uint16_t twofifths = ((numLeds * 2) / 5);
         uint16_t threefifths = ((numLeds * 3) / 5);
-        uint16_t fourfifths = ((numLeds * 5) / 5);
+        uint16_t fourfifths = ((numLeds * 4) / 5);
         uint16_t last = numLeds - 1;
         fill_gradient_RGB(leds, 0, c1, onefifth, c2);
         fill_gradient_RGB(leds, onefifth, c2, twofifths, c3);
