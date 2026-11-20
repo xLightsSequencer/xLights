@@ -35,3 +35,6 @@
 [submodule "dependencies/Catch2"]
 	path = dependencies/Catch2
 	url = https://github.com/catchorg/Catch2.git
+[submodule "dependencies/mbedtls"]
+	path = dependencies/mbedtls
+	url = https://github.com/Mbed-TLS/mbedtls.git

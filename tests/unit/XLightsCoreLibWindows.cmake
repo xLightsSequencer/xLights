@@ -53,6 +53,7 @@ target_include_directories(xlights_core PUBLIC
     ${XL_REPO_ROOT}/dependencies/spdlog/include
     ${XL_REPO_ROOT}/dependencies/pugixml/src
     ${XL_REPO_ROOT}/dependencies/midifile/include
+    ${XL_MBEDTLS_INC}
     ${XL_REPO_ROOT}/include
     ${XL_BUNDLE}/include                             # also Box2D (liquidfun)
     ${XL_REPO_ROOT}/include/sol2-3.5.0
@@ -94,7 +95,11 @@ target_link_libraries(xlights_core PUBLIC
     ${LUA_LIB}
     ${MINIZIP_LIB}
     OpenGL::GL glu32
-    ws2_32 winmm comctl32 rpcrt4 mfuuid propsys wmcodecdspuuid iphlpapi)
+    ws2_32 winmm comctl32 rpcrt4 mfuuid propsys wmcodecdspuuid iphlpapi bcrypt)
+if(XL_MBEDTLS_LIBS)
+    target_compile_definitions(xlights_core PUBLIC ${XL_MBEDTLS_DEFS})
+    target_link_libraries(xlights_core PUBLIC ${XL_MBEDTLS_LIBS})
+endif()
 if(ZLIB_LINK_TARGET)
     target_link_libraries(xlights_core PUBLIC ${ZLIB_LINK_TARGET})
 endif()

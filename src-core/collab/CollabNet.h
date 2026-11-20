@@ -14,9 +14,11 @@
 //
 // The session logic only needs ICollabTransport (CollabTransport.h); this
 // adds what a real network needs around it: listening, connecting with a
-// pairing code, and discovery. Where no transport is built (Windows and
-// Linux for now) CreateLanTransport / CreateLanBrowser return nullptr and the
-// app hides the feature.
+// pairing code, and discovery. Apple platforms use Network.framework
+// (CollabNetApple.mm); Windows and Linux a transport of their own
+// (CollabNetPortable.cpp) that interoperates with it. Where no transport
+// can run, CreateLanTransport / CreateLanBrowser return nullptr and the app
+// hides the feature.
 
 #include <functional>
 #include <memory>
@@ -80,6 +82,9 @@ public:
     // returns.
     virtual void Close() = 0;
     virtual NetState State() const = 0;
+    // Host: "address:port" for each local network address, for joining by
+    // address (LanJoinByAddressAvailable). Empty where that isn't offered.
+    virtual std::vector<std::string> JoinAddresses() const { return {}; }
 
     // ---- Host migration (CollabController) ----
     // Both drop what is left of the connection to the lost host and replace
@@ -121,6 +126,13 @@ public:
 std::unique_ptr<INetTransport> CreateLanTransport(Dispatcher dispatch);
 std::unique_ptr<ISessionBrowser> CreateLanBrowser(Dispatcher dispatch);
 bool LanTransportAvailable();
+// A client can join a host it can't find by browsing, by the "host:port" the
+// host shows (INetTransport::JoinAddresses). Only hosts of the Windows / Linux
+// transport answer such a join.
+bool LanJoinByAddressAvailable();
+// The session id Connect takes for a typed "host:port" ("[v6 address]:port"
+// for IPv6). False when `text` isn't one.
+bool SessionIdForAddress(const std::string& text, std::string& sessionId);
 
 // A fresh 6-digit pairing code.
 std::string NewPairingCode();

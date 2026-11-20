@@ -15,6 +15,11 @@ namespace fs = std::filesystem;
 
 namespace {
 
+// Paths built with "/" and with fs::path differ only in separators on Windows.
+std::string Norm(const std::string& p) {
+    return fs::path(p).lexically_normal().string();
+}
+
 LoopbackOptions Lan(uint32_t seed = 1) {
     LoopbackOptions o;
     o.seed = seed;
@@ -401,9 +406,9 @@ TEST_CASE("Media added by file reference reaches the host and every other partic
         auto& got = n->session->ReceivedFiles();
         REQUIRE(got.count("Images/new.png") == 1);
         CHECK(ReadFile(got.at("Images/new.png")) == "new picture");
-        CHECK(got.at("Images/new.png") == (fs::path(n->session->SessionShowFolder()) / "Images" / "new.png").string());
+        CHECK(Norm(got.at("Images/new.png")) == Norm((fs::path(n->session->SessionShowFolder()) / "Images" / "new.png").string()));
         // The document finds it through the session's media folder.
-        CHECK(sim.As(*n, [&] { return ResolvePath(n->doc->ShowFolder(), "Images/new.png"); }) == got.at("Images/new.png"));
+        CHECK(Norm(sim.As(*n, [&] { return ResolvePath(n->doc->ShowFolder(), "Images/new.png"); })) == Norm(got.at("Images/new.png")));
         CHECK(n->doc->MediaFolders() == std::list<std::string>{ n->session->SessionShowFolder() });
     }
     CHECK(a.session->ReceivedFiles().empty());
@@ -474,7 +479,7 @@ TEST_CASE("Damaged uploads are dropped and uploads stay inside the session folde
     CHECK(got.count(kLayoutFile) == 0);
     CHECK(got.count("Images/o.png") == 0);
     REQUIRE(got.count(climbing) == 1);
-    CHECK(got.at(climbing) == (fs::path(h.session->SessionShowFolder()) / outside).string());
+    CHECK(Norm(got.at(climbing)) == Norm((fs::path(h.session->SessionShowFolder()) / outside).string()));
     CHECK_FALSE(fs::exists(fs::path(h.session->SessionShowFolder()) / climbing));
     // Only the good one is passed on.
     CHECK(b.session->ReceivedFiles().size() == 1);

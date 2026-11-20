@@ -644,6 +644,13 @@ CollabController::Network CollabController::SessionNetwork() const {
     return _network;
 }
 
+std::vector<std::string> CollabController::HostJoinAddresses() const {
+    if (_role != Role::Host || _network != Network::Lan || !_transport || _closed) {
+        return {};
+    }
+    return _transport->JoinAddresses();
+}
+
 bool CollabController::HostGroup(const std::string& displayName, const std::string& sequenceName, std::string& error) {
     std::string code;
     return StartHosting(_groupNet, Network::Group, displayName, sequenceName, code, error);

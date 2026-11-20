@@ -520,6 +520,7 @@ target_include_directories(xLights PRIVATE
     ${XL_DEPS}/spdlog/include
     ${XL_DEPS}/pugixml/src
     ${XL_DEPS}/midifile/include
+    ${XL_MBEDTLS_INC}
     # Windows takes Box2D from the bundle include added below; Linux builds
     # liquidfun itself and still needs the submodule headers.
     $<$<NOT:$<BOOL:${WIN32}>>:${XL_DEPS}/liquidfun/liquidfun/Box2D>
@@ -806,11 +807,16 @@ if(XLIGHTS_USE_VCPKG)
     target_link_libraries(xLights PRIVATE hidapi::hidapi)
 endif()
 
+if(XL_MBEDTLS_LIBS)
+    target_compile_definitions(xLights PRIVATE ${XL_MBEDTLS_DEFS})
+    target_link_libraries(xLights PRIVATE ${XL_MBEDTLS_LIBS})
+endif()
+
 # Platform link extras
 if(WIN32)
     target_link_libraries(xLights PRIVATE ws2_32 winmm comctl32 rpcrt4
                                           mfuuid propsys wmcodecdspuuid
-                                          iphlpapi)
+                                          iphlpapi bcrypt)
     if(NOT XLIGHTS_USE_VCPKG)
         # bundle import libraries named by #pragma comment(lib, ...)
         target_link_directories(xLights PRIVATE ${XL_WIN_LIB_HINTS})

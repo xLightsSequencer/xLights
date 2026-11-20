@@ -431,6 +431,10 @@ public:
     bool JoinGroup(const std::string& displayName, const std::string& advertId, bool fetchFiles, std::string& error);
     // The network the current (or last) session used.
     Network SessionNetwork() const;
+    // Host on the local network: "address:port" for joining by address
+    // (LanJoinByAddressAvailable), for the people who can't find the session
+    // by browsing. Empty when not hosting or where it isn't offered.
+    std::vector<std::string> HostJoinAddresses() const;
 
     // ---- Lifecycle ----
     // Starts hosting the open sequence. On success `pairingCode` is the code

@@ -8,9 +8,10 @@
 #include <string>
 #include <vector>
 
-// The LAN transport's framing and pairing helpers run everywhere; the
-// transport itself (Network.framework, real TLS sockets on loopback) only on
-// Apple platforms.
+// The LAN transport over real TLS sockets on loopback: Network.framework on
+// Apple platforms, the portable transport (Mbed TLS) on Windows and Linux.
+// Building with XL_TEST_LAN_PORTABLE on a Mac runs the same tests against the
+// portable transport.
 
 using namespace Collab;
 
@@ -107,7 +108,98 @@ TEST_CASE("Collab pairing codes and session names", "[collab][net]") {
     CHECK_FALSE(Wire::SaltFromServiceName("xlc-00112233445566778", back));
 }
 
-#ifdef __APPLE__
+TEST_CASE("Collab join addresses become session ids", "[collab][net]") {
+    std::string id;
+    REQUIRE(SessionIdForAddress("192.168.1.20:5123", id));
+    CHECK(id == "addr:192.168.1.20:5123");
+    REQUIRE(SessionIdForAddress("  host.local:80 ", id));
+    CHECK(id == "addr:host.local:80");
+    REQUIRE(SessionIdForAddress("[fe80::1]:65535", id));
+    CHECK(id == "addr:[fe80::1]:65535");
+    std::string host, port;
+    REQUIRE(Wire::SplitHostPort("[::1]:0080", host, port));
+    CHECK(host == "[::1]");
+    CHECK(port == "80");
+    for (const char* bad : { "", "host", "host:", ":80", "host:0", "host:65536", "host:8x", "fe80::1:80", "[fe80::1:80", "a b:80", "host:123456" }) {
+        INFO(bad);
+        CHECK_FALSE(SessionIdForAddress(bad, id));
+    }
+    CHECK(Wire::SaltReply(std::string("\x01\x02\x03\x04\x05\x06\x07\x08", 8)) == "xlc-0102030405060708\n");
+}
+
+TEST_CASE("Collab a listener that waits for the network after it was ready keeps listening", "[collab][net]") {
+    using S = Wire::ListenerState;
+    using V = Wire::ListenerVerdict;
+    CHECK(Wire::ListenerStateVerdict(S::Ready, false, false) == V::Listening);
+    CHECK(Wire::ListenerStateVerdict(S::Ready, false, true) == V::Listening);
+    CHECK(Wire::ListenerStateVerdict(S::Failed, true, true) == V::Fail);
+    CHECK(Wire::ListenerStateVerdict(S::Failed, true, false) == V::Fail);
+    // Before it was ever ready, waiting with an error means it can't listen.
+    CHECK(Wire::ListenerStateVerdict(S::Waiting, true, false) == V::Fail);
+    CHECK(Wire::ListenerStateVerdict(S::Waiting, false, false) == V::Ignore);
+    // After that, a network drop: it comes back to ready by itself.
+    CHECK(Wire::ListenerStateVerdict(S::Waiting, true, true) == V::Ignore);
+    CHECK(Wire::ListenerStateVerdict(S::Other, true, true) == V::Ignore);
+}
+
+TEST_CASE("Collab a service registration is freed once and never while its owner holds it", "[collab][net]") {
+    using A = Wire::RegistrationLifetime::Action;
+    SECTION("registered, then stopped") {
+        Wire::RegistrationLifetime r;
+        CHECK(r.Completed(true) == A::None);
+        CHECK(r.Stop() == A::Deregister);
+        CHECK(r.Completed(true) == A::Free);
+    }
+    SECTION("stopped while registering") {
+        Wire::RegistrationLifetime r;
+        CHECK(r.Stop() == A::None);
+        CHECK(r.Completed(true) == A::Deregister);
+        CHECK(r.Completed(true) == A::Free);
+    }
+    SECTION("fails after the owner has it") {
+        Wire::RegistrationLifetime r;
+        // The owner still holds it: it must stay until the owner lets go.
+        CHECK(r.Completed(false) == A::None);
+        CHECK(r.Failed());
+        CHECK(r.Stop() == A::Free);
+    }
+    SECTION("fails after the owner let go") {
+        Wire::RegistrationLifetime r;
+        CHECK(r.Stop() == A::None);
+        CHECK(r.Completed(false) == A::Free);
+    }
+    SECTION("the deregistration can't be sent") {
+        Wire::RegistrationLifetime r;
+        CHECK(r.Completed(true) == A::None);
+        CHECK(r.Stop() == A::Deregister);
+        CHECK(r.DeregisterFailed() == A::Free);
+    }
+    SECTION("a stray completion frees nothing the owner holds") {
+        Wire::RegistrationLifetime r;
+        CHECK(r.Completed(true) == A::None);
+        CHECK(r.Completed(true) == A::None);
+        CHECK(r.Completed(false) == A::None);
+        CHECK(r.Stop() == A::Deregister);
+    }
+}
+
+TEST_CASE("Collab callback contexts are found by number until removed", "[collab][net]") {
+    Wire::CallbackRegistry<int> reg;
+    uint64_t a = reg.Add(std::make_shared<int>(1));
+    uint64_t b = reg.Add(std::make_shared<int>(2));
+    CHECK(a != b);
+    REQUIRE(reg.Find(a));
+    CHECK(*reg.Find(a) == 1);
+    reg.Remove(a);
+    // A callback that comes after the cancel finds nothing.
+    CHECK_FALSE(reg.Find(a));
+    CHECK(*reg.Find(b) == 2);
+    // Numbers are never handed out again.
+    uint64_t c = reg.Add(std::make_shared<int>(3));
+    CHECK(c != a);
+    CHECK(c != b);
+    CHECK(reg.Size() == 2);
+}
 
 #include "test_collab_common.h"
 
@@ -126,6 +218,54 @@ TEST_CASE("Collab pairing codes and session names", "[collab][net]") {
 namespace {
 
 using Clock = std::chrono::steady_clock;
+
+#if defined(XL_TEST_LAN_PORTABLE) || !defined(__APPLE__)
+#define XL_TEST_PORTABLE_TRANSPORT 1
+#endif
+
+#if defined(XL_TEST_LAN_PORTABLE)
+namespace Lan = Collab::Portable;
+std::unique_ptr<INetTransport> NewLanTransport(Dispatcher d) {
+    return Collab::Portable::CreateTransport(std::move(d));
+}
+std::unique_ptr<ISessionBrowser> NewLanBrowser(Dispatcher d) {
+    return Collab::Portable::CreateBrowser(std::move(d));
+}
+#else
+namespace Lan = Collab::LanTest;
+std::unique_ptr<INetTransport> NewLanTransport(Dispatcher d) {
+    return CreateLanTransport(std::move(d));
+}
+std::unique_ptr<ISessionBrowser> NewLanBrowser(Dispatcher d) {
+    return CreateLanBrowser(std::move(d));
+}
+#endif
+
+// A Mac build against the portable transport also has the Apple one, so
+// each can be checked against the other.
+#if defined(__APPLE__) && defined(XL_TEST_LAN_PORTABLE)
+#define XL_TEST_INTEROP 1
+#endif
+
+std::unique_ptr<INetTransport> NewTransport(Dispatcher d, bool apple) {
+#ifdef XL_TEST_INTEROP
+    if (apple) {
+        return CreateLanTransport(std::move(d));
+    }
+#endif
+    (void)apple;
+    return NewLanTransport(std::move(d));
+}
+
+std::string DirectId(INetTransport& host) {
+#ifdef XL_TEST_INTEROP
+    std::string id = Collab::LanTest::DirectSessionId(host);
+    if (!id.empty()) {
+        return id;
+    }
+#endif
+    return Lan::DirectSessionId(host);
+}
 
 // The "main thread" of every transport in a test: work they post is queued
 // here and run when the test pumps.
@@ -200,8 +340,8 @@ struct Peer {
     bool closed = false;
     int callbacksAfterClose = 0;
 
-    Peer(TestLoop& loop, int tag) {
-        t = CreateLanTransport(loop.For(tag));
+    Peer(TestLoop& loop, int tag, bool apple = false) {
+        t = NewTransport(loop.For(tag), apple);
         REQUIRE(t);
         t->onPeer = [this](PeerId p, PeerEvent e) {
             callbacksAfterClose += closed;
@@ -259,7 +399,7 @@ void Host(Peer& h, const std::string& code = "123456") {
 // Connects `c` to `h` and waits for both sides to know.
 PeerId Join(TestLoop& loop, Peer& h, Peer& c, const std::string& code = "123456") {
     size_t before = h.events.size();
-    c.t->Connect(LanTest::DirectSessionId(*h.t), code);
+    c.t->Connect(DirectId(*h.t), code);
     REQUIRE(loop.Until([&] { return c.Joined() && h.events.size() > before; }));
     auto [peer, e] = h.events[before];
     CHECK(e == PeerEvent::Joined);
@@ -288,11 +428,17 @@ size_t FilesIn(const std::string& dir) {
 } // namespace
 
 TEST_CASE("Collab LAN key depends on the code and the salt", "[collab][net]") {
-    std::string a = LanTest::DeriveKey("123456", "saltsalt");
+    std::string a = Lan::DeriveKey("123456", "saltsalt");
     CHECK(a.size() == 32);
-    CHECK(a == LanTest::DeriveKey("123456", "saltsalt"));
-    CHECK(a != LanTest::DeriveKey("123457", "saltsalt"));
-    CHECK(a != LanTest::DeriveKey("123456", "saltsalu"));
+    // PBKDF2-HMAC-SHA256, 100000 rounds, salt "xlights-collab-v1:" + salt:
+    // every platform's transport must derive the same key or they can't pair.
+    CHECK(Wire::HexOf(a) == "002106699384dbb43d5910c1213adfe49f1318e85daae2d4dbd3ee93d3549795");
+    std::string salt;
+    REQUIRE(Wire::SaltFromHex("0011223344556677", salt));
+    CHECK(Wire::HexOf(Lan::DeriveKey("000777", salt)) == "0d9a32f7244c9799f21a54ec5827eba1c6d613ce0998d989e95245e49084b7b1");
+    CHECK(a == Lan::DeriveKey("123456", "saltsalt"));
+    CHECK(a != Lan::DeriveKey("123457", "saltsalt"));
+    CHECK(a != Lan::DeriveKey("123456", "saltsalu"));
     CHECK(LanTransportAvailable());
 }
 
@@ -347,7 +493,7 @@ TEST_CASE("Collab LAN refuses a wrong pairing code", "[collab][net]") {
     TestLoop loop;
     Peer h(loop, 0), bad(loop, 1), good(loop, 2);
     Host(h, "424242");
-    bad.t->Connect(LanTest::DirectSessionId(*h.t), "424243");
+    bad.t->Connect(Lan::DirectSessionId(*h.t), "424243");
     REQUIRE(loop.Until([&] { return bad.t->State() == NetState::Failed; }));
     REQUIRE_FALSE(bad.states.empty());
     CHECK(bad.states.back().first == NetState::Failed);
@@ -369,16 +515,16 @@ TEST_CASE("Collab LAN host backs off after repeated wrong pairing codes", "[coll
     TestLoop loop;
     Peer h(loop, 0);
     Host(h, "111222");
-    LanTest::SetPairingBackoff(*h.t, { 3, 1500, 2500 });
+    Lan::SetPairingBackoff(*h.t, { 3, 1500, 2500 });
     std::vector<std::unique_ptr<Peer>> others;
     auto attempt = [&](const std::string& code) -> Peer& {
         others.push_back(std::make_unique<Peer>(loop, 1));
         Peer& p = *others.back();
-        p.t->Connect(LanTest::DirectSessionId(*h.t), code);
+        p.t->Connect(Lan::DirectSessionId(*h.t), code);
         REQUIRE(loop.Until([&] { return p.t->State() == NetState::Failed || p.Joined(); }));
         return p;
     };
-    auto failures = [&] { return LanTest::Pairing(*h.t).failedHandshakes; };
+    auto failures = [&] { return Lan::Pairing(*h.t).failedHandshakes; };
 
     // A good participant joining in between doesn't reset the count.
     Peer& first = attempt("111222");
@@ -386,12 +532,12 @@ TEST_CASE("Collab LAN host backs off after repeated wrong pairing codes", "[coll
     for (int i = 0; i < 2; ++i) {
         CHECK(attempt("999999").t->State() == NetState::Failed);
         REQUIRE(loop.Until([&] { return failures() == i + 1; }));
-        CHECK_FALSE(LanTest::Pairing(*h.t).refusing);
+        CHECK_FALSE(Lan::Pairing(*h.t).refusing);
     }
     CHECK(attempt("111222").Joined());
     CHECK(attempt("999999").t->State() == NetState::Failed);
     REQUIRE(loop.Until([&] { return failures() == 3; }));
-    auto st = LanTest::Pairing(*h.t);
+    auto st = Lan::Pairing(*h.t);
     CHECK(st.refusing);
     CHECK(st.windowMs == 1500);
 
@@ -399,7 +545,7 @@ TEST_CASE("Collab LAN host backs off after repeated wrong pairing codes", "[coll
     size_t hostEvents = h.events.size();
     Peer& refused = attempt("111222");
     CHECK(refused.t->State() == NetState::Failed);
-    CHECK(LanTest::Pairing(*h.t).refusedConnections == 1);
+    CHECK(Lan::Pairing(*h.t).refusedConnections == 1);
     CHECK(failures() == 3);
     loop.For_ms(100);
     CHECK(h.events.size() == hostEvents);
@@ -408,7 +554,7 @@ TEST_CASE("Collab LAN host backs off after repeated wrong pairing codes", "[coll
     REQUIRE(loop.Until([&] { return first.messages.size() == 1; }));
 
     // Once it lapses the right code works again.
-    REQUIRE(loop.Until([&] { return !LanTest::Pairing(*h.t).refusing; }, 5000));
+    REQUIRE(loop.Until([&] { return !Lan::Pairing(*h.t).refusing; }, 5000));
     CHECK(attempt("111222").Joined());
 
     // The next round pauses longer, up to the cap.
@@ -418,11 +564,11 @@ TEST_CASE("Collab LAN host backs off after repeated wrong pairing codes", "[coll
             CHECK(attempt("999999").t->State() == NetState::Failed);
             REQUIRE(loop.Until([&] { return failures() == base + i + 1; }));
         }
-        st = LanTest::Pairing(*h.t);
+        st = Lan::Pairing(*h.t);
         CHECK(st.refusing);
         CHECK(st.windowMs == 2500);
         if (round == 0) {
-            REQUIRE(loop.Until([&] { return !LanTest::Pairing(*h.t).refusing; }, 5000));
+            REQUIRE(loop.Until([&] { return !Lan::Pairing(*h.t).refusing; }, 5000));
         }
     }
 }
@@ -477,8 +623,254 @@ TEST_CASE("Collab LAN blobs share the link without holding up messages", "[colla
     for (auto& b : c.blobs) {
         CHECK_FALSE(std::filesystem::exists(b.path));
     }
-    CHECK(FilesIn(LanTest::BlobFolder(*c.t)) == 0);
-    CHECK(FilesIn(LanTest::BlobFolder(*h.t)) == 0);
+    CHECK(FilesIn(Lan::BlobFolder(*c.t)) == 0);
+    CHECK(FilesIn(Lan::BlobFolder(*h.t)) == 0);
+}
+
+TEST_CASE("Collab LAN sending a large file doesn't hold up the caller", "[collab][net]") {
+    TestLoop loop;
+    Peer h(loop, 0), c(loop, 1);
+    TempDir dir;
+    Host(h);
+    PeerId p = Join(loop, h, c);
+
+    std::string chunk = RandomBytes(1u << 20, 3);
+    std::string path = (dir.path / "large.bin").string();
+    {
+        std::ofstream f(path, std::ios::binary);
+        for (int i = 0; i < 128; ++i) {
+            chunk[0] = (char)i;
+            f.write(chunk.data(), (std::streamsize)chunk.size());
+        }
+    }
+    uint64_t size = std::filesystem::file_size(path);
+    // What copying it takes here (it is in the page cache now).
+    auto t0 = Clock::now();
+    std::filesystem::copy_file(path, (dir.path / "baseline.bin").string());
+    double copyMs = std::chrono::duration<double, std::milli>(Clock::now() - t0).count();
+    std::filesystem::remove(dir.path / "baseline.bin");
+
+    std::vector<std::pair<BlobId, bool>> done;
+    h.t->onBlobDone = [&](PeerId to, BlobId id, bool sent) {
+        CHECK(to == p);
+        done.emplace_back(id, sent);
+    };
+    std::vector<uint64_t> progress;
+    c.t->onBlobProgress = [&](PeerId from, BlobId id, uint64_t received, uint64_t total) {
+        CHECK(from == kLanHostPeer);
+        CHECK(id == 21);
+        CHECK(total == size);
+        progress.push_back(received);
+    };
+    auto t1 = Clock::now();
+    h.t->SendBlob(p, 21, path);
+    double sendMs = std::chrono::duration<double, std::milli>(Clock::now() - t1).count();
+    // The caller may delete it at once.
+    std::filesystem::remove(path);
+    INFO("copy " << copyMs << " ms, SendBlob " << sendMs << " ms");
+    // A copy made on the caller's thread takes as long as copying the file.
+    // Where copies are clones, there is nothing to measure.
+    if (copyMs >= 20) {
+        CHECK(sendMs * 4 < copyMs);
+    }
+    REQUIRE(loop.Until([&] { return c.blobs.size() == 1 && done.size() == 1; }, 60000));
+    CHECK(c.blobs[0].id == 21);
+    REQUIRE(c.blobs[0].content.size() == size);
+    for (int i = 0; i < 128; ++i) {
+        chunk[0] = (char)i;
+        REQUIRE(c.blobs[0].content.compare((size_t)i << 20, chunk.size(), chunk) == 0);
+    }
+    CHECK(done[0] == std::make_pair(BlobId(21), true));
+    // Progress came along the way, at least every kBlobProgressBytes.
+    REQUIRE(progress.size() >= size / kBlobProgressBytes);
+    CHECK(progress.front() == 0);
+    CHECK(std::is_sorted(progress.begin(), progress.end()));
+    CHECK(FilesIn(Lan::BlobFolder(*h.t)) == 0);
+}
+
+TEST_CASE("Collab an incoming file that can't be written is a disk error, not the peer's", "[collab][net]") {
+    TempDir dir;
+    using R = Files::IncomingBlob::Result;
+    {
+        Files::IncomingBlob in;
+        std::string missing = (dir.path / "gone" / "in-1").string();
+        CHECK(in.Start(missing, 5, 6, 100) == R::Ok);
+        CHECK(in.Data(5, "abc") == R::Ok);
+        CHECK(in.Data(5, "def") == R::Ok);
+        CHECK(in.Received() == 6);
+        std::string path, why;
+        CHECK(in.End(5, path, why) == R::Failed);
+        CHECK(path.empty());
+        CHECK(why.find("Couldn't save a file") != std::string::npos);
+        CHECK_FALSE(in.Active());
+        // The next one works.
+        std::string ok = (dir.path / "in-2").string();
+        CHECK(in.Start(ok, 6, 2, 100) == R::Ok);
+        CHECK(in.Data(6, "hi") == R::Ok);
+        CHECK(in.End(6, path, why) == R::Received);
+        CHECK(path == ok);
+        CHECK(CollabTest::ReadFile(path) == "hi");
+    }
+    {
+        // What the peer gets wrong is still Bad.
+        Files::IncomingBlob in;
+        std::string p = (dir.path / "in-3").string();
+        CHECK(in.Start(p, 7, 1000, 100) == R::Bad); // larger than allowed
+        CHECK(in.Data(7, "x") == R::Bad);           // no start
+        CHECK(in.Start(p, 7, 3, 100) == R::Ok);
+        CHECK(in.Start(p, 8, 3, 100) == R::Bad);   // a second at once
+        CHECK(in.Data(8, "x") == R::Bad);           // another id
+        CHECK(in.Data(7, "toolong") == R::Bad);     // more than announced
+        std::string path, why;
+        CHECK(in.End(7, path, why) == R::Bad);      // short
+        in.Abort();
+        CHECK_FALSE(std::filesystem::exists(p));
+    }
+}
+
+TEST_CASE("Collab LAN a file that can't be cloned is copied off the caller's thread", "[collab][net]") {
+    TestLoop loop;
+    Peer h(loop, 0), c(loop, 1);
+    TempDir dir;
+    Host(h);
+    PeerId p = Join(loop, h, c);
+    std::string content = RandomBytes(256u << 10, 9);
+    std::string path = dir.Write("file.bin", content);
+    // As across volumes: no clone, and the copy takes a while.
+    std::atomic<bool> copied{ false };
+    std::thread::id copier;
+    Files::Test::noClone = true;
+    Files::Test::beforeCopy = [&] {
+        copier = std::this_thread::get_id();
+        std::this_thread::sleep_for(std::chrono::milliseconds(600));
+        copied = true;
+    };
+    auto t0 = Clock::now();
+    h.t->SendBlob(p, 41, path);
+    double sendMs = std::chrono::duration<double, std::milli>(Clock::now() - t0).count();
+    std::filesystem::remove(path);
+    bool ranThrough = loop.Until([&] { return copied.load(); }, 5000);
+    REQUIRE(loop.Until([&] { return c.blobs.size() == 1; }, 20000));
+    Files::Test::beforeCopy = nullptr;
+    Files::Test::noClone = false;
+    INFO("SendBlob " << sendMs << " ms");
+    CHECK(ranThrough);
+    CHECK(copier != std::this_thread::get_id());
+    CHECK(sendMs < 300);
+    CHECK(c.blobs[0].content == content);
+}
+
+TEST_CASE("Collab LAN a file that can't be saved doesn't drop the connection", "[collab][net]") {
+    TestLoop loop;
+    Peer h(loop, 0), c(loop, 1);
+    TempDir dir;
+    Host(h);
+    PeerId p = Join(loop, h, c);
+    std::vector<std::pair<BlobId, bool>> done;
+    h.t->onBlobDone = [&](PeerId, BlobId id, bool sent) { done.emplace_back(id, sent); };
+    // Where incoming files go is gone, as on a full or failing disk.
+    std::string folder = Lan::BlobFolder(*c.t);
+    REQUIRE_FALSE(folder.empty());
+    std::error_code ec;
+    std::filesystem::remove_all(folder, ec);
+    h.t->SendBlob(p, 51, dir.Write("a.bin", RandomBytes(3u << 20, 5)));
+    REQUIRE(loop.Until([&] { return done.size() == 1; }, 20000));
+    h.t->Send(p, Ping(7));
+    REQUIRE(loop.Until([&] { return !c.messages.empty(); }, 10000));
+    CHECK(c.messages.back().second.time == 7);
+    CHECK(c.blobs.empty());
+    CHECK(c.Joined());
+    CHECK_FALSE(h.Has(p, PeerEvent::Lost));
+    CHECK_FALSE(c.Has(kLanHostPeer, PeerEvent::Lost));
+    // Once the folder is back, files arrive again on the same connection.
+    std::filesystem::create_directories(folder, ec);
+    h.t->SendBlob(p, 52, dir.Write("b.bin", "second"));
+    REQUIRE(loop.Until([&] { return c.blobs.size() == 1; }, 20000));
+    CHECK(c.blobs[0].id == 52);
+    CHECK(c.blobs[0].content == "second");
+}
+
+#if defined(XL_TEST_PORTABLE_TRANSPORT)
+TEST_CASE("Collab LAN closing a join by address doesn't wait for the name lookup", "[collab][net]") {
+    TestLoop loop;
+    std::atomic<bool> started{ false };
+    std::atomic<bool> release{ false };
+    Collab::Portable::SetBeforeLookup([&](const std::string&) {
+        started = true;
+        // A lookup nobody answers: up to a few seconds.
+        for (int i = 0; i < 300 && !release.load(); ++i) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    });
+    {
+        Peer c(loop, 1);
+        std::string id;
+        REQUIRE(SessionIdForAddress("slow-host.invalid:5123", id));
+        c.t->Connect(id, "123456");
+        REQUIRE(loop.Until([&] { return started.load(); }, 5000));
+        auto t0 = Clock::now();
+        c.Close();
+        double closeMs = std::chrono::duration<double, std::milli>(Clock::now() - t0).count();
+        INFO("Close " << closeMs << " ms");
+        CHECK(closeMs < 1000);
+    }
+    release = true;
+    loop.For_ms(200);
+    Collab::Portable::SetBeforeLookup(nullptr);
+}
+#endif
+
+TEST_CASE("Collab LAN a message too large to send is reported to the sender", "[collab][net]") {
+    TestLoop loop;
+    Peer h(loop, 0), c(loop, 1);
+    Host(h);
+    PeerId p = Join(loop, h, c);
+    std::vector<std::pair<PeerId, Message>> failed;
+    h.t->onSendFailed = [&](PeerId to, const Message& m, const std::string& reason) {
+        CHECK_FALSE(reason.empty());
+        failed.emplace_back(to, m);
+    };
+    Message big;
+    big.type = MsgType::Commit;
+    big.rev = 7;
+    big.clientSeq = 3;
+    big.command = std::string(kMaxMessageBytes + 1, 'x');
+    h.t->Send(p, big);
+    h.t->Broadcast(big);
+    h.t->Send(p, Ping(1));
+    REQUIRE(loop.Until([&] { return failed.size() == 2 && c.messages.size() == 1; }));
+    CHECK(failed[0].first == p);
+    CHECK(failed[0].second.type == MsgType::Commit);
+    CHECK(failed[0].second.rev == 7);
+    CHECK(failed[0].second.clientSeq == 3);
+    CHECK(failed[1].first == kNoPeer);
+    // Nothing of it reached the other side, and the connection is fine.
+    loop.For_ms(100);
+    REQUIRE(c.messages.size() == 1);
+    CHECK(c.messages[0].second.type == MsgType::Ping);
+}
+
+TEST_CASE("Collab LAN a blob to a peer that goes away is reported as not sent", "[collab][net]") {
+    TestLoop loop;
+    Peer h(loop, 0), c(loop, 1);
+    TempDir dir;
+    Host(h);
+    PeerId p = Join(loop, h, c);
+    std::vector<std::pair<BlobId, bool>> done;
+    h.t->onBlobDone = [&](PeerId to, BlobId id, bool sent) {
+        CHECK(to == p);
+        done.emplace_back(id, sent);
+    };
+    std::string big = RandomBytes(32u << 20, 4);
+    h.t->SendBlob(p, 31, dir.Write("big.bin", big));
+    // It goes before all of it can have arrived.
+    REQUIRE(loop.Until([&] { return std::filesystem::exists(Lan::BlobFolder(*c.t)) && FilesIn(Lan::BlobFolder(*c.t)) > 0; }, 20000));
+    c.Close();
+    REQUIRE(loop.Until([&] { return !done.empty(); }, 20000));
+    REQUIRE(done.size() == 1);
+    CHECK(done[0].first == 31);
+    // Not sent, unless every byte had already gone out.
+    CHECK((done[0].second == false || c.blobs.size() == 1));
 }
 
 TEST_CASE("Collab LAN drops a peer that sends something malformed", "[collab][net]") {
@@ -501,9 +893,10 @@ TEST_CASE("Collab LAN drops a peer that sends something malformed", "[collab][ne
         Host(h);
         PeerId pr = Join(loop, h, rogue);
         PeerId pk = Join(loop, h, ok);
-        LanTest::SendRaw(*rogue.t, kLanHostPeer, tc.bytes);
+        Lan::SendRaw(*rogue.t, kLanHostPeer, tc.bytes);
         REQUIRE(loop.Until([&] { return h.Has(pr, PeerEvent::Lost); }));
-        REQUIRE(loop.Until([&] { return rogue.t->State() == NetState::Failed; }));
+        // The state callback comes after the peer event, so once it has run so has the event.
+        REQUIRE(loop.Until([&] { return !rogue.states.empty() && rogue.states.back().first == NetState::Failed; }));
         CHECK((rogue.Has(kLanHostPeer, PeerEvent::Lost) || rogue.Has(kLanHostPeer, PeerEvent::Left)));
         CHECK(h.messages.empty());
         // The host keeps serving everyone else.
@@ -516,8 +909,8 @@ TEST_CASE("Collab LAN drops a peer that sends something malformed", "[collab][ne
     Peer h(loop, 0), c(loop, 1);
     Host(h);
     PeerId p = Join(loop, h, c);
-    LanTest::SendRaw(*h.t, p, hugeLength);
-    REQUIRE(loop.Until([&] { return c.t->State() == NetState::Failed; }));
+    Lan::SendRaw(*h.t, p, hugeLength);
+    REQUIRE(loop.Until([&] { return !c.states.empty() && c.states.back().first == NetState::Failed; }));
     CHECK(c.Has(kLanHostPeer, PeerEvent::Lost));
 }
 
@@ -540,7 +933,7 @@ TEST_CASE("Collab LAN Close with traffic in flight", "[collab][net]") {
         loop.For_ms(5);
         Peer& closer = which == 0 ? *c : *h;
         Peer& other = which == 0 ? *h : *c;
-        std::string folder = LanTest::BlobFolder(*closer.t);
+        std::string folder = Lan::BlobFolder(*closer.t);
         closer.Close();
         CHECK(closer.t->State() == NetState::Closed);
         // Sends after Close go nowhere and don't crash.
@@ -561,22 +954,34 @@ TEST_CASE("Collab LAN sessions are found by browsing and joined by advert id", "
     TestLoop loop;
     Peer h(loop, 0), c(loop, 1);
     Host(h, "000777");
-    auto browser = CreateLanBrowser(loop.For(2));
+    auto browser = NewLanBrowser(loop.For(2));
     REQUIRE(browser);
     std::vector<SessionAdvert> seen;
     std::string browseError;
     browser->onChanged = [&](const std::vector<SessionAdvert>& list) { seen = list; };
     browser->onError = [&](const std::string& why) { browseError = why; };
     browser->Start();
+    // This host's advert, not one a host from an earlier test left behind:
+    // its service name carries the host's salt.
+    std::string direct = DirectId(*h.t);
+    std::string mine = std::string(Wire::kServicePrefix) + direct.substr(direct.rfind(':') + 1);
     auto findIt = [&]() -> const SessionAdvert* {
         for (auto& a : seen) {
-            if (a.hostName == "Unit test host") {
+            // The TXT record can arrive after the name; wait for both.
+            if (a.id.rfind(mine, 0) == 0 && a.hostName == "Unit test host") {
                 return &a;
             }
         }
         return nullptr;
     };
     bool found = loop.Until([&] { return findIt() != nullptr || !browseError.empty(); }, 10000) && findIt() != nullptr;
+#ifdef XL_TEST_PORTABLE_TRANSPORT
+    if (!found && !Portable::Advertising(*h.t)) {
+        // No DNS-SD service on this machine (Linux without avahi-daemon, a
+        // CI container): joining by address is the way in there.
+        SKIP("no DNS-SD service to advertise with: " << browseError);
+    }
+#endif
     INFO("browse error: " << browseError);
     REQUIRE(found);
     SessionAdvert a = *findIt();
@@ -653,8 +1058,8 @@ public:
         return o;
     }
 
-    NetNode& AddHost(const std::string& code) {
-        NetNode& n = NewNode();
+    NetNode& AddHost(const std::string& code, bool apple = false) {
+        NetNode& n = NewNode(apple);
         NetScope s(n);
         n.doc->Open(_show.start);
         n.session = std::make_unique<CollabHost>(*n.t, *n.doc, Options(), Events(n));
@@ -666,8 +1071,8 @@ public:
         return n;
     }
 
-    NetNode& AddClient(const std::string& code) {
-        NetNode& n = NewNode();
+    NetNode& AddClient(const std::string& code, bool apple = false) {
+        NetNode& n = NewNode(apple);
         n.session = std::make_unique<CollabClient>(*n.t, *n.doc, Options(), Events(n));
         // The app's part: join once the transport says the host is there.
         auto inner = n.t->onPeer;
@@ -679,7 +1084,7 @@ public:
             }
             inner(p, e);
         };
-        n.t->Connect(LanTest::DirectSessionId(*nodes[0]->t), code);
+        n.t->Connect(DirectId(*nodes[0]->t), code);
         return n;
     }
 
@@ -722,9 +1127,9 @@ public:
     std::vector<std::unique_ptr<NetNode>> nodes;
 
 private:
-    NetNode& NewNode() {
+    NetNode& NewNode(bool apple) {
         auto n = std::make_unique<NetNode>();
-        n->t = CreateLanTransport(loop.For((int)nodes.size()));
+        n->t = NewTransport(loop.For((int)nodes.size()), apple);
         REQUIRE(n->t);
         n->doc = std::make_unique<CollabTest::Doc>(_show.path, _show.dir.File("net" + std::to_string(nodes.size())));
         n->ids.counter = _baseCounter;
@@ -818,6 +1223,48 @@ private:
     std::mt19937 _rng;
 };
 
+// Random edits from every participant at once; afterwards every copy must
+// be the host's, byte for byte.
+void EditTogether(NetSim& sim, uint32_t seed) {
+    REQUIRE(sim.Quiesce());
+    Editor ed(seed);
+    for (int step = 0; step < 150; ++step) {
+        NetNode& n = *sim.nodes[ed.Next() % sim.nodes.size()];
+        if (n.session->IsActive()) {
+            NetScope s(n);
+            ed.Edit(n);
+        }
+        sim.loop.For_ms((int)(ed.Next() % 8));
+    }
+    bool quiet = sim.Quiesce();
+    if (!quiet) {
+        for (size_t i = 0; i < sim.nodes.size(); ++i) {
+            auto& log = sim.nodes[i]->log;
+            for (size_t k = log.size() > 5 ? log.size() - 5 : 0; k < log.size(); ++k) {
+                UNSCOPED_INFO("[" << i << "] " << log[k].substr(0, 300));
+            }
+        }
+    }
+    REQUIRE(quiet);
+    NetNode& h = *sim.nodes[0];
+    CHECK(h.Host().HeadRev() > 20);
+    std::string hostDesc = DescribeSequence(h.doc->Sequence());
+    uint64_t hostHash = DocHasher::FullHash(h.doc->Sequence());
+    std::string hostXsq = h.doc->Save();
+    for (size_t i = 0; i < sim.nodes.size(); ++i) {
+        NetNode& n = *sim.nodes[i];
+        INFO("participant " << i);
+        CHECK(n.session->HashVerifyFailures() == 0);
+        if (i == 0) {
+            continue;
+        }
+        CHECK(n.Client().ResyncCount() == 0);
+        CHECK(DescribeSequence(n.doc->Sequence()) == hostDesc);
+        CHECK(DocHasher::FullHash(n.doc->Sequence()) == hostHash);
+        CHECK(n.doc->Save() == hostXsq);
+    }
+}
+
 } // namespace
 
 TEST_CASE("Collab LAN host and two clients converge over real sockets", "[collab][net]") {
@@ -828,45 +1275,10 @@ TEST_CASE("Collab LAN host and two clients converge over real sockets", "[collab
         sim.AddHost("314159");
         sim.AddClient("314159");
         sim.AddClient("314159");
-        REQUIRE(sim.Quiesce());
-        Editor ed(seed);
-        for (int step = 0; step < 150; ++step) {
-            NetNode& n = *sim.nodes[ed.Next() % sim.nodes.size()];
-            if (n.session->IsActive()) {
-                NetScope s(n);
-                ed.Edit(n);
-            }
-            sim.loop.For_ms((int)(ed.Next() % 8));
-        }
-        bool quiet = sim.Quiesce();
-        if (!quiet) {
-            for (size_t i = 0; i < sim.nodes.size(); ++i) {
-                auto& log = sim.nodes[i]->log;
-                for (size_t k = log.size() > 5 ? log.size() - 5 : 0; k < log.size(); ++k) {
-                    UNSCOPED_INFO("[" << i << "] " << log[k].substr(0, 300));
-                }
-            }
-        }
-        REQUIRE(quiet);
-        NetNode& h = *sim.nodes[0];
-        CHECK(h.Host().HeadRev() > 20);
-        std::string hostDesc = DescribeSequence(h.doc->Sequence());
-        uint64_t hostHash = DocHasher::FullHash(h.doc->Sequence());
-        std::string hostXsq = h.doc->Save();
-        for (size_t i = 0; i < sim.nodes.size(); ++i) {
-            NetNode& n = *sim.nodes[i];
-            INFO("participant " << i);
-            CHECK(n.session->HashVerifyFailures() == 0);
-            if (i == 0) {
-                continue;
-            }
-            CHECK(n.Client().ResyncCount() == 0);
-            CHECK(DescribeSequence(n.doc->Sequence()) == hostDesc);
-            CHECK(DocHasher::FullHash(n.doc->Sequence()) == hostHash);
-            CHECK(n.doc->Save() == hostXsq);
-        }
+        EditTogether(sim, seed);
     }
 }
+
 
 TEST_CASE("Collab LAN a successor takes over with the same pairing code under a derived name", "[collab][net][migrate]") {
     TestLoop loop;
@@ -875,16 +1287,21 @@ TEST_CASE("Collab LAN a successor takes over with the same pairing code under a 
     PeerId pa = Join(loop, h, a, "424242");
     Join(loop, h, b, "424242");
     // The session id everyone joined: the host's service name.
-    std::string direct = LanTest::DirectSessionId(*h.t);
+    std::string direct = DirectId(*h.t);
     std::string sessionId = std::string(Wire::kServicePrefix) + direct.substr(direct.rfind(':') + 1);
     std::string hostSalt;
     REQUIRE(Wire::SaltFromServiceName(sessionId, hostSalt));
     h.Close();
-    REQUIRE(loop.Until([&] { return a.t->State() != NetState::Connected && b.t->State() != NetState::Connected; }));
-    CHECK((a.Has(kLanHostPeer, PeerEvent::Left) || a.Has(kLanHostPeer, PeerEvent::Lost)));
+    // The peer event, not just the state: the state changes before the
+    // callbacks have been delivered.
+    auto hostGone = [&](Peer& p) { return p.Has(kLanHostPeer, PeerEvent::Left) || p.Has(kLanHostPeer, PeerEvent::Lost); };
+    REQUIRE(loop.Until([&] { return hostGone(a) && hostGone(b); }));
     CHECK(pa != kLanHostPeer);
 
-    REQUIRE(a.t->SupportsMigration());
+    // Joined by a direct id: no successor name can be derived from it, so
+    // the session can't move (this test derives one by hand below).
+    CHECK_FALSE(a.t->SupportsMigration());
+    CHECK(h.t->SupportsMigration());
     Succession s;
     s.sessionId = sessionId;
     s.pairingCode = "424242";
@@ -906,7 +1323,7 @@ TEST_CASE("Collab LAN a successor takes over with the same pairing code under a 
     CHECK(a.t->LocalPeer() == kLanHostPeer);
     REQUIRE(loop.Until([&] { return a.t->State() == NetState::Listening; }));
     // It listens under the derived salt (what Bonjour would advertise).
-    std::string succDirect = LanTest::DirectSessionId(*a.t);
+    std::string succDirect = DirectId(*a.t);
     CHECK(succDirect.substr(succDirect.rfind(':') + 1) == Wire::HexOf(salt));
     // The old connection made no callbacks once replaced.
     loop.For_ms(100);
@@ -940,4 +1357,284 @@ TEST_CASE("Collab LAN a successor takes over with the same pairing code under a 
     CHECK_FALSE(err2.empty());
 }
 
-#endif // __APPLE__
+#ifdef XL_TEST_PORTABLE_TRANSPORT
+
+TEST_CASE("Collab LAN connections use keepalive and no delay", "[collab][net]") {
+    TestLoop loop;
+    Peer h(loop, 0), c(loop, 1);
+    Host(h);
+    PeerId p = Join(loop, h, c);
+    for (auto [t, peer] : { std::make_pair(h.t.get(), p), std::make_pair(c.t.get(), kLanHostPeer) }) {
+        Portable::SocketOptions o;
+        REQUIRE(Portable::PeerSocketOptions(*t, peer, o));
+        CHECK(o.noDelay);
+        CHECK(o.keepAlive);
+#ifndef _WIN32
+        // Windows can only report these from 10 1709 on; the Mac and Linux
+        // always can. A peer that vanishes is dropped in about 25 seconds.
+        CHECK(o.idleSec == 10);
+        CHECK(o.intervalSec == 5);
+        CHECK(o.count == 3);
+#endif
+    }
+}
+
+TEST_CASE("Collab LAN clients join by address", "[collab][net]") {
+    TestLoop loop;
+    Peer h(loop, 0), c(loop, 1), bad(loop, 2);
+    Host(h, "246810");
+    auto addrs = h.t->JoinAddresses();
+    // Whatever the machine's addresses, loopback reaches the same listener.
+    std::string direct = Lan::DirectSessionId(*h.t);
+    std::string port = direct.substr(direct.find(':', 4) + 1);
+    port = port.substr(0, port.find(':'));
+    for (auto& a : addrs) {
+        CHECK(a.substr(a.rfind(':') + 1) == port);
+    }
+    std::string id;
+    REQUIRE(SessionIdForAddress("127.0.0.1:" + port, id));
+
+    // The wrong code still fails after the salt exchange, and counts.
+    bad.t->Connect(id, "246811");
+    REQUIRE(loop.Until([&] { return !bad.states.empty() && bad.states.back().first == NetState::Failed; }));
+    CHECK(bad.states.back().second.find("pairing code") != std::string::npos);
+    REQUIRE(loop.Until([&] { return Lan::Pairing(*h.t).failedHandshakes == 1; }));
+
+    size_t before = h.events.size();
+    c.t->Connect(id, "246810");
+    REQUIRE(loop.Until([&] { return c.Joined() && h.events.size() > before; }));
+    PeerId p = h.events[before].first;
+    c.t->Send(kLanHostPeer, Ping(3));
+    h.t->Send(p, Ping(4));
+    REQUIRE(loop.Until([&] { return h.messages.size() == 1 && c.messages.size() == 1; }));
+    CHECK(h.messages[0].second.time == 3);
+    CHECK(c.messages[0].second.time == 4);
+    // A session joined by address can't move to another host: no successor
+    // name can be derived, and this client couldn't browse for one. Saying so
+    // ends it at once when the host goes, instead of waiting on candidates.
+    CHECK(h.t->SupportsMigration());
+    CHECK_FALSE(c.t->SupportsMigration());
+    // One found under its service name can.
+    Peer named(loop, 3);
+    named.t->Connect(Wire::ServiceNameFor(Wire::NewSalt()), "246810");
+    CHECK(named.t->SupportsMigration());
+}
+
+#ifdef XL_TEST_PORTABLE_TRANSPORT
+TEST_CASE("Collab LAN a TLS setup that fails part way cleans up", "[collab][net]") {
+    CHECK(Collab::Portable::TlsSetupFailureCleansUp());
+}
+#endif
+
+TEST_CASE("Collab LAN join by address fails cleanly when nobody is there", "[collab][net]") {
+    TestLoop loop;
+    Peer h(loop, 0);
+    Host(h);
+    std::string direct = Lan::DirectSessionId(*h.t);
+    std::string port = direct.substr(direct.find(':', 4) + 1);
+    port = port.substr(0, port.find(':'));
+    h.Close();
+    {
+        Peer c(loop, 1);
+        std::string id;
+        REQUIRE(SessionIdForAddress("127.0.0.1:" + port, id));
+        c.t->Connect(id, "123456");
+        REQUIRE(loop.Until([&] { return !c.states.empty() && c.states.back().first == NetState::Failed; }));
+        CHECK(c.events.empty());
+        CHECK(c.states.back().second == "The host is not accepting connections.");
+    }
+    Peer c(loop, 1);
+    c.t->Connect("addr:not an address", "123456");
+    REQUIRE(loop.Until([&] { return !c.states.empty() && c.states.back().first == NetState::Failed; }));
+    CHECK(c.states.back().second == "That is not an address xLights can join.");
+}
+
+TEST_CASE("Collab LAN a host that closes at once leaves no advert behind", "[collab][net][bonjour]") {
+    TestLoop loop;
+    auto browser = NewLanBrowser(loop.For(2));
+    REQUIRE(browser);
+    std::vector<SessionAdvert> seen;
+    browser->onChanged = [&](const std::vector<SessionAdvert>& list) { seen = list; };
+    browser->Start();
+    std::string mine;
+    {
+        Peer h(loop, 0);
+        Host(h, "000999");
+        if (!Portable::Advertising(*h.t)) {
+            SKIP("no DNS-SD service to advertise with");
+        }
+        std::string direct = DirectId(*h.t);
+        mine = std::string(Wire::kServicePrefix) + direct.substr(direct.rfind(':') + 1);
+        // Closed while the name may still be being probed on the network.
+        h.Close();
+    }
+    // A registration still in progress finishes and is then withdrawn; it
+    // may show up briefly, but must not stay.
+    auto listed = [&] {
+        for (auto& a : seen) {
+            if (a.id.rfind(mine, 0) == 0) {
+                return true;
+            }
+        }
+        return false;
+    };
+    loop.For_ms(4000);
+    CHECK(loop.Until([&] { return !listed(); }, 12000));
+    browser->Stop();
+}
+
+#endif // XL_TEST_PORTABLE_TRANSPORT
+
+#ifdef XL_TEST_INTEROP
+
+TEST_CASE("Collab LAN Apple and portable transports pair both ways", "[collab][net][interop]") {
+    TempDir dir;
+    std::string big = RandomBytes(3u << 20, 9);
+    std::string path = dir.Write("blob.bin", big);
+    for (bool appleHost : { true, false }) {
+        INFO((appleHost ? "Apple host, portable client" : "portable host, Apple client"));
+        TestLoop loop;
+        Peer h(loop, 0, appleHost), c(loop, 1, !appleHost), bad(loop, 2, !appleHost);
+        Host(h, "135790");
+        bad.t->Connect(DirectId(*h.t), "135791");
+        REQUIRE(loop.Until([&] { return !bad.states.empty() && bad.states.back().first == NetState::Failed; }));
+        INFO(bad.states.back().second);
+        CHECK(bad.states.back().second.find("pairing code") != std::string::npos);
+        loop.For_ms(200);
+        CHECK(h.events.empty());
+
+        PeerId p = Join(loop, h, c, "135790");
+        const int n = 200;
+        for (int i = 0; i < n; ++i) {
+            c.t->Send(kLanHostPeer, Ping(i));
+            h.t->Send(p, Ping(1000 + i));
+            h.t->Broadcast(Ping(5000 + i));
+        }
+        h.t->SendBlob(p, 21, path);
+        c.t->SendBlob(kLanHostPeer, 22, path);
+        bool all = loop.Until([&] { return h.messages.size() == n && c.messages.size() == 2 * n && c.blobs.size() == 1 && h.blobs.size() == 1; }, 20000);
+        INFO("host got " << h.messages.size() << " messages, " << h.blobs.size() << " blobs; client got " << c.messages.size() << " messages, " << c.blobs.size() << " blobs");
+        REQUIRE(all);
+        for (int i = 0; i < n; ++i) {
+            REQUIRE(h.messages[i].second.time == (uint64_t)i);
+        }
+        CHECK(c.blobs[0].id == 21);
+        CHECK(c.blobs[0].content == big);
+        CHECK(h.blobs[0].id == 22);
+        CHECK(h.blobs[0].from == p);
+        CHECK(h.blobs[0].content == big);
+        c.Close();
+        REQUIRE(loop.Until([&] { return h.Has(p, PeerEvent::Left) || h.Has(p, PeerEvent::Lost); }));
+        CHECK(h.Has(p, PeerEvent::Left));
+    }
+}
+
+TEST_CASE("Collab LAN mixed Apple and portable sessions converge", "[collab][net][interop]") {
+    CollabTest::Show show;
+    for (bool appleHost : { true, false }) {
+        INFO((appleHost ? "Apple host" : "portable host"));
+        NetSim sim(show);
+        sim.AddHost("271828", appleHost);
+        sim.AddClient("271828", !appleHost);
+        sim.AddClient("271828", appleHost);
+        EditTogether(sim, appleHost ? 3u : 4u);
+    }
+}
+
+TEST_CASE("Collab LAN Apple and portable hosts are found by each other's browsers", "[collab][net][interop][bonjour]") {
+    for (bool appleHost : { true, false }) {
+        INFO((appleHost ? "Apple host, portable browser" : "portable host, Apple browser"));
+        TestLoop loop;
+        Peer h(loop, 0, appleHost), c(loop, 1, !appleHost);
+        Host(h, "112358");
+        auto browser = appleHost ? NewLanBrowser(loop.For(2)) : CreateLanBrowser(loop.For(2));
+        REQUIRE(browser);
+        std::vector<SessionAdvert> seen;
+        std::string err;
+        browser->onChanged = [&](const std::vector<SessionAdvert>& list) { seen = list; };
+        browser->onError = [&](const std::string& why) { err = why; };
+        browser->Start();
+        std::string direct = DirectId(*h.t);
+        std::string mine = std::string(Wire::kServicePrefix) + direct.substr(direct.rfind(':') + 1);
+        auto findIt = [&]() -> const SessionAdvert* {
+            for (auto& a : seen) {
+                if (a.id.rfind(mine, 0) == 0 && a.hostName == "Unit test host") {
+                    return &a;
+                }
+            }
+            return nullptr;
+        };
+        INFO("browse error: " << err);
+        REQUIRE(loop.Until([&] { return findIt() != nullptr; }, 10000));
+        SessionAdvert a = *findIt();
+        CHECK(a.sequenceName == "test.xsq");
+        CHECK(a.deviceKind == "mac");
+        CHECK(a.protocol == kProtocolVersion);
+        c.t->Connect(a.id, "112358");
+        REQUIRE(loop.Until([&] { return c.Joined() && !h.events.empty(); }, 10000));
+        h.Close();
+        REQUIRE(loop.Until([&] { return findIt() == nullptr; }, 10000));
+        browser->Stop();
+    }
+}
+
+TEST_CASE("Collab LAN join by address to an Apple host fails cleanly", "[collab][net][interop]") {
+    TestLoop loop;
+    Peer h(loop, 0, true), c(loop, 1, false);
+    Host(h);
+    std::string direct = DirectId(*h.t);
+    std::string port = direct.substr(direct.find(':', 4) + 1);
+    port = port.substr(0, port.find(':'));
+    std::string id;
+    REQUIRE(SessionIdForAddress("127.0.0.1:" + port, id));
+    c.t->Connect(id, "123456");
+    REQUIRE(loop.Until([&] { return !c.states.empty() && c.states.back().first == NetState::Failed; }));
+    CHECK(c.states.back().second == "That address isn't hosting a session that can be joined by address.");
+    CHECK(h.events.empty());
+    // The Apple host sees a failed handshake, one per attempt.
+    REQUIRE(loop.Until([&] { return Collab::LanTest::Pairing(*h.t).failedHandshakes == 1; }));
+}
+
+TEST_CASE("Collab LAN a session moves between Apple and portable transports", "[collab][net][interop][migrate]") {
+    for (bool appleSuccessor : { true, false }) {
+        INFO((appleSuccessor ? "Apple successor, portable host and client" : "portable successor, Apple host and client"));
+        TestLoop loop;
+        Peer h(loop, 0, !appleSuccessor), a(loop, 1, appleSuccessor), b(loop, 2, !appleSuccessor);
+        Host(h, "246802");
+        Join(loop, h, a, "246802");
+        Join(loop, h, b, "246802");
+        std::string direct = DirectId(*h.t);
+        Succession s;
+        s.sessionId = std::string(Wire::kServicePrefix) + direct.substr(direct.rfind(':') + 1);
+        s.pairingCode = "246802";
+        s.successor = 2;
+        s.epoch = 1;
+        h.Close();
+        REQUIRE(loop.Until([&] { return a.t->State() != NetState::Connected && b.t->State() != NetState::Connected; }));
+        // Both transports derive the same successor name.
+        REQUIRE(a.t->SuccessorSessionId(s) == b.t->SuccessorSessionId(s));
+        SessionAdvert ad;
+        ad.hostName = "Successor";
+        std::string error;
+        REQUIRE(a.t->ListenAsSuccessor(s, ad, error));
+        REQUIRE(loop.Until([&] { return a.t->State() == NetState::Listening; }));
+        // Reach it the way a rejoiner would, but without Bonjour: the
+        // successor's own direct id carries the derived salt.
+        std::string succ = DirectId(*a.t);
+        std::string salt;
+        REQUIRE(Wire::SaltFromServiceName(a.t->SuccessorSessionId(s), salt));
+        CHECK(succ.substr(succ.rfind(':') + 1) == Wire::HexOf(salt));
+        size_t before = a.events.size();
+        Peer b2(loop, 3, !appleSuccessor);
+        b2.t->Connect(succ, "246802");
+        REQUIRE(loop.Until([&] { return b2.Joined() && a.events.size() > before; }));
+        PeerId pb = a.events[before].first;
+        a.t->Send(pb, Ping(21));
+        b2.t->Send(kLanHostPeer, Ping(22));
+        REQUIRE(loop.Until([&] { return !b2.messages.empty() && !a.messages.empty(); }));
+        CHECK(b2.messages.back().second.time == 21);
+        CHECK(a.messages.back().second.time == 22);
+    }
+}
+
+#endif // XL_TEST_INTEROP

@@ -139,6 +139,8 @@ public:
     void ShowSessionWindow();
     void SaveCopy();
     std::string JoinReportText() const;
+    const std::string& JoinAddressesText() const { return _addressesShown; }
+    void UpdateJoinAddresses();
 
 private:
     void UpdateVisibility();
@@ -212,7 +214,9 @@ private:
     std::map<int, std::function<void()>> _rowMenuActions;
     std::vector<int> _rowMenuIds; // reused across menus
     std::string _codeShown; // host (also after taking over): the pairing code
+    std::string _addressesShown; // host: where to join by address, if offered
     std::string _originalShowDir;              // client: show folder before UseShowFolder
+    std::string _keptSessionShow;              // session copy kept while the sequence uses it
     std::vector<std::string> _addedMediaFolders; // client: AddMediaFolder, removed at the end
     void RestoreShowFolder();
     void RemoveDocFolder();

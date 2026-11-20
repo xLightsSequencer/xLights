@@ -52,6 +52,7 @@
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
 					<Add directory="../dependencies/midifile/include" />
+					<Add directory="../dependencies/mbedtls/include" />
 					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 					<Add option="`sdl2-config --cflags`" />
 				</Compiler>
@@ -131,6 +132,7 @@
 					<Add directory="../dependencies/pugixml/src" />
 					<Add directory="../dependencies/spdlog/include" />
 					<Add directory="../dependencies/midifile/include" />
+					<Add directory="../dependencies/mbedtls/include" />
 					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 					<Add option="`sdl2-config --cflags`" />
 				</Compiler>
@@ -357,11 +359,22 @@
 		<Unit filename="../src-core/collab/CollabMessages.h" />
 		<Unit filename="../src-core/collab/CollabNet.cpp" />
 		<Unit filename="../src-core/collab/CollabNet.h" />
+		<Unit filename="../src-core/collab/CollabNetPortable.cpp" />
 		<Unit filename="../src-core/collab/CollabNetWire.h" />
 		<Unit filename="../src-core/collab/CollabRoles.cpp" />
 		<Unit filename="../src-core/collab/CollabRoles.h" />
 		<Unit filename="../src-core/collab/CollabSession.cpp" />
 		<Unit filename="../src-core/collab/CollabSession.h" />
+		<Unit filename="../src-core/collab/CollabTlsClient.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src-core/collab/CollabTlsConfig.h" />
+		<Unit filename="../src-core/collab/CollabTlsCrypto.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src-core/collab/CollabTlsServer.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../src-core/collab/CollabTransport.cpp" />
 		<Unit filename="../src-core/collab/CollabTransport.h" />
 		<Unit filename="../src-core/collab/CollabUidTable.cpp" />

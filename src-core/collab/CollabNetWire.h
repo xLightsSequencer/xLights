@@ -19,6 +19,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
 
@@ -88,9 +92,84 @@ bool SaltFromServiceName(std::string_view name, std::string& salt);
 // salt (a direct "tcp:" id).
 bool SuccessorSalt(std::string_view sessionId, uint16_t who, std::string& salt);
 
+// Joining by address, where the network can't be browsed. The session id is
+// kAddressPrefix + "host:port"; the client sends kSaltRequest before TLS and
+// a host of the portable transport answers SaltReply (the service name and a
+// newline), then the TLS handshake follows on the same connection. Apple
+// hosts don't answer it, so Apple-to-Apple sessions are unchanged.
+inline constexpr const char* kAddressPrefix = "addr:";
+inline constexpr const char* kSaltRequest = "XLCS";
+std::string SaltReply(const std::string& salt);
+// "host:port", "[v6]:port"; false unless the port is 1-65535.
+bool SplitHostPort(std::string_view text, std::string& host, std::string& port);
+
+// What a host's listener changing state means (Apple's nw_listener). Waiting
+// means the network can't be used just now, e.g. an interface went down:
+// before the listener was ever ready that is a failure to listen, after it
+// the listener comes back to ready by itself and the session goes on.
+enum class ListenerState { Ready, Waiting, Failed, Other };
+enum class ListenerVerdict { Ignore, Listening, Fail };
+ListenerVerdict ListenerStateVerdict(ListenerState state, bool hasError, bool wasReady);
+
+// The life of one asynchronous service registration (Windows'
+// DnsServiceRegister) shared by its owner, which may stop it at any time, and
+// the completion callbacks, which may arrive after the owner is gone. Each
+// call says what to do next; Free means nothing refers to it any more.
+// Callers serialise the calls.
+class RegistrationLifetime {
+public:
+    enum class Action { None, Deregister, Free };
+
+    // The owner is done with it and won't touch it again.
+    Action Stop();
+    // A completion callback: of the registration, or of the deregistration
+    // once one was sent. `ok`: it succeeded.
+    Action Completed(bool ok);
+    // Sending the deregistration failed: no completion will come.
+    Action DeregisterFailed();
+    // The registration failed (the owner should stop counting it).
+    bool Failed() const { return _state == State::Failed; }
+
+private:
+    enum class State { Registering, Registered, Deregistering, Failed, Done };
+    State _state = State::Registering;
+    bool _stopped = false;
+};
+
+// Callback contexts for asynchronous OS calls that may call back after they
+// were cancelled: the OS holds a number, not a pointer, so a late callback
+// finds nothing instead of freed memory.
+template<class T>
+class CallbackRegistry {
+public:
+    uint64_t Add(std::shared_ptr<T> item) {
+        std::lock_guard<std::mutex> l(_m);
+        uint64_t id = ++_next;
+        _items[id] = std::move(item);
+        return id;
+    }
+    std::shared_ptr<T> Find(uint64_t id) {
+        std::lock_guard<std::mutex> l(_m);
+        auto it = _items.find(id);
+        return it == _items.end() ? nullptr : it->second;
+    }
+    void Remove(uint64_t id) {
+        std::lock_guard<std::mutex> l(_m);
+        _items.erase(id);
+    }
+    size_t Size() {
+        std::lock_guard<std::mutex> l(_m);
+        return _items.size();
+    }
+
+private:
+    std::mutex _m;
+    uint64_t _next = 0;
+    std::map<uint64_t, std::shared_ptr<T>> _items;
+};
+
 } // namespace Collab::Wire
 
-#ifdef __APPLE__
 namespace Collab::LanTest {
 // The 32-byte key for `code` and `salt` (PBKDF2-HMAC-SHA256).
 std::string DeriveKey(const std::string& code, const std::string& salt);
@@ -118,4 +197,37 @@ struct PairingStatus {
 };
 PairingStatus Pairing(INetTransport& host);
 } // namespace Collab::LanTest
-#endif
+
+// The Windows / Linux transport (CollabNetPortable.cpp). It is what
+// CreateLanTransport returns there; tests on a Mac build it too, to check it
+// against the Apple transport.
+namespace Collab::Portable {
+std::unique_ptr<INetTransport> CreateTransport(Dispatcher dispatch);
+std::unique_ptr<ISessionBrowser> CreateBrowser(Dispatcher dispatch);
+bool DiscoveryAvailable();
+std::string DeriveKey(const std::string& code, const std::string& salt);
+std::string DirectSessionId(INetTransport& host, const std::string& address = "127.0.0.1");
+void SetPairingBackoff(INetTransport& host, const LanTest::PairingBackoff& b);
+LanTest::PairingStatus Pairing(INetTransport& host);
+void SendRaw(INetTransport& t, PeerId peer, const std::string& bytes);
+std::string BlobFolder(INetTransport& t);
+// Sets up TLS as if starting PSA failed, over memory full of garbage, and
+// tears it down again. True when the setup said it failed (and the teardown
+// didn't crash).
+bool TlsSetupFailureCleansUp();
+// The TCP options on the connection to `peer`; 0 / false where the
+// system can't report one.
+struct SocketOptions {
+    bool noDelay = false;
+    bool keepAlive = false;
+    int idleSec = 0;
+    int intervalSec = 0;
+    int count = 0;
+};
+bool PeerSocketOptions(INetTransport& t, PeerId peer, SocketOptions& out);
+// The host registered its DNS-SD service.
+bool Advertising(INetTransport& host);
+// Runs before each name lookup of a join by address, on the thread making
+// it (nullptr: none).
+void SetBeforeLookup(std::function<void(const std::string& host)> hook);
+} // namespace Collab::Portable

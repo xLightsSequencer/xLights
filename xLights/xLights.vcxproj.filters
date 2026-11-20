@@ -841,7 +841,19 @@
     <ClCompile Include="..\src-core\collab\CollabRoles.cpp">
       <Filter>collab</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabNetPortable.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabSession.cpp">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabTlsClient.c">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabTlsCrypto.c">
+      <Filter>collab</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\collab\CollabTlsServer.c">
       <Filter>collab</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\collab\CollabTransport.cpp">
@@ -2547,6 +2559,9 @@
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabRoles.h">
+      <Filter>collab</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\collab\CollabTlsConfig.h">
       <Filter>collab</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\collab\CollabSession.h">

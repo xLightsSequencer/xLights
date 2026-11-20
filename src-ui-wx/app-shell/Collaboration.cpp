@@ -130,7 +130,11 @@ class CollabJoinDialog : public wxDialog {
 public:
     explicit CollabJoinDialog(wxWindow* parent) : wxDialog(parent, wxID_ANY, "Join Collaboration Session", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {
         auto* sizer = new wxBoxSizer(wxVERTICAL);
+#ifdef __WXOSX__
         sizer->Add(new wxStaticText(this, wxID_ANY, "Sessions on this network or in your SharePlay call:"), 0, wxALL, 8);
+#else
+        sizer->Add(new wxStaticText(this, wxID_ANY, "Sessions on this network:"), 0, wxALL, 8);
+#endif
         _list = new wxListBox(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(420, 160)));
         sizer->Add(_list, 1, wxLEFT | wxRIGHT | wxEXPAND, 8);
         _error = new wxStaticText(this, wxID_ANY, wxEmptyString);
@@ -143,6 +147,18 @@ public:
         _code->SetMaxLength(6);
         row->Add(_code, 0, wxALIGN_CENTER_VERTICAL);
         sizer->Add(row, 0, wxALL, 8);
+        if (Collab::LanJoinByAddressAvailable()) {
+            // For a host this computer can't find by browsing (no network
+            // discovery on one side, or a network that blocks it).
+            auto* addrRow = new wxBoxSizer(wxHORIZONTAL);
+            addrRow->Add(new wxStaticText(this, wxID_ANY, "Or join by address:"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+            _address = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(200, -1)));
+            _address->SetHint("192.168.1.20:50000");
+            _address->SetToolTip("The address the host's session window shows. Only hosts on Windows or Linux can be joined this way.");
+            addrRow->Add(_address, 1, wxALIGN_CENTER_VERTICAL);
+            sizer->Add(addrRow, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 8);
+            _address->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { UpdateCode(); });
+        }
         _fetch = new wxCheckBox(this, wxID_ANY, "Fetch show files that differ from the host's");
         _fetch->SetToolTip("Copies the host's layout, audio and media where they differ from yours. Your show folder is never changed.");
         sizer->Add(_fetch, 0, wxLEFT | wxRIGHT | wxBOTTOM, 8);
@@ -198,16 +214,26 @@ public:
         Layout();
     }
     const Collab::SessionAdvert* Selected() const {
+        if (!Address().empty()) {
+            std::string id;
+            if (!Collab::SessionIdForAddress(Address(), id)) {
+                return nullptr;
+            }
+            _byAddress.id = id;
+            _byAddress.hostName = Address();
+            return &_byAddress;
+        }
         int s = _list != nullptr ? _list->GetSelection() : wxNOT_FOUND;
         return s == wxNOT_FOUND || s >= (int)_sessions.size() ? nullptr : &_sessions[s];
     }
-    std::string Code() const { return _code->GetValue().Trim().Trim(false).ToStdString(); }
+    std::string Address() const { return _address != nullptr ? _address->GetValue().Trim().Trim(false).utf8_string() : std::string(); }
+    std::string Code() const { return _code->GetValue().Trim().Trim(false).utf8_string(); }
     bool Fetch() const { return _fetch->IsChecked(); }
 
 private:
     void OnOK(wxCommandEvent& e) {
         if (Selected() == nullptr) {
-            SetError("Choose a session.");
+            SetError(Address().empty() ? "Choose a session." : "Enter the address as the host shows it, like 192.168.1.20:50000.");
             return;
         }
         if (!SelectedIsGroup() && Code().size() != 6) {
@@ -228,7 +254,9 @@ private:
     wxStaticText* _error = nullptr;
     wxStaticText* _codeLabel = nullptr;
     wxTextCtrl* _code = nullptr;
+    wxTextCtrl* _address = nullptr;
     wxCheckBox* _fetch = nullptr;
+    mutable Collab::SessionAdvert _byAddress;
     std::vector<Collab::SessionAdvert> _sessions;
     std::string _groupId;
     std::string _preferred;
@@ -256,6 +284,8 @@ public:
         big.MakeBold();
         _code->SetFont(big);
         sizer->Add(_code, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 8);
+        _addresses = new wxStaticText(this, wxID_ANY, wxEmptyString);
+        sizer->Add(_addresses, 0, wxLEFT | wxRIGHT | wxBOTTOM, 8);
         _people = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(520, 140)), wxLC_REPORT | wxLC_SINGLE_SEL);
         _people->AppendColumn("Name", wxLIST_FORMAT_LEFT, FromDIP(200));
         _people->AppendColumn("Device", wxLIST_FORMAT_LEFT, FromDIP(70));
@@ -307,6 +337,9 @@ public:
         _codeLabel->Show(host && live);
         _code->Show(host && live);
         _code->SetLabel(group ? wxString("SharePlay") : wxString::FromUTF8(code));
+        const std::string& addrs = _collab.JoinAddressesText();
+        _addresses->SetLabel(wxString::FromUTF8("If the session isn't listed for someone, they can join by address: " + addrs));
+        _addresses->Show(host && live && !group && !addrs.empty());
         _end->SetLabel(host ? "End Session" : "Leave Session");
         _end->Show(live);
         _saveCopy->Show((!host || ctl.SaveAsOnly()) && !live && ctl.GetJoinReport().has_value() && ctl.GetJoinReport()->sessionCopy);
@@ -381,6 +414,7 @@ private:
     wxStaticText* _status = nullptr;
     wxStaticText* _codeLabel = nullptr;
     wxStaticText* _code = nullptr;
+    wxStaticText* _addresses = nullptr;
     wxListCtrl* _people = nullptr;
     wxImageList* _images = nullptr;
     std::vector<Collab::ParticipantId> _ids; // per list row
@@ -480,13 +514,20 @@ void DesktopCollab::CreateUI(wxMenu* fileMenu, wxMenuItem* insertAfter) {
     _fileMenu = fileMenu;
     _menu = new wxMenu();
     _hostItem = _menu->Append(wxID_ANY, "Host Session...", "Let others on this network edit the open sequence with you");
+#ifdef __WXOSX__
     _hostGroupItem = _menu->Append(wxID_ANY, GroupHostLabel(), "Edit the open sequence with the people in a FaceTime call or Messages conversation");
     _joinItem = _menu->Append(wxID_ANY, "Join Session...", "Edit a sequence someone on this network or in your SharePlay call is hosting");
+#else
+    // SharePlay is Apple-only; there is never a group network here.
+    _joinItem = _menu->Append(wxID_ANY, "Join Session...", "Edit a sequence someone on this network is hosting");
+#endif
     _menu->AppendSeparator();
     _windowItem = _menu->Append(wxID_ANY, "Session Window...");
     _endItem = _menu->Append(wxID_ANY, "End Session");
     _frame->Bind(wxEVT_MENU, [this](wxCommandEvent&) { HostSession(); }, _hostItem->GetId());
-    _frame->Bind(wxEVT_MENU, [this](wxCommandEvent&) { HostSession(true); }, _hostGroupItem->GetId());
+    if (_hostGroupItem != nullptr) {
+        _frame->Bind(wxEVT_MENU, [this](wxCommandEvent&) { HostSession(true); }, _hostGroupItem->GetId());
+    }
     // Whether a FaceTime call is active changes without telling us.
     _frame->Bind(wxEVT_MENU_OPEN, [this](wxMenuEvent& e) {
         e.Skip();
@@ -561,8 +602,10 @@ void DesktopCollab::UpdateStatus() {
     bool live = st != State::Idle && st != State::Ended;
     _hostItem->Enable(!live && _ctl->Available());
     bool group = _ctl->GroupAvailable();
-    _hostGroupItem->Enable(!live && group);
-    _hostGroupItem->SetItemLabel(group ? GroupHostLabel() : wxString("Host via SharePlay (not available)"));
+    if (_hostGroupItem != nullptr) {
+        _hostGroupItem->Enable(!live && group);
+        _hostGroupItem->SetItemLabel(group ? GroupHostLabel() : wxString("Host via SharePlay (not available)"));
+    }
     _joinItem->Enable(!live);
     _endItem->Enable(live);
     _endItem->SetItemLabel(_ctl->GetRole() == Role::Client ? "Leave Session" : "End Session");
@@ -909,6 +952,15 @@ void DesktopCollab::AfterSequenceClosed() {
     // Saving the sequence (always Save As for this copy) wrote it elsewhere,
     // so the temporary copy is never the one to keep.
     RemoveDocFolder();
+    if (!_keptSessionShow.empty()) {
+        // Kept only while the sequence used it ("Save a Copy" made the
+        // lasting copy elsewhere).
+        std::error_code ec;
+        std::filesystem::path show(_keptSessionShow);
+        _keptSessionShow.clear();
+        std::filesystem::remove_all(show, ec);
+        std::filesystem::remove(show.parent_path(), ec); // the session's folder, once empty
+    }
     if (_originalShowDir.empty()) {
         return;
     }
@@ -1041,11 +1093,19 @@ void DesktopCollab::OnSequenceChanged(const Collab::SequenceChange& c) {
     RebuildOverlay();
 }
 
+void DesktopCollab::UpdateJoinAddresses() {
+    _addressesShown.clear();
+    for (const auto& a : _ctl->HostJoinAddresses()) {
+        _addressesShown += (_addressesShown.empty() ? "" : ", ") + a;
+    }
+}
+
 void DesktopCollab::OnHostChanged(const Collab::HostChange& change) {
     if (change.becameHost) {
         // Saving, uploads and output are this device's now; the sequence
         // still lives in the session's temporary folder, so Save is Save As.
         _codeShown = _ctl->PairingCode();
+        UpdateJoinAddresses();
     }
     ShowNotice(wxString::FromUTF8(change.text), wxString(), nullptr, change.becameHost ? 30 : 15);
     UpdateStatus();
@@ -1265,6 +1325,7 @@ void DesktopCollab::HostSession(bool group) {
         return;
     }
     _codeShown = code;
+    UpdateJoinAddresses();
     StartTimer();
     ShowSessionWindow();
 }
@@ -1300,9 +1361,10 @@ void DesktopCollab::JoinSession(const std::string& preferred) {
     RestoreShowFolder();
     _sequenceName = advert.sequenceName;
     _codeShown.clear();
+    _addressesShown.clear();
     std::string error;
-    bool ok = group ? _ctl->JoinGroup(name.ToStdString(), advert.id, fetch, error)
-                    : _ctl->Join(name.ToStdString(), advert.id, code, fetch, error);
+    bool ok = group ? _ctl->JoinGroup(name.utf8_string(), advert.id, fetch, error)
+                    : _ctl->Join(name.utf8_string(), advert.id, code, fetch, error);
     if (!ok) {
         wxMessageBox(wxString::FromUTF8(error), "Join Session", wxOK | wxICON_ERROR, _frame);
         return;
@@ -1344,12 +1406,49 @@ void DesktopCollab::ShowSessionWindow() {
 }
 
 void DesktopCollab::SaveCopy() {
-    std::string folder;
-    if (_ctl->KeepSessionCopy(folder)) {
-        spdlog::info("Collab: kept the session copy of the host's show in {}", folder);
+    if (_frame->CurrentSeqXmlFile == nullptr) {
+        return;
     }
-    if (_frame->CurrentSeqXmlFile != nullptr) {
+    if (!OnSessionCopy()) {
+        // The sequence used this device's own show folder: Save As into it.
         _frame->SaveAsSequence();
+        return;
+    }
+    // The session ran on a temporary copy of the host's show, which goes
+    // with it. Keep a copy where the user chooses, as a show folder of its
+    // own with the sequence saved in it.
+    const std::vector<std::string> temporary = TemporaryFolders();
+    const std::string sessionShow = _frame->showDirectory;
+    std::string start = Collab::SessionSaveStartFolder({ wxStandardPaths::Get().GetDocumentsDir().utf8_string(), _originalShowDir }, temporary);
+    std::string target;
+    for (;;) {
+        wxDirDialog dlg(_frame, "Choose an empty folder for a copy of the host's show and this sequence", wxString::FromUTF8(start),
+                        wxDD_DEFAULT_STYLE);
+        if (dlg.ShowModal() != wxID_OK) {
+            return;
+        }
+        target = dlg.GetPath().utf8_string();
+        ObtainAccessToURL(target, true);
+        std::string refusal = Collab::ShowCopyFolderRefusal(target, temporary);
+        if (refusal.empty()) {
+            break;
+        }
+        DisplayWarning(refusal, _frame);
+    }
+    std::string error;
+    if (!Collab::CopyFolderContents(sessionShow, target, error)) {
+        DisplayError("Could not copy the host's show: " + error, _frame);
+        return;
+    }
+    // The sequence open here still reads the session's copy until it closes.
+    std::string kept;
+    if (_ctl->KeepSessionCopy(kept)) {
+        _keptSessionShow = kept;
+    }
+    const std::string name = wxFileName(wxString::FromUTF8(_frame->CurrentSeqXmlFile->GetFullPath())).GetFullName().utf8_string();
+    const std::string seqPath = (std::filesystem::path(target) / Collab::SessionSequenceFileName(name)).string();
+    if (_frame->SaveAsSequence(seqPath)) {
+        spdlog::info("Collab: kept a copy of the host's show and the sequence in {}", target);
     }
 }
 

@@ -31,17 +31,29 @@ std::string NewPairingCode() {
     return buf;
 }
 
-#ifndef __APPLE__
-std::unique_ptr<INetTransport> CreateLanTransport(Dispatcher) {
-    return nullptr;
-}
-std::unique_ptr<ISessionBrowser> CreateLanBrowser(Dispatcher) {
-    return nullptr;
-}
-bool LanTransportAvailable() {
+#ifdef __APPLE__
+bool LanJoinByAddressAvailable() {
     return false;
 }
 #endif
+
+bool SessionIdForAddress(const std::string& text, std::string& sessionId) {
+    std::string t = text;
+    while (!t.empty() && (t.back() == ' ' || t.back() == '\t')) {
+        t.pop_back();
+    }
+    size_t start = t.find_first_not_of(" \t");
+    if (start == std::string::npos) {
+        return false;
+    }
+    t = t.substr(start);
+    std::string host, port;
+    if (!Wire::SplitHostPort(t, host, port)) {
+        return false;
+    }
+    sessionId = std::string(Wire::kAddressPrefix) + host + ":" + port;
+    return true;
+}
 
 namespace Wire {
 
@@ -238,6 +250,111 @@ bool SaltFromHex(std::string_view hex, std::string& salt) {
         out.push_back((char)((hi << 4) | lo));
     }
     salt = out;
+    return true;
+}
+
+std::string SaltReply(const std::string& salt) {
+    return ServiceNameFor(salt) + "\n";
+}
+
+ListenerVerdict ListenerStateVerdict(ListenerState state, bool hasError, bool wasReady) {
+    switch (state) {
+    case ListenerState::Ready:
+        return ListenerVerdict::Listening;
+    case ListenerState::Failed:
+        return ListenerVerdict::Fail;
+    case ListenerState::Waiting:
+        return hasError && !wasReady ? ListenerVerdict::Fail : ListenerVerdict::Ignore;
+    default:
+        return ListenerVerdict::Ignore;
+    }
+}
+
+RegistrationLifetime::Action RegistrationLifetime::Stop() {
+    _stopped = true;
+    switch (_state) {
+    case State::Registered:
+        _state = State::Deregistering;
+        return Action::Deregister;
+    case State::Failed:
+        _state = State::Done;
+        return Action::Free;
+    default:
+        // Registering: acted on when it completes. Deregistering: already going.
+        return Action::None;
+    }
+}
+
+RegistrationLifetime::Action RegistrationLifetime::Completed(bool ok) {
+    switch (_state) {
+    case State::Registering:
+        if (!ok) {
+            _state = State::Failed;
+            if (_stopped) {
+                _state = State::Done;
+                return Action::Free;
+            }
+            return Action::None;
+        }
+        if (_stopped) {
+            // A deregistration sent before the registration completed is
+            // refused, so it waits until now.
+            _state = State::Deregistering;
+            return Action::Deregister;
+        }
+        _state = State::Registered;
+        return Action::None;
+    case State::Deregistering:
+        _state = State::Done;
+        return Action::Free;
+    default:
+        return Action::None;
+    }
+}
+
+RegistrationLifetime::Action RegistrationLifetime::DeregisterFailed() {
+    if (_state != State::Deregistering) {
+        return Action::None;
+    }
+    _state = State::Done;
+    return Action::Free;
+}
+
+bool SplitHostPort(std::string_view text, std::string& host, std::string& port) {
+    size_t colon = text.rfind(':');
+    if (colon == std::string_view::npos || colon == 0 || colon + 1 >= text.size()) {
+        return false;
+    }
+    std::string_view h = text.substr(0, colon);
+    std::string_view p = text.substr(colon + 1);
+    if (p.size() > 5) {
+        return false;
+    }
+    long n = 0;
+    for (char c : p) {
+        if (c < '0' || c > '9') {
+            return false;
+        }
+        n = n * 10 + (c - '0');
+    }
+    if (n < 1 || n > 65535) {
+        return false;
+    }
+    if (h.front() == '[') {
+        if (h.size() < 3 || h.back() != ']') {
+            return false;
+        }
+    } else if (h.find(':') != std::string_view::npos) {
+        // An IPv6 address needs its brackets, or the port is ambiguous.
+        return false;
+    }
+    for (char c : h) {
+        if (c == ' ' || c == '/' || c == '\\' || c == '@') {
+            return false;
+        }
+    }
+    host.assign(h);
+    port = std::to_string(n);
     return true;
 }
 

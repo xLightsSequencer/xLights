@@ -215,18 +215,26 @@ public:
         dispatch_semaphore_t started = dispatch_semaphore_create(0);
         auto outcome = std::make_shared<std::string>();
         auto settled = std::make_shared<bool>(false);
+        auto wasReady = std::make_shared<bool>(false);
         nw_listener_set_state_changed_handler(listener, ^(nw_listener_state_t st, nw_error_t err) {
           auto self = w.lock();
           if (!self || self->_closed) {
               return;
           }
-          if (st == nw_listener_state_ready) {
+          Wire::ListenerState ls = st == nw_listener_state_ready     ? Wire::ListenerState::Ready
+                                   : st == nw_listener_state_waiting ? Wire::ListenerState::Waiting
+                                   : st == nw_listener_state_failed  ? Wire::ListenerState::Failed
+                                                                     : Wire::ListenerState::Other;
+          switch (Wire::ListenerStateVerdict(ls, err != nil, *wasReady)) {
+          case Wire::ListenerVerdict::Listening:
+              *wasReady = true;
               if (!*settled) {
                   *settled = true;
                   dispatch_semaphore_signal(started);
               }
               self->SetState(NetState::Listening, "");
-          } else if (st == nw_listener_state_failed || (st == nw_listener_state_waiting && err != nil)) {
+              break;
+          case Wire::ListenerVerdict::Fail: {
               std::string why = "Could not listen for participants: " + ErrorText(err, false);
               if (!*settled) {
                   *settled = true;
@@ -234,6 +242,13 @@ public:
                   dispatch_semaphore_signal(started);
               }
               self->SetState(NetState::Failed, why);
+              break;
+          }
+          case Wire::ListenerVerdict::Ignore:
+              if (ls == Wire::ListenerState::Waiting && err != nil) {
+                  spdlog::info("collab: the session's listener is waiting for the network: {}", ErrorText(err, false));
+              }
+              break;
           }
         });
         nw_listener_set_new_connection_handler(listener, ^(nw_connection_t c) {
@@ -940,7 +955,10 @@ public:
 
     // Host migration: a fresh connection (listener or client) replaces
     // whatever is left of the old one; the old one makes no more callbacks.
-    bool SupportsMigration() const override { return true; }
+    // Only a session found under its service name can move: the successor's
+    // name is derived from that name's salt and found by browsing. One joined
+    // by address or by a direct id has neither.
+    bool SupportsMigration() const override { return _migratable; }
     bool ListenAsSuccessor(const Succession& s, const SessionAdvert& advert, std::string& error) override {
         std::string salt;
         if (!Wire::SuccessorSalt(s.sessionId, s.successor, salt)) {
@@ -948,11 +966,13 @@ public:
             return false;
         }
         Replace();
+        _migratable = true;
         return _impl->Listen(s.pairingCode, advert, error, &salt);
     }
     void ConnectToSuccessor(const Succession& s) override {
         std::string id = SuccessorSessionId(s);
         Replace();
+        _migratable = !id.empty();
         _impl->Connect(id.empty() ? std::string("-") : id, s.pairingCode);
     }
     std::string SuccessorSessionId(const Succession& s) const override {
@@ -964,8 +984,15 @@ public:
     void Send(PeerId to, const Message& m) override { _impl->Send(to, m); }
     void Broadcast(const Message& m) override { _impl->Broadcast(m); }
     void SendBlob(PeerId to, BlobId id, const std::string& path) override { _impl->SendBlob(to, id, path); }
-    bool Listen(const std::string& code, const SessionAdvert& advert, std::string& error) override { return _impl->Listen(code, advert, error); }
-    void Connect(const std::string& sessionId, const std::string& code) override { _impl->Connect(sessionId, code); }
+    bool Listen(const std::string& code, const SessionAdvert& advert, std::string& error) override {
+        _migratable = true;
+        return _impl->Listen(code, advert, error);
+    }
+    void Connect(const std::string& sessionId, const std::string& code) override {
+        std::string salt;
+        _migratable = Wire::SaltFromServiceName(sessionId, salt);
+        _impl->Connect(sessionId, code);
+    }
     void Close() override { _impl->Close(); }
     NetState State() const override { return _impl->State(); }
 
@@ -977,6 +1004,7 @@ private:
         _impl = std::make_shared<TransportImpl>(_dispatch, this);
     }
 
+    bool _migratable = false;
     Dispatcher _dispatch;
     std::shared_ptr<TransportImpl> _impl;
 };

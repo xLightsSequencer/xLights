@@ -429,7 +429,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
   </Target>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\include\klightmapper;$(MSBuildProjectDirectory)\..\dependencies\Vulkan-Headers\include;$(MSBuildProjectDirectory)\..\dependencies\volk;$(MSBuildProjectDirectory)\..\dependencies\VulkanMemoryAllocator\include;$(VULKAN_SDK)/Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\include\klightmapper;$(MSBuildProjectDirectory)\..\dependencies\mbedtls\include;$(MSBuildProjectDirectory)\..\dependencies\Vulkan-Headers\include;$(MSBuildProjectDirectory)\..\dependencies\volk;$(MSBuildProjectDirectory)\..\dependencies\VulkanMemoryAllocator\include;$(VULKAN_SDK)/Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -1052,7 +1052,11 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\collab\CollabMessages.cpp" />
     <ClCompile Include="..\src-core\collab\CollabNet.cpp" />
     <ClCompile Include="..\src-core\collab\CollabRoles.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabNetPortable.cpp" />
     <ClCompile Include="..\src-core\collab\CollabSession.cpp" />
+    <ClCompile Include="..\src-core\collab\CollabTlsClient.c" />
+    <ClCompile Include="..\src-core\collab\CollabTlsCrypto.c" />
+    <ClCompile Include="..\src-core\collab\CollabTlsServer.c" />
     <ClCompile Include="..\src-core\collab\CollabTransport.cpp" />
     <ClCompile Include="..\src-core\collab\CollabUidTable.cpp" />
     <ClCompile Include="..\src-core\render\SequenceCommands.cpp" />
@@ -1771,6 +1775,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\collab\CollabNet.h" />
     <ClInclude Include="..\src-core\collab\CollabNetWire.h" />
     <ClInclude Include="..\src-core\collab\CollabRoles.h" />
+    <ClInclude Include="..\src-core\collab\CollabTlsConfig.h" />
     <ClInclude Include="..\src-core\collab\CollabSession.h" />
     <ClInclude Include="..\src-core\collab\CollabTransport.h" />
     <ClInclude Include="..\src-core\collab\CollabUidTable.h" />

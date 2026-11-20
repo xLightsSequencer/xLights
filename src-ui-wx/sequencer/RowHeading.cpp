@@ -2820,9 +2820,9 @@ void RowHeading::render( wxPaintEvent& event )
                 dc.DrawRectangle(0, startY + DEFAULT_ROW_HEADING_HEIGHT - FromDIP(3), w, FromDIP(3));
                 if (rowInfo->layerIndex == 0 && rowInfo->nodeIndex < 0) {
                     wxFont font = dc.GetFont();
-                    wxFont small = font;
-                    small.SetPointSize(std::max(6, font.GetPointSize() - 2));
-                    dc.SetFont(small);
+                    wxFont smallFont = font; // "small" is a macro on Windows (rpcndr.h)
+                    smallFont.SetPointSize(std::max(6, font.GetPointSize() - 2));
+                    dc.SetFont(smallFont);
                     wxString who = wxString::FromUTF8(as->second.mine ? std::string("you") : as->second.name);
                     wxSize ts = dc.GetTextExtent(who);
                     dc.SetTextForeground(c);

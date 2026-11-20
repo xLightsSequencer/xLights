@@ -5,6 +5,43 @@
 #   SRC_CORE      - every src-core .cpp (minus the ones other platforms/libs exclude)
 #   SRC_VULKAN    - the Vulkan compute/graphics backend; the includer adds it (Linux/Windows only)
 #   LIBUSB_*      - libusb detection result; uDMXOutput is dropped when absent
+#   XL_MBEDTLS_INC  - Mbed TLS headers; every target that compiles SRC_CORE
+#                    needs them on its include path
+#   XL_MBEDTLS_DEFS - compile definitions those targets need
+#   XL_MBEDTLS_LIBS - libraries those targets link (empty for the submodule)
+
+# The LAN collaboration transport (src-core/collab/CollabNetPortable.cpp) uses
+# Mbed TLS. By default it is compiled from the dependencies/mbedtls submodule
+# (src-core/collab/CollabTls*.c); XL_SYSTEM_MBEDTLS uses an installed one
+# instead (2.28 from the distro, or 3.x), with its default configuration.
+option(XL_SYSTEM_MBEDTLS "Link an installed Mbed TLS instead of building dependencies/mbedtls" OFF)
+if(XL_SYSTEM_MBEDTLS)
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(XL_PC_MBEDTLS QUIET mbedtls mbedx509 mbedcrypto)
+    endif()
+    if(XL_PC_MBEDTLS_FOUND)
+        set(XL_MBEDTLS_INC ${XL_PC_MBEDTLS_INCLUDE_DIRS})
+        set(XL_MBEDTLS_LIBS ${XL_PC_MBEDTLS_LINK_LIBRARIES})
+    else()
+        # Not every Mbed TLS package ships pkg-config files.
+        find_path(XL_MBEDTLS_INCLUDE_DIR mbedtls/ssl.h)
+        find_library(XL_MBEDTLS_LIB mbedtls)
+        find_library(XL_MBEDX509_LIB mbedx509)
+        find_library(XL_MBEDCRYPTO_LIB mbedcrypto)
+        if(NOT XL_MBEDTLS_INCLUDE_DIR OR NOT XL_MBEDTLS_LIB OR NOT XL_MBEDX509_LIB OR NOT XL_MBEDCRYPTO_LIB)
+            message(FATAL_ERROR "XL_SYSTEM_MBEDTLS: Mbed TLS not found (Debian/Ubuntu: apt install libmbedtls-dev)")
+        endif()
+        set(XL_MBEDTLS_INC ${XL_MBEDTLS_INCLUDE_DIR})
+        set(XL_MBEDTLS_LIBS ${XL_MBEDTLS_LIB} ${XL_MBEDX509_LIB} ${XL_MBEDCRYPTO_LIB})
+    endif()
+    set(XL_MBEDTLS_DEFS XL_MBEDTLS_EXTERNAL)
+    message(STATUS "Mbed TLS: installed (${XL_MBEDTLS_LIBS})")
+else()
+    set(XL_MBEDTLS_INC ${XL_SRC_ROOT}/dependencies/mbedtls/include)
+    set(XL_MBEDTLS_DEFS "")
+    set(XL_MBEDTLS_LIBS "")
+endif()
 
 # Core (wx-free)
 file(GLOB_RECURSE SRC_CORE
@@ -12,6 +49,7 @@ file(GLOB_RECURSE SRC_CORE
     ${XL_SRC_ROOT}/src-core/ai/*.cpp
     ${XL_SRC_ROOT}/src-core/cad/*.cpp
     ${XL_SRC_ROOT}/src-core/collab/*.cpp
+    ${XL_SRC_ROOT}/src-core/collab/CollabTls*.c
     ${XL_SRC_ROOT}/src-core/controllers/*.cpp
 	${XL_SRC_ROOT}/src-core/diagnostics/*.cpp
     ${XL_SRC_ROOT}/src-core/discovery/*.cpp

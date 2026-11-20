@@ -126,12 +126,16 @@ target_include_directories(xlights_core PUBLIC
     ${XL_REPO_ROOT}/dependencies/pugixml/src
     ${XL_REPO_ROOT}/dependencies/midifile/include
     ${XL_REPO_ROOT}/dependencies/liquidfun/liquidfun/Box2D
+    ${XL_MBEDTLS_INC}
     ${FFMPEG_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIRS}
     ${ZSTD_INCLUDE_DIRS}
     ${MINIZIP_INCLUDE_DIRS}
     ${LUA_INCLUDE_DIR})
-target_compile_definitions(xlights_core PUBLIC IGNORE_VENDORS wxUSE_WEBP XLIGHTS_CMAKE_BUILD NOMINMAX)
+target_compile_definitions(xlights_core PUBLIC IGNORE_VENDORS wxUSE_WEBP XLIGHTS_CMAKE_BUILD NOMINMAX ${XL_MBEDTLS_DEFS})
+if(XL_MBEDTLS_LIBS)
+    target_link_libraries(xlights_core PUBLIC ${XL_MBEDTLS_LIBS})
+endif()
 if(NOT MSVC)
     target_compile_options(xlights_core PRIVATE
         $<$<COMPILE_LANGUAGE:CXX,C>:-w>)   # the root build silences the same warnings; keep test logs readable
