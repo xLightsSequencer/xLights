@@ -114,6 +114,16 @@ bool ReadState(const json& j, MediaEntryState& s) {
     return true;
 }
 
+// The media cache also holds entries created on first access (when a sequence
+// is loaded or rendered, for files effects reference). Only embedded entries
+// are saved with the sequence, so a path-only entry is a local cache of a file,
+// not document state. Edits that land on a key held only by such an entry
+// replace it rather than failing.
+bool IsLocalCacheEntry(const SequenceMedia& media, const std::string& key) {
+    auto st = media.GetEntryState(key);
+    return st && !st->embedded;
+}
+
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -136,7 +146,7 @@ CommandResult PutMediaCommand::Validate(const SequenceElements& seq, ApplyMode m
             return CommandResult::Fail(CommandStatus::Invalid, "embedded media without data");
         }
         auto cur = seq.GetSequenceMedia().GetEntryState(_state.key);
-        if (cur && cur->type != _state.type) {
+        if (cur && cur->type != _state.type && cur->embedded) {
             return CommandResult::Fail(CommandStatus::Invalid, "media key already holds another type");
         }
     }
@@ -150,6 +160,10 @@ std::unique_ptr<SequenceCommand> PutMediaCommand::ApplyImpl(SequenceElements& se
     }
     SequenceMedia& media = seq.GetSequenceMedia();
     std::optional<MediaEntryState> prior = media.GetEntryState(_state.key);
+    if (prior && prior->type != _state.type && !prior->embedded) {
+        media.RemoveMedia(_state.key); // a local cache entry of another type; re-created on access
+        prior.reset();
+    }
     bool changed = false;
     if (!media.PutEntry(_state, &changed)) {
         return Fail(result, CommandResult::Fail(CommandStatus::Invalid, "media entry not stored"));
@@ -229,7 +243,7 @@ CommandResult RenameMediaCommand::Validate(const SequenceElements& seq, ApplyMod
         if (!media.HasMedia(_from)) {
             return CommandResult::Fail(CommandStatus::TargetMissing, "media entry not found");
         }
-        if (media.HasMedia(_to)) {
+        if (media.HasMedia(_to) && !IsLocalCacheEntry(media, _to)) {
             return CommandResult::Fail(CommandStatus::Invalid, "media key already in use");
         }
     }
@@ -240,6 +254,9 @@ std::unique_ptr<SequenceCommand> RenameMediaCommand::ApplyImpl(SequenceElements&
     CommandResult r = Validate(seq, mode);
     if (!r.Ok()) {
         return Fail(result, r);
+    }
+    if (_moveEntry && IsLocalCacheEntry(seq.GetSequenceMedia(), _to)) {
+        seq.GetSequenceMedia().RemoveMedia(_to);
     }
     if (_moveEntry && !seq.GetSequenceMedia().RenameMedia(_from, _to)) {
         return Fail(result, CommandResult::Fail(CommandStatus::Invalid, "media entry not renamed"));
@@ -324,7 +341,7 @@ std::unique_ptr<BatchCommand> BuildRenameMedia(const SequenceElements& seq, cons
     }
     const SequenceMedia& media = seq.GetSequenceMedia();
     bool hasFrom = media.HasMedia(from);
-    if (media.HasMedia(to)) {
+    if (media.HasMedia(to) && !IsLocalCacheEntry(media, to)) {
         if (!mergeIfTaken) {
             return batch;
         }
