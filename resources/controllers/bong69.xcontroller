@@ -1,0 +1,17 @@
+<Vendor Name="Bong 69">
+	<Controller Name="HUB75 Bridge">
+		<Variant Name="">
+			<DDPStartsAtOne/>
+			<MaxPixelPort>0</MaxPixelPort>
+			<MaxSerialPort>0</MaxSerialPort>
+			<MaxPixelPortChannels>0</MaxPixelPortChannels>
+			<MaxSerialPortChannels>0</MaxSerialPortChannels>
+			<MaxDDPChannels>786432</MaxDDPChannels>
+			<PixelProtocols/>
+			<SerialProtocols/>
+			<InputProtocols>
+				<Protocol>ddp</Protocol>
+			</InputProtocols>
+		</Variant>
+	</Controller>
+</Vendor>
