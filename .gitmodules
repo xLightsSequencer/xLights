@@ -35,3 +35,6 @@
 [submodule "dependencies/Catch2"]
 	path = dependencies/Catch2
 	url = https://github.com/catchorg/Catch2.git
+[submodule "dependencies/llm-retry"]
+	path = dependencies/llm-retry
+	url = https://github.com/Mattbusel/llm-retry.git

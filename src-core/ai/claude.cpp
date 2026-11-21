@@ -3,6 +3,8 @@
 
 #include "utils/CurlManager.h"
 #include "utils/UtilFunctions.h"
+#define LLM_RETRY_IMPLEMENTATION
+#include "../../dependencies/llm-retry/include/llm_retry.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -94,7 +96,17 @@ static std::pair<std::string, bool> CallAnthropicAPI(const std::string& base_url
     spdlog::debug("{}: {}", serviceName, request);
 
     int responseCode = 0;
-    std::string response = CurlManager::HTTPSPost(base_url + "/messages", request, "", "", "JSON", 120, customHeaders, &responseCode);
+    std::string response;
+    try {
+        // 429 rate limits, 529 overloads and 5xx are transient: back off and retry.
+        llm::with_retry<std::string>([&]() {
+            response = CurlManager::HTTPSPost(base_url + "/messages", request, "", "", "JSON", 120, customHeaders, &responseCode);
+            if (responseCode != 200) throw llm::LLMError{ responseCode, response, true };
+            return response;
+        });
+    } catch (const llm::LLMError&) {
+        // Not retryable or out of attempts: the last response is handled below.
+    }
 
     spdlog::debug("{} Response {}: {}", serviceName, responseCode, response);
 
