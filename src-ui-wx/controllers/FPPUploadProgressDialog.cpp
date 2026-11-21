@@ -6,6 +6,7 @@
 #include <wx/splitter.h>
 #include <wx/treectrl.h>
 
+#include "settings/XLightsConfigAdapter.h"
 #include "shared/utils/wxUtilities.h"
 
 #include <algorithm>
@@ -65,6 +66,10 @@ FPPUploadProgressDialog::FPPUploadProgressDialog(wxWindow* parent,wxWindowID id)
 FPPUploadProgressDialog::~FPPUploadProgressDialog()
 {
     _elapsedTimer.Stop();
+    // Only remember a divider the user dragged; the default depends on the controller count.
+    if (_splitter != nullptr && _sashMoved && _splitter->IsSplit()) {
+        GetXLightsConfig()->Write("FPPUploadProgressSashPosition", (long)ToDIP(_splitter->GetSashPosition()));
+    }
     //(*Destroy(FPPUploadProgressDialog)
     //*)
 }
@@ -127,9 +132,14 @@ void FPPUploadProgressDialog::setSequences(const std::vector<std::string>& names
     _sequenceHeader = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_MIDDLE);
     _sequenceHeader->SetFont(_sequenceHeader->GetFont().Bold().Larger());
     // Gauges above, completed list below, with a draggable divider; extra height goes to the list.
-    auto* splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3DSASH | wxSP_LIVE_UPDATE);
+    auto* splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D | wxSP_3DSASH | wxSP_LIVE_UPDATE);
+    _splitter = splitter;
     splitter->SetMinimumPaneSize(FromDIP(40));
     splitter->SetSashGravity(0.0);
+    splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, [this](wxSplitterEvent& event) {
+        _sashMoved = true;
+        event.Skip();
+    });
     sizer->Replace(scrolledWindow, splitter);
     scrolledWindow->Reparent(splitter);
 
@@ -145,8 +155,16 @@ void FPPUploadProgressDialog::setSequences(const std::vector<std::string>& names
     completedPanel->SetSizer(completedSizer);
     _overallLabel = new wxStaticText(this, wxID_ANY, wxEmptyString);
 
-    const int gaugeRows = std::clamp((int)scrolledWindowSizer->GetItemCount() / 2, 1, 6);
-    const int gaugeHeight = gaugeRows * FromDIP(28);
+    // Size the gauge pane from the real row height (up to 6 rows, then it scrolls),
+    // or the divider the user last dragged, but never taller than the gauges need.
+    const int gaugeCount = std::max(1, (int)scrolledWindowSizer->GetItemCount() / 2);
+    const int contentHeight = std::max(scrolledWindowSizer->GetMinSize().GetHeight(), FromDIP(28));
+    int gaugeHeight = (contentHeight / gaugeCount) * std::min(gaugeCount, 6);
+    const long savedSash = GetXLightsConfig()->ReadLong("FPPUploadProgressSashPosition", 0);
+    if (savedSash > 0) {
+        gaugeHeight = std::min(FromDIP((int)savedSash), contentHeight);
+    }
+    gaugeHeight = std::max(gaugeHeight, FromDIP(40));
     scrolledWindow->SetMinSize(wxSize(scrolledWindow->GetMinSize().GetWidth(), FromDIP(40)));
     splitter->SetMinSize(wxSize(-1, gaugeHeight + FromDIP(200)));
     splitter->SplitHorizontally(scrolledWindow, completedPanel, gaugeHeight);

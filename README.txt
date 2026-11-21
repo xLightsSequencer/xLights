@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -enh (heffneil)              FPP Connect upload window: draggable divider between the controller gauges and
+                                 the Completed list; extra window height goes to the list
     -bug (dkulp)                 Bulk editing a setting could crash when a submodel or strand row held effects of
                                  an unknown type; those effects are now dropped on load as they are on model rows
     -bug (dkulp)                 Reading a sparse FSEQ into a buffer sized by its channel count (HinksPix export)
