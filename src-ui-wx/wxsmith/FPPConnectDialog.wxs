@@ -113,7 +113,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-					<cols>6</cols>
+					<cols>7</cols>
 					<growablecols>1</growablecols>
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
@@ -131,6 +131,17 @@
 							<handler function="OnAddFPPButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_ONLY_LISTED" variable="CheckBox_OnlyListed" member="yes">
+							<label>Only My Controllers</label>
+							<checked>1</checked>
+							<tooltip>Only contact the controllers on the Controllers tab and FPP instances added with Add FPP, instead of searching the network for every FPP.</tooltip>
+							<handler function="OnCheckBox_OnlyListedClick" entry="EVT_CHECKBOX" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
