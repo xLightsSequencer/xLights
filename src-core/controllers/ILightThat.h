@@ -20,6 +20,14 @@ private:
 
     int _model_test_default_col_idx = 0;
 
+    // The model settings the board's firmware applies, from GET /api/board/info
+    struct BoardCapabilities {
+        bool grouping = false;
+        bool nulls = false;
+        bool zigzag = false;
+    };
+    bool GetBoardCapabilities(BoardCapabilities& caps, std::string& error) const;
+
 public:
 #pragma region Constructors and Destructors
     ILightThat(const std::string& ip, const std::string& proxy);

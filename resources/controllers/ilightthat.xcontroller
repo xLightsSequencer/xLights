@@ -27,26 +27,37 @@
         </SerialProtocols>
         <ConfigDriver>ILightThat</ConfigDriver>
     </AbstractVariant>
+    <AbstractVariant Name="BasePixelBaldrickSettings" Base="ILightThat:BaseBaldrickSettings">
+        <SupportsPixelPortGrouping/>
+        <MinGroup>1</MinGroup>
+        <MaxGroup>255</MaxGroup>
+        <SupportsPixelPortNullPixels/>
+        <MaxStartNulls>63</MaxStartNulls>
+        <SupportsPixelPortEndNullPixels/>
+        <MaxEndNulls>63</MaxEndNulls>
+        <SupportsPixelZigZag/>
+        <MaxZigZag>750</MaxZigZag>
+    </AbstractVariant>
     <Controller Name="Baldrick 8 Port v1">
-		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+		<Variant Name="" Base="ILightThat:BasePixelBaldrickSettings">
 			<MaxPixelPort>8</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 		</Variant>
     </Controller>
     <Controller Name="Baldrick8">
-		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+		<Variant Name="" Base="ILightThat:BasePixelBaldrickSettings">
 			<MaxPixelPort>8</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 		</Variant>
 	</Controller>
     <Controller Name="Baldrick17">
-		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+		<Variant Name="" Base="ILightThat:BasePixelBaldrickSettings">
 			<MaxPixelPort>17</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 		</Variant>
 	</Controller>
     <Controller Name="BaldrickInput8">
-		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+		<Variant Name="" Base="ILightThat:BasePixelBaldrickSettings">
 			<MaxPixelPort>2</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 		</Variant>
@@ -67,13 +78,13 @@
 		</Variant>
 	</Controller>
 	<Controller Name="BaldrickEmbed">
-		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+		<Variant Name="" Base="ILightThat:BasePixelBaldrickSettings">
 			<MaxPixelPort>1</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 		</Variant>
 	</Controller>
 	<Controller Name="BaldrickScene">
-		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+		<Variant Name="" Base="ILightThat:BasePixelBaldrickSettings">
 			<MaxPixelPort>2</MaxPixelPort>
 			<MaxSerialPort>4</MaxSerialPort>
 			<MaxSerialPortChannels>3</MaxSerialPortChannels>

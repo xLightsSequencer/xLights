@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -enh (PeteMatthews)          ILightThat controllers: upload grouping, zig zag and start/end null pixels,
+                                 refusing settings the board's firmware does not support
     -bug (dkulp)                 iPad - A deleted model no longer comes back after saving the layout
     -bug (dkulp)                 SingleStrand FX with exactly 6 colours on the Default or "* Color Gradient"
                                  palette could crash, and drew its gradient without colour 5

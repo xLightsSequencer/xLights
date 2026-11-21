@@ -577,8 +577,19 @@ inline const char* kCaps_ilightthat = R"XML(<Vendor Name="ILightThat">
         </SerialProtocols>
         <ConfigDriver>ILightThat</ConfigDriver>
     </AbstractVariant>
+    <AbstractVariant Name="BasePixelBaldrickSettings" Base="ILightThat:BaseBaldrickSettings">
+        <SupportsPixelPortGrouping/>
+        <MinGroup>1</MinGroup>
+        <MaxGroup>255</MaxGroup>
+        <SupportsPixelPortNullPixels/>
+        <MaxStartNulls>63</MaxStartNulls>
+        <SupportsPixelPortEndNullPixels/>
+        <MaxEndNulls>63</MaxEndNulls>
+        <SupportsPixelZigZag/>
+        <MaxZigZag>750</MaxZigZag>
+    </AbstractVariant>
     <Controller Name="Baldrick8">
-		<Variant Name="" Base="ILightThat:BaseBaldrickSettings">
+		<Variant Name="" Base="ILightThat:BasePixelBaldrickSettings">
 			<MaxPixelPort>8</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 		</Variant>
