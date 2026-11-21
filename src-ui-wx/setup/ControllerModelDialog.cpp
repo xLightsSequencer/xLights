@@ -3806,7 +3806,75 @@ bool CloseTo(const wxPoint& p1, const wxPoint& p2)
 
 void ControllerModelDialog::DropFromController(const wxPoint& location, const std::string& name, wxPanel* target)
 {
-    
+
+
+    if (StartsWith(name, "PORT:")) {
+        // this is a port label being dropped - move every model on it
+
+        auto dr = dynamic_cast<PortCMObject*>(GetDragging());
+        if (dr == nullptr) {
+            _lastDropped = nullptr;
+            return;
+        }
+
+        if (target == PanelModels) {
+            // dropped on the models pool - remove every model on the port from the controller
+            UDControllerPort* from = dr->GetUDPort();
+            if (from != nullptr) {
+                for (const auto& it : from->GetModels()) {
+                    it->GetModel()->SetModelChain("");
+                    if (it->GetModel()->GetControllerName() != "") {
+                        it->GetModel()->SetControllerName(NO_CONTROLLER);
+                    }
+                    it->GetModel()->SetControllerPort(0);
+                }
+
+                while (!_xLights->DoAllWork()) {
+                    // dont get into a redraw loop from here
+                    _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+                }
+                ReloadModels();
+            }
+            _lastDropped = nullptr;
+        } else {
+            auto port = GetControllerPortAtLocation(location);
+            if (port != nullptr && port->GetPortType() == dr->GetPortType() && port->GetPort() != dr->GetPort()) {
+                spdlog::debug("Port {} dropped onto port {} - moving all its models.", dr->GetPort(), port->GetPort());
+
+                UDControllerPort* from = dr->GetUDPort();
+                UDControllerPort* to = port->GetUDPort();
+                if (from != nullptr && to != nullptr) {
+                    auto last = to->GetLastModel();
+                    bool first = true;
+                    for (const auto& it : from->GetModels()) {
+                        if (first) {
+                            it->GetModel()->SetModelChain("");
+                            first = false;
+                            if (last != nullptr) {
+                                it->GetModel()->SetModelChain(last->GetName());
+                            }
+                        }
+                        it->GetModel()->SetControllerPort(to->GetPort());
+                    }
+                }
+            }
+
+            if (port != nullptr)
+                port->SetOver(BaseCMObject::HITLOCATION::NONE);
+
+            while (!_xLights->DoAllWork()) {
+                // dont get into a redraw loop from here
+                _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+            }
+            ReloadModels();
+        }
+
+        _dragStartLocation = wxPoint(-99999, -99999);
+
+        ClearOver(PanelController, _controllers);
+
+        return;
+    }
 
     if (StartsWith(name, "SR:")) {
         // this is a SR being dropped
@@ -4140,8 +4208,46 @@ void ControllerModelDialog::OnPanelControllerLeftDown(wxMouseEvent& event)
 
     wxPoint mouse = event.GetPosition();
 
-    if (mouse.x < portMargin)
+    if (mouse.x < portMargin) {
+        // clicked on the port label itself (not a model tile) - dragging it
+        // elsewhere moves every model on the port, not just one
+        wxPoint adjustedMouse = mouse + GetScrollPosition(PanelController);
+        auto port = GetControllerPortAtLocation(adjustedMouse);
+        if (port != nullptr) {
+            _dragStartLocation = adjustedMouse;
+
+            wxTextDataObject dragData("Controller:PORT:" + std::to_string(port->GetPort()));
+
+            wxBitmap bmp(32, 32);
+            wxMemoryDC dc;
+            dc.SelectObject(bmp);
+            port->Draw(dc, portMargin, wxPoint(-4, -4), wxPoint(-4, -4), wxSize(-1 * port->GetRect().GetLeft(), -1 * port->GetRect().GetTop()), 1, false, false, _lastDropped, "");
+
+#ifdef __linux__
+            wxIcon dragCursor;
+            dragCursor.CopyFromBitmap(bmp.ConvertToImage());
+#else
+            wxCursor dragCursor(bmp.ConvertToImage());
+#endif
+
+            wxDropSource dragSource(this, dragCursor, dragCursor, dragCursor);
+
+            if (PanelController->GetToolTipText() != "") {
+                PanelController->SetToolTip("");
+            }
+            if (PanelModels->GetToolTipText() != "") {
+                PanelModels->SetToolTip("");
+            }
+
+            _dragging = port;
+
+            dragSource.SetData(dragData);
+            dragSource.DoDragDrop(wxDragMove);
+
+            _dragging = nullptr;
+        }
         return;
+    }
 
     mouse += GetScrollPosition(PanelController);
 
