@@ -18,6 +18,7 @@
 #include "../outputs/DDPOutput.h"
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
+#include "../render/UICallbacks.h"
 
 #include <algorithm>
 #include <chrono>
