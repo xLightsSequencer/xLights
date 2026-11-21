@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -enh (heffneil)              FPP Connect upload window: draggable divider between the controller gauges and
+                                 the Completed list; extra window height goes to the list
     -bug (dkulp)                 iPad - A deleted model no longer comes back after saving the layout
     -bug (dkulp)                 SingleStrand FX with exactly 6 colours on the Default or "* Color Gradient"
                                  palette could crash, and drew its gradient without colour 5

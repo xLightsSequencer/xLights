@@ -1,9 +1,12 @@
 #include "FPPUploadProgressDialog.h"
 
 #include <wx/gauge.h>
+#include <wx/panel.h>
 #include <wx/settings.h>
+#include <wx/splitter.h>
 #include <wx/treectrl.h>
 
+#include "settings/XLightsConfigAdapter.h"
 #include "shared/utils/wxUtilities.h"
 
 #include <algorithm>
@@ -63,6 +66,10 @@ FPPUploadProgressDialog::FPPUploadProgressDialog(wxWindow* parent,wxWindowID id)
 FPPUploadProgressDialog::~FPPUploadProgressDialog()
 {
     _elapsedTimer.Stop();
+    // Only remember a divider the user dragged; the default depends on the controller count.
+    if (_splitter != nullptr && _sashMoved && _splitter->IsSplit()) {
+        GetXLightsConfig()->Write("FPPUploadProgressSashPosition", (long)ToDIP(_splitter->GetSashPosition()));
+    }
     //(*Destroy(FPPUploadProgressDialog)
     //*)
 }
@@ -124,23 +131,50 @@ void FPPUploadProgressDialog::setSequences(const std::vector<std::string>& names
 
     _sequenceHeader = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_MIDDLE);
     _sequenceHeader->SetFont(_sequenceHeader->GetFont().Bold().Larger());
-    _completedLabel = new wxStaticText(this, wxID_ANY, wxEmptyString);
-    _completedTree = new wxTreeCtrl(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(520, 160)),
+    // Gauges above, completed list below, with a draggable divider; extra height goes to the list.
+    auto* splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D | wxSP_3DSASH | wxSP_LIVE_UPDATE);
+    _splitter = splitter;
+    splitter->SetMinimumPaneSize(FromDIP(40));
+    splitter->SetSashGravity(0.0);
+    splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, [this](wxSplitterEvent& event) {
+        _sashMoved = true;
+        event.Skip();
+    });
+    sizer->Replace(scrolledWindow, splitter);
+    scrolledWindow->Reparent(splitter);
+
+    auto* completedPanel = new wxPanel(splitter, wxID_ANY);
+    _completedLabel = new wxStaticText(completedPanel, wxID_ANY, wxEmptyString);
+    _completedTree = new wxTreeCtrl(completedPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                                     wxTR_DEFAULT_STYLE | wxTR_HIDE_ROOT | wxTR_SINGLE);
+    _completedTree->SetMinSize(FromDIP(wxSize(520, 80)));
     _completedTree->AddRoot(wxEmptyString);
+    auto* completedSizer = new wxBoxSizer(wxVERTICAL);
+    completedSizer->Add(_completedLabel, 0, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, 5);
+    completedSizer->Add(_completedTree, 1, wxALL | wxEXPAND, 5);
+    completedPanel->SetSizer(completedSizer);
     _overallLabel = new wxStaticText(this, wxID_ANY, wxEmptyString);
 
-    // Rows: header, action, controller gauges, completed label, completed tree, overall, buttons.
+    // Size the gauge pane from the real row height (up to 6 rows, then it scrolls),
+    // or the divider the user last dragged, but never taller than the gauges need.
+    const int gaugeCount = std::max(1, (int)scrolledWindowSizer->GetItemCount() / 2);
+    const int contentHeight = std::max(scrolledWindowSizer->GetMinSize().GetHeight(), FromDIP(28));
+    int gaugeHeight = (contentHeight / gaugeCount) * std::min(gaugeCount, 6);
+    const long savedSash = GetXLightsConfig()->ReadLong("FPPUploadProgressSashPosition", 0);
+    if (savedSash > 0) {
+        gaugeHeight = std::min(FromDIP((int)savedSash), contentHeight);
+    }
+    gaugeHeight = std::max(gaugeHeight, FromDIP(40));
+    scrolledWindow->SetMinSize(wxSize(scrolledWindow->GetMinSize().GetWidth(), FromDIP(40)));
+    splitter->SetMinSize(wxSize(-1, gaugeHeight + FromDIP(200)));
+    splitter->SplitHorizontally(scrolledWindow, completedPanel, gaugeHeight);
+
+    // Rows: header, action, gauges/completed splitter, overall, buttons.
     sizer->SetRows(0);
     sizer->RemoveGrowableRow(1);
     sizer->Insert(0, _sequenceHeader, 0, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, 5);
-    sizer->Insert(3, _completedLabel, 0, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, 5);
-    sizer->Insert(4, _completedTree, 1, wxALL | wxEXPAND, 5);
-    sizer->Insert(5, _overallLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
+    sizer->Insert(3, _overallLabel, 0, wxLEFT | wxRIGHT | wxEXPAND, 5);
     sizer->AddGrowableRow(2, 1);
-    sizer->AddGrowableRow(4, 1);
-    const int gaugeRows = std::clamp((int)scrolledWindowSizer->GetItemCount() / 2, 1, 6);
-    scrolledWindow->SetMinSize(wxSize(scrolledWindow->GetMinSize().GetWidth(), gaugeRows * FromDIP(28)));
 
     _totalTime.Start();
     _elapsedTimer.Start(1000);
