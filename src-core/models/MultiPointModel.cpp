@@ -229,3 +229,13 @@ void MultiPointModel::NormalizePointData()
     }
     return point_data;
 }*/
+
+bool MultiPointModel::ApplyStringLayout(int strings, const std::vector<int>& startNodes)
+{
+    _strings = strings;
+    _hasIndivNodes = strings > 1 && (int)startNodes.size() == strings;
+    if (_hasIndivNodes) {
+        _indivStartNodes = startNodes;
+    }
+    return true;
+}
